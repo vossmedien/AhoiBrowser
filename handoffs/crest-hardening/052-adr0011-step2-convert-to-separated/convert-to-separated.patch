@@ -1,0 +1,916 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/BUILD.gn b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+index 4b5672d..e224c8e 100644
+--- a/overlay/chromium/src/ahoi/browser/session/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+@@ -73,6 +73,7 @@ source_set("isolated_profiles") {
+   deps = [
+     ":group_page_close",
+     ":session_bridge_api",
++    ":workspace_portability",
+     "//chrome/browser:browser_process",
+     "//chrome/browser/profiles:profile",
+     "//chrome/browser/profiles:profile_manager",
+@@ -183,6 +184,7 @@ source_set("session") {
+     "session_bridge_structure_persistence.cc",
+     "session_bridge_sync_persistence.cc",
+     "session_bridge_workspace.cc",
++    "session_bridge_workspace_conversion.cc",
+     "session_bridge_website_session_removal.cc",
+     "workspace_service_factory.cc",
+     "workspace_service_factory.h",
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc b/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc
+index 9ffc863..8a6ffac 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc
+@@ -3,9 +3,11 @@
+ 
+ #include "ahoi/browser/session/isolated_profile_creation.h"
+ 
++#include <map>
+ #include <memory>
+ #include <set>
+ #include <string>
++#include <tuple>
+ #include <utility>
+ #include <vector>
+ 
+@@ -18,6 +20,7 @@
+ #include "base/functional/bind.h"
+ #include "base/functional/callback.h"
+ #include "base/logging.h"
++#include "base/no_destructor.h"
+ #include "base/task/single_thread_task_runner.h"
+ #include "base/task/thread_pool.h"
+ #include "base/time/time.h"
+@@ -72,16 +75,19 @@ void OnIsolatedProfileInitialized(std::string dir,
+ 
+ }  // namespace
+ 
+-void CreateIsolatedWorkspace(std::u16string name,
+-                             std::u16string icon,
+-                             std::optional<uint32_t> accent_argb,
+-                             std::string sort_key,
+-                             base::OnceCallback<void(bool)> done) {
++namespace {
++
++// Registers `entry` (its directory is chosen here) and creates the Profile
++// and its window. Returns the directory, or nullopt when registration failed;
++// `done` has then run with false.
++std::optional<std::string> RegisterAndCreateIsolatedProfile(
++    IsolatedProfileEntry entry,
++    base::OnceCallback<void(bool)> done) {
+   ProfileManager* profile_manager = g_browser_process->profile_manager();
+   PrefService* local_state = g_browser_process->local_state();
+-  if (!profile_manager || !local_state || name.empty()) {
++  if (!profile_manager || !local_state || entry.name.empty()) {
+     std::move(done).Run(false);
+-    return;
++    return std::nullopt;
+   }
+   ProfileAttributesStorage& storage =
+       profile_manager->GetProfileAttributesStorage();
+@@ -94,18 +100,10 @@ void CreateIsolatedWorkspace(std::u16string name,
+ 
+   // Registered and committed before the Profile exists, so its SessionBridge
+   // seeds this Workspace and a crash leaves only a sweepable entry.
+-  const IsolatedProfileEntry entry{
+-      .profile_dir = DirName(path),
+-      .workspace_id = base::Uuid::GenerateRandomV4(),
+-      .name = name,
+-      .icon = std::move(icon),
+-      .accent_argb = accent_argb,
+-      .state = IsolatedProfileState::kCreating,
+-      .sort_key = std::move(sort_key),
+-  };
++  entry.profile_dir = DirName(path);
+   if (!AddIsolatedProfile(local_state, entry)) {
+     std::move(done).Run(false);
+-    return;
++    return std::nullopt;
+   }
+   local_state->CommitPendingWrite();
+ 
+@@ -113,7 +111,7 @@ void CreateIsolatedWorkspace(std::u16string name,
+   // start. The Workspace name doubles as the Profile name.
+   ProfileAttributesInitParams init_params;
+   init_params.profile_path = path;
+-  init_params.profile_name = std::move(name);
++  init_params.profile_name = entry.name;
+   init_params.icon_index = 0;
+   storage.AddProfile(std::move(init_params));
+ 
+@@ -137,6 +135,74 @@ void CreateIsolatedWorkspace(std::u16string name,
+                                          std::move(dir), std::move(done)));
+               },
+               path, entry.profile_dir, std::move(done))));
++  return entry.profile_dir;
++}
++
++// Conversions waiting for their new Profile's SessionBridge, by directory.
++// In memory only: a restart interrupts the conversion, and the sweep or the
++// Profile's own bridge then deletes the half-converted Profile.
++std::map<std::string, PendingWorkspaceConversion>& PendingConversions() {
++  static base::NoDestructor<std::map<std::string, PendingWorkspaceConversion>>
++      pending;
++  return *pending;
++}
++
++}  // namespace
++
++void CreateIsolatedWorkspace(std::u16string name,
++                             std::u16string icon,
++                             std::optional<uint32_t> accent_argb,
++                             std::string sort_key,
++                             base::OnceCallback<void(bool)> done) {
++  std::ignore = RegisterAndCreateIsolatedProfile(
++      IsolatedProfileEntry{
++          .workspace_id = base::Uuid::GenerateRandomV4(),
++          .name = std::move(name),
++          .icon = std::move(icon),
++          .accent_argb = accent_argb,
++          .state = IsolatedProfileState::kCreating,
++          .sort_key = std::move(sort_key),
++      },
++      std::move(done));
++}
++
++void ConvertToIsolatedWorkspace(const IsolatedProfileEntry& presentation,
++                                PendingWorkspaceConversion pending) {
++  IsolatedProfileEntry entry = presentation;
++  entry.profile_dir.clear();
++  entry.state = IsolatedProfileState::kConverting;
++  auto dir = std::make_shared<std::string>();
++  const std::optional<std::string> created = RegisterAndCreateIsolatedProfile(
++      std::move(entry),
++      base::BindOnce(
++          [](std::shared_ptr<std::string> dir, bool created) {
++            if (created) {
++              return;  // The new Profile's SessionBridge imports and reports.
++            }
++            if (std::optional<PendingWorkspaceConversion> failed =
++                    TakePendingWorkspaceConversion(*dir)) {
++              std::move(failed->done).Run(false);
++            }
++          },
++          dir));
++  if (!created) {
++    std::move(pending.done).Run(false);
++    return;
++  }
++  *dir = *created;
++  PendingConversions().insert_or_assign(*created, std::move(pending));
++}
++
++std::optional<PendingWorkspaceConversion> TakePendingWorkspaceConversion(
++    const std::string& profile_dir) {
++  auto& all = PendingConversions();
++  auto it = all.find(profile_dir);
++  if (it == all.end()) {
++    return std::nullopt;
++  }
++  PendingWorkspaceConversion pending = std::move(it->second);
++  all.erase(it);
++  return pending;
+ }
+ 
+ void DeleteIsolatedWorkspaceProfile(Profile* profile,
+@@ -221,7 +287,8 @@ std::vector<IsolatedProfileEntry> GetOpenableIsolatedWorkspaces() {
+   PrefService* local_state =
+       g_browser_process ? g_browser_process->local_state() : nullptr;
+   for (IsolatedProfileEntry& entry : GetIsolatedProfiles(local_state)) {
+-    if (entry.state != IsolatedProfileState::kDeleting) {
++    if (entry.state != IsolatedProfileState::kDeleting &&
++        entry.state != IsolatedProfileState::kConverting) {
+       result.push_back(std::move(entry));
+     }
+   }
+@@ -280,11 +347,15 @@ void SweepIsolatedProfileRegistry() {
+   // Handoff 013 I2: an entry still `creating` after a restart comes from a
+   // creation that crashed before its window initialized. If its tree was
+   // already written the Workspace exists and becomes active; otherwise the
+-  // half-created Profile is deleted so no trace remains.
++  // half-created Profile is deleted so no trace remains. Handoff 052: an
++  // entry still `converting` is always deleted; its source Workspace was
++  // never removed from the main Profile.
+   for (const IsolatedProfileEntry& entry : GetIsolatedProfiles(local_state)) {
+-    if (entry.state != IsolatedProfileState::kCreating) {
++    if (entry.state != IsolatedProfileState::kCreating &&
++        entry.state != IsolatedProfileState::kConverting) {
+       continue;
+     }
++    const bool converting = entry.state == IsolatedProfileState::kConverting;
+     const base::FilePath path =
+         profile_manager->user_data_dir().AppendASCII(entry.profile_dir);
+     if (profile_manager->GetProfileByPath(path)) {
+@@ -295,13 +366,14 @@ void SweepIsolatedProfileRegistry() {
+         base::BindOnce(&base::PathExists,
+                        path.AppendASCII(kTabTreeDatabaseFilename)),
+         base::BindOnce(
+-            [](base::FilePath path, std::string dir, bool tree_written) {
++            [](base::FilePath path, std::string dir, bool converting,
++               bool tree_written) {
+               PrefService* local_state = g_browser_process->local_state();
+               ProfileManager* manager = g_browser_process->profile_manager();
+               if (!local_state || !manager) {
+                 return;
+               }
+-              if (tree_written) {
++              if (tree_written && !converting) {
+                 SetIsolatedProfileState(local_state, dir,
+                                         IsolatedProfileState::kActive);
+                 return;
+@@ -318,7 +390,7 @@ void SweepIsolatedProfileRegistry() {
+                   path, base::DoNothing(),
+                   ProfileMetrics::DELETE_PROFILE_USER_MANAGER);
+             },
+-            path, entry.profile_dir));
++            path, entry.profile_dir, converting));
+   }
+ }
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.h b/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.h
+index 4e83d35..d984189 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.h
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.h
+@@ -10,6 +10,9 @@
+ #include <vector>
+ 
+ #include "ahoi/browser/session/isolated_profile_registry.h"
++#include "ahoi/browser/session/portable_workspace_structure.h"
++#include "base/functional/callback.h"
++#include "url/gurl.h"
+ 
+ #include "base/functional/callback_forward.h"
+ 
+@@ -31,6 +34,30 @@ void CreateIsolatedWorkspace(std::u16string name,
+                              std::string sort_key,
+                              base::OnceCallback<void(bool)> done);
+ 
++// ADR 0011 step 2 (handoff 052): moving a Workspace of the main Profile into
++// a fully separated Workspace through the portable structure. Structure
++// moves; logins, passwords and site data do not.
++struct PendingWorkspaceConversion {
++  PortableWorkspaceStructure structure;
++  // Applied after the import; the imported Workspace record carries the
++  // seeded default so it is identical to the new Profile's bootstrap.
++  sync::SharedArchivePolicy archive_policy = sync::SharedArchivePolicy::kNever;
++  // Open temporary pages of the source, reopened as new pages.
++  std::vector<GURL> reopen_urls;
++  // Runs once: true after the new Profile imported the structure and became
++  // active; false when creation or import failed (that Profile is deleted).
++  base::OnceCallback<void(bool)> done;
++};
++
++// Registers `presentation` (its `workspace_id`, name, icon, accent and
++// `sort_key`; the directory is chosen here) in state `converting`, creates
++// the Profile and opens its window. The new Profile's SessionBridge takes
++// `pending` with TakePendingWorkspaceConversion() and imports it.
++void ConvertToIsolatedWorkspace(const IsolatedProfileEntry& presentation,
++                                PendingWorkspaceConversion pending);
++std::optional<PendingWorkspaceConversion> TakePendingWorkspaceConversion(
++    const std::string& profile_dir);
++
+ // Deletes a fully separated Workspace together with its Profile. Every page of
+ // the Profile is first asked as one before-unload group; a veto changes
+ // nothing and reports false. After agreement the registry entry is marked
+@@ -40,9 +67,9 @@ void CreateIsolatedWorkspace(std::u16string name,
+ void DeleteIsolatedWorkspaceProfile(Profile* profile,
+                                     base::OnceCallback<void(bool)> done);
+ 
+-// Fully separated Workspaces that can be opened (not being deleted), in
+-// registry order, for the main window's Workspace menu until the shared
+-// switcher (step 2) exists.
++// Fully separated Workspaces that can be opened (not being deleted and not
++// still receiving a converted Workspace), in registry order. The shared
++// switcher orders them with OrderDirectoryWorkspaces().
+ std::vector<IsolatedProfileEntry> GetOpenableIsolatedWorkspaces();
+ 
+ // True for a Profile that carries a fully separated Workspace.
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.cc b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.cc
+index 72095af..5fc0094 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.cc
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.cc
+@@ -42,7 +42,7 @@ std::optional<IsolatedProfileEntry> Decode(const base::Value& value) {
+   const std::optional<int> state = dict->FindInt(kStateKey);
+   if (!dir || !IsValidProfileDir(*dir) || !workspace || !name || !icon ||
+       !state || *state < static_cast<int>(IsolatedProfileState::kCreating) ||
+-      *state > static_cast<int>(IsolatedProfileState::kDeleting)) {
++      *state > static_cast<int>(IsolatedProfileState::kConverting)) {
+     return std::nullopt;
+   }
+   IsolatedProfileEntry entry{
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.h b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.h
+index 035f3ee..33c54a1 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.h
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.h
+@@ -36,6 +36,10 @@ enum class IsolatedProfileState {
+   kActive = 1,
+   // Deletion confirmed; Chromium's profile deletion is running or resumes.
+   kDeleting = 2,
++  // Handoff 052: created to receive an existing Workspace of the main Profile
++  // (same Workspace id). Not openable until the import finished; after an
++  // interrupted conversion the Profile is deleted and the source stays.
++  kConverting = 3,
+ };
+ 
+ struct IsolatedProfileEntry {
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry_unittest.cc b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry_unittest.cc
+index 58d48f9..d3c2a13 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry_unittest.cc
+@@ -119,6 +119,17 @@ TEST_F(IsolatedProfileRegistryTest, RoundTripsSortKey) {
+                    .contains("sort_key"));
+ }
+ 
++TEST_F(IsolatedProfileRegistryTest, RoundTripsConvertingState) {
++  IsolatedProfileEntry converting = Entry("Profile 1");
++  converting.state = IsolatedProfileState::kConverting;
++  ASSERT_TRUE(AddIsolatedProfile(&local_state_, converting));
++  EXPECT_EQ(converting, FindIsolatedProfile(&local_state_, "Profile 1"));
++  ASSERT_TRUE(SetIsolatedProfileState(&local_state_, "Profile 1",
++                                      IsolatedProfileState::kActive));
++  EXPECT_EQ(IsolatedProfileState::kActive,
++            FindIsolatedProfile(&local_state_, "Profile 1")->state);
++}
++
+ TEST_F(IsolatedProfileRegistryTest, SkipsMalformedStoredEntries) {
+   base::ListValue list;
+   list.Append("not a dict");
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
+index dc99d95..8e3e155 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
+@@ -288,8 +288,10 @@ bool SessionBridge::FinishRuntimeInitialization() {
+   session::RestoreHandOverAfterStartup(profile_);
+   if (const std::optional<session::IsolatedProfileEntry> isolated =
+           FindIsolatedProfileEntry()) {
+-    if (isolated->state == session::IsolatedProfileState::kCreating &&
+-        WorkspaceExists(isolated->workspace_id)) {
++    if (isolated->state == session::IsolatedProfileState::kConverting) {
++      ContinueWorkspaceConversion(isolated->profile_dir);
++    } else if (isolated->state == session::IsolatedProfileState::kCreating &&
++               WorkspaceExists(isolated->workspace_id)) {
+       ScheduleTabTreePersistence();
+       session::SetIsolatedProfileState(g_browser_process->local_state(),
+                                        isolated->profile_dir,
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge.h b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+index a6fff4c..72b1f36 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge.h
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+@@ -54,6 +54,7 @@ class Extension;
+ 
+ namespace ahoi {
+ namespace session {
++struct PendingWorkspaceConversion;
+ struct PortableWorkspaceStructure;
+ class WorkspaceStructureController;
+ }  // namespace session
+@@ -302,6 +303,24 @@ class SessionBridge : public KeyedService,
+   // True when the Workspace uses its own website-session partition.
+   bool HasOwnWebsiteSessions(const base::Uuid& workspace_id) const;
+ 
++  enum class WorkspaceConversionResult {
++    kConverted,
++    kCancelled,
++    kUnavailable,
++    kFailed,
++  };
++  // ADR 0011 step 2 (handoff 052): moves a Workspace of this (main) Profile
++  // into a new fully separated Workspace with the same id and position. Its
++  // open pages are asked as one before-unload group first; a veto reports
++  // kCancelled and changes nothing. The structure (tree, splits, archives,
++  // homes) moves through the portable format; logins, passwords and site data
++  // stay behind. Open temporary pages are reopened in the new Profile. Only
++  // after the new Profile imported the structure is the source Workspace
++  // deleted here and its pages closed; any failure before that leaves it.
++  void ConvertWorkspaceToIsolated(
++      const base::Uuid& workspace_id,
++      base::OnceCallback<void(WorkspaceConversionResult)> done);
++
+   // Binds one validated, active saved-page row to a currently tracked native
+   // tab. A persistent node cannot be bound to two runtime tabs. Rebinding one
+   // tab to another node is atomic from callers' perspective.
+@@ -427,6 +446,23 @@ class SessionBridge : public KeyedService,
+       std::vector<base::WeakPtr<content::WebContents>> asked_pages,
+       WorkspaceDeletionCallback done,
+       bool all_agreed);
++  // Handoff 052, source side.
++  void OnConversionPagesAnswered(
++      base::Uuid workspace_id,
++      std::vector<GURL> reopen_urls,
++      base::OnceCallback<void(WorkspaceConversionResult)> done,
++      bool all_agreed);
++  void OnWorkspaceConverted(
++      base::Uuid workspace_id,
++      base::OnceCallback<void(WorkspaceConversionResult)> done,
++      bool imported);
++  // Handoff 052, receiving side (a Profile registered as `converting`).
++  void ContinueWorkspaceConversion(const std::string& profile_dir);
++  void ImportConvertedWorkspace(session::PendingWorkspaceConversion pending,
++                                int attempt);
++  void OnConvertedWorkspaceImported(session::PendingWorkspaceConversion pending,
++                                    int attempt,
++                                    PortableImportResult result);
+   void ClearRetiredWebsiteSessionData(base::Uuid context_id);
+   void ResumeWebsiteSessionRemovals();
+   void OnWebsiteSessionDirectoryDeleted(base::Uuid context_id, bool deleted);
+@@ -590,6 +626,10 @@ class SessionBridge : public KeyedService,
+   std::unique_ptr<session::WorkspaceStructureController>
+       workspace_structure_controller_;
+   std::unique_ptr<session::GroupPageClose> workspace_deletion_close_;
++  // The agreed pages of a Workspace being converted (handoff 052); closed
++  // only after the new Profile imported the structure.
++  std::unique_ptr<session::GroupPageClose> workspace_conversion_close_;
++  bool workspace_conversion_running_ = false;
+   base::WeakPtrFactory<SessionBridge> weak_ptr_factory_{this};
+ };
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_conversion.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_conversion.cc
+new file mode 100644
+index 0000000..67fb18b
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_conversion.cc
+@@ -0,0 +1,288 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++// ADR 0011 step 2 (handoff 052): converting a Workspace of the main Profile
++// into a fully separated Workspace. Source side: ask, export, hand off,
++// delete after success. Receiving side: import, reopen, report.
++
++#include <algorithm>
++#include <optional>
++#include <string>
++#include <tuple>
++#include <utility>
++#include <vector>
++
++#include "ahoi/browser/session/isolated_profile_creation.h"
++#include "ahoi/browser/session/portable_workspace_structure.h"
++#include "ahoi/browser/session/session_bridge.h"
++#include "ahoi/browser/session/session_bridge_internal.h"
++#include "ahoi/browser/session/session_prefs.h"
++#include "ahoi/browser/session/workspace_structure_state.h"
++#include "base/functional/bind.h"
++#include "base/functional/callback_helpers.h"
++#include "base/location.h"
++#include "base/logging.h"
++#include "base/task/sequenced_task_runner.h"
++#include "base/time/time.h"
++#include "chrome/browser/browser_process.h"
++#include "chrome/browser/profiles/profile.h"
++#include "chrome/browser/ui/browser_window/public/browser_collection.h"
++#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
++#include "chrome/browser/ui/browser_window/public/profile_browser_collection.h"
++#include "components/prefs/pref_service.h"
++#include "content/public/browser/web_contents.h"
++#include "ui/base/window_open_disposition.h"
++
++namespace ahoi {
++
++namespace {
++
++// The receiving Profile's structure controller may still be settling its
++// first commit; the import is retried briefly instead of failing.
++constexpr int kConversionImportAttempts = 40;
++constexpr base::TimeDelta kConversionImportRetry = base::Milliseconds(250);
++
++}  // namespace
++
++void SessionBridge::ConvertWorkspaceToIsolated(
++    const base::Uuid& workspace_id,
++    base::OnceCallback<void(WorkspaceConversionResult)> done) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  const bool known = workspace_service_ &&
++                     std::ranges::any_of(
++                         workspace_service_->ordered_workspaces(),
++                         [&workspace_id](const tab_tree::Workspace& workspace) {
++                           return workspace.id == workspace_id;
++                         });
++  // The main Profile keeps at least one Workspace, and a separated Profile
++  // has exactly one, so neither side of a conversion can empty a Profile.
++  if (shutting_down_ || !tab_tree_ready_ || !tab_tree_store_ || !known ||
++      workspace_service_->ordered_workspaces().size() < 2 ||
++      FindIsolatedProfileEntry() || workspace_conversion_running_ ||
++      workspace_deletion_close_) {
++    std::move(done).Run(WorkspaceConversionResult::kUnavailable);
++    return;
++  }
++  std::vector<content::WebContents*> pages;
++  std::vector<GURL> reopen_urls;
++  for (const auto& [tab, runtime] : runtime_tabs_) {
++    content::WebContents* contents = runtime.web_contents.get();
++    if (runtime.workspace_id != workspace_id || !contents) {
++      continue;
++    }
++    pages.push_back(contents);
++    // Saved pages move as rows of the tree; an open temporary page has no
++    // row and comes along as a new page. Sessions do not move with it.
++    if (runtime.is_temporary) {
++      const GURL url = session_internal::GetRuntimeTabUrl(contents);
++      if (url.is_valid() && !url.IsAboutBlank()) {
++        reopen_urls.push_back(url);
++      }
++    }
++  }
++  workspace_conversion_running_ = true;
++  if (pages.empty()) {
++    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
++        FROM_HERE, base::BindOnce(&SessionBridge::OnConversionPagesAnswered,
++                                  weak_ptr_factory_.GetWeakPtr(), workspace_id,
++                                  std::move(reopen_urls), std::move(done),
++                                  /*all_agreed=*/true));
++    return;
++  }
++  workspace_conversion_close_ = session::GroupPageClose::Ask(
++      std::move(pages),
++      base::BindOnce(&SessionBridge::OnConversionPagesAnswered,
++                     weak_ptr_factory_.GetWeakPtr(), workspace_id,
++                     std::move(reopen_urls), std::move(done)));
++}
++
++void SessionBridge::OnConversionPagesAnswered(
++    base::Uuid workspace_id,
++    std::vector<GURL> reopen_urls,
++    base::OnceCallback<void(WorkspaceConversionResult)> done,
++    bool all_agreed) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  const auto fail = [this](WorkspaceConversionResult result,
++                           base::OnceCallback<void(WorkspaceConversionResult)>
++                               done) {
++    workspace_conversion_close_.reset();
++    workspace_conversion_running_ = false;
++    std::move(done).Run(result);
++  };
++  if (!all_agreed || shutting_down_) {
++    // A veto leaves the Workspace, its pages and every store unchanged.
++    fail(WorkspaceConversionResult::kCancelled, std::move(done));
++    return;
++  }
++  tab_tree::TabTreeSnapshot snapshot;
++  const std::optional<std::string> encoded_state =
++      tab_tree_store_ ? tab_tree_store_->ReadWorkspaceStructureState()
++                      : std::nullopt;
++  if (!ExportTabTreeSnapshot(&snapshot) || !encoded_state) {
++    fail(WorkspaceConversionResult::kFailed, std::move(done));
++    return;
++  }
++  session::WorkspaceStructureState structure;
++  if (!encoded_state->empty()) {
++    std::optional<session::WorkspaceStructureState> decoded =
++        session::DecodeWorkspaceStructureState(*encoded_state);
++    if (!decoded) {
++      fail(WorkspaceConversionResult::kFailed, std::move(done));
++      return;
++    }
++    structure = std::move(*decoded);
++  }
++  std::optional<session::PortableWorkspaceStructure> chosen =
++      session::SelectPortableWorkspaceStructure(
++          snapshot, structure, {workspace_id},
++          /*include_temporary_pages=*/false, /*include_archives=*/true);
++  if (!chosen || chosen->tree.workspaces.size() != 1 ||
++      chosen->tree.workspaces.front().id != workspace_id) {
++    fail(WorkspaceConversionResult::kFailed, std::move(done));
++    return;
++  }
++  const tab_tree::PortableWorkspace source = chosen->tree.workspaces.front();
++  // The new Profile seeds this Workspace from its registry entry (name, icon,
++  // accent) with the bootstrap key "0" and the default archive policy. The
++  // imported record must be identical to that seed, or the import is a
++  // conflict; the policy is applied after the import, and the process-wide
++  // position is the registry entry's `sort_key`.
++  chosen->tree.workspaces.front().sort_key = "0";
++  chosen->tree.workspaces.front().archive_policy =
++      tab_tree::Workspace().archive_policy;
++
++  session::PendingWorkspaceConversion pending;
++  pending.structure = std::move(*chosen);
++  pending.archive_policy = source.archive_policy;
++  pending.reopen_urls = std::move(reopen_urls);
++  pending.done = base::BindOnce(&SessionBridge::OnWorkspaceConverted,
++                                weak_ptr_factory_.GetWeakPtr(), workspace_id,
++                                std::move(done));
++  session::ConvertToIsolatedWorkspace(
++      session::IsolatedProfileEntry{.workspace_id = workspace_id,
++                                    .name = source.name,
++                                    .icon = source.icon,
++                                    .accent_argb = source.accent_argb,
++                                    .sort_key = source.sort_key},
++      std::move(pending));
++}
++
++void SessionBridge::OnWorkspaceConverted(
++    base::Uuid workspace_id,
++    base::OnceCallback<void(WorkspaceConversionResult)> done,
++    bool imported) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  std::unique_ptr<session::GroupPageClose> group =
++      std::move(workspace_conversion_close_);
++  workspace_conversion_running_ = false;
++  if (!imported || shutting_down_) {
++    // The new Profile deletes itself; the source stays as it was.
++    std::move(done).Run(WorkspaceConversionResult::kFailed);
++    return;
++  }
++  const tab_tree::TabTreeStore::Result result = CommitWorkspaceDeletion(
++      workspace_id,
++      session::FindWebsiteSessionBinding(profile_->GetPrefs(), workspace_id));
++  if (result != tab_tree::TabTreeStore::Result::kOk) {
++    LOG(ERROR) << "Ahoi converted a Workspace but could not remove its source";
++    std::move(done).Run(WorkspaceConversionResult::kFailed);
++    return;
++  }
++  // The agreed pages close without a second question.
++  if (group) {
++    group->ClosePages();
++  }
++  std::move(done).Run(WorkspaceConversionResult::kConverted);
++}
++
++void SessionBridge::ContinueWorkspaceConversion(
++    const std::string& profile_dir) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  std::optional<session::PendingWorkspaceConversion> pending =
++      session::TakePendingWorkspaceConversion(profile_dir);
++  if (!pending) {
++    // Interrupted by a restart before the import finished: the source still
++    // exists in the main Profile, so this half-converted Profile goes.
++    LOG(WARNING) << "Ahoi drops an interrupted Workspace conversion";
++    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
++        FROM_HERE, base::BindOnce(
++                       [](base::WeakPtr<SessionBridge> bridge) {
++                         if (bridge) {
++                           session::DeleteIsolatedWorkspaceProfile(
++                               bridge->profile_, base::DoNothing());
++                         }
++                       },
++                       weak_ptr_factory_.GetWeakPtr()));
++    return;
++  }
++  ImportConvertedWorkspace(std::move(*pending), /*attempt=*/0);
++}
++
++void SessionBridge::ImportConvertedWorkspace(
++    session::PendingWorkspaceConversion pending,
++    int attempt) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  const session::PortableWorkspaceStructure structure = pending.structure;
++  CommitPortableWorkspaceImport(
++      structure, base::BindRepeating([] { return true; }),
++      base::BindOnce(&SessionBridge::OnConvertedWorkspaceImported,
++                     weak_ptr_factory_.GetWeakPtr(), std::move(pending),
++                     attempt));
++}
++
++void SessionBridge::OnConvertedWorkspaceImported(
++    session::PendingWorkspaceConversion pending,
++    int attempt,
++    PortableImportResult result) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (result == PortableImportResult::kUnavailable &&
++      attempt + 1 < kConversionImportAttempts && !shutting_down_) {
++    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
++        FROM_HERE,
++        base::BindOnce(&SessionBridge::ImportConvertedWorkspace,
++                       weak_ptr_factory_.GetWeakPtr(), std::move(pending),
++                       attempt + 1),
++        kConversionImportRetry);
++    return;
++  }
++  PrefService* local_state =
++      g_browser_process ? g_browser_process->local_state() : nullptr;
++  const std::optional<session::IsolatedProfileEntry> entry =
++      FindIsolatedProfileEntry();
++  const bool imported = result == PortableImportResult::kImported ||
++                        result == PortableImportResult::kNoChanges;
++  if (!imported || !entry || !local_state) {
++    LOG(ERROR) << "Ahoi could not import a converted Workspace: "
++               << static_cast<int>(result);
++    std::move(pending.done).Run(false);
++    session::DeleteIsolatedWorkspaceProfile(profile_, base::DoNothing());
++    return;
++  }
++  std::ignore =
++      SetWorkspaceArchivePolicy(entry->workspace_id, pending.archive_policy);
++  session::SetIsolatedProfileState(local_state, entry->profile_dir,
++                                   session::IsolatedProfileState::kActive);
++  local_state->CommitPendingWrite();
++  ScheduleTabTreePersistence();
++  if (ProfileBrowserCollection* browsers =
++          ProfileBrowserCollection::GetForProfile(profile_)) {
++    BrowserWindowInterface* target = nullptr;
++    browsers->ForEach(
++        [&target](BrowserWindowInterface* browser) {
++          if (browser->GetType() == BrowserWindowInterface::TYPE_NORMAL) {
++            target = browser;
++            return false;
++          }
++          return true;
++        },
++        BrowserCollection::Order::kActivation);
++    for (const GURL& url : pending.reopen_urls) {
++      if (target) {
++        target->OpenGURL(url, WindowOpenDisposition::NEW_BACKGROUND_TAB);
++      }
++    }
++  }
++  std::move(pending.done).Run(true);
++}
++
++}  // namespace ahoi
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.cc b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.cc
+index e8e849b..dcc9926 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.cc
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.cc
+@@ -24,7 +24,8 @@ std::vector<DirectoryWorkspace> OrderDirectoryWorkspaces(
+     ranked.push_back({workspace, false, false, ranked.size()});
+   }
+   for (const IsolatedProfileEntry& entry : isolated_entries) {
+-    if (entry.state == IsolatedProfileState::kDeleting) {
++    if (entry.state == IsolatedProfileState::kDeleting ||
++        entry.state == IsolatedProfileState::kConverting) {
+       continue;
+     }
+     ranked.push_back({{.workspace_id = entry.workspace_id,
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.h b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.h
+index 209b13f..91ae5dd 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.h
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.h
+@@ -26,7 +26,8 @@ struct DirectoryWorkspace {
+ };
+ 
+ // Merges `main_workspaces` (in their Profile's order) with the separated
+-// Workspaces of `isolated_entries`, skipping entries being deleted. Sorted by
++// Workspaces of `isolated_entries`, skipping entries being deleted or still
++// receiving a converted Workspace (its source is listed instead). Sorted by
+ // `sort_key`; on equal keys main Workspaces come first, then input order.
+ // Separated entries without a key (written before step 2) follow all others
+ // in registry order, which is where they appeared until now.
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order_unittest.cc b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order_unittest.cc
+index 189dd88..9c10422 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order_unittest.cc
+@@ -54,11 +54,14 @@ TEST(WorkspaceDirectoryOrderTest, UnkeyedFollowAndDeletingIsSkipped) {
+   const IsolatedProfileEntry old_a = Isolated("Profile 1", "");
+   IsolatedProfileEntry deleting = Isolated("Profile 3", "0");
+   deleting.state = IsolatedProfileState::kDeleting;
++  IsolatedProfileEntry converting = Isolated("Profile 5", "0");
++  converting.state = IsolatedProfileState::kConverting;
+   const IsolatedProfileEntry keyed = Isolated("Profile 4", "00000000@");
+   EXPECT_EQ((std::vector<DirectoryWorkspace>{main, AsDirectory(keyed),
+                                              AsDirectory(old_b),
+                                              AsDirectory(old_a)}),
+-            OrderDirectoryWorkspaces({main}, {old_b, old_a, deleting, keyed}));
++            OrderDirectoryWorkspaces({main}, {old_b, old_a, deleting,
++                                              converting, keyed}));
+ }
+ 
+ TEST(WorkspaceDirectoryOrderTest, NextKeyFollowsEveryWorkspace) {
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
+index de15e01..efceeb0 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
+@@ -497,6 +497,12 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
+                           *active_workspace_id);
+       return;
+     }
++    if (command_id == kConvertWorkspaceToIsolated &&
++        active_workspace_id.has_value()) {
++      ShowWorkspaceDialog(PendingWorkspaceAction::kConvertToIsolated,
++                          *active_workspace_id);
++      return;
++    }
+     // ADR 0011 step 2: another Profile's Workspace takes over this window's
+     // frame; this window is hidden, not closed, and is shown again when the
+     // user switches back.
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
+index 623b6d5..0316386 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
+@@ -329,6 +329,12 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
+   context_menu_model_->AddItem(
+       kCopyAllLinks,
+       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_COPY_ALL_LINKS));
++  if (!isolated_profile) {
++    context_menu_model_->AddItem(
++        kConvertWorkspaceToIsolated,
++        StructureText(u"In vollständig getrennten Workspace umwandeln …",
++                      u"Convert to fully separated Workspace …"));
++  }
+   context_menu_model_->AddItem(
+       kDeleteWorkspace,
+       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DELETE_WORKSPACE));
+@@ -823,6 +829,11 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
+       case kCopyAllLinks:
+       case kEditWorkspace:
+         return controller_->view_model().workspace_id().has_value();
++      case kConvertWorkspaceToIsolated:
++        // The main Profile keeps at least one Workspace (handoff 052).
++        return controller_->view_model().workspace_id().has_value() &&
++               workspace_service_->ordered_workspaces().size() > 1 &&
++               !session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
+       case kDeleteWorkspace:
+         // A fully separated Workspace is its Profile's only Workspace;
+         // deleting it deletes that Profile (ADR 0011).
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_types.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_types.h
+index 013614e..06a9e8c 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_types.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_types.h
+@@ -54,6 +54,7 @@ enum SidebarContextMenuCommand {
+   kCopyActivePageLink,
+   kCopyActivePageMarkdownLink,
+   kOpenActivePageInReadingMode,
++  kConvertWorkspaceToIsolated,
+ };
+ 
+ constexpr int kArchivePolicyCommandBase = 600;
+@@ -100,6 +101,8 @@ enum class PendingWorkspaceAction {
+   kDuplicate,
+   kEdit,
+   kDelete,
++  // ADR 0011 step 2 (handoff 052).
++  kConvertToIsolated,
+ };
+ 
+ }  // namespace ahoi::sidebar
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
+index df80d5c..6d8d988 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
+@@ -192,6 +192,24 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
+       sessions->SetMultiLine(true);
+       sessions->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+     }
++  } else if (action == PendingWorkspaceAction::kConvertToIsolated) {
++    // ADR 0011 step 2 (handoff 052): say what moves and what stays.
++    auto* body = contents->AddChildView(std::make_unique<views::Label>(
++        StructureText(
++            u"Der Workspace wird zu einem eigenen, vollständig getrennten "
++            u"Profil mit eigenem Fenster. Ordner, Reihenfolge, Splits, "
++            u"Ausgangsadressen und Archiv ziehen mit um. Anmeldungen, "
++            u"Passwörter, Verlauf und Websitedaten ziehen nicht mit; du "
++            u"meldest dich dort neu an. Offene Tabs werden hier geschlossen "
++            u"und temporäre Tabs dort neu geöffnet. Abbrechen ändert nichts.",
++            u"The Workspace becomes its own fully separated profile with its "
++            u"own window. Folders, order, splits, home addresses and the "
++            u"archive move along. Logins, passwords, history and site data "
++            u"do not; you sign in there again. Open tabs close here, and "
++            u"temporary tabs reopen there. Cancel changes nothing.")));
++    body->SetSubpixelRenderingEnabled(false);
++    body->SetMultiLine(true);
++    body->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+   } else {
+     auto* name_label = contents->AddChildView(std::make_unique<views::Label>(
+         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_NAME)));
+@@ -273,13 +291,19 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
+                        : action == PendingWorkspaceAction::kEdit
+                            ? IDS_AHOI_DIALOG_EDIT_WORKSPACE
+                            : IDS_AHOI_DIALOG_DELETE_WORKSPACE;
+-  delegate->SetTitle(l10n_util::GetStringUTF16(title_id));
++  delegate->SetTitle(
++      action == PendingWorkspaceAction::kConvertToIsolated
++          ? StructureText(u"In vollständig getrennten Workspace umwandeln",
++                          u"Convert to fully separated Workspace")
++          : l10n_util::GetStringUTF16(title_id));
+   delegate->SetButtons(static_cast<int>(ui::mojom::DialogButton::kOk) |
+                        static_cast<int>(ui::mojom::DialogButton::kCancel));
+   // IDS_DELETE is a menu string with a Windows mnemonic ("&Löschen").
+   delegate->SetButtonLabel(
+       ui::mojom::DialogButton::kOk,
+-      gfx::RemoveAccelerator(l10n_util::GetStringUTF16(
++      action == PendingWorkspaceAction::kConvertToIsolated
++          ? StructureText(u"Umwandeln", u"Convert")
++          : gfx::RemoveAccelerator(l10n_util::GetStringUTF16(
+           action == PendingWorkspaceAction::kCreate ||
+                   action == PendingWorkspaceAction::kDuplicate
+               ? IDS_AHOI_DIALOG_CREATE
+@@ -441,6 +465,28 @@ std::string BrowserSidebarHostView::NextProcessWideWorkspaceSortKey() const {
+ }
+ 
+ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
++  if (pending_workspace_action_ == PendingWorkspaceAction::kConvertToIsolated) {
++    if (pending_workspace_id_.has_value()) {
++      // The Workspace's pages are asked as one before-unload group first; a
++      // veto changes nothing (kCancelled).
++      session_bridge_->ConvertWorkspaceToIsolated(
++          *pending_workspace_id_,
++          base::BindOnce(
++              [](base::WeakPtr<BrowserSidebarHostView> view,
++                 SessionBridge::WorkspaceConversionResult result) {
++                if (view &&
++                    (result ==
++                         SessionBridge::WorkspaceConversionResult::kFailed ||
++                     result == SessionBridge::WorkspaceConversionResult::
++                                   kUnavailable)) {
++                  view->OnMutationFailed(
++                      tab_tree::TabTreeStore::Result::kDatabaseError);
++                }
++              },
++              weak_ptr_factory_.GetWeakPtr()));
++    }
++    return true;
++  }
+   if (pending_workspace_action_ == PendingWorkspaceAction::kDelete &&
+       session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
+     // The Profile is the Workspace: Chromium deletes both after the pages
