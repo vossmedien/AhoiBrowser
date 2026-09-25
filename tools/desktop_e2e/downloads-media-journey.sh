@@ -102,8 +102,7 @@ if python3 -c 'import json,sys;t=json.load(open(sys.argv[1]));sys.exit(0 if any(
    && [ ! -f "$DL/doc.pdf" ]; then record pdf_opens_in_viewer PASS; else record pdf_opens_in_viewer FAIL; fi
 # 5 Upload: the file input posts the exact bytes of payload.bin.
 curl -s -X PUT "http://127.0.0.1:$PORT/json/new?$BASE/media.html?upload" > /dev/null; sleep 3
-NODE=$(CDP "media.html?upload" DOM.getDocument '{"depth":-1}' > /dev/null; CDP "media.html?upload" Runtime.evaluate '{"expression":"document.getElementById(\"f\")"}' | python3 -c 'import json,sys;print(json.load(sys.stdin).get("result",{}).get("objectId",""))')
-CDP "media.html?upload" DOM.setFileInputFiles "{\"files\":[\"$SITE/payload.bin\"],\"objectId\":\"$NODE\"}" >> "$OUT/run.txt"
+node "$S/cdp_set_file.mjs" $PORT "media.html?upload" "#f" "$SITE/payload.bin" >> "$OUT/run.txt"
 eval_in "media.html?upload" "document.getElementById('up').submit(); 'ok'" > /dev/null; sleep 4
 WANT="upload $(wc -c < "$SITE/payload.bin" | tr -d ' ') $(shasum -a 256 "$SITE/payload.bin" | cut -d' ' -f1)"
 GOT=$(curl -s "http://127.0.0.1:$PORT/json" | python3 -c 'import json,sys;print(" ".join(t["title"] for t in json.load(sys.stdin) if t["title"].startswith("upload ")))')
