@@ -474,7 +474,7 @@ final class AhoiMobileUITests: MobileBrowserUITestCase {
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
         field.typeText(name)
-        let confirm = app.alerts.firstMatch.buttons["browser.library.create.confirm"].firstMatch
+        let confirm = app.buttons["browser.library.create.confirm"]
         XCTAssertTrue(waitForHittable(confirm, timeout: 5))
         confirm.tap()
         XCTAssertTrue(confirm.waitForNonExistence(timeout: 5))

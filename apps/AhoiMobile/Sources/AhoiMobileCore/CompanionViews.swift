@@ -286,17 +286,36 @@ public struct CompanionRootView: View {
             await model.load()
             await model.sync()
         }
-        .alert(creationTitle, isPresented: creationPresented) {
-            TextField(L("field.name", "Name"), text: $draftTitle)
-                .accessibilityIdentifier("browser.library.create.name")
-            if creationKind == .savedPage {
-                TextField("https://…", text: $draftURL)
-                    .accessibilityIdentifier("browser.library.create.url")
+        // A small form sheet instead of a text-field alert: an alert presentation
+        // could outlive the pushed Workspace detail and resurface after the
+        // library closed, blocking Done and the browser underneath.
+        .sheet(isPresented: creationPresented) {
+            NavigationStack {
+                Form {
+                    TextField(L("field.name", "Name"), text: $draftTitle)
+                        .accessibilityIdentifier("browser.library.create.name")
+                    if creationKind == .savedPage {
+                        TextField("https://…", text: $draftURL)
+                            .keyboardType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .accessibilityIdentifier("browser.library.create.url")
+                    }
+                }
+                .navigationTitle(creationTitle)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(L("action.cancel", "Cancel")) { resetCreation() }
+                            .accessibilityIdentifier("browser.library.create.cancel")
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(L("action.create", "Create")) { commitCreation() }
+                            .disabled(draftTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .accessibilityIdentifier("browser.library.create.confirm")
+                    }
+                }
             }
-            Button(L("action.cancel", "Cancel"), role: .cancel) { resetCreation() }
-                .accessibilityIdentifier("browser.library.create.cancel")
-            Button(L("action.create", "Create")) { commitCreation() }
-                .accessibilityIdentifier("browser.library.create.confirm")
+            .presentationDetents([.medium])
         }
         .confirmationDialog(
             L("workspace.delete.confirmation", "Delete workspace and its tree?"),
@@ -397,8 +416,8 @@ public struct CompanionRootView: View {
     private func beginCreation(_ kind: CreationKind) {
         draftTitle = ""
         draftURL = ""
-        // Called from the Manage menu: presenting the alert while that menu is
-        // still closing leaves its popover dismiss region behind, which then
+        // Called from the Manage menu: presenting while that menu is still
+        // closing leaves its popover dismiss region behind, which then
         // swallows taps such as Done after the Workspace is created.
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(350))
@@ -421,9 +440,7 @@ public struct CompanionRootView: View {
             switch kind {
             case .workspace:
                 if let workspace = await model.createWorkspace(name: title) {
-                    // Pushing the new detail while the alert is still animating
-                    // out interrupts that dismissal; the alert then resurfaces
-                    // after the library closes.
+                    // Push the new detail only after the form sheet has closed.
                     try? await Task.sleep(for: .milliseconds(450))
                     selectedWorkspaceID = workspace.id
                 }

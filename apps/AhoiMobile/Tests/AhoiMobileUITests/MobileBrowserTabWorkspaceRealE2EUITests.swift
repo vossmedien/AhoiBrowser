@@ -462,9 +462,7 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
         XCTAssertTrue(field.waitForExistence(timeout: 8))
         field.tap()
         field.typeText(name)
-        let confirm = app.alerts.firstMatch
-            .buttons["browser.library.create.confirm"]
-            .firstMatch
+        let confirm = app.buttons["browser.library.create.confirm"]
         XCTAssertTrue(confirm.waitForExistence(timeout: 8))
         for _ in 0..<3 where confirm.exists {
             if confirm.isHittable { confirm.tap() }
