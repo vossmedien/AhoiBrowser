@@ -65,7 +65,7 @@ PY
 # 1 Split the active page with a new pane via the native Tab menu, then load
 # the right page into the new (blank) pane.
 ax activate $PID; sleep 1
-ITEM=$("$AX" dump $PID 12 | grep -o -E 'AXMenuItem \| [^|]*(geteilte Ansicht|[Ss]plit [Vv]iew)[^|]*' | head -1 | sed 's/^AXMenuItem | //; s/ *$//')
+ITEM=$("$AX" dump $PID 45 | grep -o -E 'AXMenuItem \| [^|]*(geteilte[rn]? Ansicht|[Ss]plit [Vv]iew)[^|]*' | head -1 | sed 's/^AXMenuItem | //; s/ *$//')
 echo "split menu item: $ITEM" >> "$OUT/steps.txt"
 [ -n "$ITEM" ] && ax press $PID "AXMenuItem:$ITEM"; sleep 3
 NEW=$(curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
@@ -77,7 +77,7 @@ both_visible && record split_created PASS || { record split_created FAIL; finish
 "$AX" dump $PID 45 > "$OUT/ax-split.txt"
 
 # 2 Archive the split from its sidebar row.
-ROW=$(grep -o -E 'AX(Row|Cell|Button|StaticText|Group) \| [^|]*Ahoi split left[^|]*' "$OUT/ax-split.txt" | head -1 | sed -E 's/ *$//')
+ROW=$(grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Ahoi split left[^|]*' "$OUT/ax-split.txt" | head -1 | sed -E 's/ *$//')
 echo "row: $ROW" >> "$OUT/steps.txt"
 NAME=${ROW#*| }; ROLE=${ROW%% |*}
 ax press $PID "$ROLE:$NAME" AXShowMenu
@@ -101,7 +101,7 @@ grep -q -E 'konnte nicht|could not complete' "$OUT/after-restore.txt" && record 
 ax press $PID "AXButton:Schließen"; sleep 2
 # The restored entry may stay unloaded; open it from the sidebar, then both
 # panes must be visible together again.
-ROW2=$("$AX" dump $PID 45 | grep -v -E 'Wiederherstellen|löschen' | grep -o -E 'AX(Row|Cell|Button|StaticText) \| [^|]*Ahoi split (left|right)[^|]*' | head -1 | sed -E 's/ *$//')
+ROW2=$("$AX" dump $PID 45 | grep -v -E 'Wiederherstellen|löschen' | grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Ahoi split (left|right)[^|]*' | head -1 | sed -E 's/ *$//')
 echo "restored row: $ROW2" >> "$OUT/steps.txt"
 [ -n "$ROW2" ] && ax press $PID "${ROW2%% |*}:${ROW2#*| }"
 sleep 5
