@@ -437,7 +437,6 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
     @MainActor
     private func closeLibrary(in app: XCUIApplication) {
         let done = app.buttons["browser.library.done"]
-        let root = app.descendants(matching: .any)["browser.library.root"]
         // After a name alert the library search can hold focus; the first tap
         // may only dismiss its keyboard.
         XCTAssertTrue(waitForHittable(done, timeout: 8))
@@ -445,7 +444,7 @@ final class MobileBrowserTabWorkspaceRealE2EUITests: MobileBrowserRealE2ETestCas
             if done.isHittable { done.tap() }
             if done.waitForNonExistence(timeout: 4) { break }
         }
-        XCTAssertTrue(root.waitForNonExistence(timeout: 4))
+        assertLibraryClosed(in: app, timeout: 4)
     }
 
     @MainActor

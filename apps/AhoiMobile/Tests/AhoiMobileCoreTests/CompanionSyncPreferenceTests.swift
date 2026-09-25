@@ -15,12 +15,12 @@ final class CompanionSyncPreferenceTests: XCTestCase {
 
         await model.setSyncEnabled(true)
 
+        // Since 42a1f83 a failed activation is a classified setup issue, not
+        // a generic load error; an unknown failure keeps keys presented disabled.
         XCTAssertFalse(model.isSyncConfigured)
-        XCTAssertEqual(
-            model.keyLifecycleStatus,
-            .recovery(reason: .keychainFailure, keyVersion: nil)
-        )
-        XCTAssertNotNil(model.loadError)
+        XCTAssertEqual(model.syncSetupIssue, .unknown)
+        XCTAssertEqual(model.keyLifecycleStatus, .disabled)
+        XCTAssertNil(model.loadError)
 
         await model.setSyncEnabled(false)
 
@@ -32,6 +32,7 @@ final class CompanionSyncPreferenceTests: XCTestCase {
         XCTAssertNil(model.remoteCommandStatus)
         XCTAssertTrue(model.recentRemoteCommands.isEmpty)
         XCTAssertEqual(model.keyLifecycleStatus, .disabled)
+        XCTAssertNil(model.syncSetupIssue)
         XCTAssertNil(model.loadError)
     }
 
@@ -118,7 +119,8 @@ final class CompanionSyncPreferenceTests: XCTestCase {
             model.keyLifecycleStatus,
             .waiting(keyVersion: 1, reason: .synchronizableKeyPending)
         )
-        XCTAssertNotNil(model.loadError)
+        XCTAssertNotNil(model.syncSetupIssue)
+        XCTAssertNil(model.loadError)
         XCTAssertNil(model.syncProvider)
         XCTAssertNil(model.syncBridge)
     }

@@ -25,7 +25,8 @@ final class CompanionConvergenceTests: XCTestCase {
         let macTab = try await mac.repository.publishLocalMobileTab(
             tabID: UUID(), sessionID: DeviceSessionID(), deviceName: "Logical Mac",
             deviceKind: .mac, workspaceID: workspace.id, title: "Mac tab",
-            url: "https://example.test/mac", pinned: false
+            url: "https://example.test/mac", pinned: false,
+            treeNodeID: page.id // Format 3: a published Presence links its page.
         )
         try await relay(mac, to: phone)
         let received = try await phone.repository.currentSnapshot()
@@ -37,7 +38,8 @@ final class CompanionConvergenceTests: XCTestCase {
         let phoneTab = try await phone.repository.publishLocalMobileTab(
             tabID: UUID(), sessionID: DeviceSessionID(), deviceName: "Logical iPhone",
             deviceKind: .iPhone, workspaceID: workspace.id, title: "Phone tab",
-            url: "https://example.test/phone", pinned: false
+            url: "https://example.test/phone", pinned: false,
+            treeNodeID: page.id // Format 3: a published Presence links its page.
         )
         try await relay(phone, to: mac)
         let returned = try await mac.repository.currentSnapshot()
@@ -78,8 +80,14 @@ final class CompanionConvergenceTests: XCTestCase {
         do {
             try await mac.transport.enqueue(denied)
             XCTFail("Private data must never enter the simulated network store.")
-        } catch let error as SyncBoundaryError {
-            XCTAssertEqual(error, .dataClassDenied(.incognito))
+        } catch {
+            // Since 4e64c5f the outbound Format-3 gate rejects a class outside
+            // the shared catalogue before the boundary's own denial.
+            XCTAssertTrue(
+                error as? SyncBoundaryError == .dataClassDenied(.incognito) ||
+                    error as? SharedSyncFormatError == .unsupportedVersion,
+                "Unexpected rejection: \(error)"
+            )
         }
         try await relay(mac, to: phone)
         for peer in [mac, phone] {
@@ -163,7 +171,7 @@ final class CompanionConvergenceTests: XCTestCase {
         let pinnedClock = clock(150, remoteDevice)
         let fields: Set<String> = [
             "device_id", "session_id", "workspace_id", "url", "title", "opened_at",
-            "last_active", "pinned", "is_incognito", "tombstone",
+            "last_active", "pinned", "is_incognito", "tree_node_id", "tombstone",
         ]
         var localFields = Dictionary(uniqueKeysWithValues: fields.map { ($0, base) })
         localFields["title"] = titleClock
@@ -171,14 +179,17 @@ final class CompanionConvergenceTests: XCTestCase {
         remoteFields["pinned"] = pinnedClock
         let tabID = TabID()
         let sessionID = DeviceSessionID()
+        let pageID = TreeNodeID()
         let local = try RemoteTab(
             tabID: tabID,
             deviceID: device,
             deviceKind: .mac,
             deviceName: "Mac",
             sessionID: sessionID,
+            treeNodeID: pageID,
             title: "Local title",
             url: "https://example.test",
+            targetKind: .web,
             openedAt: base,
             lastActiveAt: base,
             pinned: false,
@@ -194,8 +205,10 @@ final class CompanionConvergenceTests: XCTestCase {
             deviceKind: .mac,
             deviceName: "Renamed Mac",
             sessionID: sessionID,
+            treeNodeID: pageID,
             title: "Base title",
             url: "https://example.test",
+            targetKind: .web,
             openedAt: base,
             lastActiveAt: base,
             pinned: true,
@@ -383,10 +396,8 @@ final class CompanionConvergenceTests: XCTestCase {
         let editor = DeviceID()
         let created = clock(100, creator)
         let edited = clock(200, editor)
-        let fields: Set<String> = [
-            "name", "icon", "sort_key", "accent_argb", "created_at", "modified_at",
-            "tombstone",
-        ]
+        // The current workspace map includes the Format-3 archive_policy group.
+        let fields = CompanionFieldMerge.workspaceFields
         var fieldVersions = Dictionary(uniqueKeysWithValues: fields.map { ($0, created) })
         fieldVersions["name"] = edited
         fieldVersions["modified_at"] = edited
@@ -423,8 +434,10 @@ final class CompanionConvergenceTests: XCTestCase {
             deviceKind: .iPad,
             deviceName: "iPad",
             sessionID: DeviceSessionID(),
+            treeNodeID: TreeNodeID(),
             title: "Ahoi",
             url: "https://example.test",
+            targetKind: .web,
             lastActiveAt: version.modifiedAt,
             version: version
         )
@@ -436,9 +449,11 @@ final class CompanionConvergenceTests: XCTestCase {
             devices: [:],
             workspaces: [:]
         )) { error in
+            // Since 4e64c5f an unknown device is a pending dependency (ADR
+            // 0009: out-of-order peers are retained, never fabricated).
             XCTAssertEqual(
                 error as? DesktopWirePayloadCodecError,
-                .unsupportedDeviceType
+                .missingDependency
             )
         }
     }

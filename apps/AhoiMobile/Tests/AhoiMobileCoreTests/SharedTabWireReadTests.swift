@@ -3,134 +3,76 @@ import XCTest
 import AhoiCloudKitSpike
 @testable import AhoiMobileCore
 
+/// Shared-tab read/write checks against the one Format-3 golden resource
+/// (ADR 0009). Old v1/v2 bytes are rejected, never upgraded or re-emitted.
 final class SharedTabWireReadTests: XCTestCase {
-    func testLegacyTreeAndPresenceBytesAndFieldMapsRemainUnchanged() throws {
-        let codec = DesktopWirePayloadCodec()
-        for schemaVersion: UInt32 in [1, 2] {
-            let node = try makeNode(schemaVersion: schemaVersion)
-            let nodePayload = try codec.encode(node)
-            let nodeObject = try codec.object(from: nodePayload)
-            XCTAssertNil(nodeObject["is_temporary"])
-            if schemaVersion == 1 {
-                XCTAssertNil(nodeObject["field_versions"])
-            } else {
-                XCTAssertEqual(
-                    Set(try XCTUnwrap(
-                        nodeObject["field_versions"] as? [String: Any]
-                    ).keys),
-                    SharedTabWireReadPolicy.treeNodeBaseFields
-                )
-            }
-            let decodedNode = try codec.decodeTreeNode(
-                envelope(
-                    id: node.id.rawValue,
-                    dataClass: .treeNode,
-                    version: node.version
-                ),
-                plaintext: nodePayload
-            )
-            XCTAssertFalse(decodedNode.isTemporary)
-            XCTAssertNil(decodedNode.version.fieldVersions["is_temporary"])
-            XCTAssertEqual(try codec.encode(decodedNode), nodePayload)
+    private let codec = DesktopWirePayloadCodec()
 
-            let tab = try makeTab(schemaVersion: schemaVersion)
-            let tabPayload = try codec.encode(tab)
-            let tabObject = try codec.object(from: tabPayload)
-            XCTAssertNil(tabObject["tree_node_id"])
-            if schemaVersion == 1 {
-                XCTAssertNil(tabObject["field_versions"])
-            } else {
-                XCTAssertEqual(
-                    Set(try XCTUnwrap(
-                        tabObject["field_versions"] as? [String: Any]
-                    ).keys),
-                    SharedTabWireReadPolicy.remoteTabBaseFields
-                )
+    func testLegacyTreeAndPresenceVersionsAreRejectedEvenWithVersionThreeFields() throws {
+        let (node, nodeSample) = try goldenNode("tree_saved_web")
+        let (tab, tabSample) = try goldenTab("presence_saved_web")
+        for legacy: UInt32 in [1, 2] {
+            var nodeObject = try UnifiedSyncFixture.object(nodeSample.data)
+            relabel(&nodeObject, version: legacy)
+            XCTAssertThrowsError(try codec.decodeTreeNode(
+                envelope(nodeSample, schemaVersion: legacy), plaintext: data(nodeObject)
+            )) { error in
+                XCTAssertEqual(error as? SharedTabWirePreparationError, .unsupportedVersion)
             }
-            let decodedTab = try decodeTab(
-                tabPayload,
-                version: tab.version,
-                codec: codec
-            )
-            XCTAssertNil(decodedTab.treeNodeID)
-            XCTAssertNil(decodedTab.version.fieldVersions["tree_node_id"])
-            XCTAssertEqual(try codec.encode(decodedTab), tabPayload)
+            nodeObject.removeValue(forKey: "is_temporary")
+            removeClock("is_temporary", from: &nodeObject)
+            XCTAssertThrowsError(try codec.decodeTreeNode(
+                envelope(nodeSample, schemaVersion: legacy), plaintext: data(nodeObject)
+            ))
+
+            var tabObject = try UnifiedSyncFixture.object(tabSample.data)
+            relabel(&tabObject, version: legacy)
+            XCTAssertThrowsError(try decodeTab(data(tabObject), sample: tabSample, schemaVersion: legacy))
+            tabObject.removeValue(forKey: "tree_node_id")
+            removeClock("tree_node_id", from: &tabObject)
+            XCTAssertThrowsError(try decodeTab(data(tabObject), sample: tabSample, schemaVersion: legacy))
+
+            var legacyNode = node
+            legacyNode.version = relabeled(node.version, legacy)
+            XCTAssertThrowsError(try codec.encode(legacyNode))
+            var legacyTab = tab
+            legacyTab.version = relabeled(tab.version, legacy)
+            XCTAssertThrowsError(try codec.encode(legacyTab))
         }
     }
 
     func testVersionThreeReadsLinkedPresenceAndTemporaryEmptyPage() throws {
-        let codec = DesktopWirePayloadCodec()
-        let node = try makeNode()
-        var nodeObject = try upgradedV3Object(
-            from: codec.encode(node),
-            newFieldClock: "is_temporary",
-            codec: codec
-        )
-        nodeObject["is_temporary"] = true
-        nodeObject["url"] = ""
-        nodeObject["target_kind"] = 1
-        let version = v3Version()
-        let decodedNode = try codec.decodeTreeNode(
-            envelope(
-                id: node.id.rawValue,
-                dataClass: .treeNode,
-                version: version
-            ),
-            plaintext: try data(nodeObject)
-        )
-        XCTAssertTrue(decodedNode.isTemporary)
-        XCTAssertNil(decodedNode.url)
-        XCTAssertNotNil(decodedNode.version.fieldVersions["is_temporary"])
+        let (temporary, temporarySample) = try goldenNode("tree_temporary_new_tab")
+        XCTAssertTrue(temporary.isTemporary)
+        XCTAssertNil(temporary.url)
+        XCTAssertEqual(temporary.targetKind, .newTab)
+        XCTAssertNotNil(temporary.version.fieldVersions["is_temporary"])
+        XCTAssertEqual(try codec.encode(temporary), temporarySample.data)
 
-        let tab = try makeTab()
-        let linkedID = node.id
-        var tabObject = try upgradedV3Object(
-            from: codec.encode(tab),
-            newFieldClock: "tree_node_id",
-            codec: codec
-        )
-        tabObject["tree_node_id"] = linkedID.rawValue.uuidString.lowercased()
-        let decodedTab = try decodeTab(
-            try data(tabObject),
-            version: version,
-            codec: codec
-        )
-        XCTAssertEqual(decodedTab.treeNodeID, linkedID)
-        XCTAssertNotNil(decodedTab.version.fieldVersions["tree_node_id"])
+        let (page, _) = try goldenNode("tree_saved_web")
+        let (tab, tabSample) = try goldenTab("presence_saved_web")
+        XCTAssertEqual(tab.treeNodeID, page.id)
+        XCTAssertNotNil(tab.version.fieldVersions["tree_node_id"])
+        XCTAssertNoThrow(try codec.validatePresenceTarget(tab, pages: [page.id: page]))
+        XCTAssertThrowsError(try codec.validatePresenceTarget(tab, pages: [:]))
+        XCTAssertEqual(try codec.encode(tab), tabSample.data)
 
-        tabObject.removeValue(forKey: "tree_node_id")
-        let unlinked = try decodeTab(
-            try data(tabObject),
-            version: version,
-            codec: codec
-        )
-        XCTAssertNil(unlinked.treeNodeID)
-        XCTAssertNotNil(unlinked.version.fieldVersions["tree_node_id"])
+        // A published Presence must link its actual page (ADR 0009).
+        var unlinked = try UnifiedSyncFixture.object(tabSample.data)
+        unlinked.removeValue(forKey: "tree_node_id")
+        XCTAssertThrowsError(try decodeTab(data(unlinked), sample: tabSample))
     }
 
     func testVersionThreeRejectsUnknownVersionsAndMalformedNewFields() throws {
-        let codec = DesktopWirePayloadCodec()
-        let node = try makeNode()
-        let version = v3Version()
-        var baseline = try upgradedV3Object(
-            from: codec.encode(node),
-            newFieldClock: "is_temporary",
-            codec: codec
-        )
-        baseline["is_temporary"] = false
-        let record = envelope(
-            id: node.id.rawValue,
-            dataClass: .treeNode,
-            version: version
-        )
+        let (_, sample) = try goldenNode("tree_saved_web")
+        let baseline = try UnifiedSyncFixture.object(sample.data)
+        let record = try UnifiedSyncFixture.envelope(sample)
+        XCTAssertNoThrow(try codec.decodeTreeNode(record, plaintext: data(baseline)))
 
         for invalidValue: Any in [1, "false", NSNull()] {
             var invalid = baseline
             invalid["is_temporary"] = invalidValue
-            XCTAssertThrowsError(try codec.decodeTreeNode(
-                record,
-                plaintext: data(invalid)
-            ))
+            XCTAssertThrowsError(try codec.decodeTreeNode(record, plaintext: data(invalid)))
         }
         var invalid = baseline
         invalid.removeValue(forKey: "is_temporary")
@@ -146,24 +88,11 @@ final class SharedTabWireReadTests: XCTestCase {
         XCTAssertThrowsError(try codec.decodeTreeNode(record, plaintext: data(invalid)))
 
         invalid = baseline
-        invalid["model_version"] = 4
-        invalid["version_model"] = 4
+        relabel(&invalid, version: 4)
         XCTAssertThrowsError(try codec.decodeTreeNode(
-            envelope(
-                id: node.id.rawValue,
-                dataClass: .treeNode,
-                version: SyncVersion(
-                    schemaVersion: 4,
-                    modifiedAt: version.modifiedAt,
-                    modifiedBy: version.modifiedBy
-                )
-            ),
-            plaintext: data(invalid)
+            envelope(sample, schemaVersion: 4), plaintext: data(invalid)
         )) { error in
-            XCTAssertEqual(
-                error as? SharedTabWirePreparationError,
-                .unsupportedVersion
-            )
+            XCTAssertEqual(error as? SharedTabWirePreparationError, .unsupportedVersion)
         }
 
         var folder = baseline
@@ -173,318 +102,145 @@ final class SharedTabWireReadTests: XCTestCase {
         XCTAssertThrowsError(try codec.decodeTreeNode(record, plaintext: data(folder)))
         var emptyPersistent = baseline
         emptyPersistent["url"] = ""
-        XCTAssertThrowsError(try codec.decodeTreeNode(
-            record,
-            plaintext: data(emptyPersistent)
-        ))
+        XCTAssertThrowsError(try codec.decodeTreeNode(record, plaintext: data(emptyPersistent)))
     }
 
     func testVersionThreeRejectsMalformedPresenceLinkAndIncognito() throws {
-        let codec = DesktopWirePayloadCodec()
-        let tab = try makeTab()
-        let version = v3Version()
-        var baseline = try upgradedV3Object(
-            from: codec.encode(tab),
-            newFieldClock: "tree_node_id",
-            codec: codec
-        )
-        baseline["tree_node_id"] = nodeID.uuidString.lowercased()
+        let (tab, sample) = try goldenTab("presence_saved_web")
+        let baseline = try UnifiedSyncFixture.object(sample.data)
 
-        for invalidValue: Any in [NSNull(), 42, "not-a-uuid", zeroUUID.uuidString] {
+        for invalidValue: Any in [NSNull(), 42, "not-a-uuid", zeroUUID.uuidString.lowercased(),
+                                  tab.treeNodeID!.rawValue.uuidString] {
             var invalid = baseline
             invalid["tree_node_id"] = invalidValue
-            XCTAssertThrowsError(try decodeTab(
-                data(invalid),
-                version: version,
-                codec: codec
-            ))
+            XCTAssertThrowsError(try decodeTab(data(invalid), sample: sample), "\(invalidValue)")
         }
         var collision = baseline
         collision["tree_node_id"] = tab.id.rawValue.uuidString.lowercased()
-        XCTAssertThrowsError(try decodeTab(
-            data(collision),
-            version: version,
-            codec: codec
-        ))
+        XCTAssertThrowsError(try decodeTab(data(collision), sample: sample))
         var missingClock = baseline
         removeClock("tree_node_id", from: &missingClock)
-        XCTAssertThrowsError(try decodeTab(
-            data(missingClock),
-            version: version,
-            codec: codec
-        ))
+        XCTAssertThrowsError(try decodeTab(data(missingClock), sample: sample))
         var extraClock = baseline
         addClock("unknown", to: &extraClock)
-        XCTAssertThrowsError(try decodeTab(
-            data(extraClock),
-            version: version,
-            codec: codec
-        ))
+        XCTAssertThrowsError(try decodeTab(data(extraClock), sample: sample))
         var futureClock = baseline
         advanceClock("tree_node_id", in: &futureClock)
-        XCTAssertThrowsError(try decodeTab(
-            data(futureClock),
-            version: version,
-            codec: codec
-        ))
+        XCTAssertThrowsError(try decodeTab(data(futureClock), sample: sample))
         var incognito = baseline
         incognito["is_incognito"] = true
-        XCTAssertThrowsError(try decodeTab(
-            data(incognito),
-            version: version,
-            codec: codec
+        XCTAssertThrowsError(try decodeTab(data(incognito), sample: sample)) { error in
+            XCTAssertEqual(error as? CompanionModelError, .incognitoNotSyncable)
+        }
+    }
+
+    func testVersionThreeWriterIsActiveButRejectsUnlinkedOrIncompleteValues() throws {
+        XCTAssertEqual(SharedTabWireReadPolicy.defaultWriteVersion, 3)
+        let (node, nodeSample) = try goldenNode("tree_saved_web")
+        let (tab, tabSample) = try goldenTab("presence_saved_web")
+        XCTAssertEqual(try codec.encode(node), nodeSample.data)
+        XCTAssertEqual(try codec.encode(tab), tabSample.data)
+
+        var unlinked = tab
+        unlinked.treeNodeID = nil
+        XCTAssertThrowsError(try codec.encode(unlinked)) { error in
+            XCTAssertEqual(error as? SharedTabTargetError, .missingPageLink)
+        }
+        var selfLinked = tab
+        selfLinked.treeNodeID = TreeNodeID(rawValue: tab.id.rawValue)
+        XCTAssertThrowsError(try codec.encode(selfLinked))
+
+        var partialNode = node
+        partialNode.version.fieldVersions.removeValue(forKey: "is_temporary")
+        XCTAssertThrowsError(try codec.encode(partialNode))
+        var partialTab = tab
+        partialTab.version.fieldVersions.removeValue(forKey: "tree_node_id")
+        XCTAssertThrowsError(try codec.encode(partialTab))
+
+        XCTAssertThrowsError(try RemoteTab(
+            tabID: tab.tabID, deviceID: tab.deviceID, deviceKind: tab.deviceKind,
+            deviceName: tab.deviceName, sessionID: tab.sessionID, workspaceID: tab.workspaceID,
+            title: tab.title, url: tab.url, targetKind: .web,
+            lastActiveAt: tab.lastActiveAt, version: tab.version
         )) { error in
-            XCTAssertEqual(
-                error as? CompanionModelError,
-                .incognitoNotSyncable
-            )
-        }
-    }
-
-    func testLegacyPayloadCannotSmuggleVersionThreeFieldsOrClocks() throws {
-        let codec = DesktopWirePayloadCodec()
-        for schemaVersion: UInt32 in [1, 2] {
-            let node = try makeNode(schemaVersion: schemaVersion)
-            let nodeRecord = envelope(
-                id: node.id.rawValue,
-                dataClass: .treeNode,
-                version: node.version
-            )
-            var nodeObject = try codec.object(from: codec.encode(node))
-            nodeObject["is_temporary"] = false
-            XCTAssertThrowsError(try codec.decodeTreeNode(
-                nodeRecord,
-                plaintext: data(nodeObject)
-            )) { error in
-                XCTAssertEqual(
-                    error as? SharedTabWirePreparationError,
-                    .writerNotActivated
-                )
-            }
-            nodeObject = try codec.object(from: codec.encode(node))
-            addClock("is_temporary", to: &nodeObject)
-            XCTAssertThrowsError(try codec.decodeTreeNode(
-                nodeRecord,
-                plaintext: data(nodeObject)
-            ))
-
-            let tab = try makeTab(schemaVersion: schemaVersion)
-            var tabObject = try codec.object(from: codec.encode(tab))
-            tabObject["tree_node_id"] = nodeID.uuidString.lowercased()
-            XCTAssertThrowsError(try decodeTab(
-                data(tabObject),
-                version: tab.version,
-                codec: codec
-            ))
-            tabObject = try codec.object(from: codec.encode(tab))
-            addClock("tree_node_id", to: &tabObject)
-            XCTAssertThrowsError(try decodeTab(
-                data(tabObject),
-                version: tab.version,
-                codec: codec
-            ))
-        }
-    }
-
-    func testEveryVersionThreeOrIncompatibleLegacyWriteRemainsGated() throws {
-        let codec = DesktopWirePayloadCodec()
-        let v3 = v3Version()
-        let v3Node = try makeNode(version: v3)
-        XCTAssertThrowsError(try codec.encode(v3Node)) { error in
-            XCTAssertEqual(
-                error as? SharedTabWirePreparationError,
-                .writerNotActivated
-            )
-        }
-        let v3Tab = try makeTab(version: v3)
-        XCTAssertThrowsError(try codec.encode(v3Tab)) { error in
-            XCTAssertEqual(
-                error as? SharedTabWirePreparationError,
-                .writerNotActivated
-            )
-        }
-
-        let temporaryV2 = try makeNode(isTemporary: true, url: nil)
-        XCTAssertThrowsError(try codec.encode(temporaryV2)) { error in
-            XCTAssertEqual(
-                error as? SharedTabWirePreparationError,
-                .writerNotActivated
-            )
-        }
-        let linkedV2 = try makeTab(treeNodeID: TreeNodeID(rawValue: nodeID))
-        XCTAssertThrowsError(try codec.encode(linkedV2)) { error in
-            XCTAssertEqual(
-                error as? SharedTabWirePreparationError,
-                .writerNotActivated
-            )
+            XCTAssertEqual(error as? SharedTabTargetError, .missingPageLink)
         }
     }
 
     func testVersionThreeEnvelopeIdentityClassSchemaAndClockMustMatch() throws {
-        let codec = DesktopWirePayloadCodec()
-        let node = try makeNode()
-        let version = v3Version()
-        var object = try upgradedV3Object(
-            from: codec.encode(node),
-            newFieldClock: "is_temporary",
-            codec: codec
-        )
-        object["is_temporary"] = false
-        let payload = try data(object)
-        let wrongClock = clock(1_001, device: writerID)
+        let (node, sample) = try goldenNode("tree_saved_web")
+        let base = try UnifiedSyncFixture.envelope(sample)
+        let wrongClock = try node.version.modifiedAt.ticking(at: node.version.modifiedAt.physicalMilliseconds + 1)
         let records = [
-            envelope(
-                id: UUID(uuidString: "90000000-0000-4000-8000-000000000099")!,
-                dataClass: .treeNode,
-                version: version
-            ),
-            envelope(id: node.id.rawValue, dataClass: .deviceTab, version: version),
-            SyncRecord(
-                recordID: node.id.rawValue,
-                entityID: node.id.rawValue,
-                schemaVersion: 2,
-                dataClass: .treeNode,
-                modifiedAt: version.modifiedAt,
-                originatingDevice: version.modifiedBy,
-                encryptedValue: encryptedValue
-            ),
-            SyncRecord(
-                recordID: node.id.rawValue,
-                entityID: node.id.rawValue,
-                schemaVersion: 3,
-                dataClass: .treeNode,
-                modifiedAt: wrongClock,
-                originatingDevice: writerID,
-                encryptedValue: encryptedValue
-            ),
+            SyncRecord(recordID: UUID(uuidString: "90000000-0000-4000-8000-000000000099")!,
+                       entityID: UUID(uuidString: "90000000-0000-4000-8000-000000000099")!,
+                       schemaVersion: 3, dataClass: .treeNode, modifiedAt: base.modifiedAt,
+                       originatingDevice: base.originatingDevice, encryptedValue: base.encryptedValue),
+            SyncRecord(recordID: base.recordID, entityID: base.entityID, schemaVersion: 3,
+                       dataClass: .deviceTab, modifiedAt: base.modifiedAt,
+                       originatingDevice: base.originatingDevice, encryptedValue: base.encryptedValue),
+            try envelope(sample, schemaVersion: 2),
+            SyncRecord(recordID: base.recordID, entityID: base.entityID, schemaVersion: 3,
+                       dataClass: .treeNode, modifiedAt: wrongClock,
+                       originatingDevice: wrongClock.nodeID, encryptedValue: base.encryptedValue),
         ]
+        XCTAssertNoThrow(try codec.decodeTreeNode(base, plaintext: sample.data))
         for record in records {
-            XCTAssertThrowsError(try codec.decodeTreeNode(
-                record,
-                plaintext: payload
-            ))
+            XCTAssertThrowsError(try codec.decodeTreeNode(record, plaintext: sample.data))
         }
     }
 
-    private func makeNode(
-        schemaVersion: UInt32 = 2,
-        version: SyncVersion? = nil,
-        isTemporary: Bool = false,
-        url: String? = "https://example.test/shared"
-    ) throws -> TreeNode {
-        let resolvedVersion = version ?? makeVersion(
-            schemaVersion: schemaVersion,
-            fields: schemaVersion == 1 ? [] : SharedTabWireReadPolicy.treeNodeBaseFields
-        )
-        return try TreeNode(
-            treeNodeID: TreeNodeID(rawValue: nodeID),
-            workspaceID: WorkspaceID(rawValue: workspaceID),
-            kind: .savedPage,
-            title: "Shared",
-            url: url,
-            orderKey: try OrderKey(components: [10, 20], tieBreaker: writerID),
-            isTemporary: isTemporary,
-            targetKind: resolvedVersion.schemaVersion == 3 ? (url == nil ? .newTab : .web) : nil,
-            version: resolvedVersion
-        )
+    // MARK: - Golden helpers
+
+    private func sample(_ name: String) throws -> UnifiedSyncFixture.Sample {
+        let (_, fixture) = try UnifiedSyncFixture.load()
+        return try XCTUnwrap(fixture.records.first { $0.name == name }, name)
     }
 
-    private func makeTab(
-        schemaVersion: UInt32 = 2,
-        version: SyncVersion? = nil,
-        treeNodeID: TreeNodeID? = nil
-    ) throws -> RemoteTab {
-        let resolvedVersion = version ?? makeVersion(
-            schemaVersion: schemaVersion,
-            fields: schemaVersion == 1 ? [] : SharedTabWireReadPolicy.remoteTabBaseFields
-        )
-        return try RemoteTab(
-            tabID: TabID(rawValue: tabID),
-            deviceID: writerID,
-            deviceKind: .mac,
-            deviceName: "Mac",
-            sessionID: DeviceSessionID(rawValue: sessionID),
-            workspaceID: WorkspaceID(rawValue: workspaceID),
-            treeNodeID: treeNodeID,
-            workspaceName: "Inbox",
-            title: "Shared tab",
-            url: "https://example.test/tab",
-            targetKind: resolvedVersion.schemaVersion == 3 ? .web : nil,
-            lastActiveAt: resolvedVersion.modifiedAt,
-            version: resolvedVersion
-        )
+    private func goldenNode(_ name: String) throws -> (TreeNode, UnifiedSyncFixture.Sample) {
+        let value = try sample(name)
+        return (try codec.decodeTreeNode(UnifiedSyncFixture.envelope(value), plaintext: value.data), value)
+    }
+
+    private func goldenTab(_ name: String) throws -> (RemoteTab, UnifiedSyncFixture.Sample) {
+        let value = try sample(name)
+        return (try decodeTab(value.data, sample: value), value)
     }
 
     private func decodeTab(
-        _ payload: Data,
-        version: SyncVersion,
-        codec: DesktopWirePayloadCodec
+        _ payload: Data, sample: UnifiedSyncFixture.Sample, schemaVersion: UInt32 = 3
     ) throws -> RemoteTab {
-        try codec.decodeRemoteTab(
-            envelope(id: tabID, dataClass: .deviceTab, version: version),
-            plaintext: payload,
-            devices: [
-                writerID: Device(
-                    deviceID: writerID,
-                    name: "Mac",
-                    kind: .mac,
-                    lastSeenAt: version.modifiedAt,
-                    version: version
-                ),
-            ],
-            workspaces: [
-                WorkspaceID(rawValue: workspaceID): Workspace(
-                    workspaceID: WorkspaceID(rawValue: workspaceID),
-                    name: "Inbox",
-                    version: version
-                ),
-            ]
+        let deviceSample = try self.sample("device_mac")
+        let device = try codec.decodeDevice(UnifiedSyncFixture.envelope(deviceSample), plaintext: deviceSample.data)
+        let workspaceSample = try self.sample("workspace")
+        let workspace = try codec.decodeWorkspace(UnifiedSyncFixture.envelope(workspaceSample),
+                                                  plaintext: workspaceSample.data)
+        return try codec.decodeRemoteTab(
+            envelope(sample, schemaVersion: schemaVersion), plaintext: payload,
+            devices: [device.id: device], workspaces: [workspace.id: workspace]
         )
     }
 
-    private func makeVersion(
-        schemaVersion: UInt32,
-        fields: Set<String>
-    ) -> SyncVersion {
-        let value = clock(1_000, device: writerID)
-        return SyncVersion(
-            schemaVersion: schemaVersion,
-            modifiedAt: value,
-            modifiedBy: writerID,
-            fieldVersions: Dictionary(uniqueKeysWithValues:
-                fields.map { ($0, value) }
-            )
-        )
+    private func envelope(_ sample: UnifiedSyncFixture.Sample, schemaVersion: UInt32) throws -> SyncRecord {
+        let base = try UnifiedSyncFixture.envelope(sample)
+        return SyncRecord(recordID: base.recordID, entityID: base.entityID, schemaVersion: schemaVersion,
+                          dataClass: base.dataClass, modifiedAt: base.modifiedAt,
+                          originatingDevice: base.originatingDevice, encryptedValue: base.encryptedValue)
     }
 
-    private func v3Version() -> SyncVersion {
-        SyncVersion(
-            schemaVersion: 3,
-            modifiedAt: clock(1_000, device: writerID),
-            modifiedBy: writerID
-        )
+    private func relabeled(_ version: SyncVersion, _ schemaVersion: UInt32) -> SyncVersion {
+        SyncVersion(schemaVersion: schemaVersion, modifiedAt: version.modifiedAt,
+                    modifiedBy: version.modifiedBy, fieldVersions: version.fieldVersions)
     }
 
-    private func upgradedV3Object(
-        from payload: Data,
-        newFieldClock: String,
-        codec: DesktopWirePayloadCodec
-    ) throws -> [String: Any] {
-        var value = try codec.object(from: payload)
-        value["model_version"] = 3
-        value["version_model"] = 3
-        value["target_kind"] = 0
-        addClock(newFieldClock, to: &value)
-        return value
+    private func relabel(_ value: inout [String: Any], version: UInt32) {
+        value["model_version"] = version
+        value["version_model"] = version
     }
 
     private func addClock(_ name: String, to value: inout [String: Any]) {
         var fields = value["field_versions"] as? [String: Any] ?? [:]
-        fields[name] = fields["title"] ?? [
-            "physical": value["version_physical"]!,
-            "logical": value["version_logical"]!,
-            "device": value["version_device"]!,
-        ]
+        fields[name] = fields["title"]
         value["field_versions"] = fields
     }
 
@@ -494,71 +250,19 @@ final class SharedTabWireReadTests: XCTestCase {
         value["field_versions"] = fields
     }
 
+    /// Moves one field clock past the enclosing record clock.
     private func advanceClock(_ name: String, in value: inout [String: Any]) {
         var fields = value["field_versions"] as! [String: Any]
         var field = fields[name] as! [String: Any]
-        field["physical"] = "11644473601001000"
+        field["physical"] = "11644473609000000"
         fields[name] = field
         value["field_versions"] = fields
     }
 
     private func data(_ value: [String: Any]) throws -> Data {
-        try JSONSerialization.data(
-            withJSONObject: value,
-            options: [.sortedKeys, .withoutEscapingSlashes]
-        )
+        try UnifiedSyncFixture.canonical(value)
     }
 
-    private func envelope(
-        id: UUID,
-        dataClass: SyncDataClass,
-        version: SyncVersion
-    ) -> SyncRecord {
-        SyncRecord(
-            recordID: id,
-            entityID: id,
-            schemaVersion: version.schemaVersion,
-            dataClass: dataClass,
-            modifiedAt: version.modifiedAt,
-            originatingDevice: version.modifiedBy,
-            encryptedValue: encryptedValue
-        )
-    }
-
-    private var encryptedValue: EncryptedValue {
-        EncryptedValue(
-            keyVersion: 1,
-            nonce: Data(repeating: 0, count: 12),
-            ciphertextAndTag: Data(repeating: 0, count: 16)
-        )
-    }
-
-    private func clock(
-        _ milliseconds: UInt64,
-        device: DeviceID
-    ) -> HybridLogicalClock {
-        HybridLogicalClock(
-            physicalMilliseconds: milliseconds,
-            logicalCounter: 2,
-            nodeID: device
-        )
-    }
-
-    private var writerID: DeviceID {
-        DeviceID(rawValue: UUID(uuidString: "10000000-0000-4000-8000-000000000002")!)
-    }
-    private var nodeID: UUID {
-        UUID(uuidString: "20000000-0000-4000-8000-000000000002")!
-    }
-    private var tabID: UUID {
-        UUID(uuidString: "30000000-0000-4000-8000-000000000003")!
-    }
-    private var sessionID: UUID {
-        UUID(uuidString: "40000000-0000-4000-8000-000000000004")!
-    }
-    private var workspaceID: UUID {
-        UUID(uuidString: "83699047-edf8-580d-948d-9c37acc35cb6")!
-    }
     private var zeroUUID: UUID {
         UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
     }

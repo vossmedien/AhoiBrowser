@@ -275,6 +275,57 @@ class MobileBrowserUITestCase: XCTestCase {
         return rawValue
     }
 
+    /// The library root alone does not prove the sheet closed: a pushed
+    /// compact detail hides the sidebar list while its Done is still shown.
+    /// Wait until the root and every `browser.library.done` are gone (79828c0).
+    @MainActor
+    func assertLibraryClosed(
+        in app: XCUIApplication,
+        timeout: TimeInterval = 5,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.library.root"]
+                .waitForNonExistence(timeout: timeout),
+            "The library root must disappear.", file: file, line: line
+        )
+        XCTAssertTrue(
+            app.buttons.matching(identifier: "browser.library.done").firstMatch
+                .waitForNonExistence(timeout: timeout),
+            "Every library Done must disappear once the sheet has closed.",
+            file: file, line: line
+        )
+    }
+
+    /// XCUITest reports `browser.address` as not hittable even right after
+    /// launch, because the web view's accessibility frame reaches under the
+    /// bottom deck (79828c0). Prove input instead: open the address editor
+    /// and dismiss it again, leaving the browser in its previous state.
+    @MainActor
+    func assertBrowserAcceptsAddressInput(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let address = app.buttons["browser.address"]
+        XCTAssertTrue(address.waitForExistence(timeout: 5), file: file, line: line)
+        address.tap()
+        let field = app.textFields["browser.address.field"]
+        // `browser.address.clear` only exists for a non-empty address; the
+        // field itself proves the editor opened for blank tabs as well.
+        XCTAssertTrue(
+            field.waitForExistence(timeout: 5),
+            "The browser must accept address input.", file: file, line: line
+        )
+        let cancel = app.buttons.matching(NSPredicate(
+            format: "label IN %@", ["Cancel", "Abbrechen"]
+        )).firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 3), file: file, line: line)
+        cancel.tap()
+        XCTAssertTrue(field.waitForNonExistence(timeout: 4), file: file, line: line)
+    }
+
     @MainActor
     func waitForHittable(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
         guard element.waitForExistence(timeout: timeout) else { return false }

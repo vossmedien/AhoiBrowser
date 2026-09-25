@@ -118,7 +118,8 @@ final class MobileBrowserIPadInteractionUITests: MobileBrowserRealE2ETestCase {
         XCTAssertTrue(waitUntil(timeout: 3) { field.hasFocus })
         app.typeKey(XCUIKeyboardKey.escape.rawValue, modifierFlags: [])
         XCTAssertTrue(field.waitForNonExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["browser.address"].isHittable)
+        // `isHittable` is a false signal for the address (79828c0).
+        assertBrowserAcceptsAddressInput(in: app)
     }
 
     @MainActor
@@ -137,10 +138,7 @@ final class MobileBrowserIPadInteractionUITests: MobileBrowserRealE2ETestCase {
         createWorkspace(named: firstName, in: app)
         createWorkspace(named: secondName, in: app)
         app.buttons["browser.library.done"].tap()
-        XCTAssertTrue(
-            app.descendants(matching: .any)["browser.library.root"]
-                .waitForNonExistence(timeout: 4)
-        )
+        assertLibraryClosed(in: app, timeout: 4)
 
         let firstSidebarWorkspace = app.staticTexts[firstName]
         XCTAssertTrue(firstSidebarWorkspace.waitForExistence(timeout: 5))

@@ -480,7 +480,7 @@ final class MobileBrowserPrivateDataRealE2EUITests: MobileBrowserRealE2ETestCase
         let done = app.buttons["browser.library.done"]
         XCTAssertTrue(done.waitForExistence(timeout: 3))
         done.tap()
-        XCTAssertTrue(library.waitForNonExistence(timeout: 4))
+        assertLibraryClosed(in: app, timeout: 4)
     }
 
     @MainActor

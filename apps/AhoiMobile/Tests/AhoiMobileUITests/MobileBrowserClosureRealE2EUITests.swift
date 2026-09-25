@@ -162,10 +162,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
             "Saving the active page must create a visible saved-page tree row."
         )
         savedPage.tap()
-        XCTAssertTrue(
-            app.descendants(matching: .any)["browser.library.root"]
-                .waitForNonExistence(timeout: 5)
-        )
+        assertLibraryClosed(in: app)
         assertAddress(pageURL, containsOrigin: fixture.origin, in: app)
         XCTAssertTrue(
             app.webViews.staticTexts["Redirect and popup controls"]
@@ -199,10 +196,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         )
         result.tap()
 
-        XCTAssertTrue(
-            app.descendants(matching: .any)["browser.library.root"]
-                .waitForNonExistence(timeout: 5)
-        )
+        assertLibraryClosed(in: app)
         assertAddress(pageURL, containsOrigin: fixture.origin, in: app)
         XCTAssertTrue(
             app.webViews.staticTexts["Redirect and popup controls"]
@@ -435,12 +429,9 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
             app.buttons["browser.actions.done"].waitForNonExistence(timeout: 4),
             "The actions sheet must finish dismissing after visible tab creation."
         )
-        let address = app.buttons["browser.address"]
-        XCTAssertTrue(address.waitForExistence(timeout: 4))
-        XCTAssertTrue(
-            waitUntil(timeout: 4) { address.isHittable },
-            "The new tab's address control must be actionable before its next navigation."
-        )
+        // `isHittable` is a false signal for the address (79828c0); prove
+        // the new tab accepts input before its next navigation instead.
+        assertBrowserAcceptsAddressInput(in: app)
     }
 
     @MainActor
@@ -461,10 +452,7 @@ final class MobileBrowserClosureRealE2EUITests: MobileBrowserRealE2ETestCase {
         let done = app.buttons["browser.library.done"]
         XCTAssertTrue(done.waitForExistence(timeout: 3))
         done.tap()
-        XCTAssertTrue(
-            app.descendants(matching: .any)["browser.library.root"]
-                .waitForNonExistence(timeout: 4)
-        )
+        assertLibraryClosed(in: app)
     }
 
     @MainActor

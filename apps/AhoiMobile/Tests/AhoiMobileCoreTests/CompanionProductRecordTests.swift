@@ -92,10 +92,16 @@ final class CompanionProductRecordTests: XCTestCase {
         )
     }
 
-    func testLegacySnapshotDefaultsNewProductRecordsToEmpty() throws {
-        let decoded = try JSONDecoder().decode(
+    func testLegacySnapshotIsRejectedAndCurrentSnapshotDefaultsProductRecordsToEmpty() throws {
+        // ADR 0009: an unmarked old snapshot is never decoded as an empty
+        // current collection; only the optional product section may be absent.
+        XCTAssertThrowsError(try JSONDecoder().decode(
             CompanionSnapshot.self,
             from: Data(#"{"devices":[],"workspaces":[],"treeNodes":[],"sessions":[],"remoteTabs":[],"history":[]}"#.utf8)
+        ))
+        let decoded = try JSONDecoder().decode(
+            CompanionSnapshot.self,
+            from: Data(#"{"syncFormatVersion":3,"structureRevision":1,"splitGroups":[],"archiveEntries":[],"devices":[],"workspaces":[],"treeNodes":[],"sessions":[],"remoteTabs":[],"history":[]}"#.utf8)
         )
         XCTAssertEqual(decoded.productRecords, .empty)
     }

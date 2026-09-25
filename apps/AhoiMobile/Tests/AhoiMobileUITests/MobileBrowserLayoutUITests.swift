@@ -57,7 +57,9 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
                 XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: 3))
             }
         }
-        XCTAssertTrue(app.buttons["browser.address"].isHittable)
+        // `isHittable` is a false signal for the address: the web view's
+        // accessibility frame reaches under the bottom deck (79828c0).
+        assertBrowserAcceptsAddressInput(in: app)
         XCTAssertTrue(app.buttons["browser.more"].isHittable)
 
         normalizeToFreshNormalTab(in: app)
@@ -193,7 +195,9 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
             workspace.exists,
             "Scripted scrollTo travel must not masquerade as a finger gesture."
         )
-        assertReachableHitTarget(app.buttons["browser.address"])
+        // With the full deck over a loaded page `isHittable` is a false
+        // signal for the address (79828c0); prove input instead.
+        assertBrowserAcceptsAddressInput(in: app)
     }
 
     @MainActor
@@ -319,7 +323,9 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         fileInputCancel.tap()
         XCTAssertTrue(workspace.waitForExistence(timeout: 3),
                       "A file-input request must leave the full Harbor Deck open.")
-        assertReachableHitTarget(app.buttons["browser.address"])
+        // With the full deck over a loaded page `isHittable` is a false
+        // signal for the address (79828c0); prove input instead.
+        assertBrowserAcceptsAddressInput(in: app)
     }
 
     @MainActor

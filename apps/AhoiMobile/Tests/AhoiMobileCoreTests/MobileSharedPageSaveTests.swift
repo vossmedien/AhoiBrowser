@@ -103,7 +103,10 @@ final class MobileSharedPageSaveTests: XCTestCase {
         let secondWorkspace = try await repository.createWorkspace(name: "Second")
         var tab = MobileTabRecord(title: "Original", url: "https://example.test/original")
         let original = try await repository.saveBrowserPage(tab, workspaceID: firstWorkspace.id)
+        // Mirror the controller's bind: since 4e64c5f a repeated save needs a
+        // current binding, not merely a copied tree-node identity.
         tab.treeNodeID = original.id
+        tab.sharedBindingState = .current
         tab.customTitle = "User title"
         tab.url = "https://example.test/updated"
         let updated = try await repository.saveBrowserPage(tab, workspaceID: secondWorkspace.id)
@@ -111,8 +114,10 @@ final class MobileSharedPageSaveTests: XCTestCase {
         XCTAssertEqual(updated.id, original.id)
         XCTAssertEqual(updated.createdAt, original.createdAt)
         XCTAssertEqual(updated.workspaceID, secondWorkspace.id)
-        XCTAssertEqual(updated.title, "User title")
-        XCTAssertEqual(updated.url, tab.url)
+        // A repeated Save changes persistence/location only; the page keeps
+        // its own title and target, never the runtime WebKit/custom-title cache.
+        XCTAssertEqual(updated.title, original.title)
+        XCTAssertEqual(updated.url, original.url)
         XCTAssertNil(updated.parentID)
         XCTAssertEqual(snapshot.visibleTreeNodes.count, 1)
 

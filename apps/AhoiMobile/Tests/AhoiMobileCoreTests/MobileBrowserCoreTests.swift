@@ -330,6 +330,13 @@ final class MobileBrowserCoreTests: XCTestCase {
             store: InMemoryCompanionStore(),
             localDeviceID: deviceID
         )
+        // Format 3: a published Presence always links an existing page, and
+        // its title follows that page rather than a web-view hint.
+        let workspace = try await repository.createWorkspace(name: "Phone")
+        let page = try await repository.createTreeNode(
+            workspaceID: workspace.id, kind: .savedPage,
+            title: "Example", url: "https://example.com"
+        )
         let first = try await repository.publishLocalMobileTab(
             tabID: tabID,
             sessionID: sessionID,
@@ -338,14 +345,17 @@ final class MobileBrowserCoreTests: XCTestCase {
             workspaceID: nil,
             title: "Example",
             url: "https://example.com",
-            pinned: false
+            pinned: false,
+            treeNodeID: page.id
         )
+        XCTAssertEqual(first.tab.treeNodeID, page.id)
         XCTAssertEqual(first.device.id, deviceID)
         XCTAssertEqual(first.session.id, sessionID)
         XCTAssertEqual(first.tab.deviceKind, .iPhone)
         XCTAssertEqual(first.tab.context, .normal)
         XCTAssertTrue(first.tab.isOpen)
 
+        _ = try await repository.updateTreeNode(page.id, title: "Updated")
         let updated = try await repository.publishLocalMobileTab(
             tabID: tabID,
             sessionID: sessionID,
@@ -354,8 +364,10 @@ final class MobileBrowserCoreTests: XCTestCase {
             workspaceID: nil,
             title: "Updated",
             url: "https://example.com",
-            pinned: false
+            pinned: false,
+            treeNodeID: page.id
         )
+        XCTAssertEqual(updated.tab.title, "Updated")
         XCTAssertEqual(
             updated.tab.version.fieldVersions["opened_at"],
             first.tab.version.fieldVersions["opened_at"]
@@ -411,15 +423,24 @@ final class MobileBrowserCoreTests: XCTestCase {
             websiteTintARGB: 0xFF88_22CC
         )
 
+        // The Presence has its own stable identity, distinct from the runtime
+        // tab and its page (ADR 0009); private tabs never publish.
+        let presenceID = try XCTUnwrap(normal.presenceID)
         await model.reconcilePublishedMobileTabs([normal, privateTab])
-        XCTAssertEqual(model.snapshot.visibleRemoteTabs.map(\.id.rawValue), [normal.id])
+        XCTAssertEqual(model.snapshot.visibleRemoteTabs.map(\.id), [presenceID])
+        XCTAssertNotNil(model.snapshot.visibleRemoteTabs.first?.treeNodeID)
         XCTAssertEqual(model.snapshot.visibleRemoteTabs.first?.deviceKind, .iPad)
         XCTAssertEqual(model.snapshot.visibleRemoteTabs.first?.title, "Named voyage")
 
+        // Capture infers no closure from absence; only the explicit close
+        // path owns deletion intent and tombstones the stale Presence.
         await model.reconcilePublishedMobileTabs([])
+        XCTAssertEqual(model.snapshot.visibleRemoteTabs.map(\.id), [presenceID])
+        let closed = await model.closePublishedMobileTab(normal) {}
+        XCTAssertTrue(closed)
         XCTAssertTrue(model.snapshot.visibleRemoteTabs.isEmpty)
         let stored = (try await repository.currentSnapshot()).remoteTabs
-        XCTAssertEqual(stored.first(where: { $0.id.rawValue == normal.id })?.isDeleted, true)
+        XCTAssertEqual(stored.first(where: { $0.id == presenceID })?.isDeleted, true)
     }
 
     func testExternalOpenDeduplicatorSuppressesOnlyImmediateDuplicate() throws {

@@ -87,8 +87,12 @@ final class MobileTabReorderTests: XCTestCase {
 
         XCTAssertEqual(restored.tabs.count, 3)
         XCTAssertEqual(restored.tabs.first?.treeNodeID, nodeID)
-        XCTAssertNil(restored.tabs[1].treeNodeID)
-        XCTAssertNil(restored.tabs[2].treeNodeID)
+        // Since 4e64c5f conflicting bindings stay visible for recovery but are
+        // deferred, so none of the ambiguous rows can publish after restart.
+        for tab in restored.tabs {
+            XCTAssertEqual(tab.sharedBindingState, .deferred)
+            XCTAssertFalse(tab.canPublishSharedPresence)
+        }
         XCTAssertEqual(restored.tabs[1].title, "Keep local work")
     }
 

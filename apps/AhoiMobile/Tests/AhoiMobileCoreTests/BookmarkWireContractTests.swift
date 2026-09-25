@@ -7,35 +7,31 @@ final class BookmarkWireContractTests: XCTestCase {
     private let windowsEpochMicroseconds: Int64 = 11_644_473_600_000_000
 
     func testCanonicalGoldenPayloadsRoundTripByteForByte() throws {
-        let document = try goldenDocument()
-        XCTAssertEqual(document["data_class"] as? String, "bookmark")
-        XCTAssertEqual((document["entity_type"] as? NSNumber)?.intValue, 11)
-        XCTAssertEqual(
-            Set(try XCTUnwrap(document["field_names"] as? [String])),
-            BookmarkRecord.syncFields
-        )
-        let cases = try XCTUnwrap(document["cases"] as? [[String: Any]])
-        XCTAssertEqual(cases.count, 3)
+        // The bookmark goldens are the entity-11 rows of the one Format-3
+        // resource shared with C++ (ADR 0009), not the retired v2 document.
+        let (_, fixture) = try UnifiedSyncFixture.load()
+        let cases = fixture.records.filter { $0.data_class == "bookmark" }
+        XCTAssertEqual(Set(cases.map(\.entity_type)), [11])
+        XCTAssertEqual(cases.count, 4)
 
         for item in cases {
-            let name = try XCTUnwrap(item["name"] as? String)
-            let payload = try XCTUnwrap(item["payload"] as? [String: Any])
-            let expected = try canonicalData(payload)
+            let payload = try UnifiedSyncFixture.object(item.data)
+            XCTAssertEqual(
+                Set(try XCTUnwrap(payload["field_versions"] as? [String: Any]).keys),
+                BookmarkRecord.syncFields, item.name
+            )
             let record = try envelope(for: payload)
             let decoded = try DesktopWirePayloadCodec().decodeBookmark(
                 record,
-                plaintext: expected
+                plaintext: item.data
             )
 
             XCTAssertEqual(
                 try DesktopWirePayloadCodec().encode(decoded),
-                expected,
-                "Golden case \(name) changed bytes"
+                item.data,
+                "Golden case \(item.name) changed bytes"
             )
             XCTAssertEqual(decoded.id.rawValue, record.entityID)
-            if name == "native_url_metadata" {
-                XCTAssertEqual(decoded.url, "chrome://settings/")
-            }
         }
     }
 
@@ -192,9 +188,11 @@ final class BookmarkWireContractTests: XCTestCase {
         assertRejected(invalid, record: record)
 
         let integerPayload = String(decoding: try codec.encode(bookmark), as: UTF8.self)
+        // Like the C++ reader, an integral binary64 value (1.0) is the same
+        // number; a nonintegral one is rejected.
         let floatingKind = integerPayload.replacingOccurrences(
             of: #""kind":1"#,
-            with: #""kind":1.0"#
+            with: #""kind":1.5"#
         )
         XCTAssertThrowsError(try codec.decodeBookmark(
             record,
@@ -320,19 +318,6 @@ final class BookmarkWireContractTests: XCTestCase {
         )
     }
 
-    private func goldenDocument() throws -> [String: Any] {
-        let url = try XCTUnwrap(
-            Bundle(for: Self.self).url(
-                forResource: "bookmark_wire_v2",
-                withExtension: "json"
-            ),
-            "bookmark_wire_v2.json must be a test-bundle resource"
-        )
-        return try XCTUnwrap(
-            JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
-        )
-    }
-
     private func canonicalData(_ value: [String: Any]) throws -> Data {
         try JSONSerialization.data(
             withJSONObject: value,
@@ -453,7 +438,7 @@ final class BookmarkWireContractTests: XCTestCase {
         return SyncRecord(
             recordID: id,
             entityID: id,
-            schemaVersion: 2,
+            schemaVersion: SharedSyncFormat.currentVersion,
             dataClass: .bookmark,
             modifiedAt: clock,
             originatingDevice: device,

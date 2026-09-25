@@ -257,7 +257,13 @@ final class RemoteCommandOwnershipStoreTests: XCTestCase {
             ),
             repository: LocalFirstRepository(store: InMemoryCompanionStore()),
             recordsURL: directory.appendingPathComponent("records.json"),
-            stateURL: directory.appendingPathComponent("engine.json")
+            stateURL: directory.appendingPathComponent("engine.json"),
+            // Since bbe2c53 the runtime needs a verified key commitment before
+            // it reaches the ownership index; supply a synthetic one.
+            bootstrapClaim: CompanionBootstrapClaim(
+                keyVersion: 1, serverChangeTag: "fixture",
+                keySHA256: String(repeating: "a", count: 64)
+            )
         )) {
             XCTAssertEqual(
                 $0 as? CompanionCloudKitBootstrapError,

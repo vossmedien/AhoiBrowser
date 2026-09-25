@@ -18,12 +18,16 @@ final class BookmarkTransportAuthorizationTests: XCTestCase {
         XCTAssertNoThrow(try gate.authorize(record(.workspace)))
     }
 
-    func testBookmarkApprovalNeverEnablesVersionThreeUpload() {
+    func testBookmarkApprovalNeverEnablesLegacyVersionUpload() {
+        // Format 3 is the only writer (ADR 0009); approval cannot re-open v1/v2.
         let gate = BookmarkTransportAuthorization()
         gate.setApproved(true)
         for dataClass: SyncDataClass in [.bookmark, .treeNode, .deviceTab] {
-            XCTAssertThrowsError(try gate.authorize(record(dataClass, schema: 3))) { error in
-                XCTAssertEqual(error as? SharedTabWirePreparationError, .writerNotActivated)
+            XCTAssertNoThrow(try gate.authorize(record(dataClass)))
+            for legacy: UInt32 in [1, 2] {
+                XCTAssertThrowsError(try gate.authorize(record(dataClass, schema: legacy))) { error in
+                    XCTAssertEqual(error as? SharedSyncFormatError, .unsupportedVersion)
+                }
             }
         }
     }
@@ -63,7 +67,7 @@ final class BookmarkTransportAuthorizationTests: XCTestCase {
 #endif
     }
 
-    private func record(_ dataClass: SyncDataClass, schema: UInt32 = 2, deleted: Bool = false) -> SyncRecord {
+    private func record(_ dataClass: SyncDataClass, schema: UInt32 = SharedSyncFormat.currentVersion, deleted: Bool = false) -> SyncRecord {
         let id = UUID()
         let device = DeviceID()
         let clock = HybridLogicalClock(physicalMilliseconds: 100, nodeID: device)
