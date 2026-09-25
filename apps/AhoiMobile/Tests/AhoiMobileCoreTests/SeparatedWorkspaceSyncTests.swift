@@ -346,7 +346,7 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
     }
 
     @MainActor
-    func testKeyLossRetiresOnlyAfterTheKeyWasSeen() async throws {
+    func testKeyLossPausesAndKeepsTheDataStoreUntilTheKeyReturns() async throws {
         let harness = Harness()
         await harness.coordinator.applyDiscoveredZoneNames([
             harness.zone(harness.workspaceA), harness.zone(harness.workspaceB),
@@ -359,11 +359,39 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
 
         await harness.coordinator.setSyncEnabled(true, for: harness.workspaceA)
         let session = try XCTUnwrap(harness.sessions.first)
-        session.keyPresent = false
         await harness.coordinator.syncEnabledWorkspaces()
-        XCTAssertEqual(harness.coordinator.retirements[harness.workspaceA], .keyRemoved)
-        XCTAssertEqual(harness.removedStores, [harness.workspaceA])
-        XCTAssertEqual(harness.coordinator.entries.map(\.workspaceID), [harness.workspaceB])
+        XCTAssertEqual(session.syncCount, 1)
+        let store = try XCTUnwrap(harness.dataStores.dataStore(for: harness.workspaceA))
+
+        // The key disappears (e.g. iCloud Keychain turned off): paused only.
+        session.keyPresent = false
+        harness.activations[harness.workspaceA] = .keyMissing
+        await harness.coordinator.syncEnabledWorkspaces()
+        await harness.coordinator.syncEnabledWorkspaces()
+        let paused = try XCTUnwrap(harness.coordinator.entries.first { $0.id == harness.workspaceA })
+        XCTAssertEqual(paused.state, .keyMissing)
+        XCTAssertNotNil(paused.state.localizedLabel)
+        XCTAssertTrue(paused.syncEnabled, "The opt-in stays.")
+        XCTAssertEqual(session.syncCount, 1, "Sync stops while the key is missing.")
+        XCTAssertTrue(session.cancelled)
+        XCTAssertNil(harness.coordinator.retirements[harness.workspaceA])
+        XCTAssertTrue(harness.removedStores.isEmpty, "Logins must never be wiped.")
+        XCTAssertTrue(harness.removedLocalData.isEmpty)
+        XCTAssertTrue(harness.closedTabsBeforeRemoval.isEmpty, "Pages stay open.")
+        XCTAssertTrue(harness.dataStores.dataStore(for: harness.workspaceA) === store)
+        XCTAssertEqual(harness.stateStore.load().first { $0.workspaceID == harness.workspaceA }?
+            .pendingRetirement, nil)
+
+        // The key returns: a new session resumes on the same data store.
+        harness.activations.removeValue(forKey: harness.workspaceA)
+        await harness.coordinator.syncEnabledWorkspaces()
+        XCTAssertEqual(harness.coordinator.entries.first { $0.id == harness.workspaceA }?.state,
+                       .ready)
+        let resumed = try XCTUnwrap(harness.sessions.last)
+        XCTAssertFalse(resumed === session)
+        XCTAssertEqual(resumed.syncCount, 1)
+        XCTAssertTrue(harness.dataStores.dataStore(for: harness.workspaceA) === store)
+        XCTAssertEqual(harness.coordinator.entries.count, 2)
     }
 
     @MainActor
@@ -483,7 +511,8 @@ private final class FakeSession: SeparatedWorkspaceSyncSession {
     var snapshot = CompanionSnapshot.empty
     var keyPresent = true
     var cancelled = false
-    func sync() async throws -> CompanionSnapshot { snapshot }
+    var syncCount = 0
+    func sync() async throws -> CompanionSnapshot { syncCount += 1; return snapshot }
     func isKeyPresent() async throws -> Bool { keyPresent }
     func cancel() async { cancelled = true }
 }

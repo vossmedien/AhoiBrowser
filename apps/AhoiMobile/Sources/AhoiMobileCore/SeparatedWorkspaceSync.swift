@@ -18,16 +18,29 @@ public enum SeparatedWorkspaceSyncState: String, Codable, Sendable {
     case activating
     case ready
     case waitingForKey
+    /// A ready key was seen before and is missing now (e.g. iCloud Keychain
+    /// turned off). The session is paused; pages, website data store and local
+    /// data stay, and it resumes when the key returns.
+    case keyMissing
     case failed
+
+    public var localizedLabel: String? {
+        switch self {
+        case .keyMissing:
+            CompanionL10n.string("workspace.separated.key_missing", fallback: "Key missing")
+        default:
+            nil
+        }
+    }
 }
 
 public enum SeparatedWorkspaceRetirementReason: String, Codable, Sendable {
     /// The Workspace record is tombstoned in its own zone.
     case tombstoned
-    /// Its zone is no longer in the private database.
+    /// A successful zone listing no longer contains its zone.
     case zoneRemoved
-    /// Its end-to-end key was seen before and is gone now.
-    case keyRemoved
+    // A missing key never retires a Workspace (sync-owner decision): it only
+    // pauses the session, see `SeparatedWorkspaceSyncState.keyMissing`.
 }
 
 /// One separated Workspace as the Workspace list presents it.
@@ -60,8 +73,8 @@ public struct SeparatedWorkspaceEntry: Identifiable, Hashable, Sendable {
 public struct SeparatedWorkspaceRecord: Codable, Hashable, Sendable {
     public var workspaceID: UUID
     public var syncEnabled: Bool
-    /// True once a ready key was seen; only then may a missing key retire
-    /// the Workspace (a key still arriving via iCloud Keychain never does).
+    /// True once a ready key was seen; a later missing key then shows
+    /// `keyMissing` (paused) instead of `waitingForKey`. Never retires.
     public var keyObserved: Bool
     public var name: String?
     public var icon: String?
@@ -276,6 +289,10 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
                   record.pendingRetirement == nil else { continue }
             await activateIfNeeded(id)
             guard let session = sessions[id] else { continue }
+            if let present = try? await session.isKeyPresent(), !present {
+                await pauseForMissingKey(id)
+                continue
+            }
             do {
                 let snapshot = try await session.sync()
                 guard sessions[id] === session else { continue }
@@ -292,10 +309,6 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
                 states[id] = .ready
             } catch {
                 states[id] = .failed
-            }
-            if let present = try? await session.isKeyPresent(), !present,
-               records[id]?.keyObserved == true {
-                await retire(id, reason: .keyRemoved)
             }
         }
         persist()
@@ -346,12 +359,17 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
         case .waitingForKey:
             states[id] = .waitingForKey
         case .keyMissing:
-            if record.keyObserved {
-                await retire(id, reason: .keyRemoved)
-            } else {
-                states[id] = .waitingForKey
-            }
+            states[id] = record.keyObserved ? .keyMissing : .waitingForKey
         }
+    }
+
+    /// Stops only the session. The Workspace, its opt-in, its pages, its
+    /// website data store and its local data all stay; the next pass tries to
+    /// activate it again and resumes once the key is back.
+    private func pauseForMissingKey(_ id: UUID) async {
+        await sessions.removeValue(forKey: id)?.cancel()
+        states[id] = .keyMissing
+        publish()
     }
 
     private func retire(_ id: UUID, reason: SeparatedWorkspaceRetirementReason) async {

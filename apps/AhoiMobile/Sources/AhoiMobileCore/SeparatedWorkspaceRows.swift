@@ -27,7 +27,9 @@ struct SeparatedWorkspaceRows: View {
                         .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(entry.displayName).lineLimit(1)
-                            Text(SeparatedWorkspaceEntry.isolationLevelLabel)
+                            Text(entry.state.localizedLabel.map {
+                                "\(SeparatedWorkspaceEntry.isolationLevelLabel) · \($0)"
+                            } ?? SeparatedWorkspaceEntry.isolationLevelLabel)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
