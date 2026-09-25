@@ -87,6 +87,8 @@ for attempt in 1 2 3; do
   ax activate $PID; sleep 1
   "$AX" hidrightclick $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1 && break; sleep 1
 done
+sleep 1; "$AX" dump $PID 45 > "$OUT/ax-after-rightclick.txt"
+echo "frontmost after right-click: $(osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2>/dev/null)" >> "$OUT/steps.txt"
 # Open split tabs say "Split archivieren"; saved tree rows say "Archivieren
 # (inklusive Split)".
 if waitax "AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))" 5; then
