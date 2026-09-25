@@ -1,6 +1,6 @@
 # 022 – User decision: Xcode 27 is also the reference and release toolchain
 
-Status: ready
+Status: integrated 6630a7f (toolchain, gates, tests, BUILDING; Master text deferred: it holds another session's uncommitted edits; release and upstream-release Xcode 27 builds scheduled after dev build 31)
 Owner lane: desktop (toolchain, build scripts, Master text)
 Base: user statement of 25 September 2026: "wir nutzen nur noch 27"
 
