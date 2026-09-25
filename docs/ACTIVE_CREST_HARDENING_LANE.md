@@ -46,7 +46,9 @@ This lane never builds, installs, refreshes the overlay, writes under
   handed off as 009. Swift tests need the Mobile simulator, and C++ tests need
   the desktop build, so neither runs in this lane.
 - Handoff 005 was integrated by desktop (`0981913`).
-- Next: H2 audit.
+- Desktop integrated 003, 004, 006, 007 and 008. Review of 003/006 as handoff
+  010 (R1 high: synchronous overlap rejection in `GroupPageClose::Ask`).
+- Next: H2 audit (read-only helper running), then lease-bound H3 run.
 
 ## Packages
 
@@ -56,8 +58,8 @@ This lane never builds, installs, refreshes the overlay, writes under
 | H2 Single writer | not started | – | – |
 | H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) integrated | `d425c3b` |
 | H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) integrated | `2ab7909` |
-| H5 Crest reference / network silence | review `docs/reviews/crest-hardening-2026-09-25-crest-chromium-reference.md` and `docs/NETWORK_SILENCE_CHECKLIST.md` done; remaining DoD: GCM fix integrated and fresh-profile audit on the candidate | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md), [004](../handoffs/crest-hardening/004-gcm-policy-invalidations/HANDOFF.md), [005](../handoffs/crest-hardening/005-fieldtrial-testing-config/HANDOFF.md) integrated `0981913`, [006](../handoffs/crest-hardening/006-batch-before-unload/HANDOFF.md) ready | – |
-| H6 Isolated Workspaces (contract) | analysis, ADR 0011, deletion defect and WS-ISO-01..13 catalogue handed off; remaining DoD: review of each desktop implementation step | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md), [007](../handoffs/crest-hardening/007-ws-iso-acceptance/HANDOFF.md), [008](../handoffs/crest-hardening/008-website-sessions-shared-permissions/HANDOFF.md) ready | – |
+| H5 Crest reference / network silence | review and checklist done; 003–006 integrated (GCM as patch 0056 `caf6f1e`, field trials `0981913`, group close `87a6b89`); remaining DoD: NET-GCM-01/02 and the fresh-profile audit on the next candidate | 004–006 integrated | `caf6f1e`, `0981913`, `87a6b89` |
+| H6 Isolated Workspaces (contract) | analysis, ADR 0011, WS-ISO catalogue done; 003/007/008 integrated (`52bfd3c`, `7401b8e`, `b0b7f6c`); review of the integrated deletion and group close found R1 (high: one overlap disables archive/close-all/deletion until restart) and R2–R4 | [010](../handoffs/crest-hardening/010-review-group-close-and-deletion/HANDOFF.md) ready | 003 `52bfd3c`, 007 `7401b8e`, 008 `b0b7f6c` |
 
 ## Lease requests
 
