@@ -213,6 +213,41 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
         XCTAssertEqual(harness.stateStore.load().map(\.workspaceID), [harness.workspaceB])
     }
 
+    /// Handoff 024 M1: after a confirmed iCloud account switch the new
+    /// account's listing lacks the old account's zones. That pauses the
+    /// separated Workspaces and never deletes their logins; only a listing of
+    /// their own account without their zone retires them.
+    @MainActor
+    func testAccountSwitchPausesSeparatedWorkspacesInsteadOfRetiringThem() async {
+        let harness = Harness()
+        let both = [harness.zone(harness.workspaceA), harness.zone(harness.workspaceB)]
+        await harness.coordinator.refreshDiscovery(using: FakeZoneLister(both, account: "_old"))
+        XCTAssertEqual(harness.coordinator.entries.count, 2)
+        XCTAssertEqual(Set(harness.stateStore.load().map(\.accountIdentifier)), ["_old"])
+
+        await harness.coordinator.refreshDiscovery(
+            using: FakeZoneLister(["AhoiBrowserSyncV3"], account: "_new")
+        )
+        XCTAssertEqual(harness.coordinator.entries.count, 2)
+        XCTAssertTrue(harness.removedStores.isEmpty, "An account switch deletes no login.")
+        XCTAssertTrue(harness.removedLocalData.isEmpty)
+        XCTAssertTrue(harness.coordinator.retirements.isEmpty)
+        XCTAssertEqual(Set(harness.coordinator.entries.map(\.state)), [.otherAccount])
+        XCTAssertEqual(SeparatedWorkspaceSyncState.otherAccount.localizedLabel != nil, true)
+
+        // Back in the old account: both resume, nothing was lost.
+        await harness.coordinator.refreshDiscovery(using: FakeZoneLister(both, account: "_old"))
+        XCTAssertEqual(harness.coordinator.entries.count, 2)
+        XCTAssertFalse(harness.coordinator.entries.contains { $0.state == .otherAccount })
+
+        // The own account's listing without A's zone still retires A.
+        await harness.coordinator.refreshDiscovery(using: FakeZoneLister(
+            [harness.zone(harness.workspaceB)], account: "_old"
+        ))
+        XCTAssertEqual(harness.coordinator.entries.map(\.workspaceID), [harness.workspaceB])
+        XCTAssertEqual(harness.coordinator.retirements[harness.workspaceA], .zoneRemoved)
+    }
+
     @MainActor
     func testUnconfiguredCoordinatorListsNothing() async {
         let coordinator = SeparatedWorkspaceSyncCoordinator()
@@ -498,12 +533,17 @@ private final class FakeDataStore {
 
 private final class FakeZoneLister: CloudKitRecordZoneListing, @unchecked Sendable {
     var names: [String]
+    var account: String?
     var error: Error?
-    init(_ names: [String]) { self.names = names }
+    init(_ names: [String], account: String? = nil) {
+        self.names = names
+        self.account = account
+    }
     func allRecordZoneNames() async throws -> [String] {
         if let error { throw error }
         return names
     }
+    func currentAccountIdentifier() async throws -> String? { account }
 }
 
 @MainActor

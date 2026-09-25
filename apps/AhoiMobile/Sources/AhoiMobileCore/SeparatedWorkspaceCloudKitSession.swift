@@ -14,6 +14,13 @@ extension CloudKitSyncProvider: CloudKitRecordZoneListing {
         }
         return try await database.allRecordZones().map(\.zoneID.zoneName)
     }
+
+    public func currentAccountIdentifier() async throws -> String? {
+        guard !statusLock.withLock({ isInvalidated }) else {
+            throw CloudKitSyncProviderError.unavailable
+        }
+        return try await container.userRecordID().recordName
+    }
 }
 
 /// A separated Workspace's session over the same provider, bridge and key

@@ -11,6 +11,13 @@ import AhoiCloudKitSpike
 /// provider; tests substitute a fake.
 public protocol CloudKitRecordZoneListing: AnyObject, Sendable {
     func allRecordZoneNames() async throws -> [String]
+    /// The iCloud account the listing belongs to (`userRecordID().recordName`),
+    /// or nil when unknown.
+    func currentAccountIdentifier() async throws -> String?
+}
+
+extension CloudKitRecordZoneListing {
+    public func currentAccountIdentifier() async throws -> String? { nil }
 }
 
 public enum SeparatedWorkspaceSyncState: String, Codable, Sendable {
@@ -22,12 +29,20 @@ public enum SeparatedWorkspaceSyncState: String, Codable, Sendable {
     /// turned off). The session is paused; pages, website data store and local
     /// data stay, and it resumes when the key returns.
     case keyMissing
+    /// The current iCloud account is not the one this Workspace was found in
+    /// (handoff 024 M1). Paused like `keyMissing`: pages, website data store
+    /// and logins stay, and it resumes when that account returns.
+    case otherAccount
     case failed
 
     public var localizedLabel: String? {
         switch self {
         case .keyMissing:
             CompanionL10n.string("workspace.separated.key_missing", fallback: "Key missing")
+        case .otherAccount:
+            CompanionL10n.string(
+                "workspace.separated.other_account", fallback: "Other iCloud account"
+            )
         default:
             nil
         }
@@ -81,6 +96,9 @@ public struct SeparatedWorkspaceRecord: Codable, Hashable, Sendable {
     /// Set when a retirement could not finish (e.g. the data store was still
     /// in use); retried on the next refresh.
     public var pendingRetirement: SeparatedWorkspaceRetirementReason?
+    /// The iCloud account whose zone listing contained this Workspace. A
+    /// listing of another account never retires it (handoff 024 M1).
+    public var accountIdentifier: String?
 
     public init(
         workspaceID: UUID,
@@ -88,7 +106,8 @@ public struct SeparatedWorkspaceRecord: Codable, Hashable, Sendable {
         keyObserved: Bool = false,
         name: String? = nil,
         icon: String? = nil,
-        pendingRetirement: SeparatedWorkspaceRetirementReason? = nil
+        pendingRetirement: SeparatedWorkspaceRetirementReason? = nil,
+        accountIdentifier: String? = nil
     ) {
         self.workspaceID = workspaceID
         self.syncEnabled = syncEnabled
@@ -96,6 +115,7 @@ public struct SeparatedWorkspaceRecord: Codable, Hashable, Sendable {
         self.name = name
         self.icon = icon
         self.pendingRetirement = pendingRetirement
+        self.accountIdentifier = accountIdentifier
     }
 }
 
@@ -183,6 +203,8 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     private var sessions: [UUID: any SeparatedWorkspaceSyncSession] = [:]
     private var states: [UUID: SeparatedWorkspaceSyncState] = [:]
     private var passInProgress = false
+    /// Account of the most recent successful listing, when known.
+    private var currentAccountIdentifier: String?
 
     /// An unconfigured coordinator (no base identifiers) lists nothing and
     /// never creates a session.
@@ -235,25 +257,44 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
         } catch {
             return false
         }
-        await applyDiscoveredZoneNames(zoneNames)
+        // An unknown account keeps the account-agnostic behavior; it never
+        // turns a listing into a retirement of another account's Workspaces.
+        let account = try? await lister.currentAccountIdentifier()
+        await applyDiscoveredZoneNames(zoneNames, accountIdentifier: account ?? nil)
         return true
     }
 
     /// Applies one complete zone listing: new separated zones appear with sync
     /// off; a known Workspace whose zone is gone is retired. The main zone,
     /// foreign zones and malformed names are ignored.
-    public func applyDiscoveredZoneNames(_ zoneNames: [String]) async {
+    ///
+    /// Assumption (handoff 024 M2): CloudKit's `allRecordZones` is complete
+    /// whenever it succeeds, so a missing zone in a successful listing of the
+    /// Workspace's own account means the zone was deleted (tombstone retention
+    /// on the Mac). Listings of another account pause instead (M1).
+    public func applyDiscoveredZoneNames(
+        _ zoneNames: [String], accountIdentifier account: String? = nil
+    ) async {
         guard let base else { return }
         let discovered = Set(zoneNames.compactMap {
             SyncNamespace.separatedWorkspace(fromZoneName: $0, base: base)?.workspaceID
         })
+        currentAccountIdentifier = account
         for id in records.keys.sorted(by: { $0.uuidString < $1.uuidString })
             where !discovered.contains(id) {
-            await retire(id, reason: .zoneRemoved)
+            if let account, let owner = records[id]?.accountIdentifier, owner != account {
+                await pauseForOtherAccount(id)
+            } else {
+                await retire(id, reason: .zoneRemoved)
+            }
         }
-        for id in discovered where records[id] == nil {
-            records[id] = SeparatedWorkspaceRecord(workspaceID: id)
-            dataStores?.registerSeparatedWorkspace(id)
+        for id in discovered {
+            if records[id] == nil {
+                records[id] = SeparatedWorkspaceRecord(workspaceID: id)
+                dataStores?.registerSeparatedWorkspace(id)
+            }
+            if let account { records[id]?.accountIdentifier = account }
+            if states[id] == .otherAccount { states[id] = .off }
         }
         await retryPendingRetirements()
         persist()
@@ -287,6 +328,11 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
         for id in records.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
             guard let record = records[id], record.syncEnabled,
                   record.pendingRetirement == nil else { continue }
+            if let account = currentAccountIdentifier,
+               let owner = record.accountIdentifier, owner != account {
+                await pauseForOtherAccount(id)
+                continue
+            }
             await activateIfNeeded(id)
             guard let session = sessions[id] else { continue }
             if let present = try? await session.isKeyPresent(), !present {
@@ -369,6 +415,15 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     private func pauseForMissingKey(_ id: UUID) async {
         await sessions.removeValue(forKey: id)?.cancel()
         states[id] = .keyMissing
+        publish()
+    }
+
+    /// Stops only the session while another iCloud account is signed in.
+    /// Nothing is deleted: the Workspace, its opt-in, pages, website data store
+    /// and logins stay until its own account returns.
+    private func pauseForOtherAccount(_ id: UUID) async {
+        await sessions.removeValue(forKey: id)?.cancel()
+        states[id] = .otherAccount
         publish()
     }
 

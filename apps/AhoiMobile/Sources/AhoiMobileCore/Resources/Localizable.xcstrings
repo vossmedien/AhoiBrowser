@@ -2703,6 +2703,7 @@
     "workspace.isolation.isolated": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vollständig getrennt"}},"en":{"stringUnit":{"state":"translated","value":"Fully separated"}}}},
     "workspace.separated.unnamed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Getrennter Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Separated workspace"}}}},
     "workspace.separated.key_missing": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüssel fehlt"}},"en":{"stringUnit":{"state":"translated","value":"Key missing"}}}},
+    "workspace.separated.other_account": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Anderes iCloud-Konto"}},"en":{"stringUnit":{"state":"translated","value":"Other iCloud account"}}}},
     "workspace.separated.sync_toggle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Auf diesem Gerät synchronisieren"}},"en":{"stringUnit":{"state":"translated","value":"Sync on this device"}}}},
     "workspace.delete": {
       "extractionState": "manual",
