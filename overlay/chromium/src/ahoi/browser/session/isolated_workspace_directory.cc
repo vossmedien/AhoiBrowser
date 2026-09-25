@@ -121,6 +121,24 @@ class HandOverWatch {
         base::WrapUnique(new HandOverWatch(presented, hidden)));
   }
 
+  // The windows hidden behind windows of the Profile in `profile_dir`, in
+  // watch order. Used when that Profile is deleted: exactly these windows
+  // come back (handoff 042), not every main window.
+  static std::vector<BrowserWindowInterface*> HiddenBehind(
+      const std::string& profile_dir) {
+    std::vector<BrowserWindowInterface*> hidden;
+    for (const std::unique_ptr<HandOverWatch>& watch : Watches()) {
+      if (watch->presented_ &&
+          DirName(watch->presented_->GetProfile()->GetPath()) == profile_dir) {
+        if (BrowserWindowInterface* window =
+                FindBrowserBySessionId(watch->hidden_id_)) {
+          hidden.push_back(window);
+        }
+      }
+    }
+    return hidden;
+  }
+
  private:
   HandOverWatch(BrowserWindowInterface* presented,
                 BrowserWindowInterface* hidden)
@@ -428,6 +446,22 @@ void ShowMainWindowsAfterIsolatedDeletion(
   if (local_state && local_state->FindPreference(kPresentedProfileDirPref) &&
       local_state->GetString(kPresentedProfileDirPref) == removed_profile_dir) {
     local_state->SetString(kPresentedProfileDirPref, std::string());
+  }
+  // Handoff 042: show exactly the windows the deleted Workspace was presented
+  // over (in a chain main -> X -> Y, deleting Y shows X only). This runs right
+  // after the pages were asked to close, while the watches still exist, and
+  // does not rely on their close notification, which a restored hand-over
+  // did not deliver on build 30. Without a watch, the main windows return.
+  std::vector<BrowserWindowInterface*> behind =
+      HandOverWatch::HiddenBehind(removed_profile_dir);
+  if (!behind.empty()) {
+    for (BrowserWindowInterface* browser : behind) {
+      ui::BaseWindow* window = browser->GetWindow();
+      if (window && !window->IsVisible() && !window->IsMinimized()) {
+        window->Show();
+      }
+    }
+    return;
   }
   Profile* main_profile = GetLoadedMainProfile();
   ProfileBrowserCollection* browsers =
