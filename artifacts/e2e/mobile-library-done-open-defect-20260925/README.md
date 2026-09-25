@@ -28,7 +28,13 @@ The same sequence passed once on the iPhone 18 Pro Simulator (build60), so
 the failure is intermittent. Suspects left: the library being presented one
 `Task.yield()` after the actions sheet starts dismissing
 (`presentAfterBrowserActions`), i.e. two sibling `.sheet` presentations
-racing. Earlier plan retained for reference:
+racing. Builds 75 (`644361d`, follow-up sheets presented only in the actions sheet's
+`onDismiss`) and 76 (`80226f6`, the test taps the on-screen Done explicitly)
+are still RED the same way, so neither sibling-sheet timing nor a hidden
+duplicate Done explains it; the defect is product-side and reproducible on
+A168. Deferred behind desktop acceptance work.
+
+Earlier plan retained for reference:
 
 Next step (superseded): replace the text-field alert with a small sheet/form (or commit
 from an `onDismiss`) so no alert presentation can outlive its source, then
