@@ -73,12 +73,12 @@ an owner integration, a lease window or an owner implementation step.
 
 | Package | Lane work | Waits only on | Owner |
 | --- | --- | --- | --- |
-| H1 | done: drift gate, merge model (now with union validation as decided by Sync), 131 vectors (rev 3); runners integrated; first run agrees on every valid vector | integration of 014 (copy rev 3) and reruns on the next build and simulator | desktop/sync, mobile |
+| H1 | done: drift gate, merge model (now with union validation as decided by Sync), 131 vectors (rev 3); runners integrated; first run agrees on every valid vector | 014 integrated (`bf3f304`); C++ rerun with build 21, Swift rerun on the simulator (appearance now covered by the Swift runner, `75aeea8`) | desktop/sync, mobile |
 | H2 | done: audit, rule; S1 and rule integrated (`8a9fc91`), R6 integrated (`17f5319`) | owner's deferred S2–S8 (planned for the next desktop package) and the visible journeys | desktop |
 | H3 | done: methodology, harness, trace events (`d425c3b`) | lease window "open" on the next installed candidate; budget verdicts also wait for the owner-gated reference toolchain | desktop, owner |
 | H4 | done: tool, receipt integration (`2ab7909`) | the next regular build receipt carrying `engineInputKey` | desktop |
 | H5 | done: review, checklist; GCM, field trials, group close integrated | NET-GCM-01/02 and the fresh-profile audit on the next installed candidate | desktop |
-| H6 | done: ADR 0011, catalogue, reviews 010, 013, 014, journey coverage 015 and step 2 part 1 review 016 (`bc3cdc2`) | visible WS-ISO/WS-DEL acceptance on the next candidate; ADR 0011 steps 2 and 3, then their review | desktop, sync, mobile |
+| H6 | done: ADR 0011, catalogue, reviews 010, 013, 014, journey coverage 015 and step 2 part 1 review 016 (`bc3cdc2`) | 015/016 integrated (`d1ba87a`, `cfcc187`); 018 (restart hand-over timing) ready; visible WS-ISO/WS-DEL acceptance on build 21; rest of step 2 (routing, Quick Window, import/export) and step 3, then their review | desktop, sync, mobile |
 
 ## Packages
 
