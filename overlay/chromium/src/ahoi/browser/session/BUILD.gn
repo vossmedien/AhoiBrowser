@@ -70,8 +70,8 @@ source_set("isolated_profiles") {
     "//chrome/browser/profiles:profile",
     "//chrome/browser/profiles:profile_manager",
     "//chrome/browser/profiles:profile_util",
-    "//chrome/browser/ui",
     "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/tabs:tab_strip",
     "//components/prefs",
     "//content/public/browser",
   ]
