@@ -311,6 +311,11 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
               *prefs));
       return;
     }
+    if (command_id == kTogglePeekOnShiftClick) {
+      prefs->SetBoolean(popup::kPeekOnShiftClickPref,
+                        !prefs->GetBoolean(popup::kPeekOnShiftClickPref));
+      return;
+    }
     if (command_id == kToggleAutoPeek) {
       prefs->SetBoolean(popup::kAutoPeekFromSavedPagesPref,
                         !prefs->GetBoolean(popup::kAutoPeekFromSavedPagesPref));

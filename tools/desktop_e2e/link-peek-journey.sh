@@ -15,7 +15,7 @@ if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $
 mkdir -p "$OUT"; P=$(mktemp -d /private/tmp/ahoi-peek-profile.XXXXXX)
 SITE_PORT=${AHOI_E2E_SITE_PORT:-8794}; mkdir -p $P-site
 if lsof -nP -iTCP:$SITE_PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "site port $SITE_PORT busy" >&2; exit 6; fi
-printf '<title>page</title><script>document.cookie="acct=kunde; max-age=3600; path=/"</script><input id=draft><a id=l href="/target.html" style="display:block;width:320px;height:90px;background:#ddd">target link</a>' > $P-site/page.html
+printf '<title>page</title><script>document.cookie="acct=kunde; max-age=3600; path=/"</script><input id=draft><a id=l href="/target.html" style="display:block;width:320px;height:90px;background:#ddd">target link</a><a id=x href="http://localhost:'$SITE_PORT'/target.html" style="display:block;width:320px;height:90px;background:#cdf">other site</a>' > $P-site/page.html
 printf '<title>target</title>target page' > $P-site/target.html
 python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/site.log" 2>&1 &
 SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; SITE=http://127.0.0.1:$SITE_PORT
@@ -122,6 +122,13 @@ unload_prompt() { # <page url substring> <accept|cancel>
 eval_in() { # <url substring> <expression>
   CDP "$1" Runtime.evaluate "$(python3 -c 'import json,sys;print(json.dumps({"expression":sys.argv[1],"returnByValue":True}))' "$2")" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("result",{}).get("value",""))'
 }
+PAGE_MATCH=page.html
+click_link() { # <link id> <CDP modifiers bitmask>; a real left click
+  local xy; xy=$(eval_in "$PAGE_MATCH" "(()=>{const r=document.getElementById('$1').getBoundingClientRect();return Math.round(r.x+r.width/2)+' '+Math.round(r.y+r.height/2)})()")
+  local x=${xy% *} y=${xy#* }
+  CDP "$PAGE_MATCH" Input.dispatchMouseEvent "{\"type\":\"mousePressed\",\"x\":$x,\"y\":$y,\"button\":\"left\",\"clickCount\":1,\"modifiers\":$2}" >/dev/null
+  CDP "$PAGE_MATCH" Input.dispatchMouseEvent "{\"type\":\"mouseReleased\",\"x\":$x,\"y\":$y,\"button\":\"left\",\"clickCount\":1,\"modifiers\":$2}" >/dev/null
+}
 peek_link() { # right-click the link, choose the Peek item
   local xy; xy=$(eval_in page.html "(()=>{const r=document.getElementById('l').getBoundingClientRect();return Math.round(r.x+r.width/2)+' '+Math.round(r.y+r.height/2)})()")
   local x=${xy% *} y=${xy#* }
@@ -155,5 +162,24 @@ $AX press $PID "Popup als Tab öffnen" >> "$OUT/steps.txt"; sleep 3
 { ! waitax "Popup schließen" 2; } && [ "$(eval_in target.html "String(window.__ahoiPeekMark)")" = "7" ] \
   && record promoteKeepsSamePage true || record promoteKeepsSamePage false
 waitax "Kunde, Workspace wechseln" 3 && record promotedInSameWorkspace true || record promotedInSameWorkspace false
+# Opt-in entry points (both default off): automatic Peek from saved pages to
+# other sites, and Shift-click. Set in this test profile before a relaunch.
+quit
+python3 - "$P/Default/Preferences" <<'PY'
+import json,sys
+p=sys.argv[1]; d=json.load(open(p))
+d.setdefault("ahoi",{}).setdefault("peek",{}).update({"auto_from_saved_pages":True,"shift_click":True})
+json.dump(d,open(p,"w"))
+PY
+launch
+open_url "$SITE/page.html?saved"; PAGE_MATCH="page.html?saved"
+key 2 cmd; sleep 2   # ⌘D saves the page to the tree
+click_link x 0
+waitax "Popup schließen" 8 && record autoPeekFromSavedPage true || record autoPeekFromSavedPage false
+tabs | grep -q 'page.html?saved' && record savedPageStays true || record savedPageStays false
+$AX press $PID "Popup schließen" >> "$OUT/steps.txt"; sleep 2
+click_link l 8   # Shift-click
+waitax "Popup schließen" 8 && record shiftClickPeeks true || record shiftClickPeeks false
+$AX press $PID "Popup schließen" >> "$OUT/steps.txt"; sleep 1
 $AX dump $PID 14 > "$OUT/ax-final.txt"
 finish; quit

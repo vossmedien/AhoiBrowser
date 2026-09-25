@@ -18,6 +18,9 @@ namespace ahoi::popup {
 // as a preview instead of replacing the saved page. Off by default.
 inline constexpr char kAutoPeekFromSavedPagesPref[] =
     "ahoi.peek.auto_from_saved_pages";
+// Optional modifier: Shift-click on a link previews it instead of opening
+// Chromium's new window. Off by default, so Shift-click keeps its meaning.
+inline constexpr char kPeekOnShiftClickPref[] = "ahoi.peek.shift_click";
 
 // Link-Peek: a link opens as a short preview over its page, in a real
 // WebContents owned by the window's popup overlay. Chromium's context menu

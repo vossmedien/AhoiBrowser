@@ -1242,6 +1242,22 @@ as a second active patch stack.
   off on the exact candidate.
 - **Rebase/removal:** low; one include, one call and one GN line.
 
+## `0061-ahoi-peek-shift-click.patch`
+
+- **Owner:** Desktop. In `BrowserWebContentsDelegate::OpenURLFromTab`, a
+  renderer-initiated link navigation with a user gesture and the
+  `NEW_WINDOW` disposition (Shift-click on macOS) is offered to
+  `ahoi::popup::PeekLink` when the Profile opted in
+  (`ahoi.peek.shift_click`, default off); on success no window opens. One GN
+  dependency on `//ahoi/browser/popup:link_peek`.
+- **Safety:** off by default, so Shift-click keeps Chromium's new window.
+  Context-menu, command and script-opened windows are browser-initiated or
+  go through `AddNewContents` and are unaffected; if the overlay cannot show
+  the preview, the normal window path runs.
+- **Tests:** guarded build; the WORKFLOW-02 Peek journey covers Shift-click
+  with the option on and off.
+- **Rebase/removal:** low; one early-return block and one GN line.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

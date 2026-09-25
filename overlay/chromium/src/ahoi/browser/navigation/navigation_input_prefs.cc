@@ -54,6 +54,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   shortcuts::RegisterProfilePrefs(registry);
   // Link-Peek from saved pages is opt-in (master contract: default off).
   registry->RegisterBooleanPref(popup::kAutoPeekFromSavedPagesPref, false);
+  registry->RegisterBooleanPref(popup::kPeekOnShiftClickPref, false);
 }
 
 WorkspaceSwipeSettings ReadWorkspaceSwipeSettings(const PrefService& prefs) {

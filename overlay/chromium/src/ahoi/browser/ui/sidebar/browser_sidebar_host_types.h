@@ -43,6 +43,7 @@ enum SidebarContextMenuCommand {
   kToggleCmdScrollTabSwitching,
   kToggleMiddleClickAutoscroll,
   kToggleAutoPeek,
+  kTogglePeekOnShiftClick,
   kArchiveTemporaryTab,
   kArchiveList,
   kArchivePolicy,

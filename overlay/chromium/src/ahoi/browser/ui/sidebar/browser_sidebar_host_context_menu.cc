@@ -382,6 +382,10 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
       StructureText(u"Links gespeicherter Seiten zu anderen Websites als "
                     u"Vorschau öffnen",
                     u"Preview links from saved pages to other sites"));
+  context_menu_model_->AddCheckItem(
+      kTogglePeekOnShiftClick,
+      StructureText(u"⇧-Klick auf Links öffnet eine Vorschau",
+                    u"Shift-click on links opens a preview"));
   context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   context_menu_model_->AddItem(
       kCreateRootGroup,
@@ -706,6 +710,9 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
   if (command_id == kToggleAutoPeek) {
     return prefs->GetBoolean(popup::kAutoPeekFromSavedPagesPref);
   }
+  if (command_id == kTogglePeekOnShiftClick) {
+    return prefs->GetBoolean(popup::kPeekOnShiftClickPref);
+  }
   if (command_id == kToggleFloatingSidebar) {
     return BrowserView::GetBrowserViewForBrowser(browser_.get())
                ->GetAhoiSidebarPresentationMode() ==
@@ -848,6 +855,7 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
       case kToggleCmdScrollTabSwitching:
       case kToggleMiddleClickAutoscroll:
       case kToggleAutoPeek:
+      case kTogglePeekOnShiftClick:
         return true;
       default:
         break;
