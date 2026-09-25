@@ -1,6 +1,6 @@
 # 050 – ADR 0011 step 2: Quick Window adoption respects the hand-over
 
-Status: ready
+Status: integrated 5be0782 (build 32; unit tests green; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `351f99c` (`git apply --check` passes; independent of 044/048).
 By the crest-hardening lane; not compiled.

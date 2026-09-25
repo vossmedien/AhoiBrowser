@@ -1,6 +1,6 @@
 # 046 – Review of 663398a (042 reworked): record the window that comes back
 
-Status: ready
+Status: integrated 5be0782 (build 32; unit tests green; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD (`git apply --check` passes). Review by the crest-hardening lane.
 

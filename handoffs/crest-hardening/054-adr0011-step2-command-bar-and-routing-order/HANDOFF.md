@@ -1,6 +1,6 @@
 # 054 – ADR 0011 step 2: command bar and routing lists use the shared order
 
-Status: ready
+Status: integrated 5be0782 (build 32; unit tests green; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `1f87598` **with 044 and 048 applied** (`git apply --check` passes
 on that stack). By the crest-hardening lane; not compiled.

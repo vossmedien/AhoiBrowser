@@ -1,6 +1,6 @@
 # 048 – ADR 0011 step 2: one shared switcher across Profiles
 
-Status: ready
+Status: integrated 5be0782 (build 32; unit tests green; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `cdd3e98` **with 044 applied** (`git apply --check` passes on
 HEAD+044 and on HEAD+044+040). By the crest-hardening lane; not compiled.

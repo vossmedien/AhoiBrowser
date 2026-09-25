@@ -1,6 +1,6 @@
 # 044 – ADR 0011 step 2: one process-wide Workspace order (data)
 
-Status: ready
+Status: integrated 5be0782 (build 32; unit tests green; visible check pending)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `663398a` (`git apply --check` passes on HEAD and the current
 worktree). First of the step 2 handoffs by the crest-hardening lane
