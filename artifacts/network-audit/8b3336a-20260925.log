@@ -1,0 +1,5 @@
+NET-GCM-01               PASS
+fresh-profile-silence    PASS
+  allowed     edgedl.me.gvt1.com x115
+  allowed     safebrowsing.googleapis.com x15
+  allowed     update.googleapis.com x128
