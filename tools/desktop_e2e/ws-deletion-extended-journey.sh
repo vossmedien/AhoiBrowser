@@ -32,7 +32,19 @@ launch() {
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 4; $AX activate $PID >> "$OUT/steps.txt"
 }
-quit() { $AX key $PID 12 cmd >> "$OUT/steps.txt"; for i in $(seq 1 20); do kill -0 $PID 2>/dev/null || return 0; sleep 1; done; echo "still running after quit" >> "$OUT/run.txt"; kill $PID; sleep 3; }
+quit() { key 12 cmd; for i in $(seq 1 20); do kill -0 $PID 2>/dev/null || return 0; sleep 1; done; echo "still running after quit" >> "$OUT/run.txt"; kill $PID; sleep 3; }
+# Keys go through the HID event tap like a real keyboard: keys posted to
+# the process are intermittently dropped by Chromium (command-bar focus
+# probes 4 and 5). hidkey refuses unless the app is frontmost, so bring it
+# forward and retry instead of typing into another app.
+key() {
+  for attempt in 1 2 3 4 5; do
+    $AX activate $PID >/dev/null; sleep 0.3
+    $AX hidkey $PID "$@" >> "$OUT/steps.txt" && return 0
+    sleep 1
+  done
+  echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
+}
 waitax() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do $AX dump $PID 14 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
 waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do tabs | grep -q "$1" && return 0; sleep 1; done; return 1; }
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
@@ -43,11 +55,11 @@ finish() {
 }
 fail_setup() { $AX dump $PID 14 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4; }
 menu() { # <active workspace name> <menu item regex>
-  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
+  key 53; sleep 1
   for attempt in 1 2 3 4; do
     $AX press $PID "$1, Workspace wechseln" AXShowMenu >> "$OUT/steps.txt"
     waitax "$2" 4 && return 0
-    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 2
+    key 53; sleep 2
   done
   return 1
 }
@@ -72,11 +84,11 @@ newws() { # <active> <name> <level radio label or "">
 open_url() { # <url> ; ⌘T + type + Return
   local opened=0
   for attempt in 1 2 3; do
-    $AX activate $PID >> "$OUT/steps.txt"; sleep 1; $AX key $PID 17 cmd >> "$OUT/steps.txt"
+    $AX activate $PID >> "$OUT/steps.txt"; sleep 1; key 17 cmd
     waitax "AXWindow \\| Suchen oder URL eingeben" 6 && { opened=1; break; }
   done
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
-  sleep 1; $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1; $AX key $PID 36 >> "$OUT/steps.txt"
+  sleep 1; $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1; key 36
   waiturl "$1" 20 || fail_setup "did not load $1"; sleep 2
 }
 switchws() { # <active> <target>

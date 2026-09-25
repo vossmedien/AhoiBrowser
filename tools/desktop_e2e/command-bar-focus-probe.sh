@@ -96,11 +96,19 @@ launch
 PREV=Inbox
 for t in $(seq 1 $TRIALS); do
   newws "$PREV" "Probe$t" ""; PREV="Probe$t"
-  $AX activate $PID >> "$OUT/steps.txt"; sleep 1; $AX key $PID 17 cmd >> "$OUT/steps.txt"
-  waitax "AXWindow \\| Suchen oder URL eingeben" 6 || { record "barOpened_$t" false; continue; }
+  { echo "== trial $t after Workspace creation"; $AX focused $PID; } >> "$OUT/focus.txt"
+  $AX activate $PID >> "$OUT/steps.txt"; sleep 1
+  { echo "== trial $t before cmd-T"; $AX focused $PID; $AX enabled $PID "Neuer Tab"; } >> "$OUT/focus.txt"
+  $AX ${AHOI_PROBE_KEY:-key} $PID 17 cmd >> "$OUT/steps.txt"
+  if ! waitax "AXWindow \\| Suchen oder URL eingeben" 6; then
+    record "barOpened_$t" false
+    { echo "== trial $t after unanswered cmd-T"; $AX focused $PID; } >> "$OUT/focus.txt"
+    $AX dump $PID 14 > "$OUT/ax-no-bar-$t.txt"
+    continue
+  fi
   sleep 1; $AX type $PID "$SITE/check.html?t=$t" >> "$OUT/steps.txt"; sleep 1
   { echo "== trial $t before Return"; $AX focused $PID; } >> "$OUT/focus.txt"
-  $AX key $PID 36 >> "$OUT/steps.txt"
+  $AX ${AHOI_PROBE_KEY:-key} $PID 36 >> "$OUT/steps.txt"
   if waiturl "check.html?t=$t" 6; then record "firstReturnNavigated_$t" true; continue; fi
   record "firstReturnNavigated_$t" false
   { echo "== trial $t after failed Return"; $AX focused $PID; } >> "$OUT/focus.txt"

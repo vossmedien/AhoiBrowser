@@ -1,3 +1,4 @@
+import AppKit
 // PID-scoped Accessibility helper for isolated Ahoi E2E clones.
 // usage: axtool dump <pid> [depth]
 //        axtool enable <pid>
@@ -99,6 +100,37 @@ case "key":
         ev.postToPid(pid)
     }
     print("key \(code)")
+case "hidkey":
+    // Like a real keyboard: through the HID event tap, with modifier
+    // flagsChanged events and short gaps. Refuses unless the target app is
+    // frontmost, so it can never type into another app.
+    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
+        print("hidkey refused: target not frontmost"); exit(3)
+    }
+    let code = CGKeyCode(args[3])!
+    var flags: CGEventFlags = []
+    var modifierCodes: [CGKeyCode] = []
+    for m in args.dropFirst(4) {
+        switch m {
+        case "cmd": flags.insert(.maskCommand); modifierCodes.append(55)
+        case "shift": flags.insert(.maskShift); modifierCodes.append(56)
+        case "opt": flags.insert(.maskAlternate); modifierCodes.append(58)
+        case "ctrl": flags.insert(.maskControl); modifierCodes.append(59)
+        default: break
+        }
+    }
+    let source = CGEventSource(stateID: .hidSystemState)
+    func post(_ key: CGKeyCode, _ down: Bool, _ eventFlags: CGEventFlags) {
+        let ev = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: down)!
+        ev.flags = eventFlags
+        ev.post(tap: .cghidEventTap)
+        usleep(30000)
+    }
+    for m in modifierCodes { post(m, true, flags) }
+    post(code, true, flags)
+    post(code, false, flags)
+    for m in modifierCodes.reversed() { post(m, false, []) }
+    print("hidkey \(code)")
 case "focus":
     let needle = args[3]
     var found: AXUIElement?
@@ -120,12 +152,26 @@ case "setvalue":
     guard let f = found else { print("NOT FOUND"); exit(1) }
     let r = AXUIElementSetAttributeValue(f, kAXValueAttribute as CFString, args[4] as CFString)
     print("setvalue \(label(f)) -> \(r.rawValue) now=\(str(f, kAXValueAttribute))")
+case "enabled":
+    // Enabled state of every element whose title/description equals the name
+    // (for example a menu item, whose key equivalent works only if enabled).
+    let needle = args[3]
+    _ = walk(app, 0, 30) { e, _ in
+        let l = [str(e, kAXTitleAttribute), str(e, kAXDescriptionAttribute)]
+        if l.contains(where: { $0 == needle }) {
+            let enabled = (attr(e, kAXEnabledAttribute) as? Bool).map { String($0) } ?? "?"
+            print("\(label(e)) enabled=\(enabled)")
+        }
+        return false
+    }
 case "focused":
     // Which element and windows receive keyboard input right now.
     func element(_ attribute: String) -> AXUIElement? {
         guard let value = attr(app, attribute) else { return nil }
         return (value as! AXUIElement)
     }
+    let front = NSWorkspace.shared.frontmostApplication
+    print("frontmostApp: \(front?.localizedName ?? "none") pid=\(front?.processIdentifier ?? -1) target=\(pid)")
     for (name, attribute) in [("focusedElement", kAXFocusedUIElementAttribute),
                               ("focusedWindow", kAXFocusedWindowAttribute),
                               ("mainWindow", kAXMainWindowAttribute)] {

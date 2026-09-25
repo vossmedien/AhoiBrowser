@@ -24,6 +24,18 @@ tabs() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print
 PID=$!; echo "pid=$PID profile=$P" > $OUT/run.txt
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 4; $AX activate $PID >> $OUT/steps.txt
+# Keys go through the HID event tap like a real keyboard: keys posted to
+# the process are intermittently dropped by Chromium (command-bar focus
+# probes 4 and 5). hidkey refuses unless the app is frontmost, so bring it
+# forward and retry instead of typing into another app.
+key() {
+  for attempt in 1 2 3 4 5; do
+    $AX activate $PID >/dev/null; sleep 0.3
+    $AX hidkey $PID "$@" >> "$OUT/steps.txt" && return 0
+    sleep 1
+  done
+  echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
+}
 waitax() { # <regex> <seconds>
   local end=$(( $(date +%s) + $2 ))
   while [ $(date +%s) -lt $end ]; do $AX dump $PID 14 | grep -q -E "$1" && return 0; sleep 1; done
@@ -36,15 +48,15 @@ waiturl() { # <url-substring> <seconds>
 }
 fail_setup() {
   echo "{\"pass\": false, \"setupFailed\": \"$1\"}" > $OUT/verdict.json
-  $AX dump $PID 14 > $OUT/ax-setup-failure.txt; $AX key $PID 12 cmd >> $OUT/steps.txt
+  $AX dump $PID 14 > $OUT/ax-setup-failure.txt; key 12 cmd
   cat $OUT/verdict.json; exit 4
 }
 newws() {
-  $AX key $PID 53 >> $OUT/steps.txt; sleep 1
+  key 53; sleep 1
   for attempt in 1 2 3 4; do
     $AX press $PID "$1, Workspace wechseln" AXShowMenu >> $OUT/steps.txt
     waitax "Neuer Workspace…" 4 && $AX press $PID "Neuer Workspace…" >> $OUT/steps.txt && break
-    $AX key $PID 53 >> $OUT/steps.txt; sleep 2
+    key 53; sleep 2
   done
   waitax "AXTextField \\| Workspace-Name" 8 || fail_setup "workspace dialog for $2 did not open"
   $AX setvalue $PID "Workspace-Name" "$2" >> $OUT/steps.txt; sleep 1
@@ -52,7 +64,7 @@ newws() {
     $AX press $PID "Erstellen" >> $OUT/steps.txt
     waitax "$2, Workspace wechseln" 6 && break
     # Fall back to real typing so the dialog sees ordinary text edits.
-    $AX focus $PID "Workspace-Name" >> $OUT/steps.txt; $AX key $PID 0 cmd >> $OUT/steps.txt
+    $AX focus $PID "Workspace-Name" >> $OUT/steps.txt; key 0 cmd
     $AX type $PID "$2" >> $OUT/steps.txt; sleep 1
   done
   waitax "$2, Workspace wechseln" 4 || fail_setup "workspace $2 not active"
@@ -61,18 +73,18 @@ nav() { # <keycode> <url>
   local opened=0
   for attempt in 1 2 3; do
     $AX activate $PID >> $OUT/steps.txt; sleep 1
-    $AX key $PID $1 cmd >> $OUT/steps.txt
+    key $1 cmd
     waitax "AXWindow \\| Suchen oder URL eingeben" 6 && { opened=1; break; }
   done
   [ $opened = 1 ] || fail_setup "command bar did not open"
   local typed=0
   for attempt in 1 2 3; do
-    sleep 1; $AX key $PID 0 cmd >> $OUT/steps.txt
+    sleep 1; key 0 cmd
     $AX type $PID "$2" >> $OUT/steps.txt
     waitax "URL eingeben \\| .*${2//\?/\\?}" 4 && { typed=1; break; }
   done
   [ $typed = 1 ] || fail_setup "typed URL $2 did not reach the command bar"
-  $AX key $PID 36 >> $OUT/steps.txt
+  key 36
 }
 # Step A: first empty workspace, ⌘T (new tab) -> tab A in "Leer-Test".
 newws Inbox Leer-Test; nav 17 "$SITE/?empty-probe=1"
@@ -91,5 +103,5 @@ ok=not moved and len(new)==1 and a[new[0]].endswith("empty-probe=2")
 navigated=any(u.endswith("empty-probe=2") for u in a.values())
 print(json.dumps({"pass":ok,"navigationObserved":navigated,"hiddenTabsNavigated":moved,"newTabs":{i:a[i] for i in new}},indent=1))
 PY
-$AX key $PID 12 cmd >> $OUT/steps.txt; sleep 5; kill -0 $PID 2>/dev/null && echo "still running after quit" >> $OUT/run.txt
+key 12 cmd; sleep 5; kill -0 $PID 2>/dev/null && echo "still running after quit" >> $OUT/run.txt
 cat $OUT/verdict.json
