@@ -1,0 +1,50 @@
+objc[50870]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1343b4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x117f2ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[50870]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x11214c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_command_bar_unittests (0x1005b54f0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 4 parallel jobs.
+[1/39] CommandExecutionAdapterTest.ExplicitHttpUrlDisablesHttpsFirstUpgrade (0 ms)
+[2/39] CommandExecutionAdapterTest.BareHttpsUrlPreservesDefaultSchemeMetadata (0 ms)
+[3/39] CommandExecutionAdapterTest.GShortcutUsesDefaultSearchWithoutSuggestions (0 ms)
+[4/39] CommandExecutionAdapterTest.PlainQueryUsesConfiguredDefaultSearch (0 ms)
+[5/39] CommandExecutionAdapterTest.PreviewIsPresentationReady (0 ms)
+[6/39] CommandExecutionAdapterTest.OpenTabActivatesBeforeFallingBackToUrl (0 ms)
+[7/39] CommandExecutionAdapterTest.BrowserCommandsAreExplicitlyAllowlisted (0 ms)
+[8/39] CommandExecutionAdapterTest.HttpAuthManagerUsesReviewedNativeSurface (0 ms)
+[9/39] CommandExecutionAdapterTest.DeveloperCommandsAreExplicitlyAllowlistedAndTargetGated (0 ms)
+[10/39] CommandExecutionAdapterTest.FolderAndWorkspaceAreExecutable (0 ms)
+[11/39] CommandBarTypesTest.KeepsRichestSuggestionForDuplicateTypedUrl (0 ms)
+[12/39] CommandBarTypesTest.TypedHostPrecedesUnrelatedFuzzyHistoryMatches (0 ms)
+[13/39] CommandBarTypesTest.ExactLocalDestinationRepresentsTypedHostFirst (0 ms)
+[14/39] CommandBarTypesTest.SearchFallbackRemainsLastWhenResultsAreCapped (0 ms)
+[15/39] CommandBarViewTest.ExposesListboxAndOptionSemantics (359 ms)
+[16/39] CommandBarViewTest.InitialCurrentQueryPrefersInputFallback (7 ms)
+[17/39] CommandBarViewTest.ArrowKeysWrapAndEnterExecutesSelection (7 ms)
+[18/39] CommandBarViewTest.UserEditsRebuildAndSelectFirstResult (7 ms)
+[19/39] CommandBarViewTest.EscapeIsHandled (5 ms)
+[20/39] CommandBarViewTest.TabAndShiftTabCycleOnlyVisibleSuggestionsAndSyncAccessibility (6 ms)
+[21/39] CommandBarViewTest.EnterExecutesSuggestionSelectedByTab (366 ms)
+[22/39] CommandBarViewTest.TabTraversalKeepsInputFocusedForContinuedTyping (187 ms)
+[23/39] CommandBarViewTest.FocusedRowTabAndEnterUseSynchronizedSelection (23 ms)
+[24/39] CommandBarViewTest.ModifiedTabTraversalRemainsUnhandled (7 ms)
+[25/39] CommandBarViewTest.DestroyedCallbackRunsExactlyWithViewLifetime (8 ms)
+[26/39] CommandBarViewTest.ExecutionMaySynchronouslyDestroyBubble (7 ms)
+[27/39] CommandBarViewTest.CapsResultsAtFiveWithoutScrollableContainer (7 ms)
+[28/39] CommandBarViewTest.MouseClickDefersDestructiveExecutionUntilDispatchEnds (24 ms)
+[29/39] CommandBarViewTest.SeparateDelegateOutlivesClientOwnedWidget (51 ms)
+[30/39] CommandExecutionAdapterTest.DirectUrlUsesRequestedDisposition (0 ms)
+[31/39] CommandExecutionAdapterTest.ExplicitLocalPrefixHasNoSearchFallback (0 ms)
+[32/39] CommandExecutionAdapterTest.DailyDriverCommandsStayAllowlisted (0 ms)
+[33/39] QuickWindowPolicyTest.AcceptsOnlyUnmodifiedAltSpace (0 ms)
+[34/39] QuickWindowPolicyTest.EnforcesActivationCooldownAtExactBoundary (0 ms)
+[35/39] QuickWindowPolicyTest.CentersFixedSizeBoundsOnAnchor (0 ms)
+[36/39] ModalOverlayControllerTest.ScrimCoversWindowAndUsesContentsCenterAnchor (464 ms)
+[37/39] ModalOverlayControllerTest.OutsidePressClosesExactlyOnceAndRestoresFocus (287 ms)
+[38/39] ModalOverlayControllerTest.RejectsConcurrentPanel (58 ms)
+[39/39] ModalOverlayControllerTest.ImmediateDismissDoesNotInvokeClose (59 ms)
+SUCCESS: all tests passed.
+Tests took 4 seconds.
+EXIT 0

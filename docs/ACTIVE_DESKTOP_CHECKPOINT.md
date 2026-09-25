@@ -41,6 +41,19 @@ taken in as `095b959`; the Swift runner needed envelope tombstone metadata
 for deleted payloads (runner fix, no expectation edited). Results go to the
 lane checkpoint as the handoff asks.
 
+## Unit tests all green: build 21 of `f5e4c1f` — 25 September 2026
+
+Guarded build 21 (Xcode 27 development toolchain) of `f5e4c1f`, EXIT 0.
+All six focused binaries pass: `ahoi_command_bar_unittests` (39),
+`ahoi_http_auth_unittests` (28), `ahoi_resource_policy_unittests` (4),
+`ahoi_session_unittests` (66), `ahoi_sync_unittests` (160, including the
+shared merge conformance vectors rev. 3) and `ahoi_tab_tree_unittests` (25).
+Build 18 had 4 + 57 + 5 failures; all were tests predating the format-3
+rework, saved Home, stable temporary identity or the CloudKit readiness
+gates; no product defect was found. Logs:
+`artifacts/tests/desktop-m153-unittests-f5e4c1f-20260925/`. This is unit
+evidence only, not installed-browser acceptance.
+
 ## Current package: ADR 0011 levels — 25 September 2026
 
 Source (all committed, `Lane: desktop` unless noted):
