@@ -105,9 +105,22 @@ def host_conditions() -> dict:
     }
 
 
-def preflight(apps: list[pathlib.Path], port: int, min_idle: int, lease: bool) -> dict:
+def preflight(apps: list[pathlib.Path], port: int, min_idle: int, lease: bool,
+              validation_run: bool = False) -> dict:
+    """Refuse on an unsuitable host. A validation run (explicit owner approval)
+    only proves the harness on a candidate: it skips the quiet-host and idle
+    gates, records the conditions and never supports a budget verdict."""
     conditions = host_conditions()
     reasons = []
+    if validation_run:
+        if not port_free(port):
+            reasons.append(f"DevTools port {port} busy")
+        for app in apps:
+            if app.resolve() == INSTALLED_APP and not lease:
+                reasons.append("installed app requires a confirmed installed-app lease (--lease)")
+        if reasons:
+            raise Refused("refusing to measure: " + "; ".join(reasons))
+        return conditions
     if conditions["busyProcesses"]:
         reasons.append("build or compiler activity: " + ", ".join(conditions["busyProcesses"]))
     if conditions["loadAverage"][0] > 0.3 * (conditions["cpuCount"] or 1):
@@ -449,6 +462,9 @@ def main(argv: Optional[list[str]] = None) -> int:
                         help="an installed-app lease is confirmed by the desktop owner")
     parser.add_argument("--output", type=pathlib.Path, required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--validation-run", action="store_true",
+                        help="owner-approved harness validation on a busy or attended host; "
+                             "results are marked and never count for budgets")
     args = parser.parse_args(argv)
 
     apps = [args.app] + ([args.baseline_app] if args.baseline_app else [])
@@ -458,7 +474,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                           "host": host_conditions()}, indent=2))
         return 0
     try:
-        conditions = preflight(apps, args.port, args.min_idle, args.lease)
+        conditions = preflight(apps, args.port, args.min_idle, args.lease,
+                               args.validation_run)
     except Refused as refusal:
         print(refusal, file=sys.stderr)
         return 7
@@ -500,6 +517,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 "windowSize": WINDOW_SIZE,
                 "accessibilityClients": conditions["accessibilityClients"],
                 "scenarioVersion": SCENARIO_VERSION,
+                "validationRun": args.validation_run,
             },
             "hostBefore": conditions,
             "hostAfter": after,

@@ -1,0 +1,127 @@
+{
+  "app": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "57431eddb4b5eb4f20e5376859574f6624b065b12a14e567bdf4fa420bdee646",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "f91e5b70cc4cdaf34eda02af3449d79d41aae4a9",
+    "buildProfile": "dev"
+  },
+  "metrics": {
+    "startup_first_launch_ms": [
+      7450.586181640625,
+      5404.1689453125,
+      7550.321044921875,
+      4085.207763671875,
+      4911.4609375
+    ],
+    "devtools_ready_first_launch_ms": [
+      3866.9186669867486,
+      2425.1422910019755,
+      3711.037291039247,
+      2453.586916963104,
+      3358.453750028275
+    ],
+    "startup_warm_ms": [
+      5139.452880859375,
+      5333.8388671875,
+      4777.617919921875,
+      3865.419921875,
+      5248.2041015625
+    ],
+    "devtools_ready_warm_ms": [
+      2368.5415409854613,
+      2473.3087500208057,
+      2164.452584052924,
+      2250.3766249865294,
+      2992.95141705079
+    ],
+    "memory_1_tabs_kib": [
+      1538160,
+      1449808,
+      1547856,
+      1597696,
+      1584800
+    ],
+    "processes_1_tabs": [
+      7,
+      7,
+      7,
+      7,
+      7
+    ],
+    "memory_20_tabs_kib": [
+      6091776,
+      5922784,
+      4153248,
+      6285792,
+      5983152
+    ],
+    "processes_20_tabs": [
+      26,
+      26,
+      18,
+      26,
+      25
+    ],
+    "idle_cpu_percent": [
+      1.8166666666666695,
+      1.533333333333336,
+      1.0666666666666675,
+      1.1666666666666654,
+      1.3833333333333333
+    ]
+  },
+  "schemaVersion": 1,
+  "kind": "ahoi-perf-run",
+  "startedAt": "2026-09-25T15:08:18.426501+00:00",
+  "conditions": {
+    "chromiumVersion": "153.0.8010.53",
+    "hardwareModel": "Mac14,6",
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "flags": [
+      "--no-default-browser-check",
+      "--no-first-run",
+      "--window-position=0,0",
+      "--window-size=1440,900"
+    ],
+    "windowSize": "1440,900",
+    "accessibilityClients": [],
+    "scenarioVersion": 1,
+    "validationRun": true
+  },
+  "hostBefore": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      19.09912109375,
+      19.4482421875,
+      27.955078125
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [
+      "swift-frontend"
+    ],
+    "hidIdleSeconds": 27
+  },
+  "hostAfter": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      18.42578125,
+      18.9814453125,
+      23.1162109375
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [],
+    "hidIdleSeconds": 542
+  }
+}

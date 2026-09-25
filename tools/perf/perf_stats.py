@@ -41,7 +41,7 @@ BUDGETS = {
 }
 
 # Conditions that must be identical between candidate and baseline runs.
-MATCHED_CONDITIONS = ("chromiumVersion", "hardwareModel", "osBuild", "powerSource",
+MATCHED_CONDITIONS = ("validationRun", "chromiumVersion", "hardwareModel", "osBuild", "powerSource",
                       "flags", "windowSize", "accessibilityClients", "scenarioVersion")
 
 
@@ -111,6 +111,9 @@ def evaluate_budget(budget_id: str, candidate: dict, baseline: Optional[dict]) -
     values = candidate.get("metrics", {}).get(metric)
     if not values:
         return {**result, "verdict": "NOT_MEASURED"}
+    if candidate.get("conditions", {}).get("validationRun"):
+        return {**result, "verdict": "INSUFFICIENT",
+                "reason": "validation run on a busy or attended host"}
     problem = usable(values)
     if budget["kind"] == "absolute":
         if problem:
