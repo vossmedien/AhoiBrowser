@@ -443,11 +443,20 @@ void SessionBridge::UpdateLastActiveTab(TabStripModel* model,
     return;
   }
   auto runtime_it = runtime_tabs_.find(tab);
+  const std::string url = tab->GetContents()
+                              ? tab->GetContents()->GetVisibleURL().spec()
+                              : std::string();
   if (runtime_it == runtime_tabs_.end() ||
       runtime_it->second.tab_strip_model != model ||
       !runtime_it->second.workspace_id.has_value()) {
+    VLOG(1) << "Ahoi last-used record skipped: url=" << url << " tracked="
+            << (runtime_it != runtime_tabs_.end()) << " has_workspace="
+            << (runtime_it != runtime_tabs_.end() &&
+                runtime_it->second.workspace_id.has_value());
     return;
   }
+  VLOG(1) << "Ahoi last-used record: index " << model->GetIndexOfTab(tab)
+          << " url=" << url;
   RestoreLastActiveTabFlag(tab, /*last_active=*/true);
   if (auto window = model_windows_.find(model); window != model_windows_.end()) {
     if (auto state = windows_.find(window->second); state != windows_.end()) {
