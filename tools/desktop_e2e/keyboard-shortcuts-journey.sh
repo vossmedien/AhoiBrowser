@@ -106,6 +106,8 @@ visible() {
     CDP "$id" Runtime.evaluate '{"expression":"document.visibilityState===\"visible\"?(document.title||location.href):\"\"","returnByValue":true}' | python3 -c 'import json,sys;v=json.load(sys.stdin).get("result",{}).get("value","");v and print(v)'
   done | head -1
 }
+# Every page target with its URL, to explain unexpected MRU targets.
+pages() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(" ".join(t["url"] for t in json.load(sys.stdin) if t["type"]=="page"))'; }
 waitvisible() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do [ "$(visible)" = "$1" ] && return 0; sleep 1; done; return 1; }
 # Evaluates JS in the settings page with a shadow-DOM-piercing finder `q`.
 settings_js() {
@@ -123,10 +125,13 @@ waitvisible gamma 5 || fail_setup "gamma not visible"
 # WORKFLOW-03: ⌥⇥ returns to the last used tab and toggles back; ⌃⇥ keeps
 # cycling in order, separate from it.
 key 48 opt; waitvisible beta 5 && record mruToPrevious true || record mruToPrevious false
+echo "after opt-tab 1: $(visible) pages: $(pages)" >> "$OUT/steps.txt"
 key 48 opt; waitvisible gamma 5 && record mruTogglesBack true || record mruTogglesBack false
+echo "after opt-tab 2: $(visible)" >> "$OUT/steps.txt"
 key 48 ctrl; sleep 2; NOW=$(visible); echo "after ctrl-tab: $NOW" >> "$OUT/steps.txt"
 [ -n "$NOW" ] && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && record cyclingIsSeparate true || record cyclingIsSeparate false
 key 48 opt; waitvisible gamma 5 && record mruAfterCycling true || record mruAfterCycling false
+echo "after opt-tab 3: $(visible)" >> "$OUT/steps.txt"
 # Never into another Workspace.
 newws Inbox Zwei ""; open_url "$SITE/delta.html"
 key 48 opt; sleep 2; NOW=$(visible)
