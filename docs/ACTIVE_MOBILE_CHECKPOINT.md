@@ -17,9 +17,17 @@ and opens the address sheet: **3 of 3 passed**, product unchanged.
 Open follow-ups: the real HTTPS suite's `closeLibrary` helpers and
 `MobileBrowserLayoutUITests.swift:60` still use the same hittability signal;
 the web view's accessibility frame under the toolbar is a small a11y quirk.
-`AhoiMobileCoreTests`: 276 tests, 38 failing cases pre-existing on HEAD
-(for example `SharedTabWireReadTests`, `CompanionCoreTests`,
-`BookmarkWireContractTests`), unrelated to this change, to be classified.
+`AhoiMobileCoreTests` (`01b1cd2`): **275 tests, 0 failures, 2 skipped** on
+A168 (was 52 failures in 37 cases, all tests predating format 3 or later
+feature commits; no product change). UI suites now use shared
+`assertLibraryClosed` / `assertBrowserAcceptsAddressInput` helpers.
+`MobileBrowserLayoutUITests` (13 tests, 1 iPad-only skip) still has three
+real failures, not caused by the helper change: the 1/5/20-tab scale
+fixture (line 16, tab count), `testProgrammaticPageScrollDoesNotCollapseHarborDeck`
+(fixture text not visible within 3 s, line 192) and
+`testVisiblePrivateTabCreation…` (`browser.tabs.mode` control missing,
+line 535). Minor: `BookmarkTransportAuthorization.authorize` labels a
+disallowed data class `unsupportedVersion`.
 The Home-Address journey's own RED (saved state not settling on a fresh
 install, builds 69/70) is still under investigation.
 
