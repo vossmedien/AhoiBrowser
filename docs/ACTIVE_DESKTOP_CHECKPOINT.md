@@ -48,6 +48,41 @@ agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
 
+## Build 29 installed; network audit and journeys — 25 September 2026
+
+- **Installed candidate:** build 29 of `edced8d`, receipt
+  `artifacts/install/installed-ahoi-dev-edced8d-20260925T182458Z.json`.
+  Unit tests: 7 of 8 binaries pass, including the shortcut catalog,
+  registration and MRU tests in `ahoi_navigation_unittests`.
+  `ahoi_settings_private_unittests` crashed in a new test that read a
+  temporary DictValue; the test is fixed in `26b7d40`.
+- **Fresh-profile network audit** (README in
+  `artifacts/e2e/fresh-profile-network-audit-edced8d-20260925/`):
+  - NET-GCM-01/02 pass: no GCM check-in, no MCS and no GCM store or
+    `android_id` after 10 min idle, one page and quit.
+  - Still RED: four `accounts.google.com/ListAccounts` requests at startup.
+    Fixed by patch 0062 (`6b05c89`); the audit repeats on the build that
+    contains it.
+- **Visible journeys on build 29:**
+  - Separated Workspace: 11/11 content checks pass. Own window, separate
+    login, hand-over both ways without reload, and reachability with login
+    after relaunch all work. The final delete step failed only because its
+    menu did not open.
+  - Workspace level: level choice, login isolation and the level in the
+    menu all pass.
+  - Shortcuts: rebind, conflict without overwrite, the released old key and
+    the Workspace boundary pass. Other checks were disturbed by focus
+    changes while the owner used the Mac.
+  - Harness fixes: `7cf843e` (wait for the real menu item), `5e2f59f`
+    (native before-unload alert), `fb438ba` (HID keys in the HTTP-auth and
+    auto-archive journeys).
+  - All seven journeys are queued again for an idle window.
+- **Link-Peek:** there are now three entry points: the context menu (0059),
+  optional automatic Peek from saved pages to other sites (0060) and
+  optional Shift-click (0061). Both options are off by default and have
+  switches in the sidebar menu. The Shift-click and auto-Peek journeys run
+  on build 30 or later.
+
 ## Build 28 installed; packages 16 and 17 in build 29 — 25 September 2026
 
 - **Installed candidate:** build 28 of `a5e32c8`, receipt
