@@ -1,0 +1,556 @@
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
+index 68eb78d..de15e01 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
+@@ -161,6 +161,143 @@ void RunHandOver(BrowserWindowInterface* source,
+ 
+ }  // namespace
+ 
++std::vector<BrowserSidebarHostView::SwitcherWorkspace>
++BrowserSidebarHostView::SwitcherWorkspaces() const {
++  const bool isolated_profile =
++      session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
++  const std::string own_profile_dir =
++      browser_->GetProfile()->GetPath().BaseName().AsUTF8Unsafe();
++  WorkspaceService* main_service = workspace_service_;
++  SessionBridge* main_bridge = session_bridge_;
++  if (isolated_profile) {
++    Profile* main_profile = session::GetLoadedMainProfile();
++    main_service = main_profile
++                       ? WorkspaceServiceFactory::GetForProfile(main_profile)
++                       : nullptr;
++    main_bridge =
++        main_profile ? SessionBridgeFactory::GetForProfile(main_profile)
++                     : nullptr;
++  }
++  std::vector<session::DirectoryWorkspace> main_keys;
++  std::map<base::Uuid, SwitcherWorkspace> details;
++  if (main_service) {
++    for (const tab_tree::Workspace& workspace :
++         main_service->ordered_workspaces()) {
++      main_keys.push_back(
++          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
++      details.emplace(
++          workspace.id,
++          SwitcherWorkspace{
++              .key = main_keys.back(),
++              .name = workspace.name,
++              .icon = workspace.icon,
++              .accent_argb = workspace.accent_argb,
++              .own = !isolated_profile,
++              .own_website_sessions =
++                  main_bridge && main_bridge->HasOwnWebsiteSessions(workspace.id)});
++    }
++  }
++  const std::vector<session::IsolatedProfileEntry> isolated =
++      session::GetOpenableIsolatedWorkspaces();
++  for (const session::IsolatedProfileEntry& entry : isolated) {
++    details.emplace(entry.workspace_id,
++                    SwitcherWorkspace{.key = {.workspace_id = entry.workspace_id,
++                                              .sort_key = entry.sort_key,
++                                              .profile_dir = entry.profile_dir},
++                                      .name = entry.name,
++                                      .icon = entry.icon,
++                                      .accent_argb = entry.accent_argb,
++                                      .own = entry.profile_dir == own_profile_dir});
++  }
++  std::vector<SwitcherWorkspace> result;
++  for (const session::DirectoryWorkspace& key :
++       session::OrderDirectoryWorkspaces(main_keys, isolated)) {
++    if (auto it = details.find(key.workspace_id); it != details.end()) {
++      result.push_back(it->second);
++    }
++  }
++  return result;
++}
++
++std::optional<size_t> BrowserSidebarHostView::ActiveSwitcherIndex(
++    const std::vector<SwitcherWorkspace>& switcher) const {
++  const std::optional<base::Uuid> active =
++      session_bridge_->GetActiveWorkspaceForWindow(browser_);
++  for (size_t index = 0; index < switcher.size(); ++index) {
++    if (switcher[index].own && active == switcher[index].key.workspace_id) {
++      return index;
++    }
++  }
++  return std::nullopt;
++}
++
++bool BrowserSidebarHostView::ActivateSwitcherWorkspace(
++    const SwitcherWorkspace& target,
++    WorkspaceActivationSource source) {
++  if (target.own) {
++    return session_bridge_->SetActiveWorkspaceForWindow(
++        browser_, target.key.workspace_id, source);
++  }
++  if (target.key.profile_dir.empty()) {
++    OpenMainWorkspaceByHandOver(target.key.workspace_id);
++  } else {
++    OpenIsolatedWorkspaceByHandOver(target.key.profile_dir);
++  }
++  return true;
++}
++
++void BrowserSidebarHostView::OpenMainWorkspaceByHandOver(
++    std::optional<base::Uuid> workspace_id) {
++  const SessionID source_id = browser_->GetSessionID();
++  RunHandOver(
++      browser_.get(),
++      base::BindOnce(
++          [](SessionID source_id,
++             base::OnceCallback<void(BrowserWindowInterface*)> done) {
++            session::LoadMainProfile(base::BindOnce(
++                [](SessionID source_id,
++                   base::OnceCallback<void(BrowserWindowInterface*)> done,
++                   Profile* main_profile) {
++                  session::PresentProfileWindow(
++                      main_profile,
++                      BrowserWindowInterface::FromSessionID(source_id),
++                      std::move(done));
++                },
++                source_id, std::move(done)));
++          },
++          source_id),
++      base::BindOnce(
++          [](std::optional<base::Uuid> workspace_id,
++             BrowserWindowInterface* main_browser) {
++            SessionBridge* bridge =
++                main_browser ? SessionBridgeFactory::GetForProfile(
++                                   main_browser->GetProfile())
++                             : nullptr;
++            if (!bridge || !workspace_id.has_value()) {
++              return;
++            }
++            std::ignore = bridge->SetActiveWorkspaceForWindow(
++                main_browser, *workspace_id,
++                WorkspaceActivationSource::kSidebar);
++          },
++          workspace_id));
++}
++
++void BrowserSidebarHostView::OpenIsolatedWorkspaceByHandOver(
++    const std::string& profile_dir) {
++  RunHandOver(
++      browser_.get(),
++      base::BindOnce(
++          [](std::string dir, SessionID source_id,
++             base::OnceCallback<void(BrowserWindowInterface*)> done) {
++            session::PresentIsolatedWorkspace(
++                dir, BrowserWindowInterface::FromSessionID(source_id),
++                std::move(done));
++          },
++          profile_dir, browser_->GetSessionID()),
++      base::DoNothing());
++}
++
+ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
+   VLOG(1) << "Ahoi sidebar command " << command_id << " scope "
+           << static_cast<int>(context_menu_scope_);
+@@ -377,39 +514,7 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
+       } else if (!context_offers_main_workspaces_) {
+         return;
+       }
+-      const SessionID source_id = browser_->GetSessionID();
+-      RunHandOver(
+-          browser_.get(),
+-          base::BindOnce(
+-              [](SessionID source_id,
+-                 base::OnceCallback<void(BrowserWindowInterface*)> done) {
+-                session::LoadMainProfile(base::BindOnce(
+-                    [](SessionID source_id,
+-                       base::OnceCallback<void(BrowserWindowInterface*)> done,
+-                       Profile* main_profile) {
+-                      session::PresentProfileWindow(
+-                          main_profile,
+-                          BrowserWindowInterface::FromSessionID(source_id),
+-                          std::move(done));
+-                    },
+-                    source_id, std::move(done)));
+-              },
+-              source_id),
+-          base::BindOnce(
+-              [](std::optional<base::Uuid> workspace_id,
+-                 BrowserWindowInterface* main_browser) {
+-                SessionBridge* bridge =
+-                    main_browser ? SessionBridgeFactory::GetForProfile(
+-                                       main_browser->GetProfile())
+-                                 : nullptr;
+-                if (!bridge || !workspace_id.has_value()) {
+-                  return;
+-                }
+-                std::ignore = bridge->SetActiveWorkspaceForWindow(
+-                    main_browser, *workspace_id,
+-                    WorkspaceActivationSource::kSidebar);
+-              },
+-              main_workspace_id));
++      OpenMainWorkspaceByHandOver(main_workspace_id);
+       return;
+     }
+     if (command_id >= kOpenIsolatedWorkspaceCommandBase &&
+@@ -417,18 +522,8 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
+       const size_t isolated_index =
+           static_cast<size_t>(command_id - kOpenIsolatedWorkspaceCommandBase);
+       if (isolated_index < context_isolated_workspace_dirs_.size()) {
+-        RunHandOver(
+-            browser_.get(),
+-            base::BindOnce(
+-                [](std::string dir, SessionID source_id,
+-                   base::OnceCallback<void(BrowserWindowInterface*)> done) {
+-                  session::PresentIsolatedWorkspace(
+-                      dir, BrowserWindowInterface::FromSessionID(source_id),
+-                      std::move(done));
+-                },
+-                context_isolated_workspace_dirs_[isolated_index],
+-                browser_->GetSessionID()),
+-            base::DoNothing());
++        OpenIsolatedWorkspaceByHandOver(
++            context_isolated_workspace_dirs_[isolated_index]);
+       }
+       return;
+     }
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
+index ceaaa8e..623b6d5 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
+@@ -265,77 +265,56 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
+   };
+   const bool isolated_profile =
+       session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
+-  for (const tab_tree::Workspace& workspace :
+-       workspace_service_->ordered_workspaces()) {
+-    const int command_id = kActivateWorkspaceCommandBase +
+-                           static_cast<int>(context_workspace_ids_.size());
+-    context_workspace_ids_.push_back(workspace.id);
+-    context_menu_model_->AddCheckItem(
+-        command_id,
+-        isolated_profile ? with_level(workspace.name, isolated_level)
+-        : session_bridge_->HasOwnWebsiteSessions(workspace.id)
+-            ? with_level(workspace.name, own_sessions_level)
+-            : workspace.name);
+-  }
+-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+-  // One fully separated Workspace per Profile (ADR 0011). The shared
+-  // switcher (step 2) lists the other Profiles' Workspaces below; choosing
+-  // one hands this window's frame over to that Profile's window.
+-  const std::string own_profile_dir =
+-      browser_->GetProfile()->GetPath().BaseName().AsUTF8Unsafe();
+   context_isolated_workspace_dirs_.clear();
+   context_main_workspace_ids_.clear();
++  context_workspace_positions_.clear();
+   context_offers_main_workspaces_ = false;
+-  if (isolated_profile) {
+-    Profile* main_profile = session::GetLoadedMainProfile();
+-    WorkspaceService* main_workspaces =
+-        main_profile ? WorkspaceServiceFactory::GetForProfile(main_profile)
+-                     : nullptr;
+-    SessionBridge* main_bridge =
+-        main_profile ? SessionBridgeFactory::GetForProfile(main_profile)
+-                     : nullptr;
+-    if (main_workspaces && main_bridge) {
+-      for (const tab_tree::Workspace& workspace :
+-           main_workspaces->ordered_workspaces()) {
+-        if (context_main_workspace_ids_.size() >= 99) {
+-          break;
+-        }
+-        context_menu_model_->AddItem(
+-            kOpenMainWorkspaceCommandBase +
+-                static_cast<int>(context_main_workspace_ids_.size()),
+-            main_bridge->HasOwnWebsiteSessions(workspace.id)
+-                ? with_level(workspace.name, own_sessions_level)
+-                : workspace.name);
+-        context_main_workspace_ids_.push_back(workspace.id);
++  // ADR 0011 step 2 (handoff 048): one list in the process-wide order. The
++  // check mark shows this window's Workspace; items of another Profile hand
++  // this window's frame over to that Profile's window.
++  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
++  for (size_t position = 0; position < switcher.size(); ++position) {
++    const SwitcherWorkspace& workspace = switcher[position];
++    const std::u16string title =
++        !workspace.key.profile_dir.empty()
++            ? with_level(workspace.name, isolated_level)
++        : workspace.own_website_sessions
++            ? with_level(workspace.name, own_sessions_level)
++            : workspace.name;
++    int command_id = 0;
++    if (workspace.own) {
++      command_id = kActivateWorkspaceCommandBase +
++                   static_cast<int>(context_workspace_ids_.size());
++      context_workspace_ids_.push_back(workspace.key.workspace_id);
++      context_menu_model_->AddCheckItem(command_id, title);
++    } else if (workspace.key.profile_dir.empty()) {
++      if (context_main_workspace_ids_.size() >= 99) {
++        continue;
+       }
++      command_id = kOpenMainWorkspaceCommandBase +
++                   static_cast<int>(context_main_workspace_ids_.size());
++      context_main_workspace_ids_.push_back(workspace.key.workspace_id);
++      context_menu_model_->AddItem(command_id, title);
+     } else {
+-      context_offers_main_workspaces_ = true;
+-      context_menu_model_->AddItem(
+-          kOpenMainWorkspacesCommand,
+-          StructureText(u"Haupt-Workspaces öffnen", u"Open main Workspaces"));
++      if (context_isolated_workspace_dirs_.size() >= 99) {
++        continue;
++      }
++      command_id = kOpenIsolatedWorkspaceCommandBase +
++                   static_cast<int>(context_isolated_workspace_dirs_.size());
++      context_isolated_workspace_dirs_.push_back(workspace.key.profile_dir);
++      context_menu_model_->AddItem(command_id, title);
+     }
++    context_workspace_positions_.emplace(command_id, position);
+   }
+-  // Every other fully separated Workspace, also after its window was closed
+-  // or the app restarted.
+-  for (const session::IsolatedProfileEntry& entry :
+-       session::GetOpenableIsolatedWorkspaces()) {
+-    if (context_isolated_workspace_dirs_.size() >= 99) {
+-      break;
+-    }
+-    if (entry.profile_dir == own_profile_dir) {
+-      continue;
+-    }
++  // In a separated window whose main Profile is not loaded, its Workspaces
++  // are not known yet; this entry loads it.
++  if (isolated_profile && !session::GetLoadedMainProfile()) {
++    context_offers_main_workspaces_ = true;
+     context_menu_model_->AddItem(
+-        kOpenIsolatedWorkspaceCommandBase +
+-            static_cast<int>(context_isolated_workspace_dirs_.size()),
+-        with_level(entry.name, isolated_level));
+-    context_isolated_workspace_dirs_.push_back(entry.profile_dir);
+-  }
+-  if (!context_isolated_workspace_dirs_.empty() ||
+-      !context_main_workspace_ids_.empty() ||
+-      context_offers_main_workspaces_) {
+-    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
++        kOpenMainWorkspacesCommand,
++        StructureText(u"Haupt-Workspaces öffnen", u"Open main Workspaces"));
+   }
++  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+   if (!isolated_profile) {
+     context_menu_model_->AddItem(
+         kCreateWorkspace,
+@@ -665,11 +644,12 @@ bool BrowserSidebarHostView::GetAcceleratorForCommandId(
+     int command_id,
+     ui::Accelerator* accelerator) const {
+   std::string shortcut_id;
+-  if (command_id >= kActivateWorkspaceCommandBase &&
+-      command_id < kActivateWorkspaceCommandBase + 9) {
+-    shortcut_id = shortcuts::kWorkspacePrefix +
+-                  base::NumberToString(command_id -
+-                                       kActivateWorkspaceCommandBase + 1);
++  const auto position = context_workspace_positions_.find(command_id);
++  if (context_menu_scope_ == ContextMenuScope::kWorkspace &&
++      position != context_workspace_positions_.end() && position->second < 9) {
++    // Cmd+1..9 count the shared switcher's order (handoff 048).
++    shortcut_id =
++        shortcuts::kWorkspacePrefix + base::NumberToString(position->second + 1);
+   } else if (command_id == kToggleFloatingSidebar) {
+     shortcut_id = shortcuts::kToggleSidebarFloating;
+   } else if (command_id == kToggleSidebarVisibility) {
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_core.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_core.cc
+index a9571e7..751dffc 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_core.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_core.cc
+@@ -402,24 +402,22 @@ void BrowserSidebarHostView::UpdateWorkspaceSelectorIndicators() {
+   if (!workspace_button_ || !workspace_service_) {
+     return;
+   }
+-  const std::optional<base::Uuid> active_workspace =
+-      window_id_.has_value()
+-          ? workspace_service_->GetActiveWorkspace(*window_id_)
+-          : std::nullopt;
++  // ADR 0011 step 2 (handoff 048): dots cover every Profile's Workspaces in
++  // the process-wide order; `workspace_index` is the switcher position.
++  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
++  const std::optional<size_t> active = ActiveSwitcherIndex(switcher);
+   std::vector<WorkspaceSelectorIndicator> indicators;
+-  indicators.reserve(workspace_service_->ordered_workspaces().size());
+-  const auto& workspaces = workspace_service_->ordered_workspaces();
+-  for (size_t index = 0; index < workspaces.size(); ++index) {
+-    const tab_tree::Workspace& workspace = workspaces[index];
++  indicators.reserve(switcher.size());
++  for (size_t index = 0; index < switcher.size(); ++index) {
+     // The active workspace is already represented by icon and name. Only
+     // inactive workspaces become dots, matching the compact Arc-like model.
+-    if (active_workspace.has_value() && *active_workspace == workspace.id) {
++    if (active == index) {
+       continue;
+     }
+     indicators.push_back({.workspace_index = index,
+-                          .name = workspace.name,
+-                          .icon = workspace.icon,
+-                          .accent_argb = workspace.accent_argb});
++                          .name = switcher[index].name,
++                          .icon = switcher[index].icon,
++                          .accent_argb = switcher[index].accent_argb});
+   }
+   SetWorkspaceSelectorIndicators(
+       workspace_button_, std::move(indicators),
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+index 244b72f..7c20eb6 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+@@ -19,6 +19,7 @@
+ #include "ahoi/browser/media/media_mini_player_service.h"
+ #include "ahoi/browser/navigation/workspace_service.h"
+ #include "ahoi/browser/session/group_page_close.h"
++#include "ahoi/browser/session/workspace_directory_order.h"
+ #include "ahoi/browser/sync/profile_sync_service.h"
+ #include "ahoi/browser/tab_tree/tab_tree_model.h"
+ #include "ahoi/browser/tab_tree/tab_tree_store.h"
+@@ -142,6 +143,8 @@ class BrowserSidebarHostView final
+ 
+   bool ActivateRelativeRuntimeTab(int delta);
+ 
++  // `index` counts the process-wide order of the shared switcher (ADR 0011
++  // step 2), not only this Profile's Workspaces.
+   bool ActivateWorkspaceAtIndex(size_t index);
+ 
+   bool RevealFolder(const base::Uuid& folder_id);
+@@ -213,6 +216,8 @@ class BrowserSidebarHostView final
+ 
+   void ActivateWorkspace(const base::Uuid& workspace_id);
+ 
++  bool ActivateRelativeSwitcherWorkspace(int delta,
++                                         WorkspaceActivationSource source);
+   bool ActivateRelativeWorkspaceWithTransition(
+       int delta,
+       WorkspaceActivationSource source);
+@@ -549,6 +554,28 @@ class BrowserSidebarHostView final
+                               const gfx::Point& screen_point,
+                               ui::mojom::MenuSourceType source_type);
+ 
++  // ADR 0011 step 2 (handoff 048): one switcher over the Workspaces of all
++  // Profiles, in the process-wide order. `own` entries belong to this
++  // window's Profile and switch inside it; the others hand the frame over.
++  struct SwitcherWorkspace {
++    session::DirectoryWorkspace key;
++    std::u16string name;
++    std::u16string icon;
++    std::optional<uint32_t> accent_argb;
++    bool own = false;
++    bool own_website_sessions = false;
++  };
++  std::vector<SwitcherWorkspace> SwitcherWorkspaces() const;
++  // Index of this window's active Workspace in `switcher`, if listed.
++  std::optional<size_t> ActiveSwitcherIndex(
++      const std::vector<SwitcherWorkspace>& switcher) const;
++  bool ActivateSwitcherWorkspace(const SwitcherWorkspace& target,
++                                 WorkspaceActivationSource source);
++  // Presents the main Profile's window in this frame, then selects
++  // `workspace_id` there when given.
++  void OpenMainWorkspaceByHandOver(std::optional<base::Uuid> workspace_id);
++  void OpenIsolatedWorkspaceByHandOver(const std::string& profile_dir);
++
+   void ShowWorkspaceMenu(const gfx::Point& screen_point,
+                          ui::mojom::MenuSourceType source_type);
+ 
+@@ -823,6 +850,9 @@ class BrowserSidebarHostView final
+   int context_page_action_navigation_id_ = 0;
+   GURL context_page_action_url_;
+   std::vector<base::Uuid> context_workspace_ids_;
++  // Workspace menu command -> position in the shared switcher, for the
++  // Cmd+1..9 hints (handoff 048).
++  std::map<int, size_t> context_workspace_positions_;
+   // Profile directories behind the menu's fully separated Workspace items.
+   std::vector<std::string> context_isolated_workspace_dirs_;
+   // Main Profile Workspaces listed in a fully separated Workspace's window.
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc
+index a98929d..7344edd 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc
+@@ -2,6 +2,7 @@
+ // SPDX-License-Identifier: GPL-3.0-or-later
+ 
+ #include <algorithm>
++#include <cstdint>
+ #include <optional>
+ 
+ #include "ahoi/browser/navigation/workspace_service.h"
+@@ -18,8 +19,19 @@
+ namespace ahoi::sidebar {
+ 
+ bool BrowserSidebarHostView::ActivateWorkspaceAtIndex(size_t index) {
++  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
++  if (index >= switcher.size()) {
++    return false;
++  }
++  if (!switcher[index].own) {
++    return ActivateSwitcherWorkspace(switcher[index],
++                                     WorkspaceActivationSource::kKeyboard);
++  }
+   const auto& workspaces = workspace_service_->ordered_workspaces();
+-  if (index >= workspaces.size()) {
++  const auto target = std::ranges::find_if(workspaces, [&](const auto& item) {
++    return item.id == switcher[index].key.workspace_id;
++  });
++  if (target == workspaces.end()) {
+     return false;
+   }
+   const auto active = session_bridge_->GetActiveWorkspaceForWindow(browser_);
+@@ -28,24 +40,59 @@ bool BrowserSidebarHostView::ActivateWorkspaceAtIndex(size_t index) {
+   if (current == workspaces.end()) {
+     // No outgoing workspace exists during initial restoration.
+     return session_bridge_->SetActiveWorkspaceForWindow(
+-        browser_, workspaces[index].id, WorkspaceActivationSource::kKeyboard);
++        browser_, target->id, WorkspaceActivationSource::kKeyboard);
+   }
+-  const int delta = base::checked_cast<int>(index) -
++  const int delta = base::checked_cast<int>(target - workspaces.begin()) -
+                     base::checked_cast<int>(current - workspaces.begin());
+   return delta == 0 || ActivateRelativeWorkspaceWithTransition(
+                            delta, WorkspaceActivationSource::kKeyboard);
+ }
+ 
+ bool BrowserSidebarHostView::ActivateRelativeWorkspace(int delta) {
+-  return ActivateRelativeWorkspaceWithTransition(
++  return ActivateRelativeSwitcherWorkspace(
+       delta, WorkspaceActivationSource::kKeyboard);
+ }
+ 
+ bool BrowserSidebarHostView::ActivateRelativeWorkspaceByGesture(int delta) {
+-  return ActivateRelativeWorkspaceWithTransition(
++  return ActivateRelativeSwitcherWorkspace(
+       delta, WorkspaceActivationSource::kGesture);
+ }
+ 
++// Keyboard and swipe cycle through the shared switcher with wrap-around, as
++// WorkspaceService::ActivateRelative does inside one Profile. A neighbour in
++// the same Profile keeps the animated in-window transition; one of another
++// Profile hands the frame over.
++bool BrowserSidebarHostView::ActivateRelativeSwitcherWorkspace(
++    int delta,
++    WorkspaceActivationSource source) {
++  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
++  const std::optional<size_t> current = ActiveSwitcherIndex(switcher);
++  if (delta == 0 || switcher.empty() || !current.has_value()) {
++    return ActivateRelativeWorkspaceWithTransition(delta, source);
++  }
++  const int64_t count = static_cast<int64_t>(switcher.size());
++  const size_t next = static_cast<size_t>(
++      (((static_cast<int64_t>(*current) + delta) % count) + count) % count);
++  const SwitcherWorkspace& target = switcher[next];
++  if (!target.own) {
++    return ActivateSwitcherWorkspace(target, source);
++  }
++  const auto& workspaces = workspace_service_->ordered_workspaces();
++  const auto from = std::ranges::find_if(workspaces, [&](const auto& item) {
++    return item.id == switcher[*current].key.workspace_id;
++  });
++  const auto to = std::ranges::find_if(workspaces, [&](const auto& item) {
++    return item.id == target.key.workspace_id;
++  });
++  if (from == workspaces.end() || to == workspaces.end()) {
++    return false;
++  }
++  const int own_delta = base::checked_cast<int>(to - workspaces.begin()) -
++                        base::checked_cast<int>(from - workspaces.begin());
++  return own_delta == 0 ||
++         ActivateRelativeWorkspaceWithTransition(own_delta, source);
++}
++
+ bool BrowserSidebarHostView::ActivateRelativeWorkspaceWithTransition(
+     int delta,
+     WorkspaceActivationSource source) {
