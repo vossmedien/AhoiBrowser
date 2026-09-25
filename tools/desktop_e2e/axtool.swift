@@ -21,9 +21,11 @@ func str(_ e: AXUIElement, _ name: String) -> String {
 func children(_ e: AXUIElement) -> [AXUIElement] {
     (attr(e, kAXChildrenAttribute) as? [AXUIElement]) ?? []
 }
+// Values are cut to keep dumps short; AHOI_AX_VALUE_MAX reads longer text.
+let valueLimit = Int(ProcessInfo.processInfo.environment["AHOI_AX_VALUE_MAX"] ?? "") ?? 80
 func label(_ e: AXUIElement) -> String {
     [str(e, kAXRoleAttribute), str(e, kAXTitleAttribute), str(e, kAXDescriptionAttribute),
-     String(str(e, kAXValueAttribute).prefix(80)), str(e, "AXIdentifier")]
+     String(str(e, kAXValueAttribute).prefix(valueLimit)), str(e, "AXIdentifier")]
         .filter { !$0.isEmpty }.joined(separator: " | ")
 }
 func walk(_ e: AXUIElement, _ d: Int, _ max: Int, _ visit: (AXUIElement, Int) -> Bool) -> Bool {

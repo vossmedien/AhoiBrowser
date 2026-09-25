@@ -17,7 +17,9 @@ if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $
 mkdir -p "$OUT"; P=$(mktemp -d /private/tmp/ahoi-wsconv-profile.XXXXXX)
 SITE_PORT=${AHOI_E2E_SITE_PORT:-8805}; mkdir -p $P-site
 if lsof -nP -iTCP:$SITE_PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "site port $SITE_PORT busy" >&2; exit 6; fi
-printf '<title>login</title><script>document.cookie="acct=getrennt; max-age=3600; path=/"</script>logged in' > $P-site/login.html
+# Only ?set writes the cookie: the converted profile reopens login.html, and
+# a page that set it on every load would recreate it there.
+printf '<title>login</title><script>if(location.search==="?set")document.cookie="acct=getrennt; max-age=3600; path=/"</script>logged in' > $P-site/login.html
 printf '<title>check</title>check' > $P-site/check.html
 python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/site.log" 2>&1 &
 SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; SITE=http://127.0.0.1:$SITE_PORT
@@ -90,14 +92,15 @@ waitax "AXTextField \\| Workspace-Name" 8 || fail_setup "create dialog did not o
 $AX setvalue $PID "Workspace-Name" "Wandel" >> "$OUT/steps.txt"; sleep 1
 $AX press $PID "Erstellen" >> "$OUT/steps.txt"
 waitax "Wandel, Workspace wechseln" 10 || fail_setup "shared workspace Wandel not active"
-sleep 2; open_url "$SITE/login.html"
+sleep 2; open_url "$SITE/login.html?set"
+CDP login.html Page.navigate "{\"url\":\"$SITE/login.html\"}" >> "$OUT/steps.txt"; sleep 2
 [ "$(cookie_of login.html)" = "acct=getrennt" ] || fail_setup "login cookie not set in Wandel"
 # (a) Cancel changes nothing.
 menu Wandel "In vollständig getrennten Workspace umwandeln" || fail_setup "convert item missing"
 $AX dump $PID 14 > "$OUT/ax-menu-convert.txt"
 $AX press $PID "$($AX dump $PID 14 | grep -o 'In vollständig getrennten Workspace umwandeln[^|]*' | head -1 | sed 's/ *$//')" >> "$OUT/steps.txt"
 waitax "AXButton \\| Umwandeln" 8 && record convertDialogShown true || record convertDialogShown false
-$AX dump $PID 14 > "$OUT/ax-convert-dialog.txt"
+AHOI_AX_VALUE_MAX=600 $AX dump $PID 14 > "$OUT/ax-convert-dialog.txt"
 grep -q 'Websitedaten ziehen nicht mit' "$OUT/ax-convert-dialog.txt" && record dialogStatesWhatStays true || record dialogStatesWhatStays false
 $AX press $PID "AXButton:Abbrechen" >> "$OUT/steps.txt"; sleep 3
 waitax "Wandel, Workspace wechseln" 4 && [ "$(window_count)" = "$BEFORE_WINDOWS" ] && tabs | grep -q login.html \
