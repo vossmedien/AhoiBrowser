@@ -5,6 +5,7 @@
 
 #include <algorithm>
 
+#include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/navigation/link_routing.h"
 #include "components/prefs/pref_service.h"
 #include "components/sync_preferences/pref_service_syncable.h"
@@ -47,6 +48,9 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   // Device-local until the setup-sync catalog lists it; an empty dictionary
   // parses as the default route.
   registry->RegisterDictionaryPref(navigation::kLinkRoutingPref);
+  // Device-local like the routing rules: the bindings follow this Mac's
+  // keyboard and extensions.
+  shortcuts::RegisterProfilePrefs(registry);
 }
 
 WorkspaceSwipeSettings ReadWorkspaceSwipeSettings(const PrefService& prefs) {
