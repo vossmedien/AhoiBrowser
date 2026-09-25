@@ -192,7 +192,7 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
         let harness = Harness()
         await harness.coordinator.applyDiscoveredZoneNames([
             harness.zone(harness.workspaceA), harness.zone(harness.workspaceB),
-        ])
+        ], accountIdentifier: "_me")
         XCTAssertEqual(harness.coordinator.entries.count, 2)
 
         let failing = FakeZoneLister([])
@@ -203,7 +203,8 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
         XCTAssertTrue(harness.removedStores.isEmpty)
 
         await harness.coordinator.refreshDiscovery(
-            using: FakeZoneLister(["AhoiBrowserSyncV3", harness.zone(harness.workspaceB)])
+            using: FakeZoneLister(["AhoiBrowserSyncV3", harness.zone(harness.workspaceB)],
+                                  account: "_me")
         )
         XCTAssertEqual(harness.coordinator.entries.map(\.workspaceID), [harness.workspaceB])
         XCTAssertEqual(harness.removedStores, [harness.workspaceA])
@@ -246,6 +247,46 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
         ))
         XCTAssertEqual(harness.coordinator.entries.map(\.workspaceID), [harness.workspaceB])
         XCTAssertEqual(harness.coordinator.retirements[harness.workspaceA], .zoneRemoved)
+    }
+
+    /// Handoff 026 (1): the zone listing succeeds but the account lookup
+    /// fails, e.g. right after an account transition. Nothing is retired.
+    @MainActor
+    func testUnknownCurrentAccountNeverRetires() async {
+        let harness = Harness()
+        let both = [harness.zone(harness.workspaceA), harness.zone(harness.workspaceB)]
+        await harness.coordinator.refreshDiscovery(using: FakeZoneLister(both, account: "_me"))
+        let lister = FakeZoneLister(["AhoiBrowserSyncV3", harness.zone(harness.workspaceB)])
+        lister.accountError = CloudKitSyncProviderError.unavailable
+        let refreshed = await harness.coordinator.refreshDiscovery(using: lister)
+        XCTAssertTrue(refreshed)
+        XCTAssertEqual(harness.coordinator.entries.count, 2)
+        XCTAssertTrue(harness.removedStores.isEmpty, "An unknown account deletes no login.")
+        XCTAssertTrue(harness.removedLocalData.isEmpty)
+        XCTAssertTrue(harness.coordinator.retirements.isEmpty)
+    }
+
+    /// Handoff 026 (2): a Workspace recorded before the account binding has
+    /// no owner. A listing of a known account without its zone pauses it; a
+    /// later listing that contains it binds and resumes it.
+    @MainActor
+    func testOwnerlessWorkspaceIsPausedNotRetired() async {
+        let harness = Harness()
+        await harness.coordinator.applyDiscoveredZoneNames([harness.zone(harness.workspaceA)])
+        XCTAssertNil(harness.stateStore.load().first?.accountIdentifier)
+
+        await harness.coordinator.refreshDiscovery(
+            using: FakeZoneLister(["AhoiBrowserSyncV3"], account: "_other")
+        )
+        XCTAssertTrue(harness.removedStores.isEmpty)
+        XCTAssertTrue(harness.coordinator.retirements.isEmpty)
+        XCTAssertEqual(harness.coordinator.entries.map(\.state), [.otherAccount])
+
+        await harness.coordinator.refreshDiscovery(using: FakeZoneLister(
+            [harness.zone(harness.workspaceA)], account: "_me"
+        ))
+        XCTAssertEqual(harness.stateStore.load().first?.accountIdentifier, "_me")
+        XCTAssertNotEqual(harness.coordinator.entries.first?.state, .otherAccount)
     }
 
     @MainActor
@@ -432,9 +473,10 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
     @MainActor
     func testFailedDataStoreRemovalStaysPendingAndRetries() async {
         let harness = Harness()
-        await harness.coordinator.applyDiscoveredZoneNames([harness.zone(harness.workspaceA)])
+        await harness.coordinator.applyDiscoveredZoneNames(
+            [harness.zone(harness.workspaceA)], accountIdentifier: "_me")
         harness.removalError = CocoaError(.fileWriteUnknown)
-        await harness.coordinator.applyDiscoveredZoneNames([])
+        await harness.coordinator.applyDiscoveredZoneNames([], accountIdentifier: "_me")
         XCTAssertTrue(harness.coordinator.entries.isEmpty, "A retiring Workspace is not listed.")
         XCTAssertTrue(harness.dataStores.separatedWorkspaceIDs.contains(harness.workspaceA),
                       "Fail closed: pages keep the dedicated store until it is removed.")
@@ -535,6 +577,7 @@ private final class FakeZoneLister: CloudKitRecordZoneListing, @unchecked Sendab
     var names: [String]
     var account: String?
     var error: Error?
+    var accountError: Error?
     init(_ names: [String], account: String? = nil) {
         self.names = names
         self.account = account
@@ -543,7 +586,10 @@ private final class FakeZoneLister: CloudKitRecordZoneListing, @unchecked Sendab
         if let error { throw error }
         return names
     }
-    func currentAccountIdentifier() async throws -> String? { account }
+    func currentAccountIdentifier() async throws -> String? {
+        if let accountError { throw accountError }
+        return account
+    }
 }
 
 @MainActor

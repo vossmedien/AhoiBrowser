@@ -257,8 +257,9 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
         } catch {
             return false
         }
-        // An unknown account keeps the account-agnostic behavior; it never
-        // turns a listing into a retirement of another account's Workspaces.
+        // An unknown current account (lookup failed or no account) retires
+        // nothing: only a listing of a Workspace's own, known account can
+        // delete its logins (handoff 026).
         let account = try? await lister.currentAccountIdentifier()
         await applyDiscoveredZoneNames(zoneNames, accountIdentifier: account ?? nil)
         return true
@@ -272,6 +273,13 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     /// whenever it succeeds, so a missing zone in a successful listing of the
     /// Workspace's own account means the zone was deleted (tombstone retention
     /// on the Mac). Listings of another account pause instead (M1).
+    ///
+    /// Handoff 026: a missing zone retires its Workspace only when both the
+    /// listing's account and the Workspace's recorded owner are known and
+    /// equal. Without a known account the listing decides nothing for missing
+    /// zones; a Workspace without a recorded owner (created before 024 M1) or
+    /// of another owner is paused, never retired. A tombstone in the
+    /// Workspace's own zone still retires it (`syncEnabledWorkspaces`).
     public func applyDiscoveredZoneNames(
         _ zoneNames: [String], accountIdentifier account: String? = nil
     ) async {
@@ -282,10 +290,11 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
         currentAccountIdentifier = account
         for id in records.keys.sorted(by: { $0.uuidString < $1.uuidString })
             where !discovered.contains(id) {
-            if let account, let owner = records[id]?.accountIdentifier, owner != account {
-                await pauseForOtherAccount(id)
-            } else {
+            guard let account else { continue }
+            if records[id]?.accountIdentifier == account {
                 await retire(id, reason: .zoneRemoved)
+            } else {
+                await pauseForOtherAccount(id)
             }
         }
         for id in discovered {
