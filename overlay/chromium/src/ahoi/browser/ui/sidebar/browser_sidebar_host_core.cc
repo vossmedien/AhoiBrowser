@@ -615,7 +615,14 @@ void BrowserSidebarHostView::SynchronizeSelection() {
 // WorkspaceServiceObserver:
 void BrowserSidebarHostView::OnWorkspaceListChanged() {
   UpdateWorkspaceSelectorIndicators();
-  ActivateInitialWorkspace();
+  // Activating the fallback Workspace notifies WorkspaceService observers
+  // again, which the list being iterated here does not allow (build 32
+  // crashed deleting the active Workspace). Run it once the notification is
+  // over.
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE,
+      base::BindOnce(&BrowserSidebarHostView::ActivateInitialWorkspace,
+                     weak_ptr_factory_.GetWeakPtr()));
 }
 
 void BrowserSidebarHostView::OnActiveWorkspaceChanged(
