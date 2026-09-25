@@ -21,6 +21,7 @@ ffmpeg_branding = "Chromium"
 mac_min_system_version = "26.0"
 enable_compose = false
 enable_pdf_save_to_drive = false
+disable_fieldtrial_testing_config = true
 
 # Product feature: every supported AhoiBrowser desktop profile uses the same
 # pinned Classic identity and fail-closed authorization contract.

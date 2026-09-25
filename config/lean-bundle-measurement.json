@@ -37,7 +37,7 @@
     {
       "id": "ahoi-release",
       "argsPath": "config/build/ahoi-release.gn",
-      "expectedArgsSha256": "59b1ca1639c96a25a1c908aa936f8a04c582ad7e37dcb79bf619ba66954a9b95",
+      "expectedArgsSha256": "4aac87e5a99928e2a169bc4030e0c468a7b2339977c8b7472201495e74ab7b4c",
       "bundlePath": "chromium/src/out/AhoiRelease/AhoiBrowser.app",
       "generatedArgsPath": "chromium/src/out/AhoiRelease/args.gn",
       "receiptPath": "artifacts/build/ahoi-release-build.json",

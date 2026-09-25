@@ -100,7 +100,8 @@
     },
     "allowedLeanDelta": [
       "enable_compose = false",
-      "enable_pdf_save_to_drive = false"
+      "enable_pdf_save_to_drive = false",
+      "disable_fieldtrial_testing_config = true"
     ]
   },
   "verificationPolicy": {
