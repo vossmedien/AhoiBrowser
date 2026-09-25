@@ -7,6 +7,8 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "base/values.h"
 #include "components/prefs/pref_service.h"
@@ -50,6 +52,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterStringPref(kStartupModePref, kAskValue);
   registry->RegisterDictionaryPref(kWebsiteSessionBindingsPref,
                                    base::DictValue());
+  registry->RegisterListPref(kWebsiteSessionPendingRemovalsPref,
+                             base::ListValue());
 }
 
 bool ShouldUseWorkspaceWebsiteSessions(const PrefService* prefs) {
@@ -182,6 +186,115 @@ std::optional<WebsiteSessionBinding> GetOrCreateWebsiteSessionBinding(
       ->Set(key, context_id.AsLowercaseString());
   prefs->SetDict(kWebsiteSessionBindingsPref, std::move(updated));
   return WebsiteSessionBinding{.context_id = context_id};
+}
+
+std::optional<WebsiteSessionBinding> FindWebsiteSessionBinding(
+    const PrefService* prefs,
+    const base::Uuid& workspace_id) {
+  const base::DictValue* root = GetValidWebsiteSessionRoot(prefs);
+  if (!root || !workspace_id.is_valid()) {
+    return std::nullopt;
+  }
+  const std::string* value = root->FindDict(kWebsiteSessionWorkspacesKey)
+                                 ->FindString(workspace_id.AsLowercaseString());
+  if (!value) {
+    return std::nullopt;
+  }
+  if (*value == kDefaultWebsiteSessionValue) {
+    return WebsiteSessionBinding();
+  }
+  base::Uuid context_id = base::Uuid::ParseLowercase(*value);
+  return context_id.is_valid()
+             ? std::make_optional(WebsiteSessionBinding{.context_id = context_id})
+             : std::nullopt;
+}
+
+bool RetireWebsiteSessionBinding(PrefService* prefs,
+                                 const base::Uuid& workspace_id,
+                                 const base::FilePath& partition_path) {
+  const base::DictValue* root = GetValidWebsiteSessionRoot(prefs);
+  if (!root || prefs->IsManagedPreference(kWebsiteSessionBindingsPref) ||
+      !prefs->FindPreference(kWebsiteSessionPendingRemovalsPref)) {
+    return false;
+  }
+  const std::optional<WebsiteSessionBinding> binding =
+      FindWebsiteSessionBinding(prefs, workspace_id);
+  if (!binding.has_value()) {
+    return true;  // Nothing bound: nothing to retire.
+  }
+  if (!binding->is_default()) {
+    if (partition_path.empty()) {
+      return false;
+    }
+    // Intent first: a crash after this point resumes the removal at startup.
+    base::ListValue pending =
+        prefs->GetList(kWebsiteSessionPendingRemovalsPref).Clone();
+    base::DictValue entry;
+    entry.Set("context_id", binding->context_id.AsLowercaseString());
+    entry.Set("path", partition_path.AsUTF8Unsafe());
+    pending.Append(std::move(entry));
+    prefs->SetList(kWebsiteSessionPendingRemovalsPref, std::move(pending));
+  }
+  base::DictValue updated = root->Clone();
+  updated.FindDict(kWebsiteSessionWorkspacesKey)
+      ->Remove(workspace_id.AsLowercaseString());
+  prefs->SetDict(kWebsiteSessionBindingsPref, std::move(updated));
+  return true;
+}
+
+std::vector<base::Uuid> GetWebsiteSessionBoundWorkspaceIds(
+    const PrefService* prefs) {
+  std::vector<base::Uuid> ids;
+  const base::DictValue* root = GetValidWebsiteSessionRoot(prefs);
+  if (!root) {
+    return ids;
+  }
+  for (const auto entry : *root->FindDict(kWebsiteSessionWorkspacesKey)) {
+    base::Uuid id = base::Uuid::ParseLowercase(entry.first);
+    if (id.is_valid()) {
+      ids.push_back(std::move(id));
+    }
+  }
+  return ids;
+}
+
+std::vector<PendingWebsiteSessionRemoval> GetPendingWebsiteSessionRemovals(
+    const PrefService* prefs) {
+  std::vector<PendingWebsiteSessionRemoval> result;
+  if (!prefs || !prefs->FindPreference(kWebsiteSessionPendingRemovalsPref)) {
+    return result;
+  }
+  for (const base::Value& item :
+       prefs->GetList(kWebsiteSessionPendingRemovalsPref)) {
+    const base::DictValue* entry = item.GetIfDict();
+    const std::string* id = entry ? entry->FindString("context_id") : nullptr;
+    const std::string* path = entry ? entry->FindString("path") : nullptr;
+    if (!id || !path) {
+      continue;
+    }
+    base::Uuid context_id = base::Uuid::ParseLowercase(*id);
+    if (context_id.is_valid() && !path->empty()) {
+      result.push_back({.context_id = std::move(context_id),
+                        .partition_path = base::FilePath::FromUTF8Unsafe(*path)});
+    }
+  }
+  return result;
+}
+
+void CompleteWebsiteSessionRemoval(PrefService* prefs,
+                                   const base::Uuid& context_id) {
+  if (!prefs || !prefs->FindPreference(kWebsiteSessionPendingRemovalsPref)) {
+    return;
+  }
+  base::ListValue pending =
+      prefs->GetList(kWebsiteSessionPendingRemovalsPref).Clone();
+  const std::string id = context_id.AsLowercaseString();
+  pending.EraseIf([&id](const base::Value& item) {
+    const base::DictValue* entry = item.GetIfDict();
+    const std::string* stored = entry ? entry->FindString("context_id") : nullptr;
+    return !stored || *stored == id;
+  });
+  prefs->SetList(kWebsiteSessionPendingRemovalsPref, std::move(pending));
 }
 
 bool IsKnownWebsiteSessionBinding(const PrefService* prefs,

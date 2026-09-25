@@ -266,6 +266,9 @@ bool SessionBridge::FinishRuntimeInitialization() {
   runtime_presentation_changed_callbacks_.Notify();
   PublishCommandItems();
   NotifyTabTreeSnapshotChanged();
+  // After every browser and tab is tracked: finish removals of deleted
+  // Workspaces' website-session partitions (handoff 003, WS-DEL-03/04).
+  ResumeWebsiteSessionRemovals();
   return true;
 }
 

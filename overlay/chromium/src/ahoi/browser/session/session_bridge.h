@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/session_restore_integration.h"
 #include "ahoi/browser/sync/profile_sync_ui_bridge.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
@@ -269,8 +270,23 @@ class SessionBridge : public KeyedService,
       std::u16string name,
       std::u16string icon,
       std::optional<uint32_t> accent_argb);
+  // Synchronous deletion for Workspaces without open pages in their own
+  // website-session partition. Returns kCancelled when such pages are open;
+  // use DeleteWorkspaceClosingIsolatedPages() then.
   [[nodiscard]] tab_tree::TabTreeStore::Result DeleteWorkspace(
       const base::Uuid& workspace_id);
+  using WorkspaceDeletionCallback =
+      base::OnceCallback<void(tab_tree::TabTreeStore::Result)>;
+  // Deletes a Workspace. Open pages in its own website-session partition are
+  // asked as one group with before-unload; a veto reports kCancelled and
+  // leaves the tree, tabs, binding and data unchanged. After the tree commit
+  // those pages close, the binding is retired and the partition's data and
+  // directory are removed, resumable after a crash (ADR 0011, handoff 003).
+  // Pages in the default partition move to the fallback Workspace as before.
+  void DeleteWorkspaceClosingIsolatedPages(const base::Uuid& workspace_id,
+                                           WorkspaceDeletionCallback done);
+  // True when the Workspace uses its own website-session partition.
+  bool HasOwnWebsiteSessions(const base::Uuid& workspace_id) const;
 
   // Binds one validated, active saved-page row to a currently tracked native
   // tab. A persistent node cannot be bound to two runtime tabs. Rebinding one
@@ -376,6 +392,18 @@ class SessionBridge : public KeyedService,
   void BeginTabTreeLoad();
   void OnTabTreeLoaded(TabTreeLoadResult result);
   [[nodiscard]] bool FinishRuntimeInitialization();
+  // Website-session removal for deleted Workspaces (handoff 003).
+  std::vector<tabs::TabInterface*> IsolatedPagesOfWorkspace(
+      const base::Uuid& workspace_id,
+      const std::optional<session::WebsiteSessionBinding>& binding) const;
+  tab_tree::TabTreeStore::Result CommitWorkspaceDeletion(
+      const base::Uuid& workspace_id,
+      const std::optional<session::WebsiteSessionBinding>& isolated_binding);
+  void OnWorkspaceDeletionPagesAnswered(base::Uuid workspace_id,
+                                        WorkspaceDeletionCallback done,
+                                        bool all_agreed);
+  void ClearRetiredWebsiteSessionData(base::Uuid context_id);
+  void ResumeWebsiteSessionRemovals();
   void ScheduleTabTreePersistence();
   void PersistTabTreeNow();
   void NotifyTabTreeSnapshotChanged();
@@ -528,6 +556,7 @@ class SessionBridge : public KeyedService,
   base::CallbackListSubscription extension_user_settings_subscription_;
   std::unique_ptr<session::WorkspaceStructureController>
       workspace_structure_controller_;
+  std::unique_ptr<session::GroupPageClose> workspace_deletion_close_;
   base::WeakPtrFactory<SessionBridge> weak_ptr_factory_{this};
 };
 

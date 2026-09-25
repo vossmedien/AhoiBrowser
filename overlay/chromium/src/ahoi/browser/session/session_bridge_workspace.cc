@@ -213,45 +213,13 @@ tab_tree::TabTreeStore::Result SessionBridge::DeleteWorkspace(
       !workspace_service_) {
     return tab_tree::TabTreeStore::Result::kNotInitialized;
   }
-  if (workspace_service_->ordered_workspaces().size() <= 1) {
-    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  const std::optional<session::WebsiteSessionBinding> binding =
+      session::FindWebsiteSessionBinding(profile_->GetPrefs(), workspace_id);
+  if (!IsolatedPagesOfWorkspace(workspace_id, binding).empty()) {
+    // Closing those pages needs the before-unload group question.
+    return tab_tree::TabTreeStore::Result::kCancelled;
   }
-  auto fallback = std::ranges::find_if(
-      workspace_service_->ordered_workspaces(),
-      [&workspace_id](const tab_tree::Workspace& candidate) {
-        return candidate.id != workspace_id;
-      });
-  if (fallback == workspace_service_->ordered_workspaces().end()) {
-    return tab_tree::TabTreeStore::Result::kInvalidArgument;
-  }
-
-  const tab_tree::TabTreeStore::Result result =
-      tab_tree_store_->DeleteWorkspace(workspace_id, base::Time::Now());
-  if (result != tab_tree::TabTreeStore::Result::kOk) {
-    return result;
-  }
-
-  bool runtime_changed = false;
-  for (auto& [tab, runtime] : runtime_tabs_) {
-    if (runtime.workspace_id != workspace_id) {
-      continue;
-    }
-    UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
-    RemoveTabFromLastActiveState(tab);
-    runtime.workspace_id = fallback->id;
-    if (tab->IsActivated() && runtime.tab_strip_model) {
-      UpdateLastActiveTab(runtime.tab_strip_model, tab);
-    }
-    PersistTabSessionMetadata(tab);
-    runtime_changed = true;
-  }
-  if (!RefreshWorkspaceSnapshot()) {
-    return tab_tree::TabTreeStore::Result::kDatabaseError;
-  }
-  if (runtime_changed) {
-    runtime_presentation_changed_callbacks_.Notify();
-  }
-  return tab_tree::TabTreeStore::Result::kOk;
+  return CommitWorkspaceDeletion(workspace_id, binding);
 }
 
 bool SessionBridge::BindTreeNodeToTab(const tab_tree::TreeNode& node,

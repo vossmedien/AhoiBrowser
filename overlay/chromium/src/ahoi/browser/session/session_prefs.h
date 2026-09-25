@@ -6,10 +6,12 @@
 
 #include <optional>
 #include <string_view>
+#include <vector>
 
 #include "base/containers/span.h"
 #include "base/feature.h"
 #include "base/feature_list.h"
+#include "base/files/file_path.h"
 #include "base/uuid.h"
 
 class PrefService;
@@ -25,6 +27,11 @@ inline constexpr char kStartupModePref[] = "ahoi.session.startup_mode";
 // portable identity is distinct from its device-local website-session binding.
 inline constexpr char kWebsiteSessionBindingsPref[] =
     "ahoi.session.website_session_bindings";
+// Crash-safe removal intents of deleted Workspaces' isolated partitions:
+// a list of {"context_id", "path"}. Written before the tree deletion commits
+// and cleared only after the partition directory is gone.
+inline constexpr char kWebsiteSessionPendingRemovalsPref[] =
+    "ahoi.session.website_session_pending_removals";
 
 // Development gate while Chromium's native site-permission authority is still
 // profile-wide. Once a profile has local bindings, disabling the feature must
@@ -71,6 +78,31 @@ bool InitializeWebsiteSessionBindings(
 std::optional<WebsiteSessionBinding> GetOrCreateWebsiteSessionBinding(
     PrefService* prefs,
     const base::Uuid& workspace_id);
+
+// Returns the existing binding without creating one for an unknown Workspace.
+std::optional<WebsiteSessionBinding> FindWebsiteSessionBinding(
+    const PrefService* prefs,
+    const base::Uuid& workspace_id);
+
+struct PendingWebsiteSessionRemoval {
+  base::Uuid context_id;
+  base::FilePath partition_path;
+};
+
+// Removes a deleted Workspace's binding and records its partition for removal.
+// Afterwards restore treats the context as unknown (recovery partition), so
+// no page can reopen with the deleted Workspace's accounts. Returns false for
+// managed or corrupt state; a default binding is removed without an intent.
+bool RetireWebsiteSessionBinding(PrefService* prefs,
+                                 const base::Uuid& workspace_id,
+                                 const base::FilePath& partition_path);
+// Workspace IDs that currently hold a binding (valid state only).
+std::vector<base::Uuid> GetWebsiteSessionBoundWorkspaceIds(
+    const PrefService* prefs);
+std::vector<PendingWebsiteSessionRemoval> GetPendingWebsiteSessionRemovals(
+    const PrefService* prefs);
+void CompleteWebsiteSessionRemoval(PrefService* prefs,
+                                   const base::Uuid& context_id);
 
 // Restore accepts a local isolated context only if the profile already knows
 // it. Corrupt or foreign tab metadata goes to a separate, stable recovery

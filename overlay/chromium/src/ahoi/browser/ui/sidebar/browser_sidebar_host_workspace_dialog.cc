@@ -155,6 +155,20 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     warning->SetSubpixelRenderingEnabled(false);
     warning->SetMultiLine(true);
     warning->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    if (workspace_id.has_value() && session_bridge_ &&
+        session_bridge_->HasOwnWebsiteSessions(*workspace_id)) {
+      // Handoff 003: say what happens to the Workspace's own accounts.
+      auto* sessions = contents->AddChildView(std::make_unique<views::Label>(
+          StructureText(u"Dieser Workspace hat eigene Website-Sitzungen: Seine "
+                        u"offenen Tabs werden geschlossen, seine Anmeldungen "
+                        u"und Websitedaten werden gelöscht.",
+                        u"This Workspace has its own website sessions: its "
+                        u"open tabs close, and its logins and site data are "
+                        u"deleted.")));
+      sessions->SetSubpixelRenderingEnabled(false);
+      sessions->SetMultiLine(true);
+      sessions->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+    }
   } else {
     auto* name_label = contents->AddChildView(std::make_unique<views::Label>(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_NAME)));
@@ -319,12 +333,19 @@ void BrowserSidebarHostView::UpdateWorkspaceColorButtons() {
 bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
   if (pending_workspace_action_ == PendingWorkspaceAction::kDelete) {
     if (pending_workspace_id_.has_value()) {
-      const tab_tree::TabTreeStore::Result result =
-          session_bridge_->DeleteWorkspace(*pending_workspace_id_);
-      if (result != tab_tree::TabTreeStore::Result::kOk) {
-        OnMutationFailed(result);
-        return false;
-      }
+      // Pages in the Workspace's own website-session partition are asked as
+      // one before-unload group; a veto keeps everything (kCancelled).
+      session_bridge_->DeleteWorkspaceClosingIsolatedPages(
+          *pending_workspace_id_,
+          base::BindOnce(
+              [](base::WeakPtr<BrowserSidebarHostView> view,
+                 tab_tree::TabTreeStore::Result result) {
+                if (view && result != tab_tree::TabTreeStore::Result::kOk &&
+                    result != tab_tree::TabTreeStore::Result::kCancelled) {
+                  view->OnMutationFailed(result);
+                }
+              },
+              weak_ptr_factory_.GetWeakPtr()));
     }
     return true;
   }
