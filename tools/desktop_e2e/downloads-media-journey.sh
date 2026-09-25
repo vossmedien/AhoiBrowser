@@ -1,6 +1,6 @@
 #!/bin/bash
 # usage: downloads-media-journey.sh <App.app> <outdir>
-# CDP journey for DoD 7 (downloads and media, first slice) on an installed
+# CDP journey for DoD 7 (downloads, uploads, media, PiP, permission default) on an installed
 # candidate. A seeded fresh profile downloads into its own directory (never
 # the owner's ~/Downloads). Checks: an attachment download completes with the
 # exact bytes, an <a download> link downloads, a PDF opens in the built-in
@@ -39,7 +39,10 @@ w.writeframes(b"".join(struct.pack("<h", int(3000 * math.sin(2 * math.pi * 440 *
 w.close()
 open(os.path.join(d, "media.html"), "w").write(
     '<title>Ahoi media</title><audio id="a" src="tone.wav" loop></audio>'
-    '<a id="dl" href="note.txt" download="ahoi-note.txt">note</a>')
+    '<a id="dl" href="note.txt" download="ahoi-note.txt">note</a>'
+    '<video id="v" muted playsinline width="160" height="120"></video>'
+    '<form id="up" method="post" enctype="multipart/form-data" action="/upload">'
+    '<input id="f" type="file" name="f"></form>')
 PY
 cat > "$SITE/server.py" <<'PY'
 import http.server, sys, functools
@@ -48,6 +51,14 @@ class H(http.server.SimpleHTTPRequestHandler):
         if self.path.startswith("/payload.bin"):
             self.send_header("Content-Disposition", 'attachment; filename="ahoi-payload.bin"')
         super().end_headers()
+    def do_POST(self):
+        import hashlib, re
+        n = int(self.headers.get("Content-Length", 0)); body = self.rfile.read(n)
+        m = re.search(rb"\r\n\r\n(.*)\r\n--", body, re.S)
+        data = m.group(1) if m else b""
+        text = f"<title>upload {len(data)} {hashlib.sha256(data).hexdigest()}</title>".encode()
+        self.send_response(200); self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Length", str(len(text))); self.end_headers(); self.wfile.write(text)
     def log_message(self, *a): pass
 http.server.ThreadingHTTPServer(("127.0.0.1", int(sys.argv[1])),
     functools.partial(H, directory=sys.argv[2])).serve_forever()
@@ -89,6 +100,23 @@ curl -s -X PUT "http://127.0.0.1:$PORT/json/new?$BASE/doc.pdf" > /dev/null; slee
 curl -s "http://127.0.0.1:$PORT/json" > "$OUT/targets.json"
 if python3 -c 'import json,sys;t=json.load(open(sys.argv[1]));sys.exit(0 if any("doc.pdf" in x["url"] or "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai" in x["url"] for x in t) else 1)' "$OUT/targets.json" \
    && [ ! -f "$DL/doc.pdf" ]; then record pdf_opens_in_viewer PASS; else record pdf_opens_in_viewer FAIL; fi
+# 5 Upload: the file input posts the exact bytes of payload.bin.
+curl -s -X PUT "http://127.0.0.1:$PORT/json/new?$BASE/media.html?upload" > /dev/null; sleep 3
+NODE=$(CDP "media.html?upload" DOM.getDocument '{"depth":-1}' > /dev/null; CDP "media.html?upload" Runtime.evaluate '{"expression":"document.getElementById(\"f\")"}' | python3 -c 'import json,sys;print(json.load(sys.stdin).get("result",{}).get("objectId",""))')
+CDP "media.html?upload" DOM.setFileInputFiles "{\"files\":[\"$SITE/payload.bin\"],\"objectId\":\"$NODE\"}" >> "$OUT/run.txt"
+eval_in "media.html?upload" "document.getElementById('up').submit(); 'ok'" > /dev/null; sleep 4
+WANT="upload $(wc -c < "$SITE/payload.bin" | tr -d ' ') $(shasum -a 256 "$SITE/payload.bin" | cut -d' ' -f1)"
+GOT=$(curl -s "http://127.0.0.1:$PORT/json" | python3 -c 'import json,sys;print(" ".join(t["title"] for t in json.load(sys.stdin) if t["title"].startswith("upload ")))')
+echo "upload: want=$WANT got=$GOT" >> "$OUT/run.txt"
+[ "$GOT" = "$WANT" ] && record upload_exact_bytes PASS || record upload_exact_bytes FAIL
+# 6 Picture-in-Picture: a playing video enters and leaves PiP.
+PIP=$(eval_in "media.html" "(async()=>{const v=document.getElementById('v');const c=document.createElement('canvas');c.width=160;c.height=120;const g=c.getContext('2d');setInterval(()=>{g.fillStyle='#'+Math.floor(Math.random()*4095).toString(16).padStart(3,'0');g.fillRect(0,0,160,120)},50);v.srcObject=c.captureStream(20);await v.play();try{await v.requestPictureInPicture()}catch(e){return 'error:'+e.name}const inPip=document.pictureInPictureElement===v;await document.exitPictureInPicture();return inPip&&!document.pictureInPictureElement?'pip':'no-pip'})()")
+echo "pip: $PIP" >> "$OUT/run.txt"
+[ "$PIP" = pip ] && record picture_in_picture PASS || record picture_in_picture FAIL
+# 7 Permissions: notifications start at "default" and are never granted silently.
+PERM=$(eval_in "media.html" "Notification.permission")
+echo "notification permission: $PERM" >> "$OUT/run.txt"
+[ "$PERM" = default ] && record notification_permission_default PASS || record notification_permission_default FAIL
 python3 - "$OUT/results.txt" > "$OUT/results.json" <<'PY'
 import json, sys
 rows = dict(line.split() for line in open(sys.argv[1]) if line.strip())
