@@ -55,7 +55,7 @@
       "signingMode": "development",
       "sparklePolicyClass": "development",
       "shippingEligible": false,
-      "expectedGnArgsSha256": "49b306d09fa8b6aa17b654d63527fe042eef77abf7f30b3d8727bc67d0c9e48d"
+      "expectedGnArgsSha256": "e777f03b6b399dbfd20d686b72d60a6270fa0e2e63a16fdb7f88c8a9eeba6739"
     },
     {
       "id": "ahoi-release",
@@ -85,18 +85,18 @@
       "signingMode": "none-in-build-script",
       "sparklePolicyClass": "reviewed-release",
       "shippingEligible": false,
-      "expectedGnArgsSha256": "cf144d4dcfb41383b3e863c363de0d89568a09baa06219b64e5627c516b0bf4c"
+      "expectedGnArgsSha256": "31e26e961823603220792329db5f16cc1c4453dfcb318b2a5ca925af16203c0d"
     }
   ],
   "fullBaselineContract": {
     "algorithm": "sha256",
     "development": {
       "profileId": "ahoi-full-dev",
-      "preWave1ArgsSha256": "49b306d09fa8b6aa17b654d63527fe042eef77abf7f30b3d8727bc67d0c9e48d"
+      "preWave1ArgsSha256": "e777f03b6b399dbfd20d686b72d60a6270fa0e2e63a16fdb7f88c8a9eeba6739"
     },
     "release": {
       "profileId": "ahoi-full-release",
-      "preWave1ArgsSha256": "cf144d4dcfb41383b3e863c363de0d89568a09baa06219b64e5627c516b0bf4c"
+      "preWave1ArgsSha256": "31e26e961823603220792329db5f16cc1c4453dfcb318b2a5ca925af16203c0d"
     },
     "allowedLeanDelta": [
       "enable_compose = false",
