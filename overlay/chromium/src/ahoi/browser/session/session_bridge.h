@@ -312,9 +312,9 @@ class SessionBridge : public KeyedService,
       tabs::TabInterface* tab);
 
   tabs::TabInterface* FindTabByTreeNodeId(const base::Uuid& node_id) const;
-  // Resolves the stable id published for a command-bar open-tab item. Saved
-  // tabs use their durable tree UUID; temporary tabs use a process-local
-  // TabHandle id prefixed with "runtime:".
+  // Resolves the stable id published for a command-bar open-tab item: the
+  // tab's shared tree UUID (saved and temporary pages); a process-local
+  // TabHandle id prefixed with "runtime:" is still accepted.
   tabs::TabInterface* FindTabForOpenTabStableId(
       std::string_view stable_id) const;
   std::optional<base::Uuid> FindTreeNodeIdForTab(

@@ -128,11 +128,15 @@ TEST_F(SessionBridgeTest, PersistsAndRebindsNestedPageAfterTabRecreation) {
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             bridge_->tab_tree_store()->CreateNode(page));
 
+  // Saved pages bind by exact identity (activation or restore metadata),
+  // never because an unrelated tab shows the same URL.
   AddTab(browser(), url);
   task_environment()->RunUntilIdle();
   TabStripModel* model = browser()->GetTabStripModel();
   tabs::TabInterface* original_tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(original_tab);
+  EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(original_tab).has_value());
+  ASSERT_TRUE(bridge_->BindTreeNodeToTab(page, original_tab));
   EXPECT_EQ(page.id, bridge_->FindTreeNodeIdForTab(original_tab));
 
   model->DetachAndDeleteWebContentsAt(model->GetIndexOfTab(original_tab));
@@ -141,6 +145,7 @@ TEST_F(SessionBridgeTest, PersistsAndRebindsNestedPageAfterTabRecreation) {
   task_environment()->RunUntilIdle();
   tabs::TabInterface* restored_tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(restored_tab);
+  ASSERT_TRUE(bridge_->BindTreeNodeToTab(page, restored_tab));
   EXPECT_EQ(page.id, bridge_->FindTreeNodeIdForTab(restored_tab));
 
   const base::FilePath database_path =
@@ -237,7 +242,8 @@ TEST_F(SessionBridgeTest, NewTabRemainsTemporaryAndIsAddressableByCommandBar) {
       std::ranges::find_if(results, [&url](const RankedCommand& ranked) {
         return ranked.item.type == CommandItemType::kOpenTab &&
                ranked.item.url == url &&
-               ranked.item.stable_id.starts_with("runtime:");
+               // Temporary pages carry a stable shared node ID now.
+               base::Uuid::ParseLowercase(ranked.item.stable_id).is_valid();
       });
   ASSERT_NE(result, results.end()) << [&results] {
     std::string ids;
