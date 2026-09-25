@@ -1,6 +1,6 @@
 # 001 – Engine input key in build receipts (H4)
 
-Status: ready
+Status: integrated 2ab7909
 Owner lane: desktop (build path)
 Base: `tools/build_provenance.py` at `484a2f9` (unchanged at lane commit time)
 

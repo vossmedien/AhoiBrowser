@@ -1,6 +1,6 @@
 # 002 – Trace events for command bar and Workspace switch (H3)
 
-Status: ready
+Status: integrated d425c3b
 Owner lane: desktop
 Base: overlay files at `8821ed1` (patch applies with `git apply --check`)
 
