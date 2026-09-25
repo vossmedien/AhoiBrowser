@@ -31,3 +31,5 @@ nothing.
 - **Unit**: `retire` is not called when `currentAccountIdentifier` throws;
   a nil-owner record is paused, not retired, by a listing of a known foreign
   account.
+
+Implementation as a patch with tests: [056](../056-step3-mobile-retire-only-for-known-owner/HANDOFF.md).
