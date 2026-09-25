@@ -243,7 +243,8 @@ TEST_F(SessionBridgeTest, NewTabRemainsTemporaryAndIsAddressableByCommandBar) {
     std::string ids;
     for (const RankedCommand& ranked : results) {
       ids += " " + std::to_string(static_cast<int>(ranked.item.type)) + ":" +
-             ranked.item.stable_id + "@" + ranked.item.url.spec();
+             ranked.item.stable_id + "@" +
+             (ranked.item.url ? ranked.item.url->spec() : std::string("-"));
     }
     return "results:" + ids;
   }();
