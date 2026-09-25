@@ -52,9 +52,13 @@ class ZenImportAvailabilityContractTests(unittest.TestCase):
         for marker in (
             "ZenImportAvailability AppendZenSourceProfiles(",
             "AppendZenSourceProfilesForApplication",
-            "GetZenImportAvailability(application)",
-            "availability != ZenImportAvailability::kAvailable",
-            "return availability;",
+            # 75e20c1 returns a ZenSourceProfilesResult carrying the
+            # availability plus index-aligned metadata.
+            "result.availability = GetZenImportAvailability(application);",
+            "if (result.availability != ZenImportAvailability::kAvailable) {\n"
+            "    return result;\n"
+            "  }",
+            "result.availability = ZenImportAvailability::kNoSafeProfiles;",
         ):
             self.assertIn(marker, self.discovery_header + self.discovery)
         for marker in (
@@ -82,7 +86,7 @@ class ZenImportAvailabilityContractTests(unittest.TestCase):
             self.assertIn(marker, combined)
 
         running_branch = re.search(
-            r"if \(zen_availability ==\s*"
+            r"if \(zen_result\.availability ==\s*"
             r"ahoi::importer::zen::ZenImportAvailability::kSourceRunning\) "
             r"\{(?P<body>.*?)\n    \}",
             self.importer,
@@ -91,17 +95,26 @@ class ZenImportAvailabilityContractTests(unittest.TestCase):
         self.assertIsNotNone(running_branch)
         self.assertIn("profiles.push_back", running_branch.group("body"))
         self.assertNotIn("kNotInstalled", running_branch.group("body"))
-        self.assertNotRegex(
-            self.importer,
-            r"kNotInstalled(?s:.*?)profiles\.push_back",
+        # 75e20c1 added a ToDiscoveryState() mapping that names kNotInstalled
+        # before the detection code; scope the no-phantom check to the Zen
+        # detection block itself.
+        zen_block_start = self.importer.index(
+            "const size_t first_zen_profile = profiles.size();"
         )
+        zen_block = self.importer[
+            zen_block_start : self.importer.index(
+                "for (size_t index = first_zen_profile", zen_block_start
+            )
+        ]
+        self.assertNotIn("kNotInstalled", zen_block)
+        self.assertEqual(1, zen_block.count("profiles.push_back"))
+        self.assertIn(running_branch.group("body"), zen_block)
 
     def test_payload_and_backend_treat_disabled_state_as_authoritative(self):
         for marker in (
             'browser_profile.Set("present", true)',
             'browser_profile.Set("available",',
             '"disabledReason"',
-            'browser_profile.Set("ahoiImportKind", kAhoiImportKindZen)',
             "IsSourceProfileAvailable(browser_index)",
             "Rejected import request for a disabled source profile",
         ):
@@ -114,6 +127,14 @@ class ZenImportAvailabilityContractTests(unittest.TestCase):
             self.handler.index("IsSourceProfileAvailable(browser_index)"),
             self.handler.index("const base::DictValue& type_dict"),
         )
+        # 0025-ahoi-import-source-truth derives the kind from the backend
+        # source metadata instead of a Zen-only literal.
+        self.assertRegex(
+            self.handler,
+            r'browser_profile\.Set\(\s*"ahoiImportKind",\s*'
+            r"source_metadata\.kind == ImporterSourceProfileKind::kArc\s*"
+            r"\? kAhoiImportKindArc\s*: kAhoiImportKindZen\);",
+        )
 
     def test_webui_disables_running_zen_and_uses_backend_index(self):
         for marker in (
@@ -123,21 +144,32 @@ class ZenImportAvailabilityContractTests(unittest.TestCase):
             "disabledReason?: ImportSourceDisabledReason",
         ):
             self.assertIn(marker, self.proxy)
+        # The M153 import dialog is a Lit template (29dfe7a rebase).
         for marker in (
-            'disabled$="[[isSourceUnavailable_(item.available)]]"',
+            '?disabled="${this.isSourceUnavailable_(item.available)}"',
             'id="sourceDisabledReason"',
             'role="status"',
             'aria-live="polite"',
-            "item.disabledReason",
+            "this.getSourceDisabledReason_(\n"
+            "                this.selected_.ahoiImportKind,\n"
+            "                this.selected_.disabledReason)",
         ):
             self.assertIn(marker, self.dialog_html)
         for marker in (
-            "this.i18n('ahoiZenImportCloseSource')",
+            "kind === 'arc' ? 'ahoiArcImportCloseSource' :\n"
+            "                         'ahoiZenImportCloseSource'",
             "available === false",
-            "this.isSourceUnavailable_(this.selected_?.available)",
+            "this.isSourceUnavailable_(this.selected_.available)",
             "this.browserProxy_.importData(this.selected_.index, types)",
         ):
             self.assertIn(marker, self.dialog)
+        self.assertRegex(
+            self.dialog,
+            r"onActionButtonClick_\(\) \{\s*"
+            r"if \(this\.isArcImportSelected_\(\) \|\|\s*"
+            r"this\.isSourceUnavailable_\(this\.selected_\.available\)\) \{\s*"
+            r"return;",
+        )
 
     def test_strings_tests_and_browser_launcher_cover_all_three_states(self):
         generated_resources = (
@@ -171,7 +203,10 @@ class ZenImportAvailabilityContractTests(unittest.TestCase):
         self.assertIn("ahoiZenImportCloseSource", provider)
         for marker in (
             "runningZenIsVisibleDisabledAndCannotStartAnImport",
-            "notInstalledZenDoesNotCreateAPhantomOption",
+            # 75e20c1 generalized the not-installed case to every global
+            # source state (no Zen/Arc option without a real profile).
+            "globalSourceStatesNeverCreatePhantomOptions",
+            "assertFalse(optionLabels.some(label => label.startsWith('Zen')));",
             "availableZenUsesItsStableBackendIndexAndRealCategories",
             "assertEquals(0, proxy.getCallCount('importData'))",
         ):
@@ -194,10 +229,21 @@ class ZenImportAvailabilityContractTests(unittest.TestCase):
             "chrome/app/resources/generated_resources_de.xtb",
             "chrome/browser/ui/webui/settings/"
             "settings_localized_strings_provider.cc",
-            "chrome/test/data/webui/settings/"
-            "ahoi_zen_import_availability_test.ts",
+            "chrome/test/data/webui/settings/BUILD.gn",
+            "chrome/test/data/webui/settings/settings_browsertest.cc",
         ):
             self.assertIn(path, self.patch)
+        # The Ahoi-owned WebUI test lives in the overlay, not the patch; the
+        # patch only registers it with Chromium's settings test build.
+        self.assertTrue(WEBUI_TEST.is_file())
+        self.assertIn(
+            '+      "ahoi_zen_import_availability_test.ts",', self.patch
+        )
+        self.assertNotIn(
+            "b/chrome/test/data/webui/settings/"
+            "ahoi_zen_import_availability_test.ts",
+            self.patch,
+        )
         for forbidden in (
             "ahoi/browser/importer/arc/",
             "ahoi/browser/extensions/",

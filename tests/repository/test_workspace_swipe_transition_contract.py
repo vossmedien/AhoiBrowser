@@ -44,13 +44,25 @@ class WorkspaceSwipeTransitionContractTest(unittest.TestCase):
         self.assertIn("CancelWorkspaceTransition();", activation)
         self.assertIn("ActivateRelativeWorkspaceForWindow", activation)
         self.assertIn("previous_workspace != activated_workspace", activation)
-        self.assertIn("StartWorkspaceTransition(delta);", activation)
+        # b045dbf fades page contents only when the active WebContents
+        # actually changed; 84a3405 migrated to the M153 BrowserView lookup.
+        start_call = (
+            "StartWorkspaceTransition(delta, previous_contents != activated_contents);"
+        )
+        self.assertIn(start_call, activation)
         self.assertLess(
             activation.index("ActivateRelativeWorkspaceForWindow"),
-            activation.index("StartWorkspaceTransition(delta);"),
+            activation.index(start_call),
         )
-        self.assertIn("GetBrowserView().contents_container()", host)
-        self.assertIn("layer(), contents->layer()", host)
+        self.assertIn(
+            "BrowserView::GetBrowserViewForBrowser(browser_.get())\n"
+            "          ->contents_container()",
+            host,
+        )
+        self.assertIn(
+            "sidebar_contents->layer(), contents ? contents->layer() : nullptr",
+            host,
+        )
 
     def test_gesture_entry_point_preserves_truthful_activation_source(self):
         public_header = text(AHOI / "ui/sidebar/browser_sidebar_host.h")
@@ -113,11 +125,27 @@ class WorkspaceSwipeTransitionContractTest(unittest.TestCase):
         )
 
         self.assertIn("Cancel();", animator)
-        self.assertIn("AbortAllAnimations()", animator)
-        self.assertIn("layer->SetOpacity(1.0f)", animator)
-        self.assertIn("layer->SetTransform(gfx::Transform())", animator)
-        self.assertIn("reduced_motion", animator)
-        self.assertIn("!gfx::Animation::ShouldRenderRichAnimation()", animator)
+        # fe0afa4 deliberately replaced AbortAllAnimations() and the
+        # identity/opaque reset: Cancel() stops only the owned property and
+        # restores the captured resting state, preserving unrelated layer
+        # animations. Reduce Motion is an explicit opacity-only fade.
+        self.assertNotIn("AbortAllAnimations()", animator)
+        for marker in (
+            "StopAnimatingProperty(",
+            "sidebar_layer_->SetOpacity(sidebar_resting_opacity_);",
+            "sidebar_layer_->SetTransform(sidebar_resting_transform_);",
+            "contents_layer_->SetOpacity(contents_resting_opacity_);",
+            "sidebar_fades_ = reduced_motion;",
+            "(!reduced_motion && !gfx::Animation::ShouldRenderRichAnimation())",
+            "? visual_style::kModalFadeInDuration",
+        ):
+            self.assertIn(marker, animator)
+        for test_name in (
+            "CancelNormalizesBothCommittedSurfaces",
+            "ReducedMotionFadesWithoutSpatialMotion",
+            "CancelPreservesUnownedPropertiesAndAnimations",
+        ):
+            self.assertIn(test_name, animator_test)
         self.assertIn("base::WeakPtr<ui::Layer>", animator_header)
         self.assertNotIn("raw_ptr<ui::Layer>", animator_header)
         self.assertIn("sidebar_layer->AsWeakPtr()", animator)

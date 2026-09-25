@@ -273,12 +273,20 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "RollbackAndFinish",
             "InspectRuntimeSplit",
             "VerifyArcSplitSessionWindows",
-            "committed_journal_state_->idempotency_key == idempotency_key",
+            # a909e4e moved the exact committed-replay check into the
+            # IsCommittedSource/IsCommittedSelection helpers.
+            "committed->idempotency_key ==\n"
+            "             ComputeArcImportIdempotencyKey(snapshot_token,",
+            "committed->selection_fingerprint == selection_fingerprint;",
+            "if (IsCommittedSelection(committed_journal_state_, snapshot_token,",
         ):
             self.assertIn(marker, combined_backend)
         for marker in (
             "arcUsesTheStandardSourceSelectAndCannotCallStandardImport",
-            "splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitIsConfirmed",
+            # fe0afa4 replaced the two confirmation checkboxes with a backup
+            # notice; the primary click is the single confirmation.
+            "splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitNeedsSelectedData",
+            "primaryClickConfirmsTheCurrentPlanAndBackupOnlyOnce",
             "resultReportsImportedSkippedDegradedExcludedAndFourPane",
             "'.counts > li'",
             "'dt, dd, [role=\"term\"]'",

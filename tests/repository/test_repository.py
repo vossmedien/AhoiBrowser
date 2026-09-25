@@ -283,12 +283,19 @@ class RepositoryContractTests(unittest.TestCase):
             "permissions",
             "extensionStorage",
             "incognito",
-            "splitTopology",
             "keychainSecrets",
             "secretHeaders",
             "httpAuthSecrets",
+            # e7abcff (unified sync format three) syncs logical split groups
+            # but never native split handles, geometry, focus or website
+            # session state; the blanket "splitTopology" denial was retired.
+            "nativeSplitHandles",
+            "windowGeometry",
+            "liveFocus",
+            "websiteSessionState",
         }
         self.assertTrue(required_denials.issubset(policy["neverSync"]))
+        self.assertIn("logicalSplitGroups", policy["sync"])
         self.assertTrue(set(policy["sync"]).isdisjoint(policy["neverSync"]))
 
     def test_theme_and_shortcut_contract(self):
@@ -370,7 +377,9 @@ class RepositoryContractTests(unittest.TestCase):
             for entry in load_json("config/test-registry.json")["tests"]
             if entry["suite"] == "SPLIT"
         ]
-        self.assertEqual(39, len(split_tests))
+        # 7c33562 registered SPLIT-01..39 plus SPLIT-06A (drag lifecycle).
+        self.assertEqual(40, len(split_tests))
+        self.assertIn("SPLIT-06A", {entry["id"] for entry in split_tests})
         self.assertEqual(
             {"SPLIT-01", "SPLIT-02", "SPLIT-03", "SPLIT-04", "SPLIT-36"},
             {
@@ -621,7 +630,15 @@ class RepositoryContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("AhoiBuildProfile", signer)
-        self.assertIn("forbidden for release bundles", signer)
+        # 00a9c3a widened the allowlist to both development profiles; any
+        # other (release) profile is still rejected.
+        self.assertIn(
+            'case "${build_profile}" in\n'
+            "  dev|full-dev) ;;\n"
+            '  *) ahoi_die "development signing is restricted to development profiles" ;;\n'
+            "esac",
+            signer,
+        )
         self.assertIn("tools/development_signing.py", signer)
         self.assertIn("--preserve-metadata=entitlements", signer)
         self.assertIn("designated => cdhash", signer)
