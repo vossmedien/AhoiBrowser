@@ -41,17 +41,22 @@ This lane never builds, installs, refreshes the overlay, writes under
 - User decision 25 Sep: level `website-sessions` keeps permissions and
   `chrome.cookies` profile-wide (documented, disclosed); per-partition scoping
   stays an open later option. Recorded in ADR 0011; text changes as 008.
-- Next: H1 conformance vectors/generator/drift gate; H2 audit.
+- H1: drift gate `tools/sync_conformance/field_groups.py`; merge model,
+  vector generator and `fixtures/sync-conformance/merge_v3.json`; runners
+  handed off as 009. Swift tests need the Mobile simulator, and C++ tests need
+  the desktop build, so neither runs in this lane.
+- Handoff 005 was integrated by desktop (`0981913`).
+- Next: H2 audit.
 
 ## Packages
 
 | Package | State | Handoff | Integrated in |
 | --- | --- | --- | --- |
-| H1 Sync conformance | not started | – | – |
+| H1 Sync conformance | field-group drift gate (37 copies, 15 entities, no drift); merge model, 132 vectors (72 structured + 60 seeded random), convergence tests; C++ and Swift runners handed off. Remaining DoD: both runners green on the integrated candidates, or each mismatch reported | [009](../handoffs/crest-hardening/009-sync-merge-conformance/HANDOFF.md) ready | – |
 | H2 Single writer | not started | – | – |
 | H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) integrated | `d425c3b` |
 | H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) integrated | `2ab7909` |
-| H5 Crest reference / network silence | review `docs/reviews/crest-hardening-2026-09-25-crest-chromium-reference.md` and `docs/NETWORK_SILENCE_CHECKLIST.md` done; remaining DoD: GCM fix integrated and fresh-profile audit on the candidate | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md), [004](../handoffs/crest-hardening/004-gcm-policy-invalidations/HANDOFF.md), [005](../handoffs/crest-hardening/005-fieldtrial-testing-config/HANDOFF.md), [006](../handoffs/crest-hardening/006-batch-before-unload/HANDOFF.md) ready | – |
+| H5 Crest reference / network silence | review `docs/reviews/crest-hardening-2026-09-25-crest-chromium-reference.md` and `docs/NETWORK_SILENCE_CHECKLIST.md` done; remaining DoD: GCM fix integrated and fresh-profile audit on the candidate | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md), [004](../handoffs/crest-hardening/004-gcm-policy-invalidations/HANDOFF.md), [005](../handoffs/crest-hardening/005-fieldtrial-testing-config/HANDOFF.md) integrated `0981913`, [006](../handoffs/crest-hardening/006-batch-before-unload/HANDOFF.md) ready | – |
 | H6 Isolated Workspaces (contract) | analysis, ADR 0011, deletion defect and WS-ISO-01..13 catalogue handed off; remaining DoD: review of each desktop implementation step | [003](../handoffs/crest-hardening/003-workspace-deletion-website-sessions/HANDOFF.md), [007](../handoffs/crest-hardening/007-ws-iso-acceptance/HANDOFF.md), [008](../handoffs/crest-hardening/008-website-sessions-shared-permissions/HANDOFF.md) ready | – |
 
 ## Lease requests
