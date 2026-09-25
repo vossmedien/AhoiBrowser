@@ -157,16 +157,19 @@ fi
 echo "whilePrompt $(tabs)" >> "$OUT/tabs.txt"
 unload_prompt unload.html accept >> "$OUT/steps.txt"
 # WS-DEL-08: poll while the pages close; none may show up under the fallback.
+# Only sidebar tab rows count, not the History or Window menu entries.
 REHOMED=false
 for i in $(seq 1 15); do
-  if $AX dump $PID 14 | grep -E 'Inbox, Workspace wechseln' -q && $AX dump $PID 14 | grep -E '\| (unload|late|login)( |$)' -q; then REHOMED=true; $AX dump $PID 14 > "$OUT/ax-rehomed-$i.txt"; fi
+  if $AX dump $PID 14 | grep -E 'Inbox, Workspace wechseln' -q && $AX dump $PID 14 | grep -E 'AXRadioButton \| (unload|late|login) ' -q; then REHOMED=true; $AX dump $PID 14 > "$OUT/ax-rehomed-$i.txt"; fi
   sleep 0.3
 done
 [ $REHOMED = false ] && record noRehomingWhileClosing true || record noRehomingWhileClosing false
 sleep 4; T=$(tabs); echo "afterDelete $T" >> "$OUT/tabs.txt"
 { ! echo "$T" | grep -q 'login.html\|unload.html\|late.html'; } && record latePageClosedToo true || record latePageClosedToo false
+echo "afterKundeDeleted $(storage)" >> "$OUT/storage.txt"
 # WS-DEL-04: second own Workspace, killed right after the confirmation.
 newws Inbox Zwei "Eigene Website-Sitzungen"
+sleep 12; echo "afterZweiCreated $(storage)" >> "$OUT/storage.txt"
 open_url "$SITE/login.html?zwei"
 menu Zwei "Workspace löschen" || fail_setup "delete item missing for Zwei"
 $AX press $PID "$($AX dump $PID 14 | grep -o 'Workspace löschen[^|]*' | head -1 | sed 's/ *$//')" >> "$OUT/steps.txt"
