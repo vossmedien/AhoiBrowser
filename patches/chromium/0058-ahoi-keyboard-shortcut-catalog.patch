@@ -1,0 +1,326 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
+index ecf6bf5..f98e62b 100644
+--- a/chrome/browser/ui/views/frame/browser_view.h
++++ b/chrome/browser/ui/views/frame/browser_view.h
+@@ -9,6 +9,7 @@
+ #include <memory>
+ #include <optional>
+ #include <string>
++#include <string_view>
+ #include <vector>
+ 
+ #include "base/callback_list.h"
+@@ -121,6 +122,9 @@ enum class SidebarPresentationMode;
+ namespace popup_ui {
+ class PopupOverlayController;
+ }  // namespace popup_ui
++namespace shortcuts {
++class ShortcutRegistration;
++}  // namespace shortcuts
+ }  // namespace ahoi
+ 
+ namespace gfx {
+@@ -1042,10 +1046,15 @@ class BrowserView : public BrowserWindow,
+   // use.
+   void LoadAccelerators();
+ 
+-  // Handles Ahoi's macOS split-view keyboard contract without navigating or
++  // Runs one rebindable command of Ahoi's shortcut catalog. Returns false
++  // when it does not apply now (for example a split command outside a
++  // split), so Chromium and the page keep the key.
++  bool HandleAhoiShortcutCommand(std::string_view command_id);
++
++  // Handles Ahoi's macOS split-view keyboard commands without navigating or
+   // recreating the participating WebContents. Returns false outside an active
+   // split so Chromium and the page retain their normal shortcuts.
+-  bool HandleAhoiSplitAccelerator(const ui::Accelerator& accelerator);
++  bool HandleAhoiSplitCommand(std::string_view command_id);
+ 
+   void RefreshAhoiNavigationInputSettings();
+   bool CanUseAhoiCmdScrollTabSwitch(int delta) const;
+@@ -1371,6 +1380,10 @@ class BrowserView : public BrowserWindow,
+   // one BrowserView makes bubble and profile lifetimes explicit.
+   std::unique_ptr<ahoi::CommandBarController> ahoi_command_bar_controller_;
+ 
++  // Registers the rebindable catalog shortcuts with the focus manager and
++  // follows the user's bindings.
++  std::unique_ptr<ahoi::shortcuts::ShortcutRegistration> ahoi_shortcuts_;
++
+   // Lazily created on first use. Normal browsing therefore adds no developer
+   // toolkit renderer hooks, observers or background work.
+   std::unique_ptr<ahoi::DeveloperToolkitController>
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 78bf753..c0b9033 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -17,6 +17,8 @@
+ #include "ahoi/browser/developer_toolkit/developer_toolkit_target.h"
+ #include "ahoi/browser/developer_toolkit/developer_toolkit_types.h"
+ #if BUILDFLAG(IS_MAC)
++#include "ahoi/browser/navigation/keyboard_shortcut_registration.h"
++#include "ahoi/browser/navigation/keyboard_shortcuts.h"
+ #include "ahoi/browser/navigation/navigation_input_prefs.h"
+ #include "ahoi/browser/navigation/workspace_swipe_event_handler.h"
+ #endif
+@@ -6110,8 +6112,12 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+   }
+ 
+ #if BUILDFLAG(IS_MAC)
+-  if (HandleAhoiSplitAccelerator(accelerator)) {
+-    return true;
++  if (ahoi_shortcuts_) {
++    const std::optional<std::string> ahoi_command =
++        ahoi_shortcuts_->CommandFor(accelerator);
++    if (ahoi_command && HandleAhoiShortcutCommand(*ahoi_command)) {
++      return true;
++    }
+   }
+   if (browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
+       !browser_->GetProfile()->IsOffTheRecord() &&
+@@ -6120,56 +6126,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+       AhoiQuickWindowGlobalShortcut::GetInstance()->Activate()) {
+     return true;
+   }
+-  const bool is_ahoi_sidebar_discovery_shortcut =
+-      accelerator.IsCmdDown() && accelerator.IsShiftDown() &&
+-      !accelerator.IsCtrlDown() && !accelerator.IsAltDown() &&
+-      accelerator.key_code() == ui::VKEY_F;
+-  if (is_ahoi_sidebar_discovery_shortcut &&
+-      vertical_tab_strip_region_view_ &&
+-      ahoi::sidebar::ToggleBrowserSidebarDiscovery(
+-          vertical_tab_strip_region_view_->ahoi_sidebar_tree_view())) {
+-    return true;
+-  }
+-  const bool is_ahoi_relative_workspace_shortcut =
+-      accelerator.IsCmdDown() && accelerator.IsAltDown() &&
+-      !accelerator.IsCtrlDown() && !accelerator.IsShiftDown() &&
+-      (accelerator.key_code() == ui::VKEY_LEFT ||
+-       accelerator.key_code() == ui::VKEY_RIGHT);
+-  if (is_ahoi_relative_workspace_shortcut && vertical_tab_strip_region_view_ &&
+-      ahoi::sidebar::ActivateRelativeBrowserWorkspace(
+-          vertical_tab_strip_region_view_->ahoi_sidebar_tree_view(),
+-          accelerator.key_code() == ui::VKEY_RIGHT ? 1 : -1)) {
+-    return true;
+-  }
+-  const bool is_ahoi_indexed_workspace_shortcut =
+-      accelerator.IsCtrlDown() && !accelerator.IsShiftDown() &&
+-      !accelerator.IsCmdDown() && !accelerator.IsAltDown() &&
+-      accelerator.key_code() >= ui::VKEY_1 &&
+-      accelerator.key_code() <= ui::VKEY_9;
+-  if (is_ahoi_indexed_workspace_shortcut && vertical_tab_strip_region_view_ &&
+-      ahoi::sidebar::ActivateBrowserWorkspaceAtIndex(
+-          vertical_tab_strip_region_view_->ahoi_sidebar_tree_view(),
+-          static_cast<size_t>(accelerator.key_code() - ui::VKEY_1))) {
+-    return true;
+-  }
+-  const bool is_ahoi_sidebar_presentation_shortcut =
+-      accelerator.IsCmdDown() && accelerator.IsShiftDown() &&
+-      !accelerator.IsCtrlDown() && !accelerator.IsAltDown() &&
+-      (accelerator.key_code() == ui::VKEY_S ||
+-       accelerator.key_code() == ui::VKEY_H);
+-  if (is_ahoi_sidebar_presentation_shortcut &&
+-      vertical_tab_strip_region_view_ &&
+-      vertical_tab_strip_region_view_->ahoi_sidebar_tree_view()) {
+-    const bool handled =
+-        accelerator.key_code() == ui::VKEY_S
+-            ? ahoi::sidebar::ToggleBrowserSidebarFloating(
+-                  vertical_tab_strip_region_view_->ahoi_sidebar_tree_view())
+-            : ahoi::sidebar::ToggleBrowserSidebarVisibility(
+-                  vertical_tab_strip_region_view_->ahoi_sidebar_tree_view());
+-    if (handled) {
+-      return true;
+-    }
+-  }
+   const bool is_ahoi_sidebar_undo =
+       accelerator.IsCmdDown() && !accelerator.IsCtrlDown() &&
+       !accelerator.IsAltDown() && !accelerator.IsShiftDown() &&
+@@ -6235,13 +6191,53 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+       browser_.get(), command_id, std::move(context), accelerator.time_stamp());
+ }
+ 
+-bool BrowserView::HandleAhoiSplitAccelerator(
+-    const ui::Accelerator& accelerator) {
++bool BrowserView::HandleAhoiShortcutCommand(std::string_view command_id) {
++#if !BUILDFLAG(IS_MAC)
++  return false;
++#else
++  namespace shortcuts = ahoi::shortcuts;
++  if (command_id.starts_with("split.")) {
++    return HandleAhoiSplitCommand(command_id);
++  }
++  if (command_id == shortcuts::kSwitchToLastUsedTab) {
++    ahoi::SessionBridge* bridge =
++        ahoi::SessionBridgeFactory::GetForProfile(browser_->GetProfile());
++    return bridge && bridge->ActivateLastUsedTab(browser_.get());
++  }
++  auto* tree = vertical_tab_strip_region_view_
++                   ? vertical_tab_strip_region_view_->ahoi_sidebar_tree_view()
++                   : nullptr;
++  if (!tree) {
++    return false;
++  }
++  if (command_id == shortcuts::kSidebarDiscovery) {
++    return ahoi::sidebar::ToggleBrowserSidebarDiscovery(tree);
++  }
++  if (command_id == shortcuts::kPreviousWorkspace ||
++      command_id == shortcuts::kNextWorkspace) {
++    return ahoi::sidebar::ActivateRelativeBrowserWorkspace(
++        tree, command_id == shortcuts::kNextWorkspace ? 1 : -1);
++  }
++  if (const std::optional<size_t> index = shortcuts::IndexedCommandIndex(
++          command_id, shortcuts::kWorkspacePrefix)) {
++    return ahoi::sidebar::ActivateBrowserWorkspaceAtIndex(tree, *index);
++  }
++  if (command_id == shortcuts::kToggleSidebarFloating) {
++    return ahoi::sidebar::ToggleBrowserSidebarFloating(tree);
++  }
++  if (command_id == shortcuts::kToggleSidebarVisibility) {
++    return ahoi::sidebar::ToggleBrowserSidebarVisibility(tree);
++  }
++  return false;
++#endif
++}
++
++bool BrowserView::HandleAhoiSplitCommand(std::string_view command_id) {
+ #if !BUILDFLAG(IS_MAC)
+   return false;
+ #else
+-  if (!accelerator.IsCmdDown() || !accelerator.IsCtrlDown() ||
+-      accelerator.IsAltDown() || !browser_ || !multi_contents_view_) {
++  namespace shortcuts = ahoi::shortcuts;
++  if (!browser_ || !multi_contents_view_) {
+     return false;
+   }
+ 
+@@ -6279,16 +6275,17 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+     return true;
+   };
+ 
+-  if (!accelerator.IsShiftDown() && accelerator.key_code() >= ui::VKEY_1 &&
+-      accelerator.key_code() <= ui::VKEY_4) {
+-    const auto pane_index = ahoi::split_drop::ResolveKeyboardPane(
+-        static_cast<size_t>(accelerator.key_code() - ui::VKEY_0), panes.size());
++  if (const std::optional<size_t> pane = shortcuts::IndexedCommandIndex(
++          command_id, shortcuts::kSplitPanePrefix)) {
++    const auto pane_index =
++        ahoi::split_drop::ResolveKeyboardPane(*pane + 1, panes.size());
+     return pane_index.has_value() && focus_pane(*pane_index);
+   }
+ 
+-  if (accelerator.IsShiftDown() && (accelerator.key_code() == ui::VKEY_LEFT ||
+-                                    accelerator.key_code() == ui::VKEY_RIGHT)) {
+-    const int direction = accelerator.key_code() == ui::VKEY_RIGHT ? 1 : -1;
++  if (command_id == shortcuts::kSplitMovePaneLeft ||
++      command_id == shortcuts::kSplitMovePaneRight) {
++    const int direction =
++        command_id == shortcuts::kSplitMovePaneRight ? 1 : -1;
+     const auto target_index = ahoi::split_drop::ResolveReorderTarget(
+         active_index, panes.size(), direction);
+     if (!target_index.has_value()) {
+@@ -6297,7 +6294,7 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+     return model->ReorderTabInSplit(active_tab, panes[*target_index]);
+   }
+ 
+-  if (!accelerator.IsShiftDown() && accelerator.key_code() == ui::VKEY_L) {
++  if (command_id == shortcuts::kSplitCycleLayout) {
+     const split_tabs::SplitTabVisualData next =
+         ahoi::split_drop::NextKeyboardLayout(*split_data->visual_data(),
+                                              panes.size());
+@@ -6306,21 +6303,20 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+     return true;
+   }
+ 
+-  if (!accelerator.IsShiftDown() &&
+-      (accelerator.key_code() == ui::VKEY_LEFT ||
+-       accelerator.key_code() == ui::VKEY_RIGHT)) {
+-    const int direction = accelerator.key_code() == ui::VKEY_RIGHT ? 1 : -1;
++  if (command_id == shortcuts::kSplitShrink ||
++      command_id == shortcuts::kSplitGrow) {
++    const int direction = command_id == shortcuts::kSplitGrow ? 1 : -1;
+     const double ratio = ahoi::split_drop::AdjustKeyboardSplitRatio(
+         split_data->visual_data()->split_ratio(), direction);
+     model->UpdateSplitRatio(split_id, ratio);
+     return true;
+   }
+ 
+-  if (!accelerator.IsShiftDown() && accelerator.key_code() == ui::VKEY_0) {
++  if (command_id == shortcuts::kSplitRemove) {
+     model->RemoveSplit(split_id);
+     return true;
+   }
+-  if (!accelerator.IsShiftDown() && accelerator.key_code() == ui::VKEY_W) {
++  if (command_id == shortcuts::kSplitClosePane) {
+     active_tab->Close();
+     return true;
+   }
+@@ -6865,50 +6861,26 @@ void BrowserView::LoadAccelerators() {
+         ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN),
+         kAhoiFallthroughPriority, this);
+   }
+-  focus_manager->RegisterAccelerator(
+-      ui::Accelerator(ui::VKEY_LEFT, ui::EF_COMMAND_DOWN | ui::EF_ALT_DOWN),
+-      kAhoiFallthroughPriority, this);
+-  focus_manager->RegisterAccelerator(
+-      ui::Accelerator(ui::VKEY_RIGHT, ui::EF_COMMAND_DOWN | ui::EF_ALT_DOWN),
+-      kAhoiFallthroughPriority, this);
+-  focus_manager->RegisterAccelerator(
+-      ui::Accelerator(ui::VKEY_S, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN),
+-      kAhoiFallthroughPriority, this);
+-  focus_manager->RegisterAccelerator(
+-      ui::Accelerator(ui::VKEY_H, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN),
+-      kAhoiFallthroughPriority, this);
+-  focus_manager->RegisterAccelerator(
+-      ui::Accelerator(ui::VKEY_F, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN),
+-      kAhoiFallthroughPriority, this);
+-  for (int key = ui::VKEY_1; key <= ui::VKEY_9; ++key) {
+-    focus_manager->RegisterAccelerator(
+-        ui::Accelerator(static_cast<ui::KeyboardCode>(key),
+-                        ui::EF_CONTROL_DOWN),
+-        kAhoiFallthroughPriority, this);
+-  }
+-  for (int key = ui::VKEY_1; key <= ui::VKEY_4; ++key) {
+-    focus_manager->RegisterAccelerator(
+-        ui::Accelerator(static_cast<ui::KeyboardCode>(key),
+-                        ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN),
+-        kAhoiFallthroughPriority, this);
+-  }
+-  for (int key : {ui::VKEY_LEFT, ui::VKEY_RIGHT}) {
+-    focus_manager->RegisterAccelerator(
+-        ui::Accelerator(static_cast<ui::KeyboardCode>(key),
+-                        ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN),
+-        kAhoiFallthroughPriority, this);
+-    focus_manager->RegisterAccelerator(
+-        ui::Accelerator(
+-            static_cast<ui::KeyboardCode>(key),
+-            ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN | ui::EF_SHIFT_DOWN),
+-        kAhoiFallthroughPriority, this);
+-  }
+-  for (int key : {ui::VKEY_L, ui::VKEY_0, ui::VKEY_W}) {
+-    focus_manager->RegisterAccelerator(
+-        ui::Accelerator(static_cast<ui::KeyboardCode>(key),
+-                        ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN),
+-        kAhoiFallthroughPriority, this);
+-  }
++  // Every rebindable Ahoi command comes from the shared catalog and follows
++  // the user's bindings. A key Chromium's own table already registers for
++  // this view is not registered a second time.
++  ahoi_shortcuts_ = std::make_unique<ahoi::shortcuts::ShortcutRegistration>(
++      browser_->GetProfile()->GetPrefs(),
++      base::BindRepeating(
++          [](BrowserView* view, const ui::Accelerator& accelerator,
++             bool register_it) {
++            views::FocusManager* manager = view->GetFocusManager();
++            if (!manager || view->accelerator_table_.contains(accelerator)) {
++              return;
++            }
++            if (register_it) {
++              manager->RegisterAccelerator(
++                  accelerator, ui::AcceleratorManager::kNormalPriority, view);
++            } else {
++              manager->UnregisterAccelerator(accelerator, view);
++            }
++          },
++          base::Unretained(this)));
+ #endif
+ 
+   // Register the Esc accelerators (both press and release) to ensure they are

@@ -1175,6 +1175,31 @@ as a second active patch stack.
   Context depends on 0001's `app_controller_mac.mm` include and
   `chrome/browser/BUILD.gn` hunk.
 
+## `0058-ahoi-keyboard-shortcut-catalog.patch`
+
+- **Owner:** Desktop. `BrowserView::LoadAccelerators` registers every
+  rebindable Ahoi command through `ahoi::shortcuts::ShortcutRegistration`
+  (overlay `ahoi/browser/navigation/keyboard_shortcut_registration`) instead
+  of the fixed key list from 0001; `AcceleratorPressed` resolves a key to its
+  catalog command first and runs it by id (`HandleAhoiShortcutCommand`, and
+  `HandleAhoiSplitCommand` replacing the key-based split handler). Quick
+  Window, sidebar Undo, the command bar and Save keep their 0001 handling;
+  they are listed in the catalog but not rebindable yet.
+- **Safety:** defaults are the keys 0001 registered, plus Control+` for the
+  new last-used-tab command (`SessionBridge::ActivateLastUsedTab`, active
+  Workspace of the window only). A key Chromium's own accelerator table
+  already registers for the view is never registered or unregistered by the
+  catalog, so rebinding an Ahoi command hands such a key back to Chromium.
+  Bindings are device-local profile prefs; conflicting changes are refused
+  in the model, never overwritten.
+- **Tests:** `ahoi_navigation_unittests` (`KeyboardShortcutsTest.*`,
+  `ShortcutRegistrationTest.*`, `TabMruTest.*`); guarded build, then the
+  WORKFLOW-03 visible journey (defaults, rebind, conflict, reset, last-used
+  tab versus Control+Tab) on the exact candidate.
+- **Rebase/removal:** medium; it rewrites the Ahoi blocks 0001 adds to
+  `LoadAccelerators`, `AcceleratorPressed` and the split handler, so its
+  context follows 0001 and 0026's fallthrough priority.
+
 ## Overlay-owned M152 compile corrections
 
 The following follow-up fixes intentionally live in `overlay/chromium/src`

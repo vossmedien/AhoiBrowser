@@ -9,14 +9,12 @@ source_set("navigation_preferences") {
     "navigation_input_prefs.h",
   ]
   public_deps = [
+    ":keyboard_shortcuts",
     ":navigation",
     "//components/prefs",
     "//components/sync_preferences",
   ]
-  deps = [
-    ":keyboard_shortcuts",
-    ":link_routing",
-  ]
+  deps = [ ":link_routing" ]
 }
 
 # One catalog of Ahoi keyboard commands, their user bindings and the
