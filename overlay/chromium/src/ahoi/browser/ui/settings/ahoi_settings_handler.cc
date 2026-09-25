@@ -188,6 +188,19 @@ void AhoiSettingsHandler::RegisterMessages() {
       "ahoiCommitPortableImport",
       base::BindRepeating(&AhoiSettingsHandler::HandleCommitPortableImport,
                           base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiGetLinkRouting",
+      base::BindRepeating(&AhoiSettingsHandler::HandleGetLinkRouting,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiLinkRoutingAction",
+      base::BindRepeating(&AhoiSettingsHandler::HandleLinkRoutingAction,
+                          base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiResolveLinkRoutingExample",
+      base::BindRepeating(
+          &AhoiSettingsHandler::HandleResolveLinkRoutingExample,
+          base::Unretained(this)));
 }
 
 void AhoiSettingsHandler::OnAhoiDeviceTabsChanged(

@@ -4,7 +4,8 @@
 /* #css_wrapper_metadata_start
  * #type=style-lit
  * #import=../settings_shared_lit.css.js
- * #include=settings-shared-lit
+ * #import=chrome://resources/cr_elements/md_select_lit.css.js
+ * #include=settings-shared-lit md-select-lit
  * #css_wrapper_metadata_end */
 
 cr-view-manager [hidden-by-search] {
@@ -222,4 +223,93 @@ cr-view-manager [hidden-by-search] {
   justify-content: space-between;
   min-height: 36px;
   padding-inline: 10px 4px;
+}
+
+.link-routing-card {
+  margin-inline: var(--cr-section-padding);
+  padding-block: 14px;
+}
+
+.link-routing-option {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-height: 28px;
+}
+
+.link-routing-option input[type=checkbox] {
+  accent-color: var(--cr-link-color);
+  height: 18px;
+  width: 18px;
+}
+
+.link-routing-rules {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.link-routing-rule,
+.link-routing-add,
+.link-routing-default,
+.link-routing-example {
+  border: 1px solid var(--cr-separator-color);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.link-routing-rule.winning {
+  border-color: var(--cr-link-color);
+}
+
+.link-routing-rule.disabled-rule {
+  opacity: 0.7;
+}
+
+.link-routing-add,
+.link-routing-default,
+.link-routing-example {
+  margin-top: 12px;
+}
+
+.link-routing-fields {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.link-routing-fields input[type=text] {
+  background: var(--cr-input-background-color, transparent);
+  border: 1px solid var(--cr-separator-color);
+  border-radius: 4px;
+  color: inherit;
+  font: inherit;
+  min-height: 28px;
+  padding-inline: 8px;
+}
+
+.link-routing-field {
+  display: grid;
+  gap: 4px;
+}
+
+.link-routing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.link-routing-heading {
+  font-weight: 500;
+}
+
+.link-routing-warning {
+  color: var(--cr-fallback-color-error, var(--google-red-600));
+}
+
+.link-routing-error {
+  color: var(--cr-fallback-color-error, var(--google-red-600));
+  margin-top: 10px;
 }

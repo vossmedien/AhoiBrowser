@@ -7,6 +7,11 @@ import {loadTimeData} from '../i18n_setup.js';
 import type {SettingsAhoiPageElement} from './ahoi_page.js';
 
 export function getHtml(this: SettingsAhoiPageElement) {
+  const routing = this.linkRouting_;
+  const routingLabels = routing?.labels;
+  const routingLocked = !routing?.canChange || this.linkRoutingPending_;
+  const routingError = (scope: string) =>
+      !!routing?.error && this.linkRoutingErrorRuleId_ === scope;
   // clang-format off
   return html`<!--_html_template_start_-->
 <cr-view-manager id="viewManager" class="cr-centered-card-container">
@@ -69,6 +74,292 @@ export function getHtml(this: SettingsAhoiPageElement) {
           </settings-dropdown-menu>
         </div>
       </div>
+
+      <div class="section-heading cr-row hr" ?hidden="${!routing}">
+        <div class="flex cr-padded-text">
+          <div id="ahoiLinkRoutingTitle">${routingLabels?.title || ''}</div>
+          <div class="secondary">${routingLabels?.description || ''}</div>
+        </div>
+      </div>
+      <section id="ahoiLinkRouting" class="link-routing-card"
+          aria-labelledby="ahoiLinkRoutingTitle"
+          aria-busy="${this.linkRoutingPending_}" ?hidden="${!routing}">
+        <label class="link-routing-option">
+          <input id="ahoiLinkRoutingEnabled" type="checkbox"
+              .checked="${routing?.enabled ?? false}"
+              ?disabled="${routingLocked}"
+              @change="${this.onLinkRoutingEnabledChange_}">
+          <span>${routingLabels?.enabled || ''}</span>
+        </label>
+        <div class="link-routing-heading">${routingLabels?.rules || ''}</div>
+        <div id="ahoiLinkRoutingRules" class="link-routing-rules">
+          ${routing?.rules.length ? '' : html`
+            <div class="secondary">${routingLabels?.noRules || ''}</div>`}
+          ${routing?.rules.map((rule, index) => html`
+            <div class="link-routing-rule
+                ${rule.id === this.linkRoutingExample_?.ruleId ? 'winning' : ''}
+                ${rule.enabled ? '' : 'disabled-rule'}"
+                role="group" data-rule-id="${rule.id}"
+                aria-label="${rule.host}${rule.path}">
+              <label class="link-routing-option">
+                <input type="checkbox" data-rule-id="${rule.id}"
+                    data-field="enabled" .checked="${rule.enabled}"
+                    ?disabled="${routingLocked}"
+                    @change="${this.onLinkRoutingRuleFieldChange_}">
+                <span>${routingLabels?.ruleEnabled || ''}</span>
+              </label>
+              <div class="link-routing-fields">
+                <label class="link-routing-field">
+                  <span class="secondary">${routingLabels?.host || ''}</span>
+                  <input type="text" data-rule-id="${rule.id}"
+                      data-field="host" .value="${rule.host}"
+                      spellcheck="false" autocomplete="off"
+                      ?disabled="${routingLocked}"
+                      @change="${this.onLinkRoutingRuleFieldChange_}">
+                  <span class="secondary">
+                    ${routingLabels?.hostPortHint || ''}
+                  </span>
+                </label>
+                <label class="link-routing-field">
+                  <span class="secondary">${routingLabels?.path || ''}</span>
+                  <input type="text" data-rule-id="${rule.id}"
+                      data-field="path" .value="${rule.path}"
+                      spellcheck="false" autocomplete="off"
+                      ?disabled="${routingLocked}"
+                      @change="${this.onLinkRoutingRuleFieldChange_}">
+                </label>
+              </div>
+              <label class="link-routing-option">
+                <input type="checkbox" data-rule-id="${rule.id}"
+                    data-field="includeSubdomains"
+                    .checked="${rule.includeSubdomains}"
+                    ?disabled="${routingLocked}"
+                    @change="${this.onLinkRoutingRuleFieldChange_}">
+                <span>${routingLabels?.includeSubdomains || ''}</span>
+              </label>
+              <div class="link-routing-fields">
+                <label class="link-routing-field">
+                  <span class="secondary">${routingLabels?.target || ''}</span>
+                  <select class="md-select" data-rule-id="${rule.id}"
+                      data-field="target" ?disabled="${routingLocked}"
+                      @change="${this.onLinkRoutingRuleFieldChange_}">
+                    ${rule.targetAvailable ? '' : html`
+                      <option value="${rule.target}" .selected="${true}">
+                        ${routingLabels?.unavailableTarget || ''}
+                      </option>`}
+                    ${routing?.workspaces.map(workspace => html`
+                      <option value="${workspace.id}"
+                          .selected="${workspace.id === rule.target}">
+                        ${this.linkRoutingWorkspaceLabel_(workspace)}
+                      </option>`)}
+                  </select>
+                </label>
+                <label class="link-routing-field">
+                  <span class="secondary">${routingLabels?.mode || ''}</span>
+                  <select class="md-select" data-rule-id="${rule.id}"
+                      data-field="mode" ?disabled="${routingLocked}"
+                      @change="${this.onLinkRoutingRuleFieldChange_}">
+                    <option value="normal_tab"
+                        .selected="${rule.mode === 'normal_tab'}">
+                      ${routingLabels?.normalTab || ''}
+                    </option>
+                    <option value="quick_window"
+                        .selected="${rule.mode === 'quick_window'}">
+                      ${routingLabels?.quickWindow || ''}
+                    </option>
+                  </select>
+                </label>
+              </div>
+              <div class="link-routing-warning secondary"
+                  ?hidden="${rule.targetAvailable}">
+                ${routingLabels?.rememberHint || ''}
+              </div>
+              <div class="link-routing-actions">
+                <cr-button data-rule-id="${rule.id}"
+                    ?disabled="${routingLocked || index === 0}"
+                    @click="${this.onLinkRoutingRuleMoveUp_}">
+                  ${routingLabels?.moveUp || ''}
+                </cr-button>
+                <cr-button data-rule-id="${rule.id}"
+                    ?disabled="${routingLocked ||
+                        index === (routing?.rules.length ?? 0) - 1}"
+                    @click="${this.onLinkRoutingRuleMoveDown_}">
+                  ${routingLabels?.moveDown || ''}
+                </cr-button>
+                <cr-button data-rule-id="${rule.id}"
+                    ?disabled="${routingLocked}"
+                    @click="${this.onLinkRoutingRuleDelete_}">
+                  ${routingLabels?.delete || ''}
+                </cr-button>
+              </div>
+              <div class="link-routing-error" role="alert"
+                  ?hidden="${!routingError(rule.id)}">
+                ${routing?.errorLabel || ''}
+              </div>
+            </div>`)}
+        </div>
+
+        <div id="ahoiLinkRoutingAddRule" class="link-routing-add" role="group"
+            aria-label="${routingLabels?.add || ''}">
+          <div class="link-routing-fields">
+            <label class="link-routing-field">
+              <span class="secondary">${routingLabels?.host || ''}</span>
+              <input id="ahoiLinkRoutingAddHost" type="text" data-field="host"
+                  .value="${this.linkRoutingDraft_.host}"
+                  spellcheck="false" autocomplete="off"
+                  aria-describedby="ahoiLinkRoutingAddPortHint"
+                  ?disabled="${routingLocked}"
+                  @input="${this.onLinkRoutingDraftChange_}">
+              <span id="ahoiLinkRoutingAddPortHint" class="secondary">
+                ${routingLabels?.hostPortHint || ''}
+              </span>
+            </label>
+            <label class="link-routing-field">
+              <span class="secondary">${routingLabels?.path || ''}</span>
+              <input id="ahoiLinkRoutingAddPath" type="text" data-field="path"
+                  .value="${this.linkRoutingDraft_.path}"
+                  spellcheck="false" autocomplete="off"
+                  ?disabled="${routingLocked}"
+                  @input="${this.onLinkRoutingDraftChange_}">
+            </label>
+          </div>
+          <label class="link-routing-option">
+            <input id="ahoiLinkRoutingAddSubdomains" type="checkbox"
+                data-field="includeSubdomains"
+                .checked="${this.linkRoutingDraft_.includeSubdomains}"
+                ?disabled="${routingLocked}"
+                @change="${this.onLinkRoutingDraftChange_}">
+            <span>${routingLabels?.includeSubdomains || ''}</span>
+          </label>
+          <div class="link-routing-fields">
+            <label class="link-routing-field">
+              <span class="secondary">${routingLabels?.target || ''}</span>
+              <select id="ahoiLinkRoutingAddTarget" class="md-select"
+                  data-field="target" ?disabled="${routingLocked}"
+                  @change="${this.onLinkRoutingDraftChange_}">
+                ${routing?.workspaces.map(workspace => html`
+                  <option value="${workspace.id}"
+                      .selected="${workspace.id === this.linkRoutingDraft_.target}">
+                    ${this.linkRoutingWorkspaceLabel_(workspace)}
+                  </option>`)}
+              </select>
+            </label>
+            <label class="link-routing-field">
+              <span class="secondary">${routingLabels?.mode || ''}</span>
+              <select id="ahoiLinkRoutingAddMode" class="md-select"
+                  data-field="mode" ?disabled="${routingLocked}"
+                  @change="${this.onLinkRoutingDraftChange_}">
+                <option value="normal_tab"
+                    .selected="${this.linkRoutingDraft_.mode === 'normal_tab'}">
+                  ${routingLabels?.normalTab || ''}
+                </option>
+                <option value="quick_window"
+                    .selected="${this.linkRoutingDraft_.mode === 'quick_window'}">
+                  ${routingLabels?.quickWindow || ''}
+                </option>
+              </select>
+            </label>
+          </div>
+          <div class="link-routing-actions">
+            <cr-button id="ahoiLinkRoutingAdd" class="action-button"
+                ?disabled="${routingLocked ||
+                    !this.linkRoutingDraft_.host.trim() ||
+                    !this.linkRoutingDraft_.target}"
+                @click="${this.onLinkRoutingAddClick_}">
+              ${routingLabels?.add || ''}
+            </cr-button>
+          </div>
+          <div class="link-routing-error" role="alert"
+              ?hidden="${!routingError('new')}">
+            ${routing?.errorLabel || ''}
+          </div>
+        </div>
+
+        <div id="ahoiLinkRoutingDefault" class="link-routing-default"
+            role="group" aria-label="${routingLabels?.defaultRoute || ''}">
+          <div class="link-routing-heading">
+            ${routingLabels?.defaultRoute || ''}
+          </div>
+          <div class="secondary">${routingLabels?.defaultRouteHint || ''}</div>
+          <div class="link-routing-fields">
+            <label class="link-routing-field">
+              <span class="secondary">${routingLabels?.target || ''}</span>
+              <select id="ahoiLinkRoutingDefaultTarget" class="md-select"
+                  data-field="target" ?disabled="${routingLocked}"
+                  @change="${this.onLinkRoutingDefaultChange_}">
+                <option value="last_active"
+                    .selected="${routing?.defaultRoute.target === 'last_active'}">
+                  ${routingLabels?.lastActive || ''}
+                </option>
+                ${routing?.defaultRoute.targetAvailable ? '' : html`
+                  <option value="${routing?.defaultRoute.target || ''}"
+                      .selected="${true}">
+                    ${routingLabels?.unavailableTarget || ''}
+                  </option>`}
+                ${routing?.workspaces.map(workspace => html`
+                  <option value="${workspace.id}"
+                      .selected="${workspace.id === routing?.defaultRoute.target}">
+                    ${this.linkRoutingWorkspaceLabel_(workspace)}
+                  </option>`)}
+              </select>
+            </label>
+            <label class="link-routing-field">
+              <span class="secondary">${routingLabels?.mode || ''}</span>
+              <select id="ahoiLinkRoutingDefaultMode" class="md-select"
+                  data-field="mode" ?disabled="${routingLocked}"
+                  @change="${this.onLinkRoutingDefaultChange_}">
+                <option value="normal_tab"
+                    .selected="${routing?.defaultRoute.mode === 'normal_tab'}">
+                  ${routingLabels?.normalTab || ''}
+                </option>
+                <option value="quick_window"
+                    .selected="${routing?.defaultRoute.mode === 'quick_window'}">
+                  ${routingLabels?.quickWindow || ''}
+                </option>
+              </select>
+            </label>
+          </div>
+          <div class="link-routing-error" role="alert"
+              ?hidden="${!routingError('default')}">
+            ${routing?.errorLabel || ''}
+          </div>
+        </div>
+
+        <div class="link-routing-example">
+          <label class="link-routing-field">
+            <span class="link-routing-heading">
+              ${routingLabels?.example || ''}
+            </span>
+            <input id="ahoiLinkRoutingExample" type="text"
+                .value="${this.linkRoutingExampleInput_}"
+                placeholder="${routingLabels?.examplePlaceholder || ''}"
+                spellcheck="false" autocomplete="off"
+                aria-describedby="ahoiLinkRoutingExampleResult"
+                @input="${this.onLinkRoutingExampleInput_}">
+          </label>
+          <div id="ahoiLinkRoutingExampleResult" class="secondary"
+              role="status" aria-live="polite">
+            ${this.linkRoutingExample_?.text || ''}
+          </div>
+        </div>
+
+        <div class="link-routing-actions" style="margin-top: 12px;">
+          <cr-button id="ahoiLinkRoutingReset"
+              aria-describedby="ahoiLinkRoutingResetHint"
+              ?disabled="${routingLocked}"
+              @click="${this.onLinkRoutingResetClick_}">
+            ${this.linkRoutingResetArmed_ ? routingLabels?.resetConfirm :
+                                            routingLabels?.reset}
+          </cr-button>
+        </div>
+        <div id="ahoiLinkRoutingResetHint" class="secondary">
+          ${routingLabels?.resetHint || ''}
+        </div>
+        <div id="ahoiLinkRoutingError" class="link-routing-error" role="alert"
+            ?hidden="${!routingError('')}">
+          ${routing?.errorLabel || ''}
+        </div>
+      </section>
 
       <div class="section-heading cr-row hr">
         <div class="flex cr-padded-text">

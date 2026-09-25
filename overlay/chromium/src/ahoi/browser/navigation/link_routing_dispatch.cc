@@ -9,6 +9,8 @@
 #include <utility>
 
 #include "ahoi/browser/command_bar/quick_window.h"
+#include "ahoi/browser/navigation/link_routing_editor.h"
+#include "ahoi/browser/navigation/link_routing_target_chooser.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/isolated_profile_registry.h"
@@ -240,40 +242,133 @@ void OpenInIsolatedWorkspace(const GURL& url,
                      std::optional<base::Uuid>(entry.workspace_id), fallback));
 }
 
+// Opens `url` in `target` (nullopt: the last active Workspace). A target that
+// is neither a main Workspace nor an openable fully separated Workspace falls
+// back to the last active Workspace.
+void OpenRouted(const GURL& url,
+                const std::optional<base::Uuid>& target,
+                LinkOpenMode mode,
+                Profile* main_profile,
+                const ExternalUrlFallback& fallback) {
+  if (!target) {
+    OpenLastActive(url, mode, main_profile, fallback);
+    return;
+  }
+  if (MainWorkspaceIds(main_profile).contains(*target)) {
+    OpenInMainWorkspace(url, *target, mode, main_profile, fallback);
+    return;
+  }
+  std::optional<session::IsolatedProfileEntry> entry =
+      session::FindIsolatedProfileByWorkspaceId(
+          g_browser_process->local_state(), *target);
+  if (entry && entry->state != session::IsolatedProfileState::kDeleting) {
+    OpenInIsolatedWorkspace(url, *entry, mode, main_profile, fallback);
+    return;
+  }
+  OpenLastActive(url, mode, main_profile, fallback);
+}
+
+// Normal Workspaces of the main Profile, then the openable fully separated
+// Workspaces. Only logical Workspace ids leave this function.
+std::vector<LinkRoutingTargetOption> TargetOptions(Profile* main_profile) {
+  std::vector<LinkRoutingTargetOption> options;
+  if (WorkspaceService* service =
+          WorkspaceServiceFactory::GetForProfile(main_profile)) {
+    for (const tab_tree::Workspace& workspace : service->ordered_workspaces()) {
+      options.push_back({.workspace_id = workspace.id, .name = workspace.name});
+    }
+  }
+  for (const session::IsolatedProfileEntry& entry :
+       session::GetOpenableIsolatedWorkspaces()) {
+    options.push_back({.workspace_id = entry.workspace_id,
+                       .name = entry.name,
+                       .separated = true});
+  }
+  return options;
+}
+
+// The user's explicit answer to the target chooser. Only a checked
+// "Für diese Website merken" writes a rule; nothing is learned implicitly.
+void OnTargetChosen(GURL url,
+                    LinkOpenMode mode,
+                    ExternalUrlFallback fallback,
+                    std::optional<LinkRoutingTargetChoice> choice) {
+  if (!choice) {
+    LOG(WARNING) << "Link routing target choice was cancelled; the link is "
+                    "not opened.";
+    return;
+  }
+  Profile* main_profile = session::GetLoadedMainProfile();
+  if (!main_profile) {
+    fallback.Run({std::move(url)});
+    return;
+  }
+  if (choice->remember) {
+    PrefService* prefs = main_profile->GetPrefs();
+    RoutingSettings settings = ReadRoutingSettings(*prefs);
+    if (!RememberSiteChoice(settings, url, choice->workspace_id, mode,
+                            base::Uuid::GenerateRandomV4()) ||
+        !WriteRoutingSettings(prefs, settings)) {
+      LOG(WARNING) << "Link routing could not remember the chosen Workspace "
+                      "for this website.";
+    }
+  }
+  OpenRouted(url, choice->workspace_id, mode, main_profile, fallback);
+}
+
+// Asks for a new target over `window` because the winning explicit target no
+// longer exists. Without a chooser the last active Workspace receives the link.
+void ShowTargetChooser(GURL url,
+                       LinkOpenMode mode,
+                       ExternalUrlFallback fallback,
+                       BrowserWindowInterface* window) {
+  Profile* main_profile = session::GetLoadedMainProfile();
+  if (!main_profile) {
+    fallback.Run({std::move(url)});
+    return;
+  }
+  gfx::NativeWindow parent;
+  if (window && !window->IsDeleteScheduled() && window->GetWindow()) {
+    window->GetWindow()->Show();
+    window->GetWindow()->Activate();
+    parent = window->GetWindow()->GetNativeWindow();
+  }
+  if (!ShowLinkRoutingTargetChooser(
+          parent, url, TargetOptions(main_profile),
+          base::BindOnce(&OnTargetChosen, url, mode, fallback))) {
+    LOG(WARNING) << "Link routing target Workspace is no longer available and "
+                    "no chooser could be shown; using the last active "
+                    "Workspace.";
+    OpenLastActive(url, mode, main_profile, fallback);
+  }
+}
+
 void Dispatch(Profile* main_profile,
               const RoutingSettings& settings,
               const std::vector<GURL>& urls,
               const ExternalUrlFallback& fallback) {
-  PrefService* local_state = g_browser_process->local_state();
   std::set<base::Uuid> available = MainWorkspaceIds(main_profile);
-  const std::set<base::Uuid> main_ids = available;
   for (const session::IsolatedProfileEntry& entry :
-       session::GetIsolatedProfiles(local_state)) {
-    if (entry.state != session::IsolatedProfileState::kDeleting) {
-      available.insert(entry.workspace_id);
-    }
+       session::GetOpenableIsolatedWorkspaces()) {
+    available.insert(entry.workspace_id);
   }
 
   for (const GURL& url : urls) {
     const RouteResult route = ResolveRoute(settings, url, available);
     if (route.disposition == RouteDisposition::kNeedsTargetChoice) {
-      // TODO(ahoi): offer the target chooser; until then the last active
-      // Workspace receives the link.
-      LOG(WARNING) << "Link routing target Workspace is no longer available; "
-                      "using the last active Workspace.";
+      // Verständliche Zielauswahl: the explicit target is gone, so the user
+      // picks a Workspace (optionally remembered for this website).
+      if (BrowserWindowInterface* window = FindLastActiveWindow(main_profile)) {
+        ShowTargetChooser(url, route.mode, fallback, window);
+      } else {
+        session::PresentProfileWindow(
+            main_profile, nullptr,
+            base::BindOnce(&ShowTargetChooser, url, route.mode, fallback));
+      }
+      continue;
     }
-    if (!route.target_workspace_id) {
-      OpenLastActive(url, route.mode, main_profile, fallback);
-    } else if (main_ids.contains(*route.target_workspace_id)) {
-      OpenInMainWorkspace(url, *route.target_workspace_id, route.mode,
-                          main_profile, fallback);
-    } else if (std::optional<session::IsolatedProfileEntry> entry =
-                   session::FindIsolatedProfileByWorkspaceId(
-                       local_state, *route.target_workspace_id)) {
-      OpenInIsolatedWorkspace(url, *entry, route.mode, main_profile, fallback);
-    } else {
-      OpenLastActive(url, route.mode, main_profile, fallback);
-    }
+    OpenRouted(url, route.target_workspace_id, route.mode, main_profile,
+               fallback);
   }
 }
 

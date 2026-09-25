@@ -25,7 +25,10 @@ using ExternalUrlFallback =
 // before a new foreground tab opens there, so the tab's website session is
 // fixed by the Workspace; a fully separated Workspace's Profile window is
 // presented first. Quick Window mode opens an ephemeral popup of the target
-// Profile. Never opens incognito.
+// Profile. Never opens incognito. When the winning explicit target no longer
+// exists, a window-modal chooser (link_routing_target_chooser.h) asks for a
+// Workspace; only its checked "Für diese Website merken" writes an exact-host
+// rule (RememberSiteChoice), and cancelling does not open the link.
 //
 // Returns false, without calling `fallback`, when nothing was taken over:
 // no routable URL, no Profile manager, or routing is disabled in the already

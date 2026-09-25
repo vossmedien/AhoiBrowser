@@ -14,11 +14,13 @@
 #include "ahoi/browser/session/portable_workspace_structure.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
+#include "ahoi/browser/ui/settings/link_routing_settings_model.h"
 #include "base/callback_list.h"
 #include "base/files/file_path.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/values.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/web_ui_message_handler.h"
 #include "ui/shell_dialogs/select_file_dialog.h"
 
@@ -86,6 +88,17 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   void OnPortableImportCommitted(base::Value callback_id,
                                  SessionBridge::PortableImportResult result);
 
+  // Workspace routing of external links (ahoi_settings_link_routing.cc). The
+  // rules live in the main Profile's `ahoi.navigation.link_routing` pref.
+  Profile* LinkRoutingProfile() const;
+  std::vector<LinkRoutingWorkspace> LinkRoutingWorkspaces() const;
+  base::DictValue BuildLinkRoutingStatus(std::string_view action,
+                                         std::string_view error) const;
+  void PushLinkRoutingStatus();
+  void HandleGetLinkRouting(const base::ListValue& args);
+  void HandleLinkRoutingAction(const base::ListValue& args);
+  void HandleResolveLinkRoutingExample(const base::ListValue& args);
+
   enum class PortableDialogPurpose { kNone, kExportSave, kImportOpen };
 
   raw_ptr<Profile> profile_ = nullptr;
@@ -102,6 +115,9 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   std::string portable_import_token_;
   std::optional<session::PortableWorkspaceStructure> portable_import_structure_;
   std::shared_ptr<std::atomic<bool>> portable_import_lease_;
+  // Observes the routing pref when this page's Profile is the main Profile,
+  // so a "Für diese Website merken" choice appears without a reload.
+  PrefChangeRegistrar link_routing_pref_registrar_;
   base::WeakPtrFactory<AhoiSettingsHandler> weak_factory_{this};
 };
 

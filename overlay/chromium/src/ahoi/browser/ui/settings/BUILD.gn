@@ -3,14 +3,32 @@
 
 import("//testing/test.gni")
 
+# Pure WebUI model of the external-link routing editor.
+source_set("link_routing_settings_model") {
+  sources = [
+    "link_routing_settings_model.cc",
+    "link_routing_settings_model.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/navigation:link_routing",
+    "//base",
+  ]
+  deps = [
+    "//base:i18n",
+    "//url",
+  ]
+}
+
 if (is_mac) {
   source_set("settings_handler") {
     sources = [
       "ahoi_settings_handler.cc",
       "ahoi_settings_handler.h",
+      "ahoi_settings_link_routing.cc",
       "ahoi_settings_portability.cc",
     ]
     public_deps = [
+      ":link_routing_settings_model",
       "//ahoi/browser/session:session_bridge_api",
       "//ahoi/browser/session:workspace_portability",
       "//ahoi/browser/sync:profile_sync_service",
@@ -18,8 +36,14 @@ if (is_mac) {
       "//base",
       "//chrome/browser/profiles:profile",
       "//chrome/browser/ui/select_file_policy",
+      "//components/prefs",
       "//content/public/browser",
       "//ui/shell_dialogs",
+    ]
+    deps = [
+      "//ahoi/browser/navigation",
+      "//ahoi/browser/navigation:link_routing",
+      "//ahoi/browser/session:isolated_profiles",
     ]
   }
 }
@@ -42,9 +66,13 @@ if (!is_android) {
   }
 
   test("ahoi_settings_private_unittests") {
-    sources = [ "settings_private_prefs_unittest.cc" ]
+    sources = [
+      "link_routing_settings_model_unittest.cc",
+      "settings_private_prefs_unittest.cc",
+    ]
 
     deps = [
+      ":link_routing_settings_model",
       "//ahoi/browser/developer_toolkit:developer_toolkit_preferences",
       "//ahoi/browser/session:session_preferences",
       "//ahoi/browser/sync:profile_sync_preferences",
