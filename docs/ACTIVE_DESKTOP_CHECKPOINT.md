@@ -17,6 +17,7 @@ removed on 25 September 2026: Xcode 27 is now the only toolchain (handoff 022).
 | Formal reviews | Named reviewers / external security and product reviews | 20–21 |
 | Third-party accounts | Credentials for password-manager extensions (1Password, Bitwarden) if a real vault must be unlocked | 8 password-manager journey |
 | macOS Screen Recording permission | Grant "Bildschirmaufnahme" to the agent host app (Terminal Cockpit) so `screencapture` can record desktop E2E images; until then agents use Accessibility trees and Chromium DevTools state as visible-state evidence | 5–7, 11 image evidence (not the behavior itself) |
+| Free disk space | At least 64 GB free on the data volume for any Chromium build (the guardrail refuses below that), better 130 GB for the two release builds. On 25 September 23:55 only 56 GB were free after the agent removed 75 of its own old test profiles; the rest of the volume is other projects' data (TerminalCockpit, FillIt, Mind-Body-Compass scratch, `/private/tmp`). | Build 33 (034, 036, 040, 052 and later), H3 release baselines (18), lean measurement (24) |
 | Publication / release | Any App Store, TestFlight, website, update-feed or GitHub release publication | 15, 23–24 |
 
 ## Parallel lane `crest-hardening` — 25 September 2026
