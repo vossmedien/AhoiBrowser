@@ -462,7 +462,11 @@ void SessionBridge::OnTabStripModelChanged(
     return;
   }
   if (workspace_structure_controller_) {
-    workspace_structure_controller_->OnNativeChanged();
+    if (session::TabStripChangeInvalidatesStructure(change.type())) {
+      workspace_structure_controller_->OnNativeChanged();
+    } else {
+      workspace_structure_controller_->OnNativeMetadataChanged();
+    }
   }
 
   switch (change.type()) {
@@ -545,7 +549,11 @@ void SessionBridge::OnActiveWorkspaceChanged(const base::Uuid& window_id,
 void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (workspace_structure_controller_ && !applying_synced_tree_snapshot_) {
-    workspace_structure_controller_->OnNativeChanged();
+    if (session::TreeChangeInvalidatesStructure(change.kind)) {
+      workspace_structure_controller_->OnNativeChanged();
+    } else {
+      workspace_structure_controller_->OnNativeMetadataChanged();
+    }
   }
   bool runtime_presentation_changed = false;
   for (const base::Uuid& node_id : change.node_ids) {

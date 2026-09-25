@@ -6,14 +6,17 @@
 #include <atomic>
 #include <memory>
 #include <optional>
+#include <set>
 
 #include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/workspace_structure_state.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
+#include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/memory/raw_ptr.h"
 #include "base/timer/timer.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
+#include "components/tabs/public/tab_interface.h"
 
 class Profile;
 class BrowserWindowInterface;
@@ -45,6 +48,16 @@ SplitCaptureAdoption ClassifySplitCapture(
     const sync::SharedSplitMetadata& current,
     const base::Uuid& record_workspace_id);
 
+// Whether an observed native event renews the structure authority epoch and
+// so cancels an in-flight structure commit (handoff 011 S3). Only changes of
+// tab-strip structure, tree structure, split membership or archive membership
+// do. Selection, title/URL/presentation metadata and a resource status that
+// does not newly protect a page only reschedule a refresh.
+bool TabStripChangeInvalidatesStructure(TabStripModelChange::Type type);
+bool TreeChangeInvalidatesStructure(tab_tree::MutationKind kind);
+bool ResourceChangeInvalidatesStructure(bool was_protected,
+                                        bool now_protected);
+
 class WorkspaceStructureController final
     : public sync::ProfileSyncService::Observer {
  public:
@@ -52,6 +65,9 @@ class WorkspaceStructureController final
   ~WorkspaceStructureController() override;
   void Initialize();
   void OnNativeChanged();
+  // A native event that changes no structure: refresh without cancelling an
+  // in-flight structure commit (handoff 011 S3).
+  void OnNativeMetadataChanged();
   void OnSplitChanged(const SplitTabChange& change);
   void Archive(const std::vector<base::Uuid>& nodes,
                sync::SharedArchiveReason reason,
@@ -70,6 +86,7 @@ class WorkspaceStructureController final
   friend class ::ahoi::SessionBridge;
   void Schedule();
   void Refresh();
+  void OnResourceStatusChanged(tabs::TabInterface* tab);
   void CaptureSplits();
   void MaterializeSplits(sync::SyncAuthorization authority);
   void ScanArchiveDeadline();
@@ -132,6 +149,9 @@ class WorkspaceStructureController final
   std::set<base::Uuid> local_changes_;
   std::set<std::string> changed_native_splits_;
   std::set<std::string> archive_closing_splits_;
+  // Tabs last seen as not archivable. Only the transition into protection
+  // cancels a pending archive or remote dissolve (handoff 011 S3).
+  std::set<tabs::TabHandle> protected_tabs_;
   std::set<base::Uuid> blocked_publications_;
   std::unique_ptr<GroupPageClose> archive_close_;
   base::WeakPtrFactory<WorkspaceStructureController> weak_factory_{this};

@@ -31,6 +31,21 @@ sync::SharedSplitMetadata Metadata(const sync::SplitGroupRecord& r) {
 }
 }  // namespace
 
+bool TabStripChangeInvalidatesStructure(TabStripModelChange::Type type) {
+  return type != TabStripModelChange::kSelectionOnly;
+}
+
+bool TreeChangeInvalidatesStructure(tab_tree::MutationKind kind) {
+  // kRenamed covers titles, URLs, homes and folder presentation; none of them
+  // is part of a split or archive record's membership.
+  return kind != tab_tree::MutationKind::kRenamed;
+}
+
+bool ResourceChangeInvalidatesStructure(bool was_protected,
+                                        bool now_protected) {
+  return now_protected && !was_protected;
+}
+
 SplitCaptureAdoption ClassifySplitCapture(
     bool native_change,
     bool record_tombstone,
@@ -93,9 +108,10 @@ void WorkspaceStructureController::Initialize() {
   resource_subscription_ =
       resources_->AddStatusChangedCallback(base::BindRepeating(
           [](base::WeakPtr<WorkspaceStructureController> owner,
-             tabs::TabInterface*, const resource_policy::TabResourceStatus&) {
+             tabs::TabInterface* tab,
+             const resource_policy::TabResourceStatus&) {
             if (owner)
-              owner->OnNativeChanged();
+              owner->OnResourceStatusChanged(tab);
           },
           weak_factory_.GetWeakPtr()));
   restored_subscription_ =
@@ -139,6 +155,33 @@ void WorkspaceStructureController::OnNativeChanged() {
   }
   scope_->epoch.fetch_add(1);
   Schedule();
+}
+
+void WorkspaceStructureController::OnNativeMetadataChanged() {
+  if (scope_->applying) {
+    return;
+  }
+  Schedule();
+}
+
+void WorkspaceStructureController::OnResourceStatusChanged(
+    tabs::TabInterface* tab) {
+  if (!tab || !resources_) {
+    OnNativeMetadataChanged();
+    return;
+  }
+  const bool now_protected = !resources_->CanArchiveTab(tab);
+  const bool was_protected = protected_tabs_.contains(tab->GetHandle());
+  if (now_protected) {
+    protected_tabs_.insert(tab->GetHandle());
+  } else {
+    protected_tabs_.erase(tab->GetHandle());
+  }
+  if (ResourceChangeInvalidatesStructure(was_protected, now_protected)) {
+    OnNativeChanged();
+  } else {
+    OnNativeMetadataChanged();
+  }
 }
 
 void WorkspaceStructureController::OnSplitChanged(
@@ -209,6 +252,8 @@ bool WorkspaceStructureController::Stamp(sync::SyncRecord* record,
 
 void WorkspaceStructureController::Refresh() {
   scheduled_ = false;
+  std::erase_if(protected_tabs_,
+                [](const tabs::TabHandle& handle) { return !handle.Get(); });
   if (!observing_sync_ || !bridge_lifetime_ || !bridge_->is_ready() ||
       persisting_ || SessionRestore::IsRestoring(profile_)) {
     return;
