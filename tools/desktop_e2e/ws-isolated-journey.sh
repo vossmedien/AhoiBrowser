@@ -103,7 +103,10 @@ if waitax "Getrennt, Workspace wechseln" 5; then record reachableAfterRelaunch t
   menu Inbox "Getrennt" && $AX press $PID "Getrennt" >> "$OUT/steps.txt"
   waitax "Getrennt, Workspace wechseln" 15 && record reachableAfterRelaunch true || record reachableAfterRelaunch false
 fi
-waiturl "login.html" 10 && [ "$(cookie_of login.html)" = "acct=getrennt" ] && record loginKeptAfterRelaunch true || record loginKeptAfterRelaunch false
+# The login is a persistent cookie of the separated Profile; tab restore of
+# that Profile is a separate question, so check the cookie on a fresh page.
+open_url "$SITE/check.html?relaunch"
+[ "$(cookie_of 'check.html?relaunch')" = "acct=getrennt" ] && record loginKeptAfterRelaunch true || record loginKeptAfterRelaunch false
 # WS-ISO-16: delete from the separated window; the main window comes back.
 menu Getrennt "Workspace löschen" || fail_setup "delete item missing in separated window"
 $AX press $PID "$($AX dump $PID 14 | grep -o 'Workspace löschen[^|]*' | head -1 | sed 's/ *$//')" >> "$OUT/steps.txt"
