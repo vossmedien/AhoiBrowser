@@ -1,6 +1,6 @@
 # 036 – S3: only structure changes cancel a structure commit
 
-Status: integrated aa1058f (BUILD.gn context refreshed; unit tests on build 33; visible stress reproduction not run, audio-cancel case by journey pending)
+Status: integrated aa1058f (BUILD.gn context refreshed; unit tests green on build 33 (880217d); visible stress reproduction not run, audio-cancel case by journey pending)
 Owner lane: desktop (reproduce, apply, build, test)
 Base: HEAD `472c4af` with 028, 030, 032 and 034 applied in that order
 (`git apply --check` passes on that stack; the `BUILD.gn` hunk needs 032).
