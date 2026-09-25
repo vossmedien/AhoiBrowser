@@ -1,0 +1,440 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/BUILD.gn b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+index e6ca206..4b5672d 100644
+--- a/overlay/chromium/src/ahoi/browser/session/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+@@ -49,6 +49,8 @@ source_set("session_preferences") {
+     "isolated_profile_registry.h",
+     "session_prefs.cc",
+     "session_prefs.h",
++    "workspace_directory_order.cc",
++    "workspace_directory_order.h",
+   ]
+   public_deps = [
+     "//base",
+@@ -242,6 +244,7 @@ source_set("unit_tests") {
+     "session_restore_integration_unittest.cc",
+     "shared_tab_target_policy_unittest.cc",
+     "startup_policy_unittest.cc",
++    "workspace_directory_order_unittest.cc",
+     "workspace_session_metadata_unittest.cc",
+     "workspace_structure_split_capture_unittest.cc",
+   ]
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc b/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc
+index 8014120..9ffc863 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc
+@@ -75,6 +75,7 @@ void OnIsolatedProfileInitialized(std::string dir,
+ void CreateIsolatedWorkspace(std::u16string name,
+                              std::u16string icon,
+                              std::optional<uint32_t> accent_argb,
++                             std::string sort_key,
+                              base::OnceCallback<void(bool)> done) {
+   ProfileManager* profile_manager = g_browser_process->profile_manager();
+   PrefService* local_state = g_browser_process->local_state();
+@@ -100,6 +101,7 @@ void CreateIsolatedWorkspace(std::u16string name,
+       .icon = std::move(icon),
+       .accent_argb = accent_argb,
+       .state = IsolatedProfileState::kCreating,
++      .sort_key = std::move(sort_key),
+   };
+   if (!AddIsolatedProfile(local_state, entry)) {
+     std::move(done).Run(false);
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.h b/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.h
+index 6df2be5..4e83d35 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.h
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.h
+@@ -23,9 +23,12 @@ namespace ahoi::session {
+ // exists, and opens its window. The Profile's SessionBridge seeds its tree
+ // with that Workspace instead of the canonical Inbox. `done` receives false
+ // when the Profile could not be created; the registry entry is removed then.
++// `sort_key` places the Workspace in the process-wide order
++// (workspace_directory_order.h); callers pass NextDirectorySortKey().
+ void CreateIsolatedWorkspace(std::u16string name,
+                              std::u16string icon,
+                              std::optional<uint32_t> accent_argb,
++                             std::string sort_key,
+                              base::OnceCallback<void(bool)> done);
+ 
+ // Deletes a fully separated Workspace together with its Profile. Every page of
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.cc b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.cc
+index 1d54626..72095af 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.cc
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.cc
+@@ -21,6 +21,7 @@ constexpr char kNameKey[] = "name";
+ constexpr char kIconKey[] = "icon";
+ constexpr char kAccentKey[] = "accent_argb";
+ constexpr char kStateKey[] = "state";
++constexpr char kSortKey[] = "sort_key";
+ 
+ // A plain directory base name: no separators, no parent references.
+ bool IsValidProfileDir(std::string_view dir) {
+@@ -54,6 +55,12 @@ std::optional<IsolatedProfileEntry> Decode(const base::Value& value) {
+   if (!entry.workspace_id.is_valid()) {
+     return std::nullopt;
+   }
++  if (const base::Value* sort_key = dict->Find(kSortKey)) {
++    if (!sort_key->is_string()) {
++      return std::nullopt;
++    }
++    entry.sort_key = sort_key->GetString();
++  }
+   if (const base::Value* accent = dict->Find(kAccentKey)) {
+     // Stored as a double because ARGB exceeds int; it must be an exact
+     // 32-bit value.
+@@ -77,6 +84,9 @@ base::DictValue Encode(const IsolatedProfileEntry& entry) {
+     dict.Set(kAccentKey, static_cast<double>(*entry.accent_argb));
+   }
+   dict.Set(kStateKey, static_cast<int>(entry.state));
++  if (!entry.sort_key.empty()) {
++    dict.Set(kSortKey, entry.sort_key);
++  }
+   return dict;
+ }
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.h b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.h
+index 6cac182..035f3ee 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.h
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry.h
+@@ -46,6 +46,10 @@ struct IsolatedProfileEntry {
+   std::u16string icon;
+   std::optional<uint32_t> accent_argb;
+   IsolatedProfileState state = IsolatedProfileState::kCreating;
++  // Position in the process-wide Workspace order, in the same key space as
++  // the main Profile's Workspace `sort_key` (workspace_directory_order.h).
++  // Empty for entries written before step 2; they follow all keyed ones.
++  std::string sort_key;
+ 
+   bool operator==(const IsolatedProfileEntry&) const = default;
+ };
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry_unittest.cc b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry_unittest.cc
+index 0613bbd..58d48f9 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_profile_registry_unittest.cc
+@@ -102,6 +102,23 @@ TEST_F(IsolatedProfileRegistryTest, SweepRemovesProfilesThatNoLongerExist) {
+   EXPECT_EQ("Profile 2", GetIsolatedProfiles(&local_state_)[0].profile_dir);
+ }
+ 
++// ADR 0011 step 2: the directory position round-trips; entries written
++// before step 2 have none.
++TEST_F(IsolatedProfileRegistryTest, RoundTripsSortKey) {
++  IsolatedProfileEntry keyed = Entry("Profile 1");
++  keyed.sort_key = "00000000@";
++  ASSERT_TRUE(AddIsolatedProfile(&local_state_, keyed));
++  ASSERT_TRUE(AddIsolatedProfile(&local_state_, Entry("Profile 2")));
++  const std::vector<IsolatedProfileEntry> entries =
++      GetIsolatedProfiles(&local_state_);
++  ASSERT_EQ(2u, entries.size());
++  EXPECT_EQ("00000000@", entries[0].sort_key);
++  EXPECT_TRUE(entries[1].sort_key.empty());
++  EXPECT_FALSE(local_state_.GetList(kIsolatedProfilesPref)[1]
++                   .GetDict()
++                   .contains("sort_key"));
++}
++
+ TEST_F(IsolatedProfileRegistryTest, SkipsMalformedStoredEntries) {
+   base::ListValue list;
+   list.Append("not a dict");
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace.cc
+index 341a6d0..6ab6e58 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace.cc
+@@ -11,6 +11,7 @@
+ #include "ahoi/browser/session/session_bridge.h"
+ #include "ahoi/browser/session/session_bridge_internal.h"
+ #include "ahoi/browser/session/session_prefs.h"
++#include "ahoi/browser/session/workspace_directory_order.h"
+ #include "base/check.h"
+ #include "base/containers/span.h"
+ #include "base/files/file_util.h"
+@@ -24,6 +25,7 @@
+ #include "base/task/thread_pool.h"
+ #include "base/time/time.h"
+ #include "base/trace_event/trace_event.h"
++#include "chrome/browser/browser_process.h"
+ #include "chrome/browser/profiles/profile.h"
+ #include "chrome/browser/ui/browser_window/public/browser_collection.h"
+ #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+@@ -126,15 +128,25 @@ std::optional<base::Uuid> SessionBridge::CreateWorkspace(
+     return std::nullopt;
+   }
+ 
++  // ADR 0011 step 2: appended after every Workspace of the process-wide
++  // order, including fully separated ones.
++  std::vector<session::DirectoryWorkspace> own;
++  for (const tab_tree::Workspace& existing :
++       workspace_service_->ordered_workspaces()) {
++    own.push_back({.workspace_id = existing.id, .sort_key = existing.sort_key});
++  }
++  const std::string sort_key =
++      session::NextDirectorySortKey(session::OrderDirectoryWorkspaces(
++          own, session::GetIsolatedProfiles(
++                   g_browser_process ? g_browser_process->local_state()
++                                     : nullptr)));
++
+   const base::Time now = base::Time::Now();
+   tab_tree::Workspace workspace{
+       .id = base::Uuid::GenerateRandomV4(),
+       .name = std::move(name),
+       .icon = std::move(icon),
+-      .sort_key =
+-          workspace_service_->ordered_workspaces().empty()
+-              ? std::string("00000000")
+-              : workspace_service_->ordered_workspaces().back().sort_key + '@',
++      .sort_key = sort_key,
+       .accent_argb = accent_argb,
+       .created_at = now,
+       .modified_at = now,
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.cc b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.cc
+new file mode 100644
+index 0000000..e8e849b
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.cc
+@@ -0,0 +1,59 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/session/workspace_directory_order.h"
++
++#include <algorithm>
++#include <cstddef>
++#include <tuple>
++
++namespace ahoi::session {
++
++std::vector<DirectoryWorkspace> OrderDirectoryWorkspaces(
++    const std::vector<DirectoryWorkspace>& main_workspaces,
++    const std::vector<IsolatedProfileEntry>& isolated_entries) {
++  struct Ranked {
++    DirectoryWorkspace workspace;
++    bool unkeyed;
++    bool isolated;
++    size_t input_index;
++  };
++  std::vector<Ranked> ranked;
++  ranked.reserve(main_workspaces.size() + isolated_entries.size());
++  for (const DirectoryWorkspace& workspace : main_workspaces) {
++    ranked.push_back({workspace, false, false, ranked.size()});
++  }
++  for (const IsolatedProfileEntry& entry : isolated_entries) {
++    if (entry.state == IsolatedProfileState::kDeleting) {
++      continue;
++    }
++    ranked.push_back({{.workspace_id = entry.workspace_id,
++                       .sort_key = entry.sort_key,
++                       .profile_dir = entry.profile_dir},
++                      entry.sort_key.empty(),
++                      true,
++                      ranked.size()});
++  }
++  std::ranges::stable_sort(ranked, [](const Ranked& a, const Ranked& b) {
++    return std::tie(a.unkeyed, a.workspace.sort_key, a.isolated,
++                    a.input_index) < std::tie(b.unkeyed, b.workspace.sort_key,
++                                              b.isolated, b.input_index);
++  });
++  std::vector<DirectoryWorkspace> result;
++  result.reserve(ranked.size());
++  for (Ranked& item : ranked) {
++    result.push_back(std::move(item.workspace));
++  }
++  return result;
++}
++
++std::string NextDirectorySortKey(
++    const std::vector<DirectoryWorkspace>& ordered) {
++  std::string greatest;
++  for (const DirectoryWorkspace& workspace : ordered) {
++    greatest = std::max(greatest, workspace.sort_key);
++  }
++  return greatest.empty() ? std::string("00000000") : greatest + '@';
++}
++
++}  // namespace ahoi::session
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.h b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.h
+new file mode 100644
+index 0000000..209b13f
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order.h
+@@ -0,0 +1,44 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#ifndef AHOI_BROWSER_SESSION_WORKSPACE_DIRECTORY_ORDER_H_
++#define AHOI_BROWSER_SESSION_WORKSPACE_DIRECTORY_ORDER_H_
++
++#include <string>
++#include <vector>
++
++#include "ahoi/browser/session/isolated_profile_registry.h"
++#include "base/uuid.h"
++
++namespace ahoi::session {
++
++// ADR 0011 step 2: one process-wide Workspace order for the switcher, the
++// command bar, link routing and Quick Window. The main Profile's Workspaces
++// keep their tree `sort_key`; a fully separated Workspace carries its key in
++// its registry entry. Both use the same key space, so one sort merges them.
++struct DirectoryWorkspace {
++  base::Uuid workspace_id;
++  std::string sort_key;
++  // Empty for a Workspace of the main Profile.
++  std::string profile_dir;
++
++  bool operator==(const DirectoryWorkspace&) const = default;
++};
++
++// Merges `main_workspaces` (in their Profile's order) with the separated
++// Workspaces of `isolated_entries`, skipping entries being deleted. Sorted by
++// `sort_key`; on equal keys main Workspaces come first, then input order.
++// Separated entries without a key (written before step 2) follow all others
++// in registry order, which is where they appeared until now.
++std::vector<DirectoryWorkspace> OrderDirectoryWorkspaces(
++    const std::vector<DirectoryWorkspace>& main_workspaces,
++    const std::vector<IsolatedProfileEntry>& isolated_entries);
++
++// Key for a Workspace appended after every Workspace in `ordered`, main or
++// separated: the greatest key plus '@', as SessionBridge::CreateWorkspace
++// always did within one Profile.
++std::string NextDirectorySortKey(const std::vector<DirectoryWorkspace>& ordered);
++
++}  // namespace ahoi::session
++
++#endif  // AHOI_BROWSER_SESSION_WORKSPACE_DIRECTORY_ORDER_H_
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_directory_order_unittest.cc b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order_unittest.cc
+new file mode 100644
+index 0000000..189dd88
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_directory_order_unittest.cc
+@@ -0,0 +1,74 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/session/workspace_directory_order.h"
++
++#include "testing/gtest/include/gtest/gtest.h"
++
++namespace ahoi::session {
++namespace {
++
++DirectoryWorkspace Main(std::string sort_key) {
++  return {.workspace_id = base::Uuid::GenerateRandomV4(),
++          .sort_key = std::move(sort_key)};
++}
++
++IsolatedProfileEntry Isolated(std::string dir, std::string sort_key) {
++  return {.profile_dir = std::move(dir),
++          .workspace_id = base::Uuid::GenerateRandomV4(),
++          .name = u"Kunde",
++          .icon = u"K",
++          .state = IsolatedProfileState::kActive,
++          .sort_key = std::move(sort_key)};
++}
++
++DirectoryWorkspace AsDirectory(const IsolatedProfileEntry& entry) {
++  return {.workspace_id = entry.workspace_id,
++          .sort_key = entry.sort_key,
++          .profile_dir = entry.profile_dir};
++}
++
++// A separated Workspace created between two main ones stays between them.
++TEST(WorkspaceDirectoryOrderTest, MergesByKeyAcrossProfiles) {
++  const DirectoryWorkspace inbox = Main("0");
++  const DirectoryWorkspace work = Main("00000000");
++  const DirectoryWorkspace later = Main("00000000@@");
++  const IsolatedProfileEntry client = Isolated("Profile 1", "00000000@");
++  EXPECT_EQ((std::vector<DirectoryWorkspace>{inbox, work, AsDirectory(client),
++                                             later}),
++            OrderDirectoryWorkspaces({inbox, work, later}, {client}));
++}
++
++TEST(WorkspaceDirectoryOrderTest, EqualKeysPutMainFirst) {
++  const DirectoryWorkspace main = Main("00000000@");
++  const IsolatedProfileEntry client = Isolated("Profile 1", "00000000@");
++  EXPECT_EQ((std::vector<DirectoryWorkspace>{main, AsDirectory(client)}),
++            OrderDirectoryWorkspaces({main}, {client}));
++}
++
++// Entries from before step 2 keep today's position after everything else,
++// in registry order; entries being deleted are not listed.
++TEST(WorkspaceDirectoryOrderTest, UnkeyedFollowAndDeletingIsSkipped) {
++  const DirectoryWorkspace main = Main("00000000");
++  const IsolatedProfileEntry old_b = Isolated("Profile 2", "");
++  const IsolatedProfileEntry old_a = Isolated("Profile 1", "");
++  IsolatedProfileEntry deleting = Isolated("Profile 3", "0");
++  deleting.state = IsolatedProfileState::kDeleting;
++  const IsolatedProfileEntry keyed = Isolated("Profile 4", "00000000@");
++  EXPECT_EQ((std::vector<DirectoryWorkspace>{main, AsDirectory(keyed),
++                                             AsDirectory(old_b),
++                                             AsDirectory(old_a)}),
++            OrderDirectoryWorkspaces({main}, {old_b, old_a, deleting, keyed}));
++}
++
++TEST(WorkspaceDirectoryOrderTest, NextKeyFollowsEveryWorkspace) {
++  EXPECT_EQ("00000000", NextDirectorySortKey({}));
++  EXPECT_EQ("00000000", NextDirectorySortKey({Main("")}));
++  const IsolatedProfileEntry client = Isolated("Profile 1", "00000000@@");
++  EXPECT_EQ("00000000@@@",
++            NextDirectorySortKey(OrderDirectoryWorkspaces(
++                {Main("0"), Main("00000000@")}, {client})));
++}
++
++}  // namespace
++}  // namespace ahoi::session
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+index b9ca2c5..ba2b94b 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+@@ -594,6 +594,7 @@ class BrowserSidebarHostView final
+   void AddWorkspaceLevelChoice(views::View* contents);
+ 
+   bool AcceptWorkspaceDialog();
++  std::string NextProcessWideWorkspaceSortKey() const;
+ 
+   bool RequestWorkspaceDialogClose();
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
+index 5d476f3..df80d5c 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
+@@ -14,6 +14,8 @@
+ #include "ahoi/browser/navigation/workspace_service.h"
+ #include "ahoi/browser/session/session_bridge.h"
+ #include "ahoi/browser/session/isolated_profile_creation.h"
++#include "ahoi/browser/session/isolated_workspace_directory.h"
++#include "ahoi/browser/session/workspace_directory_order.h"
+ #include "ahoi/browser/session/session_bridge_factory.h"
+ #include "ahoi/browser/session/session_prefs.h"
+ #include "ahoi/browser/session/workspace_service_factory.h"
+@@ -419,6 +421,25 @@ void BrowserSidebarHostView::UpdateWorkspaceColorButtons() {
+   }
+ }
+ 
++// ADR 0011 step 2: a new separated Workspace is appended after every
++// Workspace of the main Profile and every separated one. From a separated
++// window the main Profile's Workspaces are read from its loaded service.
++std::string BrowserSidebarHostView::NextProcessWideWorkspaceSortKey() const {
++  std::vector<session::DirectoryWorkspace> main_workspaces;
++  Profile* main_profile = session::GetLoadedMainProfile();
++  if (WorkspaceService* service =
++          main_profile ? WorkspaceServiceFactory::GetForProfile(main_profile)
++                       : nullptr) {
++    for (const tab_tree::Workspace& workspace :
++         service->ordered_workspaces()) {
++      main_workspaces.push_back(
++          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
++    }
++  }
++  return session::NextDirectorySortKey(session::OrderDirectoryWorkspaces(
++      main_workspaces, session::GetOpenableIsolatedWorkspaces()));
++}
++
+ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
+   if (pending_workspace_action_ == PendingWorkspaceAction::kDelete &&
+       session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
+@@ -465,6 +486,7 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
+     // window's Workspaces stay unchanged.
+     session::CreateIsolatedWorkspace(
+         std::move(name), std::move(icon), pending_workspace_accent_argb_,
++        NextProcessWideWorkspaceSortKey(),
+         base::BindOnce(
+             [](base::WeakPtr<BrowserSidebarHostView> view, bool created) {
+               if (view && !created) {
