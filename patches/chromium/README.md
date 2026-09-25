@@ -77,6 +77,17 @@ callbacks now live in BrowserWebContentsDelegate, native window creation uses
 BrowserWindowInterface/CreateBrowserWindow, and the removed PrivacySandbox
 delegate is replaced by M153's native denial behavior rather than a shim.
 
+## `0043-ahoi-reader-and-link-copy-strings.patch`
+
+- **Owner:** Desktop. Adds four strings to `generated_resources.grd` with
+  German and British English translations: copy the active page's link, copy
+  it as Markdown, open the active page in reading mode, and the disabled
+  label "Reading mode is unavailable for this page". They label the sidebar
+  and command-bar entries of `ahoi/browser/ui/sidebar/sidebar_link_copy`.
+- **Safety:** strings only; no behaviour.
+- **Tests:** the WORKFLOW-07 visible journey on the exact candidate.
+- **Rebase/removal:** low; conflicts only with neighbouring grd/xtb edits.
+
 ## `0044-ahoi-quiet-startup-and-flush-content.patch`
 
 - **Owner/pin:** Desktop UI on M153. It follows the 43 already applied patches;
@@ -307,7 +318,15 @@ as a second active patch stack.
 - **Removal/upstream plan:** remove each hunk when the equivalent deterministic
   setup exists upstream.
 
-## `0003-ahoi-upstream-page-load-tracing-test-isolation.patch`
+## Retired: `0003-ahoi-upstream-page-load-tracing-test-isolation.patch` (25 September 2026)
+
+Removed from `series`: Chromium M153 already contains the upstream fix
+(`ResetWebContentsListTrackRegistrationForTesting` in
+`content/public/browser/tracing_support.h`), and after the M153 rebase the
+patch only reformatted `tracing_support.cc`. The history below is kept for
+reference.
+
+### Former entry
 
 - **Owner:** AhoiBrowser project; narrow backport of Chromium's upstream tracing
   isolation fix.
@@ -1082,7 +1101,61 @@ as a second active patch stack.
 - **Security/rebase:** no profile or permission change; narrow Views seam,
   matching the native top-container guard. Low rebase risk.
 
-## `0049`–`0054`: M153 workspace website-session routing (development gate)
+## `0049-ahoi-workspace-website-session-routing.patch`
+
+- **Owner:** Desktop. `chrome/browser/ui/navigator/browser_navigator.cc`: a new WebContents for a Workspace with its own website session is created in that session's persistent fixed StoragePartition before its first request; an opener keeps its own SiteInstance, and a same-Profile page-initiated tab inherits the initiating SiteInstance.
+- **Safety:** Development-gated, like the whole 0049–0054 group. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0050-ahoi-workspace-website-session-restore.patch`
+
+- **Owner:** Desktop. `chrome/browser/sessions/session_restore.cc`, `chrome/browser/ui/browser_tabrestore.cc`: a restored tab reopens in its recorded website-session partition with the matching SessionStorage namespace.
+- **Safety:** A corrupt binding never falls back to the shared default jar; the tab opens in a fresh, separate partition and the error is logged. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0051-ahoi-fixed-website-session-noopener.patch`
+
+- **Owner:** Desktop. `content/browser/web_contents/web_contents_impl.cc`: a `noopener` window from a page in a non-default fixed partition stays in that partition instead of the BrowserContext default.
+- **Safety:** Script access stays suppressed; only the storage authority is kept. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0052-ahoi-website-session-restore-authority.patch`
+
+- **Owner:** Desktop. Session restore and tab restore read the binding with the Profile as authority and use the Profile's recovery binding (or a fresh context) for foreign or corrupt restored contexts.
+- **Safety:** Never the shared default jar for an unverifiable binding. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0053-ahoi-workspace-session-cookie-restore.patch`
+
+- **Owner:** Desktop. `chrome/browser/net/profile_network_context_service.cc` (+ one GN dependency on `//ahoi/browser/session:session_preferences`): Ahoi's persistent native website-session partitions (`Storage/ext/ahoi/…`) follow the regular profile's session-cookie restore policy.
+- **Safety:** Other non-default partitions (extensions, guests) are unchanged. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0054-ahoi-empty-workspace-address-context.patch`
+
+- **Owner:** Desktop. `browser_navigator.cc`: typed address-bar input in a selected Workspace without a visible tab opens a new foreground tab in that Workspace's session instead of navigating the hidden tab of another Workspace, and drops inherited opener and referrer.
+- **Safety:** Applies only to browser-initiated `CURRENT_TAB` address-bar input. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## Shared notes for 0049–0054: M153 workspace website-session routing (development gate)
 
 - **Owner:** Desktop; native Chromium M153, ordered after the fullscreen UI
   correction. `0049` selects a persistent fixed StoragePartition before a new

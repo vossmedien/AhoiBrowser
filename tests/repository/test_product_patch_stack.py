@@ -9,15 +9,16 @@ PATCH_ROOT = ROOT / "patches/chromium"
 
 INTEGRATION_PATCH = "0001-ahoi-m153-integration-seams.patch"
 DETERMINISTIC_PATCH = "0002-ahoi-deterministic-platform-tests.patch"
-TRACING_PATCH = "0003-ahoi-upstream-page-load-tracing-test-isolation.patch"
+# Retired 2026-09-25: M153 contains the upstream tracing fix, and the patch
+# had shrunk to a reformat of tracing_support.cc.
+RETIRED_TRACING_PATCH = "0003-ahoi-upstream-page-load-tracing-test-isolation.patch"
 LEAN_GUARDS_PATCH = "0004-ahoi-lean-profile-compose-guards.patch"
-# The four foundation layers still lead the series. Since the M153 rebase
+# The three foundation layers still lead the series. Since the M153 rebase
 # (29dfe7a) further ordered product layers follow them; `series` owns the
 # complete order.
 FOUNDATION_SERIES = (
     INTEGRATION_PATCH,
     DETERMINISTIC_PATCH,
-    TRACING_PATCH,
     LEAN_GUARDS_PATCH,
 )
 M153_PIN = {
@@ -39,12 +40,6 @@ M153_PIN = {
 DETERMINISTIC_PATHS = (
     "components/autofill/core/browser/metrics/autofill_metrics_test_base.cc",
     "components/input/web_input_event_builders_mac_unittest.mm",
-)
-TRACING_PATHS = (
-    "components/page_load_metrics/browser/observers/core/"
-    "uma_page_load_metrics_observer_unittest.cc",
-    "content/public/browser/tracing_support.cc",
-    "content/public/browser/tracing_support.h",
 )
 
 
@@ -111,7 +106,7 @@ class ProductPatchStackTests(unittest.TestCase):
         self.assertIn(f"Chromium Mac Stable `{M153_PIN['version']}` at", ledger)
         self.assertIn(f"`{M153_PIN['commit']}`", ledger)
 
-    def test_series_leads_with_the_four_foundation_layers(self):
+    def test_series_leads_with_the_foundation_layers(self):
         entries = series_entries()
         self.assertEqual(FOUNDATION_SERIES, entries[: len(FOUNDATION_SERIES)])
         self.assertEqual(len(entries), len(set(entries)))
@@ -182,13 +177,9 @@ class ProductPatchStackTests(unittest.TestCase):
     def test_test_only_layers_have_exact_disjoint_responsibilities(self):
         integration = set(touched_paths(patch_text(INTEGRATION_PATCH)))
         deterministic = touched_paths(patch_text(DETERMINISTIC_PATCH))
-        tracing = touched_paths(patch_text(TRACING_PATCH))
 
         self.assertEqual(DETERMINISTIC_PATHS, deterministic)
-        self.assertEqual(TRACING_PATHS, tracing)
         self.assertTrue(integration.isdisjoint(deterministic))
-        self.assertTrue(integration.isdisjoint(tracing))
-        self.assertTrue(set(deterministic).isdisjoint(tracing))
 
         deterministic_payload = patch_text(DETERMINISTIC_PATCH)
         self.assertIn(
@@ -203,16 +194,10 @@ class ProductPatchStackTests(unittest.TestCase):
             ),
         )
 
-        tracing_payload = patch_text(TRACING_PATCH)
-        self.assertIn(
-            "content::ResetWebContentsListTrackRegistrationForTesting();",
-            tracing_payload,
-        )
-        self.assertIn(
-            "GetWebContentsListTrackRegistrationStorage().reset();",
-            tracing_payload,
-        )
-        self.assertIn("perfetto::StateTrack", tracing_payload)
+    def test_retired_tracing_layer_stays_out_of_the_series(self):
+        # M153 ships ResetWebContentsListTrackRegistrationForTesting itself.
+        self.assertNotIn(RETIRED_TRACING_PATCH, series_entries())
+        self.assertFalse((PATCH_ROOT / RETIRED_TRACING_PATCH).exists())
 
     def test_preflight_code_binds_current_patch_bytes_instead_of_test_constants(self):
         roll_tool = (ROOT / "tools/chromium_roll.py").read_text(encoding="utf-8")
