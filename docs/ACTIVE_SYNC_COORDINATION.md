@@ -28,6 +28,16 @@ except the invalid generator inputs listed in the handoff. Full
 no remote-command tombstone; a deleted command is rejected at decode. A real
 Mac↔iOS round trip for these entities stays owner-gated (sync peers).
 
+## Merge conformance rev. 3: both runners green — 25 September 2026
+
+Vectors revision 3 (131 vectors, incl. the cross-group appearance union
+that must be `invalid`): C++ `SyncMergeConformanceTest.SharedVectors`
+passes on builds 24 (`f91e5b7`) and 25 (`5b3a039`); Swift
+`SyncMergeConformanceTests` passes on A168 with 0 failures, all seven entity
+types covered. No implementation mismatch remains between Mac and iOS.
+Desktop per-Workspace zone and zone retirement (`620e5c3`) are unit-tested
+in build 25; the Mobile side of step 4 is open.
+
 ## Decision: per-Profile sync namespace (ADR 0011 step 4) — 25 September 2026
 
 Sync-owner decision for fully separated Workspaces (each its own Profile):
