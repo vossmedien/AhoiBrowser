@@ -57,6 +57,22 @@ This lane never builds, installs, refreshes the overlay, writes under
 - Waiting for owner lanes: 010, 011 integration; 009 run results; NET-GCM-01/02
   and fresh-profile audit; H3 lease; each ADR 0011 implementation step for review.
 
+## Goal status — 25 September 2026, after `24d1f16`
+
+Every lane-owned deliverable of H1–H6 is done and committed. Each remaining
+DoD item waits only on an owner-lane integration, a lease window or an owner
+implementation step. The lane cannot do any of them itself without building,
+installing or writing owned paths.
+
+| Package | Lane work | Waits only on | Owner |
+| --- | --- | --- | --- |
+| H1 | done: drift gate, merge model, 130 vectors (rev 2), input-invariant test; runners integrated (`095b959`, `11bf324`); first run: C++ and Swift agree on every valid vector | integration of 012 (copy rev 2, rerun on the next planned build and simulator) | desktop/sync, mobile |
+| H2 | done: audit, rule and fixes S1–S8 with tests (011); deletion re-homing as 010 R6 | integration of 011 and of 010 R6, plus the visible journeys named there | desktop |
+| H3 | done: methodology, harness, 16 tests; trace events integrated (`d425c3b`) | lease window "open" on the next installed candidate (confirmed with conditions in the desktop checkpoint); budget verdicts also wait for the owner-gated reference toolchain | desktop, owner |
+| H4 | done: tool, tests; receipt integration (`2ab7909`) | the next regular build receipt carrying `engineInputKey` | desktop |
+| H5 | done: review, checklist; 003–006 integrated (`caf6f1e`, `0981913`, `87a6b89`) | NET-GCM-01/02 and the fresh-profile audit on the next installed candidate | desktop |
+| H6 | done: analysis, ADR 0011, WS-ISO catalogue (integrated `7401b8e`), reviews 010 and 013 of the integrated steps | integration of 010 and 013; ADR 0011 steps 2 and 3 implemented by desktop, then the lane reviews them | desktop, sync, mobile |
+
 ## Packages
 
 | Package | State | Handoff | Integrated in |
