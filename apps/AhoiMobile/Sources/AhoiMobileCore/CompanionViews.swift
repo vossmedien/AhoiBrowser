@@ -421,6 +421,10 @@ public struct CompanionRootView: View {
             switch kind {
             case .workspace:
                 if let workspace = await model.createWorkspace(name: title) {
+                    // Pushing the new detail while the alert is still animating
+                    // out interrupts that dismissal; the alert then resurfaces
+                    // after the library closes.
+                    try? await Task.sleep(for: .milliseconds(450))
                     selectedWorkspaceID = workspace.id
                 }
             case .folder:
