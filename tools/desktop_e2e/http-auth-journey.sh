@@ -134,7 +134,7 @@ print(p[0]["title"] if p else "<no realm-A tab>")' "$A")
 # reload is challenged again and Cancel leaves either the 401 page or, since
 # the connections were closed and the 401 is no-store, an empty document
 # (build 33). Either way no "auth:<user>" page may remain.
-if [ "${SIGNED#auth:}" = "$SIGNED" ]; then record sign_out_without_restart PASS
+if [ "$SIGNED" != "<no realm-A tab>" ] && [ "${SIGNED#auth:}" = "$SIGNED" ]; then record sign_out_without_restart PASS
   echo "after switch+cancel: $SIGNED" >> "$OUT/steps.txt"
 else
   # Build 32 showed only the URL as title: record what the tab shows.
