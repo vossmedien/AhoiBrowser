@@ -71,7 +71,7 @@ an owner integration, a lease window or an owner implementation step.
 | H3 | done: methodology, harness, trace events (`d425c3b`) | lease window "open" on the next installed candidate; budget verdicts also wait for the owner-gated reference toolchain | desktop, owner |
 | H4 | done: tool, receipt integration (`2ab7909`) | the next regular build receipt carrying `engineInputKey` | desktop |
 | H5 | done: review, checklist; GCM, field trials, group close integrated | NET-GCM-01/02 and the fresh-profile audit on the next installed candidate | desktop |
-| H6 | done: ADR 0011, catalogue, reviews 010, 013, 014 and journey coverage 015 | visible WS-ISO/WS-DEL acceptance on the next candidate; ADR 0011 steps 2 and 3, then their review | desktop, sync, mobile |
+| H6 | done: ADR 0011, catalogue, reviews 010, 013, 014, journey coverage 015 and step 2 part 1 review 016 (`bc3cdc2`) | visible WS-ISO/WS-DEL acceptance on the next candidate; ADR 0011 steps 2 and 3, then their review | desktop, sync, mobile |
 
 ## Packages
 
