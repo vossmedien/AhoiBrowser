@@ -2,15 +2,26 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
-## OPEN defect: library stays open after creating a Workspace — 25 September 2026
+## Resolved: library closes after creating a Workspace (was a test artifact) — 25 September 2026
 
-RED on A168/iOS27 (builds 68/71/72) and the real HTTPS suite (60–66): after
-Verwalten → Workspace → Erstellen, "Fertig" does not close the library and the
-name alert resurfaces in the AX tree with the keyboard. Three partial fixes are
-committed (`1319fb9`, `d7b5f28`, `94b7b06`); root cause is the text-field
-alert presentation outliving the push. [Evidence and next step](../artifacts/e2e/mobile-library-done-open-defect-20260925/README.md).
-The Home-Address journey therefore saves into Inbox; its own RED (saved state
-not settling on a fresh install, builds 69/70) is still under investigation.
+Not a product defect. Traced runs on A168/iOS27 show `libraryPresented`
+true→false 3 ms after Done, the sheet's `onDismiss`, and the library view
+gone about 550 ms later; the last frame shows the browser toolbar. The old
+journey failed at `waitForHittable(browser.address)`: XCUITest reports
+`browser.address` and `browser.workspace.previous` not hittable even right
+after launch, because the web view's accessibility frame reaches under the
+bottom toolbar. Corrected journey (`79828c0`) waits for every Done and the Workspace title to disappear
+and opens the address sheet: **3 of 3 passed**, product unchanged.
+[Defect note](../artifacts/e2e/mobile-library-done-open-defect-20260925/README.md).
+
+Open follow-ups: the real HTTPS suite's `closeLibrary` helpers and
+`MobileBrowserLayoutUITests.swift:60` still use the same hittability signal;
+the web view's accessibility frame under the toolbar is a small a11y quirk.
+`AhoiMobileCoreTests`: 276 tests, 38 failing cases pre-existing on HEAD
+(for example `SharedTabWireReadTests`, `CompanionCoreTests`,
+`BookmarkWireContractTests`), unrelated to this change, to be classified.
+The Home-Address journey's own RED (saved state not settling on a fresh
+install, builds 69/70) is still under investigation.
 
 ## Private-session lock: failed Face ID error path — 24 September 2026
 

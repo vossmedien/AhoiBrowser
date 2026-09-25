@@ -1,3 +1,9 @@
+> **Update 25 September 2026: resolved as a test artifact.** The library
+> dismisses 3 ms after Done; the old journey failed on
+> `waitForHittable(browser.address)`, which XCUITest reports false even right
+> after launch. See the mobile checkpoint entry "Resolved: library closes
+> after creating a Workspace"; corrected journey passed 3/3.
+
 # OPEN mobile defect: library does not close after creating a Workspace — 25 September 2026
 
 Status: **RED, unresolved.** Reproduced on A168/iOS 27 fixture journey
