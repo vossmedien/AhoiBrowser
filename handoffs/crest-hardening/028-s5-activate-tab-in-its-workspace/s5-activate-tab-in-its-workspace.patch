@@ -1,0 +1,152 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge.h b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge.h
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+@@ -227,6 +227,14 @@
+   bool SetActiveWorkspaceForWindow(BrowserWindowInterface* browser,
+                                    const base::Uuid& workspace_id,
+                                    WorkspaceActivationSource source);
++  // Single writer (docs/ARCHITECTURE.md, handoff 011 S5): selects `tab`'s
++  // Workspace in its window first and only then activates the tab, so an
++  // Ahoi caller never leaves the active tab hidden in another Workspace for
++  // the delayed sidebar reconciliation to repair. Returns false for an
++  // untracked tab or when the Workspace switch is refused.
++  [[nodiscard]] bool ActivateTabInItsWorkspace(tabs::TabInterface* tab,
++                                               WorkspaceActivationSource source,
++                                               bool user_gesture);
+   std::optional<base::Uuid> ActivateRelativeWorkspaceForWindow(
+       BrowserWindowInterface* browser,
+       int delta,
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
+@@ -597,6 +597,37 @@
+ }
+ 
+ }  // namespace
++
++bool SessionBridge::ActivateTabInItsWorkspace(
++    tabs::TabInterface* tab,
++    WorkspaceActivationSource source,
++    bool user_gesture) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  TabStripModel* model = tab ? FindTabStripModelForTab(tab) : nullptr;
++  auto browser = model ? model_windows_.find(model) : model_windows_.end();
++  if (!model || browser == model_windows_.end() ||
++      model->GetIndexOfTab(tab) == TabStripModel::kNoTab) {
++    return false;
++  }
++  const std::optional<base::Uuid> workspace = GetWorkspaceForTab(tab);
++  if (workspace.has_value() &&
++      workspace != GetActiveWorkspaceForWindow(browser->second) &&
++      !SetActiveWorkspaceForWindow(browser->second, *workspace, source)) {
++    return false;
++  }
++  // The Workspace switch may have activated that Workspace's last tab;
++  // re-resolve the index before selecting the requested one.
++  const int index = model->GetIndexOfTab(tab);
++  if (index == TabStripModel::kNoTab) {
++    return false;
++  }
++  model->ActivateTabAt(
++      index,
++      TabStripUserGestureDetails(
++          user_gesture ? TabStripUserGestureDetails::GestureType::kKeyboard
++                       : TabStripUserGestureDetails::GestureType::kNone));
++  return true;
++}
+ 
+ bool SessionBridge::FocusNormalTabFromRemoteCommand(
+     std::string_view local_stable_key) {
+@@ -604,12 +635,11 @@
+   const std::string stable_id = RuntimeStableId(local_stable_key);
+   tabs::TabInterface* tab = FindTabForOpenTabStableId(stable_id);
+   TabStripModel* model = tab ? FindTabStripModelForTab(tab) : nullptr;
+-  const int index =
+-      model && tab ? model->GetIndexOfTab(tab) : TabStripModel::kNoTab;
+-  if (index == TabStripModel::kNoTab) {
++  if (!ActivateTabInItsWorkspace(tab,
++                                 WorkspaceActivationSource::kDataReconciliation,
++                                 /*user_gesture=*/false)) {
+     return false;
+   }
+-  model->ActivateTabAt(index);
+   auto browser = model_windows_.find(model);
+   if (browser != model_windows_.end() && browser->second->GetWindow()) {
+     browser->second->GetWindow()->Activate();
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
+@@ -129,17 +129,16 @@
+       if (bridge) {
+         tabs::TabInterface* tab =
+             bridge->FindTabForOpenTabStableId(item.stable_id);
+-        TabStripModel* model = bridge->FindTabStripModelForTab(tab);
+-        if (tab && model) {
+-          const int index = model->GetIndexOfTab(tab);
+-          BrowserWindowInterface* window = tab->GetBrowserWindowInterface();
+-          if (index >= 0 && window && window->GetWindow()) {
+-            model->ActivateTabAt(
+-                index, TabStripUserGestureDetails(
+-                           TabStripUserGestureDetails::GestureType::kKeyboard));
+-            window->GetWindow()->Activate();
+-            return true;
+-          }
++        BrowserWindowInterface* window =
++            tab ? tab->GetBrowserWindowInterface() : nullptr;
++        // Handoff 011 S5: the tab's Workspace is selected before the tab, so
++        // the command bar never leaves the active tab hidden.
++        if (window && window->GetWindow() &&
++            bridge->ActivateTabInItsWorkspace(
++                tab, WorkspaceActivationSource::kKeyboard,
++                /*user_gesture=*/true)) {
++          window->GetWindow()->Activate();
++          return true;
+         }
+       }
+     }
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_unittest.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_unittest.cc
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_unittest.cc
+@@ -629,7 +629,42 @@
+   EXPECT_TRUE(command_service->Query(u"userinfo-qzx987", 10u).empty());
+   EXPECT_TRUE(command_service->Query(u"secret-qzx654", 10u).empty());
+ }
++
++TEST_F(SessionBridgeTest, ActivateTabInItsWorkspaceSelectsWorkspaceFirst) {
++  tab_tree::Workspace primary = MakeWorkspace(u"Primary", "a");
++  tab_tree::Workspace secondary = MakeWorkspace(u"Secondary", "b");
++  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({secondary, primary}));
++  task_environment()->RunUntilIdle();
+ 
++  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
++      browser(), secondary.id, WorkspaceActivationSource::kKeyboard));
++  AddTab(browser(), GURL("https://example.test/secondary"));
++  task_environment()->RunUntilIdle();
++  TabStripModel* model = browser()->GetTabStripModel();
++  tabs::TabInterface* secondary_tab = model->GetActiveTab();
++  ASSERT_TRUE(secondary_tab);
++  ASSERT_EQ(bridge_->GetWorkspaceForTab(secondary_tab), secondary.id);
++
++  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
++      browser(), primary.id, WorkspaceActivationSource::kKeyboard));
++  AddTab(browser(), GURL("https://example.test/primary"));
++  task_environment()->RunUntilIdle();
++  ASSERT_NE(model->GetActiveTab(), secondary_tab);
++  ASSERT_EQ(bridge_->GetActiveWorkspaceForWindow(browser()), primary.id);
++
++  // Consistent right after the call: no posted reconciliation has run yet.
++  ASSERT_TRUE(bridge_->ActivateTabInItsWorkspace(
++      secondary_tab, WorkspaceActivationSource::kKeyboard,
++      /*user_gesture=*/true));
++  EXPECT_EQ(model->GetActiveTab(), secondary_tab);
++  EXPECT_EQ(bridge_->GetActiveWorkspaceForWindow(browser()), secondary.id);
++  EXPECT_EQ(bridge_->IsTabInActiveWorkspace(browser(), secondary_tab),
++            std::optional<bool>(true));
++
++  EXPECT_FALSE(bridge_->ActivateTabInItsWorkspace(
++      nullptr, WorkspaceActivationSource::kKeyboard, /*user_gesture=*/true));
++}
++
+ TEST_F(SessionBridgeTest, TracksNativeWindowTabContentsAndWorkspace) {
+   ASSERT_EQ(1u, bridge_->tracked_window_count());
+   const std::optional<base::Uuid> window_id = bridge_->GetWindowId(browser());
