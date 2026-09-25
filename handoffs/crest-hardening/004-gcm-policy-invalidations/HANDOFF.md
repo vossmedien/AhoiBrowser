@@ -1,6 +1,6 @@
 # 004 – Stop GCM check-in on unmanaged profiles (H5, N1)
 
-Status: ready
+Status: integrated caf6f1e (as 0056; NET-GCM-01 and the NET-GCM-02 decision pending)
 Owner lane: desktop (patch stack; assign the next series number)
 Base: upstream `chrome/browser/policy/cloud/user_fm_registration_token_uploader_factory.cc`
 at tag `153.0.8010.53` (unpatched by Ahoi at lane commit time)
