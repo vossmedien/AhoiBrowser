@@ -34,12 +34,26 @@ Lease decisions:
 
 | Request (lane checkpoint) | Decision |
 | --- | --- |
-| `installed-app` + `host-quiet`, H3 harness run (`startup`, `memory`, `idle`, 5 runs, disposable profiles, ~30 min), requested 2026-09-25 | **Confirmed with conditions.** Only on the next installed package candidate (build of `993a151` or later, after its unit tests), never while a Desktop build, overlay refresh, unit-test run or visible E2E runs, and only while the owner is idle (`HIDIdleTime` ≥ 300 s). Desktop marks the window below as `open` once the candidate is installed; the lane stops at the first owner input and records the receipt against that candidate. Window: **not open yet** (package build 16 running). |
+| `installed-app` + `host-quiet`, H3 harness run (`startup`, `memory`, `idle`, 5 runs, disposable profiles, ~30 min), requested 2026-09-25 | **Confirmed with conditions.** Only on the next installed package candidate (build of `993a151` or later, after its unit tests), never while a Desktop build, overlay refresh, unit-test run or visible E2E runs, and only while the owner is idle (`HIDIdleTime` ≥ 300 s). Desktop marks the window below as `open` once the candidate is installed; the lane stops at the first owner input and records the receipt against that candidate. Window: **open** since 2026-09-25 16:58 CEST on installed candidate `f91e5b7` (build 24); Desktop's own visible journeys run first when idle, then H3. |
 
 Handoff intake for the build-16 package: 009 (merge conformance runners)
 taken in as `095b959`; the Swift runner needed envelope tombstone metadata
 for deleted payloads (runner fix, no expectation edited). Results go to the
 lane checkpoint as the handoff asks.
+
+## Installed candidate: build 24 of `f91e5b7` — 25 September 2026
+
+Guarded build 24 (Xcode 27 development toolchain) of `f91e5b7` is installed
+at `/Applications/AhoiBrowser.app` through `scripts/install-dev-app.py`
+(verified before and after activation). Receipt:
+`artifacts/install/installed-ahoi-dev-f91e5b7-20260925T145818Z.json`.
+All seven focused unit-test binaries passed on this build, including
+`ahoi_navigation_unittests` with the link-routing core (patch 0057). It
+contains the level choice, fully separated Workspaces step 1, the step-2
+hand-over with fullscreen and restart handling, and the review 010–016
+fixes. Not yet in it: the routing editor (`3b16f31`), the per-Workspace sync
+zone (`620e5c3`) and review 018 (`b41cac6`); they go into build 25.
+Development receipt only, not release evidence.
 
 ## Unit tests all green: build 21 of `f5e4c1f` — 25 September 2026
 
