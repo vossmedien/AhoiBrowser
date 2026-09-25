@@ -63,8 +63,16 @@ are separate because upstream separates them. Ahoi builds no parallel stores.
    import/export.
 4. `isolated` step 3: per-Profile sync namespace and Mobile presentation.
 
-## Open for the user
+## Decided scope of level `website-sessions` (user, 2026-09-25)
 
-Whether level `website-sessions` still needs its own per-Workspace permission and
-`chrome.cookies` scoping patches, or documents those as shared because
-`isolated` provides full separation.
+Level `website-sessions` separates cookies, site storage, workers and the
+network/auth context only. Site permission decisions and the extension
+`chrome.cookies` API stay profile-wide there and are documented as shared,
+because level `isolated` provides full separation. No Chromium patches for
+per-partition permission or cookie-API scoping are scheduled. That work stays
+an explicit later option ("Option A"). It needs a new user decision and must
+not be started implicitly.
+
+The UI of a `website-sessions` Workspace says that permissions and extensions
+are shared with other Workspaces. The creation dialog points to `isolated`
+for full separation.
