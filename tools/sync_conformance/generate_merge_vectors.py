@@ -30,20 +30,32 @@ T1, T2, T3 = 11644473604000000, 11644473605000000, 11644473606000000
 
 # entity: (fixture record, first mutable group change, second mutable group change,
 #          immutable group change or None)
+ABSENT = object()  # removes an optional payload key (the decoder rejects null)
+SYSTEM_ACCENT = {"use_system_accent": True, "accent_argb": ABSENT}
+
+# entity: (fixture record, first change, typed alternative of the first change,
+#          second change of a different group or None, immutable change or None)
+# Every value must pass the wire decoder on both sides; the conformance run of
+# 25 September rejected string-suffixed timestamps, enums and JSON text, an
+# accent next to the system accent, and any remote-command tombstone.
 ENTITIES = {
-    1: ("workspace", {"name": "Renamed workspace"}, {"icon": "star"},
-        {"created_at": "11644473601000001"}),
-    2: ("tree_folder", {"title": "Renamed folder"}, {"sort_key": "B"},
-        {"node_kind": 1}),
+    1: ("workspace", {"name": "Renamed workspace"}, {"name": "Other workspace"},
+        {"icon": "star"}, {"created_at": "11644473601000001"}),
+    2: ("tree_folder", {"title": "Renamed folder"}, {"title": "Other folder"},
+        {"sort_key": "B"}, {"node_kind": 1}),
     5: ("device_session", {"last_seen": "11644473604000000", "active": False},
+        {"last_seen": "11644473604500000", "active": True},
         {"tombstone": True}, {"started_at": "11644473601000001"}),
-    6: ("remote_command_open_shape_only", {"status": 1}, {"tombstone": True},
+    # A command is never tombstoned and `request` is immutable, so it has no
+    # second mutable group: no disjoint-union cases.
+    6: ("remote_command_open_shape_only", {"status": 1}, {"status": 2}, None,
         {"url": "https://example.com/other"}),
-    7: ("appearance_custom_accent", {"color_mode": "light"},
-        {"use_system_accent": True}, None),
+    7: ("appearance_custom_accent", {"color_mode": "light"}, {"color_mode": "system"},
+        SYSTEM_ACCENT, None),
     8: ("permitted_setting_glass_enabled", {"value_json": "false"},
-        {"tombstone": True}, {"setting_id": "ahoi.appearance.other"}),
-    14: ("archive_single_page", {"restored": True}, {"tombstone": True}, None),
+        {"value_json": "true"}, {"tombstone": True}, {"setting_id": "ahoi.appearance.other"}),
+    14: ("archive_single_page", {"restored": True}, {"restored": False},
+         {"tombstone": True}, None),
 }
 
 
@@ -69,7 +81,10 @@ def edit(base: dict, entity: int, groups: list[str], values: dict, stamp: m.Stam
     """Apply payload key changes, stamp their groups and raise the record clock."""
     payload = copy.deepcopy(base)
     for key, value in values.items():
-        payload[key] = value
+        if value is ABSENT:
+            payload.pop(key, None)
+        else:
+            payload[key] = value
         payload["field_versions"][group_of(entity, key, groups)] = stamp.to_field()
     top = max(record or stamp, m.Stamp.of_record(base))
     payload["version_physical"] = str(top.physical)
@@ -80,11 +95,8 @@ def edit(base: dict, entity: int, groups: list[str], values: dict, stamp: m.Stam
 
 def cases_for(entity: int, data_class: str, groups: list[str],
               base: dict) -> list[dict]:
-    name, first, second, immutable = ENTITIES[entity]
+    name, first, first_alt, second, immutable = ENTITIES[entity]
     s = lambda physical, device=MAC, logical=0: m.Stamp(physical, logical, device)  # noqa: E731
-    first_alt = {k: (not v if isinstance(v, bool) else
-                     v + 1 if isinstance(v, int) else f"{v} (other)")
-                 for k, v in first.items()}
     cases = [
         ("identical", "identical records", base, base),
         ("incoming_newer", "incoming changes one group with a newer clock",
@@ -92,19 +104,22 @@ def cases_for(entity: int, data_class: str, groups: list[str],
         ("incoming_older", "existing change is newer than the incoming change",
          edit(base, entity, groups, first, s(T2)),
          edit(base, entity, groups, first_alt, s(T1, PHONE))),
-        ("disjoint_union", "offline edits of different groups converge to their union",
-         edit(base, entity, groups, first, s(T1)),
-         edit(base, entity, groups, second, s(T2, PHONE))),
         ("equal_clock_conflict", "same clock, different value",
          edit(base, entity, groups, first, s(T1)),
          edit(base, entity, groups, first_alt, s(T1))),
         ("device_tiebreak", "same physical time and counter; the larger device id wins",
          edit(base, entity, groups, first, s(T1, MAC)),
          edit(base, entity, groups, first_alt, s(T1, PHONE))),
-        ("logical_overflow_successor", "union successor carries over a full logical counter",
-         edit(base, entity, groups, first, s(T1, MAC, m.UINT32_MAX)),
-         edit(base, entity, groups, second, s(T1, PHONE, m.UINT32_MAX))),
     ]
+    if second is not None:
+        cases += [
+            ("disjoint_union", "offline edits of different groups converge to their union",
+             edit(base, entity, groups, first, s(T1)),
+             edit(base, entity, groups, second, s(T2, PHONE))),
+            ("logical_overflow_successor", "union successor carries over a full logical counter",
+             edit(base, entity, groups, first, s(T1, MAC, m.UINT32_MAX)),
+             edit(base, entity, groups, second, s(T1, PHONE, m.UINT32_MAX))),
+        ]
     incomplete = copy.deepcopy(edit(base, entity, groups, first, s(T1, PHONE)))
     incomplete["field_versions"].pop(groups[0])
     cases.append(("incomplete_field_map", "incoming lacks one field clock", base, incomplete))
@@ -153,8 +168,9 @@ RANDOM_VALUES = {
         "tombstone": [False, True]},
     2: {"title": ["Alpha", "Beta"], "icon": ["folder", "star"], "sort_key": ["A", "B"],
         "tombstone": [False, True]},
-    7: {"color_mode": ["light", "dark"], "use_system_accent": [False, True],
-        "accent_argb": [-13408615, -16776961]},
+    # Accent and system accent change together; the decoder forbids both set.
+    7: {"color_mode": ["light", "dark", "system"],
+        "accent_state": [SYSTEM_ACCENT, {"use_system_accent": False, "accent_argb": -16776961}]},
     8: {"value_json": ["true", "false"], "tombstone": [False, True]},
 }
 
@@ -173,7 +189,10 @@ def random_cases(seed: int = RANDOM_SEED, count: int = RANDOM_CASES) -> list[dic
         sides = []
         for device in (MAC, PHONE):
             keys = rng.sample(sorted(RANDOM_VALUES[entity]), rng.randint(1, 2))
-            values = {key: rng.choice(RANDOM_VALUES[entity][key]) for key in keys}
+            values = {}
+            for key in keys:
+                choice = rng.choice(RANDOM_VALUES[entity][key])
+                values.update(choice if isinstance(choice, dict) else {key: choice})
             # Occasionally both devices share a device id to force equal clocks.
             owner = device if rng.random() > 0.15 else MAC
             sides.append(edit(base, entity, groups, values, m.Stamp(rng.choice(clocks), 0, owner)))

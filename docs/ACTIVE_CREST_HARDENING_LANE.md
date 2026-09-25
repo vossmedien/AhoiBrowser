@@ -50,6 +50,10 @@ This lane never builds, installs, refreshes the overlay, writes under
   010 (R1 high: synchronous overlap rejection in `GroupPageClose::Ask`).
 - H2 audit done; fixes handed off as 011, deletion re-homing added to 010 as
   R6 (high). 009 runners integrated by sync (`095b959`), not yet run.
+- 009 results: implementations agree on every valid vector; generator fixed
+  (rev 2) and a Sync invariant finding handed off as 012. H3 lease confirmed
+  with conditions (window opens on the next installed package candidate).
+  ADR 0011 step 1 implemented by desktop (`671796d`), review next.
 - Waiting for owner lanes: 010, 011 integration; 009 run results; NET-GCM-01/02
   and fresh-profile audit; H3 lease; each ADR 0011 implementation step for review.
 
@@ -57,7 +61,7 @@ This lane never builds, installs, refreshes the overlay, writes under
 
 | Package | State | Handoff | Integrated in |
 | --- | --- | --- | --- |
-| H1 Sync conformance | field-group drift gate (37 copies, 15 entities, no drift); merge model, 132 vectors (72 structured + 60 seeded random), convergence tests; C++ and Swift runners handed off. Remaining DoD: both runners green on the integrated candidates, or each mismatch reported | [009](../handoffs/crest-hardening/009-sync-merge-conformance/HANDOFF.md) integrated `095b959` (runs pending on next build / simulator) | `095b959` |
+| H1 Sync conformance | drift gate; merge model; runners integrated (`095b959`, Swift fix `11bf324`). Run results: C++ 118/132 and Swift 130/132 agree with the expectations; all 16 mismatches were invalid generator inputs, fixed in vector rev 2 (130 vectors) plus an input-invariant test. Sync finding: unvalidated unions can break the appearance invariant. Remaining DoD: rerun rev 2 on both sides | [009](../handoffs/crest-hardening/009-sync-merge-conformance/HANDOFF.md) integrated, [012](../handoffs/crest-hardening/012-merge-vectors-rev2-and-merged-validation/HANDOFF.md) ready | `095b959`, `11bf324` |
 | H2 Single writer | audit `docs/reviews/crest-hardening-2026-09-25-single-writer-audit.md` done (rule, transition table, 5 findings; 3 checked in code); remaining DoD: fixes S1–S8 integrated with tests and the visible journeys | [011](../handoffs/crest-hardening/011-single-writer-fixes/HANDOFF.md) ready; deletion re-homing as 010 R6 | – |
 | H3 Performance methodology | methodology, runner, statistics, CDP client and 16 tests done; refusal gate verified on the busy host | [002](../handoffs/crest-hardening/002-perf-trace-events/HANDOFF.md) integrated | `d425c3b` |
 | H4 Engine input key | tool + tests done; lookup verified on e9f4a99, 4cb622a, c986090, 92694fe receipts | [001](../handoffs/crest-hardening/001-engine-input-key-receipt/HANDOFF.md) integrated | `2ab7909` |
@@ -71,7 +75,7 @@ checkpoint.
 
 | Resource | Purpose | Requested | Confirmed by owner |
 | --- | --- | --- | --- |
-| `installed-app` + `host-quiet` | H3 harness validation run: `startup`, `memory`, `idle` scenarios, 5 runs, disposable profiles, on the installed candidate; about 30 minutes while no build runs and the owner is away | 2026-09-25 | pending |
+| `installed-app` + `host-quiet` | H3 harness validation run: `startup`, `memory`, `idle` scenarios, 5 runs, disposable profiles, on the installed candidate; about 30 minutes while no build runs and the owner is away | 2026-09-25 | confirmed with conditions (desktop checkpoint); window not open yet |
 
 ## Open questions to other lanes
 
