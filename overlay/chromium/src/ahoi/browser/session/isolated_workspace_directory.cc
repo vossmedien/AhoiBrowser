@@ -17,6 +17,7 @@
 #include "base/files/file_path.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
+#include "base/functional/callback_helpers.h"
 #include "base/memory/ptr_util.h"
 #include "base/memory/raw_ptr.h"
 #include "base/no_destructor.h"
@@ -439,6 +440,46 @@ void TryHideBehindPresented(base::FilePath path,
 
 }  // namespace
 
+namespace {
+
+bool HasVisibleNormalWindow(Profile* profile) {
+  ProfileBrowserCollection* browsers =
+      profile ? ProfileBrowserCollection::GetForProfile(profile) : nullptr;
+  bool visible = false;
+  if (browsers) {
+    browsers->ForEach(
+        [&visible](BrowserWindowInterface* browser) {
+          ui::BaseWindow* window = browser->GetWindow();
+          visible = browser->GetType() == BrowserWindowInterface::TYPE_NORMAL &&
+                    window && window->IsVisible();
+          return !visible;
+        },
+        BrowserCollection::Order::kActivation);
+  }
+  return visible;
+}
+
+// Opens one main-Profile window, with Chromium's normal startup and session
+// restore, when the main Profile has none on screen; loads it first if a
+// restart presented only a separated Workspace.
+void OpenMainWindowIfNoneVisible() {
+  if (browser_shutdown::HasShutdownStarted() ||
+      HasVisibleNormalWindow(GetLoadedMainProfile())) {
+    return;
+  }
+  LoadMainProfile(base::BindOnce([](Profile* profile) {
+    if (!profile || browser_shutdown::HasShutdownStarted() ||
+        HasVisibleNormalWindow(profile)) {
+      return;
+    }
+    profiles::OpenBrowserWindowForProfile(
+        base::DoNothing(), /*always_create=*/false, /*is_new_profile=*/false,
+        /*open_command_line_urls=*/false, profile);
+  }));
+}
+
+}  // namespace
+
 void ShowMainWindowsAfterIsolatedDeletion(
     const std::string& removed_profile_dir) {
   PrefService* local_state =
@@ -471,6 +512,10 @@ void ShowMainWindowsAfterIsolatedDeletion(
       main_profile ? ProfileBrowserCollection::GetForProfile(main_profile)
                    : nullptr;
   if (!browsers) {
+    // After a restart into the separated Workspace the main Profile may not
+    // be loaded at all; deleting that Workspace must not leave the app
+    // without a window (WS-ISO-16 on build 32).
+    OpenMainWindowIfNoneVisible();
     return;
   }
   std::vector<BrowserWindowInterface*> hidden;
@@ -488,6 +533,7 @@ void ShowMainWindowsAfterIsolatedDeletion(
   for (auto it = hidden.rbegin(); it != hidden.rend(); ++it) {
     (*it)->GetWindow()->Show();
   }
+  OpenMainWindowIfNoneVisible();
 }
 
 void RestoreHandOverAfterStartup(Profile* profile) {
