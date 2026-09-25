@@ -362,6 +362,65 @@ void PresentProfileWindow(
       /*open_command_line_urls=*/false, target);
 }
 
+namespace {
+
+// Polls every 500 ms for up to 60 s; a presented window that never becomes
+// visible leaves this Profile's windows as they are.
+constexpr int kMaxHideAttempts = 120;
+
+void TryHideBehindPresented(base::FilePath path,
+                            std::string presented_dir,
+                            int attempt) {
+  ProfileManager* manager =
+      g_browser_process ? g_browser_process->profile_manager() : nullptr;
+  if (!manager || browser_shutdown::HasShutdownStarted()) {
+    return;
+  }
+  Profile* profile = manager->GetProfileByPath(path);
+  Profile* presented_profile = manager->GetProfileByPath(
+      manager->user_data_dir().AppendASCII(presented_dir));
+  BrowserWindowInterface* presented =
+      presented_profile ? FindMostRecentNormalBrowser(presented_profile)
+                        : nullptr;
+  ui::BaseWindow* presented_window =
+      presented ? presented->GetWindow() : nullptr;
+  if (!profile) {
+    return;
+  }
+  if (!presented_window || !presented_window->IsVisible()) {
+    if (attempt + 1 < kMaxHideAttempts) {
+      base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
+          FROM_HERE,
+          base::BindOnce(&TryHideBehindPresented, std::move(path),
+                         std::move(presented_dir), attempt + 1),
+          base::Milliseconds(500));
+    }
+    return;
+  }
+  const gfx::Rect frame = presented_window->GetBounds();
+  std::vector<BrowserWindowInterface*> to_hide;
+  if (ProfileBrowserCollection* browsers =
+          ProfileBrowserCollection::GetForProfile(profile)) {
+    browsers->ForEach(
+        [&to_hide, &frame](BrowserWindowInterface* browser) {
+          ui::BaseWindow* window = browser->GetWindow();
+          if (browser->GetType() == BrowserWindowInterface::TYPE_NORMAL &&
+              window && window->IsVisible() &&
+              window->GetBounds().Intersects(frame)) {
+            to_hide.push_back(browser);
+          }
+          return true;
+        },
+        BrowserCollection::Order::kCreation);
+  }
+  for (BrowserWindowInterface* browser : to_hide) {
+    browser->GetWindow()->Hide();
+    HandOverWatch::Watch(presented, browser);
+  }
+}
+
+}  // namespace
+
 void RestoreHandOverAfterStartup(Profile* profile) {
   PrefService* local_state =
       g_browser_process ? g_browser_process->local_state() : nullptr;
@@ -374,55 +433,9 @@ void RestoreHandOverAfterStartup(Profile* profile) {
   if (presented_dir.empty() || presented_dir == DirName(profile->GetPath())) {
     return;
   }
-  // Restore of the other Profile may still be opening its window.
-  base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
-      FROM_HERE,
-      base::BindOnce(
-          [](base::FilePath path, std::string presented_dir) {
-            ProfileManager* manager =
-                g_browser_process ? g_browser_process->profile_manager()
-                                  : nullptr;
-            Profile* profile = manager ? manager->GetProfileByPath(path)
-                                       : nullptr;
-            Profile* presented_profile =
-                manager ? manager->GetProfileByPath(
-                              manager->user_data_dir().AppendASCII(
-                                  presented_dir))
-                        : nullptr;
-            BrowserWindowInterface* presented =
-                presented_profile
-                    ? FindMostRecentNormalBrowser(presented_profile)
-                    : nullptr;
-            ui::BaseWindow* presented_window =
-                presented ? presented->GetWindow() : nullptr;
-            if (!profile || !presented_window ||
-                !presented_window->IsVisible()) {
-              return;  // Nothing visible to hide behind: keep this one.
-            }
-            const gfx::Rect frame = presented_window->GetBounds();
-            std::vector<BrowserWindowInterface*> to_hide;
-            if (ProfileBrowserCollection* browsers =
-                    ProfileBrowserCollection::GetForProfile(profile)) {
-              browsers->ForEach(
-                  [&to_hide, &frame](BrowserWindowInterface* browser) {
-                    ui::BaseWindow* window = browser->GetWindow();
-                    if (browser->GetType() ==
-                            BrowserWindowInterface::TYPE_NORMAL &&
-                        window && window->IsVisible() &&
-                        window->GetBounds().Intersects(frame)) {
-                      to_hide.push_back(browser);
-                    }
-                    return true;
-                  },
-                  BrowserCollection::Order::kCreation);
-            }
-            for (BrowserWindowInterface* browser : to_hide) {
-              browser->GetWindow()->Hide();
-              HandOverWatch::Watch(presented, browser);
-            }
-          },
-          profile->GetPath(), presented_dir),
-      base::Seconds(2));
+  // Restore of the other Profile may still be opening its window, which can
+  // take long on a busy host (handoff 018): poll until it is visible.
+  TryHideBehindPresented(profile->GetPath(), presented_dir, /*attempt=*/0);
 }
 
 void PresentIsolatedWorkspace(
