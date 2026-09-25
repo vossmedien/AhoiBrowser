@@ -23,7 +23,9 @@
         "tests/repository/test_check_lane_boundaries.py",
         "tests/repository/test_engine_input_key.py",
         "tests/repository/test_perf_*.py",
-        "tests/repository/test_sync_conformance*.py"
+        "tests/repository/test_sync_conformance*.py",
+        "artifacts/perf/**",
+        "artifacts/network-audit/**"
       ],
       "writableByOwners": [
         "handoffs/crest-hardening/*/HANDOFF.md"

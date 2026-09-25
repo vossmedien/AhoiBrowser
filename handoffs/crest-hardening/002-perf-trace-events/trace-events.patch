@@ -1,0 +1,56 @@
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_bar_controller.cc	2026-09-25 10:07:59
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_bar_controller.cc	2026-09-25 10:07:59
+@@ -21,6 +21,7 @@
+ #include "ahoi/browser/ui/visual_style.h"
+ #include "base/check.h"
+ #include "base/functional/bind.h"
++#include "base/trace_event/trace_event.h"
+ #include "base/functional/callback_helpers.h"
+ #include "base/location.h"
+ #include "base/strings/strcat.h"
+@@ -587,6 +588,7 @@
+ 
+ void CommandBarController::OnHistoryQueryCompleted(
+     history::QueryResults results) {
++  TRACE_EVENT("browser", "Ahoi.CommandBar.HistoryItems");
+   history_query_in_flight_ = false;
+   last_history_refresh_ = base::TimeTicks::Now();
+   if (!command_service_) {
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_bar_view.cc
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_bar_view.cc
+@@ -20,6 +20,7 @@
+ #include "base/strings/string_util.h"
+ #include "base/strings/utf_string_conversions.h"
+ #include "base/task/single_thread_task_runner.h"
++#include "base/trace_event/trace_event.h"
+ #include "chrome/grit/generated_resources.h"
+ #include "components/omnibox/browser/omnibox_text_util.h"
+ #include "components/vector_icons/vector_icons.h"
+@@ -496,6 +497,8 @@
+ }
+ 
+ void CommandBarView::RebuildSuggestions(bool prefer_input_fallback) {
++  // Measured by tools/perf (PERF-03): keystroke to rebuilt result rows.
++  TRACE_EVENT("browser", "Ahoi.CommandBar.RebuildSuggestions");
+   suggestions_ = suggestions_callback_.Run(textfield_->GetText());
+   if (suggestions_.size() > kMaximumSuggestionCount) {
+     suggestions_.resize(kMaximumSuggestionCount);
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace.cc
+@@ -21,6 +21,7 @@
+ #include "base/task/sequenced_task_runner.h"
+ #include "base/task/thread_pool.h"
+ #include "base/time/time.h"
++#include "base/trace_event/trace_event.h"
+ #include "chrome/browser/profiles/profile.h"
+ #include "chrome/browser/ui/browser_window/public/browser_collection.h"
+ #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+@@ -59,6 +60,8 @@
+     const base::Uuid& workspace_id,
+     WorkspaceActivationSource source) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  // Measured by tools/perf (PERF-04): commit of a local Workspace switch.
++  TRACE_EVENT("browser", "Ahoi.Workspace.Switch");
+   if (shutting_down_ || !workspace_service_) {
+     return false;
+   }
