@@ -35,8 +35,8 @@ class GroupPageClose {
   GroupPageClose& operator=(const GroupPageClose&) = delete;
   ~GroupPageClose();
 
-  // Starts phase one. `done` runs exactly once, asynchronously if any page
-  // shows a before-unload prompt. The returned object must stay alive until
+  // Starts phase one. `done` runs exactly once and always asynchronously, so
+  // callers can store the returned object before it runs. The returned object must stay alive until
   // `done` ran; destroying it earlier reports false.
   // With `auto_cancel` a page that wants to prompt answers "no" without any
   // dialog (used by automatic archiving, which must never ask).

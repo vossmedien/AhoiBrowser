@@ -121,6 +121,20 @@ std::unique_ptr<GroupPageClose> GroupPageClose::Ask(
     Done done,
     bool auto_cancel) {
   auto group = base::WrapUnique(new GroupPageClose(std::move(done)));
+  // A page that is already part of another running question cannot be
+  // answered twice; treat the overlap as a rejection of this group. Check all
+  // pages before registering any, and never report synchronously: callers
+  // store the returned group before `done` may run, and they gate new
+  // questions on that stored group.
+  if (std::ranges::any_of(pages, [](content::WebContents* page) {
+        return page && PageWatcher::PendingPages().contains(page);
+      })) {
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(&GroupPageClose::Finish,
+                                  group->weak_ptr_factory_.GetWeakPtr(),
+                                  /*all_agreed=*/false));
+    return group;
+  }
   std::vector<content::WebContents*> to_dispatch;
   for (content::WebContents* page : pages) {
     if (!page || std::ranges::any_of(group->watchers_, [page](const auto& w) {
@@ -129,13 +143,6 @@ std::unique_ptr<GroupPageClose> GroupPageClose::Ask(
       continue;
     }
     auto watcher = std::make_unique<PageWatcher>(group.get(), page);
-    // A page that is already part of another running question cannot be
-    // answered twice; treat the overlap as a rejection of this group.
-    if (PageWatcher::PendingPages().contains(page)) {
-      group->watchers_.push_back(std::move(watcher));
-      group->Finish(/*all_agreed=*/false);
-      return group;
-    }
     if (page->NeedToFireBeforeUnloadOrUnloadEvents()) {
       watcher->Register();
       ++group->outstanding_;
