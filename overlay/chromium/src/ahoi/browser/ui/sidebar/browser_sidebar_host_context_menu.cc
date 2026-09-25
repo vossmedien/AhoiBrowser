@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "ahoi/browser/memory/tab_sleeping.h"
+#include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/navigation/navigation_input_prefs.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
@@ -39,6 +40,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/pickle.h"
 #include "base/strings/strcat.h"
+#include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/cancelable_task_tracker.h"
@@ -649,6 +651,32 @@ bool BrowserSidebarHostView::BuildMoveToMenu(const tab_tree::TreeNode* source) {
 }
 
 // ui::SimpleMenuModel::Delegate:
+bool BrowserSidebarHostView::GetAcceleratorForCommandId(
+    int command_id,
+    ui::Accelerator* accelerator) const {
+  std::string shortcut_id;
+  if (command_id >= kActivateWorkspaceCommandBase &&
+      command_id < kActivateWorkspaceCommandBase + 9) {
+    shortcut_id = shortcuts::kWorkspacePrefix +
+                  base::NumberToString(command_id -
+                                       kActivateWorkspaceCommandBase + 1);
+  } else if (command_id == kToggleFloatingSidebar) {
+    shortcut_id = shortcuts::kToggleSidebarFloating;
+  } else if (command_id == kToggleSidebarVisibility) {
+    shortcut_id = shortcuts::kToggleSidebarVisibility;
+  } else {
+    return false;
+  }
+  const std::vector<ui::Accelerator> keys = shortcuts::EffectiveAccelerators(
+      shortcuts::ReadOverrides(*browser_->GetProfile()->GetPrefs()),
+      shortcut_id);
+  if (keys.empty()) {
+    return false;
+  }
+  *accelerator = keys.front();
+  return true;
+}
+
 bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
   if (command_id >= kArchivePolicyCommandBase &&
       command_id < kArchivePolicyCommandBase + 5) {

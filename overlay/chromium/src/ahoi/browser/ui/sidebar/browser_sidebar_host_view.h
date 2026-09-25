@@ -561,6 +561,10 @@ class BrowserSidebarHostView final
 
   bool IsCommandIdEnabled(int command_id) const override;
 
+  // Shows the shared shortcut catalog's key for Workspace and sidebar items.
+  bool GetAcceleratorForCommandId(int command_id,
+                                  ui::Accelerator* accelerator) const override;
+
   void ExecuteCommand(int command_id, int) override;
 
   const tab_tree::Workspace* FindWorkspace(
