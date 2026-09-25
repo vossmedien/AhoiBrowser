@@ -73,8 +73,10 @@ eval_in media.html "location.href='$BASE/payload.bin'; 'ok'" > /dev/null
 if wait_file ahoi-payload.bin 30 && cmp -s "$DL/ahoi-payload.bin" "$SITE/payload.bin"; then
   record attachment_download_complete PASS
 else record attachment_download_complete FAIL; fi
-# 2 <a download> link.
-eval_in media.html "document.getElementById('dl').click(); 'ok'" > /dev/null
+# 2 <a download> link, from a freshly loaded page: Chromium's download
+# request limiter allows one automatic download per page before it asks.
+curl -s -X PUT "http://127.0.0.1:$PORT/json/new?$BASE/media.html?link" > /dev/null; sleep 3
+eval_in "media.html?link" "document.getElementById('dl').click(); 'ok'" > /dev/null
 wait_file ahoi-note.txt 20 && cmp -s "$DL/ahoi-note.txt" "$SITE/note.txt" \
   && record download_attribute PASS || record download_attribute FAIL
 ls -la "$DL" > "$OUT/downloads-dir.txt"
