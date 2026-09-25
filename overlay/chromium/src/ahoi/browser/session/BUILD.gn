@@ -243,6 +243,7 @@ source_set("unit_tests") {
     "shared_tab_target_policy_unittest.cc",
     "startup_policy_unittest.cc",
     "workspace_session_metadata_unittest.cc",
+    "workspace_structure_split_capture_unittest.cc",
   ]
   deps = [
     ":isolated_profiles",

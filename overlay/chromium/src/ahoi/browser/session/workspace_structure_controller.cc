@@ -31,6 +31,26 @@ sync::SharedSplitMetadata Metadata(const sync::SplitGroupRecord& r) {
 }
 }  // namespace
 
+SplitCaptureAdoption ClassifySplitCapture(
+    bool native_change,
+    bool record_tombstone,
+    const std::optional<sync::SharedSplitMetadata>& observed,
+    const sync::SharedSplitMetadata& current,
+    const base::Uuid& record_workspace_id) {
+  if (record_tombstone || !observed || *observed == current) {
+    return SplitCaptureAdoption::kNone;
+  }
+  if (native_change) {
+    return SplitCaptureAdoption::kNativeChange;
+  }
+  if (current.workspace_id != record_workspace_id &&
+      current.topology == observed->topology &&
+      current.ratios == observed->ratios) {
+    return SplitCaptureAdoption::kWorkspaceOnly;
+  }
+  return SplitCaptureAdoption::kNone;
+}
+
 WorkspaceStructureController::WorkspaceStructureController(
     SessionBridge* bridge,
     Profile* profile)
@@ -288,13 +308,15 @@ void WorkspaceStructureController::CaptureSplits() {
       } else {
         auto& e = found->second;
         auto& record = std::get<sync::SplitGroupRecord>(e.record);
-        if (record.tombstone || !e.observed_split ||
-            *e.observed_split == *current ||
-            !changed_native_splits_.contains(native_id.ToString())) {
+        const SplitCaptureAdoption adoption = ClassifySplitCapture(
+            changed_native_splits_.contains(native_id.ToString()),
+            record.tombstone, e.observed_split, *current, record.workspace_id);
+        if (adoption == SplitCaptureAdoption::kNone) {
           continue;
         }
         const auto old = e.record;
-        if (current->workspace_id != e.observed_split->workspace_id)
+        if (adoption == SplitCaptureAdoption::kWorkspaceOnly ||
+            current->workspace_id != e.observed_split->workspace_id)
           record.workspace_id = current->workspace_id;
         if (current->topology != e.observed_split->topology)
           record.topology = current->topology;

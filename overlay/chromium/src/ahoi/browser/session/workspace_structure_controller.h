@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <memory>
+#include <optional>
 
 #include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/workspace_structure_state.h"
@@ -24,6 +25,26 @@ class ResourcePolicyService;
 }
 
 namespace ahoi::session {
+
+// What CaptureSplits adopts from an observed native split into its stored
+// split record. Exposed for unit tests (handoff 011 S6).
+enum class SplitCaptureAdoption {
+  kNone,
+  // A native split change (topology, ratios, membership) was observed.
+  kNativeChange,
+  // Only the Workspace of the members changed, e.g. after moving the split's
+  // pages to another Workspace in the tree. No native split change happens,
+  // but the record must follow its members, or materializing it later fails
+  // on the Workspace mismatch.
+  kWorkspaceOnly,
+};
+SplitCaptureAdoption ClassifySplitCapture(
+    bool native_change,
+    bool record_tombstone,
+    const std::optional<sync::SharedSplitMetadata>& observed,
+    const sync::SharedSplitMetadata& current,
+    const base::Uuid& record_workspace_id);
+
 class WorkspaceStructureController final
     : public sync::ProfileSyncService::Observer {
  public:
