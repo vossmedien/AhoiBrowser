@@ -65,6 +65,23 @@ class NetworkAuditTest(unittest.TestCase):
         self.assertEqual(audit.main(["--app", "/Applications/AhoiBrowser.app",
                                      "--output", "/tmp/unused"]), 7)
 
+    def test_symlinked_bundle_launches_the_real_bundle(self):
+        # The Mac sandbox crashes a symlinked bundle's first child launch, so
+        # the identity (and the launched executable) is the resolved bundle.
+        import plistlib
+        with tempfile.TemporaryDirectory() as tmp:
+            real = pathlib.Path(tmp).resolve() / "Real.app"
+            (real / "Contents/MacOS").mkdir(parents=True)
+            (real / "Contents/MacOS/Real").write_bytes(b"binary")
+            with (real / "Contents/Info.plist").open("wb") as handle:
+                plistlib.dump({"CFBundleExecutable": "Real"}, handle)
+            link = pathlib.Path(tmp) / "link.app"
+            link.symlink_to(real)
+            identity = audit.perf.app_identity(link)
+            self.assertEqual(identity["path"], str(real))
+            self.assertEqual(identity["executable"],
+                             str(real / "Contents/MacOS/Real"))
+
 
 if __name__ == "__main__":
     unittest.main()

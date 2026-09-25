@@ -180,7 +180,7 @@ def main(argv=None) -> int:
         print(f"audit run failed: {error}", file=sys.stderr)
         try:
             os.killpg(process.pid, signal.SIGTERM)
-        except ProcessLookupError:
+        except (ProcessLookupError, PermissionError):
             pass
         return 2
     finally:

@@ -142,6 +142,11 @@ def preflight(apps: list[pathlib.Path], port: int, min_idle: int, lease: bool,
 # --------------------------------------------------------------------------- app
 
 def app_identity(app: pathlib.Path) -> dict:
+    # Chromium's Mac sandbox requires the executable to run from its real
+    # bundle path; a symlinked or partially copied bundle crashes the first
+    # child launch (DCHECK in SetupCommonSandboxParameters). Callers may pass
+    # a symlink so that their own command line does not name the bundle.
+    app = app.resolve()
     with (app / "Contents/Info.plist").open("rb") as handle:
         plist = plistlib.load(handle)
     executable = app / "Contents/MacOS" / plist["CFBundleExecutable"]
