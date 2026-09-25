@@ -229,9 +229,17 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     }
     const base::Uuid workspace_id = base::Uuid::ParseLowercase(stable_id);
     SessionBridge* bridge = SessionBridgeFactory::GetForProfile(profile);
-    return workspace_id.is_valid() && bridge &&
-           bridge->SetActiveWorkspaceForWindow(
-               browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
+    if (!workspace_id.is_valid() || !bridge) {
+      return false;
+    }
+    if (bridge->SetActiveWorkspaceForWindow(
+            browser_, workspace_id, WorkspaceActivationSource::kKeyboard)) {
+      return true;
+    }
+    // Another Profile's Workspace (ADR 0011 step 2, handoff 054): the
+    // sidebar's shared switcher hands this window's frame over.
+    return sidebar_host_ &&
+           sidebar::ActivateBrowserWorkspaceById(sidebar_host_, workspace_id);
   }
 
   bool CanRevealFolder(std::string_view stable_id) const override {

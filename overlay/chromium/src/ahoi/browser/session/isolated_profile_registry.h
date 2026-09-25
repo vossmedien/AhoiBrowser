@@ -46,6 +46,10 @@ struct IsolatedProfileEntry {
   std::u16string icon;
   std::optional<uint32_t> accent_argb;
   IsolatedProfileState state = IsolatedProfileState::kCreating;
+  // Position in the process-wide Workspace order, in the same key space as
+  // the main Profile's Workspace `sort_key` (workspace_directory_order.h).
+  // Empty for entries written before step 2; they follow all keyed ones.
+  std::string sort_key;
 
   bool operator==(const IsolatedProfileEntry&) const = default;
 };

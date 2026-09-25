@@ -9,6 +9,7 @@
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/isolated_workspace_directory.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "ahoi/browser/ui/settings/ahoi_settings_handler.h"
 #include "ahoi/browser/ui/settings/link_routing_settings_model.h"
@@ -56,18 +57,33 @@ std::vector<LinkRoutingWorkspace> AhoiSettingsHandler::LinkRoutingWorkspaces()
   if (!main_profile) {
     return workspaces;
   }
+  // Process-wide order (ADR 0011 step 2, handoff 054).
+  std::vector<session::DirectoryWorkspace> main_keys;
+  std::map<base::Uuid, LinkRoutingWorkspace> by_id;
   if (WorkspaceService* service =
           WorkspaceServiceFactory::GetForProfile(main_profile)) {
     for (const tab_tree::Workspace& workspace : service->ordered_workspaces()) {
-      workspaces.push_back(
-          {.id = workspace.id, .name = base::UTF16ToUTF8(workspace.name)});
+      main_keys.push_back(
+          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
+      by_id.emplace(workspace.id,
+                    LinkRoutingWorkspace{
+                        .id = workspace.id,
+                        .name = base::UTF16ToUTF8(workspace.name)});
     }
   }
-  for (const session::IsolatedProfileEntry& entry :
-       session::GetOpenableIsolatedWorkspaces()) {
-    workspaces.push_back({.id = entry.workspace_id,
-                          .name = base::UTF16ToUTF8(entry.name),
-                          .separated = true});
+  const std::vector<session::IsolatedProfileEntry> isolated =
+      session::GetOpenableIsolatedWorkspaces();
+  for (const session::IsolatedProfileEntry& entry : isolated) {
+    by_id.emplace(entry.workspace_id,
+                  LinkRoutingWorkspace{.id = entry.workspace_id,
+                                       .name = base::UTF16ToUTF8(entry.name),
+                                       .separated = true});
+  }
+  for (const session::DirectoryWorkspace& key :
+       session::OrderDirectoryWorkspaces(main_keys, isolated)) {
+    if (auto it = by_id.find(key.workspace_id); it != by_id.end()) {
+      workspaces.push_back(it->second);
+    }
   }
   return workspaces;
 }

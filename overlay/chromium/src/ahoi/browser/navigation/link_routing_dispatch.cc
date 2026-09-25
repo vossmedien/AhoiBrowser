@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/navigation/link_routing_dispatch.h"
 
+#include <map>
 #include <optional>
 #include <set>
 #include <string>
@@ -17,6 +18,7 @@
 #include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "base/files/file_path.h"
 #include "base/functional/bind.h"
@@ -268,21 +270,36 @@ void OpenRouted(const GURL& url,
   OpenLastActive(url, mode, main_profile, fallback);
 }
 
-// Normal Workspaces of the main Profile, then the openable fully separated
-// Workspaces. Only logical Workspace ids leave this function.
+// The main Profile's Workspaces and the openable fully separated ones, in
+// the process-wide order (ADR 0011 step 2, handoff 054). Only logical
+// Workspace ids leave this function.
 std::vector<LinkRoutingTargetOption> TargetOptions(Profile* main_profile) {
-  std::vector<LinkRoutingTargetOption> options;
+  std::vector<session::DirectoryWorkspace> main_keys;
+  std::map<base::Uuid, LinkRoutingTargetOption> by_id;
   if (WorkspaceService* service =
           WorkspaceServiceFactory::GetForProfile(main_profile)) {
     for (const tab_tree::Workspace& workspace : service->ordered_workspaces()) {
-      options.push_back({.workspace_id = workspace.id, .name = workspace.name});
+      main_keys.push_back(
+          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
+      by_id.emplace(workspace.id,
+                    LinkRoutingTargetOption{.workspace_id = workspace.id,
+                                            .name = workspace.name});
     }
   }
-  for (const session::IsolatedProfileEntry& entry :
-       session::GetOpenableIsolatedWorkspaces()) {
-    options.push_back({.workspace_id = entry.workspace_id,
-                       .name = entry.name,
-                       .separated = true});
+  const std::vector<session::IsolatedProfileEntry> isolated =
+      session::GetOpenableIsolatedWorkspaces();
+  for (const session::IsolatedProfileEntry& entry : isolated) {
+    by_id.emplace(entry.workspace_id,
+                  LinkRoutingTargetOption{.workspace_id = entry.workspace_id,
+                                          .name = entry.name,
+                                          .separated = true});
+  }
+  std::vector<LinkRoutingTargetOption> options;
+  for (const session::DirectoryWorkspace& key :
+       session::OrderDirectoryWorkspaces(main_keys, isolated)) {
+    if (auto it = by_id.find(key.workspace_id); it != by_id.end()) {
+      options.push_back(it->second);
+    }
   }
   return options;
 }

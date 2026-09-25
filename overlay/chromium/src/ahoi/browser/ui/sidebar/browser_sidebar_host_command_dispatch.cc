@@ -161,6 +161,143 @@ void RunHandOver(BrowserWindowInterface* source,
 
 }  // namespace
 
+std::vector<BrowserSidebarHostView::SwitcherWorkspace>
+BrowserSidebarHostView::SwitcherWorkspaces() const {
+  const bool isolated_profile =
+      session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
+  const std::string own_profile_dir =
+      browser_->GetProfile()->GetPath().BaseName().AsUTF8Unsafe();
+  WorkspaceService* main_service = workspace_service_;
+  SessionBridge* main_bridge = session_bridge_;
+  if (isolated_profile) {
+    Profile* main_profile = session::GetLoadedMainProfile();
+    main_service = main_profile
+                       ? WorkspaceServiceFactory::GetForProfile(main_profile)
+                       : nullptr;
+    main_bridge =
+        main_profile ? SessionBridgeFactory::GetForProfile(main_profile)
+                     : nullptr;
+  }
+  std::vector<session::DirectoryWorkspace> main_keys;
+  std::map<base::Uuid, SwitcherWorkspace> details;
+  if (main_service) {
+    for (const tab_tree::Workspace& workspace :
+         main_service->ordered_workspaces()) {
+      main_keys.push_back(
+          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
+      details.emplace(
+          workspace.id,
+          SwitcherWorkspace{
+              .key = main_keys.back(),
+              .name = workspace.name,
+              .icon = workspace.icon,
+              .accent_argb = workspace.accent_argb,
+              .own = !isolated_profile,
+              .own_website_sessions =
+                  main_bridge && main_bridge->HasOwnWebsiteSessions(workspace.id)});
+    }
+  }
+  const std::vector<session::IsolatedProfileEntry> isolated =
+      session::GetOpenableIsolatedWorkspaces();
+  for (const session::IsolatedProfileEntry& entry : isolated) {
+    details.emplace(entry.workspace_id,
+                    SwitcherWorkspace{.key = {.workspace_id = entry.workspace_id,
+                                              .sort_key = entry.sort_key,
+                                              .profile_dir = entry.profile_dir},
+                                      .name = entry.name,
+                                      .icon = entry.icon,
+                                      .accent_argb = entry.accent_argb,
+                                      .own = entry.profile_dir == own_profile_dir});
+  }
+  std::vector<SwitcherWorkspace> result;
+  for (const session::DirectoryWorkspace& key :
+       session::OrderDirectoryWorkspaces(main_keys, isolated)) {
+    if (auto it = details.find(key.workspace_id); it != details.end()) {
+      result.push_back(it->second);
+    }
+  }
+  return result;
+}
+
+std::optional<size_t> BrowserSidebarHostView::ActiveSwitcherIndex(
+    const std::vector<SwitcherWorkspace>& switcher) const {
+  const std::optional<base::Uuid> active =
+      session_bridge_->GetActiveWorkspaceForWindow(browser_);
+  for (size_t index = 0; index < switcher.size(); ++index) {
+    if (switcher[index].own && active == switcher[index].key.workspace_id) {
+      return index;
+    }
+  }
+  return std::nullopt;
+}
+
+bool BrowserSidebarHostView::ActivateSwitcherWorkspace(
+    const SwitcherWorkspace& target,
+    WorkspaceActivationSource source) {
+  if (target.own) {
+    return session_bridge_->SetActiveWorkspaceForWindow(
+        browser_, target.key.workspace_id, source);
+  }
+  if (target.key.profile_dir.empty()) {
+    OpenMainWorkspaceByHandOver(target.key.workspace_id);
+  } else {
+    OpenIsolatedWorkspaceByHandOver(target.key.profile_dir);
+  }
+  return true;
+}
+
+void BrowserSidebarHostView::OpenMainWorkspaceByHandOver(
+    std::optional<base::Uuid> workspace_id) {
+  const SessionID source_id = browser_->GetSessionID();
+  RunHandOver(
+      browser_.get(),
+      base::BindOnce(
+          [](SessionID source_id,
+             base::OnceCallback<void(BrowserWindowInterface*)> done) {
+            session::LoadMainProfile(base::BindOnce(
+                [](SessionID source_id,
+                   base::OnceCallback<void(BrowserWindowInterface*)> done,
+                   Profile* main_profile) {
+                  session::PresentProfileWindow(
+                      main_profile,
+                      BrowserWindowInterface::FromSessionID(source_id),
+                      std::move(done));
+                },
+                source_id, std::move(done)));
+          },
+          source_id),
+      base::BindOnce(
+          [](std::optional<base::Uuid> workspace_id,
+             BrowserWindowInterface* main_browser) {
+            SessionBridge* bridge =
+                main_browser ? SessionBridgeFactory::GetForProfile(
+                                   main_browser->GetProfile())
+                             : nullptr;
+            if (!bridge || !workspace_id.has_value()) {
+              return;
+            }
+            std::ignore = bridge->SetActiveWorkspaceForWindow(
+                main_browser, *workspace_id,
+                WorkspaceActivationSource::kSidebar);
+          },
+          workspace_id));
+}
+
+void BrowserSidebarHostView::OpenIsolatedWorkspaceByHandOver(
+    const std::string& profile_dir) {
+  RunHandOver(
+      browser_.get(),
+      base::BindOnce(
+          [](std::string dir, SessionID source_id,
+             base::OnceCallback<void(BrowserWindowInterface*)> done) {
+            session::PresentIsolatedWorkspace(
+                dir, BrowserWindowInterface::FromSessionID(source_id),
+                std::move(done));
+          },
+          profile_dir, browser_->GetSessionID()),
+      base::DoNothing());
+}
+
 void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
   VLOG(1) << "Ahoi sidebar command " << command_id << " scope "
           << static_cast<int>(context_menu_scope_);
@@ -377,39 +514,7 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       } else if (!context_offers_main_workspaces_) {
         return;
       }
-      const SessionID source_id = browser_->GetSessionID();
-      RunHandOver(
-          browser_.get(),
-          base::BindOnce(
-              [](SessionID source_id,
-                 base::OnceCallback<void(BrowserWindowInterface*)> done) {
-                session::LoadMainProfile(base::BindOnce(
-                    [](SessionID source_id,
-                       base::OnceCallback<void(BrowserWindowInterface*)> done,
-                       Profile* main_profile) {
-                      session::PresentProfileWindow(
-                          main_profile,
-                          BrowserWindowInterface::FromSessionID(source_id),
-                          std::move(done));
-                    },
-                    source_id, std::move(done)));
-              },
-              source_id),
-          base::BindOnce(
-              [](std::optional<base::Uuid> workspace_id,
-                 BrowserWindowInterface* main_browser) {
-                SessionBridge* bridge =
-                    main_browser ? SessionBridgeFactory::GetForProfile(
-                                       main_browser->GetProfile())
-                                 : nullptr;
-                if (!bridge || !workspace_id.has_value()) {
-                  return;
-                }
-                std::ignore = bridge->SetActiveWorkspaceForWindow(
-                    main_browser, *workspace_id,
-                    WorkspaceActivationSource::kSidebar);
-              },
-              main_workspace_id));
+      OpenMainWorkspaceByHandOver(main_workspace_id);
       return;
     }
     if (command_id >= kOpenIsolatedWorkspaceCommandBase &&
@@ -417,18 +522,8 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       const size_t isolated_index =
           static_cast<size_t>(command_id - kOpenIsolatedWorkspaceCommandBase);
       if (isolated_index < context_isolated_workspace_dirs_.size()) {
-        RunHandOver(
-            browser_.get(),
-            base::BindOnce(
-                [](std::string dir, SessionID source_id,
-                   base::OnceCallback<void(BrowserWindowInterface*)> done) {
-                  session::PresentIsolatedWorkspace(
-                      dir, BrowserWindowInterface::FromSessionID(source_id),
-                      std::move(done));
-                },
-                context_isolated_workspace_dirs_[isolated_index],
-                browser_->GetSessionID()),
-            base::DoNothing());
+        OpenIsolatedWorkspaceByHandOver(
+            context_isolated_workspace_dirs_[isolated_index]);
       }
       return;
     }

@@ -19,6 +19,7 @@
 #include "ahoi/browser/media/media_mini_player_service.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/group_page_close.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
@@ -141,7 +142,10 @@ class BrowserSidebarHostView final
 
   bool ActivateRelativeRuntimeTab(int delta);
 
+  // `index` counts the process-wide order of the shared switcher (ADR 0011
+  // step 2), not only this Profile's Workspaces.
   bool ActivateWorkspaceAtIndex(size_t index);
+  bool ActivateWorkspaceById(const base::Uuid& workspace_id);
 
   bool RevealFolder(const base::Uuid& folder_id);
 
@@ -212,6 +216,8 @@ class BrowserSidebarHostView final
 
   void ActivateWorkspace(const base::Uuid& workspace_id);
 
+  bool ActivateRelativeSwitcherWorkspace(int delta,
+                                         WorkspaceActivationSource source);
   bool ActivateRelativeWorkspaceWithTransition(
       int delta,
       WorkspaceActivationSource source);
@@ -540,6 +546,28 @@ class BrowserSidebarHostView final
                               const gfx::Point& screen_point,
                               ui::mojom::MenuSourceType source_type);
 
+  // ADR 0011 step 2 (handoff 048): one switcher over the Workspaces of all
+  // Profiles, in the process-wide order. `own` entries belong to this
+  // window's Profile and switch inside it; the others hand the frame over.
+  struct SwitcherWorkspace {
+    session::DirectoryWorkspace key;
+    std::u16string name;
+    std::u16string icon;
+    std::optional<uint32_t> accent_argb;
+    bool own = false;
+    bool own_website_sessions = false;
+  };
+  std::vector<SwitcherWorkspace> SwitcherWorkspaces() const;
+  // Index of this window's active Workspace in `switcher`, if listed.
+  std::optional<size_t> ActiveSwitcherIndex(
+      const std::vector<SwitcherWorkspace>& switcher) const;
+  bool ActivateSwitcherWorkspace(const SwitcherWorkspace& target,
+                                 WorkspaceActivationSource source);
+  // Presents the main Profile's window in this frame, then selects
+  // `workspace_id` there when given.
+  void OpenMainWorkspaceByHandOver(std::optional<base::Uuid> workspace_id);
+  void OpenIsolatedWorkspaceByHandOver(const std::string& profile_dir);
+
   void ShowWorkspaceMenu(const gfx::Point& screen_point,
                          ui::mojom::MenuSourceType source_type);
 
@@ -595,6 +623,7 @@ class BrowserSidebarHostView final
   void AddWorkspaceLevelChoice(views::View* contents);
 
   bool AcceptWorkspaceDialog();
+  std::string NextProcessWideWorkspaceSortKey() const;
 
   bool RequestWorkspaceDialogClose();
 
@@ -811,6 +840,9 @@ class BrowserSidebarHostView final
   int context_page_action_navigation_id_ = 0;
   GURL context_page_action_url_;
   std::vector<base::Uuid> context_workspace_ids_;
+  // Workspace menu command -> position in the shared switcher, for the
+  // Cmd+1..9 hints (handoff 048).
+  std::map<int, size_t> context_workspace_positions_;
   // Profile directories behind the menu's fully separated Workspace items.
   std::vector<std::string> context_isolated_workspace_dirs_;
   // Main Profile Workspaces listed in a fully separated Workspace's window.

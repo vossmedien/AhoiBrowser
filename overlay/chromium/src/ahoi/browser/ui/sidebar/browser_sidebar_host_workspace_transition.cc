@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
+#include <cstdint>
 #include <optional>
 
 #include "ahoi/browser/navigation/workspace_service.h"
@@ -18,8 +19,19 @@
 namespace ahoi::sidebar {
 
 bool BrowserSidebarHostView::ActivateWorkspaceAtIndex(size_t index) {
+  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
+  if (index >= switcher.size()) {
+    return false;
+  }
+  if (!switcher[index].own) {
+    return ActivateSwitcherWorkspace(switcher[index],
+                                     WorkspaceActivationSource::kKeyboard);
+  }
   const auto& workspaces = workspace_service_->ordered_workspaces();
-  if (index >= workspaces.size()) {
+  const auto target = std::ranges::find_if(workspaces, [&](const auto& item) {
+    return item.id == switcher[index].key.workspace_id;
+  });
+  if (target == workspaces.end()) {
     return false;
   }
   const auto active = session_bridge_->GetActiveWorkspaceForWindow(browser_);
@@ -28,22 +40,68 @@ bool BrowserSidebarHostView::ActivateWorkspaceAtIndex(size_t index) {
   if (current == workspaces.end()) {
     // No outgoing workspace exists during initial restoration.
     return session_bridge_->SetActiveWorkspaceForWindow(
-        browser_, workspaces[index].id, WorkspaceActivationSource::kKeyboard);
+        browser_, target->id, WorkspaceActivationSource::kKeyboard);
   }
-  const int delta = base::checked_cast<int>(index) -
+  const int delta = base::checked_cast<int>(target - workspaces.begin()) -
                     base::checked_cast<int>(current - workspaces.begin());
   return delta == 0 || ActivateRelativeWorkspaceWithTransition(
                            delta, WorkspaceActivationSource::kKeyboard);
 }
 
+bool BrowserSidebarHostView::ActivateWorkspaceById(
+    const base::Uuid& workspace_id) {
+  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
+  for (size_t index = 0; index < switcher.size(); ++index) {
+    if (switcher[index].key.workspace_id == workspace_id) {
+      return ActivateWorkspaceAtIndex(index);
+    }
+  }
+  return false;
+}
+
 bool BrowserSidebarHostView::ActivateRelativeWorkspace(int delta) {
-  return ActivateRelativeWorkspaceWithTransition(
+  return ActivateRelativeSwitcherWorkspace(
       delta, WorkspaceActivationSource::kKeyboard);
 }
 
 bool BrowserSidebarHostView::ActivateRelativeWorkspaceByGesture(int delta) {
-  return ActivateRelativeWorkspaceWithTransition(
+  return ActivateRelativeSwitcherWorkspace(
       delta, WorkspaceActivationSource::kGesture);
+}
+
+// Keyboard and swipe cycle through the shared switcher with wrap-around, as
+// WorkspaceService::ActivateRelative does inside one Profile. A neighbour in
+// the same Profile keeps the animated in-window transition; one of another
+// Profile hands the frame over.
+bool BrowserSidebarHostView::ActivateRelativeSwitcherWorkspace(
+    int delta,
+    WorkspaceActivationSource source) {
+  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
+  const std::optional<size_t> current = ActiveSwitcherIndex(switcher);
+  if (delta == 0 || switcher.empty() || !current.has_value()) {
+    return ActivateRelativeWorkspaceWithTransition(delta, source);
+  }
+  const int64_t count = static_cast<int64_t>(switcher.size());
+  const size_t next = static_cast<size_t>(
+      (((static_cast<int64_t>(*current) + delta) % count) + count) % count);
+  const SwitcherWorkspace& target = switcher[next];
+  if (!target.own) {
+    return ActivateSwitcherWorkspace(target, source);
+  }
+  const auto& workspaces = workspace_service_->ordered_workspaces();
+  const auto from = std::ranges::find_if(workspaces, [&](const auto& item) {
+    return item.id == switcher[*current].key.workspace_id;
+  });
+  const auto to = std::ranges::find_if(workspaces, [&](const auto& item) {
+    return item.id == target.key.workspace_id;
+  });
+  if (from == workspaces.end() || to == workspaces.end()) {
+    return false;
+  }
+  const int own_delta = base::checked_cast<int>(to - workspaces.begin()) -
+                        base::checked_cast<int>(from - workspaces.begin());
+  return own_delta == 0 ||
+         ActivateRelativeWorkspaceWithTransition(own_delta, source);
 }
 
 bool BrowserSidebarHostView::ActivateRelativeWorkspaceWithTransition(

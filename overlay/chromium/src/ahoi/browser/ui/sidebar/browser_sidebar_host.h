@@ -78,6 +78,10 @@ base::WeakPtr<tabs::TabInterface> ResolveRelativeBrowserRuntimeTab(
     int delta);
 bool ActivateRelativeBrowserRuntimeTab(views::View* sidebar_host, int delta);
 bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index);
+// Any Workspace of the shared switcher, including another Profile's (ADR 0011
+// step 2): switches in place or hands the window's frame over.
+bool ActivateBrowserWorkspaceById(views::View* sidebar_host,
+                                  const base::Uuid& workspace_id);
 // Activates the folder's workspace, expands its complete ancestor path and
 // selects the folder in the native tree.
 bool RevealBrowserSidebarFolder(views::View* sidebar_host,

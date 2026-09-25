@@ -5,9 +5,11 @@
 #include <utility>
 
 #include "ahoi/browser/command_bar/quick_window.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "chrome/app/chrome_command_ids.h"
+#include "base/functional/callback_helpers.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_commands.h"
@@ -85,6 +87,44 @@ bool CanMoveActiveTabToNormalWindow(const Browser* popup_browser) {
          popup_browser->GetTabStripModel()->active_index() >= 0;
 }
 
+namespace {
+
+// ADR 0011 step 2 (handoff 050): the adopting window can be hidden behind a
+// window of another Profile that a hand-over presented in its frame (for
+// example a fully separated Workspace), or be newly created. Showing it
+// directly would put two windows over one frame; the regular hand-over
+// presents it in the presented window's frame and hides that one instead.
+void ShowAdoptingWindow(Browser* target) {
+  ui::BaseWindow* const window = target->GetWindow();
+  if (!window) {
+    return;
+  }
+  if (!window->IsVisible() && !window->IsMinimized()) {
+    BrowserWindowInterface* presented = nullptr;
+    ForEachCurrentBrowserWindowInterfaceOrderedByActivation(
+        [target, &presented](BrowserWindowInterface* candidate) {
+          ui::BaseWindow* const candidate_window = candidate->GetWindow();
+          if (candidate->GetType() == BrowserWindowInterface::TYPE_NORMAL &&
+              candidate->GetProfile() != target->GetProfile() &&
+              candidate_window && candidate_window->IsVisible() &&
+              !candidate_window->IsMinimized()) {
+            presented = candidate;
+            return false;
+          }
+          return true;
+        });
+    if (presented) {
+      session::PresentProfileWindow(target->GetProfile(), presented,
+                                    base::DoNothing());
+      return;
+    }
+  }
+  window->Show();
+  window->Activate();
+}
+
+}  // namespace
+
 bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
   if (!CanMoveActiveTabToNormalWindow(popup_browser)) {
     return false;
@@ -135,10 +175,7 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
       return false;
     }
     target->OpenGURL(url, WindowOpenDisposition::NEW_FOREGROUND_TAB);
-    if (target->GetWindow()) {
-      target->GetWindow()->Show();
-      target->GetWindow()->Activate();
-    }
+    ShowAdoptingWindow(target);
     source_model->CloseWebContentsAt(source_model->active_index(),
                                      TabCloseTypes::CLOSE_USER_GESTURE);
     return true;
@@ -156,10 +193,7 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
   target->GetTabStripModel()->InsertDetachedTabAt(
       target->GetTabStripModel()->count(), std::move(tab),
       AddTabTypes::ADD_ACTIVE);
-  if (target->GetWindow()) {
-    target->GetWindow()->Show();
-    target->GetWindow()->Activate();
-  }
+  ShowAdoptingWindow(target);
   // Detaching the final popup tab follows Chromium's normal empty-window
   // lifecycle. The WebContents and its renderer/navigation state stay intact.
   return true;

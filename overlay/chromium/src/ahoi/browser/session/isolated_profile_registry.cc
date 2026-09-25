@@ -21,6 +21,7 @@ constexpr char kNameKey[] = "name";
 constexpr char kIconKey[] = "icon";
 constexpr char kAccentKey[] = "accent_argb";
 constexpr char kStateKey[] = "state";
+constexpr char kSortKey[] = "sort_key";
 
 // A plain directory base name: no separators, no parent references.
 bool IsValidProfileDir(std::string_view dir) {
@@ -54,6 +55,12 @@ std::optional<IsolatedProfileEntry> Decode(const base::Value& value) {
   if (!entry.workspace_id.is_valid()) {
     return std::nullopt;
   }
+  if (const base::Value* sort_key = dict->Find(kSortKey)) {
+    if (!sort_key->is_string()) {
+      return std::nullopt;
+    }
+    entry.sort_key = sort_key->GetString();
+  }
   if (const base::Value* accent = dict->Find(kAccentKey)) {
     // Stored as a double because ARGB exceeds int; it must be an exact
     // 32-bit value.
@@ -77,6 +84,9 @@ base::DictValue Encode(const IsolatedProfileEntry& entry) {
     dict.Set(kAccentKey, static_cast<double>(*entry.accent_argb));
   }
   dict.Set(kStateKey, static_cast<int>(entry.state));
+  if (!entry.sort_key.empty()) {
+    dict.Set(kSortKey, entry.sort_key);
+  }
   return dict;
 }
 

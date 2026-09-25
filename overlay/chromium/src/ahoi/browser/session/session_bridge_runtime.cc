@@ -9,7 +9,10 @@
 
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/isolated_profile_creation.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge_internal.h"
+#include "ahoi/browser/session/workspace_service_factory.h"
 #include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
@@ -453,14 +456,49 @@ void SessionBridge::PublishCommandItems() {
 
   std::vector<CommandItem> workspaces;
   workspaces.reserve(workspace_service_->ordered_workspaces().size());
+  std::set<base::Uuid> listed;
   for (const tab_tree::Workspace& workspace :
        workspace_service_->ordered_workspaces()) {
+    listed.insert(workspace.id);
     workspaces.push_back({
         .type = CommandItemType::kWorkspace,
         .stable_id = workspace.id.AsLowercaseString(),
         .title = workspace.name,
         .priority = 100,
     });
+  }
+  // ADR 0011 step 2 (handoff 054): the command bar reaches every Profile's
+  // Workspaces. Choosing one of another Profile hands the window over
+  // through the sidebar's shared switcher (SwitchWorkspace).
+  const std::u16string separated = u"Vollständig getrennt";
+  for (const session::IsolatedProfileEntry& entry :
+       session::GetOpenableIsolatedWorkspaces()) {
+    if (listed.insert(entry.workspace_id).second) {
+      workspaces.push_back({
+          .type = CommandItemType::kWorkspace,
+          .stable_id = entry.workspace_id.AsLowercaseString(),
+          .title = entry.name,
+          .secondary_text = separated,
+          .priority = 100,
+      });
+    }
+  }
+  Profile* main_profile = session::GetLoadedMainProfile();
+  if (main_profile && main_profile != profile_) {
+    if (WorkspaceService* main_workspaces =
+            WorkspaceServiceFactory::GetForProfile(main_profile)) {
+      for (const tab_tree::Workspace& workspace :
+           main_workspaces->ordered_workspaces()) {
+        if (listed.insert(workspace.id).second) {
+          workspaces.push_back({
+              .type = CommandItemType::kWorkspace,
+              .stable_id = workspace.id.AsLowercaseString(),
+              .title = workspace.name,
+              .priority = 100,
+          });
+        }
+      }
+    }
   }
   CHECK(command_service_->ReplaceItems(CommandItemType::kWorkspace,
                                        std::move(workspaces)));

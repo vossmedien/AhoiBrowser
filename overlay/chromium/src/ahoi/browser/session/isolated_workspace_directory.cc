@@ -459,6 +459,9 @@ void ShowMainWindowsAfterIsolatedDeletion(
       ui::BaseWindow* window = browser->GetWindow();
       if (window && !window->IsVisible() && !window->IsMinimized()) {
         window->Show();
+        // The shown window is now the presented one, so a restart hides
+        // the windows still behind it again (handoff 046).
+        RecordPresentedProfile(browser->GetProfile());
       }
     }
     return;

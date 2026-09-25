@@ -75,6 +75,7 @@ void OnIsolatedProfileInitialized(std::string dir,
 void CreateIsolatedWorkspace(std::u16string name,
                              std::u16string icon,
                              std::optional<uint32_t> accent_argb,
+                             std::string sort_key,
                              base::OnceCallback<void(bool)> done) {
   ProfileManager* profile_manager = g_browser_process->profile_manager();
   PrefService* local_state = g_browser_process->local_state();
@@ -100,6 +101,7 @@ void CreateIsolatedWorkspace(std::u16string name,
       .icon = std::move(icon),
       .accent_argb = accent_argb,
       .state = IsolatedProfileState::kCreating,
+      .sort_key = std::move(sort_key),
   };
   if (!AddIsolatedProfile(local_state, entry)) {
     std::move(done).Run(false);

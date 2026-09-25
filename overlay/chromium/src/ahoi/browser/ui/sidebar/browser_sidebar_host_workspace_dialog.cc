@@ -14,6 +14,8 @@
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/session_prefs.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -419,6 +421,25 @@ void BrowserSidebarHostView::UpdateWorkspaceColorButtons() {
   }
 }
 
+// ADR 0011 step 2: a new separated Workspace is appended after every
+// Workspace of the main Profile and every separated one. From a separated
+// window the main Profile's Workspaces are read from its loaded service.
+std::string BrowserSidebarHostView::NextProcessWideWorkspaceSortKey() const {
+  std::vector<session::DirectoryWorkspace> main_workspaces;
+  Profile* main_profile = session::GetLoadedMainProfile();
+  if (WorkspaceService* service =
+          main_profile ? WorkspaceServiceFactory::GetForProfile(main_profile)
+                       : nullptr) {
+    for (const tab_tree::Workspace& workspace :
+         service->ordered_workspaces()) {
+      main_workspaces.push_back(
+          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
+    }
+  }
+  return session::NextDirectorySortKey(session::OrderDirectoryWorkspaces(
+      main_workspaces, session::GetOpenableIsolatedWorkspaces()));
+}
+
 bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
   if (pending_workspace_action_ == PendingWorkspaceAction::kDelete &&
       session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
@@ -465,6 +486,7 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
     // window's Workspaces stay unchanged.
     session::CreateIsolatedWorkspace(
         std::move(name), std::move(icon), pending_workspace_accent_argb_,
+        NextProcessWideWorkspaceSortKey(),
         base::BindOnce(
             [](base::WeakPtr<BrowserSidebarHostView> view, bool created) {
               if (view && !created) {

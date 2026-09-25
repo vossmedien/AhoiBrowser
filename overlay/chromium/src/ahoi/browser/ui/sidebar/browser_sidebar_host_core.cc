@@ -400,24 +400,22 @@ void BrowserSidebarHostView::UpdateWorkspaceSelectorIndicators() {
   if (!workspace_button_ || !workspace_service_) {
     return;
   }
-  const std::optional<base::Uuid> active_workspace =
-      window_id_.has_value()
-          ? workspace_service_->GetActiveWorkspace(*window_id_)
-          : std::nullopt;
+  // ADR 0011 step 2 (handoff 048): dots cover every Profile's Workspaces in
+  // the process-wide order; `workspace_index` is the switcher position.
+  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
+  const std::optional<size_t> active = ActiveSwitcherIndex(switcher);
   std::vector<WorkspaceSelectorIndicator> indicators;
-  indicators.reserve(workspace_service_->ordered_workspaces().size());
-  const auto& workspaces = workspace_service_->ordered_workspaces();
-  for (size_t index = 0; index < workspaces.size(); ++index) {
-    const tab_tree::Workspace& workspace = workspaces[index];
+  indicators.reserve(switcher.size());
+  for (size_t index = 0; index < switcher.size(); ++index) {
     // The active workspace is already represented by icon and name. Only
     // inactive workspaces become dots, matching the compact Arc-like model.
-    if (active_workspace.has_value() && *active_workspace == workspace.id) {
+    if (active == index) {
       continue;
     }
     indicators.push_back({.workspace_index = index,
-                          .name = workspace.name,
-                          .icon = workspace.icon,
-                          .accent_argb = workspace.accent_argb});
+                          .name = switcher[index].name,
+                          .icon = switcher[index].icon,
+                          .accent_argb = switcher[index].accent_argb});
   }
   SetWorkspaceSelectorIndicators(
       workspace_button_, std::move(indicators),

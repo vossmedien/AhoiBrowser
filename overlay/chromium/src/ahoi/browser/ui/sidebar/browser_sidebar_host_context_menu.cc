@@ -265,77 +265,56 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   };
   const bool isolated_profile =
       session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
-  for (const tab_tree::Workspace& workspace :
-       workspace_service_->ordered_workspaces()) {
-    const int command_id = kActivateWorkspaceCommandBase +
-                           static_cast<int>(context_workspace_ids_.size());
-    context_workspace_ids_.push_back(workspace.id);
-    context_menu_model_->AddCheckItem(
-        command_id,
-        isolated_profile ? with_level(workspace.name, isolated_level)
-        : session_bridge_->HasOwnWebsiteSessions(workspace.id)
-            ? with_level(workspace.name, own_sessions_level)
-            : workspace.name);
-  }
-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-  // One fully separated Workspace per Profile (ADR 0011). The shared
-  // switcher (step 2) lists the other Profiles' Workspaces below; choosing
-  // one hands this window's frame over to that Profile's window.
-  const std::string own_profile_dir =
-      browser_->GetProfile()->GetPath().BaseName().AsUTF8Unsafe();
   context_isolated_workspace_dirs_.clear();
   context_main_workspace_ids_.clear();
+  context_workspace_positions_.clear();
   context_offers_main_workspaces_ = false;
-  if (isolated_profile) {
-    Profile* main_profile = session::GetLoadedMainProfile();
-    WorkspaceService* main_workspaces =
-        main_profile ? WorkspaceServiceFactory::GetForProfile(main_profile)
-                     : nullptr;
-    SessionBridge* main_bridge =
-        main_profile ? SessionBridgeFactory::GetForProfile(main_profile)
-                     : nullptr;
-    if (main_workspaces && main_bridge) {
-      for (const tab_tree::Workspace& workspace :
-           main_workspaces->ordered_workspaces()) {
-        if (context_main_workspace_ids_.size() >= 99) {
-          break;
-        }
-        context_menu_model_->AddItem(
-            kOpenMainWorkspaceCommandBase +
-                static_cast<int>(context_main_workspace_ids_.size()),
-            main_bridge->HasOwnWebsiteSessions(workspace.id)
-                ? with_level(workspace.name, own_sessions_level)
-                : workspace.name);
-        context_main_workspace_ids_.push_back(workspace.id);
+  // ADR 0011 step 2 (handoff 048): one list in the process-wide order. The
+  // check mark shows this window's Workspace; items of another Profile hand
+  // this window's frame over to that Profile's window.
+  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
+  for (size_t position = 0; position < switcher.size(); ++position) {
+    const SwitcherWorkspace& workspace = switcher[position];
+    const std::u16string title =
+        !workspace.key.profile_dir.empty()
+            ? with_level(workspace.name, isolated_level)
+        : workspace.own_website_sessions
+            ? with_level(workspace.name, own_sessions_level)
+            : workspace.name;
+    int command_id = 0;
+    if (workspace.own) {
+      command_id = kActivateWorkspaceCommandBase +
+                   static_cast<int>(context_workspace_ids_.size());
+      context_workspace_ids_.push_back(workspace.key.workspace_id);
+      context_menu_model_->AddCheckItem(command_id, title);
+    } else if (workspace.key.profile_dir.empty()) {
+      if (context_main_workspace_ids_.size() >= 99) {
+        continue;
       }
+      command_id = kOpenMainWorkspaceCommandBase +
+                   static_cast<int>(context_main_workspace_ids_.size());
+      context_main_workspace_ids_.push_back(workspace.key.workspace_id);
+      context_menu_model_->AddItem(command_id, title);
     } else {
-      context_offers_main_workspaces_ = true;
-      context_menu_model_->AddItem(
-          kOpenMainWorkspacesCommand,
-          StructureText(u"Haupt-Workspaces öffnen", u"Open main Workspaces"));
+      if (context_isolated_workspace_dirs_.size() >= 99) {
+        continue;
+      }
+      command_id = kOpenIsolatedWorkspaceCommandBase +
+                   static_cast<int>(context_isolated_workspace_dirs_.size());
+      context_isolated_workspace_dirs_.push_back(workspace.key.profile_dir);
+      context_menu_model_->AddItem(command_id, title);
     }
+    context_workspace_positions_.emplace(command_id, position);
   }
-  // Every other fully separated Workspace, also after its window was closed
-  // or the app restarted.
-  for (const session::IsolatedProfileEntry& entry :
-       session::GetOpenableIsolatedWorkspaces()) {
-    if (context_isolated_workspace_dirs_.size() >= 99) {
-      break;
-    }
-    if (entry.profile_dir == own_profile_dir) {
-      continue;
-    }
+  // In a separated window whose main Profile is not loaded, its Workspaces
+  // are not known yet; this entry loads it.
+  if (isolated_profile && !session::GetLoadedMainProfile()) {
+    context_offers_main_workspaces_ = true;
     context_menu_model_->AddItem(
-        kOpenIsolatedWorkspaceCommandBase +
-            static_cast<int>(context_isolated_workspace_dirs_.size()),
-        with_level(entry.name, isolated_level));
-    context_isolated_workspace_dirs_.push_back(entry.profile_dir);
+        kOpenMainWorkspacesCommand,
+        StructureText(u"Haupt-Workspaces öffnen", u"Open main Workspaces"));
   }
-  if (!context_isolated_workspace_dirs_.empty() ||
-      !context_main_workspace_ids_.empty() ||
-      context_offers_main_workspaces_) {
-    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-  }
+  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
   if (!isolated_profile) {
     context_menu_model_->AddItem(
         kCreateWorkspace,
@@ -665,11 +644,12 @@ bool BrowserSidebarHostView::GetAcceleratorForCommandId(
     int command_id,
     ui::Accelerator* accelerator) const {
   std::string shortcut_id;
-  if (command_id >= kActivateWorkspaceCommandBase &&
-      command_id < kActivateWorkspaceCommandBase + 9) {
-    shortcut_id = shortcuts::kWorkspacePrefix +
-                  base::NumberToString(command_id -
-                                       kActivateWorkspaceCommandBase + 1);
+  const auto position = context_workspace_positions_.find(command_id);
+  if (context_menu_scope_ == ContextMenuScope::kWorkspace &&
+      position != context_workspace_positions_.end() && position->second < 9) {
+    // Cmd+1..9 count the shared switcher's order (handoff 048).
+    shortcut_id =
+        shortcuts::kWorkspacePrefix + base::NumberToString(position->second + 1);
   } else if (command_id == kToggleFloatingSidebar) {
     shortcut_id = shortcuts::kToggleSidebarFloating;
   } else if (command_id == kToggleSidebarVisibility) {

@@ -49,6 +49,8 @@ source_set("session_preferences") {
     "isolated_profile_registry.h",
     "session_prefs.cc",
     "session_prefs.h",
+    "workspace_directory_order.cc",
+    "workspace_directory_order.h",
   ]
   public_deps = [
     "//base",
@@ -242,6 +244,7 @@ source_set("unit_tests") {
     "session_restore_integration_unittest.cc",
     "shared_tab_target_policy_unittest.cc",
     "startup_policy_unittest.cc",
+    "workspace_directory_order_unittest.cc",
     "workspace_session_metadata_unittest.cc",
     "workspace_structure_split_capture_unittest.cc",
   ]

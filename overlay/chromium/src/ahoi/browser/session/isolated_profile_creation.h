@@ -23,9 +23,12 @@ namespace ahoi::session {
 // exists, and opens its window. The Profile's SessionBridge seeds its tree
 // with that Workspace instead of the canonical Inbox. `done` receives false
 // when the Profile could not be created; the registry entry is removed then.
+// `sort_key` places the Workspace in the process-wide order
+// (workspace_directory_order.h); callers pass NextDirectorySortKey().
 void CreateIsolatedWorkspace(std::u16string name,
                              std::u16string icon,
                              std::optional<uint32_t> accent_argb,
+                             std::string sort_key,
                              base::OnceCallback<void(bool)> done);
 
 // Deletes a fully separated Workspace together with its Profile. Every page of

@@ -11,6 +11,7 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_internal.h"
 #include "ahoi/browser/session/session_prefs.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "base/check.h"
 #include "base/containers/span.h"
 #include "base/files/file_util.h"
@@ -24,6 +25,7 @@
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
 #include "base/trace_event/trace_event.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_collection.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -126,15 +128,25 @@ std::optional<base::Uuid> SessionBridge::CreateWorkspace(
     return std::nullopt;
   }
 
+  // ADR 0011 step 2: appended after every Workspace of the process-wide
+  // order, including fully separated ones.
+  std::vector<session::DirectoryWorkspace> own;
+  for (const tab_tree::Workspace& existing :
+       workspace_service_->ordered_workspaces()) {
+    own.push_back({.workspace_id = existing.id, .sort_key = existing.sort_key});
+  }
+  const std::string sort_key =
+      session::NextDirectorySortKey(session::OrderDirectoryWorkspaces(
+          own, session::GetIsolatedProfiles(
+                   g_browser_process ? g_browser_process->local_state()
+                                     : nullptr)));
+
   const base::Time now = base::Time::Now();
   tab_tree::Workspace workspace{
       .id = base::Uuid::GenerateRandomV4(),
       .name = std::move(name),
       .icon = std::move(icon),
-      .sort_key =
-          workspace_service_->ordered_workspaces().empty()
-              ? std::string("00000000")
-              : workspace_service_->ordered_workspaces().back().sort_key + '@',
+      .sort_key = sort_key,
       .accent_argb = accent_argb,
       .created_at = now,
       .modified_at = now,

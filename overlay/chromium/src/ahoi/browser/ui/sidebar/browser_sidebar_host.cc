@@ -182,6 +182,12 @@ bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index) {
   return host && host->ActivateWorkspaceAtIndex(index);
 }
 
+bool ActivateBrowserWorkspaceById(views::View* sidebar_host,
+                                  const base::Uuid& workspace_id) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->ActivateWorkspaceById(workspace_id);
+}
+
 bool RevealBrowserSidebarFolder(views::View* sidebar_host,
                                 const base::Uuid& folder_id) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);

@@ -102,6 +102,23 @@ TEST_F(IsolatedProfileRegistryTest, SweepRemovesProfilesThatNoLongerExist) {
   EXPECT_EQ("Profile 2", GetIsolatedProfiles(&local_state_)[0].profile_dir);
 }
 
+// ADR 0011 step 2: the directory position round-trips; entries written
+// before step 2 have none.
+TEST_F(IsolatedProfileRegistryTest, RoundTripsSortKey) {
+  IsolatedProfileEntry keyed = Entry("Profile 1");
+  keyed.sort_key = "00000000@";
+  ASSERT_TRUE(AddIsolatedProfile(&local_state_, keyed));
+  ASSERT_TRUE(AddIsolatedProfile(&local_state_, Entry("Profile 2")));
+  const std::vector<IsolatedProfileEntry> entries =
+      GetIsolatedProfiles(&local_state_);
+  ASSERT_EQ(2u, entries.size());
+  EXPECT_EQ("00000000@", entries[0].sort_key);
+  EXPECT_TRUE(entries[1].sort_key.empty());
+  EXPECT_FALSE(local_state_.GetList(kIsolatedProfilesPref)[1]
+                   .GetDict()
+                   .contains("sort_key"));
+}
+
 TEST_F(IsolatedProfileRegistryTest, SkipsMalformedStoredEntries) {
   base::ListValue list;
   list.Append("not a dict");
