@@ -32,7 +32,17 @@ store() { cp "$P/Default/Login Data" $OUT/.ld.db 2>/dev/null || { echo ""; retur
 cmdbar() { local ok=1
   for i in 1 2 3; do ax activate $PID; sleep 1; ax key $PID 17 cmd
     waitax "AXWindow \| Suchen oder URL eingeben" 6 && { ok=0; break; }; done; return $ok; }
-goto() { cmdbar || return 1; ax key $PID 0 cmd; ax type $PID "$1"; sleep 1; ax key $PID 36; }
+closed_cmdbar() { local end=$(( $(date +%s) + 10 ))
+  while [ $(date +%s) -lt $end ]; do $AX dump $PID 3 | grep -q 'Suchen oder URL eingeben' || return 0; sleep 1; done
+  return 1; }
+goto() { cmdbar || return 1; ax key $PID 0 cmd; ax type $PID "$1"; sleep 1; ax key $PID 36
+  closed_cmdbar || echo "-- command bar still open after Return" >> $OUT/steps.txt; }
+# A challenge the harness disturbed shows only the 401 page; one explicit reload
+# re-issues it. Every use is recorded so a product-side cancel stays visible.
+challenge() { dialog "${1:-30}" && return 0
+  title | grep -q "Ahoi auth required" || return 1
+  echo "-- reload to re-issue challenge" >> $OUT/steps.txt; echo reload >> $OUT/reloads.txt
+  ax activate $PID; ax key $PID 15 cmd; dialog 20; }
 # HTTP-auth commands appear in this order below the "HTTP" query; the first is
 # preselected. A full-text query would instead preselect the web search row.
 command() { local idx
@@ -58,7 +68,7 @@ SAVE="Zugang nach erfolgreicher Anmeldung speichern"
 UPDATE="Gespeicherten Zugang nach erfolgreicher Anmeldung aktualisieren"
 
 # 1 Save alice in Realm A.
-goto "http://127.0.0.1:$A/a/"; dialog 30 && login alice alice-pass-1 "$SAVE"
+goto "http://127.0.0.1:$A/a/"; challenge && login alice alice-pass-1 "$SAVE"
 waittitle "auth:alice@Ahoi Realm A:$A" 15 && record save_first PASS || record save_first FAIL
 # 2 Second account via account switch.
 command switch; dialog && login bob bob-pass-1 "$SAVE"
@@ -73,12 +83,12 @@ $AX dump $PID 40 | grep -q -E 'AXTextField \| Passwort \| •+' && record autoco
 ax press $PID "AXButton:Anmelden"
 waittitle "auth:alice@Ahoi Realm A:$A" 15 && record choose_account PASS || record choose_account FAIL
 # 4 Realm separation: Realm B on the same origin offers neither account.
-goto "http://127.0.0.1:$A/b/"; dialog 30
+goto "http://127.0.0.1:$A/b/"; challenge
 $AX dump $PID 40 | grep -q 'Realm: Ahoi Realm B' || record realm_b_prompt FAIL
 LIST=$(accounts); [ -z "$LIST" ] && record realm_separation PASS || record realm_separation "FAIL:$LIST"
 ax press $PID "AXButton:Abbrechen"; sleep 2
 # 5 Port separation: same realm name on another port offers no account.
-goto "http://127.0.0.1:$B2/a/"; dialog 30
+goto "http://127.0.0.1:$B2/a/"; challenge
 LIST=$(accounts); [ -z "$LIST" ] && record port_separation PASS || record port_separation "FAIL:$LIST"
 ax press $PID "AXButton:Abbrechen"; sleep 2
 # 6 Password update: server rotates alice; old saved password is rejected
@@ -98,7 +108,7 @@ command switch; dialog && ax press $PID "AXButton:Abbrechen"
 waittitle "Ahoi auth required" 10 && record sign_out_without_restart PASS || record sign_out_without_restart "FAIL:$(title)"
 kill -0 $PID 2>/dev/null && record same_browser_process PASS || record same_browser_process FAIL
 # 8 Forget this realm: saved accounts for Realm A are removed.
-goto "http://127.0.0.1:$A/a/"; dialog 30 && login bob bob-pass-1 ""
+goto "http://127.0.0.1:$A/a/"; challenge && login bob bob-pass-1 ""
 waittitle "auth:bob@Ahoi Realm A:$A" 15
 command forget; sleep 4
 [ -z "$(store)" ] && record forget_realm PASS || record forget_realm "FAIL:$(store)"
@@ -111,6 +121,8 @@ python3 - $OUT/results.txt > $OUT/results.json <<'PY'
 import json,sys
 rows=[l.split(" ",1) for l in open(sys.argv[1]).read().splitlines() if l]
 res={k:v for k,v in rows}
-print(json.dumps({"pass":all(v=="PASS" for v in res.values()) and len(res)>=16,"steps":res},indent=1))
+import os
+reloads=sum(1 for _ in open(os.path.join(os.path.dirname(sys.argv[1]),"reloads.txt"))) if os.path.exists(os.path.join(os.path.dirname(sys.argv[1]),"reloads.txt")) else 0
+print(json.dumps({"pass":all(v=="PASS" for v in res.values()) and len(res)>=16,"harnessReloads":reloads,"steps":res},indent=1))
 PY
 cat $OUT/results.json
