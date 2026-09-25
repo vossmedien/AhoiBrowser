@@ -5,8 +5,11 @@
 #include <algorithm>
 #include <deque>
 #include <memory>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "ahoi/browser/sync/browser_setting_consent.h"
@@ -25,10 +28,13 @@
 #include "base/files/file_path.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/functional/bind.h"
+#include "base/json/json_reader.h"
+#include "base/strings/string_util.h"
 #include "base/test/bind.h"
 #include "base/test/task_environment.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
+#include "base/values.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/boringssl/src/include/openssl/curve25519.h"
 
@@ -320,7 +326,9 @@ TEST(SyncPayloadCryptorTest, OpensSharedCryptoKitGoldenEnvelope) {
   EXPECT_EQ(cryptor.Open(kEnvelope), std::string(16, '\0'));
 }
 
-TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
+// One valid record of each type the stable-payload and secret-boundary tests
+// share.
+std::vector<SyncRecord> SampleRecordsOfEveryType() {
   const base::Uuid device_id = Id("10000000-0000-4000-8000-000000000060");
   const base::Uuid workspace_id = Id("10000000-0000-4000-8000-000000000061");
   const base::Uuid session_id = Id("10000000-0000-4000-8000-000000000062");
@@ -404,6 +412,11 @@ TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
                            .opted_in = true,
                            .version = version});
 
+  return records;
+}
+
+TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
+  const std::vector<SyncRecord> records = SampleRecordsOfEveryType();
   for (const SyncRecord& original : records) {
     std::string payload;
     ASSERT_TRUE(SerializeRecord(original, &payload));
@@ -413,6 +426,74 @@ TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
     ASSERT_TRUE(NormalizeFieldVersions(&normalized));
     EXPECT_EQ(decoded, normalized);
     EXPECT_TRUE(ValidateRecord(decoded));
+  }
+}
+
+// DoD 14: no synchronized record can carry credentials, local-only
+// addresses or a field meant for secrets.
+TEST(SyncSecretBoundaryTest, NoRecordCarriesCredentialsOrLocalUrls) {
+  constexpr const char* kUnsyncable[] = {
+      "https://user:canary-secret@example.test/private",
+      "https://:canary-secret@example.test/",
+      "file:///Users/someone/Documents/private.txt",
+      "chrome://settings/passwords",
+      "javascript:alert(document.cookie)",
+      "data:text/html,canary-secret",
+  };
+  for (SyncRecord record : SampleRecordsOfEveryType()) {
+    std::string* url = std::visit(
+        [](auto& value) -> std::string* {
+          if constexpr (requires { value.url; }) {
+            return &value.url;
+          } else {
+            return nullptr;
+          }
+        },
+        record);
+    if (!url) {
+      continue;
+    }
+    ASSERT_TRUE(ValidateRecord(record));
+    for (const char* bad : kUnsyncable) {
+      *url = bad;
+      EXPECT_FALSE(ValidateRecord(record))
+          << static_cast<int>(GetEntityType(record)) << " accepted " << bad;
+      std::string payload;
+      EXPECT_FALSE(SerializeRecord(record, &payload))
+          << static_cast<int>(GetEntityType(record)) << " serialized " << bad;
+    }
+  }
+}
+
+TEST(SyncSecretBoundaryTest, NoPayloadHasAFieldForSecrets) {
+  constexpr std::string_view kSecretNames[] = {
+      "password", "passwd", "cookie", "authorization", "bearer",
+      "credential", "secret", "token", "private_key"};
+  for (const SyncRecord& record : SampleRecordsOfEveryType()) {
+    std::string payload;
+    ASSERT_TRUE(SerializeRecord(record, &payload));
+    const std::optional<base::Value> parsed = base::JSONReader::Read(
+        payload, base::JSON_PARSE_CHROMIUM_EXTENSIONS);
+    ASSERT_TRUE(parsed && parsed->is_dict());
+    std::vector<const base::Value*> pending = {&*parsed};
+    while (!pending.empty()) {
+      const base::Value* value = pending.back();
+      pending.pop_back();
+      if (const base::DictValue* dict = value->GetIfDict()) {
+        for (const auto [key, child] : *dict) {
+          const std::string lower = base::ToLowerASCII(key);
+          for (std::string_view name : kSecretNames) {
+            EXPECT_EQ(std::string::npos, lower.find(name))
+                << static_cast<int>(GetEntityType(record)) << " field " << key;
+          }
+          pending.push_back(&child);
+        }
+      } else if (const base::ListValue* list = value->GetIfList()) {
+        for (const base::Value& child : *list) {
+          pending.push_back(&child);
+        }
+      }
+    }
   }
 }
 
