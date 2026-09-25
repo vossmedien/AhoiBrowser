@@ -51,6 +51,44 @@ agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
 
+## Build 32 installed and tested; build 33 blocked by disk space — 26 September 2026
+
+- **Installed:** build 32 of `5be0782` (ADR 0011 step 2, handoffs 044–054).
+  All eight unit-test binaries pass, including the new last-used test.
+- **Accepted on the installed build:**
+  - Link-Peek 13/13: context menu, Shift-click, command bar Shift+Return and
+    auto-peek from saved pages; loads in the opener's session, closes without a
+    tab, promotes in the same Workspace. Package 16 is done.
+  - Sandbox and site isolation (DoD 2) 4/4: no sandbox or site-isolation
+    opt-out, every renderer, GPU and utility child passes `sandbox_check`, and
+    the two cross-site pages run in different processes, each locked to its
+    site (`process-internals` frames 8 and 9).
+  - Network audit H5 by the crest lane: no GCM traffic and only allowlisted
+    hosts, the same as build 31.
+  - Auto-archive: all nine checks pass. The verdict still read false because
+    it demanded ten steps; the tenth (policy reset) is recorded from `d637185`.
+  - HTTP-Auth 15/16 after the harness fix `483b699` (BSD `seq 1 0` counted down
+    and picked the wrong command). Open: after "switch account" and Cancel the
+    tab shows no 401 page title; the next run must record the page content.
+- **Product defects found and fixed for build 33 (syntax-checked):**
+  - Deleting the active Workspace crashed on the WorkspaceService observer
+    reentrancy CHECK (WS-DEL-01 and the extended deletion journey): `78d3366`.
+  - Deleting a separated Workspace after a restart into it left the app without
+    any window: `2c4bd49` opens a main window when none is visible.
+- **Crest handoffs integrated for build 33 (syntax-checked):** 034 `5f1ce2c`,
+  036 `aa1058f`, 040 `00381ba`, 052 `92f7583`; mobile 056 `a007aa3` passed
+  `SeparatedWorkspaceSyncTests` 20/0 on A168.
+- **Harness fixes, not product defects:** the restore-surface journey
+  restarted with `--remote-debugging-port`, which Ahoi treats as an explicit
+  startup intent and defers to Chromium's new tab (`13a8533`); open-tab rows
+  are radio buttons without `AXShowMenu` (`8f48c91`); a second automatic
+  download from the same page meets Chromium's download request limiter
+  (`c039e42`). Downloads first slice on build 32: attachment, audio and PDF pass.
+- **Unreliable:** the keyboard journey ran while the Mac was in use; the MRU
+  found a target (`eligible=5`) but the expected page did not come forward.
+  The journey now logs the front page after each switch (`02a61a8`).
+- **Blocked:** build 33 needs at least 64 GB free (56 GB), see the owner table.
+
 ## Build 31 installed; build 32 with ADR 0011 step 2 in the pipeline — 25 September 2026
 
 - **Installed:** build 31 of `8b3336a`. All eight unit-test binaries pass.
