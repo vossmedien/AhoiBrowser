@@ -52,6 +52,39 @@ agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
 
+## Build 33 installed and tested — 26 September 2026
+
+- **Installed:** build 33 of `880217d` (crest 034, 036, 040, 052; crash fixes
+  `78d3366` and `2c4bd49`). All eight unit-test binaries pass, including the
+  new tests of 036 and 052.
+- **Accepted on the installed build (12-journey loop):**
+  - Workspace level deletion 13/13, no crash: `78d3366` holds.
+  - Fully separated Workspaces (WS-ISO) 15/15, including the main window after
+    deleting a separated Workspace following a restart: `2c4bd49` holds.
+  - Auto-archive 10/10 (DoD 28 desktop part).
+  - Link-Peek 13/13, downloads and media 7/7 (attachment, `<a download>`,
+    upload, audio, PDF, Picture-in-Picture, notification default), sandbox and
+    site isolation 4/4, import sources 2/2 (IMPORT-ZEN-06: Zen absent without
+    a Zen bundle; Arc offered through Ahoi's Arc import).
+- **Open, with the cause known:**
+  - Restore surface (040): restarts are consistent now (selector, sidebar and
+    front page agree, no empty state), but always land in the first
+    Workspace; on build 32 the front page was the second Workspace's tab while
+    the selector said Inbox. The saved window Workspace is lost between save
+    and apply; restore logging is in `d669b87` for the next build.
+  - Last-used tab (Option+Tab): the switch targets the start tab (index 0),
+    not the previous page, and later presses do not reach the accelerator;
+    recording logs are in `677e4e0`.
+  - HTTP-Auth 15/16: after "switch account" and Cancel the tab is signed out
+    but shows an empty document instead of the no-store 401 body; the journey
+    now judges the sign-out itself (`ab57685`).
+  - Extended deletion 5/8: the three failures were journey checks (History
+    and Window menu entries counted as rehomed pages; a kill before the
+    deletion commit legitimately keeps the Workspace); corrected in
+    `8fcf56c` and `de8804c`, rerun queued.
+  - Split archive (034): the split is created, but the open-tab row menu does
+    not open for synthetic input; Shift+F10 fallback queued (`8e1ea31`).
+
 ## Build 32 installed and tested; build 33 blocked by disk space — 26 September 2026
 
 - **Installed:** build 32 of `5be0782` (ADR 0011 step 2, handoffs 044–054).
