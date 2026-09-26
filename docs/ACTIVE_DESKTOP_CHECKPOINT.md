@@ -52,6 +52,38 @@ agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
 
+## Build 33 follow-ups; build 35 in progress — 26 September 2026
+
+- **Accepted on build 33 (reruns with corrected journeys):**
+  - Convert to fully separated Workspace (052, WS-ISO-09) 8/8. The first
+    run's two failures were journey defects: the AX dump cut the dialog
+    text at 80 characters, and the login page set its cookie on every load
+    (`936c0cf`).
+  - Extended deletion 8/8, including the killed-deletion and restart checks.
+  - Network audit H5 by crest-hardening: NET-GCM-01 and fresh-profile
+    silence pass; hosts are the same as on build 32
+    (`artifacts/network-audit/880217d-20260926/`).
+- **Found and fixed (in build 35, not yet accepted):**
+  - Every manual archive of open pages showed "Aktion noch nicht
+    abgeschlossen", although the entry was stored and the pages closed:
+    since `87a6b89` the pages close asynchronously through `ClosePage()`,
+    but the completion still checked synchronously that no tab remained
+    (`76f6d94`). The split journey now opens the row menu through
+    AXShowMenu, which reports -25204 while it blocks on the open menu
+    (`bbbd62b`); split creation and archiving pass.
+- **Diagnosis in progress:**
+  - Option+Tab (WORKFLOW-03): the probe (`77d316a`) shows that the focused
+    page receives the Option keydown but no Tab keydown, and Ahoi's
+    accelerator never runs; ⌃⇥ and ⌥⌘K arrive. No macOS system shortcut
+    uses Tab. Diagnostic patch 0063 (`7fabc43`) traces the key through
+    NSWindow, RenderWidgetHostViewCocoa and BrowserView and ships with
+    build 36.
+  - Window Workspace after restart (040 follow-up): save-side logging
+    (`b3269d6`) is in build 35, alongside the restore-side logging.
+  - Low, from crest review of 034: a split token stays in
+    `archive_closing_splits_` if an agreed page never closes (hanging
+    renderer); a later manual dissolve would then not tombstone the record.
+
 ## Build 33 installed and tested — 26 September 2026
 
 - **Installed:** build 33 of `880217d` (crest 034, 036, 040, 052; crash fixes
