@@ -53,6 +53,43 @@ agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
 
+## Build 39 results; build 40 waiting for disk space — 26 September 2026
+
+- **Installed:** build 39 (`79e35f3`, the full rebuild for patch 0067).
+  All eleven unit-test binaries pass, including the three that had never
+  run: `ahoi_privacy_mode_unittests` (handoffs 068/070, now with the Mojo
+  test runner), `ahoi_developer_toolkit_unittests` (060) and
+  `ahoi_developer_toolkit_ui_unittests` (064 and the corrected button test).
+- **Accepted:**
+  - Privacy modes, `privacy-modes-journey.sh` 13/13 (PRIV-01 to 06, 15,
+    17, 18). The default mode is unchanged. "Mehr Schutz" blocks the
+    unpartitioned third-party cookie, keeps CHIPS usable, and sends
+    `Sec-GPC` on navigations and on a cross-site subresource.
+    `navigator.globalPrivacyControl` is true in strict mode and undefined by
+    default. Referrers are reduced to the origin and the tracking parameter
+    is removed; the ad APIs are off.
+  - Split archive and restore, 5/5: the restored split comes back when a
+    member is opened (034 with `76f6d94`, `3dfeb17`, crest 072).
+- **Still failing, fix in the next build:** creating a Workspace with its
+  own website sessions still crashes with NativeWidgetMac's focus DCHECK,
+  although focus, the stored focus view and the text input client are
+  cleared before the dialog is destroyed. When the closing window becomes
+  key again (the app was not frontmost), views re-focuses the dialog's
+  initially focused name field inside `~Widget`. `ebaf599` removes the
+  dialog's views in the posted destroy paths first.
+- **Build 40** (Control+Option+Tab default, sync secret-boundary tests,
+  source-budget splits) stopped at the 64 GiB guard with 60.6 GiB free.
+  `retry40.sh` in the agent scratchpad restarts it once 65 GiB are free
+  (owner row "Free disk space").
+- **Source line budget:** all Python files are now under 800 lines
+  (fixture server, uBO release transport, release installer, release
+  pipeline tests, lean measurement, checkout hydration), and the e2e
+  fixture self-tests are green again (55 OK; six stale custom-protocol tests
+  ported to the native handler). C++ splits so far: sync tests, sidebar
+  context menu, presentation, runtime tab views, Arc backup and parser.
+  Swift: `AhoiMobileUITests.swift`. Still over the limit: 10 C++ files,
+  4 Swift, 2 TypeScript.
+
 ## Builds 37 and 38 results; builds 39 and 40 in progress — 26 September 2026
 
 - **Accepted on build 37 (`1c6e2ad`):** restore surface 16/16. Patch 0064,
