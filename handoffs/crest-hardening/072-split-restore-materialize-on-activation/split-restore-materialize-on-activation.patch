@@ -1,0 +1,193 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/native_workspace_structure.cc b/overlay/chromium/src/ahoi/browser/session/native_workspace_structure.cc
+index 5d4d430..0caea81 100644
+--- a/overlay/chromium/src/ahoi/browser/session/native_workspace_structure.cc
++++ b/overlay/chromium/src/ahoi/browser/session/native_workspace_structure.cc
+@@ -102,7 +102,8 @@ bool MaterializeNativeSplit(SessionBridge& bridge,
+                             const sync::SharedSplitMetadata& desired,
+                             std::optional<split_tabs::SplitTabId> native_id,
+                             split_tabs::SplitTabId* applied_id,
+-                            sync::SyncAuthorization authorization) {
++                            sync::SyncAuthorization authorization,
++                            bool user_initiated) {
+   if (!authorization || !authorization.Run() || !bridge.is_ready() ||
+       !applied_id || !desired.id.is_valid() ||
+       desired.topology.member_ids.size() < 2 ||
+@@ -163,15 +164,19 @@ bool MaterializeNativeSplit(SessionBridge& bridge,
+           model->profile());
+   if (!resources)
+     return false;
+-  for (const auto& member : members) {
+-    if (!resources->CanArchiveTab(member.get()))
+-      return false;
+-  }
+-  if (native_id && model->ContainsSplit(*native_id)) {
+-    for (auto* member : model->GetSplitData(*native_id)->ListTabs()) {
+-      if (!resources->CanArchiveTab(member))
++  // A passive change must not disturb an active, loading or protected pane.
++  // The user who just opened a member asked for exactly this split.
++  if (!user_initiated) {
++    for (const auto& member : members) {
++      if (!resources->CanArchiveTab(member.get()))
+         return false;
+     }
++    if (native_id && model->ContainsSplit(*native_id)) {
++      for (auto* member : model->GetSplitData(*native_id)->ListTabs()) {
++        if (!resources->CanArchiveTab(member))
++          return false;
++      }
++    }
+   }
+   const auto visuals = Visuals(desired);
+   const auto valid_model = [&] {
+diff --git a/overlay/chromium/src/ahoi/browser/session/native_workspace_structure.h b/overlay/chromium/src/ahoi/browser/session/native_workspace_structure.h
+index 26e9078..915c0cc 100644
+--- a/overlay/chromium/src/ahoi/browser/session/native_workspace_structure.h
++++ b/overlay/chromium/src/ahoi/browser/session/native_workspace_structure.h
+@@ -25,11 +25,15 @@ std::optional<sync::SharedSplitMetadata> CaptureNativeSplit(
+ // Only existing, normally bound members of ONE window/workspace. Absent pages
+ // remain deferred; passive materialization never navigates or changes profiles.
+ // Removed members remain ordinary native tabs, including active/form pages.
++// `user_initiated` (handoff 072): an explicit user activation of a member may
++// build the split although a pane is active or loading; passive and remote
++// materialization keep deferring such panes.
+ bool MaterializeNativeSplit(SessionBridge& bridge,
+                             const sync::SharedSplitMetadata& desired,
+                             std::optional<split_tabs::SplitTabId> native_id,
+                             split_tabs::SplitTabId* applied_id,
+-                            sync::SyncAuthorization authorization);
++                            sync::SyncAuthorization authorization,
++                            bool user_initiated = false);
+ 
+ }  // namespace ahoi::session
+ #endif
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge.h b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+index 72b1f36..4684654 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge.h
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+@@ -158,6 +158,9 @@ class SessionBridge : public KeyedService,
+                              base::OnceCallback<void(bool)> completion);
+   bool CanArchiveTemporaryPages(const std::vector<base::Uuid>& nodes) const;
+   std::vector<base::Uuid> GetArchivePageGroup(base::Uuid node_id) const;
++  // Handoff 072: builds the live split record containing `node_id` now, after
++  // the user opened its members.
++  bool MaterializeSplitForActivation(base::Uuid node_id);
+   void RestoreArchivedPages(base::Uuid entry_id,
+                             base::OnceCallback<void(bool)> completion);
+   void RestoreArchivedPagesAt(base::Uuid entry_id,
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_structure_persistence.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_structure_persistence.cc
+index dfd965c..470f730 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_structure_persistence.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_structure_persistence.cc
+@@ -27,6 +27,12 @@ std::vector<base::Uuid> SessionBridge::GetArchivePageGroup(
+   return {node_id};
+ }
+ 
++bool SessionBridge::MaterializeSplitForActivation(base::Uuid node_id) {
++  return is_ready() && workspace_structure_controller_ &&
++         workspace_structure_controller_->MaterializeSplitForActivation(
++             node_id);
++}
++
+ bool SessionBridge::CanArchiveTemporaryPages(
+     const std::vector<base::Uuid>& nodes) const {
+   return workspace_structure_controller_ &&
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
+index 8457572..eeb4d13 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
+@@ -410,6 +410,48 @@ void WorkspaceStructureController::CaptureSplits() {
+   }
+ }
+ 
++bool WorkspaceStructureController::MaterializeSplitForActivation(
++    const base::Uuid& member_node_id) {
++  if (!bridge_lifetime_ || !bridge_->is_ready()) {
++    return false;
++  }
++  const auto lifetime = weak_factory_.GetWeakPtr();
++  const auto scope = scope_;
++  base::AutoReset<int> applying(&scope->applying, scope->applying + 1);
++  for (auto& [id, entry] : state_.entries) {
++    const auto* record = std::get_if<sync::SplitGroupRecord>(&entry.record);
++    if (!record || record->tombstone ||
++        std::ranges::find(record->topology.member_ids, member_node_id) ==
++            record->topology.member_ids.end()) {
++      continue;
++    }
++    for (const auto& member : record->topology.member_ids) {
++      if (bridge_->tab_tree_store()->IsNodeArchived(member)) {
++        return false;
++      }
++    }
++    std::optional<split_tabs::SplitTabId> native;
++    if (const auto token = base::Token::FromString(entry.native_split_token)) {
++      native = split_tabs::SplitTabId::FromRawToken(*token);
++    }
++    auto applied = split_tabs::SplitTabId::CreateEmpty();
++    const bool materialized =
++        MaterializeNativeSplit(*bridge_, Metadata(*record), native, &applied,
++                               LocalAuthority(), /*user_initiated=*/true);
++    if (!lifetime) {
++      return false;
++    }
++    if (materialized) {
++      entry.native_split_token = applied.ToString();
++      entry.observed_split = Metadata(*record);
++      dirty_ = true;
++      Schedule();
++    }
++    return materialized;
++  }
++  return false;
++}
++
+ void WorkspaceStructureController::MaterializeSplits(
+     sync::SyncAuthorization authority) {
+   const auto lifetime = weak_factory_.GetWeakPtr();
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
+index 9a1a5f5..b424cbc 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
+@@ -87,6 +87,11 @@ class WorkspaceStructureController final
+                std::optional<tab_tree::ArchiveRestorePlacement> placement =
+                    std::nullopt);
+   std::vector<sync::TabArchiveEntryRecord> Archives() const;
++  // Handoff 072: after the user opened a member of a live split record (and
++  // its partners), build that split now. The passive MaterializeSplits defers
++  // splits with an active or loading pane, so a split restored from the
++  // archive never came back while the user stayed on it.
++  bool MaterializeSplitForActivation(const base::Uuid& member_node_id);
+   void DeleteArchive(sync::TabArchiveEntryRecord expected,
+                      base::OnceCallback<void(bool)> done);
+   void OnAhoiDeviceTabsChanged(const sync::DeviceTabsSnapshot&) override;
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_tree_actions.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_tree_actions.cc
+index b1173ba..3a1ea13 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_tree_actions.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_tree_actions.cc
+@@ -223,9 +223,12 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
+   // stays active.
+   // Opening a tab can rebuild the view model, so work on copies.
+   const tab_tree::TreeNode requested = node;
++  bool in_live_split = false;
+   if (session_bridge_ && controller_) {
+-    for (const base::Uuid& member :
+-         session_bridge_->GetArchivePageGroup(requested.id)) {
++    const std::vector<base::Uuid> group =
++        session_bridge_->GetArchivePageGroup(requested.id);
++    in_live_split = group.size() > 1;
++    for (const base::Uuid& member : group) {
+       if (member == requested.id ||
+           session_bridge_->FindTabByTreeNodeId(member)) {
+         continue;
+@@ -241,6 +244,11 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
+     }
+   }
+   if (MaterializeSavedPage(requested, /*require_local_model=*/false).valid) {
++    // Handoff 072: this activation is the operation that rebuilds the split;
++    // the passive path would wait until no pane is active or loading.
++    if (in_live_split && session_bridge_) {
++      std::ignore = session_bridge_->MaterializeSplitForActivation(requested.id);
++    }
+     ScheduleCloseSidebarDiscoveryAfterActivation();
+   } else if (discovery_view_ && discovery_view_->is_open()) {
+     discovery_activation_committed_ = false;
