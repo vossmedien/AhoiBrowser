@@ -1,5 +1,15 @@
 # Chromium M153 patch ledger
 
+## `0069-ahoi-german-http-auth-and-navigation-strings.patch`
+
+Adds the German translations that were missing for 15 Ahoi strings: the HTTP
+authentication account manager (editor, show/copy/hide password, security
+notice, system authentication prompt and status messages) and the accessible
+name of the floating navigation's reveal target ("Adressleiste einblenden").
+Found by computing the GRIT message ID of every `IDS_AHOI_*` message and
+checking it against `generated_resources_de.xtb`; the other 403 were present.
+Only the German translation bundle changes.
+
 ## `0068-ahoi-gpc-tab-helper-seam.patch`
 
 From crest handoff 070. Registers Ahoi's `GpcRendererPreferenceTabHelper` in

@@ -1,0 +1,24 @@
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index 56c0a68..3ca5e02 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11268,4 +11268,19 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="7654016057361100771">Link der aktiven Seite als Markdown kopieren</translation>
+ <translation id="603968043160528313">Aktive Seite im Lesemodus öffnen</translation>
+ <translation id="8762882822589517341">Der Lesemodus ist für diese Seite nicht verfügbar</translation>
++<translation id="2409094582842387832">Gespeichertes Konto aktualisiert</translation>
++<translation id="3749680763013676614">Die Authentifizierung wurde nicht abgeschlossen. Das Passwort bleibt geschützt.</translation>
++<translation id="3802544469887311636">Authentifiziere dich, um auf diese gespeicherten HTTP-Zugangsdaten zuzugreifen</translation>
++<translation id="5994678591523260633">Abbrechen</translation>
++<translation id="8840721177089469942">Gespeichertes Passwort kopieren</translation>
++<translation id="412683525410614631"><ph name="USERNAME" /> bearbeiten</translation>
++<translation id="3993370118173181235">Passwort</translation>
++<translation id="7685826055956451029">Nutzername</translation>
++<translation id="6784004792744845346">Konto bearbeiten</translation>
++<translation id="9032326405916132758">Passwort ausblenden</translation>
++<translation id="4234777428384685691">Gespeichertes Passwort kopiert</translation>
++<translation id="3742412752799315329">Änderungen speichern</translation>
++<translation id="8940806682482998749">Passwörter bleiben im verschlüsselten Passwortspeicher von Chromium. Zum Anzeigen, Kopieren oder Ändern von Zugangsdaten ist die macOS-Systemauthentifizierung erforderlich. Geheimnisse werden nie exportiert, protokolliert, ins NetLog aufgenommen oder über AhoiBrowser oder CloudKit synchronisiert.</translation>
++<translation id="4772486138467656777">Passwort anzeigen</translation>
++<translation id="4156509787962966072">Adressleiste einblenden</translation>
+ </translationbundle>
