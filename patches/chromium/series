@@ -64,3 +64,5 @@
 0064-ahoi-restore-workspace-into-existing-window.patch
 0065-ahoi-session-writer-unknown-status.patch
 0066-ahoi-privacy-subresource-factory-proxy.patch
+0067-ahoi-renderer-preferences-global-privacy-control.patch
+0068-ahoi-gpc-tab-helper-seam.patch

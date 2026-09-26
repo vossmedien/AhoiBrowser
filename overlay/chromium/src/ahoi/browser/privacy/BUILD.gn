@@ -81,10 +81,26 @@ source_set("privacy_mode_runtime") {
   ]
 }
 
+# Handoff 070: owned by TabFeatures (Chromium seam patch).
+source_set("gpc_renderer_preference") {
+  sources = [
+    "gpc_renderer_preference_tab_helper.cc",
+    "gpc_renderer_preference_tab_helper.h",
+  ]
+  public_deps = [ "//content/public/browser" ]
+  deps = [
+    ":privacy_mode_runtime",
+    "//components/prefs",
+    "//third_party/blink/public/common",
+    "//url",
+  ]
+}
+
 source_set("unit_tests") {
   testonly = true
   sources = [
     "privacy_cookie_enforcement_unittest.cc",
+    "privacy_gpc_preference_unittest.cc",
     "privacy_mode_url_loader_factory_proxy_unittest.cc",
     "privacy_mode_url_loader_throttle_unittest.cc",
     "privacy_strict_request_rules_unittest.cc",

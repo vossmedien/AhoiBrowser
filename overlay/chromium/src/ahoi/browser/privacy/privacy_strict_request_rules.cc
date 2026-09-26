@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/privacy/privacy_strict_request_rules.h"
 
+#include "ahoi/browser/privacy/privacy_mode_service.h"
 #include "net/http/http_request_headers.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "url/origin.h"
@@ -62,6 +63,14 @@ void ApplyStrictRequestRules(network::ResourceRequest& request,
     return;
   }
   request.referrer_policy = CapReferrerPolicyForStrictMode(request.referrer_policy);
+}
+
+bool GlobalPrivacyControlForMainFrameUrl(const PrefService& prefs,
+                                         bool is_off_the_record,
+                                         const GURL& main_frame_url) {
+  return main_frame_url.SchemeIsHTTPOrHTTPS() &&
+         GetPolicySnapshot(prefs, is_off_the_record)
+             .IsStrictForUrl(main_frame_url);
 }
 
 }  // namespace ahoi::privacy

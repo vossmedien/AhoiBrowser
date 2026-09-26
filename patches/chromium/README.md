@@ -1,5 +1,24 @@
 # Chromium M153 patch ledger
 
+## `0068-ahoi-gpc-tab-helper-seam.patch`
+
+From crest handoff 070. Registers Ahoi's `GpcRendererPreferenceTabHelper` in
+`TabFeatures` next to `DeveloperProfileTabHelper`. The helper sets
+`RendererPreferences.enable_global_privacy_control` from the privacy mode of
+the primary main frame's navigation and syncs the renderer preferences.
+
+## `0067-ahoi-renderer-preferences-global-privacy-control.patch`
+
+From crest handoff 070 (design 066). Upstream Global Privacy Control is a
+process-global Blink feature. This adds a per-WebContents
+`RendererPreferences.enable_global_privacy_control`, plumbed like
+`enable_do_not_track`: `Sec-GPC` in `RenderFrameImpl::FinalizeRequestInternal`,
+both worker fetch contexts and browser-initiated resource requests, and
+`navigator.globalPrivacyControl` through `ContextEnabled` (bindings expose a
+member when either `RuntimeEnabled` or `ContextEnabled` holds). In the default
+mode the attribute stays undefined, as in Chromium. The mojom change rebuilds a
+large part of the tree.
+
 ## `0066-ahoi-privacy-subresource-factory-proxy.patch`
 
 From crest handoffs 066/068. `PrivacyModeURLLoaderThrottle` only reached

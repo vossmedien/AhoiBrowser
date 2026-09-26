@@ -9,6 +9,9 @@
 #include "base/containers/span.h"
 #include "net/url_request/referrer_policy.h"
 
+class GURL;
+class PrefService;
+
 namespace network {
 struct ResourceRequest;
 }  // namespace network
@@ -41,6 +44,13 @@ bool IsThirdPartyForStrictMode(const network::ResourceRequest& request,
 // concern: the contract strips them from main-frame navigations only.
 void ApplyStrictRequestRules(network::ResourceRequest& request,
                              bool is_main_frame);
+
+// Whether a document whose top-level URL is `main_frame_url` gets Global
+// Privacy Control in the renderer (Sec-GPC and navigator.globalPrivacyControl):
+// exactly when that top-level site is in `Mehr Schutz` (handoff 070).
+bool GlobalPrivacyControlForMainFrameUrl(const PrefService& prefs,
+                                         bool is_off_the_record,
+                                         const GURL& main_frame_url);
 
 }  // namespace ahoi::privacy
 
