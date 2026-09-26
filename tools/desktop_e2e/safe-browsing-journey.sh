@@ -76,6 +76,17 @@ echo "control $control" >> "$OUT/run.txt"
 case "$control" in page:*) record PRIV-14_control_page_loads PASS ;;
   *) record PRIV-14_control_page_loads "FAIL:$control" ;; esac
 
+# Keep every stored artifact free of the key (URLs may carry ?key=).
+if [ "$KEYED" = yes ]; then
+  KEY_VALUE=$(security find-generic-password -s ahoi-google-api-key -a safe-browsing -w)
+  find "$OUT" -type f -print0 | while IFS= read -r -d '' f; do
+    KEY_VALUE="$KEY_VALUE" python3 -c 'import os,sys
+p=sys.argv[1]; k=os.environ["KEY_VALUE"]; b=open(p,"rb").read()
+if k and k.encode() in b: open(p,"wb").write(b.replace(k.encode(), b"<redacted>"))' "$f"
+  done
+  unset KEY_VALUE
+fi
+
 python3 - "$OUT/results.txt" > "$OUT/results.json" <<'PY'
 import json, sys
 rows = dict(line.rstrip("\n").split(" ", 1) for line in open(sys.argv[1]) if line.strip())
