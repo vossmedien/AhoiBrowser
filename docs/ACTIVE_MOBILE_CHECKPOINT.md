@@ -46,9 +46,11 @@ bottom toolbar. Corrected journey (`79828c0`) waits for every Done and the Works
 and opens the address sheet: **3 of 3 passed**, product unchanged.
 [Defect note](../artifacts/e2e/mobile-library-done-open-defect-20260925/README.md).
 
-Open follow-ups: the real HTTPS suite's `closeLibrary` helpers and
-`MobileBrowserLayoutUITests.swift:60` still use the same hittability signal;
-the web view's accessibility frame under the toolbar is a small a11y quirk.
+Follow-up done in `01b1cd2`: the real HTTPS suite's `closeLibrary` helpers and
+`MobileBrowserLayoutUITests` use `assertLibraryClosed` /
+`assertBrowserAcceptsAddressInput` instead of the address hittability signal.
+Still open: the web view's accessibility frame under the toolbar, a small a11y
+quirk.
 `AhoiMobileCoreTests` (`01b1cd2`): **275 tests, 0 failures, 2 skipped** on
 A168 (was 52 failures in 37 cases, all tests predating format 3 or later
 feature commits; no product change). UI suites now use shared
