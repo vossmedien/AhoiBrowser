@@ -20,6 +20,7 @@ removed on 25 September 2026: Xcode 27 is now the only toolchain (handoff 022).
 | Free disk space | Dev builds are blocked again. Build 39 (the full rebuild for the GPC RendererPreferences mojom) ran with 66 GiB after the agent removed stale M152-era outputs; afterwards build 40 stopped at the guard with 60.6 GiB free, and other projects' builds kept filling the volume (57 GiB on 26 September, 05:40; 58 GiB after the agent also removed its finished mobile DerivedData and test results). The agent has no further own data to remove: `out/AhoiDev` is down to 15 GiB of current outputs, the rest of the checkout is Chromium source (52 GiB), and the remaining large items are the real user profile, the sync-acceptance profiles (peer evidence) and other projects' data and shared caches, which the agent does not delete. Needed: at least 64 GiB free for each dev build (guard in `build-ahoi.sh`), about 130 GB for the two release builds. Waiting: build 40 (Control+Option+Tab default, sync test split, source-budget splits) | H3 release baselines (18), lean measurement (24) |
 | Arc import on M153 (IMPORT-ARC-12) | Quit Arc for the run (or say when it may be quit) and confirm that the agent may import the local Arc profile into a throwaway Ahoi test profile. The installed importer only reads the real Arc profile of the signed Arc app; on 26 September Arc was running and in use, so the agent did not quit it. Fixture evidence without owner data: `ahoi_arc_import_browsertests` (split commit and recovery) is planned for a build when the Mac is less loaded | 22 |
 | Zen installation | Install Zen (or Zen Twilight) on the test Mac with one ordinary profile, or approve that the agent installs it; the Zen importer has no test path by design and must not read faked data from `~/Library/Application Support` | IMPORT-ZEN-01 to 05 (22 migration parts) |
+| Safe Browsing service access (PRIV-14) | Decide how Standard Safe Browsing gets working data. Without a Google API key the build sends `key=dummytoken`; on 79e35f3 the only list request (`v4/threatListUpdates:fetch`) got HTTP 400 (crest NetLog), and Google's malware and phishing test pages load without a warning after 5 minutes (`safe-browsing-journey.sh`). The preference is on (PRIV-15), the protection is not. Options: a Safe Browsing / Web Risk API key obtained for Ahoi and supplied at build time (like signing, never committed); the open-source, stateless project proxy the master prompt's Safe Browsing section provides for; or, until then, no longer presenting the protection as active | PRIV-14, 10 privacy (release-critical) |
 | Publication / release | Any App Store, TestFlight, website, update-feed or GitHub release publication | 15, 23–24 |
 
 ## Parallel lane `crest-hardening` — 25 September 2026
@@ -109,6 +110,21 @@ and 17 (shortcut catalog with last-used tab) now have code; see below.
   (`e3b32ce`, `fb47d6e`); the other ten compile. No browser test binary is
   part of the dev build, so none has run on M153 yet.
 
+- **Privacy on installed build 39 (`79e35f3`), 26 September:**
+  `privacy-exceptions-journey.sh` 4/4 PASS twice: an origin exception to
+  "Maximale Website-Kompatibilität" removes Sec-GPC and the JS signal on
+  that site across reload and restart while the other site stays strict
+  (PRIV-08), removing it restores strict behavior (PRIV-09), and strict
+  protection holds without any uBO identity in the profile (PRIV-10). The
+  exception's visible indication in the bubble is not covered. PRIV-11 and
+  PRIV-13 (idle phase) are covered by crest's H5 on `79e35f3` (600 s, every
+  host against the allowlist). **PRIV-14 FAIL:** `safe-browsing-journey.sh`
+  finds no interstitial for Google's malware and phishing test pages; cause
+  is the missing API key (owner row "Safe Browsing service access"). PRIV-12
+  (navigation endpoints) and PRIV-16 (crash without upload) run in crest's
+  extended audit; the renderer crash left a local report and no upload, the
+  browser-crash step is being fixed. Open: PRIV-07 (visible bubble texts).
+
 ## Builds 37 and 38 results; builds 39 and 40 in progress — 26 September 2026
 
 - **Accepted on build 37 (`1c6e2ad`):** restore surface 16/16. Patch 0064,
@@ -174,7 +190,8 @@ and 17 (shortcut catalog with last-used tab) now have code; see below.
 - **Privacy modes (DoD 10), first run of `privacy-modes-journey.sh`:**
   - Pass: first-party login in strict mode (PRIV-01), Sec-GPC on strict
     navigations only (PRIV-04, navigations), Safe Browsing standard without
-    Enhanced Protection (PRIV-15), no API-key infobar (PRIV-18), Topics
+    Enhanced Protection as preferences (PRIV-15; the service itself gets no
+    data without an API key, see PRIV-14 owner row), no API-key infobar (PRIV-18), Topics
     rejects (part of PRIV-06).
   - Journey defects, fixed in `fe7dd08`: the `/json/new` target was not
     URL-encoded (a raw `&` dropped `keep=1`), the mode pref is read from
