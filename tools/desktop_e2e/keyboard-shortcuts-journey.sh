@@ -46,7 +46,7 @@ waitax() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do
 waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do tabs | grep -q "$1" && return 0; sleep 1; done; return 1; }
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
 finish() {
-  local joined; joined=$(IFS=,; echo "${RESULTS[*]}")
+  local joined; joined=$(IFS=,; echo "${RESULTS[*]-}")
   local sep=""; [ -n "$joined" ] && sep=", "
   echo "{${joined}${1:+$sep\"setupFailed\": \"$1\"}}" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["pass"]=("setupFailed" not in d) and all(v is True for k,v in d.items() if k!="setupFailed");print(json.dumps(d,indent=1))' > "$OUT/verdict.json"
   cat "$OUT/verdict.json"
