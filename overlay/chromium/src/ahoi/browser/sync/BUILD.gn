@@ -280,6 +280,7 @@ source_set("unit_tests") {
     "sync_product_settings_unittest.cc",
     "sync_secret_boundary_unittest.cc",
     "sync_security_tree_unittest.cc",
+    "sync_workspace_merge_unittest.cc",
     "sync_unified_serialization_unittest.cc",
     "sync_unified_store_unittest.cc",
     "sync_unittest.cc",

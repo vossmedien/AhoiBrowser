@@ -54,7 +54,9 @@ bool FieldEqual(const SyncRecord& left,
           if (field == "modified_at") {
             return a.modified_at == b.modified_at;
           }
-          return field == "tombstone" && a.tombstone == b.tombstone;
+          // merged_into belongs to the tombstone field group (crest 084).
+          return field == "tombstone" && a.tombstone == b.tombstone &&
+                 a.merged_into == b.merged_into;
         } else if constexpr (std::is_same_v<A, TreeNodeRecord>) {
           if (field == "home_target")
             return a.home_target == b.home_target;
@@ -311,6 +313,7 @@ void CopyField(const SyncRecord& source,
             to.modified_at = from.modified_at;
           } else if (field == "tombstone") {
             to.tombstone = from.tombstone;
+            to.merged_into = from.merged_into;
           }
         } else if constexpr (std::is_same_v<From, TreeNodeRecord>) {
           if (field == "home_target")

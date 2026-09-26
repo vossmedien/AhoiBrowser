@@ -240,6 +240,14 @@ bool ValidateRecord(const SyncRecord& record, std::string* error) {
           }
           return true;
         } else if constexpr (std::is_same_v<T, WorkspaceRecord>) {
+          // A merge target names another Workspace and only accompanies a
+          // tombstone (crest 084).
+          if (value.merged_into &&
+              (!value.tombstone || !value.merged_into->is_valid() ||
+               *value.merged_into == value.id)) {
+            SetError("invalid merged workspace target", error);
+            return false;
+          }
           return value.archive_policy >= SharedArchivePolicy::kNever &&
                  value.archive_policy <= SharedArchivePolicy::kThirtyDays &&
                  ValidTimestamp(value.created_at, error) &&

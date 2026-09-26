@@ -80,6 +80,9 @@ bool SerializeWorkspace(const WorkspaceRecord& record, std::string* payload) {
             record.version, record.field_versions);
   dict.Set("name", record.name);
   dict.Set("archive_policy", static_cast<int>(record.archive_policy));
+  if (record.merged_into) {
+    dict.Set("merged_into", record.merged_into->AsLowercaseString());
+  }
   dict.Set("icon", record.icon);
   dict.Set("sort_key", record.sort_key);
   if (record.accent_argb) {
@@ -321,6 +324,14 @@ bool DeserializeWorkspace(const Dict& dict, WorkspaceRecord* record) {
       !ReadTime(dict, "created_at", &record->created_at) ||
       !ReadTime(dict, "modified_at", &record->modified_at)) {
     return false;
+  }
+  // Optional and additive: older peers never write it.
+  base::Uuid merged_into;
+  if (!ReadUuid(dict, "merged_into", &merged_into, true)) {
+    return false;
+  }
+  if (merged_into.is_valid()) {
+    record->merged_into = merged_into;
   }
   const base::Value* accent = dict.Find("accent_argb");
   if (accent) {

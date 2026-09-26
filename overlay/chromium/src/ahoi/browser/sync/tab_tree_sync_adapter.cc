@@ -50,7 +50,8 @@ tab_tree::Workspace ConvertWorkspace(const WorkspaceRecord& source) {
           .created_at = source.created_at,
           .modified_at = source.modified_at,
           .tombstone = source.tombstone,
-          .archive_policy = source.archive_policy};
+          .archive_policy = source.archive_policy,
+          .merged_into = source.merged_into};
 }
 
 tab_tree::TreeNode ConvertNode(const TreeNodeRecord& source) {
@@ -94,7 +95,8 @@ WorkspaceRecord WorkspaceToSyncRecord(const tab_tree::Workspace& workspace,
           .modified_at = workspace.modified_at,
           .tombstone = workspace.tombstone,
           .version = std::move(version),
-          .archive_policy = workspace.archive_policy};
+          .archive_policy = workspace.archive_policy,
+          .merged_into = workspace.merged_into};
 }
 
 TreeNodeRecord TreeNodeToSyncRecord(const tab_tree::TreeNode& node,
@@ -220,6 +222,32 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
       }
     }
     auto workspace = workspace_indexes.find(node.workspace_id);
+    if (workspace != workspace_indexes.end() && !node.tombstone &&
+        result.workspaces[workspace->second].tombstone) {
+      // A node that reached a merged Workspace (e.g. added offline while
+      // another device merged it) follows the merge instead of the generic
+      // recovery: the merge was deliberate (ADR 0012, crest 084). The chain
+      // is followed at most once per Workspace, which also stops a cycle.
+      std::optional<base::Uuid> target =
+          result.workspaces[workspace->second].merged_into;
+      for (size_t hops = 0; target && hops < result.workspaces.size();
+           ++hops) {
+        const auto next = workspace_indexes.find(*target);
+        if (next == workspace_indexes.end()) {
+          target.reset();
+          break;
+        }
+        if (!result.workspaces[next->second].tombstone) {
+          break;
+        }
+        target = result.workspaces[next->second].merged_into;
+      }
+      if (target && workspace_indexes.contains(*target) &&
+          !result.workspaces[workspace_indexes.at(*target)].tombstone) {
+        node.workspace_id = *target;
+        workspace = workspace_indexes.find(*target);
+      }
+    }
     if (workspace == workspace_indexes.end() ||
         (!node.tombstone && result.workspaces[workspace->second].tombstone)) {
       node.workspace_id = fallback_workspace;

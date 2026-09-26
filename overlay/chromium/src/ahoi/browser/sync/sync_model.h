@@ -137,6 +137,11 @@ struct WorkspaceRecord {
   SyncVersion version;
   FieldVersionMap field_versions;
   SharedArchivePolicy archive_policy = SharedArchivePolicy::kNever;
+  // Set only together with `tombstone` by a merge (ADR 0012, crest 084): the
+  // Workspace that absorbed this one. It belongs to the `tombstone` field
+  // group, so both merge as one unit; an undo that revives the Workspace
+  // clears it in the same write.
+  std::optional<base::Uuid> merged_into;
 
   friend bool operator==(const WorkspaceRecord&,
                          const WorkspaceRecord&) = default;
