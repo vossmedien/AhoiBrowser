@@ -150,9 +150,10 @@ source_set("policy_unit_tests") {
 }
 
 test("ahoi_privacy_mode_unittests") {
+  # The URLLoaderFactory proxy tests create Mojo pipes (handoff 068).
   deps = [
     ":unit_tests",
-    "//base/test:run_all_unittests",
+    "//mojo/core/test:run_all_unittests",
     "//testing/gtest",
   ]
 }
