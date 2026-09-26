@@ -8,6 +8,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -216,7 +217,30 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
   // A direct user activation commits the materialization. Transactional drop
   // callers retain and run the returned rollback closure only on failure.
   discovery_activation_committed_ = true;
-  if (MaterializeSavedPage(node, /*require_local_model=*/false).valid) {
+  // A page of a live split record (e.g. a split restored from the archive,
+  // which stays unloaded) opens with its closed partners, so the structure
+  // controller can rebuild the split; the requested page opens last and
+  // stays active.
+  // Opening a tab can rebuild the view model, so work on copies.
+  const tab_tree::TreeNode requested = node;
+  if (session_bridge_ && controller_) {
+    for (const base::Uuid& member :
+         session_bridge_->GetArchivePageGroup(requested.id)) {
+      if (member == requested.id ||
+          session_bridge_->FindTabByTreeNodeId(member)) {
+        continue;
+      }
+      const tab_tree::TreeNode* const partner =
+          controller_->view_model().GetNode(member);
+      if (!partner) {
+        continue;
+      }
+      const tab_tree::TreeNode partner_copy = *partner;
+      std::ignore =
+          MaterializeSavedPage(partner_copy, /*require_local_model=*/false);
+    }
+  }
+  if (MaterializeSavedPage(requested, /*require_local_model=*/false).valid) {
     ScheduleCloseSidebarDiscoveryAfterActivation();
   } else if (discovery_view_ && discovery_view_->is_open()) {
     discovery_activation_committed_ = false;
