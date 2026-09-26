@@ -306,13 +306,19 @@ void WorkspaceStructureController::ArchiveAgreedPages(
                 owner->remote_authorities_.erase(id);
                 owner->blocked_publications_.erase(id);
                 // The agreed pages close now; they are not asked again.
+                // ClosePage() runs their unload handlers first, so those tabs
+                // are still present here: after before-unload agreed nothing
+                // can veto, and the archive already stands.
                 if (group && authority.Run() &&
                     owner->bridge_->tab_tree_store()) {
                   owner->MarkSplitsClosingForArchive(id);
                   group->ClosePages();
-                } else {
-                  owner->CloseArchived(id, authority);
+                  if (owner)
+                    owner->Schedule();
+                  std::move(done).Run(true);
+                  return;
                 }
+                owner->CloseArchived(id, authority);
                 if (!owner) {
                   std::move(done).Run(false);
                   return;
