@@ -87,6 +87,24 @@ and 17 (shortcut catalog with last-used tab) now have code; see below.
   `6acd207`). Journeys queued on the installed build: keyboard shortcuts,
   HTTP-auth (dialog crash), privacy repair, privacy exceptions, developer
   toolkit, then the keyed Safe Browsing run and crest's keyed audit.
+- **Build 40 journeys (installed `6acd207`):**
+  - PASS: privacy exceptions 5/5, now including the same-tab navigation
+    without inherited Sec-GPC (fix `e10d3f7` works); PRIV-07 repair applies
+    (exception stored, reload without Sec-GPC); **PRIV-14 PASS with the
+    owner's Safe Browsing key** (malware and phishing interstitials, control
+    page loads; the key appears in no artifact).
+  - **Crash found by `devtoolkit-journey.sh`:** with any saved developer
+    profile every primary navigation hit `CHECK(!ua_change_requires_reload_)`
+    (the throttle set the user-agent flag outside `DidStartNavigation`).
+    Fixed in `b9a7e09` with a real-`NavigationRequest` unit test; the
+    journey reruns on build 41.
+  - **Crash in the Workspace dialog teardown (HTTP-auth step 7b):** SEGV in
+    `~Widget`; `ebaf599` emptied the NonClientView. Crest handoff 092 fixed
+    it (`6230a31`, build 41).
+  - Not valid: the keyboard-shortcuts and HTTP-auth runs; another session's
+    simulator took the front 35 times (`hidkey refused: target not
+    frontmost`). HID journeys need a window without parallel GUI runs.
+    PRIV-07's text check read a closed panel (journey fixed, `472d888`).
 - **Build 41 scope (committed, not yet built):** the source-budget
   decompositions of `browser_sidebar_host_view.h` (state structs, 798 lines,
   `563ed72`) and `ahoi_page.ts` (link routing and shortcuts as their own
