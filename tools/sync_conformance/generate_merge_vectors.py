@@ -27,6 +27,7 @@ OUTPUT = ROOT / "fixtures/sync-conformance/merge_v3.json"
 MAC = "a0000000-0000-4000-8000-000000000001"
 PHONE = "a0000000-0000-4000-8000-000000000002"
 T1, T2, T3 = 11644473604000000, 11644473605000000, 11644473606000000
+MERGE_TARGET = "a1000000-0000-4000-8000-000000000002"
 
 # entity: (fixture record, first mutable group change, second mutable group change,
 #          immutable group change or None)
@@ -149,6 +150,23 @@ def cases_for(entity: int, data_class: str, groups: list[str],
                       "union breaks the accent invariant and is rejected (handoff 012)",
                       edit(base, entity, groups, SYSTEM_ACCENT, s(T2)),
                       edit(base, entity, groups, {"accent_argb": -16776961}, s(T3, PHONE))))
+    if entity == 1:
+        # ADR 0012 / crest 084: a merge writes the target with the tombstone.
+        merged = {"tombstone": True, "merged_into": MERGE_TARGET}
+        revived = {"tombstone": False, "merged_into": ABSENT}
+        cases.append(("merge_tombstone_with_rename",
+                      "a merge on one device and a rename on the other converge to the "
+                      "renamed, merged Workspace",
+                      edit(base, entity, groups, {"name": "Renamed workspace"}, s(T1)),
+                      edit(base, entity, groups, merged, s(T2, PHONE))))
+        cases.append(("merge_undo_clears_target",
+                      "a newer undo revives the Workspace and drops merged_into with it",
+                      edit(base, entity, groups, merged, s(T1)),
+                      edit(base, entity, groups, revived, s(T2, PHONE))))
+        cases.append(("stale_revival_loses",
+                      "an older revival does not undo a newer merge",
+                      edit(base, entity, groups, merged, s(T2)),
+                      edit(base, entity, groups, revived, s(T1, PHONE))))
     if entity == 14:
         deleted = edit(base, entity, groups, {"tombstone": True}, s(T2))
         cases.append(("archive_deletion_is_terminal", "a newer untombstone does not revive",

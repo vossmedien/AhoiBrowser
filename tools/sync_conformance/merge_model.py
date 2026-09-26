@@ -20,7 +20,8 @@ INT64_MAX = 2**63 - 1
 # Payload keys of each field group for the entity types covered by the vectors.
 # Groups missing from a table map to the payload key of the same name.
 GROUP_KEYS: dict[int, dict[str, list[str]]] = {
-    1: {},  # workspace
+    # workspace; merged_into travels with the tombstone (crest 084, ADR 0012).
+    1: {"tombstone": ["tombstone", "merged_into"]},
     2: {"location": ["workspace_id", "parent_id", "sort_key"],
         "kind": ["node_kind"],
         "home_target": ["home_target_kind", "home_url", "home_local_scheme"]},
