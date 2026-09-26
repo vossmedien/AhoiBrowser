@@ -5,7 +5,7 @@ import {html} from '//resources/lit/v3_0/lit.rollup.js';
 
 import {loadTimeData} from '../i18n_setup.js';
 import type {SettingsAhoiPageElement} from './ahoi_page.js';
-import {getLinkRoutingHtml} from './ahoi_page_link_routing.html.js';
+import {getHtml as getLinkRoutingHtml} from './ahoi_page_link_routing.html.js';
 
 export function getHtml(this: SettingsAhoiPageElement) {
   // clang-format off

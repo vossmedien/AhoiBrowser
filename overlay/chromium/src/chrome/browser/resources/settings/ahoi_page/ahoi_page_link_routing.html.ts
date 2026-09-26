@@ -9,7 +9,7 @@ import {html} from '//resources/lit/v3_0/lit.rollup.js';
 
 import type {SettingsAhoiPageElement} from './ahoi_page.js';
 
-export function getLinkRoutingHtml(this: SettingsAhoiPageElement) {
+export function getHtml(this: SettingsAhoiPageElement) {
   // clang-format off
   return html`
       <div class="section-heading cr-row hr" ?hidden="${!this.linkRouting_}">
