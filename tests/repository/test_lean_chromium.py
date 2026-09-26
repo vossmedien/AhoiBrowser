@@ -236,8 +236,14 @@ class LeanChromiumContractTests(unittest.TestCase):
                 self.assertEqual(expected, actual)
 
     def test_measurement_fails_closed_on_provenance_and_size_gate(self):
-        source = (ROOT / "tools/measure_lean_bundles.py").read_text(
-            encoding="utf-8"
+        # The measurement spans the tool and its two helper modules.
+        source = "\n".join(
+            (ROOT / "tools" / name).read_text(encoding="utf-8")
+            for name in (
+                "measure_lean_bundles.py",
+                "lean_bundle_common.py",
+                "lean_bundle_provenance.py",
+            )
         )
         for marker in (
             'receipt.get("schemaVersion") != 2',
