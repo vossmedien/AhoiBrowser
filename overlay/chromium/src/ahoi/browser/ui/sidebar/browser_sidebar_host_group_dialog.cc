@@ -557,9 +557,7 @@ void BrowserSidebarHostView::OnCreateGroupDialogClosed() {
   // lifetime ordering. Blur the name field first so the input method does not
   // keep it as text input client while the Widget goes away (see the
   // Workspace dialog).
-  if (group_dialog_widget_ && group_dialog_widget_->GetFocusManager()) {
-    group_dialog_widget_->GetFocusManager()->ClearFocus();
-  }
+  PrepareDialogWidgetForDestruction(group_dialog_widget_.get());
   std::unique_ptr<views::Widget> closed_widget =
       std::move(group_dialog_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =

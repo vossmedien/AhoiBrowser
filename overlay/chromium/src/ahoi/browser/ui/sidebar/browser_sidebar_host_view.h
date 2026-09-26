@@ -639,6 +639,9 @@ class BrowserSidebarHostView final
   void CloseWorkspaceDialogNow();
 
   void OnWorkspaceDialogClosed();
+  // Blurs a client-owned dialog Widget and detaches its input method's text
+  // input client, so destroying it cannot trip NativeWidgetMac's focus check.
+  static void PrepareDialogWidgetForDestruction(views::Widget* widget);
 
   void ShowCreateGroupDialog(const base::Uuid& source_node_id);
 

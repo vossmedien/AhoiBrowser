@@ -39,6 +39,7 @@
 #include "content/public/browser/web_contents.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/base/class_property.h"
+#include "ui/base/ime/input_method.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/mojom/dialog_button.mojom.h"
 #include "ui/gfx/geometry/insets.h"
@@ -59,8 +60,16 @@ namespace {
 // which trips NativeWidgetMac's focus check. Blurring first detaches it (as
 // cc26c51 for the sidebar dialogs; handoff 064).
 void BlurBeforeDestruction(views::Widget* widget) {
-  if (widget && widget->GetFocusManager()) {
+  if (!widget) {
+    return;
+  }
+  if (widget->GetFocusManager()) {
     widget->GetFocusManager()->ClearFocus();
+  }
+  // Clearing focus alone did not stop the crash (build 37): also detach the
+  // text input client.
+  if (ui::InputMethod* input_method = widget->GetInputMethod()) {
+    input_method->SetFocusedTextInputClient(nullptr);
   }
 }
 

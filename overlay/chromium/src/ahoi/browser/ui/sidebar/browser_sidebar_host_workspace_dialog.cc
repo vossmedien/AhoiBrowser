@@ -79,6 +79,7 @@
 #include "ui/base/dragdrop/drag_drop_types.h"
 #include "ui/base/dragdrop/mojom/drag_drop_types.mojom.h"
 #include "ui/base/dragdrop/os_exchange_data.h"
+#include "ui/base/ime/input_method.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/l10n/time_format.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
@@ -597,6 +598,23 @@ void BrowserSidebarHostView::CloseWorkspaceDialogNow() {
   }
 }
 
+// static
+void BrowserSidebarHostView::PrepareDialogWidgetForDestruction(
+    views::Widget* widget) {
+  if (!widget) {
+    return;
+  }
+  if (views::FocusManager* focus_manager = widget->GetFocusManager()) {
+    focus_manager->ClearFocus();
+  }
+  // Clearing focus can make the content view first responder again and
+  // restore a focused view; without a text input client the focus check in
+  // NativeWidgetMac::OnDidChangeFocus holds regardless (build 37 crash).
+  if (ui::InputMethod* input_method = widget->GetInputMethod()) {
+    input_method->SetFocusedTextInputClient(nullptr);
+  }
+}
+
 void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
   if (workspace_dialog_widget_) {
     modal_overlay_controller_->NotifyPanelClosed(
@@ -614,9 +632,7 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
   // widget destroyed with it attached trips NativeWidgetMac's focus check
   // (crash after "Erstellen", HTTP-auth journey on build 35). Blurring it
   // first detaches the client.
-  if (workspace_dialog_widget_ && workspace_dialog_widget_->GetFocusManager()) {
-    workspace_dialog_widget_->GetFocusManager()->ClearFocus();
-  }
+  PrepareDialogWidgetForDestruction(workspace_dialog_widget_.get());
   std::unique_ptr<views::Widget> closed_widget =
       std::move(workspace_dialog_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
@@ -627,9 +643,7 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
         base::BindOnce(
             [](std::unique_ptr<views::Widget> widget,
                std::unique_ptr<views::BubbleDialogDelegate> delegate) {
-              if (widget && widget->GetFocusManager()) {
-                widget->GetFocusManager()->ClearFocus();
-              }
+              PrepareDialogWidgetForDestruction(widget.get());
               widget.reset();
               delegate.reset();
             },
