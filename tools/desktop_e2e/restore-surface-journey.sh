@@ -24,7 +24,7 @@ tabs() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print
 launch() {
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
     --remote-debugging-port=$PORT --enable-logging=stderr \
-    --vmodule=session_bridge_session=1,session_bridge_observers=1,browser_sidebar_host_core=1 >> "$OUT/browser.log" 2>&1 &
+    --vmodule=session_bridge_session=1,session_bridge_observers=1,browser_sidebar_host_core=1,session_restore_integration=1 >> "$OUT/browser.log" 2>&1 &
   PID=$!; echo "pid=$PID profile=$P" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 4; $AX activate $PID >> "$OUT/steps.txt"
@@ -134,7 +134,7 @@ PY2
   # restoring (build 32). The front page comes from the window title.
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
     --enable-logging=stderr \
-    --vmodule=session_bridge_session=1,session_bridge_observers=1,browser_sidebar_host_core=1 >> "$OUT/browser.log" 2>&1 &
+    --vmodule=session_bridge_session=1,session_bridge_observers=1,browser_sidebar_host_core=1,session_restore_integration=1 >> "$OUT/browser.log" 2>&1 &
   PID=$!; echo "restart $n pid=$PID" >> "$OUT/run.txt"
   waitax "AXWindow \\|" 40; sleep 6
   $AX dump $PID 30 > "$OUT/ax-restart-$n.txt"

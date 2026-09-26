@@ -8,6 +8,7 @@
 #include <string>
 
 #include "ahoi/browser/session/workspace_session_metadata.h"
+#include "base/logging.h"
 #include "base/memory/raw_ptr.h"
 #include "base/no_destructor.h"
 #include "chrome/browser/profiles/profile.h"
@@ -79,11 +80,12 @@ bool PopulateWindowSessionExtraData(
   }
   WorkspaceSessionMetadataProvider* provider =
       GetProviderForSessionBrowser(browser);
-  if (!provider) {
-    return false;
-  }
   const std::optional<WindowSessionMetadata> metadata =
-      provider->GetWindowSessionMetadata(browser);
+      provider ? provider->GetWindowSessionMetadata(browser) : std::nullopt;
+  VLOG(1) << "Ahoi rebuild window extra data: provider=" << (provider != nullptr)
+          << " workspace="
+          << (metadata ? metadata->active_workspace_id.AsLowercaseString()
+                       : std::string("none"));
   if (!metadata.has_value()) {
     return false;
   }
@@ -136,6 +138,8 @@ bool RestoreWindowSessionExtraData(
   }
   WorkspaceSessionMetadataProvider* provider =
       GetProviderForSessionBrowser(browser);
+  VLOG(1) << "Ahoi restore window extra data: provider=" << (provider != nullptr)
+          << " workspace=" << metadata.active_workspace_id.AsLowercaseString();
   return provider && provider->RestoreWindowSessionMetadata(browser, metadata);
 }
 

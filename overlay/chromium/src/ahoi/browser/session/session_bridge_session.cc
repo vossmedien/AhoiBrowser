@@ -47,11 +47,15 @@ SessionBridge::GetWindowSessionMetadata(
     const BrowserWindowInterface* browser) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (shutting_down_ || !browser) {
+    VLOG(1) << "Ahoi window metadata: none (shutting_down=" << shutting_down_
+            << ")";
     return std::nullopt;
   }
   for (const PendingWindowSessionMetadata& pending :
        pending_window_session_metadata_) {
     if (pending.browser.get() == browser) {
+      VLOG(1) << "Ahoi window metadata: pending "
+              << pending.metadata.active_workspace_id.AsLowercaseString();
       return pending.metadata;
     }
   }
@@ -59,6 +63,9 @@ SessionBridge::GetWindowSessionMetadata(
   const std::optional<base::Uuid> workspace_id =
       GetActiveWorkspaceForWindow(browser);
   if (!workspace_id.has_value() || !WorkspaceExists(*workspace_id)) {
+    VLOG(1) << "Ahoi window metadata: none (tracked="
+            << windows_.contains(const_cast<BrowserWindowInterface*>(browser))
+            << " workspace=" << workspace_id.has_value() << ")";
     return std::nullopt;
   }
   return session::WindowSessionMetadata{.active_workspace_id = *workspace_id};
@@ -539,6 +546,11 @@ void SessionBridge::PersistWindowSessionMetadata(
       metadata.has_value() ? session::EncodeWindowSessionMetadata(*metadata)
                            : std::nullopt;
   const SessionID window_id = browser->GetSessionID();
+  VLOG(1) << "Ahoi persist window metadata: workspace="
+          << (metadata ? metadata->active_workspace_id.AsLowercaseString()
+                       : std::string("none"))
+          << " service=" << (session_service != nullptr)
+          << " window_id_valid=" << window_id.is_valid();
   if (!session_service || !serialized.has_value() || !window_id.is_valid()) {
     return;
   }
