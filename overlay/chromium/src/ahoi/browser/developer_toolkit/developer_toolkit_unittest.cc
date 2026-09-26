@@ -155,6 +155,19 @@ TEST(DeveloperToolkitBrowsingDataTest,
   EXPECT_FALSE(adapter_ptr->last_request.has_value());
 }
 
+// Handoff 060: adapters without partitions keep their Remove() behavior when
+// the controller asks for the tab's partition.
+TEST(DeveloperToolkitBrowsingDataTest, RemoveForTabDefaultsToRemove) {
+  RecordingDataAdapter adapter;
+  const std::optional<BrowsingDataClearRequest> request =
+      BuildBrowsingDataClearRequest(
+          GURL(kExampleUrl),
+          BrowsingDataOptionsForScope(BrowsingDataScope::kCacheOnly));
+  ASSERT_TRUE(request);
+  EXPECT_TRUE(adapter.RemoveForTab(*request, nullptr, base::DoNothing()));
+  EXPECT_EQ(adapter.last_request, request);
+}
+
 TEST(DeveloperToolkitContentSettingsTest, ToggleDefaultsToBlockAndAlternates) {
   EXPECT_EQ(ToggleContentSettingValue(std::nullopt),
             ContentSettingValue::kBlock);

@@ -13,6 +13,7 @@
 
 namespace content {
 class BrowserContext;
+class StoragePartition;
 class WebContents;
 }  // namespace content
 
@@ -34,8 +35,16 @@ class ChromiumBrowsingDataRemovalAdapter final
 
   bool Remove(const BrowsingDataClearRequest& request,
               CompletionCallback callback) override;
+  bool RemoveForTab(const BrowsingDataClearRequest& request,
+                    const content::WebContents* web_contents,
+                    CompletionCallback callback) override;
 
  private:
+  // `partition` nullptr means the profile's default partition.
+  bool RemoveIn(const BrowsingDataClearRequest& request,
+                content::StoragePartition* partition,
+                CompletionCallback callback);
+
   raw_ptr<content::BrowserContext> browser_context_ = nullptr;
 };
 

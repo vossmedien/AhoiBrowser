@@ -17,6 +17,7 @@
 
 namespace content {
 class BrowserContext;
+class StoragePartitionConfig;
 }
 
 namespace ahoi {
@@ -150,6 +151,11 @@ class DeveloperCookieAdapter {
 // created on demand by the cookie popup and schedules no idle work.
 std::unique_ptr<DeveloperCookieAdapter> CreateChromiumDeveloperCookieAdapter(
     content::BrowserContext* browser_context);
+// Handoff 060: the cookies of the given StoragePartition, i.e. of the active
+// tab's own partition in a Workspace with its own website sessions.
+std::unique_ptr<DeveloperCookieAdapter> CreateChromiumDeveloperCookieAdapter(
+    content::BrowserContext* browser_context,
+    const content::StoragePartitionConfig& partition_config);
 
 }  // namespace ahoi
 

@@ -34,6 +34,8 @@
 #include "chrome/grit/generated_resources.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/navigation_entry.h"
+#include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/storage_partition.h"
 #include "content/public/browser/web_contents.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/base/class_property.h"
@@ -408,7 +410,11 @@ bool DeveloperToolkitController::ShowCookieManager(views::View* anchor_view) {
   const GURL site_url = contents->GetLastCommittedURL();
   auto view = std::make_unique<DeveloperCookieManagerView>(
       site_url,
-      CreateChromiumDeveloperCookieAdapter(contents->GetBrowserContext()),
+      // Handoff 060: the active tab's own partition, which differs from the
+      // default one in a Workspace with its own website sessions.
+      CreateChromiumDeveloperCookieAdapter(
+          contents->GetBrowserContext(),
+          contents->GetPrimaryMainFrame()->GetStoragePartition()->GetConfig()),
       browser_->GetProfile()->GetPrefs());
   DeveloperCookieManagerView* const view_ptr = view.get();
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
