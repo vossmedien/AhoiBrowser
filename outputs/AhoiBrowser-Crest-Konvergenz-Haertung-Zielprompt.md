@@ -25,7 +25,7 @@ Stille eines frischen Profils.
 
 ## Gesamtziel
 
-Setze die Pakete H1–H6 vollständig bis zu ihrer jeweiligen Definition of Done
+Setze die Pakete H1–H7 vollständig bis zu ihrer jeweiligen Definition of Done
 um. Arbeite dabei ausschließlich in der Lane `crest-hardening`. Alles, was
 fremden Besitz berührt, entsteht als geprüfte, anwendungsfertige Übergabe und
 wird vom jeweiligen Eigentümer in dessen nächstes geplantes Paket übernommen.
@@ -184,6 +184,32 @@ Umsetzen:
 
 DoD: ADR, Katalog und Lösch-Befund übergeben; Reviews der vom Desktop-Owner
 gelieferten Stufen erfolgt. Die Produktabnahme selbst liegt beim Desktop-Owner.
+
+### H7 – Workspaces zusammenführen, Ordner per Befehl, mobiler Tab-Flick, mobile Web Extensions
+
+Nutzerauftrag vom 26. September 2026 zu [Übergabe 074](../handoffs/crest-hardening/074-reddit-crest-post/HANDOFF.md):
+„ins Hauptziel mit aufnehmen und umsetzen“. Entscheidung und Abnahmefälle:
+[ADR 0012](../docs/decisions/0012-workspace-merge-and-mobile-web-extensions.md).
+Wie bei 011 S2–S8 schreibt diese Lane die Implementierung als anwendungsfertige
+Patch-Übergaben; die Eigentümer wenden sie an, bauen und testen.
+
+Umsetzen:
+
+1. ADR 0012 und Zeiger im Master-Zielprompt (erledigt mit Anlage dieses Pakets).
+2. **Desktop:** „Zusammenführen mit …“ als eine Strukturtransaktion mit Undo
+   (`WS-MERGE-01`–`05`) und der Command-Bar-Befehl „In Workspace verschieben …“
+   (`CMD-MOVE-01`), je als Patch-Übergabe mit Unit-Tests.
+3. **Sync:** Konformitätsvektoren für Zusammenführen samt gleichzeitigem
+   Hinzufügen (`WS-MERGE-06`) in `fixtures/sync-conformance/`; Feldvorschlag
+   `mergedInto` als Übergabe an die Sync-Lane.
+4. **Mobile:** Zusammenführen (`WS-MERGE-07`), Tab-Flick (`MOB-FLICK-01/02`)
+   und der Web-Extension-Spike (`MOB-EXT-01`) als Patch-Übergaben; Schritt 2
+   (`MOB-EXT-02/03`) nach der Nutzerentscheidung auf Basis des Spikes.
+5. **Review** jeder integrierten Stufe gegen ADR 0012.
+
+DoD: Übergaben integriert, Unit-Tests grün und die Fälle `WS-MERGE-*`,
+`CMD-MOVE-01`, `MOB-FLICK-*` und `MOB-EXT-01` am zugeordneten Kandidaten belegt
+(sichtbare Abnahme durch die Eigentümer); Spike-Ergebnis dokumentiert.
 
 ## Parallelvertrag: kollisionsfreie Zusammenarbeit
 
