@@ -1,6 +1,6 @@
 # 066 – Design: "Mehr Schutz" for subresources, workers and the JS signal
 
-Status: ready (design; implementation by desktop, or by this lane as a patch
+Status: design accepted by desktop (implementation requested from crest as patch handoffs: proxy + shared rules first, RendererPreferences GPC second; add extension-proxy chaining, website-session partitions, service-worker scope and OTR cases)
 handoff on request)
 Owner lane: desktop
 Base: HEAD `57a0949`. Owner's DoD-10 finding: strict mode reaches navigations
