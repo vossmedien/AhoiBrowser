@@ -129,7 +129,10 @@ source_set("unit_tests") {
   sources = [
     "ubo_authorization_unittest.cc",
     "ubo_catalog_unittest.cc",
+    "ubo_service_catalog_unittest.cc",
     "ubo_service_unittest.cc",
+    "ubo_service_unittest_support.cc",
+    "ubo_service_unittest_support.h",
   ]
   deps = [
     ":policy",
