@@ -1438,7 +1438,7 @@ index 0cc3df52b0bcc6e31fc3691979bdae703b74f137..70e8a05e3adff08e66bcd2d9b1f4a899
 +      Blocks more cross-site tracking and storage access. Some websites may need a compatibility exception.
 +    </message>
 +    <message name="IDS_AHOI_PRIVACY_MODE_MAX_COMPATIBILITY_DESC" desc="Short effect-focused explanation of AhoiBrowser's maximum website-compatibility mode." meaning="AhoiBrowser privacy mode">
-+      Uses normal website behavior for maximum compatibility. Fewer websites need adjustments.
++      Uses normal website behavior for maximum compatibility. Built-in browser security, such as checking secure connections and keeping websites separated, stays on.
 +    </message>
 +    <message name="IDS_AHOI_PRIVACY_SITE_INHERIT_DESC" desc="Short explanation that the current website follows the global privacy setting." meaning="AhoiBrowser privacy mode">
 +      This website follows the global setting.
@@ -1833,7 +1833,7 @@ index 9c407820d88b7e81b02be05fdb94e6a5bcc34de6..823e03fb24409ca970645a1ef8cb5740
 +<translation id="1155213282872421995">Aktueller Status für diese Website: <ph name="MODE" /></translation>
 +<translation id="7711288120518625281">Die Einstellung für alle Websites ist der Standard. Für die aktuelle Website kannst du unten eine eigene Einstellung wählen.</translation>
 +<translation id="8982822021638336043">Blockiert mehr websiteübergreifendes Tracking und Speicherzugriffe. Manche Websites benötigen eine Kompatibilitätsausnahme.</translation>
-+<translation id="7876302419309778586">Verwendet normales Website-Verhalten für maximale Kompatibilität. Weniger Websites benötigen Anpassungen.</translation>
++<translation id="1213749415259632757">Verwendet normales Website-Verhalten für maximale Kompatibilität. Die eingebaute Browsersicherheit, etwa die Prüfung sicherer Verbindungen und die Trennung von Websites, bleibt aktiv.</translation>
 +<translation id="8581351233018150804">Diese Website verwendet die Einstellung für alle Websites.</translation>
 +<translation id="7779130224954741035">Kompatibilität für diese Website maximieren</translation>
 +<translation id="2403074282525660354">Maximale Website-Kompatibilität ist für diese Website aktiv. Die Seite wird neu geladen.</translation>
