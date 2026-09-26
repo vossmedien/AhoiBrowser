@@ -43,6 +43,13 @@ sleep 2
 press "Kompatibilität für diese Website maximieren" "Fix this website with maximum compatibility" \
   || record PRIV-07_repair_action "FAIL:no-repair-action"
 sleep 5
+# The repair reloads the page, which closes the panel; reopen it under the
+# button's new name to read the effect description of the site's mode.
+press "Adressleiste einblenden" "Show address bar"; sleep 2
+press "Datenschutzmodus: Maximale Website-Kompatibilität" \
+  "Privacy mode: Maximum website compatibility" \
+  || record PRIV-07_panel_reopens "FAIL:no-compatibility-button"
+sleep 2
 "$AX" dump $PID 40 > "$OUT/ax-panel-after.txt" 2>/dev/null
 
 # The live preference; the Preferences file is written lazily.
