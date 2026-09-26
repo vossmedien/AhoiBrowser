@@ -103,9 +103,10 @@ class NetworkAuditTest(unittest.TestCase):
         ok = audit.crash_verdict(before, after, [], set(), crashed=True)
         self.assertEqual(ok["PRIV-16"], "PASS")
         self.assertEqual(ok["newReports"]["completed"], ["b.dmp"])
+        # Uploads disabled: Chrome runs no upload thread, reports stay pending.
         pending = dict(after, pending=["c.dmp"])
         self.assertEqual(audit.crash_verdict(before, pending, [], set(), True)["PRIV-16"],
-                         "FAIL")
+                         "PASS")
         self.assertEqual(audit.crash_verdict(before, after, ["/cr/report"], set(),
                                              True)["PRIV-16"], "FAIL")
         self.assertEqual(audit.crash_verdict(before, after, [], {"1.2.3.4:443"},

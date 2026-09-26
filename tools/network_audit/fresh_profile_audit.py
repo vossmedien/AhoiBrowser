@@ -21,8 +21,9 @@ Phases (--phases, default "idle"):
   crash       PRIV-16: renderer crash via chrome://crash (and with
               --crash-browser the browser via chrome://inducebrowsercrashforrealz);
               no crash or telemetry upload may follow: no /cr/report request in
-              the NetLog, no remote socket of the crash handler, Crashpad
-              uploads disabled and no report left pending
+              the NetLog, no remote socket of the crash handler and Crashpad
+              uploads disabled. With uploads disabled Chrome runs no upload
+              thread, so the new report legitimately stays in pending/.
 
 Only reads the bundle; never installs or modifies it. Stops only processes it
 started itself. The crash phase leaves its local crash report in the default
@@ -191,7 +192,7 @@ def crash_verdict(before: dict, after: dict, upload_markers: list[str],
     new_reports = {k: sorted(set(after.get(k, [])) - set(before.get(k, [])))
                    for k in ("new", "pending", "completed")}
     ok = (crashed and not upload_markers and not handler_remotes
-          and after.get("uploads_enabled") is False and not new_reports["pending"])
+          and after.get("uploads_enabled") is False)
     return {"PRIV-16": "PASS" if ok else "FAIL", "newReports": new_reports}
 
 
@@ -212,6 +213,16 @@ def crash_handler_pids(started_after: float) -> list[int]:
         if started >= started_after - 1:
             pids.append(int(parts[0]))
     return pids
+
+
+def typed_navigate(session, url: str) -> None:
+    """Opens `url` in a new tab as a typed navigation. Chromium executes debug
+    URLs such as chrome://crash only for typed (browser-initiated) loads."""
+    target = session.send("Target.createTarget", {"url": "about:blank"})["targetId"]
+    attached = session.send("Target.attachToTarget",
+                            {"targetId": target, "flatten": True})["sessionId"]
+    session.send("Page.navigate", {"url": url, "transitionType": "typed"},
+                 session_id=attached)
 
 
 def default_crashpad_database(identity: dict) -> pathlib.Path:
@@ -279,7 +290,10 @@ def main(argv=None) -> int:
                 time.sleep(2)
         if "crash" in phases:
             # PRIV-16: a controlled renderer crash, then watch for uploads.
-            session.send("Target.createTarget", {"url": "chrome://crash"})
+            try:
+                typed_navigate(session, "chrome://crash")
+            except cdp.CDPError:
+                pass  # the renderer dies while the navigation is answered
             crashed = True
             for _ in range(15):
                 remotes |= sockets(perf.tree(process.pid, perf.process_table()))
@@ -287,9 +301,8 @@ def main(argv=None) -> int:
                 time.sleep(2)
             if args.crash_browser:
                 try:
-                    session.send("Target.createTarget",
-                                 {"url": "chrome://inducebrowsercrashforrealz"})
-                except cdp.CDPError:
+                    typed_navigate(session, "chrome://inducebrowsercrashforrealz")
+                except (OSError, cdp.CDPError):
                     pass  # the browser dies while answering
                 browser_crashed = True
                 for _ in range(15):
