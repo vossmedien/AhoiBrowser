@@ -1,5 +1,17 @@
 # Chromium M153 patch ledger
 
+## `0064-ahoi-restore-workspace-into-existing-window.patch`
+
+Session restore adds the first normal window's tabs to the already open
+browser (`ShouldRestoreToExistingBrowser`) instead of creating a window, and
+only `CreateRestoredBrowser` passed the window extra data to Ahoi. The saved
+Workspace of that window was therefore never applied: every restart came back
+in the first Workspace, while the tabs (their own extra data) kept theirs.
+Build 35's save-side logging showed the correct Workspace in the quit-time
+rebuild and no window restore call on the next start. This patch applies the
+same `RestoreWindowSessionExtraData` to the reused window. No other window
+properties change.
+
 ## `0063-ahoi-option-tab-key-trace.patch`
 
 Diagnostic only, for WORKFLOW-03. On the installed build 33, ⌥⇥ never
