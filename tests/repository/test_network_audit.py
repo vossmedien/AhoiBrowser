@@ -127,6 +127,12 @@ class NetworkAuditTest(unittest.TestCase):
             audit.main(["--app", "/nonexistent.app", "--output", "/tmp/unused",
                         "--phases", "idle,bogus"])
 
+    def test_kept_netlog_never_holds_the_key(self):
+        text = '{"url":"https://safebrowsing.googleapis.com/v4/x?key=AIzaSecret&alt=proto"}'
+        self.assertNotIn("AIzaSecret", audit.redact(text, "AIzaSecret"))
+        self.assertIn("key=REDACTED-KEY", audit.redact(text, "AIzaSecret"))
+        self.assertEqual(audit.redact(text, None), text)
+
 
 if __name__ == "__main__":
     unittest.main()

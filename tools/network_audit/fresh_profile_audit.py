@@ -227,6 +227,22 @@ def typed_navigate(session, url: str) -> None:
                  session_id=attached)
 
 
+KEYCHAIN_SERVICE = "ahoi-google-api-key"
+KEYCHAIN_ACCOUNT = "safe-browsing"
+
+
+def keychain_google_api_key() -> str:
+    """The Safe Browsing key from the login Keychain (PRIV-14), never logged."""
+    return subprocess.run(
+        ["security", "find-generic-password", "-s", KEYCHAIN_SERVICE,
+         "-a", KEYCHAIN_ACCOUNT, "-w"],
+        check=True, capture_output=True, text=True).stdout.strip()
+
+
+def redact(text: str, secret: Optional[str]) -> str:
+    return text.replace(secret, "REDACTED-KEY") if secret else text
+
+
 def default_crashpad_database(identity: dict) -> pathlib.Path:
     product = pathlib.Path(identity["path"]).stem
     return pathlib.Path.home() / "Library/Application Support" / product / "Crashpad"
@@ -245,6 +261,9 @@ def main(argv=None) -> int:
     parser.add_argument("--public-url", default=DEFAULT_PUBLIC_URL)
     parser.add_argument("--crash-browser", action="store_true",
                         help="crash phase: also crash the browser process")
+    parser.add_argument("--google-api-key-from-keychain", action="store_true",
+                        help="keyed variant (PRIV-14): GOOGLE_API_KEY from the login "
+                             "Keychain, only in the browser's environment")
     args = parser.parse_args(argv)
     phases = {p.strip() for p in args.phases.split(",") if p.strip()} | {"idle"}
     if not phases <= {"idle", "navigation", "crash"}:
@@ -254,6 +273,11 @@ def main(argv=None) -> int:
         print("refusing: the installed app needs a confirmed lease (--lease)", file=sys.stderr)
         return 7
     identity = perf.app_identity(args.app)
+    api_key = keychain_google_api_key() if args.google_api_key_from_keychain else None
+    env = dict(os.environ)
+    if api_key:
+        # A key enables more Google APIs than Safe Browsing: audited as its own variant.
+        env["GOOGLE_API_KEY"] = api_key
     workdir = pathlib.Path(tempfile.mkdtemp(prefix="ahoi-netaudit-"))
     profile = workdir / "profile"
     netlog = workdir / "netlog.json"
@@ -270,7 +294,8 @@ def main(argv=None) -> int:
         [identity["executable"], f"--user-data-dir={profile}", "--no-first-run",
          "--no-default-browser-check", f"--remote-debugging-port={args.port}",
          f"--log-net-log={netlog}", "--net-log-capture-mode=Default", "about:blank"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True,
+        env=env)
     remotes: set[str] = set()
     try:
         cdp.wait_for_endpoint(args.port, 60)
@@ -351,6 +376,7 @@ def main(argv=None) -> int:
         "gcmStoreHasCheckin": gcm_store,
         "verdicts": verdict(classified, gcm_store),
         "phases": sorted(phases),
+        "variant": "keyed" if api_key else "keyless",
         "method": "Chromium NetLog (Default capture) plus lsof socket polling every 2 s; "
                   "no root, so non-Chromium DNS is not observed",
     }
@@ -375,8 +401,10 @@ def main(argv=None) -> int:
     (args.output / "audit.json").write_text(json.dumps(result, indent=2) + "\n")
     # The NetLog (Default capture: no cookies or credentials) stays next to the
     # verdict, so response status codes can be checked afterwards (PRIV-14).
+    # Request URLs carry the key (`?key=`), so the kept copy is redacted.
     if netlog.exists():
-        shutil.copyfile(netlog, args.output / "netlog.json")
+        (args.output / "netlog.json").write_text(
+            redact(netlog.read_text(errors="replace"), api_key))
     shutil.rmtree(workdir, ignore_errors=True)
     for name, value in result["verdicts"].items():
         print(f"{name:24} {value}")
