@@ -30,7 +30,8 @@ CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 eval_in() { # <url substring> <expression>
   CDP "$1" Runtime.evaluate "$(python3 -c 'import json,sys;print(json.dumps({"expression":sys.argv[1],"returnByValue":True,"awaitPromise":True}))' "$2")" \
     | python3 -c 'import json,sys;v=json.load(sys.stdin).get("result",{}).get("value","");print(v if isinstance(v,str) else json.dumps(v))'; }
-open_tab() { curl -s -X PUT "http://127.0.0.1:$PORT/json/new?$1" > /dev/null; sleep "${2:-3}"; }
+# The target is URL-encoded: a raw '&' would split the /json/new query.
+open_tab() { curl -s -X PUT "http://127.0.0.1:$PORT/json/new?$(python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1],safe=""))' "$1")" > /dev/null; sleep "${2:-3}"; }
 # First fixture log entry for a path: <log> <path> <field>
 logged() { python3 - "$@" <<'PY'
 import json, sys
@@ -69,8 +70,8 @@ run_mode() { # <label> <seeded mode or "">
   local topics fledge
   topics=$(eval_in "/ads" "(async()=>{if(typeof document.browsingTopics!=='function')return 'absent';try{const t=await document.browsingTopics();return 'topics:'+t.length}catch(e){return 'rejected:'+e.name}})()")
   fledge=$(eval_in "/ads" "(async()=>{if(typeof navigator.joinAdInterestGroup!=='function')return 'absent';try{await navigator.joinAdInterestGroup({owner:location.origin,name:'ahoi',lifetimeMs:60000},60);return 'joined'}catch(e){return 'rejected:'+e.name}})()")
-  open_tab "chrome://settings" 4
-  local prefs; prefs=$(eval_in "chrome://settings" "(async()=>{const g=k=>new Promise(r=>chrome.settingsPrivate.getPref(k,p=>r(p?String(p.value):'<unavailable>')));return JSON.stringify({mode:await g('ahoi.privacy.global_mode'),sb:await g('safebrowsing.enabled'),enhanced:await g('safebrowsing.enhanced')})})()")
+  open_tab "chrome://prefs-internals" 4
+  local prefs; prefs=$(eval_in "prefs-internals" "(()=>{let d;try{d=JSON.parse(document.body.innerText)}catch(e){return JSON.stringify({error:'unparsable'})}const g=k=>{let v=d;for(const p of k.split('.')){if(v==null)return '<unavailable>';v=v[p]}return v===undefined?'<unavailable>':String(v)};return JSON.stringify({mode:g('ahoi.privacy.global_mode'),sb:g('safebrowsing.enabled'),enhanced:g('safebrowsing.enhanced'),topics:g('privacy_sandbox.m1.topics_enabled'),fledge:g('privacy_sandbox.m1.fledge_enabled'),measurement:g('privacy_sandbox.m1.ad_measurement_enabled')})})()")
   "$AX" dump $PID 30 > "$OUT/ax-$label.txt" 2>/dev/null
   local apikey=absent
   grep -q -i -E "API-Schlüssel|API keys" "$OUT/ax-$label.txt" && apikey=shown
@@ -120,10 +121,13 @@ esac
 [ "$strict_REF" = "$A/" ] && record PRIV-05_referrer_origin_only PASS || record PRIV-05_referrer_origin_only "FAIL:$strict_REF"
 [ "$strict_QUERY" = "keep=1" ] && record PRIV-05_tracking_parameter_stripped PASS \
   || record PRIV-05_tracking_parameter_stripped "FAIL:$strict_QUERY"
-# PRIV-06
+# PRIV-06: Chromium resolves joinAdInterestGroup even when Protected Audience
+# is off (no fingerprinting signal), so the prefs decide; Topics must reject.
 ok=PASS
 for v in "$default_TOPICS" "$strict_TOPICS"; do case "$v" in absent|rejected:*|topics:0) ;; *) ok="FAIL:topics=$v" ;; esac; done
-for v in "$default_FLEDGE" "$strict_FLEDGE"; do case "$v" in absent|rejected:*) ;; *) ok="FAIL:fledge=$v" ;; esac; done
+for k in topics fledge measurement; do
+  for pr in "$default_PREFS" "$strict_PREFS"; do [ "$(pref "$pr" $k)" = false ] || ok="FAIL:$k=$(pref "$pr" $k)"; done
+done
 record PRIV-06_ad_apis_disabled "$ok"
 # PRIV-15
 [ "$(pref "$default_PREFS" sb)" = true ] && [ "$(pref "$default_PREFS" enhanced)" = false ] \
