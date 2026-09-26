@@ -1,0 +1,271 @@
+diff --git a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_cookie_chromium_adapter.cc b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_cookie_chromium_adapter.cc
+index d5dcab8..14ac18d 100644
+--- a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_cookie_chromium_adapter.cc
++++ b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_cookie_chromium_adapter.cc
+@@ -22,6 +22,7 @@
+ #include "content/public/browser/browser_context.h"
+ #include "content/public/browser/browser_thread.h"
+ #include "content/public/browser/storage_partition.h"
++#include "content/public/browser/storage_partition_config.h"
+ #include "net/base/schemeful_site.h"
+ #include "net/cookies/canonical_cookie.h"
+ #include "net/cookies/cookie_access_result.h"
+@@ -133,8 +134,12 @@ base::Time ExpirationForDraft(DeveloperCookieExpiration expiration,
+ 
+ class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
+  public:
+-  explicit ChromiumDeveloperCookieAdapter(content::BrowserContext* context)
+-      : browser_context_(context) {}
++  explicit ChromiumDeveloperCookieAdapter(
++      content::BrowserContext* context,
++      std::optional<content::StoragePartitionConfig> partition_config =
++          std::nullopt)
++      : browser_context_(context),
++        partition_config_(std::move(partition_config)) {}
+   ~ChromiumDeveloperCookieAdapter() override = default;
+ 
+   bool Load(const GURL& site_url,
+@@ -299,7 +304,10 @@ class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
+       return nullptr;
+     }
+     content::StoragePartition* partition =
+-        browser_context_->GetDefaultStoragePartition();
++        partition_config_
++            ? browser_context_->GetStoragePartition(*partition_config_,
++                                                    /*can_create=*/false)
++            : browser_context_->GetDefaultStoragePartition();
+     return partition ? partition->GetCookieManagerForBrowserProcess() : nullptr;
+   }
+ 
+@@ -387,6 +395,7 @@ class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
+   }
+ 
+   raw_ptr<content::BrowserContext> browser_context_ = nullptr;
++  const std::optional<content::StoragePartitionConfig> partition_config_;
+   std::map<uint64_t, net::CanonicalCookie> cookies_;
+   std::optional<url::Origin> loaded_origin_;
+   uint64_t next_cookie_id_ = 1;
+@@ -400,4 +409,11 @@ std::unique_ptr<DeveloperCookieAdapter> CreateChromiumDeveloperCookieAdapter(
+   return std::make_unique<ChromiumDeveloperCookieAdapter>(browser_context);
+ }
+ 
++std::unique_ptr<DeveloperCookieAdapter> CreateChromiumDeveloperCookieAdapter(
++    content::BrowserContext* browser_context,
++    const content::StoragePartitionConfig& partition_config) {
++  return std::make_unique<ChromiumDeveloperCookieAdapter>(browser_context,
++                                                          partition_config);
++}
++
+ }  // namespace ahoi
+diff --git a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_cookie_manager.h b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_cookie_manager.h
+index 3f4c59f..07b5661 100644
+--- a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_cookie_manager.h
++++ b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_cookie_manager.h
+@@ -17,6 +17,7 @@
+ 
+ namespace content {
+ class BrowserContext;
++class StoragePartitionConfig;
+ }
+ 
+ namespace ahoi {
+@@ -150,6 +151,11 @@ class DeveloperCookieAdapter {
+ // created on demand by the cookie popup and schedules no idle work.
+ std::unique_ptr<DeveloperCookieAdapter> CreateChromiumDeveloperCookieAdapter(
+     content::BrowserContext* browser_context);
++// Handoff 060: the cookies of the given StoragePartition, i.e. of the active
++// tab's own partition in a Workspace with its own website sessions.
++std::unique_ptr<DeveloperCookieAdapter> CreateChromiumDeveloperCookieAdapter(
++    content::BrowserContext* browser_context,
++    const content::StoragePartitionConfig& partition_config);
+ 
+ }  // namespace ahoi
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_browsing_data.cc b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_browsing_data.cc
+index 0a7c29e..4060e27 100644
+--- a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_browsing_data.cc
++++ b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_browsing_data.cc
+@@ -60,6 +60,13 @@ BrowsingDataClearOptions BrowsingDataOptionsForScope(BrowsingDataScope scope) {
+   };
+ }
+ 
++bool BrowsingDataRemovalAdapter::RemoveForTab(
++    const BrowsingDataClearRequest& request,
++    const content::WebContents* web_contents,
++    CompletionCallback callback) {
++  return Remove(request, std::move(callback));
++}
++
+ BrowsingDataController::BrowsingDataController(
+     std::unique_ptr<BrowsingDataRemovalAdapter> adapter)
+     : adapter_(std::move(adapter)) {}
+@@ -98,8 +105,8 @@ bool BrowsingDataController::ClearData(const content::WebContents* web_contents,
+     return false;
+   }
+ 
+-  const bool dispatched = adapter_->Remove(
+-      *request,
++  const bool dispatched = adapter_->RemoveForTab(
++      *request, web_contents,
+       base::BindOnce(
+           [](BrowsingDataClearOptions completed_options,
+              BrowsingDataClearCallback completed_callback,
+diff --git a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_browsing_data.h b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_browsing_data.h
+index 9d6ec5a..fb708bc 100644
+--- a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_browsing_data.h
++++ b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_browsing_data.h
+@@ -30,6 +30,15 @@ class BrowsingDataRemovalAdapter {
+   // mask uses BrowsingDataType bits and is always a subset of the request.
+   virtual bool Remove(const BrowsingDataClearRequest& request,
+                       CompletionCallback callback) = 0;
++
++  // Handoff 060: removes the data of `web_contents`' own StoragePartition. A
++  // Workspace with its own website sessions renders in a partition of its
++  // own; clearing the profile's default partition would leave that site data
++  // in place and remove another Workspace's instead. Adapters without
++  // partitions keep the partition-agnostic Remove().
++  virtual bool RemoveForTab(const BrowsingDataClearRequest& request,
++                            const content::WebContents* web_contents,
++                            CompletionCallback callback);
+ };
+ 
+ std::optional<BrowsingDataClearRequest> BuildBrowsingDataClearRequest(
+diff --git a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_chromium_adapters.cc b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_chromium_adapters.cc
+index d9de7e3..501f194 100644
+--- a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_chromium_adapters.cc
++++ b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_chromium_adapters.cc
+@@ -207,6 +207,26 @@ ChromiumBrowsingDataRemovalAdapter::~ChromiumBrowsingDataRemovalAdapter() =
+ bool ChromiumBrowsingDataRemovalAdapter::Remove(
+     const BrowsingDataClearRequest& request,
+     CompletionCallback callback) {
++  return RemoveIn(request, nullptr, std::move(callback));
++}
++
++bool ChromiumBrowsingDataRemovalAdapter::RemoveForTab(
++    const BrowsingDataClearRequest& request,
++    const content::WebContents* web_contents,
++    CompletionCallback callback) {
++  content::StoragePartition* partition =
++      web_contents
++          ? const_cast<content::WebContents*>(web_contents)
++                ->GetPrimaryMainFrame()
++                ->GetStoragePartition()
++          : nullptr;
++  return RemoveIn(request, partition, std::move(callback));
++}
++
++bool ChromiumBrowsingDataRemovalAdapter::RemoveIn(
++    const BrowsingDataClearRequest& request,
++    content::StoragePartition* tab_partition,
++    CompletionCallback callback) {
+   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+   if (!browser_context_ || callback.is_null() || request.data_type_mask == 0 ||
+       (request.data_type_mask & ~kAllDeveloperBrowsingDataTypes) != 0 ||
+@@ -230,10 +250,13 @@ bool ChromiumBrowsingDataRemovalAdapter::Remove(
+   const bool clear_current_site_cookies =
+       current_site &&
+       (request.data_type_mask & ToMask(BrowsingDataType::kCookies));
++  // Handoff 060: the current site's data lives in the tab's partition, which
++  // is not the default one in a Workspace with its own website sessions.
++  content::StoragePartition* const site_partition =
++      tab_partition ? tab_partition
++                    : browser_context_->GetDefaultStoragePartition();
+   content::StoragePartition* partition =
+-      clear_current_site_cookies
+-          ? browser_context_->GetDefaultStoragePartition()
+-          : nullptr;
++      clear_current_site_cookies ? site_partition : nullptr;
+   const size_t pending_tasks =
+       (removal_mask != 0 ? 1u : 0u) +
+       (clear_current_site_cookies ? (partition ? 2u : 1u) : 0u);
+@@ -251,6 +274,11 @@ bool ChromiumBrowsingDataRemovalAdapter::Remove(
+           content::BrowsingDataFilterBuilder::OriginMatchingMode::
+               kOriginInAllContexts);
+       filter->AddOrigin(*request.origin);
++      // Only partition-scoped types are removed here, so the filter may name
++      // a non-default partition (BrowsingDataFilterBuilder contract).
++      if (site_partition && !site_partition->GetConfig().is_default()) {
++        filter->SetStoragePartitionConfig(site_partition->GetConfig());
++      }
+       remover->RemoveWithFilterAndReply(begin, end, removal_mask,
+                                         kAllWebOriginTypes, std::move(filter),
+                                         observer);
+diff --git a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_chromium_adapters.h b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_chromium_adapters.h
+index 57f1d43..7701a21 100644
+--- a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_chromium_adapters.h
++++ b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_chromium_adapters.h
+@@ -13,6 +13,7 @@
+ 
+ namespace content {
+ class BrowserContext;
++class StoragePartition;
+ class WebContents;
+ }  // namespace content
+ 
+@@ -34,8 +35,16 @@ class ChromiumBrowsingDataRemovalAdapter final
+ 
+   bool Remove(const BrowsingDataClearRequest& request,
+               CompletionCallback callback) override;
++  bool RemoveForTab(const BrowsingDataClearRequest& request,
++                    const content::WebContents* web_contents,
++                    CompletionCallback callback) override;
+ 
+  private:
++  // `partition` nullptr means the profile's default partition.
++  bool RemoveIn(const BrowsingDataClearRequest& request,
++                content::StoragePartition* partition,
++                CompletionCallback callback);
++
+   raw_ptr<content::BrowserContext> browser_context_ = nullptr;
+ };
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_unittest.cc b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_unittest.cc
+index f726db6..ee9228e 100644
+--- a/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_unittest.cc
+@@ -155,6 +155,19 @@ TEST(DeveloperToolkitBrowsingDataTest,
+   EXPECT_FALSE(adapter_ptr->last_request.has_value());
+ }
+ 
++// Handoff 060: adapters without partitions keep their Remove() behavior when
++// the controller asks for the tab's partition.
++TEST(DeveloperToolkitBrowsingDataTest, RemoveForTabDefaultsToRemove) {
++  RecordingDataAdapter adapter;
++  const std::optional<BrowsingDataClearRequest> request =
++      BuildBrowsingDataClearRequest(
++          GURL(kExampleUrl),
++          BrowsingDataOptionsForScope(BrowsingDataScope::kCacheOnly));
++  ASSERT_TRUE(request);
++  EXPECT_TRUE(adapter.RemoveForTab(*request, nullptr, base::DoNothing()));
++  EXPECT_EQ(adapter.last_request, request);
++}
++
+ TEST(DeveloperToolkitContentSettingsTest, ToggleDefaultsToBlockAndAlternates) {
+   EXPECT_EQ(ToggleContentSettingValue(std::nullopt),
+             ContentSettingValue::kBlock);
+diff --git a/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.cc b/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.cc
+index 7993d65..6bfa254 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.cc
+@@ -32,6 +32,8 @@
+ #include "chrome/browser/ui/browser_commands.h"
+ #include "chrome/browser/ui/tabs/tab_strip_model.h"
+ #include "chrome/grit/generated_resources.h"
++#include "content/public/browser/render_frame_host.h"
++#include "content/public/browser/storage_partition.h"
+ #include "content/public/browser/navigation_controller.h"
+ #include "content/public/browser/navigation_entry.h"
+ #include "content/public/browser/web_contents.h"
+@@ -408,7 +410,11 @@ bool DeveloperToolkitController::ShowCookieManager(views::View* anchor_view) {
+   const GURL site_url = contents->GetLastCommittedURL();
+   auto view = std::make_unique<DeveloperCookieManagerView>(
+       site_url,
+-      CreateChromiumDeveloperCookieAdapter(contents->GetBrowserContext()),
++      // Handoff 060: the active tab's own partition, which differs from the
++      // default one in a Workspace with its own website sessions.
++      CreateChromiumDeveloperCookieAdapter(
++          contents->GetBrowserContext(),
++          contents->GetPrimaryMainFrame()->GetStoragePartition()->GetConfig()),
+       browser_->GetProfile()->GetPrefs());
+   DeveloperCookieManagerView* const view_ptr = view.get();
+   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
