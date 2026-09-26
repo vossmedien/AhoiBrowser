@@ -65,9 +65,11 @@ void BlurBeforeDestruction(views::Widget* widget) {
   }
   if (widget->GetFocusManager()) {
     widget->GetFocusManager()->ClearFocus();
+    // ClearFocus() keeps the stored view, which Cocoa's asynchronous
+    // first-responder answer would restore (build 37 crash); drop it.
+    widget->GetFocusManager()->SetStoredFocusView(nullptr);
   }
-  // Clearing focus alone did not stop the crash (build 37): also detach the
-  // text input client.
+  // Fallback: also detach the text input client.
   if (ui::InputMethod* input_method = widget->GetInputMethod()) {
     input_method->SetFocusedTextInputClient(nullptr);
   }

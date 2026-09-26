@@ -606,10 +606,13 @@ void BrowserSidebarHostView::PrepareDialogWidgetForDestruction(
   }
   if (views::FocusManager* focus_manager = widget->GetFocusManager()) {
     focus_manager->ClearFocus();
+    // ClearFocus() keeps the stored view, and the first-responder answer from
+    // Cocoa restores it asynchronously (build 37 crash); drop it so nothing
+    // comes back before the Widget is destroyed.
+    focus_manager->SetStoredFocusView(nullptr);
   }
-  // Clearing focus can make the content view first responder again and
-  // restore a focused view; without a text input client the focus check in
-  // NativeWidgetMac::OnDidChangeFocus holds regardless (build 37 crash).
+  // Fallback: without a text input client the focus check in
+  // NativeWidgetMac::OnDidChangeFocus holds regardless.
   if (ui::InputMethod* input_method = widget->GetInputMethod()) {
     input_method->SetFocusedTextInputClient(nullptr);
   }
