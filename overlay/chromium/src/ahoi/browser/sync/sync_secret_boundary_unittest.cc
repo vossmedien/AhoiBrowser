@@ -6,6 +6,7 @@
 // type, split from sync_unittest.cc (source line budget).
 
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -15,6 +16,7 @@
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "ahoi/browser/sync/sync_serialization.h"
+#include "ahoi/browser/sync/sync_unified_validation.h"
 #include "ahoi/browser/sync/sync_unittest_support.h"
 #include "ahoi/browser/sync/workspace_structure_sync.h"
 #include "base/base64.h"
@@ -138,6 +140,26 @@ std::vector<SyncRecord> SampleRecordsOfEveryType() {
                            .enabled = true,
                            .opted_in = true,
                            .version = version});
+  // Shared tab presence, native bookmark and device capability: the first two
+  // carry a top-level URL the secret boundary must police.
+  records.emplace_back(Tab("10000000-0000-4000-8000-00000000006f",
+                           "10000000-0000-4000-8000-000000000060",
+                           "10000000-0000-4000-8000-000000000062",
+                           "https://example.test/shared", version));
+  records.emplace_back(BookmarkRecord{
+      .id = Id("10000000-0000-4000-8000-000000000070"),
+      .kind = BookmarkKind::kUrl,
+      .root_kind = BookmarkRoot::kBookmarkBar,
+      .sort_key = "a",
+      .title = "Bookmark",
+      .url = "https://example.test/bookmark",
+      .created_at = Ts(3),
+      .version = version});
+  records.emplace_back(DeviceCapabilityRecord{
+      .id = CapabilityIdForDevice(Id(kDeviceA)),
+      .device_id = Id(kDeviceA),
+      .features = {"shared-tabs"},
+      .version = version});
   // ADR-0011 shared structure: a split group and an archive entry whose page
   // targets are nested inside the snapshot.
   records.emplace_back(SplitGroupRecord{
@@ -149,6 +171,16 @@ std::vector<SyncRecord> SampleRecordsOfEveryType() {
   records.emplace_back(SampleArchiveEntry(workspace_id, version));
 
   return records;
+}
+
+// Guards the two tests below: a new SyncRecord alternative must get a sample,
+// or the secret boundary would silently not cover it.
+TEST(SyncSerializationTest, SamplesCoverEveryRecordType) {
+  std::set<size_t> covered;
+  for (const SyncRecord& record : SampleRecordsOfEveryType()) {
+    covered.insert(record.index());
+  }
+  EXPECT_EQ(std::variant_size_v<SyncRecord>, covered.size());
 }
 
 TEST(SyncSerializationTest, EveryRecordTypeHasAStablePayload) {
