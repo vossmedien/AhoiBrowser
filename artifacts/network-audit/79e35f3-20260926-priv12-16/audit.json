@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "kind": "ahoi-fresh-profile-network-audit",
+  "app": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "26913c40824db5d584d6bb44873b42a4cc6279cf5f63b3c16cd55f23369fba71",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "79e35f3b7762e4068721009ea16c3dce14e44470",
+    "buildProfile": "dev"
+  },
+  "startedAt": "2026-09-26T05:20:40.194668+00:00",
+  "idleSeconds": 600,
+  "netlogBytes": 9055595,
+  "hosts": {
+    "allowed": [
+      {
+        "host": "edgedl.me.gvt1.com",
+        "count": 106,
+        "rule": "chromium-component-download-edge"
+      },
+      {
+        "host": "safebrowsing.googleapis.com",
+        "count": 15,
+        "rule": "safe-browsing-v5"
+      },
+      {
+        "host": "update.googleapis.com",
+        "count": 113,
+        "rule": "chromium-component-update-check"
+      }
+    ],
+    "conditional": [],
+    "denied": [],
+    "unknown": [],
+    "navigated": [
+      {
+        "host": "example.com",
+        "count": 14
+      }
+    ]
+  },
+  "socketRemotes": [
+    "142.251.142.110:443",
+    "142.251.208.110:443",
+    "142.251.38.234:443",
+    "172.66.147.243:443",
+    "34.104.35.123:443"
+  ],
+  "gcmStoreHasCheckin": null,
+  "verdicts": {
+    "NET-GCM-01": "PASS",
+    "fresh-profile-silence": "PASS",
+    "PRIV-12-endpoints": "PASS",
+    "PRIV-16": "PASS"
+  },
+  "phases": [
+    "crash",
+    "idle",
+    "navigation"
+  ],
+  "method": "Chromium NetLog (Default capture) plus lsof socket polling every 2 s; no root, so non-Chromium DNS is not observed",
+  "navigatedHosts": [
+    "example.com"
+  ],
+  "crash": {
+    "browserCrashed": true,
+    "crashpadDatabase": "/Users/vossmedien/Library/Application Support/AhoiBrowser/Crashpad",
+    "uploadsEnabled": false,
+    "newReports": {
+      "new": [],
+      "pending": [
+        "d8f155da-afa3-4429-b2b0-f18ec733120c.dmp",
+        "fb617125-9477-4bff-8ba0-674b66b3fcf7.dmp"
+      ],
+      "completed": []
+    },
+    "uploadMarkersInNetlog": [],
+    "crashHandlerRemotes": []
+  }
+}
