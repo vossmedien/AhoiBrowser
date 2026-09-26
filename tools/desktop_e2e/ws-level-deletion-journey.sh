@@ -149,6 +149,10 @@ switchws Kunde Inbox; open_url "$SITE/check.html"
 switchws Inbox Kunde; open_url "$SITE/unload.html"
 CDP unload.html Input.dispatchMouseEvent '{"type":"mousePressed","x":100,"y":100,"button":"left","clickCount":1}' >/dev/null
 CDP unload.html Input.dispatchMouseEvent '{"type":"mouseReleased","x":100,"y":100,"button":"left","clickCount":1}' >/dev/null
+# Chromium shows the before-unload prompt only with sticky user activation;
+# record it and page focus right before the deletion (crest diagnosis).
+CDP unload.html Runtime.evaluate '{"expression":"JSON.stringify({active:navigator.userActivation.hasBeenActive,focus:document.hasFocus()})","returnByValue":true}' \
+  | python3 -c 'import json,sys;print("unload page before delete:",json.load(sys.stdin).get("result",{}).get("value",""))' >> "$OUT/steps.txt"
 BEFORE=$(tabs); delete_active Kunde
 unload_prompt unload.html cancel && record vetoPromptShown true || record vetoPromptShown false
 sleep 3; AFTER=$(tabs)
