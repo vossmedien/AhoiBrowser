@@ -1,0 +1,289 @@
+diff --git a/apps/AhoiMobile/Package.swift b/apps/AhoiMobile/Package.swift
+index 4e101cb..df8e8c1 100644
+--- a/apps/AhoiMobile/Package.swift
++++ b/apps/AhoiMobile/Package.swift
+@@ -27,7 +27,8 @@ let package = Package(
+             dependencies: [
+                 .product(name: "AhoiCloudKitSpike", package: "cloudkit")
+             ],
+-            resources: [.process("Resources")]
++            // The spike extension is an unpacked folder: copy it as is.
++            resources: [.process("Resources"), .copy("WebExtensionSpike")]
+         ),
+         .executableTarget(
+             name: "AhoiMobileApp",
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerWebPageLifecycle.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerWebPageLifecycle.swift
+index b69f096..6569a98 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerWebPageLifecycle.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserControllerWebPageLifecycle.swift
+@@ -233,6 +233,12 @@ extension MobileBrowserController {
+         websiteDataStores[tabID] = websiteDataStore
+         configuration.websiteDataStore = websiteDataStore
+         configuration.upgradeKnownHostsToHTTPS = true
++        // MOB-EXT-01 spike (ADR 0012): only with `-AhoiWebExtensionSpike`.
++        MobileWebExtensionRuntime.shared.attach(
++            to: &configuration,
++            mode: mode,
++            usesDefaultWebsiteDataStore: websiteDataStore === normalWebsiteDataStore
++        )
+         // Certificate trust and ATS policy deliberately stay with WebKit's
+         // default handling. Never install a permissive challenge override.
+         configuration.mediaPlaybackBehavior = .allowsInlinePlayback
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift
+new file mode 100644
+index 0000000..2b0f9da
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift
+@@ -0,0 +1,102 @@
++import Foundation
++import WebKit
++
++/// ADR 0012 section 4, step 1 (MOB-EXT-01): a spike that loads one bundled
++/// MV3 test extension into a `WKWebExtensionController` and attaches it to
++/// normal-browsing pages that use the default website data store. Off unless
++/// the app is launched with `-AhoiWebExtensionSpike`. Private pages and
++/// separated Workspaces never get it; tab/window adapters
++/// (`WKWebExtensionTab`) are out of scope, see
++/// `outputs/AhoiBrowser-Mobile-uBlock-Feasibility.md`.
++@MainActor
++public final class MobileWebExtensionRuntime {
++    public static let launchArgument = "-AhoiWebExtensionSpike"
++    public static let shared = MobileWebExtensionRuntime(
++        arguments: ProcessInfo.processInfo.arguments
++    )
++
++    public enum State: Equatable, Sendable {
++        case disabled
++        case loading
++        case loaded(displayName: String)
++        case failed(String)
++    }
++
++    public private(set) var state: State
++    let controller: WKWebExtensionController?
++    private var loadTask: Task<Void, Never>?
++
++    init(arguments: [String]) {
++        if arguments.contains(Self.launchArgument) {
++            // Extension storage stays in memory for the spike: nothing
++            // survives a relaunch, and nothing leaves the device.
++            controller = WKWebExtensionController(configuration: .nonPersistent())
++            state = .loading
++        } else {
++            controller = nil
++            state = .disabled
++        }
++    }
++
++    /// The unpacked test extension inside the core bundle.
++    public static var spikeExtensionURL: URL? {
++        resourceBundle.url(forResource: "WebExtensionSpike", withExtension: nil)
++    }
++
++    /// Call before `WebPage(configuration:)`. Loading is asynchronous, so
++    /// the first page may open before the extension is ready; content scripts
++    /// and rules apply from the next navigation on.
++    public func attach(
++        to configuration: inout WebPage.Configuration,
++        mode: MobileBrowsingMode,
++        usesDefaultWebsiteDataStore: Bool
++    ) {
++        guard let controller,
++              mode != .privateBrowsing,
++              usesDefaultWebsiteDataStore else {
++            return
++        }
++        configuration.webExtensionController = controller
++        loadIfNeeded(into: controller)
++    }
++
++    /// Waits for the spike extension; for tests and diagnostics.
++    public func waitUntilLoaded() async {
++        await loadTask?.value
++    }
++
++    private func loadIfNeeded(into controller: WKWebExtensionController) {
++        guard loadTask == nil else { return }
++        loadTask = Task { [weak self] in
++            do {
++                guard let url = Self.spikeExtensionURL else {
++                    throw CocoaError(.fileNoSuchFile)
++                }
++                let webExtension = try await WKWebExtension(resourceBaseURL: url)
++                let context = WKWebExtensionContext(for: webExtension)
++                // Debug-only spike: grant what the manifest asks for. The v1
++                // scope (MOB-EXT-03) replaces this with a per-site prompt.
++                for permission in webExtension.requestedPermissions {
++                    context.setPermissionStatus(.grantedExplicitly, for: permission)
++                }
++                for pattern in webExtension.allRequestedMatchPatterns {
++                    context.setPermissionStatus(.grantedExplicitly, for: pattern)
++                }
++                try controller.load(context)
++                self?.state = .loaded(displayName: webExtension.displayName ?? "")
++            } catch {
++                self?.state = .failed(String(describing: error))
++            }
++        }
++    }
++
++    private final class BundleMarker {}
++
++    private static var resourceBundle: Bundle {
++        #if SWIFT_PACKAGE
++        Bundle.module
++        #else
++        Bundle(for: BundleMarker.self)
++        #endif
++    }
++}
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/content.js b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/content.js
+new file mode 100644
+index 0000000..2347e29
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/content.js
+@@ -0,0 +1,7 @@
++// MOB-EXT-01: proves content-script injection and extension storage.
++document.documentElement.dataset.ahoiSpike = "1";
++browser.storage.local.get("visits").then((stored) => {
++  const visits = (stored.visits || 0) + 1;
++  document.documentElement.dataset.ahoiSpikeVisits = String(visits);
++  return browser.storage.local.set({ visits });
++});
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/manifest.json b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/manifest.json
+new file mode 100644
+index 0000000..14951e0
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/manifest.json
+@@ -0,0 +1,24 @@
++{
++  "manifest_version": 3,
++  "name": "Ahoi Spike",
++  "version": "1.0",
++  "description": "MOB-EXT-01 spike: one content script, one blocking rule, storage and a popup.",
++  "permissions": ["declarativeNetRequest", "storage"],
++  "host_permissions": ["<all_urls>"],
++  "content_scripts": [
++    {
++      "matches": ["<all_urls>"],
++      "js": ["content.js"],
++      "run_at": "document_start"
++    }
++  ],
++  "declarative_net_request": {
++    "rule_resources": [
++      { "id": "spike", "enabled": true, "path": "rules.json" }
++    ]
++  },
++  "action": {
++    "default_title": "Ahoi Spike",
++    "default_popup": "popup.html"
++  }
++}
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/popup.html b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/popup.html
+new file mode 100644
+index 0000000..e1d5b57
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/popup.html
+@@ -0,0 +1,5 @@
++<!doctype html>
++<meta charset="utf-8">
++<title>Ahoi Spike</title>
++<p>Ahoi Spike: <span id="visits">0</span> visits</p>
++<script src="popup.js"></script>
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/popup.js b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/popup.js
+new file mode 100644
+index 0000000..66ace0e
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/popup.js
+@@ -0,0 +1,3 @@
++browser.storage.local.get("visits").then((stored) => {
++  document.getElementById("visits").textContent = String(stored.visits || 0);
++});
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/rules.json b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/rules.json
+new file mode 100644
+index 0000000..714a97e
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/rules.json
+@@ -0,0 +1,11 @@
++[
++  {
++    "id": 1,
++    "priority": 1,
++    "action": { "type": "block" },
++    "condition": {
++      "urlFilter": "/ahoi-spike-blocked.js",
++      "resourceTypes": ["script"]
++    }
++  }
++]
+diff --git a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileWebExtensionRuntimeTests.swift b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileWebExtensionRuntimeTests.swift
+new file mode 100644
+index 0000000..0005eb9
+--- /dev/null
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileWebExtensionRuntimeTests.swift
+@@ -0,0 +1,47 @@
++import WebKit
++import XCTest
++@testable import AhoiMobileCore
++
++/// MOB-EXT-01 (ADR 0012 section 4): the bundled spike extension loads and the
++/// runtime stays off unless its launch argument is present.
++@MainActor
++final class MobileWebExtensionRuntimeTests: XCTestCase {
++    func testBundledSpikeExtensionLoadsWithItsManifest() async throws {
++        let url = try XCTUnwrap(MobileWebExtensionRuntime.spikeExtensionURL)
++        let webExtension = try await WKWebExtension(resourceBaseURL: url)
++        XCTAssertEqual(webExtension.displayName, "Ahoi Spike")
++        XCTAssertEqual(webExtension.manifestVersion, 3)
++        XCTAssertTrue(webExtension.requestedPermissions.contains(.declarativeNetRequest))
++        XCTAssertTrue(webExtension.requestedPermissions.contains(.storage))
++        XCTAssertTrue(webExtension.hasInjectedContent)
++        XCTAssertTrue(webExtension.hasContentModificationRules)
++        XCTAssertTrue(webExtension.errors.isEmpty, "\(webExtension.errors)")
++    }
++
++    func testRuntimeIsOffWithoutTheLaunchArgument() {
++        let runtime = MobileWebExtensionRuntime(arguments: [])
++        var configuration = WebPage.Configuration()
++        runtime.attach(to: &configuration, mode: .normal, usesDefaultWebsiteDataStore: true)
++        XCTAssertEqual(runtime.state, .disabled)
++        XCTAssertNil(configuration.webExtensionController)
++    }
++
++    func testSpikeAttachesOnlyToNormalDefaultStorePages() async {
++        let runtime = MobileWebExtensionRuntime(
++            arguments: [MobileWebExtensionRuntime.launchArgument]
++        )
++        var privatePage = WebPage.Configuration()
++        runtime.attach(to: &privatePage, mode: .privateBrowsing, usesDefaultWebsiteDataStore: true)
++        XCTAssertNil(privatePage.webExtensionController)
++        var separated = WebPage.Configuration()
++        runtime.attach(to: &separated, mode: .normal, usesDefaultWebsiteDataStore: false)
++        XCTAssertNil(separated.webExtensionController)
++
++        var normal = WebPage.Configuration()
++        runtime.attach(to: &normal, mode: .normal, usesDefaultWebsiteDataStore: true)
++        XCTAssertNotNil(normal.webExtensionController)
++        await runtime.waitUntilLoaded()
++        XCTAssertEqual(runtime.state, .loaded(displayName: "Ahoi Spike"))
++        XCTAssertEqual(runtime.controller?.extensionContexts.count, 1)
++    }
++}
+diff --git a/apps/AhoiMobile/project.yml b/apps/AhoiMobile/project.yml
+index 505974e..81e1cca 100644
+--- a/apps/AhoiMobile/project.yml
++++ b/apps/AhoiMobile/project.yml
+@@ -27,6 +27,12 @@ targets:
+     platform: iOS
+     sources:
+       - path: Sources/AhoiMobileCore
++        excludes:
++          - WebExtensionSpike
++      # MOB-EXT-01 spike extension, kept as one folder in the bundle.
++      - path: Sources/AhoiMobileCore/WebExtensionSpike
++        type: folder
++        buildPhase: resources
+     dependencies:
+       - package: AhoiCloudKitSpike
+         product: AhoiCloudKitSpike
