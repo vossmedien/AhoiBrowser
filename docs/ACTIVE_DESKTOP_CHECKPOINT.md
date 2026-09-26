@@ -111,19 +111,37 @@ and 17 (shortcut catalog with last-used tab) now have code; see below.
   part of the dev build, so none has run on M153 yet.
 
 - **Privacy on installed build 39 (`79e35f3`), 26 September:**
-  `privacy-exceptions-journey.sh` 4/4 PASS twice: an origin exception to
-  "Maximale Website-Kompatibilität" removes Sec-GPC and the JS signal on
-  that site across reload and restart while the other site stays strict
-  (PRIV-08), removing it restores strict behavior (PRIV-09), and strict
-  protection holds without any uBO identity in the profile (PRIV-10). The
-  exception's visible indication in the bubble is not covered. PRIV-11 and
-  PRIV-13 (idle phase) are covered by crest's H5 on `79e35f3` (600 s, every
-  host against the allowlist). **PRIV-14 FAIL:** `safe-browsing-journey.sh`
-  finds no interstitial for Google's malware and phishing test pages; cause
-  is the missing API key (owner row "Safe Browsing service access"). PRIV-12
-  (navigation endpoints) and PRIV-16 (crash without upload) run in crest's
-  extended audit; the renderer crash left a local report and no upload, the
-  browser-crash step is being fixed. Open: PRIV-07 (visible bubble texts).
+  - PASS: an origin exception to "Maximale Website-Kompatibilität" removes
+    Sec-GPC and the JS signal on that site across reload and restart while
+    the other site stays strict (PRIV-08); removing it restores strict
+    behavior (PRIV-09); strict protection holds without any uBO identity in
+    the profile (PRIV-10) — `privacy-exceptions-journey.sh`.
+  - PASS by crest's extended audit (`artifacts/network-audit/79e35f3-20260926-priv12-16/`):
+    idle phase 600 s (PRIV-11), navigation endpoints all allowlisted or
+    navigated (PRIV-12), every background host against the allowlist
+    (PRIV-13), renderer and browser crash with uploads disabled and no
+    upload traffic (PRIV-16). Two local test crash reports stay in
+    `~/Library/Application Support/AhoiBrowser/Crashpad/pending`.
+  - **Bug found and fixed (`e10d3f7`, in build 40):** a same-tab navigation
+    from a strict page to a site in compatibility mode, and the reload
+    after the panel's per-site repair, carried `Sec-GPC: 1`, because
+    navigation headers come from the renderer preferences of the page being
+    left. The privacy throttle now removes an inherited Sec-GPC for
+    non-strict sites. Build 39 reproduces it (`gpc=1`).
+  - PRIV-07: `privacy-repair-journey.sh` drives the panel by accessibility
+    actions; on build 39 the panel opens and the repair stores the
+    exception. The panel now says that built-in browser security stays on
+    (`70d26fb`); both parts are checked on build 40.
+  - **PRIV-14 FAIL:** no interstitial for Google's malware and phishing test
+    pages; cause is the missing API key (owner row "Safe Browsing service
+    access").
+- **German UI strings:** 15 Ahoi strings showed English in the German UI
+  (HTTP authentication account manager, "Show address bar"). Patch 0069
+  adds them; `tools/check_ahoi_translations.py` checks every `IDS_AHOI_*`
+  message against the translation bundle (15 missing before, 0 after).
+- **Build 40 journeys** (queued): keyboard shortcuts, HTTP-auth (dialog
+  crash), privacy repair (PRIV-07, GPC after repair), privacy exceptions
+  (same-tab GPC).
 
 ## Builds 37 and 38 results; builds 39 and 40 in progress — 26 September 2026
 
