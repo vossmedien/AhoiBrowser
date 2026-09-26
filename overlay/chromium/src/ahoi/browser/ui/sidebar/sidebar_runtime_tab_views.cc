@@ -548,17 +548,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   OpenTabDropPosition PositionForPoint(const gfx::Point& point) const {
-    // Keep native hit testing identical to the painted 30/40/30 zones. A
-    // highlighted region must never promise a drop that the pointer cannot
-    // actually commit.
-    const int edge_zone = GetSidebarEdgeDropTargetExtent(height());
-    if (point.y() < edge_zone) {
-      return OpenTabDropPosition::kBefore;
-    }
-    if (point.y() >= height() - edge_zone) {
-      return OpenTabDropPosition::kAfter;
-    }
-    return OpenTabDropPosition::kSplit;
+    // Keep native hit testing identical to the painted zones. A highlighted
+    // region must never promise a drop that the pointer cannot commit.
+    return OpenTabDropPositionForY(point.y(), height());
   }
 
   bool UpdateDropPosition(const ui::DropTargetEvent& event) {
@@ -592,34 +584,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
                                 *drop_position_)) {
       return next;
     }
-
-    const int edge_extent = GetSidebarEdgeDropTargetExtent(height());
-    const int before_boundary = edge_extent;
-    const int after_boundary = height() - edge_extent;
-    const int center_boundary = height() / 2;
-    constexpr int kDropZoneHysteresis = 4;
-    const OpenTabDropPosition current = *drop_position_;
-    if ((current == OpenTabDropPosition::kBefore &&
-         next == OpenTabDropPosition::kSplit &&
-         point.y() < before_boundary + kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kSplit &&
-         next == OpenTabDropPosition::kBefore &&
-         point.y() >= before_boundary - kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kAfter &&
-         next == OpenTabDropPosition::kSplit &&
-         point.y() >= after_boundary - kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kSplit &&
-         next == OpenTabDropPosition::kAfter &&
-         point.y() < after_boundary + kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kBefore &&
-         next == OpenTabDropPosition::kAfter &&
-         point.y() < center_boundary + kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kAfter &&
-         next == OpenTabDropPosition::kBefore &&
-         point.y() >= center_boundary - kDropZoneHysteresis)) {
-      return current;
-    }
-    return next;
+    return KeepsOpenTabDropPosition(*drop_position_, next, point.y(), height())
+               ? drop_position_
+               : next;
   }
 
   std::optional<OpenTabDropPosition> AllowedPosition(
@@ -637,9 +604,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
     // A rejected split is still a useful reorder gesture. Resolve the central
     // pointer to its nearest valid edge so the visible tab row has no dead
     // middle region.
-    const OpenTabDropPosition nearest = point.y() < height() / 2
-                                            ? OpenTabDropPosition::kBefore
-                                            : OpenTabDropPosition::kAfter;
+    const OpenTabDropPosition nearest =
+        NearestOpenTabDropEdge(point.y(), height());
     return can_drop_callback_.Run(payload.saved_node_id,
                                   payload.runtime_tab_handle, tab_, nearest)
                ? std::optional(nearest)

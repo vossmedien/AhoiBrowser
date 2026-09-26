@@ -49,6 +49,21 @@ enum class OpenTabDropPosition {
 bool CanDetachRuntimeSplitPaneOnSelfDrop(bool source_is_split,
                                          OpenTabDropPosition position);
 
+// Drop-zone geometry of an open-tab row of `row_height`: the painted 30/40/30
+// before/split/after zones, shared by hit testing and painting.
+OpenTabDropPosition OpenTabDropPositionForY(int y, int row_height);
+
+// The row edge nearest to `y`, used when the central split zone is rejected.
+OpenTabDropPosition NearestOpenTabDropEdge(int y, int row_height);
+
+// Whether a pointer at `y` keeps the `current` zone instead of switching to
+// `next`: a small hysteresis around each zone boundary stops the highlight
+// from flickering while the pointer rests on a boundary.
+bool KeepsOpenTabDropPosition(OpenTabDropPosition current,
+                              std::optional<OpenTabDropPosition> next,
+                              int y,
+                              int row_height);
+
 // A composite segment keeps its durable saved-node identity when available;
 // only genuinely temporary panes use Chromium's process-local tab handle.
 void WriteOpenTabDragPayload(ui::OSExchangeData* data,

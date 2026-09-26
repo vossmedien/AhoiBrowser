@@ -232,6 +232,7 @@ source_set("browser_sidebar") {
     "sidebar_bookmark_shelf_view.h",
     "sidebar_edge_reveal_view.cc",
     "sidebar_edge_reveal_view.h",
+    "sidebar_open_tab_drop_zones.cc",
     "sidebar_recent_links_view.cc",
     "sidebar_recent_links_view.h",
     "sidebar_remote_tab_views.cc",
