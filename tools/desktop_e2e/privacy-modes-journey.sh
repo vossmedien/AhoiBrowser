@@ -74,9 +74,9 @@ run_mode() { # <label> <seeded mode or "">
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 3
   open_tab "$A/top" 5
-  local tp; tp=$(eval_in "localhost:$SP/frame" "String(window.tp)")
+  local tp; tp=$(eval_in "127.0.0.1:$SP/top" "String(window.fc)")
   open_tab "https://127.0.0.1:$HP/top3p" 5
-  local tp3; tp3=$(eval_in "localhost:$HP/frame3p" "String(window.tp)")
+  local tp3; tp3=$(eval_in "127.0.0.1:$HP/top3p" "String(window.fc)")
   open_tab "$A/landing?utm_source=ahoi&keep=1" 3
   open_tab "$A/login" 2; open_tab "$A/whoami" 2
   local who; who=$(eval_in "/whoami" "document.title")

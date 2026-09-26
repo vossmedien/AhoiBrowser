@@ -17,22 +17,28 @@ PAGES = {
     "/login": ("<title>logged in</title>ok", [("Set-Cookie", "session=fp; Path=/; SameSite=Lax")]),
     # Top page on site A that embeds site B and sends a full-URL referrer
     # policy, so Chromium would send the whole URL unless Ahoi reduces it.
+    # Cross-site frames report their document.cookie to the top page with
+    # postMessage: DevTools page targets cannot evaluate inside an OOPIF.
     "/top": ("<meta name='referrer' content='unsafe-url'><title>top</title>"
+             "<script>addEventListener('message',e=>window.fc=e.data)</script>"
              "<iframe id='f' src='http://localhost:{port}/frame'></iframe>"
              "<img src='http://localhost:{port}/pixel?from=top'>", []),
     # Cross-site frame: tries an unpartitioned third-party cookie.
     "/frame": ("<title>frame</title><script>"
                "document.cookie='tp=1; SameSite=None; Secure; Path=/';"
-               "window.tp=document.cookie;</script>frame", []),
+               "window.tp=document.cookie;parent.postMessage(document.cookie,'*');"
+               "</script>frame", []),
     "/pixel": ("", []),
     # HTTPS pair for PRIV-02/03: a cross-site frame that sets an
     # unpartitioned and a partitioned (CHIPS) third-party cookie.
     "/top3p": ("<title>top3p</title>"
+               "<script>addEventListener('message',e=>window.fc=e.data)</script>"
                "<iframe id='f' src='https://localhost:{port}/frame3p'></iframe>", []),
     "/frame3p": ("<title>frame3p</title><script>"
                  "document.cookie='tp=1; SameSite=None; Secure; Path=/';"
                  "document.cookie='chip=1; SameSite=None; Secure; Path=/; Partitioned';"
-                 "window.tp=document.cookie;</script>frame3p", []),
+                 "window.tp=document.cookie;parent.postMessage(document.cookie,'*');"
+                 "</script>frame3p", []),
     "/landing": ("<title>landing</title>landing", []),
     "/ads": ("<title>ads</title>ads", []),
 }
