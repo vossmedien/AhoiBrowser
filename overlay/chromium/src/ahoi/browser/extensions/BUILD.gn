@@ -101,6 +101,7 @@ source_set("service") {
     "ubo_network_client.h",
     "ubo_service.cc",
     "ubo_service.h",
+    "ubo_service_inventory.cc",
     "ubo_service_factory.cc",
     "ubo_service_factory.h",
     "ubo_simple_url_loader_client.cc",
