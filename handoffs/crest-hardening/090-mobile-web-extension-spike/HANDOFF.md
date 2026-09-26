@@ -1,6 +1,6 @@
 # 090 – Mobile: WebKit Web Extension spike (ADR 0012 section 4, step 1, MOB-EXT-01)
 
-Status: ready
+Status: integrated (mobile, e9ba41a, core tests 315/0/2; visible checks open)
 Owner lane: mobile (apply, regenerate the project, build, run the spike checklist)
 Base: HEAD `2543785` (`git apply --check` passes).
 Plan of record: `outputs/AhoiBrowser-Mobile-uBlock-Feasibility.md`

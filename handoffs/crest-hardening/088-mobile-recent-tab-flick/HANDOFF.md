@@ -1,6 +1,6 @@
 # 088 – Mobile: flick through recently used tabs (ADR 0012, section 3)
 
-Status: ready
+Status: integrated (mobile, e9ba41a, core tests 315/0/2; visible checks open)
 Owner lane: mobile (apply, regenerate the project, build, test)
 Base: HEAD `2543785` (`git apply --check` passes).
 Implements `MOB-FLICK-01/02`. Written by the crest-hardening lane; not built.

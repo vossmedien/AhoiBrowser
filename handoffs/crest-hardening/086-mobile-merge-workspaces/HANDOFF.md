@@ -1,6 +1,6 @@
 # 086 – Mobile: merge Workspaces (ADR 0012, WS-MERGE-07)
 
-Status: ready
+Status: integrated (mobile, e9ba41a, core tests 315/0/2; visible checks open)
 Owner lane: mobile (apply, build, test)
 Base: HEAD `e300a85`. Apply after 076: `git apply --check` passes on HEAD with 076
 applied, and also on plain HEAD, since 086 touches none of 076's hunks. 076
