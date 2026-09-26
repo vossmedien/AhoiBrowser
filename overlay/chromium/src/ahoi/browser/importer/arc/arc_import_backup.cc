@@ -21,6 +21,7 @@
 
 #include "ahoi/browser/importer/arc/arc_import_discovery.h"
 #include "ahoi/browser/importer/arc/arc_import_journal.h"
+#include "ahoi/browser/importer/arc/arc_import_safe_files.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "base/containers/span.h"
 #include "base/files/file.h"
@@ -44,6 +45,17 @@ namespace ahoi::importer::arc {
 
 namespace {
 
+using safe_files::BackupFileState;
+using safe_files::BackupFileStatesMatch;
+using safe_files::FsyncDirectory;
+using safe_files::HashOpenedRegularFile;
+using safe_files::HashRegularFile;
+using safe_files::IsOwnerOnlyDirectory;
+using safe_files::IsOwnerOnlyOpenedRegularFile;
+using safe_files::IsPathMissingNoFollow;
+using safe_files::OpenSafeRegularFile;
+using safe_files::ReadStableOwnerOnlyFile;
+
 constexpr int kBackupManifestVersion = 1;
 constexpr int64_t kMaxManifestBytes = 1024 * 1024;
 constexpr size_t kMaxManifestFiles = kMaxBrowserProfileCount * 10 + 4;
@@ -62,14 +74,6 @@ struct BackupFileSpec {
   base::FilePath::StringType destination_name;
   bool required;
   bool is_arc_sidebar = false;
-};
-
-struct BackupFileState {
-  bool present = false;
-  std::string sha256;
-  int64_t size = 0;
-  int64_t modified_unix_ms = 0;
-  int64_t created_unix_ms = 0;
 };
 
 bool IsLowerSha256(const std::string& value) {
@@ -109,112 +113,6 @@ bool IsSafeBackupName(std::string_view value) {
   return !value.empty() && value.size() <= 160 && !path.IsAbsolute() &&
          !path.ReferencesParent() && path.BaseName() == path &&
          (base::StartsWith(value, "Arc-") || base::StartsWith(value, "Ahoi-"));
-}
-
-bool BackupFileStatesMatch(const BackupFileState& left,
-                           const BackupFileState& right) {
-  return left.present == right.present && left.sha256 == right.sha256 &&
-         left.size == right.size &&
-         left.modified_unix_ms == right.modified_unix_ms &&
-         left.created_unix_ms == right.created_unix_ms;
-}
-
-base::File OpenSafeRegularFile(const base::FilePath& path) {
-  base::ScopedFD fd(HANDLE_EINTR(open(
-      path.value().c_str(), O_RDONLY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK)));
-  struct stat file_stat;
-  if (!fd.is_valid() || fstat(fd.get(), &file_stat) != 0 ||
-      !S_ISREG(file_stat.st_mode) || file_stat.st_nlink != 1) {
-    return base::File(base::File::FILE_ERROR_NOT_A_FILE);
-  }
-  return base::File(std::move(fd));
-}
-
-bool HashOpenedRegularFile(base::File* file, BackupFileState* state) {
-  struct stat links_before;
-  base::File::Info info_before;
-  if (!file || !state || !file->IsValid() ||
-      file->Seek(base::File::FROM_BEGIN, 0) != 0 ||
-      fstat(file->GetPlatformFile(), &links_before) != 0 ||
-      links_before.st_nlink != 1 || !file->GetInfo(&info_before) ||
-      info_before.is_directory || info_before.is_symbolic_link ||
-      info_before.size < 0) {
-    return false;
-  }
-  std::array<uint8_t, crypto::hash::kSha256Size> digest{};
-  if (!crypto::hash::HashFile(crypto::hash::kSha256, file, digest)) {
-    return false;
-  }
-  struct stat links_after;
-  base::File::Info info_after;
-  if (fstat(file->GetPlatformFile(), &links_after) != 0 ||
-      links_after.st_nlink != 1 || !file->GetInfo(&info_after) ||
-      info_after.is_directory || info_after.is_symbolic_link ||
-      info_after.size < 0 || info_before.size != info_after.size ||
-      info_before.last_modified != info_after.last_modified ||
-      info_before.creation_time != info_after.creation_time) {
-    return false;
-  }
-  state->present = true;
-  state->sha256 = base::HexEncodeLower(digest);
-  state->size = info_after.size;
-  state->modified_unix_ms =
-      info_after.last_modified.InMillisecondsSinceUnixEpoch();
-  state->created_unix_ms =
-      info_after.creation_time.InMillisecondsSinceUnixEpoch();
-  return true;
-}
-
-bool HashRegularFile(const base::FilePath& path, BackupFileState* state) {
-  base::File file = OpenSafeRegularFile(path);
-  return HashOpenedRegularFile(&file, state);
-}
-
-bool IsOwnerOnlyOpenedRegularFile(base::File* file) {
-  struct stat state;
-  return file && file->IsValid() &&
-         fstat(file->GetPlatformFile(), &state) == 0 &&
-         S_ISREG(state.st_mode) && state.st_nlink == 1 &&
-         state.st_uid == getuid() && (state.st_mode & 0077) == 0;
-}
-
-bool ReadStableOwnerOnlyFile(base::File* file,
-                             int64_t max_bytes,
-                             std::string* contents) {
-  if (!contents || max_bytes < 0 || !IsOwnerOnlyOpenedRegularFile(file)) {
-    return false;
-  }
-  BackupFileState state_before;
-  if (!HashOpenedRegularFile(file, &state_before) ||
-      state_before.size > max_bytes) {
-    return false;
-  }
-  contents->resize(static_cast<size_t>(state_before.size));
-  if (!file->ReadAndCheck(0, base::as_writable_byte_span(*contents))) {
-    return false;
-  }
-  BackupFileState state_after;
-  return HashOpenedRegularFile(file, &state_after) &&
-         BackupFileStatesMatch(state_before, state_after) &&
-         IsOwnerOnlyOpenedRegularFile(file);
-}
-
-bool IsPathMissingNoFollow(const base::FilePath& path) {
-  struct stat state;
-  if (lstat(path.value().c_str(), &state) == 0) {
-    return false;
-  }
-  return errno == ENOENT;
-}
-
-bool FsyncDirectory(const base::FilePath& path) {
-  base::ScopedFD descriptor(HANDLE_EINTR(
-      open(path.value().c_str(),
-           O_RDONLY | O_CLOEXEC | O_DIRECTORY | O_NOFOLLOW | O_NONBLOCK)));
-  struct stat state;
-  return descriptor.is_valid() && fstat(descriptor.get(), &state) == 0 &&
-         S_ISDIR(state.st_mode) && state.st_uid == getuid() &&
-         HANDLE_EINTR(fsync(descriptor.get())) == 0;
 }
 
 bool CaptureBackupFileState(const BackupFileSpec& spec,
@@ -344,13 +242,6 @@ bool IsSafeBackupIdentifier(std::string_view value) {
   }
   const base::Uuid uuid = base::Uuid::ParseLowercase(value.substr(13));
   return uuid.is_valid() && uuid.AsLowercaseString() == value.substr(13);
-}
-
-bool IsOwnerOnlyDirectory(const base::FilePath& path) {
-  struct stat state;
-  return lstat(path.value().c_str(), &state) == 0 && S_ISDIR(state.st_mode) &&
-         !S_ISLNK(state.st_mode) && state.st_uid == getuid() &&
-         (state.st_mode & 0077) == 0;
 }
 
 bool IsValidatedBackupDirectory(const base::FilePath& path) {

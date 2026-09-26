@@ -44,6 +44,8 @@ source_set("service") {
     "arc_import_recovery.h",
     "arc_import_recovery_policy.cc",
     "arc_import_recovery_policy.h",
+    "arc_import_safe_files.cc",
+    "arc_import_safe_files.h",
     "arc_import_service.cc",
     "arc_import_service.h",
     "arc_import_service_factory.cc",
