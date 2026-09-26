@@ -50,7 +50,10 @@ source_set("unit_tests") {
   testonly = true
   sources = [
     "tab_tree_store_persistence_unittest.cc",
+    "tab_tree_store_snapshot_unittest.cc",
     "tab_tree_store_unittest.cc",
+    "tab_tree_store_unittest_support.cc",
+    "tab_tree_store_unittest_support.h",
   ]
   deps = [
     ":tab_tree",
