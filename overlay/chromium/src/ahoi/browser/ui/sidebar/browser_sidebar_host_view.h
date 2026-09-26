@@ -148,6 +148,7 @@ class BrowserSidebarHostView final
   bool ActivateWorkspaceById(const base::Uuid& workspace_id);
 
   bool RevealFolder(const base::Uuid& folder_id);
+  bool MoveSelectionToWorkspace(const base::Uuid& workspace_id, bool dry_run);
 
   bool SetSidebarPresentationMode(SidebarPresentationMode mode);
   bool ToggleFloatingSidebar();
@@ -616,10 +617,11 @@ class BrowserSidebarHostView final
   void UseSavedHome(base::Uuid node_id, bool set_current);
 
   void SelectWorkspaceColor(std::optional<uint32_t> color, const ui::Event&);
-
   void UpdateWorkspaceColorButtons();
   void AddWorkspaceLevelChoice(views::View* contents);
-
+  // ADR 0012 (handoff 080), browser_sidebar_host_workspace_merge.cc.
+  void AddWorkspaceMergeChoice(views::View* contents);
+  bool AcceptWorkspaceMerge();
   bool AcceptWorkspaceDialog();
   std::string NextProcessWideWorkspaceSortKey() const;
 

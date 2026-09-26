@@ -193,6 +193,8 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
       sessions->SetMultiLine(true);
       sessions->SetHorizontalAlignment(gfx::ALIGN_LEFT);
     }
+  } else if (action == PendingWorkspaceAction::kMerge) {
+    AddWorkspaceMergeChoice(contents.get());
   } else if (action == PendingWorkspaceAction::kConvertToIsolated) {
     // ADR 0011 step 2 (handoff 052): say what moves and what stays.
     auto* body = contents->AddChildView(std::make_unique<views::Label>(
@@ -293,7 +295,9 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
                            ? IDS_AHOI_DIALOG_EDIT_WORKSPACE
                            : IDS_AHOI_DIALOG_DELETE_WORKSPACE;
   delegate->SetTitle(
-      action == PendingWorkspaceAction::kConvertToIsolated
+      action == PendingWorkspaceAction::kMerge
+          ? StructureText(u"Workspaces zusammenführen", u"Merge Workspaces")
+      : action == PendingWorkspaceAction::kConvertToIsolated
           ? StructureText(u"In vollständig getrennten Workspace umwandeln",
                           u"Convert to fully separated Workspace")
           : l10n_util::GetStringUTF16(title_id));
@@ -302,7 +306,9 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
   // IDS_DELETE is a menu string with a Windows mnemonic ("&Löschen").
   delegate->SetButtonLabel(
       ui::mojom::DialogButton::kOk,
-      action == PendingWorkspaceAction::kConvertToIsolated
+      action == PendingWorkspaceAction::kMerge
+          ? StructureText(u"Zusammenführen", u"Merge")
+      : action == PendingWorkspaceAction::kConvertToIsolated
           ? StructureText(u"Umwandeln", u"Convert")
           : gfx::RemoveAccelerator(l10n_util::GetStringUTF16(
           action == PendingWorkspaceAction::kCreate ||
@@ -360,6 +366,8 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     workspace_dialog_.icon_field = nullptr;
     workspace_dialog_.own_sessions_radio = nullptr;
     workspace_dialog_.isolated_radio = nullptr;
+    workspace_dialog_.merge_target_id.reset();
+    workspace_dialog_.merge_into_folder = nullptr;
     workspace_dialog_.widget.reset();
     workspace_dialog_.delegate.reset();
     workspace_dialog_.action = PendingWorkspaceAction::kNone;
@@ -466,6 +474,9 @@ std::string BrowserSidebarHostView::NextProcessWideWorkspaceSortKey() const {
 }
 
 bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
+  if (workspace_dialog_.action == PendingWorkspaceAction::kMerge) {
+    return AcceptWorkspaceMerge();
+  }
   if (workspace_dialog_.action == PendingWorkspaceAction::kConvertToIsolated) {
     if (workspace_dialog_.workspace_id.has_value()) {
       // The Workspace's pages are asked as one before-unload group first; a
@@ -645,6 +656,8 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
   workspace_dialog_.icon_field = nullptr;
   workspace_dialog_.own_sessions_radio = nullptr;
   workspace_dialog_.isolated_radio = nullptr;
+  workspace_dialog_.merge_target_id.reset();
+  workspace_dialog_.merge_into_folder = nullptr;
   // The name field may still be the input method's text input client; a
   // widget destroyed with it attached trips NativeWidgetMac's focus check
   // (crash after "Erstellen", HTTP-auth journey on build 35). Blurring it

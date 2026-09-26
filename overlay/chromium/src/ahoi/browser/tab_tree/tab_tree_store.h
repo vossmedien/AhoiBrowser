@@ -42,6 +42,22 @@ class TabTreeStore {
     kCancelled,
   };
 
+  // One "Zusammenführen mit …" (ADR 0012); see MergeWorkspace().
+  struct WorkspaceMerge {
+    base::Uuid source_workspace_id;
+    base::Uuid target_workspace_id;
+    bool into_folder = true;
+    // Position of the new folder, or prefix of the flat keys, among the
+    // target's roots; must sort after the target's last root.
+    std::string sort_key;
+    // Temporary pages whose tabs the caller closes with the source.
+    std::set<base::Uuid> closing_temporary_ids;
+    // False when the caller retires state that undo could not bring back,
+    // such as the source's own website sessions.
+    bool record_undo = true;
+    base::Time modified_at;
+  };
+
   struct SavedPageMove {
     base::Uuid node_id;
     base::Uuid workspace_id;
@@ -111,6 +127,20 @@ class TabTreeStore {
   // any live Chromium tabs to that fallback before presenting the result.
   [[nodiscard]] Result DeleteWorkspace(const base::Uuid& workspace_id,
                                        base::Time modified_at);
+  // Merges one Workspace into another (ADR 0012) in one transaction and, with
+  // `record_undo`, one undo operation: every active saved root of the source
+  // moves with its subtree, in order, into a new folder at `sort_key` among
+  // the target's roots that carries the source's name, icon and accent
+  // (`into_folder`), or flat to `sort_key` + its own key, which keeps the
+  // source order after the target's last root. Temporary roots (open tabs)
+  // always move flat. Those in `closing_temporary_ids` are tombstoned instead,
+  // without undo, like an explicit tab close. The source is tombstoned. Undo
+  // moves everything back, removes the folder and revives the source. An
+  // empty source is tombstoned without an undo entry, like DeleteWorkspace.
+  // Live Chromium tabs, bindings and the structure state stay the caller's
+  // job. `folder_id` receives the new folder, if any.
+  [[nodiscard]] Result MergeWorkspace(const WorkspaceMerge& merge,
+                                      std::optional<base::Uuid>* folder_id);
   [[nodiscard]] Result CreateNode(const TreeNode& node);
   // Persists a normal temporary page without a tree undo entry. Chromium's
   // native tab/session restore remains authoritative for opening/closing it.

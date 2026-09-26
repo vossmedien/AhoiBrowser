@@ -335,6 +335,24 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
         StructureText(u"In vollständig getrennten Workspace umwandeln …",
                       u"Convert to fully separated Workspace …"));
   }
+  // ADR 0012 (handoff 080): merge into another Workspace of this Profile.
+  const std::optional<base::Uuid> shown_workspace =
+      controller_->view_model().workspace_id();
+  context_move_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
+  for (size_t index = 0; index < context_.workspace_ids.size() && index < 99;
+       ++index) {
+    const tab_tree::Workspace* target =
+        FindWorkspace(context_.workspace_ids[index]);
+    if (target && context_.workspace_ids[index] != shown_workspace) {
+      context_move_menu_model_->AddItem(
+          kMergeWorkspaceCommandBase + static_cast<int>(index), target->name);
+    }
+  }
+  if (shown_workspace && context_move_menu_model_->GetItemCount() > 0) {
+    context_.model->AddSubMenu(
+        kMergeWorkspace, StructureText(u"Zusammenführen mit", u"Merge into"),
+        context_move_menu_model_.get());
+  }
   context_.model->AddItem(
       kDeleteWorkspace,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DELETE_WORKSPACE));
@@ -383,6 +401,7 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
       views::MenuAnchorPosition::kTopLeft, source_type);
   context_menu_runner_.reset();
   context_.model.reset();
+  context_move_menu_model_.reset();
   context_.workspace_ids.clear();
   context_.isolated_workspace_dirs.clear();
   context_.main_workspace_ids.clear();

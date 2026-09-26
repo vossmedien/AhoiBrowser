@@ -549,6 +549,10 @@ void SessionBridge::OnActiveWorkspaceChanged(const base::Uuid& window_id,
 
 void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (change.kind == tab_tree::MutationKind::kUndone) {
+    // Before tabs follow their nodes back into a revived Workspace.
+    RefreshWorkspacesAfterUndo();
+  }
   if (workspace_structure_controller_ && !applying_synced_tree_snapshot_) {
     if (session::TreeChangeInvalidatesStructure(change.kind)) {
       workspace_structure_controller_->OnNativeChanged();

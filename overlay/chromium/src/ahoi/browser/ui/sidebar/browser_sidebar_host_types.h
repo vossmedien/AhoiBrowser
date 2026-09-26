@@ -55,8 +55,12 @@ enum SidebarContextMenuCommand {
   kCopyActivePageMarkdownLink,
   kOpenActivePageInReadingMode,
   kConvertWorkspaceToIsolated,
+  kMergeWorkspace,
 };
 
+// ADR 0012 (handoff 080): "Zusammenführen mit" the Workspace at this index
+// of the menu's Workspace list; below the archive policies, at most 99.
+constexpr int kMergeWorkspaceCommandBase = 500;
 constexpr int kArchivePolicyCommandBase = 600;
 
 // ADR 0011 step 2, in a fully separated Workspace's window: loads the main
@@ -103,6 +107,8 @@ enum class PendingWorkspaceAction {
   kDelete,
   // ADR 0011 step 2 (handoff 052).
   kConvertToIsolated,
+  // ADR 0012 (handoff 080).
+  kMerge,
 };
 
 }  // namespace ahoi::sidebar

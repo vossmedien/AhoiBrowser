@@ -41,6 +41,7 @@ namespace views {
 class BubbleDialogDelegate;
 class Button;
 class ImageButton;
+class Checkbox;
 class RadioButton;
 class Textfield;
 class View;
@@ -166,6 +167,9 @@ struct SidebarWorkspaceDialogState {
   // ADR 0011 level choice; only present while creating a Workspace.
   raw_ptr<views::RadioButton> own_sessions_radio = nullptr;
   raw_ptr<views::RadioButton> isolated_radio = nullptr;
+  // ADR 0012 merge: the target and the folder choice.
+  std::optional<base::Uuid> merge_target_id;
+  raw_ptr<views::Checkbox> merge_into_folder = nullptr;
   std::vector<std::pair<raw_ptr<views::Button>, std::optional<uint32_t>>>
       color_buttons;
   std::unique_ptr<views::BubbleDialogDelegate> delegate;

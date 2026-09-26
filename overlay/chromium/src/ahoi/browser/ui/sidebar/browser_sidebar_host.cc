@@ -194,6 +194,20 @@ bool RevealBrowserSidebarFolder(views::View* sidebar_host,
   return host && host->RevealFolder(folder_id);
 }
 
+bool CanMoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
+                                               const base::Uuid& workspace_id) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->MoveSelectionToWorkspace(workspace_id,
+                                                /*dry_run=*/true);
+}
+
+bool MoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
+                                            const base::Uuid& workspace_id) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->MoveSelectionToWorkspace(workspace_id,
+                                                /*dry_run=*/false);
+}
+
 bool ToggleBrowserSidebarFloating(views::View* sidebar_host) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->ToggleFloatingSidebar();

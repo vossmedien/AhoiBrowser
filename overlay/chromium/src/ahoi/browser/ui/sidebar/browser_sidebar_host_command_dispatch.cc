@@ -497,6 +497,19 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
                           *active_workspace_id);
       return;
     }
+    if (command_id >= kMergeWorkspaceCommandBase &&
+        command_id < kArchivePolicyCommandBase) {
+      const size_t index =
+          static_cast<size_t>(command_id - kMergeWorkspaceCommandBase);
+      if (active_workspace_id.has_value() &&
+          index < context_.workspace_ids.size() &&
+          context_.workspace_ids[index] != *active_workspace_id) {
+        workspace_dialog_.merge_target_id = context_.workspace_ids[index];
+        ShowWorkspaceDialog(PendingWorkspaceAction::kMerge,
+                            *active_workspace_id);
+      }
+      return;
+    }
     if (command_id == kConvertWorkspaceToIsolated &&
         active_workspace_id.has_value()) {
       ShowWorkspaceDialog(PendingWorkspaceAction::kConvertToIsolated,

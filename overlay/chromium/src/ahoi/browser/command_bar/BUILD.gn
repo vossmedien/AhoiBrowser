@@ -82,6 +82,7 @@ source_set("command_bar") {
     "//ahoi/browser/ui:visual_style",
     "//ahoi/browser/ui/appearance",
     "//ahoi/browser/ui/sidebar:browser_sidebar",
+    "//base:i18n",
     "//chrome/app:generated_resources",
     "//chrome/browser:browser_public_dependencies",
     "//chrome/browser/autocomplete",

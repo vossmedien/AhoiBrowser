@@ -314,6 +314,7 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
       case kDuplicateWorkspace:
       case kCopyAllLinks:
       case kEditWorkspace:
+      case kMergeWorkspace:
         return controller_->view_model().workspace_id().has_value();
       case kConvertWorkspaceToIsolated:
         // The main Profile keeps at least one Workspace (handoff 052).
@@ -350,6 +351,11 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
       return static_cast<size_t>(command_id -
                                  kOpenIsolatedWorkspaceCommandBase) <
              context_.isolated_workspace_dirs.size();
+    }
+    if (command_id >= kMergeWorkspaceCommandBase &&
+        command_id < kArchivePolicyCommandBase) {
+      return static_cast<size_t>(command_id - kMergeWorkspaceCommandBase) <
+             context_.workspace_ids.size();
     }
     if (command_id < kActivateWorkspaceCommandBase) {
       return false;

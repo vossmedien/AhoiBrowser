@@ -28,6 +28,7 @@ source_set("tab_tree") {
     "tab_tree_store_duplicate_workspace.cc",
     "tab_tree_store_internal.cc",
     "tab_tree_store_internal.h",
+    "tab_tree_store_merge_workspace.cc",
     "tab_tree_store_move_delete.cc",
     "tab_tree_store_node_mutations.cc",
     "tab_tree_store_queries.cc",
@@ -49,6 +50,7 @@ source_set("tab_tree") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "tab_tree_store_merge_workspace_unittest.cc",
     "tab_tree_store_persistence_unittest.cc",
     "tab_tree_store_snapshot_unittest.cc",
     "tab_tree_store_unittest.cc",

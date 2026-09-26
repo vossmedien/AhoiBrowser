@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <set>
 #include <unordered_set>
 #include <utility>
 
@@ -11,6 +12,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "base/check.h"
+#include "base/time/time.h"
 #include "sql/statement.h"
 #include "sql/transaction.h"
 
@@ -489,6 +491,26 @@ TabTreeStore::Result TabTreeStore::UndoLastMutation() {
   }
   for (const NodeSnapshot& snapshot : snapshots) {
     if (!RestoreSnapshot(snapshot)) {
+      return Result::kDatabaseError;
+    }
+  }
+  // A live node never belongs to a deleted Workspace. Undoing a merge
+  // (MergeWorkspace) or a move out of a since deleted Workspace revives it,
+  // newer than its tombstone so the revival wins on every synced device.
+  sql::Statement revive(db_.GetCachedStatement(
+      SQL_FROM_HERE,
+      "UPDATE workspaces SET tombstone=0,modified_at=MAX(modified_at+1,?) "
+      "WHERE id=? AND tombstone=1"));
+  std::set<base::Uuid> revived;
+  for (const NodeSnapshot& snapshot : snapshots) {
+    if (!snapshot.previous || snapshot.previous->tombstone ||
+        !revived.insert(snapshot.previous->workspace_id).second) {
+      continue;
+    }
+    revive.Reset(/*clear_bound_vars=*/true);
+    revive.BindTime(0, base::Time::Now());
+    revive.BindString(1, snapshot.previous->workspace_id.AsLowercaseString());
+    if (!revive.Run()) {
       return Result::kDatabaseError;
     }
   }

@@ -305,6 +305,19 @@ class SessionBridge : public KeyedService,
                                            WorkspaceDeletionCallback done);
   // True when the Workspace uses its own website-session partition.
   bool HasOwnWebsiteSessions(const base::Uuid& workspace_id) const;
+  // ADR 0012 (handoff 080): merges `source_id` into `target_id` in one tree
+  // transaction. When both share one web context, open pages move along and
+  // the merge can be undone. Otherwise the source's pages are asked as one
+  // before-unload group (a veto reports kCancelled and changes nothing),
+  // close after the commit, and its own website sessions are retired as on
+  // deletion; that merge has no undo. Link routing follows to the target.
+  void MergeWorkspace(const base::Uuid& source_id,
+                      const base::Uuid& target_id,
+                      bool into_folder,
+                      WorkspaceDeletionCallback done);
+  // True when neither Workspace has its own website sessions.
+  bool SharesWebContext(const base::Uuid& source_id,
+                        const base::Uuid& target_id) const;
 
   enum class WorkspaceConversionResult {
     kConverted,
@@ -449,6 +462,20 @@ class SessionBridge : public KeyedService,
       std::vector<base::WeakPtr<content::WebContents>> asked_pages,
       WorkspaceDeletionCallback done,
       bool all_agreed);
+  // Handoff 080.
+  void OnWorkspaceMergePagesAnswered(
+      base::Uuid source_id,
+      base::Uuid target_id,
+      bool into_folder,
+      std::vector<base::WeakPtr<content::WebContents>> asked_pages,
+      WorkspaceDeletionCallback done,
+      bool all_agreed);
+  tab_tree::TabTreeStore::Result CommitWorkspaceMerge(
+      const base::Uuid& source_id,
+      const base::Uuid& target_id,
+      bool into_folder,
+      const std::vector<tabs::TabInterface*>& closing);
+  void RefreshWorkspacesAfterUndo();
   // Handoff 052, source side.
   void OnConversionPagesAnswered(
       base::Uuid workspace_id,

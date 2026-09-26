@@ -242,6 +242,20 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
            sidebar::ActivateBrowserWorkspaceById(sidebar_host_, workspace_id);
   }
 
+  bool CanMoveToWorkspace(std::string_view workspace_id) const override {
+    const base::Uuid target = base::Uuid::ParseLowercase(workspace_id);
+    return target.is_valid() && sidebar_host_ &&
+           sidebar::CanMoveBrowserSidebarSelectionToWorkspace(sidebar_host_,
+                                                              target);
+  }
+
+  bool MoveToWorkspace(std::string_view workspace_id) override {
+    const base::Uuid target = base::Uuid::ParseLowercase(workspace_id);
+    return target.is_valid() && sidebar_host_ &&
+           sidebar::MoveBrowserSidebarSelectionToWorkspace(sidebar_host_,
+                                                           target);
+  }
+
   bool CanRevealFolder(std::string_view stable_id) const override {
     return sidebar_host_ && base::Uuid::ParseLowercase(stable_id).is_valid();
   }

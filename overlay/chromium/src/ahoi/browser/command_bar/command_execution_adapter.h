@@ -82,6 +82,10 @@ class CommandExecutionDelegate {
   // exactly as their key would run them.
   virtual bool CanExecuteShortcutCommand(std::string_view catalog_id) const;
   virtual bool ExecuteShortcutCommand(std::string_view catalog_id);
+  // "In Workspace verschieben" (ADR 0012 section 2): moves the sidebar's
+  // selected folder or the active page into the Workspace.
+  virtual bool CanMoveToWorkspace(std::string_view workspace_id) const;
+  virtual bool MoveToWorkspace(std::string_view workspace_id);
 };
 
 class CommandExecutionAdapter {

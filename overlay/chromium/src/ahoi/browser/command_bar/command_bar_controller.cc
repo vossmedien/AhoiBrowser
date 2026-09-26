@@ -11,6 +11,7 @@
 
 #include "ahoi/browser/command_bar/command_bar_view.h"
 #include "ahoi/browser/command_bar/command_execution_adapter.h"
+#include "ahoi/browser/command_bar/command_execution_adapter_internal.h"
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/session/command_service_factory.h"
@@ -22,6 +23,7 @@
 #include "base/functional/bind.h"
 #include "base/trace_event/trace_event.h"
 #include "base/functional/callback_helpers.h"
+#include "base/i18n/rtl.h"
 #include "base/location.h"
 #include "base/strings/strcat.h"
 #include "base/strings/utf_string_conversions.h"
@@ -173,6 +175,10 @@ void CommandBarController::OnTabStripModelDestroyed(
 }
 
 void CommandBarController::OnCommandIndexChanged(CommandItemType type) {
+  if (type == CommandItemType::kWorkspace) {
+    // The Workspace list changed (SessionBridge): the move targets follow.
+    PublishBrowserCommands();
+  }
   if (type == CommandItemType::kOpenTab) {
     // SessionBridge owns the open-tab index. Refreshing from its notification
     // guarantees insertion/removal/replacement results are current regardless
@@ -578,6 +584,30 @@ void CommandBarController::PublishBrowserCommands() {
         .keywords = {command.title_de, command.title_en},
         .priority = 150,
     });
+  }
+  // ADR 0012 section 2: one "In Workspace verschieben" item per Workspace of
+  // this Profile, the same targets as the sidebar's "Move to". The window's
+  // own Workspace is refused at execution (CanMoveToWorkspace).
+  if (browser_ && browser_->GetProfile() &&
+      !browser_->GetProfile()->IsOffTheRecord()) {
+    SessionBridge* bridge =
+        SessionBridgeFactory::GetForProfile(browser_->GetProfile());
+    std::vector<tab_tree::Workspace> workspaces;
+    if (bridge && bridge->is_ready() &&
+        bridge->tab_tree_store()->GetWorkspaces(&workspaces) ==
+            tab_tree::TabTreeStore::Result::kOk) {
+      std::vector<internal::MoveToWorkspaceTarget> targets;
+      targets.reserve(workspaces.size());
+      for (const tab_tree::Workspace& workspace : workspaces) {
+        targets.push_back({.id = workspace.id, .name = workspace.name});
+      }
+      const bool german =
+          base::i18n::GetConfiguredLocale().starts_with("de");
+      for (CommandItem& item :
+           internal::BuildMoveToWorkspaceCommands(targets, german)) {
+        commands.push_back(std::move(item));
+      }
+    }
   }
   CHECK(command_service_->ReplaceItems(CommandItemType::kBrowserCommand,
                                        std::move(commands)));

@@ -86,6 +86,13 @@ bool ActivateBrowserWorkspaceById(views::View* sidebar_host,
 // selects the folder in the native tree.
 bool RevealBrowserSidebarFolder(views::View* sidebar_host,
                                 const base::Uuid& folder_id);
+// ADR 0012 section 2 (command bar "In Workspace verschieben"): moves the
+// selected folder, else the active page with its split group or the active
+// temporary tab, to the root of another Workspace of this Profile.
+bool CanMoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
+                                               const base::Uuid& workspace_id);
+bool MoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
+                                            const base::Uuid& workspace_id);
 
 bool ToggleBrowserSidebarFloating(views::View* sidebar_host);
 bool ToggleBrowserSidebarVisibility(views::View* sidebar_host);

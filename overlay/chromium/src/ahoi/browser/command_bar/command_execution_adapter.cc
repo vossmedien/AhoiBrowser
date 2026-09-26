@@ -4,7 +4,9 @@
 #include "ahoi/browser/command_bar/command_execution_adapter.h"
 
 #include <optional>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "ahoi/browser/command_bar/command_execution_adapter_internal.h"
 #include "base/check.h"
@@ -121,7 +123,54 @@ std::optional<DeveloperAction> GetAllowlistedDeveloperAction(
   return std::nullopt;
 }
 
+std::vector<CommandItem> BuildMoveToWorkspaceCommands(
+    const std::vector<MoveToWorkspaceTarget>& targets,
+    bool german) {
+  const std::u16string prefix =
+      german ? u"In Workspace verschieben: " : u"Move to Workspace: ";
+  std::vector<CommandItem> items;
+  items.reserve(targets.size());
+  for (const MoveToWorkspaceTarget& target : targets) {
+    if (!target.id.is_valid() || target.name.empty()) {
+      continue;
+    }
+    items.push_back({
+        .type = CommandItemType::kBrowserCommand,
+        .stable_id = std::string(kMoveToWorkspaceCommandPrefix) +
+                     target.id.AsLowercaseString(),
+        .title = prefix + target.name,
+        .keywords = {u"in workspace verschieben", u"move to workspace",
+                     u"verschieben", u"move", target.name},
+        .priority = 180,
+    });
+  }
+  return items;
+}
+
+std::optional<std::string_view> GetMoveToWorkspaceTarget(
+    std::string_view stable_id) {
+  if (!stable_id.starts_with(kMoveToWorkspaceCommandPrefix)) {
+    return std::nullopt;
+  }
+  const std::string_view id =
+      stable_id.substr(sizeof(kMoveToWorkspaceCommandPrefix) - 1);
+  if (!base::Uuid::ParseLowercase(id).is_valid()) {
+    return std::nullopt;
+  }
+  return id;
+}
+
 }  // namespace internal
+
+bool CommandExecutionDelegate::CanMoveToWorkspace(
+    std::string_view /*workspace_id*/) const {
+  return false;
+}
+
+bool CommandExecutionDelegate::MoveToWorkspace(
+    std::string_view /*workspace_id*/) {
+  return false;
+}
 
 bool CommandExecutionDelegate::CanExecuteShortcutCommand(
     std::string_view /*catalog_id*/) const {
@@ -194,6 +243,11 @@ bool CommandExecutionAdapter::CanExecuteItem(const CommandItem& item) const {
       return base::Uuid::ParseLowercase(item.stable_id).is_valid() &&
              execution_delegate_->CanRevealFolder(item.stable_id);
     case CommandItemType::kBrowserCommand:
+      if (item.stable_id.starts_with(internal::kMoveToWorkspaceCommandPrefix)) {
+        const std::optional<std::string_view> target =
+            internal::GetMoveToWorkspaceTarget(item.stable_id);
+        return target && execution_delegate_->CanMoveToWorkspace(*target);
+      }
       if (item.stable_id.starts_with(internal::kShortcutCommandPrefix)) {
         return execution_delegate_->CanExecuteShortcutCommand(
             std::string_view(item.stable_id)
@@ -267,6 +321,10 @@ bool CommandExecutionAdapter::ExecuteItem(const CommandItem& item,
     case CommandItemType::kFolder:
       return execution_delegate_->RevealFolder(item.stable_id);
     case CommandItemType::kBrowserCommand:
+      if (const std::optional<std::string_view> target =
+              internal::GetMoveToWorkspaceTarget(item.stable_id)) {
+        return execution_delegate_->MoveToWorkspace(*target);
+      }
       if (item.stable_id.starts_with(internal::kShortcutCommandPrefix)) {
         return execution_delegate_->ExecuteShortcutCommand(
             std::string_view(item.stable_id)
