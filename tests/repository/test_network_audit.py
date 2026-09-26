@@ -82,6 +82,50 @@ class NetworkAuditTest(unittest.TestCase):
             self.assertEqual(identity["executable"],
                              str(real / "Contents/MacOS/Real"))
 
+    def test_navigated_hosts_are_foreground_not_unknown(self):
+        classified = audit.classify({"example.com": 3, "tracker.example": 1}, {},
+                                    frozenset({"example.com"}))
+        self.assertEqual([d["host"] for d in classified["navigated"]], ["example.com"])
+        self.assertEqual([d["host"] for d in classified["unknown"]], ["tracker.example"])
+
+    def test_crashpad_settings_uploads_flag(self):
+        header = b"sdPC" + (1).to_bytes(4, "little")
+        self.assertIs(audit.crashpad_uploads_enabled(header + (0).to_bytes(4, "little")),
+                      False)
+        self.assertIs(audit.crashpad_uploads_enabled(header + (1).to_bytes(4, "little")),
+                      True)
+        self.assertIsNone(audit.crashpad_uploads_enabled(b"nope"))
+
+    def test_crash_verdict(self):
+        before = {"new": [], "pending": [], "completed": ["a.dmp"], "uploads_enabled": False}
+        after = {"new": [], "pending": [], "completed": ["a.dmp", "b.dmp"],
+                 "uploads_enabled": False}
+        ok = audit.crash_verdict(before, after, [], set(), crashed=True)
+        self.assertEqual(ok["PRIV-16"], "PASS")
+        self.assertEqual(ok["newReports"]["completed"], ["b.dmp"])
+        pending = dict(after, pending=["c.dmp"])
+        self.assertEqual(audit.crash_verdict(before, pending, [], set(), True)["PRIV-16"],
+                         "FAIL")
+        self.assertEqual(audit.crash_verdict(before, after, ["/cr/report"], set(),
+                                             True)["PRIV-16"], "FAIL")
+        self.assertEqual(audit.crash_verdict(before, after, [], {"1.2.3.4:443"},
+                                             True)["PRIV-16"], "FAIL")
+        enabled = dict(after, uploads_enabled=True)
+        self.assertEqual(audit.crash_verdict(before, enabled, [], set(), True)["PRIV-16"],
+                         "FAIL")
+        self.assertEqual(audit.crash_verdict(before, after, [], set(), False)["PRIV-16"],
+                         "FAIL")
+
+    def test_crash_upload_marker_in_netlog(self):
+        self.assertEqual(audit.crash_upload_requested(
+            '{"url":"https://clients2.google.com/cr/report"}')[:1], ["/cr/report"])
+        self.assertEqual(audit.crash_upload_requested('{"url":"https://example.com/"}'), [])
+
+    def test_unknown_phase_is_rejected(self):
+        with self.assertRaises(SystemExit):
+            audit.main(["--app", "/nonexistent.app", "--output", "/tmp/unused",
+                        "--phases", "idle,bogus"])
+
 
 if __name__ == "__main__":
     unittest.main()
