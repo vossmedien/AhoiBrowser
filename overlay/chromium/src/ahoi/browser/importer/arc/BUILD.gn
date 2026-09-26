@@ -112,12 +112,14 @@ source_set("unit_tests") {
   testonly = true
   sources = [
     "arc_import_journal_unittest.cc",
+    "arc_import_parser_unittest.cc",
     "arc_import_recovery_policy_unittest.cc",
     "arc_import_recovery_unittest.cc",
     "arc_import_transaction_key_unittest.cc",
     "arc_import_transaction_unittest.cc",
     "arc_import_tree_fingerprint_unittest.cc",
     "arc_import_unittest.cc",
+    "arc_import_unittest_support.h",
     "arc_split_receipt_unittest.cc",
     "arc_split_runtime_unittest.cc",
   ]
