@@ -19,7 +19,7 @@ python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory "$P-site" > "$OUT
 SITE_PID=$!; SITE=http://127.0.0.1:$SITE_PORT
 "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
   --remote-debugging-port=$PORT --enable-logging=stderr \
-  --vmodule=browser_view=1,session_bridge_session=1 "$SITE/one.html" > "$OUT/browser.log" 2>&1 &
+  --vmodule=browser_view=1,session_bridge_session=1,native_widget_mac_nswindow=1,render_widget_host_view_cocoa=1 "$SITE/one.html" > "$OUT/browser.log" 2>&1 &
 PID=$!; trap 'kill $SITE_PID 2>/dev/null; kill $PID 2>/dev/null' EXIT
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 4
@@ -45,6 +45,6 @@ press "opt-tab (page focused)" 48 opt
 press "ctrl-tab" 48 ctrl
 press "opt-tab after ctrl-tab" 48 opt
 press "opt-cmd-k (not bound)" 40 cmd opt
-grep -a -E "Ahoi (shortcut|last-used)" "$OUT/browser.log" > "$OUT/ahoi-log.txt"
+grep -a -E "Ahoi (shortcut|last-used|key trace)" "$OUT/browser.log" > "$OUT/ahoi-log.txt"
 "$AX" hidkey $PID 12 cmd >/dev/null 2>&1; sleep 3
 cat "$OUT/probe.txt"
