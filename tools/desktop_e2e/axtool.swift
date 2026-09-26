@@ -69,7 +69,8 @@ case "dump":
 case "press":
     let needle = args[3]
     var found: AXUIElement?
-    _ = walk(app, 0, 30) { e, _ in
+    // Location-bar controls sit deeper than 30 levels (build 39 AX dump).
+    _ = walk(app, 0, 45) { e, _ in
         if matches(e, needle) { found = e; return true }
         return false
     }

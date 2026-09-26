@@ -7,7 +7,8 @@
 # without an exception and serves as the strict control. Checks:
 #   PRIV-08 the exception is active (no Sec-GPC header, no JS signal) while
 #           the control site stays strict, after a reload and after a real
-#           browser restart on the same profile,
+#           browser restart on the same profile, and a same-tab navigation
+#           from the strict site does not carry Sec-GPC to it,
 #   PRIV-09 removing the exception (from the stored preference, browser
 #           stopped) restores strict behavior on that site,
 #   PRIV-10 the strict control site's protection holds with no uBlock Origin
@@ -42,6 +43,16 @@ print(",".join(values) or "<not requested>")
 PY
 }
 
+# Every Sec-GPC value logged for <path> with exactly <query>.
+query_gpc() { python3 - "$@" <<'PY'
+import json, sys
+log, path, query = sys.argv[1:4]
+values = [str(e.get("gpc")) for e in map(json.loads, open(log))
+          if e["path"] == path and e["query"] == query]
+print(",".join(values) or "<not requested>")
+PY
+}
+
 mkdir -p "$P/Default"
 printf '{"ahoi":{"privacy":{"global_mode":"strict","origin_modes":{"%s":"chromium-compatible"}}}}' "$A" \
   > "$P/Default/Preferences"
@@ -64,6 +75,10 @@ launch() { # <label>
   js_a=$(eval_in "127.0.0.1:$SP/landing" "String(navigator.globalPrivacyControl)")
   open_tab "$B/landing" 3
   js_b=$(eval_in "localhost:$SP/landing" "String(navigator.globalPrivacyControl)")
+  # Same tab, strict page -> excepted site: the navigation must not inherit
+  # the strict page's Sec-GPC (headers come from the page being left).
+  eval_in "localhost:$SP/landing" "location.href='$A/ads?sametab=1';'ok'" > /dev/null; sleep 3
+  eval "${label}_SAMETAB=\$(query_gpc \"\$LOG\" /ads sametab=1)"
   eval "${label}_A=\$(gpc_values \"\$LOG\" 127.0.0.1 /landing) ${label}_B=\$(gpc_values \"\$LOG\" localhost /landing)"
   eval "${label}_JSA=\$js_a ${label}_JSB=\$js_b"
   echo "$label excepted_gpc=$(gpc_values "$LOG" 127.0.0.1 /landing) excepted_js=$js_a control_gpc=$(gpc_values "$LOG" localhost /landing) control_js=$js_b" >> "$OUT/run.txt"
@@ -86,6 +101,8 @@ exception_active() { # <label>: excepted site without GPC twice, control strict
 }
 
 launch first
+[ "$first_SAMETAB" = None ] && record PRIV-08_same_tab_navigation_without_gpc PASS \
+  || record PRIV-08_same_tab_navigation_without_gpc "FAIL:gpc=$first_SAMETAB"
 exception_active first && record PRIV-08_exception_active_after_reload PASS \
   || record PRIV-08_exception_active_after_reload "FAIL:gpc=$first_A,js=$first_JSA,control=$first_B/$first_JSB"
 echo "stored after first run: $(stored_exception)" >> "$OUT/run.txt"
