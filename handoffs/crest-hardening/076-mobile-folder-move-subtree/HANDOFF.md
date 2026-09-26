@@ -1,6 +1,6 @@
 # 076 – Mobile: a folder moved to another Workspace leaves its children behind
 
-Status: ready
+Status: integrated (mobile, 0ad015a, core tests 301/0/2)
 Owner lane: mobile (apply, build, test)
 Base: HEAD `fcc1c84` (`git apply --check` passes).
 Severity: high (data loss). Found while researching H7 (ADR 0012 section 2).
