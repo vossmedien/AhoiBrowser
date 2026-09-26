@@ -1,6 +1,6 @@
 # 058 – The archive's split token expires
 
-Status: ready
+Status: integrated 739cea6 (reviewed; syntax-checked; unit test and split journey on build 36)
 Owner lane: desktop (apply with build 36)
 Base: HEAD `7510ccd` (`git apply --check` passes). By the crest-hardening lane;
 syntax-checked read-only against `out/AhoiDev` (0 errors), not built.
