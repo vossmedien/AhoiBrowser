@@ -58,8 +58,9 @@ private-tab expectation after 9ca3bd1, debug fixture leaking temporary
 shared pages, fixed 3 s wait); each passes alone. A full class run had two
 load-sensitive failures (`testHarborDeckTracksNestedScroller…` line 243,
 `testInteractiveWebPresentations…` line 321, 30 s query timeouts) that pass
-when rerun; the class has no fully green single run yet. Minor: `BookmarkTransportAuthorization.authorize` labels a
-disallowed data class `unsupportedVersion`.
+when rerun; the class has no fully green single run yet. Resolved (`3493053`): `BookmarkTransportAuthorization.authorize` now
+names a class outside the shared catalogue `dataClassNotShared` instead of
+`unsupportedVersion`; core tests 300/0/2 on iPhone 17.
 The Home-Address journey's own RED (saved state not settling on a fresh
 install, builds 69/70) is still under investigation.
 
