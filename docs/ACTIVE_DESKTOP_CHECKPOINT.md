@@ -139,9 +139,21 @@ and 17 (shortcut catalog with last-used tab) now have code; see below.
   (HTTP authentication account manager, "Show address bar"). Patch 0069
   adds them; `tools/check_ahoi_translations.py` checks every `IDS_AHOI_*`
   message against the translation bundle (15 missing before, 0 after).
+- **Developer toolkit (DEV), 26 September:** an inventory maps DEV-01 to
+  DEV-29 to product code. Almost everything is implemented, but nothing had
+  end-to-end evidence. Fixed or added since: the reset now withdraws the
+  CSP/CORS consent (DEV-16, `a41f530`); the metadata panel follows the
+  browser language (DEV-21, `62f0506`); a toolkit hard reload (DEV-08,
+  `0185326`, patch 0070). `devtoolkit-journey.sh` (CDP, seeded per-site
+  profile) covers DEV-01, 04, 05, 09, 14 and 15. Still open: visible panel
+  journeys for DEV-06/07/10–13/16/18–25/27–29; DEV-23 relies on Chromium's
+  password-manager reauthentication; DEV-26 has no idle CPU/memory
+  measurement yet.
 - **Build 40 journeys** (queued): keyboard shortcuts, HTTP-auth (dialog
   crash), privacy repair (PRIV-07, GPC after repair), privacy exceptions
-  (same-tab GPC).
+  (same-tab GPC), developer toolkit. The first build 40 attempt stopped at
+  the settings ESLint step (sub-template export name, fixed in `6acd207`);
+  the second attempt runs on `6acd207`.
 
 ## Builds 37 and 38 results; builds 39 and 40 in progress — 26 September 2026
 
