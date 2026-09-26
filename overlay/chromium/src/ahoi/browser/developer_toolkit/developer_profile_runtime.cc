@@ -120,6 +120,9 @@ void DisablePersistentOverrides(DeveloperProfile* profile) {
   profile->user_agent_enabled = false;
   profile->header_rules_enabled = false;
   profile->response_header_rules_enabled = false;
+  // A full reset also withdraws the CSP/CORS consent, so enabling advanced
+  // response rules again shows the warning again (DEV-16).
+  profile->response_header_advanced_mode_acknowledged = false;
   profile->cache_disabled = false;
 }
 

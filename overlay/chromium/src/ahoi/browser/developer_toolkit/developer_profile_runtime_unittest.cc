@@ -362,6 +362,32 @@ TEST_F(DeveloperProfileRuntimeTest,
   EXPECT_FALSE(state.Has(DeveloperActivation::kCss));
 }
 
+TEST_F(DeveloperProfileRuntimeTest,
+       ResetTurnsOffAdvancedResponseRulesAndWithdrawsTheirConsent) {
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  const GURL url("https://example.test/page");
+  const url::Origin origin = url::Origin::Create(url);
+  DeveloperProfile profile{.name = "Advanced"};
+  profile.response_header_rules_enabled = true;
+  profile.response_header_advanced_mode_acknowledged = true;
+  profile.response_header_rules.push_back(
+      {.name = "Content-Security-Policy",
+       .action = DeveloperHeaderAction::kRemove});
+  ASSERT_TRUE(helper.SaveProfile(origin, profile));
+
+  ASSERT_TRUE(helper.ResetProfilesForUrl(url));
+
+  PrefDeveloperProfileStore persisted(&prefs_, false);
+  const std::optional<DeveloperProfile> after = persisted.Get(origin);
+  ASSERT_TRUE(after);
+  EXPECT_FALSE(after->response_header_rules_enabled);
+  EXPECT_FALSE(after->response_header_advanced_mode_acknowledged);
+  // The rule itself stays so it can be re-enabled after a new warning.
+  ASSERT_EQ(1u, after->response_header_rules.size());
+  EXPECT_EQ("Content-Security-Policy",
+            after->response_header_rules.front().name);
+}
+
 TEST_F(DeveloperProfileRuntimeTest, RejectsAnotherTabsCurrentTabToken) {
   DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
   const GURL url("https://example.test/");
