@@ -181,7 +181,8 @@ class ArcImportServiceBrowserTest : public InProcessBrowserTest {
     ASSERT_TRUE(base::WriteFile(SidebarPath(), sidebar_json_));
     ASSERT_TRUE(base::SetPosixFilePermissions(SidebarPath(), 0600));
 
-    ASSERT_TRUE(browser()->GetBrowserView().IsAhoiBrowserSurface());
+    ASSERT_TRUE(BrowserView::GetBrowserViewForBrowser(browser())
+                    ->IsAhoiBrowserSurface());
     bridge_ = SessionBridgeFactory::GetForProfile(browser()->GetProfile());
     ASSERT_TRUE(bridge_);
     ASSERT_TRUE(bridge_->is_operational());
