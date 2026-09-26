@@ -206,6 +206,7 @@ source_set("browser_sidebar") {
     "browser_sidebar_host_group_dialog.cc",
     "browser_sidebar_host_layout.cc",
     "browser_sidebar_host_media.cc",
+    "browser_sidebar_host_menu_state.cc",
     "browser_sidebar_host_page_actions.cc",
     "browser_sidebar_host_presentation.cc",
     "browser_sidebar_host_previews.cc",
