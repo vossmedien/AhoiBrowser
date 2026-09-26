@@ -145,6 +145,42 @@ for t in json.load(sys.stdin):
   record sign_out_without_restart "FAIL:$(title)"
 fi
 kill -0 $PID 2>/dev/null && record same_browser_process PASS || record same_browser_process FAIL
+# 7b Sign out in a Workspace with its own website sessions: its tabs use their
+#    own StoragePartition, so the switch must reset that partition's auth
+#    cache, not the profile default's (4a11c52).
+# Escape goes straight to the process: an HID Escape arrives asynchronously
+# and would close the menu just opened by AX.
+wsmenu() { # <active workspace> <item regex>
+  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
+  for attempt in 1 2 3 4; do
+    ax press $PID "$1, Workspace wechseln" AXShowMenu
+    waitax "AXMenuItem \\| $2" 4 && return 0
+    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 2
+  done; return 1; }
+realm_title() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
+p=[t for t in json.load(sys.stdin) if t["type"]=="page" and sys.argv[1] in t["url"]]
+print(p[0]["title"] if p else "<no tab>")' "$1"; }
+KUNDE_OK=0
+if wsmenu Inbox "Neuer Workspace…"; then
+  ax press $PID "Neuer Workspace…"
+  if waitax "AXTextField \\| Workspace-Name" 8; then
+    ax setvalue $PID "Workspace-Name" "Kunde"; sleep 1
+    ax press $PID "AXRadioButton:Eigene Website-Sitzungen"; sleep 1
+    ax press $PID "Erstellen"; waitax "Kunde, Workspace wechseln" 10 && KUNDE_OK=1
+  fi
+fi
+if [ $KUNDE_OK = 1 ]; then
+  sleep 2; goto "http://127.0.0.1:$A/a/?ws=kunde"; challenge && login bob bob-pass-1 ""
+  end=$(( $(date +%s) + 15 )); while [ $(date +%s) -lt $end ] && [ "$(realm_title ws=kunde)" != "auth:bob@Ahoi Realm A:$A" ]; do sleep 1; done
+  [ "$(realm_title ws=kunde)" = "auth:bob@Ahoi Realm A:$A" ] && record own_sessions_signin PASS || record own_sessions_signin "FAIL:$(realm_title ws=kunde)"
+  command switch; dialog && ax press $PID "AXButton:Abbrechen"
+  sleep 5; KT=$(realm_title ws=kunde); echo "own sessions after switch+cancel: $KT" >> "$OUT/steps.txt"
+  [ "$KT" != "<no tab>" ] && [ "${KT#auth:}" = "$KT" ] && record own_sessions_sign_out PASS || record own_sessions_sign_out "FAIL:$KT"
+  wsmenu Kunde "Inbox" && ax press $PID "$($AX dump $PID 14 | grep -oE 'AXMenuItem \| Inbox( – [^|]*)? \|' | head -1 | sed -E 's/^AXMenuItem \| //; s/ \|$//')"
+  waitax "Inbox, Workspace wechseln" 8 || echo "-- could not switch back to Inbox" >> "$OUT/steps.txt"
+else
+  $AX dump $PID 14 > "$OUT/ax-kunde-failure.txt"; record own_sessions_signin FAIL:workspace-not-created
+fi
 # 8 Forget this realm: saved accounts for Realm A are removed.
 goto "http://127.0.0.1:$A/a/"; challenge && login bob bob-pass-1 ""
 waittitle "auth:bob@Ahoi Realm A:$A" 15
