@@ -133,12 +133,19 @@ TEST_F(LocationBarBubbleButtonTest,
   int activation_count = 0;
   auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
   auto* button = MountButton(widget.get(), &surface_showing, &activation_count);
-  ui::KeyEvent key_event(ui::EventType::kKeyPressed, ui::VKEY_SPACE,
-                         ui::EF_NONE);
   ui::test::TestEvent touch_event(ui::EventType::kGestureTap);
-
-  EXPECT_TRUE(button->IsTriggerableEvent(key_event));
   EXPECT_TRUE(button->IsTriggerableEvent(touch_event));
+
+  // views::ButtonController never treats key events as triggerable; keyboard
+  // activation runs through OnKeyPressed/OnKeyReleased and must still reach
+  // the button while its surface is showing.
+  ui::KeyEvent space_pressed(ui::EventType::kKeyPressed, ui::VKEY_SPACE,
+                             ui::EF_NONE);
+  ui::KeyEvent space_released(ui::EventType::kKeyReleased, ui::VKEY_SPACE,
+                              ui::EF_NONE);
+  button->OnKeyPressed(space_pressed);
+  button->OnKeyReleased(space_released);
+  EXPECT_EQ(1, activation_count);
 }
 
 }  // namespace
