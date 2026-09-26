@@ -1,6 +1,6 @@
 # 092 – Build 40 crash: dialog teardown empties the whole Widget, not the dialog
 
-Status: ready
+Status: integrated (desktop, 6230a31, build 41)
 Owner lane: desktop (apply, build, test)
 Base: HEAD (`git apply --check` passes at `56b5a36`).
 Follows the H2 focus finding. Reviewed against owner commit `ebaf599`.
