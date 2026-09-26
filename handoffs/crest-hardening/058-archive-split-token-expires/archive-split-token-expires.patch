@@ -1,0 +1,136 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
+index ff82407..8457572 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
+@@ -31,6 +31,10 @@ sync::SharedSplitMetadata Metadata(const sync::SplitGroupRecord& r) {
+ }
+ }  // namespace
+ 
++bool ArchiveCloseTokenLive(base::TimeTicks marked, base::TimeTicks now) {
++  return now - marked < kArchiveCloseGrace;
++}
++
+ bool TabStripChangeInvalidatesStructure(TabStripModelChange::Type type) {
+   return type != TabStripModelChange::kSelectionOnly;
+ }
+@@ -192,12 +196,20 @@ void WorkspaceStructureController::OnSplitChanged(
+   }
+   if (change.type == SplitTabChange::Type::kRemoved &&
+       change.GetRemovedChange()->reason() ==
+-          SplitTabChange::SplitTabRemoveReason::kSplitTabRemoved &&
+-      archive_closing_splits_.erase(change.split_id.ToString())) {
+-    // Handoff 011 S2: the archive closed this split's pages. The split record
+-    // stays live so restoring the archive can materialize it again.
+-    OnNativeChanged();
+-    return;
++          SplitTabChange::SplitTabRemoveReason::kSplitTabRemoved) {
++    const auto closing =
++        archive_closing_splits_.find(change.split_id.ToString());
++    if (closing != archive_closing_splits_.end()) {
++      const bool by_archive =
++          ArchiveCloseTokenLive(closing->second, base::TimeTicks::Now());
++      archive_closing_splits_.erase(closing);
++      if (by_archive) {
++        // Handoff 011 S2: the archive closed this split's pages. The split
++        // record stays live so restoring the archive can materialize it.
++        OnNativeChanged();
++        return;
++      }
++    }
+   }
+   changed_native_splits_.insert(change.split_id.ToString());
+   if (change.type == SplitTabChange::Type::kRemoved &&
+@@ -254,6 +266,12 @@ void WorkspaceStructureController::Refresh() {
+   scheduled_ = false;
+   std::erase_if(protected_tabs_,
+                 [](const tabs::TabHandle& handle) { return !handle.Get(); });
++  // Handoff 058: a token whose pages did not close in time is dropped, so a
++  // later manual dissolve of that split tombstones its record again.
++  const base::TimeTicks now = base::TimeTicks::Now();
++  std::erase_if(archive_closing_splits_, [now](const auto& item) {
++    return !ArchiveCloseTokenLive(item.second, now);
++  });
+   if (!observing_sync_ || !bridge_lifetime_ || !bridge_->is_ready() ||
+       persisting_ || SessionRestore::IsRestoring(profile_)) {
+     return;
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
+index 2651112..9a1a5f5 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
+@@ -4,6 +4,7 @@
+ #define AHOI_BROWSER_SESSION_WORKSPACE_STRUCTURE_CONTROLLER_H_
+ 
+ #include <atomic>
++#include <map>
+ #include <memory>
+ #include <optional>
+ #include <set>
+@@ -14,6 +15,7 @@
+ #include "ahoi/browser/sync/profile_sync_service.h"
+ #include "ahoi/browser/tab_tree/tab_tree_model.h"
+ #include "base/memory/raw_ptr.h"
++#include "base/time/time.h"
+ #include "base/timer/timer.h"
+ #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
+ #include "components/tabs/public/tab_interface.h"
+@@ -58,6 +60,14 @@ bool TreeChangeInvalidatesStructure(tab_tree::MutationKind kind);
+ bool ResourceChangeInvalidatesStructure(bool was_protected,
+                                         bool now_protected);
+ 
++// Handoff 058: how long a split closed by an archive is still recognized as
++// "closed by the archive" (011 S2). The agreed pages normally close within
++// their unload handlers; a page that is still open after this (for example a
++// hung renderer) must not keep a later manual dissolve of its split from
++// tombstoning the record.
++inline constexpr base::TimeDelta kArchiveCloseGrace = base::Seconds(30);
++bool ArchiveCloseTokenLive(base::TimeTicks marked, base::TimeTicks now);
++
+ class WorkspaceStructureController final
+     : public sync::ProfileSyncService::Observer {
+  public:
+@@ -148,7 +158,8 @@ class WorkspaceStructureController final
+   std::map<base::Uuid, sync::SyncAuthorization> remote_authorities_;
+   std::set<base::Uuid> local_changes_;
+   std::set<std::string> changed_native_splits_;
+-  std::set<std::string> archive_closing_splits_;
++  // Native split token -> when the archive started closing its pages.
++  std::map<std::string, base::TimeTicks> archive_closing_splits_;
+   // Tabs last seen as not archivable. Only the transition into protection
+   // cancels a pending archive or remote dissolve (handoff 011 S3).
+   std::set<tabs::TabHandle> protected_tabs_;
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller_archive.cc b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller_archive.cc
+index 8e50d61..c8bd589 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller_archive.cc
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller_archive.cc
+@@ -206,7 +206,8 @@ void WorkspaceStructureController::MarkSplitsClosingForArchive(
+     tabs::TabInterface* const tab =
+         bridge_->FindTabByTreeNodeId(page.tree_node_id);
+     if (tab && tab->IsSplit()) {
+-      archive_closing_splits_.insert(tab->GetSplit()->ToString());
++      archive_closing_splits_.insert_or_assign(tab->GetSplit()->ToString(),
++                                               base::TimeTicks::Now());
+     }
+   }
+ }
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_split_capture_unittest.cc b/overlay/chromium/src/ahoi/browser/session/workspace_structure_split_capture_unittest.cc
+index 37e777a..6402851 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_split_capture_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_split_capture_unittest.cc
+@@ -64,5 +64,17 @@ TEST_F(SplitCaptureTest, RecordAlreadyInTheMembersWorkspaceNeedsNoMove) {
+                                  b_));
+ }
+ 
++// Handoff 058: a split token from an archive whose page did not close (hung
++// renderer) expires, so a later manual dissolve tombstones the record again.
++TEST(ArchiveCloseTokenTest, ExpiresAfterTheGrace) {
++  const base::TimeTicks marked = base::TimeTicks() + base::Seconds(100);
++  EXPECT_TRUE(ArchiveCloseTokenLive(marked, marked));
++  EXPECT_TRUE(
++      ArchiveCloseTokenLive(marked, marked + kArchiveCloseGrace -
++                                        base::Milliseconds(1)));
++  EXPECT_FALSE(ArchiveCloseTokenLive(marked, marked + kArchiveCloseGrace));
++  EXPECT_FALSE(ArchiveCloseTokenLive(marked, marked + base::Minutes(5)));
++}
++
+ }  // namespace
+ }  // namespace ahoi::session
