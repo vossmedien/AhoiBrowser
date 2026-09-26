@@ -36,6 +36,14 @@ bool DecodeWorkspace(sql::Statement& statement, Workspace* workspace) {
   }
   decoded.archive_policy =
       static_cast<sync::SharedArchivePolicy>(archive_policy);
+  if (statement.GetColumnType(10) != sql::ColumnType::kNull) {
+    const base::Uuid merged_into =
+        base::Uuid::ParseLowercase(statement.ColumnString(10));
+    if (!merged_into.is_valid() || !decoded.tombstone) {
+      return false;
+    }
+    decoded.merged_into = merged_into;
+  }
 
   if (decoded.model_version != kCurrentModelVersion || !decoded.id.is_valid()) {
     return false;
@@ -206,6 +214,11 @@ void BindWorkspaceForInsert(sql::Statement& statement,
   statement.BindTime(7, workspace.modified_at);
   statement.BindBool(8, workspace.tombstone);
   statement.BindInt(9, static_cast<int>(workspace.archive_policy));
+  if (workspace.merged_into) {
+    statement.BindString(10, workspace.merged_into->AsLowercaseString());
+  } else {
+    statement.BindNull(10);
+  }
 }
 
 }  // namespace ahoi::tab_tree::internal

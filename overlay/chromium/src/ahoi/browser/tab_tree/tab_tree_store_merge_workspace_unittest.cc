@@ -56,6 +56,19 @@ class AhoiTabTreeMergeWorkspaceTest : public AhoiTabTreeStoreTest {
     return node;
   }
 
+  // Also returns tombstoned Workspaces, unlike GetWorkspace().
+  Workspace StoredWorkspace(const base::Uuid& id) {
+    TabTreeSnapshot snapshot;
+    EXPECT_EQ(Result::kOk, store_->ExportSnapshot(&snapshot));
+    for (const Workspace& workspace : snapshot.workspaces) {
+      if (workspace.id == id) {
+        return workspace;
+      }
+    }
+    ADD_FAILURE() << "workspace missing from snapshot";
+    return Workspace();
+  }
+
   bool IsVisible(const Workspace& workspace) {
     std::vector<Workspace> workspaces;
     EXPECT_EQ(Result::kOk, store_->GetWorkspaces(&workspaces));
@@ -118,6 +131,8 @@ TEST_F(AhoiTabTreeMergeWorkspaceTest, MergesIntoOneFolderAndUndoRevivesSource) {
   EXPECT_EQ(Get(nested.id).parent_id, folder.id);
   EXPECT_EQ(Get(kept.id).sort_key, "m");
   EXPECT_FALSE(IsVisible(source_));
+  // Crest 084: the source's tombstone names the target for sync peers.
+  EXPECT_EQ(StoredWorkspace(source_.id).merged_into, target_.id);
 
   // WS-MERGE-03: one undo restores the source with its IDs and order.
   ASSERT_EQ(Result::kOk, store_->UndoLastMutation());
@@ -135,6 +150,7 @@ TEST_F(AhoiTabTreeMergeWorkspaceTest, MergesIntoOneFolderAndUndoRevivesSource) {
   ASSERT_EQ(Result::kOk, store_->GetWorkspace(source_.id, &revived));
   EXPECT_FALSE(revived.tombstone);
   EXPECT_GT(revived.modified_at, source_.modified_at);
+  EXPECT_FALSE(revived.merged_into);
 }
 
 TEST_F(AhoiTabTreeMergeWorkspaceTest, MergesFlatAfterTargetInSourceOrder) {

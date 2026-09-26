@@ -499,8 +499,8 @@ TabTreeStore::Result TabTreeStore::UndoLastMutation() {
   // newer than its tombstone so the revival wins on every synced device.
   sql::Statement revive(db_.GetCachedStatement(
       SQL_FROM_HERE,
-      "UPDATE workspaces SET tombstone=0,modified_at=MAX(modified_at+1,?) "
-      "WHERE id=? AND tombstone=1"));
+      "UPDATE workspaces SET tombstone=0,merged_into=NULL,"
+      "modified_at=MAX(modified_at+1,?) WHERE id=? AND tombstone=1"));
   std::set<base::Uuid> revived;
   for (const NodeSnapshot& snapshot : snapshots) {
     if (!snapshot.previous || snapshot.previous->tombstone ||

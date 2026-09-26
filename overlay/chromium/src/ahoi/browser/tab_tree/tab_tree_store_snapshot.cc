@@ -182,8 +182,8 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
   sql::Statement insert_workspace(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
-      "created_at,modified_at,tombstone,archive_policy) "
-      "VALUES(?,?,?,?,?,?,?,?,?,?)"));
+      "created_at,modified_at,tombstone,archive_policy,merged_into) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?)"));
   for (const Workspace& workspace : snapshot.workspaces) {
     insert_workspace.Reset(/*clear_bound_vars=*/true);
     internal::BindWorkspaceForInsert(insert_workspace, workspace);

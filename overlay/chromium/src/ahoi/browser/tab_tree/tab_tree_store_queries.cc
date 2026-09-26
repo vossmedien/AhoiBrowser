@@ -26,7 +26,7 @@ TabTreeStore::Result TabTreeStore::GetWorkspaces(
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
-      "modified_at,tombstone,archive_policy FROM workspaces WHERE tombstone=0 "
+      "modified_at,tombstone,archive_policy,merged_into FROM workspaces WHERE tombstone=0 "
       "ORDER BY "
       "sort_key,id"));
   std::vector<Workspace> decoded;
@@ -217,7 +217,7 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
   TabTreeSnapshot exported;
   sql::Statement workspaces(db_.GetUniqueStatement(
       "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
-      "modified_at,tombstone,archive_policy FROM workspaces ORDER BY "
+      "modified_at,tombstone,archive_policy,merged_into FROM workspaces ORDER BY "
       "sort_key,id"));
   while (workspaces.Step()) {
     Workspace workspace;

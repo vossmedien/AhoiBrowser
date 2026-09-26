@@ -198,10 +198,11 @@ TabTreeStore::Result TabTreeStore::MergeWorkspace(
 
   sql::Statement workspace_row(db_.GetCachedStatement(
       SQL_FROM_HERE,
-      "UPDATE workspaces SET tombstone=1,modified_at=? WHERE id=? AND "
-      "tombstone=0"));
-  workspace_row.BindTime(0, modified_at);
-  workspace_row.BindString(1, source_workspace_id.AsLowercaseString());
+      "UPDATE workspaces SET tombstone=1,merged_into=?,modified_at=? "
+      "WHERE id=? AND tombstone=0"));
+  workspace_row.BindString(0, target_workspace_id.AsLowercaseString());
+  workspace_row.BindTime(1, modified_at);
+  workspace_row.BindString(2, source_workspace_id.AsLowercaseString());
   if (!workspace_row.Run() || db_.GetLastChangeCount() != 1 ||
       !transaction.Commit()) {
     return Result::kDatabaseError;

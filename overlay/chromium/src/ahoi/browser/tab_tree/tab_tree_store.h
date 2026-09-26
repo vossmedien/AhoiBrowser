@@ -27,7 +27,7 @@ namespace ahoi::tab_tree {
 
 class TabTreeStore {
  public:
-  static constexpr int kCurrentSchemaVersion = 4;
+  static constexpr int kCurrentSchemaVersion = 5;
   static constexpr int kLowestSupportedSchemaVersion = 1;
 
   enum class Result {

@@ -16,7 +16,8 @@ namespace {
 
 constexpr char kSelectWorkspaceSql[] =
     "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
-    "modified_at,tombstone,archive_policy FROM workspaces WHERE id=?";
+    "modified_at,tombstone,archive_policy,merged_into FROM workspaces "
+    "WHERE id=?";
 
 constexpr char kSelectNodeSql[] =
     "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"

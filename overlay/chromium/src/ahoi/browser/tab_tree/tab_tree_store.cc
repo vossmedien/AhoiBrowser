@@ -91,7 +91,7 @@ bool TabTreeStore::CreateSchema() {
              "accent_argb INTEGER,created_at INTEGER NOT NULL,"
              "modified_at INTEGER NOT NULL,tombstone INTEGER NOT NULL CHECK("
              "tombstone IN (0,1)),archive_policy INTEGER NOT NULL DEFAULT 0 "
-             "CHECK(archive_policy IN (0,1,2,3,4)))") &&
+             "CHECK(archive_policy IN (0,1,2,3,4)),merged_into TEXT)") &&
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS tree_nodes("
              "model_version INTEGER NOT NULL,id TEXT PRIMARY KEY NOT NULL,"
@@ -193,6 +193,16 @@ bool TabTreeStore::MigrateSchema(sql::MetaTable* meta_table) {
              "NOT NULL DEFAULT 0")) ||
         !meta_table->SetVersionNumber(4) ||
         !meta_table->SetCompatibleVersionNumber(4)) {
+      return false;
+    }
+  }
+  if (meta_table->GetVersionNumber() == 4) {
+    // Additive and nullable: the target of a merged Workspace (ADR 0012,
+    // crest 084). Existing rows keep NULL, which means "not merged".
+    if ((!db_.DoesColumnExist("workspaces", "merged_into") &&
+         !db_.Execute("ALTER TABLE workspaces ADD COLUMN merged_into TEXT")) ||
+        !meta_table->SetVersionNumber(5) ||
+        !meta_table->SetCompatibleVersionNumber(5)) {
       return false;
     }
   }

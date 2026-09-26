@@ -163,8 +163,8 @@ TabTreeStore::Result TabTreeStore::DeleteWorkspace(
   }
   sql::Statement workspace_row(db_.GetCachedStatement(
       SQL_FROM_HERE,
-      "UPDATE workspaces SET tombstone=1,modified_at=? WHERE id=? AND "
-      "tombstone=0"));
+      "UPDATE workspaces SET tombstone=1,merged_into=NULL,modified_at=? "
+      "WHERE id=? AND tombstone=0"));
   workspace_row.BindTime(0, modified_at);
   workspace_row.BindString(1, workspace_id.AsLowercaseString());
   if (!workspace_row.Run() || db_.GetLastChangeCount() != 1 ||

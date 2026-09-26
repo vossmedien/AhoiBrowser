@@ -41,6 +41,9 @@ struct Workspace {
   bool tombstone = false;
 
   sync::SharedArchivePolicy archive_policy = sync::SharedArchivePolicy::kNever;
+  // The Workspace that absorbed this one, set only with `tombstone` by
+  // MergeWorkspace and cleared when an undo revives it (ADR 0012, crest 084).
+  std::optional<base::Uuid> merged_into;
 
   bool operator==(const Workspace&) const = default;
 };
