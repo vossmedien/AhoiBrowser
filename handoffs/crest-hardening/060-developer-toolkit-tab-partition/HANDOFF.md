@@ -1,6 +1,6 @@
 # 060 – Developer toolkit acts on the tab's own StoragePartition
 
-Status: ready
+Status: integrated 33d7cd0 (reviewed: all toolkit types are in DATA_TYPE_ON_STORAGE_PARTITION, so the partition filter DCHECK holds; controller includes sorted; syntax-checked; unit test and visible check on build 36)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `6867f1c` (`git apply --check` passes). By the crest-hardening lane;
 syntax-checked read-only against `out/AhoiDev` (0 errors, including the
