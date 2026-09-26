@@ -43,6 +43,8 @@ source_set("service") {
     "arc_import_manual_recovery_plan.h",
     "arc_import_navigation_barrier.cc",
     "arc_import_navigation_barrier.h",
+    "arc_import_process_inspection.cc",
+    "arc_import_process_inspection.h",
     "arc_import_recovery.cc",
     "arc_import_recovery.h",
     "arc_import_recovery_policy.cc",
