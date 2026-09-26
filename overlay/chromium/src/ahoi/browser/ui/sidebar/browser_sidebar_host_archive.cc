@@ -188,7 +188,9 @@ void BrowserSidebarHostView::ShowArchiveSearch() {
 void BrowserSidebarHostView::OnArchiveSearchClosed() {
   // Blur the search field before the Widget goes away (see the Workspace
   // dialog).
-  PrepareDialogWidgetForDestruction(archive_search_widget_.get());
+  // Always runs from a posted task (see above), so the views may go too.
+  PrepareDialogWidgetForDestruction(archive_search_widget_.get(),
+                                    /*remove_views=*/true);
   archive_search_widget_.reset();
   archive_search_delegate_.reset();
 }

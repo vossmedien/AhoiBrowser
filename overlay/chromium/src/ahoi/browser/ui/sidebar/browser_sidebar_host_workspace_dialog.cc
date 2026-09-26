@@ -600,7 +600,8 @@ void BrowserSidebarHostView::CloseWorkspaceDialogNow() {
 
 // static
 void BrowserSidebarHostView::PrepareDialogWidgetForDestruction(
-    views::Widget* widget) {
+    views::Widget* widget,
+    bool remove_views) {
   if (!widget) {
     return;
   }
@@ -615,6 +616,16 @@ void BrowserSidebarHostView::PrepareDialogWidgetForDestruction(
   // NativeWidgetMac::OnDidChangeFocus holds regardless.
   if (ui::InputMethod* input_method = widget->GetInputMethod()) {
     input_method->SetFocusedTextInputClient(nullptr);
+  }
+  // Build 39 still crashed with both of the above: when the closing window
+  // becomes key again (the app was not frontmost), views re-focuses the
+  // dialog's initially focused name field inside ~Widget. Removing the
+  // dialog's views first destroys every text field, which detaches it from
+  // the input method, so nothing can become a text input client again.
+  views::View* const contents =
+      remove_views ? widget->GetContentsView() : nullptr;
+  if (contents) {
+    contents->RemoveAllChildViews();
   }
 }
 
@@ -646,7 +657,8 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
         base::BindOnce(
             [](std::unique_ptr<views::Widget> widget,
                std::unique_ptr<views::BubbleDialogDelegate> delegate) {
-              PrepareDialogWidgetForDestruction(widget.get());
+              PrepareDialogWidgetForDestruction(widget.get(),
+                                                /*remove_views=*/true);
               widget.reset();
               delegate.reset();
             },

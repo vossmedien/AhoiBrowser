@@ -566,6 +566,8 @@ void BrowserSidebarHostView::OnCreateGroupDialogClosed() {
       FROM_HERE, base::BindOnce(
                      [](std::unique_ptr<views::Widget> widget,
                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
+                       PrepareDialogWidgetForDestruction(widget.get(),
+                                                         /*remove_views=*/true);
                        widget.reset();
                        delegate.reset();
                      },
