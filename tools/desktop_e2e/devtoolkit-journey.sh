@@ -6,6 +6,8 @@
 # site; localhost on the same port is a different site without a profile
 # and serves as the unmodified control. Checks:
 #   DEV-01 the saved CSS applies, after a reload and after a real restart,
+#   DEV-04 a saved LESS asset applies from its stored compilation and no
+#          style compiler process starts without the editor,
 #   DEV-05 the saved JavaScript runs in an isolated world: its DOM change is
 #          visible, its global is not visible to the page,
 #   DEV-09 with cache off the cacheable stylesheet reaches the server on
@@ -34,9 +36,9 @@ mkdir -p "$P/Default"
 python3 - "$P/Default/Preferences" "$A" <<'PY'
 import json, sys
 path, origin = sys.argv[1:3]
-def asset(asset_id, kind, source, world="isolated"):
-    return {"id": asset_id, "name": asset_id, "kind": kind, "language": "css",
-            "enabled": True, "source": source, "compiled_css": "",
+def asset(asset_id, kind, source, world="isolated", language="css", compiled=""):
+    return {"id": asset_id, "name": asset_id, "kind": kind, "language": language,
+            "enabled": True, "source": source, "compiled_css": compiled,
             "compiled_style_version": 0,
             "scope": {"kind": "origin", "value": origin},
             "domain_scope_warning_accepted": False, "lifetime": "restart",
@@ -46,6 +48,10 @@ profile = {
     "name": "Journey",
     "assets": [
         asset("journey-css", "style", "body{outline:7px solid rgb(1, 2, 3)}"),
+        # Saved LESS with its stored compilation: page loads must use the
+        # stored CSS and never start the compiler (DEV-04).
+        asset("journey-less", "style", "@c: rgb(4, 5, 6); p { color: @c; }",
+              language="less", compiled="p{color:rgb(4, 5, 6)}"),
         asset("journey-js", "javascript",
               "document.documentElement.setAttribute('data-ahoi-dev','isolated');"
               "window.ahoiDevGlobal = 1;"),
@@ -76,6 +82,7 @@ launch() { # <label>
   sleep 3
   open_tab "$A/page" 4
   eval "${label}_OUTLINE=\$(eval_in \"127.0.0.1:$SP/page\" \"getComputedStyle(document.body).outlineColor\")"
+  eval "${label}_LESS=\$(eval_in \"127.0.0.1:$SP/page\" \"getComputedStyle(document.getElementById('p')).color\")"
   eval "${label}_ATTR=\$(eval_in \"127.0.0.1:$SP/page\" \"String(document.documentElement.getAttribute('data-ahoi-dev'))\")"
   eval "${label}_GLOBAL=\$(eval_in \"127.0.0.1:$SP/page\" \"typeof window.ahoiDevGlobal\")"
   eval "${label}_RESP=\$(eval_in \"127.0.0.1:$SP/page\" \"fetch('/echo').then(r=>String(r.headers.get('x-ahoi-resp')))\")"
@@ -83,6 +90,7 @@ launch() { # <label>
   eval "${label}_OUTLINE2=\$(eval_in \"127.0.0.1:$SP/page\" \"getComputedStyle(document.body).outlineColor\")"
   open_tab "$B/page" 4; open_tab "$B/page" 4
   eval "${label}_LOG=\$LOG"
+  eval "${label}_COMPILER=\$(ps -ax -o command | grep -c '[u]tility-sub-type=ahoi.developer_toolkit.mojom.DeveloperStyleCompiler')"
   kill $PID 2>/dev/null
   for i in $(seq 1 20); do kill -0 $PID 2>/dev/null || break; sleep 1; done
   kill -9 $PID 2>/dev/null; kill $FIX 2>/dev/null; sleep 1
@@ -110,6 +118,10 @@ echo "first outline=$first_OUTLINE/$first_OUTLINE2 attr=$first_ATTR global=$firs
 [ "$first_OUTLINE" = "rgb(1, 2, 3)" ] && [ "$first_OUTLINE2" = "rgb(1, 2, 3)" ] \
   && record DEV-01_css_applies_after_reload PASS \
   || record DEV-01_css_applies_after_reload "FAIL:$first_OUTLINE/$first_OUTLINE2"
+echo "first less=$first_LESS compiler_processes=$first_COMPILER" >> "$OUT/run.txt"
+[ "$first_LESS" = "rgb(4, 5, 6)" ] && [ "$first_COMPILER" = 0 ] \
+  && record DEV-04_saved_less_without_compiler_process PASS \
+  || record DEV-04_saved_less_without_compiler_process "FAIL:color=$first_LESS,compiler=$first_COMPILER"
 [ "$first_ATTR" = isolated ] && [ "$first_GLOBAL" = undefined ] \
   && record DEV-05_javascript_isolated_world PASS \
   || record DEV-05_javascript_isolated_world "FAIL:attr=$first_ATTR,global=$first_GLOBAL"
