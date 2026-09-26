@@ -1,5 +1,11 @@
 # Chromium M153 patch ledger
 
+## `0070-ahoi-developer-hard-reload-string.patch`
+
+Adds `IDS_AHOI_DEVELOPER_HARD_RELOAD` ("Reload without cache" / "Ohne Cache
+neu laden") for the developer toolkit's hard-reload action (DEV-08), next to
+the other toolkit strings, with its German translation.
+
 ## `0069-ahoi-german-http-auth-and-navigation-strings.patch`
 
 Adds the German translations that were missing for 15 Ahoi strings: the HTTP

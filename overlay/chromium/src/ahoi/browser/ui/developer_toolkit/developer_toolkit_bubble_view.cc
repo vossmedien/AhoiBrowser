@@ -40,6 +40,7 @@ const gfx::VectorIcon& ActionIcon(DeveloperAction action) {
   switch (action) {
     case DeveloperAction::kClearCache:
     case DeveloperAction::kResetDocumentModifications:
+    case DeveloperAction::kHardReload:
       return vector_icons::kRefreshIcon;
     case DeveloperAction::kClearSiteData:
       return vector_icons::kCookieIcon;
@@ -85,6 +86,8 @@ int ActionStringId(DeveloperAction action) {
       return IDS_AHOI_DEVELOPER_SCREENSHOT_VISIBLE;
     case DeveloperAction::kCaptureFullPageScreenshot:
       return IDS_AHOI_DEVELOPER_SCREENSHOT_FULL_PAGE;
+    case DeveloperAction::kHardReload:
+      return IDS_AHOI_DEVELOPER_HARD_RELOAD;
   }
 }
 
@@ -109,6 +112,7 @@ std::optional<DeveloperActivation> ActivationForAction(DeveloperAction action) {
     case DeveloperAction::kResetDocumentModifications:
     case DeveloperAction::kCaptureVisibleScreenshot:
     case DeveloperAction::kCaptureFullPageScreenshot:
+    case DeveloperAction::kHardReload:
       return std::nullopt;
   }
 }
@@ -222,14 +226,8 @@ DeveloperToolkitBubbleView::DeveloperToolkitBubbleView(
                                DeveloperAction::kToggleImages));
   AddChildView(CreateActionRow(DeveloperAction::kToggleStructureOutlines,
                                DeveloperAction::kToggleAltTitleLabels));
-  auto metadata_row = std::make_unique<views::View>();
-  auto* metadata_layout =
-      metadata_row->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kHorizontal));
-  views::LabelButton* metadata = AddActionButton(
-      metadata_row.get(), DeveloperAction::kToggleDocumentMetadata);
-  metadata_layout->SetFlexForView(metadata, 1);
-  AddChildView(std::move(metadata_row));
+  AddChildView(CreateActionRow(DeveloperAction::kToggleDocumentMetadata,
+                               DeveloperAction::kHardReload));
   auto reset_row = std::make_unique<views::View>();
   auto* reset_layout =
       reset_row->SetLayoutManager(std::make_unique<views::BoxLayout>(
