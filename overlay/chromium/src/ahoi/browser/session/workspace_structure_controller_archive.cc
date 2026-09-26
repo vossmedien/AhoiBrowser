@@ -206,7 +206,8 @@ void WorkspaceStructureController::MarkSplitsClosingForArchive(
     tabs::TabInterface* const tab =
         bridge_->FindTabByTreeNodeId(page.tree_node_id);
     if (tab && tab->IsSplit()) {
-      archive_closing_splits_.insert(tab->GetSplit()->ToString());
+      archive_closing_splits_.insert_or_assign(tab->GetSplit()->ToString(),
+                                               base::TimeTicks::Now());
     }
   }
 }

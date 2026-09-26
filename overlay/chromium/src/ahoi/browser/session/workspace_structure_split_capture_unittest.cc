@@ -64,5 +64,17 @@ TEST_F(SplitCaptureTest, RecordAlreadyInTheMembersWorkspaceNeedsNoMove) {
                                  b_));
 }
 
+// Handoff 058: a split token from an archive whose page did not close (hung
+// renderer) expires, so a later manual dissolve tombstones the record again.
+TEST(ArchiveCloseTokenTest, ExpiresAfterTheGrace) {
+  const base::TimeTicks marked = base::TimeTicks() + base::Seconds(100);
+  EXPECT_TRUE(ArchiveCloseTokenLive(marked, marked));
+  EXPECT_TRUE(
+      ArchiveCloseTokenLive(marked, marked + kArchiveCloseGrace -
+                                        base::Milliseconds(1)));
+  EXPECT_FALSE(ArchiveCloseTokenLive(marked, marked + kArchiveCloseGrace));
+  EXPECT_FALSE(ArchiveCloseTokenLive(marked, marked + base::Minutes(5)));
+}
+
 }  // namespace
 }  // namespace ahoi::session

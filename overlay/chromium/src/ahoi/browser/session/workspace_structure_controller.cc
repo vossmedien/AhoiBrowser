@@ -31,6 +31,10 @@ sync::SharedSplitMetadata Metadata(const sync::SplitGroupRecord& r) {
 }
 }  // namespace
 
+bool ArchiveCloseTokenLive(base::TimeTicks marked, base::TimeTicks now) {
+  return now - marked < kArchiveCloseGrace;
+}
+
 bool TabStripChangeInvalidatesStructure(TabStripModelChange::Type type) {
   return type != TabStripModelChange::kSelectionOnly;
 }
@@ -192,12 +196,20 @@ void WorkspaceStructureController::OnSplitChanged(
   }
   if (change.type == SplitTabChange::Type::kRemoved &&
       change.GetRemovedChange()->reason() ==
-          SplitTabChange::SplitTabRemoveReason::kSplitTabRemoved &&
-      archive_closing_splits_.erase(change.split_id.ToString())) {
-    // Handoff 011 S2: the archive closed this split's pages. The split record
-    // stays live so restoring the archive can materialize it again.
-    OnNativeChanged();
-    return;
+          SplitTabChange::SplitTabRemoveReason::kSplitTabRemoved) {
+    const auto closing =
+        archive_closing_splits_.find(change.split_id.ToString());
+    if (closing != archive_closing_splits_.end()) {
+      const bool by_archive =
+          ArchiveCloseTokenLive(closing->second, base::TimeTicks::Now());
+      archive_closing_splits_.erase(closing);
+      if (by_archive) {
+        // Handoff 011 S2: the archive closed this split's pages. The split
+        // record stays live so restoring the archive can materialize it.
+        OnNativeChanged();
+        return;
+      }
+    }
   }
   changed_native_splits_.insert(change.split_id.ToString());
   if (change.type == SplitTabChange::Type::kRemoved &&
@@ -254,6 +266,12 @@ void WorkspaceStructureController::Refresh() {
   scheduled_ = false;
   std::erase_if(protected_tabs_,
                 [](const tabs::TabHandle& handle) { return !handle.Get(); });
+  // Handoff 058: a token whose pages did not close in time is dropped, so a
+  // later manual dissolve of that split tombstones its record again.
+  const base::TimeTicks now = base::TimeTicks::Now();
+  std::erase_if(archive_closing_splits_, [now](const auto& item) {
+    return !ArchiveCloseTokenLive(item.second, now);
+  });
   if (!observing_sync_ || !bridge_lifetime_ || !bridge_->is_ready() ||
       persisting_ || SessionRestore::IsRestoring(profile_)) {
     return;

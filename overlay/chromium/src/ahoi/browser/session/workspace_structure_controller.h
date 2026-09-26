@@ -4,6 +4,7 @@
 #define AHOI_BROWSER_SESSION_WORKSPACE_STRUCTURE_CONTROLLER_H_
 
 #include <atomic>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -14,6 +15,7 @@
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/memory/raw_ptr.h"
+#include "base/time/time.h"
 #include "base/timer/timer.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
 #include "components/tabs/public/tab_interface.h"
@@ -57,6 +59,14 @@ bool TabStripChangeInvalidatesStructure(TabStripModelChange::Type type);
 bool TreeChangeInvalidatesStructure(tab_tree::MutationKind kind);
 bool ResourceChangeInvalidatesStructure(bool was_protected,
                                         bool now_protected);
+
+// Handoff 058: how long a split closed by an archive is still recognized as
+// "closed by the archive" (011 S2). The agreed pages normally close within
+// their unload handlers; a page that is still open after this (for example a
+// hung renderer) must not keep a later manual dissolve of its split from
+// tombstoning the record.
+inline constexpr base::TimeDelta kArchiveCloseGrace = base::Seconds(30);
+bool ArchiveCloseTokenLive(base::TimeTicks marked, base::TimeTicks now);
 
 class WorkspaceStructureController final
     : public sync::ProfileSyncService::Observer {
@@ -148,7 +158,8 @@ class WorkspaceStructureController final
   std::map<base::Uuid, sync::SyncAuthorization> remote_authorities_;
   std::set<base::Uuid> local_changes_;
   std::set<std::string> changed_native_splits_;
-  std::set<std::string> archive_closing_splits_;
+  // Native split token -> when the archive started closing its pages.
+  std::map<std::string, base::TimeTicks> archive_closing_splits_;
   // Tabs last seen as not archivable. Only the transition into protection
   // cancels a pending archive or remote dissolve (handoff 011 S3).
   std::set<tabs::TabHandle> protected_tabs_;
