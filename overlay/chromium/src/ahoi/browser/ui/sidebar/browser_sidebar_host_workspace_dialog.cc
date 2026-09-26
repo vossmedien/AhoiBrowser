@@ -622,8 +622,11 @@ void BrowserSidebarHostView::PrepareDialogWidgetForDestruction(
   // dialog's initially focused name field inside ~Widget. Removing the
   // dialog's views first destroys every text field, which detaches it from
   // the input method, so nothing can become a text input client again.
+  // Only the dialog's own body: GetContentsView() is the NonClientView, and
+  // emptying it destroyed the ClientView and frame under the live Widget
+  // (build 40: SEGV in ~Widget at widget_delegate_->WindowClosing()).
   views::View* const contents =
-      remove_views ? widget->GetContentsView() : nullptr;
+      remove_views ? widget->GetClientContentsView() : nullptr;
   if (contents) {
     contents->RemoveAllChildViews();
   }
