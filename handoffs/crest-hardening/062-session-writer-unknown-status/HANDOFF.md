@@ -1,6 +1,6 @@
 # 062 – Session writer DCHECK "status != WriteStatus::kUnknown" on shutdown
 
-Status: ready
+Status: integrated 6456b1a (reviewed: IsError(WriteStatus) is != kSuccess, confirmed in command_storage_backend.h; added as patch 0065; syntax-checked; acceptance on build 38 (privacy journey teardown))
 Owner lane: desktop (patch stack: new patch after 0064; apply, build, test)
 Base: `.work` `command_storage_backend.cc` with 0016/0017 applied (blob
 `15be35e`). The patch is in upstream-tree form (`components/…`) for the

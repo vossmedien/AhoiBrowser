@@ -1,6 +1,6 @@
 # 064 – Developer toolkit bubbles blur before destruction (as cc26c51)
 
-Status: ready
+Status: integrated 6456b1a (reviewed; focus_manager include sorted; syntax-checked; acceptance on build 38)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `1c6e2ad` (`git apply --check` passes). By the crest-hardening lane;
 syntax-checked read-only (0 errors), not built.
