@@ -52,6 +52,56 @@ agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
 
+## Build 35 results; build 37 in progress — 26 September 2026
+
+- **Installed:** build 35 (`76f6d94`); all eight unit-test binaries pass. The
+  focused journeys started after the 20-minute idle wait with only 1-5 s of
+  idle time, so owner input may have disturbed them.
+- **Accepted on build 35:** auto-archive 10/10; split archive (034) creates,
+  archives, lists and restores without an error, confirming the archive
+  completion fix `76f6d94`.
+- **Found and fixed (in build 37, not yet accepted):**
+  - Window Workspace after restart: session restore adds the first window's
+    tabs to the already open browser, and only newly created windows got the
+    window extra data, so every restart landed in the first Workspace. The
+    save side was correct (build 35 logs). Patch 0064 (`6755551`).
+  - Split restore: restored split members are unloaded rows, and opening one
+    opened only that page, so the split was never rebuilt. Opening a member
+    now opens its closed partners first (`3dfeb17`).
+  - Crash: creating a Workspace with its own website sessions hit
+    NativeWidgetMac's focus DCHECK when the dialog Widget was destroyed with
+    its name field still attached to the input method (`cc26c51`, also for
+    the group dialog and archive search).
+  - HTTP-auth account switch and the developer toolkit (cookie editor, "Clear
+    site data") worked on the default StoragePartition, not the tab's own
+    (`4a11c52`; crest handoff 060 in `33d7cd0`). Crest handoff 058
+    (`739cea6`) lets the archive's split token expire.
+- **Privacy modes (DoD 10), first run of `privacy-modes-journey.sh`:**
+  - Pass: first-party login in strict mode (PRIV-01), Sec-GPC on strict
+    navigations only (PRIV-04, navigations), Safe Browsing standard without
+    Enhanced Protection (PRIV-15), no API-key infobar (PRIV-18), Topics
+    rejects (part of PRIV-06).
+  - Journey defects, fixed in `fe7dd08`: the `/json/new` target was not
+    URL-encoded (a raw `&` dropped `keep=1`), the mode pref is read from
+    prefs-internals, and PRIV-06 is judged by the Privacy Sandbox prefs
+    because `joinAdInterestGroup` resolves even when disabled.
+  - Open, real gap: `PrivacyModeURLLoaderThrottle` is registered only in
+    `ChromeContentBrowserClient::CreateURLLoaderThrottles`, so renderer
+    subresources (a cross-site image) get neither Sec-GPC nor a reduced
+    referrer. The master contract ("Mehr Schutz": GPC active, cross-site
+    referrers reduced) and `PRIVACY_POLICY.md` require it. L-sized: a
+    renderer throttle provider or a browser-side URLLoaderFactory proxy for
+    strict origins.
+  - Not testable over HTTP: the unpartitioned third-party cookie (PRIV-02)
+    and CHIPS (PRIV-03) need an HTTPS fixture.
+- **Crash to analyze:** `CommandStorageBackend::AppendCommands` DCHECK
+  `status != WriteStatus::kUnknown` on the session-writer thread when the
+  privacy journey ended the default profile with SIGTERM
+  (`~/Library/Logs/DiagnosticReports/AhoiBrowser-2026-09-26-024549.ips`).
+- **Disk:** build 36 first stopped at 63.7 GiB free (guard: 64.0 GiB); after
+  removing the agent's own test profiles it ran with 64.5 GiB. The margin is
+  under 1 GiB; the owner row on free space stays open.
+
 ## Build 33 follow-ups; build 35 in progress — 26 September 2026
 
 - **Accepted on build 33 (reruns with corrected journeys):**
