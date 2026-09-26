@@ -112,6 +112,28 @@ TEST(PrivacyModeURLLoaderThrottleTest, CompatibilityExceptionIsNoOp) {
   EXPECT_FALSE(throttle);
 }
 
+TEST(PrivacyModeURLLoaderThrottleTest,
+     CompatibilityExceptionRemovesGpcInheritedFromStrictPage) {
+  sync_preferences::TestingPrefServiceSyncable prefs;
+  RegisterProfilePrefs(prefs.registry());
+  ASSERT_TRUE(SetGlobalMode(&prefs, PrivacyMode::kStrict));
+  ASSERT_TRUE(SetOriginMode(&prefs, GURL("https://example.test/"),
+                            PrivacyMode::kChromiumCompatible, false));
+  network::ResourceRequest request;
+  request.url = GURL("https://example.test/?utm_source=one");
+  request.is_outermost_main_frame = true;
+  // Set from the previous strict page's renderer preferences.
+  request.headers.SetHeader("Sec-GPC", "1");
+  auto throttle = MaybeCreatePrivacyModeURLLoaderThrottle(
+      request, &prefs, /*is_off_the_record=*/false);
+  ASSERT_TRUE(throttle);
+  bool defer = false;
+  throttle->WillStartRequest(&request, &defer);
+  EXPECT_FALSE(request.headers.HasHeader("Sec-GPC"));
+  // Everything else stays Chromium behavior.
+  EXPECT_EQ("https://example.test/?utm_source=one", request.url.spec());
+}
+
 TEST(PrivacyModeURLLoaderThrottleTest, RedirectToCompatibilityRemovesGpc) {
   sync_preferences::TestingPrefServiceSyncable prefs;
   RegisterProfilePrefs(prefs.registry());

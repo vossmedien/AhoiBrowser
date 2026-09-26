@@ -20,6 +20,8 @@ namespace ahoi::privacy {
 
 namespace {
 
+constexpr char kGpcHeader[] = "Sec-GPC";
+
 GURL PolicyOriginForRequest(const network::ResourceRequest& request) {
   if (request.is_outermost_main_frame) {
     return request.url;
@@ -40,7 +42,13 @@ MaybeCreatePrivacyModeURLLoaderThrottle(const network::ResourceRequest& request,
     return nullptr;
   }
   PrivacyPolicy policy = GetPolicySnapshot(*prefs, is_off_the_record);
-  if (!policy.IsStrictForUrl(PolicyOriginForRequest(request))) {
+  // A browser-initiated navigation takes its headers from the renderer
+  // preferences of the page it leaves (NavigationRequest builds them before
+  // DidStartNavigation), so a strict page's Sec-GPC can reach a site in
+  // compatibility mode, e.g. the reload after a per-site repair. Such a
+  // request still gets a throttle, which only removes that header.
+  if (!policy.IsStrictForUrl(PolicyOriginForRequest(request)) &&
+      !request.headers.HasHeader(kGpcHeader)) {
     return nullptr;
   }
   return std::make_unique<PrivacyModeURLLoaderThrottle>(
@@ -77,14 +85,14 @@ void PrivacyModeURLLoaderThrottle::WillRedirectRequest(
   if (!redirect_info || !headers_update_params ||
       !redirect_info->new_url.SchemeIsHTTPOrHTTPS()) {
     if (headers_update_params) {
-      headers_update_params->removed_headers.push_back("Sec-GPC");
+      headers_update_params->removed_headers.push_back(kGpcHeader);
     }
     return;
   }
   const GURL policy_origin =
       is_main_frame_ ? redirect_info->new_url : policy_origin_;
   if (!policy_.IsStrictForUrl(policy_origin)) {
-    headers_update_params->removed_headers.push_back("Sec-GPC");
+    headers_update_params->removed_headers.push_back(kGpcHeader);
     return;
   }
   headers_update_params->modified_headers.SetHeader("Sec-GPC", "1");
@@ -109,6 +117,7 @@ void PrivacyModeURLLoaderThrottle::ApplyToRequest(
     network::ResourceRequest& request) const {
   const PrivacyMode mode = policy_.ModeForUrl(PolicyOriginForRequest(request));
   if (mode != PrivacyMode::kStrict) {
+    request.headers.RemoveHeader(kGpcHeader);
     return;
   }
   if (is_main_frame_) {
