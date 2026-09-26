@@ -508,6 +508,48 @@ final class CompanionCoreTests: XCTestCase {
         XCTAssertEqual(snapshot.visibleTreeNodes.map(\.id), [sibling.id])
     }
 
+    func testMovingAFolderToAnotherWorkspaceTakesItsSubtree() async throws {
+        let repository = LocalFirstRepository(
+            store: InMemoryCompanionStore(),
+            localDeviceID: DeviceID(
+                rawValue: UUID(uuidString: "70000000-0000-4000-8000-000000000002")!
+            )
+        )
+        let source = try await repository.createWorkspace(name: "Quelle")
+        let target = try await repository.createWorkspace(name: "Ziel")
+        let folder = try await repository.createTreeNode(
+            workspaceID: source.id, kind: .folder, title: "Ordner")
+        let child = try await repository.createTreeNode(
+            workspaceID: source.id, parentID: folder.id, kind: .folder, title: "Kind")
+        let page = try await repository.createTreeNode(
+            workspaceID: source.id, parentID: child.id, kind: .savedPage,
+            title: "Tief", url: "https://example.test/deep")
+
+        let move = try await repository.moveTreeNode(
+            folder.id, to: target.id, parentID: nil)
+
+        XCTAssertEqual(move.node.workspaceID, target.id)
+        XCTAssertEqual(Set(move.descendants.map(\.id)), [child.id, page.id])
+        XCTAssertTrue(move.descendants.allSatisfy { $0.workspaceID == target.id })
+        XCTAssertTrue(move.descendants.allSatisfy { $0.version.modifiedAt > page.version.modifiedAt })
+
+        // Deleting the source Workspace no longer takes the moved subtree along.
+        let deletion = try await repository.deleteWorkspace(source.id)
+        XCTAssertTrue(deletion.nodes.isEmpty)
+        let snapshot = try await repository.currentSnapshot()
+        XCTAssertEqual(
+            Set(snapshot.visibleTreeNodes.filter { $0.workspaceID == target.id }.map(\.id)),
+            [folder.id, child.id, page.id]
+        )
+
+        // A move inside one Workspace rewrites no descendants.
+        let other = try await repository.createTreeNode(
+            workspaceID: target.id, kind: .folder, title: "Anderer")
+        let inside = try await repository.moveTreeNode(
+            child.id, to: target.id, parentID: other.id)
+        XCTAssertTrue(inside.descendants.isEmpty)
+    }
+
     func testWorkspaceFieldMergeConvergesDisjointOfflineEdits() throws {
         let firstDevice = DeviceID(
             rawValue: UUID(uuidString: "71000000-0000-4000-8000-000000000001")!

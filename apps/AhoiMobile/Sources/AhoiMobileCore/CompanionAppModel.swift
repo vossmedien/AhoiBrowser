@@ -271,9 +271,10 @@ public final class CompanionAppModel: ObservableObject {
                 to: workspaceID,
                 parentID: parentID
             )
-        }, enqueue: { node in
+        }, enqueue: { move in
             guard let bridge = self.syncBridge else { return }
-            try await bridge.enqueue(node)
+            try await bridge.enqueue(move.node)
+            for node in move.descendants { try await bridge.enqueue(node) }
         })
     }
 

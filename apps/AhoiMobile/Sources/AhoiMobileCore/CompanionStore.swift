@@ -522,12 +522,15 @@ public actor LocalFirstRepository {
         return candidate
     }
 
+    /// Moves a node and, across Workspaces, its whole live subtree: every
+    /// descendant gets the target Workspace, so it stays visible under its
+    /// parent and is not tombstoned with the source Workspace.
     @discardableResult
     public func moveTreeNode(
         _ id: TreeNodeID,
         to workspaceID: WorkspaceID,
         parentID: TreeNodeID?
-    ) async throws -> TreeNode {
+    ) async throws -> (node: TreeNode, descendants: [TreeNode]) {
         await acquireMutation()
         defer { releaseMutation() }
         try await loadIfNeeded()
@@ -551,8 +554,28 @@ public actor LocalFirstRepository {
         candidate.version = try nextVersion()
         candidate = CompanionFieldMerge.stampLocal(previous: previous, candidate: candidate)
         snapshot.treeNodes[index] = candidate
+        var descendants: [TreeNode] = []
+        if previous.workspaceID != workspaceID {
+            var pending = [id]
+            var visited = Set<TreeNodeID>()
+            while let current = pending.popLast(), visited.insert(current).inserted {
+                for childIndex in snapshot.treeNodes.indices
+                    where snapshot.treeNodes[childIndex].parentID == current
+                        && !snapshot.treeNodes[childIndex].isDeleted {
+                    let oldChild = snapshot.treeNodes[childIndex]
+                    pending.append(oldChild.id)
+                    guard oldChild.workspaceID != workspaceID else { continue }
+                    var child = oldChild
+                    child.workspaceID = workspaceID
+                    child.version = try nextVersion()
+                    child = CompanionFieldMerge.stampLocal(previous: oldChild, candidate: child)
+                    snapshot.treeNodes[childIndex] = child
+                    descendants.append(child)
+                }
+            }
+        }
         try await persist()
-        return candidate
+        return (candidate, descendants)
     }
 
     @discardableResult
