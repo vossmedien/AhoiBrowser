@@ -1,0 +1,112 @@
+diff --git a/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.cc b/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.cc
+index 2250cd1..9c51496 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.cc
+@@ -46,6 +46,7 @@
+ #include "ui/views/bubble/bubble_frame_view.h"
+ #include "ui/views/controls/textfield/textfield.h"
+ #include "ui/views/view.h"
++#include "ui/views/focus/focus_manager.h"
+ #include "ui/views/widget/widget.h"
+ #include "url/origin.h"
+ 
+@@ -53,6 +54,16 @@ namespace ahoi {
+ 
+ namespace {
+ 
++// A focused Textfield (cookie manager, profile editor) can still be the input
++// method's text input client while its client-owned Widget is destroyed,
++// which trips NativeWidgetMac's focus check. Blurring first detaches it (as
++// cc26c51 for the sidebar dialogs; handoff 064).
++void BlurBeforeDestruction(views::Widget* widget) {
++  if (widget && widget->GetFocusManager()) {
++    widget->GetFocusManager()->ClearFocus();
++  }
++}
++
+ DEFINE_UI_CLASS_PROPERTY_KEY(
+     int,
+     kDeveloperToolbarSurfaceKey,
+@@ -75,14 +86,18 @@ DeveloperToolkitController::DeveloperToolkitController(Browser* browser)
+ DeveloperToolkitController::~DeveloperToolkitController() {
+   weak_ptr_factory_.InvalidateWeakPtrs();
+   cookie_manager_view_ = nullptr;
++  BlurBeforeDestruction(cookie_manager_widget_.get());
+   cookie_manager_widget_.reset();
+   cookie_manager_delegate_.reset();
+   cache_status_view_ = nullptr;
++  BlurBeforeDestruction(cache_status_widget_.get());
+   cache_status_widget_.reset();
+   cache_status_delegate_.reset();
+   profile_editor_view_ = nullptr;
++  BlurBeforeDestruction(profile_editor_widget_.get());
+   profile_editor_widget_.reset();
+   profile_editor_delegate_.reset();
++  BlurBeforeDestruction(bubble_widget_.get());
+   bubble_widget_.reset();
+   bubble_delegate_.reset();
+ }
+@@ -722,6 +737,7 @@ void DeveloperToolkitController::OnCacheClearFinished(
+ }
+ 
+ void DeveloperToolkitController::OnBubbleClosed() {
++  BlurBeforeDestruction(bubble_widget_.get());
+   bubble_contents_.reset();
+   bubble_close_pending_ = true;
+   std::unique_ptr<views::Widget> closed_widget = std::move(bubble_widget_);
+@@ -732,6 +748,7 @@ void DeveloperToolkitController::OnBubbleClosed() {
+                      [](base::WeakPtr<DeveloperToolkitController> controller,
+                         std::unique_ptr<views::Widget> widget,
+                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
++                       BlurBeforeDestruction(widget.get());
+                        widget.reset();
+                        delegate.reset();
+                        if (controller) {
+@@ -743,6 +760,7 @@ void DeveloperToolkitController::OnBubbleClosed() {
+ }
+ 
+ void DeveloperToolkitController::OnCookieManagerClosed() {
++  BlurBeforeDestruction(cookie_manager_widget_.get());
+   cookie_manager_view_ = nullptr;
+   cookie_manager_close_pending_ = true;
+   std::unique_ptr<views::Widget> closed_widget =
+@@ -754,6 +772,7 @@ void DeveloperToolkitController::OnCookieManagerClosed() {
+                      [](base::WeakPtr<DeveloperToolkitController> controller,
+                         std::unique_ptr<views::Widget> widget,
+                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
++                       BlurBeforeDestruction(widget.get());
+                        widget.reset();
+                        delegate.reset();
+                        if (controller) {
+@@ -765,6 +784,7 @@ void DeveloperToolkitController::OnCookieManagerClosed() {
+ }
+ 
+ void DeveloperToolkitController::OnCacheStatusClosed() {
++  BlurBeforeDestruction(cache_status_widget_.get());
+   cache_status_view_ = nullptr;
+   cache_status_close_pending_ = true;
+   std::unique_ptr<views::Widget> closed_widget =
+@@ -776,6 +796,7 @@ void DeveloperToolkitController::OnCacheStatusClosed() {
+                      [](base::WeakPtr<DeveloperToolkitController> controller,
+                         std::unique_ptr<views::Widget> widget,
+                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
++                       BlurBeforeDestruction(widget.get());
+                        widget.reset();
+                        delegate.reset();
+                        if (controller) {
+@@ -787,6 +808,7 @@ void DeveloperToolkitController::OnCacheStatusClosed() {
+ }
+ 
+ void DeveloperToolkitController::OnProfileEditorClosed() {
++  BlurBeforeDestruction(profile_editor_widget_.get());
+   profile_editor_view_ = nullptr;
+   std::unique_ptr<views::Widget> closed_widget =
+       std::move(profile_editor_widget_);
+@@ -796,6 +818,7 @@ void DeveloperToolkitController::OnProfileEditorClosed() {
+       FROM_HERE, base::BindOnce(
+                      [](std::unique_ptr<views::Widget> widget,
+                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
++                       BlurBeforeDestruction(widget.get());
+                        widget.reset();
+                        delegate.reset();
+                      },
