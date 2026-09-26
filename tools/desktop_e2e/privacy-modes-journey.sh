@@ -94,13 +94,14 @@ run_mode() { # <label> <seeded mode or "">
     echo "$label https_frame_cookies=$tp3"
     echo "$label gpc_on_top=$(logged "$LOG" /top gpc)"
     echo "$label pixel_referer=$(logged "$LOG" /pixel referer)"
+    echo "$label pixel_gpc=$(logged "$LOG" /pixel gpc)"
     echo "$label landing_query=$(logged "$LOG" /landing query)"
     echo "$label whoami=$who"
     echo "$label topics=$topics fledge=$fledge"
     echo "$label prefs=$prefs"
     echo "$label api_key_infobar=$apikey"
   } >> "$OUT/run.txt"
-  eval "${label}_TP3=\$tp3"
+  eval "${label}_TP3=\$tp3 ${label}_PIXGPC=\$(logged \"\$LOG\" /pixel gpc)"
   eval "${label}_TP=\$tp ${label}_GPC=\$(logged \"\$LOG\" /top gpc) ${label}_REF=\$(logged \"\$LOG\" /pixel referer)"
   eval "${label}_QUERY=\$(logged \"\$LOG\" /landing query) ${label}_WHO=\$who ${label}_TOPICS=\$topics ${label}_FLEDGE=\$fledge"
   eval "${label}_PREFS=\$prefs ${label}_APIKEY=\$apikey"
@@ -133,7 +134,9 @@ esac
 # PRIV-03 (CHIPS part): the partitioned cookie still works in strict mode.
 case "$strict_TP3" in *chip=1*) record PRIV-03_chips_in_strict PASS ;;
   *) record PRIV-03_chips_in_strict "FAIL:$strict_TP3" ;; esac
-# PRIV-04
+# PRIV-04: subresources of a strict page carry Sec-GPC too (patch 0066).
+[ "$strict_PIXGPC" = 1 ] && [ -z "$default_PIXGPC" ] && record PRIV-04_gpc_subresource PASS \
+  || record PRIV-04_gpc_subresource "FAIL:strict=$strict_PIXGPC,default=$default_PIXGPC"
 [ "$strict_GPC" = 1 ] && [ -z "$default_GPC" ] && record PRIV-04_gpc PASS \
   || record PRIV-04_gpc "FAIL:strict=$strict_GPC,default=$default_GPC"
 # PRIV-05
