@@ -60,13 +60,15 @@ std::vector<ShortcutCommand> BuildCatalog() {
                             u"Quick Window öffnen", u"Open Quick Window",
                             {Key(ui::VKEY_SPACE, kAlt)},
                             /*rebindable=*/false));
-  // New in the catalog. Option+Tab is layout independent (the key left of 1
-  // is "^" on German keyboards), types no character, is free in Chromium and
-  // macOS, and sits next to Control+Tab, which cycles tabs in order.
+  // New in the catalog. Control+Option+Tab is layout independent (the key
+  // left of 1 is "^" on German keyboards), types no character, is free in
+  // Chromium and sits next to Control+Tab, which cycles tabs in order.
+  // Option+Tab alone never reaches an app on macOS 27 (WORKFLOW-03 key trace
+  // and a bare AppKit probe, 26 September 2026).
   catalog.push_back(Command(kSwitchToLastUsedTab, ShortcutCategory::kTab,
                             u"Zum zuletzt benutzten Tab",
                             u"Switch to the last used tab",
-                            {Key(ui::VKEY_TAB, kAlt)}));
+                            {Key(ui::VKEY_TAB, kCtrl | kAlt)}));
   catalog.push_back(Command(kSaveTab, ShortcutCategory::kTab,
                             u"Tab speichern", u"Save tab",
                             {Key(ui::VKEY_D, kCmd)}, /*rebindable=*/false));
@@ -402,9 +404,13 @@ bool IsReservedBySystem(const ui::Accelerator& accelerator) {
   // macOS standard shortcuts an app must not take over: app switching,
   // hiding, minimizing, quitting, Spotlight, input sources, screenshots,
   // Force Quit, screen lock, Mission Control, Spaces and the emoji picker.
-  static constexpr std::array<std::pair<ui::KeyboardCode, int>, 22> kReserved{{
+  // Option+Tab and Shift+Option+Tab are swallowed by macOS 27 before any app
+  // sees them (measured with a bare AppKit app).
+  static constexpr std::array<std::pair<ui::KeyboardCode, int>, 24> kReserved{{
       {ui::VKEY_TAB, kCmd},
       {ui::VKEY_TAB, kCmd | kShift},
+      {ui::VKEY_TAB, kAlt},
+      {ui::VKEY_TAB, kAlt | kShift},
       {ui::VKEY_OEM_3, kCmd},
       {ui::VKEY_OEM_3, kCmd | kShift},
       {ui::VKEY_Q, kCmd},

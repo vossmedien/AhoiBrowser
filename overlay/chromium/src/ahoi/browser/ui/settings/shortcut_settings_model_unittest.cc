@@ -40,7 +40,7 @@ TEST_F(ShortcutSettingsModelTest, ShowsEveryCatalogCommandWithItsKeys) {
   const base::DictValue* last_used =
       FindCommand(state, shortcuts::kSwitchToLastUsedTab);
   ASSERT_TRUE(last_used);
-  EXPECT_EQ("⌥⇥", (*last_used->FindList("keys"))[0].GetString());
+  EXPECT_EQ("⌃⌥⇥", (*last_used->FindList("keys"))[0].GetString());
   EXPECT_EQ("tab", *last_used->FindString("category"));
   EXPECT_FALSE(*last_used->FindBool("customized"));
   EXPECT_TRUE(*last_used->FindBool("rebindable"));

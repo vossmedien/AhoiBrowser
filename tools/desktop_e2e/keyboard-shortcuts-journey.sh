@@ -122,26 +122,26 @@ record_key() { # <command id> ; click Change, then the caller presses the key
 launch
 open_url "$SITE/alpha.html"; open_url "$SITE/beta.html"; open_url "$SITE/gamma.html"
 waitvisible gamma 5 || fail_setup "gamma not visible"
-# WORKFLOW-03: ⌥⇥ returns to the last used tab and toggles back; ⌃⇥ keeps
+# WORKFLOW-03: ⌃⌥⇥ returns to the last used tab and toggles back; ⌃⇥ keeps
 # cycling in order, separate from it.
-key 48 opt; waitvisible beta 5 && record mruToPrevious true || record mruToPrevious false
+key 48 ctrl opt; waitvisible beta 5 && record mruToPrevious true || record mruToPrevious false
 echo "after opt-tab 1: $(visible) pages: $(pages)" >> "$OUT/steps.txt"
-key 48 opt; waitvisible gamma 5 && record mruTogglesBack true || record mruTogglesBack false
+key 48 ctrl opt; waitvisible gamma 5 && record mruTogglesBack true || record mruTogglesBack false
 echo "after opt-tab 2: $(visible)" >> "$OUT/steps.txt"
 key 48 ctrl; sleep 2; NOW=$(visible); echo "after ctrl-tab: $NOW" >> "$OUT/steps.txt"
 [ -n "$NOW" ] && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && record cyclingIsSeparate true || record cyclingIsSeparate false
-key 48 opt; waitvisible gamma 5 && record mruAfterCycling true || record mruAfterCycling false
+key 48 ctrl opt; waitvisible gamma 5 && record mruAfterCycling true || record mruAfterCycling false
 echo "after opt-tab 3: $(visible)" >> "$OUT/steps.txt"
 # Never into another Workspace.
 newws Inbox Zwei ""; open_url "$SITE/delta.html"
-key 48 opt; sleep 2; NOW=$(visible)
+key 48 ctrl opt; sleep 2; NOW=$(visible)
 waitax "Zwei, Workspace wechseln" 3 && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && [ "$NOW" != alpha ] \
   && record mruStaysInWorkspace true || record mruStaysInWorkspace false
 switchws Zwei Inbox
 # Editor: rebind, conflict without overwrite, old key released, new key works.
 open_url "chrome://settings/ahoi"; sleep 3
 settings_js "const s=q('#ahoiShortcutList');if(s)s.scrollIntoView();return q('#ahoiShortcuts')?'present':'missing'" > "$OUT/editor-present.txt"
-[ "$(keys_of tab.last-used)" = "⌥⇥" ] && record editorShowsDefault true || record editorShowsDefault false
+[ "$(keys_of tab.last-used)" = "⌃⌥⇥" ] && record editorShowsDefault true || record editorShowsDefault false
 record_key tab.last-used; key 40 cmd opt; sleep 2
 [ "$(keys_of tab.last-used)" = "⌥⌘K" ] && record editorRebinds true || record editorRebinds false
 record_key tab.last-used; key 19 ctrl; sleep 2   # ⌃2 belongs to "Workspace 2"
@@ -150,7 +150,7 @@ echo "conflict: $ERR" >> "$OUT/steps.txt"
 echo "$ERR" | grep -q "Workspace 2" && record conflictNamesHolder true || record conflictNamesHolder false
 [ "$(keys_of tab.last-used)" = "⌥⌘K" ] && waitax "Inbox, Workspace wechseln" 2 && record conflictNotOverwritten true || record conflictNotOverwritten false
 SETTINGS_TITLE=$(settings_js "return document.title")
-key 48 opt; sleep 2; NOW=$(visible); echo "after old key: $NOW" >> "$OUT/steps.txt"
+key 48 ctrl opt; sleep 2; NOW=$(visible); echo "after old key: $NOW" >> "$OUT/steps.txt"
 [ -n "$SETTINGS_TITLE" ] && [ "$NOW" = "$SETTINGS_TITLE" ] && record oldKeyReleased true || record oldKeyReleased false
 key 40 cmd opt; sleep 2; NOW=$(visible); echo "after new key: $NOW" >> "$OUT/steps.txt"
 [ "$NOW" = gamma ] && record newKeyWorks true || record newKeyWorks false
@@ -159,6 +159,6 @@ quit; launch
 open_url "chrome://settings/ahoi"; sleep 3
 [ "$(keys_of tab.last-used)" = "⌥⌘K" ] && record bindingPersists true || record bindingPersists false
 settings_js "const r=q('.shortcut-row[data-command-id=\"tab.last-used\"]');const b=r&&[...r.querySelectorAll('cr-button')][1];if(!b)return 'missing';b.click();return 'ok'" >> "$OUT/steps.txt"; sleep 2
-[ "$(keys_of tab.last-used)" = "⌥⇥" ] && record resetRestoresDefault true || record resetRestoresDefault false
+[ "$(keys_of tab.last-used)" = "⌃⌥⇥" ] && record resetRestoresDefault true || record resetRestoresDefault false
 $AX dump $PID 14 > "$OUT/ax-final.txt"
 finish; quit

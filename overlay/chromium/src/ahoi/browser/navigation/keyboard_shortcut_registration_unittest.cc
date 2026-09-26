@@ -43,7 +43,8 @@ class ShortcutRegistrationTest : public ::testing::Test {
 
 TEST_F(ShortcutRegistrationTest, RegistersRebindableDefaultsOnly) {
   auto registration = Create();
-  const ui::Accelerator last_used(ui::VKEY_TAB, ui::EF_ALT_DOWN);
+  const ui::Accelerator last_used(ui::VKEY_TAB,
+                                  ui::EF_CONTROL_DOWN | ui::EF_ALT_DOWN);
   EXPECT_TRUE(registered_.contains(last_used));
   // Fixed commands keep their own registration in BrowserView.
   EXPECT_FALSE(registered_.contains(
@@ -58,7 +59,8 @@ TEST_F(ShortcutRegistrationTest, RegistersRebindableDefaultsOnly) {
 TEST_F(ShortcutRegistrationTest, FollowsBindingChangesWithMinimalUpdates) {
   auto registration = Create();
   const size_t initial = registered_.size();
-  const ui::Accelerator old_key(ui::VKEY_TAB, ui::EF_ALT_DOWN);
+  const ui::Accelerator old_key(ui::VKEY_TAB,
+                                ui::EF_CONTROL_DOWN | ui::EF_ALT_DOWN);
   const ui::Accelerator new_key(ui::VKEY_J,
                                 ui::EF_COMMAND_DOWN | ui::EF_ALT_DOWN);
   calls_ = 0;

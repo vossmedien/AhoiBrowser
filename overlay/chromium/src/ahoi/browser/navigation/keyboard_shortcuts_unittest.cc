@@ -58,7 +58,7 @@ TEST_F(KeyboardShortcutsTest, DefaultsKeepTodaysKeysAndAddLastUsedTab) {
   EXPECT_EQ("workspace.9",
             CommandForAccelerator({}, Key(ui::VKEY_9, kCtrl)));
   EXPECT_EQ(kSwitchToLastUsedTab,
-            CommandForAccelerator({}, Key(ui::VKEY_TAB, kAlt)));
+            CommandForAccelerator({}, Key(ui::VKEY_TAB, kCtrl | kAlt)));
   // Chromium's own Control+Tab cycling stays outside the catalog.
   EXPECT_FALSE(CommandForAccelerator({}, Key(ui::VKEY_TAB, kCtrl)));
 }
@@ -72,7 +72,7 @@ TEST_F(KeyboardShortcutsTest, RebindUnbindAndReset) {
   Overrides overrides = ReadOverrides(prefs_);
   EXPECT_EQ(kSwitchToLastUsedTab, CommandForAccelerator(overrides, new_key));
   EXPECT_FALSE(
-      CommandForAccelerator(overrides, Key(ui::VKEY_TAB, kAlt)));
+      CommandForAccelerator(overrides, Key(ui::VKEY_TAB, kCtrl | kAlt)));
 
   ASSERT_TRUE(Unbind(&prefs_, kSwitchToLastUsedTab));
   overrides = ReadOverrides(prefs_);
@@ -82,7 +82,7 @@ TEST_F(KeyboardShortcutsTest, RebindUnbindAndReset) {
   ASSERT_TRUE(ResetToDefault(&prefs_, kSwitchToLastUsedTab));
   EXPECT_EQ(kSwitchToLastUsedTab,
             CommandForAccelerator(ReadOverrides(prefs_),
-                                  Key(ui::VKEY_TAB, kAlt)));
+                                  Key(ui::VKEY_TAB, kCtrl | kAlt)));
 }
 
 TEST_F(KeyboardShortcutsTest, ConflictsAreReportedAndNeverOverwritten) {
@@ -108,6 +108,10 @@ TEST_F(KeyboardShortcutsTest, ConflictsAreReportedAndNeverOverwritten) {
                           Key(ui::VKEY_E, kCmd | kShift), sources, &conflict));
   EXPECT_EQ(ConflictKind::kExtension, conflict.kind);
   EXPECT_FALSE(SetBinding(&prefs_, kNextWorkspace, Key(ui::VKEY_Q, kCmd),
+                          sources, &conflict));
+  EXPECT_EQ(ConflictKind::kReservedBySystem, conflict.kind);
+  // macOS 27 swallows Option+Tab before any app (WORKFLOW-03).
+  EXPECT_FALSE(SetBinding(&prefs_, kNextWorkspace, Key(ui::VKEY_TAB, kAlt),
                           sources, &conflict));
   EXPECT_EQ(ConflictKind::kReservedBySystem, conflict.kind);
   EXPECT_FALSE(SetBinding(&prefs_, kNextWorkspace, Key(ui::VKEY_K, kAlt),
