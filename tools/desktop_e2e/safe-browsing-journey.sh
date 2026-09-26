@@ -7,6 +7,9 @@
 # while a harmless control page loads normally. A fresh profile first has
 # to fetch its Safe Browsing data, so each sample is retried for up to
 # AHOI_SB_WAIT_SECONDS (default 300). Needs internet access to Google.
+# With AHOI_SB_KEYCHAIN_KEY=1 the browser gets GOOGLE_API_KEY from the login
+# Keychain (service ahoi-google-api-key, account safe-browsing) in its own
+# environment only; the key is never printed, logged or written to disk.
 # Results: <outdir>/results.json.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd)
@@ -31,9 +34,23 @@ for t in json.load(sys.stdin):
 # button exist on every Safe Browsing blocking page.
 PROBE="(()=>{const m=document.getElementById('main-message');return m&&document.getElementById('details-button')?'interstitial:'+m.innerText.split('\\n')[0]:'page:'+document.title})()"
 
-"$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
-  --remote-debugging-port=$PORT about:blank > "$OUT/browser.log" 2>&1 &
-PID=$!; echo "pid=$PID profile=$P" >> "$OUT/run.txt"
+KEYED=no
+if [ "${AHOI_SB_KEYCHAIN_KEY:-0}" = 1 ]; then
+  if security find-generic-password -s ahoi-google-api-key -a safe-browsing >/dev/null 2>&1; then
+    KEYED=yes
+  else
+    echo "no Keychain entry ahoi-google-api-key/safe-browsing" >&2; exit 7
+  fi
+fi
+if [ "$KEYED" = yes ]; then
+  GOOGLE_API_KEY=$(security find-generic-password -s ahoi-google-api-key -a safe-browsing -w) \
+    "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
+    --remote-debugging-port=$PORT about:blank > "$OUT/browser.log" 2>&1 &
+else
+  "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
+    --remote-debugging-port=$PORT about:blank > "$OUT/browser.log" 2>&1 &
+fi
+PID=$!; echo "pid=$PID profile=$P api_key=$KEYED" >> "$OUT/run.txt"
 trap 'kill $PID 2>/dev/null; sleep 2; kill -9 $PID 2>/dev/null; rm -rf "$P"' EXIT
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 3
