@@ -11,6 +11,7 @@
 #include "ahoi/browser/ui/appearance/sidebar_page_tint.h"
 #include "ahoi/browser/ui/media/media_mini_player_view.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
+#include "ahoi/browser/ui/sidebar/sidebar_media_indicator.h"
 #include "ahoi/browser/ui/sidebar/sidebar_media_overlay_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_presentation_state.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -18,6 +19,7 @@
 #include "cc/paint/paint_flags.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/tabs/alert/tab_alert_controller.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/favicon/content/content_favicon_driver.h"
 #include "content/public/browser/web_contents.h"
@@ -220,6 +222,166 @@ void BrowserSidebarHostView::OnPaint(gfx::Canvas* canvas) {
   tint.setColor(*tint_color);
   canvas->DrawRoundRect(gfx::RectF(GetLocalBounds()), surface_corner_radius_,
                         tint);
+}
+
+void BrowserSidebarHostView::RefreshMediaTrackers() {
+  if (!tab_strip_model_) {
+    media_state_subscriptions_.clear();
+    media_trackers_.clear();
+    RefreshMiniPlayerSources();
+    return;
+  }
+
+  std::set<int> live_handles;
+  for (tabs::TabInterface* tab : *tab_strip_model_) {
+    if (!tab) {
+      continue;
+    }
+    const int handle = tab->GetHandle().raw_value();
+    live_handles.insert(handle);
+    auto [it, inserted] = media_trackers_.try_emplace(handle, nullptr);
+    if (inserted) {
+      it->second = std::make_unique<AhoiMediaStateTracker>(tab->GetContents());
+      media_state_subscriptions_.insert_or_assign(
+          handle, it->second->AddStateChangedCallback(base::BindRepeating(
+                      &BrowserSidebarHostView::OnTrackedMediaStateChanged,
+                      weak_ptr_factory_.GetWeakPtr())));
+    } else if (!it->second->IsTracking(tab->GetContents())) {
+      it->second->SetWebContents(tab->GetContents());
+    }
+  }
+
+  for (auto it = media_trackers_.begin(); it != media_trackers_.end();) {
+    if (!live_handles.contains(it->first)) {
+      media_state_subscriptions_.erase(it->first);
+      it = media_trackers_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  RefreshMiniPlayerSources();
+}
+
+std::string BrowserSidebarHostView::GetMiniPlayerSourceId(
+    tabs::TabInterface* tab) const {
+  return tab ? base::NumberToString(tab->GetHandle().raw_value())
+             : std::string();
+}
+
+ui::ImageModel BrowserSidebarHostView::GetMiniPlayerFavicon(
+    const MediaMiniPlayerSourceId& source_id) const {
+  if (!tab_strip_model_) {
+    return ui::ImageModel();
+  }
+  for (tabs::TabInterface* tab : *tab_strip_model_) {
+    if (tab && GetMiniPlayerSourceId(tab) == source_id) {
+      return GetLiveTabFavicon(tab);
+    }
+  }
+  return ui::ImageModel();
+}
+
+void BrowserSidebarHostView::RefreshMiniPlayerSources() {
+  if (!mini_player_adapter_) {
+    mini_player_tab_handles_.clear();
+    return;
+  }
+  if (!tab_strip_model_) {
+    for (const int handle : mini_player_tab_handles_) {
+      mini_player_adapter_->UnregisterWebContents(base::NumberToString(handle));
+    }
+    mini_player_tab_handles_.clear();
+    return;
+  }
+
+  std::set<int> live_handles;
+  int presentation_order = 0;
+  for (tabs::TabInterface* tab : *tab_strip_model_) {
+    if (!tab || !tab->GetContents()) {
+      continue;
+    }
+    const int handle = tab->GetHandle().raw_value();
+    const std::string source_id = GetMiniPlayerSourceId(tab);
+    live_handles.insert(handle);
+    if (!mini_player_adapter_->IsRegistered(source_id)) {
+      mini_player_adapter_->RegisterWebContents(source_id, tab->GetContents(),
+                                                presentation_order);
+    } else {
+      mini_player_adapter_->UpdateWebContents(source_id, tab->GetContents(),
+                                              presentation_order);
+    }
+    ++presentation_order;
+  }
+
+  for (auto it = mini_player_tab_handles_.begin();
+       it != mini_player_tab_handles_.end();) {
+    if (!live_handles.contains(*it)) {
+      mini_player_adapter_->UnregisterWebContents(base::NumberToString(*it));
+      it = mini_player_tab_handles_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  mini_player_tab_handles_.insert(live_handles.begin(), live_handles.end());
+  if (mini_player_view_) {
+    // Favicon updates are tab presentation changes, not MediaSession changes.
+    // Refreshing the decoration here keeps navigation and discarded/restored
+    // WebContents truthful without perturbing player state or source choice.
+    mini_player_view_->RefreshSourceDecoration();
+  }
+}
+
+void BrowserSidebarHostView::OnTrackedMediaStateChanged(const AhoiMediaState&) {
+  ScheduleRuntimePresentationRefresh();
+}
+
+std::optional<tabs::TabAlert> BrowserSidebarHostView::GetMediaAlertForTab(
+    tabs::TabInterface* tab) const {
+  if (!tab) {
+    return std::nullopt;
+  }
+  const auto tracker = media_trackers_.find(tab->GetHandle().raw_value());
+  if (tracker != media_trackers_.end() &&
+      tracker->second->state().capture_activity.primary_activity.has_value()) {
+    return tracker->second->state().capture_activity.primary_activity;
+  }
+  if (mini_player_service_) {
+    const MediaMiniPlayerSourceId source_id = GetMiniPlayerSourceId(tab);
+    const auto source = std::ranges::find_if(
+        mini_player_service_->state().sources,
+        [&source_id](const MediaMiniPlayerSource& candidate) {
+          return candidate.id == source_id;
+        });
+    if (source != mini_player_service_->state().sources.end()) {
+      // WebContents::IsCurrentlyAudible() intentionally turns false while a
+      // playing tab is muted. MediaSession playback keeps the muted indicator
+      // truthful after Chromium's short "recently audible" grace period.
+      const std::optional<tabs::TabAlert> alert =
+          GetSidebarMediaAlertForSession(
+              source->playback == MediaMiniPlayerPlaybackState::kPlaying,
+              source->is_muted, source->is_in_picture_in_picture,
+              source->IsRelevant());
+      if (alert.has_value()) {
+        return alert;
+      }
+    }
+  }
+  return tracker == media_trackers_.end()
+             ? std::nullopt
+             : tracker->second->state().primary_alert;
+}
+
+ui::ImageModel BrowserSidebarHostView::GetMediaIndicatorForTab(
+    tabs::TabInterface* tab) const {
+  return GetSidebarMediaIndicator(GetMediaAlertForTab(tab));
+}
+
+std::u16string BrowserSidebarHostView::GetTabAlertStatusText(
+    tabs::TabInterface* tab) const {
+  const std::optional<tabs::TabAlert> alert = GetMediaAlertForTab(tab);
+  return alert.has_value()
+             ? tabs::TabAlertController::GetTabAlertStateText(*alert)
+             : std::u16string();
 }
 
 }  // namespace ahoi::sidebar
