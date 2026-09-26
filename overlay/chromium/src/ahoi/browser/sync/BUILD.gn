@@ -277,10 +277,12 @@ source_set("unit_tests") {
     "sync_merge_conformance_unittest.cc",
     "sync_namespace_unittest.cc",
     "sync_product_settings_unittest.cc",
+    "sync_secret_boundary_unittest.cc",
     "sync_security_tree_unittest.cc",
     "sync_unified_serialization_unittest.cc",
     "sync_unified_store_unittest.cc",
     "sync_unittest.cc",
+    "sync_unittest_support.h",
     "workspace_zone_retirement_unittest.cc",
   ]
   data = [
