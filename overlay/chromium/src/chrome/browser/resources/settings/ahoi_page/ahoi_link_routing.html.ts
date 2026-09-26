@@ -1,15 +1,15 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// The link routing card of the Ahoi settings page: default target, ordered
+// Template of <settings-ahoi-link-routing>: the default target, ordered
 // rules and the example tester (split from ahoi_page.html.ts, source line
 // budget).
 
 import {html} from '//resources/lit/v3_0/lit.rollup.js';
 
-import type {SettingsAhoiPageElement} from './ahoi_page.js';
+import type {SettingsAhoiLinkRoutingElement} from './ahoi_link_routing.js';
 
-export function getHtml(this: SettingsAhoiPageElement) {
+export function getHtml(this: SettingsAhoiLinkRoutingElement) {
   // clang-format off
   return html`
       <div class="section-heading cr-row hr" ?hidden="${!this.linkRouting_}">

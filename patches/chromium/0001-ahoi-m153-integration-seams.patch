@@ -4231,18 +4231,21 @@ diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resourc
 index 976b9be21f9c1379d782718127641d169a01d0d0..cb67b8e0c984d1703ee0034e7cb619eed515ced8 100644
 --- a/chrome/browser/resources/settings/BUILD.gn
 +++ b/chrome/browser/resources/settings/BUILD.gn
-@@ -256,6 +256,10 @@ build_webui("build") {
+@@ -256,6 +256,13 @@ build_webui("build") {
  
    ts_files = [
      "privacy_icons.html.ts",
++    "ahoi_page/ahoi_link_routing.html.ts",
++    "ahoi_page/ahoi_link_routing.ts",
 +    "ahoi_page/ahoi_page.html.ts",
 +    "ahoi_page/ahoi_page.ts",
-+    "ahoi_page/ahoi_page_link_routing.html.ts",
 +    "ahoi_page/ahoi_page_types.ts",
++    "ahoi_page/ahoi_shortcuts.html.ts",
++    "ahoi_page/ahoi_shortcuts.ts",
      "a11y_page/a11y_browser_proxy.ts",
      "a11y_page/a11y_page.html.ts",
      "a11y_page/a11y_page.ts",
-@@ -470,6 +474,7 @@ build_webui("build") {
+@@ -470,6 +477,7 @@ build_webui("build") {
    }
  
    css_files = [
