@@ -19,42 +19,66 @@ index f335c92..d419420 100644
      "tab_tree_store_snapshot_unittest.cc",
      "tab_tree_store_unittest.cc",
 diff --git a/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store.h b/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store.h
-index 81d64fc..7c6b74d 100644
+index 81d64fc..037ea0b 100644
 --- a/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store.h
 +++ b/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store.h
-@@ -111,6 +111,21 @@ class TabTreeStore {
+@@ -42,6 +42,22 @@ class TabTreeStore {
+     kCancelled,
+   };
+ 
++  // One "Zusammenführen mit …" (ADR 0012); see MergeWorkspace().
++  struct WorkspaceMerge {
++    base::Uuid source_workspace_id;
++    base::Uuid target_workspace_id;
++    bool into_folder = true;
++    // Position of the new folder, or prefix of the flat keys, among the
++    // target's roots; must sort after the target's last root.
++    std::string sort_key;
++    // Temporary pages whose tabs the caller closes with the source.
++    std::set<base::Uuid> closing_temporary_ids;
++    // False when the caller retires state that undo could not bring back,
++    // such as the source's own website sessions.
++    bool record_undo = true;
++    base::Time modified_at;
++  };
++
+   struct SavedPageMove {
+     base::Uuid node_id;
+     base::Uuid workspace_id;
+@@ -111,6 +127,20 @@ class TabTreeStore {
    // any live Chromium tabs to that fallback before presenting the result.
    [[nodiscard]] Result DeleteWorkspace(const base::Uuid& workspace_id,
                                         base::Time modified_at);
-+  // Merges one Workspace into another (ADR 0012) in one transaction and one
-+  // undo operation: every active root of the source moves with its subtree,
-+  // in order, into a new folder at `sort_key` among the target's roots that
-+  // carries the source's name, icon and accent (`into_folder`), or flat to
-+  // `sort_key` + its own key, which keeps the source order after the target's
-+  // last root. The source is tombstoned. Undo moves everything back, removes
-+  // the folder and revives the source. An empty source is tombstoned without
-+  // an undo entry, like DeleteWorkspace. Live Chromium tabs, bindings and the
-+  // structure state stay the caller's job.
-+  [[nodiscard]] Result MergeWorkspace(const base::Uuid& source_workspace_id,
-+                                      const base::Uuid& target_workspace_id,
-+                                      bool into_folder,
-+                                      std::string sort_key,
-+                                      base::Time modified_at,
++  // Merges one Workspace into another (ADR 0012) in one transaction and, with
++  // `record_undo`, one undo operation: every active saved root of the source
++  // moves with its subtree, in order, into a new folder at `sort_key` among
++  // the target's roots that carries the source's name, icon and accent
++  // (`into_folder`), or flat to `sort_key` + its own key, which keeps the
++  // source order after the target's last root. Temporary roots (open tabs)
++  // always move flat. Those in `closing_temporary_ids` are tombstoned instead,
++  // without undo, like an explicit tab close. The source is tombstoned. Undo
++  // moves everything back, removes the folder and revives the source. An
++  // empty source is tombstoned without an undo entry, like DeleteWorkspace.
++  // Live Chromium tabs, bindings and the structure state stay the caller's
++  // job. `folder_id` receives the new folder, if any.
++  [[nodiscard]] Result MergeWorkspace(const WorkspaceMerge& merge,
 +                                      std::optional<base::Uuid>* folder_id);
    [[nodiscard]] Result CreateNode(const TreeNode& node);
    // Persists a normal temporary page without a tree undo entry. Chromium's
    // native tab/session restore remains authoritative for opening/closing it.
 diff --git a/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store_merge_workspace.cc b/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store_merge_workspace.cc
 new file mode 100644
-index 0000000..0ed0001
+index 0000000..62bd521
 --- /dev/null
 +++ b/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store_merge_workspace.cc
-@@ -0,0 +1,196 @@
+@@ -0,0 +1,222 @@
 +// Copyright 2026 The AhoiBrowser Authors
 +// Use of this source code is governed by a GPL-3.0-or-later license that can be
 +// found in the LICENSE file.
 +
++#include <algorithm>
 +#include <cstddef>
++#include <set>
 +#include <utility>
 +#include <vector>
 +
@@ -74,16 +98,16 @@ index 0000000..0ed0001
 +}  // namespace
 +
 +TabTreeStore::Result TabTreeStore::MergeWorkspace(
-+    const base::Uuid& source_workspace_id,
-+    const base::Uuid& target_workspace_id,
-+    bool into_folder,
-+    std::string sort_key,
-+    base::Time modified_at,
++    const WorkspaceMerge& merge,
 +    std::optional<base::Uuid>* folder_id) {
 +  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
 +  if (!IsReady()) {
 +    return Result::kNotInitialized;
 +  }
++  const base::Uuid& source_workspace_id = merge.source_workspace_id;
++  const base::Uuid& target_workspace_id = merge.target_workspace_id;
++  const std::string& sort_key = merge.sort_key;
++  const base::Time modified_at = merge.modified_at;
 +  if (!source_workspace_id.is_valid() || !target_workspace_id.is_valid() ||
 +      source_workspace_id == target_workspace_id || sort_key.empty() ||
 +      modified_at.is_null() || !folder_id) {
@@ -107,6 +131,7 @@ index 0000000..0ed0001
 +  // in MoveNode), so an archived or deleted descendant never stays behind in
 +  // a deleted Workspace.
 +  std::vector<TreeNode> roots;
++  std::vector<base::Uuid> closing;
 +  {
 +    sql::Statement statement(db_.GetCachedStatement(
 +        SQL_FROM_HERE,
@@ -120,6 +145,10 @@ index 0000000..0ed0001
 +      if (!id.is_valid() || ReadNode(id, &root) != Result::kOk) {
 +        return Result::kDatabaseError;
 +      }
++      if (root.is_temporary && merge.closing_temporary_ids.contains(root.id)) {
++        closing.push_back(root.id);
++        continue;
++      }
 +      roots.push_back(std::move(root));
 +    }
 +    if (!statement.Succeeded()) {
@@ -129,9 +158,12 @@ index 0000000..0ed0001
 +
 +  std::vector<NodeSnapshot> snapshots;
 +  std::vector<base::Uuid> changed_ids;
++  const auto in_folder = [&merge](const TreeNode& root) {
++    return merge.into_folder && !root.is_temporary;
++  };
 +  for (const TreeNode& root : roots) {
-+    if (!into_folder && sort_key.size() + root.sort_key.size() >
-+                            kMaxSortKeyLength) {
++    if (!in_folder(root) &&
++        sort_key.size() + root.sort_key.size() > kMaxSortKeyLength) {
 +      return Result::kInvalidArgument;
 +    }
 +    std::vector<TreeNode> subtree;
@@ -146,7 +178,7 @@ index 0000000..0ed0001
 +  }
 +
 +  std::optional<TreeNode> folder;
-+  if (into_folder && !roots.empty()) {
++  if (std::ranges::any_of(roots, in_folder)) {
 +    folder = TreeNode{
 +        .id = base::Uuid::GenerateRandomV4(),
 +        .workspace_id = target_workspace_id,
@@ -172,7 +204,7 @@ index 0000000..0ed0001
 +    return Result::kDatabaseError;
 +  }
 +  // An empty source leaves nothing to undo, like DeleteWorkspace.
-+  if (!roots.empty() &&
++  if (merge.record_undo && !roots.empty() &&
 +      !InsertUndoOperation(UndoMutationKind::kMove, roots.front().id,
 +                           modified_at, snapshots)) {
 +    return Result::kDatabaseError;
@@ -211,7 +243,7 @@ index 0000000..0ed0001
 +    }
 +    move_root.Reset(/*clear_bound_vars=*/true);
 +    move_root.BindString(0, target_workspace_id.AsLowercaseString());
-+    if (folder) {
++    if (in_folder(root)) {
 +      move_root.BindString(1, folder->id.AsLowercaseString());
 +      move_root.BindString(2, root.sort_key);
 +    } else {
@@ -221,6 +253,19 @@ index 0000000..0ed0001
 +    move_root.BindTime(3, modified_at);
 +    move_root.BindString(4, root.id.AsLowercaseString());
 +    if (!move_root.Run() || db_.GetLastChangeCount() != 1) {
++      return Result::kDatabaseError;
++    }
++  }
++
++  sql::Statement close_page(db_.GetCachedStatement(
++      SQL_FROM_HERE,
++      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE id=? AND "
++      "tombstone=0"));
++  for (const base::Uuid& id : closing) {
++    close_page.Reset(/*clear_bound_vars=*/true);
++    close_page.BindTime(0, modified_at);
++    close_page.BindString(1, id.AsLowercaseString());
++    if (!close_page.Run() || db_.GetLastChangeCount() != 1) {
 +      return Result::kDatabaseError;
 +    }
 +  }
@@ -242,16 +287,19 @@ index 0000000..0ed0001
 +  if (!roots.empty()) {
 +    Notify(MutationKind::kMoved, roots.front().id, std::move(changed_ids));
 +  }
++  if (!closing.empty()) {
++    Notify(MutationKind::kDeleted, closing.front(), std::move(closing));
++  }
 +  return Result::kOk;
 +}
 +
 +}  // namespace ahoi::tab_tree
 diff --git a/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store_merge_workspace_unittest.cc b/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store_merge_workspace_unittest.cc
 new file mode 100644
-index 0000000..54e32a9
+index 0000000..21a9685
 --- /dev/null
 +++ b/overlay/chromium/src/ahoi/browser/tab_tree/tab_tree_store_merge_workspace_unittest.cc
-@@ -0,0 +1,205 @@
+@@ -0,0 +1,293 @@
 +// Copyright 2026 The AhoiBrowser Authors
 +// Use of this source code is governed by a GPL-3.0-or-later license that can be
 +// found in the LICENSE file.
@@ -295,6 +343,15 @@ index 0000000..54e32a9
 +    ASSERT_EQ(Result::kOk, store_->CreateWorkspace(target_));
 +  }
 +
++  TreeNode NewOpenTab(std::u16string title, std::string sort_key) {
++    TreeNode node = NewFolder(source_, std::nullopt, std::move(title),
++                              std::move(sort_key));
++    node.type = TreeNodeType::kSavedPage;
++    node.url = GURL("https://example.test/open");
++    node.is_temporary = true;
++    return node;
++  }
++
 +  TreeNode Get(const base::Uuid& id) {
 +    TreeNode node;
 +    EXPECT_EQ(Result::kOk, store_->GetNode(id, &node));
@@ -332,9 +389,12 @@ index 0000000..54e32a9
 +  store_->AddObserver(&observer);
 +  std::optional<base::Uuid> merge_folder;
 +  ASSERT_EQ(Result::kOk,
-+            store_->MergeWorkspace(source_.id, target_.id,
-+                                   /*into_folder=*/true, "n",
-+                                   base::Time::Now(), &merge_folder));
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = target_.id,
++                                    .into_folder = true,
++                                    .sort_key = "n",
++                                                                        .modified_at = base::Time::Now()},
++                                   &merge_folder));
 +  store_->RemoveObserver(&observer);
 +  ASSERT_TRUE(merge_folder.has_value());
 +  ASSERT_EQ(observer.changes.size(), 1u);
@@ -392,9 +452,12 @@ index 0000000..54e32a9
 +
 +  std::optional<base::Uuid> merge_folder;
 +  ASSERT_EQ(Result::kOk,
-+            store_->MergeWorkspace(source_.id, target_.id,
-+                                   /*into_folder=*/false, "n",
-+                                   base::Time::Now(), &merge_folder));
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = target_.id,
++                                    .into_folder = false,
++                                    .sort_key = "n",
++                                                                        .modified_at = base::Time::Now()},
++                                   &merge_folder));
 +  EXPECT_FALSE(merge_folder.has_value());
 +  std::vector<TreeNode> roots;
 +  ASSERT_EQ(Result::kOk,
@@ -407,22 +470,66 @@ index 0000000..54e32a9
 +  EXPECT_FALSE(IsVisible(source_));
 +}
 +
++TEST_F(AhoiTabTreeMergeWorkspaceTest, OpenTabsStayOutOfTheFolder) {
++  TreeNode saved = NewSavedPage(source_, std::nullopt, u"Saved",
++                                GURL("https://example.test/saved"), "a");
++  TreeNode open = NewOpenTab(u"Open", "b");
++  TreeNode closing = NewOpenTab(u"Closing", "c");
++  ASSERT_EQ(Result::kOk, store_->CreateNode(saved));
++  ASSERT_EQ(Result::kOk, store_->CreateTemporaryPage(open));
++  ASSERT_EQ(Result::kOk, store_->CreateTemporaryPage(closing));
++
++  std::optional<base::Uuid> merge_folder;
++  ASSERT_EQ(Result::kOk,
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = target_.id,
++                                    .into_folder = true,
++                                    .sort_key = "n",
++                                    .closing_temporary_ids = {closing.id},
++                                    .modified_at = base::Time::Now()},
++                                   &merge_folder));
++  ASSERT_TRUE(merge_folder.has_value());
++  EXPECT_EQ(Get(saved.id).parent_id, merge_folder);
++  const TreeNode moved_open = Get(open.id);
++  EXPECT_EQ(moved_open.workspace_id, target_.id);
++  EXPECT_FALSE(moved_open.parent_id.has_value());
++  EXPECT_TRUE(moved_open.is_temporary);
++  EXPECT_EQ(moved_open.sort_key, "nb");
++  EXPECT_TRUE(Get(closing.id).tombstone);
++
++  // Undo brings the moved pages back; the closed tab stays closed.
++  ASSERT_EQ(Result::kOk, store_->UndoLastMutation());
++  EXPECT_EQ(Get(open.id).workspace_id, source_.id);
++  EXPECT_EQ(Get(saved.id).workspace_id, source_.id);
++  EXPECT_TRUE(Get(closing.id).tombstone);
++}
++
 +TEST_F(AhoiTabTreeMergeWorkspaceTest, RejectsInvalidMergesWithoutChange) {
 +  TreeNode page = NewSavedPage(source_, std::nullopt, u"Page",
 +                               GURL("https://example.test/"), "a");
 +  ASSERT_EQ(Result::kOk, store_->CreateNode(page));
 +  std::optional<base::Uuid> merge_folder;
 +  EXPECT_EQ(Result::kInvalidArgument,
-+            store_->MergeWorkspace(source_.id, source_.id, true, "n",
-+                                   base::Time::Now(), &merge_folder));
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = source_.id,
++                                    .into_folder = true,
++                                    .sort_key = "n",
++                                                                        .modified_at = base::Time::Now()},
++                                   &merge_folder));
 +  EXPECT_EQ(Result::kNotFound,
-+            store_->MergeWorkspace(source_.id, base::Uuid::GenerateRandomV4(),
-+                                   true, "n", base::Time::Now(),
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = base::Uuid::GenerateRandomV4(),
++                                    .into_folder = true,
++                                    .sort_key = "n",
++                                                                        .modified_at = base::Time::Now()},
 +                                   &merge_folder));
 +  // A flat key beyond the sync limit is refused before any row changes.
 +  EXPECT_EQ(Result::kInvalidArgument,
-+            store_->MergeWorkspace(source_.id, target_.id, false,
-+                                   std::string(1024, 'n'), base::Time::Now(),
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = target_.id,
++                                    .into_folder = false,
++                                    .sort_key = std::string(1024, 'n'),
++                                                                        .modified_at = base::Time::Now()},
 +                                   &merge_folder));
 +  EXPECT_TRUE(IsVisible(source_));
 +  EXPECT_EQ(Get(page.id).workspace_id, source_.id);
@@ -431,11 +538,36 @@ index 0000000..54e32a9
 +TEST_F(AhoiTabTreeMergeWorkspaceTest, EmptySourceLeavesNoUndoEntry) {
 +  std::optional<base::Uuid> merge_folder;
 +  ASSERT_EQ(Result::kOk,
-+            store_->MergeWorkspace(source_.id, target_.id, true, "n",
-+                                   base::Time::Now(), &merge_folder));
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = target_.id,
++                                    .into_folder = true,
++                                    .sort_key = "n",
++                                                                        .modified_at = base::Time::Now()},
++                                   &merge_folder));
 +  EXPECT_FALSE(merge_folder.has_value());
 +  EXPECT_FALSE(IsVisible(source_));
 +  EXPECT_EQ(Result::kNothingToUndo, store_->UndoLastMutation());
++}
++
++TEST_F(AhoiTabTreeMergeWorkspaceTest, NoUndoWhenTheCallerRetiresState) {
++  TreeNode page = NewSavedPage(source_, std::nullopt, u"Page",
++                               GURL("https://example.test/"), "a");
++  ASSERT_EQ(Result::kOk, store_->CreateNode(page));
++  std::optional<base::Uuid> merge_folder;
++  ASSERT_EQ(Result::kOk,
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = target_.id,
++                                    .sort_key = "n",
++                                    .record_undo = false,
++                                    .modified_at = base::Time::Now()},
++                                   &merge_folder));
++  EXPECT_EQ(Get(page.id).workspace_id, target_.id);
++  EXPECT_FALSE(IsVisible(source_));
++  // The next undo is the page's creation, not the merge.
++  ASSERT_EQ(Result::kOk, store_->UndoLastMutation());
++  TreeNode gone;
++  EXPECT_EQ(Result::kNotFound, store_->GetNode(page.id, &gone));
++  EXPECT_FALSE(IsVisible(source_));
 +}
 +
 +TEST_F(AhoiTabTreeMergeWorkspaceTest, MergeSurvivesReopen) {
@@ -444,8 +576,12 @@ index 0000000..54e32a9
 +  ASSERT_EQ(Result::kOk, store_->CreateNode(page));
 +  std::optional<base::Uuid> merge_folder;
 +  ASSERT_EQ(Result::kOk,
-+            store_->MergeWorkspace(source_.id, target_.id, true, "n",
-+                                   base::Time::Now(), &merge_folder));
++            store_->MergeWorkspace({.source_workspace_id = source_.id,
++                                    .target_workspace_id = target_.id,
++                                    .into_folder = true,
++                                    .sort_key = "n",
++                                                                        .modified_at = base::Time::Now()},
++                                   &merge_folder));
 +  ASSERT_TRUE(ReopenStore());
 +  EXPECT_FALSE(IsVisible(source_));
 +  EXPECT_EQ(Get(page.id).parent_id, merge_folder);

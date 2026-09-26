@@ -1,0 +1,820 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/BUILD.gn b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+index acdb665..da0d581 100644
+--- a/overlay/chromium/src/ahoi/browser/session/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+@@ -186,6 +186,7 @@ source_set("session") {
+     "session_bridge_workspace.cc",
+     "session_bridge_workspace_conversion.cc",
+     "session_bridge_website_session_removal.cc",
++    "session_bridge_workspace_merge.cc",
+     "workspace_service_factory.cc",
+     "workspace_service_factory.h",
+     "workspace_structure_controller.cc",
+@@ -245,6 +246,7 @@ source_set("unit_tests") {
+     "session_bridge_unittest.cc",
+     "session_bridge_unittest_support.cc",
+     "session_bridge_unittest_support.h",
++    "session_bridge_workspace_merge_unittest.cc",
+     "session_prefs_unittest.cc",
+     "session_restore_integration_unittest.cc",
+     "shared_tab_target_policy_unittest.cc",
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge.h b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+index 4684654..85798af 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge.h
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+@@ -305,6 +305,19 @@ class SessionBridge : public KeyedService,
+                                            WorkspaceDeletionCallback done);
+   // True when the Workspace uses its own website-session partition.
+   bool HasOwnWebsiteSessions(const base::Uuid& workspace_id) const;
++  // ADR 0012 (handoff 080): merges `source_id` into `target_id` in one tree
++  // transaction. When both share one web context, open pages move along and
++  // the merge can be undone. Otherwise the source's pages are asked as one
++  // before-unload group (a veto reports kCancelled and changes nothing),
++  // close after the commit, and its own website sessions are retired as on
++  // deletion; that merge has no undo. Link routing follows to the target.
++  void MergeWorkspace(const base::Uuid& source_id,
++                      const base::Uuid& target_id,
++                      bool into_folder,
++                      WorkspaceDeletionCallback done);
++  // True when neither Workspace has its own website sessions.
++  bool SharesWebContext(const base::Uuid& source_id,
++                        const base::Uuid& target_id) const;
+ 
+   enum class WorkspaceConversionResult {
+     kConverted,
+@@ -449,6 +462,20 @@ class SessionBridge : public KeyedService,
+       std::vector<base::WeakPtr<content::WebContents>> asked_pages,
+       WorkspaceDeletionCallback done,
+       bool all_agreed);
++  // Handoff 080.
++  void OnWorkspaceMergePagesAnswered(
++      base::Uuid source_id,
++      base::Uuid target_id,
++      bool into_folder,
++      std::vector<base::WeakPtr<content::WebContents>> asked_pages,
++      WorkspaceDeletionCallback done,
++      bool all_agreed);
++  tab_tree::TabTreeStore::Result CommitWorkspaceMerge(
++      const base::Uuid& source_id,
++      const base::Uuid& target_id,
++      bool into_folder,
++      const std::vector<tabs::TabInterface*>& closing);
++  void RefreshWorkspacesAfterUndo();
+   // Handoff 052, source side.
+   void OnConversionPagesAnswered(
+       base::Uuid workspace_id,
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
+index 64d73a6..3989106 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
+@@ -549,6 +549,10 @@ void SessionBridge::OnActiveWorkspaceChanged(const base::Uuid& window_id,
+ 
+ void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (change.kind == tab_tree::MutationKind::kUndone) {
++    // Before tabs follow their nodes back into a revived Workspace.
++    RefreshWorkspacesAfterUndo();
++  }
+   if (workspace_structure_controller_ && !applying_synced_tree_snapshot_) {
+     if (session::TreeChangeInvalidatesStructure(change.kind)) {
+       workspace_structure_controller_->OnNativeChanged();
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_merge.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_merge.cc
+new file mode 100644
+index 0000000..2ad0240
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_merge.cc
+@@ -0,0 +1,275 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++// "Zusammenführen mit …" (ADR 0012, crest-hardening handoff 080). The tree
++// moves in one store transaction (TabTreeStore::MergeWorkspace, handoff
++// 078). Open pages follow their nodes into the target when both Workspaces
++// share one web context. Otherwise the source's pages are asked as one
++// before-unload group, as on deletion: a veto changes nothing, and after the
++// commit they close and the source's own website sessions are retired. Two
++// partitions or profiles are never merged.
++
++#include <algorithm>
++#include <optional>
++#include <set>
++#include <tuple>
++#include <utility>
++#include <vector>
++
++#include "ahoi/browser/navigation/link_routing.h"
++#include "ahoi/browser/session/session_bridge.h"
++#include "ahoi/browser/session/session_prefs.h"
++#include "ahoi/browser/session/website_session_context.h"
++#include "base/files/file_path.h"
++#include "base/functional/bind.h"
++#include "base/location.h"
++#include "base/logging.h"
++#include "base/task/sequenced_task_runner.h"
++#include "base/time/time.h"
++#include "chrome/browser/profiles/profile.h"
++#include "components/prefs/pref_service.h"
++#include "components/tabs/public/tab_interface.h"
++#include "content/public/browser/web_contents.h"
++
++namespace ahoi {
++namespace {
++
++bool UsesDefaultContext(
++    const std::optional<session::WebsiteSessionBinding>& binding) {
++  return !binding.has_value() || binding->is_default();
++}
++
++// Link-routing rules and an explicit default route that named the merged
++// Workspace point at the target instead of an unavailable Workspace.
++bool RetargetRouting(navigation::RoutingSettings& settings,
++                     const base::Uuid& from,
++                     const base::Uuid& to) {
++  bool changed = false;
++  for (navigation::RoutingRule& rule : settings.rules) {
++    if (rule.target_workspace_id == from) {
++      rule.target_workspace_id = to;
++      changed = true;
++    }
++  }
++  if (settings.default_route.target_workspace_id == from) {
++    settings.default_route.target_workspace_id = to;
++    changed = true;
++  }
++  return changed;
++}
++
++}  // namespace
++
++bool SessionBridge::SharesWebContext(const base::Uuid& source_id,
++                                     const base::Uuid& target_id) const {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  const PrefService* prefs = profile_->GetPrefs();
++  return UsesDefaultContext(
++             session::FindWebsiteSessionBinding(prefs, source_id)) &&
++         UsesDefaultContext(
++             session::FindWebsiteSessionBinding(prefs, target_id));
++}
++
++void SessionBridge::MergeWorkspace(const base::Uuid& source_id,
++                                   const base::Uuid& target_id,
++                                   bool into_folder,
++                                   WorkspaceDeletionCallback done) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (shutting_down_ || !tab_tree_ready_ || !tab_tree_store_ ||
++      !workspace_service_) {
++    std::move(done).Run(tab_tree::TabTreeStore::Result::kNotInitialized);
++    return;
++  }
++  if (source_id == target_id || !WorkspaceExists(source_id) ||
++      !WorkspaceExists(target_id)) {
++    std::move(done).Run(tab_tree::TabTreeStore::Result::kInvalidArgument);
++    return;
++  }
++  if (workspace_deletion_close_) {
++    // One deletion or merge question at a time; the dialog is modal.
++    std::move(done).Run(tab_tree::TabTreeStore::Result::kCancelled);
++    return;
++  }
++  std::vector<content::WebContents*> contents;
++  std::vector<base::WeakPtr<content::WebContents>> asked;
++  if (!SharesWebContext(source_id, target_id)) {
++    for (const auto& [tab, runtime] : runtime_tabs_) {
++      if (runtime.workspace_id == source_id && runtime.web_contents) {
++        contents.push_back(runtime.web_contents.get());
++        asked.push_back(runtime.web_contents);
++      }
++    }
++  }
++  if (contents.empty()) {
++    std::move(done).Run(CommitWorkspaceMerge(source_id, target_id,
++                                             into_folder, /*closing=*/{}));
++    return;
++  }
++  workspace_deletion_close_ = session::GroupPageClose::Ask(
++      std::move(contents),
++      base::BindOnce(&SessionBridge::OnWorkspaceMergePagesAnswered,
++                     weak_ptr_factory_.GetWeakPtr(), source_id, target_id,
++                     into_folder, std::move(asked), std::move(done)));
++}
++
++void SessionBridge::OnWorkspaceMergePagesAnswered(
++    base::Uuid source_id,
++    base::Uuid target_id,
++    bool into_folder,
++    std::vector<base::WeakPtr<content::WebContents>> asked_pages,
++    WorkspaceDeletionCallback done,
++    bool all_agreed) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  std::unique_ptr<session::GroupPageClose> group =
++      std::move(workspace_deletion_close_);
++  if (!all_agreed || shutting_down_ || !WorkspaceExists(source_id) ||
++      !WorkspaceExists(target_id)) {
++    // A veto leaves both Workspaces, their tabs, bindings and data unchanged.
++    std::move(done).Run(tab_tree::TabTreeStore::Result::kCancelled);
++    return;
++  }
++  // Every page of the source's context closes, including one opened while
++  // the question was showing (handoff 010 R3).
++  std::vector<tabs::TabInterface*> closing;
++  for (const auto& [tab, runtime] : runtime_tabs_) {
++    if (runtime.workspace_id == source_id) {
++      closing.push_back(tab);
++    }
++  }
++  const std::optional<session::WebsiteSessionBinding> binding =
++      session::FindWebsiteSessionBinding(profile_->GetPrefs(), source_id);
++  const tab_tree::TabTreeStore::Result result =
++      CommitWorkspaceMerge(source_id, target_id, into_folder, closing);
++  if (result != tab_tree::TabTreeStore::Result::kOk) {
++    std::move(done).Run(result);
++    return;
++  }
++  if (group) {
++    group->ClosePages();
++  }
++  for (const auto& [tab, runtime] : runtime_tabs_) {
++    content::WebContents* contents = runtime.web_contents.get();
++    if (runtime.closing_with_deleted_workspace && contents &&
++        std::ranges::none_of(asked_pages, [contents](const auto& asked) {
++          return asked.get() == contents;
++        })) {
++      contents->ClosePage();
++    }
++  }
++  if (!UsesDefaultContext(binding)) {
++    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
++        FROM_HERE,
++        base::BindOnce(&SessionBridge::ClearRetiredWebsiteSessionData,
++                       weak_ptr_factory_.GetWeakPtr(), binding->context_id),
++        base::Seconds(3));
++  }
++  std::move(done).Run(result);
++}
++
++tab_tree::TabTreeStore::Result SessionBridge::CommitWorkspaceMerge(
++    const base::Uuid& source_id,
++    const base::Uuid& target_id,
++    bool into_folder,
++    const std::vector<tabs::TabInterface*>& closing) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  const std::optional<session::WebsiteSessionBinding> binding =
++      session::FindWebsiteSessionBinding(profile_->GetPrefs(), source_id);
++  std::vector<tab_tree::TreeNode> target_roots;
++  if (tab_tree_store_->GetChildren(target_id, std::nullopt, &target_roots) !=
++      tab_tree::TabTreeStore::Result::kOk) {
++    return tab_tree::TabTreeStore::Result::kDatabaseError;
++  }
++  tab_tree::TabTreeStore::WorkspaceMerge merge{
++      .source_workspace_id = source_id,
++      .target_workspace_id = target_id,
++      .into_folder = into_folder,
++      // Same convention as a new temporary page: after the last root.
++      .sort_key = target_roots.empty() ? "@"
++                                       : target_roots.back().sort_key + "@",
++      // Retired website sessions cannot come back with an undo.
++      .record_undo = UsesDefaultContext(binding),
++      .modified_at = base::Time::Now(),
++  };
++  for (tabs::TabInterface* tab : closing) {
++    const auto runtime = runtime_tabs_.find(tab);
++    if (runtime != runtime_tabs_.end() && runtime->second.node_id &&
++        runtime->second.is_temporary) {
++      merge.closing_temporary_ids.insert(*runtime->second.node_id);
++    }
++  }
++  std::optional<base::Uuid> folder_id;
++  const tab_tree::TabTreeStore::Result result =
++      tab_tree_store_->MergeWorkspace(merge, &folder_id);
++  if (result != tab_tree::TabTreeStore::Result::kOk) {
++    return result;
++  }
++
++  if (binding.has_value()) {
++    // As on deletion: retired right after the tree commit, resumable after a
++    // crash; a default binding is only removed.
++    const base::FilePath partition_path =
++        UsesDefaultContext(binding)
++            ? base::FilePath()
++            : session::WebsiteSessionPartitionPath(profile_->GetPath(),
++                                                   *binding);
++    if (!session::RetireWebsiteSessionBinding(profile_->GetPrefs(), source_id,
++                                              partition_path)) {
++      LOG(ERROR) << "Ahoi could not retire a merged Workspace's binding";
++    }
++    profile_->GetPrefs()->CommitPendingWrite();
++  }
++
++  // Bound pages already followed their nodes (OnTabTreeChanged). Closing
++  // pages are never re-homed; an unbound page of the source moves along.
++  for (auto& [tab, runtime] : runtime_tabs_) {
++    const bool is_closing = std::ranges::find(closing, tab) != closing.end();
++    if (is_closing) {
++      runtime.closing_with_deleted_workspace = true;
++      UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/true);
++      continue;
++    }
++    if (runtime.workspace_id != source_id) {
++      continue;
++    }
++    RemoveTabFromLastActiveState(tab);
++    runtime.workspace_id = target_id;
++    if (tab->IsActivated() && runtime.tab_strip_model) {
++      UpdateLastActiveTab(runtime.tab_strip_model, tab);
++    }
++    PersistTabSessionMetadata(tab);
++  }
++  // Windows that showed the source show the target, not the first Workspace.
++  for (const auto& [browser, window] : windows_) {
++    if (workspace_service_->GetActiveWorkspace(window.window_id) ==
++        source_id) {
++      std::ignore = workspace_service_->SetActiveWorkspace(
++          window.window_id, target_id, WorkspaceActivationSource::kSidebar);
++    }
++  }
++  navigation::RoutingSettings routing =
++      navigation::ReadRoutingSettings(*profile_->GetPrefs());
++  if (RetargetRouting(routing, source_id, target_id) &&
++      !navigation::WriteRoutingSettings(profile_->GetPrefs(), routing)) {
++    LOG(ERROR) << "Ahoi could not retarget link routing after a merge";
++  }
++  if (!RefreshWorkspaceSnapshot()) {
++    return tab_tree::TabTreeStore::Result::kDatabaseError;
++  }
++  runtime_presentation_changed_callbacks_.Notify();
++  return tab_tree::TabTreeStore::Result::kOk;
++}
++
++void SessionBridge::RefreshWorkspacesAfterUndo() {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  // Undoing a merge revives its source (TabTreeStore::UndoLastMutation).
++  std::vector<tab_tree::Workspace> stored;
++  if (!workspace_service_ ||
++      tab_tree_store_->GetWorkspaces(&stored) !=
++          tab_tree::TabTreeStore::Result::kOk ||
++      stored.size() == workspace_service_->ordered_workspaces().size()) {
++    return;
++  }
++  std::ignore = RefreshWorkspaceSnapshot();
++}
++
++}  // namespace ahoi
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_merge_unittest.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_merge_unittest.cc
+new file mode 100644
+index 0000000..b7766de
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_workspace_merge_unittest.cc
+@@ -0,0 +1,125 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include <optional>
++#include <vector>
++
++#include "ahoi/browser/navigation/link_routing.h"
++#include "ahoi/browser/session/session_bridge.h"
++#include "ahoi/browser/session/session_bridge_unittest_support.h"
++#include "ahoi/browser/session/session_prefs.h"
++#include "base/test/test_future.h"
++#include "chrome/browser/profiles/profile.h"
++#include "chrome/browser/ui/tabs/tab_strip_model.h"
++#include "components/tabs/public/tab_interface.h"
++#include "testing/gtest/include/gtest/gtest.h"
++#include "url/gurl.h"
++
++// ADR 0012 / handoff 080: "Zusammenführen mit …" through the session bridge.
++namespace ahoi {
++namespace {
++
++using test_support::MakeSavedPage;
++using test_support::SessionBridgeTest;
++using Result = tab_tree::TabTreeStore::Result;
++
++class SessionBridgeWorkspaceMergeTest : public SessionBridgeTest {
++ protected:
++  Result Merge(const base::Uuid& source, const base::Uuid& target,
++               bool into_folder = true) {
++    base::test::TestFuture<Result> done;
++    bridge_->MergeWorkspace(source, target, into_folder, done.GetCallback());
++    return done.Get();
++  }
++
++  bool Lists(const base::Uuid& workspace_id) {
++    for (const tab_tree::Workspace& workspace :
++         workspace_service_->ordered_workspaces()) {
++      if (workspace.id == workspace_id) {
++        return true;
++      }
++    }
++    return false;
++  }
++};
++
++TEST_F(SessionBridgeWorkspaceMergeTest, SharedMergeKeepsTheLiveTabAndUndoes) {
++  const base::Uuid target_id =
++      workspace_service_->ordered_workspaces().front().id;
++  const std::optional<base::Uuid> source_id =
++      bridge_->CreateWorkspace(u"Research", u"R", std::nullopt);
++  ASSERT_TRUE(source_id.has_value());
++  ASSERT_EQ(Result::kOk, bridge_->tab_tree_store()->CreateNode(MakeSavedPage(
++                             *source_id, GURL("https://example.test/paper"))));
++  ASSERT_TRUE(bridge_->SetActiveWorkspaceForWindow(
++      browser(), *source_id, WorkspaceActivationSource::kKeyboard));
++  AddTab(browser(), GURL("https://example.test/open"));
++  task_environment()->RunUntilIdle();
++  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetActiveTab();
++  ASSERT_TRUE(tab);
++  ASSERT_EQ(bridge_->GetWorkspaceForTab(tab), *source_id);
++
++  // A routing rule that named the source follows it into the target.
++  navigation::RoutingSettings routing;
++  routing.rules.push_back({.id = base::Uuid::GenerateRandomV4(),
++                           .host = "example.test",
++                           .target_workspace_id = *source_id});
++  ASSERT_TRUE(navigation::WriteRoutingSettings(profile()->GetPrefs(), routing));
++
++  EXPECT_TRUE(bridge_->SharesWebContext(*source_id, target_id));
++  ASSERT_EQ(Result::kOk, Merge(*source_id, target_id));
++  task_environment()->RunUntilIdle();
++  EXPECT_FALSE(Lists(*source_id));
++  EXPECT_EQ(bridge_->GetActiveWorkspaceForWindow(browser()), target_id);
++  EXPECT_EQ(bridge_->GetWorkspaceForTab(tab), target_id);
++  EXPECT_EQ(navigation::ReadRoutingSettings(*profile()->GetPrefs())
++                .rules.front()
++                .target_workspace_id,
++            target_id);
++
++  // WS-MERGE-03: undo brings the source and its open tab back.
++  ASSERT_EQ(Result::kOk, bridge_->tab_tree_store()->UndoLastMutation());
++  task_environment()->RunUntilIdle();
++  EXPECT_TRUE(Lists(*source_id));
++  EXPECT_EQ(bridge_->GetWorkspaceForTab(tab), *source_id);
++}
++
++TEST_F(SessionBridgeWorkspaceMergeTest, OwnSessionsAreRetiredWithoutUndo) {
++  const base::Uuid target_id =
++      workspace_service_->ordered_workspaces().front().id;
++  const std::optional<base::Uuid> source_id = bridge_->CreateWorkspace(
++      u"Client", u"C", std::nullopt, /*own_website_sessions=*/true);
++  ASSERT_TRUE(source_id.has_value());
++  const tab_tree::TreeNode page =
++      MakeSavedPage(*source_id, GURL("https://example.test/client"));
++  ASSERT_EQ(Result::kOk, bridge_->tab_tree_store()->CreateNode(page));
++  EXPECT_FALSE(bridge_->SharesWebContext(*source_id, target_id));
++
++  // No open page of the source: nothing to ask, the merge commits at once.
++  ASSERT_EQ(Result::kOk, Merge(*source_id, target_id, /*into_folder=*/false));
++  EXPECT_FALSE(Lists(*source_id));
++  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(*source_id));
++  EXPECT_FALSE(
++      session::FindWebsiteSessionBinding(profile()->GetPrefs(), *source_id)
++          .has_value());
++  tab_tree::TreeNode moved;
++  ASSERT_EQ(Result::kOk, bridge_->tab_tree_store()->GetNode(page.id, &moved));
++  EXPECT_EQ(moved.workspace_id, target_id);
++  // Its sessions are gone, so the merge left no undo entry: the next undo is
++  // the page's creation.
++  ASSERT_EQ(Result::kOk, bridge_->tab_tree_store()->UndoLastMutation());
++  task_environment()->RunUntilIdle();
++  EXPECT_FALSE(Lists(*source_id));
++}
++
++TEST_F(SessionBridgeWorkspaceMergeTest, RejectsSelfAndUnknownTargets) {
++  const base::Uuid only_id =
++      workspace_service_->ordered_workspaces().front().id;
++  EXPECT_EQ(Result::kInvalidArgument, Merge(only_id, only_id));
++  EXPECT_EQ(Result::kInvalidArgument,
++            Merge(only_id, base::Uuid::GenerateRandomV4()));
++  EXPECT_TRUE(Lists(only_id));
++}
++
++}  // namespace
++}  // namespace ahoi
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn b/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
+index 9a74a20..b2ac579 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
+@@ -221,6 +221,7 @@ source_set("browser_sidebar") {
+     "browser_sidebar_host_types.h",
+     "browser_sidebar_host_view.h",
+     "browser_sidebar_host_workspace_dialog.cc",
++    "browser_sidebar_host_workspace_merge.cc",
+     "browser_sidebar_host_workspace_transition.cc",
+     "sidebar_action_views.cc",
+     "sidebar_action_views.h",
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
+index 2495923..8962315 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_command_dispatch.cc
+@@ -497,6 +497,19 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
+                           *active_workspace_id);
+       return;
+     }
++    if (command_id >= kMergeWorkspaceCommandBase &&
++        command_id < kArchivePolicyCommandBase) {
++      const size_t index =
++          static_cast<size_t>(command_id - kMergeWorkspaceCommandBase);
++      if (active_workspace_id.has_value() &&
++          index < context_.workspace_ids.size() &&
++          context_.workspace_ids[index] != *active_workspace_id) {
++        workspace_dialog_.merge_target_id = context_.workspace_ids[index];
++        ShowWorkspaceDialog(PendingWorkspaceAction::kMerge,
++                            *active_workspace_id);
++      }
++      return;
++    }
+     if (command_id == kConvertWorkspaceToIsolated &&
+         active_workspace_id.has_value()) {
+       ShowWorkspaceDialog(PendingWorkspaceAction::kConvertToIsolated,
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
+index 6128af9..1e6e45f 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_context_menu.cc
+@@ -335,6 +335,24 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
+         StructureText(u"In vollständig getrennten Workspace umwandeln …",
+                       u"Convert to fully separated Workspace …"));
+   }
++  // ADR 0012 (handoff 080): merge into another Workspace of this Profile.
++  const std::optional<base::Uuid> shown_workspace =
++      controller_->view_model().workspace_id();
++  context_move_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
++  for (size_t index = 0; index < context_.workspace_ids.size() && index < 99;
++       ++index) {
++    const tab_tree::Workspace* target =
++        FindWorkspace(context_.workspace_ids[index]);
++    if (target && context_.workspace_ids[index] != shown_workspace) {
++      context_move_menu_model_->AddItem(
++          kMergeWorkspaceCommandBase + static_cast<int>(index), target->name);
++    }
++  }
++  if (shown_workspace && context_move_menu_model_->GetItemCount() > 0) {
++    context_.model->AddSubMenu(
++        kMergeWorkspace, StructureText(u"Zusammenführen mit", u"Merge into"),
++        context_move_menu_model_.get());
++  }
+   context_.model->AddItem(
+       kDeleteWorkspace,
+       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DELETE_WORKSPACE));
+@@ -383,6 +401,7 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
+       views::MenuAnchorPosition::kTopLeft, source_type);
+   context_menu_runner_.reset();
+   context_.model.reset();
++  context_move_menu_model_.reset();
+   context_.workspace_ids.clear();
+   context_.isolated_workspace_dirs.clear();
+   context_.main_workspace_ids.clear();
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_state.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_state.h
+index 20abab3..4c9f491 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_state.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_state.h
+@@ -41,6 +41,7 @@ namespace views {
+ class BubbleDialogDelegate;
+ class Button;
+ class ImageButton;
++class Checkbox;
+ class RadioButton;
+ class Textfield;
+ class View;
+@@ -166,6 +167,9 @@ struct SidebarWorkspaceDialogState {
+   // ADR 0011 level choice; only present while creating a Workspace.
+   raw_ptr<views::RadioButton> own_sessions_radio = nullptr;
+   raw_ptr<views::RadioButton> isolated_radio = nullptr;
++  // ADR 0012 merge: the target and the folder choice.
++  std::optional<base::Uuid> merge_target_id;
++  raw_ptr<views::Checkbox> merge_into_folder = nullptr;
+   std::vector<std::pair<raw_ptr<views::Button>, std::optional<uint32_t>>>
+       color_buttons;
+   std::unique_ptr<views::BubbleDialogDelegate> delegate;
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_types.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_types.h
+index 06a9e8c..211292b 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_types.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_types.h
+@@ -55,8 +55,12 @@ enum SidebarContextMenuCommand {
+   kCopyActivePageMarkdownLink,
+   kOpenActivePageInReadingMode,
+   kConvertWorkspaceToIsolated,
++  kMergeWorkspace,
+ };
+ 
++// ADR 0012 (handoff 080): "Zusammenführen mit" the Workspace at this index
++// of the menu's Workspace list; below the archive policies, at most 99.
++constexpr int kMergeWorkspaceCommandBase = 500;
+ constexpr int kArchivePolicyCommandBase = 600;
+ 
+ // ADR 0011 step 2, in a fully separated Workspace's window: loads the main
+@@ -103,6 +107,8 @@ enum class PendingWorkspaceAction {
+   kDelete,
+   // ADR 0011 step 2 (handoff 052).
+   kConvertToIsolated,
++  // ADR 0012 (handoff 080).
++  kMerge,
+ };
+ 
+ }  // namespace ahoi::sidebar
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+index 8d5b23d..c28919b 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+@@ -616,10 +616,11 @@ class BrowserSidebarHostView final
+   void UseSavedHome(base::Uuid node_id, bool set_current);
+ 
+   void SelectWorkspaceColor(std::optional<uint32_t> color, const ui::Event&);
+-
+   void UpdateWorkspaceColorButtons();
+   void AddWorkspaceLevelChoice(views::View* contents);
+-
++  // ADR 0012 (handoff 080), browser_sidebar_host_workspace_merge.cc.
++  void AddWorkspaceMergeChoice(views::View* contents);
++  bool AcceptWorkspaceMerge();
+   bool AcceptWorkspaceDialog();
+   std::string NextProcessWideWorkspaceSortKey() const;
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
+index 53e6963..5fffa19 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_dialog.cc
+@@ -193,6 +193,8 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
+       sessions->SetMultiLine(true);
+       sessions->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+     }
++  } else if (action == PendingWorkspaceAction::kMerge) {
++    AddWorkspaceMergeChoice(contents.get());
+   } else if (action == PendingWorkspaceAction::kConvertToIsolated) {
+     // ADR 0011 step 2 (handoff 052): say what moves and what stays.
+     auto* body = contents->AddChildView(std::make_unique<views::Label>(
+@@ -293,7 +295,9 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
+                            ? IDS_AHOI_DIALOG_EDIT_WORKSPACE
+                            : IDS_AHOI_DIALOG_DELETE_WORKSPACE;
+   delegate->SetTitle(
+-      action == PendingWorkspaceAction::kConvertToIsolated
++      action == PendingWorkspaceAction::kMerge
++          ? StructureText(u"Workspaces zusammenführen", u"Merge Workspaces")
++      : action == PendingWorkspaceAction::kConvertToIsolated
+           ? StructureText(u"In vollständig getrennten Workspace umwandeln",
+                           u"Convert to fully separated Workspace")
+           : l10n_util::GetStringUTF16(title_id));
+@@ -302,7 +306,9 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
+   // IDS_DELETE is a menu string with a Windows mnemonic ("&Löschen").
+   delegate->SetButtonLabel(
+       ui::mojom::DialogButton::kOk,
+-      action == PendingWorkspaceAction::kConvertToIsolated
++      action == PendingWorkspaceAction::kMerge
++          ? StructureText(u"Zusammenführen", u"Merge")
++      : action == PendingWorkspaceAction::kConvertToIsolated
+           ? StructureText(u"Umwandeln", u"Convert")
+           : gfx::RemoveAccelerator(l10n_util::GetStringUTF16(
+           action == PendingWorkspaceAction::kCreate ||
+@@ -360,6 +366,8 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
+     workspace_dialog_.icon_field = nullptr;
+     workspace_dialog_.own_sessions_radio = nullptr;
+     workspace_dialog_.isolated_radio = nullptr;
++    workspace_dialog_.merge_target_id.reset();
++    workspace_dialog_.merge_into_folder = nullptr;
+     workspace_dialog_.widget.reset();
+     workspace_dialog_.delegate.reset();
+     workspace_dialog_.action = PendingWorkspaceAction::kNone;
+@@ -466,6 +474,9 @@ std::string BrowserSidebarHostView::NextProcessWideWorkspaceSortKey() const {
+ }
+ 
+ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
++  if (workspace_dialog_.action == PendingWorkspaceAction::kMerge) {
++    return AcceptWorkspaceMerge();
++  }
+   if (workspace_dialog_.action == PendingWorkspaceAction::kConvertToIsolated) {
+     if (workspace_dialog_.workspace_id.has_value()) {
+       // The Workspace's pages are asked as one before-unload group first; a
+@@ -642,6 +653,8 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
+   workspace_dialog_.icon_field = nullptr;
+   workspace_dialog_.own_sessions_radio = nullptr;
+   workspace_dialog_.isolated_radio = nullptr;
++  workspace_dialog_.merge_target_id.reset();
++  workspace_dialog_.merge_into_folder = nullptr;
+   // The name field may still be the input method's text input client; a
+   // widget destroyed with it attached trips NativeWidgetMac's focus check
+   // (crash after "Erstellen", HTTP-auth journey on build 35). Blurring it
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_merge.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_merge.cc
+new file mode 100644
+index 0000000..c82fd07
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_merge.cc
+@@ -0,0 +1,96 @@
++// Copyright 2026 The AhoiBrowser Authors
++// Use of this source code is governed by a GPL-3.0-or-later license that can be
++// found in the LICENSE file.
++
++// "Zusammenführen mit …" in the Workspace menu (ADR 0012, crest-hardening
++// handoff 080). The dialog names what happens; SessionBridge::MergeWorkspace
++// asks the source's pages when they have to close.
++
++#include <memory>
++#include <string>
++
++#include "ahoi/browser/session/session_bridge.h"
++#include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
++#include "ahoi/browser/ui/visual_style.h"
++#include "base/functional/bind.h"
++#include "base/memory/weak_ptr.h"
++#include "base/strings/strcat.h"
++#include "ui/views/controls/button/checkbox.h"
++#include "ui/views/controls/label.h"
++
++namespace ahoi::sidebar {
++
++void BrowserSidebarHostView::AddWorkspaceMergeChoice(views::View* contents) {
++  const tab_tree::Workspace* source =
++      workspace_dialog_.workspace_id
++          ? FindWorkspace(*workspace_dialog_.workspace_id)
++          : nullptr;
++  const tab_tree::Workspace* target =
++      workspace_dialog_.merge_target_id
++          ? FindWorkspace(*workspace_dialog_.merge_target_id)
++          : nullptr;
++  if (!source || !target) {
++    return;
++  }
++  const bool shares_context = session_bridge_->SharesWebContext(
++      *workspace_dialog_.workspace_id, *workspace_dialog_.merge_target_id);
++  auto* body = contents->AddChildView(std::make_unique<views::Label>(
++      shares_context
++          ? StructureText(
++                base::StrCat({u"Alle Seiten und Ordner aus „", source->name,
++                              u"“ ziehen nach „", target->name,
++                              u"“ um, offene Tabs laufen weiter. Danach gibt "
++                              u"es „",
++                              source->name,
++                              u"“ nicht mehr. Rückgängig stellt ihn wieder "
++                              u"her."}),
++                base::StrCat({u"All pages and folders of \"", source->name,
++                              u"\" move to \"", target->name,
++                              u"\", and open tabs keep running. Then \"",
++                              source->name,
++                              u"\" is gone. Undo brings it back."}))
++          : StructureText(
++                base::StrCat({u"Gespeicherte Seiten und Ordner aus „",
++                              source->name, u"“ ziehen nach „", target->name,
++                              u"“ um. Anmeldungen ziehen nicht mit: Die "
++                              u"offenen Tabs werden geschlossen, und die "
++                              u"eigenen Website-Sitzungen werden gelöscht. "
++                              u"Das lässt sich nicht rückgängig machen."}),
++                base::StrCat({u"Saved pages and folders of \"", source->name,
++                              u"\" move to \"", target->name,
++                              u"\". Logins do not move along: the open tabs "
++                              u"close, and the own website sessions are "
++                              u"deleted. This cannot be undone."}))));
++  body->SetSubpixelRenderingEnabled(false);
++  body->SetMultiLine(true);
++  body->SetHorizontalAlignment(gfx::ALIGN_LEFT);
++  workspace_dialog_.merge_into_folder =
++      contents->AddChildView(std::make_unique<views::Checkbox>(StructureText(
++          base::StrCat({u"Als Ordner „", source->name, u"“ ablegen"}),
++          base::StrCat({u"Keep them in a folder \"", source->name, u"\""}))));
++  workspace_dialog_.merge_into_folder->SetChecked(true);
++}
++
++bool BrowserSidebarHostView::AcceptWorkspaceMerge() {
++  if (!workspace_dialog_.workspace_id || !workspace_dialog_.merge_target_id) {
++    return true;
++  }
++  const bool into_folder = !workspace_dialog_.merge_into_folder ||
++                           workspace_dialog_.merge_into_folder->GetChecked();
++  // A veto of a closing page changes nothing (kCancelled).
++  session_bridge_->MergeWorkspace(
++      *workspace_dialog_.workspace_id, *workspace_dialog_.merge_target_id,
++      into_folder,
++      base::BindOnce(
++          [](base::WeakPtr<BrowserSidebarHostView> view,
++             tab_tree::TabTreeStore::Result result) {
++            if (view && result != tab_tree::TabTreeStore::Result::kOk &&
++                result != tab_tree::TabTreeStore::Result::kCancelled) {
++              view->OnMutationFailed(result);
++            }
++          },
++          weak_ptr_factory_.GetWeakPtr()));
++  return true;
++}
++
++}  // namespace ahoi::sidebar
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_menu_state.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_menu_state.cc
+index 1ce79ec..f6ec24b 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_menu_state.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_menu_state.cc
+@@ -314,6 +314,7 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
+       case kDuplicateWorkspace:
+       case kCopyAllLinks:
+       case kEditWorkspace:
++      case kMergeWorkspace:
+         return controller_->view_model().workspace_id().has_value();
+       case kConvertWorkspaceToIsolated:
+         // The main Profile keeps at least one Workspace (handoff 052).
+@@ -351,6 +352,11 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
+                                  kOpenIsolatedWorkspaceCommandBase) <
+              context_.isolated_workspace_dirs.size();
+     }
++    if (command_id >= kMergeWorkspaceCommandBase &&
++        command_id < kArchivePolicyCommandBase) {
++      return static_cast<size_t>(command_id - kMergeWorkspaceCommandBase) <
++             context_.workspace_ids.size();
++    }
+     if (command_id < kActivateWorkspaceCommandBase) {
+       return false;
+     }

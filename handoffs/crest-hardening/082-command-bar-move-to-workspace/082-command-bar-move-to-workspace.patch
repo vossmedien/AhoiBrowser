@@ -1,0 +1,517 @@
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/BUILD.gn b/overlay/chromium/src/ahoi/browser/command_bar/BUILD.gn
+index 6c01413..8785c8c 100644
+--- a/overlay/chromium/src/ahoi/browser/command_bar/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/command_bar/BUILD.gn
+@@ -82,6 +82,7 @@ source_set("command_bar") {
+     "//ahoi/browser/ui:visual_style",
+     "//ahoi/browser/ui/appearance",
+     "//ahoi/browser/ui/sidebar:browser_sidebar",
++    "//base:i18n",
+     "//chrome/app:generated_resources",
+     "//chrome/browser:browser_public_dependencies",
+     "//chrome/browser/autocomplete",
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/command_bar_controller.cc b/overlay/chromium/src/ahoi/browser/command_bar/command_bar_controller.cc
+index f9b26ba..d45ee73 100644
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_bar_controller.cc
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_bar_controller.cc
+@@ -11,6 +11,7 @@
+ 
+ #include "ahoi/browser/command_bar/command_bar_view.h"
+ #include "ahoi/browser/command_bar/command_execution_adapter.h"
++#include "ahoi/browser/command_bar/command_execution_adapter_internal.h"
+ #include "ahoi/browser/navigation/command_service.h"
+ #include "ahoi/browser/navigation/keyboard_shortcuts.h"
+ #include "ahoi/browser/session/command_service_factory.h"
+@@ -22,6 +23,7 @@
+ #include "base/functional/bind.h"
+ #include "base/trace_event/trace_event.h"
+ #include "base/functional/callback_helpers.h"
++#include "base/i18n/rtl.h"
+ #include "base/location.h"
+ #include "base/strings/strcat.h"
+ #include "base/strings/utf_string_conversions.h"
+@@ -173,6 +175,10 @@ void CommandBarController::OnTabStripModelDestroyed(
+ }
+ 
+ void CommandBarController::OnCommandIndexChanged(CommandItemType type) {
++  if (type == CommandItemType::kWorkspace) {
++    // The Workspace list changed (SessionBridge): the move targets follow.
++    PublishBrowserCommands();
++  }
+   if (type == CommandItemType::kOpenTab) {
+     // SessionBridge owns the open-tab index. Refreshing from its notification
+     // guarantees insertion/removal/replacement results are current regardless
+@@ -579,6 +585,30 @@ void CommandBarController::PublishBrowserCommands() {
+         .priority = 150,
+     });
+   }
++  // ADR 0012 section 2: one "In Workspace verschieben" item per Workspace of
++  // this Profile, the same targets as the sidebar's "Move to". The window's
++  // own Workspace is refused at execution (CanMoveToWorkspace).
++  if (browser_ && browser_->GetProfile() &&
++      !browser_->GetProfile()->IsOffTheRecord()) {
++    SessionBridge* bridge =
++        SessionBridgeFactory::GetForProfile(browser_->GetProfile());
++    std::vector<tab_tree::Workspace> workspaces;
++    if (bridge && bridge->is_ready() &&
++        bridge->tab_tree_store()->GetWorkspaces(&workspaces) ==
++            tab_tree::TabTreeStore::Result::kOk) {
++      std::vector<internal::MoveToWorkspaceTarget> targets;
++      targets.reserve(workspaces.size());
++      for (const tab_tree::Workspace& workspace : workspaces) {
++        targets.push_back({.id = workspace.id, .name = workspace.name});
++      }
++      const bool german =
++          base::i18n::GetConfiguredLocale().starts_with("de");
++      for (CommandItem& item :
++           internal::BuildMoveToWorkspaceCommands(targets, german)) {
++        commands.push_back(std::move(item));
++      }
++    }
++  }
+   CHECK(command_service_->ReplaceItems(CommandItemType::kBrowserCommand,
+                                        std::move(commands)));
+ }
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter.cc b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter.cc
+index eca568e..23b1d8d 100644
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter.cc
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter.cc
+@@ -4,7 +4,9 @@
+ #include "ahoi/browser/command_bar/command_execution_adapter.h"
+ 
+ #include <optional>
++#include <string>
+ #include <utility>
++#include <vector>
+ 
+ #include "ahoi/browser/command_bar/command_execution_adapter_internal.h"
+ #include "base/check.h"
+@@ -121,8 +123,55 @@ std::optional<DeveloperAction> GetAllowlistedDeveloperAction(
+   return std::nullopt;
+ }
+ 
++std::vector<CommandItem> BuildMoveToWorkspaceCommands(
++    const std::vector<MoveToWorkspaceTarget>& targets,
++    bool german) {
++  const std::u16string prefix =
++      german ? u"In Workspace verschieben: " : u"Move to Workspace: ";
++  std::vector<CommandItem> items;
++  items.reserve(targets.size());
++  for (const MoveToWorkspaceTarget& target : targets) {
++    if (!target.id.is_valid() || target.name.empty()) {
++      continue;
++    }
++    items.push_back({
++        .type = CommandItemType::kBrowserCommand,
++        .stable_id = std::string(kMoveToWorkspaceCommandPrefix) +
++                     target.id.AsLowercaseString(),
++        .title = prefix + target.name,
++        .keywords = {u"in workspace verschieben", u"move to workspace",
++                     u"verschieben", u"move", target.name},
++        .priority = 180,
++    });
++  }
++  return items;
++}
++
++std::optional<std::string_view> GetMoveToWorkspaceTarget(
++    std::string_view stable_id) {
++  if (!stable_id.starts_with(kMoveToWorkspaceCommandPrefix)) {
++    return std::nullopt;
++  }
++  const std::string_view id =
++      stable_id.substr(sizeof(kMoveToWorkspaceCommandPrefix) - 1);
++  if (!base::Uuid::ParseLowercase(id).is_valid()) {
++    return std::nullopt;
++  }
++  return id;
++}
++
+ }  // namespace internal
+ 
++bool CommandExecutionDelegate::CanMoveToWorkspace(
++    std::string_view /*workspace_id*/) const {
++  return false;
++}
++
++bool CommandExecutionDelegate::MoveToWorkspace(
++    std::string_view /*workspace_id*/) {
++  return false;
++}
++
+ bool CommandExecutionDelegate::CanExecuteShortcutCommand(
+     std::string_view /*catalog_id*/) const {
+   return false;
+@@ -194,6 +243,11 @@ bool CommandExecutionAdapter::CanExecuteItem(const CommandItem& item) const {
+       return base::Uuid::ParseLowercase(item.stable_id).is_valid() &&
+              execution_delegate_->CanRevealFolder(item.stable_id);
+     case CommandItemType::kBrowserCommand:
++      if (item.stable_id.starts_with(internal::kMoveToWorkspaceCommandPrefix)) {
++        const std::optional<std::string_view> target =
++            internal::GetMoveToWorkspaceTarget(item.stable_id);
++        return target && execution_delegate_->CanMoveToWorkspace(*target);
++      }
+       if (item.stable_id.starts_with(internal::kShortcutCommandPrefix)) {
+         return execution_delegate_->CanExecuteShortcutCommand(
+             std::string_view(item.stable_id)
+@@ -267,6 +321,10 @@ bool CommandExecutionAdapter::ExecuteItem(const CommandItem& item,
+     case CommandItemType::kFolder:
+       return execution_delegate_->RevealFolder(item.stable_id);
+     case CommandItemType::kBrowserCommand:
++      if (const std::optional<std::string_view> target =
++              internal::GetMoveToWorkspaceTarget(item.stable_id)) {
++        return execution_delegate_->MoveToWorkspace(*target);
++      }
+       if (item.stable_id.starts_with(internal::kShortcutCommandPrefix)) {
+         return execution_delegate_->ExecuteShortcutCommand(
+             std::string_view(item.stable_id)
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter.h b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter.h
+index 3a8a21e..ff4edbf 100644
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter.h
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter.h
+@@ -82,6 +82,10 @@ class CommandExecutionDelegate {
+   // exactly as their key would run them.
+   virtual bool CanExecuteShortcutCommand(std::string_view catalog_id) const;
+   virtual bool ExecuteShortcutCommand(std::string_view catalog_id);
++  // "In Workspace verschieben" (ADR 0012 section 2): moves the sidebar's
++  // selected folder or the active page into the Workspace.
++  virtual bool CanMoveToWorkspace(std::string_view workspace_id) const;
++  virtual bool MoveToWorkspace(std::string_view workspace_id);
+ };
+ 
+ class CommandExecutionAdapter {
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
+index bf4c0ec..97954e6 100644
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
+@@ -242,6 +242,20 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
+            sidebar::ActivateBrowserWorkspaceById(sidebar_host_, workspace_id);
+   }
+ 
++  bool CanMoveToWorkspace(std::string_view workspace_id) const override {
++    const base::Uuid target = base::Uuid::ParseLowercase(workspace_id);
++    return target.is_valid() && sidebar_host_ &&
++           sidebar::CanMoveBrowserSidebarSelectionToWorkspace(sidebar_host_,
++                                                              target);
++  }
++
++  bool MoveToWorkspace(std::string_view workspace_id) override {
++    const base::Uuid target = base::Uuid::ParseLowercase(workspace_id);
++    return target.is_valid() && sidebar_host_ &&
++           sidebar::MoveBrowserSidebarSelectionToWorkspace(sidebar_host_,
++                                                           target);
++  }
++
+   bool CanRevealFolder(std::string_view stable_id) const override {
+     return sidebar_host_ && base::Uuid::ParseLowercase(stable_id).is_valid();
+   }
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_internal.h b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_internal.h
+index 4fe5916..67f07c8 100644
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_internal.h
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_internal.h
+@@ -5,9 +5,13 @@
+ #define AHOI_BROWSER_COMMAND_BAR_COMMAND_EXECUTION_ADAPTER_INTERNAL_H_
+ 
+ #include <optional>
++#include <string>
+ #include <string_view>
++#include <vector>
+ 
+ #include "ahoi/browser/developer_toolkit/developer_toolkit_types.h"
++#include "ahoi/browser/navigation/command_service.h"
++#include "base/uuid.h"
+ 
+ namespace ahoi::internal {
+ 
+@@ -25,6 +29,23 @@ inline constexpr int kOpenActivePageInReadingModeCommand = -8;
+ 
+ // Command-bar ids of shortcut catalog commands.
+ inline constexpr char kShortcutCommandPrefix[] = "shortcut.";
++// Command-bar ids of "In Workspace verschieben" (ADR 0012 section 2): the
++// prefix plus the target Workspace's lowercase UUID.
++inline constexpr char kMoveToWorkspaceCommandPrefix[] = "move-to-workspace.";
++
++struct MoveToWorkspaceTarget {
++  base::Uuid id;
++  std::u16string name;
++};
++
++// One browser-command item per target, findable by the command's words in
++// both languages and by the Workspace's name.
++std::vector<CommandItem> BuildMoveToWorkspaceCommands(
++    const std::vector<MoveToWorkspaceTarget>& targets,
++    bool german);
++// The target Workspace id of a move command's stable id, if it is one.
++std::optional<std::string_view> GetMoveToWorkspaceTarget(
++    std::string_view stable_id);
+ 
+ // Converts only the deliberately small, reviewed command-bar allowlist into
+ // Chromium command identifiers. Keeping this in the testable core prevents a
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_unittest.cc b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_unittest.cc
+index 0020cbb..7d51cfc 100644
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_unittest.cc
+@@ -3,12 +3,15 @@
+ 
+ #include "ahoi/browser/command_bar/command_execution_adapter.h"
+ 
++#include <algorithm>
+ #include <memory>
+ #include <optional>
+ #include <string>
+ #include <string_view>
+ #include <utility>
++#include <vector>
+ 
++#include "ahoi/browser/command_bar/command_execution_adapter_internal.h"
+ #include "ahoi/browser/navigation/command_service.h"
+ #include "base/memory/raw_ptr.h"
+ #include "components/omnibox/browser/test_scheme_classifier.h"
+@@ -94,6 +97,15 @@ class FakeExecutionDelegate final : public CommandExecutionDelegate {
+     return true;
+   }
+ 
++  bool CanMoveToWorkspace(std::string_view workspace_id) const override {
++    return move_enabled;
++  }
++
++  bool MoveToWorkspace(std::string_view workspace_id) override {
++    moved_to_workspace = std::string(workspace_id);
++    return true;
++  }
++
+   bool activate_open_tab_result = false;
+   std::optional<CommandItem> activated_item;
+   GURL navigated_url;
+@@ -111,6 +123,8 @@ class FakeExecutionDelegate final : public CommandExecutionDelegate {
+   std::string executed_browser_command;
+   bool developer_action_enabled = true;
+   std::optional<DeveloperAction> executed_developer_action;
++  bool move_enabled = true;
++  std::string moved_to_workspace;
+ };
+ 
+ class CommandExecutionAdapterTest : public testing::Test {
+@@ -308,6 +322,51 @@ TEST_F(CommandExecutionAdapterTest, FolderAndWorkspaceAreExecutable) {
+   EXPECT_EQ(execution_delegate_->switched_workspace, workspace.stable_id);
+ }
+ 
++// ADR 0012 section 2 / CMD-MOVE-01.
++TEST_F(CommandExecutionAdapterTest, MoveToWorkspaceItemsRouteToTheDelegate) {
++  const base::Uuid work = base::Uuid::GenerateRandomV4();
++  const std::vector<CommandItem> items =
++      internal::BuildMoveToWorkspaceCommands(
++          {{.id = work, .name = u"Work"},
++           {.id = base::Uuid(), .name = u"Invalid"},
++           {.id = base::Uuid::GenerateRandomV4(), .name = u""}},
++          /*german=*/true);
++  ASSERT_EQ(items.size(), 1u);
++  const CommandItem& item = items.front();
++  EXPECT_EQ(item.type, CommandItemType::kBrowserCommand);
++  EXPECT_EQ(item.stable_id, "move-to-workspace." + work.AsLowercaseString());
++  EXPECT_EQ(item.title, u"In Workspace verschieben: Work");
++  EXPECT_NE(std::ranges::find(item.keywords, u"Work"), item.keywords.end());
++  EXPECT_NE(std::ranges::find(item.keywords, u"move to workspace"),
++            item.keywords.end());
++  EXPECT_EQ(internal::BuildMoveToWorkspaceCommands(
++                {{.id = work, .name = u"Work"}}, /*german=*/false)
++                .front()
++                .title,
++            u"Move to Workspace: Work");
++  // The index accepts the items next to the other browser commands.
++  EXPECT_TRUE(command_service_.ReplaceItems(CommandItemType::kBrowserCommand,
++                                            items));
++
++  EXPECT_TRUE(adapter_->CanExecuteItem(item));
++  EXPECT_TRUE(adapter_->ExecuteItem(item, CommandBarDisposition::kCurrentTab));
++  EXPECT_EQ(execution_delegate_->moved_to_workspace, work.AsLowercaseString());
++  EXPECT_TRUE(execution_delegate_->executed_browser_command.empty());
++
++  // The delegate refuses, e.g. the window's own Workspace.
++  execution_delegate_->move_enabled = false;
++  EXPECT_FALSE(adapter_->CanExecuteItem(item));
++  EXPECT_FALSE(adapter_->ExecuteItem(item, CommandBarDisposition::kCurrentTab));
++
++  // A malformed id never reaches the delegate or chrome::ExecuteCommand.
++  execution_delegate_->move_enabled = true;
++  CommandItem malformed = item;
++  malformed.stable_id = "move-to-workspace.not-a-uuid";
++  EXPECT_FALSE(adapter_->CanExecuteItem(malformed));
++  EXPECT_FALSE(
++      adapter_->ExecuteItem(malformed, CommandBarDisposition::kCurrentTab));
++}
++
+ TEST_F(CommandExecutionAdapterTest, ExplicitLocalPrefixHasNoSearchFallback) {
+   EXPECT_FALSE(adapter_->PreviewInput(u"@history project").has_value());
+   EXPECT_FALSE(adapter_->PreviewInput(u">reload").has_value());
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn b/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
+index 9a74a20..802ed48 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
+@@ -207,6 +207,7 @@ source_set("browser_sidebar") {
+     "browser_sidebar_host_layout.cc",
+     "browser_sidebar_host_media.cc",
+     "browser_sidebar_host_menu_state.cc",
++    "browser_sidebar_host_move_command.cc",
+     "browser_sidebar_host_page_actions.cc",
+     "browser_sidebar_host_presentation.cc",
+     "browser_sidebar_host_previews.cc",
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
+index 47b7872..1fc6a15 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
+@@ -194,6 +194,20 @@ bool RevealBrowserSidebarFolder(views::View* sidebar_host,
+   return host && host->RevealFolder(folder_id);
+ }
+ 
++bool CanMoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
++                                               const base::Uuid& workspace_id) {
++  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
++  return host && host->MoveSelectionToWorkspace(workspace_id,
++                                                /*dry_run=*/true);
++}
++
++bool MoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
++                                            const base::Uuid& workspace_id) {
++  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
++  return host && host->MoveSelectionToWorkspace(workspace_id,
++                                                /*dry_run=*/false);
++}
++
+ bool ToggleBrowserSidebarFloating(views::View* sidebar_host) {
+   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+   return host && host->ToggleFloatingSidebar();
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.h
+index 99eaac9..02a739a 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.h
+@@ -86,6 +86,13 @@ bool ActivateBrowserWorkspaceById(views::View* sidebar_host,
+ // selects the folder in the native tree.
+ bool RevealBrowserSidebarFolder(views::View* sidebar_host,
+                                 const base::Uuid& folder_id);
++// ADR 0012 section 2 (command bar "In Workspace verschieben"): moves the
++// selected folder, else the active page with its split group or the active
++// temporary tab, to the root of another Workspace of this Profile.
++bool CanMoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
++                                               const base::Uuid& workspace_id);
++bool MoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
++                                            const base::Uuid& workspace_id);
+ 
+ bool ToggleBrowserSidebarFloating(views::View* sidebar_host);
+ bool ToggleBrowserSidebarVisibility(views::View* sidebar_host);
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_move_command.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_move_command.cc
+new file mode 100644
+index 0000000..da9f64e
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_move_command.cc
+@@ -0,0 +1,98 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include <algorithm>
++#include <optional>
++#include <tuple>
++#include <vector>
++
++#include "ahoi/browser/navigation/workspace_service.h"
++#include "ahoi/browser/session/session_bridge.h"
++#include "ahoi/browser/tab_tree/tab_tree_store.h"
++#include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
++#include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
++#include "base/time/time.h"
++#include "chrome/browser/ui/browser.h"
++#include "chrome/browser/ui/tabs/tab_strip_model.h"
++#include "components/tabs/public/tab_interface.h"
++
++namespace ahoi::sidebar {
++
++// ADR 0012 section 2 (handoff 082): the command bar's "In Workspace
++// verschieben". Same paths as the context menu's "Move to" with the
++// Workspace root as destination: the selected folder, else the active saved
++// page (with its split group), else the active temporary tab.
++bool BrowserSidebarHostView::MoveSelectionToWorkspace(
++    const base::Uuid& workspace_id,
++    bool dry_run) {
++  if (!session_bridge_ || !workspace_service_ || !controller_ ||
++      !tab_strip_model_ || !workspace_id.is_valid() ||
++      controller_->view_model().workspace_id() == workspace_id ||
++      std::ranges::none_of(workspace_service_->ordered_workspaces(),
++                           [&workspace_id](const auto& workspace) {
++                             return workspace.id == workspace_id;
++                           })) {
++    return false;
++  }
++  const SidebarTreeController::DropTarget drop_target = {
++      .workspace_id = workspace_id,
++      .target_node_id = std::nullopt,
++      .position = SidebarTreeController::DropPosition::kInside};
++  tabs::TabInterface* const active = tab_strip_model_->GetActiveTab();
++
++  std::optional<base::Uuid> node_id;
++  if (const std::optional<base::Uuid>& selected =
++          controller_->view_model().selected_node_id()) {
++    const tab_tree::TreeNode* node =
++        controller_->view_model().GetNode(*selected);
++    if (node && node->type == tab_tree::TreeNodeType::kFolder) {
++      node_id = *selected;
++    }
++  }
++  if (!node_id && active) {
++    // Saved rows only; a temporary tab takes the save path below.
++    node_id = session_bridge_->FindTreeNodeIdForTab(active);
++  }
++
++  if (node_id) {
++    if (dry_run) {
++      return true;
++    }
++    const std::vector<base::Uuid> source_ids = GetMoveGroupNodeIds(*node_id);
++    const bool moved_active_tab =
++        active &&
++        std::ranges::any_of(source_ids, [this, active](const base::Uuid& id) {
++          return session_bridge_->FindTabByTreeNodeId(id) == active;
++        });
++    const SidebarTreeController::DropExecutionResult result =
++        controller_->PerformGroupedDrop(
++            source_ids, drop_target,
++            SidebarTreeController::DropOperation::kMove, base::Time::Now());
++    if (!result.ok()) {
++      OnMutationFailed(result.store_result);
++      return false;
++    }
++    if (moved_active_tab) {
++      // Handoff 011 S1: the window's Workspace follows the moved active tab.
++      std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
++          browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
++    }
++    return true;
++  }
++
++  if (!active || !FindTemporaryTab(active->GetHandle().raw_value())) {
++    return false;
++  }
++  if (dry_run) {
++    return true;
++  }
++  if (!SaveTemporaryTabAtDrop(active->GetHandle().raw_value(), drop_target,
++                              nullptr)) {
++    return false;
++  }
++  std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
++      browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
++  return true;
++}
++
++}  // namespace ahoi::sidebar
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+index 8d5b23d..eac9967 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+@@ -148,6 +148,7 @@ class BrowserSidebarHostView final
+   bool ActivateWorkspaceById(const base::Uuid& workspace_id);
+ 
+   bool RevealFolder(const base::Uuid& folder_id);
++  bool MoveSelectionToWorkspace(const base::Uuid& workspace_id, bool dry_run);
+ 
+   bool SetSidebarPresentationMode(SidebarPresentationMode mode);
+   bool ToggleFloatingSidebar();
