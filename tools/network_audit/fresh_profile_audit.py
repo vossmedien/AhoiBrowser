@@ -19,7 +19,9 @@ Phases (--phases, default "idle"):
               HTTPS page (--public-url); the complete endpoint list is
               classified against the same allowlist
   crash       PRIV-16: renderer crash via chrome://crash (and with
-              --crash-browser the browser via chrome://inducebrowsercrashforrealz);
+              --crash-browser the browser process by SIGABRT, which Crashpad
+              records as EXC_CRASH like any browser crash; Chromium does not
+              run chrome://inducebrowsercrashforrealz from DevTools);
               no crash or telemetry upload may follow: no /cr/report request in
               the NetLog, no remote socket of the crash handler and Crashpad
               uploads disabled. With uploads disabled Chrome runs no upload
@@ -300,10 +302,8 @@ def main(argv=None) -> int:
                 handler_remotes |= sockets(crash_handler_pids(launch_time))
                 time.sleep(2)
             if args.crash_browser:
-                try:
-                    typed_navigate(session, "chrome://inducebrowsercrashforrealz")
-                except (OSError, cdp.CDPError):
-                    pass  # the browser dies while answering
+                # Only the browser this tool started, never a foreign process.
+                os.kill(process.pid, signal.SIGABRT)
                 browser_crashed = True
                 for _ in range(15):
                     handler_remotes |= sockets(crash_handler_pids(launch_time))
@@ -315,7 +315,16 @@ def main(argv=None) -> int:
         except (OSError, cdp.CDPError):
             if not browser_crashed:
                 raise
-        process.wait(timeout=60)
+        try:
+            process.wait(timeout=60)
+        except subprocess.TimeoutExpired:
+            # Keep the collected evidence: stop only our own process group.
+            print("browser did not exit in 60 s; stopping it", file=sys.stderr)
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except (ProcessLookupError, PermissionError):
+                pass
+            process.wait(timeout=30)
     except (OSError, cdp.CDPError, subprocess.TimeoutExpired) as error:
         print(f"audit run failed: {error}", file=sys.stderr)
         try:
