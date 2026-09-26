@@ -1,0 +1,249 @@
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/BUILD.gn b/overlay/chromium/src/ahoi/browser/privacy/BUILD.gn
+index ee30c65..f321a61 100644
+--- a/overlay/chromium/src/ahoi/browser/privacy/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/privacy/BUILD.gn
+@@ -81,10 +81,26 @@ source_set("privacy_mode_runtime") {
+   ]
+ }
+ 
++# Handoff 070: owned by TabFeatures (Chromium seam patch).
++source_set("gpc_renderer_preference") {
++  sources = [
++    "gpc_renderer_preference_tab_helper.cc",
++    "gpc_renderer_preference_tab_helper.h",
++  ]
++  public_deps = [ "//content/public/browser" ]
++  deps = [
++    ":privacy_mode_runtime",
++    "//components/prefs",
++    "//third_party/blink/public/common",
++    "//url",
++  ]
++}
++
+ source_set("unit_tests") {
+   testonly = true
+   sources = [
+     "privacy_cookie_enforcement_unittest.cc",
++    "privacy_gpc_preference_unittest.cc",
+     "privacy_mode_url_loader_factory_proxy_unittest.cc",
+     "privacy_mode_url_loader_throttle_unittest.cc",
+     "privacy_strict_request_rules_unittest.cc",
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/gpc_renderer_preference_tab_helper.cc b/overlay/chromium/src/ahoi/browser/privacy/gpc_renderer_preference_tab_helper.cc
+new file mode 100644
+index 0000000..c59afca
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/gpc_renderer_preference_tab_helper.cc
+@@ -0,0 +1,67 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/privacy/gpc_renderer_preference_tab_helper.h"
++
++#include "ahoi/browser/privacy/privacy_strict_request_rules.h"
++#include "components/prefs/pref_service.h"
++#include "content/public/browser/navigation_handle.h"
++#include "content/public/browser/web_contents.h"
++#include "third_party/blink/public/common/renderer_preferences/renderer_preferences.h"
++#include "url/gurl.h"
++
++namespace ahoi::privacy {
++
++GpcRendererPreferenceTabHelper::GpcRendererPreferenceTabHelper(
++    content::WebContents* web_contents,
++    PrefService* prefs,
++    bool is_off_the_record)
++    : content::WebContentsObserver(web_contents),
++      prefs_(prefs),
++      is_off_the_record_(is_off_the_record) {
++  if (web_contents) {
++    UpdateFor(web_contents->GetLastCommittedURL());
++  }
++}
++
++GpcRendererPreferenceTabHelper::~GpcRendererPreferenceTabHelper() = default;
++
++void GpcRendererPreferenceTabHelper::SetWebContents(
++    content::WebContents* web_contents) {
++  Observe(web_contents);
++  if (web_contents) {
++    UpdateFor(web_contents->GetLastCommittedURL());
++  }
++}
++
++void GpcRendererPreferenceTabHelper::DidStartNavigation(
++    content::NavigationHandle* handle) {
++  if (handle->IsInPrimaryMainFrame() && !handle->IsSameDocument()) {
++    UpdateFor(handle->GetURL());
++  }
++}
++
++void GpcRendererPreferenceTabHelper::DidRedirectNavigation(
++    content::NavigationHandle* handle) {
++  if (handle->IsInPrimaryMainFrame()) {
++    UpdateFor(handle->GetURL());
++  }
++}
++
++void GpcRendererPreferenceTabHelper::UpdateFor(const GURL& main_frame_url) {
++  content::WebContents* contents = web_contents();
++  if (!contents || !prefs_) {
++    return;
++  }
++  const bool enable = GlobalPrivacyControlForMainFrameUrl(
++      *prefs_, is_off_the_record_, main_frame_url);
++  blink::RendererPreferences* renderer_prefs =
++      contents->GetMutableRendererPrefs();
++  if (renderer_prefs->enable_global_privacy_control == enable) {
++    return;
++  }
++  renderer_prefs->enable_global_privacy_control = enable;
++  contents->SyncRendererPrefs();
++}
++
++}  // namespace ahoi::privacy
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/gpc_renderer_preference_tab_helper.h b/overlay/chromium/src/ahoi/browser/privacy/gpc_renderer_preference_tab_helper.h
+new file mode 100644
+index 0000000..bb012bd
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/gpc_renderer_preference_tab_helper.h
+@@ -0,0 +1,51 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#ifndef AHOI_BROWSER_PRIVACY_GPC_RENDERER_PREFERENCE_TAB_HELPER_H_
++#define AHOI_BROWSER_PRIVACY_GPC_RENDERER_PREFERENCE_TAB_HELPER_H_
++
++#include "base/memory/raw_ptr.h"
++#include "content/public/browser/web_contents_observer.h"
++
++class GURL;
++class PrefService;
++
++namespace ahoi::privacy {
++
++// Keeps blink::RendererPreferences::enable_global_privacy_control of one tab
++// in line with the mode of its top-level site (handoff 070). It updates at
++// the start (and on each redirect) of every primary main-frame navigation,
++// i.e. before the new document's view is created in a new process and long
++// before commit in the same process, so the committed document normally
++// starts with the right value. Owned by TabFeatures like the developer
++// profile helper; the browser-side factory proxy (068) stays the
++// authoritative source of the header.
++class GpcRendererPreferenceTabHelper final
++    : public content::WebContentsObserver {
++ public:
++  GpcRendererPreferenceTabHelper(content::WebContents* web_contents,
++                                 PrefService* prefs,
++                                 bool is_off_the_record);
++  GpcRendererPreferenceTabHelper(const GpcRendererPreferenceTabHelper&) =
++      delete;
++  GpcRendererPreferenceTabHelper& operator=(
++      const GpcRendererPreferenceTabHelper&) = delete;
++  ~GpcRendererPreferenceTabHelper() override;
++
++  // After a discard replaced the tab's WebContents.
++  void SetWebContents(content::WebContents* web_contents);
++
++  // content::WebContentsObserver:
++  void DidStartNavigation(content::NavigationHandle* handle) override;
++  void DidRedirectNavigation(content::NavigationHandle* handle) override;
++
++ private:
++  void UpdateFor(const GURL& main_frame_url);
++
++  const raw_ptr<PrefService> prefs_;
++  const bool is_off_the_record_;
++};
++
++}  // namespace ahoi::privacy
++
++#endif  // AHOI_BROWSER_PRIVACY_GPC_RENDERER_PREFERENCE_TAB_HELPER_H_
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_gpc_preference_unittest.cc b/overlay/chromium/src/ahoi/browser/privacy/privacy_gpc_preference_unittest.cc
+new file mode 100644
+index 0000000..7db1d29
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_gpc_preference_unittest.cc
+@@ -0,0 +1,29 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/privacy/privacy_strict_request_rules.h"
++
++#include "ahoi/browser/privacy/privacy_mode_service.h"
++#include "components/sync_preferences/testing_pref_service_syncable.h"
++#include "testing/gtest/include/gtest/gtest.h"
++#include "url/gurl.h"
++#include "url/origin.h"
++
++namespace ahoi::privacy {
++namespace {
++
++// Handoff 070: the JS signal follows the top-level site's mode.
++TEST(GpcRendererPreferenceTest, FollowsTopLevelSiteMode) {
++  sync_preferences::TestingPrefServiceSyncable prefs;
++  RegisterProfilePrefs(prefs.registry());
++  EXPECT_FALSE(GlobalPrivacyControlForMainFrameUrl(
++      prefs, false, GURL("https://site.test/")));  // PRIV-17 default
++  ASSERT_TRUE(SetGlobalMode(&prefs, PrivacyMode::kStrict));
++  EXPECT_TRUE(GlobalPrivacyControlForMainFrameUrl(
++      prefs, false, GURL("https://site.test/")));
++  EXPECT_FALSE(GlobalPrivacyControlForMainFrameUrl(
++      prefs, false, GURL("chrome://newtab/")));
++}
++
++}  // namespace
++}  // namespace ahoi::privacy
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.cc b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.cc
+index 761d781..0764d14 100644
+--- a/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.cc
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.cc
+@@ -3,6 +3,7 @@
+ 
+ #include "ahoi/browser/privacy/privacy_strict_request_rules.h"
+ 
++#include "ahoi/browser/privacy/privacy_mode_service.h"
+ #include "net/http/http_request_headers.h"
+ #include "services/network/public/cpp/resource_request.h"
+ #include "url/origin.h"
+@@ -64,4 +65,12 @@ void ApplyStrictRequestRules(network::ResourceRequest& request,
+   request.referrer_policy = CapReferrerPolicyForStrictMode(request.referrer_policy);
+ }
+ 
++bool GlobalPrivacyControlForMainFrameUrl(const PrefService& prefs,
++                                         bool is_off_the_record,
++                                         const GURL& main_frame_url) {
++  return main_frame_url.SchemeIsHTTPOrHTTPS() &&
++         GetPolicySnapshot(prefs, is_off_the_record)
++             .IsStrictForUrl(main_frame_url);
++}
++
+ }  // namespace ahoi::privacy
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.h b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.h
+index 4d68670..1e2588f 100644
+--- a/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.h
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.h
+@@ -9,6 +9,9 @@
+ #include "base/containers/span.h"
+ #include "net/url_request/referrer_policy.h"
+ 
++class GURL;
++class PrefService;
++
+ namespace network {
+ struct ResourceRequest;
+ }  // namespace network
+@@ -42,6 +45,13 @@ bool IsThirdPartyForStrictMode(const network::ResourceRequest& request,
+ void ApplyStrictRequestRules(network::ResourceRequest& request,
+                              bool is_main_frame);
+ 
++// Whether a document whose top-level URL is `main_frame_url` gets Global
++// Privacy Control in the renderer (Sec-GPC and navigator.globalPrivacyControl):
++// exactly when that top-level site is in `Mehr Schutz` (handoff 070).
++bool GlobalPrivacyControlForMainFrameUrl(const PrefService& prefs,
++                                         bool is_off_the_record,
++                                         const GURL& main_frame_url);
++
+ }  // namespace ahoi::privacy
+ 
+ #endif  // AHOI_BROWSER_PRIVACY_PRIVACY_STRICT_REQUEST_RULES_H_
