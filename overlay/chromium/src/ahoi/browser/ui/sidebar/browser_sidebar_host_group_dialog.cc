@@ -554,7 +554,12 @@ void BrowserSidebarHostView::OnCreateGroupDialogClosed() {
   // invalidates that observer list while it is being traversed. Tear the
   // client-owned bubble down on the next task instead, and keep its delegate
   // alive until after the Widget because BubbleDialogDelegate requires that
-  // lifetime ordering.
+  // lifetime ordering. Blur the name field first so the input method does not
+  // keep it as text input client while the Widget goes away (see the
+  // Workspace dialog).
+  if (group_dialog_widget_ && group_dialog_widget_->GetFocusManager()) {
+    group_dialog_widget_->GetFocusManager()->ClearFocus();
+  }
   std::unique_ptr<views::Widget> closed_widget =
       std::move(group_dialog_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =

@@ -186,6 +186,11 @@ void BrowserSidebarHostView::ShowArchiveSearch() {
 }
 
 void BrowserSidebarHostView::OnArchiveSearchClosed() {
+  // Blur the search field before the Widget goes away (see the Workspace
+  // dialog).
+  if (archive_search_widget_ && archive_search_widget_->GetFocusManager()) {
+    archive_search_widget_->GetFocusManager()->ClearFocus();
+  }
   archive_search_widget_.reset();
   archive_search_delegate_.reset();
 }

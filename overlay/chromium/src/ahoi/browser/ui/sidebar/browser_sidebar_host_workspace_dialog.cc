@@ -610,6 +610,13 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
   workspace_icon_field_ = nullptr;
   workspace_own_sessions_radio_ = nullptr;
   workspace_isolated_radio_ = nullptr;
+  // The name field may still be the input method's text input client; a
+  // widget destroyed with it attached trips NativeWidgetMac's focus check
+  // (crash after "Erstellen", HTTP-auth journey on build 35). Blurring it
+  // first detaches the client.
+  if (workspace_dialog_widget_ && workspace_dialog_widget_->GetFocusManager()) {
+    workspace_dialog_widget_->GetFocusManager()->ClearFocus();
+  }
   std::unique_ptr<views::Widget> closed_widget =
       std::move(workspace_dialog_widget_);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
@@ -620,6 +627,9 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
         base::BindOnce(
             [](std::unique_ptr<views::Widget> widget,
                std::unique_ptr<views::BubbleDialogDelegate> delegate) {
+              if (widget && widget->GetFocusManager()) {
+                widget->GetFocusManager()->ClearFocus();
+              }
               widget.reset();
               delegate.reset();
             },
