@@ -24,6 +24,7 @@
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "ahoi/browser/sync/sync_store.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
+#include "ahoi/browser/sync/workspace_structure_sync.h"
 #include "base/base64.h"
 #include "base/files/file_path.h"
 #include "base/files/scoped_temp_dir.h"
@@ -326,6 +327,25 @@ TEST(SyncPayloadCryptorTest, OpensSharedCryptoKitGoldenEnvelope) {
   EXPECT_EQ(cryptor.Open(kEnvelope), std::string(16, '\0'));
 }
 
+// A valid one-page archive entry; its id is derived from the snapshot.
+TabArchiveEntryRecord SampleArchiveEntry(const base::Uuid& workspace_id,
+                                         const SyncVersion& version,
+                                         std::string url = "https://archive.test/") {
+  TabArchiveEntryRecord entry{
+      .snapshot = {.workspace_id = workspace_id,
+                   .pages = {{.tree_node_id =
+                                  Id("10000000-0000-4000-8000-00000000006f"),
+                              .sort_key = "a",
+                              .title = "Archived",
+                              .target = {.kind = SharedTabTargetKind::kWeb,
+                                         .url = std::move(url)}}}},
+      .reason = SharedArchiveReason::kManual,
+      .archived_at = Ts(3),
+      .version = version};
+  entry.id = ArchiveIdForSnapshot(entry.snapshot);
+  return entry;
+}
+
 // One valid record of each type the stable-payload and secret-boundary tests
 // share.
 std::vector<SyncRecord> SampleRecordsOfEveryType() {
@@ -411,6 +431,15 @@ std::vector<SyncRecord> SampleRecordsOfEveryType() {
                            .enabled = true,
                            .opted_in = true,
                            .version = version});
+  // ADR-0011 shared structure: a split group and an archive entry whose page
+  // targets are nested inside the snapshot.
+  records.emplace_back(SplitGroupRecord{
+      .id = Id("10000000-0000-4000-8000-00000000006c"),
+      .workspace_id = workspace_id,
+      .topology = {.member_ids = {Id("10000000-0000-4000-8000-00000000006d"),
+                                  Id("10000000-0000-4000-8000-00000000006e")}},
+      .version = version});
+  records.emplace_back(SampleArchiveEntry(workspace_id, version));
 
   return records;
 }
@@ -462,6 +491,38 @@ TEST(SyncSecretBoundaryTest, NoRecordCarriesCredentialsOrLocalUrls) {
       EXPECT_FALSE(SerializeRecord(record, &payload))
           << static_cast<int>(GetEntityType(record)) << " serialized " << bad;
     }
+  }
+}
+
+// DoD 14, ADR-0011 zones: archive page and Home targets are nested in the
+// snapshot, so the top-level URL check above does not reach them.
+TEST(SyncSecretBoundaryTest, ArchiveTargetsCarryNoCredentialsOrLocalUrls) {
+  const base::Uuid workspace_id = Id("10000000-0000-4000-8000-000000000061");
+  const SyncVersion version = Version(kDeviceA, 60);
+  ASSERT_TRUE(ValidateRecord(SampleArchiveEntry(workspace_id, version)));
+  constexpr const char* kUnsyncable[] = {
+      "https://user:canary-secret@example.test/private",
+      "https://:canary-secret@example.test/",
+      "file:///Users/someone/Documents/private.txt",
+      "chrome://settings/passwords",
+      "javascript:alert(document.cookie)",
+      "data:text/html,canary-secret",
+  };
+  for (const char* bad : kUnsyncable) {
+    TabArchiveEntryRecord page = SampleArchiveEntry(workspace_id, version, bad);
+    EXPECT_FALSE(ValidateArchiveSnapshot(page.snapshot)) << "page " << bad;
+    std::string error;
+    EXPECT_FALSE(ValidateRecord(page, &error)) << "page " << bad;
+    EXPECT_EQ(error.find("canary-secret"), std::string::npos) << error;
+    std::string payload;
+    EXPECT_FALSE(SerializeRecord(page, &payload)) << "page " << bad;
+
+    TabArchiveEntryRecord home = SampleArchiveEntry(workspace_id, version);
+    home.snapshot.pages[0].home_target =
+        SharedTabTarget{.kind = SharedTabTargetKind::kWeb, .url = bad};
+    home.id = ArchiveIdForSnapshot(home.snapshot);
+    EXPECT_FALSE(ValidateArchiveSnapshot(home.snapshot)) << "home " << bad;
+    EXPECT_FALSE(SerializeRecord(home, &payload)) << "home " << bad;
   }
 }
 
