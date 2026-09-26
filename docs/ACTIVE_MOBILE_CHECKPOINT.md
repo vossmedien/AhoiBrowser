@@ -2,6 +2,19 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## ADR 0012 on iOS and a folder-move data loss fix — 26 September 2026
+
+- **Data loss fixed (crest 076, `0ad015a`):** a folder moved to another
+  Workspace kept its children in the source; deleting the source later
+  tombstoned them. The whole live subtree now moves and syncs.
+- **ADR 0012 (crest 086/088/090, `e9ba41a`):** merge Workspaces with a
+  one-level undo, a recent-tab flick on the Harbor Deck's address control,
+  and an opt-in `-AhoiWebExtensionSpike` WebKit Web Extension runtime.
+- `AhoiMobileCoreTests` on iPhone 17: 315 tests, 0 failures, 2 skipped
+  (14 new). Visible checks for merge, flick and the spike checklist are
+  still open. The sync format for a merged Workspace's target
+  (`merged_into`, crest 084) is not implemented yet.
+
 ## Separated Workspaces: retire only for the known owner (crest 056) — 26 September 2026
 
 ADR 0011 step 3 on iOS was already implemented (`fd6c3b2`, `9347aae`,
