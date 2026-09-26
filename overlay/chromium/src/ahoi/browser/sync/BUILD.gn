@@ -150,6 +150,7 @@ source_set("sync") {
       "cloudkit_sync_provider_mac_consent.mm",
       "cloudkit_sync_provider_mac_internal.h",
       "cloudkit_sync_provider_mac_persistence.mm",
+      "cloudkit_sync_provider_mac_upload.mm",
       "cloudkit_sync_record_codec_mac.h",
       "cloudkit_sync_record_codec_mac.mm",
       "cloudkit_sync_util_mac.h",
