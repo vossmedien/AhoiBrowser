@@ -81,7 +81,8 @@ run_mode() { # <label> <seeded mode or "">
   open_tab "$A/login" 2; open_tab "$A/whoami" 2
   local who; who=$(eval_in "/whoami" "document.title")
   open_tab "$A/ads" 2
-  local topics fledge
+  local topics fledge gpcjs
+  gpcjs=$(eval_in "/ads" "String(navigator.globalPrivacyControl)")
   topics=$(eval_in "/ads" "(async()=>{if(typeof document.browsingTopics!=='function')return 'absent';try{const t=await document.browsingTopics();return 'topics:'+t.length}catch(e){return 'rejected:'+e.name}})()")
   fledge=$(eval_in "/ads" "(async()=>{if(typeof navigator.joinAdInterestGroup!=='function')return 'absent';try{await navigator.joinAdInterestGroup({owner:location.origin,name:'ahoi',lifetimeMs:60000},60);return 'joined'}catch(e){return 'rejected:'+e.name}})()")
   open_tab "chrome://prefs-internals" 4
@@ -97,14 +98,14 @@ run_mode() { # <label> <seeded mode or "">
     echo "$label pixel_gpc=$(logged "$LOG" /pixel gpc)"
     echo "$label landing_query=$(logged "$LOG" /landing query)"
     echo "$label whoami=$who"
-    echo "$label topics=$topics fledge=$fledge"
+    echo "$label topics=$topics fledge=$fledge gpc_js=$gpcjs"
     echo "$label prefs=$prefs"
     echo "$label api_key_infobar=$apikey"
   } >> "$OUT/run.txt"
   eval "${label}_TP3=\$tp3 ${label}_PIXGPC=\$(logged \"\$LOG\" /pixel gpc)"
   eval "${label}_TP=\$tp ${label}_GPC=\$(logged \"\$LOG\" /top gpc) ${label}_REF=\$(logged \"\$LOG\" /pixel referer)"
   eval "${label}_QUERY=\$(logged \"\$LOG\" /landing query) ${label}_WHO=\$who ${label}_TOPICS=\$topics ${label}_FLEDGE=\$fledge"
-  eval "${label}_PREFS=\$prefs ${label}_APIKEY=\$apikey"
+  eval "${label}_PREFS=\$prefs ${label}_APIKEY=\$apikey ${label}_GPCJS=\$gpcjs"
   kill $PID 2>/dev/null; sleep 3; kill -9 $PID 2>/dev/null
   kill $FIX 2>/dev/null; sleep 1
 }
@@ -134,6 +135,9 @@ esac
 # PRIV-03 (CHIPS part): the partitioned cookie still works in strict mode.
 case "$strict_TP3" in *chip=1*) record PRIV-03_chips_in_strict PASS ;;
   *) record PRIV-03_chips_in_strict "FAIL:$strict_TP3" ;; esac
+# PRIV-04: the JS signal follows the mode (patches 0067/0068).
+[ "$strict_GPCJS" = true ] && [ "$default_GPCJS" = undefined ] && record PRIV-04_gpc_js_signal PASS \
+  || record PRIV-04_gpc_js_signal "FAIL:strict=$strict_GPCJS,default=$default_GPCJS"
 # PRIV-04: subresources of a strict page carry Sec-GPC too (patch 0066).
 [ "$strict_PIXGPC" = 1 ] && [ -z "$default_PIXGPC" ] && record PRIV-04_gpc_subresource PASS \
   || record PRIV-04_gpc_subresource "FAIL:strict=$strict_PIXGPC,default=$default_PIXGPC"
