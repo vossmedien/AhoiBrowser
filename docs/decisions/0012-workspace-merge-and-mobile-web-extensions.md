@@ -16,8 +16,9 @@ owners; sync format: sync lane.
 - Default: A's unpinned top-level nodes move, in their order, into **one new
   folder at the end of B**. The folder is named after A and keeps A's icon and
   color if B's folders can show them. Option "Ohne Ordner" appends them flat.
-  A's pinned nodes are appended to B's pins. Folders, saved pages, saved
-  start addresses, archive entries and split groups keep their IDs and structure.
+  (The tree has no separate pin area on either platform; should one come, A's
+  pins join B's.) Folders, saved pages, saved start addresses, archive entries
+  and split groups keep their IDs and structure.
 - A is then removed. A's Workspace settings (routing rules, theme, action pins)
   are not merged: B's win, and routing rules that pointed at A point at B.
 - One structure transaction under the single-writer rule (H2): all moves and
@@ -89,8 +90,8 @@ Tab" actions. Two- or three-finger gestures are not used: iOS reserves them
 
 ## Acceptance cases (catalogue, see the H7 section of the lane goal)
 
-- `WS-MERGE-01`: merge shared A into shared B with a folder, a pin, a split
-  and an open tab. Result: one folder "A" in B, the pin in B's pins, the split
+- `WS-MERGE-01`: merge shared A into shared B with a folder, a split
+  and an open tab. Result: one folder "A" in B, the split
   intact, the tab still running, A gone; after a restart, the same.
 - `WS-MERGE-02`: "Ohne Ordner" appends flat, in order.
 - `WS-MERGE-03`: undo restores A with the same ID, name, settings and nodes, and the
