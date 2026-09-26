@@ -25,12 +25,20 @@ owners; sync format: sync lane.
   A's removal commit together or not at all. Undo (toast plus ⌘Z on desktop,
   toast on mobile) restores A with its ID, name, settings and nodes.
 - Open tabs keep running when both Workspaces use the same web context
-  (`shared` with `shared`, ADR 0002). Otherwise (A or B is `website-sessions`
-  or `isolated`, ADR 0011) the merge behaves like `WS-ISO-05`. Pages are
-  reopened by URL in B; a note says logins don't move along. A's open tabs close
-  with before-unload. A's partition or profile is then removed through the
-  normal deletion path of its level, including that path's confirmation
-  about website data. Nothing ever merges two profiles or partitions.
+  (`shared` with `shared`, ADR 0002); such a merge can be undone.
+- Otherwise (A or B has its own website sessions), A's saved pages and folders
+  still move, but an open tab can't change its storage partition:
+  - A's open tabs are asked as one before-unload group, as when deleting A.
+    A veto changes nothing; after agreement they close.
+  - A's own website sessions are retired and cleared like on deletion.
+  - The dialog says so, and this merge has no undo, because the retired
+    sessions can't come back.
+  - Nothing ever merges two profiles or partitions.
+- A `Vollständig getrennt` Workspace (its own profile) is not a merge
+  partner in the first step: the menu only offers Workspaces of the same
+  profile. Merging across profiles would follow the conversion path of
+  ADR 0011 (portable structure, pages reopened in the other profile) and is
+  a later step (`WS-MERGE-04`).
 - Confirmation names what happens: the number of pages and folders, the target,
   and for different levels that logins stay behind. There is no confirmation
   when A is empty.
@@ -96,9 +104,10 @@ Tab" actions. Two- or three-finger gestures are not used: iOS reserves them
 - `WS-MERGE-02`: "Ohne Ordner" appends flat, in order.
 - `WS-MERGE-03`: undo restores A with the same ID, name, settings and nodes, and the
   tabs back in A.
-- `WS-MERGE-04`: `isolated` A into shared B. Pages reopen in B with the note, A's
-  tabs close with before-unload, A's profile is deleted after its
-  confirmation, and no cookie from A appears in B.
+- `WS-MERGE-04`: A with its own website sessions into shared B. The saved pages
+  arrive in B; A's open tabs are asked with before-unload and close; A's
+  binding and partition data are removed; no cookie from A appears in B; the
+  dialog says the merge can't be undone. (Across profiles: later step.)
 - `WS-MERGE-05`: a crash between the moves and A's removal leaves either the
   whole merge or none of it (transaction).
 - `WS-MERGE-06`: sync. Device 1 merges A into B while device 2 adds a page
