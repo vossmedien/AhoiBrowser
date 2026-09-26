@@ -1,6 +1,6 @@
 # 068 – Strict privacy for subresources: shared rules + factory proxy (066 part 1)
 
-Status: integrated fca2c38 (reviewed: Sec-GPC "1" is explicitly allowed by ContainsForbiddenSecurityHeader, so renderer requests are not rejected; seam as patch 0066; syntax-checked; unit tests and privacy journey on build 38)
+Status: accepted on build 39 (79e35f3): privacy-modes-journey 13/13, Sec-GPC and origin-only referrer on a cross-site subresource of a strict page, default mode unchanged; ahoi_privacy_mode_unittests green
 Owner lane: desktop (apply overlay patch, add the Chromium patch to the series, build, test)
 Base: HEAD `4d108a6` (the overlay patch passes `git apply --check`). The Chromium
 patch is in upstream-tree form against `chrome_content_browser_client.cc`

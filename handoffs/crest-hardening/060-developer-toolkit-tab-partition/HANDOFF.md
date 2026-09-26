@@ -1,6 +1,6 @@
 # 060 – Developer toolkit acts on the tab's own StoragePartition
 
-Status: integrated 33d7cd0 (reviewed: all toolkit types are in DATA_TYPE_ON_STORAGE_PARTITION, so the partition filter DCHECK holds; controller includes sorted; syntax-checked; unit test and visible check on build 36)
+Status: integrated 33d7cd0; ahoi_developer_toolkit_unittests green on build 39; visible check of the cookie editor in a Workspace with its own website sessions still open
 Owner lane: desktop (apply, build, test)
 Base: HEAD `6867f1c` (`git apply --check` passes). By the crest-hardening lane;
 syntax-checked read-only against `out/AhoiDev` (0 errors, including the

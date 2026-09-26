@@ -1,6 +1,6 @@
 # 070 – navigator.globalPrivacyControl and renderer Sec-GPC per top-level site (066 part 2)
 
-Status: integrated 79d6851 (reviewed: bindings expose on RuntimeEnabled OR ContextEnabled, so the getter works with the runtime flag off; patches 0067/0068; overlay syntax-checked; build blocked by free disk space until the owner frees space)
+Status: accepted on build 39 (79e35f3): navigator.globalPrivacyControl true in strict, undefined in default (privacy-modes-journey 13/13)
 Owner lane: desktop (apply overlay patch, add two Chromium patches to the series, build, test)
 Base: HEAD `59d7807` (the overlay patch passes `git apply --check`; it needs 068's
 `privacy_strict_request_rules` from `fca2c38`). The Chromium patches are in

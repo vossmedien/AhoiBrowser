@@ -1,6 +1,6 @@
 # 072 – A restored split comes back when its member is opened
 
-Status: integrated 4705dd8 (reviewed: only an explicit activation skips the active/loading gate; building a split closes no page; syntax-checked; split journey on the next build)
+Status: accepted on build 39 (79e35f3): split-archive-restore-journey 5/5, the restored split comes back when its member is opened
 Owner lane: desktop (apply, build, split journey)
 Base: HEAD `5551bff` (`git apply --check` passes; builds on `3dfeb17`).
 Syntax-checked read-only (0 errors), not built.

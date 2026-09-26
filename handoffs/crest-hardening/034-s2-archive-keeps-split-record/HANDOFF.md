@@ -1,6 +1,6 @@
 # 034 – S2: archiving a live split keeps its split record restorable
 
-Status: integrated 5f1ce2c; on build 33 (880217d) the row menu opens via AXShowMenu and the split is archived, but every manual archive of open pages reported failure (async ClosePage vs. synchronous check, fixed in 76f6d94); restore acceptance runs on build 35
+Status: accepted on build 39 (79e35f3): split-archive-restore-journey 5/5 with 76f6d94, 3dfeb17 and 072
 Owner lane: desktop (reproduce, apply, build, test)
 Base: HEAD `e59fb0b` (`git apply --check` passes). Implementation of 011 S2
 by the crest-hardening lane; not compiled by the lane.
