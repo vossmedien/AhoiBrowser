@@ -27,6 +27,7 @@
 #include "ahoi/browser/ui/appearance/sidebar_tint_transition.h"
 #include "ahoi/browser/ui/media/media_mini_player_view.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
+#include "ahoi/browser/ui/sidebar/browser_sidebar_host_state.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_types.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
@@ -44,7 +45,6 @@
 #include "base/scoped_observation.h"
 #include "base/task/cancelable_task_tracker.h"
 #include "base/time/time.h"
-#include "base/timer/timer.h"
 #include "base/uuid.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
 #include "components/bookmarks/browser/base_bookmark_model_observer.h"
@@ -62,7 +62,6 @@
 #include "ui/views/context_menu_controller.h"
 #include "ui/views/controls/textfield/textfield_controller.h"
 #include "ui/views/view.h"
-#include "ui/views/view_tracker.h"
 #include "ui/views/widget/widget_observer.h"
 #include "url/gurl.h"
 
@@ -555,17 +554,7 @@ class BrowserSidebarHostView final
                               const gfx::Point& screen_point,
                               ui::mojom::MenuSourceType source_type);
 
-  // ADR 0011 step 2 (handoff 048): one switcher over the Workspaces of all
-  // Profiles, in the process-wide order. `own` entries belong to this
-  // window's Profile and switch inside it; the others hand the frame over.
-  struct SwitcherWorkspace {
-    session::DirectoryWorkspace key;
-    std::u16string name;
-    std::u16string icon;
-    std::optional<uint32_t> accent_argb;
-    bool own = false;
-    bool own_website_sessions = false;
-  };
+  using SwitcherWorkspace = sidebar::SwitcherWorkspace;
   std::vector<SwitcherWorkspace> SwitcherWorkspaces() const;
   // Index of this window's active Workspace in `switcher`, if listed.
   std::optional<size_t> ActiveSwitcherIndex(
@@ -738,28 +727,7 @@ class BrowserSidebarHostView final
   raw_ptr<CommandService> command_service_ = nullptr;
   std::unique_ptr<SidebarDiscoveryModel> discovery_model_;
   raw_ptr<SidebarDiscoveryView> discovery_view_ = nullptr;
-  views::ViewTracker discovery_focus_restore_tracker_;
-  std::u16string sidebar_discovery_query_;
-  std::set<int> sidebar_discovery_runtime_tab_handles_;
-  std::set<std::string> sidebar_discovery_device_tab_ids_;
-  enum class SidebarDiscoveryPrimaryResultKind {
-    kTreeNode,
-    kDeviceTab,
-    kRuntimeTab,
-  };
-  struct SidebarDiscoveryPrimaryResult {
-    SidebarDiscoveryPrimaryResultKind kind =
-        SidebarDiscoveryPrimaryResultKind::kTreeNode;
-    base::Uuid node_id;
-    std::string device_tab_stable_id;
-    int runtime_tab_handle = -1;
-    raw_ptr<views::View> row = nullptr;
-  };
-  std::vector<SidebarDiscoveryPrimaryResult> sidebar_discovery_primary_results_;
-  std::optional<size_t> sidebar_discovery_primary_selection_;
-  std::optional<int> discovery_scroll_offset_;
-  std::optional<base::Uuid> discovery_selection_before_search_;
-  bool discovery_activation_committed_ = false;
+  SidebarDiscoveryState discovery_state_;
   raw_ptr<views::ScrollView> scroll_view_ = nullptr;
   raw_ptr<SidebarMediaOverlayView> media_overlay_view_ = nullptr;
   raw_ptr<views::View> sidebar_actions_ = nullptr;
@@ -779,14 +747,7 @@ class BrowserSidebarHostView final
   std::map<GURL, ui::ImageModel> favicon_cache_;
   std::set<GURL> requested_favicon_urls_;
   base::CancelableTaskTracker favicon_task_tracker_;
-  std::map<int, std::unique_ptr<CachedTabThumbnail>> tab_thumbnail_cache_;
-  struct SavedTabThumbnailSnapshot {
-    GURL url;
-    gfx::ImageSkia image;
-    uint64_t recency = 0;
-  };
-  std::map<base::Uuid, SavedTabThumbnailSnapshot> saved_thumbnail_snapshots_;
-  uint64_t saved_thumbnail_recency_ = 0;
+  SidebarThumbnailState thumbnails_;
   std::unique_ptr<SidebarTabPreviewController> tab_preview_controller_;
   std::map<int, std::unique_ptr<AhoiMediaStateTracker>> media_trackers_;
   std::map<int, base::CallbackListSubscription> media_state_subscriptions_;
@@ -794,17 +755,7 @@ class BrowserSidebarHostView final
   std::unique_ptr<MediaMiniPlayerChromiumAdapter> mini_player_adapter_;
   raw_ptr<media_ui::MediaMiniPlayerView> mini_player_view_ = nullptr;
   std::set<int> mini_player_tab_handles_;
-  views::ViewTracker group_recent_anchor_tracker_;
-  std::optional<base::Uuid> hovered_folder_id_;
-  std::optional<base::Uuid> group_recent_bubble_folder_id_;
-  base::OneShotTimer group_recent_show_timer_;
-  base::OneShotTimer group_recent_hide_timer_;
-  base::CancelableTaskTracker group_recent_history_task_tracker_;
-  uint64_t group_recent_query_generation_ = 0;
-  bool group_recent_bubble_hovered_ = false;
-  raw_ptr<views::View> group_recent_links_view_ = nullptr;
-  std::unique_ptr<views::BubbleDialogDelegate> group_recent_delegate_;
-  std::unique_ptr<views::Widget> group_recent_widget_;
+  SidebarGroupRecentState group_recent_;
   std::optional<base::Uuid> dragged_node_id_;
   std::optional<int> dragged_runtime_tab_handle_;
   base::ScopedObservation<views::Widget, views::WidgetObserver>
@@ -824,53 +775,9 @@ class BrowserSidebarHostView final
   raw_ptr<sync::ProfileSyncService> profile_sync_service_ = nullptr;
   bool profile_sync_ui_attached_ = false;
   sync::DeviceTabsSnapshot device_tabs_snapshot_;
-  PendingGroupAction pending_group_action_ = PendingGroupAction::kNone;
-  std::optional<base::Uuid> pending_group_source_id_;
-  std::optional<base::Uuid> pending_group_parent_id_;
-  std::optional<int> pending_group_runtime_tab_handle_;
-  std::u16string pending_group_icon_;
-  std::optional<uint32_t> pending_group_accent_argb_;
-  raw_ptr<views::Textfield> group_name_field_ = nullptr;
-  raw_ptr<views::Textfield> group_icon_field_ = nullptr;
-  std::vector<std::pair<raw_ptr<views::ImageButton>, std::u16string>>
-      group_icon_buttons_;
-  std::vector<std::pair<raw_ptr<views::Button>, std::optional<uint32_t>>>
-      group_color_buttons_;
-  std::unique_ptr<views::BubbleDialogDelegate> group_dialog_delegate_;
-  std::unique_ptr<views::Widget> group_dialog_widget_;
-  PendingWorkspaceAction pending_workspace_action_ =
-      PendingWorkspaceAction::kNone;
-  std::optional<base::Uuid> pending_workspace_id_;
-  std::optional<uint32_t> pending_workspace_accent_argb_;
-  raw_ptr<views::Textfield> workspace_name_field_ = nullptr;
-  raw_ptr<views::Textfield> workspace_icon_field_ = nullptr;
-  // ADR 0011 level choice; only present while creating a Workspace.
-  raw_ptr<views::RadioButton> workspace_own_sessions_radio_ = nullptr;
-  raw_ptr<views::RadioButton> workspace_isolated_radio_ = nullptr;
-  std::vector<std::pair<raw_ptr<views::Button>, std::optional<uint32_t>>>
-      workspace_color_buttons_;
-  std::unique_ptr<views::BubbleDialogDelegate> workspace_dialog_delegate_;
-  std::unique_ptr<views::Widget> workspace_dialog_widget_;
-  std::optional<base::Uuid> context_node_id_;
-  base::WeakPtr<tabs::TabInterface> context_runtime_tab_;
-  base::WeakPtr<content::WebContents> context_page_action_contents_;
-  int context_page_action_navigation_id_ = 0;
-  GURL context_page_action_url_;
-  std::vector<base::Uuid> context_workspace_ids_;
-  // Workspace menu command -> position in the shared switcher, for the
-  // Cmd+1..9 hints (handoff 048).
-  std::map<int, size_t> context_workspace_positions_;
-  // Profile directories behind the menu's fully separated Workspace items.
-  std::vector<std::string> context_isolated_workspace_dirs_;
-  // Main Profile Workspaces listed in a fully separated Workspace's window.
-  std::vector<base::Uuid> context_main_workspace_ids_;
-  bool context_offers_main_workspaces_ = false;
-  std::vector<ContextMoveDestination> context_move_destinations_;
-  ContextMenuScope context_menu_scope_ = ContextMenuScope::kNone;
-  std::unique_ptr<ui::SimpleMenuModel> context_menu_model_;
-  std::unique_ptr<ui::SimpleMenuModel> context_archive_policy_model_;
-  std::optional<base::Uuid> context_archive_id_;
-  std::optional<base::Uuid> context_archive_workspace_id_;
+  SidebarGroupDialogState group_dialog_;
+  SidebarWorkspaceDialogState workspace_dialog_;
+  SidebarContextMenuState context_;
   std::unique_ptr<views::Widget> structure_dialog_widget_;
   std::unique_ptr<views::BubbleDialogDelegate> archive_search_delegate_;
   std::unique_ptr<views::Widget> archive_search_widget_;

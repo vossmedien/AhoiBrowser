@@ -216,7 +216,7 @@ BrowserSidebarSplitDropSource BrowserSidebarHostView::ResolveSplitDropSource(
 void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
   // A direct user activation commits the materialization. Transactional drop
   // callers retain and run the returned rollback closure only on failure.
-  discovery_activation_committed_ = true;
+  discovery_state_.activation_committed = true;
   // A page of a live split record (e.g. a split restored from the archive,
   // which stays unloaded) opens with its closed partners, so the structure
   // controller can rebuild the split; the requested page opens last and
@@ -251,7 +251,7 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
     }
     ScheduleCloseSidebarDiscoveryAfterActivation();
   } else if (discovery_view_ && discovery_view_->is_open()) {
-    discovery_activation_committed_ = false;
+    discovery_state_.activation_committed = false;
   }
 }
 
@@ -617,10 +617,10 @@ std::vector<gfx::ImageSkia> BrowserSidebarHostView::GetSavedPageDragThumbnails(
       thumbnails.push_back(std::move(live.front()));
       continue;
     }
-    const auto snapshot = saved_thumbnail_snapshots_.find(grouped_node_id);
+    const auto snapshot = thumbnails_.saved_snapshots.find(grouped_node_id);
     const tab_tree::TreeNode* const grouped_node =
         controller_->view_model().GetNode(grouped_node_id);
-    thumbnails.push_back(snapshot != saved_thumbnail_snapshots_.end() &&
+    thumbnails.push_back(snapshot != thumbnails_.saved_snapshots.end() &&
                                  grouped_node &&
                                  snapshot->second.url == grouped_node->url &&
                                  !snapshot->second.image.isNull() &&

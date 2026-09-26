@@ -260,7 +260,7 @@ bool BrowserSidebarHostView::IsSavedPageBookmarked(
 
 void BrowserSidebarHostView::RefreshThumbnailCache() {
   if (!tab_strip_model_) {
-    tab_thumbnail_cache_.clear();
+    thumbnails_.tab_cache.clear();
     return;
   }
 
@@ -271,7 +271,7 @@ void BrowserSidebarHostView::RefreshThumbnailCache() {
     }
     const int handle = tab->GetHandle().raw_value();
     live_handles.insert(handle);
-    auto [it, inserted] = tab_thumbnail_cache_.try_emplace(handle, nullptr);
+    auto [it, inserted] = thumbnails_.tab_cache.try_emplace(handle, nullptr);
     if (inserted) {
       it->second = std::make_unique<CachedTabThumbnail>(
           base::BindRepeating(&BrowserSidebarHostView::OnTabThumbnailChanged,
@@ -279,10 +279,10 @@ void BrowserSidebarHostView::RefreshThumbnailCache() {
     }
     it->second->Observe(tab);
   }
-  for (auto it = tab_thumbnail_cache_.begin();
-       it != tab_thumbnail_cache_.end();) {
+  for (auto it = thumbnails_.tab_cache.begin();
+       it != thumbnails_.tab_cache.end();) {
     if (!live_handles.contains(it->first)) {
-      it = tab_thumbnail_cache_.erase(it);
+      it = thumbnails_.tab_cache.erase(it);
     } else {
       ++it;
     }
@@ -298,8 +298,8 @@ std::vector<gfx::ImageSkia> BrowserSidebarHostView::GetCachedDragThumbnails(
       thumbnails.emplace_back();
       continue;
     }
-    const auto it = tab_thumbnail_cache_.find(tab->GetHandle().raw_value());
-    if (it != tab_thumbnail_cache_.end() && !it->second->image().isNull() &&
+    const auto it = thumbnails_.tab_cache.find(tab->GetHandle().raw_value());
+    if (it != thumbnails_.tab_cache.end() && !it->second->image().isNull() &&
         !it->second->image().size().IsEmpty()) {
       thumbnails.push_back(it->second->image());
     } else {
@@ -330,11 +330,11 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   // clear the old visual state while those rows are still alive. Async favicon,
   // tab and sync updates must not reset a user's current keyboard position.
   std::optional<SidebarDiscoveryPrimaryResult> primary_result_before_refresh;
-  if (sidebar_discovery_primary_selection_.has_value() &&
-      *sidebar_discovery_primary_selection_ <
-          sidebar_discovery_primary_results_.size()) {
-    primary_result_before_refresh = sidebar_discovery_primary_results_
-        [*sidebar_discovery_primary_selection_];
+  if (discovery_state_.primary_selection.has_value() &&
+      *discovery_state_.primary_selection <
+          discovery_state_.primary_results.size()) {
+    primary_result_before_refresh = discovery_state_.primary_results
+        [*discovery_state_.primary_selection];
     primary_result_before_refresh->row = nullptr;
   }
   ClearSidebarDiscoveryPrimarySelection(/*restore_tree_selection=*/false);
@@ -368,7 +368,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
         return !active_workspace.has_value() || !tab_workspace.has_value() ||
                active_workspace == tab_workspace;
       };
-  const bool search_active = !sidebar_discovery_query_.empty();
+  const bool search_active = !discovery_state_.query.empty();
   const auto is_search_match_tab = [this,
                                     search_active](tabs::TabInterface* tab) {
     if (!search_active) {
@@ -382,7 +382,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
         saved_node_id.has_value()) {
       return controller_->view_model().IsSearchMatch(*saved_node_id);
     }
-    return sidebar_discovery_runtime_tab_handles_.contains(
+    return discovery_state_.runtime_tab_handles.contains(
         tab->GetHandle().raw_value());
   };
   const auto create_open_tab_row = [this,
@@ -586,10 +586,10 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   RebuildSidebarDiscoveryPrimaryResults();
   bool primary_selection_restored = false;
   if (primary_result_before_refresh.has_value()) {
-    for (size_t index = 0; index < sidebar_discovery_primary_results_.size();
+    for (size_t index = 0; index < discovery_state_.primary_results.size();
          ++index) {
       const SidebarDiscoveryPrimaryResult& candidate =
-          sidebar_discovery_primary_results_[index];
+          discovery_state_.primary_results[index];
       const bool same_identity =
           candidate.kind == primary_result_before_refresh->kind &&
           ((candidate.kind == SidebarDiscoveryPrimaryResultKind::kTreeNode &&
@@ -603,7 +603,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
       if (!same_identity) {
         continue;
       }
-      sidebar_discovery_primary_selection_ = index;
+      discovery_state_.primary_selection = index;
       switch (candidate.kind) {
         case SidebarDiscoveryPrimaryResultKind::kTreeNode:
           primary_selection_restored =
@@ -619,7 +619,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
           break;
       }
       if (!primary_selection_restored) {
-        sidebar_discovery_primary_selection_.reset();
+        discovery_state_.primary_selection.reset();
       }
       break;
     }

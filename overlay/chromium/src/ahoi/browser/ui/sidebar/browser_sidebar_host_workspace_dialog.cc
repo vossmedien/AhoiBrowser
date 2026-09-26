@@ -142,7 +142,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
   CHECK(action != PendingWorkspaceAction::kNone);
   VLOG(1) << "Ahoi Workspace dialog requested: " << static_cast<int>(action);
   CHECK_EQ(action != PendingWorkspaceAction::kCreate, workspace_id.has_value());
-  if (workspace_dialog_widget_ || group_dialog_widget_) {
+  if (workspace_dialog_.widget || group_dialog_.widget) {
     LOG(WARNING) << "Ahoi Workspace dialog not shown: another dialog is open";
     return;
   }
@@ -153,9 +153,9 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     LOG(WARNING) << "Ahoi Workspace dialog not shown: Workspace not listed";
     return;
   }
-  pending_workspace_action_ = action;
-  pending_workspace_id_ = workspace_id;
-  pending_workspace_accent_argb_ =
+  workspace_dialog_.action = action;
+  workspace_dialog_.workspace_id = workspace_id;
+  workspace_dialog_.accent_argb =
       existing ? existing->accent_argb : std::nullopt;
 
   auto contents = std::make_unique<views::View>();
@@ -217,15 +217,15 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     name_label->SetSubpixelRenderingEnabled(false);
     name_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
     name_label->SetEnabledColor(visual_style::kMutedText);
-    workspace_name_field_ =
+    workspace_dialog_.name_field =
         contents->AddChildView(std::make_unique<views::Textfield>());
-    workspace_name_field_->SetText(
+    workspace_dialog_.name_field->SetText(
         existing ? existing->name
                  : l10n_util::GetStringUTF16(
                        IDS_AHOI_DIALOG_NEW_WORKSPACE_DEFAULT_NAME));
-    workspace_name_field_->SetPlaceholderText(
+    workspace_dialog_.name_field->SetPlaceholderText(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_NAME));
-    workspace_name_field_->GetViewAccessibility().SetName(
+    workspace_dialog_.name_field->GetViewAccessibility().SetName(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_NAME));
 
     auto* icon_label = contents->AddChildView(std::make_unique<views::Label>(
@@ -233,12 +233,12 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     icon_label->SetSubpixelRenderingEnabled(false);
     icon_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
     icon_label->SetEnabledColor(visual_style::kMutedText);
-    workspace_icon_field_ =
+    workspace_dialog_.icon_field =
         contents->AddChildView(std::make_unique<views::Textfield>());
-    workspace_icon_field_->SetText(existing ? existing->icon : u"N");
-    workspace_icon_field_->SetPlaceholderText(
+    workspace_dialog_.icon_field->SetText(existing ? existing->icon : u"N");
+    workspace_dialog_.icon_field->SetPlaceholderText(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_ICON));
-    workspace_icon_field_->GetViewAccessibility().SetName(
+    workspace_dialog_.icon_field->GetViewAccessibility().SetName(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_ICON));
 
     auto* color_label = contents->AddChildView(std::make_unique<views::Label>(
@@ -256,7 +256,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
                               weak_ptr_factory_.GetWeakPtr(), color),
           color, l10n_util::GetStringUTF16(label_id));
       views::Button* raw_button = button.get();
-      workspace_color_buttons_.emplace_back(raw_button, color);
+      workspace_dialog_.color_buttons.emplace_back(raw_button, color);
       color_choices->AddChildView(std::move(button));
     };
     add_color_choice(std::nullopt, IDS_AHOI_GROUP_COLOR_NONE);
@@ -333,8 +333,8 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
   delegate->set_fixed_width(visual_style::kSidebarDialogWidth);
   delegate->set_margins(gfx::Insets::VH(visual_style::kSidebarDialogInset,
                                         visual_style::kSidebarDialogInset));
-  if (workspace_name_field_) {
-    delegate->SetInitiallyFocusedView(workspace_name_field_);
+  if (workspace_dialog_.name_field) {
+    delegate->SetInitiallyFocusedView(workspace_dialog_.name_field);
   }
   delegate->SetContentsView(std::move(contents));
 
@@ -349,28 +349,28 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
     OnWorkspaceDialogClosed();
     return;
   }
-  workspace_dialog_delegate_ = std::move(delegate);
-  workspace_dialog_widget_ = std::move(widget);
+  workspace_dialog_.delegate = std::move(delegate);
+  workspace_dialog_.widget = std::move(widget);
   if (!modal_overlay_controller_->ShowPanel(
-          workspace_dialog_widget_.get(),
+          workspace_dialog_.widget.get(),
           base::BindRepeating(&BrowserSidebarHostView::CloseWorkspaceDialogNow,
                               weak_ptr_factory_.GetWeakPtr()))) {
     LOG(WARNING) << "Ahoi Workspace dialog not shown: overlay refused panel";
-    workspace_name_field_ = nullptr;
-    workspace_icon_field_ = nullptr;
-    workspace_own_sessions_radio_ = nullptr;
-    workspace_isolated_radio_ = nullptr;
-    workspace_dialog_widget_.reset();
-    workspace_dialog_delegate_.reset();
-    pending_workspace_action_ = PendingWorkspaceAction::kNone;
-    pending_workspace_id_.reset();
-    pending_workspace_accent_argb_.reset();
-    workspace_color_buttons_.clear();
+    workspace_dialog_.name_field = nullptr;
+    workspace_dialog_.icon_field = nullptr;
+    workspace_dialog_.own_sessions_radio = nullptr;
+    workspace_dialog_.isolated_radio = nullptr;
+    workspace_dialog_.widget.reset();
+    workspace_dialog_.delegate.reset();
+    workspace_dialog_.action = PendingWorkspaceAction::kNone;
+    workspace_dialog_.workspace_id.reset();
+    workspace_dialog_.accent_argb.reset();
+    workspace_dialog_.color_buttons.clear();
     return;
   }
-  if (workspace_name_field_) {
-    workspace_name_field_->RequestFocus();
-    workspace_name_field_->SelectAll(false);
+  if (workspace_dialog_.name_field) {
+    workspace_dialog_.name_field->RequestFocus();
+    workspace_dialog_.name_field->SelectAll(false);
   }
 }
 
@@ -384,7 +384,7 @@ void BrowserSidebarHostView::AddWorkspaceLevelChoice(views::View* contents) {
   level_label->SetEnabledColor(visual_style::kMutedText);
   auto* shared = contents->AddChildView(std::make_unique<views::RadioButton>(
       StructureText(u"Gemeinsam", u"Shared"), kLevelGroup));
-  workspace_own_sessions_radio_ =
+  workspace_dialog_.own_sessions_radio =
       contents->AddChildView(std::make_unique<views::RadioButton>(
           StructureText(u"Eigene Website-Sitzungen",
                         u"Own website sessions"),
@@ -393,10 +393,10 @@ void BrowserSidebarHostView::AddWorkspaceLevelChoice(views::View* contents) {
   const bool own_default =
       base::FeatureList::IsEnabled(session::kAhoiWorkspaceWebsiteSessions);
   shared->SetChecked(!own_default);
-  workspace_own_sessions_radio_->SetChecked(own_default);
+  workspace_dialog_.own_sessions_radio->SetChecked(own_default);
   // One fully separated Workspace per Profile: not offered inside one.
   if (!session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
-    workspace_isolated_radio_ =
+    workspace_dialog_.isolated_radio =
         contents->AddChildView(std::make_unique<views::RadioButton>(
             StructureText(u"Vollständig getrennt", u"Fully separated"),
             kLevelGroup));
@@ -411,7 +411,7 @@ void BrowserSidebarHostView::AddWorkspaceLevelChoice(views::View* contents) {
           u"and site data. History, passwords, permissions and extensions "
           u"stay shared with all Workspaces. The level cannot be changed "
           u"later.")));
-  if (workspace_isolated_radio_) {
+  if (workspace_dialog_.isolated_radio) {
     auto* isolated_explanation =
         contents->AddChildView(std::make_unique<views::Label>(StructureText(
             u"Vollständig getrennt öffnet den Workspace in einem eigenen "
@@ -435,13 +435,13 @@ void BrowserSidebarHostView::AddWorkspaceLevelChoice(views::View* contents) {
 
 void BrowserSidebarHostView::SelectWorkspaceColor(std::optional<uint32_t> color,
                                                   const ui::Event&) {
-  pending_workspace_accent_argb_ = color;
+  workspace_dialog_.accent_argb = color;
   UpdateWorkspaceColorButtons();
 }
 
 void BrowserSidebarHostView::UpdateWorkspaceColorButtons() {
-  for (auto& [button, color] : workspace_color_buttons_) {
-    const bool selected = pending_workspace_accent_argb_ == color;
+  for (auto& [button, color] : workspace_dialog_.color_buttons) {
+    const bool selected = workspace_dialog_.accent_argb == color;
     SetGroupColorSwatchSelected(button, selected);
   }
 }
@@ -466,12 +466,12 @@ std::string BrowserSidebarHostView::NextProcessWideWorkspaceSortKey() const {
 }
 
 bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
-  if (pending_workspace_action_ == PendingWorkspaceAction::kConvertToIsolated) {
-    if (pending_workspace_id_.has_value()) {
+  if (workspace_dialog_.action == PendingWorkspaceAction::kConvertToIsolated) {
+    if (workspace_dialog_.workspace_id.has_value()) {
       // The Workspace's pages are asked as one before-unload group first; a
       // veto changes nothing (kCancelled).
       session_bridge_->ConvertWorkspaceToIsolated(
-          *pending_workspace_id_,
+          *workspace_dialog_.workspace_id,
           base::BindOnce(
               [](base::WeakPtr<BrowserSidebarHostView> view,
                  SessionBridge::WorkspaceConversionResult result) {
@@ -488,7 +488,7 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
     }
     return true;
   }
-  if (pending_workspace_action_ == PendingWorkspaceAction::kDelete &&
+  if (workspace_dialog_.action == PendingWorkspaceAction::kDelete &&
       session::IsIsolatedWorkspaceProfile(browser_->GetProfile())) {
     // The Profile is the Workspace: Chromium deletes both after the pages
     // agreed. A veto keeps everything.
@@ -496,12 +496,12 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
                                             base::DoNothing());
     return true;
   }
-  if (pending_workspace_action_ == PendingWorkspaceAction::kDelete) {
-    if (pending_workspace_id_.has_value()) {
+  if (workspace_dialog_.action == PendingWorkspaceAction::kDelete) {
+    if (workspace_dialog_.workspace_id.has_value()) {
       // Pages in the Workspace's own website-session partition are asked as
       // one before-unload group; a veto keeps everything (kCancelled).
       session_bridge_->DeleteWorkspaceClosingIsolatedPages(
-          *pending_workspace_id_,
+          *workspace_dialog_.workspace_id,
           base::BindOnce(
               [](base::WeakPtr<BrowserSidebarHostView> view,
                  tab_tree::TabTreeStore::Result result) {
@@ -514,11 +514,11 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
     }
     return true;
   }
-  if (!workspace_name_field_ || !workspace_icon_field_) {
+  if (!workspace_dialog_.name_field || !workspace_dialog_.icon_field) {
     return false;
   }
-  std::u16string name(workspace_name_field_->GetText());
-  std::u16string icon(workspace_icon_field_->GetText());
+  std::u16string name(workspace_dialog_.name_field->GetText());
+  std::u16string icon(workspace_dialog_.icon_field->GetText());
   base::TrimWhitespace(name, base::TRIM_ALL, &name);
   base::TrimWhitespace(icon, base::TRIM_ALL, &icon);
   if (name.empty()) {
@@ -527,12 +527,12 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
   if (icon.empty()) {
     icon = name.substr(0, std::min<size_t>(1, name.size()));
   }
-  if (pending_workspace_action_ == PendingWorkspaceAction::kCreate &&
-      workspace_isolated_radio_ && workspace_isolated_radio_->GetChecked()) {
+  if (workspace_dialog_.action == PendingWorkspaceAction::kCreate &&
+      workspace_dialog_.isolated_radio && workspace_dialog_.isolated_radio->GetChecked()) {
     // ADR 0011 level `isolated`: a new Profile with its own window; this
     // window's Workspaces stay unchanged.
     session::CreateIsolatedWorkspace(
-        std::move(name), std::move(icon), pending_workspace_accent_argb_,
+        std::move(name), std::move(icon), workspace_dialog_.accent_argb,
         NextProcessWideWorkspaceSortKey(),
         base::BindOnce(
             [](base::WeakPtr<BrowserSidebarHostView> view, bool created) {
@@ -544,12 +544,12 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
             weak_ptr_factory_.GetWeakPtr()));
     return true;
   }
-  if (pending_workspace_action_ == PendingWorkspaceAction::kCreate) {
+  if (workspace_dialog_.action == PendingWorkspaceAction::kCreate) {
     const std::optional<base::Uuid> workspace_id =
         session_bridge_->CreateWorkspace(
-            std::move(name), std::move(icon), pending_workspace_accent_argb_,
-            workspace_own_sessions_radio_ &&
-                workspace_own_sessions_radio_->GetChecked());
+            std::move(name), std::move(icon), workspace_dialog_.accent_argb,
+            workspace_dialog_.own_sessions_radio &&
+                workspace_dialog_.own_sessions_radio->GetChecked());
     if (!workspace_id.has_value()) {
       OnMutationFailed(tab_tree::TabTreeStore::Result::kDatabaseError);
       return false;
@@ -558,12 +558,12 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
         browser_, *workspace_id, WorkspaceActivationSource::kSidebar);
     return true;
   }
-  if (pending_workspace_action_ == PendingWorkspaceAction::kDuplicate &&
-      pending_workspace_id_.has_value()) {
+  if (workspace_dialog_.action == PendingWorkspaceAction::kDuplicate &&
+      workspace_dialog_.workspace_id.has_value()) {
     const std::optional<base::Uuid> workspace_id =
-        session_bridge_->DuplicateWorkspace(*pending_workspace_id_,
+        session_bridge_->DuplicateWorkspace(*workspace_dialog_.workspace_id,
                                             std::move(name), std::move(icon),
-                                            pending_workspace_accent_argb_);
+                                            workspace_dialog_.accent_argb);
     if (!workspace_id.has_value()) {
       OnMutationFailed(tab_tree::TabTreeStore::Result::kDatabaseError);
       return false;
@@ -572,12 +572,12 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
         browser_, *workspace_id, WorkspaceActivationSource::kSidebar);
     return true;
   }
-  if (pending_workspace_action_ == PendingWorkspaceAction::kEdit &&
-      pending_workspace_id_.has_value()) {
+  if (workspace_dialog_.action == PendingWorkspaceAction::kEdit &&
+      workspace_dialog_.workspace_id.has_value()) {
     const tab_tree::TabTreeStore::Result result =
         session_bridge_->UpdateWorkspacePresentation(
-            *pending_workspace_id_, std::move(name), std::move(icon),
-            pending_workspace_accent_argb_);
+            *workspace_dialog_.workspace_id, std::move(name), std::move(icon),
+            workspace_dialog_.accent_argb);
     if (result != tab_tree::TabTreeStore::Result::kOk) {
       OnMutationFailed(result);
       return false;
@@ -588,13 +588,13 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
 }
 
 bool BrowserSidebarHostView::RequestWorkspaceDialogClose() {
-  return workspace_dialog_widget_ && modal_overlay_controller_->RequestClose(
-                                         workspace_dialog_widget_.get());
+  return workspace_dialog_.widget && modal_overlay_controller_->RequestClose(
+                                         workspace_dialog_.widget.get());
 }
 
 void BrowserSidebarHostView::CloseWorkspaceDialogNow() {
-  if (workspace_dialog_widget_) {
-    workspace_dialog_widget_->Close();
+  if (workspace_dialog_.widget) {
+    workspace_dialog_.widget->Close();
   }
 }
 
@@ -630,27 +630,27 @@ void BrowserSidebarHostView::PrepareDialogWidgetForDestruction(
 }
 
 void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
-  if (workspace_dialog_widget_) {
+  if (workspace_dialog_.widget) {
     modal_overlay_controller_->NotifyPanelClosed(
-        workspace_dialog_widget_.get());
+        workspace_dialog_.widget.get());
   }
-  pending_workspace_action_ = PendingWorkspaceAction::kNone;
-  pending_workspace_id_.reset();
-  pending_workspace_accent_argb_.reset();
-  workspace_color_buttons_.clear();
-  workspace_name_field_ = nullptr;
-  workspace_icon_field_ = nullptr;
-  workspace_own_sessions_radio_ = nullptr;
-  workspace_isolated_radio_ = nullptr;
+  workspace_dialog_.action = PendingWorkspaceAction::kNone;
+  workspace_dialog_.workspace_id.reset();
+  workspace_dialog_.accent_argb.reset();
+  workspace_dialog_.color_buttons.clear();
+  workspace_dialog_.name_field = nullptr;
+  workspace_dialog_.icon_field = nullptr;
+  workspace_dialog_.own_sessions_radio = nullptr;
+  workspace_dialog_.isolated_radio = nullptr;
   // The name field may still be the input method's text input client; a
   // widget destroyed with it attached trips NativeWidgetMac's focus check
   // (crash after "Erstellen", HTTP-auth journey on build 35). Blurring it
   // first detaches the client.
-  PrepareDialogWidgetForDestruction(workspace_dialog_widget_.get());
+  PrepareDialogWidgetForDestruction(workspace_dialog_.widget.get());
   std::unique_ptr<views::Widget> closed_widget =
-      std::move(workspace_dialog_widget_);
+      std::move(workspace_dialog_.widget);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
-      std::move(workspace_dialog_delegate_);
+      std::move(workspace_dialog_.delegate);
   if (closed_widget || closed_delegate) {
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
         FROM_HERE,

@@ -253,8 +253,8 @@ void BrowserSidebarHostView::RefreshRemoteTabPresentation() {
         workspace_name = base::UTF8ToUTF16(workspace->name);
       }
     }
-    if (!sidebar_discovery_query_.empty() &&
-        !sidebar_discovery_device_tab_ids_.contains(
+    if (!discovery_state_.query.empty() &&
+        !discovery_state_.device_tab_ids.contains(
             base::StrCat({tab.device_id.AsLowercaseString(), ":",
                           tab.id.AsLowercaseString()}))) {
       continue;

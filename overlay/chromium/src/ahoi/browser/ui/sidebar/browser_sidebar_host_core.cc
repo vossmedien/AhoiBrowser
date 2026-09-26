@@ -287,12 +287,12 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   archive_search_widget_.reset();
   archive_search_delegate_.reset();
   widget_drag_observation_.Reset();
-  group_recent_show_timer_.Stop();
-  group_recent_hide_timer_.Stop();
-  group_recent_history_task_tracker_.TryCancelAll();
-  group_recent_links_view_ = nullptr;
-  group_recent_widget_.reset();
-  group_recent_delegate_.reset();
+  group_recent_.show_timer.Stop();
+  group_recent_.hide_timer.Stop();
+  group_recent_.history_task_tracker.TryCancelAll();
+  group_recent_.links_view = nullptr;
+  group_recent_.widget.reset();
+  group_recent_.delegate.reset();
   session_presentation_subscription_ = {};
   shared_tab_capture_subscription_ = {};
   session_restored_subscription_ = {};
@@ -308,21 +308,21 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   if (workspace_button_) {
     workspace_button_->set_context_menu_controller(nullptr);
   }
-  workspace_name_field_ = nullptr;
-  workspace_icon_field_ = nullptr;
-  if (workspace_dialog_widget_) {
+  workspace_dialog_.name_field = nullptr;
+  workspace_dialog_.icon_field = nullptr;
+  if (workspace_dialog_.widget) {
     modal_overlay_controller_->DismissPanelImmediately(
-        workspace_dialog_widget_.get());
+        workspace_dialog_.widget.get());
   }
-  workspace_dialog_widget_.reset();
-  workspace_dialog_delegate_.reset();
-  group_name_field_ = nullptr;
-  if (group_dialog_widget_) {
+  workspace_dialog_.widget.reset();
+  workspace_dialog_.delegate.reset();
+  group_dialog_.name_field = nullptr;
+  if (group_dialog_.widget) {
     modal_overlay_controller_->DismissPanelImmediately(
-        group_dialog_widget_.get());
+        group_dialog_.widget.get());
   }
-  group_dialog_widget_.reset();
-  group_dialog_delegate_.reset();
+  group_dialog_.widget.reset();
+  group_dialog_.delegate.reset();
   if (tab_strip_model_) {
     tab_strip_model_->RemoveObserver(this);
   }
@@ -670,8 +670,8 @@ void BrowserSidebarHostView::OnTabStripModelChanged(
 void BrowserSidebarHostView::OnTabChangedAt(tabs::TabInterface* tab,
                                             TabChangeType change_type) {
   if (tab && change_type == TabChangeType::kAll) {
-    const auto it = tab_thumbnail_cache_.find(tab->GetHandle().raw_value());
-    if (it != tab_thumbnail_cache_.end()) {
+    const auto it = thumbnails_.tab_cache.find(tab->GetHandle().raw_value());
+    if (it != thumbnails_.tab_cache.end()) {
       it->second->Refresh(tab);
     }
   }
@@ -716,7 +716,7 @@ void BrowserSidebarHostView::OnTabStripModelDestroyed(
     if (tab_preview_controller_) {
       tab_preview_controller_->Hide();
     }
-    tab_thumbnail_cache_.clear();
+    thumbnails_.tab_cache.clear();
     tab_strip_model_ = nullptr;
   }
 }

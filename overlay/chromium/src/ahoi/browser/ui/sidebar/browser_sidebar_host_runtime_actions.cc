@@ -129,7 +129,7 @@ bool BrowserSidebarHostView::CanDropOnRuntimeTab(
     std::optional<int> source_runtime_handle,
     base::WeakPtr<tabs::TabInterface> target,
     OpenTabDropPosition position) const {
-  if (!sidebar_discovery_query_.empty() || !target || !controller_ ||
+  if (!discovery_state_.query.empty() || !target || !controller_ ||
       !session_bridge_ || !tab_strip_model_ ||
       source_node_id.has_value() == source_runtime_handle.has_value()) {
     return false;
@@ -378,7 +378,7 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
 
 bool BrowserSidebarHostView::CanDropOpenTabToTemporary(
     const drag::SidebarTabDragPayload& payload) const {
-  if (!sidebar_discovery_query_.empty() || !payload.is_valid() ||
+  if (!discovery_state_.query.empty() || !payload.is_valid() ||
       !controller_ || !session_bridge_ || !tab_strip_model_) {
     return false;
   }

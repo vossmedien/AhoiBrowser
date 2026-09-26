@@ -146,7 +146,7 @@ END_METADATA
 
 void BrowserSidebarHostView::ShowArchiveSearch() {
   if (!GetWidget() || archive_search_widget_ || structure_dialog_widget_ ||
-      context_menu_scope_ != ContextMenuScope::kNone)
+      context_.scope != ContextMenuScope::kNone)
     return;
   auto contents = std::make_unique<ArchiveSearchView>(
       session_bridge_->GetArchivedPages(),

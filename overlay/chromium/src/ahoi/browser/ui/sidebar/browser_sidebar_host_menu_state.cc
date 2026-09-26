@@ -136,9 +136,9 @@ bool BrowserSidebarHostView::GetAcceleratorForCommandId(
     int command_id,
     ui::Accelerator* accelerator) const {
   std::string shortcut_id;
-  const auto position = context_workspace_positions_.find(command_id);
-  if (context_menu_scope_ == ContextMenuScope::kWorkspace &&
-      position != context_workspace_positions_.end() && position->second < 9) {
+  const auto position = context_.workspace_positions.find(command_id);
+  if (context_.scope == ContextMenuScope::kWorkspace &&
+      position != context_.workspace_positions.end() && position->second < 9) {
     // Cmd+1..9 count the shared switcher's order (handoff 048).
     shortcut_id =
         shortcuts::kWorkspacePrefix + base::NumberToString(position->second + 1);
@@ -162,7 +162,7 @@ bool BrowserSidebarHostView::GetAcceleratorForCommandId(
 bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
   if (command_id >= kArchivePolicyCommandBase &&
       command_id < kArchivePolicyCommandBase + 5) {
-    const auto workspace_id = context_archive_workspace_id_;
+    const auto workspace_id = context_.archive_workspace_id;
     const auto* workspace =
         workspace_id ? FindWorkspace(*workspace_id) : nullptr;
     return workspace && static_cast<int>(workspace->archive_policy) ==
@@ -192,11 +192,11 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
   }
   if (command_id == kSplitSideBySide || command_id == kSplitStacked) {
     tabs::TabInterface* tab = nullptr;
-    if (context_menu_scope_ == ContextMenuScope::kOpenTab) {
-      tab = context_runtime_tab_.get();
-    } else if (context_menu_scope_ == ContextMenuScope::kTree &&
-               context_node_id_.has_value()) {
-      tab = session_bridge_->FindTabByTreeNodeId(*context_node_id_);
+    if (context_.scope == ContextMenuScope::kOpenTab) {
+      tab = context_.runtime_tab.get();
+    } else if (context_.scope == ContextMenuScope::kTree &&
+               context_.node_id.has_value()) {
+      tab = session_bridge_->FindTabByTreeNodeId(*context_.node_id);
     }
     TabStripModel* model = session_bridge_->FindTabStripModelForTab(tab);
     const split_tabs::SplitTabData* split_data =
@@ -214,25 +214,25 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
   }
   if (command_id == kToggleNeverSleep) {
     tabs::TabInterface* tab = nullptr;
-    if (context_menu_scope_ == ContextMenuScope::kOpenTab) {
-      tab = context_runtime_tab_.get();
-    } else if (context_menu_scope_ == ContextMenuScope::kTree &&
-               context_node_id_.has_value()) {
-      tab = session_bridge_->FindTabByTreeNodeId(*context_node_id_);
+    if (context_.scope == ContextMenuScope::kOpenTab) {
+      tab = context_.runtime_tab.get();
+    } else if (context_.scope == ContextMenuScope::kTree &&
+               context_.node_id.has_value()) {
+      tab = session_bridge_->FindTabByTreeNodeId(*context_.node_id);
     }
     return tab && ahoi::memory::IsNeverSleep(tab);
   }
-  if (context_menu_scope_ != ContextMenuScope::kWorkspace ||
+  if (context_.scope != ContextMenuScope::kWorkspace ||
       command_id < kActivateWorkspaceCommandBase) {
     return false;
   }
   const size_t index =
       static_cast<size_t>(command_id - kActivateWorkspaceCommandBase);
-  if (index >= context_workspace_ids_.size() || !window_id_.has_value()) {
+  if (index >= context_.workspace_ids.size() || !window_id_.has_value()) {
     return false;
   }
   return workspace_service_->GetActiveWorkspace(*window_id_) ==
-         context_workspace_ids_[index];
+         context_.workspace_ids[index];
 }
 
 bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
@@ -248,17 +248,17 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
   if (command_id == kArchiveTemporaryTab)
     return session_bridge_->CanArchiveTemporaryPages(ContextArchiveNodes());
   if (command_id == kArchiveList)
-    return context_menu_scope_ == ContextMenuScope::kWorkspace;
+    return context_.scope == ContextMenuScope::kWorkspace;
   if (command_id == kArchivePolicy ||
       (command_id >= kArchivePolicyCommandBase &&
        command_id < kArchivePolicyCommandBase + 5))
-    return context_menu_scope_ == ContextMenuScope::kWorkspace &&
+    return context_.scope == ContextMenuScope::kWorkspace &&
            controller_->view_model().workspace_id().has_value();
   if (command_id == kGoToSavedHome || command_id == kSetSavedHome) {
-    if (!context_node_id_)
+    if (!context_.node_id)
       return false;
-    const auto* node = controller_->view_model().GetNode(*context_node_id_);
-    auto* tab = session_bridge_->FindTabByTreeNodeId(*context_node_id_);
+    const auto* node = controller_->view_model().GetNode(*context_.node_id);
+    auto* tab = session_bridge_->FindTabByTreeNodeId(*context_.node_id);
     return node && !node->is_temporary &&
            (!tab || session_bridge_->FindTabStripModelForTab(tab) ==
                         tab_strip_model_) &&
@@ -266,47 +266,47 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
                 ? tab_tree::GetSharedHomeTarget(*node).has_value()
                 : tab != nullptr);
   }
-  if (context_menu_scope_ == ContextMenuScope::kArchive) {
-    if (!context_archive_id_)
+  if (context_.scope == ContextMenuScope::kArchive) {
+    if (!context_.archive_id)
       return false;
     if (command_id == kRestoreArchiveOriginal)
       return true;
     if (command_id == kRestoreArchiveElsewhere)
-      return !context_move_destinations_.empty();
+      return !context_.move_destinations.empty();
     if (command_id >= kMoveToWorkspaceSubmenuCommandBase)
       return static_cast<size_t>(command_id -
                                  kMoveToWorkspaceSubmenuCommandBase) <
              context_move_submenu_models_.size();
     if (command_id >= kMoveToDestinationCommandBase)
       return static_cast<size_t>(command_id - kMoveToDestinationCommandBase) <
-             context_move_destinations_.size();
+             context_.move_destinations.size();
     return false;
   }
   if (command_id == kMoveTo) {
-    return (context_menu_scope_ == ContextMenuScope::kTree ||
-            context_menu_scope_ == ContextMenuScope::kOpenTab) &&
-           !context_move_destinations_.empty();
+    return (context_.scope == ContextMenuScope::kTree ||
+            context_.scope == ContextMenuScope::kOpenTab) &&
+           !context_.move_destinations.empty();
   }
   if (command_id >= kMoveToWorkspaceSubmenuCommandBase) {
     const size_t index =
         static_cast<size_t>(command_id - kMoveToWorkspaceSubmenuCommandBase);
-    return (context_menu_scope_ == ContextMenuScope::kTree ||
-            context_menu_scope_ == ContextMenuScope::kOpenTab) &&
+    return (context_.scope == ContextMenuScope::kTree ||
+            context_.scope == ContextMenuScope::kOpenTab) &&
            index < context_move_submenu_models_.size();
   }
   if (command_id >= kMoveToDestinationCommandBase) {
     const size_t index =
         static_cast<size_t>(command_id - kMoveToDestinationCommandBase);
-    return ((context_menu_scope_ == ContextMenuScope::kTree &&
-             context_node_id_.has_value()) ||
-            (context_menu_scope_ == ContextMenuScope::kOpenTab &&
-             context_runtime_tab_)) &&
-           index < context_move_destinations_.size();
+    return ((context_.scope == ContextMenuScope::kTree &&
+             context_.node_id.has_value()) ||
+            (context_.scope == ContextMenuScope::kOpenTab &&
+             context_.runtime_tab)) &&
+           index < context_.move_destinations.size();
   }
-  if (context_menu_scope_ == ContextMenuScope::kNone) {
+  if (context_.scope == ContextMenuScope::kNone) {
     return false;
   }
-  if (context_menu_scope_ == ContextMenuScope::kWorkspace) {
+  if (context_.scope == ContextMenuScope::kWorkspace) {
     switch (command_id) {
       case kCreateRootGroup:
       case kCreateWorkspace:
@@ -338,28 +338,28 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
         break;
     }
     if (command_id == kOpenMainWorkspacesCommand) {
-      return context_offers_main_workspaces_;
+      return context_.offers_main_workspaces;
     }
     if (command_id >= kOpenMainWorkspaceCommandBase &&
         command_id < kOpenIsolatedWorkspaceCommandBase) {
       return static_cast<size_t>(command_id - kOpenMainWorkspaceCommandBase) <
-             context_main_workspace_ids_.size();
+             context_.main_workspace_ids.size();
     }
     if (command_id >= kOpenIsolatedWorkspaceCommandBase &&
         command_id < kActivateWorkspaceCommandBase) {
       return static_cast<size_t>(command_id -
                                  kOpenIsolatedWorkspaceCommandBase) <
-             context_isolated_workspace_dirs_.size();
+             context_.isolated_workspace_dirs.size();
     }
     if (command_id < kActivateWorkspaceCommandBase) {
       return false;
     }
     const size_t index =
         static_cast<size_t>(command_id - kActivateWorkspaceCommandBase);
-    return index < context_workspace_ids_.size();
+    return index < context_.workspace_ids.size();
   }
-  if (context_menu_scope_ == ContextMenuScope::kOpenTab) {
-    if (!context_runtime_tab_) {
+  if (context_.scope == ContextMenuScope::kOpenTab) {
+    if (!context_.runtime_tab) {
       return false;
     }
     switch (command_id) {
@@ -371,26 +371,26 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
       case kMoveTo:
         return true;
       case kToggleNeverSleep:
-        return !ahoi::memory::GetNeverSleepKey(context_runtime_tab_->GetURL())
+        return !ahoi::memory::GetNeverSleepKey(context_.runtime_tab->GetURL())
                     .empty();
       case kSleepTab:
-        return ahoi::memory::CanSleepTab(context_runtime_tab_.get());
+        return ahoi::memory::CanSleepTab(context_.runtime_tab.get());
       case kWakeTab:
-        return ahoi::memory::IsTabSleeping(context_runtime_tab_.get());
+        return ahoi::memory::IsTabSleeping(context_.runtime_tab.get());
       case kSplitSideBySide:
       case kSplitStacked:
       case kReverseSplit:
       case kSeparateSplit:
-        return context_runtime_tab_->GetSplit().has_value();
+        return context_.runtime_tab->GetSplit().has_value();
       default:
         return false;
     }
   }
-  if (!context_node_id_.has_value()) {
+  if (!context_.node_id.has_value()) {
     return command_id == kCreateRootGroup;
   }
   const tab_tree::TreeNode* node =
-      controller_->view_model().GetNode(*context_node_id_);
+      controller_->view_model().GetNode(*context_.node_id);
   if (!node) {
     return false;
   }

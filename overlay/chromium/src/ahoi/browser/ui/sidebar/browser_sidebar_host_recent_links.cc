@@ -127,8 +127,8 @@ void BrowserSidebarHostView::OnFaviconAvailable(
     if (tree_view_) {
       tree_view_->OnRuntimePresentationChanged();
     }
-    if (group_recent_links_view_) {
-      UpdateGroupRecentLinkFavicon(group_recent_links_view_, page_url, favicon);
+    if (group_recent_.links_view) {
+      UpdateGroupRecentLinkFavicon(group_recent_.links_view, page_url, favicon);
     }
   }
 }
@@ -144,40 +144,40 @@ void BrowserSidebarHostView::OnFolderHoverChanged(
     if (tab_preview_controller_) {
       tab_preview_controller_->Hide();
     }
-    hovered_folder_id_ = folder_node_id;
-    group_recent_anchor_tracker_.SetView(anchor);
-    group_recent_hide_timer_.Stop();
-    if (group_recent_bubble_folder_id_ == folder_node_id &&
-        group_recent_widget_) {
+    group_recent_.hovered_folder_id = folder_node_id;
+    group_recent_.anchor_tracker.SetView(anchor);
+    group_recent_.hide_timer.Stop();
+    if (group_recent_.bubble_folder_id == folder_node_id &&
+        group_recent_.widget) {
       return;
     }
-    group_recent_show_timer_.Start(
+    group_recent_.show_timer.Start(
         FROM_HERE, visual_style::kRecentLinksHoverOpenDelay,
         base::BindOnce(&BrowserSidebarHostView::BeginGroupRecentQuery,
                        weak_ptr_factory_.GetWeakPtr(), folder_node_id));
     return;
   }
-  if (hovered_folder_id_ == folder_node_id) {
-    hovered_folder_id_.reset();
-    group_recent_show_timer_.Stop();
+  if (group_recent_.hovered_folder_id == folder_node_id) {
+    group_recent_.hovered_folder_id.reset();
+    group_recent_.show_timer.Stop();
     ScheduleGroupRecentBubbleHide();
   }
 }
 
 void BrowserSidebarHostView::BeginGroupRecentQuery(
     const base::Uuid& folder_node_id) {
-  if (hovered_folder_id_ != folder_node_id || !group_recent_anchor_tracker_) {
+  if (group_recent_.hovered_folder_id != folder_node_id || !group_recent_.anchor_tracker) {
     return;
   }
   auto* anchor = views::AsViewClass<SidebarTreeRowView>(
-      group_recent_anchor_tracker_.view());
+      group_recent_.anchor_tracker.view());
   if (!anchor || !anchor->is_bound() || anchor->node_id() != folder_node_id) {
     return;
   }
 
   CloseGroupRecentBubble();
-  group_recent_history_task_tracker_.TryCancelAll();
-  const uint64_t generation = ++group_recent_query_generation_;
+  group_recent_.history_task_tracker.TryCancelAll();
+  const uint64_t generation = ++group_recent_.query_generation;
 
   std::vector<tab_tree::TreeNode> subtree;
   const tab_tree::TabTreeStore::Result result =
@@ -211,7 +211,7 @@ void BrowserSidebarHostView::BeginGroupRecentQuery(
       base::BindOnce(&BrowserSidebarHostView::OnGroupHistoryQueryCompleted,
                      weak_ptr_factory_.GetWeakPtr(), generation, folder_node_id,
                      std::move(pages_by_url)),
-      &group_recent_history_task_tracker_);
+      &group_recent_.history_task_tracker);
 }
 
 void BrowserSidebarHostView::OnGroupHistoryQueryCompleted(
@@ -219,8 +219,8 @@ void BrowserSidebarHostView::OnGroupHistoryQueryCompleted(
     const base::Uuid& folder_node_id,
     std::map<GURL, tab_tree::TreeNode> pages_by_url,
     history::QueryResults results) {
-  if (generation != group_recent_query_generation_ ||
-      hovered_folder_id_ != folder_node_id || !group_recent_anchor_tracker_) {
+  if (generation != group_recent_.query_generation ||
+      group_recent_.hovered_folder_id != folder_node_id || !group_recent_.anchor_tracker) {
     return;
   }
 
@@ -249,12 +249,12 @@ void BrowserSidebarHostView::OnGroupHistoryQueryCompleted(
 void BrowserSidebarHostView::ShowGroupRecentBubble(
     const base::Uuid& folder_node_id,
     std::vector<RecentGroupLink> links) {
-  if (hovered_folder_id_ != folder_node_id || !group_recent_anchor_tracker_ ||
-      group_recent_widget_) {
+  if (group_recent_.hovered_folder_id != folder_node_id || !group_recent_.anchor_tracker ||
+      group_recent_.widget) {
     return;
   }
   auto* anchor = views::AsViewClass<SidebarTreeRowView>(
-      group_recent_anchor_tracker_.view());
+      group_recent_.anchor_tracker.view());
   const tab_tree::TreeNode* folder =
       controller_->view_model().GetNode(folder_node_id);
   if (!anchor || !anchor->is_bound() || anchor->node_id() != folder_node_id ||
@@ -268,7 +268,7 @@ void BrowserSidebarHostView::ShowGroupRecentBubble(
                           weak_ptr_factory_.GetWeakPtr()),
       base::BindRepeating(&BrowserSidebarHostView::OnGroupRecentBubbleHover,
                           weak_ptr_factory_.GetWeakPtr()));
-  group_recent_links_view_ = contents.get();
+  group_recent_.links_view = contents.get();
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
       anchor, views::BubbleBorder::LEFT_CENTER,
       views::BubbleBorder::DIALOG_SHADOW, /*autosize=*/true);
@@ -290,13 +290,13 @@ void BrowserSidebarHostView::ShowGroupRecentBubble(
               base::BindOnce(&BrowserSidebarHostView::OnGroupRecentBubbleClosed,
                              weak_ptr_factory_.GetWeakPtr())));
   if (!widget) {
-    group_recent_links_view_ = nullptr;
+    group_recent_.links_view = nullptr;
     return;
   }
-  group_recent_bubble_folder_id_ = folder_node_id;
-  group_recent_delegate_ = std::move(delegate);
-  group_recent_widget_ = std::move(widget);
-  group_recent_widget_->ShowInactive();
+  group_recent_.bubble_folder_id = folder_node_id;
+  group_recent_.delegate = std::move(delegate);
+  group_recent_.widget = std::move(widget);
+  group_recent_.widget->ShowInactive();
 }
 
 void BrowserSidebarHostView::ActivateRecentGroupLink(
@@ -311,49 +311,49 @@ void BrowserSidebarHostView::ActivateRecentGroupLink(
 }
 
 void BrowserSidebarHostView::OnGroupRecentBubbleHover(bool hovered) {
-  group_recent_bubble_hovered_ = hovered;
+  group_recent_.bubble_hovered = hovered;
   if (hovered) {
-    group_recent_hide_timer_.Stop();
+    group_recent_.hide_timer.Stop();
   } else {
     ScheduleGroupRecentBubbleHide();
   }
 }
 
 void BrowserSidebarHostView::ScheduleGroupRecentBubbleHide() {
-  group_recent_hide_timer_.Start(
+  group_recent_.hide_timer.Start(
       FROM_HERE, visual_style::kRecentLinksHoverCloseDelay,
       base::BindOnce(&BrowserSidebarHostView::MaybeHideGroupRecentBubble,
                      weak_ptr_factory_.GetWeakPtr()));
 }
 
 void BrowserSidebarHostView::MaybeHideGroupRecentBubble() {
-  if (!hovered_folder_id_.has_value() && !group_recent_bubble_hovered_) {
+  if (!group_recent_.hovered_folder_id.has_value() && !group_recent_.bubble_hovered) {
     InvalidateAndCloseGroupRecentBubble();
   }
 }
 
 void BrowserSidebarHostView::InvalidateAndCloseGroupRecentBubble() {
-  ++group_recent_query_generation_;
-  group_recent_history_task_tracker_.TryCancelAll();
+  ++group_recent_.query_generation;
+  group_recent_.history_task_tracker.TryCancelAll();
   CloseGroupRecentBubble();
 }
 
 void BrowserSidebarHostView::CloseGroupRecentBubble() {
-  group_recent_show_timer_.Stop();
-  group_recent_hide_timer_.Stop();
-  group_recent_bubble_hovered_ = false;
-  if (group_recent_widget_) {
-    group_recent_widget_->Close();
+  group_recent_.show_timer.Stop();
+  group_recent_.hide_timer.Stop();
+  group_recent_.bubble_hovered = false;
+  if (group_recent_.widget) {
+    group_recent_.widget->Close();
   }
 }
 
 void BrowserSidebarHostView::OnGroupRecentBubbleClosed() {
-  group_recent_links_view_ = nullptr;
-  group_recent_bubble_folder_id_.reset();
+  group_recent_.links_view = nullptr;
+  group_recent_.bubble_folder_id.reset();
   std::unique_ptr<views::Widget> closed_widget =
-      std::move(group_recent_widget_);
+      std::move(group_recent_.widget);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
-      std::move(group_recent_delegate_);
+      std::move(group_recent_.delegate);
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(
                      [](std::unique_ptr<views::Widget> widget,

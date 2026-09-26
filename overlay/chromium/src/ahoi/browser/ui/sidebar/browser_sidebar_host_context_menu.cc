@@ -153,106 +153,106 @@ void BrowserSidebarHostView::ShowOpenTabContextMenu(
     base::WeakPtr<tabs::TabInterface> tab,
     const gfx::Point& screen_point,
     ui::mojom::MenuSourceType source_type) {
-  if (!tab || !GetWidget() || context_menu_scope_ != ContextMenuScope::kNone) {
+  if (!tab || !GetWidget() || context_.scope != ContextMenuScope::kNone) {
     return;
   }
-  context_runtime_tab_ = tab;
-  context_menu_scope_ = ContextMenuScope::kOpenTab;
-  context_node_id_.reset();
+  context_.runtime_tab = tab;
+  context_.scope = ContextMenuScope::kOpenTab;
+  context_.node_id.reset();
   const bool has_page_action_target = CaptureContextPageActionTarget(tab.get());
-  context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
-  context_menu_model_->AddItem(
+  context_.model = std::make_unique<ui::SimpleMenuModel>(this);
+  context_.model->AddItem(
       kActivateNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_OPEN));
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       kSaveTemporaryTab,
       l10n_util::GetStringUTF16(IDS_STAR_VIEW_MENU_ADD_BOOKMARK));
   if (has_page_action_target) {
-    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-    context_menu_model_->AddItem(
+    context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+    context_.model->AddItem(
         kCopyActivePageLink,
         l10n_util::GetStringUTF16(IDS_AHOI_COPY_ACTIVE_PAGE_LINK));
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kCopyActivePageMarkdownLink,
         l10n_util::GetStringUTF16(IDS_AHOI_COPY_ACTIVE_PAGE_LINK_AS_MARKDOWN));
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kOpenActivePageInReadingMode,
         l10n_util::GetStringUTF16(
             CanOpenActivePageInReadingMode(browser_)
                 ? IDS_AHOI_OPEN_ACTIVE_PAGE_IN_READING_MODE
                 : IDS_AHOI_READING_MODE_UNAVAILABLE));
   }
-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+  context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
   const bool sleeping = ahoi::memory::IsTabSleeping(tab.get());
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       sleeping ? kWakeTab : kSleepTab,
       l10n_util::GetStringUTF16(sleeping ? IDS_AHOI_CONTEXT_WAKE_TAB
                                          : IDS_AHOI_CONTEXT_SLEEP_TAB));
-  context_menu_model_->AddCheckItem(
+  context_.model->AddCheckItem(
       kToggleNeverSleep,
       l10n_util::GetStringUTF16(ahoi::memory::IsNeverSleep(tab.get())
                                     ? IDS_AHOI_CONTEXT_ALLOW_SLEEP_SITE
                                     : IDS_AHOI_CONTEXT_NEVER_SLEEP_SITE));
   if (tab->GetSplit().has_value()) {
-    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-    context_menu_model_->AddCheckItem(
+    context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+    context_.model->AddCheckItem(
         kSplitSideBySide,
         l10n_util::GetStringUTF16(IDS_SPLIT_TAB_SHOW_SIDE_BY_SIDE));
-    context_menu_model_->AddCheckItem(
+    context_.model->AddCheckItem(
         kSplitStacked, l10n_util::GetStringUTF16(IDS_SPLIT_TAB_SHOW_STACKED));
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kReverseSplit, l10n_util::GetStringUTF16(IDS_SPLIT_TAB_REVERSE_VIEWS));
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kSeparateSplit,
         l10n_util::GetStringUTF16(IDS_SPLIT_TAB_SEPARATE_VIEWS));
   }
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       kCreateGroupAroundNode,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_GROUP_WITH_TAB));
   if (BuildMoveToMenu(nullptr)) {
-    context_menu_model_->AddSubMenu(
+    context_.model->AddSubMenu(
         kMoveTo, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_MOVE_TO),
         context_move_menu_model_.get());
   }
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       kDuplicateNode, l10n_util::GetStringUTF16(IDS_TAB_CXMENU_DUPLICATE));
-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-  context_menu_model_->AddItem(
+  context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+  context_.model->AddItem(
       kCloseRuntimeTab, l10n_util::GetStringUTF16(IDS_TAB_CXMENU_CLOSETAB));
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       kArchiveTemporaryTab,
       tab->GetSplit() ? StructureText(u"Split archivieren", u"Archive split")
                       : StructureText(u"Tab archivieren", u"Archive tab"));
 
   context_menu_runner_ = std::make_unique<views::MenuRunner>(
-      context_menu_model_.get(),
+      context_.model.get(),
       views::MenuRunner::HAS_MNEMONICS | views::MenuRunner::CONTEXT_MENU);
   context_menu_runner_->RunMenuAt(
       GetWidget(), nullptr, gfx::Rect(screen_point, gfx::Size()),
       views::MenuAnchorPosition::kTopLeft, source_type);
   context_menu_runner_.reset();
-  context_menu_model_.reset();
+  context_.model.reset();
   context_move_menu_model_.reset();
   context_move_submenu_models_.clear();
-  context_move_destinations_.clear();
-  context_runtime_tab_.reset();
+  context_.move_destinations.clear();
+  context_.runtime_tab.reset();
   ClearContextPageActionTarget();
-  context_menu_scope_ = ContextMenuScope::kNone;
+  context_.scope = ContextMenuScope::kNone;
 }
 
 void BrowserSidebarHostView::ShowWorkspaceMenu(
     const gfx::Point& screen_point,
     ui::mojom::MenuSourceType source_type) {
-  if (!GetWidget() || context_menu_scope_ != ContextMenuScope::kNone) {
+  if (!GetWidget() || context_.scope != ContextMenuScope::kNone) {
     return;
   }
   if (!window_id_.has_value()) {
     window_id_ = session_bridge_->GetWindowId(browser_);
   }
-  context_menu_scope_ = ContextMenuScope::kWorkspace;
-  context_node_id_.reset();
+  context_.scope = ContextMenuScope::kWorkspace;
+  context_.node_id.reset();
   ClearContextPageActionTarget();
-  context_workspace_ids_.clear();
-  context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
+  context_.workspace_ids.clear();
+  context_.model = std::make_unique<ui::SimpleMenuModel>(this);
   // ADR 0011: every non-shared Workspace states its level. The level is part
   // of the title because native macOS menus do not show minor text.
   const std::u16string own_sessions_level =
@@ -265,10 +265,10 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   };
   const bool isolated_profile =
       session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
-  context_isolated_workspace_dirs_.clear();
-  context_main_workspace_ids_.clear();
-  context_workspace_positions_.clear();
-  context_offers_main_workspaces_ = false;
+  context_.isolated_workspace_dirs.clear();
+  context_.main_workspace_ids.clear();
+  context_.workspace_positions.clear();
+  context_.offers_main_workspaces = false;
   // ADR 0011 step 2 (handoff 048): one list in the process-wide order. The
   // check mark shows this window's Workspace; items of another Profile hand
   // this window's frame over to that Profile's window.
@@ -284,67 +284,67 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
     int command_id = 0;
     if (workspace.own) {
       command_id = kActivateWorkspaceCommandBase +
-                   static_cast<int>(context_workspace_ids_.size());
-      context_workspace_ids_.push_back(workspace.key.workspace_id);
-      context_menu_model_->AddCheckItem(command_id, title);
+                   static_cast<int>(context_.workspace_ids.size());
+      context_.workspace_ids.push_back(workspace.key.workspace_id);
+      context_.model->AddCheckItem(command_id, title);
     } else if (workspace.key.profile_dir.empty()) {
-      if (context_main_workspace_ids_.size() >= 99) {
+      if (context_.main_workspace_ids.size() >= 99) {
         continue;
       }
       command_id = kOpenMainWorkspaceCommandBase +
-                   static_cast<int>(context_main_workspace_ids_.size());
-      context_main_workspace_ids_.push_back(workspace.key.workspace_id);
-      context_menu_model_->AddItem(command_id, title);
+                   static_cast<int>(context_.main_workspace_ids.size());
+      context_.main_workspace_ids.push_back(workspace.key.workspace_id);
+      context_.model->AddItem(command_id, title);
     } else {
-      if (context_isolated_workspace_dirs_.size() >= 99) {
+      if (context_.isolated_workspace_dirs.size() >= 99) {
         continue;
       }
       command_id = kOpenIsolatedWorkspaceCommandBase +
-                   static_cast<int>(context_isolated_workspace_dirs_.size());
-      context_isolated_workspace_dirs_.push_back(workspace.key.profile_dir);
-      context_menu_model_->AddItem(command_id, title);
+                   static_cast<int>(context_.isolated_workspace_dirs.size());
+      context_.isolated_workspace_dirs.push_back(workspace.key.profile_dir);
+      context_.model->AddItem(command_id, title);
     }
-    context_workspace_positions_.emplace(command_id, position);
+    context_.workspace_positions.emplace(command_id, position);
   }
   // In a separated window whose main Profile is not loaded, its Workspaces
   // are not known yet; this entry loads it.
   if (isolated_profile && !session::GetLoadedMainProfile()) {
-    context_offers_main_workspaces_ = true;
-    context_menu_model_->AddItem(
+    context_.offers_main_workspaces = true;
+    context_.model->AddItem(
         kOpenMainWorkspacesCommand,
         StructureText(u"Haupt-Workspaces öffnen", u"Open main Workspaces"));
   }
-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+  context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
   if (!isolated_profile) {
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kCreateWorkspace,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_WORKSPACE));
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kDuplicateWorkspace,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DUPLICATE));
   }
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       kEditWorkspace,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_EDIT_WORKSPACE));
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       kCopyAllLinks,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_COPY_ALL_LINKS));
   if (!isolated_profile) {
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kConvertWorkspaceToIsolated,
         StructureText(u"In vollständig getrennten Workspace umwandeln …",
                       u"Convert to fully separated Workspace …"));
   }
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       kDeleteWorkspace,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DELETE_WORKSPACE));
-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+  context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
   BuildArchiveMenus();
-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-  context_menu_model_->AddCheckItem(
+  context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+  context_.model->AddCheckItem(
       kToggleFloatingSidebar,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_FLOATING_SIDEBAR));
-  context_menu_model_->AddItem(
+  context_.model->AddItem(
       kToggleSidebarVisibility,
       l10n_util::GetStringUTF16(
           BrowserView::GetBrowserViewForBrowser(browser_.get())
@@ -352,44 +352,44 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
                   SidebarPresentationMode::kHidden
               ? IDS_AHOI_CONTEXT_SHOW_SIDEBAR
               : IDS_AHOI_CONTEXT_HIDE_SIDEBAR));
-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-  context_menu_model_->AddCheckItem(
+  context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+  context_.model->AddCheckItem(
       kToggleWorkspaceSwipe,
       l10n_util::GetStringUTF16(IDS_AHOI_NAVIGATION_WORKSPACE_SWIPE));
-  context_menu_model_->AddCheckItem(
+  context_.model->AddCheckItem(
       kToggleCmdScrollTabSwitching,
       l10n_util::GetStringUTF16(IDS_AHOI_NAVIGATION_CMD_SCROLL_TAB_SWITCHING));
-  context_menu_model_->AddCheckItem(
+  context_.model->AddCheckItem(
       kToggleMiddleClickAutoscroll,
       l10n_util::GetStringUTF16(IDS_AHOI_NAVIGATION_MIDDLE_CLICK_AUTOSCROLL));
-  context_menu_model_->AddCheckItem(
+  context_.model->AddCheckItem(
       kToggleAutoPeek,
       StructureText(u"Links gespeicherter Seiten zu anderen Websites als "
                     u"Vorschau öffnen",
                     u"Preview links from saved pages to other sites"));
-  context_menu_model_->AddCheckItem(
+  context_.model->AddCheckItem(
       kTogglePeekOnShiftClick,
       StructureText(u"⇧-Klick auf Links öffnet eine Vorschau",
                     u"Shift-click on links opens a preview"));
-  context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-  context_menu_model_->AddItem(
+  context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+  context_.model->AddItem(
       kCreateRootGroup,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_ROOT_GROUP));
   context_menu_runner_ = std::make_unique<views::MenuRunner>(
-      context_menu_model_.get(),
+      context_.model.get(),
       views::MenuRunner::HAS_MNEMONICS | views::MenuRunner::CONTEXT_MENU);
   context_menu_runner_->RunMenuAt(
       GetWidget(), nullptr, gfx::Rect(screen_point, gfx::Size()),
       views::MenuAnchorPosition::kTopLeft, source_type);
   context_menu_runner_.reset();
-  context_menu_model_.reset();
-  context_workspace_ids_.clear();
-  context_isolated_workspace_dirs_.clear();
-  context_main_workspace_ids_.clear();
-  context_offers_main_workspaces_ = false;
-  context_archive_policy_model_.reset();
-  context_archive_workspace_id_.reset();
-  context_menu_scope_ = ContextMenuScope::kNone;
+  context_.model.reset();
+  context_.workspace_ids.clear();
+  context_.isolated_workspace_dirs.clear();
+  context_.main_workspace_ids.clear();
+  context_.offers_main_workspaces = false;
+  context_.archive_policy_model.reset();
+  context_.archive_workspace_id.reset();
+  context_.scope = ContextMenuScope::kNone;
 }
 
 void BrowserSidebarHostView::ShowNodeContextMenu(
@@ -399,51 +399,51 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
   // Search rows are a transient projection. Mutating their normal-tree
   // context menu would either fail in the controller or act on hidden
   // siblings, so keep this state navigation-only.
-  if (!sidebar_discovery_query_.empty()) {
+  if (!discovery_state_.query.empty()) {
     return;
   }
   const tab_tree::TreeNode* node =
       node_id.has_value() ? controller_->view_model().GetNode(*node_id)
                           : nullptr;
   if ((node_id.has_value() && !node) || !GetWidget() ||
-      context_menu_scope_ != ContextMenuScope::kNone) {
+      context_.scope != ContextMenuScope::kNone) {
     return;
   }
-  context_node_id_ = node_id;
-  context_menu_scope_ = ContextMenuScope::kTree;
+  context_.node_id = node_id;
+  context_.scope = ContextMenuScope::kTree;
   ClearContextPageActionTarget();
-  context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
+  context_.model = std::make_unique<ui::SimpleMenuModel>(this);
   if (!node) {
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kCreateRootGroup,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_ROOT_GROUP));
   } else if (node->type == tab_tree::TreeNodeType::kSavedPage) {
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kActivateNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_OPEN));
     tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node->id);
     if (!node->is_temporary) {
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           kGoToSavedHome,
           StructureText(u"Zur Ausgangsadresse", u"Go to Home address"));
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           kSetSavedHome,
           StructureText(u"Aktuelle Seite als Ausgangsadresse setzen",
                         u"Set current page as Home address"));
     } else {
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           kArchiveTemporaryTab, StructureText(u"Archivieren (inklusive Split)",
                                               u"Archive (including split)"));
     }
     if (CaptureContextPageActionTarget(tab)) {
-      context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-      context_menu_model_->AddItem(
+      context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+      context_.model->AddItem(
           kCopyActivePageLink,
           l10n_util::GetStringUTF16(IDS_AHOI_COPY_ACTIVE_PAGE_LINK));
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           kCopyActivePageMarkdownLink,
           l10n_util::GetStringUTF16(
               IDS_AHOI_COPY_ACTIVE_PAGE_LINK_AS_MARKDOWN));
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           kOpenActivePageInReadingMode,
           l10n_util::GetStringUTF16(
               CanOpenActivePageInReadingMode(browser_)
@@ -451,87 +451,87 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
                   : IDS_AHOI_READING_MODE_UNAVAILABLE));
     }
     if (tab && tab->GetSplit().has_value()) {
-      context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-      context_menu_model_->AddCheckItem(
+      context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+      context_.model->AddCheckItem(
           kSplitSideBySide,
           l10n_util::GetStringUTF16(IDS_SPLIT_TAB_SHOW_SIDE_BY_SIDE));
-      context_menu_model_->AddCheckItem(
+      context_.model->AddCheckItem(
           kSplitStacked, l10n_util::GetStringUTF16(IDS_SPLIT_TAB_SHOW_STACKED));
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           kReverseSplit,
           l10n_util::GetStringUTF16(IDS_SPLIT_TAB_REVERSE_VIEWS));
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           kSeparateSplit,
           l10n_util::GetStringUTF16(IDS_SPLIT_TAB_SEPARATE_VIEWS));
     }
     if (tab) {
-      context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+      context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
       const bool sleeping = ahoi::memory::IsTabSleeping(tab);
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           sleeping ? kWakeTab : kSleepTab,
           l10n_util::GetStringUTF16(sleeping ? IDS_AHOI_CONTEXT_WAKE_TAB
                                              : IDS_AHOI_CONTEXT_SLEEP_TAB));
-      context_menu_model_->AddCheckItem(
+      context_.model->AddCheckItem(
           kToggleNeverSleep,
           l10n_util::GetStringUTF16(ahoi::memory::IsNeverSleep(tab)
                                         ? IDS_AHOI_CONTEXT_ALLOW_SLEEP_SITE
                                         : IDS_AHOI_CONTEXT_NEVER_SLEEP_SITE));
     }
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kKeepOpenOnly, l10n_util::GetStringUTF16(IDS_TAB_CXMENU_UNPIN_TAB));
     if (tab) {
-      context_menu_model_->AddItem(
+      context_.model->AddItem(
           kCloseRuntimeTab, l10n_util::GetStringUTF16(IDS_TAB_CXMENU_CLOSETAB));
     }
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kCreateGroupAroundNode,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_GROUP_WITH_TAB));
   } else {
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kToggleGroupExpanded,
         l10n_util::GetStringUTF16(controller_->view_model().IsExpanded(node->id)
                                       ? IDS_AHOI_CONTEXT_COLLAPSE_GROUP
                                       : IDS_AHOI_CONTEXT_EXPAND_GROUP));
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kCreateSubgroup,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_SUBGROUP));
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kCopyAllLinks,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_COPY_ALL_LINKS));
-    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-    context_menu_model_->AddItem(
+    context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+    context_.model->AddItem(
         kCustomizeGroup,
         l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_CUSTOMIZE_GROUP));
   }
   if (node) {
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kDuplicateNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DUPLICATE));
     if (BuildMoveToMenu(node)) {
-      context_menu_model_->AddSubMenu(
+      context_.model->AddSubMenu(
           kMoveTo, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_MOVE_TO),
           context_move_menu_model_.get());
     }
-    context_menu_model_->AddSeparator(ui::NORMAL_SEPARATOR);
-    context_menu_model_->AddItem(
+    context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+    context_.model->AddItem(
         kRenameNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_RENAME));
-    context_menu_model_->AddItem(
+    context_.model->AddItem(
         kDeleteNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_MOVE_TO_TRASH));
   }
 
   context_menu_runner_ = std::make_unique<views::MenuRunner>(
-      context_menu_model_.get(),
+      context_.model.get(),
       views::MenuRunner::HAS_MNEMONICS | views::MenuRunner::CONTEXT_MENU);
   context_menu_runner_->RunMenuAt(
       GetWidget(), nullptr, gfx::Rect(screen_point, gfx::Size()),
       views::MenuAnchorPosition::kTopLeft, source_type);
   context_menu_runner_.reset();
-  context_menu_model_.reset();
+  context_.model.reset();
   context_move_menu_model_.reset();
   context_move_submenu_models_.clear();
-  context_move_destinations_.clear();
-  context_node_id_.reset();
+  context_.move_destinations.clear();
+  context_.node_id.reset();
   ClearContextPageActionTarget();
-  context_menu_scope_ = ContextMenuScope::kNone;
+  context_.scope = ContextMenuScope::kNone;
 }
 
 std::optional<int> BrowserSidebarHostView::AddMoveDestinationCommand(
@@ -541,12 +541,12 @@ std::optional<int> BrowserSidebarHostView::AddMoveDestinationCommand(
   // the two ranges provably disjoint even for unusually large profiles.
   constexpr size_t kMaximumDestinationCount =
       kMoveToWorkspaceSubmenuCommandBase - kMoveToDestinationCommandBase;
-  if (context_move_destinations_.size() >= kMaximumDestinationCount) {
+  if (context_.move_destinations.size() >= kMaximumDestinationCount) {
     return std::nullopt;
   }
   const int command_id = kMoveToDestinationCommandBase +
-                         static_cast<int>(context_move_destinations_.size());
-  context_move_destinations_.push_back(
+                         static_cast<int>(context_.move_destinations.size());
+  context_.move_destinations.push_back(
       {.workspace_id = workspace_id, .folder_id = std::move(folder_id)});
   return command_id;
 }
@@ -591,7 +591,7 @@ void BrowserSidebarHostView::AppendMoveDestinationFolder(
 }
 
 bool BrowserSidebarHostView::BuildMoveToMenu(const tab_tree::TreeNode* source) {
-  context_move_destinations_.clear();
+  context_.move_destinations.clear();
   context_move_submenu_models_.clear();
   context_move_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
 
@@ -637,7 +637,7 @@ bool BrowserSidebarHostView::BuildMoveToMenu(const tab_tree::TreeNode* source) {
     context_move_menu_model_->AddSubMenu(submenu_command_id, workspace_label,
                                          raw_workspace_menu);
   }
-  if (context_move_destinations_.empty()) {
+  if (context_.move_destinations.empty()) {
     context_move_menu_model_.reset();
     context_move_submenu_models_.clear();
     return false;

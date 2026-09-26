@@ -15,7 +15,7 @@ namespace ahoi::sidebar {
 
 void BrowserSidebarHostView::BeginSplitPaneDrag(
     const drag::SidebarTabDragPayload& payload) {
-  if (!sidebar_discovery_query_.empty() || !payload.is_valid()) {
+  if (!discovery_state_.query.empty() || !payload.is_valid()) {
     ResetDragPresentation();
     return;
   }
@@ -99,7 +99,7 @@ void BrowserSidebarHostView::OnTemporaryTabDragStateChanged(
 
 void BrowserSidebarHostView::UpdateNewGroupDropTargetVisibility() {
   const bool visible =
-      sidebar_discovery_query_.empty() &&
+      discovery_state_.query.empty() &&
       (dragged_node_id_.has_value() || dragged_runtime_tab_handle_.has_value());
   SetNewGroupDropTargetVisible(new_group_drop_target_, visible);
   new_group_drop_target_->SchedulePaint();

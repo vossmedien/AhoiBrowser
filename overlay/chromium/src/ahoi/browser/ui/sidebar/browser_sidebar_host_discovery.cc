@@ -61,7 +61,7 @@ void BrowserSidebarHostView::OpenSidebarDiscovery() {
   if (views::FocusManager* const focus_manager = GetFocusManager()) {
     views::View* const focused = focus_manager->GetFocusedView();
     if (focused && focused != discovery_view_) {
-      discovery_focus_restore_tracker_.SetView(focused);
+      discovery_state_.focus_restore_tracker.SetView(focused);
     }
   }
   if (tab_preview_controller_) {
@@ -70,12 +70,12 @@ void BrowserSidebarHostView::OpenSidebarDiscovery() {
   InvalidateAndCloseGroupRecentBubble();
   ResetDragPresentation();
   if (scroll_view_ && scroll_view_->vertical_scroll_bar()) {
-    discovery_scroll_offset_ =
+    discovery_state_.scroll_offset =
         scroll_view_->vertical_scroll_bar()->GetPosition();
   }
-  discovery_selection_before_search_ =
+  discovery_state_.selection_before_search =
       controller_->view_model().selected_node_id();
-  discovery_activation_committed_ = false;
+  discovery_state_.activation_committed = false;
   discovery_view_->Open();
   InvalidateLayout();
 }
@@ -93,9 +93,9 @@ void BrowserSidebarHostView::CloseSidebarDiscovery() {
   const bool discovery_had_focus =
       focused && !primary_surface_had_focus &&
       (focused == discovery_view_ || discovery_view_->Contains(focused));
-  const bool activation_committed = discovery_activation_committed_;
+  const bool activation_committed = discovery_state_.activation_committed;
   const std::optional<base::Uuid> selection_before_search =
-      discovery_selection_before_search_;
+      discovery_state_.selection_before_search;
   discovery_view_->Close();
   if (!activation_committed && selection_before_search.has_value()) {
     // Close() clears the transient projection synchronously, so the original
@@ -103,7 +103,7 @@ void BrowserSidebarHostView::CloseSidebarDiscovery() {
     std::ignore = controller_->SelectNode(*selection_before_search);
   }
   if (discovery_had_focus && focus_manager) {
-    views::View* const restore = discovery_focus_restore_tracker_.view();
+    views::View* const restore = discovery_state_.focus_restore_tracker.view();
     if (GetWidget() && GetWidget()->IsActive()) {
       if (restore && restore->IsDrawn()) {
         restore->RequestFocus();
@@ -114,9 +114,9 @@ void BrowserSidebarHostView::CloseSidebarDiscovery() {
       focus_manager->ClearFocus();
     }
   }
-  discovery_focus_restore_tracker_.SetView(nullptr);
-  if (discovery_scroll_offset_.has_value() && !activation_committed) {
-    const int restore_offset = *discovery_scroll_offset_;
+  discovery_state_.focus_restore_tracker.SetView(nullptr);
+  if (discovery_state_.scroll_offset.has_value() && !activation_committed) {
+    const int restore_offset = *discovery_state_.scroll_offset;
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
         FROM_HERE,
         base::BindOnce(
@@ -129,9 +129,9 @@ void BrowserSidebarHostView::CloseSidebarDiscovery() {
             },
             weak_ptr_factory_.GetWeakPtr(), restore_offset));
   }
-  discovery_scroll_offset_.reset();
-  discovery_selection_before_search_.reset();
-  discovery_activation_committed_ = false;
+  discovery_state_.scroll_offset.reset();
+  discovery_state_.selection_before_search.reset();
+  discovery_state_.activation_committed = false;
   InvalidateLayout();
 }
 
@@ -139,7 +139,7 @@ void BrowserSidebarHostView::ScheduleCloseSidebarDiscoveryAfterActivation() {
   if (!discovery_view_ || !discovery_view_->is_open()) {
     return;
   }
-  discovery_activation_committed_ = true;
+  discovery_state_.activation_committed = true;
   // Inline rows belong to the primary sidebar and may disappear when the
   // filter clears. Let their current mouse/key dispatch unwind before the
   // projection is restored.
@@ -152,17 +152,17 @@ std::set<std::string> BrowserSidebarHostView::ApplySidebarDiscoveryFilter(
     const std::u16string& query,
     const std::vector<SidebarDiscoveryItem>& items) {
   std::set<std::string> consumed_ids;
-  sidebar_discovery_query_ = query;
-  sidebar_discovery_runtime_tab_handles_.clear();
-  sidebar_discovery_device_tab_ids_.clear();
+  discovery_state_.query = query;
+  discovery_state_.runtime_tab_handles.clear();
+  discovery_state_.device_tab_ids.clear();
 
   if (query.empty()) {
     controller_->ClearSearchMatches();
     if (discovery_view_ && discovery_view_->is_open() &&
-        !discovery_activation_committed_ &&
-        discovery_selection_before_search_.has_value()) {
+        !discovery_state_.activation_committed &&
+        discovery_state_.selection_before_search.has_value()) {
       std::ignore =
-          controller_->SelectNode(*discovery_selection_before_search_);
+          controller_->SelectNode(*discovery_state_.selection_before_search);
     }
     RefreshRuntimePresentation(/*refresh_auxiliary=*/false);
     return consumed_ids;
@@ -196,7 +196,7 @@ std::set<std::string> BrowserSidebarHostView::ApplySidebarDiscoveryFilter(
           tree_match_ids.push_back(*node_id);
           pending_tree_consumed_items.emplace_back(*node_id, item.stable_id);
         } else {
-          sidebar_discovery_runtime_tab_handles_.insert(
+          discovery_state_.runtime_tab_handles.insert(
               tab->GetHandle().raw_value());
           consumed_ids.insert(item.stable_id);
         }
@@ -220,7 +220,7 @@ std::set<std::string> BrowserSidebarHostView::ApplySidebarDiscoveryFilter(
         if (runtime_auxiliary_ready_ &&
             ResolveDeviceTabCommand(device_tabs_snapshot_, command.stable_id,
                                     base::Time::Now())) {
-          sidebar_discovery_device_tab_ids_.insert(command.stable_id);
+          discovery_state_.device_tab_ids.insert(command.stable_id);
           consumed_ids.insert(item.stable_id);
         }
         break;
@@ -248,24 +248,24 @@ std::set<std::string> BrowserSidebarHostView::ApplySidebarDiscoveryFilter(
 
 void BrowserSidebarHostView::ClearSidebarDiscoveryPrimarySelection(
     bool restore_tree_selection) {
-  if (!sidebar_discovery_primary_selection_.has_value() ||
-      *sidebar_discovery_primary_selection_ >=
-          sidebar_discovery_primary_results_.size()) {
-    sidebar_discovery_primary_selection_.reset();
+  if (!discovery_state_.primary_selection.has_value() ||
+      *discovery_state_.primary_selection >=
+          discovery_state_.primary_results.size()) {
+    discovery_state_.primary_selection.reset();
     return;
   }
   const SidebarDiscoveryPrimaryResult& result =
-      sidebar_discovery_primary_results_[*sidebar_discovery_primary_selection_];
+      discovery_state_.primary_results[*discovery_state_.primary_selection];
   switch (result.kind) {
     case SidebarDiscoveryPrimaryResultKind::kTreeNode:
-      if (!restore_tree_selection || discovery_activation_committed_) {
+      if (!restore_tree_selection || discovery_state_.activation_committed) {
         break;
       }
-      if (discovery_selection_before_search_.has_value() &&
+      if (discovery_state_.selection_before_search.has_value() &&
           controller_->view_model().GetRowForNode(
-              *discovery_selection_before_search_)) {
+              *discovery_state_.selection_before_search)) {
         std::ignore =
-            controller_->SelectNode(*discovery_selection_before_search_);
+            controller_->SelectNode(*discovery_state_.selection_before_search);
       } else {
         std::ignore = controller_->SelectNode(std::nullopt);
       }
@@ -277,13 +277,13 @@ void BrowserSidebarHostView::ClearSidebarDiscoveryPrimarySelection(
       SetOpenTabSearchSelected(result.row, false);
       break;
   }
-  sidebar_discovery_primary_selection_.reset();
+  discovery_state_.primary_selection.reset();
 }
 
 void BrowserSidebarHostView::RebuildSidebarDiscoveryPrimaryResults() {
-  sidebar_discovery_primary_results_.clear();
-  sidebar_discovery_primary_selection_.reset();
-  if (sidebar_discovery_query_.empty() || !tree_view_) {
+  discovery_state_.primary_results.clear();
+  discovery_state_.primary_selection.reset();
+  if (discovery_state_.query.empty() || !tree_view_) {
     return;
   }
 
@@ -293,7 +293,7 @@ void BrowserSidebarHostView::RebuildSidebarDiscoveryPrimaryResults() {
         tree_view_->IsRuntimeCompositeSuppressedNode(row.node_id)) {
       continue;
     }
-    sidebar_discovery_primary_results_.push_back(
+    discovery_state_.primary_results.push_back(
         {.kind = SidebarDiscoveryPrimaryResultKind::kTreeNode,
          .node_id = row.node_id});
   }
@@ -304,7 +304,7 @@ void BrowserSidebarHostView::RebuildSidebarDiscoveryPrimaryResults() {
     }
     if (const std::optional<sync::RemoteTabRecord> tab =
             GetRemoteTabForView(root)) {
-      sidebar_discovery_primary_results_.push_back(
+      discovery_state_.primary_results.push_back(
           {.kind = SidebarDiscoveryPrimaryResultKind::kDeviceTab,
            .device_tab_stable_id = tab->device_id.AsLowercaseString() + ":" +
                                    tab->id.AsLowercaseString(),
@@ -327,10 +327,10 @@ void BrowserSidebarHostView::RebuildSidebarDiscoveryPrimaryResults() {
       const bool is_exact_match =
           saved_node_id.has_value()
               ? controller_->view_model().IsSearchExactMatch(*saved_node_id)
-              : sidebar_discovery_runtime_tab_handles_.contains(
+              : discovery_state_.runtime_tab_handles.contains(
                     tab->GetHandle().raw_value());
       if (is_exact_match) {
-        sidebar_discovery_primary_results_.push_back(
+        discovery_state_.primary_results.push_back(
             {.kind = SidebarDiscoveryPrimaryResultKind::kRuntimeTab,
              .runtime_tab_handle = tab->GetHandle().raw_value(),
              .row = root});
@@ -347,13 +347,13 @@ void BrowserSidebarHostView::RebuildSidebarDiscoveryPrimaryResults() {
 bool BrowserSidebarHostView::HandleSidebarDiscoveryPrimaryResult(
     SidebarDiscoveryView::PrimaryResultAction action) {
   const auto select_result = [this](size_t index) {
-    if (index >= sidebar_discovery_primary_results_.size()) {
+    if (index >= discovery_state_.primary_results.size()) {
       return false;
     }
     ClearSidebarDiscoveryPrimarySelection();
-    sidebar_discovery_primary_selection_ = index;
+    discovery_state_.primary_selection = index;
     const SidebarDiscoveryPrimaryResult& result =
-        sidebar_discovery_primary_results_[index];
+        discovery_state_.primary_results[index];
     switch (result.kind) {
       case SidebarDiscoveryPrimaryResultKind::kTreeNode:
         return controller_->SelectNode(result.node_id);
@@ -378,30 +378,30 @@ bool BrowserSidebarHostView::HandleSidebarDiscoveryPrimaryResult(
       ClearSidebarDiscoveryPrimarySelection();
       return true;
     case SidebarDiscoveryView::PrimaryResultAction::kSelectFirst:
-      return !sidebar_discovery_primary_results_.empty() && select_result(0u);
+      return !discovery_state_.primary_results.empty() && select_result(0u);
     case SidebarDiscoveryView::PrimaryResultAction::kSelectLast:
-      return !sidebar_discovery_primary_results_.empty() &&
-             select_result(sidebar_discovery_primary_results_.size() - 1u);
+      return !discovery_state_.primary_results.empty() &&
+             select_result(discovery_state_.primary_results.size() - 1u);
     case SidebarDiscoveryView::PrimaryResultAction::kSelectNext:
-      return sidebar_discovery_primary_selection_.has_value() &&
-             *sidebar_discovery_primary_selection_ + 1u <
-                 sidebar_discovery_primary_results_.size() &&
-             select_result(*sidebar_discovery_primary_selection_ + 1u);
+      return discovery_state_.primary_selection.has_value() &&
+             *discovery_state_.primary_selection + 1u <
+                 discovery_state_.primary_results.size() &&
+             select_result(*discovery_state_.primary_selection + 1u);
     case SidebarDiscoveryView::PrimaryResultAction::kSelectPrevious:
-      return sidebar_discovery_primary_selection_.has_value() &&
-             *sidebar_discovery_primary_selection_ > 0u &&
-             select_result(*sidebar_discovery_primary_selection_ - 1u);
+      return discovery_state_.primary_selection.has_value() &&
+             *discovery_state_.primary_selection > 0u &&
+             select_result(*discovery_state_.primary_selection - 1u);
     case SidebarDiscoveryView::PrimaryResultAction::kActivateSelection:
       break;
   }
 
-  if (!sidebar_discovery_primary_selection_.has_value() ||
-      *sidebar_discovery_primary_selection_ >=
-          sidebar_discovery_primary_results_.size()) {
+  if (!discovery_state_.primary_selection.has_value() ||
+      *discovery_state_.primary_selection >=
+          discovery_state_.primary_results.size()) {
     return false;
   }
   const SidebarDiscoveryPrimaryResult result =
-      sidebar_discovery_primary_results_[*sidebar_discovery_primary_selection_];
+      discovery_state_.primary_results[*discovery_state_.primary_selection];
   switch (result.kind) {
     case SidebarDiscoveryPrimaryResultKind::kTreeNode: {
       const tab_tree::TreeNode* node =
@@ -423,9 +423,9 @@ bool BrowserSidebarHostView::HandleSidebarDiscoveryPrimaryResult(
       if (!tab) {
         return false;
       }
-      discovery_activation_committed_ = true;
+      discovery_state_.activation_committed = true;
       if (!OpenRemoteTab(*tab)) {
-        discovery_activation_committed_ = false;
+        discovery_state_.activation_committed = false;
         return false;
       }
       ScheduleCloseSidebarDiscoveryAfterActivation();
@@ -472,7 +472,7 @@ bool BrowserSidebarHostView::ActivateSidebarDiscoveryCommand(
       if (index < 0 || !window || !window->GetWindow()) {
         return false;
       }
-      discovery_activation_committed_ = true;
+      discovery_state_.activation_committed = true;
       const base::WeakPtr<tabs::TabInterface> weak_tab = tab->GetWeakPtr();
       model->ActivateTabAt(
           index, TabStripUserGestureDetails(
@@ -495,21 +495,21 @@ bool BrowserSidebarHostView::ActivateSidebarDiscoveryCommand(
           !node.url.is_valid() || node.url.is_empty()) {
         return false;
       }
-      discovery_activation_committed_ = true;
+      discovery_state_.activation_committed = true;
       if (session_bridge_->GetActiveWorkspaceForWindow(browser_) !=
               node.workspace_id &&
           !session_bridge_->SetActiveWorkspaceForWindow(
               browser_, node.workspace_id,
               WorkspaceActivationSource::kKeyboard)) {
         if (discovery_view_ && discovery_view_->is_open()) {
-          discovery_activation_committed_ = false;
+          discovery_state_.activation_committed = false;
         }
         return false;
       }
       const bool activated =
           MaterializeSavedPage(node, /*require_local_model=*/false).valid;
       if (!activated && discovery_view_ && discovery_view_->is_open()) {
-        discovery_activation_committed_ = false;
+        discovery_state_.activation_committed = false;
       }
       return activated;
     }
@@ -520,7 +520,7 @@ bool BrowserSidebarHostView::ActivateSidebarDiscoveryCommand(
       }
       // Search forces ancestor paths open without mutating normal expansion.
       // Restore the real tree before revealing the selected folder.
-      discovery_activation_committed_ = true;
+      discovery_state_.activation_committed = true;
       CloseSidebarDiscovery();
       return RevealFolder(folder_id);
     }
@@ -530,11 +530,11 @@ bool BrowserSidebarHostView::ActivateSidebarDiscoveryCommand(
       if (!workspace_id.is_valid()) {
         return false;
       }
-      discovery_activation_committed_ = true;
+      discovery_state_.activation_committed = true;
       const bool activated = session_bridge_->SetActiveWorkspaceForWindow(
           browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
       if (!activated && discovery_view_ && discovery_view_->is_open()) {
-        discovery_activation_committed_ = false;
+        discovery_state_.activation_committed = false;
       }
       return activated;
     }
@@ -544,10 +544,10 @@ bool BrowserSidebarHostView::ActivateSidebarDiscoveryCommand(
       if (!tab) {
         return false;
       }
-      discovery_activation_committed_ = true;
+      discovery_state_.activation_committed = true;
       const bool opened = OpenRemoteTab(*tab);
       if (!opened && discovery_view_ && discovery_view_->is_open()) {
-        discovery_activation_committed_ = false;
+        discovery_state_.activation_committed = false;
       }
       return opened;
     }
@@ -562,11 +562,11 @@ bool BrowserSidebarHostView::RestoreSidebarDiscoveryEntry(SessionID entry_id) {
   if (!discovery_model_ || !browser_) {
     return false;
   }
-  discovery_activation_committed_ = true;
+  discovery_state_.activation_committed = true;
   const bool restored = discovery_model_->RestoreRecentlyClosed(
       entry_id, browser_->GetFeatures().live_tab_context());
   if (!restored && discovery_view_ && discovery_view_->is_open()) {
-    discovery_activation_committed_ = false;
+    discovery_state_.activation_committed = false;
   }
   return restored;
 }
@@ -577,7 +577,7 @@ void BrowserSidebarHostView::ActivateFolderSearchResult(
       node.type != tab_tree::TreeNodeType::kFolder || !node.id.is_valid()) {
     return;
   }
-  discovery_activation_committed_ = true;
+  discovery_state_.activation_committed = true;
   // The clicked row is part of the transient projection. Let its current
   // event unwind, restore the normal tree, then reveal and select the folder.
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(

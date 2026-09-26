@@ -214,38 +214,38 @@ void BrowserSidebarHostView::ShowGroupDialog(
         action == PendingGroupAction::kCreateFolder);
   OnSidebarDragStateChanged(std::nullopt);
   OnTemporaryTabDragStateChanged(std::nullopt);
-  if (group_dialog_widget_) {
-    group_dialog_widget_->Close();
+  if (group_dialog_.widget) {
+    group_dialog_.widget->Close();
   }
-  CHECK(!group_dialog_widget_);
-  CHECK(!group_dialog_delegate_);
+  CHECK(!group_dialog_.widget);
+  CHECK(!group_dialog_.delegate);
 
-  pending_group_action_ = action;
-  pending_group_source_id_ = source_node_id;
-  pending_group_parent_id_ = parent_node_id;
-  pending_group_runtime_tab_handle_ = runtime_tab_handle;
-  pending_group_icon_ = u"folder";
-  pending_group_accent_argb_.reset();
+  group_dialog_.action = action;
+  group_dialog_.source_id = source_node_id;
+  group_dialog_.parent_id = parent_node_id;
+  group_dialog_.runtime_tab_handle = runtime_tab_handle;
+  group_dialog_.icon = u"folder";
+  group_dialog_.accent_argb.reset();
   if (action == PendingGroupAction::kEditFolder && source_node_id.has_value()) {
     const tab_tree::TreeNode* node =
         controller_->view_model().GetNode(*source_node_id);
     if (!node || node->type != tab_tree::TreeNodeType::kFolder) {
-      pending_group_action_ = PendingGroupAction::kNone;
+      group_dialog_.action = PendingGroupAction::kNone;
       return;
     }
-    pending_group_icon_ = node->icon.empty() ? u"folder" : node->icon;
-    pending_group_accent_argb_ = node->accent_argb;
+    group_dialog_.icon = node->icon.empty() ? u"folder" : node->icon;
+    group_dialog_.accent_argb = node->accent_argb;
   }
   auto contents = std::make_unique<views::View>();
   contents->SetLayoutManager(std::make_unique<views::BoxLayout>(
       views::BoxLayout::Orientation::kVertical, gfx::Insets(), 8));
-  group_name_field_ =
+  group_dialog_.name_field =
       contents->AddChildView(std::make_unique<views::Textfield>());
-  group_name_field_->SetText(default_title);
+  group_dialog_.name_field->SetText(default_title);
   const std::u16string group_name =
       l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_GROUP_NAME_PLACEHOLDER);
-  group_name_field_->SetPlaceholderText(group_name);
-  group_name_field_->GetViewAccessibility().SetName(group_name);
+  group_dialog_.name_field->SetPlaceholderText(group_name);
+  group_dialog_.name_field->GetViewAccessibility().SetName(group_name);
 
   auto* icon_label = contents->AddChildView(std::make_unique<views::Label>(
       l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_GROUP_ICON)));
@@ -267,7 +267,7 @@ void BrowserSidebarHostView::ShowGroupDialog(
     button->SetTooltipText(accessible_name);
     button->SetPreferredSize(gfx::Size(42, 34));
     views::ImageButton* raw_button = button.get();
-    group_icon_buttons_.emplace_back(raw_button, std::move(id));
+    group_dialog_.icon_buttons.emplace_back(raw_button, std::move(id));
     icon_choices->AddChildView(std::move(button));
   };
   add_icon_choice(u"folder", vector_icons::kFolderFlippableIcon,
@@ -289,17 +289,17 @@ void BrowserSidebarHostView::ShowGroupDialog(
   custom_icon_label->SetSubpixelRenderingEnabled(false);
   custom_icon_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
   custom_icon_label->SetEnabledColor(visual_style::kMutedText);
-  group_icon_field_ =
+  group_dialog_.icon_field =
       contents->AddChildView(std::make_unique<views::Textfield>());
-  group_icon_field_->SetPlaceholderText(
+  group_dialog_.icon_field->SetPlaceholderText(
       l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_GROUP_CUSTOM_ICON_PLACEHOLDER));
-  group_icon_field_->SetAccessibleName(custom_icon_name);
-  group_icon_field_->SetTooltipText(custom_icon_name);
-  group_icon_field_->SetController(this);
-  if (pending_group_icon_ != u"folder" && pending_group_icon_ != u"code" &&
-      pending_group_icon_ != u"lock" && pending_group_icon_ != u"archive" &&
-      pending_group_icon_ != u"moon") {
-    group_icon_field_->SetText(pending_group_icon_);
+  group_dialog_.icon_field->SetAccessibleName(custom_icon_name);
+  group_dialog_.icon_field->SetTooltipText(custom_icon_name);
+  group_dialog_.icon_field->SetController(this);
+  if (group_dialog_.icon != u"folder" && group_dialog_.icon != u"code" &&
+      group_dialog_.icon != u"lock" && group_dialog_.icon != u"archive" &&
+      group_dialog_.icon != u"moon") {
+    group_dialog_.icon_field->SetText(group_dialog_.icon);
   }
 
   auto* color_label = contents->AddChildView(std::make_unique<views::Label>(
@@ -317,7 +317,7 @@ void BrowserSidebarHostView::ShowGroupDialog(
                             weak_ptr_factory_.GetWeakPtr(), color),
         color, std::move(accessible_name));
     views::Button* raw_button = button.get();
-    group_color_buttons_.emplace_back(raw_button, color);
+    group_dialog_.color_buttons.emplace_back(raw_button, color);
     color_choices->AddChildView(std::move(button));
   };
   add_color_choice(std::nullopt,
@@ -340,16 +340,16 @@ void BrowserSidebarHostView::ShowGroupDialog(
 
   views::View* const modal_anchor = modal_overlay_controller_->center_anchor();
   if (!modal_anchor || !modal_anchor->GetWidget()) {
-    pending_group_action_ = PendingGroupAction::kNone;
-    pending_group_source_id_.reset();
-    pending_group_parent_id_.reset();
-    pending_group_runtime_tab_handle_.reset();
-    pending_group_icon_.clear();
-    pending_group_accent_argb_.reset();
-    group_icon_buttons_.clear();
-    group_color_buttons_.clear();
-    group_name_field_ = nullptr;
-    group_icon_field_ = nullptr;
+    group_dialog_.action = PendingGroupAction::kNone;
+    group_dialog_.source_id.reset();
+    group_dialog_.parent_id.reset();
+    group_dialog_.runtime_tab_handle.reset();
+    group_dialog_.icon.clear();
+    group_dialog_.accent_argb.reset();
+    group_dialog_.icon_buttons.clear();
+    group_dialog_.color_buttons.clear();
+    group_dialog_.name_field = nullptr;
+    group_dialog_.icon_field = nullptr;
     return;
   }
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
@@ -390,7 +390,7 @@ void BrowserSidebarHostView::ShowGroupDialog(
   delegate->set_fixed_width(visual_style::kSidebarDialogWidth);
   delegate->set_margins(gfx::Insets::VH(visual_style::kSidebarDialogInset,
                                         visual_style::kSidebarDialogInset));
-  delegate->SetInitiallyFocusedView(group_name_field_);
+  delegate->SetInitiallyFocusedView(group_dialog_.name_field);
   delegate->SetContentsView(std::move(contents));
 
   std::unique_ptr<views::Widget> widget =
@@ -400,48 +400,48 @@ void BrowserSidebarHostView::ShowGroupDialog(
               base::BindOnce(&BrowserSidebarHostView::OnCreateGroupDialogClosed,
                              weak_ptr_factory_.GetWeakPtr())));
   if (!widget) {
-    pending_group_action_ = PendingGroupAction::kNone;
-    pending_group_source_id_.reset();
-    pending_group_parent_id_.reset();
-    pending_group_runtime_tab_handle_.reset();
-    group_name_field_ = nullptr;
-    group_icon_field_ = nullptr;
+    group_dialog_.action = PendingGroupAction::kNone;
+    group_dialog_.source_id.reset();
+    group_dialog_.parent_id.reset();
+    group_dialog_.runtime_tab_handle.reset();
+    group_dialog_.name_field = nullptr;
+    group_dialog_.icon_field = nullptr;
     return;
   }
-  group_dialog_delegate_ = std::move(delegate);
-  group_dialog_widget_ = std::move(widget);
+  group_dialog_.delegate = std::move(delegate);
+  group_dialog_.widget = std::move(widget);
   if (!modal_overlay_controller_->ShowPanel(
-          group_dialog_widget_.get(),
+          group_dialog_.widget.get(),
           base::BindRepeating(&BrowserSidebarHostView::CloseGroupDialogNow,
                               weak_ptr_factory_.GetWeakPtr()))) {
-    group_name_field_ = nullptr;
-    group_icon_field_ = nullptr;
-    group_dialog_widget_.reset();
-    group_dialog_delegate_.reset();
-    pending_group_action_ = PendingGroupAction::kNone;
-    pending_group_source_id_.reset();
-    pending_group_parent_id_.reset();
-    pending_group_runtime_tab_handle_.reset();
+    group_dialog_.name_field = nullptr;
+    group_dialog_.icon_field = nullptr;
+    group_dialog_.widget.reset();
+    group_dialog_.delegate.reset();
+    group_dialog_.action = PendingGroupAction::kNone;
+    group_dialog_.source_id.reset();
+    group_dialog_.parent_id.reset();
+    group_dialog_.runtime_tab_handle.reset();
     return;
   }
-  if (group_name_field_) {
-    group_name_field_->RequestFocus();
-    group_name_field_->SelectAll(false);
+  if (group_dialog_.name_field) {
+    group_dialog_.name_field->RequestFocus();
+    group_dialog_.name_field->SelectAll(false);
   }
 }
 
 void BrowserSidebarHostView::SelectGroupIcon(std::u16string icon,
                                              const ui::Event&) {
-  if (group_icon_field_) {
-    group_icon_field_->SetText(std::u16string());
+  if (group_dialog_.icon_field) {
+    group_dialog_.icon_field->SetText(std::u16string());
   }
-  pending_group_icon_ = std::move(icon);
+  group_dialog_.icon = std::move(icon);
   UpdateGroupChoiceButtons();
 }
 
 void BrowserSidebarHostView::SelectGroupColor(std::optional<uint32_t> color,
                                               const ui::Event&) {
-  pending_group_accent_argb_ = color;
+  group_dialog_.accent_argb = color;
   UpdateGroupChoiceButtons();
 }
 
@@ -449,22 +449,22 @@ void BrowserSidebarHostView::SelectGroupColor(std::optional<uint32_t> color,
 void BrowserSidebarHostView::ContentsChanged(
     views::Textfield* sender,
     const std::u16string& new_contents) {
-  if (sender != group_icon_field_) {
+  if (sender != group_dialog_.icon_field) {
     return;
   }
   std::u16string custom_icon = new_contents;
   base::TrimWhitespace(custom_icon, base::TRIM_ALL, &custom_icon);
   if (!custom_icon.empty()) {
-    pending_group_icon_ = std::move(custom_icon);
+    group_dialog_.icon = std::move(custom_icon);
   } else {
-    pending_group_icon_ = u"folder";
+    group_dialog_.icon = u"folder";
   }
   UpdateGroupChoiceButtons();
 }
 
 void BrowserSidebarHostView::UpdateGroupChoiceButtons() {
-  for (auto& [button, icon] : group_icon_buttons_) {
-    const bool selected = icon == pending_group_icon_;
+  for (auto& [button, icon] : group_dialog_.icon_buttons) {
+    const bool selected = icon == group_dialog_.icon;
     button->SetBackground(selected ? views::CreateRoundedRectBackground(
                                          visual_style::kSelectedSurface,
                                          visual_style::kControlCornerRadius)
@@ -473,49 +473,49 @@ void BrowserSidebarHostView::UpdateGroupChoiceButtons() {
         1, visual_style::kControlCornerRadius,
         selected ? visual_style::kAccent : visual_style::kDivider));
   }
-  for (auto& [button, color] : group_color_buttons_) {
-    const bool selected = color == pending_group_accent_argb_;
+  for (auto& [button, color] : group_dialog_.color_buttons) {
+    const bool selected = color == group_dialog_.accent_argb;
     SetGroupColorSwatchSelected(button, selected);
   }
 }
 
 bool BrowserSidebarHostView::AcceptCreateGroupDialog() {
-  if (!group_name_field_) {
+  if (!group_dialog_.name_field) {
     return false;
   }
-  if (group_icon_field_) {
-    std::u16string custom_icon(group_icon_field_->GetText());
+  if (group_dialog_.icon_field) {
+    std::u16string custom_icon(group_dialog_.icon_field->GetText());
     base::TrimWhitespace(custom_icon, base::TRIM_ALL, &custom_icon);
     if (!custom_icon.empty()) {
-      pending_group_icon_ = std::move(custom_icon);
+      group_dialog_.icon = std::move(custom_icon);
     }
   }
-  std::u16string title(group_name_field_->GetText());
+  std::u16string title(group_dialog_.name_field->GetText());
   base::TrimWhitespace(title, base::TRIM_ALL, &title);
   if (title.empty()) {
     return false;
   }
-  if (pending_group_action_ == PendingGroupAction::kWrapNode &&
-      pending_group_source_id_.has_value()) {
-    CreateGroupAroundNode(*pending_group_source_id_, title);
-  } else if (pending_group_action_ == PendingGroupAction::kWrapTemporaryTab &&
-             pending_group_runtime_tab_handle_.has_value()) {
+  if (group_dialog_.action == PendingGroupAction::kWrapNode &&
+      group_dialog_.source_id.has_value()) {
+    CreateGroupAroundNode(*group_dialog_.source_id, title);
+  } else if (group_dialog_.action == PendingGroupAction::kWrapTemporaryTab &&
+             group_dialog_.runtime_tab_handle.has_value()) {
     base::Uuid saved_node_id;
-    if (SaveTemporaryTabAtWorkspaceRoot(*pending_group_runtime_tab_handle_,
+    if (SaveTemporaryTabAtWorkspaceRoot(*group_dialog_.runtime_tab_handle,
                                         &saved_node_id)) {
       CreateGroupAroundNode(saved_node_id, title);
     } else {
       return false;
     }
-  } else if (pending_group_action_ == PendingGroupAction::kCreateFolder) {
-    CreateFolder(pending_group_parent_id_, title);
-  } else if (pending_group_action_ == PendingGroupAction::kEditFolder &&
-             pending_group_source_id_.has_value()) {
+  } else if (group_dialog_.action == PendingGroupAction::kCreateFolder) {
+    CreateFolder(group_dialog_.parent_id, title);
+  } else if (group_dialog_.action == PendingGroupAction::kEditFolder &&
+             group_dialog_.source_id.has_value()) {
     std::u16string normalized_title = title;
     const tab_tree::TabTreeStore::Result result =
         controller_->UpdateFolderPresentation(
-            *pending_group_source_id_, std::move(normalized_title),
-            pending_group_icon_, pending_group_accent_argb_, base::Time::Now());
+            *group_dialog_.source_id, std::move(normalized_title),
+            group_dialog_.icon, group_dialog_.accent_argb, base::Time::Now());
     if (result != tab_tree::TabTreeStore::Result::kOk) {
       OnMutationFailed(result);
     }
@@ -524,30 +524,30 @@ bool BrowserSidebarHostView::AcceptCreateGroupDialog() {
 }
 
 bool BrowserSidebarHostView::RequestGroupDialogClose() {
-  return group_dialog_widget_ &&
-         modal_overlay_controller_->RequestClose(group_dialog_widget_.get());
+  return group_dialog_.widget &&
+         modal_overlay_controller_->RequestClose(group_dialog_.widget.get());
 }
 
 void BrowserSidebarHostView::CloseGroupDialogNow() {
-  if (group_dialog_widget_) {
-    group_dialog_widget_->Close();
+  if (group_dialog_.widget) {
+    group_dialog_.widget->Close();
   }
 }
 
 void BrowserSidebarHostView::OnCreateGroupDialogClosed() {
-  if (group_dialog_widget_) {
-    modal_overlay_controller_->NotifyPanelClosed(group_dialog_widget_.get());
+  if (group_dialog_.widget) {
+    modal_overlay_controller_->NotifyPanelClosed(group_dialog_.widget.get());
   }
-  pending_group_action_ = PendingGroupAction::kNone;
-  pending_group_source_id_.reset();
-  pending_group_parent_id_.reset();
-  pending_group_runtime_tab_handle_.reset();
-  pending_group_icon_.clear();
-  pending_group_accent_argb_.reset();
-  group_icon_buttons_.clear();
-  group_color_buttons_.clear();
-  group_name_field_ = nullptr;
-  group_icon_field_ = nullptr;
+  group_dialog_.action = PendingGroupAction::kNone;
+  group_dialog_.source_id.reset();
+  group_dialog_.parent_id.reset();
+  group_dialog_.runtime_tab_handle.reset();
+  group_dialog_.icon.clear();
+  group_dialog_.accent_argb.reset();
+  group_dialog_.icon_buttons.clear();
+  group_dialog_.color_buttons.clear();
+  group_dialog_.name_field = nullptr;
+  group_dialog_.icon_field = nullptr;
 
   // A close callback can run from inside the Widget observer iteration
   // (notably OnWidgetActivationChanged on macOS). Destroying the Widget here
@@ -557,11 +557,11 @@ void BrowserSidebarHostView::OnCreateGroupDialogClosed() {
   // lifetime ordering. Blur the name field first so the input method does not
   // keep it as text input client while the Widget goes away (see the
   // Workspace dialog).
-  PrepareDialogWidgetForDestruction(group_dialog_widget_.get());
+  PrepareDialogWidgetForDestruction(group_dialog_.widget.get());
   std::unique_ptr<views::Widget> closed_widget =
-      std::move(group_dialog_widget_);
+      std::move(group_dialog_.widget);
   std::unique_ptr<views::BubbleDialogDelegate> closed_delegate =
-      std::move(group_dialog_delegate_);
+      std::move(group_dialog_.delegate);
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(
                      [](std::unique_ptr<views::Widget> widget,
@@ -587,7 +587,7 @@ void BrowserSidebarHostView::CreateGroupAroundNode(
   const tab_tree::TabTreeStore::Result result =
       controller_->CreateGroupAroundNodes(
           source_node_ids, std::move(title), base::Time::Now(), &folder_id,
-          pending_group_icon_, pending_group_accent_argb_);
+          group_dialog_.icon, group_dialog_.accent_argb);
   if (result != tab_tree::TabTreeStore::Result::kOk) {
     OnMutationFailed(result);
     return;
@@ -608,7 +608,7 @@ void BrowserSidebarHostView::CreateFolder(
   base::Uuid folder_id;
   const tab_tree::TabTreeStore::Result result = controller_->CreateFolder(
       parent_node_id, std::move(title), base::Time::Now(), &folder_id,
-      pending_group_icon_, pending_group_accent_argb_);
+      group_dialog_.icon, group_dialog_.accent_argb);
   if (result != tab_tree::TabTreeStore::Result::kOk) {
     OnMutationFailed(result);
     return;

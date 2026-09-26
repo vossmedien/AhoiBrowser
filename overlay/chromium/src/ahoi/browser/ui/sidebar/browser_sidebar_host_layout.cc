@@ -230,7 +230,7 @@ BrowserSidebarHostView::BrowserSidebarHostView(
                   return false;
                 }
                 host->ShowCreateGroupDialog(node_id);
-                return host && host->group_dialog_widget_;
+                return host && host->group_dialog_.widget;
               },
               weak_ptr_factory_.GetWeakPtr()),
           base::BindRepeating(
@@ -240,7 +240,7 @@ BrowserSidebarHostView::BrowserSidebarHostView(
                   return false;
                 }
                 host->ShowCreateGroupDialogForTemporaryTab(runtime_tab_handle);
-                return host && host->group_dialog_widget_;
+                return host && host->group_dialog_.widget;
               },
               weak_ptr_factory_.GetWeakPtr()),
           base::BindRepeating(

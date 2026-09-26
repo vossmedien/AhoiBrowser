@@ -42,19 +42,19 @@ std::u16string BrowserSidebarHostView::StructureText(
 }
 
 void BrowserSidebarHostView::BuildArchiveMenus() {
-  context_archive_workspace_id_ = controller_->view_model().workspace_id();
-  context_menu_model_->AddItem(
+  context_.archive_workspace_id = controller_->view_model().workspace_id();
+  context_.model->AddItem(
       kArchiveList, StructureText(u"Archiv durchsuchen …", u"Search archive…"));
-  context_archive_policy_model_ = std::make_unique<ui::SimpleMenuModel>(this);
+  context_.archive_policy_model = std::make_unique<ui::SimpleMenuModel>(this);
   // Contract: the setting explains that tabs move to a restorable archive and
   // are never deleted, and which pages stay.
-  context_archive_policy_model_->AddTitle(StructureText(
+  context_.archive_policy_model->AddTitle(StructureText(
       u"Verschiebt geeignete inaktive temporäre Tabs ins wiederherstellbare "
       u"Archiv – nichts wird gelöscht. Gespeicherte, angeheftete und "
       u"geschützte Seiten bleiben offen.",
       u"Moves eligible inactive temporary tabs to the restorable archive – "
       u"nothing is deleted. Saved, pinned and protected pages stay open."));
-  context_archive_policy_model_->AddSeparator(ui::NORMAL_SEPARATOR);
+  context_.archive_policy_model->AddSeparator(ui::NORMAL_SEPARATOR);
   const std::array labels = {
       StructureText(u"Nie (Standard)", u"Never (default)"),
       StructureText(u"Nach 12 Stunden", u"After 12 hours"),
@@ -63,18 +63,18 @@ void BrowserSidebarHostView::BuildArchiveMenus() {
       StructureText(u"Nach 30 Tagen", u"After 30 days")};
   int policy_command = kArchivePolicyCommandBase;
   for (const auto& label : labels)
-    context_archive_policy_model_->AddCheckItem(policy_command++, label);
-  context_menu_model_->AddSubMenu(
+    context_.archive_policy_model->AddCheckItem(policy_command++, label);
+  context_.model->AddSubMenu(
       kArchivePolicy,
       StructureText(u"Inaktive temporäre Tabs archivieren",
                     u"Archive inactive temporary tabs"),
-      context_archive_policy_model_.get());
+      context_.archive_policy_model.get());
 }
 
 std::vector<base::Uuid> BrowserSidebarHostView::ContextArchiveNodes() const {
-  if (context_node_id_ && session_bridge_)
-    return session_bridge_->GetArchivePageGroup(*context_node_id_);
-  auto* tab = context_runtime_tab_.get();
+  if (context_.node_id && session_bridge_)
+    return session_bridge_->GetArchivePageGroup(*context_.node_id);
+  auto* tab = context_.runtime_tab.get();
   if (!tab || !session_bridge_)
     return {};
   auto* model = session_bridge_->FindTabStripModelForTab(tab);
@@ -126,42 +126,42 @@ void BrowserSidebarHostView::CompleteArchiveAction(bool success) {
 }
 
 void BrowserSidebarHostView::ShowArchiveRestoreMenu(base::Uuid entry_id) {
-  if (!GetWidget() || context_menu_scope_ != ContextMenuScope::kNone)
+  if (!GetWidget() || context_.scope != ContextMenuScope::kNone)
     return;
   const auto entries = session_bridge_->GetArchivedPages();
   if (std::ranges::none_of(
           entries, [&](const auto& entry) { return entry.id == entry_id; }))
     return;
-  context_menu_scope_ = ContextMenuScope::kArchive;
-  context_archive_id_ = entry_id;
-  context_menu_model_ = std::make_unique<ui::SimpleMenuModel>(this);
-  context_menu_model_->AddItem(
+  context_.scope = ContextMenuScope::kArchive;
+  context_.archive_id = entry_id;
+  context_.model = std::make_unique<ui::SimpleMenuModel>(this);
+  context_.model->AddItem(
       kRestoreArchiveOriginal,
       StructureText(u"Am ursprünglichen Ort wiederherstellen",
                     u"Restore at original location"));
   if (BuildMoveToMenu(nullptr))
-    context_menu_model_->AddSubMenu(
+    context_.model->AddSubMenu(
         kRestoreArchiveElsewhere,
         StructureText(u"Wiederherstellen in …", u"Restore in…"),
         context_move_menu_model_.get());
   context_menu_runner_ = std::make_unique<views::MenuRunner>(
-      context_menu_model_.get(),
+      context_.model.get(),
       views::MenuRunner::HAS_MNEMONICS | views::MenuRunner::CONTEXT_MENU);
   context_menu_runner_->RunMenuAt(
       GetWidget(), nullptr, workspace_button_->GetBoundsInScreen(),
       views::MenuAnchorPosition::kTopLeft, ui::mojom::MenuSourceType::kNone);
   context_menu_runner_.reset();
-  context_menu_model_.reset();
+  context_.model.reset();
   context_move_menu_model_.reset();
   context_move_submenu_models_.clear();
-  context_move_destinations_.clear();
-  context_archive_id_.reset();
-  context_menu_scope_ = ContextMenuScope::kNone;
+  context_.move_destinations.clear();
+  context_.archive_id.reset();
+  context_.scope = ContextMenuScope::kNone;
 }
 
 void BrowserSidebarHostView::ShowStructureNotice(std::u16string title,
                                                  std::u16string body) {
-  if (context_menu_scope_ != ContextMenuScope::kNone) {
+  if (context_.scope != ContextMenuScope::kNone) {
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
         FROM_HERE, base::BindOnce(&BrowserSidebarHostView::ShowStructureNotice,
                                   weak_ptr_factory_.GetWeakPtr(),

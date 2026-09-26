@@ -105,29 +105,29 @@ bool BrowserSidebarHostView::CaptureContextPageActionTarget(
   if (!contents || !entry) {
     return false;
   }
-  context_page_action_contents_ = contents->GetWeakPtr();
-  context_page_action_navigation_id_ = entry->GetUniqueID();
-  context_page_action_url_ = contents->GetVisibleURL();
+  context_.page_action_contents = contents->GetWeakPtr();
+  context_.page_action_navigation_id = entry->GetUniqueID();
+  context_.page_action_url = contents->GetVisibleURL();
   return true;
 }
 
 bool BrowserSidebarHostView::IsContextPageActionTargetCurrent() const {
-  if (!context_page_action_contents_ || !tab_strip_model_ ||
+  if (!context_.page_action_contents || !tab_strip_model_ ||
       tab_strip_model_->GetActiveWebContents() !=
-          context_page_action_contents_.get()) {
+          context_.page_action_contents.get()) {
     return false;
   }
   content::NavigationEntry* const entry =
-      context_page_action_contents_->GetController().GetVisibleEntry();
-  return entry && entry->GetUniqueID() == context_page_action_navigation_id_ &&
-         context_page_action_contents_->GetVisibleURL() ==
-             context_page_action_url_;
+      context_.page_action_contents->GetController().GetVisibleEntry();
+  return entry && entry->GetUniqueID() == context_.page_action_navigation_id &&
+         context_.page_action_contents->GetVisibleURL() ==
+             context_.page_action_url;
 }
 
 void BrowserSidebarHostView::ClearContextPageActionTarget() {
-  context_page_action_contents_.reset();
-  context_page_action_navigation_id_ = 0;
-  context_page_action_url_ = GURL();
+  context_.page_action_contents.reset();
+  context_.page_action_navigation_id = 0;
+  context_.page_action_url = GURL();
 }
 
 bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(

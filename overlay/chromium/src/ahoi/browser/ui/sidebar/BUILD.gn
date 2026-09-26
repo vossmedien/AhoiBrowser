@@ -216,6 +216,8 @@ source_set("browser_sidebar") {
     "browser_sidebar_host_split_actions.cc",
     "browser_sidebar_host_structure.cc",
     "browser_sidebar_host_tree_actions.cc",
+    "browser_sidebar_host_state.cc",
+    "browser_sidebar_host_state.h",
     "browser_sidebar_host_types.h",
     "browser_sidebar_host_view.h",
     "browser_sidebar_host_workspace_dialog.cc",
