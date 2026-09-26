@@ -77,18 +77,37 @@ and 17 (shortcut catalog with last-used tab) now have code; see below.
   key again (the app was not frontmost), views re-focuses the dialog's
   initially focused name field inside `~Widget`. `ebaf599` removes the
   dialog's views in the posted destroy paths first.
-- **Build 40** (Control+Option+Tab default, sync secret-boundary tests,
-  source-budget splits) stopped at the 64 GiB guard with 60.6 GiB free.
-  `retry40.sh` in the agent scratchpad restarts it once 65 GiB are free
-  (owner row "Free disk space").
-- **Source line budget:** all Python files are now under 800 lines
-  (fixture server, uBO release transport, release installer, release
-  pipeline tests, lean measurement, checkout hydration), and the e2e
-  fixture self-tests are green again (55 OK; six stale custom-protocol tests
-  ported to the native handler). C++ splits so far: sync tests, sidebar
-  context menu, presentation, runtime tab views, Arc backup and parser.
-  Swift: `AhoiMobileUITests.swift`. Still over the limit: 10 C++ files,
-  4 Swift, 2 TypeScript.
+- **Build 40** stopped at the 64 GiB guard with 60.6 GiB free (58 GiB on
+  26 September after the last own cleanup). `retry40.sh` in the agent
+  scratchpad starts it once 65 GiB are free. It fetches `HEAD` only then, so
+  it contains the dialog fix `ebaf599`, the Control+Option+Tab default and
+  all source-budget splits below. Queued after it: 13 unit-test binaries
+  (now also `ahoi_arc_import_unittests` and
+  `ahoi_extension_policy_unittests` for the Arc and uBO splits), then the
+  keyboard-shortcuts journey (MRU on Control+Option+Tab) and the HTTP-auth
+  journey (step 7b: Workspace with its own website sessions, dialog crash).
+- **Crest H5 on build 39:** NET-GCM-01 and fresh-profile silence pass;
+  only allowlisted hosts, so the privacy proxy and the GPC preference add
+  no background traffic (`artifacts/network-audit/79e35f3-20260926/`).
+- **Source line budget:** all Python files and all Swift files are under
+  800 lines. C++ splits since build 39, all without behavior change and
+  syntax-checked against the AhoiDev flags (negative control confirmed),
+  but not yet built or run: Arc process inspection, developer profile
+  editor, uBO installed state and Lite migration, CloudKit upload path, and
+  the test files for Arc parser, uBO service, tab tree snapshot, session
+  bridge tab binding and floating browser view (test counts unchanged).
+  TypeScript: settings response types and the link routing sub-template,
+  type-checked with the AhoiDev settings tsconfig; patch 0001 registers
+  both files. Still over the limit: `browser_sidebar_host_view.h` (891;
+  needs the host class decomposed, not a mechanical cut) and
+  `ahoi_page.ts` (1098; needs per-section Lit elements). Both need a build
+  and a visible check, so they come after build 40.
+- **Browser tests do not compile on M153 in three files:** a syntax check of
+  all 13 Ahoi browser tests showed `Browser::GetBrowserView()` removed in
+  M153. The floating browser view, sidebar layout invalidation and Arc
+  import browser tests are ported to `BrowserView::GetBrowserViewForBrowser()`
+  (`e3b32ce`, `fb47d6e`); the other ten compile. No browser test binary is
+  part of the dev build, so none has run on M153 yet.
 
 ## Builds 37 and 38 results; builds 39 and 40 in progress — 26 September 2026
 
