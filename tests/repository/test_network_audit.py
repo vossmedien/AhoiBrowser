@@ -2,6 +2,7 @@ import json
 import pathlib
 import sys
 import tempfile
+import json
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -132,6 +133,27 @@ class NetworkAuditTest(unittest.TestCase):
         self.assertNotIn("AIzaSecret", audit.redact(text, "AIzaSecret"))
         self.assertIn("key=REDACTED-KEY", audit.redact(text, "AIzaSecret"))
         self.assertEqual(audit.redact(text, None), text)
+
+    def test_safe_browsing_responses_and_verdict(self):
+        def netlog(status, cut=False):
+            text = json.dumps({"constants": {"logEventTypes": {
+                "URL_REQUEST_START_JOB": 1, "HTTP_TRANSACTION_READ_RESPONSE_HEADERS": 2}},
+                "events": [
+                    {"type": 1, "source": {"id": 7}, "params": {
+                        "url": "https://safebrowsing.googleapis.com/v4/threatListUpdates:fetch"
+                               "?$req=x&key=REDACTED-KEY"}},
+                    {"type": 2, "source": {"id": 7}, "params": {
+                        "headers": [f"HTTP/1.1 {status} OK"]}},
+                    {"type": 1, "source": {"id": 8}, "params": {"url": "https://example.com/"}},
+                    {"type": 2, "source": {"id": 8}, "params": {"headers": ["HTTP/1.1 404"]}},
+                ]})
+            return text[:-2] + "," if cut else text
+        ok = audit.safe_browsing_responses(audit.load_netlog(netlog(200, cut=True)))
+        self.assertEqual(ok, [{"path": "/v4/threatListUpdates:fetch", "status": 200}])
+        self.assertEqual(audit.safe_browsing_verdict(ok), "PASS")
+        refused = audit.safe_browsing_responses(audit.load_netlog(netlog(400)))
+        self.assertEqual(audit.safe_browsing_verdict(refused), "FAIL")
+        self.assertEqual(audit.safe_browsing_verdict([]), "FAIL")
 
 
 if __name__ == "__main__":

@@ -227,6 +227,46 @@ def typed_navigate(session, url: str) -> None:
                  session_id=attached)
 
 
+def load_netlog(text: str) -> dict:
+    """A NetLog file; one cut short by a killed browser lacks its closing ]}."""
+    for suffix in ("", "]}", "}]}"):
+        try:
+            return json.loads(text.rstrip().rstrip(",") + suffix)
+        except json.JSONDecodeError:
+            continue
+    return {}
+
+
+def safe_browsing_responses(netlog: dict) -> list[dict]:
+    """Path and HTTP status of each safebrowsing.googleapis.com request."""
+    types = netlog.get("constants", {}).get("logEventTypes", {})
+    start, headers = types.get("URL_REQUEST_START_JOB"), types.get(
+        "HTTP_TRANSACTION_READ_RESPONSE_HEADERS")
+    urls: dict[int, str] = {}
+    responses = []
+    for event in netlog.get("events", []):
+        source = event.get("source", {}).get("id")
+        params = event.get("params") or {}
+        if event.get("type") == start and "url" in params:
+            urls[source] = params["url"]
+        elif event.get("type") == headers and source in urls:
+            parts = urllib.parse.urlsplit(urls.pop(source))
+            status = (params.get("headers") or [""])[0].split()
+            if parts.hostname == "safebrowsing.googleapis.com":
+                responses.append({"path": parts.path,
+                                  "status": int(status[1]) if len(status) > 1 else None})
+    return responses
+
+
+def safe_browsing_verdict(responses: list[dict]) -> str:
+    """PRIV-14 (lists load): some list request succeeds and none is refused."""
+    lists = [r for r in responses if "threatListUpdates" in r["path"]
+             or "hashList" in r["path"]]
+    ok = any(r["status"] == 200 for r in lists) and not any(
+        (r["status"] or 0) >= 400 for r in responses)
+    return "PASS" if ok else "FAIL"
+
+
 KEYCHAIN_SERVICE = "ahoi-google-api-key"
 KEYCHAIN_ACCOUNT = "safe-browsing"
 
@@ -380,6 +420,9 @@ def main(argv=None) -> int:
         "method": "Chromium NetLog (Default capture) plus lsof socket polling every 2 s; "
                   "no root, so non-Chromium DNS is not observed",
     }
+    sb_responses = safe_browsing_responses(load_netlog(text))
+    result["safeBrowsingResponses"] = sb_responses
+    result["verdicts"]["PRIV-14-lists"] = safe_browsing_verdict(sb_responses)
     if "navigation" in phases:
         result["verdicts"]["PRIV-12-endpoints"] = (
             "PASS" if not classified["denied"] and not classified["unknown"] else "FAIL")
