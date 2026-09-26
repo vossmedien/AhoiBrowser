@@ -347,6 +347,7 @@ DeveloperProfileTabHelper::DeveloperProfileTabHelper(
     content::WebContents* web_contents,
     PrefService* prefs)
     : content::WebContentsObserver(web_contents),
+      prefs_(prefs),
       store_(prefs, /*is_off_the_record=*/false),
       tab_token_(base::Uuid::GenerateRandomV4().AsLowercaseString()) {
   AttachToWebContents(web_contents);
@@ -543,6 +544,25 @@ std::vector<DeveloperAsset> DeveloperProfileTabHelper::TakeAssetsForNavigation(
   return result;
 }
 
+void DeveloperProfileTabHelper::DidStartNavigation(
+    content::NavigationHandle* navigation_handle) {
+  // Same scope as DeveloperProfileNavigationThrottle::MaybeCreateAndAdd:
+  // without saved profiles nothing is touched, so other user-agent
+  // overrides keep working.
+  if (!navigation_handle || !navigation_handle->IsInPrimaryMainFrame() ||
+      navigation_handle->IsSameDocument() ||
+      navigation_handle->GetWebContents() != web_contents() ||
+      !IsEligibleNavigationContext(web_contents(), prefs_) ||
+      prefs_->GetDict(kDeveloperProfilesPref).empty()) {
+    return;
+  }
+  const std::optional<DeveloperProfile> profile =
+      GetDeveloperProfileForNavigation(store_, navigation_handle->GetURL());
+  ApplyAhoiUserAgentOverride(*web_contents(), profile ? &*profile : nullptr);
+  navigation_handle->SetIsOverridingUserAgent(profile &&
+                                              profile->user_agent_enabled);
+}
+
 void DeveloperProfileTabHelper::DidFinishNavigation(
     content::NavigationHandle* navigation_handle) {
   if (!navigation_handle || !navigation_handle->HasCommitted() ||
@@ -648,9 +668,10 @@ DeveloperProfileNavigationThrottle::WillRedirectRequest() {
   }
   const std::optional<DeveloperProfile> profile =
       GetDeveloperProfileForNavigation(store_, navigation_handle()->GetURL());
+  // A redirect cannot change the navigation's user-agent flag any more
+  // (only DidStartNavigation may); the WebContents override still follows
+  // the redirect target for the requests after it.
   ApplyAhoiUserAgentOverride(*web_contents_, profile ? &*profile : nullptr);
-  navigation_handle()->SetIsOverridingUserAgent(profile &&
-                                                profile->user_agent_enabled);
   RetargetDeveloperProfileNavigationRequest(*web_contents_, navigation_id_,
                                             navigation_handle()->GetURL());
   return content::NavigationThrottle::PROCEED;
@@ -673,9 +694,8 @@ DeveloperProfileNavigationThrottle::ApplyInitialRequestOverrides() {
   ClearDeveloperProfileNavigationRequest(*web_contents_);
   const std::optional<DeveloperProfile> profile =
       GetDeveloperProfileForNavigation(store_, navigation_handle()->GetURL());
-  ApplyAhoiUserAgentOverride(*web_contents_, profile ? &*profile : nullptr);
-  navigation_handle()->SetIsOverridingUserAgent(profile &&
-                                                profile->user_agent_enabled);
+  // The user-agent decision is made in DeveloperProfileTabHelper::
+  // DidStartNavigation; here it would trip NavigationRequest's CHECK.
   if (!profile) {
     return content::NavigationThrottle::PROCEED;
   }
