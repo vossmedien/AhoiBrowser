@@ -18,13 +18,23 @@
 # Results: <outdir>/results.json.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd)
-AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9389; SP=${AHOI_E2E_SITE_PORT:-8808}
+AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9389; SP=${AHOI_E2E_SITE_PORT:-8808}; HP=$((SP + 1))
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
-for p in $PORT $SP; do
+for p in $PORT $SP $HP; do
   if lsof -nP -iTCP:$p -sTCP:LISTEN >/dev/null 2>&1; then echo "port $p busy" >&2; exit 6; fi
 done
 mkdir -p "$OUT"; : > "$OUT/results.txt"; : > "$OUT/run.txt"
 A=http://127.0.0.1:$SP
+# PRIV-02/03 need Secure cookies, so a cross-site HTTPS pair runs on $HP with
+# a throwaway self-signed certificate for 127.0.0.1 and localhost. Only this
+# key is trusted, and only in the journey's own test profiles.
+TLS=$(mktemp -d /private/tmp/ahoi-privacy-tls.XXXXXX)
+openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 1 \
+  -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
+  -keyout "$TLS/key.pem" -out "$TLS/cert.pem" > "$OUT/tls.log" 2>&1 || exit 5
+SPKI=$(openssl x509 -in "$TLS/cert.pem" -pubkey -noout | openssl pkey -pubin -outform der \
+  | openssl dgst -sha256 -binary | base64)
+trap 'rm -rf "$TLS"' EXIT
 record() { echo "$1 $2" >> "$OUT/results.txt"; }
 CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 eval_in() { # <url substring> <expression>
@@ -54,15 +64,19 @@ run_mode() { # <label> <seeded mode or "">
     mkdir -p "$P/Default"
     printf '{"ahoi":{"privacy":{"global_mode":"%s"}}}' "$mode" > "$P/Default/Preferences"
   fi
-  python3 "$S/privacy_fixture.py" --port $SP --log "$LOG" > "$OUT/fixture-$label.stderr" 2>&1 &
+  python3 "$S/privacy_fixture.py" --port $SP --log "$LOG" --https-port $HP \
+    --cert "$TLS/cert.pem" --key "$TLS/key.pem" > "$OUT/fixture-$label.stderr" 2>&1 &
   FIX=$!
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
-    --remote-debugging-port=$PORT about:blank > "$OUT/browser-$label.log" 2>&1 &
+    --remote-debugging-port=$PORT --ignore-certificate-errors-spki-list="$SPKI" \
+    about:blank > "$OUT/browser-$label.log" 2>&1 &
   PID=$!; echo "$label: pid=$PID profile=$P seeded=${mode:-none}" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 3
   open_tab "$A/top" 5
   local tp; tp=$(eval_in "localhost:$SP/frame" "String(window.tp)")
+  open_tab "https://127.0.0.1:$HP/top3p" 5
+  local tp3; tp3=$(eval_in "localhost:$HP/frame3p" "String(window.tp)")
   open_tab "$A/landing?utm_source=ahoi&keep=1" 3
   open_tab "$A/login" 2; open_tab "$A/whoami" 2
   local who; who=$(eval_in "/whoami" "document.title")
@@ -77,6 +91,7 @@ run_mode() { # <label> <seeded mode or "">
   grep -q -i -E "API-Schlüssel|API keys" "$OUT/ax-$label.txt" && apikey=shown
   {
     echo "$label third_party_cookie_in_frame=$tp"
+    echo "$label https_frame_cookies=$tp3"
     echo "$label gpc_on_top=$(logged "$LOG" /top gpc)"
     echo "$label pixel_referer=$(logged "$LOG" /pixel referer)"
     echo "$label landing_query=$(logged "$LOG" /landing query)"
@@ -85,6 +100,7 @@ run_mode() { # <label> <seeded mode or "">
     echo "$label prefs=$prefs"
     echo "$label api_key_infobar=$apikey"
   } >> "$OUT/run.txt"
+  eval "${label}_TP3=\$tp3"
   eval "${label}_TP=\$tp ${label}_GPC=\$(logged \"\$LOG\" /top gpc) ${label}_REF=\$(logged \"\$LOG\" /pixel referer)"
   eval "${label}_QUERY=\$(logged \"\$LOG\" /landing query) ${label}_WHO=\$who ${label}_TOPICS=\$topics ${label}_FLEDGE=\$fledge"
   eval "${label}_PREFS=\$prefs ${label}_APIKEY=\$apikey"
@@ -109,11 +125,14 @@ except Exception: print("<unavailable>")' "$1" "$2"; }
 [ "$strict_WHO" = "whoami session=fp" ] && record PRIV-01_first_party_login PASS \
   || record PRIV-01_first_party_login "FAIL:$strict_WHO"
 # PRIV-02: only meaningful when the default run could set the cookie.
-case "$default_TP" in
-  *tp=1*) case "$strict_TP" in *tp=1*) record PRIV-02_third_party_cookie_blocked "FAIL:$strict_TP" ;;
+case "$default_TP3" in
+  *tp=1*) case "$strict_TP3" in *tp=1*) record PRIV-02_third_party_cookie_blocked "FAIL:$strict_TP3" ;;
           *) record PRIV-02_third_party_cookie_blocked PASS ;; esac ;;
-  *) record PRIV-02_third_party_cookie_blocked "INCONCLUSIVE:default-run-could-not-set:$default_TP" ;;
+  *) record PRIV-02_third_party_cookie_blocked "INCONCLUSIVE:default-run-could-not-set:$default_TP3" ;;
 esac
+# PRIV-03 (CHIPS part): the partitioned cookie still works in strict mode.
+case "$strict_TP3" in *chip=1*) record PRIV-03_chips_in_strict PASS ;;
+  *) record PRIV-03_chips_in_strict "FAIL:$strict_TP3" ;; esac
 # PRIV-04
 [ "$strict_GPC" = 1 ] && [ -z "$default_GPC" ] && record PRIV-04_gpc PASS \
   || record PRIV-04_gpc "FAIL:strict=$strict_GPC,default=$default_GPC"

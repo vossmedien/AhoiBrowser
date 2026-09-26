@@ -8,6 +8,8 @@ Sec-GPC, Referer and whether a cookie arrived. Synthetic values only.
 import argparse
 import http.server
 import json
+import ssl
+import threading
 import urllib.parse
 
 PAGES = {
@@ -23,6 +25,14 @@ PAGES = {
                "document.cookie='tp=1; SameSite=None; Secure; Path=/';"
                "window.tp=document.cookie;</script>frame", []),
     "/pixel": ("", []),
+    # HTTPS pair for PRIV-02/03: a cross-site frame that sets an
+    # unpartitioned and a partitioned (CHIPS) third-party cookie.
+    "/top3p": ("<title>top3p</title>"
+               "<iframe id='f' src='https://localhost:{port}/frame3p'></iframe>", []),
+    "/frame3p": ("<title>frame3p</title><script>"
+                 "document.cookie='tp=1; SameSite=None; Secure; Path=/';"
+                 "document.cookie='chip=1; SameSite=None; Secure; Path=/; Partitioned';"
+                 "window.tp=document.cookie;</script>frame3p", []),
     "/landing": ("<title>landing</title>landing", []),
     "/ads": ("<title>ads</title>ads", []),
 }
@@ -67,7 +77,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--log", required=True)
+    parser.add_argument("--https-port", type=int)
+    parser.add_argument("--cert")
+    parser.add_argument("--key")
     args = parser.parse_args()
+    if args.https_port:
+        secure = http.server.ThreadingHTTPServer(("127.0.0.1", args.https_port),
+                                                 Handler)
+        secure.log_path = args.log
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain(args.cert, args.key)
+        secure.socket = context.wrap_socket(secure.socket, server_side=True)
+        threading.Thread(target=secure.serve_forever, daemon=True).start()
     server = http.server.ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     server.log_path = args.log
     server.serve_forever()
