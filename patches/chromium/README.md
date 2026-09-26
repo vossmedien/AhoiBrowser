@@ -1,5 +1,17 @@
 # Chromium M153 patch ledger
 
+## `0066-ahoi-privacy-subresource-factory-proxy.patch`
+
+From crest handoffs 066/068. `PrivacyModeURLLoaderThrottle` only reached
+navigations and browser-side loaders, so renderer and worker subresources of a
+"Mehr Schutz" page got neither `Sec-GPC` nor a reduced cross-site referrer
+(privacy journey, build 35). This seam appends Ahoi's
+`PrivacyModeURLLoaderFactoryProxy` first in `WillCreateURLLoaderFactory` for
+document, worker and service-worker subresource factories of strict pages, so
+extension webRequest (uBO Classic) still sees and can block every request.
+The default mode appends nothing. The rules themselves live in the overlay
+(`ApplyStrictRequestRules`, shared with the throttle).
+
 ## `0065-ahoi-session-writer-unknown-status.patch`
 
 From crest handoff 062. `CommandStorageBackend::AppendCommands` classifies a

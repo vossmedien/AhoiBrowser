@@ -62,8 +62,12 @@ source_set("secure_component_transport") {
 
 source_set("privacy_mode_runtime") {
   sources = [
+    "privacy_mode_url_loader_factory_proxy.cc",
+    "privacy_mode_url_loader_factory_proxy.h",
     "privacy_mode_url_loader_throttle.cc",
     "privacy_mode_url_loader_throttle.h",
+    "privacy_strict_request_rules.cc",
+    "privacy_strict_request_rules.h",
   ]
   public_deps = [
     ":privacy_mode",
@@ -72,6 +76,7 @@ source_set("privacy_mode_runtime") {
   ]
   deps = [
     "//components/prefs",
+    "//mojo/public/cpp/bindings",
     "//net",
   ]
 }
@@ -80,7 +85,9 @@ source_set("unit_tests") {
   testonly = true
   sources = [
     "privacy_cookie_enforcement_unittest.cc",
+    "privacy_mode_url_loader_factory_proxy_unittest.cc",
     "privacy_mode_url_loader_throttle_unittest.cc",
+    "privacy_strict_request_rules_unittest.cc",
   ]
   deps = [
     ":privacy_mode_runtime",

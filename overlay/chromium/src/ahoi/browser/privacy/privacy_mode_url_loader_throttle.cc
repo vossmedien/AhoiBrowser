@@ -7,6 +7,7 @@
 #include <string_view>
 #include <utility>
 
+#include "ahoi/browser/privacy/privacy_strict_request_rules.h"
 #include "components/prefs/pref_service.h"
 #include "net/http/http_request_headers.h"
 #include "net/url_request/redirect_info.h"
@@ -18,17 +19,6 @@
 namespace ahoi::privacy {
 
 namespace {
-
-constexpr std::string_view kHighEntropyUaClientHintHeaders[] = {
-    "Sec-CH-UA-Arch",
-    "Sec-CH-UA-Bitness",
-    "Sec-CH-UA-Form-Factors",
-    "Sec-CH-UA-Full-Version",
-    "Sec-CH-UA-Full-Version-List",
-    "Sec-CH-UA-Model",
-    "Sec-CH-UA-Platform-Version",
-    "Sec-CH-UA-WoW64",
-};
 
 GURL PolicyOriginForRequest(const network::ResourceRequest& request) {
   if (request.is_outermost_main_frame) {
@@ -99,10 +89,12 @@ void PrivacyModeURLLoaderThrottle::WillRedirectRequest(
   }
   headers_update_params->modified_headers.SetHeader("Sec-GPC", "1");
   if (IsThirdPartyRequest(redirect_info->new_url)) {
-    for (std::string_view header : kHighEntropyUaClientHintHeaders) {
+    for (std::string_view header : HighEntropyUaClientHintHeaders()) {
       headers_update_params->removed_headers.emplace_back(header);
     }
   }
+  // The referrer of later hops follows the (capped) policy set at the start
+  // (ApplyStrictRequestRules), so it stays reduced across redirects.
   if (is_main_frame_) {
     redirect_info->new_url =
         StripKnownTrackingParameters(redirect_info->new_url);
@@ -119,24 +111,11 @@ void PrivacyModeURLLoaderThrottle::ApplyToRequest(
   if (mode != PrivacyMode::kStrict) {
     return;
   }
-  request.headers.SetHeader("Sec-GPC", "1");
-  if (IsThirdPartyRequest(request.url)) {
-    for (std::string_view header : kHighEntropyUaClientHintHeaders) {
-      request.headers.RemoveHeader(header);
-    }
-  }
   if (is_main_frame_) {
     request.url = StripKnownTrackingParameters(request.url);
   }
-
-  // Preserve the destination host while removing path/query detail from a
-  // cross-origin referrer. Chromium remains authoritative for the final
-  // Referrer-Policy header and can still tighten this further.
-  if (request.referrer.is_valid() && url::Origin::Create(request.referrer) !=
-                                         url::Origin::Create(request.url)) {
-    request.referrer = url::Origin::Create(request.referrer).GetURL();
-    request.referrer_policy = net::ReferrerPolicy::ORIGIN;
-  }
+  // Handoff 066: the same rules as the subresource factory proxy.
+  ApplyStrictRequestRules(request, is_main_frame_);
 }
 
 bool PrivacyModeURLLoaderThrottle::IsThirdPartyRequest(const GURL& url) const {
