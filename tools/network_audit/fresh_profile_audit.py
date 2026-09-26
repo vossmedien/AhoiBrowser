@@ -351,6 +351,10 @@ def main(argv=None) -> int:
         }
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "audit.json").write_text(json.dumps(result, indent=2) + "\n")
+    # The NetLog (Default capture: no cookies or credentials) stays next to the
+    # verdict, so response status codes can be checked afterwards (PRIV-14).
+    if netlog.exists():
+        shutil.copyfile(netlog, args.output / "netlog.json")
     shutil.rmtree(workdir, ignore_errors=True)
     for name, value in result["verdicts"].items():
         print(f"{name:24} {value}")
