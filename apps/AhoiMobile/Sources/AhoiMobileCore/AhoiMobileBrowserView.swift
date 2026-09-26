@@ -396,7 +396,7 @@ public struct AhoiMobileBrowserView: View {
         MobileFocusVoyageView(
             mode: selectedMode,
             workspaceName: selectedWorkspace?.name,
-            workspaceSystemImage: selectedWorkspaceSystemImage,
+            workspaceSystemImage: MobileWorkspaceIconPolicy.systemName(for: selectedWorkspace),
             content: MobileFocusVoyageContent.make(
                 mode: selectedMode,
                 tabs: browser.normalTabs,
@@ -414,11 +414,11 @@ public struct AhoiMobileBrowserView: View {
             mode: selectedMode,
             isCollapsed: harborDeckCollapsed,
             workspaceName: selectedWorkspace?.name,
-            workspaceSystemImage: selectedWorkspaceSystemImage,
+            workspaceSystemImage: MobileWorkspaceIconPolicy.systemName(for: selectedWorkspace),
             accentTint: chromeTintColor,
-            addressLabel: addressLabel,
-            addressAccessibilityValue: addressAccessibilityValue,
-            securitySystemImage: securitySymbol,
+            addressLabel: addressPresentation.label,
+            addressAccessibilityValue: addressPresentation.accessibilityValue,
+            securitySystemImage: addressPresentation.securitySymbol,
             visibleTabCount: visibleTabCount,
             canGoBack: browser.selectedPage?.backForwardList.backList.isEmpty == false,
             canGoForward: browser.selectedPage?.backForwardList.forwardList.isEmpty == false,
@@ -533,48 +533,15 @@ public struct AhoiMobileBrowserView: View {
             return .handled
         }
     }
-    private var addressLabel: String {
-        if browser.selectedTab?.mode == .privateBrowsing {
-            if let host = selectedOriginHost {
-                return CompanionL10n.format(
-                    "browser.private.address",
-                    fallback: "Private · %@",
-                    host
-                )
-            }
-            return CompanionL10n.string("browser.private", fallback: "Private")
-        }
-        if let url = selectedAddressURL {
-            return selectedOriginHost ?? url.absoluteString
-        }
-        return CompanionL10n.string("browser.search_or_address", fallback: "Search or address")
-    }
-    private var addressAccessibilityValue: String {
-        if browser.selectedTab?.mode == .privateBrowsing {
-            if let host = selectedOriginHost {
-                return CompanionL10n.format(
-                    "browser.private.address.value",
-                    fallback: "Private browsing, %@",
-                    host
-                )
-            }
-            return CompanionL10n.string("browser.private", fallback: "Private")
-        }
-        return selectedAddressURL?.absoluteString
-            ?? CompanionL10n.string("browser.search_or_address", fallback: "Search or address")
-    }
-    private var selectedOriginHost: String? {
-        guard let url = selectedAddressURL,
-              let host = url.host(), !host.isEmpty else { return nil }
-        guard let port = url.port else { return host }
-        return "\(host):\(port)"
-    }
-    private var selectedAddressURL: URL? {
-        if browser.selectedPageFailure != nil,
-           let value = browser.selectedTab?.url {
-            return URL(string: value)
-        }
-        return browser.selectedPage?.url ?? browser.selectedTab?.url.flatMap(URL.init(string:))
+    private var addressPresentation: MobileAddressPresentation {
+        MobileAddressPresentation(
+            isPrivate: browser.selectedTab?.mode == .privateBrowsing,
+            url: MobileAddressPresentation.addressURL(
+                pageFailed: browser.selectedPageFailure != nil,
+                tabURL: browser.selectedTab?.url,
+                pageURL: browser.selectedPage?.url
+            )
+        )
     }
     private var privatePrivacyCoverPresented: Bool {
         (scenePhase != .active || privateLock.isLocked) && isPrivateContentVisible
@@ -601,9 +568,6 @@ public struct AhoiMobileBrowserView: View {
     }
     private var privatePrivacyCover: some View {
         MobilePrivatePrivacyCoverView(accentTint: chromeTintColor)
-    }
-    private var securitySymbol: String {
-        selectedAddressURL?.scheme?.lowercased() == "https" ? "lock.fill" : "globe"
     }
     private var chromeTintColor: Color {
         MobileBrowserChromeTheme.chromeTint(
@@ -659,15 +623,9 @@ public struct AhoiMobileBrowserView: View {
               let workspaceID = browser.selectedTab?.workspaceID else { return nil }
         return companionModel.snapshot.visibleWorkspaces.first { $0.id == workspaceID }
     }
-    private var selectedWorkspaceSystemImage: String {
-        guard let selectedWorkspace else {
-            return MobileWorkspaceIconPolicy.fallbackSystemName
-        }
-        return MobileWorkspaceIconPolicy.systemName(for: selectedWorkspace.icon)
-    }
     private func presentAddress() {
         expandHarborDeck()
-        addressText = selectedAddressURL?.absoluteString ?? ""
+        addressText = addressPresentation.url?.absoluteString ?? ""
         selectAllAddressText()
         addressPresented = true
     }
@@ -708,10 +666,7 @@ public struct AhoiMobileBrowserView: View {
         performanceReduceMotionOverride.map { reduceMotion || $0 }
     }
     private var performanceReduceMotionOverride: Bool? {
-        if case let .valid(request) = MobilePerformanceLaunchRequest.validate(arguments: ProcessInfo.processInfo.arguments) {
-            return request.reduceMotion
-        }
-        return nil
+        MobilePerformanceLaunchRequest.currentReduceMotionOverride
     }
     private func switchWorkspace(direction: Int) {
         let workspaces = companionModel.snapshot.visibleWorkspaces
@@ -812,12 +767,7 @@ public struct AhoiMobileBrowserView: View {
         }
     }
     private var isPerformanceRuntime: Bool {
-        if case .valid = MobilePerformanceLaunchRequest.validate(
-            arguments: ProcessInfo.processInfo.arguments
-        ) {
-            return true
-        }
-        return false
+        MobilePerformanceLaunchRequest.isCurrentProcessPerformanceRun
     }
     private func toggleSidebar() {
         columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly

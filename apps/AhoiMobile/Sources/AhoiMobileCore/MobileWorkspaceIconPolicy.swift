@@ -1,3 +1,4 @@
+import AhoiCloudKitSpike
 import UIKit
 
 @MainActor
@@ -15,6 +16,13 @@ enum MobileWorkspaceIconPolicy {
         "✏️": "pencil",
         "✏": "pencil",
     ]
+
+    /// The symbol of `workspace`, or the fallback when there is none (for
+    /// example while browsing privately).
+    static func systemName(for workspace: Workspace?) -> String {
+        guard let workspace else { return fallbackSystemName }
+        return systemName(for: workspace.icon)
+    }
 
     static func systemName(for rawValue: String) -> String {
         let candidate = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)

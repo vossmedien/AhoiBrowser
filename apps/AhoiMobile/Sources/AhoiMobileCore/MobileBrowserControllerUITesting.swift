@@ -686,3 +686,22 @@ public struct MobilePerformanceLaunchRequest: Equatable, Sendable {
         }
     }
 }
+
+extension MobilePerformanceLaunchRequest {
+    /// The reduce-motion override of this process's performance launch, if any.
+    static var currentReduceMotionOverride: Bool? {
+        if case let .valid(request) = validate(arguments: ProcessInfo.processInfo.arguments) {
+            return request.reduceMotion
+        }
+        return nil
+    }
+
+    /// Whether this process was launched as a performance measurement run.
+    static var isCurrentProcessPerformanceRun: Bool {
+        if case .valid = validate(arguments: ProcessInfo.processInfo.arguments) {
+            return true
+        }
+        return false
+    }
+}
+
