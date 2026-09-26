@@ -44,15 +44,14 @@ class AhoiSidebarLayoutInvalidationBrowserTest
     : public VerticalTabsBrowserTestMixin<InProcessBrowserTest> {
  protected:
   VerticalTabStripRegionView* region_view() {
-    return browser()
-        ->GetBrowserView()
-        .vertical_tab_strip_region_view_for_testing();
+    return BrowserView::GetBrowserViewForBrowser(browser())
+        ->vertical_tab_strip_region_view_for_testing();
   }
 };
 
 IN_PROC_BROWSER_TEST_F(AhoiSidebarLayoutInvalidationBrowserTest,
                        RepeatedIdenticalToolbarHeightDoesNotInvalidateLayout) {
-  auto& browser_view = browser()->GetBrowserView();
+  auto& browser_view = *BrowserView::GetBrowserViewForBrowser(browser());
   ASSERT_TRUE(browser_view.IsAhoiBrowserSurface());
   ASSERT_TRUE(browser_view.SetAhoiSidebarPresentationMode(
       ahoi::sidebar::SidebarPresentationMode::kDocked));
@@ -92,7 +91,7 @@ IN_PROC_BROWSER_TEST_F(AhoiSidebarLayoutInvalidationBrowserTest,
 
 IN_PROC_BROWSER_TEST_F(AhoiSidebarLayoutInvalidationBrowserTest,
                        ChangedToolbarHeightUpdatesMarginsAndRequestsLayout) {
-  auto& browser_view = browser()->GetBrowserView();
+  auto& browser_view = *BrowserView::GetBrowserViewForBrowser(browser());
   ASSERT_TRUE(browser_view.IsAhoiBrowserSurface());
   ASSERT_TRUE(browser_view.SetAhoiSidebarPresentationMode(
       ahoi::sidebar::SidebarPresentationMode::kDocked));
@@ -143,7 +142,7 @@ IN_PROC_BROWSER_TEST_F(AhoiSidebarLayoutInvalidationBrowserTest,
 IN_PROC_BROWSER_TEST_F(AhoiSidebarLayoutInvalidationBrowserTest,
                        SameHeightRetainsPresentationSpecificMargins) {
   using Mode = ahoi::sidebar::SidebarPresentationMode;
-  auto& browser_view = browser()->GetBrowserView();
+  auto& browser_view = *BrowserView::GetBrowserViewForBrowser(browser());
   ASSERT_TRUE(browser_view.IsAhoiBrowserSurface());
   ASSERT_TRUE(browser_view.SetAhoiSidebarPresentationMode(Mode::kDocked));
   auto* const region = region_view();

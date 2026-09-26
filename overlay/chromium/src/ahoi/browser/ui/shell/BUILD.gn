@@ -76,6 +76,9 @@ source_set("floating_browser_view_browser_tests") {
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
   sources = [
     "floating_browser_view_browsertest.cc",
+    "floating_browser_view_browsertest_support.cc",
+    "floating_browser_view_browsertest_support.h",
+    "location_bar_view_browsertest.cc",
     "sidebar_layout_invalidation_browsertest.cc",
   ]
   deps = [

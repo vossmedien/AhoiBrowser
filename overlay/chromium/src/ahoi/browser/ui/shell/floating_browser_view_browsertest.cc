@@ -12,6 +12,7 @@
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/ui/appearance/appearance_prefs.h"
 #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
+#include "ahoi/browser/ui/shell/floating_browser_view_browsertest_support.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -67,88 +68,12 @@
 
 namespace {
 
-constexpr char kAhoiToolkitEnabledPref[] = "ahoi.developer_toolkit.enabled";
-constexpr char kAhoiShowCookieButtonPref[] =
-    "ahoi.developer_toolbar.show_cookie_button";
-constexpr char kAhoiShowCacheButtonPref[] =
-    "ahoi.developer_toolbar.show_cache_button";
-constexpr char kAhoiShowToolkitButtonPref[] =
-    "ahoi.developer_toolbar.show_toolkit_button";
-
-views::View* FindDraggableDescendant(views::View* root) {
-  if (!root || !root->GetVisible()) {
-    return nullptr;
-  }
-  if (ahoi::sidebar::GetOpenTabForView(root) && root->drag_controller()) {
-    views::DragController* const controller = root->drag_controller();
-    const gfx::Point press = root->GetLocalBounds().CenterPoint();
-    if (!root->bounds().IsEmpty() &&
-        controller->CanStartDragForView(root, press, press)) {
-      return root;
-    }
-  }
-  for (views::View* const child : root->children()) {
-    if (views::View* const result = FindDraggableDescendant(child)) {
-      return result;
-    }
-  }
-  return nullptr;
-}
-
-views::View* FindAcceptingDropDescendant(views::View* root,
-                                         const ui::OSExchangeData& data) {
-  if (!root || !root->GetVisible()) {
-    return nullptr;
-  }
-  for (views::View* const child : root->children()) {
-    if (views::View* const result = FindAcceptingDropDescendant(child, data)) {
-      return result;
-    }
-  }
-  int formats = 0;
-  std::set<ui::ClipboardFormatType> format_types;
-  return root->GetDropFormats(&formats, &format_types) &&
-                 data.HasAnyFormat(formats, format_types) && root->CanDrop(data)
-             ? root
-             : nullptr;
-}
-
-gfx::Rect BoundsInTarget(views::View* view, views::View* target) {
-  return views::View::ConvertRectToTarget(view, target, view->GetLocalBounds());
-}
-
-bool IsInsideOrEqual(views::View* ancestor, views::View* candidate) {
-  return candidate && (candidate == ancestor || ancestor->Contains(candidate));
-}
-
-void CollectProjectedOpenTabs(views::View* root,
-                              std::set<tabs::TabInterface*>* open_tabs) {
-  if (!root) {
-    return;
-  }
-  if (base::WeakPtr<tabs::TabInterface> tab =
-          ahoi::sidebar::GetOpenTabForView(root)) {
-    open_tabs->insert(tab.get());
-  }
-  for (views::View* const child : root->children()) {
-    CollectProjectedOpenTabs(child, open_tabs);
-  }
-}
-
-ahoi::sidebar::SidebarTreeView* FindSidebarTreeView(views::View* root) {
-  if (!root) {
-    return nullptr;
-  }
-  if (auto* tree = views::AsViewClass<ahoi::sidebar::SidebarTreeView>(root)) {
-    return tree;
-  }
-  for (views::View* const child : root->children()) {
-    if (auto* tree = FindSidebarTreeView(child)) {
-      return tree;
-    }
-  }
-  return nullptr;
-}
+using ahoi::test_support::BoundsInTarget;
+using ahoi::test_support::CollectProjectedOpenTabs;
+using ahoi::test_support::FindAcceptingDropDescendant;
+using ahoi::test_support::FindDraggableDescendant;
+using ahoi::test_support::FindSidebarTreeView;
+using ahoi::test_support::IsInsideOrEqual;
 
 }  // namespace
 
@@ -156,9 +81,8 @@ class VerticalTabStripRegionViewTest
     : public VerticalTabsBrowserTestMixin<InProcessBrowserTest> {
  public:
   VerticalTabStripRegionView* region_view() {
-    return browser()
-        ->GetBrowserView()
-        .vertical_tab_strip_region_view_for_testing();
+    return BrowserView::GetBrowserViewForBrowser(browser())
+        ->vertical_tab_strip_region_view_for_testing();
   }
 
   tabs::VerticalTabStripStateController* state_controller() {
@@ -188,7 +112,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiZeroTabSplitUpdatesMountedSidebar) {
-  BrowserView& browser_view = browser()->GetBrowserView();
+  BrowserView& browser_view =
+      *BrowserView::GetBrowserViewForBrowser(browser());
   views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
   TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_TRUE(sidebar);
@@ -308,7 +233,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiNavigationPaintsAboveFloatingSidebar) {
-  BrowserView& browser_view = browser()->GetBrowserView();
+  BrowserView& browser_view =
+      *BrowserView::GetBrowserViewForBrowser(browser());
   ASSERT_TRUE(browser_view.top_container()->layer());
   const auto expect_paint_order = [&]() {
     const std::optional<size_t> sidebar_index =
@@ -374,7 +300,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiFloatingSidebarOwnsItsNativeDragRoute) {
-  BrowserView& browser_view = browser()->GetBrowserView();
+  BrowserView& browser_view =
+      *BrowserView::GetBrowserViewForBrowser(browser());
   views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
   ASSERT_TRUE(sidebar);
   browser()->GetProfile()->GetPrefs()->SetBoolean(
@@ -479,7 +406,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiMountedOverlaySidebarDoesNotOverlapTopChrome) {
-  BrowserView& browser_view = browser()->GetBrowserView();
+  BrowserView& browser_view =
+      *BrowserView::GetBrowserViewForBrowser(browser());
   views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
   views::View* const root = browser_view.GetWidget()->GetRootView();
   ASSERT_TRUE(sidebar);
@@ -517,7 +445,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   // layout before verifying the initial, naturally attached presentation.
   Browser* const created_browser = CreateBrowser(browser()->GetProfile());
   ASSERT_TRUE(created_browser);
-  BrowserView& view = created_browser->GetBrowserView();
+  BrowserView& view =
+      *BrowserView::GetBrowserViewForBrowser(created_browser);
   ASSERT_TRUE(view.IsAhoiBrowserSurface());
   ASSERT_TRUE(view.GetWidget());
   ASSERT_TRUE(view.browser_widget());
@@ -570,7 +499,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
 
 IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
                        AhoiNavigationMaterialPreservesNativeBackground) {
-  BrowserView& browser_view = browser()->GetBrowserView();
+  BrowserView& browser_view =
+      *BrowserView::GetBrowserViewForBrowser(browser());
   ToolbarView* const toolbar = browser_view.toolbar();
   PrefService* const prefs = browser()->GetProfile()->GetPrefs();
   ASSERT_TRUE(toolbar->background());
@@ -642,7 +572,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
   ASSERT_TRUE(sidebar->layer());
   EXPECT_TRUE(sidebar->GetVisible());
 
-  browser()->GetBrowserView().DeprecatedLayoutImmediately();
+  BrowserView::GetBrowserViewForBrowser(browser())
+      ->DeprecatedLayoutImmediately();
   const gfx::Insets docked_margins = *sidebar->GetProperty(views::kMarginsKey);
   EXPECT_EQ(ahoi::visual_style::kSidebarTitlebarHeight, docked_margins.top());
   EXPECT_EQ(ahoi::visual_style::kContentCardInset,
@@ -738,7 +669,8 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
       gfx::AnimationTestApi::SetRichAnimationRenderMode(
           gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
 
-  BrowserView& browser_view = browser()->GetBrowserView();
+  BrowserView& browser_view =
+      *BrowserView::GetBrowserViewForBrowser(browser());
   views::View* const sidebar = region_view()->ahoi_sidebar_tree_view();
   ASSERT_TRUE(sidebar);
   auto* const tree = FindSidebarTreeView(sidebar);
@@ -807,74 +739,4 @@ IN_PROC_BROWSER_TEST_F(VerticalTabStripRegionViewTest,
            rebound_inserted->title() == u"Inserted while hidden";
   }));
   EXPECT_EQ(settled_bounds, sidebar->bounds());
-}
-
-class LocationBarViewBrowserTest : public InProcessBrowserTest {
- protected:
-  LocationBarView* GetLocationBarView() {
-    BrowserView* browser_view =
-        BrowserView::GetBrowserViewForBrowser(browser());
-    return browser_view->GetLocationBarView();
-  }
-};
-
-IN_PROC_BROWSER_TEST_F(LocationBarViewBrowserTest,
-                       AhoiCopyUrlTooltipHasNoMenuAccelerator) {
-  const std::u16string menu_label = l10n_util::GetStringUTF16(IDS_COPY_URL);
-  const std::u16string expected_tooltip = gfx::RemoveAccelerator(menu_label);
-  bool found_copy_url_tooltip = false;
-  for (views::View* const child : GetLocationBarView()->children()) {
-    EXPECT_NE(menu_label, child->GetTooltipText());
-    found_copy_url_tooltip |= child->GetTooltipText() == expected_tooltip;
-  }
-  EXPECT_TRUE(found_copy_url_tooltip);
-  EXPECT_EQ(std::u16string::npos, expected_tooltip.find(u'&'));
-}
-
-IN_PROC_BROWSER_TEST_F(LocationBarViewBrowserTest,
-                       AhoiDeveloperMasterPrefUpdatesButtonsLive) {
-  LocationBarView* const location_bar = GetLocationBarView();
-  ASSERT_TRUE(location_bar);
-  const auto find_button = [location_bar](int tooltip_id) -> views::View* {
-    const std::u16string tooltip = l10n_util::GetStringUTF16(tooltip_id);
-    for (views::View* const child : location_bar->children()) {
-      if (child->GetTooltipText() == tooltip) {
-        return child;
-      }
-    }
-    return nullptr;
-  };
-  views::View* const cookie_button =
-      find_button(IDS_AHOI_DEVELOPER_COOKIE_BUTTON_TOOLTIP);
-  views::View* const cache_button =
-      find_button(IDS_AHOI_DEVELOPER_CACHE_BUTTON_TOOLTIP);
-  views::View* const toolkit_button =
-      find_button(IDS_AHOI_DEVELOPER_HELPERS_BUTTON_TOOLTIP);
-  ASSERT_TRUE(cookie_button);
-  ASSERT_TRUE(cache_button);
-  ASSERT_TRUE(toolkit_button);
-
-  PrefService* const prefs = browser()->GetProfile()->GetPrefs();
-  ASSERT_TRUE(prefs->FindPreference(kAhoiToolkitEnabledPref));
-  ASSERT_TRUE(prefs->FindPreference(kAhoiShowCookieButtonPref));
-  ASSERT_TRUE(prefs->FindPreference(kAhoiShowCacheButtonPref));
-  ASSERT_TRUE(prefs->FindPreference(kAhoiShowToolkitButtonPref));
-  prefs->ClearPref(kAhoiShowCookieButtonPref);
-  prefs->ClearPref(kAhoiShowCacheButtonPref);
-  prefs->ClearPref(kAhoiShowToolkitButtonPref);
-  ASSERT_FALSE(prefs->GetBoolean(kAhoiShowCookieButtonPref));
-  ASSERT_FALSE(prefs->GetBoolean(kAhoiShowCacheButtonPref));
-  ASSERT_TRUE(prefs->GetBoolean(kAhoiShowToolkitButtonPref));
-  prefs->SetBoolean(kAhoiToolkitEnabledPref, false);
-  EXPECT_FALSE(cookie_button->GetVisible());
-  EXPECT_FALSE(cache_button->GetVisible());
-  EXPECT_FALSE(toolkit_button->GetVisible());
-
-  // This mutates the same live profile and LocationBarView. The registered
-  // master-pref callback must reveal the preselected compact action without a
-  // browser restart or a second visibility-pref write.
-  prefs->SetBoolean(kAhoiToolkitEnabledPref, true);
-  EXPECT_FALSE(cookie_button->GetVisible());
-  EXPECT_FALSE(cache_button->GetVisible());
-  EXPECT_TRUE(toolkit_button->GetVisible());
 }
