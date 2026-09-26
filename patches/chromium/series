@@ -62,3 +62,4 @@
 0062-ahoi-no-gaia-list-accounts-without-signin.patch
 0063-ahoi-option-tab-key-trace.patch
 0064-ahoi-restore-workspace-into-existing-window.patch
+0065-ahoi-session-writer-unknown-status.patch

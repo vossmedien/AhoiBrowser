@@ -1,5 +1,15 @@
 # Chromium M153 patch ledger
 
+## `0065-ahoi-session-writer-unknown-status.patch`
+
+From crest handoff 062. `CommandStorageBackend::AppendCommands` classifies a
+failed `TruncateOrOpenFile()` with `if (!open_file_ && !IsError(status))`, but
+`IsError()` is true for `kUnknown`, so the classification never ran and the
+`DCHECK_NE(status, kUnknown)` fired whenever the new session file could not
+be created (build 35, privacy journey, SIGTERM shutdown). The condition now
+tests for `kUnknown`; `OpenAndWriteHeader` logs the file error so the trigger
+becomes visible. Release behavior only changes the histogram bucket.
+
 ## `0064-ahoi-restore-workspace-into-existing-window.patch`
 
 Session restore adds the first normal window's tabs to the already open
