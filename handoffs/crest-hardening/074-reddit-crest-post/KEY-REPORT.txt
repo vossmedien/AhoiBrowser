@@ -1,0 +1,33 @@
+PRIV-14 — Safe Browsing API
+Prüfdatum: 2026-09-26
+Projekt: rugged-shell-509519-f0 (Anzeigename: My Project 56762)
+Google-Konto in der Console: christian@vossmedien.de
+
+API-Aktivierungsstatus: Aktiviert.
+Dienst: safebrowsing.googleapis.com
+Nach Aktivierung zeigte die Cloud Console „Status: Aktiviert“ und „API deaktivieren“.
+
+API-Key: AhoiBrowser Safe Browsing
+API-Beschränkung: ausschließlich Safe Browsing API (safebrowsing.googleapis.com).
+Im Erstellungsformular war genau 1 API ausgewählt: Safe Browsing API.
+Die Credentials-Liste bestätigte nach Erstellung Safe Browsing API als Beschränkung.
+Anwendungsbeschränkung: Keine (im Erstellungsformular ausgewählt).
+
+Speicherung: macOS-Login-Keychain (login.keychain-db).
+Service: ahoi-google-api-key
+Account: safe-browsing
+security add-generic-password -U: Exit-Code 0.
+Keychain-Eintragslänge aus security find-generic-password ... -w | wc -c: 40 Bytes.
+Das umfasst 39 Zeichen des Schlüssels und den von security ausgegebenen Zeilenumbruch.
+
+Verifikation: POST https://safebrowsing.googleapis.com/v4/threatListUpdates:fetch
+Request: clientId=ahoi, clientVersion=1; MALWARE / ANY_PLATFORM / URL; RAW.
+HTTP-Statuscode: 200.
+
+Aktivierung und Schlüsselerstellung erfolgten in der eingeloggten Chrome-Oberfläche
+über macOS-Bedienungshilfen. Der Schlüssel wurde aus dem UI ausschließlich im
+Prozessspeicher übernommen und direkt mit security in die Login-Keychain geschrieben.
+Der Schlüssel wurde weder in Dateien noch in Terminal-/Tool-Ausgaben ausgegeben.
+Kein Billing und kein kostenpflichtiger Plan aktiviert; kein zusätzlicher Terms-Prompt.
+Keine anderen Projekte oder Schlüssel verändert.
+Blocker: keine.
