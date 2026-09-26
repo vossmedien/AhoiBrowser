@@ -83,25 +83,33 @@ curl -s -X PUT "http://127.0.0.1:$PORT/json/new?about:blank" > /dev/null; sleep 
 ROW=$(grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Ahoi split left[^|]*' "$OUT/ax-split.txt" | head -1 | sed -E 's/ *$//')
 echo "row: $ROW" >> "$OUT/steps.txt"
 NAME=${ROW#*| }; ROLE=${ROW%% |*}
-# Open-tab rows are radio buttons without AXShowMenu (build 32 returned
-# -25204), and clicks posted to the process do not reach views; a real
-# right-click through the HID tap opens the row's context menu.
-for attempt in 1 2 3; do
-  ax activate $PID; sleep 1
-  "$AX" hidrightclick $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1 && break; sleep 1
-done
-sleep 1; "$AX" dump $PID 45 > "$OUT/ax-after-rightclick.txt"
-# Fallback: the keyboard context-menu key (Shift+F10) on the focused row.
-if ! grep -q -E 'AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))' "$OUT/ax-after-rightclick.txt"; then
-  "$AX" focus $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1; sleep 0.5
-  ax key $PID 109 shift; sleep 1
-  "$AX" dump $PID 45 > "$OUT/ax-after-shift-f10.txt"
-  echo "menu after Shift+F10: $(grep -c -E 'AXMenuItem \| (Split archivieren|Archivieren)' "$OUT/ax-after-shift-f10.txt")" >> "$OUT/steps.txt"
+# AXShowMenu opens the row menu but blocks until the menu closes, so it
+# reports -25204 like the Workspace button does; look for the menu item
+# instead of trusting the result. Fallbacks: a right-click through the HID
+# tap, then the keyboard context-menu key (Shift+F10) on the focused row.
+MENU_RE='AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))'
+ax activate $PID; sleep 1
+ax press $PID "$ROLE:$NAME" AXShowMenu
+if waitax "$MENU_RE" 5; then echo "row menu via AXShowMenu" >> "$OUT/steps.txt"
+else
+  "$AX" dump $PID 45 > "$OUT/ax-after-showmenu.txt"
+  $AX key $PID 53 >> "$OUT/steps.txt" 2>&1; sleep 1
+  for attempt in 1 2 3; do
+    ax activate $PID; sleep 1
+    "$AX" hidrightclick $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1 && break; sleep 1
+  done
+  sleep 1; "$AX" dump $PID 45 > "$OUT/ax-after-rightclick.txt"
+  if ! grep -q -E "$MENU_RE" "$OUT/ax-after-rightclick.txt"; then
+    "$AX" focus $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1; sleep 0.5
+    ax key $PID 109 shift; sleep 1
+    "$AX" dump $PID 45 > "$OUT/ax-after-shift-f10.txt"
+    echo "menu after Shift+F10: $(grep -c -E "$MENU_RE" "$OUT/ax-after-shift-f10.txt")" >> "$OUT/steps.txt"
+  fi
 fi
 echo "frontmost after right-click: $(osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2>/dev/null)" >> "$OUT/steps.txt"
 # Open split tabs say "Split archivieren"; saved tree rows say "Archivieren
 # (inklusive Split)".
-if waitax "AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))" 5; then
+if waitax "$MENU_RE" 5; then
   ARCH=$("$AX" dump $PID 45 | grep -o -E 'AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))' | head -1 | sed 's/^AXMenuItem | //')
   ax press $PID "AXMenuItem:$ARCH"
 else "$AX" dump $PID 45 > "$OUT/ax-row-menu.txt"; fi
