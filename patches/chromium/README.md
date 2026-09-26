@@ -1,5 +1,18 @@
 # Chromium M153 patch ledger
 
+## `0063-ahoi-option-tab-key-trace.patch`
+
+Diagnostic only, for WORKFLOW-03. On the installed build 33, ⌥⇥ never
+reaches Ahoi's `tab.last-used` accelerator, and the focused page receives the
+Option keydown but no Tab keydown; ⌃⇥ and ⌥⌘K arrive normally (option-tab
+probe, 26 September). This patch adds VLOG(1) lines for keyCode 48 in
+`NativeWidgetMacNSWindow sendEvent:`, `RenderWidgetHostViewCocoa`
+`performKeyEquivalent:` and `keyEvent:wasKeyEquivalent:`, and for VKEY_TAB in
+`BrowserView::PreHandleKeyboardEvent`, so a run with
+`--vmodule=native_widget_mac_nswindow=1,render_widget_host_view_cocoa=1,browser_view=1`
+shows the last stage the key reaches. No behavior changes. Remove it together
+with the fix.
+
 ## `0048-ahoi-fullscreen-sidebar-flush.patch`
 
 The user's 24 September fullscreen screenshot shows a 40-DIP dark band between

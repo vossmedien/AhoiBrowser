@@ -1,0 +1,78 @@
+diff --git a/components/remote_cocoa/app_shim/native_widget_mac_nswindow.mm b/components/remote_cocoa/app_shim/native_widget_mac_nswindow.mm
+index 78ec258..9725095 100644
+--- a/components/remote_cocoa/app_shim/native_widget_mac_nswindow.mm
++++ b/components/remote_cocoa/app_shim/native_widget_mac_nswindow.mm
+@@ -9,6 +9,7 @@
+ #include "base/apple/foundation_util.h"
+ #include "base/auto_reset.h"
+ #include "base/check.h"
++#include "base/logging.h"
+ #include "base/debug/dump_without_crashing.h"
+ #include "base/feature_list.h"
+ #include "base/mac/mac_util.h"
+@@ -612,6 +613,11 @@ struct NSEdgeAndCornerThicknesses {
+   // TODO(bokan): Tracing added temporarily to diagnose crbug.com/1039833.
+   TRACE_EVENT1("browser", "NSWindow::sendEvent", "WindowNum",
+                [self windowNumber]);
++  // AhoiBrowser diagnostic (WORKFLOW-03): where does Option+Tab go?
++  if (event.type == NSEventTypeKeyDown && event.keyCode == 48) {
++    VLOG(1) << "Ahoi key trace: NSWindow sendEvent tab flags="
++            << event.modifierFlags;
++  }
+ 
+   // Let CommandDispatcher check if this is a redispatched event.
+   if ([_commandDispatcher preSendEvent:event]) {
+diff --git a/content/app_shim_remote_cocoa/render_widget_host_view_cocoa.mm b/content/app_shim_remote_cocoa/render_widget_host_view_cocoa.mm
+index 34b9775..53ef109 100644
+--- a/content/app_shim_remote_cocoa/render_widget_host_view_cocoa.mm
++++ b/content/app_shim_remote_cocoa/render_widget_host_view_cocoa.mm
+@@ -16,6 +16,7 @@
+ #import "base/apple/foundation_util.h"
+ #include "base/apple/owned_objc.h"
+ #include "base/debug/crash_logging.h"
++#include "base/logging.h"
+ #import "base/mac/mac_util.h"
+ #include "base/memory/raw_ptr.h"
+ #include "base/numerics/safe_conversions.h"
+@@ -1345,6 +1346,12 @@ static NSWindow* __weak _deferredResignKeyWindow;
+ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
+   // TODO(bokan): Tracing added temporarily to diagnose crbug.com/1039833.
+   TRACE_EVENT0("browser", "RenderWidgetHostViewCocoa::performKeyEquivalent");
++  // AhoiBrowser diagnostic (WORKFLOW-03): where does Option+Tab go?
++  if (theEvent.keyCode == 48) {
++    VLOG(1) << "Ahoi key trace: RWHV performKeyEquivalent tab first_responder="
++            << ([[self window] firstResponder] == self)
++            << " reserved=" << EventIsReservedBySystem(theEvent);
++  }
+   // |performKeyEquivalent:| is sent to all views of a window, not only down the
+   // responder chain (cf. "Handling Key Equivalents" in
+   // http://developer.apple.com/mac/library/documentation/Cocoa/Conceptual/EventOverview/HandlingKeyEvents/HandlingKeyEvents.html
+@@ -1424,6 +1431,11 @@ static NSWindow* __weak _deferredResignKeyWindow;
+   NSEventType eventType = [theEvent type];
+   NSEventModifierFlags modifierFlags = [theEvent modifierFlags];
+   int keyCode = [theEvent keyCode];
++  // AhoiBrowser diagnostic (WORKFLOW-03): where does Option+Tab go?
++  if (keyCode == 48) {
++    VLOG(1) << "Ahoi key trace: RWHV keyEvent tab type=" << eventType
++            << " equiv=" << equiv << " flags=" << modifierFlags;
++  }
+ 
+   // If the user changes the system hotkey mapping after Chrome has been
+   // launched, then it is possible that a formerly reserved system hotkey is no
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 03ea167..e22adf9 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -3731,6 +3731,12 @@ content::KeyboardEventProcessingResult BrowserView::PreHandleKeyboardEvent(
+ 
+   ui::Accelerator accelerator =
+       ui::GetAcceleratorFromNativeWebKeyboardEvent(event);
++  // AhoiBrowser diagnostic (WORKFLOW-03): where does Option+Tab go?
++  if (accelerator.key_code() == ui::VKEY_TAB) {
++    VLOG(1) << "Ahoi key trace: PreHandleKeyboardEvent tab modifiers="
++            << accelerator.modifiers() << " registered="
++            << focus_manager->IsAcceleratorRegistered(accelerator);
++  }
+ 
+   // What we have to do here is as follows:
+   // - If the |browser_| is for an app, do nothing.
