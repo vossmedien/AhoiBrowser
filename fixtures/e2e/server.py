@@ -5,9 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import html
 import json
-import re
 import socket
 import socketserver
 import ssl
@@ -38,104 +36,34 @@ from payloads import (
     parse_range as _parse_range,
 )
 from receipts import ReceiptStore, query_key_summary
+from server_routes_session import SessionRoutesMixin
+from server_routes_transfer import TransferRoutesMixin
 
 
-IPV4_LOOPBACK_HOST = "127.0.0.1"
-IPV6_LOOPBACK_HOST = "::1"
-# Retain the public constant used by existing fixture consumers while binding
-# an explicit listener for each loopback address family below.
-LOOPBACK_HOST = IPV4_LOOPBACK_HOST
-FIRST_HOST_NAME = "first-party.localhost"
-THIRD_HOST_NAME = "third-party.localhost"
-MEDIA_HOST_NAME = "media.localhost"
-MAX_UPLOAD_BYTES = 16 * 1024 * 1024
-SYNTHETIC_USERNAME = "fixture-user"
-SYNTHETIC_PASSWORD = "fixture-password"
-HTTP_RECOVERY_STATUSES = frozenset({"404", "500"})
-HTTP_RECOVERY_TOKEN_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
-SLOW_RESOURCE_BYTES = (
-    b"<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'>"
-    + (b" " * (4 * 1024 * 1024))
-    + b"</svg>"
+from server_support import (
+    IPV4_LOOPBACK_HOST,
+    IPV6_LOOPBACK_HOST,
+    LOOPBACK_HOST,
+    FIRST_HOST_NAME,
+    THIRD_HOST_NAME,
+    MEDIA_HOST_NAME,
+    MAX_UPLOAD_BYTES,
+    SYNTHETIC_USERNAME,
+    SYNTHETIC_PASSWORD,
+    HTTP_RECOVERY_STATUSES,
+    HTTP_RECOVERY_TOKEN_PATTERN,
+    SLOW_RESOURCE_BYTES,
+    SLOW_RESOURCE_THROTTLE_SECONDS,
+    MOBILE_REAL_E2E_CONTRACT_VERSION,
+    PRIVATE_DATA_MARKER_COOKIE_NAMES,
+    PRIVATE_DATA_MARKER_COOKIE_VALUE,
+    _json_bytes,
+    _safe_filename,
+    _cookie_names,
+    _safe_referrer,
+    _http_recovery_query,
+    _private_data_marker_kind,
 )
-SLOW_RESOURCE_THROTTLE_SECONDS = 0.15
-MOBILE_REAL_E2E_CONTRACT_VERSION = 2
-PRIVATE_DATA_MARKER_COOKIE_NAMES = {
-    "normal": "ahoi_e2e_normal_marker",
-    "private": "ahoi_e2e_private_marker",
-}
-PRIVATE_DATA_MARKER_COOKIE_VALUE = "synthetic-e2e-marker"
-
-
-def _json_bytes(value: object) -> bytes:
-    return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
-
-
-def _safe_filename(value: str) -> str:
-    basename = value.replace("\\", "/").rsplit("/", 1)[-1]
-    cleaned = re.sub(r"[^A-Za-z0-9._ -]", "_", basename)[:120]
-    return cleaned or "unnamed-upload.bin"
-
-
-def _cookie_names(value: str) -> Sequence[str]:
-    return sorted(
-        {
-            part.split("=", 1)[0].strip()
-            for part in value.split(";")
-            if "=" in part and part.split("=", 1)[0].strip()
-        }
-    )
-
-
-def _safe_referrer(value: str) -> Optional[str]:
-    if not value:
-        return None
-    split = urlsplit(value)
-    if split.scheme not in {"http", "https"} or not split.netloc:
-        return "present-but-invalid"
-    return "%s://%s%s" % (split.scheme, split.netloc, split.path)
-
-
-def _http_recovery_query(query: str) -> Optional[Tuple[int, str]]:
-    try:
-        values = parse_qs(
-            query,
-            keep_blank_values=True,
-            strict_parsing=True,
-            max_num_fields=2,
-        )
-    except ValueError:
-        return None
-    if set(values) != {"status", "token"}:
-        return None
-    statuses = values["status"]
-    tokens = values["token"]
-    if len(statuses) != 1 or len(tokens) != 1:
-        return None
-    status = statuses[0]
-    token = tokens[0]
-    if status not in HTTP_RECOVERY_STATUSES:
-        return None
-    if HTTP_RECOVERY_TOKEN_PATTERN.fullmatch(token) is None:
-        return None
-    return int(status), token
-
-
-def _private_data_marker_kind(body: bytes) -> Optional[str]:
-    try:
-        values = parse_qs(
-            body.decode("ascii"),
-            keep_blank_values=True,
-            strict_parsing=True,
-            max_num_fields=1,
-        )
-    except (UnicodeDecodeError, ValueError):
-        return None
-    if set(values) != {"marker"} or len(values["marker"]) != 1:
-        return None
-    marker = values["marker"][0]
-    return marker if marker in PRIVATE_DATA_MARKER_COOKIE_NAMES else None
-
 
 class FixtureContext:
     def __init__(self, runtime_directory: Path) -> None:
@@ -292,7 +220,7 @@ class FixtureHTTPServerIPv6(FixtureHTTPServer):
         super().server_bind()
 
 
-class FixtureRequestHandler(BaseHTTPRequestHandler):
+class FixtureRequestHandler(TransferRoutesMixin, SessionRoutesMixin, BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     server_version = "AhoiLocalE2E/1"
 
@@ -556,298 +484,14 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             snapshot = self.context.receipts.snapshot()
             self._json(HTTPStatus.OK, {"schemaVersion": 1, "receipts": snapshot})
             return
-        if route in {"/failure/subframe-404", "/failure/subframe-500"}:
-            status = (
-                HTTPStatus.NOT_FOUND
-                if route.endswith("404")
-                else HTTPStatus.INTERNAL_SERVER_ERROR
-            )
-            body = pages.document(
-                "Subframe HTTP %d" % status,
-                "<p id='subframe-http-%d-loaded'>Subframe HTTP %d loaded.</p>"
-                % (status, status),
-                urls,
-            )
-            self._send(
-                status,
-                body,
-                headers=(("Cache-Control", "no-store"),),
-                facts={"subframeFailureStatus": status},
-            )
-            return
-        if route == "/failure/recover-once":
-            parameters = _http_recovery_query(split.query)
-            if parameters is None:
-                self._json(
-                    HTTPStatus.BAD_REQUEST,
-                    {"error": "invalid recover-once query"},
-                    headers=(("Cache-Control", "no-store"),),
-                    facts={"httpRecoveryQueryValid": False},
-                )
+        for handler in (
+            self._get_failure_route,
+            self._get_transfer_route,
+            self._get_identity_route,
+            self._get_site_data_route,
+        ):
+            if handler(route, split, urls):
                 return
-            requested_status, token = parameters
-            token_digest = hashlib.sha256(token.encode("ascii")).hexdigest()
-            attempt = self.context.increment(
-                "http-recover-once:%d:%s" % (requested_status, token_digest)
-            )
-            complete = attempt >= 2
-            if complete:
-                body = pages.document(
-                    "HTTP recovery complete",
-                    "<p id='http-recovery-ready'>HTTP recovery complete</p>",
-                    urls,
-                )
-                response_status = HTTPStatus.OK
-            else:
-                body = pages.document(
-                    "Intentional HTTP %d failure" % requested_status,
-                    "<p id='http-recovery-pending'>Reload this page to complete HTTP recovery.</p>",
-                    urls,
-                )
-                response_status = requested_status
-            self._send(
-                response_status,
-                body,
-                headers=(("Cache-Control", "no-store"),),
-                facts={
-                    "httpRecoveryAttempt": attempt,
-                    "httpRecoveryComplete": complete,
-                    "requestedStatus": requested_status,
-                },
-            )
-            return
-        if route == "/download/deterministic.bin":
-            self._asset(DOWNLOAD_BYTES, "application/octet-stream", "ahoi-range.bin", attachment=True)
-            return
-        if route == "/slow-resource.svg":
-            self._asset(
-                SLOW_RESOURCE_BYTES,
-                "image/svg+xml",
-                "ahoi-slow-resource.svg",
-                attachment=False,
-                throttle_seconds=SLOW_RESOURCE_THROTTLE_SECONDS,
-                cache_control="no-store",
-            )
-            return
-        if route == "/download/large-range.zip":
-            self._asset(
-                LARGE_ZIP_BYTES,
-                "application/zip",
-                "ahoi-large-range.zip",
-                attachment=True,
-                throttle_seconds=LARGE_ZIP_THROTTLE_SECONDS,
-                cache_control="no-store",
-            )
-            return
-        if route == "/download/disconnect-once.zip":
-            disconnect = None
-            if not self.headers.get("Range") and self.context.increment("disconnect-once") == 1:
-                disconnect = DISCONNECT_AFTER_BYTES
-            self._asset(
-                LARGE_ZIP_BYTES,
-                "application/zip",
-                "ahoi-disconnect-resume.zip",
-                attachment=True,
-                throttle_seconds=LARGE_ZIP_THROTTLE_SECONDS,
-                disconnect_after_bytes=disconnect,
-            )
-            return
-        if route == "/document/synthetic.pdf":
-            self._asset(PDF_BYTES, "application/pdf", "ahoi-synthetic.pdf", attachment=False)
-            return
-        if route == "/download/harmless-warning.exe":
-            self._asset(WARNING_BYTES, "application/x-msdownload", "ahoi-harmless-warning.exe", attachment=True)
-            return
-        if route == "/media/sample.mp4":
-            self._asset(MEDIA_BYTES, "video/mp4", "ahoi-h264-aac.mp4", attachment=False)
-            return
-        if route == "/redirect/same":
-            self._send(
-                HTTPStatus.FOUND,
-                b"",
-                headers=(("Location", "/popup?from=same"), ("Cache-Control", "no-store")),
-                facts={"redirectKind": "same-origin"},
-            )
-            return
-        if route == "/redirect/cross":
-            self._send(
-                HTTPStatus.FOUND,
-                b"",
-                headers=(("Location", urls["thirdPartyHttpsUrl"] + "/popup?from=cross"), ("Cache-Control", "no-store")),
-                facts={"redirectKind": "cross-origin"},
-            )
-            return
-        if route == "/redirect/dns-failure":
-            self._send(
-                HTTPStatus.FOUND,
-                b"",
-                headers=(
-                    ("Location", pages.DNS_REDIRECT_FAILURE_URL),
-                    ("Cache-Control", "no-store"),
-                ),
-                facts={"redirectKind": "dns-failure"},
-            )
-            return
-        if route == "/oauth/authorize":
-            state = parse_qs(split.query).get("state", ["public-test-state"])[0][:200]
-            self._send(
-                HTTPStatus.OK,
-                pages.oauth_authorize(urls, state),
-                headers=(("Cache-Control", "no-store"),),
-                facts={"oauthSimulation": True},
-            )
-            return
-        if route == "/oauth/callback":
-            decision = parse_qs(split.query).get("result", ["unknown"])[0][:40]
-            self._send(
-                HTTPStatus.OK,
-                pages.oauth_callback(urls, decision),
-                headers=(("Cache-Control", "no-store"),),
-                facts={"oauthSimulation": True, "decision": decision},
-            )
-            return
-        if route == "/passkey/challenge":
-            kind = parse_qs(split.query).get("kind", ["authenticate"])[0]
-            self._json(
-                HTTPStatus.OK,
-                {
-                    "challengeId": self.context.challenge_id,
-                    "kind": kind if kind in {"register", "authenticate"} else "authenticate",
-                    "rpId": "first-party.localhost",
-                    "simulated": True,
-                    "platformWebAuthnPerformed": False,
-                },
-                facts={"passkeySimulation": True},
-            )
-            return
-        if route == "/cookies/set":
-            self._send(
-                HTTPStatus.OK,
-                pages.document("First-party cookies set", "<p id='cookie-set'>Synthetic first-party cookies set.</p>", urls),
-                headers=(
-                    ("Set-Cookie", "ahoi_first=synthetic; Path=/; Secure; SameSite=Lax"),
-                    ("Set-Cookie", "ahoi_strict=synthetic; Path=/; Secure; SameSite=Strict"),
-                    ("Set-Cookie", "ahoi_http_only=synthetic; Path=/; Secure; HttpOnly; SameSite=Lax"),
-                    ("Cache-Control", "no-store"),
-                ),
-                facts={"cookieAttributes": ["Secure", "HttpOnly", "SameSite=Lax", "SameSite=Strict"]},
-            )
-            return
-        if route == "/cookies/third-party":
-            names = _cookie_names(self.headers.get("Cookie", ""))
-            body = pages.document(
-                "Third-party CHIPS control",
-                "<p id='chips-control'>A Secure, SameSite=None, Partitioned cookie was offered. Seen cookie names: %s</p>"
-                % html.escape(", ".join(names) or "none"),
-                urls,
-            )
-            self._send(
-                HTTPStatus.OK,
-                body,
-                headers=(("Set-Cookie", "ahoi_partitioned=synthetic; Path=/; Secure; SameSite=None; Partitioned"), ("Cache-Control", "no-store")),
-                facts={"cookieNames": names, "partitionedCookieOffered": True},
-            )
-            return
-        if route == "/privacy/echo":
-            summary = query_key_summary(self.path)
-            self._json(
-                HTTPStatus.OK,
-                {
-                    "gpc": self.headers.get("Sec-GPC") == "1",
-                    "referrerWithoutQuery": _safe_referrer(self.headers.get("Referer", "")),
-                    **summary,
-                },
-                headers=(("Cache-Control", "no-store"),),
-                facts={"privacyEcho": True},
-            )
-            return
-        if route == "/privacy/marker/inspect":
-            cookie_names = set(_cookie_names(self.headers.get("Cookie", "")))
-            markers = {
-                kind: cookie_name in cookie_names
-                for kind, cookie_name in PRIVATE_DATA_MARKER_COOKIE_NAMES.items()
-            }
-            self._json(
-                HTTPStatus.OK,
-                {"markers": markers, "valuesExposed": False},
-                headers=(("Cache-Control", "no-store"),),
-                facts={
-                    "privateDataControl": "inspect",
-                    "markerKindsPresent": sorted(
-                        kind for kind, present in markers.items() if present
-                    ),
-                    "valuesRetained": False,
-                },
-            )
-            return
-        if route == "/counter/storage":
-            value = self.context.increment("storage")
-            self._json(HTTPStatus.OK, {"counter": "storage", "value": value}, facts={"counter": "storage", "value": value})
-            return
-        if route == "/assets/v1/data.json":
-            count = self.context.increment("asset-v1")
-            self._json(
-                HTTPStatus.OK,
-                {"assetVersion": "v1", "content": "deterministic fixture asset", "accessCount": count},
-                headers=(("Cache-Control", "public, max-age=31536000, immutable"), ("ETag", '"ahoi-asset-v1"')),
-                facts={"assetVersion": "v1", "accessCount": count},
-            )
-            return
-        if route == "/service-worker.js":
-            script = (
-                "const CACHE='ahoi-e2e-v1';const ASSET='/assets/v1/data.json';"
-                "self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.add(ASSET))));"
-                "self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));"
-                "self.addEventListener('fetch',e=>{if(new URL(e.request.url).pathname===ASSET)e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})\n"
-            ).encode("utf-8")
-            self._send(
-                HTTPStatus.OK,
-                script,
-                content_type="text/javascript; charset=utf-8",
-                headers=(("Cache-Control", "no-cache"), ("Service-Worker-Allowed", "/")),
-                facts={"serviceWorkerVersion": "v1"},
-            )
-            return
-        if route == "/headers/echo":
-            lowered = {key.lower(): value for key, value in self.headers.items()}
-            self._json(
-                HTTPStatus.OK,
-                {
-                    "allowedValues": {"x-ahoi-test": lowered.get("x-ahoi-test")},
-                    "presenceOnly": {
-                        "authorization": "authorization" in lowered,
-                        "cookie": "cookie" in lowered,
-                        "origin": "origin" in lowered,
-                        "referer": "referer" in lowered,
-                    },
-                    "redacted": ["authorization", "cookie"],
-                },
-                headers=(("Cache-Control", "no-store"), ("X-Ahoi-Response", "public-fixture-value")),
-                facts={"echoedHeaderNames": ["x-ahoi-test"] if "x-ahoi-test" in lowered else []},
-            )
-            return
-        if route == "/csp/strict":
-            body = pages.strict_csp(urls)
-            self._send(
-                HTTPStatus.OK,
-                body,
-                headers=(("Content-Security-Policy", "default-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'"), ("Cache-Control", "no-store")),
-                facts={"cspControl": "strict-self"},
-            )
-            return
-        if route in {"/cors/allow", "/cors/deny"}:
-            extra: Sequence[Tuple[str, str]] = ()
-            control = "deny"
-            if route.endswith("allow"):
-                control = "allow"
-                extra = (("Access-Control-Allow-Origin", urls["firstPartyHttpsUrl"]), ("Vary", "Origin"))
-            self._json(
-                HTTPStatus.OK,
-                {"corsControl": control, "role": self.fixture_server.role},
-                headers=extra,
-                facts={"corsControl": control},
-            )
-            return
         self._json(HTTPStatus.NOT_FOUND, {"error": "fixture route not found", "path": route})
 
     def do_POST(self) -> None:
