@@ -155,6 +155,20 @@ class NetworkAuditTest(unittest.TestCase):
         self.assertEqual(audit.safe_browsing_verdict(refused), "FAIL")
         self.assertEqual(audit.safe_browsing_verdict([]), "FAIL")
 
+    def test_stop_browser_escalates_to_sigkill(self):
+        import subprocess
+        import sys as system
+        quick = subprocess.Popen([system.executable, "-c", "pass"],
+                                 start_new_session=True)
+        self.assertEqual(audit.stop_browser(quick, grace=10, escalation=1), "exited")
+        stubborn = subprocess.Popen(
+            [system.executable, "-c",
+             "import signal,time; signal.signal(signal.SIGTERM, signal.SIG_IGN); "
+             "time.sleep(60)"],
+            start_new_session=True)
+        self.assertEqual(audit.stop_browser(stubborn, grace=0.5, escalation=2),
+                         "sigkill")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -283,6 +283,27 @@ def redact(text: str, secret: Optional[str]) -> str:
     return text.replace(secret, "REDACTED-KEY") if secret else text
 
 
+def stop_browser(process: subprocess.Popen, grace: float = 60,
+                 escalation: float = 30) -> str:
+    """Waits for the closing browser; escalates on our own process group only.
+    Returns how it ended ("exited", "sigterm", "sigkill"), itself a finding."""
+    for signum, label, timeout in ((None, "exited", grace),
+                                   (signal.SIGTERM, "sigterm", escalation),
+                                   (signal.SIGKILL, "sigkill", escalation)):
+        if signum is not None:
+            print(f"browser did not exit; sending {label}", file=sys.stderr)
+            try:
+                os.killpg(process.pid, signum)
+            except (ProcessLookupError, PermissionError):
+                pass
+        try:
+            process.wait(timeout=timeout)
+            return label
+        except subprocess.TimeoutExpired:
+            continue
+    raise subprocess.TimeoutExpired(process.args, grace + 2 * escalation)
+
+
 def default_crashpad_database(identity: dict) -> pathlib.Path:
     product = pathlib.Path(identity["path"]).stem
     return pathlib.Path.home() / "Library/Application Support" / product / "Crashpad"
@@ -380,16 +401,7 @@ def main(argv=None) -> int:
         except (OSError, cdp.CDPError):
             if not browser_crashed:
                 raise
-        try:
-            process.wait(timeout=60)
-        except subprocess.TimeoutExpired:
-            # Keep the collected evidence: stop only our own process group.
-            print("browser did not exit in 60 s; stopping it", file=sys.stderr)
-            try:
-                os.killpg(process.pid, signal.SIGTERM)
-            except (ProcessLookupError, PermissionError):
-                pass
-            process.wait(timeout=30)
+        shutdown = stop_browser(process)
     except (OSError, cdp.CDPError, subprocess.TimeoutExpired) as error:
         print(f"audit run failed: {error}", file=sys.stderr)
         try:
@@ -416,6 +428,7 @@ def main(argv=None) -> int:
         "gcmStoreHasCheckin": gcm_store,
         "verdicts": verdict(classified, gcm_store),
         "phases": sorted(phases),
+        "shutdown": shutdown,
         "variant": "keyed" if api_key else "keyless",
         "method": "Chromium NetLog (Default capture) plus lsof socket polling every 2 s; "
                   "no root, so non-Chromium DNS is not observed",
