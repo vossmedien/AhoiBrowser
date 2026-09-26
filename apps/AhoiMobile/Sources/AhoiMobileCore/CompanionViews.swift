@@ -19,6 +19,7 @@ public struct CompanionRootView: View {
     @State private var creationKind: CreationKind?
     @State private var workspacePendingDeletion: WorkspaceID?
     @State private var workspacePendingRename: Workspace?
+    @State private var workspacePendingMerge: WorkspaceMergeRequest?
     @State private var renameDraft = ""
     @State private var selectedRemoteDeviceID: DeviceID?
     @State private var settingsPresented = false
@@ -69,6 +70,7 @@ public struct CompanionRootView: View {
                             .accessibilityIdentifier(
                                 "browser.library.workspace.rename.\(stableUUID(workspace.id.rawValue))"
                             )
+                            mergeMenu(for: workspace)
                             Button(L("workspace.delete", "Delete workspace"), role: .destructive) {
                                 workspacePendingDeletion = workspace.id
                             }
@@ -331,6 +333,29 @@ public struct CompanionRootView: View {
             }
             .accessibilityIdentifier("browser.library.workspace.delete.cancel")
         }
+        .confirmationDialog(
+            mergeConfirmationTitle,
+            isPresented: Binding(
+                get: { workspacePendingMerge != nil },
+                set: { if !$0 { workspacePendingMerge = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: workspacePendingMerge
+        ) { request in
+            Button(L("workspace.merge.as_folder", "Merge as folder")) {
+                merge(request, intoFolder: true)
+            }
+            .accessibilityIdentifier("browser.library.workspace.merge.folder")
+            Button(L("workspace.merge.flat", "Merge without folder")) {
+                merge(request, intoFolder: false)
+            }
+            .accessibilityIdentifier("browser.library.workspace.merge.flat")
+            Button(L("action.cancel", "Cancel"), role: .cancel) {
+                workspacePendingMerge = nil
+            }
+        } message: { request in
+            Text(mergeConfirmationMessage(request))
+        }
         .alert(
             L("workspace.rename", "Rename workspace"),
             isPresented: Binding(
@@ -362,6 +387,90 @@ public struct CompanionRootView: View {
                 CompanionOperationErrorBanner(message: message, dismiss: model.dismissLoadError)
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            if let receipt = model.pendingWorkspaceMergeUndo {
+                WorkspaceMergeUndoBanner(
+                    message: CompanionL10n.format(
+                        "workspace.merge.done",
+                        fallback: "“%1$@” merged into “%2$@”.",
+                        receipt.previousSourceName,
+                        workspaceName(receipt.targetID)
+                    ),
+                    undo: { Task { await model.undoWorkspaceMerge() } },
+                    dismiss: model.dismissWorkspaceMergeUndo
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func mergeMenu(for workspace: Workspace) -> some View {
+        let targets = model.snapshot.visibleWorkspaces.filter {
+            model.canMergeWorkspace(workspace.id, into: $0.id)
+        }
+        if !targets.isEmpty {
+            Menu(L("workspace.merge", "Merge into…")) {
+                ForEach(targets) { target in
+                    Button(target.name) { requestMerge(workspace, into: target) }
+                        .accessibilityIdentifier(
+                            "browser.library.workspace.merge.\(stableUUID(workspace.id.rawValue)).\(stableUUID(target.id.rawValue))"
+                        )
+                }
+            }
+        }
+    }
+
+    /// ADR 0012: an empty Workspace merges without asking.
+    private func requestMerge(_ source: Workspace, into target: Workspace) {
+        let request = WorkspaceMergeRequest(source: source, target: target)
+        if mergeCounts(request).pages + mergeCounts(request).folders == 0 {
+            merge(request, intoFolder: true)
+        } else {
+            workspacePendingMerge = request
+        }
+    }
+
+    private func merge(_ request: WorkspaceMergeRequest, intoFolder: Bool) {
+        workspacePendingMerge = nil
+        if selectedWorkspaceID == request.source.id { selectedWorkspaceID = request.target.id }
+        Task {
+            await model.mergeWorkspace(
+                request.source.id,
+                into: request.target.id,
+                intoFolder: intoFolder
+            )
+        }
+    }
+
+    private func mergeCounts(_ request: WorkspaceMergeRequest) -> (pages: Int, folders: Int) {
+        let nodes = model.snapshot.visibleTreeNodes.filter { $0.workspaceID == request.source.id }
+        return (nodes.filter { $0.kind == .savedPage }.count, nodes.filter { $0.kind == .folder }.count)
+    }
+
+    private var mergeConfirmationTitle: String {
+        guard let request = workspacePendingMerge else { return "" }
+        return CompanionL10n.format(
+            "workspace.merge.confirmation",
+            fallback: "Merge “%1$@” into “%2$@”?",
+            request.source.name,
+            request.target.name
+        )
+    }
+
+    private func mergeConfirmationMessage(_ request: WorkspaceMergeRequest) -> String {
+        let counts = mergeCounts(request)
+        return CompanionL10n.format(
+            "workspace.merge.message",
+            fallback: "%1$d pages and %2$d folders move to “%3$@”, and “%4$@” is removed. You can undo this right afterwards.",
+            counts.pages,
+            counts.folders,
+            request.target.name,
+            request.source.name
+        )
+    }
+
+    private func workspaceName(_ id: WorkspaceID) -> String {
+        model.snapshot.visibleWorkspaces.first { $0.id == id }?.name ?? ""
     }
 
     private func remoteTabRow(_ tab: RemoteTab) -> some View {
@@ -491,5 +600,38 @@ private struct LibraryDoneToolbar: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+struct WorkspaceMergeRequest: Identifiable, Equatable {
+    let source: Workspace
+    let target: Workspace
+    var id: String { "\(source.id.rawValue).\(target.id.rawValue)" }
+}
+
+/// The one-step undo offered right after a Workspace merge (ADR 0012).
+struct WorkspaceMergeUndoBanner: View {
+    let message: String
+    let undo: () -> Void
+    let dismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(message)
+                .font(.callout)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button(L("action.undo", "Undo"), action: undo)
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("browser.library.workspace.merge.undo")
+            Button(action: dismiss) {
+                Image(systemName: "xmark")
+            }
+            .accessibilityLabel(L("action.close", "Close"))
+            .accessibilityIdentifier("browser.library.workspace.merge.undo.dismiss")
+        }
+        .padding(12)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
     }
 }

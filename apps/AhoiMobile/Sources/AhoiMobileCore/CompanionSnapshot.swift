@@ -147,6 +147,8 @@ public enum LocalCompanionStoreError: Error, Equatable, Sendable {
     case invalidParent
     case treeCycle
     case hierarchyTooDeep
+    /// A merge undo whose records changed after the merge (ADR 0012).
+    case mergeUndoOutdated
 }
 
 public enum CompanionHierarchyPolicy {

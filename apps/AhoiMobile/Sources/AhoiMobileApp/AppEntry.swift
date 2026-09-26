@@ -79,6 +79,14 @@ private final class AhoiMobileBootstrap: ObservableObject {
     struct Runtime {
         let model: CompanionAppModel
         let browser: MobileBrowserController
+
+        @MainActor
+        init(model: CompanionAppModel, browser: MobileBrowserController) {
+            self.model = model
+            self.browser = browser
+            // ADR 0012: a Workspace merge moves the source's open tabs too.
+            model.connectWorkspaceMerges(to: browser)
+        }
     }
 
     @Published private(set) var runtime: Runtime?

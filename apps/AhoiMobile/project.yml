@@ -27,6 +27,12 @@ targets:
     platform: iOS
     sources:
       - path: Sources/AhoiMobileCore
+        excludes:
+          - WebExtensionSpike
+      # MOB-EXT-01 spike extension, kept as one folder in the bundle.
+      - path: Sources/AhoiMobileCore/WebExtensionSpike
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: AhoiCloudKitSpike
         product: AhoiCloudKitSpike

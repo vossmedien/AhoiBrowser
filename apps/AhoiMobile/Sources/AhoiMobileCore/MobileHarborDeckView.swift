@@ -29,6 +29,9 @@ struct MobileHarborDeckView: View {
     let onPresentTabs: () -> Void
     let onPresentMore: () -> Void
     let onSwitchWorkspace: (Int) -> Void
+    /// Flick through recently used tabs (ADR 0012, MOB-FLICK); false if none.
+    let onSwitchRecentTab: (Int) -> Bool
+    @State private var recentTabFlicks = 0
     private var reduceMotion: Bool { reduceMotionOverride ?? systemReduceMotion }
     var body: some View {
         deckContent
@@ -222,6 +225,29 @@ struct MobileHarborDeckView: View {
                 : "Address and search"
         ))
         .accessibilityValue(Text(addressAccessibilityValue))
+        // One finger on the control row only: the web view keeps WebKit's
+        // back/forward edge swipe, the top rail keeps the Workspace swipe.
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 28).onEnded { value in
+                let horizontal = value.translation.width
+                guard abs(horizontal) >= 72,
+                      abs(horizontal) > abs(value.translation.height) * 1.35 else { return }
+                // Rightward reveals the previously used tab, as in Safari.
+                flickRecentTab(horizontal > 0 ? 1 : -1)
+            }
+        )
+        .sensoryFeedback(.selection, trigger: recentTabFlicks)
+        .accessibilityAction(named: Text(CompanionL10n.string(
+            "browser.tabs.previous", fallback: "Previous Tab"
+        ))) { flickRecentTab(1) }
+        .accessibilityAction(named: Text(CompanionL10n.string(
+            "browser.tabs.next", fallback: "Next Tab"
+        ))) { flickRecentTab(-1) }
+    }
+
+    private func flickRecentTab(_ direction: Int) {
+        guard visibleTabCount > 1, onSwitchRecentTab(direction) else { return }
+        recentTabFlicks += 1
     }
 
     private var reloadButton: some View {

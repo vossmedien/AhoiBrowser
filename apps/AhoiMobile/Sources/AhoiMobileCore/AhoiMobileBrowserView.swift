@@ -434,7 +434,8 @@ public struct AhoiMobileBrowserView: View {
                 expandHarborDeck()
                 browserActionsPresented = true
             },
-            onSwitchWorkspace: switchWorkspace
+            onSwitchWorkspace: switchWorkspace,
+            onSwitchRecentTab: { browser.switchRecentTab(direction: $0) }
         )
         .accessibilitySortPriority(10)
     }

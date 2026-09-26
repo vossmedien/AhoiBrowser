@@ -46,6 +46,7 @@ public final class MobileBrowserController: ObservableObject {
     }
     @Published public internal(set) var lastError: String?
     @Published public internal(set) var recentlyClosedTab: MobileTabRecord?
+    var recentTabCycler: MobileRecentTabCycler?
     @Published public internal(set) var pendingExternalOpen: MobilePendingExternalOpen?
     @Published public internal(set) var pendingLink: MobilePendingLink?
     @Published internal(set) var linkPreview: MobileLinkPreviewSession?
@@ -382,6 +383,23 @@ public final class MobileBrowserController: ObservableObject {
         tabs[index] = candidate
         persistSoon()
         if candidate.mode == .normal { onSharedTabIntent?(candidate, .move(workspaceID)) }
+    }
+
+    /// Moves every open tab of `source` to `target` (a Workspace merge,
+    /// ADR 0012) and returns the moved tab IDs, so an undo can move exactly
+    /// these back. Private tabs and separated Workspaces are left alone.
+    @discardableResult
+    public func moveTabs(
+        fromWorkspace source: WorkspaceID,
+        to target: WorkspaceID?
+    ) -> [UUID] {
+        let ids = tabs.filter { $0.workspaceID == source && $0.mode == .normal }.map(\.id)
+        moveTabs(ids, to: target)
+        return ids.filter { id in tabs.contains { $0.id == id && $0.workspaceID == target } }
+    }
+
+    public func moveTabs(_ ids: [UUID], to workspaceID: WorkspaceID?) {
+        for id in ids { moveTab(id, to: workspaceID) }
     }
 
     public func setSelectedTabSaved(_ saved: Bool) {

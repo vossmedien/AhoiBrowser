@@ -25,6 +25,8 @@ public final class CompanionAppModel: ObservableObject {
     @Published public internal(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
     @Published public internal(set) var syncSetupIssue: CompanionSyncSetupIssue?
     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
+    /// The last Workspace merge, while its one-step undo is offered.
+    @Published public internal(set) var pendingWorkspaceMergeUndo: CompanionWorkspaceMergeReceipt?
 
     public let repository: LocalFirstRepository
     /// ADR 0011 step 4: fully separated Workspaces, each synced in its own
@@ -68,6 +70,11 @@ public final class CompanionAppModel: ObservableObject {
     var browserSearchMutationToken: UUID?
     var remoteCommandExpiryTask: Task<Void, Never>?
     var remoteCommandExpiryGeneration: UInt64 = 0
+    /// Moves the open browser tabs of a merged Workspace (see
+    /// `connectWorkspaceMerges(to:)`) and returns their IDs for the undo.
+    var workspaceMergeTabMover: ((WorkspaceID, WorkspaceID) -> [UUID])?
+    var workspaceMergeTabRestorer: (([UUID], WorkspaceID) -> Void)?
+    var workspaceMergeTabIDs: [UUID] = []
     let remoteCommandClock: CompanionRemoteCommandClock
     let remoteCommandSleeper: CompanionRemoteCommandSleeper
 #if DEBUG

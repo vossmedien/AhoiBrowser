@@ -233,6 +233,12 @@ extension MobileBrowserController {
         websiteDataStores[tabID] = websiteDataStore
         configuration.websiteDataStore = websiteDataStore
         configuration.upgradeKnownHostsToHTTPS = true
+        // MOB-EXT-01 spike (ADR 0012): only with `-AhoiWebExtensionSpike`.
+        MobileWebExtensionRuntime.shared.attach(
+            to: &configuration,
+            mode: mode,
+            usesDefaultWebsiteDataStore: websiteDataStore === normalWebsiteDataStore
+        )
         // Certificate trust and ATS policy deliberately stay with WebKit's
         // default handling. Never install a permissive challenge override.
         configuration.mediaPlaybackBehavior = .allowsInlinePlayback

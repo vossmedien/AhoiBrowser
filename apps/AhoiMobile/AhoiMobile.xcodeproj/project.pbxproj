@@ -11,6 +11,7 @@
 		0138D30D083B187638BB7BB7 /* CompanionTreeReordering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E55E9F73A8FDE3DE8B290D /* CompanionTreeReordering.swift */; };
 		0256116E2C4DFFE559A4376E /* AhoiMobileCloudKitE2EHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFAD33AC2A98D3BEC99F643 /* AhoiMobileCloudKitE2EHarness.swift */; };
 		044D76731FEEC70297CDCE17 /* MobileBrowserSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7542E6A78A70643F3777556A /* MobileBrowserSidebar.swift */; };
+		062640CF3253ECE3EED56B7B /* MobileRecentTabCycler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F60D4CD6A59E66775E6F222 /* MobileRecentTabCycler.swift */; };
 		0635732FEF423B2FFC1CA5C2 /* shared_tab_wire_v3_contract.json in Resources */ = {isa = PBXBuildFile; fileRef = 372A315701CB10ADD768E62A /* shared_tab_wire_v3_contract.json */; };
 		06A0EC695C18A2841388034F /* MobileLinkInteractionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08E3D46CEEC79F9458F940B6 /* MobileLinkInteractionCoordinator.swift */; };
 		074B516565EF3C3011E5EEF2 /* SharedTabCapabilityReadiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 036981EB8D004DF0538A5E06 /* SharedTabCapabilityReadiness.swift */; };
@@ -26,6 +27,7 @@
 		0E948A9E13CCF4E3DCFC294F /* DesktopWireSharedTabReadPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAEE0DE8E2DD2DAA6C03F3C2 /* DesktopWireSharedTabReadPolicy.swift */; };
 		10ECFCD6E3EA670582C3D913 /* AhoiMobileCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B80168BC4A1601FD1D87A93 /* AhoiMobileCore.framework */; };
 		13317637D32677C507A0FAA1 /* CompanionExtensionStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30903E8C6F14208E315E1964 /* CompanionExtensionStorage.swift */; };
+		134D3B4D6B205A5AA27E93B4 /* MobileRecentTabCyclerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1579BCF84FABABE42B5F115B /* MobileRecentTabCyclerTests.swift */; };
 		13A6E6BB85982B6C1F96566C /* CompanionAppModelRemoteCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0285D823CD9A3ADCCEADCF6 /* CompanionAppModelRemoteCommands.swift */; };
 		143F1C8C5C63D59115717F17 /* MobileDownloadCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFF7229A3B3A9217E78A1BD7 /* MobileDownloadCoordinator.swift */; };
 		14774979D8AE051CBFEB3BA0 /* CloudKitRecoveryPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBA4CCB984A40174891BE11 /* CloudKitRecoveryPolicyTests.swift */; };
@@ -90,6 +92,7 @@
 		5029362A318B0DA4AA4064B2 /* CompanionKeyLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D916536AF75DDCC868BB7A5 /* CompanionKeyLifecycleTests.swift */; };
 		5046052ABA690FE6D954B01C /* SharedTabCreationProvenanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 014D9588778BF01556BCEA89 /* SharedTabCreationProvenanceTests.swift */; };
 		512F911BC2A988CFB54B1FC3 /* CompanionMobileIntentRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FBB2E135A8C10017137C5B /* CompanionMobileIntentRecovery.swift */; };
+		517130C5379501BF3BDC4869 /* CompanionStoreWorkspaceMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525D1EF10FF4B0F4C857D827 /* CompanionStoreWorkspaceMerge.swift */; };
 		520ED0FA0E24FF306EE8C277 /* CloudKitSyncProviderPersistenceFailureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1AAC9C6F827FFE6132458A /* CloudKitSyncProviderPersistenceFailureTests.swift */; };
 		521AB21AE389EA5D156EF563 /* CompanionDeviceRevocationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDFAC5291E918236335DCC9 /* CompanionDeviceRevocationTests.swift */; };
 		52A95AE1FDBC149E00A3EE8B /* CompanionAppModelBrowserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E6798D21FC82559EC47412 /* CompanionAppModelBrowserSettings.swift */; };
@@ -123,6 +126,7 @@
 		68F32A9DF6E1C57CEFA62CB5 /* CloudKitBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2D5A58B50BC2FE213F5AFFC /* CloudKitBootstrap.swift */; };
 		68F33C241FC7A71E2D6983F0 /* CloudKitSystemFieldsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43500F9EC63D06741A71A52 /* CloudKitSystemFieldsStore.swift */; };
 		6A94F92ACF84505EE13205A0 /* DesktopWireTabTargetCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FBF62FB42E43880988F8CF1 /* DesktopWireTabTargetCodec.swift */; };
+		6FBA0A758BE0752C985A46F3 /* MobileWebExtensionRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031B32E1505A539952D6CC59 /* MobileWebExtensionRuntime.swift */; };
 		6FD49D902E9D2C2CDE130408 /* CompanionAppModelSyncLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7116DA5CC86D57D8221B03B /* CompanionAppModelSyncLifecycle.swift */; };
 		6FD594E77C91BD0CBB784277 /* AhoiMobileCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1B80168BC4A1601FD1D87A93 /* AhoiMobileCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		70736F5BF7C2E4718F7E2C24 /* CompanionSyncVisibleEvidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CE5AF7735F6162DB75B76E9 /* CompanionSyncVisibleEvidence.swift */; };
@@ -168,6 +172,7 @@
 		9F6A16461633CF2A1EE31A85 /* MobilePrivateSessionLockTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38A32704DC2435CAA9D895C /* MobilePrivateSessionLockTests.swift */; };
 		A063FAA5A42AF4608668A156 /* CompanionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02865824EB9AC0925B5408DD /* CompanionViews.swift */; };
 		A0DA2CB90E8E397C225D6CE1 /* CompanionSyncRuntimeAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8997CE37E0C39A89B74FF388 /* CompanionSyncRuntimeAuthorization.swift */; };
+		A29FC011A3AB1D27D6E6EF64 /* CompanionWorkspaceMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D1FD2E1454DF79CA0A8000 /* CompanionWorkspaceMergeTests.swift */; };
 		A2AB8128C92A62BE529628F5 /* MobileBrowserController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B666C74492924D564B36548F /* MobileBrowserController.swift */; };
 		A32021767F605182908169B9 /* CloudKitSyncProvider+Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE06F2F741F6B6667D11856C /* CloudKitSyncProvider+Lifecycle.swift */; };
 		A4D1301619434E48C1BDFB95 /* MobileBrowserActionsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8CBC3734411F9AB5124E53 /* MobileBrowserActionsSheet.swift */; };
@@ -222,12 +227,14 @@
 		D19039447C8CAD9F0E7DA189 /* MobileBrowserControllerWebPageLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDB362821329D6FDEF5C53F /* MobileBrowserControllerWebPageLifecycle.swift */; };
 		D377689254180F0F84CD187F /* DesktopWireProductPayloadCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7EF7566292096CDDC7DFAE /* DesktopWireProductPayloadCodec.swift */; };
 		D3B91B942C78C378F6F9C5E2 /* CompanionAppModelBookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5BCACA0496EE20D14B821A7 /* CompanionAppModelBookmarks.swift */; };
+		D4D7ADC758D88084AFD69B76 /* WebExtensionSpike in Resources */ = {isa = PBXBuildFile; fileRef = 65BF76FB342E89CC99240260 /* WebExtensionSpike */; };
 		D5FA8F87B760CB3DADF60199 /* MobileWebDialogHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F692AE97996DD52BEBE5B6 /* MobileWebDialogHost.swift */; };
 		D6B8DDAE8CCDBF07B521735C /* CompanionBrowserSettingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93FB3088F748280DABC6FF22 /* CompanionBrowserSettingStore.swift */; };
 		D7580EDDCB94E023968CEF3A /* MobileBrowserPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7168C8D562DBF1B2F531AD9E /* MobileBrowserPresentationTests.swift */; };
 		D985EFD4C5117794271B1B4A /* CompanionProductRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CCA3106656C4B84007050CE /* CompanionProductRecordTests.swift */; };
 		D9C91F763630F4C0C1895C49 /* MobileBrowserDownloadRealE2EUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75BAD17069FD083DEEA36009 /* MobileBrowserDownloadRealE2EUITests.swift */; };
 		DDAE234D9264EF95C8EC4D56 /* MobileBrowserChromeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE42A00D5396EECF307B292 /* MobileBrowserChromeTheme.swift */; };
+		DFEC2017EA74B896FFADFFFA /* CompanionAppModelWorkspaceMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC907938BE79890002715DAA /* CompanionAppModelWorkspaceMerge.swift */; };
 		E06734661F12A9625D658079 /* SyncRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E05217774CD763178565A84 /* SyncRecordStore.swift */; };
 		E2F44B92AFF9558550AFBDA4 /* CompanionConvergenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836581053058CD7BC0F0BD45 /* CompanionConvergenceTests.swift */; };
 		E2FD5135D863ACDF466A17F6 /* CompanionPersistenceStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62D77A368AFA8FBF823CB04 /* CompanionPersistenceStores.swift */; };
@@ -247,6 +254,7 @@
 		F33753DC32B84935459ED160 /* CompanionSyncPreferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F025C542F050332E11BBB3D7 /* CompanionSyncPreferenceTests.swift */; };
 		F643476B51A0E725C0EA1DD4 /* SharedTabFieldReadMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0DA3891F2B3633963D41FF /* SharedTabFieldReadMerge.swift */; };
 		F6B569E805A49372AA763E62 /* AhoiCloudKitSpike in Frameworks */ = {isa = PBXBuildFile; productRef = 2EF5EB72AF6D23739D96DAD6 /* AhoiCloudKitSpike */; };
+		F883AD395A262B9731521E0E /* MobileWebExtensionRuntimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 019404D9944058901F289E37 /* MobileWebExtensionRuntimeTests.swift */; };
 		F89C1E88B81408C5F176609C /* AppEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F1E0B32366682300A4AA3B /* AppEntry.swift */; };
 		FABFAAB3AAA2316B77074110 /* CloudKitKeyRotationAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF5069E2E16DCAEAC9EC1C7E /* CloudKitKeyRotationAdapter.swift */; };
 		FC1C6805E9439CFA917C7D3C /* CompanionLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E01BE52036B7FAD9090FDF2 /* CompanionLocalization.swift */; };
@@ -330,7 +338,9 @@
 
 /* Begin PBXFileReference section */
 		014D9588778BF01556BCEA89 /* SharedTabCreationProvenanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTabCreationProvenanceTests.swift; sourceTree = "<group>"; };
+		019404D9944058901F289E37 /* MobileWebExtensionRuntimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWebExtensionRuntimeTests.swift; sourceTree = "<group>"; };
 		02865824EB9AC0925B5408DD /* CompanionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionViews.swift; sourceTree = "<group>"; };
+		031B32E1505A539952D6CC59 /* MobileWebExtensionRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWebExtensionRuntime.swift; sourceTree = "<group>"; };
 		036981EB8D004DF0538A5E06 /* SharedTabCapabilityReadiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTabCapabilityReadiness.swift; sourceTree = "<group>"; };
 		05F1E0B32366682300A4AA3B /* AppEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEntry.swift; sourceTree = "<group>"; };
 		07ED7C63B86EE90B3054BFD6 /* MobileAddressPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileAddressPresentation.swift; sourceTree = "<group>"; };
@@ -350,6 +360,7 @@
 		13BC3BB86EB7C600675BDCDE /* CompanionMobileSharedCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionMobileSharedCapture.swift; sourceTree = "<group>"; };
 		13DC4DAF858FBE3B9497D223 /* MobilePageFailurePresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePageFailurePresentation.swift; sourceTree = "<group>"; };
 		13F105607C502E8709C34AAA /* MobileBrowserSystemAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserSystemAlerts.swift; sourceTree = "<group>"; };
+		1579BCF84FABABE42B5F115B /* MobileRecentTabCyclerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRecentTabCyclerTests.swift; sourceTree = "<group>"; };
 		15ADAE1145A0A7FB73B27873 /* CompanionSnapshotCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSnapshotCodable.swift; sourceTree = "<group>"; };
 		1710E5650F1A9FCB5247F9F0 /* TestFlightBootstrap.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TestFlightBootstrap.xcconfig; sourceTree = "<group>"; };
 		17DF53BEC3321BA72E33A438 /* SharedTabCreationProvenance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTabCreationProvenance.swift; sourceTree = "<group>"; };
@@ -385,6 +396,7 @@
 		2A2EFDF557655F1B2EBA6572 /* MobileWebDialogPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWebDialogPresenter.swift; sourceTree = "<group>"; };
 		2B0C68BA9CEB26D0D81E0646 /* CompanionEncryptedPersistenceRoundTripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionEncryptedPersistenceRoundTripTests.swift; sourceTree = "<group>"; };
 		2D2DD50B498B8E48CC17A657 /* CloudKitSyncProvider+Delegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CloudKitSyncProvider+Delegate.swift"; sourceTree = "<group>"; };
+		2F60D4CD6A59E66775E6F222 /* MobileRecentTabCycler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRecentTabCycler.swift; sourceTree = "<group>"; };
 		2F6BF2E4FB060C8F0E8478B8 /* CompanionKeyRotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionKeyRotation.swift; sourceTree = "<group>"; };
 		305CDF8974C5933E455EB1E1 /* SeparatedWorkspaceSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeparatedWorkspaceSyncTests.swift; sourceTree = "<group>"; };
 		30903E8C6F14208E315E1964 /* CompanionExtensionStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionExtensionStorage.swift; sourceTree = "<group>"; };
@@ -425,6 +437,7 @@
 		4F7EF7566292096CDDC7DFAE /* DesktopWireProductPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWireProductPayloadCodec.swift; sourceTree = "<group>"; };
 		4FBE9D74CE42AD639851C6DB /* MobileDevelopmentScopeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileDevelopmentScopeTests.swift; sourceTree = "<group>"; };
 		51C84A3A5008AA86A72D0BAE /* CompanionImportBatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionImportBatch.swift; sourceTree = "<group>"; };
+		525D1EF10FF4B0F4C857D827 /* CompanionStoreWorkspaceMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionStoreWorkspaceMerge.swift; sourceTree = "<group>"; };
 		559063427F81721456EE658C /* ReleasePostGrant.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ReleasePostGrant.xcconfig; sourceTree = "<group>"; };
 		56B7570BD401D5FBE0DA1427 /* CompanionBrowserSettingCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionBrowserSettingCatalog.swift; sourceTree = "<group>"; };
 		591E143645AB0CE5D8297DB3 /* MobileSyncRealE2EUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSyncRealE2EUITests.swift; sourceTree = "<group>"; };
@@ -440,6 +453,7 @@
 		6568FE111B3548F3E852AC1B /* MobileDownloadFailurePresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileDownloadFailurePresentation.swift; sourceTree = "<group>"; };
 		657513742D503F8DE15360C6 /* CompanionSyncTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSyncTransport.swift; sourceTree = "<group>"; };
 		657A91AF1164CE3445B51329 /* SeparatedWorkspaceSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeparatedWorkspaceSync.swift; sourceTree = "<group>"; };
+		65BF76FB342E89CC99240260 /* WebExtensionSpike */ = {isa = PBXFileReference; lastKnownFileType = folder; name = WebExtensionSpike; path = Sources/AhoiMobileCore/WebExtensionSpike; sourceTree = SOURCE_ROOT; };
 		673ABD08F307B3D87A546484 /* MobileBrowserPrivacyPermissionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserPrivacyPermissionUITests.swift; sourceTree = "<group>"; };
 		68C6B48E04223A51B946F2E1 /* RemoteCommandOwnershipStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteCommandOwnershipStoreTests.swift; sourceTree = "<group>"; };
 		68CAF6DB9C68AAD18F75F73F /* AhoiMobileUITests+PrivateSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AhoiMobileUITests+PrivateSession.swift"; sourceTree = "<group>"; };
@@ -517,6 +531,7 @@
 		B666C74492924D564B36548F /* MobileBrowserController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserController.swift; sourceTree = "<group>"; };
 		BC0DA3891F2B3633963D41FF /* SharedTabFieldReadMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTabFieldReadMerge.swift; sourceTree = "<group>"; };
 		BC3D7250F3F9F5124877962E /* MobileAddressCommandSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileAddressCommandSheet.swift; sourceTree = "<group>"; };
+		BC907938BE79890002715DAA /* CompanionAppModelWorkspaceMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionAppModelWorkspaceMerge.swift; sourceTree = "<group>"; };
 		BCDB362821329D6FDEF5C53F /* MobileBrowserControllerWebPageLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserControllerWebPageLifecycle.swift; sourceTree = "<group>"; };
 		BD895C93277F6F3DCBD5F9E3 /* DesktopWirePayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWirePayloadCodec.swift; sourceTree = "<group>"; };
 		BDDC7FDC5BF514326C8B8DD2 /* MobileBrowserFailureRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserFailureRecoveryTests.swift; sourceTree = "<group>"; };
@@ -551,6 +566,7 @@
 		E2640FCCACDF5FE3656DCB85 /* MobileBrowserRealE2ETestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserRealE2ETestSupport.swift; sourceTree = "<group>"; };
 		E2F5D6EFC71CD963DBFB6928 /* MobileBrowserControllerFailures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserControllerFailures.swift; sourceTree = "<group>"; };
 		E380BF6FECC29752B480682F /* CompanionPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionPayloadCodec.swift; sourceTree = "<group>"; };
+		E4D1FD2E1454DF79CA0A8000 /* CompanionWorkspaceMergeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionWorkspaceMergeTests.swift; sourceTree = "<group>"; };
 		E54800816A43251902609B17 /* CompanionAppModelLocalFirstMutation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionAppModelLocalFirstMutation.swift; sourceTree = "<group>"; };
 		E5A641678471ADCF1203440A /* MobileBrowserTabWorkspaceRealE2EUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserTabWorkspaceRealE2EUITests.swift; sourceTree = "<group>"; };
 		E72EB0B727BFDDEC0050AD9B /* CompanionBookmarkIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionBookmarkIntegrationTests.swift; sourceTree = "<group>"; };
@@ -677,6 +693,7 @@
 				E54800816A43251902609B17 /* CompanionAppModelLocalFirstMutation.swift */,
 				F0285D823CD9A3ADCCEADCF6 /* CompanionAppModelRemoteCommands.swift */,
 				C7116DA5CC86D57D8221B03B /* CompanionAppModelSyncLifecycle.swift */,
+				BC907938BE79890002715DAA /* CompanionAppModelWorkspaceMerge.swift */,
 				402B5D7242170407AD42AD67 /* CompanionBookmarkFieldMerge.swift */,
 				AD7C7735B8868DE5D0303DAC /* CompanionBookmarkHierarchy.swift */,
 				61BC19B651510B8B8DC82135 /* CompanionBookmarkLibraryIntegration.swift */,
@@ -727,6 +744,7 @@
 				AF2D60F2F2484E40EAD0650F /* CompanionStore.swift */,
 				F87C0B98514C21A13A4D28B6 /* CompanionStoreClock.swift */,
 				084FD2B8BB0FFAA99691AB55 /* CompanionStoreMetadata.swift */,
+				525D1EF10FF4B0F4C857D827 /* CompanionStoreWorkspaceMerge.swift */,
 				A6670A9B6D65B601B139D25E /* CompanionSyncBridge.swift */,
 				F8399297D516E2DECBBCE9F4 /* CompanionSyncBridgeOutbound.swift */,
 				1BC41E109F43026941AABC27 /* CompanionSyncBridgeSnapshot.swift */,
@@ -796,6 +814,7 @@
 				7E96B9E364D34406B4A4E74C /* MobilePrivatePrivacyCoverView.swift */,
 				8F6B5AEF26908BC9BD2F39CB /* MobilePrivateSceneShield.swift */,
 				88B07225951E2E4B36A903B0 /* MobilePrivateSessionLock.swift */,
+				2F60D4CD6A59E66775E6F222 /* MobileRecentTabCycler.swift */,
 				9B2A308517E86CB4B71D91C3 /* MobileSharedTabIdentity.swift */,
 				1A85AA8A08790088CE8B162C /* MobileSharedTabIntent.swift */,
 				85210143A0D4D46224F85282 /* MobileSharedTabIntentBinding.swift */,
@@ -805,6 +824,7 @@
 				A8CE778D3A817B734BF70C35 /* MobileTabSwitcherSheet.swift */,
 				C7F692AE97996DD52BEBE5B6 /* MobileWebDialogHost.swift */,
 				2A2EFDF557655F1B2EBA6572 /* MobileWebDialogPresenter.swift */,
+				031B32E1505A539952D6CC59 /* MobileWebExtensionRuntime.swift */,
 				6017C26201C0BAD217D8EE1A /* MobileWebPageView.swift */,
 				31130ECBDD178016FC728E8A /* MobileWorkspaceIconPolicy.swift */,
 				EA6AA6E402141146FDDE456B /* RemoteCommandOwnershipStore.swift */,
@@ -819,6 +839,7 @@
 				3E366EE9782533FD11C36875 /* SyncNamespace.swift */,
 				C875190697B9CACF104401B6 /* SyncQuarantineStore.swift */,
 				1E05217774CD763178565A84 /* SyncRecordStore.swift */,
+				65BF76FB342E89CC99240260 /* WebExtensionSpike */,
 				F0A636FFD35F24854F80E95C /* WorkspaceDetailView.swift */,
 				615652041FF2EB3427A1880F /* Resources */,
 			);
@@ -964,6 +985,7 @@
 				D5D6468F554FEDF0D6F22B6F /* CompanionRemoteCommandPresentationTests.swift */,
 				F025C542F050332E11BBB3D7 /* CompanionSyncPreferenceTests.swift */,
 				24300E9C835620420105E291 /* CompanionTreeReorderingTests.swift */,
+				E4D1FD2E1454DF79CA0A8000 /* CompanionWorkspaceMergeTests.swift */,
 				9CE1A64CBE1A21720427C011 /* MobileAddressPresentationTests.swift */,
 				4DF31AEC86A10D9805F3D0F4 /* MobileBrowserCoreTests.swift */,
 				BDDC7FDC5BF514326C8B8DD2 /* MobileBrowserFailureRecoveryTests.swift */,
@@ -975,9 +997,11 @@
 				2342ACE33A9A579F82127F12 /* MobileExternalSchemePolicyTests.swift */,
 				7FE4BDFA6ED981458AA8984E /* MobilePerformanceIsolationTests.swift */,
 				D38A32704DC2435CAA9D895C /* MobilePrivateSessionLockTests.swift */,
+				1579BCF84FABABE42B5F115B /* MobileRecentTabCyclerTests.swift */,
 				EB0BE1180AEAD08DDA8AD8C4 /* MobileSessionFailureTests.swift */,
 				268370720E559D504F82E0DA /* MobileSharedPageSaveTests.swift */,
 				4B3E480DE4058275E848212B /* MobileTabReorderTests.swift */,
+				019404D9944058901F289E37 /* MobileWebExtensionRuntimeTests.swift */,
 				68C6B48E04223A51B946F2E1 /* RemoteCommandOwnershipStoreTests.swift */,
 				305CDF8974C5933E455EB1E1 /* SeparatedWorkspaceSyncTests.swift */,
 				014D9588778BF01556BCEA89 /* SharedTabCreationProvenanceTests.swift */,
@@ -1195,6 +1219,7 @@
 			files = (
 				C0CD118F366130FD86467FC2 /* Localizable.xcstrings in Resources */,
 				64060AC23047C89371FAA940 /* PrivacyInfo.xcprivacy in Resources */,
+				D4D7ADC758D88084AFD69B76 /* WebExtensionSpike in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1293,6 +1318,7 @@
 				7846E786637D6746991636E3 /* CompanionAppModelLocalFirstMutation.swift in Sources */,
 				13A6E6BB85982B6C1F96566C /* CompanionAppModelRemoteCommands.swift in Sources */,
 				6FD49D902E9D2C2CDE130408 /* CompanionAppModelSyncLifecycle.swift in Sources */,
+				DFEC2017EA74B896FFADFFFA /* CompanionAppModelWorkspaceMerge.swift in Sources */,
 				4D623DD58DF9D5CFA0A5C1B6 /* CompanionBookmarkFieldMerge.swift in Sources */,
 				3B1DE89768DB962783C9AC60 /* CompanionBookmarkHierarchy.swift in Sources */,
 				1F6EDF276BA403F3141C6D02 /* CompanionBookmarkLibraryIntegration.swift in Sources */,
@@ -1343,6 +1369,7 @@
 				5920EC4A3FE01BC0D62ABCE5 /* CompanionStore.swift in Sources */,
 				2A20FC4359EBACF9AF06F441 /* CompanionStoreClock.swift in Sources */,
 				152B8202D64CBF88400DD855 /* CompanionStoreMetadata.swift in Sources */,
+				517130C5379501BF3BDC4869 /* CompanionStoreWorkspaceMerge.swift in Sources */,
 				32D867079CB462309EB198B1 /* CompanionSyncBridge.swift in Sources */,
 				66287C41D2BEC077184C2FF5 /* CompanionSyncBridgeOutbound.swift in Sources */,
 				857944B8A51B825C200C1E69 /* CompanionSyncBridgeSnapshot.swift in Sources */,
@@ -1412,6 +1439,7 @@
 				EF25DF79975BD8B65025B64D /* MobilePrivatePrivacyCoverView.swift in Sources */,
 				3868ADCE8BF5616D92A899B0 /* MobilePrivateSceneShield.swift in Sources */,
 				9C460985D36838D3CD121FBF /* MobilePrivateSessionLock.swift in Sources */,
+				062640CF3253ECE3EED56B7B /* MobileRecentTabCycler.swift in Sources */,
 				92FE488AA1C5571D7B05A90F /* MobileSharedTabIdentity.swift in Sources */,
 				007EB726F94777225EEEC496 /* MobileSharedTabIntent.swift in Sources */,
 				AEADDD0436176D0E212690CC /* MobileSharedTabIntentBinding.swift in Sources */,
@@ -1421,6 +1449,7 @@
 				F2FC837D0B160905876D1155 /* MobileTabSwitcherSheet.swift in Sources */,
 				D5FA8F87B760CB3DADF60199 /* MobileWebDialogHost.swift in Sources */,
 				1A66580476BF4F888A0BF283 /* MobileWebDialogPresenter.swift in Sources */,
+				6FBA0A758BE0752C985A46F3 /* MobileWebExtensionRuntime.swift in Sources */,
 				BB9D683266FDB570471E213A /* MobileWebPageView.swift in Sources */,
 				AFC7B0577566F10720B45619 /* MobileWorkspaceIconPolicy.swift in Sources */,
 				EBDA6DD973DE5F37DA782141 /* RemoteCommandOwnershipStore.swift in Sources */,
@@ -1470,6 +1499,7 @@
 				4E4B6001EEBC5AEB308BB388 /* CompanionRemoteCommandPresentationTests.swift in Sources */,
 				F33753DC32B84935459ED160 /* CompanionSyncPreferenceTests.swift in Sources */,
 				2A20BC68C27F874E2BF2D389 /* CompanionTreeReorderingTests.swift in Sources */,
+				A29FC011A3AB1D27D6E6EF64 /* CompanionWorkspaceMergeTests.swift in Sources */,
 				45C96243BB7672F5D74895C5 /* MobileAddressPresentationTests.swift in Sources */,
 				5C98FE11BC1F015D9267586F /* MobileBrowserCoreTests.swift in Sources */,
 				3FD0B38BC97827D0C868C030 /* MobileBrowserFailureRecoveryTests.swift in Sources */,
@@ -1481,9 +1511,11 @@
 				26E08B750604B82AB4C1BA0B /* MobileExternalSchemePolicyTests.swift in Sources */,
 				AEF2FB647DC47BE6085C8C8A /* MobilePerformanceIsolationTests.swift in Sources */,
 				9F6A16461633CF2A1EE31A85 /* MobilePrivateSessionLockTests.swift in Sources */,
+				134D3B4D6B205A5AA27E93B4 /* MobileRecentTabCyclerTests.swift in Sources */,
 				3B826CA63D30D139AA188E96 /* MobileSessionFailureTests.swift in Sources */,
 				B714781E6ED396583173F16E /* MobileSharedPageSaveTests.swift in Sources */,
 				9E1860BA54CB06F019EA86DB /* MobileTabReorderTests.swift in Sources */,
+				F883AD395A262B9731521E0E /* MobileWebExtensionRuntimeTests.swift in Sources */,
 				8F0122080420B6163C24E5BC /* RemoteCommandOwnershipStoreTests.swift in Sources */,
 				4A38D29655114E612DE360B0 /* SeparatedWorkspaceSyncTests.swift in Sources */,
 				5046052ABA690FE6D954B01C /* SharedTabCreationProvenanceTests.swift in Sources */,
