@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "kind": "ahoi-fresh-profile-network-audit",
+  "app": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "bc53748d319f1b086b03e25beceaea2e36d85e64dc0ca6916549de62ea743705",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "6acd207f19b5ba0357240b1b90f078beb4eec09c",
+    "buildProfile": "dev"
+  },
+  "startedAt": "2026-09-26T09:15:08.860954+00:00",
+  "idleSeconds": 600,
+  "netlogBytes": 3059839,
+  "hosts": {
+    "allowed": [
+      {
+        "host": "edgedl.me.gvt1.com",
+        "count": 56,
+        "rule": "chromium-component-download-edge"
+      },
+      {
+        "host": "safebrowsing.googleapis.com",
+        "count": 15,
+        "rule": "safe-browsing-v5"
+      },
+      {
+        "host": "update.googleapis.com",
+        "count": 66,
+        "rule": "chromium-component-update-check"
+      }
+    ],
+    "conditional": [],
+    "denied": [
+      {
+        "host": "translate.googleapis.com",
+        "count": 15,
+        "reason": "N3 translate"
+      }
+    ],
+    "unknown": [],
+    "navigated": [
+      {
+        "host": "example.com",
+        "count": 15
+      }
+    ]
+  },
+  "socketRemotes": [
+    "142.251.27.95:443",
+    "172.66.147.243:443",
+    "192.178.24.10:443",
+    "192.178.24.174:443",
+    "192.178.24.78:443",
+    "34.104.35.123:443"
+  ],
+  "gcmStoreHasCheckin": null,
+  "verdicts": {
+    "NET-GCM-01": "PASS",
+    "fresh-profile-silence": "FAIL",
+    "PRIV-14-lists": "PASS",
+    "PRIV-12-endpoints": "FAIL"
+  },
+  "phases": [
+    "idle",
+    "navigation"
+  ],
+  "shutdown": "exited",
+  "variant": "keyed",
+  "method": "Chromium NetLog (Default capture) plus lsof socket polling every 2 s; no root, so non-Chromium DNS is not observed",
+  "safeBrowsingResponses": [
+    {
+      "path": "/v4/threatListUpdates:fetch",
+      "status": 200
+    }
+  ],
+  "navigatedHosts": [
+    "example.com"
+  ]
+}
