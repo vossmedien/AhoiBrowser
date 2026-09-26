@@ -158,6 +158,9 @@ class SessionBridge : public KeyedService,
                              base::OnceCallback<void(bool)> completion);
   bool CanArchiveTemporaryPages(const std::vector<base::Uuid>& nodes) const;
   std::vector<base::Uuid> GetArchivePageGroup(base::Uuid node_id) const;
+  // Handoff 072: builds the live split record containing `node_id` now, after
+  // the user opened its members.
+  bool MaterializeSplitForActivation(base::Uuid node_id);
   void RestoreArchivedPages(base::Uuid entry_id,
                             base::OnceCallback<void(bool)> completion);
   void RestoreArchivedPagesAt(base::Uuid entry_id,

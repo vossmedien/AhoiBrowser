@@ -87,6 +87,11 @@ class WorkspaceStructureController final
                std::optional<tab_tree::ArchiveRestorePlacement> placement =
                    std::nullopt);
   std::vector<sync::TabArchiveEntryRecord> Archives() const;
+  // Handoff 072: after the user opened a member of a live split record (and
+  // its partners), build that split now. The passive MaterializeSplits defers
+  // splits with an active or loading pane, so a split restored from the
+  // archive never came back while the user stayed on it.
+  bool MaterializeSplitForActivation(const base::Uuid& member_node_id);
   void DeleteArchive(sync::TabArchiveEntryRecord expected,
                      base::OnceCallback<void(bool)> done);
   void OnAhoiDeviceTabsChanged(const sync::DeviceTabsSnapshot&) override;

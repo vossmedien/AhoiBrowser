@@ -223,9 +223,12 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
   // stays active.
   // Opening a tab can rebuild the view model, so work on copies.
   const tab_tree::TreeNode requested = node;
+  bool in_live_split = false;
   if (session_bridge_ && controller_) {
-    for (const base::Uuid& member :
-         session_bridge_->GetArchivePageGroup(requested.id)) {
+    const std::vector<base::Uuid> group =
+        session_bridge_->GetArchivePageGroup(requested.id);
+    in_live_split = group.size() > 1;
+    for (const base::Uuid& member : group) {
       if (member == requested.id ||
           session_bridge_->FindTabByTreeNodeId(member)) {
         continue;
@@ -241,6 +244,11 @@ void BrowserSidebarHostView::ActivateSavedPage(const tab_tree::TreeNode& node) {
     }
   }
   if (MaterializeSavedPage(requested, /*require_local_model=*/false).valid) {
+    // Handoff 072: this activation is the operation that rebuilds the split;
+    // the passive path would wait until no pane is active or loading.
+    if (in_live_split && session_bridge_) {
+      std::ignore = session_bridge_->MaterializeSplitForActivation(requested.id);
+    }
     ScheduleCloseSidebarDiscoveryAfterActivation();
   } else if (discovery_view_ && discovery_view_->is_open()) {
     discovery_activation_committed_ = false;

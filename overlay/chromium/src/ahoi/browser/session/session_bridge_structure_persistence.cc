@@ -27,6 +27,12 @@ std::vector<base::Uuid> SessionBridge::GetArchivePageGroup(
   return {node_id};
 }
 
+bool SessionBridge::MaterializeSplitForActivation(base::Uuid node_id) {
+  return is_ready() && workspace_structure_controller_ &&
+         workspace_structure_controller_->MaterializeSplitForActivation(
+             node_id);
+}
+
 bool SessionBridge::CanArchiveTemporaryPages(
     const std::vector<base::Uuid>& nodes) const {
   return workspace_structure_controller_ &&

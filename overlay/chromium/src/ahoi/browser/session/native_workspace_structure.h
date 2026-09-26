@@ -25,11 +25,15 @@ std::optional<sync::SharedSplitMetadata> CaptureNativeSplit(
 // Only existing, normally bound members of ONE window/workspace. Absent pages
 // remain deferred; passive materialization never navigates or changes profiles.
 // Removed members remain ordinary native tabs, including active/form pages.
+// `user_initiated` (handoff 072): an explicit user activation of a member may
+// build the split although a pane is active or loading; passive and remote
+// materialization keep deferring such panes.
 bool MaterializeNativeSplit(SessionBridge& bridge,
                             const sync::SharedSplitMetadata& desired,
                             std::optional<split_tabs::SplitTabId> native_id,
                             split_tabs::SplitTabId* applied_id,
-                            sync::SyncAuthorization authorization);
+                            sync::SyncAuthorization authorization,
+                            bool user_initiated = false);
 
 }  // namespace ahoi::session
 #endif

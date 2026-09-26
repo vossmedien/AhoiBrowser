@@ -410,6 +410,48 @@ void WorkspaceStructureController::CaptureSplits() {
   }
 }
 
+bool WorkspaceStructureController::MaterializeSplitForActivation(
+    const base::Uuid& member_node_id) {
+  if (!bridge_lifetime_ || !bridge_->is_ready()) {
+    return false;
+  }
+  const auto lifetime = weak_factory_.GetWeakPtr();
+  const auto scope = scope_;
+  base::AutoReset<int> applying(&scope->applying, scope->applying + 1);
+  for (auto& [id, entry] : state_.entries) {
+    const auto* record = std::get_if<sync::SplitGroupRecord>(&entry.record);
+    if (!record || record->tombstone ||
+        std::ranges::find(record->topology.member_ids, member_node_id) ==
+            record->topology.member_ids.end()) {
+      continue;
+    }
+    for (const auto& member : record->topology.member_ids) {
+      if (bridge_->tab_tree_store()->IsNodeArchived(member)) {
+        return false;
+      }
+    }
+    std::optional<split_tabs::SplitTabId> native;
+    if (const auto token = base::Token::FromString(entry.native_split_token)) {
+      native = split_tabs::SplitTabId::FromRawToken(*token);
+    }
+    auto applied = split_tabs::SplitTabId::CreateEmpty();
+    const bool materialized =
+        MaterializeNativeSplit(*bridge_, Metadata(*record), native, &applied,
+                               LocalAuthority(), /*user_initiated=*/true);
+    if (!lifetime) {
+      return false;
+    }
+    if (materialized) {
+      entry.native_split_token = applied.ToString();
+      entry.observed_split = Metadata(*record);
+      dirty_ = true;
+      Schedule();
+    }
+    return materialized;
+  }
+  return false;
+}
+
 void WorkspaceStructureController::MaterializeSplits(
     sync::SyncAuthorization authority) {
   const auto lifetime = weak_factory_.GetWeakPtr();

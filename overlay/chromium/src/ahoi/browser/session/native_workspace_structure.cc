@@ -102,7 +102,8 @@ bool MaterializeNativeSplit(SessionBridge& bridge,
                             const sync::SharedSplitMetadata& desired,
                             std::optional<split_tabs::SplitTabId> native_id,
                             split_tabs::SplitTabId* applied_id,
-                            sync::SyncAuthorization authorization) {
+                            sync::SyncAuthorization authorization,
+                            bool user_initiated) {
   if (!authorization || !authorization.Run() || !bridge.is_ready() ||
       !applied_id || !desired.id.is_valid() ||
       desired.topology.member_ids.size() < 2 ||
@@ -163,14 +164,18 @@ bool MaterializeNativeSplit(SessionBridge& bridge,
           model->profile());
   if (!resources)
     return false;
-  for (const auto& member : members) {
-    if (!resources->CanArchiveTab(member.get()))
-      return false;
-  }
-  if (native_id && model->ContainsSplit(*native_id)) {
-    for (auto* member : model->GetSplitData(*native_id)->ListTabs()) {
-      if (!resources->CanArchiveTab(member))
+  // A passive change must not disturb an active, loading or protected pane.
+  // The user who just opened a member asked for exactly this split.
+  if (!user_initiated) {
+    for (const auto& member : members) {
+      if (!resources->CanArchiveTab(member.get()))
         return false;
+    }
+    if (native_id && model->ContainsSplit(*native_id)) {
+      for (auto* member : model->GetSplitData(*native_id)->ListTabs()) {
+        if (!resources->CanArchiveTab(member))
+          return false;
+      }
     }
   }
   const auto visuals = Visuals(desired);
