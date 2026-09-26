@@ -32,6 +32,21 @@ final class BookmarkTransportAuthorizationTests: XCTestCase {
         }
     }
 
+    func testClassOutsideSharedCatalogueIsNamedAsSuchNotAsLegacyVersion() {
+        let gate = BookmarkTransportAuthorization()
+        gate.setApproved(true)
+        for dataClass in SyncDataClass.allCases
+        where !SharedSyncFormat.supportedDataClasses.contains(dataClass) {
+            XCTAssertThrowsError(try gate.authorize(record(dataClass))) { error in
+                XCTAssertEqual(error as? BookmarkTransportAuthorizationError, .dataClassNotShared)
+            }
+            // A legacy version is still reported as such first.
+            XCTAssertThrowsError(try gate.authorize(record(dataClass, schema: 2))) { error in
+                XCTAssertEqual(error as? SharedSyncFormatError, .unsupportedVersion)
+            }
+        }
+    }
+
     func testTransportMutationEntrypointsRejectUnapprovedBookmarkBeforePersisting() async throws {
 #if DEBUG
         let store = InMemorySyncRecordStore()

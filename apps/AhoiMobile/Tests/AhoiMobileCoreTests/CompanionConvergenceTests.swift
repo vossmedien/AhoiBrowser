@@ -85,7 +85,7 @@ final class CompanionConvergenceTests: XCTestCase {
             // the shared catalogue before the boundary's own denial.
             XCTAssertTrue(
                 error as? SyncBoundaryError == .dataClassDenied(.incognito) ||
-                    error as? SharedSyncFormatError == .unsupportedVersion,
+                    error as? BookmarkTransportAuthorizationError == .dataClassNotShared,
                 "Unexpected rejection: \(error)"
             )
         }
