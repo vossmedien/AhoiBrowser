@@ -78,15 +78,21 @@ and 17 (shortcut catalog with last-used tab) now have code; see below.
   key again (the app was not frontmost), views re-focuses the dialog's
   initially focused name field inside `~Widget`. `ebaf599` removes the
   dialog's views in the posted destroy paths first.
-- **Build 40** stopped at the 64 GiB guard with 60.6 GiB free (58 GiB on
-  26 September after the last own cleanup). `retry40.sh` in the agent
-  scratchpad starts it once 65 GiB are free. It fetches `HEAD` only then, so
-  it contains the dialog fix `ebaf599`, the Control+Option+Tab default and
-  all source-budget splits below. Queued after it: 13 unit-test binaries
-  (now also `ahoi_arc_import_unittests` and
-  `ahoi_extension_policy_unittests` for the Arc and uBO splits), then the
-  keyboard-shortcuts journey (MRU on Control+Option+Tab) and the HTTP-auth
-  journey (step 7b: Workspace with its own website sessions, dialog crash).
+- **Build 40 (`6acd207`), 26 September:** built with the owner's low-disk
+  override and installed. Unit tests 13/13 binaries, 744 tests, all
+  passed: arc import 104, command bar 39, developer toolkit 98 + UI 33,
+  extension policy (uBO) 43, HTTP auth 28, navigation 75, privacy mode 21,
+  resource policy 4, session 84, settings private 11, sync 179, tab tree
+  25. The first attempt stopped at the settings ESLint step (fixed in
+  `6acd207`). Journeys queued on the installed build: keyboard shortcuts,
+  HTTP-auth (dialog crash), privacy repair, privacy exceptions, developer
+  toolkit, then the keyed Safe Browsing run and crest's keyed audit.
+- **Build 41 scope (committed, not yet built):** the source-budget
+  decompositions of `browser_sidebar_host_view.h` (state structs, 798 lines,
+  `563ed72`) and `ahoi_page.ts` (link routing and shortcuts as their own
+  settings elements, 713 lines, `4ea5ca5`), the full-coverage sync leak
+  test (`d6bd0cc`) and the hard reload (patch 0070). With these, no Ahoi
+  overlay source file exceeds 800 lines.
 - **Crest H5 on build 39:** NET-GCM-01 and fresh-profile silence pass;
   only allowlisted hosts, so the privacy proxy and the GPC preference add
   no background traffic (`artifacts/network-audit/79e35f3-20260926/`).
