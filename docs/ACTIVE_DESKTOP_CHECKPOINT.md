@@ -17,7 +17,7 @@ removed on 25 September 2026: Xcode 27 is now the only toolchain (handoff 022).
 | Formal reviews | Named reviewers / external security and product reviews | 20–21 |
 | Third-party accounts | Credentials for password-manager extensions (1Password, Bitwarden) if a real vault must be unlocked | 8 password-manager journey |
 | macOS Screen Recording permission | Grant "Bildschirmaufnahme" to the agent host app (Terminal Cockpit) so `screencapture` can record desktop E2E images; until then agents use Accessibility trees and Chromium DevTools state as visible-state evidence | 5–7, 11 image evidence (not the behavior itself) |
-| Free disk space | At least 64 GB free per Chromium build (guard in `build-ahoi.sh`), about 130 GB for the two release builds. 26 September, before build 38: 64.8 GiB free after the agent removed all of its own test profiles, diagnostic copies and DerivedData caches. Each incremental dev build uses about 1 GB, so the next dev build after 38 will likely stop at the guard. Dev builds are blocked from then on, not only release builds | H3 release baselines (18), lean measurement (24) |
+| Free disk space | Dev builds run again: on 26 September the agent removed stale M152-era outputs from `out/AhoiDev` (object files and 14 test executables not written since before the M153 checkout, plus `ninja -t cleandead`), leaving 66 GiB free for build 39 (guard: 64 GiB). The two release builds (upstream-release and ahoi-release) still need about 130 GB | H3 release baselines (18), lean measurement (24) |
 | Zen installation | Install Zen (or Zen Twilight) on the test Mac with one ordinary profile, or approve that the agent installs it; the Zen importer has no test path by design and must not read faked data from `~/Library/Application Support` | IMPORT-ZEN-01 to 05 (22 migration parts) |
 | Publication / release | Any App Store, TestFlight, website, update-feed or GitHub release publication | 15, 23–24 |
 
@@ -51,6 +51,44 @@ No DoD item is closed with evidence yet. The ordered package plan for the
 agent-doable remainder (25 packages), per-item status and evidence are in
 [`docs/DOD_GAP_ANALYSIS.md`](DOD_GAP_ANALYSIS.md). Packages 16 (Link-Peek)
 and 17 (shortcut catalog with last-used tab) now have code; see below.
+
+## Builds 37 and 38 results; builds 39 and 40 in progress — 26 September 2026
+
+- **Accepted on build 37 (`1c6e2ad`):** restore surface 16/16. Patch 0064,
+  together with crest handoff 040, brings the window back in its Workspace.
+  Auto-archive 10/10.
+- **Accepted on build 38 (`b89ef23`):** Workspace level deletion 13/13; the
+  before-unload veto page had user activation and focus, so build 37's
+  failure was transient. Privacy on strict pages (crest handoffs 066/068):
+  `Sec-GPC` on a cross-site subresource, cross-site referrer reduced to the
+  origin, tracking parameter removed and others kept, first-party login,
+  default mode unchanged, no API-key infobar.
+- **Option+Tab (WORKFLOW-03), root cause:** macOS 27 swallows Option+Tab and
+  Shift+Option+Tab before any app sees them. The main menu has no Tab key
+  equivalent besides Control+Tab (menu probe, build 38), and a bare AppKit app
+  (`tools/desktop_e2e/keylog_app.swift`) receives Control+Tab,
+  Control+Option+Tab and Option+A but never Option+Tab. The MRU command
+  therefore never ran with its default key. `ab5b463` makes Control+Option+Tab
+  the default and reserves Option+Tab in the shortcut editor (build 40).
+- **Still failing, fixes in build 39 (`79e35f3`):**
+  - The Workspace dialog crash persisted on builds 37 and 38: `ClearFocus()`
+    keeps the stored view, and Cocoa's asynchronous first-responder answer
+    restores it. `dd636a9` drops the stored view (root cause by crest);
+    `02c66a3` also detaches the text input client.
+  - Split restore: partners opened (`3dfeb17`), but the passive rebuild
+    defers splits with an active or loading pane; crest handoff 072
+    (`4705dd8`) rebuilds on the user's activation.
+  - `navigator.globalPrivacyControl` is undefined until patches 0067/0068
+    (crest handoff 070).
+  - Unit tests: the privacy binary needed the Mojo test runner (`1c03da6`);
+    a developer-toolkit test expected key events to be "triggerable", which
+    `views::ButtonController` never reports (`2f27522`). From build 38 on,
+    `ahoi_privacy_mode_unittests`, `ahoi_developer_toolkit_unittests` and
+    `ahoi_developer_toolkit_ui_unittests` run with the others.
+- **Journey defects fixed:** prefs-internals values were printed as objects
+  (`2d9f6ae`); `cdp.mjs` evaluates only in page targets, so the cross-site
+  frames' cookies (PRIV-02/03) are now reported through `postMessage`
+  (`b3d306e`).
 
 ## Build 35 results; build 37 in progress — 26 September 2026
 
