@@ -12,8 +12,11 @@ source_set("arc_import") {
     "arc_import_id.cc",
     "arc_import_parser.cc",
     "arc_import_parser.h",
+    "arc_import_plan_builder.cc",
+    "arc_import_plan_builder.h",
     "arc_import_snapshot.cc",
     "arc_import_snapshot.h",
+    "arc_import_source_model.h",
     "arc_import_types.h",
   ]
   public_deps = [
