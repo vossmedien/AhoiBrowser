@@ -3,6 +3,7 @@ import json
 import pathlib
 import sys
 import unittest
+import uuid
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/sync_conformance"))
@@ -58,6 +59,10 @@ class MergeVectorFileTest(unittest.TestCase):
                     self.assertFalse(payload["tombstone"], f"{name} {side}: command tombstone")
                 if case["entityType"] == 8:
                     json.loads(payload["value_json"])
+                if case["entityType"] == 1 and "merged_into" in payload:
+                    self.assertIs(payload["tombstone"], True, f"{name} {side}")
+                    self.assertNotEqual(payload["merged_into"], payload["id"], f"{name} {side}")
+                    self.assertEqual(str(uuid.UUID(payload["merged_into"])), payload["merged_into"])
 
     def test_every_decision_occurs(self):
         decisions = {c["expect"]["decision"] for c in cases().values()}
@@ -144,6 +149,37 @@ class MergeModelSemanticsTest(unittest.TestCase):
         with_null = dict(base, accent_argb=None)
         groups = gen.contract()[1][1]
         self.assertEqual(m.merge(1, groups, base, with_null)[0], "duplicate")
+
+    def test_merge_target_conflicts_with_equal_clocks_on_deleted_workspaces(self):
+        self.expect("workspace.merge_target_identical", "duplicate")
+        for suffix in ("equal_clock_conflict", "absent_equal_clock_conflict"):
+            name = "workspace.merge_target_" + suffix
+            self.assertIsNone(self.expect(name, "invalid"))
+            case = cases()[name]
+            old, new = case["existing"], case["incoming"]
+            self.assertIs(old["tombstone"], True)
+            self.assertIs(new["tombstone"], True)
+            self.assertEqual(old["field_versions"], new["field_versions"])
+            self.assertNotEqual(old.get("merged_into"), new.get("merged_into"))
+            groups = gen.contract()[1][1]
+            self.assertEqual(m.merge(1, groups, new, old), ("invalid", None))
+
+    def test_merge_target_follows_tombstone_clock_in_either_order(self):
+        groups = gen.contract()[1][1]
+        for suffix, decision, target in (
+            ("merge_target_newer_wins", "acceptIncoming", gen.OTHER_MERGE_TARGET),
+            ("merge_target_older_loses", "keepExisting", gen.OTHER_MERGE_TARGET),
+            ("plain_delete_clears_merge_target", "acceptIncoming", None),
+        ):
+            name = "workspace." + suffix
+            expected = self.expect(name, decision)
+            self.assertIs(expected["tombstone"], True)
+            self.assertEqual(expected.get("merged_into"), target)
+            self.assertEqual(expected["field_versions"]["tombstone"]["physical"], str(gen.T2))
+            case = cases()[name]
+            _, reverse = m.merge(1, groups, case["incoming"], case["existing"])
+            self.assertEqual(m.projected(1, reverse, groups), m.projected(1, expected, groups))
+            self.assertEqual(m.Stamp.of_record(reverse), m.Stamp.of_record(expected))
 
 
 class MergeConvergenceTest(unittest.TestCase):

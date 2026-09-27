@@ -126,6 +126,22 @@ Latest owner intake checked after `9a12f51`:
   only lightweight source work pending capacity recovery. No Crest runtime or
   resource lease is active.
 
+084/098 owner source review (`4f2b154`, checkpoint `c4cd938`): equal-clock
+Workspace deletion now includes `mergedInto` in equality, projection and local
+stamping; 098 status is source-integrated with XCTest/visible checks pending.
+Mobile incoming-node re-homing remains explicitly with the owner and incomplete.
+
+[104](../handoffs/crest-hardening/104-merge-target-conformance/HANDOFF.md) adds six
+common merge-target cases (equal-clock destination conflicts/presence, duplicate,
+newer/older target selection, plain deletion clears target), taking H1 to **140
+vectors**, SHA-256 `da09b4c1feb6247c30975376642893eb95a56a4ce0a3f3bcf059327121efacf8`.
+26 local conformance checks: 25 pass, one expected skip until Desktop refreshes
+its 134-vector copy; generator current, 37 field maps with zero drift. A local
+scalar-tombstone negative control distinguishes the previously missed conflicts.
+No new product runner, simulator or runtime was started. 104 needs owner intake
+and candidate-bound results; 096's successful 134-vector copy remains recorded
+as its own completed source step.
+
 Next allowed lane work: review H3 runtime lease/cleanup behavior before the
 future release pair, then review new owner integrations as they arrive. No polling/background resource watcher was installed. The older dated sections below are retained
 as history and do not override this continuation.

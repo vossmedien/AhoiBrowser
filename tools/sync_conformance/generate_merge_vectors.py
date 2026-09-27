@@ -28,6 +28,7 @@ MAC = "a0000000-0000-4000-8000-000000000001"
 PHONE = "a0000000-0000-4000-8000-000000000002"
 T1, T2, T3 = 11644473604000000, 11644473605000000, 11644473606000000
 MERGE_TARGET = "a1000000-0000-4000-8000-000000000002"
+OTHER_MERGE_TARGET = "a1000000-0000-4000-8000-000000000003"
 
 # entity: (fixture record, first mutable group change, second mutable group change,
 #          immutable group change or None)
@@ -167,6 +168,29 @@ def cases_for(entity: int, data_class: str, groups: list[str],
                       "an older revival does not undo a newer merge",
                       edit(base, entity, groups, merged, s(T2)),
                       edit(base, entity, groups, revived, s(T1, PHONE))))
+        # The tombstone bool alone cannot distinguish two merge destinations.
+        # Both inputs are valid records; only their shared-clock union conflicts.
+        deleted = {"tombstone": True, "merged_into": ABSENT}
+        other_target = {"tombstone": True, "merged_into": OTHER_MERGE_TARGET}
+        first_merge = edit(base, entity, groups, merged, s(T1))
+        newer_merge = edit(base, entity, groups, other_target, s(T2, PHONE))
+        cases += [
+            ("merge_target_identical", "same merge destination and clock is a duplicate",
+             first_merge, first_merge),
+            ("merge_target_equal_clock_conflict",
+             "equal tombstone clocks with different merge destinations are invalid",
+             first_merge, edit(base, entity, groups, other_target, s(T1))),
+            ("merge_target_absent_equal_clock_conflict",
+             "equal tombstone clocks with absent versus present merge target are invalid",
+             first_merge, edit(base, entity, groups, deleted, s(T1))),
+            ("merge_target_newer_wins", "a newer tombstone clock replaces the merge target",
+             first_merge, newer_merge),
+            ("merge_target_older_loses", "an older target cannot replace the newer merge",
+             newer_merge, first_merge),
+            ("plain_delete_clears_merge_target",
+             "a newer ordinary deletion drops the merge destination atomically",
+             first_merge, edit(base, entity, groups, deleted, s(T2, PHONE))),
+        ]
     if entity == 14:
         deleted = edit(base, entity, groups, {"tombstone": True}, s(T2))
         cases.append(("archive_deletion_is_terminal", "a newer untombstone does not revive",
