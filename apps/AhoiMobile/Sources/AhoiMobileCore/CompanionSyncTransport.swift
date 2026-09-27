@@ -45,6 +45,12 @@ protocol CompanionSyncTransporting: AnyObject, Sendable {
     func quarantineImportedRecord(_ record: SyncRecord, reason: String) async throws
     func resolveQuarantinedRecord(_ record: SyncRecord) async throws
     func acknowledgeFetchedRecords(_ records: [SyncRecord]) async throws
+    /// Commits an exact server-acknowledged tombstone under a transport lease.
+    /// The closure writes only the local domain watermark and payload removal.
+    func compactAcknowledgedWorkspace(
+        _ record: SyncRecord,
+        domainCommit: @Sendable () async throws -> Void
+    ) async throws -> Bool
     func hasPhysicalDeletionQuarantine() async -> Bool
     func physicalDeletionRecoveryCandidates() async throws -> [(
         record: SyncRecord,
@@ -319,6 +325,15 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
 
     func acknowledgeFetchedRecords(_ records: [SyncRecord]) async throws {
         try await recordStore.acknowledgeFetchedRecords(records)
+    }
+
+    func compactAcknowledgedWorkspace(
+        _ record: SyncRecord,
+        domainCommit: @Sendable () async throws -> Void
+    ) async throws -> Bool {
+        // The visible projection has no CloudKit savedRecords receipt. It must
+        // never turn a synthetic test transport into a deletion authority.
+        false
     }
 
     func hasPhysicalDeletionQuarantine() async -> Bool {

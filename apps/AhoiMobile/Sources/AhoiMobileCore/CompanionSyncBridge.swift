@@ -101,26 +101,6 @@ public actor CompanionSyncBridge {
         try outcome.get()
     }
 
-    private func performBoundedSyncNow() async throws {
-        var passID: UInt64?
-        do {
-            passID = try await provider.fetchChanges()
-            try await importFetchedRecords()
-            // Import can enqueue a composite record after field-level conflict
-            // resolution. Flush it in the same user-visible sync operation. A
-            // second bounded import/send round covers a server-record conflict
-            // produced by that first post-merge send without polling forever.
-            guard let passID else { throw CloudKitSyncProviderError.boundedSyncPassRequired }
-            try await provider.sendPendingChanges(passID: passID)
-            try await importFetchedRecords()
-            try await provider.sendPendingChanges(passID: passID)
-            try await provider.finalizeBoundedSync(passID: passID)
-        } catch {
-            if let passID { provider.abortBoundedSyncPass(passID) }
-            throw error
-        }
-    }
-
     public func importFetchedRecords() async throws {
         try provider.beginDomainMergeActivity()
         defer { provider.endDomainMergeActivity() }

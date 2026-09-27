@@ -212,7 +212,8 @@ extension CloudKitSyncProvider {
 
     func beginActivity() -> Bool {
         statusLock.withLock {
-            guard !isInvalidated, !engineReplacementInProgress else { return false }
+            guard !isInvalidated, !engineReplacementInProgress,
+                  !compactionInProgress else { return false }
             activeActivityCount += 1
             activityEpoch &+= 1
             return true
@@ -221,8 +222,10 @@ extension CloudKitSyncProvider {
 
     func beginActivity(for syncEngine: CKSyncEngine) -> Bool {
         statusLock.withLock {
-            guard !isInvalidated,
-                  !engineReplacementInProgress,
+            // CKSyncEngine delegate events must never be dropped merely
+            // because local compaction is writing its two files. The receipt
+            // path rechecks activity and inbox state before cache removal.
+            guard !isInvalidated, !engineReplacementInProgress,
                   engine === syncEngine else {
                 return false
             }

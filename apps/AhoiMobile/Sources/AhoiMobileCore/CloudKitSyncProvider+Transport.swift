@@ -71,6 +71,86 @@ extension CloudKitSyncProvider {
         )
     }
 
+    /// Only a savedRecords receipt for the exact current encrypted Workspace
+    /// tombstone may authorize the domain's local compaction write. Hold an
+    /// exclusive public-provider activity across the two local files. Engine
+    /// delegate events still run and are rechecked before cache removal. No
+    /// CKRecord delete is requested.
+    func compactAcknowledgedWorkspace(
+        _ record: SyncRecord,
+        domainCommit: @Sendable () async throws -> Void
+    ) async throws -> Bool {
+        guard record.dataClass == .workspace,
+              record.recordID == record.entityID,
+              record.tombstone?.entityID == record.entityID else { return false }
+        guard beginActivity() else { throw CloudKitSyncProviderError.unavailable }
+        defer { endActivity() }
+        try await ensureAccountContinuity()
+        let lease = statusLock.withLock { () -> (CKSyncEngine, String, UInt64)? in
+            guard !isInvalidated, !engineReplacementInProgress,
+                  accountContinuityVerified, !accountTransitionPending,
+                  !zoneRecoveryPending, !statePersistenceBlocked,
+                  !boundedSyncPassActive, !compactionInProgress,
+                  activeActivityCount == 1, let engine,
+                  let accountID = lastKnownAccountIdentifier,
+                  !accountID.isEmpty else { return nil }
+            compactionInProgress = true
+            return (engine, accountID, engineGeneration)
+        }
+        guard let (leasedEngine, accountID, generation) = lease else { return false }
+        defer { statusLock.withLock { compactionInProgress = false } }
+
+        let cloudID = CKRecord.ID(
+            recordName: record.recordID.uuidString.lowercased(), zoneID: zoneID)
+        let hasPendingChange = {
+            leasedEngine.state.pendingRecordZoneChanges.contains { change in
+                switch change {
+                case .saveRecord(let id), .deleteRecord(let id): return id == cloudID
+                @unknown default: return true
+                }
+            }
+        }
+        guard !hasPendingChange(),
+              await quarantineStore.entry(for: record.recordID) == nil,
+              try await recordStore.record(for: record.recordID) == record else {
+            return false
+        }
+        let fetched = try await recordStore.fetchedRecords()
+        guard !fetched.contains(where: { $0.recordID == record.recordID }),
+              try await recordStore.isUploadedTombstoneAcknowledged(
+                  record, accountID: accountID,
+                  containerID: configuration.containerIdentifier,
+                  zoneName: zoneID.zoneName) else { return false }
+        let stillLeased = statusLock.withLock {
+            compactionInProgress && activeActivityCount == 1 && !isInvalidated &&
+                !engineReplacementInProgress && engine === leasedEngine &&
+                engineGeneration == generation &&
+                accountContinuityVerified && !accountTransitionPending &&
+                !zoneRecoveryPending && !statePersistenceBlocked &&
+                lastKnownAccountIdentifier == accountID
+        }
+        guard stillLeased, !hasPendingChange() else {
+            throw CloudKitSyncProviderError.unavailable
+        }
+        try await domainCommit()
+        guard statusLock.withLock({
+            compactionInProgress && activeActivityCount == 1 && !isInvalidated &&
+                engine === leasedEngine && engineGeneration == generation &&
+                accountContinuityVerified && !accountTransitionPending &&
+                !zoneRecoveryPending && !statePersistenceBlocked &&
+                lastKnownAccountIdentifier == accountID
+        }), !hasPendingChange() else {
+            // The Snapshot watermark is durable; leave the encrypted cache for
+            // a later exact retry instead of removing a newly queued save.
+            throw CloudKitSyncProviderError.unavailable
+        }
+        try await recordStore.removeLocallyCompactedTombstones(
+            [record], accountID: accountID,
+            containerID: configuration.containerIdentifier,
+            zoneName: zoneID.zoneName)
+        return true
+    }
+
     /// The transport must stage an encrypted developer-asset envelope before
     /// its opt-in bit and secret-safety constraints can be authenticated. This
     /// grants only that single opaque ID passage to CompanionSyncBridge; it is

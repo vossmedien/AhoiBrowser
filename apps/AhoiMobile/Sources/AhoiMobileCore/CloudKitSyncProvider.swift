@@ -269,6 +269,10 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
     var deferredDeveloperAssetRehydrationIDs: Set<UUID> = []
     var developerAssetAuthorizationReady = false
     var transportRehydrationRequired = false
+    /// A short, receipt-backed domain/cache compaction lease excludes new
+    /// public operations. CKSyncEngine delegate events still run; the lease
+    /// rechecks their activity and durable inbox before cache removal.
+    var compactionInProgress = false
     var engineGeneration: UInt64 = 1
     var accountVerificationGeneration: UInt64 = 0
     var accountVerificationTask: (
