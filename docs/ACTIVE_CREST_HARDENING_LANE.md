@@ -313,10 +313,45 @@ Existing 140-vector and 112 fixture hashes are unchanged; no parallel product
 writer. The owner meanwhile integrated 114 as `2bd75cb` (source only; no newer
 native behavior result inferred).
 
-Next allowed lane work: finish H1 coverage and runner-output protocol in lane
-handoffs, then the explicitly missing H3/H7 source work and owner integration
-review. Runtime work still requires its own newly open owner lease. Actual H3/H5 runs still need
-matching candidates and a newly open owner lease; test/capacity gates remain.
+Owner source `cfd0127` is frozen for the new R1 tail projection and both 112
+runners (23 cases / 31 frames / 279 projections); integrated 114 is included.
+The owner reserves build.lock and owned CE3513BF for bounded Swift verification,
+one job and no parallel tests. Crest holds no resource and starts no compiler,
+C++ run, browser or simulator; no new runtime lease is inferred. The older
+`a747c62` acceptance is not relabelled for this changed source.
+
+H1.3 continuation: lane-owned strict output comparator and negative-control
+sources are authored. Actual canonical C++/Swift payloads, complete case sets,
+fixture/output/binary hashes and successful frozen-source receipts are required;
+native exporters are delivered as ready 122 on top of integrated 120. This is source
+work; no new native result or test pass is asserted yet.
+
+Owner `cfd0127` now has exact Swift **34/34** for 140 merge vectors, 112's
+23 cases / 31 frames / 279 projections, and direct move/insert/reload/undo.
+Three affected C++ units passed syntax/type analysis only. Owner released
+build.lock and shut down CE3513BF; 120 integrated as `91d6bd1` with source
+checks, while its native RED/GREEN remains pending. This changed R1 source
+supersedes the earlier pending-runtime wording for that Swift scope, but does
+not satisfy 118's full Desktop allocator/capture/replay or cross-platform
+actual-output obligations. 122 does not alter those evidence boundaries.
+
+[122](../handoffs/crest-hardening/122-native-merge-output-comparison/HANDOFF.md)
+is now **ready with frozen patch** SHA-256
+`e0106bece7069f4902f06dbaada1316fe338e167cd689d1d73f917a26fa96ddc`,
+applicable to current `ce24827` after integrated 120. It exports observed
+product-codec merge results without copying fixture expectations, and adds a
+strict lane comparator plus receipt writer and protocol. **67** local Python
+conformance tests pass, Swift mirror parses, and patch applicability succeeds.
+No native exporter compilation or actual C++/Swift output comparison has run.
+The 140/8/112 fixture hashes remain unchanged; no shared resource is held.
+
+Next allowed lane work: review the remaining 118 real Desktop allocator/capture
+scope, then finish H1's eight missing entity classes and seeded operation
+sequences. Owner integration and actual 122 differential runs remain open.
+Continue the explicitly missing H3/H7 source work and owner integration
+review. Runtime work still requires its own newly open owner lease. Actual
+H3/H5 runs still need matching candidates and a newly open owner lease;
+test/capacity gates remain.
 No polling/background resource watcher was installed. The older dated sections
 below are retained as history and do not override this continuation.
 
