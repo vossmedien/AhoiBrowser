@@ -1,6 +1,6 @@
 # 096 – Merge vectors for `merged_into` (H1, follows 084)
 
-Status: ready
+Status: integrated de52766 (Desktop fixture copy; 24 repository checks pass; exact C++ and frozen Swift runner evidence pending)
 Owner lane: desktop (copy one file); mobile and sync (rerun)
 Base: HEAD after this lane's commit.
 

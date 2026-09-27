@@ -1,0 +1,26 @@
+{
+  "sourceSession": "4203bcfe-a545-4871-a5c2-f559b26f9fdb",
+  "targetThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "account": "OpenAi Vossmedien",
+  "model": "gpt-6-astra",
+  "reasoning": "xhigh",
+  "archiveFilesVerified": 68,
+  "allArchiveHashesAndSizesMatch": true,
+  "manifestSha256": "c4b20add76a96a1d9207ad82221c9fef0656cef0f2349cbc5fedffd6481ddaca",
+  "manifestHasActiveGoal": false,
+  "goalNotRestarted": true,
+  "goalMetadataConflictReportedToCockpitOwner": true,
+  "installedSource": "6acd207f19b5ba0357240b1b90f078beb4eec09c",
+  "oldIntegratedSource": "cc1429640358e91bba1f2cb54a762ff6564081c3",
+  "vectors": {
+    "count": 134,
+    "sha256": "c851cd9ec3091ba864b5f78613a53a4f52758e40adfe0a5830fa1cb2328a153d",
+    "cppFixtureCopyIdentical": true,
+    "repositoryTestsPassed": 24,
+    "cppRunnerOnNewVectors": "NOT_RUN",
+    "swiftRunnerOnFrozenCandidate": "NOT_RUN"
+  },
+  "buildStarted": false,
+  "appInstalled": false,
+  "visibleE2EStarted": false
+}

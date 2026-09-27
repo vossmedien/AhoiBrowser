@@ -1,5 +1,64 @@
 # Active Desktop checkpoint
 
+## Current Codex handover and build recovery — 27 September 2026
+
+Desktop/Mobile/Sync owner: Codex `01a0e047-9360-7122-ad28-f76ebc767c97`,
+successor to stopped Claude source `4203bcfe-a545-4871-a5c2-f559b26f9fdb`.
+The private archive's 68 files passed hash and size verification. The current
+Cockpit tile is `OpenAi Vossmedien`, `gpt-6-astra`, `xhigh`. Crest owner
+`01a0e02e-7d70-7d51-afae-6e8732800811` confirmed no shared-resource locks,
+background jobs or competing Desktop/Mobile/Sync writer (`e5175f8`). Its
+exclusive paths remain with Crest. Cockpit installation/migration stays with
+Root `01a0dfef-1cab-7451-8883-b0eb5a831cd7`; Voice and Copilot stay with their
+separate owners.
+
+The handover manifest marks the Master goal achieved/inactive, so no native
+goal was restarted. This is **not product acceptance**: the last source
+conversation still has unfinished work, a rejecting goal check and a final
+quota error. The discrepancy was sent to the Cockpit migration owner for
+reconciliation; the product DoD and external gates remain open.
+
+Verified state and bounded continuation:
+
+- Installed bundle remains build 40, source `6acd207`, Chromium
+  `153.0.8010.53`, development profile. Build 41 stopped at overlay validation
+  (`41/progress`: `overlay 1`), before a new candidate existed.
+- The Chromium tree differed from the composed `cc14296` overlay only in
+  `build/rust/gni_impl/rustc_wrapper.py`. Both that file and V8's
+  `third_party/inspector_protocol/code_generator.py` exactly matched the
+  temporary patches in `config/dependency-build-workarounds.json`, left behind
+  by the interrupted build. After validating pin, original bytes and patch
+  hashes, only these files were restored to their original pinned bytes,
+  preserving mode and modification times. Patched backups remain under
+  `.work/agent-queue/codex-recovery-20260927/`. The standard overlay verifier
+  now passes against the original `cc14296` source and recorded state; no
+  overlay guard or state fingerprint was bypassed.
+- Handoff 100's missing failure gate is fixed in
+  `.work/agent-queue/chain.sh`: any nonzero unit-test exit prevents installation
+  and releases the build lock. Shell syntax and the actual loop/gate passed
+  isolated probes with exits 0, 1, 7 and 127; no browser was launched.
+- Handoff 096's 134-vector fixture (`de52766`) is copied byte-for-byte into the tracked
+  Desktop overlay. All 24 repository conformance tests pass with no skips.
+  This does not claim execution by the C++/Swift runners.
+- The recovered `core-084.xcresult` reports 315 tests, 313 passed, two skipped,
+  zero failures. It does not bind a frozen Swift revision and 134-vector hash.
+  The inherited five-file Swift `merged_into` WIP remains uncommitted and
+  unmodified in this continuation; other uncommitted contract files are also
+  preserved.
+
+Evidence: [handoff and recovery receipts](../artifacts/build/codex-handoff-recovery-20260927/).
+No new build, installation, GUI journey, external API/key access or release
+was started. Previous H3/H5 `open` rows below are historical; a new lease must
+identify the exact candidate and resources. Existing test pauses and external
+decisions remain in force.
+
+Next package: finish and freeze Swift 084 (including the incoming-node re-home
+rule), review/apply mobile undo guard 098, run the new vectors on exact C++ and
+Swift candidates, then resume the guarded build-41 package from a clean source
+clone under `.work/agent-queue/`. Retain the old failed build-41 logs. Handoff
+094's Translate decision and the mobile extension spike's next product step
+remain open; no answer is inferred from the provider change.
+
 ## Owner-gated items (skipped by agents) — 24 September 2026
 
 The owner directed on 24 September 2026 that agents work autonomously on

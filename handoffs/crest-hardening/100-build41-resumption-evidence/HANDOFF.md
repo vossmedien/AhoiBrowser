@@ -1,6 +1,6 @@
 # 100 – Build 41 stopped at overlay validation; owner resumption evidence
 
-Status: ready (desktop-owner recovery and evidence reconciliation)
+Status: recovery verified 2026-09-27 (pinned Rust/V8 originals restored with mtimes; old overlay verification passes; unit failure gate tested; candidate freeze/build/runtime steps still pending, see Desktop checkpoint)
 Owner lane: desktop; Mobile/Sync for 096 intake and candidate binding
 Observed repository HEAD: `e9d25be`, 27 September 2026.
 
