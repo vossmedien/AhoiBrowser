@@ -1,7 +1,7 @@
 # 124 — Desktop position allocator can write invalid UTF-8
 
-Status: owner-reviewed; queued for separate Desktop allocator fix and native
-regression before installed R1 acceptance; source review only
+Status: owner source fix integrated in `20467e5`; C++ compilation, regression,
+sync capture, opposite-platform replay and installed R1 acceptance pending
 Owner: desktop/sidebar plus sync capture
 Reviewed source: `ce24827` (R1 core `cfd0127`), 27 September 2026.
 

@@ -2,6 +2,19 @@
 
 ## Current R1 continuation — 27 September 2026, 07:03 CEST
 
+Crest 124's allocator correction is now source-integrated in `20467e5`.
+`GenerateSortKeyBetween` validates both opaque bounds and every candidate as
+nonempty, NUL-free UTF-8 within the 1024-byte wire limit, strictly between
+the siblings. A midpoint that cuts a multibyte sequence is refused; bounded
+append or whole-Unicode-scalar increment can still find valid space. An
+exhausted interval returns `kNoOrderingSpace` before storage mutation.
+Controller/SQLite regression source covers `é`–`€`, a valid prefix interval,
+a full-length left key, file reopen and a clean refusal. Diff/line/lane
+checks pass. **These new C++ tests have not compiled or run**: foreign Xcode
+and Cockpit builds occupy the host, and no Ahoi compiler lease was taken.
+Capture/opposite-platform replay and installed acceptance remain pending.
+Crest 126's separate marker-collision defect is still open.
+
 Owner source review of Crest 124 and 126 found two open R1 acceptance defects:
 the Desktop position allocator can produce invalid UTF-8 between opaque keys,
 and an ordinary raw key that resembles a derived merge-root marker can be
