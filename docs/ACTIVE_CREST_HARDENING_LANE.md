@@ -296,6 +296,23 @@ tests from 116 pass (0.007 s), as does generated-table freshness. Native consume
 compilation remains pending. No compiler, simulator, browser, H3/H5 measurement
 or paid test/API was started by Crest.
 
+Owner lexical-position prerequisite `736207f` / checkpoint `8812712` reviewed:
+UTF-8 comparisons and production create/move/merge/save/capture/reorder routing
+are source progress, not the remaining stable-tail R1 or runtime acceptance.
+Review found adjacent opaque-key equality still using Swift canonical String
+equivalence in the Workspace/TreeNode merge and local-stamp paths.
+[120](../handoffs/crest-hardening/120-utf8-sort-key-equality/HANDOFF.md) supplies
+the minimal byte-equality patch, four Swift regression sources, and both runner
+extensions for a separate **8-vector** UTF-8 supplement, SHA-256
+`df4833b8b0719d296ac8a935d9207624092a1ce0d787357c60af1c9209f42f16`. Both proposed runners require valid decoding before
+accepting an expected merge conflict. All 46 local conformance tests pass,
+including four supplemental fixture checks; patch applicability passes against
+the observed owner WIP with minimal stable BUILD.gn context. Mirrors deliberately
+exclude unpublished owner code. No native compilation/runtime was performed.
+Existing 140-vector and 112 fixture hashes are unchanged; no parallel product
+writer. The owner meanwhile integrated 114 as `2bd75cb` (source only; no newer
+native behavior result inferred).
+
 Next allowed lane work: finish H1 coverage and runner-output protocol in lane
 handoffs, then the explicitly missing H3/H7 source work and owner integration
 review. Runtime work still requires its own newly open owner lease. Actual H3/H5 runs still need

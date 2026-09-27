@@ -1,0 +1,1690 @@
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionFieldMerge.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionFieldMerge.swift
+@@ -38,7 +38,7 @@
+             result.icon = incoming.icon
+         }
+         if try incomingWins(
+-            "sort_key", existing.sortKey, incoming.sortKey, oldVersion, newVersion
++            "sort_key", WireSortKey(existing.sortKey), WireSortKey(incoming.sortKey), oldVersion, newVersion
+         ) {
+             result.sortKey = incoming.sortKey
+         }
+@@ -153,7 +153,7 @@
+             "name": previous.name == candidate.name,
+             "archive_policy": previous.archivePolicy == candidate.archivePolicy,
+             "icon": previous.icon == candidate.icon,
+-            "sort_key": previous.sortKey == candidate.sortKey,
++            "sort_key": WireSortKey(previous.sortKey) == WireSortKey(candidate.sortKey),
+             "accent_argb": previous.accent == candidate.accent,
+             "created_at": previous.createdAt == candidate.createdAt,
+             "modified_at": previous.modifiedAt == result.modifiedAt,
+@@ -286,7 +286,7 @@
+     ) -> Bool {
+         lhs.name == rhs.name && lhs.icon == rhs.icon &&
+             lhs.archivePolicy == rhs.archivePolicy &&
+-            lhs.sortKey == rhs.sortKey && lhs.accent == rhs.accent &&
++            WireSortKey(lhs.sortKey) == WireSortKey(rhs.sortKey) && lhs.accent == rhs.accent &&
+             SharedTabCreationProvenance.sameTime(lhs.createdAt, rhs.createdAt) &&
+             SharedTabCreationProvenance.sameTime(lhs.modifiedAt, rhs.modifiedAt) &&
+             lhs.isDeleted == rhs.isDeleted && lhs.mergedInto == rhs.mergedInto &&
+@@ -324,15 +324,26 @@
+         }
+     }
+ 
++    /// Opaque wire order is byte identity, unlike String's Unicode equivalence.
++    private struct WireSortKey: Equatable {
++        let value: String
++
++        init(_ value: String) { self.value = value }
++
++        static func == (lhs: Self, rhs: Self) -> Bool {
++            lhs.value.utf8.elementsEqual(rhs.value.utf8)
++        }
++    }
++
+     private struct TreeLocation: Equatable {
+         let workspace: WorkspaceID
+         let parent: TreeNodeID?
+-        let order: String
++        let order: WireSortKey
+ 
+         init(_ node: TreeNode) {
+             workspace = node.workspaceID
+             parent = node.parentID
+-            order = node.syncSortKey
++            order = WireSortKey(node.syncSortKey)
+         }
+     }
+ }
+--- a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionTreeReorderingTests.swift
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionTreeReorderingTests.swift
+@@ -86,6 +86,69 @@
+         XCTAssertTrue(CompanionTreePosition.less(key, upper.syncSortKey))
+     }
+ 
++    func testEqualLocationClockRejectsDifferentUTF8SortKeyBytes() throws {
++        let lower = "e" + String(Unicode.Scalar(0x301)!)
++        let upper = String(Unicode.Scalar(0xe9)!)
++        let existing = try Self.nativeFolder(workspace: WorkspaceID(), key: lower)
++        var incoming = existing
++        incoming.wireSortKey = upper
++        XCTAssertEqual(lower, upper)  // Text equality is not opaque wire equality.
++        XCTAssertNotEqual(Array(lower.utf8), Array(upper.utf8))
++        for (old, new) in [(existing, incoming), (incoming, existing)] {
++            XCTAssertThrowsError(try CompanionFieldMerge.merge(old, new)) { error in
++                XCTAssertEqual(error as? CompanionFieldMergeError, .equalClockConflict("location"))
++            }
++        }
++    }
++
++    func testLocalUTF8LocationChangeReceivesANewClockAndSurvivesMerge() throws {
++        let existing = try Self.nativeFolder(
++            workspace: WorkspaceID(), key: "e" + String(Unicode.Scalar(0x301)!))
++        var candidate = existing
++        candidate.wireSortKey = String(Unicode.Scalar(0xe9)!)
++        let clock = try existing.version.modifiedAt.ticking(
++            at: existing.version.modifiedAt.physicalMilliseconds + 1)
++        candidate.version = SyncVersion(modifiedAt: clock, modifiedBy: clock.nodeID)
++        let changed = CompanionFieldMerge.stampLocal(previous: existing, candidate: candidate)
++        XCTAssertEqual(changed.version.fieldVersions["location"], clock)
++        for (old, new) in [(existing, changed), (changed, existing)] {
++            let merged = try CompanionFieldMerge.merge(old, new)
++            XCTAssertEqual(Array(merged.syncSortKey.utf8), Array(changed.syncSortKey.utf8))
++            XCTAssertEqual(merged.version.fieldVersions["location"], clock)
++        }
++    }
++
++    func testEqualWorkspaceOrderClockRejectsDifferentUTF8Bytes() async throws {
++        let repository = LocalFirstRepository(store: InMemoryCompanionStore())
++        var existing = try await repository.createWorkspace(name: "Unicode order")
++        existing.sortKey = "e" + String(Unicode.Scalar(0x301)!)
++        var incoming = existing
++        incoming.sortKey = String(Unicode.Scalar(0xe9)!)
++        for (old, new) in [(existing, incoming), (incoming, existing)] {
++            XCTAssertThrowsError(try CompanionFieldMerge.merge(old, new)) { error in
++                XCTAssertEqual(error as? CompanionFieldMergeError, .equalClockConflict("sort_key"))
++            }
++        }
++    }
++
++    func testLocalUTF8WorkspaceOrderChangeReceivesANewClock() async throws {
++        let repository = LocalFirstRepository(store: InMemoryCompanionStore())
++        var existing = try await repository.createWorkspace(name: "Unicode order")
++        existing.sortKey = "e" + String(Unicode.Scalar(0x301)!)
++        var candidate = existing
++        candidate.sortKey = String(Unicode.Scalar(0xe9)!)
++        let clock = try existing.version.modifiedAt.ticking(
++            at: existing.version.modifiedAt.physicalMilliseconds + 1)
++        candidate.version = SyncVersion(modifiedAt: clock, modifiedBy: clock.nodeID)
++        let changed = CompanionFieldMerge.stampLocal(previous: existing, candidate: candidate)
++        XCTAssertEqual(changed.version.fieldVersions["sort_key"], clock)
++        for (old, new) in [(existing, changed), (changed, existing)] {
++            let merged = try CompanionFieldMerge.merge(old, new)
++            XCTAssertEqual(Array(merged.sortKey.utf8), Array(changed.sortKey.utf8))
++            XCTAssertEqual(merged.version.fieldVersions["sort_key"], clock)
++        }
++    }
++
+     func testSiblingReorderPersistsFractionalOrderWithoutChangingParent() async throws {
+         let repository = LocalFirstRepository(
+             store: InMemoryCompanionStore(),
+--- a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SyncMergeConformanceTests.swift
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SyncMergeConformanceTests.swift
+@@ -13,6 +13,7 @@
+         let name: String
+         let entityType: Int
+         let dataClass: String
++        let inputValid: Bool?
+         let existing: JSONValue
+         let incoming: JSONValue
+         let expect: Expectation
+@@ -53,11 +54,11 @@
+ 
+     private static let covered: Set<Int> = [1, 2, 5, 6, 7, 8, 14]
+ 
+-    private func vectorsURL() -> URL {
++    private func vectorsURL(_ name: String = "merge_v3.json") -> URL {
+         // Tests run on the Mac host, so the repository file is readable directly.
+         var url = URL(fileURLWithPath: #filePath)
+         for _ in 0..<5 { url.deleteLastPathComponent() }
+-        return url.appendingPathComponent("fixtures/sync-conformance/merge_v3.json")
++        return url.appendingPathComponent("fixtures/sync-conformance/" + name)
+     }
+ 
+     /// A deleted payload arrives with envelope tombstone metadata, which the
+@@ -205,12 +206,33 @@
+     }
+ 
+     func testSharedMergeVectors() throws {
+-        let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL()))
++        try checkVectors("merge_v3.json")
++    }
++
++    func testUTF8SortKeyVectors() throws {
++        try checkVectors("merge_utf8_sort_keys_v3.json")
++    }
++
++    private func checkVectors(_ name: String) throws {
++        let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL(name)))
+         XCTAssertEqual(document.schemaVersion, 1)
++        XCTAssertEqual(Set(document.cases.map(\.entityType)).subtracting(Self.covered), [])
+         var executed = 0
+         for vector in document.cases where Self.covered.contains(vector.entityType) {
+             executed += 1
+             let expected = vector.expect.decision == "invalid" ? nil : vector.expect.merged
++            if vector.inputValid == true {
++                // Decode rejection is not evidence of the required merge conflict.
++                let codec = DesktopWirePayloadCodec()
++                for payload in [vector.existing, vector.incoming] {
++                    let record = try envelope(vector, payload)
++                    switch vector.entityType {
++                    case 1: _ = try codec.decodeWorkspace(record, plaintext: payload.data)
++                    case 2: _ = try codec.decodeTreeNode(record, plaintext: payload.data)
++                    default: XCTFail("No valid-input decoder for this supplemental entity"); return
++                    }
++                }
++            }
+             do {
+                 let (merged, want) = try run(vector, merged: expected)
+                 if vector.expect.decision == "invalid" {
+@@ -245,7 +267,9 @@
+ private extension Dictionary where Key == String, Value == String {
+     func symmetricDifferenceDescription(_ other: [String: String]) -> String {
+         Set(keys).union(other.keys).sorted().compactMap { key in
+-            self[key] == other[key] ? nil : "\(key): swift=\(self[key] ?? "-") expected=\(other[key] ?? "-")"
++            if let left = self[key], let right = other[key],
++               left.utf8.elementsEqual(right.utf8) { return nil }
++            return "\(key): swift=\(self[key] ?? "-") expected=\(other[key] ?? "-")"
+         }.joined(separator: "; ")
+     }
+ }
+--- a/overlay/chromium/src/ahoi/browser/sync/sync_merge_conformance_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/sync/sync_merge_conformance_unittest.cc
+@@ -50,12 +50,12 @@
+   return bytes;
+ }
+ 
+-TEST(SyncMergeConformanceTest, SharedVectors) {
++void CheckVectors(const char* filename) {
+   base::FilePath root;
+   ASSERT_TRUE(base::PathService::Get(base::DIR_SRC_TEST_DATA_ROOT, &root));
+   std::string bytes;
+   ASSERT_TRUE(base::ReadFileToString(
+-      root.AppendASCII("ahoi/browser/sync/testdata/merge_v3.json"), &bytes));
++      root.AppendASCII("ahoi/browser/sync/testdata").AppendASCII(filename), &bytes));
+   std::optional<base::DictValue> document =
+       base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
+   ASSERT_TRUE(document);
+@@ -76,6 +76,9 @@
+     SyncRecord incoming;
+     const bool decoded = Decode(type, *vector.FindDict("existing"), &existing) &&
+                          Decode(type, *vector.FindDict("incoming"), &incoming);
++    if (vector.FindBool("inputValid").value_or(false)) {
++      ASSERT_TRUE(decoded) << "valid wire inputs must reach the merge check";
++    }
+     if (!decoded) {
+       // Rejection at the wire boundary is the "invalid" outcome.
+       EXPECT_EQ("invalid", expected_decision) << "payload rejected by decoder";
+@@ -96,5 +99,13 @@
+   }
+ }
+ 
++TEST(SyncMergeConformanceTest, SharedVectors) {
++  CheckVectors("merge_v3.json");
++}
++
++TEST(SyncMergeConformanceTest, UTF8SortKeyVectors) {
++  CheckVectors("merge_utf8_sort_keys_v3.json");
++}
++
+ }  // namespace
+ }  // namespace ahoi::sync
+--- a/overlay/chromium/src/ahoi/browser/sync/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/sync/BUILD.gn
+@@ -292,2 +292,3 @@
+     "testdata/merge_v3.json",
++    "testdata/merge_utf8_sort_keys_v3.json",
+     "testdata/sync_wire_v3.json",
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/sync/testdata/merge_utf8_sort_keys_v3.json
+@@ -0,0 +1,1440 @@
++{
++  "schemaVersion": 1,
++  "modelVersion": 3,
++  "cases": [
++    {
++      "name": "utf8_sort_key.workspace.equal_clock_decomposed_first",
++      "entityType": 1,
++      "dataClass": "workspace",
++      "inputValid": true,
++      "description": "Opaque sort keys compare exact UTF-8 bytes, not Unicode canonical equivalence.",
++      "existing": {
++        "archive_policy": 0,
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "archive_policy": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "sort_key": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "icon": "compass",
++        "id": "a1000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "name": "Fixture workspace",
++        "sort_key": "é",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "incoming": {
++        "archive_policy": 0,
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "archive_policy": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "sort_key": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "icon": "compass",
++        "id": "a1000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "name": "Fixture workspace",
++        "sort_key": "é",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "expect": {
++        "decision": "invalid",
++        "merged": null
++      }
++    },
++    {
++      "name": "utf8_sort_key.workspace.equal_clock_composed_first",
++      "entityType": 1,
++      "dataClass": "workspace",
++      "inputValid": true,
++      "description": "Opaque sort keys compare exact UTF-8 bytes, not Unicode canonical equivalence.",
++      "existing": {
++        "archive_policy": 0,
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "archive_policy": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "sort_key": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "icon": "compass",
++        "id": "a1000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "name": "Fixture workspace",
++        "sort_key": "é",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "incoming": {
++        "archive_policy": 0,
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "archive_policy": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "sort_key": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "icon": "compass",
++        "id": "a1000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "name": "Fixture workspace",
++        "sort_key": "é",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "expect": {
++        "decision": "invalid",
++        "merged": null
++      }
++    },
++    {
++      "name": "utf8_sort_key.workspace.newer_utf8_key_wins",
++      "entityType": 1,
++      "dataClass": "workspace",
++      "inputValid": true,
++      "description": "Opaque sort keys compare exact UTF-8 bytes, not Unicode canonical equivalence.",
++      "existing": {
++        "archive_policy": 0,
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "archive_policy": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "sort_key": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "icon": "compass",
++        "id": "a1000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "name": "Fixture workspace",
++        "sort_key": "é",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "incoming": {
++        "archive_policy": 0,
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "archive_policy": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "sort_key": {
++            "device": "a0000000-0000-4000-8000-000000000002",
++            "logical": 0,
++            "physical": "11644473605000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "icon": "compass",
++        "id": "a1000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "name": "Fixture workspace",
++        "sort_key": "é",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000002",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473605000000"
++      },
++      "expect": {
++        "decision": "acceptIncoming",
++        "merged": {
++          "archive_policy": 0,
++          "created_at": "11644473601000000",
++          "field_versions": {
++            "accent_argb": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "archive_policy": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "created_at": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "icon": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "modified_at": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "name": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "sort_key": {
++              "device": "a0000000-0000-4000-8000-000000000002",
++              "logical": 0,
++              "physical": "11644473605000000"
++            },
++            "tombstone": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            }
++          },
++          "icon": "compass",
++          "id": "a1000000-0000-4000-8000-000000000001",
++          "model_version": 3,
++          "modified_at": "11644473603000555",
++          "name": "Fixture workspace",
++          "sort_key": "é",
++          "tombstone": false,
++          "version_device": "a0000000-0000-4000-8000-000000000002",
++          "version_logical": 0,
++          "version_model": 3,
++          "version_physical": "11644473605000000"
++        }
++      }
++    },
++    {
++      "name": "utf8_sort_key.workspace.older_utf8_key_loses",
++      "entityType": 1,
++      "dataClass": "workspace",
++      "inputValid": true,
++      "description": "Opaque sort keys compare exact UTF-8 bytes, not Unicode canonical equivalence.",
++      "existing": {
++        "archive_policy": 0,
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "archive_policy": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "sort_key": {
++            "device": "a0000000-0000-4000-8000-000000000002",
++            "logical": 0,
++            "physical": "11644473605000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "icon": "compass",
++        "id": "a1000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "name": "Fixture workspace",
++        "sort_key": "é",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000002",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473605000000"
++      },
++      "incoming": {
++        "archive_policy": 0,
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "archive_policy": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "sort_key": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "icon": "compass",
++        "id": "a1000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "name": "Fixture workspace",
++        "sort_key": "é",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "expect": {
++        "decision": "keepExisting",
++        "merged": {
++          "archive_policy": 0,
++          "created_at": "11644473601000000",
++          "field_versions": {
++            "accent_argb": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "archive_policy": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "created_at": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "icon": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "modified_at": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "name": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "sort_key": {
++              "device": "a0000000-0000-4000-8000-000000000002",
++              "logical": 0,
++              "physical": "11644473605000000"
++            },
++            "tombstone": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            }
++          },
++          "icon": "compass",
++          "id": "a1000000-0000-4000-8000-000000000001",
++          "model_version": 3,
++          "modified_at": "11644473603000555",
++          "name": "Fixture workspace",
++          "sort_key": "é",
++          "tombstone": false,
++          "version_device": "a0000000-0000-4000-8000-000000000002",
++          "version_logical": 0,
++          "version_model": 3,
++          "version_physical": "11644473605000000"
++        }
++      }
++    },
++    {
++      "name": "utf8_sort_key.treeNode.equal_clock_decomposed_first",
++      "entityType": 2,
++      "dataClass": "treeNode",
++      "inputValid": true,
++      "description": "Opaque sort keys compare exact UTF-8 bytes, not Unicode canonical equivalence.",
++      "existing": {
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "home_target": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "is_temporary": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "location": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "title": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "url": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "home_local_scheme": null,
++        "home_target_kind": null,
++        "home_url": null,
++        "icon": "folder",
++        "id": "a2000000-0000-4000-8000-000000000001",
++        "is_temporary": false,
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "node_kind": 0,
++        "sort_key": "é",
++        "title": "Fixture folder",
++        "tombstone": false,
++        "url": "",
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000",
++        "workspace_id": "a1000000-0000-4000-8000-000000000001"
++      },
++      "incoming": {
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "home_target": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "is_temporary": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "location": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "title": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "url": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "home_local_scheme": null,
++        "home_target_kind": null,
++        "home_url": null,
++        "icon": "folder",
++        "id": "a2000000-0000-4000-8000-000000000001",
++        "is_temporary": false,
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "node_kind": 0,
++        "sort_key": "é",
++        "title": "Fixture folder",
++        "tombstone": false,
++        "url": "",
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000",
++        "workspace_id": "a1000000-0000-4000-8000-000000000001"
++      },
++      "expect": {
++        "decision": "invalid",
++        "merged": null
++      }
++    },
++    {
++      "name": "utf8_sort_key.treeNode.equal_clock_composed_first",
++      "entityType": 2,
++      "dataClass": "treeNode",
++      "inputValid": true,
++      "description": "Opaque sort keys compare exact UTF-8 bytes, not Unicode canonical equivalence.",
++      "existing": {
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "home_target": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "is_temporary": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "location": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "title": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "url": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "home_local_scheme": null,
++        "home_target_kind": null,
++        "home_url": null,
++        "icon": "folder",
++        "id": "a2000000-0000-4000-8000-000000000001",
++        "is_temporary": false,
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "node_kind": 0,
++        "sort_key": "é",
++        "title": "Fixture folder",
++        "tombstone": false,
++        "url": "",
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000",
++        "workspace_id": "a1000000-0000-4000-8000-000000000001"
++      },
++      "incoming": {
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "home_target": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "is_temporary": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "location": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "title": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "url": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "home_local_scheme": null,
++        "home_target_kind": null,
++        "home_url": null,
++        "icon": "folder",
++        "id": "a2000000-0000-4000-8000-000000000001",
++        "is_temporary": false,
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "node_kind": 0,
++        "sort_key": "é",
++        "title": "Fixture folder",
++        "tombstone": false,
++        "url": "",
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000",
++        "workspace_id": "a1000000-0000-4000-8000-000000000001"
++      },
++      "expect": {
++        "decision": "invalid",
++        "merged": null
++      }
++    },
++    {
++      "name": "utf8_sort_key.treeNode.newer_utf8_key_wins",
++      "entityType": 2,
++      "dataClass": "treeNode",
++      "inputValid": true,
++      "description": "Opaque sort keys compare exact UTF-8 bytes, not Unicode canonical equivalence.",
++      "existing": {
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "home_target": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "is_temporary": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "location": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "title": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "url": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "home_local_scheme": null,
++        "home_target_kind": null,
++        "home_url": null,
++        "icon": "folder",
++        "id": "a2000000-0000-4000-8000-000000000001",
++        "is_temporary": false,
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "node_kind": 0,
++        "sort_key": "é",
++        "title": "Fixture folder",
++        "tombstone": false,
++        "url": "",
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000",
++        "workspace_id": "a1000000-0000-4000-8000-000000000001"
++      },
++      "incoming": {
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "home_target": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "is_temporary": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "location": {
++            "device": "a0000000-0000-4000-8000-000000000002",
++            "logical": 0,
++            "physical": "11644473605000000"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "title": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "url": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "home_local_scheme": null,
++        "home_target_kind": null,
++        "home_url": null,
++        "icon": "folder",
++        "id": "a2000000-0000-4000-8000-000000000001",
++        "is_temporary": false,
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "node_kind": 0,
++        "sort_key": "é",
++        "title": "Fixture folder",
++        "tombstone": false,
++        "url": "",
++        "version_device": "a0000000-0000-4000-8000-000000000002",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473605000000",
++        "workspace_id": "a1000000-0000-4000-8000-000000000001"
++      },
++      "expect": {
++        "decision": "acceptIncoming",
++        "merged": {
++          "created_at": "11644473601000000",
++          "field_versions": {
++            "accent_argb": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "created_at": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "home_target": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "icon": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "is_temporary": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "kind": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "location": {
++              "device": "a0000000-0000-4000-8000-000000000002",
++              "logical": 0,
++              "physical": "11644473605000000"
++            },
++            "modified_at": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "title": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "tombstone": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "url": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            }
++          },
++          "home_local_scheme": null,
++          "home_target_kind": null,
++          "home_url": null,
++          "icon": "folder",
++          "id": "a2000000-0000-4000-8000-000000000001",
++          "is_temporary": false,
++          "model_version": 3,
++          "modified_at": "11644473603000555",
++          "node_kind": 0,
++          "sort_key": "é",
++          "title": "Fixture folder",
++          "tombstone": false,
++          "url": "",
++          "version_device": "a0000000-0000-4000-8000-000000000002",
++          "version_logical": 0,
++          "version_model": 3,
++          "version_physical": "11644473605000000",
++          "workspace_id": "a1000000-0000-4000-8000-000000000001"
++        }
++      }
++    },
++    {
++      "name": "utf8_sort_key.treeNode.older_utf8_key_loses",
++      "entityType": 2,
++      "dataClass": "treeNode",
++      "inputValid": true,
++      "description": "Opaque sort keys compare exact UTF-8 bytes, not Unicode canonical equivalence.",
++      "existing": {
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "home_target": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "is_temporary": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "location": {
++            "device": "a0000000-0000-4000-8000-000000000002",
++            "logical": 0,
++            "physical": "11644473605000000"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "title": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "url": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "home_local_scheme": null,
++        "home_target_kind": null,
++        "home_url": null,
++        "icon": "folder",
++        "id": "a2000000-0000-4000-8000-000000000001",
++        "is_temporary": false,
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "node_kind": 0,
++        "sort_key": "é",
++        "title": "Fixture folder",
++        "tombstone": false,
++        "url": "",
++        "version_device": "a0000000-0000-4000-8000-000000000002",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473605000000",
++        "workspace_id": "a1000000-0000-4000-8000-000000000001"
++      },
++      "incoming": {
++        "created_at": "11644473601000000",
++        "field_versions": {
++          "accent_argb": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "created_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "home_target": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "icon": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "is_temporary": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "location": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "modified_at": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "title": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "url": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "home_local_scheme": null,
++        "home_target_kind": null,
++        "home_url": null,
++        "icon": "folder",
++        "id": "a2000000-0000-4000-8000-000000000001",
++        "is_temporary": false,
++        "model_version": 3,
++        "modified_at": "11644473603000555",
++        "node_kind": 0,
++        "sort_key": "é",
++        "title": "Fixture folder",
++        "tombstone": false,
++        "url": "",
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000",
++        "workspace_id": "a1000000-0000-4000-8000-000000000001"
++      },
++      "expect": {
++        "decision": "keepExisting",
++        "merged": {
++          "created_at": "11644473601000000",
++          "field_versions": {
++            "accent_argb": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "created_at": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "home_target": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "icon": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "is_temporary": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "kind": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "location": {
++              "device": "a0000000-0000-4000-8000-000000000002",
++              "logical": 0,
++              "physical": "11644473605000000"
++            },
++            "modified_at": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "title": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "tombstone": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "url": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            }
++          },
++          "home_local_scheme": null,
++          "home_target_kind": null,
++          "home_url": null,
++          "icon": "folder",
++          "id": "a2000000-0000-4000-8000-000000000001",
++          "is_temporary": false,
++          "model_version": 3,
++          "modified_at": "11644473603000555",
++          "node_kind": 0,
++          "sort_key": "é",
++          "title": "Fixture folder",
++          "tombstone": false,
++          "url": "",
++          "version_device": "a0000000-0000-4000-8000-000000000002",
++          "version_logical": 0,
++          "version_model": 3,
++          "version_physical": "11644473605000000",
++          "workspace_id": "a1000000-0000-4000-8000-000000000001"
++        }
++      }
++    }
++  ]
++}
