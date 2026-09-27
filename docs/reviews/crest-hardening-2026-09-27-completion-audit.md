@@ -121,7 +121,7 @@ a source review or a simulator-only result as a cross-device/privacy pass.
 | H7.3 sync merge target and concurrent additions | 084/096/104, exact Swift result, 112 apply fixture, retention 108/114 | Root order, full apply/compaction parity, native C++ and real sync evidence remain open. |
 | Mobile merge | 086 + 098; clean `a747c62` 27/27 suite and focused RED/GREEN | Accepted local scope stays valid; visible WS-MERGE-07/cross-device result not yet proved. |
 | Mobile flick | 088 integrated, MRU/control-bar source and core tests | ADR's neighbor-page preview during dragging is explicitly not implemented. Gesture/VoiceOver visible cases remain open. |
-| Web-Extension spike | 090 integrated, bundled runtime loads MV3 and has core tests | Runtime loads only `spikeExtensionURL` from its bundle. ADR step 1 also asks for an unpacked Files input and the full content-script/DNR/action/storage/permission/private/update checklist. Load/attach tests do not prove those effects. Complete/document the spike before requesting the step-2 decision. |
+| Web-Extension spike | 090 integrated, bundled runtime loads MV3; 136 Files source handoff ready | 136 proposes a DEBUG-only Files import of an exact copy of the bundled fixture. Native picker/load and full content-script/DNR/action/storage/permission/private/update effects are unverified. Load/attach tests cannot prove those effects, and guideline 2.5.2 remains a Step-2 decision gate. |
 | H7.5 integrated-stage review and exact acceptance | Existing handoffs/reviews plus current audit | Source-ready/integrated status is not installed acceptance. Keep all named cases and remaining product gaps, not only the ones already green. |
 
 R1 follow-up: Desktop source `20467e5` addresses 124's UTF-8 allocator finding

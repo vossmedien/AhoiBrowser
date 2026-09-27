@@ -490,6 +490,28 @@ explicit no-space result. Crest read the new source but does not relabel it as
 a compiled C++ test, actual Sync capture/opposite-platform replay or installed
 R1 acceptance. The separate 126 marker collision remains open.
 
+H7 Web Extension spike source follow-up:
+[136](../handoffs/crest-hardening/136-mobile-webextension-files-spike/HANDOFF.md)
+adds a DEBUG-only Files folder picker and stages only a byte-identical copy of
+the bundled MV3 test extension before loading it as a second WebKit context.
+It is gated by the existing spike launch argument; arbitrary Files code and
+general installation remain Step-2 decisions. Three Swift review mirrors
+parse and patch applicability passes. No native XCTest, Files picker/GUI,
+content-script/DNR/storage/action/permission/private/update evidence or App
+Review acceptance is claimed. Apple's documented directory/ZIP API and Files
+security scope support the source path; guideline 2.5.2 still needs owner
+review before any general user-code feature. No release build/runtime lease
+or overlapping Mobile product write occurred.
+
+Root 1163 restart handback: owner source `2c26365` connects Mobile's exact
+savedRecords receipt to the bounded two-file Workspace compaction gate, with
+source checks only. The owner is restart-ready for Cockpit 1163; Crest has no
+build/simulator/browser/H3/H5 lock, process or background job. The light 136
+handoff is committed before restart. No new heavy action begins in this window.
+After restart, recheck source/locks/capacity before any bounded native test;
+6096e93's 38/38 result is not acceptance of the retention path, 128/130 or
+132/136. Original Crest goal and external decisions remain open.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

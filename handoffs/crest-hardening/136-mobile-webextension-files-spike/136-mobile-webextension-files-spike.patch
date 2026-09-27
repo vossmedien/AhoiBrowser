@@ -1,0 +1,236 @@
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift
+@@ -25,6 +25,20 @@
+     public private(set) var state: State
+     let controller: WKWebExtensionController?
+     private var loadTask: Task<Void, Never>?
++#if DEBUG
++    public enum FilesSpikeError: Error, Equatable {
++        case disabled, alreadyLoaded, notUnpackedFolder, fixtureMismatch, invalidExtension
++    }
++
++    /// One user-selected, unpacked copy of the bundled test fixture. This is
++    /// deliberately not the general Files installer proposed for v1.
++    public private(set) var importedDisplayName: String?
++    private var importedContext: WKWebExtensionContext?
++    private var importedStagingURL: URL?
++    private static let knownFixtureFiles = [
++        "manifest.json", "content.js", "rules.json", "popup.html", "popup.js",
++    ]
++#endif
+ 
+     init(arguments: [String]) {
+         if arguments.contains(Self.launchArgument) {
+@@ -65,6 +79,72 @@
+         await loadTask?.value
+     }
+ 
++#if DEBUG
++    /// Stage only the exact known fixture bytes from a Files-selected folder.
++    /// Keeping this behind DEBUG and the explicit spike launch argument lets
++    /// Step 1 test Files/WebKit plumbing without enabling arbitrary code in
++    /// an App Store candidate or making a Step-2 product decision.
++    public func loadUnpackedFromFiles(_ sourceURL: URL) async throws {
++        guard let controller else { throw FilesSpikeError.disabled }
++        guard importedContext == nil else { throw FilesSpikeError.alreadyLoaded }
++        guard sourceURL.isFileURL,
++              try sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else {
++            throw FilesSpikeError.notUnpackedFolder
++        }
++        guard let bundled = Self.spikeExtensionURL else { throw CocoaError(.fileNoSuchFile) }
++
++        let hasScope = sourceURL.startAccessingSecurityScopedResource()
++        defer { if hasScope { sourceURL.stopAccessingSecurityScopedResource() } }
++        let staged = FileManager.default.temporaryDirectory.appendingPathComponent(
++            "Ahoi-WebExtension-Spike-\(UUID().uuidString)", isDirectory: true)
++        try FileManager.default.createDirectory(at: staged, withIntermediateDirectories: false)
++        var loaded = false
++        defer { if !loaded { try? FileManager.default.removeItem(at: staged) } }
++        for filename in Self.knownFixtureFiles {
++            let expected = try Data(contentsOf: bundled.appendingPathComponent(filename))
++            let selected = try Data(contentsOf: sourceURL.appendingPathComponent(filename))
++            guard selected == expected else { throw FilesSpikeError.fixtureMismatch }
++            try selected.write(to: staged.appendingPathComponent(filename),
++                               options: [.withoutOverwriting])
++        }
++
++        loadIfNeeded(into: controller)
++        await loadTask?.value
++        guard case .loaded = state else { throw FilesSpikeError.invalidExtension }
++        let webExtension = try await WKWebExtension(resourceBaseURL: staged)
++        guard webExtension.manifestVersion == 3, webExtension.errors.isEmpty else {
++            throw FilesSpikeError.invalidExtension
++        }
++        let context = WKWebExtensionContext(for: webExtension)
++        // The same reviewed test fixture receives the same spike-only grants
++        // as the bundled copy. Production permissions still require Step 2.
++        for permission in webExtension.requestedPermissions {
++            context.setPermissionStatus(.grantedExplicitly, for: permission)
++        }
++        for pattern in webExtension.allRequestedMatchPatterns {
++            context.setPermissionStatus(.grantedExplicitly, for: pattern)
++        }
++        try controller.load(context)
++        importedContext = context
++        importedStagingURL = staged
++        importedDisplayName = webExtension.displayName ?? ""
++        loaded = true
++    }
++
++    public func unloadImportedFilesSpike() throws {
++        guard let controller else { return }
++        if let importedContext {
++            try controller.unload(importedContext)
++            self.importedContext = nil
++            importedDisplayName = nil
++        }
++        if let importedStagingURL {
++            try FileManager.default.removeItem(at: importedStagingURL)
++            self.importedStagingURL = nil
++        }
++    }
++#endif
++
+     private func loadIfNeeded(into controller: WKWebExtensionController) {
+         guard loadTask == nil else { return }
+         loadTask = Task { [weak self] in
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionExtensionSetupSection.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionExtensionSetupSection.swift
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionExtensionSetupSection.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionExtensionSetupSection.swift
+@@ -1,7 +1,15 @@
+ import SwiftUI
++#if DEBUG
++import UniformTypeIdentifiers
++#endif
+ 
+ struct CompanionExtensionSetupSection: View {
+     @ObservedObject var model: CompanionAppModel
++#if DEBUG
++    @State private var showSpikeFolderPicker = false
++    @State private var filesSpikeLoaded = false
++    @State private var filesSpikeStatus = ""
++#endif
+ 
+     var body: some View {
+         Section {
+@@ -44,6 +52,52 @@
+                     .accessibilityIdentifier("settings.extensions.storage.\(setting.key)")
+                 }
+             }
++#if DEBUG
++            if ProcessInfo.processInfo.arguments.contains(MobileWebExtensionRuntime.launchArgument) {
++                Button("Load unpacked Ahoi Spike from Files") {
++                    showSpikeFolderPicker = true
++                }
++                .disabled(filesSpikeLoaded)
++                .accessibilityIdentifier("settings.extensions.spike.import-folder")
++                .fileImporter(isPresented: $showSpikeFolderPicker,
++                              allowedContentTypes: [.folder]) { result in
++                    switch result {
++                    case .success(let url):
++                        Task { @MainActor in
++                            do {
++                                try await MobileWebExtensionRuntime.shared.loadUnpackedFromFiles(url)
++                                filesSpikeLoaded = true
++                                filesSpikeStatus = "Unpacked test extension loaded"
++                            } catch {
++                                filesSpikeStatus = "Test extension import failed"
++                            }
++                        }
++                    case .failure:
++                        filesSpikeStatus = "Files selection failed"
++                    }
++                }
++                if filesSpikeLoaded {
++                    Button("Unload Files test extension") {
++                        Task { @MainActor in
++                            do {
++                                try MobileWebExtensionRuntime.shared.unloadImportedFilesSpike()
++                                filesSpikeLoaded = false
++                                filesSpikeStatus = "Files test extension unloaded"
++                            } catch {
++                                filesSpikeStatus = "Test extension unload failed"
++                            }
++                        }
++                    }
++                    .accessibilityIdentifier("settings.extensions.spike.unload-folder")
++                }
++                Text(filesSpikeStatus.isEmpty ?
++                     "Debug spike: choose an unpacked copy of the bundled Ahoi Spike fixture." :
++                     filesSpikeStatus)
++                    .font(.caption)
++                    .foregroundStyle(.secondary)
++                    .accessibilityIdentifier("settings.extensions.spike.files-status")
++            }
++#endif
+         } header: {
+             Text(CompanionL10n.string("settings.extensions.title", fallback: "Extensions"))
+         } footer: {
+diff --git a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileWebExtensionRuntimeTests.swift b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileWebExtensionRuntimeTests.swift
+--- a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileWebExtensionRuntimeTests.swift
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileWebExtensionRuntimeTests.swift
+@@ -44,4 +44,63 @@
+         XCTAssertEqual(runtime.state, .loaded(displayName: "Ahoi Spike"))
+         XCTAssertEqual(runtime.controller?.extensionContexts.count, 1)
+     }
++
++#if DEBUG
++    func testUnpackedFilesCopyLoadsBesideTheBundledSpikeAndUnloads() async throws {
++        let folder = try fixtureCopyInTemporaryFolder()
++        defer { try? FileManager.default.removeItem(at: folder) }
++        let runtime = MobileWebExtensionRuntime(
++            arguments: [MobileWebExtensionRuntime.launchArgument]
++        )
++        var normal = WebPage.Configuration()
++        runtime.attach(to: &normal, mode: .normal, usesDefaultWebsiteDataStore: true)
++        await runtime.waitUntilLoaded()
++        XCTAssertEqual(runtime.controller?.extensionContexts.count, 1)
++
++        try await runtime.loadUnpackedFromFiles(folder)
++        XCTAssertEqual(runtime.importedDisplayName, "Ahoi Spike")
++        XCTAssertEqual(runtime.controller?.extensionContexts.count, 2)
++        try runtime.unloadImportedFilesSpike()
++        XCTAssertNil(runtime.importedDisplayName)
++        XCTAssertEqual(runtime.controller?.extensionContexts.count, 1)
++    }
++
++    func testFilesSpikeRejectsChangedCodeAndDisabledRuntime() async throws {
++        let folder = try fixtureCopyInTemporaryFolder()
++        defer { try? FileManager.default.removeItem(at: folder) }
++        let disabled = MobileWebExtensionRuntime(arguments: [])
++        do {
++            try await disabled.loadUnpackedFromFiles(folder)
++            XCTFail("Disabled runtime must not load Files code")
++        } catch let error as MobileWebExtensionRuntime.FilesSpikeError {
++            XCTAssertEqual(error, .disabled)
++        }
++        try Data("changed code".utf8).write(
++            to: folder.appendingPathComponent("content.js"), options: .atomic)
++        let enabled = MobileWebExtensionRuntime(
++            arguments: [MobileWebExtensionRuntime.launchArgument]
++        )
++        do {
++            try await enabled.loadUnpackedFromFiles(folder)
++            XCTFail("Changed fixture must not be loaded")
++        } catch let error as MobileWebExtensionRuntime.FilesSpikeError {
++            XCTAssertEqual(error, .fixtureMismatch)
++        }
++        XCTAssertNil(enabled.importedDisplayName)
++        XCTAssertEqual(enabled.controller?.extensionContexts.count, 0)
++    }
++
++    private func fixtureCopyInTemporaryFolder() throws -> URL {
++        let bundled = try XCTUnwrap(MobileWebExtensionRuntime.spikeExtensionURL)
++        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(
++            "Ahoi-Files-Spike-Test-\(UUID().uuidString)", isDirectory: true)
++        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
++        for filename in ["manifest.json", "content.js", "rules.json", "popup.html", "popup.js"] {
++            try FileManager.default.copyItem(
++                at: bundled.appendingPathComponent(filename),
++                to: folder.appendingPathComponent(filename))
++        }
++        return folder
++    }
++#endif
+ }
