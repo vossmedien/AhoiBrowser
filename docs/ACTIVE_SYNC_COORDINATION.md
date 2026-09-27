@@ -2,6 +2,28 @@
 
 ## Current merge-target continuation — 27 September 2026
 
+**Desktop retention source correction (27 September, awaiting native tests):**
+compaction now stores only `source_id`/`target_id` for a merged Workspace in
+the profile-local `sync_workspace_merge_watermarks` auxiliary table. That write,
+the existing version watermark and removal of the complete payload/tombstone
+share the existing transaction. No wire field, CloudKit physical deletion or
+outbox publication is added, and the existing retention/outbox gate is unchanged.
+The getter accepts only routes backed by a Workspace deletion watermark and
+validates both UUIDs. Native projection resolves mixed retained/compacted chains
+with cycle detection; live records take precedence, and ordinary deletion or
+an unresolved/cyclic chain keeps the existing recovery behavior. Raw Page
+locations and their clocks remain untouched.
+
+Two new C++ regression methods exercise the pending outbox, actual payload
+removal, retained route/raw Page, store reopen, a multi-hop route and a cycle.
+Source diff and 800-line checks pass. **Compilation and execution are pending**
+the next regular candidate; no installed-browser/retention acceptance is claimed.
+The auxiliary table follows the existing local watermark lifecycle and creates
+no second wire format. Mobile's acknowledged compaction path and the remaining
+root-ordering/shared apply cases still need completion. This lightweight source
+work preserves restart readiness during the delayed 1159 signing step; no new
+heavy test/build or App action was started.
+
 **Latest exact Swift result:** clean `a747c62` passed the 140-vector runner and
 coverage check as part of a 27/27 focused XCTest run (zero skips), then repeated
 27/27 after restoring 098's demonstrated negative control. Both source and
