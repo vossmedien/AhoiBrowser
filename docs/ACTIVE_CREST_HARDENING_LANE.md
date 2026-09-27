@@ -212,8 +212,27 @@ and hand-derived expectations, not 279 executed product projections. Owner
 C++/Swift adapter runners and retention remain open; no concurrent product
 writer or shared-resource run was started.
 
-Next allowed lane work: audit remaining H1–H7 deliverables and review new
-owner integrations. Actual H3/H5 runs still need
+Latest owner runtime evidence `443c452` reviewed read-only:
+[mobile merge receipt](../artifacts/tests/mobile-merge-a747c62-20260927/README.md)
+binds clean `a747c62a74219c807b0bcf232bab29e5586248fc`, Xcode 27, framework/test
+binary hashes and 104's 140-vector hash
+`da09b4c1feb6247c30975376642893eb95a56a4ce0a3f3bcf059327121efacf8`.
+Final GREEN: **27 XCTest, 0 failures, 0 skips** (merge 19, reorder 2, save 4,
+conformance 2, all 140 vectors). 098 RED removed only the guard in the isolated
+worktree: three critical refusal methods failed, unrelated-root control passed;
+byte-exact restoration then passed 27/27 again. This closes the Swift 140-vector
+and 098 RED/GREEN evidence gaps for that freeze; it does not prove the new 112
+apply fixture, C++ execution, R1 ordering, retention, visible E2E or CloudKit.
+C++ R2 `61cab96` and the 140 native vectors remain NOT_RUN.
+
+Root 1159 restart coordination: owner reports all Ahoi locks/tests ended and
+requests **no further runs now**. Crest only read the saved receipt/summaries
+and updated this checkpoint; no suite, build, GUI or runtime was started.
+No critical Crest background task or resource lock is active. Preserve the
+original active goal and next steps through the restart.
+
+Next allowed lane work after restart coordination: audit remaining H1–H7
+deliverables and review new owner integrations. Actual H3/H5 runs still need
 matching candidates and a newly open owner lease; test/capacity gates remain.
 No polling/background resource watcher was installed. The older dated sections
 below are retained as history and do not override this continuation.
