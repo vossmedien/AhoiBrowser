@@ -464,6 +464,16 @@ was load 172 with live owner/foreign compiler processes, so Crest deferred
 even the Swift parse check. 132 remains draft until that light check; no
 native result or H3/H5 lease is inferred.
 
+H7 empty-source undo review:
+[134](../handoffs/crest-hardening/134-empty-workspace-merge-undo/HANDOFF.md)
+pins why the current Desktop `record_undo && !roots.empty()` behavior violates
+ADR 0012's same-context undo rule. Native undo requires a nonempty node
+snapshot and derives Workspace revival from that node, so toggling the guard
+alone cannot work. The owner needs a durable Workspace-level receipt plus
+snapshot, observer, route and visible-undo coverage. This is source analysis,
+not a native or installed journey result. Crest touched no product code or
+runtime resource.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
