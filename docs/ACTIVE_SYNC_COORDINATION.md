@@ -2,6 +2,13 @@
 
 ## Focused Swift candidate — 27 September 2026, 11:41 CEST
 
+After this run, Mobile source adds a repository-only atomic Snapshot compaction
+step for an exact expired Workspace tombstone, preserving a version/merge-route
+watermark and raw late Page. Parser/project-file checks pass; its new tests are
+unexecuted. This is not yet wired to the CloudKit receipt and pending-queue
+gate, so normal sync cannot invoke the compaction path. Crest's in-progress
+130 handoff paths remain untouched until ready owner intake.
+
 The exact clean `6096e93` Mobile candidate passes 38/38 focused XCTest methods
 with zero failures/skips. This includes Crest 120's eight UTF-8 sort-key
 vectors alongside the unchanged 140 field-merge vectors and 279 projection
