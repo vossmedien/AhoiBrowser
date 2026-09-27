@@ -53,7 +53,8 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
 
     public var visibleWorkspaces: [Workspace] {
         workspaces.filter { !$0.isDeleted }.sorted {
-            if $0.sortKey != $1.sortKey { return $0.sortKey < $1.sortKey }
+            if CompanionTreePosition.less($0.sortKey, $1.sortKey) { return true }
+            if CompanionTreePosition.less($1.sortKey, $0.sortKey) { return false }
             return $0.id < $1.id
         }
     }

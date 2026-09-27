@@ -72,6 +72,28 @@ final class CompanionTreeReorderingTests: XCTestCase {
         XCTAssertNotNil(String(data: Data(key.utf8), encoding: .utf8))
     }
 
+    func testWorkspaceDisplayOrderUsesOpaqueUTF8BeforeIDTieBreak() {
+        let device = DeviceID()
+        let version = SyncVersion(
+            modifiedAt: HybridLogicalClock(physicalMilliseconds: 100, nodeID: device),
+            modifiedBy: device)
+        let upper = Workspace(
+            workspaceID: WorkspaceID(rawValue: UUID(uuidString:
+                "10000000-0000-4000-8000-000000000001")!),
+            name: "Composed", sortKey: String(Unicode.Scalar(0xe9)!), version: version)
+        let lower = Workspace(
+            workspaceID: WorkspaceID(rawValue: UUID(uuidString:
+                "20000000-0000-4000-8000-000000000002")!),
+            name: "Decomposed", sortKey: "e" + String(Unicode.Scalar(0x301)!),
+            version: version)
+        XCTAssertEqual(upper.sortKey, lower.sortKey)
+        XCTAssertTrue(CompanionTreePosition.less(lower.sortKey, upper.sortKey))
+        var snapshot = CompanionSnapshot(workspaces: [upper, lower])
+        XCTAssertEqual(snapshot.visibleWorkspaces.map(\.id), [lower.id, upper.id])
+        snapshot.workspaces.reverse()
+        XCTAssertEqual(snapshot.visibleWorkspaces.map(\.id), [lower.id, upper.id])
+    }
+
     func testConcurrentCanonicalTieBreakersStillHaveAnInsertablePosition() throws {
         let workspace = WorkspaceID()
         let a = DeviceID(rawValue: UUID(uuidString: "10000000-0000-4000-8000-000000000001")!)
