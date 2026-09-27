@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import XCTest
 import AhoiCloudKitSpike
 @testable import AhoiMobileCore
@@ -55,6 +56,10 @@ final class SyncMergeConformanceTests: XCTestCase {
     private static let covered: Set<Int> = [1, 2, 5, 6, 7, 8, 14]
 
     private func vectorsURL(_ name: String = "merge_v3.json") -> URL {
+        if name == "merge_v3.json",
+           let path = ProcessInfo.processInfo.environment["AHOI_SYNC_CONFORMANCE_FIXTURE"] {
+            return URL(fileURLWithPath: path)
+        }
         // Tests run on the Mac host, so the repository file is readable directly.
         var url = URL(fileURLWithPath: #filePath)
         for _ in 0..<5 { url.deleteLastPathComponent() }
@@ -101,59 +106,89 @@ final class SyncMergeConformanceTests: XCTestCase {
         return result
     }
 
+    private struct Rejection: Error {
+        let stage: String
+        let underlying: any Error
+    }
+    private enum ExportError: Error {
+        case unsupportedEntity(Int), invalidConfiguration
+    }
+
+    /// Product validation errors carry their actual stage. Fixture I/O, expected
+    /// decoding and output encoding errors remain harness failures, never invalid.
+    private func mergeDecoded<T>(
+        _ existing: @autoclosure () throws -> T,
+        _ incoming: @autoclosure () throws -> T,
+        using merge: (T, T) throws -> T
+    ) throws -> T {
+        let old: T
+        let new: T
+        do { old = try existing(); new = try incoming() }
+        catch { throw Rejection(stage: "decode", underlying: error) }
+        do { return try merge(old, new) }
+        catch { throw Rejection(stage: "merge", underlying: error) }
+    }
+
     /// Returns the merged model and the decoded expectation, both type-erased.
-    private func run(_ vector: Vector, merged expected: JSONValue?) throws -> (Any, Any?) {
+    private func run(_ vector: Vector, merged expected: JSONValue?) throws -> (Any, Any?, Data) {
         let codec = DesktopWirePayloadCodec()
         let old = try envelope(vector, vector.existing)
         let new = try envelope(vector, vector.incoming)
         switch vector.entityType {
         case 1:
-            let result = try CompanionFieldMerge.merge(
+            let result = try mergeDecoded(
                 try codec.decodeWorkspace(old, plaintext: vector.existing.data),
-                try codec.decodeWorkspace(new, plaintext: vector.incoming.data))
+                try codec.decodeWorkspace(new, plaintext: vector.incoming.data),
+                using: CompanionFieldMerge.merge)
             let want = try expected.map { try codec.decodeWorkspace(try envelope(vector, $0), plaintext: $0.data) }
-            return (result, want)
+            return (result, want, try codec.encode(result))
         case 2:
-            let result = try CompanionFieldMerge.merge(
+            let result = try mergeDecoded(
                 try codec.decodeTreeNode(old, plaintext: vector.existing.data),
-                try codec.decodeTreeNode(new, plaintext: vector.incoming.data))
+                try codec.decodeTreeNode(new, plaintext: vector.incoming.data),
+                using: CompanionFieldMerge.merge)
             let want = try expected.map { try codec.decodeTreeNode(try envelope(vector, $0), plaintext: $0.data) }
-            return (result, want)
+            return (result, want, try codec.encode(result))
         case 5:
             let known = try devices()
-            let result = try CompanionReadModelFieldMerge.merge(
+            let result = try mergeDecoded(
                 try codec.decodeSession(old, plaintext: vector.existing.data, devices: known),
-                try codec.decodeSession(new, plaintext: vector.incoming.data, devices: known))
+                try codec.decodeSession(new, plaintext: vector.incoming.data, devices: known),
+                using: CompanionReadModelFieldMerge.merge)
             let want = try expected.map {
                 try codec.decodeSession(try envelope(vector, $0), plaintext: $0.data, devices: known)
             }
-            return (result, want)
+            return (result, want, try codec.encode(result))
         case 14:
-            let result = try CompanionWorkspaceStructureMerge.merge(
+            let result = try mergeDecoded(
                 try codec.decodeArchiveEntry(old, plaintext: vector.existing.data),
-                try codec.decodeArchiveEntry(new, plaintext: vector.incoming.data))
+                try codec.decodeArchiveEntry(new, plaintext: vector.incoming.data),
+                using: CompanionWorkspaceStructureMerge.merge)
             let want = try expected.map { try codec.decodeArchiveEntry(try envelope(vector, $0), plaintext: $0.data) }
-            return (result, want)
+            return (result, want, try codec.encode(result))
         case 6:
-            let result = try CompanionProductFieldMerge.merge(
+            let result = try mergeDecoded(
                 try codec.decodeRemoteCommand(old, plaintext: vector.existing.data),
-                try codec.decodeRemoteCommand(new, plaintext: vector.incoming.data))
+                try codec.decodeRemoteCommand(new, plaintext: vector.incoming.data),
+                using: CompanionProductFieldMerge.merge)
             let want = try expected.map { try codec.decodeRemoteCommand(try envelope(vector, $0), plaintext: $0.data) }
-            return (result, want)
+            return (result, want, try codec.encode(result))
         case 7:
-            let result = try CompanionProductFieldMerge.merge(
+            let result = try mergeDecoded(
                 try codec.decodeAppearance(old, plaintext: vector.existing.data),
-                try codec.decodeAppearance(new, plaintext: vector.incoming.data))
+                try codec.decodeAppearance(new, plaintext: vector.incoming.data),
+                using: CompanionProductFieldMerge.merge)
             let want = try expected.map { try codec.decodeAppearance(try envelope(vector, $0), plaintext: $0.data) }
-            return (result, want)
+            return (result, want, try codec.encode(result))
         case 8:
-            let result = try CompanionProductFieldMerge.merge(
+            let result = try mergeDecoded(
                 try codec.decodePermittedSetting(old, plaintext: vector.existing.data),
-                try codec.decodePermittedSetting(new, plaintext: vector.incoming.data))
+                try codec.decodePermittedSetting(new, plaintext: vector.incoming.data),
+                using: CompanionProductFieldMerge.merge)
             let want = try expected.map { try codec.decodePermittedSetting(try envelope(vector, $0), plaintext: $0.data) }
-            return (result, want)
+            return (result, want, try codec.encode(result))
         default:
-            throw XCTSkip("entity \(vector.entityType) has no Companion field merge")
+            throw ExportError.unsupportedEntity(vector.entityType)
         }
     }
 
@@ -219,28 +254,51 @@ final class SyncMergeConformanceTests: XCTestCase {
         try checkVectors("merge_utf8_sort_keys_v3.json")
     }
 
+    private func exportResults(_ results: [[String: Any]], fixture: URL, bytes: Data) throws {
+        let env = ProcessInfo.processInfo.environment
+        guard let directory = env["AHOI_SYNC_CONFORMANCE_OUTPUT_DIR"] else { return }
+        guard directory.hasPrefix("/"),
+              let runID = env["AHOI_SYNC_CONFORMANCE_RUN_ID"],
+              !runID.isEmpty, runID.utf8.count <= 120,
+              runID.utf8.allSatisfy({
+                  (65...90).contains($0) || (97...122).contains($0) ||
+                  (48...57).contains($0) || $0 == 46 || $0 == 95 || $0 == 45
+              }) else { throw ExportError.invalidConfiguration }
+        let document: [String: Any] = [
+            "schemaVersion": 1, "kind": "ahoi-sync-merge-output",
+            "implementation": "swift", "runId": runID, "complete": true,
+            "fixtureName": fixture.lastPathComponent,
+            "fixtureSha256": SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined(),
+            "cases": results,
+        ]
+        let data = try JSONSerialization.data(withJSONObject: document, options: [.sortedKeys])
+        let path = URL(fileURLWithPath: directory, isDirectory: true)
+            .appendingPathComponent("swift-" + fixture.lastPathComponent)
+        // Existing files (including interrupted output) are never reused.
+        try data.write(to: path, options: [.withoutOverwriting])
+    }
+
     private func checkVectors(_ name: String) throws {
-        let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL(name)))
+        if name == "merge_v3.json",
+           let override = ProcessInfo.processInfo.environment["AHOI_SYNC_CONFORMANCE_FIXTURE"],
+           !override.hasPrefix("/") { throw ExportError.invalidConfiguration }
+        let fixture = vectorsURL(name)
+        let bytes = try Data(contentsOf: fixture)
+        let document = try JSONDecoder().decode(Document.self, from: bytes)
         XCTAssertEqual(document.schemaVersion, 1)
         XCTAssertEqual(Set(document.cases.map(\.entityType)).subtracting(Self.covered), [])
-        var executed = 0
-        for vector in document.cases where Self.covered.contains(vector.entityType) {
-            executed += 1
+        var results: [[String: Any]] = []
+        for vector in document.cases {
             let expected = vector.expect.decision == "invalid" ? nil : vector.expect.merged
-            if vector.inputValid == true {
-                // Decode rejection is not evidence of the required merge conflict.
-                let codec = DesktopWirePayloadCodec()
-                for payload in [vector.existing, vector.incoming] {
-                    let record = try envelope(vector, payload)
-                    switch vector.entityType {
-                    case 1: _ = try codec.decodeWorkspace(record, plaintext: payload.data)
-                    case 2: _ = try codec.decodeTreeNode(record, plaintext: payload.data)
-                    default: XCTFail("No valid-input decoder for this supplemental entity"); return
-                    }
-                }
-            }
+            var output: [String: Any] = [
+                "name": vector.name, "entityType": vector.entityType,
+                "outcome": "error", "payload": NSNull(), "rejectionStage": NSNull(),
+            ]
             do {
-                let (merged, want) = try run(vector, merged: expected)
+                let (merged, want, actualBytes) = try run(vector, merged: expected)
+                // Actual product codec bytes, not reflection or expected payload.
+                output["payload"] = try JSONSerialization.jsonObject(with: actualBytes)
+                output["outcome"] = "accepted"
                 if vector.expect.decision == "invalid" {
                     XCTFail("\(vector.name): expected rejection, Swift merged \(merged)")
                 } else {
@@ -250,15 +308,23 @@ final class SyncMergeConformanceTests: XCTestCase {
                         XCTFail("\(vector.name): merged differs from expectation: \(diff)")
                     }
                 }
-            } catch let skip as XCTSkip {
-                throw skip
-            } catch {
-                if vector.expect.decision != "invalid" {
-                    XCTFail("\(vector.name): Swift rejected (\(error)); expected \(vector.expect.decision)")
+            } catch let rejection as Rejection {
+                output["outcome"] = "invalid"
+                output["rejectionStage"] = rejection.stage
+                if vector.inputValid == true && rejection.stage == "decode" {
+                    XCTFail("\(vector.name): valid inputs must reach merge validation")
                 }
+                if vector.expect.decision != "invalid" {
+                    XCTFail("\(vector.name): Swift rejected (\(rejection.underlying)); expected \(vector.expect.decision)")
+                }
+            } catch {
+                // Unexpected harness/encoding errors cannot satisfy invalid vectors.
+                XCTFail("\(vector.name): harness or output encoding failed: \(error)")
             }
+            results.append(output)
         }
-        XCTAssertGreaterThan(executed, 0)
+        XCTAssertFalse(results.isEmpty)
+        try exportResults(results, fixture: fixture, bytes: bytes)
     }
 
     /// Every contract entity with shared vectors has a Companion field merge

@@ -2,6 +2,17 @@
 
 ## Current R1 candidate and evidence — 27 September 2026, 07:03 CEST
 
+Crest 122's frozen exporter patch is integrated after 120. The two existing
+native merge runners now record their **actual** codec payloads and decode/
+merge rejection stage, with optional owner-selected input corpus, fixture
+hash and exclusive output creation. Swift test source parses and source diff
+checks pass; C++ compilation, native test exits, complete exports and direct
+comparison remain **pending**. The seven currently supported entity classes,
+140 standard vectors and eight supplemental vectors are the bounded next
+acceptance scope. `RUNNER_OUTPUTS.md` remains Crest-owned protocol; no
+synthetic report is counted as native evidence. This source intake did not
+start a new simulator, browser build or API action.
+
 Mobile now carries an optional local deletion watermark with Workspace merge
 target in its Snapshot source, and route resolution can project late raw Pages
 after a compacted source through a live target. Codec validation, clock

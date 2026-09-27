@@ -1,6 +1,6 @@
 # 122 — Export and compare actual C++/Swift merge results
 
-Status: ready (frozen patch; native compilation/export comparison pending)
+Status: integrated by Desktop/Mobile/Sync owner after 980c713; Swift runner parses and source diff passes; C++ compilation, native exports and actual output comparison remain pending.
 Owners: desktop/sync and mobile
 Base: `cfd0127` plus integrated 120 (`91d6bd1`). Patch applicability checked
 against current `ce24827`; the later owner code is preserved.
