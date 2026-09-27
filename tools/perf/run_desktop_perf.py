@@ -39,6 +39,7 @@ import cdp  # noqa: E402
 import build_evidence  # noqa: E402
 import perf_stats  # noqa: E402
 import owned_process  # noqa: E402
+import runtime_guard  # noqa: E402
 
 SCENARIO_VERSION = 1
 INSTALLED_APP = pathlib.Path("/Applications/AhoiBrowser.app")
@@ -61,7 +62,7 @@ class Refused(SystemExit):
 # --------------------------------------------------------------------------- host
 
 def run(*args: str) -> str:
-    return subprocess.run(args, capture_output=True, text=True).stdout.strip()
+    return subprocess.run(args, capture_output=True, text=True, timeout=2, check=True).stdout.strip()
 
 
 def hid_idle_seconds() -> int:
@@ -105,6 +106,24 @@ def host_conditions() -> dict:
         "busyProcesses": busy_processes(),
         "hidIdleSeconds": hid_idle_seconds(),
     }
+
+
+def runtime_host_state() -> dict:
+    # One process snapshot per poll; do not use system load while the benchmark
+    # itself is intentionally busy. Every probe is bounded by run()'s timeout.
+    idle = hid_idle_seconds()
+    names = {name.strip() for name in run("ps", "-axco", "comm=").splitlines()}
+    return {"hidIdleSeconds": idle, "powerSource": power_source(),
+            "busyProcesses": sorted(names.intersection(BUSY_PROCESSES)),
+            "accessibilityClients": sorted(names.intersection(AX_CLIENTS))}
+
+
+def measurement_sleep(seconds: float) -> None:
+    guard = runtime_guard.current()
+    if guard:
+        guard.wait(seconds)
+    else:
+        time.sleep(seconds)
 
 
 def preflight(apps: list[pathlib.Path], port: int, min_idle: int, lease: bool,
@@ -229,10 +248,13 @@ class FixtureServer:
     def wait_mark(self, label: str, timeout: float) -> dict:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
+            guard = runtime_guard.current()
+            if guard:
+                guard.check()
             try:
-                mark = self.marks.get(timeout=max(0.05, deadline - time.monotonic()))
+                mark = self.marks.get(timeout=min(0.25, max(0.05, deadline - time.monotonic())))
             except queue.Empty:
-                break
+                continue
             if mark.get("label") == label:
                 return mark
         raise cdp.CDPError(f"start page {label} did not report load in {timeout}s")
@@ -290,15 +312,18 @@ class Browser:
         self.flags = (*BASE_FLAGS, *extra_flags)
         self.spawn_epoch_ms = time.time() * 1000
         self.spawn_monotonic = time.monotonic()
-        self.process = subprocess.Popen(
+        self.guard = runtime_guard.current()
+        spawn = self.guard.spawn if self.guard else subprocess.Popen
+        self.process = spawn(
             [app["executable"], f"--user-data-dir={profile}",
              f"--remote-debugging-port={port}", *self.flags, url],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         try:
-            self.devtools_ready_ms = (cdp.wait_for_endpoint(port, 60)
+            self.devtools_ready_ms = (cdp.wait_for_endpoint(
+                port, 60, check_cancel=self.guard.check if self.guard else None)
                                       - self.spawn_monotonic) * 1000
         except BaseException:
-            owned_process.stop(self.process)
+            self._stop()
             raise
 
     def __enter__(self):
@@ -308,11 +333,21 @@ class Browser:
         self.quit()
 
     def session(self) -> cdp.CDPSession:
-        return cdp.browser_session(self.port)
+        return cdp.browser_session(self.port, check_cancel=self.guard.check if self.guard else None)
+
+    def _stop(self, grace=0):
+        guard = getattr(self, "guard", None)
+        if guard:
+            guard.stop_process(self.process, grace=grace)
+        else:
+            owned_process.stop(self.process, grace=grace)
 
     def quit(self) -> None:
         if self.process.poll() is not None:
             self.process.wait()
+            return
+        if getattr(self, "guard", None) and self.guard.reason:
+            self._stop()
             return
         try:
             with contextlib.closing(self.session()) as session:
@@ -320,7 +355,7 @@ class Browser:
         except (OSError, cdp.CDPError):
             pass
         finally:
-            owned_process.stop(self.process, grace=5)
+            self._stop(grace=5)
 
 
 # --------------------------------------------------------------------------- scenarios
@@ -334,8 +369,8 @@ def scenario_startup(app, fixtures, port, flags, label, workdir) -> dict:
             mark = fixtures.wait_mark(run_label, 60)
             samples[f"startup_{phase}_ms"] = mark["loadEventEndEpochMs"] - browser.spawn_epoch_ms
             samples[f"devtools_ready_{phase}_ms"] = browser.devtools_ready_ms
-            time.sleep(3)
-        time.sleep(2)
+            measurement_sleep(3)
+        measurement_sleep(2)
     shutil.rmtree(profile, ignore_errors=True)
     return samples
 
@@ -353,7 +388,7 @@ def scenario_memory(app, fixtures, port, flags, label, workdir, tabs=(1, 20),
         profile = pathlib.Path(tempfile.mkdtemp(prefix="profile-", dir=workdir))
         with Browser(app, profile, port, fixtures.url("/page/0"), flags) as browser:
             open_tabs(browser, fixtures, count - 1)
-            time.sleep(settle)
+            measurement_sleep(settle)
             totals = tree_totals(browser.process.pid)
             samples[f"memory_{count}_tabs_kib"] = totals["rssKiB"]
             samples[f"processes_{count}_tabs"] = totals["processes"]
@@ -365,9 +400,9 @@ def scenario_idle(app, fixtures, port, flags, label, workdir, settle=30.0,
                   window=60.0) -> dict:
     profile = pathlib.Path(tempfile.mkdtemp(prefix="profile-", dir=workdir))
     with Browser(app, profile, port, fixtures.url("/page/0"), flags) as browser:
-        time.sleep(settle)
+        measurement_sleep(settle)
         before = tree_totals(browser.process.pid)
-        time.sleep(window)
+        measurement_sleep(window)
         after = tree_totals(browser.process.pid)
     shutil.rmtree(profile, ignore_errors=True)
     return {"idle_cpu_percent": 100 * (after["cpuSeconds"] - before["cpuSeconds"]) / window}
@@ -378,10 +413,12 @@ def scenario_speedometer(app, fixtures, port, flags, label, workdir, timeout=900
     score = None
     with Browser(app, profile, port, SPEEDOMETER_URL, flags):
         target = next(t for t in cdp.http_json(port, "/json") if t["type"] == "page")
-        with contextlib.closing(cdp.CDPSession(target["webSocketDebuggerUrl"])) as session:
+        guard = runtime_guard.current()
+        with contextlib.closing(cdp.CDPSession(
+                target["webSocketDebuggerUrl"], check_cancel=guard.check if guard else None)) as session:
             deadline = time.monotonic() + timeout
             while time.monotonic() < deadline and score is None:
-                time.sleep(10)
+                measurement_sleep(10)
                 score = session.evaluate(SPEEDOMETER_RESULT)
     shutil.rmtree(profile, ignore_errors=True)
     if score is None:
@@ -438,13 +475,18 @@ def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
 def run_driver(driver: str, env: dict, timeout: float = 900) -> None:
     # Own the shell and its foreground descendants as one process group, so a
     # timeout cannot leave the UI-driving child active after its shell is killed.
-    process = subprocess.Popen(driver, shell=True, env=env, start_new_session=True)
+    guard = runtime_guard.current()
+    spawn = guard.spawn if guard else subprocess.Popen
+    process = spawn(driver, shell=True, env=env, start_new_session=True)
     try:
-        code = process.wait(timeout=timeout)
+        code = guard.wait_process(process, timeout) if guard else process.wait(timeout=timeout)
         if code:
             raise subprocess.CalledProcessError(code, "trace driver")
     finally:
-        owned_process.stop(process)
+        if guard:
+            guard.stop_process(process)
+        else:
+            owned_process.stop(process)
 
 
 SCENARIOS = {
@@ -487,6 +529,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--min-idle", type=int, default=300)
     parser.add_argument("--lease", action="store_true",
                         help="an installed-app lease is confirmed by the desktop owner")
+    parser.add_argument("--lease-checkpoint", type=pathlib.Path,
+                        default=build_evidence.ROOT / "docs/ACTIVE_DESKTOP_CHECKPOINT.md",
+                        help="owner checkpoint containing the current Crest-H3-Lease marker")
     parser.add_argument("--output", type=pathlib.Path, required=True)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--validation-run", action="store_true",
@@ -530,6 +575,12 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 7
 
     names = dict(item.split("=", 1) for item in args.trace_metric)
+    bound = [{**identity, "bundleTreeSha256": (proof or {}).get("bundleTreeSha256")}
+             for identity, proof in zip(identities, evidence)]
+    guard = runtime_guard.LeaseGuard(
+        args.lease_checkpoint, bound, conditions, runtime_host_state,
+        min_idle=args.min_idle, validation=args.validation_run,
+        installed=any(app.resolve() == INSTALLED_APP for app in apps))
     try:
         args.output.mkdir(parents=True, exist_ok=False)
     except OSError:
@@ -540,18 +591,22 @@ def main(argv: Optional[list[str]] = None) -> int:
     fixtures = None
     failure = None
     try:
-        fixtures = FixtureServer()
-        for index in range(args.runs):
-            for scenario in args.scenario:
-                # Interleave A B A B so slow host drift hits both apps alike.
-                for run_index, identity in enumerate(identities):
-                    kwargs = {}
-                    if scenario == "trace":
-                        kwargs = {"driver": args.driver, "names": names}
-                    samples = SCENARIOS[scenario](identity, fixtures, args.port,
-                                                  tuple(args.flag), f"r{index}a{run_index}",
-                                                  workdir, **kwargs)
-                    add_samples(runs[run_index]["metrics"], samples)
+        with guard:
+            fixtures = FixtureServer()
+            for index in range(args.runs):
+                for scenario in args.scenario:
+                    # Interleave A B A B so slow host drift hits both apps alike.
+                    for run_index, identity in enumerate(identities):
+                        guard.check()
+                        kwargs = {}
+                        if scenario == "trace":
+                            kwargs = {"driver": args.driver, "names": names}
+                        samples = SCENARIOS[scenario](identity, fixtures, args.port,
+                                                      tuple(args.flag), f"r{index}a{run_index}",
+                                                      workdir, **kwargs)
+                        guard.check()
+                        add_samples(runs[run_index]["metrics"], samples)
+            after = host_conditions()
     except (Exception, KeyboardInterrupt) as error:
         failure = error
     finally:
@@ -568,14 +623,14 @@ def main(argv: Optional[list[str]] = None) -> int:
         # Avoid writing arbitrary exception/driver strings, which can hold secrets.
         aborted = {"schemaVersion": 1, "kind": "ahoi-perf-aborted", "pass": False,
                    "startedAt": started, "failureType": type(failure).__name__,
-                   "partialRuns": runs, "hostBefore": conditions}
+                   "partialRuns": runs, "hostBefore": conditions, "runtimeGuard": guard.summary()}
         if isinstance(failure, owned_process.CleanupError):
             aborted["retainedProfileDirectory"] = str(workdir)
         (args.output / "aborted-run.json").write_text(json.dumps(aborted, indent=2) + "\n")
         print(f"measurement aborted ({type(failure).__name__}); no budget evidence", file=sys.stderr)
-        return 130 if isinstance(failure, KeyboardInterrupt) else 1
+        return (130 if isinstance(failure, KeyboardInterrupt) else
+                7 if isinstance(failure, runtime_guard.LeaseError) else 1)
 
-    after = host_conditions()
     for run_data, identity in zip(runs, identities):
         run_data.update({
             "schemaVersion": 2,
@@ -594,6 +649,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             },
             "hostBefore": conditions,
             "hostAfter": after,
+            "runtimeGuard": guard.summary(),
         })
     (args.output / "candidate-run.json").write_text(json.dumps(runs[0], indent=2) + "\n")
     baseline = None

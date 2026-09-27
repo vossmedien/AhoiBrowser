@@ -52,3 +52,7 @@ The next authorized H3 candidate run must verify clean teardown. Continuous
 owner-input/lease revocation monitoring remains a separate open harness item;
 this step fixes exception cleanup, not that missing monitor. Heavy-host and
 E2E/API/judge restrictions remain in force.
+
+Follow-up: [110](../110-performance-runtime-lease/HANDOFF.md) now implements and
+locally tests continuous lease/input cancellation. The original 106 runtime
+acceptance remains open; that follow-up is not an owner resource grant.

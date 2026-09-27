@@ -150,8 +150,10 @@ class BuildEvidenceTest(unittest.TestCase):
                 mock.patch.object(runner, "FixtureServer") as fixtures, \
                 mock.patch.object(runner, "host_conditions", return_value=conditions), \
                 mock.patch.object(runner, "preflight", return_value=conditions), \
+                mock.patch.object(runner.runtime_guard, "LeaseGuard") as guard, \
                 mock.patch.dict(runner.SCENARIOS, {"startup": mock.Mock(
                     return_value={"startup_warm_ms": 1.0})}):
+            guard.return_value.summary.return_value = {"completed": True, "cancelled": False}
             self.assertEqual(runner.main([
                 "--app", str(self.app), "--build-receipt", str(self.path),
                 "--scenario", "startup", "--runs", "1", "--output", str(destination)]), 0)

@@ -28,10 +28,12 @@ def http_json(port: int, path: str, method: str = "GET", timeout: float = 5.0) -
         return json.loads(response.read().decode("utf-8"))
 
 
-def wait_for_endpoint(port: int, timeout: float) -> float:
+def wait_for_endpoint(port: int, timeout: float, check_cancel=None) -> float:
     """Poll /json/version until DevTools answers; return the monotonic time it did."""
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        if check_cancel:
+            check_cancel()
         try:
             http_json(port, "/json/version", timeout=1.0)
             return time.monotonic()
@@ -73,29 +75,59 @@ def decode_frame(read) -> tuple[int, bytes, bool]:
 
 
 class CDPSession:
-    def __init__(self, ws_url: str, timeout: float = 30.0):
+    def __init__(self, ws_url: str, timeout: float = 30.0, check_cancel=None):
+        self.check_cancel = check_cancel
+        if check_cancel:
+            check_cancel()
         parsed = urllib.parse.urlparse(ws_url)
-        self.sock = socket.create_connection((parsed.hostname, parsed.port), timeout=timeout)
+        self.sock = socket.create_connection((parsed.hostname, parsed.port),
+                                             timeout=min(timeout, 1) if check_cancel else timeout)
+        self.sock.settimeout(timeout)
         key = base64.b64encode(os.urandom(16)).decode()
-        self.sock.sendall((
-            f"GET {parsed.path} HTTP/1.1\r\nHost: {parsed.hostname}:{parsed.port}\r\n"
-            "Upgrade: websocket\r\nConnection: Upgrade\r\n"
-            f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n").encode())
-        response = b""
-        while b"\r\n\r\n" not in response:
-            chunk = self.sock.recv(4096)
-            if not chunk:
-                raise CDPError("DevTools closed the WebSocket handshake")
-            response += chunk
-        if b" 101 " not in response.split(b"\r\n", 1)[0]:
-            raise CDPError(f"WebSocket upgrade refused: {response[:80]!r}")
+        try:
+            self.sock.sendall((
+                f"GET {parsed.path} HTTP/1.1\r\nHost: {parsed.hostname}:{parsed.port}\r\n"
+                "Upgrade: websocket\r\nConnection: Upgrade\r\n"
+                f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n").encode())
+            response = b""
+            while b"\r\n\r\n" not in response:
+                chunk = self._recv(4096)
+                if not chunk:
+                    raise CDPError("DevTools closed the WebSocket handshake")
+                response += chunk
+            if b" 101 " not in response.split(b"\r\n", 1)[0]:
+                raise CDPError(f"WebSocket upgrade refused: {response[:80]!r}")
+        except BaseException:
+            self.sock.close()
+            raise
         self.buffer = response.split(b"\r\n\r\n", 1)[1]
         self.next_id = 0
         self.events: list[dict] = []
 
+    def _recv(self, count):
+        if not self.check_cancel:
+            return self.sock.recv(count)
+        timeout = self.sock.gettimeout()
+        deadline = time.monotonic() + (timeout if timeout is not None else 30)
+        try:
+            while True:
+                self.check_cancel()
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise socket.timeout("DevTools receive timed out")
+                self.sock.settimeout(min(0.25, remaining))
+                try:
+                    return self.sock.recv(count)
+                except socket.timeout:
+                    continue
+        finally:
+            self.sock.settimeout(timeout)
+
     def _read(self, count: int) -> bytes:
+        if self.check_cancel:
+            self.check_cancel()
         while len(self.buffer) < count:
-            chunk = self.sock.recv(max(65536, count - len(self.buffer)))
+            chunk = self._recv(max(65536, count - len(self.buffer)))
             if not chunk:
                 raise CDPError("DevTools closed the WebSocket")
             self.buffer += chunk
@@ -118,6 +150,8 @@ class CDPSession:
 
     def send(self, method: str, params: Optional[dict] = None,
              session_id: Optional[str] = None) -> dict:
+        if self.check_cancel:
+            self.check_cancel()
         self.next_id += 1
         command = {"id": self.next_id, "method": method, "params": params or {}}
         if session_id:
@@ -135,6 +169,8 @@ class CDPSession:
         return self.wait_any((method,), timeout)
 
     def wait_any(self, methods: tuple[str, ...], timeout: float) -> dict:
+        if self.check_cancel:
+            self.check_cancel()
         deadline = time.monotonic() + timeout
         for index, event in enumerate(self.events):
             if event.get("method") in methods:
@@ -160,11 +196,15 @@ class CDPSession:
 
     def close(self) -> None:
         try:
+            self.sock.settimeout(1)
             self.sock.sendall(encode_frame(b"", 0x8))
         except OSError:
             pass
         self.sock.close()
 
 
-def browser_session(port: int) -> CDPSession:
-    return CDPSession(http_json(port, "/json/version")["webSocketDebuggerUrl"])
+def browser_session(port: int, check_cancel=None) -> CDPSession:
+    if check_cancel:
+        check_cancel()
+    endpoint = http_json(port, "/json/version", timeout=1 if check_cancel else 5)
+    return CDPSession(endpoint["webSocketDebuggerUrl"], check_cancel=check_cancel)

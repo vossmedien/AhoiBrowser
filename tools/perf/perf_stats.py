@@ -116,6 +116,10 @@ def evaluate_budget(budget_id: str, candidate: dict, baseline: Optional[dict]) -
     if candidate.get("conditions", {}).get("validationRun"):
         return {**result, "verdict": "INSUFFICIENT",
                 "reason": "validation run on a busy or attended host"}
+    guard = candidate.get("runtimeGuard", {})
+    if not isinstance(guard, dict) or guard.get("completed") is not True or guard.get("cancelled") is not False:
+        return {**result, "verdict": "INSUFFICIENT",
+                "reason": "missing completed runtime lease monitoring"}
     proof_problem = build_evidence.budget_problem(candidate)
     if proof_problem:
         return {**result, "verdict": "INSUFFICIENT", "reason": proof_problem}
@@ -130,6 +134,10 @@ def evaluate_budget(budget_id: str, candidate: dict, baseline: Optional[dict]) -
     base_values = (baseline or {}).get("metrics", {}).get(metric)
     if not base_values:
         return {**result, "verdict": "INSUFFICIENT", "reason": "no baseline samples"}
+    guard = baseline.get("runtimeGuard", {})
+    if not isinstance(guard, dict) or guard.get("completed") is not True or guard.get("cancelled") is not False:
+        return {**result, "verdict": "INSUFFICIENT",
+                "reason": "baseline lacks completed runtime lease monitoring"}
     proof_problem = build_evidence.budget_problem(baseline, baseline=True)
     if proof_problem:
         return {**result, "verdict": "INSUFFICIENT", "reason": proof_problem}

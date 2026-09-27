@@ -31,7 +31,8 @@ def run_file(baseline=False, **metrics):
                  "pgoProfile": {"target": "mac-arm", "name": "test.profdata",
                                 "matchesChromiumPin": True, "sha256": "b" * 64}}}}
     return {"app": {"path": "x", "binarySha256": "a" * 64},
-            "conditions": dict(CONDITIONS), "metrics": metrics, "buildEvidence": proof}
+            "conditions": dict(CONDITIONS), "metrics": metrics, "buildEvidence": proof,
+            "runtimeGuard": {"completed": True, "cancelled": False}}
 
 
 def verdict(evaluation, budget):
@@ -98,6 +99,18 @@ class StatsTest(unittest.TestCase):
         self.assertFalse(result["pass"])
         for budget in ("PERF-02", "PERF-03"):
             self.assertEqual(verdict(result, budget)["verdict"], "INSUFFICIENT")
+
+    def test_unmonitored_or_cancelled_samples_never_pass(self):
+        for value in (None, "unverified", {}, {"completed": False, "cancelled": False},
+                      {"completed": True, "cancelled": True}):
+            for side in ("candidate", "baseline"):
+                candidate = run_file(command_bar_ms=[1] * 5, startup_warm_ms=[1] * 5)
+                baseline = run_file(baseline=True, startup_warm_ms=[1] * 5)
+                (candidate if side == "candidate" else baseline)["runtimeGuard"] = value
+                with self.subTest(side=side, value=value):
+                    result = ps.evaluate(candidate, baseline)
+                    self.assertFalse(result["pass"])
+                    self.assertEqual(verdict(result, "PERF-02")["verdict"], "INSUFFICIENT")
 
     def test_different_build_configuration_cannot_pass(self):
         candidate = run_file(startup_warm_ms=[1] * 5)

@@ -112,12 +112,43 @@ loopback for all non-benchmark pages.
    failure. If a process cannot be reaped, its temporary profile is retained
    and its location recorded instead of deleting files beneath a live process.
 
-Current runtime limitation (tracked by handoff 106): host/lease preflight is
-checked before the run, but continuous revocation/owner-input monitoring has
-not yet been implemented. A new unattended H3 run must wait for that guard;
-exception cleanup and a quiet start alone do not satisfy the stop-on-input
-lease condition. Trace drivers must wait for their work and may not daemonize
-background UI tasks outside their owned foreground process group.
+### Active-run lease and cancellation (handoff 110)
+
+Every actual run, including validation, requires one current machine-readable
+`Crest-H3-Lease: {JSON}` line in the real Desktop owner's checkpoint (default
+`docs/ACTIVE_DESKTOP_CHECKPOINT.md`, or `--lease-checkpoint`). It identifies an
+open lease ID, UTC expiry, budget/validation mode, permitted resources, current
+coordination directory, and the exact launcher/tree hashes of candidate then
+baseline. Old prose containing "open" is not sufficient. The owner supplies
+and confirms this entry; this lane never creates its own permission.
+
+The runner exclusively creates `h3.lock`, rechecks owner build/E2E locks, and
+starts an in-process monitor only for that measurement scope. It polls the
+lease/locks, owner input, compiler activity, AC power and AX clients once per
+second; OS probes have two-second timeouts. Normal runs retain the 300-second
+idle floor even if a lower `--min-idle` is supplied. Validation mode retains
+its explicit busy-host allowance but still stops on new owner input and lease
+revocation; it never supplies budget evidence.
+
+Revocation, expiry, replacement, an owner lock, input or failed probe sets a
+cancellation flag and stops only registered harness process sessions. Waits,
+DevTools reads and driver waits are cancellable. Detection latency includes
+poll/probe scheduling; process termination uses the bounded escalation of 106.
+The monitor is outside the measured browser process tree, applies identically
+to candidate and baseline, and records its polling interval/check count and
+lease hash in the run. Real-candidate effect/teardown remains a runtime gate.
+
+A replaced foreign lock is never removed. An unreaped process or monitor keeps
+the H3 lock and profile for owner recovery. Ordinary abort/completion releases
+only the lock created by this invocation. A crashed prior invocation's lock
+is never guessed stale or removed automatically. To reclaim a window, the owner
+closes the lease and waits for this run to release its lock before starting a
+build/E2E. Lock cooperation by other lanes remains required.
+
+Budget evaluation requires a completed, uncancelled guard record as well as
+build evidence. Earlier unmonitored runs remain insufficient. Trace drivers
+must wait for their work and may not daemonize background UI tasks outside
+their owned foreground process group; synthetic HID input also cancels a run.
 
 ## 4. Metrics
 

@@ -168,9 +168,32 @@ capture without Page-clock changes, explicit mutations and retention of the
 merge destination through tombstone compaction. This was a read-only review of
 owner WIP; no product change, test or shared-resource action was started.
 
-Next allowed lane work: implement H3 continuous owner-input/lease revocation
-handling before the future release pair, then review new owner integrations.
-Exception cleanup alone does not satisfy that remaining lease condition.
+Post-restart continuation: the live process-name snapshot showed no Ahoi,
+Ninja, xcodebuild or measurement process; no old background task was restarted.
+Owner intake progressed: 102 source integration `1c60f31`; Mobile projection
+freeze `6f7fafc`; 104's 140-vector Desktop copy `61b9e93` / checkpoint `56951bd`.
+These are source steps, not new runtime leases or acceptance.
+
+H3 runtime guard is implemented and locally verified in lane source:
+one current owner-checkpoint lease marker binds candidate/baseline bundle
+hashes, resources, mode and expiry. The runner atomically claims its own H3 lock
+and checks revocation, owner locks, HID input, compiler activity, power and AX
+state during the run. Only registered harness sessions can be stopped; failed
+cleanup retains the lock/profile. Waits and CDP reads are cancellable; cancelled
+or unmonitored runs cannot satisfy a budget.
+[110](../handoffs/crest-hardening/110-performance-runtime-lease/HANDOFF.md) is ready:
+91 local performance/network/engine-key/lane tests pass, including 17 guard
+regressions and real guard scopes around simulated runner success/revocation.
+All OS probes/process creation/signals for guard tests are mocked; monitor
+threads terminate within the test scope. Diff/parse/lane checks pass. 102's
+owner integration was checked by reversing its patch in check-only mode.
+No actual lease marker was written into the owner checkpoint and no runtime
+measurement was launched. This continuation made source/test progress rather
+than waiting on a background process.
+
+Next allowed lane work: audit remaining H1–H7 deliverables against their full
+contracts and review new owner integrations. Actual H3/H5 runs still need
+matching candidates and a newly open owner lease; test/capacity gates remain.
 No polling/background resource watcher was installed. The older dated sections
 below are retained as history and do not override this continuation.
 

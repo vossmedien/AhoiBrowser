@@ -118,8 +118,10 @@ class AbortedEvidenceTest(unittest.TestCase):
                 with mock.patch.object(runner, "app_identity", return_value={"path": "/fixture"}), \
                         mock.patch.object(runner, "preflight", return_value={}), \
                         mock.patch.object(runner, "FixtureServer") as fixtures, \
+                        mock.patch.object(runner.runtime_guard, "LeaseGuard") as guard, \
                         mock.patch.object(runner.tempfile, "mkdtemp", return_value=str(work)), \
                         mock.patch.dict(runner.SCENARIOS, {"startup": scenario}):
+                    guard.return_value.summary.return_value = {"completed": False, "cancelled": True}
                     result = runner.main(["--app", "/fixture", "--scenario", "startup",
                                           "--validation-run", "--runs", "2", "--output", str(output)])
                 self.assertEqual(result, 130 if isinstance(failure, KeyboardInterrupt) else 1)
