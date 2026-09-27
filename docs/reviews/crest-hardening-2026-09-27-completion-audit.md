@@ -129,6 +129,11 @@ with bounded candidates and controller/SQLite regression source; C++ execution,
 actual capture/replay and installed acceptance remain pending. Handoff 126's
 opaque-marker collision is still an independent unfixed source finding.
 
+Handoff 138 now provides a separate hand-specified 2-case/18-permutation
+projection fixture and test-only runner patch for 126. Native RED/GREEN and
+the owner design for genuinely distinguishing ordinary from authored opaque
+keys remain open; the original 112 fixture is unchanged.
+
 ## Next work, ownership and stopping condition
 
 1. Finish H1 coverage/protocol work in lane paths; foreign runner changes only

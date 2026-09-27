@@ -512,6 +512,20 @@ After restart, recheck source/locks/capacity before any bounded native test;
 6096e93's 38/38 result is not acceptance of the retention path, 128/130 or
 132/136. Original Crest goal and external decisions remain open.
 
+126 RED fixture follow-up:
+[138](../handoffs/crest-hardening/138-marker-collision-conformance/HANDOFF.md)
+adds a separate **2-case / 18-permutation** raw Format-3 fixture, SHA-256
+`7cba0bd6156350766b0b5be51af180dcefe8e10393695046b79d53be766dd471`.
+It pins an ordinary Q key containing marker-like bytes both without a merge
+and alongside a genuine late X. The two owner projection readers gain a named
+supplemental test; 112's frozen bytes remain unchanged. **81** local Python
+conformance tests pass, Swift mirror parses, and patch/reverse checks pass.
+This is source-ready RED material only; no native failure/pass, product fix,
+cross-platform replay or current runtime lease is claimed. Full marker
+disambiguation still needs a reserved-key compatibility decision or other
+cross-platform evidence; parsing a plausible suffix cannot authenticate
+arbitrary opaque keys by itself.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
