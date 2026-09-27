@@ -2,6 +2,33 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Root 1163 restart handback — 27 September 2026, 12:11 CEST
+
+**Neustartbereit.** The current atomic Mobile retention source is committed in
+`2c26365`; no own Ahoi compiler/test/App action or resource lock remains, and
+CE3513BF is Shutdown. Root is installing Cockpit 1163. Do not start another
+heavy Ahoi round before that installation/restart. The full native Master goal
+remains active, and foreign uncommitted files stay untouched.
+
+The bridge now considers expired Workspace tombstones and already persisted
+watermarks before fetch and after a bounded send. It opens the cached encrypted
+record, compares the exact domain wire bytes or retained route, and calls the
+provider's account/container/zone- and encrypted-byte-bound receipt gate. The
+provider checks pending saves, inbox, quarantine and current record under a
+short local compaction activity before the repository atomically saves the
+watermark/payload removal; only then does it remove the matching transport
+copy. No physical CloudKit delete is requested. This is **source-only**:
+Swift parsing, project-file validation and lane checks pass; the new provider/
+bridge path and three repository-retention tests are not typechecked or run.
+No CloudKit server or installed mobile journey was exercised.
+
+Immediately after restart, inspect live source, owner locks, host capacity and
+simulator ownership. Then review the provider/delegate race and interrupted
+two-file recovery against a frozen candidate, run only affected Swift tests in
+an authorized bounded slot, and continue Crest 128/130 native comparison plus
+Desktop 124/126 R1 acceptance. `6096e93`'s 38/38 result below is not evidence
+for `2c26365` or later source.
+
 ## Focused R1 verification — 27 September 2026, 11:41 CEST
 
 Owner intake of Crest 128 then 130 is source-integrated in `8e96de7` and
@@ -23,10 +50,9 @@ version and merge route; an identical committed marker makes a retry
 idempotent. New focused tests cover file reopen with a late raw Page, stale
 record refusal, a shortened remote purge hint, and a failed store save followed
 by retry. Source parsing, project-file validation and lane checks pass; these
-new tests have **not** run. The operation is deliberately internal and is not
-yet called: provider-side account/zone receipt, pending-save, inbox and
-quarantine gates must be connected before compaction can execute in normal
-sync. The 38/38 result below remains evidence for `6096e93` only.
+new tests have **not** run. The later `2c26365` bridge/provider wiring above
+supersedes this source-only seam status; neither change has native execution
+evidence. The 38/38 result below remains evidence for `6096e93` only.
 
 Exact clean isolated source `6096e93` passes **38/38 focused XCTest methods**, no
 failures or skips: Workspace merge/retention guards 23, TreeNode reorder and
@@ -40,13 +66,10 @@ foreign Location Guru simulator was untouched. This supersedes the syntax-only
 status below for the exercised Swift paths; the unchanged earlier 27/27 suite
 was not repeated.
 
-Next source package: require a current scoped upload receipt, expired tombstone,
-empty pending-save queue and empty fetched inbox before committing the domain
-watermark plus payload removal in one Snapshot save. Then remove the exact local
-transport record and prevent later rehydration after an interrupted two-file
-sequence. Test reopen/failure boundaries on the next changed candidate. The
-current pass is **not** Mobile domain compaction, Crest 122 direct C++/Swift
-output comparison, visible acceptance or a real CloudKit peer result.
+The next validation package must prove the new scoped receipt/queue/domain/
+cache sequence on a changed frozen candidate, including interrupted recovery
+and no stale rehydration. Crest 122 direct C++/Swift output comparison, visible
+acceptance and a real CloudKit peer result remain open.
 
 ## Current R1 result — 27 September 2026, 07:03 CEST
 
