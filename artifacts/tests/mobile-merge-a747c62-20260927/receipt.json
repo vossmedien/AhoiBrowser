@@ -1,0 +1,18 @@
+{
+  "sourceCommit": "a747c62a74219c807b0bcf232bab29e5586248fc",
+  "sourceCleanAfterFinalRun": true,
+  "fixtureSha256BeforeAndAfter": "da09b4c1feb6247c30975376642893eb95a56a4ce0a3f3bcf059327121efacf8",
+  "fixtureCases": 140,
+  "xcodeVersion": "Xcode 27.0\nBuild version 27A266a",
+  "simulatorSdkBuild": "24A430",
+  "binarySha256": {
+    ".work/agent-queue/mobile-merge-dd/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCore.framework/AhoiMobileCore": "6a101051108cd2f01517690f6af9c8036d85827122dcaf5ca9c50c08c5010681",
+    ".work/agent-queue/mobile-merge-dd/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCoreTests.xctest/AhoiMobileCoreTests": "00af7756c6d2c929d6aee67e2ec58b30e8808a401191e9b548541eb7fadd544a"
+  },
+  "configuration": "DebugLocal",
+  "jobs": 1,
+  "noParallelTests": true,
+  "desktopCppTests": "NOT_RUN",
+  "visibleE2E": "NOT_RUN",
+  "realCloudKitRoundtrip": "NOT_RUN"
+}

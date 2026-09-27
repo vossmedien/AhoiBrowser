@@ -1,0 +1,23 @@
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreWorkspaceMerge.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreWorkspaceMerge.swift
+index 875de84..78f4a36 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreWorkspaceMerge.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreWorkspaceMerge.swift
+@@ -165,18 +165,6 @@ extension LocalFirstRepository {
+             indices[node.id] = index
+         }
+ 
+-        // New children do not bump their parent's version. Undo would either
+-        // tombstone the merge folder or move an existing folder back to the
+-        // source, leaving an unrecorded child orphaned or in another Workspace.
+-        // Reject before changing any record; unrelated target edits are safe.
+-        guard !snapshot.treeNodes.contains(where: { node in
+-            guard !node.isDeleted, indices[node.id] == nil,
+-                  let parentID = node.parentID else { return false }
+-            return indices[parentID] != nil
+-        }) else {
+-            throw LocalCompanionStoreError.mergeUndoOutdated
+-        }
+-
+         var restored: [TreeNode] = []
+         for node in receipt.nodes {
+             guard let index = indices[node.id] else { continue }

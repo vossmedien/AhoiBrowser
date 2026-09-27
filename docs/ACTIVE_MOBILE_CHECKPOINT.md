@@ -2,6 +2,35 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Current result and Root 1159 restart handoff — 27 September 2026
+
+Exact clean source `a747c62` passed **27 XCTest tests, 0 failures, 0 skips**:
+Workspace merge 19, tree reorder 2, saved-page behavior 4 and Sync conformance
+2. The latter executed all **140** pinned shared vectors. Tests used the
+existing owned iPhone 17 / iOS 27 Simulator, one build job and no parallel
+tests after live resource/ownership checks; no Desktop app or CloudKit peer.
+
+Crest 098's required negative control is now demonstrated: removing only its
+guard in the isolated worktree produces exactly three failing refusal methods
+and one passing unrelated-root-addition control. Reapplying the guard restored
+the exact Git bytes; the final four-class rerun again passed 27/27. The initial
+Swift 6 test-helper actor compile error is corrected in `a747c62`; an incomplete
+sparse resource closure was fixed before runtime testing. These initial setup
+failures do not count as product failures or passes.
+
+[Exact source, fixture hashes, commands, summaries and limits](../artifacts/tests/mobile-merge-a747c62-20260927/README.md).
+The framework/test binaries and 140-vector hash are bound in the receipt.
+This supersedes the older syntax-only status below for the exercised Swift
+cases, **not** the open root-ordering/retention/visible acceptance obligations.
+
+Root requested readiness for the authorized Cockpit 1159 restart during the
+final GREEN. That run ended exit 0; no new heavy work was started afterwards.
+The owner build lock is released. Preserve the original active goal. After
+restart, check live state and ownership, address crest 108 R1 and compaction
+route retention, then complete the shared apply cases and exact C++/visible
+acceptance on the next regular candidate. Do not rerun the passing suites
+without a new change or concrete concern.
+
 ## Codex source continuation: merge integrity — 27 September 2026
 
 **Restart handoff, Root Universal 1158:** current source work is committed in

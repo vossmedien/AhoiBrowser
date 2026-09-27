@@ -2,6 +2,18 @@
 
 ## Current Codex handover and build recovery — 27 September 2026
 
+**Latest handoff, Root 1159:** Mobile source `a747c62` has completed the focused
+one-job XCTest section: 27/27 GREEN; the 098 guard-removal control fails its
+three refusal methods while the unrelated control passes; restored final
+GREEN is 27/27, including all 140 shared vectors. Evidence and limits are in
+the current Mobile checkpoint and
+`artifacts/tests/mobile-merge-a747c62-20260927/`. The final run ended exit 0
+and released the owner build lock. No new heavy round or App action follows
+Root's coordinated restart request. Original goal stays active. Next after
+restart: live capacity/ownership, root ordering and compaction routing, then
+the regular Desktop candidate and exact C++/visible checks; no repeat of
+unchanged passing Swift suites is needed.
+
 **Restart handoff for Root Universal 1158:** own current source actions are
 saved in `6f7fafc` (Mobile merge projection; syntax only) and `1c60f31`
 (crest 102 release optimization receipt integration; 14 local fixture tests

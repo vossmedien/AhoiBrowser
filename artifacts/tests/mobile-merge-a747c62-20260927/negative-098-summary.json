@@ -1,0 +1,53 @@
+{
+  "title": "Test - AhoiMobile",
+  "result": "Failed",
+  "totalTestCount": 4,
+  "passedTests": 1,
+  "failedTests": 3,
+  "skippedTests": 0,
+  "expectedFailures": 0,
+  "startTime": 1790472730.654,
+  "finishTime": 1790472764.757,
+  "devicesAndConfigurations": [
+    {
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "CE3513BF-61D7-4718-99A0-29D4111D6855",
+        "deviceName": "iPhone 17",
+        "modelName": "iPhone 17",
+        "osBuildNumber": "24A434",
+        "osVersion": "27.0",
+        "platform": "iOS Simulator"
+      },
+      "expectedFailures": 0,
+      "failedTests": 3,
+      "passedTests": 1,
+      "skippedTests": 0,
+      "testPlanConfiguration": {
+        "configurationId": "1",
+        "configurationName": "Test Scheme Action"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoAllowsAnUnrelatedPageAddedAtTheTargetRoot",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoRefusesANewChildOfAMovedFolderWithoutChangingState",
+      "result": "failed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoRefusesANewChildOfTheMergeFolderWithoutChangingState",
+      "result": "failed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoRefusesAnExistingPageMovedUnderTheMergeFolder",
+      "result": "failed"
+    }
+  ],
+  "xcodebuildExit": 65,
+  "fullResultBundle": ".work/agent-queue/mobile-merge-a747c62-20260927-negative-098/focused.xcresult",
+  "logSha256": "e8f5937ab60b75324872d5151cbe04c122503fbde7a19a70f11b66f2370b437a"
+}

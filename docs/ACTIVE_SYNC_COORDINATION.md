@@ -2,6 +2,15 @@
 
 ## Current merge-target continuation — 27 September 2026
 
+**Latest exact Swift result:** clean `a747c62` passed the 140-vector runner and
+coverage check as part of a 27/27 focused XCTest run (zero skips), then repeated
+27/27 after restoring 098's demonstrated negative control. Both source and
+fixture hash are pinned in
+[the run evidence](../artifacts/tests/mobile-merge-a747c62-20260927/README.md).
+C++ execution of this vector set and full projection/order/retention acceptance
+remain open. The final run ended before the requested 1159 restart; no new
+heavy run starts until that coordination is complete.
+
 Post-restart live check: Cockpit 1158 is installed and running under a new
 process (`74901` at the observation). CPU recovered to about 50% idle and
 `memory_pressure -Q` reported 48% system-wide free memory; the earlier small
@@ -30,7 +39,8 @@ Desktop testdata copy are byte-identical, SHA-256
 All 26 local repository conformance tests pass without skips. The new cases
 cover identical/equal-clock-conflicting merge destinations, missing versus
 present targets, newer/older target replacement and plain deletion clearing
-the target. Exact C++ and Swift execution is **NOT_RUN** on this vector set.
+the target. Exact C++ execution is **NOT_RUN** on this vector set; Swift is
+now passed on `a747c62` as recorded above.
 Earlier 131-/134-vector results below remain historical and must not be
 relabeled. Freeze both source revision and vector bytes with the next run.
 
