@@ -50,12 +50,12 @@ std::string Canonical(const SyncRecord& record) {
   return bytes;
 }
 
-TEST(SyncMergeConformanceTest, SharedVectors) {
+void CheckVectors(const char* filename) {
   base::FilePath root;
   ASSERT_TRUE(base::PathService::Get(base::DIR_SRC_TEST_DATA_ROOT, &root));
   std::string bytes;
   ASSERT_TRUE(base::ReadFileToString(
-      root.AppendASCII("ahoi/browser/sync/testdata/merge_v3.json"), &bytes));
+      root.AppendASCII("ahoi/browser/sync/testdata").AppendASCII(filename), &bytes));
   std::optional<base::DictValue> document =
       base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
   ASSERT_TRUE(document);
@@ -76,6 +76,9 @@ TEST(SyncMergeConformanceTest, SharedVectors) {
     SyncRecord incoming;
     const bool decoded = Decode(type, *vector.FindDict("existing"), &existing) &&
                          Decode(type, *vector.FindDict("incoming"), &incoming);
+    if (vector.FindBool("inputValid").value_or(false)) {
+      ASSERT_TRUE(decoded) << "valid wire inputs must reach the merge check";
+    }
     if (!decoded) {
       // Rejection at the wire boundary is the "invalid" outcome.
       EXPECT_EQ("invalid", expected_decision) << "payload rejected by decoder";
@@ -94,6 +97,14 @@ TEST(SyncMergeConformanceTest, SharedVectors) {
     ASSERT_TRUE(Decode(type, *expect.FindDict("merged"), &expected_merged));
     EXPECT_EQ(Canonical(expected_merged), Canonical(merged));
   }
+}
+
+TEST(SyncMergeConformanceTest, SharedVectors) {
+  CheckVectors("merge_v3.json");
+}
+
+TEST(SyncMergeConformanceTest, UTF8SortKeyVectors) {
+  CheckVectors("merge_utf8_sort_keys_v3.json");
 }
 
 }  // namespace

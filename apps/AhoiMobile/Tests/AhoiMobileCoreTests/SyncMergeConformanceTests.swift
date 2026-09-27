@@ -13,6 +13,7 @@ final class SyncMergeConformanceTests: XCTestCase {
         let name: String
         let entityType: Int
         let dataClass: String
+        let inputValid: Bool?
         let existing: JSONValue
         let incoming: JSONValue
         let expect: Expectation
@@ -53,11 +54,11 @@ final class SyncMergeConformanceTests: XCTestCase {
 
     private static let covered: Set<Int> = [1, 2, 5, 6, 7, 8, 14]
 
-    private func vectorsURL() -> URL {
+    private func vectorsURL(_ name: String = "merge_v3.json") -> URL {
         // Tests run on the Mac host, so the repository file is readable directly.
         var url = URL(fileURLWithPath: #filePath)
         for _ in 0..<5 { url.deleteLastPathComponent() }
-        return url.appendingPathComponent("fixtures/sync-conformance/merge_v3.json")
+        return url.appendingPathComponent("fixtures/sync-conformance/" + name)
     }
 
     /// A deleted payload arrives with envelope tombstone metadata, which the
@@ -211,12 +212,33 @@ final class SyncMergeConformanceTests: XCTestCase {
     }
 
     func testSharedMergeVectors() throws {
-        let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL()))
+        try checkVectors("merge_v3.json")
+    }
+
+    func testUTF8SortKeyVectors() throws {
+        try checkVectors("merge_utf8_sort_keys_v3.json")
+    }
+
+    private func checkVectors(_ name: String) throws {
+        let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL(name)))
         XCTAssertEqual(document.schemaVersion, 1)
+        XCTAssertEqual(Set(document.cases.map(\.entityType)).subtracting(Self.covered), [])
         var executed = 0
         for vector in document.cases where Self.covered.contains(vector.entityType) {
             executed += 1
             let expected = vector.expect.decision == "invalid" ? nil : vector.expect.merged
+            if vector.inputValid == true {
+                // Decode rejection is not evidence of the required merge conflict.
+                let codec = DesktopWirePayloadCodec()
+                for payload in [vector.existing, vector.incoming] {
+                    let record = try envelope(vector, payload)
+                    switch vector.entityType {
+                    case 1: _ = try codec.decodeWorkspace(record, plaintext: payload.data)
+                    case 2: _ = try codec.decodeTreeNode(record, plaintext: payload.data)
+                    default: XCTFail("No valid-input decoder for this supplemental entity"); return
+                    }
+                }
+            }
             do {
                 let (merged, want) = try run(vector, merged: expected)
                 if vector.expect.decision == "invalid" {
@@ -390,7 +412,9 @@ final class SyncMergeConformanceTests: XCTestCase {
 private extension Dictionary where Key == String, Value == String {
     func symmetricDifferenceDescription(_ other: [String: String]) -> String {
         Set(keys).union(other.keys).sorted().compactMap { key in
-            self[key] == other[key] ? nil : "\(key): swift=\(self[key] ?? "-") expected=\(other[key] ?? "-")"
+            if let left = self[key], let right = other[key],
+               left.utf8.elementsEqual(right.utf8) { return nil }
+            return "\(key): swift=\(self[key] ?? "-") expected=\(other[key] ?? "-")"
         }.joined(separator: "; ")
     }
 }

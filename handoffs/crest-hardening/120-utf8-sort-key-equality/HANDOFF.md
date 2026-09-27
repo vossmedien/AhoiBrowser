@@ -1,6 +1,6 @@
 # 120 – Opaque sort-key equality must match UTF-8 ordering and field clocks
 
-Status: ready (source patch and supplemental vectors; native RED/GREEN pending)
+Status: source integrated by Desktop/Mobile/Sync owner after c933764; three Swift files parse, all three shared/overlay fixture hashes match. Four new regressions and separate eight-vector readers await native RED/GREEN; prior cfd0127 evidence does not cover this fix.
 Owner: mobile/sync, desktop for supplemental conformance runner intake
 Base: `736207f`; no product files changed by Crest.
 Supplement SHA-256: `df4833b8b0719d296ac8a935d9207624092a1ce0d787357c60af1c9209f42f16` (8 vectors).

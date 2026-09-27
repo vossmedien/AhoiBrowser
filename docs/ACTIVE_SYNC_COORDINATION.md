@@ -2,6 +2,14 @@
 
 ## Current R1 candidate and evidence — 27 September 2026, 07:03 CEST
 
+Crest 120 source intake after `c933764` adds byte-exact Swift Workspace/TreeNode
+sort-key equality and both supplemental readers. The eight-vector file/copy
+hash is `df4833b8b0719d296ac8a935d9207624092a1ce0d787357c60af1c9209f42f16`;
+140 field vectors and 112 projection bytes are unchanged. Swift parsing and
+fixture identity pass; new native RED/GREEN and C++ execution are pending.
+Next light work: retention's actual Mobile acknowledgement/persistence path,
+plus Crest's independent 118/122 acceptance handoffs when ready.
+
 Source `cfd0127` implements target-tail root projection on Desktop and Mobile,
 preserving later explicit positions by rebasing a workspace-scoped suffix in
 the existing opaque key. Passive raw records/field clocks remain unchanged.

@@ -38,7 +38,7 @@ public enum CompanionFieldMerge {
             result.icon = incoming.icon
         }
         if try incomingWins(
-            "sort_key", existing.sortKey, incoming.sortKey, oldVersion, newVersion
+            "sort_key", WireSortKey(existing.sortKey), WireSortKey(incoming.sortKey), oldVersion, newVersion
         ) {
             result.sortKey = incoming.sortKey
         }
@@ -153,7 +153,7 @@ public enum CompanionFieldMerge {
             "name": previous.name == candidate.name,
             "archive_policy": previous.archivePolicy == candidate.archivePolicy,
             "icon": previous.icon == candidate.icon,
-            "sort_key": previous.sortKey == candidate.sortKey,
+            "sort_key": WireSortKey(previous.sortKey) == WireSortKey(candidate.sortKey),
             "accent_argb": previous.accent == candidate.accent,
             "created_at": previous.createdAt == candidate.createdAt,
             "modified_at": previous.modifiedAt == result.modifiedAt,
@@ -286,7 +286,7 @@ public enum CompanionFieldMerge {
     ) -> Bool {
         lhs.name == rhs.name && lhs.icon == rhs.icon &&
             lhs.archivePolicy == rhs.archivePolicy &&
-            lhs.sortKey == rhs.sortKey && lhs.accent == rhs.accent &&
+            WireSortKey(lhs.sortKey) == WireSortKey(rhs.sortKey) && lhs.accent == rhs.accent &&
             SharedTabCreationProvenance.sameTime(lhs.createdAt, rhs.createdAt) &&
             SharedTabCreationProvenance.sameTime(lhs.modifiedAt, rhs.modifiedAt) &&
             lhs.isDeleted == rhs.isDeleted && lhs.mergedInto == rhs.mergedInto &&
@@ -324,15 +324,26 @@ public enum CompanionFieldMerge {
         }
     }
 
+    /// Opaque wire order is byte identity, unlike String's Unicode equivalence.
+    private struct WireSortKey: Equatable {
+        let value: String
+
+        init(_ value: String) { self.value = value }
+
+        static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.value.utf8.elementsEqual(rhs.value.utf8)
+        }
+    }
+
     private struct TreeLocation: Equatable {
         let workspace: WorkspaceID
         let parent: TreeNodeID?
-        let order: String
+        let order: WireSortKey
 
         init(_ node: TreeNode) {
             workspace = node.workspaceID
             parent = node.parentID
-            order = node.syncSortKey
+            order = WireSortKey(node.syncSortKey)
         }
     }
 }

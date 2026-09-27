@@ -291,6 +291,7 @@ source_set("unit_tests") {
   data = [
     "testdata/bookmark_wire_v2.json",
     "testdata/merge_v3.json",
+    "testdata/merge_utf8_sort_keys_v3.json",
     "testdata/sync_wire_v3.json",
     "testdata/workspace_merge_projection_v3.json",
   ]

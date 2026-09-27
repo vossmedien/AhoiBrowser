@@ -4,6 +4,15 @@ Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, 
 
 ## Current R1 result — 27 September 2026, 07:03 CEST
 
+Source follow-up after `c933764`: crest 120's exact UTF-8 equality for Workspace
+sort keys and TreeNode location groups is integrated, including local stamping,
+four regression methods and the separate eight-vector runner. This corrects
+Swift canonical-Unicode equality hiding a wire-byte change at equal clocks.
+Three changed Swift files parse; all shared/overlay fixture hashes match.
+Native 120 RED/GREEN is pending and must keep the new tests while reversing
+only the production equality hunk in an isolated candidate. Existing projection
+tests and the 140/112 fixture bytes are preserved. No new heavy run was started.
+
 Exact source `cfd0127` passes **34/34 focused XCTest methods, zero failures or
 skips**: merge 21, reorder 6, saved pages 4, conformance 3. This exercises all
 140 field-merge vectors and crest 112's 23 cases / 31 frames / 279 array-order

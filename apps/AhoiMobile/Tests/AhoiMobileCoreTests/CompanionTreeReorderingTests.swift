@@ -86,6 +86,69 @@ final class CompanionTreeReorderingTests: XCTestCase {
         XCTAssertTrue(CompanionTreePosition.less(key, upper.syncSortKey))
     }
 
+    func testEqualLocationClockRejectsDifferentUTF8SortKeyBytes() throws {
+        let lower = "e" + String(Unicode.Scalar(0x301)!)
+        let upper = String(Unicode.Scalar(0xe9)!)
+        let existing = try Self.nativeFolder(workspace: WorkspaceID(), key: lower)
+        var incoming = existing
+        incoming.wireSortKey = upper
+        XCTAssertEqual(lower, upper)  // Text equality is not opaque wire equality.
+        XCTAssertNotEqual(Array(lower.utf8), Array(upper.utf8))
+        for (old, new) in [(existing, incoming), (incoming, existing)] {
+            XCTAssertThrowsError(try CompanionFieldMerge.merge(old, new)) { error in
+                XCTAssertEqual(error as? CompanionFieldMergeError, .equalClockConflict("location"))
+            }
+        }
+    }
+
+    func testLocalUTF8LocationChangeReceivesANewClockAndSurvivesMerge() throws {
+        let existing = try Self.nativeFolder(
+            workspace: WorkspaceID(), key: "e" + String(Unicode.Scalar(0x301)!))
+        var candidate = existing
+        candidate.wireSortKey = String(Unicode.Scalar(0xe9)!)
+        let clock = try existing.version.modifiedAt.ticking(
+            at: existing.version.modifiedAt.physicalMilliseconds + 1)
+        candidate.version = SyncVersion(modifiedAt: clock, modifiedBy: clock.nodeID)
+        let changed = CompanionFieldMerge.stampLocal(previous: existing, candidate: candidate)
+        XCTAssertEqual(changed.version.fieldVersions["location"], clock)
+        for (old, new) in [(existing, changed), (changed, existing)] {
+            let merged = try CompanionFieldMerge.merge(old, new)
+            XCTAssertEqual(Array(merged.syncSortKey.utf8), Array(changed.syncSortKey.utf8))
+            XCTAssertEqual(merged.version.fieldVersions["location"], clock)
+        }
+    }
+
+    func testEqualWorkspaceOrderClockRejectsDifferentUTF8Bytes() async throws {
+        let repository = LocalFirstRepository(store: InMemoryCompanionStore())
+        var existing = try await repository.createWorkspace(name: "Unicode order")
+        existing.sortKey = "e" + String(Unicode.Scalar(0x301)!)
+        var incoming = existing
+        incoming.sortKey = String(Unicode.Scalar(0xe9)!)
+        for (old, new) in [(existing, incoming), (incoming, existing)] {
+            XCTAssertThrowsError(try CompanionFieldMerge.merge(old, new)) { error in
+                XCTAssertEqual(error as? CompanionFieldMergeError, .equalClockConflict("sort_key"))
+            }
+        }
+    }
+
+    func testLocalUTF8WorkspaceOrderChangeReceivesANewClock() async throws {
+        let repository = LocalFirstRepository(store: InMemoryCompanionStore())
+        var existing = try await repository.createWorkspace(name: "Unicode order")
+        existing.sortKey = "e" + String(Unicode.Scalar(0x301)!)
+        var candidate = existing
+        candidate.sortKey = String(Unicode.Scalar(0xe9)!)
+        let clock = try existing.version.modifiedAt.ticking(
+            at: existing.version.modifiedAt.physicalMilliseconds + 1)
+        candidate.version = SyncVersion(modifiedAt: clock, modifiedBy: clock.nodeID)
+        let changed = CompanionFieldMerge.stampLocal(previous: existing, candidate: candidate)
+        XCTAssertEqual(changed.version.fieldVersions["sort_key"], clock)
+        for (old, new) in [(existing, changed), (changed, existing)] {
+            let merged = try CompanionFieldMerge.merge(old, new)
+            XCTAssertEqual(Array(merged.sortKey.utf8), Array(changed.sortKey.utf8))
+            XCTAssertEqual(merged.version.fieldVersions["sort_key"], clock)
+        }
+    }
+
     func testSiblingReorderPersistsFractionalOrderWithoutChangingParent() async throws {
         let repository = LocalFirstRepository(
             store: InMemoryCompanionStore(),
