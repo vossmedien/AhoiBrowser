@@ -94,3 +94,11 @@ represent a post-compaction routing ledger. `missing-source` is an unresolved
 input classification, **not** acceptance that compaction may lose a previously
 resolved destination. Retention evidence must prove stable placement across the
 owner's actual compaction path once the preserving design is implemented.
+
+## Operational follow-up
+
+[Handoff 118](../../handoffs/crest-hardening/118-projected-workspace-order-mutations/HANDOFF.md)
+defines real reorder/insertion cases on these same seed frames. It requires
+production key writers plus repeated projection, recapture and reload, so a
+permanent native-before-projected priority cannot masquerade as R1 completion.
+It does not alter this fixture's frozen raw inputs or expected initial views.

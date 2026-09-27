@@ -271,11 +271,30 @@ the old syncheck.sh pipeline that masked compiler exit status and records direct
 argv/exits plus a negative source control. These are the owner's reported scope
 and preflight, not Crest measurement evidence.
 
-Crest starts **no H3/H5 runtime and no competing compiler/test process** during
-that window. It holds no shared lock. The scoped Desktop authorization does
-not open a Crest runtime lease or lift the paid API/E2E/judge restrictions.
-Source/documentation work within lane paths may continue; new local tests wait
-until the owner returns the slot or explicitly coordinates them.
+That bounded slot is now returned (`9671d0f`): the saved receipt binds five
+successful direct Clang syntax checks on `73360d7`, a `#error` control with exit
+1, at most two processes and phase measurements. No objects, link, tests or
+app execution occurred. The owner shut down only CE3513BF on Root's instruction.
+Root lifts the readiness waiting phase for lightweight source work; there is
+no immediate restart and no general Chromium build slot. The old hold above
+is historical. No current Crest H3/H5 runtime lease is open.
+
+Crest holds no shared lock and starts no compiler, simulator or runtime.
+Light local catalogue checks can resume after the explicit slot return; paid
+API/E2E/judge restrictions and ownership stay unchanged. Native syntax evidence
+is not native behavioral execution or acceptance of unintegrated 114.
+
+R1 operational follow-up [118](../handoffs/crest-hardening/118-projected-workspace-order-mutations/HANDOFF.md)
+adds nine production-writer reorder/insertion cases on 112's unchanged seeds,
+including a native Page moved after a projected one, insertion between them,
+projected folders, deleted anchors, rename stability and received undo. Repeated
+projection/reload must preserve the user's order without passive Page-clock
+writes. No derived-key spelling is imposed; the owner continues the algorithm
+and opaque-key writer. The frozen 112 JSON/hash remains unchanged.
+After the explicit slot handback, the five focused local Python catalogue
+tests from 116 pass (0.007 s), as does generated-table freshness. Native consumer
+compilation remains pending. No compiler, simulator, browser, H3/H5 measurement
+or paid test/API was started by Crest.
 
 Next allowed lane work: finish H1 coverage and runner-output protocol in lane
 handoffs, then the explicitly missing H3/H7 source work and owner integration

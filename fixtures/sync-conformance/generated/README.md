@@ -15,6 +15,7 @@ by the current config; this generator does not invent such a schema.
 The existing `field_groups.py` gate compares the handwritten C++/Swift maps
 against the contract. `test_sync_conformance_catalogue.py` adds generation and
 freshness coverage and is discovered by `scripts/test-repository.sh` with the
-other repository tests. Native compilation and the new repository test methods
-are pending the current no-further-runs window; generated files are not proof
-that every entity's merge behavior has conformance vectors.
+other repository tests. All five local catalogue tests and the freshness check
+pass after the owner returned the bounded slot (`9671d0f`). Native consumer
+compilation remains pending; generated files are not proof that every entity's
+merge behavior has conformance vectors.

@@ -1,6 +1,6 @@
 # 116 – Generated C++/Swift field/type catalogue required by H1.4
 
-Status: ready (lane source/assets; new tests deferred during Root 1159 coordination)
+Status: ready (lane source/assets; 5 local catalogue tests and freshness check pass after owner slot return; native consumer compilation pending)
 Owner: crest-hardening; Sync owner decides any later product-code adoption
 Baseline audit: `73360d7`. This adds no product writer or wire change.
 
@@ -36,3 +36,8 @@ merge vectors still cover only seven of the fifteen declared entity classes;
 seeded multi-operation sequences, runner-result export/comparison and remaining
 exact C++ evidence still need completion. A generated type list does not prove
 merge behavior or cross-device sync.
+
+Update after `9671d0f` resource handback: the five focused Python catalogue
+regressions passed in 0.007 s, and the CLI freshness check passed. This supersedes
+the deferred repository-test note above only. No native compiler, app or runtime
+was started; the generated C++/Swift tables are still reference assets.

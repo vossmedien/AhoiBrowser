@@ -118,3 +118,16 @@ independent source work remains. No active-process wait or new runtime lease
 was inferred during this audit. Historical checkpoint prose saying all lane
 work/H1 was done is superseded by this requirement-level scope distinction;
 its actual scoped green evidence remains valid.
+
+## Scoped update after the bounded owner slot returned
+
+Owner `9671d0f` records five actual C++ syntax/type checks and a failing negative
+control, without link or native test execution. Do not promote that to a C++
+conformance/runtime pass. Light source work is resumed; no blanket build or
+H3/H5 runtime lease is granted.
+
+116's five local Python catalogue tests and CLI freshness check now pass; native
+consumer compilation remains pending. 118 adds operational R1 acceptance cases
+for real key writers and replay/reload, without changing 112's frozen JSON or
+claiming those product behaviors are already proven. All other gaps above stay
+open until their own evidence is available.
