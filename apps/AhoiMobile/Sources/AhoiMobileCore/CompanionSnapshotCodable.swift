@@ -15,6 +15,7 @@ extension CompanionSnapshot {
         case bookmarks
         case deviceCapabilities
         case mobileAppliedIntents
+        case deletionWatermarks
     }
 
     public init(from decoder: Decoder) throws {
@@ -41,6 +42,8 @@ extension CompanionSnapshot {
                 ? try values.decode([DeviceCapabilityRecord].self, forKey: .deviceCapabilities) : [],
             mobileAppliedIntents: try values.decodeIfPresent(Set<UUID>.self, forKey: .mobileAppliedIntents) ?? []
         )
+        deletionWatermarks = try values.decodeIfPresent(
+            [CompanionDeletionWatermark].self, forKey: .deletionWatermarks) ?? []
         splitGroups = try values.decode([SplitGroupRecord].self, forKey: .splitGroups)
         archiveEntries = try values.decode([TabArchiveEntryRecord].self, forKey: .archiveEntries)
         guard Set(splitGroups.map(\.id)).count == splitGroups.count,
@@ -51,11 +54,13 @@ extension CompanionSnapshot {
         guard Set(deviceCapabilities.map(\.id)).count == deviceCapabilities.count else {
             throw LocalCompanionStoreError.invalidSnapshot
         }
+        try validateDeletionWatermarks()
     }
 
     public func encode(to encoder: Encoder) throws {
         for value in splitGroups { try value.validate() }
         for value in archiveEntries { try value.validate() }
+        try validateDeletionWatermarks()
         var values = encoder.container(keyedBy: CodingKeys.self)
         try values.encode(SharedSyncFormat.currentVersion, forKey: .syncFormatVersion)
         try values.encode(1, forKey: .structureRevision)
@@ -70,6 +75,21 @@ extension CompanionSnapshot {
         try values.encode(productRecords, forKey: .productRecords)
         try values.encode(bookmarks, forKey: .bookmarks)
         try values.encode(deviceCapabilities, forKey: .deviceCapabilities)
+        if !deletionWatermarks.isEmpty {
+            try values.encode(deletionWatermarks, forKey: .deletionWatermarks)
+        }
         try values.encode(mobileAppliedIntents.sorted { $0.uuidString < $1.uuidString }, forKey: .mobileAppliedIntents)
+    }
+
+    private func validateDeletionWatermarks() throws {
+        var seen = Set<String>()
+        for watermark in deletionWatermarks {
+            try watermark.validate()
+            let key = watermark.dataClass.rawValue + ":" +
+                watermark.entityID.uuidString.lowercased()
+            guard seen.insert(key).inserted else {
+                throw LocalCompanionStoreError.invalidSnapshot
+            }
+        }
     }
 }

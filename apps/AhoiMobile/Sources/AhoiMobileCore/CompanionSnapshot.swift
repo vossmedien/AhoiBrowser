@@ -1,6 +1,35 @@
 import Foundation
 import AhoiCloudKitSpike
 
+/// Receiver-local evidence kept after a tombstone payload is compacted. It is
+/// never a Format-3 record and cannot by itself authorize a physical delete.
+public struct CompanionDeletionWatermark: Codable, Equatable, Sendable {
+    public let dataClass: SyncDataClass
+    public let entityID: UUID
+    public let version: SyncVersion
+    public let compactedAtMilliseconds: UInt64
+    /// Only a compacted Workspace merge carries a routing destination.
+    public let mergedInto: WorkspaceID?
+
+    public init(
+        dataClass: SyncDataClass, entityID: UUID, version: SyncVersion,
+        compactedAtMilliseconds: UInt64, mergedInto: WorkspaceID? = nil
+    ) {
+        self.dataClass = dataClass
+        self.entityID = entityID
+        self.version = version
+        self.compactedAtMilliseconds = compactedAtMilliseconds
+        self.mergedInto = mergedInto
+    }
+
+    func validate() throws {
+        guard mergedInto == nil ||
+            (dataClass == .workspace && mergedInto?.rawValue != entityID) else {
+            throw LocalCompanionStoreError.invalidSnapshot
+        }
+    }
+}
+
 public struct CompanionSnapshot: Codable, Equatable, Sendable {
     public static let remoteSessionVisibleAgeMilliseconds: UInt64 =
         7 * 24 * 60 * 60 * 1_000
@@ -18,6 +47,8 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
     public var deviceCapabilities: [DeviceCapabilityRecord]
     public var splitGroups: [SplitGroupRecord]
     public var archiveEntries: [TabArchiveEntryRecord]
+    /// Durable local compaction metadata; excluded from every wire codec.
+    public var deletionWatermarks: [CompanionDeletionWatermark]
     /// Local idempotency receipts; never emitted by a wire codec/SyncBridge.
     public var mobileAppliedIntents: Set<UUID>
 
@@ -33,6 +64,7 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         deviceCapabilities: [DeviceCapabilityRecord] = [],
         splitGroups: [SplitGroupRecord] = [],
         archiveEntries: [TabArchiveEntryRecord] = [],
+        deletionWatermarks: [CompanionDeletionWatermark] = [],
         mobileAppliedIntents: Set<UUID> = []
     ) {
         self.devices = devices
@@ -46,6 +78,7 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
         self.deviceCapabilities = deviceCapabilities
         self.splitGroups = splitGroups
         self.archiveEntries = archiveEntries
+        self.deletionWatermarks = deletionWatermarks
         self.mobileAppliedIntents = mobileAppliedIntents
     }
 
@@ -143,30 +176,54 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
     /// fetch; cycles and ordinary deletion must not fabricate a destination.
     func liveWorkspaceDestination(_ id: WorkspaceID) -> WorkspaceID? {
         let byID = Dictionary(grouping: workspaces, by: \.id)
-        return Self.liveWorkspaceDestination(id, in: byID)
+        return Self.liveWorkspaceDestination(id, in: byID,
+            compacted: compactedWorkspaceWatermarks)
     }
 
     private var mergedWorkspaceDestinations: [WorkspaceID: WorkspaceID] {
         let byID = Dictionary(grouping: workspaces, by: \.id)
+        let compacted = compactedWorkspaceWatermarks
         var result: [WorkspaceID: WorkspaceID] = [:]
         for workspace in workspaces where workspace.isDeleted && workspace.mergedInto != nil {
-            if let destination = Self.liveWorkspaceDestination(workspace.id, in: byID) {
+            if let destination = Self.liveWorkspaceDestination(
+                workspace.id, in: byID, compacted: compacted) {
                 result[workspace.id] = destination
+            }
+        }
+        for (id, watermark) in compacted where watermark.mergedInto != nil && byID[id] == nil {
+            if let destination = Self.liveWorkspaceDestination(
+                id, in: byID, compacted: compacted) {
+                result[id] = destination
             }
         }
         return result
     }
 
+    private var compactedWorkspaceWatermarks: [WorkspaceID: CompanionDeletionWatermark] {
+        var result: [WorkspaceID: CompanionDeletionWatermark] = [:]
+        for watermark in deletionWatermarks where watermark.dataClass == .workspace {
+            let id = WorkspaceID(rawValue: watermark.entityID)
+            if result[id] == nil { result[id] = watermark }
+        }
+        return result
+    }
+
     private static func liveWorkspaceDestination(
-        _ id: WorkspaceID, in workspaces: [WorkspaceID: [Workspace]]
+        _ id: WorkspaceID, in workspaces: [WorkspaceID: [Workspace]],
+        compacted: [WorkspaceID: CompanionDeletionWatermark]
     ) -> WorkspaceID? {
         var cursor = id
         var visited = Set<WorkspaceID>()
         while visited.insert(cursor).inserted {
-            guard let matches = workspaces[cursor], matches.count == 1,
-                  let workspace = matches.first else { return nil }
-            if !workspace.isDeleted { return workspace.id }
-            guard let target = workspace.mergedInto else { return nil }
+            let target: WorkspaceID?
+            if let matches = workspaces[cursor] {
+                guard matches.count == 1, let workspace = matches.first else { return nil }
+                if !workspace.isDeleted { return workspace.id }
+                target = workspace.mergedInto
+            } else {
+                target = compacted[cursor]?.mergedInto
+            }
+            guard let target else { return nil }
             cursor = target
         }
         return nil

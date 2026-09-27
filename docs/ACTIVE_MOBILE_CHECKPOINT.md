@@ -4,6 +4,34 @@ Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, 
 
 ## Current R1 result — 27 September 2026, 07:03 CEST
 
+Mobile retention source continuation after `91d6bd1`: `CompanionSnapshot` now
+has an optional, receiver-local deletion-watermark array carrying entity type,
+ID, version, compaction time and only for Workspace merges a target ID. The
+Snapshot codec validates duplicate IDs and invalid targets, preserves old
+snapshots without the optional field, and never emits it through Format 3.
+Projection follows a compacted source through a live target or mixed retained
+chain; missing, cyclic and plain-deletion routes remain unresolved. Stored
+clocks include watermark versions. A focused regression constructs a
+source-compacted late-Page view, round-trips the snapshot, checks its raw Page
+bytes and exercises missing/cyclic/plain routes. Four changed Swift files parse
+and remain under the source line budget; **runtime and full compaction are
+pending**. This is route persistence only, not an invented acknowledgement.
+
+The remaining retention work is now localized: `applySent` records CloudKit
+system fields but no durable receipt tied to the exact uploaded tombstone;
+`acknowledgeFetchedRecords` only drains the fetched inbox. `FileSyncRecordStore`
+has no guarded local purge, while the domain Snapshot is another atomic file.
+Implement an exact-record upload acknowledgement, reject/quarantine post-
+watermark resurrection on domain import, then order domain watermark+payload
+removal before local transport-cache removal so interruption cannot lose the
+route or rehydrate a stale tombstone. Test failure/reopen at each boundary and
+preserve raw Page bytes. No existing CloudKit physical-delete permission is
+inferred. The Desktop implementation remains a separate SQLite transaction.
+
+The visible Workspace list now uses the same UTF-8 byte order as the wire,
+with a deterministic canonical-equivalence regression (`ce24827`). This
+small source change has parsing evidence; native test execution is pending.
+
 Source follow-up after `c933764`: crest 120's exact UTF-8 equality for Workspace
 sort keys and TreeNode location groups is integrated, including local stamping,
 four regression methods and the separate eight-vector runner. This corrects

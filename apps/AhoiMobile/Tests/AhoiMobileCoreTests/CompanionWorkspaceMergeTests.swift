@@ -391,6 +391,48 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
         XCTAssertTrue(deleted.nodes.allSatisfy(\.isDeleted))
     }
 
+    func testCompactedWorkspaceRouteKeepsLateRawPageAndSurvivesSnapshotReload() async throws {
+        let fixture = try await Self.lateMergeFixture()
+        let page = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .savedPage, title: "Late raw Page",
+            url: "https://example.test/late")
+        _ = try await fixture.local.upsert(page)
+        var snapshot = try await fixture.local.currentSnapshot()
+        let tombstone = fixture.receipt.source
+        snapshot.workspaces.removeAll { $0.id == fixture.source.id }
+        let route = CompanionDeletionWatermark(
+            dataClass: .workspace, entityID: fixture.source.id.rawValue,
+            version: tombstone.version,
+            compactedAtMilliseconds: tombstone.tombstone!.purgeAfterMilliseconds,
+            mergedInto: fixture.target.id)
+        snapshot.deletionWatermarks = [route]
+        let raw = try DesktopWirePayloadCodec().encode(page)
+
+        XCTAssertEqual(snapshot.liveWorkspaceDestination(fixture.source.id), fixture.target.id)
+        XCTAssertEqual(snapshot.presentationNode(page.id)?.workspaceID, fixture.target.id)
+        XCTAssertEqual(snapshot.treeNodes.first { $0.id == page.id }, page)
+        let restored = try JSONDecoder().decode(
+            CompanionSnapshot.self, from: JSONEncoder().encode(snapshot))
+        XCTAssertEqual(restored.deletionWatermarks, [route])
+        XCTAssertEqual(restored.presentationNode(page.id)?.workspaceID, fixture.target.id)
+        XCTAssertEqual(try DesktopWirePayloadCodec().encode(
+            XCTUnwrap(restored.treeNodes.first { $0.id == page.id })), raw)
+
+        // Missing targets and cycles must defer rather than fabricate a live
+        // destination. A plain deletion has no forwarding route.
+        snapshot.workspaces.removeAll { $0.id == fixture.target.id }
+        XCTAssertNil(snapshot.liveWorkspaceDestination(fixture.source.id))
+        snapshot.deletionWatermarks.append(CompanionDeletionWatermark(
+            dataClass: .workspace, entityID: fixture.target.id.rawValue,
+            version: fixture.target.version, compactedAtMilliseconds: 1,
+            mergedInto: fixture.source.id))
+        XCTAssertNil(snapshot.liveWorkspaceDestination(fixture.source.id))
+        snapshot.deletionWatermarks = [CompanionDeletionWatermark(
+            dataClass: .workspace, entityID: fixture.source.id.rawValue,
+            version: tombstone.version, compactedAtMilliseconds: 1)]
+        XCTAssertNil(snapshot.liveWorkspaceDestination(fixture.source.id))
+    }
+
     func testUndoRestoresLatePageWithoutACompetingLocationMutation() async throws {
         let fixture = try await Self.lateMergeFixture()
         let page = try await fixture.offline.createTreeNode(

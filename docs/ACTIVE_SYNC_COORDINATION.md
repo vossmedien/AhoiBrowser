@@ -2,6 +2,16 @@
 
 ## Current R1 candidate and evidence — 27 September 2026, 07:03 CEST
 
+Mobile now carries an optional local deletion watermark with Workspace merge
+target in its Snapshot source, and route resolution can project late raw Pages
+after a compacted source through a live target. Codec validation, clock
+observation, and a missing/cyclic/plain-route regression are included; Swift
+parsing passes, native tests are pending. This does not remove any tombstone:
+the exact upload-acknowledgement and two-file recovery gates identified in
+the Mobile checkpoint must precede actual Mobile compaction. Crest 122 has a
+new runner-output handoff; owner intake waits for its complete patch and a
+future bounded test slot, not an extra browser build.
+
 Crest 120 source intake after `c933764` adds byte-exact Swift Workspace/TreeNode
 sort-key equality and both supplemental readers. The eight-vector file/copy
 hash is `df4833b8b0719d296ac8a935d9207624092a1ce0d787357c60af1c9209f42f16`;
