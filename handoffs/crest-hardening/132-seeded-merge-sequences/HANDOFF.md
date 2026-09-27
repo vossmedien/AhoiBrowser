@@ -1,7 +1,7 @@
 # 132 — Native sequential merge replay with a pinned random seed
 
-Status: draft awaiting lightweight Swift parse when the host is free; native
-execution and direct output comparison pending
+Status: ready source patch; Swift syntax parse and patch applicability pass,
+native execution and direct output comparison pending
 Owners: desktop/sync and mobile
 Base: `e670ff1` after 128/130 source integration. Apply the incremental patch;
 the complete `files/` mirrors are for review and may omit newer owner work.
@@ -48,11 +48,12 @@ All **78** local Python conformance tests pass, including deterministic seed
 and changed-seed controls, replay of every step from the preceding result,
 terminal/undo assertions, fixture freshness and exact owner testdata mirror.
 `git apply --check` and a reverse check against the review mirror pass. The
-current host sample at 11:59 CEST was load 172 with live `xcodebuild` and
-`swift-frontend`; Crest therefore did **not** start its own compiler for
-Swift parsing/typechecking, nor any native test, simulator or browser. This
-handoff remains draft until the lightweight parse check and patch recheck are
-recorded on a quiet source slot.
+11:59 CEST host sample was load 172 with live `xcodebuild` and
+`swift-frontend`; Crest deferred parsing then. At 12:06 CEST a fresh sample
+showed ~71% CPU idle, 49% free memory and no compiler. The **single**
+`swiftc -frontend -parse` of the review mirror exited 0, and patch
+applicability was rechecked. No typecheck, native test, simulator, browser or
+shared lock was used. The handoff is now ready for owner review/intake.
 
 After owner intake, run the two sequence tests on exact frozen candidates,
 request complete native exports with the same fixture bytes, record direct

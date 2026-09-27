@@ -464,6 +464,14 @@ was load 172 with live owner/foreign compiler processes, so Crest deferred
 even the Swift parse check. 132 remains draft until that light check; no
 native result or H3/H5 lease is inferred.
 
+At 12:06 CEST the host recovered to ~71% CPU idle and 49% free memory with
+no active compiler. Crest ran only a single Swift frontend **parse** of 132's
+review mirror (exit 0), rechecked patch applicability and lane boundaries
+(both pass), then returned the light slot. [132](../handoffs/crest-hardening/132-seeded-merge-sequences/HANDOFF.md)
+is now **ready source**. No Swift typecheck/XCTest, C++ compilation, simulator,
+installed app, H3/H5 runtime or new resource lease is claimed. The earlier
+load-172 hold remains historical evidence of why the parser was deferred.
+
 H7 empty-source undo review:
 [134](../handoffs/crest-hardening/134-empty-workspace-merge-undo/HANDOFF.md)
 pins why the current Desktop `record_undo && !roots.empty()` behavior violates

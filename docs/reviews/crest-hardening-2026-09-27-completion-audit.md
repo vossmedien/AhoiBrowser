@@ -46,9 +46,10 @@ tests passed. Owner integrated both supplements as source in `8e96de7` and
 new cases remain **natively unverified** and cannot yet close H1.1/2/3 or the
 operation-sequence and domain-value gaps.
 
-Sequence follow-up: draft 132 adds a pinned seeded generator and proposed
+Sequence follow-up: ready 132 adds a pinned seeded generator and proposed
 actual-state C++/Swift replay runners (18 cases, 104 operations). Local model
-tests pass, but a host-load hold defers Swift parsing and all native execution.
+tests and a later single Swift syntax parse pass. Host-load/resource gates still
+defer native execution.
 The proposed source does not become H1.3 evidence until both native runs and
 122's exact-output comparison have been captured; store/CloudKit sequences
 remain a separate requirement.
