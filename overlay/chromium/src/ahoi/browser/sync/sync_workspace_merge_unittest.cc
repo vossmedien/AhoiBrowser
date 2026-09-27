@@ -406,5 +406,95 @@ TEST(SyncWorkspaceMergeTest, CompactedMergeChainSurvivesStoreReopen) {
   EXPECT_TRUE(HasRecoveryFolder(*cycle));
 }
 
+TEST(SyncWorkspaceMergeTest, TailProjectionPreservesExplicitMovesAndRebases) {
+  WorkspaceRecord source = Workspace(kSource, "Source", 10);
+  source.tombstone = true;
+  source.merged_into = Id(kTarget);
+  const WorkspaceRecord target = Workspace(kTarget, "Target", 10);
+  TreeNodeRecord kept = Page(kParent, Id(kTarget));
+  kept.sort_key = "Z";
+  TreeNodeRecord first = Page(kNode, Id(kSource));
+  first.sort_key = "A";
+  TreeNodeRecord second = Page("60000000-0000-4000-8000-000000000012",
+                               Id(kSource));
+  second.sort_key = "B";
+  const auto roots = [](const tab_tree::TabTreeSnapshot& view,
+                        const base::Uuid& workspace) {
+    std::vector<const tab_tree::TreeNode*> ordered;
+    for (const auto& node : view.nodes) {
+      if (!node.tombstone && !node.parent_id && node.workspace_id == workspace)
+        ordered.push_back(&node);
+    }
+    std::ranges::sort(ordered, [](const auto* a, const auto* b) {
+      return std::tie(a->sort_key, a->id) < std::tie(b->sort_key, b->id);
+    });
+    std::vector<base::Uuid> ids;
+    for (const auto* node : ordered)
+      ids.push_back(node->id);
+    return ids;
+  };
+  auto view = ReconcileTabTreeRecords({}, {source, target}, {kept, first, second});
+  ASSERT_TRUE(view);
+  EXPECT_EQ(roots(*view, target.id),
+            (std::vector<base::Uuid>{kept.id, first.id, second.id}));
+
+  const auto last =
+      std::ranges::find(view->nodes, second.id, &tab_tree::TreeNode::id);
+  ASSERT_NE(last, view->nodes.end());
+  SyncRecord before = first;
+  ASSERT_TRUE(NormalizeFieldVersions(&before));
+  first = std::get<TreeNodeRecord>(before);
+  first.workspace_id = target.id;
+  first.sort_key = last->sort_key + "@";  // Native append-after operation.
+  first.version = Version(20);
+  first.modified_at = Ts(20);
+  SyncRecord moved = first;
+  ASSERT_TRUE(StampLocalMutation(&before, &moved));
+  first = std::get<TreeNodeRecord>(moved);
+  view = ReconcileTabTreeRecords({}, {source, target}, {kept, first, second});
+  ASSERT_TRUE(view);
+  EXPECT_EQ(roots(*view, target.id),
+            (std::vector<base::Uuid>{kept.id, second.id, first.id}));
+
+  // Move the only ordinary target root after the segment. The remaining
+  // passive node cannot repeatedly overtake these explicit positions.
+  const auto moved_node =
+      std::ranges::find(view->nodes, first.id, &tab_tree::TreeNode::id);
+  ASSERT_NE(moved_node, view->nodes.end());
+  SyncRecord kept_before = kept;
+  ASSERT_TRUE(NormalizeFieldVersions(&kept_before));
+  kept = std::get<TreeNodeRecord>(kept_before);
+  kept.sort_key = moved_node->sort_key + "@";
+  kept.version = Version(30);
+  kept.modified_at = Ts(30);
+  SyncRecord kept_after = kept;
+  ASSERT_TRUE(StampLocalMutation(&kept_before, &kept_after));
+  kept = std::get<TreeNodeRecord>(kept_after);
+  view = ReconcileTabTreeRecords({}, {source, target}, {kept, first, second});
+  ASSERT_TRUE(view);
+  EXPECT_EQ(roots(*view, target.id),
+            (std::vector<base::Uuid>{second.id, first.id, kept.id}));
+
+  // Reviving the source affects only the still-passive Page. Explicitly
+  // moved first remains in B and its new location register is unchanged.
+  SyncRecord source_before = source;
+  ASSERT_TRUE(NormalizeFieldVersions(&source_before));
+  source = std::get<WorkspaceRecord>(source_before);
+  source.tombstone = false;
+  source.merged_into.reset();
+  source.version = Version(40);
+  source.modified_at = Ts(40);
+  SyncRecord source_after = source;
+  ASSERT_TRUE(StampLocalMutation(&source_before, &source_after));
+  source = std::get<WorkspaceRecord>(source_after);
+  const auto first_before = first;
+  view = ReconcileTabTreeRecords({}, {source, target}, {kept, first, second});
+  ASSERT_TRUE(view);
+  EXPECT_EQ(roots(*view, target.id),
+            (std::vector<base::Uuid>{first.id, kept.id}));
+  EXPECT_EQ(roots(*view, source.id), (std::vector<base::Uuid>{second.id}));
+  EXPECT_EQ(first, first_before);
+}
+
 }  // namespace
 }  // namespace ahoi::sync

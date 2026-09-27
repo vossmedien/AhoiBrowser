@@ -484,6 +484,69 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
         browser.close(id)
     }
 
+    func testLateRootTailDoesNotOverrideLaterExplicitPositions() async throws {
+        let fixture = try await Self.lateMergeFixture()
+        let kept = try await fixture.local.createTreeNode(
+            workspaceID: fixture.target.id, kind: .folder, title: "Existing target")
+        let first = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .folder, title: "Late first")
+        let second = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .folder, title: "Late second")
+        _ = try await fixture.local.mergeImportedBatch([
+            .init(token: 0, value: .treeNode(second)),
+            .init(token: 1, value: .treeNode(first)),
+        ])
+        func roots(_ snapshot: CompanionSnapshot) -> [TreeNodeID] {
+            snapshot.visibleTreeNodes.filter {
+                $0.workspaceID == fixture.target.id && $0.parentID == nil
+            }.map(\.id)
+        }
+        var snapshot = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(roots(snapshot), [kept.id, first.id, second.id])
+
+        let moved = try await fixture.local.reorderTreeNode(first.id, before: nil)
+        snapshot = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(roots(snapshot), [kept.id, second.id, first.id])
+        XCTAssertEqual(moved.workspaceID, fixture.target.id)
+        let inserted = try await fixture.local.createTreeNode(
+            workspaceID: fixture.target.id, kind: .folder, title: "After both")
+        snapshot = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(roots(snapshot), [kept.id, second.id, first.id, inserted.id])
+
+        // Removing the ordinary tail anchor must rebase the segment without
+        // moving its still-passive node behind either explicit position.
+        _ = try await fixture.local.reorderTreeNode(kept.id, before: nil)
+        snapshot = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(roots(snapshot), [second.id, first.id, inserted.id, kept.id])
+        _ = try await fixture.local.reorderTreeNode(inserted.id, before: second.id)
+        snapshot = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(roots(snapshot), [inserted.id, second.id, first.id, kept.id])
+        let restored = try JSONDecoder().decode(
+            CompanionSnapshot.self, from: JSONEncoder().encode(snapshot))
+        XCTAssertEqual(roots(restored), roots(snapshot))
+        XCTAssertEqual(snapshot.treeNodes.first { $0.id == second.id }, second)
+        XCTAssertEqual(snapshot.treeNodes.first { $0.id == first.id }?.version, moved.version)
+
+        _ = try await fixture.local.undoWorkspaceMerge(fixture.receipt)
+        snapshot = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(roots(snapshot), [inserted.id, first.id, kept.id])
+        XCTAssertEqual(snapshot.presentationNode(second.id)?.workspaceID, fixture.source.id)
+        XCTAssertEqual(snapshot.treeNodes.first { $0.id == second.id }, second)
+    }
+
+    func testMergeRootTokensPreservePrefixesControlsAndUTF8Order() {
+        let ordered = ["A", "A\u{0}", "A\u{0}X", "A\u{1}", "A ", "A!", "A!!", "A!X", "A/", "Aa",
+                       "e\u{301}", "é"]
+        let id = TreeNodeID()
+        let tokens = ordered.map { CompanionTreePosition.mergeRootToken($0, node: id) }
+        XCTAssertEqual(tokens.map { Data($0.utf8) },
+                       tokens.sorted(by: CompanionTreePosition.less).map { Data($0.utf8) })
+        let workspace = WorkspaceID()
+        let nested = CompanionTreePosition.mergeRootMarker(workspace) + "old"
+        XCTAssertNil(CompanionTreePosition.mergeRootSuffix(
+            CompanionTreePosition.mergeRootToken(nested, node: id), workspace: workspace))
+    }
+
     private static func lateMergeFixture() async throws -> (
         local: LocalFirstRepository, offline: LocalFirstRepository,
         source: Workspace, target: Workspace, receipt: CompanionWorkspaceMergeReceipt

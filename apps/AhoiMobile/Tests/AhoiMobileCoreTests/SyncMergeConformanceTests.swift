@@ -64,9 +64,15 @@ final class SyncMergeConformanceTests: XCTestCase {
     /// codec requires to match the payload clock; the vectors carry payloads
     /// only, so the runner supplies the metadata a sender would attach.
     private func envelope(_ vector: Vector, _ payload: JSONValue) throws -> SyncRecord {
+        try envelope(name: vector.name, type: vector.entityType,
+                     dataClass: vector.dataClass, payload: payload)
+    }
+
+    private func envelope(
+        name: String, type: Int, dataClass: String, payload: JSONValue
+    ) throws -> SyncRecord {
         let record = try UnifiedSyncFixture.envelope(UnifiedSyncFixture.Sample(
-            name: vector.name, entity_type: vector.entityType,
-            data_class: vector.dataClass,
+            name: name, entity_type: type, data_class: dataClass,
             payload: String(decoding: payload.data, as: UTF8.self)))
         let object = try JSONSerialization.jsonObject(with: payload.data) as? [String: Any]
         guard object?["tombstone"] as? Bool == true else { return record }
@@ -239,6 +245,145 @@ final class SyncMergeConformanceTests: XCTestCase {
         let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: vectorsURL()))
         let present = Set(document.cases.map(\.entityType))
         XCTAssertEqual(present.subtracting(Self.covered), [])
+    }
+
+    private struct ProjectionDocument: Decodable {
+        let schemaVersion: Int
+        let modelVersion: Int
+        let arrayOrders: [String]
+        let cases: [ProjectionCase]
+    }
+
+    private struct ProjectionCase: Decodable {
+        let name: String
+        let frames: [ProjectionFrame]
+    }
+
+    private struct ProjectionFrame: Decodable {
+        let name: String
+        let workspaces: [JSONValue]
+        let nodes: [JSONValue]
+        let unchangedNodeIdsFromPreviousFrame: [String]
+        let expect: ProjectionExpectation
+    }
+
+    private struct ProjectionExpectation: Decodable {
+        struct Route: Decodable {
+            let workspaceId: String
+            let classification: String
+            let targetWorkspaceId: String?
+        }
+        struct Node: Decodable {
+            let id: String
+            let workspaceId: String
+            let parentId: String?
+        }
+        struct Siblings: Decodable {
+            let workspaceId: String
+            let parentId: String?
+            let nodeIds: [String]
+        }
+        let workspaceRoutes: [Route]
+        let effectiveNodes: [Node]
+        let siblingOrder: [Siblings]
+        let unconstrainedNodeIds: [String]
+        let notLiveNodeIds: [String]
+    }
+
+    private func arrayOrders<T>(_ input: [T]) -> [[T]] {
+        [input, Array(input.reversed()),
+         input.count > 1 ? Array(input.dropFirst()) + [input[0]] : input]
+    }
+
+    func testSharedWorkspaceMergeProjectionFrames() throws {
+        let url = vectorsURL().deletingLastPathComponent()
+            .appendingPathComponent("workspace_merge_projection_v3.json")
+        let document = try JSONDecoder().decode(ProjectionDocument.self, from: Data(contentsOf: url))
+        XCTAssertEqual(document.schemaVersion, 1)
+        XCTAssertEqual(document.modelVersion, 3)
+        XCTAssertEqual(document.arrayOrders, ["as-written", "reversed", "rotate-left"])
+        let codec = DesktopWirePayloadCodec()
+        var executions = 0
+        for testCase in document.cases {
+            var previousNodes: [String: Data] = [:]
+            for frame in testCase.frames {
+                let label = testCase.name + "/" + frame.name
+                let workspaces = try frame.workspaces.map { payload in
+                    try codec.decodeWorkspace(envelope(name: label, type: 1,
+                        dataClass: SyncDataClass.workspace.rawValue, payload: payload),
+                        plaintext: payload.data)
+                }
+                let nodes = try frame.nodes.map { payload in
+                    try codec.decodeTreeNode(envelope(name: label, type: 2,
+                        dataClass: SyncDataClass.treeNode.rawValue, payload: payload),
+                        plaintext: payload.data)
+                }
+                let nodeBytes = try Dictionary(uniqueKeysWithValues: nodes.map {
+                    ($0.id.rawValue.uuidString.lowercased(), try codec.encode($0))
+                })
+                for id in frame.unchangedNodeIdsFromPreviousFrame {
+                    XCTAssertNotNil(previousNodes[id], label + " previous " + id)
+                    XCTAssertEqual(previousNodes[id], nodeBytes[id], label + " unchanged " + id)
+                }
+                for (workspaceOrder, orderedWorkspaces) in arrayOrders(workspaces).enumerated() {
+                    for (nodeOrder, orderedNodes) in arrayOrders(nodes).enumerated() {
+                        let context = label + " workspaces=\(workspaceOrder) nodes=\(nodeOrder)"
+                        let beforeWorkspaces = try orderedWorkspaces.map { try codec.encode($0) }
+                        let beforeNodes = try orderedNodes.map { try codec.encode($0) }
+                        let snapshot = CompanionSnapshot(workspaces: orderedWorkspaces, treeNodes: orderedNodes)
+                        let view = snapshot.treeNodesForPresentation
+                        for route in frame.expect.workspaceRoutes {
+                            let id = WorkspaceID(rawValue: try XCTUnwrap(UUID(uuidString: route.workspaceId)))
+                            XCTAssertEqual(snapshot.liveWorkspaceDestination(id)?.rawValue.uuidString.lowercased(),
+                                           route.targetWorkspaceId, context + " route " + route.classification)
+                        }
+                        for expected in frame.expect.effectiveNodes {
+                            let node = try XCTUnwrap(view.first {
+                                $0.id.rawValue.uuidString.lowercased() == expected.id
+                            }, context + " node " + expected.id)
+                            XCTAssertFalse(node.isDeleted, context)
+                            XCTAssertEqual(node.workspaceID.rawValue.uuidString.lowercased(),
+                                           expected.workspaceId, context)
+                            XCTAssertEqual(node.parentID?.rawValue.uuidString.lowercased(), expected.parentId, context)
+                        }
+                        for siblings in frame.expect.siblingOrder {
+                            let constrained = Set(siblings.nodeIds)
+                            let actual = view.filter {
+                                !$0.isDeleted && constrained.contains($0.id.rawValue.uuidString.lowercased()) &&
+                                    $0.workspaceID.rawValue.uuidString.lowercased() == siblings.workspaceId &&
+                                    $0.parentID?.rawValue.uuidString.lowercased() == siblings.parentId
+                            }.sorted(by: CompanionTreePosition.precedes).map { $0.id.rawValue.uuidString.lowercased() }
+                            XCTAssertEqual(actual, siblings.nodeIds, context + " sibling order")
+                        }
+                        for id in frame.expect.notLiveNodeIds {
+                            XCTAssertFalse(view.contains {
+                                $0.id.rawValue.uuidString.lowercased() == id && !$0.isDeleted
+                            }, context + " tombstoned " + id)
+                        }
+                        let constrainedIDs = Set(orderedNodes.filter { !$0.isDeleted }.map {
+                            $0.id.rawValue.uuidString.lowercased()
+                        }).subtracting(frame.expect.unconstrainedNodeIds)
+                        XCTAssertEqual(Set(frame.expect.effectiveNodes.map(\.id)), constrainedIDs, context)
+                        XCTAssertEqual(snapshot.treeNodesForPresentation, view, context + " repeated")
+                        let restored = try JSONDecoder().decode(
+                            CompanionSnapshot.self, from: JSONEncoder().encode(snapshot))
+                        XCTAssertEqual(restored.treeNodesForPresentation, view, context + " reload")
+                        XCTAssertEqual(try snapshot.workspaces.map { try codec.encode($0) }, beforeWorkspaces, context)
+                        XCTAssertEqual(try snapshot.treeNodes.map { try codec.encode($0) }, beforeNodes, context)
+                        XCTAssertEqual(snapshot.workspaces.map(\.version), orderedWorkspaces.map(\.version), context)
+                        XCTAssertEqual(snapshot.treeNodes.map(\.version), orderedNodes.map(\.version), context)
+                        XCTAssertEqual(try restored.treeNodes.map { try codec.encode($0) }, beforeNodes, context)
+                        XCTAssertEqual(try restored.workspaces.map { try codec.encode($0) }, beforeWorkspaces, context)
+                        executions += 1
+                    }
+                }
+                previousNodes = nodeBytes
+            }
+        }
+        let frames = document.cases.reduce(0) { $0 + $1.frames.count }
+        XCTAssertGreaterThan(executions, 0)
+        XCTAssertEqual(executions, frames * 9)
+        print("Workspace projection conformance: \(document.cases.count) cases, \(frames) frames, \(executions) projections")
     }
 }
 

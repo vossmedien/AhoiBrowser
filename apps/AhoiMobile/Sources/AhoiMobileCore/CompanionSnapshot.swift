@@ -69,7 +69,11 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
     /// merge chains and a later undo without minting a competing wire clock.
     public var treeNodesForPresentation: [TreeNode] {
         let destinations = mergedWorkspaceDestinations
-        guard !destinations.isEmpty else { return treeNodes }
+        let anchoredRoots = treeNodes.contains {
+            !$0.isDeleted && $0.parentID == nil &&
+                CompanionTreePosition.mergeRootSuffix($0.syncSortKey, workspace: $0.workspaceID) != nil
+        }
+        guard !destinations.isEmpty || anchoredRoots else { return treeNodes }
         var projected = treeNodes.map { node in
             var result = node
             if !node.isDeleted, let destination = destinations[node.workspaceID] {
@@ -93,7 +97,39 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
                 projected[index].parentID = nil
             }
         }
+        projectMergeRootOrder(&projected)
         return projected
+    }
+
+    private func projectMergeRootOrder(_ nodes: inout [TreeNode]) {
+        let live = Set(visibleWorkspaces.map(\.id))
+        var ordinaryTails: [WorkspaceID: String] = [:]
+        for index in nodes.indices {
+            let node = nodes[index]
+            let raw = treeNodes[index]
+            guard !node.isDeleted, node.parentID == nil, live.contains(node.workspaceID),
+                  node.workspaceID == raw.workspaceID,
+                  CompanionTreePosition.mergeRootSuffix(raw.syncSortKey, workspace: node.workspaceID) == nil else {
+                continue
+            }
+            if ordinaryTails[node.workspaceID].map({
+                CompanionTreePosition.less($0, node.syncSortKey)
+            }) ?? true { ordinaryTails[node.workspaceID] = node.syncSortKey }
+        }
+        for index in nodes.indices {
+            let node = nodes[index]
+            let raw = treeNodes[index]
+            guard !node.isDeleted, node.parentID == nil, live.contains(node.workspaceID) else { continue }
+            let suffix: String?
+            if node.workspaceID != raw.workspaceID {
+                suffix = CompanionTreePosition.mergeRootToken(raw.syncSortKey, node: raw.id)
+            } else {
+                suffix = CompanionTreePosition.mergeRootSuffix(raw.syncSortKey, workspace: node.workspaceID)
+            }
+            guard let suffix else { continue }
+            nodes[index].wireSortKey = (ordinaryTails[node.workspaceID] ?? "") +
+                CompanionTreePosition.mergeRootMarker(node.workspaceID) + suffix
+        }
     }
 
     func presentationNode(_ id: TreeNodeID) -> TreeNode? {

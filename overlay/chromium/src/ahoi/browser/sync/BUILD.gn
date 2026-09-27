@@ -281,6 +281,7 @@ source_set("unit_tests") {
     "sync_secret_boundary_unittest.cc",
     "sync_security_tree_unittest.cc",
     "sync_workspace_merge_unittest.cc",
+    "sync_workspace_projection_conformance_unittest.cc",
     "sync_unified_serialization_unittest.cc",
     "sync_unified_store_unittest.cc",
     "sync_unittest.cc",
@@ -291,6 +292,7 @@ source_set("unit_tests") {
     "testdata/bookmark_wire_v2.json",
     "testdata/merge_v3.json",
     "testdata/sync_wire_v3.json",
+    "testdata/workspace_merge_projection_v3.json",
   ]
   if (is_mac) {
     sources += [

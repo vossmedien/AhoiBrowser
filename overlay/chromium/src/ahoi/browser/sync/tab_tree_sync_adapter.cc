@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -68,6 +69,67 @@ std::optional<base::Uuid> ResolveMergeTarget(
   return std::nullopt;
 }
 
+std::string MergeRootMarker(const base::Uuid& workspace) {
+  return "!:ahoi-merge-root/" + workspace.AsLowercaseString() + "/";
+}
+
+std::optional<std::string> MergeRootSuffix(std::string_view key,
+                                         const base::Uuid& workspace) {
+  const std::string marker = MergeRootMarker(workspace);
+  const size_t position = key.rfind(marker);
+  if (position == std::string_view::npos ||
+      position + marker.size() == key.size()) {
+    return std::nullopt;
+  }
+  return std::string(key.substr(position + marker.size()));
+}
+
+std::string MergeRootToken(std::string_view key, const base::Uuid& node) {
+  constexpr std::string_view kHex = "0123456789abcdef";
+  std::string result;
+  for (unsigned char byte : key) {
+    if (byte <= 0x21) {
+      result.push_back('!');
+      result.push_back(kHex[byte >> 4]);
+      result.push_back(kHex[byte & 0x0f]);
+    } else {
+      result.push_back(static_cast<char>(byte));
+    }
+  }
+  // !/ precedes every !xx escape, preserving prefix keys and UUID ties.
+  return result + "!/" + node.AsLowercaseString();
+}
+
+void ApplyMergeRootOrder(std::vector<tab_tree::TreeNode>* nodes,
+                        const std::set<base::Uuid>& merge_rehomed) {
+  std::map<base::Uuid, std::string> ordinary_tails;
+  for (const auto& node : *nodes) {
+    if (node.tombstone || node.parent_id || merge_rehomed.contains(node.id) ||
+        MergeRootSuffix(node.sort_key, node.workspace_id)) {
+      continue;
+    }
+    auto& tail = ordinary_tails[node.workspace_id];
+    tail = std::max(tail, node.sort_key);
+  }
+  for (auto& node : *nodes) {
+    if (node.tombstone || node.parent_id) {
+      continue;
+    }
+    const auto suffix = merge_rehomed.contains(node.id)
+                            ? std::make_optional(MergeRootToken(node.sort_key,
+                                                                node.id))
+                            : MergeRootSuffix(node.sort_key, node.workspace_id);
+    if (!suffix) {
+      continue;
+    }
+    // An explicit subsequent move writes its real location clock and may
+    // retain a suffix from this segment. Rebase that position with the passive
+    // nodes, rather than repeatedly appending them past the user's move.
+    node.sort_key = ordinary_tails[node.workspace_id] +
+                    MergeRootMarker(node.workspace_id) + *suffix;
+  }
+}
+
 tab_tree::Workspace ConvertWorkspace(const WorkspaceRecord& source) {
   return {.model_version = tab_tree::kCurrentModelVersion,
           .id = source.id,
@@ -111,6 +173,22 @@ tab_tree::TreeNode ConvertNode(const TreeNodeRecord& source) {
 }
 
 }  // namespace
+
+std::optional<base::Uuid> ResolveWorkspaceMergeTarget(
+    const base::Uuid& source,
+    const std::vector<WorkspaceRecord>& workspaces,
+    const std::map<base::Uuid, base::Uuid>& compacted_merge_targets) {
+  std::vector<tab_tree::Workspace> converted;
+  std::map<base::Uuid, size_t> indexes;
+  for (const auto& workspace : workspaces) {
+    if (!workspace.id.is_valid() || indexes.contains(workspace.id)) {
+      return std::nullopt;
+    }
+    indexes.emplace(workspace.id, converted.size());
+    converted.push_back(ConvertWorkspace(workspace));
+  }
+  return ResolveMergeTarget(source, converted, indexes, compacted_merge_targets);
+}
 
 WorkspaceRecord WorkspaceToSyncRecord(const tab_tree::Workspace& workspace,
                                       SyncVersion version) {
@@ -374,6 +452,7 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
                             .created_at = created,
                             .modified_at = created});
   }
+  ApplyMergeRootOrder(&result.nodes, merge_rehomed);
   // Match the native export's ordering, including appended recovery folders.
   // Common's exact tree+receipt readback must not fail merely because provider
   // records arrived in another order or a fallback workspace was appended.

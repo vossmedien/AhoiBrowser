@@ -1,3 +1,4 @@
+import Foundation
 import AhoiCloudKitSpike
 
 /// Preserves Chromium's opaque lexical sort keys when choosing a local
@@ -5,6 +6,39 @@ import AhoiCloudKitSpike
 struct CompanionTreePosition {
     let orderKey: OrderKey
     let wireSortKey: String?
+
+    /// Scoped position in the appended root segment. A deliberate move can
+    /// retain this suffix in its newly stamped opaque key. Reprojection rebases
+    /// the segment instead of pushing its remaining passive nodes past that
+    /// explicit position again. This is an existing sort_key value, not a new
+    /// field clock, record type or implicit structural write.
+    static func mergeRootMarker(_ workspace: WorkspaceID) -> String {
+        "!:ahoi-merge-root/" + workspace.rawValue.uuidString.lowercased() + "/"
+    }
+
+    static func mergeRootSuffix(_ key: String, workspace: WorkspaceID) -> String? {
+        guard let range = key.range(of: mergeRootMarker(workspace), options: [.backwards, .literal]),
+              range.upperBound != key.endIndex else { return nil }
+        return String(key[range.upperBound...])
+    }
+
+    static func mergeRootToken(_ key: String, node: TreeNodeID) -> String {
+        // Escape low bytes and '!' in an order-preserving way. The !/ terminal
+        // sorts before every !xx escape, so prefix keys keep their original
+        // order. It also prevents a nested raw key from imitating our marker.
+        let hex = Array("0123456789abcdef".utf8)
+        var bytes: [UInt8] = []
+        for byte in key.utf8 {
+            if byte <= 0x21 {
+                bytes.append(0x21)
+                bytes.append(hex[Int(byte >> 4)])
+                bytes.append(hex[Int(byte & 0x0f)])
+            } else {
+                bytes.append(byte)
+            }
+        }
+        return String(decoding: bytes, as: UTF8.self) + "!/" + node.rawValue.uuidString.lowercased()
+    }
 
     static func less(_ lhs: String, _ rhs: String) -> Bool {
         lhs.utf8.lexicographicallyPrecedes(rhs.utf8)

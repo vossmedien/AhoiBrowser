@@ -19,6 +19,13 @@ WorkspaceRecord WorkspaceToSyncRecord(
 TreeNodeRecord TreeNodeToSyncRecord(const tab_tree::TreeNode& node,
                                     SyncVersion version);
 
+// Shared routing outcome used by the projector and conformance checks. A
+// missing/deleted/cyclic destination remains unresolved, never fabricated.
+std::optional<base::Uuid> ResolveWorkspaceMergeTarget(
+    const base::Uuid& source,
+    const std::vector<WorkspaceRecord>& workspaces,
+    const std::map<base::Uuid, base::Uuid>& compacted_merge_targets = {});
+
 // Materializes merged sync records into the regular TabTreeStore model. Local
 // undo history is retained. Orphans, cross-workspace moves, deleted parents and
 // cycles are deterministically cut into one per-workspace "Wiederhergestellt"
