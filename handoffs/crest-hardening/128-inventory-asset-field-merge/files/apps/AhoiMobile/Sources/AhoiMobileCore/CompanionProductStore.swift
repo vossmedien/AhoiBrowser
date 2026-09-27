@@ -1,0 +1,100 @@
+import Foundation
+import AhoiCloudKitSpike
+
+extension LocalFirstRepository {
+    @discardableResult
+    public func upsert(
+        _ incoming: CompanionAppearanceRecord
+    ) async throws -> CompanionAppearanceRecord {
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
+        let result = try snapshot.productRecords.appearance.first { $0.id == incoming.id }
+            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
+        snapshot.productRecords.appearance.replace(result) { $0.id == incoming.id }
+        try await persist()
+        return result
+    }
+
+    @discardableResult
+    public func upsert(
+        _ incoming: CompanionPermittedSettingRecord
+    ) async throws -> CompanionPermittedSettingRecord {
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
+        let result = try snapshot.productRecords.permittedSettings.first { $0.id == incoming.id }
+            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
+        snapshot.productRecords.permittedSettings.replace(result) { $0.id == incoming.id }
+        try await persist()
+        return result
+    }
+
+    @discardableResult
+    public func upsert(
+        _ incoming: CompanionExtensionInventoryRecord
+    ) async throws -> CompanionExtensionInventoryRecord {
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
+        let result = try snapshot.productRecords.extensionInventory.first { $0.id == incoming.id }
+            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
+        snapshot.productRecords.extensionInventory.replace(result) { $0.id == incoming.id }
+        try await persist()
+        return result
+    }
+
+    @discardableResult
+    public func upsert(
+        _ incoming: CompanionDeveloperAssetRecord
+    ) async throws -> CompanionDeveloperAssetRecord {
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
+        let result = try snapshot.productRecords.developerAssets.first { $0.id == incoming.id }
+            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
+        snapshot.productRecords.developerAssets.replace(result) { $0.id == incoming.id }
+        try await persist()
+        return result
+    }
+
+    func selectRecord<Record: Equatable>(
+        _ existing: Record?,
+        _ incoming: Record
+    ) throws -> Record where Record: CompanionVersionedProductRecord {
+        guard let existing else { return incoming }
+        if incoming.syncVersion > existing.syncVersion { return incoming }
+        if incoming.syncVersion < existing.syncVersion { return existing }
+        guard incoming == existing else {
+            throw CompanionProductRecordError.equalVersionConflict
+        }
+        return existing
+    }
+}
+
+protocol CompanionVersionedProductRecord {
+    var syncVersion: SyncVersion { get }
+}
+
+extension CompanionAppearanceRecord: CompanionVersionedProductRecord {
+    var syncVersion: SyncVersion { version }
+}
+extension CompanionPermittedSettingRecord: CompanionVersionedProductRecord {
+    var syncVersion: SyncVersion { version }
+}
+extension CompanionExtensionInventoryRecord: CompanionVersionedProductRecord {
+    var syncVersion: SyncVersion { version }
+}
+extension CompanionDeveloperAssetRecord: CompanionVersionedProductRecord {
+    var syncVersion: SyncVersion { version }
+}
+
+private extension Array {
+    mutating func replace(_ element: Element, where predicate: (Element) -> Bool) {
+        if let index = firstIndex(where: predicate) {
+            self[index] = element
+        } else {
+            append(element)
+        }
+    }
+}

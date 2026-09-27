@@ -1,0 +1,1208 @@
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductFieldMerge.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductFieldMerge.swift
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductFieldMerge.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductFieldMerge.swift
+@@ -1,13 +1,20 @@
+ import Foundation
+ import AhoiCloudKitSpike
+ 
+-/// Field-group merge for remote commands, appearance and permitted settings,
++/// Field-group merge for remote commands and portable product records,
+ /// mirroring Chromium's `MergeRecordFields` (`sync_field_merge.cc`): each
+ /// group keeps the value of its newer clock, an equal clock with a different
+ /// value is rejected, an immutable group may not change, and a true union of
+ /// both inputs receives the successor of the newer record clock.
+ public enum CompanionProductFieldMerge {
+     static let commandFields: Set<String> = ["request", "status", "tombstone"]
++
++    // Swift String equality normalizes canonical Unicode equivalents. Format-3
++    // field values are opaque UTF-8 bytes, matching C++ std::string equality.
++    private struct WireText: Equatable {
++        let bytes: [UInt8]
++        init(_ value: String) { bytes = Array(value.utf8) }
++    }
+ 
+     /// `request` (the signed envelope) is immutable. `status` (status and
+     /// result code) never regresses and is frozen once terminal, even against
+@@ -144,6 +151,104 @@
+         )
+     }
+ 
++    public static func merge(
++        _ existing: CompanionExtensionInventoryRecord,
++        _ incoming: CompanionExtensionInventoryRecord
++    ) throws -> CompanionExtensionInventoryRecord {
++        guard existing.id == incoming.id else { throw CompanionFieldMergeError.identityMismatch }
++        guard existing.deviceID == incoming.deviceID else {
++            throw CompanionFieldMergeError.immutableFieldConflict("device_id")
++        }
++        guard existing.extensionID == incoming.extensionID else {
++            throw CompanionFieldMergeError.immutableFieldConflict("extension_id")
++        }
++        let fields = DesktopWirePayloadCodec.extensionInventoryFields
++        let oldVersion = try SharedSyncFormat.validate(existing.version, fields: fields)
++        let newVersion = try SharedSyncFormat.validate(incoming.version, fields: fields)
++        var result = existing
++        if try CompanionFieldMerge.incomingWins(
++            "name", WireText(existing.name), WireText(incoming.name), oldVersion, newVersion
++        ) { result.name = incoming.name }
++        if try CompanionFieldMerge.incomingWins(
++            "extension_version", WireText(existing.extensionVersion),
++            WireText(incoming.extensionVersion), oldVersion, newVersion
++        ) { result.extensionVersion = incoming.extensionVersion }
++        if try CompanionFieldMerge.incomingWins(
++            "enabled", existing.enabled, incoming.enabled, oldVersion, newVersion
++        ) { result.enabled = incoming.enabled }
++        if try CompanionFieldMerge.incomingWins(
++            "tombstone", existing.isDeleted, incoming.isDeleted, oldVersion, newVersion
++        ) { result.tombstone = incoming.tombstone }
++        var version = CompanionFieldMerge.mergedVersion(oldVersion, newVersion, fields: fields)
++        func same(_ other: CompanionExtensionInventoryRecord, _ otherVersion: SyncVersion) -> Bool {
++            WireText(result.name) == WireText(other.name) &&
++                WireText(result.extensionVersion) == WireText(other.extensionVersion) &&
++                result.enabled == other.enabled && result.isDeleted == other.isDeleted &&
++                version.fieldVersions == otherVersion.fieldVersions
++        }
++        if !same(existing, oldVersion), !same(incoming, newVersion) {
++            version = try CompanionFieldMerge.dominatingMergeVersion(version)
++        }
++        result.version = version
++        result.tombstone = reframe(result.tombstone, id: result.id, version: version)
++        return try CompanionExtensionInventoryRecord(
++            id: result.id, deviceID: result.deviceID, extensionID: result.extensionID,
++            name: result.name, extensionVersion: result.extensionVersion,
++            enabled: result.enabled, version: result.version, tombstone: result.tombstone
++        )
++    }
++
++    public static func merge(
++        _ existing: CompanionDeveloperAssetRecord,
++        _ incoming: CompanionDeveloperAssetRecord
++    ) throws -> CompanionDeveloperAssetRecord {
++        guard existing.id == incoming.id else { throw CompanionFieldMergeError.identityMismatch }
++        guard existing.kind == incoming.kind else {
++            throw CompanionFieldMergeError.immutableFieldConflict("kind")
++        }
++        let fields = DesktopWirePayloadCodec.developerAssetFields
++        let oldVersion = try SharedSyncFormat.validate(existing.version, fields: fields)
++        let newVersion = try SharedSyncFormat.validate(incoming.version, fields: fields)
++        var result = existing
++        if try CompanionFieldMerge.incomingWins(
++            "name", WireText(existing.name), WireText(incoming.name), oldVersion, newVersion
++        ) { result.name = incoming.name }
++        if try CompanionFieldMerge.incomingWins(
++            "scope", WireText(existing.scope), WireText(incoming.scope), oldVersion, newVersion
++        ) { result.scope = incoming.scope }
++        if try CompanionFieldMerge.incomingWins(
++            "source", WireText(existing.source), WireText(incoming.source), oldVersion, newVersion
++        ) { result.source = incoming.source }
++        if try CompanionFieldMerge.incomingWins(
++            "enabled", existing.enabled, incoming.enabled, oldVersion, newVersion
++        ) { result.enabled = incoming.enabled }
++        if try CompanionFieldMerge.incomingWins(
++            "opted_in", existing.optedIn, incoming.optedIn, oldVersion, newVersion
++        ) { result.optedIn = incoming.optedIn }
++        if try CompanionFieldMerge.incomingWins(
++            "tombstone", existing.isDeleted, incoming.isDeleted, oldVersion, newVersion
++        ) { result.tombstone = incoming.tombstone }
++        var version = CompanionFieldMerge.mergedVersion(oldVersion, newVersion, fields: fields)
++        func same(_ other: CompanionDeveloperAssetRecord, _ otherVersion: SyncVersion) -> Bool {
++            WireText(result.name) == WireText(other.name) &&
++                WireText(result.scope) == WireText(other.scope) &&
++                WireText(result.source) == WireText(other.source) &&
++                result.enabled == other.enabled && result.optedIn == other.optedIn &&
++                result.isDeleted == other.isDeleted &&
++                version.fieldVersions == otherVersion.fieldVersions
++        }
++        if !same(existing, oldVersion), !same(incoming, newVersion) {
++            version = try CompanionFieldMerge.dominatingMergeVersion(version)
++        }
++        result.version = version
++        result.tombstone = reframe(result.tombstone, id: result.id, version: version)
++        return try CompanionDeveloperAssetRecord(
++            id: result.id, kind: result.kind, name: result.name, scope: result.scope,
++            source: result.source, enabled: result.enabled, optedIn: result.optedIn,
++            version: result.version, tombstone: result.tombstone
++        )
++    }
++
+     private struct CommandStatus: Equatable {
+         let status: RemoteCommandStatus
+         let resultCode: String
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductStore.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductStore.swift
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductStore.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionProductStore.swift
+@@ -37,10 +37,8 @@
+         await acquireMutation()
+         defer { releaseMutation() }
+         try await loadIfNeeded()
+-        let result = try selectRecord(
+-            snapshot.productRecords.extensionInventory.first { $0.id == incoming.id },
+-            incoming
+-        )
++        let result = try snapshot.productRecords.extensionInventory.first { $0.id == incoming.id }
++            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
+         snapshot.productRecords.extensionInventory.replace(result) { $0.id == incoming.id }
+         try await persist()
+         return result
+@@ -53,10 +51,8 @@
+         await acquireMutation()
+         defer { releaseMutation() }
+         try await loadIfNeeded()
+-        let result = try selectRecord(
+-            snapshot.productRecords.developerAssets.first { $0.id == incoming.id },
+-            incoming
+-        )
++        let result = try snapshot.productRecords.developerAssets.first { $0.id == incoming.id }
++            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
+         snapshot.productRecords.developerAssets.replace(result) { $0.id == incoming.id }
+         try await persist()
+         return result
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionImportBatch.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionImportBatch.swift
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionImportBatch.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionImportBatch.swift
+@@ -286,12 +286,11 @@
+                     shouldReenqueue = merged != incoming &&
+                         CompanionBrowserSettingCatalog.isPortable(merged)
+                 case .extensionInventory(let incoming):
+-                    let merged = try selectRecord(
+-                        extensionIndexes[incoming.id].map {
+-                            working.productRecords.extensionInventory[$0]
+-                        },
+-                        incoming
+-                    )
++                    let merged = try extensionIndexes[incoming.id].map {
++                        try CompanionProductFieldMerge.merge(
++                            working.productRecords.extensionInventory[$0], incoming
++                        )
++                    } ?? incoming
+                     if let index = extensionIndexes[incoming.id] {
+                         working.productRecords.extensionInventory[index] = merged
+                     } else {
+@@ -302,12 +301,11 @@
+                     accepted = .extensionInventory(merged)
+                     shouldReenqueue = merged.version > incoming.version
+                 case .developerAsset(let incoming):
+-                    let merged = try selectRecord(
+-                        assetIndexes[incoming.id].map {
+-                            working.productRecords.developerAssets[$0]
+-                        },
+-                        incoming
+-                    )
++                    let merged = try assetIndexes[incoming.id].map {
++                        try CompanionProductFieldMerge.merge(
++                            working.productRecords.developerAssets[$0], incoming
++                        )
++                    } ?? incoming
+                     if let index = assetIndexes[incoming.id] {
+                         working.productRecords.developerAssets[index] = merged
+                     } else {
+diff --git a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionProductRecordTests.swift b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionProductRecordTests.swift
+--- a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionProductRecordTests.swift
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionProductRecordTests.swift
+@@ -3,6 +3,76 @@
+ import AhoiCloudKitSpike
+ 
+ final class CompanionProductRecordTests: XCTestCase {
++    func testInventoryUpsertPreservesTwoOfflineFieldEdits() async throws {
++        let device = DeviceID()
++        let id = UUID()
++        let fields = DesktopWirePayloadCodec.extensionInventoryFields
++        let nameEdited = try CompanionExtensionInventoryRecord(
++            id: id, deviceID: device,
++            extensionID: "abcdefghijklmnopabcdefghijklmnop",
++            name: "Renamed extension", extensionVersion: "1.2.3", enabled: true,
++            version: editVersion(device: device, fields: fields, changed: "name", at: 2_000),
++            tombstone: nil
++        )
++        let enabledEdited = try CompanionExtensionInventoryRecord(
++            id: id, deviceID: device, extensionID: nameEdited.extensionID,
++            name: "Original extension", extensionVersion: "1.2.3", enabled: false,
++            version: editVersion(device: device, fields: fields, changed: "enabled", at: 3_000),
++            tombstone: nil
++        )
++        let repository = LocalFirstRepository(store: InMemoryCompanionStore(), localDeviceID: device)
++        _ = try await repository.upsert(nameEdited)
++        _ = try await repository.upsert(enabledEdited)
++        let snapshot = try await repository.currentSnapshot()
++        let merged = try XCTUnwrap(snapshot.productRecords.extensionInventory.first { $0.id == id })
++        XCTAssertEqual(merged.name, "Renamed extension")
++        XCTAssertFalse(merged.enabled)
++        XCTAssertEqual(merged.version.fieldVersions["name"], nameEdited.version.fieldVersions["name"])
++        XCTAssertEqual(merged.version.fieldVersions["enabled"], enabledEdited.version.fieldVersions["enabled"])
++    }
++
++    func testDeveloperAssetUpsertPreservesTwoOfflineFieldEdits() async throws {
++        let device = DeviceID()
++        let id = UUID()
++        let fields = DesktopWirePayloadCodec.developerAssetFields
++        let nameEdited = try CompanionDeveloperAssetRecord(
++            id: id, kind: .css, name: "Renamed CSS asset",
++            scope: "https://example.test/*", source: "body { color: red; }",
++            enabled: true, optedIn: true,
++            version: editVersion(device: device, fields: fields, changed: "name", at: 2_000),
++            tombstone: nil
++        )
++        let enabledEdited = try CompanionDeveloperAssetRecord(
++            id: id, kind: .css, name: "Original CSS asset",
++            scope: nameEdited.scope, source: nameEdited.source,
++            enabled: false, optedIn: true,
++            version: editVersion(device: device, fields: fields, changed: "enabled", at: 3_000),
++            tombstone: nil
++        )
++        let repository = LocalFirstRepository(store: InMemoryCompanionStore(), localDeviceID: device)
++        _ = try await repository.upsert(nameEdited)
++        _ = try await repository.upsert(enabledEdited)
++        let snapshot = try await repository.currentSnapshot()
++        let merged = try XCTUnwrap(snapshot.productRecords.developerAssets.first { $0.id == id })
++        XCTAssertEqual(merged.name, "Renamed CSS asset")
++        XCTAssertFalse(merged.enabled)
++        XCTAssertEqual(merged.version.fieldVersions["name"], nameEdited.version.fieldVersions["name"])
++        XCTAssertEqual(merged.version.fieldVersions["enabled"], enabledEdited.version.fieldVersions["enabled"])
++    }
++
++    private func editVersion(
++        device: DeviceID, fields: Set<String>, changed: String, at time: UInt64
++    ) -> SyncVersion {
++        let base = HybridLogicalClock(physicalMilliseconds: 1_000, nodeID: device)
++        let edit = HybridLogicalClock(physicalMilliseconds: time, nodeID: device)
++        return SyncVersion(
++            modifiedAt: edit, modifiedBy: device,
++            fieldVersions: Dictionary(uniqueKeysWithValues: fields.map { field in
++                (field, field == changed ? edit : base)
++            })
++        )
++    }
++
+     func testProductWireRecordsRoundTrip() throws {
+         let device = DeviceID(
+             rawValue: UUID(uuidString: "10000000-0000-4000-8000-000000000001")!
+diff --git a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SyncMergeConformanceTests.swift b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SyncMergeConformanceTests.swift
+--- a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SyncMergeConformanceTests.swift
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SyncMergeConformanceTests.swift
+@@ -53,7 +53,7 @@
+         }
+     }
+ 
+-    private static let covered: Set<Int> = [1, 2, 5, 6, 7, 8, 14]
++    private static let covered: Set<Int> = [1, 2, 5, 6, 7, 8, 9, 10, 14]
+ 
+     private func vectorsURL(_ name: String = "merge_v3.json") -> URL {
+         if name == "merge_v3.json",
+@@ -187,6 +187,24 @@
+                 using: CompanionProductFieldMerge.merge)
+             let want = try expected.map { try codec.decodePermittedSetting(try envelope(vector, $0), plaintext: $0.data) }
+             return (result, want, try codec.encode(result))
++        case 9:
++            let result = try mergeDecoded(
++                try codec.decodeExtensionInventory(old, plaintext: vector.existing.data),
++                try codec.decodeExtensionInventory(new, plaintext: vector.incoming.data),
++                using: CompanionProductFieldMerge.merge)
++            let want = try expected.map {
++                try codec.decodeExtensionInventory(try envelope(vector, $0), plaintext: $0.data)
++            }
++            return (result, want, try codec.encode(result))
++        case 10:
++            let result = try mergeDecoded(
++                try codec.decodeDeveloperAsset(old, plaintext: vector.existing.data),
++                try codec.decodeDeveloperAsset(new, plaintext: vector.incoming.data),
++                using: CompanionProductFieldMerge.merge)
++            let want = try expected.map {
++                try codec.decodeDeveloperAsset(try envelope(vector, $0), plaintext: $0.data)
++            }
++            return (result, want, try codec.encode(result))
+         default:
+             throw ExportError.unsupportedEntity(vector.entityType)
+         }
+@@ -252,6 +270,10 @@
+ 
+     func testUTF8SortKeyVectors() throws {
+         try checkVectors("merge_utf8_sort_keys_v3.json")
++    }
++
++    func testInventoryAssetVectors() throws {
++        try checkVectors("merge_inventory_asset_v3.json")
+     }
+ 
+     private func exportResults(_ results: [[String: Any]], fixture: URL, bytes: Data) throws {
+diff --git a/overlay/chromium/src/ahoi/browser/sync/BUILD.gn b/overlay/chromium/src/ahoi/browser/sync/BUILD.gn
+--- a/overlay/chromium/src/ahoi/browser/sync/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/sync/BUILD.gn
+@@ -292,6 +292,7 @@
+     "testdata/bookmark_wire_v2.json",
+     "testdata/merge_v3.json",
+     "testdata/merge_utf8_sort_keys_v3.json",
++    "testdata/merge_inventory_asset_v3.json",
+     "testdata/sync_wire_v3.json",
+     "testdata/workspace_merge_projection_v3.json",
+   ]
+diff --git a/overlay/chromium/src/ahoi/browser/sync/sync_merge_conformance_unittest.cc b/overlay/chromium/src/ahoi/browser/sync/sync_merge_conformance_unittest.cc
+--- a/overlay/chromium/src/ahoi/browser/sync/sync_merge_conformance_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/sync/sync_merge_conformance_unittest.cc
+@@ -186,5 +186,9 @@
+   CheckVectors("merge_utf8_sort_keys_v3.json");
+ }
+ 
++TEST(SyncMergeConformanceTest, InventoryAssetVectors) {
++  CheckVectors("merge_inventory_asset_v3.json");
++}
++
+ }  // namespace
+ }  // namespace ahoi::sync
+diff --git a/overlay/chromium/src/ahoi/browser/sync/testdata/merge_inventory_asset_v3.json b/overlay/chromium/src/ahoi/browser/sync/testdata/merge_inventory_asset_v3.json
+new file mode 100644
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/sync/testdata/merge_inventory_asset_v3.json
+@@ -0,0 +1,853 @@
++{
++  "cases": [
++    {
++      "dataClass": "extensionInventory",
++      "description": "offline name and enable edits converge, delayed enable batch",
++      "entityType": 9,
++      "existing": {
++        "device_id": "a0000000-0000-4000-8000-000000000001",
++        "enabled": true,
++        "extension_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "extension_version": "1.2.3",
++        "field_versions": {
++          "device_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "extension_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "extension_version": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "a9000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Renamed extension",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "expect": {
++        "decision": "mergeFields",
++        "merged": {
++          "device_id": "a0000000-0000-4000-8000-000000000001",
++          "enabled": false,
++          "extension_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "extension_version": "1.2.3",
++          "field_versions": {
++            "device_id": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "enabled": {
++              "device": "a0000000-0000-4000-8000-000000000002",
++              "logical": 0,
++              "physical": "11644473605000000"
++            },
++            "extension_id": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "extension_version": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "name": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473604000000"
++            },
++            "tombstone": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            }
++          },
++          "id": "a9000000-0000-4000-8000-000000000001",
++          "model_version": 3,
++          "name": "Renamed extension",
++          "tombstone": false,
++          "version_device": "a0000000-0000-4000-8000-000000000002",
++          "version_logical": 1,
++          "version_model": 3,
++          "version_physical": "11644473605000000"
++        }
++      },
++      "incoming": {
++        "device_id": "a0000000-0000-4000-8000-000000000001",
++        "enabled": false,
++        "extension_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "extension_version": "1.2.3",
++        "field_versions": {
++          "device_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000002",
++            "logical": 0,
++            "physical": "11644473605000000"
++          },
++          "extension_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "extension_version": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "a9000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Fixture extension",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000002",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473605000000"
++      },
++      "inputValid": true,
++      "name": "extensionInventory.disjoint_name_then_enabled"
++    },
++    {
++      "dataClass": "extensionInventory",
++      "description": "same edits converge independent of delayed batch order",
++      "entityType": 9,
++      "existing": {
++        "device_id": "a0000000-0000-4000-8000-000000000001",
++        "enabled": false,
++        "extension_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "extension_version": "1.2.3",
++        "field_versions": {
++          "device_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000002",
++            "logical": 0,
++            "physical": "11644473605000000"
++          },
++          "extension_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "extension_version": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "a9000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Fixture extension",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000002",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473605000000"
++      },
++      "expect": {
++        "decision": "mergeFields",
++        "merged": {
++          "device_id": "a0000000-0000-4000-8000-000000000001",
++          "enabled": false,
++          "extension_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "extension_version": "1.2.3",
++          "field_versions": {
++            "device_id": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "enabled": {
++              "device": "a0000000-0000-4000-8000-000000000002",
++              "logical": 0,
++              "physical": "11644473605000000"
++            },
++            "extension_id": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "extension_version": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "name": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473604000000"
++            },
++            "tombstone": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            }
++          },
++          "id": "a9000000-0000-4000-8000-000000000001",
++          "model_version": 3,
++          "name": "Renamed extension",
++          "tombstone": false,
++          "version_device": "a0000000-0000-4000-8000-000000000002",
++          "version_logical": 1,
++          "version_model": 3,
++          "version_physical": "11644473605000000"
++        }
++      },
++      "incoming": {
++        "device_id": "a0000000-0000-4000-8000-000000000001",
++        "enabled": true,
++        "extension_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "extension_version": "1.2.3",
++        "field_versions": {
++          "device_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "extension_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "extension_version": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "a9000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Renamed extension",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "inputValid": true,
++      "name": "extensionInventory.disjoint_enabled_then_name"
++    },
++    {
++      "dataClass": "extensionInventory",
++      "description": "same field clock with a different name must quarantine",
++      "entityType": 9,
++      "existing": {
++        "device_id": "a0000000-0000-4000-8000-000000000001",
++        "enabled": true,
++        "extension_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "extension_version": "1.2.3",
++        "field_versions": {
++          "device_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "extension_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "extension_version": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "a9000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Renamed extension",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "expect": {
++        "decision": "invalid",
++        "merged": null
++      },
++      "incoming": {
++        "device_id": "a0000000-0000-4000-8000-000000000001",
++        "enabled": true,
++        "extension_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "extension_version": "1.2.3",
++        "field_versions": {
++          "device_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "extension_id": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "extension_version": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "a9000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Alternative extension",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "inputValid": true,
++      "name": "extensionInventory.equal_clock_name_conflict"
++    },
++    {
++      "dataClass": "developerAsset",
++      "description": "offline name and enable edits converge, delayed enable batch",
++      "entityType": 10,
++      "existing": {
++        "asset_kind": 0,
++        "enabled": true,
++        "field_versions": {
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "opted_in": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "scope": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "source": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "aa000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Renamed CSS asset",
++        "opted_in": true,
++        "scope": "https://example.com/*",
++        "source": "body { color: #123456; }",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "expect": {
++        "decision": "mergeFields",
++        "merged": {
++          "asset_kind": 0,
++          "enabled": false,
++          "field_versions": {
++            "enabled": {
++              "device": "a0000000-0000-4000-8000-000000000002",
++              "logical": 0,
++              "physical": "11644473605000000"
++            },
++            "kind": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "name": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473604000000"
++            },
++            "opted_in": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "scope": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "source": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "tombstone": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            }
++          },
++          "id": "aa000000-0000-4000-8000-000000000001",
++          "model_version": 3,
++          "name": "Renamed CSS asset",
++          "opted_in": true,
++          "scope": "https://example.com/*",
++          "source": "body { color: #123456; }",
++          "tombstone": false,
++          "version_device": "a0000000-0000-4000-8000-000000000002",
++          "version_logical": 1,
++          "version_model": 3,
++          "version_physical": "11644473605000000"
++        }
++      },
++      "incoming": {
++        "asset_kind": 0,
++        "enabled": false,
++        "field_versions": {
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000002",
++            "logical": 0,
++            "physical": "11644473605000000"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "opted_in": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "scope": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "source": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "aa000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Fixture CSS",
++        "opted_in": true,
++        "scope": "https://example.com/*",
++        "source": "body { color: #123456; }",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000002",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473605000000"
++      },
++      "inputValid": true,
++      "name": "developerAsset.disjoint_name_then_enabled"
++    },
++    {
++      "dataClass": "developerAsset",
++      "description": "same edits converge independent of delayed batch order",
++      "entityType": 10,
++      "existing": {
++        "asset_kind": 0,
++        "enabled": false,
++        "field_versions": {
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000002",
++            "logical": 0,
++            "physical": "11644473605000000"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "opted_in": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "scope": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "source": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "aa000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Fixture CSS",
++        "opted_in": true,
++        "scope": "https://example.com/*",
++        "source": "body { color: #123456; }",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000002",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473605000000"
++      },
++      "expect": {
++        "decision": "mergeFields",
++        "merged": {
++          "asset_kind": 0,
++          "enabled": false,
++          "field_versions": {
++            "enabled": {
++              "device": "a0000000-0000-4000-8000-000000000002",
++              "logical": 0,
++              "physical": "11644473605000000"
++            },
++            "kind": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "name": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473604000000"
++            },
++            "opted_in": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "scope": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            },
++            "source": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 2,
++              "physical": "11644473603000555"
++            },
++            "tombstone": {
++              "device": "a0000000-0000-4000-8000-000000000001",
++              "logical": 0,
++              "physical": "11644473601000123"
++            }
++          },
++          "id": "aa000000-0000-4000-8000-000000000001",
++          "model_version": 3,
++          "name": "Renamed CSS asset",
++          "opted_in": true,
++          "scope": "https://example.com/*",
++          "source": "body { color: #123456; }",
++          "tombstone": false,
++          "version_device": "a0000000-0000-4000-8000-000000000002",
++          "version_logical": 1,
++          "version_model": 3,
++          "version_physical": "11644473605000000"
++        }
++      },
++      "incoming": {
++        "asset_kind": 0,
++        "enabled": true,
++        "field_versions": {
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "opted_in": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "scope": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "source": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "aa000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Renamed CSS asset",
++        "opted_in": true,
++        "scope": "https://example.com/*",
++        "source": "body { color: #123456; }",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "inputValid": true,
++      "name": "developerAsset.disjoint_enabled_then_name"
++    },
++    {
++      "dataClass": "developerAsset",
++      "description": "same field clock with a different name must quarantine",
++      "entityType": 10,
++      "existing": {
++        "asset_kind": 0,
++        "enabled": true,
++        "field_versions": {
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "opted_in": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "scope": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "source": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "aa000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Renamed CSS asset",
++        "opted_in": true,
++        "scope": "https://example.com/*",
++        "source": "body { color: #123456; }",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "expect": {
++        "decision": "invalid",
++        "merged": null
++      },
++      "incoming": {
++        "asset_kind": 0,
++        "enabled": true,
++        "field_versions": {
++          "enabled": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "kind": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "name": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473604000000"
++          },
++          "opted_in": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "scope": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          },
++          "source": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 2,
++            "physical": "11644473603000555"
++          },
++          "tombstone": {
++            "device": "a0000000-0000-4000-8000-000000000001",
++            "logical": 0,
++            "physical": "11644473601000123"
++          }
++        },
++        "id": "aa000000-0000-4000-8000-000000000001",
++        "model_version": 3,
++        "name": "Alternative CSS asset",
++        "opted_in": true,
++        "scope": "https://example.com/*",
++        "source": "body { color: #123456; }",
++        "tombstone": false,
++        "version_device": "a0000000-0000-4000-8000-000000000001",
++        "version_logical": 0,
++        "version_model": 3,
++        "version_physical": "11644473604000000"
++      },
++      "inputValid": true,
++      "name": "developerAsset.equal_clock_name_conflict"
++    }
++  ],
++  "contract": "Ahoi format-3 inventory and asset field merge",
++  "generatedBy": "tools/sync_conformance/generate_product_merge_vectors.py",
++  "schemaVersion": 1
++}

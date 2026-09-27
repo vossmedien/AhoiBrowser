@@ -32,13 +32,16 @@ GROUP_KEYS: dict[int, dict[str, list[str]]] = {
         "status": ["status", "result"]},  # remoteCommand
     7: {},  # appearance
     8: {},  # permittedSetting
+    9: {},  # extensionInventory
+    10: {"kind": ["asset_kind"]},  # developerAsset
     14: {"state": ["reason", "archived_at", "restored"]},  # tabArchiveEntry
 }
 
 # IsImmutableField
 IMMUTABLE = {1: {"created_at"}, 2: {"kind", "created_at"},
              5: {"device_id", "started_at"}, 6: {"request"}, 7: set(),
-             8: {"setting_id"}, 14: set()}
+             8: {"setting_id"}, 9: {"device_id", "extension_id"},
+             10: {"kind"}, 14: set()}
 
 TERMINAL_COMMAND_STATUS = {2, 3}  # kExecuted, kFailed
 

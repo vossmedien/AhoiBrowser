@@ -31,6 +31,13 @@ Declared entity classes without current shared merge cases: **0 device,
 11 bookmark, 12 deviceCapability, 13 splitGroup**. The source registry declares
 all with Format 3 field maps. Existing field-map parity is not behavior coverage.
 
+Follow-up: handoff 128 now supplies six supplementary vectors and a proposed
+native patch for IDs **9 and 10**. It exposes the current Mobile whole-record
+selection diverging from C++ field union. Source handoff is ready; these two
+classes are **not** counted as integrated/natively passed until owner RED/GREEN,
+C++ execution and actual-output comparison. The other six classes remain
+without shared merge vectors.
+
 ## H2 — corrections integrated; full acceptance not established
 
 | Requirement | Current evidence | Remaining scope |

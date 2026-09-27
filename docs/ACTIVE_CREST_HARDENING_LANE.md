@@ -389,6 +389,23 @@ verdict. Negative partial-run and positive complete-run controls are added;
 **64** focused local performance tests pass. This does not
 extend the harness to Master budgets it has not implemented.
 
+H1 source continuation found an actual field-merge divergence in the two
+previously uncovered product entities 9 and 10. C++ merges inventory and
+developer-asset field clocks; Mobile's `selectRecord` picks one complete
+record, dropping an offline name edit when a later enable edit arrives.
+[128](../handoffs/crest-hardening/128-inventory-asset-field-merge/HANDOFF.md)
+contains a six-vector valid Format-3 supplement (both orders and equal-clock
+conflicts), SHA-256
+`e02a1de79e8d14a3b56bd690728d525b652e9b081d2727a91c3ccc6d58e80ea1`,
+and a complete owner patch for typed Mobile merges, caller paths, C++/Swift
+runners and two real upsert regressions. The existing 140/8/112 fixtures stay
+unchanged. **70** local Python conformance tests pass; five Swift mirrors
+parse and patch applicability succeeds. Owner native RED/GREEN, C++ execution,
+122 actual differential comparison and outbound authorization review remain
+pending. Six of the original eight uncovered entity classes are still open.
+Root's Cockpit jobs2 build does not grant an Ahoi heavy slot; Crest uses no
+shared resource.
+
 Next allowed lane work: finish H1's eight missing entity classes and seeded
 operation sequences, and the remaining H3/H7 source gaps. Owner integration
 and actual 122 differential runs remain open. Runtime work still requires its

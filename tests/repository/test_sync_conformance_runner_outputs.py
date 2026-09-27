@@ -253,7 +253,8 @@ class RunnerOutputComparisonTest(unittest.TestCase):
         self.assertEqual((self.root / "cpp-receipt.json").read_bytes(), original)
 
     def test_all_committed_merge_cases_have_valid_oracles(self):
-        for name, count in (("merge_v3.json", 140), ("merge_utf8_sort_keys_v3.json", 8)):
+        for name, count in (("merge_v3.json", 140), ("merge_utf8_sort_keys_v3.json", 8),
+                            ("merge_inventory_asset_v3.json", 6)):
             _, document = compare.read_json(ROOT / "fixtures/sync-conformance" / name)
             self.assertEqual(len(compare.validate_fixture(document)), count)
 
