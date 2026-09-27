@@ -34,6 +34,22 @@ finish the ordering/apply review, then run focused merge/conformance tests on
 the frozen candidate. Do not reuse the older 134-vector pass as 104 evidence.
 The earlier 098 RED/GREEN procedure below remains required.
 
+Pre-restart read-only review intake: crest 108 (`01a7bea`) confirms that a
+wire-neutral presentation projection is compatible with ADR 0012. Its two
+concrete gaps remain open in `6f7fafc`: (R1) a late root with key `A` currently
+sorts before target root `Z`, rather than at the target's end; (R2) C++ sends a
+successfully re-homed node with an invalid parent into a recovery folder while
+Swift makes it a root. Next source package must resolve ordering and invalid-
+parent handling consistently on both clients, retaining valid late subtrees.
+The same shared apply cases must cover arrival permutations, passive versus
+explicitly moved nodes after undo, unchanged raw Page bytes during recapture
+and enqueue, and explicit mutation/presence/isolation paths. Separately verify
+the actual acknowledged-tombstone compaction policy: a clock-only watermark
+cannot preserve the merge destination needed by still-unmoved raw nodes. This
+is an open retention dependency, not a reproduced disappearance or a license
+to bypass retention. No new compile, test, GUI or App action accompanied this
+review; the restart-ready state and original goal are unchanged.
+
 Owner `01a0e047-9360-7122-ad28-f76ebc767c97` resumes the original Master goal
 after Root confirmed that the handover's achieved marker was a parser error.
 The goal is active; the archive, ownership boundaries and external gates are
