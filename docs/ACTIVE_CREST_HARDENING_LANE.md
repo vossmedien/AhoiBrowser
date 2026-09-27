@@ -159,6 +159,15 @@ shared-resource lock, browser/simulator or background worker to resume. No new
 expensive action will start for the restart window. Preserve the native Crest
 goal and ownership boundaries; resume at the next allowed source step below.
 
+084 design feedback to the owner: [108](../handoffs/crest-hardening/108-review-merge-presentation-projection/HANDOFF.md)
+confirms a pure wire-neutral presentation projection is contract-compatible.
+Concrete remaining apply gaps: root-end ordering and C++ recovery-folder versus
+Swift root fallback for an invalid parent after successful target resolution.
+Shared apply cases must also cover undo/delivery-order convergence, passive
+capture without Page-clock changes, explicit mutations and retention of the
+merge destination through tombstone compaction. This was a read-only review of
+owner WIP; no product change, test or shared-resource action was started.
+
 Next allowed lane work: implement H3 continuous owner-input/lease revocation
 handling before the future release pair, then review new owner integrations.
 Exception cleanup alone does not satisfy that remaining lease condition.
