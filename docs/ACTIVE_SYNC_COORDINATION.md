@@ -2,11 +2,27 @@
 
 ## Current merge-target continuation — 27 September 2026
 
+Post-restart live check: Cockpit 1158 is installed and running under a new
+process (`74901` at the observation). CPU recovered to about 50% idle and
+`memory_pressure -Q` reported 48% system-wide free memory; the earlier small
+"unused" count alone is not a memory-pressure decision. No Ahoi lock or run
+was started. A later check found another project's live iOS xcodebuild, so
+the owner is coordinating the first focused Mobile test slot with Root rather
+than adding a competing heavy run. The original goal remains active.
+
+Source `61cab96` addresses crest 108 R2 on Desktop: after a successful merge
+target resolution, missing/deleted/cross-workspace/non-folder parents put a
+late node at the target root. Unresolved merges still use existing recovery;
+valid parents already at the target or following the same merge stay intact.
+Two new C++ regression methods cover four invalid-parent cases and both valid
+parent locations/arrival orders. Source diff checks pass; no C++ compile or
+runtime test is claimed. R1 root-end ordering and retention remain open.
+
 Owner: `01a0e047-9360-7122-ad28-f76ebc767c97` (Desktop/Mobile/Sync); Crest's
 separate contract/review/tooling lane stays with its current owner. The original
 Master goal is active after Root corrected the false achieved sentinel.
-Cockpit's coordinated 1158 restart still gates new heavy runs; none was started
-for this intake.
+The coordinated 1158 restart was respected; no heavy run accompanied this
+intake. A new test/build requires a fresh capacity and ownership check.
 
 Handoff 104 is integrated in `61b9e93`: **140** shared merge vectors and the
 Desktop testdata copy are byte-identical, SHA-256

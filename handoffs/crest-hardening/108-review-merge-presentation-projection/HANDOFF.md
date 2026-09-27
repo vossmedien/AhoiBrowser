@@ -1,6 +1,6 @@
 # 108 – Review of 084's pure mobile presentation projection
 
-Status: reviewed by owner 2026-09-27 (direction accepted; R1/R2 and retention/apply acceptance remain open in Mobile checkpoint for the post-restart source package)
+Status: partly addressed (direction accepted; Desktop R2 source fix and regressions 61cab96; R1, retention and exact-candidate apply acceptance remain open)
 Owner lanes: mobile and sync; desktop for matching apply semantics
 Reviewed: ADR 0012 section 1, 084 proposal 2, SYNC field/retention rules, C++
 `tab_tree_sync_adapter.cc` at `628c158`, and the owner's current uncommitted
