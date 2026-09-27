@@ -1,5 +1,19 @@
 # Active sync coordination
 
+## Root 1163 restart handback — 27 September 2026, 12:11 CEST
+
+Mobile source `2c26365` connects the exact savedRecords tombstone receipt to a
+short provider gate and a two-file Workspace compaction attempt in bounded
+sync. Domain Snapshot watermark/payload removal precedes local encrypted-cache
+removal; pending saves, fetched envelopes, quarantine, account/zone scope and
+current encrypted bytes are checked. Parse/project/lane checks pass, **native
+typecheck, tests, interruption replay and CloudKit-server proof do not**.
+Root's Cockpit 1163 installation takes priority; the Ahoi owner is
+neustartbereit with no own lock/process and CE3513BF Shutdown. After restart,
+verify live state/ownership before a bounded test slot. Crest 122/128/130
+actual native output comparisons and R1 Desktop 124/126 remain open. The
+original Master goal and external/release gates are unchanged.
+
 ## Focused Swift candidate — 27 September 2026, 11:41 CEST
 
 Crest 128→130 owner source intake is in `8e96de7`/`81a26f3`: Mobile's
@@ -16,9 +30,9 @@ acceptance.
 After this run, Mobile source adds a repository-only atomic Snapshot compaction
 step for an exact expired Workspace tombstone, preserving a version/merge-route
 watermark and raw late Page. Parser/project-file checks pass; its new tests are
-unexecuted. This is not yet wired to the CloudKit receipt and pending-queue
-gate, so normal sync cannot invoke the compaction path. Crest's in-progress
-130 handoff paths remain untouched until ready owner intake.
+unexecuted. The later `2c26365` bridge/provider source above supersedes the
+unwired status; it is not an execution result. Crest 130 has since been
+source-integrated in `8e96de7`/`81a26f3`, with native comparison still open.
 
 The exact clean `6096e93` Mobile candidate passes 38/38 focused XCTest methods
 with zero failures/skips. This includes Crest 120's eight UTF-8 sort-key
@@ -27,9 +41,9 @@ array orders. [Source, fixture, binary and result receipt](../artifacts/tests/mo
 The one-job owner simulator test is complete; CE3513BF is Shutdown and the
 build lock released. Crest 122's exporter code compiled, but no native outputs
 were requested or compared, and C++ behavioral execution remains open. Mobile
-has the local receipt, route marker, ingress guard and cache-removal seams, not
-the atomic domain compaction/orchestration or actual CloudKit server proof.
-The next source slice must close those retention boundaries before claiming R1.
+had only local receipt, route marker, ingress guard and cache-removal seams at
+that frozen candidate. Later source adds orchestration, but no native or
+CloudKit server proof yet; do not claim R1 from the 38/38 result.
 
 ## Current R1 candidate and evidence — 27 September 2026, 07:03 CEST
 
