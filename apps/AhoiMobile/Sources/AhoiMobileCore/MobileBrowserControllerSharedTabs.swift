@@ -100,7 +100,7 @@ extension MobileBrowserController {
     /// No URL, WebKit instance, selection, activation time or ordering is changed.
     public func reconcileSharedTabs(snapshot: CompanionSnapshot, preservingRuntimeIDs: Set<UUID> = [],
                                     reservingPageIDs: Set<TreeNodeID> = []) {
-        let nodes = Dictionary(grouping: snapshot.treeNodes, by: \.id)
+        let nodes = Dictionary(grouping: snapshot.treeNodesForPresentation, by: \.id)
         var updated = tabs
         for index in updated.indices where updated[index].mode == .normal {
             if preservingRuntimeIDs.contains(updated[index].id) { continue }

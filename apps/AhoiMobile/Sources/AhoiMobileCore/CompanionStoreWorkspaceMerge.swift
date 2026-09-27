@@ -86,6 +86,7 @@ extension LocalFirstRepository {
                 // is the order they had at the source's root.
                 candidate.parentID = folderID
             } else {
+                candidate.parentID = nil
                 candidate.orderKey = try OrderKey.between(
                     lastTargetKey, nil, tieBreaker: localDeviceID
                 )

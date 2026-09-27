@@ -59,12 +59,85 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
     }
 
     public var visibleTreeNodes: [TreeNode] {
-        treeNodes.filter { !$0.isDeleted }.sorted {
+        treeNodesForPresentation.filter { !$0.isDeleted }.sorted {
             if $0.syncSortKey != $1.syncSortKey {
                 return $0.syncSortKey < $1.syncSortKey
             }
             return $0.id < $1.id
         }
+    }
+
+    /// A merge tombstone changes where a late offline node is presented, not
+    /// the authoritative location register received from its writer. Keep raw
+    /// `treeNodes` for persistence, field merge and outbound serialization.
+    /// Recomputing this projection also handles target-before-source delivery,
+    /// merge chains and a later undo without minting a competing wire clock.
+    public var treeNodesForPresentation: [TreeNode] {
+        let destinations = mergedWorkspaceDestinations
+        guard !destinations.isEmpty else { return treeNodes }
+        var projected = treeNodes.map { node in
+            var result = node
+            if !node.isDeleted, let destination = destinations[node.workspaceID] {
+                result.workspaceID = destination
+            }
+            return result
+        }
+        let byID = Dictionary(grouping: projected, by: \.id)
+        for index in projected.indices {
+            let original = treeNodes[index]
+            guard !original.isDeleted,
+                  projected[index].workspaceID != original.workspaceID,
+                  let parentID = original.parentID else { continue }
+            // Preserve a valid subtree whose parent followed the same merge
+            // (or was already moved). A missing/cross-workspace parent cannot
+            // hide the late node in the destination's Library.
+            let parents = byID[parentID] ?? []
+            if parents.count != 1 || parents[0].isDeleted ||
+                parents[0].kind != .folder ||
+                parents[0].workspaceID != projected[index].workspaceID {
+                projected[index].parentID = nil
+            }
+        }
+        return projected
+    }
+
+    func presentationNode(_ id: TreeNodeID) -> TreeNode? {
+        let matches = treeNodesForPresentation.filter { $0.id == id }
+        return matches.count == 1 ? matches.first : nil
+    }
+
+    /// Nil means the original Workspace and its merge chain have no known,
+    /// unambiguous live destination. Missing targets may arrive in a later
+    /// fetch; cycles and ordinary deletion must not fabricate a destination.
+    func liveWorkspaceDestination(_ id: WorkspaceID) -> WorkspaceID? {
+        let byID = Dictionary(grouping: workspaces, by: \.id)
+        return Self.liveWorkspaceDestination(id, in: byID)
+    }
+
+    private var mergedWorkspaceDestinations: [WorkspaceID: WorkspaceID] {
+        let byID = Dictionary(grouping: workspaces, by: \.id)
+        var result: [WorkspaceID: WorkspaceID] = [:]
+        for workspace in workspaces where workspace.isDeleted && workspace.mergedInto != nil {
+            if let destination = Self.liveWorkspaceDestination(workspace.id, in: byID) {
+                result[workspace.id] = destination
+            }
+        }
+        return result
+    }
+
+    private static func liveWorkspaceDestination(
+        _ id: WorkspaceID, in workspaces: [WorkspaceID: [Workspace]]
+    ) -> WorkspaceID? {
+        var cursor = id
+        var visited = Set<WorkspaceID>()
+        while visited.insert(cursor).inserted {
+            guard let matches = workspaces[cursor], matches.count == 1,
+                  let workspace = matches.first else { return nil }
+            if !workspace.isDeleted { return workspace.id }
+            guard let target = workspace.mergedInto else { return nil }
+            cursor = target
+        }
+        return nil
     }
 
     public var visibleRemoteTabs: [RemoteTab] {

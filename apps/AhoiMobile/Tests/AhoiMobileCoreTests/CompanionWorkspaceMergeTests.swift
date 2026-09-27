@@ -304,6 +304,200 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
         XCTAssertTrue(after.visibleWorkspaces.contains { $0.id == source.id })
     }
 
+    func testLateOfflinePageFollowsMergeWithoutRewritingWireAuthority() async throws {
+        let fixture = try await lateMergeFixture()
+        let page = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
+            url: "https://example.test/offline")
+        let wire = try DesktopWirePayloadCodec().encode(page)
+        let outcomes = try await fixture.local.mergeImportedBatch([
+            .init(token: 0, value: .treeNode(page)),
+        ])
+        guard case .accepted(_, let reenqueue)? = outcomes.first?.disposition else {
+            return XCTFail("Late page must be accepted by the real import batch")
+        }
+        XCTAssertFalse(reenqueue, "Projection must not author an echo repair record")
+        let snapshot = try await fixture.local.currentSnapshot()
+        let raw = try XCTUnwrap(snapshot.treeNodes.first { $0.id == page.id })
+        XCTAssertEqual(raw, page)
+        XCTAssertEqual(try DesktopWirePayloadCodec().encode(raw), wire)
+        let presented = try XCTUnwrap(snapshot.presentationNode(page.id))
+        XCTAssertEqual(presented.workspaceID, fixture.target.id)
+        XCTAssertEqual(presented.version, page.version)
+        XCTAssertNil(presented.parentID)
+        let restored = try JSONDecoder().decode(
+            CompanionSnapshot.self, from: JSONEncoder().encode(snapshot))
+        XCTAssertEqual(restored.presentationNode(page.id), presented)
+        XCTAssertEqual(restored.treeNodes, snapshot.treeNodes)
+    }
+
+    func testLatePageWaitsForMergeTargetAndFollowsChainsWithoutCycles() async throws {
+        let fixture = try await lateMergeFixture()
+        let page = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
+            url: "https://example.test/offline")
+        let third = try await fixture.local.createWorkspace(name: "Third")
+        _ = try await fixture.local.mergeWorkspace(
+            fixture.target.id, into: third.id, intoFolder: false)
+        var snapshot = try await fixture.local.currentSnapshot()
+        snapshot.treeNodes.append(page)
+        XCTAssertEqual(snapshot.presentationNode(page.id)?.workspaceID, third.id)
+        snapshot.workspaces.removeAll { $0.id == third.id }
+        XCTAssertEqual(snapshot.presentationNode(page.id)?.workspaceID, fixture.source.id)
+        snapshot.workspaces.append(third)
+        XCTAssertEqual(snapshot.presentationNode(page.id)?.workspaceID, third.id)
+        let middle = try XCTUnwrap(snapshot.workspaces.firstIndex {
+            $0.id == fixture.target.id
+        })
+        snapshot.workspaces[middle].mergedInto = fixture.source.id
+        XCTAssertNil(snapshot.liveWorkspaceDestination(fixture.source.id))
+        XCTAssertEqual(snapshot.presentationNode(page.id)?.workspaceID, fixture.source.id)
+        snapshot.workspaces[middle].mergedInto = nil // Ordinary deletion is not a merge.
+        XCTAssertEqual(snapshot.presentationNode(page.id)?.workspaceID, fixture.source.id)
+        XCTAssertEqual(snapshot.treeNodes.first { $0.id == page.id }, page)
+    }
+
+    func testLateFolderKeepsItsChildrenAndAnUnknownParentDoesNotHideAPage() async throws {
+        let fixture = try await lateMergeFixture()
+        let folder = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .folder, title: "Offline folder")
+        let child = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, parentID: folder.id, kind: .savedPage,
+            title: "Offline child", url: "https://example.test/child")
+        var orphan = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .savedPage, title: "Missing parent",
+            url: "https://example.test/orphan")
+        orphan.parentID = TreeNodeID()
+        _ = try await fixture.local.mergeImportedBatch([
+            .init(token: 0, value: .treeNode(child)),
+            .init(token: 1, value: .treeNode(orphan)),
+            .init(token: 2, value: .treeNode(folder)),
+        ])
+        let snapshot = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(snapshot.presentationNode(folder.id)?.workspaceID, fixture.target.id)
+        XCTAssertEqual(snapshot.presentationNode(child.id)?.workspaceID, fixture.target.id)
+        XCTAssertEqual(snapshot.presentationNode(child.id)?.parentID, folder.id)
+        XCTAssertNil(snapshot.presentationNode(orphan.id)?.parentID)
+        XCTAssertEqual(snapshot.treeNodes.first { $0.id == orphan.id }, orphan)
+
+        // A deliberate edit can use a projected parent; it is a real new write.
+        let added = try await fixture.local.createTreeNode(
+            workspaceID: fixture.target.id, parentID: folder.id, kind: .savedPage,
+            title: "New child", url: "https://example.test/new")
+        XCTAssertEqual(added.workspaceID, fixture.target.id)
+        XCTAssertEqual(added.parentID, folder.id)
+        let deleted = try await fixture.local.deleteWorkspace(fixture.target.id)
+        XCTAssertEqual(Set(deleted.nodes.map(\.id)), [folder.id, child.id, orphan.id, added.id])
+        XCTAssertTrue(deleted.nodes.allSatisfy(\.isDeleted))
+    }
+
+    func testUndoRestoresLatePageWithoutACompetingLocationMutation() async throws {
+        let fixture = try await lateMergeFixture()
+        let page = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
+            url: "https://example.test/offline")
+        _ = try await fixture.local.upsert(page)
+        let before = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(before.presentationNode(page.id)?.workspaceID, fixture.target.id)
+        _ = try await fixture.local.undoWorkspaceMerge(fixture.receipt)
+        let after = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(after.presentationNode(page.id)?.workspaceID, fixture.source.id)
+        XCTAssertEqual(after.treeNodes, before.treeNodes)
+    }
+
+    func testReorderAndFlatMergeMaterializeThePresentedLocation() async throws {
+        let fixture = try await lateMergeFixture()
+        var page = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
+            url: "https://example.test/offline")
+        page.parentID = TreeNodeID() // Displayed as a root after its Workspace merge.
+        _ = try await fixture.local.upsert(page)
+        let kept = try await fixture.local.createTreeNode(
+            workspaceID: fixture.target.id, kind: .savedPage, title: "Kept",
+            url: "https://example.test/kept")
+        let snapshot = try await fixture.local.currentSnapshot()
+        let order = snapshot.visibleTreeNodes.filter { $0.workspaceID == fixture.target.id }
+        // Pick the opposite order so this is a real explicit reorder.
+        let reordered = try await fixture.local.reorderTreeNode(
+            page.id, before: order.first?.id == page.id ? nil : kept.id)
+        XCTAssertEqual(reordered.workspaceID, fixture.target.id)
+        XCTAssertNil(reordered.parentID)
+        XCTAssertNotEqual(reordered.version.fieldVersions["location"],
+                          page.version.fieldVersions["location"])
+        let third = try await fixture.local.createWorkspace(name: "Third")
+        _ = try await fixture.local.mergeWorkspace(
+            fixture.target.id, into: third.id, intoFolder: false)
+        let after = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(after.presentationNode(page.id)?.workspaceID, third.id)
+        XCTAssertNil(after.presentationNode(page.id)?.parentID)
+    }
+
+    func testRenameIntentUsesProjectedBindingButKeepsRawLocationClock() async throws {
+        let fixture = try await lateMergeFixture()
+        let page = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
+            url: "https://example.test/offline")
+        _ = try await fixture.local.upsert(page)
+        let tab = MobileTabRecord(
+            workspaceID: fixture.target.id, treeNodeID: page.id,
+            title: page.title, url: page.url, isSaved: true,
+            presenceID: TabID(), sharedTarget: try SharedTabURLGroup.of(page),
+            sharedBindingState: .current)
+        let result = try await fixture.local.applyLocalSharedIntent(
+            tab: tab, intent: .rename("Renamed"), mutationID: UUID(),
+            sessionID: DeviceSessionID(), deviceName: "Test", deviceKind: .iPhone)
+        let raw = try XCTUnwrap(result.outbound.nodes.first)
+        XCTAssertEqual(raw.workspaceID, fixture.source.id)
+        XCTAssertEqual(raw.version.fieldVersions["location"], page.version.fieldVersions["location"])
+        XCTAssertEqual(raw.title, "Renamed")
+        XCTAssertEqual(result.bindings[tab.id]?.workspaceID, fixture.target.id)
+        let capture = try await fixture.local.captureLocalMobileTabs(
+            [tab], sessionID: result.outbound.sessions[0].id,
+            deviceName: "Test", deviceKind: .iPhone)
+        XCTAssertEqual(capture.bindings[tab.id]?.workspaceID, fixture.target.id)
+        XCTAssertTrue(capture.outbound.nodes.isEmpty)
+    }
+
+    @MainActor
+    func testPassiveMergeProjectionKeepsWebPageURLAndSelection() async throws {
+        let fixture = try await lateMergeFixture()
+        let page = try await fixture.offline.createTreeNode(
+            workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
+            url: "https://example.test/offline")
+        _ = try await fixture.local.upsert(page)
+        let browser = MobileBrowserController(store: InMemoryMobileBrowserSessionStore())
+        let id = browser.createTab(workspaceID: fixture.source.id)
+        XCTAssertTrue(browser.bindTab(id, to: page))
+        let runtime = try XCTUnwrap(browser.page(for: id, createIfBlank: true))
+        let index = try XCTUnwrap(browser.tabs.firstIndex { $0.id == id })
+        browser.tabs[index].url = "https://example.test/local-unsaved"
+        let selected = browser.createTab()
+        let snapshot = try await fixture.local.currentSnapshot()
+
+        browser.reconcileSharedTabs(snapshot: snapshot)
+
+        XCTAssertEqual(browser.selectedTabID, selected)
+        XCTAssertEqual(browser.tabs[index].workspaceID, fixture.target.id)
+        XCTAssertEqual(browser.tabs[index].url, "https://example.test/local-unsaved")
+        XCTAssertTrue(browser.pages[id] === runtime)
+        XCTAssertEqual(browser.tabs.count, 2)
+        browser.close(id)
+    }
+
+    private func lateMergeFixture() async throws -> (
+        local: LocalFirstRepository, offline: LocalFirstRepository,
+        source: Workspace, target: Workspace, receipt: CompanionWorkspaceMergeReceipt
+    ) {
+        let local = makeRepository()
+        let source = try await local.createWorkspace(name: "Source")
+        let target = try await local.createWorkspace(name: "Target")
+        let offline = LocalFirstRepository(store: InMemoryCompanionStore(), localDeviceID: DeviceID())
+        let beforeMerge = try await local.currentSnapshot()
+        try await offline.replace(beforeMerge)
+        let receipt = try await local.mergeWorkspace(source.id, into: target.id, intoFolder: false)
+        return (local, offline, source, target, receipt)
+    }
+
     func testMergeRejectsTheSameOrAMissingWorkspace() async throws {
         let repository = makeRepository()
         let source = try await repository.createWorkspace(name: "Research")

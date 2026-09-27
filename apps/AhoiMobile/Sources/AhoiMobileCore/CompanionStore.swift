@@ -412,9 +412,13 @@ public actor LocalFirstRepository {
             throw LocalCompanionStoreError.notFound
         }
         let previous = snapshot.workspaces[index]
+        let affectedIDs = Set(snapshot.visibleTreeNodes.filter {
+            $0.workspaceID == id
+        }.map(\.id))
         let version = try nextVersion()
         var deleted = previous
         deleted.version = version
+        deleted.mergedInto = nil
         deleted.tombstone = makeTombstone(
             entityID: id.rawValue,
             version: version,
@@ -425,7 +429,7 @@ public actor LocalFirstRepository {
         snapshot.workspaces[index] = deleted
         var deletedNodes: [TreeNode] = []
         for nodeIndex in snapshot.treeNodes.indices
-            where snapshot.treeNodes[nodeIndex].workspaceID == id
+            where affectedIDs.contains(snapshot.treeNodes[nodeIndex].id)
                 && !snapshot.treeNodes[nodeIndex].isDeleted {
             let oldNode = snapshot.treeNodes[nodeIndex]
             let nodeVersion = try nextVersion()
@@ -704,8 +708,9 @@ public actor LocalFirstRepository {
         moving: TreeNodeID?
     ) throws {
         guard let parentID else { return }
+        let presented = snapshot.treeNodesForPresentation
         guard parentID != moving,
-              let parent = snapshot.treeNodes.first(where: {
+              let parent = presented.first(where: {
                   $0.id == parentID && !$0.isDeleted
               }),
               parent.kind == .folder,
@@ -728,7 +733,7 @@ public actor LocalFirstRepository {
                 cursor = nil
                 continue
             }
-            guard let ancestor = snapshot.treeNodes.first(where: {
+            guard let ancestor = presented.first(where: {
                 $0.id == ancestorID && !$0.isDeleted
             }), ancestor.kind == .folder,
                ancestor.workspaceID == workspaceID else {

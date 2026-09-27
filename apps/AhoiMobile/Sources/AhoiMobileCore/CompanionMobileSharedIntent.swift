@@ -18,7 +18,7 @@ extension LocalFirstRepository {
         if snapshot.mobileAppliedIntents.contains(mutationID) {
             var result = LocalMobileSharedCapture()
             if let id = tab.treeNodeID, let node = snapshot.treeNodes.first(where: { $0.id == id && !$0.isDeleted }) {
-                result.bindings[tab.id] = node
+                result.bindings[tab.id] = snapshot.presentationNode(node.id) ?? node
             }
             return result // Do not re-author after a domain->session-ACK crash.
         }
@@ -31,7 +31,7 @@ extension LocalFirstRepository {
             guard tab.sharedBindingState == .current,
                   let node = snapshot.treeNodes.first(where: { $0.id == id && !$0.isDeleted }),
                   node.kind == .savedPage,
-                  snapshot.visibleWorkspaces.contains(where: { $0.id == node.workspaceID }) else {
+                  snapshot.liveWorkspaceDestination(node.workspaceID) != nil else {
                 throw MobileSharedCaptureError.deferred
             }
             try SharedSyncFormat.validate(node.version, fields: CompanionFieldMerge.treeNodeFields)
@@ -77,7 +77,7 @@ extension LocalFirstRepository {
             result.outbound.nodes.removeAll { $0.id == page.id }
             result.outbound.nodes.append(page)
         }
-        result.bindings[tab.id] = page
+        result.bindings[tab.id] = snapshot.presentationNode(page.id) ?? page
         if let presenceID = tab.presenceID {
             let session = try publishLocalMobileSessionInSnapshot(
                 sessionID: sessionID, deviceName: deviceName, deviceKind: deviceKind, workspaceID: page.workspaceID
@@ -154,7 +154,7 @@ extension CompanionAppModel {
             reserved.insert(id)
             // Restore the exact pre-existing binding before passive projection
             // can create a competing dormant mirror for the same logical page.
-            let matches = snapshot.treeNodes.filter { $0.id == id }
+            let matches = snapshot.treeNodesForPresentation.filter { $0.id == id }
             if matches.count == 1, let node = matches.first {
                 if !tab.pendingSharedMutations.isEmpty {
                     _ = browser.resolvePendingSharedBinding(tab.id, node: node)

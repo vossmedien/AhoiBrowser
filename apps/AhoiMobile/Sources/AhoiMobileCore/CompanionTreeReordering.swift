@@ -19,10 +19,11 @@ extension LocalFirstRepository {
         }
         let previous = snapshot.treeNodes[index]
         if successorID == id { return previous }
+        let presented = snapshot.presentationNode(id) ?? previous
 
         let ordered = snapshot.visibleTreeNodes.filter {
-            $0.workspaceID == previous.workspaceID &&
-                $0.parentID == previous.parentID
+            $0.workspaceID == presented.workspaceID &&
+                $0.parentID == presented.parentID
         }.sorted(by: siblingOrder)
         var withoutMoving = ordered.filter { $0.id != id }
         let insertionIndex: Int
@@ -36,7 +37,7 @@ extension LocalFirstRepository {
         } else {
             insertionIndex = withoutMoving.endIndex
         }
-        withoutMoving.insert(previous, at: insertionIndex)
+        withoutMoving.insert(presented, at: insertionIndex)
         guard withoutMoving.map(\.id) != ordered.map(\.id) else { return previous }
 
         let lower = insertionIndex > 0 ? withoutMoving[insertionIndex - 1] : nil
@@ -44,6 +45,10 @@ extension LocalFirstRepository {
             ? withoutMoving[insertionIndex + 1]
             : nil
         var candidate = previous
+        // The explicit user reorder commits the displayed location; passive
+        // projection alone never changes the authoritative location register.
+        candidate.workspaceID = presented.workspaceID
+        candidate.parentID = presented.parentID
         candidate.orderKey = try OrderKey.between(
             lower?.orderKey,
             upper?.orderKey,

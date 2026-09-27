@@ -91,7 +91,7 @@ extension LocalFirstRepository {
         if let previous {
             try SharedSyncFormat.validate(previous.version, fields: CompanionFieldMerge.treeNodeFields)
             guard let target = try SharedTabURLGroup.of(previous),
-                  snapshot.visibleWorkspaces.contains(where: { $0.id == previous.workspaceID }) else {
+                  snapshot.liveWorkspaceDestination(previous.workspaceID) != nil else {
                 throw LocalCompanionStoreError.invalidSnapshot
             }
             // Save changes persistence/location, never the stale WebKit target,
@@ -143,7 +143,7 @@ extension LocalFirstRepository {
             }
             result.outbound.nodes.append(candidate)
         }
-        result.bindings[tab.id] = candidate
+        result.bindings[tab.id] = snapshot.presentationNode(candidate.id) ?? candidate
 
         if let session, let presenceID {
             guard MobileTabRecord.isNonzeroUUID(session.id.rawValue),

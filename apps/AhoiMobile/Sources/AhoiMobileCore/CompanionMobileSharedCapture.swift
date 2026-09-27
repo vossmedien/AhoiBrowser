@@ -75,6 +75,11 @@ extension LocalFirstRepository {
         try Task.checkCancellation()
         try await persist()
         committed = true
+        // Bind local presentation to the merge destination. The presence and
+        // outbound Page above retain the raw wire authority and clocks.
+        result.bindings = result.bindings.mapValues { page in
+            snapshot.presentationNode(page.id) ?? page
+        }
         return result
     }
 
@@ -90,7 +95,7 @@ extension LocalFirstRepository {
         }
         if let existing = snapshot.treeNodes.first(where: { $0.id == id }) {
             guard !existing.isDeleted, existing.kind == .savedPage,
-                  snapshot.workspaces.contains(where: { $0.id == existing.workspaceID && !$0.isDeleted }) else {
+                  snapshot.liveWorkspaceDestination(existing.workspaceID) != nil else {
                 throw MobileSharedCaptureError.deferred
             }
             try SharedSyncFormat.validate(existing.version, fields: CompanionFieldMerge.treeNodeFields)
