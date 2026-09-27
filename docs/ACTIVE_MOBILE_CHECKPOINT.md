@@ -2,6 +2,37 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Current handback and R1 position work — 27 September 2026
+
+Root explicitly lifted the old readiness wait for light, checkpointed source
+work. Cockpit 1158 runs; 1159 is discarded and 1160 waits on signing, with no
+imminent restart. Do not wait for another Root readiness reply or restart the
+existing native goal. Heavy work still requires a current capacity/ownership
+check. CE3513BF was shut down on Root's request after the bounded C++ source
+check; the foreign Location Guru simulator was not touched.
+
+Source `736207f` addresses a prerequisite of crest 108 R1: imported Desktop
+keys are opaque lexical values, but Mobile previously allocated new positions
+from their numeric decode adapter. For example, appending after native key `Z`
+could produce a canonical hexadecimal key that sorts before it. Create, move,
+merge, save, capture and reorder now preserve lexical bounds when needed;
+the existing fractional path remains for representable canonical positions.
+The fallback also permits insertion between concurrent canonical keys with
+equal numeric components and different writer tie breakers. Comparators use
+exact UTF-8 wire ordering, including canonically equivalent Unicode spellings.
+An explicit merge captures the displayed order of projected source roots.
+
+Four new regression methods cover native append/reorder/persistence,
+move/flat-merge/save, Unicode bounds and canonical tie breakers. Ten changed
+Swift files parse and remain under 800 lines. **Runtime verification is pending
+for this new source**; do not relabel the prior `a747c62` 27/27 result.
+
+Next: finish the stable tail-order projection on both clients, including
+subsequent explicit reorders/insertions (a simple repeated append would undo
+their intended order), integrate crest 112's shared projection runners and
+then run only affected tests on an exact candidate. Root-ordering and complete
+retention acceptance remain open; this position work alone does not close R1.
+
 ## Current result and Root 1159 restart handoff — 27 September 2026
 
 Exact clean source `a747c62` passed **27 XCTest tests, 0 failures, 0 skips**:
