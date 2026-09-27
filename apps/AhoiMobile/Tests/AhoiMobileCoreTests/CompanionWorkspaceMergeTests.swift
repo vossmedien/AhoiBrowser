@@ -4,7 +4,7 @@ import AhoiCloudKitSpike
 
 /// ADR 0012, WS-MERGE-07: merging Workspaces on mobile.
 final class CompanionWorkspaceMergeTests: XCTestCase {
-    private func makeRepository() -> LocalFirstRepository {
+    private static func makeRepository() -> LocalFirstRepository {
         LocalFirstRepository(
             store: InMemoryCompanionStore(),
             localDeviceID: DeviceID(
@@ -14,7 +14,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testMergeIntoFolderKeepsOrderAndUndoRestoresTheSource() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let source = try await repository.createWorkspace(name: "Research")
         let target = try await repository.createWorkspace(name: "Work")
         let kept = try await repository.createTreeNode(
@@ -73,7 +73,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testMergeTargetIsPartOfEqualClockConflictDetection() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let source = try await repository.createWorkspace(name: "Research")
         let target = try await repository.createWorkspace(name: "Work")
         let other = try await repository.createWorkspace(name: "Other")
@@ -96,7 +96,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testNewerMergeTargetWinsWithTheTombstoneFieldGroup() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let source = try await repository.createWorkspace(name: "Research")
         let target = try await repository.createWorkspace(name: "Work")
         let other = try await repository.createWorkspace(name: "Other")
@@ -120,7 +120,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testMergeTargetWireRoundTripAndInvalidDestinations() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let source = try await repository.createWorkspace(name: "Research")
         let target = try await repository.createWorkspace(name: "Work")
         let receipt = try await repository.mergeWorkspace(
@@ -175,7 +175,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testFlatMergeAppendsAfterTheTargetInSourceOrder() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let source = try await repository.createWorkspace(name: "Research")
         let target = try await repository.createWorkspace(name: "Work")
         let kept = try await repository.createTreeNode(
@@ -199,7 +199,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testUndoIsRefusedOnceAMergedRecordChanged() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let source = try await repository.createWorkspace(name: "Research")
         let target = try await repository.createWorkspace(name: "Work")
         let page = try await repository.createTreeNode(
@@ -283,7 +283,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testUndoAllowsAnUnrelatedPageAddedAtTheTargetRoot() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let source = try await repository.createWorkspace(name: "Research")
         let target = try await repository.createWorkspace(name: "Work")
         let moved = try await repository.createTreeNode(
@@ -305,7 +305,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testLateOfflinePageFollowsMergeWithoutRewritingWireAuthority() async throws {
-        let fixture = try await lateMergeFixture()
+        let fixture = try await Self.lateMergeFixture()
         let page = try await fixture.offline.createTreeNode(
             workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
             url: "https://example.test/offline")
@@ -332,7 +332,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testLatePageWaitsForMergeTargetAndFollowsChainsWithoutCycles() async throws {
-        let fixture = try await lateMergeFixture()
+        let fixture = try await Self.lateMergeFixture()
         let page = try await fixture.offline.createTreeNode(
             workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
             url: "https://example.test/offline")
@@ -358,7 +358,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testLateFolderKeepsItsChildrenAndAnUnknownParentDoesNotHideAPage() async throws {
-        let fixture = try await lateMergeFixture()
+        let fixture = try await Self.lateMergeFixture()
         let folder = try await fixture.offline.createTreeNode(
             workspaceID: fixture.source.id, kind: .folder, title: "Offline folder")
         let child = try await fixture.offline.createTreeNode(
@@ -392,7 +392,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testUndoRestoresLatePageWithoutACompetingLocationMutation() async throws {
-        let fixture = try await lateMergeFixture()
+        let fixture = try await Self.lateMergeFixture()
         let page = try await fixture.offline.createTreeNode(
             workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
             url: "https://example.test/offline")
@@ -406,7 +406,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testReorderAndFlatMergeMaterializeThePresentedLocation() async throws {
-        let fixture = try await lateMergeFixture()
+        let fixture = try await Self.lateMergeFixture()
         var page = try await fixture.offline.createTreeNode(
             workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
             url: "https://example.test/offline")
@@ -433,7 +433,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testRenameIntentUsesProjectedBindingButKeepsRawLocationClock() async throws {
-        let fixture = try await lateMergeFixture()
+        let fixture = try await Self.lateMergeFixture()
         let page = try await fixture.offline.createTreeNode(
             workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
             url: "https://example.test/offline")
@@ -460,7 +460,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
 
     @MainActor
     func testPassiveMergeProjectionKeepsWebPageURLAndSelection() async throws {
-        let fixture = try await lateMergeFixture()
+        let fixture = try await Self.lateMergeFixture()
         let page = try await fixture.offline.createTreeNode(
             workspaceID: fixture.source.id, kind: .savedPage, title: "Offline",
             url: "https://example.test/offline")
@@ -484,11 +484,11 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
         browser.close(id)
     }
 
-    private func lateMergeFixture() async throws -> (
+    private static func lateMergeFixture() async throws -> (
         local: LocalFirstRepository, offline: LocalFirstRepository,
         source: Workspace, target: Workspace, receipt: CompanionWorkspaceMergeReceipt
     ) {
-        let local = makeRepository()
+        let local = Self.makeRepository()
         let source = try await local.createWorkspace(name: "Source")
         let target = try await local.createWorkspace(name: "Target")
         let offline = LocalFirstRepository(store: InMemoryCompanionStore(), localDeviceID: DeviceID())
@@ -499,7 +499,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
     }
 
     func testMergeRejectsTheSameOrAMissingWorkspace() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let source = try await repository.createWorkspace(name: "Research")
         for target in [source.id, WorkspaceID()] {
             do {
@@ -513,7 +513,7 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
 
     @MainActor
     func testModelMovesOpenTabsAndUndoMovesThemBack() async throws {
-        let repository = makeRepository()
+        let repository = Self.makeRepository()
         let model = CompanionAppModel(repository: repository)
         await model.load()
         let source = try await repository.createWorkspace(name: "Research")
