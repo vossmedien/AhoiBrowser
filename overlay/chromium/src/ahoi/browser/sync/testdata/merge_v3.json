@@ -1572,6 +1572,551 @@
       "name": "workspace.immutable_change"
     },
     {
+      "dataClass": "workspace",
+      "description": "a merge on one device and a rename on the other converge to the renamed, merged Workspace",
+      "entityType": 1,
+      "existing": {
+        "archive_policy": 0,
+        "created_at": "11644473601000000",
+        "field_versions": {
+          "accent_argb": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "archive_policy": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "created_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "icon": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "modified_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "name": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473604000000"
+          },
+          "sort_key": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "tombstone": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          }
+        },
+        "icon": "compass",
+        "id": "a1000000-0000-4000-8000-000000000001",
+        "model_version": 3,
+        "modified_at": "11644473603000555",
+        "name": "Renamed workspace",
+        "sort_key": "M",
+        "tombstone": false,
+        "version_device": "a0000000-0000-4000-8000-000000000001",
+        "version_logical": 0,
+        "version_model": 3,
+        "version_physical": "11644473604000000"
+      },
+      "expect": {
+        "decision": "mergeFields",
+        "merged": {
+          "archive_policy": 0,
+          "created_at": "11644473601000000",
+          "field_versions": {
+            "accent_argb": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "archive_policy": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "created_at": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "icon": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "modified_at": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 2,
+              "physical": "11644473603000555"
+            },
+            "name": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473604000000"
+            },
+            "sort_key": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "tombstone": {
+              "device": "a0000000-0000-4000-8000-000000000002",
+              "logical": 0,
+              "physical": "11644473605000000"
+            }
+          },
+          "icon": "compass",
+          "id": "a1000000-0000-4000-8000-000000000001",
+          "merged_into": "a1000000-0000-4000-8000-000000000002",
+          "model_version": 3,
+          "modified_at": "11644473603000555",
+          "name": "Renamed workspace",
+          "sort_key": "M",
+          "tombstone": true,
+          "version_device": "a0000000-0000-4000-8000-000000000002",
+          "version_logical": 1,
+          "version_model": 3,
+          "version_physical": "11644473605000000"
+        }
+      },
+      "incoming": {
+        "archive_policy": 0,
+        "created_at": "11644473601000000",
+        "field_versions": {
+          "accent_argb": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "archive_policy": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "created_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "icon": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "modified_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "name": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "sort_key": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "tombstone": {
+            "device": "a0000000-0000-4000-8000-000000000002",
+            "logical": 0,
+            "physical": "11644473605000000"
+          }
+        },
+        "icon": "compass",
+        "id": "a1000000-0000-4000-8000-000000000001",
+        "merged_into": "a1000000-0000-4000-8000-000000000002",
+        "model_version": 3,
+        "modified_at": "11644473603000555",
+        "name": "Fixture workspace",
+        "sort_key": "M",
+        "tombstone": true,
+        "version_device": "a0000000-0000-4000-8000-000000000002",
+        "version_logical": 0,
+        "version_model": 3,
+        "version_physical": "11644473605000000"
+      },
+      "name": "workspace.merge_tombstone_with_rename"
+    },
+    {
+      "dataClass": "workspace",
+      "description": "a newer undo revives the Workspace and drops merged_into with it",
+      "entityType": 1,
+      "existing": {
+        "archive_policy": 0,
+        "created_at": "11644473601000000",
+        "field_versions": {
+          "accent_argb": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "archive_policy": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "created_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "icon": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "modified_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "name": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "sort_key": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "tombstone": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473604000000"
+          }
+        },
+        "icon": "compass",
+        "id": "a1000000-0000-4000-8000-000000000001",
+        "merged_into": "a1000000-0000-4000-8000-000000000002",
+        "model_version": 3,
+        "modified_at": "11644473603000555",
+        "name": "Fixture workspace",
+        "sort_key": "M",
+        "tombstone": true,
+        "version_device": "a0000000-0000-4000-8000-000000000001",
+        "version_logical": 0,
+        "version_model": 3,
+        "version_physical": "11644473604000000"
+      },
+      "expect": {
+        "decision": "acceptIncoming",
+        "merged": {
+          "archive_policy": 0,
+          "created_at": "11644473601000000",
+          "field_versions": {
+            "accent_argb": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "archive_policy": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "created_at": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "icon": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "modified_at": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 2,
+              "physical": "11644473603000555"
+            },
+            "name": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 2,
+              "physical": "11644473603000555"
+            },
+            "sort_key": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "tombstone": {
+              "device": "a0000000-0000-4000-8000-000000000002",
+              "logical": 0,
+              "physical": "11644473605000000"
+            }
+          },
+          "icon": "compass",
+          "id": "a1000000-0000-4000-8000-000000000001",
+          "model_version": 3,
+          "modified_at": "11644473603000555",
+          "name": "Fixture workspace",
+          "sort_key": "M",
+          "tombstone": false,
+          "version_device": "a0000000-0000-4000-8000-000000000002",
+          "version_logical": 0,
+          "version_model": 3,
+          "version_physical": "11644473605000000"
+        }
+      },
+      "incoming": {
+        "archive_policy": 0,
+        "created_at": "11644473601000000",
+        "field_versions": {
+          "accent_argb": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "archive_policy": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "created_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "icon": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "modified_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "name": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "sort_key": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "tombstone": {
+            "device": "a0000000-0000-4000-8000-000000000002",
+            "logical": 0,
+            "physical": "11644473605000000"
+          }
+        },
+        "icon": "compass",
+        "id": "a1000000-0000-4000-8000-000000000001",
+        "model_version": 3,
+        "modified_at": "11644473603000555",
+        "name": "Fixture workspace",
+        "sort_key": "M",
+        "tombstone": false,
+        "version_device": "a0000000-0000-4000-8000-000000000002",
+        "version_logical": 0,
+        "version_model": 3,
+        "version_physical": "11644473605000000"
+      },
+      "name": "workspace.merge_undo_clears_target"
+    },
+    {
+      "dataClass": "workspace",
+      "description": "an older revival does not undo a newer merge",
+      "entityType": 1,
+      "existing": {
+        "archive_policy": 0,
+        "created_at": "11644473601000000",
+        "field_versions": {
+          "accent_argb": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "archive_policy": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "created_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "icon": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "modified_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "name": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "sort_key": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "tombstone": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473605000000"
+          }
+        },
+        "icon": "compass",
+        "id": "a1000000-0000-4000-8000-000000000001",
+        "merged_into": "a1000000-0000-4000-8000-000000000002",
+        "model_version": 3,
+        "modified_at": "11644473603000555",
+        "name": "Fixture workspace",
+        "sort_key": "M",
+        "tombstone": true,
+        "version_device": "a0000000-0000-4000-8000-000000000001",
+        "version_logical": 0,
+        "version_model": 3,
+        "version_physical": "11644473605000000"
+      },
+      "expect": {
+        "decision": "keepExisting",
+        "merged": {
+          "archive_policy": 0,
+          "created_at": "11644473601000000",
+          "field_versions": {
+            "accent_argb": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "archive_policy": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "created_at": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "icon": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "modified_at": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 2,
+              "physical": "11644473603000555"
+            },
+            "name": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 2,
+              "physical": "11644473603000555"
+            },
+            "sort_key": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473601000123"
+            },
+            "tombstone": {
+              "device": "a0000000-0000-4000-8000-000000000001",
+              "logical": 0,
+              "physical": "11644473605000000"
+            }
+          },
+          "icon": "compass",
+          "id": "a1000000-0000-4000-8000-000000000001",
+          "merged_into": "a1000000-0000-4000-8000-000000000002",
+          "model_version": 3,
+          "modified_at": "11644473603000555",
+          "name": "Fixture workspace",
+          "sort_key": "M",
+          "tombstone": true,
+          "version_device": "a0000000-0000-4000-8000-000000000001",
+          "version_logical": 0,
+          "version_model": 3,
+          "version_physical": "11644473605000000"
+        }
+      },
+      "incoming": {
+        "archive_policy": 0,
+        "created_at": "11644473601000000",
+        "field_versions": {
+          "accent_argb": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "archive_policy": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "created_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "icon": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "modified_at": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "name": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 2,
+            "physical": "11644473603000555"
+          },
+          "sort_key": {
+            "device": "a0000000-0000-4000-8000-000000000001",
+            "logical": 0,
+            "physical": "11644473601000123"
+          },
+          "tombstone": {
+            "device": "a0000000-0000-4000-8000-000000000002",
+            "logical": 0,
+            "physical": "11644473604000000"
+          }
+        },
+        "icon": "compass",
+        "id": "a1000000-0000-4000-8000-000000000001",
+        "model_version": 3,
+        "modified_at": "11644473603000555",
+        "name": "Fixture workspace",
+        "sort_key": "M",
+        "tombstone": false,
+        "version_device": "a0000000-0000-4000-8000-000000000002",
+        "version_logical": 0,
+        "version_model": 3,
+        "version_physical": "11644473604000000"
+      },
+      "name": "workspace.stale_revival_loses"
+    },
+    {
       "dataClass": "treeNode",
       "description": "identical records",
       "entityType": 2,
