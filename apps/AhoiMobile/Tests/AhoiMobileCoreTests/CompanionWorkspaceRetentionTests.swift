@@ -26,7 +26,7 @@ final class CompanionWorkspaceRetentionTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("snapshot.json")
         let repository = LocalFirstRepository(store: FileCompanionStore(fileURL: url))
-        let source = try await repository.createWorkspace(name: "Source")
+        let source = try await repository.createWorkspace(name: "é")
         let target = try await repository.createWorkspace(name: "Target")
         let offline = LocalFirstRepository(store: InMemoryCompanionStore(
             snapshot: try await repository.currentSnapshot()))
@@ -47,7 +47,9 @@ final class CompanionWorkspaceRetentionTests: XCTestCase {
             XCTAssertEqual(error as? CompanionWorkspaceCompactionError, .notExpiredTombstone)
         }
         var changed = merged
-        changed.name = "stale copy"
+        changed.name = "e\u{301}" // Swift equality can fold this; wire bytes cannot.
+        XCTAssertEqual(changed.name, merged.name)
+        XCTAssertNotEqual(Data(changed.name.utf8), Data(merged.name.utf8))
         do {
             _ = try await repository.compactWorkspaceTombstone(
                 matching: changed, nowMilliseconds: expiry)

@@ -56,7 +56,14 @@ extension LocalFirstRepository {
               nowMilliseconds >= retentionFloor else {
             throw CompanionWorkspaceCompactionError.notExpiredTombstone
         }
-        guard snapshot.workspaces.filter({ $0.id == expected.id }) == [expected] else {
+        let current = snapshot.workspaces.filter { $0.id == expected.id }
+        guard current.count == 1 else {
+            throw CompanionWorkspaceCompactionError.sourceChanged
+        }
+        let codec = DesktopWirePayloadCodec()
+        let currentBytes = try codec.encode(current[0])
+        let expectedBytes = try codec.encode(expected)
+        guard currentBytes == expectedBytes else {
             throw CompanionWorkspaceCompactionError.sourceChanged
         }
         var candidate = snapshot
