@@ -2,6 +2,15 @@
 
 ## Current R1 continuation — 27 September 2026, 07:03 CEST
 
+Owner source review of Crest 124 and 126 found two open R1 acceptance defects:
+the Desktop position allocator can produce invalid UTF-8 between opaque keys,
+and an ordinary raw key that resembles a derived merge-root marker can be
+misclassified as a moved root on both clients. Their handoffs remain queued
+for separate design/fix and exact native replay; no runtime pass is claimed.
+The new 128→130 shared merge-vector testdata was integrated in `81a26f3`
+without a Desktop build or test run. The installed build remains older than
+these changes.
+
 Root explicitly resumed light checkpointed source work; Cockpit 1158 runs,
 1159 is discarded and 1160 awaits signing, with no immediate restart. No
 readiness loop or new goal is needed. Older holds below are historical.
