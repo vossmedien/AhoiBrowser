@@ -154,8 +154,8 @@ their owned foreground process group; synthetic HID input also cancels a run.
 
 | Metric | Scenario | Definition |
 | --- | --- | --- |
-| `startup_first_launch_ms` | `startup` | process spawn → `loadEventEnd` of a local start page, fresh profile (first launch) |
-| `startup_warm_ms` | `startup` | same, second launch of that profile |
+| `startup_first_launch_ms` | `startup` | process spawn → Chromium `first-paint` Performance Entry of a local start page, fresh profile (first launch) |
+| `startup_warm_ms` | `startup` | same paint event on the second launch of that profile |
 | `devtools_ready_*_ms` | `startup` | spawn → DevTools endpoint answers (diagnostic) |
 | `memory_1_tabs_kib`, `memory_20_tabs_kib` | `memory` | sum of RSS over the browser process tree after 20 s settle; local content pages |
 | `processes_*_tabs` | `memory` | process count of the tree |
@@ -165,6 +165,14 @@ their owned foreground process group; synthetic HID input also cancels a run.
 | `workspace_switch_ms` | `trace` | duration of `Ahoi.Workspace.Switch` (handoff 002) |
 
 Known limits, stated in every report:
+
+- Startup scenario version 2 requires the browser's actual `first-paint` entry
+  with a timestamp between process spawn and receipt by the local fixture
+  server. `loadEventEnd` remains a diagnostic in the mark but cannot replace
+  a missing paint. Scenario version 1 measured load completion; its startup
+  samples are always `INSUFFICIENT` for PERF-02 even when paired with another
+  version-1 run. This page paint is not proof of Ahoi's first native-window
+  frame; that distinction is recorded in the run scope.
 
 - RSS double-counts shared pages. It is used only for like-for-like
   comparison; physical-footprint accounting is future work.

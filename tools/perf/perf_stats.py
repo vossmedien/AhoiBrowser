@@ -116,6 +116,10 @@ def evaluate_budget(budget_id: str, candidate: dict, baseline: Optional[dict]) -
     if candidate.get("conditions", {}).get("validationRun"):
         return {**result, "verdict": "INSUFFICIENT",
                 "reason": "validation run on a busy or attended host"}
+    if metric in ("startup_warm_ms", "startup_first_launch_ms") and \
+            candidate.get("conditions", {}).get("scenarioVersion") != 2:
+        return {**result, "verdict": "INSUFFICIENT",
+                "reason": "startup samples predate first-paint scenario version 2"}
     guard = candidate.get("runtimeGuard", {})
     if not isinstance(guard, dict) or guard.get("completed") is not True or guard.get("cancelled") is not False:
         return {**result, "verdict": "INSUFFICIENT",
@@ -134,6 +138,10 @@ def evaluate_budget(budget_id: str, candidate: dict, baseline: Optional[dict]) -
     base_values = (baseline or {}).get("metrics", {}).get(metric)
     if not base_values:
         return {**result, "verdict": "INSUFFICIENT", "reason": "no baseline samples"}
+    if metric in ("startup_warm_ms", "startup_first_launch_ms") and \
+            baseline.get("conditions", {}).get("scenarioVersion") != 2:
+        return {**result, "verdict": "INSUFFICIENT",
+                "reason": "baseline startup samples predate first-paint scenario version 2"}
     guard = baseline.get("runtimeGuard", {})
     if not isinstance(guard, dict) or guard.get("completed") is not True or guard.get("cancelled") is not False:
         return {**result, "verdict": "INSUFFICIENT",

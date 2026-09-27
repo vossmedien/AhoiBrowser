@@ -20,6 +20,7 @@ import datetime as dt
 import hashlib
 import http.server
 import json
+import math
 import os
 import pathlib
 import plistlib
@@ -41,7 +42,7 @@ import perf_stats  # noqa: E402
 import owned_process  # noqa: E402
 import runtime_guard  # noqa: E402
 
-SCENARIO_VERSION = 1
+SCENARIO_VERSION = 2
 INSTALLED_APP = pathlib.Path("/Applications/AhoiBrowser.app")
 BUSY_PROCESSES = ("ninja", "autoninja", "siso", "clang", "clang++", "ld64.lld",
                   "lld", "swift-frontend", "xcodebuild", "rustc")
@@ -189,13 +190,39 @@ def app_identity(app: pathlib.Path) -> dict:
 # --------------------------------------------------------------------------- fixtures
 
 START_PAGE = """<!doctype html><title>ahoi perf start</title><h1>start</h1><script>
-addEventListener('load', () => setTimeout(() => {
-  const n = performance.getEntriesByType('navigation')[0];
+// The local page is renderable before this parser-blocking script. Chromium's
+// buffered paint entry names the actual first rendered frame, independently of
+// load-event/network timing. A missing paint is a failed sample, never a proxy.
+let paintChecks = 0;
+function reportFirstPaint() {
+  const entry = performance.getEntriesByType('paint').find(e => e.name === 'first-paint');
+  if (!entry && ++paintChecks < 150) {
+    setTimeout(reportFirstPaint, 100);
+    return;
+  }
+  const navigation = performance.getEntriesByType('navigation')[0];
   fetch('/mark', {method: 'POST', body: JSON.stringify({
     label: new URLSearchParams(location.search).get('run'),
-    loadEventEndEpochMs: performance.timeOrigin + n.loadEventEnd})});
-}, 0));
+    firstPaintEpochMs: entry ? performance.timeOrigin + entry.startTime : null,
+    loadEventEndEpochMs: navigation ? performance.timeOrigin + navigation.loadEventEnd : null,
+    paintEntryName: entry ? entry.name : null})});
+}
+addEventListener('load', () => setTimeout(reportFirstPaint, 0));
 </script>"""
+
+
+def first_paint_ms(mark: dict, spawned_epoch_ms: float) -> float:
+    """Require the browser's paint entry, not a load/receipt timing proxy."""
+    value = mark.get("firstPaintEpochMs")
+    received = mark.get("receivedEpochMs")
+    if (mark.get("paintEntryName") != "first-paint" or
+            type(value) not in (int, float) or
+            type(received) not in (int, float) or
+            not all(math.isfinite(number) for number in
+                    (value, received, spawned_epoch_ms)) or
+            not spawned_epoch_ms <= value <= received):
+        raise ValueError("startup sample lacks a bounded first-paint entry")
+    return value - spawned_epoch_ms
 
 
 def content_page(index: int) -> str:
@@ -367,7 +394,7 @@ def scenario_startup(app, fixtures, port, flags, label, workdir) -> dict:
         run_label = f"{label}-{phase}"
         with Browser(app, profile, port, fixtures.url(f"/start?run={run_label}"), flags) as browser:
             mark = fixtures.wait_mark(run_label, 60)
-            samples[f"startup_{phase}_ms"] = mark["loadEventEndEpochMs"] - browser.spawn_epoch_ms
+            samples[f"startup_{phase}_ms"] = first_paint_ms(mark, browser.spawn_epoch_ms)
             samples[f"devtools_ready_{phase}_ms"] = browser.devtools_ready_ms
             measurement_sleep(3)
         measurement_sleep(2)

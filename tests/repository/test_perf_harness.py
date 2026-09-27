@@ -19,7 +19,7 @@ import run_desktop_perf as runner  # noqa: E402
 
 CONDITIONS = {"chromiumVersion": "153.0.8010.53", "hardwareModel": "Mac16,1",
               "osBuild": "26A1", "powerSource": "ac", "flags": ["--x"],
-              "windowSize": "1440,900", "accessibilityClients": [], "scenarioVersion": 1}
+              "windowSize": "1440,900", "accessibilityClients": [], "scenarioVersion": 2}
 
 
 def run_file(baseline=False, **metrics):
@@ -40,6 +40,18 @@ def verdict(evaluation, budget):
 
 
 class StatsTest(unittest.TestCase):
+    def test_legacy_load_end_startup_cannot_pass_first_paint_budget(self):
+        candidate = run_file(startup_warm_ms=[1000] * 5,
+                             startup_first_launch_ms=[1300] * 5)
+        baseline = run_file(baseline=True, startup_warm_ms=[1000] * 5,
+                            startup_first_launch_ms=[1300] * 5)
+        candidate["conditions"]["scenarioVersion"] = 1
+        baseline["conditions"]["scenarioVersion"] = 1
+        evaluation = ps.evaluate(candidate, baseline)
+        self.assertFalse(evaluation["pass"])
+        for budget in ("PERF-02", "PERF-02-first"):
+            self.assertEqual(verdict(evaluation, budget)["verdict"], "INSUFFICIENT")
+
     def test_percentile_is_nearest_rank(self):
         self.assertEqual(ps.percentile(list(range(1, 21)), 0.95), 19)
         self.assertEqual(ps.percentile([5.0], 0.95), 5.0)
@@ -213,6 +225,20 @@ class CDPTest(unittest.TestCase):
 
 
 class RunnerTest(unittest.TestCase):
+    def test_startup_requires_a_real_bounded_first_paint(self):
+        mark = {"paintEntryName": "first-paint", "firstPaintEpochMs": 1100.0,
+                "loadEventEndEpochMs": 1200.0, "receivedEpochMs": 1250.0}
+        self.assertEqual(runner.first_paint_ms(mark, 1000.0), 100.0)
+        for changed in ({"firstPaintEpochMs": None}, {"paintEntryName": None},
+                        {"firstPaintEpochMs": True}, {"firstPaintEpochMs": float("nan")},
+                        {"firstPaintEpochMs": 999.0}, {"firstPaintEpochMs": 1251.0},
+                        {"receivedEpochMs": None}):
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                runner.first_paint_ms({**mark, **changed}, 1000.0)
+        with self.assertRaises(ValueError):
+            runner.first_paint_ms({"loadEventEndEpochMs": 1200.0,
+                                   "receivedEpochMs": 1250.0}, 1000.0)
+
     def test_parse_cputime(self):
         self.assertAlmostEqual(runner.parse_cputime("0:01.50"), 1.5)
         self.assertAlmostEqual(runner.parse_cputime("1:02:03.00"), 3723.0)
@@ -257,13 +283,14 @@ class RunnerTest(unittest.TestCase):
         fixtures = runner.FixtureServer()
         try:
             body = urllib.request.urlopen(fixtures.url("/start?run=a")).read().decode()
-            self.assertIn("loadEventEnd", body)
+            self.assertIn("first-paint", body)
             self.assertIn("page 3", urllib.request.urlopen(fixtures.url("/page/3")).read().decode())
             request = urllib.request.Request(
                 fixtures.url("/mark"), method="POST",
-                data=json.dumps({"label": "a", "loadEventEndEpochMs": 5}).encode())
+                data=json.dumps({"label": "a", "firstPaintEpochMs": 5,
+                                 "paintEntryName": "first-paint"}).encode())
             urllib.request.urlopen(request).read()
-            self.assertEqual(fixtures.wait_mark("a", 2)["loadEventEndEpochMs"], 5)
+            self.assertEqual(fixtures.wait_mark("a", 2)["firstPaintEpochMs"], 5)
         finally:
             fixtures.close()
 

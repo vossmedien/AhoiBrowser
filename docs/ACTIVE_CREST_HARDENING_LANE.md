@@ -362,13 +362,30 @@ merge. Both findings include exact source paths, inputs and required native
 capture/replay checks. They are source findings, not new runtime failures.
 Owner product paths and resource locks remain untouched.
 
-Next allowed lane work: review the remaining 118 real Desktop allocator/capture
-scope, then finish H1's eight missing entity classes and seeded operation
-sequences. Owner integration and actual 122 differential runs remain open.
-Continue the explicitly missing H3/H7 source work and owner integration
-review. Runtime work still requires its own newly open owner lease. Actual
-H3/H5 runs still need matching candidates and a newly open owner lease;
-test/capacity gates remain.
+Root's new account/model handback removes the old Cockpit restart wait. Current
+Root builds Cockpit with two jobs, so Crest starts no heavy compiler, simulator,
+browser or measurement action. The installed-app/host-quiet H3 lease and the
+external H5/CloudKit/decision gates are unchanged. Crest's own paths were
+clean at `8081174`; no concurrent product writer was started.
+
+H3 source continuation: `startup_first_launch_ms` and `startup_warm_ms` now
+measure Chromium's actual `first-paint` Performance Entry for the local start
+page, bounded by process spawn and the fixture server's receipt time. Missing
+paint aborts that sample; `loadEventEnd` is diagnostic only. Scenario version
+2 and a negative evaluator control make all old version-1 load-end startup
+results `INSUFFICIENT` for PERF-02 even when both apps used version 1. The
+methodology distinguishes page paint from the first native Ahoi window frame.
+All **62** focused local performance tests pass, including missing/invalid
+paint marks and legacy false-PASS prevention; Python parsing/diff checks pass.
+This is source/evaluator evidence, not a real-candidate paint measurement or
+full H3 budget result. Foreground/window, Memory Saver, presentation frame,
+release pair and current lease work remain open.
+
+Next allowed lane work: finish H1's eight missing entity classes and seeded
+operation sequences, and the remaining H3/H7 source gaps. Owner integration
+and actual 122 differential runs remain open. Runtime work still requires its
+own newly open owner lease. Actual H3/H5 runs need matching candidates and a
+newly open owner lease; test/capacity gates remain.
 No polling/background resource watcher was installed. The older dated sections
 below are retained as history and do not override this continuation.
 
