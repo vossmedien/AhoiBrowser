@@ -4,6 +4,21 @@ Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, 
 
 ## Current R1 result — 27 September 2026, 07:03 CEST
 
+Mobile upload acknowledgement source continuation: a successful
+`CKSyncEngine.savedRecords` callback now records an atomic local receipt only
+when its decoded encrypted tombstone equals the current cached `SyncRecord`.
+The receipt stores a SHA-256 digest bound to account, CloudKit container and
+zone. `FileSyncRecordStore` restores it from a separate local sidecar; a stale
+callback or later record mutation does not authorize the new bytes. A direct
+file-store regression covers restart, stale callback and scope mismatch.
+This is still source plus parsing evidence: the provider callback and the
+full compaction path have **not** run against a CloudKit server. Next connect
+the current-scope receipt plus an empty pending-save queue to an expiry check,
+persist domain watermark and payload removal atomically, then remove only the
+matching local transport cache entry and suppress rehydration of compacted
+identities. Crash/reopen and inbound duplicate/quarantine tests must bind the
+same frozen candidate. No physical CloudKit delete is part of this flow.
+
 Mobile retention source continuation after `91d6bd1`: `CompanionSnapshot` now
 has an optional, receiver-local deletion-watermark array carrying entity type,
 ID, version, compaction time and only for Workspace merges a target ID. The
@@ -25,16 +40,15 @@ The direct regression checks all three cases plus unchanged persisted raw Page
 state. The bridge file remains under 800 lines. This guard is not a claim that
 the transport cache already removes acknowledged tombstones.
 
-The remaining retention work is now localized: `applySent` records CloudKit
-system fields but no durable receipt tied to the exact uploaded tombstone;
-`acknowledgeFetchedRecords` only drains the fetched inbox. `FileSyncRecordStore`
-has no guarded local purge, while the domain Snapshot is another atomic file.
-Implement an exact-record upload acknowledgement, reject/quarantine post-
-watermark resurrection on domain import, then order domain watermark+payload
-removal before local transport-cache removal so interruption cannot lose the
-route or rehydrate a stale tombstone. Test failure/reopen at each boundary and
-preserve raw Page bytes. No existing CloudKit physical-delete permission is
-inferred. The Desktop implementation remains a separate SQLite transaction.
+The remaining retention work is now localized: `acknowledgeFetchedRecords`
+only drains the fetched inbox. `FileSyncRecordStore` has no guarded local
+purge, while the domain Snapshot is another atomic file. The new exact upload
+receipt and Workspace ingress guard above are prerequisites; order domain
+watermark+payload removal before local transport-cache removal so interruption
+cannot lose the route or rehydrate a stale tombstone. Test failure/reopen at
+each boundary and preserve raw Page bytes. No existing CloudKit physical-delete
+permission is inferred. The Desktop implementation remains a separate SQLite
+transaction.
 
 The visible Workspace list now uses the same UTF-8 byte order as the wire,
 with a deterministic canonical-equivalence regression (`ce24827`). This

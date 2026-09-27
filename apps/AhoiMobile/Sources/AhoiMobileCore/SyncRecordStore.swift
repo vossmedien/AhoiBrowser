@@ -1,5 +1,10 @@
 import Foundation
+import CryptoKit
 import AhoiCloudKitSpike
+
+private enum UploadedTombstoneReceiptError: Error {
+    case invalidScope
+}
 
 public protocol LocalSyncRecordStore: Sendable {
     func record(for recordID: UUID) async throws -> SyncRecord?
@@ -11,6 +16,13 @@ public protocol LocalSyncRecordStore: Sendable {
     func stageFetchedRecords(_ records: [SyncRecord]) async throws
     func fetchedRecords() async throws -> [SyncRecord]
     func acknowledgeFetchedRecords(_ records: [SyncRecord]) async throws
+    /// A server save receipt for the exact current encrypted tombstone bytes.
+    func acknowledgeUploadedTombstones(
+        _ records: [SyncRecord], accountID: String, containerID: String, zoneName: String
+    ) async throws
+    func isUploadedTombstoneAcknowledged(
+        _ record: SyncRecord, accountID: String, containerID: String, zoneName: String
+    ) async throws -> Bool
 }
 
 public enum SyncRecordMergePolicy: Equatable, Sendable {
@@ -51,6 +63,7 @@ public extension LocalSyncRecordStore {
 public actor InMemorySyncRecordStore: LocalSyncRecordStore {
     private var records: [UUID: SyncRecord]
     private var stagedFetchedRecords: [SyncRecord]
+    private var uploadedTombstoneReceipts: [UUID: UploadedTombstoneReceipt] = [:]
 
     public init(
         records: [SyncRecord] = [],
@@ -116,6 +129,29 @@ public actor InMemorySyncRecordStore: LocalSyncRecordStore {
         let acknowledged = Set(records)
         stagedFetchedRecords.removeAll { acknowledged.contains($0) }
     }
+
+    public func acknowledgeUploadedTombstones(
+        _ uploaded: [SyncRecord], accountID: String, containerID: String, zoneName: String
+    ) async throws {
+        guard !accountID.isEmpty, !containerID.isEmpty, !zoneName.isEmpty else {
+            throw UploadedTombstoneReceiptError.invalidScope
+        }
+        for record in uploaded where record.tombstone != nil &&
+            records[record.recordID] == record {
+            uploadedTombstoneReceipts[record.recordID] = try UploadedTombstoneReceipt(
+                accountID: accountID, containerID: containerID, zoneName: zoneName,
+                digest: SyncRecordUploadDigest.of(record))
+        }
+    }
+
+    public func isUploadedTombstoneAcknowledged(
+        _ record: SyncRecord, accountID: String, containerID: String, zoneName: String
+    ) async throws -> Bool {
+        guard record.tombstone != nil, records[record.recordID] == record else { return false }
+        return try uploadedTombstoneReceipts[record.recordID] == UploadedTombstoneReceipt(
+            accountID: accountID, containerID: containerID, zoneName: zoneName,
+            digest: SyncRecordUploadDigest.of(record))
+    }
 }
 
 /// Durable local payload storage for CKSyncEngine's pending record IDs. The
@@ -128,14 +164,18 @@ public actor InMemorySyncRecordStore: LocalSyncRecordStore {
 public actor FileSyncRecordStore: LocalSyncRecordStore {
     private let fileURL: URL
     private let fetchedRecordsURL: URL
+    private let uploadedTombstonesURL: URL
     private var records: [UUID: SyncRecord]
     private var stagedFetchedRecords: [SyncRecord]
+    private var uploadedTombstoneReceipts: [UUID: UploadedTombstoneReceipt]
     private let encoder: JSONEncoder
 
     public init(fileURL: URL) throws {
         let fetchedRecordsURL = fileURL.appendingPathExtension("fetched")
+        let uploadedTombstonesURL = fileURL.appendingPathExtension("uploaded-tombstones")
         self.fileURL = fileURL
         self.fetchedRecordsURL = fetchedRecordsURL
+        self.uploadedTombstonesURL = uploadedTombstonesURL
         self.encoder = JSONEncoder()
         self.encoder.outputFormatting = [.sortedKeys]
         if FileManager.default.fileExists(atPath: fileURL.path) {
@@ -157,6 +197,13 @@ public actor FileSyncRecordStore: LocalSyncRecordStore {
             }
         } else {
             self.stagedFetchedRecords = []
+        }
+        if FileManager.default.fileExists(atPath: uploadedTombstonesURL.path) {
+            self.uploadedTombstoneReceipts = try JSONDecoder().decode(
+                [UUID: UploadedTombstoneReceipt].self,
+                from: Data(contentsOf: uploadedTombstonesURL))
+        } else {
+            self.uploadedTombstoneReceipts = [:]
         }
     }
 
@@ -234,6 +281,41 @@ public actor FileSyncRecordStore: LocalSyncRecordStore {
         }
     }
 
+    public func acknowledgeUploadedTombstones(
+        _ uploaded: [SyncRecord], accountID: String, containerID: String, zoneName: String
+    ) async throws {
+        guard !accountID.isEmpty, !containerID.isEmpty, !zoneName.isEmpty else {
+            throw UploadedTombstoneReceiptError.invalidScope
+        }
+        let previous = uploadedTombstoneReceipts
+        for record in uploaded where record.tombstone != nil &&
+            records[record.recordID] == record {
+            uploadedTombstoneReceipts[record.recordID] = try UploadedTombstoneReceipt(
+                accountID: accountID, containerID: containerID, zoneName: zoneName,
+                digest: SyncRecordUploadDigest.of(record))
+        }
+        guard uploadedTombstoneReceipts != previous else { return }
+        do {
+            let data = try encoder.encode(uploadedTombstoneReceipts)
+            try FileManager.default.createDirectory(
+                at: uploadedTombstonesURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true)
+            try data.write(to: uploadedTombstonesURL, options: [.atomic])
+        } catch {
+            uploadedTombstoneReceipts = previous
+            throw error
+        }
+    }
+
+    public func isUploadedTombstoneAcknowledged(
+        _ record: SyncRecord, accountID: String, containerID: String, zoneName: String
+    ) async throws -> Bool {
+        guard record.tombstone != nil, records[record.recordID] == record else { return false }
+        return try uploadedTombstoneReceipts[record.recordID] == UploadedTombstoneReceipt(
+            accountID: accountID, containerID: containerID, zoneName: zoneName,
+            digest: SyncRecordUploadDigest.of(record))
+    }
+
     private func persist() throws {
         let data = try encoder.encode(records)
         try FileManager.default.createDirectory(
@@ -250,6 +332,21 @@ public actor FileSyncRecordStore: LocalSyncRecordStore {
             withIntermediateDirectories: true
         )
         try data.write(to: fetchedRecordsURL, options: [.atomic])
+    }
+}
+
+private struct UploadedTombstoneReceipt: Codable, Equatable, Sendable {
+    let accountID: String
+    let containerID: String
+    let zoneName: String
+    let digest: Data
+}
+
+private enum SyncRecordUploadDigest {
+    static func of(_ record: SyncRecord) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        return Data(SHA256.hash(data: try encoder.encode(record)))
     }
 }
 

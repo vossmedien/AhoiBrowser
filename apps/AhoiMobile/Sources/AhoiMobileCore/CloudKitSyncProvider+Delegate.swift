@@ -458,7 +458,15 @@ extension CloudKitSyncProvider {
     ) async {
         if !changes.savedRecords.isEmpty {
             do {
+                guard let accountID = statusLock.withLock({ lastKnownAccountIdentifier }) else {
+                    markStatePersistenceFailure()
+                    return
+                }
                 try await persistSystemFields(for: changes.savedRecords)
+                let uploaded = try changes.savedRecords.map { try codec.decode($0) }
+                try await recordStore.acknowledgeUploadedTombstones(
+                    uploaded, accountID: accountID,
+                    containerID: configuration.containerIdentifier, zoneName: zoneID.zoneName)
             } catch {
                 markStatePersistenceFailure()
             }

@@ -2,6 +2,14 @@
 
 ## Current R1 candidate and evidence — 27 September 2026, 07:03 CEST
 
+The Mobile transport-cache source now persists a server-upload receipt for
+exact encrypted tombstone bytes and binds it to account, container and zone.
+Only `savedRecords` callbacks may write the production receipt; a changed
+record or old account cannot satisfy it. The file-store regression covers
+restart/stale callbacks/scope mismatch. Swift parses; no CloudKit/server test
+or purge is claimed. Current host sample showed 0% CPU idle, load 155 and
+foreign Cockpit/iOS jobs, so no new compiler, simulator or test round began.
+
 Crest 122's frozen exporter patch is integrated after 120. The two existing
 native merge runners now record their **actual** codec payloads and decode/
 merge rejection stage, with optional owner-selected input corpus, fixture

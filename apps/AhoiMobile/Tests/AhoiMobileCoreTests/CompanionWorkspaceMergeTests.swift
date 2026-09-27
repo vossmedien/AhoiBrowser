@@ -459,6 +459,63 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
         XCTAssertNil(snapshot.liveWorkspaceDestination(fixture.source.id))
     }
 
+    func testUploadReceiptMatchesExactEncryptedTombstoneAcrossRestart() async throws {
+        let fixture = try await Self.lateMergeFixture()
+        let tombstone = workspaceEnvelope(fixture.receipt.source)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "AhoiMergeAck-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("records.json")
+
+        let initial = try FileSyncRecordStore(fileURL: url)
+        try await initial.upsert(tombstone)
+        let beforeAck = try await initial.isUploadedTombstoneAcknowledged(
+            tombstone, accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        XCTAssertFalse(beforeAck)
+        try await initial.acknowledgeUploadedTombstones(
+            [tombstone], accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        let restarted = try FileSyncRecordStore(fileURL: url)
+        let afterRestart = try await restarted.isUploadedTombstoneAcknowledged(
+            tombstone, accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        XCTAssertTrue(afterRestart)
+        let otherAccount = try await restarted.isUploadedTombstoneAcknowledged(
+            tombstone, accountID: "account-b", containerID: "container-a", zoneName: "zone-a")
+        let otherZone = try await restarted.isUploadedTombstoneAcknowledged(
+            tombstone, accountID: "account-a", containerID: "container-a", zoneName: "zone-b")
+        let otherContainer = try await restarted.isUploadedTombstoneAcknowledged(
+            tombstone, accountID: "account-a", containerID: "container-b", zoneName: "zone-a")
+        XCTAssertFalse(otherAccount)
+        XCTAssertFalse(otherZone)
+        XCTAssertFalse(otherContainer)
+
+        let changed = SyncRecord(
+            recordID: tombstone.recordID, entityID: tombstone.entityID,
+            dataClass: tombstone.dataClass, modifiedAt: tombstone.modifiedAt,
+            originatingDevice: tombstone.originatingDevice,
+            encryptedValue: .init(keyVersion: 1,
+                nonce: Data(repeating: 0x51, count: 12),
+                ciphertextAndTag: Data(repeating: 0x52, count: 16)),
+            tombstone: tombstone.tombstone)
+        try await restarted.upsert(changed)
+        let afterMutation = try await restarted.isUploadedTombstoneAcknowledged(
+            changed, accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        XCTAssertFalse(afterMutation)
+        try await restarted.acknowledgeUploadedTombstones(
+            [tombstone], accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        let afterStaleAck = try await restarted.isUploadedTombstoneAcknowledged(
+            changed, accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        XCTAssertFalse(afterStaleAck)
+        try await restarted.acknowledgeUploadedTombstones(
+            [changed], accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        let final = try FileSyncRecordStore(fileURL: url)
+        let currentAck = try await final.isUploadedTombstoneAcknowledged(
+            changed, accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        let oldAck = try await final.isUploadedTombstoneAcknowledged(
+            tombstone, accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        XCTAssertTrue(currentAck)
+        XCTAssertFalse(oldAck)
+    }
+
     func testUndoRestoresLatePageWithoutACompetingLocationMutation() async throws {
         let fixture = try await Self.lateMergeFixture()
         let page = try await fixture.offline.createTreeNode(
