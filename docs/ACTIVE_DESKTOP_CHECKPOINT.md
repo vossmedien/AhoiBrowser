@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Current R1 continuation — 27 September 2026, 07:03 CEST
+
+Root explicitly resumed light checkpointed source work; Cockpit 1158 runs,
+1159 is discarded and 1160 awaits signing, with no immediate restart. No
+readiness loop or new goal is needed. Older holds below are historical.
+
+Frozen `cfd0127` adds stable merge-root tail ordering on both clients and
+crest 112's shared production-adapter readers. Exact Swift evidence is 34/34,
+including 140 field-merge vectors and 279 projection permutations. The changed
+adapter, merge tests and new C++ fixture runner pass pinned-Clang syntax/type
+checks at max two processes. [C++ evidence and limits](../artifacts/tests/cpp-sync-syntax-cfd0127-20260927/README.md);
+[Swift evidence](../artifacts/tests/mobile-merge-cfd0127-20260927/README.md).
+This is not a Desktop binary, native test execution or installed acceptance.
+Installed build 40 / `6acd207` remains the last evidenced bundle.
+
+Crest 114's retention fallback correction is integrated (`2bd75cb`). Full
+native retention, 118 real writer/capture/cross-platform replay and Mobile
+compaction remain open. Continue with 120's byte-exact field equality source
+intake, then the remaining bounded source work. A later guarded Desktop build
+and tests require current resource/ownership checks. Build lock released;
+CE3513BF is Shutdown, Location Guru untouched. Original goal and external
+gates remain unchanged; no App/API/trading or release action was taken.
+
 ## Current Codex handover and build recovery — 27 September 2026
 
 **Latest handoff, Root 1159:** Mobile source `a747c62` has completed the focused

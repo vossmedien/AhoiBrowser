@@ -1,6 +1,6 @@
 # 112 – Shared Format-3 Workspace merge apply fixture
 
-Status: ready
+Status: integrated in cfd0127; exact Swift 279 projections pass (34/34 focused methods); C++ reader passes source analysis, native execution pending. Evidence: artifacts/tests/mobile-merge-cfd0127-20260927 and artifacts/tests/cpp-sync-syntax-cfd0127-20260927.
 Owner lanes: desktop/sync and mobile (integrate matching adapter runners)
 Owner-selected path: `fixtures/sync-conformance/workspace_merge_projection_v3.json`
 SHA-256: `4dd5370f84742aa022a6f690d075f5313db9aa25be37254780eefafa0a317dc8`

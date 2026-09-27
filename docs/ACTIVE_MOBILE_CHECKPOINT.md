@@ -2,6 +2,31 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Current R1 result — 27 September 2026, 07:03 CEST
+
+Exact source `cfd0127` passes **34/34 focused XCTest methods, zero failures or
+skips**: merge 21, reorder 6, saved pages 4, conformance 3. This exercises all
+140 field-merge vectors and crest 112's 23 cases / 31 frames / 279 array-order
+projections. [Source, fixture and binary-bound evidence](../artifacts/tests/mobile-merge-cfd0127-20260927/README.md).
+It supersedes the pending-runtime statement for `736207f` below.
+
+Late merged roots now appear after the target's ordinary roots. A deterministic
+workspace-scoped suffix in the existing opaque sort key lets subsequent real
+move/insert operations retain their intended order during passive projection;
+only explicit writes acquire new location clocks. Raw passive records remain
+unchanged. The new direct regression covers move, insert, repeated projection,
+persist/reload and received undo. The matching C++ source and shared reader
+pass syntax/type analysis; C++ behavioral and full crest 118 operational /
+cross-platform replay acceptance remain open.
+
+The bounded run used one job after capacity/ownership checks. At completion
+CE3513BF is Shutdown, the owner build lock is released, and the foreign Location
+Guru simulator remains untouched. Light source work continues under Root's
+explicit handback; the original native goal stays active. No new heavy round
+is implied. Next source intake: crest 120's byte-exact sort-key field equality,
+then remaining 118 mutation/capture cases and Mobile acknowledged compaction.
+The unchanged earlier 27/27 suite is not a reason for another run.
+
 ## Current handback and R1 position work — 27 September 2026
 
 Root explicitly lifted the old readiness wait for light, checkpointed source

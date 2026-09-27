@@ -1,6 +1,6 @@
 # 114 – Review of retained merge routing after compaction
 
-Status: ready (source review plus minimal follow-up patch; native tests pending)
+Status: integrated in 2bd75cb; adapter and strengthened merge tests pass pinned-Clang source analysis at cfd0127; native retention/fallback execution pending.
 Owner: desktop/sync; base `5a7d6b3`, checkpoint `31f592f`
 Scope: 108 retention follow-up. Review only; no product files modified or tests run.
 

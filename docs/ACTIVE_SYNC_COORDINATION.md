@@ -1,5 +1,34 @@
 # Active sync coordination
 
+## Current R1 candidate and evidence — 27 September 2026, 07:03 CEST
+
+Source `cfd0127` implements target-tail root projection on Desktop and Mobile,
+preserving later explicit positions by rebasing a workspace-scoped suffix in
+the existing opaque key. Passive raw records/field clocks remain unchanged.
+Both production adapters have crest 112 readers registered; the shared fixture
+and Desktop copy retain SHA `4dd5370f84742aa022a6f690d075f5313db9aa25be37254780eefafa0a317dc8`.
+
+Swift passes **34/34**, including all 140 field-merge vectors and 279 shared
+projection permutations. Three changed C++ translation units pass actual
+pinned-Clang syntax/type checks with at most two processes. This does not
+execute C++ behavior or prove cross-platform output replay. Evidence:
+[Swift](../artifacts/tests/mobile-merge-cfd0127-20260927/README.md),
+[C++ source checks](../artifacts/tests/cpp-sync-syntax-cfd0127-20260927/README.md).
+
+Crest 114's stale-native-fallback fix and stronger raw-byte assertions are
+integrated in `2bd75cb`; native retention/fallback execution remains pending.
+Crest 108 R1 and R2 now have implementation plus scoped Swift evidence, while
+118's full real-writer/capture/reload/opposite-platform obligations, Mobile
+compaction and guarded Desktop test execution remain open. Next source intake
+is 120's byte-exact field equality and its separate eight-vector supplement.
+Do not relabel the existing 140-vector or 112 fixture evidence as 120 acceptance.
+
+Owner lock released; CE3513BF confirmed Shutdown, no foreign simulator touched.
+Root's light-source handback is active and no readiness reply is needed. The
+same native Master goal remains active. Later heavy work requires new live
+capacity/ownership checks; no unrestricted Chromium build lease or App/API/
+release permission is created here. Older restart instructions below are history.
+
 ## Current merge-target continuation — 27 September 2026
 
 **04:06 resource handback / completed bounded check:** Root lifted the stale

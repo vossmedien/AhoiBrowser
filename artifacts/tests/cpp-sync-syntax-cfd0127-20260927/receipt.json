@@ -1,0 +1,52 @@
+{
+  "kind": "source-syntax-only",
+  "sourceCommit": "cfd0127008ef7b28c999677ee301ad2e3e1d5b69",
+  "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+  "clangSha256": "70efde6fd29b79dd209f99a1007fffadf9fb780d5650e2d0d693fd5fb196fbfc",
+  "ninjaSha256": "6c03e94e3ee141301a7e5151227508ac8cec05c12d79ed9240062a86a0e2d14f",
+  "generatedArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4",
+  "checks": [
+    {
+      "name": "sync_workspace_merge_unittest",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 1.980908041998191,
+      "pid": 39185,
+      "sourceCommit": "cfd0127008ef7b28c999677ee301ad2e3e1d5b69",
+      "sourceSha256": "72c2543d123a21b969651a0541feec5d78a611f11896fbef4225b0e0412f7034",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "sync_workspace_projection_conformance_unittest",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 1.4308923330027028,
+      "pid": 42128,
+      "sourceCommit": "cfd0127008ef7b28c999677ee301ad2e3e1d5b69",
+      "sourceSha256": "3142a0cd45a3b47e1b233147abe7e770315da6272eb7319073825a00d0b82675",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "tab_tree_sync_adapter",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 1.2067156250013795,
+      "pid": 39186,
+      "sourceCommit": "cfd0127008ef7b28c999677ee301ad2e3e1d5b69",
+      "sourceSha256": "a0e50a74a7d89261e36e11a151e0578f2c4961c670c90ac90451775a705f5f10",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "maxConcurrentProcesses": 2,
+  "planSha256": "762e47d21f952621eb1b5617efbc27e6cf7e8b4ce5ca5b62d791cc82d67b3653",
+  "templatePlanSha256": "1dead529a27f081d67f1b717466900169080e481f9133ed05aea4868608637cc",
+  "privatePlan": ".work/agent-queue/cpp-syntax-cfd0127-20260927/plan.json",
+  "objectFilesProduced": false,
+  "binaryLinkOrTestsExecuted": false
+}

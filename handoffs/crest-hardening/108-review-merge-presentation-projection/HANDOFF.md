@@ -1,6 +1,6 @@
 # 108 – Review of 084's pure mobile presentation projection
 
-Status: partly addressed (direction accepted; Desktop R2 source fix and regressions 61cab96; R1, retention and exact-candidate apply acceptance remain open)
+Status: partly addressed (R2 source 61cab96, retention source 5a7d6b3/2bd75cb, R1 projection cfd0127; exact Swift 34/34 including 279 shared projections; C++ source checks pass, native execution / full 118 operations / Mobile compaction remain open).
 Owner lanes: mobile and sync; desktop for matching apply semantics
 Reviewed: ADR 0012 section 1, 084 proposal 2, SYNC field/retention rules, C++
 `tab_tree_sync_adapter.cc` at `628c158`, and the owner's current uncommitted

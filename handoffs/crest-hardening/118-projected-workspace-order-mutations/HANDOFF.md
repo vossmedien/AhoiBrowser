@@ -1,6 +1,6 @@
 # 118 – R1: real reorder/insertion must survive passive projection
 
-Status: ready (acceptance cases for the owner's ongoing key/writer work)
+Status: partly implemented in cfd0127 (real Swift move/insert/reload/undo regression passes in 34/34); all-row capture/search/replay, real Desktop allocator and opposite-platform actual-output acceptance remain open.
 Owner: desktop/sync and mobile; no competing product implementation
 Base: 112 raw fixture SHA `4dd5370f84742aa022a6f690d075f5313db9aa25be37254780eefafa0a317dc8`.
 This adds operational acceptance cases without changing that frozen fixture.
