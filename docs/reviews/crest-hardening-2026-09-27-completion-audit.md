@@ -16,34 +16,42 @@ started for this audit.
 
 | Requirement | Current evidence | Finding / remaining proof |
 | --- | --- | --- |
-| H1.1 complete active entity/domain coverage | `merge_v3.json`, `generate_merge_vectors.py`, Swift runner `covered` set | Only IDs 1,2,5,6,7,8,14 occur. Eight declared Format-3 entities have no shared merge vector; published split fields are among them. Reconcile each entity's active/read-only policy and provide its actual merge/validation cases; do not silently drop declared domains. |
-| Operation sequences, delayed batches, canonical final state | Existing/incoming pairs plus 60 deterministic random pairs; 112 adds apply frames | Pairs are not general multi-operation sequences. 112 supplies 23 apply cases / 31 frames but cannot substitute for field-merge/store sequence coverage. |
+| H1.1 complete active entity/domain coverage | Original 140, then integrated 128/130 supplements | All 15 IDs now have source-level pair vectors and registered runners. Native results for the 6+36 new cases and fuller Home URL/routing/shortcut value coverage remain open. Source integration is not behavioral acceptance. |
+| Operation sequences, delayed batches, canonical final state | Existing pairs, 112 apply frames, draft 132 seeded 18-case/104-step corpus | 132 proposes runners that feed each actual prior merge result into the next step. Host-load hold deferred Swift parsing; native replay/direct final-output comparison and store sequence acceptance remain open. |
 | Equal clocks, tombstones, quarantine, successor, atomic groups | Existing 140 vectors; 104 target conflicts; repository hand-derived assertions | Implemented for covered entities. The same-clock merge-target omission is fixed in Swift `4f2b154` and checked at `a747c62`. Preserve that accepted result. |
 | New domains when field maps exist | Registry has split topology/ratios, archive snapshot/state and tree home_target; permitted-setting values are generic | Split has no shared vector; tree vectors chiefly modify title/location, not home-target mutations. Routing/shortcuts need their published value semantics covered, not merely a boolean permitted-setting sample. |
-| H1.2 two real runners, per-case diagnostics | C++ `sync_merge_conformance_unittest.cc`; Swift `SyncMergeConformanceTests.swift` | Swift's 140-vector pass is exact (`443c452`, clean `a747c62`, fixture `da09b4…`). C++ execution of this set is NOT_RUN. The Swift coverage assertion compares fixture types against its own seven-type set, so it does not detect omissions from the registry. |
-| H1.3 seeded differential operations and canonical output comparison | Random pair generation in `generate_merge_vectors.py`; both runners compare against expected fixtures | No current tool exports/compares the two actual canonical runner outputs. Add the result protocol/comparator and seed-to-regression preservation; fixture-oracle checks alone are a different scope. |
+| H1.2 two real runners, per-case diagnostics | C++ `sync_merge_conformance_unittest.cc`; Swift `SyncMergeConformanceTests.swift`, integrated 128/130 | Source runner coverage now includes all 15 IDs. Swift's older 140-vector pass is exact (`443c452`, clean `a747c62`, fixture `da09b4…`); clean `6096e93` later passed 140+8 before 128/130. New 6+36 and C++ actual execution remain pending. Registry-wide coverage is source-visible, not yet native-proven. |
+| H1.3 seeded differential operations and canonical output comparison | 122 native exporters integrated; lane comparator/receipt tool; draft 132 seeded sequence runner | Tooling can compare actual bound final outputs and preserve failing seeds, but neither C++/Swift export pair has run. Draft 132 adds actual-state sequential replay; native step results and comparator PASS are pending. Fixture-oracle tests alone are a different scope. |
 | H1.4 generated maps/type tables | New 116 generator and `fixtures/sync-conformance/generated/` | Missing artifact now authored; new tests and native syntax/consumer verification are not run during the stop window. Product codec replacement remains optional and owner-gated. |
 | Drift gate in repository regression | `field_groups.py`, `test_sync_conformance_field_groups.py`, unittest discovery in `scripts/test-repository.sh` | Existing 37-copy comparisons passed previously. New catalogue freshness tests join this entry point; full script also builds/tests owner code, so do not run it from this lane under current boundaries. |
 | Apply/re-home extension | 112 shared raw fixture, 108 review, owner R2/retention source `61cab96`/`5a7d6b3`, 114 follow-up | Adapter runners, root order, Mobile retention and exact native acceptance pending. 112 is not a transport/CloudKit pass. |
 
-Declared entity classes without current shared merge cases: **0 device,
+Declared entity classes without shared merge cases at the original audit baseline: **0 device,
 3 historyVisit, 4 deviceTab, 9 extensionInventory, 10 developerAsset,
 11 bookmark, 12 deviceCapability, 13 splitGroup**. The source registry declares
 all with Format 3 field maps. Existing field-map parity is not behavior coverage.
 
 Follow-up: handoff 128 now supplies six supplementary vectors and a proposed
 native patch for IDs **9 and 10**. It exposes the current Mobile whole-record
-selection diverging from C++ field union. Source handoff is ready; these two
-classes are **not** counted as integrated/natively passed until owner RED/GREEN,
-C++ execution and actual-output comparison. The other six classes remain
-without shared merge vectors.
+selection diverging from C++ field union. Owner integrated the source as
+`8e96de7`/`81a26f3`; these two classes are **not** natively passed until
+RED/GREEN, C++ execution and actual-output comparison. At that time the other
+six classes still lacked vectors.
 
 Further follow-up: handoff 130 supplies 36 separate valid pair vectors and
 runner registration for the remaining IDs **0, 3, 4, 11, 12, 13** on top of 128.
-The stack applies in a disposable owner-source copy; 74 local conformance
-tests pass. All 15 classes now have *proposed* shared pair coverage, but the
-two supplements remain unintegrated/natively unverified and cannot yet close
-H1.1/2/3 or the operation-sequence and domain-value gaps.
+The stack applied in a disposable owner-source copy; 74 local conformance
+tests passed. Owner integrated both supplements as source in `8e96de7` and
+`81a26f3`, so all 15 classes now have registered shared pair coverage. The
+new cases remain **natively unverified** and cannot yet close H1.1/2/3 or the
+operation-sequence and domain-value gaps.
+
+Sequence follow-up: draft 132 adds a pinned seeded generator and proposed
+actual-state C++/Swift replay runners (18 cases, 104 operations). Local model
+tests pass, but a host-load hold defers Swift parsing and all native execution.
+The proposed source does not become H1.3 evidence until both native runs and
+122's exact-output comparison have been captured; store/CloudKit sequences
+remain a separate requirement.
 
 ## H2 — corrections integrated; full acceptance not established
 

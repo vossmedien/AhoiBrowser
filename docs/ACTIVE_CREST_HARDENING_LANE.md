@@ -437,9 +437,36 @@ owner-approved longer window and a source-backed readback method. No immediate
 run or new lease is inferred. The H3 methodology now states this boundary and
 its aggregate PASS wording is internally consistent after `476dd51`.
 
-Next allowed lane work: finish H1's eight missing entity classes and seeded
-operation sequences, and the remaining H3/H7 source gaps. Owner integration
-and actual 122 differential runs remain open. Runtime work still requires its
+Owner intake after 130: `8e96de7` integrates Mobile's 128 field merges and
+runner; `81a26f3` registers both C++ supplements/testdata, and `124f6f2`
+records the exact pending native gates. The fixture mirrors match. The clean
+Mobile `6096e93` candidate's **38/38** focused XCTest result includes the
+older 140+8 vectors and 279 projections, plus compiled 122 exporter source,
+but requested no actual exports and predates 128/130. It is not acceptance of
+the new 6+36 cases or C++ behavior. Owner queued 124/126 as separate R1 fixes
+(`e670ff1`). Crest holds no owner resource and does not infer a new runtime
+lease from the changed source. H1's general multi-operation sequence coverage
+is the next independent lane task.
+
+H1.3 sequence source in progress:
+[132](../handoffs/crest-hardening/132-seeded-merge-sequences/HANDOFF.md)
+contains a deterministic seed-153 corpus of **18 cases / 104 ordered merges**,
+SHA-256
+`58123596b9cc485c112e1144d77f38bcfac4623669d13f5d916434d7dc764b99`.
+The owner patch SHA-256
+`8dfa4ac786a86e125a5bf07aeb60e7e8e43247b9559e47169b97afb40937491d`
+extends both native runners to carry their **actual** accepted state across
+steps and export final codec results for 122 comparison. Fixed cases cover
+Workspace merge/undo and terminal command/archive rules; invalid batches
+leave actual state intact. **78** local Python conformance tests pass and the
+patch applies to current committed owner source. The 11:59 CEST host sample
+was load 172 with live owner/foreign compiler processes, so Crest deferred
+even the Swift parse check. 132 remains draft until that light check; no
+native result or H3/H5 lease is inferred.
+
+Next allowed lane work: finish 132's light source validation, then coordinate
+owner intake and exact 122 differential runs when capacity allows. Continue
+H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
 own newly open owner lease. Actual H3/H5 runs need matching candidates and a
 newly open owner lease; test/capacity gates remain.
 No polling/background resource watcher was installed. The older dated sections

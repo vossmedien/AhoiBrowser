@@ -22,6 +22,7 @@ the actual test process, in its existing authorized test window:
 | `AHOI_SYNC_CONFORMANCE_OUTPUT_DIR` | Existing absolute directory writable by the test process; new directory per attempt |
 | `AHOI_SYNC_CONFORMANCE_RUN_ID` | Unique owner run identifier, 1–120 ASCII letters/digits/`.`/`_`/`-` |
 | `AHOI_SYNC_CONFORMANCE_FIXTURE` | Optional absolute main-corpus path; leave unset for standard evidence |
+| `AHOI_SYNC_CONFORMANCE_SEQUENCE_FIXTURE` | Optional absolute sequence-corpus path; leave unset for the pinned seed-153 corpus |
 
 For XCTest, pass these variables through the owner's actual test environment
 (e.g. `SIMCTL_CHILD_…` forwarding when applicable), and confirm the export
@@ -137,9 +138,21 @@ seed-bearing names and inputs), and the comparison report. Existing directories
 are refused. Review and commit these cases as fixed regressions; preservation
 does not automatically approve an oracle or modify the standard 140 vectors.
 
+The separate `merge_sequences_v3.json` corpus holds 18 cases and 104
+time-ordered operations. Its proposed C++ and Swift tests feed each accepted
+operation the **actual** prior native merge result; an invalid step leaves
+that actual state intact. Each native test checks every step's decision/result
+against its oracle and exports the actual final codec payload per sequence
+case in the same output format. The comparator then checks the final C++/Swift
+states against each other and the fixture. A failed intermediate assertion
+cannot yield a comparator PASS because the run receipt carries its nonzero
+direct test exit. The pinned default seed is 153; a different seed requires a
+separately generated fixture, the sequence override on both native runners,
+and matching exact fixture hashes in both receipts.
+
 The report names differing fields without dumping payloads. It lists the
 actual entity coverage and exact source/run identities. A PASS here applies
-only to the supplied pair corpus: it does not complete the eight missing
-entities, general operation-sequence generation, store/projection comparisons,
-CloudKit or installed-product acceptance. Handoff 112's projection runners
+only to the supplied corpus: it does not by itself complete all entity or
+operation-sequence coverage, store/projection comparisons, CloudKit or
+installed-product acceptance. Handoff 112's projection runners
 are preserved but do not emit this merge-output protocol.
