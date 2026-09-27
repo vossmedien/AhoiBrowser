@@ -123,6 +123,11 @@ a source review or a simulator-only result as a cross-device/privacy pass.
 | Web-Extension spike | 090 integrated, bundled runtime loads MV3 and has core tests | Runtime loads only `spikeExtensionURL` from its bundle. ADR step 1 also asks for an unpacked Files input and the full content-script/DNR/action/storage/permission/private/update checklist. Load/attach tests do not prove those effects. Complete/document the spike before requesting the step-2 decision. |
 | H7.5 integrated-stage review and exact acceptance | Existing handoffs/reviews plus current audit | Source-ready/integrated status is not installed acceptance. Keep all named cases and remaining product gaps, not only the ones already green. |
 
+R1 follow-up: Desktop source `20467e5` addresses 124's UTF-8 allocator finding
+with bounded candidates and controller/SQLite regression source; C++ execution,
+actual capture/replay and installed acceptance remain pending. Handoff 126's
+opaque-marker collision is still an independent unfixed source finding.
+
 ## Next work, ownership and stopping condition
 
 1. Finish H1 coverage/protocol work in lane paths; foreign runner changes only

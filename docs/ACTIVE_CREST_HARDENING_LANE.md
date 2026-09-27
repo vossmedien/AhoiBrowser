@@ -474,6 +474,14 @@ snapshot, observer, route and visible-undo coverage. This is source analysis,
 not a native or installed journey result. Crest touched no product code or
 runtime resource.
 
+Owner intake of 124: `20467e5` source-integrates a bounded UTF-8 sidebar
+position allocator and new controller/SQLite regression source; `1dae9c9`
+records the exact native gates. The new candidate refuses invalid/oversize
+bounds, tests strict placement for the `é`–`€` counterexample and retains an
+explicit no-space result. Crest read the new source but does not relabel it as
+a compiled C++ test, actual Sync capture/opposite-platform replay or installed
+R1 acceptance. The separate 126 marker collision remains open.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
