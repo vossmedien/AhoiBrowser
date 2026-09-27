@@ -173,6 +173,13 @@ Known limits, stated in every report:
   samples are always `INSUFFICIENT` for PERF-02 even when paired with another
   version-1 run. This page paint is not proof of Ahoi's first native-window
   frame; that distinction is recorded in the run scope.
+- The 20-tab memory probe currently does not enable or read back Chromium's
+  Memory Saver. Its 20-second settle cannot prove an automatic discard; the
+  pinned Chromium policy waits at least two hours even in aggressive mode.
+  PERF-06 is therefore a matched RSS comparison only. The separate 100-tab
+  Memory Saver and restore obligation (PERF-11) requires its own effective-mode,
+  discard and long-window evidence. See the
+  [source review](reviews/crest-hardening-2026-09-27-h3-memory-saver-source.md).
 
 - RSS double-counts shared pages. It is used only for like-for-like
   comparison; physical-footprint accounting is future work.
@@ -200,9 +207,8 @@ Known limits, stated in every report:
 | PERF-07 | idle CPU: candidate median at most max(3 × baseline MAD, 0.1 percentage points) above baseline median |
 
 Verdicts are `PASS`, `FAIL`, `INSUFFICIENT` (too few or noisy samples,
-missing baseline, mismatched conditions) and `NOT_MEASURED`. An evaluation
-passes only if at least one budget passed and none failed or was insufficient.
-`INSUFFICIENT` and `NOT_MEASURED` are never reported as success. A focused
+missing baseline, mismatched conditions) and `NOT_MEASURED`. `INSUFFICIENT`
+and `NOT_MEASURED` are never reported as success. A focused
 scenario may have an individual budget `PASS`, but the evaluation's aggregate
 `pass` is true only if **every** listed budget is `PASS`.
 

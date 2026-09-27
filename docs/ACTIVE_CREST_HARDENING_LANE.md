@@ -427,6 +427,16 @@ conformance tests pass. This is fixture/runner source, not a native pass. If
 least pair-merge coverage; H1's general operation sequences, domain values,
 actual differential results and store/cloud behavior stay open.
 
+H3 Memory Saver source review:
+[the pinned-policy finding](reviews/crest-hardening-2026-09-27-h3-memory-saver-source.md)
+shows Local State defaults to disabled, while the shortest automatic discard
+timer is two hours. The current 1/20-tab, 20-second RSS scenario cannot prove
+Memory Saver or PERF-11. PERF-06 remains a matched RSS comparison; a verified
+effective mode and separate 100-tab discard/restore observation need an
+owner-approved longer window and a source-backed readback method. No immediate
+run or new lease is inferred. The H3 methodology now states this boundary and
+its aggregate PASS wording is internally consistent after `476dd51`.
+
 Next allowed lane work: finish H1's eight missing entity classes and seeded
 operation sequences, and the remaining H3/H7 source gaps. Owner integration
 and actual 122 differential runs remain open. Runtime work still requires its
