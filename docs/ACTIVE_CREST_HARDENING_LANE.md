@@ -231,6 +231,18 @@ and updated this checkpoint; no suite, build, GUI or runtime was started.
 No critical Crest background task or resource lock is active. Preserve the
 original active goal and next steps through the restart.
 
+Retention source `5a7d6b3` / owner checkpoint `31f592f` reviewed:
+[114](../handoffs/crest-hardening/114-review-compacted-merge-routing/HANDOFF.md)
+records the atomic local route/watermark/payload lifecycle and mixed-chain
+resolution as consistent in the normal source path. One adapter edge remains:
+when no authoritative live Workspace exists, stale native fallback A can be
+inserted as live before resolving retained A→B, shadowing the compacted route.
+114 supplies a minimal skip condition and two regression sources, plus full
+stored-Page/field-map/serialized-byte comparison for the compaction test.
+Patch applicability checked only; no build, test, GUI or runtime run occurred.
+All native execution, 108 root ordering, Mobile compaction and 112 apply
+acceptance remain open. Delayed Root 1159 restart readiness is preserved.
+
 Next allowed lane work after restart coordination: audit remaining H1–H7
 deliverables and review new owner integrations. Actual H3/H5 runs still need
 matching candidates and a newly open owner lease; test/capacity gates remain.
