@@ -186,5 +186,13 @@ TEST(SyncMergeConformanceTest, UTF8SortKeyVectors) {
   CheckVectors("merge_utf8_sort_keys_v3.json");
 }
 
+TEST(SyncMergeConformanceTest, InventoryAssetVectors) {
+  CheckVectors("merge_inventory_asset_v3.json");
+}
+
+TEST(SyncMergeConformanceTest, RemainingEntityVectors) {
+  CheckVectors("merge_remaining_entities_v3.json");
+}
+
 }  // namespace
 }  // namespace ahoi::sync
