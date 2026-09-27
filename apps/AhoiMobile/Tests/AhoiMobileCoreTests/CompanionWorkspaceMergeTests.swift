@@ -514,6 +514,33 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
             tombstone, accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
         XCTAssertTrue(currentAck)
         XCTAssertFalse(oldAck)
+
+        do {
+            try await final.removeLocallyCompactedTombstones(
+                [tombstone], accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+            XCTFail("A stale encrypted copy must not remove the current record")
+        } catch {
+            XCTAssertEqual(error as? UploadedTombstoneReceiptError, .notAcknowledged)
+        }
+        try await final.stageFetchedRecord(changed)
+        do {
+            try await final.removeLocallyCompactedTombstones(
+                [changed], accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+            XCTFail("An unprocessed fetched envelope must defer local removal")
+        } catch {
+            XCTAssertEqual(error as? UploadedTombstoneReceiptError, .pendingFetchedEnvelope)
+        }
+        try await final.acknowledgeFetchedRecord(changed)
+        try await final.removeLocallyCompactedTombstones(
+            [changed], accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        let afterRemoval = try FileSyncRecordStore(fileURL: url)
+        let removed = try await afterRemoval.record(for: changed.recordID)
+        let staleReceipt = try await afterRemoval.isUploadedTombstoneAcknowledged(
+            changed, accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
+        XCTAssertNil(removed)
+        XCTAssertFalse(staleReceipt)
+        try await afterRemoval.removeLocallyCompactedTombstones(
+            [changed], accountID: "account-a", containerID: "container-a", zoneName: "zone-a")
     }
 
     func testUndoRestoresLatePageWithoutACompetingLocationMutation() async throws {

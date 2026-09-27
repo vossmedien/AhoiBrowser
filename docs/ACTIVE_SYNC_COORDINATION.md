@@ -7,7 +7,10 @@ exact encrypted tombstone bytes and binds it to account, container and zone.
 Only `savedRecords` callbacks may write the production receipt; a changed
 record or old account cannot satisfy it. The file-store regression covers
 restart/stale callbacks/scope mismatch. Swift parses; no CloudKit/server test
-or purge is claimed. Current host sample showed 0% CPU idle, load 155 and
+or domain compaction is claimed. The local cache-removal seam checks the exact
+receipt and an empty fetched inbox, writes atomically and is idempotent after
+reopen; its source regression covers those guards. Current host sample showed
+0% CPU idle, load 155 and
 foreign Cockpit/iOS jobs, so no new compiler, simulator or test round began.
 
 Crest 122's frozen exporter patch is integrated after 120. The two existing

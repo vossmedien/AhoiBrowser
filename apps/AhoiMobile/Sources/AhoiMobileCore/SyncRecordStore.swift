@@ -2,8 +2,10 @@ import Foundation
 import CryptoKit
 import AhoiCloudKitSpike
 
-private enum UploadedTombstoneReceiptError: Error {
+enum UploadedTombstoneReceiptError: Error, Equatable {
     case invalidScope
+    case notAcknowledged
+    case pendingFetchedEnvelope
 }
 
 public protocol LocalSyncRecordStore: Sendable {
@@ -23,6 +25,10 @@ public protocol LocalSyncRecordStore: Sendable {
     func isUploadedTombstoneAcknowledged(
         _ record: SyncRecord, accountID: String, containerID: String, zoneName: String
     ) async throws -> Bool
+    /// Removes only the local transport copy after the domain watermark commits.
+    func removeLocallyCompactedTombstones(
+        _ records: [SyncRecord], accountID: String, containerID: String, zoneName: String
+    ) async throws
 }
 
 public enum SyncRecordMergePolicy: Equatable, Sendable {
@@ -151,6 +157,20 @@ public actor InMemorySyncRecordStore: LocalSyncRecordStore {
         return try uploadedTombstoneReceipts[record.recordID] == UploadedTombstoneReceipt(
             accountID: accountID, containerID: containerID, zoneName: zoneName,
             digest: SyncRecordUploadDigest.of(record))
+    }
+
+    public func removeLocallyCompactedTombstones(
+        _ candidates: [SyncRecord], accountID: String, containerID: String, zoneName: String
+    ) async throws {
+        for candidate in candidates where records[candidate.recordID] != nil {
+            guard try await isUploadedTombstoneAcknowledged(
+                candidate, accountID: accountID, containerID: containerID, zoneName: zoneName
+            ) else { throw UploadedTombstoneReceiptError.notAcknowledged }
+            guard !stagedFetchedRecords.contains(where: {
+                $0.recordID == candidate.recordID
+            }) else { throw UploadedTombstoneReceiptError.pendingFetchedEnvelope }
+        }
+        for candidate in candidates { records.removeValue(forKey: candidate.recordID) }
     }
 }
 
@@ -314,6 +334,26 @@ public actor FileSyncRecordStore: LocalSyncRecordStore {
         return try uploadedTombstoneReceipts[record.recordID] == UploadedTombstoneReceipt(
             accountID: accountID, containerID: containerID, zoneName: zoneName,
             digest: SyncRecordUploadDigest.of(record))
+    }
+
+    public func removeLocallyCompactedTombstones(
+        _ candidates: [SyncRecord], accountID: String, containerID: String, zoneName: String
+    ) async throws {
+        for candidate in candidates where records[candidate.recordID] != nil {
+            guard try await isUploadedTombstoneAcknowledged(
+                candidate, accountID: accountID, containerID: containerID, zoneName: zoneName
+            ) else { throw UploadedTombstoneReceiptError.notAcknowledged }
+            guard !stagedFetchedRecords.contains(where: {
+                $0.recordID == candidate.recordID
+            }) else { throw UploadedTombstoneReceiptError.pendingFetchedEnvelope }
+        }
+        let previous = records
+        for candidate in candidates { records.removeValue(forKey: candidate.recordID) }
+        guard records != previous else { return }
+        do { try persist() }
+        catch { records = previous; throw error }
+        // The digest sidecar may retain a stale entry. Reads require the
+        // current record too, so an interruption here cannot restore authority.
     }
 
     private func persist() throws {

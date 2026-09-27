@@ -11,6 +11,12 @@ The receipt stores a SHA-256 digest bound to account, CloudKit container and
 zone. `FileSyncRecordStore` restores it from a separate local sidecar; a stale
 callback or later record mutation does not authorize the new bytes. A direct
 file-store regression covers restart, stale callback and scope mismatch.
+The store now also offers a strictly local, exact-record removal seam: it
+requires that receipt and no pending fetched envelope, removes its cache entry
+with one atomic file write, and treats a prior successful removal as idempotent.
+The regression checks stale-copy and pending-inbox refusal plus reopen after
+removal. The digest sidecar alone cannot authorize a record that is no longer
+in the cache.
 This is still source plus parsing evidence: the provider callback and the
 full compaction path have **not** run against a CloudKit server. Next connect
 the current-scope receipt plus an empty pending-save queue to an expiry check,
@@ -41,9 +47,9 @@ state. The bridge file remains under 800 lines. This guard is not a claim that
 the transport cache already removes acknowledged tombstones.
 
 The remaining retention work is now localized: `acknowledgeFetchedRecords`
-only drains the fetched inbox. `FileSyncRecordStore` has no guarded local
-purge, while the domain Snapshot is another atomic file. The new exact upload
-receipt and Workspace ingress guard above are prerequisites; order domain
+only drains the fetched inbox. The domain Snapshot and transport cache are
+separate atomic files. The exact upload receipt, Workspace ingress guard and
+local removal seam above are prerequisites; order domain
 watermark+payload removal before local transport-cache removal so interruption
 cannot lose the route or rehydrate a stale tombstone. Test failure/reopen at
 each boundary and preserve raw Page bytes. No existing CloudKit physical-delete
