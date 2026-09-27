@@ -1,6 +1,12 @@
 # 118 – R1: real reorder/insertion must survive passive projection
 
 Status: partly implemented in cfd0127 (real Swift move/insert/reload/undo regression passes in 34/34); all-row capture/search/replay, real Desktop allocator and opposite-platform actual-output acceptance remain open.
+
+Follow-up review on `ce24827`: [124](../124-desktop-utf8-order-allocation/HANDOFF.md)
+pinpoints the production Desktop allocator's invalid UTF-8 midpoint;
+[126](../126-merge-root-marker-collision/HANDOFF.md) pinpoints a raw opaque
+key that both projectors mistake for a derived segment. These source findings
+keep the full 118 acceptance open after the scoped `cfd0127` Swift result.
 Owner: desktop/sync and mobile; no competing product implementation
 Base: 112 raw fixture SHA `4dd5370f84742aa022a6f690d075f5313db9aa25be37254780eefafa0a317dc8`.
 This adds operational acceptance cases without changing that frozen fixture.

@@ -345,6 +345,23 @@ conformance tests pass, Swift mirror parses, and patch applicability succeeds.
 No native exporter compilation or actual C++/Swift output comparison has run.
 The 140/8/112 fixture hashes remain unchanged; no shared resource is held.
 
+Owner source `cbcf81c` has since integrated 122's exact patch after 120;
+`git apply --reverse --check` succeeds. Swift parsing and source diff checks
+are owner-reported; actual native exports, direct comparison and C++ runtime
+remain pending. Concurrent owner Mobile compaction source is outside Crest's
+write scope and is not acceptance evidence yet.
+
+118 follow-up source review at `ce24827` found two independent edge gaps:
+[124](../handoffs/crest-hardening/124-desktop-utf8-order-allocation/HANDOFF.md)
+shows the production Desktop midpoint allocator turns valid bounds `é`/`€`
+into the invalid single byte `d2`; the existing C++ R1 move test writes its
+own `+ "@"` key and cannot cover this. [126](../handoffs/crest-hardening/126-merge-root-marker-collision/HANDOFF.md)
+shows a normal raw root key containing the merge-root marker is treated as an
+authored segment key by both platforms, changing visible order without a
+merge. Both findings include exact source paths, inputs and required native
+capture/replay checks. They are source findings, not new runtime failures.
+Owner product paths and resource locks remain untouched.
+
 Next allowed lane work: review the remaining 118 real Desktop allocator/capture
 scope, then finish H1's eight missing entity classes and seeded operation
 sequences. Owner integration and actual 122 differential runs remain open.
