@@ -1,0 +1,24 @@
+{
+  "observedAt": "2026-09-27T00:36:35.018929+00:00",
+  "repositoryHead": "e9d25be",
+  "installedSource": "6acd207f19b5ba0357240b1b90f078beb4eec09c",
+  "buildAttemptSource": "9bc5924",
+  "outcome": "overlay refused; no build/install from attempt",
+  "files": [
+    {
+      "path": ".work/agent-queue/41/progress",
+      "sha256": "0e0502c6f0370f9a60505c1caf488e6675f39aa9574d412abb12f718038743bd",
+      "bytes": 70
+    },
+    {
+      "path": ".work/agent-queue/41/overlay.log",
+      "sha256": "2932d67a1953cd7f68834bfdd7ab0eabd205097c466d06733f87289d1a0c6482",
+      "bytes": 192
+    },
+    {
+      "path": ".work/agent-queue/chain.sh",
+      "sha256": "089dd5fb1f01ff07544aa38d4873e1db26828f9d2242b123715787d9cd55795f",
+      "bytes": 3493
+    }
+  ]
+}

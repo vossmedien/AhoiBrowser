@@ -8,6 +8,76 @@ Boundary check for the orchestrator:
 This lane never builds, installs, refreshes the overlay, writes under
 `overlay/`, `patches/`, `apps/` or `scripts/`, or stops foreign processes.
 
+## Current continuation — 27 September 2026, Codex handover
+
+Owner of this lane: Codex thread `01a0e02e-7d70-7d51-afae-6e8732800811`,
+succeeding stopped Claude session `588173fa-049f-4f4a-9e2e-713e961bab59`.
+The private handover manifest verified all 37 archived files without a hash or
+size mismatch. The original full H1–H6 goal (archive goal section 878) is now
+an active native Codex goal; the user's later H7 extension remains included.
+No other lane or worktree ownership transfers here. Former helper tasks are
+historical evidence; none has been restarted.
+
+Current user restriction: paid OpenAI API, E2E and judge tests remain paused
+pending renewed authorization. This continuation uses local source review and
+repository unit checks. No browser, simulator, build, install, API-key access
+or runtime measurement has been started. Old `open` lease entries are not a
+new exact-candidate quiet-host handoff.
+
+Live read-only check at handover (repository HEAD `e9d25be`):
+
+- Installed bundle still reports source `6acd207f19b5ba0357240b1b90f078beb4eec09c`
+  (build 40, `dev`, Chromium `153.0.8010.53`).
+- **Build 41 is stopped, not compiling.** The persistent owner queue records
+  `00:50:12 start free=152GiB`, `00:50:13 commit 9bc5924`, then
+  `00:50:47 overlay 1`. Its `41/overlay.log` says the Chromium checkout
+  matches neither the recorded applied overlay tree nor the freshly composed
+  tree, so refresh was refused to preserve foreign/partial edits. No active
+  Ahoi/Chromium compiler, Ninja or xcodebuild process was found. Only the
+  desktop owner may reconcile that protected state and resume the queue.
+- Other lanes have uncommitted Mobile/Sync/product-contract changes. They stay
+  untouched. In particular, the Swift `merged_into` work is not a frozen
+  candidate and cannot substantiate an exact-revision pass.
+- Last lane implementation: 096 (`f05eb75`), 134 merge vectors with three new
+  Workspace merge/undo cases; desktop's testdata copy and both owner runners
+  still require intake/rerun. H1's previous 131-vector pass remains historical
+  evidence, not a pass of 096.
+- H4 and H5's recorded exact-candidate DoD evidence stays valid; no repeat is
+  needed solely because the provider changed. H3 still needs the owner's
+  `upstream-release`/`ahoi-release` bundle pair, receipts and a current
+  `host-quiet` window. H2/H6/H7's remaining visible journeys and real CloudKit
+  cases remain open under the owner and test gates.
+
+Continuation results:
+
+- Local lane checks: 24 Sync conformance tests (23 pass, one expected skip:
+  desktop's stale vector copy), plus 47 lane-boundary/engine-key/performance/
+  network-audit tests, all pass. The network and CDP tests use local fixtures
+  and mocked browser processes; no browser or public API was launched. Drift
+  gate: 37 field-map copies, zero findings; generated vectors current.
+- H7 source review found an unsafe mobile undo after a child is added under a
+  merged folder. [098](../handoffs/crest-hardening/098-mobile-merge-undo-descendants/HANDOFF.md)
+  supplies the minimal guard and four regression methods. Patch applicability
+  and Swift parsing pass; owner XCTest RED/GREEN and integration remain open.
+- Mobile 086/088/090 are already integrated at `e9ba41a` (315 core tests, no
+  failures according to the Mobile checkpoint); the old H7 row below that
+  queues them after H3 is superseded. Their visible checks remain open.
+  Handoff 088 explicitly leaves the ADR 0012 neighbor-page drag preview
+  unimplemented; do not count the entire flick contract as complete.
+
+- [100](../handoffs/crest-hardening/100-build41-resumption-evidence/HANDOFF.md)
+  records the stopped build, queue file hashes, a missing unit-test failure
+  gate before installation, and the concrete owner recovery/evidence steps.
+- Read-only extraction of `.work/agent-queue/core-084.xcresult`: 315 total,
+  313 passed, 2 skipped, no failures; H7 core and Sync conformance suites pass.
+  The 134-vector file hash and frozen Swift revision are not bound in this
+  result, so 096 remains pending exact-candidate evidence.
+
+Next allowed lane work: H3 harness review before the future release pair,
+then review new owner integrations as they arrive. No polling/background
+resource watcher was installed. The older dated sections below are retained
+as history and do not override this continuation.
+
 ## Current state — 25 September 2026
 
 - Lane established; goal, lane config, boundary checker and review committed.
