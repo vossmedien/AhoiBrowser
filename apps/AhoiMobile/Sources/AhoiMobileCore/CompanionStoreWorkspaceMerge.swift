@@ -118,6 +118,8 @@ extension LocalFirstRepository {
             parentID: nil,
             orderKey: nil
         )
+        // Peers re-home nodes that reach the merged Workspace later (crest 084).
+        deleted.mergedInto = targetID
         deleted = CompanionFieldMerge.stampLocal(previous: previousSource, candidate: deleted)
         snapshot.workspaces[sourceIndex] = deleted
         try await persist()
@@ -162,6 +164,18 @@ extension LocalFirstRepository {
             indices[node.id] = index
         }
 
+        // New children do not bump their parent's version. Undo would either
+        // tombstone the merge folder or move an existing folder back to the
+        // source, leaving an unrecorded child orphaned or in another Workspace.
+        // Reject before changing any record; unrelated target edits are safe.
+        guard !snapshot.treeNodes.contains(where: { node in
+            guard !node.isDeleted, indices[node.id] == nil,
+                  let parentID = node.parentID else { return false }
+            return indices[parentID] != nil
+        }) else {
+            throw LocalCompanionStoreError.mergeUndoOutdated
+        }
+
         var restored: [TreeNode] = []
         for node in receipt.nodes {
             guard let index = indices[node.id] else { continue }
@@ -191,6 +205,7 @@ extension LocalFirstRepository {
         let current = snapshot.workspaces[sourceIndex]
         var revived = current
         revived.tombstone = nil
+        revived.mergedInto = nil
         revived.version = try nextVersion()
         revived = CompanionFieldMerge.stampLocal(previous: current, candidate: revived)
         snapshot.workspaces[sourceIndex] = revived

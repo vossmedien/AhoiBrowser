@@ -49,8 +49,17 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
         XCTAssertEqual(movedNested.workspaceID, target.id)
         XCTAssertEqual(movedNested.parentID, folder.id)
 
+        // Crest 084: the tombstone names the target, on the wire as well.
+        XCTAssertTrue(receipt.source.isDeleted)
+        XCTAssertEqual(receipt.source.mergedInto, target.id)
+        let payload = try DesktopWirePayloadCodec().encode(receipt.source)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: payload) as? [String: Any])
+        XCTAssertEqual(json["merged_into"] as? String,
+                       target.id.rawValue.uuidString.lowercased())
+
         let undone = try await repository.undoWorkspaceMerge(receipt)
         XCTAssertFalse(undone.workspace.isDeleted)
+        XCTAssertNil(undone.workspace.mergedInto)
         XCTAssertGreaterThan(undone.workspace.version, receipt.source.version)
         snapshot = try await repository.currentSnapshot()
         XCTAssertTrue(snapshot.visibleWorkspaces.contains { $0.id == source.id })
@@ -61,6 +70,108 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
             XCTAssertEqual(restored.parentID, node.parentID)
             XCTAssertEqual(restored.orderKey, node.orderKey)
         }
+    }
+
+    func testMergeTargetIsPartOfEqualClockConflictDetection() async throws {
+        let repository = makeRepository()
+        let source = try await repository.createWorkspace(name: "Research")
+        let target = try await repository.createWorkspace(name: "Work")
+        let other = try await repository.createWorkspace(name: "Other")
+        let receipt = try await repository.mergeWorkspace(
+            source.id, into: target.id, intoFolder: false)
+        let deleted = receipt.source
+
+        XCTAssertEqual(try CompanionFieldMerge.merge(deleted, deleted), deleted)
+        let conflictingTargets: [WorkspaceID?] = [nil, other.id]
+        for conflictingTarget in conflictingTargets {
+            var conflict = deleted
+            conflict.mergedInto = conflictingTarget
+            for (old, new) in [(deleted, conflict), (conflict, deleted)] {
+                XCTAssertThrowsError(try CompanionFieldMerge.merge(old, new)) { error in
+                    XCTAssertEqual(error as? CompanionFieldMergeError,
+                                   .equalClockConflict("tombstone"))
+                }
+            }
+        }
+    }
+
+    func testNewerMergeTargetWinsWithTheTombstoneFieldGroup() async throws {
+        let repository = makeRepository()
+        let source = try await repository.createWorkspace(name: "Research")
+        let target = try await repository.createWorkspace(name: "Work")
+        let other = try await repository.createWorkspace(name: "Other")
+        let receipt = try await repository.mergeWorkspace(
+            source.id, into: target.id, intoFolder: false)
+        let old = receipt.source
+        var candidate = old
+        let next = try old.version.modifiedAt.ticking(
+            at: old.version.modifiedAt.physicalMilliseconds + 1)
+        candidate.version = SyncVersion(modifiedAt: next, modifiedBy: next.nodeID)
+        candidate.mergedInto = other.id
+        let updated = CompanionFieldMerge.stampLocal(previous: old, candidate: candidate)
+
+        XCTAssertEqual(updated.version.fieldVersions["tombstone"], next)
+        for (lhs, rhs) in [(old, updated), (updated, old)] {
+            let merged = try CompanionFieldMerge.merge(lhs, rhs)
+            XCTAssertTrue(merged.isDeleted)
+            XCTAssertEqual(merged.mergedInto, other.id)
+            XCTAssertEqual(merged.version.fieldVersions["tombstone"], next)
+        }
+    }
+
+    func testMergeTargetWireRoundTripAndInvalidDestinations() async throws {
+        let repository = makeRepository()
+        let source = try await repository.createWorkspace(name: "Research")
+        let target = try await repository.createWorkspace(name: "Work")
+        let receipt = try await repository.mergeWorkspace(
+            source.id, into: target.id, intoFolder: false)
+        let codec = DesktopWirePayloadCodec()
+        let deleted = receipt.source
+        let payload = try codec.encode(deleted)
+        let decoded = try codec.decodeWorkspace(
+            workspaceEnvelope(deleted), plaintext: payload)
+        XCTAssertEqual(decoded.mergedInto, target.id)
+        XCTAssertEqual(try codec.encode(decoded), payload)
+
+        var legacy = deleted
+        legacy.mergedInto = nil
+        XCTAssertNil(try codec.decodeWorkspace(
+            workspaceEnvelope(legacy), plaintext: codec.encode(legacy)).mergedInto)
+
+        for var invalid in [source, deleted] {
+            invalid.mergedInto = invalid.isDeleted ? invalid.id : target.id
+            XCTAssertThrowsError(try codec.encode(invalid)) { error in
+                XCTAssertEqual(error as? DesktopWirePayloadCodecError, .malformedPayload)
+            }
+        }
+
+        for (workspace, invalidTarget) in [
+            (source, target.id.rawValue.uuidString.lowercased()),
+            (deleted, deleted.id.rawValue.uuidString.lowercased()),
+            (deleted, "not-a-uuid"),
+        ] {
+            var value = try XCTUnwrap(JSONSerialization.jsonObject(
+                with: codec.encode(workspace)) as? [String: Any])
+            value["merged_into"] = invalidTarget
+            let corrupt = try JSONSerialization.data(withJSONObject: value)
+            XCTAssertThrowsError(try codec.decodeWorkspace(
+                workspaceEnvelope(workspace), plaintext: corrupt)) { error in
+                    XCTAssertEqual(error as? DesktopWirePayloadCodecError, .malformedPayload)
+                }
+        }
+    }
+
+    private func workspaceEnvelope(_ workspace: Workspace) -> SyncRecord {
+        SyncRecord(
+            recordID: workspace.id.rawValue,
+            entityID: workspace.id.rawValue,
+            schemaVersion: workspace.version.schemaVersion,
+            dataClass: .workspace,
+            modifiedAt: workspace.version.modifiedAt,
+            originatingDevice: workspace.version.modifiedBy,
+            encryptedValue: .init(keyVersion: 1, nonce: Data(repeating: 0, count: 12),
+                                  ciphertextAndTag: Data(repeating: 0, count: 16)),
+            tombstone: workspace.tombstone)
     }
 
     func testFlatMergeAppendsAfterTheTargetInSourceOrder() async throws {
@@ -106,6 +217,91 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
         }
         let snapshot = try await repository.currentSnapshot()
         XCTAssertFalse(snapshot.visibleWorkspaces.contains { $0.id == source.id })
+    }
+
+    func testUndoRefusesANewChildOfTheMergeFolderWithoutChangingState() async throws {
+        try await assertUndoRefusesUnrecordedChild(intoFolder: true, useMergeFolder: true)
+    }
+
+    func testUndoRefusesANewChildOfAMovedFolderWithoutChangingState() async throws {
+        for intoFolder in [true, false] {
+            try await assertUndoRefusesUnrecordedChild(
+                intoFolder: intoFolder, useMergeFolder: false)
+        }
+    }
+
+    func testUndoRefusesAnExistingPageMovedUnderTheMergeFolder() async throws {
+        try await assertUndoRefusesUnrecordedChild(
+            intoFolder: true, useMergeFolder: true, moveExisting: true)
+    }
+
+    private func assertUndoRefusesUnrecordedChild(
+        intoFolder: Bool,
+        useMergeFolder: Bool,
+        moveExisting: Bool = false
+    ) async throws {
+        let store = InMemoryCompanionStore()
+        let device = DeviceID()
+        let repository = LocalFirstRepository(store: store, localDeviceID: device)
+        let source = try await repository.createWorkspace(name: "Research")
+        let target = try await repository.createWorkspace(name: "Work")
+        let movedFolder = try await repository.createTreeNode(
+            workspaceID: source.id, kind: .folder, title: "Papers")
+        let existing = try await repository.createTreeNode(
+            workspaceID: target.id, kind: .savedPage, title: "Existing",
+            url: "https://example.test/existing")
+        let receipt = try await repository.mergeWorkspace(
+            source.id, into: target.id, intoFolder: intoFolder)
+        let parentID = useMergeFolder ? try XCTUnwrap(receipt.folderID) : movedFolder.id
+        let added: TreeNode
+        if moveExisting {
+            added = try await repository.moveTreeNode(
+                existing.id, to: target.id, parentID: parentID).node
+        } else {
+            added = try await repository.createTreeNode(
+                workspaceID: target.id, parentID: parentID, kind: .savedPage,
+                title: "Added after merge", url: "https://example.test/new")
+        }
+        let before = try await repository.currentSnapshot()
+        let parentBefore = try XCTUnwrap(before.treeNodes.first { $0.id == parentID })
+        // Creating/moving a child does not invalidate today's per-record guard.
+        XCTAssertEqual(parentBefore.version,
+                       receipt.nodes.first { $0.id == parentID }?.version)
+        XCTAssertFalse(receipt.nodes.contains { $0.id == added.id })
+
+        do {
+            _ = try await repository.undoWorkspaceMerge(receipt)
+            XCTFail("Expected refusal before orphaning an unrecorded child")
+        } catch {
+            XCTAssertEqual(error as? LocalCompanionStoreError, .mergeUndoOutdated)
+        }
+        let after = try await repository.currentSnapshot()
+        XCTAssertEqual(after, before)
+        let reopened = LocalFirstRepository(store: store, localDeviceID: device)
+        let persisted = try await reopened.currentSnapshot()
+        XCTAssertEqual(persisted, before)
+    }
+
+    func testUndoAllowsAnUnrelatedPageAddedAtTheTargetRoot() async throws {
+        let repository = makeRepository()
+        let source = try await repository.createWorkspace(name: "Research")
+        let target = try await repository.createWorkspace(name: "Work")
+        let moved = try await repository.createTreeNode(
+            workspaceID: source.id, kind: .savedPage, title: "Moved",
+            url: "https://example.test/moved")
+        let receipt = try await repository.mergeWorkspace(
+            source.id, into: target.id, intoFolder: true)
+        let unrelated = try await repository.createTreeNode(
+            workspaceID: target.id, kind: .savedPage, title: "Unrelated",
+            url: "https://example.test/unrelated")
+
+        _ = try await repository.undoWorkspaceMerge(receipt)
+
+        let after = try await repository.currentSnapshot()
+        XCTAssertEqual(after.treeNodes.first { $0.id == unrelated.id }, unrelated)
+        XCTAssertEqual(after.visibleTreeNodes.first { $0.id == moved.id }?.workspaceID,
+                       source.id)
+        XCTAssertTrue(after.visibleWorkspaces.contains { $0.id == source.id })
     }
 
     func testMergeRejectsTheSameOrAMissingWorkspace() async throws {

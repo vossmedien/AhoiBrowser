@@ -53,9 +53,11 @@ public enum CompanionFieldMerge {
             result.modifiedAt = incoming.modifiedAt
         }
         if try incomingWins(
-            "tombstone", existing.isDeleted, incoming.isDeleted, oldVersion, newVersion
+            "tombstone", WorkspaceDeletion(existing), WorkspaceDeletion(incoming),
+            oldVersion, newVersion
         ) {
             result.tombstone = incoming.tombstone
+            result.mergedInto = incoming.mergedInto
         }
         var version = mergedVersion(oldVersion, newVersion, fields: workspaceFields)
         if !workspaceProjectionEqual(result, version, existing, oldVersion),
@@ -155,7 +157,8 @@ public enum CompanionFieldMerge {
             "accent_argb": previous.accent == candidate.accent,
             "created_at": previous.createdAt == candidate.createdAt,
             "modified_at": previous.modifiedAt == result.modifiedAt,
-            "tombstone": previous.tombstone == candidate.tombstone,
+            "tombstone": previous.tombstone == candidate.tombstone &&
+                previous.mergedInto == candidate.mergedInto,
         ]
         for field in workspaceFields where equality[field] == true {
             version.fieldVersions[field] = old.fieldVersions[field]
@@ -286,7 +289,7 @@ public enum CompanionFieldMerge {
             lhs.sortKey == rhs.sortKey && lhs.accent == rhs.accent &&
             SharedTabCreationProvenance.sameTime(lhs.createdAt, rhs.createdAt) &&
             SharedTabCreationProvenance.sameTime(lhs.modifiedAt, rhs.modifiedAt) &&
-            lhs.isDeleted == rhs.isDeleted &&
+            lhs.isDeleted == rhs.isDeleted && lhs.mergedInto == rhs.mergedInto &&
             lhsVersion.fieldVersions == rhsVersion.fieldVersions
     }
 
@@ -306,6 +309,19 @@ public enum CompanionFieldMerge {
             SharedTabCreationProvenance.sameTime(lhs.modifiedAt, rhs.modifiedAt) &&
             lhs.isDeleted == rhs.isDeleted &&
             lhsVersion.fieldVersions == rhsVersion.fieldVersions
+    }
+
+    /// Deletion and its optional merge destination are one wire field group.
+    /// Equal clocks with different destinations must be quarantined just like
+    /// a conflicting live/deleted value, including when one peer lacks a target.
+    private struct WorkspaceDeletion: Equatable {
+        let isDeleted: Bool
+        let mergedInto: WorkspaceID?
+
+        init(_ workspace: Workspace) {
+            isDeleted = workspace.isDeleted
+            mergedInto = workspace.mergedInto
+        }
     }
 
     private struct TreeLocation: Equatable {

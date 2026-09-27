@@ -64,6 +64,12 @@ public struct DesktopWirePayloadCodec: Sendable {
         )
         value["name"] = workspace.name
         value["archive_policy"] = workspace.archivePolicy.rawValue
+        if let mergedInto = workspace.mergedInto {
+            guard workspace.isDeleted, mergedInto != workspace.id else {
+                throw DesktopWirePayloadCodecError.malformedPayload
+            }
+            value["merged_into"] = mergedInto.rawValue.uuidString.lowercased()
+        }
         value["icon"] = workspace.icon
         value["sort_key"] = workspace.sortKey
         value["created_at"] = try timeString(workspace.createdAt)
@@ -267,8 +273,19 @@ public struct DesktopWirePayloadCodec: Sendable {
             modifiedAt: try clock(value, timeKey: "modified_at"),
             archivePolicy: try decodeArchivePolicy(value),
             version: resultVersion,
-            tombstone: deleted
+            tombstone: deleted,
+            mergedInto: try decodeMergedInto(value, deleted: deleted != nil)
         )
+    }
+
+    /// Optional and additive (crest 084): a merge target accompanies only a
+    /// tombstone and never names the Workspace itself.
+    private func decodeMergedInto(_ value: [String: Any], deleted: Bool) throws -> WorkspaceID? {
+        guard let target = try optionalUUID(value, "merged_into") else { return nil }
+        guard deleted, target != (try id(value)) else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        return WorkspaceID(rawValue: target)
     }
 
     public func decodeTreeNode(_ record: SyncRecord, plaintext: Data) throws -> TreeNode {

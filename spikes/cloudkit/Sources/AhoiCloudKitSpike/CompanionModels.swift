@@ -200,6 +200,9 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
     public var modifiedAt: HybridLogicalClock
     public var version: SyncVersion
     public var tombstone: Tombstone?
+    /// The Workspace that absorbed this one; set only with `tombstone` by a
+    /// merge and part of the tombstone field group (ADR 0012, crest 084).
+    public var mergedInto: WorkspaceID?
 
     public init(
         workspaceID: WorkspaceID,
@@ -211,10 +214,12 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
         modifiedAt: HybridLogicalClock? = nil,
         archivePolicy: SharedArchivePolicy = .never,
         version: SyncVersion,
-        tombstone: Tombstone? = nil
+        tombstone: Tombstone? = nil,
+        mergedInto: WorkspaceID? = nil
     ) {
         self.workspaceID = workspaceID
         self.archivePolicy = archivePolicy
+        self.mergedInto = mergedInto
         self.name = name
         self.icon = icon
         self.accent = accent
@@ -250,6 +255,7 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
             forKey: .modifiedAt
         ) ?? version.modifiedAt
         self.tombstone = try container.decodeIfPresent(Tombstone.self, forKey: .tombstone)
+        self.mergedInto = try container.decodeIfPresent(WorkspaceID.self, forKey: .mergedInto)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -264,6 +270,7 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
         try container.encode(modifiedAt, forKey: .modifiedAt)
         try container.encode(version, forKey: .version)
         try container.encodeIfPresent(tombstone, forKey: .tombstone)
+        try container.encodeIfPresent(mergedInto, forKey: .mergedInto)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -271,6 +278,7 @@ public struct Workspace: Codable, Hashable, Sendable, Identifiable {
         case version, tombstone
         case name
         case archivePolicy
+        case mergedInto
     }
 
     public var id: WorkspaceID { workspaceID }
