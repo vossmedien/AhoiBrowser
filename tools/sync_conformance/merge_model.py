@@ -20,11 +20,14 @@ INT64_MAX = 2**63 - 1
 # Payload keys of each field group for the entity types covered by the vectors.
 # Groups missing from a table map to the payload key of the same name.
 GROUP_KEYS: dict[int, dict[str, list[str]]] = {
+    0: {"type": ["device_type"]},  # device
     # workspace; merged_into travels with the tombstone (crest 084, ADR 0012).
     1: {"tombstone": ["tombstone", "merged_into"]},
     2: {"location": ["workspace_id", "parent_id", "sort_key"],
         "kind": ["node_kind"],
         "home_target": ["home_target_kind", "home_url", "home_local_scheme"]},
+    3: {},  # historyVisit
+    4: {"url": ["url", "target_kind", "local_scheme"]},  # deviceTab
     5: {"liveness": ["last_seen", "active"]},  # deviceSession
     6: {"request": ["command_kind", "expires_at", "issued_at", "nonce", "signature",
                     "source_device_id", "target_device_id", "url", "workspace_id",
@@ -34,14 +37,21 @@ GROUP_KEYS: dict[int, dict[str, list[str]]] = {
     8: {},  # permittedSetting
     9: {},  # extensionInventory
     10: {"kind": ["asset_kind"]},  # developerAsset
+    11: {"location": ["root_kind", "parent_id", "sort_key"]},  # bookmark
+    12: {"capabilities": ["readable_models", "writable_models", "features"]},
+    13: {},  # splitGroup
     14: {"state": ["reason", "archived_at", "restored"]},  # tabArchiveEntry
 }
 
 # IsImmutableField
-IMMUTABLE = {1: {"created_at"}, 2: {"kind", "created_at"},
+IMMUTABLE = {0: {"type", "created_at"}, 1: {"created_at"},
+             2: {"kind", "created_at"},
+             3: {"device_id", "url", "last_visit", "visit_count", "transition"},
+             4: {"device_id", "session_id", "opened_at", "is_incognito"},
              5: {"device_id", "started_at"}, 6: {"request"}, 7: set(),
              8: {"setting_id"}, 9: {"device_id", "extension_id"},
-             10: {"kind"}, 14: set()}
+             10: {"kind"}, 11: {"kind"}, 12: {"device_id"},
+             13: set(), 14: set()}
 
 TERMINAL_COMMAND_STATUS = {2, 3}  # kExecuted, kFailed
 

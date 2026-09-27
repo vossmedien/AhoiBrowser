@@ -406,6 +406,27 @@ pending. Six of the original eight uncovered entity classes are still open.
 Root's Cockpit jobs2 build does not grant an Ahoi heavy slot; Crest uses no
 shared resource.
 
+Owner coordination after 128: 122 is integrated as source (`cbcf81c`), but
+native C++ execution/direct output comparison remain pending. Mobile route
+watermark and resurrection guards (`980c713`, `9c6c38e`) are source work;
+exact upload acknowledgement and two-file purge remain open. The owner reports
+an 11:24 CEST load sample of 155 with 0% CPU idle, concurrent Cockpit build
+1162 and a foreign iOS test. Crest starts no native test/compiler/simulator or
+H3/H5 action from this state, and no Crest runtime lease is open.
+
+[130](../handoffs/crest-hardening/130-remaining-entity-merge-vectors/HANDOFF.md)
+adds **36** valid shared pair vectors for the six classes still absent after
+128, SHA-256
+`516d5bfa2665bc28e387b055e305896c717a87e3e119460d0f6360f6473d9f38`.
+The incremental test-runner patch SHA-256 is
+`202a75b9080e9500d5b7d691378d68cb691ab390194c7d6c38e7487c49b06cb4`;
+it depends on 128. Both patches apply in sequence to disposable current
+committed owner source. The Swift runner mirror parses and **74** local Python
+conformance tests pass. This is fixture/runner source, not a native pass. If
+128 and 130 are integrated and verified, every declared EntityType has at
+least pair-merge coverage; H1's general operation sequences, domain values,
+actual differential results and store/cloud behavior stay open.
+
 Next allowed lane work: finish H1's eight missing entity classes and seeded
 operation sequences, and the remaining H3/H7 source gaps. Owner integration
 and actual 122 differential runs remain open. Runtime work still requires its

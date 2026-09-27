@@ -254,7 +254,8 @@ class RunnerOutputComparisonTest(unittest.TestCase):
 
     def test_all_committed_merge_cases_have_valid_oracles(self):
         for name, count in (("merge_v3.json", 140), ("merge_utf8_sort_keys_v3.json", 8),
-                            ("merge_inventory_asset_v3.json", 6)):
+                            ("merge_inventory_asset_v3.json", 6),
+                            ("merge_remaining_entities_v3.json", 36)):
             _, document = compare.read_json(ROOT / "fixtures/sync-conformance" / name)
             self.assertEqual(len(compare.validate_fixture(document)), count)
 

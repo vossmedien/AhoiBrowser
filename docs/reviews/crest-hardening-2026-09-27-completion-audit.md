@@ -38,6 +38,13 @@ classes are **not** counted as integrated/natively passed until owner RED/GREEN,
 C++ execution and actual-output comparison. The other six classes remain
 without shared merge vectors.
 
+Further follow-up: handoff 130 supplies 36 separate valid pair vectors and
+runner registration for the remaining IDs **0, 3, 4, 11, 12, 13** on top of 128.
+The stack applies in a disposable owner-source copy; 74 local conformance
+tests pass. All 15 classes now have *proposed* shared pair coverage, but the
+two supplements remain unintegrated/natively unverified and cannot yet close
+H1.1/2/3 or the operation-sequence and domain-value gaps.
+
 ## H2 — corrections integrated; full acceptance not established
 
 | Requirement | Current evidence | Remaining scope |
