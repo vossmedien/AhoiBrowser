@@ -243,8 +243,27 @@ Patch applicability checked only; no build, test, GUI or runtime run occurred.
 All native execution, 108 root ordering, Mobile compaction and 112 apply
 acceptance remain open. Delayed Root 1159 restart readiness is preserved.
 
-Next allowed lane work after restart coordination: audit remaining H1–H7
-deliverables and review new owner integrations. Actual H3/H5 runs still need
+Full requirement-level audit is now recorded in
+[the completion audit](reviews/crest-hardening-2026-09-27-completion-audit.md).
+It supersedes old broad "all lane work/H1 done" wording without invalidating
+scoped accepted evidence. Major remaining **source** gaps: only 7/15 declared
+entities have shared merge vectors; no direct runner-output differential tool
+or general seeded operation sequences; H3 startup uses loadEventEnd instead of
+first paint and lacks full requested scenario/budget evidence; H7 drag preview,
+Files-based spike input and parts of Desktop merge/undo remain incomplete.
+Thus the goal is not merely waiting on owner runtime/credentials.
+
+[116](../handoffs/crest-hardening/116-generated-field-catalogue/HANDOFF.md) supplies
+the H1.4 generator and test/reference C++/Swift/JSON tables for all 15 declared
+entity types/field maps. Generated assets are authored, Python sources parse,
+and new repository test source is prepared. **No new test suite/compiler or
+runtime was run** under the continuing Root 1159 no-further-runs instruction.
+The existing product codecs, wire default, capabilities and 140-vector fixture
+remain unchanged. Catalogue tests/consumer compilation are still pending.
+
+Next allowed lane work after restart coordination: finish H1 coverage and
+runner-output protocol in lane handoffs, then the explicitly missing H3/H7
+source work and owner integration review. Actual H3/H5 runs still need
 matching candidates and a newly open owner lease; test/capacity gates remain.
 No polling/background resource watcher was installed. The older dated sections
 below are retained as history and do not override this continuation.
