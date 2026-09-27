@@ -18,6 +18,21 @@ an active native Codex goal; the user's later H7 extension remains included.
 No other lane or worktree ownership transfers here. Former helper tasks are
 historical evidence; none has been restarted.
 
+Coordination confirmed at 2026-09-27 00:38 UTC: Codex
+`01a0e047-9360-7122-ad28-f76ebc767c97` takes desktop/mobile/sync from stopped
+source `4203bcfe`, first inspecting the leftover Rust workaround read-only.
+096 is in that owner's intake. Crest holds no build, app, simulator, measurement
+or coordination lock and has no background writer/watcher; its changes are
+committed in `1c6d15a`. The historical `build.lock`, `e2e.lock` and `h3.lock`
+were absent. A transient foreign xcodebuild seen in the first process snapshot
+had exited by the immediate follow-up; this is no quiet-host certification.
+The owner explicitly confirms that old H3/H5 `open` leases are stale. Await a
+new candidate-bound lease in the owner's checkpoint before any resource use.
+The desktop owner's inherited Master goal is reported reached/inactive and is
+not restarted here; this lane's separately inherited Crest goal remains active.
+Ready 098 (Mobile undo guard) and 100 (build-resumption evidence, including the
+missing unit-failure stop before installation) remain for owner review.
+
 Current user restriction: paid OpenAI API, E2E and judge tests remain paused
 pending renewed authorization. This continuation uses local source review and
 repository unit checks. No browser, simulator, build, install, API-key access
