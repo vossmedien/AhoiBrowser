@@ -177,6 +177,7 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
     local_nodes.emplace(node.id, &node);
   }
   std::set<base::Uuid> force_recovery;
+  std::set<base::Uuid> merge_rehomed;
   for (const TreeNodeRecord& source : nodes) {
     if (!source.id.is_valid() || source.title.empty() ||
         source.sort_key.empty() || source.created_at.is_null() ||
@@ -246,6 +247,7 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
           !result.workspaces[workspace_indexes.at(*target)].tombstone) {
         node.workspace_id = *target;
         workspace = workspace_indexes.find(*target);
+        merge_rehomed.insert(node.id);
       }
     }
     if (workspace == workspace_indexes.end() ||
@@ -272,19 +274,29 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
     recover(result.nodes[node_indexes.at(id)]);
   }
 
+  auto repair_parent = [&](tab_tree::TreeNode& node) {
+    if (merge_rehomed.contains(node.id)) {
+      // The merge has a known live destination. An unavailable old parent
+      // must not send its late child to a recovery folder in that destination.
+      // Keep the child at the target root, matching the mobile projection.
+      node.parent_id.reset();
+    } else {
+      recover(node);
+    }
+  };
   for (tab_tree::TreeNode& node : result.nodes) {
     if (!node.parent_id)
       continue;
     const auto parent = node_indexes.find(*node.parent_id);
     if (parent == node_indexes.end()) {
-      recover(node);
+      repair_parent(node);
       continue;
     }
     const tab_tree::TreeNode& parent_node = result.nodes[parent->second];
     if (parent_node.tombstone ||
         parent_node.type != tab_tree::TreeNodeType::kFolder ||
         parent_node.workspace_id != node.workspace_id) {
-      recover(node);
+      repair_parent(node);
     }
   }
 

@@ -66,6 +66,15 @@ constexpr char kSource[] = "60000000-0000-4000-8000-000000000001";
 constexpr char kTarget[] = "60000000-0000-4000-8000-000000000002";
 constexpr char kMiddle[] = "60000000-0000-4000-8000-000000000003";
 constexpr char kNode[] = "60000000-0000-4000-8000-000000000010";
+constexpr char kParent[] = "60000000-0000-4000-8000-000000000011";
+
+TreeNodeRecord Folder(const base::Uuid& workspace) {
+  TreeNodeRecord folder = Page(kParent, workspace);
+  folder.kind = TreeNodeKind::kFolder;
+  folder.url.clear();
+  folder.target_kind.reset();
+  return folder;
+}
 
 TEST(SyncWorkspaceMergeTest, MergeTargetRoundTripsWithItsTombstone) {
   WorkspaceRecord merged = Workspace(kSource, "Source", 10);
@@ -183,6 +192,64 @@ TEST(SyncWorkspaceMergeTest, WithoutALiveTargetTheRecoveryStillApplies) {
   ASSERT_NE(node, applied->nodes.end());
   EXPECT_EQ(node->workspace_id, Id(kTarget));
   EXPECT_TRUE(HasRecoveryFolder(*applied));
+}
+
+TEST(SyncWorkspaceMergeTest, MissingOrInvalidParentKeepsLatePageAtMergeTargetRoot) {
+  WorkspaceRecord source = Workspace(kSource, "Source", 10);
+  source.tombstone = true;
+  source.merged_into = Id(kTarget);
+  const WorkspaceRecord target = Workspace(kTarget, "Target", 10);
+  const WorkspaceRecord other = Workspace(kMiddle, "Other", 10);
+  TreeNodeRecord page = Page(kNode, Id(kSource));
+  page.parent_id = Id(kParent);
+
+  // Missing parent; deleted parent; parent in another Workspace; non-folder.
+  for (int parent_case = 0; parent_case < 4; ++parent_case) {
+    SCOPED_TRACE(parent_case);
+    std::vector<TreeNodeRecord> nodes = {page};
+    if (parent_case != 0) {
+      TreeNodeRecord parent = Folder(Id(kTarget));
+      if (parent_case == 1)
+        parent.tombstone = true;
+      if (parent_case == 2)
+        parent.workspace_id = Id(kMiddle);
+      if (parent_case == 3)
+        parent = Page(kParent, Id(kTarget));
+      nodes.push_back(parent);
+    }
+    const auto applied =
+        ReconcileTabTreeRecords({}, {source, target, other}, nodes);
+    ASSERT_TRUE(applied);
+    const auto node =
+        std::ranges::find(applied->nodes, Id(kNode), &tab_tree::TreeNode::id);
+    ASSERT_NE(node, applied->nodes.end());
+    EXPECT_EQ(node->workspace_id, Id(kTarget));
+    EXPECT_FALSE(node->parent_id);
+    EXPECT_FALSE(HasRecoveryFolder(*applied));
+  }
+}
+
+TEST(SyncWorkspaceMergeTest, ValidParentSurvivesBeforeOrTogetherWithLateChild) {
+  WorkspaceRecord source = Workspace(kSource, "Source", 10);
+  source.tombstone = true;
+  source.merged_into = Id(kTarget);
+  const WorkspaceRecord target = Workspace(kTarget, "Target", 10);
+  TreeNodeRecord page = Page(kNode, Id(kSource));
+  page.parent_id = Id(kParent);
+  for (const auto& parent_workspace : {Id(kSource), Id(kTarget)}) {
+    const TreeNodeRecord parent = Folder(parent_workspace);
+    for (const auto& nodes : {std::vector<TreeNodeRecord>{page, parent},
+                             std::vector<TreeNodeRecord>{parent, page}}) {
+      const auto applied = ReconcileTabTreeRecords({}, {source, target}, nodes);
+      ASSERT_TRUE(applied);
+      const auto node =
+          std::ranges::find(applied->nodes, Id(kNode), &tab_tree::TreeNode::id);
+      ASSERT_NE(node, applied->nodes.end());
+      EXPECT_EQ(node->workspace_id, Id(kTarget));
+      EXPECT_EQ(node->parent_id, Id(kParent));
+      EXPECT_FALSE(HasRecoveryFolder(*applied));
+    }
+  }
 }
 
 }  // namespace
