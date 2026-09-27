@@ -1,6 +1,6 @@
 # 104 – Shared merge-target equality/convergence regressions (H1, after 084/096)
 
-Status: ready
+Status: integrated 61b9e93 (140-vector Desktop copy and shared source byte-identical; 26 repository checks pass without skips; exact C++/Swift runtime evidence pending)
 Owner lanes: desktop (refresh testdata); sync/mobile (exact-candidate runners)
 Base: owner source freeze `4f2b154`; Desktop fixture intake 096 was `de52766`.
 Vector SHA-256: `da09b4c1feb6247c30975376642893eb95a56a4ce0a3f3bcf059327121efacf8`; 140 cases (134 plus six).

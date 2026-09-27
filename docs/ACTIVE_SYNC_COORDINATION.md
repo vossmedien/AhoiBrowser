@@ -1,5 +1,51 @@
 # Active sync coordination
 
+## Current merge-target continuation — 27 September 2026
+
+Owner: `01a0e047-9360-7122-ad28-f76ebc767c97` (Desktop/Mobile/Sync); Crest's
+separate contract/review/tooling lane stays with its current owner. The original
+Master goal is active after Root corrected the false achieved sentinel.
+Cockpit's coordinated 1158 restart still gates new heavy runs; none was started
+for this intake.
+
+Handoff 104 is integrated in `61b9e93`: **140** shared merge vectors and the
+Desktop testdata copy are byte-identical, SHA-256
+`da09b4c1feb6247c30975376642893eb95a56a4ce0a3f3bcf059327121efacf8`.
+All 26 local repository conformance tests pass without skips. The new cases
+cover identical/equal-clock-conflicting merge destinations, missing versus
+present targets, newer/older target replacement and plain deletion clearing
+the target. Exact C++ and Swift execution is **NOT_RUN** on this vector set.
+Earlier 131-/134-vector results below remain historical and must not be
+relabeled. Freeze both source revision and vector bytes with the next run.
+
+Mobile source `4f2b154` adds the complete tombstone/target field group;
+`6f7fafc` projects incoming late nodes without changing raw Page clocks or
+outbound payloads. Parsing only: focused behavioral checks, equivalent
+Desktop/Mobile root-end ordering and invalid-parent handling remain open
+(crest 108, current Mobile checkpoint).
+
+Retention source audit, no runtime execution:
+
+- `SyncStore::CompactExpiredTombstones` in `sync_store_maintenance.cc` selects
+  expired tombstones without pending outbox entries, writes only identity,
+  version and compaction time to `sync_deletion_watermarks`, then removes the
+  corresponding `sync_records` payload and tombstone row. The table schema
+  carries no merge destination. `ProfileSyncBackend` calls this maintenance
+  with `kTombstoneRetention`; this is a production path, not just a test helper.
+- Thus that transaction does not preserve `merged_into`. Before accepting the
+  projection design, inspect/test how the later native projection and capture
+  behave for a raw node still referring to the compacted source. A source
+  read alone is not an observed installed-browser relocation/loss.
+- The Swift source inventory found purge timestamps and codec validation, but
+  has not established a matching acknowledged-tombstone compaction/watermark
+  operation. Do not claim retention parity from those timestamps alone.
+
+Next after the coordinated restart and live ownership/capacity check: complete
+the shared apply/ordering and retention design, add exact-candidate regression
+coverage, then run `CompanionWorkspaceMergeTests`, `SyncMergeConformanceTests`
+and the C++ merge/convergence suites in the regular package. Real encrypted
+cross-device acceptance remains separately owner-gated.
+
 ## Merge conformance (crest handoff 009) — 25 September 2026
 
 Shared vectors `fixtures/sync-conformance/merge_v3.json` run in C++
