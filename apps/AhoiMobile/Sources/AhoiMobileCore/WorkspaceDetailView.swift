@@ -231,10 +231,7 @@ public struct WorkspaceDetailView: View {
     }
 
     private func nodeOrder(_ left: TreeNode, _ right: TreeNode) -> Bool {
-        if left.syncSortKey != right.syncSortKey {
-            return left.syncSortKey < right.syncSortKey
-        }
-        return left.id < right.id
+        CompanionTreePosition.precedes(left, right)
     }
 
     private func orderedSiblings(of node: TreeNode) -> [TreeNode] {

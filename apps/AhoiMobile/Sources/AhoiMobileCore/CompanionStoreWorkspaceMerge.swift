@@ -43,16 +43,17 @@ extension LocalFirstRepository {
         let previousSource = snapshot.workspaces[sourceIndex]
         let roots = snapshot.visibleTreeNodes.filter {
             $0.workspaceID == sourceID && $0.parentID == nil
-        }.sorted { $0.syncSortKey < $1.syncSortKey }
-        var lastTargetKey = snapshot.visibleTreeNodes.filter {
+        }.sorted(by: CompanionTreePosition.precedes)
+        var lastTargetNode = snapshot.visibleTreeNodes.filter {
             $0.workspaceID == targetID && $0.parentID == nil
-        }.sorted { $0.syncSortKey < $1.syncSortKey }.last?.orderKey
+        }.max(by: CompanionTreePosition.precedes)
 
         var previousNodes: [TreeNodeID: TreeNode] = [:]
         var changed: [TreeNode] = []
         var folderID: TreeNodeID?
         if intoFolder, !roots.isEmpty {
             let version = try nextVersion()
+            let position = try CompanionTreePosition.between(lastTargetNode, nil, device: localDeviceID)
             let folder = CompanionFieldMerge.stampLocal(
                 previous: nil,
                 candidate: try TreeNode(
@@ -64,7 +65,8 @@ extension LocalFirstRepository {
                     url: nil,
                     icon: previousSource.icon,
                     accent: previousSource.accent,
-                    orderKey: try OrderKey.between(lastTargetKey, nil, tieBreaker: localDeviceID),
+                    orderKey: position.orderKey,
+                    wireSortKey: position.wireSortKey,
                     targetKind: nil,
                     homeTarget: nil,
                     createdAt: version.modifiedAt,
@@ -85,13 +87,14 @@ extension LocalFirstRepository {
                 // Siblings keep their keys: their order inside the new folder
                 // is the order they had at the source's root.
                 candidate.parentID = folderID
+                candidate.orderKey = root.orderKey
+                candidate.wireSortKey = root.wireSortKey
             } else {
                 candidate.parentID = nil
-                candidate.orderKey = try OrderKey.between(
-                    lastTargetKey, nil, tieBreaker: localDeviceID
-                )
-                candidate.wireSortKey = nil
-                lastTargetKey = candidate.orderKey
+                let position = try CompanionTreePosition.between(lastTargetNode, nil, device: localDeviceID)
+                candidate.orderKey = position.orderKey
+                candidate.wireSortKey = position.wireSortKey
+                lastTargetNode = candidate
             }
             candidate.version = try nextVersion()
             candidate = CompanionFieldMerge.stampLocal(previous: previous, candidate: candidate)

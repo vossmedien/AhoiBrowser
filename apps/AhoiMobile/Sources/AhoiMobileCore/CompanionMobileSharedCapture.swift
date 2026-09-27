@@ -106,14 +106,15 @@ extension LocalFirstRepository {
             throw MobileSharedCaptureError.deferred
         }
         let workspaceID = try ensureMobileSharedWorkspace(tab.workspaceID, outbound: &outbound)
-        let previousOrder = snapshot.visibleTreeNodes.filter {
+        let last = snapshot.visibleTreeNodes.filter {
             $0.workspaceID == workspaceID && $0.parentID == nil
-        }.max { $0.syncSortKey < $1.syncSortKey }?.orderKey
+        }.max(by: CompanionTreePosition.precedes)
+        let position = try CompanionTreePosition.between(last, nil, device: localDeviceID)
         let version = try nextVersion()
         let page = CompanionFieldMerge.stampLocal(previous: nil, candidate: try TreeNode(
             treeNodeID: id, workspaceID: workspaceID, kind: .savedPage,
             title: tab.effectiveTitle, url: target.url,
-            orderKey: OrderKey.between(previousOrder, nil, tieBreaker: localDeviceID),
+            orderKey: position.orderKey, wireSortKey: position.wireSortKey,
             isTemporary: !tab.isSaved, targetKind: target.kind, localScheme: target.localScheme,
             homeTarget: tab.isSaved ? target : nil,
             version: version

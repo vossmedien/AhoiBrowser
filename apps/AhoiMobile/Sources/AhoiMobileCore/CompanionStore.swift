@@ -470,7 +470,8 @@ public actor LocalFirstRepository {
         try validateParent(parentID, workspaceID: workspaceID, moving: nil)
         let siblings = snapshot.visibleTreeNodes.filter {
             $0.workspaceID == workspaceID && $0.parentID == parentID
-        }.sorted { $0.syncSortKey < $1.syncSortKey }
+        }.sorted(by: CompanionTreePosition.precedes)
+        let position = try CompanionTreePosition.between(siblings.last, nil, device: localDeviceID)
         let version = try nextVersion()
         let node = CompanionFieldMerge.stampLocal(
             previous: nil,
@@ -483,11 +484,8 @@ public actor LocalFirstRepository {
                 url: url,
                 icon: icon,
                 accent: accent,
-                orderKey: try OrderKey.between(
-                    siblings.last?.orderKey,
-                    nil,
-                    tieBreaker: localDeviceID
-                ),
+                orderKey: position.orderKey,
+                wireSortKey: position.wireSortKey,
                 targetKind: kind == .savedPage ? .web : nil,
                 homeTarget: kind == .savedPage ? SharedTabTarget(kind: .web, url: url ?? "") : nil,
                 createdAt: version.modifiedAt,
@@ -544,17 +542,14 @@ public actor LocalFirstRepository {
         try validateParent(parentID, workspaceID: workspaceID, moving: id)
         let siblings = snapshot.visibleTreeNodes.filter {
             $0.id != id && $0.workspaceID == workspaceID && $0.parentID == parentID
-        }.sorted { $0.syncSortKey < $1.syncSortKey }
+        }.sorted(by: CompanionTreePosition.precedes)
         let previous = snapshot.treeNodes[index]
         var candidate = previous
         candidate.workspaceID = workspaceID
         candidate.parentID = parentID
-        candidate.orderKey = try OrderKey.between(
-            siblings.last?.orderKey,
-            nil,
-            tieBreaker: localDeviceID
-        )
-        candidate.wireSortKey = nil
+        let position = try CompanionTreePosition.between(siblings.last, nil, device: localDeviceID)
+        candidate.orderKey = position.orderKey
+        candidate.wireSortKey = position.wireSortKey
         candidate.version = try nextVersion()
         candidate = CompanionFieldMerge.stampLocal(previous: previous, candidate: candidate)
         snapshot.treeNodes[index] = candidate

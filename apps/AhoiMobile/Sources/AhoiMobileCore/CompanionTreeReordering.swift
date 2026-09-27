@@ -1,5 +1,78 @@
 import AhoiCloudKitSpike
 
+/// Preserves Chromium's opaque lexical sort keys when choosing a local
+/// position. A decoded native key's numeric adapter is not its wire order.
+struct CompanionTreePosition {
+    let orderKey: OrderKey
+    let wireSortKey: String?
+
+    static func less(_ lhs: String, _ rhs: String) -> Bool {
+        lhs.utf8.lexicographicallyPrecedes(rhs.utf8)
+    }
+
+    static func precedes(_ lhs: TreeNode, _ rhs: TreeNode) -> Bool {
+        if less(lhs.syncSortKey, rhs.syncSortKey) { return true }
+        if less(rhs.syncSortKey, lhs.syncSortKey) { return false }
+        return lhs.id < rhs.id
+    }
+
+    static func between(
+        _ lower: TreeNode?, _ upper: TreeNode?, device: DeviceID
+    ) throws -> Self {
+        if lower?.wireSortKey == nil, upper?.wireSortKey == nil,
+           let order = try? OrderKey.between(
+               lower?.orderKey, upper?.orderKey, tieBreaker: device) {
+            return Self(orderKey: order, wireSortKey: nil)
+        }
+        let key = try lexicalBetween(lower?.syncSortKey, upper?.syncSortKey)
+        return try Self(orderKey: OrderKey(
+            components: key.utf8.prefix(OrderKey.maximumDepth).map(UInt16.init),
+            tieBreaker: device), wireSortKey: key)
+    }
+
+    /// Same fractional lexical rules as the native sidebar for ASCII keys.
+    /// Scalar boundaries also keep non-ASCII wire keys valid UTF-8.
+    private static func lexicalBetween(_ lower: String?, _ upper: String?) throws -> String {
+        guard lower?.isEmpty != true, upper?.isEmpty != true else {
+            throw OrderKeyError.invalidBounds
+        }
+        if let lower, let upper, !less(lower, upper) { throw OrderKeyError.invalidBounds }
+        if let lower, upper == nil { return lower + "@" }
+        guard let upper else { return "@" }
+        let right = Array(upper.unicodeScalars)
+        guard let lower else {
+            if right[0].value > 1 {
+                return String(Unicode.Scalar(right[0].value / 2) ?? "\u{1}")
+            }
+            if right.count > 1 { return String(right[0]) }
+            throw OrderKeyError.invalidBounds
+        }
+        let left = Array(lower.unicodeScalars)
+        var common = 0
+        while common < left.count, common < right.count, left[common] == right[common] {
+            common += 1
+        }
+        if common == left.count {
+            if right[common].value > 1 {
+                return lower + String(Unicode.Scalar(right[common].value / 2) ?? "\u{1}")
+            }
+            if right.count > common + 1 {
+                return lower + String(right[common])
+            }
+            throw OrderKeyError.invalidBounds
+        }
+        let lhs = left[common].value
+        let rhs = right[common].value
+        if lhs + 1 < rhs, let middle = Unicode.Scalar(lhs + (rhs - lhs) / 2) {
+            var result = ""
+            for scalar in left.prefix(common) { result.unicodeScalars.append(scalar) }
+            result.unicodeScalars.append(middle)
+            return result
+        }
+        return lower + "@"
+    }
+}
+
 extension LocalFirstRepository {
     /// Repositions a live node among siblings without changing its workspace
     /// or parent. `successorID == nil` means the end of the sibling list.
@@ -49,12 +122,9 @@ extension LocalFirstRepository {
         // projection alone never changes the authoritative location register.
         candidate.workspaceID = presented.workspaceID
         candidate.parentID = presented.parentID
-        candidate.orderKey = try OrderKey.between(
-            lower?.orderKey,
-            upper?.orderKey,
-            tieBreaker: localDeviceID
-        )
-        candidate.wireSortKey = nil
+        let position = try CompanionTreePosition.between(lower, upper, device: localDeviceID)
+        candidate.orderKey = position.orderKey
+        candidate.wireSortKey = position.wireSortKey
         candidate.version = try nextVersion()
         candidate = CompanionFieldMerge.stampLocal(
             previous: previous,
@@ -66,9 +136,6 @@ extension LocalFirstRepository {
     }
 
     private func siblingOrder(_ left: TreeNode, _ right: TreeNode) -> Bool {
-        if left.syncSortKey != right.syncSortKey {
-            return left.syncSortKey < right.syncSortKey
-        }
-        return left.id < right.id
+        CompanionTreePosition.precedes(left, right)
     }
 }

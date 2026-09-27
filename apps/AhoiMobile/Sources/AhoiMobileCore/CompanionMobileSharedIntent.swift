@@ -58,11 +58,12 @@ extension LocalFirstRepository {
             if page.workspaceID != workspace {
                 let last = snapshot.visibleTreeNodes.filter {
                     $0.workspaceID == workspace && $0.parentID == nil && $0.id != page.id
-                }.max { $0.syncSortKey < $1.syncSortKey }
+                }.max(by: CompanionTreePosition.precedes)
                 page.workspaceID = workspace
                 page.parentID = nil
-                page.orderKey = try OrderKey.between(last?.orderKey, nil, tieBreaker: localDeviceID)
-                page.wireSortKey = nil
+                let position = try CompanionTreePosition.between(last, nil, device: localDeviceID)
+                page.orderKey = position.orderKey
+                page.wireSortKey = position.wireSortKey
             }
         case .rename(let title):
             page.title = MobileTabRecord.normalizedTitle(title ?? tab.title)

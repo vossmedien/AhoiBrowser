@@ -59,12 +59,7 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
     }
 
     public var visibleTreeNodes: [TreeNode] {
-        treeNodesForPresentation.filter { !$0.isDeleted }.sorted {
-            if $0.syncSortKey != $1.syncSortKey {
-                return $0.syncSortKey < $1.syncSortKey
-            }
-            return $0.id < $1.id
-        }
+        treeNodesForPresentation.filter { !$0.isDeleted }.sorted(by: CompanionTreePosition.precedes)
     }
 
     /// A merge tombstone changes where a late offline node is presented, not

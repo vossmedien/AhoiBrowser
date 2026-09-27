@@ -103,8 +103,9 @@ extension LocalFirstRepository {
             if saved, let workspaceID, previous.workspaceID != workspaceID {
                 candidate.workspaceID = workspaceID
                 candidate.parentID = nil
-                candidate.orderKey = try savedPageRootOrder(workspaceID: workspaceID)
-                candidate.wireSortKey = nil
+                let position = try savedPageRootOrder(workspaceID: workspaceID)
+                candidate.orderKey = position.orderKey
+                candidate.wireSortKey = position.wireSortKey
             }
             if candidate != previous {
                 candidate.version = try nextVersion()
@@ -124,10 +125,11 @@ extension LocalFirstRepository {
             }
             try target.validatePage(isTemporary: false)
             let title = MobileTabRecord.normalizedTitle(tab.effectiveTitle)
+            let position = try savedPageRootOrder(workspaceID: workspaceID)
             candidate = try TreeNode(
                 treeNodeID: nodeID, workspaceID: workspaceID,
                 kind: .savedPage, title: title.isEmpty ? target.url : title, url: target.url,
-                orderKey: savedPageRootOrder(workspaceID: workspaceID),
+                orderKey: position.orderKey, wireSortKey: position.wireSortKey,
                 targetKind: target.kind, localScheme: target.localScheme,
                 homeTarget: target,
                 version: nextVersion()
@@ -174,11 +176,11 @@ extension LocalFirstRepository {
         return result
     }
 
-    private func savedPageRootOrder(workspaceID: WorkspaceID) throws -> OrderKey {
+    private func savedPageRootOrder(workspaceID: WorkspaceID) throws -> CompanionTreePosition {
         let last = snapshot.visibleTreeNodes.filter {
             $0.workspaceID == workspaceID && $0.parentID == nil
-        }.max { $0.syncSortKey < $1.syncSortKey }
-        return try OrderKey.between(last?.orderKey, nil, tieBreaker: localDeviceID)
+        }.max(by: CompanionTreePosition.precedes)
+        return try CompanionTreePosition.between(last, nil, device: localDeviceID)
     }
 }
 
