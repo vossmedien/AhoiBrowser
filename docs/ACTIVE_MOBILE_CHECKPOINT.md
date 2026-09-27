@@ -4,6 +4,36 @@ Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, 
 
 ## Codex source continuation: merge integrity — 27 September 2026
 
+**Restart handoff, Root Universal 1158:** current source work is committed in
+`6f7fafc`; no Ahoi build/test process or resource lock is active. Root requested
+finishing the current action and readiness for the authorized Cockpit restart.
+No new heavy run or App action was started. The original native goal stays
+active and unchanged.
+
+`6f7fafc` adds a pure `treeNodesForPresentation` view. It follows a merge chain
+to a known live Workspace, retains raw nodes/field clocks/serialized payloads,
+preserves valid folder relationships and detaches unavailable parents in the
+derived view. Library, search and passive shared-tab binding use this view.
+Explicit edits, parent validation, reorder, later merge and Workspace deletion
+account for the displayed membership; raw capture/outbound serialization still
+use the authoritative node. This avoids an implicit location rewrite on import
+and allows a later Workspace undo to recover the original membership.
+
+Seven new regression methods cover real import-batch acceptance without repair
+echoes, serialization/reload, missing targets/chains/cycles, late folders and
+children, explicit delete/reorder, undo, rename/capture and unchanged WebPage
+identity/URL/selection. All nine changed Swift files parse and remain below
+800 lines. **The new tests have not been typechecked or run.** Review and test
+the projection's full mutation/presence paths and cross-platform root ordering
+before marking 084 complete: it currently retains source sort keys rather than
+implementing the handoff proposal's root-end ordering on both platforms.
+
+After restart: revalidate ownership and host capacity, intake crest 104's
+**140** vectors (SHA `da09b4c1feb6247c30975376642893eb95a56a4ce0a3f3bcf059327121efacf8`),
+finish the ordering/apply review, then run focused merge/conformance tests on
+the frozen candidate. Do not reuse the older 134-vector pass as 104 evidence.
+The earlier 098 RED/GREEN procedure below remains required.
+
 Owner `01a0e047-9360-7122-ad28-f76ebc767c97` resumes the original Master goal
 after Root confirmed that the handover's achieved marker was a parser error.
 The goal is active; the archive, ownership boundaries and external gates are

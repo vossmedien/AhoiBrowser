@@ -1,6 +1,6 @@
 # 084 – Sync: a merged Workspace's tombstone names its target (`mergedInto`)
 
-Status: partially integrated (C++ 628c158/9bc5924; Swift model/codec/writers and equal-clock guard 4f2b154; mobile incoming-node re-homing and exact runtime acceptance pending)
+Status: partially integrated (C++ 628c158/9bc5924; Swift model/codec/writers and equal-clock guard 4f2b154; pure Mobile node projection 6f7fafc syntax-checked; mutation/presence review, cross-platform root ordering and exact runtime acceptance pending)
 Owner lane: sync (format, C++ and Swift appliers); desktop and mobile apply
 Base: HEAD `e138e11`.
 ADR 0012 section 1, acceptance case `WS-MERGE-06`.

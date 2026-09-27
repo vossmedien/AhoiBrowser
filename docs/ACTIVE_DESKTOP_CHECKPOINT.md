@@ -2,6 +2,18 @@
 
 ## Current Codex handover and build recovery — 27 September 2026
 
+**Restart handoff for Root Universal 1158:** own current source actions are
+saved in `6f7fafc` (Mobile merge projection; syntax only) and `1c60f31`
+(crest 102 release optimization receipt integration; 14 local fixture tests
+pass). No Ahoi build/test process or build/E2E/H3 lock is active. No App action
+was taken. On Root's direct coordination request, start no new heavy round
+before the authorized Cockpit restart; the full native Master goal remains
+active. After restart, check live state/ownership/capacity, intake crest 104's
+140 vectors, finish Mobile's projection/ordering review and run the focused
+tests before the next guarded build-41 candidate. Mobile details are in its
+checkpoint. H3 receives effective optimization evidence from the next normal
+release builds; no extra release build was started for 102.
+
 Desktop/Mobile/Sync owner: Codex `01a0e047-9360-7122-ad28-f76ebc767c97`,
 successor to stopped Claude source `4203bcfe-a545-4871-a5c2-f559b26f9fdb`.
 The private archive's 68 files passed hash and size verification. The current

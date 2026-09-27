@@ -1,6 +1,6 @@
 # 102 – Bind H3 performance to the actual release configuration and PGO profile
 
-Status: ready
+Status: integrated 1c60f31 (14 local fixture tests pass; real GN/PGO receipt collection awaits the next regular release builds)
 Owner lane: desktop/build (apply receipt integration in the next regular build)
 Base: `e5175f8` for the tracked `tools/build_provenance.py` hunk.
 Lane-owned harness/checker/helper changes accompany this handoff's commit.
