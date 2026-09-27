@@ -1,7 +1,7 @@
 # 128 — Inventory and developer assets lose concurrent field edits on Mobile
 
-Status: ready source patch; native RED/GREEN, C++ execution and differential
-comparison pending
+Status: integrated by owner in `8e96de7` (Mobile) and `81a26f3` (Sync testdata);
+native RED/GREEN, C++ execution and differential comparison pending
 Owners: mobile and sync; C++ testdata intake by desktop/sync
 Base: `476dd51` with Crest 122 integrated. Apply the incremental patch; full
 `files/` mirrors are review copies and may omit newer owner changes.

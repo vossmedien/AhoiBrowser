@@ -4,6 +4,17 @@ Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, 
 
 ## Focused R1 verification — 27 September 2026, 11:41 CEST
 
+Owner intake of Crest 128 then 130 is source-integrated in `8e96de7` and
+`81a26f3`. Mobile now merges extension-inventory and developer-asset fields
+by their Format-3 group clocks at both local upsert and imported-batch paths;
+the bridge's existing asset opt-in and outbound authorization gates remain in
+place. Its conformance runner now reads the separate six-case inventory/asset
+supplement and 36-case remaining-entity supplement. All five changed Swift
+files parse, the Desktop testdata mirrors have exact canonical hashes, and
+lane checks pass. **These later 42 vectors and new upsert regressions have not
+run natively**; `6096e93`'s 38/38 result below does not cover them. Crest 128's
+RED/GREEN and Crest 122's actual C++/Swift output comparison remain open.
+
 Source continuation after the `6096e93` run: the repository now has a single
 Snapshot-write Workspace compaction operation. It requires the exact current
 tombstone, its own identity, and both the advertised purge time and the 30-day
