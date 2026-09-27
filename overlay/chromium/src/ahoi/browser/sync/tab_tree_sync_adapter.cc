@@ -181,7 +181,8 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
   if (active.empty()) {
     for (const tab_tree::Workspace& workspace : local_snapshot.workspaces) {
       if (!workspace.tombstone && workspace.id.is_valid() &&
-          !workspace_indexes.contains(workspace.id)) {
+          !workspace_indexes.contains(workspace.id) &&
+          !compacted_merge_targets.contains(workspace.id)) {
         workspace_indexes[workspace.id] = result.workspaces.size();
         result.workspaces.push_back(workspace);
         active.push_back(&result.workspaces.back());
