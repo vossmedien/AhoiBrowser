@@ -418,6 +418,32 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
         XCTAssertEqual(try DesktopWirePayloadCodec().encode(
             XCTUnwrap(restored.treeNodes.first { $0.id == page.id })), raw)
 
+        try await fixture.local.replace(restored)
+        var conflictingRoute = tombstone
+        conflictingRoute.mergedInto = WorkspaceID()
+        let outcomes = try await fixture.local.mergeImportedBatch([
+            .init(token: 0, value: .workspace(tombstone)),
+            .init(token: 1, value: .workspace(fixture.source)),
+            .init(token: 2, value: .workspace(conflictingRoute)),
+        ])
+        XCTAssertEqual(outcomes.count, 3)
+        if case .compactedDuplicate = outcomes[0].disposition {} else {
+            XCTFail("A repeated old tombstone should drain without resurrection")
+        }
+        for result in outcomes.dropFirst() {
+            if case .rejectedAfterCompaction = result.disposition {} else {
+                XCTFail("A live or conflicting Workspace must not cross the watermark")
+            }
+        }
+        do {
+            _ = try await fixture.local.upsert(fixture.source)
+            XCTFail("Local upsert must not recreate a compacted Workspace")
+        } catch {
+            XCTAssertEqual(error as? LocalCompanionStoreError, .deletionWatermarked)
+        }
+        let guarded = try await fixture.local.currentSnapshot()
+        XCTAssertEqual(guarded, restored)
+
         // Missing targets and cycles must defer rather than fabricate a live
         // destination. A plain deletion has no forwarding route.
         snapshot.workspaces.removeAll { $0.id == fixture.target.id }

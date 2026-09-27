@@ -213,6 +213,11 @@ public actor CompanionSyncBridge {
         var revokedDeveloperAssetIDs = Set<UUID>()
         for outcome in outcomes {
             switch outcome.disposition {
+            case .compactedDuplicate:
+                successfulTokens.insert(outcome.token)
+            case .rejectedAfterCompaction:
+                try await provider.quarantineImportedRecord(
+                    candidates[outcome.token].record, reason: "resurrection_after_compaction")
             case .rejected:
                 try await provider.quarantineImportedRecord(
                     candidates[outcome.token].record,

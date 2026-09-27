@@ -17,6 +17,14 @@ bytes and exercises missing/cyclic/plain routes. Four changed Swift files parse
 and remain under the source line budget; **runtime and full compaction are
 pending**. This is route persistence only, not an invented acknowledgement.
 
+The next source slice also guards a compacted Workspace's ID at the domain
+import and local upsert boundaries. An identical older tombstone drains its
+fetched inbox without recreating the payload; a live/newer or equal-clock
+different-target record is quarantined as `resurrection_after_compaction`.
+The direct regression checks all three cases plus unchanged persisted raw Page
+state. The bridge file remains under 800 lines. This guard is not a claim that
+the transport cache already removes acknowledged tombstones.
+
 The remaining retention work is now localized: `applySent` records CloudKit
 system fields but no durable receipt tied to the exact uploaded tombstone;
 `acknowledgeFetchedRecords` only drains the fetched inbox. `FileSyncRecordStore`

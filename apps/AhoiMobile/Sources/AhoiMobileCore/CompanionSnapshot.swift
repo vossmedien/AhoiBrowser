@@ -305,6 +305,7 @@ public protocol LocalCompanionStore: Sendable {
 
 public enum LocalCompanionStoreError: Error, Equatable, Sendable {
     case invalidSnapshot
+    case deletionWatermarked
     case notFound
     case invalidParent
     case treeCycle

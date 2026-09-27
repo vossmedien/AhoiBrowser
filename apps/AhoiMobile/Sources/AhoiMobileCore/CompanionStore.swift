@@ -86,6 +86,9 @@ public actor LocalFirstRepository {
         await acquireMutation()
         defer { releaseMutation() }
         try await loadIfNeeded()
+        guard !snapshot.deletionWatermarks.contains(where: {
+            $0.dataClass == .workspace && $0.entityID == workspace.id.rawValue
+        }) else { throw LocalCompanionStoreError.deletionWatermarked }
         let merged: Workspace
         if let current = snapshot.workspaces.first(where: { $0.id == workspace.id }) {
             merged = try CompanionFieldMerge.merge(current, workspace)

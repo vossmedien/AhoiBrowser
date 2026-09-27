@@ -44,6 +44,8 @@ struct CompanionImportMutation: Sendable {
 
 enum CompanionImportDisposition: Sendable {
     case accepted(merged: CompanionImportedValue, shouldReenqueue: Bool)
+    case compactedDuplicate
+    case rejectedAfterCompaction
     case rejected
 }
 
@@ -111,6 +113,22 @@ extension LocalFirstRepository {
         var outcomes: [CompanionImportMergeOutcome] = []
         outcomes.reserveCapacity(mutations.count)
         for mutation in mutations {
+            if case .workspace(let incoming) = mutation.value,
+               let watermark = working.deletionWatermarks.first(where: {
+                   $0.dataClass == .workspace && $0.entityID == incoming.id.rawValue
+               }) {
+                // Compaction wins over a delayed live record. A repeated old
+                // tombstone can drain its inbox without recreating the payload.
+                // At the same version its merge route must match the retained
+                // route; otherwise it is an equal-authority conflict.
+                let duplicate = incoming.isDeleted &&
+                    incoming.version <= watermark.version &&
+                    (incoming.version < watermark.version ||
+                        incoming.mergedInto == watermark.mergedInto)
+                outcomes.append(.init(token: mutation.token, disposition:
+                    duplicate ? .compactedDuplicate : .rejectedAfterCompaction))
+                continue
+            }
             do {
                 let accepted: CompanionImportedValue
                 let shouldReenqueue: Bool

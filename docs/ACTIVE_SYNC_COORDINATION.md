@@ -20,8 +20,10 @@ observation, and a missing/cyclic/plain-route regression are included; Swift
 parsing passes, native tests are pending. This does not remove any tombstone:
 the exact upload-acknowledgement and two-file recovery gates identified in
 the Mobile checkpoint must precede actual Mobile compaction. Crest 122 has a
-new runner-output handoff; owner intake waits for its complete patch and a
-future bounded test slot, not an extra browser build.
+new runner-output handoff, now integrated in source. Mobile import/local upsert
+also refuse Workspace resurrection after a durable marker; exact old tombstone
+duplicates can drain without materializing a record. These source guards need
+native tests and do not yet supply an upload acknowledgement or local purge.
 
 Crest 120 source intake after `c933764` adds byte-exact Swift Workspace/TreeNode
 sort-key equality and both supplemental readers. The eight-vector file/copy
