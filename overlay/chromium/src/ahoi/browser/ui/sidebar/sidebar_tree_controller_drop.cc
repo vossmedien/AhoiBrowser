@@ -4,12 +4,16 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
 #include "base/check.h"
+#include "base/strings/string_util.h"
+#include "base/strings/utf_string_conversions.h"
 
 namespace ahoi::sidebar {
 
@@ -248,53 +252,106 @@ tab_tree::TabTreeStore::Result SidebarTreeController::CopySubtree(
 std::optional<std::string> SidebarTreeController::GenerateSortKeyBetween(
     const std::optional<std::string>& left,
     const std::optional<std::string>& right) {
-  if ((left.has_value() && left->empty()) ||
-      (right.has_value() && right->empty()) ||
-      (left.has_value() && right.has_value() && *left >= *right)) {
+  // The Format-3 wire reader accepts at most 1024 UTF-8 bytes and no NUL.
+  // Refuse an invalid legacy bound before creating a locally valid but
+  // unpublishable position from it.
+  constexpr size_t kMaxSortKeyBytes = 1024;
+  const auto valid_bound = [&](const std::optional<std::string>& value) {
+    return !value || (!value->empty() && value->size() <= kMaxSortKeyBytes &&
+                      value->find('\0') == std::string::npos &&
+                      base::IsStringUTF8(*value));
+  };
+  if (!valid_bound(left) || !valid_bound(right) ||
+      (left && right && *left >= *right)) {
     return std::nullopt;
   }
-  constexpr unsigned char kMiddleByte = 0x40;
-  if (!left.has_value() && !right.has_value()) {
-    return std::string(1, static_cast<char>(kMiddleByte));
+  const auto between = [&](std::string candidate) -> std::optional<std::string> {
+    if (candidate.empty() || candidate.size() > kMaxSortKeyBytes ||
+        candidate.find('\0') != std::string::npos ||
+        !base::IsStringUTF8(candidate) ||
+        (left && !(*left < candidate)) ||
+        (right && !(candidate < *right))) {
+      return std::nullopt;
+    }
+    return candidate;
+  };
+  if (!left && !right) {
+    return between("@");
   }
-  if (left.has_value() && !right.has_value()) {
-    return *left + static_cast<char>(kMiddleByte);
+  if (left && right) {
+    size_t common = 0;
+    while (common < left->size() && common < right->size() &&
+           (*left)[common] == (*right)[common]) {
+      ++common;
+    }
+    if (common < left->size() && common < right->size()) {
+      const auto low = static_cast<unsigned char>((*left)[common]);
+      const auto high = static_cast<unsigned char>((*right)[common]);
+      if (low + 1 < high) {
+        if (auto midpoint = between(left->substr(0, common) +
+                                    static_cast<char>(low + (high - low) / 2))) {
+          return midpoint;
+        }
+      }
+    }
   }
-  if (!left.has_value()) {
-    const unsigned char first = static_cast<unsigned char>(right->front());
+  if (left) {
+    if (auto appended = between(*left + '@')) {
+      return appended;
+    }
+    if (auto appended = between(*left + '\x01')) {
+      return appended;
+    }
+    // A full-length left bound may still leave room at an earlier Unicode
+    // scalar. Increment a complete scalar and truncate the suffix; never cut
+    // or synthesize a partial UTF-8 sequence.
+    const std::u16string units = base::UTF8ToUTF16(*left);
+    for (size_t end = units.size(); end > 0;) {
+      size_t start = end - 1;
+      uint32_t scalar = units[start];
+      if (scalar >= 0xDC00 && scalar <= 0xDFFF) {
+        if (start == 0 || units[start - 1] < 0xD800 ||
+            units[start - 1] > 0xDBFF) {
+          return std::nullopt;
+        }
+        scalar = 0x10000 + ((units[start - 1] - 0xD800) << 10) +
+                 (scalar - 0xDC00);
+        --start;
+      }
+      end = start;
+      if (scalar == 0x10FFFF) {
+        continue;
+      }
+      uint32_t next = scalar + 1;
+      if (next >= 0xD800 && next <= 0xDFFF) {
+        next = 0xE000;
+      }
+      std::u16string prefix = units.substr(0, start);
+      if (next <= 0xFFFF) {
+        prefix.push_back(static_cast<char16_t>(next));
+      } else {
+        next -= 0x10000;
+        prefix.push_back(static_cast<char16_t>(0xD800 + (next >> 10)));
+        prefix.push_back(static_cast<char16_t>(0xDC00 + (next & 0x3FF)));
+      }
+      if (auto raised = between(base::UTF16ToUTF8(prefix))) {
+        return raised;
+      }
+    }
+    return std::nullopt;
+  }
+  if (right) {
+    const auto first = static_cast<unsigned char>(right->front());
     if (first > 1) {
-      return std::string(1, static_cast<char>(first / 2));
+      if (auto midpoint = between(std::string(1, static_cast<char>(first / 2)))) {
+        return midpoint;
+      }
     }
-    if (right->size() > 1) {
-      return right->substr(0, 1);
-    }
-    return std::nullopt;
   }
-
-  size_t common = 0;
-  while (common < left->size() && common < right->size() &&
-         (*left)[common] == (*right)[common]) {
-    ++common;
+  if (auto middle = between("@")) {
+    return middle;
   }
-  if (common == left->size()) {
-    const unsigned char right_byte =
-        static_cast<unsigned char>((*right)[common]);
-    if (right_byte > 1) {
-      return left->substr(0, common) + static_cast<char>(right_byte / 2);
-    }
-    if (right->size() > common + 1) {
-      return right->substr(0, common + 1);
-    }
-    return std::nullopt;
-  }
-
-  const unsigned char left_byte = static_cast<unsigned char>((*left)[common]);
-  const unsigned char right_byte = static_cast<unsigned char>((*right)[common]);
-  if (left_byte + 1 < right_byte) {
-    return left->substr(0, common) +
-           static_cast<char>(left_byte + (right_byte - left_byte) / 2);
-  }
-  return *left + static_cast<char>(kMiddleByte);
+  return between("\x01");
 }
 
 }  // namespace ahoi::sidebar
