@@ -2,6 +2,44 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Codex source continuation: merge integrity — 27 September 2026
+
+Owner `01a0e047-9360-7122-ad28-f76ebc767c97` resumes the original Master goal
+after Root confirmed that the handover's achieved marker was a parser error.
+The goal is active; the archive, ownership boundaries and external gates are
+unchanged. Root's overloaded-host instruction currently gates heavy builds
+and simulator/runtime runs. No such run was started here.
+
+Source freeze `4f2b154`:
+
+- Completes the inherited 084 model/codec/writer portion: `mergedInto` is
+  optional, accompanies a merge tombstone, and is cleared by undo. The wire
+  codec rejects a live Workspace with a target and self-targets on encode as
+  well as decode. Missing targets remain compatible with older records.
+- Includes the destination in the tombstone field group's equality check.
+  Two records with equal field clocks but different destinations (including
+  absent versus present) now throw `equalClockConflict`, allowing the existing
+  import path to quarantine them instead of choosing a direction-dependent
+  winner. Three focused regression methods cover equal clocks, newer-target
+  selection and valid/invalid codec round trips.
+- Applies crest 098's undo guard before any record or clock mutation. New or
+  moved children outside the receipt make undo fail with `mergeUndoOutdated`;
+  unrelated additions at the target root remain valid. The handed-off four
+  regression methods cover five cases, including unchanged persisted state.
+
+Validation so far: `swiftc -frontend -parse` for all five changed Swift files
+and `git diff --check` pass. **No typecheck, XCTest, simulator, visible journey
+or Sync round trip is claimed.** The previous `core-084.xcresult` (315 total,
+313 passed, two skipped) predates this freeze and the new regression cases.
+
+Next: finish 084's incoming-node re-home rule without inventing wire clocks
+or changing active WebKit sessions. Then, after fresh host/ownership checks,
+run `CompanionWorkspaceMergeTests` and `SyncMergeConformanceTests` on an exact
+frozen candidate. For 098 RED, retain its tests and reverse only its guard
+hunk in an isolated test checkout; do not remove the tests or alter this
+shared source. GREEN must cover the whole merge class. 134-vector runtime
+evidence and visible `WS-MERGE-07` remain open.
+
 ## ADR 0012 on iOS and a folder-move data loss fix — 26 September 2026
 
 - **Data loss fixed (crest 076, `0ad015a`):** a folder moved to another

@@ -1,6 +1,6 @@
 # 098 – Refuse a mobile merge undo that would orphan a later child
 
-Status: ready
+Status: integrated 4f2b154 (source and regression cases; Swift parsing passes; XCTest RED/GREEN and visible acceptance pending host-capacity/test gates)
 Owner lane: mobile (review, apply and run the focused unit tests)
 Base: committed `e9d25be` / mobile implementation `e9ba41a`; the patch also
 passes `git apply --check` against the current working tree containing the

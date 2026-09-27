@@ -12,11 +12,18 @@ exclusive paths remain with Crest. Cockpit installation/migration stays with
 Root `01a0dfef-1cab-7451-8883-b0eb5a831cd7`; Voice and Copilot stay with their
 separate owners.
 
-The handover manifest marks the Master goal achieved/inactive, so no native
-goal was restarted. This is **not product acceptance**: the last source
-conversation still has unfinished work, a rejecting goal check and a final
-quota error. The discrepancy was sent to the Cockpit migration owner for
-reconciliation; the product DoD and external gates remain open.
+**Root correction, 27 September:** the handover's `achievedGoal` was a parser
+error: the actual Master goal was `met=false`; a later `met=true,sentinel=true`
+immediately preceded an authentication-error clear and was not completion.
+The full original Master objective, later ADR 0011/0012 scope, lane ownership
+and external/test/release limits are now restored as this thread's **active
+native Codex goal**. The private archive and historical recovery receipt remain
+unchanged. Product DoD and external gates are still open.
+
+Root currently reports 100% CPU, load 564 and five simulators, with its test
+build paused. No new heavy compile, simulator, runtime or performance run may
+start until capacity has recovered and current resource ownership is checked.
+Continue lightweight source work in Desktop/Mobile/Sync meanwhile.
 
 Verified state and bounded continuation:
 
@@ -42,9 +49,11 @@ Verified state and bounded continuation:
   This does not claim execution by the C++/Swift runners.
 - The recovered `core-084.xcresult` reports 315 tests, 313 passed, two skipped,
   zero failures. It does not bind a frozen Swift revision and 134-vector hash.
-  The inherited five-file Swift `merged_into` WIP remains uncommitted and
-  unmodified in this continuation; other uncommitted contract files are also
-  preserved.
+  The inherited Swift `merged_into` WIP is now frozen in `4f2b154`, with the
+  equal-clock target conflict fix, outbound codec checks and crest 098 undo
+  guard. Swift parsing passes; new runtime tests and incoming-node re-homing
+  remain open. See the Mobile checkpoint. Other uncommitted contract and
+  Crest files remain with their owners.
 
 Evidence: [handoff and recovery receipts](../artifacts/build/codex-handoff-recovery-20260927/).
 No new build, installation, GUI journey, external API/key access or release
@@ -52,9 +61,9 @@ was started. Previous H3/H5 `open` rows below are historical; a new lease must
 identify the exact candidate and resources. Existing test pauses and external
 decisions remain in force.
 
-Next package: finish and freeze Swift 084 (including the incoming-node re-home
-rule), review/apply mobile undo guard 098, run the new vectors on exact C++ and
-Swift candidates, then resume the guarded build-41 package from a clean source
+Next package: finish Swift 084's incoming-node re-home rule, validate mobile
+undo guard 098, run the new vectors on exact C++ and Swift candidates, then
+resume the guarded build-41 package from a clean source
 clone under `.work/agent-queue/`. Retain the old failed build-41 logs. Handoff
 094's Translate decision and the mobile extension spike's next product step
 remain open; no answer is inferred from the provider change.
