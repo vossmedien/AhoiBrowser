@@ -142,9 +142,28 @@ No new product runner, simulator or runtime was started. 104 needs owner intake
 and candidate-bound results; 096's successful 134-vector copy remains recorded
 as its own completed source step.
 
-Next allowed lane work: review H3 runtime lease/cleanup behavior before the
-future release pair, then review new owner integrations as they arrive. No polling/background resource watcher was installed. The older dated sections below are retained
-as history and do not override this continuation.
+H3 cleanup review (lightweight source work under the renewed heavy-host gate):
+[106](../handoffs/crest-hardening/106-perf-abort-cleanup/HANDOFF.md) fixes leaked
+browser/trace-driver processes on constructor or scenario failure. All scenarios
+now own cleanup scopes; failed reaping preserves the profile. Incomplete runs
+write only explicit aborted evidence, never a budget verdict, and cannot reuse
+a previous evidence directory. Nine new mock-only regression methods pass.
+No browser, GN, simulator, signal to a real process or runtime lease was used.
+Final impacted checks: 56 local performance/network tests pass; lane and diff
+checks are clean. No live runtime acceptance is claimed.
+
+Restart handoff requested by Root (Terminal Cockpit build 1158, two jobs):
+this lane's local checks have finished and all source progress is being
+committed before reporting restart readiness. Crest has no critical process,
+shared-resource lock, browser/simulator or background worker to resume. No new
+expensive action will start for the restart window. Preserve the native Crest
+goal and ownership boundaries; resume at the next allowed source step below.
+
+Next allowed lane work: implement H3 continuous owner-input/lease revocation
+handling before the future release pair, then review new owner integrations.
+Exception cleanup alone does not satisfy that remaining lease condition.
+No polling/background resource watcher was installed. The older dated sections
+below are retained as history and do not override this continuation.
 
 ## Current state — 25 September 2026
 

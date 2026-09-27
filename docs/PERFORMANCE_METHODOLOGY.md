@@ -106,6 +106,18 @@ loopback for all non-benchmark pages.
    `INSUFFICIENT` and must be re-run, never averaged into a pass.
 4. Results are written to `artifacts/perf/<source>-<date>/` as
    `candidate-run.json`, `baseline-run.json` and `evaluation.json`.
+   The output directory must be new. A failed or interrupted run writes only
+   `aborted-run.json` with `pass: false`; partial samples are never evaluated
+   as a completed run. Browser and trace-driver subprocesses are closed on
+   failure. If a process cannot be reaped, its temporary profile is retained
+   and its location recorded instead of deleting files beneath a live process.
+
+Current runtime limitation (tracked by handoff 106): host/lease preflight is
+checked before the run, but continuous revocation/owner-input monitoring has
+not yet been implemented. A new unattended H3 run must wait for that guard;
+exception cleanup and a quiet start alone do not satisfy the stop-on-input
+lease condition. Trace drivers must wait for their work and may not daemonize
+background UI tasks outside their owned foreground process group.
 
 ## 4. Metrics
 

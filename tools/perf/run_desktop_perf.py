@@ -15,6 +15,7 @@ started itself.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime as dt
 import hashlib
 import http.server
@@ -24,7 +25,6 @@ import pathlib
 import plistlib
 import queue
 import shutil
-import signal
 import socket
 import subprocess
 import sys
@@ -38,6 +38,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import cdp  # noqa: E402
 import build_evidence  # noqa: E402
 import perf_stats  # noqa: E402
+import owned_process  # noqa: E402
 
 SCENARIO_VERSION = 1
 INSTALLED_APP = pathlib.Path("/Applications/AhoiBrowser.app")
@@ -293,24 +294,33 @@ class Browser:
             [app["executable"], f"--user-data-dir={profile}",
              f"--remote-debugging-port={port}", *self.flags, url],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-        self.devtools_ready_ms = (cdp.wait_for_endpoint(port, 60)
-                                  - self.spawn_monotonic) * 1000
+        try:
+            self.devtools_ready_ms = (cdp.wait_for_endpoint(port, 60)
+                                      - self.spawn_monotonic) * 1000
+        except BaseException:
+            owned_process.stop(self.process)
+            raise
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.quit()
 
     def session(self) -> cdp.CDPSession:
         return cdp.browser_session(self.port)
 
     def quit(self) -> None:
+        if self.process.poll() is not None:
+            self.process.wait()
+            return
         try:
-            session = self.session()
-            session.send("Browser.close")
-            session.close()
+            with contextlib.closing(self.session()) as session:
+                session.send("Browser.close")
         except (OSError, cdp.CDPError):
             pass
-        try:
-            self.process.wait(timeout=30)
-        except subprocess.TimeoutExpired:
-            os.killpg(self.process.pid, signal.SIGTERM)  # only our own session
-            self.process.wait(timeout=10)
+        finally:
+            owned_process.stop(self.process, grace=5)
 
 
 # --------------------------------------------------------------------------- scenarios
@@ -320,22 +330,20 @@ def scenario_startup(app, fixtures, port, flags, label, workdir) -> dict:
     samples = {}
     for phase in ("first_launch", "warm"):
         run_label = f"{label}-{phase}"
-        browser = Browser(app, profile, port, fixtures.url(f"/start?run={run_label}"), flags)
-        mark = fixtures.wait_mark(run_label, 60)
-        samples[f"startup_{phase}_ms"] = mark["loadEventEndEpochMs"] - browser.spawn_epoch_ms
-        samples[f"devtools_ready_{phase}_ms"] = browser.devtools_ready_ms
-        time.sleep(3)
-        browser.quit()
+        with Browser(app, profile, port, fixtures.url(f"/start?run={run_label}"), flags) as browser:
+            mark = fixtures.wait_mark(run_label, 60)
+            samples[f"startup_{phase}_ms"] = mark["loadEventEndEpochMs"] - browser.spawn_epoch_ms
+            samples[f"devtools_ready_{phase}_ms"] = browser.devtools_ready_ms
+            time.sleep(3)
         time.sleep(2)
     shutil.rmtree(profile, ignore_errors=True)
     return samples
 
 
 def open_tabs(browser: Browser, fixtures: FixtureServer, count: int) -> None:
-    session = browser.session()
-    for index in range(count):
-        session.send("Target.createTarget", {"url": fixtures.url(f"/page/{index}")})
-    session.close()
+    with contextlib.closing(browser.session()) as session:
+        for index in range(count):
+            session.send("Target.createTarget", {"url": fixtures.url(f"/page/{index}")})
 
 
 def scenario_memory(app, fixtures, port, flags, label, workdir, tabs=(1, 20),
@@ -343,13 +351,12 @@ def scenario_memory(app, fixtures, port, flags, label, workdir, tabs=(1, 20),
     samples = {}
     for count in tabs:
         profile = pathlib.Path(tempfile.mkdtemp(prefix="profile-", dir=workdir))
-        browser = Browser(app, profile, port, fixtures.url("/page/0"), flags)
-        open_tabs(browser, fixtures, count - 1)
-        time.sleep(settle)
-        totals = tree_totals(browser.process.pid)
-        samples[f"memory_{count}_tabs_kib"] = totals["rssKiB"]
-        samples[f"processes_{count}_tabs"] = totals["processes"]
-        browser.quit()
+        with Browser(app, profile, port, fixtures.url("/page/0"), flags) as browser:
+            open_tabs(browser, fixtures, count - 1)
+            time.sleep(settle)
+            totals = tree_totals(browser.process.pid)
+            samples[f"memory_{count}_tabs_kib"] = totals["rssKiB"]
+            samples[f"processes_{count}_tabs"] = totals["processes"]
         shutil.rmtree(profile, ignore_errors=True)
     return samples
 
@@ -357,28 +364,25 @@ def scenario_memory(app, fixtures, port, flags, label, workdir, tabs=(1, 20),
 def scenario_idle(app, fixtures, port, flags, label, workdir, settle=30.0,
                   window=60.0) -> dict:
     profile = pathlib.Path(tempfile.mkdtemp(prefix="profile-", dir=workdir))
-    browser = Browser(app, profile, port, fixtures.url("/page/0"), flags)
-    time.sleep(settle)
-    before = tree_totals(browser.process.pid)
-    time.sleep(window)
-    after = tree_totals(browser.process.pid)
-    browser.quit()
+    with Browser(app, profile, port, fixtures.url("/page/0"), flags) as browser:
+        time.sleep(settle)
+        before = tree_totals(browser.process.pid)
+        time.sleep(window)
+        after = tree_totals(browser.process.pid)
     shutil.rmtree(profile, ignore_errors=True)
     return {"idle_cpu_percent": 100 * (after["cpuSeconds"] - before["cpuSeconds"]) / window}
 
 
 def scenario_speedometer(app, fixtures, port, flags, label, workdir, timeout=900.0) -> dict:
     profile = pathlib.Path(tempfile.mkdtemp(prefix="profile-", dir=workdir))
-    browser = Browser(app, profile, port, SPEEDOMETER_URL, flags)
-    target = next(t for t in cdp.http_json(port, "/json") if t["type"] == "page")
-    session = cdp.CDPSession(target["webSocketDebuggerUrl"])
-    deadline = time.monotonic() + timeout
     score = None
-    while time.monotonic() < deadline and score is None:
-        time.sleep(10)
-        score = session.evaluate(SPEEDOMETER_RESULT)
-    session.close()
-    browser.quit()
+    with Browser(app, profile, port, SPEEDOMETER_URL, flags):
+        target = next(t for t in cdp.http_json(port, "/json") if t["type"] == "page")
+        with contextlib.closing(cdp.CDPSession(target["webSocketDebuggerUrl"])) as session:
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline and score is None:
+                time.sleep(10)
+                score = session.evaluate(SPEEDOMETER_RESULT)
     shutil.rmtree(profile, ignore_errors=True)
     if score is None:
         raise cdp.CDPError("Speedometer produced no score")
@@ -413,24 +417,34 @@ def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
     AHOI_PERF_PID / AHOI_PERF_PORT. Requires the Ahoi trace events of handoff 002.
     """
     profile = pathlib.Path(tempfile.mkdtemp(prefix="profile-", dir=workdir))
-    browser = Browser(app, profile, port, fixtures.url("/page/0"), flags)
-    session = browser.session()
-    session.send("Tracing.start", {"traceConfig": {"includedCategories": list(categories)},
-                                   "transferMode": "ReportEvents"})
-    env = {**os.environ, "AHOI_PERF_PID": str(browser.process.pid),
-           "AHOI_PERF_PORT": str(port)}
-    subprocess.run(driver, shell=True, env=env, check=True, timeout=900)
-    session.send("Tracing.end")
     events = []
-    while True:
-        message = session.wait_any(("Tracing.dataCollected", "Tracing.tracingComplete"), 120)
-        if message["method"] == "Tracing.tracingComplete":
-            break
-        events.extend(message["params"]["value"])
-    session.close()
-    browser.quit()
+    with Browser(app, profile, port, fixtures.url("/page/0"), flags) as browser:
+        with contextlib.closing(browser.session()) as session:
+            session.send("Tracing.start", {"traceConfig": {"includedCategories": list(categories)},
+                                          "transferMode": "ReportEvents"})
+            env = {**os.environ, "AHOI_PERF_PID": str(browser.process.pid),
+                   "AHOI_PERF_PORT": str(port)}
+            run_driver(driver, env)
+            session.send("Tracing.end")
+            while True:
+                message = session.wait_any(("Tracing.dataCollected", "Tracing.tracingComplete"), 120)
+                if message["method"] == "Tracing.tracingComplete":
+                    break
+                events.extend(message["params"]["value"])
     shutil.rmtree(profile, ignore_errors=True)
     return trace_durations_ms(events, names or {})
+
+
+def run_driver(driver: str, env: dict, timeout: float = 900) -> None:
+    # Own the shell and its foreground descendants as one process group, so a
+    # timeout cannot leave the UI-driving child active after its shell is killed.
+    process = subprocess.Popen(driver, shell=True, env=env, start_new_session=True)
+    try:
+        code = process.wait(timeout=timeout)
+        if code:
+            raise subprocess.CalledProcessError(code, "trace driver")
+    finally:
+        owned_process.stop(process)
 
 
 SCENARIOS = {
@@ -479,6 +493,10 @@ def main(argv: Optional[list[str]] = None) -> int:
                         help="owner-approved harness validation on a busy or attended host; "
                              "results are marked and never count for budgets")
     args = parser.parse_args(argv)
+    if args.runs < 1:
+        parser.error("--runs must be positive")
+    if "trace" in args.scenario and not args.driver:
+        parser.error("trace requires an explicit --driver")
 
     apps = [args.app] + ([args.baseline_app] if args.baseline_app else [])
     identities = [app_identity(app) for app in apps]
@@ -512,10 +530,17 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 7
 
     names = dict(item.split("=", 1) for item in args.trace_metric)
-    fixtures = FixtureServer()
+    try:
+        args.output.mkdir(parents=True, exist_ok=False)
+    except OSError:
+        print("refusing to measure: output must be a new writable directory", file=sys.stderr)
+        return 7
     workdir = pathlib.Path(tempfile.mkdtemp(prefix="ahoi-perf-"))
     started = dt.datetime.now(dt.timezone.utc).isoformat()
+    fixtures = None
+    failure = None
     try:
+        fixtures = FixtureServer()
         for index in range(args.runs):
             for scenario in args.scenario:
                 # Interleave A B A B so slow host drift hits both apps alike.
@@ -527,12 +552,30 @@ def main(argv: Optional[list[str]] = None) -> int:
                                                   tuple(args.flag), f"r{index}a{run_index}",
                                                   workdir, **kwargs)
                     add_samples(runs[run_index]["metrics"], samples)
+    except (Exception, KeyboardInterrupt) as error:
+        failure = error
     finally:
-        fixtures.close()
-        shutil.rmtree(workdir, ignore_errors=True)
+        try:
+            if fixtures:
+                fixtures.close()
+        except Exception as error:
+            failure = failure or error
+        if not isinstance(failure, owned_process.CleanupError):
+            shutil.rmtree(workdir, ignore_errors=True)
+
+    if failure is not None:
+        # No evaluation.json or ordinary sample evidence for a partial run.
+        # Avoid writing arbitrary exception/driver strings, which can hold secrets.
+        aborted = {"schemaVersion": 1, "kind": "ahoi-perf-aborted", "pass": False,
+                   "startedAt": started, "failureType": type(failure).__name__,
+                   "partialRuns": runs, "hostBefore": conditions}
+        if isinstance(failure, owned_process.CleanupError):
+            aborted["retainedProfileDirectory"] = str(workdir)
+        (args.output / "aborted-run.json").write_text(json.dumps(aborted, indent=2) + "\n")
+        print(f"measurement aborted ({type(failure).__name__}); no budget evidence", file=sys.stderr)
+        return 130 if isinstance(failure, KeyboardInterrupt) else 1
 
     after = host_conditions()
-    args.output.mkdir(parents=True, exist_ok=True)
     for run_data, identity in zip(runs, identities):
         run_data.update({
             "schemaVersion": 2,
