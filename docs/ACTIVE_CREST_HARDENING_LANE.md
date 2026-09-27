@@ -191,8 +191,29 @@ No actual lease marker was written into the owner checkpoint and no runtime
 measurement was launched. This continuation made source/test progress rather
 than waiting on a background process.
 
-Next allowed lane work: audit remaining H1–H7 deliverables against their full
-contracts and review new owner integrations. Actual H3/H5 runs still need
+Owner source `61cab96` (108 R2) reviewed: successful merge re-homing now
+puts invalid-parent nodes at the target root and preserves valid parents,
+matching the shared apply cases. No compiled/runtime pass inferred.
+
+[112](../handoffs/crest-hardening/112-workspace-merge-projection-fixture/HANDOFF.md)
+is ready at the owner-selected
+`fixtures/sync-conformance/workspace_merge_projection_v3.json`: 23 cases,
+31 full raw-v3 frames and 9 independent Workspace/Node array-order combinations
+per frame (279 projections). Hand-derived expected membership, parent and
+sibling order cover R1/R2, late subtrees/known moved parents, delivery ordering,
+undo and explicit local movement. Raw before/after byte/clock preservation is
+required; unresolved classifications do not normalize platform recovery.
+SHA-256: `4dd5370f84742aa022a6f690d075f5313db9aa25be37254780eefafa0a317dc8`.
+The 140 field-merge vectors remain unchanged. All **37 local conformance
+checks pass without skips**, both generator freshness checks pass, and the
+37-copy field-map gate reports zero drift. Fixture/mirror are byte-identical;
+Python parsing, diff and lane checks pass. These checks validate fixture data
+and hand-derived expectations, not 279 executed product projections. Owner
+C++/Swift adapter runners and retention remain open; no concurrent product
+writer or shared-resource run was started.
+
+Next allowed lane work: audit remaining H1–H7 deliverables and review new
+owner integrations. Actual H3/H5 runs still need
 matching candidates and a newly open owner lease; test/capacity gates remain.
 No polling/background resource watcher was installed. The older dated sections
 below are retained as history and do not override this continuation.
