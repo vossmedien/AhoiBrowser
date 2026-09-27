@@ -1,0 +1,4 @@
+[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/cpp-syntax-73360d7-20260927/negative-control.cc:162:2: [0m[0;1;31merror: [0m[1mAHOI_CPP_SYNTAX_NEGATIVE_CONTROL[0m
+  162 | #error AHOI_CPP_SYNTAX_NEGATIVE_CONTROL[0m
+      | [0;1;32m ^
+[0m1 error generated.

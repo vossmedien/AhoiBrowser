@@ -1,0 +1,6 @@
+{
+  "at": "2026-09-27T02:05:01.495727+00:00",
+  "phase": "after-phase1",
+  "top": "Processes: 1229 total, 6 running, 1223 sleeping, 7879 threads \n2026/09/27 04:05:02\nLoad Avg: 12.78, 32.49, 28.89 \nCPU usage: 23.76% user, 14.48% sys, 61.75% idle \nSharedLibs: 443M resident, 103M data, 103M linkedit.\nMemRegions: 732584 total, 5278M resident, 503M private, 3537M shared.\nPhysMem: 31G used (4223M wired, 12G compressor), 203M unused.\nVM: 605T vsize, 57G framework vsize, 374418(0) swapins, 914062(0) swapouts.\n",
+  "memory": "The system has 34359738368 (2097152 pages with a page size of 16384).\nSystem-wide memory free percentage: 49%\n"
+}

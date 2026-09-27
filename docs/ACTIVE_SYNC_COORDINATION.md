@@ -2,6 +2,23 @@
 
 ## Current merge-target continuation — 27 September 2026
 
+**04:06 resource handback / completed bounded check:** Root lifted the stale
+1159 heavy hold and confirmed that 1160 waits on System Keychain, with no
+immediate restart. Light checkpointed source work is explicitly resumed; no
+additional Root readiness reply is required. The same original native Master
+goal stays active; neither the old manifest nor its quota sentinel may disable
+it. Future heavy steps still need current capacity/ownership checks, and no
+unrestricted Chromium build slot was granted.
+
+The new Sync source and tests in frozen `73360d7` pass five actual Clang
+`-fsyntax-only` checks with pinned tools and AhoiDev flags. A deliberate
+`#error` control exits 1 as required. Three measured phases, max two processes,
+no objects/link/tests/app execution. [Bound evidence and limits](../artifacts/tests/cpp-sync-syntax-73360d7-20260927/README.md).
+CE3513BF was orderly shut down on Root's instruction; Location Guru was left
+alone and the owner build lock is released. This supersedes the "not compiled"
+source-check status below only to the extent of syntax/type analysis; C++
+behavioral execution, R1 ordering and Mobile compaction remain open.
+
 **Desktop retention source correction (27 September, awaiting native tests):**
 compaction now stores only `source_id`/`target_id` for a merged Workspace in
 the profile-local `sync_workspace_merge_watermarks` auxiliary table. That write,
