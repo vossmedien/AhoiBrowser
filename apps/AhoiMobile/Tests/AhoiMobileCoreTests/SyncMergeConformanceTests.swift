@@ -53,7 +53,7 @@ final class SyncMergeConformanceTests: XCTestCase {
         }
     }
 
-    private static let covered: Set<Int> = [1, 2, 5, 6, 7, 8, 14]
+    private static let covered: Set<Int> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
     private func vectorsURL(_ name: String = "merge_v3.json") -> URL {
         if name == "merge_v3.json",
@@ -106,6 +106,18 @@ final class SyncMergeConformanceTests: XCTestCase {
         return result
     }
 
+    private func workspaces() throws -> [WorkspaceID: Workspace] {
+        let (_, document) = try UnifiedSyncFixture.load()
+        let codec = DesktopWirePayloadCodec()
+        var result: [WorkspaceID: Workspace] = [:]
+        for sample in document.records where sample.data_class == "workspace" {
+            let workspace = try codec.decodeWorkspace(
+                try UnifiedSyncFixture.envelope(sample), plaintext: sample.data)
+            result[workspace.id] = workspace
+        }
+        return result
+    }
+
     private struct Rejection: Error {
         let stage: String
         let underlying: any Error
@@ -135,6 +147,13 @@ final class SyncMergeConformanceTests: XCTestCase {
         let old = try envelope(vector, vector.existing)
         let new = try envelope(vector, vector.incoming)
         switch vector.entityType {
+        case 0:
+            let result = try mergeDecoded(
+                try codec.decodeDevice(old, plaintext: vector.existing.data),
+                try codec.decodeDevice(new, plaintext: vector.incoming.data),
+                using: CompanionReadModelFieldMerge.merge)
+            let want = try expected.map { try codec.decodeDevice(try envelope(vector, $0), plaintext: $0.data) }
+            return (result, want, try codec.encode(result))
         case 1:
             let result = try mergeDecoded(
                 try codec.decodeWorkspace(old, plaintext: vector.existing.data),
@@ -148,6 +167,27 @@ final class SyncMergeConformanceTests: XCTestCase {
                 try codec.decodeTreeNode(new, plaintext: vector.incoming.data),
                 using: CompanionFieldMerge.merge)
             let want = try expected.map { try codec.decodeTreeNode(try envelope(vector, $0), plaintext: $0.data) }
+            return (result, want, try codec.encode(result))
+        case 3:
+            let result = try mergeDecoded(
+                try codec.decodeHistory(old, plaintext: vector.existing.data),
+                try codec.decodeHistory(new, plaintext: vector.incoming.data),
+                using: CompanionReadModelFieldMerge.merge)
+            let want = try expected.map { try codec.decodeHistory(try envelope(vector, $0), plaintext: $0.data) }
+            return (result, want, try codec.encode(result))
+        case 4:
+            let knownDevices = try devices()
+            let knownWorkspaces = try workspaces()
+            let result = try mergeDecoded(
+                try codec.decodeRemoteTab(old, plaintext: vector.existing.data,
+                                          devices: knownDevices, workspaces: knownWorkspaces),
+                try codec.decodeRemoteTab(new, plaintext: vector.incoming.data,
+                                          devices: knownDevices, workspaces: knownWorkspaces),
+                using: CompanionReadModelFieldMerge.merge)
+            let want = try expected.map {
+                try codec.decodeRemoteTab(try envelope(vector, $0), plaintext: $0.data,
+                                          devices: knownDevices, workspaces: knownWorkspaces)
+            }
             return (result, want, try codec.encode(result))
         case 5:
             let known = try devices()
@@ -186,6 +226,49 @@ final class SyncMergeConformanceTests: XCTestCase {
                 try codec.decodePermittedSetting(new, plaintext: vector.incoming.data),
                 using: CompanionProductFieldMerge.merge)
             let want = try expected.map { try codec.decodePermittedSetting(try envelope(vector, $0), plaintext: $0.data) }
+            return (result, want, try codec.encode(result))
+        case 9:
+            let result = try mergeDecoded(
+                try codec.decodeExtensionInventory(old, plaintext: vector.existing.data),
+                try codec.decodeExtensionInventory(new, plaintext: vector.incoming.data),
+                using: CompanionProductFieldMerge.merge)
+            let want = try expected.map {
+                try codec.decodeExtensionInventory(try envelope(vector, $0), plaintext: $0.data)
+            }
+            return (result, want, try codec.encode(result))
+        case 10:
+            let result = try mergeDecoded(
+                try codec.decodeDeveloperAsset(old, plaintext: vector.existing.data),
+                try codec.decodeDeveloperAsset(new, plaintext: vector.incoming.data),
+                using: CompanionProductFieldMerge.merge)
+            let want = try expected.map {
+                try codec.decodeDeveloperAsset(try envelope(vector, $0), plaintext: $0.data)
+            }
+            return (result, want, try codec.encode(result))
+        case 11:
+            let result = try mergeDecoded(
+                try codec.decodeBookmark(old, plaintext: vector.existing.data),
+                try codec.decodeBookmark(new, plaintext: vector.incoming.data),
+                using: CompanionBookmarkFieldMerge.merge)
+            let want = try expected.map { try codec.decodeBookmark(try envelope(vector, $0), plaintext: $0.data) }
+            return (result, want, try codec.encode(result))
+        case 12:
+            let known = try devices()
+            let result = try mergeDecoded(
+                try codec.decodeCapability(old, plaintext: vector.existing.data, knownDevices: known),
+                try codec.decodeCapability(new, plaintext: vector.incoming.data, knownDevices: known),
+                using: CompanionCapabilityDomain.merge)
+            let want = try expected.map {
+                try codec.decodeCapability(try envelope(vector, $0), plaintext: $0.data,
+                                           knownDevices: known)
+            }
+            return (result, want, try codec.encode(result))
+        case 13:
+            let result = try mergeDecoded(
+                try codec.decodeSplitGroup(old, plaintext: vector.existing.data),
+                try codec.decodeSplitGroup(new, plaintext: vector.incoming.data),
+                using: CompanionWorkspaceStructureMerge.merge)
+            let want = try expected.map { try codec.decodeSplitGroup(try envelope(vector, $0), plaintext: $0.data) }
             return (result, want, try codec.encode(result))
         default:
             throw ExportError.unsupportedEntity(vector.entityType)
@@ -252,6 +335,14 @@ final class SyncMergeConformanceTests: XCTestCase {
 
     func testUTF8SortKeyVectors() throws {
         try checkVectors("merge_utf8_sort_keys_v3.json")
+    }
+
+    func testInventoryAssetVectors() throws {
+        try checkVectors("merge_inventory_asset_v3.json")
+    }
+
+    func testRemainingEntityVectors() throws {
+        try checkVectors("merge_remaining_entities_v3.json")
     }
 
     private func exportResults(_ results: [[String: Any]], fixture: URL, bytes: Data) throws {

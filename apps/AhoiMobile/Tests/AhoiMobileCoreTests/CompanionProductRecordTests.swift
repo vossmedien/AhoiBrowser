@@ -3,6 +3,76 @@ import XCTest
 import AhoiCloudKitSpike
 
 final class CompanionProductRecordTests: XCTestCase {
+    func testInventoryUpsertPreservesTwoOfflineFieldEdits() async throws {
+        let device = DeviceID()
+        let id = UUID()
+        let fields = DesktopWirePayloadCodec.extensionInventoryFields
+        let nameEdited = try CompanionExtensionInventoryRecord(
+            id: id, deviceID: device,
+            extensionID: "abcdefghijklmnopabcdefghijklmnop",
+            name: "Renamed extension", extensionVersion: "1.2.3", enabled: true,
+            version: editVersion(device: device, fields: fields, changed: "name", at: 2_000),
+            tombstone: nil
+        )
+        let enabledEdited = try CompanionExtensionInventoryRecord(
+            id: id, deviceID: device, extensionID: nameEdited.extensionID,
+            name: "Original extension", extensionVersion: "1.2.3", enabled: false,
+            version: editVersion(device: device, fields: fields, changed: "enabled", at: 3_000),
+            tombstone: nil
+        )
+        let repository = LocalFirstRepository(store: InMemoryCompanionStore(), localDeviceID: device)
+        _ = try await repository.upsert(nameEdited)
+        _ = try await repository.upsert(enabledEdited)
+        let snapshot = try await repository.currentSnapshot()
+        let merged = try XCTUnwrap(snapshot.productRecords.extensionInventory.first { $0.id == id })
+        XCTAssertEqual(merged.name, "Renamed extension")
+        XCTAssertFalse(merged.enabled)
+        XCTAssertEqual(merged.version.fieldVersions["name"], nameEdited.version.fieldVersions["name"])
+        XCTAssertEqual(merged.version.fieldVersions["enabled"], enabledEdited.version.fieldVersions["enabled"])
+    }
+
+    func testDeveloperAssetUpsertPreservesTwoOfflineFieldEdits() async throws {
+        let device = DeviceID()
+        let id = UUID()
+        let fields = DesktopWirePayloadCodec.developerAssetFields
+        let nameEdited = try CompanionDeveloperAssetRecord(
+            id: id, kind: .css, name: "Renamed CSS asset",
+            scope: "https://example.test/*", source: "body { color: red; }",
+            enabled: true, optedIn: true,
+            version: editVersion(device: device, fields: fields, changed: "name", at: 2_000),
+            tombstone: nil
+        )
+        let enabledEdited = try CompanionDeveloperAssetRecord(
+            id: id, kind: .css, name: "Original CSS asset",
+            scope: nameEdited.scope, source: nameEdited.source,
+            enabled: false, optedIn: true,
+            version: editVersion(device: device, fields: fields, changed: "enabled", at: 3_000),
+            tombstone: nil
+        )
+        let repository = LocalFirstRepository(store: InMemoryCompanionStore(), localDeviceID: device)
+        _ = try await repository.upsert(nameEdited)
+        _ = try await repository.upsert(enabledEdited)
+        let snapshot = try await repository.currentSnapshot()
+        let merged = try XCTUnwrap(snapshot.productRecords.developerAssets.first { $0.id == id })
+        XCTAssertEqual(merged.name, "Renamed CSS asset")
+        XCTAssertFalse(merged.enabled)
+        XCTAssertEqual(merged.version.fieldVersions["name"], nameEdited.version.fieldVersions["name"])
+        XCTAssertEqual(merged.version.fieldVersions["enabled"], enabledEdited.version.fieldVersions["enabled"])
+    }
+
+    private func editVersion(
+        device: DeviceID, fields: Set<String>, changed: String, at time: UInt64
+    ) -> SyncVersion {
+        let base = HybridLogicalClock(physicalMilliseconds: 1_000, nodeID: device)
+        let edit = HybridLogicalClock(physicalMilliseconds: time, nodeID: device)
+        return SyncVersion(
+            modifiedAt: edit, modifiedBy: device,
+            fieldVersions: Dictionary(uniqueKeysWithValues: fields.map { field in
+                (field, field == changed ? edit : base)
+            })
+        )
+    }
+
     func testProductWireRecordsRoundTrip() throws {
         let device = DeviceID(
             rawValue: UUID(uuidString: "10000000-0000-4000-8000-000000000001")!

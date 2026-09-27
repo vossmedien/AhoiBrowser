@@ -37,10 +37,8 @@ extension LocalFirstRepository {
         await acquireMutation()
         defer { releaseMutation() }
         try await loadIfNeeded()
-        let result = try selectRecord(
-            snapshot.productRecords.extensionInventory.first { $0.id == incoming.id },
-            incoming
-        )
+        let result = try snapshot.productRecords.extensionInventory.first { $0.id == incoming.id }
+            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
         snapshot.productRecords.extensionInventory.replace(result) { $0.id == incoming.id }
         try await persist()
         return result
@@ -53,10 +51,8 @@ extension LocalFirstRepository {
         await acquireMutation()
         defer { releaseMutation() }
         try await loadIfNeeded()
-        let result = try selectRecord(
-            snapshot.productRecords.developerAssets.first { $0.id == incoming.id },
-            incoming
-        )
+        let result = try snapshot.productRecords.developerAssets.first { $0.id == incoming.id }
+            .map { try CompanionProductFieldMerge.merge($0, incoming) } ?? incoming
         snapshot.productRecords.developerAssets.replace(result) { $0.id == incoming.id }
         try await persist()
         return result

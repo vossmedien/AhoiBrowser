@@ -286,12 +286,11 @@ extension LocalFirstRepository {
                     shouldReenqueue = merged != incoming &&
                         CompanionBrowserSettingCatalog.isPortable(merged)
                 case .extensionInventory(let incoming):
-                    let merged = try selectRecord(
-                        extensionIndexes[incoming.id].map {
-                            working.productRecords.extensionInventory[$0]
-                        },
-                        incoming
-                    )
+                    let merged = try extensionIndexes[incoming.id].map {
+                        try CompanionProductFieldMerge.merge(
+                            working.productRecords.extensionInventory[$0], incoming
+                        )
+                    } ?? incoming
                     if let index = extensionIndexes[incoming.id] {
                         working.productRecords.extensionInventory[index] = merged
                     } else {
@@ -302,12 +301,11 @@ extension LocalFirstRepository {
                     accepted = .extensionInventory(merged)
                     shouldReenqueue = merged.version > incoming.version
                 case .developerAsset(let incoming):
-                    let merged = try selectRecord(
-                        assetIndexes[incoming.id].map {
-                            working.productRecords.developerAssets[$0]
-                        },
-                        incoming
-                    )
+                    let merged = try assetIndexes[incoming.id].map {
+                        try CompanionProductFieldMerge.merge(
+                            working.productRecords.developerAssets[$0], incoming
+                        )
+                    } ?? incoming
                     if let index = assetIndexes[incoming.id] {
                         working.productRecords.developerAssets[index] = merged
                     } else {
