@@ -1,0 +1,43 @@
+{
+  "sourceCommit": "6096e930e1d04135bf75ddb54941f7069824f865",
+  "cleanIsolatedCandidateAfterRun": true,
+  "fixtureSha256": {
+    "fixtures/sync-conformance/merge_v3.json": "da09b4c1feb6247c30975376642893eb95a56a4ce0a3f3bcf059327121efacf8",
+    "fixtures/sync-conformance/workspace_merge_projection_v3.json": "4dd5370f84742aa022a6f690d075f5313db9aa25be37254780eefafa0a317dc8",
+    "fixtures/sync-conformance/merge_utf8_sort_keys_v3.json": "df4833b8b0719d296ac8a935d9207624092a1ce0d787357c60af1c9209f42f16"
+  },
+  "fieldMergeCases": 140,
+  "projectionCases": 23,
+  "projectionArrayOrders": 279,
+  "utf8SupplementCases": 8,
+  "testResult": {
+    "result": "Passed",
+    "totalTestCount": 38,
+    "passedTests": 38,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "startTime": 1790501925.816,
+    "finishTime": 1790502024.116
+  },
+  "classes": [
+    "CompanionWorkspaceMergeTests",
+    "SyncMergeConformanceTests",
+    "CompanionTreeReorderingTests"
+  ],
+  "destination": "CE3513BF-61D7-4718-99A0-29D4111D6855",
+  "configuration": "DebugLocal",
+  "jobs": 1,
+  "parallelTests": false,
+  "xcodeVersion": "Xcode 27.0\nBuild version 27A266a",
+  "binarySha256": {
+    ".work/agent-queue/mobile-merge-dd/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCore.framework/AhoiMobileCore": "7662fefd8a045d82831a6d2098d56849e6db3bd7469740499f40fda537380c07",
+    ".work/agent-queue/mobile-merge-dd/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCoreTests.xctest/AhoiMobileCoreTests": "f9fa942f427973db8fb4af70dd77c1ddd82d5dac82e57bbe0b22028131b22849"
+  },
+  "xcodebuildLogSha256": "51abd89202b21e063cee37b09b8c0e9bae48563f1903401280c349f79e8aadb5",
+  "xcresultManifestSha256": "7c48cb2c246ffdad1b80cc5259ba8908a156c27d66555238843f7e64ce4d4f63",
+  "xcresultFileCount": 106,
+  "runnerExitCode": 0,
+  "simulatorFinalState": "Shutdown",
+  "buildLockFinalState": "absent",
+  "recordedAt": "2026-09-27T09:41:25.240237+00:00"
+}

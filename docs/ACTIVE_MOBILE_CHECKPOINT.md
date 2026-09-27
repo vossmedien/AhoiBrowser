@@ -2,6 +2,28 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Focused R1 verification — 27 September 2026, 11:41 CEST
+
+Exact clean isolated source `6096e93` passes **38/38 focused XCTest methods**, no
+failures or skips: Workspace merge/retention guards 23, TreeNode reorder and
+UTF-8 ordering 11, and shared Format 3 conformance 4. The runner executes the
+unchanged 140 field-merge vectors, 23 projection cases / 279 array orders,
+and Crest 120's separate eight-vector UTF-8 supplement. It typechecks the
+Mobile upload-receipt, ingress and local cache-removal code as part of the
+DebugLocal build. [Exact candidate, fixture, binary and result evidence](../artifacts/tests/mobile-merge-6096e93-20260927/README.md).
+The owned CE3513BF simulator is Shutdown, the build lock is absent, and the
+foreign Location Guru simulator was untouched. This supersedes the syntax-only
+status below for the exercised Swift paths; the unchanged earlier 27/27 suite
+was not repeated.
+
+Next source package: require a current scoped upload receipt, expired tombstone,
+empty pending-save queue and empty fetched inbox before committing the domain
+watermark plus payload removal in one Snapshot save. Then remove the exact local
+transport record and prevent later rehydration after an interrupted two-file
+sequence. Test reopen/failure boundaries on the next changed candidate. The
+current pass is **not** Mobile domain compaction, Crest 122 direct C++/Swift
+output comparison, visible acceptance or a real CloudKit peer result.
+
 ## Current R1 result — 27 September 2026, 07:03 CEST
 
 Mobile upload acknowledgement source continuation: a successful
