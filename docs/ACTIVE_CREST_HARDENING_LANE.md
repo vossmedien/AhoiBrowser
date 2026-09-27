@@ -261,9 +261,25 @@ runtime was run** under the continuing Root 1159 no-further-runs instruction.
 The existing product codecs, wire default, capabilities and 140-vector fixture
 remain unchanged. Catalogue tests/consumer compilation are still pending.
 
-Next allowed lane work after restart coordination: finish H1 coverage and
-runner-output protocol in lane handoffs, then the explicitly missing H3/H7
-source work and owner integration review. Actual H3/H5 runs still need
+Current coordination, owner report at 03:54 CEST: Root granted Desktop a
+bounded window of at most two jobs, with no active compiler at its preflight
+and 59–65% idle / 49% free memory. Desktop claims `build.lock` for a finite
+read-only Ninja flag query and direct Clang `-fsyntax-only` phases (maximum two
+compilers), rechecking capacity between phases. No GN, overlay refresh, link,
+browser or full Chromium build is authorized by that window. The owner avoids
+the old syncheck.sh pipeline that masked compiler exit status and records direct
+argv/exits plus a negative source control. These are the owner's reported scope
+and preflight, not Crest measurement evidence.
+
+Crest starts **no H3/H5 runtime and no competing compiler/test process** during
+that window. It holds no shared lock. The scoped Desktop authorization does
+not open a Crest runtime lease or lift the paid API/E2E/judge restrictions.
+Source/documentation work within lane paths may continue; new local tests wait
+until the owner returns the slot or explicitly coordinates them.
+
+Next allowed lane work: finish H1 coverage and runner-output protocol in lane
+handoffs, then the explicitly missing H3/H7 source work and owner integration
+review. Runtime work still requires its own newly open owner lease. Actual H3/H5 runs still need
 matching candidates and a newly open owner lease; test/capacity gates remain.
 No polling/background resource watcher was installed. The older dated sections
 below are retained as history and do not override this continuation.
