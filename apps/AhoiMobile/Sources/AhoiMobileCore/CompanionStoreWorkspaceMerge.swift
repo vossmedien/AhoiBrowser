@@ -1,6 +1,12 @@
 import Foundation
 import AhoiCloudKitSpike
 
+enum CompanionWorkspaceCompactionError: Error, Equatable {
+    case notExpiredTombstone
+    case sourceChanged
+    case conflictingWatermark
+}
+
 /// The result of one Workspace merge (ADR 0012, WS-MERGE-07): everything to
 /// enqueue for sync, plus what a single undo needs to put it back.
 public struct CompanionWorkspaceMergeReceipt: Sendable, Equatable {
@@ -19,6 +25,52 @@ public struct CompanionWorkspaceMergeReceipt: Sendable, Equatable {
 }
 
 extension LocalFirstRepository {
+    /// Commits the receiver-local route and removes the matching tombstone in
+    /// one Snapshot write. The caller must first verify the exact encrypted
+    /// upload receipt and an empty pending-save/fetched-inbox gate. This method
+    /// cannot create that server acknowledgement itself.
+    func compactWorkspaceTombstone(
+        matching expected: Workspace, nowMilliseconds: UInt64
+    ) async throws -> Bool {
+        await acquireMutation()
+        defer { releaseMutation() }
+        try await loadIfNeeded()
+        guard let tombstone = expected.tombstone,
+              tombstone.entityID == expected.id.rawValue else {
+            throw CompanionWorkspaceCompactionError.notExpiredTombstone
+        }
+        let prior = snapshot.deletionWatermarks.filter {
+            $0.dataClass == .workspace && $0.entityID == expected.id.rawValue
+        }
+        if !prior.isEmpty {
+            guard prior.count == 1, prior[0].version == expected.version,
+                  prior[0].mergedInto == expected.mergedInto,
+                  !snapshot.workspaces.contains(where: { $0.id == expected.id }) else {
+                throw CompanionWorkspaceCompactionError.conflictingWatermark
+            }
+            return false
+        }
+        let (retentionFloor, overflow) = tombstone.deletedAt.physicalMilliseconds
+            .addingReportingOverflow(30 * 24 * 60 * 60 * 1_000)
+        guard !overflow, nowMilliseconds >= tombstone.purgeAfterMilliseconds,
+              nowMilliseconds >= retentionFloor else {
+            throw CompanionWorkspaceCompactionError.notExpiredTombstone
+        }
+        guard snapshot.workspaces.filter({ $0.id == expected.id }) == [expected] else {
+            throw CompanionWorkspaceCompactionError.sourceChanged
+        }
+        var candidate = snapshot
+        candidate.workspaces.removeAll { $0.id == expected.id }
+        let watermark = CompanionDeletionWatermark(
+            dataClass: .workspace, entityID: expected.id.rawValue,
+            version: expected.version, compactedAtMilliseconds: nowMilliseconds,
+            mergedInto: expected.mergedInto)
+        try watermark.validate()
+        candidate.deletionWatermarks.append(watermark)
+        try await commitImportedSnapshot(candidate)
+        return true
+    }
+
     /// Merges `source` into `target` in one mutation and one persist. The
     /// source's live roots move, in order, to the end of the target: into one
     /// new folder named after the source (with its icon and accent) or flat.

@@ -4,6 +4,19 @@ Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, 
 
 ## Focused R1 verification — 27 September 2026, 11:41 CEST
 
+Source continuation after the `6096e93` run: the repository now has a single
+Snapshot-write Workspace compaction operation. It requires the exact current
+tombstone, its own identity, and both the advertised purge time and the 30-day
+minimum. The write removes only that Workspace payload while retaining its
+version and merge route; an identical committed marker makes a retry
+idempotent. New focused tests cover file reopen with a late raw Page, stale
+record refusal, a shortened remote purge hint, and a failed store save followed
+by retry. Source parsing, project-file validation and lane checks pass; these
+new tests have **not** run. The operation is deliberately internal and is not
+yet called: provider-side account/zone receipt, pending-save, inbox and
+quarantine gates must be connected before compaction can execute in normal
+sync. The 38/38 result below remains evidence for `6096e93` only.
+
 Exact clean isolated source `6096e93` passes **38/38 focused XCTest methods**, no
 failures or skips: Workspace merge/retention guards 23, TreeNode reorder and
 UTF-8 ordering 11, and shared Format 3 conformance 4. The runner executes the
