@@ -6,6 +6,7 @@
 // nodes that reach the merged Workspace later.
 
 #include <algorithm>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -13,8 +14,10 @@
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "ahoi/browser/sync/sync_serialization.h"
+#include "ahoi/browser/sync/sync_store.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
+#include "base/files/scoped_temp_dir.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -250,6 +253,104 @@ TEST(SyncWorkspaceMergeTest, ValidParentSurvivesBeforeOrTogetherWithLateChild) {
       EXPECT_FALSE(HasRecoveryFolder(*applied));
     }
   }
+}
+
+TEST(SyncWorkspaceMergeTest, CompactionRetainsOnlyTheRouteAndPreservesRawPage) {
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  WorkspaceRecord source = Workspace(kSource, "Source", 10);
+  source.tombstone = true;
+  source.merged_into = Id(kTarget);
+  const WorkspaceRecord target = Workspace(kTarget, "Target", 10);
+  const TreeNodeRecord page = Page(kNode, Id(kSource));
+  ASSERT_EQ(store.PutLocalRecord(source, "merge"), SyncStore::Result::kOk);
+  ASSERT_EQ(store.PutLocalRecord(target, "target"), SyncStore::Result::kOk);
+  ASSERT_EQ(store.PutLocalRecord(page, "page"), SyncStore::Result::kOk);
+  const base::Time later = base::Time::Now() + base::Days(31);
+  std::map<base::Uuid, base::Uuid> routes;
+
+  // The pending source outbox still prevents both compaction and a route row.
+  ASSERT_EQ(store.CompactExpiredTombstones(later, base::Days(30)),
+            SyncStore::Result::kOk);
+  SyncRecord record;
+  ASSERT_EQ(store.GetRecord(EntityType::kWorkspace, Id(kSource), &record),
+            SyncStore::Result::kOk);
+  ASSERT_EQ(store.ReadCompactedWorkspaceMergeTargets(&routes),
+            SyncStore::Result::kOk);
+  EXPECT_TRUE(routes.empty());
+
+  ASSERT_EQ(store.AcknowledgeOutbox({"merge"}), SyncStore::Result::kOk);
+  ASSERT_EQ(store.CompactExpiredTombstones(later, base::Days(30)),
+            SyncStore::Result::kOk);
+  EXPECT_EQ(store.GetRecord(EntityType::kWorkspace, Id(kSource), &record),
+            SyncStore::Result::kNotFound);
+  ASSERT_EQ(store.ReadCompactedWorkspaceMergeTargets(&routes),
+            SyncStore::Result::kOk);
+  ASSERT_EQ(routes.size(), 1u);
+  EXPECT_EQ(routes.at(Id(kSource)), Id(kTarget));
+  ASSERT_EQ(store.GetRecord(EntityType::kTreeNode, Id(kNode), &record),
+            SyncStore::Result::kOk);
+  const auto& raw_page = std::get<TreeNodeRecord>(record);
+  EXPECT_EQ(raw_page.workspace_id, Id(kSource));
+  EXPECT_EQ(raw_page.version, page.version);
+
+  const auto applied = ReconcileTabTreeRecords({}, {target}, {raw_page}, routes);
+  ASSERT_TRUE(applied);
+  const auto node =
+      std::ranges::find(applied->nodes, Id(kNode), &tab_tree::TreeNode::id);
+  ASSERT_NE(node, applied->nodes.end());
+  EXPECT_EQ(node->workspace_id, Id(kTarget));
+  EXPECT_FALSE(HasRecoveryFolder(*applied));
+}
+
+TEST(SyncWorkspaceMergeTest, CompactedMergeChainSurvivesStoreReopen) {
+  base::ScopedTempDir directory;
+  ASSERT_TRUE(directory.CreateUniqueTempDir());
+  const auto path = directory.GetPath().AppendASCII("merge.sqlite");
+  {
+    SyncStore store;
+    ASSERT_TRUE(store.Initialize(path));
+    WorkspaceRecord source = Workspace(kSource, "Source", 10);
+    source.tombstone = true;
+    source.merged_into = Id(kMiddle);
+    WorkspaceRecord middle = Workspace(kMiddle, "Middle", 10);
+    middle.tombstone = true;
+    middle.merged_into = Id(kTarget);
+    ASSERT_EQ(store.PutLocalRecord(source, "first"), SyncStore::Result::kOk);
+    ASSERT_EQ(store.PutLocalRecord(middle, "second"), SyncStore::Result::kOk);
+    ASSERT_EQ(store.PutLocalRecord(Workspace(kTarget, "Target", 10), "target"),
+              SyncStore::Result::kOk);
+    ASSERT_EQ(store.AcknowledgeOutbox({"first", "second"}),
+              SyncStore::Result::kOk);
+    ASSERT_EQ(store.CompactExpiredTombstones(base::Time::Now() + base::Days(31),
+                                            base::Days(30)),
+              SyncStore::Result::kOk);
+  }
+  SyncStore reopened;
+  ASSERT_TRUE(reopened.Initialize(path));
+  std::map<base::Uuid, base::Uuid> routes;
+  ASSERT_EQ(reopened.ReadCompactedWorkspaceMergeTargets(&routes),
+            SyncStore::Result::kOk);
+  ASSERT_EQ(routes.size(), 2u);
+  SyncRecord target_record;
+  ASSERT_EQ(reopened.GetRecord(EntityType::kWorkspace, Id(kTarget), &target_record),
+            SyncStore::Result::kOk);
+  const auto& target = std::get<WorkspaceRecord>(target_record);
+  const auto applied = ReconcileTabTreeRecords(
+      {}, {target}, {Page(kNode, Id(kSource))}, routes);
+  ASSERT_TRUE(applied);
+  const auto node =
+      std::ranges::find(applied->nodes, Id(kNode), &tab_tree::TreeNode::id);
+  ASSERT_NE(node, applied->nodes.end());
+  EXPECT_EQ(node->workspace_id, Id(kTarget));
+  EXPECT_FALSE(HasRecoveryFolder(*applied));
+
+  // A corrupt/cyclic route never fabricates a live merge destination.
+  routes[Id(kMiddle)] = Id(kSource);
+  const auto cycle = ReconcileTabTreeRecords(
+      {}, {target}, {Page(kNode, Id(kSource))}, routes);
+  ASSERT_TRUE(cycle);
+  EXPECT_TRUE(HasRecoveryFolder(*cycle));
 }
 
 }  // namespace

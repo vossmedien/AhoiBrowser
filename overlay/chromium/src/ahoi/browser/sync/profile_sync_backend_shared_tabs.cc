@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
+#include <map>
 #include <set>
 #include <utility>
 
@@ -426,8 +427,14 @@ ProfileSyncBackend::PrepareSharedTabProjection(NativeTreeSyncSnapshot native,
   if (!current || !current->shared_tabs.projection_ready) {
     return std::nullopt;
   }
+  std::map<base::Uuid, base::Uuid> compacted_merge_targets;
+  if (store_->ReadCompactedWorkspaceMergeTargets(&compacted_merge_targets) !=
+      SyncStore::Result::kOk) {
+    return std::nullopt;
+  }
   auto tree = ReconcileTabTreeRecords(native.tree, current->workspaces,
-                                      current->tree_nodes);
+                                      current->tree_nodes,
+                                      compacted_merge_targets);
   if (!tree) {
     return std::nullopt;
   }

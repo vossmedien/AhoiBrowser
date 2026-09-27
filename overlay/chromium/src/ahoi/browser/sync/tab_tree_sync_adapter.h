@@ -4,6 +4,7 @@
 #ifndef AHOI_BROWSER_SYNC_TAB_TREE_SYNC_ADAPTER_H_
 #define AHOI_BROWSER_SYNC_TAB_TREE_SYNC_ADAPTER_H_
 
+#include <map>
 #include <optional>
 #include <vector>
 
@@ -23,10 +24,13 @@ TreeNodeRecord TreeNodeToSyncRecord(const tab_tree::TreeNode& node,
 // cycles are deterministically cut into one per-workspace "Wiederhergestellt"
 // folder. This makes offline delete-vs-move conflicts visible and recoverable
 // instead of rejecting an otherwise valid provider page forever.
+// A resolved Workspace merge instead preserves a valid parent or uses the
+// destination root; compacted routes carry only retained identity metadata.
 std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
     const tab_tree::TabTreeSnapshot& local_snapshot,
     const std::vector<WorkspaceRecord>& workspaces,
-    const std::vector<TreeNodeRecord>& nodes);
+    const std::vector<TreeNodeRecord>& nodes,
+    const std::map<base::Uuid, base::Uuid>& compacted_merge_targets = {});
 
 }  // namespace ahoi::sync
 

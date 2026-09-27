@@ -40,6 +40,34 @@ bool WorkspaceOrder(const tab_tree::Workspace* left,
          std::tie(right->sort_key, right->id);
 }
 
+std::optional<base::Uuid> ResolveMergeTarget(
+    const base::Uuid& source,
+    const std::vector<tab_tree::Workspace>& workspaces,
+    const std::map<base::Uuid, size_t>& indexes,
+    const std::map<base::Uuid, base::Uuid>& compacted_targets) {
+  base::Uuid cursor = source;
+  std::set<base::Uuid> visited;
+  while (visited.insert(cursor).second) {
+    if (const auto found = indexes.find(cursor); found != indexes.end()) {
+      const auto& workspace = workspaces[found->second];
+      if (!workspace.tombstone) {
+        return cursor;
+      }
+      if (!workspace.merged_into) {
+        return std::nullopt;
+      }
+      cursor = *workspace.merged_into;
+    } else {
+      const auto compacted = compacted_targets.find(cursor);
+      if (compacted == compacted_targets.end()) {
+        return std::nullopt;
+      }
+      cursor = compacted->second;
+    }
+  }
+  return std::nullopt;
+}
+
 tab_tree::Workspace ConvertWorkspace(const WorkspaceRecord& source) {
   return {.model_version = tab_tree::kCurrentModelVersion,
           .id = source.id,
@@ -127,7 +155,8 @@ TreeNodeRecord TreeNodeToSyncRecord(const tab_tree::TreeNode& node,
 std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
     const tab_tree::TabTreeSnapshot& local_snapshot,
     const std::vector<WorkspaceRecord>& workspaces,
-    const std::vector<TreeNodeRecord>& nodes) {
+    const std::vector<TreeNodeRecord>& nodes,
+    const std::map<base::Uuid, base::Uuid>& compacted_merge_targets) {
   tab_tree::TabTreeSnapshot result;
   result.undo_operations = local_snapshot.undo_operations;
   std::map<base::Uuid, size_t> workspace_indexes;
@@ -223,28 +252,16 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
       }
     }
     auto workspace = workspace_indexes.find(node.workspace_id);
-    if (workspace != workspace_indexes.end() && !node.tombstone &&
-        result.workspaces[workspace->second].tombstone) {
+    if (!node.tombstone) {
       // A node that reached a merged Workspace (e.g. added offline while
       // another device merged it) follows the merge instead of the generic
       // recovery: the merge was deliberate (ADR 0012, crest 084). The chain
-      // is followed at most once per Workspace, which also stops a cycle.
-      std::optional<base::Uuid> target =
-          result.workspaces[workspace->second].merged_into;
-      for (size_t hops = 0; target && hops < result.workspaces.size();
-           ++hops) {
-        const auto next = workspace_indexes.find(*target);
-        if (next == workspace_indexes.end()) {
-          target.reset();
-          break;
-        }
-        if (!result.workspaces[next->second].tombstone) {
-          break;
-        }
-        target = result.workspaces[next->second].merged_into;
-      }
-      if (target && workspace_indexes.contains(*target) &&
-          !result.workspaces[workspace_indexes.at(*target)].tombstone) {
+      // retains only identity routing after payload compaction. A visited set
+      // bounds both live/tombstoned and compacted chains and stops cycles.
+      const auto target = ResolveMergeTarget(
+          node.workspace_id, result.workspaces, workspace_indexes,
+          compacted_merge_targets);
+      if (target && *target != node.workspace_id) {
         node.workspace_id = *target;
         workspace = workspace_indexes.find(*target);
         merge_rehomed.insert(node.id);

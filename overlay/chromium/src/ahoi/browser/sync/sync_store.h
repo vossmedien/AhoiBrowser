@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -124,9 +125,16 @@ class SyncStore {
   // Physically compacts only tombstones older than the policy window and only
   // after their outbox mutation has been acknowledged. A durable deletion
   // watermark remains, preventing a delayed provider page from resurrecting
-  // the entity. No CloudKit physical delete is issued by this operation.
+  // the entity. Workspace merges also retain only their source/target IDs so
+  // late nodes keep their destination. No CloudKit physical delete is issued.
   [[nodiscard]] Result CompactExpiredTombstones(base::Time now,
                                                 base::TimeDelta retention);
+
+  // Minimal routing metadata retained with deletion watermarks, not complete
+  // tombstone payloads. Late Pages can still follow a compacted Workspace
+  // merge without recreating its record or changing the Page's wire clock.
+  [[nodiscard]] Result ReadCompactedWorkspaceMergeTargets(
+      std::map<base::Uuid, base::Uuid>* targets) const;
 
   [[nodiscard]] std::string GetChangeToken() const;
   [[nodiscard]] RetryState GetRetryState() const;

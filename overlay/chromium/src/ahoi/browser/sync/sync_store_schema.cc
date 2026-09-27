@@ -96,6 +96,9 @@ bool SyncStore::CreateSchema() {
              "compacted_at INTEGER NOT NULL,PRIMARY "
              "KEY(entity_type,entity_id))") &&
          db_.Execute(
+             "CREATE TABLE IF NOT EXISTS sync_workspace_merge_watermarks("
+             "source_id TEXT PRIMARY KEY NOT NULL,target_id TEXT NOT NULL)") &&
+         db_.Execute(
              "CREATE TABLE IF NOT EXISTS sync_outbox("
              "mutation_id TEXT PRIMARY KEY NOT NULL,entity_type INTEGER NOT "
              "NULL,"

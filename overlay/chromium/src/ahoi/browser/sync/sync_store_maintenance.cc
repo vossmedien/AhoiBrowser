@@ -1,7 +1,9 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <map>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "ahoi/browser/sync/sync_store.h"
@@ -78,6 +80,36 @@ int64_t SyncStore::QuarantineCount() const {
   return statement.Step() ? statement.ColumnInt64(0) : -1;
 }
 
+SyncStore::Result SyncStore::ReadCompactedWorkspaceMergeTargets(
+    std::map<base::Uuid, base::Uuid>* targets) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!IsReady()) {
+    return Result::kNotInitialized;
+  }
+  if (!targets) {
+    return Result::kInvalidArgument;
+  }
+  sql::Statement query(db_.GetUniqueStatement(
+      "SELECT m.source_id,m.target_id FROM sync_workspace_merge_watermarks m "
+      "JOIN sync_deletion_watermarks w ON w.entity_id=m.source_id "
+      "WHERE w.entity_type=?"));
+  query.BindInt(0, static_cast<int>(EntityType::kWorkspace));
+  std::map<base::Uuid, base::Uuid> result;
+  while (query.Step()) {
+    const base::Uuid source = base::Uuid::ParseLowercase(query.ColumnString(0));
+    const base::Uuid target = base::Uuid::ParseLowercase(query.ColumnString(1));
+    if (!source.is_valid() || !target.is_valid() || source == target) {
+      return Result::kDatabaseError;
+    }
+    result.emplace(source, target);
+  }
+  if (!query.Succeeded()) {
+    return Result::kDatabaseError;
+  }
+  *targets = std::move(result);
+  return Result::kOk;
+}
+
 SyncStore::Result SyncStore::CompactExpiredTombstones(
     base::Time now,
     base::TimeDelta retention) {
@@ -118,6 +150,35 @@ SyncStore::Result SyncStore::CompactExpiredTombstones(
     return Result::kDatabaseError;
   }
   for (const Candidate& candidate : candidates) {
+    if (candidate.type == EntityType::kWorkspace) {
+      SyncRecord record;
+      if (GetRecord(candidate.type, base::Uuid::ParseLowercase(candidate.id),
+                    &record) != Result::kOk) {
+        return Result::kDatabaseError;
+      }
+      const auto* workspace = std::get_if<WorkspaceRecord>(&record);
+      if (!workspace || !workspace->tombstone ||
+          workspace->version != candidate.version) {
+        return Result::kDatabaseError;
+      }
+      if (workspace->merged_into) {
+        sql::Statement route(db_.GetUniqueStatement(
+            "INSERT OR REPLACE INTO sync_workspace_merge_watermarks("
+            "source_id,target_id) VALUES(?,?)"));
+        route.BindString(0, candidate.id);
+        route.BindString(1, workspace->merged_into->AsLowercaseString());
+        if (!route.Run()) {
+          return Result::kDatabaseError;
+        }
+      } else {
+        sql::Statement clear_route(db_.GetUniqueStatement(
+            "DELETE FROM sync_workspace_merge_watermarks WHERE source_id=?"));
+        clear_route.BindString(0, candidate.id);
+        if (!clear_route.Run()) {
+          return Result::kDatabaseError;
+        }
+      }
+    }
     sql::Statement watermark(db_.GetUniqueStatement(
         "INSERT OR REPLACE INTO sync_deletion_watermarks(entity_type,entity_id,"
         "version_model,version_physical,version_logical,version_device,"
