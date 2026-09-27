@@ -1,5 +1,18 @@
 # Active sync coordination
 
+## Focused Swift candidate — 27 September 2026, 11:41 CEST
+
+The exact clean `6096e93` Mobile candidate passes 38/38 focused XCTest methods
+with zero failures/skips. This includes Crest 120's eight UTF-8 sort-key
+vectors alongside the unchanged 140 field-merge vectors and 279 projection
+array orders. [Source, fixture, binary and result receipt](../artifacts/tests/mobile-merge-6096e93-20260927/README.md).
+The one-job owner simulator test is complete; CE3513BF is Shutdown and the
+build lock released. Crest 122's exporter code compiled, but no native outputs
+were requested or compared, and C++ behavioral execution remains open. Mobile
+has the local receipt, route marker, ingress guard and cache-removal seams, not
+the atomic domain compaction/orchestration or actual CloudKit server proof.
+The next source slice must close those retention boundaries before claiming R1.
+
 ## Current R1 candidate and evidence — 27 September 2026, 07:03 CEST
 
 The Mobile transport-cache source now persists a server-upload receipt for
