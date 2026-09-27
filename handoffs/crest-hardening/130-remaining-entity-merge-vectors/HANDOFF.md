@@ -1,7 +1,7 @@
 # 130 — Shared merge vectors for the remaining six Format-3 entities
 
-Status: ready source patch; native C++/Swift execution and actual-output
-comparison pending
+Status: integrated by owner in `8e96de7` (Mobile runner) and `81a26f3`
+(Sync runner/testdata); native C++/Swift execution and actual-output comparison pending
 Owners: desktop/sync and mobile
 Dependency: integrate [128](../128-inventory-asset-field-merge/HANDOFF.md)
 first. This patch is incremental to its runner/testdata changes. The two-patch

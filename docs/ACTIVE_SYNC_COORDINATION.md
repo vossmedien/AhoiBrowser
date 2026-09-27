@@ -2,6 +2,17 @@
 
 ## Focused Swift candidate — 27 September 2026, 11:41 CEST
 
+Crest 128→130 owner source intake is in `8e96de7`/`81a26f3`: Mobile's
+inventory/asset field-group merge and both native runner registrations are
+integrated; Desktop testdata copies match the six-case and 36-case canonical
+fixtures byte for byte. Swift parses and lane checks pass. Native RED/GREEN,
+both C++ runner exits, Crest 122's direct output comparison and the broader
+store/apply and seeded-sequence gates are **pending**. This source intake does
+not extend the earlier `6096e93` runtime evidence to the new fixtures.
+Crest 124's Desktop UTF-8 allocator bug and 126's merge-root marker collision
+were owner-reviewed and remain queued as separate R1 fixes, before installed
+acceptance.
+
 After this run, Mobile source adds a repository-only atomic Snapshot compaction
 step for an exact expired Workspace tombstone, preserving a version/merge-route
 watermark and raw late Page. Parser/project-file checks pass; its new tests are
