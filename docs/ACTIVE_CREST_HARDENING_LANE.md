@@ -28,8 +28,10 @@ were absent. A transient foreign xcodebuild seen in the first process snapshot
 had exited by the immediate follow-up; this is no quiet-host certification.
 The owner explicitly confirms that old H3/H5 `open` leases are stale. Await a
 new candidate-bound lease in the owner's checkpoint before any resource use.
-The desktop owner's inherited Master goal is reported reached/inactive and is
-not restarted here; this lane's separately inherited Crest goal remains active.
+The desktop owner initially reported its inherited Master goal reached/inactive.
+Its current checkpoint now corrects that as a handover parser error: Root found
+`met=false` and an authentication-error sentinel, not completion. The owner
+restored its full native Master goal; Crest's separate goal stays active.
 Ready 098 (Mobile undo guard) and 100 (build-resumption evidence, including the
 missing unit-failure stop before installation) remain for owner review.
 
@@ -106,9 +108,26 @@ browser process was run; the owner must exercise the collector during the
 regular release pair. The prior goal turn established resource/ownership
 handoff (progress); this continuation adds executable H3 evidence enforcement.
 
-Next allowed lane work: finish H3 source verification and review the runtime
-lease/cleanup behavior before the future release pair, then review new owner
-integrations as they arrive. No polling/background resource watcher was installed. The older dated sections below are retained
+Latest owner intake checked after `9a12f51`:
+
+- 096 integrated in `de52766`: canonical and Desktop testdata files are both
+  134 vectors with SHA-256
+  `c851cd9ec3091ba864b5f78613a53a4f52758e40adfe0a5830fa1cb2328a153d`.
+  Exact C++/Swift execution evidence remains pending.
+- 098's complete guard/test patch is present in Mobile commit `4f2b154`
+  (`git apply --reverse --check` succeeds). This also freezes the inherited
+  Swift `merged_into` work and additional owner regression coverage. It is
+  source integration, not an executed XCTest/visible acceptance claim; the
+  owner still updates 098's status/evidence.
+- 100 now records verified recovery: owner restored only the pinned temporary
+  Rust/V8 workaround bytes with mtimes, verified the old overlay and fixed the
+  queue's unit-failure stop. Build/candidate/runtime follow-up remains open.
+- Desktop's latest checkpoint reports heavy host load and explicitly allows
+  only lightweight source work pending capacity recovery. No Crest runtime or
+  resource lease is active.
+
+Next allowed lane work: review H3 runtime lease/cleanup behavior before the
+future release pair, then review new owner integrations as they arrive. No polling/background resource watcher was installed. The older dated sections below are retained
 as history and do not override this continuation.
 
 ## Current state — 25 September 2026
