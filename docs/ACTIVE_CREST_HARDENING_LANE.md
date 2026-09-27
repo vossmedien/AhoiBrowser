@@ -381,6 +381,14 @@ This is source/evaluator evidence, not a real-candidate paint measurement or
 full H3 budget result. Foreground/window, Memory Saver, presentation frame,
 release pair and current lease work remain open.
 
+H3 aggregate verdict correction: a focused run with one budget `PASS` and
+other budgets `NOT_MEASURED` previously emitted `evaluation.pass=true`, despite
+the methodology's full-run rule. The evaluator now requires every listed
+budget to pass for its aggregate `pass`, while preserving each focused budget
+verdict. Negative partial-run and positive complete-run controls are added;
+**64** focused local performance tests pass. This does not
+extend the harness to Master budgets it has not implemented.
+
 Next allowed lane work: finish H1's eight missing entity classes and seeded
 operation sequences, and the remaining H3/H7 source gaps. Owner integration
 and actual 122 differential runs remain open. Runtime work still requires its

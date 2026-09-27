@@ -188,7 +188,8 @@ def evaluate(candidate: dict, baseline: Optional[dict]) -> dict:
         "summaries": {metric: summarize(values)
                       for metric, values in candidate.get("metrics", {}).items()},
         "verdicts": verdicts,
-        "pass": all(v["verdict"] == "PASS" for v in verdicts
-                    if v["verdict"] != "NOT_MEASURED")
-                and any(v["verdict"] == "PASS" for v in verdicts),
+        # Overall H3 acceptance requires every evaluated budget. Per-budget
+        # PASS remains visible for focused runs, but an omitted scenario must
+        # never turn the aggregate into a complete measurement pass.
+        "pass": all(v["verdict"] == "PASS" for v in verdicts),
     }

@@ -151,6 +151,26 @@ class StatsTest(unittest.TestCase):
         self.assertFalse(evaluation["pass"])
         self.assertTrue(all(v["verdict"] == "NOT_MEASURED" for v in evaluation["verdicts"]))
 
+    def test_focused_budget_pass_is_not_full_h3_pass(self):
+        candidate = run_file(command_bar_ms=[10] * 5)
+        evaluation = ps.evaluate(candidate, None)
+        self.assertEqual(verdict(evaluation, "PERF-03")["verdict"], "PASS")
+        self.assertEqual(verdict(evaluation, "PERF-02")["verdict"], "NOT_MEASURED")
+        self.assertFalse(evaluation["pass"])
+
+    def test_all_supported_budgets_can_still_form_an_aggregate_pass(self):
+        common = {"startup_warm_ms": [1000] * 5,
+                  "startup_first_launch_ms": [1200] * 5,
+                  "speedometer_score": [30] * 5,
+                  "memory_20_tabs_kib": [100000] * 5,
+                  "idle_cpu_percent": [0.1] * 5}
+        candidate = run_file(**common, command_bar_ms=[10] * 5,
+                             workspace_switch_ms=[20] * 5)
+        baseline = run_file(baseline=True, **common)
+        evaluation = ps.evaluate(candidate, baseline)
+        self.assertTrue(all(v["verdict"] == "PASS" for v in evaluation["verdicts"]))
+        self.assertTrue(evaluation["pass"])
+
 
 def fake_devtools_server():
     """One-connection WebSocket server answering every command with its id."""

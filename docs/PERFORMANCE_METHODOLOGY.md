@@ -202,7 +202,9 @@ Known limits, stated in every report:
 Verdicts are `PASS`, `FAIL`, `INSUFFICIENT` (too few or noisy samples,
 missing baseline, mismatched conditions) and `NOT_MEASURED`. An evaluation
 passes only if at least one budget passed and none failed or was insufficient.
-`INSUFFICIENT` and `NOT_MEASURED` are never reported as success.
+`INSUFFICIENT` and `NOT_MEASURED` are never reported as success. A focused
+scenario may have an individual budget `PASS`, but the evaluation's aggregate
+`pass` is true only if **every** listed budget is `PASS`.
 
 ## 6. Example
 
