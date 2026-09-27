@@ -1,4 +1,5 @@
 import base64
+import copy
 import hashlib
 import json
 import pathlib
@@ -21,8 +22,16 @@ CONDITIONS = {"chromiumVersion": "153.0.8010.53", "hardwareModel": "Mac16,1",
               "windowSize": "1440,900", "accessibilityClients": [], "scenarioVersion": 1}
 
 
-def run_file(**metrics):
-    return {"app": {"path": "x"}, "conditions": dict(CONDITIONS), "metrics": metrics}
+def run_file(baseline=False, **metrics):
+    # Synthetic, receipt-verified fixtures for the statistical tests only.
+    proof = {"verified": True, "budgetEligible": True, "binarySha256": "a" * 64,
+             "kind": "unmodified-upstream-control" if baseline else "ahoi-release",
+             "comparison": {"optimization": {
+                 "chromePgoPhase": 2, "useThinLto": True,
+                 "pgoProfile": {"target": "mac-arm", "name": "test.profdata",
+                                "matchesChromiumPin": True, "sha256": "b" * 64}}}}
+    return {"app": {"path": "x", "binarySha256": "a" * 64},
+            "conditions": dict(CONDITIONS), "metrics": metrics, "buildEvidence": proof}
 
 
 def verdict(evaluation, budget):
@@ -41,28 +50,28 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(summary["p95"], 100)
 
     def test_relative_budget_pass_and_fail(self):
-        base = run_file(startup_warm_ms=[1000, 1002, 998, 1001, 999, 1000])
+        base = run_file(baseline=True, startup_warm_ms=[1000, 1002, 998, 1001, 999, 1000])
         ok = run_file(startup_warm_ms=[1040, 1042, 1038, 1041, 1039, 1040])
         slow = run_file(startup_warm_ms=[1200, 1202, 1198, 1201, 1199, 1200])
         self.assertEqual(verdict(ps.evaluate(ok, base), "PERF-02")["verdict"], "PASS")
         self.assertEqual(verdict(ps.evaluate(slow, base), "PERF-02")["verdict"], "FAIL")
 
     def test_higher_is_better_budget(self):
-        base = run_file(speedometer_score=[30.0, 30.1, 29.9, 30.0, 30.05])
+        base = run_file(baseline=True, speedometer_score=[30.0, 30.1, 29.9, 30.0, 30.05])
         worse = run_file(speedometer_score=[28.0, 28.1, 27.9, 28.0, 28.05])
         result = verdict(ps.evaluate(worse, base), "PERF-01")
         self.assertEqual(result["verdict"], "FAIL")
         self.assertAlmostEqual(result["worsening"], 1 - 28 / 30, places=3)
 
     def test_too_few_or_noisy_samples_are_insufficient(self):
-        base = run_file(startup_warm_ms=[1000] * 6)
+        base = run_file(baseline=True, startup_warm_ms=[1000] * 6)
         few = run_file(startup_warm_ms=[1000, 1001])
         noisy = run_file(startup_warm_ms=[500, 1000, 1500, 700, 1300, 900])
         self.assertEqual(verdict(ps.evaluate(few, base), "PERF-02")["verdict"], "INSUFFICIENT")
         self.assertEqual(verdict(ps.evaluate(noisy, base), "PERF-02")["verdict"], "INSUFFICIENT")
 
     def test_mismatched_conditions_are_insufficient(self):
-        base = run_file(startup_warm_ms=[1000] * 6)
+        base = run_file(baseline=True, startup_warm_ms=[1000] * 6)
         cand = run_file(startup_warm_ms=[1000] * 6)
         cand["conditions"]["accessibilityClients"] = ["VoiceOver"]
         result = verdict(ps.evaluate(cand, base), "PERF-02")
@@ -76,11 +85,41 @@ class StatsTest(unittest.TestCase):
         self.assertEqual(verdict(ps.evaluate(slow, None), "PERF-03")["verdict"], "FAIL")
 
     def test_idle_budget(self):
-        base = run_file(idle_cpu_percent=[0.20, 0.21, 0.19, 0.20, 0.22])
+        base = run_file(baseline=True, idle_cpu_percent=[0.20, 0.21, 0.19, 0.20, 0.22])
         same = run_file(idle_cpu_percent=[0.22, 0.23, 0.21, 0.22, 0.23])
         busy = run_file(idle_cpu_percent=[1.5, 1.52, 1.48, 1.5, 1.51])
         self.assertEqual(verdict(ps.evaluate(same, base), "PERF-07")["verdict"], "PASS")
         self.assertEqual(verdict(ps.evaluate(busy, base), "PERF-07")["verdict"], "FAIL")
+
+    def test_unbound_old_run_cannot_pass_any_budget(self):
+        candidate = run_file(command_bar_ms=[1] * 5, startup_warm_ms=[1] * 5)
+        candidate.pop("buildEvidence")
+        result = ps.evaluate(candidate, run_file(baseline=True, startup_warm_ms=[1] * 5))
+        self.assertFalse(result["pass"])
+        for budget in ("PERF-02", "PERF-03"):
+            self.assertEqual(verdict(result, budget)["verdict"], "INSUFFICIENT")
+
+    def test_different_build_configuration_cannot_pass(self):
+        candidate = run_file(startup_warm_ms=[1] * 5)
+        baseline = run_file(baseline=True, startup_warm_ms=[1] * 5)
+        baseline["buildEvidence"]["comparison"]["optimization"]["useThinLto"] = False
+        self.assertEqual(verdict(ps.evaluate(candidate, baseline), "PERF-02")["verdict"],
+                         "INSUFFICIENT")
+
+    def test_missing_optimization_or_wrong_role_cannot_pass(self):
+        candidate = run_file(startup_warm_ms=[1] * 5)
+        baseline = run_file(baseline=True, startup_warm_ms=[1] * 5)
+        for changed in ("optimization", "kind", "binary"):
+            altered = copy.deepcopy(baseline)
+            if changed == "optimization":
+                altered["buildEvidence"]["comparison"].pop("optimization")
+            elif changed == "kind":
+                altered["buildEvidence"]["kind"] = "ahoi-release"
+            else:
+                altered["app"]["binarySha256"] = "different"
+            with self.subTest(changed=changed):
+                self.assertEqual(verdict(ps.evaluate(candidate, altered), "PERF-02")["verdict"],
+                                 "INSUFFICIENT")
 
     def test_nothing_measured_is_not_a_pass(self):
         evaluation = ps.evaluate(run_file(), None)

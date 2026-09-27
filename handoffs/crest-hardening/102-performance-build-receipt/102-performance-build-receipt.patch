@@ -1,0 +1,20 @@
+--- a/tools/build_provenance.py
++++ b/tools/build_provenance.py
+@@ -15,6 +15,7 @@
+ 
+ from chromium_dependencies import collect_revisions, verify_revisions
+ from engine_input_key import key_of, receipt_components
++from perf.optimization_receipt import collect as collect_optimization
+ from evidence import bundle_hash
+ from overlay_state import OverlayStateError, verify_overlay_state
+ from release.common import tree_sha256
+@@ -550,6 +551,9 @@
+             "pins": toolchain,
+         },
+     }
++    if args.kind in {"upstream", "release", "full-release"}:
++        payload["build"]["effectiveOptimization"] = collect_optimization(
++            CHROMIUM_SRC, out_dir, gn_binary, actual_chromium_commit)
+     if is_ahoi:
+         engine_inputs = receipt_components(payload)
+         if engine_inputs is None:

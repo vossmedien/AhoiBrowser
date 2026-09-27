@@ -88,9 +88,27 @@ Continuation results:
   The 134-vector file hash and frozen Swift revision are not bound in this
   result, so 096 remains pending exact-candidate evidence.
 
-Next allowed lane work: H3 harness review before the future release pair,
-then review new owner integrations as they arrive. No polling/background
-resource watcher was installed. The older dated sections below are retained
+H3 continuation (local, no measurement): the previous evaluator accepted both
+missing build receipts and mismatched ThinLTO configurations as PASS (negative
+controls against `e5175f8`). `tools/perf/build_evidence.py` now binds a run to
+its exact bundle tree, immutable source GN profile, Chromium pin, Xcode/SDK,
+compiler hashes and engine input key. Budget results require effective PGO/
+ThinLTO evidence; old unbound runs are INSUFFICIENT. The runner checks this
+before starting a browser. Handoff 102 supplies the build-owner integration
+for collecting those effective defaults and the pinned compiler PGO profile
+hash during the next regular release builds.
+[102 is ready](../handoffs/crest-hardening/102-performance-build-receipt/HANDOFF.md):
+64 focused local tests pass (33 performance/provenance plus 31 network-audit,
+engine-key and lane tests); separate negative controls reproduce the old
+evaluator's two false PASS results.
+Patch applicability, Python parsing and lane-boundary checks pass. No GN or
+browser process was run; the owner must exercise the collector during the
+regular release pair. The prior goal turn established resource/ownership
+handoff (progress); this continuation adds executable H3 evidence enforcement.
+
+Next allowed lane work: finish H3 source verification and review the runtime
+lease/cleanup behavior before the future release pair, then review new owner
+integrations as they arrive. No polling/background resource watcher was installed. The older dated sections below are retained
 as history and do not override this continuation.
 
 ## Current state — 25 September 2026

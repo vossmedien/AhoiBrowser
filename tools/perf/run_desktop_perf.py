@@ -36,6 +36,7 @@ from typing import Optional
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 import cdp  # noqa: E402
+import build_evidence  # noqa: E402
 import perf_stats  # noqa: E402
 
 SCENARIO_VERSION = 1
@@ -160,6 +161,8 @@ def app_identity(app: pathlib.Path) -> dict:
         or plist.get("CFBundleShortVersionString"),
         "sourceCommit": plist.get("AhoiSourceCommit"),
         "buildProfile": plist.get("AhoiBuildProfile"),
+        "chromiumCommit": plist.get("AhoiChromiumCommit"),
+        "gnArgsSha256": plist.get("AhoiGNArgsSHA256"),
     }
 
 
@@ -235,6 +238,7 @@ class FixtureServer:
 
     def close(self):
         self.httpd.shutdown()
+        self.httpd.server_close()
 
 
 # --------------------------------------------------------------------------- processes
@@ -453,6 +457,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--app", type=pathlib.Path, required=True, help="candidate bundle")
     parser.add_argument("--baseline-app", type=pathlib.Path,
                         help="unmodified Chromium of the same revision")
+    parser.add_argument("--build-receipt", type=pathlib.Path,
+                        help="candidate build receipt bound to the exact bundle")
+    parser.add_argument("--baseline-build-receipt", type=pathlib.Path,
+                        help="unmodified Chromium release build receipt")
     parser.add_argument("--scenario", action="append", choices=sorted(SCENARIOS),
                         required=True)
     parser.add_argument("--runs", type=int, default=perf_stats.MIN_SAMPLES)
@@ -474,10 +482,28 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     apps = [args.app] + ([args.baseline_app] if args.baseline_app else [])
     identities = [app_identity(app) for app in apps]
+    receipt_paths = [args.build_receipt] + ([args.baseline_build_receipt] if args.baseline_app else [])
+    try:
+        evidence = [build_evidence.verify(identity, path) if path else None
+                    for identity, path in zip(identities, receipt_paths)]
+    except (OSError, ValueError) as error:
+        print(f"refusing to measure: {error}", file=sys.stderr)
+        return 7
+    runs = [{"app": identity, "buildEvidence": proof, "metrics": {}}
+            for identity, proof in zip(identities, evidence)]
+    problems = [build_evidence.budget_problem(run, baseline=index > 0)
+                for index, run in enumerate(runs)]
+    if len(runs) > 1 and not any(problems):
+        if evidence[0]["comparison"] != evidence[1]["comparison"]:
+            problems.append("candidate and baseline build configurations differ")
     if args.dry_run:
         print(json.dumps({"apps": identities, "scenarios": args.scenario, "runs": args.runs,
+                          "buildEvidence": evidence, "budgetProblems": [p for p in problems if p],
                           "host": host_conditions()}, indent=2))
         return 0
+    if not args.validation_run and any(problems):
+        print("refusing to measure: " + "; ".join(p for p in problems if p), file=sys.stderr)
+        return 7
     try:
         conditions = preflight(apps, args.port, args.min_idle, args.lease,
                                args.validation_run)
@@ -486,7 +512,6 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 7
 
     names = dict(item.split("=", 1) for item in args.trace_metric)
-    runs = [{"app": identity, "metrics": {}} for identity in identities]
     fixtures = FixtureServer()
     workdir = pathlib.Path(tempfile.mkdtemp(prefix="ahoi-perf-"))
     started = dt.datetime.now(dt.timezone.utc).isoformat()
@@ -510,7 +535,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     args.output.mkdir(parents=True, exist_ok=True)
     for run_data, identity in zip(runs, identities):
         run_data.update({
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "kind": "ahoi-perf-run",
             "startedAt": started,
             "conditions": {

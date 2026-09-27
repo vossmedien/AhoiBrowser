@@ -38,8 +38,33 @@ Rules:
   those two release builds and a quiet host.
 - **Same pin.** `chromiumVersion` must match (the runner reads it from each
   bundle and refuses a mismatch as `INSUFFICIENT`).
-- The candidate is identified by `binarySha256` and, once handoff 001 is
-  integrated, by its receipt's `engineInputKey`.
+- **Receipt and whole bundle binding.** `--build-receipt` and, when comparing,
+  `--baseline-build-receipt` identify the owner-generated schema-2 build
+  receipts. The runner checks the launcher's SHA-256 **and** the exact bundle
+  tree (framework, resources, modes and links). A re-signed/changed copy needs
+  a matching owner receipt; a matching launcher alone is insufficient.
+- **Immutable configuration.** GN profiles and pin files are read from the
+  receipt's Git revision, not the current working tree. Configured/generated
+  GN hashes, a clean source receipt, release/noncomponent flags, Chromium
+  commit, Xcode 27/SDK, compiler hashes and Ahoi's `engineInputKey` must agree.
+  Candidate and upstream comparison settings must match. Only the explicit
+  branding/lean-feature differences in `build_evidence.PRODUCT_ARGS` are
+  excluded; unknown configuration differences are refused.
+- **Effective optimization evidence.** Handoff 102 adds
+  `build.effectiveOptimization` to the owner's next regular release receipts:
+  effective `chrome_pgo_phase`/`use_thin_lto` from GN, and the profile actually
+  named by the PGO compiler config, checked against the Chromium pin's
+  `chrome/build/mac-arm.pgo.txt` and hashed. The candidate and control must use
+  identical profile bytes and optimization settings. No old receipt is
+  retrospectively upgraded by inference from a release filename.
+
+The runner refuses an unbound/ineligible normal measurement before any browser
+launch. `--dry-run` reports evidence problems without launching; an explicitly
+owner-approved `--validation-run` may still exercise a dev bundle without a
+receipt and never yields a budget verdict. Stored run schema 2 includes the
+verified build summary and receipt hash. Re-evaluating older runs without that
+binding yields `INSUFFICIENT`, even if their timings happen to be good. These
+local build receipts are provenance evidence, not a signed release attestation.
 
 ## 2. Host conditions
 
@@ -72,7 +97,8 @@ loopback for all non-benchmark pages.
 
 ## 3. Run protocol
 
-1. Dry run (`--dry-run`) to record both bundles' identity.
+1. Dry run (`--dry-run`, with both build receipts) to verify and record bundle
+   identities and configuration.
 2. Candidate and baseline are measured in one invocation and **interleaved**
    (A, B, A, B, …) so host drift affects both.
 3. At least 5 samples per metric per app (`--runs`, default 5). A metric with
@@ -132,6 +158,8 @@ passes only if at least one budget passed and none failed or was insufficient.
 ```sh
 python3 tools/perf/run_desktop_perf.py \
   --app /path/to/AhoiBrowser.app --baseline-app /path/to/Chromium.app \
+  --build-receipt /path/to/ahoi-release-build.json \
+  --baseline-build-receipt /path/to/upstream-build.json \
   --scenario startup --scenario memory --scenario idle --runs 5 \
   --output artifacts/perf/<source>-<date>
 ```

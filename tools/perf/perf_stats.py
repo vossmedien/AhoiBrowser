@@ -14,6 +14,8 @@ import random
 import statistics
 from typing import Optional
 
+import build_evidence
+
 MIN_SAMPLES = 5
 MAX_RELATIVE_SPREAD = 0.10  # MAD / median
 BOOTSTRAP_ROUNDS = 2000
@@ -114,6 +116,9 @@ def evaluate_budget(budget_id: str, candidate: dict, baseline: Optional[dict]) -
     if candidate.get("conditions", {}).get("validationRun"):
         return {**result, "verdict": "INSUFFICIENT",
                 "reason": "validation run on a busy or attended host"}
+    proof_problem = build_evidence.budget_problem(candidate)
+    if proof_problem:
+        return {**result, "verdict": "INSUFFICIENT", "reason": proof_problem}
     problem = usable(values)
     if budget["kind"] == "absolute":
         if problem:
@@ -125,6 +130,12 @@ def evaluate_budget(budget_id: str, candidate: dict, baseline: Optional[dict]) -
     base_values = (baseline or {}).get("metrics", {}).get(metric)
     if not base_values:
         return {**result, "verdict": "INSUFFICIENT", "reason": "no baseline samples"}
+    proof_problem = build_evidence.budget_problem(baseline, baseline=True)
+    if proof_problem:
+        return {**result, "verdict": "INSUFFICIENT", "reason": proof_problem}
+    if candidate["buildEvidence"]["comparison"] != baseline["buildEvidence"]["comparison"]:
+        return {**result, "verdict": "INSUFFICIENT",
+                "reason": "build configuration, Chromium pin, toolchain or PGO differs"}
     problem = problem or usable(base_values)
     mismatched = condition_mismatches(candidate, baseline)
     if mismatched:
