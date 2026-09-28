@@ -695,8 +695,26 @@ final class CompanionWorkspaceMergeTests: XCTestCase {
                        tokens.sorted(by: CompanionTreePosition.less).map { Data($0.utf8) })
         let workspace = WorkspaceID()
         let nested = CompanionTreePosition.mergeRootMarker(workspace) + "old"
-        XCTAssertNil(CompanionTreePosition.mergeRootSuffix(
-            CompanionTreePosition.mergeRootToken(nested, node: id), workspace: workspace))
+        XCTAssertNil(CompanionTreePosition.mergeRootPosition(
+            CompanionTreePosition.mergeRootToken(nested, node: id)) { _ in true })
+    }
+
+    /// Crest 126: marker-like text is a segment position only for a real
+    /// merged source; the node's own Workspace or an unknown one stays ordinary.
+    func testMergeRootPositionRequiresAMergedSource() {
+        let source = WorkspaceID()
+        let own = WorkspaceID()
+        let authored = "T" + CompanionTreePosition.mergeRootMarker(source) + "s"
+        XCTAssertEqual(CompanionTreePosition.mergeRootPosition(authored) {
+            $0 == source
+        }?.suffix, "s")
+        XCTAssertNil(CompanionTreePosition.mergeRootPosition(authored) { $0 == own })
+        let forged = "Q" + CompanionTreePosition.mergeRootMarker(own) + "x"
+        XCTAssertNil(CompanionTreePosition.mergeRootPosition(forged) { $0 == source })
+        let upper = "Q!:ahoi-merge-root/" + source.rawValue.uuidString + "/x"
+        XCTAssertNil(CompanionTreePosition.mergeRootPosition(upper) { _ in true })
+        XCTAssertNil(CompanionTreePosition.mergeRootPosition(
+            "T" + CompanionTreePosition.mergeRootMarker(source)) { _ in true })
     }
 
     private static func lateMergeFixture() async throws -> (

@@ -103,11 +103,8 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
     /// merge chains and a later undo without minting a competing wire clock.
     public var treeNodesForPresentation: [TreeNode] {
         let destinations = mergedWorkspaceDestinations
-        let anchoredRoots = treeNodes.contains {
-            !$0.isDeleted && $0.parentID == nil &&
-                CompanionTreePosition.mergeRootSuffix($0.syncSortKey, workspace: $0.workspaceID) != nil
-        }
-        guard !destinations.isEmpty || anchoredRoots else { return treeNodes }
+        // Without a merged source no marker can be authentic (crest 126).
+        guard !destinations.isEmpty else { return treeNodes }
         var projected = treeNodes.map { node in
             var result = node
             if !node.isDeleted, let destination = destinations[node.workspaceID] {
@@ -131,19 +128,27 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
                 projected[index].parentID = nil
             }
         }
-        projectMergeRootOrder(&projected)
+        projectMergeRootOrder(&projected, destinations: destinations)
         return projected
     }
 
-    private func projectMergeRootOrder(_ nodes: inout [TreeNode]) {
+    private func projectMergeRootOrder(
+        _ nodes: inout [TreeNode], destinations: [WorkspaceID: WorkspaceID]
+    ) {
         let live = Set(visibleWorkspaces.map(\.id))
+        func authored(_ raw: TreeNode, in workspace: WorkspaceID)
+            -> (source: WorkspaceID, suffix: String)? {
+            CompanionTreePosition.mergeRootPosition(raw.syncSortKey) { source in
+                source != workspace && destinations[source] == workspace
+            }
+        }
         var ordinaryTails: [WorkspaceID: String] = [:]
         for index in nodes.indices {
             let node = nodes[index]
             let raw = treeNodes[index]
             guard !node.isDeleted, node.parentID == nil, live.contains(node.workspaceID),
                   node.workspaceID == raw.workspaceID,
-                  CompanionTreePosition.mergeRootSuffix(raw.syncSortKey, workspace: node.workspaceID) == nil else {
+                  authored(raw, in: node.workspaceID) == nil else {
                 continue
             }
             if ordinaryTails[node.workspaceID].map({
@@ -154,15 +159,16 @@ public struct CompanionSnapshot: Codable, Equatable, Sendable {
             let node = nodes[index]
             let raw = treeNodes[index]
             guard !node.isDeleted, node.parentID == nil, live.contains(node.workspaceID) else { continue }
-            let suffix: String?
+            let segment: (source: WorkspaceID, suffix: String)?
             if node.workspaceID != raw.workspaceID {
-                suffix = CompanionTreePosition.mergeRootToken(raw.syncSortKey, node: raw.id)
+                segment = (raw.workspaceID,
+                           CompanionTreePosition.mergeRootToken(raw.syncSortKey, node: raw.id))
             } else {
-                suffix = CompanionTreePosition.mergeRootSuffix(raw.syncSortKey, workspace: node.workspaceID)
+                segment = authored(raw, in: node.workspaceID)
             }
-            guard let suffix else { continue }
+            guard let segment else { continue }
             nodes[index].wireSortKey = (ordinaryTails[node.workspaceID] ?? "") +
-                CompanionTreePosition.mergeRootMarker(node.workspaceID) + suffix
+                CompanionTreePosition.mergeRootMarker(segment.source) + segment.suffix
         }
     }
 

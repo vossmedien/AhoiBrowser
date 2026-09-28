@@ -12,14 +12,39 @@ struct CompanionTreePosition {
     /// the segment instead of pushing its remaining passive nodes past that
     /// explicit position again. This is an existing sort_key value, not a new
     /// field clock, record type or implicit structural write.
-    static func mergeRootMarker(_ workspace: WorkspaceID) -> String {
-        "!:ahoi-merge-root/" + workspace.rawValue.uuidString.lowercased() + "/"
+    /// The marker names the merged *source* Workspace (crest 126), so an
+    /// ordinary opaque key cannot claim a segment position unless it spells a
+    /// real merge source that resolves into the node's Workspace.
+    static func mergeRootMarker(_ source: WorkspaceID) -> String {
+        "!:ahoi-merge-root/" + source.rawValue.uuidString.lowercased() + "/"
     }
 
-    static func mergeRootSuffix(_ key: String, workspace: WorkspaceID) -> String? {
-        guard let range = key.range(of: mergeRootMarker(workspace), options: [.backwards, .literal]),
-              range.upperBound != key.endIndex else { return nil }
-        return String(key[range.upperBound...])
+    /// The last marker whose canonical lowercase source satisfies
+    /// `mergedSource` and has a nonempty suffix. Matches C++
+    /// `FindMergeRootPosition` byte for byte.
+    static func mergeRootPosition(
+        _ key: String, mergedSource: (WorkspaceID) -> Bool
+    ) -> (source: WorkspaceID, suffix: String)? {
+        let bytes = Array(key.utf8)
+        let prefix = Array("!:ahoi-merge-root/".utf8)
+        let uuidLength = 36
+        var start = bytes.count - prefix.count - uuidLength - 2
+        while start >= 0 {
+            defer { start -= 1 }
+            guard bytes[start..<start + prefix.count].elementsEqual(prefix) else { continue }
+            let uuidStart = start + prefix.count
+            let suffixStart = uuidStart + uuidLength + 1
+            guard bytes[suffixStart - 1] == UInt8(ascii: "/"),
+                  let text = String(bytes: bytes[uuidStart..<uuidStart + uuidLength],
+                                    encoding: .utf8),
+                  let uuid = UUID(uuidString: text),
+                  uuid.uuidString.lowercased() == text else { continue }
+            let source = WorkspaceID(rawValue: uuid)
+            if mergedSource(source) {
+                return (source, String(decoding: bytes[suffixStart...], as: UTF8.self))
+            }
+        }
+        return nil
     }
 
     static func mergeRootToken(_ key: String, node: TreeNodeID) -> String {
