@@ -921,6 +921,17 @@ focus test. Owner found AX activation ineffective under cooperative
 activation and adds an Apple Event fallback to axtool (drivers inherit it via
 the shared rebuilt binary). Restore journey and the full H3 run are next.
 
+**H2 visible journeys green on installed build 45** (owner `e8d69a41`,
+19:10): auto-archive, keyboard-shortcuts (Workspace switch), link-peek (142
+R5), split-archive-restore (Split, Restore), ws-deletion-extended,
+ws-level-deletion (veto now shown), quick-window-adoption (Quick Window
+adoption, 146 #6), sidebar-discovery-switch (142 R2), and Crest's
+empty-workspace-navigation (zero-tab, 142 R4). All DoD journey classes of H2
+(Split, zero-tab, Workspace switch, Restore, Quick Window) are now green on
+the exact candidate; Crest's restore-surface run (handoff 040 S4) is queued
+as extra evidence. `axtool activate` gained an Apple Event fallback
+(`3d53533e`).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
