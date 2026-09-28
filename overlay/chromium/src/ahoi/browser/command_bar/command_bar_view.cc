@@ -560,6 +560,10 @@ void CommandBarView::RebuildSuggestions(bool prefer_input_fallback) {
   SelectIndex(selection, /*request_focus=*/false);
   results_view_->InvalidateLayout();
   InvalidateLayout();
+  // InvalidateLayout() alone only begins a compositor frame; without damage
+  // it ends as "no update" and the new rows waited for an unrelated paint
+  // such as the caret blink (Crest H3 trace on build 45: ~350-410 ms).
+  SchedulePaint();
 }
 
 void CommandBarView::SelectIndex(std::optional<size_t> index,
