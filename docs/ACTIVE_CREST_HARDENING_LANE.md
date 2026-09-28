@@ -689,6 +689,20 @@ deletes nothing. C++ 132/140/144 and 138 GREEN remain pending on that rerun.
 Disk freed to 87–88 GiB (owner/user); owner GREEN `cpp-green-17aa591b` started
 12:40 under `build.lock`. 146 #11 confirmed covered by durable command replay.
 
+**C++ GREEN (owner `cpp-green-17aa591b`, source `17aa591b`, 12:40–12:54):**
+all nine Crest conformance tests pass natively in `ahoi_sync_unittests`
+(SharedVectors 140, UTF8SortKeyVectors 8, InventoryAssetVectors 6,
+RemainingEntityVectors 36, SeededMergeSequences 132, DomainGroupVectors 140,
+BrowserSettingValueVectors 144, SharedFramesAndArrayOrders 112,
+MarkerCollisionFrames 138 GREEN). With the Swift results this closes the
+native pass side of H1's shared vectors on both platforms; the 122 direct
+output comparison (export env) has not been run yet. Non-Crest failures in
+the same run, reported to the owner: `SyncSecretBoundaryTest` (bookmarks
+accept/serialize file/chrome/javascript/data URLs — contract conflict between
+`c28ec4a` and DoD 14 `d6bd0cc`; privacy finding, Sync owner decides) and six
+crashes in 134 empty-source undo / Workspace duplication tests
+(tab_tree/session). Logs: `.work/agent-queue/cpp-green-17aa591b-20260928b/`.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
