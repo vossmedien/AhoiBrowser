@@ -1,5 +1,20 @@
 # Active Desktop checkpoint
 
+## Native GREEN on ba9f26cb — 28 September 2026, 14:19 CEST
+
+User-approved bounded runs, owner `build.lock` held. **C++**: tab_tree, session
+and sync unit binaries all pass; **Swift**: 61/61 focused tests pass.
+[Evidence](../artifacts/tests/native-green-ba9f26cb-20260928/README.md).
+Covered and now natively verified: Crest 126/138 (RED 18 failures on
+`54c2901` in C++ and Swift → GREEN), 132/140/144 conformance, 134 empty-merge
+undo + schema 6 + routing restore, 136 Files spike, 142 R1/R3, Workspace
+duplication fix (`5e90a4e0`), Mobile compaction lease faults, and the owner
+decision that non-portable bookmarks (file:, chrome:, javascript:, data:)
+stay local on both platforms (`14e46da2`, `ba9f26cb`). Not yet compiled into
+a unit target run: sidebar/popup 142 R2/R4/R5/R6 (syntax-checked only;
+`ahoi_sidebar_tree_unittests` was never built). Open: visible journeys on an
+installed candidate, real CloudKit peer, remaining Crest 146 paths.
+
 ## Crest 134 empty-merge undo source — 28 September 2026
 
 `023e6126` gives an empty same-context Workspace merge a durable undo receipt:
