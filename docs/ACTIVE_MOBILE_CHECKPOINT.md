@@ -2,6 +2,33 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Post-restart retention review — 28 September 2026, 10:30 CEST
+
+Handover to Claude after Cockpit restart (installed Cockpit build 1164). Live
+check: no booted simulator, no Ahoi lock, host ~13–17 % CPU idle with foreign
+Cockpit `swift-test`/`swift-frontend` load, so **no native run was started**.
+A Codex session shares the working tree; commits stay pathscoped.
+
+Source review of `2c26365` found one defect: any transient lease loss in
+Workspace compaction (`CloudKitSyncProviderError.unavailable` from a
+concurrent CKSyncEngine delegate event, engine replacement or account change,
+or the store's `notAcknowledged`/`pendingFetchedEnvelope` refusal after the
+domain commit) propagated out of `performBoundedSyncNow` and failed the whole
+user-visible sync, including after a successful finalize. The bridge now
+defers maintenance for these cases (lease loss ends the round, per-record
+refusals skip that record); domain watermark and transport cache remain a
+consistent, idempotently retryable pair. Storage and other errors still
+propagate. Swift parse passes; **not typechecked or run**.
+
+Reviewed without change: interrupted domain-then-cache recovery re-enters via
+the committed watermark and `compactWorkspaceTombstone`'s idempotent branch;
+cache removal rechecks exact record, receipt and fetched inbox, so a racing
+newer copy is never dropped. Known cost: every committed Workspace watermark
+is probed in the transport cache twice per sync (O(watermarks)).
+Remaining open: a bridge-level test with a throwing fake transport, the three
+repository-retention tests, Crest 128/130/138 native RED/GREEN, and Desktop
+124/126 R1 — all in a bounded slot on one frozen candidate.
+
 ## Root 1163 restart handback — 27 September 2026, 12:11 CEST
 
 **Neustartbereit.** The current atomic Mobile retention source is committed in

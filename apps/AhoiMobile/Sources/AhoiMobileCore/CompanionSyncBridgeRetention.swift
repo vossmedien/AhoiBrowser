@@ -72,6 +72,16 @@ extension CompanionSyncBridge {
                 // A local edit won the race after the snapshot scan. Its next
                 // exact candidate will be considered on the next bounded pass.
                 continue
+            } catch CloudKitSyncProviderError.unavailable {
+                // A delegate event, engine replacement or account change took
+                // the lease. Domain watermark and cache stay a consistent,
+                // retryable pair; deferring must not fail the user's sync.
+                return
+            } catch let error as UploadedTombstoneReceiptError
+                where error == .notAcknowledged || error == .pendingFetchedEnvelope {
+                // A fetched envelope or newer cache copy arrived after the
+                // domain commit. Ingress handles it; retry removal later.
+                continue
             }
         }
     }
