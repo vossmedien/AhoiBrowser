@@ -914,6 +914,13 @@ drivers failed — Workspace menu / command bar did not open because the
 harness starts the browser in the background. Drivers now activate the app
 (AX activation, no HID reset) before menus and posted keys; starter re-armed.
 
+**H2 zero-tab journey PASS on installed build 45** (Crest run 18:41–18:42,
+`artifacts/computer-use/m153/empty-workspace-navigation-installed-4746af81-crest-20260928/`,
+navigation creates a new tab, no hidden tab navigated) despite a brief owner
+focus test. Owner found AX activation ineffective under cooperative
+activation and adds an Apple Event fallback to axtool (drivers inherit it via
+the shared rebuilt binary). Restore journey and the full H3 run are next.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
