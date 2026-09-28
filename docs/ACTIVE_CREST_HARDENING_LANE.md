@@ -625,6 +625,15 @@ Owner intake of 144: `7d034a6` (Swift) and `018a0a2` (C++/testdata), status
 read-only background watcher checks both every 5 minutes for a current
 `Crest-H3-Lease` marker and starts nothing itself.
 
+Owner progress 28 September: Mobile `c6958dfd` passed **54/54** focused
+XCTest on CE3513BF (receipt `artifacts/tests/mobile-typecheck-c6958dfd-20260928/`),
+including Swift 132 sequences, 138 marker frames (GREEN for the 126 fix) and
+140 domain groups; Swift 138 RED on `54c2901`, 144 and all C++ runs are still
+pending. Desktop source-fixed 142 R1 (`46ac042`, bounded self-retry) and
+R2/R5/R6 (`f479b6e`); Crest's review (in 142) accepts them as source, notes
+that only R6 has a behavioural test and asks for R1/R2/R5 tests. R3 rest/R4
+open; nothing compiled or run on Desktop. Still no Crest lease.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

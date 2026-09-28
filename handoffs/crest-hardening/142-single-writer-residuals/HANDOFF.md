@@ -41,3 +41,26 @@ Each fix with its RED→GREEN unit test in the next Desktop package; then the
 affected visible journeys on the exact candidate (split archive/restore,
 Workspace switch, merge + undo, popup/Quick Window adoption), per H2 DoD.
 No extra build is requested for this handoff alone.
+
+## Crest source review of owner fixes (28 September)
+
+- **R1 `46ac042`:** accepted as a design. A separate cancellation flag would not
+  help because the commit is compare-and-swap against the durable `before`,
+  which any tree persist changes; a bounded self-retry (250 ms doubling to 8 s,
+  six attempts, reset on success/native change) removes the "wait for an
+  unrelated event" gap. Residual, by design: under tree persists more frequent
+  than one commit's disk write, all six retries can still lose; later native
+  changes schedule again. Test gap: `CancelledCommitRetriesBounded` checks only
+  the delay series. Still needed: a controller test that a cancelled commit
+  runs again without any further event (RED before `46ac042`).
+- **R2 `f479b6e`:** matches the proposal (`ActivateTabInItsWorkspace` before
+  marking the activation committed). No test yet;
+  `BrowserSidebarHostTest.DiscoveryActivationOfHiddenTabSwitchesWorkspaceFirst`
+  remains proposed.
+- **R5 `f479b6e`:** promotion and popup split abort when the opener-Workspace
+  switch fails. No test yet; `PopupOverlayControllerTest.PromotionKeepsOpenerWorkspaceWhenSwitchFails`
+  remains proposed.
+- **R6 `f479b6e`:** empty move group refused by drop, context move, move command
+  and group dialog; covered by `SidebarTreeViewTest.SplitMoveWithUnboundMemberIsRefused`.
+- R3 (window/tab bindings on merge undo) and R4 stay open; 146 covers the
+  operation-ID side of R3. All owner fixes are uncompiled/unrun per their commits.
