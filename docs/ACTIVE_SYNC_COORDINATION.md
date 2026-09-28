@@ -1,5 +1,21 @@
 # Active sync coordination
 
+## Compile evidence for the 28 September owner changes
+
+Two bounded compile-only checks bind to `c6958dfd` (test pause respected: no
+test executed, no simulator booted; owner `build.lock` held and released):
+
+- C++: pinned-Clang `-fsyntax-only`, 13/13 files incl. schema-6 undo,
+  routing receipt, Crest 126 projector and 132/138/140 runners, after one
+  include fix `f05ac14e`. [Evidence](../artifacts/tests/cpp-syntax-fc29437e-20260928/README.md)
+- Swift: `xcodebuild build-for-testing` DebugLocal, `-jobs 2`, **TEST BUILD
+  SUCCEEDED**. [Evidence](../artifacts/tests/mobile-typecheck-c6958dfd-20260928/README.md)
+
+Next when the test pause lifts: run the focused XCTest classes
+(`CompanionWorkspaceRetentionTests`, `SyncMergeConformanceTests`,
+`CompanionWorkspaceMergeTests`, `MobileWebExtensionRuntimeTests`) from this
+built bundle, 138 RED on `54c2901` then GREEN, and the C++ unit targets.
+
 ## Crest 126 marker collision — owner design note, 28 September 2026
 
 Source review of `tab_tree_sync_adapter.cc` (`MergeRootSuffix`/
