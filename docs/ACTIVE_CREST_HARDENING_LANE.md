@@ -775,6 +775,16 @@ R2/R4/R5/R6 (`cpp-sidebar-961b1d81`) started 14:20. Still open for H2's DoD:
 build/install of a candidate with these fixes and the visible journeys
 (split, zero-tab, Workspace switch, restore, Quick Window adoption).
 
+Owner sidebar run `cpp-sidebar-961b1d81` (first ahoi_sidebar_tree_unittests
+build since early September): 13 failures. Crest triage sent to the owner:
+142 R6 `SplitMoveWithUnboundMemberIsRefused` passes; 124's
+`DropKeysRemainValidAcrossUnicodeAndLengthBounds` passes every allocator
+assertion and fails only on a second `Initialize` of the same SQLite file
+while `store_` holds it (Chromium `exclusive_locking_` defaults to true,
+`sql/database.h:350`) — a test-harness bug, not a product bug;
+`FailedSavedSplitExtractionRollsBackOrdinaryTargetMove` should be checked
+first; the rest look like stale layout/animation expectations.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
