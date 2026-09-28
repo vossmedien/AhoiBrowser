@@ -25,6 +25,7 @@ waitax() {
 for query in ${AHOI_PERF_QUERIES:-local page fixture}; do
   if ! "$AX" dump "$PID" 14 | grep -q -E "AXWindow \\| Suchen oder URL eingeben"; then
     opened=0
+    "$AX" activate "$PID" >/dev/null 2>&1; sleep 0.3  # posted keys need a frontmost window
     for _ in 1 2 3 4 5; do
       # Log before posting: the guard attributes only this window's HID reset.
       [ -n "${AHOI_PERF_DRIVER_INPUT_LOG:-}" ] &&

@@ -37,6 +37,7 @@ FAKE_AXTOOL = textwrap.dedent("""\
              echo "NOT FOUND"; exit 1 ;;
         esac ;;
       setvalue) echo "$4" > "$S/name"; exit 0 ;;
+      activate) exit 0 ;;
       *) echo "forbidden mode $1" >&2; exit 9 ;;
     esac
     """)
@@ -103,6 +104,7 @@ FAKE_BAR_AXTOOL = textwrap.dedent("""\
       dump) [ -f "$S/open" ] && echo "AXWindow | Suchen oder URL eingeben |"; exit 0 ;;
       key) [ "$3 $4" = "17 cmd" ] && touch "$S/open" && exit 0; exit 1 ;;
       setvalue) exit 0 ;;
+      activate) exit 0 ;;
       *) echo "forbidden mode $1" >&2; exit 9 ;;
     esac
     """)
@@ -127,6 +129,7 @@ class CommandBarDriverTest(unittest.TestCase):
                      if not c.startswith("dump")]
             field = "Mit Google suchen oder eine URL eingeben"
             self.assertEqual(calls, [
+                "activate 4242",
                 "key 4242 17 cmd",
                 f"setvalue 4242 {field} ", f"insert 4242 {field} alpha 400",
                 f"setvalue 4242 {field} ", f"insert 4242 {field} beta 400"])

@@ -23,7 +23,13 @@ active_workspace() { # prints the active Workspace name from its switcher button
     | sed -E 's/^ *//; s/, Workspace wechseln$//'
 }
 
+# The harness starts the browser in the background; AX menus and posted keys
+# only reach a frontmost window (validation ws10/cb8, 28 Sep). AX activation
+# does not reset HIDIdleTime (measured).
+front() { "$AX" activate "$PID" >/dev/null 2>&1; sleep 0.3; }
+
 open_menu() { # <active workspace name> <menu item regex>
+  front
   for _ in 1 2 3; do
     "$AX" press "$PID" "$1, Workspace wechseln" AXShowMenu >/dev/null || return 1
     waitax "AXMenuItem \\| $2" 4 && return 0

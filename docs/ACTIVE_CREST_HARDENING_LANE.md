@@ -906,6 +906,14 @@ key with every Chromium on the Mac → [148](../handoffs/crest-hardening/148-own
 upstream-roll PRs, ungoogled-style prefs for open network points N4/N6/N8,
 and documenting that dev builds run with DCHECKs.
 
+Build 45 (`4746af81`) installed; owner journeys: quick-window-adoption 0 and a new
+sidebar-discovery-switch journey for 142 R2 0 (ws-level-deletion still 4, run
+at 79 s idle). Crest ws10/cb8 on 45: the guard now behaves (stable idle
+samples; cb8's five logged ⌘T posts attributed as driverInputs), but the
+drivers failed — Workspace menu / command bar did not open because the
+harness starts the browser in the background. Drivers now activate the app
+(AX activation, no HID reset) before menus and posted keys; starter re-armed.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
