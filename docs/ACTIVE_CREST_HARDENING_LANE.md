@@ -815,6 +815,14 @@ build 40's bundle hashes, so the idle starter is stopped; Crest re-binds a
 lease to the next stable installed candidate (build 44) and then reruns the
 trace validation plus the keyed H5 audit (Translate-off is in 44, not 42/43).
 
+Incident (≈15:45–15:50): a Crest inline watcher whose command line named the
+installed bundle path blocked the owner's build-43 install via the installer's
+command-line process check. The owner hardened the installer to match bundle
+executables only (`5d483bf6`); the Crest watcher was killed, replaced by
+`.work/crest-h3/wait-install.sh` (path assembled at runtime), the owner was
+told, and the memory note was extended. Crest measurement/audit runs still
+pass `--app` with the bundle path, which the fixed installer no longer counts.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
