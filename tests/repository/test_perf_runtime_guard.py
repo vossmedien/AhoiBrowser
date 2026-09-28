@@ -148,6 +148,16 @@ class LeaseGuardTest(unittest.TestCase):
                     guard.poll_once()
                     guard.check()
 
+    def test_probe_failure_reason_names_the_exception_class_only(self):
+        guard = self.guard()
+        with self.assertRaises(rg.RunCancelled), self.without_monitor(guard):
+            self.probe.side_effect = rg.subprocess.TimeoutExpired("ps secret-arg", 2)
+            guard.poll_once()
+            guard.check()
+        reason = guard.summary()["reason"]
+        self.assertEqual(reason, "runtime lease/host probe failed (TimeoutExpired)")
+        self.assertNotIn("secret", reason)
+
     def test_owned_driver_ax_client_is_recorded_not_cancelling(self):
         # The trace driver's own axtool is the documented, non-HID input path.
         guard = self.guard()

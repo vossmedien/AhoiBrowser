@@ -206,8 +206,9 @@ class LeaseGuard:
                     raise LeaseError("accessibility state changed")
         except LeaseError as error:
             self.abort(str(error))
-        except Exception:
-            self.abort("runtime lease/host probe failed")
+        except Exception as error:
+            # Class name only: probe/lease messages may carry paths or output.
+            self.abort(f"runtime lease/host probe failed ({type(error).__name__})")
 
     def abort(self, reason):
         with self._mutex:
