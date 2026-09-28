@@ -249,18 +249,91 @@ TEST_F(AhoiTabTreeMergeWorkspaceTest, RejectsInvalidMergesWithoutChange) {
   EXPECT_EQ(Get(page.id).workspace_id, source_.id);
 }
 
-TEST_F(AhoiTabTreeMergeWorkspaceTest, EmptySourceLeavesNoUndoEntry) {
+// Crest 134: ADR 0012 waives only the confirmation for an empty source, not
+// undo. The node-less receipt revives exactly the source Workspace.
+TEST_F(AhoiTabTreeMergeWorkspaceTest, EmptySourceUndoRevivesItsIdentity) {
+  const Workspace target_before = StoredWorkspace(target_.id);
+  RecordingObserver observer;
+  store_->AddObserver(&observer);
   std::optional<base::Uuid> merge_folder;
   ASSERT_EQ(Result::kOk,
             store_->MergeWorkspace({.source_workspace_id = source_.id,
                                     .target_workspace_id = target_.id,
                                     .into_folder = true,
                                     .sort_key = "n",
-                                                                        .modified_at = base::Time::Now()},
+                                    .modified_at = base::Time::Now()},
                                    &merge_folder));
   EXPECT_FALSE(merge_folder.has_value());
   EXPECT_FALSE(IsVisible(source_));
+  const Workspace merged = StoredWorkspace(source_.id);
+  EXPECT_TRUE(merged.tombstone);
+  EXPECT_EQ(merged.merged_into, target_.id);
+  TabTreeSnapshot snapshot;
+  ASSERT_EQ(Result::kOk, store_->ExportSnapshot(&snapshot));
+  ASSERT_EQ(1u, snapshot.undo_operations.size());
+  EXPECT_EQ(UndoMutationKind::kWorkspaceMerge,
+            snapshot.undo_operations.front().kind);
+  EXPECT_EQ(source_.id, snapshot.undo_operations.front().subject_node_id);
+  EXPECT_TRUE(snapshot.undo_operations.front().nodes.empty());
+
+  ASSERT_EQ(Result::kOk, store_->UndoLastMutation());
+  store_->RemoveObserver(&observer);
+  EXPECT_TRUE(IsVisible(source_));
+  const Workspace revived = StoredWorkspace(source_.id);
+  EXPECT_FALSE(revived.tombstone);
+  EXPECT_FALSE(revived.merged_into.has_value());
+  EXPECT_EQ(source_.name, revived.name);
+  EXPECT_EQ(source_.icon, revived.icon);
+  EXPECT_EQ(source_.accent_argb, revived.accent_argb);
+  EXPECT_EQ(source_.sort_key, revived.sort_key);
+  // Newer than the merge tombstone, so the revival wins on synced devices.
+  EXPECT_GT(revived.modified_at, merged.modified_at);
+  EXPECT_EQ(target_before, StoredWorkspace(target_.id));
+  std::vector<TreeNode> roots;
+  ASSERT_EQ(Result::kOk, store_->GetChildren(target_.id, std::nullopt, &roots));
+  EXPECT_TRUE(roots.empty());
+  ASSERT_FALSE(observer.changes.empty());
+  EXPECT_EQ(MutationKind::kUndone, observer.changes.back().kind);
+  EXPECT_EQ(source_.id, observer.changes.back().subject_node_id);
+  EXPECT_TRUE(observer.changes.back().node_ids.empty());
   EXPECT_EQ(Result::kNothingToUndo, store_->UndoLastMutation());
+}
+
+TEST_F(AhoiTabTreeMergeWorkspaceTest, EmptySourceUndoSurvivesReopenAndReplace) {
+  std::optional<base::Uuid> merge_folder;
+  ASSERT_EQ(Result::kOk,
+            store_->MergeWorkspace({.source_workspace_id = source_.id,
+                                    .target_workspace_id = target_.id,
+                                    .sort_key = "n",
+                                    .modified_at = base::Time::Now()},
+                                   &merge_folder));
+  ASSERT_TRUE(ReopenStore());
+  TabTreeSnapshot snapshot;
+  ASSERT_EQ(Result::kOk, store_->ExportSnapshot(&snapshot));
+  ASSERT_EQ(1u, snapshot.undo_operations.size());
+  ASSERT_EQ(Result::kOk, store_->ReplaceWithSnapshot(snapshot));
+  TabTreeSnapshot replaced;
+  ASSERT_EQ(Result::kOk, store_->ExportSnapshot(&replaced));
+  EXPECT_EQ(snapshot, replaced);
+  ASSERT_EQ(Result::kOk, store_->UndoLastMutation());
+  EXPECT_TRUE(IsVisible(source_));
+
+  // A node-less receipt is valid only for the Workspace-merge kind.
+  snapshot.undo_operations.front().kind = UndoMutationKind::kMove;
+  EXPECT_EQ(Result::kInvalidArgument, store_->ReplaceWithSnapshot(snapshot));
+}
+
+TEST_F(AhoiTabTreeMergeWorkspaceTest, EmptySourceWithoutUndoStaysMerged) {
+  std::optional<base::Uuid> merge_folder;
+  ASSERT_EQ(Result::kOk,
+            store_->MergeWorkspace({.source_workspace_id = source_.id,
+                                    .target_workspace_id = target_.id,
+                                    .sort_key = "n",
+                                    .record_undo = false,
+                                    .modified_at = base::Time::Now()},
+                                   &merge_folder));
+  EXPECT_EQ(Result::kNothingToUndo, store_->UndoLastMutation());
+  EXPECT_FALSE(IsVisible(source_));
 }
 
 TEST_F(AhoiTabTreeMergeWorkspaceTest, NoUndoWhenTheCallerRetiresState) {

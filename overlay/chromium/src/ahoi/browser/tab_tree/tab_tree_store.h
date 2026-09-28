@@ -27,7 +27,7 @@ namespace ahoi::tab_tree {
 
 class TabTreeStore {
  public:
-  static constexpr int kCurrentSchemaVersion = 5;
+  static constexpr int kCurrentSchemaVersion = 6;
   static constexpr int kLowestSupportedSchemaVersion = 1;
 
   enum class Result {
@@ -136,7 +136,8 @@ class TabTreeStore {
   // always move flat. Those in `closing_temporary_ids` are tombstoned instead,
   // without undo, like an explicit tab close. The source is tombstoned. Undo
   // moves everything back, removes the folder and revives the source. An
-  // empty source is tombstoned without an undo entry, like DeleteWorkspace.
+  // empty source records a node-less kWorkspaceMerge entry whose undo only
+  // revives the source with its identity and settings.
   // Live Chromium tabs, bindings and the structure state stay the caller's
   // job. `folder_id` receives the new folder, if any.
   [[nodiscard]] Result MergeWorkspace(const WorkspaceMerge& merge,
@@ -260,6 +261,7 @@ class TabTreeStore {
 
   [[nodiscard]] bool CreateSchema();
   [[nodiscard]] bool MigrateNodesToSchema3();
+  [[nodiscard]] bool MigrateUndoToSchema6();
   [[nodiscard]] bool MigrateSchema(sql::MetaTable* meta_table);
   bool LoadWorkspaceStructureState();
   [[nodiscard]] bool InitializeSchema();

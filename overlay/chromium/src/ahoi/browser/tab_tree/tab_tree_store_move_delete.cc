@@ -466,23 +466,49 @@ TabTreeStore::Result TabTreeStore::UndoLastMutation() {
 
   int64_t operation_id = 0;
   base::Uuid subject_node_id;
+  bool workspace_merge = false;
   {
     sql::Statement operation(db_.GetCachedStatement(
         SQL_FROM_HERE,
-        "SELECT operation_id,subject_node_id FROM undo_operations ORDER BY "
-        "operation_id DESC LIMIT 1"));
+        "SELECT operation_id,subject_node_id,mutation_kind FROM "
+        "undo_operations ORDER BY operation_id DESC LIMIT 1"));
     if (!operation.Step()) {
       return operation.Succeeded() ? Result::kNothingToUndo
                                    : Result::kDatabaseError;
     }
     operation_id = operation.ColumnInt64(0);
     subject_node_id = base::Uuid::ParseLowercase(operation.ColumnString(1));
+    workspace_merge = operation.ColumnInt(2) ==
+                      static_cast<int>(UndoMutationKind::kWorkspaceMerge);
     if (!subject_node_id.is_valid()) {
       return Result::kDatabaseError;
     }
   }
 
   std::vector<NodeSnapshot> snapshots;
+  if (workspace_merge) {
+    // Empty-source merge: the subject is the Workspace itself. Revive it only
+    // while it still carries a merge tombstone; a later deletion or a synced
+    // newer state wins and this receipt is just consumed.
+    if (!ReadUndoSnapshots(operation_id, &snapshots) || !snapshots.empty()) {
+      return Result::kDatabaseError;
+    }
+    sql::Statement revive_source(db_.GetCachedStatement(
+        SQL_FROM_HERE,
+        "UPDATE workspaces SET tombstone=0,merged_into=NULL,"
+        "modified_at=MAX(modified_at+1,?) WHERE id=? AND tombstone=1 AND "
+        "merged_into IS NOT NULL"));
+    revive_source.BindTime(0, base::Time::Now());
+    revive_source.BindString(1, subject_node_id.AsLowercaseString());
+    if (!revive_source.Run() || !RemoveUndoOperation(operation_id) ||
+        !transaction.Commit()) {
+      return Result::kDatabaseError;
+    }
+    // No node changed. SessionBridge refreshes the Workspace list on kUndone;
+    // node-list observers ignore a change without node IDs.
+    Notify(MutationKind::kUndone, subject_node_id, {});
+    return Result::kOk;
+  }
   if (!ReadUndoSnapshots(operation_id, &snapshots) || snapshots.empty() ||
       std::ranges::none_of(snapshots, [&subject_node_id](const auto& snapshot) {
         return snapshot.node_id == subject_node_id;

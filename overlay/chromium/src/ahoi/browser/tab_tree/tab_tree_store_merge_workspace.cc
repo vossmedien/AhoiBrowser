@@ -129,10 +129,14 @@ TabTreeStore::Result TabTreeStore::MergeWorkspace(
   if (!transaction.Begin()) {
     return Result::kDatabaseError;
   }
-  // An empty source leaves nothing to undo, like DeleteWorkspace.
-  if (merge.record_undo && !roots.empty() &&
-      !InsertUndoOperation(UndoMutationKind::kMove, roots.front().id,
-                           modified_at, snapshots)) {
+  // An empty source still gets a durable, node-less receipt so undo can
+  // revive it (ADR 0012 waives only the confirmation for an empty source).
+  if (merge.record_undo &&
+      !(roots.empty()
+            ? InsertUndoOperation(UndoMutationKind::kWorkspaceMerge,
+                                  source_workspace_id, modified_at, {})
+            : InsertUndoOperation(UndoMutationKind::kMove, roots.front().id,
+                                  modified_at, snapshots))) {
     return Result::kDatabaseError;
   }
   if (folder) {

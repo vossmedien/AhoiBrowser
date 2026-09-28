@@ -119,6 +119,10 @@ enum class UndoMutationKind {
   kRename = 1,
   kMove = 2,
   kDelete = 3,
+  // Merge of an empty source Workspace (ADR 0012, crest 134). The subject is
+  // the source Workspace ID and there are no node snapshots; undo revives
+  // that Workspace only.
+  kWorkspaceMerge = 4,
 };
 
 struct UndoNodeSnapshot {

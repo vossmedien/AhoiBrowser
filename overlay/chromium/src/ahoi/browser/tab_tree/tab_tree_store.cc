@@ -116,7 +116,8 @@ bool TabTreeStore::CreateSchema() {
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS undo_operations("
              "operation_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-             "mutation_kind INTEGER NOT NULL CHECK(mutation_kind IN (0,1,2,3)),"
+             "mutation_kind INTEGER NOT NULL CHECK(mutation_kind IN "
+             "(0,1,2,3,4)),"
              "subject_node_id TEXT NOT NULL,created_at INTEGER NOT NULL)") &&
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS undo_node_snapshots("
@@ -206,6 +207,14 @@ bool TabTreeStore::MigrateSchema(sql::MetaTable* meta_table) {
       return false;
     }
   }
+  if (meta_table->GetVersionNumber() == 5) {
+    // Admits the node-less empty-source merge undo receipt (crest 134). An
+    // older build cannot export that kind, so the compatible version rises.
+    if (!MigrateUndoToSchema6() || !meta_table->SetVersionNumber(6) ||
+        !meta_table->SetCompatibleVersionNumber(6)) {
+      return false;
+    }
+  }
   return meta_table->GetVersionNumber() == kCurrentSchemaVersion;
 }
 
@@ -253,6 +262,45 @@ bool TabTreeStore::MigrateNodesToSchema3() {
   // The old table owned the named indexes. InitializeSchema calls CreateSchema
   // again after this migration to recreate them on the new table before commit.
   // Workspaces, undo_operations (including its sequence) and meta stay intact.
+  return true;
+}
+
+bool TabTreeStore::MigrateUndoToSchema6() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  // SQLite cannot change a CHECK in place. Rebuild both undo tables from the
+  // current schema inside InitializeSchema's transaction. The old child is
+  // renamed first and dropped before its old parent, so no cascade from the
+  // parent's implicit delete can reach the copied rows. The
+  // AUTOINCREMENT high-water mark is carried over so an undone (removed)
+  // operation ID is never reused.
+  if (!db_.Execute("ALTER TABLE undo_node_snapshots "
+                   "RENAME TO undo_node_snapshots_schema5") ||
+      !db_.Execute("ALTER TABLE undo_operations "
+                   "RENAME TO undo_operations_schema5") ||
+      !CreateSchema() ||
+      !db_.Execute(
+          "INSERT INTO undo_operations(operation_id,mutation_kind,"
+          "subject_node_id,created_at) SELECT operation_id,mutation_kind,"
+          "subject_node_id,created_at FROM undo_operations_schema5") ||
+      !db_.Execute(
+          "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,"
+          "node_id,model_version,workspace_id,parent_id,node_type,title,icon,"
+          "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+          "is_temporary,target_kind,local_scheme,home_url,home_target_kind,"
+          "home_local_scheme) SELECT operation_id,ordinal,existed,node_id,"
+          "model_version,workspace_id,parent_id,node_type,title,icon,"
+          "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+          "is_temporary,target_kind,local_scheme,home_url,home_target_kind,"
+          "home_local_scheme FROM undo_node_snapshots_schema5") ||
+      !db_.Execute(
+          "DELETE FROM sqlite_sequence WHERE name='undo_operations'") ||
+      !db_.Execute(
+          "INSERT INTO sqlite_sequence(name,seq) SELECT 'undo_operations',seq "
+          "FROM sqlite_sequence WHERE name='undo_operations_schema5'") ||
+      !db_.Execute("DROP TABLE undo_node_snapshots_schema5") ||
+      !db_.Execute("DROP TABLE undo_operations_schema5")) {
+    return false;
+  }
   return true;
 }
 

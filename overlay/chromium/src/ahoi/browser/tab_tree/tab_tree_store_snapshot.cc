@@ -122,14 +122,19 @@ TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
       case UndoMutationKind::kRename:
       case UndoMutationKind::kMove:
       case UndoMutationKind::kDelete:
+      case UndoMutationKind::kWorkspaceMerge:
         break;
       default:
         return Result::kInvalidArgument;
     }
+    const bool workspace_merge =
+        operation.kind == UndoMutationKind::kWorkspaceMerge;
     if (operation.operation_id <= 0 ||
         !operation_ids.insert(operation.operation_id).second ||
         !operation.subject_node_id.is_valid() ||
-        operation.created_at.is_null() || operation.nodes.empty()) {
+        operation.created_at.is_null() ||
+        operation.nodes.empty() != workspace_merge ||
+        (workspace_merge && !workspaces.contains(operation.subject_node_id))) {
       return Result::kInvalidArgument;
     }
     for (const UndoNodeSnapshot& node_snapshot : operation.nodes) {

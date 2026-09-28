@@ -267,6 +267,9 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
       case static_cast<int>(UndoMutationKind::kDelete):
         operation.kind = UndoMutationKind::kDelete;
         break;
+      case static_cast<int>(UndoMutationKind::kWorkspaceMerge):
+        operation.kind = UndoMutationKind::kWorkspaceMerge;
+        break;
       default:
         return Result::kDatabaseError;
     }
@@ -278,8 +281,10 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
       return Result::kDatabaseError;
     }
     std::vector<NodeSnapshot> stored_nodes;
+    // Only an empty-source Workspace merge receipt is node-less.
     if (!ReadUndoSnapshots(operation.operation_id, &stored_nodes) ||
-        stored_nodes.empty()) {
+        stored_nodes.empty() !=
+            (operation.kind == UndoMutationKind::kWorkspaceMerge)) {
       return Result::kDatabaseError;
     }
     operation.nodes.reserve(stored_nodes.size());

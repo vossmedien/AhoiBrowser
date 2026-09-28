@@ -270,6 +270,21 @@ TEST_F(AhoiTabTreeStoreTest, Schema2UpgradeKeepsNestedRowsUndoAndConstraints) {
   EXPECT_TRUE(database.DoesIndexExist("tree_nodes_url_lookup"));
   EXPECT_FALSE(database.DoesTableExist("tree_nodes_schema2"));
   EXPECT_FALSE(database.DoesTableExist("undo_node_snapshots_schema2"));
+  // Schema 6 rebuilt both undo tables for the empty-merge receipt (crest 134).
+  EXPECT_FALSE(database.DoesTableExist("undo_operations_schema5"));
+  EXPECT_FALSE(database.DoesTableExist("undo_node_snapshots_schema5"));
+  EXPECT_TRUE(database.Execute(
+      "INSERT INTO undo_operations(mutation_kind,subject_node_id,created_at) "
+      "VALUES(4,'10000000-0000-4000-8000-000000000001',3)"));
+  EXPECT_EQ(9, database.GetLastInsertRowId());
+  {
+    sql::test::ScopedErrorExpecter errors;
+    errors.ExpectError(SQLITE_CONSTRAINT_CHECK);
+    EXPECT_FALSE(database.Execute(
+        "INSERT INTO undo_operations(mutation_kind,subject_node_id,"
+        "created_at) VALUES(5,'x',3)"));
+    EXPECT_TRUE(errors.SawExpectedErrors());
+  }
   {
     sql::test::ScopedErrorExpecter errors;
     errors.ExpectError(SQLITE_CONSTRAINT_CHECK);
