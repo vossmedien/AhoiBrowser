@@ -83,27 +83,31 @@ C=$(cookie_of $MARK); echo "incognito cookies: $C" >> "$OUT/steps.txt"
 [ "$C" = "inc=secret" ] && record incognitoIsolatedFromNormal true || record incognitoIsolatedFromNormal false
 # INC-03 (tree): the incognito page never shows up in the sidebar tree.
 $AX dump $PID 14 | grep -q 'incpage — ' && record notInTree false || record notInTree true
-# INC-05: crash with both windows open.
+# INC-02: closing the incognito window leaves the normal session as it was.
+key 13 cmd shift; sleep 3
+pages | grep -q "$MARK" && record incognitoWindowClosed false || record incognitoWindowClosed true
+C=$(cookie_of normal.html); echo "normal cookies after close: $C" >> "$OUT/steps.txt"
+[ "$C" = "acct=normal" ] && record normalSessionUntouched true || record normalSessionUntouched false
+# INC-05: crash with a normal and an incognito window open.
+key 45 cmd shift; sleep 3; open_url "$SITE/$MARK?crash"
 kill -9 $PID; sleep 3
 grep -rla --exclude-dir=Crashpad "$MARK" "$P" > "$OUT/profile-hits-after-crash.txt" 2>/dev/null
 [ ! -s "$OUT/profile-hits-after-crash.txt" ] && record nothingOnDiskAfterCrash true || record nothingOnDiskAfterCrash false
 launch; sleep 4
 $AX dump $PID 14 > "$OUT/ax-after-relaunch.txt"
-AFTER=$(pages); echo "after relaunch $AFTER" >> "$OUT/pages.txt"
-echo "$AFTER" | grep -q "$MARK" && record incognitoNotRestored false || record incognitoNotRestored true
-# Only the normal session is offered: either restored directly or offered
-# through Chromium's restore prompt.
-if echo "$AFTER" | grep -q normal.html || grep -q 'Wiederherstellen' "$OUT/ax-after-relaunch.txt"; then
-  record normalSessionOffered true
-else
-  record normalSessionOffered false
-fi
 grep -q 'AXWindow | .*\(incpage\|Inkognito\)' "$OUT/ax-after-relaunch.txt" && record noIncognitoWindowBack false || record noIncognitoWindowBack true
-# INC-02: the normal session never saw the incognito cookie.
-open_url "$SITE/check.html"
-C=$(cookie_of check.html); echo "normal cookies after: $C" >> "$OUT/steps.txt"
-echo "$C" | grep -q 'acct=normal' && ! echo "$C" | grep -q 'inc=secret' \
-  && record normalSessionUntouched true || record normalSessionUntouched false
+# Chromium's crash prompt offers the restore; accept it and check that only
+# the normal page comes back (the button text carries soft hyphens).
+RESTORE=$(grep -o 'AXButton | Wieder[^|]*' "$OUT/ax-after-relaunch.txt" | head -1 | sed -e 's/^AXButton | //' -e 's/ *$//')
+if [ -n "$RESTORE" ]; then
+  record restoreOffered true
+  $AX press $PID "$RESTORE" >> "$OUT/steps.txt"
+  waiturl normal.html 15 && record normalSessionRestored true || record normalSessionRestored false
+else
+  record restoreOffered false
+fi
+sleep 2; AFTER=$(pages); echo "after restore $AFTER" >> "$OUT/pages.txt"
+echo "$AFTER" | grep -q "$MARK" && record incognitoNotRestored false || record incognitoNotRestored true
 $AX dump $PID 14 > "$OUT/ax-final.txt"
 quit
 # INC-03 (history, session restore, any profile file): nothing on disk.
