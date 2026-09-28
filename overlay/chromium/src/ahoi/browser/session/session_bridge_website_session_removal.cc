@@ -146,13 +146,11 @@ void SessionBridge::OnWorkspaceDeletionPagesAnswered(
   }
   if (result == tab_tree::TabTreeStore::Result::kOk && binding.has_value() &&
       !binding->is_default()) {
-    // Give the closing pages a moment to leave the partition before clearing
-    // it; the directory itself is removed at the next launch.
-    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
-        FROM_HERE,
-        base::BindOnce(&SessionBridge::ClearRetiredWebsiteSessionData,
-                       weak_ptr_factory_.GetWeakPtr(), binding->context_id),
-        base::Seconds(3));
+    // Clear the partition once its closing pages have left it; the directory
+    // itself is removed at the next launch.
+    ClearRetiredWebsiteSessionDataAfterCloses(
+        binding->context_id, WebContentsClosingWithDeletedWorkspace(),
+        base::TimeTicks::Now() + base::Seconds(30));
   }
   std::move(done).Run(result);
 }
@@ -232,6 +230,38 @@ tab_tree::TabTreeStore::Result SessionBridge::CommitWorkspaceDeletion(
     runtime_presentation_changed_callbacks_.Notify();
   }
   return tab_tree::TabTreeStore::Result::kOk;
+}
+
+std::vector<base::WeakPtr<content::WebContents>>
+SessionBridge::WebContentsClosingWithDeletedWorkspace() const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  std::vector<base::WeakPtr<content::WebContents>> closing;
+  for (const auto& [tab, runtime] : runtime_tabs_) {
+    if (runtime.closing_with_deleted_workspace && runtime.web_contents) {
+      closing.push_back(runtime.web_contents);
+    }
+  }
+  return closing;
+}
+
+void SessionBridge::ClearRetiredWebsiteSessionDataAfterCloses(
+    base::Uuid context_id,
+    std::vector<base::WeakPtr<content::WebContents>> closing,
+    base::TimeTicks deadline) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  std::erase_if(closing, [](const auto& contents) { return !contents; });
+  if (!closing.empty() && base::TimeTicks::Now() < deadline &&
+      !shutting_down_) {
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
+        FROM_HERE,
+        base::BindOnce(
+            &SessionBridge::ClearRetiredWebsiteSessionDataAfterCloses,
+            weak_ptr_factory_.GetWeakPtr(), context_id, std::move(closing),
+            deadline),
+        base::Milliseconds(250));
+    return;
+  }
+  ClearRetiredWebsiteSessionData(context_id);
 }
 
 void SessionBridge::ClearRetiredWebsiteSessionData(base::Uuid context_id) {

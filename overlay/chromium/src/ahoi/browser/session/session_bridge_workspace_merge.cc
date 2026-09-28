@@ -222,11 +222,9 @@ void SessionBridge::OnWorkspaceMergePagesAnswered(
     }
   }
   if (!UsesDefaultContext(binding)) {
-    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
-        FROM_HERE,
-        base::BindOnce(&SessionBridge::ClearRetiredWebsiteSessionData,
-                       weak_ptr_factory_.GetWeakPtr(), binding->context_id),
-        base::Seconds(3));
+    ClearRetiredWebsiteSessionDataAfterCloses(
+        binding->context_id, WebContentsClosingWithDeletedWorkspace(),
+        base::TimeTicks::Now() + base::Seconds(30));
   }
   std::move(done).Run(result);
 }

@@ -506,6 +506,15 @@ class SessionBridge : public KeyedService,
                                     int attempt,
                                     PortableImportResult result);
   void ClearRetiredWebsiteSessionData(base::Uuid context_id);
+  // Crest 146 #2/#3: clears the retired partition once every page that closes
+  // with this deletion or merge is gone, bounded by `deadline` for a hung
+  // renderer, instead of after a fixed delay.
+  void ClearRetiredWebsiteSessionDataAfterCloses(
+      base::Uuid context_id,
+      std::vector<base::WeakPtr<content::WebContents>> closing,
+      base::TimeTicks deadline);
+  std::vector<base::WeakPtr<content::WebContents>>
+  WebContentsClosingWithDeletedWorkspace() const;
   void ResumeWebsiteSessionRemovals();
   void OnWebsiteSessionDirectoryDeleted(base::Uuid context_id, bool deleted);
   void ScheduleTabTreePersistence();
