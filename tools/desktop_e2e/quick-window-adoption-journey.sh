@@ -69,7 +69,8 @@ open_url() { # <url> ; ⌘T + type + Return in the normal window
 }
 ADOPT="In normales Fenster übernehmen"
 # Result rows naming the command, not the typed query in the input field.
-offered() { $AX dump $PID 14 | grep -v 'AXTextField\|AXComboBox\|AXSearchField' | grep -c "$ADOPT"; }
+# The exact command row; "<query>, Google" is the search suggestion row.
+offered() { $AX dump $PID 14 | grep -c "AXStaticText | $ADOPT\$"; }
 quick_window() { # ⌥Space; the Quick Window opens on about:blank with its command bar
   local before; before=$(target_of about:blank | wc -w)
   key 49 opt
@@ -117,7 +118,9 @@ AFTER=$(pages); AFTER_ID=$(target_of quick.html); echo "after $AFTER / $AFTER_ID
 [ "$(eval_in quick.html 'window.adoptMark')" = 42 ] && [ "$(eval_in quick.html 'window.loads')" = 1 ] \
   && record pageStateKeptNoReload true || record pageStateKeptNoReload false
 # The Quick Window is gone: no page other than home and the adopted one.
-[ "$AFTER" = "$(python3 -c 'import json,sys;print(json.dumps(sorted([sys.argv[1]+"/home.html",sys.argv[1]+"/quick.html"])))' "$SITE")" ] \
+# (the base pages plus the adopted one; the launch tab stays about:blank).
+[ "$AFTER" = "$(python3 -c 'import json,sys;print(json.dumps(sorted(json.loads(sys.argv[1])+[sys.argv[2]+"/quick.html"])))' "$BASE" "$SITE")" ] \
+  && ! $AX dump $PID 14 | grep -q 'AXWindow | Ahoi-Schnellfenster' \
   && record quickWindowClosed true || record quickWindowClosed false
 waitax 'quick — ' 6 && record adoptedIntoSidebar true || record adoptedIntoSidebar false
 $AX dump $PID 14 > "$OUT/ax-after-adopt.txt"
