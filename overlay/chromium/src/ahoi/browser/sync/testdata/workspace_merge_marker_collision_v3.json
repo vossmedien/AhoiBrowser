@@ -1,0 +1,714 @@
+{
+  "arrayOrders": [
+    "as-written",
+    "reversed",
+    "rotate-left"
+  ],
+  "arrayPermutationMode": "cartesian-product-over-workspaces-and-nodes",
+  "cases": [
+    {
+      "description": "Marker-like bytes inside an ordinary B key must not move Q behind Z.",
+      "frames": [
+        {
+          "expect": {
+            "effectiveNodes": [
+              {
+                "id": "a2000000-0000-4000-8000-000000000010",
+                "parentId": null,
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              },
+              {
+                "id": "a2000000-0000-4000-8000-000000000012",
+                "parentId": null,
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              }
+            ],
+            "notLiveNodeIds": [],
+            "preserveRaw": {
+              "fieldVersions": "exact",
+              "nodeIds": [
+                "a2000000-0000-4000-8000-000000000010",
+                "a2000000-0000-4000-8000-000000000012"
+              ],
+              "serializedBytes": "before-equals-after-with-same-codec",
+              "workspaceIds": [
+                "a1000000-0000-4000-8000-000000000002"
+              ]
+            },
+            "siblingOrder": [
+              {
+                "nodeIds": [
+                  "a2000000-0000-4000-8000-000000000010",
+                  "a2000000-0000-4000-8000-000000000012"
+                ],
+                "parentId": null,
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              }
+            ],
+            "unconstrainedNodeIds": [],
+            "workspaceRoutes": [
+              {
+                "classification": "live",
+                "targetWorkspaceId": "a1000000-0000-4000-8000-000000000002",
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              }
+            ]
+          },
+          "name": "ordinary_only",
+          "nodes": [
+            {
+              "created_at": "11644473601000000",
+              "field_versions": {
+                "accent_argb": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "created_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "home_target": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "icon": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "is_temporary": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "kind": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "location": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "modified_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "title": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "tombstone": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "url": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                }
+              },
+              "home_local_scheme": null,
+              "home_target_kind": 0,
+              "home_url": "https://example.com/saved",
+              "icon": "",
+              "id": "a2000000-0000-4000-8000-000000000010",
+              "is_temporary": false,
+              "model_version": 3,
+              "modified_at": "11644473700000000",
+              "node_kind": 1,
+              "sort_key": "Q!:ahoi-merge-root/a1000000-0000-4000-8000-000000000002/x",
+              "target_kind": 0,
+              "title": "Saved web page",
+              "tombstone": false,
+              "url": "https://example.com/saved",
+              "version_device": "a0000000-0000-4000-8000-000000000001",
+              "version_logical": 0,
+              "version_model": 3,
+              "version_physical": "11644473700000000",
+              "workspace_id": "a1000000-0000-4000-8000-000000000002"
+            },
+            {
+              "created_at": "11644473601000000",
+              "field_versions": {
+                "accent_argb": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "created_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "home_target": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "icon": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "is_temporary": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "kind": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "location": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "modified_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "title": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "tombstone": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "url": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                }
+              },
+              "home_local_scheme": null,
+              "home_target_kind": 0,
+              "home_url": "https://example.com/saved",
+              "icon": "",
+              "id": "a2000000-0000-4000-8000-000000000012",
+              "is_temporary": false,
+              "model_version": 3,
+              "modified_at": "11644473700000000",
+              "node_kind": 1,
+              "sort_key": "Z",
+              "target_kind": 0,
+              "title": "Saved web page",
+              "tombstone": false,
+              "url": "https://example.com/saved",
+              "version_device": "a0000000-0000-4000-8000-000000000001",
+              "version_logical": 0,
+              "version_model": 3,
+              "version_physical": "11644473700000000",
+              "workspace_id": "a1000000-0000-4000-8000-000000000002"
+            }
+          ],
+          "rawRecordSetSha256": "3c2a6d57fef108ee39f1b8b2617276e9c32b9a54a1a3c2a1712d2809e661c331",
+          "unchangedNodeIdsFromPreviousFrame": [],
+          "workspaces": [
+            {
+              "archive_policy": 0,
+              "created_at": "11644473601000000",
+              "field_versions": {
+                "accent_argb": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "archive_policy": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "created_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "icon": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "modified_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "name": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "sort_key": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "tombstone": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                }
+              },
+              "icon": "compass",
+              "id": "a1000000-0000-4000-8000-000000000002",
+              "model_version": 3,
+              "modified_at": "11644473700000000",
+              "name": "Target",
+              "sort_key": "B",
+              "tombstone": false,
+              "version_device": "a0000000-0000-4000-8000-000000000001",
+              "version_logical": 0,
+              "version_model": 3,
+              "version_physical": "11644473700000000"
+            }
+          ]
+        }
+      ],
+      "name": "ordinary_key_without_merge"
+    },
+    {
+      "description": "Q remains before Z while the genuine late X follows target roots.",
+      "frames": [
+        {
+          "expect": {
+            "effectiveNodes": [
+              {
+                "id": "a2000000-0000-4000-8000-000000000010",
+                "parentId": null,
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              },
+              {
+                "id": "a2000000-0000-4000-8000-000000000012",
+                "parentId": null,
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              },
+              {
+                "id": "a2000000-0000-4000-8000-000000000011",
+                "parentId": null,
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              }
+            ],
+            "notLiveNodeIds": [],
+            "preserveRaw": {
+              "fieldVersions": "exact",
+              "nodeIds": [
+                "a2000000-0000-4000-8000-000000000010",
+                "a2000000-0000-4000-8000-000000000011",
+                "a2000000-0000-4000-8000-000000000012"
+              ],
+              "serializedBytes": "before-equals-after-with-same-codec",
+              "workspaceIds": [
+                "a1000000-0000-4000-8000-000000000001",
+                "a1000000-0000-4000-8000-000000000002"
+              ]
+            },
+            "siblingOrder": [
+              {
+                "nodeIds": [
+                  "a2000000-0000-4000-8000-000000000010",
+                  "a2000000-0000-4000-8000-000000000012",
+                  "a2000000-0000-4000-8000-000000000011"
+                ],
+                "parentId": null,
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              }
+            ],
+            "unconstrainedNodeIds": [],
+            "workspaceRoutes": [
+              {
+                "classification": "resolved-merge",
+                "targetWorkspaceId": "a1000000-0000-4000-8000-000000000002",
+                "workspaceId": "a1000000-0000-4000-8000-000000000001"
+              },
+              {
+                "classification": "live",
+                "targetWorkspaceId": "a1000000-0000-4000-8000-000000000002",
+                "workspaceId": "a1000000-0000-4000-8000-000000000002"
+              }
+            ]
+          },
+          "name": "late_source",
+          "nodes": [
+            {
+              "created_at": "11644473601000000",
+              "field_versions": {
+                "accent_argb": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "created_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "home_target": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "icon": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "is_temporary": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "kind": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "location": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "modified_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "title": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "tombstone": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "url": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                }
+              },
+              "home_local_scheme": null,
+              "home_target_kind": 0,
+              "home_url": "https://example.com/saved",
+              "icon": "",
+              "id": "a2000000-0000-4000-8000-000000000010",
+              "is_temporary": false,
+              "model_version": 3,
+              "modified_at": "11644473700000000",
+              "node_kind": 1,
+              "sort_key": "Q!:ahoi-merge-root/a1000000-0000-4000-8000-000000000002/x",
+              "target_kind": 0,
+              "title": "Saved web page",
+              "tombstone": false,
+              "url": "https://example.com/saved",
+              "version_device": "a0000000-0000-4000-8000-000000000001",
+              "version_logical": 0,
+              "version_model": 3,
+              "version_physical": "11644473700000000",
+              "workspace_id": "a1000000-0000-4000-8000-000000000002"
+            },
+            {
+              "created_at": "11644473601000000",
+              "field_versions": {
+                "accent_argb": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "created_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "home_target": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "icon": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "is_temporary": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "kind": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "location": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "modified_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "title": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "tombstone": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "url": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                }
+              },
+              "home_local_scheme": null,
+              "home_target_kind": 0,
+              "home_url": "https://example.com/saved",
+              "icon": "",
+              "id": "a2000000-0000-4000-8000-000000000012",
+              "is_temporary": false,
+              "model_version": 3,
+              "modified_at": "11644473700000000",
+              "node_kind": 1,
+              "sort_key": "Z",
+              "target_kind": 0,
+              "title": "Saved web page",
+              "tombstone": false,
+              "url": "https://example.com/saved",
+              "version_device": "a0000000-0000-4000-8000-000000000001",
+              "version_logical": 0,
+              "version_model": 3,
+              "version_physical": "11644473700000000",
+              "workspace_id": "a1000000-0000-4000-8000-000000000002"
+            },
+            {
+              "created_at": "11644473601000000",
+              "field_versions": {
+                "accent_argb": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "created_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "home_target": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "icon": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "is_temporary": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "kind": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "location": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "modified_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "title": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "tombstone": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "url": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                }
+              },
+              "home_local_scheme": null,
+              "home_target_kind": 0,
+              "home_url": "https://example.com/saved",
+              "icon": "",
+              "id": "a2000000-0000-4000-8000-000000000011",
+              "is_temporary": false,
+              "model_version": 3,
+              "modified_at": "11644473700000000",
+              "node_kind": 1,
+              "sort_key": "A",
+              "target_kind": 0,
+              "title": "Saved web page",
+              "tombstone": false,
+              "url": "https://example.com/saved",
+              "version_device": "a0000000-0000-4000-8000-000000000001",
+              "version_logical": 0,
+              "version_model": 3,
+              "version_physical": "11644473700000000",
+              "workspace_id": "a1000000-0000-4000-8000-000000000001"
+            }
+          ],
+          "rawRecordSetSha256": "b5ddb30ab153525aa0fe9b13f2997afd6d6841ac12bd576bd8a92cb34e36a12b",
+          "unchangedNodeIdsFromPreviousFrame": [],
+          "workspaces": [
+            {
+              "archive_policy": 0,
+              "created_at": "11644473601000000",
+              "field_versions": {
+                "accent_argb": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "archive_policy": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "created_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "icon": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "modified_at": {
+                  "device": "a0000000-0000-4000-8000-000000000002",
+                  "logical": 0,
+                  "physical": "11644473701000000"
+                },
+                "name": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "sort_key": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "tombstone": {
+                  "device": "a0000000-0000-4000-8000-000000000002",
+                  "logical": 0,
+                  "physical": "11644473701000000"
+                }
+              },
+              "icon": "compass",
+              "id": "a1000000-0000-4000-8000-000000000001",
+              "merged_into": "a1000000-0000-4000-8000-000000000002",
+              "model_version": 3,
+              "modified_at": "11644473701000000",
+              "name": "Source",
+              "sort_key": "A",
+              "tombstone": true,
+              "version_device": "a0000000-0000-4000-8000-000000000002",
+              "version_logical": 0,
+              "version_model": 3,
+              "version_physical": "11644473701000000"
+            },
+            {
+              "archive_policy": 0,
+              "created_at": "11644473601000000",
+              "field_versions": {
+                "accent_argb": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "archive_policy": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "created_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "icon": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "modified_at": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "name": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "sort_key": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                },
+                "tombstone": {
+                  "device": "a0000000-0000-4000-8000-000000000001",
+                  "logical": 0,
+                  "physical": "11644473700000000"
+                }
+              },
+              "icon": "compass",
+              "id": "a1000000-0000-4000-8000-000000000002",
+              "model_version": 3,
+              "modified_at": "11644473700000000",
+              "name": "Target",
+              "sort_key": "B",
+              "tombstone": false,
+              "version_device": "a0000000-0000-4000-8000-000000000001",
+              "version_logical": 0,
+              "version_model": 3,
+              "version_physical": "11644473700000000"
+            }
+          ]
+        }
+      ],
+      "name": "ordinary_key_with_real_late_node"
+    }
+  ],
+  "contract": "ADR 0012 / crest 112, 126 marker-collision supplement",
+  "inputStage": "authoritative raw records before native/UI projection",
+  "kind": "ahoi-workspace-merge-projection",
+  "modelVersion": 3,
+  "preservation": "raw codec bytes and field clocks stay exact across passive projection",
+  "schemaVersion": 1
+}

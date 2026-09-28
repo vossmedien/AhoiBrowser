@@ -81,13 +81,13 @@ bool Decode(const base::ListValue& values,
   return true;
 }
 
-TEST(SyncWorkspaceProjectionConformanceTest, SharedFramesAndArrayOrders) {
+void CheckFrames(const char* fixture_name) {
   base::FilePath source_root;
   ASSERT_TRUE(base::PathService::Get(base::DIR_SRC_TEST_DATA_ROOT, &source_root));
   std::string bytes;
   ASSERT_TRUE(base::ReadFileToString(
       source_root.AppendASCII(
-          "ahoi/browser/sync/testdata/workspace_merge_projection_v3.json"),
+          "ahoi/browser/sync/testdata").AppendASCII(fixture_name),
       &bytes));
   auto document = base::JSONReader::Read(bytes, base::JSON_PARSE_RFC);
   ASSERT_TRUE(document && document->is_dict());
@@ -211,6 +211,14 @@ TEST(SyncWorkspaceProjectionConformanceTest, SharedFramesAndArrayOrders) {
   }
   EXPECT_GT(executed, 0u);
   EXPECT_EQ(executed, frames * 9);
+}
+
+TEST(SyncWorkspaceProjectionConformanceTest, SharedFramesAndArrayOrders) {
+  CheckFrames("workspace_merge_projection_v3.json");
+}
+
+TEST(SyncWorkspaceProjectionConformanceTest, MarkerCollisionFrames) {
+  CheckFrames("workspace_merge_marker_collision_v3.json");
 }
 
 }  // namespace

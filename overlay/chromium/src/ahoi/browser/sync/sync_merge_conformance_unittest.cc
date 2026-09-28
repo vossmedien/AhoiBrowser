@@ -178,6 +178,77 @@ void CheckVectors(const char* filename) {
   ExportResults(fixture, bytes, std::move(results));
 }
 
+void CheckSequences() {
+  base::FilePath root;
+  ASSERT_TRUE(base::PathService::Get(base::DIR_SRC_TEST_DATA_ROOT, &root));
+  base::FilePath fixture = root.AppendASCII("ahoi/browser/sync/testdata")
+                               .AppendASCII("merge_sequences_v3.json");
+  base::Environment env;
+  if (const auto override_path =
+          env.GetVar("AHOI_SYNC_CONFORMANCE_SEQUENCE_FIXTURE")) {
+    fixture = base::FilePath::FromUTF8Unsafe(*override_path);
+    ASSERT_TRUE(fixture.IsAbsolute());
+  }
+  std::string bytes;
+  ASSERT_TRUE(base::ReadFileToString(fixture, &bytes));
+  auto document = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
+  ASSERT_TRUE(document);
+  ASSERT_EQ(1, document->FindInt("schemaVersion"));
+  const base::ListValue* cases = document->FindList("cases");
+  ASSERT_TRUE(cases && !cases->empty());
+
+  base::ListValue results;
+  for (const base::Value& value : *cases) {
+    const base::DictValue& sequence = value.GetDict();
+    const std::string name = *sequence.FindString("name");
+    SCOPED_TRACE(name);
+    const auto type = static_cast<EntityType>(*sequence.FindInt("entityType"));
+    SyncRecord current;
+    ASSERT_TRUE(Decode(type, *sequence.FindDict("initial"), &current));
+    const base::ListValue* steps = sequence.FindList("steps");
+    ASSERT_TRUE(steps && !steps->empty());
+    std::string last_decision;
+    for (const base::Value& step_value : *steps) {
+      const base::DictValue& step = step_value.GetDict();
+      SCOPED_TRACE(*step.FindString("name"));
+      ASSERT_TRUE(step.FindBool("inputValid").value_or(false));
+      SyncRecord incoming;
+      ASSERT_TRUE(Decode(type, *step.FindDict("incoming"), &incoming));
+      const base::DictValue& expected = *step.FindDict("expect");
+      const std::string expected_decision = *expected.FindString("decision");
+      SyncRecord merged;
+      std::string error;
+      const MergeDecision decision =
+          MergeRecordFields(current, incoming, &merged, &error);
+      last_decision = DecisionName(decision);
+      EXPECT_EQ(expected_decision, last_decision) << error;
+      if (decision == MergeDecision::kInvalid) {
+        EXPECT_EQ(expected_decision, "invalid");
+        continue;  // Rejected input does not replace the actual accepted state.
+      }
+      if (expected_decision != "invalid") {
+        SyncRecord expected_step;
+        ASSERT_TRUE(Decode(type, *expected.FindDict("merged"), &expected_step));
+        EXPECT_EQ(Canonical(expected_step), Canonical(merged));
+      }
+      current = std::move(merged);
+    }
+    const base::DictValue& expected = *sequence.FindDict("expect");
+    EXPECT_EQ(last_decision, *expected.FindString("decision"));
+    SyncRecord expected_final;
+    ASSERT_TRUE(Decode(type, *expected.FindDict("merged"), &expected_final));
+    EXPECT_EQ(Canonical(expected_final), Canonical(current));
+    std::string payload;
+    ASSERT_TRUE(SerializeRecord(current, &payload));
+    auto actual = base::JSONReader::ReadDict(payload, base::JSON_PARSE_RFC);
+    ASSERT_TRUE(actual);
+    auto result = Result(name, static_cast<int>(type), "accepted", last_decision);
+    result.Set("payload", std::move(*actual));
+    results.Append(std::move(result));
+  }
+  ExportResults(fixture, bytes, std::move(results));
+}
+
 TEST(SyncMergeConformanceTest, SharedVectors) {
   CheckVectors("merge_v3.json");
 }
@@ -192,6 +263,16 @@ TEST(SyncMergeConformanceTest, InventoryAssetVectors) {
 
 TEST(SyncMergeConformanceTest, RemainingEntityVectors) {
   CheckVectors("merge_remaining_entities_v3.json");
+}
+
+TEST(SyncMergeConformanceTest, SeededMergeSequences) {
+  CheckSequences();
+}
+
+// Crest 140: page target, Home, temporary state, accents, archive policy and
+// extension setup/storage values, including the new-tab union rejection.
+TEST(SyncMergeConformanceTest, DomainGroupVectors) {
+  CheckVectors("merge_domain_groups_v3.json");
 }
 
 }  // namespace
