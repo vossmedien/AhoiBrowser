@@ -26,6 +26,7 @@
         "tests/repository/test_sync_conformance*.py",
         "artifacts/perf/**",
         "artifacts/network-audit/**",
+        "artifacts/tests/crest-*/**",
         "docs/decisions/0011-optional-isolated-workspace-profiles.md",
         "docs/decisions/0012-workspace-merge-and-mobile-web-extensions.md",
         "tools/network_audit/**",
