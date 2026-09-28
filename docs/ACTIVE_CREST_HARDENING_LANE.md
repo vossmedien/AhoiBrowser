@@ -620,6 +620,11 @@ points and RED test names, reusing the product's own extension-setup pattern
 only: no wire/schema change. Entry points verified in source; no patch.
 Runtime work (H1 native runs, H3 run, H5 audit) stays gated: no current lease.
 
+Owner intake of 144: `7d034a6` (Swift) and `018a0a2` (C++/testdata), status
+`784c67a`; native run pending. No Crest lease is open in either checkpoint; a
+read-only background watcher checks both every 5 minutes for a current
+`Crest-H3-Lease` marker and starts nothing itself.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
