@@ -164,9 +164,18 @@ shared Workspace before tracing starts (no sample from its creation), and
 `--trace-metric Ahoi.Workspace.Switch=workspace_switch_ms`. The drivers need a
 prebuilt `AHOI_AXTOOL` (they never compile) and the German product UI labels of
 the Desktop E2E journeys. They are exercised against a simulated axtool in
-repository tests only; the first leased run validates labels and frames. A
-command-bar driver is still missing because opening the command bar has no
-known AX action (the journeys use HID keys).
+repository tests only; the first leased run validates labels and frames.
+
+Command bar (PERF-03) uses `tools/perf/drivers/command_bar_driver.sh` with
+`--trace-metric Ahoi.CommandBar.RebuildSuggestions=command_bar_ms`: it opens
+the bar through the "Adresse öffnen…" menu item (AXPress), clears the field
+with an AX value set (programmatic `SetText`, no `ContentsChanged`, so no
+sample) and inserts each query character through `AXSelectedText`
+(`kReplaceSelectedText` → `InsertOrReplaceText`, `kUserTriggered`), giving one
+rebuild per character like a keystroke. It needs a prebuilt
+`AHOI_AX_INSERT` from `tools/perf/drivers/ax_insert_text.swift`. Whether the
+menu item opens the Ahoi bar rather than the omnibox is validated in the first
+leased run.
 
 ## 4. Metrics
 

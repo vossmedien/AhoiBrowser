@@ -94,5 +94,46 @@ class WorkspaceDriverTest(unittest.TestCase):
             self.assertNotIn("xcrun", text, path.name)
 
 
+FAKE_BAR_AXTOOL = textwrap.dedent("""\
+    #!/bin/bash
+    S=$FAKE_AX_STATE; echo "$*" >> "$S/calls"
+    case "$1" in
+      dump) [ -f "$S/open" ] && echo "AXWindow | Suchen oder URL eingeben |"; exit 0 ;;
+      press) [ "$3" = "Adresse öffnen…" ] && touch "$S/open" && exit 0; exit 1 ;;
+      setvalue) exit 0 ;;
+      *) echo "forbidden mode $1" >&2; exit 9 ;;
+    esac
+    """)
+
+
+class CommandBarDriverTest(unittest.TestCase):
+    def test_opens_once_clears_then_inserts_each_query_without_hid(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            axtool, insert = root / "axtool", root / "insert"
+            axtool.write_text(FAKE_BAR_AXTOOL)
+            insert.write_text('#!/bin/bash\necho "insert $*" >> "$FAKE_AX_STATE/calls"\n')
+            for tool in (axtool, insert):
+                tool.chmod(0o755)
+            env = {**os.environ, "AHOI_AXTOOL": str(axtool), "AHOI_AX_INSERT": str(insert),
+                   "AHOI_PERF_PID": "4242", "FAKE_AX_STATE": directory,
+                   "AHOI_PERF_QUERIES": "alpha beta"}
+            result = subprocess.run([str(DRIVERS / "command_bar_driver.sh")], env=env,
+                                    capture_output=True, text=True, timeout=60)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            calls = [c for c in (root / "calls").read_text().splitlines()
+                     if not c.startswith("dump")]
+            field = "Mit Google suchen oder eine URL eingeben"
+            self.assertEqual(calls, [
+                "press 4242 Adresse öffnen…",
+                f"setvalue 4242 {field} ", f"insert 4242 {field} alpha 400",
+                f"setvalue 4242 {field} ", f"insert 4242 {field} beta 400"])
+
+    def test_insert_helper_uses_selected_text_not_hid(self):
+        source = (DRIVERS / "ax_insert_text.swift").read_text()
+        self.assertIn("kAXSelectedTextAttribute", source)
+        self.assertNotIn("CGEvent", source)
+
+
 if __name__ == "__main__":
     unittest.main()

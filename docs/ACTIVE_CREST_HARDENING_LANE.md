@@ -598,8 +598,11 @@ H3 Workspace-switch driver: `--driver-setup` runs before tracing starts;
 Workspace untraced and then alternate 20 switches via AXShowMenu/AXPress only
 (prebuilt axtool, no compilation, no HID). Repository tests drive both against
 a simulated axtool and reject HID modes; 99 local perf/network/engine-key
-tests pass. Real-label/frame validation needs the first leased run; a
-command-bar driver lacks an AX way to open the bar.
+tests pass. Real-label/frame validation needs the first leased run.
+Command-bar driver added: "Adresse öffnen…" via AXPress, AX value clear (no
+sample), per-character insertion via `AXSelectedText`, which pinned views code
+maps to a user-triggered edit (`textfield.cc:1175`, `:392`). Lane helper
+`ax_insert_text.swift` passes `swiftc -parse` (no build); fake-tool tests pass.
 
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
