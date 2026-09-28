@@ -668,6 +668,11 @@ idle and no lock, then runs the Workspace-switch and command-bar validations
 built (`ax_insert_text.swift` now compiles, not only parses). A budget verdict
 still needs the release pair, which the ~64 GiB free disk cannot hold.
 
+Owner 146 #2/#3 `f415c6c` reviewed (in 146): tracked-close partition clearing
+accepted as source, ordering verified, test pending. Owner C++ unit run
+`cpp-units-fe2f9c5e` started RED at 12:03 holding `build.lock`; the Crest H3
+starter waits for it and for user idle.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

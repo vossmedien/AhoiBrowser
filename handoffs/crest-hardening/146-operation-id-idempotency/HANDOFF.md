@@ -60,3 +60,18 @@ applied twice or at the wrong time), passes after it; then the affected visible
 journeys on the exact candidate (split archive/restore, Workspace delete/merge
 with separate context and undo, popup/Quick Window adoption, row delete), as
 required by H2's DoD. No build is requested for this handoff alone.
+
+## Crest source review of owner progress (28 September)
+
+- **#2/#3 `f415c6c`:** Workspace deletion and separate-context merge now clear
+  the retired partition once the `WeakPtr<WebContents>` set captured at the
+  decision has emptied (250 ms polling, 30 s bound for a hung renderer),
+  instead of after a fixed 3 s. The captured set plays the role of the
+  operation identity for this completion. Order checked: the merge path marks
+  `closing_with_deleted_workspace` in `CommitWorkspaceMerge`
+  (`session_bridge_workspace_merge.cc:291`) before `ClosePages()`/`ClosePage()`
+  and before the clear is scheduled, and deletion marks it at
+  `session_bridge_website_session_removal.cc:211` before the capture at `:240`,
+  so the set is never empty by mistake. Accepted as source; no test yet
+  (`SessionBridgeWebsiteSessionRemovalTest.PartitionClearedAfterTrackedCloses`
+  and the merge counterpart remain proposed). Not compiled or run per commit.
