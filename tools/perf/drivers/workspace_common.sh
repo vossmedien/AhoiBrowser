@@ -35,6 +35,7 @@ open_menu() { # <active workspace name> <menu item regex>
     waitax "AXMenuItem \\| $2" 4 && return 0
     "$AX" press "$PID" "$1, Workspace wechseln" AXCancel >/dev/null 2>&1 || true
   done
+  [ -n "${AHOI_PERF_TRACE_DIR:-}" ] && "$AX" dump "$PID" 14 > "$AHOI_PERF_TRACE_DIR/ax-menu-failure.txt" 2>&1
   return 1
 }
 

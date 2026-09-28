@@ -939,6 +939,14 @@ uses `hidkey` (HID tap, frontmost-only, logged before posting), like the
 Desktop journeys. ws11 was refused at guard entry because the owner's probe
 held e2e.lock (correct). Trace starter re-armed.
 
+ws12/cb10 (19:17, build 45): with `hidkey` the command bar **opened** (one
+logged driver input attributed), then the run stopped with `TraceError` — the
+presented-frame selector found no matching `PipelineReporter` frame after the
+Ahoi events (selector still unvalidated on a real trace). ws12's Workspace
+menu again did not open under the harness. Runs now dump the filtered trace
+(`trace-<label>.json`) and, on a menu failure, an AX tree into the evidence
+directory; starter re-armed (ws13/cb11).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

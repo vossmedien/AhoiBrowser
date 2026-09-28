@@ -506,6 +506,7 @@ def trace_durations_ms(events: list[dict], names: dict[str, str]) -> dict[str, l
 # cc/metrics/compositor_frame_reporter.cc emits one async "PipelineReporter"
 # track per compositor frame (categories "cc,benchmark,..."); the begin event
 # carries the frame's final state and its end is the presentation time.
+TRACE_DIR = None  # evidence directory of the current run (diagnostic dumps)
 PRESENTED_FRAME_STATES = {"STATE_PRESENTED_ALL", "STATE_PRESENTED_PARTIAL"}
 PRESENTED_FRAME_LIMIT_US = 2_000_000  # a switch without a frame in 2 s is a failure
 
@@ -585,6 +586,8 @@ def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
         with contextlib.closing(browser.session()) as session:
             env = {**os.environ, "AHOI_PERF_PID": str(browser.process.pid),
                    "AHOI_PERF_PORT": str(port)}
+            if TRACE_DIR and pathlib.Path(TRACE_DIR).is_dir():
+                env["AHOI_PERF_TRACE_DIR"] = str(TRACE_DIR)  # driver diagnostics
             if setup:
                 run_driver(setup, env)
             session.send("Tracing.start", {"traceConfig": {"includedCategories": list(categories)},
@@ -597,6 +600,14 @@ def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
                     break
                 events.extend(message["params"]["value"])
     shutil.rmtree(profile, ignore_errors=True)
+    if TRACE_DIR and pathlib.Path(TRACE_DIR).is_dir():
+        # Diagnostic evidence for the selectors: Ahoi events and frame reports only.
+        keep = [e for e in events if e.get("name") in (names or {})
+                or e.get("name") == "PipelineReporter"]
+        try:
+            (pathlib.Path(TRACE_DIR) / f"trace-{label}.json").write_text(json.dumps(keep))
+        except OSError:
+            pass
     return {**trace_durations_ms(events, names or {}),
             **presented_latency_ms(events, names or {})}
 
@@ -724,6 +735,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         print("refusing to measure: output must be a new writable directory", file=sys.stderr)
         return 7
     workdir = pathlib.Path(tempfile.mkdtemp(prefix="ahoi-perf-"))
+    global TRACE_DIR
+    TRACE_DIR = args.output
     started = dt.datetime.now(dt.timezone.utc).isoformat()
     fixtures = None
     failure = None
