@@ -13,7 +13,8 @@ ws-level-deletion (before-unload veto now shown), the new
 quick-window-adoption (QUICK-03/04, 146 #6: same DevTools target, no reload,
 Quick Window closed, not offered again) and sidebar-discovery-switch (142 R2:
 Workspace switch before activation), plus Crest's empty-workspace-navigation
-(zero-tab, 142 R4). Crest's restore-surface run is still queued.
+(zero-tab, 142 R4) and ws-isolated (ADR 0011 hand-over, 146 #12). Crest's
+restore-surface run is still queued.
 
 Harness findings fixed on the way: macOS cooperative activation ignores AX
 `kAXFrontmost` while another app is frontmost, so `axtool activate` falls back
