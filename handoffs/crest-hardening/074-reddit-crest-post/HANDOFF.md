@@ -1,6 +1,8 @@
 # 074 – Crest user post: what Ahoi already has, what to plan
 
-Status: ready (product decisions for desktop and mobile owners)
+Status: integrated by owners: Merge Workspaces via 078/080/082 (desktop,
+`cc142964`) and 086 (mobile); recent-tabs flick via 088; move to Workspace in
+the command bar via 082; Web Extensions spike via 090/136 (App Review open)
 Owner lane: desktop, mobile (shared sync for item 2)
 Source: [SOURCE.md](SOURCE.md) (r/CrestBrowser, "Two features and a question",
 26 Sep 2026, no comments yet). The user asked for a comparison and a plan.
