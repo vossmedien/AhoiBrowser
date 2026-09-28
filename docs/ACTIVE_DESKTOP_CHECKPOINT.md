@@ -12,11 +12,13 @@ waiting for idle and started while the Mac was in use. Passing runs
 (`b89ef23`, `880217d`) all had activation, so this is journey setup, not
 product; `7942e4c4` brings the page forward and clicks until activated.
 
-A user crash report (16:59, build 44, SIGABRT) freed
-`context_.archive_workspace_id` after `ShowWorkspaceMenu`'s `RunMenuAt`
-returned, reached via `AXShowMenu`. Choosing another Profile's Workspace hands
-the window's frame over, which can destroy the host view inside the nested
-menu loop. `75a50fe0` checks a `WeakPtr` after every sidebar `RunMenuAt`.
+A crash report (16:59, build 44, SIGABRT; per Crest from its H3 AX driver,
+disposable profile) freed `context_.archive_workspace_id` after
+`ShowWorkspaceMenu`'s `RunMenuAt` returned, reached via `AXShowMenu`. The host
+state was freed inside the nested menu loop: Crest reproduced it with only
+shared Workspaces (switches from the AX-opened menu, then SIGTERM), so no
+Profile hand-over is needed. `75a50fe0` checks a `WeakPtr` after every
+sidebar `RunMenuAt`; Crest's H3 driver exercises the path on build 45.
 **Build 45** (`75a50fe0` + `7942e4c4` journey) runs from
 `.work/agent-queue/45/` with the same six journeys. The branch is pushed to
 `origin` (user-approved). Disk: 35 GiB free.
