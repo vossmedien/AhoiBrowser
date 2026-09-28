@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 
+#include "ahoi/browser/ui/visual_style.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/gfx/geometry/insets_f.h"
@@ -116,11 +117,17 @@ TEST(SidebarSplitLayoutTest, RuntimeHeightKeepsStackedSegmentsReadable) {
 
   EXPECT_EQ(32,
             GetSplitRowPreferredHeight(2, side_by_side, kStandardRowHeight));
-  EXPECT_EQ(50, GetSplitRowPreferredHeight(2, stacked, kStandardRowHeight));
-  EXPECT_EQ(76,
+  // Every stacked visual row keeps the readable pane minimum (d84d8e3b).
+  constexpr int kPane = visual_style::kSidebarSplitPaneMinimumHeight;
+  constexpr int kPaneGap = visual_style::kSidebarSplitPaneGap;
+  EXPECT_EQ(2 * kPane + kPaneGap,
+            GetSplitRowPreferredHeight(2, stacked, kStandardRowHeight));
+  EXPECT_EQ(3 * kPane + 2 * kPaneGap,
             GetSplitRowPreferredHeight(3, three_stacked, kStandardRowHeight));
-  EXPECT_EQ(50, GetSplitRowPreferredHeight(3, three_main, kStandardRowHeight));
-  EXPECT_EQ(50, GetSplitRowPreferredHeight(4, four, kStandardRowHeight));
+  EXPECT_EQ(2 * kPane + kPaneGap,
+            GetSplitRowPreferredHeight(3, three_main, kStandardRowHeight));
+  EXPECT_EQ(2 * kPane + kPaneGap,
+            GetSplitRowPreferredHeight(4, four, kStandardRowHeight));
 }
 
 TEST(SidebarSplitLayoutTest,

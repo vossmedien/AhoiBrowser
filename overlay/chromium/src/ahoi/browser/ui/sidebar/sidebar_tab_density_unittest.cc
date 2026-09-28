@@ -3,10 +3,9 @@
 
 #include <memory>
 #include <utility>
-#include <vector>
 
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
-#include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/uuid.h"
@@ -38,14 +37,14 @@ TEST_F(SidebarTabDensityTest, SavedRemoteAndSplitRowsShareSemanticHeight) {
   EXPECT_EQ(visual_style::kSidebarTabRowHeight,
             remote_row->GetPreferredSize().height());
 
-  std::vector<std::unique_ptr<views::View>> split_panes;
-  split_panes.push_back(std::make_unique<views::View>());
-  split_panes.push_back(std::make_unique<views::View>());
-  std::unique_ptr<views::View> split_row = CreateOpenTabSplitRowView(
-      std::move(split_panes),
-      split_tabs::SplitTabVisualData(split_tabs::SplitTabLayout::kSideBySide));
+  // A side-by-side split row keeps the standard height. The composite view
+  // itself requires real runtime tab rows (CHECKed), so check its layout.
   EXPECT_EQ(visual_style::kSidebarTabRowHeight,
-            split_row->GetPreferredSize().height());
+            GetSplitRowPreferredHeight(
+                2,
+                split_tabs::SplitTabVisualData(
+                    split_tabs::SplitTabLayout::kSideBySide),
+                visual_style::kSidebarTabRowHeight));
 }
 
 }  // namespace

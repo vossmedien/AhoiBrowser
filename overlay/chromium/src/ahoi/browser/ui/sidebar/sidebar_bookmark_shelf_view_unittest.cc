@@ -135,7 +135,9 @@ class SidebarBookmarkShelfViewTest : public ChromeViewsTestBase {
     widget_->SetBounds(gfx::Rect(100, 100, 240, 320));
     host_ = widget_->SetContentsView(std::make_unique<views::View>());
     host_->AddChildView(std::move(standalone_shelf_));
-    shelf_->SetBounds(0, 40, 240, visual_style::kBookmarkShelfHeight);
+    // The shelf is a heading row above the scrolling item row; give it its
+    // full preferred height so the item row is actually laid out.
+    shelf_->SetBounds(0, 40, 240, shelf_->GetPreferredSize().height());
     widget_->Show();
     views::test::RunScheduledLayout(widget_.get());
   }
