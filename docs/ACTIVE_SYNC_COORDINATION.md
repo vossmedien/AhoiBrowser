@@ -1,5 +1,33 @@
 # Active sync coordination
 
+## Crest 126 marker collision — owner design note, 28 September 2026
+
+Source review of `tab_tree_sync_adapter.cc` (`MergeRootSuffix`/
+`ApplyMergeRootOrder`) and Swift `CompanionTreePosition.mergeRootSuffix`:
+the marker is `!:ahoi-merge-root/<node's raw Workspace>/`, found by
+last-substring search. A legitimately *explicitly moved* segment node has the
+same raw shape as Crest's Q (raw Workspace B, key containing `marker(B)`),
+and its suffix is an allocator midpoint between two presented tokens, so it
+need not end in `!/<own UUID>`. Therefore neither a grammar check alone nor
+an own-ID suffix rule is safe: both would demote genuine 118 explicit moves.
+Two viable designs, both needing native RED/GREEN on one frozen C++/Swift
+candidate before adoption:
+
+1. **Provenance-bound marker** — spell the marker with the merged *source*
+   Workspace (`marker(A)`) and honor it only when A resolves through
+   `merged_into`/compacted targets to the node's Workspace. Fixes both 138
+   cases by construction; changes presented order between several merged
+   sources, so 112's frozen expectations must be re-reviewed with Crest.
+2. **Grammar-constrained writers** — keep `marker(B)`, require the suffix to
+   parse as the escape grammar ending in `!/<UUID>`, and make both explicit-
+   move writers (Desktop allocator, Swift reorder) emit `between + "!/" +
+   own UUID` inside a segment. Keeps 112 but touches two writers and still
+   accepts a fully forged key.
+
+Recommendation: option 1 (no Format-3 field or clock change; pre-launch data
+only). Not implemented yet: both clients change together and the test pause
+plus host load (≈9 % idle, foreign compilers) block the required RED run.
+
 ## Owner intake of Crest 132/138/140 — 28 September 2026
 
 Crest 132 (seeded merge sequences), 138 (marker-collision projection RED
