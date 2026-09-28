@@ -1,5 +1,25 @@
 # Active Desktop checkpoint
 
+## Crest 134 empty-merge undo source — 28 September 2026
+
+`023e6126` gives an empty same-context Workspace merge a durable undo receipt:
+new `UndoMutationKind::kWorkspaceMerge` (subject = source Workspace ID, no
+node snapshots). `UndoLastMutation` revives only that Workspace while it
+still has its merge tombstone, clears `merged_into` and sets `modified_at`
+newer than the tombstone, then notifies `kUndone` without node IDs
+(SessionBridge refreshes the Workspace list and structure sync; the sidebar
+node model ignores node-less changes). `record_undo=false` stays
+non-undoable. Export/`ReplaceWithSnapshot` validation admits node-less
+entries for this kind only. **Schema 6** rebuilds both undo tables for the
+widened `CHECK`, carries the AUTOINCREMENT high-water mark and raises the
+compatible version (older builds must refuse the file). Tests: positive
+empty-merge undo, reopen + snapshot replace, `record_undo=false` control,
+schema 2→6 upgrade asserting kind 4 is admitted and 5 is refused.
+**Not compiled or run** — no Chromium toolchain lease, host loaded, test
+pause in force. Still open for full 134: merge-time link-routing rules
+retargeted to B are not restored by any merge undo (also non-empty ones),
+and the visible context-menu/⌘Z journey plus real-peer revival.
+
 ## Current R1 continuation — 27 September 2026, 07:03 CEST
 
 Crest 124's allocator correction is now source-integrated in `20467e5`.
