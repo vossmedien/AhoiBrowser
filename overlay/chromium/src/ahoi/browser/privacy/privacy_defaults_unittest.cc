@@ -14,6 +14,7 @@
 #include "components/privacy_sandbox/privacy_sandbox_prefs.h"
 #include "components/safe_browsing/core/common/safe_browsing_prefs.h"
 #include "components/signin/public/base/signin_pref_names.h"
+#include "components/translate/core/browser/translate_pref_names.h"
 #include "components/variations/client_filterable_state.h"
 #include "components/variations/pref_names.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -41,10 +42,14 @@ TEST(PrivacyDefaultsTest, ProfileDefaultsAreSafeAndRemainUserModifiable) {
   profile_prefs.registry()->RegisterBooleanPref(
       metrics::prefs::kAdvancedReportingEnabled, true);
   privacy_sandbox::RegisterProfilePrefs(profile_prefs.registry());
+  profile_prefs.registry()->RegisterBooleanPref(
+      translate::prefs::kOfferTranslateEnabled, true);
 
   ApplyProfileDefaults(profile_prefs.registry());
 
   EXPECT_TRUE(profile_prefs.GetBoolean(prefs::kHttpsOnlyModeEnabled));
+  EXPECT_FALSE(
+      profile_prefs.GetBoolean(translate::prefs::kOfferTranslateEnabled));
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kHttpsFirstBalancedMode));
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kSearchSuggestEnabled));
   EXPECT_EQ(

@@ -1,6 +1,10 @@
 # 094 – The Safe Browsing key also switches Google Translate on (N3)
 
-Status: ready (owner decision, then a small change)
+Status: option 1 integrated by owner (user asked on 28 Sep, default taken):
+`translate.enabled` defaults to false in `privacy_defaults.cc`, unit test in
+`privacy_defaults_unittest.cc`; keyed audit rerun on the next candidate open.
+Note: opening the language settings still refreshes the list (user action,
+`IsTranslateAllowedByPolicy`), so N3 becomes "only after a user action"
 Owner lane: desktop
 Base: HEAD `9f6cd15`.
 Evidence: `artifacts/network-audit/build40-keyed-20260926-1115/` (H5, keyed
