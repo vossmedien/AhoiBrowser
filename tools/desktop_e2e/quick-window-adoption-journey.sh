@@ -100,12 +100,14 @@ $AX dump $PID 14 | grep -q 'quick — ' && record notInTreeBeforeAdoption false 
 # Adopt through the Quick Window's command bar. The Quick Window is a
 # trusted popup without a location bar, so Chromium disables ⌘L
 # (IDC_FOCUS_LOCATION) there; ⌘T (IDC_NEW_TAB) stays enabled and opens the
-# same command bar. ⌘L is tried first and only logged (build 45: no bar).
+# same command bar.
 key 37 cmd
+# Patch 0072 enables ⌘L there; ⌘T stays as fallback so a regression
+# fails only this check, not the adoption checks after it.
 if waitax "AXWindow \\| Suchen oder URL eingeben" 4; then
-  echo "info: cmd-L opens the quick window command bar" >> "$OUT/steps.txt"
+  record cmdLOpensQuickWindowCommandBar true
 else
-  echo "info: cmd-L does not open the quick window command bar" >> "$OUT/steps.txt"
+  record cmdLOpensQuickWindowCommandBar false
   key 17 cmd
 fi
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || fail_setup "command bar did not open in the quick window"
