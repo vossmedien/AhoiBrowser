@@ -1,0 +1,4 @@
+2026-09-28 14:40:17 green start idle=27.21 free=75GiB
+2026-09-28 14:49:51 green build 0 idle=13.16
+2026-09-28 14:53:49 green unit ahoi_sidebar_tree_unittests exit=1 11 tests failed
+2026-09-28 14:53:49 done
