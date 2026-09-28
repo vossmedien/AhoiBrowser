@@ -865,6 +865,10 @@ tolerance under load. Fixed with millisecond idle and its own sample clocks
 This likely explains the earlier "owner input" cancellations too. Starter
 re-armed (ws9/cb7).
 
+ws9 (17:03, build 44) confirmed the guard fix on a real run: stable
+last-input time for 42 s, then a genuine input at 49.8 s (user returned)
+cancelled it correctly. The starter keeps waiting for the next idle window.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
