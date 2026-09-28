@@ -956,6 +956,13 @@ trace scenario's large fixture page exhausted axtool's 1500-node AX dump
 before the sidebar, so the Workspace menu "did not open" — the trace scenario
 now starts on about:blank. Starter re-armed (ws14/cb12).
 
+**First complete H3 trace run on build 45 (cb12, 19:25):** command-bar
+rebuild median 1.9 ms; first presented frame after the rebuild median
+≈ 419 ms (validation on a loaded dev build, reported to Desktop as an
+observation). ws14 created the second Workspace but did not see it active;
+the drivers now dump an AX tree on every setup/driver failure. Starter
+re-armed (ws15/cb13).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

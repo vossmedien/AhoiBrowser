@@ -43,3 +43,8 @@ menu_item() { # <workspace name>: full item title (a level suffix may follow)
   "$AX" dump "$PID" 14 | grep -oE "AXMenuItem \| $1( – [^|]*)? \|" | head -1 \
     | sed -E 's/^AXMenuItem \| //; s/ \|$//'
 }
+
+fail() { # <message>: record an AX tree for diagnosis, then stop the driver
+  [ -n "${AHOI_PERF_TRACE_DIR:-}" ] && "$AX" dump "$PID" 14 > "$AHOI_PERF_TRACE_DIR/ax-driver-failure.txt" 2>&1
+  echo "$1" >&2; exit 4
+}
