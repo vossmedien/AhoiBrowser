@@ -858,6 +858,13 @@ process-posted Escape did, as known). The false cancellation's cause is
 still open; the guard now stores its last 12 idle samples and the input
 epoch in the evidence. Starter re-armed.
 
+H3 guard false-positive root cause found (ws8/cb6 idleSamples): whole-second
+HID idle timestamped after the full, slow host probe drifted beyond the 2 s
+tolerance under load. Fixed with millisecond idle and its own sample clocks
+(`hid_idle_sample`); regression test added; 84 local perf/network tests pass.
+This likely explains the earlier "owner input" cancellations too. Starter
+re-armed (ws9/cb7).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

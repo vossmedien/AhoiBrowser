@@ -67,11 +67,20 @@ def run(*args: str) -> str:
     return subprocess.run(args, capture_output=True, text=True, timeout=10, check=True).stdout.strip()
 
 
-def hid_idle_seconds() -> int:
+def hid_idle_seconds() -> float:
+    # Millisecond resolution: whole seconds plus late timestamps made the
+    # guard see phantom input on a loaded host (validation ws8/cb6, 28 Sep).
     for line in run("ioreg", "-c", "IOHIDSystem").splitlines():
         if "HIDIdleTime" in line:
-            return int(line.split()[-1]) // 1_000_000_000
-    return 0
+            return int(line.split()[-1]) // 1_000_000 / 1000
+    return 0.0
+
+
+def hid_idle_sample() -> dict:
+    """Idle seconds with the clocks read right after it, not after later probes."""
+    idle = hid_idle_seconds()
+    return {"hidIdleSeconds": idle, "hidIdleSampledAt": time.monotonic(),
+            "hidIdleSampledWall": time.time()}
 
 
 def busy_processes() -> list[str]:
@@ -106,7 +115,7 @@ def host_conditions() -> dict:
         "thermal": run("pmset", "-g", "therm"),
         "accessibilityClients": running_ax_clients(),
         "busyProcesses": busy_processes(),
-        "hidIdleSeconds": hid_idle_seconds(),
+        **hid_idle_sample(),
     }
 
 
@@ -129,13 +138,13 @@ def split_ax_clients(listing: str, owned_groups: set[int]) -> tuple[list[str], l
 def runtime_host_state() -> dict:
     # One process snapshot per poll; do not use system load while the benchmark
     # itself is intentionally busy. Every probe is bounded by run()'s timeout.
-    idle = hid_idle_seconds()
+    idle = hid_idle_sample()
     listing = run("ps", "-axco", "pgid=,comm=")
     names = {line.strip().split(None, 1)[-1].strip()
              for line in listing.splitlines() if line.strip()}
     guard = runtime_guard.current()
     foreign, owned = split_ax_clients(listing, guard.owned_process_groups() if guard else set())
-    return {"hidIdleSeconds": idle, "powerSource": power_source(),
+    return {**idle, "powerSource": power_source(),
             "busyProcesses": sorted(names.intersection(BUSY_PROCESSES)),
             "accessibilityClients": foreign, "ownedAccessibilityClients": owned}
 

@@ -192,6 +192,22 @@ class LeaseGuardTest(unittest.TestCase):
             guard.check()
         self.assertFalse(guard.summary()["cancelled"])
 
+    def test_late_timestamp_under_load_is_not_owner_input(self):
+        # ws8 (28 Sep): idle read at t, clock read seconds later after ps/pmset.
+        # With the idle's own sample time the last input stays unchanged.
+        self.write_grant(mode="validation", resources=[])
+        start = rg.time.monotonic()
+        initial = {**QUIET, "hidIdleSeconds": 166.0, "hidIdleSampledAt": start}
+        guard = rg.LeaseGuard(self.checkpoint, [BUNDLE], initial, self.probe, validation=True)
+        with self.without_monitor(guard):
+            self.probe.return_value = {**QUIET, "hidIdleSeconds": 176.0,
+                                       "hidIdleSampledAt": start + 10.0,
+                                       "hidIdleSampledWall": rg.time.time()}
+            with mock.patch.object(rg.time, "monotonic", return_value=start + 14.0):
+                guard.poll_once()
+            guard.check()
+        self.assertFalse(guard.summary()["cancelled"])
+
     def test_without_driver_log_any_reset_cancels(self):
         self.write_grant(mode="validation", resources=[])
         guard = self.guard(validation=True)

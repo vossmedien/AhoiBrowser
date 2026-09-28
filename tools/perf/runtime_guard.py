@@ -103,7 +103,8 @@ class LeaseGuard:
         self._context_token = None
         self._lock_identity = None
         self._grant = None
-        self._input_epoch = time.monotonic() - initial.get("hidIdleSeconds", 0)
+        self._input_epoch = (initial.get("hidIdleSampledAt", time.monotonic())
+                             - initial.get("hidIdleSeconds", 0))
 
     def _validate(self, grant):
         if grant["mode"] != ("validation" if self.validation else "budget"):
@@ -204,15 +205,19 @@ class LeaseGuard:
             idle = state["hidIdleSeconds"]
             if type(idle) not in (int, float) or not math.isfinite(idle) or idle < 0:
                 raise LeaseError("owner-input probe unavailable")
+            # Clocks read right after the idle value; fallback for old probes.
+            sampled = state.get("hidIdleSampledAt", time.monotonic())
+            sampled_wall = state.get("hidIdleSampledWall", time.time())
             self.idle_samples = (self.idle_samples + [
-                [round(time.monotonic() - self._started_monotonic, 2), idle]])[-12:]
+                [round(sampled - self._started_monotonic, 2), idle]])[-12:]
+            last_input = sampled - idle
             if ((not self.validation and idle < self.min_idle)
-                    or time.monotonic() - idle > self._input_epoch + 2):
-                if not self._driver_input_explains(time.time() - idle):
+                    or last_input > self._input_epoch + 2):
+                if not self._driver_input_explains(sampled_wall - idle):
                     raise LeaseError("owner input detected")
-                if time.monotonic() - idle > self._input_epoch + 2:
+                if last_input > self._input_epoch + 2:
                     self.driver_inputs += 1
-                self._input_epoch = time.monotonic() - idle
+                self._input_epoch = last_input
             if not self.validation:
                 if state["busyProcesses"]:
                     raise LeaseError("compiler/build activity detected")
