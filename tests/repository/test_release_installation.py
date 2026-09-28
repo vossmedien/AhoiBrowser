@@ -13,7 +13,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import development_installation  # noqa: E402
-from release import cli, common, installation  # noqa: E402
+from release import cli, common, install_filesystem, installation  # noqa: E402
 
 
 EXPECTED_BUNDLE = {
@@ -304,6 +304,25 @@ class ReleaseInstallationTests(unittest.TestCase):
                 )
 
             self.assertEqual([], list(applications.glob(".AhoiBrowser.*.app")))
+
+    def test_only_bundle_executables_count_as_running_processes(self):
+        app = pathlib.Path("/Applications/AhoiBrowser.app")
+        listing = (
+            "  101 /Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser\n"
+            "  102 /bin/zsh\n"
+            "  103 /Applications/AhoiBrowser.app/Contents/Frameworks/"
+            "AhoiBrowser Framework.framework/Helpers/AhoiBrowser Helper.app/"
+            "Contents/MacOS/AhoiBrowser Helper\n"
+        ).encode()
+        completed = mock.Mock(stdout=listing)
+        with mock.patch.object(
+            install_filesystem, "run", return_value=completed
+        ) as run:
+            running = install_filesystem._inspect_bundle_processes([app])
+        # The executable path, not a watcher's arguments naming the bundle.
+        self.assertEqual(["/bin/ps", "-axww", "-o", "pid=,comm="],
+                         run.call_args.args[0])
+        self.assertEqual([101, 103], [item["pid"] for item in running])
 
     def test_foreign_receipt_appearing_during_install_is_preserved(self):
         with tempfile.TemporaryDirectory(prefix="ahoi-install-output-race-") as directory:

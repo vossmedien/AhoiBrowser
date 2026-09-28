@@ -223,7 +223,10 @@ def _move_exclusive(source: pathlib.Path, destination: pathlib.Path) -> None:
 
 
 def _inspect_bundle_processes(paths: Sequence[pathlib.Path]) -> list[dict]:
-    completed = run(["/bin/ps", "-axww", "-o", "pid=,command="])
+    # Match the executable path (`comm`), not the whole command line: a shell
+    # or watcher that merely names the bundle in its arguments is not a
+    # bundle process and must not block (or deadlock) an installation.
+    completed = run(["/bin/ps", "-axww", "-o", "pid=,comm="])
     needles = [(path, f"{path}/Contents/") for path in paths]
     matches = []
     for raw_line in completed.stdout.decode("utf-8", "replace").splitlines():
@@ -235,7 +238,7 @@ def _inspect_bundle_processes(paths: Sequence[pathlib.Path]) -> list[dict]:
             continue
         command = fields[1]
         for bundle, needle in needles:
-            if needle in command:
+            if command.startswith(needle):
                 matches.append(
                     {"pid": pid, "bundle": str(bundle), "command": command}
                 )
