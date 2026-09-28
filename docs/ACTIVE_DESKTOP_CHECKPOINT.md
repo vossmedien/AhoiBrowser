@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Candidate 45 — journeys green — 28 September 2026, 19:10 CEST
+
+**Build 45** (`4746af81`, includes the `75a50fe0` menu fix): all 15 unit
+binaries green (sync 202/202, sidebar 168/168), installed with the documented
+`AHOI_ALLOW_LOW_DISK=1` (35 GiB free; 31 GiB after the build). Journeys on the
+installed candidate (`artifacts/computer-use/m153/*-installed-4746af81-*`,
+earlier failed runs kept as `-runN`), all **pass**:
+auto-archive, keyboard-shortcuts (Workspace switch), link-peek (142 R5),
+split-archive-restore (Split, Restore), ws-deletion-extended,
+ws-level-deletion (before-unload veto now shown), the new
+quick-window-adoption (QUICK-03/04, 146 #6: same DevTools target, no reload,
+Quick Window closed, not offered again) and sidebar-discovery-switch (142 R2:
+Workspace switch before activation), plus Crest's empty-workspace-navigation
+(zero-tab, 142 R4). Crest's restore-surface run is still queued.
+
+Harness findings fixed on the way: macOS cooperative activation ignores AX
+`kAXFrontmost` while another app is frontmost, so `axtool activate` falls back
+to an Apple Event (`3d53533e`; AX path measured not to reset HIDIdleTime);
+the journey runner now starts only when idle ≥90 s and locks are free at
+once. Product finding (open, UX): in the Quick Window, a trusted popup without
+a location bar, Chromium disables `⌘L`; only `⌘T` opens the command bar there.
+No Ahoi crash was reported on 45 during these runs.
+
 ## Candidate 44 and the workspace-menu crash — 28 September 2026, 17:15 CEST
 
 **Build 44** (`8772fbc0`): all 15 unit binaries green (967 tests, including

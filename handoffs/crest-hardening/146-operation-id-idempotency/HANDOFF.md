@@ -13,7 +13,10 @@ split notifications only match entries still bound to that native token,
 which a rebuild replaces); #1 in owner source (archive with close reports
 done only after the pages captured at the decision closed, bounded by
 kArchiveCloseGrace, then drops that archive's split tokens); all 12 paths
-addressed, #1/#6/#12 await native evidence;
+addressed; on build 45 (`4746af81`) #1 visible green (auto-archive,
+split-archive-restore) and #6 visible green (quick-window-adoption: same
+target, not offered again; the concurrent-repeat browser test itself not yet
+run), #12 compiled in 45 with its visible hand-over journey pending;
 #2–5/#7/#9 natively green on ba9f26cb (session/tab_tree units)
 Owner lane: desktop (session bridge, sidebar, popup/Quick Window, structure controller)
 Base: `60176d7`. Evidence: section 3 of the
