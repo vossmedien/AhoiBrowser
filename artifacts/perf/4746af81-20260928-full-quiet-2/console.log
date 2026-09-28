@@ -1,0 +1,8 @@
+PERF-01        INSUFFICIENT  Speedometer regression at most 3 %
+PERF-02        INSUFFICIENT  start time at most 10 % worse
+PERF-02-first  INSUFFICIENT  fresh-profile first launch at most 10 % worse
+PERF-03        NOT_MEASURED  command bar p95 below 50 ms
+PERF-04        NOT_MEASURED  workspace switch commit below 100 ms
+PERF-04-presented NOT_MEASURED  first presented frame after a workspace switch below 100 ms
+PERF-06        INSUFFICIENT  own memory overhead with 20 tabs at most 5 %
+PERF-07        INSUFFICIENT  no measurable own idle CPU

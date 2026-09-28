@@ -1004,6 +1004,32 @@ Full H3 run attempt 1 (19:59, build 45) was cancelled by genuine input after
 run (startup, memory, idle, Speedometer ×5) at each quiet window until one
 completes (lease valid until ~07:10 on 29 Sep).
 
+**H3 full run complete on installed build 45** (21:58–22:19, quiet host, no
+input, guard 1159 checks): startup first/warm 3995/3828 ms (first paint),
+memory 1/20 tabs 1.55/6.18 GB, idle CPU 1.0 %, Speedometer 6.9 (dev/DCHECK
+build; verdicts INSUFFICIENT by design, no faster/lighter claim). Evidence
+`artifacts/perf/4746af81-20260928-full-quiet-2/`.
+
+## Goal status — 28 September 2026, 22:25 CEST
+
+Against the DoD of `outputs/AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md`:
+- **H1 met:** shared vectors + generator in the repo; C++ and Swift runners
+  green on exact integrated stands; direct output comparison PASS (232 cases);
+  drift gate green.
+- **H2 met:** audit/rule adopted; 142/146 fixes built into builds 44/45 with
+  tests; visible journeys Split, zero-tab, Workspace switch, Restore and Quick
+  Window adoption green on installed build 45.
+- **H3 met:** methodology + harness + evaluator tests in the repo; one complete
+  run on the exact installed candidate under a quiet host; no comparative
+  claim. Budget verdicts still need the release pair (out of DoD scope).
+- **H4 met** (unchanged).
+- **H5 met:** GCM fix integrated; fresh-profile audits without unexpected
+  Google endpoints (keyless build 40, keyed build 44 incl. NET-GCM-01).
+- **H6 met for Crest:** ADR, catalogue, deletion finding and stage reviews
+  delivered; product acceptance belongs to the Desktop owner per the DoD.
+Follow-ups (not blocking the DoD): rerun command-bar and Workspace-switch
+traces on build 46; release pair for PERF budget verdicts; 148 Keychain item.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
