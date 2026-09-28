@@ -377,6 +377,34 @@ final class SyncMergeConformanceTests: XCTestCase {
         try checkVectors("merge_domain_groups_v3.json")
     }
 
+    private struct SettingValueDocument: Decodable {
+        struct Case: Decodable {
+            let name: String
+            let settingId: String
+            let valueJson: String
+            let valid: Bool
+        }
+        let schemaVersion: Int
+        let catalogueIds: [String]
+        let cases: [Case]
+    }
+
+    /// Crest 144: C++ ValidateBrowserSettingValue runs the same cases.
+    func testBrowserSettingValueVectors() throws {
+        let document = try JSONDecoder().decode(
+            SettingValueDocument.self,
+            from: Data(contentsOf: vectorsURL("setting_values_v3.json")))
+        XCTAssertEqual(document.schemaVersion, 1)
+        XCTAssertEqual(Set(document.catalogueIds.map(CompanionBrowserSettingCatalog.recordID(for:))),
+                       CompanionBrowserSettingCatalog.recordIDs)
+        for vector in document.cases {
+            XCTAssertEqual(
+                CompanionBrowserSettingCatalog.validatesValue(
+                    settingID: vector.settingId, valueJSON: vector.valueJson),
+                vector.valid, vector.name)
+        }
+    }
+
     private func canonicalWireJSON(_ data: Data) throws -> Data {
         let object = try JSONSerialization.jsonObject(with: data)
         return try JSONSerialization.data(
