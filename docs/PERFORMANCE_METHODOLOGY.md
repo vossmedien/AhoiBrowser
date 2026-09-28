@@ -175,9 +175,10 @@ repository tests only; the first leased run validates labels and frames.
 
 Command bar (PERF-03) uses `tools/perf/drivers/command_bar_driver.sh` with
 `--trace-metric Ahoi.CommandBar.RebuildSuggestions=command_bar_ms`: it opens
-the bar with a process-posted Command-T (patch 0001 opens the Ahoi bar only
-for keyboard shortcuts; the 28 September validation showed the
-"Adresse öffnen…" menu item does not), retrying dropped keys, clears the field
+the bar with Command-T through the HID tap (`axtool hidkey`, frontmost-only),
+logging each post for the guard first — patch 0001 opens the Ahoi bar only
+for keyboard shortcuts, the "Adresse öffnen…" menu item does not, and
+process-posted keys were dropped on build 45 — retrying, clears the field
 with an AX value set (programmatic `SetText`, no `ContentsChanged`, so no
 sample) and inserts each query character through `AXSelectedText`
 (`kReplaceSelectedText` → `InsertOrReplaceText`, `kUserTriggered`), giving one

@@ -932,6 +932,13 @@ the exact candidate; Crest's restore-surface run (handoff 040 S4) is queued
 as extra evidence. `axtool activate` gained an Apple Event fallback
 (`3d53533e`).
 
+Owner measured that neither AX nor Apple Event activation resets HIDIdleTime.
+cb9 (19:15, build 45): the guard attributed five logged ⌘T posts correctly,
+but process-posted keys never opened the bar; the command-bar driver now
+uses `hidkey` (HID tap, frontmost-only, logged before posting), like the
+Desktop journeys. ws11 was refused at guard entry because the owner's probe
+held e2e.lock (correct). Trace starter re-armed.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

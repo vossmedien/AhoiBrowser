@@ -7,9 +7,9 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 DRIVERS = ROOT / "tools/perf/drivers"
-# `key` posts to the process (CGEventPostToPid), not the HID tap; the others
-# are HID-system input and would cancel a guarded run.
-HID_MODES = {"hidkey", "type", "click", "rightclick", "hidrightclick"}
+# Unlogged HID-system input would cancel a guarded run. The command-bar driver
+# may use `hidkey` only because it logs each post for the guard first.
+HID_MODES = {"type", "click", "rightclick", "hidrightclick"}
 
 # Simulated axtool: keeps the active Workspace, an open menu and a dialog in a
 # state directory and logs every invocation. Only the AX subcommands the
@@ -102,7 +102,7 @@ FAKE_BAR_AXTOOL = textwrap.dedent("""\
     S=$FAKE_AX_STATE; echo "$*" >> "$S/calls"
     case "$1" in
       dump) [ -f "$S/open" ] && echo "AXWindow | Suchen oder URL eingeben |"; exit 0 ;;
-      key) [ "$3 $4" = "17 cmd" ] && touch "$S/open" && exit 0; exit 1 ;;
+      hidkey) [ "$3 $4" = "17 cmd" ] && touch "$S/open" && exit 0; exit 1 ;;
       setvalue) exit 0 ;;
       activate) exit 0 ;;
       *) echo "forbidden mode $1" >&2; exit 9 ;;
@@ -130,7 +130,8 @@ class CommandBarDriverTest(unittest.TestCase):
             field = "Mit Google suchen oder eine URL eingeben"
             self.assertEqual(calls, [
                 "activate 4242",
-                "key 4242 17 cmd",
+                "activate 4242",
+                "hidkey 4242 17 cmd",
                 f"setvalue 4242 {field} ", f"insert 4242 {field} alpha 400",
                 f"setvalue 4242 {field} ", f"insert 4242 {field} beta 400"])
 

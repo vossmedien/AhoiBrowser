@@ -30,7 +30,10 @@ for query in ${AHOI_PERF_QUERIES:-local page fixture}; do
       # Log before posting: the guard attributes only this window's HID reset.
       [ -n "${AHOI_PERF_DRIVER_INPUT_LOG:-}" ] &&
         python3 -c 'import time; print(time.time())' >> "$AHOI_PERF_DRIVER_INPUT_LOG"
-      "$AX" key "$PID" 17 cmd >/dev/null || exit 4
+      # HID tap like the Desktop journeys: process-posted keys were dropped on
+      # build 45 (cb8/cb9). Logged above, so the guard attributes the reset.
+      "$AX" activate "$PID" >/dev/null 2>&1
+      "$AX" hidkey "$PID" 17 cmd >/dev/null || continue
       waitax "AXWindow \\| Suchen oder URL eingeben" 3 && { opened=1; break; }
     done
     [ "$opened" = 1 ] || { echo "command bar did not open" >&2; exit 4; }
