@@ -1,5 +1,26 @@
 # Active Desktop checkpoint
 
+## Candidate 44 and the workspace-menu crash — 28 September 2026, 17:15 CEST
+
+**Build 44** (`8772fbc0`): all 15 unit binaries green (967 tests, including
+`ahoi_sidebar_tree_unittests` 168/168 and `ahoi_privacy_policy_unittests`),
+installed. Journeys (`artifacts/computer-use/m153/*-installed-8772fbc0-*`):
+ws-deletion-extended, split-archive-restore, auto-archive, keyboard-shortcuts
+and link-peek 0. **ws-level-deletion 4**: no before-unload veto because the
+unload page had no user activation (`active:false`); the chain gave up
+waiting for idle and started while the Mac was in use. Passing runs
+(`b89ef23`, `880217d`) all had activation, so this is journey setup, not
+product; `7942e4c4` brings the page forward and clicks until activated.
+
+A user crash report (16:59, build 44, SIGABRT) freed
+`context_.archive_workspace_id` after `ShowWorkspaceMenu`'s `RunMenuAt`
+returned, reached via `AXShowMenu`. Choosing another Profile's Workspace hands
+the window's frame over, which can destroy the host view inside the nested
+menu loop. `75a50fe0` checks a `WeakPtr` after every sidebar `RunMenuAt`.
+**Build 45** (`75a50fe0` + `7942e4c4` journey) runs from
+`.work/agent-queue/45/` with the same six journeys. The branch is pushed to
+`origin` (user-approved). Disk: 35 GiB free.
+
 ## Candidates 42/43 and the command-index crash — 28 September 2026, 16:00 CEST
 
 **Build 42** (`f02457a3`): all 13 unit binaries green (812 tests), installed.
