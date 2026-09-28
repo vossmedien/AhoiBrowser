@@ -975,6 +975,12 @@ paint (caret blink, ~345–410 ms). Fix `977853f9` (`SchedulePaint()` after the
 rebuild) lands in build 46 (blocked on disk space); Crest reruns cb there. The
 harness now also reports presented latency per `layer_tree_host_id`.
 
+ws16 (19:34): Workspace setup and switches now succeed and the guard
+completes, but no `Ahoi.Workspace.Switch` trace event was recorded (0
+samples) although the menu path reaches the instrumented
+`SetActiveWorkspaceForWindow`; the dump now keeps all `Ahoi.*` events. cb14
+completed a third time.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

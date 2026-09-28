@@ -625,6 +625,7 @@ def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
     if TRACE_DIR and pathlib.Path(TRACE_DIR).is_dir():
         # Diagnostic evidence for the selectors: Ahoi events and frame reports only.
         keep = [e for e in events if e.get("name") in (names or {})
+                or str(e.get("name", "")).startswith("Ahoi.")
                 or e.get("name") == "PipelineReporter"]
         try:
             (pathlib.Path(TRACE_DIR) / f"trace-{label}.json").write_text(json.dumps(keep))
