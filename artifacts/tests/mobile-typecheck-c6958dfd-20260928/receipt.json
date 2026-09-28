@@ -21,5 +21,28 @@
  "binarySha256": {
   "dd/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCore.framework/AhoiMobileCore": "fc72b14c4c773374995024d10d3e037706837e6d19543668b2166c68ad9a8324",
   "dd/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCoreTests.xctest/AhoiMobileCoreTests": "ed56eb348ba369d7a4166c73aeef45d45286417372fbebe1be3887ad9af4b30f"
+ },
+ "focusedTestRun": {
+  "approvedBy": "user, 28 Sep 2026 (Swift + C++ bounded runs)",
+  "mode": "test-without-building on the same bundle",
+  "destination": "CE3513BF (owner simulator, shut down afterwards)",
+  "jobs": 1,
+  "parallelTesting": false,
+  "classes": [
+   "CompanionWorkspaceRetentionTests",
+   "SyncMergeConformanceTests",
+   "CompanionWorkspaceMergeTests",
+   "CompanionTreeReorderingTests",
+   "MobileWebExtensionRuntimeTests"
+  ],
+  "summary": {
+   "result": "Passed",
+   "totalTestCount": 54,
+   "passedTests": 54,
+   "failedTests": 0,
+   "skippedTests": 0
+  },
+  "resourcesBefore": "2026-09-28T11:16:05 idle=27.32",
+  "resourcesAfter": "2026-09-28T11:17:00 idle=14.71"
  }
 }

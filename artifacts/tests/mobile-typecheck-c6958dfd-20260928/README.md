@@ -13,3 +13,16 @@ and the Crest 126 provenance-bound merge-root projection. It proves they
 typecheck and link as a test bundle only; their behavior, 138 RED/GREEN, the
 Crest 122 comparison and any visible or CloudKit evidence remain open.
 Receipt with source/binary hashes: [receipt.json](receipt.json).
+
+## Focused test run on the same bundle (approved 28 September)
+
+`test-without-building` on the owner simulator CE3513BF, one job, no parallel
+testing: **54/54 passed, 0 failed, 0 skipped** across
+`CompanionWorkspaceRetentionTests`, `SyncMergeConformanceTests`,
+`CompanionWorkspaceMergeTests`, `CompanionTreeReorderingTests` and
+`MobileWebExtensionRuntimeTests`. This includes the compaction lease-fault
+regressions, Crest 132 sequences, 138 marker-collision frames (GREEN for the
+Crest 126 fix), 140 domain groups, the 136 Files spike and the merge-root
+position rule. The simulator was shut down afterwards. Swift 138 RED on the
+pre-fix parent `54c2901` is still to run; Crest 144 postdates this bundle.
+Per-test list: [focused-tests.txt](focused-tests.txt).
