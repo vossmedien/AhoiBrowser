@@ -990,6 +990,14 @@ asks Desktop to instrument the shared `WorkspaceService` commit points. The
 Workspace-switch trace sample awaits that build; the command-bar trace is
 complete and reproducible.
 
+**Restore journey PASS on installed build 45** (Crest, 19:40–19:42,
+`artifacts/computer-use/m153/restore-surface-journey-installed-4746af81-crest-20260928/`):
+five restarts, each with the same Workspace, same front page and no
+empty-state overlay (040 S4). 150 integrated by the owner as a single event
+in `WorkspaceService::SetActiveWorkspace` (`7bdc1f69`, build 46). Only the
+full quiet-host H3 run remains for the Zielprompt DoD; it starts from
+`run-45-dod.sh` once load < 3.6 and idle ≥ 310 s.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
