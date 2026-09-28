@@ -198,6 +198,20 @@ case "focused":
 case "activate":
     let r = AXUIElementSetAttributeValue(app, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
     print("frontmost -> \(r.rawValue)")
+    // Cooperative activation (macOS 14+) can accept the AX request without
+    // bringing the app forward while another app is frontmost (build 45
+    // journeys lost to Terminal Cockpit). An Apple Event activate by bundle
+    // id still works; it sends no reopen event, so no window is created.
+    Thread.sleep(forTimeInterval: 0.3)
+    if NSWorkspace.shared.frontmostApplication?.processIdentifier != pid,
+       let bundle = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier {
+        var error: NSDictionary?
+        NSAppleScript(source: "tell application id \"\(bundle)\" to activate")?
+            .executeAndReturnError(&error)
+        Thread.sleep(forTimeInterval: 0.5)
+        let front = NSWorkspace.shared.frontmostApplication?.processIdentifier == pid
+        print("activate via Apple Event -> \(front ? "frontmost" : "still behind")")
+    }
 case "hidrightclick":
     // Like a real mouse: through the HID event tap (Chromium views ignore
     // mouse events posted to the process). Refuses unless the target app is
