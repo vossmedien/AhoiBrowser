@@ -963,6 +963,11 @@ observation). ws14 created the second Workspace but did not see it active;
 the drivers now dump an AX tree on every setup/driver failure. Starter
 re-armed (ws15/cb13).
 
+cb13 (19:27) completed again (command-bar measurement reproducible). ws15's
+AX dump showed the create dialog still open with "Perf B" filled: the setup
+now inserts the name as a user edit (ax-insert) and retries "Erstellen".
+Starter re-armed (ws16/cb14).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

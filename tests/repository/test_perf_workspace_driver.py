@@ -54,7 +54,12 @@ class WorkspaceDriverTest(unittest.TestCase):
             axtool = root / "axtool"
             axtool.write_text(FAKE_AXTOOL)
             axtool.chmod(0o755)
-            env = {**os.environ, "AHOI_AXTOOL": str(axtool), "AHOI_PERF_PID": "4242",
+            insert = root / "insert"
+            insert.write_text('#!/bin/bash\necho "insert $*" >> "$FAKE_AX_STATE/calls"\n'
+                              'echo "$3" > "$FAKE_AX_STATE/name"\n')
+            insert.chmod(0o755)
+            env = {**os.environ, "AHOI_AXTOOL": str(axtool), "AHOI_AX_INSERT": str(insert),
+                   "AHOI_PERF_PID": "4242",
                    "AHOI_PERF_STATE_DIR": str(root), "FAKE_AX_STATE": str(state),
                    "AHOI_PERF_SWITCHES": switches}
             setup = subprocess.run([str(DRIVERS / "workspace_switch_setup.sh")], env=env,
@@ -74,7 +79,8 @@ class WorkspaceDriverTest(unittest.TestCase):
         self.assertEqual([call.split(" ", 2)[2] for call in switches],
                          ["Inbox", "Perf B", "Inbox"])
         self.assertEqual(active, "Inbox")
-        self.assertIn("setvalue 4242 Workspace-Name Perf B", calls)
+        self.assertIn("setvalue 4242 Workspace-Name ", calls)
+        self.assertIn("insert 4242 Workspace-Name Perf B 50", calls)
 
     def test_driver_refuses_without_setup_and_without_prebuilt_axtool(self):
         env = {**os.environ, "AHOI_AXTOOL": "/nonexistent/axtool", "AHOI_PERF_PID": "1"}
