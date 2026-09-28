@@ -613,6 +613,13 @@ conformance files. Source read finds both adapters equal; a repository drift
 gate compares the ID set with both source files. Swift mirror parses; no
 native run.
 
+H2.2 design: [146](../handoffs/crest-hardening/146-operation-id-idempotency/HANDOFF.md)
+maps the 12 transitions without a process-local operation ID to mint/check
+points and RED test names, reusing the product's own extension-setup pattern
+(`native_extension_setup_controller.cc` `IsCurrentOperation`). Process-local
+only: no wire/schema change. Entry points verified in source; no patch.
+Runtime work (H1 native runs, H3 run, H5 audit) stays gated: no current lease.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
