@@ -637,6 +637,18 @@ Later: R4 source-fixed in `a7925b9` (surface reads the Workspace service;
 review in 142, no test yet); R1/R2/R5/R6 pass a bounded C++ syntax check
 (11/11, `c5f415c`). Only R3's window/tab rest remains open in 142.
 
+**User authorization, 28 September ~11:40 CEST:** the user granted Crest full
+freedom to do what is necessary. Crest treats this as the resource owner's
+approval in place of a checkpoint lease marker, but keeps lock safety: no run
+while `build.lock`/`e2e.lock`/`h3.lock` exists in the owner lock directory
+(`…/4203bcfe…/scratchpad`), atomic own lock, nothing deleted to make room.
+H5 fresh-profile audit started 11:43 on installed build 40 (`6acd207`,
+keyless; phases idle/NET-GCM-01, navigation/PRIV-12, crash/PRIV-16) under
+Crest's `h3.lock`; output `artifacts/network-audit/6acd207-20260928/`.
+Owner's C++ unit run `cpp-units-784c67a1` GREEN build stopped on the disk guard
+(61.1 of 64 GiB); Mobile red/green `ec3024e5` finished (RED 65, GREEN 2/2).
+The active AhoiBrowser owner session was messaged to coordinate the C++ rerun.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
