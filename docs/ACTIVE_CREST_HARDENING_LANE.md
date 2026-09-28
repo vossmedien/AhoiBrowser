@@ -755,6 +755,17 @@ R3 window restore; the earlier crashes were fixed in `5e90a4e0`. The single
 sync failure is the bookmark local-scheme vs DoD 14 conflict, now an open
 product decision for the user (Sync owner).
 
+Bookmark DoD 14 decision reviewed (`14e46da` C++, `ba9f26c` Swift): only
+http(s) URLs with a host cross the boundary; `file:`/`chrome:`/`javascript:`/
+`data:` bookmarks stay local and are omitted without pausing portable ones
+(C++ `IsLocalOnlyBookmarkUrl`, Swift `isLocalOnlyBookmark`, same rule).
+Swift blocks credentials at save (`CompanionBookmarkLibrarySupport.swift:254`);
+the Swift wire codec itself does not check them, but a C++ receiver rejects
+such records. No purge of already-synced local URLs is needed while
+`productionAuthorityGranted` is false. Native rerun of
+`SyncSecretBoundaryTest` and the Swift relay test is pending (owner commits
+say not run).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
