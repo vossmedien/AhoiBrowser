@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## Candidates 42/43 and the command-index crash — 28 September 2026, 16:00 CEST
+
+**Build 42** (`f02457a3`): all 13 unit binaries green (812 tests), installed.
+Journeys: split-archive-restore 0; ws-deletion-extended and ws-level-deletion
+failed on the same SIGABRT (two user crash reports, 15:24/15:28):
+`CommandBarController::PublishBrowserCommands` re-entered
+`CommandService::ReplaceItems` from its own `kWorkspace` observer call
+(`ObserverList` forbids reentrancy). Fixed in `f772cdde` (republish posted);
+the chain was stopped before the remaining journeys ran on the known-bad
+binary. **Build 43** (`40bd711d`: crash fix + Crest 146 #6/#12) built and its
+unit binaries pass; install and six journeys are running from
+`.work/agent-queue/43/`.
+
+Since 43, queued for **build 44** (`.work/agent-queue/chain44.sh`, adds
+`ahoi_privacy_policy_unittests` and `ahoi_sidebar_tree_unittests`):
+Crest 146 #1 (`f1a9ebed`, archive done after tracked closes; all 12 paths now
+addressed, #10 structurally via the native split token), Crest 094 option 1
+(`1374b17b`, Translate off until the user enables it; keyed audit rerun open),
+074 closed, and the sidebar test-drift package (`f1831778`, `52bc5099`):
+split height now 30 px per pane (d84d8e3b), density test no longer feeds plain
+views into the composite row, shelf mounted at its full height, and the M153
+animation changes (durations scaled by the global multiplier; macOS renders
+rich animation unless reduced motion is preferred). A focused sidebar run
+(`.work/agent-queue/sidebar-52bc5099/`) uses the build-43 journey window.
+
 ## Native GREEN on ba9f26cb — 28 September 2026, 14:19 CEST
 
 User-approved bounded runs, owner `build.lock` held. **C++**: tab_tree, session
