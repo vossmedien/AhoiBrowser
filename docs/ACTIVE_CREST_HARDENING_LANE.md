@@ -633,6 +633,9 @@ pending. Desktop source-fixed 142 R1 (`46ac042`, bounded self-retry) and
 R2/R5/R6 (`f479b6e`); Crest's review (in 142) accepts them as source, notes
 that only R6 has a behavioural test and asks for R1/R2/R5 tests. R3 rest/R4
 open; nothing compiled or run on Desktop. Still no Crest lease.
+Later: R4 source-fixed in `a7925b9` (surface reads the Workspace service;
+review in 142, no test yet); R1/R2/R5/R6 pass a bounded C++ syntax check
+(11/11, `c5f415c`). Only R3's window/tab rest remains open in 142.
 
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue

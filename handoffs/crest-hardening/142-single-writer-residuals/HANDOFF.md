@@ -62,5 +62,11 @@ No extra build is requested for this handoff alone.
   remains proposed.
 - **R6 `f479b6e`:** empty move group refused by drop, context move, move command
   and group dialog; covered by `SidebarTreeViewTest.SplitMoveWithUnboundMemberIsRefused`.
-- R3 (window/tab bindings on merge undo) and R4 stay open; 146 covers the
-  operation-ID side of R3. All owner fixes are uncompiled/unrun per their commits.
+- **R4 `a7925b9`:** `EnsureWorkspaceSurface` now reads
+  `GetActiveWorkspaceForWindow` and falls back to the view model only while the
+  window is not yet tracked by the service; matches the proposal. No test yet;
+  `BrowserSidebarHostTest.EmptySurfaceFollowsServiceWhenViewModelActivationFails`
+  remains proposed.
+- R3 (window/tab bindings on merge undo) stays open; 146 covers its
+  operation-ID side. R1/R2/R5/R6 pass pinned-Clang `-fsyntax-only` (11/11,
+  `c5f415c`, source `d7c9109c`); nothing linked or run. R4 is not in that check.
