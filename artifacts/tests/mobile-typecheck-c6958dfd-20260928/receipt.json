@@ -1,0 +1,25 @@
+{
+ "kind": "build-for-testing (typecheck/compile only)",
+ "sourceCommit": "c6958dfda1b35125fc1e9c09bd75fbc79fcecc3d",
+ "destination": "generic/platform=iOS Simulator",
+ "configuration": "DebugLocal",
+ "jobs": 2,
+ "result": "TEST BUILD SUCCEEDED",
+ "firstAttempt": "failed only on a test resource missing from the snapshot (overlay sync testdata); zero Swift compile errors",
+ "resourcesBefore": "CPU usage: 48.26% user, 21.40% sys, 30.33% idle",
+ "resourcesAfter": "CPU usage: 38.83% user, 11.15% sys, 50.1% idle",
+ "sourceSha256": {
+  "apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSyncBridgeRetention.swift": "6ad4b166457c9b7dab53181f8ef4925a59418b3065c59f798add104ca0261c35",
+  "apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift": "0f843cddaeb16d992e0126596898e7338b5a49489806f25b165d3ef9f74eaeba",
+  "apps/AhoiMobile/Sources/AhoiMobileCore/CompanionTreeReordering.swift": "cd70c4b721efa8d745a869fe0dd0b5cf201e5b8fe6f49d9d4edbad143984feb2",
+  "apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshot.swift": "ebe55dd66188c14cf89cd686e264c6bd78271c6f27339ab928089bb796a76b2f",
+  "apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionWorkspaceRetentionTests.swift": "225ae476c5840ed4f6df59c696497f8e9b130cbb5284b718379be39ae4c826de",
+  "apps/AhoiMobile/Tests/AhoiMobileCoreTests/SyncMergeConformanceTests.swift": "a34f9e20b603e8886abdeab31a2eafe76ad073c91f1eb7ad5c9c217ef9b191b7",
+  "apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileWebExtensionRuntimeTests.swift": "812b516bb1ba8bc001d7db759db76593e8ab7ce4d242d0ff5d5cfb9b5b48cf74",
+  "apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionWorkspaceMergeTests.swift": "317ef500d80e200aa191a1571630aaeb1487562d66e73faa6b2181ba96c4ba75"
+ },
+ "binarySha256": {
+  "dd/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCore.framework/AhoiMobileCore": "fc72b14c4c773374995024d10d3e037706837e6d19543668b2166c68ad9a8324",
+  "dd/Build/Products/DebugLocal-iphonesimulator/AhoiMobileCoreTests.xctest/AhoiMobileCoreTests": "ed56eb348ba369d7a4166c73aeef45d45286417372fbebe1be3887ad9af4b30f"
+ }
+}
