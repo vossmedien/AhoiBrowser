@@ -89,3 +89,8 @@ required by H2's DoD. No build is requested for this handoff alone.
   recorded as `replay_rejected`, even across restarts. Cosmetic: both branches
   of the ternary at `profile_sync_backend.cc:329-331` are identical. #1, #6,
   #8, #10, #12 remain.
+- **#8 (`931c970`, owner note):** confirmed in source: `DeleteNode` returns
+  `kNotFound` for an already tombstoned node (`tab_tree_store_move_delete.cc:
+  330-331`, `:404-405`), so a repeated saved-row delete cannot delete or
+  rebind twice. #2–5/#7/#9 are natively green on `ba9f26cb`; #1, #6, #10, #12
+  remain open.
