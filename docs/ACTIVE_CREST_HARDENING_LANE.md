@@ -877,6 +877,19 @@ Crest told the owner that no other-Profile hand-over is required to reach it.
 Build 45 (`75a50fe0` + level-journey fix) is running; its journeys should
 then be joined by Crest's H3 driver run on 45.
 
+**DoD check against the Zielprompt (18:10):** H1 met (both runners green on
+exact stands + direct comparison PASS); H4 met; H5 met (GCM fix, keyless
+build-40 and keyed build-44 audits); H6 Crest part met (product acceptance
+is the owner's). H3's DoD asks for one full run on the installed candidate
+under host-quiet — the release pair is only needed for "faster/lighter"
+claims, so the earlier release-pair blocker applied to budget claims, not to
+the DoD. Remaining: H2 visible journeys zero-tab + Restore on the current
+candidate (Split and Workspace switch green on 44) and a Quick Window
+adoption journey (none exists; requested from the owner); H3 full quiet-host
+run. Queued `.work/crest-h3/run-45-dod.sh` for installed build 45: the two
+journeys under e2e.lock, then all scenarios ×5 incl. Speedometer under h3.lock
+on a quiet host (load < 3.6, idle ≥ 310 s).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
