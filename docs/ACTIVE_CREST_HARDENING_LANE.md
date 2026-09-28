@@ -604,6 +604,15 @@ sample), per-character insertion via `AXSelectedText`, which pinned views code
 maps to a user-triggered edit (`textfield.cc:1175`, `:392`). Lane helper
 `ax_insert_text.swift` passes `swiftc -parse` (no build); fake-tool tests pass.
 
+H1 setting values:
+[144](../handoffs/crest-hardening/144-setting-value-conformance/HANDOFF.md)
+adds 135 shared accept/reject cases for the browser-setting catalogue (24 IDs;
+search engine, bounded integers/doubles, enums, charset, resets), SHA-256
+`4262159e…abd45`, with test-only C++/Swift runners in the existing
+conformance files. Source read finds both adapters equal; a repository drift
+gate compares the ID set with both source files. Swift mirror parses; no
+native run.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

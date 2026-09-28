@@ -142,8 +142,9 @@ record merge treats `value_json` as opaque RFC JSON (`sync_merge.cc`); the
 permitted-setting catalogue (`browser_setting_catalog.cc`: search-engine
 allowlist, bounded integers such as the auto-hide delay) is enforced by the
 native adapters before observation/apply. Those navigation/routing value rules
-therefore need adapter/apply cases on both platforms, not more pair vectors,
-and remain open. Native 140 results remain pending.
+therefore need adapter/apply cases on both platforms, not more pair vectors.
+Ready 144 supplies them (135 shared value cases, drift gate over both
+catalogue sources). Native 140/144 results remain pending.
 
 ## Next work, ownership and stopping condition
 
