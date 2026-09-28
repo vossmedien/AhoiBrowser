@@ -532,8 +532,16 @@ void BrowserSidebarHostView::EnsureWorkspaceSurface() {
       browser_->IsWindowCloseRequested()) {
     return;
   }
-  const std::optional<base::Uuid> active_workspace =
-      controller_->view_model().workspace_id();
+  // Crest 142 R4: the service is the single writer, and patch 0054 reads it
+  // for the empty state too. The view model is only a projection that can lag
+  // behind after a failed activation; use it just while the window is not yet
+  // tracked by the service.
+  std::optional<base::Uuid> active_workspace =
+      session_bridge_ ? session_bridge_->GetActiveWorkspaceForWindow(browser_)
+                      : std::nullopt;
+  if (!active_workspace.has_value()) {
+    active_workspace = controller_->view_model().workspace_id();
+  }
   if (active_workspace.has_value()) {
     ActivateWorkspaceRuntimeTab(*active_workspace);
   } else {
