@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <optional>
 #include <set>
+#include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -26,8 +27,11 @@
 #include "base/logging.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/time/time.h"
+#include "base/uuid.h"
+#include "base/values.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/prefs/pref_service.h"
+#include "components/prefs/scoped_user_pref_update.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/web_contents.h"
 
@@ -39,23 +43,84 @@ bool UsesDefaultContext(
   return !binding.has_value() || binding->is_default();
 }
 
+constexpr char kReceiptTargetKey[] = "target";
+constexpr char kReceiptRulesKey[] = "rules";
+constexpr char kReceiptDefaultKey[] = "default";
+
 // Link-routing rules and an explicit default route that named the merged
-// Workspace point at the target instead of an unavailable Workspace.
-bool RetargetRouting(navigation::RoutingSettings& settings,
-                     const base::Uuid& from,
-                     const base::Uuid& to) {
-  bool changed = false;
+// Workspace point at the target instead of an unavailable Workspace. Returns
+// the retargeted rule IDs; `default_changed` reports the default route.
+std::vector<base::Uuid> RetargetRouting(navigation::RoutingSettings& settings,
+                                        const base::Uuid& from,
+                                        const base::Uuid& to,
+                                        bool* default_changed) {
+  std::vector<base::Uuid> retargeted;
   for (navigation::RoutingRule& rule : settings.rules) {
     if (rule.target_workspace_id == from) {
       rule.target_workspace_id = to;
+      retargeted.push_back(rule.id);
+    }
+  }
+  *default_changed = settings.default_route.target_workspace_id == from;
+  if (*default_changed) {
+    settings.default_route.target_workspace_id = to;
+  }
+  return retargeted;
+}
+
+// Undo of a merge revives the source; only the entries this merge moved and
+// that still name its target go back, so later user edits win.
+void RestoreRoutingForRevived(PrefService* prefs,
+                              const std::set<base::Uuid>& live_workspaces) {
+  const base::DictValue& receipts =
+      prefs->GetDict(session::kWorkspaceMergeRoutingReceiptsPref);
+  std::vector<std::string> consumed;
+  navigation::RoutingSettings routing = navigation::ReadRoutingSettings(*prefs);
+  bool changed = false;
+  for (const auto [key, value] : receipts) {
+    const base::Uuid source = base::Uuid::ParseLowercase(key);
+    if (!source.is_valid() || !live_workspaces.contains(source)) {
+      continue;
+    }
+    consumed.push_back(key);
+    const base::DictValue* receipt = value.GetIfDict();
+    const std::string* target_text =
+        receipt ? receipt->FindString(kReceiptTargetKey) : nullptr;
+    const base::Uuid target = target_text
+                                  ? base::Uuid::ParseLowercase(*target_text)
+                                  : base::Uuid();
+    if (!target.is_valid()) {
+      continue;
+    }
+    std::set<base::Uuid> rule_ids;
+    if (const base::ListValue* rules = receipt->FindList(kReceiptRulesKey)) {
+      for (const base::Value& id : *rules) {
+        if (id.is_string()) {
+          rule_ids.insert(base::Uuid::ParseLowercase(id.GetString()));
+        }
+      }
+    }
+    for (navigation::RoutingRule& rule : routing.rules) {
+      if (rule_ids.contains(rule.id) && rule.target_workspace_id == target) {
+        rule.target_workspace_id = source;
+        changed = true;
+      }
+    }
+    if (receipt->FindBool(kReceiptDefaultKey).value_or(false) &&
+        routing.default_route.target_workspace_id == target) {
+      routing.default_route.target_workspace_id = source;
       changed = true;
     }
   }
-  if (settings.default_route.target_workspace_id == from) {
-    settings.default_route.target_workspace_id = to;
-    changed = true;
+  if (changed && !navigation::WriteRoutingSettings(prefs, routing)) {
+    LOG(ERROR) << "Ahoi could not restore link routing after a merge undo";
+    return;
   }
-  return changed;
+  ScopedDictPrefUpdate update(prefs,
+                              session::kWorkspaceMergeRoutingReceiptsPref);
+  for (const std::string& key : consumed) {
+    update->Remove(key);
+  }
 }
 
 }  // namespace
@@ -246,11 +311,31 @@ tab_tree::TabTreeStore::Result SessionBridge::CommitWorkspaceMerge(
           window.window_id, target_id, WorkspaceActivationSource::kSidebar);
     }
   }
+  PrefService* prefs = profile_->GetPrefs();
   navigation::RoutingSettings routing =
-      navigation::ReadRoutingSettings(*profile_->GetPrefs());
-  if (RetargetRouting(routing, source_id, target_id) &&
-      !navigation::WriteRoutingSettings(profile_->GetPrefs(), routing)) {
-    LOG(ERROR) << "Ahoi could not retarget link routing after a merge";
+      navigation::ReadRoutingSettings(*prefs);
+  bool default_changed = false;
+  const std::vector<base::Uuid> retargeted =
+      RetargetRouting(routing, source_id, target_id, &default_changed);
+  {
+    ScopedDictPrefUpdate receipts(prefs,
+                                  session::kWorkspaceMergeRoutingReceiptsPref);
+    receipts->Remove(source_id.AsLowercaseString());
+    if (!retargeted.empty() || default_changed) {
+      if (!navigation::WriteRoutingSettings(prefs, routing)) {
+        LOG(ERROR) << "Ahoi could not retarget link routing after a merge";
+      } else if (merge.record_undo) {
+        base::ListValue rule_ids;
+        for (const base::Uuid& id : retargeted) {
+          rule_ids.Append(id.AsLowercaseString());
+        }
+        receipts->Set(source_id.AsLowercaseString(),
+                      base::DictValue()
+                          .Set(kReceiptTargetKey, target_id.AsLowercaseString())
+                          .Set(kReceiptRulesKey, std::move(rule_ids))
+                          .Set(kReceiptDefaultKey, default_changed));
+      }
+    }
   }
   if (!RefreshWorkspaceSnapshot()) {
     return tab_tree::TabTreeStore::Result::kDatabaseError;
@@ -270,6 +355,12 @@ void SessionBridge::RefreshWorkspacesAfterUndo() {
     return;
   }
   std::ignore = RefreshWorkspaceSnapshot();
+  std::set<base::Uuid> live;
+  for (const tab_tree::Workspace& workspace :
+       workspace_service_->ordered_workspaces()) {
+    live.insert(workspace.id);
+  }
+  RestoreRoutingForRevived(profile_->GetPrefs(), live);
 }
 
 }  // namespace ahoi

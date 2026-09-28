@@ -54,6 +54,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
                                    base::DictValue());
   registry->RegisterListPref(kWebsiteSessionPendingRemovalsPref,
                              base::ListValue());
+  registry->RegisterDictionaryPref(kWorkspaceMergeRoutingReceiptsPref,
+                                   base::DictValue());
 }
 
 bool ShouldUseWorkspaceWebsiteSessions(const PrefService* prefs) {

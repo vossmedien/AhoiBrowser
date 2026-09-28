@@ -32,6 +32,11 @@ inline constexpr char kWebsiteSessionBindingsPref[] =
 // and cleared only after the partition directory is gone.
 inline constexpr char kWebsiteSessionPendingRemovalsPref[] =
     "ahoi.session.website_session_pending_removals";
+// Local undo receipts of undoable Workspace merges (ADR 0012, crest 134):
+// source Workspace ID -> {"target", "rules": [rule IDs], "default": bool}
+// naming exactly the link-routing entries the merge retargeted.
+inline constexpr char kWorkspaceMergeRoutingReceiptsPref[] =
+    "ahoi.session.workspace_merge_routing_receipts";
 
 // Development gate while Chromium's native site-permission authority is still
 // profile-wide. Once a profile has local bindings, disabling the feature must

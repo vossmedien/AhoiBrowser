@@ -82,6 +82,50 @@ TEST_F(SessionBridgeWorkspaceMergeTest, SharedMergeKeepsTheLiveTabAndUndoes) {
   task_environment()->RunUntilIdle();
   EXPECT_TRUE(Lists(*source_id));
   EXPECT_EQ(bridge_->GetWorkspaceForTab(tab), *source_id);
+  // Crest 134: the rule this merge retargeted names the source again.
+  EXPECT_EQ(navigation::ReadRoutingSettings(*profile()->GetPrefs())
+                .rules.front()
+                .target_workspace_id,
+            *source_id);
+  EXPECT_TRUE(profile()
+                  ->GetPrefs()
+                  ->GetDict(session::kWorkspaceMergeRoutingReceiptsPref)
+                  .empty());
+}
+
+TEST_F(SessionBridgeWorkspaceMergeTest, EmptySourceUndoRestoresOnlyItsRouting) {
+  const base::Uuid target_id =
+      workspace_service_->ordered_workspaces().front().id;
+  const std::optional<base::Uuid> source_id =
+      bridge_->CreateWorkspace(u"Empty", u"E", std::nullopt);
+  ASSERT_TRUE(source_id.has_value());
+  navigation::RoutingSettings routing;
+  const base::Uuid moved_rule = base::Uuid::GenerateRandomV4();
+  const base::Uuid own_rule = base::Uuid::GenerateRandomV4();
+  routing.rules.push_back({.id = moved_rule,
+                           .host = "moved.test",
+                           .target_workspace_id = *source_id});
+  routing.rules.push_back({.id = own_rule,
+                           .host = "target.test",
+                           .target_workspace_id = target_id});
+  routing.default_route.target_workspace_id = *source_id;
+  ASSERT_TRUE(navigation::WriteRoutingSettings(profile()->GetPrefs(), routing));
+
+  ASSERT_EQ(Result::kOk, Merge(*source_id, target_id));
+  task_environment()->RunUntilIdle();
+  EXPECT_FALSE(Lists(*source_id));
+  ASSERT_EQ(Result::kOk, bridge_->tab_tree_store()->UndoLastMutation());
+  task_environment()->RunUntilIdle();
+  EXPECT_TRUE(Lists(*source_id));
+  const navigation::RoutingSettings restored =
+      navigation::ReadRoutingSettings(*profile()->GetPrefs());
+  ASSERT_EQ(2u, restored.rules.size());
+  EXPECT_EQ(*source_id, restored.rules[0].target_workspace_id);
+  // A rule that already named the target before the merge stays there.
+  EXPECT_EQ(target_id, restored.rules[1].target_workspace_id);
+  EXPECT_EQ(*source_id, restored.default_route.target_workspace_id);
+  EXPECT_EQ(Result::kNothingToUndo,
+            bridge_->tab_tree_store()->UndoLastMutation());
 }
 
 TEST_F(SessionBridgeWorkspaceMergeTest, OwnSessionsAreRetiredWithoutUndo) {
