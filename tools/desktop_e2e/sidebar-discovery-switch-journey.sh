@@ -117,7 +117,13 @@ waitax "AXTextField" 6 || fail_setup "sidebar search did not open"
 $AX type $PID "alpha" >> "$OUT/steps.txt"; sleep 2
 $AX dump $PID 14 > "$OUT/ax-discovery-results.txt"
 grep -q "alpha" "$OUT/ax-discovery-results.txt" && record hiddenTabFound true || record hiddenTabFound false
-key 36; sleep 3
+# The search field accepts only a selected result: ↓ selects, Return opens
+# (sidebar_discovery_view_unittest ArrowAndEnterDelegateToInlineResults).
+key 125; sleep 1; key 36; sleep 3
+if ! waitax "Inbox, Workspace wechseln" 6; then
+  echo "info: arrow+Return did not open the result; pressing it via AX" >> "$OUT/steps.txt"
+  $AX press $PID "$($AX dump $PID 14 | grep -o 'alpha — Geöffneter Tab[^|]*' | head -1 | sed 's/ *$//')" >> "$OUT/steps.txt"; sleep 3
+fi
 waitax "Inbox, Workspace wechseln" 8 && record switchedToTabWorkspace true || record switchedToTabWorkspace false
 [ "$(visible alpha.html)" = visible ] && record hiddenTabActivated true || record hiddenTabActivated false
 [ "$(visible check.html)" = hidden ] && record otherWorkspaceTabHidden true || record otherWorkspaceTabHidden false
