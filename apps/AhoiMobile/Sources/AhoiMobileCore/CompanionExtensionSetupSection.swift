@@ -1,7 +1,15 @@
 import SwiftUI
+#if DEBUG
+import UniformTypeIdentifiers
+#endif
 
 struct CompanionExtensionSetupSection: View {
     @ObservedObject var model: CompanionAppModel
+#if DEBUG
+    @State private var showSpikeFolderPicker = false
+    @State private var filesSpikeLoaded = false
+    @State private var filesSpikeStatus = ""
+#endif
 
     var body: some View {
         Section {
@@ -44,6 +52,52 @@ struct CompanionExtensionSetupSection: View {
                     .accessibilityIdentifier("settings.extensions.storage.\(setting.key)")
                 }
             }
+#if DEBUG
+            if ProcessInfo.processInfo.arguments.contains(MobileWebExtensionRuntime.launchArgument) {
+                Button("Load unpacked Ahoi Spike from Files") {
+                    showSpikeFolderPicker = true
+                }
+                .disabled(filesSpikeLoaded)
+                .accessibilityIdentifier("settings.extensions.spike.import-folder")
+                .fileImporter(isPresented: $showSpikeFolderPicker,
+                              allowedContentTypes: [.folder]) { result in
+                    switch result {
+                    case .success(let url):
+                        Task { @MainActor in
+                            do {
+                                try await MobileWebExtensionRuntime.shared.loadUnpackedFromFiles(url)
+                                filesSpikeLoaded = true
+                                filesSpikeStatus = "Unpacked test extension loaded"
+                            } catch {
+                                filesSpikeStatus = "Test extension import failed"
+                            }
+                        }
+                    case .failure:
+                        filesSpikeStatus = "Files selection failed"
+                    }
+                }
+                if filesSpikeLoaded {
+                    Button("Unload Files test extension") {
+                        Task { @MainActor in
+                            do {
+                                try MobileWebExtensionRuntime.shared.unloadImportedFilesSpike()
+                                filesSpikeLoaded = false
+                                filesSpikeStatus = "Files test extension unloaded"
+                            } catch {
+                                filesSpikeStatus = "Test extension unload failed"
+                            }
+                        }
+                    }
+                    .accessibilityIdentifier("settings.extensions.spike.unload-folder")
+                }
+                Text(filesSpikeStatus.isEmpty ?
+                     "Debug spike: choose an unpacked copy of the bundled Ahoi Spike fixture." :
+                     filesSpikeStatus)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("settings.extensions.spike.files-status")
+            }
+#endif
         } header: {
             Text(CompanionL10n.string("settings.extensions.title", fallback: "Extensions"))
         } footer: {

@@ -25,6 +25,23 @@ public final class MobileWebExtensionRuntime {
     public private(set) var state: State
     let controller: WKWebExtensionController?
     private var loadTask: Task<Void, Never>?
+#if DEBUG
+    public enum FilesSpikeError: Error, Equatable {
+        case disabled, alreadyLoaded, notUnpackedFolder, fixtureMismatch, invalidExtension
+    }
+
+    /// One user-selected, unpacked copy of the bundled test fixture. This is
+    /// deliberately not the general Files installer proposed for v1.
+    public private(set) var importedDisplayName: String?
+    private var importedContext: WKWebExtensionContext?
+    private var importedStagingURL: URL?
+    // Main-actor reentrancy: a second pick must not pass the nil check while
+    // the first import is suspended, or one context and its copy would leak.
+    private var filesImportInProgress = false
+    private static let knownFixtureFiles = [
+        "manifest.json", "content.js", "rules.json", "popup.html", "popup.js",
+    ]
+#endif
 
     init(arguments: [String]) {
         if arguments.contains(Self.launchArgument) {
@@ -64,6 +81,76 @@ public final class MobileWebExtensionRuntime {
     public func waitUntilLoaded() async {
         await loadTask?.value
     }
+
+#if DEBUG
+    /// Stage only the exact known fixture bytes from a Files-selected folder.
+    /// Keeping this behind DEBUG and the explicit spike launch argument lets
+    /// Step 1 test Files/WebKit plumbing without enabling arbitrary code in
+    /// an App Store candidate or making a Step-2 product decision.
+    public func loadUnpackedFromFiles(_ sourceURL: URL) async throws {
+        guard let controller else { throw FilesSpikeError.disabled }
+        guard importedContext == nil, !filesImportInProgress else {
+            throw FilesSpikeError.alreadyLoaded
+        }
+        filesImportInProgress = true
+        defer { filesImportInProgress = false }
+        guard sourceURL.isFileURL,
+              try sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else {
+            throw FilesSpikeError.notUnpackedFolder
+        }
+        guard let bundled = Self.spikeExtensionURL else { throw CocoaError(.fileNoSuchFile) }
+
+        let hasScope = sourceURL.startAccessingSecurityScopedResource()
+        defer { if hasScope { sourceURL.stopAccessingSecurityScopedResource() } }
+        let staged = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "Ahoi-WebExtension-Spike-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: staged, withIntermediateDirectories: false)
+        var loaded = false
+        defer { if !loaded { try? FileManager.default.removeItem(at: staged) } }
+        for filename in Self.knownFixtureFiles {
+            let expected = try Data(contentsOf: bundled.appendingPathComponent(filename))
+            let selected = try Data(contentsOf: sourceURL.appendingPathComponent(filename))
+            guard selected == expected else { throw FilesSpikeError.fixtureMismatch }
+            try selected.write(to: staged.appendingPathComponent(filename),
+                               options: [.withoutOverwriting])
+        }
+
+        loadIfNeeded(into: controller)
+        await loadTask?.value
+        guard case .loaded = state else { throw FilesSpikeError.invalidExtension }
+        let webExtension = try await WKWebExtension(resourceBaseURL: staged)
+        guard webExtension.manifestVersion == 3, webExtension.errors.isEmpty else {
+            throw FilesSpikeError.invalidExtension
+        }
+        let context = WKWebExtensionContext(for: webExtension)
+        // The same reviewed test fixture receives the same spike-only grants
+        // as the bundled copy. Production permissions still require Step 2.
+        for permission in webExtension.requestedPermissions {
+            context.setPermissionStatus(.grantedExplicitly, for: permission)
+        }
+        for pattern in webExtension.allRequestedMatchPatterns {
+            context.setPermissionStatus(.grantedExplicitly, for: pattern)
+        }
+        try controller.load(context)
+        importedContext = context
+        importedStagingURL = staged
+        importedDisplayName = webExtension.displayName ?? ""
+        loaded = true
+    }
+
+    public func unloadImportedFilesSpike() throws {
+        guard let controller else { return }
+        if let importedContext {
+            try controller.unload(importedContext)
+            self.importedContext = nil
+            importedDisplayName = nil
+        }
+        if let importedStagingURL {
+            try FileManager.default.removeItem(at: importedStagingURL)
+            self.importedStagingURL = nil
+        }
+    }
+#endif
 
     private func loadIfNeeded(into controller: WKWebExtensionController) {
         guard loadTask == nil else { return }
