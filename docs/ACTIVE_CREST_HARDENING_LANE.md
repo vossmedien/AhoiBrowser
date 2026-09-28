@@ -749,6 +749,12 @@ them unilaterally; this needs the user's explicit go (disk plan and a
 multi-hour build window). Validation round 3 (ws5/cb3) still waits for ≥300 s
 user idle.
 
+Owner record `25f36fa` (C++ GREEN `83b6a54c`): ahoi_tab_tree and ahoi_session
+all pass, including 134 empty-merge undo/routing restore, 142 R1 backoff and
+R3 window restore; the earlier crashes were fixed in `5e90a4e0`. The single
+sync failure is the bookmark local-scheme vs DoD 14 conflict, now an open
+product decision for the user (Sync owner).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
