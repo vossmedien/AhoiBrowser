@@ -828,6 +828,14 @@ Owner `b1215084`: full `ahoi_sidebar_tree_unittests` suite green on
 H2's unit side is now green on all Desktop test binaries; the visible
 journeys on build 43/44 remain.
 
+Build 44 (`8772fbc0`, contains Translate-off `1374b17b` and all 142/146 source
+fixes) installed at 16:25 after all unit binaries passed (sidebar 168/168);
+the owner's visible journeys run under `e2e.lock`. Queued Crest follow-ups
+(start only after build 44's chain is done and no lock/bundle process
+exists): keyed H5 audit (`.work/crest-h5/run-44.sh`, h3.lock) then the
+idle-gated H3 trace validation bound to build 44 (`lease-8772fbc0.md`,
+`run-when-idle-6.sh`).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
