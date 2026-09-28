@@ -998,6 +998,12 @@ in `WorkspaceService::SetActiveWorkspace` (`7bdc1f69`, build 46). Only the
 full quiet-host H3 run remains for the Zielprompt DoD; it starts from
 `run-45-dod.sh` once load < 3.6 and idle ≥ 310 s.
 
+Full H3 run attempt 1 (19:59, build 45) was cancelled by genuine input after
+32 s; it also exposed a locale bug in Crest's quiet-host check (German
+"13,40" compared as a string). Fixed; `run-45-full.sh` now retries the full
+run (startup, memory, idle, Speedometer ×5) at each quiet window until one
+completes (lease valid until ~07:10 on 29 Sep).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
