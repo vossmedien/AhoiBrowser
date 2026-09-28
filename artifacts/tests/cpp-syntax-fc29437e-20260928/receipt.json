@@ -1,0 +1,92 @@
+{
+ "kind": "source-syntax-only",
+ "sourceCommit": "39d4bad8c6c5eb85ca8b9dcb01fc750f7d00e3bd",
+ "fixCommit": "f05ac14eef41e98a852e7d810156a1d3cc6171d9",
+ "planSha256": "a95404083a0a7b9dc4d68c75ca15f60a8244995ff2f63d5bce825e45eb97f1b9",
+ "maxConcurrentCompilers": 2,
+ "checks": [
+  {
+   "name": "tab_tree_store",
+   "template": "obj/ahoi/browser/tab_tree/tab_tree/tab_tree_store.o",
+   "sourceSha256": "6397f997febeb1d0adb221b0cb63a92e36eda748561242a24cb03ea8582694ce"
+  },
+  {
+   "name": "tab_tree_store_merge_workspace",
+   "template": "obj/ahoi/browser/tab_tree/tab_tree/tab_tree_store_merge_workspace.o",
+   "sourceSha256": "3601876c52dca470ea53c90df97045eaed5829178220b7699c4028714a2d542e"
+  },
+  {
+   "name": "tab_tree_store_move_delete",
+   "template": "obj/ahoi/browser/tab_tree/tab_tree/tab_tree_store_move_delete.o",
+   "sourceSha256": "81bcfab7670fb4bc5e1a66c7b59ec8fa3ec072f993ae0bd457adae089320fa1d"
+  },
+  {
+   "name": "tab_tree_store_queries",
+   "template": "obj/ahoi/browser/tab_tree/tab_tree/tab_tree_store_queries.o",
+   "sourceSha256": "f48c04232e883799632a194d3b59bf6d98e474d7487496e7fa1df2d768ae32a8"
+  },
+  {
+   "name": "tab_tree_store_snapshot",
+   "template": "obj/ahoi/browser/tab_tree/tab_tree/tab_tree_store_snapshot.o",
+   "sourceSha256": "0a9f7aa772ea1cbbe5346ed5c778cb99e6589752a5b68b5e0f7ed62588bd7b09"
+  },
+  {
+   "name": "tab_tree_store_snapshot_unittest",
+   "template": "obj/ahoi/browser/tab_tree/unit_tests/tab_tree_store_snapshot_unittest.o",
+   "sourceSha256": "a1c1fb528ec98e054b2698d8294fe75a8a15b3b3fcd58a7dd94307db036fa6e6"
+  },
+  {
+   "name": "tab_tree_store_merge_workspace_unittest",
+   "template": "obj/ahoi/browser/tab_tree/unit_tests/tab_tree_store_snapshot_unittest.o",
+   "sourceSha256": "647845892ce0323facba52d6bce84d36d3746007072040f0ef420e33106b4943"
+  },
+  {
+   "name": "session_prefs",
+   "template": "obj/ahoi/browser/session/session_preferences/session_prefs.o",
+   "sourceSha256": "cbad91211e45510f40a5cb4f83b93cc6da1a735f3bc372dfb557da5222f3f48e"
+  },
+  {
+   "name": "session_bridge_workspace_merge",
+   "template": "obj/ahoi/browser/session/session/session_bridge_workspace_merge.o",
+   "sourceSha256": "dd559aa5d17d95ebd7780f81e3fb260e5a2f9d2da85677f0d79ca7e6fb13da87"
+  },
+  {
+   "name": "session_bridge_workspace_merge_unittest",
+   "template": "obj/ahoi/browser/session/unit_tests/isolated_profile_registry_unittest.o",
+   "sourceSha256": "d2f4f6b7afc3b1c60084a0f7952969e88859b4463119a4b48b018fa60bd33f90"
+  },
+  {
+   "name": "tab_tree_sync_adapter",
+   "template": "obj/ahoi/browser/sync/sync/tab_tree_sync_adapter.o",
+   "sourceSha256": "b3e2eed5643bae7f72673e78272d445ed12d2b6a7bc459638fab3cf6afde890a"
+  },
+  {
+   "name": "sync_merge_conformance_unittest",
+   "template": "obj/ahoi/browser/sync/unit_tests/sync_merge_conformance_unittest.o",
+   "sourceSha256": "355be638c1c247f6d7ad0d3632e9b6be74fe120598a6f7ebd33bfd56e7d44948"
+  },
+  {
+   "name": "sync_workspace_projection_conformance_unittest",
+   "template": "obj/ahoi/browser/sync/unit_tests/sync_merge_conformance_unittest.o",
+   "sourceSha256": "a50049841bdffa1c2319480e4c7fe6003a6e8423fae3b0014afbab54d688f180"
+  }
+ ],
+ "results": {
+  "tab_tree_store": 0,
+  "tab_tree_store_merge_workspace": 0,
+  "tab_tree_store_move_delete": 0,
+  "tab_tree_store_queries": 0,
+  "tab_tree_store_snapshot": 0,
+  "tab_tree_store_snapshot_unittest": 0,
+  "tab_tree_store_merge_workspace_unittest": 0,
+  "session_prefs": 0,
+  "session_bridge_workspace_merge": 0,
+  "session_bridge_workspace_merge_unittest": {
+   "firstRun": 1,
+   "rerunAfterFix": 0
+  },
+  "tab_tree_sync_adapter": 0,
+  "sync_merge_conformance_unittest": 0,
+  "sync_workspace_projection_conformance_unittest": 0
+ }
+}
