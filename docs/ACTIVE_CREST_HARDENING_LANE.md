@@ -823,6 +823,11 @@ executables only (`5d483bf6`); the Crest watcher was killed, replaced by
 told, and the memory note was extended. Crest measurement/audit runs still
 pass `--app` with the bundle path, which the fixed installer no longer counts.
 
+Owner `b1215084`: full `ahoi_sidebar_tree_unittests` suite green on
+`2bdbb3ae` (168/168), including 142 R6 and the refreshed drift expectations.
+H2's unit side is now green on all Desktop test binaries; the visible
+journeys on build 43/44 remain.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
