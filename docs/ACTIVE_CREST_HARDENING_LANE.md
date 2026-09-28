@@ -896,6 +896,16 @@ again per 146 #6) and runs it on installed build 45 after its chain; the
 concurrent beforeunload race stays covered by the browser test. Crest's
 zero-tab/restore journeys follow once e2e.lock is free.
 
+Crest Chromium build (user request 28 Sep): experimental arm64 pre-releases
+on branch `chromium-control-plane` (ungoogled-chromium 152, MPL-2.0; Chromium
+only as engine behind a Swift UI). Comparison in
+[review](reviews/crest-hardening-2026-09-28-crest-chromium-build.md). Real gap
+found and verified: Ahoi shares the default `Chromium Safe Storage` Keychain
+key with every Chromium on the Mac → [148](../handoffs/crest-hardening/148-own-safe-storage-keychain/HANDOFF.md)
+(own item + secret migration). Further candidates for Desktop: automated
+upstream-roll PRs, ungoogled-style prefs for open network points N4/N6/N8,
+and documenting that dev builds run with DCHECKs.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
