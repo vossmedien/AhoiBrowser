@@ -109,14 +109,34 @@ def host_conditions() -> dict:
     }
 
 
+def split_ax_clients(listing: str, owned_groups: set[int]) -> tuple[list[str], list[str]]:
+    """(foreign, owned) AX clients from `ps -axco pgid=,comm=` output.
+
+    An AX client in a process group the guard spawned (the trace driver's own
+    session, e.g. its `ahoi-axtool`) is the measurement's documented input
+    method, not an outside accessibility change; every other client is foreign.
+    """
+    foreign, owned = set(), set()
+    for line in listing.splitlines():
+        parts = line.strip().split(None, 1)
+        if len(parts) != 2 or not parts[0].isdigit() or parts[1].strip() not in AX_CLIENTS:
+            continue
+        (owned if int(parts[0]) in owned_groups else foreign).add(parts[1].strip())
+    return sorted(foreign), sorted(owned)
+
+
 def runtime_host_state() -> dict:
     # One process snapshot per poll; do not use system load while the benchmark
     # itself is intentionally busy. Every probe is bounded by run()'s timeout.
     idle = hid_idle_seconds()
-    names = {name.strip() for name in run("ps", "-axco", "comm=").splitlines()}
+    listing = run("ps", "-axco", "pgid=,comm=")
+    names = {line.strip().split(None, 1)[-1].strip()
+             for line in listing.splitlines() if line.strip()}
+    guard = runtime_guard.current()
+    foreign, owned = split_ax_clients(listing, guard.owned_process_groups() if guard else set())
     return {"hidIdleSeconds": idle, "powerSource": power_source(),
             "busyProcesses": sorted(names.intersection(BUSY_PROCESSES)),
-            "accessibilityClients": sorted(names.intersection(AX_CLIENTS))}
+            "accessibilityClients": foreign, "ownedAccessibilityClients": owned}
 
 
 def measurement_sleep(seconds: float) -> None:

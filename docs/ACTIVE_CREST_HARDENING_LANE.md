@@ -583,6 +583,16 @@ requirement or the aggregate pass (negative control). 92 local performance/
 network/engine-key tests pass. The frame selector is not validated on a real
 trace; animation end and PERF-03's paint scope remain open. No browser run.
 
+H3 guard correction: the runtime guard cancelled any run once an AX client
+appeared, yet the only HID-free way to drive Workspace switch/command bar is an
+AX driver (`ahoi-axtool`), so PERF-03/04 trace runs could never complete. AX
+clients inside a guard-spawned process group are now recorded as
+`driverAccessibilityClients` instead; foreign AX clients still cancel. Three
+new tests; 95 local perf/network/engine-key tests pass. A concrete driver for
+those journeys (labels from the Desktop E2E journeys) is still to be written
+and validated in a leased run. Owner meanwhile fixed 126 as source
+(`14297bc`/`0962fd3`); RED/GREEN pending.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

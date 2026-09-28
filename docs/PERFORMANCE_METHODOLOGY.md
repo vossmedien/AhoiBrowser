@@ -149,6 +149,11 @@ Budget evaluation requires a completed, uncancelled guard record as well as
 build evidence. Earlier unmonitored runs remain insufficient. Trace drivers
 must wait for their work and may not daemonize background UI tasks outside
 their owned foreground process group; synthetic HID input also cancels a run.
+A driver therefore acts through AX actions (e.g. `axtool press`/`setvalue`,
+not its CGEvent `key`/`click` modes). An AX client inside a guard-spawned
+session is recorded as `runtimeGuard.driverAccessibilityClients` and does not
+cancel the run; any other AX client appearing still cancels it. Trace budgets
+are compared only between runs driven the same way.
 
 ## 4. Metrics
 

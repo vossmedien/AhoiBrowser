@@ -148,6 +148,33 @@ class LeaseGuardTest(unittest.TestCase):
                     guard.poll_once()
                     guard.check()
 
+    def test_owned_driver_ax_client_is_recorded_not_cancelling(self):
+        # The trace driver's own axtool is the documented, non-HID input path.
+        guard = self.guard()
+        with self.without_monitor(guard):
+            self.probe.return_value = {**QUIET, "ownedAccessibilityClients": ["ahoi-axtool"]}
+            guard.poll_once()
+            guard.check()
+        self.assertEqual(guard.summary()["driverAccessibilityClients"], ["ahoi-axtool"])
+        self.assertFalse(guard.summary()["cancelled"])
+
+    def test_split_ax_clients_by_owned_process_group(self):
+        listing = ("  41 ahoi-axtool\n  77 VoiceOver\n  90 ahoi-axtool\n"
+                   "  12 Safari\nnot-a-row\n")
+        self.assertEqual(runner.split_ax_clients(listing, {41}), (["VoiceOver", "ahoi-axtool"],
+                                                                   ["ahoi-axtool"]))
+        self.assertEqual(runner.split_ax_clients(listing, set()),
+                         (["VoiceOver", "ahoi-axtool"], []))
+
+    def test_owned_process_groups_are_live_spawned_sessions(self):
+        guard = self.guard()
+        with self.without_monitor(guard):
+            live, done = mock.Mock(pid=41), mock.Mock(pid=42)
+            live.poll.return_value, done.poll.return_value = None, 0
+            guard._processes = {live: threading.RLock(), done: threading.RLock()}
+            self.assertEqual(guard.owned_process_groups(), {41})
+            guard._processes = {}
+
     def test_cancellation_prevents_new_spawns_and_interrupts_wait(self):
         guard = self.guard()
         with self.assertRaises(rg.RunCancelled), self.without_monitor(guard):

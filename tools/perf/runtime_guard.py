@@ -85,6 +85,7 @@ class LeaseGuard:
         self.completed = False
         self._mutex = threading.RLock()
         self._processes = {}  # Only harness-spawned Popen objects.
+        self.driver_ax_clients = set()  # AX clients seen inside owned sessions.
         self._cancelled = threading.Event()
         self._finished = threading.Event()
         self._thread = None
@@ -189,6 +190,7 @@ class LeaseGuard:
                 raise LeaseError("owner build/E2E lock appeared")
             state = self.probe()
             self.samples += 1
+            self.driver_ax_clients.update(state.get("ownedAccessibilityClients", ()))
             idle = state["hidIdleSeconds"]
             if type(idle) not in (int, float) or not math.isfinite(idle) or idle < 0:
                 raise LeaseError("owner-input probe unavailable")
@@ -235,6 +237,11 @@ class LeaseGuard:
             self._processes[process] = threading.RLock()
             return process
 
+    def owned_process_groups(self):
+        """Session/group IDs of live harness-spawned processes (start_new_session)."""
+        with self._mutex:
+            return {process.pid for process in self._processes if process.poll() is None}
+
     def stop_process(self, process, grace=0):
         with self._mutex:
             lock = self._processes.get(process)
@@ -277,7 +284,8 @@ class LeaseGuard:
                 "pollIntervalSeconds": self.interval, "checks": self.samples,
                 "completed": self.completed,
                 "cancelled": self.reason is not None, "reason": self.reason,
-                "lockRetained": self._fd is not None}
+                "lockRetained": self._fd is not None,
+                "driverAccessibilityClients": sorted(self.driver_ax_clients)}
 
     def __exit__(self, exc_type, exc, traceback):
         if exc_type is None:
