@@ -1,6 +1,9 @@
 # 150 — Trace every Workspace switch path (PERF-04 coverage)
 
-Status: ready (finding + minimal change; no patch)
+Status: integrated by desktop (owner): one `Ahoi.Workspace.Switch` in
+`WorkspaceService::SetActiveWorkspace` after the no-op returns, which
+`ActivateRelative` also reaches (so no second event there); removed from
+`SessionBridge`. Rides with build 46; H3 rerun pending.
 Owner lane: desktop
 
 ## Finding (H3 validation ws16/ws17, installed build 45)
