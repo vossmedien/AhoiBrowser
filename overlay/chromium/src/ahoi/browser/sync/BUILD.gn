@@ -296,6 +296,7 @@ source_set("unit_tests") {
     "testdata/merge_remaining_entities_v3.json",
     "testdata/merge_sequences_v3.json",
     "testdata/merge_domain_groups_v3.json",
+    "testdata/setting_values_v3.json",
     "testdata/sync_wire_v3.json",
     "testdata/workspace_merge_projection_v3.json",
     "testdata/workspace_merge_marker_collision_v3.json",

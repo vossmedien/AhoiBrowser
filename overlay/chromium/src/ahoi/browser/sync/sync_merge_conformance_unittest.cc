@@ -6,9 +6,11 @@
 // MergeRecordFields. The Swift Companion runs the same file; both must agree.
 
 #include <optional>
+#include <set>
 #include <string>
 #include <utility>
 
+#include "ahoi/browser/sync/browser_setting_catalog.h"
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "base/base_paths.h"
@@ -267,6 +269,40 @@ TEST(SyncMergeConformanceTest, RemainingEntityVectors) {
 
 TEST(SyncMergeConformanceTest, SeededMergeSequences) {
   CheckSequences();
+}
+
+// Crest 144: the catalogue's value rules are enforced by the adapters, not the
+// record merge; Swift runs the same cases through validatesValue.
+TEST(SyncMergeConformanceTest, BrowserSettingValueVectors) {
+  base::FilePath root;
+  ASSERT_TRUE(base::PathService::Get(base::DIR_SRC_TEST_DATA_ROOT, &root));
+  std::string bytes;
+  ASSERT_TRUE(base::ReadFileToString(
+      root.AppendASCII("ahoi/browser/sync/testdata/setting_values_v3.json"),
+      &bytes));
+  std::optional<base::DictValue> document =
+      base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
+  ASSERT_TRUE(document);
+  ASSERT_EQ(1, document->FindInt("schemaVersion"));
+  std::set<std::string> fixture_ids;
+  for (const base::Value& id : *document->FindList("catalogueIds")) {
+    fixture_ids.insert(id.GetString());
+  }
+  std::set<std::string> catalogue_ids;
+  for (const auto& descriptor : GetBrowserSettingCatalog()) {
+    catalogue_ids.insert(std::string(descriptor.id));
+  }
+  EXPECT_EQ(fixture_ids, catalogue_ids);
+  for (const base::Value& value : *document->FindList("cases")) {
+    const base::DictValue& vector = value.GetDict();
+    SCOPED_TRACE(*vector.FindString("name"));
+    const std::optional<base::Value> parsed = base::JSONReader::Read(
+        *vector.FindString("valueJson"), base::JSON_PARSE_RFC);
+    const bool accepted =
+        parsed && ValidateBrowserSettingValue(*vector.FindString("settingId"),
+                                              *parsed);
+    EXPECT_EQ(*vector.FindBool("valid"), accepted);
+  }
 }
 
 // Crest 140: page target, Home, temporary state, accents, archive policy and
