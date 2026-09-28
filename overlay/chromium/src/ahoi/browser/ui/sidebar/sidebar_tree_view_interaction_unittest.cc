@@ -73,7 +73,7 @@ void ExpectVisibleSplitRowClip(SidebarTreeRowView* row) {
 
 TEST_F(SidebarTreeViewTest, ExpandAnimatesExistingRowsAndCompletes) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+      gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
   const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
@@ -118,7 +118,7 @@ TEST_F(SidebarTreeViewTest, ExpandAnimatesExistingRowsAndCompletes) {
 TEST_F(SidebarTreeViewTest,
        RapidFolderReversalPreservesIntermediatePreferredHeight) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+      gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
   const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
@@ -180,7 +180,7 @@ TEST_F(SidebarTreeViewTest,
 
 TEST_F(SidebarTreeViewTest, MovingSplitClipFollowsEveryFolderAnimationFrame) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+      gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
   const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
@@ -250,7 +250,7 @@ TEST_F(SidebarTreeViewTest, MovingSplitClipFollowsEveryFolderAnimationFrame) {
 
 TEST_F(SidebarTreeViewTest, ReducedMotionFinishesHeightAndRowsMidTransition) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+      gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
   auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
@@ -305,7 +305,7 @@ TEST_F(SidebarTreeViewTest, ReducedMotionFinishesHeightAndRowsMidTransition) {
 TEST_F(SidebarTreeViewTest,
        SelectingVisibleMovingRowDoesNotScrollToItsFuturePosition) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+      gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
   const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
@@ -383,7 +383,7 @@ TEST_F(SidebarTreeViewTest,
 TEST_F(SidebarTreeViewTest,
        InterveningLayerScrollAwayAndBackCancelsDeferredSelectionReveal) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+      gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
   const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
@@ -465,7 +465,7 @@ TEST_F(SidebarTreeViewTest,
 
 TEST_F(SidebarTreeViewTest, FolderChildrenFoldSymmetricallyAndReopenInPlace) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+      gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
   const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);
@@ -566,7 +566,7 @@ TEST_F(SidebarTreeViewTest, FolderChildrenFoldSymmetricallyAndReopenInPlace) {
 
 TEST_F(SidebarTreeViewTest, ReducedMotionCollapseDoesNotRetainExitRows) {
   gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
+      gfx::ScopedAnimationDurationScaleMode::NORMAL_DURATION);
   auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
       gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
   ASSERT_TRUE(render_mode);

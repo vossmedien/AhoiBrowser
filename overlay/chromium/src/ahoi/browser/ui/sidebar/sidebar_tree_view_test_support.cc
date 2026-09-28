@@ -7,6 +7,8 @@
 #include <memory>
 #include <utility>
 
+#include "ui/gfx/switches.h"
+
 namespace ahoi::sidebar {
 
 tab_tree::Workspace MakeWorkspace() {
@@ -209,6 +211,8 @@ SidebarTreeViewTest::SidebarTreeViewTest() = default;
 SidebarTreeViewTest::~SidebarTreeViewTest() = default;
 
 void SidebarTreeViewTest::SetUp() {
+  command_line_.GetProcessCommandLine()->AppendSwitch(
+      switches::kForcePrefersReducedMotion);
   ViewsTestBase::SetUp();
   ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
   ASSERT_TRUE(store_.Initialize(

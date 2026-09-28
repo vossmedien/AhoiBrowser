@@ -13,6 +13,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/pickle.h"
+#include "base/test/scoped_command_line.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "components/split_tabs/split_tab_visual_data.h"
@@ -143,6 +144,9 @@ class SidebarTreeViewTest : public views::ViewsTestBase {
  protected:
   std::unique_ptr<SidebarTreeView> NewTreeView();
 
+  // M153 macOS renders rich animation unless the system prefers reduced
+  // motion. Layout tests read settled geometry; motion tests force it on.
+  base::test::ScopedCommandLine command_line_;
   base::ScopedTempDir temp_dir_;
   tab_tree::TabTreeStore store_;
   std::unique_ptr<SidebarTreeController> controller_;
