@@ -1,6 +1,8 @@
 # 146 — Process-local operation IDs for late/repeated completions (H2.2)
 
-Status: ready (design with per-path insertion points and RED test names; no patch)
+Status: owner progress — #9 via 142 R1 (`46ac0428`, bounded retry), #4 via
+142 R3 (`fcd926cc`, receipt consumed once), #5 via 142 R5 (`f479b6ea`),
+#7 in `7a2fd744` (close once per live tab); #1–3, #6, #8, #10–12 open; nothing run
 Owner lane: desktop (session bridge, sidebar, popup/Quick Window, structure controller)
 Base: `60176d7`. Evidence: section 3 of the
 [H2.1 source map](../../../docs/reviews/crest-hardening-2026-09-28-single-writer-source-map.md);
