@@ -1,7 +1,7 @@
 # 126 — Ordinary opaque key can imitate a projected merge-root position
 
-Status: owner-reviewed; queued for separate Desktop/Mobile projection design,
-test and fix before installed R1 acceptance; source review only
+Status: owner fix (provenance-bound marker) in `14297bc3` (C++) and `0962fd37` (Swift);
+native RED/GREEN, writer/capture/peer replay and installed R1 pending
 Owners: desktop/sync and mobile
 Reviewed source: `ce24827` (R1 core `cfd0127`), 27 September 2026.
 

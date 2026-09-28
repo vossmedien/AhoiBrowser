@@ -24,9 +24,13 @@ candidate before adoption:
    own UUID` inside a segment. Keeps 112 but touches two writers and still
    accepts a fully forged key.
 
-Recommendation: option 1 (no Format-3 field or clock change; pre-launch data
-only). Not implemented yet: both clients change together and the test pause
-plus host load (≈9 % idle, foreign compilers) block the required RED run.
+Decision: option 1, implemented as source in `14297bc3` (C++) and `0962fd37` (Swift).
+The frozen 112 fixture has no raw-marker key and no frame with roots from two
+merged sources, so its expectations are unchanged. No Format-3 field or clock
+changes. Explicit moves stay in their segment because the writer copies the
+presented `marker(source)` key. After undo revives the source, such a key
+becomes ordinary and sorts by its raw bytes. **Not compiled or run**: run 138
+RED on the parent commit `54c2901`, then 112 + 138 GREEN on this pair.
 
 ## Owner intake of Crest 132/138/140 — 28 September 2026
 
