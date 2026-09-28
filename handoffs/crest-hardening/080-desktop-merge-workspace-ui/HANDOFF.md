@@ -1,6 +1,6 @@
 # 080 – Desktop: "Zusammenführen mit …" through the session bridge and sidebar (ADR 0012, part 2)
 
-Status: ready
+Status: integrated by owner in `cc142964`; routing undo restore added by 134
 Owner lane: desktop (apply, build, test)
 Base: HEAD `8231b0a` with 078 applied (`git apply` of 078, then 080, passes;
 082 also applies on top).

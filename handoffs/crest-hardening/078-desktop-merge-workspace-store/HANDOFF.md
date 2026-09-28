@@ -1,6 +1,6 @@
 # 078 – Desktop: store primitive for merging Workspaces (ADR 0012, part 1)
 
-Status: ready
+Status: integrated by owner in `cc142964` (empty-source undo added by 134)
 Owner lane: desktop (apply, build, test)
 Base: HEAD `8231b0a` (`git apply --check` passes); 080 applies on top.
 Implements the store half of ADR 0012 section 1 (`WS-MERGE-01`–`03`, `05`). The

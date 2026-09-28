@@ -1,6 +1,6 @@
 # 082 – Desktop: command bar "In Workspace verschieben …" (ADR 0012, section 2)
 
-Status: ready
+Status: integrated by owner in `cc142964`
 Owner lane: desktop (apply, build, test)
 Base: HEAD `e138e11` (`git apply --check` passes).
 Implements `CMD-MOVE-01`. No new store API: the command reuses the sidebar's

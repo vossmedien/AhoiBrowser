@@ -1,6 +1,6 @@
 # 026 – Review of the 024 M1 fix (account binding of separated Workspaces)
 
-Status: ready
+Status: integrated by owner in `a007aa3b` (retire only for a known equal owner)
 Owner lanes: mobile, sync
 Reviewed: `57b6ee1` (source reading; the commit reports
 `SeparatedWorkspaceSyncTests` 18/0 on A168).
