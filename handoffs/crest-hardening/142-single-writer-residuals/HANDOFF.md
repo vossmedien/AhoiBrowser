@@ -3,7 +3,10 @@
 Status: R1 addressed by owner in `46ac0428` (bounded self-retry; separate flag
 rejected because the reply also refuses a stale `before`); R3 partly by
 `11e89142` (routing); R2, R5, R6 in `f479b6ea`; R4 in `a7925b93`; R3 rest in `fcd926cc`;
-nothing run yet
+R1/R3 natively green on `ba9f26cb` (session units); R6
+`SplitMoveWithUnboundMemberIsRefused` green in the full sidebar suite on
+`2bdbb3ae` (168/168); R2/R4/R5 compiled into builds 43/44, visible journeys
+on build 44 pending
 Owner lane: desktop (session bridge, sidebar, structure controller)
 Base: `de04e0aa`. Map: [H2.1 source map](../../../docs/reviews/crest-hardening-2026-09-28-single-writer-source-map.md).
 
