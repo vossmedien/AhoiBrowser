@@ -226,9 +226,10 @@ Known limits, stated in every report:
   the first presented compositor frame of the browser process after the
   event. PERF-04 therefore has a commit budget and a `PERF-04-presented`
   budget. The frame selector (JSON field names of the async
-  `PipelineReporter` track and its `chrome_frame_reporter.state`) is
-  derived from the pinned source and not yet validated on a real trace; a
-  run without matching frames aborts rather than passing. PERF-04's
+  `PipelineReporter` track; the JSON trace carries the state as
+  `args.frame_reporter.state`) is validated on build 45 (cb11: 73
+  `STATE_PRESENTED_ALL` browser-process frames paired with 20 command-bar
+  events); a run without matching frames still aborts rather than passing. PERF-04's
   "animation end" is still not measured, and `command_bar_presented_ms` is
   reported but not budgeted until the Master fixes whether PERF-03 includes
   the paint.

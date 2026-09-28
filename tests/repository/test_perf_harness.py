@@ -293,7 +293,7 @@ class RunnerTest(unittest.TestCase):
     @staticmethod
     def frame(pid, ident, begin, end, state="STATE_PRESENTED_ALL"):
         return [{"name": "PipelineReporter", "ph": "b", "pid": pid, "id2": {"local": ident},
-                 "ts": begin, "args": {"chrome_frame_reporter": {"state": state}}},
+                 "ts": begin, "args": {"frame_reporter": {"state": state}}},
                 {"name": "PipelineReporter", "ph": "e", "pid": pid, "id2": {"local": ident},
                  "ts": end}]
 
@@ -332,6 +332,15 @@ class RunnerTest(unittest.TestCase):
         # No traced Ahoi event yields an empty metric, not an error.
         self.assertEqual(runner.presented_latency_ms(self.frame(7, "c", 1, 2), names),
                          {"workspace_switch_presented_ms": []})
+
+    def test_presented_frame_accepts_the_proto_field_name_too(self):
+        events = ([{"name": "Ahoi.Workspace.Switch", "ph": "X", "pid": 1, "ts": 0, "dur": 10}]
+                  + [{"name": "PipelineReporter", "ph": "b", "pid": 1, "id2": {"local": "0x9"},
+                      "ts": 20, "args": {"chrome_frame_reporter": {"state": "STATE_PRESENTED_ALL"}}},
+                     {"name": "PipelineReporter", "ph": "e", "pid": 1, "id2": {"local": "0x9"},
+                      "ts": 5020}])
+        self.assertEqual(runner.presented_latency_ms(events, {"Ahoi.Workspace.Switch": "w_ms"}),
+                         {"w_presented_ms": [5.02]})
 
     def test_trace_scenario_enables_frame_reporter_category(self):
         import inspect

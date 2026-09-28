@@ -947,6 +947,15 @@ menu again did not open under the harness. Runs now dump the filtered trace
 (`trace-<label>.json`) and, on a menu failure, an AX tree into the evidence
 directory; starter re-armed (ws13/cb11).
 
+ws13/cb11 diagnostics (19:22, build 45) found both remaining harness bugs:
+the JSON trace names the frame state `args.frame_reporter.state` (selector
+fixed; on cb11's own trace it yields command-bar rebuild 0.8–7.7 ms and first
+presented frame 10–46 ms, but ~420–520 ms for about half the keystrokes —
+loaded host, validation only, worth a look once measured quietly); and the
+trace scenario's large fixture page exhausted axtool's 1500-node AX dump
+before the sidebar, so the Workspace menu "did not open" — the trace scenario
+now starts on about:blank. Starter re-armed (ws14/cb12).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

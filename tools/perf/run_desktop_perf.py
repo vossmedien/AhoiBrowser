@@ -525,7 +525,10 @@ def presented_frames(events: list[dict]) -> dict[int, list[tuple[float, float]]]
         identity = event.get("id2") or event.get("id")
         key = (event.get("pid"), json.dumps(identity, sort_keys=True))
         if event["ph"] == "b":
-            reporter = (event.get("args") or {}).get("chrome_frame_reporter") or {}
+            # The JSON trace names the typed field `frame_reporter` (build 45,
+            # validation cb11); `chrome_frame_reporter` is the proto field name.
+            args = event.get("args") or {}
+            reporter = args.get("frame_reporter") or args.get("chrome_frame_reporter") or {}
             begins[key] = (event["ts"], str(reporter.get("state", "")))
             continue
         begin = begins.pop(key, None)
@@ -582,7 +585,9 @@ def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
     """
     profile = pathlib.Path(tempfile.mkdtemp(prefix="profile-", dir=workdir))
     events = []
-    with Browser(app, profile, port, fixtures.url("/page/0"), flags) as browser:
+    # about:blank: a large fixture page exhausts axtool's 1500-node AX dump before
+    # the sidebar and its menus (validation ws13, build 45).
+    with Browser(app, profile, port, "about:blank", flags) as browser:
         with contextlib.closing(browser.session()) as session:
             env = {**os.environ, "AHOI_PERF_PID": str(browser.process.pid),
                    "AHOI_PERF_PORT": str(port)}
