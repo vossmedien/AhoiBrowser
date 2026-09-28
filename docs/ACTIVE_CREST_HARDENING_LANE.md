@@ -703,6 +703,11 @@ accept/serialize file/chrome/javascript/data URLs — contract conflict between
 crashes in 134 empty-source undo / Workspace duplication tests
 (tab_tree/session). Logs: `.work/agent-queue/cpp-green-17aa591b-20260928b/`.
 
+122 C++ export done by Crest on `17aa591b` (7/7, exit 0, six outputs with
+receipts in `artifacts/tests/crest-122-cpp-17aa591b-20260928/`); the Swift
+export on the same source was requested from the Mobile owner, then the
+comparator runs.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
