@@ -93,8 +93,17 @@ waiturl quick.html 20 || fail_setup "quick window did not load quick.html"; slee
 BEFORE_ID=$(target_of quick.html); eval_in quick.html 'window.adoptMark=42' >/dev/null
 echo "quick target before $BEFORE_ID" >> "$OUT/pages.txt"
 $AX dump $PID 14 | grep -q 'quick — ' && record notInTreeBeforeAdoption false || record notInTreeBeforeAdoption true
-# Adopt through the Quick Window's command bar.
+# Adopt through the Quick Window's command bar. The Quick Window is a
+# trusted popup without a location bar, so Chromium disables ⌘L
+# (IDC_FOCUS_LOCATION) there; ⌘T (IDC_NEW_TAB) stays enabled and opens the
+# same command bar. ⌘L is tried first and only logged (build 45: no bar).
 key 37 cmd
+if waitax "AXWindow \\| Suchen oder URL eingeben" 4; then
+  echo "info: cmd-L opens the quick window command bar" >> "$OUT/steps.txt"
+else
+  echo "info: cmd-L does not open the quick window command bar" >> "$OUT/steps.txt"
+  key 17 cmd
+fi
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || fail_setup "command bar did not open in the quick window"
 sleep 1; $AX type $PID "$ADOPT" >> "$OUT/steps.txt"
 sleep 2; $AX dump $PID 14 > "$OUT/ax-adopt-offered.txt"
