@@ -390,6 +390,7 @@ TEST_F(CommandExecutionAdapterTest, DailyDriverCommandsStayAllowlisted) {
       "browser.new-incognito-window",
       "browser.open-in-normal-window",
       "privacy.open",
+      "extensions.ubo-classic",
       "http-auth.switch",
       "http-auth.forget",
       "http-auth.manage",

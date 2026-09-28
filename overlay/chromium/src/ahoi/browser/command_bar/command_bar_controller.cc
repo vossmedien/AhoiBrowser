@@ -502,6 +502,13 @@ void CommandBarController::PublishBrowserCommands() {
        {u"open in normal window", u"quick window",
         u"in normales fenster übernehmen"},
        265},
+      // The verified uBO Classic installer is otherwise only reachable
+      // through the app menu's Extensions submenu; Chromium keeps the
+      // command disabled when the build does not ship it.
+      {"extensions.ubo-classic",
+       IDS_AHOI_UBO_MENU,
+       {u"ublock origin", u"ubo", u"adblock", u"werbeblocker"},
+       185},
       {"privacy.open",
        IDS_AHOI_PRIVACY_OPEN_COMMAND,
        {u"privacy open", u"privacy", u"tracking", u"datenschutz",

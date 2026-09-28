@@ -73,6 +73,9 @@ std::optional<int> GetAllowlistedBrowserCommand(std::string_view stable_id) {
   if (stable_id == "privacy.open") {
     return kOpenPrivacyModeCommand;
   }
+  if (stable_id == "extensions.ubo-classic") {
+    return IDC_AHOI_UBO_CLASSIC;
+  }
   if (stable_id == "http-auth.switch") {
     return kSwitchHttpAuthAccountCommand;
   }
