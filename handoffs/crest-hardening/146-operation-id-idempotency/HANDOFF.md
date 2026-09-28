@@ -10,7 +10,10 @@ browser test `RepeatedAdoptionDoesNotReopenTwice`) and #12 (a hand-over
 repeated while the target Profile's window opens joins that opening instead
 of creating a second window) in owner source; #10 covered structurally (late
 split notifications only match entries still bound to that native token,
-which a rebuild replaces); #1 open;
+which a rebuild replaces); #1 in owner source (archive with close reports
+done only after the pages captured at the decision closed, bounded by
+kArchiveCloseGrace, then drops that archive's split tokens); all 12 paths
+addressed, #1/#6/#12 await native evidence;
 #2–5/#7/#9 natively green on ba9f26cb (session/tab_tree units)
 Owner lane: desktop (session bridge, sidebar, popup/Quick Window, structure controller)
 Base: `60176d7`. Evidence: section 3 of the

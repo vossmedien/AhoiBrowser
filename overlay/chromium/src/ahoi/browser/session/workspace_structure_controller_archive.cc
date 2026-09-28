@@ -21,6 +21,7 @@
 #include "chrome/browser/ui/tabs/tab_enums.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/web_contents.h"
 
 namespace ahoi::session {
 namespace {
@@ -192,24 +193,28 @@ void WorkspaceStructureController::OnArchivePagesAnswered(
   ArchiveAgreedPages(nodes, reason, std::move(done));
 }
 
-void WorkspaceStructureController::MarkSplitsClosingForArchive(
+std::vector<std::string>
+WorkspaceStructureController::MarkSplitsClosingForArchive(
     const base::Uuid& archive_id) {
+  std::vector<std::string> marked;
   const auto entry = state_.entries.find(archive_id);
   const auto* archive =
       entry == state_.entries.end()
           ? nullptr
           : std::get_if<sync::TabArchiveEntryRecord>(&entry->second.record);
   if (!archive) {
-    return;
+    return marked;
   }
   for (const auto& page : archive->snapshot.pages) {
     tabs::TabInterface* const tab =
         bridge_->FindTabByTreeNodeId(page.tree_node_id);
     if (tab && tab->IsSplit()) {
-      archive_closing_splits_.insert_or_assign(tab->GetSplit()->ToString(),
+      marked.push_back(tab->GetSplit()->ToString());
+      archive_closing_splits_.insert_or_assign(marked.back(),
                                                base::TimeTicks::Now());
     }
   }
+  return marked;
 }
 
 void WorkspaceStructureController::ArchiveAgreedPages(
@@ -312,11 +317,25 @@ void WorkspaceStructureController::ArchiveAgreedPages(
                 // can veto, and the archive already stands.
                 if (group && authority.Run() &&
                     owner->bridge_->tab_tree_store()) {
-                  owner->MarkSplitsClosingForArchive(id);
+                  std::vector<base::WeakPtr<content::WebContents>> closing;
+                  for (const auto& page :
+                       std::get<sync::TabArchiveEntryRecord>(
+                           owner->state_.entries.at(id).record)
+                           .snapshot.pages) {
+                    if (auto* tab = owner->bridge_->FindTabByTreeNodeId(
+                            page.tree_node_id)) {
+                      closing.push_back(tab->GetContents()->GetWeakPtr());
+                    }
+                  }
+                  std::vector<std::string> splits =
+                      owner->MarkSplitsClosingForArchive(id);
                   group->ClosePages();
                   if (owner)
                     owner->Schedule();
-                  std::move(done).Run(true);
+                  FinishArchiveCloseWhenClosed(
+                      owner, std::move(closing), std::move(splits),
+                      base::TimeTicks::Now() + kArchiveCloseGrace,
+                      std::move(done));
                   return;
                 }
                 owner->CloseArchived(id, authority);

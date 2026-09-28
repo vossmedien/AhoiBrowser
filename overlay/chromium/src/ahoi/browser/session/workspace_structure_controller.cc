@@ -35,6 +35,35 @@ bool ArchiveCloseTokenLive(base::TimeTicks marked, base::TimeTicks now) {
   return now - marked < kArchiveCloseGrace;
 }
 
+// static
+void WorkspaceStructureController::FinishArchiveCloseWhenClosed(
+    base::WeakPtr<WorkspaceStructureController> owner,
+    std::vector<base::WeakPtr<content::WebContents>> closing,
+    std::vector<std::string> split_tokens,
+    base::TimeTicks deadline,
+    base::OnceCallback<void(bool)> done) {
+  std::erase_if(closing, [](const auto& contents) { return !contents; });
+  if (owner && !closing.empty() && base::TimeTicks::Now() < deadline &&
+      !browser_shutdown::HasShutdownStarted()) {
+    base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(
+        FROM_HERE,
+        base::BindOnce(&FinishArchiveCloseWhenClosed, owner,
+                       std::move(closing), std::move(split_tokens), deadline,
+                       std::move(done)),
+        base::Milliseconds(250));
+    return;
+  }
+  if (owner) {
+    // The pages are gone, so their split removals have been observed; a
+    // later manual dissolve of such a split tombstones its record again.
+    for (const std::string& token : split_tokens) {
+      owner->archive_closing_splits_.erase(token);
+    }
+  }
+  // The archive entry stands either way; `true` means its pages closed.
+  std::move(done).Run(closing.empty());
+}
+
 bool TabStripChangeInvalidatesStructure(TabStripModelChange::Type type) {
   return type != TabStripModelChange::kSelectionOnly;
 }
