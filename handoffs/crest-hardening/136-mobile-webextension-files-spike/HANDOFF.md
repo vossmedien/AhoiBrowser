@@ -1,7 +1,7 @@
 # 136 — Complete the debug Web Extension spike with a Files folder
 
-Status: ready source patch; native/visible WebKit behavior and App Review
-decision pending
+Status: integrated by owner in `41267a26` with an added concurrent-import guard;
+native/visible WebKit behavior and App Review decision pending
 Owner: mobile
 Base: current Mobile source after 090; product paths were not edited by Crest.
 Patch SHA-256:
