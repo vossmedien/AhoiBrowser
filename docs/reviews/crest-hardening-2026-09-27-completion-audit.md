@@ -58,7 +58,7 @@ remain a separate requirement.
 
 | Requirement | Current evidence | Remaining scope |
 | --- | --- | --- |
-| H2.1 write-transition audit | `crest-hardening-2026-09-25-single-writer-audit.md` | Audit covers the named families; some rows aggregate transitions and lack their own file/line reference. Complete the transition-to-source evidence map before claiming exhaustive coverage. |
+| H2.1 write-transition audit | `crest-hardening-2026-09-25-single-writer-audit.md`; per-transition map `crest-hardening-2026-09-28-single-writer-source-map.md` at `de04e0aa` | Map done in source (file:line per transition). Residuals R1–R6 in handoff 142 await Desktop intake; owner acceptance of the audit/map still required by the DoD. |
 | H2.2 one authority, async guard, operation identity | 011 rule intake `8a9fc91`, S1; 010/R6 and 028–040 source fixes | Confirm each repeated/late completion against its integrated operation guard; source handoffs are present, not a blanket runtime pass. |
 | H2.3 per-finding RED and minimal fix | Individual handoffs/unit source, recorded restore and archive failures/fixes | Bind existing RED/GREEN evidence per finding. A final aggregate green unit log is not proof of the required negative control for every path. Do not rerun unchanged accepted tests merely for this audit. |
 | Exact built/installed visible journeys | Restore accepted on build 37; split archive/restore accepted on 39; checkpoint references | Stress case 036 and remaining promotion/selection/Quick Window paths need their exact-candidate evidence mapped/completed. Empty-workspace fix stays with Desktop. |

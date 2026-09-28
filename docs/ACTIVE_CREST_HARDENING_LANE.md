@@ -557,6 +557,22 @@ Crest lease is `open` in the Desktop or Mobile checkpoint, so H3/H5 runtime
 work stays gated. Current source step: H2.1 per-transition file/line map at
 current HEAD, including the status of deferred 011 S2–S8.
 
+H2.1 per-transition map at `de04e0aa`:
+[source map](reviews/crest-hardening-2026-09-28-single-writer-source-map.md)
+(~45 rows with decides/executes/observes file:line, classification and guard).
+S2, S4, S7, S8 and finding 4 are fixed in source; S3, S5, S6 and finding 3 are
+partial. Main-session source checks confirmed the residuals and corrected one
+helper claim (a cancelled structure commit stays `dirty_` and is rescheduled
+on the next event, so the risk is starvation, not loss).
+[142](../handoffs/crest-hardening/142-single-writer-residuals/HANDOFF.md) hands
+Desktop six residuals with minimal fixes and RED test names: R1 rename cancels
+an in-flight structure commit through the shared cancellation flag; R2
+discovery activates hidden tabs before switching; R3 merge undo restores
+records but not window/tab bindings (complements 134); R4 empty surface reads
+the view model; R5 popup ignores the switch result; R6 partial split move.
+12 transitions still lack a process-local operation ID (H2.2). Source-only;
+H2 DoD still needs owner fixes, tests and exact-candidate journeys.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

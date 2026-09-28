@@ -24,6 +24,12 @@ sind aus Aufrufpfaden abgeleitet und als *abgeleitet* markiert.
 
 ## Übergänge
 
+> Nachtrag 28. September 2026: Die folgende Tabelle fasst Übergänge zusammen
+> und ist auf `b141fce` bezogen. Die aktuelle Zuordnung je Übergang mit
+> Datei/Zeile an `de04e0aa` und der Status von S2–S8 stehen in der
+> [H2.1-Quellzuordnung](crest-hardening-2026-09-28-single-writer-source-map.md);
+> Restbefunde in [Übergabe 142](../../handoffs/crest-hardening/142-single-writer-residuals/HANDOFF.md).
+
 | Übergang | Einstufung | Kern |
 | --- | --- | --- |
 | Tab schließen (einzeln, temporär), Navigation → TreeNode, Schlafen/Aufwecken, Drag zwischen Fenstern, Tab aktivieren | eine Autorität | wiederholte Bindungen und Löschungen sind dedupliziert |
