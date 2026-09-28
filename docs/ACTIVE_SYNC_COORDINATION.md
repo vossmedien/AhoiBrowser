@@ -1,5 +1,22 @@
 # Active sync coordination
 
+## Owner intake of Crest 132/138/140 — 28 September 2026
+
+Crest 132 (seeded merge sequences), 138 (marker-collision projection RED
+fixture) and 140 (24 domain field-group vectors) are source-integrated in
+`ef0179df` (Swift runner) and `56761822` (C++ runners, BUILD.gn data,
+testdata). The three patches collide only at insertion points; 132 and 138
+applied cleanly and 140's registrations were hand-placed. All three overlay
+testdata files are byte-identical to `fixtures/sync-conformance/`, the Swift
+runner parses, and 87 repository conformance tests pass. **No C++ compile,
+Swift typecheck or native run**: host load is high and the test pause holds.
+Mobile retention follow-up `52d50b5`/`501785d` (transient lease loss defers
+compaction instead of failing sync) is likewise source-only.
+Next in a bounded, coordinated slot on one frozen candidate: 138 native RED,
+then its product fix; 132/140 C++/Swift execution and Crest 122 output
+comparison. 134 (empty-Workspace merge undo, design only) and 136 (Mobile
+Files Web Extension spike) remain unreviewed by the owner.
+
 ## Root 1163 restart handback — 27 September 2026, 12:11 CEST
 
 Mobile source `2c26365` connects the exact savedRecords tombstone receipt to a

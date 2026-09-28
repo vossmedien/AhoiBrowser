@@ -1,7 +1,8 @@
 # 132 — Native sequential merge replay with a pinned random seed
 
-Status: ready source patch; Swift syntax parse and patch applicability pass,
-native execution and direct output comparison pending
+Status: integrated by owner in `ef0179df` (Mobile runner) and `56761822`
+(Sync runner/testdata, hand-merged with 138/140); native execution and
+direct output comparison pending
 Owners: desktop/sync and mobile
 Base: `e670ff1` after 128/130 source integration. Apply the incremental patch;
 the complete `files/` mirrors are for review and may omit newer owner work.

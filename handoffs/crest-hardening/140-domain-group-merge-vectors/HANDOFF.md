@@ -1,7 +1,8 @@
 # 140 — Shared merge vectors for domain-value field groups
 
-Status: ready source (fixture + test-only runner registration); native C++/Swift
-execution and 122 actual-output comparison pending
+Status: integrated by owner in `ef0179df` (Mobile runner) and `56761822`
+(Sync runner/testdata); native C++/Swift execution and 122 actual-output
+comparison pending
 Owners: desktop/sync (C++ runner, BUILD.gn, testdata) and mobile (Swift runner)
 Base: committed `bcccfb4`; independent of unintegrated 138 (both application
 orders were checked in a disposable copy).

@@ -1,6 +1,7 @@
 # 138 — Shared RED fixture for the merge-root marker collision
 
-Status: ready test-source patch; native RED, product fix and GREEN pending
+Status: test source integrated by owner in `ef0179df` (Mobile) and `56761822` (Sync);
+native RED, product fix and GREEN pending
 Owners: desktop/sync and mobile
 Base: current source with 112/130 readers; 112's frozen fixture is unchanged.
 Fixture SHA-256:
