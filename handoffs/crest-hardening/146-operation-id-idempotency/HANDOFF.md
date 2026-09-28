@@ -2,7 +2,9 @@
 
 Status: owner progress — #9 via 142 R1 (`46ac0428`, bounded retry), #4 via
 142 R3 (`fcd926cc`, receipt consumed once), #5 via 142 R5 (`f479b6ea`),
-#7 in `7a2fd744` (close once per live tab); #2/#3 in `f415c6c6` (tracked closes); #1, #6, #8, #10–12 open; nothing run
+#7 in `7a2fd744` (close once per live tab); #2/#3 in `f415c6c6` (tracked closes); #11 already covered durably (`SyncStore::ConsumeRemoteCommand`,
+`sync_store_replay.cc`: INSERT OR IGNORE per command_id → kAlreadyApplied); #1, #6, #8,
+#10, #12 open; nothing run
 Owner lane: desktop (session bridge, sidebar, popup/Quick Window, structure controller)
 Base: `60176d7`. Evidence: section 3 of the
 [H2.1 source map](../../../docs/reviews/crest-hardening-2026-09-28-single-writer-source-map.md);
