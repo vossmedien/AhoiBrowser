@@ -147,8 +147,18 @@ switchws Kunde Inbox; open_url "$SITE/check.html"
 [ -z "$(cookie_of check.html)" ] && record sharedWorkspaceNotLoggedIn true || record sharedWorkspaceNotLoggedIn false
 # WS-DEL-02: veto through before-unload keeps everything.
 switchws Inbox Kunde; open_url "$SITE/unload.html"
-CDP unload.html Input.dispatchMouseEvent '{"type":"mousePressed","x":100,"y":100,"button":"left","clickCount":1}' >/dev/null
-CDP unload.html Input.dispatchMouseEvent '{"type":"mouseReleased","x":100,"y":100,"button":"left","clickCount":1}' >/dev/null
+# A user working on the Mac can take focus away (build 44: active false,
+# no prompt). Bring the app and page forward and click until the page has
+# sticky activation, at most three times.
+for attempt in 1 2 3; do
+  osascript -e 'tell application id "app.ahoibrowser.AhoiBrowser" to activate' >/dev/null 2>&1
+  CDP unload.html Page.bringToFront '{}' >/dev/null; sleep 1
+  CDP unload.html Input.dispatchMouseEvent '{"type":"mousePressed","x":100,"y":100,"button":"left","clickCount":1}' >/dev/null
+  CDP unload.html Input.dispatchMouseEvent '{"type":"mouseReleased","x":100,"y":100,"button":"left","clickCount":1}' >/dev/null
+  CDP unload.html Runtime.evaluate '{"expression":"navigator.userActivation.hasBeenActive","returnByValue":true}' \
+    | grep -q '"value": *true' && break
+  echo "unload page not activated (attempt $attempt)" >> "$OUT/steps.txt"
+done
 # Chromium shows the before-unload prompt only with sticky user activation;
 # record it and page focus right before the deletion (crest diagnosis).
 CDP unload.html Runtime.evaluate '{"expression":"JSON.stringify({active:navigator.userActivation.hasBeenActive,focus:document.hasFocus()})","returnByValue":true}' \
