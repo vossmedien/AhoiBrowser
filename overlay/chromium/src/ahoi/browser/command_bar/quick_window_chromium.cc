@@ -10,6 +10,7 @@
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "base/functional/callback_helpers.h"
+#include "base/supports_user_data.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_commands.h"
@@ -35,6 +36,11 @@ namespace {
 bool IsEligibleProfile(const Profile* profile) {
   return profile && profile->IsRegularProfile() && !profile->IsOffTheRecord();
 }
+
+// Handoff 146 #6: a Quick Window page reopened in a Workspace with its own
+// website sessions is closed afterwards, which `beforeunload` can delay. A
+// repeated adoption of that same page must not open it a second time.
+const void* const kReopenedForAdoptionKey = &kReopenedForAdoptionKey;
 
 }  // namespace
 
@@ -80,11 +86,16 @@ Browser* CreateAndShowQuickWindow(Profile* profile,
 }
 
 bool CanMoveActiveTabToNormalWindow(const Browser* popup_browser) {
-  return popup_browser &&
-         popup_browser->GetType() == BrowserWindowInterface::TYPE_POPUP &&
-         IsEligibleProfile(popup_browser->GetProfile()) &&
-         popup_browser->GetTabStripModel() &&
-         popup_browser->GetTabStripModel()->active_index() >= 0;
+  if (!popup_browser ||
+      popup_browser->GetType() != BrowserWindowInterface::TYPE_POPUP ||
+      !IsEligibleProfile(popup_browser->GetProfile()) ||
+      !popup_browser->GetTabStripModel() ||
+      popup_browser->GetTabStripModel()->active_index() < 0) {
+    return false;
+  }
+  const content::WebContents* const contents =
+      popup_browser->GetTabStripModel()->GetActiveWebContents();
+  return contents && !contents->GetUserData(kReopenedForAdoptionKey);
 }
 
 namespace {
@@ -174,6 +185,8 @@ bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
       }
       return false;
     }
+    contents->SetUserData(kReopenedForAdoptionKey,
+                          std::make_unique<base::SupportsUserData::Data>());
     target->OpenGURL(url, WindowOpenDisposition::NEW_FOREGROUND_TAB);
     ShowAdoptingWindow(target);
     source_model->CloseWebContentsAt(source_model->active_index(),

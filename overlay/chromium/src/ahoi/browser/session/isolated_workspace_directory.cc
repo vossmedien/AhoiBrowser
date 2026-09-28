@@ -4,6 +4,7 @@
 #include "ahoi/browser/session/isolated_workspace_directory.h"
 
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -360,6 +361,43 @@ void LoadMainProfile(base::OnceCallback<void(Profile*)> done) {
                               std::move(done));
 }
 
+namespace {
+
+using HandOverCallback = base::OnceCallback<void(BrowserWindowInterface*)>;
+
+// Handoff 146 #12: a hand-over repeated while the target Profile's window is
+// still opening joins that opening instead of creating a second window. The
+// requests finish in order, so the latest one decides the Workspace. An
+// opening that never reports back stops blocking after kOpeningTimeout.
+struct PendingOpening {
+  base::TimeTicks started;
+  std::vector<std::pair<SourceFrame, HandOverCallback>> requests;
+};
+
+constexpr base::TimeDelta kOpeningTimeout = base::Seconds(30);
+
+std::map<base::FilePath, PendingOpening>& PendingOpenings() {
+  static base::NoDestructor<std::map<base::FilePath, PendingOpening>> pending;
+  return *pending;
+}
+
+void FinishOpening(base::FilePath path,
+                   base::TimeTicks started,
+                   BrowserWindowInterface* target) {
+  auto it = PendingOpenings().find(path);
+  if (it == PendingOpenings().end() || it->second.started != started) {
+    return;
+  }
+  std::vector<std::pair<SourceFrame, HandOverCallback>> requests =
+      std::move(it->second.requests);
+  PendingOpenings().erase(it);
+  for (auto& [frame, done] : requests) {
+    FinishHandOver(std::move(frame), std::move(done), target);
+  }
+}
+
+}  // namespace
+
 void PresentProfileWindow(
     Profile* target,
     BrowserWindowInterface* source,
@@ -373,10 +411,20 @@ void PresentProfileWindow(
     FinishHandOver(std::move(frame), std::move(done), existing);
     return;
   }
+  const base::FilePath path = target->GetPath();
+  const base::TimeTicks now = base::TimeTicks::Now();
+  auto [it, inserted] = PendingOpenings().try_emplace(path);
+  if (!inserted && now - it->second.started < kOpeningTimeout) {
+    it->second.requests.emplace_back(std::move(frame), std::move(done));
+    return;
+  }
+  // A stale opening's requests are dropped with it; theirs never ran.
+  it->second = PendingOpening{.started = now};
+  it->second.requests.emplace_back(std::move(frame), std::move(done));
   // No window left: open one (always_create, the lookup above already ran),
   // with Chromium's normal startup and session restore for that Profile.
   profiles::OpenBrowserWindowForProfile(
-      base::BindOnce(&FinishHandOver, std::move(frame), std::move(done)),
+      base::BindOnce(&FinishOpening, path, now),
       /*always_create=*/true, /*is_new_profile=*/false,
       /*open_command_line_urls=*/false, target);
 }

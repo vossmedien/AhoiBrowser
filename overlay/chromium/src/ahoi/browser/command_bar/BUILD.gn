@@ -161,6 +161,7 @@ if (is_mac) {
       "//chrome/browser/ui/tabs:tab_strip",
       "//chrome/browser/ui/window_feature_controller",
       "//chrome/test:test_support",
+      "//components/javascript_dialogs",
       "//components/tabs:public",
       "//content/public/browser",
       "//content/test:test_support",

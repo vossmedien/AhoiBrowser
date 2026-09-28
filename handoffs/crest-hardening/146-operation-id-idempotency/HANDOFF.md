@@ -4,7 +4,13 @@ Status: owner progress — #9 via 142 R1 (`46ac0428`, bounded retry), #4 via
 142 R3 (`fcd926cc`, receipt consumed once), #5 via 142 R5 (`f479b6ea`),
 #7 in `7a2fd744` (close once per live tab); #2/#3 in `f415c6c6` (tracked closes); #11 already covered durably (`SyncStore::ConsumeRemoteCommand`,
 `sync_store_replay.cc`: INSERT OR IGNORE per command_id → kAlreadyApplied); #8 covered by store idempotency (DeleteNode acts only on a live row;
-a repeat returns kNotFound and kDeleted rebinding fires once); #1, #6, #10, #12 open;
+a repeat returns kNotFound and kDeleted rebinding fires once); #6 (repeated
+Quick Window adoption never reopens a page kept open by `beforeunload`; RED
+browser test `RepeatedAdoptionDoesNotReopenTwice`) and #12 (a hand-over
+repeated while the target Profile's window opens joins that opening instead
+of creating a second window) in owner source; #10 covered structurally (late
+split notifications only match entries still bound to that native token,
+which a rebuild replaces); #1 open;
 #2–5/#7/#9 natively green on ba9f26cb (session/tab_tree units)
 Owner lane: desktop (session bridge, sidebar, popup/Quick Window, structure controller)
 Base: `60176d7`. Evidence: section 3 of the

@@ -17,9 +17,12 @@
 #include "chrome/browser/ui/window_feature_controller/window_feature_controller.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
+#include "components/javascript_dialogs/app_modal_dialog_controller.h"
+#include "components/javascript_dialogs/app_modal_dialog_view.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/test/browser_test.h"
+#include "content/public/test/browser_test_utils.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "url/gurl.h"
 
@@ -173,6 +176,49 @@ IN_PROC_BROWSER_TEST_F(QuickWindowWebsiteSessionBrowserTest,
   EXPECT_EQ(url, reopened->GetVisibleURL());
   tabs::TabInterface* const tab = normal_tabs->GetActiveTab();
   EXPECT_EQ(bridge->GetWorkspaceForTab(tab), *own_sessions);
+}
+
+// Handoff 146 #6: while `beforeunload` keeps the reopened Quick Window page
+// open, repeating the adoption must not open it a second time.
+IN_PROC_BROWSER_TEST_F(QuickWindowWebsiteSessionBrowserTest,
+                       RepeatedAdoptionDoesNotReopenTwice) {
+  Profile* const profile = browser()->GetProfile();
+  SessionBridge* const bridge = SessionBridgeFactory::GetForProfile(profile);
+  ASSERT_TRUE(bridge);
+  base::RunLoop bridge_ready;
+  bridge->RunWhenReadyForTesting(bridge_ready.QuitClosure());
+  bridge_ready.Run();
+  const std::optional<base::Uuid> own_sessions =
+      bridge->CreateWorkspace(u"Kunde", u"K", std::nullopt,
+                              /*own_website_sessions=*/true);
+  ASSERT_TRUE(own_sessions.has_value());
+  ASSERT_TRUE(bridge->SetActiveWorkspaceForWindow(
+      browser(), *own_sessions, WorkspaceActivationSource::kKeyboard));
+
+  Browser* const quick_browser =
+      CreateAndShowQuickWindow(profile, browser()->GetWindow()->GetBounds());
+  ASSERT_TRUE(quick_browser);
+  const GURL url(
+      "data:text/html,<script>onbeforeunload=e=>{e.preventDefault();"
+      "return 'x'}</script>guarded");
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(quick_browser, url));
+  content::PrepContentsForBeforeUnloadTest(
+      quick_browser->GetTabStripModel()->GetActiveWebContents());
+  TabStripModel* const normal_tabs = browser()->GetTabStripModel();
+  const int before = normal_tabs->count();
+
+  ASSERT_TRUE(MoveActiveTabToNormalWindow(quick_browser));
+  javascript_dialogs::AppModalDialogController* const dialog =
+      ui_test_utils::WaitForAppModalDialog();
+  ASSERT_TRUE(dialog);
+  EXPECT_FALSE(CanMoveActiveTabToNormalWindow(quick_browser));
+  EXPECT_FALSE(MoveActiveTabToNormalWindow(quick_browser));
+  EXPECT_EQ(before + 1, normal_tabs->count());
+
+  ui_test_utils::BrowserDestroyedObserver popup_closed(quick_browser);
+  dialog->view()->AcceptAppModalDialog();
+  popup_closed.Wait();
+  EXPECT_EQ(before + 1, normal_tabs->count());
 }
 
 }  // namespace
