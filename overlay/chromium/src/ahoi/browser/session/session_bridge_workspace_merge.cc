@@ -286,6 +286,7 @@ tab_tree::TabTreeStore::Result SessionBridge::CommitWorkspaceMerge(
 
   // Bound pages already followed their nodes (OnTabTreeChanged). Closing
   // pages are never re-homed; an unbound page of the source moves along.
+  MergeRuntimeReceipt runtime_receipt{.target_id = target_id};
   for (auto& [tab, runtime] : runtime_tabs_) {
     const bool is_closing = std::ranges::find(closing, tab) != closing.end();
     if (is_closing) {
@@ -298,6 +299,7 @@ tab_tree::TabTreeStore::Result SessionBridge::CommitWorkspaceMerge(
     }
     RemoveTabFromLastActiveState(tab);
     runtime.workspace_id = target_id;
+    runtime_receipt.unbound_tabs.push_back(tab->GetWeakPtr());
     if (tab->IsActivated() && runtime.tab_strip_model) {
       UpdateLastActiveTab(runtime.tab_strip_model, tab);
     }
@@ -306,10 +308,15 @@ tab_tree::TabTreeStore::Result SessionBridge::CommitWorkspaceMerge(
   // Windows that showed the source show the target, not the first Workspace.
   for (const auto& [browser, window] : windows_) {
     if (workspace_service_->GetActiveWorkspace(window.window_id) ==
-        source_id) {
-      std::ignore = workspace_service_->SetActiveWorkspace(
-          window.window_id, target_id, WorkspaceActivationSource::kSidebar);
+            source_id &&
+        workspace_service_->SetActiveWorkspace(
+            window.window_id, target_id, WorkspaceActivationSource::kSidebar)) {
+      runtime_receipt.window_ids.push_back(window.window_id);
     }
+  }
+  merge_runtime_receipts_.erase(source_id);
+  if (merge.record_undo) {
+    merge_runtime_receipts_.emplace(source_id, std::move(runtime_receipt));
   }
   PrefService* prefs = profile_->GetPrefs();
   navigation::RoutingSettings routing =
@@ -361,6 +368,44 @@ void SessionBridge::RefreshWorkspacesAfterUndo() {
     live.insert(workspace.id);
   }
   RestoreRoutingForRevived(profile_->GetPrefs(), live);
+  RestoreMergeRuntimeForRevived(live);
+}
+
+void SessionBridge::RestoreMergeRuntimeForRevived(
+    const std::set<base::Uuid>& live) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  for (auto it = merge_runtime_receipts_.begin();
+       it != merge_runtime_receipts_.end();) {
+    const base::Uuid source_id = it->first;
+    if (!live.contains(source_id)) {
+      ++it;
+      continue;
+    }
+    const MergeRuntimeReceipt receipt = std::move(it->second);
+    it = merge_runtime_receipts_.erase(it);
+    // Only what the merge moved and what still shows its target goes back;
+    // later user choices win.
+    for (const base::WeakPtr<tabs::TabInterface>& weak_tab :
+         receipt.unbound_tabs) {
+      tabs::TabInterface* const tab = weak_tab.get();
+      const auto runtime = tab ? runtime_tabs_.find(tab) : runtime_tabs_.end();
+      if (runtime == runtime_tabs_.end() || runtime->second.node_id ||
+          runtime->second.workspace_id != receipt.target_id) {
+        continue;
+      }
+      RemoveTabFromLastActiveState(tab);
+      runtime->second.workspace_id = source_id;
+      PersistTabSessionMetadata(tab);
+    }
+    for (const base::Uuid& window_id : receipt.window_ids) {
+      if (workspace_service_->GetActiveWorkspace(window_id) ==
+          receipt.target_id) {
+        std::ignore = workspace_service_->SetActiveWorkspace(
+            window_id, source_id,
+            WorkspaceActivationSource::kDataReconciliation);
+      }
+    }
+  }
 }
 
 }  // namespace ahoi

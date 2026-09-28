@@ -83,6 +83,9 @@ TEST_F(SessionBridgeWorkspaceMergeTest, SharedMergeKeepsTheLiveTabAndUndoes) {
   task_environment()->RunUntilIdle();
   EXPECT_TRUE(Lists(*source_id));
   EXPECT_EQ(bridge_->GetWorkspaceForTab(tab), *source_id);
+  // Crest 142 R3: the window the merge switched to the target shows the
+  // source again.
+  EXPECT_EQ(bridge_->GetActiveWorkspaceForWindow(browser()), *source_id);
   // Crest 134: the rule this merge retargeted names the source again.
   EXPECT_EQ(navigation::ReadRoutingSettings(*profile()->GetPrefs())
                 .rules.front()

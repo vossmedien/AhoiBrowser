@@ -476,6 +476,14 @@ class SessionBridge : public KeyedService,
       bool into_folder,
       const std::vector<tabs::TabInterface*>& closing);
   void RefreshWorkspacesAfterUndo();
+  // Crest 142 R3: the windows and unbound tabs an undoable merge moved from
+  // its source to the target. In memory only; neither survives a restart.
+  struct MergeRuntimeReceipt {
+    base::Uuid target_id;
+    std::vector<base::Uuid> window_ids;
+    std::vector<base::WeakPtr<tabs::TabInterface>> unbound_tabs;
+  };
+  void RestoreMergeRuntimeForRevived(const std::set<base::Uuid>& live);
   // Handoff 052, source side.
   void OnConversionPagesAnswered(
       base::Uuid workspace_id,
@@ -618,6 +626,8 @@ class SessionBridge : public KeyedService,
   std::map<TabStripModel*, raw_ptr<BrowserWindowInterface>> model_windows_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<tabs::TabInterface*, RuntimeTabState> runtime_tabs_
+      GUARDED_BY_CONTEXT(sequence_checker_);
+  std::map<base::Uuid, MergeRuntimeReceipt> merge_runtime_receipts_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<base::Uuid, base::WeakPtr<tabs::TabInterface>> node_tabs_
       GUARDED_BY_CONTEXT(sequence_checker_);
