@@ -724,6 +724,12 @@ host-probe timeout 10 s; guard-created private driver input log so only
 logged driver keys are attributed (other input still cancels); 106 local
 tests pass. Starter re-armed for round 3.
 
+122 Swift export: no owner reply, so Crest runs it (user-authorized) with the
+owner's exact Mobile lock protocol (`.work/crest-h1/swift-export/run.sh`:
+free locks + ≥30 % idle, `build.lock`, build-for-testing 17aa591b with 2 jobs,
+six SyncMergeConformanceTests on CE3513BF with export env, simulator shutdown
+and lock release on exit). Owner informed.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
