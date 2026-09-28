@@ -1,8 +1,8 @@
 # 134 — Empty Workspace merge has no native undo receipt
 
 Status: store-level fix integrated by owner in `023e6126` (node-less
-kWorkspaceMerge receipt, schema 6); compile, RED/GREEN, routing-rule
-reversal and native/visible evidence pending
+kWorkspaceMerge receipt, schema 6) and routing-rule restore in `11e89142`;
+compile, RED/GREEN and native/visible evidence pending
 Owner: desktop TabTreeStore and Workspace merge bridge
 Reviewed source: `e670ff1` / ADR 0012, 27 September 2026.
 

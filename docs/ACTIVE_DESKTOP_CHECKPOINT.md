@@ -16,9 +16,11 @@ compatible version (older builds must refuse the file). Tests: positive
 empty-merge undo, reopen + snapshot replace, `record_undo=false` control,
 schema 2→6 upgrade asserting kind 4 is admitted and 5 is refused.
 **Not compiled or run** — no Chromium toolchain lease, host loaded, test
-pause in force. Still open for full 134: merge-time link-routing rules
-retargeted to B are not restored by any merge undo (also non-empty ones),
-and the visible context-menu/⌘Z journey plus real-peer revival.
+pause in force. `11e89142` adds a local routing receipt: an undoable merge
+records exactly the rule IDs/default route it retargeted, and the undo that
+revives the source restores only entries still naming the target (applies to
+non-empty merges too). Still open: compile/run, the visible context-menu/⌘Z
+journey and real-peer revival.
 
 ## Current R1 continuation — 27 September 2026, 07:03 CEST
 
