@@ -548,6 +548,15 @@ wrong target and false `mergeFields`. **87** local conformance tests pass;
 the test-only patch applies to HEAD and stacks with 138 in either order.
 Swift parsing is deferred for host load. No native result is claimed.
 
+Owner intake 28 September (`ef0179d` Mobile, `5676182` Sync, record
+`f377629`): 132, 138 and 140 are source-integrated; overlay testdata is
+byte-identical to the canonical fixtures, the Swift runner parses and the 87
+repository conformance tests pass. No C++ compile, Swift typecheck or native
+run; the test pause holds. 134 and 136 remain unreviewed by the owner. No
+Crest lease is `open` in the Desktop or Mobile checkpoint, so H3/H5 runtime
+work stays gated. Current source step: H2.1 per-transition file/line map at
+current HEAD, including the status of deferred 011 S2–S8.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
