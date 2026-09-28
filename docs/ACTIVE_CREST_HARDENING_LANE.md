@@ -798,6 +798,14 @@ refresh); #8/#11 covered; #10 per owner covered by the native split token.
 All 146 transitions now have an owner answer; native runs of the new
 tests pending.
 
+094 decision reviewed (`1374b17b`, option 1): `translate.enabled` defaults
+to false; the toggle still enables it. Pinned-source path: with the pref off
+`TranslateManager` prevents all triggering (`translate_manager.cc:945`), so no
+`TranslateUIDelegate` is built and its `GetSupportedLanguages` fetch of
+`translate_a/l` should not run on a fresh profile; opening the language
+settings still fetches (user-caused). Runtime proof needs a keyed H5 audit on
+an installed build containing `1374b17b` (the installed `6acd207` predates it).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
