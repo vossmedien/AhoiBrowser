@@ -2,6 +2,11 @@
 
 ## Candidate 45 — journeys green — 28 September 2026, 19:10 CEST
 
+Queued for build 46 (starts automatically above 32 GiB free, `wait46.sh`;
+16 GiB now): patch 0071 (rebrand), 0072 (⌘L in the Quick Window),
+command-bar `SchedulePaint` (`977853f9`) and Crest 150 workspace-switch trace
+(`7bdc1f69`); all syntax-checked with AhoiDev flags, 0071 GRIT-checked.
+
 **Build 45** (`4746af81`, includes the `75a50fe0` menu fix): all 15 unit
 binaries green (sync 202/202, sidebar 168/168), installed with the documented
 `AHOI_ALLOW_LOW_DISK=1` (35 GiB free; 31 GiB after the build). Journeys on the
@@ -13,8 +18,10 @@ ws-level-deletion (before-unload veto now shown), the new
 quick-window-adoption (QUICK-03/04, 146 #6: same DevTools target, no reload,
 Quick Window closed, not offered again) and sidebar-discovery-switch (142 R2:
 Workspace switch before activation), plus Crest's empty-workspace-navigation
-(zero-tab, 142 R4) and ws-isolated (ADR 0011 hand-over, 146 #12). Crest's
-restore-surface run is still queued.
+(zero-tab, 142 R4), Crest's restore-surface (5/5 restarts: Workspace, front
+page, no empty state) and ws-isolated (ADR 0011 hand-over, 146 #12). With
+this, the H2 DoD set (Split, zero-tab, Workspace switch, Restore, Quick Window
+adoption) is green on the exact candidate 45.
 New **incognito-journey** 12/12 (INC-01/02/03/05): ⌘⇧N window isolated from
 normal cookies, closing it leaves the normal session, the page never reaches
 tree, history, session files or any profile file (also after `kill -9`), and
