@@ -1,0 +1,74 @@
+{
+  "kind": "ahoi-perf-evaluation",
+  "candidate": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "926000eed6daa1af23aba9e9d2feb5613612b1d8b03c28f25c70037092580f8b",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "4746af81d6ffe01984012fa44c5c99c55d152766",
+    "buildProfile": "dev",
+    "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+  },
+  "baseline": null,
+  "summaries": {
+    "workspace_switch_ms": {
+      "n": 0
+    },
+    "workspace_switch_presented_ms": {
+      "n": 0
+    }
+  },
+  "verdicts": [
+    {
+      "budget": "PERF-01",
+      "metric": "speedometer_score",
+      "text": "Speedometer regression at most 3 %",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-02",
+      "metric": "startup_warm_ms",
+      "text": "start time at most 10 % worse",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-02-first",
+      "metric": "startup_first_launch_ms",
+      "text": "fresh-profile first launch at most 10 % worse",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-03",
+      "metric": "command_bar_ms",
+      "text": "command bar p95 below 50 ms",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-04",
+      "metric": "workspace_switch_ms",
+      "text": "workspace switch commit below 100 ms",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-04-presented",
+      "metric": "workspace_switch_presented_ms",
+      "text": "first presented frame after a workspace switch below 100 ms",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-06",
+      "metric": "memory_20_tabs_kib",
+      "text": "own memory overhead with 20 tabs at most 5 %",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-07",
+      "metric": "idle_cpu_percent",
+      "text": "no measurable own idle CPU",
+      "verdict": "NOT_MEASURED"
+    }
+  ],
+  "pass": false
+}

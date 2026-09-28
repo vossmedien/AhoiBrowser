@@ -981,6 +981,15 @@ samples) although the menu path reaches the instrumented
 `SetActiveWorkspaceForWindow`; the dump now keeps all `Ahoi.*` events. cb14
 completed a third time.
 
+ws17 (19:37): complete run, again zero `Ahoi.*` events. Cause: indicator,
+keyboard, gesture and animated switches go through
+`ActivateRelativeWorkspaceForWindow` → `WorkspaceService::ActivateRelative`,
+while the trace event sits only in `SetActiveWorkspaceForWindow`;
+[150](../handoffs/crest-hardening/150-workspace-switch-trace-coverage/HANDOFF.md)
+asks Desktop to instrument the shared `WorkspaceService` commit points. The
+Workspace-switch trace sample awaits that build; the command-bar trace is
+complete and reproducible.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
