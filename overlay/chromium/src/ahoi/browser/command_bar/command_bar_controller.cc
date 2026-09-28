@@ -177,7 +177,13 @@ void CommandBarController::OnTabStripModelDestroyed(
 void CommandBarController::OnCommandIndexChanged(CommandItemType type) {
   if (type == CommandItemType::kWorkspace) {
     // The Workspace list changed (SessionBridge): the move targets follow.
-    PublishBrowserCommands();
+    // Never republish from inside CommandService's observer iteration: its
+    // ObserverList forbids reentrant ReplaceItems and CHECK-crashes, e.g.
+    // when command-bar tab activation switches the Workspace first.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE,
+        base::BindOnce(&CommandBarController::PublishBrowserCommands,
+                       weak_ptr_factory_.GetWeakPtr()));
   }
   if (type == CommandItemType::kOpenTab) {
     // SessionBridge owns the open-tab index. Refreshing from its notification
