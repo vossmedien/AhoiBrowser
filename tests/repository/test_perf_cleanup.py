@@ -127,6 +127,22 @@ class TraceSetupTest(unittest.TestCase):
         self.assertEqual(calls[:4], ["prepare", "Tracing.start", "measure", "Tracing.end"])
 
 
+class DriverInputLogTest(unittest.TestCase):
+    def test_guarded_driver_receives_a_private_input_log(self):
+        guard = mock.Mock(driver_input_log=None)
+        process = mock.Mock()
+        guard.spawn.return_value = process
+        guard.wait_process.return_value = 0
+        with mock.patch.object(runner.runtime_guard, "current", return_value=guard):
+            runner.run_driver("fixture driver", {"A": "1"})
+        env = guard.spawn.call_args.kwargs["env"]
+        path = pathlib.Path(env["AHOI_PERF_DRIVER_INPUT_LOG"])
+        self.addCleanup(path.unlink, missing_ok=True)
+        self.assertEqual(str(path), guard.driver_input_log)
+        self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+        self.assertEqual(env["A"], "1")
+
+
 class AbortedEvidenceTest(unittest.TestCase):
     def test_partial_run_is_never_written_as_budget_evidence(self):
         for failure in (RuntimeError("SECRET_TEST_TEXT"), KeyboardInterrupt(),

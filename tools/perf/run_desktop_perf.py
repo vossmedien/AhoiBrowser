@@ -63,7 +63,8 @@ class Refused(SystemExit):
 # --------------------------------------------------------------------------- host
 
 def run(*args: str) -> str:
-    return subprocess.run(args, capture_output=True, text=True, timeout=2, check=True).stdout.strip()
+    # 2 s timed out for `ps` at load ~100+ (validation runs 1 and ws4, 28 Sep).
+    return subprocess.run(args, capture_output=True, text=True, timeout=10, check=True).stdout.strip()
 
 
 def hid_idle_seconds() -> int:
@@ -596,6 +597,12 @@ def run_driver(driver: str, env: dict, timeout: float = 900) -> None:
     # timeout cannot leave the UI-driving child active after its shell is killed.
     guard = runtime_guard.current()
     spawn = guard.spawn if guard else subprocess.Popen
+    if guard:
+        if not guard.driver_input_log:
+            handle, path = tempfile.mkstemp(prefix="ahoi-perf-driver-input-")
+            os.close(handle)  # mkstemp: private 0600 file
+            guard.driver_input_log = path
+        env = {**env, "AHOI_PERF_DRIVER_INPUT_LOG": guard.driver_input_log}
     process = spawn(driver, shell=True, env=env, start_new_session=True)
     try:
         code = guard.wait_process(process, timeout) if guard else process.wait(timeout=timeout)

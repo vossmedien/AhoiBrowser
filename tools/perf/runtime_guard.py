@@ -86,6 +86,12 @@ class LeaseGuard:
         self._mutex = threading.RLock()
         self._processes = {}  # Only harness-spawned Popen objects.
         self.driver_ax_clients = set()  # AX clients seen inside owned sessions.
+        # Keys a driver posts to the browser process still reset the system
+        # HID idle time. A driver records each post (wall-clock seconds) in
+        # this private log before posting; only a reset inside that window is
+        # attributed to it. Any other input still cancels the run.
+        self.driver_input_log = None
+        self.driver_inputs = 0
         self._cancelled = threading.Event()
         self._finished = threading.Event()
         self._thread = None
@@ -196,7 +202,11 @@ class LeaseGuard:
                 raise LeaseError("owner-input probe unavailable")
             if ((not self.validation and idle < self.min_idle)
                     or time.monotonic() - idle > self._input_epoch + 2):
-                raise LeaseError("owner input detected")
+                if not self._driver_input_explains(time.time() - idle):
+                    raise LeaseError("owner input detected")
+                if time.monotonic() - idle > self._input_epoch + 2:
+                    self.driver_inputs += 1
+                self._input_epoch = time.monotonic() - idle
             if not self.validation:
                 if state["busyProcesses"]:
                     raise LeaseError("compiler/build activity detected")
@@ -237,6 +247,20 @@ class LeaseGuard:
             process = subprocess.Popen(*args, **kwargs)
             self._processes[process] = threading.RLock()
             return process
+
+    DRIVER_INPUT_BEFORE = 0.5  # seconds a logged post may precede its reset
+    DRIVER_INPUT_AFTER = 1.5   # seconds a reset may follow its logged post
+
+    def _driver_input_explains(self, last_input_wall):
+        if not self.driver_input_log:
+            return False
+        try:
+            posts = [float(line) for line in
+                     pathlib.Path(self.driver_input_log).read_text().split()]
+        except (OSError, ValueError):
+            return False
+        return any(post - self.DRIVER_INPUT_BEFORE <= last_input_wall
+                   <= post + self.DRIVER_INPUT_AFTER for post in posts)
 
     def owned_process_groups(self):
         """Session/group IDs of live harness-spawned processes (start_new_session)."""
@@ -286,7 +310,8 @@ class LeaseGuard:
                 "completed": self.completed,
                 "cancelled": self.reason is not None, "reason": self.reason,
                 "lockRetained": self._fd is not None,
-                "driverAccessibilityClients": sorted(self.driver_ax_clients)}
+                "driverAccessibilityClients": sorted(self.driver_ax_clients),
+                "driverInputs": self.driver_inputs}
 
     def __exit__(self, exc_type, exc, traceback):
         if exc_type is None:

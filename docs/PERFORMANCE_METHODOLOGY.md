@@ -151,7 +151,13 @@ must wait for their work and may not daemonize background UI tasks outside
 their owned foreground process group; synthetic HID input also cancels a run.
 A driver therefore acts through AX actions (e.g. `axtool press`/`setvalue`)
 or key events posted to the browser process only (`axtool key`,
-`CGEventPostToPid`), never through the HID tap (`hidkey`, `type`, `click`). An AX client inside a guard-spawned
+`CGEventPostToPid`), never through the HID tap (`hidkey`, `type`, `click`).
+Process-posted keys still reset the system HID idle time (measured 28 Sep:
+8.1 s → 0.04 s). A driver therefore appends the wall-clock time of each post to
+the private, guard-created `AHOI_PERF_DRIVER_INPUT_LOG` *before* posting; the
+guard attributes only an idle reset within 0.5 s before to 1.5 s after a
+logged post to the driver (`runtimeGuard.driverInputs`). Any other input still
+cancels the run. Host probes time out after 10 s (2 s timed out at load ~100). An AX client inside a guard-spawned
 session is recorded as `runtimeGuard.driverAccessibilityClients` and does not
 cancel the run; any other AX client appearing still cancels it. Trace budgets
 are compared only between runs driven the same way.

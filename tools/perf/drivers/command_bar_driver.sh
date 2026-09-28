@@ -26,6 +26,9 @@ for query in ${AHOI_PERF_QUERIES:-local page fixture}; do
   if ! "$AX" dump "$PID" 14 | grep -q -E "AXWindow \\| Suchen oder URL eingeben"; then
     opened=0
     for _ in 1 2 3 4 5; do
+      # Log before posting: the guard attributes only this window's HID reset.
+      [ -n "${AHOI_PERF_DRIVER_INPUT_LOG:-}" ] &&
+        python3 -c 'import time; print(time.time())' >> "$AHOI_PERF_DRIVER_INPUT_LOG"
       "$AX" key "$PID" 17 cmd >/dev/null || exit 4
       waitax "AXWindow \\| Suchen oder URL eingeben" 3 && { opened=1; break; }
     done

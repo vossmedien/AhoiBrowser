@@ -158,6 +158,48 @@ class LeaseGuardTest(unittest.TestCase):
         self.assertEqual(reason, "runtime lease/host probe failed (TimeoutExpired)")
         self.assertNotIn("secret", reason)
 
+    def test_driver_logged_key_explains_idle_reset_but_owner_input_cancels(self):
+        # Process-posted keys still reset HIDIdleTime (measured 28 Sep:
+        # 8.1 s -> 0.04 s); only a reset inside a logged driver window passes.
+        log = self.directory / "driver-input"
+        self.write_grant(mode="validation", resources=[])
+        guard = self.guard(validation=True)
+        guard.driver_input_log = str(log)
+        with self.assertRaises(rg.RunCancelled), self.without_monitor(guard):
+            now = rg.time.time()
+            log.write_text(f"{now - 0.2}\n")
+            self.probe.return_value = {**QUIET, "hidIdleSeconds": 0.1}
+            guard.poll_once()
+            guard.check()  # explained: no cancellation
+            self.assertEqual(guard.summary()["driverInputs"], 1)
+            later = rg.time.monotonic() + 5
+            with mock.patch.object(rg.time, "time", return_value=now + 5), \
+                    mock.patch.object(rg.time, "monotonic", return_value=later):
+                self.probe.return_value = {**QUIET, "hidIdleSeconds": 0.1}
+                guard.poll_once()  # a later reset outside the window
+            guard.check()
+        self.assertEqual(guard.summary()["reason"], "owner input detected")
+
+    def test_budget_mode_keeps_low_idle_explained_only_by_the_driver(self):
+        log = self.directory / "driver-input"
+        guard = self.guard()
+        guard.driver_input_log = str(log)
+        with self.without_monitor(guard):
+            now = rg.time.time()
+            log.write_text(f"{now - 3.0}\n")
+            self.probe.return_value = {**QUIET, "hidIdleSeconds": 2.5}
+            guard.poll_once()
+            guard.check()
+        self.assertFalse(guard.summary()["cancelled"])
+
+    def test_without_driver_log_any_reset_cancels(self):
+        self.write_grant(mode="validation", resources=[])
+        guard = self.guard(validation=True)
+        with self.assertRaises(rg.RunCancelled), self.without_monitor(guard):
+            self.probe.return_value = {**QUIET, "hidIdleSeconds": 0.1}
+            guard.poll_once()
+            guard.check()
+
     def test_owned_driver_ax_client_is_recorded_not_cancelling(self):
         # The trace driver's own axtool is the documented, non-HID input path.
         guard = self.guard()

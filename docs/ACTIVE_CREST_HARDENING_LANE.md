@@ -717,6 +717,13 @@ cb showed that AXPress on "Adresse öffnen…" does not open the Ahoi bar
 with retries. The idle-gated starter is re-armed (`run-when-idle-2.sh`,
 runs ws4/cb2).
 
+Validation round 2 (ws4/cb2): ws4 failed its preflight on a 2 s `ps`
+timeout under load; cb2 was cancelled 9 s in as "owner input". A direct test
+showed a process-posted key resets HIDIdleTime (8.1 s → 0.04 s). Fixes:
+host-probe timeout 10 s; guard-created private driver input log so only
+logged driver keys are attributed (other input still cancels); 106 local
+tests pass. Starter re-armed for round 3.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
