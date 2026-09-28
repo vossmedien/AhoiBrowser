@@ -226,9 +226,16 @@ void BrowserSidebarHostView::ShowOpenTabContextMenu(
   context_menu_runner_ = std::make_unique<views::MenuRunner>(
       context_.model.get(),
       views::MenuRunner::HAS_MNEMONICS | views::MenuRunner::CONTEXT_MENU);
+  base::WeakPtr<BrowserSidebarHostView> alive =
+      weak_ptr_factory_.GetWeakPtr();
   context_menu_runner_->RunMenuAt(
       GetWidget(), nullptr, gfx::Rect(screen_point, gfx::Size()),
       views::MenuAnchorPosition::kTopLeft, source_type);
+  if (!alive) {
+    // A command closed the window inside the nested menu loop; the
+    // members below belong to the destroyed view.
+    return;
+  }
   context_menu_runner_.reset();
   context_.model.reset();
   context_move_menu_model_.reset();
@@ -396,9 +403,16 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   context_menu_runner_ = std::make_unique<views::MenuRunner>(
       context_.model.get(),
       views::MenuRunner::HAS_MNEMONICS | views::MenuRunner::CONTEXT_MENU);
+  base::WeakPtr<BrowserSidebarHostView> alive =
+      weak_ptr_factory_.GetWeakPtr();
   context_menu_runner_->RunMenuAt(
       GetWidget(), nullptr, gfx::Rect(screen_point, gfx::Size()),
       views::MenuAnchorPosition::kTopLeft, source_type);
+  if (!alive) {
+    // A command closed the window inside the nested menu loop; the
+    // members below belong to the destroyed view.
+    return;
+  }
   context_menu_runner_.reset();
   context_.model.reset();
   context_move_menu_model_.reset();
@@ -540,9 +554,16 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
   context_menu_runner_ = std::make_unique<views::MenuRunner>(
       context_.model.get(),
       views::MenuRunner::HAS_MNEMONICS | views::MenuRunner::CONTEXT_MENU);
+  base::WeakPtr<BrowserSidebarHostView> alive =
+      weak_ptr_factory_.GetWeakPtr();
   context_menu_runner_->RunMenuAt(
       GetWidget(), nullptr, gfx::Rect(screen_point, gfx::Size()),
       views::MenuAnchorPosition::kTopLeft, source_type);
+  if (!alive) {
+    // A command closed the window inside the nested menu loop; the
+    // members below belong to the destroyed view.
+    return;
+  }
   context_menu_runner_.reset();
   context_.model.reset();
   context_move_menu_model_.reset();
