@@ -83,7 +83,7 @@ extension CompanionSyncBridge {
             ) { try wireCodec.encode(node) }
         }
         if bookmarkSyncEnabled {
-            for bookmark in snapshot.bookmarks {
+            for bookmark in snapshot.bookmarks where !Self.isLocalOnlyBookmark(bookmark) {
                 try appendIfRequired(
                     id: bookmark.id.rawValue, dataClass: .bookmark,
                     version: bookmark.version, tombstone: bookmark.tombstone

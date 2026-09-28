@@ -10,8 +10,19 @@ extension CompanionSyncBridge {
     }
 
     public func enqueue(_ bookmark: BookmarkRecord) async throws {
-        guard bookmarkSyncEnabled else { return }
+        guard bookmarkSyncEnabled, !Self.isLocalOnlyBookmark(bookmark) else { return }
         try await provider.enqueue(makeBookmarkRecord(bookmark))
+    }
+
+    /// DoD 14, owner decision 28 Sep 2026: only http(s) bookmarks with a host
+    /// leave the device. file:, chrome:, javascript: bookmarklets and data:
+    /// stay local. Mirrors C++ `IsLocalOnlyBookmarkUrl`.
+    static func isLocalOnlyBookmark(_ bookmark: BookmarkRecord) -> Bool {
+        guard bookmark.kind == .url else { return false }
+        guard let components = URLComponents(string: bookmark.url),
+              let scheme = components.scheme?.lowercased() else { return true }
+        return !((scheme == "http" || scheme == "https") &&
+            components.host?.isEmpty == false)
     }
 
     func makeBookmarkRecord(_ bookmark: BookmarkRecord) throws -> SyncRecord {

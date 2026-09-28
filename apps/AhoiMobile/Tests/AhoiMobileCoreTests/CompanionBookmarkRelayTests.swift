@@ -94,7 +94,7 @@ final class CompanionBookmarkRelayTests: XCTestCase {
             rootKind: nil,
             parentID: folder.id,
             title: "From Mac",
-            url: "chrome://bookmarks/"
+            url: "https://example.test/from-mac"
         ).bookmark
         try await relay(mac, to: phone)
 
@@ -107,7 +107,7 @@ final class CompanionBookmarkRelayTests: XCTestCase {
         var phoneSnapshot = try await phone.repository.currentSnapshot()
         XCTAssertEqual(Set(phoneSnapshot.visibleBookmarks.map(\.id)), Set([folder.id, page.id]))
         XCTAssertEqual(phoneSnapshot.bookmarks.first { $0.id == page.id }?.url,
-                       "chrome://bookmarks/")
+                       "https://example.test/from-mac")
 
         let firstSeedRecord = try await mac.records.record(for: page.id.rawValue)
         let firstSeed = try XCTUnwrap(firstSeedRecord)
@@ -118,6 +118,18 @@ final class CompanionBookmarkRelayTests: XCTestCase {
         XCTAssertEqual(repeatedSeed, firstSeed)
         let macRecordsAfterSeed = try await mac.records.allRecords()
         XCTAssertEqual(macRecordsAfterSeed.filter { $0.dataClass == .bookmark }.count, 2)
+        // DoD 14 (owner decision 28 Sep 2026): a local-only bookmark never
+        // reaches the transport, by snapshot seeding or by direct enqueue.
+        let localOnly = try await mac.repository.createBookmark(
+            kind: .url, rootKind: nil, parentID: folder.id,
+            title: "Local", url: "chrome://bookmarks/"
+        ).bookmark
+        try await mac.bridge.enqueue(localOnly)
+        try await mac.bridge.enqueueLocalSnapshot()
+        let macRecordsWithLocalOnly = try await mac.records.allRecords()
+        XCTAssertEqual(macRecordsWithLocalOnly.filter { $0.dataClass == .bookmark }.count, 2)
+        let localOnlyRecord = try await mac.records.record(for: localOnly.id.rawValue)
+        XCTAssertNil(localOnlyRecord)
 
         _ = try await phone.repository.updateBookmark(
             page.id,
