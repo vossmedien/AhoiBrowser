@@ -10,9 +10,11 @@ Covered and now natively verified: Crest 126/138 (RED 18 failures on
 undo + schema 6 + routing restore, 136 Files spike, 142 R1/R3, Workspace
 duplication fix (`5e90a4e0`), Mobile compaction lease faults, and the owner
 decision that non-portable bookmarks (file:, chrome:, javascript:, data:)
-stay local on both platforms (`14e46da2`, `ba9f26cb`). Not yet compiled into
-a unit target run: sidebar/popup 142 R2/R4/R5/R6 (syntax-checked only;
-`ahoi_sidebar_tree_unittests` was never built). Open: visible journeys on an
+stay local on both platforms (`14e46da2`, `ba9f26cb`). `ahoi_sidebar_tree_unittests`
+then ran natively for the first time (`682192c8`): Crest 124 allocator and 142
+R6 pass; 11 failures + 2 timeouts + 1 crash are pre-existing sidebar test drift
+(geometry/animation/shelf, density test misusing split panes) and form a
+separate test-maintenance package. [Sidebar evidence](../artifacts/tests/cpp-sidebar-682192c8-20260928/README.md). Open: visible journeys on an
 installed candidate, real CloudKit peer, remaining Crest 146 paths.
 
 ## Crest 134 empty-merge undo source — 28 September 2026
