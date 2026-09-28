@@ -92,6 +92,10 @@ class LeaseGuard:
         # attributed to it. Any other input still cancels the run.
         self.driver_input_log = None
         self.driver_inputs = 0
+        # Last idle readings (seconds since guard start, HID idle seconds), so
+        # an "owner input" cancellation can be diagnosed from the evidence.
+        self.idle_samples = []
+        self._started_monotonic = time.monotonic()
         self._cancelled = threading.Event()
         self._finished = threading.Event()
         self._thread = None
@@ -200,6 +204,8 @@ class LeaseGuard:
             idle = state["hidIdleSeconds"]
             if type(idle) not in (int, float) or not math.isfinite(idle) or idle < 0:
                 raise LeaseError("owner-input probe unavailable")
+            self.idle_samples = (self.idle_samples + [
+                [round(time.monotonic() - self._started_monotonic, 2), idle]])[-12:]
             if ((not self.validation and idle < self.min_idle)
                     or time.monotonic() - idle > self._input_epoch + 2):
                 if not self._driver_input_explains(time.time() - idle):
@@ -311,7 +317,9 @@ class LeaseGuard:
                 "cancelled": self.reason is not None, "reason": self.reason,
                 "lockRetained": self._fd is not None,
                 "driverAccessibilityClients": sorted(self.driver_ax_clients),
-                "driverInputs": self.driver_inputs}
+                "driverInputs": self.driver_inputs,
+                "idleSamples": self.idle_samples,
+                "inputEpochOffset": round(self._input_epoch - self._started_monotonic, 2)}
 
     def __exit__(self, exc_type, exc, traceback):
         if exc_type is None:

@@ -849,6 +849,15 @@ ws-level-deletion fails in setup ("delete item missing for Kunde": the
 separated Workspace's menu lacks its delete item) — an H6/H2 finding for the
 Desktop owner.
 
+H3 on build 44: ws7/cb5 (16:56) were cancelled as "owner input" without
+real input (idle kept rising 666 → 680 s across them; `driverInputs` 0). A
+manual diagnosis on build 44 ran `workspace_switch_setup.sh` and four
+switches successfully — the Workspace-switch driver and its labels are now
+validated on the real UI, and no AX action resets HIDIdleTime (the
+process-posted Escape did, as known). The false cancellation's cause is
+still open; the guard now stores its last 12 idle samples and the input
+epoch in the evidence. Starter re-armed.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
