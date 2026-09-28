@@ -686,6 +686,9 @@ Crest sent the owner a read-only reclaimable-space report (~9.8 GiB of
 regenerable user caches); the owner will ask the user and rerun GREEN. Crest
 deletes nothing. C++ 132/140/144 and 138 GREEN remain pending on that rerun.
 
+Disk freed to 87–88 GiB (owner/user); owner GREEN `cpp-green-17aa591b` started
+12:40 under `build.lock`. 146 #11 confirmed covered by durable command replay.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

@@ -81,3 +81,10 @@ required by H2's DoD. No build is requested for this handoff alone.
   undo cannot restore twice. **#7 `7a2fd74`:** `CloseTabForNodeOnce` closes a
   deleted row's tab once while that tab is alive; a RED test needs a
   `beforeunload` browser test, as the owner notes. Both accepted as source.
+- **#11 (`17aa591`, owner note):** confirmed in source. The backend consumes
+  each command durably before delivery (`profile_sync_backend.cc:325`,
+  `SyncStore::ConsumeRemoteCommand`, `INSERT OR IGNORE` per `command_id` in
+  `sync_store_replay.cc:32-42`); a repeat yields `kAlreadyApplied` and is
+  recorded as `replay_rejected`, even across restarts. Cosmetic: both branches
+  of the ternary at `profile_sync_backend.cc:329-331` are identical. #1, #6,
+  #8, #10, #12 remain.
