@@ -1,0 +1,6 @@
+2026-09-28 14:07:34 green start idle=60.56 free=82GiB
+2026-09-28 14:14:49 green build 0 idle=43.53
+2026-09-28 14:14:54 green unit ahoi_tab_tree_unittests exit=0 SUCCESS: all tests passed
+2026-09-28 14:15:31 green unit ahoi_session_unittests exit=0 SUCCESS: all tests passed
+2026-09-28 14:16:06 green unit ahoi_sync_unittests exit=0 SUCCESS: all tests passed
+2026-09-28 14:16:06 done
