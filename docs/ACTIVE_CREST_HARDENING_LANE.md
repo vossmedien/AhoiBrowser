@@ -890,6 +890,12 @@ run. Queued `.work/crest-h3/run-45-dod.sh` for installed build 45: the two
 journeys under e2e.lock, then all scenarios ×5 incl. Speedometer under h3.lock
 on a quiet host (load < 3.6, idle ≥ 310 s).
 
+Owner added `tools/desktop_e2e/quick-window-adoption-journey.sh` (`6d8cda1f`,
+QUICK-03/04: adopt via command bar without clone/reload, command not offered
+again per 146 #6) and runs it on installed build 45 after its chain; the
+concurrent beforeunload race stays covered by the browser test. Crest's
+zero-tab/restore journeys follow once e2e.lock is free.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
