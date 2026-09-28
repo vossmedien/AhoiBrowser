@@ -730,6 +730,17 @@ free locks + ≥30 % idle, `build.lock`, build-for-testing 17aa591b with 2 jobs,
 six SyncMergeConformanceTests on CE3513BF with export env, simulator shutdown
 and lock release on exit). Owner informed.
 
+**H1.3 direct comparison PASS (13:35):** the 122 comparator reports PASS with
+zero differences for all six merge fixtures (232 cases: 140 standard, 8 UTF-8,
+6 inventory/asset, 36 remaining entities, 24 domain groups, 18 seeded
+sequences), C++ `83b6a54c` vs Swift `17aa591b` (no sync/mobile/fixture change
+between them). Evidence `artifacts/tests/crest-122-compare-20260928/`. The
+owner's `83b6a54c` GREEN also passes all ahoi_tab_tree and ahoi_session unit
+tests (the six crashes are fixed); ahoi_sync has one remaining failure
+(bookmark secret boundary finding). H1's shared-vector DoD is now natively
+met on both platforms with direct output comparison; store/CloudKit sequence
+behaviour remains outside a pair runner.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
