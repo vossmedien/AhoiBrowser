@@ -688,12 +688,7 @@ bool BrowserSidebarHostView::CloseTemporaryPageForDeletion(
       !node->is_temporary) {
     return false;
   }
-  tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node_id);
-  if (!tab) {
-    return false;
-  }
-  tab->Close();
-  return true;
+  return session_bridge_->CloseTabForNodeOnce(node_id);
 }
 
 }  // namespace ahoi::sidebar

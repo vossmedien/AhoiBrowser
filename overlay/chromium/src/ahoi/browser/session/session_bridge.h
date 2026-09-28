@@ -356,6 +356,10 @@ class SessionBridge : public KeyedService,
       tabs::TabInterface* tab);
 
   tabs::TabInterface* FindTabByTreeNodeId(const base::Uuid& node_id) const;
+  // Crest 146 #7: closes the tab bound to `node_id` at most once while that
+  // tab is alive, so a repeated delete during a pending beforeunload does not
+  // close again. False when no tab is bound.
+  bool CloseTabForNodeOnce(const base::Uuid& node_id);
   // Resolves the stable id published for a command-bar open-tab item: the
   // tab's shared tree UUID (saved and temporary pages); a process-local
   // TabHandle id prefixed with "runtime:" is still accepted.
@@ -626,6 +630,8 @@ class SessionBridge : public KeyedService,
   std::map<TabStripModel*, raw_ptr<BrowserWindowInterface>> model_windows_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<tabs::TabInterface*, RuntimeTabState> runtime_tabs_
+      GUARDED_BY_CONTEXT(sequence_checker_);
+  std::map<base::Uuid, base::WeakPtr<tabs::TabInterface>> closing_node_tabs_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<base::Uuid, MergeRuntimeReceipt> merge_runtime_receipts_
       GUARDED_BY_CONTEXT(sequence_checker_);

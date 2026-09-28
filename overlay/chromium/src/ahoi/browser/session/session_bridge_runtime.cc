@@ -504,4 +504,21 @@ void SessionBridge::PublishCommandItems() {
                                        std::move(workspaces)));
 }
 
+bool SessionBridge::CloseTabForNodeOnce(const base::Uuid& node_id) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  std::erase_if(closing_node_tabs_,
+                [](const auto& entry) { return !entry.second; });
+  tabs::TabInterface* const tab = FindTabByTreeNodeId(node_id);
+  if (!tab) {
+    return false;
+  }
+  const auto pending = closing_node_tabs_.find(node_id);
+  if (pending != closing_node_tabs_.end() && pending->second.get() == tab) {
+    return true;
+  }
+  closing_node_tabs_[node_id] = tab->GetWeakPtr();
+  tab->Close();
+  return true;
+}
+
 }  // namespace ahoi
