@@ -836,6 +836,19 @@ exists): keyed H5 audit (`.work/crest-h5/run-44.sh`, h3.lock) then the
 idle-gated H3 trace validation bound to build 44 (`lease-8772fbc0.md`,
 `run-when-idle-6.sh`).
 
+**H5 keyed audit on installed build 44 (`8772fbc0`), 16:45–16:57: all PASS**
+(NET-GCM-01, fresh-profile silence, PRIV-14 lists HTTP 200, PRIV-12);
+`translate.googleapis.com` 0 hits — the 094 Translate-off decision closes the
+build-40 keyed failure. Key redacted in the NetLog. Evidence
+`artifacts/network-audit/build44-keyed-8772fbc0-20260928/`. With the keyless
+build-40 audit, H5's DoD (NET-GCM-01 + fresh-profile audit on the candidate,
+keyed and keyless) is met.
+Owner build-44 journeys (16:28–16:45): ws-deletion-extended, split-archive-
+restore, auto-archive, keyboard-shortcuts, link-peek pass;
+ws-level-deletion fails in setup ("delete item missing for Kunde": the
+separated Workspace's menu lacks its delete item) — an H6/H2 finding for the
+Desktop owner.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

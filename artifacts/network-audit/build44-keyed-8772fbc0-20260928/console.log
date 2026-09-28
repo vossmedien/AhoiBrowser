@@ -1,0 +1,9 @@
+NET-GCM-01               PASS
+fresh-profile-silence    PASS
+PRIV-14-lists            PASS
+PRIV-12-endpoints        PASS
+  allowed     edgedl.me.gvt1.com x123
+  allowed     safebrowsing.googleapis.com x16
+  allowed     update.googleapis.com x150
+  navigated   example.com x16
+exit=0
