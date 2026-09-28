@@ -1,6 +1,6 @@
 # 144 — Shared browser-setting value conformance (H1 domain values)
 
-Status: ready (fixture + test-only runner patch; no native run)
+Status: integrated by owner in `7d034a66` (Swift) and `018a0a27` (C++/testdata); native run pending
 Owners: desktop/sync (C++ runner, BUILD.gn, testdata) and mobile (Swift runner)
 Base: committed `1ba0b14`.
 
