@@ -89,6 +89,9 @@ $AX dump $PID 14 > "$OUT/ax-quick-window.txt"
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || key 37 cmd
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || fail_setup "quick window command bar did not open"
 sleep 1; $AX type $PID "$SITE/quick.html" >> "$OUT/steps.txt"; sleep 1; key 36
+# A Return lost before the bar has key focus leaves the URL typed but
+# unsubmitted (build-45 rerun 3); submit once more before giving up.
+waiturl quick.html 5 || { echo "info: Return repeated" >> "$OUT/steps.txt"; key 36; }
 waiturl quick.html 20 || fail_setup "quick window did not load quick.html"; sleep 2
 BEFORE_ID=$(target_of quick.html); eval_in quick.html 'window.adoptMark=42' >/dev/null
 echo "quick target before $BEFORE_ID" >> "$OUT/pages.txt"
