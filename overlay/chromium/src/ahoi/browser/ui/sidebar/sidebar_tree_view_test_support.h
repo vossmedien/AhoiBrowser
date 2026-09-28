@@ -120,6 +120,8 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   std::vector<std::pair<int, base::Uuid>> split_temporary_requests;
   std::vector<std::pair<int, base::Uuid>> reorder_temporary_split_requests;
   std::vector<std::vector<base::Uuid>> split_groups;
+  // Sources whose split has a member without a node (Crest 142 R6).
+  std::vector<base::Uuid> unbound_split_sources;
   std::optional<split_tabs::SplitTabVisualData> split_visual_data;
   struct ResizeRequest {
     std::vector<base::Uuid> node_ids;

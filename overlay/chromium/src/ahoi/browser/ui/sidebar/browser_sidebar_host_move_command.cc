@@ -59,6 +59,10 @@ bool BrowserSidebarHostView::MoveSelectionToWorkspace(
       return true;
     }
     const std::vector<base::Uuid> source_ids = GetMoveGroupNodeIds(*node_id);
+    if (source_ids.empty()) {
+      OnMutationFailed(tab_tree::TabTreeStore::Result::kInvalidArgument);
+      return false;
+    }
     const bool moved_active_tab =
         active &&
         std::ranges::any_of(source_ids, [this, active](const base::Uuid& id) {

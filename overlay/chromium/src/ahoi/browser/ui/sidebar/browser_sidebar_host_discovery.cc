@@ -472,11 +472,15 @@ bool BrowserSidebarHostView::ActivateSidebarDiscoveryCommand(
       if (index < 0 || !window || !window->GetWindow()) {
         return false;
       }
-      discovery_state_.activation_committed = true;
       const base::WeakPtr<tabs::TabInterface> weak_tab = tab->GetWeakPtr();
-      model->ActivateTabAt(
-          index, TabStripUserGestureDetails(
-                     TabStripUserGestureDetails::GestureType::kKeyboard));
+      // Single writer (Crest 142 R2): switch to the tab's Workspace first, so
+      // a hidden tab is never activated for reconciliation to repair later.
+      if (!session_bridge_->ActivateTabInItsWorkspace(
+              tab, WorkspaceActivationSource::kSidebar,
+              /*user_gesture=*/true)) {
+        return false;
+      }
+      discovery_state_.activation_committed = true;
       if (weak_tab) {
         window = weak_tab->GetBrowserWindowInterface();
         if (window && window->GetWindow()) {

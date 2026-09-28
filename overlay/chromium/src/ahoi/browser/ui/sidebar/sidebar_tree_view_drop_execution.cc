@@ -148,12 +148,19 @@ void SidebarTreeView::PerformDrop(
   }
   const std::optional<base::Uuid> selected_before_drop =
       model().selected_node_id();
-  SidebarTreeController::DropExecutionResult result =
-      move_group.size() > 1
-          ? controller_->PerformGroupedDrop(
-                move_group, target, indicator.operation, base::Time::Now())
-          : controller_->PerformDrop(indicator.source_node_id, target,
-                                     indicator.operation, base::Time::Now());
+  SidebarTreeController::DropExecutionResult result;
+  if (move_group.empty()) {
+    // A split with an unbound member refuses instead of moving one pane.
+    result.store_result = tab_tree::TabTreeStore::Result::kInvalidArgument;
+  } else {
+    result = move_group.size() > 1
+                 ? controller_->PerformGroupedDrop(move_group, target,
+                                                   indicator.operation,
+                                                   base::Time::Now())
+                 : controller_->PerformDrop(indicator.source_node_id, target,
+                                            indicator.operation,
+                                            base::Time::Now());
+  }
   if (!result.ok()) {
     output_drag_op = ui::mojom::DragOperation::kNone;
     if (delegate_) {

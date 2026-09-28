@@ -102,6 +102,10 @@ bool RecordingDelegate::ResizeSavedPageSplit(
 
 std::vector<base::Uuid> RecordingDelegate::GetMoveGroupNodeIds(
     const base::Uuid& source_node_id) const {
+  if (std::ranges::find(unbound_split_sources, source_node_id) !=
+      unbound_split_sources.end()) {
+    return {};
+  }
   for (const std::vector<base::Uuid>& group : split_groups) {
     if (std::ranges::find(group, source_node_id) != group.end()) {
       return group;

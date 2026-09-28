@@ -168,6 +168,51 @@ TEST_F(SidebarTreeViewTest, NativeDragAndOutsideReleaseDoNotActivateRow) {
   EXPECT_FALSE(delegate_.activated_node.has_value());
 }
 
+// Crest 142 R6: a split whose member has no node refuses the move instead of
+// moving only the dragged pane.
+TEST_F(SidebarTreeViewTest, SplitMoveWithUnboundMemberIsRefused) {
+  tab_tree::Workspace workspace = MakeWorkspace();
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode source =
+      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
+               u"Source", "a");
+  tab_tree::TreeNode folder = MakeNode(
+      workspace, std::nullopt, tab_tree::TreeNodeType::kFolder, u"Folder", "c");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(source));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller_->ActivateWorkspace(workspace.id));
+  delegate_.unbound_split_sources = {source.id};
+
+  auto view = NewTreeView();
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
+  SidebarTreeRowView* source_row =
+      view->GetMaterializedRowForTesting(source.id);
+  ASSERT_NE(nullptr, source_row);
+  ui::OSExchangeData drag_data;
+  view->WriteDragDataForView(source_row, gfx::Point(30, 16), &drag_data);
+  const gfx::PointF folder_center(
+      120, SidebarTreeRowView::kRowHeight + SidebarTreeRowView::kRowHeight / 2);
+  ui::DropTargetEvent drop_event(drag_data, folder_center, folder_center,
+                                 ui::DragDropTypes::DRAG_MOVE);
+  view->OnDragUpdated(drop_event);
+  views::View::DropCallback drop_callback = view->GetDropCallback(drop_event);
+  ASSERT_TRUE(drop_callback);
+  ui::mojom::DragOperation output_operation = ui::mojom::DragOperation::kMove;
+  std::move(drop_callback)
+      .Run(drop_event, output_operation,
+           /*drag_image_layer_owner=*/nullptr);
+
+  EXPECT_EQ(ui::mojom::DragOperation::kNone, output_operation);
+  EXPECT_EQ(tab_tree::TabTreeStore::Result::kInvalidArgument,
+            delegate_.last_error);
+  tab_tree::TreeNode unmoved;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetNode(source.id, &unmoved));
+  EXPECT_FALSE(unmoved.parent_id.has_value());
+}
+
 }  // namespace
 
 }  // namespace ahoi::sidebar

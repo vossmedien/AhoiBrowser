@@ -63,6 +63,8 @@ class SidebarTreeViewDelegate {
                                     bool done_resizing) = 0;
   // Returns the complete saved-page unit that must follow a dragged pane.
   // Non-split pages return a one-element vector containing `source_node_id`.
+  // Empty means a split member is not bound yet: callers refuse the move
+  // instead of moving only part of the split (Crest 142 R6).
   virtual std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const = 0;
   // A drop from a split segment onto an ordinary tree target extracts only

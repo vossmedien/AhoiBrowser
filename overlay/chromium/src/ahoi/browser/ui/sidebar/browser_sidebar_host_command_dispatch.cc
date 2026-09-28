@@ -402,6 +402,10 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     }
     const std::vector<base::Uuid> source_ids =
         GetMoveGroupNodeIds(*context_.node_id);
+    if (source_ids.empty()) {
+      OnMutationFailed(tab_tree::TabTreeStore::Result::kInvalidArgument);
+      return;
+    }
     const bool moved_active_tab =
         std::ranges::any_of(source_ids, [this](const base::Uuid& node_id) {
           return session_bridge_->FindTabByTreeNodeId(node_id) ==

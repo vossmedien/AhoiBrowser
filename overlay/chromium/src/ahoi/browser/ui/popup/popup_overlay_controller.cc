@@ -68,23 +68,27 @@ std::u16string FallbackNotice(popup::PopupFallbackReason reason) {
 // Handoff 011 S7: a promoted popup keeps the opener's website session, so it
 // must join the opener's Workspace. Selecting that Workspace before the
 // insertion lets SessionBridge bind the new tab to it, instead of to whichever
-// Workspace the window shows by then.
-void SelectOpenerWorkspace(Browser* browser, content::WebContents* opener) {
+// Workspace the window shows by then. False only when a needed switch failed;
+// the caller then keeps the popup rather than landing it in the wrong
+// Workspace (Crest 142 R5).
+[[nodiscard]] bool SelectOpenerWorkspace(Browser* browser,
+                                         content::WebContents* opener) {
   SessionBridge* const bridge =
       browser ? SessionBridgeFactory::GetForProfile(browser->GetProfile())
               : nullptr;
   tabs::TabInterface* const opener_tab =
       opener ? tabs::TabInterface::MaybeGetFromContents(opener) : nullptr;
   if (!bridge || !opener_tab) {
-    return;
+    return true;
   }
   const std::optional<base::Uuid> workspace =
       bridge->GetWorkspaceForTab(opener_tab);
-  if (workspace.has_value() &&
-      workspace != bridge->GetActiveWorkspaceForWindow(browser)) {
-    bridge->SetActiveWorkspaceForWindow(
-        browser, *workspace, WorkspaceActivationSource::kDataReconciliation);
+  if (!workspace.has_value() ||
+      workspace == bridge->GetActiveWorkspaceForWindow(browser)) {
+    return true;
   }
+  return bridge->SetActiveWorkspaceForWindow(
+      browser, *workspace, WorkspaceActivationSource::kDataReconciliation);
 }
 
 }  // namespace
@@ -343,7 +347,9 @@ void PopupOverlayController::PromotePopupToTab() {
     return;
   }
   content::WebContents* const popup = service_.popup_contents();
-  SelectOpenerWorkspace(browser_, service_.opener());
+  if (!SelectOpenerWorkspace(browser_, service_.opener())) {
+    return;
+  }
   std::unique_ptr<content::WebContents> contents =
       service_.ReleaseForTransfer();
   if (!contents) {
@@ -370,7 +376,9 @@ void PopupOverlayController::SplitPopupWithOpener() {
   }
 
   TabStripModel* const model = browser_->GetTabStripModel();
-  SelectOpenerWorkspace(browser_, service_.opener());
+  if (!SelectOpenerWorkspace(browser_, service_.opener())) {
+    return;
+  }
   base::WeakPtr<content::WebContents> opener = service_.opener()->GetWeakPtr();
   content::WebContents* const popup = service_.popup_contents();
   std::unique_ptr<content::WebContents> contents =

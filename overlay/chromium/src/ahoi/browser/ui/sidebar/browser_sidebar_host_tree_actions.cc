@@ -454,7 +454,9 @@ std::vector<base::Uuid> BrowserSidebarHostView::GetMoveGroupNodeIds(
     const std::optional<base::Uuid> node_id =
         session_bridge_->FindTreeNodeIdForTab(tab);
     if (!node_id.has_value()) {
-      return {source_node_id};
+      // Crest 142 R6: never move only the bound part of a split. An empty
+      // group refuses the move until every member has its node.
+      return {};
     }
     node_ids.push_back(*node_id);
   }

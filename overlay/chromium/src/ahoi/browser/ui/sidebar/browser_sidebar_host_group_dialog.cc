@@ -584,6 +584,10 @@ void BrowserSidebarHostView::CreateGroupAroundNode(
   base::Uuid folder_id;
   const std::vector<base::Uuid> source_node_ids =
       GetMoveGroupNodeIds(source_node_id);
+  if (source_node_ids.empty()) {
+    OnMutationFailed(tab_tree::TabTreeStore::Result::kInvalidArgument);
+    return;
+  }
   const tab_tree::TabTreeStore::Result result =
       controller_->CreateGroupAroundNodes(
           source_node_ids, std::move(title), base::Time::Now(), &folder_id,
