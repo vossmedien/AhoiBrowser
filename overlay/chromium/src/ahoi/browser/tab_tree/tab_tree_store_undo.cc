@@ -248,7 +248,11 @@ void TabTreeStore::Notify(MutationKind kind,
                           const base::Uuid& subject_node_id,
                           std::vector<base::Uuid> node_ids) {
   DCHECK(subject_node_id.is_valid());
-  DCHECK(std::ranges::find(node_ids, subject_node_id) != node_ids.end());
+  // Only an empty-source Workspace merge undo is node-less: its subject is the
+  // revived Workspace (crest 134).
+  DCHECK(node_ids.empty()
+             ? kind == MutationKind::kUndone
+             : std::ranges::find(node_ids, subject_node_id) != node_ids.end());
   TabTreeChange change{.kind = kind,
                        .subject_node_id = subject_node_id,
                        .node_ids = std::move(node_ids)};

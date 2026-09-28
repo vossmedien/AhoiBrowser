@@ -29,8 +29,8 @@ constexpr char kSelectActiveWorkspaceNodesSql[] =
 
 constexpr char kInsertWorkspaceSql[] =
     "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
-    "created_at,modified_at,tombstone,archive_policy) "
-    "VALUES(?,?,?,?,?,?,?,?,?,?)";
+    "created_at,modified_at,tombstone,archive_policy,merged_into) "
+    "VALUES(?,?,?,?,?,?,?,?,?,?,?)";
 
 constexpr char kInsertNodeSql[] =
     "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
