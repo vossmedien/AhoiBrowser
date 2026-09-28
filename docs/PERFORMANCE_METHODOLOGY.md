@@ -163,6 +163,7 @@ their owned foreground process group; synthetic HID input also cancels a run.
 | `speedometer_score` | `speedometer` | Speedometer 3.1 score (`#result-number`) from browserbench.org |
 | `command_bar_ms` | `trace` | duration of `Ahoi.CommandBar.RebuildSuggestions` per keystroke (handoff 002) |
 | `workspace_switch_ms` | `trace` | duration of `Ahoi.Workspace.Switch` (handoff 002) |
+| `*_presented_ms` (e.g. `workspace_switch_presented_ms`, `command_bar_presented_ms`) | `trace` | from the start of each traced Ahoi event to the end (presentation) of the first `PipelineReporter` frame in the same process that begins after the event ends and whose state is `STATE_PRESENTED_ALL`/`PARTIAL` (`cc/metrics/compositor_frame_reporter.cc`; category `benchmark` is enabled). No such frame within 2 s aborts the run |
 
 Known limits, stated in every report:
 
@@ -183,10 +184,17 @@ Known limits, stated in every report:
 
 - RSS double-counts shared pages. It is used only for like-for-like
   comparison; physical-footprint accounting is future work.
-- `command_bar_ms` covers ranking and row construction, not the following
-  paint; `workspace_switch_ms` covers the commit, not the first presented
-  frame. PERF-04's separate "first feedback" and "animation end" still need
-  frame timing.
+- `command_bar_ms` covers ranking and row construction and
+  `workspace_switch_ms` the commit; the matching `*_presented_ms` metrics add
+  the first presented compositor frame of the browser process after the
+  event. PERF-04 therefore has a commit budget and a `PERF-04-presented`
+  budget. The frame selector (JSON field names of the async
+  `PipelineReporter` track and its `chrome_frame_reporter.state`) is
+  derived from the pinned source and not yet validated on a real trace; a
+  run without matching frames aborts rather than passing. PERF-04's
+  "animation end" is still not measured, and `command_bar_presented_ms` is
+  reported but not budgeted until the Master fixes whether PERF-03 includes
+  the paint.
 - The Speedometer result selector is not yet validated on a real run; a run
   without a score fails loudly.
 - Not covered by the runner: PERF-05 (10,000-node scroll), PERF-08 to PERF-15,
@@ -202,7 +210,8 @@ Known limits, stated in every report:
 | PERF-01 | Speedometer: worse side of the 95 % bootstrap interval of the median ratio at most 3 % below baseline |
 | PERF-02 | warm start (and first launch as `PERF-02-first`): at most 10 % slower, same interval rule |
 | PERF-03 | `command_bar_ms` p95 < 50 ms (absolute) |
-| PERF-04 | `workspace_switch_ms` p95 < 100 ms (absolute) |
+| PERF-04 | `workspace_switch_ms` p95 < 100 ms (absolute; commit) |
+| PERF-04-presented | `workspace_switch_presented_ms` p95 < 100 ms (absolute; first presented frame) |
 | PERF-06 | 20-tab memory: at most 5 % above baseline, same interval rule |
 | PERF-07 | idle CPU: candidate median at most max(3 × baseline MAD, 0.1 percentage points) above baseline median |
 

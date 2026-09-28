@@ -573,6 +573,16 @@ the view model; R5 popup ignores the switch result; R6 partial split move.
 12 transitions still lack a process-local operation ID (H2.2). Source-only;
 H2 DoD still needs owner fixes, tests and exact-candidate journeys.
 
+H3 presented-frame source step: the trace scenario now enables the
+`benchmark` category and derives `*_presented_ms` from Ahoi trace events to
+the first presented `PipelineReporter` frame in the same process that begins
+after the event (pinned `cc/metrics/compositor_frame_reporter.cc`). A traced
+event without such a frame within 2 s aborts the run. New `PERF-04-presented`
+budget: a commit-only run can no longer satisfy PERF-04's visible-reaction
+requirement or the aggregate pass (negative control). 92 local performance/
+network/engine-key tests pass. The frame selector is not validated on a real
+trace; animation end and PERF-03's paint scope remain open. No browser run.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

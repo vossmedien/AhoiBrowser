@@ -165,11 +165,23 @@ class StatsTest(unittest.TestCase):
                   "memory_20_tabs_kib": [100000] * 5,
                   "idle_cpu_percent": [0.1] * 5}
         candidate = run_file(**common, command_bar_ms=[10] * 5,
-                             workspace_switch_ms=[20] * 5)
+                             workspace_switch_ms=[20] * 5,
+                             workspace_switch_presented_ms=[60] * 5)
         baseline = run_file(baseline=True, **common)
         evaluation = ps.evaluate(candidate, baseline)
         self.assertTrue(all(v["verdict"] == "PASS" for v in evaluation["verdicts"]))
         self.assertTrue(evaluation["pass"])
+
+    def test_workspace_commit_alone_cannot_pass_perf_04_presentation(self):
+        # PERF-04 requires the visible reaction, not only the commit (Master).
+        committed_only = run_file(workspace_switch_ms=[20] * 5)
+        evaluation = ps.evaluate(committed_only, None)
+        self.assertEqual(verdict(evaluation, "PERF-04")["verdict"], "PASS")
+        self.assertEqual(verdict(evaluation, "PERF-04-presented")["verdict"], "NOT_MEASURED")
+        late_frame = run_file(workspace_switch_ms=[20] * 5,
+                              workspace_switch_presented_ms=[120] * 5)
+        self.assertEqual(verdict(ps.evaluate(late_frame, None), "PERF-04-presented")["verdict"],
+                         "FAIL")
 
 
 def fake_devtools_server():
@@ -277,6 +289,54 @@ class RunnerTest(unittest.TestCase):
             "Ahoi.CommandBar.Query": "command_bar_ms",
             "Ahoi.Workspace.Switch": "workspace_switch_ms"})
         self.assertEqual(result, {"command_bar_ms": [12.0], "workspace_switch_ms": [40.0]})
+
+    @staticmethod
+    def frame(pid, ident, begin, end, state="STATE_PRESENTED_ALL"):
+        return [{"name": "PipelineReporter", "ph": "b", "pid": pid, "id2": {"local": ident},
+                 "ts": begin, "args": {"chrome_frame_reporter": {"state": state}}},
+                {"name": "PipelineReporter", "ph": "e", "pid": pid, "id2": {"local": ident},
+                 "ts": end}]
+
+    def test_presented_latency_uses_first_presented_frame_begun_after_the_event(self):
+        switch = [{"name": "Ahoi.Workspace.Switch", "ph": "B", "pid": 7, "tid": 1, "ts": 1000},
+                  {"name": "Ahoi.Workspace.Switch", "ph": "E", "pid": 7, "tid": 1, "ts": 21000}]
+        events = (switch
+                  # Began before the switch ended: cannot contain its result.
+                  + self.frame(7, "0x1", 15000, 25000)
+                  # Dropped frame after the switch does not count.
+                  + self.frame(7, "0x2", 22000, 30000, "STATE_DROPPED")
+                  # Another process (renderer) is ignored.
+                  + self.frame(9, "0x3", 22000, 31000)
+                  + self.frame(7, "0x4", 33000, 49000, "STATE_PRESENTED_PARTIAL")
+                  + self.frame(7, "0x5", 50000, 60000))
+        result = runner.presented_latency_ms(events, {"Ahoi.Workspace.Switch": "workspace_switch_ms"})
+        self.assertEqual(result, {"workspace_switch_presented_ms": [48.0]})
+        self.assertEqual(runner.trace_durations_ms(
+            events, {"Ahoi.Workspace.Switch": "workspace_switch_ms"}),
+            {"workspace_switch_ms": [20.0]})
+
+    def test_presented_latency_for_complete_events(self):
+        events = ([{"name": "Ahoi.CommandBar.RebuildSuggestions", "ph": "X", "pid": 3,
+                    "ts": 100, "dur": 4000}] + self.frame(3, 17, 5000, 12100))
+        self.assertEqual(runner.presented_latency_ms(
+            events, {"Ahoi.CommandBar.RebuildSuggestions": "command_bar_ms"}),
+            {"command_bar_presented_ms": [12.0]})
+
+    def test_missing_or_late_presented_frame_aborts(self):
+        switch = [{"name": "Ahoi.Workspace.Switch", "ph": "X", "pid": 7, "ts": 0, "dur": 1000}]
+        names = {"Ahoi.Workspace.Switch": "workspace_switch_ms"}
+        for frames in ([], self.frame(7, "a", 2000, 9000, "STATE_NO_UPDATE_DESIRED"),
+                       self.frame(7, "b", 2000, 2_100_000)):
+            with self.subTest(frames=frames), self.assertRaises(runner.TraceError):
+                runner.presented_latency_ms(switch + frames, names)
+        # No traced Ahoi event yields an empty metric, not an error.
+        self.assertEqual(runner.presented_latency_ms(self.frame(7, "c", 1, 2), names),
+                         {"workspace_switch_presented_ms": []})
+
+    def test_trace_scenario_enables_frame_reporter_category(self):
+        import inspect
+        default = inspect.signature(runner.scenario_trace).parameters["categories"].default
+        self.assertIn("benchmark", default)
 
     def quiet_host(self, **overrides):
         return {"hardwareModel": "Mac", "cpuCount": 10, "osBuild": "b", "powerSource": "ac",

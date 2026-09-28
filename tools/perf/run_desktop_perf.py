@@ -473,8 +473,75 @@ def trace_durations_ms(events: list[dict], names: dict[str, str]) -> dict[str, l
     return result
 
 
+# cc/metrics/compositor_frame_reporter.cc emits one async "PipelineReporter"
+# track per compositor frame (categories "cc,benchmark,..."); the begin event
+# carries the frame's final state and its end is the presentation time.
+PRESENTED_FRAME_STATES = {"STATE_PRESENTED_ALL", "STATE_PRESENTED_PARTIAL"}
+PRESENTED_FRAME_LIMIT_US = 2_000_000  # a switch without a frame in 2 s is a failure
+
+
+class TraceError(RuntimeError):
+    pass
+
+
+def presented_frames(events: list[dict]) -> dict[int, list[tuple[float, float]]]:
+    """(begin, end) microseconds of presented PipelineReporter frames per pid."""
+    begins: dict[tuple, tuple[float, str]] = {}
+    frames: dict[int, list[tuple[float, float]]] = {}
+    for event in events:
+        if event.get("name") != "PipelineReporter" or event.get("ph") not in ("b", "e"):
+            continue
+        identity = event.get("id2") or event.get("id")
+        key = (event.get("pid"), json.dumps(identity, sort_keys=True))
+        if event["ph"] == "b":
+            reporter = (event.get("args") or {}).get("chrome_frame_reporter") or {}
+            begins[key] = (event["ts"], str(reporter.get("state", "")))
+            continue
+        begin = begins.pop(key, None)
+        if begin is not None and begin[1] in PRESENTED_FRAME_STATES:
+            frames.setdefault(event.get("pid"), []).append((begin[0], event["ts"]))
+    for values in frames.values():
+        values.sort()
+    return frames
+
+
+def presented_latency_ms(events: list[dict], names: dict[str, str]) -> dict[str, list[float]]:
+    """Ahoi event start to the end of the first presented frame begun after it ended.
+
+    A frame whose frame time precedes the end of the Ahoi event cannot contain
+    its result. Metric names end in `_presented_ms`. A traced Ahoi event with no
+    such frame in the same process within 2 s aborts the scenario, so a missing
+    frame can never shorten the statistic.
+    """
+    frames = presented_frames(events)
+    spans: list[tuple[str, int, float, float]] = []
+    open_events: dict[tuple, float] = {}
+    for event in events:
+        metric = names.get(event.get("name"))
+        if not metric:
+            continue
+        phase = event.get("ph")
+        if phase == "X":
+            spans.append((metric, event.get("pid"), event["ts"], event["ts"] + event.get("dur", 0)))
+        elif phase == "B":
+            open_events[(event["name"], event.get("pid"), event.get("tid"))] = event["ts"]
+        elif phase == "E":
+            start = open_events.pop((event["name"], event.get("pid"), event.get("tid")), None)
+            if start is not None:
+                spans.append((metric, event.get("pid"), start, event["ts"]))
+    result: dict[str, list[float]] = {
+        metric.removesuffix("_ms") + "_presented_ms": [] for metric in names.values()}
+    for metric, pid, start, end in spans:
+        frame = next((frame_end for frame_begin, frame_end in frames.get(pid, [])
+                      if frame_begin >= end), None)
+        if frame is None or frame - start > PRESENTED_FRAME_LIMIT_US:
+            raise TraceError(f"no presented frame after {metric} in process {pid}")
+        result[metric.removesuffix("_ms") + "_presented_ms"].append((frame - start) / 1000)
+    return result
+
+
 def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
-                   categories=("browser",), names=None) -> dict:
+                   categories=("browser", "benchmark"), names=None) -> dict:
     """Trace Ahoi UI events while an external driver (e.g. an axtool journey) runs.
 
     `driver` is a command receiving the browser PID and DevTools port as
@@ -496,7 +563,8 @@ def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
                     break
                 events.extend(message["params"]["value"])
     shutil.rmtree(profile, ignore_errors=True)
-    return trace_durations_ms(events, names or {})
+    return {**trace_durations_ms(events, names or {}),
+            **presented_latency_ms(events, names or {})}
 
 
 def run_driver(driver: str, env: dict, timeout: float = 900) -> None:
