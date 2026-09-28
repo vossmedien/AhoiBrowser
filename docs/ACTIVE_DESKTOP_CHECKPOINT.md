@@ -31,8 +31,13 @@ Product finding (open, branding/DoD 21): user-visible strings still say
 "Chromium" — window titles ("… - Chromium") and the crash prompt ("Chromium
 wurde nicht richtig beendet."). `BRANDING` sets the bundle names, but
 `chrome/app/chromium_strings.grd` (652 "Chromium" occurrences plus
-translations) is not rebranded; a build-time string rebrand is a separate
-package. Idle measurement for Crest's H3 guard: neither AX nor Apple Event
+translations) was not rebranded. **Addressed in source by patch 0071**
+(`41aa248b`, generator `tools/branding/`): 540 macOS-active product-name
+messages in English and German, incl. the app menu via `IDS_PRODUCT_NAME`;
+attribution/license texts and "Chromium OS" kept. **Not built yet: 18 GiB
+free is below the 32 GiB build floor** (largest consumers outside this
+project: FillIt scratch 22 GiB under `/private/tmp/claude-501`, CoreSimulator
+62 GiB). Idle measurement for Crest's H3 guard: neither AX nor Apple Event
 activation resets HIDIdleTime (`.work/agent-queue/idle-probe*.out`).
 No Ahoi crash was reported on 45 during these runs.
 
