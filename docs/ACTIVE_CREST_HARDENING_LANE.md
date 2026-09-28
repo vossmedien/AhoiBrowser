@@ -677,6 +677,15 @@ starter waits for it and for user idle.
 source-fixed; 146 #1, #6, #8, #10–12 remain. Tests for R1/R2/R4/R5, build and
 journeys pending.
 
+C++ run `cpp-units-fe2f9c5e` (owner, 12:03–12:25): RED on `54c29011` linked
+`ahoi_sync_unittests` before an unrelated session-test compile error;
+`SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames` fails with
+exactly 18 mismatches (Z,Q vs Q,Z), matching Swift → **138 RED on both
+platforms**. GREEN (`32d6e400`) blocked by the 64 GiB disk guard at 56.5 GiB.
+Crest sent the owner a read-only reclaimable-space report (~9.8 GiB of
+regenerable user caches); the owner will ask the user and rerun GREEN. Crest
+deletes nothing. C++ 132/140/144 and 138 GREEN remain pending on that rerun.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
