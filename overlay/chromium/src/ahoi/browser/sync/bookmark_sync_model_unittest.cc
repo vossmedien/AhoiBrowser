@@ -81,15 +81,27 @@ void ExpectInvalid(const BookmarkRecord& record) {
   EXPECT_FALSE(error.empty());
 }
 
-TEST(BookmarkSyncModelTest, PreservesNativeUrlSchemesAsMetadata) {
-  for (const char* url : {"https://example.test/path", "chrome://bookmarks/",
-                          "about:blank", "file:///tmp/guide.html",
-                          "javascript:alert(1)", "data:text/plain,hello"}) {
+// DoD 14 / owner decision 28 Sep 2026: only portable web URLs sync; native,
+// file, script and data URLs stay local-only on their device.
+TEST(BookmarkSyncModelTest, OnlyPortableWebUrlsCrossTheSyncBoundary) {
+  for (const char* url :
+       {"https://example.test/path", "http://example.test/"}) {
     SCOPED_TRACE(url);
     BookmarkRecord record = Page();
     record.url = url;
     EXPECT_TRUE(ValidateRecord(record));
+    EXPECT_FALSE(IsLocalOnlyBookmarkUrl(url));
   }
+  for (const char* url : {"chrome://bookmarks/", "about:blank",
+                          "file:///tmp/guide.html", "javascript:alert(1)",
+                          "data:text/plain,hello"}) {
+    SCOPED_TRACE(url);
+    BookmarkRecord record = Page();
+    record.url = url;
+    ExpectInvalid(record);
+    EXPECT_TRUE(IsLocalOnlyBookmarkUrl(url));
+  }
+  EXPECT_FALSE(IsLocalOnlyBookmarkUrl("https://user:secret@example.test/"));
   BookmarkRecord folder = Folder(1);
   folder.title.clear();
   EXPECT_TRUE(ValidateRecord(folder));

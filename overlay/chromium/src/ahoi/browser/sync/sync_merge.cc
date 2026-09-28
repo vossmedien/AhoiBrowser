@@ -144,6 +144,13 @@ bool IsValidSyncClock(const HlcStamp& stamp) {
          IsCanonicalSyncDeviceId(stamp.device_tiebreak);
 }
 
+bool IsLocalOnlyBookmarkUrl(const std::string& url) {
+  const GURL parsed(url);
+  return parsed.is_valid() && !parsed.has_username() &&
+         !parsed.has_password() &&
+         !(parsed.SchemeIsHTTPOrHTTPS() && !parsed.host().empty());
+}
+
 bool ValidateBookmarkContent(BookmarkKind kind,
                              const std::string& title,
                              const std::string& url,
@@ -165,11 +172,13 @@ bool ValidateBookmarkContent(BookmarkKind kind,
     }
     return true;
   }
-  // Native schemes remain metadata, not a navigation instruction. Embedded
-  // credentials have no representation in sync; never sanitize them into a
-  // different bookmark or include the offending value in diagnostics.
+  // Only portable web URLs cross the sync boundary (DoD 14). Local-only
+  // schemes stay on their device (IsLocalOnlyBookmarkUrl); embedded
+  // credentials have no representation. Never sanitize a URL into a different
+  // bookmark or include the offending value in diagnostics.
   const GURL parsed(url);
-  if (!parsed.is_valid() || parsed.has_username() || parsed.has_password()) {
+  if (!parsed.is_valid() || parsed.has_username() || parsed.has_password() ||
+      !parsed.SchemeIsHTTPOrHTTPS() || parsed.host().empty()) {
     SetError("invalid bookmark url", error);
     return false;
   }

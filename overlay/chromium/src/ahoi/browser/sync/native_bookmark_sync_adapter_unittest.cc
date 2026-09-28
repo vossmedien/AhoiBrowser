@@ -328,14 +328,19 @@ TEST_F(NativeBookmarkSyncAdapterTest,
   EXPECT_TRUE(projection->records[0].tombstone);
 }
 
+// Owner decision (DoD 14): local-only bookmarks are omitted from the snapshot
+// without pausing the portable ones.
 TEST_F(NativeBookmarkSyncAdapterTest,
-       NonWebMetadataDoesNotTriggerPrivacyPause) {
+       LocalOnlyBookmarksStayLocalWithoutPrivacyPause) {
   model_->AddURL(model_->bookmark_bar_node(), 0, u"Native",
                  GURL("chrome://bookmarks/"));
   model_->AddURL(model_->other_node(), 0, u"Local file",
                  GURL("file:///tmp/bookmark-fixture.html"));
+  model_->AddURL(model_->other_node(), 1, u"Web",
+                 GURL("https://example.test/"));
   Drain();
-  ASSERT_EQ(2u, snapshot_.entries.size());
+  ASSERT_EQ(1u, snapshot_.entries.size());
+  EXPECT_EQ("https://example.test/", snapshot_.entries[0].url);
   EXPECT_FALSE(snapshot_.local_data_blocked);
   EXPECT_FALSE(adapter_->local_data_blocked());
 }

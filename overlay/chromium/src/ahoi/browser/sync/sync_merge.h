@@ -62,6 +62,12 @@ MergeDecision MergeRecordFields(const SyncRecord& existing,
 // transport-independent and can be reused by a future iOS decoder.
 bool ValidateRecord(const SyncRecord& record, std::string* error = nullptr);
 
+// A valid native bookmark URL that stays on its device (DoD 14, owner
+// decision 28 Sep 2026): anything but an http(s) URL with a host, e.g.
+// file:, chrome:, javascript: bookmarklets or data:. Credentials are invalid,
+// not local-only.
+bool IsLocalOnlyBookmarkUrl(const std::string& url);
+
 // Shared native/wire content boundary. This does not invent record identity or
 // field clocks merely to check local metadata before any journal write.
 bool ValidateBookmarkContent(BookmarkKind kind,

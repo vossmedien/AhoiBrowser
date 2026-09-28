@@ -117,6 +117,13 @@ NativeBookmarkSnapshot NativeBookmarkSyncAdapter::Capture() {
         .title = base::UTF16ToUTF8(node->GetTitle()),
         .url = node->is_url() ? node->url().spec() : std::string(),
         .created_at = node->date_added()};
+    if (entry.kind == BookmarkKind::kUrl &&
+        IsLocalOnlyBookmarkUrl(entry.url)) {
+      // Owner decision (DoD 14): file:, chrome:, javascript: and data:
+      // bookmarks stay on this device. Omit them without blocking the rest;
+      // apply never removes a node that no synced record binds.
+      continue;
+    }
     if (!ValidateBookmarkContent(entry.kind, entry.title, entry.url,
                                  entry.created_at)) {
       // Keep the native data unchanged and outside the backend snapshot. The
