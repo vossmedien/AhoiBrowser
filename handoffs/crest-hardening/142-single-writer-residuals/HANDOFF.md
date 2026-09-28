@@ -1,6 +1,8 @@
 # 142 — Single-writer residuals at current source (H2.1/H2.3)
 
-Status: ready (source findings with proposed minimal fixes and RED tests; no patch)
+Status: R1 addressed by owner in `46ac0428` (bounded self-retry; separate flag
+rejected because the reply also refuses a stale `before`); R3 partly by
+`11e89142` (routing); R2, R4–R6 open; nothing run yet
 Owner lane: desktop (session bridge, sidebar, structure controller)
 Base: `de04e0aa`. Map: [H2.1 source map](../../../docs/reviews/crest-hardening-2026-09-28-single-writer-source-map.md).
 
