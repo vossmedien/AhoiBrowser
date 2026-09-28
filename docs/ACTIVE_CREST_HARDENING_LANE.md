@@ -649,6 +649,14 @@ Owner's C++ unit run `cpp-units-784c67a1` GREEN build stopped on the disk guard
 (61.1 of 64 GiB); Mobile red/green `ec3024e5` finished (RED 65, GREEN 2/2).
 The active AhoiBrowser owner session was messaged to coordinate the C++ rerun.
 
+**H5 result (installed build 40 `6acd207`, keyless, 11:43–11:55):**
+NET-GCM-01, fresh-profile silence, PRIV-12 and PRIV-16 **PASS**; PRIV-14 lists
+FAIL (HTTP 400 without key, owner decision PRIV-14). Evidence
+`artifacts/network-audit/6acd207-20260928/`. `h3.lock` released; the owner's
+queued C++ unit rerun (`cpp-units-fe2f9c5e`) may start. Swift 138 RED (18
+failures on `54c2901`) → GREEN and 144 GREEN are recorded by Mobile in
+`8ac0e445`, completing the Swift side of 132/138/140/144.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
