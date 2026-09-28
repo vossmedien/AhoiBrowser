@@ -1,6 +1,6 @@
 # 116 – Generated C++/Swift field/type catalogue required by H1.4
 
-Status: ready (lane source/assets; 5 local catalogue tests and freshness check pass after owner slot return; native consumer compilation pending)
+Status: accepted (owner, 28 Sep): C++ (pinned Clang, 147 static_asserts) and Swift 6 tables compile and match the JSON, mutation-checked; evidence artifacts/tests/catalogue-116-*-20260928/. Product adoption stays the Sync owner's decision.
 Owner: crest-hardening; Sync owner decides any later product-code adoption
 Baseline audit: `73360d7`. This adds no product writer or wire change.
 
