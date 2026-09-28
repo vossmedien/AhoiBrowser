@@ -657,6 +657,17 @@ queued C++ unit rerun (`cpp-units-fe2f9c5e`) may start. Swift 138 RED (18
 failures on `54c2901`) → GREEN and 144 GREEN are recorded by Mobile in
 `8ac0e445`, completing the Swift side of 132/138/140/144.
 
+**H3 validation (user-authorized, non-budget) on installed `6acd207`:** lease
+file `.work/crest-h3/lease-6acd207.md` (mode `validation`, exact binary/tree
+hashes, owner lock directory). Run 1 aborted at the first guard poll with a
+generic probe failure (the reason now names the exception class, `ee2b0cf`);
+run 2 aborted on real owner input ("owner input detected"), as designed. A
+detached starter (`.work/crest-h3/run-when-idle.sh`) waits for ≥300 s HID
+idle and no lock, then runs the Workspace-switch and command-bar validations
+(`artifacts/perf/6acd207-20260928-validation-{ws3,cb}`). The AX helpers are
+built (`ax_insert_text.swift` now compiles, not only parses). A budget verdict
+still needs the release pair, which the ~64 GiB free disk cannot hold.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
