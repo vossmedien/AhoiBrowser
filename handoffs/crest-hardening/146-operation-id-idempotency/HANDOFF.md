@@ -103,3 +103,15 @@ required by H2's DoD. No build is requested for this handoff alone.
   330-331`, `:404-405`), so a repeated saved-row delete cannot delete or
   rebind twice. #2–5/#7/#9 are natively green on `ba9f26cb`; #1, #6, #10, #12
   remain open.
+- **#1 `f1a9ebe`:** archive-with-close now tracks the `WebContents` captured
+  at the decision and reports after they are gone (250 ms polling, 30 s
+  `kArchiveCloseGrace`), then drops that archive's split tokens. Accepted.
+  Note: on the timeout path (`done(false)`, e.g. a held `beforeunload`) the
+  archive entry already stands while `CompleteArchiveAction(false)` shows the
+  "not completed" notice and skips `ScheduleRuntimePresentationRefresh()`, so
+  the sidebar may show the archived rows until the next event. Consider
+  refreshing on both outcomes.
+- **#6/#12 `40bd711`:** a `kReopenedForAdoptionKey` marker on the adopted
+  `WebContents` makes a repeated Quick Window adoption a no-op while
+  `beforeunload` holds the close; a repeated hand-over joins the opening
+  first window. Browser test added (not run). Accepted as source.

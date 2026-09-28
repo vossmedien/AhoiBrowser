@@ -792,6 +792,12 @@ animation/shelf drift, recorded by the owner for a separate package). H3 ws5
 re-armed trace-only (`run-when-idle-4.sh`: ws6 Workspace switch, cb4 command
 bar) because first paint is already validated.
 
+146 progress reviewed: #1 (`f1a9ebe`), #6/#12 (`40bd711`) accepted as
+source (minor note on the archive timeout path's missing presentation
+refresh); #8/#11 covered; #10 per owner covered by the native split token.
+All 146 transitions now have an owner answer; native runs of the new
+tests pending.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
