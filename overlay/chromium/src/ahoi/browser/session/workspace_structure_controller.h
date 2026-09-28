@@ -66,6 +66,12 @@ bool ResourceChangeInvalidatesStructure(bool was_protected,
 // hung renderer) must not keep a later manual dissolve of its split from
 // tombstoning the record.
 inline constexpr base::TimeDelta kArchiveCloseGrace = base::Seconds(30);
+
+// Crest 142 R1: a structure commit that failed or was cancelled (any tree
+// change during its disk write invalidates its snapshot) retries by itself
+// instead of waiting for an unrelated later event. Attempt 0 is the first
+// retry; nullopt ends the bounded series until the next native change.
+std::optional<base::TimeDelta> StructurePersistRetryDelay(int attempt);
 bool ArchiveCloseTokenLive(base::TimeTicks marked, base::TimeTicks now);
 
 class WorkspaceStructureController final
@@ -151,6 +157,8 @@ class WorkspaceStructureController final
   base::CallbackListSubscription resource_subscription_;
   base::CallbackListSubscription restored_subscription_;
   base::OneShotTimer archive_timer_;
+  base::OneShotTimer persist_retry_timer_;
+  int persist_retry_attempt_ = 0;
   bool initialized_ = false;
   bool observing_sync_ = false;
   bool scheduled_ = false;

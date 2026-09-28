@@ -50,6 +50,15 @@ bool ResourceChangeInvalidatesStructure(bool was_protected,
   return now_protected && !was_protected;
 }
 
+std::optional<base::TimeDelta> StructurePersistRetryDelay(int attempt) {
+  // 250 ms (the tree persistence debounce), doubling to 8 s, six attempts.
+  constexpr int kMaxAttempts = 6;
+  if (attempt < 0 || attempt >= kMaxAttempts) {
+    return std::nullopt;
+  }
+  return std::min(base::Milliseconds(250) * (1 << attempt), base::Seconds(8));
+}
+
 SplitCaptureAdoption ClassifySplitCapture(
     bool native_change,
     bool record_tombstone,
@@ -157,6 +166,7 @@ void WorkspaceStructureController::OnNativeChanged() {
   if (scope_->applying) {
     return;
   }
+  persist_retry_attempt_ = 0;
   scope_->epoch.fetch_add(1);
   Schedule();
 }
@@ -165,6 +175,7 @@ void WorkspaceStructureController::OnNativeMetadataChanged() {
   if (scope_->applying) {
     return;
   }
+  persist_retry_attempt_ = 0;
   Schedule();
 }
 
@@ -561,7 +572,21 @@ void WorkspaceStructureController::Persist(
             owner->persisting_ = false;
             if (ok && EncodeWorkspaceStructureState(owner->state_) == encoded)
               owner->dirty_ = false;
+            if (ok) {
+              owner->persist_retry_attempt_ = 0;
+            }
             std::move(done).Run(ok);
+            // After `done`, which may roll back a failed import, so a retry
+            // only persists what remains local state (Crest 142 R1).
+            if (!ok && owner && owner->dirty_ && owner->bridge_lifetime_) {
+              if (const auto delay = StructurePersistRetryDelay(
+                      owner->persist_retry_attempt_++)) {
+                owner->persist_retry_timer_.Start(
+                    FROM_HERE, *delay,
+                    base::BindOnce(&WorkspaceStructureController::Schedule,
+                                   owner));
+              }
+            }
           },
           weak_factory_.GetWeakPtr(), *encoded, std::move(done)),
       std::move(tree));

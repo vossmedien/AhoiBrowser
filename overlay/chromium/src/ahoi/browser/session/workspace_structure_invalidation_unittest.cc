@@ -46,5 +46,16 @@ TEST(WorkspaceStructureInvalidationTest, OnlyNewProtectionCancels) {
   EXPECT_FALSE(ResourceChangeInvalidatesStructure(false, false));
 }
 
+// Crest 142 R1: a cancelled structure commit retries on its own with a
+// bounded exponential series instead of waiting for an unrelated event.
+TEST(WorkspaceStructureInvalidationTest, CancelledCommitRetriesBounded) {
+  EXPECT_EQ(base::Milliseconds(250), StructurePersistRetryDelay(0));
+  EXPECT_EQ(base::Milliseconds(500), StructurePersistRetryDelay(1));
+  EXPECT_EQ(base::Seconds(4), StructurePersistRetryDelay(4));
+  EXPECT_EQ(base::Seconds(8), StructurePersistRetryDelay(5));
+  EXPECT_FALSE(StructurePersistRetryDelay(6));
+  EXPECT_FALSE(StructurePersistRetryDelay(-1));
+}
+
 }  // namespace
 }  // namespace ahoi::session
