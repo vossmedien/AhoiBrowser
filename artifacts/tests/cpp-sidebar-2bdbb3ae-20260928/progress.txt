@@ -1,0 +1,6 @@
+15:45:39 start
+15:45:40 commit 2bdbb3ae
+15:47:17 overlay 0
+15:57:38 build 0
+15:58:03 unit sidebar EXIT 0
+15:58:03 done
