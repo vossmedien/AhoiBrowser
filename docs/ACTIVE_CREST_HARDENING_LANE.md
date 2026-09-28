@@ -741,6 +741,14 @@ tests (the six crashes are fixed); ahoi_sync has one remaining failure
 met on both platforms with direct output comparison; store/CloudKit sequence
 behaviour remains outside a pair runner.
 
+H3 budget blocker (28 Sep 13:40): the full run needs `upstream-release` and
+`ahoi-release` builds (config/build/*.gn). Each needs ≥64 GiB free per
+BUILDING.md; 79 GiB are free, and both builds would hold the shared
+`build.lock` for many hours, stopping the owners' queues. Crest does not start
+them unilaterally; this needs the user's explicit go (disk plan and a
+multi-hour build window). Validation round 3 (ws5/cb3) still waits for ≥300 s
+user idle.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
