@@ -2,7 +2,8 @@
 
 Status: R1 addressed by owner in `46ac0428` (bounded self-retry; separate flag
 rejected because the reply also refuses a stale `before`); R3 partly by
-`11e89142` (routing); R2, R4–R6 open; nothing run yet
+`11e89142` (routing); R2, R5, R6 in `f479b6ea`; R3 rest and R4 open;
+nothing run yet
 Owner lane: desktop (session bridge, sidebar, structure controller)
 Base: `de04e0aa`. Map: [H2.1 source map](../../../docs/reviews/crest-hardening-2026-09-28-single-writer-source-map.md).
 
