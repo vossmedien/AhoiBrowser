@@ -515,10 +515,11 @@ class TraceError(RuntimeError):
     pass
 
 
-def presented_frames(events: list[dict]) -> dict[int, list[tuple[float, float]]]:
-    """(begin, end) microseconds of presented PipelineReporter frames per pid."""
-    begins: dict[tuple, tuple[float, str]] = {}
-    frames: dict[int, list[tuple[float, float]]] = {}
+def presented_frames(events: list[dict], by_host: bool = False) -> dict:
+    """(begin, end) microseconds of presented PipelineReporter frames per pid,
+    or per (pid, layer_tree_host_id) when `by_host` is set."""
+    begins: dict[tuple, tuple[float, str, object]] = {}
+    frames: dict = {}
     for event in events:
         if event.get("name") != "PipelineReporter" or event.get("ph") not in ("b", "e"):
             continue
@@ -529,11 +530,13 @@ def presented_frames(events: list[dict]) -> dict[int, list[tuple[float, float]]]
             # validation cb11); `chrome_frame_reporter` is the proto field name.
             args = event.get("args") or {}
             reporter = args.get("frame_reporter") or args.get("chrome_frame_reporter") or {}
-            begins[key] = (event["ts"], str(reporter.get("state", "")))
+            begins[key] = (event["ts"], str(reporter.get("state", "")),
+                           reporter.get("layer_tree_host_id"))
             continue
         begin = begins.pop(key, None)
         if begin is not None and begin[1] in PRESENTED_FRAME_STATES:
-            frames.setdefault(event.get("pid"), []).append((begin[0], event["ts"]))
+            group = (event.get("pid"), begin[2]) if by_host else event.get("pid")
+            frames.setdefault(group, []).append((begin[0], event["ts"]))
     for values in frames.values():
         values.sort()
     return frames
@@ -571,6 +574,20 @@ def presented_latency_ms(events: list[dict], names: dict[str, str]) -> dict[str,
         if frame is None or frame - start > PRESENTED_FRAME_LIMIT_US:
             raise TraceError(f"no presented frame after {metric} in process {pid}")
         result[metric.removesuffix("_ms") + "_presented_ms"].append((frame - start) / 1000)
+    # Diagnostic split per compositor (owner review of cb12: the window and the
+    # command bar present through different layer tree hosts). Not budgeted.
+    for (pid, host), host_frames in sorted(presented_frames(events, by_host=True).items(),
+                                           key=lambda item: str(item[0])):
+        if host is None:
+            continue
+        for metric, span_pid, start, end in spans:
+            if span_pid != pid:
+                continue
+            frame = next((frame_end for frame_begin, frame_end in host_frames
+                          if frame_begin >= end), None)
+            if frame is not None:
+                result.setdefault(f"{metric.removesuffix('_ms')}_presented_host{host}_ms",
+                                  []).append((frame - start) / 1000)
     return result
 
 

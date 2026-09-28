@@ -333,6 +333,22 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual(runner.presented_latency_ms(self.frame(7, "c", 1, 2), names),
                          {"workspace_switch_presented_ms": []})
 
+    def test_presented_latency_is_also_split_per_layer_tree_host(self):
+        def frame(ident, host, begin, end):
+            return [{"name": "PipelineReporter", "ph": "b", "pid": 1, "id2": {"local": ident},
+                     "ts": begin, "args": {"frame_reporter": {"state": "STATE_PRESENTED_ALL",
+                                                              "layer_tree_host_id": host}}},
+                    {"name": "PipelineReporter", "ph": "e", "pid": 1, "id2": {"local": ident},
+                     "ts": end}]
+        events = ([{"name": "Ahoi.CommandBar.RebuildSuggestions", "ph": "X", "pid": 1,
+                    "ts": 0, "dur": 1000}]
+                  + frame("a", 1, 2000, 15000) + frame("b", 11, 3000, 400000))
+        result = runner.presented_latency_ms(
+            events, {"Ahoi.CommandBar.RebuildSuggestions": "command_bar_ms"})
+        self.assertEqual(result["command_bar_presented_ms"], [15.0])
+        self.assertEqual(result["command_bar_presented_host1_ms"], [15.0])
+        self.assertEqual(result["command_bar_presented_host11_ms"], [400.0])
+
     def test_presented_frame_accepts_the_proto_field_name_too(self):
         events = ([{"name": "Ahoi.Workspace.Switch", "ph": "X", "pid": 1, "ts": 0, "dur": 10}]
                   + [{"name": "PipelineReporter", "ph": "b", "pid": 1, "id2": {"local": "0x9"},

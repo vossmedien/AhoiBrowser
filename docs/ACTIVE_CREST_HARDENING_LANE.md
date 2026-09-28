@@ -968,6 +968,13 @@ AX dump showed the create dialog still open with "Perf B" filled: the setup
 now inserts the name as a user edit (ax-insert) and retries "Erstellen".
 Starter re-armed (ws16/cb14).
 
+**H3 found a product bug:** the owner analysed cb12's trace per compositor:
+`RebuildSuggestions` only called `InvalidateLayout()`, which on Mac schedules
+a draw without damage, so new command-bar rows waited for the next unrelated
+paint (caret blink, ~345–410 ms). Fix `977853f9` (`SchedulePaint()` after the
+rebuild) lands in build 46 (blocked on disk space); Crest reruns cb there. The
+harness now also reports presented latency per `layer_tree_host_id`.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

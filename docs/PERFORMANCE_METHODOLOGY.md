@@ -229,7 +229,12 @@ Known limits, stated in every report:
   `PipelineReporter` track; the JSON trace carries the state as
   `args.frame_reporter.state`) is validated on build 45 (cb11: 73
   `STATE_PRESENTED_ALL` browser-process frames paired with 20 command-bar
-  events); a run without matching frames still aborts rather than passing. PERF-04's
+  events); a run without matching frames still aborts rather than passing.
+  Because the window and the command bar present through different layer
+  tree hosts, runs also report `*_presented_host<id>_ms` per compositor
+  (diagnostic, not budgeted); on cb12 host 1 had median 44 ms and host 11
+  (command bar) 420 ms, which exposed a missing paint after the rebuild
+  (Desktop fix `977853f9`, build 46). PERF-04's
   "animation end" is still not measured, and `command_bar_presented_ms` is
   reported but not budgeted until the Master fixes whether PERF-03 includes
   the paint.
