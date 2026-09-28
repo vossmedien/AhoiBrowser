@@ -69,19 +69,47 @@ std::optional<base::Uuid> ResolveMergeTarget(
   return std::nullopt;
 }
 
-std::string MergeRootMarker(const base::Uuid& workspace) {
-  return "!:ahoi-merge-root/" + workspace.AsLowercaseString() + "/";
+constexpr std::string_view kMergeRootPrefix = "!:ahoi-merge-root/";
+constexpr size_t kLowercaseUuidLength = 36;
+
+// The marker names the merged *source* Workspace, never the node's own one
+// (crest 126): an ordinary opaque key cannot claim a segment position unless
+// it spells a real merge source that resolves into the node's Workspace.
+std::string MergeRootMarker(const base::Uuid& source_workspace) {
+  return base::StrCat(
+      {kMergeRootPrefix, source_workspace.AsLowercaseString(), "/"});
 }
 
-std::optional<std::string> MergeRootSuffix(std::string_view key,
-                                         const base::Uuid& workspace) {
-  const std::string marker = MergeRootMarker(workspace);
-  const size_t position = key.rfind(marker);
-  if (position == std::string_view::npos ||
-      position + marker.size() == key.size()) {
-    return std::nullopt;
+struct MergeRootPosition {
+  base::Uuid source;
+  std::string suffix;
+};
+
+// The last marker in `key` whose source satisfies `merged_source` and is
+// followed by a nonempty suffix. Other marker-like text stays ordinary.
+std::optional<MergeRootPosition> FindMergeRootPosition(
+    std::string_view key,
+    const std::function<bool(const base::Uuid&)>& merged_source) {
+  size_t end = key.size();
+  while (end > 0) {
+    const size_t position = key.rfind(kMergeRootPrefix, end - 1);
+    if (position == std::string_view::npos) {
+      break;
+    }
+    end = position;
+    const size_t uuid_begin = position + kMergeRootPrefix.size();
+    const size_t suffix_begin = uuid_begin + kLowercaseUuidLength + 1;
+    if (suffix_begin >= key.size() || key[suffix_begin - 1] != '/') {
+      continue;
+    }
+    const base::Uuid source = base::Uuid::ParseLowercase(
+        key.substr(uuid_begin, kLowercaseUuidLength));
+    if (source.is_valid() && merged_source(source)) {
+      return MergeRootPosition{.source = source,
+                               .suffix = std::string(key.substr(suffix_begin))};
+    }
   }
-  return std::string(key.substr(position + marker.size()));
+  return std::nullopt;
 }
 
 std::string MergeRootToken(std::string_view key, const base::Uuid& node) {
@@ -100,12 +128,25 @@ std::string MergeRootToken(std::string_view key, const base::Uuid& node) {
   return result + "!/" + node.AsLowercaseString();
 }
 
-void ApplyMergeRootOrder(std::vector<tab_tree::TreeNode>* nodes,
-                        const std::set<base::Uuid>& merge_rehomed) {
+// `merge_rehomed` maps a passive late root to its raw source Workspace.
+// `merges_into(source, workspace)` is true only for a merged source whose
+// chain resolves to that live Workspace.
+void ApplyMergeRootOrder(
+    std::vector<tab_tree::TreeNode>* nodes,
+    const std::map<base::Uuid, base::Uuid>& merge_rehomed,
+    const std::function<bool(const base::Uuid&, const base::Uuid&)>&
+        merges_into) {
+  const auto authored_position =
+      [&merges_into](const tab_tree::TreeNode& node) {
+        return FindMergeRootPosition(
+            node.sort_key, [&](const base::Uuid& source) {
+              return merges_into(source, node.workspace_id);
+            });
+      };
   std::map<base::Uuid, std::string> ordinary_tails;
   for (const auto& node : *nodes) {
     if (node.tombstone || node.parent_id || merge_rehomed.contains(node.id) ||
-        MergeRootSuffix(node.sort_key, node.workspace_id)) {
+        authored_position(node)) {
       continue;
     }
     auto& tail = ordinary_tails[node.workspace_id];
@@ -115,18 +156,23 @@ void ApplyMergeRootOrder(std::vector<tab_tree::TreeNode>* nodes,
     if (node.tombstone || node.parent_id) {
       continue;
     }
-    const auto suffix = merge_rehomed.contains(node.id)
-                            ? std::make_optional(MergeRootToken(node.sort_key,
-                                                                node.id))
-                            : MergeRootSuffix(node.sort_key, node.workspace_id);
-    if (!suffix) {
+    std::optional<MergeRootPosition> segment;
+    if (const auto rehomed = merge_rehomed.find(node.id);
+        rehomed != merge_rehomed.end()) {
+      segment = MergeRootPosition{
+          .source = rehomed->second,
+          .suffix = MergeRootToken(node.sort_key, node.id)};
+    } else {
+      segment = authored_position(node);
+    }
+    if (!segment) {
       continue;
     }
     // An explicit subsequent move writes its real location clock and may
     // retain a suffix from this segment. Rebase that position with the passive
     // nodes, rather than repeatedly appending them past the user's move.
     node.sort_key = ordinary_tails[node.workspace_id] +
-                    MergeRootMarker(node.workspace_id) + *suffix;
+                    MergeRootMarker(segment->source) + segment->suffix;
   }
 }
 
@@ -285,7 +331,7 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
     local_nodes.emplace(node.id, &node);
   }
   std::set<base::Uuid> force_recovery;
-  std::set<base::Uuid> merge_rehomed;
+  std::map<base::Uuid, base::Uuid> merge_rehomed;
   for (const TreeNodeRecord& source : nodes) {
     if (!source.id.is_valid() || source.title.empty() ||
         source.sort_key.empty() || source.created_at.is_null() ||
@@ -341,9 +387,9 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
           node.workspace_id, result.workspaces, workspace_indexes,
           compacted_merge_targets);
       if (target && *target != node.workspace_id) {
+        merge_rehomed.emplace(node.id, node.workspace_id);
         node.workspace_id = *target;
         workspace = workspace_indexes.find(*target);
-        merge_rehomed.insert(node.id);
       }
     }
     if (workspace == workspace_indexes.end() ||
@@ -452,7 +498,17 @@ std::optional<tab_tree::TabTreeSnapshot> ReconcileTabTreeRecords(
                             .created_at = created,
                             .modified_at = created});
   }
-  ApplyMergeRootOrder(&result.nodes, merge_rehomed);
+  ApplyMergeRootOrder(
+      &result.nodes, merge_rehomed,
+      [&](const base::Uuid& source, const base::Uuid& workspace) {
+        if (source == workspace) {
+          return false;
+        }
+        const auto target =
+            ResolveMergeTarget(source, result.workspaces, workspace_indexes,
+                               compacted_merge_targets);
+        return target && *target == workspace;
+      });
   // Match the native export's ordering, including appended recovery folders.
   // Common's exact tree+receipt readback must not fail merely because provider
   // records arrived in another order or a fallback workspace was appended.
