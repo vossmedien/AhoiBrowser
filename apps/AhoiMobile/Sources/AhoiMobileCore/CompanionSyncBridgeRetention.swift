@@ -26,8 +26,11 @@ extension CompanionSyncBridge {
         try await compactAcknowledgedWorkspaces()
     }
 
-    private func compactAcknowledgedWorkspaces() async throws {
-        let now = UInt64(max(0, Date().timeIntervalSince1970 * 1_000))
+    /// Defers on transient lease loss instead of throwing; `now` is
+    /// injectable only so tests can reach the real 30-day expiry.
+    func compactAcknowledgedWorkspaces(
+        nowMilliseconds now: UInt64 = UInt64(max(0, Date().timeIntervalSince1970 * 1_000))
+    ) async throws {
         let snapshot = try await repository.currentSnapshot()
         let expired = snapshot.workspaces.compactMap { workspace -> WorkspaceID? in
             guard let tombstone = workspace.tombstone,

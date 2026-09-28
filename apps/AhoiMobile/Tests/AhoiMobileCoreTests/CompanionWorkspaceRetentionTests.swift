@@ -129,4 +129,181 @@ final class CompanionWorkspaceRetentionTests: XCTestCase {
             matching: merged, nowMilliseconds: floor)
         XCTAssertTrue(compacted)
     }
+
+#if DEBUG
+    func testTransientCompactionLeaseLossDefersWithoutThrowing() async throws {
+        let (bridge, repository, transport, sourceID, expiry) = try await makeMergeBridge()
+        transport.setMode(.leaseLost)
+        try await bridge.compactAcknowledgedWorkspaces(nowMilliseconds: expiry)
+        XCTAssertEqual(transport.compactionCalls, 1)
+        let snapshot = try await repository.currentSnapshot()
+        XCTAssertNotNil(snapshot.workspaces.first { $0.id == sourceID }?.tombstone)
+        XCTAssertTrue(snapshot.deletionWatermarks.isEmpty)
+        // performBoundedSyncNow runs the same maintenance; it must not fail.
+        try await bridge.syncNow()
+    }
+
+    func testCacheRefusalAfterDomainCommitRetriesIdempotently() async throws {
+        let (bridge, repository, transport, sourceID, expiry) = try await makeMergeBridge()
+        transport.setMode(.refuseAfterCommit)
+        try await bridge.compactAcknowledgedWorkspaces(nowMilliseconds: expiry)
+        var snapshot = try await repository.currentSnapshot()
+        XCTAssertFalse(snapshot.workspaces.contains { $0.id == sourceID })
+        XCTAssertEqual(snapshot.deletionWatermarks.map(\.entityID), [sourceID.rawValue])
+        let cached = try await transport.locallyPersistedRecord(
+            forRecordID: sourceID.rawValue)
+        XCTAssertNotNil(cached?.tombstone)
+        transport.setMode(.commitOnly)
+        // The committed watermark plus the retained cache copy re-enter the
+        // exact idempotent domain branch instead of failing or resurrecting.
+        try await bridge.compactAcknowledgedWorkspaces(nowMilliseconds: expiry)
+        XCTAssertEqual(transport.compactionCalls, 2)
+        snapshot = try await repository.currentSnapshot()
+        XCTAssertFalse(snapshot.workspaces.contains { $0.id == sourceID })
+        XCTAssertEqual(snapshot.deletionWatermarks.count, 1)
+    }
+
+    private func makeMergeBridge() async throws -> (
+        CompanionSyncBridge, LocalFirstRepository, LeaseFaultTransport, WorkspaceID, UInt64
+    ) {
+        let repository = LocalFirstRepository(store: InMemoryCompanionStore())
+        let source = try await repository.createWorkspace(name: "Source")
+        let target = try await repository.createWorkspace(name: "Target")
+        let merged = try await repository.mergeWorkspace(
+            source.id, into: target.id, intoFolder: false).source
+        let tombstone = try XCTUnwrap(merged.tombstone)
+        let floor = tombstone.deletedAt.physicalMilliseconds + 30 * 24 * 60 * 60 * 1_000
+        let transport = LeaseFaultTransport(
+            base: CompanionSyncVisibleTestTransport(recordStore: InMemorySyncRecordStore()))
+        let sealer = KeychainCompanionPayloadSealer(
+            configuration: .init(service: "retention-lease-test", account: "fixture",
+                                 keyVersion: 1),
+            keyLoader: { Data(repeating: 0x42, count: 32) })
+        let bridge = CompanionSyncBridge(
+            repository: repository, transport: transport, sealer: sealer)
+        try await bridge.enqueueLocalSnapshot()
+        let cached = try await transport.locallyPersistedRecord(
+            forRecordID: source.id.rawValue)
+        XCTAssertNotNil(cached?.tombstone)
+        return (bridge, repository, transport, source.id,
+                max(floor, tombstone.purgeAfterMilliseconds))
+    }
+#endif
 }
+
+#if DEBUG
+/// Forwards to the visible in-memory transport but replaces the receipt-backed
+/// compaction lease with deterministic lease/cache faults. It never grants a
+/// real CloudKit acknowledgement.
+private final class LeaseFaultTransport: CompanionSyncTransporting, @unchecked Sendable {
+    enum Mode { case leaseLost, refuseAfterCommit, commitOnly }
+
+    private let base: CompanionSyncVisibleTestTransport
+    private let lock = NSLock()
+    private var mode = Mode.leaseLost
+    private var calls = 0
+
+    init(base: CompanionSyncVisibleTestTransport) { self.base = base }
+
+    var compactionCalls: Int { lock.withLock { calls } }
+    func setMode(_ mode: Mode) { lock.withLock { self.mode = mode } }
+
+    func compactAcknowledgedWorkspace(
+        _ record: SyncRecord,
+        domainCommit: @Sendable () async throws -> Void
+    ) async throws -> Bool {
+        let mode = lock.withLock { () -> Mode in calls += 1; return self.mode }
+        switch mode {
+        case .leaseLost:
+            throw CloudKitSyncProviderError.unavailable
+        case .refuseAfterCommit:
+            try await domainCommit()
+            throw UploadedTombstoneReceiptError.pendingFetchedEnvelope
+        case .commitOnly:
+            try await domainCommit()
+            return false
+        }
+    }
+
+    func setBookmarkCategoryApproved(_ approved: Bool) {
+        base.setBookmarkCategoryApproved(approved)
+    }
+    func status() -> CloudKitSyncStatus { base.status() }
+    func allRecords() async throws -> [SyncRecord] { try await base.allRecords() }
+    func records(forRecordIDs recordIDs: [UUID]) async throws -> [SyncRecord] {
+        try await base.records(forRecordIDs: recordIDs)
+    }
+    func locallyPersistedRecord(forRecordID recordID: UUID) async throws -> SyncRecord? {
+        try await base.locallyPersistedRecord(forRecordID: recordID)
+    }
+    func enqueue(
+        _ record: SyncRecord, authorization: SyncAuthorizationContext
+    ) async throws {
+        try await base.enqueue(record, authorization: authorization)
+    }
+    func currentDeveloperAssetAuthorizationMutationEpoch() -> UInt64 {
+        base.currentDeveloperAssetAuthorizationMutationEpoch()
+    }
+    func enqueueLocalSnapshot(
+        _ records: [SyncRecord], authorizedDeveloperAssetIDs: Set<UUID>,
+        scanStartedAtMutationEpoch: UInt64
+    ) async throws {
+        try await base.enqueueLocalSnapshot(
+            records, authorizedDeveloperAssetIDs: authorizedDeveloperAssetIDs,
+            scanStartedAtMutationEpoch: scanStartedAtMutationEpoch)
+    }
+    func commitImportedDomainResults(
+        records: [SyncRecord], authorizedDeveloperAssetIDs: Set<UUID>,
+        revokedDeveloperAssetIDs: Set<UUID>
+    ) async throws {
+        try await base.commitImportedDomainResults(
+            records: records, authorizedDeveloperAssetIDs: authorizedDeveloperAssetIDs,
+            revokedDeveloperAssetIDs: revokedDeveloperAssetIDs)
+    }
+    func fetchChanges() async throws -> UInt64 { try await base.fetchChanges() }
+    func sendPendingChanges(passID: UInt64) async throws {
+        try await base.sendPendingChanges(passID: passID)
+    }
+    func finalizeBoundedSync(passID: UInt64) async throws {
+        try await base.finalizeBoundedSync(passID: passID)
+    }
+    func abortBoundedSyncPass(_ passID: UInt64) { base.abortBoundedSyncPass(passID) }
+    func beginDomainMergeActivity() throws { try base.beginDomainMergeActivity() }
+    func endDomainMergeActivity() { base.endDomainMergeActivity() }
+    func pendingFetchedRecords() async throws -> [SyncRecord] {
+        try await base.pendingFetchedRecords()
+    }
+    func pendingQuarantineRecoveryRecords() async throws -> [SyncRecord] {
+        try await base.pendingQuarantineRecoveryRecords()
+    }
+    func quarantineImportedRecord(_ record: SyncRecord, reason: String) async throws {
+        try await base.quarantineImportedRecord(record, reason: reason)
+    }
+    func resolveQuarantinedRecord(_ record: SyncRecord) async throws {
+        try await base.resolveQuarantinedRecord(record)
+    }
+    func acknowledgeFetchedRecords(_ records: [SyncRecord]) async throws {
+        try await base.acknowledgeFetchedRecords(records)
+    }
+    func hasPhysicalDeletionQuarantine() async -> Bool {
+        await base.hasPhysicalDeletionQuarantine()
+    }
+    func physicalDeletionRecoveryCandidates() async throws -> [(
+        record: SyncRecord, generation: UUID
+    )] {
+        try await base.physicalDeletionRecoveryCandidates()
+    }
+    func restorePhysicallyDeletedRecord(
+        _ record: SyncRecord, expectedGeneration: UUID
+    ) async throws -> Bool {
+        try await base.restorePhysicallyDeletedRecord(
+            record, expectedGeneration: expectedGeneration)
+    }
+    func acceptPhysicalDeletion(
+        recordID: UUID, expectedGeneration: UUID
+    ) async throws -> Bool {
+        try await base.acceptPhysicalDeletion(
+            recordID: recordID, expectedGeneration: expectedGeneration)
+    }
+}
+#endif
