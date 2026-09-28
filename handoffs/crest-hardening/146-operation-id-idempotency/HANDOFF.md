@@ -75,3 +75,7 @@ required by H2's DoD. No build is requested for this handoff alone.
   so the set is never empty by mistake. Accepted as source; no test yet
   (`SessionBridgeWebsiteSessionRemovalTest.PartitionClearedAfterTrackedCloses`
   and the merge counterpart remain proposed). Not compiled or run per commit.
+- **#4 `fcd926c`** (via 142 R3): receipt consumed once per source → repeated
+  undo cannot restore twice. **#7 `7a2fd74`:** `CloseTabForNodeOnce` closes a
+  deleted row's tab once while that tab is alive; a RED test needs a
+  `beforeunload` browser test, as the owner notes. Both accepted as source.

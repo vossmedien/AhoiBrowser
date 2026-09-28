@@ -70,3 +70,11 @@ No extra build is requested for this handoff alone.
 - R3 (window/tab bindings on merge undo) stays open; 146 covers its
   operation-ID side. R1/R2/R5/R6 pass pinned-Clang `-fsyntax-only` (11/11,
   `c5f415c`, source `d7c9109c`); nothing linked or run. R4 is not in that check.
+- **R3 `fcd926c`:** an undoable merge keeps an in-memory runtime receipt
+  (windows it switched, unbound tabs it moved) keyed by the source, consumed
+  once when the undo revives the source; only windows/tabs still showing the
+  target go back, so later user choices win. Nothing is persisted (neither
+  survives a restart). The bridge test now checks the window; the unbound-tab
+  restore has no test yet. Accepted as source. **All six 142 residuals are now
+  source-fixed**; tests for R1/R2/R4/R5 and the unbound-tab part of R3, the
+  build and the visible journeys remain.
