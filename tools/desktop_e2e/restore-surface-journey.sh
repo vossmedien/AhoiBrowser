@@ -138,7 +138,7 @@ PY2
   PID=$!; echo "restart $n pid=$PID" >> "$OUT/run.txt"
   waitax "AXWindow \\|" 40; sleep 6
   $AX dump $PID 30 > "$OUT/ax-restart-$n.txt"
-  NOW=$(grep -m1 -o -E '^ *AXWindow \| [^|]*' "$OUT/ax-restart-$n.txt" | sed -E 's/^ *AXWindow \| //; s/ - Chromium *$//; s/ *$//')
+  NOW=$(grep -m1 -o -E '^ *AXWindow \| [^|]*' "$OUT/ax-restart-$n.txt" | sed -E 's/^ *AXWindow \| //; s/ - (Chromium|AhoiBrowser) *$//; s/ *$//')
   if waitax "Zwei, Workspace wechseln" 5; then ws=true; else ws=false; fi
   if empty_state; then empty=true; else empty=false; fi
   echo "restart $n: workspace_zwei=$ws front=$NOW empty_state=$empty" >> "$OUT/steps.txt"
