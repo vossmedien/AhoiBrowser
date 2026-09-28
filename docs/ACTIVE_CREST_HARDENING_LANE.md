@@ -526,6 +526,28 @@ disambiguation still needs a reserved-key compatibility decision or other
 cross-platform evidence; parsing a plausible suffix cannot authenticate
 arbitrary opaque keys by itself.
 
+Claude continuation, 28 September 2026 (successor of the paused Codex lane
+goal; the Codex task text quoted the owner's `cfd0127` status, which remains
+the owner's scope and is recorded above). Repository HEAD `bcccfb4`; no
+Ahoi compiler/lock observed, but the host was at load 124 / 0 % idle with
+foreign compilers, so Crest ran only Python checks. A parallel Cockpit
+session shares this worktree; Crest stages only its own paths.
+
+H1.1 domain values:
+[140](../handoffs/crest-hardening/140-domain-group-merge-vectors/HANDOFF.md)
+adds **24** shared pair vectors, SHA-256
+`3c0292a72857567456598cdf0410f7492b488f2d2ecb7e55ff9035f65e3a9345`,
+for previously never-varied groups: Workspace archive policy/accent/
+modified_at, TreeNode page target, Home (atomic three-key replace, removal,
+dormant Home on a temporary page), temporary state and accent, and extension
+desired/storage setting values. It also corrects Crest's oracle: the TreeNode
+`url` group now carries `target_kind`/`local_scheme`, and a union forming a
+saved new tab is invalid like `ValidateRecord`. Every earlier fixture
+regenerates byte-identically; a negative control shows the old mapping's
+wrong target and false `mergeFields`. **87** local conformance tests pass;
+the test-only patch applies to HEAD and stacks with 138 in either order.
+Swift parsing is deferred for host load. No native result is claimed.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

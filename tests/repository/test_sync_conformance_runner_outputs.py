@@ -256,6 +256,7 @@ class RunnerOutputComparisonTest(unittest.TestCase):
         for name, count in (("merge_v3.json", 140), ("merge_utf8_sort_keys_v3.json", 8),
                             ("merge_inventory_asset_v3.json", 6),
                             ("merge_remaining_entities_v3.json", 36),
+                            ("merge_domain_groups_v3.json", 24),
                             ("merge_sequences_v3.json", 18)):
             _, document = compare.read_json(ROOT / "fixtures/sync-conformance" / name)
             self.assertEqual(len(compare.validate_fixture(document)), count)

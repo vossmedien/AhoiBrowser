@@ -134,6 +134,17 @@ projection fixture and test-only runner patch for 126. Native RED/GREEN and
 the owner design for genuinely distinguishing ordinary from authored opaque
 keys remain open; the original 112 fixture is unchanged.
 
+Domain-value follow-up (28 September): ready 140 adds 24 shared pair vectors
+for Workspace archive policy/accent/modified_at, TreeNode target/Home/
+temporary/accent and extension desired/storage setting values, and corrects
+the oracle's TreeNode `url` group and new-tab union rule. Source read: the
+record merge treats `value_json` as opaque RFC JSON (`sync_merge.cc`); the
+permitted-setting catalogue (`browser_setting_catalog.cc`: search-engine
+allowlist, bounded integers such as the auto-hide delay) is enforced by the
+native adapters before observation/apply. Those navigation/routing value rules
+therefore need adapter/apply cases on both platforms, not more pair vectors,
+and remain open. Native 140 results remain pending.
+
 ## Next work, ownership and stopping condition
 
 1. Finish H1 coverage/protocol work in lane paths; foreign runner changes only

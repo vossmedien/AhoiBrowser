@@ -23,8 +23,10 @@ GROUP_KEYS: dict[int, dict[str, list[str]]] = {
     0: {"type": ["device_type"]},  # device
     # workspace; merged_into travels with the tombstone (crest 084, ADR 0012).
     1: {"tombstone": ["tombstone", "merged_into"]},
+    # The page target travels as one group (sync_field_values.cc).
     2: {"location": ["workspace_id", "parent_id", "sort_key"],
         "kind": ["node_kind"],
+        "url": ["url", "target_kind", "local_scheme"],
         "home_target": ["home_target_kind", "home_url", "home_local_scheme"]},
     3: {},  # historyVisit
     4: {"url": ["url", "target_kind", "local_scheme"]},  # deviceTab
@@ -132,10 +134,13 @@ def union_valid(entity: int, payload: dict) -> bool:
     """Cross-group invariants of ValidateRecord that a union can break.
 
     Only the rules the vectors can reach are modelled: appearance forbids a
-    custom accent next to the system accent (sync_merge.cc).
+    custom accent next to the system accent, and a tree page's explicit new-tab
+    target (url group) requires the page to be temporary (sync_merge.cc).
     """
     if entity == 7:
         return not (payload.get("use_system_accent") and payload.get("accent_argb") is not None)
+    if entity == 2 and payload.get("node_kind") == 1:
+        return not (payload.get("target_kind") == 1 and not payload.get("is_temporary"))
     return True
 
 
