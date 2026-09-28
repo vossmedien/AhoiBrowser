@@ -7,7 +7,9 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 DRIVERS = ROOT / "tools/perf/drivers"
-HID_MODES = {"key", "hidkey", "type", "click", "rightclick", "hidrightclick"}
+# `key` posts to the process (CGEventPostToPid), not the HID tap; the others
+# are HID-system input and would cancel a guarded run.
+HID_MODES = {"hidkey", "type", "click", "rightclick", "hidrightclick"}
 
 # Simulated axtool: keeps the active Workspace, an open menu and a dialog in a
 # state directory and logs every invocation. Only the AX subcommands the
@@ -99,7 +101,7 @@ FAKE_BAR_AXTOOL = textwrap.dedent("""\
     S=$FAKE_AX_STATE; echo "$*" >> "$S/calls"
     case "$1" in
       dump) [ -f "$S/open" ] && echo "AXWindow | Suchen oder URL eingeben |"; exit 0 ;;
-      press) [ "$3" = "Adresse öffnen…" ] && touch "$S/open" && exit 0; exit 1 ;;
+      key) [ "$3 $4" = "17 cmd" ] && touch "$S/open" && exit 0; exit 1 ;;
       setvalue) exit 0 ;;
       *) echo "forbidden mode $1" >&2; exit 9 ;;
     esac
@@ -125,7 +127,7 @@ class CommandBarDriverTest(unittest.TestCase):
                      if not c.startswith("dump")]
             field = "Mit Google suchen oder eine URL eingeben"
             self.assertEqual(calls, [
-                "press 4242 Adresse öffnen…",
+                "key 4242 17 cmd",
                 f"setvalue 4242 {field} ", f"insert 4242 {field} alpha 400",
                 f"setvalue 4242 {field} ", f"insert 4242 {field} beta 400"])
 

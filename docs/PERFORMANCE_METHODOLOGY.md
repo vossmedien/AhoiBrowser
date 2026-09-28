@@ -149,8 +149,9 @@ Budget evaluation requires a completed, uncancelled guard record as well as
 build evidence. Earlier unmonitored runs remain insufficient. Trace drivers
 must wait for their work and may not daemonize background UI tasks outside
 their owned foreground process group; synthetic HID input also cancels a run.
-A driver therefore acts through AX actions (e.g. `axtool press`/`setvalue`,
-not its CGEvent `key`/`click` modes). An AX client inside a guard-spawned
+A driver therefore acts through AX actions (e.g. `axtool press`/`setvalue`)
+or key events posted to the browser process only (`axtool key`,
+`CGEventPostToPid`), never through the HID tap (`hidkey`, `type`, `click`). An AX client inside a guard-spawned
 session is recorded as `runtimeGuard.driverAccessibilityClients` and does not
 cancel the run; any other AX client appearing still cancels it. Trace budgets
 are compared only between runs driven the same way.
@@ -168,14 +169,16 @@ repository tests only; the first leased run validates labels and frames.
 
 Command bar (PERF-03) uses `tools/perf/drivers/command_bar_driver.sh` with
 `--trace-metric Ahoi.CommandBar.RebuildSuggestions=command_bar_ms`: it opens
-the bar through the "Adresse öffnen…" menu item (AXPress), clears the field
+the bar with a process-posted Command-T (patch 0001 opens the Ahoi bar only
+for keyboard shortcuts; the 28 September validation showed the
+"Adresse öffnen…" menu item does not), retrying dropped keys, clears the field
 with an AX value set (programmatic `SetText`, no `ContentsChanged`, so no
 sample) and inserts each query character through `AXSelectedText`
 (`kReplaceSelectedText` → `InsertOrReplaceText`, `kUserTriggered`), giving one
 rebuild per character like a keystroke. It needs a prebuilt
-`AHOI_AX_INSERT` from `tools/perf/drivers/ax_insert_text.swift`. Whether the
-menu item opens the Ahoi bar rather than the omnibox is validated in the first
-leased run.
+`AHOI_AX_INSERT` from `tools/perf/drivers/ax_insert_text.swift`. Whether a
+process-posted key leaves `HIDIdleTime` untouched is confirmed by the next
+guarded run (the guard cancels otherwise).
 
 ## 4. Metrics
 

@@ -708,6 +708,15 @@ receipts in `artifacts/tests/crest-122-cpp-17aa591b-20260928/`); the Swift
 export on the same source was requested from the Mobile owner, then the
 comparator runs.
 
+H3 validation results (installed `6acd207`, user-authorized, non-budget):
+ws3 completed the startup scenario with real first-paint samples (first launch
+13.2 s, warm 6.7 s on a loaded host) before real owner input cancelled it —
+first-paint selector and guard cancellation confirmed on a real candidate.
+cb showed that AXPress on "Adresse öffnen…" does not open the Ahoi bar
+(patch 0001: keyboard shortcuts only); the driver now posts ⌘T to the process
+with retries. The idle-gated starter is re-armed (`run-when-idle-2.sh`,
+runs ws4/cb2).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
