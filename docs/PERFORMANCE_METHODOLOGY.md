@@ -155,6 +155,19 @@ session is recorded as `runtimeGuard.driverAccessibilityClients` and does not
 cancel the run; any other AX client appearing still cancels it. Trace budgets
 are compared only between runs driven the same way.
 
+Workspace switch (PERF-04) uses `tools/perf/drivers/`:
+`--driver-setup tools/perf/drivers/workspace_switch_setup.sh` creates a second
+shared Workspace before tracing starts (no sample from its creation), and
+`--driver tools/perf/drivers/workspace_switch_driver.sh` then alternates
+`AHOI_PERF_SWITCHES` (default 20) times through the switcher menu with
+`AXShowMenu`/`AXPress` only, waiting until each target is visible, with
+`--trace-metric Ahoi.Workspace.Switch=workspace_switch_ms`. The drivers need a
+prebuilt `AHOI_AXTOOL` (they never compile) and the German product UI labels of
+the Desktop E2E journeys. They are exercised against a simulated axtool in
+repository tests only; the first leased run validates labels and frames. A
+command-bar driver is still missing because opening the command bar has no
+known AX action (the journeys use HID keys).
+
 ## 4. Metrics
 
 | Metric | Scenario | Definition |

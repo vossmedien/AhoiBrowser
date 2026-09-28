@@ -593,6 +593,14 @@ those journeys (labels from the Desktop E2E journeys) is still to be written
 and validated in a leased run. Owner meanwhile fixed 126 as source
 (`14297bc`/`0962fd3`); RED/GREEN pending.
 
+H3 Workspace-switch driver: `--driver-setup` runs before tracing starts;
+`tools/perf/drivers/workspace_switch_{setup,driver}.sh` create a second
+Workspace untraced and then alternate 20 switches via AXShowMenu/AXPress only
+(prebuilt axtool, no compilation, no HID). Repository tests drive both against
+a simulated axtool and reject HID modes; 99 local perf/network/engine-key
+tests pass. Real-label/frame validation needs the first leased run; a
+command-bar driver lacks an AX way to open the bar.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its

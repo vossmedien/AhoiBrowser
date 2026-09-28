@@ -105,6 +105,28 @@ class ScenarioCleanupTest(unittest.TestCase):
                 quit_browser.assert_called_once()
 
 
+class TraceSetupTest(unittest.TestCase):
+    def test_setup_runs_before_tracing_and_driver_inside_it(self):
+        calls = []
+        session = mock.Mock()
+        session.send.side_effect = lambda method, *a, **k: calls.append(method)
+        session.wait_any.return_value = {"method": "Tracing.tracingComplete"}
+        with tempfile.TemporaryDirectory() as directory, \
+                mock.patch.object(runner.subprocess, "Popen"), \
+                mock.patch.object(cdp, "wait_for_endpoint", return_value=0), \
+                mock.patch.object(cdp, "browser_session", return_value=session), \
+                mock.patch.object(runner.time, "sleep"), \
+                mock.patch.object(runner.Browser, "quit", autospec=True), \
+                mock.patch.object(runner, "run_driver",
+                                  side_effect=lambda command, env: calls.append(command)):
+            fixture = mock.Mock()
+            fixture.url.return_value = "about:blank"
+            runner.scenario_trace({"executable": "/fixture/browser"}, fixture, 9355, (), "t",
+                                  pathlib.Path(directory), driver="measure", setup="prepare",
+                                  names={})
+        self.assertEqual(calls[:4], ["prepare", "Tracing.start", "measure", "Tracing.end"])
+
+
 class AbortedEvidenceTest(unittest.TestCase):
     def test_partial_run_is_never_written_as_budget_evidence(self):
         for failure in (RuntimeError("SECRET_TEST_TEXT"), KeyboardInterrupt(),

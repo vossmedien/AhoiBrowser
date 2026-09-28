@@ -561,20 +561,24 @@ def presented_latency_ms(events: list[dict], names: dict[str, str]) -> dict[str,
 
 
 def scenario_trace(app, fixtures, port, flags, label, workdir, driver=None,
-                   categories=("browser", "benchmark"), names=None) -> dict:
+                   categories=("browser", "benchmark"), names=None, setup=None) -> dict:
     """Trace Ahoi UI events while an external driver (e.g. an axtool journey) runs.
 
     `driver` is a command receiving the browser PID and DevTools port as
     AHOI_PERF_PID / AHOI_PERF_PORT. Requires the Ahoi trace events of handoff 002.
+    An optional `setup` command (same environment) runs before tracing starts,
+    so preparation such as creating a second Workspace yields no samples.
     """
     profile = pathlib.Path(tempfile.mkdtemp(prefix="profile-", dir=workdir))
     events = []
     with Browser(app, profile, port, fixtures.url("/page/0"), flags) as browser:
         with contextlib.closing(browser.session()) as session:
-            session.send("Tracing.start", {"traceConfig": {"includedCategories": list(categories)},
-                                          "transferMode": "ReportEvents"})
             env = {**os.environ, "AHOI_PERF_PID": str(browser.process.pid),
                    "AHOI_PERF_PORT": str(port)}
+            if setup:
+                run_driver(setup, env)
+            session.send("Tracing.start", {"traceConfig": {"includedCategories": list(categories)},
+                                          "transferMode": "ReportEvents"})
             run_driver(driver, env)
             session.send("Tracing.end")
             while True:
@@ -639,6 +643,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--flag", action="append", default=[],
                         help="extra browser flag, applied to both apps")
     parser.add_argument("--driver", help="trace scenario: external journey command")
+    parser.add_argument("--driver-setup",
+                        help="trace scenario: preparation command run before tracing starts")
     parser.add_argument("--trace-metric", action="append", default=[],
                         help="trace scenario: EVENT_NAME=metric")
     parser.add_argument("--min-idle", type=int, default=300)
@@ -715,7 +721,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                         guard.check()
                         kwargs = {}
                         if scenario == "trace":
-                            kwargs = {"driver": args.driver, "names": names}
+                            kwargs = {"driver": args.driver, "names": names,
+                                      "setup": args.driver_setup}
                         samples = SCENARIOS[scenario](identity, fixtures, args.port,
                                                       tuple(args.flag), f"r{index}a{run_index}",
                                                       workdir, **kwargs)
