@@ -1,0 +1,4 @@
+[  FAILED  ] SyncSecretBoundaryTest.NoRecordCarriesCredentialsOrLocalUrls (14 ms)
+[  FAILED  ] SyncSecretBoundaryTest.NoRecordCarriesCredentialsOrLocalUrls (31 ms)
+1 test failed:
+Tests took 26 seconds.
