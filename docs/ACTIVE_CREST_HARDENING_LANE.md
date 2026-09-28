@@ -869,6 +869,14 @@ ws9 (17:03, build 44) confirmed the guard fix on a real run: stable
 last-input time for 42 s, then a genuine input at 49.8 s (user returned)
 cancelled it correctly. The starter keeps waiting for the next idle window.
 
+Crash attribution: the build-44 SIGABRT report 17:01 (launched 16:58:58) is
+Crest's own AX driver diagnosis (disposable profile, shared Workspaces only,
+AXShowMenu → ShowWorkspaceMenu → use-after-free of `archive_workspace_id`
+after `RunMenuAt`). The owner's `75a50fe0` WeakPtr check targets that path;
+Crest told the owner that no other-Profile hand-over is required to reach it.
+Build 45 (`75a50fe0` + level-journey fix) is running; its journeys should
+then be joined by Crest's H3 driver run on 45.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
