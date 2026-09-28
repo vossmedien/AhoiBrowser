@@ -806,6 +806,15 @@ to false; the toggle still enables it. Pinned-source path: with the pref off
 settings still fetches (user-caused). Runtime proof needs a keyed H5 audit on
 an installed build containing `1374b17b` (the installed `6acd207` predates it).
 
+Owner candidates (`880af6c8`, 16:00): build 42 (`f02457a3`, installed, 812
+unit tests green; two journeys hit a command-bar reentrancy SIGABRT fixed in
+`f772cdde`); build 43 (`40bd711d`, + 146 #6/#12) is installing and running six
+visible journeys (H2 evidence); build 44 queued with 146 #1, 094 Translate-off
+and the sidebar drift fixes. The Crest H3 validation lease was bound to
+build 40's bundle hashes, so the idle starter is stopped; Crest re-binds a
+lease to the next stable installed candidate (build 44) and then reruns the
+trace validation plus the keyed H5 audit (Translate-off is in 44, not 42/43).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
