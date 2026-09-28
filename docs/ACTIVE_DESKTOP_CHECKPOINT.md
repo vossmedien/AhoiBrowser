@@ -15,6 +15,11 @@ Quick Window closed, not offered again) and sidebar-discovery-switch (142 R2:
 Workspace switch before activation), plus Crest's empty-workspace-navigation
 (zero-tab, 142 R4) and ws-isolated (ADR 0011 hand-over, 146 #12). Crest's
 restore-surface run is still queued.
+New **incognito-journey** 12/12 (INC-01/02/03/05): ⌘⇧N window isolated from
+normal cookies, closing it leaves the normal session, the page never reaches
+tree, history, session files or any profile file (also after `kill -9`), and
+Chromium's crash prompt restores only the normal page. INC-04 (extension
+incognito allowance) remains with the extension journeys.
 
 Harness findings fixed on the way: macOS cooperative activation ignores AX
 `kAXFrontmost` while another app is frontmost, so `axtool activate` falls back
@@ -22,6 +27,13 @@ to an Apple Event (`3d53533e`; AX path measured not to reset HIDIdleTime);
 the journey runner now starts only when idle ≥90 s and locks are free at
 once. Product finding (open, UX): in the Quick Window, a trusted popup without
 a location bar, Chromium disables `⌘L`; only `⌘T` opens the command bar there.
+Product finding (open, branding/DoD 21): user-visible strings still say
+"Chromium" — window titles ("… - Chromium") and the crash prompt ("Chromium
+wurde nicht richtig beendet."). `BRANDING` sets the bundle names, but
+`chrome/app/chromium_strings.grd` (652 "Chromium" occurrences plus
+translations) is not rebranded; a build-time string rebrand is a separate
+package. Idle measurement for Crest's H3 guard: neither AX nor Apple Event
+activation resets HIDIdleTime (`.work/agent-queue/idle-probe*.out`).
 No Ahoi crash was reported on 45 during these runs.
 
 ## Candidate 44 and the workspace-menu crash — 28 September 2026, 17:15 CEST
