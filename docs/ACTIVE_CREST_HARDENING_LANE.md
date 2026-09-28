@@ -766,6 +766,15 @@ such records. No purge of already-synced local URLs is needed while
 `SyncSecretBoundaryTest` and the Swift relay test is pending (owner commits
 say not run).
 
+**Owner native GREEN on `ba9f26cb` (14:07–14:19, `2d04be19`):** C++
+ahoi_tab_tree/session/sync unit binaries all pass (bookmark secret boundary
+after DoD 14, 134 undo/schema 6/routing, 142 R1/R3, duplication fix, all nine
+Crest conformance runners) and Swift 61/61. Evidence
+`artifacts/tests/native-green-ba9f26cb-20260928/`. A sidebar C++ run for 142
+R2/R4/R5/R6 (`cpp-sidebar-961b1d81`) started 14:20. Still open for H2's DoD:
+build/install of a candidate with these fixes and the visible journeys
+(split, zero-tab, Workspace switch, restore, Quick Window adoption).
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
