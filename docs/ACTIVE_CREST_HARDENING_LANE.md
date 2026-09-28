@@ -785,6 +785,13 @@ while `store_` holds it (Chromium `exclusive_locking_` defaults to true,
 `FailedSavedSplitExtractionRollsBackOrdinaryTargetMove` should be checked
 first; the rest look like stale layout/animation expectations.
 
+Owner sidebar rerun `cpp-sidebar-682192c8` (harness fixes `682192c8`): the two
+triaged tests now pass (11 remaining failures are pre-existing layout/
+animation/shelf drift, recorded by the owner for a separate package). H3 ws5
+(14:53) was cancelled by genuine user input during startup; starter
+re-armed trace-only (`run-when-idle-4.sh`: ws6 Workspace switch, cb4 command
+bar) because first paint is already validated.
+
 Next allowed lane work: finish 132's light source validation, then coordinate
 owner intake and exact 122 differential runs when capacity allows. Continue
 H1 domain-value/store gaps and the remaining H3/H7 source work. Runtime work still requires its
