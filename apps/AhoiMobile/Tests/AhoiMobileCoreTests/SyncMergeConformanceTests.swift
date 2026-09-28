@@ -30,9 +30,31 @@ final class SyncMergeConformanceTests: XCTestCase {
         let cases: [Vector]
     }
 
+    private struct SequenceDocument: Decodable {
+        let schemaVersion: Int
+        let cases: [SequenceCase]
+    }
+
+    private struct SequenceCase: Decodable {
+        let name: String
+        let entityType: Int
+        let dataClass: String
+        let initial: JSONValue
+        let steps: [SequenceStep]
+        let expect: Expectation
+    }
+
+    private struct SequenceStep: Decodable {
+        let name: String
+        let incoming: JSONValue
+        let inputValid: Bool
+        let expect: Expectation
+    }
+
     /// Keeps the raw payload so it can be re-serialized for the codec.
     private struct JSONValue: Decodable {
         let data: Data
+        init(data: Data) { self.data = data }
         init(from decoder: Decoder) throws {
             let object = try AnyJSON(from: decoder).value
             data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
@@ -58,6 +80,10 @@ final class SyncMergeConformanceTests: XCTestCase {
     private func vectorsURL(_ name: String = "merge_v3.json") -> URL {
         if name == "merge_v3.json",
            let path = ProcessInfo.processInfo.environment["AHOI_SYNC_CONFORMANCE_FIXTURE"] {
+            return URL(fileURLWithPath: path)
+        }
+        if name == "merge_sequences_v3.json",
+           let path = ProcessInfo.processInfo.environment["AHOI_SYNC_CONFORMANCE_SEQUENCE_FIXTURE"] {
             return URL(fileURLWithPath: path)
         }
         // Tests run on the Mac host, so the repository file is readable directly.
@@ -345,6 +371,75 @@ final class SyncMergeConformanceTests: XCTestCase {
         try checkVectors("merge_remaining_entities_v3.json")
     }
 
+    /// Crest 140: page target, Home, temporary state, accents, archive policy
+    /// and extension setup/storage values, including the new-tab union rejection.
+    func testDomainGroupVectors() throws {
+        try checkVectors("merge_domain_groups_v3.json")
+    }
+
+    private func canonicalWireJSON(_ data: Data) throws -> Data {
+        let object = try JSONSerialization.jsonObject(with: data)
+        return try JSONSerialization.data(
+            withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
+    }
+
+    func testSeededMergeSequences() throws {
+        if let path = ProcessInfo.processInfo.environment["AHOI_SYNC_CONFORMANCE_SEQUENCE_FIXTURE"],
+           !path.hasPrefix("/") { throw ExportError.invalidConfiguration }
+        let fixture = vectorsURL("merge_sequences_v3.json")
+        let bytes = try Data(contentsOf: fixture)
+        let document = try JSONDecoder().decode(SequenceDocument.self, from: bytes)
+        XCTAssertEqual(document.schemaVersion, 1)
+        var outputs: [[String: Any]] = []
+        for sequence in document.cases {
+            XCTAssertTrue(Self.covered.contains(sequence.entityType))
+            XCTAssertFalse(sequence.steps.isEmpty)
+            var current = sequence.initial
+            for step in sequence.steps {
+                let pair = Vector(
+                    name: sequence.name + "." + step.name,
+                    entityType: sequence.entityType, dataClass: sequence.dataClass,
+                    inputValid: step.inputValid, existing: current,
+                    incoming: step.incoming, expect: step.expect)
+                do {
+                    let (merged, want, actualBytes) = try run(
+                        pair, merged: step.expect.merged)
+                    if step.expect.decision == "invalid" {
+                        XCTFail("\(pair.name): expected rejection, merged \(merged)")
+                    } else {
+                        let diff = Self.wireFields(merged).symmetricDifferenceDescription(
+                            Self.wireFields(want as Any))
+                        if !diff.isEmpty { XCTFail("\(pair.name): \(diff)") }
+                    }
+                    // The next operation consumes the actual product codec
+                    // output, never the expected intermediate fixture.
+                    current = JSONValue(data: actualBytes)
+                } catch let rejection as Rejection {
+                    if step.expect.decision != "invalid" ||
+                        (step.inputValid && rejection.stage == "decode") {
+                        XCTFail("\(pair.name): unexpected \(rejection.stage) rejection")
+                    }
+                    // Invalid incoming records are quarantined; the actual
+                    // accepted state remains the input to the next step.
+                }
+            }
+            guard let expected = sequence.expect.merged else {
+                XCTFail("\(sequence.name): final expected payload missing")
+                continue
+            }
+            if try canonicalWireJSON(current.data) != canonicalWireJSON(expected.data) {
+                XCTFail("\(sequence.name): final canonical wire payload differs")
+            }
+            outputs.append([
+                "name": sequence.name, "entityType": sequence.entityType,
+                "outcome": "accepted", "rejectionStage": NSNull(),
+                "payload": try JSONSerialization.jsonObject(with: current.data),
+            ])
+        }
+        XCTAssertFalse(outputs.isEmpty)
+        try exportResults(outputs, fixture: fixture, bytes: bytes)
+    }
+
     private func exportResults(_ results: [[String: Any]], fixture: URL, bytes: Data) throws {
         let env = ProcessInfo.processInfo.environment
         guard let directory = env["AHOI_SYNC_CONFORMANCE_OUTPUT_DIR"] else { return }
@@ -475,8 +570,15 @@ final class SyncMergeConformanceTests: XCTestCase {
     }
 
     func testSharedWorkspaceMergeProjectionFrames() throws {
-        let url = vectorsURL().deletingLastPathComponent()
-            .appendingPathComponent("workspace_merge_projection_v3.json")
+        try checkWorkspaceProjectionFrames("workspace_merge_projection_v3.json")
+    }
+
+    func testMarkerCollisionProjectionFrames() throws {
+        try checkWorkspaceProjectionFrames("workspace_merge_marker_collision_v3.json")
+    }
+
+    private func checkWorkspaceProjectionFrames(_ name: String) throws {
+        let url = vectorsURL(name)
         let document = try JSONDecoder().decode(ProjectionDocument.self, from: Data(contentsOf: url))
         XCTAssertEqual(document.schemaVersion, 1)
         XCTAssertEqual(document.modelVersion, 3)
