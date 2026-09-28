@@ -25,8 +25,10 @@ the committed watermark and `compactWorkspaceTombstone`'s idempotent branch;
 cache removal rechecks exact record, receipt and fetched inbox, so a racing
 newer copy is never dropped. Known cost: every committed Workspace watermark
 is probed in the transport cache twice per sync (O(watermarks)).
-Remaining open: a bridge-level test with a throwing fake transport, the three
-repository-retention tests, Crest 128/130/138 native RED/GREEN, and Desktop
+`501785d` adds two bridge-level regressions with a forwarding fault transport
+(lease loss before commit; cache refusal after commit, then idempotent retry)
+and a test-only injectable maintenance clock; parse-checked, **not run**.
+Remaining open: running these two plus the three repository-retention tests, Crest 128/130/138 native RED/GREEN, and Desktop
 124/126 R1 — all in a bounded slot on one frozen candidate.
 
 ## Root 1163 restart handback — 27 September 2026, 12:11 CEST
