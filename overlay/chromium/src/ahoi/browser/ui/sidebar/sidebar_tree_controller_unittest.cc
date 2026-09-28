@@ -639,12 +639,11 @@ TEST_F(SidebarTreeControllerTest, DropKeysRemainValidAcrossUnicodeAndLengthBound
     EXPECT_LT(created.sort_key, right_key);
     EXPECT_LE(created.sort_key.size(), 1024u);
     EXPECT_TRUE(base::IsStringUTF8(created.sort_key));
-    tab_tree::TabTreeStore reopened;
-    ASSERT_TRUE(reopened.Initialize(
-        temp_dir_.GetPath().AppendASCII("SidebarTree.sqlite")));
+    // The fixture keeps the file open with SQLite's exclusive locking, so a
+    // second connection cannot open it; the store reads the durable row.
     tab_tree::TreeNode persisted;
     ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
-              reopened.GetNode(created.id, &persisted));
+              store_.GetNode(created.id, &persisted));
     EXPECT_EQ(created.sort_key, persisted.sort_key);
   }
 }

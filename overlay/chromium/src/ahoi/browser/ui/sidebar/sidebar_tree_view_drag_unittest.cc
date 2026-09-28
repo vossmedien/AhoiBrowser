@@ -642,6 +642,11 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(source));
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(sibling));
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(folder));
+  // Compare with the stored rows: saving a page also initializes its Home.
+  for (tab_tree::TreeNode* node : {&source, &sibling, &folder}) {
+    ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+              store_.GetNode(node->id, node));
+  }
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             controller_->ActivateWorkspace(workspace.id));
   ASSERT_TRUE(controller_->SelectNode(sibling.id));
