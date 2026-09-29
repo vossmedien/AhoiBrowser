@@ -261,9 +261,9 @@ TEST_F(SessionBridgeTest, DroppedDetachedTabIsRetiredFailClosed) {
 // release the WebContents; the saved row survives. A temporary page bound
 // the same way is a temporary tab, and closing it removes its node.
 TEST_F(SessionBridgeTest, ClosingBoundTabKeepsSavedPageButNotTemporary) {
-  tab_tree::Workspace workspace = MakeWorkspace(u"Workspace", "a");
-  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({workspace}));
-  task_environment()->RunUntilIdle();
+  // The store only accepts nodes of a workspace it already knows.
+  const tab_tree::Workspace workspace =
+      workspace_service_->ordered_workspaces().front();
   tab_tree::TabTreeStore* store = bridge_->tab_tree_store();
   ASSERT_TRUE(store);
 
