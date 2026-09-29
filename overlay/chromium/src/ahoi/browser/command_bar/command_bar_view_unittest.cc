@@ -13,8 +13,10 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
+#include "chrome/grit/generated_resources.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/accessibility/ax_enums.mojom.h"
+#include "ui/base/resource/resource_bundle.h"
 #include "ui/events/event.h"
 #include "ui/events/keycodes/keyboard_codes.h"
 #include "ui/events/test/test_event.h"
@@ -38,6 +40,17 @@ class CommandBarViewTest : public views::ViewsTestBase {
  public:
   void SetUp() override {
     views::ViewsTestBase::SetUp();
+    // The unit-test pak carries no Chrome strings; the view's own strings
+    // are supplied here instead.
+    auto& bundle = ui::ResourceBundle::GetSharedInstance();
+    bundle.OverrideLocaleStringResource(IDS_AHOI_COMMAND_BAR_HINT_SELECT,
+                                        u"Auswählen");
+    bundle.OverrideLocaleStringResource(IDS_AHOI_COMMAND_BAR_HINT_OPEN,
+                                        u"Öffnen");
+    bundle.OverrideLocaleStringResource(IDS_AHOI_COMMAND_BAR_HINT_CLOSE,
+                                        u"Schließen");
+    bundle.OverrideLocaleStringResource(IDS_AHOI_COMMAND_BAR_CURRENT_TAB,
+                                        u"Aktueller Tab");
     CreateView(CommandBarDisposition::kCurrentTab);
   }
 

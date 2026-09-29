@@ -126,6 +126,7 @@ source_set("unit_tests") {
     ":command_bar_core",
     ":quick_window_policy",
     "//ahoi/browser/ui:dialog_style_unit_tests",
+    "//chrome/app:generated_resources",
     "//ahoi/browser/ui:modal_overlay_unit_tests",
     "//ahoi/browser/ui:visual_style",
     "//base/test:test_support",
