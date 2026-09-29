@@ -214,10 +214,13 @@ class TabTreeStore {
   // Tombstones multiple disjoint roots (and their descendants) in one SQLite
   // transaction and one durable undo operation. This keeps every pane of a
   // split collection together when saved tabs are moved back to the temporary
-  // open-tab section.
+  // open-tab section. Without `record_undo` nothing enters the undo history:
+  // undoing a cross-Profile move removes the target's copy this way, which a
+  // later Cmd+Z there must not bring back (ADR 0011 WS-ISO-05).
   [[nodiscard]] Result DeleteNodesAtomically(
       const std::vector<base::Uuid>& node_ids,
-      base::Time modified_at);
+      base::Time modified_at,
+      bool record_undo = true);
   [[nodiscard]] Result UndoLastMutation();
 
   [[nodiscard]] Result GetWorkspaces(std::vector<Workspace>* workspaces);

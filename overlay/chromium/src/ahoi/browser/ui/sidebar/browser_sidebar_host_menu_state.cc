@@ -285,7 +285,15 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
   if (command_id == kMoveTo) {
     return (context_.scope == ContextMenuScope::kTree ||
             context_.scope == ContextMenuScope::kOpenTab) &&
-           !context_.move_destinations.empty();
+           (!context_.move_destinations.empty() ||
+            !context_.cross_level_targets.empty());
+  }
+  if (command_id >= kCrossLevelMoveCommandBase &&
+      command_id < kMoveToDestinationCommandBase) {
+    return (context_.scope == ContextMenuScope::kTree ||
+            context_.scope == ContextMenuScope::kOpenTab) &&
+           static_cast<size_t>(command_id - kCrossLevelMoveCommandBase) <
+               context_.cross_level_targets.size();
   }
   if (command_id >= kMoveToWorkspaceSubmenuCommandBase) {
     const size_t index =

@@ -16,6 +16,7 @@
 
 #include "ahoi/browser/navigation/tab_mru.h"
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/cross_level_move.h"
 #include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/isolated_profile_registry.h"
 #include "ahoi/browser/session/session_restore_integration.h"
@@ -336,6 +337,50 @@ class SessionBridge : public KeyedService,
   void ConvertWorkspaceToIsolated(
       const base::Uuid& workspace_id,
       base::OnceCallback<void(WorkspaceConversionResult)> done);
+
+  // ADR 0011 WS-ISO-05 (session_bridge_cross_level_move.cc): moving an
+  // item to a Workspace of another Profile. Source side: check and detach
+  // the item under `root_ids` (saved roots and/or open temporary pages).
+  session::CrossLevelMoveCheck CheckCrossLevelMove(
+      const std::vector<base::Uuid>& root_ids,
+      session::CrossLevelMovePayload* payload);
+  // Asks the item's open pages as one before-unload group. `done` gets the
+  // saved pages that were open and the URLs of open temporary pages, or
+  // nullopt after a veto; the pages stay open until the commit.
+  struct CrossLevelOpenPages {
+    // Every open page of the item; reopened in the target.
+    std::vector<base::Uuid> open_ids;
+    // For an undo: open saved pages and the URLs of open temporary pages.
+    std::vector<base::Uuid> saved_ids;
+    std::vector<GURL> temporary_urls;
+  };
+  void AskCrossLevelMovePages(
+      const std::vector<base::Uuid>& root_ids,
+      base::OnceCallback<void(std::optional<CrossLevelOpenPages>)> done);
+  // After the target imported the item: deletes its saved roots in one undo
+  // entry (returned as the receipt's subject) and closes the agreed pages.
+  // With `commit` false the pages simply stay.
+  std::optional<base::Uuid> FinishCrossLevelMoveSource(
+      const std::vector<base::Uuid>& root_ids,
+      bool commit);
+  // Target side: imports the item under `workspace_id` with fresh ids.
+  void ImportCrossLevelMove(
+      session::CrossLevelMovePayload payload,
+      base::Uuid workspace_id,
+      base::OnceCallback<void(std::optional<session::CrossLevelMovePlacement>)>
+          done,
+      int attempt = 0);
+  // Opens saved pages by URL in `window` and binds them, then rebuilds
+  // their split. Pages that are already open are left as they are.
+  // With `activate_first` the first page is shown, in its Workspace.
+  void ReopenCrossLevelPages(BrowserWindowInterface* window,
+                             const std::vector<base::Uuid>& node_ids,
+                             bool activate_first);
+  // Undo, target side: asks the copy's open pages, then removes the copy
+  // without an undo entry. `done(false)` after a veto.
+  void RemoveCrossLevelCopy(const std::vector<base::Uuid>& root_ids,
+                            base::OnceCallback<void(bool)> done);
+  std::optional<session::LatestTreeUndo> GetLatestTreeUndo();
 
   // Binds one validated, active saved-page row to a currently tracked native
   // tab. A persistent node cannot be bound to two runtime tabs. Rebinding one
@@ -685,6 +730,10 @@ class SessionBridge : public KeyedService,
   // only after the new Profile imported the structure.
   std::unique_ptr<session::GroupPageClose> workspace_conversion_close_;
   bool workspace_conversion_running_ = false;
+  // WS-ISO-05: the agreed pages of an item moving to another Profile, and
+  // of a copy removed by its undo.
+  std::unique_ptr<session::GroupPageClose> cross_level_close_;
+  std::unique_ptr<session::GroupPageClose> cross_level_copy_close_;
   base::WeakPtrFactory<SessionBridge> weak_ptr_factory_{this};
 };
 

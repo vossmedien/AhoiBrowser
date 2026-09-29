@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Owner instructions and decisions — 29 September 2026, 12:50 CEST
+
+- **M154 roll / GitHub mirror (owner):** do not switch now; the goal names
+  M153 and M154 is not a blocker. First finish build 51 and the real iPhone
+  sync device test, then re-check googlesource (all googlesource hosts but
+  chromium-review answer HTTP 503 from this Mac since the morning). If disk
+  is free and googlesource is still blocked, the GitHub mirror
+  `github.com/chromium/chromium` is approved as a **documented deviation**,
+  provided the commit hash matches Chromium Dash and VersionHistory; the
+  roll tooling stays unchanged.
+- **Load:** no new heavy runs while the Mac is overloaded (load ~200–460,
+  3 booted simulators). Build 51 now starts only with ≥38 GiB free **and**
+  1-minute load < 60 (`wait51.sh`).
+- **Real Mac–iOS sync (owner approval, 29 Sep):** real paired iPhone 16 Pro
+  Max "Servusla" and the owner's Apple account in the isolated CloudKit
+  Development scope `23855a90-ee61-499e-abed-bfdc52a881d7`
+  (`artifacts/sync-acceptance/real-device-20260929/scope.json`, validated
+  against the entitlement policy). iPhone side first (creates the E2E key);
+  the Mac side follows on build 51 via prepare/sign/verify-macos-cloudkit
+  and `development_installation.py --acceptance-scope`. No key copy, no
+  deletion, no Production. Not claimed until a real record round trip is
+  visible on both devices.
+- **Crest handoffs:** 148 (own "Ahoi Safe Storage" keychain item) accepted
+  and in implementation as patch 0079; 106 and 110 (performance) deferred —
+  they need runtime/lease runs that the current load rules out.
+
 ## Candidates 47 and 49 — 29 September 2026, 10:05 CEST
 
 **Build 47** (`68006408`, 0073): 15 unit binaries green;

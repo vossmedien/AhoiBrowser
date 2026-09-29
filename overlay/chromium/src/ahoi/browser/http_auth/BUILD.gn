@@ -23,6 +23,17 @@ source_set("secret_util") {
   deps = [ "//crypto" ]
 }
 
+# Pure saved-account menu policy for the HTTP auth dialog (LoginView, patch
+# 0078); kept apart so //chrome/browser/ui/views:login_view needs only //base.
+source_set("saved_account_menu") {
+  sources = [
+    "http_auth_saved_account_menu.cc",
+    "http_auth_saved_account_menu.h",
+  ]
+  public_deps = [ "//base" ]
+  deps = [ "//base:i18n" ]
+}
+
 source_set("http_auth_core") {
   sources = [
     "http_auth_credential_metadata.cc",
@@ -113,10 +124,12 @@ source_set("unit_tests") {
   sources = [
     "http_auth_credential_service_unittest.cc",
     "http_auth_management_model_unittest.cc",
+    "http_auth_saved_account_menu_unittest.cc",
     "http_auth_secret_access_controller_unittest.cc",
   ]
   deps = [
     ":http_auth_core",
+    ":saved_account_menu",
     ":secret_access",
     "//base:i18n",
     "//base/test:test_support",

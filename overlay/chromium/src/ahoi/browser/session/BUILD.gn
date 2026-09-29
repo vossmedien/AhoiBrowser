@@ -150,6 +150,7 @@ source_set("session_bridge_api") {
     "workspace_service_factory.h",
   ]
   public_deps = [
+    ":cross_level_move",
     ":group_page_close",
     ":session_preferences",
     ":session_restore_integration",
@@ -188,11 +189,26 @@ source_set("workspace_portability") {
   ]
 }
 
+# ADR 0011 WS-ISO-05: moving an item between Profiles, pure planning.
+source_set("cross_level_move") {
+  sources = [
+    "cross_level_move.cc",
+    "cross_level_move.h",
+  ]
+  public_deps = [
+    ":workspace_portability",
+    "//ahoi/browser/tab_tree",
+    "//base",
+    "//url",
+  ]
+}
+
 source_set("session") {
   sources = [
     "native_workspace_structure.cc",
     "native_workspace_structure.h",
     "session_bridge.cc",
+    "session_bridge_cross_level_move.cc",
     "session_bridge_extension_setup.cc",
     "session_bridge_factory.cc",
     "session_bridge_internal.cc",
@@ -216,6 +232,7 @@ source_set("session") {
 
   public_deps = [
     ":command_service_factory",
+    ":cross_level_move",
     ":group_page_close",
     ":session_bridge_api",
     ":session_preferences",
@@ -258,6 +275,7 @@ source_set("session") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "cross_level_move_unittest.cc",
     "isolated_profile_registry_unittest.cc",
     "isolated_workspace_directory_unittest.cc",
     "portable_workspace_import_plan_unittest.cc",
@@ -277,6 +295,7 @@ source_set("unit_tests") {
     "workspace_structure_split_capture_unittest.cc",
   ]
   deps = [
+    ":cross_level_move",
     ":isolated_profiles",
     ":session",
     ":session_preferences",

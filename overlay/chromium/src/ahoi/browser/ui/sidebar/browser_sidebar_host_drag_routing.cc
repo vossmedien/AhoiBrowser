@@ -10,6 +10,7 @@
 #include "ui/base/dragdrop/drag_drop_types.h"
 #include "ui/base/dragdrop/os_exchange_data.h"
 #include "ui/compositor/layer_tree_owner.h"
+#include "ui/views/view_utils.h"
 
 namespace ahoi::sidebar {
 
@@ -34,6 +35,14 @@ void SetBrowserSidebarDragRoutingActive(views::View* sidebar_host,
   } else {
     GetActiveSidebarDragHosts().erase(sidebar_host);
   }
+  // WS-ISO-05: windows of other Profiles offer a drop card while a sidebar
+  // item is dragged, and drop it when the drag ends.
+  BrowserSidebarHostView* source = nullptr;
+  if (!GetActiveSidebarDragHosts().empty()) {
+    source = views::AsViewClass<BrowserSidebarHostView>(
+        const_cast<views::View*>(*GetActiveSidebarDragHosts().begin()));
+  }
+  UpdateBrowserSidebarCrossLevelDropTargets(source);
 }
 
 bool IsAnyBrowserSidebarDragActive() {

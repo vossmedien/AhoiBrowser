@@ -19,6 +19,7 @@
 #include "ahoi/browser/media/media_mini_player_service.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/group_page_close.h"
+#include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/workspace_directory_order.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
@@ -66,6 +67,7 @@
 #include "url/gurl.h"
 
 class Browser;
+class BrowserWindowInterface;
 class Profile;
 class SessionID;
 class TabStripModel;
@@ -95,7 +97,6 @@ class Widget;
 namespace ahoi {
 class CommandService;
 class ModalOverlayController;
-class SessionBridge;
 struct CommandItem;
 }  // namespace ahoi
 
@@ -106,6 +107,13 @@ struct SidebarDiscoveryItem;
 class SidebarDiscoveryModel;
 class SidebarMediaOverlayView;
 class SidebarTreeView;
+class BrowserSidebarHostView;
+
+// WS-ISO-05: live hosts that can receive a drag from another Profile.
+void TrackBrowserSidebarHostForCrossLevelDrop(BrowserSidebarHostView* host,
+                                              bool live);
+// Arms those of another Profile than `source`'s drag; nullptr disarms.
+void UpdateBrowserSidebarCrossLevelDropTargets(BrowserSidebarHostView* source);
 
 class BrowserSidebarHostView final
     : public views::View,
@@ -149,6 +157,7 @@ class BrowserSidebarHostView final
 
   bool RevealFolder(const base::Uuid& folder_id);
   bool MoveSelectionToWorkspace(const base::Uuid& workspace_id, bool dry_run);
+  bool MoveSelectionAcrossLevels(const base::Uuid& workspace_id, bool dry_run);
 
   bool SetSidebarPresentationMode(SidebarPresentationMode mode);
   bool ToggleFloatingSidebar();
@@ -214,26 +223,18 @@ class BrowserSidebarHostView final
       views::View* scroll_bottom_inset);
 
   void ActivateInitialWorkspace();
-
   void ActivateWorkspace(const base::Uuid& workspace_id);
-
   bool ActivateRelativeSwitcherWorkspace(int delta,
                                          WorkspaceActivationSource source);
   bool ActivateRelativeWorkspaceWithTransition(
       int delta,
       WorkspaceActivationSource source);
-
   void StartWorkspaceTransition(int delta, bool active_web_contents_changed);
-
   void CancelWorkspaceTransition();
-
   void UpdateWorkspaceSelectorIndicators();
-
   void RememberActiveTabForWorkspace(
       const std::optional<base::Uuid>& workspace_id);
-
   tabs::TabInterface* FindRuntimeTab(int runtime_tab_handle) const;
-
   void ActivateWorkspaceRuntimeTab(const base::Uuid& workspace_id);
 
   // TabStripModel observer callbacks must not activate another tab. After
@@ -256,53 +257,35 @@ class BrowserSidebarHostView final
   bool DeferWorkspaceSurfaceDuringRestore();
   void OnSessionRestored(Profile* profile, int num_tabs);
   void ReconcileWorkspaceSurfaceAfterRestore();
-
   void SynchronizeSelection();
-
   void ScheduleRuntimePresentationRefresh();
   void RunScheduledRuntimePresentationRefresh(uint64_t generation);
   void PrimeRuntimeAuxiliaryPresentation();
   bool IsSidebarDragActive() const;
   void MaybeScheduleDeferredRuntimePresentationRefresh();
-
   void RefreshThumbnailCache();
-
   void OnTabThumbnailChanged(int runtime_tab_handle);
-
   void RefreshMediaTrackers();
-
   void RefreshMiniPlayerSources();
-
   std::string GetMiniPlayerSourceId(tabs::TabInterface* tab) const;
-
   ui::ImageModel GetMiniPlayerFavicon(
       const MediaMiniPlayerSourceId& source_id) const;
-
   void OnTrackedMediaStateChanged(const AhoiMediaState& state);
-
   std::optional<tabs::TabAlert> GetMediaAlertForTab(
       tabs::TabInterface* tab) const;
-
   ui::ImageModel GetMediaIndicatorForTab(tabs::TabInterface* tab) const;
-
   std::u16string GetTabAlertStatusText(tabs::TabInterface* tab) const;
-
   std::vector<gfx::ImageSkia> GetCachedDragThumbnails(
       const std::vector<tabs::TabInterface*>& tabs) const;
-
   std::vector<gfx::ImageSkia> GetRuntimeTabPreviewThumbnails(
       base::WeakPtr<tabs::TabInterface> tab) const;
-
   void OnRuntimeTabHoverChanged(base::WeakPtr<tabs::TabInterface> tab,
                                 views::View* anchor,
                                 bool hovered);
-
   std::optional<SidebarTabPreviewData> ResolveTabPreviewData(
       const SidebarTabPreviewTarget& target);
-
   bool ValidateTabPreviewAnchor(const SidebarTabPreviewTarget& target,
                                 const views::View* anchor) const;
-
   void StoreSavedTabThumbnailSnapshot(const base::Uuid& node_id,
                                       const GURL& url,
                                       const gfx::ImageSkia& image);
@@ -311,127 +294,83 @@ class BrowserSidebarHostView final
   // Typeahead filtering only needs to rebuild the visible projection and must
   // not publish device state or capture thumbnails on every keystroke.
   void RefreshRuntimePresentation(bool refresh_auxiliary = true);
-
   void PublishLocalDeviceTabs();
   sync::LocalTabCapture BuildSharedTabCapture(uint64_t generation) const;
   void PublishRequestedSharedTabCapture(uint64_t generation);
   ui::ImageModel GetSharedTabOriginIcon(const base::Uuid& node_id) const;
   std::u16string GetSharedTabOriginText(const base::Uuid& node_id) const;
   bool HasProjectedSharedPage(const sync::RemoteTabRecord& tab) const;
-
   void PublishDeviceTabCommands();
-
   void RefreshRemoteTabPresentation();
-
   ui::ImageModel GetFaviconForUrl(const GURL& page_url);
-
   bool OpenRemoteTab(sync::RemoteTabRecord tab);
-
   void ActivateRuntimeTab(base::WeakPtr<tabs::TabInterface> tab);
-
   void CloseRuntimeTab(base::WeakPtr<tabs::TabInterface> tab);
-
   void CloseAllTemporaryTabs(const ui::Event&);
-
   bool CanDropOnRuntimeTab(std::optional<base::Uuid> source_node_id,
                            std::optional<int> source_runtime_handle,
                            base::WeakPtr<tabs::TabInterface> target,
                            OpenTabDropPosition position) const;
-
   bool DropOnRuntimeTab(std::optional<base::Uuid> source_node_id,
                         std::optional<int> source_runtime_handle,
                         base::WeakPtr<tabs::TabInterface> target,
                         OpenTabDropPosition position);
-
   bool CanDropOpenTabToTemporary(
       const drag::SidebarTabDragPayload& payload) const;
-
   bool DropOpenTabToTemporary(const drag::SidebarTabDragPayload& payload);
-
   tabs::TabInterface* FindTemporaryTab(int runtime_tab_handle) const;
-
   bool SaveTemporaryTabAtDrop(int runtime_tab_handle,
                               const SidebarTreeController::DropTarget& target,
                               base::Uuid* created_node_id);
-
   bool SaveTemporaryTabAtWorkspaceRoot(int runtime_tab_handle,
                                        base::Uuid* created_node_id);
-
   bool MakeSavedPageTemporary(const base::Uuid& source_node_id);
-
   void OnFaviconAvailable(const GURL& page_url,
                           const favicon_base::FaviconImageResult& result);
-
   void OnFolderHoverChanged(const base::Uuid& folder_node_id,
                             views::View* anchor,
                             bool hovered) override;
-
   void OnSavedPageHoverChanged(const base::Uuid& node_id,
                                views::View* anchor,
                                bool hovered) override;
-
   void BeginGroupRecentQuery(const base::Uuid& folder_node_id);
-
   void OnGroupHistoryQueryCompleted(
       uint64_t generation,
       const base::Uuid& folder_node_id,
       std::map<GURL, tab_tree::TreeNode> pages_by_url,
       history::QueryResults results);
-
   void ShowGroupRecentBubble(const base::Uuid& folder_node_id,
                              std::vector<RecentGroupLink> links);
-
   void ActivateRecentGroupLink(const base::Uuid& node_id);
-
   void OnGroupRecentBubbleHover(bool hovered);
-
   void ScheduleGroupRecentBubbleHide();
-
   void MaybeHideGroupRecentBubble();
-
   void InvalidateAndCloseGroupRecentBubble();
-
   void CloseGroupRecentBubble();
-
   void OnGroupRecentBubbleClosed();
-
   void OnWorkspacePressed(const ui::Event&);
 
   // The header buttons can change the visibility of their own ancestor. Defer
   // that mutation until after Button finishes dispatching the current event so
   // layout cannot invalidate the event target while its callback is active.
   void OnSidebarHeaderActionPressed(bool toggle_visibility, const ui::Event&);
-
   void RunSidebarHeaderAction(bool toggle_visibility);
-
   void OnSidebarDiscoveryPressed(const ui::Event&);
-
   void ToggleSidebarDiscovery();
-
   void OpenSidebarDiscovery();
-
   void CloseSidebarDiscovery();
-
   void ScheduleCloseSidebarDiscoveryAfterActivation();
-
   bool HandleSidebarDiscoveryPrimaryResult(
       SidebarDiscoveryView::PrimaryResultAction action);
-
   void ClearSidebarDiscoveryPrimarySelection(
       bool restore_tree_selection = true);
-
   void RebuildSidebarDiscoveryPrimaryResults();
-
   std::set<std::string> ApplySidebarDiscoveryFilter(
       const std::u16string& query,
       const std::vector<SidebarDiscoveryItem>& items);
-
   bool ActivateSidebarDiscoveryCommand(const CommandItem& item);
-
   bool RestoreSidebarDiscoveryEntry(SessionID entry_id);
-
   void RunBrowserCommand(int command_id, const ui::Event&);
-
   void ExecuteBrowserCommand(int command_id);
 
   // SidebarTreeViewDelegate:
@@ -564,8 +503,13 @@ class BrowserSidebarHostView final
                                  WorkspaceActivationSource source);
   // Presents the main Profile's window in this frame, then selects
   // `workspace_id` there when given.
-  void OpenMainWorkspaceByHandOver(std::optional<base::Uuid> workspace_id);
-  void OpenIsolatedWorkspaceByHandOver(const std::string& profile_dir);
+  // `then` receives the presented window, or nullptr.
+  void OpenMainWorkspaceByHandOver(
+      std::optional<base::Uuid> workspace_id,
+      base::OnceCallback<void(BrowserWindowInterface*)> then = {});
+  void OpenIsolatedWorkspaceByHandOver(
+      const std::string& profile_dir,
+      base::OnceCallback<void(BrowserWindowInterface*)> then = {});
 
   void ShowWorkspaceMenu(const gfx::Point& screen_point,
                          ui::mojom::MenuSourceType source_type);
@@ -584,6 +528,42 @@ class BrowserSidebarHostView final
 
   bool BuildMoveToMenu(const tab_tree::TreeNode* source);
 
+  // ADR 0011 WS-ISO-05 (browser_sidebar_host_cross_level_move.cc): moving
+  // an item to a Workspace of another Profile. Its pages reopen there by
+  // URL; sign-ins and site data stay behind.
+  std::vector<SwitcherWorkspace> CrossLevelTargets() const;
+  // The open tab's node, with its split partners.
+  std::vector<base::Uuid> CrossLevelRootsForTab(tabs::TabInterface* tab);
+  // Adds the other Profiles' Workspaces to the "Move to" menu, creating it
+  // if needed. Returns whether the menu has any item.
+  bool AppendCrossLevelMoveItems(std::vector<base::Uuid> roots,
+                                 bool has_menu);
+  bool RunCrossLevelMoveCommand(int command_id);
+  // Explains a refusal, or asks for confirmation in `presenter` (the window
+  // the user looks at) and then moves. `follow`: the window follows.
+  void RequestCrossLevelMove(std::vector<base::Uuid> roots,
+                             const SwitcherWorkspace& target,
+                             bool follow,
+                             BrowserSidebarHostView* presenter);
+  void StartCrossLevelMove(CrossLevelMoveRequest request);
+  void OnCrossLevelPagesAnswered(
+      CrossLevelMoveRequest request,
+      std::optional<SessionBridge::CrossLevelOpenPages> open);
+  void FinishCrossLevelMove(
+      CrossLevelMoveRequest request,
+      SessionBridge::CrossLevelOpenPages open,
+      const base::FilePath& target_path,
+      std::optional<session::CrossLevelMovePlacement> placement);
+  void ShowCrossLevelFailure(const std::u16string& target_name);
+  bool UndoCrossLevelMoveIfLatest();
+  // Drag-and-drop from another Profile's window (drag routing).
+  friend void SetBrowserSidebarDragRoutingActive(views::View*, bool);
+  friend void TrackBrowserSidebarHostForCrossLevelDrop(
+      BrowserSidebarHostView*, bool);
+  friend void UpdateBrowserSidebarCrossLevelDropTargets(
+      BrowserSidebarHostView*);
+  void SetCrossLevelDropSource(BrowserSidebarHostView* source);
+  void AcceptCrossLevelDrop();
   // ui::SimpleMenuModel::Delegate:
   bool IsCommandIdChecked(int command_id) const override;
 
@@ -792,6 +772,9 @@ class BrowserSidebarHostView final
   std::optional<sync::LocalTabCapture> observed_shared_tabs_;
   // Running before-unload group question of "close all temporary tabs".
   std::unique_ptr<session::GroupPageClose> close_all_temporary_;
+  // WS-ISO-05: a sidebar item dragged from another Profile's window.
+  base::WeakPtr<BrowserSidebarHostView> cross_level_drop_source_;
+  raw_ptr<views::View> cross_level_drop_overlay_ = nullptr;
   base::WeakPtrFactory<BrowserSidebarHostView> weak_ptr_factory_{this};
 };
 

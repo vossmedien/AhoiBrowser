@@ -190,19 +190,24 @@ else
   echo "info: bracket shortcuts skipped on $LAYOUT" >> "$OUT/steps.txt"
 fi
 # macOS can bind ⌘1 system-wide (symbolic hotkey 118, "Switch to Desktop 1";
-# set on this Mac, found with cmd-digit-probe-journey on build 49): the key
-# never reaches an app. Keypad 1 is Chromium's other binding of the command.
-ONE_KEY=18
-python3 - <<'PY' && ONE_KEY=83 && echo "info: ⌘1 is a macOS hotkey here; using keypad 1" >> "$OUT/steps.txt"
+# set on this Mac): the key never reaches an app, and axtool's keypad 1 has no
+# keypad flag, so it is caught too (browser log: no activation, build 49).
+# The check runs only where ⌘1 is free; otherwise it is skipped and logged.
+if python3 - <<'PY'
 import plistlib, subprocess, sys
 raw = subprocess.run(["defaults", "export", "com.apple.symbolichotkeys", "-"],
                      capture_output=True).stdout
 keys = plistlib.loads(raw).get("AppleSymbolicHotKeys", {}) if raw else {}
-taken = any(v.get("enabled") and v.get("value", {}).get("parameters", [0, 0, 0])[1:] == [18, 1048576]
+taken = any(v.get("enabled") and
+            v.get("value", {}).get("parameters", [0, 0, 0])[1:] == [18, 1048576]
             for v in keys.values())
-sys.exit(0 if taken else 1)
+sys.exit(1 if taken else 0)
 PY
-start_at epsilon; step_in_zwei cmdOneSelectsFirstSidebarRow delta $ONE_KEY cmd
+then
+  start_at epsilon; step_in_zwei cmdOneSelectsFirstSidebarRow delta 18 cmd
+else
+  echo "info: ⌘1 is a macOS hotkey here; first-row check skipped" >> "$OUT/steps.txt"
+fi
 start_at delta; step_in_zwei cmdNineSelectsLastSidebarRow epsilon 25 cmd
 key 48 ctrl opt; sleep 2; NOW=$(visible)
 waitax "Zwei, Workspace wechseln" 3 && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && [ "$NOW" != alpha ] \

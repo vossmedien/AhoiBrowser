@@ -12,7 +12,6 @@
 #include "ui/events/event.h"
 #include "ui/events/types/event_type.h"
 #include "ui/gfx/geometry/point_f.h"
-#include "ui/gfx/geometry/vector2d.h"
 
 namespace ahoi {
 namespace {
@@ -261,10 +260,18 @@ TEST(WorkspaceSwipeEventHandlerTest, CommandScrollPreviewConsumesBeforeSwitch) {
 }
 
 #if BUILDFLAG(IS_MAC)
-// A classic mouse wheel reaches the native monitor as a MouseWheelEvent; with
-// Cmd held one notch switches one tab, and a notch inside the rate limit does
-// not switch again (NAV-11, build 49).
-TEST(WorkspaceSwipeEventHandlerTest, CmdMouseWheelNotchSwitchesTabOnce) {
+// A classic mouse-wheel notch arrives as a phase-less ScrollEvent of about
+// 4 px (40 x ~0.1), below the 24 px Cmd+scroll threshold. With Cmd held one
+// notch switches one tab, and a notch inside the rate limit does not switch
+// again (NAV-11, build 50).
+ui::ScrollEvent WheelNotch(base::TimeTicks time, int flags) {
+  return ui::ScrollEvent(ui::EventType::kScroll, gfx::PointF(), gfx::PointF(),
+                         time, flags, 0.0f, -4.0f, 0.0f, -4.0f, 2,
+                         ui::EventMomentumPhase::NONE,
+                         ui::ScrollEventPhase::kNone);
+}
+
+TEST(WorkspaceSwipeEventHandlerTest, CmdWheelNotchSwitchesTabOnce) {
   std::vector<int> deltas;
   WorkspaceSwipeEventHandler handler(
       base::BindRepeating([](int) { return false; }),
@@ -275,25 +282,20 @@ TEST(WorkspaceSwipeEventHandlerTest, CmdMouseWheelNotchSwitchesTabOnce) {
           },
           &deltas));
   const base::TimeTicks start = base::TimeTicks::Now();
-  ui::MouseWheelEvent down(gfx::Vector2d(0, -ui::MouseWheelEvent::kWheelDelta),
-                           gfx::PointF(), gfx::PointF(), start,
-                           ui::EF_COMMAND_DOWN, ui::EF_NONE);
+  ui::ScrollEvent first = WheelNotch(start, ui::EF_COMMAND_DOWN);
   bool handled = false;
-  handler.OnNativeScrollEvent(&down, /*target_is_this_window=*/true, &handled);
+  handler.OnNativeWheelNotch(&first, /*target_is_this_window=*/true, &handled);
   EXPECT_TRUE(handled);
   ASSERT_EQ(1u, deltas.size());
 
-  ui::MouseWheelEvent again(
-      gfx::Vector2d(0, -ui::MouseWheelEvent::kWheelDelta), gfx::PointF(),
-      gfx::PointF(), start + base::Milliseconds(50), ui::EF_COMMAND_DOWN,
-      ui::EF_NONE);
+  ui::ScrollEvent again =
+      WheelNotch(start + base::Milliseconds(50), ui::EF_COMMAND_DOWN);
   handled = false;
-  handler.OnNativeScrollEvent(&again, /*target_is_this_window=*/true,
-                              &handled);
+  handler.OnNativeWheelNotch(&again, /*target_is_this_window=*/true, &handled);
   EXPECT_EQ(1u, deltas.size());
 }
 
-TEST(WorkspaceSwipeEventHandlerTest, PlainMouseWheelPassesThrough) {
+TEST(WorkspaceSwipeEventHandlerTest, PlainWheelNotchPassesThrough) {
   int switch_count = 0;
   WorkspaceSwipeEventHandler handler(
       base::BindRepeating([](int) { return false; }),
@@ -303,12 +305,9 @@ TEST(WorkspaceSwipeEventHandlerTest, PlainMouseWheelPassesThrough) {
             return true;
           },
           &switch_count));
-  ui::MouseWheelEvent wheel(
-      gfx::Vector2d(0, -ui::MouseWheelEvent::kWheelDelta), gfx::PointF(),
-      gfx::PointF(), base::TimeTicks::Now(), ui::EF_NONE, ui::EF_NONE);
+  ui::ScrollEvent notch = WheelNotch(base::TimeTicks::Now(), ui::EF_NONE);
   bool handled = false;
-  handler.OnNativeScrollEvent(&wheel, /*target_is_this_window=*/true,
-                              &handled);
+  handler.OnNativeWheelNotch(&notch, /*target_is_this_window=*/true, &handled);
   EXPECT_FALSE(handled);
   EXPECT_EQ(0, switch_count);
 }

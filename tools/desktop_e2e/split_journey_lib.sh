@@ -177,14 +177,19 @@ focus_pane() { key $((17 + $1)) cmd ctrl; sleep 1.5; snap "focus-$1"; }  # ⌘�
 without() { echo "$1" | tr , '\n' | grep -v -x -F "$2" | paste -sd, -; } # <list> <title>
 # Native Tab menu split of the active tab; the new pane (Chromium's split
 # new-tab page) is navigated to <file>.
-tab_menu_split() {
+tab_menu_split() { # <file>; splits the active page with <file> via the picker
+  # The new pane is Chromium's split tab picker ("Tab auswählen"); it is no
+  # DevTools target (build 50), so the target is opened as a tab first and
+  # then chosen in the picker, as a person would.
+  local title; title="Pane$(echo "${1%.html}" | tr a-h A-H)"
+  open_url "$SITE/$1"; key 48 ctrl opt; sleep 2
   $AX press $PID "AXMenuItem:Tab zu neuer geteilter Ansicht hinzufügen" >> "$OUT/steps.txt"; sleep 3
-  local new; new=$(curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
-t=[x for x in json.load(sys.stdin) if x["type"]=="page" and not x["url"].startswith(sys.argv[1]) and not x["url"].startswith("devtools")]
-print(t[0]["id"] if t else "")' "$SITE")
-  echo "split new-tab pane: $new" >> "$OUT/steps.txt"
-  [ -n "$new" ] && CDP "$new" Page.navigate "{\"url\":\"$SITE/$1\"}" >> "$OUT/steps.txt"
-  waiturl "$1" 15 && sleep 2
+  waitax "AXWebArea \\| Tab auswählen" 8 || { echo "info: no tab picker" >> "$OUT/steps.txt"; return 1; }
+  local tries; for tries in 1 2 3; do
+    $AX activate $PID >/dev/null; sleep 0.3
+    $AX hidclick $PID "$title " >> "$OUT/steps.txt" && break; sleep 1
+  done
+  sleep 3; ! $AX dump $PID 14 | grep -q "AXWebArea | Tab auswählen"
 }
 # window.open with a user gesture from <opener file>; the popup overlay opens.
 popup_from() { # <opener file> <popup file>

@@ -1,11 +1,12 @@
 // usage: node cdp.mjs <port> <url-substring|target-id> <method> [params-json]
 // Sends one DevTools protocol command to the first page target whose URL
-// contains the substring (or whose id matches) and prints the JSON result.
+// contains the substring, or to the target of any type whose id matches,
+// and prints the JSON result.
 // Node 22's built-in WebSocket; no extra packages.
 const [port, match, method, paramsText] = process.argv.slice(2);
 const targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
 const target = targets.find(
-    (t) => t.type === 'page' && (t.id === match || t.url.includes(match)));
+    (t) => t.id === match || (t.type === 'page' && t.url.includes(match)));
 if (!target) {
   console.log(JSON.stringify({error: `no page target matching ${match}`}));
   process.exit(3);

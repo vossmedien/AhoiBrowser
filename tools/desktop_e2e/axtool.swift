@@ -7,6 +7,7 @@ import AppKit
 //        axtool key <pid> <virtualKeyCode> [cmd|shift|opt|ctrl ...]
 //        axtool hidscroll <pid> <element> <dy> [dx] [phased|line] [cmd|shift|opt|ctrl ...]
 //        axtool hidmiddle <pid> <element> <dx> <dy>
+//        axtool hidclick <pid> <label substring>
 import ApplicationServices
 import Foundation
 
@@ -342,6 +343,34 @@ case "hidmiddle":
         usleep(30000)
     }
     print("hidmiddle at \(c) moved by (\(mdx), \(mdy))")
+case "hidclick":
+    // Left click through the HID tap at the center of the first element whose
+    // AX label contains the substring (list entries in web UI, which have no
+    // pressable title). Refuses unless the target app is frontmost.
+    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
+        print("hidclick refused: target not frontmost"); exit(3)
+    }
+    var cfound: AXUIElement?
+    _ = walk(app, 0, 40) { e, _ in
+        if label(e).contains(args[3]) && attr(e, kAXPositionAttribute) != nil {
+            cfound = e; return true
+        }
+        return false
+    }
+    guard let cf = cfound, let cpv = attr(cf, kAXPositionAttribute),
+          let csv = attr(cf, kAXSizeAttribute) else { print("NOT FOUND"); exit(1) }
+    var cpos = CGPoint.zero, csize = CGSize.zero
+    AXValueGetValue(cpv as! AXValue, .cgPoint, &cpos)
+    AXValueGetValue(csv as! AXValue, .cgSize, &csize)
+    let cc = CGPoint(x: cpos.x + csize.width / 2, y: cpos.y + csize.height / 2)
+    for t: CGEventType in [.mouseMoved, .leftMouseDown, .leftMouseUp] {
+        let ev = CGEvent(mouseEventSource: nil, mouseType: t, mouseCursorPosition: cc,
+                         mouseButton: .left)!
+        if t != .mouseMoved { ev.setIntegerValueField(.mouseEventClickState, value: 1) }
+        ev.post(tap: .cghidEventTap)
+        usleep(80000)
+    }
+    print("hidclicked \(label(cf)) at \(cc)")
 case "click", "rightclick":
     let needle = args[3]
     var found: AXUIElement?

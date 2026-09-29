@@ -135,6 +135,7 @@
 namespace ahoi::sidebar {
 void BrowserSidebarHostView::AddedToWidget() {
   views::View::AddedToWidget();
+  TrackBrowserSidebarHostForCrossLevelDrop(this, true);
   if (!bookmark_observation_.IsObserving()) {
     bookmark_model_ =
         BookmarkModelFactory::GetForBrowserContext(browser_->GetProfile());
@@ -173,6 +174,7 @@ void BrowserSidebarHostView::AddedToWidget() {
 }
 
 void BrowserSidebarHostView::RemovedFromWidget() {
+  TrackBrowserSidebarHostForCrossLevelDrop(this, false);
   bookmark_observation_.Reset();
   bookmark_model_ = nullptr;
   if (tab_preview_controller_) {
@@ -211,6 +213,10 @@ void BrowserSidebarHostView::OnWidgetActivationChanged(views::Widget* widget,
 }
 
 bool BrowserSidebarHostView::UndoLastMutationIfAvailable() {
+  // WS-ISO-05: a move to another Profile is undone as one pair.
+  if (UndoCrossLevelMoveIfLatest()) {
+    return true;
+  }
   const tab_tree::TabTreeStore::Result result = controller_->UndoLastMutation();
   if (result == tab_tree::TabTreeStore::Result::kNothingToUndo) {
     // Let the focused web/native editor receive Cmd+Z when the sidebar has
@@ -281,6 +287,7 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   bookmark_model_ = nullptr;
   CancelWorkspaceTransition();
   SetBrowserSidebarDragRoutingActive(this, false);
+  TrackBrowserSidebarHostForCrossLevelDrop(this, false);
   tab_preview_controller_.reset();
   weak_ptr_factory_.InvalidateWeakPtrs();
   structure_dialog_widget_.reset();

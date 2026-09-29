@@ -72,6 +72,9 @@ constexpr int kOpenMainWorkspaceCommandBase = 800;
 // Presents a fully separated Workspace's window; below the Workspace range.
 constexpr int kOpenIsolatedWorkspaceCommandBase = 900;
 constexpr int kActivateWorkspaceCommandBase = 1000;
+// ADR 0011 WS-ISO-05: "Move to" another Profile's Workspace; at most 99,
+// above the Workspace activations and below the destinations.
+constexpr int kCrossLevelMoveCommandBase = 1900;
 constexpr int kMoveToDestinationCommandBase = 2000;
 // The persistent tree supports far more than one thousand folders. Keep
 // submenu identifiers well above the destination range so a large workspace

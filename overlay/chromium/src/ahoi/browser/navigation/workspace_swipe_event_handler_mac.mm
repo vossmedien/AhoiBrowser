@@ -3,7 +3,10 @@
 
 #include "ahoi/browser/navigation/workspace_swipe_event_handler.h"
 
+#import <AppKit/AppKit.h>
+
 #include "base/memory/raw_ptr.h"
+#include "ui/events/event.h"
 #include "ui/views/cocoa/native_widget_mac_ns_window_host.h"
 #include "ui/views/widget/widget.h"
 
@@ -25,6 +28,16 @@ class WorkspaceSwipeNativeEventMonitorMac final
   void NativeWidgetMacEventMonitorOnEvent(ui::Event* event,
                                           bool target_is_this_window,
                                           bool* event_handled) override {
+    // A classic mouse wheel is a non-precise NSEvent; its tiny offset would
+    // never reach the Cmd+scroll threshold, so it goes in as one notch.
+    NSEvent* const native = event->native_event().Get();
+    if (event->IsScrollEvent() && native &&
+        native.type == NSEventTypeScrollWheel &&
+        !native.hasPreciseScrollingDeltas) {
+      handler_->OnNativeWheelNotch(event->AsScrollEvent(),
+                                   target_is_this_window, event_handled);
+      return;
+    }
     handler_->OnNativeScrollEvent(event, target_is_this_window, event_handled);
   }
 
