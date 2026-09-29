@@ -146,9 +146,34 @@ settings_js() {
   CDP "chrome://settings" Runtime.evaluate "$(python3 -c 'import json,sys;print(json.dumps({"expression":sys.argv[1],"returnByValue":True}))' "$expr")" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("result",{}).get("value",""))'
 }
 keys_of() { settings_js "const b=q('.shortcut-keys[data-command-id=\"$1\"]');return b?b.textContent.trim():'missing'"; }
+# The recorder only sees a key while the Settings page has keyboard focus.
+# A JS click starts recording but cannot move focus into the page when the
+# window's focus sits elsewhere (after the command bar closed, build 51 and
+# 53 lost ⌥⌘S that way), so a missing page focus gets a real HID click on
+# the key button. A capture-phase logger shows which keys reached the page.
+REC_BUTTON='const b=q(".shortcut-keys[data-command-id=\"ID\"]");'
+REC_STATE='if(!b)return "missing";let a=document.activeElement;
+while(a&&a.shadowRoot&&a.shadowRoot.activeElement)a=a.shadowRoot.activeElement;
+return "focus="+document.hasFocus()+" onButton="+(a===b)+" recording="+
+b.classList.contains("recording")+" label="+b.getAttribute("aria-label");'
+REC_LOG='if(!window.__ahoiKeys){window.__ahoiKeys=[];document.addEventListener(
+"keydown",e=>window.__ahoiKeys.push((e.metaKey?"⌘":"")+(e.altKey?"⌥":"")+
+(e.ctrlKey?"⌃":"")+(e.shiftKey?"⇧":"")+e.keyCode),true)}window.__ahoiKeys=[];'
 record_key() { # <command id> ; click Change, then the caller presses the key
-  settings_js "const b=q('.shortcut-keys[data-command-id=\"$1\"]');if(!b)return 'missing';b.click();b.focus();return 'ok'" >> "$OUT/steps.txt"; sleep 1
+  local button=${REC_BUTTON//ID/$1} state label
+  settings_js "$REC_LOG ${button} if(!b)return 'missing';
+b.scrollIntoView({block:'center'});b.click();b.focus();return 'ok'" \
+    >> "$OUT/steps.txt"; sleep 1
+  state=$(settings_js "${button}${REC_STATE}")
+  echo "record $1: $state" >> "$OUT/steps.txt"
+  case "$state" in *"focus=true onButton=true recording=true"*) return 0;; esac
+  label=$(echo "$state" | sed -E 's/.* label=//; s/: .*//')
+  $AX activate $PID >/dev/null; sleep 0.3
+  $AX hidclick $PID "AXButton | $label: " >> "$OUT/steps.txt"; sleep 1
+  echo "record $1 after click: $(settings_js "${button}${REC_STATE}")" \
+    >> "$OUT/steps.txt"
 }
+keys_seen() { settings_js 'return (window.__ahoiKeys||[]).join(" ")'; }
 
 launch
 open_url "$SITE/alpha.html"; open_url "$SITE/beta.html"; open_url "$SITE/gamma.html"
@@ -259,6 +284,7 @@ key 40 cmd; waitax "AXWindow \\| Suchen oder URL eingeben" 6 && record commandBa
 key 53; sleep 1
 record_key tab.save; key 1 cmd opt; sleep 2   # ⌥⌘S
 echo "tab.save keys: '$(keys_of tab.save)'" >> "$OUT/steps.txt"
+echo "keydowns seen by the page: $(keys_seen)" >> "$OUT/steps.txt"
 settings_js "const e=q('.shortcut-row[data-command-id=\"tab.save\"] .shortcut-error');return e&&!e.hidden?'error: '+e.textContent.trim():'no error'" >> "$OUT/steps.txt"
 [ "$(keys_of tab.save)" = "⌥⌘S" ] && record saveRebinds true || record saveRebinds false
 # The command bar's entry shows the current key ("title, key" in AX).
