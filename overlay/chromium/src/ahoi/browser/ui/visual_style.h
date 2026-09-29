@@ -47,7 +47,7 @@ inline constexpr SkColor kUserAccentViolet = SkColorSetRGB(0x8B, 0x6A, 0xDD);
 // views so later density/theme work can tune the complete native surface as a
 // unit. The command bar's content width is derived from its outer width and
 // delegate margins; it must not be re-encoded in the view.
-inline constexpr int kSidebarWidthDefault = 264;
+inline constexpr int kSidebarWidthDefault = 236;
 inline constexpr int kSidebarWidthMinimum = 208;
 inline constexpr int kSidebarWidthMaximum = 420;
 inline constexpr int kSidebarResizeAreaWidth = 10;
@@ -57,7 +57,7 @@ inline constexpr int kSidebarResizeAreaWidth = 10;
 inline constexpr int kSidebarEdgeRevealHotZoneWidth = 5;
 // Compatibility alias for components that use the default layout width.
 inline constexpr int kSidebarWidth = kSidebarWidthDefault;
-inline constexpr int kSidebarHorizontalInset = 10;
+inline constexpr int kSidebarHorizontalInset = 12;
 inline constexpr int kSidebarTopInset = 10;
 inline constexpr int kSidebarBottomInset = 8;
 // Floating/edge-revealed presentation is a card above the page rather than a
@@ -78,7 +78,8 @@ inline constexpr int kSidebarContentWidth =
 // Saved, temporary, remote and split-tab rows share one density contract.
 // Keeping the token sidebar-semantic rather than tree-specific prevents the
 // runtime and remote sections from drifting to separate per-view heights.
-inline constexpr int kSidebarTabRowHeight = 40;
+// Design spec 2026-09-29: sidebar 236 wide, 12 inset, rows 36 high.
+inline constexpr int kSidebarTabRowHeight = 36;
 inline constexpr int kTreeIndent = 16;
 // Every saved, temporary and split-pane row keeps the same breathing room
 // around its active/hover surface. Split segments use the narrower horizontal
@@ -125,9 +126,15 @@ inline constexpr float kBookmarkShelfCornerRadius = 8.0f;
 // and sides for the native Glass material to read as a backdrop rather than
 // only a sidebar treatment. Its bottom still meets the window edge. These
 // insets are real layout, so the renderer receives the viewport it sees.
-inline constexpr int kContentCardInset = 20;
+// Design spec 2026-09-29: a 12 gutter around a 14-radius opaque card.
+inline constexpr int kContentCardInset = 12;
 inline constexpr int kContentCardCornerRadius = 14;
-inline constexpr int kContentCardShadowElevation = 10;
+// views::ViewShadow takes a Material elevation whose key shadow blurs by
+// twice the elevation. These map the glass_tokens elevation shadows (card
+// 0 2 8, free panel 0 12 32) onto that scale by blur radius;
+// appearance/glass_material.cc static_asserts the correspondence.
+inline constexpr int kContentCardShadowElevation = 4;
+inline constexpr int kPanelShadowElevation = 16;
 // Split panes live inside the same content card and therefore share its
 // curvature. The semantic outline roles distinguish inactive, ordinary active
 // and security/focus-highlighted panes without hard-coding a light-only
@@ -139,14 +146,22 @@ inline constexpr int kSplitPaneHighlightedOutlineThickness = 3;
 inline constexpr ui::ColorId kSplitPaneInactiveOutline = kDivider;
 inline constexpr ui::ColorId kSplitPaneActiveOutline = kAccent;
 inline constexpr ui::ColorId kSplitPaneHighlightedOutline = kFocusRing;
-inline constexpr int kNavigationSurfaceHorizontalInset = 10;
+inline constexpr int kNavigationSurfaceHorizontalInset = 12;
 inline constexpr int kNavigationSurfaceTopGap = 12;
 inline constexpr int kNavigationSurfaceCornerRadius = 14;
 inline constexpr int kNavigationSurfaceShadowElevation = 6;
 inline constexpr int kNavigationSurfaceRevealOffset = 10;
-inline constexpr int kNavigationRevealNotchWidth = 56;
-inline constexpr int kNavigationRevealNotchHeight = 12;
-inline constexpr int kNavigationRevealNotchVisualHeight = 5;
+// The reveal notch paints a 32x4 tab centered at the top of a transparent
+// 44x24 hit area, so it stays easy to hit without looking heavy.
+inline constexpr int kNavigationRevealNotchWidth = 44;
+inline constexpr int kNavigationRevealNotchHeight = 24;
+inline constexpr int kNavigationRevealNotchVisualWidth = 32;
+inline constexpr int kNavigationRevealNotchVisualHeight = 4;
+static_assert(kNavigationRevealNotchVisualWidth <=
+                      kNavigationRevealNotchWidth &&
+                  kNavigationRevealNotchVisualHeight <=
+                      kNavigationRevealNotchHeight,
+              "the visible notch lies inside its hit area");
 
 inline constexpr int kCornerRadiusSmall = 8;
 inline constexpr int kCornerRadiusMedium = 12;

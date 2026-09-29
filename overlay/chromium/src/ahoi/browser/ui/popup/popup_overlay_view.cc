@@ -176,7 +176,7 @@ PopupOverlayView::PopupOverlayView(content::BrowserContext* browser_context,
 
   card_ = AddChildView(std::move(card));
   card_shadow_ = std::make_unique<views::ViewShadow>(
-      card_, visual_style::kContentCardShadowElevation);
+      card_, visual_style::kPanelShadowElevation);
   card_shadow_->SetRoundedCornerRadius(surface_appearance.corner_radius);
 
   auto action_rail = std::make_unique<views::View>();
