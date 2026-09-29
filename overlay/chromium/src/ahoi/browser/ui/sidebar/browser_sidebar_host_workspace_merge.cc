@@ -2,15 +2,20 @@
 // Use of this source code is governed by a GPL-3.0-or-later license that can be
 // found in the LICENSE file.
 
-// "Zusammenführen mit …" in the Workspace menu (ADR 0012, crest-hardening
-// handoff 080). The dialog names what happens; SessionBridge::MergeWorkspace
-// asks the source's pages when they have to close.
+// "Zusammenführen mit …" in the Workspace menu and the command bar (ADR 0012,
+// crest-hardening handoff 080). The dialog names what happens;
+// SessionBridge::MergeWorkspace asks the source's pages when they have to
+// close. Both entries open the same dialog, so confirmation, the no-undo
+// warning for own website sessions and undo stay identical.
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/ui/modal_overlay_controller.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
+#include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "base/memory/weak_ptr.h"
@@ -91,6 +96,45 @@ bool BrowserSidebarHostView::AcceptWorkspaceMerge() {
           },
           weak_ptr_factory_.GetWeakPtr()));
   return true;
+}
+
+bool BrowserSidebarHostView::ShowWorkspaceMergeDialog(
+    const base::Uuid& target_id,
+    bool dry_run) {
+  if (!session_bridge_ || !workspace_service_ || !controller_ ||
+      !modal_overlay_controller_) {
+    return false;
+  }
+  // The same partners as the Workspace menu's submenu: the shown Workspace
+  // into another Workspace of this Profile.
+  const std::optional<base::Uuid> source_id =
+      controller_->view_model().workspace_id();
+  if (!source_id || !target_id.is_valid() || *source_id == target_id ||
+      !FindWorkspace(*source_id) || !FindWorkspace(target_id) ||
+      workspace_dialog_.widget || group_dialog_.widget) {
+    return false;
+  }
+  if (dry_run) {
+    return true;
+  }
+  // The command bar is still on screen (and fading out) while its item runs;
+  // the overlay shows one panel at a time.
+  modal_overlay_controller_->RunWhenIdle(
+      base::BindOnce(&BrowserSidebarHostView::OpenWorkspaceMergeDialog,
+                     weak_ptr_factory_.GetWeakPtr(), *source_id, target_id));
+  return true;
+}
+
+void BrowserSidebarHostView::OpenWorkspaceMergeDialog(
+    const base::Uuid& source_id,
+    const base::Uuid& target_id) {
+  if (!controller_ || controller_->view_model().workspace_id() != source_id ||
+      !FindWorkspace(source_id) || !FindWorkspace(target_id) ||
+      workspace_dialog_.widget || group_dialog_.widget) {
+    return;
+  }
+  workspace_dialog_.merge_target_id = target_id;
+  ShowWorkspaceDialog(PendingWorkspaceAction::kMerge, source_id);
 }
 
 }  // namespace ahoi::sidebar

@@ -109,6 +109,14 @@ bool CanMoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
                                                const base::Uuid& workspace_id);
 bool MoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
                                             const base::Uuid& workspace_id);
+// ADR 0012 section 1 (command bar "Zusammenführen mit …"): opens the
+// Workspace menu's merge confirmation for the window's shown Workspace into
+// `target_id`, a Workspace of the same Profile, once the command bar has
+// closed. The merge runs only when the user confirms that dialog.
+bool CanShowBrowserSidebarWorkspaceMerge(views::View* sidebar_host,
+                                         const base::Uuid& target_id);
+bool ShowBrowserSidebarWorkspaceMerge(views::View* sidebar_host,
+                                      const base::Uuid& target_id);
 
 bool ToggleBrowserSidebarFloating(views::View* sidebar_host);
 bool ToggleBrowserSidebarVisibility(views::View* sidebar_host);

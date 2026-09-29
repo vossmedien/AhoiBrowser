@@ -154,17 +154,59 @@ std::vector<CommandItem> BuildMoveToWorkspaceCommands(
   return items;
 }
 
-std::optional<std::string_view> GetMoveToWorkspaceTarget(
-    std::string_view stable_id) {
-  if (!stable_id.starts_with(kMoveToWorkspaceCommandPrefix)) {
+namespace {
+
+std::optional<std::string_view> GetWorkspaceTargetWithPrefix(
+    std::string_view stable_id,
+    std::string_view prefix) {
+  if (!stable_id.starts_with(prefix)) {
     return std::nullopt;
   }
-  const std::string_view id =
-      stable_id.substr(sizeof(kMoveToWorkspaceCommandPrefix) - 1);
+  const std::string_view id = stable_id.substr(prefix.size());
   if (!base::Uuid::ParseLowercase(id).is_valid()) {
     return std::nullopt;
   }
   return id;
+}
+
+}  // namespace
+
+std::optional<std::string_view> GetMoveToWorkspaceTarget(
+    std::string_view stable_id) {
+  return GetWorkspaceTargetWithPrefix(stable_id, kMoveToWorkspaceCommandPrefix);
+}
+
+std::vector<CommandItem> BuildMergeWorkspaceCommands(
+    const std::vector<MoveToWorkspaceTarget>& targets,
+    bool german) {
+  // The same words as the Workspace menu's "Zusammenführen mit" submenu.
+  const std::u16string prefix =
+      german ? u"Zusammenführen mit: " : u"Merge into: ";
+  std::vector<CommandItem> items;
+  items.reserve(targets.size());
+  for (const MoveToWorkspaceTarget& target : targets) {
+    if (!target.id.is_valid() || target.name.empty()) {
+      continue;
+    }
+    items.push_back({
+        .type = CommandItemType::kBrowserCommand,
+        .stable_id = std::string(kMergeWorkspaceCommandPrefix) +
+                     target.id.AsLowercaseString(),
+        .title = prefix + target.name,
+        .keywords = {u"zusammenführen mit", u"merge into",
+                     u"workspaces zusammenführen", u"merge workspaces",
+                     u"zusammenführen", u"merge", target.name},
+        // Below "In Workspace verschieben": moving one folder is the more
+        // frequent and the less far-reaching of the two.
+        .priority = 170,
+    });
+  }
+  return items;
+}
+
+std::optional<std::string_view> GetMergeWorkspaceTarget(
+    std::string_view stable_id) {
+  return GetWorkspaceTargetWithPrefix(stable_id, kMergeWorkspaceCommandPrefix);
 }
 
 }  // namespace internal
@@ -175,6 +217,16 @@ bool CommandExecutionDelegate::CanMoveToWorkspace(
 }
 
 bool CommandExecutionDelegate::MoveToWorkspace(
+    std::string_view /*workspace_id*/) {
+  return false;
+}
+
+bool CommandExecutionDelegate::CanMergeWorkspaceInto(
+    std::string_view /*workspace_id*/) const {
+  return false;
+}
+
+bool CommandExecutionDelegate::MergeWorkspaceInto(
     std::string_view /*workspace_id*/) {
   return false;
 }
@@ -255,6 +307,11 @@ bool CommandExecutionAdapter::CanExecuteItem(const CommandItem& item) const {
             internal::GetMoveToWorkspaceTarget(item.stable_id);
         return target && execution_delegate_->CanMoveToWorkspace(*target);
       }
+      if (item.stable_id.starts_with(internal::kMergeWorkspaceCommandPrefix)) {
+        const std::optional<std::string_view> target =
+            internal::GetMergeWorkspaceTarget(item.stable_id);
+        return target && execution_delegate_->CanMergeWorkspaceInto(*target);
+      }
       if (item.stable_id.starts_with(internal::kShortcutCommandPrefix)) {
         return execution_delegate_->CanExecuteShortcutCommand(
             std::string_view(item.stable_id)
@@ -331,6 +388,10 @@ bool CommandExecutionAdapter::ExecuteItem(const CommandItem& item,
       if (const std::optional<std::string_view> target =
               internal::GetMoveToWorkspaceTarget(item.stable_id)) {
         return execution_delegate_->MoveToWorkspace(*target);
+      }
+      if (const std::optional<std::string_view> target =
+              internal::GetMergeWorkspaceTarget(item.stable_id)) {
+        return execution_delegate_->MergeWorkspaceInto(*target);
       }
       if (item.stable_id.starts_with(internal::kShortcutCommandPrefix)) {
         return execution_delegate_->ExecuteShortcutCommand(

@@ -259,6 +259,18 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
                                                            target);
   }
 
+  bool CanMergeWorkspaceInto(std::string_view workspace_id) const override {
+    const base::Uuid target = base::Uuid::ParseLowercase(workspace_id);
+    return target.is_valid() && sidebar_host_ &&
+           sidebar::CanShowBrowserSidebarWorkspaceMerge(sidebar_host_, target);
+  }
+
+  bool MergeWorkspaceInto(std::string_view workspace_id) override {
+    const base::Uuid target = base::Uuid::ParseLowercase(workspace_id);
+    return target.is_valid() && sidebar_host_ &&
+           sidebar::ShowBrowserSidebarWorkspaceMerge(sidebar_host_, target);
+  }
+
   bool CanRevealFolder(std::string_view stable_id) const override {
     return sidebar_host_ && base::Uuid::ParseLowercase(stable_id).is_valid();
   }

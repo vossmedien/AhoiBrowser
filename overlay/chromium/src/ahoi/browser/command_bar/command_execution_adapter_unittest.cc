@@ -106,6 +106,15 @@ class FakeExecutionDelegate final : public CommandExecutionDelegate {
     return true;
   }
 
+  bool CanMergeWorkspaceInto(std::string_view workspace_id) const override {
+    return merge_enabled;
+  }
+
+  bool MergeWorkspaceInto(std::string_view workspace_id) override {
+    merged_into_workspace = std::string(workspace_id);
+    return true;
+  }
+
   bool activate_open_tab_result = false;
   std::optional<CommandItem> activated_item;
   GURL navigated_url;
@@ -125,6 +134,8 @@ class FakeExecutionDelegate final : public CommandExecutionDelegate {
   std::optional<DeveloperAction> executed_developer_action;
   bool move_enabled = true;
   std::string moved_to_workspace;
+  bool merge_enabled = true;
+  std::string merged_into_workspace;
 };
 
 class CommandExecutionAdapterTest : public testing::Test {
@@ -373,6 +384,65 @@ TEST_F(CommandExecutionAdapterTest, MoveToWorkspaceItemsRouteToTheDelegate) {
   EXPECT_FALSE(adapter_->CanExecuteItem(malformed));
   EXPECT_FALSE(
       adapter_->ExecuteItem(malformed, CommandBarDisposition::kCurrentTab));
+}
+
+// ADR 0012 section 1: "Zusammenführen mit …" in the command bar opens the
+// Workspace menu's merge dialog through the delegate, never a browser command.
+TEST_F(CommandExecutionAdapterTest, MergeWorkspaceItemsRouteToTheDelegate) {
+  const base::Uuid home = base::Uuid::GenerateRandomV4();
+  const std::vector<CommandItem> items = internal::BuildMergeWorkspaceCommands(
+      {{.id = home, .name = u"Zuhause"},
+       {.id = base::Uuid(), .name = u"Invalid"},
+       {.id = base::Uuid::GenerateRandomV4(), .name = u""}},
+      /*german=*/true);
+  ASSERT_EQ(items.size(), 1u);
+  const CommandItem& item = items.front();
+  EXPECT_EQ(item.type, CommandItemType::kBrowserCommand);
+  EXPECT_EQ(item.stable_id, "merge-workspace." + home.AsLowercaseString());
+  EXPECT_EQ(item.title, u"Zusammenführen mit: Zuhause");
+  for (const std::u16string_view keyword :
+       {u"Zuhause", u"zusammenführen mit", u"merge into"}) {
+    EXPECT_NE(std::ranges::find(item.keywords, keyword), item.keywords.end());
+  }
+  EXPECT_EQ(internal::BuildMergeWorkspaceCommands(
+                {{.id = home, .name = u"Home"}}, /*german=*/false)
+                .front()
+                .title,
+            u"Merge into: Home");
+
+  // Next to the move items for the same target, with a distinct id.
+  std::vector<CommandItem> all = internal::BuildMoveToWorkspaceCommands(
+      {{.id = home, .name = u"Zuhause"}}, /*german=*/true);
+  all.push_back(item);
+  EXPECT_NE(all.front().stable_id, all.back().stable_id);
+  EXPECT_TRUE(
+      command_service_.ReplaceItems(CommandItemType::kBrowserCommand, all));
+  EXPECT_FALSE(internal::GetMoveToWorkspaceTarget(item.stable_id));
+  EXPECT_FALSE(internal::GetMergeWorkspaceTarget(all.front().stable_id));
+
+  EXPECT_TRUE(adapter_->CanExecuteItem(item));
+  EXPECT_TRUE(adapter_->ExecuteItem(item, CommandBarDisposition::kCurrentTab));
+  EXPECT_EQ(execution_delegate_->merged_into_workspace,
+            home.AsLowercaseString());
+  EXPECT_TRUE(execution_delegate_->moved_to_workspace.empty());
+  EXPECT_TRUE(execution_delegate_->executed_browser_command.empty());
+
+  // The sidebar refuses, e.g. the window's own Workspace or an open dialog.
+  execution_delegate_->merge_enabled = false;
+  execution_delegate_->merged_into_workspace.clear();
+  EXPECT_FALSE(adapter_->CanExecuteItem(item));
+  EXPECT_FALSE(adapter_->ExecuteItem(item, CommandBarDisposition::kCurrentTab));
+  EXPECT_TRUE(execution_delegate_->merged_into_workspace.empty());
+
+  // A malformed id never reaches the delegate or chrome::ExecuteCommand.
+  execution_delegate_->merge_enabled = true;
+  CommandItem malformed = item;
+  malformed.stable_id = "merge-workspace.NOT-A-UUID";
+  EXPECT_FALSE(adapter_->CanExecuteItem(malformed));
+  EXPECT_FALSE(
+      adapter_->ExecuteItem(malformed, CommandBarDisposition::kCurrentTab));
+  EXPECT_TRUE(execution_delegate_->merged_into_workspace.empty());
+  EXPECT_TRUE(execution_delegate_->executed_browser_command.empty());
 }
 
 TEST_F(CommandExecutionAdapterTest, ExplicitLocalPrefixHasNoSearchFallback) {

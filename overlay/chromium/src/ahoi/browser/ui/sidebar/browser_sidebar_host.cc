@@ -231,6 +231,18 @@ bool MoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
                                                 /*dry_run=*/false);
 }
 
+bool CanShowBrowserSidebarWorkspaceMerge(views::View* sidebar_host,
+                                         const base::Uuid& target_id) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->ShowWorkspaceMergeDialog(target_id, /*dry_run=*/true);
+}
+
+bool ShowBrowserSidebarWorkspaceMerge(views::View* sidebar_host,
+                                      const base::Uuid& target_id) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->ShowWorkspaceMergeDialog(target_id, /*dry_run=*/false);
+}
+
 bool ToggleBrowserSidebarFloating(views::View* sidebar_host) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->ToggleFloatingSidebar();
