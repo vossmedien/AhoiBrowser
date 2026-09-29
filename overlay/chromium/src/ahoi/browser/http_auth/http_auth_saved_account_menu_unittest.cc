@@ -15,10 +15,9 @@ namespace {
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 
-const std::vector<std::u16string_view>& Accounts() {
-  static const std::vector<std::u16string_view> kAccounts = {u"alice", u"bob",
-                                                             u"albert"};
-  return kAccounts;
+// By value: a function-local static would need an exit-time destructor.
+std::vector<std::u16string_view> Accounts() {
+  return {u"alice", u"bob", u"albert"};
 }
 
 TEST(HttpAuthSavedAccountMenuTest, EmptyFieldOffersEveryAccount) {
