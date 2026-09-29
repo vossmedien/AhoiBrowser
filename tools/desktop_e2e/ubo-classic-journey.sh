@@ -115,7 +115,8 @@ open_url "$SITE/ad.html"
 # The command bar entry opens the verified installer.
 key 17 cmd
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || fail_setup "command bar did not open"
-sleep 1; type_in "ubo"; sleep 2
+sleep 1; # Not "ubo": the page's host ubotest.localhost would rank the open tab first.
+type_in "uBlock Origin Classic"; sleep 2
 $AX dump $PID 14 > "$OUT/ax-command-bar.txt"
 grep -q "uBlock Origin Classic…" "$OUT/ax-command-bar.txt" && record installerOfferedInCommandBar true || record installerOfferedInCommandBar false
 key 36; sleep 2
