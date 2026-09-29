@@ -25,6 +25,27 @@ no deletion, no Production).
   Diagnosis of the stuck account transition is in progress. **No record
   round trip yet — DoD 13 stays RED.**
 
+## Stuck "iCloud-Accountwechsel" with a provider — diagnosis, 29 September 2026
+
+Live `bdfcea08` Settings status (CDP, 13:12): `providerAvailable=true`,
+`keySetupIssue=key_setup_account_changed`, `accountTransitionPending=true`;
+no `cksync-format3.state.inbox`, so the provider never ran
+`ResetAccountState()` and does not own a transition. The key bootstrap's
+`CKAccountChangedNotification` observer outlives a successful bootstrap and
+revokes the provider's key lease on any notification (hence 13:07:11
+`lease_revoked`), then reports `key_setup_account_changed` while the provider
+is kept. `CurrentState()` shows that as pending, but
+`ProfileSyncBackend::ConfirmAccountTransition` handled the key-setup case only
+when `!provider_` (fix `30cd18f`) and otherwise required
+`provider_->IsAccountTransitionPending()`, so both buttons were accepted by
+Settings and silently returned false. Fix on branch
+`sync/account-change-confirm-with-provider`: route the key-setup case
+regardless of a lease-revoked provider (drop pump/provider/bootstrap after the
+outbox choice, restart verified key setup); unit tests in
+`profile_sync_backend_account_transition_unittest.cc`, not yet built. Open
+follow-up: the bootstrap observer treats any account notification as a switch
+without re-verifying the user record ID.
+
 ## WS-MERGE-06 `mergedInto` contract and compaction routes — 29 September 2026
 
 Owner-authorized sync-lane session (ADR 0012 WS-MERGE-06, Crest 108/114/118).

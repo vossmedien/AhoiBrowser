@@ -378,16 +378,47 @@ bool ProfileSyncBackend::CompleteRemoteCommand(base::Uuid command_id,
   return PutDomainRecordIfChanged(*command, base::Time::Now());
 }
 
+bool ProfileSyncBackend::KeySetupAccountChangeAwaitsConfirmation() {
+  return key_setup_issue_ == "key_setup_account_changed" &&
+         (!provider_ || !provider_->IsAccountTransitionPending());
+}
+
+bool ProfileSyncBackend::ResetForKeySetupAccountChange(
+    bool allow_local_upload) {
+  if (!store_ || !KeySetupAccountChangeAwaitsConfirmation()) {
+    return false;
+  }
+  ResetBookmarkAuthorizationScope(transport_enabled_ && bookmark_sync_enabled_);
+  if (store_->PrepareOutboxForCloudRecovery(allow_local_upload) !=
+      SyncStore::Result::kOk) {
+    return false;
+  }
+  // The provider's key lease was revoked by the account notification and can
+  // never upload again; keeping it only turned both recovery buttons into
+  // permanent no-ops. A later real CKSyncEngine account switch is reported
+  // again by the next provider, which rehydrates the persisted engine state.
+  pump_.reset();
+  provider_.reset();
+#if BUILDFLAG(IS_MAC)
+  key_bootstrap_.reset();
+#endif
+  key_setup_issue_.clear();
+  return true;
+}
+
 bool ProfileSyncBackend::ConfirmAccountTransition(bool allow_local_upload) {
   if (!store_ || !transport_enabled_ || !ProfileScopeActive()) {
     return false;
   }
 #if BUILDFLAG(IS_MAC)
-  if (!provider_ && key_setup_issue_ == "key_setup_account_changed") {
-    // An account notification can revoke the first-use key lease before the
-    // domain provider exists. The UI already exposes the explicit upload/no-
-    // upload recovery choice, but the old provider-only guard made both
-    // buttons permanent no-ops. Preserve local records and apply that choice
+  if (KeySetupAccountChangeAwaitsConfirmation()) {
+    // An account notification revoked the key-setup lease, either before the
+    // domain provider existed or after it was created (the notification
+    // observer outlives a successful bootstrap). Status reports this as a
+    // pending account transition, so the UI offers the explicit upload/no-
+    // upload choice. The provider-only path below requires the provider to
+    // own the transition and returned false here, making both buttons
+    // permanent no-ops. Preserve local records and apply the choice
     // transactionally before starting an independently verified new claim/key
     // lease. No old key or CloudKit record is copied or replaced here.
     const auto configuration =
@@ -396,14 +427,9 @@ bool ProfileSyncBackend::ConfirmAccountTransition(bool allow_local_upload) {
         !configuration->IsE2EKeyConfigured()) {
       return false;
     }
-    ResetBookmarkAuthorizationScope(transport_enabled_ &&
-                                    bookmark_sync_enabled_);
-    if (store_->PrepareOutboxForCloudRecovery(allow_local_upload) !=
-        SyncStore::Result::kOk) {
+    if (!ResetForKeySetupAccountChange(allow_local_upload)) {
       return false;
     }
-    key_bootstrap_.reset();
-    key_setup_issue_.clear();
     InitializeProviderIfAvailable();
     return key_bootstrap_ != nullptr;
   }
