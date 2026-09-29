@@ -112,7 +112,7 @@ grep -q "read-anything" "$OUT/targets-reader.txt" && record readerPanelOpened tr
 [ "$(pages)" = "$before" ] && record readerKeepsPage true || record readerKeepsPage false
 $AX dump $PID 14 > "$OUT/ax-reader.txt"
 # Incognito: the same copy is concealed from clipboard history.
-key 45 cmd,shift; sleep 3
+key 45 cmd shift; sleep 3
 open_url "$SITE/article.html?private=1" "private=1"
 printf 'sentinel' | pbcopy
 run_command "$COPY" >/dev/null; clip > "$OUT/clip-incognito.txt"
