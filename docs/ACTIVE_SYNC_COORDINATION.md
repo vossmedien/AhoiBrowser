@@ -1,5 +1,30 @@
 # Active sync coordination
 
+## Real-device Mac–iPhone test in progress — 29 September 2026, 13:15 CEST
+
+Owner-approved real test in the isolated CloudKit Development scope
+`23855a90-ee61-499e-abed-bfdc52a881d7`
+(`artifacts/sync-acceptance/real-device-20260929/scope.json`; no key copy,
+no deletion, no Production).
+
+- **iPhone 16 Pro Max "Servusla" (real device):** scoped CloudKitDevelopment
+  build `d065a744` installed; device XCUITest run 4 PASSED: status "Bereit",
+  "Verschlüsselung bereit", "Synchronisiert", test tab
+  `https://example.com/?ahoi-sync-ios-20260929T105445Z`
+  (`artifacts/sync-acceptance/real-device-20260929/ios/README.md`). Upload of
+  that specific record is not separately proven.
+- **Mac:** copy of installed build 50 (`bdfcea08`) prepared, signed and
+  verified with `prepare/verify-macos-cloudkit --acceptance-scope` (from a
+  worktree at `bdfcea08`) and installed with `development_installation.py
+  --acceptance-scope` (receipt
+  `artifacts/install/ahoi-dev-bdfcea08-cloudkit-scope-23855a90-*.json`).
+  Ahoi Sync switched on at 13:07: "Sync-Verbindung wird eingerichtet" →
+  **"iCloud-Accountwechsel benötigt Bestätigung"**; "Ohne lokalen Upload
+  fortfahren" clicked at 13:08, status unchanged (same symptom as 23 Sep).
+  Log 13:07:11 `AhoiSyncUpload stage=lease_revoked expected=6 saved=0`.
+  Diagnosis of the stuck account transition is in progress. **No record
+  round trip yet — DoD 13 stays RED.**
+
 ## WS-MERGE-06 `mergedInto` contract and compaction routes — 29 September 2026
 
 Owner-authorized sync-lane session (ADR 0012 WS-MERGE-06, Crest 108/114/118).
