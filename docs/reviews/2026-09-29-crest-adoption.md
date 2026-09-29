@@ -38,3 +38,8 @@ Basis ist Chromium M153 (153.0.8010.53). Pfade sind relativ zum Repo-Root. Erste
 ## 3. Übersprungen
 
 299 Crest-Commits wurden als reine Crest-Shell-Themen übersprungen (SwiftUI/AppKit-Oberfläche, native Control Plane statt BrowserWindow, .NET-Core). Sie gelten für Ahoi nicht, weil Ahoi Chromiums eigene Oberfläche behält.
+## Upstream-Beobachtung 29.09.2026, ~16:20 MESZ
+
+- Crest `chromium-control-plane` unverändert auf `bd458366` (= geprüfter Stand); keine neuen Commits zu sichten.
+- VersionHistory mac_arm64 stable: 154.0.8037.58 bei 99 % (seit 28.09.). Zusätzlich zwei 0,5-%-Slices seit 23.09.: **155.0.8059.12** (frühe Stable-Stichprobe, kein regulärer Rollout) und **153.0.8010.55** (Nachzügler-Slice für M153; Ahoi steht auf 153.0.8010.53).
+- googlesource weiter HTTP 503. Owner-Entscheidung bleibt: erst Build 51 und iPhone-Sync-Test, dann googlesource erneut prüfen; GitHub-Mirror nur als dokumentierte Abweichung mit Hash-Abgleich. Rolle ein Ziel dann auf das zu diesem Zeitpunkt reguläre Stable (M154, oder M155, falls es bis dahin > 50 % ausgerollt ist) und prüfe 153.0.8010.55 auf Sicherheitsfixes.
