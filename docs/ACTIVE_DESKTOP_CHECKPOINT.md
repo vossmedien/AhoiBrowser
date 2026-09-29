@@ -21,6 +21,7 @@
   `ahoi_arc_import_unittests`); history import planned only
   (`docs/ARC_HISTORY_IMPORT_PLAN.md`, needs a visit-source patch). The real
   import runs on build 51 or later: preview → import → repeat as no-op.
+- **Owner, 16:54:** start build 51 regardless of load ("ich will hier fertig werden"); the load gate of `wait51.sh` is lifted for this build. Build 51 = `6d87699b`.
 - **Upstream watch 16:20:** Crest unchanged (`bd458366`); stable 154.0.8037.58 at 99 %, 0.5 % slices of 155.0.8059.12 and 153.0.8010.55; googlesource 503. Details `docs/reviews/2026-09-29-crest-adoption.md`.
 - **Build 51** (`wait51.sh`, ≥38 GiB and load < 60) now also runs
   `ahoi_arc_import_unittests` and `ahoi_command_bar_unittests`; it carries
