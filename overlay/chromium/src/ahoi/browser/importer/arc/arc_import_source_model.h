@@ -21,6 +21,15 @@ namespace ahoi::importer::arc::internal {
 
 inline constexpr std::string_view kWorkspaceIdDomain = "arc-workspace-v1";
 inline constexpr std::string_view kItemIdDomain = "arc-item-v1";
+// The folders-as-workspaces layout uses its own identity domains. Its nodes
+// sit at different parents and sort keys than the default layout, so sharing
+// IDs would turn a layout change into an identity conflict.
+inline constexpr std::string_view kFolderLayoutWorkspaceIdDomain =
+    "arc-workspace-folders-v1";
+inline constexpr std::string_view kFolderWorkspaceIdDomain =
+    "arc-folder-workspace-v1";
+inline constexpr std::string_view kFolderLayoutItemIdDomain =
+    "arc-item-folders-v1";
 inline constexpr size_t kMaxSplitMembers = 4;
 
 enum class SpaceRootKind {
@@ -39,6 +48,7 @@ enum class SourceItemKind {
 struct SourceSpace {
   std::string id;
   std::string title;
+  // Always exactly {pinned root, unpinned root}, in this order.
   std::vector<std::string> root_container_ids;
 };
 

@@ -49,7 +49,9 @@ bool IsBoundedUtf8(std::string_view value, size_t max_bytes) {
 
 class ArcParser {
  public:
-  explicit ArcParser(const ArcImportSnapshot& snapshot) : snapshot_(snapshot) {}
+  ArcParser(const ArcImportSnapshot& snapshot,
+            const ArcImportPlanOptions& options)
+      : snapshot_(snapshot), options_(options) {}
 
   ArcParseResult Parse() {
     if (snapshot_->schema_version != kArcSnapshotSchemaVersion ||
@@ -96,7 +98,7 @@ class ArcParser {
       return {.status = status_};
     }
     const ArcImportStatus status = internal::BuildArcImportPlan(
-        spaces_, items_, ordered_space_ids_, &plan_);
+        spaces_, items_, ordered_space_ids_, *options_, &plan_);
     if (status != ArcImportStatus::kOk) {
       return {.status = status};
     }
@@ -528,6 +530,7 @@ class ArcParser {
   }
 
   const base::raw_ref<const ArcImportSnapshot> snapshot_;
+  const base::raw_ref<const ArcImportPlanOptions> options_;
   ArcImportStatus status_ = ArcImportStatus::kInvalidJson;
   ArcImportPlan plan_;
   std::map<std::string, SourceSpace> spaces_;
@@ -537,8 +540,9 @@ class ArcParser {
 
 }  // namespace
 
-ArcParseResult ParseArcSnapshot(const ArcImportSnapshot& snapshot) {
-  return ArcParser(snapshot).Parse();
+ArcParseResult ParseArcSnapshot(const ArcImportSnapshot& snapshot,
+                                const ArcImportPlanOptions& options) {
+  return ArcParser(snapshot, options).Parse();
 }
 
 }  // namespace ahoi::importer::arc

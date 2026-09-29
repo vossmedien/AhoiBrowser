@@ -111,6 +111,7 @@ source_set("settings_handler") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "arc_import_folder_workspaces_unittest.cc",
     "arc_import_journal_unittest.cc",
     "arc_import_parser_unittest.cc",
     "arc_import_recovery_policy_unittest.cc",

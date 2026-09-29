@@ -14,6 +14,9 @@ namespace ahoi::importer::arc {
 struct ArcImportTransactionSelection {
   bool import_sidebar = true;
   bool reconstruct_splits = true;
+  // Part of the key because it selects a different plan for the same
+  // snapshot (see ArcImportPlanOptions).
+  bool folders_as_workspaces = false;
   ArcConflictResolution conflict_resolution = ArcConflictResolution::kRename;
   std::vector<std::string> selected_browser_profiles;
 };

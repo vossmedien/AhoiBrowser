@@ -14,14 +14,16 @@
 namespace ahoi::importer::arc::internal {
 
 // Turns a read and graph-validated Arc source into the import plan: one
-// Workspace per ordered space, pinned and unpinned roots, folders, tabs and
-// splits with deterministic IDs. `plan` carries the parser's source counts in
-// and the complete plan out; on failure only the status is meaningful (split
-// from arc_import_parser.cc, source line budget).
+// Workspace per ordered space (plus, with `options.folders_as_workspaces`, one
+// per top-level pinned folder), pinned and unpinned roots, folders, tabs and
+// splits with deterministic, layout-separated IDs. `plan` carries the parser's
+// source counts in and the complete plan out; on failure only the status is
+// meaningful (split from arc_import_parser.cc, source line budget).
 ArcImportStatus BuildArcImportPlan(
     const std::map<std::string, SourceSpace>& spaces,
     const std::map<std::string, SourceItem>& items,
     const std::vector<std::string>& ordered_space_ids,
+    const ArcImportPlanOptions& options,
     ArcImportPlan* plan);
 
 }  // namespace ahoi::importer::arc::internal

@@ -116,6 +116,10 @@ base::DictValue StatsValue(const ArcImportStats& stats) {
             static_cast<int>(stats.deduplicated_item_count));
   value.Set("deduplicatedSplits",
             static_cast<int>(stats.deduplicated_split_count));
+  value.Set("topLevelFolders",
+            static_cast<int>(stats.source_top_level_folder_count));
+  value.Set("folderWorkspaces",
+            static_cast<int>(stats.folder_workspace_count));
   return value;
 }
 
@@ -142,9 +146,13 @@ void ArcImportHandler::RegisterMessages() {
 }
 
 void ArcImportHandler::HandleDiscover(const base::ListValue& args) {
-  if (args.size() != 1u || !args.front().is_string()) {
+  // [callbackId, foldersAsWorkspaces?]; the layout defaults to spaces only.
+  if (args.empty() || args.size() > 2u || !args.front().is_string() ||
+      (args.size() == 2u && !args[1].is_bool())) {
     return;
   }
+  const ArcImportPlanOptions options{
+      .folders_as_workspaces = args.size() == 2u && args[1].GetBool()};
   AllowJavascript();
   base::Value callback_id = args.front().Clone();
   ArcImportService* service = ArcImportServiceFactory::GetForProfile(profile_);
@@ -153,9 +161,10 @@ void ArcImportHandler::HandleDiscover(const base::ListValue& args) {
                    {.status = ArcImportStatus::kTransactionFailed});
     return;
   }
-  service->DiscoverAndPreview(base::BindOnce(&ArcImportHandler::ResolvePreview,
-                                             weak_factory_.GetWeakPtr(),
-                                             std::move(callback_id)));
+  service->DiscoverAndPreview(
+      options, base::BindOnce(&ArcImportHandler::ResolvePreview,
+                              weak_factory_.GetWeakPtr(),
+                              std::move(callback_id)));
 }
 
 void ArcImportHandler::HandleRecover(const base::ListValue& args) {
@@ -176,9 +185,12 @@ void ArcImportHandler::HandleRecover(const base::ListValue& args) {
 }
 
 void ArcImportHandler::HandleCommit(const base::ListValue& args) {
-  if (args.size() != 8u || !args[0].is_string() || !args[1].is_string() ||
-      !args[2].is_string() || !args[3].is_list() || !args[4].is_bool() ||
-      !args[5].is_bool() || !args[6].is_bool() || !args[7].is_bool()) {
+  // The optional ninth argument is the previewed folders-as-workspaces
+  // layout; the service rejects it as stale unless it matches the preview.
+  if ((args.size() != 8u && args.size() != 9u) || !args[0].is_string() ||
+      !args[1].is_string() || !args[2].is_string() || !args[3].is_list() ||
+      !args[4].is_bool() || !args[5].is_bool() || !args[6].is_bool() ||
+      !args[7].is_bool() || (args.size() == 9u && !args[8].is_bool())) {
     return;
   }
   AllowJavascript();
@@ -190,6 +202,7 @@ void ArcImportHandler::HandleCommit(const base::ListValue& args) {
   selection.reconstruct_splits = args[5].GetBool();
   selection.backup_confirmed = args[6].GetBool();
   selection.commit_confirmed = args[7].GetBool();
+  selection.folders_as_workspaces = args.size() == 9u && args[8].GetBool();
   for (const base::Value& profile : args[3].GetList()) {
     if (!profile.is_string()) {
       ResolveCommit(std::move(callback_id),
@@ -232,6 +245,7 @@ void ArcImportHandler::ResolvePreview(base::Value callback_id,
             static_cast<int>(preview.conflicting_workspace_count));
   value.Set("alreadyImported", preview.already_imported);
   value.Set("sourceInUse", preview.arc_is_running);
+  value.Set("foldersAsWorkspaces", preview.folders_as_workspaces);
   base::ListValue workspaces;
   for (const std::u16string& workspace : preview.target_workspace_names) {
     workspaces.Append(base::UTF16ToUTF8(workspace));
