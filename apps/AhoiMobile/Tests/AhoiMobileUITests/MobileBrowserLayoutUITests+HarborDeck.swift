@@ -73,21 +73,29 @@ extension MobileBrowserLayoutUITests {
         XCTAssertEqual(XCTWaiter.wait(for: [loadedAddress], timeout: 8), .completed)
         XCTAssertTrue(page.waitForExistence(timeout: 8))
         // Wait for the workload's scripted travel itself instead of a fixed
-        // delay: the heading must leave its top position and come back (one
-        // scrollTo down and one up), and the deck must stay at every sample.
-        let topY = page.frame.minY
+        // delay: the workload may already be mid-cycle, so require the heading
+        // to jump by more than 100 pt in both directions (one scrollTo down and
+        // one up) while the deck is present at every sample.
+        var previousY = page.frame.minY
         var travelledDown = false
-        var returnedUp = false
+        var travelledUp = false
         var deckAlwaysPresent = true
+        var samples: [CGFloat] = [previousY]
         _ = waitUntil(timeout: 20) {
             deckAlwaysPresent = deckAlwaysPresent && workspace.exists
             let y = page.frame.minY
-            if y < topY - 100 { travelledDown = true }
-            if travelledDown, abs(y - topY) < 2 { returnedUp = true }
-            return returnedUp || !deckAlwaysPresent
+            samples.append(y)
+            if y < previousY - 100 { travelledDown = true }
+            if y > previousY + 100 { travelledUp = true }
+            previousY = y
+            return (travelledDown && travelledUp) || !deckAlwaysPresent
         }
+        let trace = XCTAttachment(string: "samples=\(samples)")
+        trace.name = "scripted-scroll-heading-minY"
+        trace.lifetime = .keepAlways
+        add(trace)
         XCTAssertTrue(travelledDown, "The scripted workload must scroll the page down.")
-        XCTAssertTrue(returnedUp, "The scripted workload must scroll the page back up.")
+        XCTAssertTrue(travelledUp, "The scripted workload must scroll the page back up.")
         XCTAssertTrue(
             deckAlwaysPresent && workspace.exists,
             "Scripted scrollTo travel must not masquerade as a finger gesture."
