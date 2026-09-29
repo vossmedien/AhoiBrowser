@@ -76,8 +76,18 @@ manifest() { ls "$P"/Default/Extensions/$ID/*/manifest.json 2>/dev/null | head -
 [ -d "$OWNER_PROFILE/Extensions/$ID" ] && OWNER_BEFORE=present || OWNER_BEFORE=absent
 launch
 open_url "$STORE" "$ID"
+# A fresh profile first meets Google's cookie consent page; decline all
+# (the privacy-preserving choice) and let it return to the Store listing.
+sleep 4
+if curl -s http://127.0.0.1:$PORT/json | grep -q "consent.google.com"; then
+  eval_in "consent.google.com" "(()=>{const b=[...document.querySelectorAll('button')].find(b=>/^(Alle ablehnen|Reject all)$/.test(b.innerText.trim()));if(!b)return 0;b.click();return 1})()" 1 >> "$OUT/steps.txt"
+  echo "info: declined Google cookie consent" >> "$OUT/steps.txt"
+  end=$(( $(date +%s) + 20 ))
+  while [ $(date +%s) -lt $end ] && curl -s http://127.0.0.1:$PORT/json | grep -q "consent.google.com"; do sleep 1; done
+  sleep 4
+fi
 # The approval covers this exact Store version only.
-sleep 4; eval_in "$ID" "document.body.innerText" > "$OUT/store-text.txt"
+eval_in "$ID" "document.body.innerText" > "$OUT/store-text.txt"
 grep -q -E "(^|[^0-9.])$VERSION([^0-9.]|$)" "$OUT/store-text.txt" && record storeShowsApprovedVersion true \
   || { record storeShowsApprovedVersion false; fail_setup "store no longer shows $VERSION; new approval needed"; }
 # Chrome's own "switch to Chrome" banner may offer a dismissal first.
