@@ -1,5 +1,34 @@
 # Active Desktop checkpoint
 
+## Candidate 46 — built and installed — 29 September 2026, 06:40 CEST
+
+**Build 46** (`8cacd5ac`: 0071 rebrand, 0072 ⌘L in the Quick Window,
+command-bar `SchedulePaint`, Crest 150 workspace trace, uBO command-bar
+entry) compiled for the first time at 06:16 after disk space was freed. The
+first attempt at 05:55 was refused by the build's low-disk floor (34 GiB at
+start, below 32 GiB after the overlay step; logs in
+`.work/agent-queue/46-attempt1-lowdisk`), so `wait46.sh` now waits for 38 GiB.
+All 15 unit binaries green (sync 201/201, sidebar 168/168, command bar
+40/40); installed, plist `AhoiSourceCommit` `8cacd5ac`, Chromium
+153.0.8010.53. Its 11 journeys (incl. the first `ubo-classic-journey`, INC-04)
+wait for an idle desktop.
+
+Rebrand readback on the installed 46: `de.lproj/locale.pak` names
+AhoiBrowser 549 times, but 61 "Chromium" strings remained, e.g. "Chromium neu
+starten" on the password manager's Keychain card. They come from
+`generated_resources.grd` and `components_strings.grd`, which 0071 did not
+cover. **Patch 0073** (`bd29f337`) rebrands those 53 macOS-active messages
+in English and German, selected with the exact GRIT defines of the AhoiDev
+GRIT action; attribution texts stay. Queued as build 47 (`wait47.sh` →
+`chain47.sh`: after the 46 chain, ≥38 GiB), which also builds and runs
+`ahoi_quick_window_browsertests` (Crest 146
+`RepeatedAdoptionDoesNotReopenTwice`)
+under `e2e.lock`, then quick-window-adoption and ubo-classic journeys.
+AnyChat: the owner approved (29 Sep) rerunning the AnyChat Store journey on
+the current candidate; it runs after the 46/47 journeys, re-reading the
+Store's version and permission scope first (the approval covered 1.0.8 with
+the 14 AI origins, New Tab and favicons).
+
 ## Candidate 45 — journeys green — 28 September 2026, 19:10 CEST
 
 Queued for build 46 (starts automatically above 32 GiB free, `wait46.sh`;
