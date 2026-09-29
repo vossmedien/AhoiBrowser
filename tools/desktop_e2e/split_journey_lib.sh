@@ -179,8 +179,13 @@ without() { echo "$1" | tr , '\n' | grep -v -x -F "$2" | paste -sd, -; } # <list
 # new-tab page) is navigated to <file>.
 tab_menu_split() {
   $AX press $PID "AXMenuItem:Tab zu neuer geteilter Ansicht hinzufügen" >> "$OUT/steps.txt"; sleep 3
+  # The new pane is Chromium's split tab picker ("Tab auswählen"), a WebUI
+  # page that /json may not list as type "page" (build 50); take the first
+  # non-site, non-DevTools target and log them all.
+  curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
+[print("target", x["type"], x["url"][:100]) for x in json.load(sys.stdin)]' >> "$OUT/steps.txt"
   local new; new=$(curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
-t=[x for x in json.load(sys.stdin) if x["type"]=="page" and not x["url"].startswith(sys.argv[1]) and not x["url"].startswith("devtools")]
+t=[x for x in json.load(sys.stdin) if x["type"] in ("page","other","webview") and not x["url"].startswith(sys.argv[1]) and not x["url"].startswith("devtools") and "top-chrome" not in x["url"]]
 print(t[0]["id"] if t else "")' "$SITE")
   echo "split new-tab pane: $new" >> "$OUT/steps.txt"
   [ -n "$new" ] && CDP "$new" Page.navigate "{\"url\":\"$SITE/$1\"}" >> "$OUT/steps.txt"
