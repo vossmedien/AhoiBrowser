@@ -156,7 +156,7 @@ TEST_F(SidebarActionViewsTest, WorkspaceHeaderLaysOutTheFullName) {
   EXPECT_TRUE(hide->GetVisible());
   EXPECT_GE(host->width(), GetWorkspaceSelectorPreferredWidth(
                                selector, /*with_indicators=*/false));
-  EXPECT_TRUE(selector->GetTooltipText(gfx::Point()).empty());
+  EXPECT_TRUE(selector->GetTooltipText().empty());
 
   const std::u16string long_name =
       u"Kundenprojekte und Recherche für das gesamte Jahr 2026";
@@ -166,7 +166,7 @@ TEST_F(SidebarActionViewsTest, WorkspaceHeaderLaysOutTheFullName) {
   EXPECT_FALSE(floating->GetVisible());
   EXPECT_FALSE(hide->GetVisible());
   // The elided name stays available as tooltip and accessible name.
-  EXPECT_EQ(long_name, selector->GetTooltipText(gfx::Point()));
+  EXPECT_EQ(long_name, selector->GetTooltipText());
   ui::AXNodeData accessibility;
   selector->GetViewAccessibility().GetAccessibleNodeData(&accessibility);
   EXPECT_NE(std::u16string::npos,
