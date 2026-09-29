@@ -17,6 +17,34 @@
   planned numbers. It touches only resource files, so its position in
   `series` after 0080 is free.
 
+## `0081-ahoi-http-auth-dialog-spec-style.patch`
+
+- **Owner:** Desktop (design spec 2026-09-29, reference
+  `06-http-auth-*.png`).
+- **Change:** `LoginHandlerViewsDialog` gets the shared Ahoi dialog frame
+  through two static `LoginView` hooks: `ApplyAhoiDialogFrame` (480 wide,
+  radius 18, 24 padding; overlay `ahoi::dialog_style::ApplyDialogFrame`)
+  before the widget exists and `ApplyAhoiDialogChrome` (20/25 semibold
+  title, 32-high buttons) after. `LoginView` drops its own dialog insets,
+  spaces sections 16 apart with hairlines, gives the username and password
+  fields 36-high spec focus rings, and shows the saved accounts as radio
+  rows under "Saved accounts" (`IDS_LOGIN_DIALOG_SAVED_ACCOUNTS`), all
+  accounts in `ahoi::SelectSavedAccountMenuEntries` order, the chosen one on
+  the opaque selection surface. Choosing a row fills both fields exactly
+  like choosing it from the username menu; typing a saved name checks its
+  row. The save choice moves below the fields. `login_view` gains
+  `//ahoi/browser/ui:dialog_style`, `:visual_style` and `//ui/accessibility`;
+  `chrome/browser/ui/views/DEPS` allows the two headers for `login_view.cc`.
+- **Safety:** presentation only. Rows are rebuilt only when the saved
+  accounts change (load, make preferred, delete), never inside a row's own
+  callback. Password filling, preferred/delete and the save decision keep
+  their existing paths; incognito still loads accounts only on the explicit
+  button; subresource prompts still show no account controls.
+- **Tests:** covered by the existing HTTP auth browser tests and the
+  installed HTTP auth journey; visual acceptance against the reference.
+- **Rebase/removal:** medium; `login_view.cc` also carries 0001, 0011 and
+  0078. Generated against those; `login_handler_views.cc` carries 0001.
+
 ## `0080-ahoi-milky-liquid-glass-backdrop.patch`
 
 - **Owner:** Desktop (DoD 6 Liquid Glass, rated RED by the owner: Glass ON
