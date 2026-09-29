@@ -13,6 +13,21 @@ All 15 unit binaries green (sync 201/201, sidebar 168/168, command bar
 153.0.8010.53. Its 11 journeys (incl. the first `ubo-classic-journey`, INC-04)
 wait for an idle desktop.
 
+Upstream watch (owner request, 29 Sep): Mac Stable is **154.0.8037.58**,
+fully rolled and pinnable since 22 Sep, so the M153→M154 roll is due by the
+7-day rule of `docs/UPSTREAM.md`; `chromium_roll.py discover` is retried
+while `chromium.googlesource.com` answers HTTP 503 to every request. Crest
+review of 316 `chromium-control-plane` commits:
+`docs/reviews/2026-09-29-crest-adoption.md` (reviewed head in
+`.work/agent-queue/crest-reviewed-head.txt`). Desktop gaps A1–A5 (Peek
+request fidelity and `target=_blank` auto-peek, clearing data of workspace
+website sessions, tab stepping within the active workspace's sidebar order,
+mini-player vs. transient sounds) are being implemented for build 48, with
+0074. **For the sync and mobile owners:** A6 (writer truncates to the
+strictest reader's limits, which also belong in `config/sync-format.json`)
+and C1 (unreadable sync state fails closed), C2, C3 (CloudKit account check
+deadline), C7, C8 from that report.
+
 Rebrand readback on the installed 46: `de.lproj/locale.pak` names
 AhoiBrowser 549 times, but 61 "Chromium" strings remained, e.g. "Chromium neu
 starten" on the password manager's Keychain card. They come from
