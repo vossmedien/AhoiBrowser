@@ -69,19 +69,41 @@ extension MobileBrowserController {
         discardLinkPreviewResources(id: preview.id, page: preview.page)
     }
 
+    /// Adoption is two-phase: WebKit's SwiftUI `WebView` traps when a
+    /// `WebPage` is attached to a second `WebView` while the preview's own
+    /// view still shows it. This closes the preview first; the full-screen
+    /// cover's `onDismiss` then calls `completeStagedLinkPreviewAdoption()`,
+    /// which moves the already loaded page into the new tab without reload.
     @discardableResult
-    func adoptLinkPreview(id: UUID) -> UUID? {
+    func adoptLinkPreview(id: UUID) -> Bool {
         guard let preview = linkPreview,
               preview.id == id,
               let sourceTab = tabs.first(where: { $0.id == preview.link.sourceTabID }),
               sourceTab.mode == preview.link.sourceMode,
-              sourceTab.workspaceID == preview.link.workspaceID else {
+              sourceTab.workspaceID == preview.link.workspaceID,
+              (try? MobileBrowserInputRouter.validateWebURL(
+                  preview.page.url ?? preview.link.url
+              )) != nil else {
             dismissLinkPreview(id: id)
-            return nil
+            return false
         }
-        let candidateURL = preview.page.url ?? preview.link.url
-        guard let safeURL = try? MobileBrowserInputRouter.validateWebURL(candidateURL) else {
-            dismissLinkPreview(id: id)
+        discardStagedLinkPreviewAdoption()
+        stagedLinkPreviewAdoption = preview
+        linkPreview = nil
+        return true
+    }
+
+    @discardableResult
+    func completeStagedLinkPreviewAdoption() -> UUID? {
+        guard let preview = stagedLinkPreviewAdoption else { return nil }
+        stagedLinkPreviewAdoption = nil
+        guard let sourceTab = tabs.first(where: { $0.id == preview.link.sourceTabID }),
+              sourceTab.mode == preview.link.sourceMode,
+              sourceTab.workspaceID == preview.link.workspaceID,
+              let safeURL = try? MobileBrowserInputRouter.validateWebURL(
+                  preview.page.url ?? preview.link.url
+              ) else {
+            discardLinkPreviewResources(id: preview.id, page: preview.page)
             return nil
         }
 
@@ -92,7 +114,6 @@ extension MobileBrowserController {
             url: safeURL.absoluteString,
             mode: preview.link.sourceMode
         )
-        linkPreview = nil
         linkPreviewNavigationTask?.cancel()
         linkPreviewNavigationTask = nil
         tabs.append(record)
@@ -103,6 +124,12 @@ extension MobileBrowserController {
         recordTabState()
         persistSoon()
         return record.id
+    }
+
+    func discardStagedLinkPreviewAdoption() {
+        guard let preview = stagedLinkPreviewAdoption else { return }
+        stagedLinkPreviewAdoption = nil
+        discardLinkPreviewResources(id: preview.id, page: preview.page)
     }
 
     func retryLinkPreview(id: UUID) {
@@ -225,8 +252,8 @@ struct MobileLinkPreviewView: View {
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button {
-                            _ = browser.adoptLinkPreview(id: preview.id)
-                            dismiss()
+                            // Closing the cover completes the adoption.
+                            browser.adoptLinkPreview(id: preview.id)
                         } label: {
                             Label(
                                 CompanionL10n.string(

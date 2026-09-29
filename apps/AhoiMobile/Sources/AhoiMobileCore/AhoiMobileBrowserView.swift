@@ -210,7 +210,9 @@ public struct AhoiMobileBrowserView: View {
         .fullScreenCover(item: Binding<MobileLinkPreviewSession?>(
             get: { browser.linkPreview },
             set: { if $0 == nil { browser.dismissLinkPreview() } }
-        )) { preview in
+        ), onDismiss: {
+            browser.completeStagedLinkPreviewAdoption()
+        }) { preview in
             MobileLinkPreviewView(preview: preview, browser: browser)
         }
     }

@@ -51,6 +51,7 @@ public final class MobileBrowserController: ObservableObject {
     @Published public internal(set) var pendingLink: MobilePendingLink?
     @Published internal(set) var linkPreview: MobileLinkPreviewSession?
     var stagedLinkPreview: MobilePendingLink?
+    var stagedLinkPreviewAdoption: MobileLinkPreviewSession?
     var linkPreviewNavigationTask: Task<Void, Never>?
     @Published public internal(set) var pageFailures: [UUID: MobilePageFailureKind] = [:]
     @Published var pageRetryFeedbackTabIDs: Set<UUID> = []
