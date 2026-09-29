@@ -13,6 +13,35 @@ source_set("visual_style") {
   ]
 }
 
+source_set("dialog_style") {
+  sources = [
+    "dialog_style.cc",
+    "dialog_style.h",
+  ]
+
+  public_deps = [ "//ui/gfx" ]
+
+  deps = [
+    ":visual_style",
+    "//ahoi/browser/ui/appearance",
+    "//ui/accessibility",
+    "//ui/views",
+  ]
+}
+
+source_set("dialog_style_unit_tests") {
+  testonly = true
+  sources = [ "dialog_style_unittest.cc" ]
+  deps = [
+    ":dialog_style",
+    ":visual_style",
+    "//testing/gtest",
+    "//ui/gfx",
+    "//ui/views",
+    "//ui/views:test_support",
+  ]
+}
+
 source_set("modal_overlay") {
   sources = [
     "modal_overlay_controller.cc",
