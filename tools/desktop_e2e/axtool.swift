@@ -5,6 +5,8 @@ import AppKit
 //        axtool press <pid> <substring-of-title|description|identifier>
 //        axtool type <pid> <text>
 //        axtool key <pid> <virtualKeyCode> [cmd|shift|opt|ctrl ...]
+//        axtool hidscroll <pid> <element> <dy> [dx] [cmd|shift|opt|ctrl ...]
+//        axtool hidmiddle <pid> <element> <dx> <dy>
 import ApplicationServices
 import Foundation
 
@@ -45,6 +47,35 @@ func matches(_ e: AXUIElement, _ needle: String) -> Bool {
     }
     return [str(e, kAXTitleAttribute), str(e, kAXDescriptionAttribute), str(e, "AXIdentifier")]
         .contains(name)
+}
+
+/// Center of the first element matching `needle`, in global coordinates.
+func centerOf(_ app: AXUIElement, _ needle: String) -> CGPoint? {
+    var found: AXUIElement?
+    _ = walk(app, 0, 30) { e, _ in
+        if matches(e, needle) { found = e; return true }
+        return false
+    }
+    guard let f = found, let pv = attr(f, kAXPositionAttribute),
+          let sv = attr(f, kAXSizeAttribute) else { return nil }
+    var pos = CGPoint.zero, size = CGSize.zero
+    AXValueGetValue(pv as! AXValue, .cgPoint, &pos)
+    AXValueGetValue(sv as! AXValue, .cgSize, &size)
+    return CGPoint(x: pos.x + size.width / 2, y: pos.y + size.height / 2)
+}
+
+func flagsFrom(_ names: ArraySlice<String>) -> CGEventFlags {
+    var flags: CGEventFlags = []
+    for m in names {
+        switch m {
+        case "cmd": flags.insert(.maskCommand)
+        case "shift": flags.insert(.maskShift)
+        case "opt": flags.insert(.maskAlternate)
+        case "ctrl": flags.insert(.maskControl)
+        default: break
+        }
+    }
+    return flags
 }
 
 let args = CommandLine.arguments
@@ -240,6 +271,55 @@ case "hidrightclick":
         usleep(80000)
     }
     print("hidrightclicked \(label(hf)) at \(hc)")
+case "hidscroll":
+    // A pixel scroll wheel event through the HID tap at the element's center,
+    // optionally with modifiers (Cmd+scroll switches tabs, NAV-11). Refuses
+    // unless the target app is frontmost.
+    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
+        print("hidscroll refused: target not frontmost"); exit(3)
+    }
+    guard args.count >= 5, let c = centerOf(app, args[3]), let dy = Int32(args[4]) else {
+        print("NOT FOUND"); exit(1)
+    }
+    let dx = args.count >= 6 ? Int32(args[5]) ?? 0 : 0
+    let mods = flagsFrom(args.dropFirst(args.count >= 6 && Int32(args[5]) != nil ? 6 : 5))
+    CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: c,
+            mouseButton: .left)!.post(tap: .cghidEventTap)
+    usleep(80000)
+    let ev = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 2,
+                     wheel1: dy, wheel2: dx, wheel3: 0)!
+    ev.flags = mods
+    ev.location = c
+    ev.post(tap: .cghidEventTap)
+    print("hidscrolled dy=\(dy) dx=\(dx) at \(c)")
+case "hidmiddle":
+    // Middle click at the element's center, then the pointer moves by
+    // (dx, dy) in small steps and stays there (middle-click autoscroll,
+    // NAV-12). Refuses unless the target app is frontmost.
+    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
+        print("hidmiddle refused: target not frontmost"); exit(3)
+    }
+    guard args.count >= 6, let c = centerOf(app, args[3]),
+          let mdx = Double(args[4]), let mdy = Double(args[5]) else {
+        print("NOT FOUND"); exit(1)
+    }
+    CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: c,
+            mouseButton: .left)!.post(tap: .cghidEventTap)
+    usleep(80000)
+    for t: CGEventType in [.otherMouseDown, .otherMouseUp] {
+        let ev = CGEvent(mouseEventSource: nil, mouseType: t, mouseCursorPosition: c,
+                         mouseButton: .center)!
+        ev.setIntegerValueField(.mouseEventClickState, value: 1)
+        ev.post(tap: .cghidEventTap)
+        usleep(80000)
+    }
+    for i in 1...10 {
+        let p = CGPoint(x: c.x + mdx * Double(i) / 10, y: c.y + mdy * Double(i) / 10)
+        CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: p,
+                mouseButton: .left)!.post(tap: .cghidEventTap)
+        usleep(30000)
+    }
+    print("hidmiddle at \(c) moved by (\(mdx), \(mdy))")
 case "click", "rightclick":
     let needle = args[3]
     var found: AXUIElement?
