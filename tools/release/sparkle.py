@@ -283,6 +283,7 @@ def validate_appcast_contract(
     expected_channel: str,
     expected_build: int | None = None,
     expected_artifact_base_url: str | None = None,
+    published_build_floor: int | None = None,
 ) -> dict:
     if expected_channel not in CHANNELS:
         raise ReleaseError("Sparkle channel is invalid")
@@ -323,10 +324,13 @@ def validate_appcast_contract(
     if not items:
         raise ReleaseError("Sparkle appcast contains no update items")
     builds = []
+    delta_count = 0
     for item in items:
         version = item.findtext(f"{{{SPARKLE_NAMESPACE}}}version")
         if not version or not version.isdigit() or int(version) < 1:
             raise ReleaseError("Sparkle item has no positive numeric build version")
+        if int(version) in builds:
+            raise ReleaseError("Sparkle appcast contains a duplicate build version")
         builds.append(int(version))
         channel = item.findtext(f"{{{SPARKLE_NAMESPACE}}}channel")
         allowed_channels = {None, "", "stable"}
@@ -336,29 +340,58 @@ def validate_appcast_contract(
             allowed_channels.add("nightly")
         if channel not in allowed_channels:
             raise ReleaseError("Sparkle appcast contains a foreign channel item")
+        minimum = item.findtext(f"{{{SPARKLE_NAMESPACE}}}minimumUpdateVersion")
+        if minimum is not None and (
+            not minimum.isdigit() or not 1 <= int(minimum) < int(version)
+        ):
+            raise ReleaseError("Sparkle item minimum update version is invalid")
         enclosure = item.find("enclosure")
         if enclosure is None:
             raise ReleaseError("Sparkle item has no enclosure")
-        enclosure_url = _https_url(
-            enclosure.get("url", ""), "Sparkle enclosure URL"
-        )
-        if (
-            expected_artifact_base_url is not None
-            and not enclosure_url.startswith(expected_artifact_base_url)
-        ):
-            raise ReleaseError("Sparkle enclosure escapes the reviewed artifact base")
-        signature = enclosure.get(f"{{{SPARKLE_NAMESPACE}}}edSignature", "")
-        try:
-            if len(base64.b64decode(signature, validate=True)) != 64:
-                raise ValueError
-        except (ValueError, binascii.Error) as error:
-            raise ReleaseError("Sparkle enclosure signature is malformed") from error
-        length = enclosure.get("length", "")
-        if not length.isdigit() or int(length) < 1:
-            raise ReleaseError("Sparkle enclosure length is invalid")
+        _validate_enclosure(enclosure, expected_artifact_base_url)
+        for delta in item.findall(f"{{{SPARKLE_NAMESPACE}}}deltas/enclosure"):
+            _validate_enclosure(delta, expected_artifact_base_url)
+            delta_from = delta.get(f"{{{SPARKLE_NAMESPACE}}}deltaFrom", "")
+            if not delta_from.isdigit() or not 1 <= int(delta_from) < int(version):
+                raise ReleaseError("Sparkle delta source version is invalid")
+            delta_count += 1
+    newest = max(builds)
     if expected_build is not None and expected_build not in builds:
         raise ReleaseError("Sparkle appcast does not contain the release build")
-    return {"itemCount": len(items), "builds": sorted(builds, reverse=True)}
+    if expected_build is not None and expected_build != newest:
+        raise ReleaseError("Sparkle release build is not the newest appcast item")
+    if published_build_floor is not None and newest < published_build_floor:
+        raise ReleaseError(
+            "Sparkle appcast regresses below the already published build"
+        )
+    return {
+        "itemCount": len(items),
+        "deltaCount": delta_count,
+        "builds": sorted(builds, reverse=True),
+    }
+
+
+def _validate_enclosure(
+    enclosure: ET.Element, expected_artifact_base_url: str | None
+) -> None:
+    enclosure_url = _https_url(enclosure.get("url", ""), "Sparkle enclosure URL")
+    segments = urllib.parse.unquote(urllib.parse.urlsplit(enclosure_url).path)
+    if any(segment in {".", ".."} for segment in segments.split("/")):
+        raise ReleaseError("Sparkle enclosure URL contains dot path segments")
+    if (
+        expected_artifact_base_url is not None
+        and not enclosure_url.startswith(expected_artifact_base_url)
+    ):
+        raise ReleaseError("Sparkle enclosure escapes the reviewed artifact base")
+    signature = enclosure.get(f"{{{SPARKLE_NAMESPACE}}}edSignature", "")
+    try:
+        if len(base64.b64decode(signature, validate=True)) != 64:
+            raise ValueError
+    except (ValueError, binascii.Error) as error:
+        raise ReleaseError("Sparkle enclosure signature is malformed") from error
+    length = enclosure.get("length", "")
+    if not length.isdigit() or int(length) < 1:
+        raise ReleaseError("Sparkle enclosure length is invalid")
 
 
 def generate_appcast(
