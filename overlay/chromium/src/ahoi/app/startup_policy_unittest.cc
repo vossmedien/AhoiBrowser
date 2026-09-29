@@ -50,6 +50,8 @@ TEST(StartupPolicyTest, DisablesBackgroundAccountAndAiFeatures) {
   const std::vector<std::string> enabled =
       FeaturesForSwitch(command_line, switches::kEnableFeatures);
   EXPECT_NE(enabled.end(), std::ranges::find(enabled, "SplitViewHorizontal"));
+  EXPECT_NE(enabled.end(),
+            std::ranges::find(enabled, "UseSCContentSharingPicker"));
 }
 
 TEST(StartupPolicyTest, OverridesHostileEnablesAndPreservesOtherArguments) {
@@ -67,7 +69,7 @@ TEST(StartupPolicyTest, OverridesHostileEnablesAndPreservesOtherArguments) {
   ApplyEarlyStartupPolicy(command_line);
   ApplyEarlyStartupPolicy(command_line);
 
-  EXPECT_EQ("UnrelatedFeature,SplitViewHorizontal",
+  EXPECT_EQ("UnrelatedFeature,SplitViewHorizontal,UseSCContentSharingPicker",
             command_line.GetSwitchValueASCII(switches::kEnableFeatures));
   EXPECT_EQ(original_args, command_line.GetArgs());
 
