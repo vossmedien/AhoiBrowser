@@ -150,6 +150,7 @@ source_set("session_bridge_api") {
     "workspace_service_factory.h",
   ]
   public_deps = [
+    ":cross_level_move",
     ":group_page_close",
     ":session_preferences",
     ":session_restore_integration",
@@ -207,6 +208,7 @@ source_set("session") {
     "native_workspace_structure.cc",
     "native_workspace_structure.h",
     "session_bridge.cc",
+    "session_bridge_cross_level_move.cc",
     "session_bridge_extension_setup.cc",
     "session_bridge_factory.cc",
     "session_bridge_internal.cc",
