@@ -123,7 +123,22 @@ eval_in() { # <url substring> <expression> ; with a user gesture
 }
 press_label() { # <regex of an AXButton title> ; presses the first match
   local title; title=$($AX dump $PID 14 | grep -o -E "AXButton \| ($1)[^|]*" | head -1 | sed -e 's/^AXButton | //' -e 's/ *$//')
-  [ -n "$title" ] && $AX press $PID "$title" >> "$OUT/steps.txt"
+  [ -n "$title" ] && $AX press $PID "AXButton:$title" >> "$OUT/steps.txt"
+}
+# Chromium's input protection drops a press on a prompt or bubble button
+# that comes within the double-click interval after it showed or its window
+# was activated; the press still returns 0. Builds 53/54 lost "Zulassen"
+# and "Speichern" that way. Wait, press, and retry while it stays open.
+press_protected() { # <regex of an AXButton title> <regex while open>
+  for attempt in 1 2 3; do
+    sleep 1; press_label "$1" || return 1
+    local end=$(( $(date +%s) + 3 ))
+    while [ $(date +%s) -lt $end ]; do
+      $AX dump $PID 14 | grep -q -E "$2" || return 0; sleep 0.5
+    done
+    echo "info: $1 still open, pressing again" >> "$OUT/steps.txt"
+  done
+  return 1
 }
 # The separated Profile's directory ("Profile <n>", ADR 0011).
 iso_dir() { ls -d "$P"/Profile\ * 2>/dev/null | head -1; }
@@ -225,7 +240,9 @@ open_url "$SITE/check.html?relaunch"
 open_url "$SITE/perm.html"
 CDP perm.html Runtime.evaluate '{"expression":"Notification.requestPermission().then(p=>window.__perm=p)","userGesture":true}' >> "$OUT/steps.txt"; echo >> "$OUT/steps.txt"
 if waitax "AXButton \\| (Zulassen|Bei jedem Besuch zulassen)" 10; then
-  $AX dump $PID 14 > "$OUT/ax-permission-prompt.txt"; press_label "Zulassen|Bei jedem Besuch zulassen"; sleep 2
+  $AX dump $PID 14 > "$OUT/ax-permission-prompt.txt"
+  press_protected "Zulassen|Bei jedem Besuch zulassen" \
+    "AXButton \\| (Zulassen|Bei jedem Besuch zulassen)"; sleep 2
 fi
 [ "$(eval_in perm.html 'Notification.permission')" = granted ] && record permissionGrantedInSeparated true || record permissionGrantedInSeparated false
 # Saved password and autocomplete entry: typed (CDP insertText is user
@@ -238,7 +255,8 @@ done
 eval_in form.html "document.forms[0].requestSubmit()" > /dev/null
 waiturl done.html 10 || echo "info: form did not submit" >> "$OUT/steps.txt"
 if waitax "Passwort speichern" 10; then
-  $AX dump $PID 14 > "$OUT/ax-password-bubble.txt"; $AX press $PID "AXButton:Speichern" >> "$OUT/steps.txt"; sleep 2
+  $AX dump $PID 14 > "$OUT/ax-password-bubble.txt"
+  press_protected Speichern "Passwort speichern\\?"; sleep 2
   record passwordOfferedInSeparated true
 else
   record passwordOfferedInSeparated false
