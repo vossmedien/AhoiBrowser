@@ -1,0 +1,166 @@
+{
+  "png_count": 19,
+  "required_pairs": 8,
+  "additional_quick_window_pair": true,
+  "reduced_transparency": true,
+  "unique_hashes": true,
+  "png_integrity": "pass",
+  "spec_links": "pass",
+  "commit_scope": "pass",
+  "commit_trailers": "pass",
+  "images": [
+    {
+      "file": "01-hauptfenster-dunkel.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1863320,
+      "sha256": "fa55c1cfeb19aac651ac889a033c586dd50aa8c6e153c9365d17e5c85d3f8cce",
+      "png_crc": "pass"
+    },
+    {
+      "file": "01-hauptfenster-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1819185,
+      "sha256": "4967928632c0320e5ecbc846c34dc51b150e249918d26d640bddd0bfc9353632",
+      "png_crc": "pass"
+    },
+    {
+      "file": "02-command-bar-dunkel.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1770933,
+      "sha256": "ad7a84941915c620185b91af0a139bfc00556425e5acc8ba20a4a95976b4f2a9",
+      "png_crc": "pass"
+    },
+    {
+      "file": "02-command-bar-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1826873,
+      "sha256": "f0e4f216a7969a8d136a4dfa8f80f1e62b85a7e28a9a48ca216b1949271d947a",
+      "png_crc": "pass"
+    },
+    {
+      "file": "03-link-peek-dunkel.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1796343,
+      "sha256": "e02422a08392d476add61226090355e047afb32555277199abb111b09e627716",
+      "png_crc": "pass"
+    },
+    {
+      "file": "03-link-peek-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1926970,
+      "sha256": "0c04b32f3d0c4ced3857b9cb1792cd2a2a879f6473d0e056d1becc4ca08e1646",
+      "png_crc": "pass"
+    },
+    {
+      "file": "04-split-2x2-dunkel.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1877177,
+      "sha256": "1201a4af9ce22d99491bdb0d986e808c605ae939cc2361fbf49ad123a1e60e02",
+      "png_crc": "pass"
+    },
+    {
+      "file": "04-split-2x2-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1681393,
+      "sha256": "06d21b1835016a9d0bac47ddedad38d821eeae65ca4172f95b2f8de763f1c3ec",
+      "png_crc": "pass"
+    },
+    {
+      "file": "05-workspace-dunkel.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1851615,
+      "sha256": "6c662342179f2a76dc91333ca3708693ae848ed14ab83247d08ca17ee9265939",
+      "png_crc": "pass"
+    },
+    {
+      "file": "05-workspace-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1697315,
+      "sha256": "ea8005fa505c07ea7f44fbdbb96adf594ff520c5b610b4eeaccfd3b6a560e4b0",
+      "png_crc": "pass"
+    },
+    {
+      "file": "06-http-auth-dunkel.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1884022,
+      "sha256": "07f4cbbf42e7769533f4135a1912b7e48f8a1575e4f644509e1d079a9b4ccead",
+      "png_crc": "pass"
+    },
+    {
+      "file": "06-http-auth-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1825153,
+      "sha256": "f0ce1853aad5f7f5b0f13c29aeb7689d325af5003b7a97acb33cd1268a760e0a",
+      "png_crc": "pass"
+    },
+    {
+      "file": "07-erscheinungsbild-dunkel.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1524283,
+      "sha256": "4df0c2abe3a556c6ed007ba531be3e223c5ab07490fda92baf51fa65b550d32f",
+      "png_crc": "pass"
+    },
+    {
+      "file": "07-erscheinungsbild-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1492466,
+      "sha256": "aa5bdfe482944c5ac102acecfe2dad00c0027d6344283b834cfa3fa93a3957cf",
+      "png_crc": "pass"
+    },
+    {
+      "file": "08-ios-dunkel.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1550766,
+      "sha256": "ed9e229192aaa876073521a96973b3c46d04b40a227fbcbce7c168057851ac79",
+      "png_crc": "pass"
+    },
+    {
+      "file": "08-ios-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1700993,
+      "sha256": "03d74785976fbb1f61fd03be6338db4d5ff1e4a7eb24fe9ae29b71487d2d48ee",
+      "png_crc": "pass"
+    },
+    {
+      "file": "09-transparenz-reduziert-hell.png",
+      "width": 1586,
+      "height": 992,
+      "bytes": 1841745,
+      "sha256": "1e613a4086cb4bdffda51e90b9657e8cc07b7f1964229e59f863e96438f62519",
+      "png_crc": "pass"
+    },
+    {
+      "file": "10-quick-window-dunkel.png",
+      "width": 1412,
+      "height": 1114,
+      "bytes": 1703706,
+      "sha256": "8ed891e8f7f8bdb7864dec7fcbb13ce3ac869b64513ab90f500590bb534c9931",
+      "png_crc": "pass"
+    },
+    {
+      "file": "10-quick-window-hell.png",
+      "width": 1412,
+      "height": 1114,
+      "bytes": 1690068,
+      "sha256": "5f49fb62bf43dcf3cdcba62605dbb89ee5de481b18b8de9c726c23380d83494e",
+      "png_crc": "pass"
+    }
+  ],
+  "limitations": "Raster references, no font embedding or dynamic contrast certification. No product tests required; no product changes."
+}
