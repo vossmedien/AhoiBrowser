@@ -1,5 +1,65 @@
 # Active sync coordination
 
+## WS-MERGE-06 `mergedInto` contract and compaction routes — 29 September 2026
+
+Owner-authorized sync-lane session (ADR 0012 WS-MERGE-06, Crest 108/114/118).
+Worktree `../AhoiBrowser-mergedinto` from `4991771e`, not pushed.
+**Nothing compiled or run natively**: load average was 179–216 (gate: 60), so
+no `swift test`/`xcodebuild`, no Chromium build. Only the repository
+conformance checks ran (field-group drift 37/37 copies, 0 findings; catalogue
+`--check` fresh; 16/16 `test_sync_conformance_*` tests).
+
+- **Contract.** New top-level `workspaceMerge` section in
+  `config/sync-format.json`: optional `merged_into` payload key (canonical
+  lowercase UUID, absent when unset, null rejected), only with a tombstone,
+  never self; part of the existing `tombstone` field group (no new field
+  group, `records[]` and the catalogue digest unchanged); undo clears it,
+  ordinary deletion never writes it; routing is projection-only with chain/
+  cycle rules, parent/root-order rules and the Crest 126 marker binding;
+  compaction retains only source/target locally (Desktop
+  `sync_workspace_merge_watermarks`, Mobile `CompanionDeletionWatermark.mergedInto`);
+  additive for Format 3, readers without it fall back to deletion re-homing.
+  Matches C++ `628c158`/`9bc5924`/`5a7d6b3`/`2bd75cb`/`14297bc3` and Swift
+  `4f2b154`/`980c7137`/`0e7d5516`/`0962fd37`, projection `6f7fafc`/`cfd0127`.
+- **Compaction already keeps the route on both clients.** The premise that
+  compaction drops `merged_into` is outdated: Desktop since `5a7d6b3`
+  (natively GREEN in the `ba9f26cb` run), Mobile since `980c7137`/`0e7d5516`.
+  This session only adds the missing negative case on both sides — an undone
+  merge that is later deleted normally compacts **without** a stale route and
+  its late Page keeps generic recovery: C++
+  `SyncWorkspaceMergeTest.UndoneMergeCompactsWithoutAStaleRoute`
+  (in `ahoi_sync_unittests`), Swift
+  `CompanionWorkspaceRetentionTests.testUndoneMergeCompactsWithoutAStaleRoute`.
+  Both are **unexecuted source**; the desktop owner must build and run
+  `ahoi_sync_unittests` (whole `SyncWorkspaceMergeTest` suite), Mobile the
+  `CompanionWorkspaceRetentionTests` class.
+- **Owed by Crest-hardening (not edited here):** a post-compaction routing
+  vector in `fixtures/sync-conformance/workspace_merge_projection_v3.json`
+  (its README still calls retention "deliberately open"): frames with an extra
+  local input `compactedWorkspaceRoutes` (source→target, not wire) and no raw
+  source record — (a) single late root after A→B compaction resolves to B at
+  B's root end, byte/clock-identical raw Page; (b) compacted A→M plus live
+  tombstone M→B chain; (c) compacted cycle and compacted ordinary deletion
+  (no route) stay `unconstrained`; (d) stale live native A must not shadow the
+  route (Crest 114 R1). Runners would need a way to feed the route map.
+- **Doc changes owed (foreign uncommitted edits in the main checkout, not
+  touched):** ADR 0009 should reference `workspaceMerge` as an additive
+  Format-3 key in the tombstone group; `docs/SYNC.md` retention section should
+  state that Workspace compaction keeps the merge source→target route.
+- **Crest 118 not implemented.** No operational 118 test exists on either
+  client. It needs nine real-writer cases × four passive/reload checks through
+  the production Desktop tree/drop key allocator (after the 124 fix), search
+  recapture, and opposite-platform replay of actual output. That is not
+  source-sized and cannot be written blind without compiling; it stays with
+  the desktop/mobile owners for a slot with native builds.
+- **Open risks.** An old tombstone replay after compaction drains on both
+  clients, but only Mobile checks that its `merged_into` equals the retained
+  route (a differing one is rejected); Desktop drains it by version alone.
+  Harmless (nothing is materialized) but asymmetric. The
+  route table is local only: a fresh device that never saw the tombstone
+  depends on the server still holding it (no CloudKit physical delete is
+  issued, so this holds today).
+
 ## Crest adoption A6 and C1 — 29 September 2026
 
 Owner-approved session for the unstaffed sync and mobile lanes, from
