@@ -17,6 +17,7 @@
 #include "ahoi/browser/sync/sync_policy.h"
 #include "ahoi/browser/sync/sync_provider.h"
 #include "ahoi/browser/sync/sync_pump.h"
+#include "ahoi/browser/sync/sync_record_limits.h"
 #include "ahoi/browser/sync/sync_store.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
 #include "build/build_config.h"
@@ -164,6 +165,7 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::Initialize() {
       .created_at = now,
       .last_seen = now,
       .version = {.stamp = clock_.Tick(now)}};
+  FitDeviceRecordForSync(&device);
   if (has_existing_device) {
     if (const DeviceRecord* old = std::get_if<DeviceRecord>(&existing)) {
       if (old->retired || old->tombstone) {
@@ -199,6 +201,7 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::Initialize() {
     }
     old.tombstone = true;
     old.version = {.stamp = clock_.Tick(now)};
+    FitRemoteTabRecordForSync(&old);
     if (tabs_service_->RemoveLocalTab(old) != SyncStore::Result::kOk) {
       return std::nullopt;
     }
@@ -253,6 +256,10 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::AddHistoryVisit(
                        .visit_count = 1,
                        .transition = std::move(transition),
                        .version = {.stamp = clock_.Tick(visit_time)}};
+  if (!FitHistoryRecordForSync(&record)) {
+    // Every reader rejects this address, so the visit stays in local history.
+    return CurrentState();
+  }
   return Put(record) ? CurrentState() : std::nullopt;
 }
 
@@ -281,6 +288,9 @@ std::optional<SyncStateSnapshot> ProfileSyncBackend::TombstoneHistory(
     }
     record->tombstone = true;
     record->version = {.stamp = clock_.Tick(now)};
+    // A row an older build authored may still carry a long title. Its address
+    // cannot be cut, so such a tombstone is published unchanged.
+    FitHistoryRecordForSync(record);
     if (!Put(*record)) {
       return std::nullopt;
     }

@@ -11,6 +11,7 @@
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_provider.h"
+#include "ahoi/browser/sync/sync_record_limits.h"
 #include "ahoi/browser/sync/sync_unified_validation.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
 #include "base/functional/bind.h"
@@ -306,6 +307,7 @@ SharedTabCaptureResult ProfileSyncBackend::ApplySharedTabCapture(
     }
     auto closed = old->second;
     closed.tombstone = true;
+    FitRemoteTabRecordForSync(&closed);
     closed.version = {.stamp = clock_.Tick(now)};
     changes.emplace_back(std::move(closed));
     committed_live.erase(old);
@@ -328,6 +330,7 @@ SharedTabCaptureResult ProfileSyncBackend::ApplySharedTabCapture(
     value.target_kind = tab.target_kind;
     value.local_scheme = tab.local_scheme;
     value.title = tab.title;
+    FitRemoteTabRecordForSync(&value);
     value.pinned = tab.pinned;
     if (tab.active && now - value.last_active >= base::Seconds(5)) {
       value.last_active = now;

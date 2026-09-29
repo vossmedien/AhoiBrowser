@@ -190,3 +190,30 @@ No new transport, Production deployment or Android implementation is authorized.
 The requested post-Bookmark native/common API and preserving capture contract is
 recorded in [SHARED_TAB_NATIVE_SEAMS.md](../SHARED_TAB_NATIVE_SEAMS.md). It does
 not change this wire fixture or activate any header, runtime caller or writer.
+
+## Record text limits: writers fit the strictest reader (2026-09-29)
+
+Crest 77457bb, review row A6. Readers keep rejecting oversized metadata; every
+writer therefore fits the records it authors to the strictest reader, which is
+the Companion's `RemoteTab`/`HistoryVisit` model. The table is normative in
+`config/sync-format.json` `recordTextLimits` (UTF-8 bytes):
+
+| Record | Field | Limit | Writer |
+| --- | --- | --- | --- |
+| deviceTab | `title` | 1024 | cut on a whole character |
+| deviceTab | `url` | 131072 | record stays local (unchanged rule above) |
+| device | `display_name` | 256 | cut; denormalized into every Presence of the device |
+| workspace | `name` | 256 | cut; denormalized into every Presence of the Workspace |
+| historyVisit | `title` | 1024 | cut on a whole character |
+| historyVisit | `url` | 16384 | visit stays in local history; an address is never cut |
+| historyVisit | `transition` | 128 | cut |
+
+The local browser keeps its own text; only the synced record is fitted, at the
+single native-to-record projection so a stable long name is authored once and
+not on every reconcile. Desktop cuts on code points
+(`base::TruncateUTF8ToByteSize`), Swift on whole `Character`s; both yield valid
+UTF-8 within the limit. Desktop validation of stored and incoming records is
+deliberately not tightened: rows that older builds already persisted would
+otherwise turn the whole store unreadable. The Companion also fits the device
+and Workspace names it borrows from other records when it builds a Presence, so
+a long name that an older writer published no longer quarantines every tab.

@@ -237,6 +237,57 @@
       ]
     }
   ],
+  "recordTextLimits": {
+    "rule": "Every writer fits the records it authors to the strictest reader (Crest 77457bb). Text is cut after the last whole UTF-8 character within the limit; the local browser keeps its own text. An address past its limit is never cut: that record stays local. Readers keep rejecting oversized fields.",
+    "unit": "UTF-8 bytes",
+    "strictestReader": "Companion (spikes/cloudkit CompanionModels.swift RemoteTab, HistoryVisit)",
+    "fields": [
+      {
+        "dataClass": "deviceTab",
+        "field": "title",
+        "maximum": 1024,
+        "writer": "fit"
+      },
+      {
+        "dataClass": "deviceTab",
+        "field": "url",
+        "maximum": 131072,
+        "writer": "local-only"
+      },
+      {
+        "dataClass": "device",
+        "field": "display_name",
+        "maximum": 256,
+        "writer": "fit",
+        "reason": "denormalized into every RemoteTab of that device"
+      },
+      {
+        "dataClass": "workspace",
+        "field": "name",
+        "maximum": 256,
+        "writer": "fit",
+        "reason": "denormalized into every RemoteTab of that Workspace"
+      },
+      {
+        "dataClass": "historyVisit",
+        "field": "title",
+        "maximum": 1024,
+        "writer": "fit"
+      },
+      {
+        "dataClass": "historyVisit",
+        "field": "url",
+        "maximum": 16384,
+        "writer": "local-only"
+      },
+      {
+        "dataClass": "historyVisit",
+        "field": "transition",
+        "maximum": 128,
+        "writer": "fit"
+      }
+    ]
+  },
   "clock": {
     "physicalEncoding": "canonical signed-Int64 decimal string of Windows-epoch microseconds",
     "minimumPhysical": "11644473600000000",

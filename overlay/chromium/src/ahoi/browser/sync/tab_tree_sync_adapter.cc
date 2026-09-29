@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "ahoi/browser/sync/sync_record_limits.h"
 #include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "base/containers/span.h"
 #include "base/strings/strcat.h"
@@ -238,17 +239,21 @@ std::optional<base::Uuid> ResolveWorkspaceMergeTarget(
 
 WorkspaceRecord WorkspaceToSyncRecord(const tab_tree::Workspace& workspace,
                                       SyncVersion version) {
-  return {.id = workspace.id,
-          .name = base::UTF16ToUTF8(workspace.name),
-          .icon = base::UTF16ToUTF8(workspace.icon),
-          .sort_key = workspace.sort_key,
-          .accent_argb = workspace.accent_argb,
-          .created_at = workspace.created_at,
-          .modified_at = workspace.modified_at,
-          .tombstone = workspace.tombstone,
-          .version = std::move(version),
-          .archive_policy = workspace.archive_policy,
-          .merged_into = workspace.merged_into};
+  // Fitted here, the one native-to-record path, so the native observation
+  // baseline and the stored record agree and a long name is authored once.
+  WorkspaceRecord record{.id = workspace.id,
+                         .name = base::UTF16ToUTF8(workspace.name),
+                         .icon = base::UTF16ToUTF8(workspace.icon),
+                         .sort_key = workspace.sort_key,
+                         .accent_argb = workspace.accent_argb,
+                         .created_at = workspace.created_at,
+                         .modified_at = workspace.modified_at,
+                         .tombstone = workspace.tombstone,
+                         .version = std::move(version),
+                         .archive_policy = workspace.archive_policy,
+                         .merged_into = workspace.merged_into};
+  FitWorkspaceRecordForSync(&record);
+  return record;
 }
 
 TreeNodeRecord TreeNodeToSyncRecord(const tab_tree::TreeNode& node,
