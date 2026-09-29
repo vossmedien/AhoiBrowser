@@ -109,6 +109,21 @@ key() {
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
 }
+# ⌘Z by its letter, as split_journey_lib.sh does (this journey does not
+# source it): QWERTZ layouts carry Z on the ANSI Y key (16). Build 54 ran
+# the undo step without any key, because undo_key was not defined here.
+KBD_LAYOUT=$(defaults read ~/Library/Preferences/com.apple.HIToolbox \
+  AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null)
+case "$KBD_LAYOUT" in
+  *QWERTY*) Z_KEY=6 ;;
+  *German*|*Swiss*|*Austrian*|*Czech*|*Slovak*|*Hungarian*) Z_KEY=16 ;;
+  *Croatian*|*Slovenian*|*Serbian-Latin*|*Albanian*) Z_KEY=16 ;;
+  *) Z_KEY=6 ;;
+esac
+undo_key() {
+  echo "undo: key $Z_KEY on ${KBD_LAYOUT:-unknown layout}" >> "$OUT/steps.txt"
+  key $Z_KEY cmd
+}
 type_in() {
   for attempt in 1 2 3; do
     $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1
@@ -172,6 +187,16 @@ switch_to() { # <from> <to>
   menu "$1" "$2" || return 1
   $AX press $PID "$(menuitem "$2")" >> "$OUT/steps.txt"
   waitax "$2, Workspace wechseln" 15 14
+}
+# Back to Inbox after a step in Getrennt. When the window did not follow
+# (a red check), Inbox is already in front and its switcher has no
+# "Getrennt" button; switching then would fail the setup and hide every
+# later check (build 54: four "NOT FOUND" after the folder).
+back_to_inbox() {
+  if waitax "Inbox, Workspace wechseln" 2 14; then
+    echo "info: Inbox already in front" >> "$OUT/steps.txt"; return 0
+  fi
+  switch_to Getrennt Inbox
 }
 open_url() { # <url>
   local opened=0
@@ -265,6 +290,10 @@ same_window() { [ "$(window_of "$1")" = "$(window_of "$2")" ]; }
 no_login() { [ -z "$(cookie_of "$1")" ]; }
 logged_in() { [ "$(cookie_of "$1")" = "acct=gemeinsam" ]; }
 not_ax() { ! waitax "$1" 3; }
+# A sidebar row titled <text>. A bare title also matches the menu bar's
+# History items ("AXMenuItem | Login", build 54), the window title and
+# notice text, so a "gone" check could never pass.
+ROW_RE='AX(RadioButton|Tab|Row|Cell|Button) \| [^|]*'
 
 launch
 # The fully separated Workspace, created once; its window takes over.
@@ -316,8 +345,8 @@ ROW=$(row_of Login)
 undo_key; sleep 6
 check undoRestoresSource in_main login.html
 check undoBringsLoginBack logged_in login.html
-check undoLeavesTargetEmpty not_ax 'AX[A-Za-z]+ \| [^|]*Login'
-switch_to Getrennt Inbox || fail_setup "no hand-over to Inbox after undo"
+check undoLeavesTargetEmpty not_ax "${ROW_RE}Login"
+back_to_inbox || fail_setup "no hand-over to Inbox after undo"
 
 # (3) A split moves as a whole: both panes arrive in one window of the
 # separated Profile, never one pane per Profile.
@@ -330,7 +359,7 @@ split_whole() {
   in_target a.html && in_target b.html && same_window a.html b.html
 }
 check splitMovedWhole split_whole
-switch_to Getrennt Inbox || fail_setup "no hand-over to Inbox after split"
+back_to_inbox || fail_setup "no hand-over to Inbox after split"
 
 # (4) A folder with its page via "Verschieben nach" on the folder row.
 open_url "$SITE/note.html"
@@ -342,11 +371,13 @@ $AX press $PID "AXButton:Erstellen" >> "$OUT/steps.txt"; sleep 3
 move_menu Mappe folder || fail_setup "move menu for the folder missing"
 confirm_dialog folder
 check folderNoticeNamesFolder has confirm-folder "Der Ordner „Mappe“"
-arrived() { waitax "Getrennt, Workspace wechseln" 15 14 && waitax Mappe 10; }
+arrived() {
+  waitax "Getrennt, Workspace wechseln" 15 14 && waitax "${ROW_RE}Mappe" 10
+}
 check folderArrivesInTarget arrived
 check folderPageReopened in_target note.html
-switch_to Getrennt Inbox || fail_setup "no hand-over to Inbox after folder"
-check folderLeftInbox not_ax Mappe
+back_to_inbox || fail_setup "no hand-over to Inbox after folder"
+check folderLeftInbox not_ax "${ROW_RE}Mappe"
 
 # (5) The command bar's move item lists the other Profile's Workspace
 # with the sign-in hint and moves the active tab there.
@@ -375,7 +406,7 @@ launch
 if ! waitax "Getrennt, Workspace wechseln" 5 14; then
   switch_to Inbox Getrennt || fail_setup "Getrennt missing after relaunch"
 fi
-check movedFolderPersists waitax Mappe 10
+check movedFolderPersists waitax "${ROW_RE}Mappe" 10
 switch_to Getrennt Inbox || fail_setup "no hand-over to Inbox at the end"
-check inboxStaysWithoutFolder not_ax Mappe
+check inboxStaysWithoutFolder not_ax "${ROW_RE}Mappe"
 finish ""; quit
