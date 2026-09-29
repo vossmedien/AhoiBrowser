@@ -298,7 +298,7 @@ check tabReloadedNotCarried reloaded
 # closes in Getrennt and the page reopens, logged in, in Inbox.
 ROW=$(row_of Login)
 [ -n "$ROW" ] && $AX focus $PID "$ROW" >> "$OUT/steps.txt"; sleep 1
-key 6 cmd; sleep 6
+undo_key; sleep 6
 check undoRestoresSource in_main login.html
 check undoBringsLoginBack logged_in login.html
 check undoLeavesTargetEmpty not_ax 'AX[A-Za-z]+ \| [^|]*Login'

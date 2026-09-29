@@ -125,7 +125,7 @@ sleep 2; tree_dump after-move
 case "$(tree roots "$ZIEL")" in "$ROOTS_ZIEL",*Projekt*|Projekt*) record folderAppendedInTarget true ;; *) record folderAppendedInTarget false ;; esac
 
 # Undo: ⌘Z moves the folder and its children back.
-key 6 cmd; sleep 3; tree_dump after-undo
+undo_key; sleep 3; tree_dump after-undo
 [ "$(tree nodeinfo "$FOLDER" | cut -d' ' -f1-2)" = "$INBOX -" ] && [ "$(tree roots "$INBOX")" = "$ROOTS_INBOX" ] \
   && [ "$(tree roots "$ZIEL")" = "$ROOTS_ZIEL" ] && record undoMovesFolderBack true || record undoMovesFolderBack false
 [ "$(tree nodeinfo "$SUB" | cut -d' ' -f1-2)" = "$INBOX $FOLDER" ] && [ "$(tree nodeinfo "$NODE_A" | cut -d' ' -f1-2)" = "$INBOX $FOLDER" ] \

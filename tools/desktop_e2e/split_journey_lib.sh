@@ -121,6 +121,23 @@ key() {
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
 }
+# ⌘Z by its letter, not by the ANSI position: hidkey sends virtual key
+# codes, and QWERTZ layouts (German, Swiss, Austrian, Czech, ...) carry Z
+# on the ANSI Y key (16). Key 6 is Y there, and ⌘Y opens History: build
+# 51 showed a "Verlauf" row instead of an undo in the cmd-move and merge
+# journeys.
+KBD_LAYOUT=$(defaults read ~/Library/Preferences/com.apple.HIToolbox \
+  AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null)
+case "$KBD_LAYOUT" in
+  *QWERTY*) Z_KEY=6 ;;
+  *German*|*Swiss*|*Austrian*|*Czech*|*Slovak*|*Hungarian*) Z_KEY=16 ;;
+  *Croatian*|*Slovenian*|*Serbian-Latin*|*Albanian*) Z_KEY=16 ;;
+  *) Z_KEY=6 ;;
+esac
+undo_key() {
+  echo "undo: key $Z_KEY on ${KBD_LAYOUT:-unknown layout}" >> "$OUT/steps.txt"
+  key $Z_KEY cmd
+}
 type_in() {
   for attempt in 1 2 3; do
     $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1

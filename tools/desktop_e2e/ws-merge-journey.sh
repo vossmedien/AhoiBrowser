@@ -192,7 +192,7 @@ menu "$(here)" "Neuer Workspace…"; $AX dump $PID 14 > "$OUT/ax-menu-after-merg
 { ! grep -q "AXMenuItem | Quelle" "$OUT/ax-menu-after-merge01.txt"; } && record merge01NotInSwitcher true || record merge01NotInSwitcher false
 
 # ---- WS-MERGE-03: ⌘Z restores Quelle with its ID, name, nodes and tabs.
-key 6 cmd
+undo_key
 until_state "$SRC" "live|Quelle" 10 && record merge03SameIdAndName true || record merge03SameIdAndName false
 sleep 2; tree_dump after-undo03
 [ "$(tree roots "$SRC")" = "$ROOTS_SRC" ] && [ "$(tree roots "$DST")" = "$ROOTS_DST" ] && [ -z "$(tree nodeid title:Quelle)" ] \
