@@ -46,7 +46,10 @@ A, B2, PX = (int(v) for v in sys.argv[1:4])
 BASIC = {"Ahoi Realm A": {"alice": "alice-pass-1", "bob": "bob-pass-1"},
          "Ahoi Realm B": {"carol": "carol-pass-1"},
          "Ahoi Subresource": {"sam": "sam-pass-1"}}
-ROTATED = {"alice": "alice-pass-2"}  # accepted after /__rotate
+# Accepted after /__rotate, on port A only: the port-B2 tab signed in with
+# the old password must stay valid for auth15_other_origin_kept (build 52
+# rotated both ports, so that reload was challenged by the fixture).
+ROTATED = {"alice": "alice-pass-2"}
 DIGEST_REALM, DIGEST = "Ahoi Realm A", {"dave": "dave-digest-1"}
 PROXY_REALM, PROXY = "Ahoi Proxy", {"pia": "pia-proxy-1"}
 ORIGIN_USERS = set(DIGEST) | {u for r in BASIC.values() for u in r}
@@ -192,7 +195,8 @@ class Origin(BaseHTTPRequestHandler):
             realm = "Ahoi Realm B"
         else:
             return self.page(200, "Ahoi auth fixture", "public page")
-        user = basic_user(auth, BASIC[realm], STATE["rotated"] and realm == "Ahoi Realm A")
+        rotated = STATE["rotated"] and realm == "Ahoi Realm A" and port == A
+        user = basic_user(auth, BASIC[realm], rotated)
         if user is None:
             return self.page(401, "Ahoi auth required", f"login required for {realm}",
                              {"WWW-Authenticate": f'Basic realm="{realm}", charset="UTF-8"'})
@@ -280,183 +284,9 @@ launch() { # <label> [extra flags...]
 }
 launch main
 
-# Keys go through the HID event tap like a real keyboard (keys posted to the
-# process are intermittently dropped by Chromium); hidkey refuses unless the
-# app is frontmost, so bring it forward and retry.
-ax() {
-  if [ "$1" = key ]; then
-    shift; local pid=$1; shift
-    for attempt in 1 2 3 4 5; do
-      "$AX" activate "$pid" >/dev/null 2>&1; sleep 0.3
-      "$AX" hidkey "$pid" "$@" >> "$OUT/steps.txt" 2>&1 && return 0
-      sleep 1
-    done
-    echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
-  fi
-  "$AX" "$@" >> "$OUT/steps.txt" 2>&1
-}
-title() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
-p=[t for t in json.load(sys.stdin) if t["type"]=="page"]; print(p[0]["title"] if p else "")'; }
-waitax() { local end=$(( $(date +%s) + $2 ))
-  while [ $(date +%s) -lt $end ]; do $AX dump $PID 40 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
-waittitle() { local end=$(( $(date +%s) + $2 ))
-  while [ $(date +%s) -lt $end ]; do title | grep -q "$1" && return 0; sleep 1; done; return 1; }
-record() { echo "$1 $2" >> "$OUT/results.txt"; echo "== $1 $2" >> "$OUT/steps.txt"; }
-# rec <step> <command...>: PASS when the command succeeds.
-rec() { local n=$1; shift; if "$@"; then record "$n" PASS; else record "$n" FAIL; fi; }
-alive() { kill -0 $PID 2>/dev/null; }
-has_ax() { $AX dump $PID 40 | grep -q -E -- "$1"; }
-no_ax() { alive && ! $AX dump $PID 40 | grep -q -E -- "$1"; }
-# Login Data rows (signon realm | username) of one PasswordForm scheme
-# (1 Basic, 2 Digest). The copy lives next to the profile, never in $OUT.
-store_q() { cp "$STORE_P/Default/Login Data" "$P-ld.db" 2>/dev/null || { echo ""; return; }
-  sqlite3 "$P-ld.db" "select signon_realm||'|'||username_value from logins where scheme=$1 order by 1;" | tr '\n' ' '
-  rm -f "$P-ld.db"; }
-store() { store_q 1; }
-# Login Data is written after the signed-in page loaded (lookup, then an
-# async write): poll up to 10 s for the expected rows.
-wait_store() { local i; for i in 1 2 3 4 5 6 7 8 9 10; do
-  [ "$(store)" = "$1" ] && return 0; sleep 1; done; return 1; }
-# The command bar is key while it is open, so Escape reaches only the bar.
-bar_open() { $AX dump $PID 3 | grep -q 'AXWindow | Suchen oder URL eingeben'; }
-closed_cmdbar() { local end=$(( $(date +%s) + 10 ))
-  while [ $(date +%s) -lt $end ]; do $AX dump $PID 3 | grep -q 'Suchen oder URL eingeben' || return 0; sleep 1; done
-  return 1; }
-close_cmdbar() { bar_open || return 0
-  ax key $PID 53; closed_cmdbar && return 0
-  echo "-- command bar did not close on Escape" >> "$OUT/steps.txt"; return 1; }
-# A bar that ignored Return is kept as AX evidence, then closed, so it can no
-# longer swallow the next steps (build 50: one open bar failed 12 steps).
-STUCK=0
-stuck_cmdbar() { STUCK=$((STUCK+1))
-  echo "-- command bar still open after Return ($1); see ax-cmdbar-stuck-$STUCK.txt" >> "$OUT/steps.txt"
-  $AX dump $PID 40 > "$OUT/ax-cmdbar-stuck-$STUCK.txt" 2>&1; close_cmdbar; }
-# Never press ⌘T into an open bar: it re-creates the bubble on the same anchor
-# ("anchor_view has already anchored a focusable widget", build 50), and the
-# re-created bar never executed Return there.
-cmdbar() { local ok=1
-  close_cmdbar
-  for i in 1 2 3; do ax activate $PID; sleep 1; ax key $PID 17 cmd
-    waitax "AXWindow \| Suchen oder URL eingeben" 6 && { ok=0; break; }; done
-  sleep 1; return $ok; }
-# Types into the open command bar and checks that its text field really holds
-# the text; a first keystroke can arrive before the field has focus (proven in
-# keyboard-shortcuts-journey.sh, build 47).
-type_in() {
-  for attempt in 1 2 3; do
-    ax type $PID "$1"; sleep 1
-    AHOI_AX_VALUE_MAX=300 $AX dump $PID 14 | grep "AXTextField" | grep -F -q -- "| $1" && return 0
-    echo "info: typed text missing, retyping" >> "$OUT/steps.txt"
-    ax key $PID 0 cmd; sleep 0.5
-  done
-  return 1; }
-goto() { cmdbar || { echo "-- command bar did not open for $1" >> "$OUT/steps.txt"; return 1; }
-  ax key $PID 0 cmd
-  type_in "$1" || { echo "-- could not type $1" >> "$OUT/steps.txt"; close_cmdbar; return 1; }
-  ax key $PID 36
-  closed_cmdbar && return 0
-  stuck_cmdbar "goto $1"; return 1; }
-# A challenge the harness disturbed shows only the 401 page; one explicit reload
-# re-issues it. Every use is recorded so a product-side cancel stays visible.
-challenge() { dialog "${1:-30}" && return 0
-  title | grep -q "Ahoi auth required" || return 1
-  echo "-- reload to re-issue challenge" >> "$OUT/steps.txt"; echo reload >> "$OUT/reloads.txt"
-  ax activate $PID; ax key $PID 15 cmd; dialog 20; }
-# HTTP-auth commands appear below the "HTTP" query; the first is preselected.
-# A full-text query would instead preselect the web search row. The row index
-# is taken from the offered rows, because "forget" and "manage" are hidden
-# where they cannot run (no active realm, incognito). Every failure closes the
-# bar again.
-command() { local want order idx
-  case "$1" in
-    switch) want="HTTP-Authentifizierungskonto wechseln";;
-    forget) want="Gespeicherte HTTP-Zugangsdaten für diesen Schutzbereich vergessen";;
-    manage) want="Gespeicherte HTTP-Zugänge verwalten";;
-  esac
-  cmdbar || { echo "-- command bar did not open for $1" >> "$OUT/steps.txt"; return 1; }
-  type_in "HTTP" || { echo "-- could not type the $1 query" >> "$OUT/steps.txt"; close_cmdbar; return 1; }
-  if ! waitax "AXStaticText \| (HTTP-Authentifizierungskonto wechseln|Gespeicherte HTTP-Zugänge verwalten)" 8; then
-    echo "-- no HTTP-auth rows for $1" >> "$OUT/steps.txt"; close_cmdbar; return 1
-  fi
-  sleep 0.5
-  order=$($AX dump $PID 40 | grep -o -E "AXStaticText \| (HTTP-Authentifizierungskonto wechseln|Gespeicherte HTTP-Zugangsdaten für diesen Schutzbereich vergessen|Gespeicherte HTTP-Zugänge verwalten)" \
-    | sed 's/^AXStaticText | //' | awk '!seen[$0]++')
-  idx=$(printf '%s\n' "$order" | grep -n -x -F "$want" | cut -d: -f1)
-  if [ -z "$idx" ]; then
-    echo "-- command $1 not offered; rows: $(echo $order)" >> "$OUT/steps.txt"; close_cmdbar; return 1
-  fi
-  # Not `seq 1 $idx`: BSD seq counts down, so idx=0 pressed Down twice.
-  local i=1; while [ $i -lt $idx ]; do ax key $PID 125; sleep 0.3; i=$((i+1)); done
-  ax key $PID 36
-  closed_cmdbar || { stuck_cmdbar "command $1"; return 1; }; }
-dialog() { waitax "AXHeading \| Anmelden" "${1:-20}" && return 0
-  { echo "-- dialog timeout; windows and page:"; $AX dump $PID 3 | grep AXWindow; title; } >> "$OUT/steps.txt"
-  return 1; }
-login() { # <user> <password> <save-option-label or ''>
-  ax focus $PID "AXTextField:Nutzername" || { echo "-- login $1: no dialog" >> "$OUT/steps.txt"; return 1; }
-  ax key $PID 0 cmd; ax type $PID "$1"
-  ax focus $PID "AXTextField:Passwort"; ax key $PID 0 cmd; ax type $PID "$2"; sleep 1
-  [ -n "$3" ] && ax press $PID "$3"
-  ax press $PID "AXButton:Anmelden"; }
-menu_items() { $AX dump $PID 45 | awk '/AXMenuBar$/{exit} {print}' | grep -o -E 'AXMenuItem \| [a-z]+ \|' \
-    | sort -u | awk '{print $3}' | tr '\n' ' '; }
-# The username field is a Views EditableCombobox whose menu LoginView filters
-# (patch 0078): while the field is empty or names a saved account (the
-# prefilled preferred one, a menu choice, the name kept after a failure) it
-# lists every account; other text narrows it by prefix. Open it with the
-# arrow button and never clear the field first: a prefilled "alice" must
-# still offer "bob" (build 50 hid it). Never close it with Escape: without an
-# open menu Escape cancels the login dialog (build 50 lost the realm-B, port,
-# Digest, /z/, preferred-account and proxy dialogs that way).
-menu_open() { [ -n "$(menu_items)" ]; }
-open_account_menu() {
-  ax focus $PID "AXTextField:Nutzername" || return 1
-  echo "-- account menu opened over \"$(prefilled)\"" >> "$OUT/steps.txt"
-  ax press $PID "AXButton:Nutzername"
-  local end=$(( $(date +%s) + 3 ))
-  while [ $(date +%s) -lt $end ]; do menu_open && return 0; sleep 0.5; done
-  return 1; }
-close_account_menu() { menu_open || return 0
-  ax press $PID "AXButton:Nutzername"; sleep 1
-  menu_open || return 0
-  # Only while the menu is open: then the menu controller consumes Escape.
-  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
-  menu_open && { echo "-- account menu still open" >> "$OUT/steps.txt"; return 1; }; return 0; }
-accounts() { dialog 2 || { echo "no-dialog"; return; }
-  open_account_menu; sleep 1
-  menu_items
-  close_account_menu
-  dialog 2 || echo "-- login dialog lost while listing accounts" >> "$OUT/steps.txt"; }
-pick() { # <username>: choose a saved account from the unfiltered list
-  open_account_menu || { echo "-- account menu did not open for $1" >> "$OUT/steps.txt"; return 1; }
-  ax press $PID "AXMenuItem:$1" || { close_account_menu; return 1; }
-  sleep 1; }
-# Between sections: close a stale command bar and cancel a login dialog an
-# earlier failure left open, so one failure cannot fail the next section.
-settle() { close_cmdbar
-  local i; for i in 1 2 3; do
-    has_ax "AXHeading \| Anmelden" || return 0
-    echo "-- settle: cancelling a leftover login dialog" >> "$OUT/steps.txt"
-    ax press $PID "AXButton:Abbrechen"; sleep 2
-  done; }
-# Username the dialog shows now (the value is the last AX field; none -> "").
-prefilled() { $AX dump $PID 40 | grep -m1 'AXTextField | Nutzername' \
-    | awk -F' [|] ' '{v=$NF; gsub(/ +$/,"",v); if (v=="Nutzername") v=""; print v}'; }
-# Title of the first page whose URL contains the marker.
-realm_title() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
-p=[t for t in json.load(sys.stdin) if t["type"]=="page" and sys.argv[1] in t["url"]]
-print(p[0]["title"] if p else "<no tab>")' "$1"; }
-wait_rt() { # <url marker> <expected title> <seconds>
-  local end=$(( $(date +%s) + $3 ))
-  while [ $(date +%s) -lt $end ]; do [ "$(realm_title "$1")" = "$2" ] && return 0; sleep 1; done
-  echo "-- $1 title: $(realm_title "$1")" >> "$OUT/steps.txt"; return 1; }
-seen() { curl -s "http://127.0.0.1:$A/__seen?key=$1"; }
-wait_seen() { local end=$(( $(date +%s) + $2 ))
-  while [ $(date +%s) -lt $end ]; do [ "$(seen "$1")" != none ] && return 0; sleep 1; done; return 1; }
-eval_in() { # <url substring> <expression>
-  node "$S/cdp.mjs" $PORT "$1" Runtime.evaluate "$(python3 -c 'import json,sys;print(json.dumps({"expression":sys.argv[1],"returnByValue":True}))' "$2")" >> "$OUT/steps.txt" 2>&1; }
-quit() { ax key $PID 12 cmd; for i in $(seq 1 20); do alive || return 0; sleep 1; done
-  echo "still running after quit" >> "$OUT/run.txt"; kill $PID; sleep 3; }
+# UI, store and fixture helpers (command bar, login dialog, account menu,
+# credential manager, settle).
+. "$S/http_auth_journey_lib.sh"
 SAVE="Zugang nach erfolgreicher Anmeldung speichern"
 UPDATE="Gespeicherten Zugang nach erfolgreicher Anmeldung aktualisieren"
 NEVER="Zugänge für diesen Schutzbereich nie speichern"
@@ -625,11 +455,16 @@ if [ $KUNDE_OK = 1 ]; then
   sleep 2; goto "http://127.0.0.1:$B2/a/?ws=kunde-b2"
   if dialog 20; then record own_sessions_isolated PASS; ax press $PID "AXButton:Abbrechen"; sleep 2
   else record own_sessions_isolated "FAIL:$(realm_title ws=kunde-b2)"; fi
-  goto "http://127.0.0.1:$A/a/?ws=kunde"; challenge && login bob bob-pass-1 ""
-  end=$(( $(date +%s) + 15 )); while [ $(date +%s) -lt $end ] && [ "$(realm_title ws=kunde)" != "auth:bob@Ahoi Realm A:$A" ]; do sleep 1; done
-  [ "$(realm_title ws=kunde)" = "auth:bob@Ahoi Realm A:$A" ] && record own_sessions_signin PASS || record own_sessions_signin "FAIL:$(realm_title ws=kunde)"
+  # "ws=kunde-a", not "ws=kunde": realm_title takes the first URL containing
+  # the marker, and build 52 read the ws=kunde-b2 tab's title here.
+  goto "http://127.0.0.1:$A/a/?ws=kunde-a"
+  challenge && login bob bob-pass-1 ""
+  KA="auth:bob@Ahoi Realm A:$A"
+  wait_rt ws=kunde-a "$KA" 15 && record own_sessions_signin PASS \
+    || record own_sessions_signin "FAIL:$(realm_title ws=kunde-a)"
   command switch; dialog && ax press $PID "AXButton:Abbrechen"
-  sleep 5; KT=$(realm_title ws=kunde); echo "own sessions after switch+cancel: $KT" >> "$OUT/steps.txt"
+  sleep 5; KT=$(realm_title ws=kunde-a)
+  echo "own sessions after switch+cancel: $KT" >> "$OUT/steps.txt"
   # An empty title means the browser is gone (build 40 crash), not signed out.
   alive && [ -n "$KT" ] && [ "$KT" != "<no tab>" ] && [ "${KT#auth:}" = "$KT" ] \
     && record own_sessions_sign_out PASS || record own_sessions_sign_out "FAIL:$KT"
@@ -756,22 +591,25 @@ if waitax "AX(Window|Sheet) \| HTTP-Zugänge" 10; then
     # Cancel only: press the prompt's own Cancel; if AX cannot reach it, close
     # the manager, which invalidates the pending authentication.
     $AX press $PP "AXButton:Abbrechen" >> "$OUT/steps.txt" 2>&1; sleep 3
-    sysauth_prompt >/dev/null && { ax press $PID "AXButton:Abbrechen"; sleep 3; }
+    sysauth_prompt >/dev/null && { close_manager; sleep 3; }
     GONE=1; for i in 1 2 3 4 5; do sysauth_prompt >/dev/null && GONE=0 || { GONE=1; break; }; sleep 2; done
     [ $GONE = 1 ] && record auth24_prompt_cancelled PASS || record auth24_prompt_cancelled FAIL
   elif [ "$PRE_PIDS" != "$NEW_PIDS" ]; then
     # A new authentication process but no readable prompt: record, then cancel
     # through the manager.
     record auth24_system_prompt_shown "FAIL:process-only($NEW_PIDS)"
-    ax press $PID "AXButton:Abbrechen"; sleep 3; record auth24_prompt_cancelled FAIL:unverified
+    close_manager; sleep 3; record auth24_prompt_cancelled FAIL:unverified
   else
     record auth24_system_prompt_shown FAIL; record auth24_prompt_cancelled FAIL:no-prompt
   fi
+  # The system prompt took the focus: bring Ahoi forward again before the
+  # next keyboard step (build 52: "hidkey refused: target not frontmost").
+  ax activate $PID
   $AX dump $PID 40 > "$OUT/ax-manager-after-cancel.txt"
   # Fail closed: no editor, no revealed password; the status explains it if
   # the manager is still open.
   rec auth24_fail_closed eval 'alive && no_ax "AXStaticText \| [a-z]+ bearbeiten" && no_ax "Passwort ausblenden" && { no_ax "AX(Window|Sheet) \| HTTP-Zugänge" || has_ax "Die Authentifizierung wurde nicht abgeschlossen"; }'
-  has_ax "AX(Window|Sheet) \| HTTP-Zugänge" && ax press $PID "AXButton:Abbrechen"; sleep 2
+  close_manager
 else
   $AX dump $PID 14 > "$OUT/ax-manager-failure.txt"; record auth24_manager_opened FAIL
 fi
