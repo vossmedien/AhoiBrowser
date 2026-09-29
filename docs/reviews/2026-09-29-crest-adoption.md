@@ -73,3 +73,9 @@ Vier neue Commits (fbb48de0, a946fa9f, cd860d3e, d5dfd6bf). Geprüft gegen `over
 - **Nicht anwendbar: Dual-Engine als Standard mit verzögertem Chromium-Start** (a946fa9f, Doku in d5dfd6bf). `native-host.patch` lässt Crests Swift-Framework `NSApplication` und Delegate besitzen (`--crest-app-owned-host`). Chromium lädt erst bei der ersten Chromium-Seite. Der Patch überspringt `BrowserCrApplication`, Hauptmenü, Profilmenü und Services-Menü und ersetzt Event-Verarbeitung und Accessibility-Modi durch einen Adapter (`CrestApplicationEvents`). Widerlegungsversuch: Ahoi ist ein eigenständiger Chromium-Build mit Stock-`BrowserCrApplication`/`AppController`. JIS-Tasten, Cmd-KeyUp und VoiceOver-Modi laufen dort bereits nativ. Der Adapter bildet nur nach, was Crest durch den fremden `NSApp` verliert.
 - **Nicht betroffen: Space-Tombstones löschen lokale Profile nur bei expliziter Löschung** (a946fa9f, .NET-`NativeSyncMaterializer`). Widerlegungsversuch: Ahoi löscht isolierte Profile nur nach lokaler Nutzeraktion oder wenn das Anlegen fehlschlägt (`overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc:272,389`). Ein empfangener Workspace-Tombstone blendet den Workspace nur aus (`session_bridge_sync_persistence.cc:98`). Das Risiko besteht in Ahoi also nicht.
 - **Rest:** Engine-Auswahl und Site-Regeln (SwiftUI/.NET), Contracts/Codecs, Sidebar-Anpassungen, Release-, CI- und Test-Channel-Workflows (fbb48de0, cd860d3e, d5dfd6bf CI-Pin) sind reine Crest-Shell.
+
+## Crest-Nachtrag 30.09.2026 (d5dfd6bf..89e04d76)
+
+Ein neuer Commit (89e04d76). **Keine Empfehlung.**
+
+- **Nicht anwendbar:** `.github/workflows/ci.yml` installiert `zsh` für die portablen Core-CI-Checks unter Linux. Reine Crest-CI, kein Engine-, Chromium-, Sync- oder iOS-Bezug.
