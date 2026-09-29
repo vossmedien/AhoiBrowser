@@ -1,5 +1,51 @@
 # Active sync coordination
 
+## Crest adoption A6 and C1 — 29 September 2026
+
+Owner-approved session for the unstaffed sync and mobile lanes, from
+[the Crest adoption review](reviews/2026-09-29-crest-adoption.md) rows A6
+(Crest 77457bb) and C1 (Crest 2dbdc442). Commits `7a90b6e8` (sync, C++ and contract), `1add8641` (mobile A6) and `4f7b677d` (mobile C1) on branch `worktree-agent-abc2d37f1c3746507`, not pushed.
+
+- **A6, writers fit the strictest reader.** New limit table
+  `recordTextLimits` in `config/sync-format.json` and in
+  [ADR 0008](decisions/0008-sync-wire-v3-coordination.md#record-text-limits-writers-fit-the-strictest-reader-2026-09-29):
+  Presence and history title 1024 B, device and Workspace name 256 B,
+  history URL 16 KiB (local-only, never cut), transition 128 B. Desktop
+  (`sync_record_limits.{h,cc}`): `base::TruncateUTF8ToByteSize` on the
+  device record, every Presence write (incl. close tombstones),
+  `WorkspaceToSyncRecord` (the single native-to-record path, so the
+  observation baseline and the stored row agree and a long name is authored
+  once), history visits and history tombstones; `ShouldSyncHistoryVisit` and
+  `AddHistoryVisit` keep URLs over 16 KiB local. Desktop `ValidateRecord` is
+  deliberately **not** tightened: stored rows from older builds would turn
+  the whole store into `kDatabaseError`.
+- **C1** is Mobile-only; see the Mobile checkpoint.
+- **Evidence.** Swift headless on CE3513BF: see
+  [the evidence](../artifacts/tests/sync-mobile-a6-c1-20260929/README.md).
+  **C++ is source-only**: not compiled or run (no Chromium build in this
+  session). The desktop owner must build and run `ahoi_sync_unittests`
+  (new `sync_record_limits_unittest.cc`, 7 tests, including a real
+  `ProfileSyncBackend` history/device write). `//ahoi/browser/session` and
+  `//ahoi/browser/ui/sidebar` link `:sync`, so `ahoi_session_unittests` is a
+  useful link check; behavior changes only for over-limit text. Changed
+  native files: `BUILD.gn`, `history_sync_filter.*`,
+  `profile_sync_backend.cc`, `profile_sync_backend_shared_tabs.cc`,
+  `tab_tree_sync_adapter.cc`.
+- **Doc changes owed elsewhere (foreign uncommitted edits in the main
+  checkout, not touched):** ADR 0009 should point to `recordTextLimits`;
+  `docs/SYNC.md` should list the limits next to the shared-target rules.
+  Crest-hardening may extend the generated catalogue from handoff 116 with
+  the limit table (its generator reads only `records[]`, so the contract
+  digest is unchanged) and add the H1 vectors (1023/1024/1025 B, multibyte
+  boundary, 16384/16385 B, 257 B name) to `fixtures/sync-conformance/`.
+- **Open risk.** Existing oversized Presence titles and history rows that
+  older desktop builds already uploaded stay quarantined on Mobile until
+  rewritten (Presence on its next change, device on next start, Workspace on
+  the next reconcile); history rows with URLs over 16 KiB stay quarantined.
+  After an upgrade a Workspace whose native name exceeds 256 B is written once
+  with the fitted name, and a later remote apply can replace the native name
+  with that fitted value.
+
 ## Native GREEN on ba9f26cb — 28 September 2026, 14:19 CEST
 
 User-approved bounded runs, owner `build.lock` held. **C++**: tab_tree, session
