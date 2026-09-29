@@ -675,3 +675,14 @@ struct FixtureContext {
         return resolved
     }
 }
+
+extension MobileBrowserUITestCase {
+    /// WebKit exposes the example.com document as an element labelled with
+    /// its title ("Example Domain"), not as a static text of that name.
+    @MainActor
+    func exampleDomainPage(in app: XCUIApplication) -> XCUIElement {
+        app.webViews.descendants(matching: .any).matching(NSPredicate(
+            format: "label == %@", "Example Domain"
+        )).firstMatch
+    }
+}
