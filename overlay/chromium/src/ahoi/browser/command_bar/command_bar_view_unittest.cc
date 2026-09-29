@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "ahoi/browser/navigation/command_service.h"
+#include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/accessibility/ax_enums.mojom.h"
@@ -22,6 +23,7 @@
 #include "ui/views/controls/button/button.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/textfield/textfield.h"
+#include "ui/views/focus/focus_manager.h"
 #include "ui/views/test/button_test_api.h"
 #include "ui/views/test/views_test_base.h"
 #include "ui/views/view.h"
@@ -356,6 +358,35 @@ TEST_F(CommandBarViewTest,
   EXPECT_TRUE(destroyed_);
   ASSERT_TRUE(executed_suggestion_.has_value());
   EXPECT_EQ(executed_suggestion_->kind, CommandBarSuggestionKind::kLocalItem);
+}
+
+TEST_F(CommandBarViewTest, KeepsMinimumHeightAndKeyboardOnlyInputRing) {
+  EXPECT_GE(view_->GetPreferredSize().height(),
+            visual_style::kCommandBarContentMinimumHeight);
+
+  auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  CommandBarView* const view = widget->SetContentsView(std::move(view_));
+  widget->Show();
+  widget->Activate();
+  views::Textfield* const textfield = view->textfield_for_testing();
+  views::FocusManager* const focus_manager = textfield->GetFocusManager();
+  ASSERT_TRUE(focus_manager);
+
+  // Opening the bar focuses the input directly: no outline.
+  focus_manager->SetFocusedView(textfield);
+  ASSERT_TRUE(textfield->HasFocus());
+  EXPECT_FALSE(view->input_focus_ring_showing_for_testing());
+
+  // Keyboard traversal into the input shows the spec ring.
+  focus_manager->ClearFocus();
+  focus_manager->SetFocusedViewWithReason(
+      textfield, views::FocusManager::FocusChangeReason::kFocusTraversal);
+  EXPECT_TRUE(view->input_focus_ring_showing_for_testing());
+
+  focus_manager->ClearFocus();
+  EXPECT_FALSE(view->input_focus_ring_showing_for_testing());
+  widget.reset();
+  EXPECT_TRUE(destroyed_);
 }
 
 TEST_F(CommandBarViewTest, SeparateDelegateOutlivesClientOwnedWidget) {

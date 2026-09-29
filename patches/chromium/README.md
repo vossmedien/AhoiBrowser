@@ -1,5 +1,22 @@
 # Chromium M153 patch ledger
 
+## `0083-ahoi-command-bar-key-hints.patch`
+
+- **Owner:** Desktop (design spec 2026-09-29, command bar footer).
+- **Change:** three strings for the command bar footer's key hints,
+  `IDS_AHOI_COMMAND_BAR_HINT_SELECT` / `_OPEN` / `_CLOSE` ("Select" /
+  "Open" / "Close"; German "Auswählen" / "Öffnen" / "Schließen"), next to
+  `IDS_AHOI_COMMAND_BAR_CURRENT_TAB` in `generated_resources.grd` with the
+  same meaning, plus their `de` and `en-GB` translations. The keycaps
+  (↑ ↓ ↵ esc) are symbols in overlay
+  `ahoi/browser/command_bar/command_bar_decorations.cc`, not strings.
+- **Safety:** strings only.
+- **Tests:** `tools/check_ahoi_translations.py` on a patched checkout;
+  `ahoi_command_bar_unittests` builds the footer.
+- **Rebase/removal:** trivial; numbered 0083 so 0081/0082 keep their
+  planned numbers. It touches only resource files, so its position in
+  `series` after 0080 is free.
+
 ## `0080-ahoi-milky-liquid-glass-backdrop.patch`
 
 - **Owner:** Desktop (DoD 6 Liquid Glass, rated RED by the owner: Glass ON

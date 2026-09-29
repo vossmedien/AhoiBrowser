@@ -8,6 +8,7 @@
 #include <optional>
 #include <utility>
 
+#include "ahoi/browser/command_bar/command_bar_decorations.h"
 #include "ahoi/browser/ui/appearance/appearance_views.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
@@ -316,7 +317,7 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
   CHECK(suggestions_callback_);
   CHECK(execute_callback_);
 
-  SetLayoutManager(std::make_unique<views::BoxLayout>(
+  auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
       views::BoxLayout::Orientation::kVertical, gfx::Insets(),
       visual_style::kCommandBarVerticalSpacing));
   // The central appearance package owns this full-size surface. Child rows
@@ -330,9 +331,6 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
                 visual_style::kCommandBarInputHeight));
   input_shell->SetBackground(views::CreateRoundedRectBackground(
       visual_style::kRaisedSurface, visual_style::kControlCornerRadius));
-  input_shell->SetBorder(views::CreateRoundedRectBorder(
-      visual_style::kControlBorderThickness, visual_style::kControlCornerRadius,
-      visual_style::kAccent));
   auto* input_layout =
       input_shell->SetLayoutManager(std::make_unique<views::BoxLayout>(
           views::BoxLayout::Orientation::kHorizontal,
@@ -364,6 +362,8 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
   textfield_->SetPlaceholderTextColorId(visual_style::kMutedText);
   textfield_->RemoveHoverEffect();
   input_layout->SetFlexForView(textfield_, 1);
+  input_focus_ring_ =
+      std::make_unique<CommandBarInputFocusRing>(input_shell.get(), textfield_);
   AddChildView(std::move(input_shell));
 
   auto results_view = std::make_unique<views::View>();
@@ -373,6 +373,8 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
       visual_style::kCommandBarResultSpacing));
   results_view->GetViewAccessibility().SetRole(ax::mojom::Role::kListBox);
   results_view_ = AddChildView(std::move(results_view));
+  layout->SetFlexForView(results_view_, 1);
+  AddChildView(CreateCommandBarKeyHints());
 
   const ui::AXPlatformNodeId textfield_id =
       textfield_->GetViewAccessibility().GetUniqueId();
@@ -397,6 +399,14 @@ CommandBarView::~CommandBarView() {
   if (destroyed_callback_) {
     std::move(destroyed_callback_).Run();
   }
+}
+
+gfx::Size CommandBarView::CalculatePreferredSize(
+    const views::SizeBounds& available_size) const {
+  gfx::Size size = views::View::CalculatePreferredSize(available_size);
+  size.set_height(
+      std::max(size.height(), visual_style::kCommandBarContentMinimumHeight));
+  return size;
 }
 
 void CommandBarView::OnAppearanceChanged(
@@ -456,6 +466,10 @@ bool CommandBarView::row_selected_for_testing(size_t index) const {
 
 bool CommandBarView::HandleKeyEventForTesting(const ui::KeyEvent& event) {
   return HandleKeyEvent(textfield_, event);
+}
+
+bool CommandBarView::input_focus_ring_showing_for_testing() const {
+  return input_focus_ring_ && input_focus_ring_->IsShowingForTesting();
 }
 
 bool CommandBarView::HandleResultKeyEventForTesting(size_t index,
