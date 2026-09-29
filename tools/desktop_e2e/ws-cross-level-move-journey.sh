@@ -212,7 +212,15 @@ row_menu() { # <row title> <menu item>
 # "Getrennt" item (switchToProfileFromMenu:) that a global press finds
 # first (builds 51, 53, 54).
 TARGET_ITEM='AXMenuItem \| ([^|]*  )?Getrennt \|'
+# The row menu right after a closed dialog may not open on the first try
+# (AXShowMenu -25204 on build 54); retry once after closing any leftover.
 move_menu() { # <row title> <evidence name>
+  move_menu_once "$@" && return 0
+  echo "-- move menu retry" >> "$OUT/steps.txt"
+  key 53; sleep 2
+  move_menu_once "$@"
+}
+move_menu_once() { # <row title> <evidence name>
   row_menu "$1" "Verschieben nach" || return 1
   waitax "$TARGET_ITEM" 5 \
     || { $AX dump $PID 40 > "$OUT/ax-move-submenu-missing.txt"; return 1; }
@@ -220,7 +228,7 @@ move_menu() { # <row title> <evidence name>
   local item; item=$(grep -oE "$TARGET_ITEM" "$OUT/ax-move-menu-$2.txt" \
     | head -1 | sed -E 's/^AXMenuItem \| //; s/ \|$//')
   $AX pressin $PID "AXMenuItem:Verschieben nach" "AXMenuItem:$item" \
-    >> "$OUT/steps.txt"
+    >> "$OUT/steps.txt" || return 1
   waitax "AXButton \\| Verschieben" 8
 }
 dialog_dump() { # <evidence name>
