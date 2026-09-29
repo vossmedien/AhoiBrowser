@@ -33,13 +33,18 @@ export function getHtml(this: SettingsAhoiShortcutsElement) {
             <div class="shortcut-row" role="listitem"
                 data-command-id="${command.id}">
               <div class="shortcut-name">
-                <span>${command.title}</span>
-                <span class="secondary">${command.categoryLabel}</span>
+                <span class="shortcut-title">${command.title}</span>
+                <span class="shortcut-helper">${command.categoryLabel}</span>
+                <span class="shortcut-helper" ?hidden="${!command.hint}">
+                  ${command.hint}
+                </span>
               </div>
               <button class="shortcut-keys
-                  ${this.isShortcutRecording_(command.id) ? 'recording' : ''}"
+                  ${this.isShortcutRecording_(command.id) ? 'recording' : ''}
+                  ${this.isShortcutError_(command.id) ? 'invalid' : ''}"
                   data-command-id="${command.id}"
                   aria-label="${command.title}: ${this.shortcutKeysText_(command)}"
+                  aria-invalid="${this.isShortcutError_(command.id)}"
                   ?disabled="${!command.rebindable || this.isShortcutLocked_()}"
                   @click="${this.onShortcutChangeClick_}"
                   @keydown="${this.onShortcutRecordKeydown_}"
@@ -64,7 +69,7 @@ export function getHtml(this: SettingsAhoiShortcutsElement) {
                   @click="${this.onShortcutResetClick_}">
                 ${this.shortcuts_?.labels.reset || ''}
               </cr-button>
-              <div class="link-routing-error shortcut-error" role="alert"
+              <div class="shortcut-error" role="alert"
                   ?hidden="${!this.isShortcutError_(command.id)}">
                 ${this.shortcuts_?.errorLabel || ''}
               </div>

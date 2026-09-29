@@ -34,6 +34,11 @@ class ShortcutRegistration {
   // Registrations are left to their owner's teardown.
   ~ShortcutRegistration();
 
+  // Runs after the bindings changed and the registrations followed, for
+  // state outside the window (main-menu key equivalents, the system-wide
+  // Quick Window hotkey). Not run for the initial registration.
+  void SetChangedCallback(base::RepeatingClosure changed);
+
   // The rebindable command `accelerator` triggers now, or nullopt.
   std::optional<std::string> CommandFor(
       const ui::Accelerator& accelerator) const;
@@ -44,6 +49,7 @@ class ShortcutRegistration {
 
   raw_ptr<PrefService> prefs_;
   Apply apply_;
+  base::RepeatingClosure changed_;
   PrefChangeRegistrar registrar_;
   Overrides overrides_;
   std::vector<ui::Accelerator> registered_;

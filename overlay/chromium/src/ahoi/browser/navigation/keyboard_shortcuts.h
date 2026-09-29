@@ -39,9 +39,10 @@ struct ShortcutCommand {
   std::u16string title_de;
   std::u16string title_en;
   std::vector<ui::Accelerator> defaults;
-  // False for commands whose key is owned elsewhere (the system-wide Quick
-  // Window hotkey, native Undo, Chromium command overrides); they are listed
-  // for discovery and conflict checks but cannot be changed yet.
+  // False for a command whose key is owned elsewhere; it would be listed for
+  // discovery and conflict checks only. Every catalog command is rebindable
+  // today: Quick Window follows its binding as the system-wide hotkey, the
+  // command bar and Save as main-menu key equivalents.
   bool rebindable = true;
 };
 
@@ -63,11 +64,16 @@ inline constexpr char kSplitCycleLayout[] = "split.cycle-layout";
 inline constexpr char kSplitRemove[] = "split.remove";
 inline constexpr char kSplitClosePane[] = "split.close-pane";
 inline constexpr char kQuickWindow[] = "browser.quick-window";
+// The command bar for the current tab (⌘L) and for a new tab (⌘T).
 inline constexpr char kCommandBar[] = "browser.command-bar";
+inline constexpr char kCommandBarNewTab[] = "browser.command-bar-new-tab";
 inline constexpr char kSaveTab[] = "tab.save";
 
 const std::vector<ShortcutCommand>& Catalog();
 const ShortcutCommand* FindCommand(std::string_view id);
+// Whether the command bar lists `command` with its current key: every
+// rebindable command except opening the command bar, which is already open.
+bool ShownInCommandBar(const ShortcutCommand& command);
 // "workspace.3" -> 2, "split.focus-pane-1" -> 0; nullopt for other ids.
 std::optional<size_t> IndexedCommandIndex(std::string_view id,
                                           std::string_view prefix);
@@ -93,6 +99,7 @@ enum class ConflictKind {
   // No Command/Control/Option modifier, a bare modifier key, or an Option
   // combination that types a character.
   kInvalid,
+  // A fixed macOS shortcut, or one switched on in System Settings.
   kReservedBySystem,
   kOtherCommand,
   kBrowserCommand,
@@ -114,6 +121,10 @@ struct ConflictSources {
   // Shortcuts of enabled extensions.
   base::RepeatingCallback<bool(const ui::Accelerator&)>
       is_extension_accelerator;
+  // macOS shortcuts switched on in System Settings > Keyboard > Keyboard
+  // Shortcuts (symbolic hotkeys such as Mission Control's Spaces keys).
+  base::RepeatingCallback<bool(const ui::Accelerator&)>
+      is_system_accelerator;
 };
 
 bool IsReservedBySystem(const ui::Accelerator& accelerator);

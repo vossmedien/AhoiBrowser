@@ -590,7 +590,7 @@ void CommandBarController::PublishBrowserCommands() {
           ? shortcuts::ReadOverrides(*browser_->GetProfile()->GetPrefs())
           : shortcuts::Overrides();
   for (const shortcuts::ShortcutCommand& command : shortcuts::Catalog()) {
-    if (!command.rebindable) {
+    if (!shortcuts::ShownInCommandBar(command)) {
       continue;
     }
     const std::vector<ui::Accelerator> keys =

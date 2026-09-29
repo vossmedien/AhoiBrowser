@@ -8,7 +8,6 @@
 #include <utility>
 #include <vector>
 
-#include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/sync/cloudkit_sync_configuration_mac.h"
 #include "ahoi/browser/sync/profile_sync_service_factory.h"
 #include "base/functional/bind.h"
@@ -115,7 +114,7 @@ AhoiSettingsHandler::AhoiSettingsHandler(Profile* profile)
 
 AhoiSettingsHandler::~AhoiSettingsHandler() {
   // A closed editor never leaves Ahoi's shortcuts paused.
-  shortcuts::SetRecordingActive(false);
+  SetShortcutRecording(false);
   if (portable_import_lease_) {
     portable_import_lease_->store(false, std::memory_order_release);
   }

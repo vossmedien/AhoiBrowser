@@ -201,6 +201,8 @@ export interface ShortcutCommandItem {
   defaultKeys: string[];
   customized: boolean;
   rebindable: boolean;
+  // A helper line for commands whose key behaves differently ('' if none).
+  hint: string;
 }
 
 export interface ShortcutLabels {

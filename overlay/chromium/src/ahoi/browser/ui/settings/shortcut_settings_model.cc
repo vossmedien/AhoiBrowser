@@ -4,6 +4,7 @@
 #include "ahoi/browser/ui/settings/shortcut_settings_model.h"
 
 #include <optional>
+#include <string_view>
 #include <vector>
 
 #include "base/i18n/rtl.h"
@@ -72,6 +73,26 @@ base::ListValue KeyTexts(const std::vector<ui::Accelerator>& accelerators) {
   return list;
 }
 
+// A helper line under commands whose key behaves differently from the rest.
+std::string Hint(std::string_view id) {
+  if (id == shortcuts::kQuickWindow) {
+    return Text("Wirkt systemweit, auch wenn Ahoi im Hintergrund ist.",
+                "Works system-wide, even when Ahoi is in the background.");
+  }
+  if (id == shortcuts::kSidebarUndo) {
+    return Text("Nur wenn die Seitenleiste etwas zurücknehmen kann; sonst "
+                "gilt das normale Rückgängig.",
+                "Only when the sidebar has something to undo; otherwise the "
+                "normal Undo applies.");
+  }
+  if (id == shortcuts::kCommandBar || id == shortcuts::kCommandBarNewTab ||
+      id == shortcuts::kSaveTab) {
+    return Text("Die Menüleiste zeigt dieselbe Taste.",
+                "The menu bar shows the same key.");
+  }
+  return std::string();
+}
+
 base::DictValue Labels() {
   base::DictValue labels;
   labels.Set("title", Text("Tastenkürzel", "Keyboard shortcuts"));
@@ -136,6 +157,7 @@ base::DictValue BuildShortcutState(const shortcuts::Overrides& overrides,
     item.Set("defaultKeys", KeyTexts(command.defaults));
     item.Set("customized", overrides.contains(command.id));
     item.Set("rebindable", command.rebindable);
+    item.Set("hint", Hint(command.id));
     commands.Append(std::move(item));
   }
   base::DictValue state;
@@ -227,8 +249,10 @@ std::string ShortcutErrorLabel(const ShortcutActionResult& result) {
                   "An extension uses this key. Change it at "
                   "chrome://extensions/shortcuts.");
     case ConflictKind::kReservedBySystem:
-      return Text("macOS reserviert diese Taste.",
-                  "macOS reserves this key.");
+      return Text("macOS nutzt diese Taste bereits (Systemeinstellungen > "
+                  "Tastatur > Tastaturkurzbefehle). Wähle eine andere.",
+                  "macOS already uses this key (System Settings > Keyboard "
+                  "> Keyboard Shortcuts). Choose another one.");
     case ConflictKind::kInvalid:
       return Text("Nutze ⌘, ⌃ oder eine Funktionstaste; ⌥ allein tippt "
                   "Sonderzeichen.",

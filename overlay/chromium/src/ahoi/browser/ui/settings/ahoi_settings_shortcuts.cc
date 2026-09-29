@@ -4,16 +4,20 @@
 #include <string>
 #include <string_view>
 
+#include "ahoi/browser/navigation/keyboard_shortcut_platform_mac.h"
 #include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/ui/settings/ahoi_settings_handler.h"
 #include "ahoi/browser/ui/settings/shortcut_settings_model.h"
 #include "base/functional/bind.h"
+#include "base/location.h"
 #include "base/strings/string_util.h"
+#include "base/time/time.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/prefs/pref_service.h"
 #include "content/public/browser/web_ui.h"
 #include "ui/base/accelerators/accelerator.h"
 #include "ui/base/accelerators/command.h"
+#include "ui/base/accelerators/global_accelerator_listener/global_accelerator_listener.h"
 
 // Defined in chrome/browser/ui/cocoa/accelerator_utils_cocoa.mm (Chromium's
 // accelerator table and main-menu key equivalents). This handler is linked
@@ -112,6 +116,8 @@ void AhoiSettingsHandler::HandleShortcutAction(const base::ListValue& args) {
       .is_browser_accelerator = base::BindRepeating(&IsChromeAccelerator),
       .is_extension_accelerator =
           base::BindRepeating(&IsExtensionShortcut, base::Unretained(prefs)),
+      .is_system_accelerator =
+          base::BindRepeating(&shortcuts::IsEnabledSystemHotKey),
   };
   const ShortcutActionResult result =
       ApplyShortcutAction(prefs, args[1].GetString(), args[2].GetDict(),
@@ -127,7 +133,36 @@ void AhoiSettingsHandler::HandleSetShortcutRecording(
   if (args.size() != 1u || !args[0].is_bool() || !IsAuthorizedSettingsPage()) {
     return;
   }
-  shortcuts::SetRecordingActive(args[0].GetBool());
+  SetShortcutRecording(args[0].GetBool());
+}
+
+void AhoiSettingsHandler::SetShortcutRecording(bool active) {
+  shortcuts::SetRecordingActive(active);
+  if (active) {
+    shortcut_recording_timeout_.Start(
+        FROM_HERE, base::Seconds(30),
+        base::BindOnce(&AhoiSettingsHandler::SetShortcutRecording,
+                       base::Unretained(this), false));
+  } else {
+    shortcut_recording_timeout_.Stop();
+  }
+  // Main-menu keys Chromium runs before the page (⌘T, ⌘N) and the
+  // system-wide Quick Window hotkey would take the key from the editor;
+  // suspending global shortcut handling hands them to the page, as
+  // chrome://extensions/shortcuts does while it records.
+  if (active == shortcut_handling_suspended_) {
+    return;
+  }
+  ui::GlobalAcceleratorListener* const listener =
+      ui::GlobalAcceleratorListener::GetInstance();
+  if (!listener) {
+    return;
+  }
+  if (active && listener->IsShortcutHandlingSuspended()) {
+    return;  // Someone else suspended it; they also resume it.
+  }
+  listener->SetShortcutHandlingSuspended(active);
+  shortcut_handling_suspended_ = active;
 }
 
 }  // namespace ahoi::settings
