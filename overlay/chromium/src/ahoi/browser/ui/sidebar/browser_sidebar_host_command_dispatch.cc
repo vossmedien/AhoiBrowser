@@ -127,7 +127,6 @@
 
 namespace ahoi::sidebar {
 
-
 namespace {
 
 using HandOverDone = base::OnceCallback<void(BrowserWindowInterface*)>;
@@ -247,7 +246,8 @@ bool BrowserSidebarHostView::ActivateSwitcherWorkspace(
 }
 
 void BrowserSidebarHostView::OpenMainWorkspaceByHandOver(
-    std::optional<base::Uuid> workspace_id) {
+    std::optional<base::Uuid> workspace_id,
+    HandOverDone then) {
   const SessionID source_id = browser_->GetSessionID();
   RunHandOver(
       browser_.get(),
@@ -267,24 +267,27 @@ void BrowserSidebarHostView::OpenMainWorkspaceByHandOver(
           },
           source_id),
       base::BindOnce(
-          [](std::optional<base::Uuid> workspace_id,
+          [](std::optional<base::Uuid> workspace_id, HandOverDone then,
              BrowserWindowInterface* main_browser) {
             SessionBridge* bridge =
                 main_browser ? SessionBridgeFactory::GetForProfile(
                                    main_browser->GetProfile())
                              : nullptr;
-            if (!bridge || !workspace_id.has_value()) {
-              return;
+            if (bridge && workspace_id.has_value()) {
+              std::ignore = bridge->SetActiveWorkspaceForWindow(
+                  main_browser, *workspace_id,
+                  WorkspaceActivationSource::kSidebar);
             }
-            std::ignore = bridge->SetActiveWorkspaceForWindow(
-                main_browser, *workspace_id,
-                WorkspaceActivationSource::kSidebar);
+            if (then) {
+              std::move(then).Run(main_browser);
+            }
           },
-          workspace_id));
+          workspace_id, std::move(then)));
 }
 
 void BrowserSidebarHostView::OpenIsolatedWorkspaceByHandOver(
-    const std::string& profile_dir) {
+    const std::string& profile_dir,
+    HandOverDone then) {
   RunHandOver(
       browser_.get(),
       base::BindOnce(
@@ -295,7 +298,7 @@ void BrowserSidebarHostView::OpenIsolatedWorkspaceByHandOver(
                 std::move(done));
           },
           profile_dir, browser_->GetSessionID()),
-      base::DoNothing());
+      then ? std::move(then) : HandOverDone(base::DoNothing()));
 }
 
 void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
@@ -304,6 +307,9 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
   if (context_.scope == ContextMenuScope::kNone) {
     LOG(WARNING) << "Ahoi sidebar command " << command_id
                  << " ignored: menu scope already reset";
+    return;
+  }
+  if (RunCrossLevelMoveCommand(command_id)) {
     return;
   }
   if (command_id == kCopyActivePageLink ||
@@ -782,11 +788,8 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
         }
       }
       return;
-    case kCreateRootGroup:
-    case kSaveTemporaryTab:
-    case kMoveTo:
-      return;
     default:
+      // Includes kCreateRootGroup, kSaveTemporaryTab and kMoveTo.
       return;
   }
 }

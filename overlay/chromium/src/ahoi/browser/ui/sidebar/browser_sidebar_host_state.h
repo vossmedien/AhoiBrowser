@@ -54,6 +54,7 @@ class Widget;
 // group is destroyed in the same order as before.
 namespace ahoi::sidebar {
 
+class BrowserSidebarHostView;
 class CachedTabThumbnail;
 
 // ADR 0011 step 2 (handoff 048): one switcher over the Workspaces of all
@@ -66,6 +67,21 @@ struct SwitcherWorkspace {
   std::optional<uint32_t> accent_argb;
   bool own = false;
   bool own_website_sessions = false;
+};
+
+// ADR 0011 WS-ISO-05: an item on its way to another Profile's Workspace.
+struct CrossLevelMoveRequest {
+  CrossLevelMoveRequest();
+  CrossLevelMoveRequest(const CrossLevelMoveRequest&);
+  CrossLevelMoveRequest& operator=(const CrossLevelMoveRequest&);
+  ~CrossLevelMoveRequest();
+
+  std::vector<base::Uuid> root_ids;
+  SwitcherWorkspace target;
+  // The window's active tab moves, so the window follows it.
+  bool follow = false;
+  // The window of the target Profile where the item was dropped, if any.
+  base::WeakPtr<BrowserSidebarHostView> presenter;
 };
 
 enum class SidebarDiscoveryPrimaryResultKind {
@@ -196,6 +212,9 @@ struct SidebarContextMenuState {
   std::vector<base::Uuid> main_workspace_ids;
   bool offers_main_workspaces = false;
   std::vector<ContextMoveDestination> move_destinations;
+  // WS-ISO-05: other Profiles' Workspaces in "Move to", and the item.
+  std::vector<SwitcherWorkspace> cross_level_targets;
+  std::vector<base::Uuid> cross_level_roots;
   ContextMenuScope scope = ContextMenuScope::kNone;
   std::unique_ptr<ui::SimpleMenuModel> model;
   std::unique_ptr<ui::SimpleMenuModel> archive_policy_model;
