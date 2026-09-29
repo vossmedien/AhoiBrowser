@@ -273,6 +273,23 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
         'Create workspaces from top-level folders';
   }
 
+  // A former import of the same Arc data that has changed since cannot be
+  // replaced silently; say so instead of the generic error.
+  // TODO: Move to a Settings string once the integration patch carries it.
+  private arcConflictText_(): string {
+    if (loadTimeData.valueExists('ahoiArcImportChangedSinceLastImport')) {
+      return loadTimeData.getString('ahoiArcImportChangedSinceLastImport');
+    }
+    return document.documentElement.lang.startsWith('de') ?
+        'Dieses Profil enthält einen früheren Arc-Import, der sich vom ' +
+            'aktuellen Arc-Stand unterscheidet. Ahoi überschreibt ihn nicht. ' +
+            'Benenne den vorhandenen Workspace um oder lösche ihn und ' +
+            'erstelle die Vorschau erneut.' :
+        'This profile holds an earlier Arc import that differs from Arc ' +
+            'today. Ahoi does not overwrite it. Rename or delete the ' +
+            'existing workspace and create the preview again.';
+  }
+
   protected canCommitArcImport_(): boolean {
     return this.arcImportStage_ === 'preview' && this.arcImportSidebar_ &&
         this.arcSelectedProfiles_.length > 0 &&
@@ -308,6 +325,10 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
                 'ahoiArcImportNoChanges' :
                 'ahoiArcImportSuccess');
       case 'error':
+        if ((this.arcImportResult_?.status ?? this.arcImportPreview_?.status) ===
+            'conflict') {
+          return this.arcConflictText_();
+        }
         return loadTimeData.getString(this.arcErrorStatusKey_());
       default:
         return '';
