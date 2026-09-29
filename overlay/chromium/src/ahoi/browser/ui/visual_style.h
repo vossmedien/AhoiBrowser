@@ -156,13 +156,22 @@ inline constexpr int kControlCornerRadius = kCornerRadiusMedium;
 inline constexpr int kRowCornerRadius = kCornerRadiusSmall;
 inline constexpr int kControlBorderThickness = 1;
 
-inline constexpr int kCommandBarWidth = 600;
+// Design spec 2026-09-29: 640 wide, 16 padding, a 48-high search field and
+// 44-52 high result rows. Input 20/28 regular, result 14/20 medium, origin
+// 12/16 regular.
+inline constexpr int kCommandBarWidth = 640;
 inline constexpr int kCommandBarMaximumWidth = 720;
-inline constexpr int kCommandBarPanelInset = 14;
+inline constexpr int kCommandBarPanelInset = 16;
 inline constexpr int kCommandBarContentWidth =
     kCommandBarWidth - (2 * kCommandBarPanelInset);
-inline constexpr int kCommandBarInputHeight = 52;
+inline constexpr int kCommandBarInputHeight = 48;
 inline constexpr int kCommandBarResultRowHeight = 46;
+static_assert(kCommandBarResultRowHeight >= 44 &&
+                  kCommandBarResultRowHeight <= 52,
+              "command bar rows are 44-52 high");
+inline constexpr int kCommandBarInputFontSize = 20;
+inline constexpr int kCommandBarResultTitleFontSize = 14;
+inline constexpr int kCommandBarResultOriginFontSize = 12;
 inline constexpr int kCommandBarVerticalSpacing = 8;
 inline constexpr int kCommandBarResultSpacing = 1;
 inline constexpr int kCommandBarResultVerticalInset = 5;
@@ -174,8 +183,10 @@ inline constexpr int kCommandBarInputSpacing = 10;
 inline constexpr int kCommandBarInputIconSize = 18;
 inline constexpr int kCommandBarResultIconSize = 18;
 inline constexpr int kCommandBarResultIconBoxSize = 20;
-inline constexpr int kCommandBarAcceptHintWidth = 16;
+// The ↵ keycap of the selected row; a small key, not a row surface.
+inline constexpr int kCommandBarAcceptHintWidth = 24;
 inline constexpr int kCommandBarAcceptHintHeight = 20;
+inline constexpr int kCommandBarKeycapCornerRadius = 5;
 inline constexpr int kCommandBarSecondaryTextMaximumWidth = 180;
 
 // Compact, address-bar-anchored developer controls. The surface deliberately

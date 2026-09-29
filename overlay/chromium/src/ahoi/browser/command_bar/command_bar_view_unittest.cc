@@ -20,10 +20,12 @@
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/bubble/bubble_dialog_delegate_view.h"
 #include "ui/views/controls/button/button.h"
+#include "ui/views/controls/label.h"
 #include "ui/views/controls/textfield/textfield.h"
 #include "ui/views/test/button_test_api.h"
 #include "ui/views/test/views_test_base.h"
 #include "ui/views/view.h"
+#include "ui/views/view_utils.h"
 #include "ui/views/widget/widget.h"
 
 namespace ahoi {
@@ -175,6 +177,25 @@ TEST_F(CommandBarViewTest, ArrowKeysWrapAndEnterExecutesSelection) {
   EXPECT_EQ(executed_suggestion_->kind,
             CommandBarSuggestionKind::kInputFallback);
   EXPECT_EQ(executed_input_, u"project");
+}
+
+// Design spec 2026-09-29: only the selected row shows the ↵ keycap.
+TEST_F(CommandBarViewTest, OnlySelectedRowShowsReturnKeycap) {
+  const auto keycap_text = [](views::View* row) -> std::u16string {
+    // The keycap is the row's last child and keeps its slot when hidden.
+    const views::Label* keycap =
+        views::AsViewClass<views::Label>(row->children().back());
+    return keycap ? keycap->GetText() : u"<no keycap>";
+  };
+  view_->SetInitialQuery(u"project", /*prefer_input_fallback=*/false);
+  ASSERT_EQ(view_->suggestion_count_for_testing(), 2u);
+  EXPECT_EQ(u"↵", keycap_text(view_->row_for_testing(0)));
+  EXPECT_EQ(u"", keycap_text(view_->row_for_testing(1)));
+
+  EXPECT_TRUE(view_->HandleKeyEventForTesting(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_DOWN, ui::EF_NONE)));
+  EXPECT_EQ(u"", keycap_text(view_->row_for_testing(0)));
+  EXPECT_EQ(u"↵", keycap_text(view_->row_for_testing(1)));
 }
 
 TEST_F(CommandBarViewTest, UserEditsRebuildAndSelectFirstResult) {
