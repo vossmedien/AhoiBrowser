@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/sidebar/sidebar_presentation_state.h"
@@ -77,6 +78,21 @@ base::WeakPtr<tabs::TabInterface> ResolveRelativeBrowserRuntimeTab(
     views::View* sidebar_host,
     int delta);
 bool ActivateRelativeBrowserRuntimeTab(views::View* sidebar_host, int delta);
+// Keyboard tab stepping (next/previous tab, Cmd+1..9) follows the sidebar's
+// tab stops of the active Workspace instead of the window-wide tab strip:
+// saved rows, then temporary rows, a split as one stop, collapsed folders
+// skipped, wrapping at both ends. Returns false when `sidebar_host` is not an
+// Ahoi host so Chromium keeps its strip order there. Otherwise the command
+// belongs to Ahoi and `target` is the tab to activate, or null when the step
+// has nothing to activate; it never falls back to another Workspace's tab.
+bool ResolveBrowserSidebarTabStep(views::View* sidebar_host,
+                                  int delta,
+                                  base::WeakPtr<tabs::TabInterface>* target);
+// `index` counts the tab stops from zero; std::nullopt is the last stop.
+bool ResolveBrowserSidebarNumberedTab(
+    views::View* sidebar_host,
+    std::optional<size_t> index,
+    base::WeakPtr<tabs::TabInterface>* target);
 bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index);
 // Any Workspace of the shared switcher, including another Profile's (ADR 0011
 // step 2): switches in place or hands the window's frame over.

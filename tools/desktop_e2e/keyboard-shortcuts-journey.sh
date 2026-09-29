@@ -1,7 +1,9 @@
 #!/bin/bash
 # usage: keyboard-shortcuts-journey.sh <App.app> <outdir>
 # WORKFLOW-03 on the installed candidate: last-used tab (⌃`) versus ordered
-# cycling (⌃⇥), no switch into another Workspace, and the shortcut editor
+# cycling (⌃⇥), no switch into another Workspace, tab stepping (⌃⇥, ⌃⇧⇥,
+# ⇧⌘] / ⇧⌘[, ⌘1 / ⌘9) over the active Workspace's sidebar rows only
+# (patch 0076), and the shortcut editor
 # (rebind, conflict naming its holder without overwriting, released old key,
 # persistence across relaunch, reset). HID keys, PID-scoped AX, CDP reads.
 set -u
@@ -15,7 +17,7 @@ if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $
 mkdir -p "$OUT"; P=$(mktemp -d /private/tmp/ahoi-shortcut-profile.XXXXXX)
 SITE_PORT=${AHOI_E2E_SITE_PORT:-8792}; mkdir -p $P-site
 if lsof -nP -iTCP:$SITE_PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "site port $SITE_PORT busy" >&2; exit 6; fi
-for page in alpha beta gamma delta; do printf '<title>%s</title>%s' $page $page > $P-site/$page.html; done
+for page in alpha beta gamma delta epsilon; do printf '<title>%s</title>%s' $page $page > $P-site/$page.html; done
 python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/site.log" 2>&1 &
 SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; SITE=http://127.0.0.1:$SITE_PORT
 CDP() { node "$S/cdp.mjs" $PORT "$@"; }
@@ -109,6 +111,20 @@ visible() {
 # Every page target with its URL, to explain unexpected MRU targets.
 pages() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(" ".join(t["url"] for t in json.load(sys.stdin) if t["type"]=="page"))'; }
 waitvisible() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do [ "$(visible)" = "$1" ] && return 0; sleep 1; done; return 1; }
+# Closes every about:blank page target: the launch tab is a real temporary
+# row, so it has to go before a landing on about:blank can count as a leak.
+close_blank() {
+  curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;[print(t["id"]) for t in json.load(sys.stdin) if t["type"]=="page" and t["url"]=="about:blank"]' \
+    | while read -r id; do curl -s "http://127.0.0.1:$PORT/json/close/$id" >> "$OUT/steps.txt"; echo >> "$OUT/steps.txt"; done
+}
+# One tab-stepping key inside Workspace Zwei: the expected page must become
+# visible and Zwei must stay active. about:blank or an Inbox page is a leak.
+step_in_zwei() { # <record name> <expected title> <hidkey args...>
+  local name=$1 want=$2; shift 2
+  key "$@"; waitvisible "$want" 5; local now; now=$(visible)
+  echo "after $name ($*): $now" >> "$OUT/steps.txt"
+  [ "$now" = "$want" ] && waitax "Zwei, Workspace wechseln" 3 && record "$name" true || record "$name" false
+}
 # Evaluates JS in the settings page with a shadow-DOM-piercing finder `q`.
 settings_js() {
   local expr="(()=>{const q=(s,r=document)=>{const f=r.querySelector(s);if(f)return f;for(const e of r.querySelectorAll('*')){if(e.shadowRoot){const g=q(s,e.shadowRoot);if(g)return g}}return null};$1})()"
@@ -122,18 +138,33 @@ record_key() { # <command id> ; click Change, then the caller presses the key
 launch
 open_url "$SITE/alpha.html"; open_url "$SITE/beta.html"; open_url "$SITE/gamma.html"
 waitvisible gamma 5 || fail_setup "gamma not visible"
+close_blank; sleep 1
+tabs | grep -q "about:blank" && fail_setup "launch about:blank tab did not close"
+waitvisible gamma 5 || fail_setup "gamma not visible after closing about:blank"
 # WORKFLOW-03: ⌃⌥⇥ returns to the last used tab and toggles back; ⌃⇥ keeps
 # cycling in order, separate from it.
 key 48 ctrl opt; waitvisible beta 5 && record mruToPrevious true || record mruToPrevious false
 echo "after opt-tab 1: $(visible) pages: $(pages)" >> "$OUT/steps.txt"
 key 48 ctrl opt; waitvisible gamma 5 && record mruTogglesBack true || record mruTogglesBack false
 echo "after opt-tab 2: $(visible)" >> "$OUT/steps.txt"
-key 48 ctrl; sleep 2; NOW=$(visible); echo "after ctrl-tab: $NOW" >> "$OUT/steps.txt"
-[ -n "$NOW" ] && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && record cyclingIsSeparate true || record cyclingIsSeparate false
+# Inbox shows alpha, beta, gamma: ⌃⇥ from gamma wraps to the first sidebar
+# row. Last-used would be beta; about:blank or nothing is a failure.
+key 48 ctrl; waitvisible alpha 5; NOW=$(visible); echo "after ctrl-tab: $NOW" >> "$OUT/steps.txt"
+[ "$NOW" = alpha ] && record cyclingIsSeparate true || record cyclingIsSeparate false
 key 48 ctrl opt; waitvisible gamma 5 && record mruAfterCycling true || record mruAfterCycling false
 echo "after opt-tab 3: $(visible)" >> "$OUT/steps.txt"
 # Never into another Workspace.
-newws Inbox Zwei ""; open_url "$SITE/delta.html"
+newws Inbox Zwei ""; open_url "$SITE/delta.html"; open_url "$SITE/epsilon.html"
+waitvisible epsilon 5 || fail_setup "epsilon not visible"
+echo "zwei pages: $(pages)" >> "$OUT/steps.txt"
+# Zwei shows delta, epsilon; the strip also holds Inbox's alpha, beta, gamma
+# before them. Stepping wraps inside Zwei; strip order would reach Inbox.
+step_in_zwei ctrlTabWrapsInWorkspace delta 48 ctrl
+step_in_zwei ctrlShiftTabWrapsInWorkspace epsilon 48 ctrl shift
+step_in_zwei cmdShiftBracketWrapsInWorkspace delta 30 cmd shift
+step_in_zwei cmdShiftLeftBracketWrapsInWorkspace epsilon 33 cmd shift
+step_in_zwei cmdOneSelectsFirstSidebarRow delta 18 cmd
+step_in_zwei cmdNineSelectsLastSidebarRow epsilon 25 cmd
 key 48 ctrl opt; sleep 2; NOW=$(visible)
 waitax "Zwei, Workspace wechseln" 3 && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && [ "$NOW" != alpha ] \
   && record mruStaysInWorkspace true || record mruStaysInWorkspace false

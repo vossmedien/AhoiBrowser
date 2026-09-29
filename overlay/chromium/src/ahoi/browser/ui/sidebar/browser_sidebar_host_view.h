@@ -133,13 +133,13 @@ class BrowserSidebarHostView final
   BrowserSidebarHostView& operator=(const BrowserSidebarHostView&) = delete;
 
   bool UndoLastMutationIfAvailable();
-
   bool ActivateRelativeWorkspace(int delta);
-
   bool ActivateRelativeWorkspaceByGesture(int delta);
 
+  // Walk the active Workspace's sidebar tab stops; null `index` is the last.
   base::WeakPtr<tabs::TabInterface> ResolveRelativeRuntimeTab(int delta) const;
-
+  base::WeakPtr<tabs::TabInterface> ResolveNumberedRuntimeTab(
+      std::optional<size_t> index) const;
   bool ActivateRelativeRuntimeTab(int delta);
 
   // `index` counts the process-wide order of the shared switcher (ADR 0011

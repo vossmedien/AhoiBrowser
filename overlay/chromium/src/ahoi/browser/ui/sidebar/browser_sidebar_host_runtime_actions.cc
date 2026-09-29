@@ -580,45 +580,6 @@ void BrowserSidebarHostView::ActivateRuntimeTab(
   }
 }
 
-base::WeakPtr<tabs::TabInterface>
-BrowserSidebarHostView::ResolveRelativeRuntimeTab(int delta) const {
-  if (!tab_strip_model_ || tab_strip_model_->empty() || delta == 0) {
-    return nullptr;
-  }
-
-  const std::optional<base::Uuid> active_workspace =
-      controller_->view_model().workspace_id();
-  tabs::TabInterface* const active_tab = tab_strip_model_->GetActiveTab();
-  std::vector<tabs::TabInterface*> workspace_tabs;
-  workspace_tabs.reserve(tab_strip_model_->count());
-  for (tabs::TabInterface* tab : *tab_strip_model_) {
-    if (!tab) {
-      continue;
-    }
-    const std::optional<base::Uuid> tab_workspace =
-        session_bridge_->GetWorkspaceForTab(tab);
-    if (!active_workspace.has_value() || tab_workspace == active_workspace ||
-        (tab == active_tab && !tab_workspace.has_value())) {
-      workspace_tabs.push_back(tab);
-    }
-  }
-  if (workspace_tabs.size() < 2u) {
-    return nullptr;
-  }
-
-  auto current = std::ranges::find(workspace_tabs, active_tab);
-  size_t target_index = delta > 0 ? 0u : workspace_tabs.size() - 1u;
-  if (current != workspace_tabs.end()) {
-    const size_t current_index =
-        static_cast<size_t>(std::distance(workspace_tabs.begin(), current));
-    target_index = delta > 0 ? (current_index + 1u) % workspace_tabs.size()
-                             : (current_index + workspace_tabs.size() - 1u) %
-                                   workspace_tabs.size();
-  }
-
-  return workspace_tabs[target_index]->GetWeakPtr();
-}
-
 bool BrowserSidebarHostView::ActivateRelativeRuntimeTab(int delta) {
   base::WeakPtr<tabs::TabInterface> target = ResolveRelativeRuntimeTab(delta);
   if (!target || !tab_strip_model_) {

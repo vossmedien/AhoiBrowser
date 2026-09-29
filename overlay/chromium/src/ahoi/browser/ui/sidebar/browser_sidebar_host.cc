@@ -177,6 +177,29 @@ bool ActivateRelativeBrowserRuntimeTab(views::View* sidebar_host, int delta) {
   return host && host->ActivateRelativeRuntimeTab(delta);
 }
 
+bool ResolveBrowserSidebarTabStep(views::View* sidebar_host,
+                                  int delta,
+                                  base::WeakPtr<tabs::TabInterface>* target) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (!host) {
+    return false;
+  }
+  *target = host->ResolveRelativeRuntimeTab(delta);
+  return true;
+}
+
+bool ResolveBrowserSidebarNumberedTab(
+    views::View* sidebar_host,
+    std::optional<size_t> index,
+    base::WeakPtr<tabs::TabInterface>* target) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (!host) {
+    return false;
+  }
+  *target = host->ResolveNumberedRuntimeTab(index);
+  return true;
+}
+
 bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->ActivateWorkspaceAtIndex(index);

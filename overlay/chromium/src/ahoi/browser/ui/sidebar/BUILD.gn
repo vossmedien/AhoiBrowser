@@ -41,6 +41,14 @@ source_set("sidebar_presentation") {
   deps = [ "//ui/compositor" ]
 }
 
+# Pure keyboard tab-stop order of the sidebar; no Views or tab strip types.
+source_set("sidebar_tab_stops") {
+  sources = [
+    "sidebar_tab_stops.cc",
+    "sidebar_tab_stops.h",
+  ]
+}
+
 source_set("move_destination_model") {
   sources = [
     "move_destination_menu_model.cc",
@@ -216,6 +224,7 @@ source_set("browser_sidebar") {
     "browser_sidebar_host_runtime_refresh.cc",
     "browser_sidebar_host_split_actions.cc",
     "browser_sidebar_host_structure.cc",
+    "browser_sidebar_host_tab_stops.cc",
     "browser_sidebar_host_tree_actions.cc",
     "browser_sidebar_host_state.cc",
     "browser_sidebar_host_state.h",
@@ -262,6 +271,7 @@ source_set("browser_sidebar") {
     ":sidebar_media_overlay",
     ":sidebar_presentation",
     ":sidebar_runtime_drop_targets",
+    ":sidebar_tab_stops",
     ":sidebar_views",
     "//ahoi/browser/media",
     "//ahoi/browser/memory:tab_sleeping",
@@ -346,6 +356,7 @@ source_set("unit_tests") {
     "sidebar_split_layout_unittest.cc",
     "sidebar_split_resize_area_unittest.cc",
     "sidebar_tab_density_unittest.cc",
+    "sidebar_tab_stops_unittest.cc",
     "sidebar_tab_title_label_unittest.cc",
     "sidebar_tree_controller_unittest.cc",
     "sidebar_tree_view_drag_lifecycle_unittest.cc",
@@ -365,6 +376,7 @@ source_set("unit_tests") {
     ":sidebar_media_overlay",
     ":sidebar_presentation",
     ":sidebar_runtime_drop_targets",
+    ":sidebar_tab_stops",
     ":sidebar_tree",
     ":sidebar_views",
     "//ahoi/browser/memory:tab_sleeping",
@@ -412,6 +424,7 @@ source_set("search_unit_tests") {
   testonly = true
   sources = [
     "sidebar_discovery_view_unittest.cc",
+    "sidebar_tab_stops_unittest.cc",
     "sidebar_tree_controller_unittest.cc",
     "sidebar_tree_view_drag_lifecycle_unittest.cc",
     "sidebar_tree_view_drag_unittest.cc",
@@ -422,6 +435,7 @@ source_set("search_unit_tests") {
   ]
   deps = [
     ":sidebar_discovery",
+    ":sidebar_tab_stops",
     ":sidebar_tree",
     ":sidebar_views",
     "//ahoi/browser/tab_tree",

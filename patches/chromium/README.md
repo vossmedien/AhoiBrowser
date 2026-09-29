@@ -1,5 +1,24 @@
 # Chromium M153 patch ledger
 
+## `0076-ahoi-tab-stepping-follows-sidebar.patch`
+
+One tab strip backs every Workspace of a window, so Chromium's next/previous
+tab (`⌃⇥`, `⇧⌘]`/`⇧⌘[`, `⌃PageDown`/`⌃PageUp`) and `⌘1`…`⌘9` stepped
+through other Workspaces' tabs and switched the Workspace, against the
+master contract ("andere Workspaces dürfen nicht versehentlich aktiviert
+werden"). `SelectNextTab`, `SelectPreviousTab`, `SelectNumberedTab` and
+`SelectLastTab` in `browser_commands.cc` now first ask the window's Ahoi
+sidebar host (new `BrowserView::GetAhoiSidebarHost`) for the target. It walks
+the sidebar's tab stops of the active Workspace (Crest dad3abad, overlay
+`ahoi/browser/ui/sidebar/sidebar_tab_stops.{h,cc}`): saved rows, then
+temporary rows; a split is one stop entered at its first pane; rows inside a
+collapsed folder are skipped, and a tab shown from there steps from the
+folder's position; stepping wraps. When the host owns the command but has no
+other stop, nothing happens instead of falling back to the strip. Windows
+without an Ahoi sidebar (private, app, popup) keep Chromium's strip order.
+The MRU commands (`CycleToMruTab`, Ahoi's `⌃⌥⇥`) are unchanged. Cmd+scroll
+(0011) uses the same order through `ResolveRelativeBrowserRuntimeTab`.
+
 ## `0075-ahoi-browsing-data-website-session-partitions.patch`
 
 Adoption review A2 (crest 87d89354): "Delete browsing data" left the logins
