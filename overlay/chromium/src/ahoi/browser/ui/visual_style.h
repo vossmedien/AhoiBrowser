@@ -211,6 +211,17 @@ inline constexpr int kCommandBarResultIconBoxSize = 20;
 inline constexpr int kCommandBarAcceptHintWidth = 24;
 inline constexpr int kCommandBarAcceptHintHeight = 20;
 inline constexpr int kCommandBarKeycapCornerRadius = 5;
+inline constexpr int kCommandBarKeycapHorizontalPadding = 5;
+// The panel is at least 400 high; the result list takes the slack so the
+// key-hint footer stays at the bottom edge.
+inline constexpr int kCommandBarMinimumHeight = 400;
+inline constexpr int kCommandBarContentMinimumHeight =
+    kCommandBarMinimumHeight - (2 * kCommandBarPanelInset);
+// Footer: a hairline, then keycap hints in 12 pt secondary text.
+inline constexpr int kCommandBarFooterHeight = 36;
+inline constexpr int kCommandBarFooterGroupSpacing = 24;
+inline constexpr int kCommandBarKeycapSpacing = 4;
+inline constexpr int kCommandBarKeycapLabelGap = 8;
 inline constexpr int kCommandBarSecondaryTextMaximumWidth = 180;
 
 // Compact, address-bar-anchored developer controls. The surface deliberately
