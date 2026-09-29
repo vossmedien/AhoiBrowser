@@ -76,8 +76,16 @@ open_url() { # <url> ; ⌘T + type + Return in the normal window
 UBO_ID=fkgkibajhfbepljeaefdnfnegdcjomkh
 ad_display() { eval_in "$1" "getComputedStyle(document.getElementById('ad')).display"; }
 hidden_within() { # <url substring> <seconds>; uBO loads its bundled lists first
-  local end=$(( $(date +%s) + $2 ))
-  while [ $(date +%s) -lt $end ]; do [ "$(ad_display "$1")" = none ] && return 0; sleep 1; done
+  local end=$(( $(date +%s) + $2 )) reloaded=0
+  while [ $(date +%s) -lt $end ]; do
+    [ "$(ad_display "$1")" = none ] && return 0
+    # A page loaded while a fresh uBO still compiles its lists keeps its
+    # unfiltered DOM (build-47 run); reload it once after 10 s.
+    if [ $reloaded = 0 ] && [ $(( end - $(date +%s) )) -le $(( $2 - 10 )) ]; then
+      echo "info: reloaded $1" >> "$OUT/steps.txt"; CDP "$1" Page.reload '{}' >/dev/null 2>&1; reloaded=1; sleep 3
+    fi
+    sleep 1
+  done
   return 1
 }
 ubo_running() { curl -s http://127.0.0.1:$PORT/json | grep -q "chrome-extension://$UBO_ID/"; }
@@ -114,17 +122,21 @@ $AX dump $PID 14 > "$OUT/ax-after-install.txt"
 press_label "Schließen"; sleep 1
 # Normal window: generic cosmetic filtering hides the ad slot.
 open_url "$SITE/ad.html?normal"
-hidden_within 'ad.html?normal' 20 && record adHiddenInNormalWindow true || record adHiddenInNormalWindow false
+hidden_within 'ad.html?normal' 40 && record adHiddenInNormalWindow true || record adHiddenInNormalWindow false
 # INC-04: not active in incognito until explicitly allowed.
 key 45 cmd shift; sleep 3; open_url "$SITE/ad.html?inc1"; sleep 3
 [ "$(ad_display 'ad.html?inc1')" = block ] && record inactiveInIncognitoByDefault true || record inactiveInIncognitoByDefault false
 key 13 cmd shift; sleep 2
 open_url "chrome://extensions/?id=$UBO_ID"; sleep 2
-ALLOWED=$(eval_in "extensions/?id=$UBO_ID" "(()=>{const d=document.querySelector('extensions-manager').shadowRoot.querySelector('extensions-detail-view');const t=d.shadowRoot.querySelector('#allow-incognito');if(!t.checked)t.click();return String(t.checked)})()")
+ALLOWED=$(eval_in "extensions/?id=$UBO_ID" "(()=>{const d=document.querySelector('extensions-manager').shadowRoot.querySelector('extensions-detail-view');const t=d.shadowRoot.querySelector('#allow-incognito');if(!t.checked)t.shadowRoot.querySelector('#crToggle').click();return 'clicked'})()")
+# extensions-toggle-row only switches through its inner cr-toggle, and the
+# new value arrives asynchronously; read it back afterwards.
+sleep 2
+ALLOWED=$(eval_in "extensions/?id=$UBO_ID" "document.querySelector('extensions-manager').shadowRoot.querySelector('extensions-detail-view').shadowRoot.querySelector('#allow-incognito').checked")
 echo "allow-incognito after click: $ALLOWED" >> "$OUT/steps.txt"
 [ "$ALLOWED" = true ] && record incognitoAllowanceSwitchedOn true || record incognitoAllowanceSwitchedOn false
 sleep 3; key 45 cmd shift; sleep 3; open_url "$SITE/ad.html?inc2"
-hidden_within 'ad.html?inc2' 20 && record activeInIncognitoAfterAllowance true || record activeInIncognitoAfterAllowance false
+hidden_within 'ad.html?inc2' 40 && record activeInIncognitoAfterAllowance true || record activeInIncognitoAfterAllowance false
 $AX dump $PID 14 > "$OUT/ax-final.txt"
 quit
 finish
