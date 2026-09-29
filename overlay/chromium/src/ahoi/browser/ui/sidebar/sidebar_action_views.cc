@@ -18,8 +18,10 @@
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/base/models/image_model.h"
 #include "ui/color/color_id.h"
+#include "ui/color/color_provider.h"
 #include "ui/gfx/animation/tween.h"
 #include "ui/gfx/canvas.h"
+#include "ui/gfx/color_utils.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/point_f.h"
 #include "ui/gfx/geometry/rect_f.h"
@@ -167,7 +169,9 @@ class WorkspaceDotButton final : public views::Button {
     ring.setAntiAlias(true);
     ring.setStyle(cc::PaintFlags::kStroke_Style);
     ring.setStrokeWidth(1.0f);
-    ring.setColor(accent_);
+    ring.setColor(visual_style::AdaptDefaultAccent(
+        accent_, color_utils::IsDark(GetColorProvider()->GetColor(
+                     visual_style::kChromeSurface))));
     canvas->DrawCircle(center, 4.0f, ring);
     views::Button::PaintButtonContents(canvas);
   }
@@ -267,7 +271,12 @@ class WorkspaceSelectorButton final : public views::Button {
     title_->SetText(name);
     badge_->SetText(
         icon.empty() ? name.substr(0, std::min<size_t>(1, name.size())) : icon);
-    const SkColor accent = accent_argb.value_or(visual_style::kDefaultAccent);
+    SkColor accent = accent_argb.value_or(visual_style::kDefaultAccent);
+    if (const ui::ColorProvider* provider = GetColorProvider()) {
+      accent = visual_style::AdaptDefaultAccent(
+          accent, color_utils::IsDark(
+                      provider->GetColor(visual_style::kChromeSurface)));
+    }
     badge_->SetEnabledColor(accent);
     badge_->SetBackground(
         views::CreateRoundedRectBackground(visual_style::kChromeSurface, 5));
@@ -302,6 +311,16 @@ class WorkspaceSelectorButton final : public views::Button {
   void StateChanged(ButtonState old_state) override {
     views::Button::StateChanged(old_state);
     UpdateBackground();
+  }
+
+  void OnThemeChanged() override {
+    views::Button::OnThemeChanged();
+    // The default accent has a dark-theme partner; repaint the badge. A
+    // hover preview reapplies the active workspace when it ends.
+    if (!preview_index_.has_value()) {
+      ApplyWorkspacePresentation(active_name_, active_icon_,
+                                 active_accent_argb_);
+    }
   }
 
  private:

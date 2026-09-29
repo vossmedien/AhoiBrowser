@@ -32,16 +32,25 @@ inline constexpr ui::ColorId kModalScrim = ui::kColorSysStateScrim;
 // Chromium ThemeService's user color is the one global chrome accent input.
 // This default belongs only to persisted workspace/folder identity data and
 // must never be used as a component paint replacement for `kAccent` above.
-inline constexpr SkColor kDefaultAccent = SkColorSetRGB(0x0A, 0x84, 0xFF);
+// Design spec 2026-09-29: accent #006B73, #70D6DE on dark surfaces.
+inline constexpr SkColor kDefaultAccent = SkColorSetRGB(0x00, 0x6B, 0x73);
+inline constexpr SkColor kDefaultAccentDark = SkColorSetRGB(0x70, 0xD6, 0xDE);
+// The persisted default stays one value; paint maps it to its dark partner
+// so it keeps contrast on dark chrome. Chosen accents paint unchanged.
+constexpr SkColor AdaptDefaultAccent(SkColor accent, bool dark_surface) {
+  return dark_surface && accent == kDefaultAccent ? kDefaultAccentDark
+                                                  : accent;
+}
 // Persisted workspace/folder accent choices. These are user data values, not
 // component paint colors; Views still resolve every chrome state through the
 // semantic ColorProvider roles above.
 inline constexpr SkColor kUserAccentRed = SkColorSetRGB(0xE4, 0x5E, 0x68);
-inline constexpr SkColor kUserAccentOrange = SkColorSetRGB(0xF2, 0x8C, 0x45);
+// The spec's workspace amber and violet.
+inline constexpr SkColor kUserAccentOrange = SkColorSetRGB(0xB8, 0x6C, 0x16);
 inline constexpr SkColor kUserAccentYellow = SkColorSetRGB(0xE2, 0xB8, 0x4B);
 inline constexpr SkColor kUserAccentGreen = SkColorSetRGB(0x54, 0xA9, 0x6B);
 inline constexpr SkColor kUserAccentBlue = SkColorSetRGB(0x4F, 0x8D, 0xE8);
-inline constexpr SkColor kUserAccentViolet = SkColorSetRGB(0x8B, 0x6A, 0xDD);
+inline constexpr SkColor kUserAccentViolet = SkColorSetRGB(0x79, 0x61, 0xB3);
 
 // Shared geometry tokens. Keep dimensions here rather than in individual
 // views so later density/theme work can tune the complete native surface as a
