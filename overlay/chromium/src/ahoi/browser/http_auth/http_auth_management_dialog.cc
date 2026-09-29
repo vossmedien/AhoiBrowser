@@ -13,6 +13,7 @@
 #include "ahoi/browser/http_auth/http_auth_secret_access_controller.h"
 #include "ahoi/browser/http_auth/http_auth_secret_util.h"
 #include "ahoi/browser/http_auth/http_auth_session_controller.h"
+#include "ahoi/browser/ui/dialog_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/i18n/time_formatting.h"
@@ -45,7 +46,6 @@
 #include "ui/views/controls/separator.h"
 #include "ui/views/controls/textfield/textfield.h"
 #include "ui/views/layout/box_layout.h"
-#include "ui/views/layout/layout_provider.h"
 #include "ui/views/style/typography.h"
 #include "ui/views/widget/widget.h"
 #include "ui/views/window/client_view.h"
@@ -159,9 +159,7 @@ HttpAuthManagementDialog::HttpAuthManagementDialog(
 
   SetModalType(ui::mojom::ModalType::kWindow);
   SetButtons(static_cast<int>(ui::mojom::DialogButton::kCancel));
-  set_fixed_width(kDialogWidth);
-  set_margins(views::LayoutProvider::Get()->GetInsetsMetric(
-      views::InsetsMetric::INSETS_DIALOG));
+  dialog_style::ApplyDialogFrame(*this, kDialogWidth);
 
   auto contents = std::make_unique<views::View>();
   contents->GetViewAccessibility().SetRole(ax::mojom::Role::kGroup);
@@ -181,6 +179,7 @@ HttpAuthManagementDialog::HttpAuthManagementDialog(
   search->SetAccessibleName(
       l10n_util::GetStringUTF16(IDS_AHOI_HTTP_AUTH_MANAGER_SEARCH_PLACEHOLDER));
   search_field_ = contents->AddChildView(std::move(search));
+  dialog_style::StyleDialogField(*search_field_);
   search_subscription_ =
       search_field_->AddTextChangedCallback(base::BindRepeating(
           &HttpAuthManagementDialog::OnSearchChanged, base::Unretained(this)));
@@ -211,6 +210,7 @@ HttpAuthManagementDialog::HttpAuthManagementDialog(
   editor_username->SetAccessibleName(
       l10n_util::GetStringUTF16(IDS_AHOI_HTTP_AUTH_MANAGER_EDITOR_USERNAME));
   editor_username_field_ = editor->AddChildView(std::move(editor_username));
+  dialog_style::StyleDialogField(*editor_username_field_);
   editor->AddChildView(MakeLabel(
       l10n_util::GetStringUTF16(IDS_AHOI_HTTP_AUTH_MANAGER_EDITOR_PASSWORD)));
   auto editor_password = std::make_unique<views::Textfield>();
@@ -218,6 +218,7 @@ HttpAuthManagementDialog::HttpAuthManagementDialog(
       l10n_util::GetStringUTF16(IDS_AHOI_HTTP_AUTH_MANAGER_EDITOR_PASSWORD));
   editor_password->SetTextInputType(ui::TEXT_INPUT_TYPE_PASSWORD);
   editor_password_field_ = editor->AddChildView(std::move(editor_password));
+  dialog_style::StyleDialogField(*editor_password_field_);
 
   auto editor_actions = std::make_unique<views::View>();
   auto* editor_actions_layout =

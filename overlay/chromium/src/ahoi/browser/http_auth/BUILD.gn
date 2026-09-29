@@ -104,6 +104,7 @@ source_set("http_auth_ui") {
     "//ui/views",
   ]
   deps = [
+    "//ahoi/browser/ui:dialog_style",
     "//base:i18n",
     "//chrome/app:generated_resources",
     "//chrome/browser/profiles:profile",
