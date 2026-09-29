@@ -4,8 +4,8 @@
 # "Link der aktiven Seite kopieren" puts the credential-free URL on the
 # clipboard, "... als Markdown kopieren" a CommonMark link whose label keeps
 # the page title literal (punctuation escaped) and whose destination escapes
-# parentheses; a copy from an incognito window is marked concealed
-# (org.nspasteboard.ConcealedType) so clipboard history skips it; "Aktive
+# parentheses; a copy from an incognito window expires from the pasteboard
+# after 5 minutes, so clipboard history keeps nothing; "Aktive
 # Seite im Lesemodus öffnen" opens Chromium's reading mode panel without
 # navigating the page. The owner's text clipboard is saved and restored.
 set -u
@@ -111,13 +111,21 @@ sleep 3; targets > "$OUT/targets-reader.txt"
 grep -q "read-anything" "$OUT/targets-reader.txt" && record readerPanelOpened true || record readerPanelOpened false
 [ "$(pages)" = "$before" ] && record readerKeepsPage true || record readerKeepsPage false
 $AX dump $PID 14 > "$OUT/ax-reader.txt"
-# Incognito: the same copy is concealed from clipboard history.
+# Incognito: the same copy must stay out of clipboard history (below).
 key 45 cmd shift; sleep 3
 open_url "$SITE/article.html?private=1" "private=1"
 printf 'sentinel' | pbcopy
 run_command "$COPY" >/dev/null; clip > "$OUT/clip-incognito.txt"
 clip_types > "$OUT/clip-types-incognito.txt"
-clip | grep -q "private=1" && grep -q ConcealedType "$OUT/clip-types-incognito.txt" \
-  && record incognitoCopyConcealed true || record incognitoCopyConcealed false
+clip | grep -q "private=1" && ! grep -q ConcealedType "$OUT/clip-types-incognito.txt" \
+  && record incognitoCopyIsLinkOnly true || record incognitoCopyIsLinkOnly false
 $AX dump $PID 14 > "$OUT/ax-final.txt"
-finish; quit
+quit
+# Chromium marks an off-the-record copy on macOS as current-host-only (no
+# Universal Clipboard) with a 5-minute pasteboard expiration, which keeps it
+# out of clipboard history; ConcealedType is reserved for passwords. The
+# expiry is observable: the link leaves the pasteboard by itself.
+end=$(( $(date +%s) + 360 ))
+while [ $(date +%s) -lt $end ] && clip | grep -q "private=1"; do sleep 10; done
+clip | grep -q "private=1" && record incognitoCopyExpires false || record incognitoCopyExpires true
+finish
