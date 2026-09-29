@@ -102,10 +102,13 @@ void SessionBridge::AskCrossLevelMovePages(
       }
     }
   }
-  if (shutting_down_ || moved.empty() || cross_level_close_) {
+  if (shutting_down_ || moved.empty()) {
     std::move(done).Run(std::nullopt);
     return;
   }
+  // A move abandoned by a closed window leaves its question behind; its
+  // pages simply stay open.
+  cross_level_close_.reset();
   CrossLevelOpenPages open;
   std::vector<content::WebContents*> pages;
   for (const auto& [tab, runtime] : runtime_tabs_) {
@@ -114,6 +117,7 @@ void SessionBridge::AskCrossLevelMovePages(
       continue;
     }
     pages.push_back(contents);
+    open.open_ids.push_back(*runtime.node_id);
     if (!runtime.is_temporary) {
       open.saved_ids.push_back(*runtime.node_id);
       continue;

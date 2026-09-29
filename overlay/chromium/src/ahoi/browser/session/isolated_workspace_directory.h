@@ -12,9 +12,14 @@
 
 #include "base/functional/callback_forward.h"
 #include "base/time/time.h"
+#include "base/uuid.h"
 
 class BrowserWindowInterface;
 class Profile;
+
+namespace base {
+class FilePath;
+}
 
 namespace ahoi::session {
 
@@ -71,6 +76,29 @@ void PresentIsolatedWorkspace(
     const std::string& profile_dir,
     BrowserWindowInterface* source,
     base::OnceCallback<void(BrowserWindowInterface*)> done);
+
+// ADR 0011 WS-ISO-05: helpers for moving an item to another Profile.
+// Runs `done` with the Profile carrying a Workspace of the shared switcher:
+// the main Profile for an empty `profile_dir`, else that fully separated
+// Workspace's Profile, loading it if needed; nullptr when it cannot load.
+void LoadWorkspaceProfile(const std::string& profile_dir,
+                          base::OnceCallback<void(Profile*)> done);
+// The loaded regular Profile at `path`, or nullptr.
+Profile* FindLoadedProfile(const base::FilePath& path);
+// `profile`'s most recently active normal window, hidden ones included.
+BrowserWindowInterface* FindMostRecentNormalWindow(Profile* profile);
+
+struct OtherProfileWorkspace {
+  base::Uuid workspace_id;
+  std::u16string name;
+  // Empty for a Workspace of the main Profile.
+  std::string profile_dir;
+};
+// Every openable Workspace of the shared switcher that lives in another
+// Profile than `own`, in the process-wide order. The main Profile's
+// Workspaces are listed only while it is loaded.
+std::vector<OtherProfileWorkspace> ListOtherProfileWorkspaces(
+    const Profile* own);
 
 }  // namespace ahoi::session
 
