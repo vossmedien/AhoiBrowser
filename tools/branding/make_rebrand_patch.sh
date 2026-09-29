@@ -1,5 +1,5 @@
 #!/bin/bash
-# usage: make_rebrand_patch.sh <chromium src> <work dir> <out.patch> [ui]
+# usage: make_rebrand_patch.sh <src> <work dir> <out.patch> [ui|extras]
 # Rebrands every macOS-active "Chromium" product-name message of the two
 # Chromium strings bundles (English source and German translation) and
 # writes the difference against the given checkout as a patch. With "ui" it
@@ -7,16 +7,24 @@
 # components_strings) instead, selecting messages with the GRIT defines of
 # the checkout's out/AhoiDev build; run it on a checkout with the earlier
 # patches applied, since those bundles also carry Ahoi's own messages.
+# "extras" does the same for the extension and privacy sandbox bundles.
 # Attribution and license texts ("The Chromium Authors", the open source
 # project link) stay unchanged. Other locales keep Chromium's translation ids and fall back
 # to the English text for rebranded messages.
 set -eu
 SRC=$1; WORK=$2; OUT=$3; MODE=${4:-product}
 HERE=$(cd "$(dirname "$0")" && pwd)
-if [ "$MODE" = ui ]; then
-  GRDS=(chrome/app/generated_resources.grd components/components_strings.grd)
-  XTBS=(chrome/app/resources/generated_resources_de.xtb
-        components/strings/components_strings_de.xtb)
+if [ "$MODE" = ui ] || [ "$MODE" = extras ]; then
+  if [ "$MODE" = ui ]; then
+    GRDS=(chrome/app/generated_resources.grd components/components_strings.grd)
+    XTBS=(chrome/app/resources/generated_resources_de.xtb
+          components/strings/components_strings_de.xtb)
+  else
+    GRDS=(extensions/strings/extensions_strings.grd
+          components/privacy_sandbox_strings.grd)
+    XTBS=(extensions/strings/extensions_strings_de.xtb
+          components/strings/privacy_sandbox_strings_de.xtb)
+  fi
   FILES=("${XTBS[@]}")
   add_with_parts() { # <file relative to SRC>; parts nest, relative to parent
     FILES+=("$1")
@@ -40,7 +48,7 @@ for f in "${FILES[@]}"; do
   mkdir -p "$WORK/a/$(dirname "$f")" "$WORK/b/$(dirname "$f")"
   cp "$SRC/$f" "$WORK/a/$f"; cp "$SRC/$f" "$WORK/b/$f"
 done
-if [ "$MODE" = ui ]; then
+if [ "$MODE" = ui ] || [ "$MODE" = extras ]; then
   for i in 0 1; do
     python3 "$HERE/rebrand_messages.py" --checkout "$WORK/b" --mac-active \
       "${KEEP[@]}" --build-dir "$SRC/out/AhoiDev" --grd "${GRDS[$i]}" \
