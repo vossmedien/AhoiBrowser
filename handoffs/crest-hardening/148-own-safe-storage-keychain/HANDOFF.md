@@ -1,6 +1,6 @@
 # 148 — Own "Safe Storage" Keychain item for Ahoi (OSCrypt)
 
-Status: ready (finding + design; no patch)
+Status: accepted by desktop owner 29 Sep 2026 — being implemented as patch 0079 with migration and mock-keychain unit tests; build/runtime acceptance on the next candidate
 Owner lane: desktop
 Source: [Crest Chromium build comparison](../../../docs/reviews/crest-hardening-2026-09-28-crest-chromium-build.md), candidate 1.
 
