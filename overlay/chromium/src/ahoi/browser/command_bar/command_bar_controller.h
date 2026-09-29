@@ -17,6 +17,7 @@
 #include "base/task/cancelable_task_tracker.h"
 #include "base/time/time.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "url/gurl.h"
 
 class Browser;
@@ -72,7 +73,9 @@ class CommandBarController : public TabStripModelObserver,
                          std::u16string_view original_input);
   std::u16string GetInitialQuery(CommandBarDisposition disposition) const;
   std::u16string GetPlaceholder() const;
+  // Defined in command_bar_controller_browser_commands.cc.
   void PublishBrowserCommands();
+  void OnShortcutBindingsChanged();
   void RefreshHistoryItems();
   void OnHistoryQueryCompleted(history::QueryResults results);
   ui::ImageModel GetOrRequestFavicon(const GURL& page_url);
@@ -117,6 +120,8 @@ class CommandBarController : public TabStripModelObserver,
   std::unique_ptr<views::Widget> bubble_widget_;
   raw_ptr<CommandBarView> view_ = nullptr;
   bool active_tab_refresh_pending_ = false;
+  // Regular profiles only: republishes the shortcut keys on a rebinding.
+  PrefChangeRegistrar shortcut_pref_registrar_;
   base::WeakPtrFactory<CommandBarController> weak_ptr_factory_{this};
 };
 

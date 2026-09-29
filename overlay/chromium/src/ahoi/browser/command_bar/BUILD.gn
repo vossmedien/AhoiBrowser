@@ -24,6 +24,8 @@ source_set("command_bar_core") {
   sources = [
     "command_bar_decorations.cc",
     "command_bar_decorations.h",
+    "command_bar_shortcut_items.cc",
+    "command_bar_shortcut_items.h",
     "command_bar_types.cc",
     "command_bar_types.h",
     "command_bar_view.cc",
@@ -36,6 +38,7 @@ source_set("command_bar_core") {
   public_deps = [
     "//ahoi/browser/developer_toolkit",
     "//ahoi/browser/navigation",
+    "//ahoi/browser/navigation:keyboard_shortcuts",
     "//ahoi/browser/ui/appearance",
     "//base",
   ]
@@ -63,6 +66,7 @@ source_set("command_bar") {
   sources = [
     "command_bar_controller.cc",
     "command_bar_controller.h",
+    "command_bar_controller_browser_commands.cc",
     "command_execution_adapter_chromium.cc",
     "quick_window_chromium.cc",
   ]
@@ -101,6 +105,7 @@ source_set("command_bar") {
     "//components/favicon/core",
     "//components/favicon_base",
     "//components/history/core/browser",
+    "//components/prefs",
     "//components/search_engines",
     "//components/tabs:public",
     "//components/url_formatter",
@@ -117,6 +122,7 @@ source_set("command_bar") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "command_bar_shortcut_items_unittest.cc",
     "command_bar_types_unittest.cc",
     "command_bar_view_unittest.cc",
     "command_execution_adapter_unittest.cc",
@@ -125,6 +131,7 @@ source_set("unit_tests") {
   deps = [
     ":command_bar_core",
     ":quick_window_policy",
+    "//ahoi/browser/navigation:keyboard_shortcuts",
     "//ahoi/browser/ui:dialog_style_unit_tests",
     "//chrome/app:generated_resources",
     "//ahoi/browser/ui:modal_overlay_unit_tests",
