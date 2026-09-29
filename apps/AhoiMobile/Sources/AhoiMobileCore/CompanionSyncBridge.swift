@@ -29,6 +29,13 @@ public actor CompanionSyncBridge {
     var extensionStorageMetadataApproved = false
     var extensionStorageMetadataEpoch: UInt64 = 0
     var extensionStorageHydrationRequired = false
+    /// Desktop-equivalent shared-tab writer gate (ADR 0009). Closed until the
+    /// app model has evaluated every active peer's capability declaration and
+    /// the provider acknowledged this device's own device/capability records.
+    var sharedTabWriteAllowed = false
+    /// Set when a local shared-tab Page/Presence was kept out of transport
+    /// because the gate was closed; the next opening reseeds it.
+    var sharedTabOutboundWithheld = false
     private var syncInProgress = false
     private var syncRequestedWhileInProgress = false
     private var syncWaiters: [CheckedContinuation<Void, any Error>] = []
@@ -58,7 +65,8 @@ public actor CompanionSyncBridge {
         sealer: any CompanionPayloadSealer,
         commandSigner: (any RemoteCommandSigning)? = nil,
         commandOwnershipStore: any RemoteCommandOwnershipStoring =
-            InMemoryRemoteCommandOwnershipStore()
+            InMemoryRemoteCommandOwnershipStore(),
+        sharedTabWriterGateOpen: Bool = false
     ) {
         self.repository = repository
         self.provider = transport
@@ -66,6 +74,8 @@ public actor CompanionSyncBridge {
         self.commandSigner = commandSigner
         self.commandOwnershipStore = commandOwnershipStore
         self.remoteControlConfigured = commandSigner != nil
+        // Only in-process relays/projections without a peer roster pass true.
+        self.sharedTabWriteAllowed = sharedTabWriterGateOpen
         transport.configureBrowserSettingValidation(Self.browserSettingValidator(codec: self.codec))
     }
 

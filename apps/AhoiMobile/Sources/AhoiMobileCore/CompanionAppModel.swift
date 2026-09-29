@@ -63,6 +63,11 @@ public final class CompanionAppModel: ObservableObject {
     var mobileSharedIntentTokens: [UUID: UUID] = [:]
     var mobileSharedCaptureTask: Task<Void, Never>?
     var mobileSharedCaptureRequested = false
+    /// Native shared-tab capture/projection wiring is installed (see
+    /// `SharedTabWriterGate`); drives the `shared-normal-tabs-v3` declaration.
+    var sharedTabNativeSupportActive = false
+    var sharedTabWriterAssessment: SharedTabCapabilityReadiness.Assessment?
+    var sharedTabAckRetryGeneration: UInt64?
     var browserSettingsApprovalEpoch: UInt64 = 0
     var extensionSetupMetadataEpoch: UInt64 = 0
     var extensionStorageMetadataEpoch: UInt64 = 0
@@ -312,7 +317,7 @@ public final class CompanionAppModel: ObservableObject {
             return tab
         }, enqueue: { committed in
             guard let bridge = self.syncBridge else { return }
-            try await bridge.enqueue(committed)
+            try await bridge.enqueueSharedTabPresence(committed)
         })
     }
 
@@ -383,7 +388,7 @@ public final class CompanionAppModel: ObservableObject {
             try await repository.closeLocalMobileTab(id)
         }, enqueue: { closed in
             guard let bridge = self.syncBridge, let closed else { return }
-            try await bridge.enqueue(closed)
+            try await bridge.enqueueSharedTabPresence(closed)
         })
     }
 
@@ -462,7 +467,19 @@ public final class CompanionAppModel: ObservableObject {
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return
             }
+            // Control metadata follows the Device record and is never gated.
+            await publishLocalSharedTabCapability(using: bridge)
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                return
+            }
             try await bridge.syncNow()
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                return
+            }
+            // A completed bounded pass is this runtime's initial fetch.
+            if await refreshSharedTabWriterGate(using: bridge, generation: generation) {
+                syncRequestedWhileInProgress = true
+            }
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return
             }

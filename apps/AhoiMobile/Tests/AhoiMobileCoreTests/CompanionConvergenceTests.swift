@@ -133,7 +133,7 @@ final class CompanionConvergenceTests: XCTestCase {
             fileURL: fileURL, deviceID: deviceID, repository: repository,
             records: records, transport: transport, sealer: sealer,
             bridge: CompanionSyncBridge(repository: repository, transport: transport,
-                                        sealer: sealer)
+                                        sealer: sealer, sharedTabWriterGateOpen: true)
         )
     }
 
