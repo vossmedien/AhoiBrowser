@@ -5,7 +5,10 @@
 # ⇧⌘] / ⇧⌘[, ⌘1 / ⌘9) over the active Workspace's sidebar rows only
 # (patch 0076), and the shortcut editor
 # (rebind, conflict naming its holder without overwriting, released old key,
-# persistence across relaunch, reset). HID keys, PID-scoped AX, CDP reads.
+# persistence across relaunch, reset), and the formerly fixed commands
+# (patch 0085: menu bar and command bar follow a rebound command bar and
+# Save, macOS key refused, per-entry reset). HID keys, PID-scoped AX, CDP
+# reads.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd); AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9345
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
@@ -235,5 +238,46 @@ open_url "chrome://settings/ahoi"; sleep 3
 [ "$(keys_of tab.last-used)" = "⌥⌘K" ] && record bindingPersists true || record bindingPersists false
 settings_js "const r=q('.shortcut-row[data-command-id=\"tab.last-used\"]');const b=r&&[...r.querySelectorAll('cr-button')][1];if(!b)return 'missing';b.click();return 'ok'" >> "$OUT/steps.txt"; sleep 2
 [ "$(keys_of tab.last-used)" = "⌃⌥⇥" ] && record resetRestoresDefault true || record resetRestoresDefault false
+# Patch 0085: Quick Window, sidebar Undo, the command bar and Save change like
+# every other command. The menu bar and the command bar follow the binding,
+# a macOS key is refused without a write, and reset is per entry.
+FIXED="['browser.quick-window','sidebar.undo','browser.command-bar','browser.command-bar-new-tab','tab.save']"
+EDITABLE=$(settings_js "return $FIXED.every(id=>{const b=q('.shortcut-keys[data-command-id=\"'+id+'\"]');return !!b&&!b.disabled})?'yes':'no'")
+[ "$EDITABLE" = yes ] && record formerlyFixedEditable true || record formerlyFixedEditable false
+has_menu_key() { grep -q -i -E "\| $2 \| 0$" "$1"; }   # <dump> <letter>; ⌘ alone
+$AX menukeys $PID > "$OUT/menukeys-default.txt"
+has_menu_key "$OUT/menukeys-default.txt" L && record menuShowsDefaultKey true || record menuShowsDefaultKey false
+record_key browser.command-bar; key 40 cmd; sleep 2   # ⌘K
+[ "$(keys_of browser.command-bar)" = "⌘K" ] && record commandBarRebinds true || record commandBarRebinds false
+$AX menukeys $PID > "$OUT/menukeys-rebound.txt"
+has_menu_key "$OUT/menukeys-rebound.txt" K && ! has_menu_key "$OUT/menukeys-rebound.txt" L \
+  && record menuFollowsBinding true || record menuFollowsBinding false
+key 37 cmd; sleep 2   # ⌘L is released: the command bar stays closed
+waitax "AXWindow \\| Suchen oder URL eingeben" 2 && record commandBarOldKeyReleased false || record commandBarOldKeyReleased true
+key 53; sleep 1
+key 40 cmd; waitax "AXWindow \\| Suchen oder URL eingeben" 6 && record commandBarNewKeyOpens true || record commandBarNewKeyOpens false
+key 53; sleep 1
+record_key tab.save; key 1 cmd opt; sleep 2   # ⌥⌘S
+[ "$(keys_of tab.save)" = "⌥⌘S" ] && record saveRebinds true || record saveRebinds false
+# The command bar's entry shows the current key ("title, key" in AX).
+key 40 cmd
+if waitax "AXWindow \\| Suchen oder URL eingeben" 6 && type_in "Tab speichern"; then
+  waitax "Tab speichern, ⌥⌘S" 5 && record commandBarShowsBinding true || record commandBarShowsBinding false
+else
+  record commandBarShowsBinding false
+fi
+$AX dump $PID 14 > "$OUT/ax-command-bar-save.txt"; key 53; sleep 1
+# ⌘Q cannot be typed safely, so the editor's own action sends it.
+settings_js "const e=q('settings-ahoi-shortcuts');if(!e)return 'missing';e.runShortcutAction_('set',{id:'browser.quick-window',keyCode:81,cmd:true},'browser.quick-window');return 'ok'" >> "$OUT/steps.txt"; sleep 2
+ERR=$(settings_js "const e=q('.shortcut-row[data-command-id=\"browser.quick-window\"] .shortcut-error');return e&&!e.hidden?e.textContent.trim():''")
+echo "system conflict: $ERR" >> "$OUT/steps.txt"
+echo "$ERR" | grep -q "macOS" && [ "$(keys_of browser.quick-window)" = "⌥Leertaste" ] \
+  && record systemKeyRefused true || record systemKeyRefused false
+settings_js "const r=q('.shortcut-row[data-command-id=\"browser.command-bar\"]');const b=r&&[...r.querySelectorAll('cr-button')][1];if(!b)return 'missing';b.click();return 'ok'" >> "$OUT/steps.txt"; sleep 2
+[ "$(keys_of browser.command-bar)" = "⌘L" ] && [ "$(keys_of tab.save)" = "⌥⌘S" ] \
+  && record resetIsPerEntry true || record resetIsPerEntry false
+$AX menukeys $PID > "$OUT/menukeys-reset.txt"
+has_menu_key "$OUT/menukeys-reset.txt" L && ! has_menu_key "$OUT/menukeys-reset.txt" K \
+  && record menuFollowsReset true || record menuFollowsReset false
 $AX dump $PID 14 > "$OUT/ax-final.txt"
 finish; quit
