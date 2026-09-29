@@ -13,6 +13,9 @@
 
 #include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/isolated_profile_registry.h"
+#include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/session_bridge_factory.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "base/callback_list.h"
 #include "base/check.h"
 #include "base/files/file_path.h"
@@ -630,6 +633,81 @@ void PresentIsolatedWorkspace(
             PresentProfileWindow(profile, source, std::move(done));
           },
           source_id, std::move(done)));
+}
+
+void LoadWorkspaceProfile(const std::string& profile_dir,
+                          base::OnceCallback<void(Profile*)> done) {
+  if (profile_dir.empty()) {
+    LoadMainProfile(std::move(done));
+    return;
+  }
+  ProfileManager* manager =
+      g_browser_process ? g_browser_process->profile_manager() : nullptr;
+  const std::optional<IsolatedProfileEntry> entry =
+      manager ? FindIsolatedProfile(g_browser_process->local_state(),
+                                    profile_dir)
+              : std::nullopt;
+  if (!entry || entry->state != IsolatedProfileState::kActive) {
+    std::move(done).Run(nullptr);
+    return;
+  }
+  manager->CreateProfileAsync(manager->user_data_dir().AppendASCII(profile_dir),
+                              std::move(done));
+}
+
+Profile* FindLoadedProfile(const base::FilePath& path) {
+  ProfileManager* manager =
+      g_browser_process ? g_browser_process->profile_manager() : nullptr;
+  Profile* profile = manager ? manager->GetProfileByPath(path) : nullptr;
+  return profile && profile->IsRegularProfile() ? profile : nullptr;
+}
+
+BrowserWindowInterface* FindMostRecentNormalWindow(Profile* profile) {
+  return profile ? FindMostRecentNormalBrowser(profile) : nullptr;
+}
+
+std::vector<OtherProfileWorkspace> ListOtherProfileWorkspaces(
+    const Profile* own) {
+  if (!own) {
+    return {};
+  }
+  const std::string own_dir = DirName(own->GetPath());
+  std::vector<DirectoryWorkspace> main_keys;
+  std::map<base::Uuid, OtherProfileWorkspace> details;
+  Profile* main_profile = GetLoadedMainProfile();
+  SessionBridge* main_bridge =
+      main_profile && main_profile != own
+          ? SessionBridgeFactory::GetForProfile(main_profile)
+          : nullptr;
+  std::vector<tab_tree::Workspace> workspaces;
+  if (main_bridge && main_bridge->is_ready() &&
+      main_bridge->tab_tree_store()->GetWorkspaces(&workspaces) ==
+          tab_tree::TabTreeStore::Result::kOk) {
+    for (const tab_tree::Workspace& workspace : workspaces) {
+      main_keys.push_back(
+          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
+      details.emplace(workspace.id,
+                      OtherProfileWorkspace{.workspace_id = workspace.id,
+                                            .name = workspace.name});
+    }
+  }
+  std::vector<IsolatedProfileEntry> isolated = GetOpenableIsolatedWorkspaces();
+  for (const IsolatedProfileEntry& entry : isolated) {
+    if (entry.profile_dir != own_dir) {
+      details.emplace(entry.workspace_id,
+                      OtherProfileWorkspace{.workspace_id = entry.workspace_id,
+                                            .name = entry.name,
+                                            .profile_dir = entry.profile_dir});
+    }
+  }
+  std::vector<OtherProfileWorkspace> result;
+  for (const DirectoryWorkspace& key :
+       OrderDirectoryWorkspaces(main_keys, isolated)) {
+    if (auto it = details.find(key.workspace_id); it != details.end()) {
+      result.push_back(it->second);
+    }
+  }
+  return result;
 }
 
 }  // namespace ahoi::session

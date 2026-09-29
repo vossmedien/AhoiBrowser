@@ -348,6 +348,9 @@ class SessionBridge : public KeyedService,
   // saved pages that were open and the URLs of open temporary pages, or
   // nullopt after a veto; the pages stay open until the commit.
   struct CrossLevelOpenPages {
+    // Every open page of the item; reopened in the target.
+    std::vector<base::Uuid> open_ids;
+    // For an undo: open saved pages and the URLs of open temporary pages.
     std::vector<base::Uuid> saved_ids;
     std::vector<GURL> temporary_urls;
   };
