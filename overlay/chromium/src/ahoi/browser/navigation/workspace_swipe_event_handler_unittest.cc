@@ -3,12 +3,16 @@
 
 #include "ahoi/browser/navigation/workspace_swipe_event_handler.h"
 
+#include <vector>
+
 #include "base/functional/bind.h"
 #include "base/time/time.h"
+#include "build/build_config.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/events/event.h"
 #include "ui/events/types/event_type.h"
 #include "ui/gfx/geometry/point_f.h"
+#include "ui/gfx/geometry/vector2d.h"
 
 namespace ahoi {
 namespace {
@@ -255,6 +259,60 @@ TEST(WorkspaceSwipeEventHandlerTest, CommandScrollPreviewConsumesBeforeSwitch) {
   EXPECT_EQ(-1, preview_delta);
   EXPECT_EQ(0, tab_switch_count);
 }
+
+#if BUILDFLAG(IS_MAC)
+// A classic mouse wheel reaches the native monitor as a MouseWheelEvent; with
+// Cmd held one notch switches one tab, and a notch inside the rate limit does
+// not switch again (NAV-11, build 49).
+TEST(WorkspaceSwipeEventHandlerTest, CmdMouseWheelNotchSwitchesTabOnce) {
+  std::vector<int> deltas;
+  WorkspaceSwipeEventHandler handler(
+      base::BindRepeating([](int) { return false; }),
+      base::BindRepeating(
+          [](std::vector<int>* seen, int delta) {
+            seen->push_back(delta);
+            return true;
+          },
+          &deltas));
+  const base::TimeTicks start = base::TimeTicks::Now();
+  ui::MouseWheelEvent down(gfx::Vector2d(0, -ui::MouseWheelEvent::kWheelDelta),
+                           gfx::PointF(), gfx::PointF(), start,
+                           ui::EF_COMMAND_DOWN, ui::EF_NONE);
+  bool handled = false;
+  handler.OnNativeScrollEvent(&down, /*target_is_this_window=*/true, &handled);
+  EXPECT_TRUE(handled);
+  ASSERT_EQ(1u, deltas.size());
+
+  ui::MouseWheelEvent again(
+      gfx::Vector2d(0, -ui::MouseWheelEvent::kWheelDelta), gfx::PointF(),
+      gfx::PointF(), start + base::Milliseconds(50), ui::EF_COMMAND_DOWN,
+      ui::EF_NONE);
+  handled = false;
+  handler.OnNativeScrollEvent(&again, /*target_is_this_window=*/true,
+                              &handled);
+  EXPECT_EQ(1u, deltas.size());
+}
+
+TEST(WorkspaceSwipeEventHandlerTest, PlainMouseWheelPassesThrough) {
+  int switch_count = 0;
+  WorkspaceSwipeEventHandler handler(
+      base::BindRepeating([](int) { return false; }),
+      base::BindRepeating(
+          [](int* count, int) {
+            ++*count;
+            return true;
+          },
+          &switch_count));
+  ui::MouseWheelEvent wheel(
+      gfx::Vector2d(0, -ui::MouseWheelEvent::kWheelDelta), gfx::PointF(),
+      gfx::PointF(), base::TimeTicks::Now(), ui::EF_NONE, ui::EF_NONE);
+  bool handled = false;
+  handler.OnNativeScrollEvent(&wheel, /*target_is_this_window=*/true,
+                              &handled);
+  EXPECT_FALSE(handled);
+  EXPECT_EQ(0, switch_count);
+}
+#endif  // BUILDFLAG(IS_MAC)
 
 }  // namespace
 }  // namespace ahoi

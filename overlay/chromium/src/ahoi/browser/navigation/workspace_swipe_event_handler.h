@@ -14,6 +14,7 @@
 
 namespace ui {
 class Event;
+class MouseWheelEvent;
 class ScrollEvent;
 }  // namespace ui
 
@@ -83,6 +84,13 @@ class WorkspaceSwipeEventHandler final : public ui::EventHandler {
                           bool* event_handled);
 
   bool ProcessCmdScrollEvent(ui::ScrollEvent* event, bool* event_handled);
+  // A classic mouse wheel reaches the native monitor as a MouseWheelEvent,
+  // not a ScrollEvent; with Cmd held it is one phase-less switch request.
+  bool ProcessCmdWheelEvent(ui::MouseWheelEvent* event, bool* event_handled);
+  // Shared by both: feeds the switcher and runs the preview/switch callbacks.
+  bool ApplyCmdScrollDecision(CmdScrollTabDecision decision,
+                              ui::Event* event,
+                              bool* event_handled);
 
   SwitchWorkspaceCallback switch_workspace_callback_;
   SwitchTabCallback switch_tab_callback_;

@@ -61,8 +61,16 @@ void WorkspaceSwipeEventHandler::OnScrollEvent(ui::ScrollEvent* event) {
 void WorkspaceSwipeEventHandler::OnNativeScrollEvent(ui::Event* event,
                                                      bool target_is_this_window,
                                                      bool* event_handled) {
-  if (!target_is_this_window || !event_handled || *event_handled || !event ||
-      !event->IsScrollEvent()) {
+  if (!target_is_this_window || !event_handled || *event_handled || !event) {
+    return;
+  }
+  if (event->IsMouseWheelEvent()) {
+    if (switch_tab_callback_ && event->IsCommandDown()) {
+      ProcessCmdWheelEvent(event->AsMouseWheelEvent(), event_handled);
+    }
+    return;
+  }
+  if (!event->IsScrollEvent()) {
     return;
   }
   ProcessScrollEvent(event->AsScrollEvent(),
@@ -187,10 +195,30 @@ void WorkspaceSwipeEventHandler::ProcessScrollEvent(
 
 bool WorkspaceSwipeEventHandler::ProcessCmdScrollEvent(ui::ScrollEvent* event,
                                                        bool* event_handled) {
-  const CmdScrollTabDecision decision = cmd_scroll_tab_switcher_.OnScroll(
-      event->x_offset_ordinal(), event->y_offset_ordinal(),
-      event->scroll_event_phase(), event->momentum_phase(),
-      event->time_stamp());
+  return ApplyCmdScrollDecision(
+      cmd_scroll_tab_switcher_.OnScroll(
+          event->x_offset_ordinal(), event->y_offset_ordinal(),
+          event->scroll_event_phase(), event->momentum_phase(),
+          event->time_stamp()),
+      event, event_handled);
+}
+
+bool WorkspaceSwipeEventHandler::ProcessCmdWheelEvent(
+    ui::MouseWheelEvent* event,
+    bool* event_handled) {
+  // One notch is kWheelDelta (120) per axis, far above the switch threshold;
+  // the switcher's rate limit still turns a fast burst into one switch.
+  return ApplyCmdScrollDecision(
+      cmd_scroll_tab_switcher_.OnScroll(
+          event->x_offset(), event->y_offset(), ui::ScrollEventPhase::kNone,
+          ui::EventMomentumPhase::NONE, event->time_stamp()),
+      event, event_handled);
+}
+
+bool WorkspaceSwipeEventHandler::ApplyCmdScrollDecision(
+    CmdScrollTabDecision decision,
+    ui::Event* event,
+    bool* event_handled) {
   if (decision == CmdScrollTabDecision::kNone) {
     return false;
   }
