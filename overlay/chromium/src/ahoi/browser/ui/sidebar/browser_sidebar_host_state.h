@@ -42,6 +42,7 @@ class BubbleDialogDelegate;
 class Button;
 class ImageButton;
 class Checkbox;
+class Label;
 class RadioButton;
 class Textfield;
 class View;
@@ -179,6 +180,8 @@ struct SidebarWorkspaceDialogState {
   std::optional<base::Uuid> workspace_id;
   std::optional<uint32_t> accent_argb;
   raw_ptr<views::Textfield> name_field = nullptr;
+  // Written-out validation error below `name_field`; hidden until needed.
+  raw_ptr<views::Label> name_error = nullptr;
   raw_ptr<views::Textfield> icon_field = nullptr;
   // ADR 0011 level choice; only present while creating a Workspace.
   raw_ptr<views::RadioButton> own_sessions_radio = nullptr;

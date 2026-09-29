@@ -19,6 +19,7 @@
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/session_prefs.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
+#include "ahoi/browser/ui/dialog_style.h"
 #include "ahoi/browser/ui/modal_overlay_controller.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
@@ -160,7 +161,8 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
 
   auto contents = std::make_unique<views::View>();
   contents->SetLayoutManager(std::make_unique<views::BoxLayout>(
-      views::BoxLayout::Orientation::kVertical, gfx::Insets(), 8));
+      views::BoxLayout::Orientation::kVertical, gfx::Insets(),
+      visual_style::kDialogLabelSpacing));
   if (action == PendingWorkspaceAction::kDelete) {
     auto* warning = contents->AddChildView(std::make_unique<views::Label>(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_DELETE_WORKSPACE_BODY)));
@@ -229,6 +231,9 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_NAME));
     workspace_dialog_.name_field->GetViewAccessibility().SetName(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_NAME));
+    dialog_style::StyleDialogField(*workspace_dialog_.name_field);
+    workspace_dialog_.name_error =
+        contents->AddChildView(dialog_style::CreateFieldErrorLabel());
 
     auto* icon_label = contents->AddChildView(std::make_unique<views::Label>(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_ICON)));
@@ -242,6 +247,7 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_ICON));
     workspace_dialog_.icon_field->GetViewAccessibility().SetName(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_WORKSPACE_ICON));
+    dialog_style::StyleDialogField(*workspace_dialog_.icon_field);
 
     auto* color_label = contents->AddChildView(std::make_unique<views::Label>(
         l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_GROUP_COLOR)));
@@ -336,9 +342,8 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
       weak_ptr_factory_.GetWeakPtr()));
   delegate->SetBackgroundColor(visual_style::kChromeSurface);
   delegate->set_close_on_deactivate(false);
-  delegate->set_fixed_width(visual_style::kSidebarDialogWidth);
-  delegate->set_margins(gfx::Insets::VH(visual_style::kSidebarDialogInset,
-                                        visual_style::kSidebarDialogInset));
+  dialog_style::ApplyDialogFrame(*delegate,
+                                 visual_style::kWorkspaceDialogWidth);
   if (workspace_dialog_.name_field) {
     delegate->SetInitiallyFocusedView(workspace_dialog_.name_field);
   }
@@ -357,12 +362,14 @@ void BrowserSidebarHostView::ShowWorkspaceDialog(
   }
   workspace_dialog_.delegate = std::move(delegate);
   workspace_dialog_.widget = std::move(widget);
+  dialog_style::ApplyDialogChrome(*workspace_dialog_.delegate);
   if (!modal_overlay_controller_->ShowPanel(
           workspace_dialog_.widget.get(),
           base::BindRepeating(&BrowserSidebarHostView::CloseWorkspaceDialogNow,
                               weak_ptr_factory_.GetWeakPtr()))) {
     LOG(WARNING) << "Ahoi Workspace dialog not shown: overlay refused panel";
     workspace_dialog_.name_field = nullptr;
+    workspace_dialog_.name_error = nullptr;
     workspace_dialog_.icon_field = nullptr;
     workspace_dialog_.own_sessions_radio = nullptr;
     workspace_dialog_.isolated_radio = nullptr;
@@ -533,6 +540,12 @@ bool BrowserSidebarHostView::AcceptWorkspaceDialog() {
   base::TrimWhitespace(name, base::TRIM_ALL, &name);
   base::TrimWhitespace(icon, base::TRIM_ALL, &icon);
   if (name.empty()) {
+    if (workspace_dialog_.name_error) {
+      dialog_style::ShowFieldError(
+          *workspace_dialog_.name_field, *workspace_dialog_.name_error,
+          StructureText(u"Gib dem Workspace einen Namen.",
+                        u"Give the Workspace a name."));
+    }
     return false;
   }
   if (icon.empty()) {
@@ -653,6 +666,7 @@ void BrowserSidebarHostView::OnWorkspaceDialogClosed() {
   workspace_dialog_.accent_argb.reset();
   workspace_dialog_.color_buttons.clear();
   workspace_dialog_.name_field = nullptr;
+  workspace_dialog_.name_error = nullptr;
   workspace_dialog_.icon_field = nullptr;
   workspace_dialog_.own_sessions_radio = nullptr;
   workspace_dialog_.isolated_radio = nullptr;

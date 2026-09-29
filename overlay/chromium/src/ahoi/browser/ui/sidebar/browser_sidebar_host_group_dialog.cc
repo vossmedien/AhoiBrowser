@@ -15,6 +15,7 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
+#include "ahoi/browser/ui/dialog_style.h"
 #include "ahoi/browser/ui/modal_overlay_controller.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
@@ -238,7 +239,8 @@ void BrowserSidebarHostView::ShowGroupDialog(
   }
   auto contents = std::make_unique<views::View>();
   contents->SetLayoutManager(std::make_unique<views::BoxLayout>(
-      views::BoxLayout::Orientation::kVertical, gfx::Insets(), 8));
+      views::BoxLayout::Orientation::kVertical, gfx::Insets(),
+      visual_style::kDialogLabelSpacing));
   group_dialog_.name_field =
       contents->AddChildView(std::make_unique<views::Textfield>());
   group_dialog_.name_field->SetText(default_title);
@@ -246,6 +248,7 @@ void BrowserSidebarHostView::ShowGroupDialog(
       l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_GROUP_NAME_PLACEHOLDER);
   group_dialog_.name_field->SetPlaceholderText(group_name);
   group_dialog_.name_field->GetViewAccessibility().SetName(group_name);
+  dialog_style::StyleDialogField(*group_dialog_.name_field);
 
   auto* icon_label = contents->AddChildView(std::make_unique<views::Label>(
       l10n_util::GetStringUTF16(IDS_AHOI_DIALOG_GROUP_ICON)));
@@ -296,6 +299,7 @@ void BrowserSidebarHostView::ShowGroupDialog(
   group_dialog_.icon_field->SetAccessibleName(custom_icon_name);
   group_dialog_.icon_field->SetTooltipText(custom_icon_name);
   group_dialog_.icon_field->SetController(this);
+  dialog_style::StyleDialogField(*group_dialog_.icon_field);
   if (group_dialog_.icon != u"folder" && group_dialog_.icon != u"code" &&
       group_dialog_.icon != u"lock" && group_dialog_.icon != u"archive" &&
       group_dialog_.icon != u"moon") {
@@ -387,9 +391,8 @@ void BrowserSidebarHostView::ShowGroupDialog(
       weak_ptr_factory_.GetWeakPtr()));
   delegate->SetBackgroundColor(visual_style::kChromeSurface);
   delegate->set_close_on_deactivate(false);
-  delegate->set_fixed_width(visual_style::kSidebarDialogWidth);
-  delegate->set_margins(gfx::Insets::VH(visual_style::kSidebarDialogInset,
-                                        visual_style::kSidebarDialogInset));
+  dialog_style::ApplyDialogFrame(*delegate,
+                                 visual_style::kWorkspaceDialogWidth);
   delegate->SetInitiallyFocusedView(group_dialog_.name_field);
   delegate->SetContentsView(std::move(contents));
 
@@ -410,6 +413,7 @@ void BrowserSidebarHostView::ShowGroupDialog(
   }
   group_dialog_.delegate = std::move(delegate);
   group_dialog_.widget = std::move(widget);
+  dialog_style::ApplyDialogChrome(*group_dialog_.delegate);
   if (!modal_overlay_controller_->ShowPanel(
           group_dialog_.widget.get(),
           base::BindRepeating(&BrowserSidebarHostView::CloseGroupDialogNow,

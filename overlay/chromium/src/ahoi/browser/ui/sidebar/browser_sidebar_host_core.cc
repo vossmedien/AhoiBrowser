@@ -316,6 +316,7 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
     workspace_button_->set_context_menu_controller(nullptr);
   }
   workspace_dialog_.name_field = nullptr;
+  workspace_dialog_.name_error = nullptr;
   workspace_dialog_.icon_field = nullptr;
   if (workspace_dialog_.widget) {
     modal_overlay_controller_->DismissPanelImmediately(
