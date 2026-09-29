@@ -191,9 +191,17 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
     /// time and wait for the visible field to confirm each one.
     @MainActor
     private func navigateOnDevice(to url: URL, in app: XCUIApplication) {
-        openAddressEditor(in: app)
+        // A restored page's web view reaches under the bottom deck, so XCUI
+        // may report the visible address control unhittable (79828c0).
+        let address = app.buttons["browser.address"]
+        XCTAssertTrue(address.waitForExistence(timeout: 10))
+        if waitForHittable(address, timeout: 3) {
+            address.tap()
+        } else {
+            address.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
         let field = app.textFields["browser.address.field"]
-        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForHittable(field, timeout: 5))
         clearAddressEditor(field, in: app)
         let expected = url.absoluteString
         var typed = ""
