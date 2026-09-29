@@ -57,7 +57,7 @@ index 2c514ae6..88c5a994 100644
  #include "base/functional/bind.h"
  #include "chrome/browser/favicon/favicon_service_factory.h"
  #include "chrome/browser/profiles/profile.h"
-@@ -21,19 +23,42 @@
+@@ -21,19 +23,43 @@
  #include "components/keyed_service/core/service_access_type.h"
  #include "components/strings/grit/components_strings.h"
  #include "ui/base/l10n/l10n_util.h"
@@ -78,6 +78,7 @@ index 2c514ae6..88c5a994 100644
  #include "ui/views/layout/box_layout_view.h"
  #include "ui/views/layout/table_layout.h"
  #include "ui/views/layout/table_layout_view.h"
++#include "ui/views/view_utils.h"
 +#include "ui/views/widget/widget.h"
 +#include "ui/views/widget/widget_delegate.h"
 +#include "ui/views/window/dialog_delegate.h"
@@ -100,7 +101,7 @@ index 2c514ae6..88c5a994 100644
  
  LoginView::LoginView(const std::u16string& authority,
                       const std::u16string& explanation,
-@@ -50,11 +75,11 @@ LoginView::LoginView(const std::u16string& authority,
+@@ -50,11 +76,11 @@ LoginView::LoginView(const std::u16string& authority,
                ? login_model_data->model.get()
                : nullptr) {
    ChromeLayoutProvider* provider = ChromeLayoutProvider::Get();
@@ -116,7 +117,7 @@ index 2c514ae6..88c5a994 100644
  
    auto* authority_container =
        AddChildView(std::make_unique<views::BoxLayoutView>());
-@@ -63,7 +88,6 @@ LoginView::LoginView(const std::u16string& authority,
+@@ -63,7 +89,6 @@ LoginView::LoginView(const std::u16string& authority,
        authority_container->AddChildView(std::make_unique<views::Label>(
            authority, views::style::CONTEXT_LABEL, views::style::STYLE_PRIMARY));
    authority_label->SetMultiLine(true);
@@ -124,7 +125,7 @@ index 2c514ae6..88c5a994 100644
    authority_label->SetMaximumWidth(kMessageWidth);
    authority_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
    authority_label->SetAllowCharacterBreak(true);
-@@ -122,6 +146,8 @@ LoginView::LoginView(const std::u16string& authority,
+@@ -122,6 +147,8 @@ LoginView::LoginView(const std::u16string& authority,
      }
    }
  
@@ -133,7 +134,7 @@ index 2c514ae6..88c5a994 100644
    // Subresource challenges still identify their exact origin, realm, scheme,
    // and transport above, but cannot safely participate in the main-frame
    // success-confirmation transaction. Keep every stored-account and
-@@ -132,10 +158,29 @@ LoginView::LoginView(const std::u16string& authority,
+@@ -132,10 +159,29 @@ LoginView::LoginView(const std::u16string& authority,
          AddChildView(std::make_unique<views::BoxLayoutView>());
      saved_accounts->SetOrientation(views::BoxLayout::Orientation::kVertical);
      saved_accounts->SetBetweenChildSpacing(
@@ -164,7 +165,7 @@ index 2c514ae6..88c5a994 100644
  
      use_saved_account_button_ =
          saved_accounts->AddChildView(std::make_unique<views::MdTextButton>(
-@@ -189,9 +234,11 @@ LoginView::LoginView(const std::u16string& authority,
+@@ -189,9 +235,11 @@ LoginView::LoginView(const std::u16string& authority,
                kCredentialPersistenceGroup));
        never_save_radio_->SetTextSubpixelRenderingEnabled(false);
        use_once_radio->SetChecked(true);
@@ -176,7 +177,7 @@ index 2c514ae6..88c5a994 100644
    auto* fields_container =
        AddChildView(std::make_unique<views::TableLayoutView>());
    fields_container
-@@ -207,8 +254,7 @@ LoginView::LoginView(const std::u16string& authority,
+@@ -207,8 +255,7 @@ LoginView::LoginView(const std::u16string& authority,
                   views::TableLayout::ColumnSize::kFixed, 0, 0)
        .AddRows(1, views::TableLayout::kFixedSize)
        .AddPaddingRow(views::TableLayout::kFixedSize,
@@ -186,7 +187,7 @@ index 2c514ae6..88c5a994 100644
        .AddRows(1, views::TableLayout::kFixedSize);
    auto* username_label =
        fields_container->AddChildView(std::make_unique<views::Label>(
-@@ -224,6 +270,10 @@ LoginView::LoginView(const std::u16string& authority,
+@@ -224,6 +271,10 @@ LoginView::LoginView(const std::u16string& authority,
            std::move(saved_accounts_model), /*filter_on_edit=*/false,
            /*show_on_empty=*/true));
    username_field_->GetViewAccessibility().SetName(*username_label);
@@ -197,7 +198,7 @@ index 2c514ae6..88c5a994 100644
    username_field_->SetCallback(base::BindRepeating(
        &LoginView::OnUsernameChanged, weak_ptr_factory_.GetWeakPtr()));
    auto* password_label =
-@@ -234,6 +284,10 @@ LoginView::LoginView(const std::u16string& authority,
+@@ -234,6 +285,10 @@ LoginView::LoginView(const std::u16string& authority,
        fields_container->AddChildView(std::make_unique<views::Textfield>());
    password_field_->GetViewAccessibility().SetName(*password_label);
    password_field_->SetTextInputType(ui::TEXT_INPUT_TYPE_PASSWORD);
@@ -208,7 +209,7 @@ index 2c514ae6..88c5a994 100644
  
    if (http_auth_manager_ && login_handler_ &&
        login_handler_->CanUseGenericCredentialManagement()) {
-@@ -300,6 +354,17 @@ views::View* LoginView::GetInitiallyFocusedView() {
+@@ -300,6 +355,24 @@ views::View* LoginView::GetInitiallyFocusedView() {
    return username_field_;
  }
  
@@ -221,12 +222,19 @@ index 2c514ae6..88c5a994 100644
 +// static
 +void LoginView::ApplyAhoiDialogChrome(views::DialogDelegate& dialog) {
 +  ahoi::dialog_style::ApplyDialogChrome(dialog);
++  // The 20/25 title, the button row insets and the 32-high buttons only
++  // apply after the host has shown and sized the widget. Refit, or the
++  // grown frame cuts the last section (the password field) at the bottom.
++  if (auto* login_view =
++          views::AsViewClass<LoginView>(dialog.GetContentsView())) {
++    login_view->FitDialogToContents();
++  }
 +}
 +
  void LoginView::OnAutofillDataAvailable(std::u16string_view username,
                                          std::u16string_view password) {
    if (username_field_->GetText().empty()) {
-@@ -325,6 +390,7 @@ void LoginView::OnSavedCredentials(
+@@ -325,6 +398,7 @@ void LoginView::OnSavedCredentials(
    }
  
    RefreshSavedAccountModel();
@@ -234,7 +242,7 @@ index 2c514ae6..88c5a994 100644
    saved_accounts_container_->SetVisible(true);
    use_saved_account_button_->SetVisible(false);
    username_field_->SetText(saved_credentials_.front().username);
-@@ -342,6 +408,7 @@ void LoginView::OnUsernameChanged() {
+@@ -342,6 +416,7 @@ void LoginView::OnUsernameChanged() {
        password_field_->SetText(std::u16string());
      }
      selected_saved_username_.reset();
@@ -242,7 +250,7 @@ index 2c514ae6..88c5a994 100644
      delete_armed_username_.reset();
      if (make_preferred_button_) {
        make_preferred_button_->SetVisible(false);
-@@ -355,9 +422,11 @@ void LoginView::OnUsernameChanged() {
+@@ -355,9 +430,11 @@ void LoginView::OnUsernameChanged() {
        save_radio_->SetText(
            l10n_util::GetStringUTF16(IDS_LOGIN_DIALOG_SAVE_CREDENTIAL));
      }
@@ -254,7 +262,7 @@ index 2c514ae6..88c5a994 100644
    delete_armed_username_.reset();
    password_field_->SetText(credential->password);
    make_preferred_button_->SetVisible(!credential->preferred);
-@@ -368,6 +437,7 @@ void LoginView::OnUsernameChanged() {
+@@ -368,6 +445,7 @@ void LoginView::OnUsernameChanged() {
      save_radio_->SetText(
          l10n_util::GetStringUTF16(IDS_LOGIN_DIALOG_UPDATE_CREDENTIAL));
    }
@@ -262,7 +270,7 @@ index 2c514ae6..88c5a994 100644
  }
  
  void LoginView::OnUseSavedAccountPressed() {
-@@ -393,7 +463,9 @@ void LoginView::OnMakePreferredPressed() {
+@@ -393,7 +471,9 @@ void LoginView::OnMakePreferredPressed() {
                       return lhs.preferred && !rhs.preferred;
                     });
    RefreshSavedAccountModel();
@@ -272,7 +280,7 @@ index 2c514ae6..88c5a994 100644
  }
  
  void LoginView::OnDeleteSavedAccountPressed() {
-@@ -419,10 +491,12 @@ void LoginView::OnSavedAccountDeleted(std::u16string username) {
+@@ -419,10 +499,12 @@ void LoginView::OnSavedAccountDeleted(std::u16string username) {
    RefreshSavedAccountModel();
    selected_saved_username_.reset();
    delete_armed_username_.reset();
@@ -285,7 +293,7 @@ index 2c514ae6..88c5a994 100644
  }
  
  const LoginHandler::SavedCredential* LoginView::FindSavedCredential(
-@@ -458,6 +532,90 @@ void LoginView::RefreshSavedAccountModel() {
+@@ -458,6 +540,90 @@ void LoginView::RefreshSavedAccountModel() {
    saved_account_model_->UpdateItemList(saved_account_items_);
  }
  
@@ -396,20 +404,21 @@ index e5bd4872..62fdc5b6 100644
  class EditableCombobox;
  class MdTextButton;
  class RadioButton;
-@@ -67,6 +69,12 @@ class LoginView : public views::View,
+@@ -67,6 +69,13 @@ class LoginView : public views::View,
    // Used by LoginHandlerViews to set the initial focus.
    views::View* GetInitiallyFocusedView();
  
 +  // Ahoi (design spec 2026-09-29): the hosting dialog is 480 wide with the
 +  // shared dialog frame. Call before its widget exists.
 +  static void ApplyAhoiDialogFrame(views::DialogDelegate& dialog);
-+  // Title typography, button row and button heights once the widget exists.
++  // Title typography, button row and button heights once the widget exists;
++  // then refits the shown dialog to its grown frame.
 +  static void ApplyAhoiDialogChrome(views::DialogDelegate& dialog);
 +
   private:
    void OnSavedCredentials(
        std::vector<LoginHandler::SavedCredential> credentials);
-@@ -79,6 +87,14 @@ class LoginView : public views::View,
+@@ -79,6 +88,14 @@ class LoginView : public views::View,
    const LoginHandler::SavedCredential* FindSavedCredential(
        std::u16string_view username) const;
    void RefreshSavedAccountModel();
@@ -424,7 +433,7 @@ index e5bd4872..62fdc5b6 100644
  
    // Non-owning refs to the input text fields.
    raw_ptr<views::EditableCombobox> username_field_;
-@@ -87,6 +103,10 @@ class LoginView : public views::View,
+@@ -87,6 +104,10 @@ class LoginView : public views::View,
    base::WeakPtr<LoginHandler> login_handler_;
    std::u16string realm_for_display_;
    raw_ptr<views::View> saved_accounts_container_ = nullptr;

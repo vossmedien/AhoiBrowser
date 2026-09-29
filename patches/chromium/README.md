@@ -131,7 +131,10 @@
   `LoginView::FitDialogToContents` re-applies the dialog host's desired
   bounds whenever the rows or account actions change; otherwise BoxLayout
   truncated the last section, the save choice, to zero height (build 51:
-  a second account and a password update were never saved). `login_view` gains
+  a second account and a password update were never saved).
+  `ApplyAhoiDialogChrome` refits the same way once it has grown the title
+  and button row of the already sized widget; before, the frame cut the
+  last section, the password field, at its lower border. `login_view` gains
   `//ahoi/browser/ui:dialog_style`, `:visual_style` and `//ui/accessibility`;
   `chrome/browser/ui/views/DEPS` allows the two headers for `login_view.cc`.
 - **Safety:** presentation only. Rows are rebuilt only when the saved
