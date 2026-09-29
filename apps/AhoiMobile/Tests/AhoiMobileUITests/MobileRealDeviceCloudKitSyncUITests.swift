@@ -114,6 +114,193 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
         )
     }
 
+    /// Receive direction: another device (the Mac) already uploaded one
+    /// recognizable normal tab to the same isolated scope. Launch the
+    /// installed app without changing its data, run visible "Sync now" passes
+    /// and look for that exact URL in the library's device tabs. Read-only on
+    /// the phone apart from Sync; it never opens, closes or removes anything.
+    @MainActor
+    func testRealDeviceReceivesRecognizableRemoteTab() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["AHOI_REAL_DEVICE_CLOUDKIT_SYNC"] == "1" else {
+            throw XCTSkip("Set AHOI_REAL_DEVICE_CLOUDKIT_SYNC=1 for the physical-device journey.")
+        }
+        guard let rawURL = environment["AHOI_REAL_DEVICE_SYNC_EXPECTED_REMOTE_URL"],
+              let remoteURL = URL(string: rawURL), remoteURL.scheme == "https",
+              let marker = remoteURL.query, marker.count >= 8 else {
+            throw XCTSkip("Set AHOI_REAL_DEVICE_SYNC_EXPECTED_REMOTE_URL to an exact https URL with a unique query.")
+        }
+        let receiveTimeout = TimeInterval(
+            environment["AHOI_REAL_DEVICE_SYNC_RECEIVE_TIMEOUT"].flatMap(Double.init) ?? 300
+        )
+        record("expected-remote-url", rawURL)
+        addTeardownBlock { [weak self] in self?.attachTransitions() }
+
+        let app = XCUIApplication()
+        app.launch()
+        XCTAssertTrue(
+            app.buttons["browser.address"].waitForExistence(timeout: 20),
+            "The installed scoped browser must present its address control."
+        )
+        capture("launch", app)
+
+        let deadline = Date().addingTimeInterval(receiveTimeout)
+        var attempt = 0
+        var received = false
+        repeat {
+            attempt += 1
+            // 1. Visible bounded Sync pass from Settings.
+            openSettings(in: app)
+            let syncNow = app.buttons["settings.sync.now"]
+            reveal(syncNow, in: app)
+            XCTAssertTrue(syncNow.isEnabled, "Sync now must be enabled once configured.")
+            transitions.append("\(timestamp()) receive-\(attempt): tap settings.sync.now")
+            syncNow.tap()
+            let synced = observeSyncStatus(
+                in: app,
+                timeout: 90,
+                label: "receive-\(attempt)",
+                minimumObservation: 3
+            ) { state, key, detail in
+                Self.readyStates.contains(state) && Self.keyReadyStates.contains(key) &&
+                    Self.syncedDetails.contains(detail)
+            }
+            transitions.append("\(timestamp()) receive-\(attempt): synced=\(synced)")
+            revealTop(in: app)
+            capture("settings-after-sync-now-\(attempt)", app)
+            recordSettingsTexts(in: app, name: "settings-visible-texts-\(attempt)")
+            // The Devices section sits below the Sync status rows.
+            app.descendants(matching: .any)["settings.form"].swipeUp()
+            sleepRunLoop(1)
+            capture("settings-devices-\(attempt)", app)
+            recordSettingsTexts(in: app, name: "settings-devices-texts-\(attempt)")
+            closeSettings(in: app)
+
+            // 2. Library device tabs (the library itself also runs a sync).
+            openLibrary(in: app)
+            sleepRunLoop(3)
+            recordLibraryRoot(in: app, attempt: attempt)
+
+            // 3. Search the exact query marker; results show the tab URL.
+            received = searchLibrary(for: marker, expectedURL: rawURL, in: app, attempt: attempt)
+            closeLibrary(in: app)
+            if received { break }
+            sleepRunLoop(15)
+        } while Date() < deadline
+
+        XCTAssertTrue(
+            received,
+            "The remote tab \(rawURL) did not appear after \(attempt) Sync passes: \(transitions.suffix(6))"
+        )
+    }
+
+    // MARK: - Library evidence
+
+    @MainActor
+    private func openLibrary(in app: XCUIApplication) {
+        let root = app.descendants(matching: .any)["browser.library.root"]
+        if root.exists { return }
+        let more = app.buttons["browser.more"]
+        XCTAssertTrue(waitForHittable(more, timeout: 10))
+        more.tap()
+        let actionsList = app.descendants(matching: .any)["browser.actions.list"]
+        XCTAssertTrue(actionsList.waitForExistence(timeout: 5))
+        let workspaces = app.buttons["browser.actions.workspaces"]
+        for _ in 0..<8 where !(workspaces.exists && workspaces.isHittable) {
+            actionsList.swipeUp()
+        }
+        XCTAssertTrue(waitForHittable(workspaces, timeout: 3))
+        workspaces.tap()
+        XCTAssertTrue(root.waitForExistence(timeout: 8), "The library must open.")
+    }
+
+    @MainActor
+    private func closeLibrary(in app: XCUIApplication) {
+        let searchField = app.searchFields.firstMatch
+        if searchField.exists, fieldValue(searchField) != "" {
+            for label in ["Cancel", "Abbrechen"] where app.buttons[label].exists {
+                app.buttons[label].tap()
+                break
+            }
+        }
+        let done = app.buttons.matching(identifier: "browser.library.done").firstMatch
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        done.tap()
+        assertLibraryClosed(in: app)
+    }
+
+    /// Records every visible text of the library root, including the device
+    /// tab rows ("<title>" + "<device> · <workspace>").
+    @MainActor
+    private func recordLibraryRoot(in app: XCUIApplication, attempt: Int) {
+        let root = app.descendants(matching: .any)["browser.library.root"]
+        var seen: [String] = []
+        for page in 0..<4 {
+            for element in root.descendants(matching: .any).allElementsBoundByIndex
+            where element.exists && !element.label.isEmpty {
+                let line = "\(element.elementType.rawValue)|\(element.identifier)|\(element.label)"
+                if !seen.contains(line) { seen.append(line) }
+            }
+            capture("library-root-\(attempt)-\(page)", app)
+            let before = seen.count
+            root.swipeUp()
+            sleepRunLoop(1)
+            if page > 0, before == seen.count { break }
+        }
+        record("library-root-texts-\(attempt)", seen.joined(separator: "\n"))
+        root.swipeDown()
+        root.swipeDown()
+    }
+
+    @MainActor
+    private func searchLibrary(
+        for marker: String, expectedURL: String, in app: XCUIApplication, attempt: Int
+    ) -> Bool {
+        let root = app.descendants(matching: .any)["browser.library.root"]
+        let searchField = app.searchFields.firstMatch
+        for _ in 0..<3 where !(searchField.exists && searchField.isHittable) {
+            root.swipeDown()
+        }
+        guard waitForHittable(searchField, timeout: 5) else {
+            transitions.append("\(timestamp()) receive-\(attempt): search field unavailable")
+            return false
+        }
+        searchField.tap()
+        var typed = ""
+        for character in marker {
+            let target = typed + String(character)
+            if fieldValue(searchField) != target {
+                searchField.typeText(String(character))
+                _ = waitForFieldValue(searchField, target, timeout: 3)
+            }
+            guard fieldValue(searchField) == target else {
+                transitions.append(
+                    "\(timestamp()) receive-\(attempt): search diverged: \(fieldValue(searchField))"
+                )
+                return false
+            }
+            typed = target
+        }
+        transitions.append("\(timestamp()) receive-\(attempt): search typed \(typed)")
+        let results = app.descendants(matching: .any)
+            .matching(NSPredicate(
+                format: "identifier BEGINSWITH %@", "browser.library.search-result.remoteTab."
+            ))
+        let exact = app.staticTexts[expectedURL]
+        _ = exact.waitForExistence(timeout: 5)
+        var lines: [String] = []
+        for result in results.allElementsBoundByIndex where result.exists {
+            let texts = result.staticTexts.allElementsBoundByIndex.map(\.label)
+            lines.append("\(result.identifier)|\(result.label)|\(texts.joined(separator: " || "))")
+        }
+        let found = exact.exists
+        lines.append("exact-url-visible=\(found)")
+        record("search-results-\(attempt)", lines.joined(separator: "\n"))
+        capture("library-search-\(attempt)", app)
+        transitions.append("\(timestamp()) receive-\(attempt): remote results=\(results.count) exact=\(found)")
+        return found
+    }
+
     // MARK: - Status observation
 
     @MainActor
@@ -322,12 +509,14 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
     // MARK: - Evidence
 
     @MainActor
-    private func recordSettingsTexts(in app: XCUIApplication) {
+    private func recordSettingsTexts(
+        in app: XCUIApplication, name: String = "settings-visible-texts"
+    ) {
         let form = app.descendants(matching: .any)["settings.form"]
         let labels = form.staticTexts.allElementsBoundByIndex
             .filter { $0.exists && $0.isHittable }
             .map(\.label)
-        record("settings-visible-texts", labels.joined(separator: "\n"))
+        record(name, labels.joined(separator: "\n"))
     }
 
     @MainActor
