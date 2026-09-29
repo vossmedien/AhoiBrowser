@@ -128,6 +128,16 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
               </cr-checkbox>
             ` :
                                                         ''}
+            ${
+              this.showArcFoldersAsWorkspaces_() ? html`
+              <cr-checkbox id="ahoiArcFoldersAsWorkspaces"
+                  class="arc-import-checkbox"
+                  .checked="${this.arcFoldersAsWorkspaces_}"
+                  @change="${this.onArcFoldersAsWorkspacesChange_}">
+                ${this.arcFoldersAsWorkspacesLabel_()}
+              </cr-checkbox>
+            ` :
+                                                   ''}
           </fieldset>
 
           <label class="select-label" for="ahoiArcConflictPolicy">
