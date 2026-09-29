@@ -413,11 +413,14 @@ public struct DesktopWirePayloadCodec: Sendable {
             tabID: TabID(rawValue: try id(value)),
             deviceID: deviceID,
             deviceKind: device.kind,
-            deviceName: device.name,
+            // Borrowed from other records: a long name an older writer
+            // published must not quarantine every Presence (A6).
+            deviceName: SyncRecordTextFitting.deviceName(device.name),
             sessionID: DeviceSessionID(rawValue: try uuid(value, "session_id")),
             workspaceID: workspaceID,
             treeNodeID: treeNodeID,
-            workspaceName: workspaceID.flatMap { workspaces[$0]?.name },
+            workspaceName: workspaceID.flatMap { workspaces[$0]?.name }
+                .map(SyncRecordTextFitting.workspaceName),
             title: try string(value, "title"),
             url: try string(value, "url"),
             targetKind: target.kind,

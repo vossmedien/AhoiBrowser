@@ -56,9 +56,10 @@ extension LocalFirstRepository {
         let version = try nextVersion().normalized(for: SharedTabWireReadPolicy.remoteTabBaseFields)
         var candidate = try RemoteTab(
             tabID: id, deviceID: localDeviceID, deviceKind: deviceKind,
-            deviceName: deviceName, sessionID: sessionID, workspaceID: page.workspaceID,
-            treeNodeID: page.id,
-            workspaceName: snapshot.workspaces.first(where: { $0.id == page.workspaceID })?.name,
+            deviceName: SyncRecordTextFitting.deviceName(deviceName), sessionID: sessionID,
+            workspaceID: page.workspaceID, treeNodeID: page.id,
+            workspaceName: snapshot.workspaces.first(where: { $0.id == page.workspaceID })
+                .map { SyncRecordTextFitting.workspaceName($0.name) },
             title: title, url: page.url ?? "", targetKind: page.targetKind, localScheme: page.localScheme,
             openedAt: previous?.openedAt ?? version.modifiedAt, lastActiveAt: version.modifiedAt,
             pinned: !page.isTemporary, version: version

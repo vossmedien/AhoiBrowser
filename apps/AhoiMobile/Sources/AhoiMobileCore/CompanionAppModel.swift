@@ -321,6 +321,7 @@ public final class CompanionAppModel: ObservableObject {
         url: String,
         transition: String = "link"
     ) async {
+        guard SyncRecordTextFitting.historyURLFits(url) else { return }
         _ = await performLocalFirstMutation({
             try await repository.recordLocalHistoryVisit(
                 title: title,

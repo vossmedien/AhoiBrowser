@@ -193,10 +193,10 @@ public actor LocalFirstRepository {
         let visit = try HistoryVisit(
             visitID: HistoryVisitID(),
             deviceID: localDeviceID,
-            title: title,
+            title: SyncRecordTextFitting.title(title),
             url: url,
             visitedAt: version.modifiedAt,
-            transition: transition,
+            transition: SyncRecordTextFitting.historyTransition(transition),
             version: version
         )
         snapshot.history.append(visit)
@@ -229,6 +229,7 @@ public actor LocalFirstRepository {
         deviceKind: DeviceKind,
         workspaceID: WorkspaceID?
     ) throws -> LocalMobileSessionPublication {
+        let deviceName = SyncRecordTextFitting.deviceName(deviceName)
         let deviceVersion = try nextVersion().normalized(for: [
             "type", "display_name", "created_at", "last_seen", "retired", "tombstone",
         ])
@@ -362,7 +363,7 @@ public actor LocalFirstRepository {
             previous: nil,
             candidate: Workspace(
                 workspaceID: WorkspaceID(),
-                name: trimmed,
+                name: SyncRecordTextFitting.workspaceName(trimmed),
                 icon: icon,
                 accent: accent,
                 sortKey: workspaceOrderKey(version),
@@ -393,7 +394,7 @@ public actor LocalFirstRepository {
         if let name {
             let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else { throw LocalCompanionStoreError.invalidSnapshot }
-            candidate.name = trimmed
+            candidate.name = SyncRecordTextFitting.workspaceName(trimmed)
         }
         if let icon { candidate.icon = icon }
         if let accent { candidate.accent = accent }
