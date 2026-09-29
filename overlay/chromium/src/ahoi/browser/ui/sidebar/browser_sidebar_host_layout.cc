@@ -36,6 +36,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
+#include "ahoi/browser/ui/sidebar/sidebar_workspace_header_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -200,13 +201,9 @@ BrowserSidebarHostView::BrowserSidebarHostView(
   layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kStretch);
 
-  auto workspace_header = std::make_unique<views::View>();
-  auto* workspace_header_layout =
-      workspace_header->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kHorizontal, gfx::Insets(),
-          visual_style::kSidebarFooterSpacing));
-  workspace_header_layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kCenter);
+  // The header keeps the workspace name readable: secondary actions move
+  // into the selector's menu and the dots hide before the name elides.
+  auto workspace_header = std::make_unique<SidebarWorkspaceHeaderView>();
   auto workspace_selector_host = std::make_unique<views::View>();
   workspace_selector_host->SetPreferredSize(
       gfx::Size(0, visual_style::kSidebarActionCellHeight));
@@ -250,7 +247,8 @@ BrowserSidebarHostView::BrowserSidebarHostView(
 
   views::View* workspace_selector_host_ptr =
       workspace_header->AddChildView(std::move(workspace_selector_host));
-  workspace_header_layout->SetFlexForView(workspace_selector_host_ptr, 1);
+  workspace_header->SetSelector(workspace_selector_host_ptr,
+                                workspace_button_);
   if (discovery_model_) {
     workspace_header->AddChildView(CreateSidebarHeaderActionButton(
         base::BindRepeating(&BrowserSidebarHostView::OnSidebarDiscoveryPressed,
@@ -278,12 +276,18 @@ BrowserSidebarHostView::BrowserSidebarHostView(
           presentation_prefs->FindPreference(kSidebarPresentationModePref) &&
           GetPresentationMode(*presentation_prefs) ==
               SidebarPresentationMode::kFloating);
-  workspace_header->AddChildView(CreateSidebarHeaderActionButton(
-      base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
-                          weak_ptr_factory_.GetWeakPtr(),
-                          /*toggle_visibility=*/true),
-      kLeftPanelCloseFlippableIcon,
-      l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_HIDE_SIDEBAR)));
+  views::View* const hide_sidebar_button =
+      workspace_header->AddChildView(CreateSidebarHeaderActionButton(
+          base::BindRepeating(
+              &BrowserSidebarHostView::OnSidebarHeaderActionPressed,
+              weak_ptr_factory_.GetWeakPtr(),
+              /*toggle_visibility=*/true),
+          kLeftPanelCloseFlippableIcon,
+          l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_HIDE_SIDEBAR)));
+  // Both presentation actions are also items of the selector's own menu,
+  // so they are the ones that may collapse; search always stays.
+  workspace_header->MarkCollapsibleAction(floating_sidebar_button_);
+  workspace_header->MarkCollapsibleAction(hide_sidebar_button);
   AddChildView(std::move(workspace_header));
   SetWorkspaceSelectorPresentation(workspace_button_, u"Ahoi", u"A",
                                    visual_style::kDefaultAccent);

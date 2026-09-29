@@ -267,6 +267,8 @@ source_set("browser_sidebar") {
     "sidebar_tab_thumbnail_cache.h",
     "sidebar_tabs_surface_view.cc",
     "sidebar_tabs_surface_view.h",
+    "sidebar_workspace_header_view.cc",
+    "sidebar_workspace_header_view.h",
   ]
 
   public_deps = [

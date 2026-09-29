@@ -43,6 +43,15 @@ void SetWorkspaceSelectorPresentation(views::Button* button,
                                       const std::u16string& name,
                                       const std::u16string& icon,
                                       std::optional<uint32_t> accent_argb);
+// Width of the selector with the active workspace name unelided, with or
+// without the workspace dots. Hover previews do not change it.
+int GetWorkspaceSelectorPreferredWidth(const views::Button* button,
+                                       bool with_indicators);
+// Applied by the header layout: hides the dots when space is short and
+// shows the full name as a tooltip while it is elided.
+void SetWorkspaceSelectorFit(views::Button* button,
+                             bool show_indicators,
+                             bool name_elided);
 void SetWorkspaceSelectorIndicators(
     views::Button* button,
     std::vector<WorkspaceSelectorIndicator> indicators,

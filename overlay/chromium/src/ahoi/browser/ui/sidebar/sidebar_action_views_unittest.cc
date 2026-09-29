@@ -3,8 +3,12 @@
 
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 
+#include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 
+#include "ahoi/browser/ui/sidebar/sidebar_workspace_header_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "components/vector_icons/vector_icons.h"
@@ -16,6 +20,7 @@
 #include "ui/views/controls/button/label_button.h"
 #include "ui/views/controls/separator.h"
 #include "ui/views/test/views_test_base.h"
+#include "ui/views/test/views_test_utils.h"
 #include "ui/views/view.h"
 #include "ui/views/view_utils.h"
 
@@ -81,6 +86,93 @@ TEST_F(SidebarActionViewsTest, SectionDividerUsesCompactSemanticGeometry) {
                 0, visual_style::kSidebarSectionDividerActionHorizontalInset),
             action->GetInsets());
   EXPECT_EQ(nullptr, action->GetBackground());
+}
+
+
+// Default sidebar: 212 content width, one search action and the two
+// presentation actions that the selector's menu also offers.
+WorkspaceHeaderMetrics DefaultHeaderMetrics(int selector_width) {
+  return {.available_width = 212,
+          .selector_width = selector_width,
+          .indicators_width = 44,
+          .essential_actions = 1,
+          .collapsible_actions = 2,
+          .action_width = visual_style::kSidebarHeaderActionSize,
+          .action_spacing = visual_style::kSidebarHeaderActionSpacing,
+          .selector_spacing = visual_style::kSidebarFooterSpacing};
+}
+
+TEST_F(SidebarActionViewsTest, WorkspaceHeaderGivesTheNameRoomFirst) {
+  // A short name fits beside the dots and every action.
+  EXPECT_EQ((WorkspaceHeaderPlan{0, true, true}),
+            PlanWorkspaceHeader(DefaultHeaderMetrics(40)));
+  // Then the floating toggle moves into the menu...
+  EXPECT_EQ((WorkspaceHeaderPlan{1, true, true}),
+            PlanWorkspaceHeader(DefaultHeaderMetrics(90)));
+  // ...then the dots hide...
+  EXPECT_EQ((WorkspaceHeaderPlan{1, false, true}),
+            PlanWorkspaceHeader(DefaultHeaderMetrics(120)));
+  // ...then the hide action; search always stays.
+  EXPECT_EQ((WorkspaceHeaderPlan{2, false, true}),
+            PlanWorkspaceHeader(DefaultHeaderMetrics(160)));
+  // Only a name wider than all that elides, in the most compact row.
+  EXPECT_EQ((WorkspaceHeaderPlan{2, false, false}),
+            PlanWorkspaceHeader(DefaultHeaderMetrics(400)));
+}
+
+TEST_F(SidebarActionViewsTest, WorkspaceHeaderWithoutCollapsibleActions) {
+  WorkspaceHeaderMetrics metrics = DefaultHeaderMetrics(150);
+  metrics.collapsible_actions = 0;
+  EXPECT_EQ((WorkspaceHeaderPlan{0, false, true}),
+            PlanWorkspaceHeader(metrics));
+  metrics.selector_width = 300;
+  EXPECT_EQ((WorkspaceHeaderPlan{0, false, false}),
+            PlanWorkspaceHeader(metrics));
+}
+
+TEST_F(SidebarActionViewsTest, WorkspaceHeaderLaysOutTheFullName) {
+  SidebarWorkspaceHeaderView header;
+  auto* host = header.AddChildView(std::make_unique<views::View>());
+  views::Button* const selector = host->AddChildView(
+      CreateWorkspaceSelectorButton(views::Button::PressedCallback()));
+  const auto add_action = [&header]() {
+    return header.AddChildView(CreateSidebarHeaderActionButton(
+        base::BindRepeating([](const ui::Event&) {}),
+        vector_icons::kCloseIcon, u"Aktion"));
+  };
+  add_action();
+  views::View* const floating = add_action();
+  views::View* const hide = add_action();
+  header.SetSelector(host, selector);
+  header.MarkCollapsibleAction(floating);
+  header.MarkCollapsibleAction(hide);
+
+  // A wide sidebar fits a short name beside every action.
+  SetWorkspaceSelectorPresentation(selector, u"Ahoi", u"A", std::nullopt);
+  header.SetBounds(0, 0, 320, visual_style::kSidebarActionCellHeight);
+  views::test::RunScheduledLayout(&header);
+  EXPECT_TRUE(header.plan_for_testing().name_fits);
+  EXPECT_TRUE(floating->GetVisible());
+  EXPECT_TRUE(hide->GetVisible());
+  EXPECT_GE(host->width(), GetWorkspaceSelectorPreferredWidth(
+                               selector, /*with_indicators=*/false));
+  EXPECT_TRUE(selector->GetTooltipText(gfx::Point()).empty());
+
+  const std::u16string long_name =
+      u"Kundenprojekte und Recherche für das gesamte Jahr 2026";
+  SetWorkspaceSelectorPresentation(selector, long_name, u"K", std::nullopt);
+  views::test::RunScheduledLayout(&header);
+  EXPECT_FALSE(header.plan_for_testing().name_fits);
+  EXPECT_FALSE(floating->GetVisible());
+  EXPECT_FALSE(hide->GetVisible());
+  // The elided name stays available as tooltip and accessible name.
+  EXPECT_EQ(long_name, selector->GetTooltipText(gfx::Point()));
+  ui::AXNodeData accessibility;
+  selector->GetViewAccessibility().GetAccessibleNodeData(&accessibility);
+  EXPECT_NE(std::u16string::npos,
+            accessibility
+                .GetString16Attribute(ax::mojom::StringAttribute::kName)
+                .find(long_name));
 }
 
 }  // namespace

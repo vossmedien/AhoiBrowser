@@ -27,6 +27,7 @@
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/gfx/geometry/skia_conversions.h"
+#include "ui/gfx/text_utils.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/background.h"
 #include "ui/views/border.h"
@@ -196,6 +197,12 @@ class WorkspaceDotButton final : public views::Button {
 BEGIN_METADATA(WorkspaceDotButton)
 END_METADATA
 
+// Selector pill geometry; PreferredWidth() mirrors this BoxLayout.
+constexpr int kSelectorInset = 8;
+constexpr int kSelectorSpacing = 8;
+constexpr int kSelectorBadgeSize = 22;
+constexpr int kSelectorEditIconSize = 14;
+
 class WorkspaceSelectorButton final : public views::Button {
   METADATA_HEADER(WorkspaceSelectorButton, views::Button)
 
@@ -208,14 +215,16 @@ class WorkspaceSelectorButton final : public views::Button {
     SetPreferredSize(gfx::Size(0, visual_style::kSidebarActionCellHeight));
 
     auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
-        views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(6, 8), 8));
+        views::BoxLayout::Orientation::kHorizontal,
+        gfx::Insets::VH(6, kSelectorInset), kSelectorSpacing));
     layout->set_cross_axis_alignment(
         views::BoxLayout::CrossAxisAlignment::kCenter);
 
     badge_ = AddChildView(std::make_unique<views::Label>(u"A"));
     badge_->SetSubpixelRenderingEnabled(false);
     badge_->SetHorizontalAlignment(gfx::ALIGN_CENTER);
-    badge_->SetPreferredSize(gfx::Size(22, 22));
+    badge_->SetPreferredSize(
+        gfx::Size(kSelectorBadgeSize, kSelectorBadgeSize));
     badge_->SetEnabledColor(visual_style::kAccent);
     badge_->SetBackground(
         views::CreateRoundedRectBackground(visual_style::kChromeSurface, 5));
@@ -231,12 +240,13 @@ class WorkspaceSelectorButton final : public views::Button {
     title_->GetViewAccessibility().SetIsIgnored(true);
     layout->SetFlexForView(title_, 1);
 
-    edit_icon_ = AddChildView(
-        std::make_unique<views::ImageView>(ui::ImageModel::FromVectorIcon(
-            kEditIcon, visual_style::kMutedText, 14)));
+    // The hover-only edit icon keeps its slot while hidden, so hovering
+    // never re-elides the name.
+    edit_icon_ = AddChildView(std::make_unique<views::ImageView>());
+    edit_icon_->SetImageSize(
+        gfx::Size(kSelectorEditIconSize, kSelectorEditIconSize));
     edit_icon_->SetCanProcessEventsWithinSubtree(false);
     edit_icon_->GetViewAccessibility().SetIsIgnored(true);
-    edit_icon_->SetVisible(false);
 
     dots_ = AddChildView(std::make_unique<views::View>());
     auto* dots_layout =
@@ -259,6 +269,7 @@ class WorkspaceSelectorButton final : public views::Button {
     active_name_ = name;
     active_icon_ = icon;
     active_accent_argb_ = accent_argb;
+    UpdateTooltip();
     if (preview_index_.has_value()) {
       return;
     }
@@ -303,9 +314,28 @@ class WorkspaceSelectorButton final : public views::Button {
           indicator.name);
       dots_->AddChildView(std::move(dot));
     }
-    dots_->SetVisible(!indicators_.empty());
+    dots_->SetVisible(show_indicators_ && !indicators_.empty());
     ApplyWorkspacePresentation(active_name_, active_icon_, active_accent_argb_);
     InvalidateLayout();
+  }
+
+  // Width that shows the active name in full; a hover preview of another
+  // workspace never changes it, so the header cannot flip under the pointer.
+  int PreferredWidth(bool with_indicators) const {
+    int width = 2 * kSelectorInset + kSelectorBadgeSize +
+                gfx::GetStringWidth(active_name_, title_->font_list()) +
+                2 * kSelectorSpacing + kSelectorEditIconSize;
+    if (with_indicators && !indicators_.empty()) {
+      width += kSelectorSpacing + dots_->GetPreferredSize().width();
+    }
+    return width + 1;  // Subpixel text rounding.
+  }
+
+  void SetFit(bool show_indicators, bool name_elided) {
+    show_indicators_ = show_indicators;
+    dots_->SetVisible(show_indicators_ && !indicators_.empty());
+    name_elided_ = name_elided;
+    UpdateTooltip();
   }
 
   void StateChanged(ButtonState old_state) override {
@@ -339,10 +369,19 @@ class WorkspaceSelectorButton final : public views::Button {
     }
   }
 
+  // Only an elided name needs a tooltip; the accessible name always carries
+  // the full name.
+  void UpdateTooltip() {
+    SetTooltipText(name_elided_ ? active_name_ : std::u16string());
+  }
+
   void UpdateBackground() {
     const bool hovered = GetState() == ButtonState::STATE_HOVERED ||
                          GetState() == ButtonState::STATE_PRESSED;
-    edit_icon_->SetVisible(hovered);
+    edit_icon_->SetImage(hovered ? ui::ImageModel::FromVectorIcon(
+                                       kEditIcon, visual_style::kMutedText,
+                                       kSelectorEditIconSize)
+                                 : ui::ImageModel());
     SetBackground(views::CreateRoundedRectBackground(
         hovered ? visual_style::kHoverSurface : visual_style::kSelectedSurface,
         visual_style::kRowCornerRadius));
@@ -352,6 +391,8 @@ class WorkspaceSelectorButton final : public views::Button {
   raw_ptr<views::Label> title_ = nullptr;
   raw_ptr<views::ImageView> edit_icon_ = nullptr;
   raw_ptr<views::View> dots_ = nullptr;
+  bool show_indicators_ = true;
+  bool name_elided_ = false;
   std::u16string active_name_ = u"Ahoi";
   std::u16string active_icon_ = u"A";
   std::optional<uint32_t> active_accent_argb_;
@@ -615,6 +656,20 @@ void SetWorkspaceSelectorPresentation(views::Button* button,
                                       std::optional<uint32_t> accent_argb) {
   if (auto* selector = views::AsViewClass<WorkspaceSelectorButton>(button)) {
     selector->SetWorkspace(name, icon, accent_argb);
+  }
+}
+
+int GetWorkspaceSelectorPreferredWidth(const views::Button* button,
+                                       bool with_indicators) {
+  const auto* selector = views::AsViewClass<WorkspaceSelectorButton>(button);
+  return selector ? selector->PreferredWidth(with_indicators) : 0;
+}
+
+void SetWorkspaceSelectorFit(views::Button* button,
+                             bool show_indicators,
+                             bool name_elided) {
+  if (auto* selector = views::AsViewClass<WorkspaceSelectorButton>(button)) {
+    selector->SetFit(show_indicators, name_elided);
   }
 }
 

@@ -110,6 +110,9 @@ inline constexpr int kSidebarActionCellWidth = 42;
 inline constexpr int kSidebarActionCellHeight = 36;
 // Header presentation actions are true circles, not narrow 30x36 pills.
 inline constexpr int kSidebarHeaderActionSize = 32;
+// Header actions sit closer to each other than to the workspace selector,
+// which keeps its kSidebarFooterSpacing gap and all remaining width.
+inline constexpr int kSidebarHeaderActionSpacing = 4;
 inline constexpr int kSidebarFooterSpacing = 8;
 // The saved/temporary boundary is a compact semantic divider, not another tab
 // row. Its action and separator consume these shared dimensions so neither the
