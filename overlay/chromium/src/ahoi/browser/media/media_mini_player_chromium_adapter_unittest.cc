@@ -195,20 +195,121 @@ TEST(MediaMiniPlayerChromiumAdapterTest, MutedControllableSessionKeepsCard) {
   signals.was_controllable = muted.keeps_controllable_card;
   EXPECT_TRUE(Project(signals).keeps_controllable_card);
 
-  // Unmuted without a player to control, the card is released.
+  // Unmuted, once no session came back within the grace period, the card
+  // is released.
   signals.tab_muted = false;
   const Projection released = Project(signals);
   EXPECT_FALSE(released.keeps_controllable_card);
   EXPECT_FALSE(SourceFor("tab-a", 0, released).IsRelevant());
 }
 
-TEST(MediaMiniPlayerChromiumAdapterTest, MutedChimeDoesNotGainCard) {
-  Signals signals = TransientChime();
+TEST(MediaMiniPlayerChromiumAdapterTest, UnmutedCardWaitsForSession) {
+  MediaMiniPlayerService service;
+  Signals signals = ControllableSession(MediaMiniPlayerPlaybackState::kPaused);
+  Projection projection = Project(signals);
+  ASSERT_TRUE(service.RegisterSource(SourceFor("tab-a", 0, projection)));
+  const Projection other =
+      Project(ControllableSession(MediaMiniPlayerPlaybackState::kPaused));
+  ASSERT_TRUE(service.RegisterSource(SourceFor("tab-b", 1, other)));
+  ASSERT_EQ(service.state().selected_source, "tab-a");
+
+  // Muted: Chromium removed the player, the card is kept for unmuting.
+  signals.session_controllable = false;
+  signals.actions.clear();
+  signals.tab_muted = true;
+  signals.was_controllable = projection.keeps_controllable_card;
+  projection = Project(signals);
+  ASSERT_TRUE(projection.keeps_controllable_card);
+  service.UpdateSource(SourceFor("tab-a", 0, projection));
+  ASSERT_EQ(service.state().selected_source, "tab-a");
+
+  // Unmuted, while the observer still holds the inactive session.
+  signals.tab_muted = false;
+  signals.awaiting_session_after_unmute = true;
+  signals.was_controllable = projection.keeps_controllable_card;
+  projection = Project(signals);
+  EXPECT_TRUE(projection.keeps_controllable_card);
+  EXPECT_FALSE(projection.is_muted);
+  EXPECT_TRUE(projection.capabilities.can_mute);
+  service.UpdateSource(SourceFor("tab-a", 0, projection));
+  EXPECT_EQ(service.state().selected_source, "tab-a");
+
+  // The re-added player's session arrives and owns the card again.
+  signals = ControllableSession(MediaMiniPlayerPlaybackState::kPaused);
+  signals.was_controllable = projection.keeps_controllable_card;
+  projection = Project(signals);
+  EXPECT_TRUE(projection.keeps_controllable_card);
+  EXPECT_TRUE(projection.capabilities.can_play_pause);
+  service.UpdateSource(SourceFor("tab-a", 0, projection));
+  EXPECT_EQ(service.state().selected_source, "tab-a");
+}
+
+TEST(MediaMiniPlayerChromiumAdapterTest, PreMutedAudibleTabOffersUnmute) {
+  // A tab muted before playback: its player never joins the session, which
+  // stays inactive, while the tab still reads as audible.
+  Signals signals;
+  signals.has_session_info = true;
+  signals.tab_audible = true;
   signals.tab_muted = true;
   const Projection projection = Project(signals);
+  EXPECT_EQ(projection.playback, MediaMiniPlayerPlaybackState::kPaused);
+  EXPECT_TRUE(projection.is_muted);
+  EXPECT_TRUE(projection.capabilities.can_mute);
+  EXPECT_FALSE(projection.capabilities.can_play_pause);
   EXPECT_FALSE(projection.keeps_controllable_card);
-  EXPECT_FALSE(projection.capabilities.can_mute);
-  EXPECT_FALSE(SourceFor("tab-b", 1, projection).IsRelevant());
+  EXPECT_TRUE(SourceFor("tab-a", 0, projection).IsRelevant());
+}
+
+TEST(MediaMiniPlayerChromiumAdapterTest, MutedChimeDoesNotKeepCard) {
+  MediaMiniPlayerService service;
+  const Projection music =
+      Project(ControllableSession(MediaMiniPlayerPlaybackState::kPaused));
+  ASSERT_TRUE(service.RegisterSource(SourceFor("tab-a", 0, music)));
+  ASSERT_TRUE(service.RegisterSource(SourceFor("tab-b", 1, Projection())));
+
+  // A chime in a muted tab reads like a pre-muted player while it sounds,
+  // but it is paused and cannot take the selection.
+  Signals signals = TransientChime();
+  signals.tab_muted = true;
+  const Projection chime = Project(signals);
+  EXPECT_TRUE(chime.capabilities.can_mute);
+  EXPECT_FALSE(chime.keeps_controllable_card);
+  service.UpdateSource(SourceFor("tab-b", 1, chime));
+  EXPECT_EQ(service.state().selected_source, "tab-a");
+
+  // Once it is silent, the muted tab has no card to keep.
+  signals.session_playback = MediaMiniPlayerPlaybackState::kPaused;
+  signals.tab_audible = false;
+  signals.was_controllable = chime.keeps_controllable_card;
+  const Projection ended = Project(signals);
+  EXPECT_FALSE(ended.capabilities.can_mute);
+  EXPECT_FALSE(SourceFor("tab-b", 1, ended).IsRelevant());
+  service.UpdateSource(SourceFor("tab-b", 1, ended));
+  EXPECT_EQ(service.state().selected_source, "tab-a");
+  EXPECT_FALSE(service.HasMultipleRelevantSources());
+}
+
+TEST(MediaMiniPlayerChromiumAdapterTest, EndedSessionReleasesCard) {
+  // At the end of the stream Chromium removes the player: the session is
+  // inactive and not controllable, withdraws play/pause, and the observer
+  // may still hold the ended media's position. Intended: like Chromium's
+  // Global Media Controls, the card is released.
+  Signals signals = ControllableSession(MediaMiniPlayerPlaybackState::kPlaying);
+  const Projection playing = Project(signals);
+  ASSERT_TRUE(playing.expose_position);
+  signals.session_playback = MediaMiniPlayerPlaybackState::kPaused;
+  signals.session_controllable = false;
+  signals.actions = {Action::kSeekTo, Action::kScrubTo};
+  signals.was_controllable = playing.keeps_controllable_card;
+  const Projection ended = Project(signals);
+  EXPECT_FALSE(ended.keeps_controllable_card);
+  EXPECT_FALSE(ended.expose_position);
+  EXPECT_EQ(ended.capabilities, MediaMiniPlayerCapabilities());
+  EXPECT_FALSE(SourceFor("tab-a", 0, ended).IsRelevant());
+
+  // A page that keeps its own play handler stays on the card.
+  signals.actions.push_back(Action::kPlay);
+  EXPECT_TRUE(Project(signals).keeps_controllable_card);
 }
 
 TEST(MediaMiniPlayerChromiumAdapterTest, AudibleTabWithoutSessionPlays) {

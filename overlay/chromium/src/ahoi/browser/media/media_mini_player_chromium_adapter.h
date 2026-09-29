@@ -71,6 +71,10 @@ class MediaMiniPlayerChromiumAdapter final
     // a PiP window, audible sound without a MediaSession, or a muted card
     // kept from one of those.
     bool was_controllable = false;
+    // The tab was unmuted while it had a relevant card, and Chromium has not
+    // yet reported the session it re-adds the players to. Unmuting runs
+    // synchronously, the new MediaSessionInfo arrives later over Mojo.
+    bool awaiting_session_after_unmute = false;
   };
 
   struct SessionProjection {
@@ -92,7 +96,12 @@ class MediaMiniPlayerChromiumAdapter final
   // is projected as paused and cannot take the selection from a paused
   // player. A controllable session that becomes muted keeps its card, since
   // Chromium withdraws a muted tab's players and the card is where the user
-  // unmutes it.
+  // unmutes it; the card also survives the unmute until the session is back.
+  // A tab muted before its media started never joins its session, so while
+  // it is audible it is offered as a paused source with an unmute control.
+  // A session whose media ended is inactive and not controllable; like
+  // Chromium's Global Media Controls, it releases the card unless the page
+  // keeps its own play handler.
   static SessionProjection ProjectSession(const SessionSignals& signals);
 
   // MediaMiniPlayerActionAdapter:
