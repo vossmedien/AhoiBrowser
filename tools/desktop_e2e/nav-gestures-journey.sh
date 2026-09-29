@@ -163,22 +163,34 @@ scroll() { # <title> <dy> [mods...]
   for a in 1 2 3; do $AX activate $PID >/dev/null; sleep 0.3; $AX hidscroll $PID "$(web "$t")" "$dy" 0 "$@" >> "$OUT/steps.txt" && return 0; sleep 1; done
   return 1
 }
-# NAV-11: Cmd+scroll switches from gamma to a neighbouring tab, no zoom.
-Z0=$(evalp gamma 'String(visualViewport.scale)+"/"+String(Math.round(outerWidth/innerWidth*100))')
-scroll gamma -60 cmd; sleep 1.5; NOW=$(visible)
-echo "after cmd-scroll: $NOW zoom-before $Z0" >> "$OUT/steps.txt"
-[ "$NOW" = beta ] || [ "$NOW" = alpha ] && record cmdScrollSwitchesTab true || record cmdScrollSwitchesTab false
-Z1=$(evalp gamma 'String(visualViewport.scale)+"/"+String(Math.round(outerWidth/innerWidth*100))')
-[ "$Z0" = "$Z1" ] && record cmdScrollNoZoom true || record cmdScrollNoZoom false
-# A burst within the rate limit (250 ms) switches exactly once.
-START=$NOW
-for k in 1 2 3; do $AX hidscroll $PID "$(web "$START")" -60 0 cmd >> "$OUT/steps.txt"; done
-sleep 1.5; AFTER=$(visible); echo "burst from $START -> $AFTER" >> "$OUT/steps.txt"
+middle() { # <title> <dx> <dy>; retried like key(), since hidmiddle refuses
+  for a in 1 2 3; do $AX activate $PID >/dev/null; sleep 0.3; $AX hidmiddle $PID "$(web "$1")" "$2" "$3" >> "$OUT/steps.txt" && return 0; sleep 1; done
+  return 1
+}
+zoom() { evalp "$1" 'String(visualViewport.scale)+"/"+String(devicePixelRatio)'; }
+neighbour() { # <from> <to>; 0 if <to> is another of the three tabs
+  [ "$1" != "$2" ] && echo "alpha beta gamma" | grep -q -w "$2"
+}
+# NAV-11: Cmd+scroll switches to a neighbouring tab without web zoom, for a
+# trackpad-like phased stream and for a classic mouse-wheel notch.
+Z0=$(zoom gamma)
+scroll gamma -90 phased cmd; sleep 1.5; NOW=$(visible)
+echo "after cmd trackpad scroll: $NOW" >> "$OUT/steps.txt"
+neighbour gamma "$NOW" && record cmdScrollTrackpadSwitchesTab true || record cmdScrollTrackpadSwitchesTab false
+[ "$(zoom gamma)" = "$Z0" ] && record cmdScrollNoZoom true || record cmdScrollNoZoom false
+START=$(visible)
+scroll "$START" -1 line cmd; sleep 1.5; NOW=$(visible)
+echo "after cmd wheel notch from $START: $NOW" >> "$OUT/steps.txt"
+neighbour "$START" "$NOW" && record cmdScrollMouseWheelSwitchesTab true || record cmdScrollMouseWheelSwitchesTab false
+# A burst inside the rate limit (250 ms) moves exactly one tab.
+START=$(visible)
+for k in 1 2 3; do $AX hidscroll $PID "$(web "$START")" -1 0 line cmd >> "$OUT/steps.txt"; done
+sleep 1.5; AFTER=$(visible); echo "wheel burst from $START -> $AFTER" >> "$OUT/steps.txt"
 python3 - "$START" "$AFTER" <<'PY' && record burstSwitchesOnce true || record burstSwitchesOnce false
 import sys
 order = ["alpha", "beta", "gamma"]
 a, b = order.index(sys.argv[1]), order.index(sys.argv[2])
-sys.exit(0 if abs(a - b) in (1, 2) and a != b else 1)
+sys.exit(0 if (a - b) % 3 in (1, 2) else 1)
 PY
 # Plain scrolling scrolls the page and never switches the tab.
 CUR=$(visible); Y0=$(evalp "$CUR" 'String(scrollY)')
@@ -188,8 +200,7 @@ echo "plain scroll on $CUR: $Y0 -> $Y1, visible $(visible)" >> "$OUT/steps.txt"
 # NAV-12: middle-click autoscroll on the main page (below the nested box).
 evalp "$CUR" 'scrollTo(0,0);document.getElementById("nest").scrollTop=0;"ok"' >/dev/null
 evalp "$CUR" 'document.getElementById("nest").style.display="none";"ok"' >/dev/null; sleep 0.5
-$AX activate $PID >/dev/null; sleep 0.3
-$AX hidmiddle $PID "$(web "$CUR")" 0 120 >> "$OUT/steps.txt"; sleep 1.5
+middle "$CUR" 0 120; sleep 1.5
 A1=$(evalp "$CUR" 'String(scrollY)'); sleep 1; A2=$(evalp "$CUR" 'String(scrollY)')
 echo "autoscroll main: $A1 -> $A2" >> "$OUT/steps.txt"
 [ "${A2%.*}" -gt "${A1%.*}" ] && [ "${A1%.*}" -gt 0 ] && record autoscrollMainPage true || record autoscrollMainPage false
@@ -198,8 +209,7 @@ echo "after escape: $E1 -> $E2" >> "$OUT/steps.txt"
 [ "$E1" = "$E2" ] && record escapeEndsAutoscroll true || record escapeEndsAutoscroll false
 # Nested scroller: the box fills the top of the page.
 evalp "$CUR" 'scrollTo(0,0);const n=document.getElementById("nest");n.style.display="block";n.style.height=innerHeight+"px";n.scrollTop=0;"ok"' >/dev/null; sleep 0.5
-$AX activate $PID >/dev/null; sleep 0.3
-$AX hidmiddle $PID "$(web "$CUR")" 0 120 >> "$OUT/steps.txt"; sleep 1.5
+middle "$CUR" 0 120; sleep 1.5
 N1=$(evalp "$CUR" 'String(document.getElementById("nest").scrollTop)'); sleep 1
 N2=$(evalp "$CUR" 'String(document.getElementById("nest").scrollTop)')
 echo "autoscroll nested: $N1 -> $N2 (page $(evalp "$CUR" 'String(scrollY)'))" >> "$OUT/steps.txt"

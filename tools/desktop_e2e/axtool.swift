@@ -5,7 +5,7 @@ import AppKit
 //        axtool press <pid> <substring-of-title|description|identifier>
 //        axtool type <pid> <text>
 //        axtool key <pid> <virtualKeyCode> [cmd|shift|opt|ctrl ...]
-//        axtool hidscroll <pid> <element> <dy> [dx] [cmd|shift|opt|ctrl ...]
+//        axtool hidscroll <pid> <element> <dy> [dx] [phased|line] [cmd|shift|opt|ctrl ...]
 //        axtool hidmiddle <pid> <element> <dx> <dy>
 import ApplicationServices
 import Foundation
@@ -281,17 +281,39 @@ case "hidscroll":
     guard args.count >= 5, let c = centerOf(app, args[3]), let dy = Int32(args[4]) else {
         print("NOT FOUND"); exit(1)
     }
-    let dx = args.count >= 6 ? Int32(args[5]) ?? 0 : 0
-    let mods = flagsFrom(args.dropFirst(args.count >= 6 && Int32(args[5]) != nil ? 6 : 5))
+    var rest = Array(args.dropFirst(5))
+    var dx: Int32 = 0
+    if let first = rest.first, let v = Int32(first) { dx = v; rest.removeFirst() }
+    // "phased": a trackpad-like stream (Began, Changed x3, Ended) in pixels;
+    // "line": one classic mouse-wheel notch in lines; default: one phase-less
+    // pixel event.
+    var mode = "pixel"
+    if let first = rest.first, first == "phased" || first == "line" { mode = first; rest.removeFirst() }
+    let mods = flagsFrom(rest[...])
     CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: c,
             mouseButton: .left)!.post(tap: .cghidEventTap)
     usleep(80000)
-    let ev = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 2,
-                     wheel1: dy, wheel2: dx, wheel3: 0)!
-    ev.flags = mods
-    ev.location = c
-    ev.post(tap: .cghidEventTap)
-    print("hidscrolled dy=\(dy) dx=\(dx) at \(c)")
+    func post(_ units: CGScrollEventUnit, _ y: Int32, _ x: Int32, phase: Int64) {
+        let ev = CGEvent(scrollWheelEvent2Source: nil, units: units, wheelCount: 2,
+                         wheel1: y, wheel2: x, wheel3: 0)!
+        ev.flags = mods
+        ev.location = c
+        if phase != 0 { ev.setIntegerValueField(.scrollWheelEventScrollPhase, value: phase) }
+        ev.post(tap: .cghidEventTap)
+        usleep(16000)
+    }
+    switch mode {
+    case "phased":
+        // NSEventPhase values: began 1, changed 4, ended 8.
+        post(.pixel, 0, 0, phase: 1)
+        for _ in 0..<3 { post(.pixel, dy / 3, dx / 3, phase: 4) }
+        post(.pixel, 0, 0, phase: 8)
+    case "line":
+        post(.line, dy > 0 ? 1 : -1, 0, phase: 0)
+    default:
+        post(.pixel, dy, dx, phase: 0)
+    }
+    print("hidscrolled \(mode) dy=\(dy) dx=\(dx) at \(c)")
 case "hidmiddle":
     // Middle click at the element's center, then the pointer moves by
     // (dx, dy) in small steps and stays there (middle-click autoscroll,
