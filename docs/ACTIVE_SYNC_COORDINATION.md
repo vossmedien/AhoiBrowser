@@ -22,8 +22,24 @@ no deletion, no Production).
   **"iCloud-Accountwechsel benötigt Bestätigung"**; "Ohne lokalen Upload
   fortfahren" clicked at 13:08, status unchanged (same symptom as 23 Sep).
   Log 13:07:11 `AhoiSyncUpload stage=lease_revoked expected=6 saved=0`.
-  Diagnosis of the stuck account transition is in progress. **No record
-  round trip yet — DoD 13 stays RED.**
+  Stuck transition: root cause and fix `fb280c26` (any iCloud notification
+  was treated as an account switch; the confirm path ignored the
+  with-provider case). A normal quit/relaunch unblocked the live app.
+- **13:20 Mac "Synchronisiert und bereit"** — the E2E key arrived from the
+  iPhone via iCloud Keychain (the 23 Sep blocker is gone).
+- **iPhone → Mac:** the iPhone's tab records arrived and decrypted on the Mac
+  (`mac/store-readback.txt`).
+- **Mac → iPhone:** device, sessions, capability, appearance, extension
+  inventory and the history visit of
+  `https://example.com/?ahoi-sync-mac-20260929T112130Z` arrived on the iPhone;
+  the iPhone lists "Mac.fritz.box · Online" (`ios/receive/README.md`).
+- **Mac open tab not sent — by design:** the desktop shared-tab writer waits
+  until every active peer announces `shared-normal-tabs-v3`
+  (`profile_sync_backend_shared_tabs.cc` ~164–188, ADR 0009); the iOS app
+  never writes its own capability record and writes tabs without the same
+  gate. Mobile wiring is in progress; after reinstalling the scoped iPhone
+  build, the Mac should start writing page/tab records without a new Mac
+  build. **DoD 13 stays RED until the Mac tab is visible on the iPhone.**
 
 ## Stuck "iCloud-Accountwechsel" with a provider — diagnosis, 29 September 2026
 
