@@ -41,6 +41,22 @@ no deletion, no Production).
   build, the Mac should start writing page/tab records without a new Mac
   build. **DoD 13 stays RED until the Mac tab is visible on the iPhone.**
 
+## iPhone reinstalled; Mac key setup hangs — 29 September 2026, 15:40 CEST
+
+- iPhone: scoped CloudKitDevelopment build `0cab6711` (capability
+  announcement + writer gate) installed in place (data kept), syncs
+  ("Synchronisiert"); the Mac marker tab did not arrive because the Mac
+  side is not syncing.
+- Mac `bdfcea08`: after relaunches it first showed "iCloud-Accountwechsel
+  benötigt Bestätigung" again, then stayed > 25 min in "Sync-Verbindung wird
+  eingerichtet" (`key_setup_in_progress`): the bootstrap held its own family
+  lock while a CloudKit request never answered, with no timeout. Fix
+  `27916f3b`: user-initiated QoS and a 2-minute timeout
+  (`key_setup_timed_out` → "Sync-Einrichtung unterbrochen", retryable).
+- Next: build 51 → re-prepare the scoped Mac app → open the marker tab →
+  iPhone receive test (`MobileRealDeviceCloudKitSyncUITests`). DoD 13 stays
+  RED until then.
+
 ## Stuck "iCloud-Accountwechsel" with a provider — diagnosis, 29 September 2026
 
 Live `bdfcea08` Settings status (CDP, 13:12): `providerAvailable=true`,

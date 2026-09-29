@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Design waves, Arc import, build 51 contents — 29 September 2026, 15:40 CEST
+
+- **Design references (Codex delegation 7202e164):** 19 PNGs plus a binding
+  `design/references/2026-09-29/DESIGN_SPEC.md` (commits `44d9a639`..
+  `b005caf5`). Wave 1 in source (`fc7867bd`..`ff56f3e6`): window/hairline/
+  shadow tokens, `appearance/opaque_palette`, shared `ui/dialog_style`
+  (Workspace, merge, group, account-manager dialogs 420 wide; readable empty
+  name error), command bar 640 with ↵ only on the selected row. Wave 2 (sidebar
+  236/row 36, spec accents, tint ≤ 8 %, command-bar footer, patch 0081 for
+  the HTTP sign-in dialog, optional 0082 colour mixer) is in progress. Not
+  compiled yet; visual acceptance stays with the owner.
+- **Arc import (owner, 29 Sep 15:00):** import the local Arc into the **real
+  installed profile**, Arc may be quit, **no passwords**; the top-level
+  folders (VOSSMEDIEN, Caeli Wind, Privat, Projekt-Backups) of the single
+  space "Voss" become Workspaces. Clone backups (read-only):
+  `.work/arc-import-20260929/{ahoi-profile-before,arc-source}` (Arc
+  `StorableSidebar.json` SHA-256 `08375282…eca3`). New importer option
+  "Hauptordner als Workspaces anlegen" (`be64ed64`, `3087af87`; tests in
+  `ahoi_arc_import_unittests`); history import planned only
+  (`docs/ARC_HISTORY_IMPORT_PLAN.md`, needs a visit-source patch). The real
+  import runs on build 51 or later: preview → import → repeat as no-op.
+- **Build 51** (`wait51.sh`, ≥38 GiB and load < 60) now also runs
+  `ahoi_arc_import_unittests` and `ahoi_command_bar_unittests`; it carries
+  the wheel-notch fix, both design waves, the Arc option and the Mac sync
+  fixes `fb280c26` and `27916f3b`. Its install replaces the scoped CloudKit
+  Mac app — re-run prepare/verify/`--acceptance-scope` install afterwards.
+
 ## Owner instructions and decisions — 29 September 2026, 12:50 CEST
 
 - **M154 roll / GitHub mirror (owner):** do not switch now; the goal names
