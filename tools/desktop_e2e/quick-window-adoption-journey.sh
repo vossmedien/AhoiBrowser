@@ -44,6 +44,18 @@ key() {
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
 }
+# Types into the focused command bar and checks that its text field really
+# holds the text; a first keystroke can arrive before the field has focus
+# (build 47: a later Return then closed an empty bar).
+type_in() {
+  for attempt in 1 2 3; do
+    $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1
+    $AX dump $PID 14 | grep "AXTextField" | grep -F -q -- "| $1" && return 0
+    echo "info: typed text missing, retyping" >> "$OUT/steps.txt"
+    key 0 cmd; sleep 0.5
+  done
+  return 1
+}
 waitax() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do $AX dump $PID 14 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
 waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do pages | grep -q "$1" && return 0; sleep 1; done; return 1; }
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
@@ -64,7 +76,7 @@ open_url() { # <url> ; ⌘T + type + Return in the normal window
     waitax "AXWindow \\| Suchen oder URL eingeben" 6 && { opened=1; break; }
   done
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
-  sleep 1; $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1; key 36
+  sleep 1; type_in "$1"; sleep 1; key 36
   waiturl "$1" 20 || fail_setup "did not load $1"; sleep 2
 }
 ADOPT="In normales Fenster übernehmen"
@@ -89,7 +101,7 @@ quick_window && record quickWindowOpened true || { record quickWindowOpened fals
 $AX dump $PID 14 > "$OUT/ax-quick-window.txt"
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || key 37 cmd
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || fail_setup "quick window command bar did not open"
-sleep 1; $AX type $PID "$SITE/quick.html" >> "$OUT/steps.txt"; sleep 1; key 36
+sleep 1; type_in "$SITE/quick.html"; sleep 1; key 36
 # A Return lost before the bar has key focus leaves the URL typed but
 # unsubmitted (build-45 rerun 3); submit once more before giving up.
 waiturl quick.html 5 || { echo "info: Return repeated" >> "$OUT/steps.txt"; key 36; }
@@ -111,7 +123,7 @@ else
   key 17 cmd
 fi
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || fail_setup "command bar did not open in the quick window"
-sleep 1; $AX type $PID "$ADOPT" >> "$OUT/steps.txt"
+sleep 1; type_in "$ADOPT"
 sleep 2; $AX dump $PID 14 > "$OUT/ax-adopt-offered.txt"
 [ "$(offered)" -gt 0 ] && record adoptOffered true || record adoptOffered false
 key 36; sleep 4
@@ -129,7 +141,7 @@ $AX dump $PID 14 > "$OUT/ax-after-adopt.txt"
 # Crest 146 #6: a second adoption of the same page is not offered.
 key 17 cmd
 if waitax "AXWindow \\| Suchen oder URL eingeben" 6; then
-  sleep 1; $AX type $PID "$ADOPT" >> "$OUT/steps.txt"; sleep 2
+  sleep 1; type_in "$ADOPT"; sleep 2
   $AX dump $PID 14 > "$OUT/ax-adopt-again.txt"
   [ "$(offered)" = 0 ] && record adoptNotOfferedAgain true || record adoptNotOfferedAgain false
   key 53; sleep 1

@@ -43,6 +43,18 @@ key() {
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
 }
+# Types into the focused command bar and checks that its text field really
+# holds the text; a first keystroke can arrive before the field has focus
+# (build 47: a later Return then closed an empty bar).
+type_in() {
+  for attempt in 1 2 3; do
+    $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1
+    $AX dump $PID 14 | grep "AXTextField" | grep -F -q -- "| $1" && return 0
+    echo "info: typed text missing, retyping" >> "$OUT/steps.txt"
+    key 0 cmd; sleep 0.5
+  done
+  return 1
+}
 waitax() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do $AX dump $PID 14 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
 waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do pages | grep -q "$1" && return 0; sleep 1; done; return 1; }
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
@@ -63,7 +75,7 @@ open_url() { # <url> ; ⌘T + type + Return in the normal window
     waitax "AXWindow \\| Suchen oder URL eingeben" 6 && { opened=1; break; }
   done
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
-  sleep 1; $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1; key 36
+  sleep 1; type_in "$1"; sleep 1; key 36
   # A Return lost before the bar has key focus leaves the URL typed but
   # unsubmitted (build-46 run); submit once more before giving up.
   waiturl "$1" 5 || { echo "info: Return repeated" >> "$OUT/steps.txt"; key 36; }
@@ -100,7 +112,7 @@ open_url "$SITE/ad.html"
 # The command bar entry opens the verified installer.
 key 17 cmd
 waitax "AXWindow \\| Suchen oder URL eingeben" 6 || fail_setup "command bar did not open"
-sleep 1; $AX type $PID "ubo" >> "$OUT/steps.txt"; sleep 2
+sleep 1; type_in "ubo"; sleep 2
 $AX dump $PID 14 > "$OUT/ax-command-bar.txt"
 grep -q "uBlock Origin Classic…" "$OUT/ax-command-bar.txt" && record installerOfferedInCommandBar true || record installerOfferedInCommandBar false
 key 36; sleep 2
