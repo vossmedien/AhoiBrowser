@@ -1,0 +1,896 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index f474fb5..51246fa 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20949,7 +20949,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       HTTP access credentials
+     </message>
+     <message name="IDS_AHOI_HTTP_AUTH_MANAGER_SECURITY_NOTICE" desc="Security notice explaining how AhoiBrowser protects HTTP authentication secrets before authenticated editor actions." meaning="AhoiBrowser HTTP authentication management">
+-      Passwords stay in Chromium's encrypted password store. Showing, copying, or changing a credential requires macOS system authentication. Secrets are never exported, logged, added to NetLog, or synchronized through AhoiBrowser or CloudKit.
++      Passwords stay in AhoiBrowser's encrypted password store. Showing, copying, or changing a credential requires macOS system authentication. Secrets are never exported, logged, added to NetLog, or synchronized through AhoiBrowser or CloudKit.
+     </message>
+     <message name="IDS_AHOI_HTTP_AUTH_MANAGER_SEARCH_PLACEHOLDER" desc="Placeholder and accessible name for searching saved HTTP authentication metadata." meaning="AhoiBrowser HTTP authentication management">
+       Search host, realm, or username
+@@ -21565,7 +21565,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       Choose an expiration for the new cookie.
+     </message>
+     <message name="IDS_AHOI_DEVELOPER_COOKIE_ERROR_GENERIC" desc="Generic failure feedback for a native cookie-store operation." meaning="AhoiBrowser developer toolkit">
+-      Chromium rejected the cookie operation.
++      AhoiBrowser rejected the cookie operation.
+     </message>
+     <message name="IDS_AHOI_DEVELOPER_CACHE_STATUS_TITLE" desc="Title of the compact current-site cache deletion status popup." meaning="AhoiBrowser developer toolkit">
+       Site cache
+@@ -21715,7 +21715,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       No package has been requested.
+     </message>
+     <message name="IDS_AHOI_UBO_PINNED_BOOTSTRAP_IDLE" desc="Initial status when AhoiBrowser can verify its exact browser-pinned Official GitHub release without a network catalog." meaning="AhoiBrowser uBO Classic installer">
+-      Official GitHub release 1.74.0 is browser-pinned. Review the exact metadata below; one action downloads, verifies and hands it to Chromium's permission prompt.
++      Official GitHub release 1.74.0 is browser-pinned. Review the exact metadata below; one action downloads, verifies and hands it to AhoiBrowser's permission prompt.
+     </message>
+     <message name="IDS_AHOI_UBO_CHECKING" desc="Status while AhoiBrowser downloads and verifies the signed uBO catalog." meaning="AhoiBrowser uBO Classic installer">
+       Checking the signed catalog…
+@@ -21736,10 +21736,10 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       Verifying package hash, signature, ID and version…
+     </message>
+     <message name="IDS_AHOI_UBO_PACKAGE_READY" desc="Status after AhoiBrowser verifies the uBO package and awaits explicit installation." meaning="AhoiBrowser uBO Classic installer">
+-      Package verified. Handing it to Chromium's permission prompt…
++      Package verified. Handing it to AhoiBrowser's permission prompt…
+     </message>
+     <message name="IDS_AHOI_UBO_INSTALLING" desc="Status while Chromium runs the normal uBO extension installation prompt and atomic installer." meaning="AhoiBrowser uBO Classic installer">
+-      Waiting for the Chromium extension installation to finish…
++      Waiting for the AhoiBrowser extension installation to finish…
+     </message>
+     <message name="IDS_AHOI_UBO_INSTALLED" desc="Status after AhoiBrowser securely installs and authorizes uBO." meaning="AhoiBrowser uBO Classic installer">
+       uBlock Origin Classic was installed and locally authorized.
+@@ -21757,7 +21757,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       Classic was revalidated as enabled and runtime-ready after a full browser restart. Removing uBO Lite is now a separate action.
+     </message>
+     <message name="IDS_AHOI_UBO_REMOVING_LITE" desc="Status while Chromium removes the exact uBO Lite identity and completes cleanup." meaning="AhoiBrowser uBO Classic installer">
+-      Removing only the exact uBO Lite extension and waiting for Chromium cleanup…
++      Removing only the exact uBO Lite extension and waiting for AhoiBrowser cleanup…
+     </message>
+     <message name="IDS_AHOI_UBO_LITE_REMOVED" desc="Status after Lite was removed following Classic restart and runtime checks." meaning="AhoiBrowser uBO Classic installer">
+       uBO Lite was removed after Classic passed the restart and runtime checks.
+@@ -21784,7 +21784,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       The catalog would roll back or rewrite trusted state. AhoiBrowser rejected it.
+     </message>
+     <message name="IDS_AHOI_UBO_ERROR_INSTALL" desc="Safe uBO installer error when Chromium does not complete installation." meaning="AhoiBrowser uBO Classic installer">
+-      Chromium did not complete the extension installation. No new authorization was committed.
++      AhoiBrowser did not complete the extension installation. No new authorization was committed.
+     </message>
+     <message name="IDS_AHOI_UBO_ERROR_BUSY" desc="Safe uBO installer error when another operation is already running." meaning="AhoiBrowser uBO Classic installer">
+       A secure package operation is already running.
+@@ -21802,7 +21802,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       AhoiBrowser could not persist its local migration checkpoint. uBO Lite was left installed.
+     </message>
+     <message name="IDS_AHOI_UBO_ERROR_LITE_REMOVAL" desc="Safe error when Chromium does not complete exact-ID uBO Lite removal." meaning="AhoiBrowser uBO Classic installer">
+-      Chromium did not complete uBO Lite removal. uBO Lite remains installed.
++      AhoiBrowser did not complete uBO Lite removal. uBO Lite remains installed.
+     </message>
+     <message name="IDS_AHOI_UBO_VERSION_LABEL" desc="Label for the uBO version in trusted pinned entry metadata." meaning="AhoiBrowser uBO Classic installer">
+       Version
+@@ -21859,7 +21859,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       uBlock Origin is GPL-3.0-or-later software from its upstream project. AhoiBrowser does not embed an unverified third-party package.
+     </message>
+     <message name="IDS_AHOI_UBO_CONFIRM_NOTICE" desc="Explicit-action notice before uBO download and install." meaning="AhoiBrowser uBO Classic installer">
+-      One Ahoi action starts the pinned download and verification. Chromium's normal permission prompt remains mandatory. Closing before that handoff cancels the operation and discards temporary data.
++      One Ahoi action starts the pinned download and verification. AhoiBrowser's normal permission prompt remains mandatory. Closing before that handoff cancels the operation and discards temporary data.
+     </message>
+     <message name="IDS_AHOI_UBO_BUTTON_CHECK" desc="Button that verifies either AhoiBrowser's browser-pinned initial uBO entry or its later signed update catalog." meaning="AhoiBrowser uBO Classic installer">
+       Check securely
+diff --git a/chrome/app/password_manager_ui_strings.grdp b/chrome/app/password_manager_ui_strings.grdp
+index bcda83d..344c622 100644
+--- a/chrome/app/password_manager_ui_strings.grdp
++++ b/chrome/app/password_manager_ui_strings.grdp
+@@ -893,7 +893,7 @@
+         Password Manager needs access to MacOS Keychain
+       </message>
+       <message name="IDS_PASSWORD_MANAGER_UI_RELAUNCH_CHROME_PROMO_CARD_DESCRIPTION" desc="Description for not branded Relaunch ChrChromiumome promo card.">
+-        To use Password Manager with macOS Keychain, relaunch Chromium and allow Keychain access. Your tabs will reopen after relaunching.
++        To use Password Manager with macOS Keychain, relaunch AhoiBrowser and allow Keychain access. Your tabs will reopen after relaunching.
+       </message>
+     </else>
+     </if>
+@@ -927,7 +927,7 @@
+     </then>
+     <else>
+       <message name="IDS_PASSWORD_MANAGER_UI_RELAUNCH_CHROME_PROMO_CARD_ACTION" desc="Action button for not branded Relaunch Chrome promo card.">
+-        Relaunch Chromium
++        Relaunch AhoiBrowser
+       </message>
+     </else>
+     </if>
+@@ -1016,7 +1016,7 @@
+   </then>
+   <else>
+     <message name="IDS_PASSWORD_MANAGER_UI_PASSWORD_CHANGE_TOAST_SIGN_IN_TO_CONTINUE" desc="The description for the automated password change entry in Password Manager settings.">
+-      You need to sign in before Chromium can finish this task
++      You need to sign in before AhoiBrowser can finish this task
+     </message>
+   </else>
+   </if>
+@@ -1056,7 +1056,7 @@
+   </then>
+   <else>
+     <message name="IDS_PASSWORD_MANAGER_UI_PASSWORD_CHANGE_SETTINGS_DESCRIPTION" desc="The description for the automated password change entry in Password Manager settings.">
+-      If Chromium finds one of your passwords in a public data breach, it can offer to change your password for you if you're signed in
++      If AhoiBrowser finds one of your passwords in a public data breach, it can offer to change your password for you if you're signed in
+     </message>
+   </else>
+   </if>
+@@ -1074,7 +1074,7 @@
+     </message>
+   </if>
+   <message name="IDS_PASSWORD_MANAGER_UI_PASSWORD_CHANGE_CHECKUP_BUTTON_ARIA_DESCRIPTION" desc="An accessibility description for the automated password change button in Password Manager checkup.">
+-    Let Chromium automatically change password for <ph name="WEBSITE">$1<ex>website.com</ex></ph>
++    Let AhoiBrowser automatically change password for <ph name="WEBSITE">$1<ex>website.com</ex></ph>
+   </message>
+   <message name="IDS_PASSWORD_MANAGER_UI_PASSWORD_CHANGE_ATTEMPTING_SIGN_IN" desc="Status text on the button when automated password change is attempting to sign the user in.">
+     Attempting sign-in...
+@@ -1102,7 +1102,7 @@
+   </then>
+   <else>
+     <message name="IDS_SETTINGS_PASSWORD_CHANGE_SUBLABEL_WITH_LEARN_MORE" desc="Sublabel for password change entry in settings. The description of the feature beneath the 'Automated password change' feature title. This and the bullets beneath this paragraph represent the full description of the feature. * 'public' does two things: 1) it provides distance between 'Chrome' and 'data breach', because we don’t want users to associate the breach with Chrome (Chrome didn’t have a data leak, 2) and related, it might reassure the user to know that Chrome is using public information to establish these lists of compromised passwords. * 'Google Password Manager can offer…': The user has to agree to have this feature update their password for them each time. So Google Password Manager is ‘offering’ to do something for the user.">
+-      If Chromium finds one of your passwords in a public data breach, Google Password Manager can offer to change your password for you if you're signed in. <ph name="BEGIN_LINK">&lt;a href="$1" target="_blank"&gt;</ph>More about automated password change<ph name="END_LINK">&lt;/a&gt;</ph>
++      If AhoiBrowser finds one of your passwords in a public data breach, Google Password Manager can offer to change your password for you if you're signed in. <ph name="BEGIN_LINK">&lt;a href="$1" target="_blank"&gt;</ph>More about automated password change<ph name="END_LINK">&lt;/a&gt;</ph>
+     </message>
+   </else>
+   </if>
+@@ -1123,7 +1123,7 @@
+     </then>
+     <else>
+       <message name="IDS_PASSWORD_MANAGER_UI_USER_INTERVENTION_NEEDED_TITLE" desc="Title of a dialog shown when the automated password change stops because the website requires identity verification.">
+-        Chromium needs help changing your password
++        AhoiBrowser needs help changing your password
+       </message>
+     </else>
+   </if>
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index b2e952c..11a809d 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -849,7 +849,7 @@ Du kannst deine Passwörter jederzeit im <ph name="GOOGLE_PASSWORD_MANAGER" /> p
+ <translation id="1651609627703324721">Auf diesem Tab werden VR-Inhalte für ein Headset dargestellt</translation>
+ <translation id="1652281434788353738">Nachdenklich</translation>
+ <translation id="1652326691684645429">Nearby Share aktivieren</translation>
+-<translation id="1652862280638399816">Wenn du den Passwortmanager mit dem macOS-Schlüsselbund verwenden möchtest, starte Chromium neu und erlaube den Zugriff auf den Schlüsselbund. Deine Tabs werden nach dem Neustart wieder geöffnet.</translation>
++<translation id="4735130813325855180">Wenn du den Passwortmanager mit dem macOS-Schlüsselbund verwenden möchtest, starte AhoiBrowser neu und erlaube den Zugriff auf den Schlüsselbund. Deine Tabs werden nach dem Neustart wieder geöffnet.</translation>
+ <translation id="165448107578581061">Gemini arbeitet an deiner Aufgabe…</translation>
+ <translation id="1654580009054503925">Dürfen keine Anfragen anzeigen</translation>
+ <translation id="1656528038316521561">Deckkraft des Hintergrunds</translation>
+@@ -1374,7 +1374,7 @@ Wenn du die Family Link App auf deinem Gerät installierst, kannst du die Einste
+ <translation id="2059913712424898428">Zeitzone</translation>
+ <translation id="2060375639911876205">eSIM-Profil entfernen</translation>
+ <translation id="2061366302742593739">Nichts zum Anzeigen verfügbar</translation>
+-<translation id="2061589908388230480">Wenn Chromium eines deiner Passwörter bei einer öffentlichen Datenpanne findet, kann der Google Passwortmanager dir bei der Anmeldung anbieten, dein Passwort zu ändern. <ph name="BEGIN_LINK" />Weitere Informationen zur automatisierten Passwortänderung<ph name="END_LINK" /></translation>
++<translation id="7811612939210265115">Wenn AhoiBrowser eines deiner Passwörter bei einer öffentlichen Datenpanne findet, kann der Google Passwortmanager dir bei der Anmeldung anbieten, dein Passwort zu ändern. <ph name="BEGIN_LINK" />Weitere Informationen zur automatisierten Passwortänderung<ph name="END_LINK" /></translation>
+ <translation id="2062354623176996748">In einem Inkognitofenster kannst du surfen, ohne dass dein Browserverlauf gespeichert wird</translation>
+ <translation id="206308717637808771">Daten werden gelöscht, wenn alle Fenster geschlossen werden. Die Daten werden genauso behandelt wie die Website, die du gerade besuchst.</translation>
+ <translation id="2066700471214517561">Beamforming-Mikrofon verwenden, damit der Chromebook-Nutzer deutlich zu verstehen ist.</translation>
+@@ -2124,7 +2124,7 @@ Wenn du die Family Link App auf deinem Gerät installierst, kannst du die Einste
+ <translation id="2641174089709899456">Erinnerung: KI-basiertes Surfen für unterwegs</translation>
+ <translation id="2642111877055905627">Fußball</translation>
+ <translation id="2642206811783203764">Immer auf <ph name="SITE_NAME" /></translation>
+-<translation id="2643379881528582459">Sollte Chromium eines deiner Passwörter bei einer öffentlichen Datenpanne finden, wird dir angeboten, dein Passwort zu ändern, sofern du in deinem Konto angemeldet bist</translation>
++<translation id="1510051997168408090">Sollte AhoiBrowser eines deiner Passwörter bei einer öffentlichen Datenpanne finden, wird dir angeboten, dein Passwort zu ändern, sofern du in deinem Konto angemeldet bist</translation>
+ <translation id="2643698698624765890">Klicke zum Verwalten deiner Erweiterungen im Menü „Fenster“ auf „Erweiterungen“.</translation>
+ <translation id="2643967675101729581">Enddatum:</translation>
+ <translation id="2645047101481282803">Das Gerät wird von <ph name="PROFILE_NAME" /> verwaltet</translation>
+@@ -2807,7 +2807,7 @@ Servernachricht: <ph name="SERVER_MSG" /></translation>
+ <translation id="3152545926232662879">Ignoriert:</translation>
+ <translation id="3152596030350326139">Tabs horizontal anzeigen</translation>
+ <translation id="3154754096046236400">Persönlicher Kontext</translation>
+-<translation id="3155163173539279776">Chromium neu starten</translation>
++<translation id="5565371127025287767">AhoiBrowser neu starten</translation>
+ <translation id="3155394504825881014">Tabgruppe in Lesezeichenordner umwandeln</translation>
+ <translation id="3156511682997763015">10 Sekunden vorspulen</translation>
+ <translation id="3157330780336267229">Wenn du Tabgruppen teilen oder ihnen beitreten möchtest, musst du die Synchronisierung aktivieren</translation>
+@@ -4362,7 +4362,7 @@ Möchtest du <ph name="CONTROL_PANEL_APPLET_NAME" /> starten?</translation>
+ <translation id="4332976768901252016">Jugendschutzeinstellungen einrichten</translation>
+ <translation id="4334768748331667190"><ph name="MODULE_NAME" /> wird nicht mehr angezeigt</translation>
+ <translation id="4335835283689002019">Safe Browsing ist deaktiviert</translation>
+-<translation id="4336967529148557673">Du musst dich anmelden, bevor Chromium diese Aufgabe abschließen kann</translation>
++<translation id="5742739682995873893">Du musst dich anmelden, bevor AhoiBrowser diese Aufgabe abschließen kann</translation>
+ <translation id="433776600277609450">Filter hinzufügen</translation>
+ <translation id="4338363401382232853">Vorschlag für Splitscreen-Fenster</translation>
+ <translation id="4339203724549370495">App deinstallieren</translation>
+@@ -7330,7 +7330,7 @@ Du hast # weitere kompromittierte Passwörter. Der Google Passwortmanager empfi
+ <translation id="6677527809400770913">Geste „<ph name="GESTURE" />“ wurde Aktion „<ph name="ACTION" />“ zugewiesen</translation>
+ <translation id="6678604587151240716">Große Wellen erheben sich aus dem Meer, fernab im Hintergrund ist Land zu sehen. Der Himmel ist düster, nur am Horizont sind orangefarbene Lichtreflektionen zu sehen.</translation>
+ <translation id="6678717876183468697">Abfrage-URL</translation>
+-<translation id="6678974601734442817">Chromium benötigt Hilfe beim Ändern deines Passworts</translation>
++<translation id="6216190546321192127">AhoiBrowser benötigt Hilfe beim Ändern deines Passworts</translation>
+ <translation id="6679947539429331601">12 Stunden lang ausblenden</translation>
+ <translation id="6680650203439190394">Geschwindigkeit</translation>
+ <translation id="6683022854667115063">Kopfhörer</translation>
+@@ -9946,7 +9946,7 @@ Speichere deine Schlüsseldatei an einem sicheren Ort. Du benötigst die Datei,
+ <translation id="8687774873995698516"><ph name="HOST" /> immer daran hindern, Kennungen zum Wiedergeben geschützter Inhalte zu verwenden</translation>
+ <translation id="8688672835843460752">Verfügbar</translation>
+ <translation id="8689811383248488428">Ablehnen und Profil schließen</translation>
+-<translation id="8689957514193802371">Chromium das Passwort für <ph name="WEBSITE" /> automatisch ändern lassen</translation>
++<translation id="8340850540946852055">AhoiBrowser das Passwort für <ph name="WEBSITE" /> automatisch ändern lassen</translation>
+ <translation id="8689998525144040851">100</translation>
+ <translation id="8690129572193755009">Websites dürfen nachfragen, wenn sie Protokolle verarbeiten möchten</translation>
+ <translation id="869144235543261764">Auf diesem Tab wird ein Video im Bild-im-Bild-Modus abgespielt</translation>
+@@ -10923,21 +10923,21 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="8715677350639000479">uBlock Origin Classic</translation>
+ <translation id="3124656130049220920">Die sichere Verteilung ist für diesen Build nicht eingerichtet. Die Installation ist nicht verfügbar.</translation>
+ <translation id="1083946856181214471">Es wurde noch kein Paket angefordert.</translation>
+-<translation id="4008618948000793010">Offizieller GitHub-Release 1.74.0 ist im Browser gepinnt. Prüfe die exakten Metadaten unten; eine Aktion lädt das Paket, verifiziert es und übergibt es an Chromiums Berechtigungsdialog.</translation>
++<translation id="3274577984818835769">Offizieller GitHub-Release 1.74.0 ist im Browser gepinnt. Prüfe die exakten Metadaten unten; eine Aktion lädt das Paket, verifiziert es und übergibt es an AhoiBrowsers Berechtigungsdialog.</translation>
+ <translation id="173678054573921521">Signierten Katalog prüfen…</translation>
+ <translation id="7839795442695278720">Der signierte Katalog ist gültig. Prüfe die Paketdetails vor dem Download.</translation>
+ <translation id="6544569287198270558">Der Pin für den offiziellen GitHub-Release wurde verifiziert. Prüfe die Paketdetails vor dem Download.</translation>
+ <translation id="1361090806492448217">Ein verifiziertes Update ist verfügbar. Prüfe die Details vor dem Download.</translation>
+ <translation id="7592246281050900442">Paket in den temporären Speicher laden…</translation>
+ <translation id="5651272255701416838">Pakethash, Signatur, ID und Version prüfen…</translation>
+-<translation id="4251395657953038877">Paket verifiziert. Übergabe an Chromiums Berechtigungsdialog…</translation>
+-<translation id="569297405678413980">Auf den Abschluss der Chromium-Erweiterungsinstallation warten…</translation>
++<translation id="4873895412166835837">Paket verifiziert. Übergabe an AhoiBrowsers Berechtigungsdialog…</translation>
++<translation id="6651050769828484611">Auf den Abschluss der AhoiBrowser-Erweiterungsinstallation warten…</translation>
+ <translation id="3885962246529486409">uBlock Origin Classic wurde installiert und lokal autorisiert.</translation>
+ <translation id="2636020566600618581">Die installierte autorisierte Version ist aktuell.</translation>
+ <translation id="1067766907891352618">Classic ist installiert, aber noch nicht aktiviert und laufzeitbereit. uBO Lite bleibt installiert.</translation>
+ <translation id="4368012051415501618">Classic ist aktiviert und laufzeitbereit. Beende AhoiBrowser vollständig und öffne ihn erneut, bevor die Entfernung von Lite angeboten werden kann. uBO Lite bleibt installiert.</translation>
+ <translation id="4805851063630167119">Classic wurde nach einem vollständigen Browserneustart erneut als aktiviert und laufzeitbereit geprüft. Das Entfernen von uBO Lite ist jetzt eine separate Aktion.</translation>
+-<translation id="5167071086680525936">Nur die exakte uBO-Lite-Erweiterung wird entfernt; Chromium-Bereinigung wird abgewartet…</translation>
++<translation id="2291399580237662926">Nur die exakte uBO-Lite-Erweiterung wird entfernt; AhoiBrowser-Bereinigung wird abgewartet…</translation>
+ <translation id="8514728929001700393">uBO Lite wurde entfernt, nachdem Classic die Neustart- und Laufzeitprüfungen bestanden hat.</translation>
+ <translation id="540566029112770731">Offizieller GitHub-Release</translation>
+ <translation id="692133611196176358">Der sichere Katalog war nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.</translation>
+@@ -10947,13 +10947,13 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="7092311651193093637">Der signierte Katalog konnte nicht verifiziert werden. Es wurde kein Paket akzeptiert.</translation>
+ <translation id="3866404523672895533">Die Prüfung von Pakethash, Signatur, Identität oder Version ist fehlgeschlagen. Das Paket wurde verworfen.</translation>
+ <translation id="6655216018644866801">Der Katalog würde vertrauenswürdigen Zustand zurücksetzen oder umschreiben. AhoiBrowser hat ihn abgewiesen.</translation>
+-<translation id="4763118978906950486">Chromium hat die Erweiterungsinstallation nicht abgeschlossen. Es wurde keine neue Autorisierung gespeichert.</translation>
++<translation id="2211609108454764159">AhoiBrowser hat die Erweiterungsinstallation nicht abgeschlossen. Es wurde keine neue Autorisierung gespeichert.</translation>
+ <translation id="155928304438760378">Ein sicherer Paketvorgang läuft bereits.</translation>
+ <translation id="2655545787720060668">Die Installation ist nur in einem regulären Profil mit aktivem Tab verfügbar.</translation>
+ <translation id="3444766070153168489">Eine Classic-Identität ist bereits vorhanden, entspricht aber nicht der gepinnten autorisierten Installation. AhoiBrowser hat keine Erweiterung verändert.</translation>
+ <translation id="9219649102685379401">Der lokale Lite-Migrationsdatensatz stimmt nicht mit der installierten autorisierten Classic-Identität überein. uBO Lite wurde nicht entfernt.</translation>
+ <translation id="2044627825814659919">AhoiBrowser konnte den lokalen Migrationsprüfpunkt nicht speichern. uBO Lite wurde nicht entfernt.</translation>
+-<translation id="923018760099566168">Chromium hat die Entfernung von uBO Lite nicht abgeschlossen. uBO Lite bleibt installiert.</translation>
++<translation id="719307609794406831">AhoiBrowser hat die Entfernung von uBO Lite nicht abgeschlossen. uBO Lite bleibt installiert.</translation>
+ <translation id="7590930846933917843">Version</translation>
+ <translation id="2051545981007264011">Feste Erweiterungs-ID</translation>
+ <translation id="8288783506291281272">Upstream-Veröffentlichungsquelle</translation>
+@@ -10971,7 +10971,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="6957403946484881253">nicht laufzeitbereit</translation>
+ <translation id="2696701806059024233">Diese Ausnahme gilt nur für das exakte, verifizierte uBlock-Origin-Classic-Paket. Manifest V2 wird dadurch nicht für andere Erweiterungen aktiviert.</translation>
+ <translation id="1534265608999454361">uBlock Origin ist GPL-3.0-or-later-Software des Upstream-Projekts. AhoiBrowser bettet kein unverifiziertes Drittanbieterpaket ein.</translation>
+-<translation id="122162540404133384">Eine Ahoi-Aktion startet den gepinnten Download und die Verifizierung. Chromiums normaler Berechtigungsdialog bleibt verpflichtend. Schließen vor der Übergabe bricht den Vorgang ab und verwirft temporäre Daten.</translation>
++<translation id="2717523177693289069">Eine Ahoi-Aktion startet den gepinnten Download und die Verifizierung. AhoiBrowsers normaler Berechtigungsdialog bleibt verpflichtend. Schließen vor der Übergabe bricht den Vorgang ab und verwirft temporäre Daten.</translation>
+ <translation id="9030962707116024642">Sicher prüfen</translation>
+ <translation id="9007404635647866290">Verifiziertes Paket herunterladen</translation>
+ <translation id="4141907175393886058">uBO Lite jetzt separat entfernen</translation>
+@@ -11153,7 +11153,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="8375942819465594172">Partitionierte Cookies erfordern „Sicher“ auf einer HTTPS-Website.</translation>
+ <translation id="7383070798319737800">Das Cookie erfüllt die Sicherheitsregeln seines Namenspräfixes nicht.</translation>
+ <translation id="8405494857127750077">Wähle eine Gültigkeit für das neue Cookie.</translation>
+-<translation id="1155955074232025261">Chromium hat den Cookie-Vorgang abgelehnt.</translation>
++<translation id="5325098558221465659">AhoiBrowser hat den Cookie-Vorgang abgelehnt.</translation>
+ <translation id="2123966782152606093">Website-Cache</translation>
+ <translation id="8707900506757934786">Zwischengespeicherte Ressourcen werden gelöscht…</translation>
+ <translation id="1158561188437017008">Cache dieser Website gelöscht.</translation>
+@@ -11280,7 +11280,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="9032326405916132758">Passwort ausblenden</translation>
+ <translation id="4234777428384685691">Gespeichertes Passwort kopiert</translation>
+ <translation id="3742412752799315329">Änderungen speichern</translation>
+-<translation id="8940806682482998749">Passwörter bleiben im verschlüsselten Passwortspeicher von Chromium. Zum Anzeigen, Kopieren oder Ändern von Zugangsdaten ist die macOS-Systemauthentifizierung erforderlich. Geheimnisse werden nie exportiert, protokolliert, ins NetLog aufgenommen oder über AhoiBrowser oder CloudKit synchronisiert.</translation>
++<translation id="1609891261346182542">Passwörter bleiben im verschlüsselten Passwortspeicher von AhoiBrowser. Zum Anzeigen, Kopieren oder Ändern von Zugangsdaten ist die macOS-Systemauthentifizierung erforderlich. Geheimnisse werden nie exportiert, protokolliert, ins NetLog aufgenommen oder über AhoiBrowser oder CloudKit synchronisiert.</translation>
+ <translation id="4772486138467656777">Passwort anzeigen</translation>
+ <translation id="4156509787962966072">Adressleiste einblenden</translation>
+ <translation id="6205724696772443279">Ohne Cache neu laden</translation>
+diff --git a/components/autofill_payments_strings.grdp b/components/autofill_payments_strings.grdp
+index 309c36b..3c6fcd2 100644
+--- a/components/autofill_payments_strings.grdp
++++ b/components/autofill_payments_strings.grdp
+@@ -287,13 +287,13 @@
+     </if>
+     <if expr="not _google_chrome">
+       <message name="IDS_AUTOFILL_SAVE_AND_FILL_DIALOG_EXPLANATION_LOCAL" desc="Explanation text for the Autofill Save and Fill dialog for cards that will be saved locally.">
+-        Autofill this card for purchases made in Chromium when it's saved on this device
++        Autofill this card for purchases made in AhoiBrowser when it's saved on this device
+       </message>
+       <message name="IDS_AUTOFILL_SAVE_AND_FILL_DIALOG_EXPLANATION_UPLOAD" desc="Explanation text for the Autofill Save and Fill dialog for cards that will be saved to the GPay server.">
+-        Autofill this card for purchases made in Chromium when it's saved to use with Google Pay
++        Autofill this card for purchases made in AhoiBrowser when it's saved to use with Google Pay
+       </message>
+       <message name="IDS_AUTOFILL_SAVE_AND_FILL_TO_WALLET_DIALOG_EXPLANATION_UPLOAD" desc="Explanation text for the Autofill Save and Fill dialog for cards that will be saved to Google Wallet.">
+-        Autofill this card for purchases made in Chromium when it's saved in Google Wallet
++        Autofill this card for purchases made in AhoiBrowser when it's saved in Google Wallet
+       </message>
+     </if>
+     <message name="IDS_AUTOFILL_SAVE_AND_FILL_DIALOG_CARD_NUMBER_LABEL" desc="The label text for the card number textfield.">
+diff --git a/components/autofill_strings.grdp b/components/autofill_strings.grdp
+index 8d77d49..f269fe3 100644
+--- a/components/autofill_strings.grdp
++++ b/components/autofill_strings.grdp
+@@ -65,13 +65,13 @@
+   </if>
+   <if expr="not _google_chrome">
+     <message name="IDS_AUTOFILL_DELETE_AUTOCOMPLETE_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete an autocomplete form history suggestion.">
+-      Remove form suggestion from Chromium?
++      Remove form suggestion from AhoiBrowser?
+     </message>
+     <message name="IDS_AUTOFILL_DELETE_CREDIT_CARD_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete a credit card from Autofill.">
+-      Remove credit card from Chromium?
++      Remove credit card from AhoiBrowser?
+     </message>
+     <message name="IDS_AUTOFILL_DELETE_PROFILE_SUGGESTION_CONFIRMATION_BODY" desc="Text in a dialog to confirm that the user wants to delete an address from Autofill.">
+-      Remove address from Chromium?
++      Remove address from AhoiBrowser?
+     </message>
+   </if>
+   <message name="IDS_AUTOFILL_REMOVE_HOME_PROFILE_SUGGESTION_CONFIRMATION_TITLE" desc="Title in a dialog to confirm that the user wants to delete their Home address from Autofill." formatter_data="android_java">
+@@ -1835,13 +1835,13 @@
+   </if>
+   <if expr="not _google_chrome">
+     <message name="IDS_SETTINGS_AUTOFILL_AI_TOGGLE_SUB_LABEL" desc="The description of the setting. By 'understand forms better', we mean that when a user submits a form on a website, and if they're using smarter form understanding, this feature can offer to save the user's submitted info. When Chromium saves that info, we save the submitted values and consider the page context." formatter_data="android_java">
+-      Chromium understands forms better and can autofill them faster for you
++      AhoiBrowser understands forms better and can autofill them faster for you
+     </message>
+     <message name="IDS_SETTINGS_AUTOFILL_AI_TOGGLE_SUB_LABEL_V2" desc="The description of the setting. This explains to users that Google can process page data in Google servers as a way to provide a better experience. Importantly, it mentions that this is done safely and cannot be viewed by anyone." formatter_data="android_java">
+-      Help Chromium better understand and fill complex forms by securely processing data on Google's servers. Your info remains private and isn't reviewed by anyone.
++      Help AhoiBrowser better understand and fill complex forms by securely processing data on Google's servers. Your info remains private and isn't reviewed by anyone.
+     </message>
+     <message name="IDS_SETTINGS_AUTOFILL_AI_WHEN_ON_CAN_FILL_DIFFICULT_FIELDS" desc="Bullet point that appears beneath the 'When on' title when seeing the Smarter Form Understanding description page. This string explains one of the advantages users will get from enabling the feature and serves as a way to incentivize the user to do so." formatter_data="android_java">
+-      Chromium can autofill difficult fields that standard autofill might miss
++      AhoiBrowser can autofill difficult fields that standard autofill might miss
+     </message>
+   </if>
+ 
+diff --git a/components/management_strings.grdp b/components/management_strings.grdp
+index dd13675..767face 100644
+--- a/components/management_strings.grdp
++++ b/components/management_strings.grdp
+@@ -75,10 +75,10 @@
+       </if>
+       <if expr="not _google_chrome">
+         <message name="IDS_MANAGEMENT_BROWSER_NOTICE" desc="Message shown when the (non-Google-branded) Chromium browser is managed, it indicates what the administrator can do on the browser.">
+-        Your administrator can make changes to your profile and browser remotely, analyze information about the browser through reporting, and perform other necessary tasks. Activity on this device may also be managed outside of Chromium. <ph name="BEGIN_LINK">&lt;a target="_blank" href="$1" aria-label="$2"&gt;</ph>Learn more<ph name="END_LINK">&lt;/a&gt;</ph>
++        Your administrator can make changes to your profile and browser remotely, analyze information about the browser through reporting, and perform other necessary tasks. Activity on this device may also be managed outside of AhoiBrowser. <ph name="BEGIN_LINK">&lt;a target="_blank" href="$1" aria-label="$2"&gt;</ph>Learn more<ph name="END_LINK">&lt;/a&gt;</ph>
+         </message>
+         <message name="IDS_MANAGEMENT_NOT_MANAGED_NOTICE" desc="Message indicating that the (non-Google-branded) Chromium browser is not managed">
+-        This browser is not managed by a company or other organization. Activity on this device may be managed outside of Chromium. <ph name="BEGIN_LINK">&lt;a target="_blank" href="$1" aria-label="$2"&gt;</ph>Learn more<ph name="END_LINK">&lt;/a&gt;</ph>
++        This browser is not managed by a company or other organization. Activity on this device may be managed outside of AhoiBrowser. <ph name="BEGIN_LINK">&lt;a target="_blank" href="$1" aria-label="$2"&gt;</ph>Learn more<ph name="END_LINK">&lt;/a&gt;</ph>
+         </message>
+       </if>
+       <message name="IDS_MANAGEMENT_PROFILE_NOTICE" desc="Message shown when one profile from the Chrome browser is managed, it indicates what the administrator can do for that profile.">
+diff --git a/components/new_or_sad_tab_strings.grdp b/components/new_or_sad_tab_strings.grdp
+index 16fd5f0..83d2cf6 100644
+--- a/components/new_or_sad_tab_strings.grdp
++++ b/components/new_or_sad_tab_strings.grdp
+@@ -88,7 +88,7 @@
+       </if>
+       <if expr="not _google_chrome">
+         <message name="IDS_SAD_TAB_RELOAD_RESTART_BROWSER" desc="One of the bullet points displayed on the web page if a reload failed to fix the issue, advising the user to restart Chromium." formatter_data="android_java">
+-          Restart Chromium
++          Restart AhoiBrowser
+         </message>
+       </if>
+       <if expr="is_android or is_ios">
+@@ -173,7 +173,7 @@
+       </if>
+       <if expr="not _google_chrome">
+         <message name="IDS_NEW_TAB_OTR_NOT_SAVED" desc="Bullet points listing data that are not saved in the Incognito mode. 'Browsing history' means a history of visited websites. 'Cookies and site data' refers to data saved by websites on the user's device (e.g. sign-in state, preferences, etc.). 'Information entered in forms' refers to names, addresses, passwords etc. that users enter into forms on the web." formatter_data="android_java">
+-          Chromium <ph name="BEGIN_EMPHASIS">&lt;em&gt;</ph>won’t save<ph name="END_EMPHASIS">&lt;/em&gt;</ph>:
++          AhoiBrowser <ph name="BEGIN_EMPHASIS">&lt;em&gt;</ph>won’t save<ph name="END_EMPHASIS">&lt;/em&gt;</ph>:
+           <ph name="BEGIN_LIST">&lt;ul&gt;</ph>
+             <ph name="LIST_ITEM">&lt;li&gt;</ph>Your browsing history
+             <ph name="LIST_ITEM">&lt;li&gt;</ph>Cookies and site data
+diff --git a/components/page_info_strings.grdp b/components/page_info_strings.grdp
+index 4dd8786..1a0911d 100644
+--- a/components/page_info_strings.grdp
++++ b/components/page_info_strings.grdp
+@@ -108,7 +108,7 @@
+   </if>
+   <if expr="not _google_chrome">
+     <message name="IDS_PAGE_INFO_CHANGE_PASSWORD_DETAILS_SAVED" desc="A short paragraph explaining to a Chromium user that they have reused their saved password on the current website.">
+-      You just entered your password on a deceptive site. To secure your accounts, Chromium recommends checking your saved passwords.
++      You just entered your password on a deceptive site. To secure your accounts, AhoiBrowser recommends checking your saved passwords.
+     </message>
+   </if>
+   <if expr="use_titlecase">
+@@ -515,19 +515,19 @@
+     </if>
+     <if expr="not _google_chrome">
+       <message name="IDS_PAGE_INFO_CHANGE_PASSWORD_DETAILS" desc="A short paragraph explaining to the user that they has reuse their google password on current website.">
+-        You could lose access to your Google Account. Chromium recommends changing your password now. You'll be asked to sign in.
++        You could lose access to your Google Account. AhoiBrowser recommends changing your password now. You'll be asked to sign in.
+       </message>
+       <message name="IDS_PAGE_INFO_CHANGE_PASSWORD_DETAILS_SYNC" desc="A short paragraph explaining to a Chrome sync user that they have reused their Google password on the current website.">
+-        Chromium can help you protect your Google Account and change your password.
++        AhoiBrowser can help you protect your Google Account and change your password.
+       </message>
+       <message name="IDS_PAGE_INFO_CHANGE_PASSWORD_DETAILS_SIGNED_IN_NON_SYNC" desc="A short paragraph explaining to a non-sync user that they have reused their Google password on the current website.">
+-        You just entered your password on a deceptive site. Chromium can help. To change your password and notify Google that your account may be at risk, click Protect Account.
++        You just entered your password on a deceptive site. AhoiBrowser can help. To change your password and notify Google that your account may be at risk, click Protect Account.
+       </message>
+       <message name="IDS_PAGE_INFO_CHANGE_PASSWORD_DETAILS_ENTERPRISE" desc="A short paragraph explaining to the user that they have reused their password on the current website.">
+-        You could lose access to your organization's account or experience identity theft. Chromium recommends changing your password now.
++        You could lose access to your organization's account or experience identity theft. AhoiBrowser recommends changing your password now.
+       </message>
+       <message name="IDS_PAGE_INFO_CHANGE_PASSWORD_DETAILS_ENTERPRISE_WITH_ORG_NAME" desc="A short paragraph explaining to the user that they have reused their password on the current website.">
+-        You could lose access to your <ph name="ORG_NAME">$1<ex>Google</ex></ph> account or experience identity theft. Chromium recommends changing your password now.
++        You could lose access to your <ph name="ORG_NAME">$1<ex>Google</ex></ph> account or experience identity theft. AhoiBrowser recommends changing your password now.
+       </message>
+     </if>
+ 
+diff --git a/components/password_manager_strings.grdp b/components/password_manager_strings.grdp
+index 5094e19..dddbf99 100644
+--- a/components/password_manager_strings.grdp
++++ b/components/password_manager_strings.grdp
+@@ -52,7 +52,7 @@
+   </if>
+   <if expr="not _google_chrome">
+     <message name="IDS_PASSWORD_MANAGER_LEAK_HELP_MESSAGE" desc="The text is shown in a popup that explains to the user why they are seeing a warning about leaked passwords. This is a stand-alone string and the only content of the popup dialog.">
+-      When you use a password, Chromium warns you if it has been published online. When doing this, your passwords and usernames are encrypted, so they can’t be read by anyone, including Google.
++      When you use a password, AhoiBrowser warns you if it has been published online. When doing this, your passwords and usernames are encrypted, so they can’t be read by anyone, including Google.
+     </message>
+   </if>
+   <message name="IDS_MANAGE_PASSWORDS_AUTO_SIGNIN_TITLE" desc="The title of the auto-signin toast.">
+@@ -237,7 +237,7 @@
+       Password Manager needs access to MacOS Keychain
+     </message>
+     <message name="IDS_PASSWORD_MANAGER_RELAUNCH_CHROME_BUBBLE_DESCRIPTION_NON_BRANDED" desc="Text that appears in the description of the relaunch Chromium bubble.">
+-      To use Password Manager with macOS Keychain, relaunch Chromium and allow Keychain access. Your tabs will reopen after relaunching.
++      To use Password Manager with macOS Keychain, relaunch AhoiBrowser and allow Keychain access. Your tabs will reopen after relaunching.
+     </message>
+   </if>
+   <if expr="is_linux">
+@@ -277,7 +277,7 @@
+       Relaunch Chrome
+     </message>
+     <message name="IDS_PASSWORD_MANAGER_RELAUNCH_CHROME_BUBBLE_ACCEPT_BUTTON_NON_BRANDED" desc="Text that appears in the accept button of the relaunch Chromium bubble.">
+-      Relaunch Chromium
++      Relaunch AhoiBrowser
+     </message>
+     <if expr="use_titlecase">
+       <message name="IDS_PASSWORD_MANAGER_RELAUNCH_CHROME_BUBBLE_CANCEL_BUTTON" desc="Text that appears in the cancel button of the relaunch Chrome bubble.">
+diff --git a/components/reset_password_strings.grdp b/components/reset_password_strings.grdp
+index 5f58c26..b79d107 100644
+--- a/components/reset_password_strings.grdp
++++ b/components/reset_password_strings.grdp
+@@ -40,10 +40,10 @@
+   </if>
+   <if expr="not _google_chrome">
+      <message name="IDS_RESET_PASSWORD_EXPLANATION_PARAGRAPH" desc="The primary explanatory paragraph for the reset password page when the user manually navigates to this page.">
+-      Chromium recommends resetting your password if you reused it on other sites.
++      AhoiBrowser recommends resetting your password if you reused it on other sites.
+     </message>
+     <message name="IDS_RESET_PASSWORD_EXPLANATION_PARAGRAPH_WITH_ORG_NAME" desc="The primary explanatory paragraph for the reset password page when the user manually navigates to this page.">
+-      Chromium recommends resetting your <ph name="BEGIN_BOLD">&lt;strong&gt;</ph><ph name="ORG_NAME">$1<ex>Google</ex></ph><ph name="END_BOLD">&lt;/strong&gt;</ph> password if you reused it on other sites.
++      AhoiBrowser recommends resetting your <ph name="BEGIN_BOLD">&lt;strong&gt;</ph><ph name="ORG_NAME">$1<ex>Google</ex></ph><ph name="END_BOLD">&lt;/strong&gt;</ph> password if you reused it on other sites.
+     </message>
+   </if>
+ </grit-part>
+diff --git a/components/search_engine_choice_strings.grdp b/components/search_engine_choice_strings.grdp
+index cc85a72..32002c4 100644
+--- a/components/search_engine_choice_strings.grdp
++++ b/components/search_engine_choice_strings.grdp
+@@ -64,7 +64,7 @@
+     </if>
+     <if expr="not _google_chrome">
+       <message name="IDS_SEARCH_ENGINE_CHOICE_PAGE_SUBTITLE_INFO_LINK_A11Y_LABEL" desc="Accessibility label for the “Learn more” link in the search engine choice screen. Clicking the link will open a card that explains why users are being prompted to choose a search engine, and what a search engine does in Chromium.">
+-        Learn more about your search engine in Chromium
++        Learn more about your search engine in AhoiBrowser
+       </message>
+     </if>
+ 
+@@ -116,25 +116,25 @@
+     <if expr="not _google_chrome">
+       <if expr="use_titlecase">
+         <message name="IDS_SEARCH_ENGINE_CHOICE_INFO_DIALOG_TITLE" desc="This string is the heading of a card that explains why users are being prompted to choose a search engine, and what a search engine does in Chromium. (A search engine provides answers to search queries; this is different from a browser, which displays web pages. A search engine powers many experiences within a browser.) This screen appears when the user taps or clicks “Learn more” on the search engine choice screen. This string is before the “Based on a law in your region...” string. We want users to read this screen and understand that they can use any search engine with Chromium and what the impact of their choice might be.">
+-          Your Search Engine in Chromium
++          Your Search Engine in AhoiBrowser
+         </message>
+       </if>
+       <if expr="not use_titlecase">
+         <message name="IDS_SEARCH_ENGINE_CHOICE_INFO_DIALOG_TITLE" desc="This string is the heading of a card that explains why users are being prompted to choose a search engine, and what a search engine does in Chromium. (A search engine provides answers to search queries; this is different from a browser, which displays web pages. A search engine powers many experiences within a browser.) This screen appears when the user taps or clicks “Learn more” on the search engine choice screen. This string is before the “Based on a law in your region...” string. We want users to read this screen and understand that they can use any search engine with Chromium and what the impact of their choice might be.">
+-          Your search engine in Chromium
++          Your search engine in AhoiBrowser
+         </message>
+       </if>
+       <message name="IDS_SEARCH_ENGINE_CHOICE_INFO_DIALOG_BODY_FIRST_PARAGRAPH" desc="This is the first paragraph of the body text of a card that explains why users are being prompted to choose a search engine, and what a search engine does in Chrome. This screen provides the following details: 1. the list includes search engines that are popular in the user’s region and the order includes randomization (not in order of recommendation); 2. features may be unavailable if the chosen default search engine doesn’t support them; 3. the user can change their mind at any time. This card appears when the user taps or clicks “Learn more” on the search engine choice screen. The headline for this card is “Your search engine in Chromium”.">
+-        Based on a law in your region, Chromium asks you to choose your default search engine. These search engines are popular in your region and are shown in random order.
++        Based on a law in your region, AhoiBrowser asks you to choose your default search engine. These search engines are popular in your region and are shown in random order.
+       </message>
+       <message name="IDS_SEARCH_ENGINE_CHOICE_INFO_DIALOG_BODY_SECOND_PARAGRAPH" desc="This is the second paragraph of the body text of a card that explains why users are being prompted to choose a search engine, and what a search engine does in Chromium. This screen provides the following details: 1. the list includes search engines that are popular in the user’s region and the order includes randomization (not in order of recommendation); 2. features may be unavailable if the chosen default search engine doesn’t support them; 3. the user can change their mind at any time. This card appears when the user taps or clicks “Learn more” on the search engine choice screen. The headline for this card is “Your search engine in Chromium”.">
+-        <ph name="BEGIN_BOLD">&lt;b&gt;</ph>Your default search engine lets you search the web and powers Chromium features<ph name="END_BOLD">&lt;/b&gt;</ph> like searching from the address bar and from images on web pages. A feature might not be available if your search engine doesn’t support it.
++        <ph name="BEGIN_BOLD">&lt;b&gt;</ph>Your default search engine lets you search the web and powers AhoiBrowser features<ph name="END_BOLD">&lt;/b&gt;</ph> like searching from the address bar and from images on web pages. A feature might not be available if your search engine doesn’t support it.
+       </message>
+       <message name="IDS_SEARCH_ENGINE_CHOICE_INFO_DIALOG_BODY_THIRD_PARAGRAPH" desc="This is the third paragraph of the body text of a card that explains why users are being prompted to choose a search engine, and what a search engine does in Chromium. This screen provides the following details: 1. the list includes search engines that are popular in the user’s region and the order includes randomization (not in order of recommendation); 2. features may be unavailable if the chosen default search engine doesn’t support them; 3. the user can change their mind at any time. This card appears when the user taps or clicks “Learn more” on the search engine choice screen. The headline for this card is “Your search engine in Chromium”.">
+-        You can change your search engine anytime in Chromium’s settings.
++        You can change your search engine anytime in AhoiBrowser’s settings.
+       </message>
+       <message name="IDS_SEARCH_ENGINE_CHOICE_INFO_DIALOG_BODY_THIRD_PARAGRAPH_INSTRUCTIVE" desc="This is the third paragraph of the body text of a card that explains why users are being prompted to choose a search engine, and what a search engine does in Chromium. This screen provides the following details: 1. the list includes search engines that are popular in the user’s region and the order includes randomization (not in order of recommendation); 2. features may be unavailable if the chosen default search engine doesn’t support them; 3. the user can change their mind at any time. For JSA, we add more information on how to add non-regional search engines. This card appears when the user taps or clicks “Learn more” on the search engine choice screen. The headline for this card is “Your search engine in Chromium”.">
+-        You can change your search engine anytime in Chromium’s settings. If you don’t see your preferred search engine, you can perform a search from their site. You’ll see it listed as a recently visited search engine in Chromium settings, and you can make it your default.
++        You can change your search engine anytime in AhoiBrowser’s settings. If you don’t see your preferred search engine, you can perform a search from their site. You’ll see it listed as a recently visited search engine in AhoiBrowser settings, and you can make it your default.
+       </message>
+     </if>
+ 
+diff --git a/components/security_interstitials_strings.grdp b/components/security_interstitials_strings.grdp
+index d9a5a2d..c524abd 100644
+--- a/components/security_interstitials_strings.grdp
++++ b/components/security_interstitials_strings.grdp
+@@ -174,7 +174,7 @@
+   </if>
+   <if expr="not _google_chrome">
+     <message name="IDS_CLOCK_ERROR_EXPLANATION" desc="Body text under an 'Advanced' button. Context: error shown when the browser can't load a page because the device's clock is wrong. This paragraph explains why a correct clock is necessary.">
+-      To establish a secure connection, your clock needs to be set correctly. This is because the certificates that websites use to identify themselves are only valid for specific periods of time. Since your device's clock is incorrect, Chromium cannot verify these certificates.
++      To establish a secure connection, your clock needs to be set correctly. This is because the certificates that websites use to identify themselves are only valid for specific periods of time. Since your device's clock is incorrect, AhoiBrowser cannot verify these certificates.
+     </message>
+   </if>
+ 
+@@ -223,10 +223,10 @@
+   </if>
+   <if expr="not _google_chrome">
+     <message name="IDS_SSL_NONOVERRIDABLE_MORE" desc="Body text for the explanation shown if user clicks on the Details button.">
+-      <ph name="SITE">$1<ex>google.com</ex></ph> normally uses encryption to protect your information. When Chromium tried to connect to <ph name="SITE">$1<ex>google.com</ex></ph> this time, the website sent back unusual and incorrect credentials. This may happen when an attacker is trying to pretend to be <ph name="SITE">$1<ex>google.com</ex></ph>, or a Wi-Fi sign-in screen has interrupted the connection. Your information is still secure because Chromium stopped the connection before any data was exchanged.
++      <ph name="SITE">$1<ex>google.com</ex></ph> normally uses encryption to protect your information. When AhoiBrowser tried to connect to <ph name="SITE">$1<ex>google.com</ex></ph> this time, the website sent back unusual and incorrect credentials. This may happen when an attacker is trying to pretend to be <ph name="SITE">$1<ex>google.com</ex></ph>, or a Wi-Fi sign-in screen has interrupted the connection. Your information is still secure because AhoiBrowser stopped the connection before any data was exchanged.
+     </message>
+     <message name="IDS_SSL_NONOVERRIDABLE_INVALID" desc="A sentence to explain why the user can't proceed.">
+-      You cannot visit <ph name="SITE">$1<ex>google.com</ex></ph> right now because the website sent scrambled credentials that Chromium cannot process. Network errors and attacks are usually temporary, so this page will probably work later.
++      You cannot visit <ph name="SITE">$1<ex>google.com</ex></ph> right now because the website sent scrambled credentials that AhoiBrowser cannot process. Network errors and attacks are usually temporary, so this page will probably work later.
+     </message>
+   </if>
+ 
+@@ -444,7 +444,7 @@
+     </if>
+     <if expr="not _google_chrome">
+       <message name="IDS_KNOWN_INTERCEPTION_BODY2" desc="Second body text for the chrome://connection-monitoring-detected/ page with more details">
+-        This problem happens because of a certificate you or someone else installed on your device. The certificate is known to be used to monitor and intercept networks, and is not trusted by Chromium. While some legitimate cases for monitoring do exist, like on a school or company network, Chromium wants to make sure you're aware it's happening, even if you can't stop it. Monitoring may happen in any browser or application that accesses the web.
++        This problem happens because of a certificate you or someone else installed on your device. The certificate is known to be used to monitor and intercept networks, and is not trusted by AhoiBrowser. While some legitimate cases for monitoring do exist, like on a school or company network, AhoiBrowser wants to make sure you're aware it's happening, even if you can't stop it. Monitoring may happen in any browser or application that accesses the web.
+       </message>
+     </if>
+ 
+diff --git a/components/ssl_errors_strings.grdp b/components/ssl_errors_strings.grdp
+index b071895..184d972 100644
+--- a/components/ssl_errors_strings.grdp
++++ b/components/ssl_errors_strings.grdp
+@@ -188,12 +188,12 @@
+   <if expr="not _google_chrome">
+     <if expr="is_ios or is_android">
+       <message name="IDS_CERT_ERROR_AUTHORITY_INVALID_DETAILS_V2" desc="Details for an X509 certificate with an invalid authority, V2.">
+-        This server could not prove that it is <ph name="DOMAIN">&lt;strong&gt;$1<ex>paypal.com</ex>&lt;/strong&gt;</ph> because it is using a security certificate that is not trusted by Chromium or your system configuration for web traffic encryption. This may be caused by a misconfiguration, or an attacker intercepting your connection.
++        This server could not prove that it is <ph name="DOMAIN">&lt;strong&gt;$1<ex>paypal.com</ex>&lt;/strong&gt;</ph> because it is using a security certificate that is not trusted by AhoiBrowser or your system configuration for web traffic encryption. This may be caused by a misconfiguration, or an attacker intercepting your connection.
+       </message>
+     </if>
+     <if expr="not is_ios and not is_android">
+       <message name="IDS_CERT_ERROR_AUTHORITY_INVALID_DETAILS_V2" desc="Details for an X509 certificate with an invalid authority, V2.">
+-        This server could not prove that it is <ph name="DOMAIN">&lt;strong&gt;$1<ex>paypal.com</ex>&lt;/strong&gt;</ph> because it is using a security certificate that is not trusted by Chromium or your system configuration for web traffic encryption. This may be caused by a misconfiguration, or an attacker intercepting your connection. <ph name="BEGIN_VIEW_CERTIFICATE_LINK">&lt;a href="#" id="view-certificate-link"&gt;</ph>View Certificate<ph name="END_VIEW_CERTIFICATE_LINK">&lt;/a&gt;</ph>
++        This server could not prove that it is <ph name="DOMAIN">&lt;strong&gt;$1<ex>paypal.com</ex>&lt;/strong&gt;</ph> because it is using a security certificate that is not trusted by AhoiBrowser or your system configuration for web traffic encryption. This may be caused by a misconfiguration, or an attacker intercepting your connection. <ph name="BEGIN_VIEW_CERTIFICATE_LINK">&lt;a href="#" id="view-certificate-link"&gt;</ph>View Certificate<ph name="END_VIEW_CERTIFICATE_LINK">&lt;/a&gt;</ph>
+       </message>
+     </if>
+   </if>
+diff --git a/components/strings/components_strings_de.xtb b/components/strings/components_strings_de.xtb
+index 4bfa5c6..643bfd2 100644
+--- a/components/strings/components_strings_de.xtb
++++ b/components/strings/components_strings_de.xtb
+@@ -10,7 +10,7 @@
+ <translation id="1014509239502131234">Aktion wird rückgängig gemacht</translation>
+ <translation id="1015730422737071372">Weitere Details angeben</translation>
+ <translation id="1019413721762100891">Aus</translation>
+-<translation id="1021753677514347426">Du siehst diesen Fehler aufgrund eines Zertifikats, das auf deinem Gerät installiert ist. Chromium vertraut dem Zertifikat nicht, weil es Netzwerke unterbrechen und überwachen kann. Natürlich gibt es berechtigte Gründe für eine Überwachung, z. B. im Netzwerk von Schulen oder Unternehmen. Trotzdem soll sichergestellt werden, dass du über die Überwachung informiert bist, selbst wenn du sie nicht unterbinden kannst. Die Überwachung ist in jedem Browser und jeder Anwendung mit Webzugriff möglich.</translation>
++<translation id="1464291091950402863">Du siehst diesen Fehler aufgrund eines Zertifikats, das auf deinem Gerät installiert ist. AhoiBrowser vertraut dem Zertifikat nicht, weil es Netzwerke unterbrechen und überwachen kann. Natürlich gibt es berechtigte Gründe für eine Überwachung, z. B. im Netzwerk von Schulen oder Unternehmen. Trotzdem soll sichergestellt werden, dass du über die Überwachung informiert bist, selbst wenn du sie nicht unterbinden kannst. Die Überwachung ist in jedem Browser und jeder Anwendung mit Webzugriff möglich.</translation>
+ <translation id="1024111578869940408">Angreifer kopieren manchmal Websites und nehmen unauffällige Änderungen an der Webadresse vor.</translation>
+ <translation id="102916930470544692">Passkey</translation>
+ <translation id="1030706264415084469"><ph name="URL" /> möchte dauerhaft umfangreiche Daten auf deinem Gerät speichern</translation>
+@@ -213,7 +213,7 @@ Du wirst sonst gemäß deinen Datenschutzeinstellungen blockiert. Wenn Cookies u
+ <translation id="1348779747280417563">Namen bestätigen</translation>
+ <translation id="1357195169723583938">Letzte Nutzer dieses Geräts und Zeitpunkt der Verwendung</translation>
+ <translation id="1358187717814494928">Tabelle erstellen</translation>
+-<translation id="1358223345833465883">Deine Suchmaschine in Chromium</translation>
++<translation id="999135066527695135">Deine Suchmaschine in AhoiBrowser</translation>
+ <translation id="1360955481084547712">Ein neues Inkognitofenster öffnen, um privat zu surfen</translation>
+ <translation id="1361528602584216624">Limit pro Pix‑Zahlung: <ph name="TRANSACTION_LIMIT" /> BRL</translation>
+ <translation id="1363015776076529485">Die Liste mit den Zahlungsmethoden, die ausgewählt werden können, um mit der Zahlung fortzufahren, ist vollständig geöffnet.</translation>
+@@ -394,7 +394,7 @@ Du wirst sonst gemäß deinen Datenschutzeinstellungen blockiert. Wenn Cookies u
+ <translation id="1647550855876293003"><ph name="RESULT_MODIFIED_DATE" /> – <ph name="RESULT_OWNER" /></translation>
+ <translation id="1650602712345345441">Chrome-Einstellungen verwalten</translation>
+ <translation id="1652415888492971589">JIS B8</translation>
+-<translation id="1652862280638399816">Wenn du den Passwortmanager mit dem macOS-Schlüsselbund verwenden möchtest, starte Chromium neu und erlaube den Zugriff auf den Schlüsselbund. Deine Tabs werden nach dem Neustart wieder geöffnet.</translation>
++<translation id="4735130813325855180">Wenn du den Passwortmanager mit dem macOS-Schlüsselbund verwenden möchtest, starte AhoiBrowser neu und erlaube den Zugriff auf den Schlüsselbund. Deine Tabs werden nach dem Neustart wieder geöffnet.</translation>
+ <translation id="1652887625750064647">Bestes KI‑Ergebnis</translation>
+ <translation id="1653465303147789530">Mit <ph name="PAYMENT_METHOD" /> bezahlen, ohne die App zu wechseln</translation>
+ <translation id="1655159794885649984">Auf dieser Website kannst du keine Inhalte ziehen</translation>
+@@ -556,7 +556,7 @@ Du wirst sonst gemäß deinen Datenschutzeinstellungen blockiert. Wenn Cookies u
+ <translation id="1940441167050915935">Gespeicherte Sicherheitscodes löschen</translation>
+ <translation id="1940937679128415504">Gibt es heute Abend noch freie Tische in Restaurants in der Nähe?</translation>
+ <translation id="194174710521904357">Du hast dieser Website vorübergehend erlaubt, Drittanbieter-Cookies zu verwenden. Dies bedeutet weniger Schutz beim Surfen, aber dadurch erhöht sich die Wahrscheinlichkeit, dass die Website wie erwartet funktioniert.</translation>
+-<translation id="1945968466830820669">Du könntest den Zugriff auf das Konto deines Unternehmens verlieren oder zum Opfer von Identitätsdiebstahl werden. Chromium empfiehlt dir, dein Passwort jetzt zu ändern.</translation>
++<translation id="5804092149940186706">Du könntest den Zugriff auf das Konto deines Unternehmens verlieren oder zum Opfer von Identitätsdiebstahl werden. AhoiBrowser empfiehlt dir, dein Passwort jetzt zu ändern.</translation>
+ <translation id="1946849748901605102">12 × 15 Zoll</translation>
+ <translation id="1947454675006758438">Heftklammer oben rechts</translation>
+ <translation id="1954847915560574887">A3x3</translation>
+@@ -803,7 +803,7 @@ Du wirst sonst gemäß deinen Datenschutzeinstellungen blockiert. Wenn Cookies u
+ <translation id="2348836501965732644">Du kannst deine Informationen verwalten oder diese Vorschläge in den Einstellungen deaktivieren</translation>
+ <translation id="2349957959687031096">Button „Inkognitotab öffnen“ – aktivieren, um einen neuen Inkognitotab zu öffnen und privat zu surfen</translation>
+ <translation id="2350796302381711542">Öffnen aller <ph name="PROTOCOL" />-Links durch <ph name="HANDLER_HOSTNAME" /> anstatt <ph name="REPLACED_HANDLER_TITLE" /> zulassen?</translation>
+-<translation id="2351718832234620840">Dieser Server konnte nicht beweisen, dass er <ph name="DOMAIN" /> ist, da er ein Sicherheitszertifikat verwendet, das von Chromium oder deiner Systemkonfiguration für die Verschlüsselung von Web-Traffic nicht als vertrauenswürdig eingestuft wird. Mögliche Gründe sind eine fehlerhafte Konfiguration oder ein Angreifer, der deine Verbindung abfängt.</translation>
++<translation id="5395749759480247350">Dieser Server konnte nicht beweisen, dass er <ph name="DOMAIN" /> ist, da er ein Sicherheitszertifikat verwendet, das von AhoiBrowser oder deiner Systemkonfiguration für die Verschlüsselung von Web-Traffic nicht als vertrauenswürdig eingestuft wird. Mögliche Gründe sind eine fehlerhafte Konfiguration oder ein Angreifer, der deine Verbindung abfängt.</translation>
+ <translation id="2353297238722298836">Kamera- und Mikrofonnutzung zulässig</translation>
+ <translation id="2354001756790975382">Weitere Lesezeichen</translation>
+ <translation id="2355395290879513365">Angreifer können unter Umständen die Bilder sehen, die du dir auf dieser Website ansiehst, und könnten dann versuchen, dich durch Ändern der Bilder zu täuschen.</translation>
+@@ -958,7 +958,7 @@ Du wirst sonst gemäß deinen Datenschutzeinstellungen blockiert. Wenn Cookies u
+ <translation id="2595719060046994702">Dieses Gerät und dieses Konto werden nicht von einem Unternehmen oder einer anderen Organisation verwaltet.</translation>
+ <translation id="2596415276201385844">Zum Aufbau einer sicheren Verbindung muss die Uhrzeit richtig eingestellt sein. Der Grund hierfür ist, dass Websites sich mithilfe von Zertifikaten identifizieren, die nur für einen bestimmten Zeitraum gelten. Da die Uhrzeit deines Geräts falsch ist, kann Chrome diese Zertifikate nicht bestätigen.</translation>
+ <translation id="2597378329261239068">Dieses Dokument ist passwortgeschützt. Gib ein Passwort ein.</translation>
+-<translation id="2600083925285092409">Informationen dieser Karte bei Käufen in Chromium automatisch einfügen, wenn sie für die Verwendung mit Google Pay gespeichert wurde</translation>
++<translation id="8997862769579372657">Informationen dieser Karte bei Käufen in AhoiBrowser automatisch einfügen, wenn sie für die Verwendung mit Google Pay gespeichert wurde</translation>
+ <translation id="2602283642570832995">Diese Aktion verstößt möglicherweise gegen die Richtlinien von <ph name="DOMAIN" /></translation>
+ <translation id="2605979593348332811">Phonetischer Name</translation>
+ <translation id="2606760465469169465">Automatische Bestätigung</translation>
+@@ -1041,7 +1041,7 @@ Du wirst sonst gemäß deinen Datenschutzeinstellungen blockiert. Wenn Cookies u
+ <translation id="2728127805433021124">Das Serverzertifikat ist mit einem schwachen Signaturalgorithmus signiert.</translation>
+ <translation id="272937284275742856">Datenschutz ist uns wichtig, während wir deine Zahlungsdetails prüfen…</translation>
+ <translation id="2730326759066348565"><ph name="BEGIN_LINK" />Verbindungsdiagnose ausführen<ph name="END_LINK" /></translation>
+-<translation id="2731220418440848219">Weitere Informationen zu deiner Suchmaschine in Chromium</translation>
++<translation id="3274662398447547314">Weitere Informationen zu deiner Suchmaschine in AhoiBrowser</translation>
+ <translation id="2731382536835015353">44 x 68 Zoll</translation>
+ <translation id="2734797989819862638">Nicht kopieren</translation>
+ <translation id="2738771556149464852">Nicht nach</translation>
+@@ -1057,7 +1057,7 @@ Du wirst sonst gemäß deinen Datenschutzeinstellungen blockiert. Wenn Cookies u
+ <translation id="277133753123645258">Versandart</translation>
+ <translation id="277499241957683684">Fehlender Gerätedatensatz</translation>
+ <translation id="2775884851269838147">Erste Druckseite</translation>
+-<translation id="277828055419948999">Chromium kann auch Felder automatisch ausfüllen, die von der Standard-Autofill-Funktion möglicherweise nicht erkannt werden</translation>
++<translation id="636050587496514357">AhoiBrowser kann auch Felder automatisch ausfüllen, die von der Standard-Autofill-Funktion möglicherweise nicht erkannt werden</translation>
+ <translation id="2781692009645368755">Google Pay</translation>
+ <translation id="2781799097551205934">Bezahlvorgang wird vorbereitet</translation>
+ <translation id="2784474685437057136">B5 Extra</translation>
+@@ -1260,7 +1260,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="3154506275960390542">Auf dieser Seite befindet sich ein Formular, das Daten möglicherweise unsicher überträgt. Gesendete Daten können während der Übertragung von anderen gelesen oder von Angreifern geändert werden, sodass der Server modifizierte Daten erhält.</translation>
+ <translation id="3154987252551138431">Bei der Verwendung von Nearby Share ist ein Fehler aufgetreten</translation>
+ <translation id="315504272643575312">Dein Konto wird von <ph name="MANAGER" /> verwaltet.</translation>
+-<translation id="3155163173539279776">Chromium neu starten</translation>
++<translation id="5565371127025287767">AhoiBrowser neu starten</translation>
+ <translation id="3156511682997763015">10 Sekunden vorspulen</translation>
+ <translation id="3157931365184549694">Wieder­her­stellen</translation>
+ <translation id="3158539265159265653">CD</translation>
+@@ -1337,7 +1337,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="3272091146646336650">Super B</translation>
+ <translation id="3272112314896217187"><ph name="NUMBER_OF_DIGITS" />-stelligen Bestätigungscode eingeben</translation>
+ <translation id="3272643614306383237">Weniger als 1 MB. Einige Websites werden beim nächsten Besuch möglicherweise langsamer geladen.</translation>
+-<translation id="3273738040255912340">Dein Administrator kann Änderungen an deinem Profil und Browser per Fernzugriff vornehmen, Informationen über den Browser durch Berichte analysieren und andere notwendige Aufgaben ausführen. Aktivitäten auf diesem Gerät können auch außerhalb von Chromium verwaltet werden. <ph name="BEGIN_LINK" />Weitere Informationen<ph name="END_LINK" /></translation>
++<translation id="6612672544746619803">Dein Administrator kann Änderungen an deinem Profil und Browser per Fernzugriff vornehmen, Informationen über den Browser durch Berichte analysieren und andere notwendige Aufgaben ausführen. Aktivitäten auf diesem Gerät können auch außerhalb von AhoiBrowser verwaltet werden. <ph name="BEGIN_LINK" />Weitere Informationen<ph name="END_LINK" /></translation>
+ <translation id="3273757719652748628">Die Ansicht „IBAN speichern“ ist vollständig geöffnet.</translation>
+ <translation id="327455571215090823">Nutze die Cloud – für eine smartere „Autofill“-Funktion</translation>
+ <translation id="3280440382387335343">Reisepass sicher in Google Wallet aktualisieren</translation>
+@@ -1413,7 +1413,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="3423742043356668186">Vom System angegeben</translation>
+ <translation id="3426672782316020729">Reisepass in Google Wallet aktualisieren</translation>
+ <translation id="3427342743765426898">&amp;Bearbeiten wiederholen</translation>
+-<translation id="342781501876943858">Chromium empfiehlt, dein Passwort zurückzusetzen, wenn du es auf anderen Websites verwendet hast.</translation>
++<translation id="6021520852764438552">AhoiBrowser empfiehlt, dein Passwort zurückzusetzen, wenn du es auf anderen Websites verwendet hast.</translation>
+ <translation id="3428151540071562330">Einer oder mehrere der "DnsOverHttpsTemplates"-Servervorlagen-URIs sind ungültig und werden nicht verwendet.</translation>
+ <translation id="3432601291244612633">Seite schließen</translation>
+ <translation id="3434025015623587566">Der Google Passwortmanager benötigt einen umfassenderen Zugriff</translation>
+@@ -1597,10 +1597,10 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="3738166223076830879">Dein Browser wird von deinem Administrator verwaltet.</translation>
+ <translation id="3739842843727261045">Mit „Mag ich“ gibst du an, dass dir diese Ergebnisse gefallen.</translation>
+ <translation id="3740447166056383374">Vor dem Kopieren ist eine Überprüfung erforderlich</translation>
+-<translation id="3742104862808477448">Hilf Chromium, komplexe Formulare besser zu verstehen und auszufüllen, indem Daten sicher auf Google-Servern verarbeitet werden. Deine Informationen bleiben privat und werden von niemandem überprüft.</translation>
++<translation id="8771160057962293369">Hilf AhoiBrowser, komplexe Formulare besser zu verstehen und auszufüllen, indem Daten sicher auf Google-Servern verarbeitet werden. Deine Informationen bleiben privat und werden von niemandem überprüft.</translation>
+ <translation id="3744111561329211289">Hintergrundsynchronisierung</translation>
+ <translation id="3744212718085287312">Nächstes Mal mit virtueller Karte noch sicherer bezahlen?</translation>
+-<translation id="3744899669254331632">Du kannst <ph name="SITE" /> zurzeit nicht aufrufen, weil die Website verschlüsselte Anmeldedaten gesendet hat, die von Chromium nicht verarbeitet werden können. Netzwerkfehler und Angriffe sind in der Regel nur vorübergehend, sodass die Seite wahrscheinlich später wieder funktioniert.</translation>
++<translation id="7289740242014394116">Du kannst <ph name="SITE" /> zurzeit nicht aufrufen, weil die Website verschlüsselte Anmeldedaten gesendet hat, die von AhoiBrowser nicht verarbeitet werden können. Netzwerkfehler und Angriffe sind in der Regel nur vorübergehend, sodass die Seite wahrscheinlich später wieder funktioniert.</translation>
+ <translation id="3745599309295009257">Dein Text sowie der Inhalt und die URL der Seite, auf der du schreibst, werden an Google gesendet, manuell geprüft und zur Verbesserung dieser Funktion verwendet. Vermeide die Eingabe personenbezogener Daten (z. B. medizinische oder finanzielle Daten) und vermeide die Nutzung des Tools auf Websites, die private oder vertrauliche Informationen enthalten.</translation>
+ <translation id="3748009735914587286">Metall (hochglanz)</translation>
+ <translation id="3748647055058832337">Für diesen Händler nicht verfügbar</translation>
+@@ -2082,7 +2082,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="4528888973346221791">Informationen aus dem Arbeitsprofil, z. B. dein Nutzername</translation>
+ <translation id="4530347922939905757">SMS</translation>
+ <translation id="4531477351494678589">Virtuelle Kartennummer:</translation>
+-<translation id="4534145890176164066">Chromium erkennt den Inhalt von Formularen besser und kann sie schneller automatisch ausfüllen</translation>
++<translation id="8180017972780228071">AhoiBrowser erkennt den Inhalt von Formularen besser und kann sie schneller automatisch ausfüllen</translation>
+ <translation id="4535523368173457420">Diese Suchmaschinen sind in deiner Region beliebt und werden in zufälliger Reihenfolge angezeigt</translation>
+ <translation id="4535602490975885745">Foto kann nicht in OneDrive gespeichert werden</translation>
+ <translation id="4539931187424170595">{NUM_YEARS,plural, =1{Vor 1 Jahr erstellt}other{Vor {NUM_YEARS} Jahren erstellt}}</translation>
+@@ -2185,7 +2185,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="4732860731866514038">Sprachpaket für <ph name="LANGUAGE" /> wird heruntergeladen… <ph name="PERCENT" /> %</translation>
+ <translation id="4733082559415072992"><ph name="URL" /> möchte den Standort deines Geräts verwenden</translation>
+ <translation id="473414950835101501">Kamera verwenden</translation>
+-<translation id="4736825316280949806">Chromium neu starten</translation>
++<translation id="4821016279258610512">AhoiBrowser neu starten</translation>
+ <translation id="4736934858538408121">Virtuelle Karte</translation>
+ <translation id="473775607612524610">Aktualisieren</translation>
+ <translation id="4738601419177586157">Suchvorschlag: <ph name="TEXT" /></translation>
+@@ -2203,7 +2203,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="4754461935447132332">Nicht zulässig für nicht sichere Websites</translation>
+ <translation id="4756501505996488486">PRC 16K</translation>
+ <translation id="4757740693289347881">Der Code ist ungültig</translation>
+-<translation id="4757993714154412917">Du hast dein Passwort gerade auf einer verdächtigen Seite eingegeben. Chromium empfiehlt, deine gespeicherten Passwörter zu überprüfen, um deine Konten besser zu schützen.</translation>
++<translation id="6766744934417344405">Du hast dein Passwort gerade auf einer verdächtigen Seite eingegeben. AhoiBrowser empfiehlt, deine gespeicherten Passwörter zu überprüfen, um deine Konten besser zu schützen.</translation>
+ <translation id="4758311279753947758">Kontaktdaten hinzufügen</translation>
+ <translation id="4761326898079498987">Weitere Informationen erhältst du hier</translation>
+ <translation id="4761869838909035636">Chrome-Sicherheitscheck ausführen</translation>
+@@ -2538,7 +2538,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="5314967030527622926">Falzmaschine</translation>
+ <translation id="5316812925700871227">Gegen den Uhrzeigersinn drehen</translation>
+ <translation id="5317780077021120954">Speichern</translation>
+-<translation id="531996107159483074"><ph name="BEGIN_BOLD" />Mit der Standardsuchmaschine hast du die Möglichkeit, im Web zu suchen und Chromium-Funktionen zu nutzen.<ph name="END_BOLD" /> Du kannst beispielsweise über die Adressleiste oder über Bilder auf Webseiten suchen. Eine Funktion ist möglicherweise nicht verfügbar, wenn sie nicht von deiner Suchmaschine unterstützt wird.</translation>
++<translation id="6342299464883690567"><ph name="BEGIN_BOLD" />Mit der Standardsuchmaschine hast du die Möglichkeit, im Web zu suchen und AhoiBrowser-Funktionen zu nutzen.<ph name="END_BOLD" /> Du kannst beispielsweise über die Adressleiste oder über Bilder auf Webseiten suchen. Eine Funktion ist möglicherweise nicht verfügbar, wenn sie nicht von deiner Suchmaschine unterstützt wird.</translation>
+ <translation id="5323043727018853753">Eingebettete Inhalte zulässig</translation>
+ <translation id="5323105697514565458"><ph name="FRIENDLY_MATCH_TEXT" />, <ph name="MATCH_POSITION" /> von <ph name="NUM_MATCHES" /></translation>
+ <translation id="5323501626199324454">Im Google-Konto verwalten</translation>
+@@ -2603,7 +2603,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="5431318178759467895">Farbe</translation>
+ <translation id="5433756542371550806">Befehlszeilen-Varianten</translation>
+ <translation id="5434065355175441495">PKCS #1 RSA-Verschlüsselung</translation>
+-<translation id="5434798570900738152">Chromium speichert folgende Daten <ph name="BEGIN_EMPHASIS" />nicht<ph name="END_EMPHASIS" />:
++<translation id="3912019515640117797">AhoiBrowser speichert folgende Daten <ph name="BEGIN_EMPHASIS" />nicht<ph name="END_EMPHASIS" />:
+           <ph name="BEGIN_LIST" />
+             <ph name="LIST_ITEM" />Den Browserverlauf
+             <ph name="LIST_ITEM" />Cookies und Websitedaten
+@@ -3006,7 +3006,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="6107864469867367783"><ph name="USER_DISPLAY_NAME" /> hat den Gruppennamen geändert</translation>
+ <translation id="6107924765192360631">Beginne einfach mit ein paar Wörtern oder einem ersten Entwurf, um Textvorschläge zu erhalten.</translation>
+ <translation id="6108580855199168381">Zertifikatdetails</translation>
+-<translation id="6108702513636120202">Deine Suchmaschine in Chromium</translation>
++<translation id="3632193581525361903">Deine Suchmaschine in AhoiBrowser</translation>
+ <translation id="611018310643025551">Deine Suchanfragen, die besten Ergebnisse und die zugehörigen Seiteninhalte werden an Google gesendet und möglicherweise von Prüfern gelesen, um diese Funktion zu verbessern.</translation>
+ <translation id="6111759749003439722">Kann anfragen, ob auf andere Apps und Dienste auf diesem Gerät zugegriffen werden darf</translation>
+ <translation id="6116338172782435947">Texte und Bilder aus der Zwischenablage abrufen</translation>
+@@ -3064,7 +3064,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="6213685130162740188">Known Traveler Number</translation>
+ <translation id="6215936431492593050">Metall (Satin)</translation>
+ <translation id="6218305986815100395">Virtuelle Karte kann nicht aktiviert werden</translation>
+-<translation id="6218753634732582820">Adresse aus Chromium entfernen?</translation>
++<translation id="5612673559833275349">Adresse aus AhoiBrowser entfernen?</translation>
+ <translation id="622039917539443112">Parallele Faltung</translation>
+ <translation id="6221286101741304627">Zum Beenden des Vollbildmodus |<ph name="ACCELERATOR" />| drücken</translation>
+ <translation id="6221311046884916259">Möchtest du diese Karte in deinem Google-Konto speichern?</translation>
+@@ -3150,7 +3150,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="635394585025793320">Ich möchte jemanden beeindrucken. Suche nach freien Tischen für 2 Personen in Restaurants, die gerade angesagt sind.</translation>
+ <translation id="6354918092619878358">Elliptische SECG-Kurve secp256r1 (ANSI X9.62 prime256v1, NIST P-256)</translation>
+ <translation id="6355224247005550277"><ph name="CROSS_DEVICE_TAB_FOCUSED_FRIENDLY_MATCH_TEXT" /> – drücke die Tabulatortaste und dann die Eingabetaste, um weitere Tabs von anderen Geräten zu sehen</translation>
+-<translation id="6355392890578844978">Dieser Browser wird nicht von einem Unternehmen oder einer anderen Organisation verwaltet. Aktivitäten auf diesem Gerät können außerhalb von Chromium verwaltet werden. <ph name="BEGIN_LINK" />Weitere Informationen<ph name="END_LINK" /></translation>
++<translation id="5072156916165757381">Dieser Browser wird nicht von einem Unternehmen oder einer anderen Organisation verwaltet. Aktivitäten auf diesem Gerät können außerhalb von AhoiBrowser verwaltet werden. <ph name="BEGIN_LINK" />Weitere Informationen<ph name="END_LINK" /></translation>
+ <translation id="6357546827188504216">Die Tabgruppen „<ph name="GROUP_TITLE_1" />“ und „<ph name="GROUP_TITLE_2" />“ sind nicht mehr verfügbar</translation>
+ <translation id="6358088212770985041">Zahlungsmethoden zu bearbeiten</translation>
+ <translation id="6358450015545214790">Was bedeuten diese Hinweise?</translation>
+@@ -3191,7 +3191,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="6410264514553301377">Ablaufdatum und CVC für <ph name="CREDIT_CARD" /> eingeben</translation>
+ <translation id="6411107829285739505">A4x8</translation>
+ <translation id="6412543105195503444">Dialogfeld für die Genehmigung auf der übergeordneten Website</translation>
+-<translation id="6415778972515849510">Mithilfe von Chromium kannst du dein Google-Konto schützen und dein Passwort ändern.</translation>
++<translation id="6541981374371578744">Mithilfe von AhoiBrowser kannst du dein Google-Konto schützen und dein Passwort ändern.</translation>
+ <translation id="6416877227920300343">EDP</translation>
+ <translation id="6418199314628742460">Achte darauf, dass alle wichtigen geschäftlichen oder privaten Daten extern gespeichert sind.</translation>
+ <translation id="6422648598133086441">Fahrzeug sicher in Google Wallet aktualisieren</translation>
+@@ -3323,7 +3323,7 @@ Wenn du die Optionen für „Später bezahlen“ ausblenden möchtest, rufe die
+ <translation id="6668389483194953109">Der Name der Papiergröße wurde als „Benutzerdefiniert“ angegeben, aber die Eigenschaft „custom_size“ ist leer oder ungültig.</translation>
+ <translation id="667044980437620424">Autofill aktiviert</translation>
+ <translation id="6670729408462528018">Galerie</translation>
+-<translation id="6671697161687535275">Vorschlag für das Formular aus Chromium entfernen?</translation>
++<translation id="4137566125461922617">Vorschlag für das Formular aus AhoiBrowser entfernen?</translation>
+ <translation id="6675846980676550611">AR-Berechtigung nicht gewährt</translation>
+ <translation id="6677738644213083042">Zu diesem Tab wechseln</translation>
+ <translation id="6679354743514146922">Der Chrome-Browser versucht, dein Passwort auf <ph name="APP_NAME" /> auszufüllen.</translation>
+@@ -3887,7 +3887,7 @@ Weitere Details:
+ <translation id="7631072086707140121">URL muss https sein.</translation>
+ <translation id="7633909222644580952">Leistungsdaten und Absturzberichte</translation>
+ <translation id="7634963626477752453">Im Ordner „<ph name="FOLDER_NAME" />“ gespeichert</translation>
+-<translation id="7637571805876720304">Kreditkarte aus Chromium entfernen?</translation>
++<translation id="4663914424007489670">Kreditkarte aus AhoiBrowser entfernen?</translation>
+ <translation id="7637586430889951925">{COUNT,plural, =0{Keins}=1{1 Passwort in deinem Konto (für <ph name="DOMAIN_LIST" />)}other{# Passwörter in deinem Konto (für <ph name="DOMAIN_LIST" />)}}</translation>
+ <translation id="7638605456503525968">Serielle Schnittstellen</translation>
+ <translation id="7646681339175747202">Das eingegebene Passwort wurde in einer Datenpanne gefunden. Der Google Passwortmanager empfiehlt, dieses Passwort jetzt zu ändern.</translation>
+@@ -4043,7 +4043,7 @@ Weitere Details:
+ <translation id="7892865709991296481">Zahlungseinstellungen</translation>
+ <translation id="7894280532028510793">Wenn die URL keinen Tippfehler enthält, <ph name="BEGIN_LINK" />kannst du die Netzwerkdiagnose durchführen<ph name="END_LINK" />.</translation>
+ <translation id="7901831439558593470">Umschlag 7 × 9 Zoll</translation>
+-<translation id="7905064834449738336">Wenn du ein Passwort verwendest, wirst du von Chromium gewarnt, falls es online veröffentlicht wurde. Dabei werden deine Passwörter und Nutzernamen verschlüsselt, damit sie von niemandem gelesen werden können, auch nicht von Google.</translation>
++<translation id="3322108115834170914">Wenn du ein Passwort verwendest, wirst du von AhoiBrowser gewarnt, falls es online veröffentlicht wurde. Dabei werden deine Passwörter und Nutzernamen verschlüsselt, damit sie von niemandem gelesen werden können, auch nicht von Google.</translation>
+ <translation id="7906177144646315659">{NUM_HOURS,plural, =1{Vor 1 Stunde erstellt}other{Vor {NUM_HOURS} Stunden erstellt}}</translation>
+ <translation id="7908648876066812348">Virtuelle Karte wird aktiviert</translation>
+ <translation id="7909498058929404306"><ph name="RUN_CHROME_SAFETY_CHECK_FOCUSED_FRIENDLY_MATCH_TEXT" /> – Drück die Tabulatortaste und dann die Eingabetaste, um in den Einstellungen die Seite „Sicherheitscheck“ für Chrome aufzurufen</translation>
+@@ -4105,7 +4105,7 @@ Weitere Details:
+ <translation id="7995512525968007366">Nicht angegeben</translation>
+ <translation id="7997855386298213183">geteilte Tabs</translation>
+ <translation id="7999482381722829925">Erstelle eine priorisierte Checkliste für die gründliche Reinigung aller Räume, mit Fokus auf häufig übersehene Stellen</translation>
+-<translation id="8001912761979890298">Dieser Server konnte nicht beweisen, dass er <ph name="DOMAIN" /> ist, da er ein Sicherheitszertifikat verwendet, das von Chromium oder deiner Systemkonfiguration für die Verschlüsselung von Web-Traffic nicht als vertrauenswürdig eingestuft wird. Mögliche Gründe sind eine fehlerhafte Konfiguration oder ein Angreifer, der deine Verbindung abfängt. <ph name="BEGIN_VIEW_CERTIFICATE_LINK" />Zertifikat ansehen<ph name="END_VIEW_CERTIFICATE_LINK" /></translation>
++<translation id="5797404236124888670">Dieser Server konnte nicht beweisen, dass er <ph name="DOMAIN" /> ist, da er ein Sicherheitszertifikat verwendet, das von AhoiBrowser oder deiner Systemkonfiguration für die Verschlüsselung von Web-Traffic nicht als vertrauenswürdig eingestuft wird. Mögliche Gründe sind eine fehlerhafte Konfiguration oder ein Angreifer, der deine Verbindung abfängt. <ph name="BEGIN_VIEW_CERTIFICATE_LINK" />Zertifikat ansehen<ph name="END_VIEW_CERTIFICATE_LINK" /></translation>
+ <translation id="800218591365569300">Versuche, andere Tabs oder Programme zu schließen, um Speicher freizugeben.</translation>
+ <translation id="8002230960325005199">Ähnliche Websites in einem neuen Tab ansehen</translation>
+ <translation id="8003046808285812021">„<ph name="SEARCH_TERMS" />“</translation>
+@@ -4134,7 +4134,7 @@ Weitere Details:
+ <translation id="8063875539456488183">Preis speichern und beobachten</translation>
+ <translation id="8065767681506419412">Diese Richtlinie bestimmt die Datentypen, die auf deiner aktuellen Plattform nicht unterstützt werden: <ph name="TYPE_LIST" />.</translation>
+ <translation id="8066225060526005217">Durch Cookie-Einstellungen verwaltet</translation>
+-<translation id="8067872629359326442">Du hast dein Passwort gerade auf einer verdächtigen Website eingegeben. Chromium kann dir helfen. Wenn du dein Passwort ändern und Google darüber informieren möchtest, dass dein Konto gefährdet sein könnte, klicke auf "Konto schützen".</translation>
++<translation id="860610946051353131">Du hast dein Passwort gerade auf einer verdächtigen Website eingegeben. AhoiBrowser kann dir helfen. Wenn du dein Passwort ändern und Google darüber informieren möchtest, dass dein Konto gefährdet sein könnte, klicke auf "Konto schützen".</translation>
+ <translation id="8070439594494267500">App-Symbol</translation>
+ <translation id="8075588646978457437">Selbstklebendes Papier</translation>
+ <translation id="8075736640322370409">Schnell eine neue Google-Tabelle erstellen</translation>
+@@ -4196,7 +4196,7 @@ Weitere Details:
+ <translation id="8175796834047840627">Chrome bietet dir die Möglichkeit, die Karten in deinem Google-Konto zu speichern, weil du angemeldet bist. Du kannst dies in den Einstellungen ändern.</translation>
+ <translation id="8176440868214972690">Der Administrator dieses Geräts hat Informationen wie z. B. Einstellungen oder Richtlinien an folgende Websites gesendet.</translation>
+ <translation id="818254048113802060">{0,plural, =1{<ph name="FILE_NAME" /> wurde aufgrund des Inhalts blockiert}other{<ph name="FILE_COUNT" /> Dateien wurden aufgrund des Inhalts blockiert}}</translation>
+-<translation id="8186171296341598122">Du kannst deine Suchmaschine jederzeit in den Einstellungen von Chromium ändern. Wenn deine bevorzugte Suchmaschine nicht angezeigt wird, kannst du eine Suche auf der entsprechenden Website durchführen. Dann wird diese Suchmaschine in den Chromium-Einstellungen als zuletzt verwendete Suchmaschine aufgeführt und du kannst sie als Standard festlegen.</translation>
++<translation id="3181029184902887949">Du kannst deine Suchmaschine jederzeit in den Einstellungen von AhoiBrowser ändern. Wenn deine bevorzugte Suchmaschine nicht angezeigt wird, kannst du eine Suche auf der entsprechenden Website durchführen. Dann wird diese Suchmaschine in den AhoiBrowser-Einstellungen als zuletzt verwendete Suchmaschine aufgeführt und du kannst sie als Standard festlegen.</translation>
+ <translation id="8188830160449823068">IBAN nur auf dem Gerät gespeichert</translation>
+ <translation id="8189557652711717875">Die von dir ausgewählte Suchmaschine wird für Funktionen wie die Suche über die Adressleiste oder die Suche anhand von Bildern auf Webseiten verwendet.</translation>
+ <translation id="8190193880870196235">Wird über eine Erweiterung verwaltet</translation>
+@@ -4279,7 +4279,7 @@ Weitere Details:
+ <translation id="8316555157357957253">Wird verwendet</translation>
+ <translation id="8319414634934645341">Erweiterte Schlüsselverwendung</translation>
+ <translation id="831997045666694187">Abends</translation>
+-<translation id="8321448084834652864">Du kannst deine Suchmaschine jederzeit in den Einstellungen von Chromium ändern.</translation>
++<translation id="7249447440034613632">Du kannst deine Suchmaschine jederzeit in den Einstellungen von AhoiBrowser ändern.</translation>
+ <translation id="8321476692217554900">Benachrichtigungen</translation>
+ <translation id="8323505966575306467">Noch mehr Schutz für deine Passwörter</translation>
+ <translation id="832547548543012337">Ausweis löschen</translation>
+@@ -4417,7 +4417,7 @@ Weitere Details:
+ <translation id="8559762987265718583">Es kann keine private Verbindung zu <ph name="BEGIN_BOLD" /><ph name="DOMAIN" /><ph name="END_BOLD" /> hergestellt werden, weil Datum und Uhrzeit deines Geräts falsch sind (<ph name="DATE_AND_TIME" />).</translation>
+ <translation id="8564182942834072828">Getrennte Dokumente/nicht sortierte Kopien</translation>
+ <translation id="8564466070529550495">Die virtuelle Karte ist zurzeit nicht verfügbar. Bitte versuche es später noch einmal.</translation>
+-<translation id="8564985650692024650">Chromium empfiehlt, dein Passwort für <ph name="BEGIN_BOLD" /><ph name="ORG_NAME" /><ph name="END_BOLD" /> zurückzusetzen, wenn du es auf anderen Websites verwendet hast.</translation>
++<translation id="4391931730345599113">AhoiBrowser empfiehlt, dein Passwort für <ph name="BEGIN_BOLD" /><ph name="ORG_NAME" /><ph name="END_BOLD" /> zurückzusetzen, wenn du es auf anderen Websites verwendet hast.</translation>
+ <translation id="8568406155558596128">Hilf Chrome, komplexe Formulare besser zu verstehen und auszufüllen, indem Daten sicher auf Google-Servern verarbeitet werden. Deine Informationen bleiben privat und werden von niemandem überprüft.</translation>
+ <translation id="8574570240981266561">Element gelöscht</translation>
+ <translation id="8577192028579836704">Alle Optionen; in der Regel <ph name="TYPICAL_PRICE" /></translation>
+@@ -4498,7 +4498,7 @@ Weitere Details:
+ <translation id="8736059027199600831">30 × 40 Zoll</translation>
+ <translation id="8737134861345396036"><ph name="LAUNCH_INCOGNITO_FOCUSED_FRIENDLY_MATCH_TEXT" /> – drücke die Tabulatortaste und dann die Eingabetaste, um ein neues Inkognitofenster zu öffnen und privat zu surfen</translation>
+ <translation id="8737685506611670901"><ph name="PROTOCOL" />-Links anstelle von <ph name="REPLACED_HANDLER_TITLE" /> öffnen</translation>
+-<translation id="8738058698779197622">Zum Aufbau einer sicheren Verbindung muss die Uhrzeit richtig eingestellt sein. Der Grund hierfür ist, dass Websites sich mithilfe von Zertifikaten identifizieren, die nur für einen bestimmten Zeitraum gelten. Da die Uhrzeit deines Geräts falsch ist, kann Chromium diese Zertifikate nicht bestätigen.</translation>
++<translation id="4036279931369555276">Zum Aufbau einer sicheren Verbindung muss die Uhrzeit richtig eingestellt sein. Der Grund hierfür ist, dass Websites sich mithilfe von Zertifikaten identifizieren, die nur für einen bestimmten Zeitraum gelten. Da die Uhrzeit deines Geräts falsch ist, kann AhoiBrowser diese Zertifikate nicht bestätigen.</translation>
+ <translation id="8740359287975076522">Die &lt;abbr id="dnsDefinition"&gt;DNS-Adresse&lt;/abbr&gt; von <ph name="HOST_NAME" /> wurde nicht gefunden. Eine Problemdiagnose wird durchgeführt.</translation>
+ <translation id="874918643257405732">Lesezeichen für diesen Tab erstellen</translation>
+ <translation id="8749274696886550762">Diese Website scheint nicht korrekt zu sein</translation>
+@@ -4530,7 +4530,7 @@ Weitere Details:
+ <translation id="8790007591277257123">&amp;Löschen wiederholen</translation>
+ <translation id="8790668801880409584">Reiseinformationen für Autofill speichern</translation>
+ <translation id="8792272652220298572">Kunststoff (glänzend)</translation>
+-<translation id="8792621596287649091">Du könntest den Zugriff auf dein <ph name="ORG_NAME" />-Konto verlieren oder zum Opfer von Identitätsdiebstahl werden. Chromium empfiehlt dir, dein Passwort jetzt zu ändern.</translation>
++<translation id="2374155327305515355">Du könntest den Zugriff auf dein <ph name="ORG_NAME" />-Konto verlieren oder zum Opfer von Identitätsdiebstahl werden. AhoiBrowser empfiehlt dir, dein Passwort jetzt zu ändern.</translation>
+ <translation id="8792626944327216835">Mikrofon</translation>
+ <translation id="8793655568873652685"><ph name="ENROLLMENT_DOMAIN" /> hat Chrome Enterprise Connectors für deinen Browser aktiviert. Diese Connectors haben Zugriff auf einen Teil deiner Daten.</translation>
+ <translation id="8796062699363039080"><ph name="OPERATING_SYSTEM" />-Einstellungen</translation>
+@@ -4707,7 +4707,7 @@ Weitere Details:
+ <translation id="9096425087209440047"><ph name="SET_CHROME_AS_DEFAULT_BROWSER_FOCUSED_FRIENDLY_MATCH_TEXT" /> – Drück die Tabulatortaste und dann die Eingabetaste, um Chrome in den iOS-Einstellungen als Standardbrowser für das System festzulegen</translation>
+ <translation id="9101450247048146228">Kamera-Nutzung und ‑Bewegung (<ph name="CAMERAS_COUNT" />)</translation>
+ <translation id="9101630580131696064">Fach 1</translation>
+-<translation id="9103872766612412690"><ph name="SITE" /> schützt deine Daten in der Regel durch Verschlüsselung. Als Chromium dieses Mal versuchte, eine Verbindung zu <ph name="SITE" /> herzustellen, gab die Website ungewöhnliche und falsche Anmeldedaten zurück. Entweder versucht ein Angreifer, sich als <ph name="SITE" /> auszugeben, oder die Verbindung wurde durch eine WLAN-Anmeldeseite unterbrochen. Da Chromium die Verbindung vor dem Austausch von Daten unterbrochen hat, sind deine Informationen weiterhin sicher.</translation>
++<translation id="1626130102871680032"><ph name="SITE" /> schützt deine Daten in der Regel durch Verschlüsselung. Als AhoiBrowser dieses Mal versuchte, eine Verbindung zu <ph name="SITE" /> herzustellen, gab die Website ungewöhnliche und falsche Anmeldedaten zurück. Entweder versucht ein Angreifer, sich als <ph name="SITE" /> auszugeben, oder die Verbindung wurde durch eine WLAN-Anmeldeseite unterbrochen. Da AhoiBrowser die Verbindung vor dem Austausch von Daten unterbrochen hat, sind deine Informationen weiterhin sicher.</translation>
+ <translation id="9107199998619088551">Dein Profil wird von <ph name="MANAGER" /> verwaltet</translation>
+ <translation id="9107467864910557787">Der Browser wird von <ph name="MANAGER" /> verwaltet</translation>
+ <translation id="91108059142052966">Die Administratorrichtlinie blockiert die Bildschirmfreigabe mit <ph name="APPLICATION_TITLE" />, wenn vertrauliche Inhalte sichtbar sind</translation>
+@@ -4789,13 +4789,13 @@ Weitere Details:
+ <translation id="931598121743515856">Der Kaufbetrag muss über <ph name="CHECKOUT_AMOUNT_MINIMUM" /> liegen</translation>
+ <translation id="933712198907837967">Diners Club</translation>
+ <translation id="934634059306213385">Der <ph name="APP_NAME" /> App erlauben, WLANs einzurichten?</translation>
+-<translation id="936602727769022409">Du könntest den Zugriff auf dein Google-Konto verlieren. Chromium empfiehlt dir, dein Passwort jetzt zu ändern. Du wirst dazu aufgefordert, dich anzumelden.</translation>
++<translation id="3897793620365558190">Du könntest den Zugriff auf dein Google-Konto verlieren. AhoiBrowser empfiehlt dir, dein Passwort jetzt zu ändern. Du wirst dazu aufgefordert, dich anzumelden.</translation>
+ <translation id="937885410143139026">Daten an Admin-Konsole gesendet</translation>
+ <translation id="939736085109172342">Neuer Ordner</translation>
+ <translation id="940524522703752213">Der Dateiupload in <ph name="CLOUD_PROVIDER" /> beginnt in <ph name="MINUTES" /> Minuten</translation>
+ <translation id="943185096918807504">Maximaler Kaufbetrag: <ph name="CHECKOUT_AMOUNT_MAXIMUM" /></translation>
+ <translation id="944578681290094302">Anzeigen, welche Prämien und Vorteile für deine Karten an der Kasse verfügbar sind. <ph name="CARD_BENEFIT_HELP_LINK_BEGIN" />Informationen zu Kartenvorteilen<ph name="CARD_BENEFIT_HELP_LINK_END" /></translation>
+-<translation id="945673208656386843">Informationen dieser Karte bei Käufen in Chromium automatisch einfügen, wenn sie auf diesem Gerät gespeichert wurde</translation>
++<translation id="2316439273963600630">Informationen dieser Karte bei Käufen in AhoiBrowser automatisch einfügen, wenn sie auf diesem Gerät gespeichert wurde</translation>
+ <translation id="947370374845726940"><ph name="CREATE_GOOGLE_SITE_FOCUSED_FRIENDLY_MATCH_TEXT" /> – drücke die Tabulatortaste und dann die Eingabetaste, um schnell eine neue Website in Google Sites zu erstellen</translation>
+ <translation id="949026252328034572"><ph name="MEMBER_COUNT" /> Mitglieder sind der Tabgruppe „<ph name="GROUP_NAME" />“ beigetreten</translation>
+ <translation id="949314938206378263">Deine Anfrage wurde gesendet. Dein Elternteil kann sie in Family Link prüfen.</translation>
+@@ -4811,7 +4811,7 @@ Weitere Details:
+ <translation id="961856697154696964">Browserdaten löschen</translation>
+ <translation id="961930410699694996">Berechtigung zur Standortermittlung einmal gewährt</translation>
+ <translation id="962484866189421427">Dieser Inhalt könnte betrügerische Apps installieren, die scheinbar einem anderen Zweck dienen oder Daten erfassen, um dich auszuspionieren. <ph name="BEGIN_LINK" />Trotzdem zeigen<ph name="END_LINK" /></translation>
+-<translation id="963734905955638680">Gemäß einem Gesetz in deiner Region wirst du von Chromium aufgefordert, deine Standardsuchmaschine festzulegen. Diese Suchmaschinen sind in deiner Region beliebt und werden in zufälliger Reihenfolge angezeigt.</translation>
++<translation id="5985858347055709">Gemäß einem Gesetz in deiner Region wirst du von AhoiBrowser aufgefordert, deine Standardsuchmaschine festzulegen. Diese Suchmaschinen sind in deiner Region beliebt und werden in zufälliger Reihenfolge angezeigt.</translation>
+ <translation id="963837307749850257">Alle Nutzer</translation>
+ <translation id="964050462028070434">Passwörter und Passkeys verwalten…</translation>
+ <translation id="964681140808832181">Ja, ich möchte abbrechen</translation>
+@@ -4820,7 +4820,7 @@ Weitere Details:
+ <translation id="973788791897303708">Diese Tabgruppe ist voll</translation>
+ <translation id="975560348586398090">{COUNT,plural, =0{Keine}=1{1 Element}other{# Elemente}}</translation>
+ <translation id="976522784004777030">5 × 8 Zoll</translation>
+-<translation id="978750072783101994">Informationen dieser Karte bei Käufen in Chromium automatisch einfügen, wenn sie in Google Wallet gespeichert ist</translation>
++<translation id="1583262342230277805">Informationen dieser Karte bei Käufen in AhoiBrowser automatisch einfügen, wenn sie in Google Wallet gespeichert ist</translation>
+ <translation id="979107176848483472">Dein Browser und Profil werden verwaltet von <ph name="DOMAIN" /></translation>
+ <translation id="981121421437150478">Offline</translation>
+ <translation id="98237783946365638">Amtlichen Ausweis sicher in Google Wallet speichern</translation>

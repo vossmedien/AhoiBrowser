@@ -62,11 +62,33 @@ MAC_DEFINES = {
 }
 
 
-def mac_active_messages(checkout, grd_path, old, keep):
+def grd_sources(path):
+  """`path` and every part it includes; parts are relative to their parent."""
+  sources = [path]
+  for part in re.findall(r'<part file="([^"]+)"',
+                         path.read_text(encoding="utf-8")):
+    sources.extend(grd_sources(path.parent / part))
+  return sources
+
+
+def build_defines(build_dir, grd):
+  """The -D values the build's GRIT action for `grd` passes."""
+  for line in (build_dir / "toolchain.ninja").read_text().splitlines():
+    if "grit.py -i ../../%s build" % grd not in line:
+      continue
+    defines = {}
+    for name, value in re.findall(r"-D (\w+)=(\S+)", line):
+      defines[name] = {"true": True, "false": False}.get(
+          value, int(value) if value.isdigit() else value)
+    return defines
+  sys.exit("no GRIT action for %s in %s" % (grd, build_dir))
+
+
+def mac_active_messages(checkout, grd_path, old, keep, defines):
   """Names of messages GRIT keeps for macOS whose text contains `old`."""
   sys.path.insert(0, str(checkout / "tools/grit"))
   from grit import grd_reader  # pylint: disable=import-outside-toplevel
-  root = grd_reader.Parse(str(grd_path), defines=MAC_DEFINES,
+  root = grd_reader.Parse(str(grd_path), defines=defines,
                           target_platform="darwin", debug=False)
   names = []
   for node in root.ActiveDescendants():
@@ -91,6 +113,9 @@ def main():
   parser.add_argument(
       "--keep", action="append", default=[],
       help="skip messages whose text contains this (attribution, license)")
+  parser.add_argument(
+      "--build-dir", type=pathlib.Path,
+      help="read the GRIT defines of --grd from this build's toolchain.ninja")
   parser.add_argument("--old", default="Chromium")
   parser.add_argument("--new", default="AhoiBrowser")
   args = parser.parse_args()
@@ -98,14 +123,14 @@ def main():
   # The product word only; "Chromium OS"/"ChromiumOS" name another product.
   product_word = re.compile(r"%s(?!\s?OS\b)" % re.escape(args.old))
   grd_path = args.checkout / args.grd
-  # The .grd and the .grdp parts it includes hold the messages.
-  sources = [grd_path] + [
-      grd_path.parent / part for part in re.findall(
-          r'<part file="([^"]+)"', grd_path.read_text(encoding="utf-8"))]
+  # The .grd and the .grdp parts it includes, also nested, hold the messages.
+  sources = grd_sources(grd_path)
   texts = {path: path.read_text(encoding="utf-8") for path in sources}
   if args.mac_active:
+    defines = (build_defines(args.build_dir, args.grd) if args.build_dir
+               else MAC_DEFINES)
     args.message = mac_active_messages(args.checkout, grd_path, args.old,
-                                       args.keep)
+                                       args.keep, defines)
   if not args.message:
     sys.exit("no messages selected")
   changes = []  # (name, path, old block, new block, old id, new id)
