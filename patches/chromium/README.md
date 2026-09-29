@@ -1,5 +1,31 @@
 # Chromium M153 patch ledger
 
+## `0080-ahoi-milky-liquid-glass-backdrop.patch`
+
+- **Owner:** Desktop (DoD 6 Liquid Glass, rated RED by the owner: Glass ON
+  changed mainly the Sidebar instead of a milky browser backdrop).
+- **Change:** `BrowserNativeWidgetMac` tints the full-window
+  `NSGlassEffectView` through its own `tintColor` with the milky colour from
+  overlay `ahoi::appearance::ResolveNativeBackdrop` (theme surface lifted
+  toward white; light 42%, dark 40%) and lowers the NSWindow foundation to
+  30% of that milk. The former tint `NSView` was an arbitrary glass subview,
+  whose z-order AppKit does not guarantee; it is now the glass `contentView`
+  and stays clear. Chromium's `GetGlassFrameTintOpacity` (dark cap 0.90) is
+  removed. `BrowserFrameViewMac` paints transparent only when
+  `GlassFrameService` eligibility **and** Ahoi's `GlassPolicy` (Glass
+  setting, Reduce Transparency, Increase Contrast, power) allow glass; its
+  opaque path paints the same semantic chrome surface as the widget's opaque
+  NSWindow, fixing the undefined/saturated frame at Glass OFF. DEPS allows
+  `browser_frame_view_mac.mm` to include `ahoi/browser/ui/appearance`.
+- **Safety:** WebContents stays an opaque sibling above the glass; no
+  hit-testing, sandbox, permission or profile ownership changes. The glass
+  view keeps `hitTest:` returning nil. Chromium's one-glass-window limit
+  (`kMaxGlassWindows`) and fullscreen/extension-theme exclusions stay.
+- **Tests:** policy matrix in `ahoi_appearance_unittests`
+  (`glass_material_unittest.cc`); installed journey
+  `tools/desktop_e2e/glass-appearance-journey.sh`. Visual acceptance is the
+  owner's.
+
 ## `0079-ahoi-own-safe-storage-keychain-item.patch`
 
 - **Owner:** Desktop (crest-hardening handoff 148). Ahoi used Chromium's
