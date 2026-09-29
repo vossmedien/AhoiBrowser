@@ -190,7 +190,7 @@ index 2c514ae6..5a439766 100644
 +  username_field_->SetPreferredSize(
 +      gfx::Size(username_field_->GetPreferredSize().width(),
 +                ahoi::visual_style::kDialogFieldHeight));
-+  ahoi::dialog_style::StyleFocusRing(username_field_->GetTextfield());
++  ahoi::dialog_style::StyleFocusRing(*username_field_);
    username_field_->SetCallback(base::BindRepeating(
        &LoginView::OnUsernameChanged, weak_ptr_factory_.GetWeakPtr()));
    auto* password_label =
