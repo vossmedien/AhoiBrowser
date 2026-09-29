@@ -65,3 +65,11 @@ Drei neue Commits zu Seiten mit laufenden Medien (Video, Ton, PiP, Aufnahme). Ge
 - Crest unverändert auf `6038460e` (geprüft).
 - VersionHistory mac_arm64 stable: **154.0.8037.93 bei 100 %** (neues M154-Patch-Release), daneben 154.0.8037.58/.59/.92 in Restanteilen und ein 0,5-%-Slice 153.0.8010.55; der 155er-Probeslice ist nicht mehr aktiv.
 - googlesource weiter HTTP 503. Owner-Entscheidung bleibt: erst Build 51/52 und iPhone-Sync-Test, dann Roll auf das dann aktuelle Stable (jetzt 154.0.8037.93), GitHub-Mirror nur als dokumentierte Abweichung mit Hash-Abgleich gegen Chromium Dash/VersionHistory.
+
+## Crest-Nachtrag 30.09.2026 (6038460e..d5dfd6bf)
+
+Vier neue Commits (fbb48de0, a946fa9f, cd860d3e, d5dfd6bf). Geprüft gegen `overlay/`, `patches/` und `apps/AhoiMobile/`. **Keine Empfehlung.**
+
+- **Nicht anwendbar: Dual-Engine als Standard mit verzögertem Chromium-Start** (a946fa9f, Doku in d5dfd6bf). `native-host.patch` lässt Crests Swift-Framework `NSApplication` und Delegate besitzen (`--crest-app-owned-host`). Chromium lädt erst bei der ersten Chromium-Seite. Der Patch überspringt `BrowserCrApplication`, Hauptmenü, Profilmenü und Services-Menü und ersetzt Event-Verarbeitung und Accessibility-Modi durch einen Adapter (`CrestApplicationEvents`). Widerlegungsversuch: Ahoi ist ein eigenständiger Chromium-Build mit Stock-`BrowserCrApplication`/`AppController`. JIS-Tasten, Cmd-KeyUp und VoiceOver-Modi laufen dort bereits nativ. Der Adapter bildet nur nach, was Crest durch den fremden `NSApp` verliert.
+- **Nicht betroffen: Space-Tombstones löschen lokale Profile nur bei expliziter Löschung** (a946fa9f, .NET-`NativeSyncMaterializer`). Widerlegungsversuch: Ahoi löscht isolierte Profile nur nach lokaler Nutzeraktion oder wenn das Anlegen fehlschlägt (`overlay/chromium/src/ahoi/browser/session/isolated_profile_creation.cc:272,389`). Ein empfangener Workspace-Tombstone blendet den Workspace nur aus (`session_bridge_sync_persistence.cc:98`). Das Risiko besteht in Ahoi also nicht.
+- **Rest:** Engine-Auswahl und Site-Regeln (SwiftUI/.NET), Contracts/Codecs, Sidebar-Anpassungen, Release-, CI- und Test-Channel-Workflows (fbb48de0, cd860d3e, d5dfd6bf CI-Pin) sind reine Crest-Shell.
