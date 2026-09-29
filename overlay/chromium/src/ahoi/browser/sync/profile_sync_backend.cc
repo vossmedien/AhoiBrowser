@@ -667,7 +667,10 @@ bool ProfileSyncBackend::EnforceRetention(base::Time now) {
 
 template <typename Record>
 bool ProfileSyncBackend::Put(const Record& record) {
-  if (!ProfileScopeActive()) {
+  // The store is absent while sync is off or failed to open; history and
+  // tab observers still report (29 Sep 2026: a crash on a history visit
+  // during the real Arc import).
+  if (!store_ || !ProfileScopeActive()) {
     return false;
   }
   const SyncStore::Result result = store_->PutLocalRecord(record);
@@ -678,6 +681,9 @@ bool ProfileSyncBackend::Put(const Record& record) {
 template <typename Record>
 bool ProfileSyncBackend::PutDomainRecordIfChanged(Record record,
                                                   base::Time mutation_time) {
+  if (!store_) {
+    return false;
+  }
   SyncRecord existing;
   const SyncStore::Result found = store_->GetRecord(
       GetEntityType(SyncRecord(record)), record.id, &existing);
