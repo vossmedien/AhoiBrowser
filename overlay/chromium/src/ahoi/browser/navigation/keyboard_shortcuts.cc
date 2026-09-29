@@ -528,13 +528,21 @@ bool ResetToDefault(PrefService* prefs, std::string_view id) {
   }
   // The default may meanwhile be bound to another command; that command
   // keeps it, and this one is not reset instead of taking it silently.
+  // Every other command is checked: the first catalog match for a key may
+  // be this command's own default, which hides a later command's override.
   Overrides others = ReadOverrides(*prefs);
   others.erase(std::string(id));
-  for (const ui::Accelerator& accelerator : command->defaults) {
-    const std::optional<std::string> owner =
-        CommandForAccelerator(others, accelerator);
-    if (owner && *owner != id) {
-      return false;
+  for (const ShortcutCommand& other : Catalog()) {
+    if (other.id == id) {
+      continue;
+    }
+    for (const ui::Accelerator& bound :
+         EffectiveAccelerators(others, other.id)) {
+      for (const ui::Accelerator& accelerator : command->defaults) {
+        if (SameKey(bound, accelerator)) {
+          return false;
+        }
+      }
     }
   }
   ScopedDictPrefUpdate(prefs, kShortcutBindingsPref)->Remove(id);
