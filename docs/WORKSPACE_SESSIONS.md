@@ -126,6 +126,24 @@ handoff 003 (deletion) is accepted and the UI discloses that permissions and
 extensions are shared. Per-partition permission and `chrome.cookies` scoping is
 a later option (ADR 0011).
 
+### Clearing browsing data (patch 0075)
+
+Chromium's `BrowsingDataRemover` clears only the default partition unless a
+filter names another one, and Settings' per-site "Delete data" uses a
+`BrowsingDataModel` of the default partition. Since patch 0075, the Chrome
+remover delegate forwards every profile-wide removal (Delete browsing data,
+clear on exit, other callers without a partition) to each existing own
+website-session partition, with the same filter and only its StoragePartition
+data types, next to the Isolated Web App fan-out. Site settings' per-site
+deletion removes that site's cookies and site storage there too
+(`ahoi/browser/session/website_session_browsing_data.{h,cc}`). A partition
+is reached only if it is loaded or its directory exists, so clearing never
+creates one; retired contexts are left to the Workspace deletion. The forwarded
+removals are queued behind the original one: the Settings dialog reports
+completion before they finish, as it does for Isolated Web Apps. Settings'
+"All sites" list still shows only default-partition data. Journey:
+`tools/desktop_e2e/clear-data-website-sessions-journey.sh`.
+
 ## Sync coordination
 
 Desktop owns native isolation and UI. Unified Sync owner

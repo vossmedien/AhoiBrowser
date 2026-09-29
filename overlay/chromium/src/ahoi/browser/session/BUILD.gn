@@ -104,6 +104,25 @@ source_set("website_session_context") {
   ]
 }
 
+source_set("website_session_browsing_data") {
+  sources = [
+    "website_session_browsing_data.cc",
+    "website_session_browsing_data.h",
+  ]
+  public_deps = [
+    ":session_preferences",
+    "//base",
+    "//content/public/browser",
+  ]
+  deps = [
+    ":website_session_context",
+    "//chrome/browser/profiles:profile",
+    "//components/prefs",
+    "//net",
+    "//url",
+  ]
+}
+
 source_set("startup_policy") {
   sources = [
     "startup_policy.cc",
@@ -251,6 +270,7 @@ source_set("unit_tests") {
     "session_restore_integration_unittest.cc",
     "shared_tab_target_policy_unittest.cc",
     "startup_policy_unittest.cc",
+    "website_session_browsing_data_unittest.cc",
     "workspace_directory_order_unittest.cc",
     "workspace_session_metadata_unittest.cc",
     "workspace_structure_invalidation_unittest.cc",
@@ -262,6 +282,8 @@ source_set("unit_tests") {
     ":session_preferences",
     ":shared_tab_target_policy",
     ":startup_policy",
+    ":website_session_browsing_data",
+    ":website_session_context",
     ":workspace_session_metadata",
     "//base/test:test_support",
     "//chrome/browser/ui",
@@ -272,7 +294,11 @@ source_set("unit_tests") {
     "//components/sync_preferences:test_support",
     "//components/tabs:public",
     "//content/test:test_support",
+    "//net",
+    "//services/network/public/mojom",
+    "//testing/gmock",
     "//testing/gtest",
+    "//url",
   ]
   data = [ "../sync/testdata/shared_tab_wire_v3_contract.json" ]
 }

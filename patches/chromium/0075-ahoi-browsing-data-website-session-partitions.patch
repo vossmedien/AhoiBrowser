@@ -1,0 +1,139 @@
+diff --git a/chrome/browser/browsing_data/BUILD.gn b/chrome/browser/browsing_data/BUILD.gn
+index 5181cf3a..688d1e4f 100644
+--- a/chrome/browser/browsing_data/BUILD.gn
++++ b/chrome/browser/browsing_data/BUILD.gn
+@@ -206,6 +206,7 @@ source_set("impl") {
+   }
+   if (!is_android) {
+     deps += [
++      "//ahoi/browser/session:website_session_browsing_data",
+       "//chrome/browser/profiles/keep_alive",
+       "//chrome/browser/ui/browser_window",
+       "//chrome/browser/ui/tabs:tab_strip",
+diff --git a/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc b/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc
+index 1cd494a5..2df64f2c 100644
+--- a/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc
++++ b/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc
+@@ -12,6 +12,7 @@
+ #include <utility>
+ #include <vector>
+ 
++#include "ahoi/browser/session/website_session_browsing_data.h"
+ #include "base/barrier_closure.h"
+ #include "base/check_deref.h"
+ #include "base/containers/flat_set.h"
+@@ -1457,6 +1458,23 @@ void ChromeBrowsingDataRemoverDelegate::RemoveEmbedderData(
+       }
+     }
+   }
++
++  //////////////////////////////////////////////////////////////////////////////
++  // Ahoi Workspace website sessions.
++  // A Workspace with its own website sessions keeps its cookies and site
++  // storage in a persistent non-default StoragePartition. Like the IWA
++  // partitions above, a removal that names no StoragePartition also reaches
++  // every existing one of them; none is created for it. This task ends once
++  // those removals are queued, since nested Remove calls are not supported.
++  if (!filter_builder->GetStoragePartitionConfig().has_value() &&
++      !profile_->IsOffTheRecord()) {
++    ahoi::session::RemoveWebsiteSessionPartitionData(
++        profile_, delete_begin, delete_end, remove_mask, origin_type_mask,
++        *filter_builder,
++        base::IgnoreArgs<std::vector<content::StoragePartitionConfig>>(
++            CreateTaskCompletionClosure(
++                TracingDataType::kAhoiWebsiteSessions)));
++  }
+ #endif  // !BUILDFLAG(IS_ANDROID)
+ 
+   //////////////////////////////////////////////////////////////////////////////
+@@ -1647,6 +1665,8 @@ const char* ChromeBrowsingDataRemoverDelegate::GetHistogramSuffix(
+       return "MediaDeviceSalts";
+     case TracingDataType::kPrivateVerificationTokens:
+       return "PrivateVerificationTokens";
++    case TracingDataType::kAhoiWebsiteSessions:
++      return "AhoiWebsiteSessions";
+   }
+ }
+ // LINT.ThenChange(//tools/metrics/histograms/metadata/history/histograms.xml:History.ClearBrowsingData.Duration.ChromeTask.Task)
+diff --git a/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h b/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h
+index 8024fdff..ae586bab 100644
+--- a/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h
++++ b/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h
+@@ -147,8 +147,10 @@ class ChromeBrowsingDataRemoverDelegate
+     // See also kDisableAutoSigninForProfilePasswords.
+     kDisableAutoSigninForAccountPasswords = 46,
+     kPrivateVerificationTokens = 47,
++    // Ahoi: queuing removals for Workspace website-session partitions.
++    kAhoiWebsiteSessions = 48,
+ 
+-    kMaxValue = kPrivateVerificationTokens,
++    kMaxValue = kAhoiWebsiteSessions,
+   };
+   // LINT.ThenChange(//tools/metrics/histograms/metadata/history/enums.xml:ChromeBrowsingDataRemoverTasks)
+ 
+diff --git a/chrome/browser/ui/webui/settings/BUILD.gn b/chrome/browser/ui/webui/settings/BUILD.gn
+index 6828b02a..d121cce6 100644
+--- a/chrome/browser/ui/webui/settings/BUILD.gn
++++ b/chrome/browser/ui/webui/settings/BUILD.gn
+@@ -351,6 +351,7 @@ source_set("impl") {
+     ]
+     deps += [
+       "//ahoi/browser/importer/arc:settings_handler",
++      "//ahoi/browser/session:website_session_browsing_data",
+       "//ahoi/browser/ui/settings:settings_handler",
+     ]
+   }
+diff --git a/chrome/browser/ui/webui/settings/site_settings_handler.cc b/chrome/browser/ui/webui/settings/site_settings_handler.cc
+index 4ada2bea..c8816c7e 100644
+--- a/chrome/browser/ui/webui/settings/site_settings_handler.cc
++++ b/chrome/browser/ui/webui/settings/site_settings_handler.cc
+@@ -137,6 +137,10 @@
+ #include "components/user_manager/user_manager.h"
+ #endif
+ 
++#if BUILDFLAG(IS_MAC)
++#include "ahoi/browser/session/website_session_browsing_data.h"
++#endif
++
+ #if BUILDFLAG(IS_WIN)
+ #include "chrome/browser/media/cdm_document_service_impl.h"
+ #endif
+@@ -2648,6 +2652,14 @@ void SiteSettingsHandler::RemoveNonModelData(
+     return;
+   }
+ 
++#if BUILDFLAG(IS_MAC)
++  // Ahoi: the BrowsingDataModel covers only the default StoragePartition.
++  // Workspaces with their own website sessions keep these sites' cookies and
++  // storage in their own partitions; existing ones are cleared as well.
++  ahoi::session::RemoveWebsiteSessionSiteData(profile_, origins,
++                                              base::DoNothing());
++#endif
++
+   // TODO(crbug.com/40204789): Remove client hint information, which cannot be
+   // associated with Cookie node information as the scheme in the cookie node
+   // may not match due to HTTP / HTTPS distinction issues.
+diff --git a/tools/metrics/histograms/metadata/history/enums.xml b/tools/metrics/histograms/metadata/history/enums.xml
+index c37ea6dc..55a8a813 100644
+--- a/tools/metrics/histograms/metadata/history/enums.xml
++++ b/tools/metrics/histograms/metadata/history/enums.xml
+@@ -127,6 +127,7 @@ chromium-metrics-reviews@google.com.
+   <int value="45" label="kMediaDeviceSalts"/>
+   <int value="46" label="kDisableAutoSigninForAccountPasswords"/>
+   <int value="47" label="kPrivateVerificationTokens"/>
++  <int value="48" label="kAhoiWebsiteSessions"/>
+ </enum>
+ 
+ <!-- LINT.ThenChange(//chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.h:TracingDataType) -->
+diff --git a/tools/metrics/histograms/metadata/history/histograms.xml b/tools/metrics/histograms/metadata/history/histograms.xml
+index 437a625b..11d1d515 100644
+--- a/tools/metrics/histograms/metadata/history/histograms.xml
++++ b/tools/metrics/histograms/metadata/history/histograms.xml
+@@ -154,6 +154,7 @@ chromium-metrics-reviews@google.com.
+ 
+   <token key="Task">
+     <variant name="AccountPasswords" summary="AccountPasswords"/>
++    <variant name="AhoiWebsiteSessions" summary="AhoiWebsiteSessions"/>
+     <variant name="AutofillData" summary="AutofillData"/>
+     <variant name="AutofillOrigins" summary="AutofillOrigins"/>
+     <variant name="CdmLicenses" summary="CdmLicenses"/>
