@@ -11,15 +11,15 @@ extension MobileBrowserLayoutUITests {
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
         XCTAssertTrue(workspace.waitForExistence(timeout: 8))
-        XCTAssertTrue(webView.waitForExistence(timeout: 3))
+        XCTAssertTrue(webView.waitForExistence(timeout: stateTimeout))
         XCTAssertTrue(
-            webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3),
+            webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: stateTimeout),
             "Scroll assertions start only after the deterministic document is ready."
         )
         let expandedWebFrame = webView.frame
 
         webView.swipeUp()
-        XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(workspace.waitForNonExistence(timeout: stateTimeout))
         XCTAssertEqual(webView.frame.width, expandedWebFrame.width, accuracy: 1)
         XCTAssertEqual(
             webView.frame.height,
@@ -32,15 +32,20 @@ extension MobileBrowserLayoutUITests {
         assertReachableHitTarget(app.buttons["browser.tabs"])
         assertReachableHitTarget(app.buttons["browser.more"])
 
+        let heading = webView.staticTexts["Ahoi fixture page"]
         webView.swipeUp()
-        Thread.sleep(forTimeInterval: 0.5)
+        // Evaluate only once the bounce has settled: the page no longer moves.
+        XCTAssertTrue(
+            waitForStableFrame(of: heading, timeout: stateTimeout),
+            "The page must come to rest after the bottom bounce."
+        )
         XCTAssertFalse(
             workspace.exists,
             "Bottom bounce and viewport settling must not reopen the Harbor Deck."
         )
 
         webView.swipeDown()
-        XCTAssertTrue(workspace.waitForExistence(timeout: 3))
+        XCTAssertTrue(workspace.waitForExistence(timeout: stateTimeout))
     }
 
     @MainActor
@@ -67,9 +72,24 @@ extension MobileBrowserLayoutUITests {
         )
         XCTAssertEqual(XCTWaiter.wait(for: [loadedAddress], timeout: 8), .completed)
         XCTAssertTrue(page.waitForExistence(timeout: 8))
-        Thread.sleep(forTimeInterval: 2.5)
+        // Wait for the workload's scripted travel itself instead of a fixed
+        // delay: the heading must leave its top position and come back (one
+        // scrollTo down and one up), and the deck must stay at every sample.
+        let topY = page.frame.minY
+        var travelledDown = false
+        var returnedUp = false
+        var deckAlwaysPresent = true
+        _ = waitUntil(timeout: 20) {
+            deckAlwaysPresent = deckAlwaysPresent && workspace.exists
+            let y = page.frame.minY
+            if y < topY - 100 { travelledDown = true }
+            if travelledDown, abs(y - topY) < 2 { returnedUp = true }
+            return returnedUp || !deckAlwaysPresent
+        }
+        XCTAssertTrue(travelledDown, "The scripted workload must scroll the page down.")
+        XCTAssertTrue(returnedUp, "The scripted workload must scroll the page back up.")
         XCTAssertTrue(
-            workspace.exists,
+            deckAlwaysPresent && workspace.exists,
             "Scripted scrollTo travel must not masquerade as a finger gesture."
         )
         // With the full deck over a loaded page `isHittable` is a false
@@ -84,10 +104,10 @@ extension MobileBrowserLayoutUITests {
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
         XCTAssertTrue(workspace.waitForExistence(timeout: 8))
-        XCTAssertTrue(webView.waitForExistence(timeout: 3))
+        XCTAssertTrue(webView.waitForExistence(timeout: stateTimeout))
 
         let activate = webView.buttons["Activate nested scroll fixture"]
-        XCTAssertTrue(activate.waitForExistence(timeout: 3))
+        XCTAssertTrue(activate.waitForExistence(timeout: stateTimeout))
         activate.tap()
 
         let nestedScroller = webView.descendants(matching: .any).matching(NSPredicate(
@@ -95,25 +115,24 @@ extension MobileBrowserLayoutUITests {
             "Nested scroll fixture"
         )).firstMatch
         let startMarker = webView.staticTexts["Nested scroll starts here"]
-        XCTAssertTrue(nestedScroller.waitForExistence(timeout: 3))
-        XCTAssertTrue(startMarker.waitForExistence(timeout: 3))
+        XCTAssertTrue(nestedScroller.waitForExistence(timeout: stateTimeout))
+        XCTAssertTrue(startMarker.waitForExistence(timeout: stateTimeout))
         let initialMarkerY = startMarker.frame.minY
 
         nestedScroller.swipeUp()
-        XCTAssertLessThan(
-            startMarker.frame.minY,
-            initialMarkerY - 24,
+        XCTAssertTrue(
+            waitUntil(timeout: stateTimeout) { startMarker.frame.minY < initialMarkerY - 24 },
             "The gesture must move the nested page region before chrome is evaluated."
         )
         XCTAssertTrue(
-            workspace.waitForNonExistence(timeout: 3),
+            workspace.waitForNonExistence(timeout: stateTimeout),
             "A nested page scroller must collapse the Harbor Deck like document scrolling."
         )
         assertCompactHarborDeckSemantics(app)
 
         nestedScroller.swipeDown()
         XCTAssertTrue(
-            workspace.waitForExistence(timeout: 3),
+            workspace.waitForExistence(timeout: stateTimeout),
             "Reverse travel inside the nested scroller must restore the full Harbor Deck."
         )
     }
@@ -125,21 +144,21 @@ extension MobileBrowserLayoutUITests {
         let workspace = app.descendants(matching: .any)["browser.harbor-deck.workspace"]
         let webView = app.webViews.firstMatch
         XCTAssertTrue(workspace.waitForExistence(timeout: 8))
-        XCTAssertTrue(webView.waitForExistence(timeout: 3))
-        XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3))
+        XCTAssertTrue(webView.waitForExistence(timeout: stateTimeout))
+        XCTAssertTrue(webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: stateTimeout))
 
         // The nested fixture is an interactive-control-free production scroll path.
         let activate = webView.buttons["Activate nested scroll fixture"]
-        XCTAssertTrue(activate.waitForExistence(timeout: 3))
+        XCTAssertTrue(activate.waitForExistence(timeout: stateTimeout))
         activate.tap()
         let scrollSurface = webView.descendants(matching: .any).matching(NSPredicate(
             format: "label BEGINSWITH %@",
             "Nested scroll fixture"
         )).firstMatch
-        XCTAssertTrue(scrollSurface.waitForExistence(timeout: 3))
+        XCTAssertTrue(scrollSurface.waitForExistence(timeout: stateTimeout))
 
         drag(scrollSurface, fromY: 0.72, toY: 0.52)
-        XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(workspace.waitForNonExistence(timeout: stateTimeout))
         assertCompactHarborDeckSemantics(app)
 
         // Three deliberately bounded opposite-direction corrections model a
@@ -148,7 +167,13 @@ extension MobileBrowserLayoutUITests {
         for offset in [0.532, 0.534, 0.536] {
             drag(scrollSurface, fromY: 0.52, toY: offset)
         }
-        Thread.sleep(forTimeInterval: 0.35)
+        XCTAssertTrue(
+            waitForStableFrame(
+                of: webView.staticTexts["Nested scroll starts here"],
+                timeout: stateTimeout
+            ),
+            "The nested scroller must come to rest before the deck is evaluated."
+        )
         XCTAssertFalse(
             workspace.exists,
             "Sub-threshold reverse travel must keep the compact deck stable."
@@ -156,7 +181,7 @@ extension MobileBrowserLayoutUITests {
 
         drag(scrollSurface, fromY: 0.48, toY: 0.62)
         XCTAssertTrue(
-            workspace.waitForExistence(timeout: 3),
+            workspace.waitForExistence(timeout: stateTimeout),
             "A deliberate reverse gesture must restore the complete deck."
         )
         XCTAssertEqual(app.buttons.matching(identifier: "browser.address").count, 1)
@@ -170,38 +195,52 @@ extension MobileBrowserLayoutUITests {
         let webView = app.webViews.firstMatch
         XCTAssertTrue(workspace.waitForExistence(timeout: 8))
         XCTAssertTrue(
-            webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3)
+            webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: stateTimeout)
         )
 
         dragPageUpKeepingFixtureActionsVisible(webView)
-        XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(workspace.waitForNonExistence(timeout: stateTimeout))
         assertCompactHarborDeckSemantics(app)
         let alertButton = webView.buttons["Show JavaScript alert"]
-        XCTAssertTrue(alertButton.waitForExistence(timeout: 3))
-        XCTAssertTrue(alertButton.isHittable)
+        XCTAssertTrue(waitForHittable(alertButton, timeout: stateTimeout))
         alertButton.tap()
 
         let alert = app.alerts.firstMatch
-        XCTAssertTrue(alert.waitForExistence(timeout: 3))
-        app.buttons["browser.dialog.accept"].firstMatch.tap()
-        XCTAssertTrue(workspace.waitForExistence(timeout: 3),
+        XCTAssertTrue(alert.waitForExistence(timeout: stateTimeout))
+        let accept = alert.buttons["browser.dialog.accept"].firstMatch
+        XCTAssertTrue(waitForHittable(accept, timeout: stateTimeout))
+        accept.tap()
+        XCTAssertTrue(alert.waitForNonExistence(timeout: stateTimeout))
+        XCTAssertTrue(workspace.waitForExistence(timeout: stateTimeout),
                       "A JavaScript dialog must leave the full Harbor Deck open.")
 
         dragPageUpKeepingFixtureActionsVisible(webView)
-        XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(workspace.waitForNonExistence(timeout: stateTimeout))
         assertCompactHarborDeckSemantics(app)
         let fileInput = webView.buttons["Choose a fixture file"]
-        XCTAssertTrue(fileInput.waitForExistence(timeout: 3))
-        XCTAssertTrue(fileInput.isHittable)
+        XCTAssertTrue(waitForHittable(fileInput, timeout: stateTimeout))
         fileInput.tap()
 
         let fileInputCancel = app.buttons["browser.file_input.cancel"].firstMatch
-        XCTAssertTrue(fileInputCancel.waitForExistence(timeout: 3))
+        XCTAssertTrue(waitForHittable(fileInputCancel, timeout: stateTimeout))
         fileInputCancel.tap()
-        XCTAssertTrue(workspace.waitForExistence(timeout: 3),
+        XCTAssertTrue(workspace.waitForExistence(timeout: stateTimeout),
                       "A file-input request must leave the full Harbor Deck open.")
         // With the full deck over a loaded page `isHittable` is a false
         // signal for the address (79828c0); prove input instead.
         assertBrowserAcceptsAddressInput(in: app)
+    }
+
+    /// True once two consecutive samples 0.3 s apart report the same frame,
+    /// i.e. scrolling and deck animation have come to rest.
+    @MainActor
+    func waitForStableFrame(of element: XCUIElement, timeout: TimeInterval) -> Bool {
+        var previous = element.frame
+        return waitUntil(timeout: timeout) {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+            let current = element.frame
+            defer { previous = current }
+            return current == previous && !current.isEmpty
+        }
     }
 }
