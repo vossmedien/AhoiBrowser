@@ -17,6 +17,38 @@
   planned numbers. It touches only resource files, so its position in
   `series` after 0080 is free.
 
+## `0082-ahoi-color-mixer.patch`
+
+- **Owner:** Desktop (design spec 2026-09-29, "Typografie, Palette und
+  Zustände").
+- **Change:** `AddChromeColorMixers` calls overlay
+  `ahoi::appearance::AddAhoiColorMixer` after the Material mixers and
+  before the native and custom-theme mixers. `chrome_color_id.h` gains
+  `kColorAhoiFrame`, `kColorAhoiWebSurface`, `kColorAhoiSelection` and
+  `kColorAhoiDisabled`. `//chrome/browser/ui/color:mixers` depends on the
+  small overlay target `//ahoi/browser/ui/appearance:ahoi_color_mixer`
+  (only `:opaque_palette`, `//ui/color`, `//skia` and this directory's
+  `:color_headers`, so no cycle); a new `chrome/browser/ui/color/DEPS`
+  allows its header.
+- **Mapping:** with no user main colour (incl. grayscale), no custom or
+  policy theme, normal contrast and no forced colours, the opaque palette
+  sets the sys ids `kColorSysPrimary`/`OnPrimary`, `StateFocusRing` (=
+  primary), `TonalContainer`/`PrimaryContainer` (selection) with their
+  `On*` ids (primary text), `OnSurface`, `OnSurfaceSubtle`, `Divider`,
+  `Error`, `StateDisabled` and `StateRipplePrimary` (accent at 12 %). No
+  `kColorRef*` id is touched. Ids that earlier mixers derive from
+  `kColorSysPrimary` follow, because recipes resolve against the final
+  mixer. Otherwise only the Ahoi ids are defined, from the active sys
+  colours; Chromium's values stay untouched.
+- **Safety:** colours only. On macOS this replaces the system keyboard
+  focus colour with the spec accent unless a user colour is set; the
+  native Mac mixer still owns text-highlight colours.
+- **Tests:** `ahoi_appearance_unittests` (`AhoiColorMixerTest`: light,
+  dark, user colour, grayscale, high contrast, custom theme).
+- **Rebase/removal:** easy; the hook is one call, one include, one GN dep
+  and four ids at the end of `COMMON_CHROME_COLOR_IDS`. Removing it
+  requires dropping the `kColorAhoi*` users first.
+
 ## `0081-ahoi-http-auth-dialog-spec-style.patch`
 
 - **Owner:** Desktop (design spec 2026-09-29, reference
