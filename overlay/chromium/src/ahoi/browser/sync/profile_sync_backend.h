@@ -143,6 +143,7 @@ class ProfileSyncBackend : public SyncStoreObserver {
   // Reads the live store on this sequence; SQLite's exclusive lock blocks a
   // second connection while the backend is open.
   friend class ProfileSyncServiceTest;
+  friend class ProfileSyncBackendAccountTransitionTest;
 
   template <typename Record>
   bool Put(const Record& record);
@@ -151,6 +152,17 @@ class ProfileSyncBackend : public SyncStoreObserver {
 
   void TouchSession();
   void InitializeProviderIfAvailable();
+  // True while the visible account-change confirmation belongs to the key
+  // setup lease: the bootstrap observed a CloudKit account notification and
+  // revoked that lease, but the provider (if one exists) does not own a
+  // pending CKSyncEngine account transition of its own.
+  bool KeySetupAccountChangeAwaitsConfirmation();
+  // Applies the user's upload choice to the local outbox and drops the
+  // lease-revoked provider/key setup so a fresh, independently verified
+  // claim/key/account binding can start. Copies or deletes no key or
+  // CloudKit record. Keeps the provider and key-setup state when the outbox
+  // cannot be prepared.
+  bool ResetForKeySetupAccountChange(bool allow_local_upload);
 #if BUILDFLAG(IS_MAC)
   void OnKeyBootstrapResult(MacSyncKeyBootstrapResult result);
 #endif

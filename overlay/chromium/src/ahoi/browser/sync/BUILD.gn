@@ -275,6 +275,7 @@ source_set("unit_tests") {
     "bookmark_sync_serialization_unittest.cc",
     "bookmark_sync_store_unittest.cc",
     "native_bookmark_sync_adapter_unittest.cc",
+    "profile_sync_backend_account_transition_unittest.cc",
     "profile_sync_service_unittest.cc",
     "sync_convergence_unittest.cc",
     "sync_merge_conformance_unittest.cc",
