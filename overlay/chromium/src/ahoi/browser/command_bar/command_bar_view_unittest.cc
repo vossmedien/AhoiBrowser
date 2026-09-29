@@ -187,7 +187,7 @@ TEST_F(CommandBarViewTest, OnlySelectedRowShowsReturnKeycap) {
     // The keycap is the row's last child and keeps its slot when hidden.
     const views::Label* keycap =
         views::AsViewClass<views::Label>(row->children().back());
-    return keycap ? keycap->GetText() : u"<no keycap>";
+    return keycap ? std::u16string(keycap->GetText()) : u"<no keycap>";
   };
   view_->SetInitialQuery(u"project", /*prefer_input_fallback=*/false);
   ASSERT_EQ(view_->suggestion_count_for_testing(), 2u);
