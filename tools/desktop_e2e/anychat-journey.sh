@@ -2,13 +2,16 @@
 # usage: anychat-journey.sh <App.app> <outdir>
 # DoD 8 AnyChat on the installed candidate with a fresh throwaway profile,
 # through the ordinary Chrome Web Store flow. The owner approved AnyChat
-# 1.0.8 with 14 AI-site origins, New Tab and favicon access (5 Sep, again
-# 29 Sep 2026); the journey installs only while the Store still shows 1.0.8
+# 1.0.8 (5 Sep 2026) and, on 29 Sep 2026, 1.0.9 with the 14 AI-site origins,
+# New Tab, favicons, the new file:///* host (its "Allow access to file URLs"
+# switch stays off) and the "search" permission, with none of its optional
+# permissions granted. The journey installs only while the Store shows 1.0.9
 # and Chromium's prompt asks for a host list, not all sites; else it cancels.
 # Then: exact manifest version and host set, extension running, New Tab
 # resolves to AnyChat's page, still installed and running after
 # Cmd+Q/relaunch, and the owner's own Ahoi profile is left as it was. No
-# prompt is sent and no account is used. Needs network access to the Chrome Web Store.
+# prompt is sent and no account is used. Needs network access to the Chrome
+# Web Store.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd); AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9401
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
@@ -18,9 +21,10 @@ if [ "$(idle_seconds)" -lt "${AHOI_E2E_MIN_IDLE:-300}" ]; then
 fi
 if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $PORT busy" >&2; exit 6; fi
 mkdir -p "$OUT"; P=$(mktemp -d /private/tmp/ahoi-anychat-profile.XXXXXX)
-ID=khpefodpgnkegiohbolbaaeabnfdegln; VERSION=1.0.8
+ID=khpefodpgnkegiohbolbaaeabnfdegln; VERSION=1.0.9
 STORE="https://chromewebstore.google.com/detail/anychat-ai-powered-browsi/$ID"
-APPROVED_HOSTS="chat.deepseek.com chat.mistral.ai chatgpt.com claude.ai copilot.com copilot.microsoft.com gemini.google.com grok.com m365.cloud.microsoft meta.ai openrouter.ai perplexity.ai www.meta.ai www.perplexity.ai"
+APPROVED_PERMISSIONS="storage sidePanel declarativeNetRequestWithHostAccess activeTab scripting favicon search"
+APPROVED_HOSTS="file chat.deepseek.com chat.mistral.ai chatgpt.com claude.ai copilot.com copilot.microsoft.com gemini.google.com grok.com m365.cloud.microsoft meta.ai openrouter.ai perplexity.ai www.meta.ai www.perplexity.ai"
 OWNER_PROFILE="$HOME/Library/Application Support/AhoiBrowser/Default"
 CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 pages() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(json.dumps(sorted([t["url"] for t in json.load(sys.stdin) if t["type"]=="page"])))'; }
@@ -123,14 +127,21 @@ fi
 end=$(( $(date +%s) + 90 )); while [ $(date +%s) -lt $end ] && [ -z "$(manifest)" ]; do sleep 2; done
 M=$(manifest); [ -n "$M" ] || fail_setup "AnyChat was not installed"
 cp "$M" "$OUT/manifest.json"
-python3 - "$M" "$VERSION" $APPROVED_HOSTS > "$OUT/manifest-check.txt" <<'PY'
+python3 - "$M" "$VERSION" "$APPROVED_PERMISSIONS" $APPROVED_HOSTS > "$OUT/manifest-check.txt" <<'PY'
 import json, sys, urllib.parse
-manifest = json.load(open(sys.argv[1])); version = sys.argv[2]; approved = set(sys.argv[3:])
+manifest = json.load(open(sys.argv[1])); version = sys.argv[2]
+approved_permissions = set(sys.argv[3].split()); approved = set(sys.argv[4:])
 patterns = manifest.get("host_permissions", []) + [
     p for p in manifest.get("permissions", []) if "://" in p]
 for script in manifest.get("content_scripts", []):
     patterns += script.get("matches", [])
-hosts = {urllib.parse.urlsplit(p.replace("*.", "")).hostname for p in patterns}
+# A file:///* pattern has no host; it counts as the approved "file" entry.
+hosts = {urllib.parse.urlsplit(p.replace("*.", "")).hostname or
+         urllib.parse.urlsplit(p).scheme for p in patterns}
+permissions = {p for p in manifest.get("permissions", []) if "://" not in p}
+print("permissions", sorted(permissions))
+print("PERMISSIONS_OK" if permissions <= approved_permissions
+      else "PERMISSIONS_EXCEED_APPROVAL")
 print("version", manifest.get("version"))
 print("hosts", sorted(hosts))
 print("extra", sorted(hosts - approved))
@@ -139,6 +150,7 @@ print("HOSTS_OK" if hosts <= approved else "HOSTS_EXCEED_APPROVAL")
 PY
 grep -q VERSION_OK "$OUT/manifest-check.txt" && record installedApprovedVersion true || record installedApprovedVersion false
 grep -q HOSTS_OK "$OUT/manifest-check.txt" && record hostsWithinApproval true || record hostsWithinApproval false
+grep -q PERMISSIONS_OK "$OUT/manifest-check.txt" && record permissionsWithinApproval true || record permissionsWithinApproval false
 end=$(( $(date +%s) + 30 )); while [ $(date +%s) -lt $end ] && ! extension_running; do sleep 2; done
 extension_running && record extensionRunning true || record extensionRunning false
 $AX dump $PID 14 > "$OUT/ax-after-install.txt"
@@ -154,6 +166,28 @@ quit; sleep 3; launch
 end=$(( $(date +%s) + 40 )); while [ $(date +%s) -lt $end ] && ! extension_running; do sleep 2; done
 extension_running && [ -n "$(manifest)" ] && record runningAfterRestart true || record runningAfterRestart false
 $AX dump $PID 14 > "$OUT/ax-after-restart.txt"
+# File URL access and optional permissions stay off (approval of 29 Sep).
+python3 - "$P/Default" "$ID" > "$OUT/grants-check.txt" <<'PY'
+import json, sys, os
+settings = {}
+for name in ("Secure Preferences", "Preferences"):
+    path = os.path.join(sys.argv[1], name)
+    if os.path.exists(path):
+        entry = json.load(open(path)).get("extensions", {}).get(
+            "settings", {}).get(sys.argv[2])
+        if entry:
+            settings.update(entry)
+granted = settings.get("granted_permissions", {})
+print("file_access", settings.get("newAllowFileAccess", False))
+print("granted", json.dumps(granted, sort_keys=True))
+optional = {"tabs", "history", "topSites"}
+extra = optional & set(granted.get("api", []))
+wide = [h for h in granted.get("explicit_host", []) + granted.get(
+    "scriptable_host", []) if h in ("https://*/*", "http://*/*")]
+print("GRANTS_OK" if not settings.get("newAllowFileAccess") and not extra
+      and not wide else "GRANTS_EXCEED_APPROVAL")
+PY
+grep -q GRANTS_OK "$OUT/grants-check.txt" && record noFileAccessNorOptionalGrants true || record noFileAccessNorOptionalGrants false
 OWNER_AFTER=absent; [ -d "$OWNER_PROFILE/Extensions/$ID" ] && OWNER_AFTER=present
 echo "owner profile AnyChat: $OWNER_BEFORE -> $OWNER_AFTER" >> "$OUT/steps.txt"
 [ "$OWNER_AFTER" = "$OWNER_BEFORE" ] \
