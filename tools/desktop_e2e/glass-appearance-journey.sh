@@ -60,7 +60,7 @@ log "system reduceTransparency=$SYS_RT increaseContrast=$SYS_IC reduceMotion=$SY
 
 "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run \
   --no-default-browser-check --remote-debugging-port=$PORT \
-  chrome://settings/ahoi > "$OUT/browser.log" 2>&1 &
+  about:blank > "$OUT/browser.log" 2>&1 &
 PID=$!; log "pid=$PID profile=$P"
 trap 'kill $PID 2>/dev/null; kill $SITE_PID 2>/dev/null; sleep 2;
       kill -9 $PID 2>/dev/null; rm -rf "$P" "$SITE"' EXIT
@@ -68,6 +68,11 @@ for i in $(seq 1 60); do
   curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2
 done
 sleep 6
+# chrome:// pages are not opened from the command line; open Settings via
+# DevTools (build 51 found no control because Settings never loaded).
+curl -s -X PUT "http://127.0.0.1:$PORT/json/new?chrome://settings/ahoi" \
+  > /dev/null
+sleep 4
 # The fixture becomes the active tab; Settings stays open in the background.
 curl -s -X PUT \
   "http://127.0.0.1:$PORT/json/new?http://127.0.0.1:$SITE_PORT/contrast.html" \
