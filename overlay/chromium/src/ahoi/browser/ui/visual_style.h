@@ -211,11 +211,25 @@ inline constexpr int kPopupStatusRowHeight = 32;
 inline constexpr int kPopupRevealOffset = 8;
 inline constexpr float kPopupScrimOpacity = 0.62f;
 
-// Dialog geometry is shared by workspace/group editors and the recent-links
-// hover panel. Keeping the two horizontal insets explicit preserves their
-// slightly different visual density while giving the host one source of truth.
+// The recent-links hover panel is a compact non-modal surface, not a dialog;
+// it keeps its own narrower width and inset.
 inline constexpr int kSidebarDialogWidth = 340;
-inline constexpr int kSidebarDialogInset = 14;
+
+// Modal dialogs (design spec 2026-09-29): Workspace, group and merge dialogs
+// are 420 wide, HTTP Auth 480. Every modal shares the panel radius, a 24
+// padding, 36-high fields, 32-high buttons and a 20/25 semibold title.
+// ahoi/browser/ui/dialog_style applies these to a DialogDelegate.
+inline constexpr int kWorkspaceDialogWidth = 420;
+inline constexpr int kAuthDialogWidth = 480;
+inline constexpr int kDialogPadding = 24;
+inline constexpr int kDialogSectionSpacing = 16;
+inline constexpr int kDialogLabelSpacing = 8;
+inline constexpr int kDialogFieldHeight = 36;
+inline constexpr int kDialogButtonHeight = 32;
+inline constexpr int kDialogCornerRadius = kCornerRadiusLarge;
+inline constexpr int kDialogTitleFontSize = 20;
+inline constexpr int kDialogTitleLineHeight = 25;
+inline constexpr ui::ColorId kErrorText = ui::kColorSysError;
 inline constexpr int kSidebarRecentLinksDialogInset = 10;
 inline constexpr int kSidebarSearchTextHorizontalInset = 8;
 

@@ -122,6 +122,7 @@ source_set("unit_tests") {
   deps = [
     ":command_bar_core",
     ":quick_window_policy",
+    "//ahoi/browser/ui:dialog_style_unit_tests",
     "//ahoi/browser/ui:modal_overlay_unit_tests",
     "//base/test:test_support",
     "//components/omnibox/browser:location_bar",
