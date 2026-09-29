@@ -32,12 +32,13 @@ SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT
 # Two sites on the same fixture: an IP address and an internal host name.
 SITE=http://127.0.0.1:$SITE_PORT; OTHER=http://localhost:$SITE_PORT
 # Two hosts of one registrable domain (non-default port: no HTTPS upgrade).
-SUB_A=http://a.example.com:$SITE_PORT; SUB_B=http://b.example.com:$SITE_PORT
+# Two hosts under one registrable domain; *.localhost resolves to loopback in
+# Chromium itself (mapped example.com names ended on an error page, build 49).
+SUB_A=http://a.clear.localhost:$SITE_PORT; SUB_B=http://b.clear.localhost:$SITE_PORT
 CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 tabs() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(json.dumps(sorted([t["url"] for t in json.load(sys.stdin) if t["type"]=="page"])))'; }
 launch() {
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
-    --host-resolver-rules="MAP a.example.com 127.0.0.1, MAP b.example.com 127.0.0.1" \
     --remote-debugging-port=$PORT about:blank >> "$OUT/browser.log" 2>&1 &
   PID=$!; echo "pid=$PID profile=$P" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
@@ -53,6 +54,18 @@ key() {
     sleep 1
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
+}
+# Types into the focused command bar and checks that its text field really
+# holds the text; a first keystroke can arrive before the field has focus
+# (build 47: a later Return then closed an empty bar).
+type_in() {
+  for attempt in 1 2 3; do
+    $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1
+    $AX dump $PID 14 | grep "AXTextField" | grep -F -q -- "| $1" && return 0
+    echo "info: typed text missing, retyping" >> "$OUT/steps.txt"
+    key 0 cmd; sleep 0.5
+  done
+  return 1
 }
 waitax() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do $AX dump $PID 14 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
 waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do tabs | grep -q "$1" && return 0; sleep 1; done; return 1; }
@@ -94,7 +107,7 @@ open_url() { # <url> ; ⌘T + type + Return
     waitax "AXWindow \\| Suchen oder URL eingeben" 6 && { opened=1; break; }
   done
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
-  sleep 1; $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1; key 36
+  sleep 1; type_in "$1"; key 36
   waiturl "$1" 20 || fail_setup "did not load $1"; sleep 2
 }
 switchws() { # <active> <target>

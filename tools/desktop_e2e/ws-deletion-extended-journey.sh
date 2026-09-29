@@ -45,6 +45,18 @@ key() {
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
 }
+# Types into the focused command bar and checks that its text field really
+# holds the text; a first keystroke can arrive before the field has focus
+# (build 47: a later Return then closed an empty bar).
+type_in() {
+  for attempt in 1 2 3; do
+    $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1
+    $AX dump $PID 14 | grep "AXTextField" | grep -F -q -- "| $1" && return 0
+    echo "info: typed text missing, retyping" >> "$OUT/steps.txt"
+    key 0 cmd; sleep 0.5
+  done
+  return 1
+}
 waitax() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do $AX dump $PID 14 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
 waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do tabs | grep -q "$1" && return 0; sleep 1; done; return 1; }
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
@@ -96,7 +108,7 @@ open_url() { # <url> ; ⌘T + type + Return
     waitax "AXWindow \\| Suchen oder URL eingeben" 6 && { opened=1; break; }
   done
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
-  sleep 1; $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1; key 36
+  sleep 1; type_in "$1"; key 36
   waiturl "$1" 20 || fail_setup "did not load $1"; sleep 2
 }
 switchws() { # <active> <target>
@@ -149,7 +161,7 @@ delete_active Kunde; sleep 3
 waitax "AXStaticText \\| Website verlassen" 8 && record promptShown true || record promptShown false
 key 17 cmd
 if waitax "AXWindow \\| Suchen oder URL eingeben" 4; then
-  $AX type $PID "$SITE/late.html" >> "$OUT/steps.txt"; sleep 1; key 36; sleep 2
+  type_in "$SITE/late.html"; key 36; sleep 2
   echo "latePage opened" >> "$OUT/steps.txt"
 else
   echo "latePage blocked by the prompt" >> "$OUT/steps.txt"

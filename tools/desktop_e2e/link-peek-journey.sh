@@ -72,6 +72,18 @@ key() {
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
 }
+# Types into the focused command bar and checks that its text field really
+# holds the text; a first keystroke can arrive before the field has focus
+# (build 47: a later Return then closed an empty bar).
+type_in() {
+  for attempt in 1 2 3; do
+    $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1
+    $AX dump $PID 14 | grep "AXTextField" | grep -F -q -- "| $1" && return 0
+    echo "info: typed text missing, retyping" >> "$OUT/steps.txt"
+    key 0 cmd; sleep 0.5
+  done
+  return 1
+}
 waitax() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do $AX dump $PID 14 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
 waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do tabs | grep -q "$1" && return 0; sleep 1; done; return 1; }
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
@@ -123,7 +135,7 @@ open_url() { # <url> ; ⌘T + type + Return
     waitax "AXWindow \\| Suchen oder URL eingeben" 6 && { opened=1; break; }
   done
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
-  sleep 1; $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1; key 36
+  sleep 1; type_in "$1"; key 36
   waiturl "$1" 20 || fail_setup "did not load $1"; sleep 2
 }
 switchws() { # <active> <target>
@@ -166,8 +178,9 @@ hits = [h for h in hits if needle in h["path"]]
 print("missing" if not hits else (hits[0].get(field) or "-"))
 PY
 }
-req_count() { # <mark> <path substring>
-  tail -n +$(( $1 + 1 )) "$REQ" | grep -c -F -- "$2"
+req_count() { # <mark> <path substring>; matches the request path only, not
+  # a later request whose Referer names that page (its favicon, build 49)
+  tail -n +$(( $1 + 1 )) "$REQ" | python3 -c 'import json,sys;print(sum(sys.argv[1] in json.loads(l)["path"] for l in sys.stdin if l.strip()))' "$2"
 }
 check_req() { # <name> <mark> <path substring> <referer|site> <expected>
   local got; got=$(req_field "$2" "$3" "$4")
@@ -255,7 +268,7 @@ $AX press $PID "Popup schließen" >> "$OUT/steps.txt"; sleep 1
 # Command entry: Shift+Return in the command bar previews the address.
 key 17 cmd
 if waitax "AXWindow \\| Suchen oder URL eingeben" 6; then
-  M=$(mark); sleep 1; $AX type $PID "$SITE/target.html?command" >> "$OUT/steps.txt"; sleep 1; key 36 shift
+  M=$(mark); sleep 1; type_in "$SITE/target.html?command"; key 36 shift
   waitax "Popup schließen" 8 && record commandShiftReturnPeeks true || record commandShiftReturnPeeks false
   # Like the omnibox: no Referer and no initiator.
   check_req commandPeekSendsNoReferer "$M" "?command" referer -
