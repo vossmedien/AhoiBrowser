@@ -131,17 +131,31 @@ a later option (ADR 0011).
 Chromium's `BrowsingDataRemover` clears only the default partition unless a
 filter names another one, and Settings' per-site "Delete data" uses a
 `BrowsingDataModel` of the default partition. Since patch 0075, the Chrome
-remover delegate forwards every profile-wide removal (Delete browsing data,
-clear on exit, other callers without a partition) to each existing own
-website-session partition, with the same filter and only its StoragePartition
-data types, next to the Isolated Web App fan-out. Site settings' per-site
-deletion removes that site's cookies and site storage there too
+remover delegate forwards every removal that names no partition (Delete
+browsing data, `chrome.browsingData`, BTM tracker clearing, other callers) to
+each existing own website-session partition, with the same filter and only
+its StoragePartition data types, next to the Isolated Web App fan-out.
+Settings' per-site and site-group deletion builds a `BrowsingDataModel` of
+each existing own partition and removes the same hosts' unpartitioned data
+there, so a site-details page for `sub.example.com` leaves other subdomains'
+logins alone in every partition
 (`ahoi/browser/session/website_session_browsing_data.{h,cc}`). A partition
 is reached only if it is loaded or its directory exists, so clearing never
-creates one; retired contexts are left to the Workspace deletion. The forwarded
-removals are queued behind the original one: the Settings dialog reports
-completion before they finish, as it does for Isolated Web Apps. Settings'
-"All sites" list still shows only default-partition data. Journey:
+creates one; retired contexts are left to the Workspace deletion.
+
+Completion is asynchronous. The forwarded removals are queued behind the
+original one after a directory check off the UI thread, and the delegate's
+task ends once they are queued: `RemoveAndReply` callers (the Settings
+dialog, `chrome.browsingData` callbacks, BTM's state clearer) report
+completion while Workspace logins may still exist for a moment, as with
+Isolated Web Apps. Settings' "All sites" list still shows only
+default-partition data.
+
+Known gap: clearing on exit (the `ClearBrowsingDataOnExitList` policy) is
+best effort for Workspace partitions. Its lifetime manager holds its
+keep-alive only until its own removal reports done, the queued partition
+removals hold none, and nothing is queued once profile shutdown has started.
+No journey covers it. Journey for the rest:
 `tools/desktop_e2e/clear-data-website-sessions-journey.sh`.
 
 ## Sync coordination

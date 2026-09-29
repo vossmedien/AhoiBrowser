@@ -6,7 +6,11 @@
 # and in the shared "Inbox", delete cookies and cache for all time through
 # Settings' clear-browsing-data handler, and check that both are logged out.
 # Then log in again in Kunde on two local sites, delete one site's data
-# through Settings' per-site handler and check that only that site is gone.
+# through Settings' per-site handler and check that only that site is gone;
+# the same for two sibling subdomains of a registrable domain, mapped to the
+# fixture by host resolver rules, where only the named host may be cleared.
+# Workspace partitions are cleared asynchronously after the handler returns,
+# so the checks poll with a timeout instead of sleeping a fixed time.
 # No new website-session partition directory may appear. Product default
 # launch, disposable user data directory; nothing here runs automatically.
 set -u
@@ -27,10 +31,13 @@ python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/s
 SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT
 # Two sites on the same fixture: an IP address and an internal host name.
 SITE=http://127.0.0.1:$SITE_PORT; OTHER=http://localhost:$SITE_PORT
+# Two hosts of one registrable domain (non-default port: no HTTPS upgrade).
+SUB_A=http://a.example.com:$SITE_PORT; SUB_B=http://b.example.com:$SITE_PORT
 CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 tabs() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(json.dumps(sorted([t["url"] for t in json.load(sys.stdin) if t["type"]=="page"])))'; }
 launch() {
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
+    --host-resolver-rules="MAP a.example.com 127.0.0.1, MAP b.example.com 127.0.0.1" \
     --remote-debugging-port=$PORT about:blank >> "$OUT/browser.log" 2>&1 &
   PID=$!; echo "pid=$PID profile=$P" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
@@ -102,6 +109,13 @@ account_of() { # <page url substring> -> "<cookie>|<localStorage>"
   local value; value=$(evaluate "$1" 'document.cookie+"|"+(localStorage.getItem("acct")||"")')
   echo "account $1: $value" >> "$OUT/steps.txt"; echo "$value"
 }
+await_account() { # <page url substring> <expected> <timeout s>; 0 once seen
+  local end=$(( $(date +%s) + $3 ))
+  while [ $(date +%s) -lt $end ]; do
+    [ "$(account_of "$1")" = "$2" ] && return 0; sleep 1
+  done
+  return 1
+}
 partition_dirs() { local d="$P/Default/Storage/ext/ahoi"; [ -d "$d" ] && ls "$d" | sort | tr '\n' ' '; }
 # Settings' own WebUI handlers, the same messages the dialog and the site
 # details page send; the page must be the chrome://settings target.
@@ -127,13 +141,13 @@ open_url "chrome://settings/clearBrowserData"
 R=$(settings_send settings/clearBrowserData clearBrowsingData '[["browser.clear_data.cookies","browser.clear_data.cache"],4]')
 echo "clearBrowsingData: $R" >> "$OUT/steps.txt"
 [ "$R" = done ] && record clearBrowsingDataRan true || record clearBrowsingDataRan false
-# The Workspace partitions are cleared by removals queued behind this one.
-sleep 6
 open_url "$SITE/check.html?inbox-after"
-[ "$(account_of 'check.html?inbox-after')" = "|" ] && record sharedLoggedOut true || record sharedLoggedOut false
+await_account 'check.html?inbox-after' "|" 10 && record sharedLoggedOut true || record sharedLoggedOut false
 switchws Inbox Kunde
+# The Workspace partitions are cleared by removals queued behind this one;
+# "done" above does not wait for them.
 open_url "$SITE/check.html?kunde-after"
-[ "$(account_of 'check.html?kunde-after')" = "|" ] && record ownWorkspaceLoggedOut true || record ownWorkspaceLoggedOut false
+await_account 'check.html?kunde-after' "|" 30 && record ownWorkspaceLoggedOut true || record ownWorkspaceLoggedOut false
 
 # A2 step 4: per-site "Delete data" removes only that site in Kunde.
 open_url "$SITE/login.html?site-a"
@@ -142,11 +156,24 @@ open_url "$OTHER/login.html?site-b"
   && record perSiteSetup true || record perSiteSetup false
 open_url "chrome://settings/content/all"
 R=$(settings_chrome_send settings/content/all clearUnpartitionedUsage "[\"$SITE/\"]")
-echo "clearUnpartitionedUsage: $R" >> "$OUT/steps.txt"; sleep 6
+echo "clearUnpartitionedUsage: $R" >> "$OUT/steps.txt"
 open_url "$SITE/check.html?site-a-after"
 open_url "$OTHER/check.html?site-b-after"
-[ "$(account_of 'check.html?site-a-after')" = "|" ] && record siteDataDeleted true || record siteDataDeleted false
+await_account 'check.html?site-a-after' "|" 30 && record siteDataDeleted true || record siteDataDeleted false
 [ "$(account_of 'check.html?site-b-after')" = "acct=site-b|site-b" ] && record otherSiteKept true || record otherSiteKept false
+
+# Review follow-up: a site-details page clears its host, not its eTLD+1.
+open_url "$SUB_A/login.html?sub-a"
+open_url "$SUB_B/login.html?sub-b"
+[ "$(account_of 'login.html?sub-a')" = "acct=sub-a|sub-a" ] && [ "$(account_of 'login.html?sub-b')" = "acct=sub-b|sub-b" ] \
+  && record subdomainSetup true || record subdomainSetup false
+open_url "chrome://settings/content/all"
+R=$(settings_chrome_send settings/content/all clearUnpartitionedUsage "[\"$SUB_A/\"]")
+echo "clearUnpartitionedUsage (subdomain): $R" >> "$OUT/steps.txt"
+open_url "$SUB_A/check.html?sub-a-after"
+open_url "$SUB_B/check.html?sub-b-after"
+await_account 'check.html?sub-a-after' "|" 30 && record subdomainDataDeleted true || record subdomainDataDeleted false
+[ "$(account_of 'check.html?sub-b-after')" = "acct=sub-b|sub-b" ] && record siblingSubdomainKept true || record siblingSubdomainKept false
 
 # A2 step 5: no website-session partition directory was created.
 DIRS_AFTER=$(partition_dirs); echo "partition dirs after: $DIRS_AFTER" >> "$OUT/steps.txt"
