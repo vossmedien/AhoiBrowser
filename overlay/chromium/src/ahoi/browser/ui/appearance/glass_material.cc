@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "ahoi/browser/ui/visual_style.h"
 #include "build/build_config.h"
 #include "ui/gfx/color_utils.h"
 
@@ -16,6 +17,13 @@
 namespace ahoi::appearance {
 
 namespace {
+
+// views::ViewShadow blurs its key shadow by twice the elevation; keep the
+// visual_style elevations on the glass_tokens blur radii.
+static_assert(visual_style::kContentCardShadowElevation * 2 ==
+              glass_tokens::kContentCardShadowBlur);
+static_assert(visual_style::kPanelShadowElevation * 2 ==
+              glass_tokens::kPanelShadowBlur);
 
 SkAlpha ToAlpha(float opacity) {
   return static_cast<SkAlpha>(

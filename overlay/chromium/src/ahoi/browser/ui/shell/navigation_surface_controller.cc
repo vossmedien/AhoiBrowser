@@ -123,6 +123,10 @@ class NavigationRevealNotchView final : public views::Button {
   void SetMaterial(const appearance::SurfaceAppearance& appearance) {
     constexpr float kBottomRadius =
         visual_style::kNavigationRevealNotchVisualHeight / 2.0f;
+    constexpr int kSideInset =
+        (visual_style::kNavigationRevealNotchWidth -
+         visual_style::kNavigationRevealNotchVisualWidth) /
+        2;
     const auto alpha = static_cast<SkAlpha>(std::lround(
         std::clamp(appearance.uses_glass() ? appearance.opacity : 1.0f, 0.0f,
                    1.0f) *
@@ -134,11 +138,10 @@ class NavigationRevealNotchView final : public views::Button {
         appearance.border_thickness > 0 ? appearance.border_color
                                         : std::optional<ui::ColorId>(),
         gfx::RoundedCornersF(0.0f, 0.0f, kBottomRadius, kBottomRadius),
-        gfx::Insets::TLBR(
-            0, 0,
-            visual_style::kNavigationRevealNotchHeight -
-                visual_style::kNavigationRevealNotchVisualHeight,
-            0)));
+        gfx::Insets::TLBR(0, kSideInset,
+                          visual_style::kNavigationRevealNotchHeight -
+                              visual_style::kNavigationRevealNotchVisualHeight,
+                          kSideInset)));
   }
 
   void OnMouseEntered(const ui::MouseEvent& event) override {
