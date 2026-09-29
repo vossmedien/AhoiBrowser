@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include "ahoi/browser/ui/appearance/native_panel_material.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "ui/views/view.h"
@@ -48,6 +49,8 @@ class DeveloperCacheStatusView final : public views::View {
 
   State state_ = State::kClearing;
   raw_ptr<views::Label> status_label_ = nullptr;
+  appearance::NativePanelMaterial panel_material_{
+      appearance::SurfaceRole::kDeveloperTools};
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>
       appearance_signal_source_;
   base::WeakPtrFactory<DeveloperCacheStatusView> weak_ptr_factory_{this};

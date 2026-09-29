@@ -11,6 +11,7 @@
 
 #include "ahoi/browser/developer_toolkit/developer_profile_types.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
+#include "ahoi/browser/ui/appearance/native_panel_material.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -124,6 +125,8 @@ class DeveloperProfileEditorView final : public views::View,
   std::string current_browser_user_agent_;
   std::unique_ptr<LazyDeveloperStyleCompiler> style_compiler_;
   bool compile_in_flight_ = false;
+  appearance::NativePanelMaterial panel_material_{
+      appearance::SurfaceRole::kDeveloperTools};
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>
       appearance_signal_source_;
   base::WeakPtrFactory<DeveloperProfileEditorView> weak_ptr_factory_{this};

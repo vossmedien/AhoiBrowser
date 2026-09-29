@@ -5,9 +5,11 @@
 
 #import <AppKit/AppKit.h>
 
+#include <algorithm>
 #include <optional>
 #include <utility>
 
+#import "base/apple/foundation_util.h"
 #import "skia/ext/skia_utils_mac.h"
 
 // The material is a visual background. AppKit's default NSGlassEffectView hit
@@ -132,6 +134,60 @@ class NativeChromeMaterialBridge::Impl final {
     }
   }
 
+  void ApplyToRegion(const NativeBackdropSpec& spec,
+                     const gfx::Rect& region_in_window,
+                     int corner_radius) {
+    NSWindow* window = window_.GetNativeNSWindow();
+    NSView* content_view = window ? window.contentView : nil;
+    const bool use_glass = spec.use_native_glass &&
+                           IsNativeMacGlassAvailable() && content_view &&
+                           !region_in_window.IsEmpty();
+    if (!use_glass) {
+      // Views paints the opaque panel; never leave a stale native layer.
+      Reset();
+      return;
+    }
+    if (@available(macOS 26.0, *)) {
+      // Content views of Views windows are not flipped: convert the top-left
+      // Views rectangle to AppKit's bottom-left origin.
+      const CGFloat height = NSHeight(content_view.bounds);
+      const NSRect frame = NSMakeRect(
+          region_in_window.x(), height - region_in_window.bottom(),
+          region_in_window.width(), region_in_window.height());
+      AhoiChromeGlassBackgroundView* glass_view =
+          base::apple::ObjCCast<AhoiChromeGlassBackgroundView>(material_view_);
+      if (!glass_view || material_view_.superview != content_view) {
+        RemoveMaterialView();
+        glass_view =
+            [[AhoiChromeGlassBackgroundView alloc] initWithFrame:frame];
+        glass_view.style = NSGlassEffectViewStyleRegular;
+        glass_view.accessibilityElement = NO;
+        material_view_ = glass_view;
+        // Below Chromium's compositor superview, so the Views veil, text and
+        // focus rings draw on top of the glass.
+        [content_view addSubview:glass_view
+                      positioned:NSWindowBelow
+                      relativeTo:nil];
+      }
+      // Panel geometry follows Views layout, so resizing is explicit.
+      glass_view.autoresizingMask = NSViewNotSizable;
+      if (!NSEqualRects(glass_view.frame, frame)) {
+        glass_view.frame = frame;
+      }
+      glass_view.cornerRadius = std::max(0, corner_radius);
+      glass_view.tintColor = skia::SkColorToSRGBNSColor(spec.glass_tint);
+      configuration_ = NativeChromeMaterialConfiguration{
+          .use_native_glass = true,
+          .style = NativeGlassStyle::kRegular,
+          .tint_color = spec.glass_tint,
+          .fallback_color = spec.opaque_fill,
+          .corner_radius = std::max(0, corner_radius),
+      };
+      return;
+    }
+    Reset();
+  }
+
   void Reset() {
     RemoveMaterialView();
     configuration_.reset();
@@ -164,6 +220,13 @@ void NativeChromeMaterialBridge::Apply(
 
 void NativeChromeMaterialBridge::Reset() {
   impl_->Reset();
+}
+
+void NativeChromeMaterialBridge::ApplyToRegion(
+    const NativeBackdropSpec& spec,
+    const gfx::Rect& region_in_window,
+    int corner_radius) {
+  impl_->ApplyToRegion(spec, region_in_window, corner_radius);
 }
 
 bool NativeChromeMaterialBridge::is_using_native_glass_for_testing() const {

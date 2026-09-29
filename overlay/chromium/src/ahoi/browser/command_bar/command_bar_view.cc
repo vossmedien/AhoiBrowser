@@ -366,17 +366,9 @@ CommandBarView::~CommandBarView() {
 
 void CommandBarView::OnAppearanceChanged(
     const appearance::GlassPolicy& policy) {
-  const appearance::SurfaceAppearance surface =
-      appearance::AppearanceResolver::Resolve(
-          appearance::SurfaceRole::kCommandBar, policy);
-  views::ClientView* client_view =
-      GetWidget() ? GetWidget()->client_view() : nullptr;
-  if (!client_view) {
-    appearance::ApplySurfaceAppearance(this, surface);
-    return;
-  }
-  appearance::ClearSurfaceBackgroundAppearance(this);
-  appearance::ApplySurfaceBackgroundAppearance(client_view, surface);
+  // Bubble panels are separate windows: native glass behind the visible
+  // panel, a light Views veil on top, opaque under every fallback.
+  panel_material_.Apply(this, policy);
 }
 
 void CommandBarView::SetInitialQuery(std::u16string query,

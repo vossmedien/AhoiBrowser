@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "ahoi/browser/developer_toolkit/developer_cookie_manager.h"
+#include "ahoi/browser/ui/appearance/native_panel_material.h"
 #include "base/callback_list.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
@@ -127,6 +128,8 @@ class DeveloperCookieManagerView final : public views::View {
   raw_ptr<views::Label> status_label_ = nullptr;
   base::CallbackListSubscription search_subscription_;
   bool busy_ = false;
+  appearance::NativePanelMaterial panel_material_{
+      appearance::SurfaceRole::kDeveloperTools};
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>
       appearance_signal_source_;
   base::WeakPtrFactory<DeveloperCookieManagerView> weak_ptr_factory_{this};

@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/ui/appearance/appearance_policy.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace ahoi::appearance {
@@ -62,6 +63,13 @@ SurfaceAppearance AppearanceResolver::Resolve(SurfaceRole role,
   // translucent NSWindow foundation, so neither layer should hide the Glass.
   // WebContents stays opaque; only browser-chrome gaps reveal the glass.
   appearance.mode = ResolveMode(policy);
+  // Increase Contrast removes translucency, which also removes the depth cue
+  // that separates a floating surface from the page. A one-pixel semantic
+  // outline restores that edge. Window-embedded chrome keeps no outline.
+  if (policy.high_contrast && role != SurfaceRole::kBrowserChrome &&
+      role != SurfaceRole::kSidebar) {
+    appearance.border_thickness = std::max(1, appearance.border_thickness);
+  }
   if (appearance.uses_glass()) {
     appearance.opacity = defaults.glass_opacity;
     appearance.background_blur_sigma = defaults.glass_blur_sigma;

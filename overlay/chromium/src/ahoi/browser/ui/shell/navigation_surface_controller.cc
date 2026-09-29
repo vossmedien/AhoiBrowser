@@ -4,16 +4,26 @@
 #include "ahoi/browser/ui/shell/navigation_surface_controller.h"
 
 #include <algorithm>
+#include <cmath>
+#include <optional>
 #include <utility>
 
 #include "ahoi/browser/ui/appearance/appearance_views.h"
+#include "ahoi/browser/ui/appearance/glass_material.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
+#include "cc/paint/paint_canvas.h"
+#include "cc/paint/paint_flags.h"
 #include "components/prefs/pref_service.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
+#include "third_party/skia/include/core/SkRRect.h"
+#include "ui/color/color_provider.h"
 #include "ui/compositor/layer.h"
 #include "ui/gfx/animation/tween.h"
+#include "ui/gfx/canvas.h"
+#include "ui/gfx/geometry/rect_f.h"
+#include "ui/gfx/geometry/skia_conversions.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/outsets.h"
 #include "ui/gfx/geometry/rounded_corners_f.h"
@@ -31,6 +41,62 @@ namespace ahoi {
 
 namespace {
 
+// Visible tab of the reveal notch: a translucent semantic fill with bottom
+// corners, plus an Increase Contrast outline when requested.
+class NotchBackground final : public views::Background {
+ public:
+  NotchBackground(ui::ColorId fill,
+                  SkAlpha alpha,
+                  std::optional<ui::ColorId> outline,
+                  gfx::RoundedCornersF radii,
+                  gfx::Insets insets)
+      : fill_(fill),
+        alpha_(alpha),
+        outline_(outline),
+        radii_(radii),
+        insets_(insets) {}
+
+  void Paint(gfx::Canvas* canvas, views::View* view) const override {
+    const ui::ColorProvider* provider = view->GetColorProvider();
+    if (!provider) {
+      return;
+    }
+    gfx::Rect visible = view->GetLocalBounds();
+    visible.Inset(insets_);
+    const gfx::RectF bounds(visible);
+    const SkVector radii[4] = {
+        {radii_.upper_left(), radii_.upper_left()},
+        {radii_.upper_right(), radii_.upper_right()},
+        {radii_.lower_right(), radii_.lower_right()},
+        {radii_.lower_left(), radii_.lower_left()}};
+    SkRRect shape;
+    shape.setRectRadii(gfx::RectFToSkRect(bounds), radii);
+    cc::PaintFlags flags;
+    flags.setAntiAlias(true);
+    flags.setColor(SkColorSetA(provider->GetColor(fill_), alpha_));
+    canvas->sk_canvas()->drawRRect(shape, flags);
+    if (outline_) {
+      // Stroke inside the fill so the outline is not clipped by the layer.
+      shape.inset(0.5f, 0.5f);
+      flags.setStyle(cc::PaintFlags::kStroke_Style);
+      flags.setStrokeWidth(1.0f);
+      flags.setColor(provider->GetColor(*outline_));
+      canvas->sk_canvas()->drawRRect(shape, flags);
+    }
+  }
+
+  void OnViewThemeChanged(views::View* view) override {
+    view->SchedulePaint();
+  }
+
+ private:
+  const ui::ColorId fill_;
+  const SkAlpha alpha_;
+  const std::optional<ui::ColorId> outline_;
+  const gfx::RoundedCornersF radii_;
+  const gfx::Insets insets_;
+};
+
 class NavigationRevealNotchView final : public views::Button {
   METADATA_HEADER(NavigationRevealNotchView, views::Button)
 
@@ -42,18 +108,37 @@ class NavigationRevealNotchView final : public views::Button {
         entered_callback_(std::move(entered_callback)) {
     SetPreferredSize(gfx::Size(visual_style::kNavigationRevealNotchWidth,
                                visual_style::kNavigationRevealNotchHeight));
-    constexpr float kBottomRadius =
-        visual_style::kNavigationRevealNotchVisualHeight / 2.0f;
-    SetBackground(views::CreateRoundedRectBackground(
-        visual_style::kSelectedSurface,
-        gfx::RoundedCornersF(0.0f, 0.0f, kBottomRadius, kBottomRadius),
-        gfx::Insets::TLBR(0, 0,
-                          visual_style::kNavigationRevealNotchHeight -
-                              visual_style::kNavigationRevealNotchVisualHeight,
-                          0)));
+    appearance::SurfaceAppearance initial;
+    initial.border_thickness = 0;
+    SetMaterial(initial);
     SetFocusBehavior(FocusBehavior::ALWAYS);
     SetTooltipText(accessible_name);
     GetViewAccessibility().SetName(accessible_name);
+  }
+
+  // The notch is the collapsed form of the floating navigation row, so it
+  // shares that row's tint. It carries no text and its layer includes an
+  // invisible hit slop below the visible tab, so it never uses a backdrop
+  // blur (which would blur the slop as a visible band).
+  void SetMaterial(const appearance::SurfaceAppearance& appearance) {
+    constexpr float kBottomRadius =
+        visual_style::kNavigationRevealNotchVisualHeight / 2.0f;
+    const auto alpha = static_cast<SkAlpha>(std::lround(
+        std::clamp(appearance.uses_glass() ? appearance.opacity : 1.0f, 0.0f,
+                   1.0f) *
+        255.0f));
+    SetBackground(std::make_unique<NotchBackground>(
+        appearance.uses_glass() ? appearance.background_color
+                                : visual_style::kSelectedSurface,
+        alpha,
+        appearance.border_thickness > 0 ? appearance.border_color
+                                        : std::optional<ui::ColorId>(),
+        gfx::RoundedCornersF(0.0f, 0.0f, kBottomRadius, kBottomRadius),
+        gfx::Insets::TLBR(
+            0, 0,
+            visual_style::kNavigationRevealNotchHeight -
+                visual_style::kNavigationRevealNotchVisualHeight,
+            0)));
   }
 
   void OnMouseEntered(const ui::MouseEvent& event) override {
@@ -397,9 +482,15 @@ void NavigationSurfaceController::OnAppearancePolicyChanged(
   if (!toolbar_) {
     return;
   }
-  toolbar_appearance_ = appearance::AppearanceResolver::Resolve(
-      appearance::SurfaceRole::kFloatingNavigation, policy);
+  toolbar_appearance_ = appearance::ResolveHostedSurfaceAppearance(
+      appearance::SurfaceRole::kFloatingNavigation,
+      appearance::SurfaceHost::kOverWebContent, policy,
+      appearance::IsNativeBackdropAvailable());
   ApplyToolbarAppearance();
+  if (reveal_notch_) {
+    static_cast<NavigationRevealNotchView*>(reveal_notch_.get())
+        ->SetMaterial(toolbar_appearance_);
+  }
   reduced_motion_ = policy.reduced_motion;
   state_.SetReducedMotion(reduced_motion_);
   if (reduced_motion_) {

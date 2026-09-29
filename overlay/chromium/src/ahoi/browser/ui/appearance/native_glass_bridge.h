@@ -8,7 +8,9 @@
 #include <memory>
 
 #include "ahoi/browser/ui/appearance/appearance_policy.h"
+#include "ahoi/browser/ui/appearance/glass_material.h"
 #include "third_party/skia/include/core/SkColor.h"
+#include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/native_ui_types.h"
 
 namespace ahoi::appearance {
@@ -66,6 +68,17 @@ class NativeChromeMaterialBridge final {
   ~NativeChromeMaterialBridge();
 
   void Apply(const NativeChromeMaterialConfiguration& configuration);
+
+  // Panel mode for bubble windows. Places one NSGlassEffectView exactly
+  // behind the visible panel (`region_in_window` is in window DIP with a
+  // top-left origin, i.e. Views coordinates of the root view), so the
+  // Views-drawn shadow margin of the bubble stays clear. Unlike Apply(), the
+  // NSWindow's own opacity and background are left to Views; an opaque
+  // `spec` simply removes the native material.
+  void ApplyToRegion(const NativeBackdropSpec& spec,
+                     const gfx::Rect& region_in_window,
+                     int corner_radius);
+
   void Reset();
 
   bool is_using_native_glass_for_testing() const;
