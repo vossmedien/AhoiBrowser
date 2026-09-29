@@ -29,6 +29,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_saved_row_presence.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -559,6 +560,32 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
       continue;
     }
     open_tabs_container_->AddChildView(create_open_tab_row(tab));
+  }
+  // A closed temporary tab of an unrestored session is not a saved row; see
+  // ShouldHideClosedTemporaryPageRow. Hiding it is presentation-only, so a
+  // later session restore that binds its tab brings it back under "Open tabs".
+  const SidebarTreeViewModel& tree_model = controller_->view_model();
+  for (const SidebarTreeViewModel::Row& row : tree_model.rows()) {
+    const tab_tree::TreeNode* const node = tree_model.GetNode(row.node_id);
+    if (!node || !node->is_temporary) {
+      continue;
+    }
+    const std::optional<base::Uuid> creator =
+        profile_sync_service_
+            ? profile_sync_service_->GetSharedTabProvenance(node->id)
+                  .creation_device
+            : std::nullopt;
+    const SavedRowRuntimeFacts facts{
+        .has_live_tab =
+            session_bridge_->FindTabByTreeNodeId(node->id) != nullptr,
+        .archived = session_bridge_->tab_tree_store() &&
+                    session_bridge_->tab_tree_store()->IsNodeArchived(node->id),
+        .created_on_other_device =
+            creator.has_value() &&
+            *creator != profile_sync_service_->local_device_id()};
+    if (ShouldHideClosedTemporaryPageRow(*node, facts)) {
+      mixed_split_saved_nodes.insert(node->id);
+    }
   }
   // Suppression is presentation-only and is recalculated from authoritative
   // SplitTabData on every refresh. Ending or reclassifying a split therefore

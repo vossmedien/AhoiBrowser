@@ -5,7 +5,8 @@
 # a killed GPU process is replaced while the pages keep working; after a hard
 # browser kill with a normal and an incognito window, Chromium's restore
 # prompt brings back each normal page exactly once and never the incognito
-# window or page. Saved-tab crash recovery needs a sidebar drag and is not
+# window or page. Until restored, the killed temporary tabs never appear as
+# saved rows. Saved-tab crash recovery needs a sidebar drag and is not
 # covered here.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd); AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9403
@@ -114,6 +115,12 @@ sleep 3; kill -9 $PID; sleep 3
 launch; sleep 4
 $AX dump $PID 14 > "$OUT/ax-after-relaunch.txt"
 grep -q 'AXWindow | .*\(incpage\|Inkognito\)' "$OUT/ax-after-relaunch.txt" && record noIncognitoWindowBack false || record noIncognitoWindowBack true
+# Before restore, the killed session's temporary tabs have no live tab. They
+# are closed temporary tabs, not saved pages: no "Gespeicherte Tabs" row
+# (AXRow) may show them, or a click would move them away (owner report).
+grep -q -E 'AXRow \| (alpha|beta) ' "$OUT/ax-after-relaunch.txt" \
+  && record closedTemporaryNotSavedRow false \
+  || record closedTemporaryNotSavedRow true
 # The restore button text carries soft hyphens.
 RESTORE=$(grep -o 'AXButton | Wieder[^|]*' "$OUT/ax-after-relaunch.txt" | head -1 | sed -e 's/^AXButton | //' -e 's/ *$//')
 if [ -n "$RESTORE" ]; then
@@ -127,4 +134,11 @@ sleep 3; AFTER=$(pages); echo "after restore $AFTER" >> "$OUT/pages.txt"
 [ "$(count_of alpha.html)" = 1 ] && [ "$(count_of beta.html)" = 1 ] && record noDuplicatesAfterRestore true || record noDuplicatesAfterRestore false
 [ "$(count_of incpage)" = 0 ] && record incognitoNotRestored true || record incognitoNotRestored false
 $AX dump $PID 14 > "$OUT/ax-final.txt"
+# The restored tabs bind their nodes again and show under "Offene Tabs".
+grep -q -E 'AXRow \| (alpha|beta) ' "$OUT/ax-final.txt" \
+  && record restoredTemporaryInOpenTabs false \
+  || { grep -q -E 'AXRadioButton \| alpha ' "$OUT/ax-final.txt" \
+       && grep -q -E 'AXRadioButton \| beta ' "$OUT/ax-final.txt" \
+       && record restoredTemporaryInOpenTabs true \
+       || record restoredTemporaryInOpenTabs false; }
 finish; quit

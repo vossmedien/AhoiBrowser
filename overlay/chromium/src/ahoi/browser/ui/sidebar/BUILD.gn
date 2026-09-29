@@ -6,6 +6,8 @@ import("//tools/grit/repack.gni")
 
 source_set("sidebar_tree") {
   sources = [
+    "sidebar_saved_row_presence.cc",
+    "sidebar_saved_row_presence.h",
     "sidebar_tree_controller.cc",
     "sidebar_tree_controller.h",
     "sidebar_tree_controller_drop.cc",
@@ -356,6 +358,7 @@ source_set("unit_tests") {
     "sidebar_presentation_state_unittest.cc",
     "sidebar_runtime_drop_targets_unittest.cc",
     "sidebar_runtime_refresh_gate_unittest.cc",
+    "sidebar_saved_row_presence_unittest.cc",
     "sidebar_split_layout_unittest.cc",
     "sidebar_split_resize_area_unittest.cc",
     "sidebar_tab_density_unittest.cc",
@@ -427,6 +430,7 @@ source_set("search_unit_tests") {
   testonly = true
   sources = [
     "sidebar_discovery_view_unittest.cc",
+    "sidebar_saved_row_presence_unittest.cc",
     "sidebar_tab_stops_unittest.cc",
     "sidebar_tree_controller_unittest.cc",
     "sidebar_tree_view_drag_lifecycle_unittest.cc",

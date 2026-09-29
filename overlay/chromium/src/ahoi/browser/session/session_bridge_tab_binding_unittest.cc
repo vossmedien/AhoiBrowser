@@ -256,6 +256,60 @@ TEST_F(SessionBridgeTest, DroppedDetachedTabIsRetiredFailClosed) {
   EXPECT_EQ(nullptr, bridge_->FindTabByTreeNodeId(node.id));
 }
 
+// A click on a saved row binds a new tab to the node (MaterializeSavedPage).
+// Closing that tab (also after an aborted or auth-cancelled load) must only
+// release the WebContents; the saved row survives. A temporary page bound
+// the same way is a temporary tab, and closing it removes its node.
+TEST_F(SessionBridgeTest, ClosingBoundTabKeepsSavedPageButNotTemporary) {
+  tab_tree::Workspace workspace = MakeWorkspace(u"Workspace", "a");
+  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({workspace}));
+  task_environment()->RunUntilIdle();
+  tab_tree::TabTreeStore* store = bridge_->tab_tree_store();
+  ASSERT_TRUE(store);
+
+  tab_tree::TreeNode saved =
+      MakeSavedPage(workspace.id, GURL("http://127.0.0.1:8793/a/"));
+  saved.title = u"Ahoi auth required";
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store->CreateNode(saved));
+  tab_tree::TreeNode temporary =
+      MakeSavedPage(workspace.id, GURL("http://127.0.0.1:8793/b/"));
+  temporary.sort_key = "b";
+  temporary.is_temporary = true;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store->CreateTemporaryPage(temporary));
+
+  TabStripModel* model = browser()->GetTabStripModel();
+  AddTab(browser(), saved.url);
+  tabs::TabInterface* saved_tab = model->GetActiveTab();
+  ASSERT_TRUE(saved_tab);
+  ASSERT_TRUE(bridge_->BindTreeNodeToTab(saved, saved_tab));
+  AddTab(browser(), temporary.url);
+  tabs::TabInterface* temporary_tab = model->GetActiveTab();
+  ASSERT_TRUE(temporary_tab);
+  ASSERT_NE(saved_tab, temporary_tab);
+  ASSERT_TRUE(bridge_->BindTreeNodeToTab(temporary, temporary_tab));
+  task_environment()->RunUntilIdle();
+  EXPECT_EQ(saved.id, bridge_->FindTreeNodeIdForTab(saved_tab));
+  EXPECT_EQ(std::nullopt, bridge_->FindTreeNodeIdForTab(temporary_tab));
+
+  model->DetachAndDeleteWebContentsAt(model->GetIndexOfTab(saved_tab));
+  model->DetachAndDeleteWebContentsAt(model->GetIndexOfTab(temporary_tab));
+  task_environment()->RunUntilIdle();
+
+  EXPECT_EQ(nullptr, bridge_->FindTabByTreeNodeId(saved.id));
+  tab_tree::TreeNode persisted;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store->GetNode(saved.id, &persisted));
+  EXPECT_FALSE(persisted.tombstone);
+  EXPECT_FALSE(persisted.is_temporary);
+
+  tab_tree::TreeNode closed;
+  const tab_tree::TabTreeStore::Result closed_result =
+      store->GetNode(temporary.id, &closed);
+  EXPECT_TRUE(closed_result != tab_tree::TabTreeStore::Result::kOk ||
+              closed.tombstone);
+}
+
 TEST_F(SessionBridgeTest, ShutdownDetachesAndFailsClosed) {
   tab_tree::Workspace workspace = MakeWorkspace(u"Workspace", "a");
   ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({workspace}));
