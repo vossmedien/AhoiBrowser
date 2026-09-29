@@ -19,7 +19,10 @@ SITE_PORT=${AHOI_E2E_SITE_PORT:-8817}; mkdir -p $P-site
 if lsof -nP -iTCP:$SITE_PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "site port $SITE_PORT busy" >&2; exit 6; fi
 printf '<title>adpage</title><ins class="adsbygoogle" id="ad" data-ad-client="ca-pub-0000000000000000" data-ad-slot="0000000000" style="display:block;width:300px;height:250px;background:#fc0"></ins>ad page' > $P-site/ad.html
 python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/site.log" 2>&1 &
-SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; SITE=http://127.0.0.1:$SITE_PORT
+SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT
+# uBO applies no generic cosmetic filters on IP-address hosts, so the page is
+# served under a *.localhost name (Chromium resolves it to loopback itself).
+SITE=http://ubotest.localhost:$SITE_PORT
 CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 pages() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(json.dumps(sorted([t["url"] for t in json.load(sys.stdin) if t["type"]=="page"])))'; }
 target_of() { # <url substring> ; DevTools target ids of matching pages
@@ -146,7 +149,7 @@ ALLOWED=$(eval_in "extensions/?id=$UBO_ID" "(()=>{const d=document.querySelector
 sleep 2
 ALLOWED=$(eval_in "extensions/?id=$UBO_ID" "document.querySelector('extensions-manager').shadowRoot.querySelector('extensions-detail-view').shadowRoot.querySelector('#allow-incognito').checked")
 echo "allow-incognito after click: $ALLOWED" >> "$OUT/steps.txt"
-[ "$ALLOWED" = true ] && record incognitoAllowanceSwitchedOn true || record incognitoAllowanceSwitchedOn false
+{ [ "$ALLOWED" = true ] || [ "$ALLOWED" = True ]; } && record incognitoAllowanceSwitchedOn true || record incognitoAllowanceSwitchedOn false
 sleep 3; key 45 cmd shift; sleep 3; open_url "$SITE/ad.html?inc2"
 hidden_within 'ad.html?inc2' 40 && record activeInIncognitoAfterAllowance true || record activeInIncognitoAfterAllowance false
 $AX dump $PID 14 > "$OUT/ax-final.txt"
