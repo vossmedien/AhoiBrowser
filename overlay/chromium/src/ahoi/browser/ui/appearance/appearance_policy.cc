@@ -6,9 +6,14 @@
 #include <algorithm>
 #include <utility>
 
+#include "ahoi/browser/ui/appearance/glass_material.h"
+
 namespace ahoi::appearance {
 
 namespace {
+
+constexpr int kEmbedded = glass_tokens::kEmbeddedRadius;
+constexpr int kPanel = glass_tokens::kPanelRadius;
 
 struct RoleDefaults {
   ui::ColorId background_color;
@@ -23,17 +28,17 @@ constexpr RoleDefaults GetRoleDefaults(SurfaceRole role) {
     case SurfaceRole::kBrowserChrome:
       return {ui::kColorSysSurfaceVariant, 0, 0.55f, 0.0f, 0};
     case SurfaceRole::kSidebar:
-      return {ui::kColorSysSurface2, 14, 0.82f, 24.0f, 0};
+      return {ui::kColorSysSurface2, kEmbedded, 0.82f, 24.0f, 0};
     case SurfaceRole::kFloatingNavigation:
-      return {ui::kColorSysSurface3, 14, 0.62f, 30.0f, 0};
+      return {ui::kColorSysSurface3, kEmbedded, 0.62f, 30.0f, 0};
     case SurfaceRole::kCommandBar:
-      return {ui::kColorSysSurface, 18, 0.68f, 32.0f, 0};
+      return {ui::kColorSysSurface, kPanel, 0.68f, 32.0f, 0};
     case SurfaceRole::kPopup:
-      return {ui::kColorSysSurface3, 18, 0.70f, 30.0f, 0};
+      return {ui::kColorSysSurface3, kPanel, 0.70f, 30.0f, 0};
     case SurfaceRole::kDeveloperTools:
-      return {ui::kColorSysSurface3, 18, 0.97f, 24.0f, 0};
+      return {ui::kColorSysSurface3, kPanel, 0.97f, 24.0f, 0};
     case SurfaceRole::kMiniPlayer:
-      return {ui::kColorSysSurface4, 14, 0.62f, 26.0f, 0};
+      return {ui::kColorSysSurface4, kEmbedded, 0.62f, 26.0f, 0};
     case SurfaceRole::kCount:
       break;
   }

@@ -126,6 +126,16 @@ namespace glass_tokens {
 inline constexpr int kEmbeddedRadius = 14;
 inline constexpr int kPanelRadius = 18;
 inline constexpr int kRowRadius = 8;
+inline constexpr int kRowInset = 6;
+static_assert(kRowRadius + kRowInset == kEmbeddedRadius,
+              "inner rows must stay concentric with embedded surfaces");
+// Outer corner of the browser window itself.
+inline constexpr int kWindowRadius = 22;
+
+// Hairlines are white at these alphas and exactly one device pixel wide.
+// They mark glass edges; opaque surfaces use the semantic divider instead.
+inline constexpr float kHairlineLight = 0.45f;
+inline constexpr float kHairlineDark = 0.14f;
 
 // Milky lift toward white of the theme surface.
 inline constexpr float kMilkLiftLight = 0.55f;
@@ -152,7 +162,52 @@ inline constexpr float kDeveloperToolsVeil = 0.86f;
 // over the calm window backdrop. No over-web surface may go below this floor.
 inline constexpr float kOverWebMinimumTint = 0.62f;
 
+// Elevation shadows (CSS-style y offset and blur radius in DIP). The shadow
+// colour is a deep sea-green rather than black so it stays calm on glass.
+inline constexpr int kWindowShadowY = 16;
+inline constexpr int kWindowShadowBlur = 48;
+inline constexpr SkColor kWindowShadowColor = SkColorSetRGB(10, 28, 34);
+inline constexpr float kWindowShadowLight = 0.16f;
+inline constexpr float kWindowShadowDark = 0.32f;
+inline constexpr int kPanelShadowY = 12;
+inline constexpr int kPanelShadowBlur = 32;
+inline constexpr SkColor kSurfaceShadowColor = SkColorSetRGB(8, 25, 30);
+inline constexpr float kPanelShadowLight = 0.18f;
+inline constexpr float kPanelShadowDark = 0.40f;
+inline constexpr int kContentCardShadowY = 2;
+inline constexpr int kContentCardShadowBlur = 8;
+inline constexpr float kContentCardShadowLight = 0.06f;
+inline constexpr float kContentCardShadowDark = 0.18f;
+
 }  // namespace glass_tokens
+
+// The one-device-pixel white hairline along glass edges.
+SkColor ResolveGlassHairline(bool dark);
+
+enum class Elevation : uint8_t {
+  // The browser window on the desktop.
+  kWindow,
+  // Free-floating panels: command bar, Peek frame, dialogs.
+  kPanel,
+  // The opaque web content card inside the window.
+  kContentCard,
+};
+
+// A shadow token; `blur` is a CSS blur radius (sigma = blur / 2), which is
+// also what gfx::ShadowValue expects.
+struct ElevationShadow {
+  int y_offset = 0;
+  int blur = 0;
+  SkColor color = SK_ColorTRANSPARENT;
+};
+
+constexpr bool operator==(const ElevationShadow& lhs,
+                          const ElevationShadow& rhs) {
+  return lhs.y_offset == rhs.y_offset && lhs.blur == rhs.blur &&
+         lhs.color == rhs.color;
+}
+
+ElevationShadow ResolveElevationShadow(Elevation elevation, bool dark);
 
 }  // namespace ahoi::appearance
 
