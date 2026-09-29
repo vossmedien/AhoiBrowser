@@ -72,9 +72,11 @@ class NativeChromeMaterialBridge final {
   // Panel mode for bubble windows. Places one NSGlassEffectView exactly
   // behind the visible panel (`region_in_window` is in window DIP with a
   // top-left origin, i.e. Views coordinates of the root view), so the
-  // Views-drawn shadow margin of the bubble stays clear. Unlike Apply(), the
-  // NSWindow's own opacity and background are left to Views; an opaque
-  // `spec` simply removes the native material.
+  // Views-drawn shadow margin of the bubble stays clear. The glass is
+  // clipped to `corner_radius` with circular corners like the Views panel,
+  // and the NSWindow is kept non-opaque with a clear background, so nothing
+  // square shows behind the rounded panel. An opaque `spec` simply removes
+  // the native material.
   void ApplyToRegion(const NativeBackdropSpec& spec,
                      const gfx::Rect& region_in_window,
                      int corner_radius);

@@ -268,6 +268,24 @@ TEST(GlassMaterialTest, GeometryTokensMatchTheDesignSpec) {
   EXPECT_EQ(22, glass_tokens::kWindowRadius);
 }
 
+// The command bar window's glass, veil and opaque fallback share the 18
+// panel radius, so no square native corner shows outside the panel.
+TEST(GlassMaterialTest, OwnWindowPanelsKeepThePanelRadiusOnEveryBacking) {
+  GlassPolicy glass_off;
+  glass_off.enabled = false;
+  for (const GlassPolicy& policy : {GlassPolicy(), glass_off}) {
+    for (bool native : {true, false}) {
+      for (SurfaceRole role :
+           {SurfaceRole::kCommandBar, SurfaceRole::kDeveloperTools}) {
+        EXPECT_EQ(glass_tokens::kPanelRadius,
+                  ResolveHostedSurfaceAppearance(role, SurfaceHost::kOwnWindow,
+                                                 policy, native)
+                      .corner_radius);
+      }
+    }
+  }
+}
+
 TEST(GlassMaterialTest, HairlineIsTranslucentWhite) {
   const SkColor light = ResolveGlassHairline(false);
   const SkColor dark = ResolveGlassHairline(true);

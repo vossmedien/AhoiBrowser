@@ -24,6 +24,9 @@ static_assert(visual_style::kContentCardShadowElevation * 2 ==
               glass_tokens::kContentCardShadowBlur);
 static_assert(visual_style::kPanelShadowElevation * 2 ==
               glass_tokens::kPanelShadowBlur);
+// Bubble panels (command bar, developer tools) round their BubbleBorder and
+// ClientView with visual_style; their native glass uses the role radius.
+static_assert(visual_style::kPanelCornerRadius == glass_tokens::kPanelRadius);
 
 SkAlpha ToAlpha(float opacity) {
   return static_cast<SkAlpha>(

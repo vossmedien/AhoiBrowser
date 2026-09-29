@@ -4,6 +4,7 @@
 #import "ahoi/browser/ui/appearance/native_glass_bridge.h"
 
 #import <AppKit/AppKit.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include <algorithm>
 #include <optional>
@@ -174,8 +175,20 @@ class NativeChromeMaterialBridge::Impl final {
       if (!NSEqualRects(glass_view.frame, frame)) {
         glass_view.frame = frame;
       }
-      glass_view.cornerRadius = std::max(0, corner_radius);
+      const CGFloat radius = std::max(0, corner_radius);
+      glass_view.cornerRadius = radius;
+      // Views clips the panel to circular arcs of this radius. Clip the
+      // glass output to the same shape, so no square glass corner can show
+      // outside the rounded panel.
+      glass_view.wantsLayer = YES;
+      glass_view.layer.cornerRadius = radius;
+      glass_view.layer.cornerCurve = kCACornerCurveCircular;
+      glass_view.layer.masksToBounds = YES;
       glass_view.tintColor = skia::SkColorToSRGBNSColor(spec.glass_tint);
+      // Only the rounded panel is visible: the bubble window around it
+      // (shadow margin and the corners outside the radius) stays clear.
+      window.opaque = NO;
+      window.backgroundColor = NSColor.clearColor;
       configuration_ = NativeChromeMaterialConfiguration{
           .use_native_glass = true,
           .style = NativeGlassStyle::kRegular,
