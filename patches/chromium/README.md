@@ -1,5 +1,37 @@
 # Chromium M153 patch ledger
 
+## `0085-ahoi-rebindable-fixed-shortcuts.patch`
+
+- **Owner:** Desktop (DoD "Tastenkürzel/MRU": Quick Window, Undo, command
+  bar and Save rebindable).
+- **Change:** in `browser_view.cc/.h` only. The four commands 0058 left
+  fixed now run through `HandleAhoiShortcutCommand` and the catalog's
+  `ShortcutRegistration`: the hard-coded ⌘Z and ⌥Space registrations and
+  their `AcceleratorPressed` blocks are gone. `AhoiQuickWindowGlobalShortcut`
+  holds the bound key (`SetAccelerator`) instead of a fixed ⌥Space. New
+  `ApplyAhoiAppWideShortcuts()` (on binding changes and window activation)
+  moves the key equivalents of the main-menu items Open Location
+  (`browser.command-bar`, ⌘L), New Tab (`browser.command-bar-new-tab`, ⌘T)
+  and Bookmark This Tab (`tab.save`, ⌘D) through overlay
+  `ahoi/browser/navigation/keyboard_shortcut_platform_mac`, and re-registers
+  the system-wide Quick Window hotkey.
+- **Safety:** defaults unchanged. Chromium resolves main-menu keys from the
+  live NSMenu, so the key, its dispatch and its menu display move together
+  and the old key is free; mouse clicks on those items keep Chromium's
+  commands, and `BrowserNativeWidgetMac::ExecuteCommand` (0001) still maps
+  keyboard Open Location / New Tab / Bookmark to the command bar and Save.
+  App-wide state follows the most recently activated window's Profile.
+  Sidebar Undo returns false with nothing to undo, so native Undo keeps ⌘Z.
+- **Tests:** `ahoi_navigation_unittests` (`KeyboardShortcutsTest.*`,
+  `ShortcutRegistrationTest.*`, `KeyboardShortcutPlatformMacTest.*`),
+  `ahoi_settings_private_unittests` (`ShortcutSettingsModelTest.*`);
+  guarded build, then `tools/desktop_e2e/keyboard-shortcuts-journey.sh`
+  on the exact candidate.
+- **Rebase/removal:** medium; context follows 0058's `LoadAccelerators`,
+  `AcceleratorPressed` and `HandleAhoiShortcutCommand` hunks and 0001's
+  Quick Window class. Removing it needs the overlay catalog's
+  `rebindable=false` for the four commands back.
+
 ## `0083-ahoi-command-bar-key-hints.patch`
 
 - **Owner:** Desktop (design spec 2026-09-29, command bar footer).
@@ -1655,7 +1687,8 @@ reference.
   catalog command first and runs it by id (`HandleAhoiShortcutCommand`, and
   `HandleAhoiSplitCommand` replacing the key-based split handler). Quick
   Window, sidebar Undo, the command bar and Save keep their 0001 handling;
-  they are listed in the catalog but not rebindable yet.
+  they are listed in the catalog but not rebindable yet (0085 makes them
+  rebindable).
 - **Safety:** defaults are the keys 0001 registered, plus Option+Tab for the
   new last-used-tab command (`SessionBridge::ActivateLastUsedTab`, active
   Workspace of the window only). A key Chromium's own accelerator table

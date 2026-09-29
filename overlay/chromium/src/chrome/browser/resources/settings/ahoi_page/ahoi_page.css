@@ -320,27 +320,59 @@ cr-view-manager [hidden-by-search] {
   width: 100%;
 }
 
+/* DESIGN_SPEC 2026-09-29: settings rows at least 64 high with a 20 inset,
+ * row title 14/20 medium, helper text 12/17, errors as a 1 pt red outline
+ * plus a written message. */
 .shortcut-list {
+  --ahoi-shortcut-error: #b42332;
   display: flex;
   flex-direction: column;
-  gap: 6px;
   margin-block-end: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .shortcut-list {
+    --ahoi-shortcut-error: #ff9aa4;
+  }
 }
 
 .shortcut-row {
   align-items: center;
+  border-top: var(--cr-separator-line);
+  box-sizing: border-box;
+  column-gap: 12px;
   display: grid;
-  gap: 8px;
   grid-template-columns: 1fr auto auto auto;
+  min-height: 64px;
+  padding: 10px 20px;
+}
+
+.shortcut-row:first-child {
+  border-top: none;
 }
 
 .shortcut-name {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.shortcut-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.shortcut-helper {
+  color: var(--cr-secondary-text-color);
+  font-size: 12px;
+  line-height: 17px;
 }
 
 .shortcut-keys {
   font-variant-numeric: tabular-nums;
+  min-height: 28px;
   min-width: 96px;
 }
 
@@ -348,6 +380,15 @@ cr-view-manager [hidden-by-search] {
   outline: 2px solid var(--cr-focus-outline-color);
 }
 
+.shortcut-keys.invalid {
+  outline: 1px solid var(--ahoi-shortcut-error);
+  outline-offset: 1px;
+}
+
 .shortcut-error {
+  color: var(--ahoi-shortcut-error);
+  font-size: 12px;
   grid-column: 1 / -1;
+  line-height: 17px;
+  margin-top: 6px;
 }

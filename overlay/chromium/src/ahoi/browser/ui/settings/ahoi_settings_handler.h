@@ -19,6 +19,7 @@
 #include "base/files/file_path.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "base/timer/timer.h"
 #include "base/values.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/web_ui_message_handler.h"
@@ -107,6 +108,9 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   void HandleGetShortcuts(const base::ListValue& args);
   void HandleShortcutAction(const base::ListValue& args);
   void HandleSetShortcutRecording(const base::ListValue& args);
+  // Pauses Ahoi's shortcuts, reserved main-menu keys and the system-wide
+  // Quick Window hotkey while a key is recorded; ends by itself after 30 s.
+  void SetShortcutRecording(bool active);
 
   enum class PortableDialogPurpose { kNone, kExportSave, kImportOpen };
 
@@ -129,6 +133,10 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
   PrefChangeRegistrar link_routing_pref_registrar_;
   // Shows a binding changed in another settings tab without a reload.
   PrefChangeRegistrar shortcut_pref_registrar_;
+  base::OneShotTimer shortcut_recording_timeout_;
+  // Whether this handler suspended global shortcut handling (and so must
+  // resume it); another owner's suspension is left alone.
+  bool shortcut_handling_suspended_ = false;
   base::WeakPtrFactory<AhoiSettingsHandler> weak_factory_{this};
 };
 

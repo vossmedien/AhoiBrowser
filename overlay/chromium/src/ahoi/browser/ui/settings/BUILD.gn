@@ -64,6 +64,7 @@ if (is_mac) {
       "//ahoi/browser/navigation",
       "//ahoi/browser/navigation:link_routing",
       "//ahoi/browser/session:isolated_profiles",
+      "//ui/base/accelerators/global_accelerator_listener",
     ]
   }
 }

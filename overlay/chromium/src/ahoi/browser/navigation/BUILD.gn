@@ -21,7 +21,8 @@ source_set("navigation_preferences") {
 }
 
 # One catalog of Ahoi keyboard commands, their user bindings and the
-# conflict check. Pure model: no views, no //chrome.
+# conflict check. Pure model: no views, no //chrome. On macOS it also moves
+# main-menu key equivalents and reads the user's system shortcuts.
 source_set("keyboard_shortcuts") {
   sources = [
     "keyboard_shortcut_registration.cc",
@@ -39,6 +40,16 @@ source_set("keyboard_shortcuts") {
     "//components/pref_registry",
     "//ui/events",
   ]
+  if (is_mac) {
+    sources += [
+      "keyboard_shortcut_platform_mac.h",
+      "keyboard_shortcut_platform_mac.mm",
+    ]
+    frameworks = [
+      "AppKit.framework",
+      "Foundation.framework",
+    ]
+  }
 }
 
 # Pure external-link routing model, matcher and pref codec.
@@ -160,6 +171,10 @@ source_set("unit_tests") {
     "workspace_swipe_event_handler_unittest.cc",
     "workspace_swipe_tracker_unittest.cc",
   ]
+  if (is_mac) {
+    sources += [ "keyboard_shortcut_platform_mac_unittest.mm" ]
+    frameworks = [ "AppKit.framework" ]
+  }
   deps = [
     ":keyboard_shortcuts",
     ":link_routing",

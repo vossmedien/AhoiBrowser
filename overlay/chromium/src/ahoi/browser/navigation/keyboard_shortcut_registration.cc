@@ -25,9 +25,14 @@ ShortcutRegistration::ShortcutRegistration(PrefService* prefs, Apply apply)
 
 ShortcutRegistration::~ShortcutRegistration() = default;
 
+void ShortcutRegistration::SetChangedCallback(base::RepeatingClosure changed) {
+  changed_ = std::move(changed);
+}
+
 std::optional<std::string> ShortcutRegistration::CommandFor(
     const ui::Accelerator& accelerator) const {
-  std::optional<std::string> id = CommandForAccelerator(overrides_, accelerator);
+  std::optional<std::string> id =
+      CommandForAccelerator(overrides_, accelerator);
   const ShortcutCommand* command = id ? FindCommand(*id) : nullptr;
   return command && command->rebindable ? id : std::nullopt;
 }
@@ -59,6 +64,9 @@ void ShortcutRegistration::Refresh() {
     }
   }
   registered_ = std::move(wanted);
+  if (changed_) {
+    changed_.Run();
+  }
 }
 
 }  // namespace ahoi::shortcuts
