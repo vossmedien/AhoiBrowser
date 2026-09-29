@@ -61,20 +61,33 @@ void WorkspaceSwipeEventHandler::OnScrollEvent(ui::ScrollEvent* event) {
 void WorkspaceSwipeEventHandler::OnNativeScrollEvent(ui::Event* event,
                                                      bool target_is_this_window,
                                                      bool* event_handled) {
-  if (!target_is_this_window || !event_handled || *event_handled || !event) {
-    return;
-  }
-  if (event->IsMouseWheelEvent()) {
-    if (switch_tab_callback_ && event->IsCommandDown()) {
-      ProcessCmdWheelEvent(event->AsMouseWheelEvent(), event_handled);
-    }
-    return;
-  }
-  if (!event->IsScrollEvent()) {
+  if (!target_is_this_window || !event_handled || *event_handled || !event ||
+      !event->IsScrollEvent()) {
     return;
   }
   ProcessScrollEvent(event->AsScrollEvent(),
                      /*require_pretarget_phase=*/false, event_handled);
+}
+
+void WorkspaceSwipeEventHandler::OnNativeWheelNotch(ui::ScrollEvent* event,
+                                                    bool target_is_this_window,
+                                                    bool* event_handled) {
+  if (!target_is_this_window || !event_handled || *event_handled || !event ||
+      !switch_tab_callback_ || !event->IsCommandDown()) {
+    return;
+  }
+  const auto notch = [](float offset) {
+    const float step = static_cast<float>(ui::MouseWheelEvent::kWheelDelta);
+    return offset > 0.0f ? step : offset < 0.0f ? -step : 0.0f;
+  };
+  // Phase-less, so the switcher's rate limit still turns a fast burst of
+  // notches into one switch.
+  ApplyCmdScrollDecision(
+      cmd_scroll_tab_switcher_.OnScroll(
+          notch(event->x_offset_ordinal()), notch(event->y_offset_ordinal()),
+          ui::ScrollEventPhase::kNone, ui::EventMomentumPhase::NONE,
+          event->time_stamp()),
+      event, event_handled);
 }
 #endif
 
@@ -200,18 +213,6 @@ bool WorkspaceSwipeEventHandler::ProcessCmdScrollEvent(ui::ScrollEvent* event,
           event->x_offset_ordinal(), event->y_offset_ordinal(),
           event->scroll_event_phase(), event->momentum_phase(),
           event->time_stamp()),
-      event, event_handled);
-}
-
-bool WorkspaceSwipeEventHandler::ProcessCmdWheelEvent(
-    ui::MouseWheelEvent* event,
-    bool* event_handled) {
-  // One notch is kWheelDelta (120) per axis, far above the switch threshold;
-  // the switcher's rate limit still turns a fast burst into one switch.
-  return ApplyCmdScrollDecision(
-      cmd_scroll_tab_switcher_.OnScroll(
-          event->x_offset(), event->y_offset(), ui::ScrollEventPhase::kNone,
-          ui::EventMomentumPhase::NONE, event->time_stamp()),
       event, event_handled);
 }
 

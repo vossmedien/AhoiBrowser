@@ -14,7 +14,6 @@
 
 namespace ui {
 class Event;
-class MouseWheelEvent;
 class ScrollEvent;
 }  // namespace ui
 
@@ -73,6 +72,12 @@ class WorkspaceSwipeEventHandler final : public ui::EventHandler {
   void OnNativeScrollEvent(ui::Event* event,
                            bool target_is_this_window,
                            bool* event_handled);
+  // A classic (non-precise) mouse-wheel notch, which macOS reports with an
+  // offset of about 4 px (40 x ~0.1 lines) — far below the Cmd+scroll
+  // threshold. With Cmd held, one notch is one switch request.
+  void OnNativeWheelNotch(ui::ScrollEvent* event,
+                          bool target_is_this_window,
+                          bool* event_handled);
 #endif
 
   // ui::EventHandler:
@@ -84,10 +89,8 @@ class WorkspaceSwipeEventHandler final : public ui::EventHandler {
                           bool* event_handled);
 
   bool ProcessCmdScrollEvent(ui::ScrollEvent* event, bool* event_handled);
-  // A classic mouse wheel reaches the native monitor as a MouseWheelEvent,
-  // not a ScrollEvent; with Cmd held it is one phase-less switch request.
-  bool ProcessCmdWheelEvent(ui::MouseWheelEvent* event, bool* event_handled);
-  // Shared by both: feeds the switcher and runs the preview/switch callbacks.
+  // Shared by the scroll and wheel-notch paths: runs the preview/switch
+  // callbacks for the switcher's decision.
   bool ApplyCmdScrollDecision(CmdScrollTabDecision decision,
                               ui::Event* event,
                               bool* event_handled);
