@@ -3,6 +3,8 @@
 
 #include "ahoi/browser/session/cross_level_move.h"
 
+#include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -235,6 +237,40 @@ TEST(CrossLevelMoveTest, UndoOnlyWhileTheMoveIsTheLatestChange) {
   ASSERT_TRUE(GetLatestCrossLevelMove());
   ForgetCrossLevelMove();
   EXPECT_FALSE(GetLatestCrossLevelMove());
+}
+
+// Build 54 (d466bfef): a folder holding the active tab moved without the
+// window, because only the roots themselves were matched against it.
+TEST(CrossLevelMoveTest, ContainsNodesInsideAMovedFolder) {
+  // Folder 10 {page 11, folder 13 {page 14}}, root page 20.
+  const std::map<base::Uuid, base::Uuid> parents = {
+      {Id(11), Id(10)}, {Id(13), Id(10)}, {Id(14), Id(13)}};
+  const auto parent_of = base::BindRepeating(
+      [](const std::map<base::Uuid, base::Uuid>& up,
+         const base::Uuid& id) -> std::optional<base::Uuid> {
+        const auto it = up.find(id);
+        return it == up.end() ? std::nullopt
+                               : std::optional<base::Uuid>(it->second);
+      },
+      parents);
+  EXPECT_TRUE(CrossLevelMoveContains({Id(10)}, Id(10), parent_of));
+  EXPECT_TRUE(CrossLevelMoveContains({Id(10)}, Id(11), parent_of));
+  EXPECT_TRUE(CrossLevelMoveContains({Id(10)}, Id(14), parent_of));
+  EXPECT_TRUE(CrossLevelMoveContains({Id(20), Id(13)}, Id(14), parent_of));
+  EXPECT_FALSE(CrossLevelMoveContains({Id(13)}, Id(11), parent_of));
+  EXPECT_FALSE(CrossLevelMoveContains({Id(10)}, Id(20), parent_of));
+  EXPECT_FALSE(CrossLevelMoveContains({}, Id(11), parent_of));
+
+  // A parent cycle ends the walk.
+  const std::map<base::Uuid, base::Uuid> cycle = {{Id(1), Id(2)},
+                                                  {Id(2), Id(1)}};
+  const auto cyclic = base::BindRepeating(
+      [](const std::map<base::Uuid, base::Uuid>& up,
+         const base::Uuid& id) -> std::optional<base::Uuid> {
+        return up.at(id);
+      },
+      cycle);
+  EXPECT_FALSE(CrossLevelMoveContains({Id(10)}, Id(1), cyclic));
 }
 
 }  // namespace

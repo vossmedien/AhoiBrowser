@@ -135,11 +135,7 @@ bool BrowserSidebarHostView::MoveSelectionAcrossLevels(
   if (roots.empty() || dry_run) {
     return !roots.empty();
   }
-  const bool follow =
-      active && std::ranges::any_of(roots, [this, active](const auto& id) {
-        return session_bridge_->FindTabByTreeNodeId(id) == active ||
-               session_bridge_->FindSharedTreeNodeIdForTab(active) == id;
-      });
+  const bool follow = CrossLevelMoveTakesActiveTab(roots);
   // The command bar closes first; the confirmation opens after it.
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE,

@@ -537,6 +537,8 @@ class BrowserSidebarHostView final
   std::vector<SwitcherWorkspace> CrossLevelTargets() const;
   // The open tab's node, with its split partners.
   std::vector<base::Uuid> CrossLevelRootsForTab(tabs::TabInterface* tab);
+  // Whether the item holds the active tab, also inside a moved folder.
+  bool CrossLevelMoveTakesActiveTab(const std::vector<base::Uuid>& roots);
   // Adds the other Profiles' Workspaces to the "Move to" menu, creating it
   // if needed. Returns whether the menu has any item.
   bool AppendCrossLevelMoveItems(std::vector<base::Uuid> roots,

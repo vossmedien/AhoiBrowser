@@ -57,6 +57,16 @@ CrossLevelMoveCheck ExtractCrossLevelMove(
     const std::vector<base::Uuid>& root_ids,
     CrossLevelMovePayload* payload);
 
+// Whether `node_id` is one of `root_ids` or lies inside one of them,
+// walking up through `parent_of` (nullopt at a Workspace root). A move that
+// takes the active tab this way, also inside a moved folder, lets the
+// window follow it (handoff 011 S1).
+bool CrossLevelMoveContains(
+    const std::vector<base::Uuid>& root_ids,
+    const base::Uuid& node_id,
+    const base::RepeatingCallback<std::optional<base::Uuid>(
+        const base::Uuid&)>& parent_of);
+
 struct CrossLevelMovePlacement {
   // The target Workspace's own current record plus only new nodes and
   // splits, so the portable import is purely additive.

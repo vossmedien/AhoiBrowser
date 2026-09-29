@@ -20,6 +20,7 @@
 #include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
+#include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "base/files/file_path.h"
 #include "base/functional/bind.h"
@@ -139,6 +140,41 @@ std::vector<base::Uuid> BrowserSidebarHostView::CrossLevelRootsForTab(
   return roots;
 }
 
+bool BrowserSidebarHostView::CrossLevelMoveTakesActiveTab(
+    const std::vector<base::Uuid>& roots) {
+  tabs::TabInterface* const active =
+      tab_strip_model_ ? tab_strip_model_->GetActiveTab() : nullptr;
+  if (!active) {
+    return false;
+  }
+  if (std::ranges::any_of(roots, [this, active](const base::Uuid& id) {
+        return session_bridge_->FindTabByTreeNodeId(id) == active;
+      })) {
+    return true;
+  }
+  const std::optional<base::Uuid> node =
+      session_bridge_->FindSharedTreeNodeIdForTab(active);
+  tab_tree::TabTreeStore* const store = session_bridge_->tab_tree_store();
+  if (!node || !store) {
+    return false;
+  }
+  // The active page may sit inside a moved folder (build 54 left the window
+  // behind for such a folder).
+  return session::CrossLevelMoveContains(
+      roots, *node,
+      base::BindRepeating(
+          [](tab_tree::TabTreeStore* store,
+             const base::Uuid& id) -> std::optional<base::Uuid> {
+            tab_tree::TreeNode entry;
+            if (store->GetNode(id, &entry) !=
+                tab_tree::TabTreeStore::Result::kOk) {
+              return std::nullopt;
+            }
+            return entry.parent_id;
+          },
+          base::Unretained(store)));
+}
+
 bool BrowserSidebarHostView::AppendCrossLevelMoveItems(
     std::vector<base::Uuid> roots,
     bool has_menu) {
@@ -183,11 +219,8 @@ bool BrowserSidebarHostView::RunCrossLevelMoveCommand(int command_id) {
   }
   const std::vector<base::Uuid> roots = context_.cross_level_roots;
   tabs::TabInterface* const active = tab_strip_model_->GetActiveTab();
-  const bool follow =
-      active && (context_.runtime_tab.get() == active ||
-                 std::ranges::any_of(roots, [this, active](const auto& id) {
-                   return session_bridge_->FindTabByTreeNodeId(id) == active;
-                 }));
+  const bool follow = active && (context_.runtime_tab.get() == active ||
+                                 CrossLevelMoveTakesActiveTab(roots));
   // Leave the nested menu loop before a dialog opens.
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE,

@@ -230,6 +230,23 @@ std::optional<CrossLevelMovePlacement> PlaceCrossLevelMove(
   return placement;
 }
 
+bool CrossLevelMoveContains(
+    const std::vector<base::Uuid>& root_ids,
+    const base::Uuid& node_id,
+    const base::RepeatingCallback<std::optional<base::Uuid>(
+        const base::Uuid&)>& parent_of) {
+  std::set<base::Uuid> seen;
+  std::optional<base::Uuid> current = node_id;
+  // A malformed parent cycle ends the walk instead of looping.
+  while (current && current->is_valid() && seen.insert(*current).second) {
+    if (std::ranges::find(root_ids, *current) != root_ids.end()) {
+      return true;
+    }
+    current = parent_of.Run(*current);
+  }
+  return false;
+}
+
 void RememberCrossLevelMove(CrossLevelMoveReceipt receipt) {
   LatestReceipt() = std::move(receipt);
 }
