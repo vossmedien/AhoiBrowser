@@ -548,6 +548,27 @@ TEST_F(AhoiTabTreeStoreTest, AtomicDeleteAndUndoKeepsSplitPagesTogether) {
   store_->RemoveObserver(&observer);
 }
 
+// WS-ISO-05: undoing a cross-Profile move removes the target's copy
+// without an undo entry that a later Cmd+Z there could revive.
+TEST_F(AhoiTabTreeStoreTest, AtomicDeleteWithoutUndoLeavesHistoryAlone) {
+  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
+  TreeNode page = NewSavedPage(workspace, std::nullopt, u"Copy",
+                               GURL("https://example.test/copy"), "a");
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page));
+  TabTreeSnapshot before;
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->ExportSnapshot(&before));
+  ASSERT_EQ(TabTreeStore::Result::kOk,
+            store_->DeleteNodesAtomically({page.id}, base::Time::Now(),
+                                          /*record_undo=*/false));
+  TabTreeSnapshot after;
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->ExportSnapshot(&after));
+  EXPECT_EQ(before.undo_operations, after.undo_operations);
+  TreeNode deleted;
+  ASSERT_EQ(TabTreeStore::Result::kOk, store_->GetNode(page.id, &deleted));
+  EXPECT_TRUE(deleted.tombstone);
+}
+
 TEST_F(AhoiTabTreeStoreTest, CreateRenameAndUndoAreLifoAndAtomic) {
   Workspace workspace = NewWorkspace(u"Development", "workspace-a");
   ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));

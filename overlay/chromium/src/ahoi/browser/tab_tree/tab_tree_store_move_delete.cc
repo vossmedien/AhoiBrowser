@@ -379,7 +379,8 @@ TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
 
 TabTreeStore::Result TabTreeStore::DeleteNodesAtomically(
     const std::vector<base::Uuid>& node_ids,
-    base::Time modified_at) {
+    base::Time modified_at,
+    bool record_undo) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
@@ -425,7 +426,8 @@ TabTreeStore::Result TabTreeStore::DeleteNodesAtomically(
   if (!transaction.Begin()) {
     return Result::kDatabaseError;
   }
-  if (!InsertUndoOperation(UndoMutationKind::kDelete, node_ids.front(),
+  if (record_undo &&
+      !InsertUndoOperation(UndoMutationKind::kDelete, node_ids.front(),
                            modified_at, snapshots)) {
     return Result::kDatabaseError;
   }
