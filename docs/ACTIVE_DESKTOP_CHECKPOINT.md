@@ -24,6 +24,13 @@ GRIT action; attribution texts stay. Queued as build 47 (`wait47.sh` →
 `ahoi_quick_window_browsertests` (Crest 146
 `RepeatedAdoptionDoesNotReopenTwice`)
 under `e2e.lock`, then quick-window-adoption and ubo-classic journeys.
+Build 47 compiles while 46's journeys wait (it holds `e2e.lock` only while
+building and installs after the 46 chain). New installed journeys queued on
+47 via `.work/agent-queue/extra.sh`, in this order: `reader-link-journey`
+(WORKFLOW-07 link/Markdown copy, credentials stripped, incognito copy
+concealed, reading mode), `anychat-journey` (below) and
+`crash-recovery-journey` (CRASH-01/02/03/04/07/08 with temporary tabs;
+saved-tab recovery needs a sidebar drag and stays open).
 AnyChat: the owner approved (29 Sep) rerunning the AnyChat Store journey on
 the current candidate; it runs after the 46/47 journeys, re-reading the
 Store's version and permission scope first (the approval covered 1.0.8 with
