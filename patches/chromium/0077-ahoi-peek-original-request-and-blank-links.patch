@@ -47,9 +47,9 @@ index 2471fbd..3cb8081 100644
 +    if (auto* view = BrowserView::GetBrowserViewForBrowser(&*browser_)) {
 +      if (auto* popup_controller = view->ahoi_popup_overlay_controller()) {
 +        content::WebContents* const peek = new_contents.get();
-+        if (popup_controller->TryAutoPeekNewWindow(source, &new_contents,
-+                                                   target_url, disposition,
-+                                                   user_gesture)) {
++        if (popup_controller->TryAutoPeekNewWindow(
++                source, &new_contents, target_url, disposition,
++                window_features, user_gesture)) {
 +          return peek;
 +        }
 +      }

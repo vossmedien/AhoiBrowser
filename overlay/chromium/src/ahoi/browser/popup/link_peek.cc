@@ -12,6 +12,7 @@
 #include "content/public/browser/page_navigator.h"
 #include "content/public/browser/web_contents.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
+#include "third_party/blink/public/mojom/window_features/window_features.mojom.h"
 
 namespace ahoi::popup {
 
@@ -107,13 +108,14 @@ bool IsAutoPeekNewWindowCandidate(const NewWindowLink& link) {
   // is a candidate.
   return link.disposition == WindowOpenDisposition::NEW_FOREGROUND_TAB &&
          link.user_gesture && !link.has_opener && link.plain_activation &&
-         LeavesSite(link.source_url, link.target_url);
+         !link.popup_features && LeavesSite(link.source_url, link.target_url);
 }
 
 bool ShouldAutoPeekNewWindow(content::WebContents* source,
                              content::WebContents* new_contents,
                              const GURL& target_url,
                              WindowOpenDisposition disposition,
+                             const blink::mojom::WindowFeatures& features,
                              bool user_gesture) {
   if (!source || !new_contents ||
       source->GetBrowserContext() != new_contents->GetBrowserContext()) {
@@ -126,6 +128,8 @@ bool ShouldAutoPeekNewWindow(content::WebContents* source,
   link.user_gesture = user_gesture;
   link.has_opener = new_contents->HasOpener();
   link.plain_activation = LinkPeekInputTracker::LastInputWasPlain(source);
+  link.popup_features =
+      features.is_popup || features.has_width || features.has_height;
   return IsAutoPeekNewWindowCandidate(link) &&
          CanAutoPeekLink(source, target_url);
 }

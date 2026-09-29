@@ -29,13 +29,7 @@
 #include "components/tabs/public/split_tab_collection.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "content/public/browser/browser_context.h"
-#include "content/public/browser/navigation_controller.h"
-#include "content/public/browser/render_frame_host.h"
-#include "content/public/browser/site_instance.h"
-#include "content/public/browser/storage_partition.h"
-#include "content/public/browser/storage_partition_config.h"
 #include "content/public/browser/web_contents.h"
-#include "content/public/common/referrer.h"
 #include "third_party/blink/public/mojom/window_features/window_features.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/page_transition_types.h"
@@ -152,92 +146,6 @@ bool PopupOverlayController::TryShow(
   return AdoptAndShow(opener, popup_contents, window_features, user_gesture);
 }
 
-bool PopupOverlayController::CanPeek(content::WebContents* opener,
-                                     const GURL& url) {
-  return popup::IsPeekableUrl(url) && CanHostFor(opener);
-}
-
-bool PopupOverlayController::ShowPeek(content::WebContents* opener,
-                                      const popup::PeekRequest& request) {
-  const GURL& url = request.url;
-  if (!CanPeek(opener, url) || !opener->GetPrimaryMainFrame()) {
-    return false;
-  }
-  // The preview stays in the opener's website session (ADR 0011), so it
-  // sees the same logins and never another Workspace's cookies.
-  content::BrowserContext* context = opener->GetBrowserContext();
-  content::StoragePartition* partition = context->GetStoragePartition(
-      opener->GetPrimaryMainFrame()->GetSiteInstance());
-  if (!partition) {
-    return false;
-  }
-  const content::StoragePartitionConfig& config = partition->GetConfig();
-  content::WebContents::CreateParams params(
-      context, config.is_default()
-                   ? content::SiteInstance::CreateForURL(context, url)
-                   : content::SiteInstance::CreateForFixedStoragePartition(
-                         context, url, config));
-  std::unique_ptr<content::WebContents> contents =
-      content::WebContents::Create(params);
-  content::WebContents* peek = contents.get();
-  if (!AdoptAndShow(opener, &contents, blink::mojom::WindowFeatures(),
-                    /*user_gesture=*/true)) {
-    return false;
-  }
-  // The intercepted request as the page sent it; the opener's own URL and
-  // origin are never substituted. Sanitizing again under the request's own
-  // policy keeps rel=noreferrer and Referrer-Policy: no-referrer silent.
-  content::NavigationController::LoadURLParams load(url);
-  load.transition_type = request.transition;
-  load.initiator_origin = request.initiator_origin;
-  load.referrer = content::Referrer::SanitizeForRequest(url, request.referrer);
-  load.started_from_context_menu = request.started_from_context_menu;
-  peek->GetController().LoadURLWithParams(load);
-  return true;
-}
-
-bool PopupOverlayController::TryAutoPeekNewWindow(
-    content::WebContents* source,
-    std::unique_ptr<content::WebContents>* new_contents,
-    const GURL& target_url,
-    WindowOpenDisposition disposition,
-    bool user_gesture) {
-  if (!new_contents || !*new_contents || !browser_ ||
-      !browser_->GetProfile()->GetPrefs()->GetBoolean(
-          popup::kAutoPeekFromSavedPagesPref) ||
-      !CanPeek(source, target_url) ||
-      !popup::ShouldAutoPeekNewWindow(source, new_contents->get(), target_url,
-                                      disposition, user_gesture)) {
-    return false;
-  }
-  // Content has not started loading `new_contents` yet; it loads the link,
-  // with its referrer and initiator, into the adopted WebContents once this
-  // returns, so the page is requested exactly once and keeps its noopener
-  // browsing context.
-  return AdoptAndShow(source, new_contents, blink::mojom::WindowFeatures(),
-                      user_gesture);
-}
-
-bool PopupOverlayController::IsSavedPage(content::WebContents* contents) {
-  tabs::TabInterface* const tab =
-      contents ? tabs::TabInterface::MaybeGetFromContents(contents) : nullptr;
-  SessionBridge* const bridge =
-      browser_ ? SessionBridgeFactory::GetForProfile(browser_->GetProfile())
-               : nullptr;
-  if (!tab || !bridge || !bridge->tab_tree_store()) {
-    return false;
-  }
-  const std::optional<session::TabSessionMetadata> metadata =
-      bridge->GetTabSessionMetadata(tab);
-  // A temporary tab is bound to a temporary tree row too; only a page the
-  // user saved counts.
-  tab_tree::TreeNode node;
-  return metadata && metadata->tree_node_id.has_value() &&
-         bridge->tab_tree_store()->GetNode(*metadata->tree_node_id, &node) ==
-             tab_tree::TabTreeStore::Result::kOk &&
-         !node.is_temporary;
-}
-
 bool PopupOverlayController::AdoptAndShow(
     content::WebContents* opener,
     std::unique_ptr<content::WebContents>* popup_contents,
@@ -255,6 +163,7 @@ bool PopupOverlayController::AdoptAndShow(
                               weak_ptr_factory_.GetWeakPtr()));
   initial_window_features_ = window_features.Clone();
   original_user_gesture_ = user_gesture;
+  fallback_disposition_ = WindowOpenDisposition::NEW_POPUP;
   CaptureFocusReturnTarget(opener);
   if (!service_.Adopt(opener, popup_contents)) {
     browser_->SetAsDelegateForAhoiPopupOverlay(popup_contents->get(),
@@ -496,9 +405,9 @@ bool PopupOverlayController::OpenPopupInSeparateWindow(
   const blink::mojom::WindowFeatures& window_features =
       initial_window_features_ ? *initial_window_features_ : default_features;
   content::WebContents* const inserted = chrome::AddWebContents(
-      browser_, opener, std::move(contents), target_url,
-      WindowOpenDisposition::NEW_POPUP, window_features,
-      NavigateParams::WindowAction::kShowWindow, original_user_gesture_);
+      browser_, opener, std::move(contents), target_url, fallback_disposition_,
+      window_features, NavigateParams::WindowAction::kShowWindow,
+      original_user_gesture_);
   ClearRequestMetadata();
   return inserted == popup;
 }
@@ -709,6 +618,7 @@ void PopupOverlayController::ClearRequestMetadata() {
   opener_pane_ = nullptr;
   initial_window_features_.reset();
   original_user_gesture_ = false;
+  fallback_disposition_ = WindowOpenDisposition::NEW_POPUP;
 }
 
 void PopupOverlayController::OnPopupServiceStateChanged() {

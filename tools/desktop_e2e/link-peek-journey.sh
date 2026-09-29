@@ -6,8 +6,8 @@
 # page without a reload. Every Peek repeats the link's own request (Crest
 # adoption A1): the site server logs Referer and Sec-Fetch-Site per request.
 # Automatic Peek also takes plain target=_blank clicks of saved pages, loaded
-# once, while modifier clicks, same-site links and temporary pages keep their
-# tab (A4). HID keys, PID-scoped AX, CDP reads and clicks.
+# once, while modifier clicks, same-site links, sign-in targets and temporary
+# pages keep their tab (A4). HID keys, PID-scoped AX, CDP reads and clicks.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd); AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9347
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
@@ -28,8 +28,10 @@ cat > $P-site/page.html <<HTML
 <a id=xb target=_blank href="$OTHER/target.html?blank" style="$SMALL">blank</a>
 <a id=xc target=_blank href="$OTHER/target.html?cmdshift" style="$SMALL">cmd shift</a>
 <a id=xs target=_blank href="/target.html?samesite" style="$SMALL">same site blank</a>
+<a id=xl target=_blank href="$OTHER/login.html?blank" style="$SMALL">sign-in blank</a>
 HTML
 printf '<title>target</title>target page' > $P-site/target.html
+printf '<title>login</title>login page' > $P-site/login.html
 # The site server logs what each request carried (A1 evidence).
 REQ="$OUT/requests.jsonl"; : > "$REQ"
 cat > $P-server.py <<'PY'
@@ -271,6 +273,12 @@ CDP "$PAGE_MATCH" Page.bringToFront '{}' >/dev/null; sleep 1
 click_link xs 0    # same-site target=_blank
 { ! waitax "Popup schließen" 4; } && waiturl "?samesite" 10 \
   && record sameSiteBlankStaysTab true || record sameSiteBlankStaysTab false
+CDP "$PAGE_MATCH" Page.bringToFront '{}' >/dev/null; sleep 1
+M=$(mark); click_link xl 0    # target=_blank to a sign-in page
+{ ! waitax "Popup schließen" 4; } && waiturl "login.html" 10 \
+  && record signInBlankStaysTab true || record signInBlankStaysTab false
+sleep 2; [ "$(req_count "$M" "login.html")" = 1 ] \
+  && record signInBlankLoadsOnce true || record signInBlankLoadsOnce false
 open_url "$SITE/page.html?temp"; PAGE_MATCH="page.html?temp"
 click_link xb 0    # target=_blank from a temporary, unsaved tab
 { ! waitax "Popup schließen" 4; } && waiturl "?blank" 10 \

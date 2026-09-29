@@ -104,8 +104,11 @@ class AhoiLinkPeekRequestBrowserTest : public InProcessBrowserTest {
 
   // What Chromium hands the browser for a target=_blank link without an
   // opener, before content starts loading it.
-  content::WebContents* AddNewForegroundWindow(const GURL& url,
-                                               content::WebContents** added) {
+  content::WebContents* AddNewForegroundWindow(
+      const GURL& url,
+      content::WebContents** added,
+      const blink::mojom::WindowFeatures& features =
+          blink::mojom::WindowFeatures()) {
     std::unique_ptr<content::WebContents> window =
         content::WebContents::Create(
             content::WebContents::CreateParams(browser()->GetProfile()));
@@ -114,9 +117,8 @@ class AhoiLinkPeekRequestBrowserTest : public InProcessBrowserTest {
     content::WebContents* const result =
         source()->GetDelegate()->AddNewContents(
             source(), std::move(window), url,
-            WindowOpenDisposition::NEW_FOREGROUND_TAB,
-            blink::mojom::WindowFeatures(), /*user_gesture=*/true,
-            &was_blocked);
+            WindowOpenDisposition::NEW_FOREGROUND_TAB, features,
+            /*user_gesture=*/true, &was_blocked);
     EXPECT_FALSE(was_blocked);
     return result;
   }
@@ -232,6 +234,34 @@ IN_PROC_BROWSER_TEST_F(AhoiLinkPeekRequestBrowserTest,
       embedded_https_test_server().GetURL("a.com", "/echo?same"), &added);
   EXPECT_FALSE(controller()->IsShowing()) << "same site";
   EXPECT_EQ(3, browser()->GetTabStripModel()->count());
+}
+
+IN_PROC_BROWSER_TEST_F(AhoiLinkPeekRequestBrowserTest,
+                       BlankClickToASignInPageStaysATab) {
+  // The overlay would hand a sign-in page to a popup window right after its
+  // commit; the link keeps the tab Chromium opens for it.
+  SaveSourceTab();
+  SetAutoPeek(true);
+  content::WebContents* added = nullptr;
+  AddNewForegroundWindow(
+      embedded_https_test_server().GetURL("b.com", "/login"), &added);
+  EXPECT_FALSE(controller()->IsShowing());
+  EXPECT_EQ(nullptr, controller()->popup_contents_for_testing());
+  EXPECT_EQ(2, browser()->GetTabStripModel()->count());
+}
+
+IN_PROC_BROWSER_TEST_F(AhoiLinkPeekRequestBrowserTest,
+                       PopupTurnedIntoATabStaysATab) {
+  // macOS browser fullscreen hands window.open(url, "x", "popup") over as a
+  // foreground tab; its features keep it out of auto-Peek.
+  SaveSourceTab();
+  SetAutoPeek(true);
+  blink::mojom::WindowFeatures features;
+  features.is_popup = true;
+  content::WebContents* added = nullptr;
+  AddNewForegroundWindow(TargetUrl(), &added, features);
+  EXPECT_FALSE(controller()->IsShowing());
+  EXPECT_EQ(2, browser()->GetTabStripModel()->count());
 }
 
 }  // namespace ahoi::popup_ui

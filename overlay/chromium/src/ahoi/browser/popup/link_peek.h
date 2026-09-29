@@ -8,6 +8,7 @@
 #include <string>
 
 #include "content/public/common/referrer.h"
+#include "third_party/blink/public/mojom/window_features/window_features.mojom-forward.h"
 #include "ui/base/page_transition_types.h"
 #include "ui/base/window_open_disposition.h"
 #include "url/gurl.h"
@@ -97,6 +98,9 @@ struct NewWindowLink {
   // False after a modifier click (Cmd+Shift-click also arrives as a
   // foreground tab) or when the source's input is unknown.
   bool plain_activation = false;
+  // window.open() with popup or size features. Chromium on macOS turns such
+  // a popup into a foreground tab in browser fullscreen; it stays one.
+  bool popup_features = false;
 };
 
 // Whether a plain target=_blank click leaving the site may become a Peek.
@@ -110,6 +114,7 @@ bool ShouldAutoPeekNewWindow(content::WebContents* source,
                              content::WebContents* new_contents,
                              const GURL& target_url,
                              WindowOpenDisposition disposition,
+                             const blink::mojom::WindowFeatures& features,
                              bool user_gesture);
 
 // The context-menu label in the browser's language.

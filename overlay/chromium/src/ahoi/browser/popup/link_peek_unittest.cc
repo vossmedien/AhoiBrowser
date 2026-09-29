@@ -15,6 +15,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/blink/public/common/input/web_input_event.h"
 #include "third_party/blink/public/common/input/web_mouse_event.h"
+#include "third_party/blink/public/mojom/window_features/window_features.mojom.h"
 #include "url/gurl.h"
 #include "url/origin.h"
 
@@ -145,6 +146,11 @@ TEST(LinkPeekNewWindowTest, EverythingButThePlainClickStaysATab) {
   link = PlainBlankClick();
   link.target_url = GURL("https://www.saved.example/help");
   EXPECT_FALSE(IsAutoPeekNewWindowCandidate(link)) << "same site";
+
+  // macOS browser fullscreen hands a popup over as a foreground tab.
+  link = PlainBlankClick();
+  link.popup_features = true;
+  EXPECT_FALSE(IsAutoPeekNewWindowCandidate(link)) << "fullscreen popup";
 }
 
 class LinkPeekHostTest : public content::RenderViewHostTestHarness {
@@ -197,7 +203,24 @@ TEST_F(LinkPeekHostTest, NewWindowOfASavedPageBecomesAPeek) {
   std::unique_ptr<content::WebContents> window = MakeNewWindow();
   EXPECT_TRUE(ShouldAutoPeekNewWindow(
       web_contents(), window.get(), OtherSite(),
-      WindowOpenDisposition::NEW_FOREGROUND_TAB, /*user_gesture=*/true));
+      WindowOpenDisposition::NEW_FOREGROUND_TAB, blink::mojom::WindowFeatures(),
+      /*user_gesture=*/true));
+}
+
+TEST_F(LinkPeekHostTest, NewWindowWithPopupFeaturesStaysATab) {
+  std::unique_ptr<content::WebContents> window = MakeNewWindow();
+  blink::mojom::WindowFeatures features;
+  features.is_popup = true;
+  EXPECT_FALSE(ShouldAutoPeekNewWindow(
+      web_contents(), window.get(), OtherSite(),
+      WindowOpenDisposition::NEW_FOREGROUND_TAB, features,
+      /*user_gesture=*/true));
+  features = blink::mojom::WindowFeatures();
+  features.has_width = true;
+  EXPECT_FALSE(ShouldAutoPeekNewWindow(
+      web_contents(), window.get(), OtherSite(),
+      WindowOpenDisposition::NEW_FOREGROUND_TAB, features,
+      /*user_gesture=*/true));
 }
 
 TEST_F(LinkPeekHostTest, NewWindowOfATemporaryPageStaysATab) {
@@ -205,7 +228,8 @@ TEST_F(LinkPeekHostTest, NewWindowOfATemporaryPageStaysATab) {
   std::unique_ptr<content::WebContents> window = MakeNewWindow();
   EXPECT_FALSE(ShouldAutoPeekNewWindow(
       web_contents(), window.get(), OtherSite(),
-      WindowOpenDisposition::NEW_FOREGROUND_TAB, /*user_gesture=*/true));
+      WindowOpenDisposition::NEW_FOREGROUND_TAB, blink::mojom::WindowFeatures(),
+      /*user_gesture=*/true));
 }
 
 TEST_F(LinkPeekHostTest, NewWindowAfterModifierClickStaysATab) {
@@ -219,7 +243,8 @@ TEST_F(LinkPeekHostTest, NewWindowAfterModifierClickStaysATab) {
   std::unique_ptr<content::WebContents> window = MakeNewWindow();
   EXPECT_FALSE(ShouldAutoPeekNewWindow(
       web_contents(), window.get(), OtherSite(),
-      WindowOpenDisposition::NEW_FOREGROUND_TAB, /*user_gesture=*/true));
+      WindowOpenDisposition::NEW_FOREGROUND_TAB, blink::mojom::WindowFeatures(),
+      /*user_gesture=*/true));
 }
 
 TEST_F(LinkPeekHostTest, NewWindowOfAnUntrackedPageStaysATab) {
@@ -229,7 +254,8 @@ TEST_F(LinkPeekHostTest, NewWindowOfAnUntrackedPageStaysATab) {
   std::unique_ptr<content::WebContents> window = MakeNewWindow();
   EXPECT_FALSE(ShouldAutoPeekNewWindow(
       untracked.get(), window.get(), OtherSite(),
-      WindowOpenDisposition::NEW_FOREGROUND_TAB, /*user_gesture=*/true));
+      WindowOpenDisposition::NEW_FOREGROUND_TAB, blink::mojom::WindowFeatures(),
+      /*user_gesture=*/true));
 }
 
 }  // namespace ahoi::popup

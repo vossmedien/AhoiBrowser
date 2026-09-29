@@ -30,12 +30,19 @@
   arrives as a foreground tab; `LinkPeekInputTracker` tells them apart), a
   saved, not temporary, source page, another site and an overlay that can
   host it; everything else falls through to `chrome::AddWebContents`.
+  The hunk also passes `window_features`: on macOS in browser fullscreen
+  Chromium has already turned a `NEW_POPUP` into a `NEW_FOREGROUND_TAB`,
+  and popup or size features keep such a window a tab. Sign-in, payment
+  and passkey targets (`ClassifyPopupForOverlay`) keep the tab too, and a
+  later fallback of an adopted link reinserts it as the foreground tab,
+  never as a popup window.
   Script `window.open(url, "_blank", "noopener")` from a click is still
   indistinguishable from a link and previews too, as in Crest.
 - **Tests:** `ahoi_popup_unittests` (`link_peek_unittest.cc`,
   `link_peek_input_unittest.cc`), `ahoi_popup_overlay_browsertests`
   (`popup_overlay_peek_browsertest.cc`: Referer and Sec-Fetch-Site per entry
-  point, new-window adoption and the tab cases) and the extended
+  point, new-window adoption and the tab cases, including a `/login`
+  target and popup features) and the extended
   `tools/desktop_e2e/link-peek-journey.sh` on the exact candidate.
 - **Rebase/removal:** low; regenerate after 0059 and 0061 against a
   checkout with patches 0001–0074 applied.

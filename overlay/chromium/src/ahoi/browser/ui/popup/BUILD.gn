@@ -7,6 +7,7 @@ source_set("popup_overlay") {
   sources = [
     "popup_overlay_controller.cc",
     "popup_overlay_controller.h",
+    "popup_overlay_controller_peek.cc",
     "popup_overlay_view.cc",
     "popup_overlay_view.h",
   ]

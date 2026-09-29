@@ -32,6 +32,7 @@ source_set("link_peek") {
     "//base",
     "//content/public/browser",
     "//content/public/common",
+    "//third_party/blink/public/mojom:mojom_platform",
     "//ui/base",
     "//url",
   ]

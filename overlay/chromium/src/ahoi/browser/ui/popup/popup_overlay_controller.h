@@ -69,11 +69,13 @@ class PopupOverlayController final
   // Automatic Peek (opt-in) for a plain target=_blank click on a saved page
   // that leaves its site: adopts the new window Chromium was about to add as
   // a tab, before content loads it, instead of loading the link a second
-  // time. False leaves `*new_contents` to Chromium's tab path.
+  // time. Popups with features and sign-in, payment or passkey pages keep
+  // the tab. False leaves `*new_contents` to Chromium's tab path.
   bool TryAutoPeekNewWindow(content::WebContents* source,
                             std::unique_ptr<content::WebContents>* new_contents,
                             const GURL& target_url,
                             WindowOpenDisposition disposition,
+                            const blink::mojom::WindowFeatures& window_features,
                             bool user_gesture);
 
   // popup::LinkPeekHost: previews a link of `opener` in this overlay, in a
@@ -152,6 +154,10 @@ class PopupOverlayController final
   raw_ptr<PopupOverlayView> popup_view_ = nullptr;
   blink::mojom::WindowFeaturesPtr initial_window_features_;
   bool original_user_gesture_ = false;
+  // How a fallback reinserts the contents: a popup window, or the foreground
+  // tab an automatically peeked target=_blank link would have opened.
+  WindowOpenDisposition fallback_disposition_ =
+      WindowOpenDisposition::NEW_POPUP;
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>
       appearance_signal_source_;
 
