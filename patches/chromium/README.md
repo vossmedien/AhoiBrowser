@@ -1,5 +1,35 @@
 # Chromium M153 patch ledger
 
+## `0086-ahoi-pip-pages-cannot-freeze.patch`
+
+- **Owner:** Desktop (Crest review 2026-09-29, b76bdf46..6038460e,
+  Crest 6038460e).
+- **Change:** new `CannotFreezeReason::kPictureInPicture` (last entry, now
+  `kMax`) with the string "has Picture-in-Picture" in
+  `public/freezing/cannot_freeze_reason.h` and
+  `freezing/cannot_freeze_reason.cc`.
+  `FreezingPolicy` sets it in `OnPageNodeAdded` from
+  `PageNode::HasPictureInPicture()` (a page can be created with
+  `PagePropertyFlag::kHasPictureInPicture`) and in a new
+  `OnHasPictureInPictureChanged` override via `OnCannotFreezeReasonChange`.
+  Stock M153 never looked at PiP, so a muted or paused PiP video in a
+  background tab froze under Battery Saver CPU freezing or a collapsed tab
+  group's freeze vote, and the PiP controls stopped responding.
+- **Safety:** the reason is in `CannotFreezeReasonSet::All()`, so it blocks
+  voting, Battery Saver and infinite-tabs freezing alike; while set, a
+  frozen page is unfrozen like for WebRTC. The freezer itself is not
+  touched (unlike Crest's `Freezer::MaybeFreezePageNode` hook), so the
+  policy's frozen state stays truthful. UKM `FreezingEligibility` gets no
+  new field. A controllable MediaSession is not covered: performance
+  manager has no MediaSession signal in M153.
+- **Tests:** `components_unittests`
+  (`FreezingPolicyTest.FreezeVoteWhenPictureInPicture`,
+  `FreezingPolicyTest.EntersPictureInPictureWhenFrozen`,
+  `FreezingPolicyTest.InitiallyPictureInPicture`).
+- **Rebase/removal:** trivial; no other patch touches
+  `components/performance_manager`. Upstream adding its own enum entries
+  after `kWebUI` only moves the hunk.
+
 ## `0085-ahoi-rebindable-fixed-shortcuts.patch`
 
 - **Owner:** Desktop (DoD "Tastenkürzel/MRU": Quick Window, Undo, command
