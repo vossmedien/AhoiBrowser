@@ -164,5 +164,15 @@ probe cmdOneAgain alpha 18 cmd
 # Keypad 1 is another binding of the same command.
 probe ctrlTabBack beta 48 ctrl
 probe cmdKeypadOne alpha 83 cmd
+# Second Workspace (build 49: Cmd+keypad-1 did not reach its first row).
+newws Inbox Zwei ""; open_url "$SITE/delta.html"; open_url "$SITE/epsilon.html"
+waitvisible epsilon 5 || fail_setup "epsilon not visible"
+$AX dump $PID 14 > "$OUT/ax-zwei.txt"
+grep -o "AXRow | [^|]*" "$OUT/ax-zwei.txt" >> "$OUT/steps.txt"
+probe zweiKeypadOneFromEpsilon delta 83 cmd
+probe zweiCmdTwoFromDelta epsilon 19 cmd
+probe zweiCmdNineStays epsilon 25 cmd
+probe zweiKeypadOneAgain delta 83 cmd
+probe zweiCtrlTab epsilon 48 ctrl
 $AX dump $PID 14 > "$OUT/ax-final.txt"
 finish; quit
