@@ -36,6 +36,8 @@
 #include "ui/compositor/layer_tree_owner.h"
 #include "ui/events/event.h"
 #include "ui/events/keycodes/keyboard_codes.h"
+#include "ui/gfx/font.h"
+#include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/views/accessibility/view_accessibility.h"
@@ -56,6 +58,13 @@ namespace ahoi {
 namespace {
 
 constexpr size_t kMaximumSuggestionCount = 5u;
+constexpr char16_t kAcceptKeycap[] = u"↵";  // A keycap, never "Return".
+
+gfx::FontList CommandBarFont(int size, gfx::Font::Weight weight) {
+  const gfx::FontList base;
+  return base.DeriveWithSizeDelta(size - base.GetFontSize())
+      .DeriveWithWeight(weight);
+}
 
 std::u16string AccessibleRowName(const CommandBarSuggestion& suggestion) {
   if (suggestion.secondary_text.empty()) {
@@ -140,6 +149,9 @@ class CommandBarResultRow final : public views::Button {
         suggestion.title, views::style::CONTEXT_LABEL,
         views::style::STYLE_PRIMARY));
     title->SetSubpixelRenderingEnabled(false);
+    title->SetFontList(CommandBarFont(
+        visual_style::kCommandBarResultTitleFontSize,
+        gfx::Font::Weight::MEDIUM));
     title->SetHorizontalAlignment(gfx::ALIGN_LEFT);
     title->SetEnabledColor(is_active_tab_ ? visual_style::kAccent
                                           : visual_style::kText);
@@ -151,6 +163,9 @@ class CommandBarResultRow final : public views::Button {
         suggestion.secondary_text, views::style::CONTEXT_LABEL,
         views::style::STYLE_SECONDARY));
     secondary->SetSubpixelRenderingEnabled(false);
+    secondary->SetFontList(
+        CommandBarFont(visual_style::kCommandBarResultOriginFontSize,
+                       gfx::Font::Weight::NORMAL));
     secondary->SetHorizontalAlignment(gfx::ALIGN_RIGHT);
     secondary->SetEnabledColor(visual_style::kMutedText);
     secondary->SetElideBehavior(gfx::ELIDE_MIDDLE);
@@ -178,15 +193,18 @@ class CommandBarResultRow final : public views::Button {
     }
     active_tab_indicator->GetViewAccessibility().SetIsIgnored(true);
 
-    auto* accept_hint = AddChildView(std::make_unique<views::Label>(
-        u"↵", views::style::CONTEXT_LABEL, views::style::STYLE_SECONDARY));
-    accept_hint->SetSubpixelRenderingEnabled(false);
-    accept_hint->SetEnabledColor(visual_style::kMutedText);
-    accept_hint->SetHorizontalAlignment(gfx::ALIGN_CENTER);
-    accept_hint->SetPreferredSize(
+    // The keycap slot is always reserved; only the selected row shows the
+    // key, so selection never moves titles.
+    accept_hint_ = AddChildView(std::make_unique<views::Label>(
+        std::u16string(), views::style::CONTEXT_LABEL,
+        views::style::STYLE_SECONDARY));
+    accept_hint_->SetSubpixelRenderingEnabled(false);
+    accept_hint_->SetEnabledColor(visual_style::kMutedText);
+    accept_hint_->SetHorizontalAlignment(gfx::ALIGN_CENTER);
+    accept_hint_->SetPreferredSize(
         gfx::Size(visual_style::kCommandBarAcceptHintWidth,
                   visual_style::kCommandBarAcceptHintHeight));
-    accept_hint->GetViewAccessibility().SetIsIgnored(true);
+    accept_hint_->GetViewAccessibility().SetIsIgnored(true);
 
     GetViewAccessibility().SetRole(ax::mojom::Role::kListBoxOption);
     GetViewAccessibility().SetName(AccessibleRowName(suggestion));
@@ -257,8 +275,23 @@ class CommandBarResultRow final : public views::Button {
                       ? views::CreateRoundedRectBackground(
                             *surface, visual_style::kRowCornerRadius)
                       : nullptr);
+    UpdateAcceptHint(selected_or_focused);
   }
 
+  void UpdateAcceptHint(bool show) {
+    if (!accept_hint_) {
+      return;
+    }
+    accept_hint_->SetText(show ? kAcceptKeycap : u"");
+    accept_hint_->SetBorder(
+        show ? views::CreateRoundedRectBorder(
+                   visual_style::kControlBorderThickness,
+                   visual_style::kCommandBarKeycapCornerRadius,
+                   visual_style::kDivider)
+             : nullptr);
+  }
+
+  raw_ptr<views::Label> accept_hint_ = nullptr;
   base::RepeatingClosure selected_callback_;
   KeyCallback key_callback_;
   const bool is_active_tab_;
@@ -324,6 +357,8 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
   textfield_->SetPlaceholderText(placeholder);
   textfield_->SetAccessibleName(placeholder);
   textfield_->SetBorder(nullptr);
+  textfield_->SetFontList(CommandBarFont(
+      visual_style::kCommandBarInputFontSize, gfx::Font::Weight::NORMAL));
   textfield_->SetBackgroundColor(visual_style::kRaisedSurface);
   textfield_->SetTextColorId(visual_style::kText);
   textfield_->SetPlaceholderTextColorId(visual_style::kMutedText);
