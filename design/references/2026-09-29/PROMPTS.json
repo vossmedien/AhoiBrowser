@@ -43,5 +43,6 @@
   "themes": {
     "hell": "LIGHT theme: warm white opaque web content, graphite text, seafoam frosted glass with milk lift 55%, delicate teal background.",
     "dunkel": "DARK theme: opaque deep graphite web content, off-white text, graphite frosted glass with milk lift 12%, muted dark teal backdrop. Truly dark overall, restrained glowing edges, accessible contrast."
-  }
+  },
+  "assembly": "base + \" \" + themes[theme] + \" \" + motif[1]; transparent_background=false. First image used identical text with two adjacent spaces before LIGHT."
 }
