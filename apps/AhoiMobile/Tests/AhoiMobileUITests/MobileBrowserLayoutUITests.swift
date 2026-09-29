@@ -1,6 +1,26 @@
 import XCTest
 
 final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
+    /// Upper bound for waits on a UI state. Every wait returns as soon as the
+    /// state holds, so this only lengthens a genuine failure. The former 3 s
+    /// windows timed out on a loaded host while the state was still arriving.
+    let stateTimeout: TimeInterval = 10
+
+    /// Polls `condition` until it holds; XCUI element frames and hittability
+    /// are not observable, so an immediate read races scrolling and animation.
+    @MainActor
+    func waitUntil(
+        timeout: TimeInterval,
+        _ condition: () -> Bool
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if condition() { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        } while Date() < deadline
+        return condition()
+    }
+
     // INTEGRATION ONLY: these two scale checks use launch seams to create
     // deterministic tab populations. They are not visible E2E evidence.
     @MainActor
@@ -14,15 +34,15 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
             let tabs = app.buttons["browser.tabs"]
             XCTAssertTrue(tabs.waitForExistence(timeout: 8))
             XCTAssertTrue(
-                waitForTabCount(count, in: tabs, timeout: 3),
+                waitForTabCount(count, in: tabs, timeout: stateTimeout),
                 "Fixture \(count): tabs label '\(tabs.label)' value '\(String(describing: tabs.value))'"
             )
             tabs.tap()
             XCTAssertTrue(
                 app.descendants(matching: .any)["browser.tabs.mode"]
-                    .waitForExistence(timeout: 3)
+                    .waitForExistence(timeout: stateTimeout)
             )
-            XCTAssertTrue(app.buttons["browser.tabs.done"].isHittable)
+            XCTAssertTrue(waitForHittable(app.buttons["browser.tabs.done"], timeout: stateTimeout))
             app.buttons["browser.tabs.done"].tap()
         }
     }
@@ -38,8 +58,8 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         let privateAddress = app.buttons["browser.address.private"]
         XCTAssertTrue(privateAddress.waitForExistence(timeout: 8))
         let tabs = app.buttons["browser.tabs"]
-        XCTAssertTrue(waitForTabCount(20, in: tabs, timeout: 3))
-        XCTAssertTrue(app.buttons["browser.more"].isHittable)
+        XCTAssertTrue(waitForTabCount(20, in: tabs, timeout: stateTimeout))
+        XCTAssertTrue(waitForHittable(app.buttons["browser.more"], timeout: stateTimeout))
     }
 
     @MainActor
@@ -49,24 +69,24 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         normalizeToFreshNormalTab(in: app)
         let tabs = app.buttons["browser.tabs"]
         XCTAssertTrue(tabs.waitForExistence(timeout: 8))
-        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: stateTimeout))
         for count in 2...20 {
-            XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 3))
+            XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: stateTimeout))
             app.buttons["browser.more"].tap()
             let newTab = app.buttons["browser.actions.new-tab"]
-            XCTAssertTrue(newTab.waitForExistence(timeout: 3))
+            XCTAssertTrue(newTab.waitForExistence(timeout: stateTimeout))
             newTab.tap()
             if count == 5 || count == 20 {
-                XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: 3))
+                XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: stateTimeout))
             }
         }
         // `isHittable` is a false signal for the address: the web view's
         // accessibility frame reaches under the bottom deck (79828c0).
         assertBrowserAcceptsAddressInput(in: app)
-        XCTAssertTrue(app.buttons["browser.more"].isHittable)
+        XCTAssertTrue(waitForHittable(app.buttons["browser.more"], timeout: stateTimeout))
 
         normalizeToFreshNormalTab(in: app)
-        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: stateTimeout))
     }
 
     @MainActor
@@ -79,20 +99,20 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
             XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 8))
             app.buttons["browser.more"].tap()
             let newPrivateTab = app.buttons["browser.new-private-tab"]
-            XCTAssertTrue(newPrivateTab.waitForExistence(timeout: 3))
+            XCTAssertTrue(newPrivateTab.waitForExistence(timeout: stateTimeout))
             newPrivateTab.tap()
-            XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 3))
+            XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: stateTimeout))
             if count == 1 || count == 5 || count == 20 {
-                XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: 3))
+                XCTAssertTrue(waitForTabCount(count, in: tabs, timeout: stateTimeout))
             }
         }
-        XCTAssertTrue(app.buttons["browser.more"].isHittable)
+        XCTAssertTrue(waitForHittable(app.buttons["browser.more"], timeout: stateTimeout))
 
         assertNormalPrivateIsolationAndClearPrivateTabs(
             expectedPrivateCount: 20,
             in: app
         )
-        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: stateTimeout))
     }
 
     @MainActor
@@ -101,12 +121,12 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
 
         XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 8))
         app.buttons["browser.more"].tap()
-        XCTAssertTrue(app.buttons["browser.actions.new-tab"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["browser.actions.new-tab"].waitForExistence(timeout: stateTimeout))
         app.buttons["browser.actions.new-tab"].tap()
 
         XCTAssertTrue(
             app.descendants(matching: .any)["browser.focus-voyage.header"]
-                .waitForExistence(timeout: 3)
+                .waitForExistence(timeout: stateTimeout)
         )
         XCTAssertTrue(app.buttons["browser.focus-voyage.search"].exists)
         XCTAssertTrue(app.buttons["browser.back"].exists)
@@ -122,12 +142,12 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
 
         XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 8))
         app.buttons["browser.more"].tap()
-        XCTAssertTrue(app.buttons["browser.new-private-tab"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["browser.new-private-tab"].waitForExistence(timeout: stateTimeout))
         app.buttons["browser.new-private-tab"].tap()
 
         XCTAssertTrue(
             app.descendants(matching: .any)["browser.focus-voyage.private"]
-                .waitForExistence(timeout: 3)
+                .waitForExistence(timeout: stateTimeout)
         )
         XCTAssertTrue(app.buttons["browser.address.private"].exists)
         XCTAssertTrue(
@@ -163,7 +183,7 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         for _ in 0..<4 where !motion.exists {
             settings.swipeUp()
         }
-        XCTAssertTrue(motion.waitForExistence(timeout: 3))
+        XCTAssertTrue(motion.waitForExistence(timeout: stateTimeout))
         motion.tap()
         let reduceMotionPredicate = NSPredicate(
             format: "label == %@ OR label == %@",
@@ -171,7 +191,7 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
             "Bewegung reduzieren"
         )
         let reduceMotion = settings.switches.matching(reduceMotionPredicate).firstMatch
-        XCTAssertTrue(reduceMotion.waitForExistence(timeout: 3))
+        XCTAssertTrue(reduceMotion.waitForExistence(timeout: stateTimeout))
         guard let wasEnabled = MobileUIAcceptanceContract.switchIsOn(reduceMotion) else {
             XCTFail("Settings must expose a Boolean Reduce Motion switch value.")
             return
@@ -189,9 +209,9 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         defer {
             if !wasEnabled {
                 settings.activate()
-                XCTAssertTrue(settings.wait(for: .runningForeground, timeout: 3))
+                XCTAssertTrue(settings.wait(for: .runningForeground, timeout: stateTimeout))
                 let restoredControl = settings.switches.matching(reduceMotionPredicate).firstMatch
-                XCTAssertTrue(restoredControl.waitForExistence(timeout: 3))
+                XCTAssertTrue(restoredControl.waitForExistence(timeout: stateTimeout))
                 if MobileUIAcceptanceContract.switchIsOn(restoredControl) == true {
                     tapSwitchControl(restoredControl)
                 }
@@ -219,7 +239,7 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         let webView = app.webViews.firstMatch
         XCTAssertTrue(workspace.waitForExistence(timeout: 8))
         XCTAssertTrue(
-            webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 3),
+            webView.staticTexts["Ahoi fixture page"].waitForExistence(timeout: stateTimeout),
             "The Reduce Motion journey must use the deterministic local fixture."
         )
         let motionEvidence = app.descendants(matching: .any)["browser.e2e.reduce-motion"]
@@ -234,14 +254,14 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         )
 
         webView.swipeUp()
-        XCTAssertTrue(workspace.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(workspace.waitForNonExistence(timeout: stateTimeout))
         assertCompactHarborDeckSemantics(app)
         assertReachableHitTarget(app.buttons["browser.address"])
         assertReachableHitTarget(app.buttons["browser.tabs"])
         assertReachableHitTarget(app.buttons["browser.more"])
 
         webView.swipeDown()
-        XCTAssertTrue(workspace.waitForExistence(timeout: 3))
+        XCTAssertTrue(workspace.waitForExistence(timeout: stateTimeout))
     }
 
     @MainActor
@@ -251,12 +271,12 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         tabs.tap()
 
         let modeControl = app.descendants(matching: .any)["browser.tabs.mode"]
-        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        XCTAssertTrue(modeControl.waitForExistence(timeout: stateTimeout))
         selectTabSwitcherMode(.normal, using: modeControl)
 
         let closeButtons = tabCloseButtons(in: app)
         XCTAssertTrue(
-            waitForAtLeastOneElement(in: closeButtons, timeout: 3),
+            waitForAtLeastOneElement(in: closeButtons, timeout: stateTimeout),
             "A loaded product session must expose at least one normal tab."
         )
         closeTabRows(until: 1, in: app)
@@ -264,16 +284,16 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         let remainingRow = firstHittableElement(in: tabRows(in: app))
         XCTAssertNotNil(remainingRow)
         remainingRow?.tap()
-        XCTAssertTrue(modeControl.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(modeControl.waitForNonExistence(timeout: stateTimeout))
 
         // Closing the selected final normal tab exercises the production
         // replacement path and leaves a fresh blank tab, independent of any
         // persisted URL/title from an earlier UI journey.
-        XCTAssertTrue(tabs.waitForExistence(timeout: 3))
+        XCTAssertTrue(tabs.waitForExistence(timeout: stateTimeout))
         tabs.tap()
-        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        XCTAssertTrue(modeControl.waitForExistence(timeout: stateTimeout))
         selectTabSwitcherMode(.normal, using: modeControl)
-        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: 3))
+        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: stateTimeout))
         guard let selectedClose = firstHittableElement(in: closeButtons) else {
             XCTFail("The selected normal tab must expose its visible close control.")
             return
@@ -281,15 +301,15 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         let closedIdentifier = selectedClose.identifier
         selectedClose.tap()
         XCTAssertTrue(
-            app.buttons[closedIdentifier].waitForNonExistence(timeout: 3),
+            app.buttons[closedIdentifier].waitForNonExistence(timeout: stateTimeout),
             "The old persisted normal tab must visibly leave the switcher."
         )
-        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: 3))
+        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: stateTimeout))
         let freshRow = firstHittableElement(in: tabRows(in: app))
         XCTAssertNotNil(freshRow)
         freshRow?.tap()
-        XCTAssertTrue(modeControl.waitForNonExistence(timeout: 3))
-        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        XCTAssertTrue(modeControl.waitForNonExistence(timeout: stateTimeout))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: stateTimeout))
     }
 
     @MainActor
@@ -298,21 +318,21 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         in app: XCUIApplication
     ) {
         let tabs = app.buttons["browser.tabs"]
-        XCTAssertTrue(tabs.waitForExistence(timeout: 3))
-        XCTAssertTrue(waitForTabCount(expectedPrivateCount, in: tabs, timeout: 3))
+        XCTAssertTrue(tabs.waitForExistence(timeout: stateTimeout))
+        XCTAssertTrue(waitForTabCount(expectedPrivateCount, in: tabs, timeout: stateTimeout))
         tabs.tap()
 
         let modeControl = app.descendants(matching: .any)["browser.tabs.mode"]
-        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        XCTAssertTrue(modeControl.waitForExistence(timeout: stateTimeout))
         let closeButtons = tabCloseButtons(in: app)
         XCTAssertTrue(
-            waitForAtLeastOneElement(in: closeButtons, timeout: 3),
+            waitForAtLeastOneElement(in: closeButtons, timeout: stateTimeout),
             "The verified private population must expose visible close controls."
         )
 
         selectTabSwitcherMode(.normal, using: modeControl)
         XCTAssertTrue(
-            waitForQueryCount(1, query: closeButtons, timeout: 3),
+            waitForQueryCount(1, query: closeButtons, timeout: stateTimeout),
             "Creating private tabs must not change the normalized normal population."
         )
         guard let normalRow = firstHittableElement(in: tabRows(in: app)) else {
@@ -320,15 +340,15 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
             return
         }
         normalRow.tap()
-        XCTAssertTrue(modeControl.waitForNonExistence(timeout: 3))
-        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        XCTAssertTrue(modeControl.waitForNonExistence(timeout: stateTimeout))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: stateTimeout))
 
         tabs.tap()
-        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        XCTAssertTrue(modeControl.waitForExistence(timeout: stateTimeout))
         selectTabSwitcherMode(.privateBrowsing, using: modeControl)
-        XCTAssertTrue(waitForAtLeastOneElement(in: closeButtons, timeout: 3))
+        XCTAssertTrue(waitForAtLeastOneElement(in: closeButtons, timeout: stateTimeout))
         closeTabRows(until: 0, in: app)
-        XCTAssertTrue(waitForQueryCount(0, query: closeButtons, timeout: 3))
+        XCTAssertTrue(waitForQueryCount(0, query: closeButtons, timeout: stateTimeout))
 
         // Closing the final private tab ends the private session; the private
         // scene shield then dismisses the still-presented switcher so no
@@ -337,17 +357,17 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
             modeControl.waitForNonExistence(timeout: 5),
             "Ending the private session must dismiss the private tab switcher."
         )
-        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: stateTimeout))
         XCTAssertTrue(waitForHittable(tabs, timeout: 5))
         tabs.tap()
-        XCTAssertTrue(modeControl.waitForExistence(timeout: 3))
+        XCTAssertTrue(modeControl.waitForExistence(timeout: stateTimeout))
         selectTabSwitcherMode(.normal, using: modeControl)
-        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: 3))
+        XCTAssertTrue(waitForQueryCount(1, query: closeButtons, timeout: stateTimeout))
         let remainingNormalRow = firstHittableElement(in: tabRows(in: app))
         XCTAssertNotNil(remainingNormalRow)
         remainingNormalRow?.tap()
-        XCTAssertTrue(modeControl.waitForNonExistence(timeout: 3))
-        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: 3))
+        XCTAssertTrue(modeControl.waitForNonExistence(timeout: stateTimeout))
+        XCTAssertTrue(waitForTabCount(1, in: tabs, timeout: stateTimeout))
     }
 
     @MainActor
@@ -374,7 +394,7 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
             let identifier = closeButton.identifier
             closeButton.tap()
             XCTAssertTrue(
-                app.buttons[identifier].waitForNonExistence(timeout: 3),
+                app.buttons[identifier].waitForNonExistence(timeout: stateTimeout),
                 "Closing a tab must remove that exact row before the next action."
             )
         }
@@ -438,14 +458,14 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         waitingForText text: String
     ) {
         let address = app.buttons["browser.address"]
-        XCTAssertTrue(address.waitForExistence(timeout: 3))
+        XCTAssertTrue(address.waitForExistence(timeout: stateTimeout))
         address.tap()
         let field = app.textFields.firstMatch
-        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        XCTAssertTrue(field.waitForExistence(timeout: stateTimeout))
         field.tap()
         field.typeText(url.absoluteString)
         let navigate = app.buttons["browser.search.navigate"]
-        XCTAssertTrue(navigate.waitForExistence(timeout: 3))
+        XCTAssertTrue(navigate.waitForExistence(timeout: stateTimeout))
         navigate.tap()
         XCTAssertTrue(
             app.webViews.firstMatch.staticTexts[text].waitForExistence(timeout: 8),
@@ -501,13 +521,13 @@ final class MobileBrowserLayoutUITests: MobileBrowserUITestCase {
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
-        XCTAssertTrue(element.waitForExistence(timeout: 3), file: file, line: line)
+        XCTAssertTrue(element.waitForExistence(timeout: stateTimeout), file: file, line: line)
         let hittable = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "hittable == true"),
             object: element
         )
         XCTAssertEqual(
-            XCTWaiter.wait(for: [hittable], timeout: 3),
+            XCTWaiter.wait(for: [hittable], timeout: stateTimeout),
             .completed,
             "Collapsed Harbor Deck controls must remain tappable.",
             file: file,
