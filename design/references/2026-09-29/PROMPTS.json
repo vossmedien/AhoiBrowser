@@ -1,0 +1,47 @@
+{
+  "tool": "image_gen.imagegen",
+  "model": "Vom eingebauten Werkzeug nicht offengelegt",
+  "base": "Use case: ui-mockup. Create a polished, exceptionally beautiful original AhoiBrowser macOS 26 Liquid Glass browser screen design reference, landscape 1440x900. Straight-on crisp screenshot, no perspective, no annotations outside UI, no other brands/logos/assets. German UI only, SF Pro typography. Quiet premium editorial aesthetic, restrained sea-teal accent, beautiful spacing. Full browser window with traffic lights top left, unified softly frosted continuous glass window background/sidebar/frame surrounding completely opaque web cards radius 14 pt. Glass NEVER coats web content. Sidebar width 236, workspace switcher top 'Privat' with three small workspace dots, sections 'Gespeichert' and 'Heute', folder 'Reiseideen', tabs 'Startseite', 'Küstenwege', split group a SINGLE row 'Planung · 4 Ansichten', bottom settings icon. Thin floating navigation row at top of web area with back/forward, security icon and fictional origin 'kuestenwege.example'; subtle reveal notch. SF Pro 13pt sidebar, 15pt body, 28pt headings. Radius embedded 14, panels 18, rows 8; 8/12/16/24 spacing. Native frosted optical material, extremely subtle rim highlights and shadows, never plastic or excessive shine. Content and icons original. All labels readable German. ",
+  "motifs": [
+    [
+      "01-hauptfenster",
+      "Main browser window. Opaque editorial website 'Küstenwege', heading 'Zeit für neue Wege.', short subheading 'Entdecke stille Orte am Wasser.', tasteful original coastal landscape image and three article cards 'Am Meer', 'Unterwegs', 'In Ruhe'. Bottom sidebar compact MiniPlayer 'Meeresrauschen' with pause and progress. Elegant calm actual usable browser, not dashboard."
+    ],
+    [
+      "02-command-bar",
+      "Centered separate frosted Command Bar panel 640x400 over dimmed main browser. Focused search input 'Küste' with visible teal focus ring. German results grouped 'Offene Tabs', 'Lesezeichen', 'Aktionen'; rows 'Küstenwege', 'Reiseideen', 'Neue Suche nach Küste', 'Geteilte Ansicht öffnen'. Active result teal tint and Return hint. Bottom '↑ ↓ Auswählen' and '↵ Öffnen' and 'esc Schließen'. Main browser behind has opaque content."
+    ],
+    [
+      "03-link-peek",
+      "Link Peek overlay centered above dimmed original web page. Popup chrome with visible origin 'journal.example'; opaque web content heading 'Ein Wochenende am Wasser', original coastal photograph, short German prose. To the RIGHT OUTSIDE popup a vertical glass action rail with three readable labelled buttons 'Schließen', 'Als Tab öffnen', 'Split'. Popup content never transparent; only frame and controls glass. Context of original page still visible."
+    ],
+    [
+      "04-split-2x2",
+      "Browser with FOUR equal opaque web panes in exact 2x2 grid, 12pt glass gutters. Four distinct pages: 'Küstenwege' photo, 'Reiseplan' short itinerary, 'Notizen' compact notes, 'Wetter am Meer' original weather graphic. Each own origin bar, active upper-left pane teal thin focus border. Sidebar split group ONE selected row 'Planung · 4 Ansichten'. At top compact layout selector '2' '3' '4' '2 × 2', selected 2x2. No extra sidebar row per pane."
+    ],
+    [
+      "05-workspace",
+      "Show workspace switcher menu open attached beneath 'Privat' at sidebar top, entries 'Privat', 'Arbeit', 'Unterwegs' with colored dots, selected check, last row 'Workspace anlegen'. Also centered small create dialog 'Workspace anlegen', labelled text field 'Name' value 'Sommerreise', row 'Farbe' with teal selected color dots, 'Symbol' simple line icons, actions 'Abbrechen' and 'Anlegen'. Separate menu and dialog visually clear, browser behind calm/dim. No English UI."
+    ],
+    [
+      "06-http-auth",
+      "Browser-owned HTTP authentication dialog, sober and trustworthy. Panel heading 'Anmeldung erforderlich'; origin displayed clearly 'https://archiv.example'; supporting 'Diese Website benötigt Benutzername und Passwort.' Account list titled 'Gespeicherte Konten' with two rows 'Mara · Privat' and 'Mara · Arbeit'; first selected. Labelled 'Benutzername' value 'mara', 'Passwort' masked dots, checkbox 'In Passwörter sichern', secondary 'Anderes Konto verwenden', buttons 'Abbrechen' and 'Anmelden'. Never website-branded auth. Safe opaque form interiors inside glass frame."
+    ],
+    [
+      "07-erscheinungsbild",
+      "AhoiBrowser settings page inside browser opaque content card. Heading 'Erscheinungsbild'. Settings subnavigation 'Allgemein', selected 'Erscheinungsbild', 'Tabs', 'Datenschutz'. Beautiful grouped preference rows: 'Darstellung' segmented 'System / Hell / Dunkel'; 'Hauptfarbe' teal swatches; 'Workspace-Akzent' value 'Privat'; 'Liquid Glass' switch ON with subtitle 'Für Sidebar und schwebende Browserflächen'; 'Seitenfarbe übernehmen' ON; 'Transparenz reduzieren' OFF; 'Kontrast erhöhen' OFF; 'Bewegung reduzieren' OFF. Small material preview. Precise alignment, generous whitespace."
+    ],
+    [
+      "08-ios",
+      "Instead of desktop show TWO beautiful straight-on iPhone companion screens side by side, centered on quiet neutral backdrop within 1440x900 image. No hardware logos. Left home/tab overview titled 'Ahoi' and workspace 'Privat', search 'Suchen oder Adresse eingeben', 'Deine Tabs' with 2x2 original webpage thumbnails 'Küstenwege', 'Reiseplan', 'Notizen', 'Wetter'; bottom glass toolbar 'Tabs', plus, 'Workspaces'. Right same companion with peek bottom sheet at 75% height, grabber, visible origin 'journal.example', heading 'Ein Wochenende am Wasser', original coastal photo, opaque web content, bottom readable actions 'Schließen', 'Als Tab öffnen', 'Split'. German UI SF Pro, touch targets 44pt, safe areas. Unified frosted chrome around opaque content."
+    ],
+    [
+      "09-transparenz-reduziert",
+      "Main browser and small settings popover indicating 'Transparenz reduzieren · Aktiv'. This is accessibility fallback: ALL browser chrome fully opaque, NO blur, NO translucency, NO refraction. Keep same lovely layout, radii and teal accents. Clearly solid sidebar/frame and readable text. Opaque editorial web page 'Küstenwege' heading 'Zeit für neue Wege.' original coast imagery. MiniPlayer sidebar. This variant overrides ALL glass instructions."
+    ]
+  ],
+  "themes": {
+    "hell": "LIGHT theme: warm white opaque web content, graphite text, seafoam frosted glass with milk lift 55%, delicate teal background.",
+    "dunkel": "DARK theme: opaque deep graphite web content, off-white text, graphite frosted glass with milk lift 12%, muted dark teal backdrop. Truly dark overall, restrained glowing edges, accessible contrast."
+  }
+}
