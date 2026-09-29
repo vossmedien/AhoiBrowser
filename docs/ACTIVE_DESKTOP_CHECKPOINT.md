@@ -1,5 +1,36 @@
 # Active Desktop checkpoint
 
+## Candidates 47 and 49 — 29 September 2026, 10:05 CEST
+
+**Build 47** (`68006408`, 0073): 15 unit binaries green;
+`ahoi_quick_window_browsertests` 4/4 incl. Crest 146
+`RepeatedAdoptionDoesNotReopenTwice`. Installed journeys, all **pass** after
+harness fixes: quick-window-adoption (rerun), reader-link (WORKFLOW-07:
+URL/Markdown copy with escaping, credentials stripped, reading mode panel;
+first run 9/10 — on macOS an off-the-record copy is current-host-only with a
+5-minute pasteboard expiry, not ConcealedType), crash-recovery
+(CRASH-01/02/03/04/07/08 with temporary tabs). Build 46 had 10/11 green.
+**Build 48** (`8961531f`) compiled but its install was refused: the new 0075
+tests failed because the TestingProfile's SessionBridge retires bindings of
+Workspaces it does not know (test-only; fixed in `1c9354ea`).
+**Build 49** (`1c9354ea`: 0074–0077 and the mini-player fix): 18 unit binaries
+green (session 100/100, popup 28/28, media 33/33, sidebar search 81/81),
+`ahoi_popup_overlay_browsertests` 13/13, quick window 4/4. Journeys pass:
+link-peek 29/29 (Crest A1 request fidelity, A4 `target=_blank` auto-peek),
+media-mini-player-transient (A5), quick-window-adoption, and **AnyChat
+1.0.9** 10/10 — Store version and prompt scope checked before install, exact
+manifest permissions/hosts, New Tab, restart, no file-URL access or optional
+grant, owner profile untouched (owner approved 1.0.9 on 29 Sep; 1.0.8 is no
+longer served). uBO Classic installs, runs, stays off in incognito until the
+allowance is switched on; the journey's own faults were fixed (uBO applies
+no generic cosmetic filters on IP hosts → `ubotest.localhost`; the toggle is
+switched through its inner `cr-toggle`); rerun pending. Open:
+keyboard-shortcuts on 49 — Ctrl+Tab/Ctrl+Shift+Tab stay in the Workspace
+(A3), but Cmd+1 and Cmd+Shift+] did not move on this German-layout Mac and
+two checks passed without movement; needs a layout-independent journey and a
+Cmd+1 investigation. clear-data-website-sessions rerun pending (subdomains
+now on `*.localhost`).
+
 ## Candidate 46 — built and installed — 29 September 2026, 06:40 CEST
 
 **Build 46** (`8cacd5ac`: 0071 rebrand, 0072 ⌘L in the Quick Window,
