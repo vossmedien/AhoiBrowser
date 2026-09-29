@@ -1,0 +1,686 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project apps/AhoiMobile/AhoiMobile.xcodeproj -scheme AhoiMobile -configuration DebugLocal -destination "platform=iOS Simulator,id=15C1EB97-A65C-4D93-842D-AB889339BE8D" -derivedDataPath /private/tmp/ahoi-mobile-4113c14-sim-derived -resultBundlePath /private/tmp/ahoi-mobile-4113c14-iphone-ui-02.xcresult -parallel-testing-enabled NO "-only-testing:AhoiMobileUITests/AhoiMobileUITests/testLocalFixtureAndPrivateTabLifecycle" "-only-testing:AhoiMobileUITests/AhoiMobileUITests/testDebugLocalSyncOptInStaysLocalAndFailClosed" "-only-testing:AhoiMobileUITests/AhoiMobileUITests/testDeviceRevocationConfirmsScopeAndRemovesRemoteTarget" "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable" "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll" "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testHarborDeckTracksNestedScrollerAndRestoresOnReverseScroll" "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testInteractiveWebPresentationsExpandCollapsedHarborDeck" "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testReduceMotionSystemSettingAndHarborDeckJourney" AHOI_SOURCE_COMMIT=4113c14c1e0d21061a1c5927e25ab55663d547a7 AHOI_MOBILE_MARKETING_VERSION=0.1 AHOI_MOBILE_BUILD_NUMBER=1 AHOI_APP_USES_NON_EXEMPT_ENCRYPTION=NO test-without-building
+
+Build settings from command line:
+    AHOI_APP_USES_NON_EXEMPT_ENCRYPTION = NO
+    AHOI_MOBILE_BUILD_NUMBER = 1
+    AHOI_MOBILE_MARKETING_VERSION = 0.1
+    AHOI_SOURCE_COMMIT = 4113c14c1e0d21061a1c5927e25ab55663d547a7
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  AhoiCloudKitSpike: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/spikes/cloudkit
+
+Writing result bundle at path:
+	/private/tmp/ahoi-mobile-4113c14-iphone-ui-02.xcresult
+
+2026-08-30 19:14:33.054844+0200 AhoiMobileUITests-Runner[96396:143556687] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-08-30 19:14:33.751.
+Test Suite 'AhoiMobileUITests.xctest' started at 2026-08-30 19:14:33.752.
+Test Suite 'AhoiMobileUITests' started at 2026-08-30 19:14:33.752.
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testDebugLocalSyncOptInStaysLocalAndFailClosed]' started.
+    t =     0.00s Start Test at 2026-08-30 19:14:33.754
+    t =     0.02s Set Up
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.02s         Terminate app.ahoibrowser.AhoiBrowser:92921
+objc[96396]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x108b7c310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x1083a4398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+2026-08-30 19:14:35.032 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:14:35.032 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     2.10s         Setting up automation session
+    t =     2.85s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.04s Waiting 8.0s for "browser.more" Button to exist
+    t =     5.07s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =     5.07s         Checking existence of `"browser.more" Button`
+    t =     5.16s Tap "browser.more" Button
+    t =     5.16s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.16s     Find the "browser.more" Button
+    t =     5.19s     Check for interrupting elements affecting "browser.more" Button
+    t =     5.21s     Synthesize event
+    t =     5.50s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.51s Checking existence of `"browser.actions.settings" Button`
+    t =     5.59s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     5.59s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.07s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     6.12s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     6.19s     Synthesize event
+    t =     6.62s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.34s Checking existence of `"browser.actions.settings" Button`
+    t =     7.41s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     7.41s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.41s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     7.45s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     7.50s     Synthesize event
+    t =     7.92s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.59s Checking existence of `"browser.actions.settings" Button`
+    t =     8.66s Checking existence of `"browser.actions.settings" Button`
+    t =     8.72s Waiting 3.0s for "browser.actions.settings" Button to exist
+    t =     9.76s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.settings" Button`
+    t =     9.76s         Checking existence of `"browser.actions.settings" Button`
+    t =     9.84s Find the "browser.actions.settings" Button
+    t =     9.94s Tap "browser.actions.settings" Button
+    t =     9.94s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.95s     Find the "browser.actions.settings" Button
+    t =    10.04s     Check for interrupting elements affecting "browser.actions.settings" Button
+    t =    10.10s     Synthesize event
+    t =    10.41s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.81s Waiting 3.0s for "settings.sync.enabled" Switch to exist
+    t =    11.86s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.sync.enabled" Switch`
+    t =    11.86s         Checking existence of `"settings.sync.enabled" Switch`
+    t =    11.97s Find the "settings.sync.enabled" Switch
+    t =    12.05s Find the "settings.sync.enabled" Switch
+    t =    12.14s Tap "settings.sync.enabled" Switch[0.92, 0.50]
+    t =    12.14s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.14s     Find the "settings.sync.enabled" Switch
+    t =    12.24s     Check for interrupting elements affecting "settings.sync.enabled" Switch
+    t =    12.32s     Synthesize event
+    t =    12.32s         Find the "settings.sync.enabled" Switch
+    t =    12.43s         Find the "settings.sync.enabled" Switch
+    t =    12.51s         Find the "settings.sync.enabled" Switch
+    t =    12.88s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    14.06s Checking `Expect predicate `value == "1"` for object "settings.sync.enabled" Switch`
+    t =    14.06s     Find the "settings.sync.enabled" Switch
+    t =    14.14s Waiting 3.0s for "settings.sync.configuration-missing" Any to exist
+    t =    15.17s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.sync.configuration-missing" Any`
+    t =    15.17s         Checking existence of `"settings.sync.configuration-missing" Any`
+    t =    15.33s Checking existence of `"settings.sync.state" Any`
+    t =    15.47s Checking existence of `"settings.sync.key-lifecycle" Any`
+    t =    15.61s Find the "settings.sync.state" Any
+    t =    15.75s Find the "settings.sync.key-lifecycle" Any
+    t =    15.90s Find the "settings.sync.now" Button
+    t =    15.96s Checking existence of `"settings.done" Button`
+    t =    16.02s Tap "settings.done" Button
+    t =    16.02s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    16.03s     Find the "settings.done" Button
+    t =    16.09s     Check for interrupting elements affecting "settings.done" Button
+    t =    16.14s     Synthesize event
+    t =    16.44s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    16.82s Terminate app.ahoibrowser.AhoiBrowser:96426
+    t =    17.88s Open app.ahoibrowser.AhoiBrowser
+    t =    17.88s     Launch app.ahoibrowser.AhoiBrowser
+2026-08-30 19:14:51.633 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:14:51.633 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    18.09s         Setting up automation session
+    t =    18.92s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    20.12s Waiting 8.0s for "browser.more" Button to exist
+    t =    21.16s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =    21.16s         Checking existence of `"browser.more" Button`
+    t =    21.24s Tap "browser.more" Button
+    t =    21.24s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    21.24s     Find the "browser.more" Button
+    t =    21.27s     Check for interrupting elements affecting "browser.more" Button
+    t =    21.30s     Synthesize event
+    t =    21.59s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    21.62s Checking existence of `"browser.actions.settings" Button`
+    t =    21.71s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    21.71s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    22.12s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    22.16s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =    22.21s     Synthesize event
+    t =    22.63s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    23.34s Checking existence of `"browser.actions.settings" Button`
+    t =    23.41s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    23.41s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    23.42s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    23.46s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =    23.51s     Synthesize event
+    t =    23.93s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    24.54s Checking existence of `"browser.actions.settings" Button`
+    t =    24.62s Checking existence of `"browser.actions.settings" Button`
+    t =    24.69s Waiting 3.0s for "browser.actions.settings" Button to exist
+    t =    25.73s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.settings" Button`
+    t =    25.73s         Checking existence of `"browser.actions.settings" Button`
+    t =    25.82s Find the "browser.actions.settings" Button
+    t =    25.89s Tap "browser.actions.settings" Button
+    t =    25.89s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    25.89s     Find the "browser.actions.settings" Button
+    t =    25.96s     Check for interrupting elements affecting "browser.actions.settings" Button
+    t =    26.02s     Synthesize event
+    t =    26.31s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    26.71s Waiting 3.0s for "settings.sync.enabled" Switch to exist
+    t =    27.75s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.sync.enabled" Switch`
+    t =    27.75s         Checking existence of `"settings.sync.enabled" Switch`
+    t =    27.85s Find the "settings.sync.enabled" Switch
+    t =    27.91s Find the "settings.sync.state" Any
+    t =    28.05s Find the "settings.sync.enabled" Switch
+    t =    28.11s Tap "settings.sync.enabled" Switch[0.92, 0.50]
+    t =    28.11s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    28.12s     Find the "settings.sync.enabled" Switch
+    t =    28.18s     Check for interrupting elements affecting "settings.sync.enabled" Switch
+    t =    28.23s     Synthesize event
+    t =    28.23s         Find the "settings.sync.enabled" Switch
+    t =    28.30s         Find the "settings.sync.enabled" Switch
+    t =    28.37s         Find the "settings.sync.enabled" Switch
+    t =    28.72s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    29.89s Checking `Expect predicate `value == "0"` for object "settings.sync.enabled" Switch`
+    t =    29.89s     Find the "settings.sync.enabled" Switch
+    t =    29.96s Waiting 3.0s for "settings.sync.configuration-missing" Any to not exist
+    t =    30.99s     Checking `Expect predicate `existsNoRetry == 0` for object "settings.sync.configuration-missing" Any`
+    t =    30.99s         Checking existence of `"settings.sync.configuration-missing" Any`
+    t =    31.09s Find the "settings.sync.now" Button
+    t =    31.16s Tear Down
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testDebugLocalSyncOptInStaysLocalAndFailClosed]' passed (31.464 seconds).
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testDeviceRevocationConfirmsScopeAndRemovesRemoteTarget]' started.
+    t =     0.00s Start Test at 2026-08-30 19:15:05.220
+    t =     0.02s Set Up
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.02s         Terminate app.ahoibrowser.AhoiBrowser:97948
+2026-08-30 19:15:06.295 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:15:06.295 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.28s         Setting up automation session
+    t =     2.08s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     3.27s Waiting 8.0s for "browser.more" Button to exist
+    t =     4.30s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =     4.30s         Checking existence of `"browser.more" Button`
+    t =     4.42s Tap "browser.more" Button
+    t =     4.42s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.42s     Find the "browser.more" Button
+    t =     4.47s     Check for interrupting elements affecting "browser.more" Button
+    t =     4.49s     Synthesize event
+    t =     4.78s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.81s Checking existence of `"browser.actions.settings" Button`
+    t =     4.89s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     4.89s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.31s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     5.35s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     5.40s     Synthesize event
+    t =     5.82s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.37s Checking existence of `"browser.actions.settings" Button`
+    t =     6.46s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     6.46s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.46s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     6.50s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     6.56s     Synthesize event
+    t =     6.98s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.57s Checking existence of `"browser.actions.settings" Button`
+    t =     7.65s Checking existence of `"browser.actions.settings" Button`
+    t =     7.72s Waiting 3.0s for "browser.actions.settings" Button to exist
+    t =     8.75s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.settings" Button`
+    t =     8.75s         Checking existence of `"browser.actions.settings" Button`
+    t =     8.82s Find the "browser.actions.settings" Button
+    t =     8.91s Tap "browser.actions.settings" Button
+    t =     8.91s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.91s     Find the "browser.actions.settings" Button
+    t =     8.99s     Check for interrupting elements affecting "browser.actions.settings" Button
+    t =     9.04s     Synthesize event
+    t =     9.34s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.71s Waiting 1.0s for "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button to exist
+    t =    10.72s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    10.72s         Checking existence of `"settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    10.81s         Capturing element debug description
+    t =    10.81s     Checking existence of `"settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    10.87s Collecting debug information to assist test failure triage
+    t =    10.88s     Requesting snapshot of accessibility hierarchy for app with pid 98050
+    t =    10.98s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    10.98s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.99s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    11.03s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =    11.09s     Synthesize event
+    t =    11.51s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.57s Waiting 1.0s for "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button to exist
+    t =    13.57s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    13.58s         Checking existence of `"settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    13.65s     Checking existence of `"settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    13.72s Find the "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button
+    t =    13.79s Find the "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button
+    t =    13.87s Tap "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button
+    t =    13.87s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.87s     Find the "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button
+    t =    13.94s     Check for interrupting elements affecting "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button
+    t =    13.99s     Synthesize event
+    t =    14.29s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    14.37s Waiting 3.0s for StaticText (First Match) to exist
+    t =    15.38s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    15.38s         Checking existence of `StaticText (First Match)`
+    t =    15.45s Waiting 1.0s for "settings.devices.remove.confirm" Button to exist
+    t =    16.45s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.devices.remove.confirm" Button`
+    t =    16.45s         Checking existence of `"settings.devices.remove.confirm" Button`
+    t =    16.53s     Checking existence of `"settings.devices.remove.confirm" Button`
+    t =    16.63s Waiting 2.0s for "settings.devices.remove.confirm" Button to exist
+    t =    17.66s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.devices.remove.confirm" Button`
+    t =    17.66s         Checking existence of `"settings.devices.remove.confirm" Button`
+    t =    17.74s Tap "settings.devices.remove.confirm" Button
+    t =    17.74s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.75s     Find the "settings.devices.remove.confirm" Button
+    t =    17.82s     Check for interrupting elements affecting "settings.devices.remove.confirm" Button
+    t =    17.88s     Synthesize event
+    t =    18.18s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    18.52s Waiting 4.0s for "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button to not exist
+    t =    19.55s     Checking `Expect predicate `existsNoRetry == 0` for object "settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    19.55s         Checking existence of `"settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    19.63s Checking existence of `"settings.devices.remove.72000000-0000-4000-8000-000000000002" Button`
+    t =    19.70s Waiting 1.0s for StaticText (First Match) to exist
+    t =    20.70s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    20.70s         Checking existence of `StaticText (First Match)`
+    t =    20.82s     Checking existence of `StaticText (First Match)`
+    t =    20.93s Find the StaticText (First Match)
+    t =    21.06s Checking existence of `"Das Entfernen stoppt Ahoi Sync und Fernbefehle für das Gerät in den aktuellen Datensätzen. Da der verschlüsselte Nutzdaten-Schlüssel derzeit geteilt wird, ist dies noch keine vollständige kryptografische Isolierung pro Gerät." StaticText`
+    t =    21.18s Tear Down
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testDeviceRevocationConfirmsScopeAndRemovesRemoteTarget]' passed (21.425 seconds).
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testLocalFixtureAndPrivateTabLifecycle]' started.
+    t =     0.00s Start Test at 2026-08-30 19:15:26.646
+    t =     0.02s Set Up
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.02s         Terminate app.ahoibrowser.AhoiBrowser:98050
+2026-08-30 19:15:27.716 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:15:27.716 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.28s         Setting up automation session
+    t =     2.11s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     3.33s Waiting 8.0s for "Ahoi fixture page" StaticText to exist
+    t =     4.35s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi fixture page" StaticText`
+    t =     4.35s         Checking existence of `"Ahoi fixture page" StaticText`
+    t =     4.44s Checking existence of `"browser.address" Button`
+    t =     4.47s Checking existence of `"browser.tabs" Button`
+    t =     4.51s Tap "browser.more" Button
+    t =     4.51s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.51s     Find the "browser.more" Button
+    t =     4.54s     Check for interrupting elements affecting "browser.more" Button
+    t =     4.57s     Synthesize event
+    t =     4.86s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.91s Waiting 2.0s for "browser.actions.new-tab" Button to exist
+    t =     5.92s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.new-tab" Button`
+    t =     5.92s         Checking existence of `"browser.actions.new-tab" Button`
+    t =     6.02s Checking existence of `"browser.actions.workspaces" Button`
+    t =     6.09s Checking existence of `"browser.actions.share" Button`
+    t =     6.15s Waiting 2.0s for "browser.new-private-tab" Button to exist
+    t =     7.19s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.new-private-tab" Button`
+    t =     7.19s         Checking existence of `"browser.new-private-tab" Button`
+    t =     7.25s Tap "browser.new-private-tab" Button
+    t =     7.25s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.26s     Find the "browser.new-private-tab" Button
+    t =     7.32s     Check for interrupting elements affecting "browser.new-private-tab" Button
+    t =     7.36s     Synthesize event
+    t =     7.66s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.09s Waiting 3.0s for "browser.address.private" Button to exist
+    t =     9.11s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.private" Button`
+    t =     9.11s         Checking existence of `"browser.address.private" Button`
+    t =     9.12s Terminate app.ahoibrowser.AhoiBrowser:99008
+    t =    10.21s Open app.ahoibrowser.AhoiBrowser
+    t =    10.21s     Launch app.ahoibrowser.AhoiBrowser
+2026-08-30 19:15:36.858 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:15:36.858 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    10.42s         Setting up automation session
+    t =    11.27s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.50s Waiting 1.0s for "browser.address.private" Button to exist
+    t =    13.50s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.private" Button`
+    t =    13.50s         Checking existence of `"browser.address.private" Button`
+    t =    13.58s         Capturing element debug description
+    t =    13.58s     Checking existence of `"browser.address.private" Button`
+    t =    13.61s Collecting debug information to assist test failure triage
+    t =    13.61s     Requesting snapshot of accessibility hierarchy for app with pid 99939
+    t =    13.65s Waiting 5.0s for "browser.address" Button to exist
+    t =    14.67s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    14.67s         Checking existence of `"browser.address" Button`
+    t =    14.69s Tear Down
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testLocalFixtureAndPrivateTabLifecycle]' passed (14.960 seconds).
+Test Suite 'AhoiMobileUITests' passed at 2026-08-30 19:15:41.606.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 67.850 (67.854) seconds
+Test Suite 'MobileBrowserLayoutUITests' started at 2026-08-30 19:15:41.606.
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable]' started.
+    t =     0.00s Start Test at 2026-08-30 19:15:41.607
+    t =     0.02s Set Up
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.02s         Terminate app.ahoibrowser.AhoiBrowser:99939
+2026-08-30 19:15:42.694 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:15:42.694 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     2.33s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     3.58s Waiting 8.0s for "browser.more" Button to exist
+    t =     4.61s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =     4.61s         Checking existence of `"browser.more" Button`
+    t =     4.76s Tap "browser.more" Button
+    t =     4.76s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.76s     Find the "browser.more" Button
+    t =     4.81s     Check for interrupting elements affecting "browser.more" Button
+    t =     4.86s     Synthesize event
+    t =     5.16s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.27s Waiting 3.0s for "browser.actions.new-tab" Button to exist
+    t =     6.29s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.new-tab" Button`
+    t =     6.29s         Checking existence of `"browser.actions.new-tab" Button`
+    t =     6.42s Tap "browser.actions.new-tab" Button
+    t =     6.42s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.42s     Find the "browser.actions.new-tab" Button
+    t =     6.50s     Check for interrupting elements affecting "browser.actions.new-tab" Button
+    t =     6.57s     Synthesize event
+    t =     6.86s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.32s Waiting 3.0s for "browser.focus-voyage.header" Any to exist
+    t =     8.34s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.focus-voyage.header" Any`
+    t =     8.34s         Checking existence of `"browser.focus-voyage.header" Any`
+    t =     8.36s Checking existence of `"browser.focus-voyage.search" Button`
+    t =     8.38s Checking existence of `"browser.back" Button`
+    t =     8.41s Checking existence of `"browser.forward" Button`
+    t =     8.43s Checking existence of `"browser.reload-stop" Button`
+    t =     8.45s Checking existence of `"browser.tabs" Button`
+    t =     8.47s Checking existence of `"browser.more" Button`
+    t =     8.49s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable]' passed (8.746 seconds).
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll]' started.
+    t =     0.00s Start Test at 2026-08-30 19:15:50.356
+    t =     0.02s Set Up
+    t =     0.03s Open app.ahoibrowser.AhoiBrowser
+    t =     0.03s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.03s         Terminate app.ahoibrowser.AhoiBrowser:1314
+2026-08-30 19:15:51.418 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:15:51.418 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.27s         Setting up automation session
+    t =     2.10s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     3.31s Waiting 8.0s for "browser.harbor-deck.workspace" Any to exist
+    t =     4.33s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =     4.33s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =     4.57s Waiting 3.0s for WebView (First Match) to exist
+    t =     5.59s     Checking `Expect predicate `existsNoRetry == 1` for object WebView (First Match)`
+    t =     5.59s         Checking existence of `WebView (First Match)`
+    t =     5.60s Waiting 3.0s for "Ahoi fixture page" StaticText to exist
+    t =     6.62s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi fixture page" StaticText`
+    t =     6.62s         Checking existence of `"Ahoi fixture page" StaticText`
+    t =     6.65s Swipe up WebView (First Match)
+    t =     6.65s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.66s     Find the WebView (First Match)
+    t =     6.67s     Check for interrupting elements affecting WebView
+    t =     6.69s     Synthesize event
+    t =     7.13s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.25s Waiting 3.0s for "browser.harbor-deck.workspace" Any to not exist
+    t =    10.27s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.harbor-deck.workspace" Any`
+    t =    10.28s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    10.35s Waiting 3.0s for "browser.address" Button to exist
+    t =    11.36s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    11.36s         Checking existence of `"browser.address" Button`
+    t =    12.40s Checking `Expect predicate `hittable == 1` for object "browser.address" Button`
+    t =    12.41s     Find the "browser.address" Button
+    t =    12.45s Find the "browser.address" Button
+    t =    12.48s Find the "browser.address" Button
+    t =    12.51s Waiting 3.0s for "browser.tabs" Button to exist
+    t =    13.54s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.tabs" Button`
+    t =    13.54s         Checking existence of `"browser.tabs" Button`
+    t =    14.59s Checking `Expect predicate `hittable == 1` for object "browser.tabs" Button`
+    t =    14.59s     Find the "browser.tabs" Button
+    t =    14.63s Find the "browser.tabs" Button
+    t =    14.66s Find the "browser.tabs" Button
+    t =    14.69s Waiting 3.0s for "browser.more" Button to exist
+    t =    15.73s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =    15.73s         Checking existence of `"browser.more" Button`
+    t =    16.78s Checking `Expect predicate `hittable == 1` for object "browser.more" Button`
+    t =    16.78s     Find the "browser.more" Button
+    t =    16.82s Find the "browser.more" Button
+    t =    16.85s Find the "browser.more" Button
+    t =    16.89s Swipe up WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    16.89s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    16.89s     Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    16.90s     Check for interrupting elements affecting WebView
+    t =    16.92s     Synthesize event
+    t =    17.36s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    18.33s Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    18.41s Swipe down WebView at {{0.0, 0.0}, {402.0, 764.0}}
+    t =    18.41s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    18.41s     Find the WebView at {{0.0, 0.0}, {402.0, 764.0}}
+    t =    18.42s     Check for interrupting elements affecting WebView
+    t =    18.44s     Synthesize event
+    t =    18.88s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    20.98s Waiting 3.0s for "browser.harbor-deck.workspace" Any to exist
+    t =    22.00s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =    22.01s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    22.09s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll]' passed (22.356 seconds).
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testHarborDeckTracksNestedScrollerAndRestoresOnReverseScroll]' started.
+    t =     0.00s Start Test at 2026-08-30 19:16:12.712
+    t =     0.02s Set Up
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.02s         Terminate app.ahoibrowser.AhoiBrowser:2508
+2026-08-30 19:16:13.795 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:16:13.795 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.30s         Setting up automation session
+    t =     2.18s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     3.42s Waiting 8.0s for "browser.harbor-deck.workspace" Any to exist
+    t =     4.44s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =     4.44s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =     4.57s Waiting 3.0s for WebView (First Match) to exist
+    t =     5.60s     Checking `Expect predicate `existsNoRetry == 1` for object WebView (First Match)`
+    t =     5.60s         Checking existence of `WebView (First Match)`
+    t =     5.61s Waiting 3.0s for "Activate nested scroll fixture" Button to exist
+    t =     6.64s     Checking `Expect predicate `existsNoRetry == 1` for object "Activate nested scroll fixture" Button`
+    t =     6.64s         Checking existence of `"Activate nested scroll fixture" Button`
+    t =     6.68s Tap "Activate nested scroll fixture" Button
+    t =     6.68s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.68s     Find the "Activate nested scroll fixture" Button
+    t =     6.72s     Check for interrupting elements affecting "Activate nested scroll fixture" Button
+    t =     6.74s     Synthesize event
+    t =     7.04s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.12s Waiting 3.0s for Any (First Match) to exist
+    t =     8.14s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =     8.14s         Checking existence of `Any (First Match)`
+    t =     8.17s Waiting 3.0s for "Nested scroll starts here" StaticText to exist
+    t =     9.19s     Checking `Expect predicate `existsNoRetry == 1` for object "Nested scroll starts here" StaticText`
+    t =     9.19s         Checking existence of `"Nested scroll starts here" StaticText`
+    t =     9.22s Find the "Nested scroll starts here" StaticText
+    t =     9.24s Swipe up Any (First Match)
+    t =     9.24s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.25s     Find the Any (First Match)
+    t =     9.27s     Check for interrupting elements affecting "Nested scroll fixture, Bereich" Other
+    t =     9.29s     Synthesize event
+    t =     9.76s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    11.88s Find the "Nested scroll starts here" StaticText
+    t =    11.90s Waiting 3.0s for "browser.harbor-deck.workspace" Any to not exist
+    t =    12.93s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.harbor-deck.workspace" Any`
+    t =    12.93s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    12.97s Swipe down "Nested scroll fixture, Bereich" Other
+    t =    12.97s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.12s     Find the "Nested scroll fixture, Bereich" Other
+    t =    13.15s     Check for interrupting elements affecting "Nested scroll fixture, Bereich" Other
+    t =    13.17s     Synthesize event
+    t =    13.63s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    15.75s Waiting 3.0s for "browser.harbor-deck.workspace" Any to exist
+    t =    16.79s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =    16.79s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    16.84s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testHarborDeckTracksNestedScrollerAndRestoresOnReverseScroll]' passed (17.098 seconds).
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testInteractiveWebPresentationsExpandCollapsedHarborDeck]' started.
+    t =     0.00s Start Test at 2026-08-30 19:16:29.810
+    t =     0.02s Set Up
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.02s         Terminate app.ahoibrowser.AhoiBrowser:9305
+2026-08-30 19:16:30.885 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:16:30.885 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.28s         Setting up automation session
+    t =     2.11s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     3.38s Waiting 8.0s for "browser.harbor-deck.workspace" Any to exist
+    t =     4.43s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =     4.43s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =     4.77s Waiting 3.0s for "Ahoi fixture page" StaticText to exist
+    t =     5.84s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi fixture page" StaticText`
+    t =     5.84s         Checking existence of `"Ahoi fixture page" StaticText`
+    t =     5.89s Press WebView (First Match)[0.50, 0.68] for 0.1 seconds, then drag to WebView (First Match)[0.50, 0.54] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =     5.89s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.89s     Find the WebView (First Match)
+    t =     5.91s     Check for interrupting elements affecting WebView
+    t =     5.94s     Synthesize event
+    t =     5.94s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =     5.96s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =     5.98s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =     6.00s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =     6.02s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =     6.53s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.29s Waiting 3.0s for "browser.harbor-deck.workspace" Any to not exist
+    t =     9.32s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.harbor-deck.workspace" Any`
+    t =     9.32s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =     9.46s Waiting 3.0s for "Show JavaScript alert" Button to exist
+    t =    10.49s     Checking `Expect predicate `existsNoRetry == 1` for object "Show JavaScript alert" Button`
+    t =    10.49s         Checking existence of `"Show JavaScript alert" Button`
+    t =    10.55s Find the "Show JavaScript alert" Button
+    t =    10.64s Tap "Show JavaScript alert" Button
+    t =    10.64s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.65s     Find the "Show JavaScript alert" Button
+    t =    10.71s     Check for interrupting elements affecting "Show JavaScript alert" Button
+    t =    10.76s     Synthesize event
+    t =    11.09s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    11.30s Waiting 3.0s for Alert (First Match) to exist
+    t =    12.34s     Checking `Expect predicate `existsNoRetry == 1` for object Alert (First Match)`
+    t =    12.34s         Checking existence of `Alert (First Match)`
+    t =    12.37s Tap "browser.dialog.accept" Button
+    t =    12.37s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.38s     Find the "browser.dialog.accept" Button
+    t =    12.50s Ignoring failure to get hierarchy for remote element in process 13496 (Error getting main window kAXErrorServerNotFound)
+    t =    12.50s     Check for interrupting elements affecting "browser.dialog.accept" Button
+    t =    12.54s Ignoring failure to get hierarchy for remote element in process 13496 (Error getting main window kAXErrorServerNotFound)
+    t =    12.57s     Synthesize event
+    t =    12.90s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.20s Waiting 3.0s for "browser.harbor-deck.workspace" Any to exist
+    t =    14.25s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =    14.25s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    14.46s Press WebView at {{0.0, 0.0}, {402.0, 713.0}}[0.50, 0.68] for 0.1 seconds, then drag to WebView at {{0.0, 0.0}, {402.0, 713.0}}[0.50, 0.54] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    14.46s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    14.46s     Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    14.51s     Check for interrupting elements affecting WebView
+    t =    14.56s     Synthesize event
+    t =    14.56s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    14.61s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    14.66s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    14.71s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    14.76s         Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    15.32s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.02s Waiting 3.0s for "browser.harbor-deck.workspace" Any to not exist
+    t =    18.05s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.harbor-deck.workspace" Any`
+    t =    18.05s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    18.19s Waiting 3.0s for "Choose a fixture file" Button to exist
+    t =    19.22s     Checking `Expect predicate `existsNoRetry == 1` for object "Choose a fixture file" Button`
+    t =    19.22s         Checking existence of `"Choose a fixture file" Button`
+    t =    19.27s Find the "Choose a fixture file" Button
+    t =    19.34s Tap "Choose a fixture file" Button
+    t =    19.34s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    19.34s     Find the "Choose a fixture file" Button
+    t =    19.39s     Check for interrupting elements affecting "Choose a fixture file" Button
+    t =    19.44s     Synthesize event
+    t =    19.73s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    20.02s Waiting 3.0s for "browser.file_input.cancel" Button to exist
+    t =    21.06s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.file_input.cancel" Button`
+    t =    21.06s         Checking existence of `"browser.file_input.cancel" Button`
+    t =    21.29s Tap "browser.file_input.cancel" Button
+    t =    21.29s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    21.30s     Find the "browser.file_input.cancel" Button
+    t =    21.49s     Check for interrupting elements affecting "browser.file_input.cancel" Button
+    t =    21.56s     Synthesize event
+    t =    21.87s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    22.13s Waiting 3.0s for "browser.harbor-deck.workspace" Any to exist
+    t =    23.16s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =    23.16s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    23.30s Waiting 3.0s for "browser.address" Button to exist
+    t =    24.32s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    24.33s         Checking existence of `"browser.address" Button`
+    t =    25.41s Checking `Expect predicate `hittable == 1` for object "browser.address" Button`
+    t =    25.41s     Find the "browser.address" Button
+    t =    25.52s Find the "browser.address" Button
+    t =    25.73s Find the "browser.address" Button
+    t =    25.87s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testInteractiveWebPresentationsExpandCollapsedHarborDeck]' passed (26.209 seconds).
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testReduceMotionSystemSettingAndHarborDeckJourney]' started.
+    t =     0.00s Start Test at 2026-08-30 19:16:56.021
+    t =     0.05s Set Up
+    t =     0.08s Open com.apple.Preferences
+    t =     0.08s     Launch com.apple.Preferences
+    t =     0.08s         Terminate com.apple.Preferences:92836
+    t =     1.42s         Setting up automation session
+    t =     4.13s         Wait for com.apple.Preferences to idle
+    t =     8.64s Waiting 8.0s for StaticText (First Match) to exist
+    t =     9.71s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =     9.72s         Checking existence of `StaticText (First Match)`
+    t =    10.10s Tap StaticText (First Match)
+    t =    10.10s     Wait for com.apple.Preferences to idle
+    t =    10.16s     Find the StaticText (First Match)
+    t =    10.26s     Check for interrupting elements affecting "Bedienungshilfen" StaticText
+    t =    10.38s     Synthesize event
+    t =    10.77s     Wait for com.apple.Preferences to idle
+    t =    14.98s Checking existence of `StaticText (First Match)`
+    t =    15.28s Checking existence of `StaticText (First Match)`
+    t =    15.42s Checking existence of `StaticText (First Match)`
+    t =    15.56s Checking existence of `StaticText (First Match)`
+    t =    15.69s Waiting 3.0s for StaticText (First Match) to exist
+    t =    16.72s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    16.72s         Checking existence of `StaticText (First Match)`
+    t =    16.85s Tap StaticText (First Match)
+    t =    16.86s     Wait for com.apple.Preferences to idle
+    t =    16.87s     Find the StaticText (First Match)
+    t =    17.01s     Check for interrupting elements affecting "Bewegung" StaticText
+    t =    17.09s     Synthesize event
+    t =    17.42s     Wait for com.apple.Preferences to idle
+    t =    17.62s Waiting 3.0s for Switch (First Match) to exist
+    t =    18.64s     Checking `Expect predicate `existsNoRetry == 1` for object Switch (First Match)`
+    t =    18.64s         Checking existence of `Switch (First Match)`
+    t =    18.72s Find the Switch (First Match)
+    t =    18.77s Find the "REDUCE_MOTION" Switch
+    t =    18.81s Open app.ahoibrowser.AhoiBrowser
+    t =    18.81s     Launch app.ahoibrowser.AhoiBrowser
+    t =    18.81s         Terminate app.ahoibrowser.AhoiBrowser:13123
+2026-08-30 19:17:15.915 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:17:15.915 xcodebuild[96351:143556026] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    20.33s         Setting up automation session
+    t =    22.55s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    23.99s Waiting 8.0s for "browser.harbor-deck.workspace" Any to exist
+    t =    25.07s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =    25.07s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    25.69s Waiting 3.0s for "Ahoi fixture page" StaticText to exist
+    t =    26.74s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi fixture page" StaticText`
+    t =    26.74s         Checking existence of `"Ahoi fixture page" StaticText`
+    t =    26.88s Swipe up WebView (First Match)
+    t =    26.88s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    26.89s     Find the WebView (First Match)
+    t =    26.93s     Check for interrupting elements affecting WebView
+    t =    27.00s     Synthesize event
+    t =    27.47s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    29.58s Waiting 3.0s for "browser.harbor-deck.workspace" Any to not exist
+    t =    30.59s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.harbor-deck.workspace" Any`
+    t =    30.59s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    30.74s Waiting 3.0s for "browser.address" Button to exist
+    t =    31.77s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    31.77s         Checking existence of `"browser.address" Button`
+    t =    32.87s Checking `Expect predicate `hittable == 1` for object "browser.address" Button`
+    t =    32.87s     Find the "browser.address" Button
+    t =    32.98s Find the "browser.address" Button
+    t =    33.06s Find the "browser.address" Button
+    t =    33.13s Waiting 3.0s for "browser.tabs" Button to exist
+    t =    34.16s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.tabs" Button`
+    t =    34.16s         Checking existence of `"browser.tabs" Button`
+    t =    35.28s Checking `Expect predicate `hittable == 1` for object "browser.tabs" Button`
+    t =    35.29s     Find the "browser.tabs" Button
+    t =    35.39s Find the "browser.tabs" Button
+    t =    35.46s Find the "browser.tabs" Button
+    t =    35.54s Waiting 3.0s for "browser.more" Button to exist
+    t =    36.56s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =    36.57s         Checking existence of `"browser.more" Button`
+    t =    37.66s Checking `Expect predicate `hittable == 1` for object "browser.more" Button`
+    t =    37.67s     Find the "browser.more" Button
+    t =    37.73s Find the "browser.more" Button
+    t =    37.78s Find the "browser.more" Button
+    t =    37.84s Swipe down WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    37.84s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    37.85s     Find the WebView at {{0.0, 0.0}, {402.0, 713.0}}
+    t =    37.87s     Check for interrupting elements affecting WebView
+    t =    37.90s     Synthesize event
+    t =    38.35s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    40.13s Waiting 3.0s for "browser.harbor-deck.workspace" Any to exist
+    t =    41.15s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.harbor-deck.workspace" Any`
+    t =    41.15s         Checking existence of `"browser.harbor-deck.workspace" Any`
+    t =    41.26s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testReduceMotionSystemSettingAndHarborDeckJourney]' passed (41.600 seconds).
+Test Suite 'MobileBrowserLayoutUITests' passed at 2026-08-30 19:17:37.620.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 116.008 (116.014) seconds
+Test Suite 'AhoiMobileUITests.xctest' passed at 2026-08-30 19:17:37.621.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 183.858 (183.870) seconds
+Test Suite 'Selected tests' passed at 2026-08-30 19:17:37.622.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 183.858 (183.871) seconds
+2026-08-30 19:17:38.013 xcodebuild[96351:143556026] [MT] IDETestOperationsObserverDebug: 186.609 elapsed -- Testing started completed.
+2026-08-30 19:17:38.013 xcodebuild[96351:143556026] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-08-30 19:17:38.013 xcodebuild[96351:143556026] [MT] IDETestOperationsObserverDebug: 186.609 sec, +186.609 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/ahoi-mobile-4113c14-iphone-ui-02.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

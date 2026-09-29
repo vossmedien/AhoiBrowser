@@ -3,7 +3,6 @@
 
 #include "ahoi/browser/ui/sidebar/sidebar_presentation_animator.h"
 
-#include "ahoi/browser/ui/visual_style.h"
 #include "base/test/gtest_util.h"
 #include "base/test/task_environment.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -22,23 +21,26 @@ class TestObserver final : public SidebarPresentationAnimator::Observer {
 };
 
 TEST(SidebarPresentationAnimatorTest,
-     VisualStateClampsAndSlidesFromLeadingEdge) {
+     VisualStateClampsAndUsesCompleteHorizontalTravel) {
+  constexpr int kHorizontalTravel = 300;
   const SidebarPresentationVisualState hidden =
-      CalculateSidebarPresentationVisualState(-0.5);
+      CalculateSidebarPresentationVisualState(-0.5, kHorizontalTravel);
   EXPECT_FLOAT_EQ(0.0f, hidden.opacity);
-  EXPECT_EQ(visual_style::kSidebarPresentationRevealOffset,
-            hidden.horizontal_offset);
+  EXPECT_EQ(kHorizontalTravel, hidden.horizontal_offset);
 
   const SidebarPresentationVisualState midpoint =
-      CalculateSidebarPresentationVisualState(0.5);
+      CalculateSidebarPresentationVisualState(0.5, kHorizontalTravel);
   EXPECT_FLOAT_EQ(0.5f, midpoint.opacity);
-  EXPECT_EQ(visual_style::kSidebarPresentationRevealOffset / 2,
-            midpoint.horizontal_offset);
+  EXPECT_EQ(kHorizontalTravel / 2, midpoint.horizontal_offset);
 
   const SidebarPresentationVisualState visible =
-      CalculateSidebarPresentationVisualState(1.5);
+      CalculateSidebarPresentationVisualState(1.5, kHorizontalTravel);
   EXPECT_FLOAT_EQ(1.0f, visible.opacity);
   EXPECT_EQ(0, visible.horizontal_offset);
+
+  EXPECT_EQ(0,
+            CalculateSidebarPresentationVisualState(0.0, -kHorizontalTravel)
+                .horizontal_offset);
 }
 
 TEST(SidebarPresentationAnimatorTest, ResetProvidesStableMountedState) {
@@ -49,13 +51,15 @@ TEST(SidebarPresentationAnimatorTest, ResetProvidesStableMountedState) {
   EXPECT_FALSE(animator.target_visible());
   EXPECT_FALSE(animator.is_animating());
   EXPECT_FALSE(animator.ShouldKeepSurfaceMounted());
-  EXPECT_FLOAT_EQ(0.0f, animator.visual_state().opacity);
+  EXPECT_DOUBLE_EQ(0.0, animator.visibility_fraction());
+  EXPECT_FLOAT_EQ(0.0f, animator.visual_state(300).opacity);
 
   animator.Reset(true);
   EXPECT_TRUE(animator.target_visible());
   EXPECT_FALSE(animator.is_animating());
   EXPECT_TRUE(animator.ShouldKeepSurfaceMounted());
-  EXPECT_FLOAT_EQ(1.0f, animator.visual_state().opacity);
+  EXPECT_DOUBLE_EQ(1.0, animator.visibility_fraction());
+  EXPECT_FLOAT_EQ(1.0f, animator.visual_state(300).opacity);
   EXPECT_EQ(0, observer.update_count);
 }
 

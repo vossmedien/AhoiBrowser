@@ -1,0 +1,54 @@
+../../ahoi/browser/session/session_restore_integration_unittest.cc:107: Failure
+  Actual: true
+Expected: false
+[  FAILED  ] SessionRestoreIntegrationTest.ExtraDataRoundTripsWindowAndTabState (597 ms)
+../../ahoi/browser/session/workspace_session_metadata_unittest.cc:129: Failure
+Expected equality of these values:
+    Which is: 4-byte object <02-00 00-00>
+    Which is: 4-byte object <01-00 00-00>
+[  FAILED  ] WorkspaceSessionMetadataTest.RejectsUnsupportedOrExtendedSchema (4 ms)
+../../ahoi/browser/session/session_bridge_unittest.cc:133: Failure
+Expected equality of these values:
+    Which is: b634d650-aa50-493c-b162-8f60f52df0cd
+    Which is: (nullopt)
+../../ahoi/browser/session/session_bridge_unittest.cc:141: Failure
+Expected equality of these values:
+    Which is: b634d650-aa50-493c-b162-8f60f52df0cd
+    Which is: (nullopt)
+[  FAILED  ] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation (384 ms)
+../../ahoi/browser/session/session_bridge_unittest.cc:239: Failure
+Expected: (result) != (results.end()), actual: 8-byte object <48-8C 90-CC 78-00 00-00> vs 8-byte object <48-8C 90-CC 78-00 00-00>
+[  FAILED  ] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar (172 ms)
+../../ahoi/browser/session/session_bridge_unittest.cc:363: Failure
+Expected equality of these values:
+    Which is: 520-byte object <01-00 00-00 AA-AA AA-AA 50-F7 C1-CD 78-00 00-00 24-00 00-00 00-00 00-00 30-00 00-00 00-00 00-80 60-DB C1-CD 78-00 00-00 24-00 00-00 00-00 00-00 30-00 00-00 00-00 00-80 00-AA AA-AA AA-AA AA-AA ... 00-00 AA-AA AA-AA AA-AA 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 01-AA AA-AA 00-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA 00-AA AA-AA AA-AA AA-AA>
+    Which is: 520-byte object <01-00 00-00 AA-AA AA-AA 80-E5 C1-CD 78-00 00-00 24-00 00-00 00-00 00-00 30-00 00-00 00-00 00-80 30-EA C1-CD 78-00 00-00 24-00 00-00 00-00 00-00 30-00 00-00 00-00 00-80 00-AA AA-AA AA-AA AA-AA ... 00-00 AA-AA AA-AA AA-AA 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-AA AA-AA 00-AA AA-AA 00-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA 00-AA AA-AA AA-AA AA-AA>
+[  FAILED  ] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource (111 ms)
+../../ahoi/browser/session/session_bridge_unittest.cc:133: Failure
+Expected equality of these values:
+    Which is: 931d05e7-3adc-4247-9a83-9ca4cd5cd569
+    Which is: (nullopt)
+../../ahoi/browser/session/session_bridge_unittest.cc:141: Failure
+Expected equality of these values:
+    Which is: 931d05e7-3adc-4247-9a83-9ca4cd5cd569
+    Which is: (nullopt)
+[  FAILED  ] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation (288 ms)
+../../ahoi/browser/session/session_bridge_unittest.cc:239: Failure
+Expected: (result) != (results.end()), actual: 8-byte object <88-C3 97-25 78-00 00-00> vs 8-byte object <88-C3 97-25 78-00 00-00>
+[  FAILED  ] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar (287 ms)
+../../ahoi/browser/session/session_bridge_unittest.cc:363: Failure
+Expected equality of these values:
+    Which is: 520-byte object <01-00 00-00 AA-AA AA-AA A0-38 80-35 7C-00 00-00 24-00 00-00 00-00 00-00 30-00 00-00 00-00 00-80 40-38 80-35 7C-00 00-00 24-00 00-00 00-00 00-00 30-00 00-00 00-00 00-80 00-AA AA-AA AA-AA AA-AA ... 00-00 AA-AA AA-AA AA-AA 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 01-AA AA-AA 00-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA 00-AA AA-AA AA-AA AA-AA>
+    Which is: 520-byte object <01-00 00-00 AA-AA AA-AA 80-37 80-35 7C-00 00-00 24-00 00-00 00-00 00-00 30-00 00-00 00-00 00-80 E0-37 80-35 7C-00 00-00 24-00 00-00 00-00 00-00 30-00 00-00 00-00 00-80 00-AA AA-AA AA-AA AA-AA ... 00-00 AA-AA AA-AA AA-AA 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-AA AA-AA 00-AA AA-AA 00-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA AA-AA 00-AA AA-AA AA-AA AA-AA>
+[  FAILED  ] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource (164 ms)
+../../ahoi/browser/session/session_restore_integration_unittest.cc:107: Failure
+  Actual: true
+Expected: false
+[  FAILED  ] SessionRestoreIntegrationTest.ExtraDataRoundTripsWindowAndTabState (264 ms)
+../../ahoi/browser/session/workspace_session_metadata_unittest.cc:129: Failure
+Expected equality of these values:
+    Which is: 4-byte object <02-00 00-00>
+    Which is: 4-byte object <01-00 00-00>
+[  FAILED  ] WorkspaceSessionMetadataTest.RejectsUnsupportedOrExtendedSchema (4 ms)
+5 tests failed:
+Tests took 16 seconds.

@@ -1,0 +1,445 @@
+// Copyright 2026 The AhoiBrowser Authors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+import {webUIResponse} from 'chrome://resources/js/cr.js';
+import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
+import {flush} from 'chrome://resources/polymer/v3_0/polymer/polymer_bundled.min.js';
+import type {BrowserProfile, ImportDataBrowserProxy, SettingsImportDataDialogElement} from 'chrome://settings/lazy_load.js';
+import {ImportDataBrowserProxyImpl} from 'chrome://settings/lazy_load.js';
+import {PrefService, PrefsBrowserProxy} from 'chrome://settings/settings.js';
+import {assertDeepEquals, assertEquals, assertFalse, assertTrue} from 'chrome://webui-test/chai_assert.js';
+import {TestBrowserProxy} from 'chrome://webui-test/test_browser_proxy.js';
+import {microtasksFinished} from 'chrome://webui-test/test_util.js';
+
+import {TestPrefsBrowserProxy} from './test_prefs_browser_proxy.js';
+
+type ArcImportStage = 'idle'|'discovering'|'preview'|'committing'|'recovering'|
+    'recovered'|'sourceInUse'|'done'|'error';
+
+interface ArcImportStatsFixture {
+  sourceWorkspaces: number;
+  sourceItems: number;
+  workspaces: number;
+  folders: number;
+  pages: number;
+  splits: number;
+  degradedSplits: number;
+  topApps: number;
+  unsafeUrls: number;
+  unsupportedItems: number;
+  unreachableItems: number;
+  deduplicatedWorkspaces: number;
+  deduplicatedItems: number;
+  deduplicatedSplits: number;
+}
+
+interface MutableArcImportSection extends HTMLElement {
+  arcImportStage_: ArcImportStage;
+  arcImportPreview_: object|null;
+  arcImportResult_: object|null;
+  arcSelectedProfiles_: string[];
+  requestUpdate(): void;
+  updateComplete: Promise<boolean>;
+}
+
+class TestImportDataBrowserProxy extends TestBrowserProxy implements
+    ImportDataBrowserProxy {
+  constructor(private readonly profiles_: BrowserProfile[]) {
+    super([
+      'initializeImportDialog',
+      'importFromBookmarksFile',
+      'importData',
+    ]);
+  }
+
+  initializeImportDialog() {
+    this.methodCalled('initializeImportDialog');
+    return Promise.resolve(this.profiles_.slice());
+  }
+
+  importFromBookmarksFile() {
+    this.methodCalled('importFromBookmarksFile');
+  }
+
+  importData(index: number, types: {[type: string]: boolean}) {
+    this.methodCalled('importData', [index, types]);
+  }
+}
+
+suite('AhoiArcStandardImportSurface', () => {
+  const standardProfiles: BrowserProfile[] = [
+    {
+      autofillFormData: true,
+      favorites: true,
+      history: true,
+      index: 0,
+      name: 'Mozilla Firefox',
+      passwords: true,
+      profileName: '',
+      search: true,
+    },
+    {
+      ahoiImportKind: 'arc',
+      available: true,
+      autofillFormData: false,
+      disabledReason: '',
+      favorites: true,
+      history: false,
+      index: 1,
+      name: 'Arc',
+      passwords: false,
+      present: true,
+      profileName: '',
+      search: false,
+    },
+    {
+      autofillFormData: false,
+      favorites: true,
+      history: false,
+      index: 2,
+      name: 'Bookmarks HTML File',
+      passwords: false,
+      profileName: '',
+      search: false,
+    },
+  ];
+
+  const stats: ArcImportStatsFixture = {
+    sourceWorkspaces: 2,
+    sourceItems: 12,
+    workspaces: 2,
+    folders: 3,
+    pages: 5,
+    splits: 0,
+    degradedSplits: 1,
+    topApps: 0,
+    unsafeUrls: 2,
+    unsupportedItems: 1,
+    unreachableItems: 4,
+    deduplicatedWorkspaces: 1,
+    deduplicatedItems: 2,
+    deduplicatedSplits: 1,
+  };
+
+  let dialog: SettingsImportDataDialogElement;
+  let browserProxy: TestImportDataBrowserProxy;
+
+  setup(async () => {
+    const prefs: chrome.settingsPrivate.PrefObject[] = [];
+    for (const key of ['import_dialog_history',
+                 'import_dialog_bookmarks',
+                 'import_dialog_saved_passwords',
+                 'import_dialog_search_engine',
+                 'import_dialog_autofill_form_data',
+    ]) {
+      prefs.push({
+        key,
+        type: chrome.settingsPrivate.PrefType.BOOLEAN,
+        value: true,
+      });
+    }
+    PrefsBrowserProxy.setInstance(new TestPrefsBrowserProxy(prefs));
+    PrefService.resetInstanceForTesting();
+    browserProxy = new TestImportDataBrowserProxy(standardProfiles);
+    ImportDataBrowserProxyImpl.setInstance(browserProxy);
+    document.body.innerHTML = window.trustedTypes!.emptyHTML;
+
+    dialog = document.createElement('settings-import-data-dialog');
+    document.body.appendChild(dialog);
+    await PrefService.getInstance().whenInitialized();
+    await browserProxy.whenCalled('initializeImportDialog');
+    flush();
+  });
+
+  function selectSource(index: number) {
+    dialog.$.browserSelect.selectedIndex = index;
+    dialog.$.browserSelect.dispatchEvent(new CustomEvent('change'));
+    flush();
+  }
+
+  function getArcSection(): MutableArcImportSection {
+    return dialog.shadowRoot.querySelector<MutableArcImportSection>(
+        '#ahoiArcImport')!;
+  }
+
+  function preview(splits: number) {
+    return {
+      alreadyImported: false,
+      conflictingWorkspaces: 1,
+      profiles: ['Default'],
+      snapshotToken: 'fixture-token-without-source-data',
+      sourceInUse: false,
+      stats: {...stats, splits},
+      status: 'ok',
+      targetWorkspaces: ['Imported workspace'],
+    };
+  }
+
+  test(
+      'arcUsesTheStandardSourceSelectAndCannotCallStandardImport', async () => {
+        const optionLabels = Array.from(dialog.$.browserSelect.options)
+                                 .map(option => option.textContent.trim());
+        assertEquals(3, optionLabels.length);
+        assertTrue(optionLabels[1]!.includes('Arc'));
+        assertEquals('Bookmarks HTML File', optionLabels[2]);
+
+        selectSource(1);
+        const arcSection = getArcSection();
+        assertFalse(arcSection.hidden);
+        assertTrue(dialog.$.import.hidden);
+        assertTrue(dialog.$.import.disabled);
+
+        dialog.$.import.click();
+        assertEquals(0, browserProxy.getCallCount('importData'));
+        assertEquals(0, browserProxy.getCallCount('importFromBookmarksFile'));
+
+        selectSource(2);
+        assertTrue(arcSection.hidden);
+        assertFalse(dialog.$.import.hidden);
+        dialog.$.import.click();
+        await browserProxy.whenCalled('importFromBookmarksFile');
+        assertEquals(0, browserProxy.getCallCount('importData'));
+      });
+
+  test(
+      'splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitNeedsSelectedData',
+      async () => {
+        selectSource(1);
+        const arcSection = getArcSection();
+        arcSection.arcImportStage_ = 'preview';
+        arcSection.arcImportPreview_ = preview(0);
+        arcSection.arcSelectedProfiles_ = [];
+        arcSection.requestUpdate();
+        await arcSection.updateComplete;
+
+        assertEquals(
+            7, arcSection.shadowRoot!.querySelectorAll('.counts > li').length);
+        assertFalse(
+            !!arcSection.shadowRoot!.querySelector('dt, dd, [role="term"]'));
+        assertFalse(!!arcSection.shadowRoot!.querySelector(
+            '#ahoiArcReconstructSplits'));
+        const commit = arcSection.shadowRoot!.querySelector<HTMLElement&{
+          disabled: boolean,
+        }>('#ahoiArcCommit')!;
+        assertTrue(commit.disabled);
+
+        arcSection.arcImportPreview_ = preview(2);
+        arcSection.arcSelectedProfiles_ = ['Default'];
+        arcSection.requestUpdate();
+        await arcSection.updateComplete;
+        assertTrue(!!arcSection.shadowRoot!.querySelector(
+            '#ahoiArcReconstructSplits'));
+
+        const checkboxes =
+            Array.from(arcSection.shadowRoot!.querySelectorAll<HTMLElement>(
+                '.arc-import-checkbox'));
+        assertEquals(3, checkboxes.length);
+        for (const checkbox of checkboxes) {
+          const checkboxStyle = getComputedStyle(checkbox);
+          assertEquals('flex', checkboxStyle.display);
+          assertEquals('flex-start', checkboxStyle.alignItems);
+          assertEquals(
+              '12px',
+              checkboxStyle
+                  .getPropertyValue('--cr-checkbox-label-padding-start')
+                  .trim());
+          const label = checkbox.shadowRoot!.querySelector<HTMLElement>(
+              '#labelContainer')!;
+          assertEquals('12px', getComputedStyle(label).paddingInlineStart);
+          const box =
+              checkbox.shadowRoot!.querySelector<HTMLElement>(
+                                      '#checkbox')!.getBoundingClientRect();
+          const firstLineCenter = label.getBoundingClientRect().top +
+              parseFloat(getComputedStyle(label).lineHeight) / 2;
+          assertTrue(Math.abs(box.top + box.height / 2 - firstLineCenter) < 1);
+        }
+
+        assertTrue(
+            !!arcSection.shadowRoot!.querySelector('#ahoiArcBackupNotice'));
+        assertFalse(!!arcSection.shadowRoot!.querySelector(
+            '#ahoiArcBackupConfirmation, #ahoiArcCommitConfirmation'));
+        assertFalse(commit.disabled);
+
+        const sidebarChoice = arcSection.shadowRoot!.querySelector<HTMLElement>(
+            '#ahoiArcImportSidebar')!;
+        sidebarChoice.click();
+        await microtasksFinished();
+        assertTrue(arcSection.shadowRoot!
+                       .querySelector<HTMLElement&{disabled: boolean}>(
+                           '#ahoiArcCommit')!.disabled);
+        sidebarChoice.click();
+        await microtasksFinished();
+        assertFalse(arcSection.shadowRoot!
+                        .querySelector<HTMLElement&{disabled: boolean}>(
+                            '#ahoiArcCommit')!.disabled);
+      });
+
+  test('primaryClickConfirmsTheCurrentPlanAndBackupOnlyOnce', async () => {
+    selectSource(1);
+    const arcSection = getArcSection();
+    arcSection.arcImportStage_ = 'preview';
+    arcSection.arcImportPreview_ = preview(2);
+    arcSection.arcSelectedProfiles_ = ['Default'];
+    arcSection.requestUpdate();
+    await arcSection.updateComplete;
+
+    const requests: unknown[][] = [];
+    const originalSend = chrome.send;
+    chrome.send = (message: string, args?: unknown[]) => {
+      if (message === 'ahoiArcCommit') {
+        requests.push(args ?? []);
+      } else {
+        originalSend(message, args);
+      }
+    };
+    try {
+      const commit =
+          arcSection.shadowRoot!.querySelector<HTMLElement>('#ahoiArcCommit')!;
+      commit.click();
+      commit.click();
+      assertEquals(1, requests.length);
+      const request = requests[0]!;
+      assertEquals('fixture-token-without-source-data', request[1]);
+      assertEquals('rename', request[2]);
+      assertDeepEquals(['Default'], request[3]);
+      assertEquals(true, request[4]);
+      assertEquals(true, request[6]);
+      assertEquals(true, request[7]);
+      assertEquals('committing', arcSection.arcImportStage_);
+      webUIResponse(request[0] as string, true, {
+        status: 'noChanges',
+        stats,
+        renamedWorkspaces: 0,
+        skippedWorkspaces: 0,
+        mergedWorkspaces: 0,
+        reconstructedSplits: 0,
+        approximatedFourPaneRatios: 0,
+      });
+      await microtasksFinished();
+      assertEquals('done', arcSection.arcImportStage_);
+      const root = arcSection.shadowRoot!;
+      assertEquals(1, root.querySelectorAll('[role="status"]').length);
+      assertEquals(
+          loadTimeData.getString('ahoiArcImportNoChanges'),
+          root.querySelector('#ahoiArcImportStatus')!.textContent.trim());
+      assertFalse(!!root.querySelector('.result-counts, #ahoiArcDiscover'));
+    } finally {
+      chrome.send = originalSend;
+    }
+  });
+
+  for (const status of ['ok', 'recoveryRequired']) {
+    test(
+        `recoveryIsExplicitSingleSubmitWithoutAutoRetry_${status}`,
+        async () => {
+          selectSource(1);
+          const section = getArcSection();
+          section.arcImportStage_ = 'error';
+          section.arcImportPreview_ = {
+            ...preview(0),
+            status: 'recoveryRequired'
+          };
+          section.requestUpdate();
+          await section.updateComplete;
+          const requests: Array<{message: string, args: unknown[]}> = [];
+          const originalSend = chrome.send;
+          chrome.send = (message: string, args?: unknown[]) => {
+            if (['ahoiArcRecover', 'ahoiArcDiscover', 'ahoiArcCommit'].includes(
+                    message)) {
+              requests.push({message, args: args ?? []});
+            } else {
+              originalSend(message, args);
+            }
+          };
+          try {
+            // Rendering the recovery warning must never perform the recovery.
+            assertEquals(0, requests.length);
+            const recover = section.shadowRoot!.querySelector<HTMLElement>(
+                '#ahoiArcRecover')!;
+            assertTrue(!!recover);
+            assertEquals(
+                'ahoiArcRecoveryNotice',
+                recover.getAttribute('aria-describedby'));
+            recover.click();
+            recover.click();
+            // A synchronously queued discovery click is locked too.
+            section.shadowRoot!.querySelector<HTMLElement>(
+                                   '#ahoiArcDiscover')!.click();
+            assertEquals(1, requests.length);
+            assertEquals('ahoiArcRecover', requests[0]!.message);
+            assertEquals(true, requests[0]!.args[1]);
+            assertEquals('recovering', section.arcImportStage_);
+            await microtasksFinished();
+            assertTrue(section.shadowRoot!
+                           .querySelector<HTMLElement&{disabled: boolean}>(
+                               '#ahoiArcDiscover')!.disabled);
+            webUIResponse(
+                requests[0]!.args[0] as string, true, {...preview(0), status});
+            await microtasksFinished();
+            assertEquals(
+                status === 'ok' ? 'recovered' : 'error',
+                section.arcImportStage_);
+            assertEquals(1, requests.length);
+            assertEquals(null, section.arcImportResult_);
+            assertFalse(
+                !!section.shadowRoot!.querySelector('#ahoiArcCommit, .result'));
+            assertEquals(
+                status !== 'ok',
+                !!section.shadowRoot!.querySelector('#ahoiArcRecover'));
+          } finally {
+            chrome.send = originalSend;
+          }
+        });
+  }
+
+  test('resultReportsImportedSkippedDegradedExcludedAndFourPane', async () => {
+    selectSource(1);
+    const arcSection = getArcSection();
+    arcSection.arcImportResult_ = {
+      approximatedFourPaneRatios: 3,
+      mergedWorkspaces: 0,
+      reconstructedSplits: 2,
+      renamedWorkspaces: 0,
+      skippedWorkspaces: 1,
+      stats,
+      status: 'ok',
+    };
+    arcSection.arcImportStage_ = 'done';
+    arcSection.requestUpdate();
+    await arcSection.updateComplete;
+
+    assertEquals(
+        1, arcSection.shadowRoot!.querySelectorAll('[role="status"]').length);
+    assertFalse(!!arcSection.shadowRoot!.querySelector('#ahoiArcDiscover'));
+    const resultText = (id: string) =>
+        arcSection.shadowRoot!.querySelector(id)!.textContent.trim();
+    assertEquals(
+        9,
+        arcSection.shadowRoot!.querySelectorAll('.result-counts > li').length);
+    assertFalse(
+        !!arcSection.shadowRoot!.querySelector('dt, dd, [role="term"]'));
+    assertEquals('2', resultText('#ahoiArcResultWorkspaces'));
+    assertEquals('1', resultText('#ahoiArcResultSkipped'));
+    assertEquals('1', resultText('#ahoiArcResultDegraded'));
+    assertEquals('7', resultText('#ahoiArcResultExcluded'));
+    assertEquals('4', resultText('#ahoiArcResultDeduplicated'));
+    assertEquals('3', resultText('#ahoiArcResultFourPane'));
+  });
+
+  test('unsupportedArcSchemaHasSpecificFailClosedStatus', async () => {
+    selectSource(1);
+    const arcSection = getArcSection();
+    arcSection.arcImportPreview_ = {
+      ...preview(0),
+      status: 'malformedSerializedMap',
+    };
+    arcSection.arcImportStage_ = 'error';
+    arcSection.requestUpdate();
+    await arcSection.updateComplete;
+
+    assertEquals(
+        loadTimeData.getString('ahoiArcImportUnsupportedData'),
+        arcSection.shadowRoot!.querySelector(
+                                  '#ahoiArcImportStatus')!.textContent.trim());
+  });
+});

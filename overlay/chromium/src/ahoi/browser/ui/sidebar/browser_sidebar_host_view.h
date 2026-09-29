@@ -10,6 +10,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -17,6 +18,8 @@
 #include "ahoi/browser/media/media_mini_player_chromium_adapter.h"
 #include "ahoi/browser/media/media_mini_player_service.h"
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/group_page_close.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
@@ -24,6 +27,8 @@
 #include "ahoi/browser/ui/appearance/sidebar_tint_transition.h"
 #include "ahoi/browser/ui/media/media_mini_player_view.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
+#include "ahoi/browser/ui/sidebar/browser_sidebar_host_state.h"
+#include "ahoi/browser/ui/sidebar/browser_sidebar_host_types.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_discovery_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_presentation_state.h"
@@ -40,12 +45,13 @@
 #include "base/scoped_observation.h"
 #include "base/task/cancelable_task_tracker.h"
 #include "base/time/time.h"
-#include "base/timer/timer.h"
 #include "base/uuid.h"
 #include "chrome/browser/ui/tabs/tab_strip_model_observer.h"
+#include "components/bookmarks/browser/base_bookmark_model_observer.h"
 #include "components/favicon_base/favicon_types.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/prefs/pref_change_registrar.h"
+#include "components/split_tabs/split_tab_id.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/base/metadata/metadata_header_macros.h"
@@ -56,13 +62,17 @@
 #include "ui/views/context_menu_controller.h"
 #include "ui/views/controls/textfield/textfield_controller.h"
 #include "ui/views/view.h"
-#include "ui/views/view_tracker.h"
 #include "ui/views/widget/widget_observer.h"
 #include "url/gurl.h"
 
 class Browser;
+class Profile;
 class SessionID;
 class TabStripModel;
+
+namespace bookmarks {
+class BookmarkModel;
+}
 
 namespace favicon {
 class FaviconService;
@@ -77,6 +87,7 @@ class ImageButton;
 class LabelButton;
 class MenuRunner;
 class ScrollView;
+class RadioButton;
 class Textfield;
 class Widget;
 }  // namespace views
@@ -96,75 +107,6 @@ class SidebarDiscoveryModel;
 class SidebarMediaOverlayView;
 class SidebarTreeView;
 
-enum SidebarContextMenuCommand {
-  kActivateNode = 1,
-  kToggleGroupExpanded,
-  kCreateRootGroup,
-  kCreateSubgroup,
-  kCreateGroupAroundNode,
-  kDuplicateNode,
-  kRenameNode,
-  kDeleteNode,
-  kSeparateSplit,
-  kSaveTemporaryTab,
-  kKeepOpenOnly,
-  kCloseRuntimeTab,
-  kSplitSideBySide,
-  kSplitStacked,
-  kReverseSplit,
-  kCustomizeGroup,
-  kCopyAllLinks,
-  kMoveTo,
-  kCreateWorkspace,
-  kDuplicateWorkspace,
-  kEditWorkspace,
-  kDeleteWorkspace,
-  kToggleFloatingSidebar,
-  kToggleSidebarVisibility,
-  kRestoreSidebar,
-  kSleepTab,
-  kWakeTab,
-  kToggleNeverSleep,
-  kToggleWorkspaceSwipe,
-  kToggleCmdScrollTabSwitching,
-  kToggleMiddleClickAutoscroll,
-};
-
-constexpr int kActivateWorkspaceCommandBase = 1000;
-constexpr int kMoveToDestinationCommandBase = 2000;
-// The persistent tree supports far more than one thousand folders. Keep
-// submenu identifiers well above the destination range so a large workspace
-// cannot make a destination look like a submenu command.
-constexpr int kMoveToWorkspaceSubmenuCommandBase = 1000000;
-
-struct ContextMoveDestination {
-  base::Uuid workspace_id;
-  std::optional<base::Uuid> folder_id;
-};
-
-enum class ContextMenuScope {
-  kNone = 0,
-  kTree,
-  kWorkspace,
-  kOpenTab,
-};
-
-enum class PendingGroupAction {
-  kNone = 0,
-  kWrapNode,
-  kWrapTemporaryTab,
-  kCreateFolder,
-  kEditFolder,
-};
-
-enum class PendingWorkspaceAction {
-  kNone = 0,
-  kCreate,
-  kDuplicate,
-  kEdit,
-  kDelete,
-};
-
 class BrowserSidebarHostView final
     : public views::View,
       public content::WebContentsObserver,
@@ -172,6 +114,7 @@ class BrowserSidebarHostView final
       public WorkspaceServiceObserver,
       public sync::ProfileSyncService::Observer,
       public TabStripModelObserver,
+      public bookmarks::BaseBookmarkModelObserver,
       public appearance::SidebarTintTransition::Observer,
       public media_ui::MediaMiniPlayerHost,
       public views::ContextMenuController,
@@ -190,21 +133,28 @@ class BrowserSidebarHostView final
   BrowserSidebarHostView& operator=(const BrowserSidebarHostView&) = delete;
 
   bool UndoLastMutationIfAvailable();
-
   bool ActivateRelativeWorkspace(int delta);
-
   bool ActivateRelativeWorkspaceByGesture(int delta);
 
+  // Walk the active Workspace's sidebar tab stops; null `index` is the last.
+  base::WeakPtr<tabs::TabInterface> ResolveRelativeRuntimeTab(int delta) const;
+  base::WeakPtr<tabs::TabInterface> ResolveNumberedRuntimeTab(
+      std::optional<size_t> index) const;
   bool ActivateRelativeRuntimeTab(int delta);
 
+  // `index` counts the process-wide order of the shared switcher (ADR 0011
+  // step 2), not only this Profile's Workspaces.
   bool ActivateWorkspaceAtIndex(size_t index);
+  bool ActivateWorkspaceById(const base::Uuid& workspace_id);
 
   bool RevealFolder(const base::Uuid& folder_id);
+  bool MoveSelectionToWorkspace(const base::Uuid& workspace_id, bool dry_run);
 
   bool SetSidebarPresentationMode(SidebarPresentationMode mode);
   bool ToggleFloatingSidebar();
   bool ToggleSidebarVisibility();
   bool RestoreSidebar();
+  void OnSidebarPresentationSettled();
 
   BrowserSidebarSplitDropSource ResolveSplitDropSource(
       const drag::SidebarTabDragPayload& payload,
@@ -240,6 +190,12 @@ class BrowserSidebarHostView final
 
   void OnSessionPresentationChanged();
 
+  // One model observer per host invalidates row presentation; URL membership
+  // is queried through BookmarkModel's index, never by scanning during paint.
+  void BookmarkModelChanged() override;
+  void BookmarkModelBeingDeleted() override;
+  bool IsUrlBookmarked(const GURL& url) const;
+
   void OnAppearanceChanged(const appearance::GlassPolicy& policy);
   void RefreshPageTint(bool allow_animation = true);
 
@@ -261,11 +217,13 @@ class BrowserSidebarHostView final
 
   void ActivateWorkspace(const base::Uuid& workspace_id);
 
+  bool ActivateRelativeSwitcherWorkspace(int delta,
+                                         WorkspaceActivationSource source);
   bool ActivateRelativeWorkspaceWithTransition(
       int delta,
       WorkspaceActivationSource source);
 
-  void StartWorkspaceTransition(int delta);
+  void StartWorkspaceTransition(int delta, bool active_web_contents_changed);
 
   void CancelWorkspaceTransition();
 
@@ -278,11 +236,26 @@ class BrowserSidebarHostView final
 
   void ActivateWorkspaceRuntimeTab(const base::Uuid& workspace_id);
 
+  // TabStripModel observer callbacks must not activate another tab. After
+  // their notification finishes, native tab selection follows that tab's
+  // workspace; removal instead preserves the current workspace, including
+  // its empty surface when only foreign-workspace tabs remain.
+  void ReconcileWorkspaceSurface(uint64_t generation,
+                                 bool follow_selected_tab);
+
   // Keeps the native WebView surface aligned with the active Ahoi workspace
   // after a tab removal. A shared Chromium TabStripModel may still contain
   // tabs from another workspace, so an empty Ahoi workspace must explicitly
   // cover that stale global selection instead of showing it in the page area.
   void EnsureWorkspaceSurface();
+
+  // Handoff 011 S4: SessionRestore creates the window, applies its Workspace
+  // and only then inserts the tabs with theirs. Aligning the surface in
+  // between activates the wrong tab or leaves the empty state visible, so it
+  // waits for the restore-finished notification and runs once afterwards.
+  bool DeferWorkspaceSurfaceDuringRestore();
+  void OnSessionRestored(Profile* profile, int num_tabs);
+  void ReconcileWorkspaceSurfaceAfterRestore();
 
   void SynchronizeSelection();
 
@@ -340,6 +313,11 @@ class BrowserSidebarHostView final
   void RefreshRuntimePresentation(bool refresh_auxiliary = true);
 
   void PublishLocalDeviceTabs();
+  sync::LocalTabCapture BuildSharedTabCapture(uint64_t generation) const;
+  void PublishRequestedSharedTabCapture(uint64_t generation);
+  ui::ImageModel GetSharedTabOriginIcon(const base::Uuid& node_id) const;
+  std::u16string GetSharedTabOriginText(const base::Uuid& node_id) const;
+  bool HasProjectedSharedPage(const sync::RemoteTabRecord& tab) const;
 
   void PublishDeviceTabCommands();
 
@@ -463,7 +441,8 @@ class BrowserSidebarHostView final
 
   BrowserSidebarSplitDropSource MaterializeSavedPage(
       const tab_tree::TreeNode& node,
-      bool require_local_model);
+      bool require_local_model,
+      bool use_saved_home = false);
 
   bool CanSplitSavedPages(const base::Uuid& source_node_id,
                           const base::Uuid& target_node_id) const override;
@@ -482,6 +461,16 @@ class BrowserSidebarHostView final
 
   std::optional<split_tabs::SplitTabVisualData> GetSplitSavedPageVisualData(
       const std::vector<base::Uuid>& node_ids) const override;
+
+  bool ResizeSavedPageSplit(const std::vector<base::Uuid>& node_ids,
+                            size_t divider_index,
+                            double ratio,
+                            bool done_resizing) override;
+
+  bool ResizeSidebarSplit(split_tabs::SplitTabId split_id,
+                          size_t divider_index,
+                          double ratio,
+                          bool done_resizing);
 
   std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const override;
@@ -519,6 +508,8 @@ class BrowserSidebarHostView final
 
   bool IsSavedPageSleeping(const base::Uuid& node_id) const override;
 
+  bool IsSavedPageBookmarked(const tab_tree::TreeNode& node) const override;
+
   std::vector<gfx::ImageSkia> GetSavedPageDragThumbnails(
       const base::Uuid& node_id) const override;
 
@@ -531,6 +522,7 @@ class BrowserSidebarHostView final
       const tab_tree::TreeNode& node) const override;
 
   void PerformSavedPageTrailingAction(const base::Uuid& node_id) override;
+  bool CloseTemporaryPageForDeletion(const base::Uuid& node_id) override;
 
   void OnSidebarDragStateChanged(
       std::optional<base::Uuid> dragged_node_id) override;
@@ -548,6 +540,12 @@ class BrowserSidebarHostView final
   void ResetDragPresentation();
 
   // views::ContextMenuController:
+  bool CaptureContextPageActionTarget(tabs::TabInterface* tab);
+
+  bool IsContextPageActionTargetCurrent() const;
+
+  void ClearContextPageActionTarget();
+
   void ShowContextMenuForViewImpl(
       views::View* source,
       const gfx::Point& screen_point,
@@ -556,6 +554,18 @@ class BrowserSidebarHostView final
   void ShowOpenTabContextMenu(base::WeakPtr<tabs::TabInterface> tab,
                               const gfx::Point& screen_point,
                               ui::mojom::MenuSourceType source_type);
+
+  using SwitcherWorkspace = sidebar::SwitcherWorkspace;
+  std::vector<SwitcherWorkspace> SwitcherWorkspaces() const;
+  // Index of this window's active Workspace in `switcher`, if listed.
+  std::optional<size_t> ActiveSwitcherIndex(
+      const std::vector<SwitcherWorkspace>& switcher) const;
+  bool ActivateSwitcherWorkspace(const SwitcherWorkspace& target,
+                                 WorkspaceActivationSource source);
+  // Presents the main Profile's window in this frame, then selects
+  // `workspace_id` there when given.
+  void OpenMainWorkspaceByHandOver(std::optional<base::Uuid> workspace_id);
+  void OpenIsolatedWorkspaceByHandOver(const std::string& profile_dir);
 
   void ShowWorkspaceMenu(const gfx::Point& screen_point,
                          ui::mojom::MenuSourceType source_type);
@@ -579,6 +589,10 @@ class BrowserSidebarHostView final
 
   bool IsCommandIdEnabled(int command_id) const override;
 
+  // Shows the shared shortcut catalog's key for Workspace and sidebar items.
+  bool GetAcceleratorForCommandId(int command_id,
+                                  ui::Accelerator* accelerator) const override;
+
   void ExecuteCommand(int command_id, int) override;
 
   const tab_tree::Workspace* FindWorkspace(
@@ -586,18 +600,42 @@ class BrowserSidebarHostView final
 
   void ShowWorkspaceDialog(PendingWorkspaceAction action,
                            std::optional<base::Uuid> workspace_id);
+  static std::u16string StructureText(std::u16string_view german,
+                                      std::u16string_view english);
+  void BuildArchiveMenus();
+  void ShowArchiveRestoreMenu(base::Uuid entry_id);
+  void ShowArchiveSearch();
+  void HandleArchiveSearchAction(sync::TabArchiveEntryRecord expected,
+                                 bool delete_entry);
+  void ConfirmArchiveDelete(sync::TabArchiveEntryRecord expected);
+  void OnArchiveSearchClosed();
+  void ArchiveContextTabs();
+  std::vector<base::Uuid> ContextArchiveNodes() const;
+  void ShowStructureNotice(std::u16string title, std::u16string body);
+  void OnStructureDialogClosed();
+  void CompleteArchiveAction(bool success);
+  void UseSavedHome(base::Uuid node_id, bool set_current);
 
   void SelectWorkspaceColor(std::optional<uint32_t> color, const ui::Event&);
-
   void UpdateWorkspaceColorButtons();
-
+  void AddWorkspaceLevelChoice(views::View* contents);
+  // ADR 0012 (handoff 080), browser_sidebar_host_workspace_merge.cc.
+  void AddWorkspaceMergeChoice(views::View* contents);
+  bool AcceptWorkspaceMerge();
   bool AcceptWorkspaceDialog();
+  std::string NextProcessWideWorkspaceSortKey() const;
 
   bool RequestWorkspaceDialogClose();
 
   void CloseWorkspaceDialogNow();
 
   void OnWorkspaceDialogClosed();
+  // Blurs a client-owned dialog Widget and detaches its input method's text
+  // input client, so destroying it cannot trip NativeWidgetMac's focus check.
+  // `remove_views` also destroys the dialog's views; only pass it from a
+  // posted task, never from inside the dialog's own button or close handling.
+  static void PrepareDialogWidgetForDestruction(views::Widget* widget,
+                                                bool remove_views = false);
 
   void ShowCreateGroupDialog(const base::Uuid& source_node_id);
 
@@ -655,6 +693,8 @@ class BrowserSidebarHostView final
   // sync::ProfileSyncService::Observer:
   void OnAhoiDeviceTabsChanged(
       const sync::DeviceTabsSnapshot& snapshot) override;
+  void OnAhoiSharedTabSyncStateChanged(
+      const sync::SharedTabSyncState& state) override;
 
   // TabStripModelObserver:
   void OnTabStripModelChanged(TabStripModel*,
@@ -662,7 +702,6 @@ class BrowserSidebarHostView final
                               const TabStripSelectionChange&) override;
 
   void OnTabChangedAt(tabs::TabInterface* tab,
-                      int,
                       TabChangeType change_type) override;
 
   void OnSplitTabChanged(const SplitTabChange& change) override;
@@ -686,31 +725,11 @@ class BrowserSidebarHostView final
   std::unique_ptr<SidebarTreeController> controller_;
   raw_ptr<SidebarTreeView> tree_view_ = nullptr;
   raw_ptr<views::Button> workspace_button_ = nullptr;
+  raw_ptr<views::View> floating_sidebar_button_ = nullptr;
   raw_ptr<CommandService> command_service_ = nullptr;
   std::unique_ptr<SidebarDiscoveryModel> discovery_model_;
   raw_ptr<SidebarDiscoveryView> discovery_view_ = nullptr;
-  views::ViewTracker discovery_focus_restore_tracker_;
-  std::u16string sidebar_discovery_query_;
-  std::set<int> sidebar_discovery_runtime_tab_handles_;
-  std::set<std::string> sidebar_discovery_device_tab_ids_;
-  enum class SidebarDiscoveryPrimaryResultKind {
-    kTreeNode,
-    kDeviceTab,
-    kRuntimeTab,
-  };
-  struct SidebarDiscoveryPrimaryResult {
-    SidebarDiscoveryPrimaryResultKind kind =
-        SidebarDiscoveryPrimaryResultKind::kTreeNode;
-    base::Uuid node_id;
-    std::string device_tab_stable_id;
-    int runtime_tab_handle = -1;
-    raw_ptr<views::View> row = nullptr;
-  };
-  std::vector<SidebarDiscoveryPrimaryResult> sidebar_discovery_primary_results_;
-  std::optional<size_t> sidebar_discovery_primary_selection_;
-  std::optional<int> discovery_scroll_offset_;
-  std::optional<base::Uuid> discovery_selection_before_search_;
-  bool discovery_activation_committed_ = false;
+  SidebarDiscoveryState discovery_state_;
   raw_ptr<views::ScrollView> scroll_view_ = nullptr;
   raw_ptr<SidebarMediaOverlayView> media_overlay_view_ = nullptr;
   raw_ptr<views::View> sidebar_actions_ = nullptr;
@@ -723,17 +742,14 @@ class BrowserSidebarHostView final
       appearance_signal_source_;
   raw_ptr<favicon::FaviconService> favicon_service_ = nullptr;
   raw_ptr<history::HistoryService> history_service_ = nullptr;
+  raw_ptr<bookmarks::BookmarkModel> bookmark_model_ = nullptr;
+  base::ScopedObservation<bookmarks::BookmarkModel,
+                          bookmarks::BookmarkModelObserver>
+      bookmark_observation_{this};
   std::map<GURL, ui::ImageModel> favicon_cache_;
   std::set<GURL> requested_favicon_urls_;
   base::CancelableTaskTracker favicon_task_tracker_;
-  std::map<int, std::unique_ptr<CachedTabThumbnail>> tab_thumbnail_cache_;
-  struct SavedTabThumbnailSnapshot {
-    GURL url;
-    gfx::ImageSkia image;
-    uint64_t recency = 0;
-  };
-  std::map<base::Uuid, SavedTabThumbnailSnapshot> saved_thumbnail_snapshots_;
-  uint64_t saved_thumbnail_recency_ = 0;
+  SidebarThumbnailState thumbnails_;
   std::unique_ptr<SidebarTabPreviewController> tab_preview_controller_;
   std::map<int, std::unique_ptr<AhoiMediaStateTracker>> media_trackers_;
   std::map<int, base::CallbackListSubscription> media_state_subscriptions_;
@@ -741,63 +757,41 @@ class BrowserSidebarHostView final
   std::unique_ptr<MediaMiniPlayerChromiumAdapter> mini_player_adapter_;
   raw_ptr<media_ui::MediaMiniPlayerView> mini_player_view_ = nullptr;
   std::set<int> mini_player_tab_handles_;
-  views::ViewTracker group_recent_anchor_tracker_;
-  std::optional<base::Uuid> hovered_folder_id_;
-  std::optional<base::Uuid> group_recent_bubble_folder_id_;
-  base::OneShotTimer group_recent_show_timer_;
-  base::OneShotTimer group_recent_hide_timer_;
-  base::CancelableTaskTracker group_recent_history_task_tracker_;
-  uint64_t group_recent_query_generation_ = 0;
-  bool group_recent_bubble_hovered_ = false;
-  raw_ptr<views::View> group_recent_links_view_ = nullptr;
-  std::unique_ptr<views::BubbleDialogDelegate> group_recent_delegate_;
-  std::unique_ptr<views::Widget> group_recent_widget_;
+  SidebarGroupRecentState group_recent_;
   std::optional<base::Uuid> dragged_node_id_;
   std::optional<int> dragged_runtime_tab_handle_;
   base::ScopedObservation<views::Widget, views::WidgetObserver>
       widget_drag_observation_{this};
   SidebarRuntimeRefreshGate runtime_refresh_gate_;
   uint64_t runtime_refresh_generation_ = 0;
+  uint64_t workspace_surface_generation_ = 0;
+  base::CallbackListSubscription session_restored_subscription_;
+  bool session_restore_notified_ = false;
   bool runtime_auxiliary_prime_scheduled_ = false;
   bool runtime_auxiliary_ready_ = false;
+  // Split ratio notifications are synchronous. Suppressing the ordinary
+  // runtime rebuild while a sidebar ResizeArea owns mouse capture keeps that
+  // source View alive until its final commit.
+  bool sidebar_split_resize_update_in_progress_ = false;
+  bool sidebar_split_resize_active_ = false;
   raw_ptr<sync::ProfileSyncService> profile_sync_service_ = nullptr;
   bool profile_sync_ui_attached_ = false;
   sync::DeviceTabsSnapshot device_tabs_snapshot_;
-  PendingGroupAction pending_group_action_ = PendingGroupAction::kNone;
-  std::optional<base::Uuid> pending_group_source_id_;
-  std::optional<base::Uuid> pending_group_parent_id_;
-  std::optional<int> pending_group_runtime_tab_handle_;
-  std::u16string pending_group_icon_;
-  std::optional<uint32_t> pending_group_accent_argb_;
-  raw_ptr<views::Textfield> group_name_field_ = nullptr;
-  raw_ptr<views::Textfield> group_icon_field_ = nullptr;
-  std::vector<std::pair<raw_ptr<views::ImageButton>, std::u16string>>
-      group_icon_buttons_;
-  std::vector<std::pair<raw_ptr<views::Button>, std::optional<uint32_t>>>
-      group_color_buttons_;
-  std::unique_ptr<views::BubbleDialogDelegate> group_dialog_delegate_;
-  std::unique_ptr<views::Widget> group_dialog_widget_;
-  PendingWorkspaceAction pending_workspace_action_ =
-      PendingWorkspaceAction::kNone;
-  std::optional<base::Uuid> pending_workspace_id_;
-  std::optional<uint32_t> pending_workspace_accent_argb_;
-  raw_ptr<views::Textfield> workspace_name_field_ = nullptr;
-  raw_ptr<views::Textfield> workspace_icon_field_ = nullptr;
-  std::vector<std::pair<raw_ptr<views::Button>, std::optional<uint32_t>>>
-      workspace_color_buttons_;
-  std::unique_ptr<views::BubbleDialogDelegate> workspace_dialog_delegate_;
-  std::unique_ptr<views::Widget> workspace_dialog_widget_;
-  std::optional<base::Uuid> context_node_id_;
-  base::WeakPtr<tabs::TabInterface> context_runtime_tab_;
-  std::vector<base::Uuid> context_workspace_ids_;
-  std::vector<ContextMoveDestination> context_move_destinations_;
-  ContextMenuScope context_menu_scope_ = ContextMenuScope::kNone;
-  std::unique_ptr<ui::SimpleMenuModel> context_menu_model_;
+  SidebarGroupDialogState group_dialog_;
+  SidebarWorkspaceDialogState workspace_dialog_;
+  SidebarContextMenuState context_;
+  std::unique_ptr<views::Widget> structure_dialog_widget_;
+  std::unique_ptr<views::BubbleDialogDelegate> archive_search_delegate_;
+  std::unique_ptr<views::Widget> archive_search_widget_;
   std::unique_ptr<ui::SimpleMenuModel> context_move_menu_model_;
   std::vector<std::unique_ptr<ui::SimpleMenuModel>>
       context_move_submenu_models_;
   std::unique_ptr<views::MenuRunner> context_menu_runner_;
   base::CallbackListSubscription session_presentation_subscription_;
+  base::CallbackListSubscription shared_tab_capture_subscription_;
+  std::optional<sync::LocalTabCapture> observed_shared_tabs_;
+  // Running before-unload group question of "close all temporary tabs".
+  std::unique_ptr<session::GroupPageClose> close_all_temporary_;
   base::WeakPtrFactory<BrowserSidebarHostView> weak_ptr_factory_{this};
 };
 

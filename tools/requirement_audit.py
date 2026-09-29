@@ -12,6 +12,7 @@ from collections import Counter, defaultdict
 from typing import Any, Iterable, Optional
 
 import evidence
+from requirement_audit_markdown import render_markdown
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -30,6 +31,7 @@ KNOWN_STATUSES = set(STATUS_ORDER)
 
 # Journey prerequisites, not substitutes for result.json evidence.
 ASSISTED_EXTERNAL_GATES = {
+    "AUTH-23": ("cloudkit-device-validation",),
     "AUTH-24": ("password-manager-test-access",),
     "DEV-23": ("password-manager-test-access",),
     "DRM-01": ("widevine-mla",),
@@ -37,11 +39,17 @@ ASSISTED_EXTERNAL_GATES = {
     "EXT-06": ("onepassword-additional-browser", "password-manager-test-access"),
     "EXT-07": ("onepassword-additional-browser", "password-manager-test-access"),
     "MEDIA-07": ("physical-input-and-tcc",),
+    "NAV-07": ("password-manager-test-access",),
     "NAV-09": ("physical-input-and-tcc",),
     "PASS-03": ("password-manager-test-access",),
+    "PASS-07": ("cloudkit-device-validation",),
     "PERM-01": ("physical-input-and-tcc",),
     "PERM-02": ("physical-input-and-tcc",),
     "PERM-03": ("physical-input-and-tcc",),
+    "RECOVERY-MAC-07": (
+        "onepassword-additional-browser",
+        "password-manager-test-access",
+    ),
     "SPLIT-26": ("physical-input-and-tcc",),
     "WS-03": ("physical-input-and-tcc",),
 }
@@ -225,12 +233,14 @@ def _gate_ids_for(entry: dict[str, Any], *, release_chain_ready: bool,
                   include_assistance: bool) -> list[str]:
     gate_ids: list[str] = []
     test_id = entry["id"]
-    # UBO-11 is an installed-app negative test against local fixture input;
-    # it must retain CU_E2E evidence without depending on production signing.
+    # UBO-00..11 are installed-app dogfood journeys against the exact static
+    # bootstrap or local negative fixtures. They retain CU_E2E evidence without
+    # depending on the public release-signing or redistribution chain.
+    local_ubo_dogfood_ids = {f"UBO-{number:02d}" for number in range(0, 12)}
     if (
         entry["primaryClass"] in VISIBLE_CLASSES
         and not release_chain_ready
-        and test_id != "UBO-11"
+        and test_id not in local_ubo_dogfood_ids
     ):
         gate_ids.append("signed-release-provenance")
     if test_id.startswith(("SYNC-", "IOS-")):
@@ -240,18 +250,19 @@ def _gate_ids_for(entry: dict[str, Any], *, release_chain_ready: bool,
     if test_id.startswith("UPDATE-"):
         gate_ids.extend(("release-manifest-and-update-keys",
                          "signed-release-provenance", "sparkle-feed-hosting"))
-    ubo_production_gate_ids = {
-        f"UBO-{number:02d}" for number in range(1, 11)
-    } | {"UBO-12"}
-    if test_id in ubo_production_gate_ids:
-        gate_ids.extend(("ubo-catalog-hosting-and-signing",
-                         "ubo-fixed-id-crx-publisher-provenance",
-                         "ubo-redistribution"))
+    # Static dogfood provenance is browser-pinned, not an external prerequisite.
+    # Public redistribution remains a release gate, while only later updates
+    # need the external catalog/signing service.
+    if test_id == "UBO-09":
+        gate_ids.append("ubo-catalog-hosting-and-signing")
     if test_id == "UBO-12":
         gate_ids.append("chrome-web-store")
     if test_id.startswith("DRM-"):
         gate_ids.extend(("proprietary-codecs", "widevine-mla"))
-    if test_id in {"EXT-01", "EXT-02", "EXT-03", "EXT-09", "EXT-10"}:
+    if test_id in {
+        "EXT-01", "EXT-02", "EXT-03", "EXT-09", "EXT-10", "EXT-11", "EXT-15",
+        "RECOVERY-MAC-15",
+    }:
         gate_ids.append("chrome-web-store")
     specific_gate = {"PRIV-14": "safe-browsing-service",
                      "PRIV-18": "google-api-services",
@@ -661,102 +672,6 @@ def build_audit(
 
 def serialize_json(audit: dict[str, Any]) -> str:
     return json.dumps(audit, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-
-
-def _markdown_cell(value: object) -> str:
-    return str(value).replace("\n", " ").replace("|", "\\|")
-
-
-def _summary_table(title: str, groups: dict[str, dict[str, Any]], label: str) -> list[str]:
-    lines = [f"## {title}", "", f"| {label} | Count | Statuses | IDs |", "|---|---:|---|---|"]
-    for name, item in groups.items():
-        statuses = ", ".join(
-            f"{status}={count}" for status, count in item["byStatus"].items()
-        )
-        ids = ", ".join(f"`{test_id}`" for test_id in item["ids"])
-        lines.append(
-            f"| {_markdown_cell(name)} | {item['count']} | "
-            f"{_markdown_cell(statuses)} | {ids} |"
-        )
-    lines.append("")
-    return lines
-
-
-def render_markdown(audit: dict[str, Any]) -> str:
-    summary = audit["summary"]
-    release_chain = audit["releaseChain"]
-    lines = [
-        "# AhoiBrowser Requirement Audit",
-        "",
-        f"Registered requirements: **{summary['total']}**  ",
-        f"Release chain ready: **{'yes' if release_chain['ready'] else 'no'}**  ",
-        f"Evidence root: `{_markdown_cell(audit['evidenceRoot'])}`",
-        "",
-    ]
-    if release_chain["validationErrors"]:
-        lines.extend(["Release-chain validation errors:", ""])
-        lines.extend(
-            f"- {_markdown_cell(error)}"
-            for error in release_chain["validationErrors"]
-        )
-        lines.append("")
-    lines.extend(
-        _summary_table(
-            "Summary by primary class",
-            summary["byPrimaryClass"],
-            "Primary class",
-        )
-    )
-    lines.extend(_summary_table("Summary by suite", summary["bySuite"], "Suite"))
-    lines.extend(["## Summary by status", ""])
-    for status, item in summary["byStatus"].items():
-        ids = ", ".join(f"`{test_id}`" for test_id in item["ids"])
-        lines.append(f"- {status} ({item['count']}): {ids}")
-    lines.extend(
-        [
-            "",
-            "## Requirement dispositions",
-            "",
-            "| ID | Suite | Class | Status | Attempted | Locally controllable | Evidence | External gates | Owner | Condition | Next action |",
-            "|---|---|---|---|---|---|---|---|---|---|---|",
-        ]
-    )
-    for item in audit["requirements"]:
-        gates = ", ".join(item["externalGateIds"]) or "—"
-        evidence_state = item["evidence"]["state"]
-        evidence_path = item["evidence"]["path"]
-        if evidence_path:
-            evidence_state += f" ({evidence_path})"
-        lines.append(
-            "| "
-            + " | ".join(
-                _markdown_cell(value)
-                for value in (
-                    item["id"],
-                    item["suite"],
-                    item["primaryClass"],
-                    item["status"],
-                    "yes" if item["attempted"] else "no",
-                    "yes" if item["locallyControllable"] else "no",
-                    evidence_state,
-                    gates,
-                    item["owner"],
-                    item["condition"],
-                    item["nextAction"],
-                )
-            )
-            + " |"
-        )
-    lines.append("")
-    if audit["unmappedEvidence"]:
-        lines.extend(["## Unmapped evidence", ""])
-        for item in audit["unmappedEvidence"]:
-            lines.append(
-                f"- `{_markdown_cell(item['path'])}`: "
-                f"{_markdown_cell(item['reason'])}"
-            )
-        lines.append("")
-    return "\n".join(lines)
 
 
 def _atomic_write(path: pathlib.Path, content: str) -> None:

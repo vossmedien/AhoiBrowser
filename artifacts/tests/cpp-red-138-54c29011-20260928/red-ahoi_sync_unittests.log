@@ -1,0 +1,231 @@
+objc[99358]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x141d18a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126df0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[99358]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x11d23c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x108f17188). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 2 parallel jobs.
+[1/2] SyncWorkspaceProjectionConformanceTest.SharedFramesAndArrayOrders (120 ms)
+[ RUN      ] SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 0, node order 0
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 0, node order 1
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 0, node order 2
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 1, node order 0
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 1, node order 1
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 1, node order 2
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 2, node order 0
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 2, node order 1
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 2, node order 2
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_without_merge/ordinary_only
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 0, node order 0
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 0, node order 1
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 0, node order 2
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 1, node order 0
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 1, node order 1
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 1, node order 2
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 2, node order 0
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 2, node order 1
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:197: Failure
+Expected equality of these values:
+  actual
+    Which is: { a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011, a2000000-0000-4000-8000-000000000010 }
+  expected
+    Which is: { a2000000-0000-4000-8000-000000000010, a2000000-0000-4000-8000-000000000012, a2000000-0000-4000-8000-000000000011 }
+Google Test trace:
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:137: workspace order 2, node order 2
+../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:108: ordinary_key_with_real_late_node/late_source
+Stack trace:
+0   ahoi_sync_unittests                 0x0000000102cc4164 ahoi::sync::(anonymous namespace)::CheckFrames(char const*) + 14356
+
+[  FAILED  ] SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames (77 ms)
+[2/2] SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames (77 ms)
+1 test failed:
+    SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames (../../ahoi/browser/sync/sync_workspace_projection_conformance_unittest.cc:220)
+Tests took 6 seconds.

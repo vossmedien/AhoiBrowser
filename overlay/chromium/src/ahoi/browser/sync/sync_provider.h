@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
+#include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "base/functional/callback.h"
 
@@ -22,9 +24,9 @@ class SyncProvider {
       base::OnceCallback<void(bool success,
                               std::vector<std::string> acknowledged_ids,
                               std::string error)>;
-  using DownloadCallback =
-      base::OnceCallback<void(bool success, ProviderBatch batch,
-                              std::string error)>;
+  using DownloadCallback = base::OnceCallback<
+      void(bool success, ProviderBatch batch, std::string error)>;
+  using IncomingCallback = base::RepeatingCallback<void(SyncAuthorization)>;
 
   virtual ~SyncProvider() = default;
 
@@ -32,7 +34,35 @@ class SyncProvider {
                       UploadCallback callback) = 0;
   virtual void Download(std::string change_token,
                         DownloadCallback callback) = 0;
+  // Signals only durably staged inputs, with the original revocable scope.
+  // Reading that inbox does not start an upload or another network fetch.
+  virtual void SetIncomingCallback(IncomingCallback callback);
+  virtual void ReadPendingChanges(std::string change_token,
+                                  SyncAuthorization authorization,
+                                  DownloadCallback callback);
+  virtual bool AcknowledgeDownloaded(std::string change_token,
+                                     SyncAuthorization authorization);
+  // Original authority of the selected delivery, not current preferences.
+  virtual SyncAuthorization GetDownloadAuthorization(
+      const std::string& change_token);
+  // Local category consent, additional to the caller's global sync gate.
+  // Providers must retain blocked remote bookmarks without
+  // decrypting/delivering them and recheck consent before delayed uploads.
+  // Never infer it from sync.
+  virtual void SetBookmarkSyncEnabled(bool enabled);
+  virtual bool IsBookmarkConsentRevoked();
+  // A delayed local projection must recheck the provider's original scope,
+  // not a cached preference/status reply. The returned check must be safe on
+  // the UI or backend sequence and remain revoked after off/on or account
+  // changes. Providers without this contract fail closed for native applies.
+  virtual BookmarkSyncAuthorization GetBookmarkSyncAuthorization();
+  // Original account/key/recovery scope for all synchronized data. A cached
+  // UI readiness flag is not sufficient for a delayed native apply or commit.
+  virtual SyncAuthorization GetTransportAuthorization();
+  virtual SyncAuthorization GetPermittedSettingSyncAuthorization(
+      const base::Uuid& record_id);
   virtual bool IsAccountTransitionPending();
+  virtual std::string GetKeySetupIssue();
   virtual bool IsZoneRecoveryPending();
   virtual bool ConfirmAccountTransition(bool allow_local_upload);
   virtual bool ConfirmZoneRecovery();

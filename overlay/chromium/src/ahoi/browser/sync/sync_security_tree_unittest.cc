@@ -8,6 +8,7 @@
 
 #include "ahoi/browser/sync/history_sync_filter.h"
 #include "ahoi/browser/sync/remote_command_security.h"
+#include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "ahoi/browser/sync/sync_store.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
@@ -222,7 +223,11 @@ TEST(SyncStoreTest, AcceptsPartialTreeProviderPageForLaterRepair) {
       .sort_key = "a",
       .created_at = base::Time::UnixEpoch(),
       .modified_at = base::Time::UnixEpoch(),
-      .version = Version("device-b", 10)};
+      // Format 3: canonical device UUID, clock at/after the Unix epoch, and an
+      // explicit page target.
+      .version = Version("50000000-0000-4000-8000-00000000d00b",
+                         kMinimumSyncClockPhysicalUs + 10),
+      .target_kind = SharedTabTargetKind::kWeb};
   std::string payload;
   ASSERT_TRUE(SerializeRecord(orphan, &payload));
   EXPECT_EQ(store.ApplyRemoteBatch(ProviderBatch{

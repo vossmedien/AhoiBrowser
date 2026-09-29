@@ -138,6 +138,28 @@ PY
   fi
 }
 
+# Only for an existing, verified managed checkout. Its sources already occupy
+# disk, so do not reserve a second initial checkout. An explicitly supervised
+# low-disk update retains the existing absolute build floor, never a zero floor.
+ahoi_require_update_free_space() {
+  local required
+  local available
+  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeBuildBytes)"
+  available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
+  if [ "${available}" -lt "${required}" ]; then
+    if [ "${AHOI_ALLOW_LOW_DISK:-0}" = "1" ]; then
+      local absolute_floor
+      absolute_floor="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.absoluteMinimumFreeBuildBytes)"
+      [ "${available}" -ge "${absolute_floor}" ] || \
+        ahoi_die "low-disk update override refused below the absolute safety floor; existing files retained"
+      echo "warning: explicit low-disk existing-checkout update: ${available} bytes available, ${required} recommended, ${absolute_floor} absolute floor" >&2
+      return 0
+    fi
+    ahoi_die "insufficient update staging reserve: ${available} bytes available, ${required} required; existing files retained"
+  fi
+  ahoi_note "existing-checkout update reserve verified: ${available} bytes available, ${required} required"
+}
+
 ahoi_export_depot_tools_environment() {
   case "${AHOI_DEPOT_TOOLS_DIR}" in
     /*) ;;
@@ -253,6 +275,36 @@ ahoi_expected_xcode_build() {
   fi
 }
 
+ahoi_expected_macos_sdk_version() {
+  case "$1" in
+    pinned-reference)
+      ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" "sdks.macOS.testedVersion" ;;
+    compatible-development)
+      ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" "sdks.macOS.compatibleDevelopmentVersion" ;;
+    *) ahoi_die "unsupported Xcode toolchain mode: $1" ;;
+  esac
+}
+
+ahoi_expected_macos_sdk_build() {
+  case "$1" in
+    pinned-reference)
+      ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" "sdks.macOS.chromiumOfficialBuild" ;;
+    compatible-development)
+      ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" "sdks.macOS.compatibleDevelopmentBuild" ;;
+    *) ahoi_die "unsupported Xcode toolchain mode: $1" ;;
+  esac
+}
+
+ahoi_expected_ios_sdk_version() {
+  case "$1" in
+    pinned-reference)
+      ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" "sdks.iOS.testedVersion" ;;
+    compatible-development)
+      ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" "sdks.iOS.compatibleDevelopmentVersion" ;;
+    *) ahoi_die "unsupported Xcode toolchain mode: $1" ;;
+  esac
+}
+
 ahoi_expected_ios_sdk_build() {
   case "$1" in
     pinned-reference)
@@ -338,6 +390,9 @@ ahoi_require_hook_state() {
   local recorded_deps_hash
   local expected_xcode
   local expected_xcode_build
+  local expected_macos_sdk_version
+  local expected_macos_sdk_build
+  local expected_ios_sdk_version
   local expected_ios_sdk_build
   local actual_delta
   local recorded_delta
@@ -368,19 +423,22 @@ ahoi_require_hook_state() {
     ahoi_die "Chromium checkout changed after the pinned hook run"
   expected_xcode="$(ahoi_expected_xcode_version "${expected_toolchain_mode}")"
   expected_xcode_build="$(ahoi_expected_xcode_build "${expected_toolchain_mode}")"
+  expected_macos_sdk_version="$(ahoi_expected_macos_sdk_version "${expected_toolchain_mode}")"
+  expected_macos_sdk_build="$(ahoi_expected_macos_sdk_build "${expected_toolchain_mode}")"
+  expected_ios_sdk_version="$(ahoi_expected_ios_sdk_version "${expected_toolchain_mode}")"
   expected_ios_sdk_build="$(ahoi_expected_ios_sdk_build "${expected_toolchain_mode}")"
   [ "$(ahoi_json_get "${state_file}" xcodeVersion)" = "${expected_xcode}" ] || \
     ahoi_die "hook state Xcode version mismatch"
   [ "$(ahoi_json_get "${state_file}" xcodeBuild)" = "${expected_xcode_build}" ] || \
     ahoi_die "hook state Xcode build mismatch"
   [ "$(ahoi_json_get "${state_file}" macOSSDKVersion)" = \
-    "$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" sdks.macOS.testedVersion)" ] || \
+    "${expected_macos_sdk_version}" ] || \
     ahoi_die "hook state macOS SDK version mismatch"
   [ "$(ahoi_json_get "${state_file}" macOSSDKBuild)" = \
-    "$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" sdks.macOS.chromiumOfficialBuild)" ] || \
+    "${expected_macos_sdk_build}" ] || \
     ahoi_die "hook state macOS SDK build mismatch"
   [ "$(ahoi_json_get "${state_file}" iOSSDKVersion)" = \
-    "$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" sdks.iOS.testedVersion)" ] || \
+    "${expected_ios_sdk_version}" ] || \
     ahoi_die "hook state iOS SDK version mismatch"
   [ "$(ahoi_json_get "${state_file}" iOSSDKBuild)" = \
     "${expected_ios_sdk_build}" ] || \

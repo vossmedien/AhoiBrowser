@@ -1,19 +1,25 @@
 import SwiftUI
 import AhoiMobileCore
 import AhoiCloudKitSpike
+import WebKit
 
 @main
 struct AhoiMobileApp: App {
     @StateObject private var bootstrap = AhoiMobileBootstrap()
+    @StateObject private var browserCommands = MobileBrowserCommandRouter()
 
     var body: some Scene {
         WindowGroup {
             Group {
-                if let runtime = bootstrap.runtime {
+                if AhoiMobileProcessMode.isCloudKitE2EHost {
+                    Color.clear
+                        .accessibilityIdentifier("cloudkit.e2e.inert-host")
+                } else if let runtime = bootstrap.runtime {
                     AhoiMobileBrowserView(
                         companionModel: runtime.model,
                         browser: runtime.browser
                     )
+                    .environment(\.mobileBrowserCommandRouter, browserCommands)
                 } else if let error = bootstrap.error {
                     ContentUnavailableView {
                         Label("AhoiBrowser", systemImage: "exclamationmark.triangle")
@@ -36,8 +42,35 @@ struct AhoiMobileApp: App {
                         .accessibilityIdentifier("bootstrap.progress")
                 }
             }
-            .task { await bootstrap.load() }
+            .task {
+                guard !AhoiMobileProcessMode.isCloudKitE2EHost else { return }
+                await bootstrap.load()
+            }
+            .onOpenURL { url in
+                guard !AhoiMobileProcessMode.isCloudKitE2EHost else { return }
+                bootstrap.handleExternalURL(url)
+            }
         }
+        .commands {
+            MobileBrowserSceneCommands(router: browserCommands)
+        }
+    }
+}
+
+/// A hosted unit-test bundle must never race the product bootstrap. In
+/// particular, persisted sync opt-in state must not construct the production
+/// CloudKit runtime while the isolated real-container transport harness is
+/// preparing its uniquely scoped synthetic zone. UI tests are out-of-process
+/// and therefore do not satisfy either hosted-test signal.
+private enum AhoiMobileProcessMode {
+    static var isCloudKitE2EHost: Bool {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["AHOI_CLOUDKIT_E2E_HOST_MODE"] == "1" else {
+            return false
+        }
+        return environment["XCTestConfigurationFilePath"] != nil ||
+            environment["XCInjectBundleInto"] != nil ||
+            NSClassFromString("XCTest.XCTestCase") != nil
     }
 }
 
@@ -46,11 +79,76 @@ private final class AhoiMobileBootstrap: ObservableObject {
     struct Runtime {
         let model: CompanionAppModel
         let browser: MobileBrowserController
+
+        @MainActor
+        init(model: CompanionAppModel, browser: MobileBrowserController) {
+            self.model = model
+            self.browser = browser
+            // ADR 0012: a Workspace merge moves the source's open tabs too.
+            model.connectWorkspaceMerges(to: browser)
+        }
     }
 
     @Published private(set) var runtime: Runtime?
     @Published private(set) var error: String?
     private var isLoading = false
+    private var pendingExternalURL: URL?
+    private var externalOpenDeduplicator: MobileExternalOpenDeduplicator
+    private let performanceRecorder = MobileBrowserPerformanceRecorder()
+    private let performanceLaunchValidation: MobilePerformanceLaunchValidation
+    private var developmentScope: MobileDevelopmentScope?
+    private var developmentScopeError: Error?
+
+    init() {
+        let launchValidation = MobilePerformanceLaunchRequest.validate(
+            arguments: ProcessInfo.processInfo.arguments
+        )
+        performanceLaunchValidation = launchValidation
+        switch launchValidation {
+        case .valid, .invalid:
+            // Performance flags are a process-start boundary. A malformed
+            // request must not fall through to any product persistence.
+            externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+            return
+        case .notRequested:
+            break
+        }
+#if DEBUG
+        if CompanionSyncVisibleUITestLaunch.isRequested(
+            arguments: ProcessInfo.processInfo.arguments
+        ) {
+            externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+            return
+        }
+#endif
+        do {
+            developmentScope = try MobileDevelopmentScope.resolve(info: Bundle.main.infoDictionary ?? [:])
+        } catch {
+            developmentScopeError = error
+            externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+            return
+        }
+        let applicationSupportURL = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        )[0]
+        if let developmentScope {
+            do {
+                try MobileDevelopmentScope.validateAncestors(
+                    of: developmentScope.supportDirectory(under: applicationSupportURL), under: applicationSupportURL)
+            } catch {
+                developmentScopeError = error
+                externalOpenDeduplicator = MobileExternalOpenDeduplicator()
+                return
+            }
+        }
+        externalOpenDeduplicator = MobileExternalOpenDeduplicator(
+            receiptURL: developmentScope?.supportDirectory(under: applicationSupportURL)
+                .appendingPathComponent("external-open-receipt.json") ?? applicationSupportURL
+                .appendingPathComponent("AhoiMobile", isDirectory: true)
+                .appendingPathComponent("external-open-receipt.json")
+        )
+    }
 
     func load() async {
         guard runtime == nil, !isLoading else { return }
@@ -59,33 +157,85 @@ private final class AhoiMobileBootstrap: ObservableObject {
         defer { isLoading = false }
 
         do {
-            runtime = try await makeRuntime()
+            let loadedRuntime = try await makeRuntime()
+            runtime = loadedRuntime
+            if let pendingExternalURL {
+                self.pendingExternalURL = nil
+                loadedRuntime.browser.handleClaimedExternalURL(pendingExternalURL)
+            }
         } catch {
             self.error = error.localizedDescription
         }
     }
 
+    func handleExternalURL(_ url: URL) {
+        guard case .notRequested = performanceLaunchValidation else { return }
+        let safeURL: URL
+        do {
+            safeURL = try MobileBrowserInputRouter.validateWebURL(url)
+        } catch {
+            deliverUnclaimedExternalURL(url)
+            return
+        }
+        guard externalOpenDeduplicator.accepts(safeURL) else { return }
+        if let runtime {
+            runtime.browser.handleClaimedExternalURL(safeURL)
+        } else {
+            pendingExternalURL = safeURL
+        }
+    }
+
+    private func deliverUnclaimedExternalURL(_ url: URL) {
+        if let runtime {
+            runtime.browser.handleExternalURL(url)
+        } else {
+            pendingExternalURL = url
+        }
+    }
+
     private func makeRuntime() async throws -> Runtime {
+        switch performanceLaunchValidation {
+        case .invalid:
+            throw AhoiMobileBootstrapError.invalidPerformanceLaunch
+        case let .valid(request):
+#if DEBUG
+            return try makePerformanceRuntime(request)
+#else
+            throw AhoiMobileBootstrapError.performanceLaunchRequiresDebug
+#endif
+        case .notRequested:
+            break
+        }
+#if DEBUG
+        if CompanionSyncVisibleUITestLaunch.isRequested(
+            arguments: ProcessInfo.processInfo.arguments
+        ) {
+            return makeSyncVisibleUITestRuntime()
+        }
+#endif
+        if let developmentScopeError { throw developmentScopeError }
         let applicationSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
         )[0]
-        let legacySupportURL = applicationSupportURL
-            .appendingPathComponent("AhoiCompanion", isDirectory: true)
-        let supportURL = applicationSupportURL
+        let supportURL = developmentScope?.supportDirectory(under: applicationSupportURL) ?? applicationSupportURL
             .appendingPathComponent("AhoiMobile", isDirectory: true)
-        let storagePreparation = MobileStoragePreparation(
-            legacyDirectory: legacySupportURL,
-            destinationDirectory: supportURL
-        )
-        // This is a security boundary, not merely a browser-session concern.
-        // CloudKit's provider eagerly reads its serialized engine and safety
-        // sidecars, so every legacy file must be migrated before any store,
-        // repository, provider, bridge, or sync factory can be constructed.
-        try await storagePreparation.prepare()
+            .appendingPathComponent("SyncFormat3", isDirectory: true)
+        // Fresh pre-launch namespace: old snapshots, provider checkpoints and
+        // encrypted sidecars are neither imported nor overwritten.
+        try MobileDevelopmentScope.validateAncestors(of: supportURL, under: applicationSupportURL)
+        try FileManager.default.createDirectory(at: supportURL, withIntermediateDirectories: true)
 
-        let store = FileCompanionStore(fileURL: supportURL.appendingPathComponent("snapshot.json"))
-        let defaults = UserDefaults.standard
+        let store = FileCompanionStore(fileURL: supportURL.appendingPathComponent("snapshot-format3.json"))
+        let defaults: UserDefaults
+        if let developmentScope {
+            guard let scopedDefaults = UserDefaults(suiteName: developmentScope.defaultsSuite) else {
+                throw MobileDevelopmentScope.ScopeError.defaultsUnavailable
+            }
+            defaults = scopedDefaults
+        } else {
+            defaults = .standard
+        }
         let sourceDeviceUUID = CompanionDeviceIdentity.loadOrCreate(in: defaults)
         let mobileSessionID = DeviceSessionID(
             rawValue: CompanionDeviceIdentity.loadOrCreateSession(in: defaults)
@@ -95,9 +245,9 @@ private final class AhoiMobileBootstrap: ObservableObject {
             localDeviceID: DeviceID(rawValue: sourceDeviceUUID)
         )
         let bundle = Bundle.main
-        let keyVersion = (bundle.object(
+        let desiredKeyVersion = configuredUInt32(bundle.object(
             forInfoDictionaryKey: "AHOI_SYNC_KEY_VERSION"
-        ) as? String).flatMap(UInt32.init)
+        ))
         let keyService = configuredValue(bundle.object(
             forInfoDictionaryKey: "AHOI_SYNC_KEYCHAIN_SERVICE"
         ))
@@ -106,14 +256,14 @@ private final class AhoiMobileBootstrap: ObservableObject {
         ))
         let keyConfiguration = keyService.flatMap { service in
             keyAccount.flatMap { account in
-                keyVersion.map { version in
+                desiredKeyVersion.map { _ in
                     CompanionSyncKeyConfiguration(
                         service: service,
                         account: account,
                         accessGroup: configuredValue(bundle.object(
                             forInfoDictionaryKey: "AHOI_SYNC_KEYCHAIN_ACCESS_GROUP"
                         )),
-                        keyVersion: version
+                        keyVersion: CompanionSyncKeyFamily.anchorVersion
                     )
                 }
             }
@@ -137,41 +287,315 @@ private final class AhoiMobileBootstrap: ObservableObject {
         let containerIdentifier = configuredValue(Bundle.main.object(
             forInfoDictionaryKey: "AHOI_CLOUDKIT_CONTAINER_ID"
         ))
+        let cloudKitZoneName = configuredValue(Bundle.main.object(
+            forInfoDictionaryKey: "AHOI_CLOUDKIT_ZONE_NAME"
+        ))
+        let cloudKitSubscriptionID = configuredValue(Bundle.main.object(
+            forInfoDictionaryKey: "AHOI_CLOUDKIT_SUBSCRIPTION_ID"
+        ))
         let recordsURL = supportURL.appendingPathComponent("sync-records.json")
         let stateURL = supportURL.appendingPathComponent("sync-engine-state.json")
-        let runtimeFactory: () -> CompanionCloudKitRuntime? = {
-            let commandSigner: (any RemoteCommandSigning)? = commandConfiguration.flatMap {
-                let candidate = KeychainRemoteCommandSigner(configuration: $0)
-                return (try? candidate.provisioningIdentity()) == nil ? nil : candidate
+        let rotationJournalURL = supportURL.appendingPathComponent(
+            "sync-key-rotation.json"
+        )
+        let runtimeFactory: CompanionSyncRuntimeFactory?
+        if let keyConfiguration,
+           let desiredKeyVersion,
+           let containerIdentifier, let cloudKitZoneName, let cloudKitSubscriptionID {
+            runtimeFactory = { @MainActor authorization in
+                let keyStore = try KeychainCompanionPayloadKeyStore(
+                    configuration: keyConfiguration,
+                    authorization: { authorization.isAuthorized() }
+                )
+                let bootstrapTransport = try CloudKitKeyBootstrapTransport(
+                    containerIdentifier: containerIdentifier,
+                    zoneName: cloudKitZoneName,
+                    subscriptionID: cloudKitSubscriptionID,
+                    authorization: { authorization.isAuthorized() }
+                )
+                let keyLifecycle = CompanionKeyLifecycleCoordinator(
+                    transport: bootstrapTransport, keyStore: keyStore,
+                    generator: CompanionSecureKeyGenerator.aes256,
+                    authorization: { authorization.isAuthorized() }
+                )
+                var status: CompanionKeyLifecycleStatus
+                do {
+                    status = try await keyLifecycle.activate(
+                        explicitOptIn: true,
+                        desiredKeyVersion: desiredKeyVersion
+                    )
+                } catch {
+                    await keyLifecycle.shutdown()
+                    throw error
+                }
+                let bootstrapClaim = await bootstrapTransport.verifiedClaim()
+                await keyLifecycle.shutdown()
+                status = try await Self.resolveKeyRotationIfRequired(
+                    status: status,
+                    desiredKeyVersion: desiredKeyVersion,
+                    familyAnchorConfiguration: keyConfiguration,
+                    containerIdentifier: containerIdentifier,
+                    zoneName: cloudKitZoneName,
+                    subscriptionID: cloudKitSubscriptionID,
+                    recordsURL: recordsURL,
+                    stateURL: stateURL,
+                    journalURL: rotationJournalURL,
+                    keyStore: keyStore
+                )
+                guard status.permitsEncryptedDomainRecords else {
+                    return .init(status: status, runtime: nil)
+                }
+                guard case let .ready(activeKeyVersion) = status else {
+                    return .init(status: status, runtime: nil)
+                }
+                guard authorization.isAuthorized(), let bootstrapClaim,
+                      let writingDigest = try await keyStore.canonicalKeySHA256(version: activeKeyVersion) else {
+                    throw CompanionPayloadKeyStoreError.authorizationRevoked
+                }
+                guard activeKeyVersion != bootstrapClaim.keyVersion ||
+                        writingDigest == bootstrapClaim.keySHA256 else {
+                    throw CompanionSyncKeyError.keyCommitmentMismatch
+                }
+                let commandSigner: (any RemoteCommandSigning)?
+                if let commandConfiguration {
+                    let signer = KeychainRemoteCommandSigner(
+                        configuration: commandConfiguration
+                    )
+                    do {
+                        _ = try signer.ensureIdentity()
+                        commandSigner = signer
+                    } catch RemoteCommandSignerError.identityRevoked {
+                        // The signing identity is optional and deliberately
+                        // stays revoked across restart. Payload sync remains
+                        // available. Keep only the fail-closed signer facade so
+                        // Settings can perform an explicit re-enrolment; every
+                        // provisioning/signing call still rejects the marker.
+                        commandSigner = signer
+                    }
+                } else {
+                    commandSigner = nil
+                }
+                let runtime = try CompanionCloudKitBootstrap.makeRuntimeChecked(
+                    syncEnabled: true,
+                    containerIdentifier: containerIdentifier,
+                    zoneName: cloudKitZoneName,
+                    subscriptionID: cloudKitSubscriptionID,
+                    keyConfiguration: keyConfiguration.canonicalConfiguration(
+                        for: activeKeyVersion
+                    ),
+                    repository: repository,
+                    recordsURL: recordsURL,
+                    stateURL: stateURL,
+                    commandSigner: commandSigner,
+                    bootstrapClaim: bootstrapClaim,
+                    verifiedWritingKeySHA256: writingDigest
+                )
+                return .init(status: status, runtime: runtime)
             }
-            return CompanionCloudKitBootstrap.makeRuntime(
-                syncEnabled: true,
+        } else {
+            runtimeFactory = nil
+        }
+        // ADR 0011 step 4: fully separated Workspaces, each in its own zone,
+        // key, session and website data store.
+        let separatedDataStores = MobileSeparatedWorkspaceDataStores.webKit(
+            idStore: UserDefaultsSeparatedWorkspaceIDStore(defaults: defaults)
+        )
+        var separatedSessionFactory: SeparatedWorkspaceSessionFactory?
+        if let keyConfiguration, let desiredKeyVersion, let containerIdentifier {
+            separatedSessionFactory = SeparatedWorkspaceCloudKitSessionFactory.make(
                 containerIdentifier: containerIdentifier,
-                keyConfiguration: keyConfiguration,
-                repository: repository,
-                recordsURL: recordsURL,
-                stateURL: stateURL,
-                commandSigner: commandSigner
+                baseKeyConfiguration: keyConfiguration,
+                desiredKeyVersion: desiredKeyVersion,
+                supportURL: supportURL,
+                localDeviceID: DeviceID(rawValue: sourceDeviceUUID)
             )
         }
-        let runtime = defaults.bool(forKey: CompanionSyncPreferences.enabledKey)
-            ? runtimeFactory()
-            : nil
+        let separatedBase = cloudKitZoneName.flatMap { zoneName in
+            keyAccount.map { account in
+                SyncNamespaceIdentifiers(
+                    zoneName: zoneName,
+                    subscriptionIdentifier: cloudKitSubscriptionID ?? "",
+                    keychainAccount: account
+                )
+            }
+        }
+        let separatedWorkspaces = SeparatedWorkspaceSyncCoordinator(
+            base: separatedSessionFactory == nil ? nil : separatedBase,
+            stateStore: UserDefaultsSeparatedWorkspaceStateStore(defaults: defaults),
+            dataStores: separatedDataStores,
+            sessionFactory: separatedSessionFactory,
+            removeLocalData: { workspaceID in
+                SeparatedWorkspaceCloudKitSessionFactory.removeLocalData(
+                    for: workspaceID, under: supportURL
+                )
+            }
+        )
         let model = CompanionAppModel(
             repository: repository,
-            syncProvider: runtime?.provider,
-            syncBridge: runtime?.bridge,
             syncRuntimeFactory: runtimeFactory,
             mobileSessionID: mobileSessionID,
             mobileDeviceName: UIDevice.current.name,
-            mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
+            mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone,
+            defaults: defaults,
+            separatedWorkspaces: separatedWorkspaces
         )
         let browser = MobileBrowserController(
             store: FileMobileBrowserSessionStore(
                 fileURL: supportURL.appendingPathComponent("browser-session.json")
-            )
+            ),
+            downloadCoordinator: developmentScope == nil ? MobileDownloadCoordinator()
+                : MobileDownloadCoordinator(directoryURL: supportURL.appendingPathComponent("Downloads")),
+            performanceRecorder: performanceRecorder,
+            externalOpenReceiptURL: supportURL.appendingPathComponent(
+                "external-open-receipt.json"
+            ),
+            normalWebsiteDataStore: developmentScope.map { WKWebsiteDataStore(forIdentifier: $0.id) },
+            separatedWorkspaceDataStores: separatedDataStores
+        )
+        separatedDataStores.willRemoveDataStore = { [weak browser] workspaceID in
+            browser?.closeTabs(inWorkspace: workspaceID)
+        }
+        return Runtime(model: model, browser: browser)
+    }
+
+#if DEBUG
+    private func makeSyncVisibleUITestRuntime() -> Runtime {
+        let repository = LocalFirstRepository(
+            store: InMemoryCompanionStore(),
+            localDeviceID: DeviceID()
+        )
+        let model = CompanionAppModel(
+            repository: repository,
+            mobileSessionID: DeviceSessionID(),
+            mobileDeviceName: UIDevice.current.name,
+            mobileDeviceKind: UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
+        )
+        let browser = MobileBrowserController(
+            store: InMemoryMobileBrowserSessionStore(),
+            performanceRecorder: performanceRecorder
         )
         return Runtime(model: model, browser: browser)
+    }
+
+    private func makePerformanceRuntime(
+        _ request: MobilePerformanceLaunchRequest
+    ) throws -> Runtime {
+        let defaultsSuite = "app.ahoibrowser.AhoiBrowser.performance.\(request.nonce)"
+        guard let isolatedDefaults = UserDefaults(suiteName: defaultsSuite) else {
+            throw AhoiMobileBootstrapError.performanceIsolationUnavailable
+        }
+        let model = CompanionAppModel(
+            repository: LocalFirstRepository(store: InMemoryCompanionStore()),
+            defaults: isolatedDefaults
+        )
+        let downloadDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AhoiPerformanceDownloads", isDirectory: true)
+            .appendingPathComponent(request.nonce, isDirectory: true)
+        let browser = MobileBrowserController(
+            store: InMemoryMobileBrowserSessionStore(),
+            downloadCoordinator: MobileDownloadCoordinator(
+                directoryURL: downloadDirectory
+            ),
+            performanceRecorder: performanceRecorder
+        )
+        return Runtime(model: model, browser: browser)
+    }
+#endif
+
+    private static func resolveKeyRotationIfRequired(
+        status: CompanionKeyLifecycleStatus,
+        desiredKeyVersion: UInt32,
+        familyAnchorConfiguration: CompanionSyncKeyConfiguration,
+        containerIdentifier: String,
+        zoneName: String,
+        subscriptionID: String,
+        recordsURL: URL,
+        stateURL: URL,
+        journalURL: URL,
+        keyStore: any CompanionPayloadKeyRotationStoring
+    ) async throws -> CompanionKeyLifecycleStatus {
+        guard case let .ready(activeKeyVersion) = status else { return status }
+        let journalStore = FileCompanionKeyRotationJournalStore(fileURL: journalURL)
+        let storedPlan = try await journalStore.loadRotationPlan()
+
+        let currentVersion: UInt32
+        let nextVersion: UInt32
+        let transitionEndsAt: Date
+        let shouldResume: Bool
+        if let storedPlan, storedPlan.stage != .completed {
+            guard activeKeyVersion == storedPlan.currentVersion ||
+                    activeKeyVersion == storedPlan.nextVersion else {
+                return .recovery(
+                    reason: .keyVersionMismatch,
+                    keyVersion: activeKeyVersion
+                )
+            }
+            currentVersion = storedPlan.currentVersion
+            nextVersion = storedPlan.nextVersion
+            transitionEndsAt = storedPlan.transitionEndsAt
+            shouldResume = true
+        } else if desiredKeyVersion > activeKeyVersion {
+            currentVersion = activeKeyVersion
+            nextVersion = desiredKeyVersion
+            transitionEndsAt = Date().addingTimeInterval(
+                CompanionSyncKeyFamily.rotationWindow
+            )
+            shouldResume = false
+        } else {
+            return status
+        }
+
+        let rotation = try await CompanionCloudKitKeyRotationBootstrap
+            .makeRuntimeChecked(
+                containerIdentifier: containerIdentifier,
+                zoneName: zoneName,
+                subscriptionID: subscriptionID,
+                familyAnchorConfiguration: familyAnchorConfiguration,
+                currentVersion: currentVersion,
+                nextVersion: nextVersion,
+                recordsURL: recordsURL,
+                stateURL: stateURL,
+                journalURL: journalURL,
+                keyStore: keyStore
+            )
+        do {
+            let completed: CompanionKeyRotationPlan
+            if shouldResume {
+                completed = try await rotation.coordinator.resume()
+            } else {
+                completed = try await rotation.coordinator.begin(
+                    currentVersion: currentVersion,
+                    nextVersion: nextVersion,
+                    transitionEndsAt: transitionEndsAt
+                )
+            }
+            await rotation.provider.cancel()
+            return completed.lifecycleStatus
+        } catch {
+            let durablePlan = try? await rotation.coordinator.currentPlan()
+            await rotation.provider.cancel()
+            if let durablePlan {
+                return durablePlan.lifecycleStatus
+            }
+            throw error
+        }
+    }
+}
+
+private enum AhoiMobileBootstrapError: LocalizedError {
+    case invalidPerformanceLaunch
+    case performanceLaunchRequiresDebug
+    case performanceIsolationUnavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidPerformanceLaunch:
+            return "The performance launch request is incomplete or inconsistent."
+        case .performanceLaunchRequiresDebug:
+            return "Performance evidence workloads require a DEBUG candidate."
+        case .performanceIsolationUnavailable:
+            return "The isolated performance runtime could not be created."
+        }
     }
 }
 
@@ -180,6 +604,18 @@ private func configuredValue(_ value: Any?) -> String? {
     let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty, !trimmed.contains("$(") else { return nil }
     return trimmed
+}
+
+private func configuredUInt32(_ value: Any?) -> UInt32? {
+    if let number = value as? NSNumber {
+        let raw = number.uint64Value
+        return raw > 0 && raw <= UInt64(UInt32.max) ? UInt32(raw) : nil
+    }
+    guard let string = configuredValue(value),
+          let parsed = UInt32(string), parsed > 0 else {
+        return nil
+    }
+    return parsed
 }
 
 private enum CompanionDeviceIdentity {
@@ -211,4 +647,9 @@ private enum CompanionDeviceIdentity {
         defaults.set(created.uuidString.lowercased(), forKey: sessionDefaultsKey)
         return created
     }
+}
+
+private enum CompanionSyncKeyFamily {
+    static let anchorVersion: UInt32 = 1
+    static let rotationWindow: TimeInterval = 7 * 24 * 60 * 60
 }

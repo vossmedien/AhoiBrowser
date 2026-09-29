@@ -16,6 +16,7 @@
 #include "components/user_prefs/user_prefs.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/reload_type.h"
 #include "content/public/browser/navigation_entry.h"
 #include "content/public/browser/web_contents.h"
 
@@ -128,6 +129,11 @@ DeveloperActionResult DeveloperActionExecutor::Execute(
       }
       executed = screenshot_capture_->Capture(
           web_contents, DeveloperScreenshotType::kFullPage);
+      break;
+    case DeveloperAction::kHardReload:
+      web_contents->GetController().Reload(content::ReloadType::BYPASSING_CACHE,
+                                           /*check_for_repost=*/true);
+      executed = true;
       break;
   }
 

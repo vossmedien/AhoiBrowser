@@ -14,17 +14,25 @@ architecture decision, test, or release gate.
 
 ## Current status
 
-Phase 0 is in progress on Chromium Mac Stable `152.0.7977.65` at exact commit
-`fc4d67f1788019a27e32511137ceccbd2fafdaaa`. The active source delta is the
-tracked overlay plus the four-entry series in `patches/chromium/series`: the
-M152 integration seams, deterministic platform tests, upstream page-load
-tracing isolation, and Lean-profile Compose guards. It contains the
-profile-backed sidebar, SQLite-backed nested
-tree, saved/temporary live-tab lifecycle, drag-and-drop, command bar, shared
-visual language, and bounded split-view integration. The current M152 ARM64
-development build is installed at `/Applications/AhoiBrowser.app`; focused
-tests and a visible installed-app compatibility smoke, including repeated
-sidebar collapse/restore and resize, passed. The Chromium base is Stable while
+The current source roll targets Chromium Mac Stable `153.0.8010.53` at exact commit
+`792bf6722e73a45aa9e47c163b9901bdc17f3230`. Its 48-patch ordered
+composition, guarded Development build, and bounded zero-tab/fullscreen
+visual journeys are verified on source `13a992c`; the full product and
+release gates remain open. Installed candidates retain
+their own older source receipts and are not relabelled by this update.
+The active source delta is the
+tracked overlay plus the complete ordered series declared in
+`patches/chromium/series`; that file is the single source of truth for patch
+count and order. It contains the M153 integration seams, deterministic
+platform tests, Compose guards, native sidebar/split fixes, the null-tab
+extension-menu guard, Arc 1.162 sidebar-schema compatibility, the accessible
+docked/floating sidebar toggle, and the compact Zen importer seam. The product contains
+the profile-backed sidebar, SQLite-backed nested tree, saved/temporary live-tab
+lifecycle, drag-and-drop, command bar, shared
+visual language, and bounded split-view integration. The current M153 ARM64
+development build from source `820cf4e` is installed at
+`/Applications/AhoiBrowser.app`; newer signed candidates are tested in isolated
+profiles and are not installed. The Chromium base is Stable while
 the Ahoi development product channel remains `nightly`. This milestone does not
 claim the master prompt's complete binary/device matrix, `CU_E2E PASS`, or a
 Developer-ID-signed, notarized Ahoi Stable release. The previous M151 evidence
@@ -37,17 +45,24 @@ remains recovery/history evidence only.
 - Chromium's multi-process model, sandbox, site isolation, GPU process,
   network service, extensions, downloads, media, permissions, DevTools,
   password store, and session restoration stay authoritative.
-- Workspaces are UI/session organization inside one normal profile, never
-  separate cookie or extension profiles.
+- Workspaces retain global history, password and extension services. The renewed
+  product goal adds local isolated website sessions per workspace, not cookie
+  sync or duplicated extension installations. See
+  [`docs/WORKSPACE_SESSIONS.md`](docs/WORKSPACE_SESSIONS.md); not yet implemented.
 - Incognito is a true off-the-record profile. Little Arc/Quick Window is not.
 - Split panes are two, three, or four normal Chromium tabs/`WebContents` inside the
   existing tab model, never a parallel WebView host. See
   [`docs/SPLIT_VIEW.md`](docs/SPLIT_VIEW.md).
-- No built-in broad ad blocker. Selective legacy support exists only for an
-  explicitly allowlisted uBlock Origin Classic package when legally and
-  technically viable.
-- Secrets, cookies, passwords, autofill, site data, extension storage,
+- No built-in broad ad blocker. Dogfood legacy support is limited to the pinned
+  **Official GitHub release** uBlock Origin Classic 1.74.0 package with
+  key-derived ID `fkgkibajhfbepljeaefdnfnegdcjomkh`; arbitrary and unpacked
+  Manifest V2 remain blocked, and public redistribution remains gated.
+- Secrets, cookies, passwords, autofill, site data, raw/unreviewed extension storage,
   incognito state, HTTP-auth credentials, and secret headers never sync.
+- Supported native browser setup, trusted extension restoration and positively
+  reviewed extension-setting values are required by
+  [`ADR 0010`](docs/decisions/0010-full-browser-setup-sync.md); inventory alone is
+  insufficient and native consent is never bypassed. Implementation remains open.
 - No product telemetry, usage pings, automatic crash uploads, or experiments.
 
 ## Developer entry points
@@ -62,11 +77,12 @@ remains recovery/history evidence only.
 ./scripts/test-repository.sh
 ```
 
-All M152 build profiles use the same pinned Xcode 26.6/17F113 installation,
-macOS SDK 26.5/25F70, and iOS SDK build 23F81a. The `pinned-reference`
-upstream/release mode and `compatible-development` development mode remain
-separate provenance labels and gates even though their toolchain bytes match;
-development evidence still cannot satisfy release tests.
+Upstream/release profiles retain pinned Xcode 26.6/17F113, macOS SDK 26.5/
+25F70 and iOS SDK 23F81a. The user-authorized 24 September development
+toolchain uses installed Xcode 27.0/27A266a with macOS SDK 27.0/26A425 and
+iOS SDK 27.0/24A430. Exact per-mode provenance checks remain; development
+evidence cannot satisfy release tests. This does not change global
+`xcode-select`. See [BUILDING.md](docs/BUILDING.md).
 
 A standalone hook run is useful as a preflight, but build scripts deliberately
 rerun Chromium hooks themselves. The local hook-state JSON is evidence only and

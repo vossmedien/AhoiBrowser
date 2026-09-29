@@ -1,8 +1,128 @@
 # Zielprompt: AhoiBrowser Mobile – Apple-, CloudKit- und E2E-Abschluss
 
 > Autoritative Umsetzungs-, Konfigurations- und Abnahmespezifikation, Stand
-> 30. August 2026. Tatsächliche Portal-, Geräte- und Buildzustände sind vor
+> 31. August 2026. Tatsächliche Portal-, Geräte- und Buildzustände sind vor
 > jeder Mutation erneut zu prüfen und mit zeitgestempelter Evidenz zu binden.
+
+## Verbindlicher Ausführungszusatz: parallele Mobile-Abschlusswelle
+
+Dieser Zusatz ist für die aktuelle Abschlusswelle vorrangig, soweit ältere,
+breiter formulierte Phasen dieses Dokuments damit kollidieren. Ziel ist kein
+neuer Onboarding-Wizard und keine weitere Konzeptschleife, sondern ein
+alltagstauglicher, sichtbar geprüfter Mobile-Browser auf Basis des vorhandenen
+Produkts.
+
+### Gemeinsamer Branch ohne gegenseitige Einschränkung
+
+- Desktop und Mobile arbeiten ausdrücklich parallel im selben Branch und
+  Arbeitsbaum. Mobile besitzt ausschließlich `apps/AhoiMobile/**`, diesen
+  Mobile-Zielprompt sowie eindeutig Mobile-spezifische E2E-Artefakte und
+  Nachweise. Desktop besitzt Chromium, `.work/chromium`, `overlay/`, `patches/`,
+  Desktop-Import, Desktop-Extensions und Desktop-UI.
+- Gemeinsame Registries, Produktkonfigurationen und gemischte Release-
+  Dokumente bleiben während paralleler Arbeit unverändert. Eine nötige
+  gemeinsame Änderung wird erst nach expliziter Übergabe oder mit einem
+  pfadgenauen, konfliktfreien Patch vorgenommen.
+- Vor jedem Stage, Commit oder Push werden Branch, `HEAD`, Remote-SHA,
+  `git status`, bereits gestagte Pfade und die aktuelle Besitzlage erneut
+  geprüft. Mobile staged und committet nur seine exakten Pfade; fremde
+  Änderungen werden weder bereinigt, versteckt, zurückgesetzt noch unbemerkt
+  mitcommittet. Wenn der Desktop-Agent gerade den gemeinsamen Index oder Branch-
+  Ref mutiert, wartet Mobile nur an diesem kurzen Git-Gate und arbeitet danach
+  weiter.
+- Mobile-Quellarbeit darf parallel zu Desktop-Quellarbeit erfolgen. Vor jedem
+  CPU-intensiven Mobile-Build wird auf einen aktiven AhoiBrowser-/Chromium-
+  `ninja`-, `autoninja`-, `siso`-, `gn`-, Compiler- oder Linkerprozess geprüft.
+  Läuft ein solcher Build, startet Mobile keinen schweren Konkurrenzprozess
+  und greift niemals in den Desktop-Build ein; nach dessen Ende werden
+  vorhandene inkrementelle Mobile-Ausgaben weiterverwendet.
+
+### Frisch verifizierter Ausgangspunkt und rote Laufzeitbefunde
+
+- Letzter gebundener Mobile-Quellcommit ist
+  `087695eb21f701daa0305f54bda0e5c6783b5124` (`fix(ios): stabilize harbor deck
+  scroll motion`). Er wurde erfolgreich als iPhone-Simulator-Kandidat gebaut;
+  Buildlog und Result Bundle liegen unter
+  `/private/tmp/ahoi-mobile-087695e-sim-build-01.{log,xcresult}`.
+- Der anschließende sichtbare E2E-Erstlauf ist korrekt als rot zu behandeln:
+  `/private/tmp/ahoi-mobile-087695e-visible-e2e-01.{mp4,xcresult}`. Eine kalt
+  erneut zugestellte identische URL erzeugte sichtbar `3 Tabs` statt `2 Tabs`.
+  Der aktuelle Default-Deduplizierungszeitraum von 1,5 Sekunden ist kürzer als
+  der gemessene iOS-Aktivierungs-/Zustellpfad.
+- Derselbe Lauf zeigte, dass die in `087695e` neu eingeführte native
+  Dokument-Scrollquelle die zuvor grüne Dokument- und Nested-Scroller-
+  Erkennung regressierte. Der vorherige isolierte, numerisch validierte
+  WebKit-Script-Bridge-Pfad aus `4113c14` war für beide Scrollarten bereits
+  sichtbar funktionsfähig.
+- Die neue Harbor-Deck-Layoutstruktur aus `087695e` bleibt die Basis für eine
+  ruhige Größenänderung. Sie gilt erst dann als angenommen, wenn Workspace-
+  Rail, Adressbereich und Controls ohne Sprung, Restkante oder inkonsistentes
+  Ein-/Ausblenden kollabieren und expandieren. Reduce Motion muss den
+  geometrischen Übergang deaktivieren, darf aber einen informationsneutralen
+  Crossfade behalten.
+
+### Konkretes Featurepaket dieser Welle
+
+1. **Externe URL exakt einmal öffnen:** Den Deduplizierungsvertrag an den real
+   gemessenen Scene-/Activation-Lifecycle anpassen, ohne unterschiedliche URLs
+   oder bewusst spätere Öffnungen zu verschlucken. Derselbe normalisierte
+   HTTP(S)-Callback darf innerhalb eines begrenzten Aktivierungsfensters nur
+   einen normalen Tab erzeugen; private Tabs oder geladene normale Tabs werden
+   nie überschrieben.
+2. **Scroll-Autorität reparieren:** Den regressiven nativen Dokument-
+   Scrollquellenwechsel vollständig zurücknehmen. Die native WebKit-Geometrie
+   bleibt ausschließlich für Pull-to-refresh und Layoutstabilität zuständig;
+   die isolierte, datensparsame Script-Bridge liefert validierte Dokument- und
+   Nested-Scrollereignisse. Layoutsprünge, Source-Wechsel und Mikrojitter dürfen
+   nicht als Nutzer-Scroll akkumulieren.
+3. **Harbor Deck und untere Adressleiste polieren:** Workspace-Rail,
+   Adressbereich, Navigation, Tabs und Mehr bleiben in einem stabilen View-
+   Baum. Beim Abwärtsscrollen verdichtet sich die Leiste kontrolliert, beim
+   echten Gegenlauf sowie bei Navigation, Loading, Fehler, Berechtigung, Suche,
+   Tab-/Workspace-Wechsel und Pull-to-refresh expandiert sie zuverlässig. Die
+   Bewegung bleibt direkt, abbrechbar und im Korridor von 180 bis 240 ms; keine
+   neue dekorative Animation und keine Zeitsteuerung als Zustandsautorität.
+4. **Sichtbare Abnahme vor Programmatik:** Nach einem nötigen Build-/Signatur-
+   Preflight wird zuerst der exakte neue Kandidat installiert und sichtbar auf
+   dem benannten iPhone-Simulator geprüft: kalte doppelte URL-Zustellung,
+   Dokument-Scroll, Nested Scroller, Gegenlauf/Reset, interaktive
+   Präsentationen sowie Reduce Motion. Nach jeder größeren Korrektur werden nur
+   die betroffenen sichtbaren Journeys erneut ausgeführt. Ist ein sichtbarer
+   Pfad technisch oder extern blockiert, wird die genaue Grenze dokumentiert
+   und die davon unabhängige Programmatik trotzdem ausgeführt.
+5. **Erst danach fokussierte Tests:** Deduplizierungs-, Scroll-Reducer-, Layout-
+   Policy-, Private-Browsing-, Session- und Accessibility-Tests; Swift-Parse,
+   Strict Concurrency, Source-Line-Budget, `git diff --check`, DCO und die
+   Mobile-spezifischen Repository-Verträge. Keine breite neue Testsuite ohne
+   reproduzierbaren Befund.
+6. **Sync wirklich prüfen:** Zuerst eine sichtbare provider-freie Simulator-
+   Journey für Opt-in, den expliziten Zustand `Local only`, deaktivierte Sync-
+   Schlüssel und `Sync now`, Neustartpersistenz sowie sauberes Opt-out. Danach
+   prüfen fokussierte programmgesteuerte Journeys lokalen Publish/Pull,
+   Geräte-Tab-/Workspace-Readback, Offline-Wiederaufnahme, Private-
+   Negativbeweis sowie Key-, Codec-, Merge-, Tombstone-, Replay-, Revocation-
+   und In-Memory-Transportverträge. CloudKit Development beziehungsweise
+   Production, Mac-iPhone-iPad-Roundtrip und Push werden nur mit tatsächlich
+   passenden Signaturen, Entitlements, Container und Geräten als bestanden
+   bezeichnet.
+7. **Kandidat und Release-Grenzen binden:** Danach Archive-/Signatur-
+   Preflights und alle lokal kontrollierbaren Artefakte an Source-SHA,
+   Buildnummer, Bundle-ID, Team, Profile, Entitlements und Hash binden.
+   Physisches Gerät, CloudKit Production, TestFlight, App Store Connect und
+   Managed-Default-Browser-Grant jeweils höchstens einmal real versuchen, wenn
+   die Voraussetzungen tatsächlich vorliegen; sonst den konkreten externen
+   Handoff ausweisen und nicht im Kreis wiederholen.
+
+### Abschlussbedingung der parallelen Welle
+
+Die kontrollierbare Welle ist abgeschlossen, wenn der neue Mobile-Kandidat die
+betroffenen sichtbaren iPhone-Journeys besteht, die nachgelagerten fokussierten
+Tests einschließlich Sync grün sind, Archive/Signing soweit lokal möglich
+gebunden wurden und ausschließlich Mobile-Pfade in fokussierten DCO-Commits auf
+dem gemeinsamen Branch gepusht sind. Externe Apple-, CloudKit-Production- oder
+Hardware-Gates bleiben als präzise `NOT_RUN`-/Handoff-Zeile sichtbar; sie dürfen
+weder als Pass ausgegeben werden noch den Abschluss bereits vollständig
+kontrollierbarer Arbeit verhindern.
 
 ## Rollenauftrag
 
@@ -43,6 +163,25 @@ Reduziere bei Zeit-, Risiko- oder Plattformkonflikten den Funktionsumfang. Senke
 niemals Signing-, Privacy-, Sync-, Accessibility-, Test- oder Evidenzstandards,
 um einen Termin oder ein gewünschtes Label zu erreichen.
 
+### Verbindliche Testreihenfolge
+
+1. Reine Build-, Signatur-, Installations- und Sicherheits-Preflights dürfen
+   vorausgehen, wenn sie nötig sind, um überhaupt einen sicheren Kandidaten
+   auszuführen.
+2. Danach hat ein sichtbarer End-to-End-Test auf den exakt gebauten und
+   installierten Bits Vorrang, sofern dieser technisch möglich und in der
+   aktuellen Umgebung sicher ausführbar ist.
+3. Erst nach diesem ersten sichtbaren Pass folgen Unit-, Integrations-,
+   Repository-, statische und weitere programmatische Tests.
+4. Nach jeder größeren Verhaltens-, UI-, Signing- oder Projektgraphänderung wird
+   der betroffene sichtbare End-to-End-Pfad auf dem neuen Kandidaten erneut
+   ausgeführt.
+5. Ist ein E2E-Pfad durch fehlende Hardware, Entitlements, Provisioning,
+   Accounts oder einen externen Dienst tatsächlich blockiert, werden der exakte
+   Blocker und die bis dahin erreichten Artefakte dokumentiert. Alle davon
+   unabhängigen programmatischen Tests laufen trotzdem; ein blockierter E2E-Test
+   ist weder Pass noch Grund, kontrollierbare Tests auszulassen.
+
 ## Verifizierte Laufzeitwahrheit zu Beginn
 
 Behandle folgenden Stand als Ausgangshypothese und verifiziere ihn vor der
@@ -51,8 +190,16 @@ Connect und angeschlossene Geräte:
 
 - kanonisches Repository:
   `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser`;
-- maßgeblicher Remote-Stand beim Erstellen dieses Prompts: `origin/main` bei
-  `fbb18e4`; Implementierung nur in isoliertem, aktuellem Worktree;
+- gemeinsamer Integrationsbranch beim letzten Live-Abgleich:
+  `codex/desktop-core-feature-wave-20260830` mit letztem gebundenem Mobile-
+  Quellcommit `087695eb21f701daa0305f54bda0e5c6783b5124`; vor jeder
+  Fortsetzung Branch, HEAD und Remote erneut prüfen;
+- Desktop und Mobile dürfen auf ausdrücklichen Wunsch im selben Branch und
+  Arbeitsbaum parallel arbeiten, aber nur mit klar disjunkter Pfadverantwortung:
+  Mobile besitzt `apps/AhoiMobile/**` sowie Mobile-spezifische Dokumentation und
+  Evidenz, Desktop besitzt Chromium-/Overlay-/Desktoppfade; gemeinsame Config-
+  oder Release-Dateien erst nach expliziter Koordination ändern. Einen
+  kurzlebigen Worktree nur bei einer realen Dateikollision verwenden;
 - bestehender nativer Kandidat unter `apps/AhoiMobile/`, Deployment Target
   iOS/iPadOS 26.0, Swift 6 und WebKit;
 - Apple Team ID `248AJ5BN47`;
@@ -67,6 +214,12 @@ Connect und angeschlossene Geräte:
 - Development-Signing und ein begrenzter physischer iPhone-Smoke funktionieren;
   dieser Smoke ist jedoch an einen älteren Kandidaten `f4cf038…` gebunden und
   kein vollständiger E2E-Pass des aktuellen Remote-Stands;
+- die aktuellen noch vor der finalen History-Integration ausgefuehrten
+  Simulatorlaeufe umfassen die breite iPhone-Matrix mit dokumentiertem
+  Harness-Nachlauf, den korrigierten Revocation-Pass, Reduce Motion 1/1 und
+  iPad 3/3; programmatisch sind Mobile Core 111/113 plus zwei echte
+  Entitlement-Skips, der fokussierte Core 49/49, CloudKit/Security 36/36,
+  Mobile-Repository 20/20, Swift-Parse 94/94 und Xcode-Analyze gruen;
 - ein kompatibles physisches iPad mit iPadOS 26+ fehlt derzeit; ein vorhandenes
   iPad mit iPadOS 17.7.10 kann den aktuellen Deployment Target nicht ausführen;
 - lokal sind Apple-Development- und Developer-ID-Application-Identitäten
@@ -324,8 +477,12 @@ um erneut zwischen Produktkonzepten wählen zu lassen.
   Typen.
 - Kein neues `@unchecked Sendable` ohne enge Apple-API-Grenze, schriftlichen
   Synchronisationsbeweis und fokussierten Race-Test.
-- Kein `Task.detached`, kein versteckter Timer, kein globaler veränderlicher
-  Singleton und keine unstrukturierte Nebenläufigkeit.
+- Kein `Task.detached` in Produktpfaden, kein versteckter Timer, kein globaler
+  veränderlicher Singleton und keine unstrukturierte Nebenläufigkeit. Eine eng
+  begrenzte, dokumentierte Ausnahme ist nur in einem Test-Harness für
+  cancellation-resilientes Cleanup erlaubt, wenn genau ein Cleanup-Task
+  koalesziert wird, die Wartezeit begrenzt ist, die Ownership kryptografisch
+  geprüft wurde und ohne diesen Nachweis keinerlei Löschung erfolgt.
 - Abhängigkeiten werden über Protokolle/Initialisierer injiziert; Tests verwenden
   deterministische Clocks, UUIDs, Stores und Provider.
 - Kein stilles `try?` an Navigation, Persistenz, Migration, Signing, Keychain,
@@ -681,10 +838,13 @@ werden.
 
 ## Umsetzungsreihenfolge
 
-### Phase 0 – Isolation, Baseline und Vertragsreparatur
+### Phase 0 – Ownership, Baseline und Vertragsreparatur
 
 1. Branch, Remotes, Dirty Worktree, Stashes und fremde Änderungen prüfen.
-2. Von aktuellem `origin/main` einen isolierten Worktree verwenden.
+2. Im gemeinsam vereinbarten Branch disjunkte Pfadverantwortung für Mobile und
+   Desktop festhalten und vor jedem Commit auf Überschneidungen prüfen. Einen
+   isolierten kurzlebigen Worktree nur bei einer tatsächlich kollidierenden
+   Datei oder einem ausdrücklich getrennten Buildkandidaten verwenden.
 3. Vor CPU-intensiven Arbeiten prüfen, ob ein AhoiBrowser-/Chromium-Build mit
    `ninja`, `autoninja`, `siso`, `gn` oder Compiler/Linker in `out/AhoiDev`
    aktiv ist. Eigene CPU-intensive Arbeit bei Start eines solchen Builds nur
@@ -729,13 +889,19 @@ Workspace-Zuordnung und Restore-Fehler vor zusätzlicher Breite.
 
 ### Phase 3 – lokale und Simulator-Gates
 
-1. Policy-, Model-, Migration-, Key-, Wire- und Tombstone-Unit-Tests.
-2. Controller-/Repository-/CloudKit-Integration mit deterministischen Fakes.
-3. Xcode-UI-Tests für Kernjourneys und Accessibility-Identifier.
-4. Small/large iPhone und iPad in Compact/Regular Width, Hell/Dunkel, große
+1. Nach den notwendigen Build-/Installations-Preflights zuerst Xcode-UI- und
+   Computer-Use-E2E-Tests der betroffenen Kernjourneys auf dem exakten
+   Simulator-Kandidaten ausführen.
+2. Small/large iPhone und iPad in Compact/Regular Width, Hell/Dunkel, große
    Dynamic-Type-Stufen, Reduce Motion/Transparency und erhöhten Kontrast.
+3. Danach Policy-, Model-, Migration-, Key-, Wire- und Tombstone-Unit-Tests.
+4. Controller-/Repository-/CloudKit-Integration mit deterministischen Fakes.
 5. XcodeGen-No-op, Source-Line-Budget, Secret Scan, DCO, `git diff --check`,
    statische Analyse und kompletter Repository-Vertrag.
+6. Nach größeren Anpassungen den jeweils betroffenen sichtbaren E2E-Pfad erneut
+   auf dem neuen Kandidaten ausführen. Blockierte sichtbare Pfade mit exakter
+   Grenze dokumentieren und die unabhängigen programmatischen Gates dennoch
+   abschließen.
 
 ### Phase 4 – Apple Development und CloudKit Development
 
@@ -755,10 +921,19 @@ Workspace-Zuordnung und Restore-Fehler vor zusätzlicher Breite.
    Quellen-, Routing- und Negativtests dürfen diesen Gerätepass nicht ersetzen.
 5. Mac und Mobile gegen CloudKit Development samt Offline, Konflikt,
    Tombstone, Key-/Account-/Zone-Recovery und Privacy-Negativbeweis testen.
-6. Die beiden im provider-freien Lauf dokumentiert entitlement-bedingt
-   übersprungenen CloudKit-Tests in einem dedizierten signierten Testtarget mit
-   `AHOI_CLOUDKIT_TEST_ENTITLED=1` real ausführen. Kein releasekritischer Skip
-   darf im finalen Kandidaten offen bleiben.
+6. Den realen Transport ausschließlich über das dedizierte signierte Target
+   `AhoiMobileCloudKitE2ETests` im Scheme `AhoiMobile-CloudKitE2E` ausführen.
+   Der Hostmodus gehört ausschließlich diesem Scheme. Reale Mutation erfordert
+   die explizite Freigabe `AHOI_CLOUDKIT_E2E_REAL_MUTATION_OPT_IN=YES` und einen
+   frischen UUID-Wert in `AHOI_CLOUDKIT_E2E_RUN_TOKEN`. Vor Provider- oder
+   `CKContainer`-Konstruktion müssen Bundle, Buildmodus, Container, Team und die
+   tatsächlich signierten `SecTask`-Entitlements exakt passen. Danach zuerst
+   einen frischen read-only Scope-Probe ausführen; synthetische Zone, Records,
+   Geräte-ID und Subscription bleiben UUID-spezifisch. Cleanup ist
+   marker-first, ownership-geprüft, idempotent und cancellation-resilient; ohne
+   erfolgreich entschlüsselten AES-GCM-Ownership-Marker darf weder Subscription
+   noch Zone gelöscht werden. Kein releasekritischer Skip darf im finalen
+   Kandidaten offen bleiben.
 7. Das Schema nach erfolgreicher CloudKit-/Key-/Push-Development-Matrix
    promoten. Offene, sachlich unabhängige UI-/Hardwarejourneys sind ehrlich zu
    dokumentieren, aber nicht als künstliche Voraussetzung der Schema-Promotion
@@ -814,9 +989,10 @@ Workspace-Zuordnung und Restore-Fehler vor zusätzlicher Breite.
 - DebugLocal-, CloudKitDevelopment-, TestFlightBootstrap-,
   DefaultBrowserDevelopment- und ReleasePostGrant-Preflights jeweils mit
   positiven und absichtlich negativen Fixtures;
-- provider-freier Standardlauf darf die zwei entitlement-abhängigen CloudKit-
-  Tests nur explizit/dokumentiert skippen; das signierte Testtarget führt sie
-  mit `AHOI_CLOUDKIT_TEST_ENTITLED=1` aus;
+- provider-freier Standardlauf darf entitlement-abhängige CloudKit-Tests nur
+  explizit und dokumentiert skippen; der reale Transport läuft ausschließlich
+  im Scheme `AhoiMobile-CloudKitE2E` mit exakter Signaturprüfung, explizitem
+  Mutations-Opt-in, frischem UUID-Run-Token und ownership-geprüftem Cleanup;
 - iPhone-/iPad-Simulator Debug und Release sowie `xcodebuild analyze`.
 
 Fokussierte Referenzbefehle dürfen an den realen Workspace angepasst werden:
@@ -829,7 +1005,12 @@ git diff --check
 python3 tools/source_line_budget.py
 ./scripts/test-repository.sh
 swift test --package-path spikes/cloudkit --jobs 1 --disable-index-store
-swift test --package-path apps/AhoiMobile --jobs 1 --disable-index-store
+xcodebuild -project apps/AhoiMobile/AhoiMobile.xcodeproj \
+  -scheme AhoiMobile -configuration DebugLocal \
+  -destination 'platform=iOS Simulator,id=<CURRENT_SIMULATOR_UDID>' \
+  -derivedDataPath /private/tmp/ahoi-mobile-core-gate-derived \
+  -resultBundlePath /private/tmp/ahoi-mobile-core-gate.xcresult \
+  -parallel-testing-enabled NO -only-testing:AhoiMobileCoreTests test
 xcrun simctl list devices available -j
 xcrun devicectl list devices
 ```

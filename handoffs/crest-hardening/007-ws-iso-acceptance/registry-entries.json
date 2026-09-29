@@ -1,0 +1,168 @@
+[
+  {
+    "id": "WS-ISO-01",
+    "suite": "WS",
+    "description": "Beim Anlegen eines Workspaces die Stufe `Gemeinsam`, `Eigene Website-Sitzungen` oder `Vollständig getrennt` wählen; Menü, Workspace-Liste und Anlage-Dialog zeigen die Stufe jedes nicht gemeinsamen Workspaces verständlich an, ohne sie als Sicherheitsgrenze gegen macOS-Nutzersoftware auszugeben.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-02",
+    "suite": "WS",
+    "description": "Zwei `Vollständig getrennt`-Workspaces und ein gemeinsamer Workspace: dieselbe Website mit drei synthetischen Konten anmelden; Cookies, Site Storage, Verlauf und Omnibox-/Befehlsleistenvorschläge, gespeicherte Passwörter, Autofill, Berechtigungen und Download-Verlauf bleiben je Workspace getrennt, auch nach Neustart.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-03",
+    "suite": "WS",
+    "description": "Erweiterung in einem `Vollständig getrennt`-Workspace installieren und konfigurieren; sie erscheint weder im gemeinsamen noch in einem anderen getrennten Workspace, und uBlock Origin Classic lässt sich je Profil getrennt aktivieren und filtert dort nachweislich.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-04",
+    "suite": "WS",
+    "description": "Über Dot, Tastatur, Wischgeste und Befehlsleiste zwischen Workspaces verschiedener Stufen wechseln; beim Profilwechsel übernimmt das Fenster des Zielprofils deckungsgleich Größe, Position, Vollbild- und Sidebar-Zustand ohne Web-Reflow, und aktiver Dot, Baum, Tab und `WebContents` laufen nie auseinander.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-05",
+    "suite": "WS",
+    "description": "Tab, Ordner und Split per Drag-and-drop oder Befehl von einem gemeinsamen in einen `Vollständig getrennt`-Workspace verschieben; die URL wird im Ziel neu geöffnet, ein Hinweis sagt, dass Anmeldungen nicht mitwandern, und ein Split mischt nie Profile.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-06",
+    "suite": "WS",
+    "description": "Externe Links mit Routing-Regel auf einen `Vollständig getrennt`-Workspace, gemerktes Ziel, Quick Window und Übernahme aus dem Quick Window öffnen im richtigen Profil; ohne Regel gilt das dokumentierte Standardziel.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-07",
+    "suite": "WS",
+    "description": "Einen `Vollständig getrennt`-Workspace mit offenem Before-Unload-Tab löschen: Abbrechen ändert nichts; Bestätigen schließt die Tabs, entfernt das Profil über Chromiums Profil-Löschpfad, und nach Neustart sind Profilverzeichnis und Workspace-Eintrag entfernt.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-08",
+    "suite": "WS",
+    "description": "Prozess zwischen Workspace-Löschung und Profil-Datenentfernung beenden; der nächste Start setzt die persistierte Löschabsicht fort, und keine Wiederherstellung öffnet Seiten im gelöschten Kontext.",
+    "primaryClass": "INTEGRATION",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-09",
+    "suite": "WS",
+    "description": "Einen gemeinsamen Workspace ausdrücklich in `Vollständig getrennt` umwandeln; Struktur, Reihenfolge, Ordner, Splits und Home-URLs ziehen über den portablen Export/Import um, Logins, Passwörter und Website-Daten nicht, und ein Abbruch verändert nichts.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-10",
+    "suite": "WS",
+    "description": "Arc-Import mit mehreren Arc-Profilen: der Nutzer kann ein Arc-Profil einem `Vollständig getrennt`-Workspace zuordnen; wiederholter Import bleibt ohne Duplikate.",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-11",
+    "suite": "WS",
+    "description": "Speicher- und Startkosten mit einem, drei und fünf geladenen getrennten Profilen nach `docs/PERFORMANCE_METHODOLOGY.md` messen; nicht geöffnete Profile werden nicht geladen und ohne offenes Fenster wieder entladen.",
+    "primaryClass": "INTEGRATION",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-12",
+    "suite": "WS",
+    "description": "Sync je Profil einzeln aktivieren; jedes Profil nutzt einen eigenen CloudKit-Namensraum desselben Kontos, keine Website-, Passwort- oder Berechtigungsdaten werden übertragen, und Mobile bewahrt die Metadaten getrennter Workspaces mit eigenem `WKWebsiteDataStore`.",
+    "primaryClass": "INTEGRATION",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  },
+  {
+    "id": "WS-ISO-13",
+    "suite": "WS",
+    "description": "Stufe `Eigene Website-Sitzungen`: Workspace mit Anmeldung löschen; seine offenen Tabs erscheinen nicht im Fallback-Workspace, Bindung und Partitionsdaten sind entfernt (Übergabe 003, WS-DEL-01 bis 05).",
+    "primaryClass": "CU_E2E",
+    "requiredEvidenceClasses": [
+      "UNIT",
+      "INTEGRATION",
+      "CU_E2E"
+    ],
+    "releaseCritical": true,
+    "status": "NOT_RUN"
+  }
+]

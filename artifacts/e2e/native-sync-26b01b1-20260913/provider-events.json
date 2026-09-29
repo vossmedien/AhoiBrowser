@@ -1,0 +1,42 @@
+[
+  {
+    "timestamp": "2026-09-13 05:13:59.451973+0300",
+    "processID": 70398,
+    "eventMessage": "AhoiSyncUpload stageCode=7 stage=<private> domain=CKErrorDomain code=2 itemDomain=CKErrorDomain itemCode=14 expected=11 saved=1 resolved=5 unresolved=5 ack=6"
+  },
+  {
+    "timestamp": "2026-09-13 05:14:40.817500+0300",
+    "processID": 70398,
+    "eventMessage": "AhoiSyncUpload stageCode=1 stage=<private> domain=none code=0 itemDomain=other itemCode=0 expected=11 saved=11 resolved=0 unresolved=0 ack=11"
+  },
+  {
+    "timestamp": "2026-09-13 05:14:42.105013+0300",
+    "processID": 70398,
+    "eventMessage": "AhoiSyncUpload stageCode=1 stage=<private> domain=none code=0 itemDomain=other itemCode=0 expected=5 saved=5 resolved=0 unresolved=0 ack=5"
+  },
+  {
+    "timestamp": "2026-09-13 05:14:43.332910+0300",
+    "processID": 70398,
+    "eventMessage": "AhoiSyncUpload stageCode=1 stage=<private> domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 unresolved=0 ack=1"
+  },
+  {
+    "timestamp": "2026-09-13 05:14:44.529915+0300",
+    "processID": 70398,
+    "eventMessage": "AhoiSyncUpload stageCode=1 stage=<private> domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 unresolved=0 ack=1"
+  },
+  {
+    "timestamp": "2026-09-13 05:14:45.614511+0300",
+    "processID": 70398,
+    "eventMessage": "AhoiSyncUpload stageCode=1 stage=<private> domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 unresolved=0 ack=1"
+  },
+  {
+    "timestamp": "2026-09-13 05:14:46.494543+0300",
+    "processID": 70398,
+    "eventMessage": "AhoiSyncUpload stageCode=1 stage=<private> domain=none code=0 itemDomain=other itemCode=0 expected=4 saved=4 resolved=0 unresolved=0 ack=4"
+  },
+  {
+    "timestamp": "2026-09-13 05:14:47.516338+0300",
+    "processID": 70398,
+    "eventMessage": "AhoiSyncUpload stageCode=1 stage=<private> domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 unresolved=0 ack=1"
+  }
+]

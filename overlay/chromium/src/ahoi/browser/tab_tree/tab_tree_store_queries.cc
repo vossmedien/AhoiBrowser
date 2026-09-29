@@ -9,6 +9,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "base/check.h"
 #include "sql/statement.h"
+#include "sql/transaction.h"
 
 namespace ahoi::tab_tree {
 
@@ -25,7 +26,8 @@ TabTreeStore::Result TabTreeStore::GetWorkspaces(
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
-      "modified_at,tombstone FROM workspaces WHERE tombstone=0 ORDER BY "
+      "modified_at,tombstone,archive_policy,merged_into FROM workspaces WHERE tombstone=0 "
+      "ORDER BY "
       "sort_key,id"));
   std::vector<Workspace> decoded;
   while (statement.Step()) {
@@ -114,13 +116,17 @@ TabTreeStore::Result TabTreeStore::GetChildren(
       parent_id.has_value() ? "SELECT model_version,id,workspace_id,parent_id,"
                               "node_type,title,icon,accent_argb,url,sort_key,"
                               "created_at,modified_at,"
-                              "tombstone FROM tree_nodes WHERE workspace_id=? "
+                              "tombstone,is_temporary,target_kind,local_scheme,"
+                              "home_url,home_target_kind,home_local_scheme "
+                              "FROM tree_nodes WHERE workspace_id=? "
                               "AND parent_id=? AND tombstone=0 ORDER BY "
                               "sort_key,id"
                             : "SELECT model_version,id,workspace_id,parent_id,"
                               "node_type,title,icon,accent_argb,url,sort_key,"
                               "created_at,modified_at,"
-                              "tombstone FROM tree_nodes WHERE workspace_id=? "
+                              "tombstone,is_temporary,target_kind,local_scheme,"
+                              "home_url,home_target_kind,home_local_scheme "
+                              "FROM tree_nodes WHERE workspace_id=? "
                               "AND parent_id IS NULL AND tombstone=0 ORDER BY "
                               "sort_key,id";
   sql::Statement statement(db_.GetUniqueStatement(query));
@@ -135,7 +141,9 @@ TabTreeStore::Result TabTreeStore::GetChildren(
     if (!internal::DecodeNode(statement, &node) || !ValidateNode(node)) {
       return Result::kDatabaseError;
     }
-    decoded.push_back(std::move(node));
+    if (!node.is_temporary || !IsNodeArchived(node.id)) {
+      decoded.push_back(std::move(node));
+    }
   }
   if (!statement.Succeeded()) {
     return Result::kDatabaseError;
@@ -169,9 +177,12 @@ TabTreeStore::Result TabTreeStore::FindSavedPagesByUrl(
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
-      "accent_argb,url,sort_key,created_at,modified_at,tombstone FROM "
+      "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+      "is_temporary,target_kind,local_scheme,home_url,home_target_kind,home_"
+      "local_scheme FROM "
       "tree_nodes WHERE "
-      "workspace_id=? AND node_type=? AND url=? AND tombstone=0 ORDER BY "
+      "workspace_id=? AND node_type=? AND url=? AND tombstone=0 "
+      "AND is_temporary=0 ORDER BY "
       "parent_id,sort_key,id"));
   statement.BindString(0, workspace_id.AsLowercaseString());
   statement.BindInt(1, static_cast<int>(TreeNodeType::kSavedPage));
@@ -183,7 +194,9 @@ TabTreeStore::Result TabTreeStore::FindSavedPagesByUrl(
     if (!internal::DecodeNode(statement, &node) || !ValidateNode(node)) {
       return Result::kDatabaseError;
     }
-    decoded.push_back(std::move(node));
+    if (!node.is_temporary || !IsNodeArchived(node.id)) {
+      decoded.push_back(std::move(node));
+    }
   }
   if (!statement.Succeeded()) {
     return Result::kDatabaseError;
@@ -204,7 +217,8 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
   TabTreeSnapshot exported;
   sql::Statement workspaces(db_.GetUniqueStatement(
       "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
-      "modified_at,tombstone FROM workspaces ORDER BY sort_key,id"));
+      "modified_at,tombstone,archive_policy,merged_into FROM workspaces ORDER BY "
+      "sort_key,id"));
   while (workspaces.Step()) {
     Workspace workspace;
     if (!internal::DecodeWorkspace(workspaces, &workspace) ||
@@ -219,7 +233,9 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
 
   sql::Statement nodes(db_.GetUniqueStatement(
       "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
-      "accent_argb,url,sort_key,created_at,modified_at,tombstone FROM "
+      "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+      "is_temporary,target_kind,local_scheme,home_url,home_target_kind,home_"
+      "local_scheme FROM "
       "tree_nodes ORDER BY id"));
   while (nodes.Step()) {
     TreeNode node;
@@ -251,6 +267,9 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
       case static_cast<int>(UndoMutationKind::kDelete):
         operation.kind = UndoMutationKind::kDelete;
         break;
+      case static_cast<int>(UndoMutationKind::kWorkspaceMerge):
+        operation.kind = UndoMutationKind::kWorkspaceMerge;
+        break;
       default:
         return Result::kDatabaseError;
     }
@@ -262,8 +281,10 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
       return Result::kDatabaseError;
     }
     std::vector<NodeSnapshot> stored_nodes;
+    // Only an empty-source Workspace merge receipt is node-less.
     if (!ReadUndoSnapshots(operation.operation_id, &stored_nodes) ||
-        stored_nodes.empty()) {
+        stored_nodes.empty() !=
+            (operation.kind == UndoMutationKind::kWorkspaceMerge)) {
       return Result::kDatabaseError;
     }
     operation.nodes.reserve(stored_nodes.size());
@@ -277,6 +298,51 @@ TabTreeStore::Result TabTreeStore::ExportSnapshot(TabTreeSnapshot* snapshot) {
     return Result::kDatabaseError;
   }
 
+  *snapshot = std::move(exported);
+  return Result::kOk;
+}
+
+TabTreeStore::Result TabTreeStore::ExportPersistenceSnapshot(
+    PersistenceSnapshot* snapshot) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!IsReady()) {
+    return Result::kNotInitialized;
+  }
+  if (!snapshot) {
+    return Result::kInvalidArgument;
+  }
+
+  sql::Transaction transaction(&db_);
+  if (!transaction.Begin()) {
+    return Result::kDatabaseError;
+  }
+  PersistenceSnapshot exported;
+  const auto structure = ReadWorkspaceStructureState();
+  if (!structure) {
+    return Result::kDatabaseError;
+  }
+  exported.workspace_structure_state = *structure;
+  const Result result = ExportSnapshot(&exported.tree);
+  if (result != Result::kOk) {
+    return result;
+  }
+  sql::Statement receipt(
+      db_.GetUniqueStatement("SELECT value FROM meta WHERE key=?"));
+  receipt.BindString(0, kSyncBaselineReceiptKey);
+  if (receipt.Step()) {
+    if (receipt.GetColumnType(0) != sql::ColumnType::kText) {
+      return Result::kDatabaseError;
+    }
+    exported.sync_baseline_receipt = receipt.ColumnString(0);
+    if (receipt.Step()) {
+      return Result::kDatabaseError;
+    }
+  }
+  // Missing means no known baseline, not a reason to write a new empty key
+  // into an existing database or an Arc backup merely while reading it.
+  if (!receipt.Succeeded() || !transaction.Commit()) {
+    return Result::kDatabaseError;
+  }
   *snapshot = std::move(exported);
   return Result::kOk;
 }

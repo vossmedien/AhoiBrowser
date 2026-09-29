@@ -52,6 +52,58 @@ class MediaMiniPlayerChromiumAdapter final
   static MediaMiniPlayerPlaybackState PlaybackStateFor(
       media_session::mojom::MediaPlaybackState playback_state);
 
+  // What Chromium reports for one tab: its MediaSession, if any, and the
+  // WebContents audio and Picture-in-Picture state.
+  struct SessionSignals {
+    bool has_session_info = false;
+    MediaMiniPlayerPlaybackState session_playback =
+        MediaMiniPlayerPlaybackState::kPaused;
+    // MediaSessionInfo::is_controllable. Chromium clears it for inactive
+    // sessions, one-shot players and transient (5 s or shorter) audio.
+    bool session_controllable = false;
+    bool session_muted = false;
+    bool session_picture_in_picture = false;
+    std::vector<media_session::mojom::MediaSessionAction> actions;
+    bool tab_audible = false;
+    bool tab_muted = false;
+    bool tab_picture_in_picture = false;
+    // Whether the previous projection owned a card: a controllable session,
+    // a PiP window, audible sound without a MediaSession, or a muted card
+    // kept from one of those.
+    bool was_controllable = false;
+    // The tab was unmuted while it had a relevant card, and Chromium has not
+    // yet reported the session it re-adds the players to. Unmuting runs
+    // synchronously, the new MediaSessionInfo arrives later over Mojo.
+    bool awaiting_session_after_unmute = false;
+  };
+
+  struct SessionProjection {
+    MediaMiniPlayerPlaybackState playback =
+        MediaMiniPlayerPlaybackState::kPaused;
+    bool is_muted = false;
+    bool is_in_picture_in_picture = false;
+    // MediaPosition is shown only for sessions that own the card. A short
+    // sound's own duration must not make its tab a relevant source.
+    bool expose_position = false;
+    MediaMiniPlayerCapabilities capabilities;
+    // The next SessionSignals::was_controllable value.
+    bool keeps_controllable_card = false;
+  };
+
+  // Only a session that offers play or pause, a PiP window, or audible
+  // sound without a MediaSession owns a card.
+  // A notification chime reports kPlaying without being controllable, so it
+  // is projected as paused and cannot take the selection from a paused
+  // player. A controllable session that becomes muted keeps its card, since
+  // Chromium withdraws a muted tab's players and the card is where the user
+  // unmutes it; the card also survives the unmute until the session is back.
+  // A tab muted before its media started never joins its session, so while
+  // it is audible it is offered as a paused source with an unmute control.
+  // A session whose media ended is inactive and not controllable; like
+  // Chromium's Global Media Controls, it releases the card unless the page
+  // keeps its own play handler.
+  static SessionProjection ProjectSession(const SessionSignals& signals);
+
   // MediaMiniPlayerActionAdapter:
   bool SetPlaying(const MediaMiniPlayerSourceId& source_id,
                   bool playing) override;

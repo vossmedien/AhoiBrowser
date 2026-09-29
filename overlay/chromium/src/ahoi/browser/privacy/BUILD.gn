@@ -43,6 +43,7 @@ source_set("privacy_defaults") {
     "//components/privacy_sandbox:privacy_sandbox_prefs",
     "//components/safe_browsing/core/common:safe_browsing_prefs",
     "//components/signin/public/base",
+    "//components/translate/core/browser:translate_pref_names",
     "//components/variations",
   ]
 }
@@ -60,19 +61,14 @@ source_set("secure_component_transport") {
   ]
 }
 
-source_set("privacy_sandbox_delegate") {
-  sources = [
-    "ahoi_privacy_sandbox_delegate.cc",
-    "ahoi_privacy_sandbox_delegate.h",
-  ]
-  public_deps =
-      [ "//components/privacy_sandbox:privacy_sandbox_settings_headers" ]
-}
-
 source_set("privacy_mode_runtime") {
   sources = [
+    "privacy_mode_url_loader_factory_proxy.cc",
+    "privacy_mode_url_loader_factory_proxy.h",
     "privacy_mode_url_loader_throttle.cc",
     "privacy_mode_url_loader_throttle.h",
+    "privacy_strict_request_rules.cc",
+    "privacy_strict_request_rules.h",
   ]
   public_deps = [
     ":privacy_mode",
@@ -81,20 +77,37 @@ source_set("privacy_mode_runtime") {
   ]
   deps = [
     "//components/prefs",
+    "//mojo/public/cpp/bindings",
     "//net",
+  ]
+}
+
+# Handoff 070: owned by TabFeatures (Chromium seam patch).
+source_set("gpc_renderer_preference") {
+  sources = [
+    "gpc_renderer_preference_tab_helper.cc",
+    "gpc_renderer_preference_tab_helper.h",
+  ]
+  public_deps = [ "//content/public/browser" ]
+  deps = [
+    ":privacy_mode_runtime",
+    "//components/prefs",
+    "//third_party/blink/public/common",
+    "//url",
   ]
 }
 
 source_set("unit_tests") {
   testonly = true
   sources = [
-    "ahoi_privacy_sandbox_delegate_unittest.cc",
     "privacy_cookie_enforcement_unittest.cc",
+    "privacy_gpc_preference_unittest.cc",
+    "privacy_mode_url_loader_factory_proxy_unittest.cc",
     "privacy_mode_url_loader_throttle_unittest.cc",
+    "privacy_strict_request_rules_unittest.cc",
   ]
   deps = [
     ":privacy_mode_runtime",
-    ":privacy_sandbox_delegate",
     "//base/test:test_support",
     "//components/content_settings/core/common",
     "//components/sync_preferences:test_support",
@@ -129,6 +142,7 @@ source_set("policy_unit_tests") {
     "//components/privacy_sandbox:privacy_sandbox_prefs",
     "//components/safe_browsing/core/common:safe_browsing_prefs",
     "//components/signin/public/base",
+    "//components/translate/core/browser:translate_pref_names",
     "//components/sync/base",
     "//components/sync_preferences:test_support",
     "//components/variations",
@@ -138,9 +152,10 @@ source_set("policy_unit_tests") {
 }
 
 test("ahoi_privacy_mode_unittests") {
+  # The URLLoaderFactory proxy tests create Mojo pipes (handoff 068).
   deps = [
     ":unit_tests",
-    "//base/test:run_all_unittests",
+    "//mojo/core/test:run_all_unittests",
     "//testing/gtest",
   ]
 }

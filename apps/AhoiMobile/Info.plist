@@ -4,6 +4,10 @@
 <dict>
 	<key>AHOI_CLOUDKIT_CONTAINER_ID</key>
 	<string>$(AHOI_CLOUDKIT_CONTAINER_ID)</string>
+	<key>AHOI_CLOUDKIT_SUBSCRIPTION_ID</key>
+	<string>$(AHOI_CLOUDKIT_SUBSCRIPTION_ID)</string>
+	<key>AHOI_CLOUDKIT_ZONE_NAME</key>
+	<string>$(AHOI_CLOUDKIT_ZONE_NAME)</string>
 	<key>AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP</key>
 	<string>$(AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP)</string>
 	<key>AHOI_COMMAND_KEYCHAIN_ACCOUNT</key>
@@ -18,6 +22,16 @@
 	<string>$(AHOI_SYNC_KEYCHAIN_SERVICE)</string>
 	<key>AHOI_SYNC_KEY_VERSION</key>
 	<string>$(AHOI_SYNC_KEY_VERSION)</string>
+	<key>AhoiBuildMode</key>
+	<string>$(AHOI_BUILD_MODE)</string>
+	<key>AhoiCloudKitE2ERealMutationOptIn</key>
+	<string>$(AHOI_CLOUDKIT_E2E_REAL_MUTATION_OPT_IN)</string>
+	<key>AhoiCloudKitE2ERunToken</key>
+	<string>$(AHOI_CLOUDKIT_E2E_RUN_TOKEN)</string>
+	<key>AhoiOptimizationLevel</key>
+	<string>$(SWIFT_OPTIMIZATION_LEVEL)</string>
+	<key>AhoiSourceCommit</key>
+	<string>$(AHOI_SOURCE_COMMIT)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -50,19 +64,21 @@
 	<string>$(AHOI_MOBILE_BUILD_NUMBER)</string>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>AhoiBrowser asks only when a website you are using requests the camera.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>AhoiBrowser uses Face ID only when you choose to unlock private browsing.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>AhoiBrowser asks only when a website you are using requests your location.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>AhoiBrowser asks only when a website you are using requests the microphone.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>AhoiBrowser asks only when a website you are using requests motion sensors.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoadsInWebContent</key>
-		<true/>
-	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -70,12 +86,12 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>UIFileSharingEnabled</key>
-	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

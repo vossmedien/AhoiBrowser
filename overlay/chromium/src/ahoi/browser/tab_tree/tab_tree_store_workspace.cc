@@ -36,7 +36,8 @@ TabTreeStore::Result TabTreeStore::CreateWorkspace(const Workspace& workspace) {
   sql::Statement statement(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
-      "created_at,modified_at,tombstone) VALUES(?,?,?,?,?,?,?,?,?)"));
+      "created_at,modified_at,tombstone,archive_policy) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?)"));
   statement.BindInt(0, workspace.model_version);
   statement.BindString(1, workspace.id.AsLowercaseString());
   statement.BindString16(2, workspace.name);
@@ -50,6 +51,7 @@ TabTreeStore::Result TabTreeStore::CreateWorkspace(const Workspace& workspace) {
   statement.BindTime(6, workspace.created_at);
   statement.BindTime(7, workspace.modified_at);
   statement.BindBool(8, workspace.tombstone);
+  statement.BindInt(9, static_cast<int>(workspace.archive_policy));
   if (!statement.Run() || !transaction.Commit()) {
     return Result::kDatabaseError;
   }
@@ -137,7 +139,8 @@ TabTreeStore::Result TabTreeStore::DeleteWorkspace(
     if (!node_id.is_valid()) {
       return Result::kDatabaseError;
     }
-    deleted_node_ids.push_back(node_id);
+    if (!IsNodeArchived(node_id))
+      deleted_node_ids.push_back(node_id);
   }
   if (!node_ids.Succeeded()) {
     return Result::kDatabaseError;
@@ -149,17 +152,19 @@ TabTreeStore::Result TabTreeStore::DeleteWorkspace(
   }
   sql::Statement nodes(db_.GetCachedStatement(
       SQL_FROM_HERE,
-      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE workspace_id=? "
+      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE id=? "
       "AND tombstone=0"));
-  nodes.BindTime(0, modified_at);
-  nodes.BindString(1, workspace_id.AsLowercaseString());
-  if (!nodes.Run()) {
-    return Result::kDatabaseError;
+  for (const auto& node_id : deleted_node_ids) {
+    nodes.Reset(true);
+    nodes.BindTime(0, modified_at);
+    nodes.BindString(1, node_id.AsLowercaseString());
+    if (!nodes.Run() || db_.GetLastChangeCount() != 1)
+      return Result::kDatabaseError;
   }
   sql::Statement workspace_row(db_.GetCachedStatement(
       SQL_FROM_HERE,
-      "UPDATE workspaces SET tombstone=1,modified_at=? WHERE id=? AND "
-      "tombstone=0"));
+      "UPDATE workspaces SET tombstone=1,merged_into=NULL,modified_at=? "
+      "WHERE id=? AND tombstone=0"));
   workspace_row.BindTime(0, modified_at);
   workspace_row.BindString(1, workspace_id.AsLowercaseString());
   if (!workspace_row.Run() || db_.GetLastChangeCount() != 1 ||

@@ -3,15 +3,19 @@
 
 #include <algorithm>
 #include <optional>
+#include <set>
 #include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/session_prefs.h"
+#include "ahoi/browser/session/website_session_context.h"
 #include "ahoi/browser/session/workspace_session_metadata.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
+#include "base/logging.h"
 #include "base/task/sequenced_task_runner.h"
 #include "chrome/browser/sessions/session_service.h"
 #include "chrome/browser/sessions/session_service_factory.h"
@@ -43,11 +47,15 @@ SessionBridge::GetWindowSessionMetadata(
     const BrowserWindowInterface* browser) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (shutting_down_ || !browser) {
+    VLOG(1) << "Ahoi window metadata: none (shutting_down=" << shutting_down_
+            << ")";
     return std::nullopt;
   }
   for (const PendingWindowSessionMetadata& pending :
        pending_window_session_metadata_) {
     if (pending.browser.get() == browser) {
+      VLOG(1) << "Ahoi window metadata: pending "
+              << pending.metadata.active_workspace_id.AsLowercaseString();
       return pending.metadata;
     }
   }
@@ -55,6 +63,9 @@ SessionBridge::GetWindowSessionMetadata(
   const std::optional<base::Uuid> workspace_id =
       GetActiveWorkspaceForWindow(browser);
   if (!workspace_id.has_value() || !WorkspaceExists(*workspace_id)) {
+    VLOG(1) << "Ahoi window metadata: none (tracked="
+            << windows_.contains(const_cast<BrowserWindowInterface*>(browser))
+            << " workspace=" << workspace_id.has_value() << ")";
     return std::nullopt;
   }
   return session::WindowSessionMetadata{.active_workspace_id = *workspace_id};
@@ -81,6 +92,9 @@ std::optional<session::TabSessionMetadata> SessionBridge::GetTabSessionMetadata(
   }
 
   const RuntimeTabState& runtime = runtime_it->second;
+  const std::optional<session::WebsiteSessionBinding> website_binding =
+      session::WebsiteSessionBindingForWebContents(
+          profile_, tab->GetContents());
   bool last_active = false;
   auto browser_it = model_windows_.find(runtime.tab_strip_model);
   if (browser_it != model_windows_.end()) {
@@ -99,9 +113,62 @@ std::optional<session::TabSessionMetadata> SessionBridge::GetTabSessionMetadata(
       // Runtime node bindings are admitted only by BindTreeNodeToTab and are
       // synchronously cleared by the tree observer. Avoid a SQLite read here:
       // selection changes can run inside Chromium's tab mutation scope.
-      .tree_node_id = runtime.node_id,
+      .tree_node_id = runtime.shared_binding_invalidated ? std::nullopt
+                      : runtime.node_id                  ? runtime.node_id
+                      : runtime.pending_node_id.is_valid()
+                          ? std::make_optional(runtime.pending_node_id)
+                          : std::nullopt,
       .last_active_in_workspace = last_active,
+      .shared_binding_invalidated = runtime.shared_binding_invalidated,
+      .website_session_context_id =
+          website_binding && !website_binding->is_default()
+              ? std::make_optional(website_binding->context_id)
+              : std::nullopt,
   };
+}
+
+std::optional<session::WebsiteSessionBinding>
+SessionBridge::GetWebsiteSessionBindingForWindow(
+    const BrowserWindowInterface* browser) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (shutting_down_ || !ShouldTrackBrowser(browser)) {
+    return std::nullopt;
+  }
+  if (!tab_tree_ready_) {
+    // Session restore itself supplies the tab's persisted local context. Tabs
+    // created before the asynchronous tree load retain legacy/default state.
+    return session::WebsiteSessionBinding();
+  }
+  if (!session::ShouldUseWorkspaceWebsiteSessions(profile_->GetPrefs())) {
+    return session::WebsiteSessionBinding();
+  }
+  const std::optional<base::Uuid> workspace_id =
+      GetActiveWorkspaceForWindow(browser);
+  if (!workspace_id.has_value() || !WorkspaceExists(*workspace_id)) {
+    return std::nullopt;
+  }
+  return session::GetOrCreateWebsiteSessionBinding(profile_->GetPrefs(),
+                                                   *workspace_id);
+}
+
+std::optional<bool> SessionBridge::IsTabInActiveWorkspace(
+    const BrowserWindowInterface* browser,
+    const tabs::TabInterface* tab) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (shutting_down_ || !tab_tree_ready_ || !ShouldTrackBrowser(browser)) {
+    return std::nullopt;
+  }
+  const std::optional<base::Uuid> active_workspace =
+      GetActiveWorkspaceForWindow(browser);
+  if (!active_workspace.has_value()) {
+    return std::nullopt;
+  }
+  if (!tab || tab->GetBrowserWindowInterface() != browser) {
+    return false;
+  }
+  auto runtime = runtime_tabs_.find(const_cast<tabs::TabInterface*>(tab));
+  return runtime != runtime_tabs_.end() &&
+         runtime->second.workspace_id == active_workspace;
 }
 
 tabs::TabInterface* SessionBridge::GetLastActiveTabForWorkspace(
@@ -126,6 +193,11 @@ bool SessionBridge::RestoreWindowSessionMetadata(
     BrowserWindowInterface* browser,
     const session::WindowSessionMetadata& metadata) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  VLOG(1) << "Ahoi restore window metadata: workspace="
+          << metadata.active_workspace_id.AsLowercaseString()
+          << " valid=" << metadata.active_workspace_id.is_valid()
+          << " trackable=" << ShouldTrackBrowser(browser)
+          << " tree_ready=" << tab_tree_ready_;
   if (shutting_down_ || !metadata.active_workspace_id.is_valid() ||
       !ShouldTrackBrowser(browser)) {
     return false;
@@ -186,16 +258,19 @@ void SessionBridge::ApplyPendingSessionMetadata() {
   std::vector<PendingTabSessionMetadata> pending_tabs;
   pending_windows.swap(pending_window_session_metadata_);
   pending_tabs.swap(pending_tab_session_metadata_);
-  for (const PendingWindowSessionMetadata& pending : pending_windows) {
-    if (pending.browser) {
-      std::ignore = ApplyWindowSessionMetadataNow(pending.browser.get(),
-                                                  pending.metadata);
-    }
-  }
+  // Handoff 011 S4: tabs first. Switching a window's Workspace makes the
+  // sidebar align its surface; by then every restored tab must already carry
+  // its own Workspace and last-active flag.
   for (const PendingTabSessionMetadata& pending : pending_tabs) {
     if (pending.tab) {
       std::ignore =
           ApplyTabSessionMetadataNow(pending.tab.get(), pending.metadata);
+    }
+  }
+  for (const PendingWindowSessionMetadata& pending : pending_windows) {
+    if (pending.browser) {
+      std::ignore = ApplyWindowSessionMetadataNow(pending.browser.get(),
+                                                  pending.metadata);
     }
   }
 }
@@ -217,9 +292,15 @@ bool SessionBridge::ApplyWindowSessionMetadataNow(
   const std::optional<base::Uuid> resolved =
       session::ResolveWorkspaceForRestore(metadata.active_workspace_id,
                                           workspace_ids);
-  if (!resolved.has_value() || !workspace_service_->SetActiveWorkspace(
-                                   window_it->second.window_id, *resolved,
-                                   WorkspaceActivationSource::kRestore)) {
+  const bool applied =
+      resolved.has_value() &&
+      workspace_service_->SetActiveWorkspace(
+          window_it->second.window_id, *resolved,
+          WorkspaceActivationSource::kRestore);
+  VLOG(1) << "Ahoi apply window metadata: resolved="
+          << (resolved ? resolved->AsLowercaseString() : std::string("none"))
+          << " applied=" << applied;
+  if (!applied) {
     return false;
   }
   PersistWindowSessionMetadata(browser);
@@ -258,20 +339,30 @@ bool SessionBridge::ApplyTabSessionMetadataNow(
   }
   RemoveTabFromLastActiveState(tab);
   runtime.workspace_id = *resolved;
-  runtime.restored_session_metadata_applied = true;
+  runtime.shared_binding_invalidated = metadata.shared_binding_invalidated;
 
   bool restored_node = false;
-  if (metadata.tree_node_id.has_value() && tab_tree_store_) {
+  if (!runtime.shared_binding_invalidated &&
+      metadata.tree_node_id.has_value() && tab_tree_store_) {
     tab_tree::TreeNode node;
-    if (tab_tree_store_->GetNode(*metadata.tree_node_id, &node) ==
-            tab_tree::TabTreeStore::Result::kOk &&
+    const auto found = tab_tree_store_->GetNode(*metadata.tree_node_id, &node);
+    if (found == tab_tree::TabTreeStore::Result::kNotFound) {
+      // Session metadata can win the race with the deferred first tree write.
+      // Reuse its exact reservation, never URL-deduplicate a different page.
+      runtime.pending_node_id = *metadata.tree_node_id;
+    }
+    if (found == tab_tree::TabTreeStore::Result::kOk &&
         node.workspace_id == *resolved) {
       restored_node = BindTreeNodeToTab(node, tab);
     }
   }
   if (!restored_node) {
     runtime.node_id.reset();
+    runtime.is_temporary = true;
     runtime.workspace_id = *resolved;
+    if (!runtime.shared_binding_invalidated) {
+      ScheduleTreeNodeBinding(tab);
+    }
   }
 
   RestoreLastActiveTabFlag(tab, metadata.last_active_in_workspace);
@@ -359,13 +450,86 @@ void SessionBridge::UpdateLastActiveTab(TabStripModel* model,
     return;
   }
   auto runtime_it = runtime_tabs_.find(tab);
+  const std::string url = tab->GetContents()
+                              ? tab->GetContents()->GetVisibleURL().spec()
+                              : std::string();
   if (runtime_it == runtime_tabs_.end() ||
       runtime_it->second.tab_strip_model != model ||
       !runtime_it->second.workspace_id.has_value()) {
+    VLOG(1) << "Ahoi last-used record skipped: url=" << url << " tracked="
+            << (runtime_it != runtime_tabs_.end()) << " has_workspace="
+            << (runtime_it != runtime_tabs_.end() &&
+                runtime_it->second.workspace_id.has_value());
     return;
   }
+  VLOG(1) << "Ahoi last-used record: index " << model->GetIndexOfTab(tab)
+          << " url=" << url;
   RestoreLastActiveTabFlag(tab, /*last_active=*/true);
+  if (auto window = model_windows_.find(model); window != model_windows_.end()) {
+    if (auto state = windows_.find(window->second); state != windows_.end()) {
+      state->second.mru.RecordActivation(tab->GetHandle().raw_value());
+    }
+  }
   PersistTabSessionMetadata(tab);
+}
+
+bool SessionBridge::ActivateLastUsedTab(BrowserWindowInterface* browser) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (shutting_down_ || !tab_tree_ready_ || !browser) {
+    return false;
+  }
+  const auto window = windows_.find(browser);
+  const std::optional<base::Uuid> workspace =
+      GetActiveWorkspaceForWindow(browser);
+  TabStripModel* model = browser->GetTabStripModel();
+  if (window == windows_.end() || !workspace || !model ||
+      window->second.tab_strip_model != model) {
+    VLOG(1) << "Ahoi last-used tab: window not tracked (window="
+            << (window != windows_.end()) << " workspace=" << workspace.has_value()
+            << ")";
+    return false;
+  }
+  // Tabs of this window in its active Workspace; everything else (other
+  // Workspaces, closed or moved tabs) is never a target.
+  std::set<int32_t> eligible;
+  for (int i = 0; i < model->count(); ++i) {
+    tabs::TabInterface* tab = model->GetTabAtIndex(i);
+    auto runtime = runtime_tabs_.find(tab);
+    VLOG(1) << "Ahoi last-used tab: index " << i << " tracked="
+            << (runtime != runtime_tabs_.end()) << " same_model="
+            << (runtime != runtime_tabs_.end() &&
+                runtime->second.tab_strip_model == model)
+            << " workspace="
+            << (runtime != runtime_tabs_.end() &&
+                        runtime->second.workspace_id.has_value()
+                    ? runtime->second.workspace_id->AsLowercaseString()
+                    : std::string("none"))
+            << " active=" << workspace->AsLowercaseString();
+    if (runtime != runtime_tabs_.end() &&
+        runtime->second.tab_strip_model == model &&
+        runtime->second.workspace_id == workspace) {
+      eligible.insert(tab->GetHandle().raw_value());
+    }
+  }
+  tabs::TabInterface* current = model->GetActiveTab();
+  const std::optional<int32_t> target = window->second.mru.LastUsedBefore(
+      current ? current->GetHandle().raw_value() : 0,
+      [&eligible](int32_t id) { return eligible.contains(id); });
+  VLOG(1) << "Ahoi last-used tab: mru=" << window->second.mru.size()
+          << " eligible=" << eligible.size() << " target=" << target.has_value();
+  if (!target) {
+    return false;
+  }
+  tabs::TabInterface* target_tab = tabs::TabHandle(*target).Get();
+  const int target_index = model->GetIndexOfTab(target_tab);
+  VLOG(1) << "Ahoi last-used tab: activate index " << target_index << " from "
+          << model->active_index() << " url="
+          << (target_tab && target_tab->GetContents()
+                  ? target_tab->GetContents()->GetVisibleURL().spec()
+                  : std::string("none"));
+  model->ActivateTabAt(target_index);
+  VLOG(1) << "Ahoi last-used tab: active index now " << model->active_index();
+  return true;
 }
 
 void SessionBridge::PersistWindowSessionMetadata(
@@ -382,6 +546,11 @@ void SessionBridge::PersistWindowSessionMetadata(
       metadata.has_value() ? session::EncodeWindowSessionMetadata(*metadata)
                            : std::nullopt;
   const SessionID window_id = browser->GetSessionID();
+  VLOG(1) << "Ahoi persist window metadata: workspace="
+          << (metadata ? metadata->active_workspace_id.AsLowercaseString()
+                       : std::string("none"))
+          << " service=" << (session_service != nullptr)
+          << " window_id_valid=" << window_id.is_valid();
   if (!session_service || !serialized.has_value() || !window_id.is_valid()) {
     return;
   }

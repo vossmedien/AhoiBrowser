@@ -1,0 +1,356 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-08-30T19:54:30+02:00",
+  "candidate": {
+    "id": "0.1-1-4113c14-debuglocal",
+    "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+    "sourceDirty": false,
+    "configuration": "DebugLocal",
+    "bundleId": "app.ahoibrowser.AhoiBrowser",
+    "teamId": "248AJ5BN47",
+    "marketingVersion": "0.1",
+    "buildNumber": "1"
+  },
+  "claimedStages": [
+    "SOURCE_COMPLETE",
+    "LOCAL_BUILD_PASS",
+    "UNIT_PASS",
+    "SIMULATOR_VISIBLE",
+    "DEVICE_VISIBLE"
+  ],
+  "builds": [
+    {
+      "kind": "simulator",
+      "status": "PASS",
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "destination": "platform=iOS Simulator,id=15C1EB97-A65C-4D93-842D-AB889339BE8D",
+      "receipt": {
+        "path": "build-iphone-simulator.log",
+        "sha256": "84a1df989a36992e7212ec1548eab583746a3bb4cec60f99154ec010b4f83f0d"
+      },
+      "startedAt": "2026-08-30T19:09:26+02:00",
+      "completedAt": "2026-08-30T19:09:50+02:00",
+      "expectedResult": "The exact DebugLocal candidate builds for the named iPhone simulator",
+      "actualResult": "PASS: xcodebuild build-for-testing completed with BUILD SUCCEEDED"
+    },
+    {
+      "kind": "device",
+      "status": "PASS",
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "destination": "platform=iOS,id=00008140-0014294E0A90801C",
+      "receipt": {
+        "path": "build-iphone-device.log",
+        "sha256": "3f8709b15a9dc24fd3c151da1b2ef2d74892c6609bf16ff93f74a10ad8c9ddfb"
+      },
+      "startedAt": "2026-08-30T19:19:15+02:00",
+      "completedAt": "2026-08-30T19:22:34+02:00",
+      "expectedResult": "The exact DebugLocal candidate builds and signs for the connected iPhone",
+      "actualResult": "PASS: xcodebuild build-for-testing completed with Apple Development signing"
+    },
+    {
+      "kind": "simulator",
+      "status": "PASS",
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "destination": "platform=iOS Simulator,id=712F0CD5-D7F9-4B4B-8254-CFBCA4D138F9",
+      "receipt": {
+        "path": "build-ipad-simulator.log",
+        "sha256": "4eaba389b03231e1aaffada43626e4bc885975f73a121a0e3b762beb0ce0a69f"
+      },
+      "startedAt": "2026-08-30T19:28:19+02:00",
+      "completedAt": "2026-08-30T19:29:41+02:00",
+      "expectedResult": "The exact DebugLocal candidate builds for the named iPad simulator",
+      "actualResult": "PASS: xcodebuild build-for-testing completed with BUILD SUCCEEDED"
+    }
+  ],
+  "xcresults": [
+    {
+      "kind": "unit",
+      "resultBundle": {
+        "path": "unit-core.xcresult",
+        "sha256": "5e9f3de2f19f717c779f88a8f4e1f22424177a78224db5d7d189f86c92f646ee"
+      },
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "device": {
+        "identifier": "15C1EB97-A65C-4D93-842D-AB889339BE8D",
+        "model": "iPhone 17 Pro",
+        "platform": "iOS Simulator",
+        "osVersion": "26.5",
+        "osBuild": "23F77",
+        "physical": false
+      },
+      "startedAt": "2026-08-30T19:47:22+02:00",
+      "completedAt": "2026-08-30T19:47:37+02:00",
+      "expectedResult": "The complete AhoiMobileCoreTests suite passes on the exact candidate",
+      "actualResult": "PASS: 111 passed, 0 failed, and 2 entitlement-dependent tests skipped"
+    },
+    {
+      "kind": "ui",
+      "resultBundle": {
+        "path": "ui-iphone-simulator.xcresult",
+        "sha256": "3f21099750c9e0e959d3e543b26a7225d3ee8c2e1f8b6c4808a3aa20ac9b06d8"
+      },
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "device": {
+        "identifier": "15C1EB97-A65C-4D93-842D-AB889339BE8D",
+        "model": "iPhone 17 Pro",
+        "platform": "iOS Simulator",
+        "osVersion": "26.5",
+        "osBuild": "23F77",
+        "physical": false
+      },
+      "startedAt": "2026-08-30T19:14:30+02:00",
+      "completedAt": "2026-08-30T19:17:38+02:00",
+      "expectedResult": "The selected iPhone simulator journeys pass visibly on the exact candidate",
+      "actualResult": "PASS: 8 passed, 0 failed, and 0 skipped"
+    },
+    {
+      "kind": "ui",
+      "resultBundle": {
+        "path": "ui-iphone-simulator-additional.xcresult",
+        "sha256": "3d31a669893d0e50deb8772c55c5aeee3aabe06d539af8be3d1686cf86720d85"
+      },
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "device": {
+        "identifier": "15C1EB97-A65C-4D93-842D-AB889339BE8D",
+        "model": "iPhone 17 Pro",
+        "platform": "iOS Simulator",
+        "osVersion": "26.5",
+        "osBuild": "23F77",
+        "physical": false
+      },
+      "startedAt": "2026-08-30T19:57:06+02:00",
+      "completedAt": "2026-08-30T19:58:36+02:00",
+      "expectedResult": "The remaining unsafe-scheme, offline-recovery, and private-projection journeys pass visibly on the exact candidate",
+      "actualResult": "PASS: 3 passed, 0 failed, and 0 skipped"
+    },
+    {
+      "kind": "ui",
+      "resultBundle": {
+        "path": "ui-iphone-device.xcresult",
+        "sha256": "23e8dd923614a3c84287711a687dc76583ef02455d773b4d9d273dea4923dcff"
+      },
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "device": {
+        "identifier": "00008140-0014294E0A90801C",
+        "model": "iPhone 16 Pro Max",
+        "platform": "iOS",
+        "osVersion": "26.6",
+        "osBuild": "23G71",
+        "physical": true
+      },
+      "startedAt": "2026-08-30T19:23:02+02:00",
+      "completedAt": "2026-08-30T19:27:43+02:00",
+      "expectedResult": "The selected physical iPhone journeys pass visibly on the exact candidate",
+      "actualResult": "PASS: 7 passed, 0 failed, and 0 skipped"
+    },
+    {
+      "kind": "ui",
+      "resultBundle": {
+        "path": "ui-ipad-simulator.xcresult",
+        "sha256": "758a4c01f429a032fbc130089a43bcccb0f771ccad0939245503f8a4531a52ba"
+      },
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "device": {
+        "identifier": "712F0CD5-D7F9-4B4B-8254-CFBCA4D138F9",
+        "model": "iPad Pro 13-inch (M5) (16GB)",
+        "platform": "iOS Simulator",
+        "osVersion": "26.5",
+        "osBuild": "23F77",
+        "physical": false
+      },
+      "startedAt": "2026-08-30T19:34:03+02:00",
+      "completedAt": "2026-08-30T19:35:47+02:00",
+      "expectedResult": "The selected iPad simulator journeys pass visibly on the exact candidate",
+      "actualResult": "PASS: 3 passed, 0 failed, and 0 skipped"
+    }
+  ],
+  "executions": [
+    {
+      "kind": "simulator-visible",
+      "status": "PASS",
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "device": {
+        "identifier": "15C1EB97-A65C-4D93-842D-AB889339BE8D",
+        "model": "iPhone 17 Pro",
+        "platform": "iOS Simulator",
+        "osVersion": "26.5",
+        "osBuild": "23F77",
+        "physical": false
+      },
+      "installationSource": "local-simulator",
+      "testIds": [
+        "AhoiMobileUITests/AhoiMobileUITests/testLocalFixtureAndPrivateTabLifecycle",
+        "AhoiMobileUITests/AhoiMobileUITests/testDebugLocalSyncOptInStaysLocalAndFailClosed",
+        "AhoiMobileUITests/AhoiMobileUITests/testDeviceRevocationConfirmsScopeAndRemovesRemoteTarget",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testHarborDeckTracksNestedScrollerAndRestoresOnReverseScroll",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testInteractiveWebPresentationsExpandCollapsedHarborDeck",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testReduceMotionSystemSettingAndHarborDeckJourney",
+        "AhoiMobileUITests/AhoiMobileUITests/testUnsafeSchemeIsExplainedAndRejected",
+        "AhoiMobileUITests/AhoiMobileUITests/testOfflineFailureExplainsAndOffersRetry",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testPrivateFocusVoyageDoesNotExposeNormalJourneySections"
+      ],
+      "evidence": [
+        {
+          "path": "ui-iphone-simulator.xcresult",
+          "sha256": "3f21099750c9e0e959d3e543b26a7225d3ee8c2e1f8b6c4808a3aa20ac9b06d8"
+        },
+        {
+          "path": "ui-iphone-simulator.log",
+          "sha256": "aa4c9ff675077b41002936b4111b0d324f436329c1ca79c9e8480645640843e9"
+        },
+        {
+          "path": "ui-iphone-simulator-additional.xcresult",
+          "sha256": "3d31a669893d0e50deb8772c55c5aeee3aabe06d539af8be3d1686cf86720d85"
+        },
+        {
+          "path": "ui-iphone-simulator-additional.log",
+          "sha256": "3dadbec014ddd3d5b938a04a5d32fd3db876b48939cfa29cf957f82444c585df"
+        },
+        {
+          "path": "visible-iphone-simulator.png",
+          "sha256": "0d90fea4aeec822ab4d6d36a8bece6c44491259a0115e30f0ca053a905553492"
+        }
+      ],
+      "startedAt": "2026-08-30T19:14:30+02:00",
+      "completedAt": "2026-08-30T19:58:36+02:00",
+      "expectedResult": "The iPhone browser, sync fail-closed state, private lifecycle, Harbor motion, and presentation recovery are visibly usable",
+      "actualResult": "PASS: all 11 selected visible journeys passed across two exact-candidate result bundles"
+    },
+    {
+      "kind": "simulator-visible",
+      "status": "PASS",
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "device": {
+        "identifier": "712F0CD5-D7F9-4B4B-8254-CFBCA4D138F9",
+        "model": "iPad Pro 13-inch (M5) (16GB)",
+        "platform": "iOS Simulator",
+        "osVersion": "26.5",
+        "osBuild": "23F77",
+        "physical": false
+      },
+      "installationSource": "local-simulator",
+      "testIds": [
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testWorkspaceCanvasExposesPersistentCommandSidebarOnIPad"
+      ],
+      "evidence": [
+        {
+          "path": "ui-ipad-simulator.xcresult",
+          "sha256": "758a4c01f429a032fbc130089a43bcccb0f771ccad0939245503f8a4531a52ba"
+        },
+        {
+          "path": "ui-ipad-simulator.log",
+          "sha256": "02ea7d66f022f5630fd080d0969c570963e5bd79d14e88ad0c8963eaa8e235d2"
+        }
+      ],
+      "startedAt": "2026-08-30T19:34:03+02:00",
+      "completedAt": "2026-08-30T19:35:47+02:00",
+      "expectedResult": "Focus Voyage, Harbor Deck, and persistent Workspace Canvas remain visible and usable on iPad",
+      "actualResult": "PASS: all 3 selected visible iPad simulator journeys passed"
+    },
+    {
+      "kind": "device-visible",
+      "status": "PASS",
+      "sourceCommit": "4113c14c1e0d21061a1c5927e25ab55663d547a7",
+      "bundleId": "app.ahoibrowser.AhoiBrowser",
+      "teamId": "248AJ5BN47",
+      "marketingVersion": "0.1",
+      "buildNumber": "1",
+      "configuration": "DebugLocal",
+      "device": {
+        "identifier": "00008140-0014294E0A90801C",
+        "model": "iPhone 16 Pro Max",
+        "platform": "iOS",
+        "osVersion": "26.6",
+        "osBuild": "23G71",
+        "physical": true
+      },
+      "installationSource": "local-development",
+      "testIds": [
+        "AhoiMobileUITests/AhoiMobileUITests/testLocalFixtureAndPrivateTabLifecycle",
+        "AhoiMobileUITests/AhoiMobileUITests/testDebugLocalSyncOptInStaysLocalAndFailClosed",
+        "AhoiMobileUITests/AhoiMobileUITests/testDeviceRevocationConfirmsScopeAndRemovesRemoteTarget",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testFocusVoyageAndHarborDeckKeepAllCoreControlsReachable",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testHarborDeckCollapsesOnPageScrollAndRestoresOnReverseScroll",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testHarborDeckTracksNestedScrollerAndRestoresOnReverseScroll",
+        "AhoiMobileUITests/MobileBrowserLayoutUITests/testInteractiveWebPresentationsExpandCollapsedHarborDeck",
+        "devicectl/device/process/launch/payload-url"
+      ],
+      "evidence": [
+        {
+          "path": "ui-iphone-device.xcresult",
+          "sha256": "23e8dd923614a3c84287711a687dc76583ef02455d773b4d9d273dea4923dcff"
+        },
+        {
+          "path": "ui-iphone-device.log",
+          "sha256": "0ade915bd753b76ea17f1f84c1cc3a7bec6195516b1fbfd902cf6fe6bbc0539b"
+        },
+        {
+          "path": "external-url-device-launch.json",
+          "sha256": "8ccbea8bed4eb78507d513c3debdd0f267969e98f826b996289b53d88314fd00"
+        }
+      ],
+      "startedAt": "2026-08-30T19:23:02+02:00",
+      "completedAt": "2026-08-30T19:36:25+02:00",
+      "expectedResult": "The selected browser, sync fail-closed, private, Harbor, and presentation journeys pass on the connected iPhone and an OS URL payload launches the app",
+      "actualResult": "PASS: 7 visible UI journeys passed and devicectl launched the candidate with an HTTPS payload; duplicate-tab count remains covered only by the deterministic core regression"
+    }
+  ],
+  "archive": null,
+  "appStoreConnect": null,
+  "testFlightInstallations": [],
+  "defaultBrowser": null
+}

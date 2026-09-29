@@ -27,7 +27,8 @@ let package = Package(
             dependencies: [
                 .product(name: "AhoiCloudKitSpike", package: "cloudkit")
             ],
-            resources: [.process("Resources")]
+            // The spike extension is an unpacked folder: copy it as is.
+            resources: [.process("Resources"), .copy("WebExtensionSpike")]
         ),
         .executableTarget(
             name: "AhoiMobileApp",

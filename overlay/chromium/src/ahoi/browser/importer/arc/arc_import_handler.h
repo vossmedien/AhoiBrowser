@@ -24,6 +24,7 @@ class ArcImportHandler : public content::WebUIMessageHandler {
 
  private:
   void HandleDiscover(const base::ListValue& args);
+  void HandleRecover(const base::ListValue& args);
   void HandleCommit(const base::ListValue& args);
   void ResolvePreview(base::Value callback_id, ArcImportPreview preview);
   void ResolveCommit(base::Value callback_id, ArcImportCommitResult result);

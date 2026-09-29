@@ -1,0 +1,148 @@
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/SeparatedWorkspaceSync.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/SeparatedWorkspaceSync.swift
+index f0ebe9d..09d059b 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/SeparatedWorkspaceSync.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/SeparatedWorkspaceSync.swift
+@@ -257,8 +257,9 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
+         } catch {
+             return false
+         }
+-        // An unknown account keeps the account-agnostic behavior; it never
+-        // turns a listing into a retirement of another account's Workspaces.
++        // An unknown current account (lookup failed or no account) retires
++        // nothing: only a listing of a Workspace's own, known account can
++        // delete its logins (handoff 026).
+         let account = try? await lister.currentAccountIdentifier()
+         await applyDiscoveredZoneNames(zoneNames, accountIdentifier: account ?? nil)
+         return true
+@@ -272,6 +273,13 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
+     /// whenever it succeeds, so a missing zone in a successful listing of the
+     /// Workspace's own account means the zone was deleted (tombstone retention
+     /// on the Mac). Listings of another account pause instead (M1).
++    ///
++    /// Handoff 026: a missing zone retires its Workspace only when both the
++    /// listing's account and the Workspace's recorded owner are known and
++    /// equal. Without a known account the listing decides nothing for missing
++    /// zones; a Workspace without a recorded owner (created before 024 M1) or
++    /// of another owner is paused, never retired. A tombstone in the
++    /// Workspace's own zone still retires it (`syncEnabledWorkspaces`).
+     public func applyDiscoveredZoneNames(
+         _ zoneNames: [String], accountIdentifier account: String? = nil
+     ) async {
+@@ -282,10 +290,11 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
+         currentAccountIdentifier = account
+         for id in records.keys.sorted(by: { $0.uuidString < $1.uuidString })
+             where !discovered.contains(id) {
+-            if let account, let owner = records[id]?.accountIdentifier, owner != account {
+-                await pauseForOtherAccount(id)
+-            } else {
++            guard let account else { continue }
++            if records[id]?.accountIdentifier == account {
+                 await retire(id, reason: .zoneRemoved)
++            } else {
++                await pauseForOtherAccount(id)
+             }
+         }
+         for id in discovered {
+diff --git a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SeparatedWorkspaceSyncTests.swift b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SeparatedWorkspaceSyncTests.swift
+index 5874627..a5c0bac 100644
+--- a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SeparatedWorkspaceSyncTests.swift
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/SeparatedWorkspaceSyncTests.swift
+@@ -192,7 +192,7 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
+         let harness = Harness()
+         await harness.coordinator.applyDiscoveredZoneNames([
+             harness.zone(harness.workspaceA), harness.zone(harness.workspaceB),
+-        ])
++        ], accountIdentifier: "_me")
+         XCTAssertEqual(harness.coordinator.entries.count, 2)
+ 
+         let failing = FakeZoneLister([])
+@@ -203,7 +203,8 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
+         XCTAssertTrue(harness.removedStores.isEmpty)
+ 
+         await harness.coordinator.refreshDiscovery(
+-            using: FakeZoneLister(["AhoiBrowserSyncV3", harness.zone(harness.workspaceB)])
++            using: FakeZoneLister(["AhoiBrowserSyncV3", harness.zone(harness.workspaceB)],
++                                  account: "_me")
+         )
+         XCTAssertEqual(harness.coordinator.entries.map(\.workspaceID), [harness.workspaceB])
+         XCTAssertEqual(harness.removedStores, [harness.workspaceA])
+@@ -248,6 +249,46 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
+         XCTAssertEqual(harness.coordinator.retirements[harness.workspaceA], .zoneRemoved)
+     }
+ 
++    /// Handoff 026 (1): the zone listing succeeds but the account lookup
++    /// fails, e.g. right after an account transition. Nothing is retired.
++    @MainActor
++    func testUnknownCurrentAccountNeverRetires() async {
++        let harness = Harness()
++        let both = [harness.zone(harness.workspaceA), harness.zone(harness.workspaceB)]
++        await harness.coordinator.refreshDiscovery(using: FakeZoneLister(both, account: "_me"))
++        let lister = FakeZoneLister(["AhoiBrowserSyncV3", harness.zone(harness.workspaceB)])
++        lister.accountError = CloudKitSyncProviderError.unavailable
++        let refreshed = await harness.coordinator.refreshDiscovery(using: lister)
++        XCTAssertTrue(refreshed)
++        XCTAssertEqual(harness.coordinator.entries.count, 2)
++        XCTAssertTrue(harness.removedStores.isEmpty, "An unknown account deletes no login.")
++        XCTAssertTrue(harness.removedLocalData.isEmpty)
++        XCTAssertTrue(harness.coordinator.retirements.isEmpty)
++    }
++
++    /// Handoff 026 (2): a Workspace recorded before the account binding has
++    /// no owner. A listing of a known account without its zone pauses it; a
++    /// later listing that contains it binds and resumes it.
++    @MainActor
++    func testOwnerlessWorkspaceIsPausedNotRetired() async {
++        let harness = Harness()
++        await harness.coordinator.applyDiscoveredZoneNames([harness.zone(harness.workspaceA)])
++        XCTAssertNil(harness.stateStore.load().first?.accountIdentifier)
++
++        await harness.coordinator.refreshDiscovery(
++            using: FakeZoneLister(["AhoiBrowserSyncV3"], account: "_other")
++        )
++        XCTAssertTrue(harness.removedStores.isEmpty)
++        XCTAssertTrue(harness.coordinator.retirements.isEmpty)
++        XCTAssertEqual(harness.coordinator.entries.map(\.state), [.otherAccount])
++
++        await harness.coordinator.refreshDiscovery(using: FakeZoneLister(
++            [harness.zone(harness.workspaceA)], account: "_me"
++        ))
++        XCTAssertEqual(harness.stateStore.load().first?.accountIdentifier, "_me")
++        XCTAssertNotEqual(harness.coordinator.entries.first?.state, .otherAccount)
++    }
++
+     @MainActor
+     func testUnconfiguredCoordinatorListsNothing() async {
+         let coordinator = SeparatedWorkspaceSyncCoordinator()
+@@ -432,9 +473,10 @@ final class SeparatedWorkspaceSyncTests: XCTestCase {
+     @MainActor
+     func testFailedDataStoreRemovalStaysPendingAndRetries() async {
+         let harness = Harness()
+-        await harness.coordinator.applyDiscoveredZoneNames([harness.zone(harness.workspaceA)])
++        await harness.coordinator.applyDiscoveredZoneNames(
++            [harness.zone(harness.workspaceA)], accountIdentifier: "_me")
+         harness.removalError = CocoaError(.fileWriteUnknown)
+-        await harness.coordinator.applyDiscoveredZoneNames([])
++        await harness.coordinator.applyDiscoveredZoneNames([], accountIdentifier: "_me")
+         XCTAssertTrue(harness.coordinator.entries.isEmpty, "A retiring Workspace is not listed.")
+         XCTAssertTrue(harness.dataStores.separatedWorkspaceIDs.contains(harness.workspaceA),
+                       "Fail closed: pages keep the dedicated store until it is removed.")
+@@ -535,6 +577,7 @@ private final class FakeZoneLister: CloudKitRecordZoneListing, @unchecked Sendab
+     var names: [String]
+     var account: String?
+     var error: Error?
++    var accountError: Error?
+     init(_ names: [String], account: String? = nil) {
+         self.names = names
+         self.account = account
+@@ -543,7 +586,10 @@ private final class FakeZoneLister: CloudKitRecordZoneListing, @unchecked Sendab
+         if let error { throw error }
+         return names
+     }
+-    func currentAccountIdentifier() async throws -> String? { account }
++    func currentAccountIdentifier() async throws -> String? {
++        if let accountError { throw accountError }
++        return account
++    }
+ }
+ 
+ @MainActor

@@ -1,0 +1,22 @@
+--- a/.work/agent-queue/chain.sh
++++ b/.work/agent-queue/chain.sh
+@@ -29,10 +29,18 @@
+ ./scripts/build-ahoi.sh dev $TESTS > "$D/build.log" 2>&1; rc=$?; progress "build $rc"
+ [ $rc = 0 ] || { rm -f "$L/build.lock"; exit 1; }
+ O="$R/.work/chromium/src/out/AhoiDev"; mkdir -p "$D/unittests"
++unit_failures=0
+ for t in $TESTS; do
+-  "$O/$t" --test-launcher-jobs=4 > "$D/unittests/$t.log" 2>&1; echo "EXIT $?" >> "$D/unittests/$t.log"
++  "$O/$t" --test-launcher-jobs=4 > "$D/unittests/$t.log" 2>&1
++  rc=$?; echo "EXIT $rc" >> "$D/unittests/$t.log"
+   progress "unit $t $(tail -1 "$D/unittests/$t.log") $(grep -o '\[[0-9]*/[0-9]*\]' "$D/unittests/$t.log" | tail -1)"
++  if [ "$rc" -ne 0 ]; then unit_failures=$((unit_failures + 1)); fi
+ done
++if [ "$unit_failures" -ne 0 ]; then
++  progress "unit-tests failed: $unit_failures; installation refused"
++  rm -f "$L/build.lock"
++  exit 1
++fi
+ 
+ # Install while the build lock is still held and no Ahoi browser runs.
+ until ! pgrep -f '/Applications/AhoiBrowser[.]app' >/dev/null; do sleep 20; done

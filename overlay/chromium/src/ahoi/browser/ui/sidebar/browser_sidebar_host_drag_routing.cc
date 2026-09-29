@@ -43,7 +43,7 @@ bool IsAnyBrowserSidebarDragActive() {
 bool BrowserSidebarHostView::GetDropFormats(
     int* formats,
     std::set<ui::ClipboardFormatType>* format_types) {
-  if (!sidebar_discovery_query_.empty()) {
+  if (!discovery_state_.query.empty()) {
     *formats = 0;
     format_types->clear();
     return false;
@@ -64,7 +64,7 @@ bool BrowserSidebarHostView::CanDrop(const ui::OSExchangeData& data) {
   // sidebar gap or header, accepting the format here prevents DropHelper from
   // walking up to BrowserView and treating the content hidden under a floating
   // card as a split target.
-  return sidebar_discovery_query_.empty() &&
+  return discovery_state_.query.empty() &&
          drag::ReadSidebarTabDragPayload(data).has_value();
 }
 

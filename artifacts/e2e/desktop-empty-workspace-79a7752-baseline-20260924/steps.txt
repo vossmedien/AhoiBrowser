@@ -1,0 +1,24 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Leer-Test -> 0 now=Leer-Test
+AXPress AXButton | Erstellen | Erstellen -> 0
+frontmost -> 0
+key 17
+key 0
+typed 36
+key 36
+key 53
+AXShowMenu AXButton | Leer-Test, Workspace wechseln | Leer-Test, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Leer-Zwei -> 0 now=Leer-Zwei
+AXPress AXButton | Erstellen | Erstellen -> 0
+frontmost -> 0
+key 37
+key 0
+typed 36
+key 36
+key 12

@@ -1,0 +1,15 @@
+// Non-secret device-build input for the existing shared Development acceptance scope.
+// This does not authorize signing, provisioning, app launch or a CloudKit write.
+AHOI_SOURCE_COMMIT = 9658f945d7c0a80b6b5b331d6fecb4be3e40bb10
+AHOI_MOBILE_MARKETING_VERSION = 0.1
+AHOI_MOBILE_BUILD_NUMBER = 22
+AHOI_SYNC_ACCEPTANCE_SCOPE_ID = bba96b17-f044-4923-9d40-67b15014d59e
+AHOI_CLOUDKIT_CONTAINER_ID = iCloud.app.ahoibrowser.AhoiBrowser
+AHOI_CLOUDKIT_ZONE_NAME = AhoiSyncAcceptance-bba96b17-f044-4923-9d40-67b15014d59e
+AHOI_CLOUDKIT_SUBSCRIPTION_ID = AhoiSyncAcceptanceSubscription-bba96b17-f044-4923-9d40-67b15014d59e
+AHOI_SYNC_KEYCHAIN_SERVICE = app.ahoibrowser.sync.payload-key
+AHOI_SYNC_KEYCHAIN_ACCOUNT = payload-key.acceptance-bba96b17-f044-4923-9d40-67b15014d59e
+AHOI_SYNC_KEYCHAIN_ACCESS_GROUP = 248AJ5BN47.app.ahoibrowser.sync
+AHOI_SYNC_KEY_VERSION = 1
+CODE_SIGNING_ALLOWED = NO
+CODE_SIGNING_REQUIRED = NO

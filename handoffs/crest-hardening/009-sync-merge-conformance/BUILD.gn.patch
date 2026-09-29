@@ -1,0 +1,19 @@
+diff --git a/overlay/chromium/src/ahoi/browser/sync/BUILD.gn b/overlay/chromium/src/ahoi/browser/sync/BUILD.gn
+--- a/overlay/chromium/src/ahoi/browser/sync/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/sync/BUILD.gn
+@@ -260,6 +260,7 @@
+     "native_bookmark_sync_adapter_unittest.cc",
+     "profile_sync_service_unittest.cc",
+     "sync_convergence_unittest.cc",
++    "sync_merge_conformance_unittest.cc",
+     "sync_product_settings_unittest.cc",
+     "sync_security_tree_unittest.cc",
+     "sync_unified_serialization_unittest.cc",
+@@ -268,6 +269,7 @@
+   ]
+   data = [
+     "testdata/bookmark_wire_v2.json",
++    "testdata/merge_v3.json",
+     "testdata/sync_wire_v3.json",
+   ]
+   if (is_mac) {

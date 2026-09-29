@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/group_page_close.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -128,7 +129,7 @@ bool BrowserSidebarHostView::CanDropOnRuntimeTab(
     std::optional<int> source_runtime_handle,
     base::WeakPtr<tabs::TabInterface> target,
     OpenTabDropPosition position) const {
-  if (!sidebar_discovery_query_.empty() || !target || !controller_ ||
+  if (!discovery_state_.query.empty() || !target || !controller_ ||
       !session_bridge_ || !tab_strip_model_ ||
       source_node_id.has_value() == source_runtime_handle.has_value()) {
     return false;
@@ -377,7 +378,7 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
 
 bool BrowserSidebarHostView::CanDropOpenTabToTemporary(
     const drag::SidebarTabDragPayload& payload) const {
-  if (!sidebar_discovery_query_.empty() || !payload.is_valid() ||
+  if (!discovery_state_.query.empty() || !payload.is_valid() ||
       !controller_ || !session_bridge_ || !tab_strip_model_) {
     return false;
   }
@@ -466,87 +467,6 @@ tabs::TabInterface* BrowserSidebarHostView::FindTemporaryTab(
   return nullptr;
 }
 
-bool BrowserSidebarHostView::SaveTemporaryTabAtDrop(
-    int runtime_tab_handle,
-    const SidebarTreeController::DropTarget& target,
-    base::Uuid* created_node_id) {
-  tabs::TabInterface* tab = FindTemporaryTab(runtime_tab_handle);
-  content::WebContents* contents = tab ? tab->GetContents() : nullptr;
-  if (!tab || !contents) {
-    return false;
-  }
-  const base::WeakPtr<tabs::TabInterface> weak_tab = tab->GetWeakPtr();
-  GURL url = contents->GetVisibleURL();
-  if (!url.is_valid() || url.is_empty()) {
-    url = contents->GetLastCommittedURL();
-  }
-  if (!url.is_valid() || url.is_empty()) {
-    url = GURL("about:blank");
-  }
-  const std::u16string title = tab->GetTitle().empty()
-                                   ? l10n_util::GetStringUTF16(IDS_NEW_TAB)
-                                   : tab->GetTitle();
-
-  // Capture everything needed from WebContents before changing split
-  // membership. TabStripModel observers run synchronously and may destroy or
-  // replace the source during extraction.
-  const bool extract_split_pane = tab->IsSplit();
-  std::optional<SplitTabExtractionSnapshot> extraction_snapshot;
-  if (extract_split_pane) {
-    extraction_snapshot =
-        CaptureSplitTabExtractionSnapshot(tab_strip_model_, tab);
-    if (!extraction_snapshot.has_value() ||
-        !ExtractTabFromSplitPreservingRemainder(tab_strip_model_, tab)) {
-      return false;
-    }
-  }
-  base::ScopedClosureRunner rollback_extraction;
-  if (extraction_snapshot.has_value()) {
-    rollback_extraction.ReplaceClosure(base::BindOnce(
-        [](base::WeakPtr<BrowserSidebarHostView> host,
-           SplitTabExtractionSnapshot snapshot) {
-          if (host && host->tab_strip_model_ &&
-              !RestoreSplitTabExtraction(host->tab_strip_model_, snapshot)) {
-            LOG(ERROR) << "Temporary-tab save failed and its split rollback "
-                          "was incomplete";
-          }
-        },
-        weak_ptr_factory_.GetWeakPtr(), std::move(*extraction_snapshot)));
-  }
-  if (!weak_tab || session_bridge_->FindTabStripModelForTab(weak_tab.get()) !=
-                       tab_strip_model_) {
-    return false;
-  }
-  tab_tree::TreeNode created;
-  const tab_tree::TabTreeStore::Result result =
-      controller_->CreateSavedPageAtDrop(target, title, url, base::Time::Now(),
-                                         &created);
-  if (result != tab_tree::TabTreeStore::Result::kOk) {
-    OnMutationFailed(result);
-    return false;
-  }
-  if (!weak_tab ||
-      !session_bridge_->BindTreeNodeToTab(created, weak_tab.get())) {
-    const tab_tree::TabTreeStore::Result rollback =
-        controller_->DeleteNode(created.id, base::Time::Now());
-    if (rollback != tab_tree::TabTreeStore::Result::kOk) {
-      OnMutationFailed(rollback);
-    }
-    return false;
-  }
-  if (created.parent_id.has_value()) {
-    std::ignore = controller_->ExpandNode(*created.parent_id);
-  }
-  std::ignore = controller_->SelectNode(created.id);
-  if (created_node_id) {
-    *created_node_id = created.id;
-  }
-  rollback_extraction.ReplaceClosure(base::OnceClosure());
-  OnTemporaryTabDragStateChanged(std::nullopt);
-  ScheduleRuntimePresentationRefresh();
-  return true;
-}
-
 bool BrowserSidebarHostView::SaveTemporaryTabAtWorkspaceRoot(
     int runtime_tab_handle,
     base::Uuid* created_node_id) {
@@ -621,9 +541,8 @@ bool BrowserSidebarHostView::MakeSavedPageTemporary(
                        tab_strip_model_) {
     return false;
   }
-  session_bridge_->MakeTabTemporary(weak_tab.get());
   const tab_tree::TabTreeStore::Result result =
-      controller_->DeleteNode(source_node_id, base::Time::Now());
+      session_bridge_->MakeTabTemporary(weak_tab.get());
   if (result != tab_tree::TabTreeStore::Result::kOk) {
     // Restore Chromium split membership while every original member still
     // exists. Closing a transaction-owned tab before this point would make a
@@ -645,6 +564,90 @@ bool BrowserSidebarHostView::MakeSavedPageTemporary(
   OnSidebarDragStateChanged(std::nullopt);
   ScheduleRuntimePresentationRefresh();
   return true;
+}
+
+void BrowserSidebarHostView::ActivateRuntimeTab(
+    base::WeakPtr<tabs::TabInterface> tab) {
+  if (!tab || !tab_strip_model_) {
+    return;
+  }
+  const int index = tab_strip_model_->GetIndexOfTab(tab.get());
+  if (index >= 0) {
+    tab_strip_model_->ActivateTabAt(
+        index, TabStripUserGestureDetails(
+                   TabStripUserGestureDetails::GestureType::kMouse));
+    ScheduleCloseSidebarDiscoveryAfterActivation();
+  }
+}
+
+bool BrowserSidebarHostView::ActivateRelativeRuntimeTab(int delta) {
+  base::WeakPtr<tabs::TabInterface> target = ResolveRelativeRuntimeTab(delta);
+  if (!target || !tab_strip_model_) {
+    return false;
+  }
+  const int tab_strip_index = tab_strip_model_->GetIndexOfTab(target.get());
+  if (tab_strip_index < 0) {
+    return false;
+  }
+  tab_strip_model_->ActivateTabAt(
+      tab_strip_index, TabStripUserGestureDetails(
+                           TabStripUserGestureDetails::GestureType::kWheel));
+  return true;
+}
+
+void BrowserSidebarHostView::CloseRuntimeTab(
+    base::WeakPtr<tabs::TabInterface> tab) {
+  if (tab) {
+    tab->Close();
+  }
+}
+
+void BrowserSidebarHostView::CloseAllTemporaryTabs(const ui::Event&) {
+  if (!tab_strip_model_) {
+    return;
+  }
+  const std::optional<base::Uuid> active_workspace =
+      controller_->view_model().workspace_id();
+  std::vector<base::WeakPtr<tabs::TabInterface>> tabs_to_close;
+  for (tabs::TabInterface* tab : *tab_strip_model_) {
+    if (!tab || session_bridge_->FindTreeNodeIdForTab(tab).has_value()) {
+      continue;
+    }
+    const std::optional<base::Uuid> tab_workspace =
+        session_bridge_->GetWorkspaceForTab(tab);
+    if (!active_workspace.has_value() || !tab_workspace.has_value() ||
+        active_workspace == tab_workspace) {
+      tabs_to_close.push_back(tab->GetWeakPtr());
+    }
+  }
+
+  // Ahoi intentionally keeps the browser window and workspace alive when the
+  // last temporary tab is closed. The empty native surface is owned by
+  // BrowserView; never create a synthetic replacement WebContents here.
+  // Handoff 006: ask every page first; one veto keeps all of them open.
+  if (close_all_temporary_ || tabs_to_close.empty()) {
+    return;
+  }
+  std::vector<content::WebContents*> pages;
+  for (const auto& tab : tabs_to_close) {
+    if (tab) {
+      pages.push_back(tab->GetContents());
+    }
+  }
+  close_all_temporary_ = session::GroupPageClose::Ask(
+      std::move(pages),
+      base::BindOnce(
+          [](base::WeakPtr<BrowserSidebarHostView> view, bool all_agreed) {
+            if (!view) {
+              return;
+            }
+            std::unique_ptr<session::GroupPageClose> group =
+                std::move(view->close_all_temporary_);
+            if (all_agreed && group) {
+              group->ClosePages();
+            }
+          },
+          weak_ptr_factory_.GetWeakPtr()));
 }
 
 }  // namespace ahoi::sidebar

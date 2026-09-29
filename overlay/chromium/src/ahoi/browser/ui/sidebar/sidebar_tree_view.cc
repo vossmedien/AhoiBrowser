@@ -38,6 +38,7 @@
 #include "ui/events/keycodes/keyboard_codes.h"
 #include "ui/gfx/animation/animation.h"
 #include "ui/gfx/canvas.h"
+#include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/views/accessibility/view_accessibility.h"
@@ -70,6 +71,7 @@ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
   preferred_height_animation_.SetSlideDuration(
       visual_style::kTreeMotionDuration);
   row_bounds_animator_.SetAnimationDuration(visual_style::kTreeMotionDuration);
+  row_bounds_animator_.AddObserver(this);
   // This paint-only child is deliberately outside materialized_rows_. The
   // full target surface is painted by the row; this topmost fixed edge only
   // disambiguates before/after and never participates in layout.
@@ -85,6 +87,7 @@ SidebarTreeView::SidebarTreeView(SidebarTreeController* controller,
 }
 
 SidebarTreeView::~SidebarTreeView() {
+  row_bounds_animator_.RemoveObserver(this);
   model().RemoveObserver(this);
   set_context_menu_controller(nullptr);
   for (auto& entry : materialized_rows_) {
@@ -387,6 +390,9 @@ void SidebarTreeView::OnRowDragDone() {
   if (delegate_) {
     delegate_->OnSidebarDragStateChanged(std::nullopt);
   }
+  // A removed/folded drag source stays parented until Views clears InDrag().
+  // Reconcile only after the native callback returns, never from inside it.
+  ScheduleVisibleBoundsSynchronization();
 }
 
 void SidebarTreeView::OnSplitGroupsChanged() {
@@ -409,16 +415,16 @@ void SidebarTreeView::Layout(PassKey) {
 gfx::Size SidebarTreeView::CalculatePreferredSize(
     const views::SizeBounds& /*available_size*/) const {
   const int visual_height = GetVisualRowsHeight(BuildVisualRows());
-  // Keep an empty workspace as a real drop surface. A zero-height tree means
-  // Views never routes the native drag into the saved section, so the first
-  // temporary tab cannot be pinned without creating a folder first.
-  int height = std::max(visual_height, SidebarTreeRowView::kRowHeight);
+  // The permanent trailing surface appends at the workspace root, including
+  // when folders are expanded. It must belong to this View's hit area rather
+  // than an inert host gap, and must not appear/move rows only after drag
+  // start.
+  int height = visual_height;
   if (preferred_height_animation_active_) {
-    const double value = preferred_height_animation_.GetCurrentValue();
-    height =
-        animated_height_from_ +
-        static_cast<int>((animated_height_to_ - animated_height_from_) * value);
+    height = GetAnimatedHeight();
   }
+  height = base::saturated_cast<int>(static_cast<int64_t>(height) +
+                                     kRootAppendDropHeight);
   // The host owns the sidebar width. Advertising the design-time default here
   // makes ScrollView keep a wider contents layer after the native resize strip
   // has narrowed the sidebar, so labels are clipped instead of being laid out
@@ -426,6 +432,12 @@ gfx::Size SidebarTreeView::CalculatePreferredSize(
   // the virtualized tree to the live viewport while preserving the exact row
   // height and the host's independent default/min/max width contract.
   return gfx::Size(0, height);
+}
+
+int SidebarTreeView::GetAnimatedHeight() const {
+  return animated_height_from_ +
+         static_cast<int>((animated_height_to_ - animated_height_from_) *
+                          preferred_height_animation_.GetCurrentValue());
 }
 
 bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
@@ -500,8 +512,11 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
     case ui::VKEY_DELETE:
       if (model().selected_node_id().has_value() && !selected_node_suppressed &&
           !model().is_search_projection_active()) {
-        const auto result = controller_->DeleteNode(*model().selected_node_id(),
-                                                    base::Time::Now());
+        const base::Uuid node_id = *model().selected_node_id();
+        if (delegate_ && delegate_->CloseTemporaryPageForDeletion(node_id)) {
+          return true;
+        }
+        const auto result = controller_->DeleteNode(node_id, base::Time::Now());
         if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
           delegate_->OnMutationFailed(result);
         }
@@ -517,13 +532,37 @@ bool SidebarTreeView::GetNeedsNotificationWhenVisibleBoundsChange() const {
 }
 
 void SidebarTreeView::OnVisibleBoundsChanged() {
+  if (deferred_selection_reveal_ &&
+      GetVisibleBounds().origin() !=
+          deferred_selection_reveal_->visible_origin) {
+    CancelSelectionReveal();
+  }
+  ScheduleVisibleBoundsSynchronization();
+}
+
+void SidebarTreeView::VisibilityChanged(views::View* starting_from,
+                                        bool is_visible) {
+  views::View::VisibilityChanged(starting_from, is_visible);
+  if (is_visible) {
+    ScheduleVisibleBoundsSynchronization();
+  }
+}
+
+void SidebarTreeView::OnPresentationAnimationSettled() {
+  if (IsDrawn()) {
+    ScheduleVisibleBoundsSynchronization();
+  }
+}
+
+void SidebarTreeView::ScheduleVisibleBoundsSynchronization() {
   // View::SetBoundsRect() notifies registered descendants by iterating a
   // raw-pointer vector owned by each ancestor. SynchronizeRows() can recycle
   // rows, and every row owns a Textfield that unregisters itself from those
   // same vectors. Doing that synchronously invalidates Chromium's active
   // iterator and can leave a null entry behind while the sidebar collapses.
-  // Coalesce the virtualized-row update onto the next UI task so the Views
-  // notification pass always finishes before the child hierarchy changes.
+  // VisibilityChanged() has the same hierarchy-walk constraint. Coalesce both
+  // paths onto the next UI task so the notification pass and any restore layout
+  // always finish before the virtualized child hierarchy changes.
   if (visible_bounds_synchronization_pending_) {
     return;
   }
@@ -586,28 +625,39 @@ void SidebarTreeView::OnPaintBackground(gfx::Canvas* canvas) {
   const int row_width = std::max(width(), 1);
   const ui::ColorProvider* colors = GetColorProvider();
 
-  // A concrete saved-row target paints its own exact, validated zone. Painting
-  // the complete section at the same time creates two competing highlights
-  // and makes a pointer transition look like two accepted targets. The broad
-  // surface is needed only for an empty workspace, where no row can own it.
-  const bool empty_root_accepting =
-      rows.empty() && drop_indicator_.has_value() &&
-      !drop_indicator_->target_node_id.has_value();
-  if (empty_root_accepting) {
-    gfx::RectF target(GetLocalBounds());
-    target.Inset(gfx::InsetsF(visual_style::kSidebarDropTargetInset));
+  // Row edges keep their positioning markers. The separate trailing area
+  // highlights only a validated root append, never the last row/folder.
+  gfx::RectF append_target(GetRootAppendDropBounds(visual_rows));
+  append_target.Inset(gfx::InsetsF(visual_style::kSidebarDropTargetInset));
+  const bool root_accepting = drop_indicator_.has_value() &&
+                              !drop_indicator_->target_node_id.has_value() &&
+                              !append_target.IsEmpty();
+  if (rows.empty() && !root_accepting &&
+      !model().is_search_projection_active()) {
+    gfx::Rect hint = GetLocalBounds();
+    hint.Inset(gfx::Insets::VH(0, visual_style::kSidebarSectionSpacing));
+    canvas->DrawStringRectWithFlags(
+        base::i18n::GetConfiguredLocale().starts_with("de")
+            ? u"Tabs zum Speichern hierherziehen"
+            : u"Drag tabs here to save",
+        gfx::FontList().DeriveWithSizeDelta(-1),
+        colors->GetColor(visual_style::kMutedText), hint,
+        gfx::Canvas::TEXT_ALIGN_LEFT);
+  }
+  if (root_accepting) {
     cc::PaintFlags fill;
     fill.setAntiAlias(true);
     fill.setStyle(cc::PaintFlags::kFill_Style);
     fill.setColor(colors->GetColor(visual_style::kDropTargetSurface));
-    canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, fill);
+    canvas->DrawRoundRect(append_target, visual_style::kRowCornerRadius, fill);
     cc::PaintFlags outline;
     outline.setAntiAlias(true);
     outline.setStyle(cc::PaintFlags::kStroke_Style);
     outline.setStrokeWidth(
         visual_style::kSidebarDropTargetAcceptingOutlineThickness);
     outline.setColor(colors->GetColor(visual_style::kAccent));
-    canvas->DrawRoundRect(target, visual_style::kRowCornerRadius, outline);
+    canvas->DrawRoundRect(append_target, visual_style::kRowCornerRadius,
+                          outline);
   }
 
   // A colored folder owns one quiet visual bubble through all of its visible
@@ -733,5 +783,10 @@ bool SidebarTreeView::GetDropFormats(
 
 BEGIN_METADATA(SidebarTreeView)
 END_METADATA
+
+bool SidebarTreeViewDelegate::CloseTemporaryPageForDeletion(
+    const base::Uuid&) {
+  return false;
+}
 
 }  // namespace ahoi::sidebar

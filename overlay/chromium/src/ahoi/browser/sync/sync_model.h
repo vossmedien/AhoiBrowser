@@ -11,18 +11,20 @@
 #include <variant>
 #include <vector>
 
+#include "ahoi/browser/sync/shared_tab_sync_types.h"
+#include "ahoi/browser/sync/shared_tab_target_types.h"
+#include "ahoi/browser/sync/shared_workspace_structure_types.h"
 #include "base/containers/flat_map.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 
 namespace ahoi::sync {
 
-// Bump this when a persisted record's meaning changes. The database schema
-// version and this model version are intentionally separate: schema migrations
-// describe storage, while this version is part of a record exchanged with an
-// iOS client or another desktop build.
-inline constexpr int kCurrentModelVersion = 2;
-inline constexpr int kCurrentSchemaVersion = 4;
+// One authored/accepted wire format for every permitted entity. SQLite layout
+// has its own version; obsolete development formats require a fresh isolated
+// store rather than an implicit record upgrade.
+inline constexpr int kCurrentModelVersion = 3;
+inline constexpr int kCurrentSchemaVersion = 7;
 
 enum class DeviceType {
   kMacDesktop = 0,
@@ -43,6 +45,10 @@ enum class EntityType {
   kPermittedSetting = 8,
   kExtensionInventory = 9,
   kDeveloperAsset = 10,
+  kBookmark = 11,
+  kDeviceCapability = 12,
+  kSplitGroup = 13,
+  kTabArchiveEntry = 14,
 };
 
 enum class ChangeKind {
@@ -79,10 +85,9 @@ struct HlcStamp {
   }
 };
 
-// Wire-v2 assigns a clock to each independently mergeable field (or atomic
-// field group such as a tree node's location). Unknown keys are rejected by
-// the model validator. Wire-v1 records have no map; decoders synthesize the
-// record clock for every known field so upgrades converge deterministically.
+// Format 3 carries an exact, complete clock map for independently mergeable
+// fields or atomic groups such as location. Incoming missing clocks are never
+// synthesized from the enclosing record clock.
 using FieldVersionMap = base::flat_map<std::string, HlcStamp>;
 
 struct SyncVersion {
@@ -131,6 +136,12 @@ struct WorkspaceRecord {
   bool tombstone = false;
   SyncVersion version;
   FieldVersionMap field_versions;
+  SharedArchivePolicy archive_policy = SharedArchivePolicy::kNever;
+  // Set only together with `tombstone` by a merge (ADR 0012, crest 084): the
+  // Workspace that absorbed this one. It belongs to the `tombstone` field
+  // group, so both merge as one unit; an undo that revives the Workspace
+  // clears it in the same write.
+  std::optional<base::Uuid> merged_into;
 
   friend bool operator==(const WorkspaceRecord&,
                          const WorkspaceRecord&) = default;
@@ -157,6 +168,12 @@ struct TreeNodeRecord {
   bool tombstone = false;
   SyncVersion version;
   FieldVersionMap field_versions;
+  bool is_temporary = false;
+  // Required for pages, absent for folders; together with url these form one
+  // atomic field group. Missing target metadata never implies a web target.
+  std::optional<SharedTabTargetKind> target_kind;
+  std::optional<std::string> local_scheme;
+  std::optional<SharedTabTarget> home_target;
 
   friend bool operator==(const TreeNodeRecord&,
                          const TreeNodeRecord&) = default;
@@ -238,6 +255,10 @@ struct RemoteTabRecord {
   bool tombstone = false;
   SyncVersion version;
   FieldVersionMap field_versions;
+  // A published Presence links its page and retains a distinct own id.
+  std::optional<base::Uuid> tree_node_id;
+  std::optional<SharedTabTargetKind> target_kind;
+  std::optional<std::string> local_scheme;
 
   friend bool operator==(const RemoteTabRecord&,
                          const RemoteTabRecord&) = default;
@@ -337,6 +358,86 @@ struct DeveloperAssetRecord {
                          const DeveloperAssetRecord&) = default;
 };
 
+enum class BookmarkKind {
+  kFolder = 0,
+  kUrl = 1,
+};
+
+enum class BookmarkRoot {
+  kBookmarkBar = 0,
+  kOther = 1,
+  kMobile = 2,
+};
+
+// One logical bookmark identity, independent from a workspace, native numeric
+// Node ID or Local/Account storage. The native adapter owns that local mapping.
+// Exactly one of root_kind/parent_id is set: root_kind attaches a top-level
+// entry to a permanent native root; descendants inherit their root through
+// their parent. A folder move therefore never rewrites its whole subtree.
+// Location (root_kind, parent_id, sort_key) is one atomic merge field.
+struct BookmarkRecord {
+  int model_version = kCurrentModelVersion;
+  base::Uuid id;
+  BookmarkKind kind = BookmarkKind::kFolder;
+  std::optional<BookmarkRoot> root_kind;
+  std::optional<base::Uuid> parent_id;
+  std::string sort_key;
+  std::string title;
+  std::string url;
+  base::Time created_at;
+  bool tombstone = false;
+  SyncVersion version;
+  FieldVersionMap field_versions;
+
+  friend bool operator==(const BookmarkRecord&,
+                         const BookmarkRecord&) = default;
+};
+
+// Functional control metadata for an independently known DeviceRecord. The
+// UUIDv5 identity and device-owned clocks are validated at the domain boundary.
+// Model support alone does not advertise implemented shared-tab behavior.
+struct DeviceCapabilityRecord {
+  int model_version = kCurrentModelVersion;
+  base::Uuid id;
+  base::Uuid device_id;
+  std::vector<int> readable_models{kCurrentModelVersion};
+  std::vector<int> writable_models{kCurrentModelVersion};
+  std::vector<std::string> features;
+  bool tombstone = false;
+  SyncVersion version;
+  FieldVersionMap field_versions;
+
+  friend bool operator==(const DeviceCapabilityRecord&,
+                         const DeviceCapabilityRecord&) = default;
+};
+
+struct SplitGroupRecord {
+  int model_version = kCurrentModelVersion;
+  base::Uuid id;
+  base::Uuid workspace_id;
+  SharedSplitTopology topology;
+  SharedSplitRatios ratios;
+  bool tombstone = false;
+  SyncVersion version;
+  FieldVersionMap field_versions;
+  friend bool operator==(const SplitGroupRecord&,
+                         const SplitGroupRecord&) = default;
+};
+
+struct TabArchiveEntryRecord {
+  int model_version = kCurrentModelVersion;
+  base::Uuid id;
+  SharedArchiveSnapshot snapshot;
+  SharedArchiveReason reason = SharedArchiveReason::kManual;
+  base::Time archived_at;
+  bool restored = false;
+  bool tombstone = false;
+  SyncVersion version;
+  FieldVersionMap field_versions;
+  friend bool operator==(const TabArchiveEntryRecord&,
+                         const TabArchiveEntryRecord&) = default;
+};
+
 // Deletions are retained separately from the materialized record payload so a
 // provider can carry a delete after the last visible copy has been compacted.
 // The SQLite store mirrors this value in `sync_tombstones` and keeps the full
@@ -362,7 +463,11 @@ using SyncRecord = std::variant<DeviceRecord,
                                 AppearanceRecord,
                                 PermittedSettingRecord,
                                 ExtensionInventoryRecord,
-                                DeveloperAssetRecord>;
+                                DeveloperAssetRecord,
+                                BookmarkRecord,
+                                DeviceCapabilityRecord,
+                                SplitGroupRecord,
+                                TabArchiveEntryRecord>;
 
 struct SyncChange {
   std::string mutation_id;
@@ -395,8 +500,11 @@ struct SyncTransportStatus {
   bool provider_available = false;
   bool account_transition_pending = false;
   bool zone_recovery_pending = false;
+  bool bookmark_consent_revoked = false;
   int pending_outbox = 0;
   RetryState retry;
+  // Local key lifecycle status; never a domain record or peer-provided text.
+  std::string key_setup_issue;
 
   friend bool operator==(const SyncTransportStatus&,
                          const SyncTransportStatus&) = default;
@@ -429,6 +537,9 @@ struct SyncStateSnapshot {
   std::vector<PermittedSettingRecord> permitted_settings;
   std::vector<ExtensionInventoryRecord> extension_inventory;
   std::vector<DeveloperAssetRecord> developer_assets;
+  std::vector<BookmarkRecord> bookmarks;
+  std::vector<DeviceCapabilityRecord> device_capabilities;
+  SharedTabSyncState shared_tabs;
 
   friend bool operator==(const SyncStateSnapshot&,
                          const SyncStateSnapshot&) = default;

@@ -1,0 +1,43 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project apps/AhoiMobile/AhoiMobile.xcodeproj -scheme AhoiMobile -configuration DebugLocal -destination id=CE3513BF-61D7-4718-99A0-29D4111D6855 -derivedDataPath "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/crest-h1/swift-export/dd" -resultBundlePath "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/crest-h1/swift-export/crest-122-swift-17aa591b-131824.xcresult" -parallel-testing-enabled NO -collect-test-diagnostics never "-only-testing:AhoiMobileCoreTests/SyncMergeConformanceTests/testSharedMergeVectors" "-only-testing:AhoiMobileCoreTests/SyncMergeConformanceTests/testUTF8SortKeyVectors" "-only-testing:AhoiMobileCoreTests/SyncMergeConformanceTests/testInventoryAssetVectors" "-only-testing:AhoiMobileCoreTests/SyncMergeConformanceTests/testRemainingEntityVectors" "-only-testing:AhoiMobileCoreTests/SyncMergeConformanceTests/testDomainGroupVectors" "-only-testing:AhoiMobileCoreTests/SyncMergeConformanceTests/testSeededMergeSequences" test-without-building
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  AhoiCloudKitSpike: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/crest-h1/swift-export/candidate/spikes/cloudkit
+
+Writing result bundle at path:
+	/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/crest-h1/swift-export/crest-122-swift-17aa591b-131824.xcresult
+
+Test Suite 'Selected tests' started at 2026-09-28 13:33:03.457.
+Test Suite 'AhoiMobileCoreTests.xctest' started at 2026-09-28 13:33:03.458.
+Test Suite 'SyncMergeConformanceTests' started at 2026-09-28 13:33:03.458.
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testDomainGroupVectors]' started.
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testDomainGroupVectors]' passed (0.171 seconds).
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testInventoryAssetVectors]' started.
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testInventoryAssetVectors]' passed (0.020 seconds).
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testRemainingEntityVectors]' started.
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testRemainingEntityVectors]' passed (0.170 seconds).
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testSeededMergeSequences]' started.
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testSeededMergeSequences]' passed (0.595 seconds).
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testSharedMergeVectors]' started.
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testSharedMergeVectors]' passed (1.025 seconds).
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testUTF8SortKeyVectors]' started.
+Test Case '-[AhoiMobileCoreTests.SyncMergeConformanceTests testUTF8SortKeyVectors]' passed (0.037 seconds).
+Test Suite 'SyncMergeConformanceTests' passed at 2026-09-28 13:33:05.490.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 2.018 (2.033) seconds
+Test Suite 'AhoiMobileCoreTests.xctest' passed at 2026-09-28 13:33:05.491.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 2.018 (2.034) seconds
+Test Suite 'Selected tests' passed at 2026-09-28 13:33:05.491.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 2.018 (2.035) seconds
+2026-09-28 13:33:05.880 xcodebuild[68282:3471156] [MT] IDETestOperationsObserverDebug: 44.344 elapsed -- Testing started completed.
+2026-09-28 13:33:05.880 xcodebuild[68282:3471156] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-28 13:33:05.880 xcodebuild[68282:3471156] [MT] IDETestOperationsObserverDebug: 44.344 sec, +44.344 sec -- end
+
+Test session results, code coverage, and logs:
+	/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/crest-h1/swift-export/crest-122-swift-17aa591b-131824.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

@@ -1,0 +1,40 @@
+________ running 'python3 src/buildtools/reclient_cfgs/configure_reclient_cfgs.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reproxy_cfg_template reproxy.cfg.template --rewrapper_cfg_project  --skip_remoteexec_cfg_fetch --quiet' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/config/siso/configure_siso.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reapi_instance  --reapi_address  --reapi_backend_config_path  --credential-helper ' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/tast_control.py -o src/chromeos/tast_control.gni -t src/chromeos/tast_control.gni.template -i src/chromeos/tast_control_disabled_tests.txt --input-public src/chromeos/tast_control_disabled_tests_public_builders.txt -f src/chromeos/tast_control_flaky_tests.txt' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'vpython3 scripts/deps/sync_rollup_libs.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/third_party/devtools-frontend/src'
+/private/tmp/ahoi-m153-ws.x4fmXk/repo/artifacts/build/chromium-dependencies.json
+==> pinned Chromium hooks verified: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/state/hooks-792bf6722e73a45aa9e47c163b9901bdc17f3230.json
+==> generating Ahoi dev build
+==> applying chromium-rust-depfile-space-paths and v8-inspector-protocol-relative-depfile-paths only for gn gen and autoninja
+Done. Made 32715 targets from 4982 files in 7246ms
+ninja: Entering directory `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev'
+[0/1] Regenerating ninja files
+[1/3] CXX obj/ahoi/browser/session/unit_tests/session_bridge_unittest.o
+[2/3] LINK ./ahoi_session_unittests
+ld: warning: ignoring -lto_library '../../third_party/llvm-build/Release+Asserts/lib/libLTO.dylib', file does not exist
+==> restored Chromium and V8 sources after timestamp-stable temporary build workarounds
+==> staged current component framework and verified its resource manifest
+==> staged 540 component runtime dylibs into the portable development app
+==> stamped product/revision provenance and fail-closed Sparkle 2.9.6 configuration into Info.plist
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (Alerts).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (Aperitif Alerts).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (Aperitif GPU).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (Aperitif Renderer).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (Aperitif).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (GPU).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (Renderer).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper.app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app: replacing existing signature
+==> signed development app with stable identity: Apple Development: Christian Voss (2265UJB5KF)
+==> verified nested development code
+==> portable component runtime: 540 verified dylibs; 238 verified framework resources
+==> bundle: AhoiBrowser 0.0.1 (app.ahoibrowser.AhoiBrowser)
+==> Ahoi product/build/channel: 0.0.1-dev (1, nightly)
+==> Ahoi source: e9f4a991d5e30b13ea5d48a732730bd286f07c95
+==> Chromium: 153.0.8010.53 (792bf6722e73a45aa9e47c163b9901bdc17f3230); dev GN args: 866027eb6fc429784f9cc95557344d2c8bc0be2ac554a6fcff932197e4e81c64
+==> Sparkle: 2.9.6; reviewed feed configured: false
+==> binary: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/MacOS/AhoiBrowser: Mach-O 64-bit executable arm64
+==> binary SHA-256: 921684b56572fc3ce9fe605dbd7082a2b713bfb79b2b378639571e2d394fd679
+/private/tmp/ahoi-m153-ws.x4fmXk/repo/artifacts/build/ahoi-dev-build.json
+==> Ahoi dev build complete: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app

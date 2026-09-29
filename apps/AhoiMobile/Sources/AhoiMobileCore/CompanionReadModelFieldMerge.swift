@@ -13,7 +13,7 @@ public enum CompanionReadModelFieldMerge {
     ]
     private static let tabFields: Set<String> = [
         "device_id", "session_id", "workspace_id", "url", "title", "opened_at",
-        "last_active", "pinned", "is_incognito", "tombstone",
+        "last_active", "pinned", "is_incognito", "tree_node_id", "tombstone",
     ]
     private static let historyFields: Set<String> = [
         "device_id", "url", "title", "last_visit", "visit_count", "transition",
@@ -25,11 +25,11 @@ public enum CompanionReadModelFieldMerge {
         guard existing.kind == incoming.kind else {
             throw CompanionFieldMergeError.immutableFieldConflict("type")
         }
-        guard existing.createdAt == incoming.createdAt else {
+        guard SharedTabCreationProvenance.sameTime(existing.createdAt, incoming.createdAt) else {
             throw CompanionFieldMergeError.immutableFieldConflict("created_at")
         }
-        let oldVersion = existing.version.normalized(for: deviceFields)
-        let newVersion = incoming.version.normalized(for: deviceFields)
+        let oldVersion = try SharedSyncFormat.validate(existing.version, fields: deviceFields)
+        let newVersion = try SharedSyncFormat.validate(incoming.version, fields: deviceFields)
         var result = existing
         if try incomingWins(
             "display_name", existing.name, incoming.name, oldVersion, newVersion
@@ -41,8 +41,8 @@ public enum CompanionReadModelFieldMerge {
         ) {
             result.lastSeenAt = incoming.lastSeenAt
         }
-        var retired = existing.isRevoked && !existing.isDeleted
-        let incomingRetired = incoming.isRevoked && !incoming.isDeleted
+        var retired = existing.isRevoked
+        let incomingRetired = incoming.isRevoked
         if try incomingWins("retired", retired, incomingRetired, oldVersion, newVersion) {
             retired = incomingRetired
         }
@@ -51,8 +51,8 @@ public enum CompanionReadModelFieldMerge {
         ) {
             result.tombstone = incoming.tombstone
         }
-        result.isRevoked = retired || result.isDeleted
-        result.isOnline = !result.isRevoked
+        result.isRevoked = retired
+        result.isOnline = !retired && !result.isDeleted
         let merged = CompanionFieldMerge.mergedVersion(
             oldVersion, newVersion, fields: deviceFields
         )
@@ -72,11 +72,11 @@ public enum CompanionReadModelFieldMerge {
         guard existing.deviceID == incoming.deviceID else {
             throw CompanionFieldMergeError.immutableFieldConflict("device_id")
         }
-        guard existing.startedAt == incoming.startedAt else {
+        guard SharedTabCreationProvenance.sameTime(existing.startedAt, incoming.startedAt) else {
             throw CompanionFieldMergeError.immutableFieldConflict("started_at")
         }
-        let oldVersion = existing.version.normalized(for: sessionFields)
-        let newVersion = incoming.version.normalized(for: sessionFields)
+        let oldVersion = try SharedSyncFormat.validate(existing.version, fields: sessionFields)
+        let newVersion = try SharedSyncFormat.validate(incoming.version, fields: sessionFields)
         var result = existing
         let oldLiveness = Liveness(existing)
         let newLiveness = Liveness(incoming)
@@ -112,22 +112,29 @@ public enum CompanionReadModelFieldMerge {
         guard existing.sessionID == incoming.sessionID else {
             throw CompanionFieldMergeError.immutableFieldConflict("session_id")
         }
-        guard existing.openedAt == incoming.openedAt else {
+        guard SharedTabCreationProvenance.sameTime(existing.openedAt, incoming.openedAt) else {
             throw CompanionFieldMergeError.immutableFieldConflict("opened_at")
         }
         guard existing.context == .normal, incoming.context == .normal else {
             throw CompanionModelError.incognitoNotSyncable
         }
-        let oldVersion = existing.version.normalized(for: tabFields)
-        let newVersion = incoming.version.normalized(for: tabFields)
+        let oldVersion = try SharedSyncFormat.validate(existing.version, fields: tabFields)
+        let newVersion = try SharedSyncFormat.validate(incoming.version, fields: tabFields)
         var result = existing
         if try incomingWins(
             "workspace_id", existing.workspaceID, incoming.workspaceID, oldVersion, newVersion
         ) {
             result.workspaceID = incoming.workspaceID
         }
-        if try incomingWins("url", existing.url, incoming.url, oldVersion, newVersion) {
+        let oldTarget = try SharedTabURLGroup.of(existing)
+        let newTarget = try SharedTabURLGroup.of(incoming)
+        if try incomingWins("url", oldTarget, newTarget, oldVersion, newVersion) {
             result.url = incoming.url
+            result.targetKind = newTarget.kind
+            result.localScheme = newTarget.localScheme
+        } else {
+            result.targetKind = oldTarget.kind
+            result.localScheme = oldTarget.localScheme
         }
         if try incomingWins("title", existing.title, incoming.title, oldVersion, newVersion) {
             result.title = incoming.title
@@ -148,14 +155,84 @@ public enum CompanionReadModelFieldMerge {
         }
         result.deviceName = incoming.deviceName
         result.workspaceName = incoming.workspaceName
-        let merged = CompanionFieldMerge.mergedVersion(
-            oldVersion, newVersion, fields: tabFields
-        )
+        if try incomingWins("tree_node_id", existing.treeNodeID, incoming.treeNodeID, oldVersion, newVersion) {
+            result.treeNodeID = incoming.treeNodeID
+        }
+        let merged = CompanionFieldMerge.mergedVersion(oldVersion, newVersion, fields: tabFields)
         result.version = try mergeVersion(
             merged,
             sameAsOld: tabProjection(result, merged) == tabProjection(existing, oldVersion),
             sameAsNew: tabProjection(result, merged) == tabProjection(incoming, newVersion)
         )
+        _ = try SharedTabURLGroup.of(result)
+        return result
+    }
+
+    /// Local publications mint one new record clock, but fields whose values did
+    /// not change must retain their original field clocks. Otherwise an encode /
+    /// decode round trip combines an immutable timestamp value with a newer field
+    /// clock and makes the value appear to have changed remotely.
+    public static func stampLocal(previous: Device, candidate: Device) -> Device {
+        var result = candidate
+        var version = candidate.version.normalized(for: deviceFields)
+        let oldVersion = previous.version.normalized(for: deviceFields)
+        let equality: [String: Bool] = [
+            "type": previous.kind == candidate.kind,
+            "display_name": previous.name == candidate.name,
+            "created_at": previous.createdAt == candidate.createdAt,
+            "last_seen": previous.lastSeenAt == candidate.lastSeenAt,
+            "retired": previous.isRevoked == candidate.isRevoked,
+            "tombstone": previous.tombstone == candidate.tombstone,
+        ]
+        for field in deviceFields where equality[field] == true {
+            version.fieldVersions[field] = oldVersion.fieldVersions[field]
+        }
+        result.version = version
+        return result
+    }
+
+    public static func stampLocal(
+        previous: DeviceSession,
+        candidate: DeviceSession
+    ) -> DeviceSession {
+        var result = candidate
+        var version = candidate.version.normalized(for: sessionFields)
+        let oldVersion = previous.version.normalized(for: sessionFields)
+        let equality: [String: Bool] = [
+            "device_id": previous.deviceID == candidate.deviceID,
+            "started_at": previous.startedAt == candidate.startedAt,
+            "liveness": Liveness(previous) == Liveness(candidate),
+            "tombstone": previous.tombstone == candidate.tombstone,
+        ]
+        for field in sessionFields where equality[field] == true {
+            version.fieldVersions[field] = oldVersion.fieldVersions[field]
+        }
+        result.version = version
+        return result
+    }
+
+    public static func stampLocal(previous: RemoteTab, candidate: RemoteTab) -> RemoteTab {
+        var result = candidate
+        var version = candidate.version.normalized(for: tabFields)
+        let oldVersion = previous.version.normalized(for: tabFields)
+        let equality: [String: Bool] = [
+            "device_id": previous.deviceID == candidate.deviceID,
+            "session_id": previous.sessionID == candidate.sessionID,
+            "workspace_id": previous.workspaceID == candidate.workspaceID,
+            "url": previous.url == candidate.url && previous.localScheme == candidate.localScheme &&
+                previous.targetKind == candidate.targetKind,
+            "tree_node_id": previous.treeNodeID == candidate.treeNodeID,
+            "title": previous.title == candidate.title,
+            "opened_at": previous.openedAt == candidate.openedAt,
+            "last_active": previous.lastActiveAt == candidate.lastActiveAt,
+            "pinned": previous.pinned == candidate.pinned,
+            "is_incognito": previous.context == candidate.context,
+            "tombstone": previous.tombstone == candidate.tombstone,
+        ]
+        for field in tabFields where equality[field] == true {
+            version.fieldVersions[field] = oldVersion.fieldVersions[field]
+        }
+        result.version = version
         return result
     }
 
@@ -170,7 +247,7 @@ public enum CompanionReadModelFieldMerge {
         guard existing.url == incoming.url else {
             throw CompanionFieldMergeError.immutableFieldConflict("url")
         }
-        guard existing.visitedAt == incoming.visitedAt else {
+        guard SharedTabCreationProvenance.sameTime(existing.visitedAt, incoming.visitedAt) else {
             throw CompanionFieldMergeError.immutableFieldConflict("last_visit")
         }
         guard existing.visitCount == incoming.visitCount else {
@@ -179,8 +256,8 @@ public enum CompanionReadModelFieldMerge {
         guard existing.transition == incoming.transition else {
             throw CompanionFieldMergeError.immutableFieldConflict("transition")
         }
-        let oldVersion = existing.version.normalized(for: historyFields)
-        let newVersion = incoming.version.normalized(for: historyFields)
+        let oldVersion = try SharedSyncFormat.validate(existing.version, fields: historyFields)
+        let newVersion = try SharedSyncFormat.validate(incoming.version, fields: historyFields)
         var result = existing
         if try incomingWins("title", existing.title, incoming.title, oldVersion, newVersion) {
             result.title = incoming.title
@@ -233,12 +310,14 @@ public enum CompanionReadModelFieldMerge {
         _ oldVersion: SyncVersion,
         _ newVersion: SyncVersion
     ) throws -> Bool {
-        let oldClock = oldVersion.fieldVersions[field] ?? oldVersion.modifiedAt
-        let newClock = newVersion.fieldVersions[field] ?? newVersion.modifiedAt
-        if oldClock == newClock && oldValue != newValue {
-            throw CompanionFieldMergeError.equalClockConflict(field)
-        }
-        return newClock > oldClock
+        try CompanionFieldMerge.incomingWins(field, oldValue, newValue, oldVersion, newVersion)
+    }
+
+    private static func incomingWins(
+        _ field: String, _ old: HybridLogicalClock, _ new: HybridLogicalClock,
+        _ oldVersion: SyncVersion, _ newVersion: SyncVersion
+    ) throws -> Bool {
+        try CompanionFieldMerge.incomingWins(field, old, new, oldVersion, newVersion)
     }
 
     private static func mergeVersion(
@@ -252,17 +331,17 @@ public enum CompanionReadModelFieldMerge {
     }
 
     private struct Liveness: Equatable {
-        let lastSeen: HybridLogicalClock
+        let lastSeen: CompanionTimestampValue
         let active: Bool
         init(_ value: DeviceSession) {
-            lastSeen = value.lastActiveAt
+            lastSeen = CompanionTimestampValue(value.lastActiveAt)
             active = value.isOnline
         }
     }
 
     private struct DeviceProjection: Equatable {
         let name: String
-        let lastSeen: HybridLogicalClock
+        let lastSeen: CompanionTimestampValue
         let retired: Bool
         let deleted: Bool
         let fields: [String: HybridLogicalClock]
@@ -274,8 +353,8 @@ public enum CompanionReadModelFieldMerge {
     ) -> DeviceProjection {
         .init(
             name: value.name,
-            lastSeen: value.lastSeenAt,
-            retired: value.isRevoked && !value.isDeleted,
+            lastSeen: CompanionTimestampValue(value.lastSeenAt),
+            retired: value.isRevoked,
             deleted: value.isDeleted,
             fields: version.fieldVersions
         )
@@ -296,9 +375,12 @@ public enum CompanionReadModelFieldMerge {
 
     private struct TabProjection: Equatable {
         let workspace: WorkspaceID?
+        let treeNode: TreeNodeID?
         let url: String
+        let targetKind: SharedTabTargetKind?
+        let localScheme: SharedTabLocalScheme?
         let title: String
-        let lastActive: HybridLogicalClock
+        let lastActive: CompanionTimestampValue
         let pinned: Bool
         let deleted: Bool
         let fields: [String: HybridLogicalClock]
@@ -310,9 +392,12 @@ public enum CompanionReadModelFieldMerge {
     ) -> TabProjection {
         .init(
             workspace: value.workspaceID,
+            treeNode: value.treeNodeID,
             url: value.url,
+            targetKind: value.targetKind,
+            localScheme: value.localScheme,
             title: value.title,
-            lastActive: value.lastActiveAt,
+            lastActive: CompanionTimestampValue(value.lastActiveAt),
             pinned: value.pinned,
             deleted: value.isDeleted,
             fields: version.fieldVersions

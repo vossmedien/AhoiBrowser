@@ -29,6 +29,7 @@ source_set("developer_toolkit_ui") {
     "developer_toolkit_button.h",
     "developer_toolkit_controller.cc",
     "developer_toolkit_controller.h",
+    "developer_toolkit_controller_profile_editor.cc",
     "location_bar_bubble_button.cc",
     "location_bar_bubble_button.h",
   ]

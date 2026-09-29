@@ -7,6 +7,16 @@ public struct CompanionCloudKitRuntime: Sendable {
     public let bridge: CompanionSyncBridge
 }
 
+public enum CompanionCloudKitBootstrapError: Error, Equatable, Sendable {
+    case invalidContainerIdentifier
+    case keyConfigurationMissing
+    case providerUnavailable
+    case recordStoreInitializationFailed
+    case quarantineStoreInitializationFailed
+    case systemFieldsStoreInitializationFailed
+    case remoteCommandOwnershipStoreInitializationFailed
+}
+
 /// Creates the native provider only for a signed target that supplies a real
 /// development container. Empty or unresolved build settings keep the app
 /// local-first and cannot trigger an accidental CloudKit account request.
@@ -15,19 +25,58 @@ public enum CompanionCloudKitBootstrap {
     public static func makeProvider(
         syncEnabled: Bool = false,
         containerIdentifier: String?,
+        zoneName: String = "AhoiBrowserSyncV3",
+        subscriptionID: String? = nil,
         recordsURL: URL,
         stateURL: URL,
+        automaticallySync: Bool = true,
         quarantineStore: (any SyncQuarantineStore)? = nil,
         systemFieldsStore: (any CloudKitSystemFieldsStore)? = nil
     ) -> CloudKitSyncProvider? {
+        do {
+            return try makeProviderChecked(
+                syncEnabled: syncEnabled,
+                containerIdentifier: containerIdentifier,
+                zoneName: zoneName,
+                subscriptionID: subscriptionID,
+                recordsURL: recordsURL,
+                stateURL: stateURL,
+                automaticallySync: automaticallySync,
+                quarantineStore: quarantineStore,
+                systemFieldsStore: systemFieldsStore
+            )
+        } catch {
+            // Compatibility-only probe used by provider-free tests. Production
+            // activation calls the checked API and surfaces the exact failure.
+            return nil
+        }
+    }
+
+    @available(iOS 17.0, macOS 14.0, *)
+    public static func makeProviderChecked(
+        syncEnabled: Bool,
+        containerIdentifier: String?,
+        zoneName: String = "AhoiBrowserSyncV3",
+        subscriptionID: String? = nil,
+        recordsURL: URL,
+        stateURL: URL,
+        automaticallySync: Bool = true,
+        quarantineStore: (any SyncQuarantineStore)? = nil,
+        systemFieldsStore: (any CloudKitSystemFieldsStore)? = nil,
+        bootstrapClaim: CompanionBootstrapClaim? = nil
+    ) throws -> CloudKitSyncProvider? {
+        guard syncEnabled else { return nil }
         guard syncEnabled,
               let containerIdentifier,
               !containerIdentifier.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               containerIdentifier.hasPrefix("iCloud.") else {
-            return nil
+            throw CompanionCloudKitBootstrapError.invalidContainerIdentifier
         }
-        guard let recordStore = try? FileSyncRecordStore(fileURL: recordsURL) else {
-            return nil
+        let recordStore: FileSyncRecordStore
+        do {
+            recordStore = try FileSyncRecordStore(fileURL: recordsURL)
+        } catch {
+            throw CompanionCloudKitBootstrapError.recordStoreInitializationFailed
         }
         let resolvedQuarantineStore: any SyncQuarantineStore
         if let quarantineStore {
@@ -35,10 +84,14 @@ public enum CompanionCloudKitBootstrap {
         } else {
             let quarantineURL = stateURL.deletingLastPathComponent()
                 .appendingPathComponent("sync-quarantine.json")
-            guard let durableStore = try? FileSyncQuarantineStore(fileURL: quarantineURL) else {
-                return nil
+            do {
+                resolvedQuarantineStore = try FileSyncQuarantineStore(
+                    fileURL: quarantineURL
+                )
+            } catch {
+                throw CompanionCloudKitBootstrapError
+                    .quarantineStoreInitializationFailed
             }
-            resolvedQuarantineStore = durableStore
         }
         let resolvedSystemFieldsStore: any CloudKitSystemFieldsStore
         if let systemFieldsStore {
@@ -46,15 +99,23 @@ public enum CompanionCloudKitBootstrap {
         } else {
             let systemFieldsURL = stateURL.deletingLastPathComponent()
                 .appendingPathComponent("sync-record-system-fields.json")
-            guard let durableStore = try? FileCloudKitSystemFieldsStore(
-                fileURL: systemFieldsURL
-            ) else {
-                return nil
+            do {
+                resolvedSystemFieldsStore = try FileCloudKitSystemFieldsStore(
+                    fileURL: systemFieldsURL
+                )
+            } catch {
+                throw CompanionCloudKitBootstrapError
+                    .systemFieldsStoreInitializationFailed
             }
-            resolvedSystemFieldsStore = durableStore
         }
-        return try? CloudKitSyncProvider(
-            configuration: .init(containerIdentifier: containerIdentifier),
+        return try CloudKitSyncProvider(
+            configuration: .init(
+                containerIdentifier: containerIdentifier,
+                zoneName: zoneName,
+                automaticallySync: automaticallySync,
+                subscriptionID: subscriptionID,
+                bootstrapClaim: bootstrapClaim
+            ),
             recordStore: recordStore,
             stateStore: FileSyncEngineStateStore(fileURL: stateURL),
             quarantineStore: resolvedQuarantineStore,
@@ -66,26 +127,95 @@ public enum CompanionCloudKitBootstrap {
     public static func makeRuntime(
         syncEnabled: Bool = false,
         containerIdentifier: String?,
+        zoneName: String = "AhoiBrowserSyncV3",
+        subscriptionID: String? = nil,
         keyConfiguration: CompanionSyncKeyConfiguration?,
         repository: LocalFirstRepository,
         recordsURL: URL,
         stateURL: URL,
         commandSigner: (any RemoteCommandSigning)? = nil,
-        quarantineStore: (any SyncQuarantineStore)? = nil
+        quarantineStore: (any SyncQuarantineStore)? = nil,
+        remoteCommandOwnershipStore: (any RemoteCommandOwnershipStoring)? = nil
     ) -> CompanionCloudKitRuntime? {
-        guard syncEnabled,
-              let keyConfiguration,
-              let sealer = try? KeychainCompanionPayloadSealer(
-                configuration: keyConfiguration
-              ),
-              let provider = makeProvider(
-                syncEnabled: true,
+        do {
+            return try makeRuntimeChecked(
+                syncEnabled: syncEnabled,
                 containerIdentifier: containerIdentifier,
+                zoneName: zoneName,
+                subscriptionID: subscriptionID,
+                keyConfiguration: keyConfiguration,
+                repository: repository,
                 recordsURL: recordsURL,
                 stateURL: stateURL,
-                quarantineStore: quarantineStore
-              ) else {
+                commandSigner: commandSigner,
+                quarantineStore: quarantineStore,
+                remoteCommandOwnershipStore: remoteCommandOwnershipStore
+            )
+        } catch {
+            // Compatibility-only optional API. Runtime activation uses the
+            // checked variant so Keychain/CloudKit failures remain visible.
             return nil
+        }
+    }
+
+    @available(iOS 17.0, macOS 14.0, *)
+    public static func makeRuntimeChecked(
+        syncEnabled: Bool,
+        containerIdentifier: String?,
+        zoneName: String = "AhoiBrowserSyncV3",
+        subscriptionID: String? = nil,
+        keyConfiguration: CompanionSyncKeyConfiguration?,
+        repository: LocalFirstRepository,
+        recordsURL: URL,
+        stateURL: URL,
+        commandSigner: (any RemoteCommandSigning)? = nil,
+        quarantineStore: (any SyncQuarantineStore)? = nil,
+        remoteCommandOwnershipStore: (any RemoteCommandOwnershipStoring)? = nil,
+        bootstrapClaim: CompanionBootstrapClaim? = nil,
+        verifiedWritingKeySHA256: String? = nil
+    ) throws -> CompanionCloudKitRuntime? {
+        guard syncEnabled else { return nil }
+        guard let keyConfiguration, let bootstrapClaim, bootstrapClaim.hasKeyCommitment else {
+            throw CompanionCloudKitBootstrapError.keyConfigurationMissing
+        }
+        let expected = verifiedWritingKeySHA256 ??
+            (keyConfiguration.keyVersion == bootstrapClaim.keyVersion ? bootstrapClaim.keySHA256 : nil)
+        guard let expected else { throw CompanionCloudKitBootstrapError.keyConfigurationMissing }
+        guard CompanionBootstrapClaim(keyVersion: keyConfiguration.keyVersion,
+                                      serverChangeTag: "verified", keySHA256: expected).hasKeyCommitment,
+              keyConfiguration.keyVersion != bootstrapClaim.keyVersion ||
+                expected == bootstrapClaim.keySHA256 else {
+            throw CompanionSyncKeyError.keyCommitmentMismatch
+        }
+        let sealer = try KeychainCompanionPayloadSealer(
+            configuration: keyConfiguration, expectedKeySHA256: expected
+        )
+        let resolvedOwnershipStore: any RemoteCommandOwnershipStoring
+        if let remoteCommandOwnershipStore {
+            resolvedOwnershipStore = remoteCommandOwnershipStore
+        } else {
+            let ownershipURL = stateURL.deletingLastPathComponent()
+                .appendingPathComponent("remote-command-ownership-v1.json")
+            do {
+                resolvedOwnershipStore = try FileRemoteCommandOwnershipStore(
+                    fileURL: ownershipURL
+                )
+            } catch {
+                throw CompanionCloudKitBootstrapError
+                    .remoteCommandOwnershipStoreInitializationFailed
+            }
+        }
+        guard let provider = try makeProviderChecked(
+            syncEnabled: true,
+            containerIdentifier: containerIdentifier,
+            zoneName: zoneName,
+            subscriptionID: subscriptionID,
+            recordsURL: recordsURL,
+            stateURL: stateURL,
+            quarantineStore: quarantineStore,
+            bootstrapClaim: bootstrapClaim
+        ) else {
+            throw CompanionCloudKitBootstrapError.providerUnavailable
         }
         return .init(
             provider: provider,
@@ -93,7 +223,8 @@ public enum CompanionCloudKitBootstrap {
                 repository: repository,
                 provider: provider,
                 sealer: sealer,
-                commandSigner: commandSigner
+                commandSigner: commandSigner,
+                commandOwnershipStore: resolvedOwnershipStore
             )
         )
     }

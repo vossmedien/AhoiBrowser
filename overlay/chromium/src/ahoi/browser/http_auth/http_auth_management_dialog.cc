@@ -562,6 +562,13 @@ void HttpAuthManagementDialog::ClearEditor() {
   if (secret_access_controller_) {
     secret_access_controller_->Invalidate();
   }
+  // Repeated close/navigation notifications must not revisit child views
+  // after the active editor has already been wiped.
+  if (!editing_metadata_) {
+    password_revealed_ = false;
+    ClearCopiedSecretIfUnchanged();
+    return;
+  }
   MaskEditorPassword();
   if (editor_password_field_) {
     std::u16string secret(editor_password_field_->GetText());

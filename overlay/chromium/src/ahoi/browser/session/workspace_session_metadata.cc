@@ -24,6 +24,8 @@ constexpr char kActiveWorkspaceIdKey[] = "active_workspace_id";
 constexpr char kWorkspaceIdKey[] = "workspace_id";
 constexpr char kTreeNodeIdKey[] = "tree_node_id";
 constexpr char kLastActiveInWorkspaceKey[] = "last_active_in_workspace";
+constexpr char kSharedBindingInvalidatedKey[] = "shared_binding_invalidated";
+constexpr char kWebsiteSessionContextIdKey[] = "website_session_context_id";
 
 struct ParsedPayload {
   std::optional<base::Value> root;
@@ -50,7 +52,9 @@ ParsedPayload ParseCurrentVersionPayload(std::string_view serialized) {
   if (!version.has_value()) {
     return parsed;
   }
-  if (*version != kWorkspaceSessionMetadataVersion) {
+  if (*version != kWorkspaceSessionMetadataVersion &&
+      *version != kRetiredBindingSessionMetadataVersion &&
+      *version != kWebsiteSessionTabMetadataVersion) {
     parsed.result = SessionMetadataDecodeResult::kUnsupportedVersion;
     return parsed;
   }
@@ -96,7 +100,16 @@ SessionMetadataDecodeResult DecodeWindowSessionMetadata(
     return parsed.result;
   }
   const base::DictValue* dictionary = parsed.root->GetIfDict();
-  if (!dictionary || dictionary->size() != 2u) {
+  if (!dictionary) {
+    return SessionMetadataDecodeResult::kMalformed;
+  }
+  // The shared parser also admits the tab-only versions; for a window those
+  // are an unsupported schema rather than a corrupt payload.
+  const std::optional<int> version = dictionary->FindInt(kVersionKey);
+  if (version.has_value() && *version != kWorkspaceSessionMetadataVersion) {
+    return SessionMetadataDecodeResult::kUnsupportedVersion;
+  }
+  if (dictionary->size() != 2u || !version.has_value()) {
     return SessionMetadataDecodeResult::kMalformed;
   }
 
@@ -115,17 +128,32 @@ std::optional<std::string> EncodeTabSessionMetadata(
     const TabSessionMetadata& metadata) {
   if (!metadata.workspace_id.is_valid() ||
       (metadata.tree_node_id.has_value() &&
-       !metadata.tree_node_id->is_valid())) {
+       !metadata.tree_node_id->is_valid()) ||
+      (metadata.website_session_context_id.has_value() &&
+       !metadata.website_session_context_id->is_valid())) {
     return std::nullopt;
   }
 
   base::DictValue dictionary;
-  dictionary.Set(kVersionKey, kWorkspaceSessionMetadataVersion);
+  dictionary.Set(kVersionKey,
+                 metadata.website_session_context_id.has_value()
+                     ? kWebsiteSessionTabMetadataVersion
+                     : metadata.shared_binding_invalidated
+                           ? kRetiredBindingSessionMetadataVersion
+                           : kWorkspaceSessionMetadataVersion);
+  if (metadata.shared_binding_invalidated) {
+    dictionary.Set(kSharedBindingInvalidatedKey, true);
+  }
   dictionary.Set(kWorkspaceIdKey, metadata.workspace_id.AsLowercaseString());
   if (metadata.tree_node_id.has_value()) {
     dictionary.Set(kTreeNodeIdKey, metadata.tree_node_id->AsLowercaseString());
   }
   dictionary.Set(kLastActiveInWorkspaceKey, metadata.last_active_in_workspace);
+  if (metadata.website_session_context_id.has_value()) {
+    dictionary.Set(
+        kWebsiteSessionContextIdKey,
+        metadata.website_session_context_id->AsLowercaseString());
+  }
   return base::WriteJson(dictionary);
 }
 
@@ -146,7 +174,18 @@ SessionMetadataDecodeResult DecodeTabSessionMetadata(
     return SessionMetadataDecodeResult::kMalformed;
   }
   const base::Value* tree_node_value = dictionary->Find(kTreeNodeIdKey);
-  const size_t expected_field_count = tree_node_value ? 4u : 3u;
+  const int version = *dictionary->FindInt(kVersionKey);
+  const bool has_binding_extension =
+      dictionary->Find(kSharedBindingInvalidatedKey) != nullptr;
+  if ((version == kRetiredBindingSessionMetadataVersion &&
+       !has_binding_extension) ||
+      (version == kWorkspaceSessionMetadataVersion &&
+       has_binding_extension)) {
+    return SessionMetadataDecodeResult::kMalformed;
+  }
+  const size_t expected_field_count =
+      (tree_node_value ? 4u : 3u) + (has_binding_extension ? 1u : 0u) +
+      (version == kWebsiteSessionTabMetadataVersion ? 1u : 0u);
   if (dictionary->size() != expected_field_count) {
     return SessionMetadataDecodeResult::kMalformed;
   }
@@ -155,8 +194,23 @@ SessionMetadataDecodeResult DecodeTabSessionMetadata(
       ParseRequiredUuid(*dictionary, kWorkspaceIdKey);
   const std::optional<bool> last_active =
       dictionary->FindBool(kLastActiveInWorkspaceKey);
-  if (!workspace_id.has_value() || !last_active.has_value()) {
+  const std::optional<bool> invalidated =
+      has_binding_extension ? dictionary->FindBool(kSharedBindingInvalidatedKey)
+                            : std::make_optional(false);
+  if (!workspace_id.has_value() || !last_active.has_value() || !invalidated) {
     return SessionMetadataDecodeResult::kMalformed;
+  }
+  if (has_binding_extension && !*invalidated) {
+    return SessionMetadataDecodeResult::kMalformed;
+  }
+
+  std::optional<base::Uuid> website_session_context_id;
+  if (version == kWebsiteSessionTabMetadataVersion) {
+    website_session_context_id =
+        ParseRequiredUuid(*dictionary, kWebsiteSessionContextIdKey);
+    if (!website_session_context_id.has_value()) {
+      return SessionMetadataDecodeResult::kMalformed;
+    }
   }
 
   std::optional<base::Uuid> tree_node_id;
@@ -171,6 +225,8 @@ SessionMetadataDecodeResult DecodeTabSessionMetadata(
       .workspace_id = std::move(*workspace_id),
       .tree_node_id = std::move(tree_node_id),
       .last_active_in_workspace = *last_active,
+      .shared_binding_invalidated = *invalidated,
+      .website_session_context_id = website_session_context_id,
   };
   return SessionMetadataDecodeResult::kSuccess;
 }

@@ -5,14 +5,17 @@
   "localFirst": true,
   "enabledByDefault": false,
   "cloudKitContainerBeforeOptIn": false,
-  "wireModelVersion": 2,
-  "localStoreSchemaVersion": 4,
+  "wireModelVersion": 3,
+  "localStoreSchemaVersion": 7,
+  "formatContract": "config/sync-format.json",
   "customZoneRequired": true,
   "sync": [
     "devices",
+    "deviceCapabilities",
     "deviceSessions",
     "workspaces",
     "treeNodes",
+    "bookmarks",
     "treeOrdering",
     "tombstones",
     "deviceTabs",
@@ -21,13 +24,17 @@
     "permittedSettings",
     "extensionInventory",
     "optInDeveloperAssets",
-    "remoteCommands"
+    "remoteCommands",
+    "logicalSplitGroups",
+    "tabArchiveEntries"
   ],
   "implementedRecords": [
     "devices",
+    "deviceCapabilities",
     "deviceSessions",
     "workspaces",
     "treeNodes",
+    "bookmarks",
     "treeOrdering",
     "tombstones",
     "deviceTabs",
@@ -36,7 +43,9 @@
     "permittedSettings",
     "extensionInventory",
     "optInDeveloperAssets",
-    "remoteCommands"
+    "remoteCommands",
+    "logicalSplitGroups",
+    "tabArchiveEntries"
   ],
   "neverSync": [
     "cookies",
@@ -47,13 +56,53 @@
     "permissions",
     "extensionStorage",
     "incognito",
-    "splitTopology",
     "keychainSecrets",
     "secretHeaders",
-    "httpAuthSecrets"
+    "httpAuthSecrets",
+    "nativeSplitHandles",
+    "windowGeometry",
+    "liveFocus",
+    "websiteSessionState"
   ],
+  "bookmarkCategory": {
+    "localConsentRequired": true,
+    "enabledByDefault": false,
+    "requiresGlobalSync": true,
+    "openingLibraryGrantsConsent": false,
+    "consentIsSynced": false,
+    "decryptBeforeConsent": false,
+    "accountChangeRevokesConsent": true
+  },
+  "extensionSetupCategory": {
+    "carrier": "permittedSettings",
+    "typedNamespace": "ahoi.extension.<extension-id>.desired",
+    "localConsentRequired": true,
+    "enabledByDefault": false,
+    "requiresGlobalSync": true,
+    "consentIsSynced": false,
+    "nativePermissionsAreNotSynced": true,
+    "observedInventoryIsNotDesiredState": true,
+    "unknownOrUnpackedSourcesAreRestorable": false
+  },
+  "extensionSettingsCategory": {
+    "carrier": "permittedSettings",
+    "typedNamespace": "ahoi.extension.<catalogue-id>.storage.sync.<catalogue-key>",
+    "localConsentRequired": true,
+    "enabledByDefault": false,
+    "requiresGlobalSync": true,
+    "setupConsentGrantsStorageConsent": false,
+    "consentIsSynced": false,
+    "rawStorageAllowed": false,
+    "nativeApplyRequiresOriginalAuthorization": true,
+    "iosPublishesStorage": false
+  },
   "historyRetentionDaysDefault": 90,
-  "historyRetentionChoices": [30, 90, 365, -1],
+  "historyRetentionChoices": [
+    30,
+    90,
+    365,
+    -1
+  ],
   "tombstoneRetentionDays": 30,
   "sessionFreshness": {
     "heartbeatMinutes": 5,
@@ -62,10 +111,21 @@
   },
   "convergence": {
     "fieldClock": "hybrid-logical-clock",
-    "treeLocationAtomic": ["workspace_id", "parent_id", "sort_key"],
+    "treeLocationAtomic": [
+      "workspace_id",
+      "parent_id",
+      "sort_key"
+    ],
     "mergedUnionRecordClock": "deterministic-successor",
     "equalClockDifferentValue": "quarantine",
     "invalidRecord": "quarantine-and-advance-token",
     "compactedDeletion": "persistent-watermark-reject-resurrection"
+  },
+  "workspaceStructure": {
+    "formatVersion": 3,
+    "nativeProjectionEnabled": false,
+    "mobileBehavior": "lossless metadata retention; no split UI; no inferred deletion",
+    "automaticArchiveDefault": "never",
+    "receivedArchiveClosesActivePage": false
   }
 }

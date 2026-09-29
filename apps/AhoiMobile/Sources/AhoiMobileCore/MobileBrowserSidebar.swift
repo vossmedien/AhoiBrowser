@@ -7,48 +7,68 @@ import AhoiCloudKitSpike
 /// intentionally only a list column: the surrounding browser owns the one and
 /// only `NavigationSplitView` and every navigation action is routed back to it.
 struct MobileBrowserSidebar: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject private var model: CompanionAppModel
     @ObservedObject private var browser: MobileBrowserController
+    @State private var bookmarksPresented = false
 
     private let accentTint: Color
+    private let onPresentCommand: () -> Void
     private let onSelectWorkspace: (WorkspaceID) -> Void
     private let onSelectTab: (UUID) -> Void
     private let onOpenPage: (URL, WorkspaceID?) -> Void
-    private let onCreateTab: (WorkspaceID?) -> Void
+    private let onOpenTreeNode: (TreeNodeID) -> Void
+    private let onCreateTab: (WorkspaceID?, MobileBrowsingMode) -> Void
 
     init(
         model: CompanionAppModel,
         browser: MobileBrowserController,
         accentTint: Color,
+        onPresentCommand: @escaping () -> Void,
         onSelectWorkspace: @escaping (WorkspaceID) -> Void,
         onSelectTab: @escaping (UUID) -> Void,
         onOpenPage: @escaping (URL, WorkspaceID?) -> Void,
-        onCreateTab: @escaping (WorkspaceID?) -> Void
+        onOpenTreeNode: @escaping (TreeNodeID) -> Void,
+        onCreateTab: @escaping (WorkspaceID?, MobileBrowsingMode) -> Void
     ) {
         self.model = model
         self.browser = browser
         self.accentTint = accentTint
+        self.onPresentCommand = onPresentCommand
         self.onSelectWorkspace = onSelectWorkspace
         self.onSelectTab = onSelectTab
         self.onOpenPage = onOpenPage
+        self.onOpenTreeNode = onOpenTreeNode
         self.onCreateTab = onCreateTab
     }
 
     var body: some View {
         List {
-            workspaceSection
-            savedHierarchySection
-            localTabsSection
-            remoteTabsSection
+            commandSection
+            if isPrivateBrowsing {
+                localTabsSection
+            } else {
+                Section {
+                    CompanionBookmarkLibraryEntry { bookmarksPresented = true }
+                }
+                workspaceSection
+                savedHierarchySection
+                localTabsSection
+                remoteTabsSection
+            }
         }
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
-        .background(accentTint.opacity(0.055))
-        .navigationTitle("AhoiBrowser")
+        .background(isPrivateBrowsing
+                    ? MobileBrowserChromeTheme.privateBackground
+                    : accentTint.opacity(0.055))
+        .navigationTitle(isPrivateBrowsing
+                         ? CompanionL10n.string("browser.private", fallback: "Private")
+                         : "AhoiBrowser")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    onCreateTab(contentWorkspaceID)
+                    onCreateTab(contentWorkspaceID, selectedMode)
                 } label: {
                     Image(systemName: "plus")
                         .frame(width: 44, height: 44)
@@ -62,13 +82,52 @@ struct MobileBrowserSidebar: View {
             }
         }
         .tint(accentTint)
-        .accessibilityIdentifier("browser.sidebar")
+        .sheet(isPresented: $bookmarksPresented) {
+            BookmarkLibraryView(model: model, openURL: OpenURLAction { url in
+                onOpenPage(url, contentWorkspaceID)
+                return .handled
+            })
+        }
+        .environment(\.colorScheme, isPrivateBrowsing ? .dark : colorScheme)
+    }
+
+    private var commandSection: some View {
+        Section {
+            Button(action: onPresentCommand) {
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(accentTint)
+                        .accessibilityHidden(true)
+                    Text(CompanionL10n.string(
+                        "browser.focus.search",
+                        fallback: "Search, address or command"
+                    ))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    Spacer(minLength: 4)
+                    Text("⌘L")
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
+                }
+                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("browser.sidebar.command")
+            .accessibilityLabel(CompanionL10n.string(
+                "browser.focus.search",
+                fallback: "Search, address or command"
+            ))
+        }
     }
 
     @ViewBuilder
     private var workspaceSection: some View {
         Section(CompanionL10n.string("root.workspaces", fallback: "Workspaces")) {
-            if model.snapshot.visibleWorkspaces.isEmpty {
+            if model.snapshot.visibleWorkspaces.isEmpty,
+               model.separatedWorkspaces.entries.isEmpty {
                 sidebarEmptyRow(
                     CompanionL10n.string(
                         "browser.sidebar.workspaces.empty",
@@ -105,6 +164,11 @@ struct MobileBrowserSidebar: View {
                     .accessibilityValue(Text(isSelected ? selectedAccessibilityValue : ""))
                 }
             }
+            SeparatedWorkspaceRows(
+                coordinator: model.separatedWorkspaces,
+                accentTint: accentTint,
+                onOpen: onSelectWorkspace
+            )
         }
     }
 
@@ -195,13 +259,7 @@ struct MobileBrowserSidebar: View {
     }
 
     private func workspaceIcon(_ workspace: Workspace) -> some View {
-        Group {
-            if workspace.icon.isEmpty {
-                Image(systemName: "square.stack.3d.up")
-            } else {
-                Text(workspace.icon)
-            }
-        }
+        Image(systemName: MobileWorkspaceIconPolicy.systemName(for: workspace.icon))
         .font(.body.weight(.semibold))
         .foregroundStyle(accentTint)
         .frame(width: 32, height: 32)
@@ -227,9 +285,9 @@ struct MobileBrowserSidebar: View {
                     node.title,
                     item.depth + 1
                 ))
-        } else if let value = node.url, let url = URL(string: value) {
+        } else if let value = node.url, URL(string: value) != nil {
             Button {
-                onOpenPage(url, node.workspaceID)
+                onOpenTreeNode(node.id)
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "bookmark.fill")
@@ -254,10 +312,6 @@ struct MobileBrowserSidebar: View {
             .accessibilityIdentifier(
                 "browser.sidebar.saved-page.\(identifier(node.id.rawValue))"
             )
-            .accessibilityHint(CompanionL10n.string(
-                "browser.sidebar.open_hint",
-                fallback: "Opens in a new tab"
-            ))
             .accessibilityValue(Text(CompanionL10n.format(
                 "browser.sidebar.item.level",
                 fallback: "Level %d",
@@ -384,9 +438,17 @@ struct MobileBrowserSidebar: View {
     }
 
     private var visibleLocalTabs: [MobileTabRecord] {
-        browser.selectedTab?.mode == .privateBrowsing
+        isPrivateBrowsing
             ? browser.privateTabs
             : browser.normalTabs
+    }
+
+    private var selectedMode: MobileBrowsingMode {
+        browser.selectedTab?.mode ?? .normal
+    }
+
+    private var isPrivateBrowsing: Bool {
+        selectedMode == .privateBrowsing
     }
 
     private var selectedAccessibilityValue: String {
@@ -467,6 +529,7 @@ struct MobileBrowserSidebar: View {
         case .mac: "desktopcomputer"
         case .iPhone: "iphone"
         case .iPad: "ipad"
+        case .other: "laptopcomputer.and.iphone"
         }
     }
 

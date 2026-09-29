@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "kind": "ahoi-perf-aborted",
+  "pass": false,
+  "startedAt": "2026-09-28T11:05:35.145068+00:00",
+  "failureType": "RunCancelled",
+  "partialRuns": [
+    {
+      "app": {
+        "path": "/Applications/AhoiBrowser.app",
+        "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+        "binarySha256": "bc53748d319f1b086b03e25beceaea2e36d85e64dc0ca6916549de62ea743705",
+        "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+        "chromiumVersion": "153.0.8010.53",
+        "sourceCommit": "6acd207f19b5ba0357240b1b90f078beb4eec09c",
+        "buildProfile": "dev",
+        "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+        "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+      },
+      "buildEvidence": null,
+      "metrics": {}
+    }
+  ],
+  "hostBefore": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      83.65869140625,
+      99.64990234375,
+      101.275390625
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [
+      "swift-frontend"
+    ],
+    "hidIdleSeconds": 323
+  },
+  "runtimeGuard": {
+    "checkpoint": ".work/crest-h3/lease-6acd207.md",
+    "leaseId": "crest-h3-validation-6acd207-20260928",
+    "grantSha256": "777fc9bda9e9f301d086ea5345c6bdff9da2076577f05d310689be45750b7e1d",
+    "expiresAt": "2026-09-28T21:59:35.894721+00:00",
+    "pollIntervalSeconds": 1.0,
+    "checks": 4,
+    "completed": false,
+    "cancelled": true,
+    "reason": "owner input detected",
+    "lockRetained": false,
+    "driverAccessibilityClients": []
+  }
+}

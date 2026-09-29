@@ -14,6 +14,7 @@
 #include "components/privacy_sandbox/privacy_sandbox_prefs.h"
 #include "components/safe_browsing/core/common/safe_browsing_prefs.h"
 #include "components/signin/public/base/signin_pref_names.h"
+#include "components/translate/core/browser/translate_pref_names.h"
 #include "components/variations/client_filterable_state.h"
 #include "components/variations/pref_names.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -41,10 +42,14 @@ TEST(PrivacyDefaultsTest, ProfileDefaultsAreSafeAndRemainUserModifiable) {
   profile_prefs.registry()->RegisterBooleanPref(
       metrics::prefs::kAdvancedReportingEnabled, true);
   privacy_sandbox::RegisterProfilePrefs(profile_prefs.registry());
+  profile_prefs.registry()->RegisterBooleanPref(
+      translate::prefs::kOfferTranslateEnabled, true);
 
   ApplyProfileDefaults(profile_prefs.registry());
 
   EXPECT_TRUE(profile_prefs.GetBoolean(prefs::kHttpsOnlyModeEnabled));
+  EXPECT_FALSE(
+      profile_prefs.GetBoolean(translate::prefs::kOfferTranslateEnabled));
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kHttpsFirstBalancedMode));
   EXPECT_FALSE(profile_prefs.GetBoolean(prefs::kSearchSuggestEnabled));
   EXPECT_EQ(
@@ -91,6 +96,8 @@ TEST(PrivacyDefaultsTest, LocalStateDisablesReportingAndVariations) {
   local_state.registry()->RegisterIntegerPref(
       variations::prefs::kVariationsRestrictionsByPolicy,
       static_cast<int>(variations::RestrictionPolicy::NO_RESTRICTIONS));
+  local_state.registry()->RegisterIntegerPref(
+      prefs::kBrowserProfilePickerAvailabilityOnStartup, 0);
 
   ApplyLocalStateDefaults(local_state.registry());
 
@@ -101,6 +108,9 @@ TEST(PrivacyDefaultsTest, LocalStateDisablesReportingAndVariations) {
   EXPECT_EQ(static_cast<int>(variations::RestrictionPolicy::ALL),
             local_state.GetInteger(
                 variations::prefs::kVariationsRestrictionsByPolicy));
+  // ProfilePicker::AvailabilityOnStartup::kDisabled.
+  EXPECT_EQ(1, local_state.GetInteger(
+                   prefs::kBrowserProfilePickerAvailabilityOnStartup));
 }
 
 }  // namespace

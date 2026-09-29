@@ -24,13 +24,19 @@ class ChromiumRollCandidatePromotionTests(unittest.TestCase):
         production_path.write_text(
             json.dumps(PIN, indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
+        # The candidate is always the next milestone relative to the live
+        # production pin (the fixture previously hard-coded 153 while the pin
+        # was M152; the M153 roll made that a same-milestone, invalid record).
+        next_milestone = PIN["milestone"] + 1
+        next_branch_head = PIN["branchHead"] + 100
+        next_version = f"{next_milestone}.0.{next_branch_head}.1"
         candidate = {
             **PIN,
-            "milestone": PIN["milestone"] + 1,
-            "version": "153.0.8000.1",
-            "tag": "refs/tags/153.0.8000.1",
+            "milestone": next_milestone,
+            "version": next_version,
+            "tag": f"refs/tags/{next_version}",
             "commit": "1" * 40,
-            "branchHead": 8000,
+            "branchHead": next_branch_head,
             "branchHeadPosition": PIN["branchHeadPosition"] + 1,
             "branchPosition": PIN["branchPosition"] + 1,
             "retrievedAt": "2026-08-27T12:00:00Z",

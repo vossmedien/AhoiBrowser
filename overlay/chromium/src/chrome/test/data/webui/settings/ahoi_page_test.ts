@@ -1,6 +1,7 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import {webUIListenerCallback} from 'chrome://resources/js/cr.js';
 import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
 import type {SettingsAhoiPageElement, SettingsDropdownMenuElement, SettingsMenuElement, SettingsToggleButtonElement} from 'chrome://settings/settings.js';
 import {PrefsBrowserProxy, PrefService, routes} from 'chrome://settings/settings.js';
@@ -132,55 +133,8 @@ suite('AhoiPage', () => {
     assertEquals('/ahoi', item.getAttribute('href'));
   });
 
-  test('arcPreviewRequiresBothExplicitConfirmationsBeforeCommit', async () => {
-    const mutablePage = page as unknown as {
-      arcImportStage_: string,
-      arcImportPreview_: object,
-      arcSelectedProfiles_: string[],
-    };
-    mutablePage.arcImportStage_ = 'preview';
-    mutablePage.arcImportPreview_ = {
-      status: 'ok',
-      snapshotToken: 'test-token-without-source-data',
-      stats: {
-        sourceWorkspaces: 1,
-        sourceItems: 2,
-        workspaces: 1,
-        folders: 0,
-        pages: 2,
-        splits: 1,
-        degradedSplits: 0,
-        topApps: 0,
-        unsafeUrls: 0,
-        unsupportedItems: 0,
-      },
-      conflictingWorkspaces: 0,
-      alreadyImported: false,
-      sourceInUse: false,
-      targetWorkspaces: ['Imported workspace'],
-      profiles: ['Default'],
-    };
-    mutablePage.arcSelectedProfiles_ = ['Default'];
-    page.requestUpdate();
-    await microtasksFinished();
-
-    const backup = page.shadowRoot.querySelector<HTMLElement&{checked: boolean}>(
-        '#ahoiArcBackupConfirmation')!;
-    const commit = page.shadowRoot.querySelector<HTMLElement&{checked: boolean}>(
-        '#ahoiArcCommitConfirmation')!;
-    const button = page.shadowRoot.querySelector<HTMLElement&{disabled: boolean}>(
-        '#ahoiArcCommit')!;
-    assertTrue(!!backup);
-    assertTrue(!!commit);
-    assertTrue(button.disabled);
-
-    backup.click();
-    await microtasksFinished();
-    assertTrue(button.disabled);
-
-    commit.click();
-    await microtasksFinished();
-    assertFalse(button.disabled);
+  test('doesNotOwnASeparateArcImportAssistant', () => {
+    assertFalse(!!page.shadowRoot.querySelector('#ahoiArcImportAssistant'));
   });
 
   test('syncOptInCanPrepareLocalStateWithoutCloudKitTransport', async () => {
@@ -226,9 +180,6 @@ suite('AhoiPage', () => {
   });
 
   test('futureCloudKitAvailabilityUnlocksSafeSyncPrefs', async () => {
-    document.body.innerHTML = window.trustedTypes!.emptyHTML;
-    await createPage(true);
-
     const sync = page.shadowRoot.querySelector<SettingsToggleButtonElement>(
         '#ahoiSyncEnabled')!;
     const remote = page.shadowRoot.querySelector<SettingsToggleButtonElement>(
@@ -239,17 +190,55 @@ suite('AhoiPage', () => {
     const unavailable = page.shadowRoot.querySelector<HTMLElement>(
         '#ahoiCloudKitUnavailableStatus')!;
 
+    assertFalse(unavailable.hidden);
+    webUIListenerCallback('ahoi-remote-control-status-changed', {
+      action: '',
+      prerequisite: 'syncDisabled',
+      syncEnabled: false,
+      cloudKitAvailable: true,
+      canPair: false,
+      canEnable: false,
+      enabled: false,
+      approvedDeviceIds: [],
+    });
+    await microtasksFinished();
+
     assertTrue(unavailable.hidden);
     assertFalse(sync.disabled);
     sync.click();
     await microtasksFinished();
 
     assertTrue(prefService.getPref<boolean>('ahoi.sync.enabled').value);
-    assertFalse(remote.disabled);
     assertFalse(retention.disabled);
     assertEquals(
         90,
         prefService.getPref<number>('ahoi.sync.history_retention_days').value);
+
+    webUIListenerCallback('ahoi-remote-control-status-changed', {
+      action: '',
+      prerequisite: 'approvedDeviceRequired',
+      syncEnabled: true,
+      cloudKitAvailable: true,
+      canPair: true,
+      canEnable: false,
+      enabled: false,
+      approvedDeviceIds: [],
+    });
+    await microtasksFinished();
+    assertTrue(remote.disabled);
+
+    webUIListenerCallback('ahoi-remote-control-status-changed', {
+      action: '',
+      prerequisite: 'ready',
+      syncEnabled: true,
+      cloudKitAvailable: true,
+      canPair: true,
+      canEnable: true,
+      enabled: false,
+      approvedDeviceIds: ['10000000-0000-4000-8000-000000000001'],
+    });
+    await microtasksFinished();
+    assertFalse(remote.disabled);
   });
 
   test('enablingToolkitKeepsOneRecoverableAddressBarEntry', async () => {

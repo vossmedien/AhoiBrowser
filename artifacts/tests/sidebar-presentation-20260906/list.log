@@ -1,0 +1,8 @@
+objc[14790]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x13213ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140294a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+SidebarPresentationStateTest.
+  FloatingRoundTrips
+  HiddenRestoresPreviousVisibleMode
+SidebarPresentationLayoutTest.
+  DockedReservesViewport
+  FloatingOverlaysWithoutReflow
+  HiddenReleasesViewport

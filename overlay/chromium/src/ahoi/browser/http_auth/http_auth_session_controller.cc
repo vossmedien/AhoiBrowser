@@ -10,6 +10,7 @@
 #include "chrome/browser/profiles/profile.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/reload_type.h"
+#include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/storage_partition.h"
 #include "content/public/browser/web_contents.h"
 #include "services/network/public/mojom/network_context.mojom.h"
@@ -85,11 +86,7 @@ void HttpAuthSessionController::ClearCacheAndConnections(
     std::move(done).Run();
     return;
   }
-  network::mojom::NetworkContext* network_context =
-      web_contents()
-          ->GetBrowserContext()
-          ->GetDefaultStoragePartition()
-          ->GetNetworkContext();
+  network::mojom::NetworkContext* network_context = TabNetworkContext();
   const GURL filter_url = active_protection_space_
                               ? active_protection_space_->OriginUrl()
                               : web_contents()->GetLastCommittedURL();
@@ -110,11 +107,7 @@ void HttpAuthSessionController::OnAuthCacheCleared(base::OnceClosure done) {
     std::move(done).Run();
     return;
   }
-  network::mojom::NetworkContext* network_context =
-      web_contents()
-          ->GetBrowserContext()
-          ->GetDefaultStoragePartition()
-          ->GetNetworkContext();
+  network::mojom::NetworkContext* network_context = TabNetworkContext();
   if (!network_context) {
     std::move(done).Run();
     return;
@@ -130,6 +123,16 @@ void HttpAuthSessionController::OnConnectionsClosed(base::OnceClosure done) {
                                            /*check_for_repost=*/false);
   }
   std::move(done).Run();
+}
+
+// A Workspace with its own website sessions renders in its own
+// StoragePartition, whose NetworkContext holds that tab's HTTP auth cache and
+// connections; the profile's default partition would leave the tab signed in.
+network::mojom::NetworkContext* HttpAuthSessionController::TabNetworkContext()
+    const {
+  content::StoragePartition* partition =
+      web_contents()->GetPrimaryMainFrame()->GetStoragePartition();
+  return partition ? partition->GetNetworkContext() : nullptr;
 }
 
 HttpAuthRequestContext HttpAuthSessionController::request_context() const {

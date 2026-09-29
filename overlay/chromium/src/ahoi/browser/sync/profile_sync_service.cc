@@ -7,17 +7,25 @@
 #include <string>
 #include <utility>
 
+#include "ahoi/browser/sync/browser_setting_catalog.h"
 #include "ahoi/browser/sync/history_sync_filter.h"
+#include "ahoi/browser/sync/native_bookmark_sync_adapter.h"
+#include "ahoi/browser/sync/native_extension_setup_controller.h"
+#include "ahoi/browser/sync/native_extension_storage_adapter.h"
+#include "ahoi/browser/sync/native_extension_storage_controller.h"
+#include "ahoi/browser/sync/native_search_engine_setting.h"
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 #include "ahoi/browser/sync/sync_policy.h"
 #include "ahoi/browser/sync/tab_tree_sync_adapter.h"
+#include "ahoi/browser/sync/workspace_zone_retirement.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/bind_post_task.h"
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/history/core/browser/history_service.h"
@@ -30,7 +38,6 @@
 namespace ahoi::sync {
 namespace {
 
-constexpr base::TimeDelta kLocalPublishDelay = base::Milliseconds(80);
 constexpr base::TimeDelta kAutomaticSyncInterval = base::Minutes(5);
 
 base::Uuid LoadOrGenerateDeviceId(Profile& profile, bool persist_if_created) {
@@ -53,11 +60,14 @@ std::string DeviceDisplayName(Profile& profile) {
 
 }  // namespace
 
-ProfileSyncService::ProfileSyncService(Profile* profile)
+ProfileSyncService::ProfileSyncService(Profile* profile,
+                                       SyncNamespace sync_namespace)
     : local_device_id_(LoadOrGenerateDeviceId(
           *profile,
           profile->GetPrefs()->GetBoolean(kSyncEnabledPref))),
       local_session_id_(base::Uuid::GenerateRandomV4()),
+      sync_namespace_(std::move(sync_namespace)),
+      browser_settings_clock_(local_device_id_.AsLowercaseString()),
       backend_task_runner_(base::ThreadPool::CreateSequencedTaskRunner(
           {base::MayBlock(), base::TaskPriority::USER_VISIBLE,
            base::TaskShutdownBehavior::BLOCK_SHUTDOWN})),
@@ -77,15 +87,25 @@ ProfileSyncService::ProfileSyncService(Profile* profile)
                           weak_ptr_factory_.GetWeakPtr()));
   sync_pref_registrar_.Add(
       kRemoteControlEnabledPref,
-      base::BindRepeating(
-          &ProfileSyncService::OnRemoteControlPolicyPrefChanged,
-          weak_ptr_factory_.GetWeakPtr()));
+      base::BindRepeating(&ProfileSyncService::OnRemoteControlPolicyPrefChanged,
+                          weak_ptr_factory_.GetWeakPtr()));
   sync_pref_registrar_.Add(
       kApprovedRemoteCommandKeysPref,
-      base::BindRepeating(
-          &ProfileSyncService::OnRemoteControlPolicyPrefChanged,
-          weak_ptr_factory_.GetWeakPtr()));
+      base::BindRepeating(&ProfileSyncService::OnRemoteControlPolicyPrefChanged,
+                          weak_ptr_factory_.GetWeakPtr()));
+  if (sync_namespace_.is_main()) {
+    // Deleted separated Workspaces' zones are retired from the main side,
+    // since their Profiles no longer exist (WS-ISO-20).
+    ScheduleDueWorkspaceZoneRetirementsOnce();
+  } else if (g_browser_process) {
+    zone_retirement_observer_ =
+        std::make_unique<WorkspaceZoneRetirementObserver>(
+            g_browser_process->local_state(), profile->GetPrefs(),
+            profile->GetPath().BaseName().AsUTF8Unsafe(),
+            sync_namespace_.workspace_id());
+  }
   InitializeProductSync();
+  InitializeBookmarkSync();
   if (history_service_) {
     history_service_->AddObserver(this);
   }
@@ -104,11 +124,15 @@ void ProfileSyncService::StartBackend() {
   backend_weak_ptr_factory_.InvalidateWeakPtrs();
   backend_ready_ = false;
   initialized_ = false;
-  initial_tree_merged_ = true;
-  ui_tree_seeded_ = false;
   extension_inventory_seeded_ = false;
   appearance_publish_pending_ = false;
   permitted_settings_seeded_ = false;
+  InitializeNativeSearchEngineSetting();
+  InitializeExtensionSetup();
+  UpdateBrowserSettingConsent();
+  // Capture approved local writes while backend/key setup is still pending.
+  // The adapter is Profile-owned; no browser window is required.
+  InitializeExtensionStorage();
   if (profile_->GetPrefs()->GetString(kDeviceIdPref) !=
       local_device_id_.AsLowercaseString()) {
     profile_->GetPrefs()->SetString(kDeviceIdPref,
@@ -116,13 +140,26 @@ void ProfileSyncService::StartBackend() {
   }
   backend_.emplace(
       backend_task_runner_,
-      profile_->GetPath().AppendASCII("Ahoi Sync").AppendASCII("sync.sqlite"),
+      profile_->GetPath()
+          .AppendASCII("Ahoi Sync")
+          .AppendASCII("sync-format3.sqlite"),
       local_device_id_, local_session_id_, DeviceDisplayName(*profile_),
       /*transport_enabled=*/true,
-      profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref));
+      profile_->GetPrefs()->GetInteger(kHistoryRetentionDaysPref),
+      bookmark_sync_enabled(), StartProfileAuthorization(),
+      base::BindRepeating(
+          [](std::shared_ptr<BrowserSettingConsent> consent,
+             const base::Uuid& id) { return consent->Capture(id); },
+          browser_setting_consent_),
+      sync_namespace_);
+  backend_.AsyncCall(&ProfileSyncBackend::SetIncomingStateCallback)
+      .WithArgs(base::BindPostTaskToCurrentDefault(
+          base::BindRepeating(&ProfileSyncService::OnIncomingState,
+                              backend_weak_ptr_factory_.GetWeakPtr())));
   backend_.AsyncCall(&ProfileSyncBackend::Initialize)
       .Then(base::BindOnce(&ProfileSyncService::OnBackendState,
                            backend_weak_ptr_factory_.GetWeakPtr()));
+  UpdateSharedTabNativeSupport();
 
   // Capture the current local tree as part of the explicit opt-in even if no
   // subsequent sidebar mutation occurs. It stays pending until SQLite is
@@ -137,6 +174,13 @@ void ProfileSyncService::StartBackend() {
 }
 
 void ProfileSyncService::StopBackend() {
+  RevokeProfileAuthorization();
+  native_search_engine_setting_.reset();
+  observed_user_settings_.erase(kBrowserSearchEngineSettingId);
+  browser_setting_consent_->SetAllowed({});
+  ResetBrowserSettingsWork();
+  StopSharedTabs();
+  StopBookmarkSync();
   publish_timer_.Stop();
   sync_timer_.Stop();
   history_task_tracker_.TryCancelAll();
@@ -148,22 +192,16 @@ void ProfileSyncService::StopBackend() {
 
   backend_ready_ = false;
   initialized_ = false;
-  initial_tree_merged_ = true;
-  ui_tree_seeded_ = false;
-  applying_synced_tree_ = false;
   applying_product_state_ = false;
   appearance_publish_pending_ = false;
   permitted_settings_seeded_ = false;
   extension_inventory_seeded_ = false;
   pending_remote_history_deletions_ = 0;
-  pending_tree_snapshot_.reset();
-  deferred_tree_snapshot_.reset();
   window_tabs_.clear();
   tab_sync_ids_.clear();
   local_tab_keys_by_sync_id_.clear();
   applied_history_versions_.clear();
   applied_appearance_versions_.clear();
-  applied_setting_versions_.clear();
   snapshot_ = {};
   transport_status_ = {};
   permitted_settings_.clear();
@@ -176,6 +214,7 @@ void ProfileSyncService::AddObserver(Observer* observer) {
   observers_.AddObserver(observer);
   observer->OnAhoiDeviceTabsChanged(snapshot_);
   observer->OnAhoiSyncStatusChanged(transport_status_);
+  observer->OnAhoiSharedTabSyncStateChanged(shared_tab_state_);
 }
 
 void ProfileSyncService::RemoveObserver(Observer* observer) {
@@ -193,6 +232,10 @@ void ProfileSyncService::AttachUiBridge(ProfileSyncUiBridge* bridge) {
   }
   tab_tree_subscription_ = {};
   ui_bridge_attachment_count_ = 0;
+  // Only install/enable jobs are bound to this UI bridge. Do not interrupt
+  // the Profile-owned preference/storage observers or their local intents.
+  extension_setup_controller_.reset();
+  extension_setup_retry_.reset();
   ui_bridge_ = bridge->GetWeakPtrForSync();
   if (!ui_bridge_) {
     return;
@@ -205,6 +248,9 @@ void ProfileSyncService::AttachUiBridge(ProfileSyncUiBridge* bridge) {
   if (bridge->ExportTabTreeSnapshot(&snapshot)) {
     OnTabTreeSnapshotChanged(snapshot);
   }
+  UpdateSharedTabNativeSupport();
+  InitializeExtensionSetup();
+  RefreshBrowserSettings();
   ClaimRemoteCommands();
 }
 
@@ -217,36 +263,15 @@ void ProfileSyncService::DetachUiBridge(ProfileSyncUiBridge* bridge) {
     return;
   }
   tab_tree_subscription_ = {};
+  extension_setup_controller_.reset();
+  extension_setup_retry_.reset();
   ui_bridge_.reset();
-  deferred_tree_snapshot_.reset();
-}
-
-void ProfileSyncService::PublishWindowTabs(std::string window_key,
-                                           std::vector<LocalTabState> tabs) {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      window_key.empty()) {
-    return;
-  }
-  for (LocalTabState& tab : tabs) {
-    auto [it, inserted] = tab_sync_ids_.try_emplace(
-        tab.stable_key, base::Uuid::GenerateRandomV4());
-    tab.sync_id = it->second;
-  }
-  window_tabs_.insert_or_assign(std::move(window_key), std::move(tabs));
-  ScheduleLocalPublish();
-}
-
-void ProfileSyncService::RemoveWindowTabs(const std::string& window_key) {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      window_tabs_.erase(window_key) == 0u) {
-    return;
-  }
-  if (window_tabs_.empty()) {
-    publish_timer_.Stop();
-    PublishCombinedLocalTabs();
-    return;
-  }
-  ScheduleLocalPublish();
+  ++native_tree_revision_;
+  native_tree_cancelled_->store(true, std::memory_order_release);
+  shared_projection_requested_ = false;
+  CancelSharedTabCapture();
+  SetSharedTabState({.issue = SharedTabSyncIssue::kNativeNotReady});
+  UpdateSharedTabNativeSupport();
 }
 
 void ProfileSyncService::ApplyRemoteBatch(ProviderBatch batch) {
@@ -268,14 +293,32 @@ void ProfileSyncService::Refresh() {
                            backend_weak_ptr_factory_.GetWeakPtr()));
 }
 
+void ProfileSyncService::RetrySyncKeySetup() {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
+    return;
+  }
+  backend_.AsyncCall(&ProfileSyncBackend::RetrySyncKeySetup)
+      .Then(base::BindOnce(&ProfileSyncService::OnCloudKitRecoveryConfirmed,
+                           backend_weak_ptr_factory_.GetWeakPtr()));
+}
+
 void ProfileSyncService::SyncNow() {
+  RequestSync(false);
+}
+
+void ProfileSyncService::SyncNowFromUser() {
+  RequestSync(true);
+}
+
+void ProfileSyncService::RequestSync(bool user_initiated) {
   if (shutting_down_ || !initialized_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
   backend_.AsyncCall(&ProfileSyncBackend::SyncNow)
       .WithArgs(base::BindPostTaskToCurrentDefault(
-          base::BindOnce(&ProfileSyncService::OnSyncCompleted,
-                         backend_weak_ptr_factory_.GetWeakPtr())));
+                    base::BindOnce(&ProfileSyncService::OnSyncCompleted,
+                                   backend_weak_ptr_factory_.GetWeakPtr())),
+                user_initiated);
 }
 
 void ProfileSyncService::SetSyncEnabled(bool enabled) {
@@ -345,8 +388,9 @@ void ProfileSyncService::ConfirmCloudKitAccountTransition(
   }
   backend_.AsyncCall(&ProfileSyncBackend::ConfirmAccountTransition)
       .WithArgs(allow_local_upload)
-      .Then(base::BindOnce(&ProfileSyncService::OnCloudKitRecoveryConfirmed,
-                           backend_weak_ptr_factory_.GetWeakPtr()));
+      .Then(base::BindOnce(&ProfileSyncService::OnAccountTransitionConfirmed,
+                           backend_weak_ptr_factory_.GetWeakPtr(),
+                           allow_local_upload));
 }
 
 void ProfileSyncService::ConfirmCloudKitZoneRecovery() {
@@ -359,6 +403,8 @@ void ProfileSyncService::ConfirmCloudKitZoneRecovery() {
 }
 
 void ProfileSyncService::Shutdown() {
+  RevokeProfileAuthorization();
+  StopSharedTabs();
   if (shutting_down_) {
     return;
   }
@@ -367,12 +413,14 @@ void ProfileSyncService::Shutdown() {
   sync_timer_.Stop();
   history_task_tracker_.TryCancelAll();
   sync_pref_registrar_.RemoveAll();
+  zone_retirement_observer_.reset();
   tab_tree_subscription_ = {};
   if (history_service_) {
     history_service_->RemoveObserver(this);
   }
   history_service_ = nullptr;
   ShutdownProductSync();
+  StopBookmarkSync();
   ui_bridge_.reset();
   ui_bridge_attachment_count_ = 0;
   profile_ = nullptr;
@@ -386,47 +434,6 @@ void ProfileSyncService::Shutdown() {
   }
 }
 
-void ProfileSyncService::ScheduleLocalPublish() {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
-    return;
-  }
-  publish_timer_.Start(FROM_HERE, kLocalPublishDelay, this,
-                       &ProfileSyncService::PublishCombinedLocalTabs);
-}
-
-void ProfileSyncService::PublishCombinedLocalTabs() {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
-    return;
-  }
-  std::vector<LocalTabState> combined;
-  std::set<std::string> live_keys;
-  local_tab_keys_by_sync_id_.clear();
-  for (const auto& [window, tabs] : window_tabs_) {
-    for (const LocalTabState& tab : tabs) {
-      combined.push_back(tab);
-      live_keys.insert(tab.stable_key);
-      local_tab_keys_by_sync_id_[tab.sync_id] = tab.stable_key;
-    }
-  }
-  for (auto it = tab_sync_ids_.begin(); it != tab_sync_ids_.end();) {
-    it =
-        live_keys.contains(it->first) ? std::next(it) : tab_sync_ids_.erase(it);
-  }
-  backend_.AsyncCall(&ProfileSyncBackend::ReplaceLocalTabs)
-      .WithArgs(std::move(combined))
-      .Then(base::BindOnce(&ProfileSyncService::OnLocalPublishComplete,
-                           backend_weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::OnLocalPublishComplete(
-    std::optional<DeviceTabsSnapshot> snapshot) {
-  if (!sync_enabled_ || backend_.is_null()) {
-    return;
-  }
-  OnBackendSnapshot(std::move(snapshot));
-  SyncNow();
-}
-
 void ProfileSyncService::OnSyncCompleted(
     std::optional<SyncStateSnapshot> snapshot) {
   if (!sync_enabled_ || backend_.is_null()) {
@@ -435,10 +442,35 @@ void ProfileSyncService::OnSyncCompleted(
   OnBackendState(std::move(snapshot));
 }
 
+void ProfileSyncService::OnIncomingState(
+    std::optional<SyncStateSnapshot> snapshot,
+    SyncAuthorization authorization) {
+  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
+      !authorization || !authorization.Run()) {
+    return;
+  }
+  // Reuse the normal dormant-tab/settings/native projection pipeline. A
+  // received page never becomes a request to navigate or focus this device.
+  OnBackendState(std::move(snapshot));
+}
+
 void ProfileSyncService::OnCloudKitRecoveryConfirmed(bool confirmed) {
   if (confirmed) {
     SyncNow();
   }
+}
+
+void ProfileSyncService::OnAccountTransitionConfirmed(
+    bool allow_local_upload,
+    bool confirmed) {
+  if (confirmed && !allow_local_upload && profile_ && !shutting_down_) {
+    // The backend committed the user's no-upload choice. Preserve local
+    // values/intents while revoking the former account's category consent.
+    profile_->GetPrefs()->SetList(kPermittedSettingIdsPref, base::ListValue());
+    profile_->GetPrefs()->SetBoolean(kExtensionSetupSyncEnabledPref, false);
+    profile_->GetPrefs()->SetBoolean(kExtensionSettingsSyncEnabledPref, false);
+  }
+  OnCloudKitRecoveryConfirmed(confirmed);
 }
 
 void ProfileSyncService::OnSyncEnabledPrefChanged() {
@@ -497,22 +529,16 @@ void ProfileSyncService::OnBackendState(
     return;
   }
   backend_ready_ = true;
-  if (!initial_tree_merged_) {
-    if (pending_tree_snapshot_) {
-      tab_tree::TabTreeSnapshot tree = std::move(*pending_tree_snapshot_);
-      pending_tree_snapshot_.reset();
-      backend_.AsyncCall(&ProfileSyncBackend::MergeLocalTabTree)
-          .WithArgs(std::move(tree), true)
-          .Then(base::BindOnce(&ProfileSyncService::OnLocalTreeMerged,
-                               backend_weak_ptr_factory_.GetWeakPtr()));
-    }
-    return;
-  }
-
+  SetSharedTabState(state->shared_tabs);
   const bool first_initialization = !initialized_;
   initialized_ = true;
   const bool transport_changed = transport_status_ != state->transport;
   transport_status_ = state->transport;
+  if ((transport_status_.account_transition_pending ||
+       transport_status_.bookmark_consent_revoked) &&
+      bookmark_sync_enabled()) {
+    SetBookmarkSyncEnabled(false);
+  }
   if (profile_->GetPrefs()->GetBoolean(kRemoteControlEnabledPref) &&
       remote_control_prerequisite() != RemoteControlPrerequisite::kReady) {
     profile_->GetPrefs()->SetBoolean(kRemoteControlEnabledPref, false);
@@ -549,65 +575,23 @@ void ProfileSyncService::OnTabTreeSnapshotChanged(
   if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !ui_bridge_) {
     return;
   }
-  if (applying_synced_tree_) {
-    deferred_tree_snapshot_ = snapshot;
-    return;
-  }
-  const bool initial = !ui_tree_seeded_;
-  if (initial) {
-    initial_tree_merged_ = false;
-  }
-  if (!backend_ready_) {
-    pending_tree_snapshot_ = snapshot;
-    return;
-  }
-  backend_.AsyncCall(&ProfileSyncBackend::MergeLocalTabTree)
-      .WithArgs(snapshot, initial)
-      .Then(base::BindOnce(&ProfileSyncService::OnLocalTreeMerged,
-                           backend_weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::OnLocalTreeMerged(
-    std::optional<SyncStateSnapshot> snapshot) {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null() || !snapshot) {
-    return;
-  }
-  const bool was_initialized = initialized_;
-  const bool was_initial = !ui_tree_seeded_;
-  initial_tree_merged_ = true;
-  ui_tree_seeded_ = true;
-  OnBackendState(std::move(snapshot));
-  if (!was_initial || was_initialized) {
-    SyncNow();
-  }
+  std::ignore = snapshot;  // Export the current tree and receipt atomically.
+  ++native_tree_revision_;
+  native_tree_cancelled_->store(true, std::memory_order_release);
+  native_tree_cancelled_ = std::make_shared<std::atomic<bool>>(false);
+  CancelSharedTabCapture();
+  capture_after_projection_ = true;
+  RefreshSharedTabProjection();
 }
 
 void ProfileSyncService::ApplyDomainState(const SyncStateSnapshot& state) {
   if (shutting_down_ || !sync_enabled_ || backend_.is_null()) {
     return;
   }
-  if (ui_bridge_) {
-    tab_tree::TabTreeSnapshot local;
-    if (ui_bridge_->ExportTabTreeSnapshot(&local)) {
-      std::optional<tab_tree::TabTreeSnapshot> reconciled =
-          ReconcileTabTreeRecords(local, state.workspaces, state.tree_nodes);
-      if (reconciled) {
-        applying_synced_tree_ = true;
-        deferred_tree_snapshot_.reset();
-        std::ignore =
-            ui_bridge_->ApplySyncedTabTreeSnapshot(std::move(*reconciled));
-        applying_synced_tree_ = false;
-        if (deferred_tree_snapshot_) {
-          tab_tree::TabTreeSnapshot deferred =
-              std::move(*deferred_tree_snapshot_);
-          deferred_tree_snapshot_.reset();
-          OnTabTreeSnapshotChanged(deferred);
-        }
-      }
-    }
-  }
+  RefreshSharedTabProjection();
   ApplyRemoteHistory(state.history);
   ApplyProductState(state);
+  RefreshBookmarkProjection();
 }
 
 RemoteCommandPolicy ProfileSyncService::CurrentRemoteCommandPolicy() const {
@@ -701,136 +685,8 @@ void ProfileSyncService::CompleteRemoteCommand(
       .WithArgs(command.id, executed, std::move(result_code));
 }
 
-void ProfileSyncService::ApplyRemoteHistory(
-    const std::vector<HistoryRecord>& records) {
-  if (!sync_enabled_ || backend_.is_null() || !history_service_) {
-    return;
-  }
-  for (const HistoryRecord& record : records) {
-    auto applied = applied_history_versions_.find(record.id);
-    if (applied != applied_history_versions_.end() &&
-        applied->second >= record.version) {
-      continue;
-    }
-    applied_history_versions_[record.id] = record.version;
-    if (record.version.stamp.device_tiebreak ==
-        local_device_id_.AsLowercaseString()) {
-      continue;
-    }
-    const GURL url(record.url);
-    if (!IsSafeHistoryUrlForSync(url)) {
-      continue;
-    }
-    if (!record.tombstone) {
-      history_service_->AddPageWithDetails(url, base::UTF8ToUTF16(record.title),
-                                           1, 0, record.last_visit, false,
-                                           history::SOURCE_SYNCED);
-      continue;
-    }
-    ++pending_remote_history_deletions_;
-    history_service_->ExpireHistoryBetween(
-        {url}, std::nullopt, record.last_visit,
-        record.last_visit + base::Microseconds(1), false,
-        base::BindOnce(&ProfileSyncService::OnRemoteHistoryExpired,
-                       weak_ptr_factory_.GetWeakPtr()),
-        &history_task_tracker_);
-  }
-}
-
-void ProfileSyncService::OnRemoteHistoryExpired() {
-  if (pending_remote_history_deletions_ > 0) {
-    --pending_remote_history_deletions_;
-  }
-}
-
-void ProfileSyncService::OnURLVisited(history::HistoryService* history_service,
-                                      const history::VisitedURLInfo& info) {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      history_service != history_service_ ||
-      !ShouldSyncHistoryVisit({
-          .url = info.url_row.url(),
-          .hidden = info.url_row.hidden(),
-          .response_is_404 = info.response_code_category ==
-                             history::VisitResponseCodeCategory::k404,
-          .source_is_browsed =
-              !info.visit_row.source ||
-              *info.visit_row.source == history::SOURCE_BROWSED,
-      })) {
-    return;
-  }
-  backend_.AsyncCall(&ProfileSyncBackend::AddHistoryVisit)
-      .WithArgs(info.url_row.url().spec(),
-                base::UTF16ToUTF8(info.url_row.title()),
-                info.visit_row.visit_time,
-                std::string(ui::PageTransitionGetCoreTransitionString(
-                    info.visit_row.transition)),
-                info.visit_row.visit_id)
-      .Then(base::BindOnce(
-          [](base::WeakPtr<ProfileSyncService> service,
-             std::optional<SyncStateSnapshot> state) {
-            if (!service) {
-              return;
-            }
-            service->OnBackendState(std::move(state));
-            service->SyncNow();
-          },
-          backend_weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::OnHistoryDeletions(
-    history::HistoryService* history_service,
-    const history::DeletionInfo& info) {
-  if (shutting_down_ || !sync_enabled_ || backend_.is_null() ||
-      history_service != history_service_ ||
-      pending_remote_history_deletions_ > 0 || info.is_from_expiration() ||
-      info.deletion_reason() ==
-          history::DeletionInfo::Reason::kDeleteAllForeignVisits) {
-    return;
-  }
-  std::set<std::string> urls;
-  if (!info.IsAllHistory()) {
-    for (const history::URLRow& row : info.deleted_rows()) {
-      if (IsSafeHistoryUrlForSync(row.url())) {
-        urls.insert(row.url().spec());
-      }
-    }
-    if (info.restrict_urls()) {
-      for (const GURL& url : *info.restrict_urls()) {
-        if (IsSafeHistoryUrlForSync(url)) {
-          urls.insert(url.spec());
-        }
-      }
-    }
-  }
-  const bool valid_range = info.time_range().IsValid();
-  if (!info.IsAllHistory() && urls.empty() && !valid_range) {
-    return;
-  }
-  backend_.AsyncCall(&ProfileSyncBackend::TombstoneHistory)
-      .WithArgs(std::vector<std::string>(urls.begin(), urls.end()),
-                valid_range ? info.time_range().begin() : base::Time(),
-                valid_range ? info.time_range().end() : base::Time(),
-                info.IsAllHistory())
-      .Then(base::BindOnce(
-          [](base::WeakPtr<ProfileSyncService> service,
-             std::optional<SyncStateSnapshot> state) {
-            if (!service) {
-              return;
-            }
-            service->OnBackendState(std::move(state));
-            service->SyncNow();
-          },
-          backend_weak_ptr_factory_.GetWeakPtr()));
-}
-
-void ProfileSyncService::HistoryServiceBeingDeleted(
-    history::HistoryService* history_service) {
-  if (history_service == history_service_) {
-    history_service_ = nullptr;
-  }
-}
-
 void ProfileSyncService::NotifyObservers() {
+  bookmark_status_callbacks_.Notify();
   for (Observer& observer : observers_) {
     observer.OnAhoiDeviceTabsChanged(snapshot_);
     observer.OnAhoiSyncStatusChanged(transport_status_);

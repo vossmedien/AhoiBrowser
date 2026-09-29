@@ -1,0 +1,87 @@
+{
+  "kind": "source-syntax-only",
+  "sourceCommit": "73360d7a1c427d1a7644d5bd4895870a61f8176d",
+  "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+  "clangSha256": "70efde6fd29b79dd209f99a1007fffadf9fb780d5650e2d0d693fd5fb196fbfc",
+  "ninjaSha256": "6c03e94e3ee141301a7e5151227508ac8cec05c12d79ed9240062a86a0e2d14f",
+  "generatedArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4",
+  "checks": [
+    {
+      "name": "sync_store_maintenance",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 1.3647363750005752,
+      "pid": 77220,
+      "sourceCommit": "73360d7a1c427d1a7644d5bd4895870a61f8176d",
+      "sourceSha256": "40db2decd4130cd28b92cea6108d49409aefcd89aefc8343c6483af8b94578ee",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "sync_store_schema",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 1.3770928750000166,
+      "pid": 77219,
+      "sourceCommit": "73360d7a1c427d1a7644d5bd4895870a61f8176d",
+      "sourceSha256": "f5e53fa186884c2ddd9d1b7fb5fee1644884a7e00618f158b4627cba5f3f9976",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "tab_tree_sync_adapter",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 0.7252312499986147,
+      "pid": 78022,
+      "sourceCommit": "73360d7a1c427d1a7644d5bd4895870a61f8176d",
+      "sourceSha256": "d11cef389449822cac2a7e7b2a06c85ba941fc4a0ecb8e828fdabac138cb9348",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "profile_sync_backend_shared_tabs",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 1.3249622919993271,
+      "pid": 78023,
+      "sourceCommit": "73360d7a1c427d1a7644d5bd4895870a61f8176d",
+      "sourceSha256": "3570af9440cbf66fc94f4a87c772073f6f3914f749a3399e08d061f4d17aa2bb",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "sync_workspace_merge_unittest",
+      "exitCode": 0,
+      "expectedFailure": false,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 1.6045046250001178,
+      "pid": 79121,
+      "sourceCommit": "73360d7a1c427d1a7644d5bd4895870a61f8176d",
+      "sourceSha256": "38028a42de6a5219a81eeb163da3c46233c906a66ab418d134febd790b86ef0a",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "negative-control",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "passed": true,
+      "timedOut": false,
+      "seconds": 1.2530397080008697,
+      "pid": 79122,
+      "sourceCommit": "73360d7a1c427d1a7644d5bd4895870a61f8176d",
+      "sourceSha256": "50cf5725298ea236cd42f757ea8b987bbc9997f086fbf5aa4e69b3ccad016467",
+      "logSha256": "dc07185e7363dae3c9f6d15a860f7f3a188833b7f769b401cf1f0161f85dcaa5"
+    }
+  ],
+  "maxConcurrentProcesses": 2,
+  "planSha256": "1dead529a27f081d67f1b717466900169080e481f9133ed05aea4868608637cc",
+  "privatePlan": ".work/agent-queue/cpp-syntax-73360d7-20260927/plan.json",
+  "objectFilesProduced": false,
+  "binaryLinkOrTestsExecuted": false
+}

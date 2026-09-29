@@ -22,6 +22,7 @@
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/storage_partition.h"
+#include "content/public/browser/storage_partition_config.h"
 #include "net/base/schemeful_site.h"
 #include "net/cookies/canonical_cookie.h"
 #include "net/cookies/cookie_access_result.h"
@@ -133,8 +134,12 @@ base::Time ExpirationForDraft(DeveloperCookieExpiration expiration,
 
 class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
  public:
-  explicit ChromiumDeveloperCookieAdapter(content::BrowserContext* context)
-      : browser_context_(context) {}
+  explicit ChromiumDeveloperCookieAdapter(
+      content::BrowserContext* context,
+      std::optional<content::StoragePartitionConfig> partition_config =
+          std::nullopt)
+      : browser_context_(context),
+        partition_config_(std::move(partition_config)) {}
   ~ChromiumDeveloperCookieAdapter() override = default;
 
   bool Load(const GURL& site_url,
@@ -299,7 +304,10 @@ class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
       return nullptr;
     }
     content::StoragePartition* partition =
-        browser_context_->GetDefaultStoragePartition();
+        partition_config_
+            ? browser_context_->GetStoragePartition(*partition_config_,
+                                                    /*can_create=*/false)
+            : browser_context_->GetDefaultStoragePartition();
     return partition ? partition->GetCookieManagerForBrowserProcess() : nullptr;
   }
 
@@ -387,6 +395,7 @@ class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
   }
 
   raw_ptr<content::BrowserContext> browser_context_ = nullptr;
+  const std::optional<content::StoragePartitionConfig> partition_config_;
   std::map<uint64_t, net::CanonicalCookie> cookies_;
   std::optional<url::Origin> loaded_origin_;
   uint64_t next_cookie_id_ = 1;
@@ -398,6 +407,13 @@ class ChromiumDeveloperCookieAdapter final : public DeveloperCookieAdapter {
 std::unique_ptr<DeveloperCookieAdapter> CreateChromiumDeveloperCookieAdapter(
     content::BrowserContext* browser_context) {
   return std::make_unique<ChromiumDeveloperCookieAdapter>(browser_context);
+}
+
+std::unique_ptr<DeveloperCookieAdapter> CreateChromiumDeveloperCookieAdapter(
+    content::BrowserContext* browser_context,
+    const content::StoragePartitionConfig& partition_config) {
+  return std::make_unique<ChromiumDeveloperCookieAdapter>(browser_context,
+                                                          partition_config);
 }
 
 }  // namespace ahoi

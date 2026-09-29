@@ -10,7 +10,10 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_internal.h"
+#include "ahoi/browser/session/session_prefs.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "base/check.h"
+#include "base/containers/span.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
@@ -21,6 +24,7 @@
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_collection.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -28,6 +32,7 @@
 #include "chrome/browser/ui/tab_ui_helper.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/common/webui_url_constants.h"
+#include "components/prefs/pref_service.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/web_contents.h"
 
@@ -94,29 +99,58 @@ std::optional<base::Uuid> SessionBridge::GetActiveWorkspaceForWindow(
              : std::nullopt;
 }
 
+bool SessionBridge::BindNewWorkspaceLevel(const base::Uuid& workspace_id,
+                                          bool own_website_sessions) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const std::vector<base::Uuid> existing = OrderedWorkspaceIdsForSession();
+  if (!session::BindNewWorkspaceWebsiteSessions(
+          profile_->GetPrefs(), workspace_id, base::span(existing),
+          own_website_sessions)) {
+    return false;
+  }
+  if (own_website_sessions) {
+    profile_->GetPrefs()->CommitPendingWrite();
+  }
+  return true;
+}
+
 std::optional<base::Uuid> SessionBridge::CreateWorkspace(
     std::u16string name,
     std::u16string icon,
-    std::optional<uint32_t> accent_argb) {
+    std::optional<uint32_t> accent_argb,
+    bool own_website_sessions) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (shutting_down_ || !tab_tree_ready_ || !tab_tree_store_ ||
       !workspace_service_ || name.empty()) {
     return std::nullopt;
   }
 
+  // ADR 0011 step 2: appended after every Workspace of the process-wide
+  // order, including fully separated ones.
+  std::vector<session::DirectoryWorkspace> own;
+  for (const tab_tree::Workspace& existing :
+       workspace_service_->ordered_workspaces()) {
+    own.push_back({.workspace_id = existing.id, .sort_key = existing.sort_key});
+  }
+  const std::string sort_key =
+      session::NextDirectorySortKey(session::OrderDirectoryWorkspaces(
+          own, session::GetIsolatedProfiles(
+                   g_browser_process ? g_browser_process->local_state()
+                                     : nullptr)));
+
   const base::Time now = base::Time::Now();
   tab_tree::Workspace workspace{
       .id = base::Uuid::GenerateRandomV4(),
       .name = std::move(name),
       .icon = std::move(icon),
-      .sort_key =
-          workspace_service_->ordered_workspaces().empty()
-              ? std::string("00000000")
-              : workspace_service_->ordered_workspaces().back().sort_key + '@',
+      .sort_key = sort_key,
       .accent_argb = accent_argb,
       .created_at = now,
       .modified_at = now,
   };
+  if (!BindNewWorkspaceLevel(workspace.id, own_website_sessions)) {
+    return std::nullopt;
+  }
   if (tab_tree_store_->CreateWorkspace(workspace) !=
           tab_tree::TabTreeStore::Result::kOk ||
       !RefreshWorkspaceSnapshot()) {
@@ -173,6 +207,10 @@ std::optional<base::Uuid> SessionBridge::DuplicateWorkspace(
       .created_at = now,
       .modified_at = now,
   };
+  if (!BindNewWorkspaceLevel(duplicate.id,
+                             HasOwnWebsiteSessions(source_workspace_id))) {
+    return std::nullopt;
+  }
   if (tab_tree_store_->DuplicateWorkspace(source_workspace_id, duplicate) !=
           tab_tree::TabTreeStore::Result::kOk ||
       !RefreshWorkspaceSnapshot()) {
@@ -210,45 +248,13 @@ tab_tree::TabTreeStore::Result SessionBridge::DeleteWorkspace(
       !workspace_service_) {
     return tab_tree::TabTreeStore::Result::kNotInitialized;
   }
-  if (workspace_service_->ordered_workspaces().size() <= 1) {
-    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  const std::optional<session::WebsiteSessionBinding> binding =
+      session::FindWebsiteSessionBinding(profile_->GetPrefs(), workspace_id);
+  if (!IsolatedPagesOfWorkspace(workspace_id, binding).empty()) {
+    // Closing those pages needs the before-unload group question.
+    return tab_tree::TabTreeStore::Result::kCancelled;
   }
-  auto fallback = std::ranges::find_if(
-      workspace_service_->ordered_workspaces(),
-      [&workspace_id](const tab_tree::Workspace& candidate) {
-        return candidate.id != workspace_id;
-      });
-  if (fallback == workspace_service_->ordered_workspaces().end()) {
-    return tab_tree::TabTreeStore::Result::kInvalidArgument;
-  }
-
-  const tab_tree::TabTreeStore::Result result =
-      tab_tree_store_->DeleteWorkspace(workspace_id, base::Time::Now());
-  if (result != tab_tree::TabTreeStore::Result::kOk) {
-    return result;
-  }
-
-  bool runtime_changed = false;
-  for (auto& [tab, runtime] : runtime_tabs_) {
-    if (runtime.workspace_id != workspace_id) {
-      continue;
-    }
-    UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
-    RemoveTabFromLastActiveState(tab);
-    runtime.workspace_id = fallback->id;
-    if (tab->IsActivated() && runtime.tab_strip_model) {
-      UpdateLastActiveTab(runtime.tab_strip_model, tab);
-    }
-    PersistTabSessionMetadata(tab);
-    runtime_changed = true;
-  }
-  if (!RefreshWorkspaceSnapshot()) {
-    return tab_tree::TabTreeStore::Result::kDatabaseError;
-  }
-  if (runtime_changed) {
-    runtime_presentation_changed_callbacks_.Notify();
-  }
-  return tab_tree::TabTreeStore::Result::kOk;
+  return CommitWorkspaceDeletion(workspace_id, binding);
 }
 
 bool SessionBridge::BindTreeNodeToTab(const tab_tree::TreeNode& node,
@@ -261,7 +267,7 @@ bool SessionBridge::BindTreeNodeToTab(const tab_tree::TreeNode& node,
       node.type != tab_tree::TreeNodeType::kSavedPage || node.tombstone ||
       node.title.empty() || node.sort_key.empty() ||
       node.created_at.is_null() || node.modified_at.is_null() ||
-      !node.url.is_valid() || node.url.is_empty() ||
+      !tab_tree::GetSharedPageTarget(node) ||
       !WorkspaceExists(node.workspace_id)) {
     return false;
   }
@@ -294,6 +300,9 @@ bool SessionBridge::BindTreeNodeToTab(const tab_tree::TreeNode& node,
     RemoveTabFromLastActiveState(tab);
   }
   runtime.node_id = node.id;
+  runtime.pending_node_id = base::Uuid();
+  runtime.is_temporary = node.is_temporary;
+  runtime.shared_binding_invalidated = false;
   runtime.workspace_id = node.workspace_id;
   node_tabs_.insert_or_assign(node.id, runtime.tab);
   if (tab->IsActivated()) {
@@ -322,7 +331,28 @@ std::optional<base::Uuid> SessionBridge::SaveTabAtWorkspaceRoot(
     return std::nullopt;
   }
   if (runtime_it->second.node_id.has_value()) {
-    return runtime_it->second.node_id;
+    const auto node_id = *runtime_it->second.node_id;
+    if (runtime_it->second.is_temporary) {
+      tab_tree::TreeNode node;
+      if (tab_tree_store_->GetNode(node_id, &node) !=
+          tab_tree::TabTreeStore::Result::kOk) {
+        return std::nullopt;
+      }
+      if (node.url.is_empty() &&
+          tab_tree_store_->UpdateSavedPageMetadata(
+              node_id, node.title,
+              session_internal::GetRuntimeTabUrl(
+                  runtime_it->second.web_contents.get()),
+              base::Time::Now()) != tab_tree::TabTreeStore::Result::kOk) {
+        return std::nullopt;
+      }
+    }
+    if (runtime_it->second.is_temporary &&
+        tab_tree_store_->SetPageTemporary(node_id, false, base::Time::Now()) !=
+            tab_tree::TabTreeStore::Result::kOk) {
+      return std::nullopt;
+    }
+    return node_id;
   }
 
   const std::optional<base::Uuid> workspace_id =
@@ -367,10 +397,15 @@ void SessionBridge::UnbindTreeNodeFromTab(tabs::TabInterface* tab) {
   UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/true);
 }
 
-void SessionBridge::MakeTabTemporary(tabs::TabInterface* tab) {
+tab_tree::TabTreeStore::Result SessionBridge::MakeTabTemporary(
+    tabs::TabInterface* tab) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
-  PublishCommandItems();
+  const auto found = runtime_tabs_.find(tab);
+  if (!is_ready() || found == runtime_tabs_.end() || !found->second.node_id) {
+    return tab_tree::TabTreeStore::Result::kNotFound;
+  }
+  return tab_tree_store_->SetPageTemporary(*found->second.node_id, true,
+                                           base::Time::Now());
 }
 
 void SessionBridge::UnbindTreeNodeFromTabInternal(tabs::TabInterface* tab,
@@ -395,11 +430,16 @@ void SessionBridge::UnbindTreeNodeFromTabInternal(tabs::TabInterface* tab,
     }
   }
   runtime.node_id.reset();
+  runtime.is_temporary = true;
+  runtime.pending_node_id = base::Uuid::GenerateRandomV4();
   if (clear_workspace) {
     RemoveTabFromLastActiveState(tab);
     runtime.workspace_id.reset();
   }
   PersistTabSessionMetadata(tab);
+  if (!clear_workspace && !runtime.shared_binding_invalidated) {
+    ScheduleTreeNodeBinding(tab);
+  }
   if (presentation_changed) {
     runtime_presentation_changed_callbacks_.Notify();
   }
@@ -447,7 +487,36 @@ std::optional<base::Uuid> SessionBridge::FindTreeNodeIdForTab(
     return std::nullopt;
   }
   auto it = runtime_tabs_.find(const_cast<tabs::TabInterface*>(tab));
-  return it == runtime_tabs_.end() ? std::nullopt : it->second.node_id;
+  return it == runtime_tabs_.end() || it->second.is_temporary
+             ? std::nullopt
+             : it->second.node_id;
+}
+
+std::optional<base::Uuid> SessionBridge::FindSharedTreeNodeIdForTab(
+    const tabs::TabInterface* tab) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const auto found = runtime_tabs_.find(const_cast<tabs::TabInterface*>(tab));
+  return shutting_down_ || found == runtime_tabs_.end() ? std::nullopt
+                                                        : found->second.node_id;
+}
+
+std::optional<base::Uuid> SessionBridge::GetPresenceIdForTab(
+    const tabs::TabInterface* tab) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  const auto found = runtime_tabs_.find(const_cast<tabs::TabInterface*>(tab));
+  return shutting_down_ || found == runtime_tabs_.end() ||
+                 !found->second.presence_id.is_valid()
+             ? std::nullopt
+             : std::make_optional(found->second.presence_id);
+}
+
+bool SessionBridge::HasLiveTabsInWorkspace(
+    const base::Uuid& workspace_id) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return std::ranges::any_of(runtime_tabs_, [&](const auto& entry) {
+    const auto& runtime = entry.second;
+    return runtime.tab && runtime.workspace_id == workspace_id;
+  });
 }
 
 std::optional<base::Uuid> SessionBridge::GetWorkspaceForTab(

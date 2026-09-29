@@ -43,7 +43,7 @@ class AhoiPopupOverlayBrowserTest : public InProcessBrowserTest {
 
   content::WebContents* ShowEligiblePopup() {
     content::WebContents* const opener =
-        browser()->tab_strip_model()->GetActiveWebContents();
+        browser()->GetTabStripModel()->GetActiveWebContents();
     std::unique_ptr<content::WebContents> popup = CreatePopupContents();
     content::WebContents* const identity = popup.get();
     blink::mojom::WindowFeatures features;
@@ -69,13 +69,13 @@ IN_PROC_BROWSER_TEST_F(AhoiPopupOverlayBrowserTest,
   blink::mojom::WindowFeatures features;
 
   EXPECT_FALSE(controller()->TryShow(
-      browser()->tab_strip_model()->GetActiveWebContents(), &popup,
+      browser()->GetTabStripModel()->GetActiveWebContents(), &popup,
       GURL("https://accounts.example.test/oauth/authorize"),
       WindowOpenDisposition::NEW_POPUP, features,
       /*user_gesture=*/true));
   EXPECT_EQ(identity, popup.get());
   EXPECT_FALSE(controller()->IsShowing());
-  EXPECT_EQ(1, browser()->tab_strip_model()->count());
+  EXPECT_EQ(1, browser()->GetTabStripModel()->count());
 }
 
 IN_PROC_BROWSER_TEST_F(AhoiPopupOverlayBrowserTest,
@@ -89,25 +89,25 @@ IN_PROC_BROWSER_TEST_F(AhoiPopupOverlayBrowserTest,
       BrowserView::GetBrowserViewForBrowser(browser())->contents_container(),
       view->parent());
   EXPECT_EQ(gfx::Size(460, 340), view->card_for_testing()->size());
-  EXPECT_EQ(1, browser()->tab_strip_model()->count());
+  EXPECT_EQ(1, browser()->GetTabStripModel()->count());
   EXPECT_EQ(TabStripModel::kNoTab,
-            browser()->tab_strip_model()->GetIndexOfWebContents(popup));
+            browser()->GetTabStripModel()->GetIndexOfWebContents(popup));
 
   ASSERT_TRUE(view->GetFocusManager());
   EXPECT_TRUE(view->GetFocusManager()->ProcessAccelerator(
       ui::Accelerator(ui::VKEY_RETURN, ui::EF_COMMAND_DOWN)));
 
   EXPECT_FALSE(controller()->IsShowing());
-  EXPECT_EQ(2, browser()->tab_strip_model()->count());
+  EXPECT_EQ(2, browser()->GetTabStripModel()->count());
   EXPECT_NE(TabStripModel::kNoTab,
-            browser()->tab_strip_model()->GetIndexOfWebContents(popup));
-  EXPECT_EQ(popup, browser()->tab_strip_model()->GetActiveWebContents());
+            browser()->GetTabStripModel()->GetIndexOfWebContents(popup));
+  EXPECT_EQ(popup, browser()->GetTabStripModel()->GetActiveWebContents());
 }
 
 IN_PROC_BROWSER_TEST_F(AhoiPopupOverlayBrowserTest,
                        KeyboardSplitUsesUniqueTwoPhasePaneBindings) {
   content::WebContents* const opener =
-      browser()->tab_strip_model()->GetActiveWebContents();
+      browser()->GetTabStripModel()->GetActiveWebContents();
   content::WebContents* const popup = ShowEligiblePopup();
   PopupOverlayView* const view = controller()->popup_view_for_testing();
   ASSERT_TRUE(view);
@@ -116,7 +116,7 @@ IN_PROC_BROWSER_TEST_F(AhoiPopupOverlayBrowserTest,
   EXPECT_TRUE(view->GetFocusManager()->ProcessAccelerator(ui::Accelerator(
       ui::VKEY_RETURN, ui::EF_COMMAND_DOWN | ui::EF_SHIFT_DOWN)));
 
-  TabStripModel* const model = browser()->tab_strip_model();
+  TabStripModel* const model = browser()->GetTabStripModel();
   ASSERT_EQ(2, model->count());
   const int opener_index = model->GetIndexOfWebContents(opener);
   const int popup_index = model->GetIndexOfWebContents(popup);

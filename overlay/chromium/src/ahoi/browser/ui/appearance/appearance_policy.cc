@@ -20,9 +20,9 @@ struct RoleDefaults {
 constexpr RoleDefaults GetRoleDefaults(SurfaceRole role) {
   switch (role) {
     case SurfaceRole::kBrowserChrome:
-      return {ui::kColorSysSurface2, 0, 0.30f, 28.0f, 0};
+      return {ui::kColorSysSurfaceVariant, 0, 0.55f, 0.0f, 0};
     case SurfaceRole::kSidebar:
-      return {ui::kColorSysSurface2, 14, 0.46f, 30.0f, 0};
+      return {ui::kColorSysSurface2, 14, 0.82f, 24.0f, 0};
     case SurfaceRole::kFloatingNavigation:
       return {ui::kColorSysSurface3, 14, 0.62f, 30.0f, 0};
     case SurfaceRole::kCommandBar:
@@ -58,6 +58,9 @@ SurfaceAppearance AppearanceResolver::Resolve(SurfaceRole role,
   appearance.background_color = defaults.background_color;
   appearance.corner_radius = defaults.corner_radius;
   appearance.border_thickness = defaults.border_thickness;
+  // The native browser backdrop is neutral. Its tint combines with the
+  // translucent NSWindow foundation, so neither layer should hide the Glass.
+  // WebContents stays opaque; only browser-chrome gaps reveal the glass.
   appearance.mode = ResolveMode(policy);
   if (appearance.uses_glass()) {
     appearance.opacity = defaults.glass_opacity;

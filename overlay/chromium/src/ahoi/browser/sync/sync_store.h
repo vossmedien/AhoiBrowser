@@ -7,9 +7,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "base/files/file_path.h"
 #include "base/observer_list.h"
@@ -18,11 +20,13 @@
 #include "sql/database.h"
 
 namespace sql {
-class MetaTable;
 class Statement;
 }  // namespace sql
 
 namespace ahoi::sync {
+
+class BookmarkSyncJournal;
+class NativeTreeSyncJournal;
 
 class SyncStoreObserver : public base::CheckedObserver {
  public:
@@ -46,10 +50,12 @@ class SyncStore {
     kStale,
     kConflict,
     kDatabaseError,
+    kNotAuthorized,
   };
 
-  static constexpr int kCurrentSchemaVersion = 4;
-  static constexpr int kLowestSupportedSchemaVersion = 1;
+  static constexpr int kCurrentSchemaVersion =
+      ::ahoi::sync::kCurrentSchemaVersion;
+  static constexpr int kLowestSupportedSchemaVersion = kCurrentSchemaVersion;
 
   SyncStore();
   SyncStore(const SyncStore&) = delete;
@@ -68,10 +74,21 @@ class SyncStore {
   [[nodiscard]] Result PutLocalRecord(const SyncRecord& record,
                                       std::string mutation_id = {});
 
+  // One complete local operation. Every row/clock/outbox change rolls back on
+  // any invalid sibling, SQL failure or original-scope revocation. No observer
+  // sees a partial capture, and only the caller's post-commit ACK may replace
+  // its accepted in-memory snapshot.
+  [[nodiscard]] Result PutLocalBatch(const std::vector<SyncRecord>& records,
+                                     const SyncAuthorization& authorization);
+
   // Applies an entire provider page atomically. A repeated mutation is a
   // no-op, a stale version is retained in the inbox but cannot overwrite the
   // current row, and the change token/retry reset commit with the page.
-  [[nodiscard]] Result ApplyRemoteBatch(const ProviderBatch& batch);
+  // Receive-only imports preserve outgoing retry and initial-full-fetch state.
+  [[nodiscard]] Result ApplyRemoteBatch(
+      const ProviderBatch& batch,
+      const SyncAuthorization& authorization = {},
+      bool receive_only = false);
 
   [[nodiscard]] Result GetRecord(EntityType type,
                                  const base::Uuid& id,
@@ -84,10 +101,18 @@ class SyncStore {
   [[nodiscard]] Result GetRemoteTabs(
       std::vector<RemoteTabRecord>* records) const;
 
-  [[nodiscard]] Result ReadOutbox(size_t limit,
-                                  std::vector<SyncChange>* changes) const;
+  // Category filtering happens before the limit and never changes queued rows.
+  [[nodiscard]] Result ReadOutbox(
+      size_t limit,
+      std::vector<SyncChange>* changes,
+      bool include_bookmarks = true,
+      base::RepeatingCallback<bool(const SyncChange&)> allowed = {}) const;
   [[nodiscard]] Result AcknowledgeOutbox(
       const std::vector<std::string>& mutation_ids);
+  // A cleared outbox is not proof of server acknowledgment. These receipts
+  // are written only by actual acknowledged mutations and reset on recovery.
+  [[nodiscard]] bool IsRecordAcknowledged(const SyncRecord& record) const;
+  [[nodiscard]] bool HasCompletedInitialFetch() const;
   // Rebuilds transport work without changing the canonical records. Passing
   // false is the account-privacy choice; true republishes every retained
   // record after an explicitly confirmed account or custom-zone recovery.
@@ -100,9 +125,16 @@ class SyncStore {
   // Physically compacts only tombstones older than the policy window and only
   // after their outbox mutation has been acknowledged. A durable deletion
   // watermark remains, preventing a delayed provider page from resurrecting
-  // the entity. No CloudKit physical delete is issued by this operation.
+  // the entity. Workspace merges also retain only their source/target IDs so
+  // late nodes keep their destination. No CloudKit physical delete is issued.
   [[nodiscard]] Result CompactExpiredTombstones(base::Time now,
                                                 base::TimeDelta retention);
+
+  // Minimal routing metadata retained with deletion watermarks, not complete
+  // tombstone payloads. Late Pages can still follow a compacted Workspace
+  // merge without recreating its record or changing the Page's wire clock.
+  [[nodiscard]] Result ReadCompactedWorkspaceMergeTargets(
+      std::map<base::Uuid, base::Uuid>* targets) const;
 
   [[nodiscard]] std::string GetChangeToken() const;
   [[nodiscard]] RetryState GetRetryState() const;
@@ -120,6 +152,10 @@ class SyncStore {
                                             base::Time now);
 
  private:
+  friend class BookmarkSyncJournal;
+  friend class NativeTreeSyncJournal;
+  friend class BookmarkSyncAuthorizationTest;
+
   struct StoredRecord {
     SyncRecord record;
     std::string payload;
@@ -127,8 +163,16 @@ class SyncStore {
 
   [[nodiscard]] bool InitializeSchema();
   [[nodiscard]] bool CreateSchema();
-  [[nodiscard]] bool MigrateSchema(sql::MetaTable* meta_table);
   [[nodiscard]] bool IsReady() const;
+
+  [[nodiscard]] Result PutLocalRecordInTransaction(const SyncRecord& record,
+                                                   std::string mutation_id)
+      VALID_CONTEXT_REQUIRED(sequence_checker_);
+  [[nodiscard]] bool ValidateLocalRecordReferences(
+      const SyncRecord& record) const VALID_CONTEXT_REQUIRED(sequence_checker_);
+  [[nodiscard]] bool ValidateLocalBatchGraphs(
+      const std::vector<SyncRecord>& records) const
+      VALID_CONTEXT_REQUIRED(sequence_checker_);
 
   [[nodiscard]] Result ReadStoredRecord(EntityType type,
                                         const base::Uuid& id,

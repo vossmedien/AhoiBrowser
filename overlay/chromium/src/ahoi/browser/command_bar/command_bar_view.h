@@ -65,6 +65,9 @@ class CommandBarView : public views::View, public views::TextfieldController {
   // favicon cache) has published fresher data.
   void RefreshSuggestions();
   CommandBarDisposition disposition() const { return disposition_; }
+  // True while a Shift+Return acceptance runs; the address then opens as a
+  // Peek instead of in `disposition()`.
+  bool accepting_as_peek() const { return accepting_as_peek_; }
 
   // Test surface intentionally exposes semantic state rather than child-order
   // implementation details.
@@ -106,6 +109,7 @@ class CommandBarView : public views::View, public views::TextfieldController {
   void CloseCommandBar();
 
   const CommandBarDisposition disposition_;
+  bool accepting_as_peek_ = false;
   SuggestionsCallback suggestions_callback_;
   ExecuteCallback execute_callback_;
   base::RepeatingClosure close_callback_;

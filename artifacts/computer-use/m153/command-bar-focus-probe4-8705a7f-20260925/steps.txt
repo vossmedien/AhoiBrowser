@@ -1,0 +1,42 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe1 -> 0 now=Probe1
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe1 -> true
+frontmost -> 0
+key 17
+typed 36
+key 36
+firstReturnNavigated_1 -> true
+key 53
+AXShowMenu AXButton | Probe1, Workspace wechseln | Probe1, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe2 -> 0 now=Probe2
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe2 -> true
+frontmost -> 0
+key 17
+barOpened_2 -> false
+key 53
+AXShowMenu AXButton | Probe2, Workspace wechseln | Probe2, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe3 -> 0 now=Probe3
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe3 -> true
+frontmost -> 0
+key 17
+typed 36
+key 36
+firstReturnNavigated_3 -> false
+key 36
+secondReturnNavigated_3 -> true
+key 53
+key 12

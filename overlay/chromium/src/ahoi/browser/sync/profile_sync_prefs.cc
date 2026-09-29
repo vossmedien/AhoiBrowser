@@ -3,6 +3,8 @@
 
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 
+#include "components/prefs/pref_registry_simple.h"
+
 #include <string>
 
 #include "components/pref_registry/pref_registry_syncable.h"
@@ -11,13 +13,21 @@ namespace ahoi::sync {
 
 void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterBooleanPref(kSyncEnabledPref, false);
+  registry->RegisterBooleanPref(kBookmarkSyncEnabledPref, false);
   registry->RegisterStringPref(kDeviceIdPref, std::string());
   registry->RegisterStringPref(kDeviceDisplayNamePref, std::string());
   registry->RegisterIntegerPref(kHistoryRetentionDaysPref, 90);
   registry->RegisterListPref(kPermittedSettingIdsPref);
+  registry->RegisterDictionaryPref(kBrowserSettingIntentsPref);
+  registry->RegisterBooleanPref(kExtensionSetupSyncEnabledPref, false);
+  registry->RegisterBooleanPref(kExtensionSettingsSyncEnabledPref, false);
   registry->RegisterListPref(kDeveloperAssetOptInIdsPref);
   registry->RegisterBooleanPref(kRemoteControlEnabledPref, false);
   registry->RegisterDictionaryPref(kApprovedRemoteCommandKeysPref);
+}
+
+void RegisterLocalStatePrefs(PrefRegistrySimple* registry) {
+  registry->RegisterListPref(kPendingWorkspaceZoneRetirementsPref);
 }
 
 }  // namespace ahoi::sync

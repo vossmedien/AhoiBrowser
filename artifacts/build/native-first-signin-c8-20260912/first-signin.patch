@@ -1,0 +1,282 @@
+diff --git a/overlay/chromium/src/ahoi/browser/sync/cloudkit_bookmark_sync_consent_unittest.mm b/overlay/chromium/src/ahoi/browser/sync/cloudkit_bookmark_sync_consent_unittest.mm
+index c239d6a..d7fad40 100644
+--- a/overlay/chromium/src/ahoi/browser/sync/cloudkit_bookmark_sync_consent_unittest.mm
++++ b/overlay/chromium/src/ahoi/browser/sync/cloudkit_bookmark_sync_consent_unittest.mm
+@@ -111,9 +111,11 @@ class CloudKitBookmarkSyncConsentTest : public testing::Test {
+   }
+   std::unique_ptr<CloudKitSyncProviderMac> Create(
+       const std::shared_ptr<CryptorCalls>& calls,
+-      bool enabled = false) {
++      bool enabled = false,
++      std::string verified_account = {}) {
+     return CloudKitSyncProviderMac::CreateForConsentTesting(
+-        path_, std::make_unique<CountingCryptor>(calls), enabled);
++        path_, std::make_unique<CountingCryptor>(calls), enabled,
++        std::move(verified_account));
+   }
+   void Receive(CloudKitSyncProviderMac& provider, CKRecord* record) {
+     provider.ReceiveRecordForTesting(record);
+@@ -121,6 +123,10 @@ class CloudKitBookmarkSyncConsentTest : public testing::Test {
+   void AccountChanged(CloudKitSyncProviderMac& provider) {
+     provider.AccountChangedForTesting();
+   }
++  void SignedIn(CloudKitSyncProviderMac& provider, NSString* name) {
++    provider.AccountSignedInForTesting(
++        [[CKRecordID alloc] initWithRecordName:name]);
++  }
+   base::RepeatingCallback<bool()> QueuedRecord(
+       CloudKitSyncProviderMac& provider,
+       CKRecord* record) {
+@@ -284,6 +290,31 @@ TEST_F(CloudKitBookmarkSyncConsentTest,
+   EXPECT_EQ(0, restarted_calls->opened);
+ }
+ 
++TEST_F(CloudKitBookmarkSyncConsentTest,
++       VerifiedFirstSignInPreservesOriginalScopeButDifferentAccountRevokes) {
++  auto calls = std::make_shared<CryptorCalls>();
++  auto provider = Create(calls, true, "fixture-account-a");
++  auto original = provider->GetBookmarkSyncAuthorization();
++  auto queued = QueuedRecord(*provider, BookmarkCloudRecord());
++  ASSERT_TRUE(original);
++  ASSERT_TRUE(original.Run());
++  SignedIn(*provider, @"fixture-account-a");
++  SignedIn(*provider, @"fixture-account-a");
++  EXPECT_FALSE(provider->IsAccountTransitionPending());
++  EXPECT_FALSE(provider->IsBookmarkConsentRevoked());
++  EXPECT_TRUE(original.Run());
++  EXPECT_TRUE(queued.Run());
++  SignedIn(*provider, @"fixture-account-b");
++  EXPECT_TRUE(provider->IsAccountTransitionPending());
++  EXPECT_TRUE(provider->IsBookmarkConsentRevoked());
++  EXPECT_FALSE(original.Run());
++  EXPECT_FALSE(queued.Run());
++  // A matching replay cannot auto-confirm an already persisted recovery gate.
++  SignedIn(*provider, @"fixture-account-a");
++  EXPECT_TRUE(provider->IsAccountTransitionPending());
++  EXPECT_FALSE(original.Run());
++}
++
+ TEST_F(CloudKitBookmarkSyncConsentTest,
+        OldRecordProviderCannotSendAfterRevocationOrReapproval) {
+   auto calls = std::make_shared<CryptorCalls>();
+diff --git a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_configuration_mac.h b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_configuration_mac.h
+index aac23fd..f260038 100644
+--- a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_configuration_mac.h
++++ b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_configuration_mac.h
+@@ -22,6 +22,10 @@ struct CloudKitSyncConfigurationMac {
+   uint32_t key_version = 0;
+   // Filled only by the verified native bootstrap, never from Info.plist.
+   std::string verified_key_sha256;
++  // In-memory identity from the bootstrap's matching before/after account
++  // reads. Never loaded from Info.plist, persisted, logged, or sent on the
++  // wire.
++  std::string verified_account_record_name;
+   SyncAuthorization verified_key_authorization;
+   bool automatically_sync = true;
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_key_bootstrap_mac.mm b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_key_bootstrap_mac.mm
+index ae5a5d4..d5c78d9 100644
+--- a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_key_bootstrap_mac.mm
++++ b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_key_bootstrap_mac.mm
+@@ -551,7 +551,8 @@ class CloudKitSyncKeyBootstrapMac::Core
+   }
+ 
+   void CompleteVerifiedKey() {
+-    if (!authorization_.Run() || !claim_) {
++    if (!authorization_.Run() || !claim_ || !identity_ ||
++        identity_.recordName.length == 0) {
+       Finish("key_setup_cancelled");
+       return;
+     }
+@@ -571,6 +572,8 @@ class CloudKitSyncKeyBootstrapMac::Core
+     }
+     auto verified_configuration = configuration_;
+     verified_configuration.verified_key_sha256 = claim_->key_sha256;
++    verified_configuration.verified_account_record_name =
++        ToString(identity_.recordName);
+     auto cryptor = LoadKeychainSyncPayloadCryptor(verified_configuration);
+     if (!cryptor || !authorization_.Run()) {
+       Finish("key_setup_keychain_recovery");
+@@ -580,7 +583,7 @@ class CloudKitSyncKeyBootstrapMac::Core
+     waiting_ = false;
+     family_lock_.Release();
+     const auto callback = completion_;
+-    callback.Run({.configuration = configuration_,
++    callback.Run({.configuration = std::move(verified_configuration),
+                   .cryptor = std::move(cryptor),
+                   .key_sha256 = claim_->key_sha256,
+                   .authorization = authorization_});
+diff --git a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac.h b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac.h
+index 79327ea..0877099 100644
+--- a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac.h
++++ b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac.h
+@@ -5,6 +5,7 @@
+ #define AHOI_BROWSER_SYNC_CLOUDKIT_SYNC_PROVIDER_MAC_H_
+ 
+ #include <memory>
++#include <string>
+ 
+ #include "ahoi/browser/sync/sync_provider.h"
+ #include "base/files/file_path.h"
+@@ -12,6 +13,7 @@
+ 
+ #ifdef __OBJC__
+ @class CKRecord;
++@class CKRecordID;
+ #endif
+ 
+ namespace ahoi::sync {
+@@ -65,13 +67,15 @@ class CloudKitSyncProviderMac final : public SyncProvider {
+   static std::unique_ptr<CloudKitSyncProviderMac> CreateForConsentTesting(
+       const base::FilePath& state_path,
+       std::unique_ptr<SyncPayloadCryptor> cryptor,
+-      bool bookmark_sync_enabled = false);
++      bool bookmark_sync_enabled = false,
++      std::string verified_account_record_name = {});
+   void ReceiveRecordForTesting(CKRecord* record);
+   base::RepeatingCallback<bool()> MakeDelayedRecordDeliveryForTesting(
+       CKRecord* record);
+   void ReadCachedChangesForTesting(std::string token,
+                                    DownloadCallback callback);
+   void AccountChangedForTesting();
++  void AccountSignedInForTesting(CKRecordID* current_user);
+ #endif
+   std::shared_ptr<Core> core_;
+ };
+diff --git a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm
+index c2d9cf2..6f31fcd 100644
+--- a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm
++++ b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm
+@@ -198,6 +198,55 @@ void CloudKitSyncProviderMac::Core::SetBookmarkSyncEnabled(bool enabled) {
+   PersistInbox();
+ }
+ 
++void CloudKitSyncProviderMac::Core::HandleAccountChange(
++    CKSyncEngineAccountChangeType type,
++    CKRecordID* previous_user,
++    CKRecordID* current_user) {
++  lock_.AssertAcquired();
++  const bool verified_same_sign_in =
++      type == CKSyncEngineAccountChangeTypeSignIn && !previous_user &&
++      current_user && !account_transition_pending_ &&
++      !persisted_state_invalid_ && key_setup_issue_.empty() &&
++      profile_authorization_ && profile_authorization_.Run() &&
++      !configuration_.verified_account_record_name.empty() &&
++      configuration_.verified_key_sha256.size() == 64 &&
++      configuration_.verified_key_authorization &&
++      configuration_.verified_key_authorization.Run() &&
++      [current_user.recordName
++          isEqualToString:ToNSString(
++                              configuration_.verified_account_record_name)];
++  if (!verified_same_sign_in) {
++    // Sign-out, switch, unknown/unverified identities, revoked original key
++    // authority and an already-persisted transition remain fail-closed.
++    ResetAccountState();
++    return;
++  }
++  // A fresh/rebuilt CKSyncEngine can report sign-in for the already verified
++  // account. It resets its pending changes on account events; retain original
++  // record bodies, mutation IDs and consent leases and restore only that queue.
++  // No recovery flag is cleared and no authorization generation is renewed.
++  if (engine_ && zone_id_ && !zone_recovery_pending_) {
++    CKRecordZone* zone = [[CKRecordZone alloc] initWithZoneID:zone_id_];
++    [engine_.state
++        addPendingDatabaseChanges:@[ [[CKSyncEnginePendingZoneSave alloc]
++                                      initWithZone:zone] ]];
++    NSMutableArray* pending = [NSMutableArray array];
++    for (const auto& [key, record] : pending_records_) {
++      if ((IsBookmarkRecord(record) && !BookmarkAllowed()) ||
++          !PendingSettingAllowed(record)) {
++        continue;
++      }
++      [pending
++          addObject:
++              [[CKSyncEnginePendingRecordZoneChange alloc]
++                  initWithRecordID:record.recordID
++                              type:
++                                  CKSyncEnginePendingRecordZoneChangeTypeSaveRecord]];
++    }
++    [engine_.state addPendingRecordZoneChanges:pending];
++  }
++}
++
+ void CloudKitSyncProviderMac::Core::ResetAccountState() {
+   lock_.AssertAcquired();
+   account_transition_pending_ = true;
+@@ -535,6 +584,14 @@ void CloudKitSyncProviderMac::Core::AccountChangedForTesting() {
+   ResetAccountState();
+ }
+ 
++void CloudKitSyncProviderMac::Core::AccountSignedInForTesting(
++    CKRecordID* current_user) {
++  base::AutoLock guard(lock_);
++  if (@available(macOS 14.0, *)) {
++    HandleAccountChange(CKSyncEngineAccountChangeTypeSignIn, nil, current_user);
++  }
++}
++
+ base::RepeatingCallback<bool()>
+ CloudKitSyncProviderMac::Core::MakeDelayedRecordDeliveryForTesting(
+     CKRecord* record) {
+@@ -553,10 +610,19 @@ std::unique_ptr<CloudKitSyncProviderMac>
+ CloudKitSyncProviderMac::CreateForConsentTesting(
+     const base::FilePath& path,
+     std::unique_ptr<SyncPayloadCryptor> cryptor,
+-    bool enabled) {
+-  auto core = std::make_shared<Core>(CloudKitSyncConfigurationMac(), path,
+-                                     std::move(cryptor), enabled,
+-                                     base::BindRepeating([] { return true; }));
++    bool enabled,
++    std::string verified_account_record_name) {
++  CloudKitSyncConfigurationMac configuration;
++  if (!verified_account_record_name.empty()) {
++    configuration.verified_account_record_name =
++        std::move(verified_account_record_name);
++    configuration.verified_key_sha256 = std::string(64, 'a');
++    configuration.verified_key_authorization =
++        base::BindRepeating([] { return true; });
++  }
++  auto core =
++      std::make_shared<Core>(configuration, path, std::move(cryptor), enabled,
++                             base::BindRepeating([] { return true; }));
+   core->LoadInboxForTesting();
+   return std::unique_ptr<CloudKitSyncProviderMac>(
+       new CloudKitSyncProviderMac(std::move(core)));
+@@ -574,6 +640,11 @@ void CloudKitSyncProviderMac::AccountChangedForTesting() {
+   core_->AccountChangedForTesting();
+ }
+ 
++void CloudKitSyncProviderMac::AccountSignedInForTesting(
++    CKRecordID* current_user) {
++  core_->AccountSignedInForTesting(current_user);
++}
++
+ base::RepeatingCallback<bool()>
+ CloudKitSyncProviderMac::MakeDelayedRecordDeliveryForTesting(CKRecord* record) {
+   return core_->MakeDelayedRecordDeliveryForTesting(record);
+diff --git a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h
+index f7356ef..2bf05d1 100644
+--- a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h
++++ b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h
+@@ -60,6 +60,10 @@ class CloudKitSyncProviderMac::Core
+   void ReadCachedChangesForTesting(std::string token,
+                                    DownloadCallback callback);
+   void AccountChangedForTesting();
++  void AccountSignedInForTesting(CKRecordID* current_user);
++  void HandleAccountChange(CKSyncEngineAccountChangeType type,
++                           CKRecordID* previous_user,
++                           CKRecordID* current_user) API_AVAILABLE(macos(14.0));
+   void LoadInboxForTesting();
+ 
+   void Shutdown() {
+@@ -145,7 +149,9 @@ class CloudKitSyncProviderMac::Core
+         PersistState(event.stateUpdateEvent.stateSerialization);
+       } break;
+       case CKSyncEngineEventTypeAccountChange: {
+-        ResetAccountState();
++        HandleAccountChange(event.accountChangeEvent.changeType,
++                            event.accountChangeEvent.previousUser,
++                            event.accountChangeEvent.currentUser);
+       } break;
+       case CKSyncEngineEventTypeFetchedDatabaseChanges:
+         for (CKSyncEngineFetchedZoneDeletion* deletion in event

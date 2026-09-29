@@ -1,0 +1,34 @@
+{
+  "chainSha256": "1ffecad4aa891ffea44597373e89924e59357e680bf9d2a0778a6fbc3eb20954",
+  "syntax": "PASS",
+  "failureGateCases": [
+    {
+      "unitExit": 0,
+      "queueExit": 0,
+      "installReached": true,
+      "remainingTestsRan": true,
+      "lockReleasedOnFailure": null
+    },
+    {
+      "unitExit": 1,
+      "queueExit": 1,
+      "installReached": false,
+      "remainingTestsRan": true,
+      "lockReleasedOnFailure": true
+    },
+    {
+      "unitExit": 7,
+      "queueExit": 1,
+      "installReached": false,
+      "remainingTestsRan": true,
+      "lockReleasedOnFailure": true
+    },
+    {
+      "unitExit": 127,
+      "queueExit": 1,
+      "installReached": false,
+      "remainingTestsRan": true,
+      "lockReleasedOnFailure": true
+    }
+  ]
+}

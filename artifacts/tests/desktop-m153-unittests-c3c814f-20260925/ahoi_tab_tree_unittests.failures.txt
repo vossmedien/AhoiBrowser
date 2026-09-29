@@ -1,0 +1,8 @@
+[  FAILED  ] AhoiTabTreeStoreTest.AtomicDeleteAndUndoKeepsSplitPagesTogether
+[  FAILED  ] AhoiTabTreeStoreTest.DuplicatesDeepWorkspaceAndRemapsParents
+[  FAILED  ] AhoiTabTreeStoreTest.MovesSavedPagesAtomicallyAndOneUndoRestoresBoth
+[  FAILED  ] AhoiTabTreeStoreTest.PersistsDeepHierarchyAndManualOrder
+[  FAILED  ] AhoiTabTreeStoreTest.WrapsSplitPagesInOneFolderAndUndoRestoresBoth
+5 tests failed:
+EXIT 1
+Tests took 3 seconds.

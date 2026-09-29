@@ -123,7 +123,9 @@ namespace ahoi::sidebar {
 std::unique_ptr<views::View> CreateBrowserSidebarHost(
     Browser* browser,
     ModalOverlayController* modal_overlay_controller) {
-  if (!browser || !browser->is_type_normal() || !browser->GetProfile() ||
+  if (!browser ||
+      browser->GetType() != BrowserWindowInterface::TYPE_NORMAL ||
+      !browser->GetProfile() ||
       !browser->GetProfile()->IsRegularProfile() ||
       browser->GetProfile()->IsOffTheRecord() || !modal_overlay_controller) {
     return nullptr;
@@ -138,6 +140,13 @@ std::unique_ptr<views::View> CreateBrowserSidebarHost(
   }
   return std::make_unique<BrowserSidebarHostView>(
       browser, session_bridge, workspace_service, modal_overlay_controller);
+}
+
+void NotifyBrowserSidebarPresentationSettled(views::View* sidebar_host) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (host) {
+    host->OnSidebarPresentationSettled();
+  }
 }
 
 bool UndoBrowserSidebarMutation(views::View* sidebar_host) {
@@ -156,9 +165,39 @@ bool ActivateRelativeBrowserWorkspaceByGesture(views::View* sidebar_host,
   return host && host->ActivateRelativeWorkspaceByGesture(delta);
 }
 
+base::WeakPtr<tabs::TabInterface> ResolveRelativeBrowserRuntimeTab(
+    views::View* sidebar_host,
+    int delta) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host ? host->ResolveRelativeRuntimeTab(delta) : nullptr;
+}
+
 bool ActivateRelativeBrowserRuntimeTab(views::View* sidebar_host, int delta) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->ActivateRelativeRuntimeTab(delta);
+}
+
+bool ResolveBrowserSidebarTabStep(views::View* sidebar_host,
+                                  int delta,
+                                  base::WeakPtr<tabs::TabInterface>* target) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (!host) {
+    return false;
+  }
+  *target = host->ResolveRelativeRuntimeTab(delta);
+  return true;
+}
+
+bool ResolveBrowserSidebarNumberedTab(
+    views::View* sidebar_host,
+    std::optional<size_t> index,
+    base::WeakPtr<tabs::TabInterface>* target) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (!host) {
+    return false;
+  }
+  *target = host->ResolveNumberedRuntimeTab(index);
+  return true;
 }
 
 bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index) {
@@ -166,10 +205,30 @@ bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index) {
   return host && host->ActivateWorkspaceAtIndex(index);
 }
 
+bool ActivateBrowserWorkspaceById(views::View* sidebar_host,
+                                  const base::Uuid& workspace_id) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->ActivateWorkspaceById(workspace_id);
+}
+
 bool RevealBrowserSidebarFolder(views::View* sidebar_host,
                                 const base::Uuid& folder_id) {
   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
   return host && host->RevealFolder(folder_id);
+}
+
+bool CanMoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
+                                               const base::Uuid& workspace_id) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->MoveSelectionToWorkspace(workspace_id,
+                                                /*dry_run=*/true);
+}
+
+bool MoveBrowserSidebarSelectionToWorkspace(views::View* sidebar_host,
+                                            const base::Uuid& workspace_id) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  return host && host->MoveSelectionToWorkspace(workspace_id,
+                                                /*dry_run=*/false);
 }
 
 bool ToggleBrowserSidebarFloating(views::View* sidebar_host) {

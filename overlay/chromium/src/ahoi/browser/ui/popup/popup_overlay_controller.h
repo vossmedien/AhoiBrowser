@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "ahoi/browser/popup/link_peek.h"
 #include "ahoi/browser/popup/popup_overlay_service.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
@@ -42,7 +43,8 @@ class PopupOverlayView;
 // testable and owns exactly one WebContents lifecycle.
 class PopupOverlayController final
     : public views::ViewObserver,
-      public popup::PopupOverlayService::Observer {
+      public popup::PopupOverlayService::Observer,
+      public popup::LinkPeekHost {
  public:
   using OpenerPaneProvider =
       base::RepeatingCallback<views::View*(content::WebContents*)>;
@@ -63,6 +65,27 @@ class PopupOverlayController final
                WindowOpenDisposition disposition,
                const blink::mojom::WindowFeatures& window_features,
                bool user_gesture);
+
+  // Automatic Peek (opt-in) for a plain target=_blank click on a saved page
+  // that leaves its site: adopts the new window Chromium was about to add as
+  // a tab, before content loads it, instead of loading the link a second
+  // time. Popups with features and sign-in, payment or passkey pages keep
+  // the tab. False leaves `*new_contents` to Chromium's tab path.
+  bool TryAutoPeekNewWindow(content::WebContents* source,
+                            std::unique_ptr<content::WebContents>* new_contents,
+                            const GURL& target_url,
+                            WindowOpenDisposition disposition,
+                            const blink::mojom::WindowFeatures& window_features,
+                            bool user_gesture);
+
+  // popup::LinkPeekHost: previews a link of `opener` in this overlay, in a
+  // new WebContents of the opener's website session, with the request's own
+  // referrer and initiator. Closing keeps the page below as it was;
+  // promotion to a tab or split reuses the same WebContents.
+  bool CanPeek(content::WebContents* opener, const GURL& url) override;
+  bool ShowPeek(content::WebContents* opener,
+                const popup::PeekRequest& request) override;
+  bool IsSavedPage(content::WebContents* contents) override;
 
   bool IsShowing() const { return service_.IsShowing(); }
   bool OwnsContents(const content::WebContents* contents) const;
@@ -87,6 +110,13 @@ class PopupOverlayController final
   }
 
  private:
+  // The shared preflight of popups and Peek: a normal window of the same
+  // Profile whose visible pane shows `opener`, with no overlay open.
+  bool CanHostFor(content::WebContents* opener) const;
+  bool AdoptAndShow(content::WebContents* opener,
+                    std::unique_ptr<content::WebContents>* contents,
+                    const blink::mojom::WindowFeatures& window_features,
+                    bool user_gesture);
   void CreateOverlayView();
   void RequestClosePopup();
   void PromotePopupToTab();
@@ -124,6 +154,10 @@ class PopupOverlayController final
   raw_ptr<PopupOverlayView> popup_view_ = nullptr;
   blink::mojom::WindowFeaturesPtr initial_window_features_;
   bool original_user_gesture_ = false;
+  // How a fallback reinserts the contents: a popup window, or the foreground
+  // tab an automatically peeked target=_blank link would have opened.
+  WindowOpenDisposition fallback_disposition_ =
+      WindowOpenDisposition::NEW_POPUP;
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>
       appearance_signal_source_;
 

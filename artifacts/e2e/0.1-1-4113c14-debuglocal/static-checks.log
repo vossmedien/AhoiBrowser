@@ -1,0 +1,3 @@
+swift_parse_files=94
+max_swift_file=     800 apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStore.swift
+static_checks=PASS

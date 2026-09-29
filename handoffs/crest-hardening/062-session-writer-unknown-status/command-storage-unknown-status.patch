@@ -1,0 +1,27 @@
+diff --git a/components/sessions/core/command_storage_backend.cc b/components/sessions/core/command_storage_backend.cc
+index 15be35e..c6f019b 100644
+--- a/components/sessions/core/command_storage_backend.cc
++++ b/components/sessions/core/command_storage_backend.cc
+@@ -568,7 +568,11 @@ void CommandStorageBackend::AppendCommands(
+     last_or_current_path_with_valid_marker_ = open_file_->path;
+   }
+ 
+-  if (!open_file_ && !IsError(status)) {
++  // AhoiBrowser: IsError() treats kUnknown as an error, so the upstream
++  // `!IsError(status)` never classified a failed TruncateOrOpenFile() and the
++  // DCHECK below fired whenever the new session file could not be created
++  // (seen on shutdown by SIGTERM in the privacy journey).
++  if (!open_file_ && status == WriteStatus::kUnknown) {
+     status = WriteStatus::kFileNotOpened;
+   }
+   DCHECK_NE(status, WriteStatus::kUnknown);
+@@ -841,6 +845,9 @@ std::unique_ptr<base::File> CommandStorageBackend::OpenAndWriteHeader(
+                 base::File::FLAG_WIN_EXCLUSIVE_WRITE |
+                 base::File::FLAG_WIN_EXCLUSIVE_READ);
+   if (!file->IsValid()) {
++    // AhoiBrowser: the reason is otherwise invisible (see AppendCommands).
++    LOG(WARNING) << "Session file not created: "
++                 << base::File::ErrorToString(file->error_details());
+     return nullptr;
+   }
+   FileHeader header;

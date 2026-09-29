@@ -1,0 +1,86 @@
+{
+  "fixture_version": 1,
+  "data_class": "bookmark",
+  "entity_type": 11,
+  "field_names": ["location", "kind", "title", "url", "created_at", "tombstone"],
+  "cases": [
+    {
+      "name": "root_folder",
+      "payload": {
+        "model_version": 2,
+        "id": "90000000-0000-4000-8000-000000000001",
+        "kind": 0,
+        "root_kind": 0,
+        "sort_key": "M",
+        "title": "Reisen",
+        "url": "",
+        "created_at": "11644473600000123",
+        "tombstone": false,
+        "version_model": 2,
+        "version_physical": "11644473601000100",
+        "version_logical": 8,
+        "version_device": "90000000-0000-4000-8000-0000000000a0",
+        "field_versions": {
+          "location": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "kind": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "title": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "url": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "created_at": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "tombstone": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"}
+        }
+      }
+    },
+    {
+      "name": "nested_url_unicode",
+      "payload": {
+        "model_version": 2,
+        "id": "90000000-0000-4000-8000-000000000002",
+        "kind": 1,
+        "parent_id": "90000000-0000-4000-8000-000000000001",
+        "sort_key": "U",
+        "title": "Überblick — 海 ⚓",
+        "url": "https://example.com/%C3%BCberblick?q=%E6%B5%B7&empty=#section",
+        "created_at": "11644473600000124",
+        "tombstone": false,
+        "version_model": 2,
+        "version_physical": "11644473601000100",
+        "version_logical": 8,
+        "version_device": "90000000-0000-4000-8000-0000000000a0",
+        "field_versions": {
+          "location": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "kind": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "title": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "url": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "created_at": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "tombstone": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"}
+        }
+      }
+    },
+    {
+      "name": "native_url_metadata",
+      "payload": {
+        "model_version": 2,
+        "id": "90000000-0000-4000-8000-000000000003",
+        "kind": 1,
+        "root_kind": 1,
+        "sort_key": "M",
+        "title": "Interne Einstellungen",
+        "url": "chrome://settings/",
+        "created_at": "11644473600000125",
+        "tombstone": false,
+        "version_model": 2,
+        "version_physical": "11644473601000100",
+        "version_logical": 8,
+        "version_device": "90000000-0000-4000-8000-0000000000a0",
+        "field_versions": {
+          "location": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "kind": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "title": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "url": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "created_at": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"},
+          "tombstone": {"physical": "11644473601000100", "logical": 8, "device": "90000000-0000-4000-8000-0000000000a0"}
+        }
+      }
+    }
+  ]
+}

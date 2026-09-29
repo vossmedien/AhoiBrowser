@@ -42,6 +42,28 @@ TEST_F(SidebarActionViewsTest, HeaderActionIsSquareSemanticButton) {
                                  ax::mojom::StringAttribute::kName));
 }
 
+TEST_F(SidebarActionViewsTest, HeaderActionTogglePublishesCheckedState) {
+  std::unique_ptr<views::View> button = CreateSidebarHeaderActionButton(
+      base::BindRepeating([](const ui::Event&) {}),
+      vector_icons::kCloseIcon, u"Schwebende Sidebar");
+
+  SetSidebarHeaderActionToggleState(button.get(), false);
+  ui::AXNodeData docked_accessibility;
+  button->GetViewAccessibility().GetAccessibleNodeData(
+      &docked_accessibility);
+  EXPECT_EQ(ax::mojom::Role::kToggleButton, docked_accessibility.role);
+  EXPECT_EQ(ax::mojom::CheckedState::kFalse,
+            docked_accessibility.GetCheckedState());
+
+  SetSidebarHeaderActionToggleState(button.get(), true);
+  ui::AXNodeData floating_accessibility;
+  button->GetViewAccessibility().GetAccessibleNodeData(
+      &floating_accessibility);
+  EXPECT_EQ(ax::mojom::Role::kToggleButton, floating_accessibility.role);
+  EXPECT_EQ(ax::mojom::CheckedState::kTrue,
+            floating_accessibility.GetCheckedState());
+}
+
 TEST_F(SidebarActionViewsTest, SectionDividerUsesCompactSemanticGeometry) {
   const std::u16string action_name = u"Alle entfernen";
   std::unique_ptr<views::View> divider = CreateSidebarSectionDivider(

@@ -1,0 +1,13 @@
+{
+ "workspace_structure_controller": 0,
+ "workspace_structure_invalidation_unittest": 0,
+ "popup_overlay_controller": 0,
+ "browser_sidebar_host_discovery": 0,
+ "browser_sidebar_host_tree_actions": 0,
+ "browser_sidebar_host_command_dispatch": 0,
+ "browser_sidebar_host_move_command": 0,
+ "browser_sidebar_host_group_dialog": 0,
+ "sidebar_tree_view_drop_execution": 0,
+ "sidebar_tree_view_test_support": 0,
+ "sidebar_tree_view_drag_lifecycle_unittest": 0
+}

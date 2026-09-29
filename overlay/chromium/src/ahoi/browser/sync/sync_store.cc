@@ -29,7 +29,7 @@ int ToInt(ChangeKind kind) {
 
 bool IsValidEntityType(int value) {
   return value >= static_cast<int>(EntityType::kDevice) &&
-         value <= static_cast<int>(EntityType::kDeveloperAsset);
+         value <= static_cast<int>(EntityType::kTabArchiveEntry);
 }
 
 bool IsValidChangeKind(int value) {
@@ -42,17 +42,20 @@ void BindVersion(sql::Statement& statement,
                  const SyncVersion& version) {
   statement.BindInt(offset, version.model_version);
   statement.BindInt64(offset + 1, version.stamp.physical_time_us);
-  statement.BindInt(offset + 2, static_cast<int>(version.stamp.logical));
+  statement.BindInt64(offset + 2, version.stamp.logical);
   statement.BindString(offset + 3, version.stamp.device_tiebreak);
 }
 
 SyncVersion ReadVersion(sql::Statement& statement, int offset) {
+  const int64_t logical = statement.ColumnInt64(offset + 2);
+  if (logical < 0 || logical > UINT32_MAX) {
+    return SyncVersion{.model_version = 0};
+  }
   return SyncVersion{
       .model_version = statement.ColumnInt(offset),
-      .stamp = HlcStamp{
-          .physical_time_us = statement.ColumnInt64(offset + 1),
-          .logical = static_cast<uint32_t>(statement.ColumnInt(offset + 2)),
-          .device_tiebreak = statement.ColumnString(offset + 3)}};
+      .stamp = HlcStamp{.physical_time_us = statement.ColumnInt64(offset + 1),
+                        .logical = static_cast<uint32_t>(logical),
+                        .device_tiebreak = statement.ColumnString(offset + 3)}};
 }
 
 base::Time ReadTime(sql::Statement& statement, int column) {
@@ -283,9 +286,9 @@ bool SyncStore::SetMetadata(const std::string& key, const std::string& value) {
   return statement.Run();
 }
 
-SyncStore::Result SyncStore::PutLocalRecord(const SyncRecord& record,
-                                            std::string mutation_id) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+SyncStore::Result SyncStore::PutLocalRecordInTransaction(
+    const SyncRecord& record,
+    std::string mutation_id) {
   if (!IsReady()) {
     return Result::kNotInitialized;
   }
@@ -353,22 +356,24 @@ SyncStore::Result SyncStore::PutLocalRecord(const SyncRecord& record,
     return Result::kAlreadyApplied;
   }
 
-  sql::Transaction transaction(&db_);
-  if (!transaction.Begin()) {
-    return Result::kDatabaseError;
-  }
   if (!UpsertRecord(local, payload) || !WriteTombstone(local) ||
-      !WriteOutbox(change) || !transaction.Commit()) {
+      !WriteOutbox(change)) {
     return Result::kDatabaseError;
   }
-  NotifyChanged();
   return Result::kOk;
 }
 
-SyncStore::Result SyncStore::ApplyRemoteBatch(const ProviderBatch& batch) {
+SyncStore::Result SyncStore::ApplyRemoteBatch(
+    const ProviderBatch& batch,
+    const SyncAuthorization& authorization,
+    bool receive_only) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
+  }
+
+  if (authorization && !authorization.Run()) {
+    return Result::kNotAuthorized;
   }
 
   // Provider pages are transport batches, not complete tree snapshots. Parent
@@ -478,13 +483,19 @@ SyncStore::Result SyncStore::ApplyRemoteBatch(const ProviderBatch& batch) {
     }
     changed = true;
   }
-  if (!SetMetadata("change_token", batch.next_change_token)) {
+  if (!SetMetadata("change_token", batch.next_change_token) ||
+      (!receive_only && !batch.has_more &&
+       !SetMetadata("initial_fetch_complete", "1"))) {
     return Result::kDatabaseError;
   }
-  if (!db_.Execute(
+  if (!receive_only &&
+      !db_.Execute(
           "UPDATE sync_retry_state SET attempt=0,last_attempt=0,next_attempt=0,"
           "last_error='' WHERE provider_key='default'")) {
     return Result::kDatabaseError;
+  }
+  if (authorization && !authorization.Run()) {
+    return Result::kNotAuthorized;
   }
   if (!transaction.Commit()) {
     return Result::kDatabaseError;
@@ -554,7 +565,9 @@ SyncStore::Result SyncStore::GetRemoteTabs(
 
 SyncStore::Result SyncStore::ReadOutbox(
     size_t limit,
-    std::vector<SyncChange>* changes) const {
+    std::vector<SyncChange>* changes,
+    bool include_bookmarks,
+    base::RepeatingCallback<bool(const SyncChange&)> allowed) const {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   if (!IsReady()) {
     return Result::kNotInitialized;
@@ -564,10 +577,28 @@ SyncStore::Result SyncStore::ReadOutbox(
   }
   changes->clear();
   sql::Statement statement(db_.GetUniqueStatement(
-      "SELECT mutation_id,entity_type,entity_id,change_kind,payload,"
-      "version_model,version_physical,version_logical,version_device "
-      "FROM sync_outbox ORDER BY created_at,mutation_id LIMIT ?"));
-  statement.BindInt64(0, static_cast<int64_t>(limit));
+      "SELECT pending.mutation_id,pending.entity_type,pending.entity_id,"
+      "pending.change_kind,pending.payload,pending.version_model,"
+      "pending.version_physical,pending.version_logical,pending.version_device "
+      "FROM sync_outbox AS pending JOIN "
+      "(SELECT entity_type,entity_id,MIN(created_at) AS first_created_at "
+      "FROM sync_outbox GROUP BY entity_type,entity_id) AS queued_entity "
+      "ON queued_entity.entity_type=pending.entity_type "
+      "AND queued_entity.entity_id=pending.entity_id "
+      "WHERE (? OR pending.entity_type<>?) "
+      "ORDER BY queued_entity.first_created_at,pending.entity_type,"
+      "pending.entity_id,pending.version_model DESC,"
+      "pending.version_physical DESC,pending.version_logical DESC,"
+      "pending.version_device DESC,pending.created_at DESC,"
+      "pending.mutation_id"));
+  // Oldest entities retain priority, but their newest originals/convergences
+  // must reach the provider before a page full of older unacknowledged inputs.
+  // Ordering is not proof of dominance: the provider still merges field clocks
+  // and acknowledges only originals covered by the actual stored payload.
+  // Apply all category filters before the accepted-row limit. Retained blocked
+  // settings/bookmarks must not starve later eligible records or be deleted.
+  statement.BindBool(0, include_bookmarks);
+  statement.BindInt(1, static_cast<int>(EntityType::kBookmark));
   while (statement.Step()) {
     const int type = statement.ColumnInt(1);
     const int kind = statement.ColumnInt(3);
@@ -588,40 +619,15 @@ SyncStore::Result SyncStore::ReadOutbox(
     if (!ValidateChangeEnvelope(change, &decoded)) {
       return Result::kDatabaseError;
     }
+    if (allowed && !allowed.Run(change)) {
+      continue;
+    }
     changes->push_back(std::move(change));
+    if (changes->size() == limit) {
+      return Result::kOk;
+    }
   }
   return statement.Succeeded() ? Result::kOk : Result::kDatabaseError;
-}
-
-SyncStore::Result SyncStore::AcknowledgeOutbox(
-    const std::vector<std::string>& mutation_ids) {
-  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-  if (!IsReady()) {
-    return Result::kNotInitialized;
-  }
-  if (mutation_ids.empty()) {
-    return Result::kInvalidArgument;
-  }
-  sql::Transaction transaction(&db_);
-  if (!transaction.Begin()) {
-    return Result::kDatabaseError;
-  }
-  for (const std::string& mutation_id : mutation_ids) {
-    if (mutation_id.empty()) {
-      return Result::kInvalidArgument;
-    }
-    sql::Statement statement(
-        db_.GetUniqueStatement("DELETE FROM sync_outbox WHERE mutation_id=?"));
-    statement.BindString(0, mutation_id);
-    if (!statement.Run()) {
-      return Result::kDatabaseError;
-    }
-  }
-  if (!transaction.Commit()) {
-    return Result::kDatabaseError;
-  }
-  NotifyChanged();
-  return Result::kOk;
 }
 
 SyncStore::Result SyncStore::PrepareOutboxForCloudRecovery(
@@ -631,7 +637,9 @@ SyncStore::Result SyncStore::PrepareOutboxForCloudRecovery(
     return Result::kNotInitialized;
   }
   sql::Transaction transaction(&db_);
-  if (!transaction.Begin() || !db_.Execute("DELETE FROM sync_outbox")) {
+  if (!transaction.Begin() || !db_.Execute("DELETE FROM sync_outbox") ||
+      !db_.Execute("DELETE FROM sync_acknowledged_records") ||
+      !SetMetadata("initial_fetch_complete", "0")) {
     return Result::kDatabaseError;
   }
   if (requeue_local_records) {

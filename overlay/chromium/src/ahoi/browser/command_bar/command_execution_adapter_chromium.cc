@@ -12,14 +12,19 @@
 #include "ahoi/browser/developer_toolkit/developer_toolkit_action_executor.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_target.h"
 #include "ahoi/browser/http_auth/http_auth_management_dialog.h"
+#include "ahoi/browser/navigation/keyboard_shortcuts.h"
+#include "ahoi/browser/popup/link_peek.h"
 #include "ahoi/browser/http_auth/http_auth_session_controller.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
+#include "ahoi/browser/ui/sidebar/sidebar_link_copy.h"
 #include "base/check.h"
 #include "base/containers/span.h"
+#include "base/functional/bind.h"
 #include "base/memory/raw_ptr.h"
 #include "base/strings/stringprintf.h"
+#include "base/task/single_thread_task_runner.h"
 #include "base/uuid.h"
 #include "chrome/browser/autocomplete/chrome_autocomplete_scheme_classifier.h"
 #include "chrome/browser/profiles/profile.h"
@@ -124,22 +129,21 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       if (bridge) {
         tabs::TabInterface* tab =
             bridge->FindTabForOpenTabStableId(item.stable_id);
-        TabStripModel* model = bridge->FindTabStripModelForTab(tab);
-        if (tab && model) {
-          const int index = model->GetIndexOfTab(tab);
-          BrowserWindowInterface* window = tab->GetBrowserWindowInterface();
-          if (index >= 0 && window && window->GetWindow()) {
-            model->ActivateTabAt(
-                index, TabStripUserGestureDetails(
-                           TabStripUserGestureDetails::GestureType::kKeyboard));
-            window->GetWindow()->Activate();
-            return true;
-          }
+        BrowserWindowInterface* window =
+            tab ? tab->GetBrowserWindowInterface() : nullptr;
+        // Handoff 011 S5: the tab's Workspace is selected before the tab, so
+        // the command bar never leaves the active tab hidden.
+        if (window && window->GetWindow() &&
+            bridge->ActivateTabInItsWorkspace(
+                tab, WorkspaceActivationSource::kKeyboard,
+                /*user_gesture=*/true)) {
+          window->GetWindow()->Activate();
+          return true;
         }
       }
     }
 
-    TabStripModel* model = browser_->tab_strip_model();
+    TabStripModel* model = browser_->GetTabStripModel();
     for (int index = 0; index < model->count(); ++index) {
       content::WebContents* contents = model->GetWebContentsAt(index);
       if (contents && (contents->GetVisibleURL() == *item.url ||
@@ -163,6 +167,29 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
       return false;
     }
 
+    if (disposition == CommandBarDisposition::kPeek && post_data.empty()) {
+      content::WebContents* const opener =
+          browser_->GetTabStripModel()->GetActiveWebContents();
+      if (popup::CanPeekLink(opener, url)) {
+        // The command bar closes first; the preview then opens over the page
+        // it covered. A typed address or search is sent like the omnibox
+        // sends it: the covered page is neither referrer nor initiator.
+        base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+            FROM_HERE,
+            base::BindOnce(
+                [](base::WeakPtr<content::WebContents> opener,
+                   popup::PeekRequest request) {
+                  if (opener) {
+                    popup::PeekLink(opener.get(), request);
+                  }
+                },
+                opener->GetWeakPtr(),
+                popup::PeekRequest::ForTypedUrl(url, is_search)));
+        return true;
+      }
+      // Where no preview fits, Shift+Return behaves like opening a new tab.
+      disposition = CommandBarDisposition::kNewForegroundTab;
+    }
     const ui::PageTransition transition =
         ui::PageTransitionFromInt((is_search ? ui::PAGE_TRANSITION_GENERATED
                                              : ui::PAGE_TRANSITION_TYPED) |
@@ -205,9 +232,31 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     }
     const base::Uuid workspace_id = base::Uuid::ParseLowercase(stable_id);
     SessionBridge* bridge = SessionBridgeFactory::GetForProfile(profile);
-    return workspace_id.is_valid() && bridge &&
-           bridge->SetActiveWorkspaceForWindow(
-               browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
+    if (!workspace_id.is_valid() || !bridge) {
+      return false;
+    }
+    if (bridge->SetActiveWorkspaceForWindow(
+            browser_, workspace_id, WorkspaceActivationSource::kKeyboard)) {
+      return true;
+    }
+    // Another Profile's Workspace (ADR 0011 step 2, handoff 054): the
+    // sidebar's shared switcher hands this window's frame over.
+    return sidebar_host_ &&
+           sidebar::ActivateBrowserWorkspaceById(sidebar_host_, workspace_id);
+  }
+
+  bool CanMoveToWorkspace(std::string_view workspace_id) const override {
+    const base::Uuid target = base::Uuid::ParseLowercase(workspace_id);
+    return target.is_valid() && sidebar_host_ &&
+           sidebar::CanMoveBrowserSidebarSelectionToWorkspace(sidebar_host_,
+                                                              target);
+  }
+
+  bool MoveToWorkspace(std::string_view workspace_id) override {
+    const base::Uuid target = base::Uuid::ParseLowercase(workspace_id);
+    return target.is_valid() && sidebar_host_ &&
+           sidebar::MoveBrowserSidebarSelectionToWorkspace(sidebar_host_,
+                                                           target);
   }
 
   bool CanRevealFolder(std::string_view stable_id) const override {
@@ -234,12 +283,19 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     }
     if (command_id == internal::kManageHttpAuthCredentialsCommand) {
       return browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
-             browser_->tab_strip_model()->GetActiveWebContents();
+             browser_->GetTabStripModel()->GetActiveWebContents();
+    }
+    if (command_id == internal::kCopyActivePageLinkCommand ||
+        command_id == internal::kCopyActivePageMarkdownLinkCommand) {
+      return sidebar::CanCopyActivePageLink(browser_);
+    }
+    if (command_id == internal::kOpenActivePageInReadingModeCommand) {
+      return sidebar::CanOpenActivePageInReadingMode(browser_);
     }
     if (command_id == internal::kSwitchHttpAuthAccountCommand ||
         command_id == internal::kForgetHttpAuthRealmCommand) {
       content::WebContents* const contents =
-          browser_->tab_strip_model()->GetActiveWebContents();
+          browser_->GetTabStripModel()->GetActiveWebContents();
       if (!contents || !contents->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) {
         return false;
       }
@@ -271,14 +327,24 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
     }
     if (command_id == internal::kManageHttpAuthCredentialsCommand) {
       content::WebContents* const contents =
-          browser_->tab_strip_model()->GetActiveWebContents();
+          browser_->GetTabStripModel()->GetActiveWebContents();
       return browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
              ShowHttpAuthManagementDialog(contents);
+    }
+    if (command_id == internal::kCopyActivePageLinkCommand ||
+        command_id == internal::kCopyActivePageMarkdownLinkCommand) {
+      return sidebar::CopyActivePageLink(
+          browser_, command_id == internal::kCopyActivePageMarkdownLinkCommand
+                        ? sidebar::PageLinkCopyFormat::kMarkdown
+                        : sidebar::PageLinkCopyFormat::kUrl);
+    }
+    if (command_id == internal::kOpenActivePageInReadingModeCommand) {
+      return sidebar::OpenActivePageInReadingMode(browser_);
     }
     if (command_id == internal::kSwitchHttpAuthAccountCommand ||
         command_id == internal::kForgetHttpAuthRealmCommand) {
       content::WebContents* const contents =
-          browser_->tab_strip_model()->GetActiveWebContents();
+          browser_->GetTabStripModel()->GetActiveWebContents();
       if (!contents || !contents->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) {
         return false;
       }
@@ -303,14 +369,28 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
            chrome::ExecuteCommand(browser_, *command_id);
   }
 
+  bool CanExecuteShortcutCommand(std::string_view catalog_id) const override {
+    const shortcuts::ShortcutCommand* command =
+        shortcuts::FindCommand(catalog_id);
+    return command && command->rebindable &&
+           BrowserView::GetBrowserViewForBrowser(browser_);
+  }
+
+  bool ExecuteShortcutCommand(std::string_view catalog_id) override {
+    BrowserView* const browser_view =
+        BrowserView::GetBrowserViewForBrowser(browser_);
+    return CanExecuteShortcutCommand(catalog_id) && browser_view &&
+           browser_view->HandleAhoiShortcutCommand(catalog_id);
+  }
+
   bool CanExecuteDeveloperAction(DeveloperAction /*action*/) const override {
     return IsSupportedDeveloperTarget(
-        browser_->tab_strip_model()->GetActiveWebContents());
+        browser_->GetTabStripModel()->GetActiveWebContents());
   }
 
   bool ExecuteDeveloperAction(DeveloperAction action) override {
     content::WebContents* const contents =
-        browser_->tab_strip_model()->GetActiveWebContents();
+        browser_->GetTabStripModel()->GetActiveWebContents();
     if (!IsSupportedDeveloperTarget(contents)) {
       return false;
     }

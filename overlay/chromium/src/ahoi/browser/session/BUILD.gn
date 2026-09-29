@@ -3,6 +3,11 @@
 
 import("//testing/test.gni")
 
+source_set("shared_tab_target_policy") {
+  sources = [ "shared_tab_target_policy.h" ]
+  public_deps = [ "//ahoi/browser/tab_tree:shared_tab_target_policy" ]
+}
+
 source_set("workspace_session_metadata") {
   sources = [
     "workspace_session_metadata.cc",
@@ -11,12 +16,25 @@ source_set("workspace_session_metadata") {
   public_deps = [ "//base" ]
 }
 
+source_set("group_page_close") {
+  sources = [
+    "group_page_close.cc",
+    "group_page_close.h",
+  ]
+  public_deps = [
+    "//base",
+    "//content/public/browser",
+  ]
+}
+
 source_set("session_restore_integration") {
   sources = [
     "session_restore_integration.cc",
     "session_restore_integration.h",
   ]
   public_deps = [
+    ":session_preferences",
+    ":website_session_context",
     ":workspace_session_metadata",
     "//base",
     "//chrome/browser/profiles:profile",
@@ -27,12 +45,81 @@ source_set("session_restore_integration") {
 
 source_set("session_preferences") {
   sources = [
+    "isolated_profile_registry.cc",
+    "isolated_profile_registry.h",
     "session_prefs.cc",
     "session_prefs.h",
+    "workspace_directory_order.cc",
+    "workspace_directory_order.h",
   ]
   public_deps = [
+    "//base",
     "//components/prefs",
     "//components/sync_preferences",
+  ]
+}
+
+source_set("isolated_profiles") {
+  sources = [
+    "isolated_profile_creation.cc",
+    "isolated_profile_creation.h",
+    "isolated_workspace_directory.cc",
+    "isolated_workspace_directory.h",
+  ]
+  public_deps = [
+    ":session_preferences",
+    "//base",
+  ]
+  deps = [
+    ":group_page_close",
+    ":session_bridge_api",
+    ":workspace_portability",
+    "//chrome/browser:browser_process",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/profiles:profile_manager",
+    "//chrome/browser/profiles:profile_util",
+    "//chrome/browser/lifetime",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//components/prefs",
+    "//components/sessions",
+    "//content/public/browser",
+    "//ui/base",
+    "//ui/gfx/geometry",
+  ]
+}
+
+source_set("website_session_context") {
+  sources = [
+    "website_session_context.cc",
+    "website_session_context.h",
+  ]
+  public_deps = [
+    ":session_preferences",
+    "//content/public/browser",
+  ]
+  deps = [
+    "//chrome/browser/profiles:profile",
+    "//crypto",
+  ]
+}
+
+source_set("website_session_browsing_data") {
+  sources = [
+    "website_session_browsing_data.cc",
+    "website_session_browsing_data.h",
+  ]
+  public_deps = [
+    ":session_preferences",
+    "//base",
+    "//content/public/browser",
+  ]
+  deps = [
+    ":website_session_context",
+    "//chrome/browser/profiles:profile",
+    "//components/browsing_data/content",
+    "//components/prefs",
+    "//url",
   ]
 }
 
@@ -63,8 +150,11 @@ source_set("session_bridge_api") {
     "workspace_service_factory.h",
   ]
   public_deps = [
+    ":group_page_close",
+    ":session_preferences",
     ":session_restore_integration",
     ":workspace_session_metadata",
+    ":website_session_context",
     "//ahoi/browser/navigation",
     "//ahoi/browser/sync:profile_sync_ui_bridge",
     "//ahoi/browser/tab_tree",
@@ -77,27 +167,63 @@ source_set("session_bridge_api") {
   ]
 }
 
+source_set("workspace_portability") {
+  sources = [
+    "portable_workspace_bundle.h",
+    "portable_workspace_bundle_decode.cc",
+    "portable_workspace_bundle_encode.cc",
+    "portable_workspace_import_destination.cc",
+    "portable_workspace_import_destination.h",
+    "portable_workspace_import_plan.cc",
+    "portable_workspace_import_plan.h",
+    "portable_workspace_structure.cc",
+    "portable_workspace_structure.h",
+    "workspace_structure_state.cc",
+    "workspace_structure_state.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/sync",
+    "//ahoi/browser/tab_tree",
+    "//base",
+  ]
+}
+
 source_set("session") {
   sources = [
+    "native_workspace_structure.cc",
+    "native_workspace_structure.h",
     "session_bridge.cc",
+    "session_bridge_extension_setup.cc",
     "session_bridge_factory.cc",
     "session_bridge_internal.cc",
     "session_bridge_internal.h",
     "session_bridge_observers.cc",
     "session_bridge_runtime.cc",
     "session_bridge_session.cc",
+    "session_bridge_structure_persistence.cc",
+    "session_bridge_sync_persistence.cc",
     "session_bridge_workspace.cc",
+    "session_bridge_workspace_conversion.cc",
+    "session_bridge_website_session_removal.cc",
+    "session_bridge_workspace_merge.cc",
     "workspace_service_factory.cc",
     "workspace_service_factory.h",
+    "workspace_structure_controller.cc",
+    "workspace_structure_controller.h",
+    "workspace_structure_controller_archive.cc",
+    "workspace_structure_controller_sync.cc",
   ]
 
   public_deps = [
     ":command_service_factory",
+    ":group_page_close",
     ":session_bridge_api",
     ":session_preferences",
     ":session_restore_integration",
     ":startup_policy",
+    ":workspace_portability",
     ":workspace_session_metadata",
+    ":website_session_context",
     "//ahoi/browser/navigation",
     "//ahoi/browser/tab_tree",
     "//base",
@@ -109,39 +235,73 @@ source_set("session") {
   ]
 
   deps = [
+    ":isolated_profiles",
+    "//ahoi/browser/extensions:native_setup_inventory",
+    "//ahoi/browser/extensions:native_setup_operation",
+    "//ahoi/browser/resource_policy",
+    "//ahoi/browser/sync:profile_sync_service",
+    "//chrome/browser:browser_process",
+    "//chrome/browser/lifetime",
     "//chrome/browser/sessions",
     "//chrome/browser/ui",
     "//chrome/browser/ui/tabs:tab_strip",
     "//components/keyed_service/content",
     "//components/sessions",
+    "//components/prefs",
+    "//components/split_tabs",
     "//content/public/browser",
+    "//extensions/browser",
+    "//services/network/public/mojom",
   ]
 }
 
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "isolated_profile_registry_unittest.cc",
+    "isolated_workspace_directory_unittest.cc",
+    "portable_workspace_import_plan_unittest.cc",
+    "session_bridge_tab_binding_unittest.cc",
     "session_bridge_unittest.cc",
+    "session_bridge_unittest_support.cc",
+    "session_bridge_unittest_support.h",
+    "session_bridge_workspace_merge_unittest.cc",
     "session_prefs_unittest.cc",
     "session_restore_integration_unittest.cc",
+    "shared_tab_target_policy_unittest.cc",
     "startup_policy_unittest.cc",
+    "website_session_browsing_data_unittest.cc",
+    "workspace_directory_order_unittest.cc",
     "workspace_session_metadata_unittest.cc",
+    "workspace_structure_invalidation_unittest.cc",
+    "workspace_structure_split_capture_unittest.cc",
   ]
   deps = [
+    ":isolated_profiles",
     ":session",
     ":session_preferences",
+    ":shared_tab_target_policy",
     ":startup_policy",
+    ":website_session_browsing_data",
+    ":website_session_context",
     ":workspace_session_metadata",
     "//base/test:test_support",
     "//chrome/browser/ui",
     "//chrome/browser/ui/tabs:tab_model",
     "//chrome/browser/ui/tabs:tab_strip",
     "//chrome/test:test_support",
+    "//components/keyed_service/content",
+    "//components/prefs:test_support",
     "//components/sync_preferences:test_support",
     "//components/tabs:public",
     "//content/test:test_support",
+    "//net",
+    "//services/network/public/mojom",
+    "//testing/gmock",
     "//testing/gtest",
+    "//url",
   ]
+  data = [ "../sync/testdata/shared_tab_wire_v3_contract.json" ]
 }
 
 test("ahoi_session_unittests") {

@@ -1,17 +1,497 @@
-# Chromium M152 patch ledger
+# Chromium M153 patch ledger
+
+## `0077-ahoi-peek-original-request-and-blank-links.patch`
+
+- **Owner:** Desktop (Crest adoption A1 and A4, Crest 02b7f9d6 and
+  351237e3). Three hunks in files that 0059 and 0061 already touch, no new
+  GN dependency:
+  - `RenderViewContextMenu::ExecuteCommand` previews the link with the
+    request "Open link in new tab" would send: `CreateReferrer` (frame URL
+    under the menu's referrer policy, so `rel=noreferrer` stays silent),
+    `frame_origin` as initiator (the iframe, not the main frame) and
+    `started_from_context_menu`.
+  - The Shift-click block of `BrowserWebContentsDelegate::OpenURLFromTab`
+    passes `PeekRequest::FromOpenURLParams(params)`, the page's own referrer
+    and initiator, instead of the bare URL.
+  - `BrowserWebContentsDelegate::AddNewContents` offers a
+    `NEW_FOREGROUND_TAB` from a source to
+    `PopupOverlayController::TryAutoPeekNewWindow`, after the `NEW_POPUP`
+    overlay branch. On success the overlay owns that same WebContents and
+    content loads the link into it once, with its referrer and initiator.
+- **Safety:** `PopupOverlayController::ShowPeek` no longer substitutes the
+  opener's URL and origin with a fixed policy; it re-sanitizes the request's
+  referrer under its own policy. The command bar's Shift+Return previews
+  like the omnibox (no referrer, no initiator, typed/generated transition),
+  and auto-Peek copies the cancelled navigation's referrer and initiator
+  and skips the preview if the page changed document meanwhile. The new
+  window branch needs the opt-in `ahoi.peek.auto_from_saved_pages`, a user
+  gesture, a window without opener (`window.open()` and `rel=opener` keep
+  their tab), a plain last input on the source page (Cmd+Shift-click also
+  arrives as a foreground tab; `LinkPeekInputTracker` tells them apart), a
+  saved, not temporary, source page, another site and an overlay that can
+  host it; everything else falls through to `chrome::AddWebContents`.
+  The hunk also passes `window_features`: on macOS in browser fullscreen
+  Chromium has already turned a `NEW_POPUP` into a `NEW_FOREGROUND_TAB`,
+  and popup or size features keep such a window a tab. Sign-in, payment
+  and passkey targets (`ClassifyPopupForOverlay`) keep the tab too, and a
+  later fallback of an adopted link reinserts it as the foreground tab,
+  never as a popup window.
+  Script `window.open(url, "_blank", "noopener")` from a click is still
+  indistinguishable from a link and previews too, as in Crest.
+- **Tests:** `ahoi_popup_unittests` (`link_peek_unittest.cc`,
+  `link_peek_input_unittest.cc`), `ahoi_popup_overlay_browsertests`
+  (`popup_overlay_peek_browsertest.cc`: Referer and Sec-Fetch-Site per entry
+  point, new-window adoption and the tab cases, including a `/login`
+  target and popup features) and the extended
+  `tools/desktop_e2e/link-peek-journey.sh` on the exact candidate.
+- **Rebase/removal:** low; regenerate after 0059 and 0061 against a
+  checkout with patches 0001–0074 applied.
+
+## `0076-ahoi-tab-stepping-follows-sidebar.patch`
+
+One tab strip backs every Workspace of a window, so Chromium's next/previous
+tab (`⌃⇥`, `⇧⌘]`/`⇧⌘[`, `⌃PageDown`/`⌃PageUp`) and `⌘1`…`⌘9` stepped
+through other Workspaces' tabs and switched the Workspace, against the
+master contract ("andere Workspaces dürfen nicht versehentlich aktiviert
+werden"). `SelectNextTab`, `SelectPreviousTab`, `SelectNumberedTab` and
+`SelectLastTab` in `browser_commands.cc` now first ask the window's Ahoi
+sidebar host (new `BrowserView::GetAhoiSidebarHost`) for the target. It walks
+the sidebar's tab stops of the active Workspace (Crest dad3abad, overlay
+`ahoi/browser/ui/sidebar/sidebar_tab_stops.{h,cc}`): saved rows, then
+temporary rows; a split is one stop entered at its first pane; rows inside a
+collapsed folder are skipped, and a tab shown from there steps from the
+folder's position; stepping wraps. When the host owns the command but has no
+other stop, nothing happens instead of falling back to the strip. Windows
+without an Ahoi sidebar (private, app, popup) keep Chromium's strip order.
+The MRU commands (`CycleToMruTab`, Ahoi's `⌃⌥⇥`) are unchanged. Cmd+scroll
+(0011) uses the same order through `ResolveRelativeBrowserRuntimeTab`.
+
+## `0075-ahoi-browsing-data-website-session-partitions.patch`
+
+Adoption review A2 (crest 87d89354): "Delete browsing data" left the logins
+and site storage of Workspaces with their own website sessions untouched,
+because `BrowsingDataRemover` clears only the default partition when the
+filter names none. `ChromeBrowsingDataRemoverDelegate::RemoveEmbedderData`
+now forwards such a removal, next to the Isolated Web App fan-out, to Ahoi's
+`RemoveWebsiteSessionPartitionData`: a copy of the filter scoped to each
+existing own website-session partition and only StoragePartition data types.
+A partition that is neither loaded nor on disk is skipped, so clearing never
+creates one, and retired contexts are left to the Workspace deletion. The
+directory check runs off the UI thread under a new tracing task
+`kAhoiWebsiteSessions` (48, with its `enums.xml` label and histogram
+variant), which ends once the removals are queued. Site settings'
+`RemoveNonModelData` (per-site and site-group "Delete data") also removes
+the same hosts' unpartitioned data from the own partitions on macOS, through
+a `BrowsingDataModel` of each partition, so sibling subdomains are kept.
+`RemoveAndReply` callers hear "done" before the queued partition removals
+finish, and clearing on exit is best effort there (known gap, see
+`docs/WORKSPACE_SESSIONS.md`). BUILD
+deps: `//ahoi/browser/session:website_session_browsing_data`. Tests:
+`website_session_browsing_data_unittest.cc` in `ahoi_session_unittests`.
+
+## `0074-ahoi-extension-and-privacy-product-name-strings.patch`
+
+Generated by `tools/branding/make_rebrand_patch.sh ... extras`: the same
+rebranding for `extensions_strings.grd` (with
+`extensions_chromium_strings.grdp`) and `privacy_sandbox_strings.grd`. 7
+macOS-active messages: the external extension/app/theme install warnings
+("may change the way Chromium works"), their "Remove from Chromium" button
+and the incognito third-party cookie
+note ("When you're in Incognito mode, Chromium blocks …"), in English and
+German. Build 47's `de.lproj/locale.pak` still showed these after 0073; what
+remains named Chromium there is attribution ("Die Chromium-Autoren", the
+open source project). Regenerate like 0073 with patches 0001–0073 applied.
+
+## `0073-ahoi-ui-product-name-strings.patch`
+
+Generated by `tools/branding/make_rebrand_patch.sh ... ui`. The 0071
+rebranding for the two general UI bundles, `generated_resources.grd` and
+`components_strings.grd` with all their (nested) parts: 53 macOS-active
+messages that name the product "Chromium", such as "Chromium neu starten" on
+the password manager's Keychain card, the sad-tab restart hint, the SSL and
+clock interstitials, the management notices and the search engine choice
+dialog, and Ahoi's own uBO installer, HTTP authentication and cookie
+messages, now say "AhoiBrowser", in English and German. Build 46 still showed
+61 such "Chromium" strings in `de.lproj/locale.pak`. Messages are selected
+with the exact GRIT defines of the `out/AhoiDev` GRIT action, read from its
+`toolchain.ninja`, so the set matches what macOS ships. Attribution, license
+and "Chromium OS" texts stay unchanged; other locales show English for these
+messages, as with 0071. Regenerate after a Chromium roll on the rolled
+checkout with patches 0001–0072 applied and a configured `out/AhoiDev`.
+
+## `0072-ahoi-quick-window-focus-location.patch`
+
+The Quick Window is a trusted popup without a location bar, so Chromium keeps
+`IDC_FOCUS_LOCATION` disabled there and macOS never dispatches `⌘L`: only
+`⌘T` opened Ahoi's command bar in it (quick-window journey, build 45).
+`BrowserNativeWidgetMac::ValidateUserInterfaceItem` now enables the item for
+popups with a toolbar; the existing keyboard route in `ExecuteCommand` opens
+the command bar. Normal web popups already have the command enabled; a
+mouse click on the menu item still reaches Chromium's disabled command and
+does nothing.
+
+## `0071-ahoi-product-name-strings.patch`
+
+Generated by `tools/branding/make_rebrand_patch.sh` (engine
+`tools/branding/rebrand_messages.py`). Every message of `chromium_strings.grd`
+(with `settings_chromium_strings.grdp`) and `components_chromium_strings.grd`
+that GRIT keeps for macOS and names the product "Chromium" now says
+"AhoiBrowser", in English and in the German translation: the app menu
+(`IDS_PRODUCT_NAME` feeds "About/Hide/Quit $1", so "AhoiBrowser beenden" as
+the master contract requires), window and task manager titles, the crash
+restore prompt and settings texts. Changing an English source changes its
+GRIT fingerprint, so the tool recomputes old and new ids with the checkout's
+GRIT and moves each German translation to the new id. Attribution and
+license texts ("The Chromium Authors", the open source project link,
+chromium.org) and the other product "Chromium OS" stay unchanged. Other
+locales keep Chromium's ids and show the English text for these messages;
+Ahoi's own strings are English/German only as well. Regenerate after a
+Chromium roll by running the script on the rolled checkout with patches
+0001–0070 applied.
+
+## `0070-ahoi-developer-hard-reload-string.patch`
+
+Adds `IDS_AHOI_DEVELOPER_HARD_RELOAD` ("Reload without cache" / "Ohne Cache
+neu laden") for the developer toolkit's hard-reload action (DEV-08), next to
+the other toolkit strings, with its German translation.
+
+## `0069-ahoi-german-http-auth-and-navigation-strings.patch`
+
+Adds the German translations that were missing for 15 Ahoi strings: the HTTP
+authentication account manager (editor, show/copy/hide password, security
+notice, system authentication prompt and status messages) and the accessible
+name of the floating navigation's reveal target ("Adressleiste einblenden").
+Found by computing the GRIT message ID of every `IDS_AHOI_*` message and
+checking it against `generated_resources_de.xtb`; the other 403 were present.
+Only the German translation bundle changes.
+
+## `0068-ahoi-gpc-tab-helper-seam.patch`
+
+From crest handoff 070. Registers Ahoi's `GpcRendererPreferenceTabHelper` in
+`TabFeatures` next to `DeveloperProfileTabHelper`. The helper sets
+`RendererPreferences.enable_global_privacy_control` from the privacy mode of
+the primary main frame's navigation and syncs the renderer preferences.
+
+## `0067-ahoi-renderer-preferences-global-privacy-control.patch`
+
+From crest handoff 070 (design 066). Upstream Global Privacy Control is a
+process-global Blink feature. This adds a per-WebContents
+`RendererPreferences.enable_global_privacy_control`, plumbed like
+`enable_do_not_track`: `Sec-GPC` in `RenderFrameImpl::FinalizeRequestInternal`,
+both worker fetch contexts and browser-initiated resource requests, and
+`navigator.globalPrivacyControl` through `ContextEnabled` (bindings expose a
+member when either `RuntimeEnabled` or `ContextEnabled` holds). In the default
+mode the attribute stays undefined, as in Chromium. The mojom change rebuilds a
+large part of the tree.
+
+## `0066-ahoi-privacy-subresource-factory-proxy.patch`
+
+From crest handoffs 066/068. `PrivacyModeURLLoaderThrottle` only reached
+navigations and browser-side loaders, so renderer and worker subresources of a
+"Mehr Schutz" page got neither `Sec-GPC` nor a reduced cross-site referrer
+(privacy journey, build 35). This seam appends Ahoi's
+`PrivacyModeURLLoaderFactoryProxy` first in `WillCreateURLLoaderFactory` for
+document, worker and service-worker subresource factories of strict pages, so
+extension webRequest (uBO Classic) still sees and can block every request.
+The default mode appends nothing. The rules themselves live in the overlay
+(`ApplyStrictRequestRules`, shared with the throttle).
+
+## `0065-ahoi-session-writer-unknown-status.patch`
+
+From crest handoff 062. `CommandStorageBackend::AppendCommands` classifies a
+failed `TruncateOrOpenFile()` with `if (!open_file_ && !IsError(status))`, but
+`IsError()` is true for `kUnknown`, so the classification never ran and the
+`DCHECK_NE(status, kUnknown)` fired whenever the new session file could not
+be created (build 35, privacy journey, SIGTERM shutdown). The condition now
+tests for `kUnknown`; `OpenAndWriteHeader` logs the file error so the trigger
+becomes visible. Release behavior only changes the histogram bucket.
+
+## `0064-ahoi-restore-workspace-into-existing-window.patch`
+
+Session restore adds the first normal window's tabs to the already open
+browser (`ShouldRestoreToExistingBrowser`) instead of creating a window, and
+only `CreateRestoredBrowser` passed the window extra data to Ahoi. The saved
+Workspace of that window was therefore never applied: every restart came back
+in the first Workspace, while the tabs (their own extra data) kept theirs.
+Build 35's save-side logging showed the correct Workspace in the quit-time
+rebuild and no window restore call on the next start. This patch applies the
+same `RestoreWindowSessionExtraData` to the reused window. No other window
+properties change.
+
+## `0063-ahoi-option-tab-key-trace.patch`
+
+Diagnostic only, for WORKFLOW-03. On the installed build 33, ⌥⇥ never
+reaches Ahoi's `tab.last-used` accelerator, and the focused page receives the
+Option keydown but no Tab keydown; ⌃⇥ and ⌥⌘K arrive normally (option-tab
+probe, 26 September). This patch adds VLOG(1) lines for keyCode 48 in
+`NativeWidgetMacNSWindow sendEvent:`, `RenderWidgetHostViewCocoa`
+`performKeyEquivalent:` and `keyEvent:wasKeyEquivalent:`, and for VKEY_TAB in
+`BrowserView::PreHandleKeyboardEvent`, so a run with
+`--vmodule=native_widget_mac_nswindow=1,render_widget_host_view_cocoa=1,browser_view=1`
+shows the last stage the key reaches. No behavior changes. Remove it together
+with the fix.
+
+## `0048-ahoi-fullscreen-sidebar-flush.patch`
+
+The user's 24 September fullscreen screenshot shows a 40-DIP dark band between
+the top toolbar and the docked Sidebar card. Ahoi's normal-window caption
+reservation was applied unconditionally in fullscreen, even though the tab
+region already begins below the visible toolbar. This patch passes zero
+caption height in fullscreen, removes the fallback top margin only for that
+zero-height Ahoi case, and aligns caption hit-testing with the actual reserved
+height. Normal-window 40-DIP titlebar and floating-sidebar margins are
+unchanged; no page viewport or BrowserContext ownership changes. The guarded
+`13a992c` 48-patch M153 build and isolated normal/fullscreen, Glass ON/OFF
+zero-tab journey passed; see the current desktop checkpoint for receipt and
+remaining installed/accessibility limits.
+
+## `0047-ahoi-empty-state-card-clip.patch`
+
+The Ahoi zero-tab EmptyStateView is a direct MultiContentsView child and paints
+its own opaque rectangle. Unlike a normal ContentsContainerView, it did not
+receive the content card's live rounded-corner geometry, so its square paint
+covered the card's top-left radius in the user's 24 September screenshot.
+This patch gives only that view a non-opaque composited layer and applies the
+same radii provided by `MultiContentsView::SetBackgroundRadii`; square/fullscreen
+layouts explicitly clear the mask again, even when Glass is off. No page
+viewport, WebContents, sidebar width or profile authority changes. The first
+`c76e98b` 47-patch signed build visibly corrected the normal zero-tab corner;
+the missing fullscreen reset was found in source before acceptance. The
+updated `13a992c` 48-patch stack built and visibly passed normal/fullscreen
+Glass ON/OFF on the isolated candidate. Installed-app acceptance is separate.
+
+## `0046-ahoi-settings-follow-selected-workspace.patch`
+
+The normal Chromium Settings entry point still owns singleton-tab navigation.
+After it returns, a regular-profile Ahoi window follows the selected Settings
+tab's existing Workspace. This closes the case where native macOS
+`Einstellungen…` reuses an already active tab while Ahoi shows an empty
+Workspace overlay; no TabStripModel activation occurs in an observer. OTR,
+non-Mac and profiles without a SessionBridge are unchanged. The Sidebar
+footer's deferred reconciliation remains a narrow fallback for a newly
+created Settings tab. The exact guarded build and visible menu/footer
+journeys passed on the Apple-Development-signed isolated `26c39be` M153
+candidate (binary SHA-256
+`8145af9e531faa26059ac13f8a8fb00912032792d5a3bd992d5c7852f8f81fd0`).
+The menu, footer and `⌘,` each exposed Settings from an empty Workspace;
+see `docs/ACTIVE_DESKTOP_CHECKPOINT.md` for profile, receipt and limits.
+
+## `0045-ahoi-milky-browser-glass-foundation.patch`
+
+The native macOS glass view covers the full window beneath Chromium's opaque
+WebContents. Its neutral translucent NSWindow foundation avoids sharp desktop
+see-through in transparent WebUI/chrome gaps. The `5ee283a` correction uses a
+55% foundation with the matching Ahoi browser-chrome tint: the prior 82% plus
+72% layers hid almost all material, even though the native glass view was
+present. The owned visual-style overlay exposes a real 20-DIP top/side gutter
+without changing the page compositor. Disabled-Glass and accessibility paths
+remain opaque. A signed isolated M153 clone visibly passed normal-page
+Glass ON/OFF, two-pane split/divider/fullscreen and light-Appearance checks;
+see `docs/ACTIVE_DESKTOP_CHECKPOINT.md`. Installed `820cf4e` and the user's
+`c7381c1` RED baseline remain separate. High-contrast, Reduce Transparency,
+performance and installed-app acceptance are still open. No permission path
+changes.
 
 `series` is the authoritative application order. The active stack targets
-Chromium Mac Stable `152.0.7977.65` at
-`fc4d67f1788019a27e32511137ceccbd2fafdaaa`. A roll is accepted only when the
+Chromium Mac Stable `153.0.8010.53` at
+`792bf6722e73a45aa9e47c163b9901bdc17f3230`. A roll is accepted only when the
 overlay and every patch compose offline to one exact tree, the real checkout
 matches that tree, and the build/test evidence names the same commit.
+
+The20September rebase preserves43 ordered patches. Exact offline composition
+passes43/43 with no conflicts or already-upstream patches; result tree is
+`a83de08b4ed29927e7cd9e5093876a42be03c459`. Evidence:
+`artifacts/build/chromium-m153-preflight-20260920/final-patch-preflight.json`.
+This is SOURCE acceptance only, not compile/runtime/release acceptance. Original
+M152 descriptions below record patch intent, not today's API placement: popup
+callbacks now live in BrowserWebContentsDelegate, native window creation uses
+BrowserWindowInterface/CreateBrowserWindow, and the removed PrivacySandbox
+delegate is replaced by M153's native denial behavior rather than a shim.
+
+## `0043-ahoi-reader-and-link-copy-strings.patch`
+
+- **Owner:** Desktop. Adds four strings to `generated_resources.grd` with
+  German and British English translations: copy the active page's link, copy
+  it as Markdown, open the active page in reading mode, and the disabled
+  label "Reading mode is unavailable for this page". They label the sidebar
+  and command-bar entries of `ahoi/browser/ui/sidebar/sidebar_link_copy`.
+- **Safety:** strings only; no behaviour.
+- **Tests:** the WORKFLOW-07 visible journey on the exact candidate.
+- **Rebase/removal:** low; conflicts only with neighbouring grd/xtb edits.
+
+## `0044-ahoi-quiet-startup-and-flush-content.patch`
+
+- **Owner/pin:** Desktop UI on M153. It follows the 43 already applied patches;
+  normal overlay composition and installed-candidate verification still apply.
+- **Scope:** only redundant macOS startup/default-browser informational
+  infobars are suppressed after the existing security and obsolete-OS checks.
+  Ahoi's startup choice and Chromium's Default Browser settings remain
+  available. All other infobars keep their native owner.
+- **Geometry:** normal tabbed content keeps its top/side insets and top corners,
+  but its bottom meets the window edge. The existing shadow remains behind
+  the clipped content; no broad BrowserView header change is needed.
+  Split/WebContents bounds remain real layout, not a visual overlay.
+- **Acceptance:** visible startup with no full-width informational banner,
+  representative content and sidebar bottoms aligned, then focused layout and
+  startup checks. The concept image is design direction, not runtime proof.
 
 The superseded 21-patch M151 stack remains recoverable from
 `refs/ahoi/recovery/product-source-freeze-20260826-a3865fc6e9f8` and
 `artifacts/build/recovery/ahoi-m151-final.bundle`; it is intentionally not kept
 as a second active patch stack.
 
-## `0001-ahoi-m152-integration-seams.patch`
+## `0034-ahoi-navigation-pin-home-and-hover.patch`
+
+- **Owner:** Desktop; exact M152 pin above, after the full33-patch stack.
+- **Affected paths:** ToolbarView/its GN dependency, native browser UI defaults,
+  Reload's WebUI control CSS, and generated resources with German/en-GB strings.
+- **Rationale:** optional address-bar pinning uses the existing persisted Ahoi
+  floating-navigation auto-hide preference and the native ToolbarButton family.
+  The user's September8 placement correction makes it the leftmost navigation
+  control, in the same visual and accessibility order before Back/Forward.
+  Chromium's existing Home control is visible by default; explicit user/managed
+  values and the native homepage/command paths remain authoritative. Reload's
+  outer clipping host gains the inner circular control's own radius.
+- **Rejected alternatives:** a second pin-state store, a replacement homepage
+  mechanism, auto-granting permissions, disabling WebUI feature flags, or
+  painting a coordinate-specific rectangle over the reported hover defect.
+- **Verification:** source integration only so far. The Reload host-radius
+  change is a bounded fix candidate, NOT a proven rendering root cause/pass;
+  require exact installed Hover/Pin/Home E2E before focused regression checks.
+- **Security/privacy:** no permission, URL policy, profile or Sync authority
+  change. Pin respects managed preferences; no stored user choice is overwritten.
+- **Rebase/removal:** small ToolbarView/pref seams; resource IDs are generated
+  by pinned GRIT. Drop Reload's extra clip if upstream supplies equivalent
+  complete control clipping; keep product controls in the owned overlay.
+
+## `0037-ahoi-sidebar-exclusive-bookmark-surface.patch`
+
+- **Owner:** Desktop. One native `BrowserView::MaybeShowBookmarkBar` condition.
+- **Purpose:** a browser with the existing Ahoi sidebar bookmark shelf must not
+  also attach Chromium's horizontal bookmark bar behind floating navigation.
+  The user's14:50 screenshot and native accessibility tree show both surfaces.
+- **Scope/security:** native model, data, preferences and commands are unchanged.
+  Non-Ahoi surfaces retain Chromium's normal behavior; no CSS cover-up or global
+  preference overwrite. The existing detach path handles an already-created bar.
+- **Verification:** exact pinned-source patch preflight, then visible new-tab/
+  normal-page/sidebar/toolbar journey on the next corrected candidate. No runtime
+  pass is claimed from the source fix.
+- **Rebase/removal:** narrow visibility seam; remove when upstream selects the
+  sidebar shelf as the exclusive native bookmark surface itself.
+
+## `0038-ahoi-concise-arc-recovery-copy.patch`
+
+- **Owner:** Desktop. Three existing Arc message texts and their German/en-GB
+  translations; IDs generated with the pinned GRIT meaning.
+- **Purpose:** shorter recovery notice and explicit "Undo failed import" action.
+  Matching owned WebUI gives notice/button16px separation and keeps the native
+  Cancel area distinct. This fixes the user's September8 cramped-dialog report.
+- **Safety:** no backend, confirmation, hash, persistence or tab guard is removed.
+  The notice still explains that changed import data/open tabs prevent recovery
+  and that unrelated pages/the backup remain. No automatic import or retry.
+- **Verification:** exact-resource patch/XML/GRIT checks, then the real corrected
+  recovery dialog in the combined sidebar/store candidate; not an extra build.
+
+## `0035-ahoi-browser-settings-sync-consent.patch`
+
+- **Owner:** Desktop; exact M152 pin, after0034.
+- **Paths/purpose:** generated resources, German/en-GB translations and the
+  existing Settings localized-string map for explicit browser-settings consent.
+  The owned WebUI/native handler uses Common's registered supported/permitted
+  IDs, preserving none/some/all and never enabling global Sync by implication.
+- **Rejected alternative:** raw preference or secret transfer, hardcoded labels,
+  a second Sync page/service or implicit startup opt-in.
+- **Verification:** XML/GRIT identity and ordered patch checks; exact installed
+  category/restart/off flow before focused programmatic follow-up. Source only
+  until that candidate exists. No transport/roundtrip claim.
+- **Risk/removal:** low string-map rebase risk; retain the compact consent path
+  until upstream Settings provides the same explicit category contract.
+
+## `0036-ahoi-native-sync-storage-observer.patch`
+
+- **Owner:** Desktop upstream seam; Common owns its consented consumer/apply.
+- **Paths:** `extensions/browser/api/storage/storage_frontend.{h,cc}` only.
+  Native callbacks observe nonempty storage.sync deltas even without JavaScript
+  listeners, before the existing EventRouter early return. Local/session/managed
+  areas are excluded. Existing JS event access restrictions remain unchanged.
+- **Source identity:** the dedicated remote-apply callback carries origin with
+  the exact asynchronous completion, avoiding a global suppression flag that
+  would swallow concurrent local edits. Native apply still uses RunWithStorage
+  and must validate the original account/consent/revision before committing and
+  notifying. This callback does not grant write or upload authorization.
+- **Lifetime:** subscriptions are scoped; a retained callback list plus weak
+  frontend check avoids accessing a released profile after native notification.
+  Neither observer nor callback retains the BrowserContext.
+- **Verification:** exact two-file patch application and source/API checks only.
+  It is outside the current toolbar build79280; Common integration and visible
+  permitted-extension settings journey precede focused programmatic checks.
+- **Privacy/removal:** no data is sent or persisted by this hook. Consumers must
+  use positive extension/key/value schemas and current per-category consent;
+  storage.sync alone is not evidence that values are safe to transfer. Remove
+  when Chromium exposes equivalent native observation and origin-bearing apply.
+
+## `0039-ahoi-extension-activation-authorization.patch`
+
+- **Owner:** Desktop. The retained activation proposal is now connected to the
+  Session-owned native setup operation. CrxInstaller and permission/enable flow
+  carry the original permanently revocable authorization across their real
+  asynchronous native paths. No Google Sync approval or permission bypass.
+- **Safety:** recheck before file installation, permission grant and actual
+  registration; do not persist guarded delayed installs. Desired disabled state
+  is installed disabled, without brief activation. Shared modules inherit the
+  lease but not the main extension's disabled state. Native policy remains final.
+- **Acceptance:** one combined app-only candidate; actual supported CWS install,
+  native permission prompt and state readback, then focused authority regressions.
+
+## `0041-ahoi-extension-user-settings-intent.patch`
+
+- **Owner:** Desktop. Registrar subscriptions receive explicit native user
+  requests from Settings/API enable/disable, accepted native enable prompts,
+  user-initiated uninstall and completed non-guarded prompted installation.
+- **Safety:** desired intent is separate from observed inventory. A remote
+  guarded install/enable and SYNC uninstall do not emit these user requests.
+  No asynchronous suppression flag or lifecycle-event inference is used.
+  Subscriptions retain their list while notifying and stop after profile release.
+- **Consumer:** SessionBridge validates trusted installed provenance before
+  handing the exact desired state to Common, which cancels an older remote lease
+  and journals genuine user intent. Unknown/policy packages remain local.
+- **Acceptance:** enabled/disabled/uninstalled changes in the actual linked
+  candidate must converge without being reinstalled or echoed by stale peers.
+
+## `0042-ahoi-development-acceptance-profile.patch`
+
+- **Owner:** Desktop. The earliest main-process startup accepts/rejects the
+  owned startup policy before Chromium resolves or opens a browser profile.
+- **Safety:** a signed isolated Development scope uses its own MacA/MacB
+  user-data directory under Application Support/AhoiBrowser Sync Acceptance.
+  The real Default, foreign scopes, profile-directory overrides and symlinked
+  acceptance directories are rejected. Ordinary candidates retain their native
+  profile behavior. No existing store or key is deleted or migrated.
+- **Reason:** the real Default already has global Sync opt-in. Signing a fresh
+  CloudKit zone alone must not upload that profile into acceptance automatically.
+- **Acceptance:** normal scoped-app start plus explicit MacB and refusal of the
+  ordinary profile path on the exact signed candidate; no source-only pass.
+
+## `0040-ahoi-native-sync-storage-write-request.patch`
+
+- **Owner:** Desktop; the exact two-file continuation of0036, applied after0038.
+- **Purpose:** notify native consumers before a nonempty sync-area Set/Remove
+  or any Clear enters the backend queue. This revokes an original remote epoch
+  before an intervening local write, including an A-to-X-to-A sequence.
+- **Safety:** carries only the extension ID and no committed-data or upload
+  authority. Subscribers still author only from committed changes. The callback
+  list remains alive during notification; a released frontend stops enqueueing.
+  Remove copies caller-owned keys before callbacks. Other storage areas retain
+  their existing behavior.
+- **Source:** byte-identical to the reviewed f36e4bd proposal, SHA-256
+  `9f8ef3ca5fbb23970e41b9feec0afd1697a85d5204568f59d8171c2e30dcfecf`.
+- **Verification:** ordered offline composition and exact source checks;
+  compilation and the permitted extension-settings journey remain candidate
+  gates. No shared checkout or running app is changed by this source handoff.
+- **Rebase/removal:** narrow StorageFrontend seam; remove with0036 when upstream
+  supplies the equivalent request and origin-bearing commit subscriptions.
+
+## `0001-ahoi-m153-integration-seams.patch`
 
 - **Owner:** AhoiBrowser project.
 - **Upstream baseline:** Chromium Mac Stable `152.0.7977.65` at the exact commit
@@ -69,7 +549,15 @@ as a second active patch stack.
 - **Removal/upstream plan:** remove each hunk when the equivalent deterministic
   setup exists upstream.
 
-## `0003-ahoi-upstream-page-load-tracing-test-isolation.patch`
+## Retired: `0003-ahoi-upstream-page-load-tracing-test-isolation.patch` (25 September 2026)
+
+Removed from `series`: Chromium M153 already contains the upstream fix
+(`ResetWebContentsListTrackRegistrationForTesting` in
+`content/public/browser/tracing_support.h`), and after the M153 rebase the
+patch only reformatted `tracing_support.cc`. The history below is kept for
+reference.
+
+### Former entry
 
 - **Owner:** AhoiBrowser project; narrow backport of Chromium's upstream tracing
   isolation fix.
@@ -94,22 +582,29 @@ as a second active patch stack.
 - **Owner:** AhoiBrowser project.
 - **Upstream baseline:** Chromium Mac Stable `152.0.7977.65` at the exact commit
   above, applied after the Ahoi M152 integration seam.
-- **Affected paths:** the Glic interactive-test aggregate and renderer
-  context-menu implementation/test aggregates. The Ahoi integration seam owns
-  the desktop Settings guard so each ordered patch has one clear owner.
+- **Affected paths:** the Glic interactive-test aggregate, renderer
+  context-menu implementation/test aggregates, and PDF WebUI wrapper/test
+  preprocessing used by the Lean profile. The Ahoi integration seam owns the
+  desktop Settings guard so each ordered patch has one clear owner.
 - **Rationale:** keep every remaining `//chrome/browser/compose` edge behind
   Chromium's `enable_compose` argument so the Lean profile can disable the
   dedicated Compose product slice without reaching its fail-closed assertion.
-- **Rejected alternatives:** silently re-enabling Compose in the Lean profile,
-  removing Compose source code, weakening its child-target assertion, or
-  carrying a non-reproducible checkout-only edit.
+  The same Lean profile keeps Ink2 annotations while disabling Google Drive
+  PDF saving; M152's PDF tests otherwise import Drive-gated proxy exports and
+  stale generated files can mask the missing GN input.
+- **Rejected alternatives:** silently re-enabling Compose or Google Drive PDF
+  saving in the Lean profile, disabling Ink2, removing source code, weakening
+  child-target assertions, relying on stale generated files, or carrying a
+  non-reproducible checkout-only edit.
 - **Tests:** strict ordered patch composition, full-index validation, Lean
-  component-matrix roll checks, `gn gen` with Compose disabled, and the normal
-  full development profile with Compose enabled.
-- **Security/privacy impact:** none; the full profiles retain upstream Compose,
-  while Lean profiles remove only already build-flagged dependency edges.
-- **Expected rebase risk:** low-to-medium because Chromium can add new parent
-  edges when Compose integrations move between desktop surfaces.
+  component-matrix roll checks, `gn gen` with Compose disabled, PDF WebUI
+  TypeScript compilation with Drive saving disabled and Ink2 enabled, and the
+  normal full development profile with Compose and Drive saving enabled.
+- **Security/privacy impact:** none; the full profiles retain upstream Compose
+  and Drive saving, while Lean profiles remove only already build-flagged
+  dependency edges and test-only Drive symbols.
+- **Expected rebase risk:** medium because Chromium can add new parent edges
+  when Compose integrations move or change PDF proxy/test preprocessing.
 - **Removal/upstream plan:** remove individual guards as upstream consistently
   guards every parent edge with `enable_compose`.
 
@@ -204,3 +699,906 @@ as a second active patch stack.
   host and observer notification paths evolve with upstream split view.
 - **Removal/upstream plan:** retain until upstream supports arbitrary two-to-
   four-pane in-place host permutations without synchronous focus churn.
+
+## `0009-ahoi-empty-surface-extension-menu.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the focused
+  split-pane reorder seam.
+- **Affected paths:** Chromium's platform-agnostic extensions-menu model and
+  contract, the desktop delegate, the focused model browser test and the site-
+  permissions interactive UI test.
+- **Rationale:** Ahoi deliberately supports a live zero-tab window. Chromium's
+  extensions menu assumes every browser window has an active WebContents and
+  dereferenced null while opening the menu from Ahoi's empty surface. The menu
+  now exposes installed extensions in a generic, page-independent state while
+  hiding site controls, disabling actions that require a tab, and ignoring
+  stale site-access callbacks until a real tab is active.
+- **Rejected alternatives:** creating a synthetic tab, disabling the complete
+  extensions menu, catching the crash, or weakening Ahoi's true empty-window
+  contract.
+- **Tests:** installed-browser zero-tab menu opening with existing extensions
+  and the open-site-permissions-to-zero-tab transition first, followed by the
+  focused empty-tab-list/stale-action model regression, the site-permissions
+  interactive UI regression and ordered patch composition.
+- **Security/privacy impact:** site-bound extension actions and permission
+  controls fail closed without active WebContents; extension management remains
+  available.
+- **Expected rebase risk:** low-to-medium because upstream's extensions menu is
+  still evolving toward a shared desktop/Android view model.
+- **Removal/upstream plan:** retain while Ahoi supports true zero-tab windows,
+  unless upstream makes all extensions-menu entry points null-WebContents safe.
+
+## `0010-ahoi-zen-standard-import-seam.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the zero-tab
+  extension-menu guard.
+- **Affected paths:** Chromium's normal importer registry and its macOS target
+  dependency.
+- **Rationale:** safe Zen profiles should appear in the established
+  `Browserdaten importieren` dialog and reuse Chromium's Firefox importer for
+  categories it truly supports; a separate onboarding surface is unnecessary.
+- **Rejected alternatives:** a duplicate importer UI, treating every Firefox
+  directory as Zen, importing passwords through unsigned NSS loading, or
+  claiming Zen sidebar compatibility from a file-name/header match alone.
+- **Tests:** visible standard import-dialog source detection first, then bounded
+  profile/INI/path fixtures and ordered patch composition.
+- **Security/privacy impact:** discovery is bounded to the real Zen data root,
+  rejects traversal and symlinks, and advertises only categories backed by safe
+  regular files. Sidebar mutation remains disabled.
+- **Expected rebase risk:** low because the seam is one source-provider call and
+  one target dependency.
+- **Removal/upstream plan:** retain until upstream supports branded
+  Firefox-derived profile roots through a public importer-provider API.
+
+## `0011-ahoi-command-scroll-and-auth-policy-hardening.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the compact Zen
+  importer seam.
+- **Affected paths:** BrowserView command-scroll preview/activation and
+  Chromium's desktop HTTP-auth prompt, coordinator, tab-helper and LoginView
+  ownership seams.
+- **Rationale:** command-plus-scroll must preview and commit one stable tab in
+  the current workspace without stealing web zoom or operating through a modal
+  pane. HTTP-auth account management must stay main-frame-only, preserve the
+  Ahoi credential-service boundary and never leave an asynchronous prompt with
+  a dangling handler.
+- **Rejected alternatives:** re-resolving a different tab at gesture commit,
+  checking only the currently active split pane, weakening modal ownership,
+  enabling generic credential storage for subresources, or relying on a raw
+  LoginHandler pointer after the widget closes.
+- **Tests:** installed current-workspace command-scroll preview/cancel/commit
+  and split-modal rejection first, followed by synthetic main-frame,
+  subresource and prompt-destruction HTTP-auth cases plus ordered composition.
+- **Security/privacy impact:** no URL or query telemetry is added. Credential
+  storage remains profile-scoped, main-frame-gated and mutually exclusive with
+  Ahoi's account service; subresource prompts remain value-blind and ephemeral.
+- **Expected rebase risk:** medium because BrowserView gesture routing and the
+  upstream login prompt lifecycle are milestone-sensitive.
+- **Removal/upstream plan:** remove individual auth or gesture guards only when
+  Chromium exposes equivalent stable-target, all-pane-modal and weak-lifetime
+  contracts.
+
+## `0012-ahoi-daily-driver-lifecycle-and-branding.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the shared
+  command-scroll eligibility patch owned by the parallel navigation wave.
+- **Affected paths:** macOS BrowserView global-shortcut integration plus
+  Chromium default-browser resources and German translations.
+- **Rationale:** Alt+Space must retry registration after early listener/native
+  failure, unregister after the last regular window and start its activation
+  cooldown only after a Quick Window was actually created. Default-browser
+  settings, prompts, menu actions and PDF handoff must name AhoiBrowser rather
+  than exposing Chromium branding.
+- **Rejected alternatives:** a process-lifetime one-shot registration flag,
+  suppressing the in-window fallback, starting cooldown on failed opens,
+  runtime string replacement or a new onboarding surface.
+- **Tests:** no test or build was run while preparing this late-visible-E2E
+  wave. The required order is installed Alt+Space cold-start/reopen/conflict
+  behavior and reachable DE/EN default-browser surfaces first, then focused
+  unit/browser coverage and ordered patch composition.
+- **Security/privacy impact:** no shortcut or string telemetry is added. The
+  local fallback remains available only when native global registration is not
+  active.
+- **Expected rebase risk:** low-to-medium because BrowserView shortcut setup
+  and upstream default-browser promos can move between milestones.
+- **Removal/upstream plan:** retain while Ahoi owns the Quick Window and
+  Chromium-branded default-browser resource set.
+
+## `0013-ahoi-standard-import-surface.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the focused
+  daily-driver lifecycle and branding seams.
+- **Affected paths:** Chromium's standard Settings import dialog, its browser
+  proxy and build inputs, localized resources, and focused macOS WebUI tests.
+- **Rationale:** Arc's bounded preview and transactional import belong in the
+  established `Browserdaten importieren` flow. The standard source selector
+  now hands Arc to the existing profile-scoped Ahoi service while retaining a
+  compact preview, explicit backup/commit confirmations, real split choices,
+  and honest imported/skipped/degraded/excluded result counts.
+- **Rejected alternatives:** a separate transfer center, a marketing wizard,
+  letting the standard Chromium importer consume Arc's synthetic source
+  index, or moving transaction ownership into WebUI.
+- **Tests:** visible installed-dialog source selection, preview, commit result,
+  restart and identical-snapshot no-op first; then the focused macOS WebUI and
+  repository contracts plus ordered patch composition.
+- **Security/privacy impact:** WebUI never receives private Arc titles or URLs
+  outside the already redacted service contract and cannot invoke Chromium's
+  generic importer for the Arc entry. Backup and commit remain separately
+  confirmed and all mutation remains owned by `ArcImportService`.
+- **Expected rebase risk:** medium because the Polymer import dialog and its
+  Lit migration/build lists remain milestone-sensitive.
+- **Removal/upstream plan:** retain the small dialog bridge while Ahoi owns a
+  structure-aware Arc importer; remove it if upstream exposes an equivalent
+  transactional custom-source provider.
+
+## `0014-ahoi-ubo-build-gate.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the standard
+  Arc import surface.
+- **Affected paths:** Chromium's browser command controller, app/extension menu
+  action construction, toolbar target, and direct GN dependencies.
+- **Rationale:** the narrow uBlock Origin Classic MV2 exception is compiled into
+  every supported Ahoi desktop profile so its explicit one-click path works in
+  the product. The generated build flag still lets the unmodified control or a
+  non-Ahoi embedder opt out. Disabled builds expose no menu/action entry point,
+  reject the command again at execution, revoke stale authorization, and
+  disable the exact Classic ID if it was retained by an enabled build.
+- **Rejected alternatives:** a mutable preference, Finch/remote configuration,
+  hiding only one menu item, leaving stale MV2 authorization loadable, or
+  enabling the exception in every development/release profile.
+- **Tests:** visible installed menu/install behavior and a gate-off control
+  profile first; then focused policy/service tests, build-profile contracts,
+  release GN inspection, and ordered patch composition.
+- **Security/privacy impact:** the generated compile-time build flag scopes the
+  exception to supported Ahoi products while preserving an explicit opt-out. A
+  disabled build clears only Ahoi's local authorization for the exact pinned ID
+  and uses Chromium's unsupported-manifest disable reason without widening MV2
+  support.
+- **Expected rebase risk:** low-to-medium because command/action dependency
+  ownership and the extensions submenu implementation can move upstream.
+- **Removal/upstream plan:** remove only after the Classic path is retired or
+  upstream offers an equally narrow signed-package policy with a release-safe
+  build-time exclusion.
+
+## `0015-ahoi-zen-import-availability.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the uBlock
+  Origin Classic compile-time gate.
+- **Affected paths:** Chromium's importer-source registry and Settings handler,
+  the standard import dialog and browser proxy, localized resources, and the
+  focused macOS WebUI launcher/build inputs.
+- **Rationale:** Zen must be represented by real backend discovery state. An
+  absent installation adds no option, a running source adds one visibly
+  disabled sentinel with an actionable close-Zen reason, and an available
+  source exposes only profiles and categories confirmed by bounded discovery.
+  Parallel metadata preserves the exact backend index even after Ahoi's Arc
+  option is inserted in the rendered selector.
+- **Rejected alternatives:** an always-enabled frontend-only Zen option,
+  silently dropping a running source, trusting a renderer-supplied index, or
+  advertising passwords/sidebar structure without a verified importer.
+- **Tests:** visible installed-dialog not-installed/running/available behavior
+  first, followed by deterministic application/profile fixtures, the focused
+  WebUI availability suite, handler fail-closed coverage and ordered patch
+  composition.
+- **Security/privacy impact:** unavailable or forged selections are rejected in
+  the browser process before import-type evaluation. Discovery sends only
+  source/profile metadata already required by Chromium's standard dialog and
+  never exposes history, bookmark or sidebar contents.
+- **Expected rebase risk:** medium because importer list ownership, WebUI
+  payload construction and the Lit dialog may change together upstream.
+- **Removal/upstream plan:** retain until Chromium exposes a first-class
+  availability/disabled-reason contract for branded Firefox-derived sources.
+
+## `0016-ahoi-current-session-receipt.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after Zen importer
+  availability.
+- **Affected paths:** Chromium's session command-storage backend/manager,
+  desktop `SessionService`, and their focused unit/browser tests.
+- **Rationale:** an Arc structure import may be called committed only after a
+  complete Current Session reset has been flushed to durable storage and the
+  exact file has been decoded back into the expected windows, tabs and native
+  split commands. The rebuild also preserves Ahoi workspace/tree extra-data
+  and records the most recently active trackable window.
+- **Rejected alternatives:** waiting for the normal 2.5-second save timer,
+  treating a posted backend task as a durable receipt, reading Last Session,
+  accepting only one side of a dual-write stage, or rebuilding without Ahoi
+  extra-data.
+- **Tests:** visible Arc import/restart/recovery proof first; then focused
+  backend flush/read, empty-reset, encryption-not-ready, dual-write mismatch,
+  and current-session browser receipt coverage plus ordered patch composition.
+- **Security/privacy impact:** verification remains profile-local and exposes
+  only Chromium's already-decoded session model to the browser process. It
+  fails closed on missing markers, flush/read errors, unavailable encryption
+  or unequal cleartext/encrypted command sequences, and never moves old Last
+  Session files or initializes platform-session state.
+- **Expected rebase risk:** medium because encrypted session rollout stages,
+  command-storage file ownership and full session rebuild hooks may move.
+- **Removal/upstream plan:** retain until Chromium offers a public durable
+  Current Session reset-and-readback receipt with equivalent dual-write and
+  embedder extra-data guarantees.
+
+## `0017-ahoi-session-receipt-durability.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the Current
+  Session receipt seam.
+- **Affected paths:** Chromium's session command-storage backend/manager and
+  their focused unit tests.
+- **Rationale:** a successful receipt must survive a crash that follows a new
+  Current Session file creation. The file and, on POSIX, its containing
+  directory are therefore flushed before readback. Decode, marker, flush or
+  reopen failures close the suspect backend and notify the existing delegate
+  so its normal full-session rebuild repairs persistence.
+- **Rejected alternatives:** continuing to append to a file that failed its own
+  readback, treating file-only flush as directory-entry durability, or
+  returning an error without scheduling Chromium's established rebuild path.
+- **Tests:** visible Arc import/restart/recovery proof first; then the focused
+  corrupt-file close/reset and manager delegate-notification cases.
+- **Security/privacy impact:** no session payload leaves the profile. Receipt
+  failures remain fail-closed and now avoid extending a corrupt Current file.
+- **Expected rebase risk:** low; this is a narrow durability/error-propagation
+  follow-up around the APIs introduced by patch 0016.
+- **Removal/upstream plan:** fold into an upstream durable Current Session
+  receipt API if Chromium adopts one.
+
+## `0018-ahoi-arc-import-web-component-build.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after session receipt
+  durability.
+- **Affected paths:** Chromium Settings WebUI `BUILD.gn` only.
+- **Rationale:** `web_component_files` requires a raw sibling `.html` and then
+  generates its `.html.ts` wrapper. The Ahoi section already provides an
+  authored Lit pair (`.ts` plus `.html.ts`), so declaring it as a web component
+  both duplicated the generated JavaScript output and later made Ninja require
+  a nonexistent raw `.html`. The fix keeps both authored modules in `ts_files`;
+  the existing `css_files` entry continues to generate the style wrapper.
+- **Rejected alternatives:** adding a second raw HTML source, renaming a
+  generated output, or maintaining two competing template pipelines.
+- **Tests:** successful GN generation and installed import-surface journey first,
+  followed by the focused Settings WebUI test and ordered patch composition.
+- **Security/privacy impact:** none; this changes build ownership only.
+- **Expected rebase risk:** low; remove the follow-up when patch 0013 is folded
+  or rebased.
+- **Removal/upstream plan:** squash into the standard import-surface patch after
+  the feature wave is accepted.
+
+## `0019-ahoi-session-receipt-callback-adapter.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the Arc WebUI
+  build declaration correction.
+- **Affected paths:** Chromium session command storage manager only.
+- **Rationale:** `PostTaskAndReplyWithResult` delivers the backend's single
+  `ReadCommandsResult` value. The durability follow-up bound that value directly
+  to a callback expecting separate `(commands, read_error)` arguments. Reusing
+  Chromium's existing `OnBackendReadFinished` adapter preserves the manager's
+  fail-closed rebuild callback while moving the command vector exactly once.
+- **Rejected alternatives:** exposing the backend's nested result type through
+  the manager header, adding three duplicate lambdas, or weakening the delegate
+  rebuild path on receipt errors.
+- **Tests:** successful `chrome` compile first; after installed runtime
+  acceptance, the parameterized current-session receipt manager tests cover
+  success, dual-write mismatch, empty reset, and delegate error propagation.
+- **Security/privacy impact:** none; the adapter remains in-process and does not
+  log or export session commands.
+- **Expected rebase risk:** low; this composes existing Chromium callback types.
+- **Removal/upstream plan:** squash into the session-receipt durability patch
+  after the feature wave is accepted.
+
+## `0020-ahoi-sidebar-navigation-non-overlap.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the current
+  session callback adapter.
+- **Affected paths:** Chromium's tabbed browser layout and vertical sidebar
+  region implementation/header.
+- **Rationale:** a mounted docked, floating or edge-revealed sidebar is a hard
+  obstruction for browser chrome even when it remains an overlay for page
+  content. The navigation surface now stays beyond the actual sidebar card
+  through reveal/hide animation, while temporary edge reveal shares the
+  content card's leading inset and cannot expose the former 6-DIP sliver.
+- **Rejected alternatives:** painting the toolbar above the sidebar, shrinking
+  omnibox controls, resizing WebContents for floating presentation, or hiding
+  the visual collision behind a clipping layer.
+- **Tests:** visible docked/floating/edge-reveal and narrow-window journeys
+  first, then the focused floating-browser geometry/animation browser tests,
+  ordered composition and the exact installed-bundle crash-difference gate.
+- **Security/privacy impact:** none; geometry and hit testing only.
+- **Expected rebase risk:** medium because Chromium owns top-container and
+  vertical-tab layout sequencing.
+- **Removal/upstream plan:** retain while Ahoi owns a floating sidebar; rebase
+  onto a future upstream obstruction API if one becomes available.
+
+## `0021-ahoi-zero-tab-extension-context-menu.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the navigation
+  non-overlap correction.
+- **Affected paths:** Chromium's extension context-menu model and its
+  parameterized browser test.
+- **Rationale:** Ahoi supports a real zero-tab window. The per-extension
+  context menu must therefore retain generic pin/manage/options actions while
+  omitting site- and tab-bound sections, and every active-tab lookup must fail
+  closed instead of dereferencing a null `TabInterface`.
+- **Rejected alternatives:** disabling the extensions menu in empty windows,
+  converting Chromium's status pin affordance into a different toggle, adding
+  a synthetic tab, or swallowing the resulting process crash.
+- **Tests:** visible menu/pin/context-menu E2E on the installed zero-tab
+  candidate first, followed by feature-on/off browser coverage for construction,
+  pin/unpin and absence of page/side-panel controls.
+- **Security/privacy impact:** site-specific permissions never appear without
+  an active page; generic navigation uses the owning browser window and stays
+  within Chromium's normal navigation and extension-management paths.
+- **Expected rebase risk:** low-to-medium because the extension menu is being
+  redesigned upstream.
+- **Removal/upstream plan:** remove when upstream makes the extension context
+  menu natively safe for windows with no active tab.
+
+## `0022-ahoi-zero-tab-split-command.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the zero-tab
+  extension context-menu guard.
+- **Affected paths:** Chromium's central split command, command controller,
+  action registry and tab-strip delegate browser test.
+- **Rationale:** Ahoi supports a real zero-tab window. Invoking Split there
+  previously passed `kNoTab` (`-1`) into `TabStripModel::IsTabPinned()` and
+  aborted the browser. The central command now seeds one regular NTP, then
+  creates the second pane through Chromium's normal split path; shortcut and
+  ActionItem entry points also tolerate a missing active tab.
+- **Rejected alternatives:** disabling the visible split action, swallowing
+  the fatal check, or synthesizing a non-model WebContents.
+- **Tests:** the installed zero-tab Split-button journey first, followed by the
+  focused delegate browser regression proving two tabs with one shared split
+  ID and the no-new-Crashpad-dump difference gate.
+- **Security/privacy impact:** none; both panes use Chromium's ordinary local
+  new-tab URLs and tab model.
+- **Expected rebase risk:** low-to-medium because upstream owns split command
+  registration and may eventually make the empty state native.
+- **Removal/upstream plan:** remove when every upstream split entry point is
+  explicitly zero-tab safe.
+
+## `0023-ahoi-sidebar-presentation-geometry.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the zero-tab
+  split command correction.
+- **Affected paths:** Chromium's tabbed browser layout and vertical sidebar
+  region implementation/header.
+- **Rationale:** sidebar pixels, shadow, toolbar obstruction, docked viewport
+  reservation and content-card leading gutter now consume one per-frame visible
+  extent. Only the Ahoi card moves; the native region remains fixed. This
+  removes the stale toolbar gap and the 8-DIP content-shadow rail/notch while
+  preserving non-overlap throughout reveal and hide motion.
+- **Rejected alternatives:** keeping a full-width obstruction until unmount,
+  moving the complete native region layer, fading the artifact, or covering it
+  with a second overlay.
+- **Tests:** visible docked/floating/hidden transitions and zero-tab journey on
+  the exact installed candidate first, then focused animator, geometry browser,
+  ordered composition and source-binding checks.
+- **Security/privacy impact:** none; presentation geometry only.
+- **Expected rebase risk:** medium because Chromium owns vertical-tab layout,
+  shadow and top-container sequencing.
+- **Removal/upstream plan:** fold into the navigation non-overlap patch after
+  runtime acceptance, or rebase onto an upstream presentation-progress API.
+
+## `0024-ahoi-sidebar-settled-viewport-refresh.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the sidebar
+  presentation-geometry correction.
+- **Affected paths:** Chromium's vertical sidebar region implementation and
+  header; the Ahoi-owned refresh endpoint remains in the tracked overlay.
+- **Rationale:** the sidebar reveal is compositor-driven, so its final frame
+  can restore pixels without changing descendant bounds. A single pending
+  refresh is consumed only by the final visible layout pass, allowing the
+  virtualized saved tree to reconcile changes made while hidden.
+- **Rejected alternatives:** polling timers, retaining a permanently eager
+  tree, forcing layout from the animation callback, or rematerializing while
+  Views is traversing visible-bounds observers.
+- **Tests:** reproduce hide/mutate/reveal on the exact installed candidate
+  first, followed by the focused transient-empty-viewport unit and production
+  host browser regression.
+- **Security/privacy impact:** none; the callback only reconciles already
+  profile-scoped sidebar model rows after presentation settles.
+- **Expected rebase risk:** low-to-medium because Chromium owns vertical-tab
+  animation and layout sequencing.
+- **Removal/upstream plan:** fold into the presentation-geometry patch after
+  runtime acceptance, or remove when upstream publishes a settled-visibility
+  lifecycle hook to descendants.
+
+## `0025-ahoi-import-source-truth.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the settled
+  sidebar viewport refresh.
+- **Affected paths:** Chromium's macOS importer registry and metadata bridge,
+  the standard Settings import dialog, localized resources, and focused Arc
+  and Zen WebUI tests.
+- **Rationale:** Arc and Zen must be rendered only from authenticated backend
+  discovery. The dialog receives global not-installed, no-safe-profile,
+  source-running and available states; Arc no longer has a frontend-created
+  phantom row; and Zen exposes its bounded structure capability, rejection
+  reason and validated upstream revision without advertising unsupported
+  structure import.
+- **Rejected alternatives:** inferring installation from support directories,
+  synthesizing source options in the renderer, treating file names as verified
+  structure support, or collapsing safety failures into a successful empty
+  preview.
+- **Tests:** installed-browser source-state, Arc preview/commit/no-op and Zen
+  capability journeys first; then the focused discovery, transaction,
+  recovery, backup-retention and WebUI sources carried by the overlay and this
+  patch.
+- **Security/privacy impact:** application bundles and source files are
+  authenticated before they influence availability; running sources and
+  changing snapshots fail closed; backup retention deletes only fully
+  revalidated Ahoi-owned payloads and protects the active prepared journal.
+- **Expected rebase risk:** medium because Chromium's importer registry,
+  Polymer dialog contract and generated localization catalogs are
+  milestone-sensitive.
+- **Removal/upstream plan:** keep the metadata bridge while Chromium has no
+  authenticated custom-source provider; retire individual fields if upstream
+  gains equivalent discovery and capability contracts.
+
+## `0026-ahoi-extension-accelerator-compatibility.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the import
+  source-truth patch.
+- **Affected paths:** the macOS Ahoi shortcut registrations in Chromium's
+  `BrowserView::LoadAccelerators()` focus-manager block.
+- **Rationale:** Chromium extension commands intentionally own the sole
+  high-priority handler for a matching accelerator. Ahoi's additional
+  browser-local shortcuts are normal-priority fallthrough handlers, so an
+  enabled extension can override them and Ahoi resumes automatically after
+  the extension unregisters. This prevents the duplicate-high-priority DCHECK
+  observed during two normal AnyChat Web Store installation attempts, whose
+  `toggle-sidebar` command uses `Command+Shift+S`.
+- **Rejected alternatives:** an AnyChat-specific installer or exception,
+  remapping only `Command+Shift+S`, demoting extension commands, weakening
+  Chromium's single-priority invariant, or lifecycle-specific unregister
+  workarounds.
+- **Tests:** install AnyChat through the normal Chrome Web Store path on the
+  exact installed candidate, covering cancellation, accepted permission,
+  action and Side Panel use, disable/enable and restart without a crash;
+  afterward run the repository priority assertion and focused extension and
+  accelerator checks.
+- **Security/privacy impact:** none; Chromium continues to own extension
+  installation, permissions and command registration. No permission bypass,
+  unpacked-extension path or Ahoi-managed AnyChat distribution is added.
+- **Expected rebase risk:** low because the change is confined to Ahoi-added
+  registrations, although the surrounding BrowserView accelerator setup is
+  milestone-sensitive.
+- **Removal/upstream plan:** fold the priority constant into the base Ahoi seam
+  after runtime acceptance, or remove only if Ahoi shortcuts move to an
+  upstream conflict-aware registration facility.
+
+## `0027-ahoi-arc-schema-preview-and-sidebar-a11y.patch`
+
+- **Owner:** AhoiBrowser project.
+- **Upstream baseline:** the exact M152 pin above, applied after the extension
+  accelerator-compatibility patch.
+- **Affected paths:** Chromium's generated Settings resources and localized
+  string provider. Companion overlay changes cover the Arc parser, discovery
+  orchestration and WebUI, plus the docked/floating sidebar header action.
+- **Rationale:** Arc 1.162 serializes `newContainerIDs` as strict selector/ID
+  pairs, while the previous parser expected the pair in reverse order. The
+  parser now recognizes the bounded current and legacy map shapes, rejects
+  duplicate or unknown selectors, and canonicalizes pinned before unpinned
+  independently of serialized map order. Invalid schemas receive a precise
+  fail-closed message. Immutable snapshot parsing now precedes the expensive
+  process-wide open-file scan, while a preview is still withheld until that
+  scan succeeds and commit/backup retain their independent source checks. The
+  visually working presentation button also publishes its actual toggle role
+  and checked state.
+- **Rejected alternatives:** rewriting or normalizing Arc source data, guessing
+  unknown selector shapes, falling back to legacy data after a malformed
+  current map, skipping the source-use gate, adding polling, or changing the
+  sidebar's geometry merely to work around an accessibility-state omission.
+- **Tests:** first repeat the real installed Arc preview and the visible
+  docked/floating toggle journey; then run the current/legacy/order/negative Arc
+  parser cases, the specific WebUI status test, and the sidebar action
+  accessibility unit. A confirmed real import still requires immutable backup,
+  visible result inspection and a second identical no-op run.
+- **Security/privacy impact:** Arc remains read-only; malformed data fails
+  closed, source generation is captured immutably, open files still block every
+  published preview, and commit plus backup revalidate process, handle and hash
+  state. No source path, secret category or imported data is added to logs.
+- **Expected rebase risk:** medium because generated localization catalogs and
+  the importer WebUI are milestone-sensitive; the overlay parser and sidebar
+  helper are Ahoi-owned.
+- **Removal/upstream plan:** retain the explicit Arc schema adapter while Arc
+  has no stable export contract; retire only with a documented upstream export
+  or migrate the resource seam if Chromium gains an equivalent custom importer
+  status facility.
+
+## `0028-ahoi-empty-window-commands-and-quit.patch`
+
+- **Owner:** AhoiBrowser Desktop.
+- **Upstream baseline:** the pinned M152 tree after the preceding series.
+- **Affected paths:** central browser command dispatch and macOS quit preference.
+- **Rationale:** the real native Import menu action returned success without
+  executing in a zero-tab Ahoi window. An explicit list of tab-independent
+  window/profile commands can now execute in constructed normal windows.
+  Tab-dependent operations and other window types retain Chromium's guard.
+  Fresh local state uses normal short Command-Q; explicit hold-to-quit choices
+  are preserved by changing only the registered default.
+- **Tests:** visible empty-window native menu import first, then
+  `VerticalTabStripRegionViewTest.AhoiImportCommandFromEmptyWindowOpensSettings`,
+  which uses the actual command dispatcher and expects exactly one Settings tab.
+  Normal menu/short/held quit, Before-Unload and restart are visible gates.
+- **Security/privacy impact:** no new privilege or importer route, no synthetic
+  page needed to enable window actions, no change to permission/policy checks.
+  Imports still use Chromium's normal Settings route and explicit import consent.
+- **Expected rebase risk:** low-to-medium at the command-dispatch guard.
+- **Removal/upstream plan:** remove the whitelist when upstream command
+  eligibility correctly supports a persistent zero-tab normal window. The
+  product quit default remains an intentional, reversible preference choice.
+
+## `0029-ahoi-arc-import-backup-notice.patch`
+
+- **Owner:** AhoiBrowser Desktop.
+- **Affected paths:** English GRIT message and its matching German translation.
+- **Rationale:** the mandatory backup is explained as a status next to the
+  explicit Import action, replacing two redundant confirmation checkboxes.
+  The overlay keeps genuine profile/category choices and its flex layout fix.
+- **Security/privacy impact:** backend snapshot, backup, confirmation, journal
+  and rollback checks are unchanged. Both authorizations are sent only by the
+  primary click on a valid preview; the synchronous committing stage prevents
+  duplicate submissions. No source or profile mutation occurs during preview.
+- **Tests:** visible source/preview/category selection and deliberate import,
+  then focused Settings WebUI and Arc transaction regression coverage.
+- **Rebase/removal:** low-risk message-context hunk; the German ID is computed
+  by Chromium GRIT from the exact new English text and preserved meaning.
+
+## `0030-ahoi-bookmark-context-menu-presentation.patch`
+
+- **Owner:** AhoiBrowser bookmark shelf.
+- **Affected paths:** `bookmark_menu_delegate.h` and `.cc` under
+  `chrome/browser/ui/views/bookmarks`.
+- **Rationale:** an optional presentation callback runs after the asynchronous
+  clipboard-capability check creates a native bookmark context menu, immediately
+  before display. It can decline display when the originating surface was
+  closed or hidden. Ahoi uses it to hide stock bookmark-bar/Apps/tab-group display
+  options which do not control its sidebar shelf.
+- **Rejected alternatives:** filtering a null menu before clipboard completion,
+  polling/PostTask timing, a global test hook, or duplicating Chromium's node,
+  clipboard, mutation, context-menu and permission controllers.
+- **Security/privacy:** unchanged Chromium model and permission ownership; an
+  unset callback preserves upstream behavior. The Ahoi callback only hides
+  inapplicable presentation options.
+- **Tests:** direct and nested native context-menu visible journeys, focused
+  shelf regressions and the complete ordered roll/composition preflight.
+- **Rebase/removal:** low risk at the existing creation seam; remove when an
+  equivalent upstream per-client presentation hook is available.
+
+## `0031-ahoi-rounded-navigation-surface.patch`
+
+- **Owner:** AhoiBrowser Desktop.
+- **Affected paths:** `browser_view.cc` and
+  `layout/browser_view_tabbed_layout_impl.cc` under `chrome/browser/ui/views/frame`.
+- **Rationale:** a typed material callback updates the existing native
+  `CustomCornersBackground`; appearance changes must not replace the painter
+  required by Chromium layout. Layout retains geometry ownership without
+  resetting the resolved material alpha. The overlay applies matching rounded
+  output clipping and truthful nonopaque corners, preserving caller-owned
+  sidebar geometry, external shadows and rectangular blur-input sampling.
+- **Tests:** visible sidebar/navigation seam and Glass/fallback journeys first,
+  then `NavigationSurfaceControllerTest.*` and
+  `VerticalTabStripRegionViewTest.AhoiNavigationMaterialPreservesNativeBackground`.
+  Source preparation does not establish the reported screenshot's exact cause.
+- **Security/privacy:** presentation only; profile, permissions and native
+  toolbar ownership stay unchanged.
+- **Rebase/removal:** low-to-medium risk at native toolbar initialization/layout;
+  retain while Ahoi uses its floating navigation material.
+
+## `0032-ahoi-explicit-arc-recovery.patch`
+
+- **Owner/baseline:** Desktop; the same M152 pin after the ordered stack.
+- **Scope:** English/German strings and Settings exposure for the overlay-owned
+  explicit failed-import recovery action. No automatic rollback or import retry.
+- **Safety:** recovery requires a verified owner-only backup, exact unchanged
+  tree/journal and no affected live or durable native tab, including temporary
+  tabs in workspaces that would disappear. Retains the backup and never closes
+  tabs. Conflicting or completed native transactions remain blocked.
+- **Tests:** visible failed-import recovery first, then real Service/Session
+  browser tests and Settings single-submit/busy/no-auto-retry WebUI tests.
+- **Rebase/removal:** low risk; keep while this local recovery path is exposed.
+
+## `0033-ahoi-sidebar-layout-idempotence.patch`
+
+- **Owner/baseline:** Desktop; the same M152 pin after the ordered stack.
+- **Scope:** the Ahoi branch of `SetToolbarHeightForLayout`. The layout engine
+  calls it every pass; unchanged computed margins must not invalidate the root
+  again. Changed margins retain native propagation protection during layout,
+  and docked/floating/edge-revealed transitions keep their existing geometry.
+- **Evidence:** installed `3d413ef` timed out during UI access with sustained
+  native CPU near one core. A short stack sample showed compositor property-tree
+  work. Source proves redundant layout invalidation; it does not yet prove the
+  complete runtime hang cause. See the candidate-bound diagnostic README.
+- **Tests:** three native layout/observer regressions plus an overlay test for
+  repeated material application not requesting another compositor commit.
+  Visible interaction/CPU readback on the corrected candidate remains required.
+- **Security/rebase:** no profile or permission change; narrow Views seam,
+  matching the native top-container guard. Low rebase risk.
+
+## `0049-ahoi-workspace-website-session-routing.patch`
+
+- **Owner:** Desktop. `chrome/browser/ui/navigator/browser_navigator.cc`: a new WebContents for a Workspace with its own website session is created in that session's persistent fixed StoragePartition before its first request; an opener keeps its own SiteInstance, and a same-Profile page-initiated tab inherits the initiating SiteInstance.
+- **Safety:** Development-gated, like the whole 0049–0054 group. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0050-ahoi-workspace-website-session-restore.patch`
+
+- **Owner:** Desktop. `chrome/browser/sessions/session_restore.cc`, `chrome/browser/ui/browser_tabrestore.cc`: a restored tab reopens in its recorded website-session partition with the matching SessionStorage namespace.
+- **Safety:** A corrupt binding never falls back to the shared default jar; the tab opens in a fresh, separate partition and the error is logged. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0051-ahoi-fixed-website-session-noopener.patch`
+
+- **Owner:** Desktop. `content/browser/web_contents/web_contents_impl.cc`: a `noopener` window from a page in a non-default fixed partition stays in that partition instead of the BrowserContext default.
+- **Safety:** Script access stays suppressed; only the storage authority is kept. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0052-ahoi-website-session-restore-authority.patch`
+
+- **Owner:** Desktop. Session restore and tab restore read the binding with the Profile as authority and use the Profile's recovery binding (or a fresh context) for foreign or corrupt restored contexts.
+- **Safety:** Never the shared default jar for an unverifiable binding. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0053-ahoi-workspace-session-cookie-restore.patch`
+
+- **Owner:** Desktop. `chrome/browser/net/profile_network_context_service.cc` (+ one GN dependency on `//ahoi/browser/session:session_preferences`): Ahoi's persistent native website-session partitions (`Storage/ext/ahoi/…`) follow the regular profile's session-cookie restore policy.
+- **Safety:** Other non-default partitions (extensions, guests) are unchanged. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## `0054-ahoi-empty-workspace-address-context.patch`
+
+- **Owner:** Desktop. `browser_navigator.cc`: typed address-bar input in a selected Workspace without a visible tab opens a new foreground tab in that Workspace's session instead of navigating the hidden tab of another Workspace, and drops inherited opener and referrer.
+- **Safety:** Applies only to browser-initiated `CURRENT_TAB` address-bar input. Details, evidence and gating are in the shared notes
+  for 0049–0054 below.
+- **Tests:** see the shared notes (guarded M153 build, visible two-account
+  and restart journeys).
+- **Rebase/removal:** see the shared notes.
+
+## Shared notes for 0049–0054: M153 workspace website-session routing (development gate)
+
+- **Owner:** Desktop; native Chromium M153, ordered after the fullscreen UI
+  correction. `0049` selects a persistent fixed StoragePartition before a new
+  WebContents is created, `0050` restores the same partition and SessionStorage
+  namespace, `0051` preserves it for `noopener` windows, `0052` rejects a
+  foreign or corrupt restored context instead of using the shared default jar,
+  and `0053` gives only Ahoi's persistent native partitions the regular
+  profile's session-cookie persist/restore policy. That last correction follows
+  a visible `93dc235` restart in which the isolated context retained Bob's
+  LocalStorage but lost its session cookie; Inbox retained Alice's cookie.
+  `0054` prevents typed address-bar input in a tabless selected Workspace from
+  navigating Chromium's still-active tab in another Workspace. A visible
+  `79a7752` probe in a fresh "Leer-Test" Workspace changed the hidden Inbox
+  tab to `?empty-probe=1` and showed Alice's Cookie after switching back;
+  the correction creates a new foreground tab with the selected Workspace's
+  partition before any request and clears inherited opener/referrer state.
+- **Safety:** existing Workspaces are explicitly bound to their original default
+  partition. New Workspaces get device-local random context IDs; local IDs,
+  cookies, site data and grants never enter portable tree/sync records. The
+  routing is disabled by default while M153's profile-wide native permission
+  map is not yet scoped to the website-session context. Source composition or
+  a cookie-only trial is not feature acceptance.
+- **Tests:** guarded M153 build, then short visible two-account/restart journey
+  on an isolated profile with the development feature enabled; afterward
+  popup/noopener, restore, transfer, site-permission and extension boundaries.
+- **Rebase/removal:** medium-to-high at navigation, restore and content popup
+  seams. Keep the feature gated until the native permission boundary and the
+  complete acceptance journey are proven.
+
+## `0055-ahoi-group-before-unload.patch`
+
+- **Owner:** Desktop. Routes `BrowserWebContentsDelegate::BeforeUnloadFired`
+  through `ahoi::session::GroupPageClose` before the existing popup-overlay
+  hook. Chromium offers all-or-nothing before-unload only for whole windows
+  (`UnloadController`); Ahoi's group closes (Workspace deletion, archive,
+  "close all temporary tabs", split close) need the same for a subset of tabs
+  (crest-hardening handoffs 003 and 006). While a page belongs to a running
+  group question the hook reports its answer and sets
+  `proceed_to_fire_unload = false`, so an agreeing page is not closed before
+  every page agreed and the semantic change is committed. Late answers of a
+  cancelled group are swallowed, never closing the tab.
+- **Safety:** pages outside a group question take the unchanged upstream and
+  popup paths. No renderer, profile or permission change.
+- **Tests:** guarded M153 build; CLOSE-GRP-01..04 and WS-DEL-01..05 visible
+  journeys on the exact candidate.
+- **Rebase/removal:** low; one delegate call and one GN dependency.
+
+## `0056-ahoi-no-gaia-policy-invalidations.patch`
+
+- **Owner:** Desktop (from crest-hardening handoff 004, H5/N1).
+  `UserFmRegistrationTokenUploaderFactory` returns no service when the
+  profile's cloud policy manager is the Gaia-based `UserCloudPolicyManager`.
+  Ahoi disallows Google sign-in, so that manager can never register a client;
+  its policy and remote-command invalidation listeners otherwise made every
+  fresh profile check in with GCM, request FCM tokens and open MCS about 10 s
+  after launch (`registration_request.cc … DEPRECATED_ENDPOINT`).
+- **Safety:** profile-level management (`ProfileCloudPolicyManager`,
+  enrollment token) keeps invalidations. No GCM code is removed; Web Push and
+  `chrome.gcm` still start GCM when a site or extension uses them (product
+  decision NET-GCM-02 pending).
+- **Tests:** next guarded build; NET-GCM-01 fresh-profile 10-minute idle log and
+  capture without `registration_request`, `android.clients.google.com` or
+  `mtalk.google.com:5228`.
+- **Rebase/removal:** low; one early return in a single factory.
+
+## `0057-ahoi-route-external-links.patch`
+
+- **Owner:** Desktop. In `app_controller_mac.mm`'s `OpenStartupTabsInBrowser`
+  (reached from `-application:openURLs:`, the pre-launch `_startupTabs` queue
+  and handoff), trusted `kNormal` http/https startup tabs are first offered to
+  `ahoi::navigation::RouteExternalUrls` (overlay
+  `ahoi/browser/navigation/link_routing_dispatch`). When routing takes them
+  over, Chromium's last-profile open is skipped for exactly those URLs; the
+  rest (stripped `google-chrome://` launches, `.webloc` shortcuts, other
+  schemes) keeps the upstream path. One GN dependency on the new source_set in
+  `chrome/browser:core`'s macOS deps, next to 0001's `//ahoi/browser/updater`.
+- **Safety:** routing uses the main Profile's `ahoi.navigation.link_routing`
+  (logical Workspace UUIDs only). It selects the target Workspace in a main
+  window before the tab exists, or presents the fully separated Workspace's
+  Profile window, so the website session is fixed before the first request.
+  It never opens incognito; a Quick Window is not used for a Workspace with its
+  own website session. URLs it accepted but cannot place go back to Chromium's
+  default through a fallback callback; disabled routing returns them unchanged.
+- **Tests:** `ahoi_navigation_unittests` (`LinkRoutingTest.*`),
+  `ahoi_session_unittests` (`FindsEntryByWorkspaceId`); guarded build, then the
+  WS-ISO-06 visible journey (rule to a `Vollständig getrennt` Workspace, Quick
+  Window and hand-over from it, default route without a rule) on the exact
+  candidate.
+- **Rebase/removal:** low; one hunk in a file-local helper and one GN line.
+  Context depends on 0001's `app_controller_mac.mm` include and
+  `chrome/browser/BUILD.gn` hunk.
+
+## `0058-ahoi-keyboard-shortcut-catalog.patch`
+
+- **Owner:** Desktop. `BrowserView::LoadAccelerators` registers every
+  rebindable Ahoi command through `ahoi::shortcuts::ShortcutRegistration`
+  (overlay `ahoi/browser/navigation/keyboard_shortcut_registration`) instead
+  of the fixed key list from 0001; `AcceleratorPressed` resolves a key to its
+  catalog command first and runs it by id (`HandleAhoiShortcutCommand`, and
+  `HandleAhoiSplitCommand` replacing the key-based split handler). Quick
+  Window, sidebar Undo, the command bar and Save keep their 0001 handling;
+  they are listed in the catalog but not rebindable yet.
+- **Safety:** defaults are the keys 0001 registered, plus Option+Tab for the
+  new last-used-tab command (`SessionBridge::ActivateLastUsedTab`, active
+  Workspace of the window only). A key Chromium's own accelerator table
+  already registers for the view is never registered or unregistered by the
+  catalog, so rebinding an Ahoi command hands such a key back to Chromium.
+  Bindings are device-local profile prefs; conflicting changes are refused
+  in the model, never overwritten.
+- **Tests:** `ahoi_navigation_unittests` (`KeyboardShortcutsTest.*`,
+  `ShortcutRegistrationTest.*`, `TabMruTest.*`); guarded build, then the
+  WORKFLOW-03 visible journey (defaults, rebind, conflict, reset, last-used
+  tab versus Control+Tab) on the exact candidate.
+- **Rebase/removal:** medium; it rewrites the Ahoi blocks 0001 adds to
+  `LoadAccelerators`, `AcceleratorPressed` and the split handler, so its
+  context follows 0001 and 0026's fallthrough priority.
+
+## `0059-ahoi-link-peek-context-menu.patch`
+
+- **Owner:** Desktop. Adds `IDC_CONTENT_CONTEXT_AHOI_PEEK_LINK` (50119, in
+  the free range after `OPENLINK_ISOLATED`) and one link item in
+  `RenderViewContextMenu`, right after "Open link in new window": "Link in
+  Vorschau öffnen" / "Open link in preview". Enabling and execution call the
+  overlay hook `ahoi/browser/popup:link_peek` (one GN dependency), which asks
+  the window's `PopupOverlayController` to show the link.
+- **Safety:** shown only where "Open link in new tab" is allowed and the
+  overlay can host the page (a normal window of the same Profile whose
+  visible pane shows it, no other overlay open), and only for http/https.
+  The preview is a real WebContents in the opener's StoragePartition, so it
+  stays in the Workspace's website session; it follows the popup overlay's
+  contract (Escape, focus, before-unload, sensitive-flow fallback to a
+  window) and enters the tab tree, session restore or sync only when the
+  user promotes it to a tab or split. The label is chosen at run time by
+  locale, so no grd/xtb change is needed.
+- **Tests:** guarded build, then the WORKFLOW-02 Peek journey (open, close
+  keeps the page, promote to tab and to split without reload, same login)
+  on the exact candidate.
+- **Rebase/removal:** low; three local hunks and one GN line next to
+  upstream's link items.
+
+## `0060-ahoi-auto-peek-throttle.patch`
+
+- **Owner:** Desktop. Registers `ahoi::popup::LinkPeekNavigationThrottle`
+  (overlay `ahoi/browser/popup:link_peek_throttle`) in
+  `CreateAndAddChromeThrottlesForNavigation`, next to 0001's developer
+  profile throttle, plus its GN dependency in `chrome/browser:core`.
+- **Safety:** the throttle is only added when the Profile opted in
+  (`ahoi.peek.auto_from_saved_pages`, default off), for renderer-initiated
+  primary-main-frame navigations with a user gesture. In `WillStartRequest`
+  it cancels only a GET link click from a saved page of the tab tree to
+  another site that the window's overlay can preview, and opens that link
+  as a Peek after the cancellation. Same-site links, forms, script
+  navigations, pages that are not saved and windows without an overlay go
+  through unchanged; nothing ever switches account context or opens
+  incognito.
+- **Tests:** guarded build; the WORKFLOW-02 journey covers auto-peek on and
+  off on the exact candidate.
+- **Rebase/removal:** low; one include, one call and one GN line.
+
+## `0061-ahoi-peek-shift-click.patch`
+
+- **Owner:** Desktop. In `BrowserWebContentsDelegate::OpenURLFromTab`, a
+  renderer-initiated link navigation with a user gesture and the
+  `NEW_WINDOW` disposition (Shift-click on macOS) is offered to
+  `ahoi::popup::PeekLink` when the Profile opted in
+  (`ahoi.peek.shift_click`, default off); on success no window opens. One GN
+  dependency on `//ahoi/browser/popup:link_peek`.
+- **Safety:** off by default, so Shift-click keeps Chromium's new window.
+  Context-menu, command and script-opened windows are browser-initiated or
+  go through `AddNewContents` and are unaffected; if the overlay cannot show
+  the preview, the normal window path runs.
+- **Tests:** guarded build; the WORKFLOW-02 Peek journey covers Shift-click
+  with the option on and off.
+- **Rebase/removal:** low; one early-return block and one GN line.
+
+## `0062-ahoi-no-gaia-list-accounts-without-signin.patch`
+
+- **Owner:** Desktop (network silence). `GaiaCookieManagerService::
+  TriggerListAccounts` returns early while `signin.allowed` is false, so no
+  `https://accounts.google.com/ListAccounts` request is made.
+- **Why:** the fresh-profile audit on installed `edced8d` (build 29) found
+  four `ListAccounts` requests at startup
+  (`artifacts/e2e/fresh-profile-network-audit-edced8d-20260925/`) although
+  Ahoi disallows browser sign-in by default. Many Chromium callers read the
+  cookie jar at startup; gating the single trigger covers all of them.
+- **Safety:** callers keep the cached, not-fresh cookie-jar result, which is
+  what they already handle while a request is pending. With sign-in allowed
+  (never by Ahoi default), upstream behavior is unchanged.
+- **Tests:** guarded build, then the fresh-profile network audit on the exact
+  candidate must show no `accounts.google.com` origin.
+- **Rebase/removal:** low; one early return in one function.
+
+## Overlay-owned M152 compile corrections
+
+The following follow-up fixes intentionally live in `overlay/chromium/src`
+rather than the ordered patch series because they modify files already owned
+by the overlay. Listing them as patches would apply each change twice during
+deterministic composition.
+
+- Arc Settings events use `CrLitElement.fire()` with the existing
+  bubbling/composed detail contract.
+- Arc journal partial I/O uses bounded `base::span` subviews.
+- Arc split receipts use Chromium `raw_ptr` fields for non-owning session
+  references.
+- The CloudKit provider Core lifecycle is defined out of line to satisfy the
+  Chromium style plugin without changing shutdown semantics.
+- Sidebar split actions include M152's public tabs header, and the row paint
+  unit no longer duplicates constants owned by its interaction unit.
+- Sidebar presentation motion accepts the host's complete travel distance and
+  exposes one clamped visibility fraction to Chromium layout and shadow code.
+- Arc tests directly depend on the public session bridge API they include.
+
+These corrections are covered by the same compile, visible runtime, focused
+test, and overlay-composition gates described by the owning feature sections
+above.

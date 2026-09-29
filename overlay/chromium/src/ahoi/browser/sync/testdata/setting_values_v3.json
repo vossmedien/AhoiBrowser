@@ -1,0 +1,978 @@
+{
+  "cases": [
+    {
+      "name": "000.ahoi.browser.default_search_engine",
+      "reason": "allowlisted engine",
+      "settingId": "ahoi.browser.default_search_engine",
+      "valid": true,
+      "valueJson": "\"duckDuckGo\""
+    },
+    {
+      "name": "001.ahoi.browser.default_search_engine",
+      "reason": "allowlisted engine",
+      "settingId": "ahoi.browser.default_search_engine",
+      "valid": true,
+      "valueJson": "\"google\""
+    },
+    {
+      "name": "002.ahoi.browser.default_search_engine",
+      "reason": "allowlisted engine",
+      "settingId": "ahoi.browser.default_search_engine",
+      "valid": true,
+      "valueJson": "\"bing\""
+    },
+    {
+      "name": "003.ahoi.browser.default_search_engine",
+      "reason": "engine names are case-sensitive",
+      "settingId": "ahoi.browser.default_search_engine",
+      "valid": false,
+      "valueJson": "\"DuckDuckGo\""
+    },
+    {
+      "name": "004.ahoi.browser.default_search_engine",
+      "reason": "not allowlisted",
+      "settingId": "ahoi.browser.default_search_engine",
+      "valid": false,
+      "valueJson": "\"yahoo\""
+    },
+    {
+      "name": "005.ahoi.browser.default_search_engine",
+      "reason": "engine must be a string",
+      "settingId": "ahoi.browser.default_search_engine",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "006.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "lower bound inclusive",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": true,
+      "valueJson": "100"
+    },
+    {
+      "name": "007.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "upper bound inclusive",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": true,
+      "valueJson": "10000"
+    },
+    {
+      "name": "008.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "below lower bound",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": false,
+      "valueJson": "99"
+    },
+    {
+      "name": "009.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "above upper bound",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": false,
+      "valueJson": "10001"
+    },
+    {
+      "name": "010.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "integral double is an integer",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": true,
+      "valueJson": "1500.0"
+    },
+    {
+      "name": "011.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "exponent form of an integer",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": true,
+      "valueJson": "1e3"
+    },
+    {
+      "name": "012.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "fraction for an integer setting",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": false,
+      "valueJson": "150.5"
+    },
+    {
+      "name": "013.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "boolean is not a number",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": false,
+      "valueJson": "true"
+    },
+    {
+      "name": "014.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "string is not a number",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": false,
+      "valueJson": "\"500\""
+    },
+    {
+      "name": "015.intl.charset_default",
+      "reason": "canonical charset",
+      "settingId": "intl.charset_default",
+      "valid": true,
+      "valueJson": "\"UTF-8\""
+    },
+    {
+      "name": "016.intl.charset_default",
+      "reason": "canonical charset",
+      "settingId": "intl.charset_default",
+      "valid": true,
+      "valueJson": "\"windows-1252\""
+    },
+    {
+      "name": "017.intl.charset_default",
+      "reason": "aliases are not admitted",
+      "settingId": "intl.charset_default",
+      "valid": false,
+      "valueJson": "\"utf-8\""
+    },
+    {
+      "name": "018.intl.charset_default",
+      "reason": "aliases are not admitted",
+      "settingId": "intl.charset_default",
+      "valid": false,
+      "valueJson": "\"latin1\""
+    },
+    {
+      "name": "019.settings.a11y.read_anything.font_scale",
+      "reason": "lower bound inclusive",
+      "settingId": "settings.a11y.read_anything.font_scale",
+      "valid": true,
+      "valueJson": "0.5"
+    },
+    {
+      "name": "020.settings.a11y.read_anything.font_scale",
+      "reason": "upper bound inclusive",
+      "settingId": "settings.a11y.read_anything.font_scale",
+      "valid": true,
+      "valueJson": "4.5"
+    },
+    {
+      "name": "021.settings.a11y.read_anything.font_scale",
+      "reason": "integer inside the double range",
+      "settingId": "settings.a11y.read_anything.font_scale",
+      "valid": true,
+      "valueJson": "2"
+    },
+    {
+      "name": "022.settings.a11y.read_anything.font_scale",
+      "reason": "below lower bound",
+      "settingId": "settings.a11y.read_anything.font_scale",
+      "valid": false,
+      "valueJson": "0.49"
+    },
+    {
+      "name": "023.settings.a11y.read_anything.font_scale",
+      "reason": "above upper bound",
+      "settingId": "settings.a11y.read_anything.font_scale",
+      "valid": false,
+      "valueJson": "4.51"
+    },
+    {
+      "name": "024.settings.a11y.read_anything.color_info",
+      "reason": "exposed color",
+      "settingId": "settings.a11y.read_anything.color_info",
+      "valid": true,
+      "valueJson": "0"
+    },
+    {
+      "name": "025.settings.a11y.read_anything.color_info",
+      "reason": "exposed color",
+      "settingId": "settings.a11y.read_anything.color_info",
+      "valid": true,
+      "valueJson": "5"
+    },
+    {
+      "name": "026.settings.a11y.read_anything.color_info",
+      "reason": "deprecated low-contrast color",
+      "settingId": "settings.a11y.read_anything.color_info",
+      "valid": false,
+      "valueJson": "6"
+    },
+    {
+      "name": "027.settings.a11y.read_anything.color_info",
+      "reason": "exposed color",
+      "settingId": "settings.a11y.read_anything.color_info",
+      "valid": true,
+      "valueJson": "7"
+    },
+    {
+      "name": "028.settings.a11y.read_anything.color_info",
+      "reason": "exposed color",
+      "settingId": "settings.a11y.read_anything.color_info",
+      "valid": true,
+      "valueJson": "8"
+    },
+    {
+      "name": "029.settings.a11y.read_anything.color_info",
+      "reason": "unknown color",
+      "settingId": "settings.a11y.read_anything.color_info",
+      "valid": false,
+      "valueJson": "9"
+    },
+    {
+      "name": "030.net.network_prediction_options",
+      "reason": "prediction option",
+      "settingId": "net.network_prediction_options",
+      "valid": true,
+      "valueJson": "0"
+    },
+    {
+      "name": "031.net.network_prediction_options",
+      "reason": "registered default",
+      "settingId": "net.network_prediction_options",
+      "valid": true,
+      "valueJson": "1"
+    },
+    {
+      "name": "032.net.network_prediction_options",
+      "reason": "integral double",
+      "settingId": "net.network_prediction_options",
+      "valid": true,
+      "valueJson": "1.0"
+    },
+    {
+      "name": "033.net.network_prediction_options",
+      "reason": "prediction option",
+      "settingId": "net.network_prediction_options",
+      "valid": true,
+      "valueJson": "3"
+    },
+    {
+      "name": "034.net.network_prediction_options",
+      "reason": "unknown option",
+      "settingId": "net.network_prediction_options",
+      "valid": false,
+      "valueJson": "4"
+    },
+    {
+      "name": "035.net.network_prediction_options",
+      "reason": "unknown option",
+      "settingId": "net.network_prediction_options",
+      "valid": false,
+      "valueJson": "-1"
+    },
+    {
+      "name": "036.ahoi.unknown.setting",
+      "reason": "unknown id",
+      "settingId": "ahoi.unknown.setting",
+      "valid": false,
+      "valueJson": "true"
+    },
+    {
+      "name": "037.ahoi.unknown.setting",
+      "reason": "reset only for a known id",
+      "settingId": "ahoi.unknown.setting",
+      "valid": false,
+      "valueJson": "null"
+    },
+    {
+      "name": "038.ahoi.appearance.glass_enabled",
+      "reason": "not JSON",
+      "settingId": "ahoi.appearance.glass_enabled",
+      "valid": false,
+      "valueJson": "tru"
+    },
+    {
+      "name": "039.settings.a11y.read_anything.line_spacing",
+      "reason": "exposed spacing",
+      "settingId": "settings.a11y.read_anything.line_spacing",
+      "valid": true,
+      "valueJson": "1"
+    },
+    {
+      "name": "040.settings.a11y.read_anything.line_spacing",
+      "reason": "exposed spacing",
+      "settingId": "settings.a11y.read_anything.line_spacing",
+      "valid": true,
+      "valueJson": "3"
+    },
+    {
+      "name": "041.settings.a11y.read_anything.line_spacing",
+      "reason": "deprecated tight spacing",
+      "settingId": "settings.a11y.read_anything.line_spacing",
+      "valid": false,
+      "valueJson": "0"
+    },
+    {
+      "name": "042.settings.a11y.read_anything.line_spacing",
+      "reason": "unknown",
+      "settingId": "settings.a11y.read_anything.line_spacing",
+      "valid": false,
+      "valueJson": "4"
+    },
+    {
+      "name": "043.settings.a11y.read_anything.letter_spacing",
+      "reason": "exposed spacing",
+      "settingId": "settings.a11y.read_anything.letter_spacing",
+      "valid": true,
+      "valueJson": "1"
+    },
+    {
+      "name": "044.settings.a11y.read_anything.letter_spacing",
+      "reason": "exposed spacing",
+      "settingId": "settings.a11y.read_anything.letter_spacing",
+      "valid": true,
+      "valueJson": "3"
+    },
+    {
+      "name": "045.settings.a11y.read_anything.letter_spacing",
+      "reason": "deprecated tight spacing",
+      "settingId": "settings.a11y.read_anything.letter_spacing",
+      "valid": false,
+      "valueJson": "0"
+    },
+    {
+      "name": "046.settings.a11y.read_anything.letter_spacing",
+      "reason": "unknown",
+      "settingId": "settings.a11y.read_anything.letter_spacing",
+      "valid": false,
+      "valueJson": "4"
+    },
+    {
+      "name": "047.ahoi.appearance.glass_enabled",
+      "reason": "boolean",
+      "settingId": "ahoi.appearance.glass_enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "048.ahoi.appearance.glass_enabled",
+      "reason": "boolean",
+      "settingId": "ahoi.appearance.glass_enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "049.ahoi.appearance.glass_enabled",
+      "reason": "number is not a boolean",
+      "settingId": "ahoi.appearance.glass_enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "050.ahoi.appearance.glass_enabled",
+      "reason": "string is not a boolean",
+      "settingId": "ahoi.appearance.glass_enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "051.ahoi.appearance.sidebar_page_tint_enabled",
+      "reason": "boolean",
+      "settingId": "ahoi.appearance.sidebar_page_tint_enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "052.ahoi.appearance.sidebar_page_tint_enabled",
+      "reason": "boolean",
+      "settingId": "ahoi.appearance.sidebar_page_tint_enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "053.ahoi.appearance.sidebar_page_tint_enabled",
+      "reason": "number is not a boolean",
+      "settingId": "ahoi.appearance.sidebar_page_tint_enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "054.ahoi.appearance.sidebar_page_tint_enabled",
+      "reason": "string is not a boolean",
+      "settingId": "ahoi.appearance.sidebar_page_tint_enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "055.ahoi.navigation.floating_auto_hide_enabled",
+      "reason": "boolean",
+      "settingId": "ahoi.navigation.floating_auto_hide_enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "056.ahoi.navigation.floating_auto_hide_enabled",
+      "reason": "boolean",
+      "settingId": "ahoi.navigation.floating_auto_hide_enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "057.ahoi.navigation.floating_auto_hide_enabled",
+      "reason": "number is not a boolean",
+      "settingId": "ahoi.navigation.floating_auto_hide_enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "058.ahoi.navigation.floating_auto_hide_enabled",
+      "reason": "string is not a boolean",
+      "settingId": "ahoi.navigation.floating_auto_hide_enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "059.ahoi.navigation.floating_reveal_notch_enabled",
+      "reason": "boolean",
+      "settingId": "ahoi.navigation.floating_reveal_notch_enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "060.ahoi.navigation.floating_reveal_notch_enabled",
+      "reason": "boolean",
+      "settingId": "ahoi.navigation.floating_reveal_notch_enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "061.ahoi.navigation.floating_reveal_notch_enabled",
+      "reason": "number is not a boolean",
+      "settingId": "ahoi.navigation.floating_reveal_notch_enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "062.ahoi.navigation.floating_reveal_notch_enabled",
+      "reason": "string is not a boolean",
+      "settingId": "ahoi.navigation.floating_reveal_notch_enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "063.browser.show_home_button",
+      "reason": "boolean",
+      "settingId": "browser.show_home_button",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "064.browser.show_home_button",
+      "reason": "boolean",
+      "settingId": "browser.show_home_button",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "065.browser.show_home_button",
+      "reason": "number is not a boolean",
+      "settingId": "browser.show_home_button",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "066.browser.show_home_button",
+      "reason": "string is not a boolean",
+      "settingId": "browser.show_home_button",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "067.browser.show_forward_button",
+      "reason": "boolean",
+      "settingId": "browser.show_forward_button",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "068.browser.show_forward_button",
+      "reason": "boolean",
+      "settingId": "browser.show_forward_button",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "069.browser.show_forward_button",
+      "reason": "number is not a boolean",
+      "settingId": "browser.show_forward_button",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "070.browser.show_forward_button",
+      "reason": "string is not a boolean",
+      "settingId": "browser.show_forward_button",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "071.browser.pin_split_tab_button",
+      "reason": "boolean",
+      "settingId": "browser.pin_split_tab_button",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "072.browser.pin_split_tab_button",
+      "reason": "boolean",
+      "settingId": "browser.pin_split_tab_button",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "073.browser.pin_split_tab_button",
+      "reason": "number is not a boolean",
+      "settingId": "browser.pin_split_tab_button",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "074.browser.pin_split_tab_button",
+      "reason": "string is not a boolean",
+      "settingId": "browser.pin_split_tab_button",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "075.browser.split_view_drag_and_drop_enabled",
+      "reason": "boolean",
+      "settingId": "browser.split_view_drag_and_drop_enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "076.browser.split_view_drag_and_drop_enabled",
+      "reason": "boolean",
+      "settingId": "browser.split_view_drag_and_drop_enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "077.browser.split_view_drag_and_drop_enabled",
+      "reason": "number is not a boolean",
+      "settingId": "browser.split_view_drag_and_drop_enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "078.browser.split_view_drag_and_drop_enabled",
+      "reason": "string is not a boolean",
+      "settingId": "browser.split_view_drag_and_drop_enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "079.download.prompt_for_download",
+      "reason": "boolean",
+      "settingId": "download.prompt_for_download",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "080.download.prompt_for_download",
+      "reason": "boolean",
+      "settingId": "download.prompt_for_download",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "081.download.prompt_for_download",
+      "reason": "number is not a boolean",
+      "settingId": "download.prompt_for_download",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "082.download.prompt_for_download",
+      "reason": "string is not a boolean",
+      "settingId": "download.prompt_for_download",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "083.plugins.always_open_pdf_externally",
+      "reason": "boolean",
+      "settingId": "plugins.always_open_pdf_externally",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "084.plugins.always_open_pdf_externally",
+      "reason": "boolean",
+      "settingId": "plugins.always_open_pdf_externally",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "085.plugins.always_open_pdf_externally",
+      "reason": "number is not a boolean",
+      "settingId": "plugins.always_open_pdf_externally",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "086.plugins.always_open_pdf_externally",
+      "reason": "string is not a boolean",
+      "settingId": "plugins.always_open_pdf_externally",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "087.browser.enable_spellchecking",
+      "reason": "boolean",
+      "settingId": "browser.enable_spellchecking",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "088.browser.enable_spellchecking",
+      "reason": "boolean",
+      "settingId": "browser.enable_spellchecking",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "089.browser.enable_spellchecking",
+      "reason": "number is not a boolean",
+      "settingId": "browser.enable_spellchecking",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "090.browser.enable_spellchecking",
+      "reason": "string is not a boolean",
+      "settingId": "browser.enable_spellchecking",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "091.translate.enabled",
+      "reason": "boolean",
+      "settingId": "translate.enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "092.translate.enabled",
+      "reason": "boolean",
+      "settingId": "translate.enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "093.translate.enabled",
+      "reason": "number is not a boolean",
+      "settingId": "translate.enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "094.translate.enabled",
+      "reason": "string is not a boolean",
+      "settingId": "translate.enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "095.settings.a11y.read_anything.links_enabled",
+      "reason": "boolean",
+      "settingId": "settings.a11y.read_anything.links_enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "096.settings.a11y.read_anything.links_enabled",
+      "reason": "boolean",
+      "settingId": "settings.a11y.read_anything.links_enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "097.settings.a11y.read_anything.links_enabled",
+      "reason": "number is not a boolean",
+      "settingId": "settings.a11y.read_anything.links_enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "098.settings.a11y.read_anything.links_enabled",
+      "reason": "string is not a boolean",
+      "settingId": "settings.a11y.read_anything.links_enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "099.settings.a11y.read_anything.images_enabled",
+      "reason": "boolean",
+      "settingId": "settings.a11y.read_anything.images_enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "100.settings.a11y.read_anything.images_enabled",
+      "reason": "boolean",
+      "settingId": "settings.a11y.read_anything.images_enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "101.settings.a11y.read_anything.images_enabled",
+      "reason": "number is not a boolean",
+      "settingId": "settings.a11y.read_anything.images_enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "102.settings.a11y.read_anything.images_enabled",
+      "reason": "string is not a boolean",
+      "settingId": "settings.a11y.read_anything.images_enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "103.enable_do_not_track",
+      "reason": "boolean",
+      "settingId": "enable_do_not_track",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "104.enable_do_not_track",
+      "reason": "boolean",
+      "settingId": "enable_do_not_track",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "105.enable_do_not_track",
+      "reason": "number is not a boolean",
+      "settingId": "enable_do_not_track",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "106.enable_do_not_track",
+      "reason": "string is not a boolean",
+      "settingId": "enable_do_not_track",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "107.search.suggest_enabled",
+      "reason": "boolean",
+      "settingId": "search.suggest_enabled",
+      "valid": true,
+      "valueJson": "true"
+    },
+    {
+      "name": "108.search.suggest_enabled",
+      "reason": "boolean",
+      "settingId": "search.suggest_enabled",
+      "valid": true,
+      "valueJson": "false"
+    },
+    {
+      "name": "109.search.suggest_enabled",
+      "reason": "number is not a boolean",
+      "settingId": "search.suggest_enabled",
+      "valid": false,
+      "valueJson": "1"
+    },
+    {
+      "name": "110.search.suggest_enabled",
+      "reason": "string is not a boolean",
+      "settingId": "search.suggest_enabled",
+      "valid": false,
+      "valueJson": "\"true\""
+    },
+    {
+      "name": "111.ahoi.appearance.glass_enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "ahoi.appearance.glass_enabled",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "112.ahoi.appearance.sidebar_page_tint_enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "ahoi.appearance.sidebar_page_tint_enabled",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "113.ahoi.browser.default_search_engine",
+      "reason": "explicit reset of a known id",
+      "settingId": "ahoi.browser.default_search_engine",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "114.ahoi.navigation.floating_auto_hide_delay_ms",
+      "reason": "explicit reset of a known id",
+      "settingId": "ahoi.navigation.floating_auto_hide_delay_ms",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "115.ahoi.navigation.floating_auto_hide_enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "ahoi.navigation.floating_auto_hide_enabled",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "116.ahoi.navigation.floating_reveal_notch_enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "ahoi.navigation.floating_reveal_notch_enabled",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "117.browser.enable_spellchecking",
+      "reason": "explicit reset of a known id",
+      "settingId": "browser.enable_spellchecking",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "118.browser.pin_split_tab_button",
+      "reason": "explicit reset of a known id",
+      "settingId": "browser.pin_split_tab_button",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "119.browser.show_forward_button",
+      "reason": "explicit reset of a known id",
+      "settingId": "browser.show_forward_button",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "120.browser.show_home_button",
+      "reason": "explicit reset of a known id",
+      "settingId": "browser.show_home_button",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "121.browser.split_view_drag_and_drop_enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "browser.split_view_drag_and_drop_enabled",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "122.download.prompt_for_download",
+      "reason": "explicit reset of a known id",
+      "settingId": "download.prompt_for_download",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "123.enable_do_not_track",
+      "reason": "explicit reset of a known id",
+      "settingId": "enable_do_not_track",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "124.intl.charset_default",
+      "reason": "explicit reset of a known id",
+      "settingId": "intl.charset_default",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "125.net.network_prediction_options",
+      "reason": "explicit reset of a known id",
+      "settingId": "net.network_prediction_options",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "126.plugins.always_open_pdf_externally",
+      "reason": "explicit reset of a known id",
+      "settingId": "plugins.always_open_pdf_externally",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "127.search.suggest_enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "search.suggest_enabled",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "128.settings.a11y.read_anything.color_info",
+      "reason": "explicit reset of a known id",
+      "settingId": "settings.a11y.read_anything.color_info",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "129.settings.a11y.read_anything.font_scale",
+      "reason": "explicit reset of a known id",
+      "settingId": "settings.a11y.read_anything.font_scale",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "130.settings.a11y.read_anything.images_enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "settings.a11y.read_anything.images_enabled",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "131.settings.a11y.read_anything.letter_spacing",
+      "reason": "explicit reset of a known id",
+      "settingId": "settings.a11y.read_anything.letter_spacing",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "132.settings.a11y.read_anything.line_spacing",
+      "reason": "explicit reset of a known id",
+      "settingId": "settings.a11y.read_anything.line_spacing",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "133.settings.a11y.read_anything.links_enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "settings.a11y.read_anything.links_enabled",
+      "valid": true,
+      "valueJson": "null"
+    },
+    {
+      "name": "134.translate.enabled",
+      "reason": "explicit reset of a known id",
+      "settingId": "translate.enabled",
+      "valid": true,
+      "valueJson": "null"
+    }
+  ],
+  "catalogueIds": [
+    "ahoi.appearance.glass_enabled",
+    "ahoi.appearance.sidebar_page_tint_enabled",
+    "ahoi.browser.default_search_engine",
+    "ahoi.navigation.floating_auto_hide_delay_ms",
+    "ahoi.navigation.floating_auto_hide_enabled",
+    "ahoi.navigation.floating_reveal_notch_enabled",
+    "browser.enable_spellchecking",
+    "browser.pin_split_tab_button",
+    "browser.show_forward_button",
+    "browser.show_home_button",
+    "browser.split_view_drag_and_drop_enabled",
+    "download.prompt_for_download",
+    "enable_do_not_track",
+    "intl.charset_default",
+    "net.network_prediction_options",
+    "plugins.always_open_pdf_externally",
+    "search.suggest_enabled",
+    "settings.a11y.read_anything.color_info",
+    "settings.a11y.read_anything.font_scale",
+    "settings.a11y.read_anything.images_enabled",
+    "settings.a11y.read_anything.letter_spacing",
+    "settings.a11y.read_anything.line_spacing",
+    "settings.a11y.read_anything.links_enabled",
+    "translate.enabled"
+  ],
+  "contract": "Ahoi browser-setting catalogue value conformance",
+  "generatedBy": "tools/sync_conformance/generate_setting_value_vectors.py",
+  "schemaVersion": 1
+}

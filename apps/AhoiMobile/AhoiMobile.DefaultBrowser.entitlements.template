@@ -2,9 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Use this release template only after Apple grants the managed default-
-	     browser entitlement to the final bundle identifier and the provisioning
-	     profile contains the same entitlement. -->
+	<!-- Use only for DefaultBrowserDevelopment and ReleasePostGrant after Apple
+	     grants the managed entitlement and a fresh matching profile exists. -->
 	<key>com.apple.developer.web-browser</key>
 	<true/>
 	<key>com.apple.developer.icloud-container-identifiers</key>

@@ -11,7 +11,9 @@
 
 #include "ahoi/browser/command_bar/command_bar_view.h"
 #include "ahoi/browser/command_bar/command_execution_adapter.h"
+#include "ahoi/browser/command_bar/command_execution_adapter_internal.h"
 #include "ahoi/browser/navigation/command_service.h"
+#include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/session/command_service_factory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
@@ -19,14 +21,18 @@
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
+#include "base/trace_event/trace_event.h"
 #include "base/functional/callback_helpers.h"
+#include "base/i18n/rtl.h"
 #include "base/location.h"
 #include "base/strings/strcat.h"
+#include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_runner.h"
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/favicon/content/content_favicon_driver.h"
@@ -97,7 +103,7 @@ CommandBarController::CommandBarController(
     views::View* sidebar_host)
     : browser_(browser), modal_overlay_controller_(modal_overlay_controller) {
   CHECK(browser_);
-  tab_strip_model_ = browser_->tab_strip_model();
+  tab_strip_model_ = browser_->GetTabStripModel();
   CHECK(tab_strip_model_);
   CHECK(modal_overlay_controller_);
   tab_strip_model_->AddObserver(this);
@@ -169,6 +175,16 @@ void CommandBarController::OnTabStripModelDestroyed(
 }
 
 void CommandBarController::OnCommandIndexChanged(CommandItemType type) {
+  if (type == CommandItemType::kWorkspace) {
+    // The Workspace list changed (SessionBridge): the move targets follow.
+    // Never republish from inside CommandService's observer iteration: its
+    // ObserverList forbids reentrant ReplaceItems and CHECK-crashes, e.g.
+    // when command-bar tab activation switches the Workspace first.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE,
+        base::BindOnce(&CommandBarController::PublishBrowserCommands,
+                       weak_ptr_factory_.GetWeakPtr()));
+  }
   if (type == CommandItemType::kOpenTab) {
     // SessionBridge owns the open-tab index. Refreshing from its notification
     // guarantees insertion/removal/replacement results are current regardless
@@ -201,7 +217,8 @@ bool CommandBarController::Show(CommandBarDisposition disposition) {
   // this native command surface while every other special browser type keeps
   // Chromium's own UI and lifecycle.
   views::View* const anchor_view = modal_overlay_controller_->center_anchor();
-  if ((!browser_->is_type_normal() && !browser_->is_type_popup()) ||
+  if ((browser_->GetType() != BrowserWindowInterface::TYPE_NORMAL &&
+       browser_->GetType() != BrowserWindowInterface::TYPE_POPUP) ||
       !command_service_ || !execution_adapter_ || !anchor_view ||
       !anchor_view->GetWidget()) {
     return false;
@@ -374,14 +391,15 @@ std::vector<CommandBarSuggestion> CommandBarController::GetSuggestions(
 bool CommandBarController::ExecuteSuggestion(
     const CommandBarSuggestion& suggestion,
     std::u16string_view original_input) {
+  const CommandBarDisposition disposition =
+      !view_ ? CommandBarDisposition::kCurrentTab
+      : view_->accepting_as_peek() ? CommandBarDisposition::kPeek
+                                   : view_->disposition();
   if (suggestion.kind == CommandBarSuggestionKind::kInputFallback) {
-    return execution_adapter_->ExecuteInput(
-        original_input,
-        view_ ? view_->disposition() : CommandBarDisposition::kCurrentTab);
+    return execution_adapter_->ExecuteInput(original_input, disposition);
   }
   return suggestion.item.has_value() && view_ &&
-         execution_adapter_->ExecuteItem(*suggestion.item,
-                                         view_->disposition());
+         execution_adapter_->ExecuteItem(*suggestion.item, disposition);
 }
 
 std::u16string CommandBarController::GetInitialQuery(
@@ -390,7 +408,7 @@ std::u16string CommandBarController::GetInitialQuery(
     return std::u16string();
   }
   content::WebContents* contents =
-      browser_->tab_strip_model()->GetActiveWebContents();
+      browser_->GetTabStripModel()->GetActiveWebContents();
   if (!contents) {
     return std::u16string();
   }
@@ -457,6 +475,20 @@ void CommandBarController::PublishBrowserCommands() {
        {u"view source", u"quelltext"},
        205},
       {"browser.print", IDS_CONTENT_CONTEXT_PRINT, {u"print", u"drucken"}, 200},
+      {"page.copy-link",
+       IDS_AHOI_COPY_ACTIVE_PAGE_LINK,
+       {u"copy link", u"link kopieren", u"active pane", u"aktives pane"},
+       265},
+      {"page.copy-markdown-link",
+       IDS_AHOI_COPY_ACTIVE_PAGE_LINK_AS_MARKDOWN,
+       {u"markdown link", u"link als markdown", u"active pane",
+        u"aktives pane"},
+       264},
+      {"page.reading-mode",
+       IDS_AHOI_OPEN_ACTIVE_PAGE_IN_READING_MODE,
+       {u"reader", u"reading mode", u"lesemodus", u"active pane",
+        u"aktives pane"},
+       263},
       {"browser.new-window",
        IDS_NEW_WINDOW,
        {u"new window", u"neues fenster"},
@@ -470,6 +502,13 @@ void CommandBarController::PublishBrowserCommands() {
        {u"open in normal window", u"quick window",
         u"in normales fenster übernehmen"},
        265},
+      // The verified uBO Classic installer is otherwise only reachable
+      // through the app menu's Extensions submenu; Chromium keeps the
+      // command disabled when the build does not ship it.
+      {"extensions.ubo-classic",
+       IDS_AHOI_UBO_MENU,
+       {u"ublock origin", u"ubo", u"adblock", u"werbeblocker"},
+       185},
       {"privacy.open",
        IDS_AHOI_PRIVACY_OPEN_COMMAND,
        {u"privacy open", u"privacy", u"tracking", u"datenschutz",
@@ -535,6 +574,54 @@ void CommandBarController::PublishBrowserCommands() {
         .priority = definition.priority,
     });
   }
+  // The shared shortcut catalog: every rebindable command with its current
+  // key, so the command bar and the keys run the same thing.
+  const shortcuts::Overrides overrides =
+      browser_ && browser_->GetProfile()
+          ? shortcuts::ReadOverrides(*browser_->GetProfile()->GetPrefs())
+          : shortcuts::Overrides();
+  for (const shortcuts::ShortcutCommand& command : shortcuts::Catalog()) {
+    if (!command.rebindable) {
+      continue;
+    }
+    const std::vector<ui::Accelerator> keys =
+        shortcuts::EffectiveAccelerators(overrides, command.id);
+    commands.push_back({
+        .type = CommandItemType::kBrowserCommand,
+        .stable_id = base::StrCat({"shortcut.", command.id}),
+        .title = shortcuts::CommandTitle(command),
+        .secondary_text =
+            keys.empty() ? std::u16string()
+                         : base::UTF8ToUTF16(
+                               shortcuts::ShortcutKeyText(keys.front())),
+        .keywords = {command.title_de, command.title_en},
+        .priority = 150,
+    });
+  }
+  // ADR 0012 section 2: one "In Workspace verschieben" item per Workspace of
+  // this Profile, the same targets as the sidebar's "Move to". The window's
+  // own Workspace is refused at execution (CanMoveToWorkspace).
+  if (browser_ && browser_->GetProfile() &&
+      !browser_->GetProfile()->IsOffTheRecord()) {
+    SessionBridge* bridge =
+        SessionBridgeFactory::GetForProfile(browser_->GetProfile());
+    std::vector<tab_tree::Workspace> workspaces;
+    if (bridge && bridge->is_ready() &&
+        bridge->tab_tree_store()->GetWorkspaces(&workspaces) ==
+            tab_tree::TabTreeStore::Result::kOk) {
+      std::vector<internal::MoveToWorkspaceTarget> targets;
+      targets.reserve(workspaces.size());
+      for (const tab_tree::Workspace& workspace : workspaces) {
+        targets.push_back({.id = workspace.id, .name = workspace.name});
+      }
+      const bool german =
+          base::i18n::GetConfiguredLocale().starts_with("de");
+      for (CommandItem& item :
+           internal::BuildMoveToWorkspaceCommands(targets, german)) {
+        commands.push_back(std::move(item));
+      }
+    }
+  }
   CHECK(command_service_->ReplaceItems(CommandItemType::kBrowserCommand,
                                        std::move(commands)));
 }
@@ -564,6 +651,7 @@ void CommandBarController::RefreshHistoryItems() {
 
 void CommandBarController::OnHistoryQueryCompleted(
     history::QueryResults results) {
+  TRACE_EVENT("browser", "Ahoi.CommandBar.HistoryItems");
   history_query_in_flight_ = false;
   last_history_refresh_ = base::TimeTicks::Now();
   if (!command_service_) {

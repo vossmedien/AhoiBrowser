@@ -60,6 +60,13 @@ BrowsingDataClearOptions BrowsingDataOptionsForScope(BrowsingDataScope scope) {
   };
 }
 
+bool BrowsingDataRemovalAdapter::RemoveForTab(
+    const BrowsingDataClearRequest& request,
+    const content::WebContents* web_contents,
+    CompletionCallback callback) {
+  return Remove(request, std::move(callback));
+}
+
 BrowsingDataController::BrowsingDataController(
     std::unique_ptr<BrowsingDataRemovalAdapter> adapter)
     : adapter_(std::move(adapter)) {}
@@ -98,8 +105,8 @@ bool BrowsingDataController::ClearData(const content::WebContents* web_contents,
     return false;
   }
 
-  const bool dispatched = adapter_->Remove(
-      *request,
+  const bool dispatched = adapter_->RemoveForTab(
+      *request, web_contents,
       base::BindOnce(
           [](BrowsingDataClearOptions completed_options,
              BrowsingDataClearCallback completed_callback,

@@ -4,7 +4,10 @@ import unittest
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-PATCH = ROOT / "patches/chromium/0001-ahoi-m152-integration-seams.patch"
+PATCH = ROOT / "patches/chromium/0001-ahoi-m153-integration-seams.patch"
+STANDARD_IMPORT_PATCH = (
+    ROOT / "patches/chromium/0013-ahoi-standard-import-surface.patch"
+)
 PAGE_ROOT = (
     ROOT
     / "overlay/chromium/src/chrome/browser/resources/settings/ahoi_page"
@@ -12,6 +15,15 @@ PAGE_ROOT = (
 WEBUI_TEST = (
     ROOT
     / "overlay/chromium/src/chrome/test/data/webui/settings/ahoi_page_test.ts"
+)
+ARC_IMPORT_UI_ROOT = (
+    ROOT
+    / "overlay/chromium/src/chrome/browser/resources/settings/people_page"
+)
+ARC_IMPORT_WEBUI_TEST = (
+    ROOT
+    / "overlay/chromium/src/chrome/test/data/webui/settings/"
+    "ahoi_arc_import_section_test.ts"
 )
 ARC_IMPORT_ROOT = (
     ROOT / "overlay/chromium/src/ahoi/browser/importer/arc"
@@ -21,9 +33,24 @@ ARC_IMPORT_ROOT = (
 class AhoiSettingsPageContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.patch = PATCH.read_text(encoding="utf-8")
+        self.standard_import_patch = STANDARD_IMPORT_PATCH.read_text(
+            encoding="utf-8"
+        )
         self.page = (PAGE_ROOT / "ahoi_page.html.ts").read_text(encoding="utf-8")
         self.controller = (PAGE_ROOT / "ahoi_page.ts").read_text(encoding="utf-8")
         self.webui_test = WEBUI_TEST.read_text(encoding="utf-8")
+        self.arc_import_component = (
+            ARC_IMPORT_UI_ROOT / "ahoi_arc_import_section.html.ts"
+        ).read_text(encoding="utf-8")
+        self.arc_import_controller = (
+            ARC_IMPORT_UI_ROOT / "ahoi_arc_import_section.ts"
+        ).read_text(encoding="utf-8")
+        self.arc_import_webui_test = ARC_IMPORT_WEBUI_TEST.read_text(
+            encoding="utf-8"
+        )
+        self.arc_import_service = (
+            ARC_IMPORT_ROOT / "arc_import_service.cc"
+        ).read_text(encoding="utf-8")
 
     def test_route_menu_main_and_build_are_first_class(self):
         for marker in (
@@ -156,8 +183,11 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         self.assertIsNotNone(remote_control)
         self.assertIsNotNone(retention_control)
         self.assertNotIn("?disabled", sync_control.group(0))
-        self.assertIn("!this.cloudKitAvailable_", remote_control.group(0))
-        self.assertIn("!this.syncEnabledPref_?.value", remote_control.group(0))
+        self.assertIn(
+            "!this.remoteControlStatus_?.canEnable", remote_control.group(0)
+        )
+        self.assertNotIn("!this.cloudKitAvailable_", remote_control.group(0))
+        self.assertNotIn("!this.syncEnabledPref_?.value", remote_control.group(0))
         self.assertNotIn("!this.cloudKitAvailable_", retention_control.group(0))
         self.assertIn(
             "!this.syncEnabledPref_?.value", retention_control.group(0)
@@ -184,13 +214,14 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, self.webui_test + self.patch)
 
-    def test_arc_import_is_visible_confirmed_and_transactional(self):
+    def test_arc_import_uses_standard_surface_and_remains_transactional(self):
         combined_backend = "\n".join(
             (ARC_IMPORT_ROOT / name).read_text(encoding="utf-8")
             for name in (
                 "arc_import_backup.cc",
                 "arc_import_discovery.cc",
                 "arc_import_service.cc",
+                "arc_split_receipt.cc",
                 "arc_split_runtime.cc",
             )
         )
@@ -201,34 +232,70 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "Aus Arc importieren",
         ):
             self.assertIn(marker, self.patch)
+        self.assertNotIn('id="ahoiArcImportAssistant"', self.page)
+        self.assertNotIn("ahoiArcDiscover", self.controller)
+        self.assertIn(
+            "doesNotOwnASeparateArcImportAssistant", self.webui_test
+        )
         for marker in (
-            'id="ahoiArcImportAssistant"',
-            'id="ahoiArcBackupConfirmation"',
-            'id="ahoiArcCommitConfirmation"',
+            'id="ahoiArcBackupNotice"',
             'id="ahoiArcCommit"',
+            "this.arcImportPreview_.stats.splits > 0",
+            'id="ahoiArcResultSkipped"',
+            'id="ahoiArcResultDegraded"',
+            'id="ahoiArcResultExcluded"',
+            'id="ahoiArcResultFourPane"',
         ):
-            self.assertIn(marker, self.page)
+            self.assertIn(marker, self.arc_import_component)
         for marker in (
             "ahoiArcDiscover",
             "ahoiArcCommit",
-            "this.arcBackupConfirmed_",
-            "this.arcCommitConfirmed_",
         ):
-            self.assertIn(marker, self.controller)
+            self.assertIn(marker, self.arc_import_controller)
+        for marker in (
+            "import './ahoi_arc_import_section.js';",
+            "ahoiImportKind?: 'arc'",
+            "if (this.isArcImportSelected_())",
+            'id="ahoiArcImport"',
+            "arcImportSelected_",
+            '"people_page/ahoi_arc_import_section.ts"',
+            '"people_page/ahoi_arc_import_section.html.ts"',
+            '"people_page/ahoi_arc_import_section.css"',
+            "IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE",
+            "Annähernd übernommene Vier-Pane-Verhältnisse",
+        ):
+            self.assertIn(marker, self.standard_import_patch)
         for marker in (
             "IsArcApplicationRunning()",
             "AreArcProfileFilesOpen",
             "FlushPersistenceForBackup",
             "CreateArcImportBackup",
             "RollbackAndFinish",
-            "ExistingSplitMatches",
-            "committed_snapshot_hash_ == snapshot_token",
+            "InspectRuntimeSplit",
+            "VerifyArcSplitSessionWindows",
+            # a909e4e moved the exact committed-replay check into the
+            # IsCommittedSource/IsCommittedSelection helpers.
+            "committed->idempotency_key ==\n"
+            "             ComputeArcImportIdempotencyKey(snapshot_token,",
+            "committed->selection_fingerprint == selection_fingerprint;",
+            "if (IsCommittedSelection(committed_journal_state_, snapshot_token,",
         ):
             self.assertIn(marker, combined_backend)
-        self.assertIn(
-            "arcPreviewRequiresBothExplicitConfirmationsBeforeCommit",
-            self.webui_test,
-        )
+        for marker in (
+            "arcUsesTheStandardSourceSelectAndCannotCallStandardImport",
+            # fe0afa4 replaced the two confirmation checkboxes with a backup
+            # notice; the primary click is the single confirmation.
+            "splitChoiceOnlyAppearsForRealPreviewSplitsAndCommitNeedsSelectedData",
+            "primaryClickConfirmsTheCurrentPlanAndBackupOnlyOnce",
+            "resultReportsImportedSkippedDegradedExcludedAndFourPane",
+            "'.counts > li'",
+            "'dt, dd, [role=\"term\"]'",
+            "assertEquals(0, browserProxy.getCallCount('importData'))",
+        ):
+            self.assertIn(marker, self.arc_import_webui_test)
+        self.assertNotIn("<dt", self.arc_import_component)
+        self.assertNotIn("<dd", self.arc_import_component)
+        self.assertEqual(2, self.arc_import_component.count('<ul class="counts'))
 
     def test_pref_service_imports_are_available_on_every_platform(self):
         chromeos_guard = self.controller.index(
@@ -239,6 +306,25 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "import {PrefServiceObserverMixinLit} from",
         ):
             self.assertLess(self.controller.index(marker), chromeos_guard)
+
+    def test_arc_preview_parses_immutable_snapshot_before_handle_scan(self):
+        start = self.arc_import_service.index(
+            "ArcImportService::DiscoverImport("
+        )
+        end = self.arc_import_service.index(
+            "void ArcImportService::Commit(", start
+        )
+        discovery = self.arc_import_service[start:end]
+        ordered_markers = (
+            "InspectDefaultArcApplication()",
+            "DiscoverArcSourceAt(application_support_dir)",
+            "CaptureArcSnapshot(*discovery.source)",
+            "ParseArcSnapshot(*snapshot.snapshot)",
+            "AreArcProfileFilesOpen(*discovery.source)",
+        )
+        positions = [discovery.index(marker) for marker in ordered_markers]
+        self.assertEqual(sorted(positions), positions)
+        self.assertNotIn("IsArcApplicationRunning()", discovery)
 
     def test_webui_build_entry_has_mocha_browser_launcher(self):
         build_diff = re.search(

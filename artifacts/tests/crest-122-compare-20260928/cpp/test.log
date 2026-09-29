@@ -1,0 +1,26 @@
+objc[72720]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x143f34a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12900ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[72720]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x11ed58188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10aa97188). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncMergeConformanceTest.*
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from SyncMergeConformanceTest
+[ RUN      ] SyncMergeConformanceTest.SharedVectors
+[       OK ] SyncMergeConformanceTest.SharedVectors (23 ms)
+[ RUN      ] SyncMergeConformanceTest.UTF8SortKeyVectors
+[       OK ] SyncMergeConformanceTest.UTF8SortKeyVectors (1 ms)
+[ RUN      ] SyncMergeConformanceTest.InventoryAssetVectors
+[       OK ] SyncMergeConformanceTest.InventoryAssetVectors (1 ms)
+[ RUN      ] SyncMergeConformanceTest.RemainingEntityVectors
+[       OK ] SyncMergeConformanceTest.RemainingEntityVectors (7 ms)
+[ RUN      ] SyncMergeConformanceTest.SeededMergeSequences
+[       OK ] SyncMergeConformanceTest.SeededMergeSequences (12 ms)
+[ RUN      ] SyncMergeConformanceTest.BrowserSettingValueVectors
+[       OK ] SyncMergeConformanceTest.BrowserSettingValueVectors (0 ms)
+[ RUN      ] SyncMergeConformanceTest.DomainGroupVectors
+[       OK ] SyncMergeConformanceTest.DomainGroupVectors (4 ms)
+[----------] 7 tests from SyncMergeConformanceTest (249 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (249 ms total)
+[  PASSED  ] 7 tests.
+exit=0

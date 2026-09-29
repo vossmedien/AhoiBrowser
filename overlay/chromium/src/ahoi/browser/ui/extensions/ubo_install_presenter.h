@@ -8,7 +8,14 @@
 
 namespace ahoi::extensions {
 
-enum class UboDialogAction { kNone, kCheck, kDownload, kInstall, kClose };
+enum class UboDialogAction {
+  kNone,
+  kBeginPinnedInstall,
+  kDownloadUpdate,
+  kInstallPreparedUpdate,
+  kRemoveLite,
+  kClose,
+};
 
 struct UboDialogPresentation {
   int status_string_id = 0;

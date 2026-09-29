@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_UI_SIDEBAR_WORKSPACE_TRANSITION_ANIMATOR_H_
 
 #include "base/memory/weak_ptr.h"
+#include "ui/gfx/geometry/transform.h"
 
 namespace ui {
 class Layer;
@@ -27,8 +28,9 @@ struct WorkspaceTransitionVisualState {
 WorkspaceTransitionVisualState CalculateWorkspaceTransitionInitialState(
     WorkspaceTransitionDirection direction);
 
-// Applies one synchronized compositor transition to the already-committed
-// workspace chrome and page surface. Domain state never lives here: identity,
+// Slides the already-committed sidebar in the workspace direction. The page
+// surface remains spatially stable and only fades when the activation actually
+// selected a different WebContents. Domain state never lives here: identity,
 // dots, tree selection, runtime tab and WebContents are switched atomically by
 // the existing observer path before these layers receive their first frame.
 class WorkspaceTransitionAnimator final {
@@ -42,6 +44,7 @@ class WorkspaceTransitionAnimator final {
   void Start(ui::Layer* sidebar_layer,
              ui::Layer* contents_layer,
              WorkspaceTransitionDirection direction,
+             bool fade_contents,
              bool reduced_motion);
 
   // Immediately finishes any in-flight transition at the stable committed
@@ -51,12 +54,18 @@ class WorkspaceTransitionAnimator final {
   bool is_animating() const;
 
  private:
-  void ResetLayer(ui::Layer* layer);
-  void AnimateLayer(ui::Layer* layer,
-                    const WorkspaceTransitionVisualState& initial_state);
+  void AnimateSidebarLayer(ui::Layer* layer,
+                           const WorkspaceTransitionVisualState& initial_state);
+  void AnimateContentsLayer(ui::Layer* layer,
+                            const WorkspaceTransitionVisualState& initial_state,
+                            float resting_opacity);
 
   base::WeakPtr<ui::Layer> sidebar_layer_;
   base::WeakPtr<ui::Layer> contents_layer_;
+  gfx::Transform sidebar_resting_transform_;
+  float sidebar_resting_opacity_ = 1.0f;
+  float contents_resting_opacity_ = 1.0f;
+  bool sidebar_fades_ = false;
 };
 
 }  // namespace ahoi::sidebar

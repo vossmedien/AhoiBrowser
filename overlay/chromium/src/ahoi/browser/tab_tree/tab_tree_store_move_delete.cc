@@ -4,11 +4,15 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <set>
 #include <unordered_set>
 #include <utility>
 
+#include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
+#include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "base/check.h"
+#include "base/time/time.h"
 #include "sql/statement.h"
 #include "sql/transaction.h"
 
@@ -135,6 +139,8 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
   unique_ids.reserve(moves.size());
   std::vector<TreeNode> nodes;
   nodes.reserve(moves.size());
+  std::vector<TreeNode> updated_nodes;
+  updated_nodes.reserve(moves.size());
   std::vector<size_t> changed_indices;
   changed_indices.reserve(moves.size());
   for (size_t index = 0; index < moves.size(); ++index) {
@@ -161,11 +167,39 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
     if (result != Result::kOk) {
       return result;
     }
-    if (node.workspace_id != move.workspace_id ||
-        node.parent_id != move.parent_id || node.sort_key != move.sort_key) {
+    TreeNode updated = node;
+    updated.workspace_id = move.workspace_id;
+    updated.parent_id = move.parent_id;
+    updated.sort_key = move.sort_key;
+    updated.is_temporary = move.is_temporary.value_or(node.is_temporary);
+    updated.modified_at = modified_at;
+    if (!updated.is_temporary &&
+        node.target_kind == SharedTabTargetKind::kNewTab) {
+      if (node.url.is_empty() || !node.url.is_valid()) {
+        return Result::kInvalidArgument;
+      }
+      const auto target = DescribeNativeSharedTabTarget(
+          node.url, NativeSharedTabParticipation::kNormal);
+      if (!target) {
+        return Result::kInvalidArgument;
+      }
+      updated.target_kind = target->kind;
+      updated.local_scheme = target->local_scheme;
+    }
+    if (node.is_temporary && !updated.is_temporary) {
+      InitializeSavedHome(&updated);
+    }
+    if (!ValidateNode(updated)) {
+      return Result::kInvalidArgument;
+    }
+    if (node.workspace_id != updated.workspace_id ||
+        node.parent_id != updated.parent_id ||
+        node.sort_key != updated.sort_key ||
+        node.is_temporary != updated.is_temporary) {
       changed_indices.push_back(index);
     }
     nodes.push_back(std::move(node));
+    updated_nodes.push_back(std::move(updated));
   }
   if (changed_indices.empty()) {
     return Result::kOk;
@@ -190,19 +224,32 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
   sql::Statement update(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "UPDATE tree_nodes SET workspace_id=?,parent_id=?,sort_key=?,"
-      "modified_at=? WHERE id=?"));
+      "modified_at=?,is_temporary=?,target_kind=?,local_scheme=?,"
+      "home_url=?,home_target_kind=?,home_local_scheme=? WHERE id=?"));
   for (size_t index : changed_indices) {
-    const SavedPageMove& move = moves[index];
+    const TreeNode& updated = updated_nodes[index];
     update.Reset(/*clear_bound_vars=*/true);
-    update.BindString(0, move.workspace_id.AsLowercaseString());
-    if (move.parent_id.has_value()) {
-      update.BindString(1, move.parent_id->AsLowercaseString());
+    update.BindString(0, updated.workspace_id.AsLowercaseString());
+    if (updated.parent_id.has_value()) {
+      update.BindString(1, updated.parent_id->AsLowercaseString());
     } else {
       update.BindNull(1);
     }
-    update.BindString(2, move.sort_key);
+    update.BindString(2, updated.sort_key);
     update.BindTime(3, modified_at);
-    update.BindString(4, move.node_id.AsLowercaseString());
+    update.BindBool(4, updated.is_temporary);
+    if (updated.target_kind) {
+      update.BindInt(5, static_cast<int>(*updated.target_kind));
+    } else {
+      update.BindNull(5);
+    }
+    if (updated.local_scheme) {
+      update.BindString(6, *updated.local_scheme);
+    } else {
+      update.BindNull(6);
+    }
+    internal::BindHome(update, 7, updated);
+    update.BindString(10, updated.id.AsLowercaseString());
     if (!update.Run() || db_.GetLastChangeCount() != 1) {
       return Result::kDatabaseError;
     }
@@ -220,6 +267,49 @@ TabTreeStore::Result TabTreeStore::MoveSavedPagesAtomically(
   return Result::kOk;
 }
 
+TabTreeStore::Result TabTreeStore::DeleteTemporaryPage(
+    const base::Uuid& node_id,
+    base::Time modified_at) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!IsReady()) {
+    return Result::kNotInitialized;
+  }
+  if (!node_id.is_valid() || modified_at.is_null()) {
+    return Result::kInvalidArgument;
+  }
+
+  TreeNode node;
+  const Result result = ReadNode(node_id, &node);
+  if (result != Result::kOk) {
+    return result;
+  }
+  if (node.tombstone) {
+    return Result::kNotFound;
+  }
+  if (node.type != TreeNodeType::kSavedPage || !node.is_temporary) {
+    return Result::kInvalidArgument;
+  }
+
+  sql::Transaction transaction(&db_);
+  if (!transaction.Begin()) {
+    return Result::kDatabaseError;
+  }
+  sql::Statement statement(db_.GetCachedStatement(
+      SQL_FROM_HERE,
+      "UPDATE tree_nodes SET tombstone=1,modified_at=? "
+      "WHERE id=? AND tombstone=0 AND is_temporary=1 AND node_type=?"));
+  statement.BindTime(0, modified_at);
+  statement.BindString(1, node.id.AsLowercaseString());
+  statement.BindInt(2, static_cast<int>(TreeNodeType::kSavedPage));
+  if (!statement.Run() || db_.GetLastChangeCount() != 1 ||
+      !transaction.Commit()) {
+    return Result::kDatabaseError;
+  }
+
+  Notify(MutationKind::kDeleted, node.id, {node.id});
+  return Result::kOk;
+}
+
 TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
                                               base::Time modified_at) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
@@ -229,6 +319,8 @@ TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
   if (!node_id.is_valid() || modified_at.is_null()) {
     return Result::kInvalidArgument;
   }
+  if (IsNodeArchived(node_id))
+    return Result::kInvalidArgument;
 
   TreeNode node;
   Result result = ReadNode(node_id, &node);
@@ -245,6 +337,10 @@ TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
     return result;
   }
   std::vector<NodeSnapshot> snapshots;
+  // An archive is retained independently of its former folder. Keep its
+  // original parent link until the user explicitly chooses a restore target.
+  std::erase_if(subtree,
+                [&](const TreeNode& row) { return IsNodeArchived(row.id); });
   snapshots.reserve(subtree.size());
   for (const TreeNode& descendant : subtree) {
     snapshots.push_back({.node_id = descendant.id, .previous = descendant});
@@ -265,15 +361,13 @@ TabTreeStore::Result TabTreeStore::DeleteNode(const base::Uuid& node_id,
     changed_ids.push_back(descendant.id);
   }
   sql::Statement statement(db_.GetUniqueStatement(
-      "WITH RECURSIVE subtree(id) AS (SELECT id FROM tree_nodes WHERE id=? "
-      "UNION SELECT child.id FROM tree_nodes child JOIN subtree parent ON "
-      "child.parent_id=parent.id) UPDATE tree_nodes SET tombstone=1,"
-      "modified_at=? WHERE id IN (SELECT id FROM subtree)"));
-  statement.BindString(0, node.id.AsLowercaseString());
-  statement.BindTime(1, modified_at);
-  if (!statement.Run() ||
-      db_.GetLastChangeCount() != static_cast<int64_t>(subtree.size())) {
-    return Result::kDatabaseError;
+      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE id=?"));
+  for (const auto& descendant : subtree) {
+    statement.Reset(true);
+    statement.BindTime(0, modified_at);
+    statement.BindString(1, descendant.id.AsLowercaseString());
+    if (!statement.Run() || db_.GetLastChangeCount() != 1)
+      return Result::kDatabaseError;
   }
   if (!transaction.Commit()) {
     return Result::kDatabaseError;
@@ -296,11 +390,10 @@ TabTreeStore::Result TabTreeStore::DeleteNodesAtomically(
 
   std::unordered_set<base::Uuid, base::UuidHash> requested_roots;
   std::unordered_set<base::Uuid, base::UuidHash> affected_ids;
-  std::vector<std::vector<TreeNode>> subtrees;
   std::vector<NodeSnapshot> snapshots;
-  subtrees.reserve(node_ids.size());
   for (const base::Uuid& node_id : node_ids) {
-    if (!node_id.is_valid() || !requested_roots.insert(node_id).second) {
+    if (!node_id.is_valid() || IsNodeArchived(node_id) ||
+        !requested_roots.insert(node_id).second) {
       return Result::kInvalidArgument;
     }
     TreeNode root;
@@ -322,9 +415,10 @@ TabTreeStore::Result TabTreeStore::DeleteNodesAtomically(
       if (!affected_ids.insert(descendant.id).second) {
         return Result::kInvalidArgument;
       }
+      if (IsNodeArchived(descendant.id))
+        continue;
       snapshots.push_back({.node_id = descendant.id, .previous = descendant});
     }
-    subtrees.push_back(std::move(subtree));
   }
 
   sql::Transaction transaction(&db_);
@@ -337,16 +431,12 @@ TabTreeStore::Result TabTreeStore::DeleteNodesAtomically(
   }
 
   sql::Statement statement(db_.GetUniqueStatement(
-      "WITH RECURSIVE subtree(id) AS (SELECT id FROM tree_nodes WHERE id=? "
-      "UNION SELECT child.id FROM tree_nodes child JOIN subtree parent ON "
-      "child.parent_id=parent.id) UPDATE tree_nodes SET tombstone=1,"
-      "modified_at=? WHERE id IN (SELECT id FROM subtree)"));
-  for (size_t index = 0; index < node_ids.size(); ++index) {
+      "UPDATE tree_nodes SET tombstone=1,modified_at=? WHERE id=?"));
+  for (const auto& snapshot : snapshots) {
     statement.Reset(/*clear_bound_vars=*/true);
-    statement.BindString(0, node_ids[index].AsLowercaseString());
-    statement.BindTime(1, modified_at);
-    if (!statement.Run() || db_.GetLastChangeCount() !=
-                                static_cast<int64_t>(subtrees[index].size())) {
+    statement.BindTime(0, modified_at);
+    statement.BindString(1, snapshot.node_id.AsLowercaseString());
+    if (!statement.Run() || db_.GetLastChangeCount() != 1) {
       return Result::kDatabaseError;
     }
   }
@@ -376,23 +466,49 @@ TabTreeStore::Result TabTreeStore::UndoLastMutation() {
 
   int64_t operation_id = 0;
   base::Uuid subject_node_id;
+  bool workspace_merge = false;
   {
     sql::Statement operation(db_.GetCachedStatement(
         SQL_FROM_HERE,
-        "SELECT operation_id,subject_node_id FROM undo_operations ORDER BY "
-        "operation_id DESC LIMIT 1"));
+        "SELECT operation_id,subject_node_id,mutation_kind FROM "
+        "undo_operations ORDER BY operation_id DESC LIMIT 1"));
     if (!operation.Step()) {
       return operation.Succeeded() ? Result::kNothingToUndo
                                    : Result::kDatabaseError;
     }
     operation_id = operation.ColumnInt64(0);
     subject_node_id = base::Uuid::ParseLowercase(operation.ColumnString(1));
+    workspace_merge = operation.ColumnInt(2) ==
+                      static_cast<int>(UndoMutationKind::kWorkspaceMerge);
     if (!subject_node_id.is_valid()) {
       return Result::kDatabaseError;
     }
   }
 
   std::vector<NodeSnapshot> snapshots;
+  if (workspace_merge) {
+    // Empty-source merge: the subject is the Workspace itself. Revive it only
+    // while it still carries a merge tombstone; a later deletion or a synced
+    // newer state wins and this receipt is just consumed.
+    if (!ReadUndoSnapshots(operation_id, &snapshots) || !snapshots.empty()) {
+      return Result::kDatabaseError;
+    }
+    sql::Statement revive_source(db_.GetCachedStatement(
+        SQL_FROM_HERE,
+        "UPDATE workspaces SET tombstone=0,merged_into=NULL,"
+        "modified_at=MAX(modified_at+1,?) WHERE id=? AND tombstone=1 AND "
+        "merged_into IS NOT NULL"));
+    revive_source.BindTime(0, base::Time::Now());
+    revive_source.BindString(1, subject_node_id.AsLowercaseString());
+    if (!revive_source.Run() || !RemoveUndoOperation(operation_id) ||
+        !transaction.Commit()) {
+      return Result::kDatabaseError;
+    }
+    // No node changed. SessionBridge refreshes the Workspace list on kUndone;
+    // node-list observers ignore a change without node IDs.
+    Notify(MutationKind::kUndone, subject_node_id, {});
+    return Result::kOk;
+  }
   if (!ReadUndoSnapshots(operation_id, &snapshots) || snapshots.empty() ||
       std::ranges::none_of(snapshots, [&subject_node_id](const auto& snapshot) {
         return snapshot.node_id == subject_node_id;
@@ -401,6 +517,26 @@ TabTreeStore::Result TabTreeStore::UndoLastMutation() {
   }
   for (const NodeSnapshot& snapshot : snapshots) {
     if (!RestoreSnapshot(snapshot)) {
+      return Result::kDatabaseError;
+    }
+  }
+  // A live node never belongs to a deleted Workspace. Undoing a merge
+  // (MergeWorkspace) or a move out of a since deleted Workspace revives it,
+  // newer than its tombstone so the revival wins on every synced device.
+  sql::Statement revive(db_.GetCachedStatement(
+      SQL_FROM_HERE,
+      "UPDATE workspaces SET tombstone=0,merged_into=NULL,"
+      "modified_at=MAX(modified_at+1,?) WHERE id=? AND tombstone=1"));
+  std::set<base::Uuid> revived;
+  for (const NodeSnapshot& snapshot : snapshots) {
+    if (!snapshot.previous || snapshot.previous->tombstone ||
+        !revived.insert(snapshot.previous->workspace_id).second) {
+      continue;
+    }
+    revive.Reset(/*clear_bound_vars=*/true);
+    revive.BindTime(0, base::Time::Now());
+    revive.BindString(1, snapshot.previous->workspace_id.AsLowercaseString());
+    if (!revive.Run()) {
       return Result::kDatabaseError;
     }
   }

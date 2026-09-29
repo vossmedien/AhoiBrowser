@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "kind": "bounded-visible-mobile-e2e",
+  "result": "partial-resource-interference",
+  "startedAt": "2026-09-08T15:56:42Z",
+  "cleanupVerifiedAt": "2026-09-08T16:03:35Z",
+  "candidate": {
+    "sourceCommit": "6b0121f76b5ba7b8bd2e32cbf5689b915db81e77",
+    "buildMode": "DebugLocal",
+    "buildNumber": "19",
+    "bundleId": "app.ahoibrowser.AhoiBrowser",
+    "originalReceipt": "artifacts/build/mobile-setup-6b0121f-20260908/candidate.json",
+    "originalReceiptSha256": "5d88618ec8680fe66b70166eb15e9a3192abe54d943977644564ee1225a3d904",
+    "archiveAndInstalledTreeSha256": "a120dea9e97c1dda73f9668025984da5f97d5c96b7d14d305818b65492e14d80",
+    "archivedDeepStrictSignatureVerified": true,
+    "embeddedSourceBuildModeAndBuildVerified": true,
+    "archiveAndInstalledTreeMatch": true,
+    "rebuildPerformed": false
+  },
+  "device": {
+    "name": "Ahoi Build19 Icon Host Metadata 20260908",
+    "udid": "C645C09E-B284-434B-BC72-508E481ADC02",
+    "runtime": "iOS 26.5",
+    "model": "iPhone 17 Pro",
+    "createdFreshForThisRun": true,
+    "bootSession": 22194,
+    "bootExitCode": 0,
+    "installSession": 51853,
+    "installExitCode": 0
+  },
+  "capacity": {
+    "logicalCores": 12,
+    "preBootCpuIdlePercentSamples": [76.34, 84.41],
+    "memoryHeadroomPercent": 52,
+    "newSwapoutsDuringSamples": 0,
+    "gpuDeviceUtilizationPercent": 4,
+    "diskAvailableKiB": 37085416,
+    "foreignProcessesChanged": false
+  },
+  "visibleChecks": {
+    "approvedBlueSailIconOnSpringBoard": "PASS",
+    "openAppByItsVisibleIcon": "PASS",
+    "hostLabel": "NOT_RUN",
+    "extensionMetadataSection": "NOT_RUN",
+    "extensionMetadataSwitches": "NOT_RUN"
+  },
+  "screenshots": [
+    {
+      "path": "icon.png",
+      "sha256": "9405caf433789c4e4b180523983b8da08c487de537103371969d429134ba4cc5",
+      "visibleWindow": "Ahoi Build19 Icon Host Metadata 20260908"
+    }
+  ],
+  "observedAppStart": {
+    "window": "Ahoi Build19 Icon Host Metadata 20260908",
+    "visibleState": "Fresh AhoiBrowser start page, Ohne Workspace, one tab, empty recent pages, address/search controls",
+    "accessibilityIds": [
+      "browser.harbor-deck.workspace",
+      "browser.address",
+      "browser.more",
+      "browser.focus-voyage.header",
+      "browser.focus-voyage.empty"
+    ],
+    "evidenceBoundary": "Observed in returned CUA AX and screenshot; only the separate icon screenshot was saved to disk before the window changed."
+  },
+  "interruption": {
+    "category": "shared-ui-resource-interference",
+    "blockedAction": "click browser.address",
+    "guardRejectedBeforeClick": true,
+    "actualWindow": "BetterConvo E2E",
+    "foreignDeviceUDID": "751D9248-82F9-45D7-8C06-F910FFF3ACFC",
+    "foreignDeviceLastBootedAt": "2026-09-08T16:02:35Z",
+    "foreignDeviceStateAtHandback": "Booted",
+    "foreignClicksOrKeystrokes": 0,
+    "notes": "Fresh full AX readback confirmed the changed window. No attempt was made to reclaim focus from the other project."
+  },
+  "earlierToolEvents": [
+    "Simulator binding initially succeeded on the previous MindBodyCompass window, read-only with zero inputs.",
+    "One post-reset binding returned -10005 timeoutReached; binding after the own-device boot succeeded.",
+    "An already-open I/O menu in the confirmed own window ignored Escape, then closed through its exposed native Cancel action."
+  ],
+  "cleanup": {
+    "ownAppTerminateExitCode": 0,
+    "ownDeviceShutdownSession": 96613,
+    "ownDeviceShutdownExitCode": 0,
+    "ownDeviceIndependentlyVerifiedShutdown": true,
+    "deviceErasedOrDeleted": false,
+    "retainedForCandidateBoundContinuation": true,
+    "handbackToCoordinator": "01a081c2-ea88-7e02-9506-f5e1a0c75e2f",
+    "uiReservationRemaining": false
+  },
+  "limits": [
+    "Not a complete Build19 visible acceptance.",
+    "No programmatic behavior tests or Build18 replay.",
+    "No My-Mac, native Ahoi app, Applications, Desktop715 test profile, default profile, Arc journal, keys, Portal or CloudKit action.",
+    "No claim of extension records received from another device."
+  ]
+}

@@ -2,6 +2,7 @@ import Foundation
 import AhoiCloudKitSpike
 
 public enum DesktopWirePayloadCodecError: Error, Equatable, Sendable {
+    case missingDependency
     case malformedPayload
     case unsupportedDeviceType
     case invalidOrderKey
@@ -17,16 +18,10 @@ public struct DesktopWirePayloadCodec: Sendable {
     ]
     private static let workspaceFields: Set<String> = [
         "name", "icon", "sort_key", "accent_argb", "created_at", "modified_at",
-        "tombstone",
+        "archive_policy", "tombstone",
     ]
-    private static let treeNodeFields: Set<String> = [
-        "location", "kind", "title", "icon", "accent_argb", "url", "created_at",
-        "modified_at", "tombstone",
-    ]
-    private static let remoteTabFields: Set<String> = [
-        "device_id", "session_id", "workspace_id", "url", "title", "opened_at",
-        "last_active", "pinned", "is_incognito", "tombstone",
-    ]
+    private static let treeNodeFields = SharedTabWireReadPolicy.treeNodeBaseFields
+    private static let remoteTabFields = SharedTabWireReadPolicy.remoteTabBaseFields
     private static let sessionFields: Set<String> = [
         "device_id", "started_at", "liveness", "tombstone",
     ]
@@ -50,6 +45,7 @@ public struct DesktopWirePayloadCodec: Sendable {
         case .mac: deviceType = 0
         case .iPhone: deviceType = 1
         case .iPad: deviceType = 2
+        case .other: deviceType = 3
         }
         value["device_type"] = deviceType
         value["display_name"] = device.name
@@ -67,6 +63,13 @@ public struct DesktopWirePayloadCodec: Sendable {
             fields: Self.workspaceFields
         )
         value["name"] = workspace.name
+        value["archive_policy"] = workspace.archivePolicy.rawValue
+        if let mergedInto = workspace.mergedInto {
+            guard workspace.isDeleted, mergedInto != workspace.id else {
+                throw DesktopWirePayloadCodecError.malformedPayload
+            }
+            value["merged_into"] = mergedInto.rawValue.uuidString.lowercased()
+        }
         value["icon"] = workspace.icon
         value["sort_key"] = workspace.sortKey
         value["created_at"] = try timeString(workspace.createdAt)
@@ -79,6 +82,7 @@ public struct DesktopWirePayloadCodec: Sendable {
     }
 
     public func encode(_ node: TreeNode) throws -> Data {
+        try SharedTabWireReadPolicy.validateTreeNodeWrite(node)
         var value = try common(
             id: node.id.rawValue,
             tombstone: node.isDeleted,
@@ -86,6 +90,7 @@ public struct DesktopWirePayloadCodec: Sendable {
             fields: Self.treeNodeFields
         )
         value["workspace_id"] = uuid(node.workspaceID.rawValue)
+        try encodeHomeTarget(node.homeTarget, into: &value)
         value["parent_id"] = node.parentID.map { uuid($0.rawValue) }
         value["node_kind"] = node.kind == .folder ? 0 : 1
         value["title"] = node.title
@@ -94,6 +99,12 @@ public struct DesktopWirePayloadCodec: Sendable {
         value["sort_key"] = node.syncSortKey
         value["created_at"] = try timeString(node.createdAt)
         value["modified_at"] = try timeString(node.modifiedAt)
+        value["is_temporary"] = node.isTemporary
+        if node.kind == .savedPage {
+            guard let kind = node.targetKind else { throw SharedTabTargetError.invalidTarget }
+            value["target_kind"] = kind.rawValue
+            value["local_scheme"] = node.localScheme?.rawValue
+        }
         if let accent = node.accent,
            let parsed = UInt32(
                accent.trimmingCharacters(in: CharacterSet(charactersIn: "#")),
@@ -136,6 +147,10 @@ public struct DesktopWirePayloadCodec: Sendable {
 
     public func encode(_ tab: RemoteTab) throws -> Data {
         guard tab.context == .normal else { throw CompanionModelError.incognitoNotSyncable }
+        try SharedTabWireReadPolicy.validateRemoteTabWrite(tab)
+        guard let pageID = tab.treeNodeID, let kind = tab.targetKind else {
+            throw SharedTabTargetError.missingPageLink
+        }
         var value = try common(
             id: tab.id.rawValue,
             tombstone: tab.isDeleted,
@@ -151,6 +166,9 @@ public struct DesktopWirePayloadCodec: Sendable {
         value["last_active"] = try timeString(tab.lastActiveAt)
         value["pinned"] = tab.pinned
         value["is_incognito"] = false
+        value["tree_node_id"] = uuid(pageID.rawValue)
+        value["target_kind"] = kind.rawValue
+        value["local_scheme"] = tab.localScheme?.rawValue
         return try serialize(value)
     }
 
@@ -215,10 +233,13 @@ public struct DesktopWirePayloadCodec: Sendable {
         case 0: kind = .mac
         case 1: kind = .iPhone
         case 2: kind = .iPad
+        case 3: kind = .other
         default: throw DesktopWirePayloadCodecError.unsupportedDeviceType
         }
         let deleted = try tombstone(record, value: value)
-        let retired = (value["retired"] as? Bool) ?? false
+        let retired = try SharedTabWireReadPolicy.strictBoolean(value, key: "retired")
+        try validatePortableEnvelope(record, dataClass: .device, identity: id(value),
+                                     version: resultVersion, tombstone: deleted)
         return Device(
             deviceID: DeviceID(rawValue: try id(value)),
             name: try string(value, "display_name"),
@@ -226,7 +247,7 @@ public struct DesktopWirePayloadCodec: Sendable {
             createdAt: try clock(value, timeKey: "created_at"),
             lastSeenAt: try clock(value, timeKey: "last_seen"),
             isOnline: !retired && deleted == nil,
-            isRevoked: retired || deleted != nil,
+            isRevoked: retired,
             version: resultVersion,
             tombstone: deleted
         )
@@ -238,45 +259,94 @@ public struct DesktopWirePayloadCodec: Sendable {
 
     private func decodeWorkspace(_ record: SyncRecord, value: [String: Any]) throws -> Workspace {
         let resultVersion = try version(value, requiredFields: Self.workspaceFields)
-        let accent = (value["accent_argb"] as? NSNumber).map {
-            String(format: "#%08x", $0.uint32Value)
-        }
+        let accent = try optionalARGB(value).map { String(format: "#%08x", $0) }
+        let deleted = try tombstone(record, value: value)
+        try validatePortableEnvelope(record, dataClass: .workspace, identity: id(value),
+                                     version: resultVersion, tombstone: deleted)
         return Workspace(
             workspaceID: WorkspaceID(rawValue: try id(value)),
             name: try string(value, "name"),
-            icon: (value["icon"] as? String) ?? "",
+            icon: try string(value, "icon"),
             accent: accent,
-            sortKey: value["sort_key"] as? String,
+            sortKey: try string(value, "sort_key"),
             createdAt: try clock(value, timeKey: "created_at"),
             modifiedAt: try clock(value, timeKey: "modified_at"),
+            archivePolicy: try decodeArchivePolicy(value),
             version: resultVersion,
-            tombstone: try tombstone(record, value: value)
+            tombstone: deleted,
+            mergedInto: try decodeMergedInto(value, deleted: deleted != nil)
         )
+    }
+
+    /// Optional and additive (crest 084): a merge target accompanies only a
+    /// tombstone and never names the Workspace itself.
+    private func decodeMergedInto(_ value: [String: Any], deleted: Bool) throws -> WorkspaceID? {
+        guard let target = try optionalUUID(value, "merged_into") else { return nil }
+        guard deleted, target != (try id(value)) else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        return WorkspaceID(rawValue: target)
     }
 
     public func decodeTreeNode(_ record: SyncRecord, plaintext: Data) throws -> TreeNode {
         let value = try object(from: plaintext)
-        let resultVersion = try version(value, requiredFields: Self.treeNodeFields)
-        let kind = try integer(value, "node_kind") == 0 ? TreeNodeKind.folder : .savedPage
+        let payloadVersion = try SharedTabWireReadPolicy.payloadVersion(value)
+        let isTemporary = try SharedTabWireReadPolicy.validateTreeNodeReadShape(
+            value,
+            version: payloadVersion
+        )
+        let resultVersion = try version(
+            value,
+            requiredFields: try SharedTabWireReadPolicy.requiredTreeNodeFields(
+                version: payloadVersion
+            )
+        )
+        try SharedTabWireReadPolicy.validateDecodedVersion(resultVersion)
+        let rawKind = Int(try SharedTabWireReadPolicy.strictUInt32(value, key: "node_kind"))
+        guard rawKind == 0 || rawKind == 1 else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        let kind = rawKind == 0 ? TreeNodeKind.folder : .savedPage
+        let target = try decodeTabTarget(value, version: payloadVersion, folder: kind == .folder)
+        let rawURL = try string(value, "url")
+        let decodedURL: String?
+        if kind == .folder {
+            guard !isTemporary, rawURL.isEmpty else { throw SharedTabTargetError.invalidTarget }
+            decodedURL = nil
+        } else {
+            guard let target else { throw SharedTabTargetError.invalidTarget }
+            try target.validatePage(isTemporary: isTemporary)
+            decodedURL = rawURL.isEmpty ? nil : rawURL
+        }
         let sortKey = try orderKey(try string(value, "sort_key"), version: resultVersion)
-        return try TreeNode(
+        let result = try TreeNode(
             treeNodeID: TreeNodeID(rawValue: try id(value)),
             workspaceID: WorkspaceID(rawValue: try uuid(value, "workspace_id")),
             parentID: try optionalUUID(value, "parent_id").map(TreeNodeID.init(rawValue:)),
             kind: kind,
             title: try string(value, "title"),
-            url: kind == .folder ? nil : try string(value, "url"),
-            icon: (value["icon"] as? String) ?? "",
-            accent: (value["accent_argb"] as? NSNumber).map {
-                String(format: "#%08x", $0.uint32Value)
-            },
+            url: decodedURL,
+            icon: try string(value, "icon"),
+            accent: try optionalARGB(value).map { String(format: "#%08x", $0) },
             orderKey: sortKey.value,
-            wireSortKey: sortKey.legacyWireValue,
+            wireSortKey: sortKey.wireValue,
+            isTemporary: isTemporary,
+            targetKind: target?.kind,
+            localScheme: target?.localScheme,
+            homeTarget: decodeHomeTarget(value),
             createdAt: try clock(value, timeKey: "created_at"),
             modifiedAt: try clock(value, timeKey: "modified_at"),
             version: resultVersion,
             tombstone: try tombstone(record, value: value)
         )
+        try validatePortableEnvelope(
+            record,
+            dataClass: .treeNode,
+            identity: result.id.rawValue,
+            version: result.version,
+            tombstone: result.tombstone
+        )
+        return result
     }
 
     public func decodeSession(
@@ -288,8 +358,11 @@ public struct DesktopWirePayloadCodec: Sendable {
         let resultVersion = try version(value, requiredFields: Self.sessionFields)
         let deviceID = DeviceID(rawValue: try uuid(value, "device_id"))
         guard let device = devices[deviceID] else {
-            throw DesktopWirePayloadCodecError.unsupportedDeviceType
+            throw DesktopWirePayloadCodecError.missingDependency
         }
+        let deleted = try tombstone(record, value: value)
+        try validatePortableEnvelope(record, dataClass: .deviceSession, identity: id(value),
+                                     version: resultVersion, tombstone: deleted)
         return DeviceSession(
             sessionID: DeviceSessionID(rawValue: try id(value)),
             deviceID: deviceID,
@@ -297,9 +370,9 @@ public struct DesktopWirePayloadCodec: Sendable {
             deviceKind: device.kind,
             startedAt: try clock(value, timeKey: "started_at"),
             lastActiveAt: try clock(value, timeKey: "last_seen", fieldName: "liveness"),
-            isOnline: (value["active"] as? Bool) ?? false,
+            isOnline: try SharedTabWireReadPolicy.strictBoolean(value, key: "active"),
             version: resultVersion,
-            tombstone: try tombstone(record, value: value)
+            tombstone: deleted
         )
     }
 
@@ -310,49 +383,90 @@ public struct DesktopWirePayloadCodec: Sendable {
         workspaces: [WorkspaceID: Workspace]
     ) throws -> RemoteTab {
         let value = try object(from: plaintext)
-        let resultVersion = try version(value, requiredFields: Self.remoteTabFields)
-        guard (value["is_incognito"] as? Bool) == false else {
+        let payloadVersion = try SharedTabWireReadPolicy.payloadVersion(value)
+        let treeNodeID = try SharedTabWireReadPolicy.validateRemoteTabReadShape(
+            value,
+            version: payloadVersion
+        )
+        let resultVersion = try version(
+            value,
+            requiredFields: try SharedTabWireReadPolicy.requiredRemoteTabFields(
+                version: payloadVersion
+            )
+        )
+        try SharedTabWireReadPolicy.validateDecodedVersion(resultVersion)
+        guard try SharedTabWireReadPolicy.strictBoolean(
+            value,
+            key: "is_incognito"
+        ) == false else {
             throw CompanionModelError.incognitoNotSyncable
         }
         let deviceID = DeviceID(rawValue: try uuid(value, "device_id"))
         guard let device = devices[deviceID] else {
-            throw DesktopWirePayloadCodecError.unsupportedDeviceType
+            throw DesktopWirePayloadCodecError.missingDependency
         }
         let workspaceID = try optionalUUID(value, "workspace_id").map(WorkspaceID.init(rawValue:))
-        return try RemoteTab(
+        guard let target = try decodeTabTarget(value, version: payloadVersion),
+              let treeNodeID else { throw SharedTabTargetError.missingPageLink }
+        try target.validatePresence(treeNodeID: treeNodeID)
+        let result = try RemoteTab(
             tabID: TabID(rawValue: try id(value)),
             deviceID: deviceID,
             deviceKind: device.kind,
-            deviceName: device.name,
+            // Borrowed from other records: a long name an older writer
+            // published must not quarantine every Presence (A6).
+            deviceName: SyncRecordTextFitting.deviceName(device.name),
             sessionID: DeviceSessionID(rawValue: try uuid(value, "session_id")),
             workspaceID: workspaceID,
-            workspaceName: workspaceID.flatMap { workspaces[$0]?.name },
+            treeNodeID: treeNodeID,
+            workspaceName: workspaceID.flatMap { workspaces[$0]?.name }
+                .map(SyncRecordTextFitting.workspaceName),
             title: try string(value, "title"),
             url: try string(value, "url"),
+            targetKind: target.kind,
+            localScheme: target.localScheme,
             openedAt: try clock(value, timeKey: "opened_at"),
             lastActiveAt: try clock(value, timeKey: "last_active"),
-            isOpen: !((value["tombstone"] as? Bool) ?? false),
-            pinned: (value["pinned"] as? Bool) ?? false,
+            isOpen: !(try SharedTabWireReadPolicy.strictBoolean(value, key: "tombstone")),
+            pinned: try SharedTabWireReadPolicy.strictBoolean(value, key: "pinned"),
             version: resultVersion,
             tombstone: try tombstone(record, value: value)
         )
+        guard result.treeNodeID?.rawValue != result.id.rawValue else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        try validatePortableEnvelope(
+            record,
+            dataClass: .deviceTab,
+            identity: result.id.rawValue,
+            version: result.version,
+            tombstone: result.tombstone,
+            requiresAbsentOrderKey: true
+        )
+        return result
     }
 
     public func decodeHistory(_ record: SyncRecord, plaintext: Data) throws -> HistoryVisit {
         let value = try object(from: plaintext)
         let resultVersion = try version(value, requiredFields: Self.historyFields)
-        let deviceID = try optionalUUID(value, "device_id")
-            .map(DeviceID.init(rawValue:)) ?? resultVersion.modifiedBy
+        let deviceID = DeviceID(rawValue: try uuid(value, "device_id"))
+        let rawCount = try string(value, "visit_count")
+        guard let count = Int64(rawCount), String(count) == rawCount else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        let deleted = try tombstone(record, value: value)
+        try validatePortableEnvelope(record, dataClass: .historyVisit, identity: id(value),
+                                     version: resultVersion, tombstone: deleted)
         return try HistoryVisit(
             visitID: HistoryVisitID(rawValue: try id(value)),
             deviceID: deviceID,
             title: try string(value, "title"),
             url: try string(value, "url"),
             visitedAt: try clock(value, timeKey: "last_visit"),
-            transition: (value["transition"] as? String) ?? "desktop",
-            visitCount: Int64(try string(value, "visit_count")) ?? 1,
+            transition: try string(value, "transition"),
+            visitCount: count,
             version: resultVersion,
-            tombstone: try tombstone(record, value: value)
+            tombstone: deleted
         )
     }
 
@@ -363,8 +477,16 @@ public struct DesktopWirePayloadCodec: Sendable {
         let value = try object(from: plaintext)
         let resultVersion = try version(value, requiredFields: Self.commandFields)
         let commandID = try id(value)
+        guard try SharedTabWireReadPolicy.strictBoolean(value, key: "tombstone") == false,
+              record.tombstone == nil else { throw SyncBoundaryError.invalidTombstone }
+        try validatePortableEnvelope(record, dataClass: .remoteCommand, identity: commandID,
+                                     version: resultVersion, tombstone: nil)
         let source = DeviceID(rawValue: try uuid(value, "source_device_id"))
         let target = DeviceID(rawValue: try uuid(value, "target_device_id"))
+        let resultCode = try string(value, "result")
+        guard source != target, resultCode.utf8.count <= 64 else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
         guard let nonce = Data(base64Encoded: try string(value, "nonce")),
               let signature = Data(base64Encoded: try string(value, "signature")),
               nonce.count >= 16, nonce.count <= 64, signature.count == 64 else {
@@ -380,21 +502,33 @@ public struct DesktopWirePayloadCodec: Sendable {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
         let command: RemoteCommand
+        let workspaceID = try optionalUUID(value, "workspace_id").map(WorkspaceID.init(rawValue:))
+        let tabID = try optionalUUID(value, "tab_id").map(TabID.init(rawValue:))
+        let url = try string(value, "url")
         switch try integer(value, "command_kind") {
         case 0:
+            guard tabID == nil, let parsed = URLComponents(string: url),
+                  let scheme = parsed.scheme?.lowercased(), ["http", "https"].contains(scheme),
+                  parsed.host?.isEmpty == false, parsed.user == nil, parsed.password == nil,
+                  parsed.url != nil else { throw DesktopWirePayloadCodecError.malformedPayload }
             command = .open(.init(
-                url: try string(value, "url"),
-                workspaceID: try optionalUUID(value, "workspace_id")
-                    .map(WorkspaceID.init(rawValue:))
+                url: url,
+                workspaceID: workspaceID
             ))
         case 1:
+            guard let tabID, workspaceID == nil, url.isEmpty else {
+                throw DesktopWirePayloadCodecError.malformedPayload
+            }
             command = .focus(.init(
-                tabID: TabID(rawValue: try uuid(value, "tab_id")),
+                tabID: tabID,
                 context: .normal
             ))
         case 2:
+            guard let tabID, workspaceID == nil, url.isEmpty else {
+                throw DesktopWirePayloadCodecError.malformedPayload
+            }
             command = .close([.init(
-                tabID: TabID(rawValue: try uuid(value, "tab_id")),
+                tabID: tabID,
                 context: .normal
             )])
         default:
@@ -411,136 +545,132 @@ public struct DesktopWirePayloadCodec: Sendable {
         return RemoteCommandState(
             envelope: .init(payload: payload, signature: signature),
             status: status,
-            resultCode: try string(value, "result"),
+            resultCode: resultCode,
             version: resultVersion
         )
     }
 
     func common(
-        id: UUID,
-        tombstone: Bool,
-        version: SyncVersion,
-        fields: Set<String>
+        id: UUID, tombstone: Bool, version: SyncVersion, fields: Set<String>
     ) throws -> [String: Any] {
-        let normalized = version.normalized(for: fields)
+        try SharedTabWireReadPolicy.validateWriterVersion(version.schemaVersion)
+        _ = try SharedTabWireReadPolicy.strictUUID(["id": uuid(id)], key: "id")
+        let supplied = Set(version.fieldVersions.keys)
+        guard !fields.isEmpty, supplied.isEmpty || supplied == fields else {
+            throw SharedTabWirePreparationError.invalidFieldMap
+        }
+        // Only a completely new local clock map may be completed here. Partial
+        // or unknown maps are rejected rather than assigned synthetic clocks.
+        let clocks = supplied.isEmpty
+            ? Dictionary(uniqueKeysWithValues: fields.map { ($0, version.modifiedAt) })
+            : version.fieldVersions
+        let authored = SyncVersion(schemaVersion: SharedSyncFormat.currentVersion,
+                                   modifiedAt: version.modifiedAt, modifiedBy: version.modifiedBy,
+                                   fieldVersions: clocks)
+        try SharedSyncFormat.validate(authored, fields: fields)
         var value: [String: Any] = [
             "id": uuid(id),
-            "model_version": Int(normalized.schemaVersion),
+            "model_version": Int(SharedSyncFormat.currentVersion),
             "tombstone": tombstone,
-            "version_model": Int(normalized.schemaVersion),
-            "version_physical": try windowsMicroseconds(normalized.modifiedAt),
-            "version_logical": Int(normalized.modifiedAt.logicalCounter),
-            "version_device": uuid(normalized.modifiedBy.rawValue),
+            "version_model": Int(SharedSyncFormat.currentVersion),
+            "version_physical": try windowsMicroseconds(authored.modifiedAt),
+            "version_logical": Int(authored.modifiedAt.logicalCounter),
+            "version_device": uuid(authored.modifiedBy.rawValue),
         ]
-        if normalized.schemaVersion >= 2 {
-            value["field_versions"] = try Dictionary(uniqueKeysWithValues:
-                normalized.fieldVersions.map { name, clock in
-                    (
-                        name,
-                        [
-                            "physical": try windowsMicroseconds(clock),
-                            "logical": Int(clock.logicalCounter),
-                            "device": uuid(clock.nodeID.rawValue),
-                        ] as [String: Any]
-                    )
-                }
-            )
-        }
+        value["field_versions"] = try Dictionary(uniqueKeysWithValues:
+            authored.fieldVersions.map { name, clock in
+                (name, [
+                    "physical": try windowsMicroseconds(clock),
+                    "logical": Int(clock.logicalCounter),
+                    "device": uuid(clock.nodeID.rawValue),
+                ] as [String: Any])
+            }
+        )
         return value
     }
 
     func version(
-        _ value: [String: Any],
-        requiredFields: Set<String>? = nil
+        _ value: [String: Any], requiredFields: Set<String>? = nil
     ) throws -> SyncVersion {
-        guard let rawPhysical = Int64(try string(value, "version_physical")),
-              rawPhysical >= Self.windowsToUnixMicroseconds,
-              let modelVersion = UInt32(exactly: try integer(value, "version_model")),
-              let recordModel = UInt32(exactly: try integer(value, "model_version")),
-              modelVersion == recordModel,
-              let logical = UInt32(exactly: try integer(value, "version_logical")) else {
-            throw DesktopWirePayloadCodecError.malformedPayload
+        let schema = try SharedTabWireReadPolicy.payloadVersion(value)
+        _ = try id(value)
+        _ = try SharedTabWireReadPolicy.strictBoolean(value, key: "tombstone")
+        guard let rawFields = value["field_versions"] as? [String: Any],
+              !rawFields.isEmpty else { throw SharedTabWirePreparationError.invalidFieldMap }
+        let supplied = Set(rawFields.keys)
+        let knownMaps: [Set<String>] = [
+            Self.deviceFields, Self.workspaceFields, Self.treeNodeFields,
+            Self.historyFields, Self.remoteTabFields, Self.sessionFields,
+            Self.commandFields, Self.appearanceFields, Self.permittedSettingFields,
+            Self.extensionInventoryFields, Self.developerAssetFields,
+            BookmarkRecord.syncFields, DeviceCapabilityRecord.syncFields,
+        ]
+        guard requiredFields.map({ supplied == $0 }) ?? knownMaps.contains(supplied) else {
+            throw SharedTabWirePreparationError.invalidFieldMap
         }
-        let device = DeviceID(rawValue: try uuid(value, "version_device"))
-        let micros = UInt64(rawPhysical - Self.windowsToUnixMicroseconds)
-        var fieldVersions: [String: HybridLogicalClock] = [:]
-        if modelVersion >= 2 {
-            guard let encodedFields = value["field_versions"] as? [String: Any],
-                  requiredFields.map({ Set(encodedFields.keys) == $0 }) ?? true else {
-                throw DesktopWirePayloadCodecError.malformedPayload
-            }
-            for (name, encoded) in encodedFields {
-                guard let stamp = encoded as? [String: Any],
-                      let rawFieldPhysical = stamp["physical"] as? String,
-                      let fieldPhysical = Int64(rawFieldPhysical),
-                      fieldPhysical >= Self.windowsToUnixMicroseconds,
-                      let fieldLogicalNumber = stamp["logical"] as? NSNumber,
-                      let fieldLogical = UInt32(exactly: fieldLogicalNumber.int64Value),
-                      let fieldDeviceString = stamp["device"] as? String,
-                      let fieldDeviceUUID = UUID(uuidString: fieldDeviceString) else {
-                    throw DesktopWirePayloadCodecError.malformedPayload
-                }
-                let fieldMicros = UInt64(
-                    fieldPhysical - Self.windowsToUnixMicroseconds
-                )
-                let fieldClock = HybridLogicalClock(
-                    physicalMilliseconds: fieldMicros / 1_000,
-                    submillisecondMicroseconds: UInt16(fieldMicros % 1_000),
-                    logicalCounter: fieldLogical,
-                    nodeID: DeviceID(rawValue: fieldDeviceUUID)
-                )
-                fieldVersions[name] = fieldClock
-            }
-        }
-        return SyncVersion(
-            schemaVersion: modelVersion,
-            modifiedAt: .init(
-                physicalMilliseconds: micros / 1_000,
-                submillisecondMicroseconds: UInt16(micros % 1_000),
-                logicalCounter: logical,
-                nodeID: device
-            ),
-            modifiedBy: device,
-            fieldVersions: fieldVersions
+        let stamp = try SharedTabWireReadPolicy.parseClock(
+            value, physicalKey: "version_physical", logicalKey: "version_logical", deviceKey: "version_device"
         )
+        let fields = try SharedTabWireReadPolicy.fieldClocks(value, expected: supplied)
+        let result = SyncVersion(schemaVersion: schema, modifiedAt: stamp,
+                                 modifiedBy: stamp.nodeID, fieldVersions: fields)
+        try SharedTabWireReadPolicy.validateDecodedVersion(result)
+        return result
     }
 
     private func clock(
-        _ value: [String: Any],
-        timeKey: String,
-        fieldName: String? = nil
+        _ value: [String: Any], timeKey: String, fieldName: String? = nil
     ) throws -> HybridLogicalClock {
-        guard let raw = Int64(try string(value, timeKey)),
-              raw >= Self.windowsToUnixMicroseconds else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
+        let raw = try SharedTabWireReadPolicy.canonicalWindowsMicroseconds(value, key: timeKey)
         let parsedVersion = try version(value)
-        let fieldClock = parsedVersion.fieldVersions[fieldName ?? timeKey]
-            ?? parsedVersion.modifiedAt
+        guard let fieldClock = parsedVersion.fieldVersions[fieldName ?? timeKey] else {
+            throw SharedTabWirePreparationError.invalidFieldMap
+        }
         let micros = UInt64(raw - Self.windowsToUnixMicroseconds)
-        return .init(
-            physicalMilliseconds: micros / 1_000,
-            submillisecondMicroseconds: UInt16(micros % 1_000),
-            logicalCounter: fieldClock.logicalCounter,
-            nodeID: fieldClock.nodeID
-        )
+        return .init(physicalMilliseconds: micros / 1_000,
+                     submillisecondMicroseconds: UInt16(micros % 1_000),
+                     logicalCounter: fieldClock.logicalCounter, nodeID: fieldClock.nodeID)
     }
 
-    func tombstone(
-        _ record: SyncRecord,
-        value: [String: Any]
-    ) throws -> Tombstone? {
-        guard (value["tombstone"] as? Bool) == true else { return nil }
-        guard let tombstone = record.tombstone else {
+    func tombstone(_ record: SyncRecord, value: [String: Any]) throws -> Tombstone? {
+        guard record.schemaVersion == SharedSyncFormat.currentVersion else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+        let deleted = try SharedTabWireReadPolicy.strictBoolean(value, key: "tombstone")
+        if !deleted {
+            guard record.tombstone == nil else { throw DesktopWirePayloadCodecError.malformedPayload }
+            return nil
+        }
+        guard record.dataClass != .remoteCommand,
+              let tombstone = record.tombstone,
+              tombstone.entityID == record.entityID,
+              tombstone.deletedAt == record.modifiedAt,
+              tombstone.deletedBy == record.originatingDevice,
+              tombstone.purgeAfterMilliseconds > tombstone.deletedAt.physicalMilliseconds else {
             throw DesktopWirePayloadCodecError.malformedPayload
         }
         return tombstone
     }
 
+    func validatePortableEnvelope(
+        _ record: SyncRecord, dataClass: SyncDataClass, identity: UUID,
+        version: SyncVersion, tombstone: Tombstone?,
+        requiresAbsentOrderKey: Bool = false
+    ) throws {
+        guard record.schemaVersion == SharedSyncFormat.currentVersion,
+              record.recordID == identity, record.entityID == identity,
+              record.dataClass == dataClass, record.schemaVersion == version.schemaVersion,
+              record.modifiedAt == version.modifiedAt,
+              record.originatingDevice == version.modifiedBy, record.tombstone == tombstone,
+              !requiresAbsentOrderKey || record.orderKey == nil else {
+            throw DesktopWirePayloadCodecError.malformedPayload
+        }
+    }
+
     private func orderKey(
         _ raw: String,
         version: SyncVersion
-    ) throws -> (value: OrderKey, legacyWireValue: String?) {
+    ) throws -> (value: OrderKey, wireValue: String?) {
         if let separator = raw.firstIndex(of: "!"),
            let tieBreaker = UUID(uuidString: String(raw[raw.index(after: separator)...])) {
             let parts = raw[..<separator].split(separator: ".")
@@ -553,6 +683,8 @@ public struct DesktopWirePayloadCodec: Sendable {
                 return (result, nil)
             }
         }
+        // Current sort_key is an opaque lexical value. Retain its exact bytes
+        // while adapting it to the local OrderKey representation.
         let components = raw.utf8.prefix(OrderKey.maximumDepth).map(UInt16.init)
         guard !components.isEmpty else {
             throw DesktopWirePayloadCodecError.invalidOrderKey
@@ -563,7 +695,7 @@ public struct DesktopWirePayloadCodec: Sendable {
         ), raw)
     }
 
-    private func timeString(_ clock: HybridLogicalClock) throws -> String {
+    func timeString(_ clock: HybridLogicalClock) throws -> String {
         try windowsMicroseconds(clock)
     }
 
@@ -577,14 +709,13 @@ public struct DesktopWirePayloadCodec: Sendable {
     }
 
     private func unixMilliseconds(_ value: [String: Any], _ key: String) throws -> UInt64 {
-        guard let raw = Int64(try string(value, key)),
-              raw >= Self.windowsToUnixMicroseconds else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
+        let raw = try SharedTabWireReadPolicy.canonicalWindowsMicroseconds(value, key: key)
+        guard raw % 1_000 == 0 else { throw DesktopWirePayloadCodecError.malformedPayload }
         return UInt64((raw - Self.windowsToUnixMicroseconds) / 1_000)
     }
 
     private func windowsMicroseconds(_ clock: HybridLogicalClock) throws -> String {
+        try SharedTabWireReadPolicy.validateClock(clock)
         guard clock.physicalMicroseconds <= UInt64(
             Int64.max - Self.windowsToUnixMicroseconds
         ) else {
@@ -606,14 +737,11 @@ public struct DesktopWirePayloadCodec: Sendable {
     func uuid(_ value: UUID) -> String { value.uuidString.lowercased() }
 
     func uuid(_ value: [String: Any], _ key: String) throws -> UUID {
-        guard let result = UUID(uuidString: try string(value, key)) else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
-        return result
+        try SharedTabWireReadPolicy.strictUUID(value, key: key)
     }
 
     func optionalUUID(_ value: [String: Any], _ key: String) throws -> UUID? {
-        guard value[key] != nil, !(value[key] is NSNull) else { return nil }
+        guard value.keys.contains(key) else { return nil }
         return try uuid(value, key)
     }
 
@@ -625,9 +753,6 @@ public struct DesktopWirePayloadCodec: Sendable {
     }
 
     func integer(_ value: [String: Any], _ key: String) throws -> Int {
-        guard let result = value[key] as? NSNumber else {
-            throw DesktopWirePayloadCodecError.malformedPayload
-        }
-        return result.intValue
+        try SharedTabWireReadPolicy.strictInteger(value, key: key)
     }
 }

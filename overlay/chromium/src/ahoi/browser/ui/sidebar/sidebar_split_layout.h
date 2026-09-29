@@ -38,12 +38,44 @@ struct SidebarSplitSeparator {
   bool operator==(const SidebarSplitSeparator&) const = default;
 };
 
+// One interactive ratio boundary in the compact sidebar projection. A single
+// Chromium ratio can be represented by more than one painted separator (for
+// example the aligned horizontal edges in a 2x2 split); those pieces are
+// intentionally merged into one generous pointer target here.
+struct SidebarSplitDivider {
+  size_t divider_index = 0;
+  gfx::PointF start;
+  gfx::PointF end;
+  double ratio = 0.5;
+  int ratio_extent = 0;
+  bool reverse_ratio_direction = false;
+
+  bool resizes_horizontally() const { return start.x() == end.x(); }
+
+  bool operator==(const SidebarSplitDivider&) const = default;
+};
+
 // Returns separators only for panes that are geometrically adjacent. Every
 // endpoint is clamped to `paint_bounds`, which is the inset area actually
 // painted for the split group's background.
 std::vector<SidebarSplitSeparator> GetSidebarSplitSeparators(
     const std::vector<gfx::Rect>& segment_bounds,
     const gfx::RectF& paint_bounds);
+
+// Returns the logical primary/secondary ratio controls that correspond to
+// the exact segment projection above. Divider indices intentionally match
+// TabStripModel::UpdateSplitRatio(), so a sidebar gesture can update the same
+// Chromium-owned state as the WebContents divider without a parallel model.
+std::vector<SidebarSplitDivider> GetSidebarSplitDividers(
+    const gfx::Rect& group_bounds,
+    const std::vector<gfx::Rect>& segment_bounds,
+    const gfx::RectF& paint_bounds,
+    const split_tabs::SplitTabVisualData& visual_data);
+
+// The visible separator remains one quiet DIP while its native pointer target
+// is deliberately wider. This is the only geometry used for hit testing, so
+// click/drag ownership does not depend on aiming at a hairline.
+gfx::Rect GetSidebarSplitDividerHitBounds(const SidebarSplitDivider& divider);
 
 // Returns the stable, full-surface target used for before/after tab drops.
 // Hit testing and paint both use the same 30% edge geometry; unlike a moving

@@ -1,0 +1,27 @@
+PASS A1 expected accept: signed candidate archive verifies
+PASS A2 expected accept: signed delta archive verifies
+PASS A3 expected accept: signed feed verifies and meets the release contract
+PASS A4 expected accept: nightly build 12 is offered candidate build 13
+PASS B1 expected reject: one flipped byte in the full archive
+PASS B2 expected reject: one flipped byte in the delta archive
+PASS B3 expected reject: one byte appended to the full archive
+PASS C1 expected reject: candidate signed by a foreign key
+PASS C2 expected reject: signature of build 12 replayed for build 13
+PASS C3 expected reject: 64 zero bytes as signature
+PASS C4 expected reject: validly signed feed whose enclosure carries a foreign-key signature
+PASS C5 expected reject: feed re-signed with a foreign key
+PASS D1 expected reject: replayed genuine feed for build 12 offered to build 13
+PASS D2 expected reject: validly signed feed whose newest item is build 11
+PASS D3 expected reject: two items claim build 13 (ambiguous version)
+PASS D4 expected reject: release claims build 12 while 13 is newest
+PASS E1 expected reject: validly re-signed feed with HTTP full enclosure
+PASS E2 expected reject: validly re-signed feed with HTTP delta enclosure
+PASS E3 expected reject: HTTP enclosure without re-signing the feed
+PASS E4 expected reject: dot-segment escape from the artifact base
+PASS F1 expected reject: feed signature trailer removed
+PASS F2 expected reject: same-length edit of the signed body (minimumUpdateVersion 11 to 10)
+PASS F3 expected reject: unsigned content appended after the trailer
+PASS F4 expected reject: validly signed item in an unknown channel
+PASS F5 expected reject: nightly items presented as a stable feed
+PASS F6 expected reject: nightly items are not offered to beta builds
+26/26 checks passed

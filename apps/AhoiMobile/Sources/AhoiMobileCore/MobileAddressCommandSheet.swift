@@ -11,6 +11,7 @@ struct MobileAddressCommandSheet: View {
     @Binding private var addressSelection: TextSelection?
     @FocusState private var addressFieldFocused: Bool
     private let searchEngine: MobileSearchEngine
+    private let onOpenTreeNode: (TreeNodeID) -> Void
 
     init(
         companionModel: CompanionAppModel,
@@ -18,7 +19,8 @@ struct MobileAddressCommandSheet: View {
         isPresented: Binding<Bool>,
         addressText: Binding<String>,
         addressSelection: Binding<TextSelection?>,
-        searchEngine: MobileSearchEngine
+        searchEngine: MobileSearchEngine,
+        onOpenTreeNode: @escaping (TreeNodeID) -> Void
     ) {
         self.companionModel = companionModel
         _browser = ObservedObject(wrappedValue: browser)
@@ -26,93 +28,116 @@ struct MobileAddressCommandSheet: View {
         _addressText = addressText
         _addressSelection = addressSelection
         self.searchEngine = searchEngine
+        self.onOpenTreeNode = onOpenTreeNode
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 14) {
-                HStack(spacing: 8) {
-                    TextField(
-                        CompanionL10n.string(
-                            "browser.search_or_address",
-                            fallback: "Search or enter address"
-                        ),
-                        text: $addressText,
-                        selection: $addressSelection
-                    )
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.webSearch)
-                    .submitLabel(.go)
-                    .onSubmit(commitAddress)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.title3)
-                    .focused($addressFieldFocused)
-                    .onAppear {
-                        addressFieldFocused = true
-                        selectAllAddressText()
-                    }
-
-                    if !addressText.isEmpty {
-                        Button {
-                            addressText = ""
-                            addressSelection = TextSelection(insertionPoint: addressText.startIndex)
-                            addressFieldFocused = true
-                            browser.dismissError()
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
+        MobileHardwareEscapeContainer(onEscape: dismissAddressEditor) {
+            NavigationStack {
+                VStack(spacing: 14) {
+                    HStack(spacing: 8) {
+                        TextField(
+                            CompanionL10n.string(
+                                "browser.search_or_address",
+                                fallback: "Search or enter address"
+                            ),
+                            text: $addressText,
+                            selection: $addressSelection
+                        )
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.webSearch)
+                        .submitLabel(.go)
+                        .onSubmit(commitAddress)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.title3)
+                        .accessibilityIdentifier("browser.address.field")
+                        .focused($addressFieldFocused)
+                        .task {
+                            await focusAddressFieldAfterPresentation()
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("browser.address.clear")
-                        .accessibilityLabel(CompanionL10n.string(
-                            "browser.clear_address",
-                            fallback: "Clear address"
-                        ))
+
+                        if !addressText.isEmpty {
+                            Button {
+                                addressText = ""
+                                addressSelection = TextSelection(
+                                    insertionPoint: addressText.startIndex
+                                )
+                                addressFieldFocused = true
+                                browser.dismissError()
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("browser.address.clear")
+                            .accessibilityLabel(CompanionL10n.string(
+                                "browser.clear_address",
+                                fallback: "Clear address"
+                            ))
+                        }
+                    }
+
+                    if let error = browser.lastError {
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("browser.error.message")
+                    }
+
+                    MobileAddressCommandResults(
+                        companionModel: companionModel,
+                        browser: browser,
+                        isPresented: $isPresented,
+                        addressText: addressText,
+                        searchEngine: searchEngine,
+                        onCommit: commitAddress,
+                        onActivateSearchResult: activateSearchResult
+                    )
+                }
+                .padding()
+                .navigationTitle(CompanionL10n.string(
+                    "browser.command.title",
+                    fallback: "Go to"
+                ))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
+                            dismissAddressEditor()
+                        }
                     }
                 }
-
-                if let error = browser.lastError {
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .font(.callout)
-                        .foregroundStyle(.red)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityIdentifier("browser.error.message")
+                .task(id: addressText) {
+                    let query = addressText
+                    try? await Task.sleep(for: .milliseconds(120))
+                    guard !Task.isCancelled else { return }
+                    await companionModel.refreshSearch(query: query)
                 }
-
-                MobileAddressCommandResults(
-                    companionModel: companionModel,
-                    browser: browser,
-                    isPresented: $isPresented,
-                    addressText: addressText,
-                    searchEngine: searchEngine,
-                    onCommit: commitAddress,
-                    onActivateSearchResult: activateSearchResult
+                .frame(
+                    minWidth: horizontalSizeClass == .regular ? 620 : nil,
+                    minHeight: horizontalSizeClass == .regular ? 560 : nil
                 )
             }
-            .padding()
-            .navigationTitle(CompanionL10n.string("browser.command.title", fallback: "Go to"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(CompanionL10n.string("action.cancel", fallback: "Cancel")) {
-                        isPresented = false
-                    }
-                }
-            }
-            .task(id: addressText) {
-                let query = addressText
-                try? await Task.sleep(for: .milliseconds(120))
-                guard !Task.isCancelled else { return }
-                await companionModel.refreshSearch(query: query)
-            }
-            .frame(
-                minWidth: horizontalSizeClass == .regular ? 620 : nil,
-                minHeight: horizontalSizeClass == .regular ? 560 : nil
-            )
         }
         .presentationDetents([.medium, .large])
         .modifier(MobileAddressPresentationSizing(isRegularWidth: horizontalSizeClass == .regular))
+        .accessibilityAction(.escape) { dismissAddressEditor() }
+    }
+
+    private func focusAddressFieldAfterPresentation() async {
+        await Task.yield()
+        guard !Task.isCancelled, isPresented else { return }
+        addressFieldFocused = true
+        await Task.yield()
+        guard !Task.isCancelled, isPresented else { return }
+        selectAllAddressText()
+    }
+
+    private func dismissAddressEditor() {
+        addressFieldFocused = false
+        isPresented = false
     }
 
     private func selectAllAddressText() {
@@ -124,12 +149,30 @@ struct MobileAddressCommandSheet: View {
             addressText,
             searchTemplate: searchEngine.searchTemplate
         )
-        if browser.lastError == nil {
-            isPresented = false
-        }
+        if browser.lastError == nil { dismissAddressEditor() }
     }
 
     private func activateSearchResult(_ result: CompanionSearchResult) {
+        if result.kind == .bookmark {
+            guard let bookmark = companionModel.snapshot.visibleBookmarks.first(where: {
+                $0.id.rawValue == result.id && $0.kind == .url
+            }), let url = URL(string: bookmark.url),
+                (try? MobileBrowserInputRouter.validateWebURL(url)) != nil else {
+                browser.lastError = CompanionL10n.string(
+                    "bookmark.unsupported.message",
+                    fallback: "The address remains saved as bookmark metadata, but iPhone and iPad open only web addresses here."
+                )
+                return
+            }
+            _ = browser.createTab(url: url)
+            dismissAddressEditor()
+            return
+        }
+        if result.kind == .savedPage {
+            onOpenTreeNode(TreeNodeID(rawValue: result.id))
+            dismissAddressEditor()
+            return
+        }
         if let value = result.url {
             addressText = value
             commitAddress()
@@ -150,7 +193,7 @@ struct MobileAddressCommandSheet: View {
                     $0.id == node.workspaceID
                 }
             }
-        case .savedPage, .remoteTab, .history:
+        case .savedPage, .bookmark, .remoteTab, .history:
             workspace = nil
         }
         guard let workspace else { return }
@@ -161,7 +204,7 @@ struct MobileAddressCommandSheet: View {
         } else {
             _ = browser.createTab(workspaceID: workspace.id)
         }
-        isPresented = false
+        dismissAddressEditor()
     }
 }
 

@@ -4,23 +4,36 @@
 #ifndef AHOI_BROWSER_UI_SETTINGS_AHOI_SETTINGS_HANDLER_H_
 #define AHOI_BROWSER_UI_SETTINGS_AHOI_SETTINGS_HANDLER_H_
 
+#include <atomic>
+#include <memory>
+#include <optional>
+#include <string>
 #include <string_view>
+#include <vector>
 
+#include "ahoi/browser/session/portable_workspace_structure.h"
+#include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/sync/profile_sync_service.h"
+#include "ahoi/browser/ui/settings/link_routing_settings_model.h"
+#include "base/callback_list.h"
+#include "base/files/file_path.h"
 #include "base/memory/raw_ptr.h"
+#include "base/memory/weak_ptr.h"
 #include "base/values.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/web_ui_message_handler.h"
+#include "ui/shell_dialogs/select_file_dialog.h"
 
 class Profile;
 
 namespace ahoi::settings {
 
-// Owns the security-sensitive Settings bridge for remote-control pairing and
-// activation. The WebUI never receives approved public-key material and never
-// writes the receive-policy preference directly.
-class AhoiSettingsHandler final
-    : public content::WebUIMessageHandler,
-      public sync::ProfileSyncService::Observer {
+// Owns explicit Sync category consent, the security-sensitive remote-control
+// bridge and a separately selected local workspace export. The WebUI never
+// receives approved public-key material or raw file bytes.
+class AhoiSettingsHandler final : public content::WebUIMessageHandler,
+                                  public sync::ProfileSyncService::Observer,
+                                  public ui::SelectFileDialog::Listener {
  public:
   explicit AhoiSettingsHandler(Profile* profile);
   AhoiSettingsHandler(const AhoiSettingsHandler&) = delete;
@@ -36,7 +49,24 @@ class AhoiSettingsHandler final
   void OnAhoiSyncStatusChanged(
       const sync::SyncTransportStatus& status) override;
 
+  // ui::SelectFileDialog::Listener:
+  void FileSelected(const ui::SelectedFileInfo& file, int index) override;
+  void FileSelectionCanceled() override;
+
  private:
+  bool IsAuthorizedSettingsPage();
+  base::DictValue BuildBrowserSettingsSyncStatus(std::string_view action) const;
+  void ResolveBrowserSettingsSyncStatus(base::Value callback_id,
+                                        std::string_view action);
+  void PushBrowserSettingsSyncStatus();
+  void HandleGetBrowserSettingsSyncStatus(const base::ListValue& args);
+  void HandleSetBrowserSettingsSyncEnabled(const base::ListValue& args);
+  base::DictValue BuildSyncControlsStatus(std::string_view action) const;
+  void ResolveSyncControlsStatus(base::Value callback_id,
+                                 std::string_view action);
+  void PushSyncControlsStatus();
+  void HandleGetSyncControlsStatus(const base::ListValue& args);
+  void HandleSyncControlAction(const base::ListValue& args);
   base::DictValue BuildRemoteControlStatus(std::string_view action) const;
   void ResolveStatus(base::Value callback_id, std::string_view action);
   void PushStatus(std::string_view action);
@@ -44,10 +74,62 @@ class AhoiSettingsHandler final
   void HandleSetRemoteControlEnabled(const base::ListValue& args);
   void HandleApproveRemoteControlDevice(const base::ListValue& args);
   void HandleRevokeRemoteControlDevice(const base::ListValue& args);
+  void HandleGetPortableExportOptions(const base::ListValue& args);
+  void HandlePreparePortableExport(const base::ListValue& args);
+  void HandleSavePortableExport(const base::ListValue& args);
+  void HandleOpenPortableImport(const base::ListValue& args);
+  void HandleCommitPortableImport(const base::ListValue& args);
+  void OnPortableExportWritten(bool success);
+  struct PortableImportReadback {
+    std::optional<session::PortableWorkspaceStructure> structure;
+  };
+  static PortableImportReadback ReadPortableImportFile(base::FilePath path);
+  void OnPortableImportRead(PortableImportReadback readback);
+  void OnPortableImportCommitted(base::Value callback_id,
+                                 SessionBridge::PortableImportResult result);
+
+  // Workspace routing of external links (ahoi_settings_link_routing.cc). The
+  // rules live in the main Profile's `ahoi.navigation.link_routing` pref.
+  Profile* LinkRoutingProfile() const;
+  std::vector<LinkRoutingWorkspace> LinkRoutingWorkspaces() const;
+  base::DictValue BuildLinkRoutingStatus(std::string_view action,
+                                         std::string_view error) const;
+  void PushLinkRoutingStatus();
+  void HandleGetLinkRouting(const base::ListValue& args);
+  void HandleLinkRoutingAction(const base::ListValue& args);
+  void HandleResolveLinkRoutingExample(const base::ListValue& args);
+
+  // Keyboard shortcut editor (ahoi_settings_shortcuts.cc). Bindings live in
+  // this page's Profile.
+  base::DictValue BuildShortcutStatus(std::string_view action,
+                                      std::string_view error_label) const;
+  void PushShortcutStatus();
+  void HandleGetShortcuts(const base::ListValue& args);
+  void HandleShortcutAction(const base::ListValue& args);
+  void HandleSetShortcutRecording(const base::ListValue& args);
+
+  enum class PortableDialogPurpose { kNone, kExportSave, kImportOpen };
 
   raw_ptr<Profile> profile_ = nullptr;
   raw_ptr<sync::ProfileSyncService> sync_service_ = nullptr;
+  base::CallbackListSubscription bookmark_status_subscription_;
   bool observing_sync_service_ = false;
+  scoped_refptr<ui::SelectFileDialog> portable_file_dialog_;
+  PortableDialogPurpose portable_dialog_purpose_ = PortableDialogPurpose::kNone;
+  std::string portable_export_token_;
+  std::string portable_export_json_;
+  bool portable_export_writing_ = false;
+  bool portable_import_reading_ = false;
+  bool portable_import_committing_ = false;
+  std::string portable_import_token_;
+  std::optional<session::PortableWorkspaceStructure> portable_import_structure_;
+  std::shared_ptr<std::atomic<bool>> portable_import_lease_;
+  // Observes the routing pref when this page's Profile is the main Profile,
+  // so a "Für diese Website merken" choice appears without a reload.
+  PrefChangeRegistrar link_routing_pref_registrar_;
+  // Shows a binding changed in another settings tab without a reload.
+  PrefChangeRegistrar shortcut_pref_registrar_;
+  base::WeakPtrFactory<AhoiSettingsHandler> weak_factory_{this};
 };
 
 }  // namespace ahoi::settings

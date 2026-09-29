@@ -1,0 +1,5 @@
+2026-09-28 12:03:11 red start idle=20.19 free=65GiB
+2026-09-28 12:23:41 red build 1 idle=62.72
+2026-09-28 12:23:48 green start idle=30.15 free=56GiB
+2026-09-28 12:25:10 green build 2 idle=72.15
+2026-09-28 12:25:10 done

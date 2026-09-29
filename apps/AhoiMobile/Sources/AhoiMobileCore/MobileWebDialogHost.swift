@@ -1,11 +1,15 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+@MainActor
 struct MobileWebDialogHost: View {
     @ObservedObject var presenter: MobileWebDialogPresenter
+    let onPresentationRequested: () -> Void
     @State private var promptText = ""
     @State private var fileImporterPresented = false
     @State private var activeFileInputRequest: MobileFileInputRequest?
+    @State private var fileSelectionTask: Task<Void, Never>?
+    @State private var fileSelectionFailurePresented = false
 
     var body: some View {
         Color.clear
@@ -20,6 +24,7 @@ struct MobileWebDialogHost: View {
                     Button(CompanionL10n.string("action.ok", fallback: "OK")) {
                         presenter.acknowledgeAlert(requestID: request.id)
                     }
+                    .accessibilityIdentifier("browser.dialog.accept")
                 case .confirm:
                     Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
                         presenter.respondToConfirmation(
@@ -27,12 +32,14 @@ struct MobileWebDialogHost: View {
                             confirmed: false
                         )
                     }
+                    .accessibilityIdentifier("browser.dialog.cancel")
                     Button(CompanionL10n.string("action.ok", fallback: "OK")) {
                         presenter.respondToConfirmation(
                             requestID: request.id,
                             confirmed: true
                         )
                     }
+                    .accessibilityIdentifier("browser.dialog.accept")
                 case .prompt(_, let defaultText):
                     TextField(
                         CompanionL10n.string(
@@ -41,36 +48,39 @@ struct MobileWebDialogHost: View {
                         ),
                         text: $promptText
                     )
+                    .accessibilityIdentifier("browser.dialog.prompt.field")
                     .onAppear { promptText = defaultText ?? "" }
                     Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
                         presenter.cancel(requestID: request.id)
                     }
+                    .accessibilityIdentifier("browser.dialog.cancel")
                     Button(CompanionL10n.string("action.ok", fallback: "OK")) {
                         presenter.respondToPrompt(
                             requestID: request.id,
                             submittedText: promptText
                         )
                     }
+                    .accessibilityIdentifier("browser.dialog.accept")
                 }
             } message: { request in
                 Text(request.kind.message)
             }
-            .confirmationDialog(
+            .alert(
                 fileInputTitle,
                 isPresented: fileInputConfirmationPresented,
-                titleVisibility: .visible,
                 presenting: presenter.pendingFileInput
             ) { request in
                 Button(CompanionL10n.string(
                     "browser.file_input.choose",
                     fallback: "Choose Files"
                 )) {
-                    activeFileInputRequest = request
-                    fileImporterPresented = true
+                    beginFileSelection(for: request)
                 }
+                .accessibilityIdentifier("browser.file_input.choose")
                 Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
                     presenter.cancel(requestID: request.id)
                 }
+                .accessibilityIdentifier("browser.file_input.cancel")
             } message: { request in
                 Text(CompanionL10n.format(
                     "browser.file_input.message",
@@ -87,17 +97,43 @@ struct MobileWebDialogHost: View {
                 allowsMultipleSelection: activeFileInputRequest?.allowsMultipleSelection == true
             ) { result in
                 guard let request = activeFileInputRequest else { return }
-                activeFileInputRequest = nil
                 switch result {
                 case .success(let urls):
-                    presenter.selectFiles(requestID: request.id, urls: urls)
-                case .failure:
+                    stageSelectedFiles(urls, for: request)
+                case .failure(let error):
+                    activeFileInputRequest = nil
                     presenter.cancel(requestID: request.id)
+                    if !isUserCancellation(error) {
+                        fileSelectionFailurePresented = true
+                    }
+                }
+            }
+            .alert(
+                CompanionL10n.string(
+                    "browser.file_input.error.title",
+                    fallback: "Files Could Not Be Selected"
+                ),
+                isPresented: $fileSelectionFailurePresented
+            ) {
+                Button(CompanionL10n.string("action.ok", fallback: "OK")) {}
+                    .accessibilityIdentifier("browser.file_input.error.dismiss")
+            } message: {
+                Text(CompanionL10n.string(
+                    "browser.file_input.error.message",
+                    fallback: "AhoiBrowser could not safely prepare that selection. Choose the files again."
+                ))
+                .accessibilityIdentifier("browser.file_input.error.message")
+            }
+            .onChange(of: chromeResetContext) { previous, current in
+                if current.requiresExpansion(comparedTo: previous) {
+                    onPresentationRequested()
                 }
             }
             .onChange(of: presenter.pendingFileInput?.id) { _, requestID in
                 if let activeFileInputRequest,
                    requestID != activeFileInputRequest.id {
+                    fileSelectionTask?.cancel()
+                    fileSelectionTask = nil
                     fileImporterPresented = false
                     self.activeFileInputRequest = nil
                 } else if requestID == nil {
@@ -106,7 +142,12 @@ struct MobileWebDialogHost: View {
                 }
             }
             .onDisappear {
+                fileSelectionTask?.cancel()
+                fileSelectionTask = nil
                 fileImporterPresented = false
+                if let activeFileInputRequest {
+                    presenter.cancel(requestID: activeFileInputRequest.id)
+                }
                 activeFileInputRequest = nil
             }
     }
@@ -121,6 +162,13 @@ struct MobileWebDialogHost: View {
         )
     }
 
+    private var chromeResetContext: MobileChromePresentationResetContext {
+        MobileChromePresentationResetContext(
+            javaScriptDialogID: presenter.pendingJavaScriptDialog?.id,
+            fileInputRequestID: presenter.pendingFileInput?.id
+        )
+    }
+
     private var fileInputConfirmationPresented: Binding<Bool> {
         Binding(
             get: {
@@ -128,7 +176,8 @@ struct MobileWebDialogHost: View {
                     activeFileInputRequest == nil && !fileImporterPresented
             },
             set: { presented in
-                guard !presented, !fileImporterPresented,
+                guard !presented, activeFileInputRequest == nil,
+                      !fileImporterPresented,
                       let request = presenter.pendingFileInput else { return }
                 presenter.cancel(requestID: request.id)
             }
@@ -144,5 +193,59 @@ struct MobileWebDialogHost: View {
 
     private var allowedContentTypes: [UTType] {
         activeFileInputRequest?.allowsDirectories == true ? [.folder] : [.item]
+    }
+
+    private func beginFileSelection(for request: MobileFileInputRequest) {
+        activeFileInputRequest = request
+#if DEBUG
+        if let fixtureURLs = MobileFileInputUITestFixture.selectionURLsIfRequested() {
+            stageSelectedFiles(fixtureURLs, for: request)
+            return
+        }
+#endif
+        fileImporterPresented = true
+    }
+
+    private func stageSelectedFiles(
+        _ urls: [URL],
+        for request: MobileFileInputRequest
+    ) {
+        fileSelectionTask?.cancel()
+        fileSelectionTask = Task { @MainActor in
+            do {
+                let selection = try await MobileFileInputStagingStore.shared.stage(
+                    urls: urls,
+                    for: request
+                )
+                guard !Task.isCancelled,
+                      presenter.pendingFileInput?.id == request.id else {
+                    MobileFileInputStagingStore.shared.discard(selection)
+                    return
+                }
+                fileSelectionTask = nil
+                activeFileInputRequest = nil
+                presenter.selectFiles(
+                    requestID: request.id,
+                    urls: selection.selectedURLs
+                )
+            } catch is CancellationError {
+                if presenter.pendingFileInput?.id == request.id {
+                    presenter.cancel(requestID: request.id)
+                }
+                fileSelectionTask = nil
+                activeFileInputRequest = nil
+            } catch {
+                fileSelectionTask = nil
+                activeFileInputRequest = nil
+                presenter.cancel(requestID: request.id)
+                fileSelectionFailurePresented = true
+            }
+        }
+    }
+
+    private func isUserCancellation(_ error: Error) -> Bool {
+        let cocoaError = error as NSError
+        return cocoaError.domain == NSCocoaErrorDomain &&
+            cocoaError.code == NSUserCancelledError
     }
 }

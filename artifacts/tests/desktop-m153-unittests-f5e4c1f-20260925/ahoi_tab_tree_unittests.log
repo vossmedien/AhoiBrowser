@@ -1,0 +1,34 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 4 parallel jobs.
+[1/25] AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory (428 ms)
+[2/25] AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree (228 ms)
+[3/25] AhoiTabTreeStoreTest.RejectsSavedPageAsParent (122 ms)
+[4/25] AhoiTabTreeStoreTest.RefusesTooNewSchemaWithoutRazingData (123 ms)
+[5/25] AhoiTabTreeStoreTest.Schema2UpgradeKeepsNestedRowsUndoAndConstraints (509 ms)
+[6/25] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload (215 ms)
+[7/25] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree (254 ms)
+[8/25] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt (99 ms)
+[9/25] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline (127 ms)
+[10/25] AhoiTabTreeStoreTest.PersistsDeepHierarchyAndManualOrder (649 ms)
+[11/25] AhoiTabTreeStoreTest.ListsActiveWorkspacesInStableOrder (113 ms)
+[12/25] AhoiTabTreeStoreTest.UpdatesWorkspacePresentationAndPersistsIt (82 ms)
+[13/25] AhoiTabTreeStoreTest.DeletesWorkspaceAndItsTreeAtomically (177 ms)
+[14/25] AhoiTabTreeStoreTest.DuplicatesDeepWorkspaceAndRemapsParents (325 ms)
+[15/25] AhoiTabTreeStoreTest.RejectsInvalidWorkspaceDuplicateAtomically (108 ms)
+[16/25] AhoiTabTreeStoreTest.FindsSavedPagesByUrlAtAnyNestingDepth (308 ms)
+[17/25] AhoiTabTreeStoreTest.RejectsCycleWithoutCreatingUndoEntry (250 ms)
+[18/25] AhoiTabTreeStoreTest.MovesWholeSubtreeAcrossWorkspacesAndUndoes (316 ms)
+[19/25] AhoiTabTreeStoreTest.SameWorkspaceMoveDoesNotRewriteDescendantsAndUndoes (274 ms)
+[20/25] AhoiTabTreeStoreTest.MovesSavedPagesAtomicallyAndOneUndoRestoresBoth (329 ms)
+[21/25] AhoiTabTreeStoreTest.WrapsSplitPagesInOneFolderAndUndoRestoresBoth (210 ms)
+[22/25] AhoiTabTreeStoreTest.DeleteTombstonesSubtreeAndDurableUndoRestoresIt (214 ms)
+[23/25] AhoiTabTreeStoreTest.AtomicDeleteAndUndoKeepsSplitPagesTogether (199 ms)
+[24/25] AhoiTabTreeStoreTest.CreateRenameAndUndoAreLifoAndAtomic (134 ms)
+[25/25] AhoiTabTreeStoreTest.LiveMetadataUpdatePersistsWithoutPollutingUndo (98 ms)
+SUCCESS: all tests passed.
+Tests took 2 seconds.
+EXIT 0

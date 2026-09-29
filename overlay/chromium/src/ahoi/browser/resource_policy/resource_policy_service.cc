@@ -18,6 +18,8 @@
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/resource_coordinator/tab_lifecycle_unit_external.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "components/performance_manager/public/decorators/page_live_state_decorator.h"
+#include "components/performance_manager/public/graph/page_node.h"
 #include "components/performance_manager/public/performance_manager.h"
 #include "components/performance_manager/public/user_tuning/prefs.h"
 #include "components/prefs/pref_service.h"
@@ -171,6 +173,41 @@ bool ResourcePolicyService::CanSleepTab(tabs::TabInterface* tab) const {
   bool eligible = false;
   std::ignore =
       GetUpstreamBlockReason(tab, /*ignore_recent_visibility=*/true, &eligible);
+  return eligible;
+}
+
+bool ResourcePolicyService::CanArchiveTab(tabs::TabInterface* tab) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (shutting_down_ || !tab || !tabs_.contains(tab) || !download_manager_ ||
+      tab->IsPinned() || tab->IsActivated() || !tab->GetContents() ||
+      !performance_manager::PerformanceManager::IsAvailable() ||
+      GetPrimaryBlockReason(CollectCriticalSignals(tab)) !=
+          SleepBlockReason::kNone) {
+    return false;
+  }
+  auto* contents = tab->GetContents();
+  auto* lifecycle =
+      resource_coordinator::TabLifecycleUnitExternal::FromWebContents(contents);
+  const auto page =
+      performance_manager::PerformanceManager::GetPrimaryPageNodeForWebContents(
+          contents);
+  using Live = performance_manager::PageLiveStateDecorator;
+  if (!lifecycle || !lifecycle->IsAutoDiscardable() || !page ||
+      page->HadFormInteraction() || page->HadUserEdits() ||
+      Live::IsCapturingAudio(contents) || Live::IsCapturingVideo(contents) ||
+      Live::IsCapturingDisplay(contents) || Live::IsCapturingWindow(contents) ||
+      Live::IsBeingMirrored(contents) || Live::IsDevToolsOpen(contents) ||
+      contents->IsLoading()) {
+    return false;
+  }
+  // DiscardEligibilityPolicy rejects already-discarded pages before checking
+  // their other reasons. Their live state still has to satisfy every explicit
+  // protection above; awake pages additionally retain the upstream policy.
+  if (contents->WasDiscarded()) {
+    return true;
+  }
+  bool eligible = false;
+  std::ignore = GetUpstreamBlockReason(tab, true, &eligible);
   return eligible;
 }
 

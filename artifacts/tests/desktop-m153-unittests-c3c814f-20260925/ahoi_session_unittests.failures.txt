@@ -1,0 +1,7 @@
+[  FAILED  ] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource
+[  FAILED  ] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar
+[  FAILED  ] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation
+[  FAILED  ] SessionRestoreIntegrationTest.ExtraDataRoundTripsWindowAndTabState
+4 tests failed:
+EXIT 1
+Tests took 15 seconds.

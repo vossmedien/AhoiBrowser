@@ -1,30 +1,15 @@
-// Copy this file outside version control (or inject the same values through
-// CI/Xcode build settings) only after the Apple team has provisioned them.
-// No real Apple identifier or secret belongs in the repository.
+// Materialize this candidate-only overlay outside version control and pass it
+// with `xcodebuild -xcconfig`. Public Team/bundle/container values live in the
+// tracked mode configurations; no key bytes, certificates or profiles belong here.
 
-AHOI_APPLE_TEAM_ID =
-AHOI_MOBILE_BUNDLE_ID = invalid.ahoibrowser.unconfigured.mobile
-AHOI_MOBILE_CORE_BUNDLE_ID = invalid.ahoibrowser.unconfigured.core
-// Replace both sentinels with the exact App Store version and a monotonically
-// increasing positive integer build number for every uploaded candidate.
+AHOI_SOURCE_COMMIT = __AHOI_SOURCE_COMMIT_UNRESOLVED__
 AHOI_MOBILE_MARKETING_VERSION = __AHOI_MARKETING_VERSION_UNRESOLVED__
 AHOI_MOBILE_BUILD_NUMBER = __AHOI_BUILD_NUMBER_UNRESOLVED__
-AHOI_MOBILE_TEST_BUNDLE_ID = __AHOI_TEST_BUNDLE_ID_UNRESOLVED__
-AHOI_MOBILE_UI_TEST_BUNDLE_ID = __AHOI_UI_TEST_BUNDLE_ID_UNRESOLVED__
-// Legal/export-compliance must explicitly classify the exact candidate as YES
-// or NO. Any other value blocks Release in release-preflight.sh.
+// Legal/export-compliance must classify the exact candidate as YES or NO.
 AHOI_APP_USES_NON_EXEMPT_ENCRYPTION = __AHOI_EXPORT_COMPLIANCE_UNRESOLVED__
+
+// Automatic/Cloud-Managed Signing is the primary path. A reviewed manual
+// fallback must set all three values together and is rejected otherwise.
+CODE_SIGN_STYLE = Automatic
+AHOI_MANUAL_SIGNING_FALLBACK = NO
 AHOI_PROVISIONING_PROFILE_SPECIFIER =
-AHOI_APS_ENVIRONMENT = production
-AHOI_CLOUDKIT_CONTAINER_ENVIRONMENT = Production
-AHOI_CLOUDKIT_CONTAINER_ID =
-AHOI_SYNC_KEYCHAIN_ACCESS_GROUP =
-AHOI_SYNC_KEYCHAIN_SERVICE =
-AHOI_SYNC_KEYCHAIN_ACCOUNT =
-AHOI_SYNC_KEY_VERSION =
-AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP =
-AHOI_COMMAND_KEYCHAIN_SERVICE =
-AHOI_COMMAND_KEYCHAIN_ACCOUNT =
-CODE_SIGN_ENTITLEMENTS = AhoiMobile.DefaultBrowser.entitlements.template
-CODE_SIGN_STYLE = Manual
-CODE_SIGN_IDENTITY = Apple Distribution

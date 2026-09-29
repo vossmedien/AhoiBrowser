@@ -42,7 +42,7 @@ IN_PROC_BROWSER_TEST_F(AhoiSettingsBrowserTest,
   ASSERT_TRUE(
       ui_test_utils::NavigateToURL(browser(), chrome::GetSettingsUrl("ahoi")));
   content::WebContents* const web_contents =
-      browser()->tab_strip_model()->GetActiveWebContents();
+      browser()->GetTabStripModel()->GetActiveWebContents();
   ASSERT_TRUE(web_contents);
 
   ASSERT_TRUE(content::EvalJs(web_contents, R"JS(

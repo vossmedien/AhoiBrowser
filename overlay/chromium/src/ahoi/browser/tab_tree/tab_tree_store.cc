@@ -4,6 +4,9 @@
 
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 
+#include <initializer_list>
+#include <string>
+
 #include "base/check.h"
 #include "sql/meta_table.h"
 #include "sql/transaction.h"
@@ -66,7 +69,7 @@ bool TabTreeStore::InitializeSchema() {
     }
   }
 
-  return initialized;
+  return initialized && LoadWorkspaceStructureState();
 }
 
 void TabTreeStore::AddObserver(TabTreeObserver* observer) {
@@ -87,7 +90,8 @@ bool TabTreeStore::CreateSchema() {
              "name TEXT NOT NULL,icon TEXT NOT NULL,sort_key TEXT NOT NULL,"
              "accent_argb INTEGER,created_at INTEGER NOT NULL,"
              "modified_at INTEGER NOT NULL,tombstone INTEGER NOT NULL CHECK("
-             "tombstone IN (0,1)))") &&
+             "tombstone IN (0,1)),archive_policy INTEGER NOT NULL DEFAULT 0 "
+             "CHECK(archive_policy IN (0,1,2,3,4)),merged_into TEXT)") &&
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS tree_nodes("
              "model_version INTEGER NOT NULL,id TEXT PRIMARY KEY NOT NULL,"
@@ -97,7 +101,12 @@ bool TabTreeStore::CreateSchema() {
              "title TEXT NOT NULL,icon TEXT NOT NULL DEFAULT '',"
              "accent_argb INTEGER,url TEXT NOT NULL,sort_key TEXT NOT NULL,"
              "created_at INTEGER NOT NULL,modified_at INTEGER NOT NULL,"
-             "tombstone INTEGER NOT NULL CHECK(tombstone IN (0,1)))") &&
+             "tombstone INTEGER NOT NULL CHECK(tombstone IN (0,1)),"
+             "is_temporary INTEGER NOT NULL DEFAULT 0 CHECK("
+             "is_temporary IN (0,1)),target_kind INTEGER CHECK("
+             "target_kind IN (0,1,2)),local_scheme TEXT,"
+             "home_url TEXT NOT NULL DEFAULT '',home_target_kind INTEGER "
+             "CHECK(home_target_kind IN (0,2)),home_local_scheme TEXT)") &&
          db_.Execute(
              "CREATE INDEX IF NOT EXISTS tree_nodes_parent_order ON "
              "tree_nodes(workspace_id,parent_id,tombstone,sort_key,id)") &&
@@ -107,7 +116,8 @@ bool TabTreeStore::CreateSchema() {
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS undo_operations("
              "operation_id INTEGER PRIMARY KEY AUTOINCREMENT,"
-             "mutation_kind INTEGER NOT NULL CHECK(mutation_kind IN (0,1,2,3)),"
+             "mutation_kind INTEGER NOT NULL CHECK(mutation_kind IN "
+             "(0,1,2,3,4)),"
              "subject_node_id TEXT NOT NULL,created_at INTEGER NOT NULL)") &&
          db_.Execute(
              "CREATE TABLE IF NOT EXISTS undo_node_snapshots("
@@ -118,7 +128,12 @@ bool TabTreeStore::CreateSchema() {
              "parent_id TEXT,node_type INTEGER,title TEXT,icon TEXT,"
              "accent_argb INTEGER,url TEXT,"
              "sort_key TEXT,created_at INTEGER,modified_at INTEGER,"
-             "tombstone INTEGER,PRIMARY KEY(operation_id,node_id),"
+             "tombstone INTEGER,is_temporary INTEGER DEFAULT 0 CHECK("
+             "is_temporary IN (0,1)),target_kind INTEGER CHECK("
+             "target_kind IN (0,1,2)),local_scheme TEXT,"
+             "home_url TEXT,home_target_kind INTEGER CHECK("
+             "home_target_kind IN (0,2)),home_local_scheme TEXT,"
+             "PRIMARY KEY(operation_id,node_id),"
              "UNIQUE(operation_id,ordinal))");
 }
 
@@ -136,7 +151,157 @@ bool TabTreeStore::MigrateSchema(sql::MetaTable* meta_table) {
       return false;
     }
   }
+  if (meta_table->GetVersionNumber() == 2) {
+    if (!MigrateNodesToSchema3() || !meta_table->SetVersionNumber(3)) {
+      return false;
+    }
+  }
+  if (meta_table->GetVersionNumber() == 3) {
+    // A small additive LOCAL tree upgrade, not a sync-format/data migration.
+    // The pinned SQLite cannot ALTER ADD CHECK (pragma_quick_check); matching
+    // read/write validation keeps these typed columns constrained. A schema2
+    // upgrade may already have created the current node/undo columns above.
+    for (const char* table : {"tree_nodes", "undo_node_snapshots"}) {
+      for (const char* column :
+           {"home_url", "home_target_kind", "home_local_scheme"}) {
+        const std::string table_name(table);
+        const std::string column_name(column);
+        if (db_.DoesColumnExist(table_name, column_name)) {
+          continue;
+        }
+        const std::string type =
+            std::string(column) == "home_target_kind" ? " INTEGER" : " TEXT";
+        const std::string defaults =
+            std::string(column) == "home_url" ? " DEFAULT ''" : "";
+        if (!db_.Execute("ALTER TABLE " + std::string(table) + " ADD COLUMN " +
+                         column + type + defaults)) {
+          return false;
+        }
+      }
+      // Only pre-existing local saved content establishes its initial Home.
+      // Navigation updates never rewrite it; temporary pages keep no default.
+      if (!db_.Execute("UPDATE " + std::string(table) +
+                       " SET home_url=url,home_target_kind=NULL,"
+                       "home_local_scheme=NULL WHERE node_type=1 "
+                       "AND is_temporary=0 AND (target_kind IS NULL OR "
+                       "target_kind!=1)")) {
+        return false;
+      }
+    }
+    if ((!db_.DoesColumnExist("workspaces", "archive_policy") &&
+         !db_.Execute(
+             "ALTER TABLE workspaces ADD COLUMN archive_policy INTEGER "
+             "NOT NULL DEFAULT 0")) ||
+        !meta_table->SetVersionNumber(4) ||
+        !meta_table->SetCompatibleVersionNumber(4)) {
+      return false;
+    }
+  }
+  if (meta_table->GetVersionNumber() == 4) {
+    // Additive and nullable: the target of a merged Workspace (ADR 0012,
+    // crest 084). Existing rows keep NULL, which means "not merged".
+    if ((!db_.DoesColumnExist("workspaces", "merged_into") &&
+         !db_.Execute("ALTER TABLE workspaces ADD COLUMN merged_into TEXT")) ||
+        !meta_table->SetVersionNumber(5) ||
+        !meta_table->SetCompatibleVersionNumber(5)) {
+      return false;
+    }
+  }
+  if (meta_table->GetVersionNumber() == 5) {
+    // Admits the node-less empty-source merge undo receipt (crest 134). An
+    // older build cannot export that kind, so the compatible version rises.
+    if (!MigrateUndoToSchema6() || !meta_table->SetVersionNumber(6) ||
+        !meta_table->SetCompatibleVersionNumber(6)) {
+      return false;
+    }
+  }
   return meta_table->GetVersionNumber() == kCurrentSchemaVersion;
+}
+
+bool TabTreeStore::MigrateNodesToSchema3() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  // InitializeSchema owns the transaction and keeps foreign_keys enabled.
+  // ADD COLUMN ... CHECK invokes pragma_quick_check internally, which the
+  // pinned Chromium SQLite does not expose. Recreate from the same constrained
+  // schema as new stores; INSERT/UPDATE enforce every constraint normally.
+  if (!db_.Execute("ALTER TABLE tree_nodes RENAME TO tree_nodes_schema2") ||
+      !db_.Execute("ALTER TABLE undo_node_snapshots "
+                   "RENAME TO undo_node_snapshots_schema2") ||
+      !CreateSchema() ||
+      !db_.Execute(
+          "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
+          "node_type,title,icon,accent_argb,url,sort_key,"
+          "created_at,modified_at,tombstone,is_temporary,target_kind,"
+          "local_scheme) "
+          "SELECT model_version,id,workspace_id,NULL,node_type,title,icon,"
+          "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+          "0,NULL,NULL FROM tree_nodes_schema2") ||
+      // All parents exist before edges are restored, independent of row order.
+      !db_.Execute("UPDATE tree_nodes SET parent_id=(SELECT old.parent_id "
+                   "FROM tree_nodes_schema2 AS old WHERE old.id=tree_nodes.id) "
+                   "WHERE id IN (SELECT id FROM tree_nodes_schema2 "
+                   "WHERE parent_id IS NOT NULL)") ||
+      !db_.Execute(
+          "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,"
+          "node_id,model_version,workspace_id,parent_id,node_type,title,icon,"
+          "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+          "is_temporary,target_kind,local_scheme) "
+          "SELECT operation_id,ordinal,existed,node_id,model_version,"
+          "workspace_id,parent_id,node_type,title,icon,accent_argb,url,"
+          "sort_key,created_at,modified_at,tombstone,0,NULL,NULL "
+          "FROM undo_node_snapshots_schema2") ||
+      // Old self-referencing ON DELETE RESTRICT edges must be detached before
+      // DROP's implicit delete. The new tree already has the exact old edges;
+      // any later failure rolls this and both renames/copies back together.
+      !db_.Execute("UPDATE tree_nodes_schema2 SET parent_id=NULL "
+                   "WHERE parent_id IS NOT NULL") ||
+      !db_.Execute("DROP TABLE undo_node_snapshots_schema2") ||
+      !db_.Execute("DROP TABLE tree_nodes_schema2")) {
+    return false;
+  }
+  // The old table owned the named indexes. InitializeSchema calls CreateSchema
+  // again after this migration to recreate them on the new table before commit.
+  // Workspaces, undo_operations (including its sequence) and meta stay intact.
+  return true;
+}
+
+bool TabTreeStore::MigrateUndoToSchema6() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  // SQLite cannot change a CHECK in place. Rebuild both undo tables from the
+  // current schema inside InitializeSchema's transaction. The old child is
+  // renamed first and dropped before its old parent, so no cascade from the
+  // parent's implicit delete can reach the copied rows. The
+  // AUTOINCREMENT high-water mark is carried over so an undone (removed)
+  // operation ID is never reused.
+  if (!db_.Execute("ALTER TABLE undo_node_snapshots "
+                   "RENAME TO undo_node_snapshots_schema5") ||
+      !db_.Execute("ALTER TABLE undo_operations "
+                   "RENAME TO undo_operations_schema5") ||
+      !CreateSchema() ||
+      !db_.Execute(
+          "INSERT INTO undo_operations(operation_id,mutation_kind,"
+          "subject_node_id,created_at) SELECT operation_id,mutation_kind,"
+          "subject_node_id,created_at FROM undo_operations_schema5") ||
+      !db_.Execute(
+          "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,"
+          "node_id,model_version,workspace_id,parent_id,node_type,title,icon,"
+          "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+          "is_temporary,target_kind,local_scheme,home_url,home_target_kind,"
+          "home_local_scheme) SELECT operation_id,ordinal,existed,node_id,"
+          "model_version,workspace_id,parent_id,node_type,title,icon,"
+          "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+          "is_temporary,target_kind,local_scheme,home_url,home_target_kind,"
+          "home_local_scheme FROM undo_node_snapshots_schema5") ||
+      !db_.Execute(
+          "DELETE FROM sqlite_sequence WHERE name='undo_operations'") ||
+      !db_.Execute(
+          "INSERT INTO sqlite_sequence(name,seq) SELECT 'undo_operations',seq "
+          "FROM sqlite_sequence WHERE name='undo_operations_schema5'") ||
+      !db_.Execute("DROP TABLE undo_node_snapshots_schema5") ||
+      !db_.Execute("DROP TABLE undo_operations_schema5")) {
+    return false;
+  }
+  return true;
 }
 
 bool TabTreeStore::IsReady() const {

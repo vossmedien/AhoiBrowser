@@ -1,0 +1,4 @@
+{
+  "top": "Processes: 1164 total, 8 running, 1156 sleeping, 7971 threads \n2026/09/27 07:02:21\nLoad Avg: 13.09, 23.53, 21.33 \nCPU usage: 45.68% user, 16.50% sys, 37.81% idle \nSharedLibs: 536M resident, 123M data, 130M linkedit.\nMemRegions: 821673 total, 5860M resident, 394M private, 3883M shared.\nPhysMem: 30G used (4035M wired, 13G compressor), 1030M unused.\nVM: 591T vsize, 57G framework vsize, 517662(0) swapins, 1052586(0) swapouts.\nNetworks: packets: 16170572/23G in, 7045586/11G out.\nDisks: 24020878/608G read, 9417654/228G written.\n\n\n",
+  "memory_pressure": "The system has 34359738368 (2097152 pages with a page size of 16384).\nSystem-wide memory free percentage: 43%\n"
+}

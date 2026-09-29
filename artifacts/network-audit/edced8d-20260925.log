@@ -1,0 +1,6 @@
+NET-GCM-01               PASS
+fresh-profile-silence    FAIL
+  denied      accounts.google.com x15
+  allowed     edgedl.me.gvt1.com x103
+  allowed     safebrowsing.googleapis.com x15
+  allowed     update.googleapis.com x116

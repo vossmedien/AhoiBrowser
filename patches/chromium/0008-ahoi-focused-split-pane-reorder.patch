@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 978b631..4c2da60 100644
+index 87d7cfe077350b0222979e0462ec10a6986ccf6c..61770d4b65a8ddb93ec59fe1ee295f665eda4f32 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -4746,28 +4746,38 @@ void BrowserView::ShowSplitView(bool focus_active_view) {
+@@ -4771,28 +4771,38 @@ void BrowserView::ShowSplitView(bool focus_active_view) {
  
    const auto& pane_containers =
        multi_contents_view_->contents_container_views();
@@ -60,10 +60,10 @@ index 978b631..4c2da60 100644
        browser_->tab_strip_model()->GetIndexOfTab(split_tabs[0]);
    const int relative_active_position = active_index - first_split_tab_index;
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
-index 9586219..3aa13d4 100644
+index a5de6db46596d99952fbcd66be0c516d041a025a..8682945c72e3b239a1013917323ed65b79730a38 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
-@@ -422,23 +422,76 @@ void MultiContentsView::CloseSplitView() {
+@@ -418,23 +418,76 @@ void MultiContentsView::CloseSplitView() {
    }
  }
  
@@ -141,20 +141,21 @@ index 9586219..3aa13d4 100644
 -    active_index_ = static_cast<int>(pane_count) - 1;
 -  } else if (active_index_ == static_cast<int>(pane_count) - 1) {
 -    active_index_ = 0;
+-  }
+-  SetActiveIndex(active_index_);
 +  std::vector<content::WebContents*> desired_contents;
 +  desired_contents.reserve(pane_count);
 +  for (size_t index = 0; index < pane_count; ++index) {
 +    desired_contents.push_back(
 +        contents_container_views_[index]->contents_view()->web_contents());
-   }
--  SetActiveIndex(active_index_);
++  }
 +  std::swap(desired_contents.front(), desired_contents.back());
 +  CHECK(ReorderContentsInSplitView(desired_contents));
  }
  
  void MultiContentsView::SetActiveIndex(int index) {
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view.h b/chrome/browser/ui/views/frame/multi_contents_view.h
-index 1f4df67..15c59db 100644
+index 86041ceecf08e4860484f94699d38bcf022f70a7..c74032e9d2af575cb666248105b3f9b83d7ae221 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view.h
 +++ b/chrome/browser/ui/views/frame/multi_contents_view.h
 @@ -9,6 +9,7 @@
@@ -163,9 +164,9 @@ index 1f4df67..15c59db 100644
  #include <optional>
 +#include <vector>
  
+ #include "ahoi/browser/ui/visual_style.h"
  #include "base/callback_list.h"
- #include "base/functional/callback_forward.h"
-@@ -115,6 +116,14 @@ class MultiContentsView
+@@ -121,6 +122,14 @@ class MultiContentsView
    // hierarchy and updating active_index_.
    void SwapContentsInSplitView();
  

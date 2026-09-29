@@ -47,6 +47,14 @@ NSString* DataClass(EntityType type) {
       return @"extensionInventory";
     case EntityType::kDeveloperAsset:
       return @"developerAsset";
+    case EntityType::kBookmark:
+      return @"bookmark";
+    case EntityType::kDeviceCapability:
+      return @"deviceCapability";
+    case EntityType::kSplitGroup:
+      return @"splitGroup";
+    case EntityType::kTabArchiveEntry:
+      return @"tabArchiveEntry";
   }
 }
 
@@ -84,6 +92,14 @@ std::optional<EntityType> EntityTypeForDataClass(NSString* value) {
   if ([value isEqualToString:@"developerAsset"]) {
     return EntityType::kDeveloperAsset;
   }
+  if ([value isEqualToString:@"bookmark"]) {
+    return EntityType::kBookmark;
+  }
+  if ([value isEqualToString:@"deviceCapability"]) {
+    return EntityType::kDeviceCapability;
+  }
+  if ([value isEqualToString:@"splitGroup"]) return EntityType::kSplitGroup;
+  if ([value isEqualToString:@"tabArchiveEntry"]) return EntityType::kTabArchiveEntry;
   return std::nullopt;
 }
 

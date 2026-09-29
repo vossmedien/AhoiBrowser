@@ -1,0 +1,265 @@
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/AhoiMobileBrowserView.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/AhoiMobileBrowserView.swift
+index 2301530..09f103d 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/AhoiMobileBrowserView.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/AhoiMobileBrowserView.swift
+@@ -434,7 +434,8 @@ public struct AhoiMobileBrowserView: View {
+                 expandHarborDeck()
+                 browserActionsPresented = true
+             },
+-            onSwitchWorkspace: switchWorkspace
++            onSwitchWorkspace: switchWorkspace,
++            onSwitchRecentTab: { browser.switchRecentTab(direction: $0) }
+         )
+         .accessibilitySortPriority(10)
+     }
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift
+index fbfc222..f5532e2 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift
+@@ -46,6 +46,7 @@ public final class MobileBrowserController: ObservableObject {
+     }
+     @Published public internal(set) var lastError: String?
+     @Published public internal(set) var recentlyClosedTab: MobileTabRecord?
++    var recentTabCycler: MobileRecentTabCycler?
+     @Published public internal(set) var pendingExternalOpen: MobilePendingExternalOpen?
+     @Published public internal(set) var pendingLink: MobilePendingLink?
+     @Published internal(set) var linkPreview: MobileLinkPreviewSession?
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileHarborDeckView.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileHarborDeckView.swift
+index ae03ccd..9fa1981 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileHarborDeckView.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileHarborDeckView.swift
+@@ -29,6 +29,9 @@ struct MobileHarborDeckView: View {
+     let onPresentTabs: () -> Void
+     let onPresentMore: () -> Void
+     let onSwitchWorkspace: (Int) -> Void
++    /// Flick through recently used tabs (ADR 0012, MOB-FLICK); false if none.
++    let onSwitchRecentTab: (Int) -> Bool
++    @State private var recentTabFlicks = 0
+     private var reduceMotion: Bool { reduceMotionOverride ?? systemReduceMotion }
+     var body: some View {
+         deckContent
+@@ -222,6 +225,29 @@ struct MobileHarborDeckView: View {
+                 : "Address and search"
+         ))
+         .accessibilityValue(Text(addressAccessibilityValue))
++        // One finger on the control row only: the web view keeps WebKit's
++        // back/forward edge swipe, the top rail keeps the Workspace swipe.
++        .simultaneousGesture(
++            DragGesture(minimumDistance: 28).onEnded { value in
++                let horizontal = value.translation.width
++                guard abs(horizontal) >= 72,
++                      abs(horizontal) > abs(value.translation.height) * 1.35 else { return }
++                // Rightward reveals the previously used tab, as in Safari.
++                flickRecentTab(horizontal > 0 ? 1 : -1)
++            }
++        )
++        .sensoryFeedback(.selection, trigger: recentTabFlicks)
++        .accessibilityAction(named: Text(CompanionL10n.string(
++            "browser.tabs.previous", fallback: "Previous Tab"
++        ))) { flickRecentTab(1) }
++        .accessibilityAction(named: Text(CompanionL10n.string(
++            "browser.tabs.next", fallback: "Next Tab"
++        ))) { flickRecentTab(-1) }
++    }
++
++    private func flickRecentTab(_ direction: Int) {
++        guard visibleTabCount > 1, onSwitchRecentTab(direction) else { return }
++        recentTabFlicks += 1
+     }
+ 
+     private var reloadButton: some View {
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileRecentTabCycler.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileRecentTabCycler.swift
+new file mode 100644
+index 0000000..a6d341f
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileRecentTabCycler.swift
+@@ -0,0 +1,81 @@
++import Foundation
++
++/// Most-recently-used order for the Harbor deck's tab flick (ADR 0012,
++/// MOB-FLICK-01/02). Candidates share the selected tab's browsing mode; normal
++/// tabs also share its Workspace. The order is captured when a flick sequence
++/// starts and kept while the user keeps flicking, because every selection
++/// refreshes `lastActiveAt` and would otherwise reshuffle it.
++public struct MobileRecentTabCycler: Equatable, Sendable {
++    /// A flick within this interval of the previous one continues the sequence.
++    public static let continuationInterval: TimeInterval = 2
++
++    /// Candidate IDs, most recently used first; index 0 is the start tab.
++    public private(set) var order: [UUID]
++    public private(set) var position = 0
++    public private(set) var lastStepAt: Date
++
++    /// Nil when the selected tab has no other candidate to flick to.
++    public init?(tabs: [MobileTabRecord], selectedID: UUID, now: Date) {
++        guard let selected = tabs.first(where: { $0.id == selectedID }) else { return nil }
++        let candidates = Self.candidates(in: tabs, like: selected)
++        guard candidates.count > 1 else { return nil }
++        order = candidates.sorted {
++            $0.lastActiveAt != $1.lastActiveAt
++                ? $0.lastActiveAt > $1.lastActiveAt
++                : $0.id.uuidString < $1.id.uuidString
++        }.map(\.id)
++        if let index = order.firstIndex(of: selectedID), index != 0 {
++            order.remove(at: index)
++            order.insert(selectedID, at: 0)
++        }
++        lastStepAt = now
++    }
++
++    /// Whether a new flick continues this sequence: it comes soon enough, the
++    /// selection is still the tab this cycler selected, and no candidate was
++    /// opened or closed in between.
++    public func isContinuation(tabs: [MobileTabRecord], selectedID: UUID, now: Date) -> Bool {
++        guard order[position] == selectedID,
++              now.timeIntervalSince(lastStepAt) <= Self.continuationInterval,
++              let selected = tabs.first(where: { $0.id == selectedID })
++        else { return false }
++        return Set(Self.candidates(in: tabs, like: selected).map(\.id)) == Set(order)
++    }
++
++    /// Positive steps go to older tabs, negative ones back toward newer; both wrap.
++    public mutating func step(_ direction: Int, now: Date) -> UUID? {
++        guard direction != 0 else { return nil }
++        let delta = direction < 0 ? -1 : 1
++        position = (position + delta + order.count) % order.count
++        lastStepAt = now
++        return order[position]
++    }
++
++    private static func candidates(
++        in tabs: [MobileTabRecord],
++        like selected: MobileTabRecord
++    ) -> [MobileTabRecord] {
++        tabs.filter {
++            $0.mode == selected.mode &&
++                (selected.mode == .privateBrowsing || $0.workspaceID == selected.workspaceID)
++        }
++    }
++}
++
++extension MobileBrowserController {
++    /// Switches to the previous (`direction` > 0: older) or next recently used
++    /// tab of the current Workspace and mode. Returns false when there is none.
++    @discardableResult
++    public func switchRecentTab(direction: Int, now: Date = Date()) -> Bool {
++        guard direction != 0, let selectedTabID else { return false }
++        if recentTabCycler?.isContinuation(tabs: tabs, selectedID: selectedTabID, now: now) != true {
++            recentTabCycler = MobileRecentTabCycler(tabs: tabs, selectedID: selectedTabID, now: now)
++        }
++        guard var cycler = recentTabCycler,
++              let target = cycler.step(direction, now: now)
++        else { return false }
++        recentTabCycler = cycler
++        select(target)
++        return true
++    }
++}
+diff --git a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileRecentTabCyclerTests.swift b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileRecentTabCyclerTests.swift
+new file mode 100644
+index 0000000..7ce9713
+--- /dev/null
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobileRecentTabCyclerTests.swift
+@@ -0,0 +1,102 @@
++import XCTest
++import AhoiCloudKitSpike
++@testable import AhoiMobileCore
++
++/// ADR 0012, MOB-FLICK-01/02: flick through recently used tabs.
++final class MobileRecentTabCyclerTests: XCTestCase {
++    private let start = Date(timeIntervalSince1970: 1_000)
++    private let work = WorkspaceID(rawValue: UUID())
++    private let home = WorkspaceID(rawValue: UUID())
++
++    private func tab(
++        _ age: TimeInterval,
++        workspace: WorkspaceID? = nil,
++        mode: MobileBrowsingMode = .normal
++    ) -> MobileTabRecord {
++        MobileTabRecord(
++            workspaceID: mode == .normal ? (workspace ?? work) : nil,
++            lastActiveAt: start.addingTimeInterval(-age),
++            mode: mode
++        )
++    }
++
++    func testStepsFollowMostRecentUseAndWrap() throws {
++        let current = tab(0), previous = tab(10), oldest = tab(20)
++        var cycler = try XCTUnwrap(MobileRecentTabCycler(
++            tabs: [oldest, current, previous], selectedID: current.id, now: start))
++        XCTAssertEqual(cycler.order, [current.id, previous.id, oldest.id])
++        XCTAssertEqual(cycler.step(1, now: start), previous.id)
++        XCTAssertEqual(cycler.step(1, now: start), oldest.id)
++        XCTAssertEqual(cycler.step(1, now: start), current.id)
++        XCTAssertEqual(cycler.step(-1, now: start), oldest.id)
++    }
++
++    func testOrderStaysFixedWhileTheUserKeepsFlicking() throws {
++        var current = tab(0), previous = tab(10)
++        let oldest = tab(20)
++        var cycler = try XCTUnwrap(MobileRecentTabCycler(
++            tabs: [current, previous, oldest], selectedID: current.id, now: start))
++        XCTAssertEqual(cycler.step(1, now: start), previous.id)
++        // Selecting refreshes lastActiveAt; the running sequence ignores that.
++        previous.lastActiveAt = start.addingTimeInterval(1)
++        current.lastActiveAt = start
++        let soon = start.addingTimeInterval(1.5)
++        XCTAssertTrue(cycler.isContinuation(
++            tabs: [current, previous, oldest], selectedID: previous.id, now: soon))
++        XCTAssertEqual(cycler.step(1, now: soon), oldest.id)
++
++        // After a pause, or once another tab is selected, a new sequence starts.
++        XCTAssertFalse(cycler.isContinuation(
++            tabs: [current, previous, oldest], selectedID: oldest.id,
++            now: soon.addingTimeInterval(MobileRecentTabCycler.continuationInterval + 1)))
++        XCTAssertFalse(cycler.isContinuation(
++            tabs: [current, previous, oldest], selectedID: current.id, now: soon))
++        // A closed candidate ends the sequence too.
++        XCTAssertFalse(cycler.isContinuation(
++            tabs: [previous, oldest], selectedID: oldest.id, now: soon))
++    }
++
++    func testSingleTabHasNothingToFlick() {
++        let only = tab(0)
++        XCTAssertNil(MobileRecentTabCycler(tabs: [only, tab(5, workspace: home)],
++                                           selectedID: only.id, now: start))
++    }
++
++    func testPrivateAndNormalTabsStaySeparate() throws {
++        let privateCurrent = tab(0, mode: .privateBrowsing)
++        let privatePrevious = tab(30, mode: .privateBrowsing)
++        let normal = tab(10)
++        let cycler = try XCTUnwrap(MobileRecentTabCycler(
++            tabs: [privateCurrent, normal, privatePrevious],
++            selectedID: privateCurrent.id, now: start))
++        XCTAssertEqual(cycler.order, [privateCurrent.id, privatePrevious.id])
++    }
++
++    func testOnlyTabsOfTheCurrentWorkspaceTakePart() throws {
++        let current = tab(0), sameWorkspace = tab(30), otherWorkspace = tab(10, workspace: home)
++        let cycler = try XCTUnwrap(MobileRecentTabCycler(
++            tabs: [current, otherWorkspace, sameWorkspace],
++            selectedID: current.id, now: start))
++        XCTAssertEqual(cycler.order, [current.id, sameWorkspace.id])
++    }
++
++    @MainActor
++    func testControllerFlicksBackToThePreviouslyUsedTab() throws {
++        let browser = MobileBrowserController()
++        let first = browser.createTab()
++        let second = browser.createTab()
++        _ = browser.createTab(mode: .privateBrowsing)
++        browser.select(first)
++        browser.select(second)
++        // Distinct use times keep the order independent of the clock's resolution.
++        for (id, seconds) in [(first, 10.0), (second, 20.0)] {
++            let index = try XCTUnwrap(browser.tabs.firstIndex { $0.id == id })
++            browser.tabs[index].lastActiveAt = Date(timeIntervalSince1970: seconds)
++        }
++
++        XCTAssertTrue(browser.switchRecentTab(direction: 1))
++        XCTAssertEqual(browser.selectedTabID, first)
++        XCTAssertTrue(browser.switchRecentTab(direction: 1))
++        XCTAssertEqual(browser.selectedTabID, second)
++    }
++}

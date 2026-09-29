@@ -1,9 +1,163 @@
 import XCTest
+import CloudKit
 @testable import AhoiMobileCore
 import AhoiCloudKitSpike
 
 final class CompanionConvergenceTests: XCTestCase {
     private let windowsEpochMicroseconds: Int64 = 11_644_473_600_000_000
+
+#if DEBUG
+    /// Domain integration simulation: independent durable repositories and
+    /// encrypted stores, with only delivery substituted. Both sides execute
+    /// production bridge, wire codec, field merge and CryptoKit encryption.
+    func testTwoIndependentRepositoriesConvergeThroughSerializedEncryptedRelay() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "AhoiDomainRelay-\(UUID().uuidString)", isDirectory: true
+        )
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let mac = makeRelayPeer(at: directory.appendingPathComponent("mac.json"))
+        let phone = makeRelayPeer(at: directory.appendingPathComponent("phone.json"))
+        let workspace = try await mac.repository.createWorkspace(name: "Shared workspace")
+        let page = try await mac.repository.createTreeNode(
+            workspaceID: workspace.id, kind: .savedPage,
+            title: "From Mac", url: "https://example.test/original"
+        )
+        let macTab = try await mac.repository.publishLocalMobileTab(
+            tabID: UUID(), sessionID: DeviceSessionID(), deviceName: "Logical Mac",
+            deviceKind: .mac, workspaceID: workspace.id, title: "Mac tab",
+            url: "https://example.test/mac", pinned: false,
+            treeNodeID: page.id // Format 3: a published Presence links its page.
+        )
+        try await relay(mac, to: phone)
+        let received = try await phone.repository.currentSnapshot()
+        XCTAssertEqual(received.visibleWorkspaces.map(\.id), [workspace.id])
+        XCTAssertEqual(received.visibleTreeNodes.first { $0.id == page.id }, page)
+        XCTAssertTrue(received.visibleRemoteTabs.contains { $0.id == macTab.tab.id })
+
+        _ = try await phone.repository.updateTreeNode(page.id, title: "From iPhone")
+        let phoneTab = try await phone.repository.publishLocalMobileTab(
+            tabID: UUID(), sessionID: DeviceSessionID(), deviceName: "Logical iPhone",
+            deviceKind: .iPhone, workspaceID: workspace.id, title: "Phone tab",
+            url: "https://example.test/phone", pinned: false,
+            treeNodeID: page.id // Format 3: a published Presence links its page.
+        )
+        try await relay(phone, to: mac)
+        let returned = try await mac.repository.currentSnapshot()
+        XCTAssertEqual(returned.visibleTreeNodes.first { $0.id == page.id }?.title,
+                       "From iPhone")
+        XCTAssertTrue(returned.visibleRemoteTabs.contains { $0.id == phoneTab.tab.id })
+
+        // No delivery while both independent local stores receive edits.
+        _ = try await mac.repository.updateTreeNode(page.id, title: "Offline title")
+        _ = try await phone.repository.updateTreeNode(
+            page.id, url: .some("https://example.test/offline")
+        )
+        try await relay(mac, to: phone)
+        try await relay(phone, to: mac)
+        let macMerged = try await mac.repository.currentSnapshot()
+        let phoneMerged = try await phone.repository.currentSnapshot()
+        let merged = try XCTUnwrap(macMerged.visibleTreeNodes.first { $0.id == page.id })
+        XCTAssertEqual(merged, phoneMerged.visibleTreeNodes.first { $0.id == page.id })
+        XCTAssertEqual(merged.title, "Offline title")
+        XCTAssertEqual(merged.url, "https://example.test/offline")
+
+        // Retain a genuinely stale encrypted live envelope for delayed delivery.
+        let retained = try await mac.records.record(for: page.id.rawValue)
+        let stale = try XCTUnwrap(retained)
+        let deleted = try await phone.repository.deleteTreeNode(page.id)
+        for node in deleted { try await phone.bridge.enqueue(node) }
+        try await relay(phone, to: mac)
+        try await deliver([stale], to: phone)
+        try await relay(phone, to: mac)
+
+        let deniedID = UUID()
+        let denied = SyncRecord(
+            recordID: deniedID, entityID: deniedID, dataClass: .incognito,
+            modifiedAt: workspace.version.modifiedAt,
+            originatingDevice: mac.deviceID,
+            encryptedValue: try mac.sealer.seal(Data("private-relay-sentinel".utf8))
+        )
+        do {
+            try await mac.transport.enqueue(denied)
+            XCTFail("Private data must never enter the simulated network store.")
+        } catch {
+            // Since 4e64c5f the outbound Format-3 gate rejects a class outside
+            // the shared catalogue before the boundary's own denial.
+            XCTAssertTrue(
+                error as? SyncBoundaryError == .dataClassDenied(.incognito) ||
+                    error as? BookmarkTransportAuthorizationError == .dataClassNotShared,
+                "Unexpected rejection: \(error)"
+            )
+        }
+        try await relay(mac, to: phone)
+        for peer in [mac, phone] {
+            let snapshot = try await peer.repository.currentSnapshot()
+            XCTAssertFalse(snapshot.visibleTreeNodes.contains { $0.id == page.id })
+            XCTAssertTrue(snapshot.treeNodes.first { $0.id == page.id }?.isDeleted == true)
+            XCTAssertEqual(Set(snapshot.visibleRemoteTabs.map(\.id)),
+                           Set([macTab.tab.id, phoneTab.tab.id]))
+            let forbidden = try await peer.records.record(for: deniedID)
+            XCTAssertNil(forbidden)
+            let restarted = LocalFirstRepository(
+                store: FileCompanionStore(fileURL: peer.fileURL),
+                localDeviceID: peer.deviceID
+            )
+            let restored = try await restarted.currentSnapshot()
+            XCTAssertEqual(restored.treeNodes, snapshot.treeNodes)
+            XCTAssertEqual(restored.remoteTabs, snapshot.remoteTabs)
+        }
+    }
+
+    private struct RelayPeer {
+        let fileURL: URL
+        let deviceID: DeviceID
+        let repository: LocalFirstRepository
+        let records: InMemorySyncRecordStore
+        let transport: CompanionSyncVisibleTestTransport
+        let sealer: KeychainCompanionPayloadSealer
+        let bridge: CompanionSyncBridge
+    }
+
+    private func makeRelayPeer(at fileURL: URL) -> RelayPeer {
+        let deviceID = DeviceID()
+        let records = InMemorySyncRecordStore()
+        let transport = CompanionSyncVisibleTestTransport(recordStore: records)
+        let repository = LocalFirstRepository(
+            store: FileCompanionStore(fileURL: fileURL), localDeviceID: deviceID
+        )
+        let sealer = KeychainCompanionPayloadSealer(
+            configuration: .init(service: "domain-relay-test", account: "fixture", keyVersion: 1),
+            keyLoader: { Data(repeating: 0x42, count: 32) }
+        )
+        return RelayPeer(
+            fileURL: fileURL, deviceID: deviceID, repository: repository,
+            records: records, transport: transport, sealer: sealer,
+            bridge: CompanionSyncBridge(repository: repository, transport: transport,
+                                        sealer: sealer)
+        )
+    }
+
+    private func relay(_ source: RelayPeer, to target: RelayPeer) async throws {
+        try await source.bridge.enqueueLocalSnapshot()
+        try await source.bridge.syncNow()
+        let outgoing = try await source.records.allRecords()
+        try await deliver(outgoing, to: target)
+    }
+
+    private func deliver(_ records: [SyncRecord], to peer: RelayPeer) async throws {
+        let codec = AppleCloudKitRecordCodec()
+        let zone = CKRecordZone.ID(zoneName: "DomainRelay", ownerName: CKCurrentUserDefaultName)
+        let copied = try records.map { record in
+            let cloud = try codec.encode(record, zoneID: zone)
+            XCTAssertNil(cloud["url"])
+            XCTAssertNil(cloud["title"])
+            return try codec.decode(cloud)
+        }
+        _ = try await peer.records.mergeRecords(copied, policy: .transportLastWriterWins)
+        try await peer.records.stageFetchedRecords(copied)
+        try await peer.bridge.syncNow()
+    }
+#endif
 
     func testRemoteTabDisjointFieldsMergeAndMintDominatingRecordClock() throws {
         let device = DeviceID(
@@ -17,7 +171,7 @@ final class CompanionConvergenceTests: XCTestCase {
         let pinnedClock = clock(150, remoteDevice)
         let fields: Set<String> = [
             "device_id", "session_id", "workspace_id", "url", "title", "opened_at",
-            "last_active", "pinned", "is_incognito", "tombstone",
+            "last_active", "pinned", "is_incognito", "tree_node_id", "tombstone",
         ]
         var localFields = Dictionary(uniqueKeysWithValues: fields.map { ($0, base) })
         localFields["title"] = titleClock
@@ -25,14 +179,17 @@ final class CompanionConvergenceTests: XCTestCase {
         remoteFields["pinned"] = pinnedClock
         let tabID = TabID()
         let sessionID = DeviceSessionID()
+        let pageID = TreeNodeID()
         let local = try RemoteTab(
             tabID: tabID,
             deviceID: device,
             deviceKind: .mac,
             deviceName: "Mac",
             sessionID: sessionID,
+            treeNodeID: pageID,
             title: "Local title",
             url: "https://example.test",
+            targetKind: .web,
             openedAt: base,
             lastActiveAt: base,
             pinned: false,
@@ -48,8 +205,10 @@ final class CompanionConvergenceTests: XCTestCase {
             deviceKind: .mac,
             deviceName: "Renamed Mac",
             sessionID: sessionID,
+            treeNodeID: pageID,
             title: "Base title",
             url: "https://example.test",
+            targetKind: .web,
             openedAt: base,
             lastActiveAt: base,
             pinned: true,
@@ -237,10 +396,8 @@ final class CompanionConvergenceTests: XCTestCase {
         let editor = DeviceID()
         let created = clock(100, creator)
         let edited = clock(200, editor)
-        let fields: Set<String> = [
-            "name", "icon", "sort_key", "accent_argb", "created_at", "modified_at",
-            "tombstone",
-        ]
+        // The current workspace map includes the Format-3 archive_policy group.
+        let fields = CompanionFieldMerge.workspaceFields
         var fieldVersions = Dictionary(uniqueKeysWithValues: fields.map { ($0, created) })
         fieldVersions["name"] = edited
         fieldVersions["modified_at"] = edited
@@ -277,8 +434,10 @@ final class CompanionConvergenceTests: XCTestCase {
             deviceKind: .iPad,
             deviceName: "iPad",
             sessionID: DeviceSessionID(),
+            treeNodeID: TreeNodeID(),
             title: "Ahoi",
             url: "https://example.test",
+            targetKind: .web,
             lastActiveAt: version.modifiedAt,
             version: version
         )
@@ -290,9 +449,11 @@ final class CompanionConvergenceTests: XCTestCase {
             devices: [:],
             workspaces: [:]
         )) { error in
+            // Since 4e64c5f an unknown device is a pending dependency (ADR
+            // 0009: out-of-order peers are retained, never fabricated).
             XCTAssertEqual(
                 error as? DesktopWirePayloadCodecError,
-                .unsupportedDeviceType
+                .missingDependency
             )
         }
     }

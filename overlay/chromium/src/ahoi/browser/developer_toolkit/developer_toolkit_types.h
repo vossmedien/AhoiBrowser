@@ -42,6 +42,8 @@ enum class DeveloperAction {
   kToggleImages,
   kCaptureVisibleScreenshot,
   kCaptureFullPageScreenshot,
+  // Reloads the page bypassing the HTTP cache (DEV-08).
+  kHardReload,
 };
 
 enum class DeveloperActionStatus {

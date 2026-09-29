@@ -3,6 +3,7 @@
 
 import {html} from '//resources/lit/v3_0/lit.rollup.js';
 
+import {loadTimeData} from '../i18n_setup.js';
 import type {SettingsAhoiPageElement} from './ahoi_page.js';
 
 export function getHtml(this: SettingsAhoiPageElement) {
@@ -69,136 +70,9 @@ export function getHtml(this: SettingsAhoiPageElement) {
         </div>
       </div>
 
-      <div class="section-heading cr-row hr">
-        <div class="flex cr-padded-text">
-          <div>$i18n{ahoiArcImportSection}</div>
-          <div class="secondary">$i18n{ahoiArcImportSectionSublabel}</div>
-        </div>
-      </div>
-      <section id="ahoiArcImportAssistant" class="arc-import-card"
-          aria-labelledby="ahoiArcImportHeading">
-        <div id="ahoiArcImportHeading" class="arc-import-title">
-          $i18n{ahoiArcImportTitle}
-        </div>
-        <div class="secondary">$i18n{ahoiArcImportDescription}</div>
-        <cr-button id="ahoiArcDiscover" class="action-button"
-            ?disabled="${this.arcImportStage_ === 'discovering' ||
-                this.arcImportStage_ === 'committing'}"
-            @click="${this.onArcDiscoverClick_}">
-          $i18n{ahoiArcImportDiscover}
-        </cr-button>
+      <settings-ahoi-link-routing></settings-ahoi-link-routing>
 
-        <div id="ahoiArcImportStatus" class="arc-import-status"
-            role="status" aria-live="polite">
-          ${this.arcStatusText_()}
-        </div>
-
-        ${this.arcImportStage_ === 'sourceInUse' ? html`
-          <div class="arc-import-warning" role="alert">
-            <div>$i18n{ahoiArcImportCloseArcTitle}</div>
-            <div class="secondary">$i18n{ahoiArcImportCloseArcSublabel}</div>
-          </div>
-        ` : ''}
-
-        ${this.arcImportPreview_ && this.arcImportStage_ === 'preview' ? html`
-          <section class="arc-import-preview"
-              aria-labelledby="ahoiArcImportPreviewHeading">
-            <div id="ahoiArcImportPreviewHeading"
-                class="arc-import-subheading">
-              $i18n{ahoiArcImportPreview}
-            </div>
-            <dl class="arc-import-counts">
-              <div><dt>$i18n{ahoiArcImportWorkspaces}</dt>
-                <dd>${this.arcImportPreview_.stats.workspaces}</dd></div>
-              <div><dt>$i18n{ahoiArcImportFolders}</dt>
-                <dd>${this.arcImportPreview_.stats.folders}</dd></div>
-              <div><dt>$i18n{ahoiArcImportPages}</dt>
-                <dd>${this.arcImportPreview_.stats.pages}</dd></div>
-              <div><dt>$i18n{ahoiArcImportSplits}</dt>
-                <dd>${this.arcImportPreview_.stats.splits}</dd></div>
-              <div><dt>$i18n{ahoiArcImportDegradations}</dt>
-                <dd>${this.arcImportPreview_.stats.degradedSplits}</dd></div>
-              <div><dt>$i18n{ahoiArcImportExcluded}</dt>
-                <dd>${this.arcImportPreview_.stats.unsafeUrls +
-                    this.arcImportPreview_.stats.unsupportedItems}</dd></div>
-            </dl>
-
-            <div class="arc-import-subheading">$i18n{ahoiArcImportTargets}</div>
-            <ul class="arc-import-targets">
-              ${this.arcImportPreview_.targetWorkspaces.map(
-                  workspace => html`<li>${workspace}</li>`)}
-            </ul>
-
-            <fieldset class="arc-import-options">
-              <legend>$i18n{ahoiArcImportProfiles}</legend>
-              ${this.arcImportPreview_.profiles.map(profile => html`
-                <cr-checkbox data-profile="${profile}"
-                    .checked="${this.arcSelectedProfiles_.includes(profile)}"
-                    @change="${this.onArcProfileChange_}">
-                  ${profile}
-                </cr-checkbox>
-              `)}
-            </fieldset>
-
-            <fieldset class="arc-import-options">
-              <legend>$i18n{ahoiArcImportCategories}</legend>
-              <cr-checkbox .checked="${this.arcImportSidebar_}"
-                  @change="${this.onArcImportSidebarChange_}">
-                $i18n{ahoiArcImportSidebarCategory}
-              </cr-checkbox>
-              <cr-checkbox .checked="${this.arcReconstructSplits_}"
-                  @change="${this.onArcReconstructSplitsChange_}">
-                $i18n{ahoiArcImportSplitCategory}
-              </cr-checkbox>
-            </fieldset>
-
-            <label class="arc-import-select-label" for="ahoiArcConflictPolicy">
-              $i18n{ahoiArcImportConflicts}
-            </label>
-            <select id="ahoiArcConflictPolicy"
-                .value="${this.arcConflictPolicy_}"
-                @change="${this.onArcConflictPolicyChange_}">
-              <option value="rename">$i18n{ahoiArcImportConflictRename}</option>
-              <option value="skip">$i18n{ahoiArcImportConflictSkip}</option>
-              <option value="merge">$i18n{ahoiArcImportConflictMerge}</option>
-            </select>
-            <div class="secondary">
-              $i18n{ahoiArcImportConflictCount}
-              ${this.arcImportPreview_.conflictingWorkspaces}
-            </div>
-
-            <div class="arc-import-exclusions" role="note">
-              <div>$i18n{ahoiArcImportPrivacyTitle}</div>
-              <div class="secondary">$i18n{ahoiArcImportPrivacySublabel}</div>
-            </div>
-            <cr-checkbox id="ahoiArcBackupConfirmation"
-                .checked="${this.arcBackupConfirmed_}"
-                @change="${this.onArcBackupConfirmedChange_}">
-              $i18n{ahoiArcImportBackupConfirmation}
-            </cr-checkbox>
-            <cr-checkbox id="ahoiArcCommitConfirmation"
-                .checked="${this.arcCommitConfirmed_}"
-                @change="${this.onArcCommitConfirmedChange_}">
-              $i18n{ahoiArcImportCommitConfirmation}
-            </cr-checkbox>
-            <cr-button id="ahoiArcCommit" class="action-button"
-                ?disabled="${!this.canCommitArcImport_()}"
-                @click="${this.onArcCommitClick_}">
-              $i18n{ahoiArcImportCommit}
-            </cr-button>
-          </section>
-        ` : ''}
-
-        ${this.arcImportStage_ === 'done' ? html`
-          <div class="arc-import-result" role="status">
-            <div>${this.arcStatusText_()}</div>
-            <div class="secondary">
-              $i18n{ahoiArcImportResultSplits}
-              ${this.arcImportResult_?.reconstructedSplits ?? 0}
-            </div>
-          </div>
-        ` : ''}
-      </section>
+      <settings-ahoi-shortcuts></settings-ahoi-shortcuts>
 
       <div class="section-heading cr-row hr">
         <div class="flex cr-padded-text">
@@ -215,7 +89,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
       </div>
       <div id="ahoiCloudKitUnavailableStatus"
           class="sync-explanation cr-row" role="status" aria-live="polite"
-          ?hidden="${this.cloudKitAvailable_}">
+          ?hidden="${this.remoteControlStatus_ === null || this.cloudKitAvailable_}">
         <div class="flex cr-padded-text">
           <div>$i18n{ahoiCloudKitUnavailableTitle}</div>
           <div class="secondary">$i18n{ahoiCloudKitUnavailableSublabel}</div>
@@ -227,6 +101,161 @@ export function getHtml(this: SettingsAhoiPageElement) {
           sub-label="$i18n{ahoiSyncEnabledSublabel}">
       </settings-toggle-button>
       <div class="list-frame indented-toggles">
+        <section id="ahoiSyncControls" class="sync-control-card"
+            aria-label="$i18n{ahoiSyncSection}"
+            aria-busy="${this.syncControlsActionPending_}">
+          <div class="sync-control-status" role="status" aria-live="polite">
+            ${this.syncControlsStatus_?.statusLabel ||
+                loadTimeData.getString('ahoiBrowserSettingsSyncLoading')}
+          </div>
+          <div class="sync-control-actions">
+            <cr-button id="ahoiSyncNow"
+                ?disabled="${!this.syncControlsStatus_?.canSyncNow ||
+                    this.syncControlsActionPending_}"
+                @click="${this.onSyncNowClick_}">
+              ${this.syncControlsStatus_?.labels.syncNow || ''}
+            </cr-button>
+            <cr-button id="ahoiRetrySyncKey"
+                ?hidden="${!this.syncControlsStatus_?.keySetupIssue}"
+                ?disabled="${!this.syncControlsStatus_?.canRetryKey ||
+                    this.syncControlsActionPending_}"
+                @click="${this.onRetrySyncKeyClick_}">
+              ${this.syncControlsStatus_?.labels.retryKey || ''}
+            </cr-button>
+          </div>
+          <div class="sync-control-options">
+            <div class="sync-control-heading">
+              ${this.syncControlsStatus_?.labels.bookmarks || ''}
+            </div>
+            <div id="ahoiBookmarkConsentHint" class="secondary">
+              ${this.syncControlsStatus_?.bookmarkSyncEnabled ?
+                  this.syncControlsStatus_?.labels.bookmarkStopHint :
+                  this.syncControlsStatus_?.labels.bookmarkConsentHint}
+            </div>
+            <div class="sync-control-actions">
+              <cr-button id="ahoiBookmarkSyncConsent"
+                  ?disabled="${!this.syncControlsStatus_?.canChangeBookmarkConsent ||
+                      this.syncControlsActionPending_}"
+                  aria-describedby="ahoiBookmarkConsentHint"
+                  @click="${this.onBookmarkSyncClick_}">
+                ${this.syncControlsStatus_?.bookmarkSyncEnabled ?
+                    this.syncControlsStatus_?.labels.stopBookmarks :
+                    this.syncControlsStatus_?.labels.approveBookmarks}
+              </cr-button>
+            </div>
+            <div class="secondary" role="status" aria-live="polite"
+                ?hidden="${!this.syncControlsStatus_?.bookmarkIssueLabel}">
+              ${this.syncControlsStatus_?.bookmarkIssueLabel || ''}
+            </div>
+          </div>
+          <div class="sync-control-options">
+            <div class="sync-control-heading">
+              ${this.syncControlsStatus_?.labels.extensions || ''}
+            </div>
+            <label class="sync-control-option">
+              <input id="ahoiExtensionSetupSync" type="checkbox"
+                  .checked="${this.syncControlsStatus_?.extensionSetupEnabled ?? false}"
+                  ?disabled="${!this.syncControlsStatus_?.canChangeExtensionConsent ||
+                      this.syncControlsActionPending_}"
+                  @change="${this.onExtensionSetupChange_}">
+              <span>${this.syncControlsStatus_?.labels.extensionSetup || ''}</span>
+            </label>
+            <label class="sync-control-option">
+              <input id="ahoiExtensionSettingsSync" type="checkbox"
+                  .checked="${this.syncControlsStatus_?.extensionSettingsEnabled ?? false}"
+                  ?disabled="${!this.syncControlsStatus_?.canChangeExtensionConsent ||
+                      this.syncControlsActionPending_}"
+                  @change="${this.onExtensionSettingsChange_}">
+              <span>
+                ${this.syncControlsStatus_?.labels.extensionSettings || ''}
+                <span class="secondary">
+                  ${this.syncControlsStatus_?.labels.extensionSettingsHint || ''}
+                </span>
+              </span>
+            </label>
+            ${this.syncControlsStatus_?.extensionResults.map(item => html`
+              <div class="sync-extension-result">
+                <span title="${item.id}">${item.id.slice(0, 8)} · ${item.status}</span>
+                <cr-button data-extension-id="${item.id}"
+                    ?hidden="${!item.canRetry}"
+                    ?disabled="${this.syncControlsActionPending_}"
+                    @click="${this.onExtensionRetryClick_}">
+                  ${item.needsConfirmation ?
+                      this.syncControlsStatus_?.labels.reviewExtension :
+                      this.syncControlsStatus_?.labels.retryExtension}
+                </cr-button>
+              </div>`)}
+          </div>
+          <div class="sync-recovery-card"
+              ?hidden="${!this.syncControlsStatus_?.accountTransitionPending &&
+                  !this.syncControlsStatus_?.zoneRecoveryPending}">
+            <div class="sync-control-heading">
+              ${this.syncControlsStatus_?.labels.recovery || ''}
+            </div>
+            <div class="secondary"
+                ?hidden="${!this.syncControlsStatus_?.accountTransitionPending}">
+              ${this.syncControlsStatus_?.labels.accountRecoveryHint || ''}
+            </div>
+            <div class="sync-control-actions">
+              <cr-button ?hidden="${!this.syncControlsStatus_?.accountTransitionPending}"
+                  ?disabled="${this.syncControlsActionPending_}"
+                  @click="${this.onAccountRecoveryUploadClick_}">
+                ${this.syncControlsStatus_?.labels.uploadLocal || ''}
+              </cr-button>
+              <cr-button ?hidden="${!this.syncControlsStatus_?.accountTransitionPending}"
+                  ?disabled="${this.syncControlsActionPending_}"
+                  @click="${this.onAccountRecoveryWithoutUploadClick_}">
+                ${this.syncControlsStatus_?.labels.withoutUpload || ''}
+              </cr-button>
+              <cr-button ?hidden="${!this.syncControlsStatus_?.zoneRecoveryPending}"
+                  ?disabled="${this.syncControlsActionPending_}"
+                  @click="${this.onZoneRecoveryClick_}">
+                ${this.syncControlsStatus_?.labels.recoverZone || ''}
+              </cr-button>
+            </div>
+          </div>
+          <div class="secondary" role="status" aria-live="polite"
+              ?hidden="${!this.syncControlsActionFailed_}">
+            $i18n{ahoiBrowserSettingsSyncFailed}
+          </div>
+        </section>
+        <section id="ahoiBrowserSettingsSyncSection"
+            class="browser-settings-sync-card"
+            aria-labelledby="ahoiBrowserSettingsSyncTitle"
+            aria-busy="${this.browserSettingsSyncActionPending_}">
+          <label class="browser-settings-sync-option">
+            <input id="ahoiBrowserSettingsSyncEnabled" type="checkbox"
+                .checked="${this.browserSettingsSyncStatus_?.selection === 'all'}"
+                .indeterminate="${this.browserSettingsSyncStatus_?.selection === 'some'}"
+                ?disabled="${!this.browserSettingsSyncStatus_?.canChange ||
+                    this.browserSettingsSyncActionPending_}"
+                aria-labelledby="ahoiBrowserSettingsSyncTitle"
+                aria-describedby="ahoiBrowserSettingsSyncDescription ahoiBrowserSettingsSyncStatus"
+                @change="${this.onBrowserSettingsSyncChange_}">
+            <span class="browser-settings-sync-copy">
+              <span id="ahoiBrowserSettingsSyncTitle"
+                  class="browser-settings-sync-title">
+                $i18n{ahoiBrowserSettingsSync}
+              </span>
+              <span id="ahoiBrowserSettingsSyncDescription" class="secondary">
+                $i18n{ahoiBrowserSettingsSyncDescription}
+              </span>
+            </span>
+          </label>
+          <div id="ahoiBrowserSettingsSyncStatus"
+              class="browser-settings-sync-status secondary"
+              role="status" aria-live="polite">
+            ${this.browserSettingsSyncStatusText_()}
+            <div ?hidden="${!this.browserSettingsSyncActionFailed_}">
+              $i18n{ahoiBrowserSettingsSyncFailed}
+            </div>
+            <div ?hidden="${!this.browserSettingsSyncStatus_ ||
+                this.browserSettingsSyncStatus_.syncEnabled ||
+                this.browserSettingsSyncStatus_.selectedCount === 0}">
+              $i18n{ahoiBrowserSettingsSyncPaused}
+            </div>
+          </div>
+        </section>
         <settings-toggle-button id="ahoiRemoteControlEnabled"
             no-set-pref
             ?disabled="${!this.remoteControlStatus_?.canEnable ||
@@ -300,6 +329,132 @@ export function getHtml(this: SettingsAhoiPageElement) {
           </settings-dropdown-menu>
         </div>
       </div>
+
+      <div class="section-heading cr-row hr"
+          ?hidden="${!this.portableExportOptions_}">
+        <div class="flex cr-padded-text">
+          <div id="ahoiPortableExportTitle">
+            ${this.portableExportOptions_?.labels.title || ''}
+          </div>
+          <div class="secondary">
+            ${this.portableExportOptions_?.labels.description || ''}
+          </div>
+        </div>
+      </div>
+      <section id="ahoiPortableExport" class="portable-export-card"
+          aria-labelledby="ahoiPortableExportTitle"
+          aria-busy="${this.portableExportPending_}"
+          ?hidden="${!this.portableExportOptions_}">
+        <div class="portable-workspace-list">
+          ${this.portableExportOptions_?.workspaces.map(workspace => html`
+            <label class="portable-workspace-option">
+              <input type="checkbox" data-workspace-id="${workspace.id}"
+                  .checked="${this.portableSelectedWorkspaceIds_.includes(workspace.id)}"
+                  ?disabled="${this.portableExportPending_}"
+                  @change="${this.onPortableWorkspaceChange_}">
+              <span>${workspace.name}</span>
+            </label>`)}
+        </div>
+        <div class="portable-export-categories">
+          <label class="portable-workspace-option">
+            <input type="checkbox" .checked="${this.portableIncludeTemporary_}"
+                ?disabled="${this.portableExportPending_}"
+                @change="${this.onPortableTemporaryChange_}">
+            <span>${this.portableExportOptions_?.labels.temporary || ''}</span>
+          </label>
+          <label class="portable-workspace-option">
+            <input type="checkbox" .checked="${this.portableIncludeArchives_}"
+                ?disabled="${this.portableExportPending_}"
+                @change="${this.onPortableArchivesChange_}">
+            <span>${this.portableExportOptions_?.labels.archives || ''}</span>
+          </label>
+        </div>
+        <div class="portable-export-actions">
+          <cr-button id="ahoiPortablePreview"
+              ?disabled="${!this.portableExportOptions_?.available ||
+                  this.portableSelectedWorkspaceIds_.length === 0 ||
+                  this.portableExportPending_}"
+              @click="${this.onPortablePreviewClick_}">
+            ${this.portableExportOptions_?.labels.prepare || ''}
+          </cr-button>
+        </div>
+        ${this.portableExportPreview_ ? html`
+          <div class="portable-export-preview" role="status">
+            <span>${this.portableExportOptions_?.labels.workspaces}:
+              ${this.portableExportPreview_.workspaces}</span>
+            <span>${this.portableExportOptions_?.labels.pages}:
+              ${this.portableExportPreview_.pages}</span>
+            <span>${this.portableExportOptions_?.labels.splits}:
+              ${this.portableExportPreview_.splits}</span>
+            <span>${this.portableExportOptions_?.labels.archivesCount}:
+              ${this.portableExportPreview_.archives}</span>
+            <span>${this.portableExportOptions_?.labels.excluded}:
+              ${this.portableExportPreview_.excluded}</span>
+          </div>
+          <p id="ahoiPortableExportWarning" class="secondary">
+            ${this.portableExportOptions_?.labels.unencrypted || ''}
+          </p>
+          <cr-button id="ahoiPortableSave" class="action-button"
+              aria-describedby="ahoiPortableExportWarning"
+              ?disabled="${this.portableExportPending_}"
+              @click="${this.onPortableSaveClick_}">
+            ${this.portableExportOptions_?.labels.save || ''}
+          </cr-button>` : ''}
+        <div class="portable-export-status secondary" role="status"
+            aria-live="polite">
+          ${this.portableExportStatusText_()}
+        </div>
+        <div class="portable-import-section">
+          <cr-button id="ahoiPortableImportPreview"
+              ?disabled="${this.portableImportPending_ ||
+                  this.portableExportPending_}"
+              @click="${this.onPortableImportClick_}">
+            ${this.portableExportOptions_?.labels.importFile || ''}
+          </cr-button>
+          <div class="secondary" role="status" aria-live="polite">
+            ${this.portableImportStatusText_()}
+          </div>
+          ${this.portableImportPreview_ ? html`
+            <div class="portable-import-preview" role="group"
+                aria-label="${this.portableExportOptions_?.labels.importDestination || ''}">
+              <div>${this.portableExportOptions_?.labels.importDestination}</div>
+              <p class="secondary">
+                ${this.portableExportOptions_?.labels.importSelectionHint}
+              </p>
+              ${this.portableImportPreview_.workspaces?.map(workspace => html`
+                <label class="portable-workspace-option">
+                  <input type="checkbox" data-workspace-id="${workspace.id}"
+                      .checked="${this.portableImportSelectedWorkspaceIds_.includes(workspace.id)}"
+                      ?disabled="${this.portableImportPending_}"
+                      @change="${this.onPortableImportWorkspaceChange_}">
+                  <span>${workspace.name} ·
+                    ${workspace.destination === 'new' ?
+                        this.portableExportOptions_?.labels.importNew :
+                        workspace.destination === 'identical' ?
+                        this.portableExportOptions_?.labels.importIdentical :
+                        this.portableExportOptions_?.labels.importConflict}</span>
+                </label>
+              `)}
+              <div>${this.portableExportOptions_?.labels.pages}:
+                ${this.portableImportPreview_.pages}</div>
+              <div>${this.portableExportOptions_?.labels.splits}:
+                ${this.portableImportPreview_.splits}</div>
+              <div>${this.portableExportOptions_?.labels.archivesCount}:
+                ${this.portableImportPreview_.archives}</div>
+              <div>${this.portableExportOptions_?.labels.importNew}:
+                ${this.portableImportPreview_.newItems}</div>
+              <div>${this.portableExportOptions_?.labels.importIdentical}:
+                ${this.portableImportPreview_.identicalItems}</div>
+              <div>${this.portableExportOptions_?.labels.importConflict}:
+                ${this.portableImportPreview_.conflictingItems}</div>
+              <cr-button id="ahoiPortableImportCommit" class="action-button"
+                  ?disabled="${!this.canCommitPortableImport_()}"
+                  @click="${this.onPortableCommitClick_}">
+                ${this.portableExportOptions_?.labels.importCommit || ''}
+              </cr-button>
+            </div>` : ''}
+        </div>
+      </section>
 
       <div class="section-heading cr-row hr">
         <div class="flex cr-padded-text">

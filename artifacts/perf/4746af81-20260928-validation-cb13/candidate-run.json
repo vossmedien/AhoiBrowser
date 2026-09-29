@@ -1,0 +1,178 @@
+{
+  "app": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "926000eed6daa1af23aba9e9d2feb5613612b1d8b03c28f25c70037092580f8b",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "4746af81d6ffe01984012fa44c5c99c55d152766",
+    "buildProfile": "dev",
+    "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+  },
+  "buildEvidence": null,
+  "metrics": {
+    "command_bar_ms": [
+      7.024,
+      1.731,
+      1.998,
+      1.675,
+      2.417,
+      7.959,
+      2.837,
+      6.093,
+      2.328,
+      2.052,
+      3.96,
+      2.298,
+      3.214,
+      2.815,
+      7.118,
+      3.614,
+      3.016,
+      0.868,
+      1.016,
+      3.204
+    ],
+    "command_bar_presented_ms": [
+      49.347,
+      15.601,
+      22.606,
+      335.685,
+      440.634,
+      432.881,
+      23.799,
+      440.364,
+      30.51,
+      426.96,
+      427.924,
+      436.264,
+      28.652,
+      435.671,
+      443.764,
+      32.583,
+      424.778,
+      419.84,
+      426.024,
+      520.235
+    ]
+  },
+  "schemaVersion": 2,
+  "kind": "ahoi-perf-run",
+  "startedAt": "2026-09-28T17:27:47.165846+00:00",
+  "conditions": {
+    "chromiumVersion": "153.0.8010.53",
+    "hardwareModel": "Mac14,6",
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "flags": [
+      "--no-default-browser-check",
+      "--no-first-run",
+      "--window-position=0,0",
+      "--window-size=1440,900"
+    ],
+    "windowSize": "1440,900",
+    "accessibilityClients": [],
+    "scenarioVersion": 2,
+    "validationRun": true
+  },
+  "hostBefore": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      3.53173828125,
+      4.6220703125,
+      8.75244140625
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [],
+    "hidIdleSeconds": 160.007,
+    "hidIdleSampledAt": 70487.218300875,
+    "hidIdleSampledWall": 1790616467.1647732
+  },
+  "hostAfter": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      4.021484375,
+      4.6748046875,
+      8.67529296875
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [],
+    "hidIdleSeconds": 13.788,
+    "hidIdleSampledAt": 70507.485477958,
+    "hidIdleSampledWall": 1790616487.4320672
+  },
+  "runtimeGuard": {
+    "checkpoint": ".work/crest-h3/lease-45.md",
+    "leaseId": "crest-h3-validation-4746af81",
+    "grantSha256": "89747057e168a8a2185fa140e23ac7e52993022ee3f6143e382adc7690d9789a",
+    "expiresAt": "2026-09-29T04:32:51.523947+00:00",
+    "pollIntervalSeconds": 1.0,
+    "checks": 21,
+    "completed": true,
+    "cancelled": false,
+    "reason": null,
+    "lockRetained": false,
+    "driverAccessibilityClients": [],
+    "driverInputs": 1,
+    "idleSamples": [
+      [
+        8.66,
+        2.184
+      ],
+      [
+        9.76,
+        3.276
+      ],
+      [
+        10.87,
+        4.395
+      ],
+      [
+        11.98,
+        5.498
+      ],
+      [
+        13.07,
+        6.592
+      ],
+      [
+        14.18,
+        7.7
+      ],
+      [
+        15.27,
+        8.795
+      ],
+      [
+        16.39,
+        9.908
+      ],
+      [
+        17.51,
+        11.031
+      ],
+      [
+        18.62,
+        12.145
+      ],
+      [
+        19.72,
+        13.241
+      ],
+      [
+        20.31,
+        13.829
+      ]
+    ],
+    "inputEpochOffset": 6.48
+  }
+}

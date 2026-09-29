@@ -66,6 +66,10 @@ class ResourcePolicyService final : public KeyedService,
   TabResourceStatus GetTabStatus(tabs::TabInterface* tab) const;
   bool IsTabSleeping(tabs::TabInterface* tab) const;
   bool CanSleepTab(tabs::TabInterface* tab) const;
+  // Archive closes a tab only after its durable snapshot exists. Reuse the
+  // live critical-flow and Chromium form/media protections, including for a
+  // tab which Memory Saver has already put to sleep.
+  bool CanArchiveTab(tabs::TabInterface* tab) const;
   bool SleepTab(tabs::TabInterface* tab);
   bool WakeTab(tabs::TabInterface* tab);
 

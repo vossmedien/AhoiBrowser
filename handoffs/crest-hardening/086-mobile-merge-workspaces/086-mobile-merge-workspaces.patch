@@ -1,0 +1,854 @@
+diff --git a/apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj b/apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj
+index f2ff75f..11fdfd5 100644
+--- a/apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj
++++ b/apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj
+@@ -90,6 +90,7 @@
+ 		5029362A318B0DA4AA4064B2 /* CompanionKeyLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D916536AF75DDCC868BB7A5 /* CompanionKeyLifecycleTests.swift */; };
+ 		5046052ABA690FE6D954B01C /* SharedTabCreationProvenanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 014D9588778BF01556BCEA89 /* SharedTabCreationProvenanceTests.swift */; };
+ 		512F911BC2A988CFB54B1FC3 /* CompanionMobileIntentRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FBB2E135A8C10017137C5B /* CompanionMobileIntentRecovery.swift */; };
++		517130C5379501BF3BDC4869 /* CompanionStoreWorkspaceMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525D1EF10FF4B0F4C857D827 /* CompanionStoreWorkspaceMerge.swift */; };
+ 		520ED0FA0E24FF306EE8C277 /* CloudKitSyncProviderPersistenceFailureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E1AAC9C6F827FFE6132458A /* CloudKitSyncProviderPersistenceFailureTests.swift */; };
+ 		521AB21AE389EA5D156EF563 /* CompanionDeviceRevocationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDFAC5291E918236335DCC9 /* CompanionDeviceRevocationTests.swift */; };
+ 		52A95AE1FDBC149E00A3EE8B /* CompanionAppModelBrowserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E6798D21FC82559EC47412 /* CompanionAppModelBrowserSettings.swift */; };
+@@ -168,6 +169,7 @@
+ 		9F6A16461633CF2A1EE31A85 /* MobilePrivateSessionLockTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38A32704DC2435CAA9D895C /* MobilePrivateSessionLockTests.swift */; };
+ 		A063FAA5A42AF4608668A156 /* CompanionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02865824EB9AC0925B5408DD /* CompanionViews.swift */; };
+ 		A0DA2CB90E8E397C225D6CE1 /* CompanionSyncRuntimeAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8997CE37E0C39A89B74FF388 /* CompanionSyncRuntimeAuthorization.swift */; };
++		A29FC011A3AB1D27D6E6EF64 /* CompanionWorkspaceMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D1FD2E1454DF79CA0A8000 /* CompanionWorkspaceMergeTests.swift */; };
+ 		A2AB8128C92A62BE529628F5 /* MobileBrowserController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B666C74492924D564B36548F /* MobileBrowserController.swift */; };
+ 		A32021767F605182908169B9 /* CloudKitSyncProvider+Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE06F2F741F6B6667D11856C /* CloudKitSyncProvider+Lifecycle.swift */; };
+ 		A4D1301619434E48C1BDFB95 /* MobileBrowserActionsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8CBC3734411F9AB5124E53 /* MobileBrowserActionsSheet.swift */; };
+@@ -228,6 +230,7 @@
+ 		D985EFD4C5117794271B1B4A /* CompanionProductRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CCA3106656C4B84007050CE /* CompanionProductRecordTests.swift */; };
+ 		D9C91F763630F4C0C1895C49 /* MobileBrowserDownloadRealE2EUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75BAD17069FD083DEEA36009 /* MobileBrowserDownloadRealE2EUITests.swift */; };
+ 		DDAE234D9264EF95C8EC4D56 /* MobileBrowserChromeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDE42A00D5396EECF307B292 /* MobileBrowserChromeTheme.swift */; };
++		DFEC2017EA74B896FFADFFFA /* CompanionAppModelWorkspaceMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC907938BE79890002715DAA /* CompanionAppModelWorkspaceMerge.swift */; };
+ 		E06734661F12A9625D658079 /* SyncRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E05217774CD763178565A84 /* SyncRecordStore.swift */; };
+ 		E2F44B92AFF9558550AFBDA4 /* CompanionConvergenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836581053058CD7BC0F0BD45 /* CompanionConvergenceTests.swift */; };
+ 		E2FD5135D863ACDF466A17F6 /* CompanionPersistenceStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62D77A368AFA8FBF823CB04 /* CompanionPersistenceStores.swift */; };
+@@ -425,6 +428,7 @@
+ 		4F7EF7566292096CDDC7DFAE /* DesktopWireProductPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWireProductPayloadCodec.swift; sourceTree = "<group>"; };
+ 		4FBE9D74CE42AD639851C6DB /* MobileDevelopmentScopeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileDevelopmentScopeTests.swift; sourceTree = "<group>"; };
+ 		51C84A3A5008AA86A72D0BAE /* CompanionImportBatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionImportBatch.swift; sourceTree = "<group>"; };
++		525D1EF10FF4B0F4C857D827 /* CompanionStoreWorkspaceMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionStoreWorkspaceMerge.swift; sourceTree = "<group>"; };
+ 		559063427F81721456EE658C /* ReleasePostGrant.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ReleasePostGrant.xcconfig; sourceTree = "<group>"; };
+ 		56B7570BD401D5FBE0DA1427 /* CompanionBrowserSettingCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionBrowserSettingCatalog.swift; sourceTree = "<group>"; };
+ 		591E143645AB0CE5D8297DB3 /* MobileSyncRealE2EUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSyncRealE2EUITests.swift; sourceTree = "<group>"; };
+@@ -517,6 +521,7 @@
+ 		B666C74492924D564B36548F /* MobileBrowserController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserController.swift; sourceTree = "<group>"; };
+ 		BC0DA3891F2B3633963D41FF /* SharedTabFieldReadMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTabFieldReadMerge.swift; sourceTree = "<group>"; };
+ 		BC3D7250F3F9F5124877962E /* MobileAddressCommandSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileAddressCommandSheet.swift; sourceTree = "<group>"; };
++		BC907938BE79890002715DAA /* CompanionAppModelWorkspaceMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionAppModelWorkspaceMerge.swift; sourceTree = "<group>"; };
+ 		BCDB362821329D6FDEF5C53F /* MobileBrowserControllerWebPageLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserControllerWebPageLifecycle.swift; sourceTree = "<group>"; };
+ 		BD895C93277F6F3DCBD5F9E3 /* DesktopWirePayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopWirePayloadCodec.swift; sourceTree = "<group>"; };
+ 		BDDC7FDC5BF514326C8B8DD2 /* MobileBrowserFailureRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserFailureRecoveryTests.swift; sourceTree = "<group>"; };
+@@ -551,6 +556,7 @@
+ 		E2640FCCACDF5FE3656DCB85 /* MobileBrowserRealE2ETestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserRealE2ETestSupport.swift; sourceTree = "<group>"; };
+ 		E2F5D6EFC71CD963DBFB6928 /* MobileBrowserControllerFailures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserControllerFailures.swift; sourceTree = "<group>"; };
+ 		E380BF6FECC29752B480682F /* CompanionPayloadCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionPayloadCodec.swift; sourceTree = "<group>"; };
++		E4D1FD2E1454DF79CA0A8000 /* CompanionWorkspaceMergeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionWorkspaceMergeTests.swift; sourceTree = "<group>"; };
+ 		E54800816A43251902609B17 /* CompanionAppModelLocalFirstMutation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionAppModelLocalFirstMutation.swift; sourceTree = "<group>"; };
+ 		E5A641678471ADCF1203440A /* MobileBrowserTabWorkspaceRealE2EUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBrowserTabWorkspaceRealE2EUITests.swift; sourceTree = "<group>"; };
+ 		E72EB0B727BFDDEC0050AD9B /* CompanionBookmarkIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionBookmarkIntegrationTests.swift; sourceTree = "<group>"; };
+@@ -677,6 +683,7 @@
+ 				E54800816A43251902609B17 /* CompanionAppModelLocalFirstMutation.swift */,
+ 				F0285D823CD9A3ADCCEADCF6 /* CompanionAppModelRemoteCommands.swift */,
+ 				C7116DA5CC86D57D8221B03B /* CompanionAppModelSyncLifecycle.swift */,
++				BC907938BE79890002715DAA /* CompanionAppModelWorkspaceMerge.swift */,
+ 				402B5D7242170407AD42AD67 /* CompanionBookmarkFieldMerge.swift */,
+ 				AD7C7735B8868DE5D0303DAC /* CompanionBookmarkHierarchy.swift */,
+ 				61BC19B651510B8B8DC82135 /* CompanionBookmarkLibraryIntegration.swift */,
+@@ -727,6 +734,7 @@
+ 				AF2D60F2F2484E40EAD0650F /* CompanionStore.swift */,
+ 				F87C0B98514C21A13A4D28B6 /* CompanionStoreClock.swift */,
+ 				084FD2B8BB0FFAA99691AB55 /* CompanionStoreMetadata.swift */,
++				525D1EF10FF4B0F4C857D827 /* CompanionStoreWorkspaceMerge.swift */,
+ 				A6670A9B6D65B601B139D25E /* CompanionSyncBridge.swift */,
+ 				F8399297D516E2DECBBCE9F4 /* CompanionSyncBridgeOutbound.swift */,
+ 				1BC41E109F43026941AABC27 /* CompanionSyncBridgeSnapshot.swift */,
+@@ -964,6 +972,7 @@
+ 				D5D6468F554FEDF0D6F22B6F /* CompanionRemoteCommandPresentationTests.swift */,
+ 				F025C542F050332E11BBB3D7 /* CompanionSyncPreferenceTests.swift */,
+ 				24300E9C835620420105E291 /* CompanionTreeReorderingTests.swift */,
++				E4D1FD2E1454DF79CA0A8000 /* CompanionWorkspaceMergeTests.swift */,
+ 				9CE1A64CBE1A21720427C011 /* MobileAddressPresentationTests.swift */,
+ 				4DF31AEC86A10D9805F3D0F4 /* MobileBrowserCoreTests.swift */,
+ 				BDDC7FDC5BF514326C8B8DD2 /* MobileBrowserFailureRecoveryTests.swift */,
+@@ -1293,6 +1302,7 @@
+ 				7846E786637D6746991636E3 /* CompanionAppModelLocalFirstMutation.swift in Sources */,
+ 				13A6E6BB85982B6C1F96566C /* CompanionAppModelRemoteCommands.swift in Sources */,
+ 				6FD49D902E9D2C2CDE130408 /* CompanionAppModelSyncLifecycle.swift in Sources */,
++				DFEC2017EA74B896FFADFFFA /* CompanionAppModelWorkspaceMerge.swift in Sources */,
+ 				4D623DD58DF9D5CFA0A5C1B6 /* CompanionBookmarkFieldMerge.swift in Sources */,
+ 				3B1DE89768DB962783C9AC60 /* CompanionBookmarkHierarchy.swift in Sources */,
+ 				1F6EDF276BA403F3141C6D02 /* CompanionBookmarkLibraryIntegration.swift in Sources */,
+@@ -1343,6 +1353,7 @@
+ 				5920EC4A3FE01BC0D62ABCE5 /* CompanionStore.swift in Sources */,
+ 				2A20FC4359EBACF9AF06F441 /* CompanionStoreClock.swift in Sources */,
+ 				152B8202D64CBF88400DD855 /* CompanionStoreMetadata.swift in Sources */,
++				517130C5379501BF3BDC4869 /* CompanionStoreWorkspaceMerge.swift in Sources */,
+ 				32D867079CB462309EB198B1 /* CompanionSyncBridge.swift in Sources */,
+ 				66287C41D2BEC077184C2FF5 /* CompanionSyncBridgeOutbound.swift in Sources */,
+ 				857944B8A51B825C200C1E69 /* CompanionSyncBridgeSnapshot.swift in Sources */,
+@@ -1470,6 +1481,7 @@
+ 				4E4B6001EEBC5AEB308BB388 /* CompanionRemoteCommandPresentationTests.swift in Sources */,
+ 				F33753DC32B84935459ED160 /* CompanionSyncPreferenceTests.swift in Sources */,
+ 				2A20BC68C27F874E2BF2D389 /* CompanionTreeReorderingTests.swift in Sources */,
++				A29FC011A3AB1D27D6E6EF64 /* CompanionWorkspaceMergeTests.swift in Sources */,
+ 				45C96243BB7672F5D74895C5 /* MobileAddressPresentationTests.swift in Sources */,
+ 				5C98FE11BC1F015D9267586F /* MobileBrowserCoreTests.swift in Sources */,
+ 				3FD0B38BC97827D0C868C030 /* MobileBrowserFailureRecoveryTests.swift in Sources */,
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileApp/AppEntry.swift b/apps/AhoiMobile/Sources/AhoiMobileApp/AppEntry.swift
+index c798a65..e47cb01 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileApp/AppEntry.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileApp/AppEntry.swift
+@@ -79,6 +79,14 @@ private final class AhoiMobileBootstrap: ObservableObject {
+     struct Runtime {
+         let model: CompanionAppModel
+         let browser: MobileBrowserController
++
++        @MainActor
++        init(model: CompanionAppModel, browser: MobileBrowserController) {
++            self.model = model
++            self.browser = browser
++            // ADR 0012: a Workspace merge moves the source's open tabs too.
++            model.connectWorkspaceMerges(to: browser)
++        }
+     }
+ 
+     @Published private(set) var runtime: Runtime?
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionAppModel.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionAppModel.swift
+index 3586685..e60be2c 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionAppModel.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionAppModel.swift
+@@ -25,6 +25,8 @@ public final class CompanionAppModel: ObservableObject {
+     @Published public internal(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
+     @Published public internal(set) var syncSetupIssue: CompanionSyncSetupIssue?
+     @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
++    /// The last Workspace merge, while its one-step undo is offered.
++    @Published public internal(set) var pendingWorkspaceMergeUndo: CompanionWorkspaceMergeReceipt?
+ 
+     public let repository: LocalFirstRepository
+     /// ADR 0011 step 4: fully separated Workspaces, each synced in its own
+@@ -68,6 +70,11 @@ public final class CompanionAppModel: ObservableObject {
+     var browserSearchMutationToken: UUID?
+     var remoteCommandExpiryTask: Task<Void, Never>?
+     var remoteCommandExpiryGeneration: UInt64 = 0
++    /// Moves the open browser tabs of a merged Workspace (see
++    /// `connectWorkspaceMerges(to:)`) and returns their IDs for the undo.
++    var workspaceMergeTabMover: ((WorkspaceID, WorkspaceID) -> [UUID])?
++    var workspaceMergeTabRestorer: (([UUID], WorkspaceID) -> Void)?
++    var workspaceMergeTabIDs: [UUID] = []
+     let remoteCommandClock: CompanionRemoteCommandClock
+     let remoteCommandSleeper: CompanionRemoteCommandSleeper
+ #if DEBUG
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionAppModelWorkspaceMerge.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionAppModelWorkspaceMerge.swift
+new file mode 100644
+index 0000000..4b91350
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionAppModelWorkspaceMerge.swift
+@@ -0,0 +1,73 @@
++import Foundation
++import AhoiCloudKitSpike
++
++/// ADR 0012, WS-MERGE-07: "Zusammenführen mit …" on mobile.
++extension CompanionAppModel {
++    /// Wires the browser so a merge also moves the source's open tabs to
++    /// the target, and an undo moves exactly those tabs back.
++    public func connectWorkspaceMerges(to browser: MobileBrowserController) {
++        workspaceMergeTabMover = { [weak browser] source, target in
++            browser?.moveTabs(fromWorkspace: source, to: target) ?? []
++        }
++        workspaceMergeTabRestorer = { [weak browser] ids, source in
++            browser?.moveTabs(ids, to: source)
++        }
++    }
++
++    /// Whether `source` can be merged into `target`: both are shared
++    /// Workspaces of this library. A fully separated Workspace (ADR 0011)
++    /// never merges, because its sign-ins and website data cannot move.
++    public func canMergeWorkspace(_ source: WorkspaceID, into target: WorkspaceID) -> Bool {
++        source != target
++            && !separatedWorkspaces.isSeparatedWorkspace(source.rawValue)
++            && !separatedWorkspaces.isSeparatedWorkspace(target.rawValue)
++            && snapshot.visibleWorkspaces.contains { $0.id == source }
++            && snapshot.visibleWorkspaces.contains { $0.id == target }
++    }
++
++    public func mergeWorkspace(
++        _ source: WorkspaceID,
++        into target: WorkspaceID,
++        intoFolder: Bool = true
++    ) async {
++        guard canMergeWorkspace(source, into: target) else {
++            loadError = CompanionL10n.string(
++                "workspace.merge.separated",
++                fallback: "Fully separated workspaces can't be merged: their sign-ins and website data never move. Move pages one by one instead."
++            )
++            return
++        }
++        _ = await performLocalFirstMutation({
++            try await repository.mergeWorkspace(source, into: target, intoFolder: intoFolder)
++        }, didCommit: { receipt in
++            self.pendingWorkspaceMergeUndo = receipt
++            self.workspaceMergeTabIDs = self.workspaceMergeTabMover?(source, target) ?? []
++        }, enqueue: { receipt in
++            guard let bridge = self.syncBridge else { return }
++            for node in receipt.nodes { try await bridge.enqueue(node) }
++            try await bridge.enqueue(receipt.source)
++        })
++    }
++
++    /// One step back: the source Workspace and its pages return, and the
++    /// tabs the merge moved go back with it.
++    public func undoWorkspaceMerge() async {
++        guard let receipt = pendingWorkspaceMergeUndo else { return }
++        let tabIDs = workspaceMergeTabIDs
++        dismissWorkspaceMergeUndo()
++        _ = await performLocalFirstMutation({
++            try await repository.undoWorkspaceMerge(receipt)
++        }, didCommit: { _ in
++            self.workspaceMergeTabRestorer?(tabIDs, receipt.sourceID)
++        }, enqueue: { restored in
++            guard let bridge = self.syncBridge else { return }
++            try await bridge.enqueue(restored.workspace)
++            for node in restored.nodes { try await bridge.enqueue(node) }
++        })
++    }
++
++    public func dismissWorkspaceMergeUndo() {
++        pendingWorkspaceMergeUndo = nil
++        workspaceMergeTabIDs = []
++    }
++}
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshot.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshot.swift
+index 87a6c00..a655e1b 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshot.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionSnapshot.swift
+@@ -147,6 +147,8 @@ public enum LocalCompanionStoreError: Error, Equatable, Sendable {
+     case invalidParent
+     case treeCycle
+     case hierarchyTooDeep
++    /// A merge undo whose records changed after the merge (ADR 0012).
++    case mergeUndoOutdated
+ }
+ 
+ public enum CompanionHierarchyPolicy {
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreWorkspaceMerge.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreWorkspaceMerge.swift
+new file mode 100644
+index 0000000..d68feef
+--- /dev/null
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionStoreWorkspaceMerge.swift
+@@ -0,0 +1,226 @@
++import Foundation
++import AhoiCloudKitSpike
++
++/// The result of one Workspace merge (ADR 0012, WS-MERGE-07): everything to
++/// enqueue for sync, plus what a single undo needs to put it back.
++public struct CompanionWorkspaceMergeReceipt: Sendable, Equatable {
++    public let sourceID: WorkspaceID
++    public let targetID: WorkspaceID
++    /// The tombstoned source Workspace.
++    public let source: Workspace
++    /// Every node the merge rewrote, including the new folder, as stored.
++    public let nodes: [TreeNode]
++    /// The same nodes before the merge (the new folder has none).
++    let previousNodes: [TreeNodeID: TreeNode]
++    let previousSource: Workspace
++    public let folderID: TreeNodeID?
++
++    public var previousSourceName: String { previousSource.name }
++}
++
++extension LocalFirstRepository {
++    /// Merges `source` into `target` in one mutation and one persist. The
++    /// source's live roots move, in order, to the end of the target: into one
++    /// new folder named after the source (with its icon and accent) or flat.
++    /// Every live descendant takes the target Workspace. The source is
++    /// tombstoned. Undo with `undoWorkspaceMerge(_:)`.
++    public func mergeWorkspace(
++        _ sourceID: WorkspaceID,
++        into targetID: WorkspaceID,
++        intoFolder: Bool
++    ) async throws -> CompanionWorkspaceMergeReceipt {
++        await acquireMutation()
++        defer { releaseMutation() }
++        try await loadIfNeeded()
++        guard sourceID != targetID,
++              let sourceIndex = snapshot.workspaces.firstIndex(where: {
++                  $0.id == sourceID && !$0.isDeleted
++              }),
++              snapshot.workspaces.contains(where: { $0.id == targetID && !$0.isDeleted })
++        else {
++            throw LocalCompanionStoreError.notFound
++        }
++        let previousSource = snapshot.workspaces[sourceIndex]
++        let roots = snapshot.visibleTreeNodes.filter {
++            $0.workspaceID == sourceID && $0.parentID == nil
++        }.sorted { $0.syncSortKey < $1.syncSortKey }
++        var lastTargetKey = snapshot.visibleTreeNodes.filter {
++            $0.workspaceID == targetID && $0.parentID == nil
++        }.sorted { $0.syncSortKey < $1.syncSortKey }.last?.orderKey
++
++        var previousNodes: [TreeNodeID: TreeNode] = [:]
++        var changed: [TreeNode] = []
++        var folderID: TreeNodeID?
++        if intoFolder, !roots.isEmpty {
++            let version = try nextVersion()
++            let folder = CompanionFieldMerge.stampLocal(
++                previous: nil,
++                candidate: try TreeNode(
++                    treeNodeID: TreeNodeID(),
++                    workspaceID: targetID,
++                    parentID: nil,
++                    kind: .folder,
++                    title: previousSource.name,
++                    url: nil,
++                    icon: previousSource.icon,
++                    accent: previousSource.accent,
++                    orderKey: try OrderKey.between(lastTargetKey, nil, tieBreaker: localDeviceID),
++                    targetKind: nil,
++                    homeTarget: nil,
++                    createdAt: version.modifiedAt,
++                    version: version
++                )
++            )
++            snapshot.treeNodes.append(folder)
++            folderID = folder.id
++        }
++        for root in roots {
++            guard let index = snapshot.treeNodes.firstIndex(where: { $0.id == root.id }) else {
++                throw LocalCompanionStoreError.notFound
++            }
++            let previous = snapshot.treeNodes[index]
++            var candidate = previous
++            candidate.workspaceID = targetID
++            if let folderID {
++                // Siblings keep their keys: their order inside the new folder
++                // is the order they had at the source's root.
++                candidate.parentID = folderID
++            } else {
++                candidate.orderKey = try OrderKey.between(
++                    lastTargetKey, nil, tieBreaker: localDeviceID
++                )
++                candidate.wireSortKey = nil
++                lastTargetKey = candidate.orderKey
++            }
++            candidate.version = try nextVersion()
++            candidate = CompanionFieldMerge.stampLocal(previous: previous, candidate: candidate)
++            snapshot.treeNodes[index] = candidate
++            previousNodes[previous.id] = previous
++            changed.append(candidate)
++            for descendant in try moveLiveDescendants(of: root.id, to: targetID) {
++                previousNodes[descendant.previous.id] = descendant.previous
++                changed.append(descendant.moved)
++            }
++        }
++
++        // The folder goes last, so undo tombstones it after its children
++        // are back and peers never see a live child under a deleted folder.
++        if let folderID,
++           let folder = snapshot.treeNodes.first(where: { $0.id == folderID }) {
++            changed.append(folder)
++        }
++        let version = try nextVersion()
++        var deleted = previousSource
++        deleted.version = version
++        deleted.tombstone = makeTombstone(
++            entityID: sourceID.rawValue,
++            version: version,
++            parentID: nil,
++            orderKey: nil
++        )
++        deleted = CompanionFieldMerge.stampLocal(previous: previousSource, candidate: deleted)
++        snapshot.workspaces[sourceIndex] = deleted
++        try await persist()
++        return CompanionWorkspaceMergeReceipt(
++            sourceID: sourceID,
++            targetID: targetID,
++            source: deleted,
++            nodes: changed,
++            previousNodes: previousNodes,
++            previousSource: previousSource,
++            folderID: folderID
++        )
++    }
++
++    /// Puts one merge back: the source is live again and every node returns
++    /// to its place there, each as a new version so the undo wins on synced
++    /// devices; the merge folder is tombstoned. Refused once any of these
++    /// records changed after the merge, e.g. by sync or another edit.
++    /// Returns the records to enqueue.
++    public func undoWorkspaceMerge(
++        _ receipt: CompanionWorkspaceMergeReceipt
++    ) async throws -> (workspace: Workspace, nodes: [TreeNode]) {
++        await acquireMutation()
++        defer { releaseMutation() }
++        try await loadIfNeeded()
++        guard let sourceIndex = snapshot.workspaces.firstIndex(where: {
++                  $0.id == receipt.sourceID
++              }),
++              snapshot.workspaces[sourceIndex].version == receipt.source.version,
++              snapshot.workspaces.contains(where: {
++                  $0.id == receipt.targetID && !$0.isDeleted
++              })
++        else {
++            throw LocalCompanionStoreError.mergeUndoOutdated
++        }
++        var indices: [TreeNodeID: Int] = [:]
++        for node in receipt.nodes {
++            guard let index = snapshot.treeNodes.firstIndex(where: { $0.id == node.id }),
++                  snapshot.treeNodes[index].version == node.version else {
++                throw LocalCompanionStoreError.mergeUndoOutdated
++            }
++            indices[node.id] = index
++        }
++
++        var restored: [TreeNode] = []
++        for node in receipt.nodes {
++            guard let index = indices[node.id] else { continue }
++            let current = snapshot.treeNodes[index]
++            var candidate = current
++            let version = try nextVersion()
++            if let previous = receipt.previousNodes[node.id] {
++                candidate.workspaceID = previous.workspaceID
++                candidate.parentID = previous.parentID
++                candidate.orderKey = previous.orderKey
++                candidate.wireSortKey = previous.wireSortKey
++            } else {
++                // The merge folder: empty again once its children are back.
++                candidate.tombstone = makeTombstone(
++                    entityID: current.id.rawValue,
++                    version: version,
++                    parentID: current.parentID?.rawValue,
++                    orderKey: current.orderKey
++                )
++            }
++            candidate.version = version
++            candidate = CompanionFieldMerge.stampLocal(previous: current, candidate: candidate)
++            snapshot.treeNodes[index] = candidate
++            restored.append(candidate)
++        }
++
++        let current = snapshot.workspaces[sourceIndex]
++        var revived = current
++        revived.tombstone = nil
++        revived.version = try nextVersion()
++        revived = CompanionFieldMerge.stampLocal(previous: current, candidate: revived)
++        snapshot.workspaces[sourceIndex] = revived
++        try await persist()
++        return (revived, restored)
++    }
++
++    /// Gives every live descendant of `id` the Workspace `workspaceID`.
++    private func moveLiveDescendants(
++        of id: TreeNodeID,
++        to workspaceID: WorkspaceID
++    ) throws -> [(previous: TreeNode, moved: TreeNode)] {
++        var result: [(previous: TreeNode, moved: TreeNode)] = []
++        var pending = [id]
++        var visited = Set<TreeNodeID>()
++        while let current = pending.popLast(), visited.insert(current).inserted {
++            for index in snapshot.treeNodes.indices
++                where snapshot.treeNodes[index].parentID == current
++                    && !snapshot.treeNodes[index].isDeleted {
++                let previous = snapshot.treeNodes[index]
++                pending.append(previous.id)
++                guard previous.workspaceID != workspaceID else { continue }
++                var moved = previous
++                moved.workspaceID = workspaceID
++                moved.version = try nextVersion()
++                moved = CompanionFieldMerge.stampLocal(previous: previous, candidate: moved)
++                snapshot.treeNodes[index] = moved
++                result.append((previous, moved))
++            }
++        }
++        return result
++    }
++}
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionViews.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionViews.swift
+index 8d969cd..cf3eb18 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionViews.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/CompanionViews.swift
+@@ -19,6 +19,7 @@ public struct CompanionRootView: View {
+     @State private var creationKind: CreationKind?
+     @State private var workspacePendingDeletion: WorkspaceID?
+     @State private var workspacePendingRename: Workspace?
++    @State private var workspacePendingMerge: WorkspaceMergeRequest?
+     @State private var renameDraft = ""
+     @State private var selectedRemoteDeviceID: DeviceID?
+     @State private var settingsPresented = false
+@@ -69,6 +70,7 @@ public struct CompanionRootView: View {
+                             .accessibilityIdentifier(
+                                 "browser.library.workspace.rename.\(stableUUID(workspace.id.rawValue))"
+                             )
++                            mergeMenu(for: workspace)
+                             Button(L("workspace.delete", "Delete workspace"), role: .destructive) {
+                                 workspacePendingDeletion = workspace.id
+                             }
+@@ -331,6 +333,29 @@ public struct CompanionRootView: View {
+             }
+             .accessibilityIdentifier("browser.library.workspace.delete.cancel")
+         }
++        .confirmationDialog(
++            mergeConfirmationTitle,
++            isPresented: Binding(
++                get: { workspacePendingMerge != nil },
++                set: { if !$0 { workspacePendingMerge = nil } }
++            ),
++            titleVisibility: .visible,
++            presenting: workspacePendingMerge
++        ) { request in
++            Button(L("workspace.merge.as_folder", "Merge as folder")) {
++                merge(request, intoFolder: true)
++            }
++            .accessibilityIdentifier("browser.library.workspace.merge.folder")
++            Button(L("workspace.merge.flat", "Merge without folder")) {
++                merge(request, intoFolder: false)
++            }
++            .accessibilityIdentifier("browser.library.workspace.merge.flat")
++            Button(L("action.cancel", "Cancel"), role: .cancel) {
++                workspacePendingMerge = nil
++            }
++        } message: { request in
++            Text(mergeConfirmationMessage(request))
++        }
+         .alert(
+             L("workspace.rename", "Rename workspace"),
+             isPresented: Binding(
+@@ -362,6 +387,90 @@ public struct CompanionRootView: View {
+                 CompanionOperationErrorBanner(message: message, dismiss: model.dismissLoadError)
+             }
+         }
++        .safeAreaInset(edge: .bottom) {
++            if let receipt = model.pendingWorkspaceMergeUndo {
++                WorkspaceMergeUndoBanner(
++                    message: CompanionL10n.format(
++                        "workspace.merge.done",
++                        fallback: "“%1$@” merged into “%2$@”.",
++                        receipt.previousSourceName,
++                        workspaceName(receipt.targetID)
++                    ),
++                    undo: { Task { await model.undoWorkspaceMerge() } },
++                    dismiss: model.dismissWorkspaceMergeUndo
++                )
++            }
++        }
++    }
++
++    @ViewBuilder
++    private func mergeMenu(for workspace: Workspace) -> some View {
++        let targets = model.snapshot.visibleWorkspaces.filter {
++            model.canMergeWorkspace(workspace.id, into: $0.id)
++        }
++        if !targets.isEmpty {
++            Menu(L("workspace.merge", "Merge into…")) {
++                ForEach(targets) { target in
++                    Button(target.name) { requestMerge(workspace, into: target) }
++                        .accessibilityIdentifier(
++                            "browser.library.workspace.merge.\(stableUUID(workspace.id.rawValue)).\(stableUUID(target.id.rawValue))"
++                        )
++                }
++            }
++        }
++    }
++
++    /// ADR 0012: an empty Workspace merges without asking.
++    private func requestMerge(_ source: Workspace, into target: Workspace) {
++        let request = WorkspaceMergeRequest(source: source, target: target)
++        if mergeCounts(request).pages + mergeCounts(request).folders == 0 {
++            merge(request, intoFolder: true)
++        } else {
++            workspacePendingMerge = request
++        }
++    }
++
++    private func merge(_ request: WorkspaceMergeRequest, intoFolder: Bool) {
++        workspacePendingMerge = nil
++        if selectedWorkspaceID == request.source.id { selectedWorkspaceID = request.target.id }
++        Task {
++            await model.mergeWorkspace(
++                request.source.id,
++                into: request.target.id,
++                intoFolder: intoFolder
++            )
++        }
++    }
++
++    private func mergeCounts(_ request: WorkspaceMergeRequest) -> (pages: Int, folders: Int) {
++        let nodes = model.snapshot.visibleTreeNodes.filter { $0.workspaceID == request.source.id }
++        return (nodes.filter { $0.kind == .savedPage }.count, nodes.filter { $0.kind == .folder }.count)
++    }
++
++    private var mergeConfirmationTitle: String {
++        guard let request = workspacePendingMerge else { return "" }
++        return CompanionL10n.format(
++            "workspace.merge.confirmation",
++            fallback: "Merge “%1$@” into “%2$@”?",
++            request.source.name,
++            request.target.name
++        )
++    }
++
++    private func mergeConfirmationMessage(_ request: WorkspaceMergeRequest) -> String {
++        let counts = mergeCounts(request)
++        return CompanionL10n.format(
++            "workspace.merge.message",
++            fallback: "%1$d pages and %2$d folders move to “%3$@”, and “%4$@” is removed. You can undo this right afterwards.",
++            counts.pages,
++            counts.folders,
++            request.target.name,
++            request.source.name
++        )
++    }
++
++    private func workspaceName(_ id: WorkspaceID) -> String {
++        model.snapshot.visibleWorkspaces.first { $0.id == id }?.name ?? ""
+     }
+ 
+     private func remoteTabRow(_ tab: RemoteTab) -> some View {
+@@ -493,3 +602,36 @@ private struct LibraryDoneToolbar: ViewModifier {
+         }
+     }
+ }
++
++struct WorkspaceMergeRequest: Identifiable, Equatable {
++    let source: Workspace
++    let target: Workspace
++    var id: String { "\(source.id.rawValue).\(target.id.rawValue)" }
++}
++
++/// The one-step undo offered right after a Workspace merge (ADR 0012).
++struct WorkspaceMergeUndoBanner: View {
++    let message: String
++    let undo: () -> Void
++    let dismiss: () -> Void
++
++    var body: some View {
++        HStack(spacing: 12) {
++            Text(message)
++                .font(.callout)
++                .frame(maxWidth: .infinity, alignment: .leading)
++            Button(L("action.undo", "Undo"), action: undo)
++                .buttonStyle(.borderedProminent)
++                .accessibilityIdentifier("browser.library.workspace.merge.undo")
++            Button(action: dismiss) {
++                Image(systemName: "xmark")
++            }
++            .accessibilityLabel(L("action.close", "Close"))
++            .accessibilityIdentifier("browser.library.workspace.merge.undo.dismiss")
++        }
++        .padding(12)
++        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
++        .padding(.horizontal, 16)
++        .padding(.bottom, 8)
++    }
++}
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift
+index fbfc222..4506490 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift
+@@ -384,6 +384,23 @@ public final class MobileBrowserController: ObservableObject {
+         if candidate.mode == .normal { onSharedTabIntent?(candidate, .move(workspaceID)) }
+     }
+ 
++    /// Moves every open tab of `source` to `target` (a Workspace merge,
++    /// ADR 0012) and returns the moved tab IDs, so an undo can move exactly
++    /// these back. Private tabs and separated Workspaces are left alone.
++    @discardableResult
++    public func moveTabs(
++        fromWorkspace source: WorkspaceID,
++        to target: WorkspaceID?
++    ) -> [UUID] {
++        let ids = tabs.filter { $0.workspaceID == source && $0.mode == .normal }.map(\.id)
++        moveTabs(ids, to: target)
++        return ids.filter { id in tabs.contains { $0.id == id && $0.workspaceID == target } }
++    }
++
++    public func moveTabs(_ ids: [UUID], to workspaceID: WorkspaceID?) {
++        for id in ids { moveTab(id, to: workspaceID) }
++    }
++
+     public func setSelectedTabSaved(_ saved: Bool) {
+         guard let selectedTabID,
+               let index = tabs.firstIndex(where: { $0.id == selectedTabID }) else { return }
+diff --git a/apps/AhoiMobile/Sources/AhoiMobileCore/Resources/Localizable.xcstrings b/apps/AhoiMobile/Sources/AhoiMobileCore/Resources/Localizable.xcstrings
+index d41dd8b..a11a74a 100644
+--- a/apps/AhoiMobile/Sources/AhoiMobileCore/Resources/Localizable.xcstrings
++++ b/apps/AhoiMobile/Sources/AhoiMobileCore/Resources/Localizable.xcstrings
+@@ -1,6 +1,14 @@
+ {
+   "sourceLanguage": "en",
+   "strings": {
++    "action.undo": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Rückgängig"}},"en":{"stringUnit":{"state":"translated","value":"Undo"}}}},
++    "workspace.merge": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zusammenführen mit …"}},"en":{"stringUnit":{"state":"translated","value":"Merge into…"}}}},
++    "workspace.merge.as_folder": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Als Ordner zusammenführen"}},"en":{"stringUnit":{"state":"translated","value":"Merge as folder"}}}},
++    "workspace.merge.flat": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ohne Ordner zusammenführen"}},"en":{"stringUnit":{"state":"translated","value":"Merge without folder"}}}},
++    "workspace.merge.confirmation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"„%1$@“ mit „%2$@“ zusammenführen?"}},"en":{"stringUnit":{"state":"translated","value":"Merge “%1$@” into “%2$@”?"}}}},
++    "workspace.merge.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%1$d Seiten und %2$d Ordner werden nach „%3$@“ verschoben, „%4$@“ wird entfernt. Direkt danach kannst du das rückgängig machen."}},"en":{"stringUnit":{"state":"translated","value":"%1$d pages and %2$d folders move to “%3$@”, and “%4$@” is removed. You can undo this right afterwards."}}}},
++    "workspace.merge.done": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"„%1$@“ wurde mit „%2$@“ zusammengeführt."}},"en":{"stringUnit":{"state":"translated","value":"“%1$@” merged into “%2$@”."}}}},
++    "workspace.merge.separated": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vollständig getrennte Workspaces lassen sich nicht zusammenführen: Anmeldungen und Website-Daten wandern nie mit. Verschiebe Seiten stattdessen einzeln."}},"en":{"stringUnit":{"state":"translated","value":"Fully separated workspaces can't be merged: their sign-ins and website data never move. Move pages one by one instead."}}}},
+     "settings.private.lock": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privaten Bereich sperren"}},"en":{"stringUnit":{"state":"translated","value":"Lock private browsing"}}}},
+     "settings.private.section": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privates Surfen"}},"en":{"stringUnit":{"state":"translated","value":"Private browsing"}}}},
+     "settings.private.lock.detail": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nach dem Verlassen der App ist Geräteauthentifizierung erforderlich. Sperren lässt private Tabs geöffnet. Diese Einstellung bleibt auf diesem Gerät."}},"en":{"stringUnit":{"state":"translated","value":"Require device authentication after leaving the app. Locking keeps private tabs open. This setting stays on this device."}}}},
+diff --git a/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionWorkspaceMergeTests.swift b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionWorkspaceMergeTests.swift
+new file mode 100644
+index 0000000..03790a5
+--- /dev/null
++++ b/apps/AhoiMobile/Tests/AhoiMobileCoreTests/CompanionWorkspaceMergeTests.swift
+@@ -0,0 +1,155 @@
++import XCTest
++import AhoiCloudKitSpike
++@testable import AhoiMobileCore
++
++/// ADR 0012, WS-MERGE-07: merging Workspaces on mobile.
++final class CompanionWorkspaceMergeTests: XCTestCase {
++    private func makeRepository() -> LocalFirstRepository {
++        LocalFirstRepository(
++            store: InMemoryCompanionStore(),
++            localDeviceID: DeviceID(
++                rawValue: UUID(uuidString: "70000000-0000-4000-8000-000000000086")!
++            )
++        )
++    }
++
++    func testMergeIntoFolderKeepsOrderAndUndoRestoresTheSource() async throws {
++        let repository = makeRepository()
++        let source = try await repository.createWorkspace(name: "Research")
++        let target = try await repository.createWorkspace(name: "Work")
++        let kept = try await repository.createTreeNode(
++            workspaceID: target.id, kind: .savedPage, title: "Mail",
++            url: "https://example.test/mail")
++        let folder = try await repository.createTreeNode(
++            workspaceID: source.id, kind: .folder, title: "Papers")
++        let nested = try await repository.createTreeNode(
++            workspaceID: source.id, parentID: folder.id, kind: .savedPage,
++            title: "Paper", url: "https://example.test/paper")
++        let loose = try await repository.createTreeNode(
++            workspaceID: source.id, kind: .savedPage, title: "Notes",
++            url: "https://example.test/notes")
++
++        let receipt = try await repository.mergeWorkspace(
++            source.id, into: target.id, intoFolder: true)
++
++        let folderID = try XCTUnwrap(receipt.folderID)
++        XCTAssertEqual(receipt.nodes.last?.id, folderID)
++        var snapshot = try await repository.currentSnapshot()
++        XCTAssertFalse(snapshot.visibleWorkspaces.contains { $0.id == source.id })
++        let mergeFolder = try XCTUnwrap(snapshot.visibleTreeNodes.first { $0.id == folderID })
++        XCTAssertEqual(mergeFolder.title, "Research")
++        XCTAssertEqual(mergeFolder.workspaceID, target.id)
++        XCTAssertNil(mergeFolder.parentID)
++        XCTAssertGreaterThan(mergeFolder.syncSortKey, kept.syncSortKey)
++        let children = snapshot.visibleTreeNodes
++            .filter { $0.parentID == folderID }
++            .sorted { $0.syncSortKey < $1.syncSortKey }
++        XCTAssertEqual(children.map(\.id), [folder.id, loose.id])
++        let movedNested = try XCTUnwrap(snapshot.visibleTreeNodes.first { $0.id == nested.id })
++        XCTAssertEqual(movedNested.workspaceID, target.id)
++        XCTAssertEqual(movedNested.parentID, folder.id)
++
++        let undone = try await repository.undoWorkspaceMerge(receipt)
++        XCTAssertFalse(undone.workspace.isDeleted)
++        XCTAssertGreaterThan(undone.workspace.version, receipt.source.version)
++        snapshot = try await repository.currentSnapshot()
++        XCTAssertTrue(snapshot.visibleWorkspaces.contains { $0.id == source.id })
++        XCTAssertFalse(snapshot.visibleTreeNodes.contains { $0.id == folderID })
++        for node in [folder, nested, loose] {
++            let restored = try XCTUnwrap(snapshot.visibleTreeNodes.first { $0.id == node.id })
++            XCTAssertEqual(restored.workspaceID, source.id)
++            XCTAssertEqual(restored.parentID, node.parentID)
++            XCTAssertEqual(restored.orderKey, node.orderKey)
++        }
++    }
++
++    func testFlatMergeAppendsAfterTheTargetInSourceOrder() async throws {
++        let repository = makeRepository()
++        let source = try await repository.createWorkspace(name: "Research")
++        let target = try await repository.createWorkspace(name: "Work")
++        let kept = try await repository.createTreeNode(
++            workspaceID: target.id, kind: .savedPage, title: "Mail",
++            url: "https://example.test/mail")
++        let first = try await repository.createTreeNode(
++            workspaceID: source.id, kind: .savedPage, title: "First",
++            url: "https://example.test/1")
++        let second = try await repository.createTreeNode(
++            workspaceID: source.id, kind: .savedPage, title: "Second",
++            url: "https://example.test/2")
++
++        let receipt = try await repository.mergeWorkspace(
++            source.id, into: target.id, intoFolder: false)
++
++        XCTAssertNil(receipt.folderID)
++        let roots = try await repository.currentSnapshot().visibleTreeNodes
++            .filter { $0.workspaceID == target.id && $0.parentID == nil }
++            .sorted { $0.syncSortKey < $1.syncSortKey }
++        XCTAssertEqual(roots.map(\.id), [kept.id, first.id, second.id])
++    }
++
++    func testUndoIsRefusedOnceAMergedRecordChanged() async throws {
++        let repository = makeRepository()
++        let source = try await repository.createWorkspace(name: "Research")
++        let target = try await repository.createWorkspace(name: "Work")
++        let page = try await repository.createTreeNode(
++            workspaceID: source.id, kind: .savedPage, title: "Page",
++            url: "https://example.test/")
++        let receipt = try await repository.mergeWorkspace(
++            source.id, into: target.id, intoFolder: true)
++        _ = try await repository.updateTreeNode(page.id, title: "Renamed")
++
++        do {
++            _ = try await repository.undoWorkspaceMerge(receipt)
++            XCTFail("Expected an outdated undo")
++        } catch {
++            XCTAssertEqual(error as? LocalCompanionStoreError, .mergeUndoOutdated)
++        }
++        let snapshot = try await repository.currentSnapshot()
++        XCTAssertFalse(snapshot.visibleWorkspaces.contains { $0.id == source.id })
++    }
++
++    func testMergeRejectsTheSameOrAMissingWorkspace() async throws {
++        let repository = makeRepository()
++        let source = try await repository.createWorkspace(name: "Research")
++        for target in [source.id, WorkspaceID()] {
++            do {
++                _ = try await repository.mergeWorkspace(source.id, into: target, intoFolder: true)
++                XCTFail("Expected a refusal")
++            } catch {
++                XCTAssertEqual(error as? LocalCompanionStoreError, .notFound)
++            }
++        }
++    }
++
++    @MainActor
++    func testModelMovesOpenTabsAndUndoMovesThemBack() async throws {
++        let repository = makeRepository()
++        let model = CompanionAppModel(repository: repository)
++        await model.load()
++        let source = try await repository.createWorkspace(name: "Research")
++        let target = try await repository.createWorkspace(name: "Work")
++        try await model.refreshLocalState()
++        let browser = MobileBrowserController()
++        model.connectWorkspaceMerges(to: browser)
++        let moved = browser.createTab(workspaceID: source.id)
++        let privateTab = browser.createTab(workspaceID: source.id, mode: .privateBrowsing)
++        let other = browser.createTab(workspaceID: target.id)
++
++        XCTAssertFalse(model.canMergeWorkspace(source.id, into: source.id))
++        await model.mergeWorkspace(source.id, into: target.id)
++
++        XCTAssertNil(model.loadError)
++        XCTAssertNotNil(model.pendingWorkspaceMergeUndo)
++        XCTAssertFalse(model.snapshot.visibleWorkspaces.contains { $0.id == source.id })
++        XCTAssertEqual(browser.tabs.first { $0.id == moved }?.workspaceID, target.id)
++        XCTAssertEqual(browser.tabs.first { $0.id == other }?.workspaceID, target.id)
++        XCTAssertNotEqual(browser.tabs.first { $0.id == privateTab }?.workspaceID, target.id)
++
++        await model.undoWorkspaceMerge()
++
++        XCTAssertNil(model.pendingWorkspaceMergeUndo)
++        XCTAssertTrue(model.snapshot.visibleWorkspaces.contains { $0.id == source.id })
++        XCTAssertEqual(browser.tabs.first { $0.id == moved }?.workspaceID, source.id)
++        XCTAssertEqual(browser.tabs.first { $0.id == other }?.workspaceID, target.id)
++    }
++}

@@ -3,6 +3,8 @@
 
 #include "ahoi/browser/sync/history_sync_filter.h"
 
+#include "ahoi/browser/sync/sync_record_limits.h"
+
 namespace ahoi::sync {
 
 bool IsSafeHistoryUrlForSync(const GURL& url) {
@@ -12,7 +14,9 @@ bool IsSafeHistoryUrlForSync(const GURL& url) {
 
 bool ShouldSyncHistoryVisit(const HistorySyncCandidate& candidate) {
   return !candidate.hidden && !candidate.response_is_404 &&
-         candidate.source_is_browsed && IsSafeHistoryUrlForSync(candidate.url);
+         candidate.source_is_browsed &&
+         IsSafeHistoryUrlForSync(candidate.url) &&
+         FitsSyncHistoryUrl(candidate.url.spec());
 }
 
 }  // namespace ahoi::sync

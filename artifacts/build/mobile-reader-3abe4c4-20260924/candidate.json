@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "kind": "simulator-candidate-binding",
+  "sourceCommit": "3abe4c4375da51f6f113c2b443ee280fffebf40d",
+  "sourceDirty": false,
+  "embeddedSourceCommit": "3abe4c4375da51f6f113c2b443ee280fffebf40d",
+  "buildMode": "DebugLocal",
+  "marketingVersion": "0.1",
+  "buildNumber": "50",
+  "platform": "iphonesimulator",
+  "bundleId": "app.ahoibrowser.AhoiBrowser",
+  "toolchain": {
+    "xcodeVersion": "Xcode 27.0 (27A266a)",
+    "sdkVersion": "iOS Simulator 27.0"
+  },
+  "signing": {
+    "kind": "adHoc",
+    "valid": true,
+    "distributionEligible": false
+  },
+  "hashes": {
+    "binarySha256": "4062b1a7a352f4be4dae8326bfa2713f365668c0e409c7aeb53a023bf1d38f8e",
+    "debugDylibSha256": "85775f4141009a8fba2727c8b2b673278244afe73dafefccf7290c8770fe92e8",
+    "infoPlistSha256": "761eeba788d506ff92e60ea98a1a3d43d734b4d22924a5df5aac666c20825852",
+    "xcodeProjectSha256": "74415e4511fc6464ae030083cb316d8b623210692789516162f23db0c12402d8"
+  },
+  "installedBundleByteIdenticalToBuilt": true
+}

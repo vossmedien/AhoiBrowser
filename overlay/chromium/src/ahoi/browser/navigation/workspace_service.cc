@@ -9,6 +9,8 @@
 #include <set>
 #include <utility>
 
+#include "base/trace_event/trace_event.h"
+
 namespace ahoi {
 
 namespace {
@@ -117,6 +119,10 @@ bool WorkspaceService::SetActiveWorkspace(const base::Uuid& window_id,
     active_workspaces_.emplace(window_id, workspace_id);
   }
 
+  // Measured by tools/perf (PERF-04): commit of a Workspace switch. Every
+  // path (menu, command, indicators, keyboard, gesture via ActivateRelative)
+  // ends here, once per real switch; the observers apply it synchronously.
+  TRACE_EVENT("browser", "Ahoi.Workspace.Switch");
   for (auto& observer : observers_) {
     observer.OnActiveWorkspaceChanged(window_id, old_workspace_id, workspace_id,
                                       source);

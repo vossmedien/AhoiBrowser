@@ -4,25 +4,43 @@
 
 import("//testing/test.gni")
 
+source_set("shared_tab_target_policy") {
+  sources = [
+    "shared_tab_target_policy.cc",
+    "shared_tab_target_policy.h",
+  ]
+  public_deps = [
+    "//ahoi/browser/sync:shared_tab_types",
+    "//base",
+    "//url",
+  ]
+}
+
 source_set("tab_tree") {
   sources = [
+    "portable_workspace_selection.cc",
+    "portable_workspace_selection.h",
+    "tab_tree_model.cc",
     "tab_tree_model.h",
     "tab_tree_observer.h",
     "tab_tree_store.cc",
-    "tab_tree_store_duplicate_workspace.cc",
     "tab_tree_store.h",
+    "tab_tree_store_duplicate_workspace.cc",
     "tab_tree_store_internal.cc",
     "tab_tree_store_internal.h",
+    "tab_tree_store_merge_workspace.cc",
     "tab_tree_store_move_delete.cc",
     "tab_tree_store_node_mutations.cc",
     "tab_tree_store_queries.cc",
     "tab_tree_store_snapshot.cc",
+    "tab_tree_store_structure.cc",
     "tab_tree_store_undo.cc",
     "tab_tree_store_validation.cc",
     "tab_tree_store_workspace.cc",
   ]
 
   public_deps = [
+    ":shared_tab_target_policy",
     "//base",
     "//sql",
     "//url",
@@ -31,7 +49,14 @@ source_set("tab_tree") {
 
 source_set("unit_tests") {
   testonly = true
-  sources = [ "tab_tree_store_unittest.cc" ]
+  sources = [
+    "tab_tree_store_merge_workspace_unittest.cc",
+    "tab_tree_store_persistence_unittest.cc",
+    "tab_tree_store_snapshot_unittest.cc",
+    "tab_tree_store_unittest.cc",
+    "tab_tree_store_unittest_support.cc",
+    "tab_tree_store_unittest_support.h",
+  ]
   deps = [
     ":tab_tree",
     "//base/test:test_support",

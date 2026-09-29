@@ -1,0 +1,183 @@
+{
+  "kind": "ahoi-perf-evaluation",
+  "candidate": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "926000eed6daa1af23aba9e9d2feb5613612b1d8b03c28f25c70037092580f8b",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "4746af81d6ffe01984012fa44c5c99c55d152766",
+    "buildProfile": "dev",
+    "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+  },
+  "baseline": null,
+  "summaries": {
+    "startup_first_launch_ms": {
+      "n": 5,
+      "median": 3995.0361328125,
+      "mean": 4035.35205078125,
+      "stdev": 121.23559826864161,
+      "min": 3965.41796875,
+      "max": 4250.7470703125,
+      "p95": 4250.7470703125,
+      "mad": 25.549072265625,
+      "relativeSpread": 0.006395204302605015
+    },
+    "devtools_ready_first_launch_ms": {
+      "n": 5,
+      "median": 2287.8974999912316,
+      "mean": 2343.8239915994927,
+      "stdev": 120.88051043356795,
+      "min": 2272.2639580024406,
+      "max": 2558.4217909927247,
+      "p95": 2558.4217909927247,
+      "mad": 15.633541988790967,
+      "relativeSpread": 0.00683314789620203
+    },
+    "startup_warm_ms": {
+      "n": 5,
+      "median": 3828.12109375,
+      "mean": 3837.1595703125,
+      "stdev": 26.876356241802977,
+      "min": 3821.477783203125,
+      "max": 3884.760009765625,
+      "p95": 3884.760009765625,
+      "mad": 6.5361328125,
+      "relativeSpread": 0.0017073997014282667
+    },
+    "devtools_ready_warm_ms": {
+      "n": 5,
+      "median": 2160.1697919977596,
+      "mean": 2161.9892833958147,
+      "stdev": 6.1356885752240276,
+      "min": 2154.2948329879437,
+      "max": 2170.5913329933537,
+      "p95": 2170.5913329933537,
+      "mad": 4.888916999334469,
+      "relativeSpread": 0.002263209594655576
+    },
+    "memory_1_tabs_kib": {
+      "n": 5,
+      "median": 1551872,
+      "mean": 1550172.8,
+      "stdev": 3926.8576750373827,
+      "min": 1544864,
+      "max": 1553952,
+      "p95": 1553952,
+      "mad": 2080,
+      "relativeSpread": 0.001340316727152755
+    },
+    "processes_1_tabs": {
+      "n": 5,
+      "median": 7,
+      "mean": 7.0,
+      "stdev": 0.0,
+      "min": 7,
+      "max": 7,
+      "p95": 7,
+      "mad": 0,
+      "relativeSpread": 0.0
+    },
+    "memory_20_tabs_kib": {
+      "n": 5,
+      "median": 6183024,
+      "mean": 6181891.2,
+      "stdev": 31467.82971861898,
+      "min": 6138352,
+      "max": 6212928,
+      "p95": 6212928,
+      "mad": 27312,
+      "relativeSpread": 0.004417256022295886
+    },
+    "processes_20_tabs": {
+      "n": 5,
+      "median": 26,
+      "mean": 26.0,
+      "stdev": 0.0,
+      "min": 26,
+      "max": 26,
+      "p95": 26,
+      "mad": 0,
+      "relativeSpread": 0.0
+    },
+    "idle_cpu_percent": {
+      "n": 5,
+      "median": 0.9833333333333331,
+      "mean": 1.063333333333333,
+      "stdev": 0.41220949366392257,
+      "min": 0.6333333333333316,
+      "max": 1.750000000000001,
+      "p95": 1.750000000000001,
+      "mad": 0.03333333333333255,
+      "relativeSpread": 0.03389830508474497
+    },
+    "speedometer_score": {
+      "n": 5,
+      "median": 6.86,
+      "mean": 6.864,
+      "stdev": 0.06066300355241241,
+      "min": 6.79,
+      "max": 6.95,
+      "p95": 6.95,
+      "mad": 0.03000000000000025,
+      "relativeSpread": 0.004373177842565633
+    }
+  },
+  "verdicts": [
+    {
+      "budget": "PERF-01",
+      "metric": "speedometer_score",
+      "text": "Speedometer regression at most 3 %",
+      "verdict": "INSUFFICIENT",
+      "reason": "validation run on a busy or attended host"
+    },
+    {
+      "budget": "PERF-02",
+      "metric": "startup_warm_ms",
+      "text": "start time at most 10 % worse",
+      "verdict": "INSUFFICIENT",
+      "reason": "validation run on a busy or attended host"
+    },
+    {
+      "budget": "PERF-02-first",
+      "metric": "startup_first_launch_ms",
+      "text": "fresh-profile first launch at most 10 % worse",
+      "verdict": "INSUFFICIENT",
+      "reason": "validation run on a busy or attended host"
+    },
+    {
+      "budget": "PERF-03",
+      "metric": "command_bar_ms",
+      "text": "command bar p95 below 50 ms",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-04",
+      "metric": "workspace_switch_ms",
+      "text": "workspace switch commit below 100 ms",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-04-presented",
+      "metric": "workspace_switch_presented_ms",
+      "text": "first presented frame after a workspace switch below 100 ms",
+      "verdict": "NOT_MEASURED"
+    },
+    {
+      "budget": "PERF-06",
+      "metric": "memory_20_tabs_kib",
+      "text": "own memory overhead with 20 tabs at most 5 %",
+      "verdict": "INSUFFICIENT",
+      "reason": "validation run on a busy or attended host"
+    },
+    {
+      "budget": "PERF-07",
+      "metric": "idle_cpu_percent",
+      "text": "no measurable own idle CPU",
+      "verdict": "INSUFFICIENT",
+      "reason": "validation run on a busy or attended host"
+    }
+  ],
+  "pass": false
+}

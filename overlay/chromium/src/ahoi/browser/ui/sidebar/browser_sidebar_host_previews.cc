@@ -38,13 +38,13 @@ gfx::ImageSkia RasterizePreviewIcon(const ui::ImageModel& icon,
 }  // namespace
 
 void BrowserSidebarHostView::OnTabThumbnailChanged(int runtime_tab_handle) {
-  const auto cache = tab_thumbnail_cache_.find(runtime_tab_handle);
+  const auto cache = thumbnails_.tab_cache.find(runtime_tab_handle);
   if (tabs::TabInterface* tab = FindRuntimeTab(runtime_tab_handle)) {
     const std::optional<base::Uuid> node_id =
         session_bridge_->FindTreeNodeIdForTab(tab);
     if (node_id.has_value()) {
       const gfx::ImageSkia image =
-          cache != tab_thumbnail_cache_.end() && cache->second
+          cache != thumbnails_.tab_cache.end() && cache->second
               ? cache->second->image()
               : gfx::ImageSkia();
       if (!image.isNull() && !image.size().IsEmpty()) {
@@ -53,7 +53,7 @@ void BrowserSidebarHostView::OnTabThumbnailChanged(int runtime_tab_handle) {
             *node_id, contents ? contents->GetLastCommittedURL() : GURL(),
             image);
       } else {
-        saved_thumbnail_snapshots_.erase(*node_id);
+        thumbnails_.saved_snapshots.erase(*node_id);
       }
     }
   }
@@ -100,9 +100,9 @@ void BrowserSidebarHostView::OnRuntimeTabHoverChanged(
       if (!preview_tab || !preview_tab->GetContents()) {
         continue;
       }
-      const auto cached = tab_thumbnail_cache_.find(
+      const auto cached = thumbnails_.tab_cache.find(
           preview_tab->GetHandle().raw_value());
-      if (cached != tab_thumbnail_cache_.end() && cached->second &&
+      if (cached != thumbnails_.tab_cache.end() && cached->second &&
           !cached->second->image().isNull() &&
           !cached->second->image().size().IsEmpty()) {
         continue;
@@ -131,9 +131,9 @@ void BrowserSidebarHostView::OnSavedPageHoverChanged(const base::Uuid& node_id,
             session_bridge_->FindTabByTreeNodeId(node_id)) {
       if (content::WebContents* contents = live_tab->GetContents()) {
         const auto cached =
-            tab_thumbnail_cache_.find(live_tab->GetHandle().raw_value());
+            thumbnails_.tab_cache.find(live_tab->GetHandle().raw_value());
         const bool needs_thumbnail =
-            cached == tab_thumbnail_cache_.end() || !cached->second ||
+            cached == thumbnails_.tab_cache.end() || !cached->second ||
             cached->second->image().isNull() ||
             cached->second->image().size().IsEmpty();
         if (needs_thumbnail) {
@@ -204,16 +204,16 @@ void BrowserSidebarHostView::StoreSavedTabThumbnailSnapshot(
       browser_->GetProfile()->IsOffTheRecord()) {
     return;
   }
-  saved_thumbnail_snapshots_[node_id] = {
-      .url = url, .image = image, .recency = ++saved_thumbnail_recency_};
-  if (saved_thumbnail_snapshots_.size() <= kMaximumSavedThumbnailSnapshots) {
+  thumbnails_.saved_snapshots[node_id] = {
+      .url = url, .image = image, .recency = ++thumbnails_.saved_recency};
+  if (thumbnails_.saved_snapshots.size() <= kMaximumSavedThumbnailSnapshots) {
     return;
   }
   const auto oldest = std::ranges::min_element(
-      saved_thumbnail_snapshots_, {},
+      thumbnails_.saved_snapshots, {},
       [](const auto& entry) { return entry.second.recency; });
-  if (oldest != saved_thumbnail_snapshots_.end()) {
-    saved_thumbnail_snapshots_.erase(oldest);
+  if (oldest != thumbnails_.saved_snapshots.end()) {
+    thumbnails_.saved_snapshots.erase(oldest);
   }
 }
 

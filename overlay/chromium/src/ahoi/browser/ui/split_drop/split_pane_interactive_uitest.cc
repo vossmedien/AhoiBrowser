@@ -60,7 +60,7 @@ IN_PROC_BROWSER_TEST_F(SplitPaneInteractiveUiTest,
                        NativePaneHandleDropReordersIntoBottomZoneAtomically) {
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(2, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0},
@@ -191,7 +191,7 @@ IN_PROC_BROWSER_TEST_F(SplitPaneInteractiveUiTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   ASSERT_TRUE(ui_test_utils::NavigateToURL(browser(), second_url));
 
-  TabStripModel* const tab_strip_model = browser()->tab_strip_model();
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(2, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
       {0},

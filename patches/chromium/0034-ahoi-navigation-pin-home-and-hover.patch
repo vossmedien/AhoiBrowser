@@ -1,0 +1,104 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index e91156c319443ab31451a8012b33453a0bcda5b5..cf0b5848fad1181394e3984b74da0e06ddb7c1b6 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20859,6 +20859,12 @@ Please help our engineers fix this problem. Tell us what happened right before y
+     <message name="IDS_AHOI_REVEAL_NAVIGATION" desc="Accessible name and tooltip for the small hover target that reveals AhoiBrowser's floating address and extension bar." meaning="AhoiBrowser browser shell">
+       Show address bar
+     </message>
++    <message name="IDS_AHOI_PIN_NAVIGATION" desc="Tooltip and accessible action for keeping AhoiBrowser's address and navigation bar visible." meaning="AhoiBrowser browser shell">
++      Pin address bar
++    </message>
++    <message name="IDS_AHOI_UNPIN_NAVIGATION" desc="Tooltip and accessible action for restoring automatic hiding of AhoiBrowser's address and navigation bar." meaning="AhoiBrowser browser shell">
++      Unpin address bar
++    </message>
+     <!-- AhoiBrowser media mini player -->
+     <message name="IDS_AHOI_MEDIA_MINI_PLAYER_NAME" desc="Accessible name for AhoiBrowser's sidebar media mini player." meaning="AhoiBrowser media mini player">
+       Media mini player
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index f37f8e944bc176ca0fed59658074c345d23babc0..8d9d86c06f38b047e053908afb8ae7df4486ffb4 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11255,4 +11255,6 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="8353852870894009464">Seitenleiste vor dem Import wiederherstellen</translation>
+ <translation id="8579437155006490485">Sicherung prüfen und Seitenleiste wiederherstellen…</translation>
+ <translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
++<translation id="2666937824263873395">Adressleiste anheften</translation>
++<translation id="5599938554451751534">Adressleiste lösen</translation>
+ </translationbundle>
+diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
+index d1b664f09d3c65e090bd29fb812e8295d11376d4..937604dfdb8840196f990c0c69b6a9894edf552e 100644
+--- a/chrome/app/resources/generated_resources_en-GB.xtb
++++ b/chrome/app/resources/generated_resources_en-GB.xtb
+@@ -11048,4 +11048,6 @@ This can include information about installed software, files, your browser, the
+ <translation id="4131831590543916816">Recently closed split</translation>
+ <translation id="5502679562240472247">Recently closed group</translation>
+ <translation id="5461107725978398953">Recently closed window</translation>
++<translation id="2666937824263873395">Pin address bar</translation>
++<translation id="5599938554451751534">Unpin address bar</translation>
+ </translationbundle>
+diff --git a/chrome/browser/resources/webui_toolbar/reload_button.css b/chrome/browser/resources/webui_toolbar/reload_button.css
+index 56b2ccfba05fe16599e75cc12326dcd3a654318f..328bb7c843daf79337907820e772d529b9eb9acb 100644
+--- a/chrome/browser/resources/webui_toolbar/reload_button.css
++++ b/chrome/browser/resources/webui_toolbar/reload_button.css
+@@ -11,6 +11,8 @@
+  * #css_wrapper_metadata_end */
+ 
+ :host {
++  /* Keep the clipping host congruent with the circular inner control. */
++  border-radius: 50%;
+   margin: 0;
+   overflow: hidden;
+ }
+diff --git a/chrome/browser/ui/browser_ui_prefs.cc b/chrome/browser/ui/browser_ui_prefs.cc
+index 6997bb36d901fdeb10c035ed015e3a8945c183cf..f177c89d1b4ee459c470fce16aa481223fdbabdb 100644
+--- a/chrome/browser/ui/browser_ui_prefs.cc
++++ b/chrome/browser/ui/browser_ui_prefs.cc
+@@ -124,7 +124,9 @@ void RegisterBrowserUserPrefs(user_prefs::PrefRegistrySyncable* registry) {
+ 
+   registry->RegisterBooleanPref(prefs::kHomePageIsNewTabPage, true,
+                                 pref_registration_flags);
+-  registry->RegisterBooleanPref(prefs::kShowHomeButton, false,
++  // Ahoi exposes Chromium's Home action by default. Explicit user settings and
++  // managed policy still take precedence; the native homepage service is kept.
++  registry->RegisterBooleanPref(prefs::kShowHomeButton, true,
+                                 pref_registration_flags);
+   registry->RegisterBooleanPref(prefs::kSplitViewDragAndDropEnabled, true,
+                                 pref_registration_flags);
+diff --git a/chrome/browser/ui/views/toolbar/BUILD.gn b/chrome/browser/ui/views/toolbar/BUILD.gn
+index 0f29e63644028f5482e539653c60abaa1724dfa0..bc671a35558d439f246200e887231c8e4fec26dc 100644
+--- a/chrome/browser/ui/views/toolbar/BUILD.gn
++++ b/chrome/browser/ui/views/toolbar/BUILD.gn
+@@ -165,6 +165,7 @@ source_set("impl") {
+ 
+   deps = [
+     ":toolbar",
++    "//ahoi/browser/ui/shell:navigation_pin_button",
+     "//base:i18n",
+     "//build:branding_buildflags",
+     "//cc/paint",
+diff --git a/chrome/browser/ui/views/toolbar/toolbar_view.cc b/chrome/browser/ui/views/toolbar/toolbar_view.cc
+index ec09e6aae6023dba4eaf6537f14685f7a20adb2f..a3e2e1f552401d619cae23574c50758dafd2bc7f 100644
+--- a/chrome/browser/ui/views/toolbar/toolbar_view.cc
++++ b/chrome/browser/ui/views/toolbar/toolbar_view.cc
+@@ -8,6 +8,7 @@
+ #include <memory>
+ #include <utility>
+ 
++#include "ahoi/browser/ui/shell/navigation_pin_button.h"
+ #include "base/command_line.h"
+ #include "base/containers/fixed_flat_map.h"
+ #include "base/feature_list.h"
+@@ -408,6 +409,12 @@ void ToolbarView::Init() {
+ #endif
+ 
+   // Always add children in order from left to right, for accessibility.
++  if (browser_view_->IsAhoiBrowserSurface()) {
++    if (auto pin_button = ahoi::CreateNavigationPinButton(prefs)) {
++      AddChildView(std::move(pin_button));
++    }
++  }
++
+   if (!features::IsWebUIBackForwardButtonEnabled()) {
+     back_ = AddChildView(std::make_unique<BackForwardButton>(
+         BackForwardButton::Direction::kBack,

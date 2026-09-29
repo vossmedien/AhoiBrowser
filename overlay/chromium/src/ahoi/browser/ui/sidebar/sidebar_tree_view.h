@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_UI_SIDEBAR_SIDEBAR_TREE_VIEW_H_
 
 #include <cstddef>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -15,6 +16,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
+#include "base/callback_list.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/timer/timer.h"
@@ -25,6 +27,7 @@
 #include "ui/gfx/animation/animation_delegate.h"
 #include "ui/gfx/animation/slide_animation.h"
 #include "ui/views/animation/bounds_animator.h"
+#include "ui/views/animation/bounds_animator_observer.h"
 #include "ui/views/context_menu_controller.h"
 #include "ui/views/drag_controller.h"
 #include "ui/views/view.h"
@@ -40,6 +43,8 @@ class ScrollView;
 
 namespace ahoi::sidebar {
 
+class SidebarSplitResizeArea;
+
 // Native virtualized viewport over SidebarTreeViewModel. Ordinary rows keep a
 // fixed semantic height; multi-row split collections reserve enough height for
 // every pane. Only visible rows plus a small overscan are Views children; the
@@ -48,10 +53,14 @@ class SidebarTreeView final : public views::View,
                               public SidebarTreeViewModelObserver,
                               public views::ContextMenuController,
                               public views::DragController,
+                              public views::BoundsAnimatorObserver,
                               public gfx::AnimationDelegate {
   METADATA_HEADER(SidebarTreeView, views::View)
 
  public:
+  // Always reserved, so entering a native drag cannot move the tab lists.
+  static constexpr int kRootAppendDropHeight = SidebarTreeRowView::kRowHeight;
+
   struct VisibleRange {
     size_t first = 0;
     size_t past_last = 0;
@@ -121,6 +130,13 @@ class SidebarTreeView final : public views::View,
   // model and its selection/order remain untouched.
   void SetRuntimeCompositeSuppressedNodes(std::set<base::Uuid> node_ids);
 
+  // Called by the frame host after a sidebar reveal has reached its final
+  // compositor state and the corresponding layout pass has completed. The
+  // actual row reconciliation stays posted through the existing weak-pointer
+  // path so it cannot mutate Views' visible-bounds observer hierarchy while
+  // that hierarchy is being traversed.
+  void OnPresentationAnimationSettled();
+
   size_t materialized_row_count_for_testing() const {
     return materialized_rows_.size();
   }
@@ -155,6 +171,12 @@ class SidebarTreeView final : public views::View,
   }
   void CompleteRowBoundsAnimationForTesting() {
     row_bounds_animator_.Complete();
+  }
+  gfx::SlideAnimation* height_animation_for_testing() {
+    return &preferred_height_animation_;
+  }
+  gfx::AnimationContainer* row_bounds_animation_container_for_testing() {
+    return row_bounds_animator_.container();
   }
   const std::optional<base::Uuid>& editing_node_id_for_testing() const {
     return editing_node_id_;
@@ -196,6 +218,7 @@ class SidebarTreeView final : public views::View,
   bool OnKeyPressed(const ui::KeyEvent& event) override;
   bool GetNeedsNotificationWhenVisibleBoundsChange() const override;
   void OnVisibleBoundsChanged() override;
+  void VisibilityChanged(views::View* starting_from, bool is_visible) override;
   void OnBoundsChanged(const gfx::Rect& previous_bounds) override;
   void OnPaintBackground(gfx::Canvas* canvas) override;
   gfx::Point GetKeyboardContextMenuLocation() override;
@@ -213,6 +236,8 @@ class SidebarTreeView final : public views::View,
   void OnBatchUpdateStarted() override;
   void OnBatchUpdateEnded() override;
   void OnTreeReset() override;
+  void OnFolderExpansionChanging(const base::Uuid& node_id,
+                                 bool expanded) override;
   void OnRowsInserted(size_t first_row, size_t count) override;
   void OnRowsRemoved(size_t first_row, size_t count) override;
   void OnRowsChanged(size_t first_row, size_t count) override;
@@ -237,7 +262,22 @@ class SidebarTreeView final : public views::View,
   void AnimationEnded(const gfx::Animation* animation) override;
   void AnimationCanceled(const gfx::Animation* animation) override;
 
+  // views::BoundsAnimatorObserver:
+  void OnBoundsAnimatorProgressed(views::BoundsAnimator* animator) override;
+  void OnBoundsAnimatorDone(views::BoundsAnimator* animator) override;
+
  private:
+  struct FolderReveal {
+    base::Uuid folder_id;
+    bool expanded;
+    int origin_y;
+    bool splice_ready = false;
+  };
+  struct DeferredSelectionReveal {
+    base::Uuid node_id;
+    gfx::Point visible_origin;
+  };
+
   struct VisualRow {
     std::vector<size_t> model_indices;
     size_t anchor_depth = 0;
@@ -270,6 +310,7 @@ class SidebarTreeView final : public views::View,
     return controller_->view_model();
   }
   void ScheduleSynchronization(bool preferred_size_changed);
+  void ScheduleVisibleBoundsSynchronization();
   void SynchronizeRowsAfterVisibleBoundsChange();
   std::vector<VisualRow> BuildVisualRows() const;
   std::vector<VisualPosition> BuildVisualPositions(
@@ -286,6 +327,14 @@ class SidebarTreeView final : public views::View,
                              size_t segment_index,
                              int row_width) const;
   void SynchronizeRows(const gfx::Rect& visible_bounds);
+  void SynchronizeSplitResizeAreas(const std::vector<VisualRow>& visual_rows,
+                                   const VisibleRange& visible_range,
+                                   int row_width,
+                                   bool native_drag_in_progress);
+  bool ResizeSavedSplit(const std::vector<base::Uuid>& node_ids,
+                        size_t divider_index,
+                        double ratio,
+                        bool done_resizing);
   SidebarTreeRowView* AcquireRow();
   void RecycleRow(const base::Uuid& node_id);
   void UpdateActiveDescendant();
@@ -311,6 +360,8 @@ class SidebarTreeView final : public views::View,
       int runtime_tab_handle,
       const gfx::Point& point,
       const std::vector<VisualRow>& visual_rows) const;
+  gfx::Rect GetRootAppendDropBounds(
+      const std::vector<VisualRow>& visual_rows) const;
   std::optional<int> InsertionSlotY(const DropIndicator& indicator) const;
   std::optional<DropIndicator> StabilizeInsertionSlot(
       std::optional<DropIndicator> indicator) const;
@@ -331,11 +382,21 @@ class SidebarTreeView final : public views::View,
   void SynchronizeSearchContextGroups();
   void HandleVisualLayoutChanged();
   void StartPreferredHeightAnimation(int from_height, int to_height);
+  int GetAnimatedHeight() const;
+  void UpdateAnimatedSplitClips();
+  void PrepareFolderExit(size_t first_row, size_t count);
+  std::optional<int> FolderEntryOrigin(size_t row_index) const;
+  void ScheduleExitedRowCleanup();
+  void CleanupExitedRows();
+  void MaybeScheduleSelectionReveal();
+  void FinishSelectionReveal();
+  void CancelSelectionReveal();
   const raw_ptr<SidebarTreeController> controller_;
   const raw_ptr<SidebarTreeViewDelegate> delegate_;
   const std::u16string split_with_prefix_;
   std::unordered_map<base::Uuid, raw_ptr<SidebarTreeRowView>, base::UuidHash>
       materialized_rows_;
+  std::map<std::string, raw_ptr<SidebarSplitResizeArea>> split_resize_areas_;
   // Paint-only overlay. The full row edge zone communicates target area;
   // this fixed semantic slot edge disambiguates before from after without
   // participating in layout or following raw pointer coordinates.
@@ -357,8 +418,14 @@ class SidebarTreeView final : public views::View,
   std::optional<base::Uuid> pending_folder_expand_id_;
   base::OneShotTimer folder_expand_timer_;
   views::BoundsAnimator row_bounds_animator_{this};
+  // Only materialized split groups; a frame update must not traverse the full
+  // persistent tree or retain raw row pointers through virtualization.
+  std::vector<std::vector<base::Uuid>> materialized_split_clip_groups_;
+  std::vector<std::vector<base::Uuid>> exiting_split_clip_groups_;
+  std::optional<FolderReveal> pending_folder_reveal_;
+  std::set<base::Uuid> exiting_rows_;
+  bool exited_row_cleanup_pending_ = false;
   bool row_bounds_animation_pending_ = false;
-  std::optional<int> row_bounds_animation_from_height_;
   bool in_batch_update_ = false;
   bool synchronization_pending_ = false;
   bool visible_bounds_synchronization_pending_ = false;
@@ -369,6 +436,10 @@ class SidebarTreeView final : public views::View,
   int animated_height_from_ = 0;
   int animated_height_to_ = 0;
   bool preferred_height_animation_active_ = false;
+  std::optional<DeferredSelectionReveal> deferred_selection_reveal_;
+  std::vector<base::CallbackListSubscription>
+      selection_reveal_scroll_subscriptions_;
+  bool selection_reveal_task_pending_ = false;
   base::WeakPtrFactory<SidebarTreeView> weak_ptr_factory_{this};
 };
 

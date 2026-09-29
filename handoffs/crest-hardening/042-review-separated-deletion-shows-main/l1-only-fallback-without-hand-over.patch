@@ -1,0 +1,37 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/isolated_workspace_directory.cc b/overlay/chromium/src/ahoi/browser/session/isolated_workspace_directory.cc
+index 95291ff..1f2c665 100644
+--- a/overlay/chromium/src/ahoi/browser/session/isolated_workspace_directory.cc
++++ b/overlay/chromium/src/ahoi/browser/session/isolated_workspace_directory.cc
+@@ -121,6 +121,18 @@ class HandOverWatch {
+         base::WrapUnique(new HandOverWatch(presented, hidden)));
+   }
+ 
++  // True while a window of the Profile in `profile_dir` was presented over a
++  // hidden window in this run; closing it shows exactly that window again.
++  static bool HasPresentedWindowOf(const std::string& profile_dir) {
++    for (const std::unique_ptr<HandOverWatch>& watch : Watches()) {
++      if (watch->presented_ &&
++          DirName(watch->presented_->GetProfile()->GetPath()) == profile_dir) {
++        return true;
++      }
++    }
++    return false;
++  }
++
+  private:
+   HandOverWatch(BrowserWindowInterface* presented,
+                 BrowserWindowInterface* hidden)
+@@ -429,6 +441,13 @@ void ShowMainWindowsAfterIsolatedDeletion(
+       local_state->GetString(kPresentedProfileDirPref) == removed_profile_dir) {
+     local_state->SetString(kPresentedProfileDirPref, std::string());
+   }
++  // Handoff 042: a hand-over of this run already shows the window the deleted
++  // Workspace was presented over (for example another separated Workspace).
++  // Showing the main windows as well would leave two visible windows; the
++  // fallback is only for a hand-over restored after a restart.
++  if (HandOverWatch::HasPresentedWindowOf(removed_profile_dir)) {
++    return;
++  }
+   Profile* main_profile = GetLoadedMainProfile();
+   ProfileBrowserCollection* browsers =
+       main_profile ? ProfileBrowserCollection::GetForProfile(main_profile)

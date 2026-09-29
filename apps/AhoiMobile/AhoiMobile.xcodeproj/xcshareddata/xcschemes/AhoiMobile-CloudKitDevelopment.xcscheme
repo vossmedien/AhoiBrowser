@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1430"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES"
+      runPostActionsOnFailure = "NO">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "73413E24FDCD501B494E45B8"
+               BuildableName = "AhoiMobile.app"
+               BlueprintName = "AhoiMobile"
+               ReferencedContainer = "container:AhoiMobile.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2667FB8655B55DA7D62FD91D"
+               BuildableName = "AhoiMobileCore.framework"
+               BlueprintName = "AhoiMobileCore"
+               ReferencedContainer = "container:AhoiMobile.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "59E7AA28477FC178460E73EB"
+               BuildableName = "AhoiMobileCoreTests.xctest"
+               BlueprintName = "AhoiMobileCoreTests"
+               ReferencedContainer = "container:AhoiMobile.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "46ABBD140593C35AECB96D54"
+               BuildableName = "AhoiMobileUITests.xctest"
+               BlueprintName = "AhoiMobileUITests"
+               ReferencedContainer = "container:AhoiMobile.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "CloudKitDevelopment"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      onlyGenerateCoverageForSpecifiedTargets = "NO">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "73413E24FDCD501B494E45B8"
+            BuildableName = "AhoiMobile.app"
+            BlueprintName = "AhoiMobile"
+            ReferencedContainer = "container:AhoiMobile.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "59E7AA28477FC178460E73EB"
+               BuildableName = "AhoiMobileCoreTests.xctest"
+               BlueprintName = "AhoiMobileCoreTests"
+               ReferencedContainer = "container:AhoiMobile.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "46ABBD140593C35AECB96D54"
+               BuildableName = "AhoiMobileUITests.xctest"
+               BlueprintName = "AhoiMobileUITests"
+               ReferencedContainer = "container:AhoiMobile.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+      <CommandLineArguments>
+      </CommandLineArguments>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "CloudKitDevelopment"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "73413E24FDCD501B494E45B8"
+            BuildableName = "AhoiMobile.app"
+            BlueprintName = "AhoiMobile"
+            ReferencedContainer = "container:AhoiMobile.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <CommandLineArguments>
+      </CommandLineArguments>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "CloudKitDevelopment"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "73413E24FDCD501B494E45B8"
+            BuildableName = "AhoiMobile.app"
+            BlueprintName = "AhoiMobile"
+            ReferencedContainer = "container:AhoiMobile.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <CommandLineArguments>
+      </CommandLineArguments>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "CloudKitDevelopment">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "CloudKitDevelopment"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

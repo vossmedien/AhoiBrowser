@@ -2,9 +2,10 @@
 """Prehydrate every missing blob for a pinned Chromium checkout target.
 
 The command deliberately does not switch revisions.  It inventories the exact
-target tree without lazy fetching and asks the verified ``origin`` promisor for
-immutable blob object IDs in small batches.  A later ``gclient sync`` can then
-update the worktree without issuing thousands of opportunistic blob requests.
+target tree without lazy fetching and obtains immutable missing blobs either
+from the verified ``origin`` promisor or, when explicitly selected, from exact
+official Gitiles target paths.  A later ``gclient sync`` can then update the
+worktree without issuing thousands of opportunistic blob requests.
 
 Exit codes:
   0   every target blob is present
@@ -19,18 +20,34 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
-import os
 import pathlib
 import re
-import signal
 import stat
-import subprocess
+import subprocess  # patched as chromium_checkout_hydration.subprocess in tests
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Sequence
 
+from chromium_checkout_fetch import (
+    FetchResult,
+    FetchRunner,
+    FetchStatistics,
+    GitilesResponseLoader,
+    MAX_ATTEMPTS,
+    MAX_BATCH_SIZE,
+    MAX_BLOBS,
+    MAX_FETCH_COMMANDS,
+    MAX_FETCH_TIMEOUT_SECONDS,
+    MAX_GITILES_JOBS,
+    _fetch_object_ids,
+    _hydrate_gitiles_blobs,
+    _missing_objects,
+    _require_sha1,
+    _safe_int,
+    fetch_adaptively,
+    fetch_command,
+)
 from chromium_checkout_state import (
     CheckoutHydrationError,
     GitRunner,
@@ -41,13 +58,23 @@ from chromium_checkout_state import (
     git_runner as _git_runner,
     git_text as _git_text,
 )
+from chromium_roll_hydration import (
+    DEFAULT_MAX_RESPONSE_BYTES,
+    DEFAULT_MAX_TOTAL_RESPONSE_BYTES,
+    GITILES_BASE,
+    NETWORK_ATTEMPTS,
+    HydrationError,
+    fetch_gitiles_response,
+    gitiles_blob_url,
+    validate_git_path,
+    validate_limits,
+)
 from chromium_roll_output import PreparedReportOutput, ReportOutputError
 from verify_chromium_pin import VerificationError, validate_config
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OFFICIAL_ORIGIN = "https://chromium.googlesource.com/chromium/src.git"
-SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 
 DEFAULT_BATCH_SIZE = 16
 DEFAULT_ATTEMPTS = 3
@@ -55,37 +82,16 @@ DEFAULT_FETCH_TIMEOUT_SECONDS = 300
 DEFAULT_MAX_FETCH_COMMANDS = 4096
 DEFAULT_CHECKPOINT_BATCHES = 16
 DEFAULT_MAX_BLOBS = 2_000_000
+DEFAULT_GITILES_JOBS = 4
+DEFAULT_NETWORK_TIMEOUT_SECONDS = 20
+DEFAULT_TOTAL_TIMEOUT_SECONDS = 900
 
-MAX_BATCH_SIZE = 128
-MAX_ATTEMPTS = 6
-MAX_FETCH_TIMEOUT_SECONDS = 1800
-MAX_FETCH_COMMANDS = 100_000
-MAX_BLOBS = 4_000_000
 
 EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_INCOMPLETE = 2
 EXIT_MUTATION = 3
 EXIT_INTERRUPTED = 130
-
-@dataclass(frozen=True)
-class FetchResult:
-    success: bool
-    detail: str = ""
-
-
-@dataclass
-class FetchStatistics:
-    command_count: int = 0
-    successful_commands: int = 0
-    failed_commands: int = 0
-    retry_count: int = 0
-    adaptive_splits: int = 0
-    completed_top_level_batches: int = 0
-    command_budget_exhausted: bool = False
-    interrupted: bool = False
-    hydrated: set[str] = field(default_factory=set)
-    singleton_failures: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -96,33 +102,8 @@ class TargetInventory:
     submodule_count: int
     blob_ids: tuple[str, ...]
     missing_blob_ids: tuple[str, ...]
+    blob_paths: tuple[tuple[str, str], ...]
     tree_inventory_sha256: str
-
-
-FetchRunner = Callable[[Sequence[str]], FetchResult]
-MissingChecker = Callable[[Sequence[str]], tuple[str, ...]]
-ProgressCallback = Callable[[FetchStatistics], None]
-
-
-def _require_sha1(value: str, label: str) -> str:
-    if SHA1_RE.fullmatch(value) is None:
-        raise CheckoutHydrationError(
-            f"{label} must be an exact lowercase 40-character SHA-1"
-        )
-    return value
-
-
-def _safe_int(value: int, minimum: int, maximum: int, label: str) -> int:
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, int)
-        or value < minimum
-        or value > maximum
-    ):
-        raise CheckoutHydrationError(
-            f"{label} must be between {minimum} and {maximum}"
-        )
-    return value
 
 
 def _load_verified_pin(repository: pathlib.Path, target: str) -> dict[str, Any]:
@@ -193,50 +174,6 @@ def _verify_checkout_and_origin(
     }
 
 
-def _missing_objects(git: GitRunner, object_ids: Sequence[str]) -> tuple[str, ...]:
-    missing: list[str] = []
-    for offset in range(0, len(object_ids), 8192):
-        batch = tuple(object_ids[offset : offset + 8192])
-        if not batch:
-            continue
-        payload = "".join(f"{oid}\n" for oid in batch).encode("ascii")
-        raw = git(
-            ("cat-file", "--batch-check=%(objectname) %(objecttype) %(objectsize)"),
-            payload,
-            True,
-        ).stdout
-        try:
-            lines = raw.decode("ascii", "strict").splitlines()
-        except UnicodeDecodeError as error:
-            raise CheckoutHydrationError(
-                "git cat-file returned malformed inventory data"
-            ) from error
-        if len(lines) != len(batch):
-            raise CheckoutHydrationError(
-                "git cat-file returned an incomplete object inventory"
-            )
-        for expected, line in zip(batch, lines, strict=True):
-            fields = line.split()
-            if fields == [expected, "missing"]:
-                missing.append(expected)
-                continue
-            if len(fields) != 3 or fields[0] != expected or fields[1] != "blob":
-                raise CheckoutHydrationError(
-                    "target blob inventory contains an unexpected object"
-                )
-            try:
-                size = int(fields[2])
-            except ValueError as error:
-                raise CheckoutHydrationError(
-                    "git cat-file returned an invalid blob size"
-                ) from error
-            if size < 0:
-                raise CheckoutHydrationError(
-                    "git cat-file returned an invalid blob size"
-                )
-    return tuple(missing)
-
-
 def inventory_target(
     git: GitRunner, target: str, *, max_blobs: int = DEFAULT_MAX_BLOBS
 ) -> TargetInventory:
@@ -256,6 +193,7 @@ def inventory_target(
         + b"\0"
     )
     blob_ids: set[str] = set()
+    blob_paths: dict[str, str] = {}
     previous_path: bytes | None = None
     entry_count = 0
     submodule_count = 0
@@ -265,19 +203,23 @@ def inventory_target(
         digest.update(record + b"\0")
         entry_count += 1
         try:
-            metadata, path = record.split(b"\t", 1)
+            metadata, raw_path = record.split(b"\t", 1)
             raw_mode, raw_type, raw_oid = metadata.split(b" ", 2)
             mode = raw_mode.decode("ascii", "strict")
             object_kind = raw_type.decode("ascii", "strict")
             oid = raw_oid.decode("ascii", "strict")
+            path = validate_git_path(raw_path.decode("utf-8", "strict"))
         except (UnicodeDecodeError, ValueError) as error:
             raise CheckoutHydrationError("git ls-tree returned malformed data") from error
         _require_sha1(oid, "tree entry object")
-        if not path or path == previous_path:
+        if not raw_path or raw_path == previous_path:
             raise CheckoutHydrationError("target tree contains an invalid duplicate path")
-        previous_path = path
+        previous_path = raw_path
         if mode in {"100644", "100755", "120000"} and object_kind == "blob":
             blob_ids.add(oid)
+            current_path = blob_paths.get(oid)
+            if current_path is None or path < current_path:
+                blob_paths[oid] = path
         elif mode == "160000" and object_kind == "commit":
             submodule_count += 1
         else:
@@ -297,6 +239,7 @@ def inventory_target(
         submodule_count=submodule_count,
         blob_ids=ordered,
         missing_blob_ids=missing,
+        blob_paths=tuple(sorted(blob_paths.items())),
         tree_inventory_sha256=digest.hexdigest(),
     )
 
@@ -308,168 +251,54 @@ def _oid_digest(object_ids: Sequence[str]) -> str:
     return digest.hexdigest()
 
 
-def fetch_command() -> tuple[str, ...]:
-    """Return the fixed, reviewable transport command used for every batch."""
-
-    return (
-        "git",
-        "-c",
-        "http.version=HTTP/1.1",
-        "-c",
-        "http.maxRequests=1",
-        "-c",
-        "fetch.parallel=1",
-        "-c",
-        "fetch.negotiationAlgorithm=noop",
-        "-c",
-        "maintenance.auto=false",
-        "-c",
-        "gc.auto=0",
-        "fetch",
-        "--no-tags",
-        "--no-write-fetch-head",
-        "--no-recurse-submodules",
-        "--filter=blob:none",
-        "origin",
-        "--stdin",
-    )
-
-
-def _fetch_object_ids(
-    checkout: pathlib.Path,
-    environment: Mapping[str, str],
-    object_ids: Sequence[str],
-    timeout_seconds: int,
-) -> FetchResult:
-    if not object_ids:
-        raise CheckoutHydrationError("refusing an empty object fetch")
-    for oid in object_ids:
-        _require_sha1(oid, "fetch object")
-    payload = "".join(f"{oid}\n" for oid in object_ids).encode("ascii")
-    process = subprocess.Popen(
-        fetch_command(),
-        cwd=checkout,
-        env=dict(environment),
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        start_new_session=True,
-    )
-    try:
-        stdout, stderr = process.communicate(payload, timeout=timeout_seconds)
-    except subprocess.TimeoutExpired:
-        os.killpg(process.pid, signal.SIGTERM)
-        try:
-            stdout, stderr = process.communicate(timeout=5)
-        except subprocess.TimeoutExpired:
-            os.killpg(process.pid, signal.SIGKILL)
-            stdout, stderr = process.communicate()
-        detail = _clean_detail(stderr or stdout)
-        suffix = f": {detail}" if detail else ""
-        return FetchResult(False, f"fetch timed out after {timeout_seconds}s{suffix}")
-    detail = _clean_detail(stderr or stdout)
-    if process.returncode != 0:
-        suffix = f": {detail}" if detail else ""
-        return FetchResult(False, f"fetch exited {process.returncode}{suffix}")
-    return FetchResult(True, detail)
-
-
-def fetch_adaptively(
-    object_ids: Sequence[str],
-    *,
-    batch_size: int,
-    attempts: int,
-    max_fetch_commands: int,
-    fetch: FetchRunner,
-    missing: MissingChecker,
-    retry_backoff_seconds: float = 1.0,
-    sleeper: Callable[[float], None] = time.sleep,
-    progress: ProgressCallback | None = None,
-) -> FetchStatistics:
-    """Fetch bounded batches, retry them, then bisect only persistent failures."""
-
-    _safe_int(batch_size, 1, MAX_BATCH_SIZE, "batch-size")
-    _safe_int(attempts, 1, MAX_ATTEMPTS, "attempts")
-    _safe_int(max_fetch_commands, 1, MAX_FETCH_COMMANDS, "max-fetch-commands")
-    if (
-        not math.isfinite(retry_backoff_seconds)
-        or retry_backoff_seconds < 0
-        or retry_backoff_seconds > 30
-    ):
-        raise CheckoutHydrationError(
-            "retry-backoff-seconds must be between 0 and 30"
-        )
-    ordered = tuple(sorted({_require_sha1(oid, "object ID") for oid in object_ids}))
-    statistics = FetchStatistics()
-
-    def process(group: tuple[str, ...]) -> None:
-        current = tuple(missing(group))
-        if not current:
-            statistics.hydrated.update(group)
-            return
-        last_detail = "object remained missing after fetch"
-        for attempt_index in range(attempts):
-            if statistics.command_count >= max_fetch_commands:
-                statistics.command_budget_exhausted = True
-                return
-            if attempt_index:
-                statistics.retry_count += 1
-                if retry_backoff_seconds:
-                    sleeper(min(30.0, retry_backoff_seconds * (2 ** (attempt_index - 1))))
-            result = fetch(current)
-            statistics.command_count += 1
-            if result.success:
-                statistics.successful_commands += 1
-            else:
-                statistics.failed_commands += 1
-            remaining = tuple(missing(current))
-            statistics.hydrated.update(set(current) - set(remaining))
-            if not remaining:
-                return
-            current = remaining
-            last_detail = result.detail or "object remained missing after fetch"
-        if len(current) == 1:
-            statistics.singleton_failures[current[0]] = _clean_detail(last_detail)
-            return
-        statistics.adaptive_splits += 1
-        midpoint = len(current) // 2
-        process(current[:midpoint])
-        if not statistics.command_budget_exhausted:
-            process(current[midpoint:])
-
-    for offset in range(0, len(ordered), batch_size):
-        if statistics.command_budget_exhausted:
-            break
-        process(ordered[offset : offset + batch_size])
-        statistics.completed_top_level_batches += 1
-        if progress is not None:
-            progress(statistics)
-    return statistics
-
-
 def _transport_report(statistics: FetchStatistics, args: argparse.Namespace) -> dict[str, Any]:
     failures = [
         {"objectId": oid, "detail": detail}
         for oid, detail in sorted(statistics.singleton_failures.items())[:128]
     ]
-    return {
-        "batchSize": args.batch_size,
-        "attemptsPerBatch": args.attempts,
+    report = {
+        "configured": args.transport,
         "maxFetchCommands": args.max_fetch_commands,
-        "fetchTimeoutSeconds": args.fetch_timeout,
-        "httpVersion": "HTTP/1.1",
-        "httpMaxRequests": 1,
-        "fetchParallel": 1,
         "commandCount": statistics.command_count,
         "successfulCommandCount": statistics.successful_commands,
         "failedCommandCount": statistics.failed_commands,
         "retryCount": statistics.retry_count,
         "adaptiveSplitCount": statistics.adaptive_splits,
         "commandBudgetExhausted": statistics.command_budget_exhausted,
+        "responseBudgetExhausted": statistics.response_budget_exhausted,
         "singletonFailureCount": len(statistics.singleton_failures),
         "singletonFailures": failures,
         "singletonFailuresTruncated": len(statistics.singleton_failures) > len(failures),
     }
+    if args.transport == "git":
+        report.update(
+            {
+                "batchSize": args.batch_size,
+                "attemptsPerBatch": args.attempts,
+                "fetchTimeoutSeconds": args.fetch_timeout,
+                "httpVersion": "HTTP/1.1",
+                "httpMaxRequests": 1,
+                "fetchParallel": 1,
+            }
+        )
+    else:
+        report.update(
+            {
+                "baseUrl": GITILES_BASE,
+                "jobs": args.jobs,
+                "networkAttemptsPerRequest": NETWORK_ATTEMPTS,
+                "networkTimeoutSeconds": args.network_timeout,
+                "totalTimeoutSeconds": args.total_timeout,
+                "maxResponseBytes": args.max_response_bytes,
+                "maxTotalResponseBytes": args.max_total_response_bytes,
+                "requestCount": statistics.command_count,
+                "successfulRequestCount": statistics.successful_commands,
+                "failedRequestCount": statistics.failed_commands,
+                "responseBytes": statistics.response_bytes,
+                "decodedBytes": statistics.decoded_bytes,
+            }
+        )
+    return report
 
 
 def _report(
@@ -563,6 +392,7 @@ def run_hydration(
     args: argparse.Namespace,
     *,
     fetcher: FetchRunner | None = None,
+    gitiles_loader: GitilesResponseLoader | None = None,
     sleeper: Callable[[float], None] = time.sleep,
 ) -> tuple[dict[str, Any], int]:
     repository = args.repository.resolve()
@@ -586,6 +416,23 @@ def run_hydration(
     if not checkout.is_dir():
         raise CheckoutHydrationError("Chromium checkout does not exist")
     target = _require_sha1(args.target, "target")
+    if args.transport not in {"git", "gitiles"}:
+        raise CheckoutHydrationError("transport must be git or gitiles")
+    if args.transport == "git":
+        if args.jobs is not None:
+            raise CheckoutHydrationError("jobs is only supported by Gitiles transport")
+    else:
+        args.jobs = DEFAULT_GITILES_JOBS if args.jobs is None else args.jobs
+        _safe_int(args.jobs, 1, MAX_GITILES_JOBS, "jobs")
+        try:
+            validate_limits(
+                args.network_timeout,
+                args.total_timeout,
+                args.max_response_bytes,
+                args.max_total_response_bytes,
+            )
+        except HydrationError as error:
+            raise CheckoutHydrationError(str(error)) from error
     _safe_int(args.batch_size, 1, MAX_BATCH_SIZE, "batch-size")
     _safe_int(args.attempts, 1, MAX_ATTEMPTS, "attempts")
     _safe_int(
@@ -644,11 +491,6 @@ def run_hydration(
     interrupted = False
     runtime_error: CheckoutHydrationError | None = None
     if remaining and not args.dry_run:
-        actual_fetcher = fetcher or (
-            lambda object_ids: _fetch_object_ids(
-                checkout, environment, object_ids, args.fetch_timeout
-            )
-        )
         initial_missing = set(inventory.missing_blob_ids)
 
         def check_missing(object_ids: Sequence[str]) -> tuple[str, ...]:
@@ -680,17 +522,53 @@ def run_hydration(
             )
 
         try:
-            statistics = fetch_adaptively(
-                inventory.missing_blob_ids,
-                batch_size=args.batch_size,
-                attempts=args.attempts,
-                max_fetch_commands=args.max_fetch_commands,
-                fetch=actual_fetcher,
-                missing=check_missing,
-                retry_backoff_seconds=args.retry_backoff_seconds,
-                sleeper=sleeper,
-                progress=checkpoint,
-            )
+            if args.transport == "git":
+                actual_fetcher = fetcher or (
+                    lambda object_ids: _fetch_object_ids(
+                        checkout, environment, object_ids, args.fetch_timeout
+                    )
+                )
+                statistics = fetch_adaptively(
+                    inventory.missing_blob_ids,
+                    batch_size=args.batch_size,
+                    attempts=args.attempts,
+                    max_fetch_commands=args.max_fetch_commands,
+                    fetch=actual_fetcher,
+                    missing=check_missing,
+                    retry_backoff_seconds=args.retry_backoff_seconds,
+                    sleeper=sleeper,
+                    progress=checkpoint,
+                )
+            else:
+                if gitiles_loader is None:
+
+                    def load_response(
+                        target_id: str,
+                        path: str,
+                        object_id: str,
+                        timeout: int,
+                        maximum: int,
+                    ) -> bytes:
+                        del object_id
+                        return fetch_gitiles_response(
+                            gitiles_blob_url(target_id, path), timeout, maximum
+                        )
+                else:
+                    load_response = gitiles_loader
+                statistics = _hydrate_gitiles_blobs(
+                    git=git,
+                    target=target,
+                    object_ids=inventory.missing_blob_ids,
+                    blob_paths=dict(inventory.blob_paths),
+                    jobs=args.jobs,
+                    max_requests=args.max_fetch_commands,
+                    network_timeout=args.network_timeout,
+                    total_timeout=args.total_timeout,
+                    max_response_bytes=args.max_response_bytes,
+                    max_total_response_bytes=args.max_total_response_bytes,
+                    load_response=load_response,
+                    progress=checkpoint,
+                )
         except KeyboardInterrupt:
             statistics.interrupted = True
             interrupted = True
@@ -755,6 +633,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--target", required=True)
     parser.add_argument("--output", type=pathlib.Path)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--transport", choices=("git", "gitiles"), default="git"
+    )
+    parser.add_argument("--jobs", type=int)
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--attempts", type=int, default=DEFAULT_ATTEMPTS)
     parser.add_argument(
@@ -768,6 +650,20 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--max-blobs", type=int, default=DEFAULT_MAX_BLOBS)
     parser.add_argument("--retry-backoff-seconds", type=float, default=1.0)
+    parser.add_argument(
+        "--network-timeout", type=int, default=DEFAULT_NETWORK_TIMEOUT_SECONDS
+    )
+    parser.add_argument(
+        "--total-timeout", type=int, default=DEFAULT_TOTAL_TIMEOUT_SECONDS
+    )
+    parser.add_argument(
+        "--max-response-bytes", type=int, default=DEFAULT_MAX_RESPONSE_BYTES
+    )
+    parser.add_argument(
+        "--max-total-response-bytes",
+        type=int,
+        default=DEFAULT_MAX_TOTAL_RESPONSE_BYTES,
+    )
     return parser
 
 

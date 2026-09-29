@@ -19,8 +19,33 @@ namespace ahoi::tab_tree {
 TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
     const TabTreeSnapshot& snapshot) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return ReplaceSnapshot(snapshot, nullptr, nullptr, {});
+}
+
+TabTreeStore::Result TabTreeStore::ReplacePersistenceSnapshot(
+    const PersistenceSnapshot& snapshot,
+    base::RepeatingCallback<bool()> authorization) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  return ReplaceSnapshot(snapshot.tree, &snapshot.sync_baseline_receipt,
+                         &snapshot.workspace_structure_state, authorization);
+}
+
+TabTreeStore::Result TabTreeStore::ReplaceSnapshot(
+    const TabTreeSnapshot& snapshot,
+    const std::string* sync_baseline_receipt,
+    const std::string* workspace_structure_state,
+    const base::RepeatingCallback<bool()>& authorization) {
+  // Both public entry points validate the sequence; this helper requires it.
   if (!IsReady()) {
     return Result::kNotInitialized;
+  }
+  if (authorization && !authorization.Run()) {
+    return Result::kCancelled;
+  }
+  std::set<base::Uuid> hidden;
+  if (workspace_structure_state && !internal::DecodeWorkspaceStructureState(
+                                       *workspace_structure_state, &hidden)) {
+    return Result::kInvalidArgument;
   }
 
   std::unordered_map<base::Uuid, const Workspace*, base::UuidHash> workspaces;
@@ -97,14 +122,19 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
       case UndoMutationKind::kRename:
       case UndoMutationKind::kMove:
       case UndoMutationKind::kDelete:
+      case UndoMutationKind::kWorkspaceMerge:
         break;
       default:
         return Result::kInvalidArgument;
     }
+    const bool workspace_merge =
+        operation.kind == UndoMutationKind::kWorkspaceMerge;
     if (operation.operation_id <= 0 ||
         !operation_ids.insert(operation.operation_id).second ||
         !operation.subject_node_id.is_valid() ||
-        operation.created_at.is_null() || operation.nodes.empty()) {
+        operation.created_at.is_null() ||
+        operation.nodes.empty() != workspace_merge ||
+        (workspace_merge && !workspaces.contains(operation.subject_node_id))) {
       return Result::kInvalidArgument;
     }
     for (const UndoNodeSnapshot& node_snapshot : operation.nodes) {
@@ -119,7 +149,35 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
   }
 
   sql::Transaction transaction(&db_);
-  if (!transaction.Begin() || !db_.Execute("DELETE FROM undo_node_snapshots") ||
+  if (!transaction.Begin()) {
+    return Result::kDatabaseError;
+  }
+  std::set<base::Uuid> changed_ids;
+  if (!observers_.empty()) {
+    sql::Statement existing(
+        db_.GetUniqueStatement("SELECT id FROM tree_nodes"));
+    while (existing.Step()) {
+      const auto id = base::Uuid::ParseLowercase(existing.ColumnString(0));
+      if (!id.is_valid()) {
+        return Result::kDatabaseError;
+      }
+      changed_ids.insert(id);
+    }
+    if (!existing.Succeeded()) {
+      return Result::kDatabaseError;
+    }
+    for (const auto& node : snapshot.nodes) {
+      changed_ids.insert(node.id);
+    }
+  }
+  // Parent rows normally precede their children in the persisted snapshot.
+  // ON DELETE RESTRICT is checked per row, so a bulk DELETE cannot safely
+  // remove that self-referencing tree. Detach the old edges inside the same
+  // transaction before clearing it. Foreign keys stay enabled throughout;
+  // any later failure rolls back both the edges and all other old state.
+  if (!db_.Execute("UPDATE tree_nodes SET parent_id=NULL "
+                   "WHERE parent_id IS NOT NULL") ||
+      !db_.Execute("DELETE FROM undo_node_snapshots") ||
       !db_.Execute("DELETE FROM undo_operations") ||
       !db_.Execute("DELETE FROM tree_nodes") ||
       !db_.Execute("DELETE FROM workspaces")) {
@@ -129,7 +187,8 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
   sql::Statement insert_workspace(db_.GetCachedStatement(
       SQL_FROM_HERE,
       "INSERT INTO workspaces(model_version,id,name,icon,sort_key,accent_argb,"
-      "created_at,modified_at,tombstone) VALUES(?,?,?,?,?,?,?,?,?)"));
+      "created_at,modified_at,tombstone,archive_policy,merged_into) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?)"));
   for (const Workspace& workspace : snapshot.workspaces) {
     insert_workspace.Reset(/*clear_bound_vars=*/true);
     internal::BindWorkspaceForInsert(insert_workspace, workspace);
@@ -142,7 +201,9 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
       SQL_FROM_HERE,
       "INSERT INTO tree_nodes(model_version,id,workspace_id,parent_id,"
       "node_type,title,icon,accent_argb,url,sort_key,created_at,modified_at,"
-      "tombstone) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "tombstone,is_temporary,target_kind,local_scheme,home_url,home_target_"
+      "kind,home_local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (size_t index : insertion_order) {
     insert_node.Reset(/*clear_bound_vars=*/true);
     internal::BindNodeForInsert(insert_node, snapshot.nodes[index]);
@@ -159,8 +220,9 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
       SQL_FROM_HERE,
       "INSERT INTO undo_node_snapshots(operation_id,ordinal,existed,node_id,"
       "model_version,workspace_id,parent_id,node_type,title,icon,accent_argb,"
-      "url,sort_key,created_at,modified_at,tombstone) "
-      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
+      "url,sort_key,created_at,modified_at,tombstone,is_temporary,target_kind,"
+      "local_scheme,home_url,home_target_kind,home_local_scheme) "
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"));
   for (const UndoOperationSnapshot& operation : snapshot.undo_operations) {
     insert_operation.Reset(/*clear_bound_vars=*/true);
     insert_operation.BindInt64(0, operation.operation_id);
@@ -179,7 +241,7 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
       insert_undo_node.BindBool(2, node_snapshot.previous.has_value());
       insert_undo_node.BindString(3, node_snapshot.node_id.AsLowercaseString());
       if (!node_snapshot.previous.has_value()) {
-        for (int column = 4; column <= 15; ++column) {
+        for (int column = 4; column <= 21; ++column) {
           insert_undo_node.BindNull(column);
         }
       } else {
@@ -204,6 +266,18 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
         insert_undo_node.BindTime(13, node.created_at);
         insert_undo_node.BindTime(14, node.modified_at);
         insert_undo_node.BindBool(15, node.tombstone);
+        insert_undo_node.BindBool(16, node.is_temporary);
+        if (node.target_kind) {
+          insert_undo_node.BindInt(17, static_cast<int>(*node.target_kind));
+        } else {
+          insert_undo_node.BindNull(17);
+        }
+        if (node.local_scheme) {
+          insert_undo_node.BindString(18, *node.local_scheme);
+        } else {
+          insert_undo_node.BindNull(18);
+        }
+        internal::BindHome(insert_undo_node, 19, node);
       }
       if (!insert_undo_node.Run()) {
         return Result::kDatabaseError;
@@ -211,7 +285,49 @@ TabTreeStore::Result TabTreeStore::ReplaceWithSnapshot(
     }
   }
 
-  return transaction.Commit() ? Result::kOk : Result::kDatabaseError;
+  // The local baseline and all tree/undo rows become durable together. A
+  // rejected snapshot or SQL failure cannot advance just the receipt. A
+  // logical-only replacement leaves the current baseline untouched.
+  if (sync_baseline_receipt) {
+    const std::string query =
+        sync_baseline_receipt->empty()
+            ? "DELETE FROM meta WHERE key=?"
+            : "INSERT OR REPLACE INTO meta(key,value) VALUES(?,?)";
+    sql::Statement receipt(db_.GetUniqueStatement(query));
+    receipt.BindString(0, kSyncBaselineReceiptKey);
+    if (!sync_baseline_receipt->empty()) {
+      receipt.BindString(1, *sync_baseline_receipt);
+    }
+    if (!receipt.Run()) {
+      return Result::kDatabaseError;
+    }
+  }
+  if (workspace_structure_state) {
+    sql::Statement state(
+        db_.GetUniqueStatement("INSERT OR REPLACE INTO meta(key,value) "
+                               "VALUES('ahoi.workspace_structure',?)"));
+    state.BindString(0, *workspace_structure_state);
+    if (!state.Run()) {
+      return Result::kDatabaseError;
+    }
+  }
+
+  if (authorization && !authorization.Run()) {
+    return Result::kCancelled;
+  }
+  if (!transaction.Commit()) {
+    return Result::kDatabaseError;
+  }
+  if (workspace_structure_state) {
+    archived_node_ids_ = std::move(hidden);
+  }
+  if (!changed_ids.empty()) {
+    // Existing loaded-tree observers perform an identity-preserving splice,
+    // including removed IDs. Bulk Sync apply must not leave their caches stale.
+    Notify(MutationKind::kMoved, *changed_ids.begin(),
+           {changed_ids.begin(), changed_ids.end()});
+  }
+  return Result::kOk;
 }
 
 }  // namespace ahoi::tab_tree

@@ -5,7 +5,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 OVERLAY = ROOT / "overlay/chromium/src/ahoi/browser"
-PATCH = ROOT / "patches/chromium/0001-ahoi-m152-integration-seams.patch"
+PATCH = ROOT / "patches/chromium/0001-ahoi-m153-integration-seams.patch"
 
 
 def text(path: pathlib.Path) -> str:
@@ -42,12 +42,45 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             "bool BrowserSidebarHostView::CanSplitSavedPages",
         )
         self.assertTrue(activation)
-        self.assertIn("params.navigated_or_inserted_contents", activation)
-        self.assertIn("BindTreeNodeToTab(node, opened_tab)", activation)
-        self.assertIn("FindTabByTreeNodeId(node.id)", activation)
-        self.assertIn("opened_tab != existing", activation)
-        self.assertEqual(2, activation.count("opened_tab->Close()"))
+        # 2b0de42 moved the navigation/binding transaction into the shared
+        # MaterializeSavedPage helper (browser_sidebar_host_page_actions.cc).
+        self.assertIn(
+            "MaterializeSavedPage(node, /*require_local_model=*/false).valid",
+            activation,
+        )
+        page_actions = text(
+            OVERLAY / "ui/sidebar/browser_sidebar_host_page_actions.cc"
+        )
+        materialize = function(
+            page_actions,
+            "BrowserSidebarSplitDropSource BrowserSidebarHostView::MaterializeSavedPage(",
+            "}  // namespace ahoi::sidebar",
+        )
+        self.assertTrue(materialize)
+        self.assertIn(
+            "tabs::TabInterface::MaybeGetFromContents(\n"
+            "          params.navigated_or_inserted_contents)",
+            materialize,
+        )
+        self.assertIn(
+            "BindTreeNodeToTab(\n                             node, weak_opened_tab.get())",
+            materialize,
+        )
+        self.assertIn("FindTabByTreeNodeId(node.id)", materialize)
+        # Only the duplicate created by this call is retired, never the winner.
+        self.assertIn(
+            "weak_opened_tab && weak_opened_tab.get() != weak_existing.get()",
+            materialize,
+        )
+        # Binding failure without a winner fails closed by closing the tab.
+        self.assertRegex(
+            materialize,
+            r"if \(weak_opened_tab\) \{\s*"
+            r"base::OnceClosure rollback = make_rollback\(weak_opened_tab\);\s*"
+            r"std::move\(rollback\)\.Run\(\);\s*\}\s*return \{\};\s*\}$",
+        )
         self.assertNotIn("tab_count_before", source)
+        self.assertNotIn("tab_count_before", page_actions)
 
         bridge_test = text(OVERLAY / "session/session_bridge_unittest.cc")
         self.assertIn(
@@ -148,11 +181,15 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
         for forbidden in ("Navigate", "WebContents", "->Close("):
             self.assertNotIn(forbidden, operation)
         self.assertIn("CanExtractSavedSplitPaneForDrop", tree_drag)
+        # 7265d73 split drop execution out of sidebar_tree_view_drag.cc.
+        drop_execution = text(
+            OVERLAY / "ui/sidebar/sidebar_tree_view_drop_execution.cc"
+        )
         self.assertIn(
             "std::vector<base::Uuid> move_group{indicator.source_node_id}",
-            tree_drag,
+            drop_execution,
         )
-        self.assertIn("ExtractSavedSplitPaneAfterDrop", tree_drag)
+        self.assertIn("ExtractSavedSplitPaneAfterDrop", drop_execution)
         self.assertIn("virtual bool ExtractSavedSplitPaneAfterDrop", delegate)
         extraction = function(
             host,
@@ -162,7 +199,7 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
         self.assertNotIn("CHECK", extraction)
         self.assertIn("return false", extraction)
         self.assertRegex(
-            tree_drag,
+            drop_execution,
             r"CanExtractSavedSplitPaneForDrop\(indicator\.source_node_id,[\s\S]*?"
             r"std::nullopt\)[\s\S]*?ExtractSavedSplitPaneAfterDrop",
         )
@@ -188,18 +225,20 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             "class OpenTabRowView final",
             "BEGIN_METADATA(OpenTabRowView)",
         )
+        # 7265d73 moved the split row into sidebar_runtime_split_views.cc.
         split_row = function(
-            runtime_rows,
+            text(OVERLAY / "ui/sidebar/sidebar_runtime_split_views.cc"),
             "class OpenTabSplitRowView final",
             "BEGIN_METADATA(OpenTabSplitRowView)",
         )
         remote_rows = text(OVERLAY / "ui/sidebar/sidebar_remote_tab_views.cc")
-        host_core = text(OVERLAY / "ui/sidebar/browser_sidebar_host_core.cc")
+        # 7265d73 moved sidebar construction into browser_sidebar_host_layout.cc.
+        host_core = text(OVERLAY / "ui/sidebar/browser_sidebar_host_layout.cc")
         device_tabs = text(
             OVERLAY / "ui/sidebar/browser_sidebar_host_device_tabs.cc"
         )
         tree_view = text(OVERLAY / "ui/sidebar/sidebar_tree_view.cc")
-        sync_controls = text(OVERLAY / "ui/sidebar/sidebar_sync_controls.cc")
+        tree_header = text(OVERLAY / "ui/sidebar/sidebar_tree_view.h")
         patch = text(PATCH)
         outline = patch_section(
             patch, "chrome/browser/ui/views/frame/contents_container_outline.h"
@@ -236,8 +275,17 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             "remote_tabs_container_->SetVisible(profile_sync_service_ != nullptr)",
             device_tabs,
         )
+        # c510bfb replaced the empty-tree row-height minimum with a permanent
+        # trailing root-append surface of one row height, so an empty
+        # workspace stays a real drop target without a fake row.
         self.assertIn(
-            "std::max(visual_height, SidebarTreeRowView::kRowHeight)",
+            "static constexpr int kRootAppendDropHeight = "
+            "SidebarTreeRowView::kRowHeight;",
+            tree_header,
+        )
+        self.assertIn(
+            "height = base::saturated_cast<int>(static_cast<int64_t>(height) +\n"
+            "                                     kRootAppendDropHeight);",
             tree_view,
         )
         self.assertIn("kSidebarHeaderActionSize = 32", style)
@@ -254,10 +302,12 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             "preferred_height=*/visual_style::kSidebarHeaderActionSize",
             actions,
         )
-        self.assertIn(
-            "status_label_ = settings_body_->AddChildView", sync_controls
+        # 30cd18f ("put sync controls in Ahoi Settings") deleted the sidebar
+        # sync controls and their disclosure body; the sidebar no longer
+        # owns a sync status label.
+        self.assertFalse(
+            (OVERLAY / "ui/sidebar/sidebar_sync_controls.cc").exists()
         )
-        self.assertNotIn("status_label_ = AddChildView", sync_controls)
         self.assertIn("kSplitPaneCornerRadius", outline)
         self.assertIn("GetThickness(bool is_active, bool is_highlighted)", outline)
 
@@ -266,11 +316,14 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
         tree_header = text(OVERLAY / "ui/sidebar/sidebar_tree_view.h")
         tree_view = text(OVERLAY / "ui/sidebar/sidebar_tree_view.cc")
         tree_drag = text(OVERLAY / "ui/sidebar/sidebar_tree_view_drag.cc")
-        host = text(OVERLAY / "ui/sidebar/browser_sidebar_host_tree_actions.cc")
+        # 7265d73 split drag presentation and layout out of the host files.
+        host = text(
+            OVERLAY / "ui/sidebar/browser_sidebar_host_drag_presentation.cc"
+        )
         runtime_targets = text(
             OVERLAY / "ui/sidebar/sidebar_runtime_drop_targets.cc"
         )
-        host_core = text(OVERLAY / "ui/sidebar/browser_sidebar_host_core.cc")
+        host_core = text(OVERLAY / "ui/sidebar/browser_sidebar_host_layout.cc")
         tree_tests = text(
             OVERLAY / "ui/sidebar/sidebar_tree_view_drag_unittest.cc"
         )
@@ -286,9 +339,32 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
         self.assertIn("void SetDragTargetVisible(bool visible)", tree_header)
         self.assertIn("bool drag_target_visible_ = false", tree_header)
         self.assertIn("bool drag_target_accepting_ = false", tree_header)
-        self.assertIn("drag_target_visible_ || empty_root_accepting", tree_view)
+        # 0d21276 stopped painting the whole section while a drag is merely
+        # visible (two competing highlights); c510bfb then scoped the broad
+        # accepted surface to the trailing root-append area. Only a validated
+        # root append (no target node) paints it.
         self.assertIn(
-            "std::max(visual_height, SidebarTreeRowView::kRowHeight)",
+            "const bool root_accepting = drop_indicator_.has_value() &&\n"
+            "                              !drop_indicator_->target_node_id.has_value() &&\n"
+            "                              !append_target.IsEmpty();",
+            tree_view,
+        )
+        self.assertIn(
+            "gfx::RectF append_target(GetRootAppendDropBounds(visual_rows));",
+            tree_view,
+        )
+        self.assertNotIn("if (drag_target_visible_", tree_view)
+        # c510bfb replaced the empty-tree row-height minimum with a permanent
+        # trailing root-append surface of one row height, so an empty
+        # workspace stays a real drop target without a fake row.
+        self.assertIn(
+            "static constexpr int kRootAppendDropHeight = "
+            "SidebarTreeRowView::kRowHeight;",
+            tree_header,
+        )
+        self.assertIn(
+            "height = base::saturated_cast<int>(static_cast<int64_t>(height) +\n"
+            "                                     kRootAppendDropHeight);",
             tree_view,
         )
         set_indicator = function(
@@ -327,7 +403,7 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             "workspace_selector_host->AddChildView("
         )
         new_group = host_core.index(
-            "new_group_drop_target_ = workspace_selector_host->AddChildView"
+            "new_group_drop_target_ =\n      workspace_selector_host->AddChildView"
         )
         workspace_header = host_core.index(
             "workspace_header->AddChildView(std::move(workspace_selector_host))"
@@ -344,10 +420,20 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             "class OpenTabsDropTargetView final",
             "BEGIN_METADATA(OpenTabsDropTargetView)",
         )
-        self.assertIn("accepting_saved_tab_", open_target)
+        # d84d8e3 generalized accepting_saved_tab_ to accepting_tab_ (saved and
+        # runtime payloads). 0d21276 deliberately dropped the pre-hover
+        # kHoverSurface paint: the open-tabs target paints only while it is
+        # the hovered, validated target.
+        self.assertIn("accepting_tab_", open_target)
+        self.assertIn("return accepting_tab_ && payload.has_value()", open_target)
         self.assertIn("highlighted_", open_target)
-        self.assertIn("visual_style::kHoverSurface", open_target)
-        self.assertIn("visual_style::kDropTargetSurface", open_target)
+        self.assertRegex(
+            open_target,
+            r"SetBackground\(\s*highlighted_\s*\?\s*"
+            r"views::CreateRoundedRectBackground\(\s*"
+            r"visual_style::kDropTargetSurface,",
+        )
+        self.assertNotIn("visual_style::kHoverSurface", open_target)
         self.assertNotIn("TreeNode", open_target)
         new_group_target = function(
             runtime_targets,
@@ -365,7 +451,7 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             tree_tests,
         )
         self.assertIn(
-            "OpenTabsTargetIsVisibleBeforeHoverAndClearsWithoutAffectingNewGroup",
+            "OpenTabsTargetPaintsOnlyWhileHoveredAndDoesNotAffectNewGroup",
             runtime_tests,
         )
         self.assertIn(

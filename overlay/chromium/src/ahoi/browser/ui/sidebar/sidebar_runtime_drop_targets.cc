@@ -209,7 +209,7 @@ class NewGroupDropTargetView final : public views::View,
 
     auto* icon = AddChildView(
         std::make_unique<views::ImageView>(ui::ImageModel::FromVectorIcon(
-            vector_icons::kAddWeight500Icon, visual_style::kAccent, 18)));
+            vector_icons::kAddWeight500CustomIcon, visual_style::kAccent, 18)));
     icon->SetPreferredSize(gfx::Size(20, 20));
     icon->SetCanProcessEventsWithinSubtree(false);
     icon->GetViewAccessibility().SetIsIgnored(true);

@@ -10,6 +10,9 @@
 
 #include "base/containers/flat_map.h"
 #include "base/functional/bind.h"
+#include "base/location.h"
+#include "base/time/time.h"
+#include "base/timer/timer.h"
 #include "chrome/browser/ui/tabs/tab_enums.h"
 #include "chrome/browser/ui/tabs/tab_muted_utils.h"
 #include "content/public/browser/media_session.h"
@@ -28,6 +31,11 @@ bool HasAction(const std::vector<MediaSessionAction>& actions,
                MediaSessionAction wanted_action) {
   return std::ranges::find(actions, wanted_action) != actions.end();
 }
+
+// How long an unmuted card waits for Chromium to report the session it
+// re-adds the tab's players to. Without players to re-add, as after media
+// that ended while muted, no session update comes and the card is released.
+constexpr base::TimeDelta kUnmuteSessionGrace = base::Seconds(1);
 
 }  // namespace
 
@@ -55,6 +63,67 @@ MediaMiniPlayerPlaybackState MediaMiniPlayerChromiumAdapter::PlaybackStateFor(
              : MediaMiniPlayerPlaybackState::kPaused;
 }
 
+// static
+MediaMiniPlayerChromiumAdapter::SessionProjection
+MediaMiniPlayerChromiumAdapter::ProjectSession(const SessionSignals& signals) {
+  const std::vector<MediaSessionAction>& actions = signals.actions;
+  // A page with its own play or pause handler stays controllable even when
+  // Chromium's audio focus state alone would not make it so.
+  const bool controllable = signals.has_session_info &&
+                            (signals.session_controllable ||
+                             HasAction(actions, MediaSessionAction::kPlay) ||
+                             HasAction(actions, MediaSessionAction::kPause));
+
+  SessionProjection projection;
+  if (signals.has_session_info) {
+    projection.playback = controllable ? signals.session_playback
+                                       : MediaMiniPlayerPlaybackState::kPaused;
+  } else if (signals.tab_audible) {
+    // Web Audio and other sound without a MediaSession has no other signal.
+    projection.playback = MediaMiniPlayerPlaybackState::kPlaying;
+  }
+  projection.is_muted = signals.session_muted || signals.tab_muted;
+  projection.is_in_picture_in_picture =
+      signals.session_picture_in_picture || signals.tab_picture_in_picture;
+  projection.expose_position =
+      controllable || projection.is_in_picture_in_picture;
+  // Audibility counts only for a tab without a MediaSession: a session's
+  // short sound is not a media signal.
+  const bool owns_card = controllable || projection.is_in_picture_in_picture ||
+                         (!signals.has_session_info && signals.tab_audible);
+  projection.keeps_controllable_card =
+      owns_card || (signals.was_controllable && projection.is_muted) ||
+      signals.awaiting_session_after_unmute;
+  const bool keeps_card = projection.keeps_controllable_card;
+
+  projection.capabilities = CapabilitiesForActions(actions);
+  // Chromium advertises enter/exit and play/pause as distinct actions. Only
+  // enable the control when the action matching the current source state is
+  // available, so a stale opposite-state capability cannot create a no-op.
+  projection.capabilities.can_play_pause =
+      projection.playback == MediaMiniPlayerPlaybackState::kPlaying
+          ? HasAction(actions, MediaSessionAction::kPause)
+          : HasAction(actions, MediaSessionAction::kPlay);
+  projection.capabilities.can_picture_in_picture =
+      projection.is_in_picture_in_picture
+          ? HasAction(actions, MediaSessionAction::kExitPictureInPicture)
+          : HasAction(actions, MediaSessionAction::kEnterPictureInPicture);
+  if (!projection.expose_position) {
+    projection.capabilities.can_seek = false;
+  }
+  // Prefer MediaSession's player mute and otherwise use Chromium's tab-wide
+  // audio action. A page-controlled muted player without kSetMute remains
+  // truthfully marked muted, but cannot pretend that tab unmute would alter
+  // the page's player state. MediaSessionController keeps the players of a
+  // tab muted before playback out of its session, so a muted tab that is
+  // audible gets the unmute control without owning a card.
+  projection.capabilities.can_mute =
+      HasAction(actions, MediaSessionAction::kSetMute) ||
+      (signals.tab_muted && (keeps_card || signals.tab_audible)) ||
+      (keeps_card && !signals.session_muted);
+  return projection;
+}
+
 class MediaMiniPlayerChromiumAdapter::SourceObserver final
     : public content::WebContentsObserver,
       public media_session::mojom::MediaSessionObserver {
@@ -77,6 +146,7 @@ class MediaMiniPlayerChromiumAdapter::SourceObserver final
   ~SourceObserver() override = default;
 
   void Stop() {
+    EndUnmuteGrace();
     media_session_observer_receiver_.reset();
     Observe(nullptr);
     web_contents_destroyed_ = true;
@@ -207,7 +277,19 @@ class MediaMiniPlayerChromiumAdapter::SourceObserver final
 
   void OnAudioStateChanged(bool audible) override { RefreshSource(); }
 
-  void DidUpdateAudioMutingState(bool muted) override { RefreshSource(); }
+  void DidUpdateAudioMutingState(bool muted) override {
+    EndUnmuteGrace();
+    if (!muted && source_.IsRelevant()) {
+      // MediaSessionController re-adds the players synchronously, but this
+      // observer still holds the inactive session from the mute. Keep the
+      // card until that session update arrives, so it neither drops for a
+      // moment nor hands the selection to another source.
+      awaiting_session_after_unmute_ = true;
+      unmute_grace_timer_.Start(FROM_HERE, kUnmuteSessionGrace, this,
+                                &SourceObserver::OnUnmuteGraceExpired);
+    }
+    RefreshSource();
+  }
 
   void MediaPictureInPictureChanged(bool is_picture_in_picture) override {
     RefreshSource();
@@ -244,6 +326,10 @@ class MediaMiniPlayerChromiumAdapter::SourceObserver final
     } else {
       has_session_info_ = true;
       session_playback_ = PlaybackStateFor(session_info->playback_state);
+      session_controllable_ = session_info->is_controllable;
+      if (session_controllable_) {
+        EndUnmuteGrace();
+      }
       session_muted_ = session_info->muted;
       session_picture_in_picture_ =
           session_info->picture_in_picture_state ==
@@ -310,6 +396,16 @@ class MediaMiniPlayerChromiumAdapter::SourceObserver final
     }
   }
 
+  void EndUnmuteGrace() {
+    awaiting_session_after_unmute_ = false;
+    unmute_grace_timer_.Stop();
+  }
+
+  void OnUnmuteGraceExpired() {
+    awaiting_session_after_unmute_ = false;
+    RefreshSource();
+  }
+
   void OnMediaSessionDisconnected() {
     ResetMediaSessionState();
     RefreshSource();
@@ -318,6 +414,11 @@ class MediaMiniPlayerChromiumAdapter::SourceObserver final
   void ResetMediaSessionState() {
     has_session_info_ = false;
     session_playback_ = MediaMiniPlayerPlaybackState::kPaused;
+    session_controllable_ = false;
+    // A new page, a replaced WebContents or a lost session starts without a
+    // card to keep.
+    was_controllable_ = false;
+    EndUnmuteGrace();
     session_muted_ = false;
     session_picture_in_picture_ = false;
     metadata_title_.clear();
@@ -337,43 +438,33 @@ class MediaMiniPlayerChromiumAdapter::SourceObserver final
     source_.origin = url::Origin::Create(web_contents()->GetLastCommittedURL());
     source_.title =
         metadata_title_.empty() ? web_contents()->GetTitle() : metadata_title_;
-    source_.playback = has_session_info_
-                           ? session_playback_
-                           : (web_contents()->IsCurrentlyAudible()
-                                  ? MediaMiniPlayerPlaybackState::kPlaying
-                                  : MediaMiniPlayerPlaybackState::kPaused);
-    source_.is_muted = session_muted_ || web_contents()->IsAudioMuted();
-    source_.is_in_picture_in_picture =
-        session_picture_in_picture_ ||
+    SessionSignals signals;
+    signals.has_session_info = has_session_info_;
+    signals.session_playback = session_playback_;
+    signals.session_controllable = session_controllable_;
+    signals.session_muted = session_muted_;
+    signals.session_picture_in_picture = session_picture_in_picture_;
+    signals.actions = actions_;
+    signals.tab_audible = web_contents()->IsCurrentlyAudible();
+    signals.tab_muted = web_contents()->IsAudioMuted();
+    signals.tab_picture_in_picture =
         web_contents()->HasPictureInPictureVideo() ||
         web_contents()->HasPictureInPictureDocument();
-    source_.position = has_position_ ? position_ : base::TimeDelta();
-    source_.duration = has_position_ ? duration_ : base::TimeDelta();
-    source_.playback_rate = has_position_ ? playback_rate_ : 0.0;
+    signals.was_controllable = was_controllable_;
+    signals.awaiting_session_after_unmute = awaiting_session_after_unmute_;
+    const SessionProjection projection = ProjectSession(signals);
+    was_controllable_ = projection.keeps_controllable_card;
+
+    source_.playback = projection.playback;
+    source_.is_muted = projection.is_muted;
+    source_.is_in_picture_in_picture = projection.is_in_picture_in_picture;
+    const bool use_position = has_position_ && projection.expose_position;
+    source_.position = use_position ? position_ : base::TimeDelta();
+    source_.duration = use_position ? duration_ : base::TimeDelta();
+    source_.playback_rate = use_position ? playback_rate_ : 0.0;
     source_.position_updated_at =
-        has_position_ ? position_updated_at_ : base::TimeTicks();
-    source_.capabilities = CapabilitiesForActions(actions_);
-    // Chromium advertises enter/exit and play/pause as distinct actions. Only
-    // enable the control when the action matching the current source state is
-    // available, so a stale opposite-state capability cannot create a no-op.
-    source_.capabilities.can_play_pause =
-        source_.playback == MediaMiniPlayerPlaybackState::kPlaying
-            ? HasAction(actions_, MediaSessionAction::kPause)
-            : HasAction(actions_, MediaSessionAction::kPlay);
-    source_.capabilities.can_picture_in_picture =
-        source_.is_in_picture_in_picture
-            ? HasAction(actions_, MediaSessionAction::kExitPictureInPicture)
-            : HasAction(actions_, MediaSessionAction::kEnterPictureInPicture);
-    // Prefer MediaSession's player mute and otherwise use Chromium's tab-wide
-    // audio action. A page-controlled muted player without kSetMute remains
-    // truthfully marked muted, but cannot pretend that tab unmute would alter
-    // the page's player state.
-    const bool has_media_signal =
-        has_session_info_ || web_contents()->IsCurrentlyAudible() ||
-        source_.is_in_picture_in_picture || has_position_ || !actions_.empty();
-    source_.capabilities.can_mute =
-        HasAction(actions_, MediaSessionAction::kSetMute) ||
-        web_contents()->IsAudioMuted() || (has_media_signal && !session_muted_);
+        use_position ? position_updated_at_ : base::TimeTicks();
+    source_.capabilities = projection.capabilities;
     if (!owner_->service_->UpdateSource(source_) &&
         !owner_->service_->HasSource(source_id_)) {
       owner_->service_->RegisterSource(source_);
@@ -394,6 +485,10 @@ class MediaMiniPlayerChromiumAdapter::SourceObserver final
   double playback_rate_ = 0.0;
   base::TimeTicks position_updated_at_;
   bool has_session_info_ = false;
+  bool session_controllable_ = false;
+  bool was_controllable_ = false;
+  bool awaiting_session_after_unmute_ = false;
+  base::OneShotTimer unmute_grace_timer_;
   bool session_muted_ = false;
   bool session_picture_in_picture_ = false;
   bool has_position_ = false;

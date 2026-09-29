@@ -1,0 +1,15 @@
+{
+  "checkoutDeltaFingerprint": "5f93c413a545ab435cefb980343bf405b31c17ffe2147cc1a1b6685db4efaa6c",
+  "checkoutMode": "clean",
+  "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+  "completedAt": "2026-09-20T10:12:09.012323+00:00",
+  "depsSha256": "c7fce0bedafabba14461759e2ee004dbc4ec9ec84d95e1ee328c17732c4f9ab1",
+  "iOSSDKBuild": "23F73",
+  "iOSSDKVersion": "26.5",
+  "macOSSDKBuild": "25F70",
+  "macOSSDKVersion": "26.5",
+  "schemaVersion": 3,
+  "toolchainMode": "compatible-development",
+  "xcodeBuild": "17F42",
+  "xcodeVersion": "26.5"
+}

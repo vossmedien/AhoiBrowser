@@ -343,6 +343,36 @@ class OverlayStateTests(unittest.TestCase):
             self.assertEqual("overlay\n", (checkout / "new.txt").read_text())
             self.assertEqual(state_before, state_path.read_bytes())
 
+    def test_refresh_reconciles_only_an_exact_freshly_composed_checkout(self):
+        with tempfile.TemporaryDirectory() as raw_root:
+            repository, checkout, commit, state_path, state = self.create_fixture(
+                pathlib.Path(raw_root)
+            )
+            (repository / "overlay/chromium/src/new.txt").write_text(
+                "materialized update\n", encoding="utf-8"
+            )
+            (checkout / "new.txt").write_text(
+                "materialized update\n", encoding="utf-8"
+            )
+            materialized_tree = current_checkout_tree(checkout, commit)
+
+            refreshed = refresh_overlay_state(
+                repository, checkout, state_path, commit
+            )
+
+            self.assertFalse(refreshed.checkout_changed)
+            self.assertTrue(refreshed.state_changed)
+            self.assertEqual(materialized_tree, refreshed.previous_tree)
+            self.assertEqual(materialized_tree, refreshed.actual_tree)
+            self.assertNotEqual(
+                state["checkoutDeltaFingerprint"],
+                refreshed.checkout_delta_fingerprint,
+            )
+            verified = verify_overlay_state(
+                repository, checkout, state_path, commit
+            )
+            self.assertEqual(materialized_tree, verified.actual_tree)
+
     def test_failed_refresh_composition_leaves_checkout_and_state_untouched(self):
         with tempfile.TemporaryDirectory() as raw_root:
             repository, checkout, commit, state_path, _ = self.create_fixture(

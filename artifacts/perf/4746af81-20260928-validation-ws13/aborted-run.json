@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "kind": "ahoi-perf-aborted",
+  "pass": false,
+  "startedAt": "2026-09-28T17:21:54.294196+00:00",
+  "failureType": "CalledProcessError",
+  "partialRuns": [
+    {
+      "app": {
+        "path": "/Applications/AhoiBrowser.app",
+        "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+        "binarySha256": "926000eed6daa1af23aba9e9d2feb5613612b1d8b03c28f25c70037092580f8b",
+        "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+        "chromiumVersion": "153.0.8010.53",
+        "sourceCommit": "4746af81d6ffe01984012fa44c5c99c55d152766",
+        "buildProfile": "dev",
+        "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+        "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+      },
+      "buildEvidence": null,
+      "metrics": {}
+    }
+  ],
+  "hostBefore": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      3.984375,
+      6.0859375,
+      11.12841796875
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [],
+    "hidIdleSeconds": 177.907,
+    "hidIdleSampledAt": 70134.349066541,
+    "hidIdleSampledWall": 1790616114.2931058
+  },
+  "runtimeGuard": {
+    "checkpoint": ".work/crest-h3/lease-45.md",
+    "leaseId": "crest-h3-validation-4746af81",
+    "grantSha256": "89747057e168a8a2185fa140e23ac7e52993022ee3f6143e382adc7690d9789a",
+    "expiresAt": "2026-09-29T04:32:51.523947+00:00",
+    "pollIntervalSeconds": 1.0,
+    "checks": 18,
+    "completed": false,
+    "cancelled": false,
+    "reason": null,
+    "lockRetained": false,
+    "driverAccessibilityClients": [],
+    "driverInputs": 0,
+    "idleSamples": [
+      [
+        6.23,
+        184.133
+      ],
+      [
+        7.43,
+        185.328
+      ],
+      [
+        8.62,
+        186.531
+      ],
+      [
+        9.72,
+        187.63
+      ],
+      [
+        10.82,
+        188.73
+      ],
+      [
+        11.93,
+        189.836
+      ],
+      [
+        13.03,
+        190.94
+      ],
+      [
+        14.13,
+        192.041
+      ],
+      [
+        15.24,
+        193.147
+      ],
+      [
+        16.43,
+        194.323
+      ],
+      [
+        17.62,
+        195.526
+      ],
+      [
+        18.72,
+        196.626
+      ]
+    ],
+    "inputEpochOffset": -177.91
+  }
+}

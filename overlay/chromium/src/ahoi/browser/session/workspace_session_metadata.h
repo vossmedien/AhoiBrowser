@@ -17,6 +17,12 @@ namespace ahoi::session {
 // Ahoi-specific schema independently evolvable and lets restore reject corrupt
 // or future data without accepting a partially decoded workspace assignment.
 inline constexpr int kWorkspaceSessionMetadataVersion = 1;
+// Local-only extension used when a live tab outlives removal of its shared
+// page. Ordinary metadata keeps its existing encoding/Arc receipt bytes.
+inline constexpr int kRetiredBindingSessionMetadataVersion = 2;
+// Adds the local native website-session context of a tab. It is never placed
+// in the portable Workspace/Tab Tree/CloudKit record formats.
+inline constexpr int kWebsiteSessionTabMetadataVersion = 3;
 inline constexpr char kWindowSessionMetadataExtraDataKey[] =
     "ahoi.workspace_session.window";
 inline constexpr char kTabSessionMetadataExtraDataKey[] =
@@ -32,6 +38,10 @@ struct TabSessionMetadata {
   base::Uuid workspace_id;
   std::optional<base::Uuid> tree_node_id;
   bool last_active_in_workspace = false;
+  bool shared_binding_invalidated = false;
+  // Absent in versions 1/2 and default-bound tabs. A valid UUID is an
+  // isolated native StoragePartition independent of workspace/tree movement.
+  std::optional<base::Uuid> website_session_context_id;
 
   bool operator==(const TabSessionMetadata&) const = default;
 };

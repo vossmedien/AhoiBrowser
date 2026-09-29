@@ -9,10 +9,14 @@ source_set("arc_import") {
   sources = [
     "arc_import_discovery.cc",
     "arc_import_discovery.h",
+    "arc_import_id.cc",
     "arc_import_parser.cc",
     "arc_import_parser.h",
+    "arc_import_plan_builder.cc",
+    "arc_import_plan_builder.h",
     "arc_import_snapshot.cc",
     "arc_import_snapshot.h",
+    "arc_import_source_model.h",
     "arc_import_types.h",
   ]
   public_deps = [
@@ -21,18 +25,48 @@ source_set("arc_import") {
     "//url",
   ]
   deps = [ "//crypto" ]
+  frameworks = [
+    "CoreFoundation.framework",
+    "Security.framework",
+  ]
 }
 
 source_set("service") {
   sources = [
     "arc_import_backup.cc",
     "arc_import_backup.h",
+    "arc_import_commit_support.cc",
+    "arc_import_commit_support.h",
+    "arc_import_journal.cc",
+    "arc_import_journal.h",
+    "arc_import_manual_recovery_plan.cc",
+    "arc_import_manual_recovery_plan.h",
+    "arc_import_navigation_barrier.cc",
+    "arc_import_navigation_barrier.h",
+    "arc_import_process_inspection.cc",
+    "arc_import_process_inspection.h",
+    "arc_import_recovery.cc",
+    "arc_import_recovery.h",
+    "arc_import_recovery_policy.cc",
+    "arc_import_recovery_policy.h",
+    "arc_import_safe_files.cc",
+    "arc_import_safe_files.h",
     "arc_import_service.cc",
     "arc_import_service.h",
     "arc_import_service_factory.cc",
     "arc_import_service_factory.h",
+    "arc_import_service_internal.h",
+    "arc_import_service_manual_recovery.cc",
+    "arc_import_service_recovery.cc",
+    "arc_import_service_runtime.cc",
     "arc_import_transaction.cc",
     "arc_import_transaction.h",
+    "arc_import_transaction_key.cc",
+    "arc_import_transaction_key.h",
+    "arc_import_tree_fingerprint.cc",
+    "arc_import_tree_fingerprint.h",
+    "arc_split_receipt.cc",
+    "arc_split_receipt.h",
     "arc_split_runtime.cc",
     "arc_split_runtime.h",
   ]
@@ -44,12 +78,15 @@ source_set("service") {
     "//chrome/browser/ui/browser_window",
     "//components/keyed_service/content",
     "//components/keyed_service/core",
+    "//components/split_tabs",
     "//components/tabs:public",
   ]
   deps = [
     "//ahoi/browser/session:session_bridge_api",
+    "//ahoi/browser/session:workspace_session_metadata",
+    "//chrome/browser/sessions",
     "//chrome/browser/ui/tabs:tab_strip",
-    "//components/split_tabs",
+    "//components/sessions",
     "//content/public/browser",
     "//content/public/common",
     "//crypto",
@@ -74,13 +111,25 @@ source_set("settings_handler") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "arc_import_journal_unittest.cc",
+    "arc_import_parser_unittest.cc",
+    "arc_import_recovery_policy_unittest.cc",
+    "arc_import_recovery_unittest.cc",
+    "arc_import_transaction_key_unittest.cc",
     "arc_import_transaction_unittest.cc",
+    "arc_import_tree_fingerprint_unittest.cc",
     "arc_import_unittest.cc",
+    "arc_import_unittest_support.h",
+    "arc_split_receipt_unittest.cc",
+    "arc_split_runtime_unittest.cc",
   ]
   deps = [
     ":arc_import",
     ":service",
+    "//ahoi/browser/session:session_bridge_api",
+    "//ahoi/browser/session:workspace_session_metadata",
     "//base/test:test_support",
+    "//components/sessions",
     "//crypto",
     "//testing/gtest",
   ]
@@ -90,7 +139,47 @@ test("ahoi_arc_import_unittests") {
   deps = [
     ":unit_tests",
     "//ahoi/browser/session",
-    "//base/test:run_all_unittests",
+    "//chrome/test:test_support_unit",
     "//testing/gtest",
+  ]
+}
+
+source_set("browser_tests") {
+  testonly = true
+  defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+  sources = [
+    "arc_import_service_browsertest.cc",
+    "arc_split_runtime_browsertest.cc",
+  ]
+  deps = [
+    ":service",
+    "//ahoi/browser/session",
+    "//ahoi/browser/ui/sidebar:browser_sidebar",
+    "//base",
+    "//base/test:test_support",
+    "//chrome/browser",
+    "//chrome/browser/sessions",
+    "//chrome/browser/ui",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//chrome/test:test_support",
+    "//chrome/test:test_support_ui",
+    "//components/sessions",
+    "//components/split_tabs",
+    "//components/tabs:public",
+    "//content/test:test_support",
+    "//crypto",
+    "//net:test_support",
+    "//testing/gtest",
+    "//ui/base",
+    "//url",
+  ]
+}
+
+test("ahoi_arc_import_browsertests") {
+  deps = [
+    ":browser_tests",
+    "//chrome:packed_resources",
+    "//chrome/test:browser_tests_runner",
+    "//chrome/test:test_support",
   ]
 }

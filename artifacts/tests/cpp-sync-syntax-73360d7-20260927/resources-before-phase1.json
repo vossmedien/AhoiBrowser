@@ -1,0 +1,8 @@
+{
+  "at": "2026-09-27T02:04:09.736734+00:00",
+  "phase": "before-clang-1",
+  "top": "Processes: 1220 total, 4 running, 1216 sleeping, 7976 threads \n2026/09/27 04:04:10\nLoad Avg: 21.67, 37.30, 30.27 \nCPU usage: 25.70% user, 36.5% sys, 38.23% idle \nSharedLibs: 430M resident, 102M data, 101M linkedit.\nMemRegions: 732318 total, 4909M resident, 460M private, 3506M shared.\nPhysMem: 31G used (4200M wired, 12G compressor), 88M unused.\nVM: 601T vsize, 57G framework vsize, 374363(0) swapins, 914062(0) swapouts.\n",
+  "memory": "The system has 34359738368 (2097152 pages with a page size of 16384).\nSystem-wide memory free percentage: 48%\n",
+  "xcode": "Xcode 27.0\nBuild version 27A266a\n",
+  "macSdkBuild": "26A425"
+}

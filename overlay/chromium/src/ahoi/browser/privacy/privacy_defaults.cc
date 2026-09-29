@@ -16,6 +16,7 @@
 #include "components/privacy_sandbox/privacy_sandbox_prefs.h"
 #include "components/safe_browsing/core/common/safe_browsing_prefs.h"
 #include "components/signin/public/base/signin_pref_names.h"
+#include "components/translate/core/browser/translate_pref_names.h"
 #include "components/variations/client_filterable_state.h"
 #include "components/variations/pref_names.h"
 
@@ -55,6 +56,11 @@ void ApplyProfileDefaults(PrefRegistrySimple* registry) {
   SetDefaultIfRegistered(registry,
                          metrics::prefs::kAdvancedReportingEnabled,
                          base::Value(false));
+  // Crest 094 (N3): a Google API key would otherwise make Translate available
+  // and fetch its language list from translate.googleapis.com on the first
+  // page. Translate stays off until the user enables it in the settings.
+  SetDefaultIfRegistered(registry, translate::prefs::kOfferTranslateEnabled,
+                         base::Value(false));
 
   SetDefaultIfRegistered(registry, prefs::kPrivacySandboxM1TopicsEnabled,
                          base::Value(false));
@@ -78,6 +84,12 @@ void ApplyLocalStateDefaults(PrefRegistrySimple* registry) {
   SetDefaultIfRegistered(
       registry, variations::prefs::kVariationsRestrictionsByPolicy,
       base::Value(static_cast<int>(variations::RestrictionPolicy::ALL)));
+  // ADR 0011: fully separated Workspaces are Profiles; they must never turn
+  // startup into Chromium's profile picker. Value 1 is
+  // ProfilePicker::AvailabilityOnStartup::kDisabled; policy can override it.
+  SetDefaultIfRegistered(registry,
+                         prefs::kBrowserProfilePickerAvailabilityOnStartup,
+                         base::Value(1));
 }
 
 }  // namespace ahoi::privacy

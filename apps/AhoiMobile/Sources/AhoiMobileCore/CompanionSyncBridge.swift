@@ -11,12 +11,24 @@ public enum CompanionSyncBridgeError: Error, Equatable, Sendable {
 /// record store. Local writes commit first; a missing key/account/container can
 /// delay transport but can never roll back or hide the local mutation.
 public actor CompanionSyncBridge {
-    private let repository: LocalFirstRepository
-    private let provider: CloudKitSyncProvider
-    private let codec: CompanionPayloadCodec
-    private let wireCodec = DesktopWirePayloadCodec()
-    private let commandSigner: (any RemoteCommandSigning)?
-    private var commandStates: [UUID: RemoteCommandState] = [:]
+    let repository: LocalFirstRepository
+    let provider: any CompanionSyncTransporting
+    let codec: CompanionPayloadCodec
+    let wireCodec = DesktopWirePayloadCodec()
+    let commandSigner: (any RemoteCommandSigning)?
+    let commandOwnershipStore: any RemoteCommandOwnershipStoring
+    var commandStates: [UUID: RemoteCommandState] = [:]
+    var bookmarkSyncEnabled = false
+    var bookmarkHydrationRequired = false
+    var browserSettingApprovedIDs = Set<UUID>()
+    var browserSettingsApprovalEpoch: UInt64 = 0
+    var browserSettingsHydrationRequired = false
+    var extensionSetupMetadataApproved = false
+    var extensionSetupMetadataEpoch: UInt64 = 0
+    var extensionSetupHydrationRequired = false
+    var extensionStorageMetadataApproved = false
+    var extensionStorageMetadataEpoch: UInt64 = 0
+    var extensionStorageHydrationRequired = false
     private var syncInProgress = false
     private var syncRequestedWhileInProgress = false
     private var syncWaiters: [CheckedContinuation<Void, any Error>] = []
@@ -27,398 +39,36 @@ public actor CompanionSyncBridge {
         repository: LocalFirstRepository,
         provider: CloudKitSyncProvider,
         sealer: any CompanionPayloadSealer,
-        commandSigner: (any RemoteCommandSigning)? = nil
+        commandSigner: (any RemoteCommandSigning)? = nil,
+        commandOwnershipStore: any RemoteCommandOwnershipStoring =
+            InMemoryRemoteCommandOwnershipStore()
     ) {
         self.repository = repository
         self.provider = provider
         self.codec = CompanionPayloadCodec(sealer: sealer)
         self.commandSigner = commandSigner
+        self.commandOwnershipStore = commandOwnershipStore
         self.remoteControlConfigured = commandSigner != nil
+        provider.configureBrowserSettingValidation(Self.browserSettingValidator(codec: self.codec))
     }
 
-    public func enqueue(_ device: Device) async throws {
-        try await provider.enqueue(codec.makeRecord(
-            recordID: device.id.rawValue,
-            entityID: device.id.rawValue,
-            dataClass: .device,
-            version: device.version,
-            plaintext: wireCodec.encode(device),
-            tombstone: device.tombstone
-        ))
+    init(
+        repository: LocalFirstRepository,
+        transport: any CompanionSyncTransporting,
+        sealer: any CompanionPayloadSealer,
+        commandSigner: (any RemoteCommandSigning)? = nil,
+        commandOwnershipStore: any RemoteCommandOwnershipStoring =
+            InMemoryRemoteCommandOwnershipStore()
+    ) {
+        self.repository = repository
+        self.provider = transport
+        self.codec = CompanionPayloadCodec(sealer: sealer)
+        self.commandSigner = commandSigner
+        self.commandOwnershipStore = commandOwnershipStore
+        self.remoteControlConfigured = commandSigner != nil
+        transport.configureBrowserSettingValidation(Self.browserSettingValidator(codec: self.codec))
     }
 
-    public func enqueue(_ workspace: Workspace) async throws {
-        try await provider.enqueue(codec.makeRecord(
-            recordID: workspace.id.rawValue,
-            entityID: workspace.id.rawValue,
-            dataClass: .workspace,
-            version: workspace.version,
-            plaintext: wireCodec.encode(workspace),
-            tombstone: workspace.tombstone
-        ))
-    }
-
-    public func enqueue(_ node: TreeNode) async throws {
-        try await provider.enqueue(codec.makeRecord(
-            recordID: node.id.rawValue,
-            entityID: node.id.rawValue,
-            dataClass: .treeNode,
-            version: node.version,
-            plaintext: wireCodec.encode(node),
-            orderKey: node.orderKey,
-            tombstone: node.tombstone
-        ))
-    }
-
-    public func enqueue(_ session: DeviceSession) async throws {
-        try await provider.enqueue(codec.makeRecord(
-            recordID: session.id.rawValue,
-            entityID: session.id.rawValue,
-            dataClass: .deviceSession,
-            version: session.version,
-            plaintext: wireCodec.encode(session),
-            tombstone: session.tombstone
-        ))
-    }
-
-    public func enqueue(_ visit: HistoryVisit) async throws {
-        try await provider.enqueue(codec.makeRecord(
-            recordID: visit.id.rawValue,
-            entityID: visit.id.rawValue,
-            dataClass: .historyVisit,
-            version: visit.version,
-            plaintext: wireCodec.encode(visit),
-            tombstone: visit.tombstone
-        ))
-    }
-
-    public func enqueue(_ tab: RemoteTab) async throws {
-        guard tab.context == .normal else {
-            throw CompanionModelError.incognitoNotSyncable
-        }
-        try await provider.enqueue(codec.makeRecord(
-            recordID: tab.id.rawValue,
-            entityID: tab.id.rawValue,
-            dataClass: .deviceTab,
-            version: tab.version,
-            plaintext: wireCodec.encode(tab),
-            tombstone: tab.tombstone
-        ))
-    }
-
-    public func enqueue(_ value: CompanionAppearanceRecord) async throws {
-        try await provider.enqueue(codec.makeRecord(
-            recordID: value.id,
-            entityID: value.id,
-            dataClass: .appearance,
-            version: value.version,
-            plaintext: wireCodec.encode(value),
-            tombstone: value.tombstone
-        ))
-    }
-
-    public func enqueue(_ value: CompanionPermittedSettingRecord) async throws {
-        try await provider.enqueue(codec.makeRecord(
-            recordID: value.id,
-            entityID: value.id,
-            dataClass: .permittedSetting,
-            version: value.version,
-            plaintext: wireCodec.encode(value),
-            tombstone: value.tombstone
-        ))
-    }
-
-    public func enqueue(_ value: CompanionExtensionInventoryRecord) async throws {
-        try await provider.enqueue(codec.makeRecord(
-            recordID: value.id,
-            entityID: value.id,
-            dataClass: .extensionInventory,
-            version: value.version,
-            plaintext: wireCodec.encode(value),
-            tombstone: value.tombstone
-        ))
-    }
-
-    public func enqueue(_ value: CompanionDeveloperAssetRecord) async throws {
-        guard value.isDeleted || value.optedIn else {
-            throw CompanionProductRecordError.developerAssetNotOptedIn
-        }
-        try await provider.enqueue(
-            codec.makeRecord(
-                recordID: value.id,
-                entityID: value.id,
-                dataClass: .developerAsset,
-                version: value.version,
-                plaintext: wireCodec.encode(value),
-                tombstone: value.tombstone
-            ),
-            authorization: .init(optedInDeveloperAssetIDs: [value.id])
-        )
-    }
-
-    @discardableResult
-    public func enqueueRemoteCommand(
-        targetDeviceID: DeviceID,
-        command: RemoteCommand,
-        commandID: UUID = UUID(),
-        issuedAtMilliseconds: UInt64 = UInt64(
-            Date().timeIntervalSince1970 * 1_000
-        )
-    ) async throws -> RemoteCommandState {
-        guard let commandSigner else {
-            throw CompanionSyncBridgeError.remoteCommandSigningUnavailable
-        }
-        try RemoteCommandSemantics.validate(command)
-        let payload = RemoteCommandPayload(
-            commandID: commandID,
-            sourceDeviceID: commandSigner.sourceDeviceID,
-            targetDeviceID: targetDeviceID,
-            nonce: try commandSigner.makeNonce(),
-            issuedAtMilliseconds: issuedAtMilliseconds,
-            command: command
-        )
-        let state = RemoteCommandState(
-            envelope: try commandSigner.sign(payload),
-            version: SyncVersion(
-                modifiedAt: HybridLogicalClock(
-                    physicalMilliseconds: issuedAtMilliseconds,
-                    nodeID: commandSigner.sourceDeviceID
-                ),
-                modifiedBy: commandSigner.sourceDeviceID
-            )
-        )
-        try await provider.enqueue(codec.makeRecord(
-            recordID: commandID,
-            entityID: commandID,
-            dataClass: .remoteCommand,
-            version: state.version,
-            plaintext: try wireCodec.encode(state)
-        ))
-        commandStates[commandID] = state
-        return state
-    }
-
-    public func remoteControlIdentity() throws -> RemoteControlProvisioningIdentity {
-        guard let commandSigner else {
-            throw CompanionSyncBridgeError.remoteCommandSigningUnavailable
-        }
-        return try commandSigner.provisioningIdentity()
-    }
-
-    public func remoteCommandState(_ commandID: UUID) -> RemoteCommandState? {
-        commandStates[commandID]
-    }
-
-    public func remoteCommandStates(_ commandIDs: Set<UUID>) -> [RemoteCommandState] {
-        commandIDs.compactMap { commandStates[$0] }
-            .sorted {
-                $0.envelope.payload.issuedAtMilliseconds >
-                    $1.envelope.payload.issuedAtMilliseconds
-            }
-    }
-
-    /// Rehydrates the in-memory command read model from the encrypted,
-    /// file-backed transport authority. The fetched inbox may be acknowledged
-    /// after a successful import because the selected primary envelope remains
-    /// durable across process restarts.
-    public func restorePersistedRemoteCommandStates() async throws {
-        guard let commandSigner else {
-            commandStates.removeAll(keepingCapacity: false)
-            return
-        }
-
-        var restored: [UUID: RemoteCommandState] = [:]
-        for record in try await provider.allRecords()
-            where record.dataClass == .remoteCommand {
-            let plaintext = try codec.openData(record)
-            let state = try wireCodec.decodeRemoteCommand(
-                record,
-                plaintext: plaintext
-            )
-            try validate(record, identity: state.id, version: state.version)
-            guard state.envelope.payload.sourceDeviceID == commandSigner.sourceDeviceID else {
-                continue
-            }
-            if let existing = restored[state.id], existing.envelope != state.envelope {
-                throw CompanionSyncBridgeError.envelopeMismatch
-            }
-            if restored[state.id].map({ $0.version >= state.version }) != true {
-                restored[state.id] = state
-            }
-        }
-        commandStates = restored
-    }
-
-    /// Seeds transport from the durable local authority when sync is enabled
-    /// after offline-only edits. Existing envelopes with the same authoritative
-    /// version/tombstone metadata are reused byte-for-byte: AES-GCM nonces stay
-    /// stable for unchanged data and the file-backed record store persists at
-    /// most once for the complete seed.
-    public func enqueueLocalSnapshot() async throws {
-        let authorizationMutationEpoch = provider
-            .currentDeveloperAssetAuthorizationMutationEpoch()
-        let snapshot = try await repository.currentSnapshot()
-        var existingByID: [UUID: SyncRecord] = [:]
-        for record in try await provider.allRecords() {
-            existingByID[record.recordID] = record
-        }
-        var records: [SyncRecord] = []
-        var developerAssetIDs = Set<UUID>()
-
-        func appendIfRequired(
-            id: UUID,
-            dataClass: SyncDataClass,
-            version: SyncVersion,
-            orderKey: OrderKey? = nil,
-            tombstone: Tombstone?,
-            plaintext: () throws -> Data
-        ) throws {
-            let canonicalPlaintext = try plaintext()
-            guard shouldSeedTransport(
-                existing: existingByID[id],
-                id: id,
-                dataClass: dataClass,
-                version: version,
-                orderKey: orderKey,
-                canonicalPlaintext: canonicalPlaintext,
-                tombstone: tombstone
-            ) else { return }
-            records.append(try codec.makeRecord(
-                recordID: id,
-                entityID: id,
-                dataClass: dataClass,
-                version: version,
-                plaintext: canonicalPlaintext,
-                orderKey: orderKey,
-                tombstone: tombstone
-            ))
-        }
-
-        for device in snapshot.devices {
-            try appendIfRequired(
-                id: device.id.rawValue,
-                dataClass: .device,
-                version: device.version,
-                tombstone: device.tombstone
-            ) { try wireCodec.encode(device) }
-        }
-        for workspace in snapshot.workspaces {
-            try appendIfRequired(
-                id: workspace.id.rawValue,
-                dataClass: .workspace,
-                version: workspace.version,
-                tombstone: workspace.tombstone
-            ) { try wireCodec.encode(workspace) }
-        }
-        for node in snapshot.treeNodes {
-            try appendIfRequired(
-                id: node.id.rawValue,
-                dataClass: .treeNode,
-                version: node.version,
-                orderKey: node.orderKey,
-                tombstone: node.tombstone
-            ) { try wireCodec.encode(node) }
-        }
-        for session in snapshot.sessions {
-            try appendIfRequired(
-                id: session.id.rawValue,
-                dataClass: .deviceSession,
-                version: session.version,
-                tombstone: session.tombstone
-            ) { try wireCodec.encode(session) }
-        }
-        for tab in snapshot.remoteTabs where tab.context == .normal {
-            try appendIfRequired(
-                id: tab.id.rawValue,
-                dataClass: .deviceTab,
-                version: tab.version,
-                tombstone: tab.tombstone
-            ) { try wireCodec.encode(tab) }
-        }
-        for visit in snapshot.history {
-            try appendIfRequired(
-                id: visit.id.rawValue,
-                dataClass: .historyVisit,
-                version: visit.version,
-                tombstone: visit.tombstone
-            ) { try wireCodec.encode(visit) }
-        }
-        for value in snapshot.productRecords.appearance {
-            try appendIfRequired(
-                id: value.id,
-                dataClass: .appearance,
-                version: value.version,
-                tombstone: value.tombstone
-            ) { try wireCodec.encode(value) }
-        }
-        for value in snapshot.productRecords.permittedSettings {
-            try appendIfRequired(
-                id: value.id,
-                dataClass: .permittedSetting,
-                version: value.version,
-                tombstone: value.tombstone
-            ) { try wireCodec.encode(value) }
-        }
-        for value in snapshot.productRecords.extensionInventory {
-            try appendIfRequired(
-                id: value.id,
-                dataClass: .extensionInventory,
-                version: value.version,
-                tombstone: value.tombstone
-            ) { try wireCodec.encode(value) }
-        }
-        for value in snapshot.productRecords.developerAssets
-            where value.isDeleted || value.optedIn {
-            developerAssetIDs.insert(value.id)
-            try appendIfRequired(
-                id: value.id,
-                dataClass: .developerAsset,
-                version: value.version,
-                tombstone: value.tombstone
-            ) { try wireCodec.encode(value) }
-        }
-        try await provider.enqueueLocalSnapshot(
-            records,
-            authorizedDeveloperAssetIDs: developerAssetIDs,
-            scanStartedAtMutationEpoch: authorizationMutationEpoch
-        )
-    }
-
-    private func shouldSeedTransport(
-        existing: SyncRecord?,
-        id: UUID,
-        dataClass: SyncDataClass,
-        version: SyncVersion,
-        orderKey: OrderKey?,
-        canonicalPlaintext: Data,
-        tombstone: Tombstone?
-    ) -> Bool {
-        guard let existing else { return true }
-        let metadataMatches = existing.recordID == id && existing.entityID == id &&
-            existing.dataClass == dataClass &&
-            existing.schemaVersion == version.schemaVersion &&
-            existing.modifiedAt == version.modifiedAt &&
-            existing.originatingDevice == version.modifiedBy &&
-            existing.orderKey == orderKey &&
-            existing.tombstone == tombstone
-        if metadataMatches,
-           let existingPlaintext = try? codec.openData(existing),
-           existingPlaintext == canonicalPlaintext {
-            return false
-        }
-        if existing.modifiedAt != version.modifiedAt {
-            return existing.modifiedAt < version.modifiedAt
-        }
-        if existing.originatingDevice != version.modifiedBy {
-            return existing.originatingDevice < version.modifiedBy
-        }
-        if existing.schemaVersion != version.schemaVersion {
-            return existing.schemaVersion < version.schemaVersion
-        }
-        // Equal authority metadata with a different class/entity/tombstone is
-        // corrupt transport metadata. Replace it from the durable domain model.
-        return true
-    }
 
     public func syncNow() async throws {
         if syncInProgress {
@@ -451,35 +101,43 @@ public actor CompanionSyncBridge {
         try outcome.get()
     }
 
-    private func performBoundedSyncNow() async throws {
-        var passID: UInt64?
-        do {
-            passID = try await provider.fetchChanges()
-            try await importFetchedRecords()
-            // Import can enqueue a composite record after field-level conflict
-            // resolution. Flush it in the same user-visible sync operation. A
-            // second bounded import/send round covers a server-record conflict
-            // produced by that first post-merge send without polling forever.
-            guard let passID else { throw CloudKitSyncProviderError.boundedSyncPassRequired }
-            try await provider.sendPendingChanges(passID: passID)
-            try await importFetchedRecords()
-            try await provider.sendPendingChanges(passID: passID)
-            try await provider.finalizeBoundedSync(passID: passID)
-        } catch {
-            if let passID { provider.abortBoundedSyncPass(passID) }
-            throw error
-        }
-    }
-
     public func importFetchedRecords() async throws {
         try provider.beginDomainMergeActivity()
         defer { provider.endDomainMergeActivity() }
         let fetchedRecords = try await provider.pendingFetchedRecords()
         let recoveryRecords = try await provider.pendingQuarantineRecoveryRecords()
+        let hydrateBookmarks = bookmarkSyncEnabled && bookmarkHydrationRequired
+        let settingsEpoch = browserSettingsApprovalEpoch
+        let hydrateSettings = browserSettingsHydrationRequired && !browserSettingApprovedIDs.isEmpty
+        let extensionEpoch = extensionSetupMetadataEpoch
+        let hydrateExtensionSetup = extensionSetupHydrationRequired &&
+            provider.isExtensionSetupMetadataApproved(epoch: extensionEpoch)
+        let storageEpoch = extensionStorageMetadataEpoch
+        let hydrateExtensionStorage = extensionStorageHydrationRequired &&
+            provider.isExtensionStorageMetadataApproved(epoch: storageEpoch)
+        // One cache read for this hydration pass, not a full store scan per
+        // approved category. This does not broaden any category's admission.
+        let hydrateAny = hydrateBookmarks || hydrateSettings ||
+            hydrateExtensionSetup || hydrateExtensionStorage
+        let cachedRecords = hydrateAny ? try await provider.allRecords() : []
+        let bookmarkRecords = hydrateBookmarks
+            ? cachedRecords.filter { $0.dataClass == .bookmark } : []
+        let settingRecords = hydrateSettings ? cachedRecords.filter {
+            $0.dataClass == .permittedSetting && browserSettingApprovedIDs.contains($0.entityID)
+        } : []
+        let extensionRecords = hydrateExtensionSetup ? cachedRecords.filter {
+            $0.dataClass == .permittedSetting &&
+                !CompanionBrowserSettingCatalog.recordIDs.contains($0.entityID)
+        } : []
+        let storageRecords = hydrateExtensionStorage ? cachedRecords.filter {
+            $0.dataClass == .permittedSetting &&
+                CompanionExtensionStorage.recordIDs.contains($0.entityID)
+        } : []
         let snapshot = try await repository.currentSnapshot()
         let importContext = ImportContext(snapshot: snapshot)
         let candidates = Self.makeImportCandidates(
-            primaryRecords: recoveryRecords,
+            primaryRecords: recoveryRecords + bookmarkRecords + settingRecords +
+                extensionRecords + storageRecords,
             fetchedRecords: fetchedRecords
         )
         let ordered = candidates.enumerated().sorted { lhs, rhs in
@@ -505,6 +163,16 @@ public actor CompanionSyncBridge {
                 case .ignored:
                     acceptedWithoutDomainMutation.insert(indexed.offset)
                 }
+            } catch DesktopWirePayloadCodecError.missingDependency {
+                // Provider pages are not whole snapshots. Keep the encrypted
+                // inbox unacknowledged until its separately delivered owner exists.
+                continue
+            } catch DeviceCapabilityError.unknownDevice {
+                continue
+            } catch SharedTabTargetError.targetMismatch {
+                // A Page URL group can arrive after its linked Presence.
+                // No invented Page, eager navigation or delete from this gap.
+                continue
             } catch {
                 try await provider.quarantineImportedRecord(
                     indexed.element.record,
@@ -518,11 +186,18 @@ public actor CompanionSyncBridge {
         // records or acknowledge their durable inbox copies.
         let outcomes = try await repository.mergeImportedBatch(mutations)
         var successfulTokens = acceptedWithoutDomainMutation
+        var acceptedExtensionSetupTokens = Set<Int>()
+        var acceptedExtensionStorageTokens = Set<Int>()
         var localWinnerRecords: [UUID: SyncRecord] = [:]
         var authorizedDeveloperAssetIDs = Set<UUID>()
         var revokedDeveloperAssetIDs = Set<UUID>()
         for outcome in outcomes {
             switch outcome.disposition {
+            case .compactedDuplicate:
+                successfulTokens.insert(outcome.token)
+            case .rejectedAfterCompaction:
+                try await provider.quarantineImportedRecord(
+                    candidates[outcome.token].record, reason: "resurrection_after_compaction")
             case .rejected:
                 try await provider.quarantineImportedRecord(
                     candidates[outcome.token].record,
@@ -530,6 +205,14 @@ public actor CompanionSyncBridge {
                 )
             case .accepted(let merged, let shouldReenqueue):
                 successfulTokens.insert(outcome.token)
+                if case .permittedSetting(let setting) = merged,
+                   CompanionExtensionSetup.decode(setting) != nil {
+                    acceptedExtensionSetupTokens.insert(outcome.token)
+                }
+                if case .permittedSetting(let setting) = merged,
+                   CompanionExtensionStorage.decode(setting) != nil {
+                    acceptedExtensionStorageTokens.insert(outcome.token)
+                }
                 if case .developerAsset(let value) = merged {
                     if value.isDeleted || value.optedIn {
                         authorizedDeveloperAssetIDs.insert(value.id)
@@ -546,7 +229,15 @@ public actor CompanionSyncBridge {
                 } else {
                     canTransportDeveloperAsset = true
                 }
-                if shouldReenqueue && canTransportDeveloperAsset {
+                let canTransportSetting: Bool
+                if case .permittedSetting(let setting) = merged {
+                    canTransportSetting = settingsEpoch == browserSettingsApprovalEpoch &&
+                        browserSettingApprovedIDs.contains(setting.id) &&
+                        provider.isBrowserSettingApproved(setting.id, epoch: settingsEpoch)
+                } else {
+                    canTransportSetting = true
+                }
+                if shouldReenqueue && canTransportDeveloperAsset && canTransportSetting {
                     let winner = try makeRecord(for: merged)
                     localWinnerRecords[winner.recordID] = winner
                 } else {
@@ -567,25 +258,61 @@ public actor CompanionSyncBridge {
         )
         for commandImport in remoteCommandImports {
             let state = commandImport.state
-            if commandStates[state.id].map({ $0.version < state.version }) ?? true {
+            if let existing = commandStates[state.id] {
+                // Status never regresses and stays terminal once reached.
+                if let merged = try? CompanionProductFieldMerge.merge(existing, state) {
+                    commandStates[state.id] = merged
+                }
+            } else {
                 commandStates[state.id] = state
             }
         }
+        try await persistRemoteCommandOwnership(for: remoteCommandImports.map(\.state))
+        pruneRemoteCommandReadModel()
 
         var fetchedToAcknowledge: [SyncRecord] = []
         for token in successfulTokens.sorted() {
             let candidate = candidates[token]
-            try await provider.resolveQuarantinedRecord(candidate.record)
+            // No consent means no payload validation. It must not clear an
+            // older corruption/quarantine decision merely by acknowledging a
+            // newly fetched opaque copy of that same bookmark record.
+            let extensionReadApproved = extensionEpoch == extensionSetupMetadataEpoch &&
+                provider.isExtensionSetupMetadataApproved(epoch: extensionEpoch) &&
+                acceptedExtensionSetupTokens.contains(token)
+            let storageReadApproved = storageEpoch == extensionStorageMetadataEpoch &&
+                provider.isExtensionStorageMetadataApproved(epoch: storageEpoch) &&
+                acceptedExtensionStorageTokens.contains(token)
+            if (candidate.record.dataClass != .bookmark || bookmarkSyncEnabled) &&
+                (candidate.record.dataClass != .permittedSetting ||
+                    extensionReadApproved || storageReadApproved ||
+                    (settingsEpoch == browserSettingsApprovalEpoch &&
+                        browserSettingApprovedIDs.contains(candidate.record.entityID) &&
+                        provider.isBrowserSettingApproved(
+                            candidate.record.entityID, epoch: settingsEpoch
+                        ))) {
+                try await provider.resolveQuarantinedRecord(candidate.record)
+            }
             if candidate.acknowledgeOnSuccess {
                 fetchedToAcknowledge.append(candidate.record)
             }
         }
         try await provider.acknowledgeFetchedRecords(fetchedToAcknowledge)
+        if hydrateBookmarks { bookmarkHydrationRequired = false }
+        if hydrateSettings, settingsEpoch == browserSettingsApprovalEpoch {
+            browserSettingsHydrationRequired = false
+        }
+        if hydrateExtensionSetup, extensionEpoch == extensionSetupMetadataEpoch {
+            extensionSetupHydrationRequired = false
+        }
+        if hydrateExtensionStorage, storageEpoch == extensionStorageMetadataEpoch {
+            extensionStorageHydrationRequired = false
+        }
     }
 
     private final class ImportContext {
         var devices: [DeviceID: Device]
         var workspaces: [WorkspaceID: Workspace]
+        var pages: [TreeNodeID: TreeNode]
         var developerAssets: [UUID: CompanionDeveloperAssetRecord]
 
         init(snapshot: CompanionSnapshot) {
@@ -595,6 +322,11 @@ public actor CompanionSyncBridge {
                 }
             }
             workspaces = snapshot.workspaces.reduce(into: [:]) { result, value in
+                if result[value.id].map({ $0.version >= value.version }) != true {
+                    result[value.id] = value
+                }
+            }
+            pages = snapshot.treeNodes.reduce(into: [:]) { result, value in
                 if result[value.id].map({ $0.version >= value.version }) != true {
                     result[value.id] = value
                 }
@@ -710,6 +442,19 @@ public actor CompanionSyncBridge {
         _ record: SyncRecord,
         context: ImportContext
     ) throws -> DecodedImport {
+        if record.dataClass == .bookmark && !bookmarkSyncEnabled { return .ignored }
+        if record.dataClass == .permittedSetting &&
+            (record.recordID != record.entityID ||
+                !browserSettingApprovedIDs.contains(record.entityID) ||
+                !provider.isBrowserSettingApproved(
+                    record.entityID, epoch: browserSettingsApprovalEpoch
+                )) && !canReadExtensionSetup(record) &&
+                !canReadExtensionStorage(record) { return .ignored }
+        // One live format. Unsupported development input remains in recovery;
+        // it is never normalized into a current authoritative snapshot.
+        guard record.schemaVersion == SharedSyncFormat.currentVersion else {
+            throw SharedTabWirePreparationError.unsupportedVersion
+        }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
         case .device:
@@ -734,10 +479,23 @@ public actor CompanionSyncBridge {
                 context.workspaces[value.id] = value
             }
             return .domain(.workspace(value))
+        case .deviceCapability:
+            return .domain(.deviceCapability(try wireCodec.decodeCapability(
+                record, plaintext: plaintext, knownDevices: context.devices
+            )))
+        case .splitGroup:
+            return .domain(.splitGroup(try wireCodec.decodeSplitGroup(record,plaintext:plaintext)))
+        case .tabArchiveEntry:
+            return .domain(.archiveEntry(try wireCodec.decodeArchiveEntry(record,plaintext:plaintext)))
+        case .bookmark:
+            return .domain(.bookmark(try decodeBookmarkRecord(record, plaintext: plaintext)))
         case .treeNode:
             let value = try wireCodec.decodeTreeNode(record, plaintext: plaintext)
             try validate(record, identity: value.id.rawValue, version: value.version,
                          orderKey: value.orderKey, tombstone: value.tombstone)
+            context.pages[value.id] = try context.pages[value.id].map {
+                try CompanionFieldMerge.merge($0, value)
+            } ?? value
             return .domain(.treeNode(value))
         case .deviceSession:
             let value = try wireCodec.decodeSession(
@@ -757,6 +515,7 @@ public actor CompanionSyncBridge {
             )
             try validate(record, identity: value.id.rawValue, version: value.version,
                          tombstone: value.tombstone)
+            try wireCodec.validatePresenceTarget(value, pages: context.pages)
             return .domain(.tab(value))
         case .historyVisit:
             let value = try wireCodec.decodeHistory(record, plaintext: plaintext)
@@ -770,8 +529,13 @@ public actor CompanionSyncBridge {
                   value.envelope.payload.sourceDeviceID == commandSigner.sourceDeviceID else {
                 return .ignored
             }
-            if let existing = commandStates[value.id], existing.envelope != value.envelope {
-                throw CompanionSyncBridgeError.envelopeMismatch
+            try validateLocallyOwnedRemoteCommand(value)
+            if let existing = commandStates[value.id] {
+                guard existing.envelope == value.envelope else {
+                    throw CompanionSyncBridgeError.envelopeMismatch
+                }
+                // Rejects equal-clock conflicts before the page is applied.
+                _ = try CompanionProductFieldMerge.merge(existing, value)
             }
             return .remoteCommand(value)
         case .appearance:
@@ -783,6 +547,11 @@ public actor CompanionSyncBridge {
             let value = try wireCodec.decodePermittedSetting(record, plaintext: plaintext)
             try validate(record, identity: value.id, version: value.version,
                          tombstone: value.tombstone)
+            if !browserSettingApprovedIDs.contains(value.id) &&
+                !(canReadExtensionSetup(record) && CompanionExtensionSetup.decode(value) != nil) &&
+                !(canReadExtensionStorage(record) && CompanionExtensionStorage.decode(value) != nil) {
+                return .ignored
+            }
             return .domain(.permittedSetting(value))
         case .extensionInventory:
             let value = try wireCodec.decodeExtensionInventory(record, plaintext: plaintext)
@@ -808,6 +577,16 @@ public actor CompanionSyncBridge {
 
     private func makeRecord(for value: CompanionImportedValue) throws -> SyncRecord {
         switch value {
+        case .deviceCapability(let value):
+            return try makeCapabilityRecord(value)
+        case .splitGroup(let value):
+            return try codec.makeRecord(recordID:value.id,entityID:value.id,dataClass:.splitGroup,
+                version:value.version,plaintext:wireCodec.encode(value),tombstone:value.tombstone)
+        case .archiveEntry(let value):
+            return try codec.makeRecord(recordID:value.id,entityID:value.id,dataClass:.tabArchiveEntry,
+                version:value.version,plaintext:wireCodec.encode(value),tombstone:value.tombstone)
+        case .bookmark(let value):
+            return try makeBookmarkRecord(value)
         case .device(let value):
             return try codec.makeRecord(
                 recordID: value.id.rawValue, entityID: value.id.rawValue,
@@ -852,6 +631,9 @@ public actor CompanionSyncBridge {
                 plaintext: wireCodec.encode(value), tombstone: value.tombstone
             )
         case .permittedSetting(let value):
+            guard CompanionBrowserSettingCatalog.isPortable(value) else {
+                throw CompanionProductRecordError.invalidPermittedSetting
+            }
             return try codec.makeRecord(
                 recordID: value.id, entityID: value.id,
                 dataClass: .permittedSetting, version: value.version,
@@ -881,8 +663,22 @@ public actor CompanionSyncBridge {
         _ record: SyncRecord,
         context: ImportContext
     ) throws -> PhysicalDeletionRecoveryDecision {
+        guard record.schemaVersion == SharedSyncFormat.currentVersion else {
+            throw SharedTabWirePreparationError.unsupportedVersion
+        }
         let plaintext = try codec.openData(record)
         switch record.dataClass {
+        case .splitGroup:
+            _ = try wireCodec.decodeSplitGroup(record,plaintext:plaintext)
+        case .tabArchiveEntry:
+            _ = try wireCodec.decodeArchiveEntry(record,plaintext:plaintext)
+        case .deviceCapability:
+            _ = try wireCodec.decodeCapability(record, plaintext: plaintext, knownDevices: context.devices)
+        case .bookmark:
+            guard bookmarkSyncEnabled else {
+                throw CompanionSyncBridgeError.unsupportedDataClass(.bookmark)
+            }
+            _ = try decodeBookmarkRecord(record, plaintext: plaintext)
         case .device:
             let value = try wireCodec.decodeDevice(record, plaintext: plaintext)
             try validate(record, identity: value.id.rawValue, version: value.version,
@@ -912,6 +708,7 @@ public actor CompanionSyncBridge {
             )
             try validate(record, identity: value.id.rawValue, version: value.version,
                          tombstone: value.tombstone)
+            try wireCodec.validatePresenceTarget(value, pages: context.pages)
         case .historyVisit:
             let value = try wireCodec.decodeHistory(record, plaintext: plaintext)
             try validate(record, identity: value.id.rawValue, version: value.version,
@@ -923,6 +720,7 @@ public actor CompanionSyncBridge {
                   value.envelope.payload.sourceDeviceID == commandSigner.sourceDeviceID else {
                 throw CompanionSyncBridgeError.remoteCommandSigningUnavailable
             }
+            try validateLocallyOwnedRemoteCommand(value)
         case .appearance:
             let value = try wireCodec.decodeAppearance(record, plaintext: plaintext)
             try validate(record, identity: value.id, version: value.version,
@@ -961,7 +759,7 @@ public actor CompanionSyncBridge {
         return .restore
     }
 
-    private func validate(
+    func validate(
         _ record: SyncRecord,
         identity: UUID,
         version: SyncVersion,

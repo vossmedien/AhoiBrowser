@@ -50,9 +50,20 @@ Clone sind ausgeschlossen.
 - Bestehende System-SF-Pro-Typografie, Ahoi-Farbtokens, native Materialien,
   mindestens 44 x 44 pt grosse Ziele und semantische SwiftUI-Komponenten
   bleiben verbindlich.
-- Vor Codeuebernahme folgt eine Auswahlentscheidung und danach ein
-  screenweiser SwiftUI-Slice mit gleicher Fixture, gleicher Viewport-Groesse,
-  Screenshotvergleich und Accessibility-Pruefung.
+- Diese Synthese ist fuer den ersten nativen SwiftUI-Slice festgelegt. Harbor
+  Deck bleibt die aktive Browser-Chrome, Focus Voyage der datengetriebene
+  New-Tab-Zustand und Workspace Canvas die Regular-Width-Projektion.
+- Sichtbare Inhalte stammen ausschliesslich aus validierten normalen Tabs,
+  Verlauf und gespeicherten Seiten. Private Daten werden konstruktiv aus
+  diesen Projektionen ausgeschlossen; Entwurfsinhalte wie Webseiten,
+  Tracker-Behauptungen oder Sprachsteuerung sind keine Produktfunktion.
+- Workspace-Icons werden auf gueltige SF Symbols normalisiert. Kleine iPhones
+  erhalten ueber `ViewThatFits` dieselben Browseraktionen in einem kompakten
+  Zweizeilen-Layout; Animationen liegen bei 220 ms und respektieren
+  `Reduce Motion`.
+- Der Slice gilt erst nach Build, fokussierten Unit-/UI-Tests,
+  Screenshotvergleich bei identischer Viewport-Groesse und
+  Accessibility-Pruefung als Runtime-Evidenz.
 
 ## Board-Artefakte
 

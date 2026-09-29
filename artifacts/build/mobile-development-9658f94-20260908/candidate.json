@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "kind": "unsigned-ios-device-build",
+  "sourceCommit": "9658f945d7c0a80b6b5b331d6fecb4be3e40bb10",
+  "embeddedSourceCommit": "9658f945d7c0a80b6b5b331d6fecb4be3e40bb10",
+  "sourceDirty": false,
+  "buildMode": "CloudKitDevelopment",
+  "marketingVersion": "0.1",
+  "buildNumber": "22",
+  "bundleId": "app.ahoibrowser.AhoiBrowser",
+  "platform": "iphoneos",
+  "architecture": "arm64",
+  "sdk": "iphoneos26.5",
+  "xcodeBuild": "17F113",
+  "minimumOS": "26.0",
+  "build": {
+    "session": 48197,
+    "exitCode": 0,
+    "targetCount": 4,
+    "testTargetsExecuted": false,
+    "log": "build.log",
+    "logSha256": "d96d4e2c0fa7c3729edf225463edca4ef2679cb8ce289cca2875558447dd52ec",
+    "xcresult": "build.xcresult",
+    "snapshot": "/private/tmp/ahoi-mobile-shared-tabs.V7PCPC/repo"
+  },
+  "artifact": {
+    "app": "AhoiMobile-9658f94-unsigned.app",
+    "hashAlgorithm": "tools/mobile_evidence_artifacts.py:sha256_path (tree-v1/file)",
+    "appTreeSha256": "f99ed968c9b667d1586f57b6689af4177c0dce822eed6d0ab2d1da260ea5434b",
+    "binarySha256": "794fdc8389da52c1ee8b2e5620a041b36da8493168ab650af4318c04e61703db",
+    "debugDylibSha256": "5713137b64f3e8dbe5d870b2b660ccc34385bde8c408bf2c8de466b3c5416d62",
+    "infoPlistSha256": "f5da09859f8bc2f2e80b34b997108e663cccc675e1cc70eab922a053a971f5c5",
+    "xcodeProjectSha256": "6578c1b12754a5126d1dbf5d5efbb8f5acb255ded6dfbbd0e21031e5800ca543",
+    "copiedTreeMatchesBuildOutput": true
+  },
+  "configuration": {
+    "input": "Acceptance.xcconfig",
+    "inputSha256": "e298c1f45523f6f7a7fa0bcfeea48ec23300e1ae0a446a3cc3ec6476a37ce2a4",
+    "sharedScope": "artifacts/e2e/shared-sync-development-scope-20260908.json",
+    "sharedScopeSha256": "851600c142f1c289f5f878a23587eecbc9001a4e2c2e072f7c0e0f5dc13c9abe",
+    "scopeID": "bba96b17-f044-4923-9d40-67b15014d59e",
+    "allSevenRuntimeValuesVerifiedInBuiltInfoPlist": true,
+    "zoneName": "AhoiSyncAcceptance-bba96b17-f044-4923-9d40-67b15014d59e",
+    "subscriptionIdentifier": "AhoiSyncAcceptanceSubscription-bba96b17-f044-4923-9d40-67b15014d59e",
+    "keychainService": "app.ahoibrowser.sync.payload-key",
+    "keychainAccount": "payload-key.acceptance-bba96b17-f044-4923-9d40-67b15014d59e",
+    "keychainAccessGroup": "248AJ5BN47.app.ahoibrowser.sync",
+    "keyVersion": "1"
+  },
+  "signing": {
+    "performed": false,
+    "codeSigningAllowed": false,
+    "embeddedProvisioningProfilePresent": false,
+    "codesignReadback": "code object is not signed at all",
+    "installableEntitledCandidateProven": false
+  },
+  "preservedFailure": {
+    "sourceCommit": "77061adbee47332e84a98be377447385eaa5fd3a",
+    "buildNumber": "21",
+    "session": 48954,
+    "exitCode": 65,
+    "category": "build-preflight-contract-gap",
+    "reason": "The old Mobile preflight rejected the agreed isolated payload-key account.",
+    "log": "../mobile-development-77061ad-20260908/build.log",
+    "logSha256": "0f58bf3ec83960c9f895f2342ca66299bdf8ca80a73a6c94f440cd95457b7358",
+    "xcresult": "../mobile-development-77061ad-20260908/build.xcresult"
+  },
+  "preservedUIBuild20": {
+    "app": "../mobile-key-bootstrap-bbe2c53-20260908/AhoiMobile-bbe2c53.app",
+    "appTreeSha256": "b8d840b241c9634794617c09aef355feab656d5b3e048f448b5db06cbff05e0b",
+    "treeAndSignatureReverifiedBeforeSnapshotReuse": true,
+    "uiSlotStarted": false
+  },
+  "acceptance": {
+    "deviceBuild": "PASS",
+    "signedEntitlements": "NOT_RUN",
+    "install": "NOT_RUN",
+    "visibleE2E": "NOT_RUN",
+    "keychainLifecycle": "NOT_RUN",
+    "cloudKitRoundtrip": "NOT_RUN"
+  }
+}

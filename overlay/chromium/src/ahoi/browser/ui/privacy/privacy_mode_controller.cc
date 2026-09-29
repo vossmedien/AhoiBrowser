@@ -157,8 +157,8 @@ bool PrivacyModeController::CanShow() const {
 }
 
 content::WebContents* PrivacyModeController::GetActiveWebContents() const {
-  return browser_ && browser_->tab_strip_model()
-             ? browser_->tab_strip_model()->GetActiveWebContents()
+  return browser_ && browser_->GetTabStripModel()
+             ? browser_->GetTabStripModel()->GetActiveWebContents()
              : nullptr;
 }
 

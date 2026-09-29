@@ -1,0 +1,82 @@
+Subject: [PROPOSED] Fix three Bookmark compile blockers without policy changes
+
+Proposed only; not applied. Preserve UUID derivation, cancellation semantics and
+separate WeakPtrFactory domains. No consent, security or warning-policy changes.
+
+diff --git a/overlay/chromium/src/ahoi/browser/sync/bookmark_sync_bridge_types.cc b/overlay/chromium/src/ahoi/browser/sync/bookmark_sync_bridge_types.cc
+--- a/overlay/chromium/src/ahoi/browser/sync/bookmark_sync_bridge_types.cc
++++ b/overlay/chromium/src/ahoi/browser/sync/bookmark_sync_bridge_types.cc
+@@ -4,6 +4,7 @@
+ #include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
+ 
+ #include <algorithm>
++#include <array>
+ 
+ #include "base/strings/string_number_conversions.h"
+ #include "base/strings/string_util.h"
+@@ -49,8 +50,10 @@ base::Uuid InitialBookmarkSyncId(const std::string& native_key) {
+   std::string hex = base::ToLowerASCII(base::HexEncode(crypto::SHA256HashString(
+       "ahoi:bookmark:native-binding:v1:" + native_key)));
+   hex.resize(32);
+   hex[12] = '8';  // RFC 9562 UUIDv8: application-defined SHA-256 derivation.
+-  hex[16] = "89ab"[(hex[16] >= 'a' ? hex[16] - 'a' + 10 : hex[16] - '0') & 3];
++  constexpr std::array<char, 4> kVariantDigits = {'8', '9', 'a', 'b'};
++  hex[16] = kVariantDigits[
++      (hex[16] >= 'a' ? hex[16] - 'a' + 10 : hex[16] - '0') & 3];
+   return base::Uuid::ParseLowercase(hex.substr(0, 8) + "-" + hex.substr(8, 4) +
+                                     "-" + hex.substr(12, 4) + "-" +
+                                     hex.substr(16, 4) + "-" + hex.substr(20));
+diff --git a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm
+--- a/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm
++++ b/overlay/chromium/src/ahoi/browser/sync/cloudkit_sync_provider_mac_consent.mm
+@@ -85,16 +85,21 @@ void CloudKitSyncProviderMac::Core::RequestOperationCancellation() {
+   CKSyncEngine* engine = engine_;
+   // Do not call a potentially reentrant framework completion while holding
+   // the Core lock. The category and record-provider fences are already active.
+-  owner_runner_->PostTask(FROM_HERE, base::BindOnce([weak, engine, generation] {
+-                            [engine cancelOperationsWithCompletionHandler:^{
+-                              if (const auto core = weak.lock()) {
+-                                base::AutoLock guard(core->lock_);
+-                                if (generation == core->transport_generation_) {
+-                                  core->operations_cancelling_ = false;
+-                                }
+-                              }
+-                            }];
+-                          }));
++  owner_runner_->PostTask(
++      FROM_HERE,
++      base::BindOnce(
++          [](std::weak_ptr<Core> weak_core, CKSyncEngine* sync_engine,
++             uint64_t expected_generation) {
++            [sync_engine cancelOperationsWithCompletionHandler:^{
++              if (const auto core = weak_core.lock()) {
++                base::AutoLock guard(core->lock_);
++                if (expected_generation == core->transport_generation_) {
++                  core->operations_cancelling_ = false;
++                }
++              }
++            }];
++          },
++          std::move(weak), engine, generation));
+ }
+ 
+ void CloudKitSyncProviderMac::Core::SetBookmarkSyncEnabled(bool enabled) {
+diff --git a/overlay/chromium/src/ahoi/browser/sync/profile_sync_service.h b/overlay/chromium/src/ahoi/browser/sync/profile_sync_service.h
+--- a/overlay/chromium/src/ahoi/browser/sync/profile_sync_service.h
++++ b/overlay/chromium/src/ahoi/browser/sync/profile_sync_service.h
+@@ -245,7 +245,6 @@ class ProfileSyncService final : public KeyedService,
+   bool bookmarks_seeded_ = false;
+   BookmarkSyncIssue bookmark_sync_issue_ = BookmarkSyncIssue::kNone;
+   base::RepeatingClosureList bookmark_status_callbacks_;
+-  base::WeakPtrFactory<ProfileSyncService> bookmark_weak_ptr_factory_{this};
+   base::ObserverList<Observer> observers_;
+   base::OneShotTimer publish_timer_;
+   base::RepeatingTimer sync_timer_;
+@@ -263,6 +262,7 @@ class ProfileSyncService final : public KeyedService,
+   bool extension_inventory_seeded_ = false;
+   int pending_remote_history_deletions_ = 0;
+   bool shutting_down_ = false;
++  base::WeakPtrFactory<ProfileSyncService> bookmark_weak_ptr_factory_{this};
+   base::WeakPtrFactory<ProfileSyncService> backend_weak_ptr_factory_{this};
+   base::WeakPtrFactory<ProfileSyncService> weak_ptr_factory_{this};
+ };

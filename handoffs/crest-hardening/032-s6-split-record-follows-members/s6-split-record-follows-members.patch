@@ -1,0 +1,176 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/BUILD.gn b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+index 0d92d52..e6ca206 100644
+--- a/overlay/chromium/src/ahoi/browser/session/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+@@ -243,6 +243,7 @@ source_set("unit_tests") {
+     "shared_tab_target_policy_unittest.cc",
+     "startup_policy_unittest.cc",
+     "workspace_session_metadata_unittest.cc",
++    "workspace_structure_split_capture_unittest.cc",
+   ]
+   deps = [
+     ":isolated_profiles",
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
+index 7602c94..07df078 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.cc
+@@ -31,6 +31,26 @@ sync::SharedSplitMetadata Metadata(const sync::SplitGroupRecord& r) {
+ }
+ }  // namespace
+ 
++SplitCaptureAdoption ClassifySplitCapture(
++    bool native_change,
++    bool record_tombstone,
++    const std::optional<sync::SharedSplitMetadata>& observed,
++    const sync::SharedSplitMetadata& current,
++    const base::Uuid& record_workspace_id) {
++  if (record_tombstone || !observed || *observed == current) {
++    return SplitCaptureAdoption::kNone;
++  }
++  if (native_change) {
++    return SplitCaptureAdoption::kNativeChange;
++  }
++  if (current.workspace_id != record_workspace_id &&
++      current.topology == observed->topology &&
++      current.ratios == observed->ratios) {
++    return SplitCaptureAdoption::kWorkspaceOnly;
++  }
++  return SplitCaptureAdoption::kNone;
++}
++
+ WorkspaceStructureController::WorkspaceStructureController(
+     SessionBridge* bridge,
+     Profile* profile)
+@@ -288,13 +308,15 @@ void WorkspaceStructureController::CaptureSplits() {
+       } else {
+         auto& e = found->second;
+         auto& record = std::get<sync::SplitGroupRecord>(e.record);
+-        if (record.tombstone || !e.observed_split ||
+-            *e.observed_split == *current ||
+-            !changed_native_splits_.contains(native_id.ToString())) {
++        const SplitCaptureAdoption adoption = ClassifySplitCapture(
++            changed_native_splits_.contains(native_id.ToString()),
++            record.tombstone, e.observed_split, *current, record.workspace_id);
++        if (adoption == SplitCaptureAdoption::kNone) {
+           continue;
+         }
+         const auto old = e.record;
+-        if (current->workspace_id != e.observed_split->workspace_id)
++        if (adoption == SplitCaptureAdoption::kWorkspaceOnly ||
++            current->workspace_id != e.observed_split->workspace_id)
+           record.workspace_id = current->workspace_id;
+         if (current->topology != e.observed_split->topology)
+           record.topology = current->topology;
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
+index 9edb53c..3ca7b0c 100644
+--- a/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_controller.h
+@@ -5,6 +5,7 @@
+ 
+ #include <atomic>
+ #include <memory>
++#include <optional>
+ 
+ #include "ahoi/browser/session/group_page_close.h"
+ #include "ahoi/browser/session/workspace_structure_state.h"
+@@ -24,6 +25,26 @@ class ResourcePolicyService;
+ }
+ 
+ namespace ahoi::session {
++
++// What CaptureSplits adopts from an observed native split into its stored
++// split record. Exposed for unit tests (handoff 011 S6).
++enum class SplitCaptureAdoption {
++  kNone,
++  // A native split change (topology, ratios, membership) was observed.
++  kNativeChange,
++  // Only the Workspace of the members changed, e.g. after moving the split's
++  // pages to another Workspace in the tree. No native split change happens,
++  // but the record must follow its members, or materializing it later fails
++  // on the Workspace mismatch.
++  kWorkspaceOnly,
++};
++SplitCaptureAdoption ClassifySplitCapture(
++    bool native_change,
++    bool record_tombstone,
++    const std::optional<sync::SharedSplitMetadata>& observed,
++    const sync::SharedSplitMetadata& current,
++    const base::Uuid& record_workspace_id);
++
+ class WorkspaceStructureController final
+     : public sync::ProfileSyncService::Observer {
+  public:
+diff --git a/overlay/chromium/src/ahoi/browser/session/workspace_structure_split_capture_unittest.cc b/overlay/chromium/src/ahoi/browser/session/workspace_structure_split_capture_unittest.cc
+new file mode 100644
+index 0000000..37e777a
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/session/workspace_structure_split_capture_unittest.cc
+@@ -0,0 +1,68 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include <optional>
++
++#include "ahoi/browser/session/workspace_structure_controller.h"
++#include "base/uuid.h"
++#include "testing/gtest/include/gtest/gtest.h"
++
++namespace ahoi::session {
++namespace {
++
++sync::SharedSplitMetadata Split(const base::Uuid& id, const base::Uuid& workspace) {
++  sync::SharedSplitMetadata split;
++  split.id = id;
++  split.workspace_id = workspace;
++  return split;
++}
++
++class SplitCaptureTest : public testing::Test {
++ protected:
++  const base::Uuid id_ = base::Uuid::GenerateRandomV4();
++  const base::Uuid a_ = base::Uuid::GenerateRandomV4();
++  const base::Uuid b_ = base::Uuid::GenerateRandomV4();
++};
++
++// Handoff 011 S6: moving a split's pages to another Workspace changes no
++// native split, but the record follows its members.
++TEST_F(SplitCaptureTest, WorkspaceOnlyMoveIsAdoptedWithoutNativeChange) {
++  EXPECT_EQ(SplitCaptureAdoption::kWorkspaceOnly,
++            ClassifySplitCapture(/*native_change=*/false,
++                                 /*record_tombstone=*/false, Split(id_, a_),
++                                 Split(id_, b_), a_));
++}
++
++TEST_F(SplitCaptureTest, NativeChangeIsAdopted) {
++  EXPECT_EQ(SplitCaptureAdoption::kNativeChange,
++            ClassifySplitCapture(true, false, Split(id_, a_), Split(id_, b_),
++                                 a_));
++}
++
++TEST_F(SplitCaptureTest, UnchangedTombstonedOrUnobservedIsIgnored) {
++  EXPECT_EQ(SplitCaptureAdoption::kNone,
++            ClassifySplitCapture(false, false, Split(id_, a_), Split(id_, a_),
++                                 a_));
++  EXPECT_EQ(SplitCaptureAdoption::kNone,
++            ClassifySplitCapture(true, true, Split(id_, a_), Split(id_, b_),
++                                 a_));
++  EXPECT_EQ(SplitCaptureAdoption::kNone,
++            ClassifySplitCapture(true, false, std::nullopt, Split(id_, b_), a_));
++}
++
++TEST_F(SplitCaptureTest, UnobservedLayoutChangeIsNotAdoptedAsWorkspaceMove) {
++  sync::SharedSplitMetadata current = Split(id_, b_);
++  current.ratios.primary = 300000;
++  current.ratios.secondary = 700000;
++  EXPECT_EQ(SplitCaptureAdoption::kNone,
++            ClassifySplitCapture(false, false, Split(id_, a_), current, a_));
++}
++
++TEST_F(SplitCaptureTest, RecordAlreadyInTheMembersWorkspaceNeedsNoMove) {
++  EXPECT_EQ(SplitCaptureAdoption::kNone,
++            ClassifySplitCapture(false, false, Split(id_, a_), Split(id_, b_),
++                                 b_));
++}
++
++}  // namespace
++}  // namespace ahoi::session

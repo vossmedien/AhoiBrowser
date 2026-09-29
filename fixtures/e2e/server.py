@@ -3,15 +3,14 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
-import html
 import json
-import re
+import socket
 import socketserver
 import ssl
 import threading
+import time
 import uuid
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -20,90 +19,51 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pages
-from receipts import ReceiptStore, query_key_summary
-
-
-LOOPBACK_HOST = "127.0.0.1"
-FIRST_HOST_NAME = "first-party.localhost"
-THIRD_HOST_NAME = "third-party.localhost"
-MEDIA_HOST_NAME = "media.localhost"
-MAX_UPLOAD_BYTES = 16 * 1024 * 1024
-DOWNLOAD_BYTES = bytes((index * 37 + 11) % 256 for index in range(2 * 1024 * 1024))
-DOWNLOAD_SHA256 = hashlib.sha256(DOWNLOAD_BYTES).hexdigest()
-WARNING_BYTES = (
-    b"AhoiBrowser harmless dangerous-download warning fixture.\n"
-    b"This file is plain text, contains no executable program, no macro, and no malware.\n"
+from payloads import (
+    ASSET_CHUNK_BYTES,
+    DISCONNECT_AFTER_BYTES,
+    DOWNLOAD_BYTES,
+    DOWNLOAD_SHA256,
+    LARGE_ZIP_BYTES,
+    LARGE_ZIP_SHA256,
+    LARGE_ZIP_THROTTLE_SECONDS,
+    MEDIA_BYTES,
+    MEDIA_SHA256,
+    PDF_BYTES,
+    PDF_SHA256,
+    WARNING_BYTES,
+    WARNING_SHA256,
+    parse_range as _parse_range,
 )
-WARNING_SHA256 = hashlib.sha256(WARNING_BYTES).hexdigest()
-MEDIA_SHA256 = "c195edb6dee6e3465fb5fd5fa0a0b7f3fbbd8ac48d7c953ae7108cff777f5436"
-SYNTHETIC_USERNAME = "fixture-user"
-SYNTHETIC_PASSWORD = "fixture-password"
+from receipts import ReceiptStore, query_key_summary
+from server_routes_session import SessionRoutesMixin
+from server_routes_transfer import TransferRoutesMixin
 
 
-def _load_media() -> bytes:
-    encoded = (Path(__file__).parent / "assets" / "h264-aac.mp4.b64").read_text(
-        encoding="ascii"
-    )
-    decoded = base64.b64decode(encoded, validate=False)
-    if hashlib.sha256(decoded).hexdigest() != MEDIA_SHA256:
-        raise RuntimeError("committed H.264/AAC fixture asset hash mismatch")
-    return decoded
-
-
-MEDIA_BYTES = _load_media()
-
-
-def _json_bytes(value: object) -> bytes:
-    return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
-
-
-def _safe_filename(value: str) -> str:
-    basename = value.replace("\\", "/").rsplit("/", 1)[-1]
-    cleaned = re.sub(r"[^A-Za-z0-9._ -]", "_", basename)[:120]
-    return cleaned or "unnamed-upload.bin"
-
-
-def _cookie_names(value: str) -> Sequence[str]:
-    return sorted(
-        {
-            part.split("=", 1)[0].strip()
-            for part in value.split(";")
-            if "=" in part and part.split("=", 1)[0].strip()
-        }
-    )
-
-
-def _safe_referrer(value: str) -> Optional[str]:
-    if not value:
-        return None
-    split = urlsplit(value)
-    if split.scheme not in {"http", "https"} or not split.netloc:
-        return "present-but-invalid"
-    return "%s://%s%s" % (split.scheme, split.netloc, split.path)
-
-
-def _parse_range(value: str, size: int) -> Optional[Tuple[int, int]]:
-    if not value:
-        return None
-    match = re.fullmatch(r"bytes=(\d*)-(\d*)", value.strip())
-    if not match:
-        raise ValueError("only one byte range is supported")
-    start_text, end_text = match.groups()
-    if not start_text and not end_text:
-        raise ValueError("empty range")
-    if not start_text:
-        suffix = int(end_text)
-        if suffix <= 0:
-            raise ValueError("invalid suffix range")
-        start = max(0, size - suffix)
-        end = size - 1
-    else:
-        start = int(start_text)
-        end = int(end_text) if end_text else size - 1
-    if start >= size or end < start:
-        raise ValueError("unsatisfiable range")
-    return start, min(end, size - 1)
-
+from server_support import (
+    IPV4_LOOPBACK_HOST,
+    IPV6_LOOPBACK_HOST,
+    LOOPBACK_HOST,
+    FIRST_HOST_NAME,
+    THIRD_HOST_NAME,
+    MEDIA_HOST_NAME,
+    MAX_UPLOAD_BYTES,
+    SYNTHETIC_USERNAME,
+    SYNTHETIC_PASSWORD,
+    HTTP_RECOVERY_STATUSES,
+    HTTP_RECOVERY_TOKEN_PATTERN,
+    SLOW_RESOURCE_BYTES,
+    SLOW_RESOURCE_THROTTLE_SECONDS,
+    MOBILE_REAL_E2E_CONTRACT_VERSION,
+    PRIVATE_DATA_MARKER_COOKIE_NAMES,
+    PRIVATE_DATA_MARKER_COOKIE_VALUE,
+    _json_bytes,
+    _safe_filename,
+    _cookie_names,
+    _safe_referrer,
+    _http_recovery_query,
+    _private_data_marker_kind,
+)
 
 class FixtureContext:
     def __init__(self, runtime_directory: Path) -> None:
@@ -122,12 +82,19 @@ class FixtureContext:
             self._counters[name] = self._counters.get(name, 0) + 1
             return self._counters[name]
 
+    def reset(self) -> None:
+        with self._counter_lock:
+            self._counters.clear()
+        self.receipts.reset()
+
     def manifest(self) -> Mapping[str, object]:
         first = self.urls["firstPartyHttpsUrl"]
         third = self.urls["thirdPartyHttpsUrl"]
         media = self.urls["mediaHttpsUrl"]
         return {
             "schemaVersion": 1,
+            "mobileRealE2EContractVersion": MOBILE_REAL_E2E_CONTRACT_VERSION,
+            "fixtureRunId": self.instance_id,
             "loopbackOnly": True,
             "tlsValidationMustRemainEnabled": True,
             "urls": dict(self.urls),
@@ -137,6 +104,28 @@ class FixtureContext:
                     "bytes": len(DOWNLOAD_BYTES),
                     "sha256": DOWNLOAD_SHA256,
                     "supportsRange": True,
+                },
+                "syntheticPdf": {
+                    "url": first + "/document/synthetic.pdf",
+                    "bytes": len(PDF_BYTES),
+                    "sha256": PDF_SHA256,
+                    "supportsRange": True,
+                },
+                "largeRangeZip": {
+                    "url": first + "/download/large-range.zip",
+                    "bytes": len(LARGE_ZIP_BYTES),
+                    "sha256": LARGE_ZIP_SHA256,
+                    "supportsRange": True,
+                    "throttled": True,
+                    "throttleSeconds": LARGE_ZIP_THROTTLE_SECONDS,
+                    "cacheControl": "no-store",
+                },
+                "disconnectResumeZip": {
+                    "url": first + "/download/disconnect-once.zip",
+                    "bytes": len(LARGE_ZIP_BYTES),
+                    "sha256": LARGE_ZIP_SHA256,
+                    "supportsRange": True,
+                    "intentionalDisconnectsBeforeFirstFullResponse": True,
                 },
                 "harmlessWarning": {
                     "url": first + "/download/harmless-warning.exe",
@@ -165,11 +154,13 @@ class FixtureContext:
                 "headersCspCors": first + "/developer",
                 "developerInjection": first + "/injection",
                 "syntheticLogin": first + "/login",
+                "safeCustomProtocol": "ahoi-e2e-safe://open/fixture",
             },
             "boundaries": {
                 "passkey": "local simulation only; platform WebAuthn remains ASSISTED_E2E",
                 "webrtc": "loopback peer only; real conferencing remains ASSISTED_E2E",
                 "media": "fixture capability only; licensed codec/legal acceptance remains external",
+                "customProtocol": "requires the separately consented, fixture-only macOS handler; arbitrary URLs are rejected",
             },
             "receipts": first + "/__fixture/receipts",
         }
@@ -188,6 +179,7 @@ class FixtureHTTPServer(ThreadingHTTPServer):
     ) -> None:
         self.role = role
         self.fixture_context = context
+        self.tls_context: Optional[ssl.SSLContext] = None
         super().__init__(server_address, FixtureRequestHandler, bind_and_activate=False)
         self.server_bind()
         self.server_activate()
@@ -195,8 +187,40 @@ class FixtureHTTPServer(ThreadingHTTPServer):
     def server_bind(self) -> None:
         socketserver.TCPServer.server_bind(self)
 
+    def get_request(self):
+        connection, address = socketserver.TCPServer.get_request(self)
+        if self.tls_context is None:
+            connection.close()
+            raise RuntimeError("fixture TLS context was not configured before accept")
+        try:
+            # Defer the handshake to the per-request worker. Performing it in
+            # the accept loop lets a speculative Happy-Eyeballs connection
+            # stall every later client on the same address family.
+            wrapped = self.tls_context.wrap_socket(
+                connection,
+                server_side=True,
+                do_handshake_on_connect=False,
+            )
+        except BaseException:
+            connection.close()
+            raise
+        return wrapped, address
 
-class FixtureRequestHandler(BaseHTTPRequestHandler):
+
+class FixtureHTTPServerIPv6(FixtureHTTPServer):
+    """IPv6 loopback sibling for clients that resolve *.localhost to ::1 first."""
+
+    address_family = socket.AF_INET6
+
+    def server_bind(self) -> None:
+        # Keep the listener loopback-only and independent from the matching
+        # IPv4 socket. Relying on platform-specific mapped-address behavior
+        # made WebKit/XCTest fail whenever ::1 was selected first.
+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
+        super().server_bind()
+
+
+class FixtureRequestHandler(TransferRoutesMixin, SessionRoutesMixin, BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     server_version = "AhoiLocalE2E/1"
 
@@ -281,6 +305,9 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
         filename: str,
         *,
         attachment: bool,
+        throttle_seconds: float = 0,
+        disconnect_after_bytes: Optional[int] = None,
+        cache_control: str = "public, max-age=3600, immutable",
     ) -> None:
         range_value = self.headers.get("Range", "")
         try:
@@ -300,32 +327,96 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
         headers: List[Tuple[str, str]] = [
             ("Accept-Ranges", "bytes"),
             ("ETag", '"sha256-%s"' % hashlib.sha256(payload).hexdigest()),
-            ("Cache-Control", "public, max-age=3600, immutable"),
+            ("Cache-Control", cache_control),
         ]
         if attachment:
             headers.append(("Content-Disposition", 'attachment; filename="%s"' % filename))
         if selected:
             headers.append(("Content-Range", "bytes %d-%d/%d" % (start, end, len(payload))))
-        self._send(
-            status,
-            response,
-            content_type=content_type,
-            headers=headers,
+        should_disconnect = (
+            disconnect_after_bytes is not None
+            and not selected
+            and self.command != "HEAD"
+            and 0 < disconnect_after_bytes < len(response)
+        )
+        planned_bytes = disconnect_after_bytes if should_disconnect else len(response)
+        self.context.receipts.record(
+            role=self.fixture_server.role,
+            method=self.command,
+            target=self.path,
+            status=status,
+            headers=self._headers_for_receipt(),
             facts={
                 "payloadSha256": hashlib.sha256(payload).hexdigest(),
                 "payloadBytes": len(payload),
-                "responseBytes": len(response),
+                "declaredResponseBytes": len(response),
+                "plannedBytesBeforeDisconnect": planned_bytes,
+                "intentionalDisconnect": should_disconnect,
                 "rangeStart": start if selected else None,
                 "rangeEnd": end if selected else None,
+                "throttled": throttle_seconds > 0,
             },
         )
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(response)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        for name, value in headers:
+            self.send_header(name, value)
+        self.end_headers()
+        if self.command == "HEAD":
+            return
+        limit = int(planned_bytes)
+        try:
+            for offset in range(0, limit, ASSET_CHUNK_BYTES):
+                self.wfile.write(response[offset : min(offset + ASSET_CHUNK_BYTES, limit)])
+                self.wfile.flush()
+                if throttle_seconds > 0 and offset + ASSET_CHUNK_BYTES < limit:
+                    time.sleep(throttle_seconds)
+        except (BrokenPipeError, ConnectionResetError, ssl.SSLError):
+            self.close_connection = True
+            return
+        if should_disconnect:
+            self.close_connection = True
+            try:
+                self.connection.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
 
     def do_HEAD(self) -> None:
         split = urlsplit(self.path)
         if split.path == "/download/deterministic.bin":
             self._asset(DOWNLOAD_BYTES, "application/octet-stream", "ahoi-range.bin", attachment=True)
+        elif split.path == "/download/large-range.zip":
+            self._asset(
+                LARGE_ZIP_BYTES,
+                "application/zip",
+                "ahoi-large-range.zip",
+                attachment=True,
+                throttle_seconds=LARGE_ZIP_THROTTLE_SECONDS,
+                cache_control="no-store",
+            )
+        elif split.path == "/download/disconnect-once.zip":
+            self._asset(
+                LARGE_ZIP_BYTES,
+                "application/zip",
+                "ahoi-disconnect-resume.zip",
+                attachment=True,
+            )
+        elif split.path == "/document/synthetic.pdf":
+            self._asset(PDF_BYTES, "application/pdf", "ahoi-synthetic.pdf", attachment=False)
         elif split.path == "/media/sample.mp4":
             self._asset(MEDIA_BYTES, "video/mp4", "ahoi-h264-aac.mp4", attachment=False)
+        elif split.path == "/slow-resource.svg":
+            self._asset(
+                SLOW_RESOURCE_BYTES,
+                "image/svg+xml",
+                "ahoi-slow-resource.svg",
+                attachment=False,
+                throttle_seconds=SLOW_RESOURCE_THROTTLE_SECONDS,
+                cache_control="no-store",
+            )
         else:
             self._send(HTTPStatus.NOT_FOUND, b"", send_body=False)
 
@@ -357,6 +448,7 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             "/download-upload": pages.download_upload,
             "/split": pages.split,
             "/navigation": pages.navigation,
+            "/slow-document": pages.slow_document,
             "/popup": pages.popup,
             "/passkey": pages.passkey,
             "/media": pages.media,
@@ -375,7 +467,15 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             self._send(HTTPStatus.OK, pages.pane(route.rsplit("/", 1)[1], urls), headers=(("Cache-Control", "no-store"),))
             return
         if route == "/__fixture/health":
-            self._json(HTTPStatus.OK, {"ready": True, "role": self.fixture_server.role})
+            self._json(
+                HTTPStatus.OK,
+                {
+                    "ready": True,
+                    "role": self.fixture_server.role,
+                    "mobileRealE2EContractVersion": MOBILE_REAL_E2E_CONTRACT_VERSION,
+                    "fixtureRunId": self.context.instance_id,
+                },
+            )
             return
         if route == "/__fixture/manifest":
             self._json(HTTPStatus.OK, self.context.manifest())
@@ -384,178 +484,86 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             snapshot = self.context.receipts.snapshot()
             self._json(HTTPStatus.OK, {"schemaVersion": 1, "receipts": snapshot})
             return
-        if route == "/download/deterministic.bin":
-            self._asset(DOWNLOAD_BYTES, "application/octet-stream", "ahoi-range.bin", attachment=True)
-            return
-        if route == "/download/harmless-warning.exe":
-            self._asset(WARNING_BYTES, "application/x-msdownload", "ahoi-harmless-warning.exe", attachment=True)
-            return
-        if route == "/media/sample.mp4":
-            self._asset(MEDIA_BYTES, "video/mp4", "ahoi-h264-aac.mp4", attachment=False)
-            return
-        if route == "/redirect/same":
-            self._send(
-                HTTPStatus.FOUND,
-                b"",
-                headers=(("Location", "/popup?from=same"), ("Cache-Control", "no-store")),
-                facts={"redirectKind": "same-origin"},
-            )
-            return
-        if route == "/redirect/cross":
-            self._send(
-                HTTPStatus.FOUND,
-                b"",
-                headers=(("Location", urls["thirdPartyHttpsUrl"] + "/popup?from=cross"), ("Cache-Control", "no-store")),
-                facts={"redirectKind": "cross-origin"},
-            )
-            return
-        if route == "/oauth/authorize":
-            state = parse_qs(split.query).get("state", ["public-test-state"])[0][:200]
-            self._send(
-                HTTPStatus.OK,
-                pages.oauth_authorize(urls, state),
-                headers=(("Cache-Control", "no-store"),),
-                facts={"oauthSimulation": True},
-            )
-            return
-        if route == "/oauth/callback":
-            decision = parse_qs(split.query).get("result", ["unknown"])[0][:40]
-            self._send(
-                HTTPStatus.OK,
-                pages.oauth_callback(urls, decision),
-                headers=(("Cache-Control", "no-store"),),
-                facts={"oauthSimulation": True, "decision": decision},
-            )
-            return
-        if route == "/passkey/challenge":
-            kind = parse_qs(split.query).get("kind", ["authenticate"])[0]
-            self._json(
-                HTTPStatus.OK,
-                {
-                    "challengeId": self.context.challenge_id,
-                    "kind": kind if kind in {"register", "authenticate"} else "authenticate",
-                    "rpId": "first-party.localhost",
-                    "simulated": True,
-                    "platformWebAuthnPerformed": False,
-                },
-                facts={"passkeySimulation": True},
-            )
-            return
-        if route == "/cookies/set":
-            self._send(
-                HTTPStatus.OK,
-                pages.document("First-party cookies set", "<p id='cookie-set'>Synthetic first-party cookies set.</p>", urls),
-                headers=(
-                    ("Set-Cookie", "ahoi_first=synthetic; Path=/; Secure; SameSite=Lax"),
-                    ("Set-Cookie", "ahoi_strict=synthetic; Path=/; Secure; SameSite=Strict"),
-                    ("Set-Cookie", "ahoi_http_only=synthetic; Path=/; Secure; HttpOnly; SameSite=Lax"),
-                    ("Cache-Control", "no-store"),
-                ),
-                facts={"cookieAttributes": ["Secure", "HttpOnly", "SameSite=Lax", "SameSite=Strict"]},
-            )
-            return
-        if route == "/cookies/third-party":
-            names = _cookie_names(self.headers.get("Cookie", ""))
-            body = pages.document(
-                "Third-party CHIPS control",
-                "<p id='chips-control'>A Secure, SameSite=None, Partitioned cookie was offered. Seen cookie names: %s</p>"
-                % html.escape(", ".join(names) or "none"),
-                urls,
-            )
-            self._send(
-                HTTPStatus.OK,
-                body,
-                headers=(("Set-Cookie", "ahoi_partitioned=synthetic; Path=/; Secure; SameSite=None; Partitioned"), ("Cache-Control", "no-store")),
-                facts={"cookieNames": names, "partitionedCookieOffered": True},
-            )
-            return
-        if route == "/privacy/echo":
-            summary = query_key_summary(self.path)
-            self._json(
-                HTTPStatus.OK,
-                {
-                    "gpc": self.headers.get("Sec-GPC") == "1",
-                    "referrerWithoutQuery": _safe_referrer(self.headers.get("Referer", "")),
-                    **summary,
-                },
-                headers=(("Cache-Control", "no-store"),),
-                facts={"privacyEcho": True},
-            )
-            return
-        if route == "/counter/storage":
-            value = self.context.increment("storage")
-            self._json(HTTPStatus.OK, {"counter": "storage", "value": value}, facts={"counter": "storage", "value": value})
-            return
-        if route == "/assets/v1/data.json":
-            count = self.context.increment("asset-v1")
-            self._json(
-                HTTPStatus.OK,
-                {"assetVersion": "v1", "content": "deterministic fixture asset", "accessCount": count},
-                headers=(("Cache-Control", "public, max-age=31536000, immutable"), ("ETag", '"ahoi-asset-v1"')),
-                facts={"assetVersion": "v1", "accessCount": count},
-            )
-            return
-        if route == "/service-worker.js":
-            script = (
-                "const CACHE='ahoi-e2e-v1';const ASSET='/assets/v1/data.json';"
-                "self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.add(ASSET))));"
-                "self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));"
-                "self.addEventListener('fetch',e=>{if(new URL(e.request.url).pathname===ASSET)e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})\n"
-            ).encode("utf-8")
-            self._send(
-                HTTPStatus.OK,
-                script,
-                content_type="text/javascript; charset=utf-8",
-                headers=(("Cache-Control", "no-cache"), ("Service-Worker-Allowed", "/")),
-                facts={"serviceWorkerVersion": "v1"},
-            )
-            return
-        if route == "/headers/echo":
-            lowered = {key.lower(): value for key, value in self.headers.items()}
-            self._json(
-                HTTPStatus.OK,
-                {
-                    "allowedValues": {"x-ahoi-test": lowered.get("x-ahoi-test")},
-                    "presenceOnly": {
-                        "authorization": "authorization" in lowered,
-                        "cookie": "cookie" in lowered,
-                        "origin": "origin" in lowered,
-                        "referer": "referer" in lowered,
-                    },
-                    "redacted": ["authorization", "cookie"],
-                },
-                headers=(("Cache-Control", "no-store"), ("X-Ahoi-Response", "public-fixture-value")),
-                facts={"echoedHeaderNames": ["x-ahoi-test"] if "x-ahoi-test" in lowered else []},
-            )
-            return
-        if route == "/csp/strict":
-            body = pages.strict_csp(urls)
-            self._send(
-                HTTPStatus.OK,
-                body,
-                headers=(("Content-Security-Policy", "default-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'"), ("Cache-Control", "no-store")),
-                facts={"cspControl": "strict-self"},
-            )
-            return
-        if route in {"/cors/allow", "/cors/deny"}:
-            extra: Sequence[Tuple[str, str]] = ()
-            control = "deny"
-            if route.endswith("allow"):
-                control = "allow"
-                extra = (("Access-Control-Allow-Origin", urls["firstPartyHttpsUrl"]), ("Vary", "Origin"))
-            self._json(
-                HTTPStatus.OK,
-                {"corsControl": control, "role": self.fixture_server.role},
-                headers=extra,
-                facts={"corsControl": control},
-            )
-            return
+        for handler in (
+            self._get_failure_route,
+            self._get_transfer_route,
+            self._get_identity_route,
+            self._get_site_data_route,
+        ):
+            if handler(route, split, urls):
+                return
         self._json(HTTPStatus.NOT_FOUND, {"error": "fixture route not found", "path": route})
 
     def do_POST(self) -> None:
         route = urlsplit(self.path).path
         body = self._read_body()
         if body is None:
+            return
+        if route == "/privacy/marker/set":
+            marker = _private_data_marker_kind(body)
+            if marker is None:
+                self._json(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid private-data marker"},
+                    headers=(("Cache-Control", "no-store"),),
+                    facts={
+                        "privateDataControl": "set",
+                        "markerAccepted": False,
+                        "valuesRetained": False,
+                    },
+                )
+                return
+            cookie_name = PRIVATE_DATA_MARKER_COOKIE_NAMES[marker]
+            self._json(
+                HTTPStatus.OK,
+                {"marker": marker, "set": True, "valueExposed": False},
+                headers=(
+                    (
+                        "Set-Cookie",
+                        "%s=%s; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=86400"
+                        % (cookie_name, PRIVATE_DATA_MARKER_COOKIE_VALUE),
+                    ),
+                    ("Cache-Control", "no-store"),
+                ),
+                facts={
+                    "privateDataControl": "set",
+                    "markerKind": marker,
+                    "markerAccepted": True,
+                    "valuesRetained": False,
+                },
+            )
+            return
+        if route == "/privacy/marker/clear":
+            if body:
+                self._json(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "private-data clear body must be empty"},
+                    headers=(("Cache-Control", "no-store"),),
+                    facts={
+                        "privateDataControl": "clear",
+                        "clearAccepted": False,
+                        "valuesRetained": False,
+                    },
+                )
+                return
+            expired = tuple(
+                (
+                    "Set-Cookie",
+                    "%s=; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=0"
+                    % cookie_name,
+                )
+                for cookie_name in PRIVATE_DATA_MARKER_COOKIE_NAMES.values()
+            )
+            self._json(
+                HTTPStatus.OK,
+                {"cleared": True, "valuesExposed": False},
+                headers=expired + (("Cache-Control", "no-store"),),
+                facts={
+                    "privateDataControl": "clear",
+                    "clearAccepted": True,
+                    "valuesRetained": False,
+                },
+            )
             return
         if route == "/upload":
             filename = _safe_filename(self.headers.get("X-Ahoi-Filename", "unnamed-upload.bin"))
@@ -628,7 +636,7 @@ class FixtureRequestHandler(BaseHTTPRequestHandler):
             )
             return
         if route == "/__fixture/reset":
-            self.context.receipts.reset()
+            self.context.reset()
             self._json(HTTPStatus.OK, {"reset": True})
             return
         self._json(HTTPStatus.NOT_FOUND, {"error": "fixture POST route not found", "path": route})
@@ -649,10 +657,44 @@ class FixtureCluster:
     ) -> None:
         self.runtime_directory = runtime_directory
         self.context = FixtureContext(runtime_directory)
-        self._first = FixtureHTTPServer((LOOPBACK_HOST, first_port), role="first-party", context=self.context)
-        self._third = FixtureHTTPServer((LOOPBACK_HOST, third_port), role="third-party", context=self.context)
-        self._media = FixtureHTTPServer((LOOPBACK_HOST, media_port), role="media", context=self.context)
-        self._servers = (self._first, self._third, self._media)
+        self._first = FixtureHTTPServer(
+            (IPV4_LOOPBACK_HOST, first_port),
+            role="first-party",
+            context=self.context,
+        )
+        self._third = FixtureHTTPServer(
+            (IPV4_LOOPBACK_HOST, third_port),
+            role="third-party",
+            context=self.context,
+        )
+        self._media = FixtureHTTPServer(
+            (IPV4_LOOPBACK_HOST, media_port),
+            role="media",
+            context=self.context,
+        )
+        self._first_ipv6 = FixtureHTTPServerIPv6(
+            (IPV6_LOOPBACK_HOST, self._first.server_address[1]),
+            role="first-party",
+            context=self.context,
+        )
+        self._third_ipv6 = FixtureHTTPServerIPv6(
+            (IPV6_LOOPBACK_HOST, self._third.server_address[1]),
+            role="third-party",
+            context=self.context,
+        )
+        self._media_ipv6 = FixtureHTTPServerIPv6(
+            (IPV6_LOOPBACK_HOST, self._media.server_address[1]),
+            role="media",
+            context=self.context,
+        )
+        self._servers = (
+            self._first,
+            self._first_ipv6,
+            self._third,
+            self._third_ipv6,
+            self._media,
+            self._media_ipv6,
+        )
         self.context.urls.update(
             {
                 "firstPartyHttpsUrl": "https://%s:%d" % (FIRST_HOST_NAME, self._first.server_address[1]),
@@ -664,7 +706,7 @@ class FixtureCluster:
         tls.minimum_version = ssl.TLSVersion.TLSv1_2
         tls.load_cert_chain(str(leaf_certificate), str(leaf_private_key))
         for server in self._servers:
-            server.socket = tls.wrap_socket(server.socket, server_side=True)
+            server.tls_context = tls
         self._threads: List[threading.Thread] = []
 
     def start(self) -> "FixtureCluster":
@@ -673,7 +715,11 @@ class FixtureCluster:
         for server in self._servers:
             thread = threading.Thread(
                 target=server.serve_forever,
-                name="ahoi-e2e-%s" % server.role,
+                name="ahoi-e2e-%s-%s"
+                % (
+                    server.role,
+                    "ipv6" if server.address_family == socket.AF_INET6 else "ipv4",
+                ),
                 daemon=True,
             )
             thread.start()

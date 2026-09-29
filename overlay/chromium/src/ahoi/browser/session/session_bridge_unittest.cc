@@ -12,15 +12,20 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/command_service_factory.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
+#include "ahoi/browser/session/session_bridge_unittest_support.h"
+#include "ahoi/browser/session/session_prefs.h"
+#include "ahoi/browser/session/website_session_context.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/memory/raw_ptr.h"
 #include "base/run_loop.h"
 #include "base/strings/utf_string_conversions.h"
+#include "base/test/test_future.h"
 #include "base/time/time.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/tabs/tab_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/common/webui_url_constants.h"
@@ -28,6 +33,7 @@
 #include "chrome/test/base/test_browser_window.h"
 #include "chrome/test/base/testing_profile.h"
 #include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/storage_partition.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/test/web_contents_tester.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -37,57 +43,9 @@ namespace ahoi {
 
 namespace {
 
-tab_tree::Workspace MakeWorkspace(std::u16string name, std::string sort_key) {
-  const base::Time now = base::Time::Now();
-  tab_tree::Workspace workspace;
-  workspace.id = base::Uuid::GenerateRandomV4();
-  workspace.name = std::move(name);
-  workspace.sort_key = std::move(sort_key);
-  workspace.created_at = now;
-  workspace.modified_at = now;
-  return workspace;
-}
-
-tab_tree::TreeNode MakeSavedPage(const base::Uuid& workspace_id,
-                                 const GURL& url) {
-  const base::Time now = base::Time::Now();
-  tab_tree::TreeNode node;
-  node.id = base::Uuid::GenerateRandomV4();
-  node.workspace_id = workspace_id;
-  node.type = tab_tree::TreeNodeType::kSavedPage;
-  node.title = u"Production";
-  node.url = url;
-  node.sort_key = "a";
-  node.created_at = now;
-  node.modified_at = now;
-  return node;
-}
-
-class SessionBridgeTest : public BrowserWithTestWindowTest {
- public:
-  void SetUp() override {
-    BrowserWithTestWindowTest::SetUp();
-    workspace_service_ = WorkspaceServiceFactory::GetForProfile(profile());
-    bridge_ = SessionBridgeFactory::GetForProfile(profile());
-    ASSERT_TRUE(workspace_service_);
-    ASSERT_TRUE(bridge_);
-    ASSERT_TRUE(bridge_->is_operational());
-    base::RunLoop ready;
-    bridge_->RunWhenReadyForTesting(ready.QuitClosure());
-    ready.Run();
-    ASSERT_TRUE(bridge_->is_ready());
-  }
-
- protected:
-  void FlushPersistence() {
-    base::RunLoop flushed;
-    bridge_->FlushPersistenceForTesting(flushed.QuitClosure());
-    flushed.Run();
-  }
-
-  raw_ptr<WorkspaceService> workspace_service_ = nullptr;
-  raw_ptr<SessionBridge> bridge_ = nullptr;
-};
+using test_support::MakeSavedPage;
+using test_support::MakeWorkspace;
+using test_support::SessionBridgeTest;
 
 TEST_F(SessionBridgeTest, FactoriesRejectOffTheRecordWithoutRedirection) {
   EXPECT_TRUE(CommandServiceFactory::GetForProfile(profile()));
@@ -123,11 +81,15 @@ TEST_F(SessionBridgeTest, PersistsAndRebindsNestedPageAfterTabRecreation) {
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             bridge_->tab_tree_store()->CreateNode(page));
 
+  // Saved pages bind by exact identity (activation or restore metadata),
+  // never because an unrelated tab shows the same URL.
   AddTab(browser(), url);
   task_environment()->RunUntilIdle();
-  TabStripModel* model = browser()->tab_strip_model();
+  TabStripModel* model = browser()->GetTabStripModel();
   tabs::TabInterface* original_tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(original_tab);
+  EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(original_tab).has_value());
+  ASSERT_TRUE(bridge_->BindTreeNodeToTab(page, original_tab));
   EXPECT_EQ(page.id, bridge_->FindTreeNodeIdForTab(original_tab));
 
   model->DetachAndDeleteWebContentsAt(model->GetIndexOfTab(original_tab));
@@ -136,6 +98,7 @@ TEST_F(SessionBridgeTest, PersistsAndRebindsNestedPageAfterTabRecreation) {
   task_environment()->RunUntilIdle();
   tabs::TabInterface* restored_tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(restored_tab);
+  ASSERT_TRUE(bridge_->BindTreeNodeToTab(page, restored_tab));
   EXPECT_EQ(page.id, bridge_->FindTreeNodeIdForTab(restored_tab));
 
   const base::FilePath database_path =
@@ -157,15 +120,71 @@ TEST_F(SessionBridgeTest, PersistsAndRebindsNestedPageAfterTabRecreation) {
   EXPECT_EQ(folder.id, *persisted_page.parent_id);
 }
 
+TEST_F(SessionBridgeTest, BackupFlushPersistsSecondNestedTreeMutation) {
+  const auto workspaces = workspace_service_->ordered_workspaces();
+  ASSERT_FALSE(workspaces.empty());
+  auto *const store = bridge_->tab_tree_store();
+  tab_tree::TreeNode folder = MakeSavedPage(workspaces.front().id, GURL());
+  folder.type = tab_tree::TreeNodeType::kFolder;
+  folder.title = u"Persistent project";
+  tab_tree::TreeNode page = MakeSavedPage(
+      workspaces.front().id, GURL("https://example.test/backup-flush"));
+  page.parent_id = folder.id;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store->CreateNode(folder));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store->CreateNode(page));
+
+  tab_tree::TabTreeStore::PersistenceSnapshot applied;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store->ExportPersistenceSnapshot(&applied));
+  applied.sync_baseline_receipt = "applied-before-local-edit";
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store->ReplacePersistenceSnapshot(applied));
+
+  base::test::TestFuture<bool> first_flush;
+  bridge_->FlushPersistenceForBackup(first_flush.GetCallback());
+  ASSERT_TRUE(first_flush.Get());
+
+  ASSERT_EQ(
+      tab_tree::TabTreeStore::Result::kOk,
+      store->RenameNode(page.id, u"Second persisted title", base::Time::Now()));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store->UpdateWorkspacePresentation(
+                workspaces.front().id, u"Second persisted workspace", u"code",
+                std::nullopt, base::Time::Now()));
+  tab_tree::TabTreeSnapshot expected;
+  ASSERT_TRUE(bridge_->ExportTabTreeSnapshot(&expected));
+
+  // Observe the production bool; FlushPersistenceForTesting discards failures.
+  base::test::TestFuture<bool> second_flush;
+  bridge_->FlushPersistenceForBackup(second_flush.GetCallback());
+  ASSERT_TRUE(second_flush.Get());
+
+  const base::FilePath database_path =
+      profile()->GetPath().AppendASCII(kTabTreeDatabaseFilename);
+  tab_tree::TabTreeStore reloaded;
+  ASSERT_TRUE(reloaded.Initialize(database_path));
+  tab_tree::TabTreeStore::PersistenceSnapshot persisted;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            reloaded.ExportPersistenceSnapshot(&persisted));
+  EXPECT_EQ(expected, persisted.tree);
+  EXPECT_EQ(applied.sync_baseline_receipt, persisted.sync_baseline_receipt);
+  tab_tree::TreeNode persisted_page;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            reloaded.GetNode(page.id, &persisted_page));
+  EXPECT_EQ(u"Second persisted title", persisted_page.title);
+  ASSERT_TRUE(persisted_page.parent_id.has_value());
+  EXPECT_EQ(folder.id, *persisted_page.parent_id);
+}
+
 TEST_F(SessionBridgeTest, NewTabRemainsTemporaryAndIsAddressableByCommandBar) {
-  CommandService* command_service =
+  CommandService *command_service =
       CommandServiceFactory::GetForProfile(profile());
   ASSERT_TRUE(command_service);
   const GURL url("https://example.test/temporary-open-tab");
 
   AddTab(browser(), url);
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetTabAtIndex(0);
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
   EXPECT_TRUE(bridge_->GetWorkspaceForTab(tab).has_value());
@@ -176,9 +195,18 @@ TEST_F(SessionBridgeTest, NewTabRemainsTemporaryAndIsAddressableByCommandBar) {
       std::ranges::find_if(results, [&url](const RankedCommand& ranked) {
         return ranked.item.type == CommandItemType::kOpenTab &&
                ranked.item.url == url &&
-               ranked.item.stable_id.starts_with("runtime:");
+               // Temporary pages carry a stable shared node ID now.
+               base::Uuid::ParseLowercase(ranked.item.stable_id).is_valid();
       });
-  ASSERT_NE(result, results.end());
+  ASSERT_NE(result, results.end()) << [&results] {
+    std::string ids;
+    for (const RankedCommand& ranked : results) {
+      ids += " " + std::to_string(static_cast<int>(ranked.item.type)) + ":" +
+             ranked.item.stable_id + "@" +
+             (ranked.item.url ? ranked.item.url->spec() : std::string("-"));
+    }
+    return "results:" + ids;
+  }();
   EXPECT_EQ(tab, bridge_->FindTabForOpenTabStableId(result->item.stable_id));
 }
 
@@ -194,7 +222,7 @@ TEST_F(SessionBridgeTest, NewTabPageNeverRebindsToSavedGenericPage) {
 
   AddTab(browser(), new_tab_url);
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetTabAtIndex(0);
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
   EXPECT_EQ(workspace_id, bridge_->GetWorkspaceForTab(tab));
@@ -212,14 +240,60 @@ TEST_F(SessionBridgeTest,
 
   AddTab(browser(), GURL(chrome::kChromeUINewTabURL));
   tabs::TabInterface* const tab =
-      browser()->tab_strip_model()->GetTabAtIndex(0);
+      browser()->GetTabStripModel()->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   ASSERT_TRUE(bridge_->BindTreeNodeToTab(saved_new_tab, tab));
   task_environment()->RunUntilIdle();
 
-  EXPECT_EQ(1, browser()->tab_strip_model()->count());
+  EXPECT_EQ(1, browser()->GetTabStripModel()->count());
   EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(saved_new_tab.id));
   EXPECT_EQ(saved_new_tab.id, bridge_->FindTreeNodeIdForTab(tab));
+}
+
+TEST_F(SessionBridgeTest, ComputedPartitionPathMatchesTheLoadedPartition) {
+  // Handoff 010 R2: startup cleanup computes the directory instead of loading
+  // the partition; this pins the computation to content's own layout.
+  const session::WebsiteSessionBinding binding{
+      .context_id = base::Uuid::GenerateRandomV4()};
+  content::StoragePartition* partition = profile()->GetStoragePartition(
+      session::StoragePartitionConfigForWebsiteSession(profile(), binding));
+  ASSERT_TRUE(partition);
+  EXPECT_EQ(partition->GetPath(),
+            session::WebsiteSessionPartitionPath(profile()->GetPath(), binding));
+  EXPECT_TRUE(session::WebsiteSessionPartitionPath(
+                  profile()->GetPath(), session::WebsiteSessionBinding())
+                  .empty());
+}
+
+TEST_F(SessionBridgeTest, WorkspaceLevelIsChosenAtCreationAndDuplicated) {
+  const base::Uuid fallback_id =
+      workspace_service_->ordered_workspaces().front().id;
+  const std::optional<base::Uuid> shared_id =
+      bridge_->CreateWorkspace(u"Shared", u"S", std::nullopt);
+  ASSERT_TRUE(shared_id.has_value());
+  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(*shared_id));
+
+  const std::optional<base::Uuid> own_id = bridge_->CreateWorkspace(
+      u"Client", u"C", std::nullopt, /*own_website_sessions=*/true);
+  ASSERT_TRUE(own_id.has_value());
+  EXPECT_TRUE(bridge_->HasOwnWebsiteSessions(*own_id));
+  // Workspaces that existed before the first own one keep the default jar.
+  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(fallback_id));
+  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(*shared_id));
+
+  const std::optional<base::Uuid> copy_id =
+      bridge_->DuplicateWorkspace(*own_id, u"Client copy", u"C", std::nullopt);
+  ASSERT_TRUE(copy_id.has_value());
+  EXPECT_TRUE(bridge_->HasOwnWebsiteSessions(*copy_id));
+  // A duplicate starts with a fresh, empty session of its own.
+  EXPECT_NE(
+      session::FindWebsiteSessionBinding(profile()->GetPrefs(), *own_id),
+      session::FindWebsiteSessionBinding(profile()->GetPrefs(), *copy_id));
+
+  const std::optional<base::Uuid> shared_copy = bridge_->DuplicateWorkspace(
+      *shared_id, u"Shared copy", u"S", std::nullopt);
+  ASSERT_TRUE(shared_copy.has_value());
+  EXPECT_FALSE(bridge_->HasOwnWebsiteSessions(*shared_copy));
 }
 
 TEST_F(SessionBridgeTest,
@@ -247,7 +321,7 @@ TEST_F(SessionBridgeTest,
       browser(), *created_id, WorkspaceActivationSource::kKeyboard));
   AddTab(browser(), GURL("https://example.test/client-work"));
   task_environment()->RunUntilIdle();
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetActiveTab();
+  tabs::TabInterface* tab = browser()->GetTabStripModel()->GetActiveTab();
   ASSERT_TRUE(tab);
   EXPECT_EQ(bridge_->GetWorkspaceForTab(tab), *created_id);
 
@@ -267,7 +341,9 @@ TEST_F(SessionBridgeTest, DuplicatesWorkspaceTreeAndPlacesItAfterSource) {
   const base::Uuid source_id =
       workspace_service_->ordered_workspaces().front().id;
   const GURL source_url("https://example.test/duplicated-workspace");
-  const tab_tree::TreeNode source_page = MakeSavedPage(source_id, source_url);
+  tab_tree::TreeNode source_page = MakeSavedPage(source_id, source_url);
+  // The store records a saved page's Home on creation; expect it.
+  tab_tree::InitializeSavedHome(&source_page);
   ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
             bridge_->tab_tree_store()->CreateNode(source_page));
 
@@ -315,10 +391,12 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
 
   AddTab(browser(), url);
   task_environment()->RunUntilIdle();
-  TabStripModel* model = browser()->tab_strip_model();
+  TabStripModel* model = browser()->GetTabStripModel();
   tabs::TabInterface* tab = model->GetTabAtIndex(0);
   ASSERT_TRUE(tab);
   ASSERT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
+  const auto temporary_id = bridge_->FindSharedTreeNodeIdForTab(tab);
+  ASSERT_TRUE(temporary_id.has_value());
   size_t presentation_change_count = 0;
   base::CallbackListSubscription presentation_subscription =
       bridge_->AddRuntimePresentationChangedCallback(base::BindRepeating(
@@ -328,6 +406,7 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
   const std::optional<base::Uuid> saved_id =
       bridge_->SaveTabAtWorkspaceRoot(browser(), tab);
   ASSERT_TRUE(saved_id.has_value());
+  EXPECT_EQ(temporary_id, saved_id);
   EXPECT_EQ(presentation_change_count, 1u);
   EXPECT_EQ(saved_id, bridge_->FindTreeNodeIdForTab(tab));
 
@@ -346,6 +425,14 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
                                                    std::nullopt, &root_nodes));
   ASSERT_EQ(root_nodes.size(), 1u);
   EXPECT_EQ(root_nodes.front().id, *saved_id);
+
+  EXPECT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            bridge_->MakeTabTemporary(tab));
+  EXPECT_EQ(presentation_change_count, 2u);
+  EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(tab).has_value());
+  EXPECT_EQ(saved_id, bridge_->FindSharedTreeNodeIdForTab(tab));
+  EXPECT_EQ(saved_id, bridge_->SaveTabAtWorkspaceRoot(browser(), tab));
+  EXPECT_EQ(presentation_change_count, 3u);
 
   const std::vector<RankedCommand> results =
       command_service->Query(u"save-current-tab", 10);
@@ -384,7 +471,13 @@ TEST_F(SessionBridgeTest, SavesTemporaryTabAtWorkspaceRootIdempotently) {
   task_environment()->RunUntilIdle();
   tabs::TabInterface* reopened = model->GetTabAtIndex(0);
   ASSERT_TRUE(reopened);
-  EXPECT_EQ(*saved_id, bridge_->FindTreeNodeIdForTab(reopened));
+  // Independently reopening the same URL is a new normal tab, not an implicit
+  // activation of the saved page. Only explicit identity can reuse that page.
+  EXPECT_FALSE(bridge_->FindTreeNodeIdForTab(reopened).has_value());
+  const auto reopened_id = bridge_->FindSharedTreeNodeIdForTab(reopened);
+  ASSERT_TRUE(reopened_id.has_value());
+  EXPECT_NE(saved_id, reopened_id);
+  EXPECT_EQ(nullptr, bridge_->FindTabByTreeNodeId(*saved_id));
 }
 
 TEST_F(SessionBridgeTest, PublishesNestedSavedPagesToCommandBarIndex) {
@@ -453,13 +546,15 @@ TEST_F(SessionBridgeTest, PublishesNestedSavedPagesToCommandBarIndex) {
 }
 
 TEST_F(SessionBridgeTest, RemovesUrlUserinfoBeforeCommandIndexing) {
-  CommandService* command_service =
+  CommandService *command_service =
       CommandServiceFactory::GetForProfile(profile());
   ASSERT_TRUE(command_service);
   ASSERT_FALSE(workspace_service_->ordered_workspaces().empty());
 
+  // These credential-only sentinels cannot be fuzzy subsequences of the safe
+  // URL/path. Generic "username" can match across repeated sanitized fields.
   const GURL credential_url(
-      "https://username:password@example.test/private-document");
+      "https://userinfo-qzx987:secret-qzx654@example.test/private-document");
   tab_tree::TreeNode page = MakeSavedPage(
       workspace_service_->ordered_workspaces().front().id, credential_url);
   page.title = base::UTF8ToUTF16(credential_url.spec());
@@ -470,7 +565,7 @@ TEST_F(SessionBridgeTest, RemovesUrlUserinfoBeforeCommandIndexing) {
   const std::vector<RankedCommand> results =
       command_service->Query(u"private-document", 10u);
   const auto result =
-      std::ranges::find_if(results, [&page](const RankedCommand& ranked) {
+      std::ranges::find_if(results, [&page](const RankedCommand &ranked) {
         return ranked.item.type == CommandItemType::kSavedPage &&
                ranked.item.stable_id == page.id.AsLowercaseString();
       });
@@ -479,173 +574,13 @@ TEST_F(SessionBridgeTest, RemovesUrlUserinfoBeforeCommandIndexing) {
   EXPECT_EQ(result->item.url, safe_url);
   EXPECT_EQ(result->item.title, base::UTF8ToUTF16(safe_url.spec()));
   EXPECT_EQ(result->item.secondary_text, base::UTF8ToUTF16(safe_url.spec()));
-  EXPECT_TRUE(command_service->Query(u"username", 10u).empty());
-  EXPECT_TRUE(command_service->Query(u"password", 10u).empty());
-}
-
-TEST_F(SessionBridgeTest, TracksNativeWindowTabContentsAndWorkspace) {
-  ASSERT_EQ(1u, bridge_->tracked_window_count());
-  const std::optional<base::Uuid> window_id = bridge_->GetWindowId(browser());
-  ASSERT_TRUE(window_id.has_value());
-  EXPECT_TRUE(window_id->is_valid());
-  EXPECT_EQ(browser(), bridge_->FindWindowById(*window_id));
-
-  tab_tree::Workspace primary = MakeWorkspace(u"Primary", "a");
-  tab_tree::Workspace secondary = MakeWorkspace(u"Secondary", "b");
-  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({secondary, primary}));
-  task_environment()->RunUntilIdle();
-  EXPECT_EQ(primary.id, bridge_->GetActiveWorkspaceForWindow(browser()));
-  EXPECT_TRUE(bridge_->SetActiveWorkspaceForWindow(
-      browser(), secondary.id, WorkspaceActivationSource::kKeyboard));
-  EXPECT_EQ(secondary.id, bridge_->GetActiveWorkspaceForWindow(browser()));
-
-  const GURL url("https://example.test/runtime");
-  AddTab(browser(), url);
-  TabStripModel* model = browser()->tab_strip_model();
-  tabs::TabInterface* tab = model->GetTabAtIndex(0);
-  ASSERT_TRUE(tab);
-  content::WebContents* contents = tab->GetContents();
-  ASSERT_TRUE(contents);
-  EXPECT_EQ(1u, bridge_->tracked_tab_count());
-  EXPECT_EQ(model, bridge_->FindTabStripModelForTab(tab));
-  EXPECT_EQ(contents, bridge_->FindWebContentsForTab(tab));
-  EXPECT_EQ(tab, bridge_->FindTabByWebContents(contents));
-
-  tab_tree::TreeNode node = MakeSavedPage(secondary.id, url);
-  ASSERT_TRUE(bridge_->BindTreeNodeToTab(node, tab));
-  EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(node.id));
-  EXPECT_EQ(node.id, bridge_->FindTreeNodeIdForTab(tab));
-
-  tab_tree::TreeNode duplicate = node;
-  AddTab(browser(), GURL("https://example.test/other"));
-  tabs::TabInterface* other_tab = model->GetTabAtIndex(0);
-  ASSERT_NE(tab, other_tab);
-  EXPECT_FALSE(bridge_->BindTreeNodeToTab(duplicate, other_tab));
-
-  tab_tree::TreeNode folder = MakeSavedPage(secondary.id, url);
-  folder.type = tab_tree::TreeNodeType::kFolder;
-  folder.url = GURL();
-  EXPECT_FALSE(bridge_->BindTreeNodeToTab(folder, other_tab));
-
-  model->DetachAndDeleteWebContentsAt(model->GetIndexOfTab(tab));
-  EXPECT_EQ(nullptr, bridge_->FindTabByTreeNodeId(node.id));
-  EXPECT_EQ(1u, bridge_->tracked_tab_count());
-}
-
-TEST_F(SessionBridgeTest, BindingFollowsDiscardAndNativeWindowMove) {
-  tab_tree::Workspace workspace = MakeWorkspace(u"Workspace", "a");
-  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({workspace}));
-  task_environment()->RunUntilIdle();
-
-  const GURL url("https://example.test/movable");
-  AddTab(browser(), url);
-  TabStripModel* first_model = browser()->tab_strip_model();
-  tabs::TabInterface* tab = first_model->GetTabAtIndex(0);
-  ASSERT_TRUE(tab);
-  content::WebContents* old_contents = tab->GetContents();
-  tab_tree::TreeNode node = MakeSavedPage(workspace.id, url);
-  ASSERT_TRUE(bridge_->BindTreeNodeToTab(node, tab));
-
-  std::unique_ptr<content::WebContents> replacement =
-      content::WebContentsTester::CreateTestWebContents(profile(), nullptr);
-  content::WebContents* replacement_ptr = replacement.get();
-  std::unique_ptr<content::WebContents> discarded =
-      first_model->DiscardWebContentsAt(0, std::move(replacement));
-  ASSERT_EQ(old_contents, discarded.get());
-  EXPECT_EQ(nullptr, bridge_->FindTabByWebContents(old_contents));
-  EXPECT_EQ(tab, bridge_->FindTabByWebContents(replacement_ptr));
-  EXPECT_EQ(replacement_ptr, bridge_->FindWebContentsForTab(tab));
-  EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(node.id));
-
-  Browser::CreateParams params(profile(), /*user_gesture=*/true);
-  std::unique_ptr<Browser> second_browser =
-      CreateBrowserWithTestWindowForParams(params);
-  ASSERT_TRUE(second_browser);
-  ASSERT_EQ(2u, bridge_->tracked_window_count());
-  const std::optional<base::Uuid> first_window_id =
-      bridge_->GetWindowId(browser());
-  const std::optional<base::Uuid> second_window_id =
-      bridge_->GetWindowId(second_browser.get());
-  ASSERT_TRUE(first_window_id.has_value());
-  ASSERT_TRUE(second_window_id.has_value());
-  EXPECT_NE(first_window_id, second_window_id);
-  TabStripModel* second_model = second_browser->tab_strip_model();
-
-  std::unique_ptr<tabs::TabModel> detached =
-      first_model->DetachTabAtForInsertion(0);
-  ASSERT_TRUE(detached);
-  second_model->InsertDetachedTabAt(0, std::move(detached),
-                                    AddTabTypes::ADD_ACTIVE);
-
-  EXPECT_EQ(tab, second_model->GetTabAtIndex(0));
-  EXPECT_EQ(second_model, bridge_->FindTabStripModelForTab(tab));
-  EXPECT_EQ(replacement_ptr, bridge_->FindWebContentsForTab(tab));
-  EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(node.id));
-  EXPECT_EQ(node.id, bridge_->FindTreeNodeIdForTab(tab));
-
-  // TestBrowserWindow has no BrowserView to perform the production close
-  // sequence. Empty the auxiliary window before its local Browser owner is
-  // destroyed, matching Chromium's multi-window unit-test contract.
-  second_model->CloseAllTabs();
-}
-
-TEST_F(SessionBridgeTest, DroppedDetachedTabIsRetiredFailClosed) {
-  tab_tree::Workspace workspace = MakeWorkspace(u"Workspace", "a");
-  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({workspace}));
-  task_environment()->RunUntilIdle();
-
-  const GURL url("https://example.test/dropped-detach");
-  AddTab(browser(), url);
-  TabStripModel* model = browser()->tab_strip_model();
-  tabs::TabInterface* tab = model->GetTabAtIndex(0);
-  ASSERT_TRUE(tab);
-  tab_tree::TreeNode node = MakeSavedPage(workspace.id, url);
-  ASSERT_TRUE(bridge_->BindTreeNodeToTab(node, tab));
-
-  std::unique_ptr<tabs::TabModel> detached = model->DetachTabAtForInsertion(0);
-  ASSERT_TRUE(detached);
-  EXPECT_EQ(1u, bridge_->tracked_tab_count());
-  detached.reset();
-
-  // Retirement is posted because a native cross-window move may reinsert the
-  // same TabModel synchronously. Reverse lookups must nevertheless fail closed
-  // as soon as the detached owner dies, rather than exposing its freed
-  // TabInterface until the posted bookkeeping cleanup runs.
-  EXPECT_EQ(nullptr, bridge_->FindTabByTreeNodeId(node.id));
-  task_environment()->RunUntilIdle();
-
-  EXPECT_EQ(0u, bridge_->tracked_tab_count());
-  EXPECT_EQ(nullptr, bridge_->FindTabByTreeNodeId(node.id));
-}
-
-TEST_F(SessionBridgeTest, ShutdownDetachesAndFailsClosed) {
-  tab_tree::Workspace workspace = MakeWorkspace(u"Workspace", "a");
-  ASSERT_TRUE(workspace_service_->ReplaceWorkspaces({workspace}));
-  task_environment()->RunUntilIdle();
-  AddTab(browser(), GURL("https://example.test/before-shutdown"));
-  tabs::TabInterface* tab = browser()->tab_strip_model()->GetTabAtIndex(0);
-  ASSERT_TRUE(tab);
-  tab_tree::TreeNode node =
-      MakeSavedPage(workspace.id, tab->GetContents()->GetLastCommittedURL());
-  ASSERT_TRUE(bridge_->BindTreeNodeToTab(node, tab));
-  base::WeakPtr<sync::ProfileSyncUiBridge> sync_bridge =
-      bridge_->GetWeakPtrForSync();
-  ASSERT_TRUE(sync_bridge);
-
-  bridge_->Shutdown();
-  EXPECT_FALSE(sync_bridge);
-  EXPECT_FALSE(bridge_->is_operational());
-  EXPECT_EQ(0u, bridge_->tracked_window_count());
-  EXPECT_EQ(0u, bridge_->tracked_tab_count());
-  EXPECT_EQ(nullptr, bridge_->FindTabByTreeNodeId(node.id));
-  EXPECT_EQ(std::nullopt, bridge_->GetWindowId(browser()));
-  EXPECT_FALSE(bridge_->SetActiveWorkspaceForWindow(
-      browser(), workspace.id, WorkspaceActivationSource::kKeyboard));
-
-  AddTab(browser(), GURL("https://example.test/after-shutdown"));
-  EXPECT_EQ(0u, bridge_->tracked_tab_count());
-  EXPECT_FALSE(bridge_->BindTreeNodeToTab(
-      node, browser()->tab_strip_model()->GetTabAtIndex(0)));
+  ASSERT_EQ(2u, result->item.keywords.size());
+  EXPECT_EQ(base::UTF8ToUTF16(safe_url.spec()), result->item.keywords[0]);
+  EXPECT_EQ(workspace_service_->ordered_workspaces().front().name + u" / " +
+                base::UTF8ToUTF16(safe_url.spec()),
+            result->item.keywords[1]);
+  EXPECT_TRUE(command_service->Query(u"userinfo-qzx987", 10u).empty());
+  EXPECT_TRUE(command_service->Query(u"secret-qzx654", 10u).empty());
 }
 
 }  // namespace

@@ -3,7 +3,6 @@
 
 import 'chrome://resources/cr_elements/cr_view_manager/cr_view_manager.js';
 import 'chrome://resources/cr_elements/cr_button/cr_button.js';
-import 'chrome://resources/cr_elements/cr_checkbox/cr_checkbox.js';
 import 'chrome://resources/cr_elements/cr_input/cr_input.js';
 import {WebUiListenerMixinLit} from 'chrome://resources/cr_elements/web_ui_listener_mixin_lit.js';
 import {sendWithPromise} from 'chrome://resources/js/cr.js';
@@ -26,54 +25,22 @@ import type {Route, SettingsRoutes} from '../router.js';
 import {SearchableViewContainerMixinLit} from '../settings_page/searchable_view_container_mixin_lit.js';
 
 import {getCss} from './ahoi_page.css.js';
+import './ahoi_link_routing.js';
+import './ahoi_shortcuts.js';
+
 import {getHtml} from './ahoi_page.html.js';
+import type {RemoteControlStatusResponse, BrowserSettingsSyncStatusResponse,
+  PortableExportOptionsResponse, PortableExportPreviewResponse,
+  PortableImportPreviewResponse, SyncControlsStatusResponse} from './ahoi_page_types.js';
 
 type PrefObject<T> = chrome.settingsPrivate.PrefObject<T>;
 
-export interface ArcImportStats {
-  sourceWorkspaces: number;
-  sourceItems: number;
-  workspaces: number;
-  folders: number;
-  pages: number;
-  splits: number;
-  degradedSplits: number;
-  topApps: number;
-  unsafeUrls: number;
-  unsupportedItems: number;
-}
-
-export interface ArcImportPreviewResponse {
-  status: string;
-  snapshotToken: string;
-  stats: ArcImportStats;
-  conflictingWorkspaces: number;
-  alreadyImported: boolean;
-  sourceInUse: boolean;
-  targetWorkspaces: string[];
-  profiles: string[];
-}
-
-export interface ArcImportCommitResponse {
-  status: string;
-  stats: ArcImportStats;
-  renamedWorkspaces: number;
-  skippedWorkspaces: number;
-  mergedWorkspaces: number;
-  reconstructedSplits: number;
-  approximatedFourPaneRatios: number;
-}
-
-export interface RemoteControlStatusResponse {
-  action: string;
-  prerequisite: string;
-  syncEnabled: boolean;
-  cloudKitAvailable: boolean;
-  canPair: boolean;
-  canEnable: boolean;
-  enabled: boolean;
-  approvedDeviceIds: string[];
-}
+export type {RemoteControlStatusResponse, BrowserSettingsSyncStatusResponse,
+  PortableExportOptionsResponse, PortableExportPreviewResponse,
+  PortableImportPreviewResponse, SyncControlsStatusResponse, LinkRoutingMode,
+  LinkRoutingRule, LinkRoutingStatusResponse, ShortcutCommandItem,
+  ShortcutLabels, ShortcutStatusResponse, LinkRoutingExampleResponse,
+  LinkRoutingDraft} from './ahoi_page_types.js';
 
 export interface SettingsAhoiPageElement {
   $: {
@@ -107,19 +74,27 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       floatingNavigationDelayOptions_: {type: Array},
       historyRetentionOptions_: {type: Array},
       syncEnabledPref_: {type: Object},
+      browserSettingsSyncStatus_: {type: Object},
+      browserSettingsSyncActionPending_: {type: Boolean},
+      browserSettingsSyncActionFailed_: {type: Boolean},
+      syncControlsStatus_: {type: Object},
+      syncControlsActionPending_: {type: Boolean},
+      syncControlsActionFailed_: {type: Boolean},
       remoteControlStatus_: {type: Object},
       remoteControlDeviceId_: {type: String},
       remoteControlPublicKey_: {type: String},
       remoteControlActionPending_: {type: Boolean},
-      arcImportStage_: {type: String},
-      arcImportPreview_: {type: Object},
-      arcImportResult_: {type: Object},
-      arcConflictPolicy_: {type: String},
-      arcImportSidebar_: {type: Boolean},
-      arcReconstructSplits_: {type: Boolean},
-      arcSelectedProfiles_: {type: Array},
-      arcBackupConfirmed_: {type: Boolean},
-      arcCommitConfirmed_: {type: Boolean},
+      portableExportOptions_: {type: Object},
+      portableSelectedWorkspaceIds_: {type: Array},
+      portableIncludeTemporary_: {type: Boolean},
+      portableIncludeArchives_: {type: Boolean},
+      portableExportPreview_: {type: Object},
+      portableExportStatus_: {type: String},
+      portableExportPending_: {type: Boolean},
+      portableImportPreview_: {type: Object},
+      portableImportSelectedWorkspaceIds_: {type: Array},
+      portableImportStatus_: {type: String},
+      portableImportPending_: {type: Boolean},
     };
   }
 
@@ -132,20 +107,32 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       PrefObject<boolean>|undefined = undefined;
   protected accessor syncEnabledPref_: PrefObject<boolean>|undefined =
       undefined;
+  protected accessor browserSettingsSyncStatus_:
+      BrowserSettingsSyncStatusResponse|null = null;
+  protected accessor browserSettingsSyncActionPending_: boolean = false;
+  protected accessor browserSettingsSyncActionFailed_: boolean = false;
+  protected accessor syncControlsStatus_: SyncControlsStatusResponse|null = null;
+  protected accessor syncControlsActionPending_: boolean = false;
+  protected accessor syncControlsActionFailed_: boolean = false;
   protected accessor remoteControlStatus_: RemoteControlStatusResponse|null =
       null;
   protected accessor remoteControlDeviceId_: string = '';
   protected accessor remoteControlPublicKey_: string = '';
   protected accessor remoteControlActionPending_: boolean = false;
-  protected accessor arcImportStage_: string = 'idle';
-  protected accessor arcImportPreview_: ArcImportPreviewResponse|null = null;
-  protected accessor arcImportResult_: ArcImportCommitResponse|null = null;
-  protected accessor arcConflictPolicy_: string = 'rename';
-  protected accessor arcImportSidebar_: boolean = true;
-  protected accessor arcReconstructSplits_: boolean = true;
-  protected accessor arcSelectedProfiles_: string[] = [];
-  protected accessor arcBackupConfirmed_: boolean = false;
-  protected accessor arcCommitConfirmed_: boolean = false;
+  protected accessor portableExportOptions_: PortableExportOptionsResponse|null =
+      null;
+  protected accessor portableSelectedWorkspaceIds_: string[] = [];
+  protected accessor portableIncludeTemporary_: boolean = false;
+  protected accessor portableIncludeArchives_: boolean = false;
+  protected accessor portableExportPreview_: PortableExportPreviewResponse|null =
+      null;
+  protected accessor portableExportStatus_: string = '';
+  protected accessor portableExportPending_: boolean = false;
+  protected accessor portableImportPreview_: PortableImportPreviewResponse|null =
+      null;
+  protected accessor portableImportSelectedWorkspaceIds_: string[] = [];
+  protected accessor portableImportStatus_: string = '';
+  protected accessor portableImportPending_: boolean = false;
 
   protected accessor floatingNavigationDelayOptions_: DropdownMenuOptionList = [
     {value: 400, name: loadTimeData.getString('ahoiNavigationDelayFast')},
@@ -170,10 +157,46 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
   override connectedCallback() {
     super.connectedCallback();
     this.addWebUiListener(
+        'ahoi-browser-settings-sync-status-changed',
+        (status: BrowserSettingsSyncStatusResponse) => {
+          this.applyBrowserSettingsSyncStatus_(status);
+        });
+    this.addWebUiListener(
         'ahoi-remote-control-status-changed',
         (status: RemoteControlStatusResponse) => {
           this.applyRemoteControlStatus_(status);
         });
+    this.addWebUiListener(
+        'ahoi-sync-controls-status-changed',
+        (status: SyncControlsStatusResponse) => {
+          this.applySyncControlsStatus_(status);
+        });
+    this.addWebUiListener(
+        'ahoi-portable-export-result', (result: {status: string}) => {
+          this.portableExportPending_ = false;
+          this.portableExportStatus_ = result.status;
+          if (result.status === 'saved') {
+            this.portableExportPreview_ = null;
+          }
+        });
+    this.addWebUiListener(
+      'ahoi-portable-import-result',
+      (result: PortableImportPreviewResponse) => {
+        this.portableImportPending_ = false;
+        this.portableImportPreview_ =
+            result.status === 'preview' ? result : null;
+        this.portableImportSelectedWorkspaceIds_ =
+            result.status === 'preview' ?
+            (result.workspaces || [])
+                .filter(workspace => workspace.destination !== 'conflict')
+                .map(workspace => workspace.id) :
+            [];
+        this.portableImportStatus_ = result.status;
+        if (result.status === 'imported') {
+          this.portableExportPreview_ = null;
+          void this.refreshPortableExportOptions_();
+        }
+      });
     this.mirrorPrefs({
       'ahoi.developer_toolkit.enabled': 'developerToolkitEnabledPref_',
       'ahoi.navigation.floating_auto_hide_enabled':
@@ -181,6 +204,340 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       'ahoi.sync.enabled': 'syncEnabledPref_',
     });
     void this.refreshRemoteControlStatus_();
+    void this.refreshBrowserSettingsSyncStatus_();
+    void this.refreshSyncControlsStatus_();
+    void this.refreshPortableExportOptions_();
+  }
+
+  private async refreshPortableExportOptions_() {
+    try {
+      this.portableExportOptions_ =
+          await sendWithPromise<PortableExportOptionsResponse>(
+              'ahoiGetPortableExportOptions');
+    } catch {
+      this.portableExportStatus_ = 'failed';
+    }
+  }
+
+  protected onPortableWorkspaceChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const id = checkbox.dataset['workspaceId'];
+    if (!id) {
+      return;
+    }
+    const selected = new Set(this.portableSelectedWorkspaceIds_);
+    checkbox.checked ? selected.add(id) : selected.delete(id);
+    this.portableSelectedWorkspaceIds_ = [...selected];
+    this.portableExportPreview_ = null;
+    this.portableExportStatus_ = '';
+  }
+
+  protected onPortableTemporaryChange_(event: Event) {
+    this.portableIncludeTemporary_ =
+        (event.currentTarget as HTMLInputElement).checked;
+    this.portableExportPreview_ = null;
+    this.portableExportStatus_ = '';
+  }
+
+  protected onPortableArchivesChange_(event: Event) {
+    this.portableIncludeArchives_ =
+        (event.currentTarget as HTMLInputElement).checked;
+    this.portableExportPreview_ = null;
+    this.portableExportStatus_ = '';
+  }
+
+  protected async onPortablePreviewClick_() {
+    if (this.portableExportPending_ ||
+        this.portableSelectedWorkspaceIds_.length === 0) {
+      return;
+    }
+    this.portableExportPending_ = true;
+    this.portableExportPreview_ = null;
+    this.portableExportStatus_ = '';
+    try {
+      const preview = await sendWithPromise<PortableExportPreviewResponse>(
+          'ahoiPreparePortableExport', this.portableSelectedWorkspaceIds_,
+          this.portableIncludeTemporary_, this.portableIncludeArchives_);
+      this.portableExportPreview_ = preview.status === 'ready' ? preview : null;
+      this.portableExportStatus_ = preview.status === 'ready' ? '' : 'failed';
+    } catch {
+      this.portableExportStatus_ = 'failed';
+    } finally {
+      this.portableExportPending_ = false;
+    }
+  }
+
+  protected async onPortableSaveClick_() {
+    if (this.portableExportPending_ || !this.portableExportPreview_?.token) {
+      return;
+    }
+    this.portableExportPending_ = true;
+    this.portableExportStatus_ = '';
+    try {
+      const result = await sendWithPromise<{status: string}>(
+          'ahoiSavePortableExport', this.portableExportPreview_.token);
+      if (result.status !== 'dialog') {
+        this.portableExportPending_ = false;
+        this.portableExportStatus_ = 'failed';
+      }
+    } catch {
+      this.portableExportPending_ = false;
+      this.portableExportStatus_ = 'failed';
+    }
+  }
+
+  protected portableExportStatusText_(): string {
+    const labels = this.portableExportOptions_?.labels;
+    switch (this.portableExportStatus_) {
+      case 'saved':
+        return labels?.saved || '';
+      case 'cancelled':
+        return labels?.cancelled || '';
+      case 'failed':
+        return labels?.failed || '';
+      default:
+        return '';
+    }
+  }
+
+  protected async onPortableImportClick_() {
+    if (this.portableImportPending_ || this.portableExportPending_) {
+      return;
+    }
+    this.portableImportPending_ = true;
+    this.portableImportPreview_ = null;
+    this.portableImportSelectedWorkspaceIds_ = [];
+    this.portableImportStatus_ = '';
+    try {
+      const result = await sendWithPromise<{status: string}>(
+          'ahoiOpenPortableImport');
+      if (result.status !== 'dialog') {
+        this.portableImportPending_ = false;
+        this.portableImportStatus_ = 'failed';
+      }
+    } catch {
+      this.portableImportPending_ = false;
+      this.portableImportStatus_ = 'failed';
+    }
+  }
+
+  protected onPortableImportWorkspaceChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const id = checkbox.dataset['workspaceId'];
+    if (!id) {
+      return;
+    }
+    const selected = new Set(this.portableImportSelectedWorkspaceIds_);
+    checkbox.checked ? selected.add(id) : selected.delete(id);
+    this.portableImportSelectedWorkspaceIds_ = [...selected];
+  }
+
+  protected canCommitPortableImport_(): boolean {
+    if (this.portableImportPending_ || !this.portableImportPreview_?.token ||
+        !this.portableImportPreview_.canImport ||
+        this.portableImportSelectedWorkspaceIds_.length === 0) {
+      return false;
+    }
+    const selected = new Set(this.portableImportSelectedWorkspaceIds_);
+    const chosen = this.portableImportPreview_.workspaces?.filter(
+        workspace => selected.has(workspace.id)) || [];
+    return selected.size === this.portableImportSelectedWorkspaceIds_.length &&
+        chosen.length === selected.size &&
+        chosen.every(workspace => workspace.destination !== 'conflict');
+  }
+
+  protected async onPortableCommitClick_() {
+    if (!this.canCommitPortableImport_()) {
+      return;
+    }
+    this.portableImportPending_ = true;
+    this.portableImportStatus_ = '';
+    try {
+      const result = await sendWithPromise<{status: string}>(
+          'ahoiCommitPortableImport', this.portableImportPreview_!.token,
+          this.portableImportSelectedWorkspaceIds_);
+      this.portableImportStatus_ = result.status;
+      this.portableImportPreview_ = null;
+      this.portableImportSelectedWorkspaceIds_ = [];
+      if (result.status === 'imported' || result.status === 'noChanges') {
+        this.portableExportPreview_ = null;
+        void this.refreshPortableExportOptions_();
+      }
+    } catch {
+      this.portableImportStatus_ = 'commitFailed';
+    } finally {
+      this.portableImportPending_ = false;
+    }
+  }
+
+  protected portableImportStatusText_(): string {
+    const labels = this.portableExportOptions_?.labels;
+    switch (this.portableImportStatus_) {
+      case 'preview':
+        return labels?.importReady || '';
+      case 'cancelled':
+        return labels?.cancelled || '';
+      case 'failed':
+        return labels?.importFailed || '';
+      case 'targetUnavailable':
+        return labels?.importTargetUnavailable || '';
+      case 'imported':
+        return labels?.imported || '';
+      case 'noChanges':
+        return labels?.noChanges || '';
+      case 'conflict':
+        return labels?.importChanged || '';
+      case 'commitFailed':
+        return labels?.importCommitFailed || '';
+      default:
+        return '';
+    }
+  }
+
+  private applySyncControlsStatus_(status: SyncControlsStatusResponse) {
+    this.syncControlsStatus_ = status;
+    this.syncControlsActionFailed_ = status.action === 'blocked';
+  }
+
+  private async refreshSyncControlsStatus_() {
+    try {
+      this.applySyncControlsStatus_(
+          await sendWithPromise<SyncControlsStatusResponse>(
+              'ahoiGetSyncControlsStatus'));
+    } catch {
+      this.syncControlsStatus_ = null;
+      this.syncControlsActionFailed_ = true;
+    }
+  }
+
+  private async runSyncControlAction_(
+      action: string, value?: boolean|string) {
+    if (this.syncControlsActionPending_ || !this.syncControlsStatus_) {
+      return;
+    }
+    this.syncControlsActionPending_ = true;
+    this.syncControlsActionFailed_ = false;
+    try {
+      const status = value === undefined ?
+          await sendWithPromise<SyncControlsStatusResponse>(
+              'ahoiSyncControlAction', action) :
+          await sendWithPromise<SyncControlsStatusResponse>(
+              'ahoiSyncControlAction', action, value);
+      this.applySyncControlsStatus_(status);
+    } catch {
+      await this.refreshSyncControlsStatus_();
+      this.syncControlsActionFailed_ = true;
+    } finally {
+      this.syncControlsActionPending_ = false;
+    }
+  }
+
+  protected onSyncNowClick_() {
+    void this.runSyncControlAction_('syncNow');
+  }
+
+  protected onRetrySyncKeyClick_() {
+    void this.runSyncControlAction_('retryKey');
+  }
+
+  protected onExtensionSetupChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const enabled = checkbox.checked;
+    checkbox.checked = this.syncControlsStatus_?.extensionSetupEnabled ?? false;
+    void this.runSyncControlAction_('extensionSetup', enabled);
+  }
+
+  protected onExtensionSettingsChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const enabled = checkbox.checked;
+    checkbox.checked = this.syncControlsStatus_?.extensionSettingsEnabled ?? false;
+    void this.runSyncControlAction_('extensionSettings', enabled);
+  }
+
+  protected onExtensionRetryClick_(event: Event) {
+    const id = (event.currentTarget as HTMLElement).dataset['extensionId'];
+    if (id) {
+      void this.runSyncControlAction_('retryExtension', id);
+    }
+  }
+
+  protected onBookmarkSyncClick_() {
+    if (this.syncControlsStatus_) {
+      void this.runSyncControlAction_(
+          'bookmarkSync', !this.syncControlsStatus_.bookmarkSyncEnabled);
+    }
+  }
+
+  protected onAccountRecoveryUploadClick_() {
+    void this.runSyncControlAction_('confirmAccount', true);
+  }
+
+  protected onAccountRecoveryWithoutUploadClick_() {
+    void this.runSyncControlAction_('confirmAccount', false);
+  }
+
+  protected onZoneRecoveryClick_() {
+    void this.runSyncControlAction_('recoverZone');
+  }
+
+  private applyBrowserSettingsSyncStatus_(
+      status: BrowserSettingsSyncStatusResponse) {
+    this.browserSettingsSyncStatus_ = status;
+    this.browserSettingsSyncActionFailed_ =
+        status.action === 'blocked' || status.action === 'invalidRequest';
+  }
+
+  private async refreshBrowserSettingsSyncStatus_() {
+    try {
+      this.applyBrowserSettingsSyncStatus_(
+          await sendWithPromise<BrowserSettingsSyncStatusResponse>(
+              'ahoiGetBrowserSettingsSyncStatus'));
+    } catch {
+      this.browserSettingsSyncStatus_ = null;
+      this.browserSettingsSyncActionFailed_ = true;
+    }
+  }
+
+  protected async onBrowserSettingsSyncChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLInputElement;
+    const enabled = checkbox.checked;
+    // The native control toggles before dispatching change. Restore the last
+    // authoritative state until the service replies, including a mixed state.
+    checkbox.checked = this.browserSettingsSyncStatus_?.selection === 'all';
+    checkbox.indeterminate =
+        this.browserSettingsSyncStatus_?.selection === 'some';
+    if (this.browserSettingsSyncActionPending_ ||
+        !this.browserSettingsSyncStatus_?.canChange) {
+      return;
+    }
+    this.browserSettingsSyncActionPending_ = true;
+    this.browserSettingsSyncActionFailed_ = false;
+    try {
+      this.applyBrowserSettingsSyncStatus_(
+          await sendWithPromise<BrowserSettingsSyncStatusResponse>(
+              'ahoiSetBrowserSettingsSyncEnabled', enabled));
+    } catch {
+      await this.refreshBrowserSettingsSyncStatus_();
+      this.browserSettingsSyncActionFailed_ = true;
+    } finally {
+      this.browserSettingsSyncActionPending_ = false;
+    }
+  }
+
+  protected browserSettingsSyncStatusText_(): string {
+    const status = this.browserSettingsSyncStatus_;
+    if (!status) {
+      return loadTimeData.getString(
+          this.browserSettingsSyncActionFailed_ ?
+              'ahoiBrowserSettingsSyncUnavailable' :
+              'ahoiBrowserSettingsSyncLoading');
+    }
+    if (status.supportedCount === 0) {
+      return loadTimeData.getString('ahoiBrowserSettingsSyncUnavailable');
+    }
+    return loadTimeData.getStringF(
+        'ahoiBrowserSettingsSyncSelection', status.selectedCount,
+        status.supportedCount);
   }
 
   private applyRemoteControlStatus_(status: RemoteControlStatusResponse) {
@@ -344,109 +701,6 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       prefService.setPrefValue(
           'ahoi.developer_toolbar.show_toolkit_button', true);
     }
-  }
-
-  protected async onArcDiscoverClick_() {
-    this.arcImportStage_ = 'discovering';
-    this.arcImportPreview_ = null;
-    this.arcImportResult_ = null;
-    this.arcBackupConfirmed_ = false;
-    this.arcCommitConfirmed_ = false;
-    try {
-      const preview = await sendWithPromise<ArcImportPreviewResponse>(
-          'ahoiArcDiscover');
-      this.arcImportPreview_ = preview;
-      this.arcSelectedProfiles_ = [...preview.profiles];
-      this.arcImportStage_ = preview.status === 'ok' ?
-          'preview' :
-          (preview.status === 'sourceInUse' ? 'sourceInUse' : 'error');
-    } catch {
-      this.arcImportStage_ = 'error';
-    }
-  }
-
-  protected async onArcCommitClick_() {
-    const preview = this.arcImportPreview_;
-    if (!preview || !this.canCommitArcImport_()) {
-      return;
-    }
-    this.arcImportStage_ = 'committing';
-    try {
-      const result = await sendWithPromise<ArcImportCommitResponse>(
-          'ahoiArcCommit', preview.snapshotToken, this.arcConflictPolicy_,
-          this.arcSelectedProfiles_, this.arcImportSidebar_,
-          this.arcReconstructSplits_, this.arcBackupConfirmed_,
-          this.arcCommitConfirmed_);
-      this.arcImportResult_ = result;
-      this.arcImportStage_ =
-          result.status === 'ok' || result.status === 'noChanges' ?
-          'done' :
-          (result.status === 'sourceInUse' ? 'sourceInUse' : 'error');
-    } catch {
-      this.arcImportStage_ = 'error';
-    }
-  }
-
-  protected onArcProfileChange_(event: Event) {
-    const checkbox = event.currentTarget as HTMLElement&{checked: boolean};
-    const profile = checkbox.dataset['profile'];
-    if (!profile) {
-      return;
-    }
-    const selected = new Set(this.arcSelectedProfiles_);
-    checkbox.checked ? selected.add(profile) : selected.delete(profile);
-    this.arcSelectedProfiles_ = [...selected];
-  }
-
-  protected onArcConflictPolicyChange_(event: Event) {
-    this.arcConflictPolicy_ = (event.currentTarget as HTMLSelectElement).value;
-  }
-
-  protected onArcImportSidebarChange_(event: Event) {
-    this.arcImportSidebar_ =
-        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
-  }
-
-  protected onArcReconstructSplitsChange_(event: Event) {
-    this.arcReconstructSplits_ =
-        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
-  }
-
-  protected onArcBackupConfirmedChange_(event: Event) {
-    this.arcBackupConfirmed_ =
-        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
-  }
-
-  protected onArcCommitConfirmedChange_(event: Event) {
-    this.arcCommitConfirmed_ =
-        (event.currentTarget as HTMLElement&{checked: boolean}).checked;
-  }
-
-  protected canCommitArcImport_(): boolean {
-    return this.arcImportStage_ === 'preview' && this.arcImportSidebar_ &&
-        this.arcSelectedProfiles_.length > 0 && this.arcBackupConfirmed_ &&
-        this.arcCommitConfirmed_;
-  }
-
-  protected arcStatusText_(): string {
-    if (this.arcImportStage_ === 'discovering') {
-      return loadTimeData.getString('ahoiArcImportDiscovering');
-    }
-    if (this.arcImportStage_ === 'committing') {
-      return loadTimeData.getString('ahoiArcImportCommitting');
-    }
-    if (this.arcImportStage_ === 'sourceInUse') {
-      return loadTimeData.getString('ahoiArcImportSourceInUse');
-    }
-    if (this.arcImportStage_ === 'done') {
-      return this.arcImportResult_?.status === 'noChanges' ?
-          loadTimeData.getString('ahoiArcImportNoChanges') :
-          loadTimeData.getString('ahoiArcImportSuccess');
-    }
-    if (this.arcImportStage_ === 'error') {
-      return loadTimeData.getString('ahoiArcImportError');
-    }
-    return '';
   }
 }
 

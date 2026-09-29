@@ -71,6 +71,12 @@ const char* StatusName(ArcImportStatus status) {
       return "sourceInUse";
     case ArcImportStatus::kBackupError:
       return "backupError";
+    case ArcImportStatus::kInsufficientDiskSpace:
+      return "insufficientDiskSpace";
+    case ArcImportStatus::kBackupQuotaExceeded:
+      return "backupQuotaExceeded";
+    case ArcImportStatus::kRecoveryRequired:
+      return "recoveryRequired";
   }
   return "transactionFailed";
 }
@@ -102,6 +108,14 @@ base::DictValue StatsValue(const ArcImportStats& stats) {
   value.Set("unsafeUrls", static_cast<int>(stats.skipped_unsafe_url_count));
   value.Set("unsupportedItems",
             static_cast<int>(stats.skipped_unsupported_item_count));
+  value.Set("unreachableItems",
+            static_cast<int>(stats.ignored_unreachable_item_count));
+  value.Set("deduplicatedWorkspaces",
+            static_cast<int>(stats.deduplicated_workspace_count));
+  value.Set("deduplicatedItems",
+            static_cast<int>(stats.deduplicated_item_count));
+  value.Set("deduplicatedSplits",
+            static_cast<int>(stats.deduplicated_split_count));
   return value;
 }
 
@@ -122,6 +136,9 @@ void ArcImportHandler::RegisterMessages() {
   web_ui()->RegisterMessageCallback(
       "ahoiArcCommit", base::BindRepeating(&ArcImportHandler::HandleCommit,
                                            base::Unretained(this)));
+  web_ui()->RegisterMessageCallback(
+      "ahoiArcRecover", base::BindRepeating(&ArcImportHandler::HandleRecover,
+                                            base::Unretained(this)));
 }
 
 void ArcImportHandler::HandleDiscover(const base::ListValue& args) {
@@ -139,6 +156,23 @@ void ArcImportHandler::HandleDiscover(const base::ListValue& args) {
   service->DiscoverAndPreview(base::BindOnce(&ArcImportHandler::ResolvePreview,
                                              weak_factory_.GetWeakPtr(),
                                              std::move(callback_id)));
+}
+
+void ArcImportHandler::HandleRecover(const base::ListValue& args) {
+  if (args.size() != 2u || !args[0].is_string() || !args[1].is_bool()) {
+    return;
+  }
+  AllowJavascript();
+  base::Value callback_id = args[0].Clone();
+  auto* service = ArcImportServiceFactory::GetForProfile(profile_);
+  if (!args[1].GetBool() || !service) {
+    ResolvePreview(std::move(callback_id),
+                   {.status = ArcImportStatus::kRecoveryRequired});
+    return;
+  }
+  service->RecoverFailedImport(base::BindOnce(&ArcImportHandler::ResolvePreview,
+                                              weak_factory_.GetWeakPtr(),
+                                              std::move(callback_id)));
 }
 
 void ArcImportHandler::HandleCommit(const base::ListValue& args) {

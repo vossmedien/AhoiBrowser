@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/workspace_structure_controller.h"
 
 #include <algorithm>
 #include <set>
@@ -9,7 +10,12 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/extensions/native_extension_setup_operation.h"
 #include "ahoi/browser/navigation/command_service.h"
+#include "ahoi/browser/session/isolated_profile_creation.h"
+#include "ahoi/browser/session/isolated_profile_registry.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
+#include "ahoi/browser/session/session_prefs.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
@@ -21,6 +27,8 @@
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/thread_pool.h"
 #include "base/time/time.h"
+#include "components/prefs/pref_service.h"
+#include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_collection.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -59,6 +67,7 @@ SessionBridge::SessionBridge(Profile* profile,
     return;
   }
   session_metadata_provider_registered_ = true;
+  InitializeNativeExtensionSetup();
   BeginTabTreeLoad();
 }
 
@@ -74,6 +83,7 @@ base::WeakPtr<sync::ProfileSyncUiBridge> SessionBridge::GetWeakPtrForSync() {
 
 void SessionBridge::Shutdown() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  workspace_structure_controller_.reset();
   if (session_metadata_provider_registered_) {
     session::UnregisterWorkspaceSessionMetadataProvider(profile_, this);
     session_metadata_provider_registered_ = false;
@@ -82,11 +92,18 @@ void SessionBridge::Shutdown() {
     return;
   }
 
+  CancelPendingSyncedTabTreeApply();
   persistence_timer_.Stop();
+  while (!pending_temporary_closes_.empty()) {
+    const auto node_id = *pending_temporary_closes_.begin();
+    DeleteClosedTemporaryPage(node_id);
+  }
   if (tab_tree_ready_ && persistence_enabled_ && tab_tree_store_) {
     PersistTabTreeNow();
   }
   shutting_down_ = true;
+  extension_setup_operations_.clear();
+  extension_user_settings_subscription_ = {};
   tab_tree_ready_ = false;
   workspace_reconciliation_scheduled_ = false;
   weak_ptr_factory_.InvalidateWeakPtrs();
@@ -120,6 +137,10 @@ void SessionBridge::Shutdown() {
   if (ready_callback_for_testing_) {
     std::move(ready_callback_for_testing_).Run();
   }
+  if (pending_tree_apply_completion_) {
+    std::move(pending_tree_apply_completion_)
+        .Run(tab_tree::TabTreeStore::Result::kCancelled);
+  }
 }
 
 bool SessionBridge::InitializeTabTree() {
@@ -129,15 +150,26 @@ bool SessionBridge::InitializeTabTree() {
     return false;
   }
 
-  const base::Time now = base::Time::Now();
+  // Canonical empty-profile Inbox, shared with Mobile. Loading an existing
+  // native store replaces this bootstrap unchanged; never rename/move old data.
+  const base::Time now = base::Time::UnixEpoch();
   tab_tree::Workspace workspace;
-  workspace.id = base::Uuid::GenerateRandomV4();
-  workspace.name = u"Ahoi";
-  workspace.icon = u"A";
-  workspace.sort_key = "00000000";
-  workspace.accent_argb = 0xff43d1bd;
+  workspace.id =
+      base::Uuid::ParseLowercase("83699047-edf8-580d-948d-9c37acc35cb6");
+  workspace.name = u"Inbox";
+  workspace.sort_key = "0";
   workspace.created_at = now;
   workspace.modified_at = now;
+  // ADR 0011: a fully separated Workspace's Profile starts with that
+  // Workspace, registered before the Profile existed, never with the shared
+  // Inbox identity.
+  if (const std::optional<session::IsolatedProfileEntry> isolated =
+          FindIsolatedProfileEntry()) {
+    workspace.id = isolated->workspace_id;
+    workspace.name = isolated->name;
+    workspace.icon = isolated->icon;
+    workspace.accent_argb = isolated->accent_argb;
+  }
   if (store->CreateWorkspace(workspace) !=
       tab_tree::TabTreeStore::Result::kOk) {
     return false;
@@ -174,7 +206,7 @@ void SessionBridge::OnTabTreeLoaded(TabTreeLoadResult result) {
 
   if (result.status == TabTreeLoadStatus::kLoaded) {
     std::vector<tab_tree::Workspace> active_workspaces;
-    if (tab_tree_store_->ReplaceWithSnapshot(result.snapshot) !=
+    if (tab_tree_store_->ReplacePersistenceSnapshot(result.snapshot) !=
             tab_tree::TabTreeStore::Result::kOk ||
         tab_tree_store_->GetWorkspaces(&active_workspaces) !=
             tab_tree::TabTreeStore::Result::kOk ||
@@ -182,6 +214,8 @@ void SessionBridge::OnTabTreeLoaded(TabTreeLoadResult result) {
         !workspace_service_->ReplaceWorkspaces(active_workspaces)) {
       LOG(ERROR) << "Ahoi tab-tree snapshot could not be restored";
       persistence_enabled_ = false;
+    } else {
+      durable_tree_snapshot_ = result.snapshot;
     }
   } else if (result.status == TabTreeLoadStatus::kFailed) {
     // Keep the browser usable but never overwrite a database that failed
@@ -205,6 +239,17 @@ void SessionBridge::OnTabTreeLoaded(TabTreeLoadResult result) {
 
 bool SessionBridge::FinishRuntimeInitialization() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (session::ShouldUseWorkspaceWebsiteSessions(profile_->GetPrefs())) {
+    const std::vector<base::Uuid> existing_workspace_ids =
+        OrderedWorkspaceIdsForSession();
+    if (!session::InitializeWebsiteSessionBindings(
+            profile_->GetPrefs(), base::span(existing_workspace_ids))) {
+      // A damaged local binding must not silently turn a future isolated
+      // Workspace into the default cookie jar. Navigation resolution will fail
+      // closed, while the existing tree and recovery data remain untouched.
+      LOG(ERROR) << "Ahoi website-session bindings could not be initialized";
+    }
+  }
   ProfileBrowserCollection* browser_collection =
       ProfileBrowserCollection::GetForProfile(profile_);
   if (!browser_collection) {
@@ -226,6 +271,9 @@ bool SessionBridge::FinishRuntimeInitialization() {
   // tree snapshot has loaded. Apply their metadata only now, against the
   // authoritative workspace/node identities rather than the bootstrap store.
   ApplyPendingSessionMetadata();
+  workspace_structure_controller_ =
+      std::make_unique<session::WorkspaceStructureController>(this, profile_);
+  workspace_structure_controller_->Initialize();
   // The sidebar may already be showing its immediate bootstrap projection.
   // Publish one authoritative ready transition even when restoration did not
   // otherwise mutate a tracked tab, so saved/runtime classification cannot
@@ -233,11 +281,44 @@ bool SessionBridge::FinishRuntimeInitialization() {
   runtime_presentation_changed_callbacks_.Notify();
   PublishCommandItems();
   NotifyTabTreeSnapshotChanged();
+  // After every browser and tab is tracked: finish removals of deleted
+  // Workspaces' website-session partitions (handoff 003, WS-DEL-03/04).
+  ResumeWebsiteSessionRemovals();
+  // ADR 0011 step 2: keep one visible window per hand-over across restarts.
+  session::RestoreHandOverAfterStartup(profile_);
+  if (const std::optional<session::IsolatedProfileEntry> isolated =
+          FindIsolatedProfileEntry()) {
+    if (isolated->state == session::IsolatedProfileState::kConverting) {
+      ContinueWorkspaceConversion(isolated->profile_dir);
+    } else if (isolated->state == session::IsolatedProfileState::kCreating &&
+               WorkspaceExists(isolated->workspace_id)) {
+      ScheduleTabTreePersistence();
+      session::SetIsolatedProfileState(g_browser_process->local_state(),
+                                       isolated->profile_dir,
+                                       session::IsolatedProfileState::kActive);
+    }
+  } else {
+    session::SweepIsolatedProfileRegistry();
+  }
   return true;
+}
+
+std::optional<session::IsolatedProfileEntry>
+SessionBridge::FindIsolatedProfileEntry() const {
+  PrefService* local_state =
+      g_browser_process ? g_browser_process->local_state() : nullptr;
+  if (!local_state || !profile_) {
+    return std::nullopt;
+  }
+  return session::FindIsolatedProfile(
+      local_state, profile_->GetPath().BaseName().AsUTF8Unsafe());
 }
 
 void SessionBridge::ScheduleTabTreePersistence() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!applying_synced_tree_snapshot_) {
+    CancelPendingSyncedTabTreeApply();
+  }
   if (!tab_tree_ready_ || !persistence_enabled_ || shutting_down_) {
     return;
   }
@@ -248,27 +329,34 @@ void SessionBridge::ScheduleTabTreePersistence() {
 
 void SessionBridge::PersistTabTreeNow() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CancelPendingSyncedTabTreeApply();
   if (!tab_tree_store_ || !persistence_enabled_ || !persistence_task_runner_) {
     return;
   }
-  tab_tree::TabTreeSnapshot snapshot;
-  if (tab_tree_store_->ExportSnapshot(&snapshot) !=
+  tab_tree::TabTreeStore::PersistenceSnapshot snapshot;
+  if (tab_tree_store_->ExportPersistenceSnapshot(&snapshot) !=
       tab_tree::TabTreeStore::Result::kOk) {
     LOG(ERROR) << "Ahoi tab-tree snapshot could not be exported";
     return;
   }
-  persistence_task_runner_->PostTask(
-      FROM_HERE,
-      base::BindOnce(
-          [](base::FilePath path, tab_tree::TabTreeSnapshot snapshot) {
-            std::ignore = SessionBridge::PersistTabTreeSnapshot(
-                path, std::move(snapshot));
-          },
-          tab_tree_database_path_, std::move(snapshot)));
+  auto persist = base::BindOnce(&SessionBridge::PersistTabTreeSnapshot,
+                                tab_tree_database_path_, snapshot);
+  auto reply =
+      base::BindOnce(&SessionBridge::OnLocalTabTreePersisted,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(snapshot));
+  if (!persistence_task_runner_->PostTaskAndReplyWithResult(
+          FROM_HERE, std::move(persist), std::move(reply))) {
+    durable_tree_snapshot_.reset();
+    LOG(ERROR) << "Ahoi tab-tree persistence could not be scheduled";
+  }
 }
 
 void SessionBridge::NotifyTabTreeSnapshotChanged() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (applying_synced_tree_snapshot_) {
+    return;
+  }
+  CancelPendingSyncedTabTreeApply();
   tab_tree::TabTreeSnapshot snapshot;
   if (ExportTabTreeSnapshot(&snapshot)) {
     tab_tree_snapshot_changed_callbacks_.Notify(snapshot);
@@ -282,9 +370,9 @@ SessionBridge::TabTreeLoadResult SessionBridge::LoadTabTreeSnapshot(
     return {.status = TabTreeLoadStatus::kMissing};
   }
   tab_tree::TabTreeStore store;
-  tab_tree::TabTreeSnapshot snapshot;
-  if (!store.Initialize(path) ||
-      store.ExportSnapshot(&snapshot) != tab_tree::TabTreeStore::Result::kOk) {
+  tab_tree::TabTreeStore::PersistenceSnapshot snapshot;
+  if (!store.Initialize(path) || store.ExportPersistenceSnapshot(&snapshot) !=
+                                     tab_tree::TabTreeStore::Result::kOk) {
     return {.status = TabTreeLoadStatus::kFailed};
   }
   return {.status = TabTreeLoadStatus::kLoaded,
@@ -292,11 +380,23 @@ SessionBridge::TabTreeLoadResult SessionBridge::LoadTabTreeSnapshot(
 }
 
 // static
-bool SessionBridge::PersistTabTreeSnapshot(const base::FilePath& path,
-                                           tab_tree::TabTreeSnapshot snapshot) {
+bool SessionBridge::PersistTabTreeSnapshot(
+    const base::FilePath& path,
+    tab_tree::TabTreeStore::PersistenceSnapshot snapshot) {
   tab_tree::TabTreeStore store;
-  return store.Initialize(path) && store.ReplaceWithSnapshot(snapshot) ==
-                                       tab_tree::TabTreeStore::Result::kOk;
+  if (!store.Initialize(path)) {
+    LOG(ERROR) << "Ahoi tab-tree persistence could not open its store";
+    return false;
+  }
+  const tab_tree::TabTreeStore::Result result =
+      store.ReplacePersistenceSnapshot(snapshot);
+  if (result != tab_tree::TabTreeStore::Result::kOk) {
+    // Record only the failure class, never profile paths or saved-page data.
+    LOG(ERROR) << "Ahoi tab-tree persistence failed: "
+               << static_cast<int>(result);
+    return false;
+  }
+  return true;
 }
 
 void SessionBridge::RunWhenReadyForTesting(base::OnceClosure callback) {
@@ -321,23 +421,37 @@ void SessionBridge::FlushPersistenceForTesting(base::OnceClosure callback) {
 void SessionBridge::FlushPersistenceForBackup(
     base::OnceCallback<void(bool)> callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  CancelPendingSyncedTabTreeApply();
   CHECK(callback);
   persistence_timer_.Stop();
   if (!tab_tree_store_ || !persistence_enabled_ || !persistence_task_runner_) {
     std::move(callback).Run(false);
     return;
   }
-  tab_tree::TabTreeSnapshot snapshot;
-  if (tab_tree_store_->ExportSnapshot(&snapshot) !=
+  tab_tree::TabTreeStore::PersistenceSnapshot snapshot;
+  if (tab_tree_store_->ExportPersistenceSnapshot(&snapshot) !=
       tab_tree::TabTreeStore::Result::kOk) {
     std::move(callback).Run(false);
     return;
   }
-  persistence_task_runner_->PostTaskAndReplyWithResult(
-      FROM_HERE,
-      base::BindOnce(&SessionBridge::PersistTabTreeSnapshot,
-                     tab_tree_database_path_, std::move(snapshot)),
-      std::move(callback));
+  auto persist = base::BindOnce(&SessionBridge::PersistTabTreeSnapshot,
+                                tab_tree_database_path_, snapshot);
+  auto [done, rejected] = base::SplitOnceCallback(std::move(callback));
+  auto reply = base::BindOnce(
+      [](base::WeakPtr<SessionBridge> bridge,
+         tab_tree::TabTreeStore::PersistenceSnapshot snapshot,
+         base::OnceCallback<void(bool)> done, bool success) {
+        if (bridge) {
+          bridge->OnLocalTabTreePersisted(std::move(snapshot), success);
+        }
+        std::move(done).Run(success);
+      },
+      weak_ptr_factory_.GetWeakPtr(), std::move(snapshot), std::move(done));
+  if (!persistence_task_runner_->PostTaskAndReplyWithResult(
+          FROM_HERE, std::move(persist), std::move(reply))) {
+    durable_tree_snapshot_.reset();
+    std::move(rejected).Run(false);
+  }
 }
 
 base::CallbackListSubscription
@@ -392,16 +506,29 @@ tab_tree::TabTreeStore::Result SessionBridge::ApplySyncedTabTreeSnapshot(
     return tab_tree::TabTreeStore::Result::kDatabaseError;
   }
   snapshot.undo_operations = current.undo_operations;
+  if (std::ranges::none_of(snapshot.workspaces, [](const auto& workspace) {
+        return !workspace.tombstone;
+      })) {
+    return tab_tree::TabTreeStore::Result::kInvalidArgument;
+  }
   if (snapshot == current) {
     return tab_tree::TabTreeStore::Result::kOk;
   }
   const tab_tree::TabTreeStore::Result result =
       tab_tree_store_->ReplaceWithSnapshot(snapshot);
   if (result != tab_tree::TabTreeStore::Result::kOk ||
-      !RefreshWorkspaceSnapshot()) {
+      !PublishSyncedTabTreeSnapshot()) {
     return result == tab_tree::TabTreeStore::Result::kOk
                ? tab_tree::TabTreeStore::Result::kDatabaseError
                : result;
+  }
+  return tab_tree::TabTreeStore::Result::kOk;
+}
+
+bool SessionBridge::PublishSyncedTabTreeSnapshot() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!RefreshWorkspaceSnapshot()) {
+    return false;
   }
   for (auto it = node_tabs_.begin(); it != node_tabs_.end();) {
     tabs::TabInterface* tab = it->second.get();
@@ -413,12 +540,17 @@ tab_tree::TabTreeStore::Result SessionBridge::ApplySyncedTabTreeSnapshot(
     if (tab_tree_store_->GetNode(it->first, &node) !=
             tab_tree::TabTreeStore::Result::kOk ||
         node.tombstone) {
+      if (const auto runtime = runtime_tabs_.find(tab);
+          runtime != runtime_tabs_.end()) {
+        runtime->second.shared_binding_invalidated = true;
+      }
       UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
       it = node_tabs_.begin();
       continue;
     }
     auto runtime = runtime_tabs_.find(tab);
     if (runtime != runtime_tabs_.end()) {
+      runtime->second.is_temporary = node.is_temporary;
       runtime->second.workspace_id = node.workspace_id;
       PersistTabSessionMetadata(tab);
     }
@@ -429,7 +561,7 @@ tab_tree::TabTreeStore::Result SessionBridge::ApplySyncedTabTreeSnapshot(
   PublishCommandItems();
   runtime_presentation_changed_callbacks_.Notify();
   NotifyTabTreeSnapshotChanged();
-  return tab_tree::TabTreeStore::Result::kOk;
+  return true;
 }
 
 bool SessionBridge::OpenNormalTabFromRemoteCommand(
@@ -468,18 +600,48 @@ std::string RuntimeStableId(std::string_view local_stable_key) {
 
 }  // namespace
 
+bool SessionBridge::ActivateTabInItsWorkspace(
+    tabs::TabInterface* tab,
+    WorkspaceActivationSource source,
+    bool user_gesture) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  TabStripModel* model = tab ? FindTabStripModelForTab(tab) : nullptr;
+  auto browser = model ? model_windows_.find(model) : model_windows_.end();
+  if (!model || browser == model_windows_.end() ||
+      model->GetIndexOfTab(tab) == TabStripModel::kNoTab) {
+    return false;
+  }
+  const std::optional<base::Uuid> workspace = GetWorkspaceForTab(tab);
+  if (workspace.has_value() &&
+      workspace != GetActiveWorkspaceForWindow(browser->second) &&
+      !SetActiveWorkspaceForWindow(browser->second, *workspace, source)) {
+    return false;
+  }
+  // The Workspace switch may have activated that Workspace's last tab;
+  // re-resolve the index before selecting the requested one.
+  const int index = model->GetIndexOfTab(tab);
+  if (index == TabStripModel::kNoTab) {
+    return false;
+  }
+  model->ActivateTabAt(
+      index,
+      TabStripUserGestureDetails(
+          user_gesture ? TabStripUserGestureDetails::GestureType::kKeyboard
+                       : TabStripUserGestureDetails::GestureType::kNone));
+  return true;
+}
+
 bool SessionBridge::FocusNormalTabFromRemoteCommand(
     std::string_view local_stable_key) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   const std::string stable_id = RuntimeStableId(local_stable_key);
   tabs::TabInterface* tab = FindTabForOpenTabStableId(stable_id);
   TabStripModel* model = tab ? FindTabStripModelForTab(tab) : nullptr;
-  const int index =
-      model && tab ? model->GetIndexOfTab(tab) : TabStripModel::kNoTab;
-  if (index == TabStripModel::kNoTab) {
+  if (!ActivateTabInItsWorkspace(tab,
+                                 WorkspaceActivationSource::kDataReconciliation,
+                                 /*user_gesture=*/false)) {
     return false;
   }
-  model->ActivateTabAt(index);
   auto browser = model_windows_.find(model);
   if (browser != model_windows_.end() && browser->second->GetWindow()) {
     browser->second->GetWindow()->Activate();

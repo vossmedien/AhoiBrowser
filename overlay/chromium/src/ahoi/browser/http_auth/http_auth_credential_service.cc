@@ -313,18 +313,12 @@ void HttpAuthCredentialService::OnCredentialLookupComplete(
   password_manager::LoginsResult results =
       std::move(std::get<password_manager::LoginsResult>(results_or_error));
   if (!callback) {
-    for (password_manager::StoredCredential& stored : results) {
-      SecurelyClearHttpAuthSecret(&stored.password_value);
-    }
     return;
   }
 
   const http_auth_internal::MetadataState metadata_state =
       http_auth_internal::ReadMetadataState(prefs_);
   if (!metadata_state.valid) {
-    for (password_manager::StoredCredential& stored : results) {
-      SecurelyClearHttpAuthSecret(&stored.password_value);
-    }
     std::move(callback).Run({});
     return;
   }
@@ -363,11 +357,8 @@ void HttpAuthCredentialService::OnCredentialLookupComplete(
       result.metadata.username = stored.username_value;
       result.metadata.last_successful = stored.date_last_used;
     }
-    result.password = std::move(stored.password_value);
+    result.password = stored.password_value.value();
     credentials.push_back(std::move(result));
-  }
-  for (password_manager::StoredCredential& stored : results) {
-    SecurelyClearHttpAuthSecret(&stored.password_value);
   }
 
   std::sort(credentials.begin(), credentials.end(),
@@ -427,7 +418,8 @@ void HttpAuthCredentialService::OnSaveLookupComplete(
   if (existing) {
     const bool password_changed =
         existing->password_value != credentials.password();
-    existing->password_value = credentials.password();
+    existing->password_value = password_manager::PasswordString(
+        std::u16string(credentials.password()));
     existing->date_last_used = now;
     if (password_changed) {
       existing->date_password_modified = now;
@@ -465,9 +457,6 @@ void HttpAuthCredentialService::OnDeleteLookupComplete(
     }
     password_store_->RemoveLogin(FROM_HERE, stored);
   }
-  for (password_manager::StoredCredential& stored : results) {
-    SecurelyClearHttpAuthSecret(&stored.password_value);
-  }
   DeleteMetadata(
       protection_space,
       username ? std::optional<std::u16string_view>(*username) : std::nullopt);
@@ -496,9 +485,6 @@ void HttpAuthCredentialService::OnUpdateLookupComplete(
       profile_is_incognito_for_testing_ || new_password.empty() ||
       !CanRenameCredentialMetadata(protection_space, old_username,
                                    new_username)) {
-    for (password_manager::StoredCredential& stored : results) {
-      SecurelyClearHttpAuthSecret(&stored.password_value);
-    }
     new_password.Clear();
     std::move(done).Run(false);
     return;
@@ -517,9 +503,6 @@ void HttpAuthCredentialService::OnUpdateLookupComplete(
     }
   }
   if (!existing || username_collision) {
-    for (password_manager::StoredCredential& stored : results) {
-      SecurelyClearHttpAuthSecret(&stored.password_value);
-    }
     new_password.Clear();
     std::move(done).Run(false);
     return;
@@ -536,15 +519,12 @@ void HttpAuthCredentialService::OnUpdateLookupComplete(
   const base::Time now = base::Time::Now();
   const bool password_changed = updated.password_value != new_password.value();
   updated.username_value = new_username;
-  updated.password_value = new_password.value();
+  updated.password_value =
+      password_manager::PasswordString(std::u16string(new_password.value()));
   new_password.Clear();
   if (password_changed) {
     updated.date_password_modified = now;
   }
-  for (password_manager::StoredCredential& stored : results) {
-    SecurelyClearHttpAuthSecret(&stored.password_value);
-  }
-
   auto write_done = base::BindOnce(
       [](base::WeakPtr<HttpAuthCredentialService> service,
          HttpAuthProtectionSpace protection_space, std::u16string old_username,
@@ -559,12 +539,10 @@ void HttpAuthCredentialService::OnUpdateLookupComplete(
 
   if (old_username == new_username) {
     password_store_->UpdateLogin(std::move(updated), std::move(write_done));
-    SecurelyClearHttpAuthSecret(&updated.password_value);
     return;
   }
   password_store_->UpdateLoginWithPrimaryKey(
       std::move(updated), old_primary_key, std::move(write_done));
-  SecurelyClearHttpAuthSecret(&updated.password_value);
 }
 
 password_manager::PasswordForm HttpAuthCredentialService::MakePasswordForm(

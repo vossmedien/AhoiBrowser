@@ -83,6 +83,12 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   }
 
   // content::WebContentsObserver:
+  // Chromium accepts a navigation's user-agent override decision only while
+  // DidStartNavigation observers run (NavigationRequest::
+  // SetIsOverridingUserAgent CHECKs otherwise), so it is made here and not in
+  // DeveloperProfileNavigationThrottle.
+  void DidStartNavigation(
+      content::NavigationHandle* navigation_handle) override;
   void DidFinishNavigation(
       content::NavigationHandle* navigation_handle) override;
 
@@ -90,6 +96,7 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   void AttachToWebContents(content::WebContents* web_contents);
   void DetachFromWebContents(content::WebContents* web_contents);
 
+  const raw_ptr<PrefService> prefs_;
   PrefDeveloperProfileStore store_;
   InMemoryDeveloperProfileStore reload_store_;
   InMemoryDeveloperProfileStore once_store_;

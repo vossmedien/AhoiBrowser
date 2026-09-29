@@ -8,8 +8,9 @@ public struct CompanionSettingsView: View {
     @State private var accountRecoveryPresented = false
     @State private var zoneRecoveryPresented = false
     @State private var physicalDeletionRecoveryPresented = false
-    @AppStorage(MobileBrowserPreferences.searchEngineKey)
-    private var searchEngineRawValue = MobileSearchEngine.duckDuckGo.rawValue
+    @State private var pendingDeviceRemoval: Device?
+    @State private var signingKeyDeletionPresented = false
+    @State private var signingKeyRotationPresented = false
 
     public init(model: CompanionAppModel, syncEnabled: Binding<Bool>) {
         self.model = model
@@ -19,29 +20,9 @@ public struct CompanionSettingsView: View {
     public var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    Picker(
-                        CompanionL10n.string(
-                            "settings.search_engine.title",
-                            fallback: "Search engine"
-                        ),
-                        selection: $searchEngineRawValue
-                    ) {
-                        ForEach(MobileSearchEngine.allCases) { engine in
-                            Text(engine.localizedName).tag(engine.rawValue)
-                        }
-                    }
-                } header: {
-                    Text(CompanionL10n.string(
-                        "settings.browser.section",
-                        fallback: "Browser"
-                    ))
-                } footer: {
-                    Text(CompanionL10n.string(
-                        "settings.search_engine.footer",
-                        fallback: "Search terms are sent only when you choose to navigate."
-                    ))
-                }
+                CompanionBrowserSettingsSection(model: model)
+                MobilePrivateLockSettingsSection(lock: model.privateSessionLock)
+                CompanionExtensionSetupSection(model: model)
 
                 Section {
                     Toggle(
@@ -51,6 +32,7 @@ public struct CompanionSettingsView: View {
                         ),
                         isOn: $syncEnabled
                     )
+                    .accessibilityIdentifier("settings.sync.enabled")
                     LabeledContent(
                         CompanionL10n.string(
                             "settings.sync.state",
@@ -58,6 +40,22 @@ public struct CompanionSettingsView: View {
                         ),
                         value: syncStateText
                     )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("settings.sync.state")
+                    .accessibilityValue(Text(syncStateText))
+                    LabeledContent(
+                        CompanionL10n.string(
+                            "settings.sync.encryption",
+                            fallback: "Encryption"
+                        ),
+                        value: model.keyLifecycleStatus.localizedSummary
+                    )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("settings.sync.key-lifecycle")
+                    .accessibilityValue(Text(model.keyLifecycleStatus.localizedSummary))
+                    if let evidence = model.syncVisibleEvidence {
+                        CompanionSyncVisibleEvidenceView(evidence: evidence)
+                    }
                     if let status = model.syncStatus {
                         Text(status.detail)
                             .font(.caption)
@@ -73,17 +71,29 @@ public struct CompanionSettingsView: View {
                         }
                     }
                     Button {
-                        Task { await model.sync() }
+                        Task {
+                            if model.isSyncConfigured {
+                                await model.sync()
+                            } else {
+                                await model.retrySyncActivation()
+                            }
+                        }
                     } label: {
                         Label(
                             CompanionL10n.string(
-                                "action.sync_now",
-                                fallback: "Sync now"
+                                model.keyLifecycleStatus.isRotationPending
+                                    ? "action.continue_key_rotation"
+                                    : "action.sync_now",
+                                fallback: model.keyLifecycleStatus.isRotationPending
+                                    ? "Continue key rotation"
+                                    : "Sync now"
                             ),
                             systemImage: "arrow.triangle.2.circlepath"
                         )
                     }
-                    .disabled(!model.isSyncConfigured)
+                    .disabled(!isSyncActionEnabled)
+                    .opacity(isSyncActionEnabled ? 1 : 0.45)
+                    .accessibilityIdentifier("settings.sync.now")
                     if model.syncStatus?.phase == .quarantined {
                         if model.physicalDeletionRecoveryRequired {
                             Button {
@@ -119,11 +129,26 @@ public struct CompanionSettingsView: View {
                         fallback: "Sync"
                     ))
                 } footer: {
-                    if syncEnabled && !model.isSyncConfigured {
+                    if syncEnabled && model.keyLifecycleStatus.isRotationPending {
                         Text(CompanionL10n.string(
-                            "settings.sync.configuration_missing",
-                            fallback: "Apple provisioning or the local encryption key is missing. Local data remains available."
+                            "settings.sync.rotation_paused",
+                            fallback: "Encrypted transport is paused during key rotation. Local changes remain available and are uploaded only after every safety acknowledgement succeeds."
                         ))
+                        .accessibilityIdentifier("settings.sync.rotation-paused")
+                    } else if syncEnabled, let issue = model.syncSetupIssue {
+                        Text(issue.localizedDetail)
+                            .accessibilityIdentifier(
+                                issue == .staticConfiguration
+                                    ? "settings.sync.configuration-missing"
+                                    : "settings.sync.setup-issue"
+                            )
+                            .accessibilityValue(Text(issue.evidenceValue))
+                    } else if syncEnabled && !model.isSyncConfigured {
+                        Text(CompanionL10n.string(
+                            "settings.sync.setup_pending",
+                            fallback: "Sync setup is still preparing. Local data remains available."
+                        ))
+                        .accessibilityIdentifier("settings.sync.setup-pending")
                     }
                 }
 
@@ -222,7 +247,10 @@ public struct CompanionSettingsView: View {
                         ForEach(visibleDevices) { device in
                             CompanionDeviceStatusRow(
                                 device: device,
-                                session: freshestSession(for: device.id)
+                                session: freshestSession(for: device.id),
+                                isCurrentDevice: model.isCurrentCommandDevice(device.id),
+                                canRemove: model.canManageSyncedDevices,
+                                onRemove: { pendingDeviceRemoval = device }
                             )
                         }
                     }
@@ -230,6 +258,11 @@ public struct CompanionSettingsView: View {
                     Text(CompanionL10n.string(
                         "settings.devices.section",
                         fallback: "Devices"
+                    ))
+                } footer: {
+                    Text(CompanionL10n.string(
+                        "settings.devices.crypto_limit",
+                        fallback: "Removing a device stops Ahoi Sync and remote-command targeting from current records. Because the encrypted payload key is currently shared, this is not complete per-device cryptographic isolation."
                     ))
                 }
 
@@ -300,15 +333,53 @@ public struct CompanionSettingsView: View {
                         .foregroundStyle(.secondary)
                     } else {
                         Text(CompanionL10n.string(
-                            "settings.remote.unavailable",
-                            fallback: "Remote control is unavailable until a Keychain signing key is provisioned."
+                            model.isRemoteControlAvailable
+                                ? "settings.remote.revoked"
+                                : "settings.remote.unavailable",
+                            fallback: model.isRemoteControlAvailable
+                                ? "The local signing key is deleted or revoked. Rotate it to re-enrol remote control."
+                                : "Remote control is unavailable until a Keychain signing key is provisioned."
                         ))
                         .foregroundStyle(.secondary)
+                    }
+                    if model.isRemoteControlAvailable {
+                        Button {
+                            signingKeyRotationPresented = true
+                        } label: {
+                            Label(
+                                CompanionL10n.string(
+                                    "settings.remote.rotate",
+                                    fallback: "Rotate signing key"
+                                ),
+                                systemImage: "arrow.triangle.2.circlepath.key"
+                            )
+                        }
+                        .accessibilityIdentifier("settings.remote.rotate")
+                        if model.remoteControlIdentity != nil {
+                            Button(role: .destructive) {
+                                signingKeyDeletionPresented = true
+                            } label: {
+                                Label(
+                                    CompanionL10n.string(
+                                        "settings.remote.delete",
+                                        fallback: "Delete signing key"
+                                    ),
+                                    systemImage: "key.slash"
+                                )
+                            }
+                            .accessibilityIdentifier("settings.remote.delete")
+                        }
+                    }
+                    if let status = model.remoteCommandStatus {
+                        Text(status)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("settings.remote.status")
                     }
                     ForEach(model.recentRemoteCommands) { item in
                         VStack(alignment: .leading, spacing: 3) {
                             Text(item.action)
-                            Text(commandStatusText(item.status))
+                            Text(commandStatusText(item))
                                 .font(.caption)
                                 .foregroundStyle(item.status == .failed ? .red : .secondary)
                             if !item.resultCode.isEmpty {
@@ -323,8 +394,14 @@ public struct CompanionSettingsView: View {
                         "settings.remote.section",
                         fallback: "Remote control"
                     ))
+                } footer: {
+                    Text(CompanionL10n.string(
+                        "settings.remote.footer",
+                        fallback: "The Ed25519 signing key is local to this device. Deleting it blocks new remote-command authentication; rotating it requires fresh approval on every Mac."
+                    ))
                 }
             }
+            .accessibilityIdentifier("settings.form")
             .navigationTitle(CompanionL10n.string(
                 "settings.title",
                 fallback: "Settings"
@@ -337,6 +414,7 @@ public struct CompanionSettingsView: View {
                     )) {
                         dismiss()
                     }
+                    .accessibilityIdentifier("settings.done")
                 }
             }
             .confirmationDialog(
@@ -412,6 +490,110 @@ public struct CompanionSettingsView: View {
                     fallback: "A non-Ahoi client physically deleted CloudKit rows. Ahoi will upload the retained encrypted local versions; local data is never deleted by this recovery."
                 ))
             }
+            .confirmationDialog(
+                pendingDeviceRemoval.map { device in
+                    CompanionL10n.format(
+                        "settings.devices.remove.prompt",
+                        fallback: "Revoke and remove %@?",
+                        device.name
+                    )
+                } ?? CompanionL10n.string(
+                    "settings.devices.remove.title",
+                    fallback: "Remove device"
+                ),
+                isPresented: Binding(
+                    get: { pendingDeviceRemoval != nil },
+                    set: { if !$0 { pendingDeviceRemoval = nil } }
+                ),
+                titleVisibility: .visible,
+                presenting: pendingDeviceRemoval
+            ) { device in
+                Button(
+                    CompanionL10n.string(
+                        "settings.devices.remove.confirm",
+                        fallback: "Revoke and remove"
+                    ),
+                    role: .destructive
+                ) {
+                    pendingDeviceRemoval = nil
+                    Task {
+                        let outcome = await model.revokeAndRemoveDevice(device.id)
+                        if outcome?.removedCurrentDevice == true {
+                            syncEnabled = false
+                        }
+                    }
+                }
+                .accessibilityIdentifier("settings.devices.remove.confirm")
+                Button(CompanionL10n.string(
+                    "action.cancel",
+                    fallback: "Cancel"
+                ), role: .cancel) {
+                    pendingDeviceRemoval = nil
+                }
+            } message: { device in
+                Text(CompanionL10n.format(
+                    "settings.devices.remove.message",
+                    fallback: "%@ will disappear from synced devices and remote-command targets. This does not rotate the shared encrypted payload key.",
+                    device.name
+                ))
+            }
+            .confirmationDialog(
+                CompanionL10n.string(
+                    "settings.remote.delete.prompt",
+                    fallback: "Delete this device's signing key?"
+                ),
+                isPresented: $signingKeyDeletionPresented,
+                titleVisibility: .visible
+            ) {
+                Button(
+                    CompanionL10n.string(
+                        "settings.remote.delete.confirm",
+                        fallback: "Delete key"
+                    ),
+                    role: .destructive
+                ) {
+                    Task { await model.deleteRemoteControlSigningIdentity() }
+                }
+                .accessibilityIdentifier("settings.remote.delete.confirm")
+                Button(CompanionL10n.string(
+                    "action.cancel",
+                    fallback: "Cancel"
+                ), role: .cancel) {}
+            } message: {
+                Text(CompanionL10n.string(
+                    "settings.remote.delete.message",
+                    fallback: "New remote commands are blocked until you explicitly rotate and re-approve a key. Ahoi Sync data remains encrypted with the separate shared payload key."
+                ))
+            }
+            .confirmationDialog(
+                CompanionL10n.string(
+                    "settings.remote.rotate.prompt",
+                    fallback: "Rotate this device's signing key?"
+                ),
+                isPresented: $signingKeyRotationPresented,
+                titleVisibility: .visible
+            ) {
+                Button(CompanionL10n.string(
+                    "settings.remote.rotate.confirm",
+                    fallback: "Rotate key"
+                )) {
+                    Task { await model.rotateRemoteControlSigningIdentity() }
+                }
+                .accessibilityIdentifier("settings.remote.rotate.confirm")
+                Button(CompanionL10n.string(
+                    "action.cancel",
+                    fallback: "Cancel"
+                ), role: .cancel) {}
+            } message: {
+                Text(CompanionL10n.string(
+                    "settings.remote.rotate.message",
+                    fallback: "The previous private key is replaced locally. Every Mac must approve the new public fingerprint before accepting commands."
+                ))
+            }
+            .task {
+                await model.loadDeviceRevocationUITestFixtureIfRequested()
+                await model.loadSyncVisibleUITestConflictIfRequested()
+            }
         }
     }
 
@@ -452,6 +634,9 @@ public struct CompanionSettingsView: View {
     private var syncStateText: String {
         guard syncEnabled else {
             return CompanionL10n.string("sync.state.off", fallback: "Off")
+        }
+        if let issue = model.syncSetupIssue {
+            return issue.localizedState
         }
         guard model.isSyncConfigured else {
             return CompanionL10n.string(
@@ -495,8 +680,16 @@ public struct CompanionSettingsView: View {
         } ?? CompanionL10n.string("sync.state.ready", fallback: "Ready")
     }
 
-    private func commandStatusText(_ status: RemoteCommandStatus) -> String {
-        switch status {
+    private var isSyncActionEnabled: Bool {
+        model.isSyncConfigured ||
+            (syncEnabled && model.keyLifecycleStatus.isRotationPending)
+    }
+
+    private func commandStatusText(_ item: CompanionRemoteCommandStatusItem) -> String {
+        if item.isExpired {
+            return CompanionL10n.string("remote.state.expired", fallback: "Expired")
+        }
+        return switch item.status {
         case .queued:
             CompanionL10n.string("remote.state.queued", fallback: "Queued")
         case .delivered:
@@ -512,13 +705,26 @@ public struct CompanionSettingsView: View {
 private struct CompanionDeviceStatusRow: View {
     let device: Device
     let session: DeviceSession?
+    let isCurrentDevice: Bool
+    let canRemove: Bool
+    let onRemove: () -> Void
 
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: symbol)
                 .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
-                Text(device.name)
+                HStack(spacing: 5) {
+                    Text(device.name)
+                    if isCurrentDevice {
+                        Text(CompanionL10n.string(
+                            "settings.devices.current",
+                            fallback: "This device"
+                        ))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    }
+                }
                 Text(status)
                     .font(.caption)
                     .foregroundStyle(device.isRevoked ? .red : .secondary)
@@ -533,6 +739,21 @@ private struct CompanionDeviceStatusRow: View {
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
             }
+            Button(role: .destructive, action: onRemove) {
+                Image(systemName: "minus.circle")
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .disabled(!canRemove)
+            .accessibilityIdentifier(
+                "settings.devices.remove." + device.id.rawValue.uuidString.lowercased()
+            )
+            .accessibilityLabel(CompanionL10n.format(
+                "settings.devices.remove.label",
+                fallback: "Revoke and remove %@",
+                device.name
+            ))
         }
     }
 
@@ -541,6 +762,7 @@ private struct CompanionDeviceStatusRow: View {
         case .mac: "desktopcomputer"
         case .iPhone: "iphone"
         case .iPad: "ipad"
+        case .other: "laptopcomputer.and.iphone"
         }
     }
 

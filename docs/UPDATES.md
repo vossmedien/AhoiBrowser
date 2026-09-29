@@ -110,7 +110,11 @@ feed again with official `sign_update`, then enforces the repository contract:
   complete XML prefix;
 - every enclosure is credential-free HTTPS, has a 64-byte Ed25519 signature,
   positive length and positive numeric `CFBundleVersion`;
-- the expected release build is present and no foreign channel item is present;
+- delta enclosures meet the same rules, with a numeric `deltaFrom` below the
+  item version, and no enclosure path contains `.`/`..` segments;
+- build versions are unique, the expected release build is present and is the
+  newest item, an optional published-build floor rejects feed regressions, and
+  no foreign channel item is present;
 - the receipt records the exact appcast hash and the Sparkle version, commit and
   archive hash, reviewed feed/artifact URLs and public-key hash, and binds them
   to the signed release-manifest and materials receipt hashes.
@@ -147,6 +151,12 @@ Production release remains fail-closed until real values and evidence exist:
   verifies their hashes, publishes the signed appcast last, and can restore the
   prior appcast atomically;
 - complete SBOM, notices, source offer, legal review and release evidence.
+
+`python3 scripts/release/ahoi-update-testbed.py` runs a local appcast/tamper
+testbed: throwaway Ed25519 key via `--ed-key-file` only (never a Keychain
+account), dummy bundles, the fetched official `generate_appcast`/`sign_update`,
+an independent OpenSSL check and no network. Evidence:
+`artifacts/tests/update-testbed-20260929/`.
 
 Unit tests and structural validation prove fail-closed contracts; they are not
 installed-app or production-feed evidence.

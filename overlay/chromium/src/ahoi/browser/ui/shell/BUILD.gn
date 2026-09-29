@@ -12,6 +12,24 @@ source_set("navigation_surface_state") {
   public_deps = [ "//base" ]
 }
 
+source_set("navigation_pin_button") {
+  sources = [
+    "navigation_pin_button.cc",
+    "navigation_pin_button.h",
+  ]
+  public_deps = [ "//ui/views" ]
+  deps = [
+    "//ahoi/browser/ui/appearance:appearance_preferences",
+    "//base",
+    "//chrome/app:generated_resources",
+    "//chrome/app/vector_icons",
+    "//chrome/browser/ui/views/toolbar",
+    "//components/prefs",
+    "//ui/accessibility",
+    "//ui/base",
+  ]
+}
+
 source_set("navigation_surface_controller") {
   sources = [
     "navigation_surface_controller.cc",
@@ -44,7 +62,10 @@ source_set("unit_tests") {
     ":navigation_surface_controller",
     ":navigation_surface_state",
     "//base/test:test_support",
+    "//cc",
     "//testing/gtest",
+    "//ui/compositor",
+    "//ui/compositor:test_support",
     "//ui/views",
     "//ui/views:test_support",
   ]
@@ -53,7 +74,13 @@ source_set("unit_tests") {
 source_set("floating_browser_view_browser_tests") {
   testonly = true
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
-  sources = [ "floating_browser_view_browsertest.cc" ]
+  sources = [
+    "floating_browser_view_browsertest.cc",
+    "floating_browser_view_browsertest_support.cc",
+    "floating_browser_view_browsertest_support.h",
+    "location_bar_view_browsertest.cc",
+    "sidebar_layout_invalidation_browsertest.cc",
+  ]
   deps = [
     "//ahoi/browser/ui:visual_style",
     "//ahoi/browser/ui/appearance:appearance_preferences",
@@ -62,6 +89,7 @@ source_set("floating_browser_view_browser_tests") {
     "//chrome/app:generated_resources",
     "//chrome/browser",
     "//chrome/browser/ui",
+    "//chrome/browser/ui/tabs:tab_strip",
     "//chrome/browser/ui/views/location_bar",
     "//chrome/browser/ui/views/tabs/vertical",
     "//chrome/test:test_support",

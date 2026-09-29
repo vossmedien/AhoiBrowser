@@ -7,25 +7,29 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCH_ROOT = ROOT / "patches/chromium"
 
-INTEGRATION_PATCH = "0001-ahoi-m152-integration-seams.patch"
+INTEGRATION_PATCH = "0001-ahoi-m153-integration-seams.patch"
 DETERMINISTIC_PATCH = "0002-ahoi-deterministic-platform-tests.patch"
-TRACING_PATCH = "0003-ahoi-upstream-page-load-tracing-test-isolation.patch"
+# Retired 2026-09-25: M153 contains the upstream tracing fix, and the patch
+# had shrunk to a reformat of tracing_support.cc.
+RETIRED_TRACING_PATCH = "0003-ahoi-upstream-page-load-tracing-test-isolation.patch"
 LEAN_GUARDS_PATCH = "0004-ahoi-lean-profile-compose-guards.patch"
-EXPECTED_SERIES = (
+# The three foundation layers still lead the series. Since the M153 rebase
+# (29dfe7a) further ordered product layers follow them; `series` owns the
+# complete order.
+FOUNDATION_SERIES = (
     INTEGRATION_PATCH,
     DETERMINISTIC_PATCH,
-    TRACING_PATCH,
     LEAN_GUARDS_PATCH,
 )
-M152_PIN = {
-    "version": "152.0.7977.65",
-    "milestone": 152,
-    "tag": "refs/tags/152.0.7977.65",
-    "commit": "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
-    "branchHead": 7977,
-    "branchHeadPosition": 1892,
-    "branchPoint": "b7fe14017379ddffae396d944fb8b59a5896c261",
-    "branchPosition": 1669021,
+M153_PIN = {
+    "version": "153.0.8010.53",
+    "milestone": 153,
+    "tag": "refs/tags/153.0.8010.53",
+    "commit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "branchHead": 8010,
+    "branchHeadPosition": 1444,
+    "branchPoint": "86cee6df69e0463a839c0cc8435c9d4c259434d3",
+    "branchPosition": 1681091,
     "channel": "Stable",
     "platform": "Mac",
     "rolloutFraction": 1.0,
@@ -36,12 +40,6 @@ M152_PIN = {
 DETERMINISTIC_PATHS = (
     "components/autofill/core/browser/metrics/autofill_metrics_test_base.cc",
     "components/input/web_input_event_builders_mac_unittest.mm",
-)
-TRACING_PATHS = (
-    "components/page_load_metrics/browser/observers/core/"
-    "uma_page_load_metrics_observer_unittest.cc",
-    "content/public/browser/tracing_support.cc",
-    "content/public/browser/tracing_support.h",
 )
 
 
@@ -60,11 +58,25 @@ def patch_text(filename: str) -> str:
 def touched_paths(payload: str) -> tuple[str, ...]:
     pairs = re.findall(r"^diff --git a/(\S+) b/(\S+)$", payload, re.MULTILINE)
     if any(source != destination for source, destination in pairs):
-        raise AssertionError("active M152 patches must not rename paths")
+        raise AssertionError("active patches must not rename paths")
     return tuple(source for source, _ in pairs)
 
 
 class ProductPatchStackTests(unittest.TestCase):
+    def assert_modification_only(self, payload: str) -> None:
+        paths = touched_paths(payload)
+        self.assertTrue(paths)
+        self.assertEqual(len(paths), len(set(paths)))
+        for marker in (
+            "new file mode",
+            "deleted file mode",
+            "similarity index",
+            "rename from",
+            "rename to",
+            "GIT binary patch",
+        ):
+            self.assertNotIn(marker, payload)
+
     def assert_full_index_modification_only(self, payload: str) -> None:
         paths = touched_paths(payload)
         index_lines = re.findall(
@@ -85,30 +97,44 @@ class ProductPatchStackTests(unittest.TestCase):
         ):
             self.assertNotIn(marker, payload)
 
-    def test_production_pin_is_the_exact_fully_rolled_m152_mac_stable(self):
+    def test_production_pin_is_the_exact_fully_rolled_m153_mac_stable(self):
         pin = json.loads((ROOT / "config/chromium.json").read_text(encoding="utf-8"))
-        self.assertEqual(M152_PIN, {key: pin.get(key) for key in M152_PIN})
+        self.assertEqual(M153_PIN, {key: pin.get(key) for key in M153_PIN})
 
         ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("Chromium M152 patch ledger", ledger)
-        self.assertIn(M152_PIN["version"], ledger)
-        self.assertIn(M152_PIN["commit"], ledger)
+        self.assertIn("Chromium M153 patch ledger", ledger)
+        self.assertIn(f"Chromium Mac Stable `{M153_PIN['version']}` at", ledger)
+        self.assertIn(f"`{M153_PIN['commit']}`", ledger)
 
-    def test_series_is_exactly_the_four_active_m152_layers(self):
-        self.assertEqual(EXPECTED_SERIES, series_entries())
-        self.assertEqual(len(EXPECTED_SERIES), len(set(EXPECTED_SERIES)))
+    def test_series_leads_with_the_foundation_layers(self):
+        entries = series_entries()
+        self.assertEqual(FOUNDATION_SERIES, entries[: len(FOUNDATION_SERIES)])
+        self.assertEqual(len(entries), len(set(entries)))
+        self.assertEqual(
+            {path.name for path in PATCH_ROOT.glob("*.patch")}, set(entries)
+        )
 
         ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
-        for filename in EXPECTED_SERIES:
+        for filename in entries:
             path = PATCH_ROOT / filename
             with self.subTest(patch=filename):
                 self.assertTrue(path.is_file())
                 self.assertFalse(path.is_symlink())
-                self.assertEqual(1, ledger.count(f"## `{filename}`"))
                 payload = path.read_text(encoding="utf-8")
                 self.assertTrue(payload.startswith("diff --git a/"))
                 self.assertTrue(payload.endswith("\n"))
-                self.assert_full_index_modification_only(payload)
+                self.assert_modification_only(payload)
+                if filename in FOUNDATION_SERIES:
+                    self.assert_full_index_modification_only(payload)
+
+    def test_every_active_patch_has_exactly_one_ledger_section(self):
+        ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
+        missing_or_duplicated = tuple(
+            filename
+            for filename in series_entries()
+            if ledger.count(f"## `{filename}`") != 1
+        )
+        self.assertEqual((), missing_or_duplicated)
 
     def test_integration_patch_is_chromium_seams_not_product_owned_overlay(self):
         paths = touched_paths(patch_text(INTEGRATION_PATCH))
@@ -151,13 +177,9 @@ class ProductPatchStackTests(unittest.TestCase):
     def test_test_only_layers_have_exact_disjoint_responsibilities(self):
         integration = set(touched_paths(patch_text(INTEGRATION_PATCH)))
         deterministic = touched_paths(patch_text(DETERMINISTIC_PATCH))
-        tracing = touched_paths(patch_text(TRACING_PATCH))
 
         self.assertEqual(DETERMINISTIC_PATHS, deterministic)
-        self.assertEqual(TRACING_PATHS, tracing)
         self.assertTrue(integration.isdisjoint(deterministic))
-        self.assertTrue(integration.isdisjoint(tracing))
-        self.assertTrue(set(deterministic).isdisjoint(tracing))
 
         deterministic_payload = patch_text(DETERMINISTIC_PATCH)
         self.assertIn(
@@ -172,16 +194,10 @@ class ProductPatchStackTests(unittest.TestCase):
             ),
         )
 
-        tracing_payload = patch_text(TRACING_PATCH)
-        self.assertIn(
-            "content::ResetWebContentsListTrackRegistrationForTesting();",
-            tracing_payload,
-        )
-        self.assertIn(
-            "GetWebContentsListTrackRegistrationStorage().reset();",
-            tracing_payload,
-        )
-        self.assertIn("perfetto::StateTrack", tracing_payload)
+    def test_retired_tracing_layer_stays_out_of_the_series(self):
+        # M153 ships ResetWebContentsListTrackRegistrationForTesting itself.
+        self.assertNotIn(RETIRED_TRACING_PATCH, series_entries())
+        self.assertFalse((PATCH_ROOT / RETIRED_TRACING_PATCH).exists())
 
     def test_preflight_code_binds_current_patch_bytes_instead_of_test_constants(self):
         roll_tool = (ROOT / "tools/chromium_roll.py").read_text(encoding="utf-8")

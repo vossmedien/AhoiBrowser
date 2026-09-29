@@ -1,0 +1,204 @@
+{
+  "app": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "926000eed6daa1af23aba9e9d2feb5613612b1d8b03c28f25c70037092580f8b",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "4746af81d6ffe01984012fa44c5c99c55d152766",
+    "buildProfile": "dev",
+    "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+  },
+  "buildEvidence": null,
+  "metrics": {
+    "startup_first_launch_ms": [
+      4250.7470703125,
+      3996.072021484375,
+      3969.487060546875,
+      3995.0361328125,
+      3965.41796875
+    ],
+    "devtools_ready_first_launch_ms": [
+      2558.4217909927247,
+      2287.8974999912316,
+      2286.9759170134785,
+      2272.2639580024406,
+      2313.5607919975882
+    ],
+    "startup_warm_ms": [
+      3884.760009765625,
+      3828.12109375,
+      3821.477783203125,
+      3829.85400390625,
+      3821.5849609375
+    ],
+    "devtools_ready_warm_ms": [
+      2170.5913329933537,
+      2154.2948329879437,
+      2160.1697919977596,
+      2159.8317500029225,
+      2165.058708997094
+    ],
+    "memory_1_tabs_kib": [
+      1544864,
+      1551872,
+      1553952,
+      1547232,
+      1552944
+    ],
+    "processes_1_tabs": [
+      7,
+      7,
+      7,
+      7,
+      7
+    ],
+    "memory_20_tabs_kib": [
+      6138352,
+      6164816,
+      6210336,
+      6212928,
+      6183024
+    ],
+    "processes_20_tabs": [
+      26,
+      26,
+      26,
+      26,
+      26
+    ],
+    "idle_cpu_percent": [
+      0.6333333333333316,
+      0.9500000000000005,
+      1.750000000000001,
+      0.9999999999999994,
+      0.9833333333333331
+    ],
+    "speedometer_score": [
+      6.83,
+      6.86,
+      6.89,
+      6.79,
+      6.95
+    ]
+  },
+  "schemaVersion": 2,
+  "kind": "ahoi-perf-run",
+  "startedAt": "2026-09-28T19:58:16.955930+00:00",
+  "conditions": {
+    "chromiumVersion": "153.0.8010.53",
+    "hardwareModel": "Mac14,6",
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "flags": [
+      "--no-default-browser-check",
+      "--no-first-run",
+      "--window-position=0,0",
+      "--window-size=1440,900"
+    ],
+    "windowSize": "1440,900",
+    "accessibilityClients": [],
+    "scenarioVersion": 2,
+    "validationRun": true
+  },
+  "hostBefore": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      3.50146484375,
+      4.27490234375,
+      4.587890625
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [],
+    "hidIdleSeconds": 7072.592,
+    "hidIdleSampledAt": 79516.943149125,
+    "hidIdleSampledWall": 1790625496.9543219
+  },
+  "hostAfter": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      5.96923828125,
+      6.28369140625,
+      5.95068359375
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [],
+    "hidIdleSeconds": 8331.273,
+    "hidIdleSampledAt": 80775.624644208,
+    "hidIdleSampledWall": 1790626755.645334
+  },
+  "runtimeGuard": {
+    "checkpoint": ".work/crest-h3/lease-45.md",
+    "leaseId": "crest-h3-validation-4746af81",
+    "grantSha256": "89747057e168a8a2185fa140e23ac7e52993022ee3f6143e382adc7690d9789a",
+    "expiresAt": "2026-09-29T04:32:51.523947+00:00",
+    "pollIntervalSeconds": 1.0,
+    "checks": 1159,
+    "completed": true,
+    "cancelled": false,
+    "reason": null,
+    "lockRetained": false,
+    "driverAccessibilityClients": [],
+    "driverInputs": 0,
+    "idleSamples": [
+      [
+        1247.08,
+        8319.676
+      ],
+      [
+        1248.2,
+        8320.788
+      ],
+      [
+        1249.31,
+        8321.899
+      ],
+      [
+        1250.41,
+        8323.002
+      ],
+      [
+        1251.52,
+        8324.109
+      ],
+      [
+        1252.62,
+        8325.211
+      ],
+      [
+        1253.73,
+        8326.325
+      ],
+      [
+        1254.84,
+        8327.436
+      ],
+      [
+        1255.95,
+        8328.543
+      ],
+      [
+        1257.06,
+        8329.649
+      ],
+      [
+        1258.17,
+        8330.76
+      ],
+      [
+        1258.72,
+        8331.313
+      ]
+    ],
+    "inputEpochOffset": -7072.59
+  }
+}

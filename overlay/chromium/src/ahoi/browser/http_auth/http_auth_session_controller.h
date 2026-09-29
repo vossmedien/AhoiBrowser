@@ -13,6 +13,10 @@
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/browser/web_contents_user_data.h"
 
+namespace network::mojom {
+class NetworkContext;
+}  // namespace network::mojom
+
 namespace content {
 class WebContents;
 }
@@ -61,6 +65,7 @@ class HttpAuthSessionController final
   void ClearCacheAndConnections(base::OnceClosure done);
   void OnAuthCacheCleared(base::OnceClosure done);
   void OnConnectionsClosed(base::OnceClosure done);
+  network::mojom::NetworkContext* TabNetworkContext() const;
   HttpAuthRequestContext request_context() const;
 
   std::optional<HttpAuthProtectionSpace> active_protection_space_;

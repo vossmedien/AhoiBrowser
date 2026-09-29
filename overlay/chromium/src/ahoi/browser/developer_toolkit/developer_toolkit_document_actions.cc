@@ -118,10 +118,22 @@ constexpr std::string_view kToggleDocumentMetadataScript = R"JS(
     existing.remove();
     return true;
   }
+  // A fixed payload cannot receive localized strings, so it carries the
+  // product's two UI languages and follows the browser language.
+  const german = (navigator.language || '').toLowerCase().startsWith('de');
+  const text = german ? {
+    label: 'Ahoi Dokument-Metadaten',
+    heading: 'Meta · Canonical · OpenGraph · strukturierte Daten',
+    empty: 'Keine Daten gefunden',
+  } : {
+    label: 'Ahoi document metadata',
+    heading: 'Meta · Canonical · OpenGraph · structured data',
+    empty: 'No data found',
+  };
   const panel = document.createElement('aside');
   panel.id = id;
   panel.setAttribute('role', 'dialog');
-  panel.setAttribute('aria-label', 'Ahoi Dokument-Metadaten');
+  panel.setAttribute('aria-label', text.label);
   panel.style.cssText =
       'position:fixed!important;right:12px!important;bottom:12px!important;' +
       'z-index:2147483647!important;box-sizing:border-box!important;' +
@@ -131,7 +143,7 @@ constexpr std::string_view kToggleDocumentMetadataScript = R"JS(
       'border-radius:8px!important;background:#17191d!important;' +
       'color:#f7f7f7!important;font:12px/1.45 system-ui!important;';
   const heading = document.createElement('strong');
-  heading.textContent = 'Meta · Canonical · OpenGraph · strukturierte Daten';
+  heading.textContent = text.heading;
   panel.appendChild(heading);
   const list = document.createElement('pre');
   list.style.cssText = 'white-space:pre-wrap!important;margin:8px 0 0!important;';
@@ -150,7 +162,7 @@ constexpr std::string_view kToggleDocumentMetadataScript = R"JS(
           entries.push(`json-ld[${index}]: ${(node.textContent || '').slice(0, 512)}`);
         }
       });
-  list.textContent = entries.length ? entries.join('\n') : 'Keine Daten gefunden';
+  list.textContent = entries.length ? entries.join('\n') : text.empty;
   panel.appendChild(list);
   document.documentElement.appendChild(panel);
   return true;

@@ -1,6 +1,36 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "action.undo": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Rückgängig"}},"en":{"stringUnit":{"state":"translated","value":"Undo"}}}},
+    "workspace.merge": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zusammenführen mit …"}},"en":{"stringUnit":{"state":"translated","value":"Merge into…"}}}},
+    "workspace.merge.as_folder": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Als Ordner zusammenführen"}},"en":{"stringUnit":{"state":"translated","value":"Merge as folder"}}}},
+    "workspace.merge.flat": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ohne Ordner zusammenführen"}},"en":{"stringUnit":{"state":"translated","value":"Merge without folder"}}}},
+    "workspace.merge.confirmation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"„%1$@“ mit „%2$@“ zusammenführen?"}},"en":{"stringUnit":{"state":"translated","value":"Merge “%1$@” into “%2$@”?"}}}},
+    "workspace.merge.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%1$d Seiten und %2$d Ordner werden nach „%3$@“ verschoben, „%4$@“ wird entfernt. Direkt danach kannst du das rückgängig machen."}},"en":{"stringUnit":{"state":"translated","value":"%1$d pages and %2$d folders move to “%3$@”, and “%4$@” is removed. You can undo this right afterwards."}}}},
+    "workspace.merge.done": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"„%1$@“ wurde mit „%2$@“ zusammengeführt."}},"en":{"stringUnit":{"state":"translated","value":"“%1$@” merged into “%2$@”."}}}},
+    "workspace.merge.separated": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vollständig getrennte Workspaces lassen sich nicht zusammenführen: Anmeldungen und Website-Daten wandern nie mit. Verschiebe Seiten stattdessen einzeln."}},"en":{"stringUnit":{"state":"translated","value":"Fully separated workspaces can't be merged: their sign-ins and website data never move. Move pages one by one instead."}}}},
+    "settings.private.lock": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privaten Bereich sperren"}},"en":{"stringUnit":{"state":"translated","value":"Lock private browsing"}}}},
+    "settings.private.section": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privates Surfen"}},"en":{"stringUnit":{"state":"translated","value":"Private browsing"}}}},
+    "settings.private.lock.detail": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nach dem Verlassen der App ist Geräteauthentifizierung erforderlich. Sperren lässt private Tabs geöffnet. Diese Einstellung bleibt auf diesem Gerät."}},"en":{"stringUnit":{"state":"translated","value":"Require device authentication after leaving the app. Locking keeps private tabs open. This setting stays on this device."}}}},
+    "browser.private.lock.reason": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privaten Browserbereich entsperren"}},"en":{"stringUnit":{"state":"translated","value":"Unlock private browsing"}}}},
+    "browser.private.lock.unlock": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Entsperren"}},"en":{"stringUnit":{"state":"translated","value":"Unlock"}}}},
+    "browser.private.lock.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Entsperre, um zu deinen privaten Tabs zurückzukehren."}},"en":{"stringUnit":{"state":"translated","value":"Unlock to return to your private tabs."}}}},
+    "browser.private.lock.failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Geräteauthentifizierung wurde abgebrochen oder ist nicht verfügbar. Versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"Device authentication was cancelled or unavailable. Try again."}}}},
+    "sync.key.claim_changed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Verschlüsselungseinrichtung wurde geändert. Vor dem Synchronisieren bitte erneut sicher verknüpfen."}},"en":{"stringUnit":{"state":"translated","value":"Encryption setup changed; reconnect securely before syncing"}}}},
+    "settings.extensions.storage.share": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Unterstützte Erweiterungseinstellungen anzeigen"}},"en":{"stringUnit":{"state":"translated","value":"Show supported extension settings"}}}},
+    "settings.extensions.storage.smoothScroll": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sanftes Scrollen"}},"en":{"stringUnit":{"state":"translated","value":"Smooth scrolling"}}}},
+    "settings.extensions.storage.filterLinkHints": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Linkhinweise filtern"}},"en":{"stringUnit":{"state":"translated","value":"Filter link hints"}}}},
+    "settings.extensions.storage.hideHud": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Statusanzeige ausblenden"}},"en":{"stringUnit":{"state":"translated","value":"Hide status display"}}}},
+    "settings.extensions.storage.hideUpdateNotifications": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Updatehinweise ausblenden"}},"en":{"stringUnit":{"state":"translated","value":"Hide update notifications"}}}},
+    "settings.extensions.storage.default": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Standard"}},"en":{"stringUnit":{"state":"translated","value":"Default"}}}},
+    "settings.extensions.storage.on": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ein"}},"en":{"stringUnit":{"state":"translated","value":"On"}}}},
+    "settings.extensions.storage.off": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Aus"}},"en":{"stringUnit":{"state":"translated","value":"Off"}}}},
+    "settings.extensions.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erweiterungen"}},"en":{"stringUnit":{"state":"translated","value":"Extensions"}}}},
+    "settings.extensions.share": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geteilte Erweiterungskonfiguration anzeigen"}},"en":{"stringUnit":{"state":"translated","value":"Show shared extension setup"}}}},
+    "settings.extensions.metadata_only": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zeigt die gewünschte Desktop-Konfiguration. Chromium-Erweiterungen laufen nicht auf iOS."}},"en":{"stringUnit":{"state":"translated","value":"Shows the desired desktop configuration. Chromium extensions do not run on iOS."}}}},
+    "settings.extensions.desired_removed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gewünscht: entfernt"}},"en":{"stringUnit":{"state":"translated","value":"Desired: removed"}}}},
+    "settings.extensions.desired_enabled": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gewünscht: aktiviert"}},"en":{"stringUnit":{"state":"translated","value":"Desired: enabled"}}}},
+    "settings.extensions.desired_disabled": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gewünscht: deaktiviert"}},"en":{"stringUnit":{"state":"translated","value":"Desired: disabled"}}}},
     "action.cancel": {
       "extractionState": "manual",
       "localizations": {
@@ -171,12 +201,46 @@
         }
       }
     },
+    "action.continue_key_rotation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüsselwechsel fortsetzen"}},"en":{"stringUnit":{"state":"translated","value":"Continue key rotation"}}}},
     "action.allow": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erlauben"}},"en":{"stringUnit":{"state":"translated","value":"Allow"}}}},
     "action.clear": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Leeren"}},"en":{"stringUnit":{"state":"translated","value":"Clear"}}}},
     "action.close": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schließen"}},"en":{"stringUnit":{"state":"translated","value":"Close"}}}},
     "action.deny": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nicht erlauben"}},"en":{"stringUnit":{"state":"translated","value":"Don't Allow"}}}},
     "action.ok": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"OK"}},"en":{"stringUnit":{"state":"translated","value":"OK"}}}},
     "action.try_again": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erneut versuchen"}},"en":{"stringUnit":{"state":"translated","value":"Try Again"}}}},
+    "bookmark.add": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesezeichen hinzufügen"}},"en":{"stringUnit":{"state":"translated","value":"Add Bookmark"}}}},
+    "bookmark.add_folder": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ordner hinzufügen"}},"en":{"stringUnit":{"state":"translated","value":"Add Folder"}}}},
+    "bookmark.add_menu": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Hinzufügen"}},"en":{"stringUnit":{"state":"translated","value":"Add"}}}},
+    "bookmark.delete.confirmation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ löschen?"}},"en":{"stringUnit":{"state":"translated","value":"Delete %@?"}}}},
+    "bookmark.delete.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Lesezeichen und enthaltene Einträge werden von aktivierten Geräten entfernt."}},"en":{"stringUnit":{"state":"translated","value":"The bookmark and any contained items will be removed from enabled devices."}}}},
+    "bookmark.edit": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Bearbeiten"}},"en":{"stringUnit":{"state":"translated","value":"Edit"}}}},
+    "bookmark.editor.add_bookmark": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neues Lesezeichen"}},"en":{"stringUnit":{"state":"translated","value":"New Bookmark"}}}},
+    "bookmark.editor.add_folder": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neuer Ordner"}},"en":{"stringUnit":{"state":"translated","value":"New Folder"}}}},
+    "bookmark.editor.edit_bookmark": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesezeichen bearbeiten"}},"en":{"stringUnit":{"state":"translated","value":"Edit Bookmark"}}}},
+    "bookmark.editor.edit_folder": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ordner bearbeiten"}},"en":{"stringUnit":{"state":"translated","value":"Edit Folder"}}}},
+    "bookmark.editor.save_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Lesezeichen konnte nicht gespeichert werden."}},"en":{"stringUnit":{"state":"translated","value":"The bookmark could not be saved."}}}},
+    "bookmark.editor.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Titel"}},"en":{"stringUnit":{"state":"translated","value":"Title"}}}},
+    "bookmark.editor.url": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Adresse"}},"en":{"stringUnit":{"state":"translated","value":"Address"}}}},
+    "bookmark.editor.url_hint": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Webadressen lassen sich auf diesem Gerät öffnen. Andere native Adressen bleiben als Metadaten gespeichert."}},"en":{"stringUnit":{"state":"translated","value":"Web addresses open on this device. Other native addresses remain saved as metadata."}}}},
+    "bookmark.empty.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Füge hier ein Lesezeichen oder einen Ordner hinzu."}},"en":{"stringUnit":{"state":"translated","value":"Add a bookmark or folder here."}}}},
+    "bookmark.empty.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine Lesezeichen"}},"en":{"stringUnit":{"state":"translated","value":"No bookmarks"}}}},
+    "bookmark.folder.unavailable": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ordner nicht verfügbar"}},"en":{"stringUnit":{"state":"translated","value":"Folder unavailable"}}}},
+    "bookmark.folders": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ordner"}},"en":{"stringUnit":{"state":"translated","value":"Folders"}}}},
+    "bookmark.library.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesezeichen"}},"en":{"stringUnit":{"state":"translated","value":"Bookmarks"}}}},
+    "bookmark.move": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Verschieben nach"}},"en":{"stringUnit":{"state":"translated","value":"Move To"}}}},
+    "bookmark.move_down": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nach unten"}},"en":{"stringUnit":{"state":"translated","value":"Move Down"}}}},
+    "bookmark.move_up": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nach oben"}},"en":{"stringUnit":{"state":"translated","value":"Move Up"}}}},
+    "bookmark.root.bar": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesezeichenleiste"}},"en":{"stringUnit":{"state":"translated","value":"Bookmarks Bar"}}}},
+    "bookmark.root.mobile": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Mobile Lesezeichen"}},"en":{"stringUnit":{"state":"translated","value":"Mobile Bookmarks"}}}},
+    "bookmark.root.other": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Weitere Lesezeichen"}},"en":{"stringUnit":{"state":"translated","value":"Other Bookmarks"}}}},
+    "bookmark.roots": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesezeichen"}},"en":{"stringUnit":{"state":"translated","value":"Bookmarks"}}}},
+    "bookmark.sync.enable": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesezeichensynchronisierung aktivieren"}},"en":{"stringUnit":{"state":"translated","value":"Enable Bookmark Sync"}}}},
+    "bookmark.sync.enable.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Aktiviere diese Kategorie einmalig, um Lesezeichen über Ahoi Sync zu teilen."}},"en":{"stringUnit":{"state":"translated","value":"Enable this category once to share bookmarks through Ahoi Sync."}}}},
+    "bookmark.sync.local_only": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesezeichen bleiben lokal verfügbar, solange Ahoi Sync ausgeschaltet ist."}},"en":{"stringUnit":{"state":"translated","value":"Bookmarks remain available locally while Ahoi Sync is off."}}}},
+    "bookmark.sync.prerequisite": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Richte Ahoi Sync zuerst in den Einstellungen ein und aktiviere ihn, bevor du diese Kategorie freigibst."}},"en":{"stringUnit":{"state":"translated","value":"Configure and enable Ahoi Sync in Settings before enabling this category."}}}},
+    "bookmark.unsupported.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Adresse bleibt als Lesezeichen-Metadatum gespeichert; iPhone und iPad öffnen hier jedoch nur Webadressen."}},"en":{"stringUnit":{"state":"translated","value":"The address remains saved as bookmark metadata, but iPhone and iPad open only web addresses here."}}}},
+    "bookmark.unsupported.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Diese Adresse kann hier nicht geöffnet werden"}},"en":{"stringUnit":{"state":"translated","value":"This address cannot be opened here"}}}},
+    "bookmark.untitled_folder": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Unbenannter Ordner"}},"en":{"stringUnit":{"state":"translated","value":"Untitled Folder"}}}},
     "bootstrap.progress": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser wird vorbereitet …"}},"en":{"stringUnit":{"state":"translated","value":"Preparing AhoiBrowser…"}}}},
     "browser.address.accessibility": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Adresse und Suche"}},"en":{"stringUnit":{"state":"translated","value":"Address and search"}}}},
     "browser.back": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zurück"}},"en":{"stringUnit":{"state":"translated","value":"Back"}}}},
@@ -189,18 +253,30 @@
     "browser.command.empty.description": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website, Suche, Workspace, Tab oder Verlauf eingeben."}},"en":{"stringUnit":{"state":"translated","value":"Enter a website, search, workspace, tab or history item."}}}},
     "browser.command.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Go to"}}}},
     "browser.copy_address": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Adresse kopieren"}},"en":{"stringUnit":{"state":"translated","value":"Copy Address"}}}},
+    "browser.copy_markdown": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Link als Markdown kopieren"}},"en":{"stringUnit":{"state":"translated","value":"Copy Link as Markdown"}}}},
     "browser.desktop_site": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Desktop-Website anfordern"}},"en":{"stringUnit":{"state":"translated","value":"Request Desktop Site"}}}},
     "browser.download.cancelled": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Abgebrochen"}},"en":{"stringUnit":{"state":"translated","value":"Cancelled"}}}},
     "browser.download.completed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geladen"}},"en":{"stringUnit":{"state":"translated","value":"Downloaded"}}}},
     "browser.download.downloading": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Wird geladen …"}},"en":{"stringUnit":{"state":"translated","value":"Downloading…"}}}},
+    "browser.download.error.destination": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte diesen Download nicht speichern. Prüfe den verfügbaren Speicher und versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not save this download. Check available storage and try again."}}}},
+    "browser.download.error.policy": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte diesen Download nicht sicher starten."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not start this download safely."}}}},
+    "browser.download.error.transfer": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der Download wurde unterbrochen. Versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"The download was interrupted. Try again."}}}},
     "browser.download.failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download fehlgeschlagen"}},"en":{"stringUnit":{"state":"translated","value":"Download failed"}}}},
     "browser.download.starting": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Wird gestartet …"}},"en":{"stringUnit":{"state":"translated","value":"Starting…"}}}},
     "browser.downloads": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Downloads"}},"en":{"stringUnit":{"state":"translated","value":"Downloads"}}}},
     "browser.downloads.count": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Downloads (%d)"}},"en":{"stringUnit":{"state":"translated","value":"Downloads (%d)"}}}},
     "browser.downloads.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine Downloads"}},"en":{"stringUnit":{"state":"translated","value":"No Downloads"}}}},
     "browser.duplicate_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab duplizieren"}},"en":{"stringUnit":{"state":"translated","value":"Duplicate Tab"}}}},
-    "browser.error.blocked_scheme": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser öffnet hier nur HTTP- und HTTPS-Links."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser only opens HTTP and HTTPS links here."}}}},
+    "browser.error.blocked_scheme": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser öffnet nur sichere Weblinks und freigegebene App-Links."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser only opens safe web links and approved app links."}}}},
     "browser.error.invalid_address": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gib eine gültige Adresse oder einen Suchbegriff ein."}},"en":{"stringUnit":{"state":"translated","value":"Enter a valid address or search term."}}}},
+    "browser.session.restore_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte die vorherige Sitzung nicht wiederherstellen. Ein neuer Tab wurde geöffnet; die gespeicherte Sitzung blieb unverändert."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser couldn't restore the previous session. A new tab was opened, and the saved session was left unchanged."}}}},
+    "browser.session.save_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte die aktuelle Sitzung nicht speichern. Deine geöffneten Seiten bleiben verfügbar; versuche eine weitere Änderung, um erneut zu speichern."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser couldn't save the current session. Your open pages remain available; try another change to save again."}}}},
+    "browser.failure.dns.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Prüfe den Namen der Website in der Adresse und versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"Check the website name in the address and try again."}}}},
+    "browser.failure.dns.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website nicht gefunden"}},"en":{"stringUnit":{"state":"translated","value":"Website Not Found"}}}},
+    "browser.failure.http_client.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite nicht verfügbar"}},"en":{"stringUnit":{"state":"translated","value":"Page Not Available"}}}},
+    "browser.failure.http_client.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Website konnte diese Seite nicht bereitstellen. Prüfe die Adresse oder versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"The website could not provide this page. Check the address or try again."}}}},
+    "browser.failure.http_server.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Website-Fehler"}},"en":{"stringUnit":{"state":"translated","value":"Website Error"}}}},
+    "browser.failure.http_server.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Bei der Website ist ein Problem aufgetreten. Versuche es gleich noch einmal."}},"en":{"stringUnit":{"state":"translated","value":"The website encountered a problem. Try again in a moment."}}}},
     "browser.error.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser"}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser"}}}},
     "browser.external.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ möchte %@ öffnen."}},"en":{"stringUnit":{"state":"translated","value":"%@ wants to open %@."}}}},
     "browser.external.open": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"App öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open App"}}}},
@@ -213,6 +289,8 @@
     "browser.failure.offline.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Du bist offline"}},"en":{"stringUnit":{"state":"translated","value":"You're Offline"}}}},
     "browser.failure.process.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"iOS hat den Seitenprozess freigegeben. Lade die Seite neu, um fortzufahren."}},"en":{"stringUnit":{"state":"translated","value":"iOS released the page process. Reload it to continue."}}}},
     "browser.failure.process.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite muss neu geladen werden"}},"en":{"stringUnit":{"state":"translated","value":"Page Reload Required"}}}},
+    "browser.failure.security.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte die sichere Verbindung dieser Website nicht verifizieren."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not verify this website's secure connection."}}}},
+    "browser.failure.security.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sichere Verbindung fehlgeschlagen"}},"en":{"stringUnit":{"state":"translated","value":"Secure Connection Failed"}}}},
     "browser.failure.timeout.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Website hat nicht rechtzeitig geantwortet."}},"en":{"stringUnit":{"state":"translated","value":"The website did not respond in time."}}}},
     "browser.failure.timeout.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Seite braucht zu lange"}},"en":{"stringUnit":{"state":"translated","value":"The Page Took Too Long"}}}},
     "browser.find": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Auf Seite suchen"}},"en":{"stringUnit":{"state":"translated","value":"Find on Page"}}}},
@@ -220,6 +298,15 @@
     "browser.find.previous": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vorheriger Treffer"}},"en":{"stringUnit":{"state":"translated","value":"Previous match"}}}},
     "browser.find.results": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%d Treffer"}},"en":{"stringUnit":{"state":"translated","value":"%d matches"}}}},
     "browser.forward": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vor"}},"en":{"stringUnit":{"state":"translated","value":"Forward"}}}},
+    "browser.home.away": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nicht an der Ausgangsadresse"}},"en":{"stringUnit":{"state":"translated","value":"Away from Home Address"}}}},
+    "browser.home.current": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"An der Ausgangsadresse"}},"en":{"stringUnit":{"state":"translated","value":"At Home Address"}}}},
+    "browser.home.failed.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die gespeicherte Seite wurde geändert, bevor ihre Ausgangsadresse aktualisiert werden konnte. Versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"The saved page changed before its Home Address could be updated. Try again."}}}},
+    "browser.home.failed.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ausgangsadresse nicht aktualisiert"}},"en":{"stringUnit":{"state":"translated","value":"Home Address Not Updated"}}}},
+    "browser.home.help": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Ausgangsadresse ist der feste Startpunkt dieser gespeicherten Seite. Surfen im Tab ändert sie nicht; „Zur Ausgangsadresse“ bringt dich zurück."}},"en":{"stringUnit":{"state":"translated","value":"A Home Address is this saved page's fixed starting point. Browsing in the tab doesn't change it; “Go to Home Address” takes you back."}}}},
+    "browser.home.local": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Diese Ausgangsadresse ist nur auf ihrem ursprünglichen Gerät verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"This Home Address is local to its original device."}}}},
+    "browser.home.return": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zur Ausgangsadresse"}},"en":{"stringUnit":{"state":"translated","value":"Go to Home Address"}}}},
+    "browser.home.set": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Aktuelle Seite als Ausgangsadresse verwenden"}},"en":{"stringUnit":{"state":"translated","value":"Use Current Page as Home Address"}}}},
+    "browser.home.updating": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ausgangsadresse wird aktualisiert …"}},"en":{"stringUnit":{"state":"translated","value":"Updating Home Address…"}}}},
     "browser.link_actions.copy": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Link kopieren"}},"en":{"stringUnit":{"state":"translated","value":"Copy Link"}}}},
     "browser.link_actions.no_workspaces": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erstelle zuerst einen Workspace, um diesen Link zu sichern."}},"en":{"stringUnit":{"state":"translated","value":"Create a workspace before saving this link."}}}},
     "browser.link_actions.open_new_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"In neuem Tab öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open in New Tab"}}}},
@@ -229,6 +316,8 @@
     "browser.link_actions.open_private_workspace": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privat im ausgewählten Workspace öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open Privately in Selected Workspace"}}}},
     "browser.link_actions.open_section": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open"}}}},
     "browser.link_actions.open_workspace": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Im ausgewählten Workspace öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open in Selected Workspace"}}}},
+    "browser.link_actions.preview": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Linkvorschau"}},"en":{"stringUnit":{"state":"translated","value":"Preview Link"}}}},
+    "browser.link_actions.preview_help": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Vorschau lädt den Link, ohne diese Seite zu verlassen. Behalte ihn mit „Als Tab öffnen“ oder schließe ihn."}},"en":{"stringUnit":{"state":"translated","value":"Preview loads the link without leaving this page. Keep it with “Open as Tab” or close it."}}}},
     "browser.link_actions.origin": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Von"}},"en":{"stringUnit":{"state":"translated","value":"From"}}}},
     "browser.link_actions.save": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Link sichern"}},"en":{"stringUnit":{"state":"translated","value":"Save Link"}}}},
     "browser.link_actions.save_failed.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der Link konnte nicht gesichert werden."}},"en":{"stringUnit":{"state":"translated","value":"The link could not be saved."}}}},
@@ -239,6 +328,10 @@
     "browser.link_actions.use_section": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Link verwenden"}},"en":{"stringUnit":{"state":"translated","value":"Use Link"}}}},
     "browser.link_actions.workspace": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Workspace"}}}},
     "browser.link_actions.workspace_picker": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ausgewählter Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Selected Workspace"}}}},
+    "browser.link_preview.back": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zurück zur Seite"}},"en":{"stringUnit":{"state":"translated","value":"Back to Page"}}}},
+    "browser.link_preview.from": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geöffnet von %@"}},"en":{"stringUnit":{"state":"translated","value":"Opened from %@"}}}},
+    "browser.link_preview.open_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Als Tab öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open as Tab"}}}},
+    "browser.link_preview.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Linkvorschau"}},"en":{"stringUnit":{"state":"translated","value":"Link Preview"}}}},
     "browser.loading": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite wird geladen"}},"en":{"stringUnit":{"state":"translated","value":"Loading page"}}}},
     "browser.mobile_site": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Mobile Website anfordern"}},"en":{"stringUnit":{"state":"translated","value":"Request Mobile Site"}}}},
     "browser.new_private_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neuer privater Tab"}},"en":{"stringUnit":{"state":"translated","value":"New private tab"}}}},
@@ -254,8 +347,13 @@
     "browser.private.close_all": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Private Tabs schließen"}},"en":{"stringUnit":{"state":"translated","value":"Close Private Tabs"}}}},
     "browser.private.close_all.confirmation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Alle privaten Tabs schließen?"}},"en":{"stringUnit":{"state":"translated","value":"Close all private tabs?"}}}},
     "browser.private.close_all.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Offene private Tabs und ihre flüchtige Browsing-Sitzung werden verworfen."}},"en":{"stringUnit":{"state":"translated","value":"Open private tabs and their in-memory browsing session will be discarded."}}}},
+    "browser.reader": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesemodus"}},"en":{"stringUnit":{"state":"translated","value":"Reader"}}}},
+    "browser.reader.preparing": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lesemodus wird vorbereitet …"}},"en":{"stringUnit":{"state":"translated","value":"Preparing Reader…"}}}},
+    "browser.reader.return": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zurück zur Seite"}},"en":{"stringUnit":{"state":"translated","value":"Back to Page"}}}},
+    "browser.reader.unavailable": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Auf dieser Seite wurde kein lesbarer Artikel gefunden."}},"en":{"stringUnit":{"state":"translated","value":"No readable article found on this page."}}}},
     "browser.reload": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neu laden"}},"en":{"stringUnit":{"state":"translated","value":"Reload"}}}},
     "browser.retry": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Erneut versuchen"}},"en":{"stringUnit":{"state":"translated","value":"Try Again"}}}},
+    "browser.retrying": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neuer Versuch…"}},"en":{"stringUnit":{"state":"translated","value":"Trying again…"}}}},
     "browser.rename_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab umbenennen"}},"en":{"stringUnit":{"state":"translated","value":"Rename Tab"}}}},
     "browser.save_to_workspace": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"In Workspace sichern"}},"en":{"stringUnit":{"state":"translated","value":"Save to workspace"}}}},
     "browser.search.library": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ahoi-Mediathek"}},"en":{"stringUnit":{"state":"translated","value":"Ahoi Library"}}}},
@@ -264,12 +362,16 @@
     "browser.share": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite teilen"}},"en":{"stringUnit":{"state":"translated","value":"Share Page"}}}},
     "browser.tab_name": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tab-Name"}},"en":{"stringUnit":{"state":"translated","value":"Tab name"}}}},
     "browser.tabs.count": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%d Tabs"}},"en":{"stringUnit":{"state":"translated","value":"%d tabs"}}}},
+    "browser.tabs.count.one": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"1 Tab"}},"en":{"stringUnit":{"state":"translated","value":"1 tab"}}}},
+    "browser.tabs.next": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nächster Tab"}},"en":{"stringUnit":{"state":"translated","value":"Next Tab"}}}},
     "browser.tabs.normal": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tabs"}},"en":{"stringUnit":{"state":"translated","value":"Tabs"}}}},
+    "browser.tabs.previous": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vorheriger Tab"}},"en":{"stringUnit":{"state":"translated","value":"Previous Tab"}}}},
     "browser.tabs.private": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Privat"}},"en":{"stringUnit":{"state":"translated","value":"Private"}}}},
     "browser.tabs.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Tabs"}},"en":{"stringUnit":{"state":"translated","value":"Tabs"}}}},
     "browser.text_larger": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Größerer Text"}},"en":{"stringUnit":{"state":"translated","value":"Larger Text"}}}},
     "browser.text_smaller": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Kleinerer Text"}},"en":{"stringUnit":{"state":"translated","value":"Smaller Text"}}}},
     "browser.undo_close": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ wieder öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Reopen %@"}}}},
+    "browser.undo_close_tab": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Geschlossenen Tab wieder öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Reopen closed tab"}}}},
     "device_filter.accessibility": {
       "extractionState": "manual",
       "localizations": {
@@ -831,6 +933,23 @@
         }
       }
     },
+    "remote.state.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgelaufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired"
+          }
+        }
+      }
+    },
     "remote.state.failed": {
       "extractionState": "manual",
       "localizations": {
@@ -895,6 +1014,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ was completed on the Mac."
+          }
+        }
+      }
+    },
+    "remote.status.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ist vor der Bestätigung abgelaufen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ expired before confirmation."
           }
         }
       }
@@ -1766,6 +1902,23 @@
         }
       }
     },
+    "settings.sync.encryption": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschlüsselung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encryption"
+          }
+        }
+      }
+    },
     "settings.sync.retry": {
       "extractionState": "manual",
       "localizations": {
@@ -1868,6 +2021,62 @@
         }
       }
     },
+    "sync.key.claiming": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erste Sync-Einrichtung wird abgesichert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Securing first-time sync setup"}}
+      }
+    },
+    "sync.key.disabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Sync-Schlüssel sind deaktiviert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Sync keys are off"}}
+      }
+    },
+    "sync.key.migration": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Vorhandener Sync-Schlüssel wird geprüft"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Verifying the existing sync key"}}
+      }
+    },
+    "sync.key.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselung bereit"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption ready"}}
+      }
+    },
+    "sync.key.recovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselungs-Wiederherstellung erforderlich"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption recovery required"}}
+      }
+    },
+    "sync.key.revoked": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verschlüsselungsschlüssel widerrufen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption key revoked"}}
+      }
+    },
+    "sync.key.rotation": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Schlüsselwechsel erforderlich"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Encryption key rotation required"}}
+      }
+    },
+    "sync.key.waiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Warten auf den gekoppelten Sync-Schlüssel"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Waiting for the paired sync key"}}
+      }
+    },
     "sync.retention.invalid": {
       "extractionState": "manual",
       "localizations": {
@@ -1885,6 +2094,34 @@
         }
       }
     },
+    "settings.sync.setup_pending": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Sync-Einrichtung wird noch vorbereitet. Lokale Daten bleiben verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"Sync setup is still preparing. Local data remains available."}}}},
+    "sync.setup.detail.account_changed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der iCloud-Account wurde geändert. Prüfe den erhaltenen lokalen Stand vor dem Hochladen."}},"en":{"stringUnit":{"state":"translated","value":"The iCloud account changed. Review the retained local snapshot before uploading."}}}},
+    "sync.setup.detail.bootstrap_unverified": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte die Eigentümerschaft des verschlüsselten Sync-Schlüssels nicht verifizieren."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not verify ownership of the encrypted sync key."}}}},
+    "sync.setup.detail.claiming": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser sichert die erste Sync-Einrichtung ab."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser is securing first-time sync setup."}}}},
+    "sync.setup.detail.cloudkit": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Prüfe die iCloud-Anmeldung und CloudKit-Berechtigung. Lokale Daten bleiben verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"Check iCloud sign-in and CloudKit permission. Local data remains available."}}}},
+    "sync.setup.detail.cancelled": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Sync-Einrichtung wurde vor Abschluss beendet. Lokale Daten bleiben verfügbar; aktiviere Sync erneut."}},"en":{"stringUnit":{"state":"translated","value":"Sync setup stopped before completion. Local data remains available; try enabling Sync again."}}}},
+    "sync.setup.detail.configuration": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Dieser Build enthält keine vollständige CloudKit-Konfiguration. Lokale Daten bleiben verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"This build does not contain a complete CloudKit configuration. Local data remains available."}}}},
+    "sync.setup.detail.key_version": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die verfügbare Sync-Schlüsselversion passt nicht zu den verschlüsselten CloudKit-Daten."}},"en":{"stringUnit":{"state":"translated","value":"The available sync-key version does not match the encrypted CloudKit data."}}}},
+    "sync.setup.detail.keychain": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser kann nicht auf den geschützten Sync-Schlüssel im iCloud-Schlüsselbund zugreifen. Lokale Daten bleiben verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser cannot access the protected sync key in iCloud Keychain. Local data remains available."}}}},
+    "sync.setup.detail.migration": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser prüft den vorhandenen Sync-Schlüssel."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser is verifying the existing sync key."}}}},
+    "sync.setup.detail.remote_data_without_key": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Verschlüsselte CloudKit-Daten sind vorhanden, aber ihr Sync-Schlüssel ist auf diesem Gerät nicht verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"Encrypted CloudKit data exists, but its sync key is unavailable on this device."}}}},
+    "sync.setup.detail.revoked": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der Sync-Schlüssel wurde widerrufen. Verbinde dieses Gerät vor dem Synchronisieren erneut."}},"en":{"stringUnit":{"state":"translated","value":"The sync key was revoked. Reconnect this device before syncing."}}}},
+    "sync.setup.detail.rotation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schließe den Sync-Schlüsselwechsel ab, bevor der verschlüsselte Transport fortgesetzt werden kann."}},"en":{"stringUnit":{"state":"translated","value":"Complete sync-key rotation before encrypted transport can continue."}}}},
+    "sync.setup.detail.transport": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"CloudKit ist derzeit nicht verfügbar. Lokale Daten bleiben erhalten; versuche es später erneut."}},"en":{"stringUnit":{"state":"translated","value":"CloudKit is currently unavailable. Local data remains available; try again later."}}}},
+    "sync.setup.detail.unknown": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Sync-Einrichtung konnte nicht abgeschlossen werden. Lokale Daten bleiben verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"Sync setup could not be completed. Local data remains available."}}}},
+    "sync.setup.detail.waiting_keychain": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Warten auf den Sync-Schlüssel aus dem iCloud-Schlüsselbund."}},"en":{"stringUnit":{"state":"translated","value":"Waiting for the sync key from iCloud Keychain."}}}},
+    "sync.setup.detail.waiting_other_device": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ein anderes freigegebenes Gerät hat die erste Einrichtung abgesichert. Warten auf dessen Sync-Schlüssel."}},"en":{"stringUnit":{"state":"translated","value":"Another approved device secured first-time setup. Waiting for its sync key."}}}},
+    "sync.setup.detail.waiting_pairing": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Warten auf den freigegebenen Kopplungsschlüssel."}},"en":{"stringUnit":{"state":"translated","value":"Waiting for the approved pairing key."}}}},
+    "sync.setup.detail.zone_lost": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die CloudKit-Zone erfordert eine ausdrückliche Wiederherstellung, bevor Sync fortgesetzt werden kann."}},"en":{"stringUnit":{"state":"translated","value":"The CloudKit zone requires explicit recovery before syncing can continue."}}}},
+    "sync.setup.state.cloudkit": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"iCloud-Zugriff erforderlich"}},"en":{"stringUnit":{"state":"translated","value":"iCloud access required"}}}},
+    "sync.setup.state.cancelled": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sync-Einrichtung beendet"}},"en":{"stringUnit":{"state":"translated","value":"Sync setup stopped"}}}},
+    "sync.setup.state.configuration": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Einrichtung erforderlich"}},"en":{"stringUnit":{"state":"translated","value":"Setup required"}}}},
+    "sync.setup.state.keychain": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüsselbund-Zugriff erforderlich"}},"en":{"stringUnit":{"state":"translated","value":"Keychain access required"}}}},
+    "sync.setup.state.preparing": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Verschlüsselung wird vorbereitet"}},"en":{"stringUnit":{"state":"translated","value":"Preparing encryption"}}}},
+    "sync.setup.state.recovery": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sync-Wiederherstellung erforderlich"}},"en":{"stringUnit":{"state":"translated","value":"Sync recovery required"}}}},
+    "sync.setup.state.transport": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"CloudKit nicht verfügbar"}},"en":{"stringUnit":{"state":"translated","value":"CloudKit unavailable"}}}},
+    "sync.setup.state.unknown": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sync-Einrichtung nicht verfügbar"}},"en":{"stringUnit":{"state":"translated","value":"Sync setup unavailable"}}}},
+    "sync.setup.state.waiting": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Warten auf Sync-Schlüssel"}},"en":{"stringUnit":{"state":"translated","value":"Waiting for sync key"}}}},
     "sync.state.account_required": {
       "extractionState": "manual",
       "localizations": {
@@ -2429,6 +2666,10 @@
         }
       }
     },
+    "library.operation.dismiss": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Bibliotheksfehler schließen"}},"en":{"stringUnit":{"state":"translated","value":"Dismiss library error"}}}},
+    "library.operation.failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Diese Änderung konnte nicht gespeichert werden. Deine bestehende Bibliothek blieb unverändert. Versuche es erneut."}},"en":{"stringUnit":{"state":"translated","value":"That change could not be saved. Your existing library is unchanged. Try again."}}}},
+    "library.operation.local_projection_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Änderung wurde auf diesem Gerät gespeichert, aber die Bibliotheksansicht konnte nicht aktualisiert werden. Öffne die Bibliothek erneut und versuche es noch einmal."}},"en":{"stringUnit":{"state":"translated","value":"The change was saved on this device, but the library view could not refresh. Reopen the library and try again."}}}},
+    "library.operation.sync_queue_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Änderung wurde auf diesem Gerät gespeichert, konnte aber nicht für die Synchronisierung vorgemerkt werden. Verwende 'Sync erneut versuchen', sobald die Verbindung verfügbar ist."}},"en":{"stringUnit":{"state":"translated","value":"The change was saved on this device, but could not be queued for sync. Use Retry Sync when the connection is available."}}}},
     "tree.move": {
       "extractionState": "manual",
       "localizations": {
@@ -2446,6 +2687,8 @@
         }
       }
     },
+    "tree.move_down": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nach unten"}},"en":{"stringUnit":{"state":"translated","value":"Move down"}}}},
+    "tree.move_up": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nach oben"}},"en":{"stringUnit":{"state":"translated","value":"Move up"}}}},
     "tree.delete.confirmation": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ und enthaltene Elemente löschen?"}},"en":{"stringUnit":{"state":"translated","value":"Delete %@ and its contents?"}}}},
     "tree.delete.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gelöschte Elemente werden auch über Ahoi Sync von deinen anderen Geräten entfernt."}},"en":{"stringUnit":{"state":"translated","value":"Deleted items are removed from Ahoi sync on your other devices too."}}}},
     "tree.rename": {
@@ -2465,6 +2708,12 @@
         }
       }
     },
+    "workspace.isolation.isolated": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vollständig getrennt"}},"en":{"stringUnit":{"state":"translated","value":"Fully separated"}}}},
+    "workspace.separated.unnamed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Getrennter Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Separated workspace"}}}},
+    "workspace.separated.key_missing": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüssel fehlt"}},"en":{"stringUnit":{"state":"translated","value":"Key missing"}}}},
+    "workspace.separated.other_account": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Anderes iCloud-Konto"}},"en":{"stringUnit":{"state":"translated","value":"Other iCloud account"}}}},
+    "workspace.separated.state_unreadable": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Einstellungen getrennter Workspaces sind auf diesem Gerät nicht lesbar, ihre Synchronisierung ist pausiert."}},"en":{"stringUnit":{"state":"translated","value":"Separated workspace settings can't be read on this device, so their sync is paused."}}}},
+    "workspace.separated.sync_toggle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Auf diesem Gerät synchronisieren"}},"en":{"stringUnit":{"state":"translated","value":"Sync on this device"}}}},
     "workspace.delete": {
       "extractionState": "manual",
       "localizations": {
@@ -2606,6 +2855,14 @@
     "browser.workspace.previous": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Vorheriger Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Previous workspace"}}}},
     "browser.workspace.next": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Nächster Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Next workspace"}}}},
     "browser.sidebar.toggle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Sidebar ein-/ausblenden"}},"en":{"stringUnit":{"state":"translated","value":"Toggle sidebar"}}}},
+    "browser.focus.journey": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Weitermachen"}},"en":{"stringUnit":{"state":"translated","value":"Continue"}}}},
+    "browser.focus.saved": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gespeichert"}},"en":{"stringUnit":{"state":"translated","value":"Saved"}}}},
+    "browser.focus.search": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Suchen, Adresse oder Befehl"}},"en":{"stringUnit":{"state":"translated","value":"Search, address or command"}}}},
+    "browser.focus.subtitle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Mach dort weiter, wo du aufgehört hast"}},"en":{"stringUnit":{"state":"translated","value":"Pick up where you left off"}}}},
+    "browser.focus.private.subtitle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Eine getrennte, flüchtige Reise"}},"en":{"stringUnit":{"state":"translated","value":"A separate, temporary voyage"}}}},
+    "browser.focus.private.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Private Tabs, Suchen und Seitendaten bleiben außerhalb von Focus Voyage und Ahoi Sync."}},"en":{"stringUnit":{"state":"translated","value":"Private tabs, searches and page data stay out of Focus Voyage and Ahoi Sync."}}}},
+    "browser.focus.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zuletzt verwendete normale Tabs und gespeicherte Seiten erscheinen hier."}},"en":{"stringUnit":{"state":"translated","value":"Recent normal tabs and saved pages will appear here."}}}},
+    "browser.stop": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Laden stoppen"}},"en":{"stringUnit":{"state":"translated","value":"Stop loading"}}}},
     "browser.sidebar.workspaces.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Noch keine Workspaces"}},"en":{"stringUnit":{"state":"translated","value":"No workspaces yet"}}}},
     "browser.sidebar.saved": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gespeichert"}},"en":{"stringUnit":{"state":"translated","value":"Saved"}}}},
     "browser.sidebar.saved.empty": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine gespeicherten Seiten"}},"en":{"stringUnit":{"state":"translated","value":"No saved pages"}}}},
@@ -2623,6 +2880,7 @@
     "browser.private.cover.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Kehre zu AhoiBrowser zurück, um diesen privaten Tab anzuzeigen."}},"en":{"stringUnit":{"state":"translated","value":"Return to AhoiBrowser to view this private tab."}}}},
     "browser.more.accessibility": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Weitere Browseraktionen"}},"en":{"stringUnit":{"state":"translated","value":"More browser actions"}}}},
     "browser.tabs.selected": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ausgewählt"}},"en":{"stringUnit":{"state":"translated","value":"Selected"}}}},
+    "browser.tab.rename_named": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ umbenennen"}},"en":{"stringUnit":{"state":"translated","value":"Rename %@"}}}},
     "browser.tab.close_named": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ schließen"}},"en":{"stringUnit":{"state":"translated","value":"Close %@"}}}},
     "device.unknown": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gerät"}},"en":{"stringUnit":{"state":"translated","value":"Device"}}}},
     "sync.status.pending_after_bounded_pass": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Änderungen sind noch ausstehend; eine weitere Synchronisierung ist erforderlich"}},"en":{"stringUnit":{"state":"translated","value":"Changes remain pending; another sync is required"}}}},
@@ -2633,6 +2891,7 @@
     "sync.status.domain_merge_failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der lokale Sync-Abgleich wurde nicht abgeschlossen"}},"en":{"stringUnit":{"state":"translated","value":"The local sync merge did not complete"}}}},
     "settings.sync.retry_quarantine": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Quarantänisierte Datensätze erneut prüfen"}},"en":{"stringUnit":{"state":"translated","value":"Retry quarantined records"}}}},
     "settings.sync.restore_physical_deletions": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lokal gesicherte Cloud-Datensätze wiederherstellen"}},"en":{"stringUnit":{"state":"translated","value":"Restore retained Cloud records"}}}},
+    "settings.sync.rotation_paused": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der verschlüsselte Transport ist während des Schlüsselwechsels pausiert. Lokale Änderungen bleiben verfügbar und werden erst hochgeladen, wenn alle Sicherheitsbestätigungen erfolgreich sind."}},"en":{"stringUnit":{"state":"translated","value":"Encrypted transport is paused during key rotation. Local changes remain available and are uploaded only after every safety acknowledgement succeeds."}}}},
     "settings.recovery.physical_delete.prompt": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Lokal gesicherte Datensätze in CloudKit wiederherstellen?"}},"en":{"stringUnit":{"state":"translated","value":"Restore retained local records to CloudKit?"}}}},
     "settings.recovery.physical_delete.confirm": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gesicherte Datensätze wiederherstellen"}},"en":{"stringUnit":{"state":"translated","value":"Restore retained records"}}}},
     "settings.recovery.physical_delete.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ein fremder CloudKit-Client hat Datensätze physisch gelöscht. Ahoi lädt die lokal gesicherten verschlüsselten Versionen erneut hoch; lokale Daten werden bei dieser Wiederherstellung niemals gelöscht."}},"en":{"stringUnit":{"state":"translated","value":"A non-Ahoi client physically deleted CloudKit rows. Ahoi will upload the retained encrypted local versions; local data is never deleted by this recovery."}}}},
@@ -2650,13 +2909,17 @@
     "browser.file_input.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ möchte %@ von diesem Gerät auswählen."}},"en":{"stringUnit":{"state":"translated","value":"%@ wants to select %@ from this device."}}}},
     "browser.file_input.files": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Dateien"}},"en":{"stringUnit":{"state":"translated","value":"files"}}}},
     "browser.file_input.folders": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ordner"}},"en":{"stringUnit":{"state":"translated","value":"folders"}}}},
+    "browser.file_input.error.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Dateien konnten nicht ausgewählt werden"}},"en":{"stringUnit":{"state":"translated","value":"Files Could Not Be Selected"}}}},
+    "browser.file_input.error.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"AhoiBrowser konnte diese Auswahl nicht sicher vorbereiten. Wähle die Dateien erneut aus."}},"en":{"stringUnit":{"state":"translated","value":"AhoiBrowser could not safely prepare that selection. Choose the files again."}}}},
     "browser.download.open": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download öffnen"}},"en":{"stringUnit":{"state":"translated","value":"Open download"}}}},
     "browser.download.progress": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%d%% · %@"}},"en":{"stringUnit":{"state":"translated","value":"%d%% · %@"}}}},
     "browser.download.progress.indeterminate": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Wird geladen · %@"}},"en":{"stringUnit":{"state":"translated","value":"Downloading · %@"}}}},
+    "browser.download.recovery.failed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Download-Wiederherstellung konnte nicht gespeichert werden."}},"en":{"stringUnit":{"state":"translated","value":"Download recovery could not be saved."}}}},
     "browser.download.bytes": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ von %@"}},"en":{"stringUnit":{"state":"translated","value":"%@ of %@"}}}},
     "browser.download.error.unsafe_method": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download blockiert: Die %@-Anfrage kann nicht sicher wiederholt werden."}},"en":{"stringUnit":{"state":"translated","value":"Download blocked: the %@ request cannot be safely repeated."}}}},
     "browser.download.error.unmatched_response": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Download blockiert: Die Antwort konnte keiner eindeutigen Anfrage zugeordnet werden."}},"en":{"stringUnit":{"state":"translated","value":"Download blocked: the response could not be matched to a unique request."}}}},
     "browser.external.unknown_origin": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Diese Website"}},"en":{"stringUnit":{"state":"translated","value":"This website"}}}},
+    "browser.external.unknown_target": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"eine andere App"}},"en":{"stringUnit":{"state":"translated","value":"another app"}}}},
     "browser.origin.unknown": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Unbekannter Ursprung"}},"en":{"stringUnit":{"state":"translated","value":"Unknown origin"}}}},
     "browser.tabs.mode": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Browsermodus"}},"en":{"stringUnit":{"state":"translated","value":"Browsing mode"}}}},
     "browser.tabs.unassigned": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ohne Workspace"}},"en":{"stringUnit":{"state":"translated","value":"No workspace"}}}},
@@ -2678,12 +2941,42 @@
     "browser.history.yesterday": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gestern"}},"en":{"stringUnit":{"state":"translated","value":"Yesterday"}}}},
     "settings.browser.section": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Browser"}},"en":{"stringUnit":{"state":"translated","value":"Browser"}}}},
     "settings.search_engine.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Suchmaschine"}},"en":{"stringUnit":{"state":"translated","value":"Search engine"}}}},
+    "settings.search_engine.reset": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Standard dieses Geräts verwenden"}},"en":{"stringUnit":{"state":"translated","value":"Use this device's default"}}}},
+    "settings.sync.browser_settings": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Browsereinstellungen synchronisieren"}},"en":{"stringUnit":{"state":"translated","value":"Sync browser settings"}}}},
+    "settings.sync.browser_settings.detail": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Teilt unterstützte Einstellungen. iOS übernimmt die Suchmaschine; reine Desktop-Einstellungen bleiben als Metadaten erhalten."}},"en":{"stringUnit":{"state":"translated","value":"Shares supported settings. On iOS, the search engine is applied; desktop-only settings stay as metadata."}}}},
+    "settings.sync.browser_settings.requires_link": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Aktiviere CloudKit-Sync, um Browsereinstellungen zu teilen. Die lokale Suche funktioniert auch ohne Sync."}},"en":{"stringUnit":{"state":"translated","value":"Enable CloudKit sync to share browser settings. Local search works without it."}}}},
     "settings.search_engine.footer": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Suchbegriffe werden erst gesendet, wenn du die Navigation bestätigst."}},"en":{"stringUnit":{"state":"translated","value":"Search terms are sent only when you choose to navigate."}}}},
     "browser.actions.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Browseraktionen"}},"en":{"stringUnit":{"state":"translated","value":"Browser Actions"}}}},
     "browser.actions.page": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Seite"}},"en":{"stringUnit":{"state":"translated","value":"Page"}}}},
     "browser.actions.browser": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Browser"}},"en":{"stringUnit":{"state":"translated","value":"Browser"}}}},
     "browser.actions.data": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Datenschutz & Daten"}},"en":{"stringUnit":{"state":"translated","value":"Privacy & Data"}}}},
     "browser.workspace.switch": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Workspace wechseln"}},"en":{"stringUnit":{"state":"translated","value":"Switch Workspace"}}}},
+    "remote.source_revoked": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Fernsteuerungs-Identität dieses Geräts wurde widerrufen."}},"en":{"stringUnit":{"state":"translated","value":"This device's remote-control identity is revoked."}}}},
+    "settings.devices.crypto_limit": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Entfernen stoppt Ahoi Sync und Fernbefehle für das Gerät in den aktuellen Datensätzen. Da der verschlüsselte Nutzdaten-Schlüssel derzeit geteilt wird, ist dies noch keine vollständige kryptografische Isolierung pro Gerät."}},"en":{"stringUnit":{"state":"translated","value":"Removing a device stops Ahoi Sync and remote-command targeting from current records. Because the encrypted payload key is currently shared, this is not complete per-device cryptographic isolation."}}}},
+    "settings.devices.current": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Dieses Gerät"}},"en":{"stringUnit":{"state":"translated","value":"This device"}}}},
+    "settings.devices.error.clock": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der Zeitstempel für die Geräteentfernung konnte nicht sicher erstellt werden."}},"en":{"stringUnit":{"state":"translated","value":"The device removal timestamp could not be created safely."}}}},
+    "settings.devices.error.identity": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Zum Entfernen wird die lokale Identität dieses Geräts benötigt."}},"en":{"stringUnit":{"state":"translated","value":"Device removal requires this device's local identity."}}}},
+    "settings.devices.error.not_found": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Gerät ist nicht mehr verfügbar."}},"en":{"stringUnit":{"state":"translated","value":"The device is no longer available."}}}},
+    "settings.devices.error.signer": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Die lokale Signatur-Identität konnte nicht sicher widerrufen werden."}},"en":{"stringUnit":{"state":"translated","value":"The local signing identity could not be revoked safely."}}}},
+    "settings.devices.remove.confirm": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Widerrufen und entfernen"}},"en":{"stringUnit":{"state":"translated","value":"Revoke and remove"}}}},
+    "settings.devices.remove.label": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ widerrufen und entfernen"}},"en":{"stringUnit":{"state":"translated","value":"Revoke and remove %@"}}}},
+    "settings.devices.remove.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ verschwindet aus synchronisierten Geräten und Fernbefehlszielen. Der gemeinsame verschlüsselte Nutzdaten-Schlüssel wird dadurch nicht gewechselt."}},"en":{"stringUnit":{"state":"translated","value":"%@ will disappear from synced devices and remote-command targets. This does not rotate the shared encrypted payload key."}}}},
+    "settings.devices.remove.prompt": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"%@ widerrufen und entfernen?"}},"en":{"stringUnit":{"state":"translated","value":"Revoke and remove %@?"}}}},
+    "settings.devices.remove.title": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Gerät entfernen"}},"en":{"stringUnit":{"state":"translated","value":"Remove device"}}}},
+    "settings.devices.removed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Gerät wurde widerrufen und für die Synchronisierung vorgemerkt."}},"en":{"stringUnit":{"state":"translated","value":"The device was revoked and queued for sync."}}}},
+    "settings.devices.removed_local": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Das Gerät wurde lokal widerrufen; die Synchronisierung steht noch aus."}},"en":{"stringUnit":{"state":"translated","value":"The device was revoked locally; sync is still pending."}}}},
+    "settings.remote.delete": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Signaturschlüssel löschen"}},"en":{"stringUnit":{"state":"translated","value":"Delete signing key"}}}},
+    "settings.remote.delete.confirm": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüssel löschen"}},"en":{"stringUnit":{"state":"translated","value":"Delete key"}}}},
+    "settings.remote.delete.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Neue Fernbefehle bleiben blockiert, bis du ausdrücklich einen Schlüssel wechselst und erneut freigibst. Ahoi-Sync-Daten bleiben mit dem getrennten gemeinsamen Nutzdaten-Schlüssel verschlüsselt."}},"en":{"stringUnit":{"state":"translated","value":"New remote commands are blocked until you explicitly rotate and re-approve a key. Ahoi Sync data remains encrypted with the separate shared payload key."}}}},
+    "settings.remote.delete.prompt": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Signaturschlüssel dieses Geräts löschen?"}},"en":{"stringUnit":{"state":"translated","value":"Delete this device's signing key?"}}}},
+    "settings.remote.deleted": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der lokale Signaturschlüssel wurde gelöscht. Fernbefehle sind blockiert."}},"en":{"stringUnit":{"state":"translated","value":"The local signing key was deleted. Remote commands are blocked."}}}},
+    "settings.remote.footer": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der Ed25519-Signaturschlüssel bleibt lokal auf diesem Gerät. Löschen blockiert neue Fernbefehle; nach einem Wechsel muss jeder Mac den neuen Schlüssel erneut freigeben."}},"en":{"stringUnit":{"state":"translated","value":"The Ed25519 signing key is local to this device. Deleting it blocks new remote-command authentication; rotating it requires fresh approval on every Mac."}}}},
+    "settings.remote.revoked": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der lokale Signaturschlüssel wurde gelöscht oder widerrufen. Wechsle ihn, um die Fernsteuerung neu zu registrieren."}},"en":{"stringUnit":{"state":"translated","value":"The local signing key is deleted or revoked. Rotate it to re-enrol remote control."}}}},
+    "settings.remote.rotate": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Signaturschlüssel wechseln"}},"en":{"stringUnit":{"state":"translated","value":"Rotate signing key"}}}},
+    "settings.remote.rotate.confirm": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüssel wechseln"}},"en":{"stringUnit":{"state":"translated","value":"Rotate key"}}}},
+    "settings.remote.rotate.message": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Der bisherige private Schlüssel wird lokal ersetzt. Jeder Mac muss den neuen öffentlichen Fingerabdruck erneut freigeben, bevor er Befehle akzeptiert."}},"en":{"stringUnit":{"state":"translated","value":"The previous private key is replaced locally. Every Mac must approve the new public fingerprint before accepting commands."}}}},
+    "settings.remote.rotate.prompt": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Signaturschlüssel dieses Geräts wechseln?"}},"en":{"stringUnit":{"state":"translated","value":"Rotate this device's signing key?"}}}},
+    "settings.remote.rotated": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Ein neuer lokaler Signaturschlüssel ist bereit. Die Macs müssen ihn erneut freigeben."}},"en":{"stringUnit":{"state":"translated","value":"A new local signing key is ready. Macs must approve it again."}}}},
     "workspace.title": {
       "extractionState": "manual",
       "localizations": {

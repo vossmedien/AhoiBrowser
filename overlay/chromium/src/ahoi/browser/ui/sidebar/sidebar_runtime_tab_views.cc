@@ -12,6 +12,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_media_indicator.h"
+#include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
@@ -23,11 +24,9 @@
 #include "base/memory/raw_ptr.h"
 #include "base/task/single_thread_task_runner.h"
 #include "cc/paint/paint_flags.h"
-#include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
-#include "components/favicon/content/content_favicon_driver.h"
 #include "components/tabs/public/tab_interface.h"
-#include "content/public/browser/web_contents.h"
+#include "components/vector_icons/vector_icons.h"
 #include "third_party/skia/include/core/SkPathBuilder.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/clipboard/clipboard_format_type.h"
@@ -46,6 +45,7 @@
 #include "ui/gfx/geometry/rounded_corners_f.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/gfx/geometry/vector2d.h"
+#include "ui/gfx/skia_util.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/background.h"
 #include "ui/views/context_menu_controller.h"
@@ -57,51 +57,7 @@
 
 namespace ahoi::sidebar {
 
-bool CanDetachRuntimeSplitPaneOnSelfDrop(bool source_is_split,
-                                         OpenTabDropPosition position) {
-  return source_is_split && position != OpenTabDropPosition::kSplit;
-}
-
-void WriteOpenTabDragPayload(ui::OSExchangeData* data,
-                             std::optional<base::Uuid> saved_node_id,
-                             int runtime_tab_handle,
-                             const std::u16string& fallback_title) {
-  if (saved_node_id.has_value()) {
-    drag::WriteSavedSidebarTabDragPayload(data, *saved_node_id, fallback_title);
-    return;
-  }
-  drag::WriteRuntimeSidebarTabDragPayload(data, runtime_tab_handle,
-                                          fallback_title);
-}
-
-ui::ImageModel GetLiveTabFavicon(tabs::TabInterface* tab) {
-  content::WebContents* contents = tab ? tab->GetContents() : nullptr;
-  favicon::ContentFaviconDriver* driver =
-      contents ? favicon::ContentFaviconDriver::FromWebContents(contents)
-               : nullptr;
-  return driver ? ui::ImageModel::FromImage(driver->GetFavicon())
-                : ui::ImageModel();
-}
-
 namespace {
-
-bool IsNewTabPage(tabs::TabInterface* tab) {
-  content::WebContents* contents = tab ? tab->GetContents() : nullptr;
-  if (!contents) {
-    return false;
-  }
-  GURL url = contents->GetVisibleURL();
-  if (!url.is_valid() || url.is_empty()) {
-    url = contents->GetLastCommittedURL();
-  }
-  return url == GURL(chrome::kChromeUINewTabURL);
-}
-
-std::u16string StableTabTitle(tabs::TabInterface* tab) {
-  return !tab || tab->GetTitle().empty()
-             ? l10n_util::GetStringUTF16(IDS_NEW_TAB)
-             : tab->GetTitle();
-}
 
 class OpenTabRowView final : public views::View, public views::DragController {
   METADATA_HEADER(OpenTabRowView, views::View)
@@ -138,10 +94,12 @@ class OpenTabRowView final : public views::View, public views::DragController {
                  SidebarDropTargetClaimCallback drop_target_claim_callback,
                  CanDropCallback can_drop_callback,
                  DropCallback drop_callback,
-                 views::ContextMenuController* context_menu_controller)
+                 views::ContextMenuController* context_menu_controller,
+                 ui::ImageModel origin_badge,
+                 bool bookmarked)
       : tab_(tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()),
         runtime_tab_handle_(tab ? tab->GetHandle().raw_value() : -1),
-        drag_title_(StableTabTitle(tab)),
+        drag_title_(internal::StableTabTitle(tab)),
         saved_node_id_(std::move(saved_node_id)),
         activate_callback_(std::move(activate_callback)),
         close_callback_(std::move(close_callback)),
@@ -170,10 +128,20 @@ class OpenTabRowView final : public views::View, public views::DragController {
     favicon_view_->SetCanProcessEventsWithinSubtree(false);
     favicon_view_->GetViewAccessibility().SetIsIgnored(true);
 
-    fallback_icon_ =
-        AddChildView(CreatePageFallbackIconView(active_, IsNewTabPage(tab)));
+    fallback_icon_ = AddChildView(
+        CreatePageFallbackIconView(active_, internal::IsNewTabPage(tab)));
     fallback_icon_->SetVisible(favicon_view_->GetImageModel().IsEmpty());
     fallback_icon_->SetCanProcessEventsWithinSubtree(false);
+
+    bookmark_indicator_ = AddChildView(std::make_unique<views::ImageView>());
+    bookmark_indicator_->SetImage(ui::ImageModel::FromVectorIcon(
+        vector_icons::kStarFilledIcon, visual_style::kMutedText, 8));
+    bookmark_indicator_->SetImageSize(gfx::Size(8, 8));
+    bookmark_indicator_->SetBackground(
+        views::CreateRoundedRectBackground(visual_style::kRaisedSurface, 2));
+    bookmark_indicator_->SetCanProcessEventsWithinSubtree(false);
+    bookmark_indicator_->GetViewAccessibility().SetIsIgnored(true);
+    bookmark_indicator_->SetVisible(bookmarked);
 
     title_ = AddChildView(std::make_unique<SidebarTabTitleLabel>());
     title_->SetText(tab_title);
@@ -181,7 +149,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
     title_->SetEnabledColor(visual_style::kText);
 
     media_indicator_ = AddChildView(std::make_unique<views::ImageView>());
-    media_indicator_->SetImage(GetSidebarMediaIndicator(media_alert));
+    media_indicator_->SetImage(media_alert
+                                   ? GetSidebarMediaIndicator(media_alert)
+                                   : std::move(origin_badge));
     media_indicator_->SetImageSize(gfx::Size(16, 16));
     media_indicator_->SetCanProcessEventsWithinSubtree(false);
     media_indicator_->GetViewAccessibility().SetIsIgnored(true);
@@ -245,16 +215,39 @@ class OpenTabRowView final : public views::View, public views::DragController {
       return;
     }
     is_split_segment_ = split_segment;
+    UpdateBackground();
     UpdateTitleBounds();
     InvalidateLayout();
   }
 
   void Layout(PassKey) override { UpdateTitleBounds(); }
 
+  void OnPaintBackground(gfx::Canvas* canvas) override {
+    if (!is_split_segment_) {
+      views::View::OnPaintBackground(canvas);
+      return;
+    }
+    const std::optional<ui::ColorId> color = SurfaceColor();
+    if (!color.has_value()) {
+      return;
+    }
+    gfx::RectF surface(GetLocalBounds());
+    if (surface.IsEmpty()) {
+      return;
+    }
+    cc::PaintFlags fill;
+    fill.setAntiAlias(false);
+    fill.setColor(GetColorProvider()->GetColor(*color));
+    fill.setStyle(cc::PaintFlags::kFill_Style);
+    canvas->DrawRect(surface, fill);
+  }
+
   void UpdateTitleBounds() {
     const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
     favicon_view_->SetBoundsRect(icon_bounds);
     fallback_icon_->SetBoundsRect(icon_bounds);
+    bookmark_indicator_->SetBoundsRect(
+        gfx::Rect(icon_bounds.right() - 10, icon_bounds.bottom() - 10, 10, 10));
     const SidebarTabTrailingLayout trailing =
         GetSidebarTabTrailingLayout(width(), height(), has_media_indicator_);
     close_->SetBoundsRect(trailing.hover_action);
@@ -555,17 +548,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   OpenTabDropPosition PositionForPoint(const gfx::Point& point) const {
-    // Keep native hit testing identical to the painted 30/40/30 zones. A
-    // highlighted region must never promise a drop that the pointer cannot
-    // actually commit.
-    const int edge_zone = GetSidebarEdgeDropTargetExtent(height());
-    if (point.y() < edge_zone) {
-      return OpenTabDropPosition::kBefore;
-    }
-    if (point.y() >= height() - edge_zone) {
-      return OpenTabDropPosition::kAfter;
-    }
-    return OpenTabDropPosition::kSplit;
+    // Keep native hit testing identical to the painted zones. A highlighted
+    // region must never promise a drop that the pointer cannot commit.
+    return OpenTabDropPositionForY(point.y(), height());
   }
 
   bool UpdateDropPosition(const ui::DropTargetEvent& event) {
@@ -599,34 +584,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
                                 *drop_position_)) {
       return next;
     }
-
-    const int edge_extent = GetSidebarEdgeDropTargetExtent(height());
-    const int before_boundary = edge_extent;
-    const int after_boundary = height() - edge_extent;
-    const int center_boundary = height() / 2;
-    constexpr int kDropZoneHysteresis = 4;
-    const OpenTabDropPosition current = *drop_position_;
-    if ((current == OpenTabDropPosition::kBefore &&
-         next == OpenTabDropPosition::kSplit &&
-         point.y() < before_boundary + kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kSplit &&
-         next == OpenTabDropPosition::kBefore &&
-         point.y() >= before_boundary - kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kAfter &&
-         next == OpenTabDropPosition::kSplit &&
-         point.y() >= after_boundary - kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kSplit &&
-         next == OpenTabDropPosition::kAfter &&
-         point.y() < after_boundary + kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kBefore &&
-         next == OpenTabDropPosition::kAfter &&
-         point.y() < center_boundary + kDropZoneHysteresis) ||
-        (current == OpenTabDropPosition::kAfter &&
-         next == OpenTabDropPosition::kBefore &&
-         point.y() >= center_boundary - kDropZoneHysteresis)) {
-      return current;
-    }
-    return next;
+    return KeepsOpenTabDropPosition(*drop_position_, next, point.y(), height())
+               ? drop_position_
+               : next;
   }
 
   std::optional<OpenTabDropPosition> AllowedPosition(
@@ -644,9 +604,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
     // A rejected split is still a useful reorder gesture. Resolve the central
     // pointer to its nearest valid edge so the visible tab row has no dead
     // middle region.
-    const OpenTabDropPosition nearest = point.y() < height() / 2
-                                            ? OpenTabDropPosition::kBefore
-                                            : OpenTabDropPosition::kAfter;
+    const OpenTabDropPosition nearest =
+        NearestOpenTabDropEdge(point.y(), height());
     return can_drop_callback_.Run(payload.saved_node_id,
                                   payload.runtime_tab_handle, tab_, nearest)
                ? std::optional(nearest)
@@ -695,20 +654,26 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   void UpdateBackground() {
-    const std::optional<ui::ColorId> color =
-        dragging_ ? std::nullopt
-        : active_ || search_selected_
-            ? std::make_optional(visual_style::kSelectedSurface)
-        : hovered_ ? std::make_optional(visual_style::kHoverSurface)
-                   : std::nullopt;
+    const std::optional<ui::ColorId> color = SurfaceColor();
     SetBackground(
-        color.has_value()
+        color.has_value() && !is_split_segment_
             ? views::CreateRoundedRectBackground(
                   *color, gfx::RoundedCornersF(visual_style::kRowCornerRadius),
                   gfx::Insets::VH(visual_style::kSidebarTabRowVerticalInset,
                                   visual_style::kSidebarTabRowHorizontalInset))
             : nullptr);
     SchedulePaint();
+    if (is_split_segment_ && parent()) {
+      parent()->SchedulePaint();
+    }
+  }
+
+  std::optional<ui::ColorId> SurfaceColor() const {
+    return dragging_ ? std::nullopt
+           : active_ || search_selected_
+               ? std::make_optional(visual_style::kSelectedSurface)
+           : hovered_ ? std::make_optional(visual_style::kHoverSurface)
+                      : std::nullopt;
   }
 
   const base::WeakPtr<tabs::TabInterface> tab_;
@@ -726,6 +691,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
   const DropCallback drop_callback_;
   raw_ptr<views::ImageView> favicon_view_ = nullptr;
   raw_ptr<views::View> fallback_icon_ = nullptr;
+  raw_ptr<views::ImageView> bookmark_indicator_ = nullptr;
   raw_ptr<SidebarTabTitleLabel> title_ = nullptr;
   raw_ptr<views::ImageView> media_indicator_ = nullptr;
   raw_ptr<views::View> close_ = nullptr;
@@ -745,150 +711,6 @@ class OpenTabRowView final : public views::View, public views::DragController {
 };
 
 BEGIN_METADATA(OpenTabRowView)
-END_METADATA
-
-// Paints the non-interactive group chrome above the pane rows. Keeping the
-// outline and separators in a final child prevents a selected or hovered pane
-// background from erasing the visual boundary of the complete split.
-class OpenTabSplitChromeView final : public views::View {
-  METADATA_HEADER(OpenTabSplitChromeView, views::View)
-
- public:
-  OpenTabSplitChromeView(size_t pane_count,
-                         const split_tabs::SplitTabVisualData& visual_data)
-      : pane_count_(pane_count), visual_data_(visual_data) {
-    CHECK_GE(pane_count_, 2u);
-    SetCanProcessEventsWithinSubtree(false);
-    GetViewAccessibility().SetIsIgnored(true);
-  }
-
-  OpenTabSplitChromeView(const OpenTabSplitChromeView&) = delete;
-  OpenTabSplitChromeView& operator=(const OpenTabSplitChromeView&) = delete;
-  ~OpenTabSplitChromeView() override = default;
-
-  void OnPaint(gfx::Canvas* canvas) override {
-    views::View::OnPaint(canvas);
-    const ui::ColorProvider* const colors = GetColorProvider();
-    if (!colors || width() <= 0 || height() <= 0) {
-      return;
-    }
-
-    gfx::RectF group_bounds(GetLocalBounds());
-    group_bounds.Inset(
-        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
-                         visual_style::kSidebarTabRowHorizontalInset));
-    if (group_bounds.IsEmpty()) {
-      return;
-    }
-
-    cc::PaintFlags outline;
-    outline.setAntiAlias(true);
-    outline.setColor(colors->GetColor(visual_style::kDivider));
-    outline.setStrokeWidth(1.0f);
-    outline.setStyle(cc::PaintFlags::kStroke_Style);
-    gfx::RectF outline_bounds = group_bounds;
-    outline_bounds.Inset(outline.getStrokeWidth() / 2.0f);
-    canvas->DrawRoundRect(outline_bounds,
-                          std::max(0.0f, visual_style::kRowCornerRadius -
-                                             outline.getStrokeWidth() / 2.0f),
-                          outline);
-
-    std::vector<gfx::Rect> pane_bounds;
-    pane_bounds.reserve(pane_count_);
-    const gfx::Rect bounds = GetLocalBounds();
-    for (size_t pane = 0; pane < pane_count_; ++pane) {
-      pane_bounds.push_back(
-          GetSplitSegmentBounds(bounds, pane, pane_count_, visual_data_));
-    }
-
-    cc::PaintFlags separator = outline;
-    gfx::RectF separator_bounds = group_bounds;
-    separator_bounds.Inset(separator.getStrokeWidth() / 2.0f);
-    for (const SidebarSplitSeparator& split_separator :
-         GetSidebarSplitSeparators(pane_bounds, separator_bounds)) {
-      canvas->DrawLine(split_separator.start, split_separator.end, separator);
-    }
-  }
-
- private:
-  const size_t pane_count_;
-  const split_tabs::SplitTabVisualData visual_data_;
-};
-
-BEGIN_METADATA(OpenTabSplitChromeView)
-END_METADATA
-
-// A live Chromium split is one visual row in the sidebar as well. Temporary
-// panes and mixed saved/temporary collections live in this composite runtime
-// representation, following SplitTabData rather than inferring membership
-// from adjacency in TabStripModel.
-class OpenTabSplitRowView final : public views::View {
-  METADATA_HEADER(OpenTabSplitRowView, views::View)
-
- public:
-  OpenTabSplitRowView(std::vector<std::unique_ptr<views::View>> tabs,
-                      split_tabs::SplitTabVisualData visual_data)
-      : visual_data_(std::move(visual_data)) {
-    CHECK_GE(tabs.size(), 2u);
-    SetPreferredSize(gfx::Size(
-        0, GetSplitRowPreferredHeight(tabs.size(), visual_data_,
-                                      SidebarTreeRowView::kRowHeight)));
-    GetViewAccessibility().SetRole(ax::mojom::Role::kGroup);
-    for (auto& tab : tabs) {
-      views::View* const pane = AddChildView(std::move(tab));
-      auto* const tab_row = views::AsViewClass<OpenTabRowView>(pane);
-      CHECK(tab_row);
-      tab_row->SetSplitSegmentPresentation(true);
-      pane_views_.push_back(pane);
-    }
-    chrome_overlay_ = AddChildView(std::make_unique<OpenTabSplitChromeView>(
-        pane_views_.size(), visual_data_));
-  }
-
-  OpenTabSplitRowView(const OpenTabSplitRowView&) = delete;
-  OpenTabSplitRowView& operator=(const OpenTabSplitRowView&) = delete;
-  ~OpenTabSplitRowView() override = default;
-
-  void Layout(PassKey) override {
-    const int count = static_cast<int>(pane_views_.size());
-    if (count == 0) {
-      return;
-    }
-    const gfx::Rect bounds = GetContentsBounds();
-    for (int index = 0; index < count; ++index) {
-      pane_views_[index]->SetBoundsRect(
-          GetSplitSegmentBounds(bounds, index, count, visual_data_));
-    }
-    chrome_overlay_->SetBoundsRect(bounds);
-  }
-
-  void OnPaintBackground(gfx::Canvas* canvas) override {
-    views::View::OnPaintBackground(canvas);
-    const ui::ColorProvider* const colors = GetColorProvider();
-    if (!colors || width() <= 0 || height() <= 0) {
-      return;
-    }
-    gfx::RectF background(GetLocalBounds());
-    background.Inset(
-        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
-                         visual_style::kSidebarTabRowHorizontalInset));
-    if (background.IsEmpty()) {
-      return;
-    }
-    cc::PaintFlags fill;
-    fill.setAntiAlias(true);
-    fill.setColor(colors->GetColor(visual_style::kRaisedSurface));
-    fill.setStyle(cc::PaintFlags::kFill_Style);
-    canvas->DrawRoundRect(background, visual_style::kRowCornerRadius, fill);
-  }
-
- private:
-  const split_tabs::SplitTabVisualData visual_data_;
-  std::vector<raw_ptr<views::View>> pane_views_;
-  raw_ptr<views::View> chrome_overlay_ = nullptr;
-};
-
-BEGIN_METADATA(OpenTabSplitRowView)
 END_METADATA
 
 }  // namespace
@@ -911,7 +733,9 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     SidebarDropTargetClaimCallback drop_target_claim_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
-    views::ContextMenuController* context_menu_controller) {
+    views::ContextMenuController* context_menu_controller,
+    ui::ImageModel origin_badge,
+    bool bookmarked) {
   return std::make_unique<OpenTabRowView>(
       tab, std::move(saved_node_id), std::move(favicon), media_alert,
       std::move(status_text), active, sleeping, drag_enabled,
@@ -919,7 +743,8 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
       std::move(thumbnails_callback), std::move(hover_callback),
       std::move(saved_drag_state_callback), std::move(drag_state_callback),
       std::move(drop_target_claim_callback), std::move(can_drop_callback),
-      std::move(drop_callback), context_menu_controller);
+      std::move(drop_callback), context_menu_controller,
+      std::move(origin_badge), bookmarked);
 }
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {
@@ -938,28 +763,19 @@ void SetOpenTabSearchSelected(views::View* view, bool selected) {
   }
 }
 
-void ClearOpenTabRowDropTargetPresentation(views::View* root,
-                                           views::View* except) {
-  if (!root) {
-    return;
+bool SetOpenTabSplitSegmentPresentation(views::View* view) {
+  auto* const row = views::AsViewClass<OpenTabRowView>(view);
+  if (!row) {
+    return false;
   }
-  if (root != except) {
-    if (auto* row = views::AsViewClass<OpenTabRowView>(root)) {
-      row->ClearDropTargetPresentation();
-    }
-  }
-  // Known row cleanup changes paint/layout state only; it never mutates this
-  // hierarchy, so traversing composite split containers remains stable.
-  for (views::View* child : root->children()) {
-    ClearOpenTabRowDropTargetPresentation(child, except);
-  }
+  row->SetSplitSegmentPresentation(true);
+  return true;
 }
 
-std::unique_ptr<views::View> CreateOpenTabSplitRowView(
-    std::vector<std::unique_ptr<views::View>> tabs,
-    split_tabs::SplitTabVisualData visual_data) {
-  return std::make_unique<OpenTabSplitRowView>(std::move(tabs),
-                                               std::move(visual_data));
+void internal::ClearOpenTabRowDropTargetPresentationForView(views::View* view) {
+  if (auto* const row = views::AsViewClass<OpenTabRowView>(view)) {
+    row->ClearDropTargetPresentation();
+  }
 }
 
 }  // namespace ahoi::sidebar

@@ -7,6 +7,8 @@
 #include <memory>
 #include <utility>
 
+#include "ui/gfx/switches.h"
+
 namespace ahoi::sidebar {
 
 tab_tree::Workspace MakeWorkspace() {
@@ -81,8 +83,31 @@ RecordingDelegate::GetSplitSavedPageVisualData(
   return split_visual_data;
 }
 
+bool RecordingDelegate::ResizeSavedPageSplit(
+    const std::vector<base::Uuid>& node_ids,
+    size_t divider_index,
+    double ratio,
+    bool done_resizing) {
+  resize_requests.push_back({.node_ids = node_ids,
+                             .divider_index = divider_index,
+                             .ratio = ratio,
+                             .done_resizing = done_resizing});
+  if (resize_split_succeeds && split_visual_data.has_value()) {
+    if (divider_index == 0) {
+      split_visual_data->set_split_ratio(ratio);
+    } else {
+      split_visual_data->set_secondary_split_ratio(ratio);
+    }
+  }
+  return resize_split_succeeds;
+}
+
 std::vector<base::Uuid> RecordingDelegate::GetMoveGroupNodeIds(
     const base::Uuid& source_node_id) const {
+  if (std::ranges::find(unbound_split_sources, source_node_id) !=
+      unbound_split_sources.end()) {
+    return {};
+  }
   for (const std::vector<base::Uuid>& group : split_groups) {
     if (std::ranges::find(group, source_node_id) != group.end()) {
       return group;
@@ -170,6 +195,12 @@ void RecordingDelegate::OnMutationFailed(
   last_error = result;
 }
 
+bool RecordingDelegate::CloseTemporaryPageForDeletion(
+    const base::Uuid& node_id) {
+  close_for_deletion_requests.push_back(node_id);
+  return close_temporary_for_deletion;
+}
+
 void RecordingDelegate::OnSidebarDragStateChanged(
     std::optional<base::Uuid> dragged_node_id) {
   drag_state = std::move(dragged_node_id);
@@ -180,6 +211,8 @@ SidebarTreeViewTest::SidebarTreeViewTest() = default;
 SidebarTreeViewTest::~SidebarTreeViewTest() = default;
 
 void SidebarTreeViewTest::SetUp() {
+  command_line_.GetProcessCommandLine()->AppendSwitch(
+      switches::kForcePrefersReducedMotion);
   ViewsTestBase::SetUp();
   ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
   ASSERT_TRUE(store_.Initialize(

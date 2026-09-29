@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "contractSha256": "ddebfcfce7b25c6ecec88b72dd50285b546159f67eba084991f9fab269e8ed35",
+  "source": "config/sync-format.json",
+  "records": [
+    {
+      "id": 0,
+      "dataClass": "device",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "type",
+        "display_name",
+        "created_at",
+        "last_seen",
+        "retired",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 1,
+      "dataClass": "workspace",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "name",
+        "icon",
+        "sort_key",
+        "accent_argb",
+        "created_at",
+        "modified_at",
+        "archive_policy",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 2,
+      "dataClass": "treeNode",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "location",
+        "kind",
+        "title",
+        "icon",
+        "accent_argb",
+        "url",
+        "created_at",
+        "modified_at",
+        "is_temporary",
+        "home_target",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 3,
+      "dataClass": "historyVisit",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "url",
+        "title",
+        "last_visit",
+        "visit_count",
+        "transition",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 4,
+      "dataClass": "deviceTab",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "session_id",
+        "workspace_id",
+        "url",
+        "title",
+        "opened_at",
+        "last_active",
+        "pinned",
+        "is_incognito",
+        "tree_node_id",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 5,
+      "dataClass": "deviceSession",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "started_at",
+        "liveness",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 6,
+      "dataClass": "remoteCommand",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "request",
+        "status",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 7,
+      "dataClass": "appearance",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "color_mode",
+        "accent_argb",
+        "use_system_accent",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 8,
+      "dataClass": "permittedSetting",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "setting_id",
+        "value_json",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 9,
+      "dataClass": "extensionInventory",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "extension_id",
+        "name",
+        "extension_version",
+        "enabled",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 10,
+      "dataClass": "developerAsset",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "kind",
+        "name",
+        "scope",
+        "source",
+        "enabled",
+        "opted_in",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 11,
+      "dataClass": "bookmark",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "location",
+        "kind",
+        "title",
+        "url",
+        "created_at",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 12,
+      "dataClass": "deviceCapability",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "device_id",
+        "capabilities",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 13,
+      "dataClass": "splitGroup",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "workspace_id",
+        "topology",
+        "ratios",
+        "tombstone"
+      ]
+    },
+    {
+      "id": 14,
+      "dataClass": "tabArchiveEntry",
+      "wireModelVersion": 3,
+      "fieldGroups": [
+        "snapshot",
+        "state",
+        "tombstone"
+      ]
+    }
+  ]
+}

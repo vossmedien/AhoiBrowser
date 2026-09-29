@@ -33,6 +33,7 @@
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/separator.h"
 #include "ui/views/layout/box_layout.h"
+#include "ui/views/style/typography.h"
 #include "ui/views/view.h"
 #include "ui/views/view_utils.h"
 
@@ -630,32 +631,69 @@ std::unique_ptr<views::View> CreateSidebarHeaderActionButton(
       /*hover_bottom_radius=*/visual_style::kSidebarHeaderActionSize / 2.0f);
 }
 
+void SetSidebarHeaderActionToggleState(views::View* button, bool checked) {
+  auto* action = views::AsViewClass<SidebarActionButton>(button);
+  if (!action) {
+    return;
+  }
+  action->GetViewAccessibility().SetRole(ax::mojom::Role::kToggleButton);
+  action->GetViewAccessibility().SetCheckedState(
+      checked ? ax::mojom::CheckedState::kTrue
+              : ax::mojom::CheckedState::kFalse);
+}
+
 std::unique_ptr<views::View> CreateSidebarSectionDivider(
     views::Button::PressedCallback callback,
-    std::u16string action_name) {
+    std::u16string action_name,
+    std::u16string section_name) {
   auto divider = std::make_unique<views::View>();
-  divider->SetPreferredSize(
-      gfx::Size(0, visual_style::kSidebarSectionDividerHeight));
+  divider->SetPreferredSize(gfx::Size(
+      0, section_name.empty() ? visual_style::kSidebarSectionDividerHeight
+                              : visual_style::kSidebarSectionDividerHeight -
+                                    visual_style::kSidebarSectionSpacing));
   auto* layout = divider->SetLayoutManager(std::make_unique<views::BoxLayout>(
       views::BoxLayout::Orientation::kHorizontal, gfx::Insets(),
       visual_style::kSidebarSectionDividerSpacing));
   layout->set_cross_axis_alignment(
       views::BoxLayout::CrossAxisAlignment::kCenter);
 
-  auto* separator = divider->AddChildView(std::make_unique<views::Separator>());
-  separator->SetOrientation(views::Separator::Orientation::kHorizontal);
-  separator->SetColorId(visual_style::kDivider);
-  layout->SetFlexForView(separator, 1);
+  if (section_name.empty()) {
+    auto* separator =
+        divider->AddChildView(std::make_unique<views::Separator>());
+    separator->SetOrientation(views::Separator::Orientation::kHorizontal);
+    separator->SetColorId(visual_style::kDivider);
+    layout->SetFlexForView(separator, 1);
+  } else {
+    auto* label = divider->AddChildView(
+        CreateSidebarSectionLabel(std::move(section_name)));
+    layout->SetFlexForView(label, 1);
+  }
 
+  const std::u16string action_tooltip = action_name;
   auto* action = divider->AddChildView(std::make_unique<views::LabelButton>(
       std::move(callback), std::move(action_name)));
   action->SetTextColor(views::Button::STATE_NORMAL, visual_style::kMutedText);
   action->SetTextColor(views::Button::STATE_HOVERED, visual_style::kText);
   action->SetTextSubpixelRenderingEnabled(false);
+  action->SetLabelStyle(views::style::STYLE_CAPTION);
+  action->SetTooltipText(action_tooltip);
   action->SetBorder(views::CreateEmptyBorder(gfx::Insets::VH(
       0, visual_style::kSidebarSectionDividerActionHorizontalInset)));
   action->SetBackground(nullptr);
   return divider;
+}
+
+std::unique_ptr<views::View> CreateSidebarSectionLabel(std::u16string name) {
+  auto label = std::make_unique<views::Label>(std::move(name));
+  label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+  label->SetEnabledColor(visual_style::kText);
+  label->SetSubpixelRenderingEnabled(false);
+  label->SetBorder(views::CreateEmptyBorder(
+      gfx::Insets::VH(0, visual_style::kSidebarSectionSpacing)));
+  label->SetPreferredSize(
+      gfx::Size(0, visual_style::kSidebarSectionDividerHeight -
+                       visual_style::kSidebarSectionSpacing));
+  return label;
 }
 
 std::unique_ptr<views::View> CreateSidebarSplitActionCell(

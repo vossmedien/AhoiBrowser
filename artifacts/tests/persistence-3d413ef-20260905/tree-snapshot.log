@@ -1,0 +1,23 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory:AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from AhoiTabTreeStoreTest
+[ RUN      ] AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory
+[       OK ] AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory (225 ms)
+[ RUN      ] AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree
+[       OK ] AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree (85 ms)
+[----------] 2 tests from AhoiTabTreeStoreTest (313 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (313 ms total)
+[  PASSED  ] 2 tests.
+[1/2] AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory (225 ms)
+[2/2] AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree (85 ms)
+SUCCESS: all tests passed.
+Tests took 0 seconds.

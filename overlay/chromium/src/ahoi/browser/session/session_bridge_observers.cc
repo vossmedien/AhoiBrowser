@@ -10,6 +10,7 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_internal.h"
+#include "ahoi/browser/session/workspace_structure_controller.h"
 #include "base/check.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
@@ -65,6 +66,7 @@ void SessionBridge::TrackBrowser(BrowserWindowInterface* browser) {
   model->AddObserver(this);
 
   if (workspace_service_ && !workspace_service_->ordered_workspaces().empty()) {
+    VLOG(1) << "Ahoi track window: first Workspace until restore metadata";
     CHECK(workspace_service_->SetActiveWorkspace(
         window_id, workspace_service_->ordered_workspaces().front().id,
         WorkspaceActivationSource::kDataReconciliation));
@@ -186,6 +188,7 @@ void SessionBridge::OnTabWillDetach(tabs::TabInterface* tab,
     return;
   }
   if (reason == tabs::TabInterface::DetachReason::kDelete) {
+    ScheduleTemporaryPageClose(tab);
     RemoveRuntimeTab(tab);
     return;
   }
@@ -226,13 +229,22 @@ void SessionBridge::OnTabUIChanged(tabs::TabInterface* tab) {
   }
 
   RuntimeTabState& runtime = runtime_it->second;
+  if (runtime.node_id && deferred_metadata_nodes_.contains(*runtime.node_id)) {
+    PublishCommandItems();
+    return;
+  }
   content::WebContents* contents = runtime.web_contents.get();
   const GURL current_url = session_internal::GetRuntimeTabUrl(contents);
   const std::u16string current_title =
       session_internal::GetRuntimeTabTitle(tab, current_url);
+  const bool navigated = runtime.last_observed_url != current_url;
   const std::u16string previous_automatic_title = runtime.last_observed_title;
   runtime.last_observed_url = current_url;
   runtime.last_observed_title = current_title;
+  if (navigated && runtime.shared_binding_invalidated) {
+    runtime.shared_binding_invalidated = false;
+    ScheduleTreeNodeBinding(tab);
+  }
 
   // Keep the visible tree title live while respecting an explicit user rename:
   // only replace the stored value if it still equals Chromium's previous title
@@ -242,19 +254,58 @@ void SessionBridge::OnTabUIChanged(tabs::TabInterface* tab) {
     if (tab_tree_store_->GetNode(*runtime.node_id, &node) ==
         tab_tree::TabTreeStore::Result::kOk) {
       std::u16string persisted_title = node.title;
-      if (!previous_automatic_title.empty() &&
+      if ((navigated || node.url == current_url) &&
+          !previous_automatic_title.empty() &&
           previous_automatic_title != current_title &&
           node.title == previous_automatic_title) {
         persisted_title = current_title;
       }
-      if (node.url != current_url || node.title != persisted_title) {
+      // A passive progress/favicon/title callback cannot re-author the old
+      // runtime URL over a newly received remote destination. Only a real
+      // navigation changes that field group; unrelated title edits retain it.
+      const GURL persisted_url = navigated ? current_url : node.url;
+      if (node.url != persisted_url || node.title != persisted_title) {
         std::ignore = tab_tree_store_->UpdateSavedPageMetadata(
-            node.id, std::move(persisted_title), current_url,
+            node.id, std::move(persisted_title), persisted_url,
             base::Time::Now());
       }
     }
   }
   PublishCommandItems();
+}
+
+base::ScopedClosureRunner SessionBridge::DeferSavedPageMetadataForNodes(
+    std::vector<base::Uuid> node_ids) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  for (const auto& id : node_ids) {
+    CHECK(id.is_valid());
+    ++deferred_metadata_nodes_[id];
+  }
+  return base::ScopedClosureRunner(
+      base::BindOnce(&SessionBridge::ResumeSavedPageMetadataForNodes,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(node_ids)));
+}
+
+void SessionBridge::ResumeSavedPageMetadataForNodes(
+    std::vector<base::Uuid> node_ids) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  for (const auto& id : node_ids) {
+    auto it = deferred_metadata_nodes_.find(id);
+    if (it != deferred_metadata_nodes_.end() && --it->second == 0) {
+      deferred_metadata_nodes_.erase(it);
+      // Do not run callbacks into the UI while a transaction context is being
+      // destroyed. Re-resolve identity next turn; closed tabs stay closed.
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+          FROM_HERE,
+          base::BindOnce(
+              [](base::WeakPtr<SessionBridge> bridge, base::Uuid node_id) {
+                if (bridge) {
+                  bridge->OnTabUIChanged(bridge->FindTabByTreeNodeId(node_id));
+                }
+              },
+              weak_ptr_factory_.GetWeakPtr(), id));
+    }
+  }
 }
 
 void SessionBridge::RemoveDetachedTabIfStillUnattached(
@@ -356,6 +407,7 @@ void SessionBridge::ReconcileWorkspaces() {
   std::vector<tabs::TabInterface*> tabs_to_reassign;
   for (const auto& [tab, runtime] : runtime_tabs_) {
     if (runtime.workspace_id.has_value() &&
+        !runtime.closing_with_deleted_workspace &&
         !visible_workspaces.contains(*runtime.workspace_id)) {
       tabs_to_reassign.push_back(tab);
     }
@@ -410,6 +462,13 @@ void SessionBridge::OnTabStripModelChanged(
   if (shutting_down_ || !model_windows_.contains(tab_strip_model)) {
     return;
   }
+  if (workspace_structure_controller_) {
+    if (session::TabStripChangeInvalidatesStructure(change.type())) {
+      workspace_structure_controller_->OnNativeChanged();
+    } else {
+      workspace_structure_controller_->OnNativeMetadataChanged();
+    }
+  }
 
   switch (change.type()) {
     case TabStripModelChange::kSelectionOnly:
@@ -423,6 +482,7 @@ void SessionBridge::OnTabStripModelChanged(
       for (const auto& removed : change.GetRemove()->contents) {
         if (removed.tab_detach_reason ==
             tabs::TabInterface::DetachReason::kDelete) {
+          ScheduleTemporaryPageClose(removed.tab);
           RemoveRuntimeTab(removed.tab);
         } else {
           auto it = runtime_tabs_.find(removed.tab);
@@ -461,6 +521,13 @@ void SessionBridge::OnTabStripModelDestroyed(TabStripModel* tab_strip_model) {
   }
 }
 
+void SessionBridge::OnSplitTabChanged(const SplitTabChange& change) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!shutting_down_ && workspace_structure_controller_) {
+    workspace_structure_controller_->OnSplitChanged(change);
+  }
+}
+
 void SessionBridge::OnWorkspaceListChanged() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   ScheduleWorkspaceReconciliation();
@@ -482,6 +549,18 @@ void SessionBridge::OnActiveWorkspaceChanged(const base::Uuid& window_id,
 
 void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (change.kind == tab_tree::MutationKind::kUndone) {
+    // Before tabs follow their nodes back into a revived Workspace.
+    RefreshWorkspacesAfterUndo();
+  }
+  if (workspace_structure_controller_ && !applying_synced_tree_snapshot_) {
+    if (session::TreeChangeInvalidatesStructure(change.kind)) {
+      workspace_structure_controller_->OnNativeChanged();
+    } else {
+      workspace_structure_controller_->OnNativeMetadataChanged();
+    }
+  }
+  bool runtime_presentation_changed = false;
   for (const base::Uuid& node_id : change.node_ids) {
     auto bound = node_tabs_.find(node_id);
     if (bound == node_tabs_.end()) {
@@ -498,14 +577,24 @@ void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
         node.tombstone) {
       // A user moving a saved page back below the separator expects the live
       // tab to survive as a temporary tab in the same workspace.
+      if (applying_synced_tree_snapshot_) {
+        if (const auto runtime = runtime_tabs_.find(tab);
+            runtime != runtime_tabs_.end()) {
+          runtime->second.shared_binding_invalidated = true;
+        }
+      }
       UnbindTreeNodeFromTabInternal(tab, /*clear_workspace=*/false);
       continue;
     }
     auto runtime = runtime_tabs_.find(tab);
     if (runtime != runtime_tabs_.end()) {
+      runtime_presentation_changed |=
+          runtime->second.is_temporary != node.is_temporary ||
+          runtime->second.workspace_id != node.workspace_id;
       if (runtime->second.workspace_id != node.workspace_id) {
         RemoveTabFromLastActiveState(tab);
       }
+      runtime->second.is_temporary = node.is_temporary;
       runtime->second.workspace_id = node.workspace_id;
       if (tab->IsActivated() && runtime->second.tab_strip_model) {
         UpdateLastActiveTab(runtime->second.tab_strip_model, tab);
@@ -515,6 +604,12 @@ void SessionBridge::OnTabTreeChanged(const tab_tree::TabTreeChange& change) {
   }
   ScheduleTabTreePersistence();
   PublishCommandItems();
+  if (runtime_presentation_changed) {
+    // Store observers can refresh rows before this binding changes. Reproject
+    // after Save/Unsave or a workspace move so stale temporary rows and their
+    // tree suppression cannot survive until an unrelated native tab event.
+    runtime_presentation_changed_callbacks_.Notify();
+  }
   NotifyTabTreeSnapshotChanged();
 }
 

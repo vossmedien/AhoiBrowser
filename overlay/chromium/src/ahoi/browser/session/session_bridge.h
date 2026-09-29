@@ -4,15 +4,20 @@
 #ifndef AHOI_BROWSER_SESSION_SESSION_BRIDGE_H_
 #define AHOI_BROWSER_SESSION_SESSION_BRIDGE_H_
 
+#include <atomic>
 #include <cstddef>
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "ahoi/browser/navigation/tab_mru.h"
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/session/group_page_close.h"
+#include "ahoi/browser/session/isolated_profile_registry.h"
 #include "ahoi/browser/session/session_restore_integration.h"
 #include "ahoi/browser/sync/profile_sync_ui_bridge.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
@@ -21,6 +26,7 @@
 #include "base/callback_list.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback_forward.h"
+#include "base/functional/callback_helpers.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/scoped_observation.h"
@@ -42,10 +48,26 @@ class TabStripModel;
 namespace content {
 class WebContents;
 }
+namespace extensions {
+class Extension;
+}
 
 namespace ahoi {
+namespace session {
+struct PendingWorkspaceConversion;
+struct PortableWorkspaceStructure;
+class WorkspaceStructureController;
+}  // namespace session
+
+namespace extensions {
+class NativeExtensionSetupOperation;
+}
 
 class CommandService;
+
+namespace sync {
+struct TabArchiveEntryRecord;
+}
 
 inline constexpr char kTabTreeDatabaseFilename[] = "Ahoi Tab Tree";
 
@@ -94,6 +116,11 @@ class SessionBridge : public KeyedService,
   // runner and reports whether the durable snapshot was written. Importers use
   // this before copying the SQLite database into a rollback backup.
   void FlushPersistenceForBackup(base::OnceCallback<void(bool)> callback);
+  // Import commits own a stable saved-tree snapshot while real page
+  // navigations acquire durable native session entries. Defers only automatic
+  // title/URL mirroring for these IDs, never explicit user/store mutations.
+  base::ScopedClosureRunner DeferSavedPageMetadataForNodes(
+      std::vector<base::Uuid> node_ids);
   base::WeakPtr<sync::ProfileSyncUiBridge> GetWeakPtrForSync() override;
   base::CallbackListSubscription AddRuntimePresentationChangedCallback(
       base::RepeatingClosure callback);
@@ -101,9 +128,72 @@ class SessionBridge : public KeyedService,
       base::RepeatingCallback<void(const tab_tree::TabTreeSnapshot&)> callback)
       override;
   void RequestLocalTabCapture() override;
+  sync::SharedTabNativeSupport GetSharedTabNativeSupport() const override;
+  void RequestSharedTabCapture(uint64_t generation) override;
+  sync::NativeExtensionSetupSnapshot ReadNativeExtensionSetup() override;
+  void InitializeNativeExtensionSetup();
+  void CommitWorkspaceStructureState(
+      std::string state,
+      base::RepeatingCallback<bool()> authorization,
+      base::OnceCallback<void(bool)> completion,
+      std::optional<tab_tree::TabTreeSnapshot> tree = std::nullopt);
+  enum class PortableImportResult {
+    kImported,
+    kNoChanges,
+    kConflict,
+    kUnavailable,
+    kFailed,
+  };
+  // Replans a previously inspected, detached portable file against the exact
+  // durable state at the user's commit click. One SQLite transaction owns the
+  // tree, archive/split metadata and rollback; no file path or Sync wire is
+  // accepted at this boundary.
+  void CommitPortableWorkspaceImport(
+      const session::PortableWorkspaceStructure& imported,
+      base::RepeatingCallback<bool()> authorization,
+      base::OnceCallback<void(PortableImportResult)> completion);
+  // Local domain operations. They persist with Sync OFF and never open or
+  // focus WebContents. The caller presents failure/missing-parent choices.
+  void ArchiveTemporaryPages(std::vector<base::Uuid> nodes,
+                             base::OnceCallback<void(bool)> completion);
+  bool CanArchiveTemporaryPages(const std::vector<base::Uuid>& nodes) const;
+  std::vector<base::Uuid> GetArchivePageGroup(base::Uuid node_id) const;
+  // Handoff 072: builds the live split record containing `node_id` now, after
+  // the user opened its members.
+  bool MaterializeSplitForActivation(base::Uuid node_id);
+  void RestoreArchivedPages(base::Uuid entry_id,
+                            base::OnceCallback<void(bool)> completion);
+  void RestoreArchivedPagesAt(base::Uuid entry_id,
+                              tab_tree::ArchiveRestorePlacement placement,
+                              base::OnceCallback<void(bool)> completion);
+  std::vector<sync::TabArchiveEntryRecord> GetArchivedPages() const;
+  void DeleteArchivedPages(sync::TabArchiveEntryRecord expected,
+                           base::OnceCallback<void(bool)> completion);
+  [[nodiscard]] tab_tree::TabTreeStore::Result SetWorkspaceArchivePolicy(
+      base::Uuid workspace_id,
+      sync::SharedArchivePolicy policy);
+  void OnNativeExtensionUserSettingsRequested(
+      const ::extensions::Extension& extension,
+      bool installed,
+      bool enabled);
+  void ApplyNativeExtensionSetup(
+      sync::ExtensionRestoreRequest request,
+      base::OnceCallback<void(sync::ExtensionRestoreResult)> completion)
+      override;
+  base::CallbackListSubscription AddSharedTabCaptureCallback(
+      base::RepeatingCallback<void(uint64_t)> callback);
 
   [[nodiscard]] bool ExportTabTreeSnapshot(
       tab_tree::TabTreeSnapshot* snapshot) override;
+  [[nodiscard]] bool ExportTabTreeSyncSnapshot(
+      tab_tree::TabTreeSnapshot* snapshot,
+      std::string* baseline_receipt) override;
+  void ApplySyncedTabTreeSnapshotWithReceipt(
+      tab_tree::TabTreeSnapshot snapshot,
+      std::string baseline_receipt,
+      base::RepeatingCallback<bool()> authorization,
+      base::OnceCallback<void(tab_tree::TabTreeStore::Result)> completion)
+      override;
   // Applies a merged/repaired provider snapshot through the regular tree
   // authority, retaining local undo operations and notifying every runtime/UI
   // observer. It never writes a parallel sync-owned tree.
@@ -141,6 +231,14 @@ class SessionBridge : public KeyedService,
   bool SetActiveWorkspaceForWindow(BrowserWindowInterface* browser,
                                    const base::Uuid& workspace_id,
                                    WorkspaceActivationSource source);
+  // Single writer (docs/ARCHITECTURE.md, handoff 011 S5): selects `tab`'s
+  // Workspace in its window first and only then activates the tab, so an
+  // Ahoi caller never leaves the active tab hidden in another Workspace for
+  // the delayed sidebar reconciliation to repair. Returns false for an
+  // untracked tab or when the Workspace switch is refused.
+  [[nodiscard]] bool ActivateTabInItsWorkspace(tabs::TabInterface* tab,
+                                               WorkspaceActivationSource source,
+                                               bool user_gesture);
   std::optional<base::Uuid> ActivateRelativeWorkspaceForWindow(
       BrowserWindowInterface* browser,
       int delta,
@@ -156,19 +254,29 @@ class SessionBridge : public KeyedService,
       const BrowserWindowInterface* browser) const override;
   std::optional<session::TabSessionMetadata> GetTabSessionMetadata(
       const tabs::TabInterface* tab) const override;
+  std::optional<session::WebsiteSessionBinding>
+  GetWebsiteSessionBindingForWindow(
+      const BrowserWindowInterface* browser) const override;
+  std::optional<bool> IsTabInActiveWorkspace(
+      const BrowserWindowInterface* browser,
+      const tabs::TabInterface* tab) const override;
   [[nodiscard]] bool RestoreWindowSessionMetadata(
       BrowserWindowInterface* browser,
       const session::WindowSessionMetadata& metadata) override;
   [[nodiscard]] bool RestoreTabSessionMetadata(
       tabs::TabInterface* tab,
       const session::TabSessionMetadata& metadata) override;
+  // `own_website_sessions` selects the ADR 0011 level `website-sessions`
+  // instead of `shared`; the level is fixed at creation.
   std::optional<base::Uuid> CreateWorkspace(
       std::u16string name,
       std::u16string icon,
-      std::optional<uint32_t> accent_argb);
+      std::optional<uint32_t> accent_argb,
+      bool own_website_sessions = false);
   // Duplicates one active workspace, including its complete saved-page tree.
   // The duplicate receives a fresh identity and is placed directly after the
-  // source in workspace order. No ID is returned unless the store mutation
+  // source in workspace order. It keeps the source's level; an own
+  // website-session level starts with a fresh, empty session. No ID is returned unless the store mutation
   // and the in-memory workspace snapshot both succeed.
   std::optional<base::Uuid> DuplicateWorkspace(
       const base::Uuid& source_workspace_id,
@@ -180,8 +288,54 @@ class SessionBridge : public KeyedService,
       std::u16string name,
       std::u16string icon,
       std::optional<uint32_t> accent_argb);
+  // Synchronous deletion for Workspaces without open pages in their own
+  // website-session partition. Returns kCancelled when such pages are open;
+  // use DeleteWorkspaceClosingIsolatedPages() then.
   [[nodiscard]] tab_tree::TabTreeStore::Result DeleteWorkspace(
       const base::Uuid& workspace_id);
+  using WorkspaceDeletionCallback =
+      base::OnceCallback<void(tab_tree::TabTreeStore::Result)>;
+  // Deletes a Workspace. Open pages in its own website-session partition are
+  // asked as one group with before-unload; a veto reports kCancelled and
+  // leaves the tree, tabs, binding and data unchanged. After the tree commit
+  // those pages close, the binding is retired and the partition's data and
+  // directory are removed, resumable after a crash (ADR 0011, handoff 003).
+  // Pages in the default partition move to the fallback Workspace as before.
+  void DeleteWorkspaceClosingIsolatedPages(const base::Uuid& workspace_id,
+                                           WorkspaceDeletionCallback done);
+  // True when the Workspace uses its own website-session partition.
+  bool HasOwnWebsiteSessions(const base::Uuid& workspace_id) const;
+  // ADR 0012 (handoff 080): merges `source_id` into `target_id` in one tree
+  // transaction. When both share one web context, open pages move along and
+  // the merge can be undone. Otherwise the source's pages are asked as one
+  // before-unload group (a veto reports kCancelled and changes nothing),
+  // close after the commit, and its own website sessions are retired as on
+  // deletion; that merge has no undo. Link routing follows to the target.
+  void MergeWorkspace(const base::Uuid& source_id,
+                      const base::Uuid& target_id,
+                      bool into_folder,
+                      WorkspaceDeletionCallback done);
+  // True when neither Workspace has its own website sessions.
+  bool SharesWebContext(const base::Uuid& source_id,
+                        const base::Uuid& target_id) const;
+
+  enum class WorkspaceConversionResult {
+    kConverted,
+    kCancelled,
+    kUnavailable,
+    kFailed,
+  };
+  // ADR 0011 step 2 (handoff 052): moves a Workspace of this (main) Profile
+  // into a new fully separated Workspace with the same id and position. Its
+  // open pages are asked as one before-unload group first; a veto reports
+  // kCancelled and changes nothing. The structure (tree, splits, archives,
+  // homes) moves through the portable format; logins, passwords and site data
+  // stay behind. Open temporary pages are reopened in the new Profile. Only
+  // after the new Profile imported the structure is the source Workspace
+  // deleted here and its pages closed; any failure before that leaves it.
+  void ConvertWorkspaceToIsolated(
+      const base::Uuid& workspace_id,
+      base::OnceCallback<void(WorkspaceConversionResult)> done);
 
   // Binds one validated, active saved-page row to a currently tracked native
   // tab. A persistent node cannot be bound to two runtime tabs. Rebinding one
@@ -198,24 +352,42 @@ class SessionBridge : public KeyedService,
   void UnbindTreeNodeFromTab(tabs::TabInterface* tab);
   // Converts a saved runtime tab back to a temporary tab while retaining its
   // workspace assignment, so it appears below the saved-tree separator.
-  void MakeTabTemporary(tabs::TabInterface* tab);
+  [[nodiscard]] tab_tree::TabTreeStore::Result MakeTabTemporary(
+      tabs::TabInterface* tab);
 
   tabs::TabInterface* FindTabByTreeNodeId(const base::Uuid& node_id) const;
-  // Resolves the stable id published for a command-bar open-tab item. Saved
-  // tabs use their durable tree UUID; temporary tabs use a process-local
-  // TabHandle id prefixed with "runtime:".
+  // Crest 146 #7: closes the tab bound to `node_id` at most once while that
+  // tab is alive, so a repeated delete during a pending beforeunload does not
+  // close again. False when no tab is bound.
+  bool CloseTabForNodeOnce(const base::Uuid& node_id);
+  // Resolves the stable id published for a command-bar open-tab item: the
+  // tab's shared tree UUID (saved and temporary pages); a process-local
+  // TabHandle id prefixed with "runtime:" is still accepted.
   tabs::TabInterface* FindTabForOpenTabStableId(
       std::string_view stable_id) const;
   std::optional<base::Uuid> FindTreeNodeIdForTab(
       const tabs::TabInterface* tab) const;
+  // Full shared identity, including temporary pages. The older getter above
+  // intentionally retains its saved-row/payload meaning for native UI callers.
+  std::optional<base::Uuid> FindSharedTreeNodeIdForTab(
+      const tabs::TabInterface* tab) const;
+  std::optional<base::Uuid> GetPresenceIdForTab(
+      const tabs::TabInterface* tab) const;
   std::optional<base::Uuid> GetWorkspaceForTab(
       const tabs::TabInterface* tab) const;
+  // Includes temporary and in-flight detached tabs, not just saved-page
+  // bindings. Recovery must not silently remove their workspace assignment.
+  bool HasLiveTabsInWorkspace(const base::Uuid& workspace_id) const;
   // Returns the runtime tab restored or most recently selected for one
   // workspace in `browser`. The weak entry is owned by the bridge and is
   // discarded as soon as the tab leaves the tracked window/workspace.
   tabs::TabInterface* GetLastActiveTabForWorkspace(
       const BrowserWindowInterface* browser,
       const base::Uuid& workspace_id) const;
+  // The last-used-tab command: activates the tab selected before the current
+  // one in `browser`'s active Workspace. Tabs of other Workspaces or windows
+  // are never chosen. Returns false when there is none.
+  bool ActivateLastUsedTab(BrowserWindowInterface* browser);
   tabs::TabInterface* FindTabByWebContents(
       const content::WebContents* contents) const;
   TabStripModel* FindTabStripModelForTab(const tabs::TabInterface* tab) const;
@@ -231,13 +403,15 @@ class SessionBridge : public KeyedService,
 
   struct TabTreeLoadResult {
     TabTreeLoadStatus status = TabTreeLoadStatus::kFailed;
-    tab_tree::TabTreeSnapshot snapshot;
+    tab_tree::TabTreeStore::PersistenceSnapshot snapshot;
   };
 
   struct WindowState {
     base::Uuid window_id;
     raw_ptr<TabStripModel> tab_strip_model = nullptr;
     std::map<base::Uuid, base::WeakPtr<tabs::TabInterface>> last_active_tabs;
+    // Real tab activations in this window, most recent first.
+    TabMru mru;
   };
 
   struct RuntimeTabState {
@@ -246,9 +420,17 @@ class SessionBridge : public KeyedService,
     base::WeakPtr<content::WebContents> web_contents;
     std::optional<base::Uuid> node_id;
     std::optional<base::Uuid> workspace_id;
-    // Distinguishes an intentionally restored temporary tab (no node id) from
-    // a newly opened tab that may still be matched to a saved page by URL.
-    bool restored_session_metadata_applied = false;
+    base::Uuid presence_id;
+    // Reserved before the deferred SQLite insert; Chromium's session metadata
+    // can already retain this identity without doing disk work on insertion.
+    base::Uuid pending_node_id;
+    bool is_temporary = true;
+    // A peer's removal must not recreate the shared page merely on a favicon
+    // callback. A subsequent explicit navigation/save may create a new page.
+    bool shared_binding_invalidated = false;
+    // Handoff 010 R6: a page of a deleted Workspace's own sessions waits for
+    // its close. It is never bound, re-homed or given a temporary node.
+    bool closing_with_deleted_workspace = false;
     std::u16string last_observed_title;
     GURL last_observed_url;
     base::CallbackListSubscription tab_ui_change_subscription;
@@ -272,13 +454,91 @@ class SessionBridge : public KeyedService,
   void BeginTabTreeLoad();
   void OnTabTreeLoaded(TabTreeLoadResult result);
   [[nodiscard]] bool FinishRuntimeInitialization();
+  // Website-session removal for deleted Workspaces (handoff 003).
+  std::vector<tabs::TabInterface*> IsolatedPagesOfWorkspace(
+      const base::Uuid& workspace_id,
+      const std::optional<session::WebsiteSessionBinding>& binding) const;
+  tab_tree::TabTreeStore::Result CommitWorkspaceDeletion(
+      const base::Uuid& workspace_id,
+      const std::optional<session::WebsiteSessionBinding>& isolated_binding);
+  void OnWorkspaceDeletionPagesAnswered(
+      base::Uuid workspace_id,
+      std::vector<base::WeakPtr<content::WebContents>> asked_pages,
+      WorkspaceDeletionCallback done,
+      bool all_agreed);
+  // Handoff 080.
+  void OnWorkspaceMergePagesAnswered(
+      base::Uuid source_id,
+      base::Uuid target_id,
+      bool into_folder,
+      std::vector<base::WeakPtr<content::WebContents>> asked_pages,
+      WorkspaceDeletionCallback done,
+      bool all_agreed);
+  tab_tree::TabTreeStore::Result CommitWorkspaceMerge(
+      const base::Uuid& source_id,
+      const base::Uuid& target_id,
+      bool into_folder,
+      const std::vector<tabs::TabInterface*>& closing);
+  void RefreshWorkspacesAfterUndo();
+  // Crest 142 R3: the windows and unbound tabs an undoable merge moved from
+  // its source to the target. In memory only; neither survives a restart.
+  struct MergeRuntimeReceipt {
+    base::Uuid target_id;
+    std::vector<base::Uuid> window_ids;
+    std::vector<base::WeakPtr<tabs::TabInterface>> unbound_tabs;
+  };
+  void RestoreMergeRuntimeForRevived(const std::set<base::Uuid>& live);
+  // Handoff 052, source side.
+  void OnConversionPagesAnswered(
+      base::Uuid workspace_id,
+      std::vector<GURL> reopen_urls,
+      base::OnceCallback<void(WorkspaceConversionResult)> done,
+      bool all_agreed);
+  void OnWorkspaceConverted(
+      base::Uuid workspace_id,
+      base::OnceCallback<void(WorkspaceConversionResult)> done,
+      bool imported);
+  // Handoff 052, receiving side (a Profile registered as `converting`).
+  void ContinueWorkspaceConversion(const std::string& profile_dir);
+  void ImportConvertedWorkspace(session::PendingWorkspaceConversion pending,
+                                int attempt);
+  void OnConvertedWorkspaceImported(session::PendingWorkspaceConversion pending,
+                                    int attempt,
+                                    PortableImportResult result);
+  void ClearRetiredWebsiteSessionData(base::Uuid context_id);
+  // Crest 146 #2/#3: clears the retired partition once every page that closes
+  // with this deletion or merge is gone, bounded by `deadline` for a hung
+  // renderer, instead of after a fixed delay.
+  void ClearRetiredWebsiteSessionDataAfterCloses(
+      base::Uuid context_id,
+      std::vector<base::WeakPtr<content::WebContents>> closing,
+      base::TimeTicks deadline);
+  std::vector<base::WeakPtr<content::WebContents>>
+  WebContentsClosingWithDeletedWorkspace() const;
+  void ResumeWebsiteSessionRemovals();
+  void OnWebsiteSessionDirectoryDeleted(base::Uuid context_id, bool deleted);
   void ScheduleTabTreePersistence();
   void PersistTabTreeNow();
   void NotifyTabTreeSnapshotChanged();
+  void OnLocalTabTreePersisted(
+      tab_tree::TabTreeStore::PersistenceSnapshot snapshot,
+      bool success);
+  void OnSyncedTabTreePersisted(
+      tab_tree::TabTreeStore::PersistenceSnapshot before,
+      tab_tree::TabTreeStore::PersistenceSnapshot projected,
+      std::shared_ptr<std::atomic<bool>> cancelled,
+      base::RepeatingCallback<bool()> authorization,
+      tab_tree::TabTreeStore::Result result);
+  void CancelPendingSyncedTabTreeApply();
+  bool PublishSyncedTabTreeSnapshot();
   static TabTreeLoadResult LoadTabTreeSnapshot(const base::FilePath& path);
-  static bool PersistTabTreeSnapshot(const base::FilePath& path,
-                                     tab_tree::TabTreeSnapshot snapshot);
+  static bool PersistTabTreeSnapshot(
+      const base::FilePath& path,
+      tab_tree::TabTreeStore::PersistenceSnapshot snapshot);
   void EnsureTreeNodeForTab(tabs::TabInterface* tab);
+  void CreateTemporaryNodeForTab(tabs::TabInterface* tab);
+  void DeleteClosedTemporaryPage(const base::Uuid& node_id);
+  void ScheduleTemporaryPageClose(tabs::TabInterface* tab);
   void ScheduleTreeNodeBinding(tabs::TabInterface* tab);
   void UnbindTreeNodeFromTabInternal(tabs::TabInterface* tab,
                                      bool clear_workspace);
@@ -287,6 +547,13 @@ class SessionBridge : public KeyedService,
   // Workspace session continuity lives in a separate implementation unit so
   // Chromium session seams do not leak into the persistent tree/runtime code.
   std::vector<base::Uuid> OrderedWorkspaceIdsForSession() const;
+  // Persists the level of a Workspace about to be created. Bound before the
+  // tree commit: a crash in between leaves an orphan binding that startup
+  // retires, never a Workspace that silently falls back to `shared`.
+  bool BindNewWorkspaceLevel(const base::Uuid& workspace_id,
+                             bool own_website_sessions);
+  // This Profile's entry when it carries a fully separated Workspace.
+  std::optional<session::IsolatedProfileEntry> FindIsolatedProfileEntry() const;
   void ApplyPendingSessionMetadata();
   [[nodiscard]] bool ApplyWindowSessionMetadataNow(
       BrowserWindowInterface* browser,
@@ -307,6 +574,7 @@ class SessionBridge : public KeyedService,
                        tabs::TabInterface::DetachReason reason);
   void OnTabDidInsert(tabs::TabInterface* tab);
   void OnTabUIChanged(tabs::TabInterface* tab);
+  void ResumeSavedPageMetadataForNodes(std::vector<base::Uuid> node_ids);
   void RemoveDetachedTabIfStillUnattached(
       tabs::TabInterface* tab,
       base::WeakPtr<tabs::TabInterface> tab_weak_ptr);
@@ -326,6 +594,7 @@ class SessionBridge : public KeyedService,
       const TabStripModelChange& change,
       const TabStripSelectionChange& selection) override;
   void OnTabStripModelDestroyed(TabStripModel* tab_strip_model) override;
+  void OnSplitTabChanged(const SplitTabChange& change) override;
 
   // WorkspaceServiceObserver:
   void OnWorkspaceListChanged() override;
@@ -342,6 +611,10 @@ class SessionBridge : public KeyedService,
   raw_ptr<WorkspaceService> workspace_service_ = nullptr;
   raw_ptr<CommandService> command_service_ = nullptr;
   std::unique_ptr<tab_tree::TabTreeStore> tab_tree_store_;
+  // Last successful disk commit. Sync may export only matching CURRENT RAM,
+  // never an older disk revision while newer local edits are still pending.
+  std::optional<tab_tree::TabTreeStore::PersistenceSnapshot>
+      durable_tree_snapshot_;
   base::FilePath tab_tree_database_path_;
   scoped_refptr<base::SequencedTaskRunner> persistence_task_runner_;
   base::OneShotTimer persistence_timer_;
@@ -349,8 +622,15 @@ class SessionBridge : public KeyedService,
   base::ScopedObservation<ProfileBrowserCollection, BrowserCollectionObserver>
       browser_collection_observation_{this};
   base::RepeatingClosureList runtime_presentation_changed_callbacks_;
+  base::RepeatingCallbackList<void(uint64_t)> shared_tab_capture_callbacks_;
   base::RepeatingCallbackList<void(const tab_tree::TabTreeSnapshot&)>
       tab_tree_snapshot_changed_callbacks_;
+  std::shared_ptr<std::atomic<bool>> pending_tree_apply_cancelled_;
+  base::OnceCallback<void(tab_tree::TabTreeStore::Result)>
+      pending_tree_apply_completion_;
+  // Suppress only the synchronous remote publication, never the disk wait or
+  // normal local edits. Common receives its explicit completion/readback.
+  bool applying_synced_tree_snapshot_ = false;
 
   std::map<BrowserWindowInterface*, WindowState> windows_
       GUARDED_BY_CONTEXT(sequence_checker_);
@@ -360,7 +640,15 @@ class SessionBridge : public KeyedService,
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<tabs::TabInterface*, RuntimeTabState> runtime_tabs_
       GUARDED_BY_CONTEXT(sequence_checker_);
+  std::map<base::Uuid, base::WeakPtr<tabs::TabInterface>> closing_node_tabs_
+      GUARDED_BY_CONTEXT(sequence_checker_);
+  std::map<base::Uuid, MergeRuntimeReceipt> merge_runtime_receipts_
+      GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<base::Uuid, base::WeakPtr<tabs::TabInterface>> node_tabs_
+      GUARDED_BY_CONTEXT(sequence_checker_);
+  std::map<base::Uuid, size_t> deferred_metadata_nodes_
+      GUARDED_BY_CONTEXT(sequence_checker_);
+  std::set<base::Uuid> pending_temporary_closes_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<content::WebContents*, base::WeakPtr<tabs::TabInterface>>
       contents_tabs_ GUARDED_BY_CONTEXT(sequence_checker_);
@@ -386,6 +674,17 @@ class SessionBridge : public KeyedService,
       GUARDED_BY_CONTEXT(sequence_checker_) = false;
   bool shutting_down_ GUARDED_BY_CONTEXT(sequence_checker_) = false;
   SEQUENCE_CHECKER(sequence_checker_);
+  std::map<std::string,
+           std::unique_ptr<extensions::NativeExtensionSetupOperation>>
+      extension_setup_operations_;
+  base::CallbackListSubscription extension_user_settings_subscription_;
+  std::unique_ptr<session::WorkspaceStructureController>
+      workspace_structure_controller_;
+  std::unique_ptr<session::GroupPageClose> workspace_deletion_close_;
+  // The agreed pages of a Workspace being converted (handoff 052); closed
+  // only after the new Profile imported the structure.
+  std::unique_ptr<session::GroupPageClose> workspace_conversion_close_;
+  bool workspace_conversion_running_ = false;
   base::WeakPtrFactory<SessionBridge> weak_ptr_factory_{this};
 };
 

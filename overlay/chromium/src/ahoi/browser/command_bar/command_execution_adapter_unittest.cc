@@ -3,12 +3,15 @@
 
 #include "ahoi/browser/command_bar/command_execution_adapter.h"
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
+#include "ahoi/browser/command_bar/command_execution_adapter_internal.h"
 #include "ahoi/browser/navigation/command_service.h"
 #include "base/memory/raw_ptr.h"
 #include "components/omnibox/browser/test_scheme_classifier.h"
@@ -94,6 +97,15 @@ class FakeExecutionDelegate final : public CommandExecutionDelegate {
     return true;
   }
 
+  bool CanMoveToWorkspace(std::string_view workspace_id) const override {
+    return move_enabled;
+  }
+
+  bool MoveToWorkspace(std::string_view workspace_id) override {
+    moved_to_workspace = std::string(workspace_id);
+    return true;
+  }
+
   bool activate_open_tab_result = false;
   std::optional<CommandItem> activated_item;
   GURL navigated_url;
@@ -111,6 +123,8 @@ class FakeExecutionDelegate final : public CommandExecutionDelegate {
   std::string executed_browser_command;
   bool developer_action_enabled = true;
   std::optional<DeveloperAction> executed_developer_action;
+  bool move_enabled = true;
+  std::string moved_to_workspace;
 };
 
 class CommandExecutionAdapterTest : public testing::Test {
@@ -308,6 +322,51 @@ TEST_F(CommandExecutionAdapterTest, FolderAndWorkspaceAreExecutable) {
   EXPECT_EQ(execution_delegate_->switched_workspace, workspace.stable_id);
 }
 
+// ADR 0012 section 2 / CMD-MOVE-01.
+TEST_F(CommandExecutionAdapterTest, MoveToWorkspaceItemsRouteToTheDelegate) {
+  const base::Uuid work = base::Uuid::GenerateRandomV4();
+  const std::vector<CommandItem> items =
+      internal::BuildMoveToWorkspaceCommands(
+          {{.id = work, .name = u"Work"},
+           {.id = base::Uuid(), .name = u"Invalid"},
+           {.id = base::Uuid::GenerateRandomV4(), .name = u""}},
+          /*german=*/true);
+  ASSERT_EQ(items.size(), 1u);
+  const CommandItem& item = items.front();
+  EXPECT_EQ(item.type, CommandItemType::kBrowserCommand);
+  EXPECT_EQ(item.stable_id, "move-to-workspace." + work.AsLowercaseString());
+  EXPECT_EQ(item.title, u"In Workspace verschieben: Work");
+  EXPECT_NE(std::ranges::find(item.keywords, u"Work"), item.keywords.end());
+  EXPECT_NE(std::ranges::find(item.keywords, u"move to workspace"),
+            item.keywords.end());
+  EXPECT_EQ(internal::BuildMoveToWorkspaceCommands(
+                {{.id = work, .name = u"Work"}}, /*german=*/false)
+                .front()
+                .title,
+            u"Move to Workspace: Work");
+  // The index accepts the items next to the other browser commands.
+  EXPECT_TRUE(command_service_.ReplaceItems(CommandItemType::kBrowserCommand,
+                                            items));
+
+  EXPECT_TRUE(adapter_->CanExecuteItem(item));
+  EXPECT_TRUE(adapter_->ExecuteItem(item, CommandBarDisposition::kCurrentTab));
+  EXPECT_EQ(execution_delegate_->moved_to_workspace, work.AsLowercaseString());
+  EXPECT_TRUE(execution_delegate_->executed_browser_command.empty());
+
+  // The delegate refuses, e.g. the window's own Workspace.
+  execution_delegate_->move_enabled = false;
+  EXPECT_FALSE(adapter_->CanExecuteItem(item));
+  EXPECT_FALSE(adapter_->ExecuteItem(item, CommandBarDisposition::kCurrentTab));
+
+  // A malformed id never reaches the delegate or chrome::ExecuteCommand.
+  execution_delegate_->move_enabled = true;
+  CommandItem malformed = item;
+  malformed.stable_id = "move-to-workspace.not-a-uuid";
+  EXPECT_FALSE(adapter_->CanExecuteItem(malformed));
+  EXPECT_FALSE(
+      adapter_->ExecuteItem(malformed, CommandBarDisposition::kCurrentTab));
+}
+
 TEST_F(CommandExecutionAdapterTest, ExplicitLocalPrefixHasNoSearchFallback) {
   EXPECT_FALSE(adapter_->PreviewInput(u"@history project").has_value());
   EXPECT_FALSE(adapter_->PreviewInput(u">reload").has_value());
@@ -331,9 +390,13 @@ TEST_F(CommandExecutionAdapterTest, DailyDriverCommandsStayAllowlisted) {
       "browser.new-incognito-window",
       "browser.open-in-normal-window",
       "privacy.open",
+      "extensions.ubo-classic",
       "http-auth.switch",
       "http-auth.forget",
       "http-auth.manage",
+      "page.copy-link",
+      "page.copy-markdown-link",
+      "page.reading-mode",
       "developer.clear-site-cache",
       "developer.toggle-css",
       "developer.reveal-passwords",

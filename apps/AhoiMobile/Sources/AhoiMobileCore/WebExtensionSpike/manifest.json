@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Ahoi Spike",
+  "version": "1.0",
+  "description": "MOB-EXT-01 spike: one content script, one blocking rule, storage and a popup.",
+  "permissions": ["declarativeNetRequest", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      { "id": "spike", "enabled": true, "path": "rules.json" }
+    ]
+  },
+  "action": {
+    "default_title": "Ahoi Spike",
+    "default_popup": "popup.html"
+  }
+}

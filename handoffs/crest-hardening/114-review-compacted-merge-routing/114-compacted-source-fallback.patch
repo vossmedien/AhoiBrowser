@@ -1,0 +1,86 @@
+--- a/overlay/chromium/src/ahoi/browser/sync/tab_tree_sync_adapter.cc
++++ b/overlay/chromium/src/ahoi/browser/sync/tab_tree_sync_adapter.cc
+@@ -181,7 +181,8 @@
+   if (active.empty()) {
+     for (const tab_tree::Workspace& workspace : local_snapshot.workspaces) {
+       if (!workspace.tombstone && workspace.id.is_valid() &&
+-          !workspace_indexes.contains(workspace.id)) {
++          !workspace_indexes.contains(workspace.id) &&
++          !compacted_merge_targets.contains(workspace.id)) {
+         workspace_indexes[workspace.id] = result.workspaces.size();
+         result.workspaces.push_back(workspace);
+         active.push_back(&result.workspaces.back());
+--- a/overlay/chromium/src/ahoi/browser/sync/sync_workspace_merge_unittest.cc
++++ b/overlay/chromium/src/ahoi/browser/sync/sync_workspace_merge_unittest.cc
+@@ -266,6 +266,14 @@
+   ASSERT_EQ(store.PutLocalRecord(source, "merge"), SyncStore::Result::kOk);
+   ASSERT_EQ(store.PutLocalRecord(target, "target"), SyncStore::Result::kOk);
+   ASSERT_EQ(store.PutLocalRecord(page, "page"), SyncStore::Result::kOk);
++  // PutLocalRecord normalizes the field map. Compare against the actual
++  // stored wire authority, not the unstamped input helper's empty map.
++  SyncRecord page_before;
++  ASSERT_EQ(store.GetRecord(EntityType::kTreeNode, Id(kNode), &page_before),
++            SyncStore::Result::kOk);
++  const TreeNodeRecord stored_page_before = std::get<TreeNodeRecord>(page_before);
++  std::string bytes_before;
++  ASSERT_TRUE(SerializeRecord(page_before, &bytes_before));
+   const base::Time later = base::Time::Now() + base::Days(31);
+   std::map<base::Uuid, base::Uuid> routes;
+ 
+@@ -292,10 +300,55 @@
+             SyncStore::Result::kOk);
+   const auto& raw_page = std::get<TreeNodeRecord>(record);
+   EXPECT_EQ(raw_page.workspace_id, Id(kSource));
+-  EXPECT_EQ(raw_page.version, page.version);
++  EXPECT_EQ(raw_page, stored_page_before);  // Includes every field clock.
++  std::string bytes_after;
++  ASSERT_TRUE(SerializeRecord(record, &bytes_after));
++  EXPECT_EQ(bytes_after, bytes_before);
+ 
+   const auto applied = ReconcileTabTreeRecords({}, {target}, {raw_page}, routes);
+   ASSERT_TRUE(applied);
++  const auto node =
++      std::ranges::find(applied->nodes, Id(kNode), &tab_tree::TreeNode::id);
++  ASSERT_NE(node, applied->nodes.end());
++  EXPECT_EQ(node->workspace_id, Id(kTarget));
++  EXPECT_FALSE(HasRecoveryFolder(*applied));
++}
++
++TEST(SyncWorkspaceMergeTest, CompactedSourceIsNotResurrectedAsNativeFallback) {
++  tab_tree::TabTreeSnapshot native;
++  native.workspaces.push_back({.id = Id(kSource),
++                               .name = u"Old source",
++                               .sort_key = "a",
++                               .created_at = Ts(1),
++                               .modified_at = Ts(10)});
++  const std::map<base::Uuid, base::Uuid> routes = {
++      {Id(kSource), Id(kTarget)}};
++  // No authoritative live Workspace is available yet. The stale native
++  // source is known compacted and cannot override its retained merge route.
++  EXPECT_FALSE(ReconcileTabTreeRecords(
++      native, {}, {Page(kNode, Id(kSource))}, routes));
++}
++
++TEST(SyncWorkspaceMergeTest, NativeFallbackSkipsCompactedSourceForKnownTarget) {
++  tab_tree::TabTreeSnapshot native;
++  native.workspaces.push_back({.id = Id(kSource),
++                               .name = u"Old source",
++                               .sort_key = "a",
++                               .created_at = Ts(1),
++                               .modified_at = Ts(10)});
++  native.workspaces.push_back({.id = Id(kTarget),
++                               .name = u"Known target",
++                               .sort_key = "b",
++                               .created_at = Ts(1),
++                               .modified_at = Ts(10)});
++  const std::map<base::Uuid, base::Uuid> routes = {
++      {Id(kSource), Id(kTarget)}};
++  const auto applied = ReconcileTabTreeRecords(
++      native, {}, {Page(kNode, Id(kSource))}, routes);
++  ASSERT_TRUE(applied);
++  EXPECT_EQ(std::ranges::find(applied->workspaces, Id(kSource),
++                             &tab_tree::Workspace::id),
++            applied->workspaces.end());
+   const auto node =
+       std::ranges::find(applied->nodes, Id(kNode), &tab_tree::TreeNode::id);
+   ASSERT_NE(node, applied->nodes.end());

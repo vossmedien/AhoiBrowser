@@ -5,6 +5,7 @@
 #include <set>
 #include <utility>
 
+#include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "ahoi/browser/tab_tree/tab_tree_store_internal.h"
 #include "sql/statement.h"
@@ -15,11 +16,14 @@ namespace {
 
 constexpr char kSelectWorkspaceSql[] =
     "SELECT model_version,id,name,icon,sort_key,accent_argb,created_at,"
-    "modified_at,tombstone FROM workspaces WHERE id=?";
+    "modified_at,tombstone,archive_policy,merged_into FROM workspaces "
+    "WHERE id=?";
 
 constexpr char kSelectNodeSql[] =
     "SELECT model_version,id,workspace_id,parent_id,node_type,title,icon,"
-    "accent_argb,url,sort_key,created_at,modified_at,tombstone FROM "
+    "accent_argb,url,sort_key,created_at,modified_at,tombstone,"
+    "is_temporary,target_kind,local_scheme,home_url,home_target_kind,home_"
+    "local_scheme FROM "
     "tree_nodes WHERE id=?";
 
 }  // namespace
@@ -28,7 +32,9 @@ bool TabTreeStore::ValidateWorkspace(const Workspace& workspace) const {
   return workspace.model_version == kCurrentModelVersion &&
          workspace.id.is_valid() && !workspace.name.empty() &&
          !workspace.sort_key.empty() && !workspace.created_at.is_null() &&
-         !workspace.modified_at.is_null();
+         !workspace.modified_at.is_null() &&
+         static_cast<int>(workspace.archive_policy) >= 0 &&
+         static_cast<int>(workspace.archive_policy) <= 4;
 }
 
 bool TabTreeStore::ValidateNode(const TreeNode& node) const {
@@ -40,11 +46,31 @@ bool TabTreeStore::ValidateNode(const TreeNode& node) const {
     return false;
   }
   if (node.type == TreeNodeType::kFolder) {
-    return node.url.is_empty();
+    return node.url.is_empty() && !node.is_temporary && !node.target_kind &&
+           !node.local_scheme && node.home_url.is_empty() &&
+           !node.home_target_kind && !node.home_local_scheme;
   }
-  return node.type == TreeNodeType::kSavedPage && node.url.is_valid() &&
-         !node.url.is_empty() && node.icon.empty() &&
-         !node.accent_argb.has_value();
+  if (node.type != TreeNodeType::kSavedPage || !node.icon.empty() ||
+      node.accent_argb) {
+    return false;
+  }
+  if ((!node.home_url.is_empty() || node.home_target_kind ||
+       node.home_local_scheme) &&
+      !GetSharedHomeTarget(node)) {
+    return false;
+  }
+  if (!node.target_kind) {
+    return !node.local_scheme && node.url.is_valid() && !node.url.is_empty();
+  }
+  if (!node.url.is_empty() && !node.url.is_valid()) {
+    return false;
+  }
+  const SharedTabTarget target{
+      .kind = *node.target_kind,
+      .url = *node.target_kind == SharedTabTargetKind::kWeb ? node.url.spec()
+                                                            : std::string(),
+      .local_scheme = node.local_scheme};
+  return IsValidSharedPageTarget(target, node.is_temporary);
 }
 
 TabTreeStore::Result TabTreeStore::ReadWorkspace(const base::Uuid& workspace_id,
@@ -83,7 +109,9 @@ TabTreeStore::Result TabTreeStore::ReadSubtree(const base::Uuid& node_id,
       "node.workspace_id,node.parent_id,node.node_type,node.title,node.icon,"
       "node.accent_argb,node.url,node.sort_key,node.created_at,node.modified_"
       "at,"
-      "node.tombstone FROM "
+      "node.tombstone,node.is_temporary,node.target_kind,node.local_scheme,"
+      "node.home_url,node.home_target_kind,node.home_local_scheme "
+      "FROM "
       "tree_nodes node JOIN subtree ON subtree.id=node.id ORDER BY node.id"));
   statement.BindString(0, node_id.AsLowercaseString());
 

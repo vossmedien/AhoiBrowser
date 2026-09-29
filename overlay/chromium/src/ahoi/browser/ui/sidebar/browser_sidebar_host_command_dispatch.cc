@@ -14,6 +14,9 @@
 #include "ahoi/browser/memory/tab_sleeping.h"
 #include "ahoi/browser/navigation/navigation_input_prefs.h"
 #include "ahoi/browser/navigation/workspace_service.h"
+#include "ahoi/browser/popup/link_peek.h"
+#include "ahoi/browser/session/isolated_profile_creation.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -22,6 +25,7 @@
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+#include "ahoi/browser/ui/sidebar/sidebar_link_copy.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
@@ -29,6 +33,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
 #include "ahoi/browser/ui/visual_style.h"
+#include "base/logging.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
@@ -65,6 +70,7 @@
 #include "components/history/core/browser/history_service.h"
 #include "components/history/core/browser/history_types.h"
 #include "components/prefs/pref_service.h"
+#include "components/sessions/core/session_id.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "components/tabs/public/tab_interface.h"
@@ -121,28 +127,260 @@
 
 namespace ahoi::sidebar {
 
-void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
-  if (context_menu_scope_ == ContextMenuScope::kNone) {
+
+namespace {
+
+using HandOverDone = base::OnceCallback<void(BrowserWindowInterface*)>;
+
+// Handoff 016 H1: a fullscreen window lives in its own macOS Space, so hiding
+// it there would switch Spaces. Leave fullscreen first, hand over after the
+// exit animation, and enter fullscreen on the presented window.
+void RunHandOver(BrowserWindowInterface* source,
+                 base::OnceCallback<void(HandOverDone)> hand_over,
+                 HandOverDone done) {
+  const bool fullscreen = source && source->GetWindow() &&
+                          source->GetWindow()->IsFullscreen();
+  HandOverDone finish = base::BindOnce(
+      [](bool fullscreen, HandOverDone done, BrowserWindowInterface* target) {
+        if (fullscreen && target && target->GetWindow() &&
+            !target->GetWindow()->IsFullscreen()) {
+          chrome::ToggleFullscreenMode(target);
+        }
+        std::move(done).Run(target);
+      },
+      fullscreen, std::move(done));
+  if (!fullscreen) {
+    std::move(hand_over).Run(std::move(finish));
     return;
   }
-  if ((context_menu_scope_ == ContextMenuScope::kTree ||
-       context_menu_scope_ == ContextMenuScope::kOpenTab) &&
+  chrome::ToggleFullscreenMode(source);
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(
+      FROM_HERE, base::BindOnce(std::move(hand_over), std::move(finish)),
+      base::Milliseconds(800));
+}
+
+}  // namespace
+
+std::vector<BrowserSidebarHostView::SwitcherWorkspace>
+BrowserSidebarHostView::SwitcherWorkspaces() const {
+  const bool isolated_profile =
+      session::IsIsolatedWorkspaceProfile(browser_->GetProfile());
+  const std::string own_profile_dir =
+      browser_->GetProfile()->GetPath().BaseName().AsUTF8Unsafe();
+  WorkspaceService* main_service = workspace_service_;
+  SessionBridge* main_bridge = session_bridge_;
+  if (isolated_profile) {
+    Profile* main_profile = session::GetLoadedMainProfile();
+    main_service = main_profile
+                       ? WorkspaceServiceFactory::GetForProfile(main_profile)
+                       : nullptr;
+    main_bridge =
+        main_profile ? SessionBridgeFactory::GetForProfile(main_profile)
+                     : nullptr;
+  }
+  std::vector<session::DirectoryWorkspace> main_keys;
+  std::map<base::Uuid, SwitcherWorkspace> details;
+  if (main_service) {
+    for (const tab_tree::Workspace& workspace :
+         main_service->ordered_workspaces()) {
+      main_keys.push_back(
+          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
+      details.emplace(
+          workspace.id,
+          SwitcherWorkspace{
+              .key = main_keys.back(),
+              .name = workspace.name,
+              .icon = workspace.icon,
+              .accent_argb = workspace.accent_argb,
+              .own = !isolated_profile,
+              .own_website_sessions =
+                  main_bridge && main_bridge->HasOwnWebsiteSessions(workspace.id)});
+    }
+  }
+  const std::vector<session::IsolatedProfileEntry> isolated =
+      session::GetOpenableIsolatedWorkspaces();
+  for (const session::IsolatedProfileEntry& entry : isolated) {
+    details.emplace(entry.workspace_id,
+                    SwitcherWorkspace{.key = {.workspace_id = entry.workspace_id,
+                                              .sort_key = entry.sort_key,
+                                              .profile_dir = entry.profile_dir},
+                                      .name = entry.name,
+                                      .icon = entry.icon,
+                                      .accent_argb = entry.accent_argb,
+                                      .own = entry.profile_dir == own_profile_dir});
+  }
+  std::vector<SwitcherWorkspace> result;
+  for (const session::DirectoryWorkspace& key :
+       session::OrderDirectoryWorkspaces(main_keys, isolated)) {
+    if (auto it = details.find(key.workspace_id); it != details.end()) {
+      result.push_back(it->second);
+    }
+  }
+  return result;
+}
+
+std::optional<size_t> BrowserSidebarHostView::ActiveSwitcherIndex(
+    const std::vector<SwitcherWorkspace>& switcher) const {
+  const std::optional<base::Uuid> active =
+      session_bridge_->GetActiveWorkspaceForWindow(browser_);
+  for (size_t index = 0; index < switcher.size(); ++index) {
+    if (switcher[index].own && active == switcher[index].key.workspace_id) {
+      return index;
+    }
+  }
+  return std::nullopt;
+}
+
+bool BrowserSidebarHostView::ActivateSwitcherWorkspace(
+    const SwitcherWorkspace& target,
+    WorkspaceActivationSource source) {
+  if (target.own) {
+    return session_bridge_->SetActiveWorkspaceForWindow(
+        browser_, target.key.workspace_id, source);
+  }
+  if (target.key.profile_dir.empty()) {
+    OpenMainWorkspaceByHandOver(target.key.workspace_id);
+  } else {
+    OpenIsolatedWorkspaceByHandOver(target.key.profile_dir);
+  }
+  return true;
+}
+
+void BrowserSidebarHostView::OpenMainWorkspaceByHandOver(
+    std::optional<base::Uuid> workspace_id) {
+  const SessionID source_id = browser_->GetSessionID();
+  RunHandOver(
+      browser_.get(),
+      base::BindOnce(
+          [](SessionID source_id,
+             base::OnceCallback<void(BrowserWindowInterface*)> done) {
+            session::LoadMainProfile(base::BindOnce(
+                [](SessionID source_id,
+                   base::OnceCallback<void(BrowserWindowInterface*)> done,
+                   Profile* main_profile) {
+                  session::PresentProfileWindow(
+                      main_profile,
+                      BrowserWindowInterface::FromSessionID(source_id),
+                      std::move(done));
+                },
+                source_id, std::move(done)));
+          },
+          source_id),
+      base::BindOnce(
+          [](std::optional<base::Uuid> workspace_id,
+             BrowserWindowInterface* main_browser) {
+            SessionBridge* bridge =
+                main_browser ? SessionBridgeFactory::GetForProfile(
+                                   main_browser->GetProfile())
+                             : nullptr;
+            if (!bridge || !workspace_id.has_value()) {
+              return;
+            }
+            std::ignore = bridge->SetActiveWorkspaceForWindow(
+                main_browser, *workspace_id,
+                WorkspaceActivationSource::kSidebar);
+          },
+          workspace_id));
+}
+
+void BrowserSidebarHostView::OpenIsolatedWorkspaceByHandOver(
+    const std::string& profile_dir) {
+  RunHandOver(
+      browser_.get(),
+      base::BindOnce(
+          [](std::string dir, SessionID source_id,
+             base::OnceCallback<void(BrowserWindowInterface*)> done) {
+            session::PresentIsolatedWorkspace(
+                dir, BrowserWindowInterface::FromSessionID(source_id),
+                std::move(done));
+          },
+          profile_dir, browser_->GetSessionID()),
+      base::DoNothing());
+}
+
+void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
+  VLOG(1) << "Ahoi sidebar command " << command_id << " scope "
+          << static_cast<int>(context_.scope);
+  if (context_.scope == ContextMenuScope::kNone) {
+    LOG(WARNING) << "Ahoi sidebar command " << command_id
+                 << " ignored: menu scope already reset";
+    return;
+  }
+  if (command_id == kCopyActivePageLink ||
+      command_id == kCopyActivePageMarkdownLink ||
+      command_id == kOpenActivePageInReadingMode) {
+    if (!IsContextPageActionTargetCurrent()) {
+      return;
+    }
+    if (command_id == kOpenActivePageInReadingMode) {
+      std::ignore = OpenActivePageInReadingMode(browser_);
+    } else {
+      std::ignore =
+          CopyActivePageLink(browser_, command_id == kCopyActivePageMarkdownLink
+                                           ? PageLinkCopyFormat::kMarkdown
+                                           : PageLinkCopyFormat::kUrl);
+    }
+    return;
+  }
+  if (context_.scope == ContextMenuScope::kWorkspace &&
+      command_id == kArchiveList) {
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(&BrowserSidebarHostView::ShowArchiveSearch,
+                                  weak_ptr_factory_.GetWeakPtr()));
+    return;
+  }
+  if (context_.scope == ContextMenuScope::kArchive) {
+    if (!context_.archive_id)
+      return;
+    auto done = base::BindOnce(&BrowserSidebarHostView::CompleteArchiveAction,
+                               weak_ptr_factory_.GetWeakPtr());
+    if (command_id == kRestoreArchiveOriginal) {
+      session_bridge_->RestoreArchivedPages(*context_.archive_id,
+                                            std::move(done));
+    } else if (command_id >= kMoveToDestinationCommandBase &&
+               command_id < kMoveToWorkspaceSubmenuCommandBase) {
+      const auto index =
+          static_cast<size_t>(command_id - kMoveToDestinationCommandBase);
+      if (index < context_.move_destinations.size()) {
+        const auto destination = context_.move_destinations[index];
+        session_bridge_->RestoreArchivedPagesAt(
+            *context_.archive_id,
+            {destination.workspace_id, destination.folder_id}, std::move(done));
+      }
+    }
+    return;
+  }
+  if (context_.scope == ContextMenuScope::kWorkspace &&
+      command_id >= kArchivePolicyCommandBase &&
+      command_id < kArchivePolicyCommandBase + 5) {
+    const auto workspace_id = context_.archive_workspace_id;
+    if (workspace_id) {
+      const auto result = session_bridge_->SetWorkspaceArchivePolicy(
+          *workspace_id, static_cast<sync::SharedArchivePolicy>(
+                             command_id - kArchivePolicyCommandBase));
+      if (result != tab_tree::TabTreeStore::Result::kOk)
+        OnMutationFailed(result);
+    }
+    return;
+  }
+  if ((context_.scope == ContextMenuScope::kTree ||
+       context_.scope == ContextMenuScope::kOpenTab) &&
       command_id >= kMoveToDestinationCommandBase &&
       command_id < kMoveToWorkspaceSubmenuCommandBase) {
     const size_t index =
         static_cast<size_t>(command_id - kMoveToDestinationCommandBase);
-    if (index >= context_move_destinations_.size()) {
+    if (index >= context_.move_destinations.size()) {
       return;
     }
     const ContextMoveDestination& destination =
-        context_move_destinations_[index];
+        context_.move_destinations[index];
     const SidebarTreeController::DropTarget drop_target = {
         .workspace_id = destination.workspace_id,
         .target_node_id = destination.folder_id,
         .position = SidebarTreeController::DropPosition::kInside};
 
-    if (context_menu_scope_ == ContextMenuScope::kOpenTab) {
-      tabs::TabInterface* tab = context_runtime_tab_.get();
+    if (context_.scope == ContextMenuScope::kOpenTab) {
+      tabs::TabInterface* tab = context_.runtime_tab.get();
       if (!tab) {
         return;
       }
@@ -150,16 +388,24 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       if (SaveTemporaryTabAtDrop(tab->GetHandle().raw_value(), drop_target,
                                  nullptr) &&
           was_active) {
-        ActivateWorkspace(destination.workspace_id);
+        // Handoff 011 S1: the window's Workspace follows the moved active
+        // tab through WorkspaceService; the sidebar follows its notification.
+        std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
+            browser_, destination.workspace_id,
+            WorkspaceActivationSource::kSidebar);
       }
       return;
     }
 
-    if (!context_node_id_.has_value()) {
+    if (!context_.node_id.has_value()) {
       return;
     }
     const std::vector<base::Uuid> source_ids =
-        GetMoveGroupNodeIds(*context_node_id_);
+        GetMoveGroupNodeIds(*context_.node_id);
+    if (source_ids.empty()) {
+      OnMutationFailed(tab_tree::TabTreeStore::Result::kInvalidArgument);
+      return;
+    }
     const bool moved_active_tab =
         std::ranges::any_of(source_ids, [this](const base::Uuid& node_id) {
           return session_bridge_->FindTabByTreeNodeId(node_id) ==
@@ -178,11 +424,13 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       std::ignore = controller_->ExpandNode(*destination.folder_id);
     }
     if (moved_active_tab) {
-      ActivateWorkspace(destination.workspace_id);
+      std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
+          browser_, destination.workspace_id,
+          WorkspaceActivationSource::kSidebar);
     }
     return;
   }
-  if (context_menu_scope_ == ContextMenuScope::kWorkspace) {
+  if (context_.scope == ContextMenuScope::kWorkspace) {
     PrefService* const prefs = browser_->GetProfile()->GetPrefs();
     if (command_id == kToggleWorkspaceSwipe) {
       prefs->SetBoolean(
@@ -202,6 +450,16 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
           ahoi::navigation_input_prefs::kMiddleClickAutoscrollEnabled,
           !ahoi::navigation_input_prefs::IsMiddleClickAutoscrollEnabled(
               *prefs));
+      return;
+    }
+    if (command_id == kTogglePeekOnShiftClick) {
+      prefs->SetBoolean(popup::kPeekOnShiftClickPref,
+                        !prefs->GetBoolean(popup::kPeekOnShiftClickPref));
+      return;
+    }
+    if (command_id == kToggleAutoPeek) {
+      prefs->SetBoolean(popup::kAutoPeekFromSavedPagesPref,
+                        !prefs->GetBoolean(popup::kAutoPeekFromSavedPagesPref));
       return;
     }
     if (command_id == kToggleFloatingSidebar) {
@@ -235,9 +493,61 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       ShowWorkspaceDialog(PendingWorkspaceAction::kEdit, *active_workspace_id);
       return;
     }
+    if (command_id == kDeleteWorkspace && !active_workspace_id.has_value()) {
+      LOG(WARNING) << "Ahoi cannot delete: the sidebar shows no Workspace";
+    }
     if (command_id == kDeleteWorkspace && active_workspace_id.has_value()) {
       ShowWorkspaceDialog(PendingWorkspaceAction::kDelete,
                           *active_workspace_id);
+      return;
+    }
+    if (command_id >= kMergeWorkspaceCommandBase &&
+        command_id < kArchivePolicyCommandBase) {
+      const size_t index =
+          static_cast<size_t>(command_id - kMergeWorkspaceCommandBase);
+      if (active_workspace_id.has_value() &&
+          index < context_.workspace_ids.size() &&
+          context_.workspace_ids[index] != *active_workspace_id) {
+        workspace_dialog_.merge_target_id = context_.workspace_ids[index];
+        ShowWorkspaceDialog(PendingWorkspaceAction::kMerge,
+                            *active_workspace_id);
+      }
+      return;
+    }
+    if (command_id == kConvertWorkspaceToIsolated &&
+        active_workspace_id.has_value()) {
+      ShowWorkspaceDialog(PendingWorkspaceAction::kConvertToIsolated,
+                          *active_workspace_id);
+      return;
+    }
+    // ADR 0011 step 2: another Profile's Workspace takes over this window's
+    // frame; this window is hidden, not closed, and is shown again when the
+    // user switches back.
+    if (command_id == kOpenMainWorkspacesCommand ||
+        (command_id >= kOpenMainWorkspaceCommandBase &&
+         command_id < kOpenIsolatedWorkspaceCommandBase)) {
+      std::optional<base::Uuid> main_workspace_id;
+      if (command_id != kOpenMainWorkspacesCommand) {
+        const size_t main_index =
+            static_cast<size_t>(command_id - kOpenMainWorkspaceCommandBase);
+        if (main_index >= context_.main_workspace_ids.size()) {
+          return;
+        }
+        main_workspace_id = context_.main_workspace_ids[main_index];
+      } else if (!context_.offers_main_workspaces) {
+        return;
+      }
+      OpenMainWorkspaceByHandOver(main_workspace_id);
+      return;
+    }
+    if (command_id >= kOpenIsolatedWorkspaceCommandBase &&
+        command_id < kActivateWorkspaceCommandBase) {
+      const size_t isolated_index =
+          static_cast<size_t>(command_id - kOpenIsolatedWorkspaceCommandBase);
+      if (isolated_index < context_.isolated_workspace_dirs.size()) {
+        OpenIsolatedWorkspaceByHandOver(
+            context_.isolated_workspace_dirs[isolated_index]);
+      }
       return;
     }
     if (command_id < kActivateWorkspaceCommandBase || !window_id_.has_value()) {
@@ -245,20 +555,23 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     }
     const size_t index =
         static_cast<size_t>(command_id - kActivateWorkspaceCommandBase);
-    if (index < context_workspace_ids_.size()) {
+    if (index < context_.workspace_ids.size()) {
       std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
-          browser_, context_workspace_ids_[index],
+          browser_, context_.workspace_ids[index],
           WorkspaceActivationSource::kSidebar);
     }
     return;
   }
-  if (context_menu_scope_ == ContextMenuScope::kOpenTab) {
-    tabs::TabInterface* tab = context_runtime_tab_.get();
+  if (context_.scope == ContextMenuScope::kOpenTab) {
+    tabs::TabInterface* tab = context_.runtime_tab.get();
     if (!tab) {
       return;
     }
     const int runtime_handle = tab->GetHandle().raw_value();
     switch (command_id) {
+      case kArchiveTemporaryTab:
+        ArchiveContextTabs();
+        return;
       case kActivateNode:
         ActivateRuntimeTab(tab->GetWeakPtr());
         return;
@@ -323,18 +636,25 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
         return;
     }
   }
-  if (!context_node_id_.has_value()) {
+  if (!context_.node_id.has_value()) {
     if (command_id == kCreateRootGroup) {
       ShowCreateRootGroupDialog();
     }
     return;
   }
-  const base::Uuid node_id = *context_node_id_;
+  const base::Uuid node_id = *context_.node_id;
   const tab_tree::TreeNode* node = controller_->view_model().GetNode(node_id);
   if (!node) {
     return;
   }
   switch (command_id) {
+    case kArchiveTemporaryTab:
+      ArchiveContextTabs();
+      return;
+    case kGoToSavedHome:
+    case kSetSavedHome:
+      UseSavedHome(node_id, command_id == kSetSavedHome);
+      return;
     case kActivateNode:
       ActivateSavedPage(*node);
       return;
@@ -421,6 +741,9 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
       return;
     }
     case kDeleteNode: {
+      if (CloseTemporaryPageForDeletion(node_id)) {
+        return;
+      }
       const tab_tree::TabTreeStore::Result result =
           controller_->DeleteNode(node_id, base::Time::Now());
       if (result != tab_tree::TabTreeStore::Result::kOk) {

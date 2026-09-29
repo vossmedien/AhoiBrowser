@@ -30,6 +30,15 @@ class BrowsingDataRemovalAdapter {
   // mask uses BrowsingDataType bits and is always a subset of the request.
   virtual bool Remove(const BrowsingDataClearRequest& request,
                       CompletionCallback callback) = 0;
+
+  // Handoff 060: removes the data of `web_contents`' own StoragePartition. A
+  // Workspace with its own website sessions renders in a partition of its
+  // own; clearing the profile's default partition would leave that site data
+  // in place and remove another Workspace's instead. Adapters without
+  // partitions keep the partition-agnostic Remove().
+  virtual bool RemoveForTab(const BrowsingDataClearRequest& request,
+                            const content::WebContents* web_contents,
+                            CompletionCallback callback);
 };
 
 std::optional<BrowsingDataClearRequest> BuildBrowsingDataClearRequest(

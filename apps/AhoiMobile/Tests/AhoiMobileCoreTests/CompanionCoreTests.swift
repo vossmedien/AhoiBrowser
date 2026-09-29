@@ -2,9 +2,6 @@ import XCTest
 @testable import AhoiMobileCore
 import AhoiCloudKitSpike
 
-#if canImport(CryptoKit)
-import CryptoKit
-#endif
 #if canImport(CloudKit)
 import CloudKit
 #endif
@@ -20,8 +17,10 @@ final class CompanionCoreTests: XCTestCase {
             deviceKind: .mac,
             deviceName: "Mac",
             sessionID: DeviceSessionID(),
+            treeNodeID: TreeNodeID(),
             title: "Private",
             url: "https://example.test",
+            targetKind: .web,
             lastActiveAt: version.modifiedAt,
             context: .incognito,
             version: version
@@ -35,12 +34,15 @@ final class CompanionCoreTests: XCTestCase {
             deviceKind: .mac,
             deviceName: "Mac",
             sessionID: DeviceSessionID(),
+            treeNodeID: TreeNodeID(),
             title: "Secret",
             url: "https://user:password@example.test",
+            targetKind: .web,
             lastActiveAt: version.modifiedAt,
             version: version
         )) { error in
-            XCTAssertEqual(error as? CompanionModelError, .remoteTabURLNotAllowed)
+            // Since Format 3 the shared target validator owns URL rules.
+            XCTAssertEqual(error as? SharedTabTargetError, .invalidTarget)
         }
     }
 
@@ -60,9 +62,11 @@ final class CompanionCoreTests: XCTestCase {
             deviceName: "iPad Pro",
             sessionID: DeviceSessionID(),
             workspaceID: workspace.id,
+            treeNodeID: TreeNodeID(),
             workspaceName: workspace.name,
             title: "Ahoi Docs",
             url: "https://example.test/docs",
+            targetKind: .web,
             lastActiveAt: version.modifiedAt,
             version: version
         )
@@ -127,8 +131,10 @@ final class CompanionCoreTests: XCTestCase {
             deviceKind: .mac,
             deviceName: "Mac",
             sessionID: sessionID,
+            treeNodeID: TreeNodeID(),
             title: "Ahoi",
             url: "https://example.test",
+            targetKind: .web,
             lastActiveAt: sessionVersion.modifiedAt,
             version: sessionVersion
         )
@@ -172,9 +178,11 @@ final class CompanionCoreTests: XCTestCase {
             deviceName: "Mac mini",
             sessionID: DeviceSessionID(),
             workspaceID: WorkspaceID(),
+            treeNodeID: TreeNodeID(),
             workspaceName: "Main",
             title: "Ahoi",
             url: "https://example.test",
+            targetKind: .web,
             lastActiveAt: version.modifiedAt,
             version: version
         )
@@ -239,8 +247,10 @@ final class CompanionCoreTests: XCTestCase {
             deviceKind: .mac,
             deviceName: "Mac mini",
             sessionID: DeviceSessionID(),
+            treeNodeID: TreeNodeID(),
             title: "Ahoi",
             url: "https://example.test",
+            targetKind: .web,
             lastActiveAt: version.modifiedAt,
             version: version
         )
@@ -266,8 +276,10 @@ final class CompanionCoreTests: XCTestCase {
             deviceKind: .mac,
             deviceName: "Mac",
             sessionID: DeviceSessionID(),
+            treeNodeID: TreeNodeID(),
             title: "Private title",
             url: "https://example.test/private",
+            targetKind: .web,
             lastActiveAt: version.modifiedAt,
             version: version
         )
@@ -288,188 +300,41 @@ final class CompanionCoreTests: XCTestCase {
     }
 
     func testDesktopRemoteTabMatchesMacGoldenPayload() throws {
-        let device = DeviceID(
-            rawValue: UUID(uuidString: "10000000-0000-4000-8000-000000000002")!
-        )
-        let clock = HybridLogicalClock(
-            physicalMilliseconds: 1_000,
-            logicalCounter: 2,
-            nodeID: device
-        )
-        let version = SyncVersion(modifiedAt: clock, modifiedBy: device)
-        let tab = try RemoteTab(
-            tabID: TabID(
-                rawValue: UUID(uuidString: "10000000-0000-4000-8000-000000000001")!
-            ),
-            deviceID: device,
-            deviceKind: .mac,
-            deviceName: "Mac",
-            sessionID: DeviceSessionID(
-                rawValue: UUID(uuidString: "10000000-0000-4000-8000-000000000003")!
-            ),
-            title: "Ahoi",
-            url: "https://example.test/path",
-            lastActiveAt: clock,
-            version: version
-        )
-
-        let payload = try DesktopWirePayloadCodec().encode(tab)
-        XCTAssertEqual(
-            String(decoding: payload, as: UTF8.self),
-            #"{"device_id":"10000000-0000-4000-8000-000000000002","field_versions":{"device_id":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"is_incognito":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"last_active":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"opened_at":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"pinned":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"session_id":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"title":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"tombstone":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"url":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"workspace_id":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"}},"id":"10000000-0000-4000-8000-000000000001","is_incognito":false,"last_active":"11644473601000000","model_version":2,"opened_at":"11644473601000000","pinned":false,"session_id":"10000000-0000-4000-8000-000000000003","title":"Ahoi","tombstone":false,"url":"https://example.test/path","version_device":"10000000-0000-4000-8000-000000000002","version_logical":2,"version_model":2,"version_physical":"11644473601000000"}"#
-        )
-    }
-
-    func testRemoteCommandWireMatchesMacGoldenPayloadAndRoundTrips() throws {
-        let source = DeviceID(
-            rawValue: UUID(uuidString: "10000000-0000-4000-8000-000000000001")!
-        )
-        let target = DeviceID(
-            rawValue: UUID(uuidString: "20000000-0000-4000-8000-000000000002")!
-        )
-        let commandID = UUID(uuidString: "30000000-0000-4000-8000-000000000003")!
-        let clock = HybridLogicalClock(
-            physicalMilliseconds: 1_000_000,
-            nodeID: source
-        )
-        let state = RemoteCommandState(
-            envelope: .init(
-                payload: .init(
-                    commandID: commandID,
-                    sourceDeviceID: source,
-                    targetDeviceID: target,
-                    nonce: Data(repeating: 0, count: 16),
-                    issuedAtMilliseconds: 1_000_000,
-                    command: .open(.init(url: "https://example.test/a/b"))
-                ),
-                signature: Data(repeating: 0, count: 64)
-            ),
-            version: .init(modifiedAt: clock, modifiedBy: source)
-        )
+        // The Mac golden is the shared Format-3 resource, not a v2 literal.
+        let (_, fixture) = try UnifiedSyncFixture.load()
+        func sample(_ name: String) throws -> UnifiedSyncFixture.Sample {
+            try XCTUnwrap(fixture.records.first { $0.name == name })
+        }
         let codec = DesktopWirePayloadCodec()
-        let payload = try codec.encode(state)
-        let expected = #"{"command_kind":0,"expires_at":"11644474900000000","field_versions":{"request":{"device":"10000000-0000-4000-8000-000000000001","logical":0,"physical":"11644474600000000"},"status":{"device":"10000000-0000-4000-8000-000000000001","logical":0,"physical":"11644474600000000"},"tombstone":{"device":"10000000-0000-4000-8000-000000000001","logical":0,"physical":"11644474600000000"}},"id":"30000000-0000-4000-8000-000000000003","issued_at":"11644474600000000","model_version":2,"nonce":"AAAAAAAAAAAAAAAAAAAAAA==","result":"","signature":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==","source_device_id":"10000000-0000-4000-8000-000000000001","status":0,"target_device_id":"20000000-0000-4000-8000-000000000002","tombstone":false,"url":"https://example.test/a/b","version_device":"10000000-0000-4000-8000-000000000001","version_logical":0,"version_model":2,"version_physical":"11644474600000000"}"#
-        XCTAssertEqual(String(decoding: payload, as: UTF8.self), expected)
-
-        let record = SyncRecord(
-            recordID: commandID,
-            entityID: commandID,
-            dataClass: .remoteCommand,
-            modifiedAt: clock,
-            originatingDevice: source,
-            encryptedValue: .init(
-                keyVersion: 1,
-                nonce: Data(repeating: 0, count: 12),
-                ciphertextAndTag: Data(repeating: 0, count: 16)
-            )
-        )
-        let decoded = try codec.decodeRemoteCommand(record, plaintext: payload)
-        XCTAssertEqual(decoded.envelope, state.envelope)
-        XCTAssertEqual(decoded.status, state.status)
-        XCTAssertEqual(decoded.resultCode, state.resultCode)
-        XCTAssertEqual(
-            Set(decoded.version.fieldVersions.keys),
-            ["request", "status", "tombstone"]
-        )
-        XCTAssertEqual(try codec.encode(decoded), payload)
-    }
-
-    func testWorkspaceWirePreservesIconColorAndCanonicalOrder() throws {
-        let device = DeviceID()
-        let workspace = Workspace(
-            workspaceID: WorkspaceID(),
-            name: "Produkt",
-            icon: "🧭",
-            accent: "#ff3366aa",
-            sortKey: "000a!device",
-            version: makeVersion(device: device, milliseconds: 1_000)
+        let deviceSample = try sample("device_mac")
+        let device = try codec.decodeDevice(UnifiedSyncFixture.envelope(deviceSample), plaintext: deviceSample.data)
+        let workspaceSample = try sample("workspace")
+        let workspace = try codec.decodeWorkspace(UnifiedSyncFixture.envelope(workspaceSample),
+                                                  plaintext: workspaceSample.data)
+        let golden = try sample("presence_saved_web")
+        let decoded = try codec.decodeRemoteTab(UnifiedSyncFixture.envelope(golden), plaintext: golden.data,
+                                                devices: [device.id: device],
+                                                workspaces: [workspace.id: workspace])
+        let tab = try RemoteTab(
+            tabID: decoded.tabID,
+            deviceID: decoded.deviceID,
+            deviceKind: .mac,
+            deviceName: decoded.deviceName,
+            sessionID: decoded.sessionID,
+            workspaceID: decoded.workspaceID,
+            treeNodeID: decoded.treeNodeID,
+            workspaceName: decoded.workspaceName,
+            title: "Saved web page",
+            url: "https://example.com/saved",
+            targetKind: .web,
+            openedAt: decoded.openedAt,
+            lastActiveAt: decoded.lastActiveAt,
+            pinned: true,
+            version: decoded.version
         )
 
-        let object = try DesktopWirePayloadCodec().object(
-            from: DesktopWirePayloadCodec().encode(workspace)
-        )
-
-        XCTAssertEqual(object["icon"] as? String, "🧭")
-        XCTAssertEqual(object["sort_key"] as? String, "000a!device")
-        XCTAssertEqual((object["accent_argb"] as? NSNumber)?.uint32Value, 0xff3366aa)
-    }
-
-    func testEd25519SignerUsesProvisionedBytesWithoutCreatingKeys() throws {
-#if canImport(CryptoKit) && canImport(Security)
-        let source = DeviceID()
-        let privateKey = Curve25519.Signing.PrivateKey()
-        let signer = KeychainRemoteCommandSigner(
-            configuration: .init(
-                service: "test.invalid",
-                account: "fixture",
-                sourceDeviceID: source
-            ),
-            keyLoader: { privateKey.rawRepresentation },
-            nonceLoader: { Data(repeating: 9, count: 32) }
-        )
-        let payload = RemoteCommandPayload(
-            sourceDeviceID: source,
-            targetDeviceID: DeviceID(),
-            nonce: try signer.makeNonce(),
-            issuedAtMilliseconds: 1_000,
-            command: .open(.init(url: "https://example.test"))
-        )
-
-        let signed = try signer.sign(payload)
-
-        XCTAssertTrue(privateKey.publicKey.isValidSignature(
-            signed.signature,
-            for: try payload.canonicalData()
-        ))
-        XCTAssertEqual(
-            try signer.provisioningIdentity().publicKeyBase64,
-            privateKey.publicKey.rawRepresentation.base64EncodedString()
-        )
-#else
-        throw XCTSkip("CryptoKit/Security unavailable")
-#endif
-    }
-
-    func testKeychainSealerCryptoKitInteropShapeWithoutKeychainMutation() throws {
-        let configuration = CompanionSyncKeyConfiguration(
-            service: "test.invalid",
-            account: "fixture",
-            keyVersion: 7
-        )
-        let sealer = KeychainCompanionPayloadSealer(
-            configuration: configuration,
-            keyLoader: { Data(repeating: 0x42, count: 32) }
-        )
-        let plaintext = Data("private payload".utf8)
-
-        let sealed = try sealer.seal(plaintext)
-
-        XCTAssertEqual(sealed.algorithm, .aes256GCM)
-        XCTAssertEqual(sealed.keyVersion, 7)
-        XCTAssertEqual(sealed.nonce.count, 12)
-        XCTAssertGreaterThanOrEqual(sealed.ciphertextAndTag.count, 16)
-        XCTAssertEqual(try sealer.open(sealed), plaintext)
-    }
-
-    func testOpensSharedDesktopAESGCMGoldenEnvelope() throws {
-        let configuration = CompanionSyncKeyConfiguration(
-            service: "test.invalid",
-            account: "fixture",
-            keyVersion: 1
-        )
-        let sealer = KeychainCompanionPayloadSealer(
-            configuration: configuration,
-            keyLoader: { Data(repeating: 0, count: 32) }
-        )
-        let value = EncryptedValue(
-            keyVersion: 1,
-            nonce: try XCTUnwrap(Data(base64Encoded: "AAAAAAAAAAAAAAAA")),
-            ciphertextAndTag: try XCTUnwrap(Data(
-                base64Encoded: "zqdAPU1ga24HTsXTuvOdGNDRyKeZmWvwJluYtdSKuRk="
-            ))
-        )
-
-        XCTAssertEqual(try sealer.open(value), Data(repeating: 0, count: 16))
+        let payload = try codec.encode(tab)
+        XCTAssertEqual(String(decoding: payload, as: UTF8.self), golden.payload)
     }
 
     func testFileStoreRoundTripIsAtomicPersistenceSeam() async throws {
@@ -643,6 +508,48 @@ final class CompanionCoreTests: XCTestCase {
         XCTAssertEqual(snapshot.visibleTreeNodes.map(\.id), [sibling.id])
     }
 
+    func testMovingAFolderToAnotherWorkspaceTakesItsSubtree() async throws {
+        let repository = LocalFirstRepository(
+            store: InMemoryCompanionStore(),
+            localDeviceID: DeviceID(
+                rawValue: UUID(uuidString: "70000000-0000-4000-8000-000000000002")!
+            )
+        )
+        let source = try await repository.createWorkspace(name: "Quelle")
+        let target = try await repository.createWorkspace(name: "Ziel")
+        let folder = try await repository.createTreeNode(
+            workspaceID: source.id, kind: .folder, title: "Ordner")
+        let child = try await repository.createTreeNode(
+            workspaceID: source.id, parentID: folder.id, kind: .folder, title: "Kind")
+        let page = try await repository.createTreeNode(
+            workspaceID: source.id, parentID: child.id, kind: .savedPage,
+            title: "Tief", url: "https://example.test/deep")
+
+        let move = try await repository.moveTreeNode(
+            folder.id, to: target.id, parentID: nil)
+
+        XCTAssertEqual(move.node.workspaceID, target.id)
+        XCTAssertEqual(Set(move.descendants.map(\.id)), [child.id, page.id])
+        XCTAssertTrue(move.descendants.allSatisfy { $0.workspaceID == target.id })
+        XCTAssertTrue(move.descendants.allSatisfy { $0.version.modifiedAt > page.version.modifiedAt })
+
+        // Deleting the source Workspace no longer takes the moved subtree along.
+        let deletion = try await repository.deleteWorkspace(source.id)
+        XCTAssertTrue(deletion.nodes.isEmpty)
+        let snapshot = try await repository.currentSnapshot()
+        XCTAssertEqual(
+            Set(snapshot.visibleTreeNodes.filter { $0.workspaceID == target.id }.map(\.id)),
+            [folder.id, child.id, page.id]
+        )
+
+        // A move inside one Workspace rewrites no descendants.
+        let other = try await repository.createTreeNode(
+            workspaceID: target.id, kind: .folder, title: "Anderer")
+        let inside = try await repository.moveTreeNode(
+            child.id, to: target.id, parentID: other.id)
+        XCTAssertTrue(inside.descendants.isEmpty)
+    }
+
     func testWorkspaceFieldMergeConvergesDisjointOfflineEdits() throws {
         let firstDevice = DeviceID(
             rawValue: UUID(uuidString: "71000000-0000-4000-8000-000000000001")!
@@ -730,7 +637,10 @@ final class CompanionCoreTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: directory) }
         let recordID = UUID()
         let first = try FileSyncQuarantineStore(fileURL: fileURL)
-        try await first.quarantine(recordID: recordID, reason: "bad payload: https://secret")
+        _ = try await first.quarantine(
+            recordID: recordID,
+            reason: "bad payload: https://secret"
+        )
 
         let second = try FileSyncQuarantineStore(fileURL: fileURL)
         let values = await second.allQuarantined()
@@ -743,7 +653,8 @@ final class CompanionCoreTests: XCTestCase {
     func testInMemoryBackendExercisesCoordinatorWithoutNetwork() async throws {
         let backend = InMemoryCloudSyncBackend()
         let coordinator = CloudSyncCoordinator(transport: backend)
-        let record = makeSyncRecord(dataClass: .history)
+        // Format 3 permits entity 3 `historyVisit`, not the old `history` class.
+        let record = makeSyncRecord(dataClass: .historyVisit)
 
         try await coordinator.prepare()
         try await coordinator.upload([record])

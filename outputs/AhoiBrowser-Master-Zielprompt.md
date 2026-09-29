@@ -1,8 +1,210 @@
 # AhoiBrowser – vollständiger Master-Zielprompt
 
-**Geltungsstand: 29. August 2026, User-First-Recovery-Welle.** Diese fortgeschriebene Datei ist die autoritative Zielvorgabe für das neue AhoiBrowser-Mac-Goal. Spätere, ausdrücklich vom Nutzer ergänzte Anforderungen werden hier konsistent in Funktionsumfang, Phasen, Abnahmematrix, Release-Gates und Definition of Done eingearbeitet. Die unten definierte Mac-Recovery-Welle hat bis zu ihrem belegten Abschluss Vorrang vor breiter Featurearbeit, Lean-Optimierung und Mobile-Integration.
+**Geltungsstand: 5. September 2026, Produkt- und Ausführungsreview.** Diese Datei ist die autoritative vollständige Produktvorgabe. Das Gesamtziel bleibt Feature-Vollständigkeit einschließlich sichtbarer Abnahme, Sync, AnyChat, uBlock Origin Classic, Arc-Import, Entgooglifizierung, Entschlackung und Performance. Die vom Nutzer am 5. September beauftragte Revue löst widersprüchliche Altvorgaben auf und verbessert die Ausführung. Sie ist kein Neustart des Projekts und kein Nachweis bereits fertiger Funktionen. Der aktuelle Arbeitsstand liegt ausschließlich in `docs/ACTIVE_DESKTOP_CHECKPOINT.md`; historische Fehlerchronologien gehören in Evidenzdokumente.
 
-**Verbindliche Ausführungsabgrenzung vom 27. August 2026:** Der native iOS-/iPadOS-Companion wird ab sofort von einem anderen Agenten verantwortet. Dieser macOS-/Chromium-Arbeitsstrom verändert, baut, testet oder installiert keine iOS-Dateien oder -Targets und wartet nicht auf deren Abschluss. Die Companion-Anforderungen bleiben Produktziel und Integrationsvertrag, sind aber ausdrücklich kein Schreib- oder Build-Scope dieses Arbeitsstroms.
+**Verbindliche Ausführungsabgrenzung, fortgeschrieben am 1. September 2026:** Desktop und Mobile bleiben klar getrennte, explizit übergebene Arbeitslinien. Innerhalb der aktiven Desktop-Linie ist parallele Implementierungsarbeit nur an überschneidungsfreien Teilpaketen im selben kanonischen Workstate zulässig. Es gibt keine konkurrierenden Chromium-Builds, keine voneinander abweichenden Overlay-Stände und keine stillschweigende Übernahme fremder Mobile-Änderungen. Integration, Build, Installation, sichtbare Abnahme und Push erfolgen aus genau einem nachvollziehbaren Desktop-Stand.
+
+## Verbindliches Gesamtziel und Ausführung ab 5. September 2026
+
+Führe AhoiBrowser im vorhandenen kanonischen Repository bis zur vollständigen
+Umsetzung und Abnahme dieses Master-Zielprompts. Schließe zuerst das integrierte
+Desktop-Paket aus Arc-Import, Sidebar-Darstellung, Workspace-Wechsel,
+Null-Tab-/Split-Stabilität, AnyChat und uBlock Origin Classic einschließlich
+beabsichtigter Lite-Ablösung ab. Arbeite danach die folgenden kohärenten Pakete
+bis zur gesamten Definition of Done ab. Ein grünes Teilpaket beendet den
+Gesamtauftrag nicht. Die gemeinsame Sync-Implementierung in C++ und Swift wird
+vom benannten Sync-Owner koordiniert; Desktop behält Native Tree/Session/UI,
+`tab_tree_sync_adapter` und den einzigen Chromium-Build-/Installationspfad.
+Personen- und Dateiübergaben stehen in `docs/ACTIVE_SYNC_COORDINATION.md`.
+Integrationsnachweise und Release-Gates werden im Gesamtstatus mitgeführt.
+
+Behalte echte Chromium-Tabs, `WebContents`, Services und Sicherheitsgrenzen als
+technische Grundlage. Implementiere die zugesagte Bedienung vollständig, mit
+möglichst wenig eigenem langlebigem Zustand und möglichst kleiner Fork-Fläche.
+Neue Abstraktionen benötigen einen konkreten zweiten Verbraucher oder einen
+nachgewiesenen Lebenszyklus-/Ownership-Grund. Modellwechsel rechtfertigen weder
+eine Neuentwicklung funktionierender Komponenten noch eine pauschale Abwertung
+bereits belegter Arbeit.
+
+### Verbindliche Parallel-Lane Crest-Konvergenz-Härtung vom 25. September 2026
+
+Der Nutzer hat die fünf Nachschärfungen aus der [Bewertung von Crests Chromium-Umbau](../docs/reviews/2026-09-25-crest-chromium-core.md) beauftragt: Sync-Konformität zwischen C++ und Swift, eine Schreibhoheit für Tab-Baum und Chromium-Session, vergleichbare Performance-Methodik, Engine-Eingabeschlüssel für Kandidaten-Wiederverwendung sowie Crest-Referenz und Netzwerk-Stille. Sie laufen als eigene Lane `crest-hardening` **parallel** zu Desktop, Mobile und Sync nach dem [Zielprompt Crest-Konvergenz-Härtung](AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md). Die Lane schreibt nur ihre in `config/agent-lanes.json` gelisteten Pfade, baut und installiert nicht und liefert Beiträge zu fremdem Besitz als Handoff unter `handoffs/crest-hardening/`, die der jeweilige Eigentümer in sein nächstes geplantes Paket übernimmt. Produktumfang, Architektur, Paketfolge und bestehende Eigentümerschaften bleiben unverändert. Der Terminal-Cockpit-Orchestrator prüft die Grenzen mit `tools/check_lane_boundaries.py`.
+
+### Verbindliche Workspace-Isolationsstufen vom 25. September 2026
+
+Der Nutzer hat beauftragt, Workspaces optional so vollständig wie Profile zu trennen. [ADR 0011](../docs/decisions/0011-optional-isolated-workspace-profiles.md) legt drei Stufen fest, die beim Anlegen gewählt werden: `Gemeinsam` (Standard, ADR 0002), `Eigene Website-Sitzungen` (Paket 1b, feste `StoragePartition`) und `Vollständig getrennt` (eigenes Chromium-Profil je Workspace mit gemeinsamem Workspace-Umschalter und deckungsgleicher Fensterübergabe). Die Umsetzung folgt nach Paket 1b in drei Schritten (getrennte Welt, gemeinsamer Umschalter mit Routing/Quick Window/Import/Export, Sync-Namensraum und Mobile). Sessions, Passwörter und Website-Daten wandern nie zwischen Stufen; `WebContents` wechseln nie das Profil. Vor Aktivierung der Stufe `Eigene Website-Sitzungen` muss das Löschen eines solchen Workspaces seine Tabs mit Before-Unload schließen sowie Bindung und Partitionsdaten entfernen. Der Desktop-Owner implementiert; Vertrag, Abnahmefälle und Review liefert die Lane `crest-hardening` (Paket H6).
+
+### Verbindliche Workspace-Zusammenführung und mobile Ergänzungen vom 26. September 2026
+
+Der Nutzer hat die Vorschläge aus [Übergabe 074](../handoffs/crest-hardening/074-reddit-crest-post/HANDOFF.md) in das Hauptziel aufgenommen. [ADR 0012](../docs/decisions/0012-workspace-merge-and-mobile-web-extensions.md) legt fest: Workspaces lassen sich auf Desktop und Mobile als eine Strukturtransaktion mit Undo zusammenführen (Standard: Inhalt als Ordner im Ziel; unterschiedliche Isolationsstufen verhalten sich wie `WS-ISO-05`, Profile oder Partitionen werden nie vereinigt; Sync-Tombstone mit `mergedInto`). Die Command Bar erhält „In Workspace verschieben …“. Der mobile Tab-Flick über die zuletzt genutzten Tabs wird v1-Pflicht, ohne die WebKit-Zurück-Geste zu blockieren. Mobile unterstützt WebKit Web Extensions über `WKWebExtensionController`, zuerst als Spike, danach im Umfang von ADR 0012; Chromium-Extensions bleiben Desktop-only. Vertrag, Abnahmefälle und Patch-Übergaben liefert die Lane `crest-hardening` (Paket H7); Desktop-, Mobile- und Sync-Eigentümer integrieren und nehmen ab.
+
+### Verbindliche Sync-Vereinfachung vom 5. September 2026
+
+Die App wird laut ausdrücklicher Nutzerentscheidung noch nicht live/aktiv
+genutzt. Für alle bisher relevanten und erlaubten Sync-Daten gilt deshalb auf
+iOS/iPadOS und macOS **ein einheitliches aktives Sync-Format**, vorläufig
+Format 3 für sämtliche Entitytypen einschließlich Bookmark und Capability.
+Es gibt keinen dauerhaften v2/v3-Mischbetrieb, keinen Altclient-Support und
+keinen Auftrag für eine aufwendige Migration bisheriger Sync-Testdaten.
+Diese Entscheidung ersetzt entsprechende ältere Sync-Übergangsverträge.
+
+Die neue gemeinsame Abnahme verwendet frische, isolierte Stores und passende
+C++-/Swift-Kandidaten. Bestehende Profile, Import-Backups, CloudKit-Daten und
+Schlüssel werden nicht still gelöscht, zurückgesetzt oder umgeschrieben.
+Ein nicht unterstützter vorhandener Datenstand wird verständlich abgewiesen
+beziehungsweise unangetastet gelassen, nicht als leerer Sync-Stand veröffentlicht.
+Consent, Account-/Schlüsselgrenzen, Datenschutz und crashsichere lokale
+Transaktionen bleiben unverändert verbindlich. Diese Vereinfachung entfernt
+weder Arc-/Zen-Import-Sicherungen noch allgemeine Update-/Recovery-Garantien.
+
+Der Sync-Owner liefert den vereinfachten kanonischen Format-/Feldvertrag vor
+der gemeinsamen Integration neuer Versionsdefaults. Kein bloßer Writer-Bump,
+keine zweite Implementierung und keine vorgezogene Aktivierung durch UI-Flags.
+Der eingefrorene Desktop-Compile-/UI-Kandidat bleibt eine getrennte Baseline;
+seine bisherigen Sync-Ergebnisse sind keine Endabnahme des neuen Formats.
+
+### Paketfolge und Abschlusskriterien
+
+| Reihenfolge | Zusammenhängendes Paket | Konkreter Abschluss |
+| --- | --- | --- |
+| Vor dem nächsten notwendigen Build | Build-Ausführung und Übergabe | Ein Owner für Checkout und Ausgabeverzeichnis; Kandidat, Terminalstatus, Receipt und nächste Aktion bekannt. Wiederholte Overlay-Komposition messen und sicher beschleunigen; vorhandene passende Kandidaten zuerst prüfen. |
+| 1 | Import, Erweiterungen und sichtbare Sidebar-Fixes | Standardmenü öffnet denselben Importdialog auch ohne Tab; alle fünf bisher sichtbaren Checkboxen korrekt; Ordnericons, Hierarchie und Abstände stimmig; realer Arc-Import mit gültigen Splits, Neustart und No-op; AnyChat normal aus dem Store; Classic filtert und überlebt Neustart; Lite erst danach bewusst ablösen; Null-Tab-Split und Beenden stabil. |
+| 1b | Lokale Website-Sitzungen pro Workspace | Nach Abschluss des laufenden Browser-Fixpakets: Arbeit und Privat können dieselbe Website mit getrennten Accounts verwenden; vollständige native Site-Storage-Isolation, Neustart und sichere Tab-/Popup-Kontextbindung sichtbar geprüft. History, Passwortspeicher und installierte Erweiterungen bleiben global. Geeignete Workspace-Metadaten mit dem Sync-Owner integrieren, niemals Website-Sitzungsdaten synchronisieren. |
+| 2 | Daily Driver, Fenster, Tabs und Medien | Navigation, Command Bar, Quick Window, Inkognito, Sessions, sämtliche zugesagten Split-/DnD-/Resize-Wege, Popup-Promotion, MiniPlayer/PiP, Dateien, Passwörter und HTTP Auth in zusammenhängenden Nutzerreisen abgenommen. Bereits bestandene Teilverträge gezielt wiederverwenden. |
+| 3 | Sync und Geräteintegration | Ein aktives Format für alle erlaubten Entitytypen auf macOS/iOS; gemeinsame normale Tabs und separate Lesezeichen, lokaler Zustand/Outbox, echter CloudKit-Transport, Konflikte sowie Pairing/Remote Control an passenden frischen isolierten Kandidaten abgenommen. Kein Altclient-Mischbetrieb; ausgeschlossene Daten bleiben ausgeschlossen. Externe Gerätevoraussetzungen früh vorbereiten. |
+| 4 | Developer Toolkit, Privacy und Entgooglifizierung | Vorhandene Werkzeuge vollständig bedienen; Produktdienste zentral konfigurieren; nachvollziehbares frisches Profil ohne ungefragte Produkttelemetrie; dokumentierte Sicherheitsdienste und normale Google-Webseiten funktionieren. |
+| 5 | Entschlackung und Performance | Gemessene, rückbaubare GN-/Runtime-Ausschlüsse, schnelles Starten/Suchen/Wechseln, Memory Saver und die bestehenden Bundle-/CPU-/RAM-/Netzwerkbudgets mit vergleichbaren Builds belegen. |
+| 6 | Release und Gesamtabschluss | Verbleibende vollständige Abnahmematrix, Security-/Upstream-Roll, Geräte-/Account-Nachweise, Updates, Recht/DRM, signierte Distribution und Daily-Driver-Soak bestanden; eigene Änderungen dokumentiert und gepusht. |
+
+Die Folge steuert die Integration, nicht eine künstliche Serienabhängigkeit:
+ein externer Account- oder Geräteblocker hält unabhängige Arbeit nicht an.
+Nachgewiesene Crashes, Datenverlust oder Sicherheitsfehler haben Vorrang.
+Vorhandene, integrierte Funktionen werden zuerst abgenommen; die Liste ist keine
+Anweisung, sie neu zu bauen. Keine zusätzliche Produktfläche allein zur
+Vervollständigung eines internen Services erfinden.
+
+Die UI-Präzisierung vom 8. September gehört zu Paket1: Der Bereich dauerhaft
+gespeicherter Tabs bleibt als dezente farbige Dropfläche erkennbar; nur das
+tatsächlich gültige Dropziel wird stärker hervorgehoben.
+Die freie Fläche unter der letzten gespeicherten Zeile ist dabei ein eigenes
+breites Dropziel: gültiges Hochziehen hebt die ganze Fläche hervor, Loslassen
+hängt auf Workspace-Wurzelebene ganz unten an, nicht im letzten geöffneten
+Ordner. Schmale Vorher-/Nachher-Zonen bleiben ausschließlich für genaue
+Positionierung zuständig. Die Fläche bleibt geometrisch reserviert, damit
+Drag-Start keine Zeilen verschiebt. Eine Seite, die zugleich
+in den nativen Lesezeichen liegt, erhält einen kleinen, nicht interaktiven Stern
+im bestehenden Tab-Iconbereich. Der Status folgt dem nativen BookmarkModel ohne
+eigenes Persistenz-/Syncfeld und aktualisiert sich bei Lesezeichenänderungen.
+Recovery-Hinweise und Aktionen bleiben kurz, klar getrennt und zugänglich;
+technische Schutzprüfungen werden dadurch nicht abgeschwächt.
+
+### Verbindliche Workspace-Sitzungsentscheidung vom 5. September 2026
+
+Die erneuerte Nutzerentscheidung ersetzt die frühere Vorgabe, Cookies und
+Website-Logins grundsätzlich zwischen allen Workspaces zu teilen. Implementiere
+nach dem laufenden Browser-Fixpaket lokale, persistente Website-Sitzungen für
+Workspaces, damit z. B. Arbeits- und Privataccount derselben Site getrennt bleiben.
+Nur Cookies zu trennen genügt nicht: Site Storage, Worker und der zugehörige
+Netzwerk-/Auth-Kontext müssen dieselbe native Isolationsgrenze respektieren.
+Chromiums `Profile`-/`StoragePartition`-Autorität bleibt erhalten; keine eigene
+Cookie-Verwaltung, Credential-Kopie oder nachträgliche Kontext-Umetikettierung.
+
+History, Passwortspeicher, installierte/aktivierte Erweiterungen und deren
+eigener Storage bleiben global. Erweiterungs-Action-Pins und Darstellung können
+Workspace-bezogen sein. Site-Berechtigungen und die Cookie-Schnittstelle für
+Erweiterungen bleiben in dieser Stufe profilweit gemeinsam und werden in der
+Oberfläche so benannt; vollständige Trennung liefert die Stufe `Vollständig
+getrennt` nach ADR 0011. Eigene Chromium-Eingriffe für getrennte Berechtigungen
+je Partition sind eine offen gehaltene spätere Option und nicht beauftragt.
+Getrennte History-Silos sind nicht beauftragt; eine mögliche spätere Filteransicht
+rechtfertigt keine zweite Datenhaltung. Das ist Account-/Sitzungstrennung, kein
+Inkognito-Modus und keine Benutzer-Sicherheitsgrenze gegenüber globalen Extensions.
+
+Geeignete nicht geheime Workspace-Metadaten gehören in die abgestimmte Sync-
+Integration. Cookies, Login-/Auth-Zustand, Site Storage, Berechtigungsfreigaben,
+lokale Profil-/Downloadpfade sowie geheimer oder ungeprüfter roher Extension
+Storage bleiben vollständig lokal. Positiv geprüfte übertragbare Extension-
+Einstellungen folgen dem gesonderten Vertrag aus ADR 0010, nicht einer Storage-Kopie.
+Eine entfernte Tab-/Workspace-Änderung darf keine laufende lokale Seite ungefragt
+in einen anderen Account-Kontext versetzen oder neu laden. Bestehende Sitzungen
+werden weder still kopiert noch gelöscht oder ausgeloggt. Der konkrete native
+Integrationsvertrag steht in `docs/WORKSPACE_SESSIONS.md`; Common C++/Swift/Wire
+bleiben beim benannten Sync-Owner. Diese neue Anforderung erweitert das aktive
+Gesamtziel, nicht den bereits eingefrorenen Startup-Korrekturkandidaten.
+
+### Verbindlicher Browser-Setup-Sync gemäß ADR 0010
+
+`docs/decisions/0010-full-browser-setup-sync.md` gehört zum Gesamtziel und ersetzt
+die ältere Beschränkung auf fünf Ahoi-Preferences und reine Extension-
+Installationsvorschläge. Ein verknüpfter neuer Mac soll unterstützte native
+Chromium-Nutzereinstellungen sowie den gewünschten Installations-/Aktivierungs-
+zustand vertrauenswürdiger Erweiterungen tatsächlich wiederherstellen. Ein
+expliziter Katalog unterscheidet unterstützt, ausgeschlossen, nicht verfügbar
+und bestätigungspflichtig. Policy, native Berechtigungsdialoge, Quellen-/ID-/
+Signaturprüfung und die bestehende uBO/MV2-Grenze bleiben wirksam.
+
+Sinnvoll übertragbare Extension-Einstellungen sind ausdrücklich eingeschlossen,
+aber nur über positiv geprüfte Extension-ID-/Key-/Wert-Verträge. Weder der Name
+`chrome.storage.sync` noch eine reine Secret-Denylist genügt als Freigabe.
+Keine Profile, Vaults, Cookies, Zugangsdaten, rohen Extension-Stores, lokalen
+Pfade oder Berechtigungsfreigaben kopieren. Cookie-Verhaltensoptionen sind von
+Cookie-/Sitzungsdaten zu unterscheiden. iOS übernimmt nur unterstützte
+Einstellungen und hält erkannte Desktop-Metadaten ohne Chromium-Extension-
+Ausführung vor. Common C++/Swift/Policy bleiben beim Sync-Owner; konkrete neue
+native Hooks benötigen dessen abgegrenzte Übergabe an Desktop. Kein neuer
+Build, keine laufende Snapshot-Erweiterung oder Installationsfreigabe folgt
+allein aus dieser Soll-Ergänzung.
+
+### Kompakte Steuerung statt verlorener Fortschritte
+
+- Der Master beschreibt das Soll. `config/test-registry.json` enthält die
+  registrierten Abnahmefälle; kandidatgebundene Ergebnisartefakte belegen deren
+  Ausführung. Ein vorhandener Testname, Quelltext-String oder Testzähler beweist
+  kein sichtbares Verhalten.
+- Der aktive Checkpoint bleibt kurz: Owner, Branch, integrierter Quellstand,
+  tatsächlich installiertes Bundle, laufender Handle mit letzter Beobachtung,
+  offene rote Fälle und exakt nächste Aktion. Nach jeder materiellen Änderung
+  aktualisieren. Alte Zustände stehen ausdrücklich als historisch in Evidenz.
+- Nach Compaction zuerst diesen Checkpoint und die dort genannten aktuellen
+  Belege prüfen. Kein erneuter Projektstart, keine vollständige Historien- oder
+  Testsuche ohne konkrete fehlende Information.
+- Ein Paket erhält vor dem Build eine feste Liste zusammengehöriger Änderungen
+  und betroffener Journeys. Alle bekannten Paketfehler gemeinsam korrigieren,
+  dann einmal bauen/installieren und sichtbar prüfen. Weitere Builds benötigen
+  neue ausführbare Änderungen oder einen konkret diagnostizierten Buildfehler.
+- Dokumentationsänderungen benötigen keinen Browserbuild. Ein vorhandenes
+  Bundle mit passendem Produktquellstand behält seinen echten Receipt und seine
+  echte Revision; es wird weder auf einen Dokumentations-SHA umgestempelt noch
+  wegen fremder Mobile-/Dokumentationscommits vorsorglich neu gebaut.
+- Ein fremder Build benötigt einen bestätigten Live-Handle; bloße Lockdateien,
+  langsame Beobachtung oder eine alte PID reichen nicht. CPU-Gate, Ownership
+  und explizite Checkout-Übergabe bleiben bindend. Beim Warten unabhängige
+  Arbeit erledigen und Zustandsänderungen berichten; Prozessaktivität ist kein
+  Beweis einer erfolgreichen Kompilation oder eines bestimmten Restfortschritts.
+- Nach grünem sichtbarem Flow fokussierte, verhaltensbezogene Programmatik
+  ausführen. Breite Suites nur bei passender Integrations-/Releasefläche oder
+  einem neuen konkreten Befund wiederholen. Bei real unmöglichem sichtbarem
+  E2E die genaue technische Grenze festhalten und unabhängige Tests ausführen;
+  der fehlende sichtbare Pass bleibt offen.
+
+### Entwicklung, Feature-Vollständigkeit und öffentlicher Release
+
+Entwicklungsabnahme verwendet den exakt zugeordneten, signierten und atomar
+installierten Kandidaten unter `/Applications/AhoiBrowser.app`, mit normaler
+Produktkonfiguration, Sandbox und Site Isolation. DMG, Developer ID,
+Notarisierung, Stapling und ein funktionierender öffentlicher Updater sind
+zusätzliche Release-Gates; sie sind keine Vorbedingung für jeden lokalen
+UI-Korrekturlauf. Ein Development-Pass wird entsprechend bezeichnet.
+
+Feature-Vollständigkeit erfordert den gesamten zugesagten Funktionsumfang und
+die dafür vorgeschriebenen realen Nachweise. `BLOCKED_*` und `NOT_RUN` werden
+nicht in Erfolge umgedeutet. Öffentliche Releasebereitschaft verlangt darüber
+hinaus alle bestehenden Distributions-, Rechts-, DRM- und Release-Gates.
+Keine dieser Bezeichnungen darf den kleineren Stand eines einzelnen Pakets
+als Gesamtabschluss ausgeben.
+
+Der begründete Review mit Quellbelegen und weiterhin offenen Produktbefunden
+steht in `docs/reviews/2026-09-05-product-and-execution-review.md`.
 
 ## Rolle und Gesamtauftrag
 
@@ -21,14 +223,14 @@ Das Ziel ist ausdrücklich:
 - keine Web-App, die einen Browser simuliert;
 - sondern ein echter Chromium-`//chrome`-Fork mit nativer Oberfläche, Chromiums vollständiger Mehrprozessarchitektur, Sandbox, Extensions, DevTools, Downloads, Medien, Berechtigungen, Passwortfunktionen, HTTP-Authentifizierung, verschlüsseltem Sync und einem signierten, unter `/Applications/AhoiBrowser.app` installierten Daily-Driver-Build.
 
-Arbeite selbstständig und persistent durch die in diesem Prompt festgelegten Phasen. Beginne nach einer kurzen Bestandsaufnahme unmittelbar mit der Machbarkeitsphase. Frage nur dann nach, wenn eine Entscheidung nicht aus dem Repository, der Umgebung oder diesem Prompt ableitbar ist oder wenn tatsächlich eine externe Freigabe, ein Account, ein Vertrag, echte Hardware, biometrische Bestätigung oder eine andere Nutzeraktion erforderlich ist.
+Arbeite selbstständig und persistent durch die festgelegten Pakete. Setze das bestehende Projekt nach einer kurzen Prüfung des aktiven Checkpoints unmittelbar am belegten nächsten Schritt fort. Die Machbarkeitsphase gilt nur für einen tatsächlich fehlenden Bootstrap. Frage nur dann nach, wenn eine Entscheidung nicht aus Repository, Umgebung, Nutzerauftrag oder diesem Prompt ableitbar ist oder wenn tatsächlich eine externe Freigabe, ein Account, ein Vertrag, echte Hardware, biometrische Bestätigung oder eine andere Nutzeraktion erforderlich ist.
 
 Halte kontrollierbare Arbeit nicht wegen externer Blocker an. Schließe alle unabhängigen Arbeiten ab, dokumentiere den Blocker exakt und fahre mit dem nächsten möglichen Arbeitspaket fort.
 
 ## Aktiver technischer Ausgangspunkt
 
 - Chromium-Basis ist der vollständig ausgerollte Mac-Stable-Pin `152.0.7977.65` am exakten Commit `fc4d67f1788019a27e32511137ceccbd2fafdaaa`. Dies ist weder Nightly noch Canary; die eigenen Ahoi-Kanalnamen `nightly`, `beta` und `stable` sind davon getrennte Produkt-/Updatekanäle.
-- Die aktive Quellkomposition besteht aus dem getrackten Overlay und genau drei geordneten Patches: `0001-ahoi-m152-integration-seams.patch`, `0002-ahoi-deterministic-platform-tests.patch` und `0003-ahoi-upstream-page-load-tracing-test-isolation.patch`.
+- Die aktive Quellkomposition besteht aus dem getrackten Overlay und ausschließlich der vollständig geordneten Patchserie in `patches/chromium/series`. Die Serie ist die einzige Wahrheit für Integrationsreihenfolge und muss sich vor jedem Build deterministisch auf den M152-Pin materialisieren lassen; eine in diesem Prompt festgeschriebene veraltete Patchanzahl ist ausdrücklich unzulässig.
 - Alle M152-Profile pinnen dieselbe Xcode-Installation 26.6/17F113 mit macOS SDK 26.5/25F70 und iOS SDK 26.5/23F81a. `pinned-reference` für Upstream/Release und `compatible-development` für Development bleiben getrennte Provenienzlabels und Abnahmewege, obwohl die Toolchain-Bits identisch sind.
 - Die gesicherte M151-Quellfreeze, Recovery-Bundle und frühere grüne Testmatrix bleiben historische Recovery-/Regressionsbelege. Sie sind keine M152-Pässe. Ein M152-Build-, Installations- oder sichtbarer Runtime-Pass darf erst nach dem jeweils real durchgelaufenen Gate behauptet werden.
 
@@ -37,13 +239,13 @@ Halte kontrollierbare Arbeit nicht wegen externer Blocker an. Schließe alle una
 Unterscheide bei jeder Funktion und jedem Meilenstein strikt zwischen folgenden Zuständen:
 
 1. `IMPLEMENTED`: Der Quellcode ist vorhanden.
-2. `PROGRAMMATIC_PASS`: Unit-, Integration-, Browser- und relevante Security-Tests sind grün.
-3. `INSTALLED_PASS`: Die Funktion wurde im tatsächlich installierten Release-Bundle geprüft.
+2. `PROGRAMMATIC_PASS`: Die für den Fall relevanten verhaltensbezogenen Tests sind grün; dies ist kein sichtbarer Produktnachweis.
+3. `INSTALLED_PASS`: Die Funktion wurde im tatsächlich installierten Bundle geprüft; Development beziehungsweise Release wird ausdrücklich angegeben. Reine Build-, Signatur- und Installationsprüfung sind nur Voraussetzungen dafür.
 4. `CU_E2E_PASS`: Die Funktion wurde über Computer Use wie von einem echten Nutzer sichtbar bedient und bestätigt.
 5. `ASSISTED_E2E_PASS`: Zusätzlich erforderliche Hardware-, Account-, Touch-ID- oder physische Nutzeraktion wurde real ausgeführt und das Ergebnis danach verifiziert.
 6. `BLOCKED_EXTERNAL`: Eine konkret benannte externe Voraussetzung verhindert ausschließlich den betroffenen Nachweis.
 
-„Build erfolgreich“, „Code ist vorhanden“, „Unit-Test grün“ oder „funktioniert im Debug-Build“ ist kein Fertignachweis.
+Diese Belege sind getrennte Dimensionen, keine vorgeschriebene Ausführungsreihenfolge. Sichtbarer User-E2E geht der zugehörigen Testausführung voraus. „Build erfolgreich“, „Code ist vorhanden“, „Unit-Test grün“ oder „funktioniert im Debug-Build“ ist kein Fertignachweis.
 
 Verbindliche Regeln:
 
@@ -52,7 +254,7 @@ Verbindliche Regeln:
 - Führe den sichtbaren echten Computer-Use-/User-E2E-Pfad jeder betroffenen Funktion vor den zugehörigen programmatischen Unit-, Browser-, Integrations- und Repository-Tests aus.
 - Findet ein nachgelagerter programmatischer Test einen Fehler, sichere die Diagnose, behebe ihn, baue und installiere den Kandidaten neu und wiederhole zuerst den exakt betroffenen sichtbaren E2E-Pfad; erst danach darf die Programmatik erneut laufen.
 - Terminal, Datenbank-Readback, interne APIs und Logs dürfen den sichtbaren User-Flow verifizieren, aber nicht ersetzen.
-- Kontrollierte lokale Testseiten sind Pflicht, ersetzen aber keine realen Tests von Chrome Web Store, 1Password, Bitwarden, uBlock Origin, YouTube, WebRTC/Meet, CloudKit, dem echten Updater und Widevine-Diensten.
+- Kontrollierte lokale Testseiten sind Pflicht, ersetzen aber keine realen Tests von gewöhnlichen MV3-Erweiterungen aus dem Chrome Web Store, 1Password, Bitwarden, uBlock Origin über den gepinnten Official GitHub release, YouTube, WebRTC/Meet, CloudKit, dem echten Updater und Widevine-Diensten.
 - Sichere bei einem sichtbaren Fehler zuerst Evidenz, diagnostiziere dann, behebe ihn und wiederhole exakt denselben User-Flow.
 - Ein einmaliger Screenshot reicht bei zustandsabhängigen Funktionen nicht; Reload, Fensterwechsel und App-Neustart gehören je nach Funktion zur Abnahme.
 - Keine Passwörter, Tokens, Cookies, Vault-Inhalte, Authorization-Header oder privaten Browserdaten in Screenshots, Videos, Logs oder Commits.
@@ -67,10 +269,10 @@ Die folgenden aktuell real beobachteten Mac-Defekte sind Stop-the-line-Arbeit. B
 - `RECOVERY-MAC-01`: Einstellungen aus Menü und Command Bar wiederholt öffnen, die vollständige Ahoi-Seite bis zum Ende scrollen, Unterseiten wechseln, schließen und nach App-Neustart erneut öffnen; kein Browser- oder Renderer-Crash, insbesondere kein Accessibility-Abbruch durch benannte generische WebUI-Container, keine verlorene Sitzung und keine verspätete Service-Registrierung. Der eigene Menüeintrag `AhoiBrowser` zeigt in allen unterstützten Settings-Iconmodi ein reales, korrekt ausgerichtetes und kontrastierendes Icon statt einer leeren Aussparung.
 - `RECOVERY-MAC-02`: jedes sichtbare Aktionsicon der Adressleiste mit der Maus bedienen. Copy, Privacy, Cookies, Cache, Developer Toolkit/DevTools, Workspace und weitere sichtbare Aktionen öffnen ausschließlich ihr eigenes Ziel; kein Icon darf durch Event-Fallthrough die `Cmd+T`-/Command-Bar-Oberfläche öffnen. Jede zustandsbehaftete Oberfläche folgt demselben Toggle-Vertrag: erster Klick öffnet genau eine Instanz, zweiter Klick auf dasselbe Icon schließt diese Instanz, ein Klick auf ein anderes Icon wechselt ohne Doppel-Bubble oder sofortiges Wiederöffnen, und Schließen per `Escape`, Außenklick, Tab-/Pane-/Fensterwechsel setzt den Buttonzustand deterministisch zurück. Ein sichtbares, aber deaktiviertes Icon ist nur bei einem sachlich nicht unterstützten Ziel erlaubt, besitzt dann eindeutige Disabled-Darstellung und erklärt den Grund; auf normalen HTTP-/HTTPS-Seiten reagieren alle angebotenen Aktionen auf den ersten echten Mausklick.
 - `RECOVERY-MAC-03`: gespeicherte Tabs innerhalb einer Gruppe und zwischen Gruppen mehrfach per Drag-and-drop vor und nach andere Tabs verschieben. Die vollständige wirksame obere beziehungsweise untere Dropfläche ist ruhig eingefärbt und zusätzlich durch eine klare Einfügemarkierung erkennbar; eine bloße dünne, schwer anzielbare Linie ist nicht zulässig. Vor dem Drop ist genau eine stabile Einfügeposition sichtbar; während des Drags springt oder verschiebt sich die Sidebar nicht; nach Drop, Workspace-Wechsel und App-Neustart stimmen sichtbare und persistierte Reihenfolge überein.
-- `RECOVERY-MAC-04`: gespeicherte sowie temporäre Tabs per Drag-and-drop auf gespeicherte Tabs ziehen und echte Zwei-Pane-Splits in beiden Richtungen erzeugen. Temporäre und gespeicherte Zeilen verwenden dasselbe großzügige Vorher/Nachher-/Split-Zonenmodell; ein abgelehnter Split fällt auf die nächstgelegene gültige Einfügekante zurück und erzeugt keine tote Mitte. Jeder Pane eines Zwei-, Drei- oder Vier-Pane-Splits lässt sich unabhängig von Index, Fokus, linker/rechter beziehungsweise oberer/unterer Position symmetrisch aus dem Split herausziehen, in die vollständig sichtbare freie Temporärfläche oder eine orientierungskorrekte äußere Ablösezone als normaler Tab ablegen, neu anordnen oder erneut splitten; all-temporäre und gemischte Saved-/Temporary-Splits verwenden dabei identitätstreue Payloads und kein führender Pane erhält Sonderrechte. Zusammengehörige Split-Tabs bilden in der Sidebar bei horizontalen wie vertikalen Pane-Anordnungen eine klar erkennbare gemeinsame visuelle Einheit mit zusammenhängender Kontur, eindeutiger Pane-Reihenfolge und ruhigen Innenverbindern statt lediglich geringerer Einzelzeilenhöhe. Beide Seiten bleiben interaktiv; Fokus, Adressleiste, Reihenfolge, Split-Mitgliedschaft und Session-Restore stimmen. Zusätzlich wird der native Drag-Griff jedes sichtbaren Split-Panes innerhalb des WebContents benutzt, zwischen allen Zielzonen bewegt und für jeden Pane jeweils erfolgreich sowie per `Escape` abgebrochen; Drag-Start, Hover, Drop, Abbruch, Reorder, Heraustrennen, Split-Auflösung und Fensterwechsel crashen niemals und stellen bei jedem Fehler den vollständigen Vorzustand wieder her.
+- `RECOVERY-MAC-04`: gespeicherte sowie temporäre Tabs per Drag-and-drop auf gespeicherte Tabs ziehen und echte Zwei-Pane-Splits in beiden Richtungen erzeugen. Temporäre und gespeicherte Zeilen verwenden dasselbe großzügige Vorher/Nachher-/Split-Zonenmodell; ein abgelehnter Split fällt auf die nächstgelegene gültige Einfügekante zurück und erzeugt keine tote Mitte. Jeder Pane eines Zwei-, Drei- oder Vier-Pane-Splits lässt sich unabhängig von Index, Fokus, linker/rechter beziehungsweise oberer/unterer Position symmetrisch aus dem Split herausziehen, in die vollständig sichtbare freie Temporärfläche oder eine orientierungskorrekte äußere Ablösezone als normaler Tab ablegen, neu anordnen oder erneut splitten; all-temporäre und gemischte Saved-/Temporary-Splits verwenden dabei identitätstreue Payloads und kein führender Pane erhält Sonderrechte. Zusammengehörige Split-Tabs bilden in der Sidebar bei horizontalen wie vertikalen Pane-Anordnungen eine klar erkennbare gemeinsame visuelle Einheit mit zusammenhängender Kontur, eindeutiger Pane-Reihenfolge und ruhigen Innenverbindern statt lediglich geringerer Einzelzeilenhöhe. Die Sidebar projiziert Chromiums reale primäre und sekundäre Split-Ratios; ihre ruhigen Trennlinien besitzen großzügige, per Maus, Trackpad und Tastatur bedienbare Resize-Flächen und verändern denselben Chromium-Splitzustand wie die Divider im WebContents, ohne ein zweites Layoutmodell einzuführen. Größenänderung, Neustart und Wechsel zwischen horizontaler, vertikaler, linearer sowie Haupt-/Nebenpane-Anordnung behalten Pane-Identität, Reihenfolge und Ratio. Beide Seiten bleiben interaktiv; Fokus, Adressleiste, Reihenfolge, Split-Mitgliedschaft und Session-Restore stimmen. Zusätzlich wird der native Drag-Griff jedes sichtbaren Split-Panes innerhalb des WebContents benutzt, zwischen allen Zielzonen bewegt und für jeden Pane jeweils erfolgreich sowie per `Escape` abgebrochen; Drag-Start, Hover, Drop, Abbruch, Reorder, Heraustrennen, Split-Auflösung, Divider-Resize und Fensterwechsel crashen niemals und stellen bei jedem Fehler den vollständigen Vorzustand wieder her.
 - `RECOVERY-MAC-05`: `Neue Gruppe` existiert im Ruhezustand nicht als eigene Sidebar-Zeile und reserviert keinerlei Layoutplatz. Ausschließlich während eines passenden Drags liegt die Dropfläche als Overlay über dem Workspace-Namen ganz oben, verschiebt keine Tabs, zeigt den Zielzustand eindeutig und verschwindet nach erfolgreichem Drop, `Escape`, Pointer-Abbruch, Fensterwechsel und App-Neustart vollständig.
 - `RECOVERY-MAC-06`: die Chromium-Neuer-Tab-Seite zeigt auf einer echten Ahoi-Oberfläche weder den konkurrierenden Saved-Tab-Group-Streifen noch dessen Vier-Kästchen-Icon oder Separator. Ahois Gruppenmodell bleibt ausschließlich in der Sidebar; auf nicht von Ahoi gehosteten Chromium-Oberflächen bleibt die Standardfunktion unverändert. Resize, Hell/Dunkel und deutsche/englische Oberfläche bleiben korrekt.
-- `RECOVERY-MAC-07`: Arc-Import, AnyChat, 1Password und uBlock Origin Classic werden im installierten AhoiBrowser sichtbar geprüft. Der Arc-Import zeigt reale Erkennung, auswählbare Profile, redigierte Vorschau und transaktionale Bestätigung, bevor Quelldaten unverändert übernommen werden. AnyChat nutzt den normalen Web-Store-Pfad. 1Password nutzt ausschließlich den offiziellen Additional-Browsers-Pfad mit künstlichem Test-Vault und nutzerassistierter Touch-ID-Freigabe. uBlock besteht den authentischen signierten Distributionspfad oder wird mit genauer fehlender Publisher-/CRX-/Rechtsvoraussetzung als `BLOCKED_EXTERNAL` ausgewiesen; ein lokaler Negativtest darf niemals als positive Installation ausgegeben werden.
+- `RECOVERY-MAC-07`: Ein gemeinsamer Chrome-üblicher Import-Hub erkennt alle von Chromiums vorhandenen macOS-Importern tatsächlich unterstützten lokalen Browser und Profile, zeigt nur real verfügbare Kategorien und führt den jeweiligen Upstream-Importer aus. Chrome/Chromium-Derivate, Safari und Firefox werden nicht durch eine Ahoi-Sonderkopie ersetzt; fehlende Quellen oder Kategorien werden präzise erklärt. Arc und Zen erhalten zusätzlich einen strukturtreuen Import ihrer Sidebar: reale Erkennung ohne False Positive durch fremde oder nicht lesbare Prozesse, auswählbare Profile, redigierte Vorschau, Workspaces/Spaces, verschachtelte Ordner, gespeicherte beziehungsweise angeheftete Tabs, Reihenfolge und soweit sicher rekonstruierbar Split-Zustände. Snapshot, Bestätigung, atomarer Commit, Rollback und idempotente Wiederholung gelten für beide Strukturimporte; Quelldaten bleiben unverändert. AnyChat nutzt den normalen Web-Store-Pfad. 1Password nutzt ausschließlich den offiziellen Additional-Browsers-Pfad mit künstlichem Test-Vault und nutzerassistierter Touch-ID-Freigabe. uBlock besteht den authentischen signierten Distributionspfad oder wird mit genauer fehlender Publisher-/CRX-/Rechtsvoraussetzung als `BLOCKED_EXTERNAL` ausgewiesen; ein lokaler Negativtest darf niemals als positive Installation ausgegeben werden.
 - `RECOVERY-MAC-08`: die native Drag-Vorschau zeigt mit konstantem Abstand rechts neben dem Cursor statt darunter eine sichtbare Favicon-/Titelkarte und bei Splits die tatsächliche Pane-Anordnung. Sie ist bereits beim ersten Drag sichtbar und hängt nicht von einem zuvor geöffneten Preview-Fenster oder einer vorherigen Tab-Aktivierung ab. Nach kurzem Hover auf jedem aktiven oder gespeicherten Sidebar-Tab erscheint dieselbe Vorschau rechts der Zeile in den WebContents hinein, ohne Fokus, Klicks oder Seitenlayout zu beeinflussen. Ein noch nicht gerasterter Tab zeigt einen bewussten Favicon-/Titel-Fallback statt eines inhaltslosen grauen Kastens; sobald ein URL-gebundenes Thumbnail vorliegt, wird es ohne Fremd-Origin-Altdaten aktualisiert. Tabtitel werden in normalen Zeilen, echten horizontalen und vertikalen Split-Segmenten sowie jeder Split-Drop-Projektion hart auf ihr eigenes Segment begrenzt und vor Trennlinie und Aktionsflächen mit `…` gekürzt; sie laufen weder bei Hover noch während eines aktiven Drags in oder über die Trennlinie. Navigation, Scroll, Workspace-Wechsel, Dragstart, Hover-Ende, Cold Start und App-Neustart schließen beziehungsweise aktualisieren die Vorschau deterministisch.
 - `RECOVERY-MAC-09`: die Sidebar übernimmt standardmäßig die kontrastgeprüfte Hauptfarbe des aktiven Tabs dezent aus `theme-color` beziehungsweise dem bereits lokal vorhandenen Favicon. Rot, Orange, Blau, Hell/Dunkel, transparente oder fehlende Farben, Tab-/Workspace-Wechsel, hoher Kontrast und der Theme-Fallback werden sichtbar geprüft; ein explizites Nutzer-Aus bleibt verbindlich.
 - `RECOVERY-MAC-10`: die Ahoi-Einstellungen erklären an jeder deaktivierten Sync-/Fernsteuerungsaktion unmittelbar die fehlende Voraussetzung. Lokaler Sync bleibt unabhängig von CloudKit bedienbar; geräteübergreifende Fernsteuerung bleibt ohne signierten CloudKit-Transport und verifizierten öffentlichen Geräteschlüssel fail-closed, bietet aber einen eindeutigen Aktivierungs-/Pairingpfad, sobald die Voraussetzungen vorliegen. Im macOS-AhoiBrowser-Menü existiert genau eine nicht redundante Softwareupdate-Oberfläche; sie zeigt Status, Kanal, automatische Prüfungen/Downloads und eine echte manuelle Prüfung, ohne parallele Einträge mit überlappender Funktion.
@@ -78,25 +280,56 @@ Die folgenden aktuell real beobachteten Mac-Defekte sind Stop-the-line-Arbeit. B
 - `RECOVERY-MAC-12`: AhoiBrowser verwendet eine eigenständige, professionell lesbare Produktmarke mit klarer Silhouette bei 16, 32, 128 und 1024 Pixeln. Dasselbe geprüfte Motiv erscheint ohne Chromium-Platzhalter oder leere Aussparung in App-Bundle, Dock, Finder, App-Umschalter, Hilfsprozessen und beim AhoiBrowser-Eintrag der Einstellungen. Maritime und leicht sprudelnde Anklänge bleiben originell und zurückhaltend; fremde Wortmarken, Verpackungen, Maskottchen oder Browserlogos werden nicht kopiert.
 - `RECOVERY-MAC-13`: der blaue Aktivindikator gehört ausschließlich zu der tatsächlich aktiven Seite beziehungsweise bei einem Split zu den eindeutig als aktiv dargestellten Pane-/Seitenelementen. Workspace- und Gruppenzeilen erhalten keinen irreführenden Seiten-Aktivpunkt; Expansion, Auswahl, eigener Farbakzent, laufende Kinder und Drop-Zustand verwenden jeweils ihre bereits definierten, semantisch getrennten Darstellungen. Hell/Dunkel, Workspace-Wechsel, Split-Fokus und Neustart dürfen diese Zustände nicht vermischen.
 - `RECOVERY-MAC-14`: der gesamte native Tab-Drag besitzt zu jeder Cursorposition exakt eine starke Zielhervorhebung. Gespeicherter Bereich, temporärer Bereich, einzelne Tabzeile, `Neue Gruppe` und WebContents-Split-Overlay dürfen niemals gleichzeitig als angenommenes Ziel erscheinen; bloße Berechtigung bleibt visuell passiv. Vorher/Nachher/Split verwenden identische gemalte und wirksame Flächen, eine kleine symmetrische Hysterese verhindert Flackern an Zonengrenzen, und die beim Loslassen ausgeführte Aktion entspricht ausschließlich der zuletzt sichtbar bestätigten Vorschau. Die Pane-Mitte ist neutral statt implizit `links`; ein abgebrochener, ungültiger oder zwischen nativen WebViews wechselnder Drag hinterlässt weder Highlight noch Einfügemarker. Sidebar-Gap, WebView-Wechsel, `Escape`, Drop, Fensterwechsel, Quell-View-Zerstörung und AppKit-Drag-Ende werden jeweils in angedockter und schwebender Sidebar sowie mit Saved-, Temporary-, Mixed- und Zwei-/Drei-/Vier-Pane-Quellen sichtbar geprüft.
+- `RECOVERY-MAC-15`: das Erweiterungsmenü bleibt in einem absichtlich tablosen Ahoi-Fenster vollständig crashfrei. Bereits installierte Erweiterungen bleiben mit korrektem Namen, Icon und generischen Verwaltungsaktionen sichtbar; alle an eine konkrete Seite gebundenen Aktionen, Hostzugriffs-, Berechtigungs- und Reload-Steuerungen sind ohne aktives `WebContents` ausgeblendet oder deaktiviert und werden erst nach Aktivierung eines realen Tabs freigegeben. Öffnen, Schließen, erneutes Öffnen, Browserstart, Browserneustart sowie erfolgreiche, abgebrochene und fehlgeschlagene Web-Store-Installationen hinterlassen weder Null-Dereferenz noch halbfertige Extension-Einträge. Eine fehlgeschlagene AnyChat-Installation wird als fehlgeschlagen ausgewiesen und atomar zurückgerollt; erst die persistierte Store-ID `khpefodpgnkegiohbolbaaeabnfdegln` zählt als Installation. uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und der tatsächlich signierte offizielle Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) werden in Inventar, Oberfläche und Abnahme strikt unterschieden; Lite darf niemals als bestandene Classic-Installation gelten und der GitHub-Release darf niemals als Web-Store-Paket ausgegeben werden.
 
-Für jeden dieser Fälle gilt ohne Ausnahme diese Reihenfolge:
+Für jeden dieser Fälle gilt die folgende User-First-Reihenfolge mit der oben definierten Ausnahme bei technisch unmöglichem sichtbarem E2E:
 
 1. Den Fehler im aktuell installierten Kandidaten sichtbar reproduzieren und Evidenz sichern.
 2. Ursache diagnostizieren und beheben; dabei Nutzerarbeit, Profil und fremde Browser unverändert lassen.
-   Vor jedem Build folgt ein vollständiger Best-Practice-Codeaudit der betroffenen Integrationsfläche: Aufruf- und Objektlebenszyklus, zentrale Registrierung, Plattform- und Buildflag-Guards, `BUILD.gn`-/`DEPS`-Kanten, Ownership und `WeakPtr`-Sicherheit, Threading/Reentrancy, Event-Targeting, Accessibility, Lokalisierung, Persistenz/Migration, Fehler-/Abbruchpfade sowie Security- und Privacy-Grenzen. Ein lokaler Einzeiler oder ein nur am beobachteten Symptom funktionierender Sonderfall ist kein ausreichender Fix.
+   Vor dem Paketbuild die tatsächlich betroffene Integrationsfläche risikobezogen reviewen: Aufruf- und Objektlebenszyklus, Registrierung, Plattform-/Buildflags, `BUILD.gn`-/`DEPS`-Kanten, Ownership, Threading/Reentrancy, Event-Targeting, Accessibility, Lokalisierung, Persistenz und Fehler-/Abbruchpfade. Bereits geprüfte unveränderte Flächen nicht erneut vollständig auditieren. Die kleinste nachweislich vollständige Ursachenbehebung ist ausreichend; die Zeilenzahl eines Fixes ist kein Qualitätsmaß.
 3. Den exakten neuen SHA als signiertes Bundle bauen und atomar nach `/Applications/AhoiBrowser.app` installieren. Build-, Signatur- und Installationsprüfungen sind Voraussetzungen für den Nutzertest, aber kein Ersatz dafür.
 4. Zuerst den betroffenen Fall vollständig per Computer Use wie ein echter Nutzer bedienen. Zustandsabhängige Fälle umfassen Drop oder Bestätigung, Abbruch, Workspace-/Fensterwechsel und App-Neustart; bloßes Öffnen, AX-Auslesen oder ein einzelner Screenshot genügt nicht.
-5. Erst nach dem sichtbaren `CU_E2E_PASS` dieses Falls dürfen seine fokussierten Unit-, Browser-, Integrations- und Repository-Tests laufen. Breite Suites folgen erst, wenn alle kontrollierbaren Recovery-Fälle sichtbar bestanden sind.
+5. Erst nach dem sichtbaren `CU_E2E_PASS` dieses Falls dürfen seine fokussierten Unit-, Browser-, Integrations- und Repository-Tests laufen. Ist dieser sichtbare Lauf durch eine konkret belegte technische Grenze unmöglich, bleiben unabhängige Tests zulässig; sie schließen den sichtbaren Fall nicht. Breite Suites folgen erst, wenn alle kontrollierbaren Recovery-Fälle sichtbar bestanden sind. Eng notwendige Sicherheitsprüfungen von Build-Werkzeugen dürfen deren erstem Einsatz vorausgehen.
 6. Meldet irgendein nachgelagerter programmatischer Test einen Defekt, wird korrigiert, neu gebaut und installiert und zuerst der betroffene sichtbare Computer-Use-Fall wiederholt. Erst danach wird der programmatische Test erneut ausgeführt.
 7. Jeder Lauf erhält SHA, Bundle-Hash, installiertes Bundle, Ausgangszustand, sichtbare Schritte, Ergebnis, Screenshots beziehungsweise zustandsbezogene Evidenz und gegebenenfalls exakt abgegrenzten externen Blocker. Quellcode, Buildgrün oder Prozentfortschritt zählen nicht als User-Pass.
 
-Der angehaltene parallele Ahoi-Agent darf erst wieder an derselben Produktlinie arbeiten, wenn alle kontrollierbaren Fälle dieser Recovery-Welle sichtbar bestanden, die nachgelagerten Tests grün, die Änderungen sauber in den kanonischen Hauptbranch integriert und zum Remote gepusht sind. Verbleibende Account-, Touch-ID-, Publisher-, Signierungs-, Notarisierungs- oder Vertragsgrenzen werden testfallgenau dokumentiert und blockieren keine davon unabhängige kontrollierbare Arbeit.
+Parallele Teilaufgaben dürfen ausschließlich überschneidungsfreie Quellflächen bearbeiten und weder eigene Builds noch konkurrierende Runtime-Abnahmen starten. Vor dem gemeinsamen Build werden alle Desktop-Teilpakete im kanonischen Workstate vollständig gereviewt und integriert; erst der daraus signierte, installierte Kandidat kann einen sichtbaren Pass erhalten. Verbleibende Account-, Touch-ID-, Publisher-, Signierungs-, Notarisierungs- oder Vertragsgrenzen werden testfallgenau dokumentiert und blockieren keine davon unabhängige kontrollierbare Arbeit.
 
 ### Bereits integriertes Featurepaket und nachgelagerter Produkt-Backlog
 
 - `FEATURE-SIDEBAR-SEARCH-01` ist bereits implementiert und bleibt Teil der installierten Abnahme: Die direkt integrierte Discovery-Suche verwendet den bestehenden `CommandService` für sichtbare, gespeicherte, schlafende und Geräte-Tabs sowie Gruppen und Workspaces statt einer zweiten Suchlogik. Treffer bleiben nach Typ und Herkunft verständlich, sind vollständig tastaturbedienbar und öffnen beziehungsweise fokussieren die bestehende Identität statt Duplikate zu erzeugen.
 - `FEATURE-TAB-RESTORE-01` ist im selben Paket bereits implementiert und wird nach der Stop-the-line-DnD-Welle sichtbar regressionsgeprüft: Der klar getrennte Bereich `Zuletzt geschlossen` verwendet Chromiums vorhandenen `TabRestoreService` für kurzfristig wiederherstellbare Tabs, Splits, Gruppen und Fenster. Es entsteht kein zweites Verlaufsarchiv, keine automatische Archivierung gespeicherter Seiten und keine Kopie sensibler Sitzungsdaten; Wiederherstellung bleibt explizit, profil- und Inkognito-sicher, identitätstreu und nach erfolgreicher Aktion unmittelbar sichtbar.
 - Weitere neue Featurepakete sind ausdrücklich keine Freigabe, die laufende Mac-Recovery-Welle zu unterbrechen oder deren Definition of Done zu verschieben.
+
+### Aktives Desktop-Kernfeaturepaket, fortgeschrieben am 1. September 2026
+
+Setze als nächste zusammenhängende Produktwelle kein neues Onboarding-Produkt und keinen eigenständigen Transfer-Center-Wizard um. Verwende stattdessen die browserübliche, kompakte Importoberfläche in den Einstellungen: Quelle und Profil wählen, real verfügbare Kategorien anzeigen, Import bewusst bestätigen und ein verständliches Ergebnis melden. Quellspezifische Snapshot-, Parser-, Transaktions-, Rollback- und Idempotenzlogik bleibt technische Sicherheit hinter dieser vertrauten Oberfläche.
+
+Implementiere und integriere zusammengehörige Fixes und Features als deutlich größere, kohärente Pakete. Starte nicht nach jeder kleinen Änderung einen mehrstündigen Chromium-Build; pro Paket folgt erst nach Quellintegration und statischer Prüfung ein gemeinsamer Build-, Installations- und User-E2E-Zyklus. Das reduziert Buildschleifen, senkt aber weder die sichtbaren Abnahmekriterien noch die Pflicht, nach einem gefundenen Defekt den betroffenen User-Flow auf dem korrigierten Kandidaten zuerst zu wiederholen.
+
+Das Paket umfasst gemeinsam und in dieser Priorität:
+
+1. den Null-Tab-Crash des nativen Erweiterungsmenüs vollständig beheben und den Menü-/Installationszustand für erfolgreiche, abgebrochene und fehlgeschlagene Installationen transaktional stabilisieren;
+2. uBlock Origin Classic/MV2 per sichtbarem Ein-Klick-Einstieg ausschließlich über den eng allowlisteten, signierten Official-GitHub-Release-Pfad bis zu Chromiums normalem Berechtigungsdialog führen, seine Wirksamkeit gegenüber uBlock Origin Lite/MV3 belegen und Lite erst nach bestandenem Classic-Neustarttest in einer getrennten, bewussten Nutzeraktion entfernen; jeder Fehler lässt Lite unverändert installiert, und bei fehlender authentischer Paket-/Publisher-Vertrauenskette bleibt der positive Classic-Pass `BLOCKED_EXTERNAL`, ohne Sicherheitsregeln abzusenken;
+3. für AnyChat keinen Ahoi-spezifischen Installer bauen: AnyChat ausschließlich über den normalen Chrome-Web-Store-Pfad installieren und Action, Side Panel, Berechtigungen, Neustart sowie rückstandsfreien Abbruch/Fehler sichtbar prüfen; der Browser stellt dabei allgemeine Extension-Kompatibilität und einen crashfreien Installationslebenszyklus bereit, damit ein späterer externer One-Click-Einstieg ohne proprietären AnyChat-Pfad möglich bleibt;
+4. den vorhandenen Arc-Importer hinter der normalen Importoberfläche vollständig produktisieren, echte lokale Arc-Daten nach immutable Backup und Dry Run importieren und den zweiten identischen Lauf als No-op belegen;
+5. Zen als normale Browserquelle mit realer Profil- und Capability-Erkennung vorbereiten. Verwende Chromiums beziehungsweise Firefox-kompatible Importpfade für unterstützte Standardkategorien und mappe Zen-spezifische Workspaces, Ordner, Pins oder Splits nur bei einem nachgewiesenen, versionsgebundenen Schema; unbekannte Daten werden erklärt statt geraten;
+6. die laufende Split-/Resize-Recovery integrieren, sodass Sidebar-Divider und WebContents-Divider denselben Chromium-Splitzustand projizieren und jede Pane-Position symmetrisch bedienbar bleibt;
+7. anschließend `Daily-Driver I – Navigation, Dateien und Identität` als großen, bereits im ursprünglichen Ziel enthaltenen Browser-Kernblock abschließen: Command Bar, Quick Window, echtes Inkognito, Navigation und Systemübergaben, Upload/Download/PDF/Druck, lokalen Passwortmanager/Autofill und HTTP-Authentifizierung; keine neue Produktoberfläche und kein paralleles Browserdatenmodell.
+
+Für dieses Paket gilt die Testreihenfolge verbindlich: statische Read-only-Diagnose und Build sind zulässig, aber keine zugehörige Unit-, Browser-, Integrations- oder breite Repository-Testsuite läuft vor dem ersten sichtbaren User-Flow im frisch signierten und nach `/Applications` installierten Kandidaten. Nach jeder Korrektur wird zuerst der betroffene sichtbare Flow wiederholt. Fokussierte Programmatik folgt erst auf sichtbares Verhalten, breite Tests und Release-Gates folgen zuletzt.
+
+### Daily-Driver I – Navigation, Dateien und Identität
+
+Dieses Paket ergänzt keinen Onboarding-Wizard. Es schließt die bereits unten einzeln definierten Standard-Browserverträge `CMD-01` bis `CMD-06`, `QUICK-01` bis `QUICK-04`, `INC-01` bis `INC-05`, `NAV-01` bis `NAV-13`, `DEFAULT-01` bis `DEFAULT-02`, `DL-01` bis `DL-08`, `PASS-01` bis `PASS-07` und `AUTH-01` bis `AUTH-27` über vorhandene Chromium- und macOS-Systempfade.
+
+- Command Bar und Quick Window teilen `CommandService`, normales Profil sowie Tab-/Tree-Identitäten; Inkognito bleibt ausschließlich Chromiums `OffTheRecordProfile`.
+- Navigation, Popups, Datei-/Ordnerupload, Datei-Drop, OAuth, Passkeys, Custom Protocols, Standardbrowser und externe Links werden als vertraute Browserfunktionen sichtbar bedient.
+- Downloads einschließlich Pause, Fortsetzen, Netzverlust, Warnung, Abbruch, Finder-Übergabe und Hashprüfung sowie PDF/Druck verwenden synthetische Dateien.
+- Lokaler Passwortmanager, Autofill, Passkeys, 1Password, Bitwarden und HTTP-Auth bleiben getrennt; Basic/Digest/Proxy-Auth und alle Realm-, Port-, Pfad-, Origin-, HTTPS- und Inkognito-Grenzen werden nur mit synthetischen Credentials geprüft.
+- Implementiere Ahoi-eigenen Code nur für einen sichtbar belegten Defekt oder eine bereits zugesagte Produktintegration. Upstream-Verhalten wird nicht vorsorglich dupliziert.
+
+Die 72 Verträge bleiben bis zum realen Lauf `NOT_RUN`. `NAV-07`, `NAV-09`, `PASS-03`, `PASS-07`, `AUTH-23` und `AUTH-24` benötigen echte Plattform-, Mehrgeräte-, physische beziehungsweise Systemauthentifizierungs-Unterstützung und dürfen ohne sie nicht als bestanden gelten; alle davon unabhängigen sichtbaren Journeys werden zuerst abgeschlossen. Fokussierte Programmatik folgt je Funktionsgruppe erst nach dem installierten sichtbaren Lauf, breite Repository- und Release-Gates zuletzt.
 
 Wenn ein externer Blocker auftritt:
 
@@ -115,8 +348,8 @@ Wenn ein externer Blocker auftritt:
 - Mobile Ergänzung zum ersten öffentlichen Release: nativer iOS-/iPadOS-26-Browser auf Basis des systemgelieferten WebKit und des vorhandenen Companion-Cores.
 - Browserbasis: vollständiger Chromium-`//chrome`-Fork.
 - UI: Chromium Views plus Objective-C++/AppKit für macOS-spezifische Integration und Liquid Glass.
-- Ein gemeinsames normales Chromium-Profil für alle Workspaces.
-- Workspaces trennen Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Darstellung, nicht Cookies, Logins, Verlauf, Downloads, Site Permissions oder Extensions.
+- Globale normale Browserdienste für History, Passwörter und Erweiterungen; native lokale Website-Sitzungen pro Workspace gemäß `docs/WORKSPACE_SESSIONS.md`.
+- Workspaces trennen Seitenbaum, aktive Auswahl, Darstellung und ihren zugeordneten Website-Sitzungskontext. Die konkrete Chromium-Integration darf keine parallelen Browserdienste oder eigene Cookie-Jar erzeugen.
 - Echte Inkognito-Fenster verwenden Chromiums `OffTheRecordProfile`.
 - Split View verwendet zwei bis vier echte Chromium-Tabs und `WebContents`; Tab-auf-Tab-Drag-and-drop ist Kernfunktion und eine Vierergruppe besitzt insbesondere ein echtes persistierbares 2×2-Layout.
 - Eigener CloudKit-first-Sync; kein Chrome Sync und kein Google-Konto zur Browsersynchronisation.
@@ -269,7 +502,7 @@ Für jeden Patch müssen dokumentiert sein:
 
 Verwende eigene GN-Targets und klar getrennte Komponenten statt dauerhafter Shell-Kopiertricks. Jeder Chromium-Roll muss Patchkonflikte einzeln sichtbar machen.
 
-Für den aktiven M152-Pin ist die wartbare Serie auf drei Einträge konsolidiert: den Ahoi-Integrationspatch, deterministische Plattformtests und die isolierte Upstream-Tracing-Testkorrektur. Die frühere 21-Patch-M151-Serie bleibt über Recovery-Artefakte nachvollziehbar, ist aber keine parallel zu pflegende aktive Patchserie.
+Die aktive Serie ergibt sich ausschließlich aus `patches/chromium/series`. Frühere Drei-Eintrag-M152- und 21-Patch-M151-Stände bleiben historische Belege. Weder eine feste Patchanzahl noch ein älterer Kompositionspass darf den aktuellen Inhalt ersetzen. Große Sammelpatches nur entlang echter Upstream-Integrationsgrenzen aufteilen; keine kosmetische Neuordnung während eines laufenden Kandidatenbuilds.
 
 Entschlackung muss updatesicher erfolgen: Deaktiviere nicht benötigte Produktflächen bevorzugt über zentrale Branding-/Feature-Konfiguration, Dependency- und Build-Flags oder kleine dokumentierte Integrationspunkte. Entferne keine gemeinsam genutzten Chromium-Kernpfade nur für eine kleinere sichtbare Oberfläche. Jeder deaktivierte Upstream-Dienst besitzt Begründung, Privacy-/Security-Auswirkung, Abhängigkeitstest und Roll-Check; ein Chromium-Update darf keine Funktion still reaktivieren oder einen sicherheitsrelevanten Dienst versehentlich abschalten.
 
@@ -350,6 +583,8 @@ Baue eine hochwertige native Oberfläche:
 - die gesamte Navigationszeile einschließlich Adressleiste, Navigation, Site-Status, Extension-Actions und konfigurierbarer Entwickleraktionen blendet sich nach einer sicheren Verzögerung automatisch aus;
 - eine kleine, ruhige Notch beziehungsweise Reveal-Zone am oberen Rand blendet die Zeile per Hover oder Klick wieder ein; `⌘L`, Tastaturfokus, Permission-/Security-Zustände und relevante Browsermeldungen öffnen sie ebenfalls zuverlässig;
 - Auto-Hide, Verzögerung und Notch sind konfigurierbar; fokussierte Eingaben, offene Menüs, Downloads, Berechtigungs- und Auth-Dialoge werden niemals mitten in der Bedienung ausgeblendet;
+- die Adress-/Navigationsleiste lässt sich direkt anheften und wieder lösen; der sichtbare native Schalter verwendet denselben gespeicherten Auto-Hide-Zustand wie die Einstellungen, respektiert Richtlinien und behält die Wahl über Neustarts;
+- ein kompakter Home-Button verwendet Chromiums vorhandenen Home-Befehl und konfigurierte Startseite für den aktiven Tab beziehungsweise Split-Pane; Hover-, Pressed- und Fokusflächen aller Toolbar-Controls folgen ihrer gerundeten Form, insbesondere beim Reload-Button;
 - der WebContents-Bereich liegt im normalen Fenstermodus in einem abgerundeten, leicht schwebenden Container mit semantischem Schatten und sauberem Clipping; Vollbild, Video-Vollbild, Drucken, Screen Capture und Accessibility erhalten definierte radius- beziehungsweise schattenfreie Modi;
 - Sidebar ein- und ausblendbar sowie zusätzlich zwischen angedocktem und schwebendem Overlay-Modus umschaltbar;
 - die angedockte Sidebar verkleinert den realen Content-Viewport korrekt; die schwebende Sidebar überlagert ihn bewusst, besitzt Scrim/Shadow und verändert die von der Website gemessene Viewportbreite nicht;
@@ -385,6 +620,29 @@ ohne Arc pixelgenau zu kopieren:
 - nur Hover, Auswahl, Drag-Ziel, Split-Zugehörigkeit oder eine ausdrücklich
   konfigurierte Gruppenfarbe erzeugen abgerundete Hintergründe; der
   Grundzustand bleibt flach und ruhig.
+
+Für Ordner gilt verbindlich die Nutzerreferenz vom 4. September: kein separates
+Caret und keine dafür reservierte Leerfläche. Geschlossene und geöffnete Ordner
+haben optisch eindeutig unterschiedliche, gemeinsam definierte Vektoricons.
+Der ganze Zeilenkörper schaltet den Zustand; Drag, Kontextmenü und Umbenennen
+behalten ihre eigene Semantik. Pfeiltasten und VoiceOver exponieren weiterhin
+Baumebene, Auswahl und expanded/collapsed.
+
+Gültige benutzerdefinierte Ordnericons bleiben erhalten. Bekannte importierte
+Bezeichner wie `star` werden auf ein freigegebenes Icon abgebildet; unbekannte
+Werte erhalten einen sauberen Ordner-Fallback. Kein Bezeichner wird als Text in
+ein Favicon-Rechteck gemalt. Dekoration und Offen-/Geschlossen-Zustand müssen
+gleichzeitig erkennbar sein. Sidebar, Bookmark-Shelf und Menüs verwenden ein
+gemeinsames Icon- und Abstandsvokabular, aber weiterhin ihre vorhandenen Modelle.
+
+Zeilenhöhe, Einrückung, Iconfläche, Titelabstand und Aktionsreserve werden über
+wenige gemeinsame Tokens gesteuert. Ausgangspunkt sind die vorhandenen 40-DIP-
+Zeilen, 18-DIP-Ordnericons und etwa 8 DIP Titelabstand; die sichtbare Abnahme
+entscheidet über optische Korrekturen. Ordner-, Seiten- und Split-Titel haben
+ruhige Ausrichtung und echte Ellipse ohne Layoutsprung bei Hover. Lange deutsche
+Titel, tiefe Verschachtelung, schmale Sidebar, normale/Retina-Skalierung,
+Hell/Dunkel und hoher Kontrast gehören zu `TREE-12`, `TREE-13` und `A11Y-02`.
+Zusätzliche Luft darf die Dichte und erreichbare Titellänge nicht unnötig opfern.
 
 Verwende Chromium Views für Browsernavigation, Sidebar, Workspaces und Command Bar. Objective-C++/AppKit dient macOS-Integration, Fenstern, Menüs, Gesten, Systemappearance und Liquid Glass. Interne WebUI ist nur für komplexe Settings oder Editoren erlaubt, nicht als Browser-Orchestrator.
 
@@ -433,7 +691,7 @@ Implementiere:
 - Glass als normal aktivierbare Produktoption für Sidebar, schwebende Browserflächen, Popups und MiniPlayer mit einem einheitlichen Materialsystem;
 - auf unterstütztem macOS 26 ist Glass im Systemmodus standardmäßig aktiv, solange Accessibility-, Energie- oder Performancebedingungen keinen dokumentierten Fallback erfordern;
 - semantische Farben und Zustände;
-- optional aktivierbare, standardmäßig ausgeschaltete Seitenfarb-Tönung der Sidebar: bevorzugt wird die bereits geladene deklarierte `theme-color` des aktiven Panes, sonst eine lokal und auf feste Pixelzahl begrenzte Analyse des bereits geladenen Favicons; daraus entsteht nur ein dezenter Pastell-Overlay auf der semantischen Hell-/Dunkel-/Glass-Fläche;
+- abschaltbare, standardmäßig aktivierte Seitenfarb-Tönung der Sidebar entsprechend `RECOVERY-MAC-09` und der bestehenden Produktpräferenz: bevorzugt wird die bereits geladene deklarierte `theme-color` des aktiven Panes, sonst eine lokal und auf feste Pixelzahl begrenzte Analyse des bereits geladenen Favicons; daraus entsteht nur ein dezenter Pastell-Overlay auf der semantischen Hell-/Dunkel-/Glass-Fläche. Bestehende explizite Nutzerentscheidungen bleiben erhalten;
 - die Seitenfarb-Tönung löst niemals Netzwerkzugriffe, Seitenscreenshots oder unbeschränkte Bildanalyse aus, folgt dem aktiven Split-Pane ohne Flackern und ist bei hohem Kontrast vollständig deaktiviert.
 
 Nicht Bestandteil von v1 sind importierbare Theme-Pakete, frei programmierbare CSS-Themes für das Browser-Chrome oder ein Theme-Marktplatz.
@@ -481,6 +739,14 @@ Darstellungskonfiguration:
   Hierarchie erkennbar;
 - Ein-/Ausklappen, Drag-Vorschau, Drop-Zonen, Auswahl, Hover und Split-Segmente
   dürfen die optische Gruppenzugehörigkeit nicht aufbrechen;
+- normale Workspace-Ordner öffnen und schließen mit einer ruhigen, symmetrischen
+  Enthüllung unterhalb des Ordners: keine überlagerten Titel, keine abrupt
+  verschwindenden Kinder oder Split-Zeilen; schnelles Umkehren setzt am sichtbaren
+  Zwischenstand an und bewahrt Fokus sowie Scrollanker, soweit das Inhaltsende
+  nicht unvermeidbar begrenzt;
+- reduzierte Bewegung beendet die räumliche Bewegung unmittelbar. Die vorhandenen
+  Animations- und Virtualisierungspfade bleiben zuständig; es entsteht keine
+  parallele Animationsarchitektur und kein pro Frame erzwungener Fokus;
 - ohne eigene Farbe verwendet eine Gruppe ausschließlich semantische
   Theme-Farben; Hell, Dunkel, hoher Kontrast und reduzierte Transparenz bleiben
   vollständig unterstützt.
@@ -601,8 +867,8 @@ Accessibility und Lokalisierung:
 
 ### Workspaces
 
-- Alle Workspaces verwenden dasselbe normale Browserprofil.
-- Cookies, Logins, Verlauf, Extensions, Downloads, Passwortspeicher und Site Permissions sind gemeinsam.
+- Workspaces können dieselbe Website in getrennten, persistenten lokalen Website-Sitzungen verwenden. Cookies, Site Storage, Worker und laufender Auth-Kontext dürfen nicht zwischen diesen Sitzungen vermischt werden.
+- Verlauf, Passwortspeicher, installierte/aktivierte Extensions und der Downloadmanager bleiben global; Action-Pins können je Workspace variieren. Site-Berechtigungsfreigaben gelten bei `Eigene Website-Sitzungen` profilweit und bei `Vollständig getrennt` je Profil (ADR 0011).
 - Seitenbaum, temporäre Fenstersitzungen, aktive Auswahl und Akzent sind Workspace-bezogen.
 - Wechsel über Sidebar, Tastatur und horizontale Zwei-Finger-/Magic-Mouse-Geste innerhalb der Sidebar.
 - Richtung, Empfindlichkeit und Deaktivierung der Geste sind konfigurierbar.
@@ -613,7 +879,8 @@ Accessibility und Lokalisierung:
 - Mehrere Fenster werden unterstützt.
 - Der gespeicherte Baum ist fensterübergreifend gemeinsam.
 - Temporäre Tabs und aktive Auswahl bleiben fensterbezogen.
-- Echte getrennte Browserprofile sind nicht Bestandteil von v1, das Datenmodell darf eine spätere Erweiterung aber nicht unnötig verhindern.
+- Lokale Workspace-Website-Sitzungen sind ausdrücklich Teil des Gesamtziels. Dies verlangt keine Kopie vollständiger Chromium-Profile je Workspace: eine geeignete native StoragePartition-Integration ist zuerst zu prüfen.
+- Quick Window, neue Tabs, Popups, Redirects, Restore und externe Links erhalten ihren Sitzungskontext vor dem ersten Request. Ein Transfer innerhalb desselben Kontextes erhält das vorhandene WebContents; ein Kontextwechsel darf es nicht still umetikettieren oder Form-/Login-Zustand in einen anderen Kontext tragen.
 
 ## Navigation, Command Bar und Fensterarten
 
@@ -638,7 +905,7 @@ Implementiere eine native, latenzarme Command Bar:
 
 - konfigurierbarer globaler Default-Shortcut `⌥Space`;
 - kleines fokussiertes Fenster;
-- verwendet das normale Profil einschließlich Cookies, Logins und Extensions;
+- verwendet die normale Sitzung des bewusst gewählten beziehungsweise aufrufenden Workspaces; Cookies/Logins werden nicht zwischen Workspace-Kontexten vermischt, Extensions bleiben global;
 - kann eine Seite in normalen Tab oder Baum überführen;
 - kann optional Ziel externer Links sein;
 - ist kein Inkognito-Modus.
@@ -652,10 +919,23 @@ Implementiere eine native, latenzarme Command Bar:
 - Extensions nur nach expliziter Inkognito-Freigabe;
 - vollständige Trennung von normalen Cookies und Website-Speichern.
 
+### Beenden auf macOS
+
+`⌘Q` und der Menüpunkt `AhoiBrowser beenden` müssen zuverlässig denselben
+geordneten Shutdown erreichen, einschließlich Before-Unload, Downloads und
+Session-Persistenz. Für neue Profile ist normales kurzes `⌘Q` die gewünschte
+macOS-Bedienung. Chromiums optionaler Halten-zum-Beenden-Schutz bleibt als klar
+benannte Einstellung nutzbar; eine bereits ausdrücklich gespeicherte Präferenz
+wird respektiert. Ist der Schutz aktiv, muss der Hinweis sichtbar erscheinen
+und gehaltenes `⌘Q` tatsächlich beenden. Ein synthetischer kurzer Tastendruck
+allein beweist weder einen Shutdown-Fehler noch den erfolgreichen Haltepfad.
+
 ### Navigation und Gesten
 
 - Chromiums auf macOS bereits vorhandene Zwei-Finger-/Magic-Mouse-Geste für Zurück beziehungsweise Vor bleibt unverändert erhalten und wird nur als Regression geprüft; AhoiBrowser implementiert dafür keinen zweiten Gestenpfad.
 - Der eigene Workspace-Wechsel muss sich eindeutig von Chromiums vorhandener Seitennavigation und horizontalem Website-Scroll unterscheiden. Die Gesture-Arena entscheidet erst nach Schwelle eindeutig und löst niemals zwei Aktionen aus.
+- Beim Workspace-Wechsel gleitet ausschließlich der Inhalt der Sidebar horizontal und richtungsgetreu; die Webseite beziehungsweise der Webview wird niemals seitlich verschoben. Wechselt mit dem Workspace auch das aktive Tab beziehungsweise `WebContents`, blendet nur der Webview-Bereich kurz über. Bleibt dasselbe `WebContents` aktiv, gibt es dort keinen künstlichen Effekt. Ein abgebrochener Wechsel stellt Sidebar, aktiven Dot, Baum, Tab, Split-Fokus und `WebContents` atomar wieder her. `Bewegung reduzieren` deaktiviert die räumliche Sidebar-Bewegung und verwendet nur dort eine kurze dezente Überblendung, wo sich Inhalt tatsächlich ändert.
+- Workspace-Dots, Tastatur und Geste verwenden denselben Wechselvertrag. Der animierte Bereich ist innerhalb der Sidebar geclippt; Fensterrahmen, feste Fußaktionen und fremde Browser-Layer werden nicht mitverschoben. Gesture-Preview und Commit/Abbruch sind explizite Zustände. Ein erst nach dem Commit abgespielter kurzer Slide ist nur ein Übergangseffekt und kein Nachweis einer interaktiven, abbrechbaren Wischgeste. Animationsabbruch setzt nur die von dieser Animation besessenen Eigenschaften zurück.
 - `⌘` plus Scroll beziehungsweise Trackpad-Scroll wechselt mit Delta-Schwelle, Rate-Limit und sichtbarer Vorschau zyklisch zwischen den aktuell laufenden/aktiven Tabs des Workspaces; die Funktion ist konfigurierbar und kollidiert nicht mit Webseitenzoom, horizontalem Seiten-Scroll oder Systemgesten.
 - Mittelklick in einer scrollbaren Webseite aktiviert Firefox-artiges Auto-Scrolling: Entfernung und Richtung des Cursors bestimmen kontinuierlich Richtung und Geschwindigkeit. Erneuter Mittelklick, primärer Klick, Escape, Tab-/Workspace-Wechsel oder Fokusverlust beendet es sofort.
 - Auto-Scrolling bleibt im Renderer-/Input-Pfad sicher, respektiert nicht scrollbare Flächen, verschachtelte Scroller, Zoom, reduzierte Bewegung und Pointer-Lock und darf keinen Browser-Chrome-Drag auslösen.
@@ -756,13 +1036,23 @@ Der lokale Chromium-Passwortmanager bleibt nicht nur technisch vorhanden, sonder
 
 1Password muss mit einer signierten App in `/Applications`, einmaliger Freigabe als zusätzlicher vertrauenswürdiger Browser, Desktop-App-Verbindung, Touch ID und einem künstlichen Test-Vault real geprüft werden.
 
-Für die konkrete Dogfood-Abnahme werden Erweiterungen ausschließlich im AhoiBrowser-Profil installiert, eingerichtet und geprüft. Google Chrome und Arc sind dabei nur mögliche, strikt read-only Inventarquellen und dürfen weder verändert noch als Laufzeitnachweis für AhoiBrowser gewertet werden. Pflichtkandidaten sind uBlock Origin Classic (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) über den signierten Ahoi-Sonderpfad, AnyChat (`khpefodpgnkegiohbolbaaeabnfdegln`) und 1Password Stable (`aeblfdkhhhdcdjpifhhbdiojplfjncoa`) über den normalen Chrome-Web-Store-/Chromium-Pfad. Jede Installation zeigt Quelle, Identität und Berechtigungen sichtbar an und benötigt eine bewusste Bestätigung; es gibt keine stille Installation, keine pauschale Allowlist und kein Übertragen von Extension Storage oder Kontositzungen.
+Für die konkrete Dogfood-Abnahme werden Erweiterungen ausschließlich im AhoiBrowser-Profil installiert, eingerichtet und geprüft. Google Chrome und Arc sind dabei nur mögliche, strikt read-only Inventarquellen und dürfen weder verändert noch als Laufzeitnachweis für AhoiBrowser gewertet werden. Pflichtkandidaten sind uBlock Origin Classic als browserseitig gepinnter **Official GitHub release** 1.74.0 über den signierten Ahoi-Sonderpfad, AnyChat (`khpefodpgnkegiohbolbaaeabnfdegln`) und 1Password Stable (`aeblfdkhhhdcdjpifhhbdiojplfjncoa`) über den normalen Chrome-Web-Store-/Chromium-Pfad. Für Classic ist die tatsächlich gelieferte Identität maßgeblich: Das unveränderte offizielle gorhill-CRX trägt `fkgkibajhfbepljeaefdnfnegdcjomkh`; die historische Web-Store-ID `cjpalhdlnbpafiamejdnhcphjbkeiagm` darf nur mit einem authentischen, genau diese ID ableitenden Store-Publisher-Schlüssel akzeptiert werden. uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`) bleibt ein eigenständiger MV3-Kandidat und erfüllt keine Classic-Anforderung. Jede Installation zeigt Quelle, Identität und Berechtigungen sichtbar an und benötigt eine bewusste Bestätigung; es gibt keine stille Installation, keine pauschale Allowlist und kein Übertragen von Extension Storage oder Kontositzungen. Der Installationsvorgang ist transaktional: vor der Bestätigung wird nichts aktiviert, bei Abbruch oder Fehler werden Verzeichnis-, Preferences-, Secure-Preferences-, Cache- und Updatezustand konsistent zurückgerollt, und nach Erfolg stimmen UI, Profilinventar und Neustartzustand überein.
 
 1Password-Native-Messaging wird nicht aus einem fremden Browserprofil kopiert. Die 1Password-Desktop-App muss die signierte Ahoi-App über ihren offiziellen Additional-Browsers-Prozess als vertrauenswürdig aufnehmen und das Manifest für Ahois eigenes Profil beziehungsweise den unterstützten systemweiten Hostpfad selbst provisionieren. Login, Entsperren und Touch ID bleiben nutzerassistiert; AhoiBrowser oder die Testautomation lesen, speichern oder protokollieren keine realen Tresorgeheimnisse.
 
 ## Migration aus Arc
 
-Implementiere einen erstklassigen, wiederholbaren Assistenten `Aus Arc importieren`. Er migriert Arc-Seitenleisten- und Browserdaten in das vorhandene Ahoi-Domänenmodell; er kopiert niemals ein komplettes fremdes Chromium-Profil und führt Arc-Code nicht aus.
+Implementiere Arc als erstklassige, wiederholbare Quelle in Ahois normaler kompakter Oberfläche `Browserdaten importieren`. Quelle, Profil, verfügbare Kategorien, eine kurze Vorschau, Bestätigung und Ergebnis folgen dem vertrauten Browsermuster; es entsteht kein eigener Onboarding- oder Transfer-Wizard. Intern migriert der Import Arc-Seitenleisten- und Browserdaten in das vorhandene Ahoi-Domänenmodell, kopiert niemals ein komplettes fremdes Chromium-Profil und führt Arc-Code nicht aus.
+
+Der macOS-Menüeintrag und die Einstellungen öffnen dieselbe Oberfläche, auch
+aus einem leeren Fenster. Im existierenden Dialog werden alle fünf sichtbaren
+Checkboxen gemeinsam ausgerichtet; mehrzeilige Labels, Fokus, Fehler und
+Disabled-Zustände bleiben korrekt. Bei der anschließenden Produktvereinfachung
+bleiben nur echte Kategorieentscheidungen Checkboxen: die automatisch und
+verpflichtend erstellte Sicherung ist ein verständlicher Status, und eine klar
+beschriftete primäre Importaktion ist die bewusste Zustimmung. Keine zwei
+gleichbedeutenden Zustimmungen zu derselben Mutation. Diese Vereinfachung darf
+Snapshot, Vorschau, Zielauswahl, Grenzen oder Rollback nicht umgehen.
 
 ### Discovery und sicherer Snapshot
 
@@ -784,17 +1074,25 @@ Implementiere einen erstklassigen, wiederholbaren Assistenten `Aus Arc importier
 
 Passwörter, Cookies, Login Data, Web Sessions, Tokens, `Secure Preferences`, Extension Storage, Service-Worker-/Site-Storage, Native-Messaging-Manifeste, Keychain-Geheimnisse und Inkognito-Daten werden niemals direkt aus Arc kopiert. Für Passwörter ist ausschließlich ein ausdrücklich vom Nutzer erzeugter, von Chromium sicher unterstützter Export-/Importweg zulässig.
 
-### Parser, Vorschau und Commit
+### Parser, kompakte Vorschau und Commit
 
 - Der `StorableSidebar.json`-Parser ist versionsgebunden. Für Schema 1 verarbeitet er typisiert Container, Spaces, Lists, Tabs und Split Views; unbekannte Schema-Versionen oder Varianten werden nicht geraten.
 - Setze harte Grenzen für Dateigröße, Objektanzahl, Stringlängen, Verschachtelung und Split-Mitglieder. Erkenne doppelte IDs, Zyklen, Waisen, ungültige URLs, interne Arc-/Extension-URLs und beschädigte Referenzen.
-- Der Assistent zeigt vor jeder Mutation Kategorien, Objektzahlen, Ziel-Workspaces, Konflikte, Deduplizierungen, Degradierungen und ausgeschlossene Datentypen. Titel und URLs dürfen in dieser lokalen Nutzervorschau erscheinen, nicht aber unredigiert in Logs, Crash Reports oder veröffentlichter Evidenz.
+- Die kompakte Importoberfläche zeigt vor jeder Mutation auf derselben vertrauten Fläche Kategorien, Objektzahlen, Ziel-Workspaces, Konflikte, Deduplizierungen, Degradierungen und ausgeschlossene Datentypen. Titel und URLs dürfen in dieser lokalen Nutzervorschau erscheinen, nicht aber unredigiert in Logs, Crash Reports oder veröffentlichter Evidenz.
 - Erzeuge deterministische Ziel-IDs und einen `ImportPlan`, sodass derselbe Snapshot bei Wiederholung keine Duplikate erzeugt.
 - Führe den Plan als additive, atomare Mehr-Workspace-Transaktion aus. Bei Fehler oder Prozessabsturz muss das `ImportJournal` vollständig zurückrollen oder beim Neustart deterministisch fortsetzen können; ein halb importierter Baum ist unzulässig.
-- Überschreibe bestehende Ahoi-Inhalte nie still. Gleichnamige Workspaces und Ordner erhalten eine sichtbare Merge-, Umbenennen- oder Überspringen-Entscheidung.
+- Überschreibe bestehende Ahoi-Inhalte nie still. Für gleichnamige Workspaces und Ordner gilt eine klar beschriftete, browserübliche Konfliktstrategie für den ganzen Lauf – beispielsweise zusammenführen, neue Kopie anlegen oder überspringen – statt eines Dialogs pro Objekt.
 - Der Ergebnisbericht nennt importierte, übersprungene, deduplizierte und degradierte Objekte sowie sicher ausgeschlossene Kategorien, ohne Geheimnisse offenzulegen.
 
 Für die reale Dogfood-Migration wird der vorhandene lokale Arc-Datenstand zuerst unveränderlich gesichert, dann als Vorschau ohne Mutation geprüft, anschließend nach Bestätigung in das installierte AhoiBrowser-Profil importiert und direkt danach mit demselben Snapshot erneut ausgeführt. Der zweite Lauf muss nachweislich idempotent beziehungsweise ein erklärter No-op sein. Workspace-, Ordner-, Tab- und rekonstruierte Split-Ergebnisse werden sichtbar im installierten AhoiBrowser geprüft.
+
+### Zen als browserübliche Importquelle
+
+Zen wird in derselben kompakten Importoberfläche wie andere Browser angeboten und erhält keinen separaten Onboarding-Wizard. Die erste Ausbaustufe erkennt Installation, `profiles.ini`, reguläre Profile, laufende Prozesse und ausschließlich die Kategorien, die aus dem tatsächlich vorliegenden Firefox-/Zen-Profil sicher gelesen werden können. Lesezeichen, Verlauf, Suchmaschinen, gespeicherte Formulardaten und andere upstream unterstützte Standardkategorien verwenden nach Möglichkeit vorhandene Chromium-/Firefox-Importer-Seams statt einer Ahoi-Kopie.
+
+Zen-spezifische Seitenleisten-, Workspace-, Ordner-, Pin- oder Splitdaten werden nur verarbeitet, wenn ihr lokaler Speicherort und Schema für die konkrete Zen-Version nachgewiesen, gebunden, begrenzt und mit Fixtures dokumentiert sind. Fehlt dieses Wissen, zeigt die Oberfläche die Standardkategorien und erklärt den noch nicht unterstützten Strukturimport; sie erzeugt keine leeren Workspaces, Phantom-Tabs oder geratenen Beziehungen. Discovery und Preview bleiben read-only. Ein späterer Strukturimport übernimmt die für Arc geltenden Invarianten für immutable Snapshot, explizite Konfliktentscheidung, deterministische IDs, atomaren Commit, Rollback, No-op-Wiederholung und Geheimnisausschluss.
+
+Ist Zen auf dem Testsystem nicht installiert, muss ein realistisches, temporäres Fixture die Erkennung und Capability-Anzeige sichtbar belegbar machen. Das Fehlen einer echten lokalen Zen-Quelle ist kein Grund, Arc-, Standardimport- oder andere kontrollierbare Arbeit anzuhalten; ein realer Zen-Datenimport bleibt dann präzise als `BLOCKED_EXTERNAL` beziehungsweise nicht vorhanden ausgewiesen.
 
 ## Erstklassige HTTP-Authentifizierung für `.htaccess`
 
@@ -920,8 +1218,11 @@ Baue keinen eigenen Adblocker, keine eigene Filterlisten-Engine und keine Brave-
 Erhalte ausschließlich für **uBlock Origin Classic** die kleinstmögliche, wartbare MV2-Kompatibilität:
 
 - Allgemeines Manifest V2 bleibt im Release deaktiviert.
-- Nur feste, browserseitig erlaubte Extension-IDs erhalten die Ausnahme.
-- Die Ausnahme prüft zusätzlich signierten Katalog, erlaubte Herkunft, Version und Hash.
+- Nur die aus dem gepinnten offiziellen CRX-Schlüssel abgeleitete Identität
+  `fkgkibajhfbepljeaefdnfnegdcjomkh` erhält diese singuläre Ausnahme.
+- Die initiale Ausnahme prüft die statisch im signierten Browser gepinnte
+  CatalogEntry, erlaubte Herkunft, Version, Vollhash, CRX-Schlüssel und daraus
+  abgeleitete ID; erst spätere Updates verwenden den separaten signierten Katalog.
 - Erhalte nur die tatsächlich von uBO benötigten MV2-Background-Page-, Lifecycle- und blocking-`webRequest`-Funktionen.
 - Gewöhnliche MV3-Erweiterungen bleiben unverändert.
 - Webseiten oder beliebige Extension-Pakete dürfen die Ausnahme nicht beanspruchen.
@@ -930,19 +1231,47 @@ Distribution:
 
 - uBO ist nicht vorinstalliert und nicht automatisch aktiviert.
 - Eine optionale Ein-Klick-Installation wird in AhoiBrowser angeboten.
-- Vor Installation zeigt die UI Version, Upstream-Quelle, Extension-ID und GPL-Lizenz.
-- Das Paket wird reproduzierbar und unverändert aus einem festen offiziellen Upstream-Tag erzeugt.
-- Ein signierter AhoiBrowser-Katalog liefert Metadaten und erwartete Hashes.
-- Ein eigener sicherer Updatepfad aktualisiert das Extension-Paket, weil der Chrome Web Store uBO Classic nicht mehr verteilt.
+- Vor Installation macht ein zugänglicher Detailbereich Version, Upstream-Quelle, Extension-ID,
+  GPL-Lizenz, den vollständigen Release-Commit
+  `6dd2d95e50d134a477a4e183343c0b26e9147123` und den vollständigen CRX-SHA-256
+  `b6be71ed3e3e85eaad8f02710b9071d06428e141d942c43d5f65d4526e82dc3e` vollständig einsehbar.
+- Die Hauptfläche zeigt Name, Version, offizielle Quelle und verständliche
+  Berechtigungsfolgen. Vollständige IDs, Hashes, Release-Commit und Lizenz sind
+  über einen zugänglichen Detailbereich erreichbar und bleiben vollständig
+  geprüft. Technische Prüfdaten dürfen den Ein-Klick-Einstieg nicht zu einem
+  mehrseitigen Installationsassistenten machen. Chromiums Berechtigungsdialog
+  bleibt die maßgebliche Zugriffsentscheidung.
+- Die UI bezeichnet dieses Paket exakt als `Official GitHub release` und niemals
+  als Chrome-Web-Store-Paket. Entpackte ZIPs, Developer-Mode-Installationen und
+  neu signierte Ahoi-Repackages zählen nicht als dieser Pass.
+- Der initiale Dogfood-Pass verwendet eine statisch in der signierten App
+  kompilierte `CatalogEntry` für genau Version `1.74.0` und die daraus
+  abgeleitete Extension-ID `fkgkibajhfbepljeaefdnfnegdcjomkh`; beim Öffnen
+  dieses Dialogs oder beim Auflösen dieser Metadaten wird kein Netzwerkkatalog
+  abgefragt.
+- Ausschließlich das unveränderte, vom offiziellen gorhill-GitHub-Release
+  veröffentlichte CRX wird akzeptiert. Die signierte Ahoi-App pinnt Release,
+  Commit, vollständigen CRX-Hash, CRX-Public-Key-Hash, daraus abgeleitete
+  Extension-ID und Upstream-URL. Der Download darf höchstens einen
+  credentiallosen `302/GET`-Redirect zum exakt gepinnten
+  `release-assets.githubusercontent.com`-Host und Release-Asset-Pfad folgen;
+  anschließend müssen CRX3-Struktur, Key, ID, Version und alle Pins erneut
+  passen.
+- Jede Änderung irgendeines Release-, URL-, Redirect-, Paket-, Key-, ID- oder
+  Versions-Pins erfordert die erneute vollständige Trust-Root-Prüfung; ein
+  isolierter Versionsbump ist nicht zulässig.
+- Ein späterer signierter AhoiBrowser-Katalog darf neue Versionen liefern, wenn er mindestens dieselbe Paket-, Key-, ID-, Provenienz-, Monotonie- und Rollback-Sicherheit bewahrt. Solange dieser Updatepfad nicht provisioniert ist, bleibt automatisches Extension-Update deaktiviert und die nächste Classic-Version erfordert einen neuen signierten AhoiBrowser-Build mit aktualisierten Pins.
+- Der statische Bootstrap provisioniert keinen Update-Katalog und hebt weder das
+  Redistribution-Gate noch dessen Lizenz-/Releaseprüfung auf.
 - Filterlistenupdates bleiben uBOs eigener Mechanismus.
 
 Externe Release-Gates, die unabhängig voneinander geschlossen sein müssen:
 
-- Ein eigener, überprüfter HTTPS-Katalog-/Artefakt-Host, ein unveränderlicher hash-adressierter Publishing-Workflow und ein offline beziehungsweise per HSM geschützter Ed25519-Katalogschlüssel sind provisioniert; nur der öffentliche Schlüssel liegt im Repository.
-- Für die feste Chrome-Web-Store-ID liegt ein authentisches CRX vor, dessen Publisher-Signierschlüssel genau diese ID ableitet, einschließlich nachprüfbarer Distributionsberechtigung sowie Upstream-/Tag-/Build-Provenienz. Ein Ahoi-eigener Publisher-Schlüssel erfordert stattdessen eine bewusst migrierte neue Extension-ID und erneute Prüfung aller Trust Roots und Tests.
-- Source-/Lizenz-/GPL-Pflichten, Name und Logo, Redistribution, reproduzierbarer Build, Signing-Attestierungen, Release-QA und Rückrollartefakte sind vollständig geliefert und unabhängig freigegeben.
+- Der direkte offizielle Release-Asset-Pfad, dessen Tag-/Commit-Signatur, CRX-Key, abgeleitete ID, Paket-Hash und veröffentlichte Release-Metadaten sind unabhängig gegengeprüft und im signierten Build gepinnt.
+- Für einen automatischen Katalog-/Updatepfad sind ein überprüfter HTTPS-Katalog, ein unveränderlicher hash-adressierter Publishing-Workflow und ein offline beziehungsweise per HSM geschützter Ed25519-Katalogschlüssel provisioniert; nur der öffentliche Schlüssel liegt im Repository.
+- Source-/Lizenz-/GPL-Pflichten, Name und Logo, direkte Upstream-Distribution beziehungsweise Redistribution, Release-QA und Rückrollinformationen sind für den exakt verwendeten Classic-Kandidaten dokumentiert.
 
-Bis alle drei Gates erfüllt und durch reale Release-Evidenz belegt sind, bleibt die Produktionskonfiguration unprovisioniert und der Installationspfad schlägt ohne Netzwerkzugriff fail-closed fehl. Kein Gate darf durch ein anderes ersetzt werden.
+Der manuelle Dogfood-Installationspfad darf nach bestandenem erstem und drittem Gate mit statisch im signierten Browser gepinnten 1.74.0-Metadaten arbeiten. Das zweite Gate bleibt für automatische Extension-Updates erforderlich und wird nicht durch einen Dogfood-Installpass ersetzt. Fehlt ein für die jeweilige Aktion erforderliches Gate, schlägt ausschließlich diese Aktion fail-closed fehl.
 
 Pflichttests:
 
@@ -955,7 +1284,8 @@ Pflichttests:
 - Filterlistenupdate;
 - Extension-Update;
 - Deinstallation;
-- Ablehnung eines nicht allowlisteten MV2-Pakets;
+- Ablehnung jedes fremden, unpacked, umsignierten oder nur ID-gefälschten
+  MV2-Pakets außerhalb der exakten Paket-/Schlüssel-/Transaktionsgrenze;
 - unveränderte Funktion gewöhnlicher MV3-Erweiterungen.
 
 Wenn die Funktion nur durch eine allgemeine MV2-Freigabe oder eine große, unwartbare Extension-Forkfläche möglich wäre, dokumentiere ein Architektur-No-Go. Implementiere keinen unsicheren Workaround.
@@ -1075,6 +1405,14 @@ Jede Cache-/Cookie-/Website-Daten-Löschung erzeugt vor der Bestätigung ein unv
 
 Implementiere zwei klare Datenschutzmodi.
 
+Produktweite Entgooglifizierung gilt in beiden Modi: kein Chrome-Kontosync,
+keine Produkttelemetrie, Usage-Pings oder automatischen Crash-Uploads und keine
+ungefragten Produktdienste. Die Modi steuern zusätzliche Eingriffe in Websites,
+nicht die Freigabe dieser Hintergrunddienste. Normale Google-Webseiten, Logins
+und die konfigurierte Suchmaschine bleiben ausdrücklich unterstützt. Benötigte
+Sicherheitsendpunkte werden dokumentiert und gezielt erhalten; es gibt keine
+pauschale DNS-/Host-Sperre auf Google-Domains.
+
 ### `Mehr Schutz` – explizit aktivierbarer Zusatzschutz
 
 `Mehr Schutz` soll Entwickler nicht unnötig einschränken und normale Websites weitgehend funktionsfähig halten. Der Nutzer aktiviert diesen Modus bewusst global oder pro Website. Die UI erklärt in einem Satz, dass zusätzliche Ahoi-Schutzmaßnahmen aktiv sind und einzelne eingebettete Drittanbieter-Inhalte gegebenenfalls eine Website-Ausnahme benötigen:
@@ -1143,10 +1481,18 @@ Erstelle eine maschinenlesbare Endpoint-Allowlist und einen dynamischen Netzwerk
 - Keine Secrets im Repository.
 - Header-, Injection-, HTTP-Auth-, Sync-, Remote-Control- und Updatefunktionen benötigen Threat Model und Security Review.
 - Remote Commands erlauben keine Shellbefehle und keine beliebigen Custom Schemes.
-- Update-, Extension- und uBO-Kataloge werden signiert.
+- Update-, Extension- und spätere uBO-Updatekataloge werden signiert; der
+  initiale uBO-Bootstrap verwendet ohne Netzwerk-Katalog ausschließlich die
+  statischen Pins des signierten Browsers.
 - manipulierte Artefakte werden sicher abgewiesen.
 
 ## CloudKit-Sync
+
+Für den aktuellen Protokollwechsel gilt die verbindliche Sync-Vereinfachung
+vom 5. September oben: ein aktives Format für alle erlaubten Entitytypen,
+frische isolierte Abnahme, keine aufwendige Alt-Datenmigration oder dauerhafte
+v2/v3-Interoperabilität. Die Datenkategorien und Sicherheitsgrenzen unten werden
+dadurch weder erweitert noch gelockert.
 
 ### Grundprinzip
 
@@ -1173,17 +1519,26 @@ Synchronisiere:
 
 - Workspaces;
 - Ordner und gespeicherte Seiten;
+- gemeinsame Desktop-/Mobile-Lesezeichen als separate Sammlung mit eigener Zustimmung, nicht als Workspace-Seitenbaum;
 - Reihenfolge und Tombstones;
-- offene normale Tabs als gerätebezogene Sitzungen;
+- alle normalen Tabs, temporäre wie gespeicherte, in einer gemeinsamen Workspace-Tabstruktur mit stabiler globaler TreeNode-ID; gerätebezogene Presence-/Runtime-IDs bleiben getrennt;
 - Verlauf;
 - Appearance und Workspace-Akzente;
-- ausdrücklich freigegebene Einstellungen;
-- Extension-Inventar;
+- unterstützte, sicher übertragbare native Chromium-Nutzereinstellungen gemäß dem expliziten Katalog aus ADR 0010;
+- Extension-Inventar plus getrennten gemeinsamen gewünschten Installations-/Aktivierungszustand;
+- positiv geprüfte übertragbare Extension-Einstellungen gemäß Extension-ID-/Key-/Wert-Vertrag;
 - Developer Assets nur per einzelnem Opt-in.
 
-Extension-Inventar darf auf einem neuen Mac nur Installationsvorschläge erzeugen. Installiere Erweiterungen niemals still.
+Ein verknüpfter neuer Mac stellt unterstützte vertrauenswürdige Erweiterungen
+über Chromiums verifizierte Installations-/Aktivierungspfade tatsächlich wieder
+her; ein bloßer Inventareintrag oder Vorschlag ist keine erfolgreiche
+Wiederherstellung. Native Freigaben werden nicht automatisch bestätigt.
+Fehlend, ausstehend, blockiert, bestätigungspflichtig und fehlgeschlagen bleiben
+ehrliche Zustände. Ein leeres frisches Inventar ist kein Löschauftrag; echte
+spätere Deinstallation, Deaktivierung und Default-Reset dürfen nicht durch
+alte Gegenstellen rückgängig gemacht werden. Details: ADR 0010.
 
-Tabs anderer AhoiBrowser-Instanzen erscheinen direkt in der normalen Tab-Liste der Sidebar und niemals hinter einer separaten Geräteverwaltung, History-Unterseite oder zusätzlichen Geräte-Schaltfläche. Sie verwenden dieselbe kompakte Zeilenform, Typografie und Favicon-Darstellung wie lokale temporäre Tabs, tragen aber ein eindeutiges Smartphone-, Tablet- oder Desktop-Badge sowie zugänglichen Gerätetext. Gerätegrenzen dürfen durch eine dezente Zwischenüberschrift beziehungsweise Gruppierung sichtbar bleiben, ohne eine zweite Navigationshierarchie zu erzeugen. Die Darstellung umfasst Gerät, Workspace, Titel, URL-Favicon und letzte Aktivität; sie lässt sich innerhalb der Sidebar lokal filtern. Ein Klick öffnet den Remote-Tab lokal, Kontextaktionen übernehmen ihn in einen Workspace oder fokussieren ihn über den sicheren Remote-Control-Pfad. Inkognito erscheint dort niemals. Ist kein `SyncProvider` verfügbar oder sind keine fremden Tabs vorhanden, gibt es weder leere Platzhalter noch einen funktionslosen Geräte-Button.
+Normale Tabs erscheinen auch auf einer bereits geöffneten Gegenstelle unmittelbar in derselben gemeinsamen Workspace-Tabstruktur; eine reine Geräte-Tab-Liste genügt nicht. Temporäre Tabs tragen eine dezente Herkunftskennzeichnung mit zugänglichem Gerätetext; gespeicherte Tabs verhalten sich einheitlich, optional mit einem dezenten Hinweis bei mobil hinzugefügten Seiten. Herkunft wird aus belegter Erstellung beziehungsweise explizitem Speichern abgeleitet, nicht aus dem letzten Bearbeiter. Die lokale Projektion bleibt ohne automatische Fokusverschiebung oder ungefragtes Laden; erst eine bewusste Öffnen-/Fokusaktion aktiviert native Inhalte. Globale TreeNode-ID und gerätebezogene Presence-ID bleiben getrennt. Kein zweiter Eintrag für dieselbe logische Tab-ID und keine zusätzliche Geräte-Verwaltungsseite. Nichtportable normale Ziele bleiben ohne Übertragung privater Pfade oder Code sichtbar. Inkognito erscheint dort niemals; Cookies und Logins bleiben lokal. Ohne `SyncProvider` bleibt der lokale Browser benutzbar und es gibt keinen funktionslosen Geräte-Button.
 
 Diese Geräte-Tabs-Funktion darf Chromiums vorhandene Foreign-Session-Datenmodelle als Integrationsvorbild wiederverwenden, darf den Nutzer aber nicht in Chromiums separate History-/Synced-Tabs-Verwaltungsseite schicken. In v1 verwendet sie ausschließlich AhoiBrowsers `SyncProvider`/CloudKit-Daten. Sie darf weder eine Google-Anmeldung verlangen noch Chrome Sync heimlich aktivieren. Eine spätere zusätzliche Sync-Provider-Implementierung bleibt architektonisch möglich, ist aber kein v1-Releaseblocker.
 
@@ -1195,7 +1550,7 @@ Synchronisiere niemals:
 - Site Storage;
 - Cache;
 - Site Permissions;
-- Extension Storage;
+- geheimer, opaker oder ungeprüfter roher Extension Storage; zulässig sind ausschließlich positiv freigegebene Einstellungswerte aus ADR 0010;
 - Inkognito-Daten;
 - lokale Split-Topologie einschließlich Fenster-/Workspace-Zuordnung, Pane-Reihenfolge, Layout, Divider-Ratios und Fokus;
 - Keychain-Werte;
@@ -1229,7 +1584,10 @@ Verlauf:
 - Optionen 30, 90 und 365 Tage oder unbegrenzt;
 - Löschen wird auf alle Geräte propagiert.
 
-Gerätesitzungen bleiben getrennt und werden nicht zu einer einzigen Tab-Liste vermischt.
+Native Gerätesitzungen und Presence-Identitäten bleiben lokal beziehungsweise
+gerätebezogen getrennt; das widerspricht nicht der gemeinsamen logischen
+Workspace-Tabstruktur. Fehlende Presence oder ein Browser-Shutdown darf niemals
+als globales Löschen aller logischen Tabs ausgelegt werden.
 
 ### Recovery und Open-Source-Boundary
 
@@ -1424,8 +1782,9 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - AnyChat;
 - Bitwarden;
 - uBlock Origin Classic;
-- sicherer Arc-Importassistent mit Vorschau, atomarem Commit, Rollback und idempotenter Wiederholung;
+- kompakter sicherer Arc-Import mit Vorschau, atomarem Commit, Rollback und idempotenter Wiederholung;
 - realer Import des vorhandenen lokalen Arc-Datenstands nach unveränderlichem Backup;
+- Zen-Erkennung und browserübliche Standardkategorien über vorhandene Importer-Seams; strukturtreue Zen-Migration nur für nachgewiesene, versionsgebundene Schemata;
 - reale User-E2E-Abnahme.
 
 ### Phase 4 – Developer Toolkit und Privacy
@@ -1497,7 +1856,12 @@ Computer Use bedient AhoiBrowser wie ein echter Nutzer:
 
 Terminal oder interne APIs dienen ausschließlich für Build, Prozess-, Netzwerk-, Dateisystem- und Datenbank-Readback. Sie dürfen keinen sichtbaren User-Flow umgehen.
 
-Vor jedem CU-E2E-Lauf:
+Vor jedem sichtbaren Entwicklungs-E2E-Lauf gelten Kandidatenzuordnung,
+signierte atomare Installation, normale Produktflags und aktive
+Chromium-Sicherheitsgrenzen aus dem Abschnitt zur Entwicklungsabnahme.
+Vor einer Release-CU-E2E-Abnahme gelten zusätzlich die folgenden Schritte;
+unveränderte, bereits belegte Packaging-Schritte desselben Kandidaten werden
+nicht vor jeder einzelnen Journey wiederholt:
 
 1. Git-SHA und Chromium-Revision festhalten.
 2. Releaseartefakt bauen.
@@ -1619,7 +1983,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `TREE-10`: 10.000-Knoten-Fixture laden, suchen, scrollen, öffnen und verschieben.
 - `TREE-11`: kontrollierter Crash während Baumänderung; atomare, reparierbare Daten nach Neustart.
 - `TREE-12`: Gruppenname, Icon und Farbe ändern; in Hell/Dunkel, nach Neustart und nach Workspace-Wechsel korrekt und kontrastreich wiederherstellen.
-- `TREE-13`: direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen.
+- `TREE-13`: direkte Kinder in einer durchgehenden Gruppen-Bubble sowie mindestens drei verschachtelte Untergruppen prüfen; Collapse, Drag-and-drop, Split und Virtualisierung dürfen Zugehörigkeit und Hierarchie nicht optisch zerreißen. Normale Ordner langsam, schnell und mit Richtungswechsel im Zwischenframe öffnen/schließen; Fokus und Scrollanker bleiben stabil, Titel überlagern sich nicht, ein Split darunter bleibt sichtbar. Viewportrand, Inhaltsende und reduzierte Bewegung ausdrücklich prüfen.
 - `TREE-14`: leeren Workspace aktivieren, ohne automatisch einen Tab zu erzeugen; zwischen leerem und gefülltem Workspace wechseln und korrekten aktiven Nullzustand sowie Session Restore prüfen.
 - `TREE-15`: `Alle temporären Tabs leeren` einschließlich des aktiven letzten Tabs ausführen; kein Ersatz-Tab, kein fremder Workspace-Tab und kein Fenster-Close.
 - `WS-01`: Workspace-Wechsel per Sidebar.
@@ -1630,7 +1994,20 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `WS-06`: temporäre Tabs und aktive Auswahl wandern nicht unerwartet zwischen Fenstern.
 - `WS-07`: Cookies und Logins bleiben beim Workspace-Wechsel erhalten.
 - `WS-08`: aktiven Workspace mit Icon/Name und alle inaktiven Workspaces als stabile Dots darstellen; Hover und Tastaturfokus zeigen jeweils korrekte Vorschau ohne Wechsel.
-- `WS-09`: Workspace per Dot, Tastatur und echter Wischgeste wechseln; Animation abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab und WebContents niemals auseinanderlaufen.
+- `WS-09`: Workspace per Dot, Tastatur und echter Wischgeste vorwärts und rückwärts wechseln; ausschließlich der Sidebar-Inhalt gleitet horizontal in Ordnungsrichtung, während der Webview nie seitlich verschoben wird. Falls ein anderes aktives Tab beziehungsweise `WebContents` gewählt wird, blendet nur der Webview-Bereich kurz über; bei unverändertem `WebContents` bleibt er effektfrei. Animation beziehungsweise Geste abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab, Split-Fokus und `WebContents` niemals auseinanderlaufen. Mit `Bewegung reduzieren` gibt es keinen räumlichen Slide und nur bei tatsächlichem Inhaltswechsel eine kurze dezente Überblendung.
+- `WS-ISO-01`: Beim Anlegen eines Workspaces die Stufe `Gemeinsam`, `Eigene Website-Sitzungen` oder `Vollständig getrennt` wählen; Menü, Workspace-Liste und Anlage-Dialog zeigen die Stufe jedes nicht gemeinsamen Workspaces verständlich an, ohne sie als Sicherheitsgrenze gegen macOS-Nutzersoftware auszugeben.
+- `WS-ISO-02`: Zwei `Vollständig getrennt`-Workspaces und ein gemeinsamer Workspace: dieselbe Website mit drei synthetischen Konten anmelden; Cookies, Site Storage, Verlauf und Omnibox-/Befehlsleistenvorschläge, gespeicherte Passwörter, Autofill, Berechtigungen und Download-Verlauf bleiben je Workspace getrennt, auch nach Neustart.
+- `WS-ISO-03`: Erweiterung in einem `Vollständig getrennt`-Workspace installieren und konfigurieren; sie erscheint weder im gemeinsamen noch in einem anderen getrennten Workspace, und uBlock Origin Classic lässt sich je Profil getrennt aktivieren und filtert dort nachweislich.
+- `WS-ISO-04`: Über Dot, Tastatur, Wischgeste und Befehlsleiste zwischen Workspaces verschiedener Stufen wechseln; beim Profilwechsel übernimmt das Fenster des Zielprofils deckungsgleich Größe, Position, Vollbild- und Sidebar-Zustand ohne Web-Reflow, und aktiver Dot, Baum, Tab und `WebContents` laufen nie auseinander.
+- `WS-ISO-05`: Tab, Ordner und Split per Drag-and-drop oder Befehl von einem gemeinsamen in einen `Vollständig getrennt`-Workspace verschieben; die URL wird im Ziel neu geöffnet, ein Hinweis sagt, dass Anmeldungen nicht mitwandern, und ein Split mischt nie Profile.
+- `WS-ISO-06`: Externe Links mit Routing-Regel auf einen `Vollständig getrennt`-Workspace, gemerktes Ziel, Quick Window und Übernahme aus dem Quick Window öffnen im richtigen Profil; ohne Regel gilt das dokumentierte Standardziel.
+- `WS-ISO-07`: Einen `Vollständig getrennt`-Workspace mit offenem Before-Unload-Tab löschen: Abbrechen ändert nichts; Bestätigen schließt die Tabs, entfernt das Profil über Chromiums Profil-Löschpfad, und nach Neustart sind Profilverzeichnis und Workspace-Eintrag entfernt.
+- `WS-ISO-08`: Prozess zwischen Workspace-Löschung und Profil-Datenentfernung beenden; der nächste Start setzt die persistierte Löschabsicht fort, und keine Wiederherstellung öffnet Seiten im gelöschten Kontext.
+- `WS-ISO-09`: Einen gemeinsamen Workspace ausdrücklich in `Vollständig getrennt` umwandeln; Struktur, Reihenfolge, Ordner, Splits und Home-URLs ziehen über den portablen Export/Import um, Logins, Passwörter und Website-Daten nicht, und ein Abbruch verändert nichts.
+- `WS-ISO-10`: Arc-Import mit mehreren Arc-Profilen: der Nutzer kann ein Arc-Profil einem `Vollständig getrennt`-Workspace zuordnen; wiederholter Import bleibt ohne Duplikate.
+- `WS-ISO-11`: Speicher- und Startkosten mit einem, drei und fünf geladenen getrennten Profilen nach `docs/PERFORMANCE_METHODOLOGY.md` messen; nicht geöffnete Profile werden nicht geladen und ohne offenes Fenster wieder entladen.
+- `WS-ISO-12`: Sync je Profil einzeln aktivieren; jedes Profil nutzt einen eigenen CloudKit-Namensraum desselben Kontos, keine Website-, Passwort- oder Berechtigungsdaten werden übertragen, und Mobile bewahrt die Metadaten getrennter Workspaces mit eigenem `WKWebsiteDataStore`.
+- `WS-ISO-13`: Stufe `Eigene Website-Sitzungen`: Workspace mit Anmeldung löschen; seine offenen Tabs erscheinen nicht im Fallback-Workspace, Bindung und Partitionsdaten sind entfernt (Übergabe 003, WS-DEL-01 bis 05).
 
 ### Sidebar Drag-and-drop und Split View
 
@@ -1682,8 +2059,8 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `CMD-03`: `g Suchbegriff` führt direkte Google-Suche aus.
 - `CMD-04`: offene Tabs, Baum, Ordner, Workspaces, Verlauf und Befehle finden.
 - `CMD-05`: gesamte Command-Bar-Reise nur per Tastatur.
-- `CMD-06`: Ranking und Command-Bar-Latenz messen.
-- `QUICK-01`: globalen Shortcut bei inaktiver App verwenden.
+- `CMD-06`: Ranking und Command-Bar-Latenz im installierten sichtbaren Lauf messen; `Ahoi.CommandBar.QueryLatency` erfasst nur die synchrone lokale Rankingdauer und niemals Query-/URL-/Identitäts- oder Ergebnisinhalt.
+- `QUICK-01`: globalen Shortcut bei inaktiver App verwenden; Registrierung ist retryfähig, wird nach dem letzten regulären Fenster abgemeldet und Cooldown startet erst nach tatsächlich geöffnetem Quick Window.
 - `QUICK-02`: eingeloggte Website öffnen; Quick Window nutzt dasselbe normale Profil.
 - `QUICK-03`: Seite in normalen Tab beziehungsweise Baum übernehmen.
 - `QUICK-04`: Quick Window schließen, ohne normale Sitzung zu beschädigen.
@@ -1708,7 +2085,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `NAV-04`: Drag-and-drop einer Datei in Website und Browser-Chrome.
 - `NAV-05`: Drucken und PDF-Vorschau.
 - `NAV-06`: OAuth-Testlogin.
-- `NAV-07`: Passkey/WebAuthn-Test.
+- `NAV-07`: echte Plattform-Passkey-/WebAuthn-Zeremonie mit macOS-Systemauthentifizierung; die lokale simulierte Challenge zählt nur als Plumbing-Teilbeleg.
 - `NAV-08`: sicherer Custom-Protocol-Prompt.
 - `NAV-09`: Chromiums unveränderte Trackpad-/Magic-Mouse-Wischgeste über einer Seite für Zurück und Vor als Regression prüfen; langsame, schnelle und abgebrochene Bewegung mit sichtbarem Fortschritt, aber keine Ahoi-Parallelimplementierung.
 - `NAV-10`: Seiten-, Workspace- und horizontale Website-Scrollgeste gegeneinander testen; genau eine erkannte Aktion, kein Doppelwechsel und konfigurierbare Deaktivierung.
@@ -1753,9 +2130,9 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `AUTH-20`: Digest Auth funktioniert ohne Vermischung mit Basic-Auth-Einträgen.
 - `AUTH-21`: Inkognito kann vorhandenes Konto nur explizit auswählen und speichert keine Änderungen.
 - `AUTH-22`: Schließen des letzten Inkognito-Fensters verwirft dessen Auth-Cache.
-- `AUTH-23`: HTTP-Auth-Credentials erscheinen weder auf Mac B noch in CloudKit oder iOS.
+- `AUTH-23`: HTTP-Auth-Credentials erscheinen nach kandidatgebundener Mehrgeräte-Negativprüfung weder auf Mac B noch in CloudKit oder iOS; lokale Provider-/Scanner-Nachweise reichen allein nicht.
 - `AUTH-24`: Passwortanzeige in der HTTP-Zugangsverwaltung erfordert Touch ID/Systemauthentifizierung.
-- `AUTH-25`: Logs, NetLog, Crash Reports und Evidenz enthalten weder Passwort noch vollständigen Authorization-Header.
+- `AUTH-25`: kandidatgebundene Logs, NetLog, Crash Reports und Evidenz enthalten weder synthetisch injizierte Passwort-/Authorization-Canaries noch unredigierte Credential-Felder, Cookie- oder vollständige Authorization-Header; der wertblinde Scanner läuft erst nach den sichtbaren installierten Journeys über die exakten Capture-Wurzeln.
 - `AUTH-26`: Subresource-Auth-Challenge kann keine unklare oder irreführende Credential-Abfrage erzeugen.
 - `AUTH-27`: vollständige sichtbare Reise – Speichern, Neustart, Autocomplete, Kontowahl, Fehlerkorrektur, Wechsel und Abmeldung – via Computer Use im installierten Build.
 
@@ -1800,19 +2177,22 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `EXT-11`: AnyChat mit exakt der erwarteten Store-ID im AhoiBrowser-Profil installieren, sichtbare Berechtigungen prüfen, Action beziehungsweise Side Panel öffnen und nach Browserneustart erneut bedienen.
 - `EXT-12`: nachweisen, dass AnyChat, 1Password und uBlock ausschließlich im getesteten AhoiBrowser-Profil installiert beziehungsweise konfiguriert wurden; Google-Chrome- und Arc-Profile bleiben byte- beziehungsweise zustandsseitig unverändert.
 - `EXT-13`: 1Password-Native-Messaging wird über den offiziellen Additional-Browsers-Prozess für die signierte Ahoi-App provisioniert; ein aus Arc oder Chrome kopiertes Manifest wird abgewiesen und zählt nicht als Pass.
-- `UBO-01`: uBlock Origin Classic über AhoiBrowser-Ein-Klick-Flow installieren.
-- `UBO-02`: Version, ID, Quelle und Hash gegen Katalog prüfen.
+- `EXT-14`: das Erweiterungsmenü in einem echten Null-Tab-Fenster mit installierten Erweiterungen mehrfach öffnen und schließen; Namen, Icons und Verwaltung bleiben sichtbar, während Action, Site Access, Site Permissions und Reload ohne aktiven Tab ausgeblendet oder deaktiviert sind. Danach einen normalen HTTP-/HTTPS-Tab aktivieren und dieselben Controls ohne Neustart korrekt aktualisiert bedienen.
+- `EXT-15`: AnyChat-Installation jeweils vor der Bestätigung abbrechen, mit einem kontrollierten Installationsfehler scheitern lassen und erfolgreich abschließen. Abbruch und Fehler hinterlassen weder Extension-Verzeichnis noch Preference-, Cache-, Update- oder Toolbar-Rest und crashen weder sofort noch beim Neustart; nur der erfolgreiche Lauf persistiert exakt `khpefodpgnkegiohbolbaaeabnfdegln` und besteht anschließend `EXT-11`.
+- `UBO-00`: Inventar und UI unterscheiden uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und den tatsächlich signierten offiziellen Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) sichtbar; eine Lite-Installation wird in keinem Bericht, Gate oder Screenshot als Classic-Pass gewertet und der GitHub-Release wird nicht als Store-Paket bezeichnet.
+- `UBO-01`: uBlock Origin Classic 1.74.0 aus dem browserseitig gepinnten Official GitHub release ohne Katalogrequest explizit herunterladen, Chromium-Berechtigungsdialog bestätigen und atomare Autorisierung nachweisen.
+- `UBO-02`: Version, vollständigen Release-Commit, exakte GitHub-Start-URL, höchstens einen credentiallosen Release-Asset-Redirect, vollständigen CRX-Hash, CRX-Public-Key-Hash und daraus abgeleitete ID gegen die Browser-Pins prüfen.
 - `UBO-03`: Netzwerkrequest auf kontrollierter Testseite blockieren.
 - `UBO-04`: kosmetischen Filter prüfen.
 - `UBO-05`: eigene Filterregel anlegen.
 - `UBO-06`: Dashboard und Einstellungen verwenden.
 - `UBO-07`: Browserneustart und Persistenz.
 - `UBO-08`: Filterlistenupdate.
-- `UBO-09`: Extension-Update über signierten Katalog.
+- `UBO-09`: späteres Extension-Update ausschließlich über den separat provisionierten signierten Katalog mit Sequenz größer 174000; Rollback vor Paketdownload abweisen.
 - `UBO-10`: Deinstallation.
-- `UBO-11`: fremdes, nicht allowlistetes MV2-Paket wird abgewiesen.
+- `UBO-11`: fremdes, unpacked, umsigniertes oder nur ID-gefälschtes MV2-Paket wird abgewiesen.
 - `UBO-12`: gewöhnliche MV3-Erweiterungen funktionieren parallel unverändert.
-- `UBO-13`: unprovisionierte Katalog-, Signing- oder Publisher-Trust-Roots bleiben sichtbar deaktiviert und lösen keinen Netzwerkrequest aus.
+- `UBO-13`: Build-Konfiguration ohne statischen Bootstrap und ohne signierte Katalog-Trust-Roots bleibt sichtbar deaktiviert und löst keinen Netzwerkrequest aus; statischer Bootstrap allein löst keinen Katalogrequest aus.
 
 ### Arc-Import
 
@@ -1828,6 +2208,15 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `IMPORT-ARC-10`: denselben Snapshot zweimal importieren; der zweite Lauf ist ohne Duplikate ein nachvollziehbarer No-op.
 - `IMPORT-ARC-11`: Cookies, Login Data, Passwörter, Tokens, Sessions, `Secure Preferences`, Extension Storage, Native-Messaging-Manifeste, Keychain- und Inkognito-Daten bleiben ausgeschlossen; Logs und Evidenz sind redigiert.
 - `IMPORT-ARC-12`: vorhandenen realen lokalen Arc-Datenstand nach immutable Backup und Dry Run in das installierte AhoiBrowser-Profil importieren; Workspaces, Ordner, gespeicherte Seiten und rekonstruierbare Splits sichtbar prüfen und den No-op-Wiederholungslauf belegen.
+
+### Zen-Importvorbereitung
+
+- `IMPORT-ZEN-01`: installierte Zen-App, `profiles.ini`, alle regulären Profile und einen wirklich laufenden Zen-Prozess erkennen; fehlende Installation und verwaiste Lockdateien verursachen keinen False Positive.
+- `IMPORT-ZEN-02`: pro Profil ausschließlich real unterstützte Standardkategorien anzeigen und über vorhandene Chromium-/Firefox-Importer-Seams importieren; nicht verfügbare Kategorien bleiben verborgen oder verständlich deaktiviert.
+- `IMPORT-ZEN-03`: unbekannte oder nicht belegte Zen-Seitenleistenschemata fail-closed als noch nicht strukturimportfähig ausweisen; keine geratenen Workspaces, Pins, Ordner, Tabs oder Splits erzeugen.
+- `IMPORT-ZEN-04`: ein versionsgebundenes Zen-Fixture mit nachgewiesenem Schema read-only erkennen, begrenzt parsen und als redigierte Vorschau darstellen; Symlink-, Traversal-, Größen-, Lock- und Malformed-Fälle ablehnen.
+- `IMPORT-ZEN-05`: sobald ein Strukturadapter freigegeben ist, dieselben atomaren Commit-, Rollback-, Deduplizierungs-, Konflikt- und No-op-Verträge wie der Arc-Importer erfüllen.
+- `IMPORT-ZEN-06`: ist auf dem Test-Mac kein reales Zen-Profil vorhanden, den normalen sichtbaren „nicht gefunden“-Zustand und die Capability-Erkennung mit einem temporären realistischen Fixture belegen, ohne einen realen Importpass zu behaupten.
 
 ### Lokaler Passwortmanager und Autofill
 
@@ -1907,6 +2296,11 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 
 Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCloud-/CloudKit-Umgebung:
 
+Für das neue einheitliche Format werden passende macOS-/iOS-Kandidaten und
+frische isolierte Stores verwendet. Alte v2-/gemischte Fixture-Pässe sind keine
+Endabnahme; Versionsnummern, Datenkategorien und tatsächliche Gegenstellen
+werden im Kandidatennachweis explizit gebunden. Bestehende Daten bleiben erhalten.
+
 - `SYNC-01`: Workspace und Baum von Mac A nach Mac B synchronisieren.
 - `SYNC-02`: gespeicherte Seite von Mac B ändern und auf Mac A prüfen.
 - `SYNC-03`: beide Macs offline ändern und anschließend deterministisch mergen.
@@ -1914,24 +2308,24 @@ Diese Tests benötigen zwei reale, installierte AhoiBrowser-Builds und echte iCl
 - `SYNC-05`: gleichzeitiger Move und Delete.
 - `SYNC-06`: Konflikt darf keinen Zyklus erzeugen; Recovery-Ordner prüfen.
 - `SYNC-07`: History von A auf B und iOS finden.
-- `SYNC-08`: offene Tabs bleiben nach Gerät gruppiert.
+- `SYNC-08`: normale temporäre und gespeicherte Tabs teilen dieselbe Workspace-Tabstruktur und globale TreeNode-ID; gerätebezogene Presence bleibt getrennt, Herkunft wird dezent angezeigt.
 - `SYNC-09`: Verlauf löschen und Propagation prüfen.
 - `SYNC-10`: Retention 30/90/365/unbegrenzt prüfen; Default 90 Tage.
 - `SYNC-11`: Cookies bleiben lokal.
 - `SYNC-12`: Webformular- und HTTP-Auth-Passwörter bleiben lokal.
-- `SYNC-13`: Site Storage, Permissions, Extension Storage und Keychain-Secrets bleiben lokal.
+- `SYNC-13`: Site Storage, Berechtigungsfreigaben, geheimer/ungeprüfter roher Extension Storage und Keychain-Secrets bleiben lokal; nur positiv freigegebene Extension-Einstellungswerte dürfen übertragen werden.
 - `SYNC-14`: Inkognito wird nie serialisiert.
 - `SYNC-15`: zwei Developer Assets anlegen; nur explizit freigegebenes Asset synchronisiert.
-- `SYNC-16`: Extension-Inventar erzeugt nur Installationsvorschlag, keine stille Installation.
+- `SYNC-16`: Auf einem verknüpften neuen Mac vertrauenswürdige unterstützte Erweiterungen über native verifizierte Pfade tatsächlich wiederherstellen; Freigabe-/Blockzustände sichtbar erhalten, keine Zustimmung simulieren und ein leeres frisches Inventar nicht als Deinstallationsauftrag behandeln. ADR 0010 ersetzt die frühere Inventar-only-Vorgabe.
 - `SYNC-17`: iCloud abmelden, offline ändern, wieder anmelden und Queue abarbeiten.
 - `SYNC-18`: CloudKit-Quota-/temporären Fehler verständlich behandeln.
 - `SYNC-19`: Zone-/Key-Reset und bestätigten Recovery-Upload prüfen.
 - `SYNC-20`: Accountwechsel ohne stillen Datenverlust.
 - `SYNC-21`: Gerät widerrufen und weiteren Zugriff verhindern.
 - `SYNC-22`: Sync-Logs und Payload-Evidenz enthalten keine ausgeschlossenen Geheimdaten.
-- `SYNC-23`: Tabs von Mac B und iOS erscheinen ohne Geräte-Sonderseite direkt zwischen den normalen Sidebar-Tabs, mit passendem Smartphone-/Tablet-/Desktop-Badge, Favicon, Workspace und letzter Aktivität; lokal filtern und öffnen.
+- `SYNC-23`: Tabs von Mac B und iOS erscheinen auch auf bereits geöffneter Gegenstelle in der gemeinsamen Workspace-Tabstruktur, ohne Duplikate, Fokuswechsel oder ungefragtes Laden; Herkunft temporärer Tabs anzeigen, lokal filtern und bewusst öffnen.
 - `SYNC-24`: Gerät offline, Tab geschlossen, Gerät umbenannt und Gerät entzogen; Geräte-Tabs-UI zeigt verständliche Aktualität, räumt Tombstones auf und bietet keine veraltete Remote-Aktion an.
-- `SYNC-25`: Inkognito-, Passwort-, Cookie-, Site-Storage-, Permission- und Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf.
+- `SYNC-25`: Inkognito-, Passwort-, Cookie-, Site-Storage-, Berechtigungs- sowie geheime/ungeprüfte Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf. Freigegebene Extension-Einstellungen verwenden allein ihren getrennten positiv geprüften Vertrag aus ADR 0010.
 - `SYNC-26`: frisches Profil ohne Google-Anmeldung verwenden; Geräte-Tabs und kompletter Sync funktionieren über CloudKit, während Chrome Sync und Google-Browserkonto deaktiviert bleiben.
 - `SYNC-27`: in einem Build ohne konfigurierte CloudKit-Capability den Hauptschalter aktivieren und lokale Sync-Datenbank, Outbox sowie Retention bedienen; Remote Control bleibt ehrlich gesperrt, es wird keine Verschlüsselung ruhender lokaler Daten behauptet und nach signierter CloudKit-Konfiguration wird die ausstehende Outbox kontrolliert transportiert.
 
@@ -1994,7 +2388,7 @@ Vergleiche immer gegen unverändertes Chromium derselben Revision, auf derselben
 - `PERF-01`: Speedometer-Regression höchstens 3 Prozent.
 - `PERF-02`: Startzeit höchstens 10 Prozent schlechter.
 - `PERF-03`: Command Bar p95 unter 50 ms.
-- `PERF-04`: sichtbarer Workspace-Wechsel unter 100 ms.
+- `PERF-04`: sichtbare Reaktion und Commit eines vorbereiteten lokalen Workspace-Wechsels unter 100 ms; Daten-/Fokusumschaltung, erste präsentierte Rückmeldung und Animationsende getrennt messen. Die kurze optionale Auslaufanimation darf länger dauern, aber Eingabe und WebContents nicht blockieren. Renderer-/Netzwerk-Ladezeit wird separat ausgewiesen.
 - `PERF-05`: flüssiges Scrollen und Interagieren mit 10.000 Baumknoten, Ziel 120-Hz-tauglich.
 - `PERF-06`: eigener Memory-Overhead bei identischer 20-Tab-Sitzung höchstens 5 Prozent.
 - `PERF-07`: keine messbare eigene Idle-CPU-Last.
@@ -2130,14 +2524,16 @@ Bei externen Blockern dokumentiere:
 - Bitwarden bestanden;
 - lokaler Chromium-Passwortmanager einschließlich Mehrkontoauswahl, Bearbeitung, sicherer Klartextanzeige, Autofill-/Passkey-Abgrenzung und Inkognito-Policy bestanden;
 - uBlock Origin Classic einschließlich Updates bestanden;
-- nicht allowlistetes MV2 bleibt gesperrt.
+- fremdes, unpacked, umsigniertes oder nur ID-gefälschtes MV2 bleibt außerhalb der exakten Paket-/Schlüssel-/Transaktionsgrenze gesperrt.
 
-### Arc-Migrations-Gate
+### Browser-Import-Gate
 
 - Arc-Discovery, immutable Snapshot, WAL-/SHM-Konsistenz, Parserlimits und sichere Ausschlussregeln bestanden;
 - Spaces, Listen, Tabs und valide Splits werden deterministisch in das native Ahoi-Modell übernommen; beschädigte Splits degradieren ohne Datenverlust oder Phantom-Tabs;
 - Vorschau, Konfliktauflösung, atomarer Commit, Crash-Rollback und idempotenter No-op-Wiederholungslauf bestanden;
 - ein realer lokaler Arc-Datenstand wurde nach Backup und Dry Run in das installierte AhoiBrowser-Profil importiert und sichtbar geprüft;
+- Zen wird in derselben browserüblichen Importoberfläche korrekt erkannt oder als nicht vorhanden ausgewiesen; Standardkategorien verwenden vorhandene Importer-Seams, und ein Zen-Strukturadapter bleibt ohne nachgewiesenes versionsgebundenes Schema fail-closed;
+- bei fehlendem realem Zen-Profil sind Fixture-Capability- und sichtbarer Nicht-gefunden-Pass ehrlich vom realen Importpass getrennt;
 - Arc, Google Chrome, fremde Extension Storage, Native-Messaging-Manifeste, Cookies, Sessions, Passwörter und Geheimnisse blieben unverändert beziehungsweise ausgeschlossen.
 
 ### HTTP-Auth Gate
@@ -2163,11 +2559,13 @@ Bei externen Blockern dokumentiere:
 
 ### Sync/Companion Gate
 
+- ein aktives, identisches Format für alle erlaubten Entitytypen einschließlich Bookmark und Capability in C++ und Swift; frische isolierte Stores und echter kandidatengebundener Roundtrip, kein dauerhafter Altclient-Mischbetrieb;
 - zwei Macs plus iOS/iPadOS bestehen Online-, Offline-, Konflikt-, Lösch-, Recovery- und Geräteentzugstests;
 - History, normale Tabs und Baum funktionieren;
-- die normale Sidebar zeigt fremde Mac-/iOS-Tabs direkt, eindeutig nach Gerät gekennzeichnet und ohne separate Verwaltungsseite; sie funktioniert ohne Google-Konto oder Chrome Sync;
+- die normale Sidebar zeigt die gemeinsame Workspace-Tabstruktur auch bei bereits geöffneter Gegenstelle, ohne Identitätsduplikate, automatischen Fokuswechsel oder ungefragtes Laden; temporäre Tabs tragen Herkunftshinweise, und die separate Lesezeichensammlung synchronisiert unabhängig davon;
+- weder Google-Konto noch Chrome Sync erforderlich; vorhandene Profile, CloudKit-Daten und Schlüssel werden für die neue Abnahme nicht still verändert oder gelöscht;
 - Remote Control ist signiert und replay-sicher;
-- Cookies, Passwörter, HTTP Auth, Site Storage, Permissions, Extension Storage, Inkognito und Keychain-Secrets bleiben lokal.
+- Cookies, Passwörter, HTTP Auth, Site Storage, Berechtigungsfreigaben, geheime/ungeprüfte Extension-Stores, Inkognito und Keychain-Secrets bleiben lokal; positiv geprüfte Einstellungswerte folgen ADR 0010.
 
 ### Update/Recovery Gate
 
@@ -2208,7 +2606,7 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 5. Nested Tree, vollständiges Sidebar-Drag-and-drop, Zwei-/Drei-/Vier-Pane-Split Views einschließlich persistiertem 2×2, Workspaces samt Dots/Swipe, echter Null-Tab-/Empty-Workspace-Zustand, Command Bar, Quick Window, Inkognito, mehrere Fenster und Sitzungswiederherstellung bestehen reale CU-E2E-Tests.
 6. Schwebende Auto-Hide-Navigationszeile mit Reveal-Notch und Extensions, abgerundeter WebContents-Container, Glass, Floating Sidebar und Web-Popup-Overlays funktionieren ohne falschen Viewport-Reflow und bestehen die vollständigen CU-E2E-Fälle.
 7. Downloads, Uploads, PDF, Drucken, Medien, Sidebar-MiniPlayer, PiP, WebRTC und Permissions bestehen reale Tests.
-8. Chrome-Web-Store-Extensions, AnyChat, lokaler Passwortmanager, 1Password, Bitwarden und uBlock Origin Classic funktionieren ausschließlich im installierten AhoiBrowser-Profil; fremde Browserprofile blieben unverändert.
+8. Chrome-Web-Store-Extensions, AnyChat, lokaler Passwortmanager, 1Password und Bitwarden sowie uBlock Origin Classic über den browserseitig gepinnten Official GitHub release funktionieren ausschließlich im installierten AhoiBrowser-Profil; fremde Browserprofile blieben unverändert.
 9. HTTP Basic Auth/`.htaccess` bietet Speicherung, mehrere Konten, Auswahl, Autocomplete, Update, Wechsel und Abmeldung und besteht die vollständige Auth-Testgruppe.
 10. Developer Toolkit und beide Privacy-Modi sind vollständig abgenommen.
 11. Chromiums unveränderte Zurück-/Vor-Geste ist regressionsfrei; Ahois Workspace-Swipe, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling sind konfliktfrei, konfigurierbar und real abgenommen.
@@ -2225,21 +2623,21 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 22. Der Arc-Import besteht sichere Snapshot-, Vorschau-, Atomizitäts-, Rollback-, Idempotenz- und reale installierte UI-Abnahmen; der vorhandene lokale Arc-Datenstand ist mit redigierter Evidenz migriert.
 23. Releaseartefakte, SBOM, Checksums, Lizenzen, Revisionen und E2E-Evidenz sind vollständig.
 24. Lean-Chromium-Matrix, Bundle-/Runtime-Bilanz, Null-Aktivitätsnachweise und Roll-Regressionen sind vollständig; Ahoi ist innerhalb der definierten Größenbudgets schlanker, ohne zugesagte Browserfähigkeit, Extension-Kompatibilität, Webkompatibilität oder Security zu verlieren.
+25. Lokale Workspace-Website-Sitzungen trennen zwei Accounts derselben Site einschließlich Site Storage, Worker, Popup-/Restore- und Tab-Transfer-Pfaden; History, Passwörter und Extensions bleiben global. Nur abgestimmte nicht geheime Workspace-Metadaten werden synchronisiert; laufende Gegenseiten wechseln dadurch weder Fokus noch Account-Kontext.
+26. Browser-Setup-Sync nach ADR 0010 stellt auf einem neuen verknüpften Mac unterstützte native Nutzereinstellungen und eine vertrauenswürdige unterstützte Erweiterung tatsächlich nutzbar wieder her; freigegebene Extension-Einstellungen konvergieren. Policy/Freigaben, Offline/Neustart, Deaktivierung/Deinstallation und Default-Reset bleiben korrekt; fünf Ahoi-Preferences oder ein Inventar allein erfüllen diesen Auftrag nicht.
 
 ## Explizit nicht Bestandteil von v1
 
 - Windows;
 - Linux;
 - Intel-Macs;
-- getrennte Chromium-Profile pro Workspace;
-- vollständiger iOS-Browser;
-- eingebettete iOS-WebView als Browserersatz;
+- Chromium als iOS-Engine oder ein zweites Companion-App-Produkt; der oben definierte native WebKit-Browser für iOS/iPadOS 26 ist ausdrücklich Bestandteil des Gesamtziels;
 - Chrome Sync;
 - Google-Browserkonto;
 - Cookie-Sync;
 - Passwort-Sync;
 - HTTP-Auth-Credential-Sync;
-- Extension-Storage-Sync;
+- ungeprüfter roher Extension-Storage-Sync; positiv geprüfte Einstellungswerte gemäß ADR 0010 sind ausdrücklich im Umfang;
 - eigener Adblocker;
 - eigene Filterlisten-Engine;
 - allgemeine Manifest-V2-Unterstützung;
@@ -2282,16 +2680,15 @@ Kurze Statusmeldungen während langer Builds und Tests sollen Ergebnis, Beweisni
 
 ## Startanweisung
 
-Beginne jetzt mit Phase 0.
+Setze das vorhandene Projekt am belegten Checkpoint fort.
 
-1. Lies alle lokalen Agenten- und Skill-Anweisungen.
-2. Inventarisiere die reale Umgebung, ohne Annahmen über vorhandene Repositories oder Tools.
-3. Prüfe Hardware, Speicher, Xcode und Chromium-Voraussetzungen.
-4. Erstelle einen kurzen ausführbaren Arbeitsplan.
-5. Initialisiere die lokale Projektgrundlage.
-6. Starte den echten Chromium-ARM64-Bootstrap und Machbarkeitsspike.
-7. Führe nach dem ersten installierbaren Build unmittelbar den ersten Computer-Use-Smoke auf `/Applications/AhoiBrowser.app` aus.
-8. Fahre bei positivem Spike ohne erneute allgemeine Planungsrunde mit Phase 1 fort.
+1. Lies geltende Agenten-/Skill-Anweisungen und `docs/ACTIVE_DESKTOP_CHECKPOINT.md`.
+2. Prüfe nur den für die nächste Aktion relevanten aktuellen Quell-, Kandidaten-, Prozess- und Ownership-Stand.
+3. Bewahre gültige Implementierung und Evidenz; löse Widersprüche anhand des Nutzerauftrags und dieses Master-Prompts.
+4. Führe die dort festgehaltene nächste sichere Aktion aus. Prüfe vor einem benötigten Build vorhandene Kandidaten, Paketumfang, CPU-Gate und Checkout-Übergabe.
+5. Teste sichtbare Änderungen zuerst im exakt installierten Kandidaten, anschließend fokussiert programmatisch.
+6. Aktualisiere Checkpoint und zugehörige Evidenz, committe und pushe abgeschlossene eigene Arbeit, dann gehe zum nächsten definierten Paket über.
+7. Nur bei tatsächlich fehlender Projektgrundlage beginnt Phase 0 mit Bootstrap und Machbarkeitsspike.
 
 Antworte nicht lediglich mit einer weiteren Architekturübersicht und frage nicht pauschal, ob du beginnen sollst.
 

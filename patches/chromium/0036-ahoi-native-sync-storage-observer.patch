@@ -1,0 +1,134 @@
+diff --git a/extensions/browser/api/storage/storage_frontend.cc b/extensions/browser/api/storage/storage_frontend.cc
+index 5c70ae28774f54f4a6ea103229c6d8a713dd446b..498830bdb4f973359fe7504461d37a7048ecf06d 100644
+--- a/extensions/browser/api/storage/storage_frontend.cc
++++ b/extensions/browser/api/storage/storage_frontend.cc
+@@ -621,6 +621,19 @@ SettingsChangedCallback StorageFrontend::GetObserver() {
+                              weak_factory_.GetWeakPtr());
+ }
+ 
++base::CallbackListSubscription StorageFrontend::ObserveSyncSettingsChanges(
++    SyncSettingsChangedCallback callback) {
++  DCHECK_CURRENTLY_ON(BrowserThread::UI);
++  return sync_settings_observers_->Add(std::move(callback));
++}
++
++SettingsChangedCallback StorageFrontend::GetRemoteSyncApplyObserver() {
++  DCHECK_CURRENTLY_ON(BrowserThread::UI);
++  return base::BindRepeating(&StorageFrontend::OnSettingsChangedWithOrigin,
++                             weak_factory_.GetWeakPtr(),
++                             SyncSettingsChangeOrigin::kRemoteApply);
++}
++
+ void StorageFrontend::SetCacheForTesting(
+     settings_namespace::Namespace settings_namespace,
+     std::unique_ptr<ValueStoreCache> cache) {
+@@ -646,7 +659,21 @@ void StorageFrontend::OnSettingsChanged(
+     StorageAreaNamespace storage_area,
+     std::optional<api::storage::AccessLevel> access_level,
+     base::Value changes) {
++  OnSettingsChangedWithOrigin(SyncSettingsChangeOrigin::kNative, extension_id,
++                              storage_area, access_level, std::move(changes));
++}
++
++void StorageFrontend::OnSettingsChangedWithOrigin(
++    SyncSettingsChangeOrigin origin,
++    const ExtensionId& extension_id,
++    StorageAreaNamespace storage_area,
++    std::optional<api::storage::AccessLevel> access_level,
++    base::Value changes) {
+   DCHECK_CURRENTLY_ON(BrowserThread::UI);
++  if (origin == SyncSettingsChangeOrigin::kRemoteApply &&
++      storage_area != StorageAreaNamespace::kSync) {
++    return;
++  }
+   TRACE_EVENT1("browser", "SettingsObserver:OnSettingsChanged", "extension_id",
+                extension_id);
+ 
+@@ -658,8 +685,21 @@ void StorageFrontend::OnSettingsChanged(
+                 std::size(extension_id_str));
+   base::debug::Alias(extension_id_str);
+ 
++  if (storage_area == StorageAreaNamespace::kSync && changes.is_dict() &&
++      !changes.GetDict().empty()) {
++    const auto weak_this = weak_factory_.GetWeakPtr();
++    const auto observers = sync_settings_observers_;
++    observers->Notify(extension_id, changes.GetDict(), origin);
++    if (!weak_this) {
++      return;
++    }
++  }
++
+   const std::string namespace_string = StorageAreaToString(storage_area);
+   EventRouter* event_router = EventRouter::Get(browser_context_);
++  if (!event_router) {
++    return;
++  }
+ 
+   bool has_event_changed_listener = event_router->ExtensionHasEventListener(
+       extension_id, api::storage::OnChanged::kEventName);
+diff --git a/extensions/browser/api/storage/storage_frontend.h b/extensions/browser/api/storage/storage_frontend.h
+index 909f9e5daa83c9e06fd631b22213c8b3d1daa51f..64af01a969fc697bf54e713187da8cd2caf5d04f 100644
+--- a/extensions/browser/api/storage/storage_frontend.h
++++ b/extensions/browser/api/storage/storage_frontend.h
+@@ -9,6 +9,7 @@
+ #include <memory>
+ #include <string>
+ 
++#include "base/callback_list.h"
+ #include "base/memory/raw_ptr.h"
+ #include "base/memory/scoped_refptr.h"
+ #include "base/memory/weak_ptr.h"
+@@ -154,6 +155,23 @@ class StorageFrontend : public BrowserContextKeyedAPI {
+   // Gets the Settings change callback.
+   SettingsChangedCallback GetObserver();
+ 
++  // Native observation is independent of extension JavaScript listeners. This
++  // is local data, not consent to upload it: consumers must enforce their own
++  // extension/key allowlist and original profile/account authorization.
++  enum class SyncSettingsChangeOrigin { kNative, kRemoteApply };
++  using SyncSettingsChangedCallback =
++      base::RepeatingCallback<void(const ExtensionId&,
++                                   const base::DictValue&,
++                                   SyncSettingsChangeOrigin)>;
++  base::CallbackListSubscription ObserveSyncSettingsChanges(
++      SyncSettingsChangedCallback callback);
++
++  // For an authorized remote write via RunWithStorage: post this callback to
++  // UI with the committed ValueStore changes, before completing the apply.
++  // Origin travels with that exact reply; never suppress all local events for
++  // the duration of an asynchronous remote write. Does not authorize a write.
++  SettingsChangedCallback GetRemoteSyncApplyObserver();
++
+   void SetCacheForTesting(settings_namespace::Namespace settings_namespace,
+                           std::unique_ptr<ValueStoreCache> cache);
+ 
+@@ -208,6 +226,13 @@ class StorageFrontend : public BrowserContextKeyedAPI {
+                          std::optional<api::storage::AccessLevel> access_level,
+                          base::Value changes);
+ 
++  void OnSettingsChangedWithOrigin(
++      SyncSettingsChangeOrigin origin,
++      const ExtensionId& extension_id,
++      StorageAreaNamespace storage_area,
++      std::optional<api::storage::AccessLevel> access_level,
++      base::Value changes);
++
+   // The (non-incognito) browser context this Frontend belongs to.
+   const raw_ptr<content::BrowserContext> browser_context_;
+ 
+@@ -215,6 +240,15 @@ class StorageFrontend : public BrowserContextKeyedAPI {
+   // are owned by this object.
+   CacheMap caches_;
+ 
++  using SyncSettingsObservers =
++      base::RepeatingCallbackList<void(const ExtensionId&,
++                                       const base::DictValue&,
++                                       SyncSettingsChangeOrigin)>;
++  // A subscriber may release its owning profile. Keep the list alive through
++  // dispatch without retaining the BrowserContext or StorageFrontend itself.
++  std::shared_ptr<SyncSettingsObservers> sync_settings_observers_ =
++      std::make_shared<SyncSettingsObservers>();
++
+   base::WeakPtrFactory<StorageFrontend> weak_factory_{this};
+ };
+ 

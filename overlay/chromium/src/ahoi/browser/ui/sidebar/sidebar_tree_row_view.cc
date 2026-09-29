@@ -14,10 +14,15 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
-#include "base/i18n/rtl.h"
+#include "base/i18n/break_iterator.h"
+#include "base/i18n/char_iterator.h"
 #include "base/numerics/safe_conversions.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/vector_icons/vector_icons.h"
+#include "third_party/icu/source/common/unicode/uchar.h"
 #include "third_party/skia/include/core/SkPathBuilder.h"
+#include "third_party/skia/include/core/SkRRect.h"
+#include "third_party/skia/include/pathops/SkPathOps.h"
 #include "ui/accessibility/ax_action_data.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -26,12 +31,14 @@
 #include "ui/color/color_provider.h"
 #include "ui/events/event.h"
 #include "ui/events/keycodes/keyboard_codes.h"
-#include "ui/gfx/animation/animation.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/rect_f.h"
+#include "ui/gfx/geometry/skia_conversions.h"
 #include "ui/gfx/image/image_skia.h"
+#include "ui/gfx/paint_vector_icon.h"
+#include "ui/gfx/skia_util.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/controls/label.h"
 #include "ui/views/controls/textfield/textfield.h"
@@ -40,11 +47,8 @@ namespace ahoi::sidebar {
 
 namespace {
 
-constexpr int kLeadingPadding = 8;
-constexpr int kDisclosureWidth = 16;
-constexpr int kIconSize = 16;
-constexpr int kIconTitleSpacing = 6;
-constexpr int kTrailingActionSize = 24;
+constexpr int kIconSize = 18;
+constexpr int kFolderEmblemSize = 12;
 constexpr float kDropStrokeWidth = 2.0f;
 constexpr float kSelectedDotRadius = 3.0f;
 
@@ -67,9 +71,36 @@ cc::PaintFlags StrokeFlags(SkColor color, float width) {
   return flags;
 }
 
-bool IsCustomGroupIcon(std::u16string_view icon) {
-  return !icon.empty() && icon != u"folder" && icon != u"code" &&
-         icon != u"lock" && icon != u"archive" && icon != u"moon";
+const gfx::VectorIcon* FolderEmblem(std::u16string_view id) {
+  if (id == u"star") {
+    return &vector_icons::kStarFilledIcon;
+  }
+  if (id == u"code") {
+    return &vector_icons::kCodeIcon;
+  }
+  if (id == u"lock") {
+    return &vector_icons::kLockIcon;
+  }
+  if (id == u"archive") {
+    return &vector_icons::kDatabaseIcon;
+  }
+  if (id == u"moon") {
+    // Keep the identity shown by the existing Personal group icon picker.
+    return &vector_icons::kAccountCircleIcon;
+  }
+  return nullptr;
+}
+
+bool IsSingleFolderGlyph(std::u16string_view text) {
+  // A custom emoji/monogram is one printable grapheme, never a raw imported
+  // asset name. Bound both shaping work and stored presentation data.
+  if (text.empty() || text.size() > 32 ||
+      !u_isprint(base::i18n::UTF16CharIterator(text).get())) {
+    return false;
+  }
+  base::i18n::BreakIterator glyph(text,
+                                  base::i18n::BreakIterator::BREAK_CHARACTER);
+  return glyph.Init() && glyph.Advance() && glyph.pos() == text.size();
 }
 
 }  // namespace
@@ -79,7 +110,6 @@ SidebarTreeRowView::SidebarTreeRowView(SidebarTreeView* owner,
     : owner_(owner), split_with_prefix_(std::move(split_with_prefix)) {
   CHECK(owner_);
   CHECK(!split_with_prefix_.empty());
-  chevron_animation_.SetSlideDuration(visual_style::kTreeMotionDuration);
   set_context_menu_controller(owner_);
   SetFocusBehavior(FocusBehavior::ACCESSIBLE_ONLY);
   SetNotifyEnterExitOnChild(true);
@@ -111,7 +141,8 @@ void SidebarTreeRowView::Bind(size_t row_index,
                               std::u16string status_text,
                               std::vector<gfx::ImageSkia> drag_thumbnails,
                               bool running,
-                              bool sleeping) {
+                              bool sleeping,
+                              bool bookmarked) {
   CHECK_EQ(row.node_id, node.id);
   CHECK_GT(split_segment_count, 0u);
   CHECK_LT(split_segment_index, split_segment_count);
@@ -129,9 +160,6 @@ void SidebarTreeRowView::Bind(size_t row_index,
       split_segment_index_ != split_segment_index ||
       split_segment_count_ != split_segment_count || title_changed ||
       media_presence_changed || folder_navigation_changed;
-  const bool expanded_changed = same_node &&
-                                type_ == tab_tree::TreeNodeType::kFolder &&
-                                expanded_ != row.expanded;
   row_index_ = row_index;
   node_id_ = row.node_id;
   depth_ = row.depth;
@@ -139,7 +167,17 @@ void SidebarTreeRowView::Bind(size_t row_index,
   sibling_count_ = row.sibling_count;
   type_ = row.type;
   title_ = node.title;
-  folder_icon_ = node.icon;
+  if (!same_node || folder_icon_id_ != node.icon) {
+    folder_icon_id_ = node.icon;
+    folder_emblem_ = ui::ImageModel();
+    folder_glyph_.clear();
+    if (const auto* emblem = FolderEmblem(folder_icon_id_)) {
+      folder_emblem_ = ui::ImageModel::FromVectorIcon(
+          *emblem, visual_style::kText, kFolderEmblemSize);
+    } else if (IsSingleFolderGlyph(folder_icon_id_)) {
+      folder_glyph_ = folder_icon_id_;
+    }
+  }
   accent_argb_ = node.accent_argb;
   page_icon_ = std::move(page_icon);
   media_indicator_ = std::move(media_indicator);
@@ -147,18 +185,10 @@ void SidebarTreeRowView::Bind(size_t row_index,
   drag_thumbnails_ = std::move(drag_thumbnails);
   expanded_ = row.expanded;
   folder_navigation_result_ = folder_navigation_result;
-  if (!same_node || folder_navigation_changed) {
-    chevron_animation_.Reset(expanded_ ? 1.0 : 0.0);
-  } else if (!gfx::Animation::ShouldRenderRichAnimation()) {
-    chevron_animation_.Reset(expanded_ ? 1.0 : 0.0);
-  } else if (expanded_changed && expanded_) {
-    chevron_animation_.Show();
-  } else if (expanded_changed) {
-    chevron_animation_.Hide();
-  }
   selected_ = selected;
   running_ = running;
   sleeping_ = sleeping;
+  bookmarked_ = bookmarked && type_ == tab_tree::TreeNodeType::kSavedPage;
   split_segment_index_ = split_segment_index;
   split_segment_count_ = split_segment_count;
   if (title_changed && !is_editing_) {
@@ -179,6 +209,7 @@ void SidebarTreeRowView::Bind(size_t row_index,
 }
 
 void SidebarTreeRowView::Unbind() {
+  SetExiting(false);
   if (hovered_ && is_bound()) {
     owner_->OnRowHoverChanged(this, false);
   }
@@ -190,7 +221,9 @@ void SidebarTreeRowView::Unbind() {
   editor_->SetVisible(false);
   node_id_ = base::Uuid();
   title_.clear();
-  folder_icon_.clear();
+  folder_icon_id_.clear();
+  folder_emblem_ = ui::ImageModel();
+  folder_glyph_.clear();
   accent_argb_.reset();
   drop_position_.reset();
   split_drop_target_ = false;
@@ -198,6 +231,7 @@ void SidebarTreeRowView::Unbind() {
   hovered_ = false;
   running_ = false;
   sleeping_ = false;
+  bookmarked_ = false;
   folder_navigation_result_ = false;
   page_icon_ = ui::ImageModel();
   media_indicator_ = ui::ImageModel();
@@ -208,7 +242,32 @@ void SidebarTreeRowView::Unbind() {
   pressed_trailing_action_ = false;
   split_segment_index_ = 0;
   split_segment_count_ = 1;
+  split_group_bounds_.reset();
+  SetClipPath(SkPath());
   GetViewAccessibility().SetIsInvisible(true);
+}
+
+void SidebarTreeRowView::SetExiting(bool exiting) {
+  if (exiting_ == exiting) {
+    return;
+  }
+  exiting_ = exiting;
+  if (exiting) {
+    StopEditing(/*restore_model_title=*/true);
+    if (hovered_) {
+      owner_->OnRowHoverChanged(this, false);
+    }
+    hovered_ = false;
+    pressed_disclosure_ = false;
+    pressed_trailing_action_ = false;
+    selected_ = false;
+  }
+  SetCanProcessEventsWithinSubtree(!exiting);
+  SetFocusBehavior(exiting ? FocusBehavior::NEVER
+                           : FocusBehavior::ACCESSIBLE_ONLY);
+  GetViewAccessibility().SetIsLeaf(exiting);
+  GetViewAccessibility().SetIsInvisible(exiting);
+  SchedulePaint();
 }
 
 bool SidebarTreeRowView::title_visible_for_testing() const {
@@ -267,6 +326,43 @@ void SidebarTreeRowView::SetSplitDropTarget(bool split_drop_target) {
   UpdateTitleBounds();
   InvalidateLayout();
   SchedulePaint();
+}
+
+void SidebarTreeRowView::SetSplitGroupClipBounds(
+    std::optional<gfx::Rect> group_bounds) {
+  if (split_group_bounds_ == group_bounds) {
+    return;
+  }
+  split_group_bounds_ = std::move(group_bounds);
+  if (!split_group_bounds_.has_value()) {
+    SetClipPath(SkPath());
+    SchedulePaint();
+    return;
+  }
+  UpdateSplitGroupClipPath();
+  SchedulePaint();
+}
+
+void SidebarTreeRowView::UpdateSplitGroupClipPath() {
+  if (!split_group_bounds_.has_value()) {
+    return;
+  }
+  gfx::RectF local_clip(*split_group_bounds_);
+  local_clip.Offset(-x(), -y());
+  local_clip.Inset(
+      gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+                       visual_style::kSidebarTabRowHorizontalInset));
+  SkPathBuilder clip_builder;
+  clip_builder.addRRect(SkRRect::MakeRectXY(gfx::RectFToSkRect(local_clip),
+                                            visual_style::kRowCornerRadius,
+                                            visual_style::kRowCornerRadius));
+  // A shared split bubble can extend beyond this segment. During a fold its
+  // changing row height must still clip all glyphs/children to that row, rather
+  // than allowing the explicit group path to replace View's ordinary bounds
+  // clip and paint over neighbouring rows.
+  const SkPath row_clip = SkPath::Rect(gfx::RectToSkRect(GetLocalBounds()));
+  SetClipPath(Op(clip_builder.detach(), row_clip, kIntersect_SkPathOp)
+                  .value_or(row_clip));
 }
 
 gfx::ImageSkia SidebarTreeRowView::GetDragImage() {
@@ -331,6 +427,11 @@ void SidebarTreeRowView::Layout(PassKey) {
   UpdateTitleBounds();
 }
 
+void SidebarTreeRowView::OnBoundsChanged(const gfx::Rect& previous_bounds) {
+  views::View::OnBoundsChanged(previous_bounds);
+  UpdateSplitGroupClipPath();
+}
+
 void SidebarTreeRowView::UpdateTitleBounds() {
   const gfx::Rect title_bounds = GetMirroredRect(TitleBounds());
   gfx::Rect title_pane_bounds = GetLocalBounds();
@@ -356,29 +457,38 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
       split_segment_count_ > 1 ? visual_style::kSidebarSplitPaneHorizontalInset
                                : visual_style::kSidebarTabRowHorizontalInset));
 
+  std::optional<ui::ColorId> surface_color;
   if (dragging_) {
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kHoverSurface)));
+    surface_color = visual_style::kHoverSurface;
   } else if (split_drop_target_ ||
              drop_position_ == SidebarTreeController::DropPosition::kInside) {
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kDropTargetSurface)));
+    surface_color = visual_style::kDropTargetSurface;
   } else if (selected_) {
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kSelectedSurface)));
+    surface_color = visual_style::kSelectedSurface;
   } else if (is_bound() && owner_->IsExactSearchMatchForRow(node_id_)) {
     // Keep hierarchy context quiet while making the actual query hits
     // scannable. Selection and hover still take precedence above/below.
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kHoverSurface)));
+    surface_color = visual_style::kHoverSurface;
   } else if (hovered_) {
-    canvas->DrawRoundRect(
-        background, visual_style::kRowCornerRadius,
-        FillFlags(colors->GetColor(visual_style::kHoverSurface)));
+    surface_color = visual_style::kHoverSurface;
+  }
+  if (surface_color.has_value()) {
+    if (split_segment_count_ > 1 && split_group_bounds_.has_value() &&
+        !split_drop_target_) {
+      // The parent paints one shared rounded group. Segment state is a calm,
+      // flat cell clipped to that group instead of another rounded button.
+      gfx::RectF split_surface(GetLocalBounds());
+      const gfx::Rect& group = *split_group_bounds_;
+      split_surface.Inset(gfx::InsetsF::TLBR(
+          y() == group.y() ? 1.0f : 0.0f, x() == group.x() ? 1.0f : 0.0f,
+          bounds().bottom() == group.bottom() ? 1.0f : 0.0f,
+          bounds().right() == group.right() ? 1.0f : 0.0f));
+      canvas->DrawRect(split_surface,
+                       FillFlags(colors->GetColor(*surface_color)));
+    } else {
+      canvas->DrawRoundRect(background, visual_style::kRowCornerRadius,
+                            FillFlags(colors->GetColor(*surface_color)));
+    }
   }
 
   if (drop_position_ == SidebarTreeController::DropPosition::kBefore ||
@@ -419,7 +529,7 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
         StrokeFlags(colors->GetColor(visual_style::kAccent), kDropStrokeWidth));
   }
 
-  if (selected_ && owner_->HasFocus()) {
+  if (selected_ && owner_->HasFocus() && split_segment_count_ == 1) {
     gfx::RectF focus = background;
     focus.Inset(1.0f);
     canvas->DrawRoundRect(
@@ -438,104 +548,36 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
       selected_ ? visual_style::kText : visual_style::kMutedText);
 
   if (is_folder()) {
-    const gfx::Rect disclosure = GetMirroredRect(DisclosureBounds());
-    if (!folder_navigation_result_) {
-      const gfx::Point center = disclosure.CenterPoint();
-      const double expanded_progress =
-          chevron_animation_.is_animating()
-              ? chevron_animation_.GetCurrentValue()
-              : (expanded_ ? 1.0 : 0.0);
-      const bool rtl = base::i18n::IsRTL();
-      const gfx::PointF start_top(center.x() + (rtl ? 2.0f : -2.0f),
-                                  center.y() - 4.0f);
-      const gfx::PointF start_middle(center.x() + (rtl ? -2.0f : 2.0f),
-                                     center.y());
-      const gfx::PointF start_bottom(center.x() + (rtl ? 2.0f : -2.0f),
-                                     center.y() + 4.0f);
-      const gfx::PointF end_left(center.x() - 4.0f, center.y() - 2.0f);
-      const gfx::PointF end_middle(center.x(), center.y() + 2.0f);
-      const gfx::PointF end_right(center.x() + 4.0f, center.y() - 2.0f);
-      const auto interpolate = [expanded_progress](const gfx::PointF& from,
-                                                   const gfx::PointF& to) {
-        return gfx::PointF(from.x() + (to.x() - from.x()) * expanded_progress,
-                           from.y() + (to.y() - from.y()) * expanded_progress);
-      };
-      const gfx::PointF top = interpolate(start_top, end_left);
-      const gfx::PointF middle = interpolate(start_middle, end_middle);
-      const gfx::PointF bottom = interpolate(start_bottom, end_right);
-      SkPathBuilder chevron;
-      chevron.moveTo(top.x(), top.y());
-      chevron.lineTo(middle.x(), middle.y());
-      chevron.lineTo(bottom.x(), bottom.y());
-      canvas->DrawPath(chevron.detach(), StrokeFlags(icon_color, 1.5f));
-    }
-
     const gfx::Rect icon_bounds = GetMirroredRect(IconBounds());
     const SkColor folder_color = accent_argb_.has_value()
                                      ? static_cast<SkColor>(*accent_argb_)
                                      : icon_color;
-    const cc::PaintFlags folder_stroke = StrokeFlags(folder_color, 1.5f);
-    const gfx::Point icon_center = icon_bounds.CenterPoint();
-    if (IsCustomGroupIcon(folder_icon_)) {
-      canvas->DrawStringRectWithFlags(
-          folder_icon_,
-          title_label_->font_list().DeriveWithHeightUpperBound(kIconSize),
-          folder_color, icon_bounds,
-          gfx::Canvas::TEXT_ALIGN_CENTER | gfx::Canvas::NO_ELLIPSIS);
-    } else if (folder_icon_ == u"code") {
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() - 1.0f, icon_center.y() - 4.0f),
-          gfx::PointF(icon_center.x() - 5.0f, icon_center.y()), folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() - 5.0f, icon_center.y()),
-          gfx::PointF(icon_center.x() - 1.0f, icon_center.y() + 4.0f),
-          folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() + 1.0f, icon_center.y() - 4.0f),
-          gfx::PointF(icon_center.x() + 5.0f, icon_center.y()), folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() + 5.0f, icon_center.y()),
-          gfx::PointF(icon_center.x() + 1.0f, icon_center.y() + 4.0f),
-          folder_stroke);
-    } else if (folder_icon_ == u"lock") {
-      gfx::RectF body(icon_bounds.x() + 3.0f, icon_bounds.y() + 7.0f, 10.0f,
-                      7.0f);
-      canvas->DrawRoundRect(body, 2.0f, folder_stroke);
-      gfx::RectF shackle(icon_bounds.x() + 5.0f, icon_bounds.y() + 2.0f, 6.0f,
-                         9.0f);
-      canvas->DrawRoundRect(shackle, 3.0f, folder_stroke);
-    } else if (folder_icon_ == u"archive") {
-      gfx::RectF archive(icon_bounds.x() + 2.0f, icon_bounds.y() + 5.0f, 12.0f,
-                         9.0f);
-      canvas->DrawRoundRect(archive, 1.5f, folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_bounds.x() + 1.0f, icon_bounds.y() + 4.0f),
-          gfx::PointF(icon_bounds.right() - 1.0f, icon_bounds.y() + 4.0f),
-          folder_stroke);
-      canvas->DrawLine(
-          gfx::PointF(icon_center.x() - 2.0f, icon_center.y() + 1.0f),
-          gfx::PointF(icon_center.x() + 2.0f, icon_center.y() + 1.0f),
-          folder_stroke);
-    } else if (folder_icon_ == u"moon") {
-      SkPathBuilder moon;
-      moon.moveTo(icon_center.x() + 2.5f, icon_center.y() - 6.0f);
-      moon.cubicTo(icon_center.x() - 4.0f, icon_center.y() - 5.0f,
-                   icon_center.x() - 5.0f, icon_center.y() + 4.0f,
-                   icon_center.x() + 2.5f, icon_center.y() + 6.0f);
-      moon.cubicTo(icon_center.x() - 0.5f, icon_center.y() + 3.0f,
-                   icon_center.x() - 0.5f, icon_center.y() - 3.0f,
-                   icon_center.x() + 2.5f, icon_center.y() - 6.0f);
-      canvas->DrawPath(moon.detach(), folder_stroke);
-    } else {
-      SkPathBuilder folder;
-      folder.moveTo(icon_bounds.x() + 1.0f, icon_bounds.y() + 5.0f);
-      folder.lineTo(icon_bounds.x() + 6.0f, icon_bounds.y() + 5.0f);
-      folder.lineTo(icon_bounds.x() + 8.0f, icon_bounds.y() + 7.0f);
-      folder.lineTo(icon_bounds.right() - 1.0f, icon_bounds.y() + 7.0f);
-      folder.lineTo(icon_bounds.right() - 1.0f, icon_bounds.bottom() - 2.0f);
-      folder.lineTo(icon_bounds.x() + 1.0f, icon_bounds.bottom() - 2.0f);
-      folder.close();
-      canvas->DrawPath(folder.detach(), folder_stroke);
+    const gfx::ImageSkia folder = gfx::CreateVectorIcon(
+        uses_open_folder_icon() ? vector_icons::kFolderOpenIcon
+                                : vector_icons::kFolderFlippableIcon,
+        kIconSize, folder_color);
+    canvas->DrawImageInt(folder, icon_bounds.CenterPoint().x() - kIconSize / 2,
+                         icon_bounds.CenterPoint().y() - kIconSize / 2);
+    if (!folder_emblem_.IsEmpty() || !folder_glyph_.empty()) {
+      // Keep the expansion silhouette and the custom identity simultaneously
+      // visible. The badge remains inside the fixed icon slot in both states.
+      const gfx::Rect emblem_bounds(icon_bounds.right() - kFolderEmblemSize,
+                                    icon_bounds.bottom() - kFolderEmblemSize,
+                                    kFolderEmblemSize, kFolderEmblemSize);
+      canvas->DrawRoundRect(gfx::RectF(emblem_bounds), 3.0f,
+                            FillFlags(GetColorProvider()->GetColor(
+                                visual_style::kRaisedSurface)));
+      if (!folder_emblem_.IsEmpty()) {
+        canvas->DrawImageInt(folder_emblem_.Rasterize(GetColorProvider()),
+                             emblem_bounds.x(), emblem_bounds.y());
+      } else {
+        const gfx::FontList glyph_font =
+            title_label_->font_list().DeriveWithSizeDelta(
+                kFolderEmblemSize - title_label_->font_list().GetFontSize());
+        canvas->DrawStringRectWithFlags(folder_glyph_, glyph_font, icon_color,
+                                        emblem_bounds,
+                                        gfx::Canvas::TEXT_ALIGN_CENTER);
+      }
     }
 
   } else {
@@ -545,8 +587,8 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
       const int image_width = std::min(kIconSize, favicon.width());
       const int image_height = std::min(kIconSize, favicon.height());
       canvas->DrawImageInt(favicon, 0, 0, favicon.width(), favicon.height(),
-                           icon_bounds.x() + (kIconSize - image_width) / 2,
-                           icon_bounds.y() + (kIconSize - image_height) / 2,
+                           icon_bounds.CenterPoint().x() - image_width / 2,
+                           icon_bounds.CenterPoint().y() - image_height / 2,
                            image_width, image_height, true);
     } else {
       gfx::RectF page_icon(icon_bounds);
@@ -557,6 +599,18 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
       canvas->DrawLine(
           gfx::PointF(left, page_icon.y() + 4.0f),
           gfx::PointF(page_icon.right() - 3.0f, page_icon.y() + 4.0f), line);
+    }
+    if (bookmarked_) {
+      // A passive badge stays inside the existing favicon slot. It never
+      // competes with the media/origin state or the hover-only close action.
+      const gfx::Rect badge(icon_bounds.right() - 10, icon_bounds.bottom() - 10,
+                            10, 10);
+      canvas->DrawRoundRect(gfx::RectF(badge), 2.0f,
+                            FillFlags(GetColorProvider()->GetColor(
+                                visual_style::kRaisedSurface)));
+      canvas->DrawImageInt(
+          gfx::CreateVectorIcon(vector_icons::kStarFilledIcon, 8, icon_color),
+          badge.x() + 1, badge.y() + 1);
     }
   }
 
@@ -631,7 +685,7 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
 }
 
 bool SidebarTreeRowView::OnMousePressed(const ui::MouseEvent& event) {
-  if (!event.IsOnlyLeftMouseButton() || !is_bound()) {
+  if (!event.IsOnlyLeftMouseButton() || !is_bound() || exiting_) {
     return false;
   }
   const bool disclosure_hit =
@@ -647,7 +701,7 @@ bool SidebarTreeRowView::OnMousePressed(const ui::MouseEvent& event) {
 }
 
 void SidebarTreeRowView::OnMouseReleased(const ui::MouseEvent& event) {
-  if (!event.IsLeftMouseButton()) {
+  if (!event.IsLeftMouseButton() || exiting_) {
     pressed_disclosure_ = false;
     pressed_trailing_action_ = false;
     return;
@@ -682,164 +736,6 @@ void SidebarTreeRowView::OnDragDone() {
   SetIsDragging(false);
   owner_->OnRowDragDone();
   views::View::OnDragDone();
-}
-
-bool SidebarTreeRowView::HandleAccessibleAction(
-    const ui::AXActionData& action_data) {
-  if (is_bound()) {
-    if (action_data.action == ax::mojom::Action::kFocus) {
-      return owner_->OnRowAccessibilityFocused(this);
-    }
-    if (action_data.action == ax::mojom::Action::kDoDefault) {
-      return owner_->OnRowAccessibilityActivated(this);
-    }
-  }
-  return views::View::HandleAccessibleAction(action_data);
-}
-
-bool SidebarTreeRowView::HandleKeyEvent(views::Textfield* sender,
-                                        const ui::KeyEvent& key_event) {
-  if (sender != editor_ || key_event.type() != ui::EventType::kKeyPressed) {
-    return false;
-  }
-  if (key_event.key_code() == ui::VKEY_RETURN) {
-    owner_->CommitRename(node_id_, std::u16string(editor_->GetText()));
-    return true;
-  }
-  if (key_event.key_code() == ui::VKEY_ESCAPE) {
-    owner_->CancelRename(node_id_);
-    return true;
-  }
-  return false;
-}
-
-gfx::Rect SidebarTreeRowView::DisclosureBounds() const {
-  const int x =
-      kLeadingPadding + base::saturated_cast<int>(depth_) * kIndentWidth;
-  return gfx::Rect(
-      x, 0,
-      is_folder() && !folder_navigation_result_ && split_segment_count_ == 1
-          ? kDisclosureWidth
-          : 0,
-      height());
-}
-
-gfx::Rect SidebarTreeRowView::IconBounds() const {
-  const int x =
-      is_folder()
-          ? DisclosureBounds().right() + 2
-          : kLeadingPadding + base::saturated_cast<int>(depth_) * kIndentWidth;
-  return gfx::Rect(x, std::max(0, (height() - kIconSize) / 2), kIconSize,
-                   kIconSize);
-}
-
-gfx::Rect SidebarTreeRowView::TitleBounds() const {
-  constexpr int kTitleTrailingGap = 7;
-  const int x = IconBounds().right() + kIconTitleSpacing;
-  int title_end = media_indicator_.IsEmpty() ? TrailingActionBounds().x()
-                                             : MediaIndicatorBounds().x();
-  title_end -= kTitleTrailingGap;
-  // A split-drop preview labels the destination in the logical leading half.
-  // The Label already tail-elides, so the trailing half stays visually clear
-  // for the incoming pane preview in both LTR and RTL layouts.
-  if (split_drop_target_) {
-    title_end = std::min(title_end, width() / 2 - kTitleTrailingGap);
-  }
-  return gfx::Rect(x, 0, std::max(0, title_end - x), height());
-}
-
-gfx::Rect SidebarTreeRowView::MediaIndicatorBounds() const {
-  const gfx::Rect action = TrailingActionBounds();
-  gfx::Rect bounds(std::max(0, action.x() - kTrailingActionSize - 2),
-                   action.y(), kTrailingActionSize, action.height());
-  bounds.Intersect(GetLocalBounds());
-  return bounds;
-}
-
-gfx::Rect SidebarTreeRowView::TrailingActionBounds() const {
-  gfx::Rect bounds(std::max(0, width() - kTrailingActionSize - 4),
-                   std::max(0, (height() - kTrailingActionSize) / 2),
-                   kTrailingActionSize,
-                   std::min(kTrailingActionSize, std::max(0, height())));
-  bounds.Intersect(GetLocalBounds());
-  return bounds;
-}
-
-bool SidebarTreeRowView::ShouldShowTrailingAction() const {
-  // Selection/focus describes browser state, not pointer intent. Keep both the
-  // loaded-tab power action and the unloaded saved-page remove action hidden
-  // until the pointer is genuinely over this row, matching temporary tabs and
-  // preventing a persistent close affordance from crowding the active title.
-  return !split_drop_target_ && !is_folder() && hovered_;
-}
-
-bool SidebarTreeRowView::ShouldPaintTrailingState() const {
-  return !split_drop_target_;
-}
-
-bool SidebarTreeRowView::IsTrailingActionAt(const gfx::Point& point) const {
-  return ShouldShowTrailingAction() &&
-         GetMirroredRect(TrailingActionBounds()).Contains(point);
-}
-
-void SidebarTreeRowView::UpdateAccessibility() {
-  auto& accessibility = GetViewAccessibility();
-  accessibility.SetIsInvisible(false);
-  std::u16string accessible_name =
-      split_drop_target_ ? split_with_prefix_ + u" " + title_ : title_;
-  if (sleeping_) {
-    accessible_name += u" — ";
-    accessible_name += l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);
-  }
-  if (!status_text_.empty()) {
-    accessible_name += u" — ";
-    accessible_name += status_text_;
-  }
-  accessibility.SetName(accessible_name);
-  std::u16string tooltip;
-  if (sleeping_) {
-    tooltip = l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);
-  }
-  if (!status_text_.empty()) {
-    if (!tooltip.empty()) {
-      tooltip += u" — ";
-    }
-    tooltip += status_text_;
-  }
-  SetTooltipText(tooltip);
-  accessibility.SetHierarchicalLevel(base::saturated_cast<int>(depth_ + 1));
-  accessibility.SetPosInSet(base::saturated_cast<int>(position_in_parent_));
-  accessibility.SetSetSize(base::saturated_cast<int>(sibling_count_));
-  accessibility.SetIsSelected(selected_);
-  accessibility.SetDefaultActionVerb(is_folder() && !folder_navigation_result_
-                                         ? ax::mojom::DefaultActionVerb::kClick
-                                         : ax::mojom::DefaultActionVerb::kOpen);
-  accessibility.AddAction(ax::mojom::Action::kDoDefault);
-  if (is_folder() && !folder_navigation_result_) {
-    if (expanded_) {
-      accessibility.SetIsExpanded();
-    } else {
-      accessibility.SetIsCollapsed();
-    }
-  } else {
-    accessibility.RemoveExpandCollapseState();
-  }
-}
-
-void SidebarTreeRowView::AnimationProgressed(const gfx::Animation* animation) {
-  if (animation == &chevron_animation_) {
-    SchedulePaint();
-  }
-}
-
-void SidebarTreeRowView::AnimationEnded(const gfx::Animation* animation) {
-  if (animation == &chevron_animation_) {
-    SchedulePaint();
-  }
-}
-
-void SidebarTreeRowView::AnimationCanceled(const gfx::Animation* animation) {
-  AnimationEnded(animation);
 }
 
 BEGIN_METADATA(SidebarTreeRowView)

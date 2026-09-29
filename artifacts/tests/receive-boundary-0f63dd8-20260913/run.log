@@ -1,0 +1,31 @@
+objc[67810]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142590a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127a7ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[67811]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140beca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1260d8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim:SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn:SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction:SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from SyncReceiveBoundaryTest
+[ RUN      ] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim
+[       OK ] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim (9 ms)
+[ RUN      ] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn
+[       OK ] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn (1 ms)
+[ RUN      ] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction
+[       OK ] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction (0 ms)
+[ RUN      ] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState
+[       OK ] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState (1 ms)
+[----------] 4 tests from SyncReceiveBoundaryTest (241 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (241 ms total)
+[  PASSED  ] 4 tests.
+[1/4] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim (9 ms)
+[2/4] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn (1 ms)
+[3/4] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction (0 ms)
+[4/4] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState (1 ms)
+SUCCESS: all tests passed.
+Tests took 1 seconds.

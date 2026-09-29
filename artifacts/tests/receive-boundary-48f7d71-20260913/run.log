@@ -1,0 +1,83 @@
+objc[63252]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14251ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127a08a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[63380]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13e588a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x123a74a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim:SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn:SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction:SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from SyncReceiveBoundaryTest
+[ RUN      ] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim
+../../ahoi/browser/sync/sync_unittest.cc:163: Failure
+Value of: SerializeRecord(tab, &payload)
+  Actual: false
+Expected: true
+Stack trace:
+0   ahoi_sync_unittests                 0x00000001002c6c20 ahoi::sync::(anonymous namespace)::CachedTabBatch() + 416
+1   ahoi_sync_unittests                 0x00000001002c5ab4 ahoi::sync::SyncReceiveBoundaryTest_CachedBurstPreservesOutgoingRetryAndFetchClaim_Test::TestBody() + 548
+
+../../ahoi/browser/sync/sync_unittest.cc:787: Failure
+Expected equality of these values:
+  tabs.size()
+    Which is: 0
+  1u
+    Which is: 1
+Stack trace:
+0   ahoi_sync_unittests                 0x00000001002c694c ahoi::sync::SyncReceiveBoundaryTest_CachedBurstPreservesOutgoingRetryAndFetchClaim_Test::TestBody() + 4284
+
+[  FAILED  ] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim (105 ms)
+[ RUN      ] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn
+../../ahoi/browser/sync/sync_unittest.cc:163: Failure
+Value of: SerializeRecord(tab, &payload)
+  Actual: false
+Expected: true
+Stack trace:
+0   ahoi_sync_unittests                 0x00000001002c6c20 ahoi::sync::(anonymous namespace)::CachedTabBatch() + 416
+1   ahoi_sync_unittests                 0x00000001002c7150 ahoi::sync::SyncReceiveBoundaryTest_OriginalDeliveryLeaseStaysRevokedAfterOffOn_Test::TestBody() + 536
+
+[  FAILED  ] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn (4 ms)
+[ RUN      ] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction
+../../ahoi/browser/sync/sync_unittest.cc:163: Failure
+Value of: SerializeRecord(tab, &payload)
+  Actual: false
+Expected: true
+Stack trace:
+0   ahoi_sync_unittests                 0x00000001002c6c20 ahoi::sync::(anonymous namespace)::CachedTabBatch() + 416
+1   ahoi_sync_unittests                 0x00000001002c7a64 ahoi::sync::SyncReceiveBoundaryTest_RevocationAtCommitRollsBackReceiveTransaction_Test::TestBody() + 360
+
+[  FAILED  ] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction (3 ms)
+[ RUN      ] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState
+../../ahoi/browser/sync/sync_unittest.cc:163: Failure
+Value of: SerializeRecord(tab, &payload)
+  Actual: false
+Expected: true
+Stack trace:
+0   ahoi_sync_unittests                 0x00000001002c6c20 ahoi::sync::(anonymous namespace)::CachedTabBatch() + 416
+1   ahoi_sync_unittests                 0x00000001002c8468 ahoi::sync::SyncReceiveBoundaryTest_RevocationAfterAckCannotPublishUiState_Test::TestBody() + 536
+
+[  FAILED  ] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState (4 ms)
+[----------] 4 tests from SyncReceiveBoundaryTest (336 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (336 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 4 tests, listed below:
+[  FAILED  ] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim
+[  FAILED  ] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn
+[  FAILED  ] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction
+[  FAILED  ] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState
+
+ 4 FAILED TESTS
+[1/4] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim (105 ms)
+[2/4] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn (4 ms)
+[3/4] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction (3 ms)
+[4/4] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState (4 ms)
+4 tests failed:
+    SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim (../../ahoi/browser/sync/sync_unittest.cc:755)
+    SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn (../../ahoi/browser/sync/sync_unittest.cc:791)
+    SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState (../../ahoi/browser/sync/sync_unittest.cc:842)
+    SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction (../../ahoi/browser/sync/sync_unittest.cc:817)
+Tests took 1 seconds.

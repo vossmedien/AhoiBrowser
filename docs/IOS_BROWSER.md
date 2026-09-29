@@ -1,30 +1,42 @@
 # Native AhoiBrowser for iOS and iPadOS
 
 Status: **DEVELOPMENT_EVIDENCE_ONLY — NOT A RELEASE CANDIDATE**. The former
-local-first Companion has been migrated into the `AhoiBrowser Mobile` source
-product and a native WebKit browser slice is present in the worktree. On
-2026-08-30 the Debug iPhone simulator build and the universal (`arm64` and
-`x86_64`) Release iPad simulator build succeeded. The run also completed 56
-Mobile Core tests with zero failures and two entitlement-dependent skips, three
-UI tests with zero failures, and 36 CloudKit/security package tests with zero
-failures.
+local-first Companion has been migrated into the native SwiftUI/WebKit
+`AhoiBrowser Mobile` product. The exact DebugLocal source candidate is
+`4113c14c1e0d21061a1c5927e25ab55663d547a7`, version/build `0.1 (1)`, bundle
+`app.ahoibrowser.AhoiBrowser`, Team `248AJ5BN47`. Its retained, hash-bound
+development receipt is
+[`artifacts/e2e/0.1-1-4113c14-debuglocal/manifest.json`](../artifacts/e2e/0.1-1-4113c14-debuglocal/manifest.json).
 
-A development build was signed and installed on a physical iPhone 16 Pro Max
-running iOS 26.6. The first CLI launch was rejected while the device was locked;
-after unlock, launch through the host's iPhone device-management/synchronization
-flow visibly proved Ahoi cold start, HTTPS `example.com`, Browser Actions, a new
-private tab and, after targeted termination of the Ahoi process, restoration of
-the normal Example tab with the private tab excluded. This launch path is
-unrelated to Ahoi CloudKit sync. Screenshots are retained under
-[`audit-evidence/2026-08-30-ios-device-preflight/`](audit-evidence/2026-08-30-ios-device-preflight/).
-This is a bounded physical-development smoke, not completion of any full
-registry journey. The available iPad (6th generation) runs iPadOS 17.7.10 and
-cannot install this iOS/iPadOS 26 target. There is still no distribution
-archive, default-browser entitlement, entitled CloudKit roundtrip or TestFlight
-installation.
-`MOB-USER-01` through `MOB-USER-15` and `IOS-01` through `IOS-15` are
-release-critical and remain `NOT_RUN` in `config/test-registry.json`. The
-evidence contract is documented in
+Visible E2E ran before the programmatic suites on that exact candidate. The
+iPhone 17 Pro simulator passed 11/11 selected browser, private-mode, local-sync,
+failure-recovery and Harbor Deck journeys; the iPad Pro simulator passed 3/3
+Focus Voyage, Harbor Deck and Workspace Canvas journeys. A development-signed
+iPhone 16 Pro Max running iOS 26.6 passed 7/7 selected journeys, and a bounded
+`devicectl` invocation additionally proved that an HTTPS payload launches the
+app. The payload invocation does not prove system-default routing or a visible
+duplicate-tab count. No product source changed after these visible runs.
+
+The subsequent full Mobile Core run recorded 111 passes, zero failures and two
+expected entitlement-dependent skips out of 113 tests. Mobile repository
+contracts passed 20/20, the provider-free CloudKit/security package passed
+36/36, Swift parsing passed 94/94 with every Mobile Swift file at or below 800
+lines, and exact-candidate `xcodebuild analyze` succeeded. Two detached
+XcodeGen 2.46.0 generations were content-identical and Git-clean, the three
+post-snapshot Mobile focus commits passed DCO, and redacted Gitleaks scans of
+the exact Mobile source, shared CloudKit package and retained candidate evidence
+found no leaks. These checks prove their local scopes only; the offline CloudKit
+package is not real provider or cross-device evidence.
+
+The machine-readable receipt claims only `SOURCE_COMPLETE`, `LOCAL_BUILD_PASS`,
+`UNIT_PASS`, `SIMULATOR_VISIBLE` and `DEVICE_VISIBLE`. The available physical
+iPad (6th generation) runs iPadOS 17.7.10 and cannot install this iOS/iPadOS 26
+target. There is still no compatible physical-iPad pass, distribution archive,
+entitled CloudKit roundtrip, TestFlight installation, managed default-browser
+grant or post-grant system-default E2E. `MOB-USER-01` through `MOB-USER-15` and
+`IOS-01` through `IOS-15` therefore remain release-critical `NOT_RUN`
+requirements in `config/test-registry.json`. The evidence contract and exact
+boundaries are documented in
 [`IOS_BROWSER_E2E_EVIDENCE.md`](IOS_BROWSER_E2E_EVIDENCE.md).
 
 The mobile product is a native SwiftUI browser for **iOS/iPadOS 26 and later**.
@@ -37,7 +49,8 @@ is intentionally usable
 without iCloud: it starts with a file-backed local store and does not construct
 `CKContainer` until the user enables the default-off sync preference. Transport
 then still requires an Apple-configured target, a real development container,
-matching entitlements and an externally provisioned payload key.
+matching entitlements and either a successful first-use payload-key bootstrap
+or migration of an existing canonical payload key.
 
 ## Best-practice decision
 
@@ -168,7 +181,7 @@ cannot upload records before the zone exists.
 The macOS implementation under `ahoi/browser/sync` uses the same private
 database, custom zone, record type, metadata fields, encrypted-value envelope,
 and canonical plaintext. `ProfileSyncService` owns a `SyncPump` when and only
-when a valid container configuration and externally provisioned key are
+when a valid container configuration and usable canonical payload key are
 available. It requests sync after initialization, every five minutes, after a
 local tab mutation, and through its public manual `SyncNow()` seam. Missing
 CloudKit configuration, account, entitlement, or key disables only transport;
@@ -210,10 +223,15 @@ more than seven days old. The separate remote-action freshness check is 15
 minutes, so a visible archival session is not automatically controllable.
 
 Both provider initializers reject malformed container IDs and blank zone
-names. No production container identifier, Apple Team ID, signing key,
-provisioning profile, or secret is stored in this repository. The iOS and macOS
-entitlement templates contain build-setting placeholders and are not attached
-to unsigned local targets. The macOS template configuration is
+names. The verified public Team/bundle values and intended dedicated container
+ID are versioned in the Mobile public xcconfig; they are not secrets. The live
+portal currently verifies the App ID capability switches but not the intended
+container's existence or assignment: it shows zero assignments, and the only
+Team container belongs to DisplayPilot and is explicitly invalid for Ahoi. Signing keys,
+payload/command key bytes, certificates and provisioning profiles remain outside
+the repository. The iOS and macOS entitlement templates contain build-setting
+references and are not attached to provider-free local targets. The macOS
+template configuration is
 `ahoi/browser/sync/AhoiBrowserCloudKit.xcconfig.template`; the signed fork must
 inject its values into the product Info.plist and matching entitlements.
 `CompanionCloudKitBootstrap` reads the equivalent iOS settings. Empty or
@@ -224,16 +242,28 @@ runtime factory immediately, with no restart-only side path.
 
 ### Release and entitlement seam
 
+Mobile has five explicit Xcode configurations: `DebugLocal`,
+`CloudKitDevelopment`, `TestFlightBootstrap`, `DefaultBrowserDevelopment` and
+`ReleasePostGrant`. `DebugLocal` has no CloudKit, Push, Keychain-group or
+default-browser source entitlement. The two pre-grant entitled modes use
+`AhoiMobile.entitlements.template`; only the two post-grant modes use
+`AhoiMobile.DefaultBrowser.entitlements.template`. Automatic/Cloud-Managed
+Signing is primary, while a manual profile is an explicit fail-closed fallback.
+`TestFlightBootstrap` is Production-CloudKit capable but intentionally lacks
+`com.apple.developer.web-browser` and remains eligible for external/public
+TestFlight. A fresh `ReleasePostGrant` archive is mandatory after Apple grants
+the managed entitlement.
+
 The tracked [`config/macos-entitlements.json`](../config/macos-entitlements.json)
-is an exact allowlist used by signing and installed-app verification. Its
-`browser-app` role intentionally contains no CloudKit entitlement today.
-Consequently an ordinary release cannot accidentally gain iCloud access, and a
-binary with unreviewed extra CloudKit entitlements fails exact verification.
+remains an exact desktop allowlist used by signing and installed-app
+verification. Its `browser-app` role intentionally contains no CloudKit
+entitlement today. Consequently the current ordinary desktop release cannot
+accidentally gain iCloud access, and a binary with unreviewed extra CloudKit
+entitlements fails exact verification.
 
 The external Apple/release owner must materialize both sides of the same gate:
 
-1. replace the Companion's `invalid.ahoibrowser.unconfigured.*` bundle-setting
-   defaults and the Browser's external bundle ID with Team-owned App IDs;
+1. bind the Browser app to the same verified Team-owned multi-platform App ID;
 2. stamp the Browser app's `Info.plist` with the non-placeholder
    `AHOI_CLOUDKIT_*` and `AHOI_SYNC_KEYCHAIN_*` values described by
    `AhoiBrowserCloudKit.xcconfig.template`;
@@ -244,37 +274,71 @@ The external Apple/release owner must materialize both sides of the same gate:
 4. sign with a matching App ID/provisioning capability, then run the normal
    exact entitlement verifier.
 
-The repository does not interpolate placeholders into release policy and does
-not ship a permissive wildcard. Until the Apple Team supplies the container,
-Team/App IDs, access groups and profiles, the only valid tracked policy is the
-current no-CloudKit policy and desktop transport remains disabled. The
-Mobile uses the analogous `AhoiMobile.entitlements.template`; its sync
-and command Keychain groups are independent placeholders and may be the same
-approved group only by an explicit Apple security decision.
+The repository does not interpolate placeholders into desktop release policy
+and does not ship a permissive wildcard. Until the Apple Team assigns the
+dedicated container and supplies matching access groups/profiles, the only valid
+tracked desktop policy is the current no-CloudKit policy and desktop transport
+remains disabled. Mobile keeps the synchronizable payload group and per-device
+command-signing group explicitly separate and rejects a foreign container or
+additional group in its mode-aware preflight.
 
-The current source only reads the configured AES and Ed25519 items from
-Keychain. No real payload/command keys or audited operational path for their
-provisioning, rotation, recovery and revocation has been supplied. The installed
-Mac development app is not CloudKit-entitled and has no concrete CloudKit
-configuration, so it cannot serve as the counterparty for a real roundtrip.
+The Mobile source does not require an operator to inject either private key.
+After explicit sync opt-in, `CompanionKeyLifecycleCoordinator` first inspects
+the private CloudKit zone and creates it when necessary. If neither a bootstrap
+claim nor encrypted domain records exist, it creates a 32-byte AES candidate
+with `SecRandomCopyBytes`, stores the candidate and its journal in
+non-synchronizable `AfterFirstUnlockThisDeviceOnly` Keychain items, and attempts
+the single well-known CloudKit claim. The claim contains the key version, not
+the key bytes. Only after the accepted claim receipt has been persisted,
+re-fetched and matched does the store promote that same candidate to the
+canonical, data-protected, synchronizable Keychain item. A concurrent loser
+discards its generated candidate and waits for the winning key to arrive through
+the synchronizable Keychain, preventing a split-key upload.
+
+An existing canonical AES key for the requested version follows the migration
+path: it is claimed and verified without generating or replacing key material.
+An accepted local journal can resume promotion after a crash. Conversely,
+encrypted remote data without an accessible key, a version mismatch, an
+unverified claim receipt, corrupt Keychain state, or an indeterminate claim
+leaves encrypted domain transport blocked in waiting or recovery state. This is
+the implemented first-use/claim/migration boundary; no external
+pre-provisioning of AES bytes is a prerequisite.
+
+The installed Mac development app is not CloudKit-entitled and has no concrete
+CloudKit configuration, so it cannot serve as the counterparty for a real
+roundtrip. Coordinator status, local revocation confirmation and the
+provider-independent recovery contracts are implemented; the corrected
+revocation UI journey passed on the simulator. A complete entitled production
+flow for key rotation, record re-encryption, cross-device recovery, revocation
+and device removal is still not end-to-end proven.
 
 Private payloads are first sealed with AES-256-GCM and then stored only in
-`CKRecord.encryptedValues`. The 32-byte key must already exist in the shared,
-data-protected, synchronizable Keychain item named by the configuration. The
-code never generates a replacement, derives one from a password, or invents a
-recovery protocol. A missing or malformed key fails closed. Cookies, passwords,
-autofill data, HTTP-auth/header secrets, site data, cache, permissions,
-incognito data, and extension storage are outside the allowed record classes.
+`CKRecord.encryptedValues`. Once claim verification succeeds, the canonical
+32-byte key resides in the shared, data-protected, synchronizable Keychain item
+named by the configuration. The code generates only a guarded first-use
+candidate; it does not derive a key from a password or silently invent a
+replacement for established encrypted data. A missing or malformed key fails
+closed. Cookies, passwords, autofill data, HTTP-auth/header secrets, site data,
+cache, permissions, incognito data, and extension storage are outside the
+allowed record classes.
 
 ## Signed single-tab remote control
 
 Remote control is a separate encrypted sync entity, not an implicit privilege
 of seeing a remote tab. Browser execution is off by default. The Mac requires
 both the opt-in pref and a source-device UUID mapped to an approved raw 32-byte
-Ed25519 public key. The Companion reads a raw Ed25519 private key only from the
-externally provisioned Keychain item named by `AHOI_COMMAND_KEYCHAIN_*`; it
-never generates or replaces that key. If any container, payload key, command
-key or entitlement is missing, the send path is unavailable.
+Ed25519 public key. On first use, `KeychainRemoteCommandSigner` creates the
+device's Ed25519 private key if it is absent, reads it back for verification,
+and keeps it in a data-protected, non-synchronizable
+`AfterFirstUnlockThisDeviceOnly` Keychain item named by
+`AHOI_COMMAND_KEYCHAIN_*`. Only the public provisioning identity (source-device
+ID, public key and fingerprint) leaves that boundary for explicit approval on
+the Mac; the private key is neither externally pre-provisioned nor exported by
+the signing API. If any container, payload key, command-key configuration or
+entitlement is missing, the send path is unavailable. Guarded local signing-key
+revocation, deletion, rotation/re-enrolment and explicit device removal are
+implemented and covered locally. Entitlement-backed cross-device removal of an
+approved-device mapping remains open operational evidence.
 
 Every signature covers canonical JSON shared by the Swift and C++ golden
 tests: command ID, source and target devices, random nonce, issue time, and the
@@ -383,18 +447,19 @@ From the repository root:
 cd spikes/cloudkit
 swift test --jobs 1 --disable-index-store
 
-cd ../../apps/AhoiMobile
-swift test --jobs 1 --disable-index-store
-swift build --target AhoiMobileCore --jobs 1 --disable-index-store \
-  --sdk "$(xcrun --sdk iphoneos --show-sdk-path)" --triple arm64-apple-ios26.5
-swift build --target AhoiMobileApp --jobs 1 --disable-index-store \
-  --sdk "$(xcrun --sdk iphoneos --show-sdk-path)" --triple arm64-apple-ios26.5
+cd ../..
+xcodebuild -project apps/AhoiMobile/AhoiMobile.xcodeproj \
+  -scheme AhoiMobile -configuration DebugLocal \
+  -destination 'platform=iOS Simulator,id=<CURRENT_SIMULATOR_UDID>' \
+  -derivedDataPath /private/tmp/ahoi-mobile-core-gate-derived \
+  -resultBundlePath /private/tmp/ahoi-mobile-core-gate.xcresult \
+  -parallel-testing-enabled NO -only-testing:AhoiMobileCoreTests test
 ```
 
 The 2026-08-30 development run established the bounded simulator/build/test
 results listed at the top of this document. The commands above remain a
-repeatable source-level subset; they do not by themselves reproduce the full
-Xcode simulator matrix or physical installation evidence.
+repeatable provider-free subset; they do not by themselves reproduce the full
+simulator matrix, physical installation evidence, or real CloudKit transport.
 
 The package tests exercise browser input
 routing, normal/private session persistence, Companion-to-Mobile migration,
@@ -410,7 +475,7 @@ CKSyncEngine construction tests are compile-checked but skipped unless an
 explicit entitled test target sets `AHOI_CLOUDKIT_TEST_ENTITLED=1`; this keeps
 the default test run offline and prevents a placeholder container from making
 an account/network claim. The two entitlement-dependent skips in the current
-56-test Core run remain skips; they are not CloudKit passes.
+113-test Core run remain skips; they are not CloudKit passes.
 
 ## External Apple and distribution gates
 
@@ -418,30 +483,42 @@ The authoritative machine-readable gates live in
 `config/external-gates.json`. Mobile release requires at least:
 
 1. Apple Developer Team ownership, final Mobile bundle ID/App ID and matching
-   development plus distribution certificates/profiles;
-2. Apple's managed default-browser entitlement attached to that exact bundle
-   and provisioning profile;
-3. a registered private CloudKit container, matching environment/iCloud/push
-   entitlements and controlled schema promotion;
-4. reviewed synchronizable Keychain groups and production key lifecycle
-   provisioning (approval, cross-device availability, rotation, recovery and
-   revocation) for the AES payload key and each Mobile Ed25519 command key; the
-   repository intentionally supplies no KDF, fake credential or bootstrap
-   secret;
-5. signed, installed Mac, iPhone and iPad candidates using one controlled
+   development/distribution profiles; Automatic/Cloud-Managed Signing is the
+   primary certificate path;
+2. a newly registered private Ahoi CloudKit container assigned to the verified
+   App ID, matching environment/iCloud/push entitlements and controlled schema
+   promotion; the live portal currently shows zero assignments and the existing
+   DisplayPilot container is not a fallback;
+3. reviewed Keychain groups plus entitled proof of the implemented AES
+   first-use claim/migration and per-device Ed25519 public-key approval flows;
+   production still needs entitled proof of complete rotation, recovery,
+   record re-encryption, revocation and device-removal behavior. The repository intentionally
+   supplies no KDF, fake credential or bootstrap secret;
+4. signed, installed Mac, iPhone and iPad candidates using one controlled
    iCloud test account;
-6. all `MOB-USER-*` Computer Use and `IOS-*` assisted physical-device journeys,
+5. all pre-grant-applicable `MOB-USER-*` Computer Use and `IOS-*` assisted
+   physical-device journeys,
    including permissions, file provider, downloads, accessibility, pointer,
    keyboard, backgrounding and memory pressure;
-7. entitled E2E proof for offline changes, account switch, token expiry,
+6. entitled E2E proof for offline changes, account switch, token expiry,
    conflict, tombstone/recovery, quota and device revocation; and
-8. App Store Connect record/disclosures, candidate archive/export/upload and
-   processing receipts, followed by TestFlight installation and launch on real
-   iPhone and iPad.
+7. resolved trader status, App Store Connect app record/agreements/disclosures
+   plus a processed
+   `TestFlightBootstrap` installed internally and externally with an active
+   public TestFlight link;
+8. Apple's managed default-browser entitlement granted for that exact bundle,
+   followed by a new profile/build/archive and post-grant TestFlight system-
+   default E2E on real iPhone and iPad.
 
-Until candidate-bound artifacts exist, this document records source coverage
+Until final distribution-candidate-bound artifacts exist, this document records source coverage
 plus bounded simulator/build/test and physical-development-smoke evidence only.
-No distribution certificate, App Store Connect API key, managed default-browser
-entitlement, real CloudKit container/key lifecycle, entitled Mac counterparty
-or TestFlight candidate is available. The registry status for every Mobile
+No processed distribution archive, managed default-browser entitlement, real
+entitled CloudKit roundtrip, complete post-bootstrap key lifecycle, entitled Mac
+counterparty or TestFlight candidate is available. The live Apple snapshot
+shows both managed browser
+capabilities at `No Requests`, no App Store Connect apps, an unresolved trader
+warning and zero containers assigned to the otherwise CloudKit/Push-enabled
+Ahoi App ID. A local Apple Distribution identity and App Store Connect API key
+are not asserted as blockers because authenticated Xcode Automatic
+Signing/Organizer is the intended path. The registry status for every Mobile
 user/device journey remains `NOT_RUN`.

@@ -115,8 +115,7 @@ bool SplitExtractionMatchesSnapshot(
           ? split_tabs::SplitTabVisualData::ForThreePane(
                 snapshot.visual_data.split_layout(),
                 snapshot.visual_data.arrangement())
-          : split_tabs::SplitTabVisualData(
-                snapshot.visual_data.split_layout());
+          : split_tabs::SplitTabVisualData(snapshot.visual_data.split_layout());
   return *remainder_split->visual_data() == expected_visual_data;
 }
 
@@ -189,10 +188,9 @@ bool RestoreDropModelSnapshot(TabStripModel* tab_strip_model,
     }
     std::ranges::sort(restore_indices);
     const bool indices_are_contiguous =
-        std::ranges::adjacent_find(
-            restore_indices,
-            [](int left, int right) { return right != left + 1; }) ==
-        restore_indices.end();
+        std::ranges::adjacent_find(restore_indices, [](int left, int right) {
+          return right != left + 1;
+        }) == restore_indices.end();
     if (restore_indices.size() < 2u || restore_indices.size() > 4u ||
         !indices_are_contiguous ||
         tab_strip_model->ContainsSplit(snapshot.target_split->split_id)) {
@@ -381,8 +379,8 @@ bool SplitDropController::PerformDrop(
     TabStripModel* const model = tab_strip_model_;
     const int source_handle = source.tab->GetHandle().raw_value();
     const std::optional<sidebar::SplitTabExtractionSnapshot>
-        extraction_snapshot = sidebar::CaptureSplitTabExtractionSnapshot(
-            model, source.tab.get());
+        extraction_snapshot =
+            sidebar::CaptureSplitTabExtractionSnapshot(model, source.tab.get());
     if (!extraction_snapshot.has_value() ||
         !sidebar::ExtractTabFromSplitPreservingRemainder(model,
                                                          source.tab.get())) {
@@ -788,22 +786,6 @@ bool SplitDropController::ReorderSplitTo(
     ++successful_reorders;
   }
   return true;
-}
-
-void SplitDropController::ClearOverlayIntent() {
-  preview_intent_.reset();
-  if (overlay_view_tracker_) {
-    static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
-        ->ClearIntent();
-  }
-}
-
-void SplitDropController::EndOverlayPresentation() {
-  preview_intent_.reset();
-  if (overlay_view_tracker_) {
-    static_cast<SplitDropOverlayView*>(overlay_view_tracker_.view())
-        ->EndDragPresentation();
-  }
 }
 
 }  // namespace ahoi::split_drop

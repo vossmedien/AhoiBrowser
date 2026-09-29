@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "kind": "ahoi-fresh-profile-network-audit",
+  "app": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "bc53748d319f1b086b03e25beceaea2e36d85e64dc0ca6916549de62ea743705",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "6acd207f19b5ba0357240b1b90f078beb4eec09c",
+    "buildProfile": "dev",
+    "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+  },
+  "startedAt": "2026-09-28T09:43:20.478176+00:00",
+  "idleSeconds": 600,
+  "netlogBytes": 7890092,
+  "hosts": {
+    "allowed": [
+      {
+        "host": "edgedl.me.gvt1.com",
+        "count": 138,
+        "rule": "chromium-component-download-edge"
+      },
+      {
+        "host": "safebrowsing.googleapis.com",
+        "count": 16,
+        "rule": "safe-browsing-v5"
+      },
+      {
+        "host": "update.googleapis.com",
+        "count": 151,
+        "rule": "chromium-component-update-check"
+      }
+    ],
+    "conditional": [],
+    "denied": [],
+    "unknown": [],
+    "navigated": [
+      {
+        "host": "example.com",
+        "count": 16
+      }
+    ]
+  },
+  "socketRemotes": [
+    "[2600:1900:4110:86f::]:443",
+    "[2606:4700:10::ac42:93f3]:443",
+    "[2a00:1450:4013:c03::5f]:443",
+    "[2a00:1450:4013:c04::8b]:443"
+  ],
+  "gcmStoreHasCheckin": null,
+  "verdicts": {
+    "NET-GCM-01": "PASS",
+    "fresh-profile-silence": "PASS",
+    "PRIV-14-lists": "FAIL",
+    "PRIV-12-endpoints": "PASS",
+    "PRIV-16": "PASS"
+  },
+  "phases": [
+    "crash",
+    "idle",
+    "navigation"
+  ],
+  "shutdown": "exited",
+  "variant": "keyless",
+  "method": "Chromium NetLog (Default capture) plus lsof socket polling every 2 s; no root, so non-Chromium DNS is not observed",
+  "safeBrowsingResponses": [
+    {
+      "path": "/v4/threatListUpdates:fetch",
+      "status": 400
+    }
+  ],
+  "navigatedHosts": [
+    "example.com"
+  ],
+  "crash": {
+    "browserCrashed": false,
+    "crashpadDatabase": "/Users/vossmedien/Library/Application Support/AhoiBrowser/Crashpad",
+    "uploadsEnabled": false,
+    "newReports": {
+      "new": [],
+      "pending": [
+        "ea8eefec-84d9-4aba-a2aa-02d4aba1cc9f.dmp"
+      ],
+      "completed": []
+    },
+    "uploadMarkersInNetlog": [],
+    "crashHandlerRemotes": []
+  }
+}

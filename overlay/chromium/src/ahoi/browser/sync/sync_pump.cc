@@ -8,7 +8,9 @@
 #include <tuple>
 #include <utility>
 
+#include "ahoi/browser/sync/browser_settings_sync_types.h"
 #include "ahoi/browser/sync/sync_provider.h"
+#include "ahoi/browser/sync/sync_serialization.h"
 #include "ahoi/browser/sync/sync_store.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -18,13 +20,25 @@
 namespace ahoi::sync {
 namespace {
 
+SyncAuthorization Both(SyncAuthorization first, SyncAuthorization second) {
+  return base::BindRepeating(
+      [](SyncAuthorization a, SyncAuthorization b) {
+        return a && b && a.Run() && b.Run();
+      },
+      std::move(first), std::move(second));
+}
+
 std::string SafeProviderError(std::string error) {
   // Provider implementations return categories, never raw CKError text or
   // payloads. Fail closed if a future provider violates that boundary.
-  static constexpr const char* kAllowedErrors[] = {
-      "account_unavailable", "cancelled",      "network",
-      "provider_error",      "quota",          "rate_limited",
-      "server",              "temporarily_unavailable"};
+  static constexpr const char* kAllowedErrors[] = {"account_unavailable",
+                                                   "cancelled",
+                                                   "network",
+                                                   "provider_error",
+                                                   "quota",
+                                                   "rate_limited",
+                                                   "server",
+                                                   "temporarily_unavailable"};
   base::TrimWhitespaceASCII(error, base::TRIM_ALL, &error);
   for (const char* allowed : kAllowedErrors) {
     if (error == allowed) {
@@ -39,9 +53,7 @@ std::string SafeProviderError(std::string error) {
 SyncPump::SyncPump(SyncStore* store, SyncProvider* provider)
     : SyncPump(store, provider, Options()) {}
 
-SyncPump::SyncPump(SyncStore* store,
-                   SyncProvider* provider,
-                   Options options)
+SyncPump::SyncPump(SyncStore* store, SyncProvider* provider, Options options)
     : store_(store),
       provider_(provider),
       options_(std::move(options)),
@@ -51,13 +63,17 @@ SyncPump::SyncPump(SyncStore* store,
   CHECK_GT(options_.upload_batch_size, 0u);
   CHECK_GT(options_.initial_retry_delay, base::TimeDelta());
   CHECK_GE(options_.maximum_retry_delay, options_.initial_retry_delay);
+  bookmark_sync_enabled_ =
+      options_.bookmark_sync_enabled && !provider_->IsBookmarkConsentRevoked();
+  provider_->SetBookmarkSyncEnabled(bookmark_sync_enabled_);
+  BindIncomingCallback();
 }
 
 SyncPump::~SyncPump() {
   Cancel();
 }
 
-bool SyncPump::SyncNow(CompletionCallback callback) {
+bool SyncPump::SyncNow(CompletionCallback callback, bool user_initiated) {
   if (!store_ || !provider_ || !task_runner_) {
     return false;
   }
@@ -65,36 +81,144 @@ bool SyncPump::SyncNow(CompletionCallback callback) {
     callbacks_.push_back(std::move(callback));
   }
   if (syncing_) {
-    cycle_requested_ = true;
+    // A click during a real attempt joins that attempt, rather than scheduling
+    // another forced send. Background changes retain one coalesced follow-up.
+    cycle_requested_ |= receive_only_ || !user_initiated;
+    queued_user_sync_ |= receive_only_ && user_initiated;
     return true;
   }
   syncing_ = true;
-  StartCycle();
+  StartCycle(user_initiated);
   return true;
 }
 
 void SyncPump::Cancel() {
+  provider_->SetIncomingCallback({});
   weak_ptr_factory_.InvalidateWeakPtrs();
   syncing_ = false;
   cycle_requested_ = false;
+  receive_only_ = false;
+  queued_user_sync_ = false;
+  receive_authorization_.Reset();
+  pending_receive_authorization_.Reset();
   RunCallbacks(false, "cancelled");
 }
 
-void SyncPump::StartCycle() {
+void SyncPump::SetIncomingAppliedCallback(
+    base::RepeatingCallback<void(SyncAuthorization)> callback) {
+  incoming_applied_callback_ = std::move(callback);
+}
+
+void SyncPump::BindIncomingCallback() {
+  provider_->SetIncomingCallback(base::BindRepeating(
+      &SyncPump::OnIncomingAvailable, weak_ptr_factory_.GetWeakPtr()));
+}
+
+void SyncPump::OnIncomingAvailable(SyncAuthorization authorization) {
+  if (!authorization || !authorization.Run())
+    return;
+  pending_receive_authorization_ = std::move(authorization);
+  StartPendingReceive();
+}
+
+void SyncPump::StartPendingReceive() {
+  if (syncing_ || !pending_receive_authorization_)
+    return;
+  auto authorization = std::exchange(pending_receive_authorization_, {});
+  if (!authorization.Run())
+    return;
+  receive_authorization_ = std::move(authorization);
+  receive_only_ = syncing_ = true;
+  received_changes_ = false;
+  // Incoming ciphertext is already durable. It must not wait for an outgoing
+  // failure's deadline, nor run an upload merely to import that inbox.
+  DownloadNextPage(store_->GetChangeToken());
+}
+
+void SyncPump::FinishReceive(bool success) {
+  auto authorization = std::exchange(receive_authorization_, {});
+  receive_only_ = syncing_ = false;
+  if (!success)
+    pending_receive_authorization_.Reset();
+  if (success && received_changes_ && incoming_applied_callback_ &&
+      authorization && authorization.Run()) {
+    incoming_applied_callback_.Run(std::move(authorization));
+  }
+  received_changes_ = false;
+  StartPendingReceive();
+  if (!syncing_ && (cycle_requested_ || !callbacks_.empty())) {
+    const bool manual = std::exchange(queued_user_sync_, false);
+    syncing_ = true;
+    StartCycle(manual);
+  }
+}
+
+void SyncPump::SetBookmarkSyncEnabled(bool enabled) {
+  if (bookmark_sync_enabled_ == enabled) {
+    provider_->SetBookmarkSyncEnabled(enabled);
+    return;
+  }
+  bookmark_sync_enabled_ = enabled;
+  // Invalidate first: a provider may finish old work while applying the gate.
+  weak_ptr_factory_.InvalidateWeakPtrs();
+  syncing_ = false;
+  cycle_requested_ = false;
+  receive_only_ = false;
+  queued_user_sync_ = false;
+  receive_authorization_.Reset();
+  pending_receive_authorization_.Reset();
+  provider_->SetBookmarkSyncEnabled(enabled);
+  BindIncomingCallback();
+  RunCallbacks(false, "cancelled");
+}
+
+void SyncPump::StartCycle(bool user_initiated) {
   cycle_requested_ = false;
   const RetryState retry = store_->GetRetryState();
-  if (!retry.next_attempt.is_null() && retry.next_attempt > base::Time::Now()) {
-    FinishFailure(retry.last_error.empty() ? "temporarily_unavailable"
-                                           : retry.last_error);
+  if (!user_initiated && !retry.next_attempt.is_null() &&
+      retry.next_attempt > base::Time::Now()) {
+    // Waiting is not another transport failure. Advancing the stored deadline
+    // here lets periodic checks (and manual clicks) postpone a retry forever.
+    syncing_ = false;
+    RunCallbacks(false, retry.last_error.empty() ? "temporarily_unavailable"
+                                                 : retry.last_error);
     return;
   }
   UploadNextPage();
 }
 
 void SyncPump::UploadNextPage() {
+  auto transport_authorization = provider_->GetTransportAuthorization();
+  if (!transport_authorization || !transport_authorization.Run()) {
+    FinishFailure("cancelled");
+    return;
+  }
   std::vector<SyncChange> changes;
-  if (store_->ReadOutbox(options_.upload_batch_size, &changes) !=
-      SyncStore::Result::kOk) {
+  std::vector<SyncAuthorization> setting_scopes;
+  if (store_->ReadOutbox(
+          options_.upload_batch_size, &changes, bookmark_sync_enabled_,
+          base::BindRepeating(
+              [](SyncProvider* provider, std::vector<SyncAuthorization>* scopes,
+                 const SyncChange& change) {
+                if (change.entity_type != EntityType::kPermittedSetting) {
+                  return true;
+                }
+                SyncRecord decoded;
+                if (!ValidateChangeEnvelope(change, &decoded) ||
+                    !IsPortableBrowserSetting(
+                        std::get<PermittedSettingRecord>(decoded))) {
+                  return false;
+                }
+                auto scope = provider->GetPermittedSettingSyncAuthorization(
+                    change.entity_id);
+                if (!scope || !scope.Run()) {
+                  return false;
+                }
+                scopes->push_back(std::move(scope));
+                return true;
+              },
+              base::Unretained(provider_.get()),
+              base::Unretained(&setting_scopes))) != SyncStore::Result::kOk) {
     FinishFailure("provider_error");
     return;
   }
@@ -103,23 +227,62 @@ void SyncPump::UploadNextPage() {
     return;
   }
 
+  // Preserve each original category generation across Upload and its posted
+  // reply. A later off/on cannot acknowledge an old operation or lose its row.
+  transport_authorization = base::BindRepeating(
+      [](SyncAuthorization transport,
+         const std::vector<SyncAuthorization>& settings) {
+        return transport.Run() &&
+               std::ranges::all_of(settings, [](const auto& scope) {
+                 return scope && scope.Run();
+               });
+      },
+      std::move(transport_authorization), std::move(setting_scopes));
+
   std::vector<SyncChange> attempted = changes;
+  BookmarkSyncAuthorization authorization;
+  if (std::ranges::any_of(changes, [](const SyncChange& change) {
+        return change.entity_type == EntityType::kBookmark;
+      })) {
+    authorization = provider_->GetBookmarkSyncAuthorization();
+    if (!authorization || !authorization.Run()) {
+      FinishFailure("cancelled");
+      return;
+    }
+  }
   provider_->Upload(
       std::move(changes),
       base::BindPostTask(
           task_runner_,
           base::BindOnce(&SyncPump::OnUploadFinished,
-                         weak_ptr_factory_.GetWeakPtr(),
-                         std::move(attempted))));
+                         weak_ptr_factory_.GetWeakPtr(), std::move(attempted),
+                         std::move(transport_authorization),
+                         std::move(authorization))));
 }
 
-void SyncPump::OnUploadFinished(
-    std::vector<SyncChange> attempted,
-    bool success,
-    std::vector<std::string> acknowledged_ids,
-    std::string error) {
+void SyncPump::OnUploadFinished(std::vector<SyncChange> attempted,
+                                SyncAuthorization transport_authorization,
+                                BookmarkSyncAuthorization authorization,
+                                bool success,
+                                std::vector<std::string> acknowledged_ids,
+                                std::string error) {
+  if (!transport_authorization || !transport_authorization.Run()) {
+    FinishFailure("cancelled");
+    return;
+  }
   if (!success) {
     FinishFailure(SafeProviderError(std::move(error)));
+    return;
+  }
+
+  // BindPostTask is a further asynchronous hop after the provider's check.
+  // A revoke during that hop must not acknowledge/remove the retained outbox.
+  if (std::ranges::any_of(attempted,
+                          [](const SyncChange& change) {
+                            return change.entity_type == EntityType::kBookmark;
+                          }) &&
+      (!bookmark_sync_enabled_ || !authorization || !authorization.Run())) {
+    FinishFailure("cancelled");
     return;
   }
 
@@ -141,8 +304,7 @@ void SyncPump::OnUploadFinished(
 
   acknowledged_ids.assign(unique_acknowledgements.begin(),
                           unique_acknowledgements.end());
-  if (store_->AcknowledgeOutbox(acknowledged_ids) !=
-      SyncStore::Result::kOk) {
+  if (store_->AcknowledgeOutbox(acknowledged_ids) != SyncStore::Result::kOk) {
     FinishFailure("provider_error");
     return;
   }
@@ -150,18 +312,42 @@ void SyncPump::OnUploadFinished(
 }
 
 void SyncPump::DownloadNextPage(std::string requested_token) {
-  provider_->Download(
-      requested_token,
-      base::BindPostTask(
-          task_runner_,
-          base::BindOnce(&SyncPump::OnDownloadFinished,
-                         weak_ptr_factory_.GetWeakPtr(), requested_token)));
+  auto transport_authorization = provider_->GetTransportAuthorization();
+  if (receive_only_) {
+    transport_authorization =
+        Both(std::move(transport_authorization), receive_authorization_);
+  }
+  if (!transport_authorization || !transport_authorization.Run()) {
+    FinishFailure("cancelled");
+    return;
+  }
+  auto authorization = bookmark_sync_enabled_
+                           ? provider_->GetBookmarkSyncAuthorization()
+                           : BookmarkSyncAuthorization();
+  auto callback = base::BindPostTask(
+      task_runner_,
+      base::BindOnce(&SyncPump::OnDownloadFinished,
+                     weak_ptr_factory_.GetWeakPtr(), requested_token,
+                     transport_authorization, std::move(authorization)));
+  if (receive_only_) {
+    provider_->ReadPendingChanges(requested_token,
+                                  std::move(transport_authorization),
+                                  std::move(callback));
+  } else {
+    provider_->Download(requested_token, std::move(callback));
+  }
 }
 
 void SyncPump::OnDownloadFinished(std::string requested_token,
+                                  SyncAuthorization transport_authorization,
+                                  BookmarkSyncAuthorization authorization,
                                   bool success,
                                   ProviderBatch batch,
                                   std::string error) {
+  if (!transport_authorization || !transport_authorization.Run()) {
+    FinishFailure("cancelled");
+    return;
+  }
   if (!success) {
     FinishFailure(SafeProviderError(std::move(error)));
     return;
@@ -170,15 +356,60 @@ void SyncPump::OnDownloadFinished(std::string requested_token,
     FinishFailure("provider_error");
     return;
   }
-  if (store_->ApplyRemoteBatch(batch) != SyncStore::Result::kOk) {
+  const bool has_bookmarks =
+      std::ranges::any_of(batch.changes, [](const SyncChange& change) {
+        return change.entity_type == EntityType::kBookmark;
+      });
+  if (has_bookmarks &&
+      (!bookmark_sync_enabled_ || !authorization || !authorization.Run())) {
+    // A provider that ignored category consent must not hydrate the store or
+    // advance its token past records it failed to retain safely.
+    FinishFailure(bookmark_sync_enabled_ ? "cancelled" : "provider_error");
+    return;
+  }
+  auto import_authorization =
+      has_bookmarks ? Both(transport_authorization, std::move(authorization))
+                    : transport_authorization;
+  import_authorization =
+      Both(std::move(import_authorization),
+           provider_->GetDownloadAuthorization(batch.next_change_token));
+  if (receive_only_) {
+    receive_authorization_ = Both(receive_authorization_, import_authorization);
+  }
+  const bool empty_receive = receive_only_ && batch.changes.empty() &&
+                             batch.next_change_token == requested_token;
+  const auto imported = empty_receive
+                            ? SyncStore::Result::kOk
+                            : store_->ApplyRemoteBatch(
+                                  batch, import_authorization, receive_only_);
+  if (imported != SyncStore::Result::kOk) {
+    FinishFailure(imported == SyncStore::Result::kNotAuthorized
+                      ? "cancelled"
+                      : "provider_error");
+    return;
+  }
+  if (!import_authorization.Run() ||
+      !provider_->AcknowledgeDownloaded(batch.next_change_token,
+                                        import_authorization)) {
     FinishFailure("provider_error");
     return;
   }
+  received_changes_ |= receive_only_ && !batch.changes.empty();
   if (batch.has_more) {
     DownloadNextPage(std::move(batch.next_change_token));
     return;
   }
+  if (receive_only_) {
+    FinishReceive(true);
+    return;
+  }
   if (cycle_requested_) {
+    // This cycle has durably succeeded. Its old backoff must not block a
+    // coalesced follow-up, and callers still wait for that remaining work.
+    if (store_->ClearRetry() != SyncStore::Result::kOk) {
+      FinishFailure("provider_error");
+      return;
+    }
     StartCycle();
     return;
   }
@@ -186,24 +417,33 @@ void SyncPump::OnDownloadFinished(std::string requested_token,
 }
 
 void SyncPump::FinishSuccess() {
-  std::ignore = store_->ClearRetry();
+  if (store_->ClearRetry() != SyncStore::Result::kOk) {
+    FinishFailure("provider_error");
+    return;
+  }
   syncing_ = false;
   RunCallbacks(true, std::string());
+  StartPendingReceive();
 }
 
 void SyncPump::FinishFailure(std::string error) {
+  if (receive_only_) {
+    FinishReceive(false);
+    return;
+  }
   error = SafeProviderError(std::move(error));
   std::ignore = store_->MarkRetry(base::Time::Now() + NextRetryDelay(), error);
   syncing_ = false;
   cycle_requested_ = false;
   RunCallbacks(false, error);
+  StartPendingReceive();
 }
 
 base::TimeDelta SyncPump::NextRetryDelay() const {
   base::TimeDelta delay = options_.initial_retry_delay;
   const int attempts = std::max(0, store_->GetRetryState().attempt);
-  for (int index = 0;
-       index < attempts && delay < options_.maximum_retry_delay; ++index) {
+  for (int index = 0; index < attempts && delay < options_.maximum_retry_delay;
+       ++index) {
     delay = std::min(delay * 2, options_.maximum_retry_delay);
   }
   return delay;

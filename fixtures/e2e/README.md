@@ -15,8 +15,9 @@ insecure HTTP replacement, or a globally permissive TLS policy are forbidden.
 
 No command silently changes a trust store. Certificate generation writes only
 to the selected runtime directory. Trust installation requires an exact,
-deliberately supplied confirmation phrase and targets one macOS **user**
-keychain. The CA private key and leaf private key are never imported.
+deliberately supplied confirmation phrase and targets either one macOS **user**
+keychain or one exact booted iOS Simulator UDID. The CA private key and leaf
+private key are never imported.
 
 From the repository root:
 
@@ -31,26 +32,131 @@ python3 tools/ahoi_e2e_fixture.py status
 The default runtime directory is `/tmp/ahoibrowser-e2e-$UID`. Every command
 accepting state also accepts `--state-dir PATH`. `trust-install` uses the
 default macOS user keychain reported by `security default-keychain -d user`, or
-an explicitly supplied `--keychain PATH`. It writes `trust-receipt.json` with
-the exact keychain and CA fingerprints only after `security add-trusted-cert`
-succeeds. `start` refuses to run without that explicit receipt, an exact
-fingerprint match from `security find-certificate`, and a local-only
-`security verify-cert` check of the fixture leaf against the recorded keychain.
+an explicitly supplied `--keychain PATH`. Before `security add-trusted-cert`,
+it durably writes a schema-v3 `pending` receipt bound to the exact manifest,
+keychain, CA/leaf fingerprints, and literal explicit consent. Only after the
+command succeeds and exact `security find-certificate` plus local-only
+`security verify-cert` checks pass does a second journal revision mark it
+`installed`. `start` accepts only that verified schema-v3 installed state.
 
-After an installed-browser run, always clean up in this order:
+### Simulator-only trust without changing the Mac login keychain
+
+Mobile E2E should prefer a disposable, dedicated simulator. Copy its exact
+uppercase UDID from `xcrun simctl list devices`; the convenient `booted` alias,
+device names, unavailable devices, and shutdown devices are deliberately
+rejected:
+
+```sh
+python3 tools/ahoi_e2e_fixture.py generate-certificates \
+  --state-dir /private/tmp/ahoi-mobile-e2e
+python3 tools/ahoi_e2e_fixture.py simulator-trust-install \
+  --state-dir /private/tmp/ahoi-mobile-e2e \
+  --udid CAE7F82B-52D2-4607-992C-EDF40C323DE3 \
+  --confirm I-understand-this-adds-a-local-test-CA-to-the-selected-iOS-Simulator
+python3 tools/ahoi_e2e_fixture.py start \
+  --state-dir /private/tmp/ahoi-mobile-e2e
+```
+
+The installer validates the exact UDID, Booted/available state, device name,
+runtime, device type, data path, and generated CA/leaf fingerprints. Before
+mutation it writes a `pending` typed receipt, then invokes only
+`xcrun simctl keychain <EXACT-UDID> add-root-cert <EXACT-CA>`. Afterward it
+opens that simulator's `private/var/protected/trustd/private/TrustStore.sqlite3`
+read-only and requires one row whose SHA-256 index and DER bytes both match the
+generated CA. `start` repeats the identity, fingerprint, and exact root-store
+checks. This read-only CoreSimulator database check is the fail-closed fallback
+because the current `simctl keychain` API exposes `add-root-cert`, `add-cert`,
+and broad `reset`, but no root-list or single-root-remove action.
+
+`simctl keychain reset` is intentionally never used: it would erase unrelated
+simulator credentials. Current Xcode also has no API to remove one root. To
+clean up simulator trust honestly, stop the fixture, delete that exact
+disposable simulator using Xcode or an explicitly targeted external command,
+then let the fixture verify the UDID is absent before removing its receipt:
+
+```sh
+python3 tools/ahoi_e2e_fixture.py stop \
+  --state-dir /private/tmp/ahoi-mobile-e2e
+# Delete only the exact dedicated simulator outside this fixture.
+python3 tools/ahoi_e2e_fixture.py simulator-trust-finalize \
+  --state-dir /private/tmp/ahoi-mobile-e2e \
+  --confirm I-confirm-the-recorded-iOS-Simulator-was-deleted
+python3 tools/ahoi_e2e_fixture.py cleanup \
+  --state-dir /private/tmp/ahoi-mobile-e2e
+```
+
+`simulator-trust-finalize` never deletes or resets a device and refuses while
+the recorded UDID still appears anywhere in `simctl` inventory or its recorded
+device data path still exists. A `pending` receipt means an interrupted
+installation may have changed that simulator and is therefore also a cleanup
+obligation; it never authorizes `start`.
+
+If an interrupted simulator install left `pending` but the exact recorded
+simulator still exists, the narrower recovery path below clears the receipt
+only after revalidating the full simulator identity and proving that exact CA
+absent from its read-only trust database. If the CA is present, delete the
+dedicated simulator and use `simulator-trust-finalize` instead.
+
+```sh
+python3 tools/ahoi_e2e_fixture.py simulator-trust-cancel \
+  --state-dir /private/tmp/ahoi-mobile-e2e \
+  --confirm I-confirm-the-pending-iOS-Simulator-has-no-local-test-CA
+```
+
+### Receipt recovery and legacy state migration
+
+Receipt files are regular, single-link, no-follow state files. A crash may
+leave only `trust-receipt.json.pending`, or both the current receipt and a
+pending successor. The next trust/status operation validates the complete
+schema, manifest hash, target identity, consent, and legal predecessor before
+promoting a pending revision. A truncated write is discarded only where the
+durable prior state proves no trust mutation could depend on it. Invalid,
+symlinked, hard-linked, conflicting, or target-mismatched state fails closed.
+
+Existing strict v1/v2 receipts remain diagnostic and removable but never
+authorize `start`. Migrate one only after preserving its state directory:
+
+```sh
+python3 tools/ahoi_e2e_fixture.py trust-receipt-migrate \
+  --state-dir /private/tmp/ahoi-mobile-e2e \
+  --confirm migrate-the-legacy-local-test-CA-receipt
+```
+
+Installed legacy receipts migrate only after exact live trust verification;
+legacy `pending` receipts remain pending cleanup obligations. A legacy
+certificate manifest may use absolute paths only when they already resolve to
+the four canonical files inside that same state directory. For an external-path
+manifest, move the four referenced files into the state directory as
+`ahoi-e2e-ca.pem`, `ahoi-e2e-ca-key.pem`, `ahoi-e2e-leaf.pem`, and
+`ahoi-e2e-leaf-key.pem`, replace its four path values with those filenames, and
+then rerun status/migration. The tool never moves or deletes external material.
+
+After a macOS-keychain installed-browser run, always clean up in this order:
 
 ```sh
 python3 tools/ahoi_e2e_fixture.py stop
+python3 tools/ahoi_e2e_fixture.py protocol-remove \
+  --confirm remove-the-isolated-ahoi-e2e-protocol-handler
 python3 tools/ahoi_e2e_fixture.py trust-remove \
   --confirm remove-the-local-test-CA
 python3 tools/ahoi_e2e_fixture.py cleanup
 ```
 
-`trust-remove` calls `security delete-certificate -t` for exactly the SHA-256
-fingerprint and user keychain captured by `trust-install`; it does not search
-by a broad name and does not touch any other certificate. `cleanup` refuses
-while a trust receipt remains, then deletes the local CA/leaf certificates and
-their private keys. It retains `receipts.jsonl` and `service.log` for audit.
+`trust-remove` first reconciles the receipt journal, then calls `security
+delete-certificate -t` for exactly the SHA-256 fingerprint and user keychain
+captured by `trust-install`; it retains the receipt unless a post-check proves
+that exact CA absent. A pre-mutation macOS `pending` receipt whose CA is already
+absent can therefore be cleared without issuing a delete. The command never
+searches by a broad name and does not touch any other certificate.
+
+`cleanup` refuses while any final or pending trust receipt remains. It writes a
+durable `certificate-cleanup.json` journal before the first material unlink;
+rerunning `cleanup` resumes an interrupted transaction and removes the manifest
+only after every journaled canonical path is absent. Before and after removal
+it checks hard links plus state-local byte-identical and same-type PEM/DER-
+identical copies. The success message deliberately does **not** claim detection
+of alternate private-key encodings (for example SEC1 versus PKCS#8) or raw DER
+certificate copies. It retains `receipts.jsonl` and `service.log` for audit.
 Delete those diagnostic files separately only after preserving required test
 evidence.
 
@@ -74,17 +180,74 @@ CA can be used by a strict test client.
 The first-party root links every visual journey. The machine-readable contract
 is available at `/__fixture/manifest`; `/__fixture/health` provides readiness,
 `/__fixture/receipts` returns sanitized receipts, and `POST
-/__fixture/reset` clears only fixture receipts.
+/__fixture/reset` clears fixture receipts and counters, including re-arming the
+single intentional download disconnect.
+
+## Isolated custom-protocol workflow
+
+The navigation page includes exactly one non-web URL:
+`ahoi-e2e-safe://open/fixture`. It remains inert unless the optional fixture
+handler is installed with explicit consent:
+
+```sh
+python3 tools/ahoi_e2e_fixture.py protocol-install \
+  --confirm install-the-isolated-ahoi-e2e-protocol-handler
+python3 tools/ahoi_e2e_fixture.py protocol-status
+```
+
+The installer creates an ad-hoc-signed AppleScript application only at
+`$STATE_DIR/AhoiBrowser E2E Protocol Handler.app`. Its fixed event recorder is a
+self-contained, owner-readable Python helper inside that signed bundle; it does
+not import or execute the repository copy of `custom_protocol.py`. The handler
+compares the one accepted URL case-sensitively, then verifies the exact bundle
+with `codesign --verify --deep --strict` and the embedded helper with its pinned
+SHA-256 before invoking it without arguments. Arbitrary hosts, paths, queries,
+fragments, case variants and other schemes are ignored. The incoming value is
+never passed to a shell or retained; an accepted invocation appends only a
+fixed, owner-only event to `protocol-handler-events.jsonl` through no-follow
+directory/file descriptors.
+
+An existing handler is reused only when its owner-only receipt, exact marker,
+installation identifier, compiled handler hash, bundled-helper hash,
+`Info.plist` hash, marker hash and strict code-signature/identifier verification
+all agree. Replacement and removal authority requires the receipt and the
+in-bundle marker to match each other byte-for-byte through the recorded marker
+hash; a stale receipt alone never authorizes deletion. A damaged or legacy app
+whose marker/receipt contract no longer matches must be inspected and manually
+quarantined rather than automatically replaced or removed.
+
+Before any registration mutation, the installer reads the LaunchServices
+database and requires that every claim for the fixture bundle ID or
+`ahoi-e2e-safe` scheme is either absent or the exact current state-directory app
+path. A foreign handler, a handler from another state directory, a pathless
+claim or an unreadable registry fails closed without exposing the foreign path
+in status output. Registration and unregistration are polled until the exact
+path set is observed, and transactional rollback preserves the prior
+registration state and restores the app and receipt if staging, registration,
+integrity verification or receipt commit fails; removal restores a prior
+registration when app-tree deletion fails.
+
+Removal still requires the exact phrase shown in the cleanup workflow.
+`cleanup` refuses while any handler app, receipt or transaction-backup artifact
+remains, including a damaged fixture that reports `needsRepair`. If rollback or
+backup cleanup itself cannot complete, the tool stops with a manual-cleanup
+requirement instead of deleting an ownership-ambiguous artifact. This unique
+test scheme has no production handler to replace, and the fixture never
+registers AhoiBrowser itself.
 
 ## Journey and endpoint contract
 
 | Area | Pages/endpoints | What the fixture proves |
 |---|---|---|
 | download | `/download-upload`, `/download/deterministic.bin` | `Accept-Ranges`, single byte ranges, pause/resume reconstruction, stable SHA-256 |
+| large/resume download | `/download/large-range.zip` | deterministic 12 MiB stored ZIP, throttled 64 KiB chunks, Range and stable SHA-256 |
+| disconnect/resume | `/download/disconnect-once.zip` | first full response after reset is deliberately truncated; subsequent Range/full requests serve the same stable ZIP |
+| PDF | `/document/synthetic.pdf` | generated timestamp-free one-page PDF for built-in viewer, print and download journeys |
 | warning download | `/download/harmless-warning.exe` | attachment with warning-prone extension/MIME; plain text only, no executable code or malware |
 | upload/DnD | `/download-upload`, `POST /upload` | picker and drop-zone raw upload, size/hash receipt, bytes never stored |
 | split/DnD | `/split`, `/pane/a`, `/pane/b`, `/pane/c` | three independent panes plus a web-URL-only drop target |
 | navigation | `/navigation`, `/redirect/same`, `/redirect/cross`, `/popup` | same-/cross-origin redirects and requested/`noopener` popups |
+| custom protocol | `ahoi-e2e-safe://open/fixture` | exact-match dispatch to the separately consented isolated handler; no arbitrary URL forwarding |
 | OAuth | `/oauth/authorize`, `POST /oauth/approve`, `/oauth/callback` | explicitly synthetic consent/callback plumbing with no real IdP or token |
 | passkey | `/passkey`, `/passkey/challenge`, `POST /passkey/verify` | local UI/challenge simulation only; no `navigator.credentials`; real platform WebAuthn remains `ASSISTED_E2E` |
 | media | `/media`, `/media/sample.mp4` | committed, hash-pinned fragmented H.264 Baseline/AAC-LC MP4, Range, MSE and PiP controls |
@@ -169,6 +332,7 @@ python3 tools/ahoi_e2e_fixture.py run-tests
 
 The suite creates its CA and servers inside `TemporaryDirectory`, validates TLS
 against only that CA, verifies that a default trust store rejects the leaf,
-and mocks both `security add-trusted-cert` and `security delete-certificate`.
-It never invokes either trust-changing command and leaves no system trust or
-server process behind.
+and mocks `security` plus `xcrun simctl` trust commands. Simulator lifecycle
+tests use a temporary SQLite trust-store facsimile and exact device-inventory
+runner responses. The suite never invokes either trust-changing command against
+the real system and leaves no system trust or server process behind.

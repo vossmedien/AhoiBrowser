@@ -1,11 +1,10 @@
+import UIKit
 import XCTest
 
-final class AhoiMobileUITests: XCTestCase {
+final class AhoiMobileUITests: MobileBrowserUITestCase {
     @MainActor
     func testLocalFixtureAndPrivateTabLifecycle() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         XCTAssertTrue(
             app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8),
@@ -23,8 +22,7 @@ final class AhoiMobileUITests: XCTestCase {
         XCTAssertTrue(app.buttons["browser.address.private"].waitForExistence(timeout: 3))
 
         app.terminate()
-        app.launchArguments = []
-        app.launch()
+        relaunchExactCandidate(app)
         XCTAssertFalse(
             app.buttons["browser.address.private"].waitForExistence(timeout: 1),
             "Private tabs must never survive process restart."
@@ -33,10 +31,176 @@ final class AhoiMobileUITests: XCTestCase {
     }
 
     @MainActor
+    func testReaderExtractsVisibleArticleAndReturnsToSamePage() throws {
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        defer { app.terminate() }
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+
+        app.buttons["browser.more"].tap()
+        let reader = app.buttons["browser.actions.reader"]
+        XCTAssertTrue(reader.waitForExistence(timeout: 5))
+        for _ in 0..<4 {
+            if reader.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(reader.isHittable)
+        reader.tap()
+
+        let content = app.descendants(matching: .any)["browser.reader.content"]
+        XCTAssertTrue(content.waitForExistence(timeout: 8))
+        XCTAssertTrue(content.staticTexts["Ahoi Reader fixture article"].exists)
+        XCTAssertTrue(content.staticTexts.matching(NSPredicate(
+            format: "label BEGINSWITH %@", "The first paragraph is ordinary visible prose"
+        )).firstMatch.exists)
+        XCTAssertFalse(content.staticTexts["Ahoi fixture page"].exists)
+        XCTAssertFalse(content.staticTexts["Ahoi visible find target"].exists)
+        attachScreenshot(named: "reader-loaded-article", of: app)
+
+        app.buttons["browser.reader.return"].tap()
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["browser.address"].exists)
+    }
+
+    @MainActor
+    func testPageLinkCopiesAndUnavailableReaderKeepOriginalPage() throws {
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        defer { app.terminate() }
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+
+        app.buttons["browser.more"].tap()
+        let addressCopy = app.buttons["browser.actions.copy-address"]
+        let markdownCopy = app.buttons["browser.actions.copy-markdown"]
+        XCTAssertTrue(addressCopy.waitForExistence(timeout: 5))
+        for _ in 0..<4 {
+            if addressCopy.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(addressCopy.isHittable)
+        addressCopy.tap()
+        XCTAssertEqual(readPasteboardString(), "https://fixture.ahoibrowser.test/start")
+        XCTAssertTrue(markdownCopy.isHittable)
+        markdownCopy.tap()
+        XCTAssertEqual(
+            readPasteboardString(),
+            "[Ahoi Fixture](<https://fixture.ahoibrowser.test/start>)"
+        )
+        attachScreenshot(named: "page-link-copy-actions", of: app)
+        app.buttons["browser.actions.done"].tap()
+
+        let removeArticle = app.webViews.buttons["Remove Reader article fixture"]
+        XCTAssertTrue(removeArticle.waitForExistence(timeout: 5))
+        removeArticle.tap()
+        XCTAssertFalse(app.webViews.staticTexts["Ahoi Reader fixture article"].exists)
+        app.buttons["browser.more"].tap()
+        let reader = app.buttons["browser.actions.reader"]
+        XCTAssertTrue(reader.waitForExistence(timeout: 5))
+        for _ in 0..<4 {
+            if reader.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(reader.isHittable)
+        reader.tap()
+
+        let alert = app.alerts.firstMatch
+        XCTAssertTrue(alert.waitForExistence(timeout: 8))
+        XCTAssertTrue(
+            alert.staticTexts["No readable article found on this page."].exists ||
+            alert.staticTexts["Auf dieser Seite wurde kein lesbarer Artikel gefunden."].exists
+        )
+        XCTAssertFalse(app.descendants(matching: .any)["browser.reader.content"].exists)
+        attachScreenshot(named: "reader-unavailable-original-page", of: app)
+        alert.buttons.firstMatch.tap()
+        app.buttons["browser.actions.done"].tap()
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].exists)
+    }
+
+    /// Creating a Workspace pushes its detail on iPhone; Done must still close
+    /// the library from there (build66 left it stuck behind the pushed detail).
+    @MainActor
+    func testLibraryClosesWithDoneAfterCreatingWorkspace() throws {
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        defer { app.terminate() }
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+        let name = "Fertig \(UUID().uuidString.prefix(6))"
+        app.buttons["browser.more"].tap()
+        let workspaces = app.buttons["browser.actions.workspaces"]
+        XCTAssertTrue(waitForHittable(workspaces, timeout: 5))
+        workspaces.tap()
+        let manage = app.buttons["browser.library.manage"]
+        XCTAssertTrue(waitForHittable(manage, timeout: 8))
+        manage.tap()
+        let create = app.buttons["browser.library.create.workspace"]
+        XCTAssertTrue(waitForHittable(create, timeout: 8))
+        create.tap()
+        let identified = app.textFields["browser.library.create.name"]
+        let field = identified.waitForExistence(timeout: 3)
+            ? identified : app.alerts.firstMatch.textFields.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText(name)
+        let confirm = app.buttons["browser.library.create.confirm"]
+        XCTAssertTrue(waitForHittable(confirm, timeout: 5))
+        confirm.tap()
+        XCTAssertTrue(confirm.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars.staticTexts[name].waitForExistence(timeout: 8)
+                      || app.staticTexts[name].waitForExistence(timeout: 2))
+        attachScreenshot(named: "library-created-workspace-detail", of: app)
+
+        // Sidebar and pushed detail both carry Done; the sidebar's copy sits off
+        // screen after the push, so tap the on-screen one.
+        let doneButtons = app.buttons.matching(identifier: "browser.library.done")
+        XCTAssertTrue(doneButtons.firstMatch.waitForExistence(timeout: 5))
+        let screen = app.windows.firstMatch.frame
+        let done = doneButtons.allElementsBoundByIndex.first {
+            $0.isHittable && screen.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY))
+        }
+        XCTAssertNotNil(done, "Done must be reachable on the pushed detail.")
+        done?.tap()
+        // The pushed compact detail hides the sidebar list, so the library root
+        // alone does not prove the sheet closed; every Done and the new detail
+        // title must be gone too.
+        XCTAssertTrue(
+            app.descendants(matching: .any)["browser.library.root"].waitForNonExistence(timeout: 5)
+        )
+        XCTAssertTrue(doneButtons.firstMatch.waitForNonExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars.staticTexts[name].exists)
+        attachScreenshot(named: "library-closed-browser-ready", of: app)
+
+        // The address control sits in the Harbor deck over the loaded page. The
+        // WebView's accessibility frame reaches under the expanded deck, so
+        // XCUITest reports the address as not hittable even right after
+        // launch; opening the address sheet proves the browser is interactive.
+        let address = app.buttons["browser.address"]
+        XCTAssertTrue(address.waitForExistence(timeout: 5))
+        address.tap()
+        XCTAssertTrue(app.buttons["browser.address.clear"].waitForExistence(timeout: 5),
+                      "The browser must accept input once the library has closed.")
+    }
+
+    /// Saved-page Home help needs real shared-tab presence; see
+    /// `MobileBrowserTabWorkspaceRealE2EUITests.testSavedPageHomeAddressHelpReturnAndRestore`.
+    @MainActor
+    func testContextualHelpExplainsLinkPreview() throws {
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
+        defer { app.terminate() }
+        XCTAssertTrue(app.webViews.staticTexts["Ahoi fixture page"].waitForExistence(timeout: 8))
+
+        let link = app.webViews.links["Open Ahoi link actions"]
+        XCTAssertTrue(link.waitForExistence(timeout: 5))
+        link.press(forDuration: 1.2)
+        let previewHelp = app.staticTexts["browser.link-actions.preview-help"]
+        XCTAssertTrue(previewHelp.waitForExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["browser.link-actions.preview"].exists)
+        XCTAssertTrue(
+            previewHelp.label.hasPrefix("Die Vorschau lädt den Link") ||
+            previewHelp.label.hasPrefix("Preview loads the link")
+        )
+        attachScreenshot(named: "link-preview-help", of: app)
+    }
+
+    @MainActor
     func testUnsafeSchemeIsExplainedAndRejected() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestFixture"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture"])
 
         XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 5))
         app.buttons["browser.address"].tap()
@@ -61,13 +225,354 @@ final class AhoiMobileUITests: XCTestCase {
 
     @MainActor
     func testOfflineFailureExplainsAndOffersRetry() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-AhoiUITestOffline"]
-        app.launch()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestOffline"])
 
         XCTAssertTrue(
             app.descendants(matching: .any)["browser.page-failure"].waitForExistence(timeout: 8)
         )
         XCTAssertTrue(app.descendants(matching: .any)["browser.retry"].exists)
+        XCTAssertFalse(
+            app.webViews.firstMatch.exists,
+            "A failure presentation must replace stale web content semantically and visually."
+        )
+    }
+
+    @MainActor
+    func testDebugLocalSyncOptInStaysLocalAndFailClosed() throws {
+        let app = launchExactCandidate(arguments: [])
+        attachScreenshot(named: "01-normal-browser-before-sync", of: app)
+
+        openSettings(in: app)
+        let toggle = app.switches["settings.sync.enabled"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 3))
+        revealSyncToggle(toggle, in: app)
+        setSwitch(toggle, enabled: false)
+        setSwitch(toggle, enabled: true)
+
+        XCTAssertTrue(
+            app.descendants(matching: .any)["settings.sync.configuration-missing"]
+                .waitForExistence(timeout: 3),
+            "Provider-free DebugLocal must explain that enabled sync remains local-only."
+        )
+        let state = app.descendants(matching: .any)["settings.sync.state"]
+        let keyLifecycle = app.descendants(matching: .any)["settings.sync.key-lifecycle"]
+        XCTAssertTrue(state.exists)
+        XCTAssertTrue(keyLifecycle.exists)
+        XCTAssertTrue(
+            ["Local only", "Nur lokal"].contains(state.value as? String ?? ""),
+            "The provider-free status must remain local-only in every supported test locale."
+        )
+        XCTAssertTrue(
+            ["Sync keys are off", "Sync-Schlüssel sind deaktiviert"]
+                .contains(keyLifecycle.value as? String ?? ""),
+            "DebugLocal must not activate or fabricate a sync key."
+        )
+        XCTAssertFalse(
+            app.buttons["settings.sync.now"].isEnabled,
+            "Sync now must stay disabled without an entitled runtime."
+        )
+        XCTAssertTrue(app.buttons["settings.done"].exists)
+        attachScreenshot(named: "02-provider-free-sync-opt-in", of: app)
+
+        app.buttons["settings.done"].tap()
+        app.terminate()
+        relaunchExactCandidate(app, arguments: [])
+
+        openSettings(in: app)
+        let restoredToggle = app.switches["settings.sync.enabled"]
+        XCTAssertTrue(restoredToggle.waitForExistence(timeout: 3))
+        revealSyncToggle(restoredToggle, in: app)
+        XCTAssertEqual(restoredToggle.value as? String, "1")
+        XCTAssertTrue(
+            ["Local only", "Nur lokal"].contains(
+                app.descendants(matching: .any)["settings.sync.state"].value as? String ?? ""
+            ),
+            "The opt-in must persist without fabricating an entitled runtime."
+        )
+        attachScreenshot(named: "03-sync-opt-in-after-normal-relaunch", of: app)
+
+        setSwitch(restoredToggle, enabled: false)
+        XCTAssertTrue(
+            app.descendants(matching: .any)["settings.sync.configuration-missing"]
+                .waitForNonExistence(timeout: 3)
+        )
+        XCTAssertFalse(app.buttons["settings.sync.now"].isEnabled)
+        attachScreenshot(named: "04-sync-opt-out-restored", of: app)
+    }
+
+    @MainActor
+    func testCloudKitDevelopmentSyncOptInShowsRealTransportBoundary() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["AHOI_MOBILE_REAL_E2E"] == "1",
+              environment["AHOI_MOBILE_EXPECTED_BUILD_MODE"] == "CloudKitDevelopment" else {
+            throw XCTSkip(
+                "This journey requires an exact CloudKitDevelopment simulator candidate binding."
+            )
+        }
+
+        let app = launchExactCandidate(arguments: [])
+        openSettings(in: app)
+        let toggle = app.switches["settings.sync.enabled"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 3))
+        revealSyncToggle(toggle, in: app)
+        setSwitch(toggle, enabled: false)
+        setSwitch(toggle, enabled: true)
+
+        let state = app.descendants(matching: .any)["settings.sync.state"]
+        let keyLifecycle = app.descendants(matching: .any)["settings.sync.key-lifecycle"]
+        XCTAssertTrue(state.waitForExistence(timeout: 3))
+        XCTAssertTrue(keyLifecycle.waitForExistence(timeout: 3))
+
+        let keysOff = ["Sync keys are off", "Sync-Schlüssel sind deaktiviert"]
+        let setupIssue = app.descendants(matching: .any)["settings.sync.setup-issue"]
+        let configurationMissingElement = app.descendants(matching: .any)[
+            "settings.sync.configuration-missing"
+        ]
+        let activationDeadline = Date(timeIntervalSinceNow: 30)
+        while Date() < activationDeadline,
+              keysOff.contains(keyLifecycle.value as? String ?? ""),
+              !setupIssue.exists,
+              !configurationMissingElement.exists {
+            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.2))
+        }
+
+        let stateValue = state.value as? String ?? ""
+        let keyValue = keyLifecycle.value as? String ?? ""
+        let configurationMissing = configurationMissingElement.exists
+        let setupIssueExists = setupIssue.exists
+        let setupIssueValue = setupIssueExists ? (setupIssue.value as? String ?? "") : ""
+        let operationError = app.descendants(matching: .any)["browser.library.error"].exists
+        let observation = "state=\(stateValue);keyLifecycle=\(keyValue);" +
+            "configurationMissing=\(configurationMissing);" +
+            "setupIssue=\(setupIssueValue);operationError=\(operationError)"
+        let observationAttachment = XCTAttachment(string: observation)
+        observationAttachment.name = "CloudKitDevelopment transport boundary"
+        observationAttachment.lifetime = .keepAlways
+        add(observationAttachment)
+        XCTAssertTrue(
+            !keysOff.contains(keyValue) || configurationMissing || setupIssueExists ||
+                operationError,
+            "The real CloudKitDevelopment activation neither settled nor exposed an error. " +
+                observation
+        )
+
+        let activationBlocked = configurationMissing || setupIssueExists
+        if activationBlocked {
+            XCTAssertFalse(
+                app.buttons["settings.sync.now"].isEnabled,
+                "A failed real transport activation must not enable manual Sync. \(observation)"
+            )
+            if setupIssueExists {
+                XCTAssertFalse(
+                    setupIssueValue.isEmpty,
+                    "A typed setup issue must publish its bounded evidence value."
+                )
+            }
+        } else {
+            XCTAssertTrue(
+                app.buttons["settings.sync.now"].isEnabled,
+                "An active entitled transport must expose manual Sync. \(observation)"
+            )
+        }
+
+        attachScreenshot(named: "01-cloudkit-development-transport-boundary", of: app)
+        setSwitch(toggle, enabled: false)
+        XCTAssertEqual(toggle.value as? String, "0")
+        attachScreenshot(named: "02-cloudkit-development-opt-out", of: app)
+    }
+
+    @MainActor
+    func testDeviceRevocationConfirmsScopeAndRemovesRemoteTarget() throws {
+        let app = launchExactCandidate(arguments: [
+            "-AhoiUITestFixture",
+            "-AhoiUITestDeviceRevocation",
+        ])
+
+        openSettings(in: app)
+        let removeFixtureMac = app.buttons[
+            "settings.devices.remove.72000000-0000-4000-8000-000000000002"
+        ]
+        reveal(removeFixtureMac, in: app)
+        XCTAssertTrue(
+            removeFixtureMac.isHittable,
+            "The deterministic Mac fixture must expose an explicit revoke action."
+        )
+        removeFixtureMac.tap()
+
+        let warning = localizedStaticText(
+            in: app,
+            labels: [
+                "Fixture Mac will disappear from synced devices and remote-command targets. This does not rotate the shared encrypted payload key.",
+                "Fixture Mac verschwindet aus synchronisierten Geräten und Fernbefehlszielen. Der gemeinsame verschlüsselte Nutzdaten-Schlüssel wird dadurch nicht gewechselt.",
+            ]
+        )
+        XCTAssertTrue(
+            warning.waitForExistence(timeout: 3),
+            "Confirmation must distinguish device removal from payload-key rotation."
+        )
+
+        let identifiedConfirmation = app.buttons.matching(
+            identifier: "settings.devices.remove.confirm"
+        ).firstMatch
+        let labeledConfirmation = localizedButton(
+            in: app,
+            labels: ["Revoke and remove", "Widerrufen und entfernen"]
+        )
+        let confirmation = identifiedConfirmation.waitForExistence(timeout: 1)
+            ? identifiedConfirmation
+            : labeledConfirmation
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 2))
+        confirmation.tap()
+
+        XCTAssertTrue(
+            removeFixtureMac.waitForNonExistence(timeout: 4),
+            "A revoked device must disappear from actionable settings rows."
+        )
+        XCTAssertFalse(
+            app.buttons[
+                "settings.devices.remove.72000000-0000-4000-8000-000000000002"
+            ].exists,
+            "The revoked Mac must no longer be exposed as a remote-command target action."
+        )
+
+        let cryptographicLimit = localizedStaticText(
+            in: app,
+            labels: [
+                "Removing a device stops Ahoi Sync and remote-command targeting from current records. Because the encrypted payload key is currently shared, this is not complete per-device cryptographic isolation.",
+                "Das Entfernen stoppt Ahoi Sync und Fernbefehle für das Gerät in den aktuellen Datensätzen. Da der verschlüsselte Nutzdaten-Schlüssel derzeit geteilt wird, ist dies noch keine vollständige kryptografische Isolierung pro Gerät.",
+            ]
+        )
+        reveal(cryptographicLimit, in: app)
+        XCTAssertTrue(
+            cryptographicLimit.exists,
+            "The honest shared-key isolation limit must remain visible after revocation."
+        )
+    }
+
+    @MainActor
+    func openSettings(in app: XCUIApplication) {
+        XCTAssertTrue(app.buttons["browser.more"].waitForExistence(timeout: 8))
+        app.buttons["browser.more"].tap()
+        let settings = app.buttons["browser.actions.settings"]
+        for _ in 0..<4 where !settings.exists {
+            app.swipeUp()
+        }
+        XCTAssertTrue(settings.waitForExistence(timeout: 3))
+        XCTAssertTrue(settings.isHittable)
+        settings.tap()
+    }
+
+    @MainActor
+    private func setSwitch(
+        _ toggle: XCUIElement,
+        enabled: Bool,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let expectedValue = enabled ? "1" : "0"
+        guard (toggle.value as? String) != expectedValue else { return }
+        guard waitForHittable(toggle, timeout: 3) else {
+            XCTFail("The sync opt-in switch is not visible and actionable.", file: file, line: line)
+            return
+        }
+
+        // Tapping the row label is not guaranteed to toggle a SwiftUI switch.
+        // Target the trailing native control and wait for the accessibility
+        // value before performing the next action.
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        let predicate = NSPredicate(format: "value == %@", expectedValue)
+        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: toggle)
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [expectation], timeout: 3),
+            .completed,
+            "The sync opt-in switch did not reach the requested state.",
+            file: file,
+            line: line
+        )
+    }
+
+    @MainActor
+    private func reveal(
+        _ element: XCUIElement,
+        in app: XCUIApplication,
+        maximumSwipes: Int = 7
+    ) {
+        for _ in 0..<maximumSwipes {
+            if element.waitForExistence(timeout: 1), element.isHittable { return }
+            app.swipeUp()
+        }
+    }
+
+    @MainActor
+    func revealSyncToggle(_ toggle: XCUIElement, in app: XCUIApplication) {
+        let form = app.descendants(matching: .any)["settings.form"]
+        XCTAssertTrue(form.waitForExistence(timeout: 3))
+        for _ in 0..<5 {
+            let frame = toggle.frame
+            let visibleFrame = form.frame.insetBy(dx: 0, dy: 12)
+            if toggle.exists, visibleFrame.contains(frame) { return }
+            form.swipeUp()
+        }
+        XCTAssertTrue(
+            form.frame.insetBy(dx: 0, dy: 12).contains(toggle.frame),
+            "The sync opt-in switch must be fully visible before interaction."
+        )
+    }
+
+    @MainActor
+    private func localizedStaticText(
+        in app: XCUIApplication,
+        labels: [String]
+    ) -> XCUIElement {
+        app.staticTexts.matching(
+            NSPredicate(format: "label IN %@", labels)
+        ).firstMatch
+    }
+
+    @MainActor
+    private func localizedButton(
+        in app: XCUIApplication,
+        labels: [String]
+    ) -> XCUIElement {
+        app.buttons.matching(
+            NSPredicate(format: "label IN %@", labels)
+        ).firstMatch
+    }
+
+    /// Lazy sheet lists only materialize rows near the viewport.
+    @MainActor
+    private func revealInLazySheet(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
+        if element.waitForExistence(timeout: 2), element.isHittable { return true }
+        for _ in 0..<4 {
+            app.swipeUp()
+            if element.waitForExistence(timeout: 1), element.isHittable { return true }
+        }
+        return false
+    }
+
+    /// Reads off the main thread so a system paste-consent prompt can be answered.
+    @MainActor
+    private func readPasteboardString() -> String? {
+        final class Box: @unchecked Sendable { var value: String? }
+        let box = Box()
+        let done = expectation(description: "pasteboard read")
+        DispatchQueue.global(qos: .userInitiated).async {
+            box.value = UIPasteboard.general.string
+            done.fulfill()
+        }
+        let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons.matching(
+            NSPredicate(format: "label IN %@", ["Allow Paste", "Einsetzen erlauben"])
+        ).firstMatch
+        if allow.waitForExistence(timeout: 4) { allow.tap() }
+        wait(for: [done], timeout: 10)
+        return box.value
+    }
+
+    @MainActor
+    func attachScreenshot(named name: String, of app: XCUIApplication) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 }

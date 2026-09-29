@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "base/files/scoped_temp_dir.h"
+#include "base/strings/string_util.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -603,6 +604,78 @@ TEST_F(SidebarTreeControllerTest, CreatesTemporaryTabAtExactDropPosition) {
   EXPECT_LT(created.sort_key, second.sort_key);
   ASSERT_EQ(3U, controller.view_model().rows().size());
   EXPECT_EQ(created.id, controller.view_model().rows()[1].node_id);
+}
+
+TEST_F(SidebarTreeControllerTest, DropKeysRemainValidAcrossUnicodeAndLengthBounds) {
+  const std::vector<std::pair<std::string, std::string>> bounds = {
+      {std::string("\xC3\xA9", 2), std::string("\xE2\x82\xAC", 3)},
+      {"A", "A\x02"},
+      {std::string(1024, 'a'), "b"}};
+  for (const auto& [left_key, right_key] : bounds) {
+    tab_tree::Workspace workspace = NewWorkspace(u"Order", "a");
+    ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+              store_.CreateWorkspace(workspace));
+    tab_tree::TreeNode left =
+        NewPage(workspace, std::nullopt, u"Left", left_key);
+    tab_tree::TreeNode right =
+        NewPage(workspace, std::nullopt, u"Right", right_key);
+    ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(left));
+    ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(right));
+    SidebarTreeController controller(&store_);
+    ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+              controller.ActivateWorkspace(workspace.id));
+    const SidebarTreeController::DropTarget target{
+        .workspace_id = workspace.id,
+        .target_node_id = right.id,
+        .position = SidebarTreeController::DropPosition::kBefore};
+    ASSERT_EQ(SidebarTreeController::DropValidationResult::kAllowed,
+              controller.ValidateNewSavedPageDrop(target));
+    tab_tree::TreeNode created;
+    ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+              controller.CreateSavedPageAtDrop(
+                  target, u"Between", GURL("https://between.example.test/"),
+                  base::Time::UnixEpoch() + base::Seconds(2), &created));
+    EXPECT_LT(left_key, created.sort_key);
+    EXPECT_LT(created.sort_key, right_key);
+    EXPECT_LE(created.sort_key.size(), 1024u);
+    EXPECT_TRUE(base::IsStringUTF8(created.sort_key));
+    // The fixture keeps the file open with SQLite's exclusive locking, so a
+    // second connection cannot open it; the store reads the durable row.
+    tab_tree::TreeNode persisted;
+    ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+              store_.GetNode(created.id, &persisted));
+    EXPECT_EQ(created.sort_key, persisted.sort_key);
+  }
+}
+
+TEST_F(SidebarTreeControllerTest, ExhaustedPrefixIntervalDoesNotMutateStore) {
+  tab_tree::Workspace workspace = NewWorkspace(u"Exhausted", "a");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.CreateWorkspace(workspace));
+  tab_tree::TreeNode left =
+      NewPage(workspace, std::nullopt, u"Left", "A");
+  tab_tree::TreeNode right =
+      NewPage(workspace, std::nullopt, u"Right", "A\x01");
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(left));
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk, store_.CreateNode(right));
+  SidebarTreeController controller(&store_);
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            controller.ActivateWorkspace(workspace.id));
+  const SidebarTreeController::DropTarget target{
+      .workspace_id = workspace.id,
+      .target_node_id = right.id,
+      .position = SidebarTreeController::DropPosition::kBefore};
+  EXPECT_EQ(SidebarTreeController::DropValidationResult::kNoOrderingSpace,
+            controller.ValidateNewSavedPageDrop(target));
+  tab_tree::TreeNode created;
+  EXPECT_NE(tab_tree::TabTreeStore::Result::kOk,
+            controller.CreateSavedPageAtDrop(
+                target, u"Refused", GURL("https://refused.example.test/"),
+                base::Time::UnixEpoch() + base::Seconds(2), &created));
+  std::vector<tab_tree::TreeNode> children;
+  ASSERT_EQ(tab_tree::TabTreeStore::Result::kOk,
+            store_.GetChildren(workspace.id, std::nullopt, &children));
+  EXPECT_EQ(children.size(), 2u);
 }
 
 TEST_F(SidebarTreeControllerTest, CreatesFirstSavedPageAtEmptyWorkspaceRoot) {

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "AhoiBrowser",
   "bundleId": "app.ahoibrowser.AhoiBrowser",
-  "bundleIdStatus": "provisional-unregistered",
+  "bundleIdStatus": "registered-explicit",
   "updateChannels": ["nightly", "beta", "stable"],
   "platforms": {
     "macOS": {

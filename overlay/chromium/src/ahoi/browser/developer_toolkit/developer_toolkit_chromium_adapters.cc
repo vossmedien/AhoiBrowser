@@ -207,6 +207,26 @@ ChromiumBrowsingDataRemovalAdapter::~ChromiumBrowsingDataRemovalAdapter() =
 bool ChromiumBrowsingDataRemovalAdapter::Remove(
     const BrowsingDataClearRequest& request,
     CompletionCallback callback) {
+  return RemoveIn(request, nullptr, std::move(callback));
+}
+
+bool ChromiumBrowsingDataRemovalAdapter::RemoveForTab(
+    const BrowsingDataClearRequest& request,
+    const content::WebContents* web_contents,
+    CompletionCallback callback) {
+  content::StoragePartition* partition =
+      web_contents
+          ? const_cast<content::WebContents*>(web_contents)
+                ->GetPrimaryMainFrame()
+                ->GetStoragePartition()
+          : nullptr;
+  return RemoveIn(request, partition, std::move(callback));
+}
+
+bool ChromiumBrowsingDataRemovalAdapter::RemoveIn(
+    const BrowsingDataClearRequest& request,
+    content::StoragePartition* tab_partition,
+    CompletionCallback callback) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
   if (!browser_context_ || callback.is_null() || request.data_type_mask == 0 ||
       (request.data_type_mask & ~kAllDeveloperBrowsingDataTypes) != 0 ||
@@ -230,10 +250,13 @@ bool ChromiumBrowsingDataRemovalAdapter::Remove(
   const bool clear_current_site_cookies =
       current_site &&
       (request.data_type_mask & ToMask(BrowsingDataType::kCookies));
+  // Handoff 060: the current site's data lives in the tab's partition, which
+  // is not the default one in a Workspace with its own website sessions.
+  content::StoragePartition* const site_partition =
+      tab_partition ? tab_partition
+                    : browser_context_->GetDefaultStoragePartition();
   content::StoragePartition* partition =
-      clear_current_site_cookies
-          ? browser_context_->GetDefaultStoragePartition()
-          : nullptr;
+      clear_current_site_cookies ? site_partition : nullptr;
   const size_t pending_tasks =
       (removal_mask != 0 ? 1u : 0u) +
       (clear_current_site_cookies ? (partition ? 2u : 1u) : 0u);
@@ -251,6 +274,11 @@ bool ChromiumBrowsingDataRemovalAdapter::Remove(
           content::BrowsingDataFilterBuilder::OriginMatchingMode::
               kOriginInAllContexts);
       filter->AddOrigin(*request.origin);
+      // Only partition-scoped types are removed here, so the filter may name
+      // a non-default partition (BrowsingDataFilterBuilder contract).
+      if (site_partition && !site_partition->GetConfig().is_default()) {
+        filter->SetStoragePartitionConfig(site_partition->GetConfig());
+      }
       remover->RemoveWithFilterAndReply(begin, end, removal_mask,
                                         kAllWebOriginTypes, std::move(filter),
                                         observer);

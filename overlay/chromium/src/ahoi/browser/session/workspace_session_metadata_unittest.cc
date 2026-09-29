@@ -70,6 +70,32 @@ TEST(WorkspaceSessionMetadataTest, TemporaryTabRoundTripsWithoutTreeNode) {
   EXPECT_EQ(expected, decoded);
 }
 
+TEST(WorkspaceSessionMetadataTest, IsolatedTabKeepsLocalContextAcrossMove) {
+  const base::Uuid local_context = Uuid(
+      "30000000-0000-4000-8000-000000000001");
+  const TabSessionMetadata expected{
+      .workspace_id = Uuid(kWorkspaceTwo),
+      .tree_node_id = Uuid(kTreeNode),
+      .last_active_in_workspace = true,
+      .website_session_context_id = local_context,
+  };
+  const auto encoded = EncodeTabSessionMetadata(expected);
+  ASSERT_TRUE(encoded);
+  EXPECT_NE(std::string::npos, encoded->find("\"version\":3"));
+  TabSessionMetadata decoded;
+  ASSERT_EQ(SessionMetadataDecodeResult::kSuccess,
+            DecodeTabSessionMetadata(*encoded, &decoded));
+  EXPECT_EQ(expected, decoded);
+
+  decoded.workspace_id = Uuid(kWorkspaceOne);
+  EXPECT_EQ(local_context, decoded.website_session_context_id);
+  EXPECT_EQ(SessionMetadataDecodeResult::kMalformed,
+            DecodeTabSessionMetadata(
+                R"({"version":3,"workspace_id":"10000000-0000-4000-8000-000000000002","last_active_in_workspace":true,"website_session_context_id":"bad"})",
+                &decoded));
+  EXPECT_EQ(local_context, decoded.website_session_context_id);
+}
+
 TEST(WorkspaceSessionMetadataTest, RejectsInvalidUuidWithoutPartialMutation) {
   WindowSessionMetadata window{.active_workspace_id = Uuid(kWorkspaceTwo)};
   EXPECT_EQ(

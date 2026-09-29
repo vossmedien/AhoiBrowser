@@ -2,76 +2,126 @@ import Foundation
 import SwiftUI
 import AhoiCloudKitSpike
 
-public struct CompanionRemoteCommandStatusItem: Identifiable, Equatable, Sendable {
-    public let id: UUID
-    public let action: String
-    public let targetDeviceID: DeviceID
-    public let status: RemoteCommandStatus
-    public let resultCode: String
-    public let expiresAtMilliseconds: UInt64
-
-    public var isTerminal: Bool {
-        status == .executed || status == .failed
-    }
-}
+public typealias CompanionRemoteCommandClock = @MainActor @Sendable () -> UInt64
+public typealias CompanionRemoteCommandSleeper = @Sendable (UInt64) async -> Void
 
 @MainActor
 public final class CompanionAppModel: ObservableObject {
-    @Published public private(set) var snapshot: CompanionSnapshot = .empty
+    @Published public internal(set) var snapshot: CompanionSnapshot = .empty
     @Published public private(set) var searchResults: [CompanionSearchResult] = []
-    @Published public private(set) var loadError: String?
-    @Published public private(set) var syncStatus: CloudKitSyncStatus?
-    @Published public private(set) var remoteControlIdentity: RemoteControlProvisioningIdentity?
-    @Published public private(set) var remoteCommandStatus: String?
-    @Published public private(set) var recentRemoteCommands: [CompanionRemoteCommandStatusItem] = []
-    @Published public private(set) var syncSafetyState = CloudKitSyncSafetyState()
-    @Published public private(set) var physicalDeletionRecoveryRequired = false
+    @Published public internal(set) var loadError: String?
+    @Published public internal(set) var syncStatus: CloudKitSyncStatus?
+    @Published public internal(set) var remoteControlIdentity: RemoteControlProvisioningIdentity?
+    @Published public internal(set) var remoteCommandStatus: String?
+    @Published public internal(set) var recentRemoteCommands: [CompanionRemoteCommandStatusItem] = []
+    @Published public internal(set) var syncSafetyState = CloudKitSyncSafetyState()
+    @Published public internal(set) var physicalDeletionRecoveryRequired = false
     @Published public private(set) var historyRetentionDays: Int
-    @Published public private(set) var isSyncConfigured: Bool
+    @Published public internal(set) var isSyncConfigured: Bool
+    @Published public internal(set) var isBookmarkSyncEnabled: Bool
+    @Published public internal(set) var isBrowserSettingsSyncEnabled: Bool
+    @Published public internal(set) var isExtensionSetupMetadataApproved: Bool
+    @Published public internal(set) var isExtensionStorageMetadataApproved: Bool
+    @Published public internal(set) var keyLifecycleStatus: CompanionKeyLifecycleStatus
+    @Published public internal(set) var syncSetupIssue: CompanionSyncSetupIssue?
+    @Published public internal(set) var syncVisibleEvidence: CompanionSyncVisibleEvidence?
+    /// The last Workspace merge, while its one-step undo is offered.
+    @Published public internal(set) var pendingWorkspaceMergeUndo: CompanionWorkspaceMergeReceipt?
 
     public let repository: LocalFirstRepository
-    private let defaults: UserDefaults
-    private var syncProvider: CloudKitSyncProvider?
-    private var syncBridge: CompanionSyncBridge?
-    private let syncRuntimeFactory: (() -> CompanionCloudKitRuntime?)?
-    private let mobileSessionID: DeviceSessionID?
-    private let mobileDeviceName: String
-    private let mobileDeviceKind: DeviceKind
-    private var providerPrepared = false
-    private var commandLabels: [UUID: String] = [:]
-    private var commandFollowUpTasks: [UUID: Task<Void, Never>] = [:]
-    private var syncGeneration: UInt64 = 0
+    /// ADR 0011 step 4: fully separated Workspaces, each synced in its own
+    /// zone and session, never merged into `snapshot`.
+    public let separatedWorkspaces: SeparatedWorkspaceSyncCoordinator
+    public let privateSessionLock: MobilePrivateSessionLock
+    let defaults: UserDefaults
+    var syncProvider: CloudKitSyncProvider?
+    var syncBridge: CompanionSyncBridge?
+    let syncRuntimeFactory: CompanionSyncRuntimeFactory?
+    var syncActivationAuthorization: CompanionSyncRuntimeAuthorization?
+    deinit { syncActivationAuthorization?.revoke() }
+    let mobileSessionID: DeviceSessionID?
+    let mobileDeviceName: String
+    let mobileDeviceKind: DeviceKind
+    var providerPrepared = false
+    var commandLabels: [UUID: String] = [:]
+    var syncGeneration: UInt64 = 0
     private var syncInProgress = false
-    private var syncRequestedWhileInProgress = false
+    var syncRequestedWhileInProgress = false
     private var syncWaiters: [CheckedContinuation<Void, Never>] = []
-    private var syncRuntimeCancellation: Task<Void, Never>?
-    private var syncRuntimeCancellationGeneration: UInt64?
-    private var syncPreferenceIntentGeneration: UInt64 = 0
-    private var desiredSyncEnabled = false
-    private var eventDrivenSyncTask: Task<Void, Never>?
-    private var eventDrivenSyncRequested = false
-    private var eventDrivenSyncGeneration: UInt64 = 0
+    var syncRuntimeCancellation: Task<Void, Never>?
+    var syncRuntimeCancellationGeneration: UInt64?
+    var syncPreferenceIntentGeneration: UInt64 = 0
+    var desiredSyncEnabled = false
+    var syncActivationInProgress = false
+    var syncActivationCompletedIntentGeneration: UInt64?
+    var syncActivationWaiters: [CheckedContinuation<Void, Never>] = []
+    var eventDrivenSyncTask: Task<Void, Never>?
+    var eventDrivenSyncRequested = false
+    var eventDrivenSyncGeneration: UInt64 = 0
+    var localSnapshotReseedRequired = false
+    var mobileSharedIntentTasks: [UUID: Task<Void, Never>] = [:]
+    var mobileSharedIntentTokens: [UUID: UUID] = [:]
+    var mobileSharedCaptureTask: Task<Void, Never>?
+    var mobileSharedCaptureRequested = false
+    var browserSettingsApprovalEpoch: UInt64 = 0
+    var extensionSetupMetadataEpoch: UInt64 = 0
+    var extensionStorageMetadataEpoch: UInt64 = 0
+    var browserSearchMutationTask: Task<Void, Never>?
+    var browserSearchMutationToken: UUID?
+    var remoteCommandExpiryTask: Task<Void, Never>?
+    var remoteCommandExpiryGeneration: UInt64 = 0
+    /// Moves the open browser tabs of a merged Workspace (see
+    /// `connectWorkspaceMerges(to:)`) and returns their IDs for the undo.
+    var workspaceMergeTabMover: ((WorkspaceID, WorkspaceID) -> [UUID])?
+    var workspaceMergeTabRestorer: (([UUID], WorkspaceID) -> Void)?
+    var workspaceMergeTabIDs: [UUID] = []
+    let remoteCommandClock: CompanionRemoteCommandClock
+    let remoteCommandSleeper: CompanionRemoteCommandSleeper
+#if DEBUG
+    var syncVisibleUITestRuntime: CompanionSyncVisibleUITestRuntime?
+#endif
 
     public init(
         repository: LocalFirstRepository,
         syncProvider: CloudKitSyncProvider? = nil,
         syncBridge: CompanionSyncBridge? = nil,
-        syncRuntimeFactory: (() -> CompanionCloudKitRuntime?)? = nil,
+        syncRuntimeFactory: CompanionSyncRuntimeFactory? = nil,
         mobileSessionID: DeviceSessionID? = nil,
         mobileDeviceName: String = "Ahoi Mobile",
         mobileDeviceKind: DeviceKind = .iPhone,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        separatedWorkspaces: SeparatedWorkspaceSyncCoordinator? = nil,
+        remoteCommandClock: @escaping CompanionRemoteCommandClock = {
+            UInt64(max(Date().timeIntervalSince1970 * 1_000, 0))
+        },
+        remoteCommandSleeper: @escaping CompanionRemoteCommandSleeper = { delay in
+            guard delay > 0 else { return }
+            try? await Task.sleep(for: .milliseconds(Int64(clamping: delay)))
+        }
     ) {
         self.repository = repository
+        self.separatedWorkspaces = separatedWorkspaces ?? SeparatedWorkspaceSyncCoordinator()
         self.defaults = defaults
+        self.privateSessionLock = MobilePrivateSessionLock(defaults: defaults)
         self.syncProvider = syncProvider
         self.syncBridge = syncBridge
         self.syncRuntimeFactory = syncRuntimeFactory
         self.mobileSessionID = mobileSessionID
         self.mobileDeviceName = mobileDeviceName
         self.mobileDeviceKind = mobileDeviceKind
+        self.remoteCommandClock = remoteCommandClock
+        self.remoteCommandSleeper = remoteCommandSleeper
         self.isSyncConfigured = syncProvider != nil && syncBridge != nil
+        self.isBookmarkSyncEnabled = defaults.bool(forKey: Self.bookmarkSyncApprovalKey)
+        self.isBrowserSettingsSyncEnabled = defaults.bool(forKey: Self.browserSettingsApprovalKey)
+        self.isExtensionSetupMetadataApproved = defaults.bool(forKey: Self.extensionSetupMetadataKey)
+        self.isExtensionStorageMetadataApproved = defaults.bool(forKey: Self.extensionStorageMetadataKey)
         self.desiredSyncEnabled = syncProvider != nil && syncBridge != nil
+        self.keyLifecycleStatus = syncProvider != nil && syncBridge != nil
+            ? .ready(keyVersion: 1)
+            : .disabled
+        self.syncSetupIssue = nil
+        self.syncVisibleEvidence = nil
         let storedRetention = defaults.integer(
             forKey: CompanionSyncPreferences.historyRetentionDaysKey
         )
@@ -80,6 +130,9 @@ public final class CompanionAppModel: ObservableObject {
             ? storedRetention
             : CompanionSyncPreferences.defaultHistoryRetentionDays
         bindEventDrivenSync(to: syncProvider)
+#if DEBUG
+        configureSyncVisibleUITestRuntimeIfRequested()
+#endif
     }
 
     public convenience init() {
@@ -94,15 +147,25 @@ public final class CompanionAppModel: ObservableObject {
         do {
             try await repository.load()
             snapshot = try await repository.currentSnapshot()
+            applySharedBrowserSettings()
             searchResults = try await repository.search("")
             loadError = nil
             syncStatus = syncProvider?.status()
             syncSafetyState = syncProvider?.safetyState() ?? .init()
             if let syncBridge {
-                remoteControlIdentity = try? await syncBridge.remoteControlIdentity()
+                do {
+                    remoteControlIdentity = try await syncBridge.remoteControlIdentity()
+                } catch RemoteCommandSignerError.identityRevoked {
+                    // Explicit command-key revocation is a stable product
+                    // state, not a browser-wide load failure. Settings keeps
+                    // the signer facade available only for conscious rotation.
+                    remoteControlIdentity = nil
+                } catch {
+                    presentOperationFailure(error)
+                }
             }
         } catch {
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
         }
     }
 
@@ -111,62 +174,57 @@ public final class CompanionAppModel: ObservableObject {
             searchResults = try await repository.search(query)
             loadError = nil
         } catch {
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
         }
     }
 
     public func save(_ workspace: Workspace) async {
-        do {
+        _ = await performLocalFirstMutation({
             try await repository.upsert(workspace)
-            try await syncBridge?.enqueue(workspace)
-            snapshot = try await repository.currentSnapshot()
-        } catch {
-            loadError = error.localizedDescription
-        }
+            return workspace
+        }, enqueue: { committed in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(committed)
+        })
     }
 
     public func save(_ node: TreeNode) async {
-        do {
+        _ = await performLocalFirstMutation({
             try await repository.upsert(node)
-            try await syncBridge?.enqueue(node)
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+            return node
+        }, enqueue: { committed in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(committed)
+        })
     }
 
     @discardableResult
     public func createWorkspace(name: String, icon: String = "") async -> Workspace? {
-        do {
-            let workspace = try await repository.createWorkspace(name: name, icon: icon)
-            try await syncBridge?.enqueue(workspace)
-            try await refreshLocalState()
-            return workspace
-        } catch {
-            loadError = error.localizedDescription
-            return nil
-        }
+        await performLocalFirstMutation({
+            try await repository.createWorkspace(name: name, icon: icon)
+        }, enqueue: { workspace in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(workspace)
+        })
     }
 
     public func renameWorkspace(_ id: WorkspaceID, name: String) async {
-        do {
-            let workspace = try await repository.updateWorkspace(id, name: name)
-            try await syncBridge?.enqueue(workspace)
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+        _ = await performLocalFirstMutation({
+            try await repository.updateWorkspace(id, name: name)
+        }, enqueue: { workspace in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(workspace)
+        })
     }
 
     public func deleteWorkspace(_ id: WorkspaceID) async {
-        do {
-            let deletion = try await repository.deleteWorkspace(id)
-            try await syncBridge?.enqueue(deletion.workspace)
-            for node in deletion.nodes { try await syncBridge?.enqueue(node) }
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+        _ = await performLocalFirstMutation({
+            try await repository.deleteWorkspace(id)
+        }, enqueue: { deletion in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(deletion.workspace)
+            for node in deletion.nodes { try await bridge.enqueue(node) }
+        })
     }
 
     @discardableResult
@@ -201,13 +259,12 @@ public final class CompanionAppModel: ObservableObject {
     }
 
     public func renameTreeNode(_ id: TreeNodeID, title: String) async {
-        do {
-            let node = try await repository.updateTreeNode(id, title: title)
-            try await syncBridge?.enqueue(node)
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+        _ = await performLocalFirstMutation({
+            try await repository.updateTreeNode(id, title: title)
+        }, enqueue: { node in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(node)
+        })
     }
 
     public func moveTreeNode(
@@ -215,37 +272,48 @@ public final class CompanionAppModel: ObservableObject {
         workspaceID: WorkspaceID,
         parentID: TreeNodeID?
     ) async {
-        do {
-            let node = try await repository.moveTreeNode(
+        _ = await performLocalFirstMutation({
+            try await repository.moveTreeNode(
                 id,
                 to: workspaceID,
                 parentID: parentID
             )
-            try await syncBridge?.enqueue(node)
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+        }, enqueue: { move in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(move.node)
+            for node in move.descendants { try await bridge.enqueue(node) }
+        })
+    }
+
+    public func reorderTreeNode(
+        _ id: TreeNodeID,
+        before successorID: TreeNodeID?
+    ) async {
+        _ = await performLocalFirstMutation({
+            try await repository.reorderTreeNode(id, before: successorID)
+        }, enqueue: { node in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(node)
+        })
     }
 
     public func deleteTreeNode(_ id: TreeNodeID) async {
-        do {
-            let nodes = try await repository.deleteTreeNode(id)
-            for node in nodes { try await syncBridge?.enqueue(node) }
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+        _ = await performLocalFirstMutation({
+            try await repository.deleteTreeNode(id)
+        }, enqueue: { nodes in
+            guard let bridge = self.syncBridge else { return }
+            for node in nodes { try await bridge.enqueue(node) }
+        })
     }
 
     public func save(_ tab: RemoteTab) async {
-        do {
+        _ = await performLocalFirstMutation({
             try await repository.upsert(tab)
-            try await syncBridge?.enqueue(tab)
-            snapshot = try await repository.currentSnapshot()
-        } catch {
-            loadError = error.localizedDescription
-        }
+            return tab
+        }, enqueue: { committed in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(committed)
+        })
     }
 
     public func recordMobileNavigation(
@@ -253,116 +321,79 @@ public final class CompanionAppModel: ObservableObject {
         url: String,
         transition: String = "link"
     ) async {
-        do {
-            let visit = try await repository.recordLocalHistoryVisit(
+        guard SyncRecordTextFitting.historyURLFits(url) else { return }
+        _ = await performLocalFirstMutation({
+            try await repository.recordLocalHistoryVisit(
                 title: title,
                 url: url,
                 transition: transition
             )
-            try await syncBridge?.enqueue(visit)
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+        }, enqueue: { visit in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(visit)
+        })
     }
 
     public func publishMobileTab(_ tab: MobileTabRecord) async {
-        guard tab.mode == .normal,
-              let mobileSessionID,
-              let url = tab.url else { return }
-        do {
-            let publication = try await repository.publishLocalMobileTab(
-                tabID: tab.id,
-                sessionID: mobileSessionID,
-                deviceName: mobileDeviceName,
-                deviceKind: mobileDeviceKind,
-                workspaceID: tab.workspaceID,
-                title: tab.title.isEmpty ? url : tab.title,
-                url: url,
-                pinned: tab.isSaved
-            )
-            try await syncBridge?.enqueue(publication.device)
-            try await syncBridge?.enqueue(publication.session)
-            try await syncBridge?.enqueue(publication.tab)
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+        _ = await reconcilePublishedMobileTabs([tab])
     }
 
-    /// Reconciles the durable browser session with the public device-tab
-    /// projection. This closes records that disappeared while the app was not
-    /// running, restores every surviving normal tab after launch, and refreshes
-    /// the device/session heartbeat without ever publishing private tabs.
-    public func reconcilePublishedMobileTabs(_ tabs: [MobileTabRecord]) async {
-        guard let mobileSessionID else { return }
-        let currentTabs = tabs.filter { $0.mode == .normal && $0.url != nil }
-        let currentIDs = Set(currentTabs.map(\.id))
-        do {
-            let publishedTabs = try await repository.localOpenMobileTabs(
-                sessionID: mobileSessionID
+    /// Upsert a complete captured set atomically. Missing/filtered rows never
+    /// authorize a close; the explicit user close path is separate.
+    @discardableResult
+    public func reconcilePublishedMobileTabs(
+        _ tabs: [MobileTabRecord],
+        didBind: @MainActor ([UUID: TreeNode]) -> Void = { _ in }
+    ) async -> [UUID: TreeNode]? {
+        guard let mobileSessionID else { return nil }
+        let result = await performLocalFirstMutation({
+            try await repository.captureLocalMobileTabs(
+                tabs, sessionID: mobileSessionID,
+                deviceName: mobileDeviceName, deviceKind: mobileDeviceKind
             )
-            for stale in publishedTabs where !currentIDs.contains(stale.id.rawValue) {
-                if let closed = try await repository.closeLocalMobileTab(stale.id.rawValue) {
-                    try await syncBridge?.enqueue(closed)
-                }
-            }
+        }, didCommit: { didBind($0.bindings) },
+        ignoreFailure: { $0 is CancellationError || $0 as? MobileSharedCaptureError == .deferred },
+        enqueue: { result in
+            guard let bridge = self.syncBridge else { return }
+            try await result.outbound.enqueue(using: bridge)
+        })
+        return result?.bindings
+    }
 
-            let session = try await repository.publishLocalMobileSession(
-                sessionID: mobileSessionID,
-                deviceName: mobileDeviceName,
-                deviceKind: mobileDeviceKind,
-                workspaceID: currentTabs.first?.workspaceID
-            )
-            try await syncBridge?.enqueue(session.device)
-            try await syncBridge?.enqueue(session.session)
-
-            let publishedByID = Dictionary(
-                uniqueKeysWithValues: publishedTabs.map { ($0.id.rawValue, $0) }
-            )
-            for tab in currentTabs {
-                guard let url = tab.url else { continue }
-                let title = tab.title.isEmpty ? url : tab.title
-                if let published = publishedByID[tab.id],
-                   published.url == url,
-                   published.title == title,
-                   published.workspaceID == tab.workspaceID,
-                   published.pinned == tab.isSaved,
-                   published.isOpen,
-                   !published.isDeleted {
-                    continue
-                }
-                let publication = try await repository.publishLocalMobileTab(
-                    tabID: tab.id,
-                    sessionID: mobileSessionID,
-                    deviceName: mobileDeviceName,
-                    deviceKind: mobileDeviceKind,
-                    workspaceID: tab.workspaceID,
-                    title: title,
-                    url: url,
-                    pinned: tab.isSaved
-                )
-                try await syncBridge?.enqueue(publication.device)
-                try await syncBridge?.enqueue(publication.session)
-                try await syncBridge?.enqueue(publication.tab)
+    public func reconcilePublishedMobileTabs(_ browser: MobileBrowserController) async {
+        for pending in Array(mobileSharedIntentTasks.values) { await pending.value }
+        reconcileBrowserSharedProjection(browser)
+        let captured = browser.normalTabs
+        _ = await reconcilePublishedMobileTabs(captured) { [weak browser] bindings in
+            guard let browser else { return }
+            for (runtimeID, node) in bindings {
+                guard let original = captured.first(where: { $0.id == runtimeID }),
+                      self.mobileSharedIntentTasks[runtimeID] == nil,
+                      let current = browser.tabs.first(where: { $0.id == runtimeID && $0.mode == .normal }),
+                      current.pendingSharedMutations.isEmpty,
+                      original.presenceID == current.presenceID,
+                      current.treeNodeID == nil || current.treeNodeID == node.id else { continue }
+                _ = browser.bindTab(runtimeID, to: node)
             }
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
         }
     }
 
     public func closePublishedMobileTab(_ id: UUID) async {
-        do {
-            guard let closed = try await repository.closeLocalMobileTab(id) else { return }
-            try await syncBridge?.enqueue(closed)
-            try await refreshLocalState()
-        } catch {
-            loadError = error.localizedDescription
-        }
+        _ = await performLocalFirstMutation({
+            try await repository.closeLocalMobileTab(id)
+        }, enqueue: { closed in
+            guard let bridge = self.syncBridge, let closed else { return }
+            try await bridge.enqueue(closed)
+        })
     }
 
     public func sync() async {
+#if DEBUG
+        if syncVisibleUITestRuntime != nil {
+            await refreshSyncVisibleUITestEvidenceIfNeeded()
+            return
+        }
+#endif
         if syncInProgress {
             syncRequestedWhileInProgress = true
             await withCheckedContinuation { continuation in
@@ -395,6 +426,17 @@ public final class CompanionAppModel: ObservableObject {
         }
         let generation = syncGeneration
         do {
+            await bridge.setBookmarkSyncEnabled(isBookmarkSyncEnabled)
+            await bridge.setBrowserSettingsSyncEnabled(
+                isBrowserSettingsSyncEnabled, epoch: browserSettingsApprovalEpoch
+            )
+            await bridge.setExtensionSetupMetadataApproved(
+                isExtensionSetupMetadataApproved, epoch: extensionSetupMetadataEpoch
+            )
+            await bridge.setExtensionStorageMetadataApproved(
+                isExtensionStorageMetadataApproved, epoch: extensionStorageMetadataEpoch
+            )
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else { return }
             if !providerPrepared {
                 try await syncProvider.prepare()
                 guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
@@ -408,7 +450,14 @@ public final class CompanionAppModel: ObservableObject {
                 guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                     return
                 }
+                localSnapshotReseedRequired = false
                 providerPrepared = true
+            } else if localSnapshotReseedRequired {
+                try await bridge.enqueueLocalSnapshot()
+                guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                    return
+                }
+                localSnapshotReseedRequired = false
             }
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return
@@ -418,16 +467,27 @@ public final class CompanionAppModel: ObservableObject {
                 return
             }
             snapshot = try await repository.currentSnapshot()
+            applySharedBrowserSettings()
             searchResults = try await repository.search("")
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return
             }
             await refreshRemoteCommandStates(using: bridge)
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                return
+            }
+            if separatedWorkspaces.isConfigured {
+                await separatedWorkspaces.refreshDiscovery(using: syncProvider)
+                guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
+                    return
+                }
+                await separatedWorkspaces.syncEnabledWorkspaces()
+            }
         } catch {
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return
             }
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
         }
         guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
             return
@@ -438,82 +498,14 @@ public final class CompanionAppModel: ObservableObject {
             .hasPhysicalDeletionQuarantine()
     }
 
-    private func isCurrentSyncRuntime(
+    func isCurrentSyncRuntime(
         _ provider: CloudKitSyncProvider,
         generation: UInt64
     ) -> Bool {
         syncGeneration == generation && syncProvider === provider
     }
 
-    /// Applies the user-owned transport preference at runtime. Disabling drops
-    /// the CKSyncEngine/provider immediately while retaining all local data;
-    /// enabling constructs CKContainer only after this call.
-    public func setSyncEnabled(_ enabled: Bool) async {
-        syncPreferenceIntentGeneration &+= 1
-        let intentGeneration = syncPreferenceIntentGeneration
-        desiredSyncEnabled = enabled
-        if !enabled {
-            eventDrivenSyncGeneration &+= 1
-            eventDrivenSyncTask?.cancel()
-            eventDrivenSyncTask = nil
-            eventDrivenSyncRequested = false
-            if syncProvider == nil {
-                await waitForRuntimeCancellation()
-                return
-            }
-            syncGeneration &+= 1
-            let cancellationGeneration = syncGeneration
-            let providerToCancel = syncProvider
-            providerToCancel?.setEventDrivenSyncHandler(nil)
-            providerPrepared = false
-            syncProvider = nil
-            syncBridge = nil
-            isSyncConfigured = false
-            syncStatus = nil
-            syncSafetyState = .init()
-            physicalDeletionRecoveryRequired = false
-            remoteControlIdentity = nil
-            let cancellation = Task<Void, Never> {
-                if let providerToCancel { await providerToCancel.cancel() }
-            }
-            syncRuntimeCancellation = cancellation
-            syncRuntimeCancellationGeneration = cancellationGeneration
-            await waitForRuntimeCancellation()
-            return
-        }
-        await waitForRuntimeCancellation()
-        guard syncPreferenceIntentGeneration == intentGeneration,
-              desiredSyncEnabled else {
-            return
-        }
-        guard syncProvider == nil else { return }
-        guard let runtime = syncRuntimeFactory?() else {
-            isSyncConfigured = false
-            loadError = CompanionL10n.string(
-                "sync.configuration_missing",
-                fallback: "CloudKit is not fully configured. Local data remains available."
-            )
-            return
-        }
-        syncGeneration &+= 1
-        syncProvider = runtime.provider
-        syncBridge = runtime.bridge
-        bindEventDrivenSync(to: runtime.provider)
-        isSyncConfigured = true
-        remoteControlIdentity = try? await runtime.bridge.remoteControlIdentity()
-        await sync()
-    }
-
-    private func waitForRuntimeCancellation() async {
-        guard let cancellation = syncRuntimeCancellation else { return }
-        let generation = syncRuntimeCancellationGeneration
-        await cancellation.value
-        guard syncRuntimeCancellationGeneration == generation else { return }
-        syncRuntimeCancellation = nil
-        syncRuntimeCancellationGeneration = nil
-    }
-
-    private func bindEventDrivenSync(to provider: CloudKitSyncProvider?) {
+    func bindEventDrivenSync(to provider: CloudKitSyncProvider?) {
         provider?.setEventDrivenSyncHandler { [weak self] in
             Task { @MainActor [weak self] in
                 self?.scheduleEventDrivenSync()
@@ -567,45 +559,41 @@ public final class CompanionAppModel: ObservableObject {
             )
             return
         }
-        do {
-            let tombstones = try await repository.applyHistoryRetention(days: days)
-            for visit in tombstones {
-                try await syncBridge?.enqueue(visit)
-            }
+        let tombstones = await performLocalFirstMutation({
+            let committed = try await repository.applyHistoryRetention(days: days)
             defaults.set(days, forKey: CompanionSyncPreferences.historyRetentionDaysKey)
             historyRetentionDays = days
-            try await refreshLocalState()
-            if !tombstones.isEmpty {
-                await sync()
-            }
-        } catch {
-            loadError = error.localizedDescription
+            return committed
+        }, enqueue: { committed in
+            guard let bridge = self.syncBridge else { return }
+            for visit in committed { try await bridge.enqueue(visit) }
+        })
+        if let tombstones, !tombstones.isEmpty {
+            await sync()
         }
     }
 
     public func deleteHistoryVisit(_ id: HistoryVisitID) async {
-        do {
-            let tombstone = try await repository.deleteHistoryVisit(id)
-            try await syncBridge?.enqueue(tombstone)
-            try await refreshLocalState()
+        if let tombstone = await performLocalFirstMutation({
+            try await repository.deleteHistoryVisit(id)
+        }, enqueue: { tombstone in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(tombstone)
+        }) {
             await syncIfNeeded(afterDeleting: [tombstone])
-        } catch {
-            loadError = error.localizedDescription
         }
     }
 
     public func deleteHistory(sinceMilliseconds: UInt64) async {
-        do {
-            let tombstones = try await repository.deleteHistory(
+        if let tombstones = await performLocalFirstMutation({
+            try await repository.deleteHistory(
                 sinceMilliseconds: sinceMilliseconds
             )
-            for tombstone in tombstones {
-                try await syncBridge?.enqueue(tombstone)
-            }
-            try await refreshLocalState()
+        }, enqueue: { tombstones in
+            guard let bridge = self.syncBridge else { return }
+            for tombstone in tombstones { try await bridge.enqueue(tombstone) }
+        }) {
             await syncIfNeeded(afterDeleting: tombstones)
-        } catch {
-            loadError = error.localizedDescription
         }
     }
 
@@ -616,6 +604,17 @@ public final class CompanionAppModel: ObservableObject {
 
     public func confirmAccountTransition(allowLocalUpload: Bool) async {
         guard let syncProvider else { return }
+        let generation = syncGeneration
+        if !allowLocalUpload {
+            browserSettingsApprovalEpoch &+= 1
+            isBrowserSettingsSyncEnabled = false
+            defaults.set(false, forKey: Self.browserSettingsApprovalKey)
+            syncProvider.setBrowserSettingApprovedIDs([], epoch: browserSettingsApprovalEpoch)
+            await syncBridge?.setBrowserSettingsSyncEnabled(
+                false, epoch: browserSettingsApprovalEpoch
+            )
+            guard isCurrentSyncRuntime(syncProvider, generation: generation) else { return }
+        }
         do {
             try await syncProvider.confirmAccountTransition(
                 allowLocalUpload: allowLocalUpload
@@ -624,7 +623,7 @@ public final class CompanionAppModel: ObservableObject {
             syncStatus = syncProvider.status()
             if allowLocalUpload { await sync() }
         } catch {
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
             syncStatus = syncProvider.status()
             syncSafetyState = syncProvider.safetyState()
         }
@@ -637,7 +636,7 @@ public final class CompanionAppModel: ObservableObject {
             syncSafetyState = syncProvider.safetyState()
             await sync()
         } catch {
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
             syncStatus = syncProvider.status()
             syncSafetyState = syncProvider.safetyState()
         }
@@ -650,7 +649,7 @@ public final class CompanionAppModel: ObservableObject {
             await sync()
         } catch {
             guard self.syncProvider === syncProvider else { return }
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
             syncStatus = syncProvider.status()
         }
         guard self.syncProvider === syncProvider else { return }
@@ -665,141 +664,12 @@ public final class CompanionAppModel: ObservableObject {
             await sync()
         } catch {
             guard self.syncProvider === syncProvider else { return }
-            loadError = error.localizedDescription
+            presentOperationFailure(error)
             syncStatus = syncProvider.status()
         }
         guard self.syncProvider === syncProvider else { return }
         physicalDeletionRecoveryRequired = await syncProvider
             .hasPhysicalDeletionQuarantine()
-    }
-
-    public func remotelyOpen(_ tab: RemoteTab) async {
-        await sendRemoteCommand(
-            .open(.init(url: tab.url, workspaceID: tab.workspaceID)),
-            target: tab.deviceID,
-            action: CompanionL10n.string(
-                "remote.action.open",
-                fallback: "Open"
-            )
-        )
-    }
-
-    public func sendLink(
-        _ url: String,
-        to target: DeviceID,
-        workspaceID: WorkspaceID?
-    ) async {
-        await sendRemoteCommand(
-            .open(.init(url: url, workspaceID: workspaceID)),
-            target: target,
-            action: CompanionL10n.string(
-                "remote.action.send_link",
-                fallback: "Send link"
-            )
-        )
-    }
-
-    public func remotelyFocus(_ tab: RemoteTab) async {
-        await sendRemoteCommand(
-            .focus(.init(tabID: tab.id, context: .normal)),
-            target: tab.deviceID,
-            action: CompanionL10n.string(
-                "remote.action.focus",
-                fallback: "Focus"
-            )
-        )
-    }
-
-    public func remotelyClose(_ tab: RemoteTab) async {
-        await sendRemoteCommand(
-            .close([.init(tabID: tab.id, context: .normal)]),
-            target: tab.deviceID,
-            action: CompanionL10n.string(
-                "remote.action.close",
-                fallback: "Close"
-            )
-        )
-    }
-
-    public func visibleTabs(for workspaceID: WorkspaceID?) -> [RemoteTab] {
-        snapshot.visibleRemoteTabs.filter { tab in
-            guard let workspaceID else { return true }
-            return tab.workspaceID == workspaceID
-        }
-    }
-
-    public var actionableRemoteTabIDs: Set<TabID> {
-        Set(snapshot.visibleRemoteTabs.filter {
-            snapshot.isRemoteTabActionable($0)
-        }.map(\.id))
-    }
-
-    private func sendRemoteCommand(
-        _ command: RemoteCommand,
-        target: DeviceID,
-        action: String
-    ) async {
-        guard snapshot.devices.contains(where: {
-            $0.id == target && !$0.isDeleted && !$0.isRevoked
-        }) else {
-            remoteCommandStatus = CompanionL10n.string(
-                "remote.device_unavailable",
-                fallback: "This device is unavailable or has been revoked."
-            )
-            return
-        }
-        guard let syncBridge, let provider = syncProvider else {
-            remoteCommandStatus = CompanionL10n.string(
-                "remote.not_configured",
-                fallback: "Remote control is not configured."
-            )
-            return
-        }
-        do {
-            remoteCommandStatus = CompanionL10n.format(
-                "remote.signing",
-                fallback: "%@ is being signed…",
-                action
-            )
-            let state = try await syncBridge.enqueueRemoteCommand(
-                targetDeviceID: target,
-                command: command
-            )
-            commandLabels[state.id] = action
-            updateRemoteCommandStatusItem(state, action: action)
-            remoteCommandStatus = CompanionL10n.format(
-                "remote.queued_securely",
-                fallback: "%@ was queued securely.",
-                action
-            )
-            let generation = syncGeneration
-            await sync()
-            guard isCurrentSyncRuntime(provider, generation: generation),
-                  self.syncBridge === syncBridge else {
-                return
-            }
-            let updated = await syncBridge.remoteCommandState(state.id)
-            if let updated {
-                updateRemoteCommandStatusItem(updated, action: action)
-            }
-            remoteCommandStatus = statusText(updated?.status ?? .queued, action: action)
-            snapshot = try await repository.currentSnapshot()
-            syncStatus = provider.status()
-            syncSafetyState = provider.safetyState()
-            loadError = nil
-            beginCommandFollowUp(
-                commandID: state.id,
-                expiresAtMilliseconds: state.envelope.payload.expiresAtMilliseconds
-            )
-        } catch {
-            remoteCommandStatus = CompanionL10n.format(
-                "remote.send_failed",
-                fallback: "%@ was not sent.",
-                action
-            )
-            loadError = error.localizedDescription
-            syncStatus = syncProvider?.status()
-        }
     }
 
     private func createNode(
@@ -809,118 +679,25 @@ public final class CompanionAppModel: ObservableObject {
         title: String,
         url: String?
     ) async -> TreeNode? {
-        do {
-            let node = try await repository.createTreeNode(
+        await performLocalFirstMutation({
+            try await repository.createTreeNode(
                 workspaceID: workspaceID,
                 parentID: parentID,
                 kind: kind,
                 title: title,
                 url: url
             )
-            try await syncBridge?.enqueue(node)
-            try await refreshLocalState()
-            return node
-        } catch {
-            loadError = error.localizedDescription
-            return nil
-        }
+        }, enqueue: { node in
+            guard let bridge = self.syncBridge else { return }
+            try await bridge.enqueue(node)
+        })
     }
 
-    private func refreshLocalState() async throws {
+    func refreshLocalState() async throws {
         snapshot = try await repository.currentSnapshot()
+        applySharedBrowserSettings()
         searchResults = try await repository.search("")
         loadError = nil
     }
 
-    private func statusText(_ status: RemoteCommandStatus, action: String) -> String {
-        switch status {
-        case .queued:
-            CompanionL10n.format(
-                "remote.status.queued",
-                fallback: "%@ was sent; confirmation is pending.",
-                action
-            )
-        case .delivered:
-            CompanionL10n.string(
-                "remote.status.delivered",
-                fallback: "The Mac verified the command."
-            )
-        case .executed:
-            CompanionL10n.format(
-                "remote.status.executed",
-                fallback: "%@ was completed on the Mac.",
-                action
-            )
-        case .failed:
-            CompanionL10n.string(
-                "remote.status.failed",
-                fallback: "The Mac rejected the command safely."
-            )
-        }
-    }
-
-    private func updateRemoteCommandStatusItem(
-        _ state: RemoteCommandState,
-        action: String
-    ) {
-        let item = CompanionRemoteCommandStatusItem(
-            id: state.id,
-            action: action,
-            targetDeviceID: state.envelope.payload.targetDeviceID,
-            status: state.status,
-            resultCode: state.resultCode,
-            expiresAtMilliseconds: state.envelope.payload.expiresAtMilliseconds
-        )
-        recentRemoteCommands.removeAll { $0.id == item.id }
-        recentRemoteCommands.insert(item, at: 0)
-        if recentRemoteCommands.count > 20 {
-            recentRemoteCommands.removeLast(recentRemoteCommands.count - 20)
-        }
-    }
-
-    private func refreshRemoteCommandStates(using bridge: CompanionSyncBridge) async {
-        let states = await bridge.remoteCommandStates(Set(commandLabels.keys))
-        for state in states {
-            let action = commandLabels[state.id] ?? CompanionL10n.string(
-                "remote.action.generic",
-                fallback: "Remote command"
-            )
-            updateRemoteCommandStatusItem(state, action: action)
-            if recentRemoteCommands.first(where: { $0.id == state.id })?.isTerminal == true {
-                commandFollowUpTasks[state.id]?.cancel()
-                commandFollowUpTasks[state.id] = nil
-            }
-        }
-    }
-
-    private func beginCommandFollowUp(
-        commandID: UUID,
-        expiresAtMilliseconds: UInt64
-    ) {
-        commandFollowUpTasks[commandID]?.cancel()
-        commandFollowUpTasks[commandID] = Task { [weak self] in
-            while !Task.isCancelled {
-                let now = UInt64(Date().timeIntervalSince1970 * 1_000)
-                guard now < expiresAtMilliseconds else { break }
-                try? await Task.sleep(for: .seconds(5))
-                guard let self,
-                      let bridge = self.syncBridge,
-                      let provider = self.syncProvider else { break }
-                let generation = self.syncGeneration
-                await self.sync()
-                guard self.isCurrentSyncRuntime(provider, generation: generation),
-                      self.syncBridge === bridge else {
-                    break
-                }
-                await self.refreshRemoteCommandStates(using: bridge)
-                self.syncStatus = provider.status()
-                if self.recentRemoteCommands.first(where: {
-                    $0.id == commandID
-                })?.isTerminal == true {
-                    break
-                }
-            }
-            self?.commandFollowUpTasks[commandID] = nil
-        }
-    }
 }

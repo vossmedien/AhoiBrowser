@@ -4,7 +4,7 @@ import unittest
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-PATCH = ROOT / "patches/chromium/0001-ahoi-m152-integration-seams.patch"
+PATCH = ROOT / "patches/chromium/0001-ahoi-m153-integration-seams.patch"
 DEVELOPER_UI = (
     ROOT / "overlay/chromium/src/ahoi/browser/ui/developer_toolkit"
 )
@@ -52,14 +52,16 @@ class LocationBarBubbleToggleContractTest(unittest.TestCase):
         self.assertIn(
             "suppress_button_release_ = IsSurfaceShowing();", implementation
         )
+        # Non-mouse events stay triggerable; mouse events only while the
+        # surface is closed and no release suppression is pending.
         self.assertRegex(
             implementation,
-            r"if \(event\.IsMouseEvent\(\)\) \{\s*"
-            r"return !IsSurfaceShowing\(\) && !suppress_button_release_;",
+            r"return !event\.IsMouseEvent\(\) \|\|\s*"
+            r"\(!IsSurfaceShowing\(\) && !suppress_button_release_\);",
         )
-        self.assertIn("return true;", implementation)
         for scenario in (
-            "ExistingSurfaceDismissalDoesNotReopenOnMouseRelease",
+            # Renamed in d84d8e3 when the press itself became the close.
+            "SecondMousePressClosesExactlyOnceWithoutReleaseReopen",
             "ClosedSurfaceOpensOnMouseRelease",
             "NextMousePressClearsAnEarlierReleaseSuppression",
             "KeyboardAndTouchRemainTriggerableWhileSurfaceIsShowing",
@@ -110,12 +112,17 @@ class LocationBarBubbleToggleContractTest(unittest.TestCase):
             "bool IsSurfaceShowing(DeveloperToolbarSurface surface) const;",
             developer_header,
         )
-        for widget in (
-            "bubble_widget_",
-            "cookie_manager_widget_",
-            "cache_status_widget_",
+        # A surface whose close is still pending counts as showing, so the
+        # next toggle press closes instead of reopening it.
+        for widget, pending in (
+            ("bubble_widget_", "bubble_close_pending_"),
+            ("cookie_manager_widget_", "cookie_manager_close_pending_"),
+            ("cache_status_widget_", "cache_status_close_pending_"),
         ):
-            self.assertIn(f"return {widget} != nullptr;", developer_source)
+            self.assertRegex(
+                developer_source,
+                rf"return {widget} != nullptr \|\|\s*{pending};",
+            )
         cache_toggle = developer_source[developer_source.index(
             "bool DeveloperToolkitController::ShowCacheClear"
         ) :]

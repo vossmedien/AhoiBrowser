@@ -1,0 +1,66 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe1 -> 0 now=Probe1
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe1 -> true
+frontmost -> 0
+hidkey 17
+typed 36
+hidkey 36
+firstReturnNavigated_1 -> true
+key 53
+AXShowMenu AXButton | Probe1, Workspace wechseln | Probe1, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe2 -> 0 now=Probe2
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe2 -> true
+frontmost -> 0
+hidkey refused: target not frontmost
+barOpened_2 -> false
+key 53
+AXShowMenu AXButton | Probe2, Workspace wechseln | Probe2, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe3 -> 0 now=Probe3
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe3 -> true
+frontmost -> 0
+hidkey 17
+typed 36
+hidkey 36
+firstReturnNavigated_3 -> true
+key 53
+AXShowMenu AXButton | Probe3, Workspace wechseln | Probe3, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe4 -> 0 now=Probe4
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe4 -> true
+frontmost -> 0
+hidkey 17
+typed 36
+hidkey 36
+firstReturnNavigated_4 -> true
+key 53
+AXShowMenu AXButton | Probe4, Workspace wechseln | Probe4, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe5 -> 0 now=Probe5
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe5 -> true
+frontmost -> 0
+hidkey 17
+typed 36
+hidkey 36
+firstReturnNavigated_5 -> true
+key 53
+AXShowMenu AXButton | Probe5, Workspace wechseln | Probe5, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Probe6 -> 0 now=Probe6
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Probe6 -> true
+frontmost -> 0
+hidkey 17
+typed 36
+hidkey 36
+firstReturnNavigated_6 -> true
+key 12

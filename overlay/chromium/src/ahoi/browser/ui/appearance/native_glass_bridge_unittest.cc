@@ -7,7 +7,7 @@
 
 namespace ahoi::appearance {
 
-TEST(NativeGlassBridgeTest, GlassConfigurationUsesThemeTintAndRoleGeometry) {
+TEST(NativeGlassBridgeTest, GlassConfigurationUsesNeutralTintAndRoleGeometry) {
   SurfaceAppearance appearance;
   appearance.mode = GlassMode::kGlass;
   appearance.opacity = 0.3f;
@@ -21,7 +21,7 @@ TEST(NativeGlassBridgeTest, GlassConfigurationUsesThemeTintAndRoleGeometry) {
   EXPECT_TRUE(configuration.use_native_glass);
   EXPECT_EQ(NativeGlassStyle::kClear, configuration.style);
   EXPECT_EQ(18, configuration.corner_radius);
-  EXPECT_EQ(77u, SkColorGetA(configuration.tint_color));
+  EXPECT_EQ(SkColorSetARGB(77, 0x10, 0x20, 0x30), configuration.tint_color);
   EXPECT_EQ(SkColorSetRGB(0x10, 0x20, 0x30), configuration.fallback_color);
 }
 

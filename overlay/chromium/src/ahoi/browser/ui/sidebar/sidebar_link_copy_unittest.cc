@@ -15,6 +15,54 @@
 namespace ahoi::sidebar {
 namespace {
 
+TEST(SidebarLinkCopyTest, BuildsCredentialFreeUrlAndEscapedMarkdownLink) {
+  const GURL url("https://user:secret@example.test/a_(b)?q=1#fragment");
+  EXPECT_EQ(
+      u"https://example.test/a_(b)?q=1#fragment",
+      BuildPageLinkClipboardText(url, u"Ignored", PageLinkCopyFormat::kUrl));
+  EXPECT_EQ(
+      u"[A \\[title\\] \\\\ test]"
+      u"(https://example.test/a_\\(b\\)?q=1#fragment)",
+      BuildPageLinkClipboardText(url, u"A [title] \\ test",
+                                 PageLinkCopyFormat::kMarkdown));
+  EXPECT_EQ(
+      u"[\\<img src\\=x onerror\\=alert\\(1\\)\\> \\&copy\\; "
+      u"\\*emphasis\\* \\`code\\` \\_under\\_]"
+      u"(https://example.test/)",
+      BuildPageLinkClipboardText(
+          GURL("https://example.test/"),
+          u"<img src=x onerror=alert(1)> &copy; *emphasis* `code` _under_",
+          PageLinkCopyFormat::kMarkdown));
+}
+
+TEST(SidebarLinkCopyTest, RejectsNonWebTargetsAndNormalizesTitleWhitespace) {
+  EXPECT_FALSE(BuildPageLinkClipboardText(GURL("file:///private/page.html"),
+                                          u"Local",
+                                          PageLinkCopyFormat::kMarkdown));
+  EXPECT_EQ(u"[Line one Line two](https://example.test/)",
+            BuildPageLinkClipboardText(GURL("https://example.test/"),
+                                       u"Line one\n\tLine two",
+                                       PageLinkCopyFormat::kMarkdown));
+}
+
+TEST(SidebarLinkCopyTest, MarkdownLabelStaysOneVisibleLine) {
+  const GURL url("https://example.test/");
+  EXPECT_EQ(u"[Title](https://example.test/)",
+            BuildPageLinkClipboardText(url, u"  \n Title \t\r\n",
+                                       PageLinkCopyFormat::kMarkdown));
+  EXPECT_EQ(u"[One Two Three](https://example.test/)",
+            BuildPageLinkClipboardText(url, u"One\u2028Two\u00a0\u00a0Three",
+                                       PageLinkCopyFormat::kMarkdown));
+  // Bidi overrides and other controls cannot disguise the visible label.
+  EXPECT_EQ(u"[abcdef](https://example.test/)",
+            BuildPageLinkClipboardText(url, u"abc\u202edef\u0007",
+                                       PageLinkCopyFormat::kMarkdown));
+  // A whitespace-only title falls back to the host.
+  EXPECT_EQ(u"[example\\.test](https://example.test/)",
+            BuildPageLinkClipboardText(url, u" \u3000 ",
+                                       PageLinkCopyFormat::kMarkdown));
+}
+
 tab_tree::Workspace MakeWorkspace() {
   const base::Time now = base::Time::Now();
   return {.id = base::Uuid::GenerateRandomV4(),

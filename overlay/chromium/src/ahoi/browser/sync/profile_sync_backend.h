@@ -4,6 +4,7 @@
 #ifndef AHOI_BROWSER_SYNC_PROFILE_SYNC_BACKEND_H_
 #define AHOI_BROWSER_SYNC_PROFILE_SYNC_BACKEND_H_
 
+#include <atomic>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -11,14 +12,23 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
+#include "ahoi/browser/sync/browser_settings_sync_types.h"
 #include "ahoi/browser/sync/hybrid_logical_clock.h"
+#include "ahoi/browser/sync/profile_shared_tab_types.h"
 #include "ahoi/browser/sync/profile_sync_types.h"
 #include "ahoi/browser/sync/remote_command_security.h"
+#include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
+#include "ahoi/browser/sync/sync_namespace.h"
+#include "ahoi/browser/sync/sync_store.h"
+#include "ahoi/browser/sync/workspace_structure_sync_types.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback_forward.h"
 #include "base/memory/weak_ptr.h"
+#include "base/scoped_observation.h"
+#include "build/build_config.h"
 
 namespace ahoi::sync {
 
@@ -27,25 +37,44 @@ class SyncPayloadCryptor;
 class SyncProvider;
 class SyncPump;
 class SyncStore;
+#if BUILDFLAG(IS_MAC)
+class CloudKitSyncKeyBootstrapMac;
+struct MacSyncKeyBootstrapResult;
+#endif
 
 // Blocking profile-local implementation owned by one SequenceBound task
 // runner. No PrefService, HistoryService, SessionBridge or browser UI object
 // crosses this boundary.
-class ProfileSyncBackend {
+class ProfileSyncBackend : public SyncStoreObserver {
  public:
   ProfileSyncBackend(base::FilePath database_path,
                      base::Uuid device_id,
                      base::Uuid session_id,
                      std::string device_name,
                      bool transport_enabled,
-                     int history_retention_days);
+                     int history_retention_days,
+                     bool bookmark_sync_enabled = false,
+                     SyncAuthorization profile_authorization = {},
+                     SettingAuthorizationSource setting_authorization = {},
+                     SyncNamespace sync_namespace = SyncNamespace::Main());
   ProfileSyncBackend(const ProfileSyncBackend&) = delete;
   ProfileSyncBackend& operator=(const ProfileSyncBackend&) = delete;
-  ~ProfileSyncBackend();
+  ~ProfileSyncBackend() override;
 
   std::optional<SyncStateSnapshot> Initialize();
+  void SetIncomingStateCallback(
+      base::RepeatingCallback<void(std::optional<SyncStateSnapshot>,
+                                   SyncAuthorization)> callback);
   std::optional<DeviceTabsSnapshot> ReplaceLocalTabs(
       std::vector<LocalTabState> tabs);
+  std::optional<SyncStateSnapshot> SetSharedTabNativeSupport(
+      SharedTabNativeSupport support);
+  void BeginSharedTabCapture(uint64_t generation);
+  SharedTabCaptureResult ApplySharedTabCapture(SharedTabCaptureRequest request);
+  std::optional<SharedTabProjection> ReadSharedTabProjection();
+  std::optional<PreparedSharedTabProjection> PrepareSharedTabProjection(
+      NativeTreeSyncSnapshot native,
+      SharedTabProjection projection);
   std::optional<SyncStateSnapshot> MergeLocalTabTree(
       tab_tree::TabTreeSnapshot snapshot,
       bool initial_merge);
@@ -69,19 +98,39 @@ class ProfileSyncBackend {
                              bool executed,
                              std::string result_code);
   bool ConfirmAccountTransition(bool allow_local_upload);
+  bool RetrySyncKeySetup();
   bool ConfirmZoneRecovery();
   std::optional<SyncStateSnapshot> SetTransportEnabled(bool enabled);
   std::optional<SyncStateSnapshot> SetHistoryRetentionDays(int days);
   std::optional<SyncStateSnapshot> UpsertAppearance(AppearanceRecord record);
-  std::optional<SyncStateSnapshot> UpsertPermittedSetting(
-      PermittedSettingRecord record);
+  std::optional<BrowserSettingsProjection> ReadBrowserSettings();
+  std::optional<WorkspaceStructureProjection> ReadWorkspaceStructure();
+  std::optional<SyncStateSnapshot> PublishWorkspaceStructureIntent(
+      WorkspaceStructureIntent intent);
+  // The version belongs to the original persisted user intent. Retrying it
+  // must never give an old value a new HLC or overwrite a newer peer change.
+  std::optional<SyncStateSnapshot> PublishBrowserSettingIntent(
+      PermittedSettingRecord record,
+      SyncAuthorization authorization);
+  // Initial native observation is not a later user edit. Check absence on the
+  // store sequence so a peer arriving during capture always wins over a seed.
+  std::optional<SyncStateSnapshot> SeedBrowserSetting(
+      PermittedSettingRecord record,
+      SyncAuthorization authorization);
   std::optional<SyncStateSnapshot> ReplaceLocalExtensionInventory(
       std::vector<ExtensionInventoryRecord> records);
   std::optional<SyncStateSnapshot> UpsertDeveloperAsset(
       DeveloperAssetRecord record);
+  std::optional<SyncStateSnapshot> SetBookmarkSyncEnabled(bool enabled);
+  std::optional<BookmarkSyncProjection> MergeLocalBookmarks(
+      NativeBookmarkSnapshot snapshot);
+  std::optional<BookmarkSyncProjection> ReadBookmarkProjection();
+  bool AcknowledgeNativeBookmarks(NativeBookmarkSnapshot snapshot,
+                                  BookmarkSyncAuthorization authorization);
 
   void SyncNow(
-      base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback);
+      base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback,
+      bool user_initiated = false);
   // Stops provider and local-session activity without mutating the durable
   // store. Used when the profile-wide opt-in is disabled: existing records and
   // outbox entries remain intact, while destruction cannot enqueue lifecycle
@@ -90,6 +139,11 @@ class ProfileSyncBackend {
   void CloseSession();
 
  private:
+  friend class BookmarkSyncAuthorizationTest;
+  // Reads the live store on this sequence; SQLite's exclusive lock blocks a
+  // second connection while the backend is open.
+  friend class ProfileSyncServiceTest;
+
   template <typename Record>
   bool Put(const Record& record);
   template <typename Record>
@@ -97,27 +151,74 @@ class ProfileSyncBackend {
 
   void TouchSession();
   void InitializeProviderIfAvailable();
+#if BUILDFLAG(IS_MAC)
+  void OnKeyBootstrapResult(MacSyncKeyBootstrapResult result);
+#endif
+  bool ProfileScopeActive() const;
+  SyncAuthorization CaptureBrowserSettingsAuthorization();
+  bool RefreshBrowserSettingScopes();
+  SharedTabSyncState SharedTabState();
+  SyncAuthorization CaptureSharedAuthorization(bool require_write);
+  bool PublishLocalCapability();
+  void OnSyncStoreChanged() override;
+  void RevokeSharedProjection();
+  void RevokeSharedCapture();
+  BookmarkSyncAuthorization CaptureBookmarkAuthorization();
+  void ResetBookmarkAuthorizationScope(bool renew);
   bool EnforceRetention(base::Time now);
   std::optional<SyncStateSnapshot> CurrentState();
   void OnSyncFinished(
       base::OnceCallback<void(std::optional<SyncStateSnapshot>)> callback,
       bool success,
       std::string safe_error);
+  void OnIncomingApplied(SyncAuthorization authorization);
 
   const base::FilePath database_path_;
   const base::Uuid device_id_;
   const base::Uuid session_id_;
   const std::string device_name_;
+  const SyncAuthorization profile_authorization_;
+  const SettingAuthorizationSource setting_authorization_;
+  // ADR 0011 step 4: the only CloudKit zone and key this backend may use.
+  const SyncNamespace sync_namespace_;
+  struct BrowserSettingScope {
+    PermittedSettingRecord record;
+    std::shared_ptr<std::atomic<bool>> cancelled;
+  };
+  std::map<base::Uuid, BrowserSettingScope> browser_setting_scopes_;
   bool transport_enabled_ = false;
+  bool bookmark_sync_enabled_ = false;
+  std::shared_ptr<std::atomic<bool>> bookmark_scope_cancelled_ =
+      std::make_shared<std::atomic<bool>>(false);
   int history_retention_days_ = 90;
   base::Time last_retention_run_;
   HybridLogicalClock clock_;
   std::unique_ptr<SyncStore> store_;
+  base::ScopedObservation<SyncStore, SyncStoreObserver>
+      shared_store_observation_{this};
   std::unique_ptr<DeviceTabsService> tabs_service_;
   DeviceSessionRecord session_record_;
   std::map<std::string, RemoteTabRecord> live_tabs_;
+  std::map<std::string, std::string> live_tab_windows_;
+  SharedTabNativeSupport shared_native_support_;
+  uint64_t expected_capture_generation_ = 0;
+  uint64_t applied_capture_generation_ = 0;
+  SyncAuthorization original_capture_authorization_;
+  std::shared_ptr<std::atomic<bool>> shared_capture_cancelled_ =
+      std::make_shared<std::atomic<bool>>(true);
+  std::shared_ptr<std::atomic<bool>> shared_projection_cancelled_ =
+      std::make_shared<std::atomic<bool>>(false);
   std::unique_ptr<SyncProvider> provider_;
   std::unique_ptr<SyncPump> pump_;
+#if BUILDFLAG(IS_MAC)
+  std::unique_ptr<CloudKitSyncKeyBootstrapMac> key_bootstrap_;
+  std::vector<base::OnceCallback<void(std::optional<SyncStateSnapshot>)>>
+      key_setup_waiters_;
+#endif
+  std::string key_setup_issue_;
+  base::RepeatingCallback<void(std::optional<SyncStateSnapshot>,
+                               SyncAuthorization)>
+      incoming_state_callback_;
   base::WeakPtrFactory<ProfileSyncBackend> weak_ptr_factory_{this};
 };
 

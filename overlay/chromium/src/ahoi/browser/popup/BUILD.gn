@@ -20,16 +20,61 @@ source_set("popup") {
   ]
 }
 
+# Context-menu entry point of Link-Peek; no browser window dependencies.
+source_set("link_peek") {
+  sources = [
+    "link_peek.cc",
+    "link_peek.h",
+    "link_peek_input.cc",
+    "link_peek_input.h",
+  ]
+  public_deps = [
+    "//base",
+    "//content/public/browser",
+    "//content/public/common",
+    "//third_party/blink/public/mojom:mojom_platform",
+    "//ui/base",
+    "//url",
+  ]
+  deps = [
+    "//base:i18n",
+    "//net",
+    "//third_party/blink/public/common",
+  ]
+}
+
+# Optional automatic Peek from saved pages (patch 0060 registers it).
+source_set("link_peek_throttle") {
+  sources = [
+    "link_peek_throttle.cc",
+    "link_peek_throttle.h",
+  ]
+  public_deps = [ "//content/public/browser" ]
+  deps = [
+    ":link_peek",
+    "//base",
+    "//chrome/browser/profiles:profile",
+    "//components/prefs",
+    "//content/public/common",
+    "//ui/base",
+    "//url",
+  ]
+}
+
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "link_peek_input_unittest.cc",
+    "link_peek_unittest.cc",
     "popup_overlay_service_unittest.cc",
     "popup_types_unittest.cc",
   ]
   deps = [
+    ":link_peek",
     ":popup",
     "//content/test:test_support",
     "//testing/gtest",
+    "//third_party/blink/public/common",
   ]
 }
 

@@ -6,10 +6,13 @@
 #define AHOI_BROWSER_TAB_TREE_TAB_TREE_MODEL_H_
 
 #include <cstdint>
+#include <iosfwd>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/shared_tab_target_types.h"
+#include "ahoi/browser/sync/shared_workspace_structure_types.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "url/gurl.h"
@@ -23,9 +26,9 @@ enum class TreeNodeType {
   kSavedPage = 1,
 };
 
-// Persisted, profile-scoped workspace metadata. Workspaces deliberately do not
-// represent Chromium Profiles; cookies, logins, permissions and extensions are
-// shared by all workspaces in one normal Profile.
+// Persisted, profile-scoped workspace metadata. Logical identity is independent
+// of Chromium Profiles and each tab's local website-session binding. No cookie,
+// permission, credential or storage-partition identity belongs in these rows.
 struct Workspace {
   int model_version = kCurrentModelVersion;
   base::Uuid id;
@@ -36,6 +39,11 @@ struct Workspace {
   base::Time created_at;
   base::Time modified_at;
   bool tombstone = false;
+
+  sync::SharedArchivePolicy archive_policy = sync::SharedArchivePolicy::kNever;
+  // The Workspace that absorbed this one, set only with `tombstone` by
+  // MergeWorkspace and cleared when an undo revives it (ADR 0012, crest 084).
+  std::optional<base::Uuid> merged_into;
 
   bool operator==(const Workspace&) const = default;
 };
@@ -61,8 +69,46 @@ struct TreeNode {
   base::Time modified_at;
   bool tombstone = false;
 
+  // Both saved and temporary normal pages have a stable global node ID.
+  // kSavedPage is the historical page-kind name; this flag is authoritative
+  // for saved/temporary presentation and close semantics.
+  bool is_temporary = false;
+  // Native legacy pages may omit this metadata and are classified from their
+  // local URL at the boundary. Shared page projections always supply it.
+  // For local-only targets url may retain this device's actual target; those
+  // bytes NEVER enter the portable URL field or another device's navigation.
+  std::optional<sync::SharedTabTargetKind> target_kind;
+  std::optional<std::string> local_scheme;
+
+  // Saved Home is independent of the current navigation URL. A local-only
+  // destination remains private here; only its portable descriptor is shared.
+  // A concurrent Unsave may retain dormant Home metadata on a temporary page.
+  GURL home_url;
+  std::optional<sync::SharedTabTargetKind> home_target_kind;
+  std::optional<std::string> home_local_scheme;
+
   bool operator==(const TreeNode&) const = default;
+  // Field-by-field output so a failed test comparison names what differs.
+  friend void PrintTo(const TreeNode& node, std::ostream* os);
 };
+
+// Explicit user choice when an archive's original placement is unavailable.
+// A null parent means the user selected this workspace's root, never fallback.
+struct ArchiveRestorePlacement {
+  base::Uuid workspace_id;
+  std::optional<base::Uuid> parent_id;
+};
+
+// Only this bounded target leaves the device. A local-only native URL may be
+// retained in the row for local use, but is never returned by this boundary.
+std::optional<sync::SharedTabTarget> GetSharedPageTarget(const TreeNode& node);
+std::optional<sync::SharedTabTarget> GetSharedHomeTarget(const TreeNode& node);
+// Local creation/save only. Never call while applying a shared snapshot or
+// observing navigation: an absent incoming Home is an intentional value.
+void InitializeSavedHome(TreeNode* node);
+// Native local-only captions may contain file paths or code-derived text.
+// Preserve their local display but use a generic portable caption on the wire.
+std::u16string GetSharedPageTitle(const TreeNode& node);
 
 // Complete persistence snapshot for transferring the live in-memory tree to
 // Ahoi's dedicated blocking database sequence. Undo history is part of the
@@ -73,6 +119,10 @@ enum class UndoMutationKind {
   kRename = 1,
   kMove = 2,
   kDelete = 3,
+  // Merge of an empty source Workspace (ADR 0012, crest 134). The subject is
+  // the source Workspace ID and there are no node snapshots; undo revives
+  // that Workspace only.
+  kWorkspaceMerge = 4,
 };
 
 struct UndoNodeSnapshot {

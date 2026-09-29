@@ -27,8 +27,7 @@ TEST_F(SidebarTreeViewTest, EmptyRootKeepsAVisibleSavedDropViewport) {
   EXPECT_EQ(0U, view->materialized_row_count_for_testing());
 }
 
-TEST_F(SidebarTreeViewTest,
-       CollapsingViewportDefersRegisteredTextfieldRecycling) {
+TEST_F(SidebarTreeViewTest, TransientEmptyViewportPreservesMaterializedRows) {
   const tab_tree::Workspace workspace = MakeWorkspace();
   std::vector<tab_tree::TreeNode> pages;
   for (int index = 0; index < 8; ++index) {
@@ -43,7 +42,9 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_TRUE(controller_->view_model().ReplaceChildren(std::nullopt,
                                                         std::move(pages)));
   tree->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
-  ASSERT_GT(tree->materialized_row_count_for_testing(), 0U);
+  const size_t materialized_before_collapse =
+      tree->materialized_row_count_for_testing();
+  ASSERT_GT(materialized_before_collapse, 0U);
 
   auto scroll = SidebarTreeView::CreateScrollView(std::move(tree));
   views::ScrollView* const scroll_ptr = scroll.get();
@@ -51,15 +52,33 @@ TEST_F(SidebarTreeViewTest,
   views::View* const viewport =
       widget->SetContentsView(std::make_unique<views::View>());
   viewport->AddChildView(std::move(scroll));
+  widget->SetBounds(gfx::Rect(0, 0, 240, 96));
   scroll_ptr->SetBoundsRect(gfx::Rect(0, 0, 240, 96));
   scroll_ptr->DeprecatedLayoutImmediately();
+  widget->Show();
 
   // The collapse synchronously walks ScrollView's visible-bounds subscribers.
-  // Row recycling must happen only after that traversal has completed because
-  // every recycled row removes its registered Textfield descendant.
+  // A zero effective viewport is presentation state, not an empty model; keep
+  // the already bounded rows instead of removing their registered Textfields
+  // during that traversal.
   scroll_ptr->SetBoundsRect(gfx::Rect());
   task_environment()->RunUntilIdle();
-  EXPECT_EQ(0U, tree_ptr->materialized_row_count_for_testing());
+  EXPECT_EQ(materialized_before_collapse,
+            tree_ptr->materialized_row_count_for_testing());
+
+  // The production presentation host starts the reveal while the effective
+  // viewport is still empty. The immediate visibility task must not discard
+  // the previous bounded materialization before animated layout settles.
+  scroll_ptr->SetVisible(false);
+  task_environment()->RunUntilIdle();
+  scroll_ptr->SetVisible(true);
+  task_environment()->RunUntilIdle();
+  EXPECT_EQ(materialized_before_collapse,
+            tree_ptr->materialized_row_count_for_testing());
+
+  // Stable bounds are covered by the production-host browser regression. This
+  // focused unit verifies the safety property that the transient empty frame
+  // itself cannot recycle registered row/Textfield descendants.
 }
 
 TEST_F(SidebarTreeViewTest, DefersWidthToResizableSidebarViewport) {
@@ -107,13 +126,15 @@ TEST_F(SidebarTreeViewTest,
   SidebarTreeRowView* third_row = view->GetMaterializedRowForTesting(third.id);
   ASSERT_NE(nullptr, third_row);
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, third_row->y());
-  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
 
   view->SetRuntimeCompositeSuppressedNodes({});
   view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 128));
   EXPECT_NE(nullptr, view->GetMaterializedRowForTesting(mixed_saved.id));
-  EXPECT_EQ(3 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(3 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
 }
 
@@ -262,12 +283,13 @@ TEST_F(SidebarTreeViewTest, RebindingUnchangedRowDoesNotInvalidateLayout) {
   EXPECT_FALSE(row->needs_layout());
 }
 
-TEST_F(SidebarTreeViewTest, BindsCustomEmojiIconToFolderRow) {
+TEST_F(SidebarTreeViewTest,
+       ImportedFolderMetadataUsesClosedFolderVisualWithoutDisclosure) {
   const tab_tree::Workspace workspace = MakeWorkspace();
   tab_tree::TreeNode folder =
       MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
                u"Tooling", "a");
-  folder.icon = u"🛠️";
+  folder.icon = u"star";
   folder.accent_argb = 0xFF4F8DE8u;
 
   auto view = NewTreeView();
@@ -279,7 +301,8 @@ TEST_F(SidebarTreeViewTest, BindsCustomEmojiIconToFolderRow) {
   SidebarTreeRowView* row = view->GetMaterializedRowForTesting(folder.id);
   ASSERT_NE(nullptr, row);
   EXPECT_TRUE(row->is_folder());
-  EXPECT_EQ(u"🛠️", row->folder_icon_for_testing());
+  EXPECT_FALSE(row->disclosure_visible_for_testing());
+  EXPECT_FALSE(row->uses_open_folder_icon_for_testing());
 }
 
 TEST_F(SidebarTreeViewTest, SplitTabsShareOneSegmentedVisualRow) {
@@ -326,7 +349,8 @@ TEST_F(SidebarTreeViewTest, SplitTabsShareOneSegmentedVisualRow) {
               split_row->title_paint_clip_bounds_for_testing());
   }
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, third_row->y());
-  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
 
   delegate_.split_groups = {{first.id, second.id, third.id}};
@@ -342,7 +366,9 @@ TEST_F(SidebarTreeViewTest, SplitTabsShareOneSegmentedVisualRow) {
   EXPECT_EQ(second_row->y(), third_row->y());
   EXPECT_LT(first_row->x(), second_row->x());
   EXPECT_LT(second_row->x(), third_row->x());
-  EXPECT_EQ(SidebarTreeRowView::kRowHeight, view->GetPreferredSize().height());
+  EXPECT_EQ(
+      SidebarTreeRowView::kRowHeight + SidebarTreeView::kRootAppendDropHeight,
+      view->GetPreferredSize().height());
 }
 
 TEST_F(SidebarTreeViewTest, SavedSplitVisualDataControlsSegmentBounds) {
@@ -371,7 +397,9 @@ TEST_F(SidebarTreeViewTest, SavedSplitVisualDataControlsSegmentBounds) {
   ASSERT_NE(nullptr, second_row);
   EXPECT_GT(first_row->width(), second_row->width());
   EXPECT_EQ(first_row->y(), second_row->y());
-  EXPECT_EQ(SidebarTreeRowView::kRowHeight, view->GetPreferredSize().height());
+  EXPECT_EQ(
+      SidebarTreeRowView::kRowHeight + SidebarTreeView::kRootAppendDropHeight,
+      view->GetPreferredSize().height());
 }
 
 TEST_F(SidebarTreeViewTest,
@@ -417,7 +445,8 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_NE(nullptr, second_row);
   ASSERT_NE(nullptr, third_row);
   ASSERT_NE(nullptr, fourth_row);
-  EXPECT_EQ(three_pane_height + SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(three_pane_height + SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
   EXPECT_EQ(three_pane_height, first_row->height());
   EXPECT_LT(second_row->y(), third_row->y());
@@ -441,7 +470,8 @@ TEST_F(SidebarTreeViewTest,
   ASSERT_NE(nullptr, second_row);
   ASSERT_NE(nullptr, third_row);
   ASSERT_NE(nullptr, fourth_row);
-  EXPECT_EQ(four_pane_height, view->GetPreferredSize().height());
+  EXPECT_EQ(four_pane_height + SidebarTreeView::kRootAppendDropHeight,
+            view->GetPreferredSize().height());
   EXPECT_EQ(first_row->y(), second_row->y());
   EXPECT_EQ(third_row->y(), fourth_row->y());
   EXPECT_LT(first_row->y(), third_row->y());
@@ -530,7 +560,8 @@ TEST_F(SidebarTreeViewTest,
   EXPECT_FALSE(second_row->is_split_segment_for_testing());
   EXPECT_EQ(SidebarTreeRowView::kRowHeight, first_row->y());
   EXPECT_EQ(3 * SidebarTreeRowView::kRowHeight, second_row->y());
-  EXPECT_EQ(4 * SidebarTreeRowView::kRowHeight,
+  EXPECT_EQ(4 * SidebarTreeRowView::kRowHeight +
+                SidebarTreeView::kRootAppendDropHeight,
             view->GetPreferredSize().height());
 }
 
@@ -709,6 +740,8 @@ TEST_F(SidebarTreeViewTest, SingleClickOnFolderRowCollapsesAndExpands) {
   SidebarTreeRowView* folder_row =
       view->GetMaterializedRowForTesting(folder.id);
   ASSERT_NE(nullptr, folder_row);
+  EXPECT_FALSE(folder_row->disclosure_visible_for_testing());
+  EXPECT_TRUE(folder_row->uses_open_folder_icon_for_testing());
   const gfx::Point click_point(80, SidebarTreeRowView::kRowHeight / 2);
   ui::MouseEvent press(ui::EventType::kMousePressed, click_point, click_point,
                        base::TimeTicks::Now(), ui::EF_LEFT_MOUSE_BUTTON,
@@ -732,152 +765,18 @@ TEST_F(SidebarTreeViewTest, SingleClickOnFolderRowCollapsesAndExpands) {
   view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
   folder_row = view->GetMaterializedRowForTesting(folder.id);
   ASSERT_NE(nullptr, folder_row);
+  EXPECT_FALSE(folder_row->uses_open_folder_icon_for_testing());
   ASSERT_TRUE(folder_row->OnMousePressed(press));
   folder_row->OnMouseReleased(release);
   EXPECT_TRUE(model.IsExpanded(folder.id));
   EXPECT_EQ(2U, model.rows().size());
-}
 
-TEST_F(SidebarTreeViewTest, ExpandAnimatesExistingRowsAndCompletes) {
-  gfx::ScopedAnimationDurationScaleMode duration_mode(
-      gfx::ScopedAnimationDurationScaleMode::NON_ZERO_DURATION);
-  const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
-      gfx::Animation::RichAnimationRenderMode::FORCE_ENABLED);
-  ASSERT_TRUE(render_mode);
-
-  const tab_tree::Workspace workspace = MakeWorkspace();
-  const tab_tree::TreeNode folder =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
-               u"Project", "a");
-  const tab_tree::TreeNode child =
-      MakeNode(workspace, folder.id, tab_tree::TreeNodeType::kSavedPage,
-               u"Issue tracker", "a");
-  const tab_tree::TreeNode page =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-               u"Other page", "b");
-
-  auto view = NewTreeView();
-  SidebarTreeView* const tree_view = view.get();
-  auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
-  widget->SetBounds(gfx::Rect(0, 0, 240, 320));
-  widget->SetContentsView(std::move(view));
-  widget->Show();
-  auto& model = controller_->view_model();
-  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
-  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {folder, page}));
-  ASSERT_TRUE(model.ReplaceChildren(folder.id, {child}));
-  tree_view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
-  ASSERT_EQ(SidebarTreeRowView::kRowHeight,
-            tree_view->GetMaterializedRowForTesting(page.id)->y());
-
-  ASSERT_TRUE(model.SetExpanded(folder.id, true));
-  tree_view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
-  SidebarTreeRowView* page_row =
-      tree_view->GetMaterializedRowForTesting(page.id);
-  ASSERT_NE(nullptr, page_row);
-  EXPECT_TRUE(tree_view->row_bounds_animation_running_for_testing());
-  EXPECT_EQ(SidebarTreeRowView::kRowHeight, page_row->y());
-
-  tree_view->CompleteRowBoundsAnimationForTesting();
-  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight, page_row->y());
-}
-
-TEST_F(SidebarTreeViewTest, ExpandLandsImmediatelyWhenRichMotionIsDisabled) {
-  const auto render_mode = gfx::AnimationTestApi::SetRichAnimationRenderMode(
-      gfx::Animation::RichAnimationRenderMode::FORCE_DISABLED);
-  ASSERT_TRUE(render_mode);
-
-  const tab_tree::Workspace workspace = MakeWorkspace();
-  const tab_tree::TreeNode folder =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kFolder,
-               u"Project", "a");
-  const tab_tree::TreeNode child =
-      MakeNode(workspace, folder.id, tab_tree::TreeNodeType::kSavedPage,
-               u"Issue tracker", "a");
-  const tab_tree::TreeNode page =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-               u"Other page", "b");
-
-  auto view = NewTreeView();
-  auto& model = controller_->view_model();
-  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
-  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {folder, page}));
-  ASSERT_TRUE(model.ReplaceChildren(folder.id, {child}));
   view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
-
-  ASSERT_TRUE(model.SetExpanded(folder.id, true));
-  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
-  SidebarTreeRowView* page_row = view->GetMaterializedRowForTesting(page.id);
-  ASSERT_NE(nullptr, page_row);
-  EXPECT_FALSE(view->row_bounds_animation_running_for_testing());
-  EXPECT_EQ(2 * SidebarTreeRowView::kRowHeight, page_row->y());
+  folder_row = view->GetMaterializedRowForTesting(folder.id);
+  ASSERT_NE(nullptr, folder_row);
+  EXPECT_TRUE(folder_row->uses_open_folder_icon_for_testing());
 }
 
-TEST_F(SidebarTreeViewTest, SavedPageSelectsAndActivatesOnlyOnMouseUp) {
-  tab_tree::Workspace workspace = MakeWorkspace();
-  tab_tree::TreeNode first =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-               u"First", "a");
-  tab_tree::TreeNode second =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-               u"Second", "b");
-
-  auto view = NewTreeView();
-  auto& model = controller_->view_model();
-  ASSERT_TRUE(model.ResetWorkspace(workspace.id));
-  ASSERT_TRUE(model.ReplaceChildren(std::nullopt, {first, second}));
-  ASSERT_TRUE(controller_->SelectNode(first.id));
-  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 96));
-
-  SidebarTreeRowView* second_row =
-      view->GetMaterializedRowForTesting(second.id);
-  ASSERT_NE(nullptr, second_row);
-  const gfx::Point click_point(80, SidebarTreeRowView::kRowHeight / 2);
-  ui::MouseEvent press(ui::EventType::kMousePressed, click_point, click_point,
-                       base::TimeTicks::Now(), ui::EF_LEFT_MOUSE_BUTTON,
-                       ui::EF_LEFT_MOUSE_BUTTON);
-  ui::MouseEvent release(ui::EventType::kMouseReleased, click_point,
-                         click_point, base::TimeTicks::Now(),
-                         ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
-
-  ASSERT_TRUE(second_row->OnMousePressed(press));
-  EXPECT_EQ(first.id, model.selected_node_id());
-  EXPECT_FALSE(delegate_.activated_node.has_value());
-
-  second_row->OnMouseReleased(release);
-  EXPECT_EQ(second.id, model.selected_node_id());
-  EXPECT_EQ(second.id, delegate_.activated_node);
-}
-
-TEST_F(SidebarTreeViewTest, SavedPageTrailingActionRequiresRealHover) {
-  const tab_tree::Workspace workspace = MakeWorkspace();
-  const tab_tree::TreeNode page =
-      MakeNode(workspace, std::nullopt, tab_tree::TreeNodeType::kSavedPage,
-               u"Running", "a");
-  delegate_.saved_page_running = true;
-
-  auto view = NewTreeView();
-  ASSERT_TRUE(controller_->view_model().ResetWorkspace(workspace.id));
-  ASSERT_TRUE(controller_->view_model().ReplaceChildren(std::nullopt, {page}));
-  ASSERT_TRUE(controller_->SelectNode(page.id));
-  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 64));
-
-  SidebarTreeRowView* row = view->GetMaterializedRowForTesting(page.id);
-  ASSERT_NE(nullptr, row);
-  const gfx::Point action_point(row->width() - 16,
-                                SidebarTreeRowView::kRowHeight / 2);
-  EXPECT_FALSE(row->IsTrailingActionAt(action_point));
-
-  ui::MouseEvent enter(ui::EventType::kMouseEntered, action_point, action_point,
-                       base::TimeTicks::Now(), ui::EF_NONE, ui::EF_NONE);
-  row->OnMouseEntered(enter);
-  EXPECT_TRUE(row->IsTrailingActionAt(action_point));
-
-  ui::MouseEvent exit(ui::EventType::kMouseExited, action_point, action_point,
-                      base::TimeTicks::Now(), ui::EF_NONE, ui::EF_NONE);
-  row->OnMouseExited(exit);
-  EXPECT_FALSE(row->IsTrailingActionAt(action_point));
-}
 }  // namespace
 
 }  // namespace ahoi::sidebar

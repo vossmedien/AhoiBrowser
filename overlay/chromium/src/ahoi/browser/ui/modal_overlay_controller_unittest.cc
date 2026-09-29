@@ -45,9 +45,9 @@ class ModalOverlayControllerTest : public views::ViewsTestBase {
     controller_ =
         std::make_unique<ModalOverlayController>(window_host_, center_anchor_);
 
-    auto panel_params =
-        CreateParamsForTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET,
-                                  views::Widget::InitParams::TYPE_WINDOW_FRAMELESS);
+    auto panel_params = CreateParamsForTestWidget(
+        views::Widget::InitParams::CLIENT_OWNS_WIDGET,
+        views::Widget::InitParams::TYPE_WINDOW_FRAMELESS);
     panel_params.parent = host_widget_->GetNativeView();
     panel_widget_ = CreateTestWidget(std::move(panel_params));
     panel_widget_->SetContentsView(std::make_unique<views::View>());
@@ -86,7 +86,9 @@ class ModalOverlayControllerTest : public views::ViewsTestBase {
 
 TEST_F(ModalOverlayControllerTest,
        ScrimCoversWindowAndUsesContentsCenterAnchor) {
+  EXPECT_FALSE(controller_->IsShowingAnyPanel());
   ASSERT_TRUE(ShowPanel());
+  EXPECT_TRUE(controller_->IsShowingAnyPanel());
   views::View* const scrim = controller_->scrim_view_for_testing();
   ASSERT_TRUE(scrim);
   EXPECT_TRUE(scrim->GetVisible());
@@ -113,6 +115,7 @@ TEST_F(ModalOverlayControllerTest,
   task_environment()->RunUntilIdle();
 
   EXPECT_EQ(1, close_count_);
+  EXPECT_FALSE(controller_->IsShowingAnyPanel());
   EXPECT_FALSE(scrim->GetVisible());
   EXPECT_FALSE(controller_->IsShowingPanel(panel_widget_.get()));
   EXPECT_EQ(focus_view_, host_widget_->GetFocusManager()->GetFocusedView());

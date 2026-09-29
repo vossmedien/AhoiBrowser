@@ -1,0 +1,145 @@
+{
+  "title": "Test - AhoiMobile",
+  "result": "Passed",
+  "totalTestCount": 27,
+  "passedTests": 27,
+  "failedTests": 0,
+  "skippedTests": 0,
+  "expectedFailures": 0,
+  "startTime": 1790472790.262,
+  "finishTime": 1790472799.829,
+  "devicesAndConfigurations": [
+    {
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "CE3513BF-61D7-4718-99A0-29D4111D6855",
+        "deviceName": "iPhone 17",
+        "modelName": "iPhone 17",
+        "osBuildNumber": "24A434",
+        "osVersion": "27.0",
+        "platform": "iOS Simulator"
+      },
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "passedTests": 27,
+      "skippedTests": 0,
+      "testPlanConfiguration": {
+        "configurationId": "1",
+        "configurationName": "Test Scheme Action"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "test": "AhoiMobileCoreTests.CompanionTreeReorderingTests testSiblingReorderPersistsFractionalOrderWithoutChangingParent",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionTreeReorderingTests testSiblingReorderRejectsSuccessorFromAnotherParentAndIsIdempotent",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testFlatMergeAppendsAfterTheTargetInSourceOrder",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testLateFolderKeepsItsChildrenAndAnUnknownParentDoesNotHideAPage",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testLateOfflinePageFollowsMergeWithoutRewritingWireAuthority",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testLatePageWaitsForMergeTargetAndFollowsChainsWithoutCycles",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testMergeIntoFolderKeepsOrderAndUndoRestoresTheSource",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testMergeRejectsTheSameOrAMissingWorkspace",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testMergeTargetIsPartOfEqualClockConflictDetection",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testMergeTargetWireRoundTripAndInvalidDestinations",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testModelMovesOpenTabsAndUndoMovesThemBack",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testNewerMergeTargetWinsWithTheTombstoneFieldGroup",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testPassiveMergeProjectionKeepsWebPageURLAndSelection",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testRenameIntentUsesProjectedBindingButKeepsRawLocationClock",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testReorderAndFlatMergeMaterializeThePresentedLocation",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoAllowsAnUnrelatedPageAddedAtTheTargetRoot",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoIsRefusedOnceAMergedRecordChanged",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoRefusesANewChildOfAMovedFolderWithoutChangingState",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoRefusesANewChildOfTheMergeFolderWithoutChangingState",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoRefusesAnExistingPageMovedUnderTheMergeFolder",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.CompanionWorkspaceMergeTests testUndoRestoresLatePageWithoutACompetingLocationMutation",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.MobileSharedPageSaveTests testClosedInitiatingTabDoesNotBindTheReplacementOrStealSelection",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.MobileSharedPageSaveTests testFailedOrPrivateSaveCannotChangeSavedState",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.MobileSharedPageSaveTests testRepeatedSaveUpdatesAndMovesOneNodeWithoutReplacingIdentity",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.MobileSharedPageSaveTests testSaveKeepsInitiatingIdentityAcrossSelectionChangeAndReentrantSave",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.SyncMergeConformanceTests testEveryVectorEntityIsCovered",
+      "result": "passed"
+    },
+    {
+      "test": "AhoiMobileCoreTests.SyncMergeConformanceTests testSharedMergeVectors",
+      "result": "passed"
+    }
+  ],
+  "xcodebuildExit": 0,
+  "fullResultBundle": ".work/agent-queue/mobile-merge-a747c62-20260927-green/focused.xcresult",
+  "logSha256": "a72096cb80ba37085587e97c4a2df3ddd005d0a04281a08996ff40c555b744a8"
+}

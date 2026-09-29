@@ -1,0 +1,26 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "CB4C912E-7C42-4E9F-95D0-0AB9E945AD8E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "private-nomatch-after-cancel_0_D9608757-B745-4600-B3FE-393197854F34.png",
+        "timestamp" : 1790283602.607
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "FBD6E790-E86B-4771-9AEF-A4590891BDCA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "private-nomatch-shielded_0_BE189891-962B-473C-9422-69C47838D058.png",
+        "timestamp" : 1790283592.96
+      }
+    ],
+    "testIdentifier" : "AhoiMobileUITests/testFailedFaceIDKeepsLoadedPrivatePageShielded()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/AhoiMobileUITests/testFailedFaceIDKeepsLoadedPrivatePageShielded"
+  }
+]

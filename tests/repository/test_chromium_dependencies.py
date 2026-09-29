@@ -292,7 +292,7 @@ class ChromiumDependencyContractTests(unittest.TestCase):
                 full_release_plist,
             )
 
-    def test_xcode_binding_uses_the_same_m152_toolchain_for_all_profiles(self):
+    def test_xcode_binding_separates_development_from_the_release_reference(self):
         toolchain = build_provenance.load_json(
             build_provenance.ROOT / "config/toolchain.json"
         )
@@ -304,12 +304,21 @@ class ChromiumDependencyContractTests(unittest.TestCase):
         )
         upstream = build_provenance.expected_xcode_for_kind("upstream", toolchain)
         self.assertEqual("compatible-development", dev["mode"])
-        self.assertEqual("26.6", dev["version"])
-        self.assertEqual("23F81a", dev["iOSSDKBuild"])
+        self.assertEqual("27.0", dev["version"])
+        self.assertEqual("27A266a", dev["build"])
+        self.assertEqual("27.0", dev["macOSSDKVersion"])
+        self.assertEqual("26A425", dev["macOSSDKBuild"])
+        self.assertEqual("27.0", dev["iOSSDKVersion"])
+        self.assertEqual("24A430", dev["iOSSDKBuild"])
         self.assertEqual(dev, full_dev)
+        # Since 2026-09-25 Xcode 27 is also the pinned reference (handoff 022).
         self.assertEqual("pinned-reference", release["mode"])
-        self.assertEqual("26.6", release["version"])
-        self.assertEqual("23F81a", release["iOSSDKBuild"])
+        self.assertEqual("27.0", release["version"])
+        self.assertEqual("27A266a", release["build"])
+        self.assertEqual("27.0", release["macOSSDKVersion"])
+        self.assertEqual("26A425", release["macOSSDKBuild"])
+        self.assertEqual("27.0", release["iOSSDKVersion"])
+        self.assertEqual("24A430", release["iOSSDKBuild"])
         self.assertEqual(release, upstream)
         self.assertEqual(release, full_release)
         with self.assertRaisesRegex(SystemExit, "unsupported build provenance kind"):

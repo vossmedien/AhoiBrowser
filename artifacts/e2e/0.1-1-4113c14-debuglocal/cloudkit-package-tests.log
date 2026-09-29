@@ -1,0 +1,101 @@
+[0/1] Planning build
+Building for debugging...
+[0/2] Write swift-version--58304C5D6DBC2206.txt
+Build complete! (0.80s)
+Test Suite 'All tests' started at 2026-08-30 19:50:15.692.
+Test Suite 'AhoiCloudKitSpikePackageTests.xctest' started at 2026-08-30 19:50:15.701.
+Test Suite 'AppleCloudKitRecordCodecTests' started at 2026-08-30 19:50:15.702.
+Test Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testDecodedDeniedClassIsStoppedByBoundary]' started.
+Test Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testDecodedDeniedClassIsStoppedByBoundary]' passed (0.007 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testLiveRecordRoundTripKeepsMetadataQueryableAndValueEncrypted]' started.
+Test Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testLiveRecordRoundTripKeepsMetadataQueryableAndValueEncrypted]' passed (0.002 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTamperedOrderSortMetadataIsRejected]' started.
+Test Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTamperedOrderSortMetadataIsRejected]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTombstoneRoundTripUsesNormalConflictAndRecoveryMetadata]' started.
+Test Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTombstoneRoundTripUsesNormalConflictAndRecoveryMetadata]' passed (0.001 seconds).
+Test Suite 'AppleCloudKitRecordCodecTests' passed at 2026-08-30 19:50:15.714.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.010 (0.012) seconds
+Test Suite 'CloudSyncCoordinatorTests' started at 2026-08-30 19:50:15.714.
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorRejectsDeniedInboundRecord]' started.
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorRejectsDeniedInboundRecord]' passed (0.002 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorStopsDeniedRecordBeforeTransport]' started.
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorStopsDeniedRecordBeforeTransport]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorUploadsEncryptedAllowedRecord]' started.
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorUploadsEncryptedAllowedRecord]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testNonTombstoneCannotEnterDeletionAPI]' started.
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testNonTombstoneCannotEnterDeletionAPI]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testUserDeletionIsPersistedAsValidatedTombstoneWrite]' started.
+Test Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testUserDeletionIsPersistedAsValidatedTombstoneWrite]' passed (0.001 seconds).
+Test Suite 'CloudSyncCoordinatorTests' passed at 2026-08-30 19:50:15.721.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.006 (0.007) seconds
+Test Suite 'ModelTests' started at 2026-08-30 19:50:15.721.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testCollectionCanonicalizationIsPermutationStableForSetsAndOrderedForArrays]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testCollectionCanonicalizationIsPermutationStableForSetsAndOrderedForArrays]' passed (0.009 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsAssociativeForDifferentValuesAndIdenticalMetadata]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsAssociativeForDifferentValuesAndIdenticalMetadata]' passed (0.004 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsCommutativeForDifferentValuesAndIdenticalMetadata]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsCommutativeForDifferentValuesAndIdenticalMetadata]' passed (0.000 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testExhaustedHLCCounterThrowsInsteadOfCrashing]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testExhaustedHLCCounterThrowsInsteadOfCrashing]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testHLCMergePreservesCausalityWhenWallClockMovesBackwards]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testHLCMergePreservesCausalityWhenWallClockMovesBackwards]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testMalformedDecodedOrderKeysAreRejectedWithoutProcessAbort]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testMalformedDecodedOrderKeysAreRejectedWithoutProcessAbort]' passed (0.002 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testOrderKeyCanBeInsertedBetweenSiblingsWithoutRenumbering]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testOrderKeyCanBeInsertedBetweenSiblingsWithoutRenumbering]' passed (0.000 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testRecoveryMetadataRetainsTreePlacementWithoutPagePayload]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testRecoveryMetadataRetainsTreePlacementWithoutPagePayload]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testSetCanonicalizationFailsClosedOnCollidingOptInImplementation]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testSetCanonicalizationFailsClosedOnCollidingOptInImplementation]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testSupportedScalarCanonicalizationMatchesGoldenWireBytes]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testSupportedScalarCanonicalizationMatchesGoldenWireBytes]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testTombstoneWinsWhenPhysicalAndLogicalCoordinatesTie]' started.
+Test Case '-[AhoiCloudKitSpikeTests.ModelTests testTombstoneWinsWhenPhysicalAndLogicalCoordinatesTie]' passed (0.000 seconds).
+Test Suite 'ModelTests' passed at 2026-08-30 19:50:15.745.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.021 (0.024) seconds
+Test Suite 'RemoteCommandTests' started at 2026-08-30 19:50:15.745.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCanonicalPayloadEncodingMatchesSignedWireContract]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCanonicalPayloadEncodingMatchesSignedWireContract]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCommandExpiresAtExactlyFiveMinutes]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCommandExpiresAtExactlyFiveMinutes]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testDangerousAndCustomSchemesAreRejected]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testDangerousAndCustomSchemesAreRejected]' passed (0.002 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testIncognitoFocusAndCloseAreRejected]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testIncognitoFocusAndCloseAreRejected]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testMassCloseAndEmptyCloseAreRejected]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testMassCloseAndEmptyCloseAreRejected]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testPersistentReplayRejectsCommandIDAndSourceNonceAfterRestart]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testPersistentReplayRejectsCommandIDAndSourceNonceAfterRestart]' passed (0.005 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testRemoteControlDisabledRejectsBeforeExecution]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testRemoteControlDisabledRejectsBeforeExecution]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testReplayedNonceIsRejectedAtomically]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testReplayedNonceIsRejectedAtomically]' passed (0.002 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testUnapprovedDeviceAndInvalidSignatureAreRejected]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testUnapprovedDeviceAndInvalidSignatureAreRejected]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testURLUserInfoIsRejectedAsSecretTransfer]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testURLUserInfoIsRejectedAsSecretTransfer]' passed (0.001 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testValidSignedOpenCommandIsAccepted]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testValidSignedOpenCommandIsAccepted]' passed (0.002 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testWrongTargetIsRejected]' started.
+Test Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testWrongTargetIsRejected]' passed (0.001 seconds).
+Test Suite 'RemoteCommandTests' passed at 2026-08-30 19:50:15.765.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.017 (0.020) seconds
+Test Suite 'SyncBoundaryTests' started at 2026-08-30 19:50:15.765.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn]' started.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn]' passed (0.000 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testCiphertextShapeIsValidatedBeforeUpload]' started.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testCiphertextShapeIsValidatedBeforeUpload]' passed (0.000 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testEverySensitiveDataClassIsDenied]' started.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testEverySensitiveDataClassIsDenied]' passed (0.000 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testSchemaAndTombstoneShapeAreValidated]' started.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testSchemaAndTombstoneShapeAreValidated]' passed (0.000 seconds).
+Test Suite 'SyncBoundaryTests' passed at 2026-08-30 19:50:15.767.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'AhoiCloudKitSpikePackageTests.xctest' passed at 2026-08-30 19:50:15.767.
+	 Executed 36 tests, with 0 failures (0 unexpected) in 0.055 (0.065) seconds
+Test Suite 'All tests' passed at 2026-08-30 19:50:15.767.
+	 Executed 36 tests, with 0 failures (0 unexpected) in 0.055 (0.075) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

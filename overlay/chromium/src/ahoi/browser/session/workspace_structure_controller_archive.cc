@@ -1,0 +1,799 @@
+// Copyright 2026 The AhoiBrowser Authors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#include "ahoi/browser/session/workspace_structure_controller.h"
+
+#include <algorithm>
+#include <optional>
+#include <set>
+#include <string>
+
+#include "ahoi/browser/resource_policy/resource_policy_service.h"
+#include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/sync/workspace_structure_sync.h"
+#include "base/auto_reset.h"
+#include "base/command_line.h"
+#include "base/functional/bind.h"
+#include "base/strings/string_number_conversions.h"
+#include "base/strings/utf_string_conversions.h"
+#include "chrome/browser/lifetime/browser_shutdown.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/tabs/tab_enums.h"
+#include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/web_contents.h"
+
+namespace ahoi::session {
+namespace {
+using Store = tab_tree::TabTreeStore;
+
+#if !defined(OFFICIAL_BUILD)
+// Visible E2E seam for development builds only: replaces the configured age of
+// an already enabled policy so the automatic archive can be observed without
+// waiting hours. "Never" stays never; official/release builds ignore it.
+constexpr char kE2EArchiveAgeSecondsSwitch[] = "ahoi-e2e-archive-age-seconds";
+
+std::optional<base::TimeDelta> E2EArchiveAgeOverride() {
+  if (!base::CommandLine::InitializedForCurrentProcess()) {
+    return std::nullopt;
+  }
+  const std::string value =
+      base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(
+          kE2EArchiveAgeSecondsSwitch);
+  int seconds = 0;
+  if (value.empty() || !base::StringToInt(value, &seconds) || seconds < 1 ||
+      seconds > 3600) {
+    return std::nullopt;
+  }
+  return base::Seconds(seconds);
+}
+#endif
+
+base::TimeDelta ArchiveAge(sync::SharedArchivePolicy policy) {
+#if !defined(OFFICIAL_BUILD)
+  if (policy != sync::SharedArchivePolicy::kNever) {
+    if (const std::optional<base::TimeDelta> age = E2EArchiveAgeOverride()) {
+      return *age;
+    }
+  }
+#endif
+  switch (policy) {
+    case sync::SharedArchivePolicy::kNever:
+      return base::TimeDelta::Max();
+    case sync::SharedArchivePolicy::kTwelveHours:
+      return base::Hours(12);
+    case sync::SharedArchivePolicy::kTwentyFourHours:
+      return base::Hours(24);
+    case sync::SharedArchivePolicy::kSevenDays:
+      return base::Days(7);
+    case sync::SharedArchivePolicy::kThirtyDays:
+      return base::Days(30);
+  }
+  return base::TimeDelta::Max();
+}
+
+std::vector<base::Uuid> PageIds(const sync::TabArchiveEntryRecord& entry) {
+  std::vector<base::Uuid> ids;
+  for (const auto& page : entry.snapshot.pages)
+    ids.push_back(page.tree_node_id);
+  return ids;
+}
+}  // namespace
+
+bool WorkspaceStructureController::CanArchive(
+    const std::vector<base::Uuid>& ids) const {
+  if (!observing_sync_ || !bridge_lifetime_ || !bridge_->is_ready() ||
+      !resources_ || browser_shutdown::IsTryingToQuit() || ids.empty() ||
+      ids.size() > 4)
+    return false;
+  std::set<base::Uuid> unique(ids.begin(), ids.end());
+  if (unique.size() != ids.size())
+    return false;
+  base::Uuid workspace;
+  for (const auto& id : ids) {
+    tab_tree::TreeNode node;
+    if (bridge_->tab_tree_store()->GetNode(id, &node) != Store::Result::kOk ||
+        node.tombstone || !node.is_temporary ||
+        !tab_tree::GetSharedPageTarget(node))
+      return false;
+    if (!workspace.is_valid())
+      workspace = node.workspace_id;
+    if (workspace != node.workspace_id)
+      return false;
+    if (auto* tab = bridge_->FindTabByTreeNodeId(id)) {
+      if (!resources_->CanArchiveTab(tab))
+        return false;
+    }
+  }
+  // A split can only leave the live tree as a complete unit, including when
+  // some/all of its members currently have no WebContents.
+  bool complete_group = ids.size() == 1;
+  for (const auto& [id, entry] : state_.entries) {
+    const auto* split = std::get_if<sync::SplitGroupRecord>(&entry.record);
+    if (!split || split->tombstone)
+      continue;
+    const std::set<base::Uuid> members(split->topology.member_ids.begin(),
+                                       split->topology.member_ids.end());
+    if (std::ranges::none_of(members, [&](const auto& member) {
+          return unique.contains(member);
+        }))
+      continue;
+    if (members != unique)
+      return false;
+    complete_group = true;
+  }
+  // An uncaptured native split is a missing dependency, not an ordinary page.
+  for (const auto& id : ids) {
+    auto* tab = bridge_->FindTabByTreeNodeId(id);
+    if (tab && tab->GetSplit()) {
+      const auto token = tab->GetSplit()->ToString();
+      if (std::ranges::none_of(state_.entries, [&](const auto& item) {
+            return item.second.native_split_token == token &&
+                   std::holds_alternative<sync::SplitGroupRecord>(
+                       item.second.record);
+          }))
+        return false;
+    }
+  }
+  return complete_group;
+}
+
+std::vector<sync::TabArchiveEntryRecord>
+WorkspaceStructureController::Archives() const {
+  std::vector<sync::TabArchiveEntryRecord> result;
+  for (const auto& [id, entry] : state_.entries) {
+    const auto* archive =
+        std::get_if<sync::TabArchiveEntryRecord>(&entry.record);
+    if (archive && !archive->tombstone && !archive->restored)
+      result.push_back(*archive);
+  }
+  std::ranges::sort(result, [](const auto& a, const auto& b) {
+    return a.archived_at != b.archived_at ? a.archived_at > b.archived_at
+                                          : a.id < b.id;
+  });
+  return result;
+}
+
+void WorkspaceStructureController::Archive(
+    const std::vector<base::Uuid>& nodes,
+    sync::SharedArchiveReason reason,
+    base::OnceCallback<void(bool)> done) {
+  if (persisting_ || publish_pending_ || archive_close_ || !CanArchive(nodes)) {
+    std::move(done).Run(false);
+    return;
+  }
+  // Ask every live page before any record changes. A page that gained a
+  // before-unload handler after the eligibility check can veto; then no
+  // archive entry exists and all pages stay open. Automatic archiving must
+  // never show a prompt, so such a page simply declines there.
+  std::vector<content::WebContents*> pages;
+  for (const auto& id : nodes) {
+    if (auto* tab = bridge_->FindTabByTreeNodeId(id)) {
+      pages.push_back(tab->GetContents());
+    }
+  }
+  archive_close_ = GroupPageClose::Ask(
+      std::move(pages),
+      base::BindOnce(&WorkspaceStructureController::OnArchivePagesAnswered,
+                     weak_factory_.GetWeakPtr(), nodes, reason,
+                     std::move(done)),
+      /*auto_cancel=*/reason == sync::SharedArchiveReason::kAutomatic);
+}
+
+void WorkspaceStructureController::OnArchivePagesAnswered(
+    std::vector<base::Uuid> nodes,
+    sync::SharedArchiveReason reason,
+    base::OnceCallback<void(bool)> done,
+    bool all_agreed) {
+  if (!all_agreed || persisting_ || publish_pending_ || !CanArchive(nodes)) {
+    archive_close_.reset();
+    std::move(done).Run(false);
+    return;
+  }
+  ArchiveAgreedPages(nodes, reason, std::move(done));
+}
+
+std::vector<std::string>
+WorkspaceStructureController::MarkSplitsClosingForArchive(
+    const base::Uuid& archive_id) {
+  std::vector<std::string> marked;
+  const auto entry = state_.entries.find(archive_id);
+  const auto* archive =
+      entry == state_.entries.end()
+          ? nullptr
+          : std::get_if<sync::TabArchiveEntryRecord>(&entry->second.record);
+  if (!archive) {
+    return marked;
+  }
+  for (const auto& page : archive->snapshot.pages) {
+    tabs::TabInterface* const tab =
+        bridge_->FindTabByTreeNodeId(page.tree_node_id);
+    if (tab && tab->IsSplit()) {
+      marked.push_back(tab->GetSplit()->ToString());
+      archive_closing_splits_.insert_or_assign(marked.back(),
+                                               base::TimeTicks::Now());
+    }
+  }
+  return marked;
+}
+
+void WorkspaceStructureController::ArchiveAgreedPages(
+    const std::vector<base::Uuid>& nodes,
+    sync::SharedArchiveReason reason,
+    base::OnceCallback<void(bool)> done) {
+  sync::SharedArchiveSnapshot snapshot;
+  std::vector<base::Uuid> ordered = nodes;
+  for (const auto& [id, entry] : state_.entries) {
+    const auto* split = std::get_if<sync::SplitGroupRecord>(&entry.record);
+    if (split && !split->tombstone &&
+        std::ranges::find(split->topology.member_ids, nodes.front()) !=
+            split->topology.member_ids.end()) {
+      snapshot.split = sync::SharedSplitMetadata{
+          split->id, split->workspace_id, split->topology, split->ratios};
+      ordered = split->topology.member_ids;
+      break;
+    }
+  }
+  WorkspaceStructureEntry candidate;
+  for (const auto& id : ordered) {
+    tab_tree::TreeNode node;
+    if (bridge_->tab_tree_store()->GetNode(id, &node) != Store::Result::kOk ||
+        bridge_->tab_tree_store()->IsNodeArchived(id)) {
+      archive_close_.reset();
+      std::move(done).Run(false);
+      return;
+    }
+    snapshot.workspace_id = node.workspace_id;
+    snapshot.pages.push_back(
+        {node.id, node.parent_id, node.sort_key,
+         base::UTF16ToUTF8(tab_tree::GetSharedPageTitle(node)),
+         *tab_tree::GetSharedPageTarget(node),
+         tab_tree::GetSharedHomeTarget(node)});
+    candidate.private_nodes.push_back(node);
+  }
+  if (!sync::ValidateArchiveSnapshot(snapshot)) {
+    archive_close_.reset();
+    std::move(done).Run(false);
+    return;
+  }
+  const auto id = sync::ArchiveIdForSnapshot(snapshot);
+  const auto existing = state_.entries.find(id);
+  std::optional<WorkspaceStructureEntry> before;
+  if (existing != state_.entries.end()) {
+    const auto* previous =
+        std::get_if<sync::TabArchiveEntryRecord>(&existing->second.record);
+    if (!previous || previous->tombstone) {
+      archive_close_.reset();
+      std::move(done).Run(false);
+      return;
+    }
+    before = existing->second;
+    candidate.baseline = before->baseline;
+  }
+  candidate.record =
+      sync::TabArchiveEntryRecord{.id = id,
+                                  .snapshot = std::move(snapshot),
+                                  .reason = reason,
+                                  .archived_at = base::Time::Now()};
+  if (!Stamp(&candidate.record, before ? &before->record : nullptr)) {
+    archive_close_.reset();
+    std::move(done).Run(false);
+    return;
+  }
+  candidate.archived_locally = true;
+  const auto version = candidate.record;
+  state_.entries.insert_or_assign(id, std::move(candidate));
+  const auto authority = LocalAuthority();
+  Persist(authority,
+          base::BindOnce(
+              [](base::WeakPtr<WorkspaceStructureController> owner,
+                 base::Uuid id, std::optional<WorkspaceStructureEntry> before,
+                 sync::SyncRecord version, sync::SyncAuthorization authority,
+                 base::OnceCallback<void(bool)> done, bool ok) {
+                if (!owner) {
+                  std::move(done).Run(false);
+                  return;
+                }
+                std::unique_ptr<GroupPageClose> group =
+                    std::move(owner->archive_close_);
+                if (!ok) {
+                  auto it = owner->state_.entries.find(id);
+                  if (it != owner->state_.entries.end() &&
+                      it->second.record == version) {
+                    if (before)
+                      it->second = std::move(*before);
+                    else
+                      owner->state_.entries.erase(it);
+                  }
+                  std::move(done).Run(false);
+                  return;
+                }
+                owner->local_changes_.insert(id);
+                owner->remote_authorities_.erase(id);
+                owner->blocked_publications_.erase(id);
+                // The agreed pages close now; they are not asked again.
+                // ClosePage() runs their unload handlers first, so those tabs
+                // are still present here: after before-unload agreed nothing
+                // can veto, and the archive already stands.
+                if (group && authority.Run() &&
+                    owner->bridge_->tab_tree_store()) {
+                  std::vector<base::WeakPtr<content::WebContents>> closing;
+                  for (const auto& page :
+                       std::get<sync::TabArchiveEntryRecord>(
+                           owner->state_.entries.at(id).record)
+                           .snapshot.pages) {
+                    if (auto* tab = owner->bridge_->FindTabByTreeNodeId(
+                            page.tree_node_id)) {
+                      closing.push_back(tab->GetContents()->GetWeakPtr());
+                    }
+                  }
+                  std::vector<std::string> splits =
+                      owner->MarkSplitsClosingForArchive(id);
+                  group->ClosePages();
+                  if (owner)
+                    owner->Schedule();
+                  FinishArchiveCloseWhenClosed(
+                      owner, std::move(closing), std::move(splits),
+                      base::TimeTicks::Now() + kArchiveCloseGrace,
+                      std::move(done));
+                  return;
+                }
+                owner->CloseArchived(id, authority);
+                if (!owner) {
+                  std::move(done).Run(false);
+                  return;
+                }
+                bool closed = authority.Run();
+                const auto& entry = std::get<sync::TabArchiveEntryRecord>(
+                    owner->state_.entries.at(id).record);
+                for (const auto& page : entry.snapshot.pages)
+                  closed &=
+                      !owner->bridge_->FindTabByTreeNodeId(page.tree_node_id);
+                owner->Schedule();
+                std::move(done).Run(closed);
+              },
+              weak_factory_.GetWeakPtr(), id, std::move(before), version,
+              authority, std::move(done)));
+}
+
+void WorkspaceStructureController::CloseArchived(
+    base::Uuid id,
+    sync::SyncAuthorization authority) {
+  const auto found = state_.entries.find(id);
+  if (found == state_.entries.end() || !authority.Run() || !bridge_lifetime_)
+    return;
+  const auto* archive =
+      std::get_if<sync::TabArchiveEntryRecord>(&found->second.record);
+  if (!archive || archive->restored || archive->tombstone ||
+      !found->second.archived_locally)
+    return;
+  const auto ids = PageIds(*archive);
+  for (const auto& node : ids) {
+    // A failed/cancelled disk operation must never become a close on a later
+    // unrelated notification, even if its prepared RAM entry still exists.
+    if (!bridge_->tab_tree_store()->IsNodeArchived(node))
+      return;
+  }
+  if (!CanArchive(ids))
+    return;
+  const auto scope = scope_;
+  base::AutoReset<int> applying(&scope->applying, scope->applying + 1);
+  const auto lifetime = weak_factory_.GetWeakPtr();
+  for (const auto& node : ids) {
+    if (!lifetime || !bridge_lifetime_ || !authority.Run())
+      return;
+    auto* tab = bridge_->FindTabByTreeNodeId(node);
+    if (!tab)
+      continue;
+    if (!resources_->CanArchiveTab(tab))
+      return;
+    auto* model = bridge_->FindTabStripModelForTab(tab);
+    if (!model || model->closing_all())
+      return;
+    const int index = model->GetIndexOfTab(tab);
+    if (index < 0)
+      return;
+    model->CloseWebContentsAt(index, TabCloseTypes::CLOSE_NONE);
+  }
+}
+
+bool WorkspaceStructureController::CanRestore(
+    const sync::TabArchiveEntryRecord& archive) const {
+  if (!bridge_lifetime_ || !bridge_->is_ready())
+    return false;
+  tab_tree::Workspace workspace;
+  if (bridge_->tab_tree_store()->GetWorkspace(
+          archive.snapshot.workspace_id, &workspace) != Store::Result::kOk ||
+      workspace.tombstone)
+    return false;
+  for (const auto& page : archive.snapshot.pages) {
+    tab_tree::TreeNode node, parent;
+    if (bridge_->tab_tree_store()->GetNode(page.tree_node_id, &node) !=
+            Store::Result::kOk ||
+        node.tombstone || !node.is_temporary ||
+        node.workspace_id != archive.snapshot.workspace_id ||
+        node.parent_id != page.parent_id || node.sort_key != page.sort_key ||
+        (page.parent_id &&
+         (bridge_->tab_tree_store()->GetNode(*page.parent_id, &parent) !=
+              Store::Result::kOk ||
+          parent.tombstone || parent.type != tab_tree::TreeNodeType::kFolder ||
+          parent.workspace_id != node.workspace_id)))
+      return false;
+  }
+  return true;
+}
+
+void WorkspaceStructureController::Restore(
+    base::Uuid id,
+    base::OnceCallback<void(bool)> done,
+    std::optional<tab_tree::ArchiveRestorePlacement> placement) {
+  auto found = state_.entries.find(id);
+  if (!observing_sync_ || persisting_ || publish_pending_ ||
+      found == state_.entries.end()) {
+    std::move(done).Run(false);
+    return;
+  }
+  auto* archive =
+      std::get_if<sync::TabArchiveEntryRecord>(&found->second.record);
+  if (!archive || archive->tombstone) {
+    std::move(done).Run(false);
+    return;
+  }
+  if (archive->restored) {
+    std::move(done).Run(true);
+    return;
+  }
+  // Retained rows are the local identity authority. Missing/changed
+  // dependencies require an explicit placement decision; never invent a root or
+  // empty split.
+  if (!placement && !CanRestore(*archive)) {
+    std::move(done).Run(false);
+    return;
+  }
+  std::optional<tab_tree::TabTreeSnapshot> tree;
+  const auto all_before = state_.entries;
+  if (placement) {
+    tab_tree::Workspace workspace;
+    tab_tree::TreeNode parent;
+    if (bridge_->tab_tree_store()->GetWorkspace(
+            placement->workspace_id, &workspace) != Store::Result::kOk ||
+        workspace.tombstone ||
+        (placement->parent_id &&
+         (bridge_->tab_tree_store()->GetNode(*placement->parent_id, &parent) !=
+              Store::Result::kOk ||
+          parent.tombstone || parent.type != tab_tree::TreeNodeType::kFolder ||
+          parent.workspace_id != placement->workspace_id))) {
+      std::move(done).Run(false);
+      return;
+    }
+    tree.emplace();
+    if (bridge_->tab_tree_store()->ExportSnapshot(&*tree) !=
+        Store::Result::kOk) {
+      std::move(done).Run(false);
+      return;
+    }
+    for (const auto& page : archive->snapshot.pages) {
+      auto node = std::ranges::find(tree->nodes, page.tree_node_id,
+                                    &tab_tree::TreeNode::id);
+      // Explicit permanent tree deletion is absorbing. A placement decision
+      // neither resurrects it nor moves a still-live/protected tab.
+      if (node == tree->nodes.end() || node->tombstone || !node->is_temporary ||
+          bridge_->FindTabByTreeNodeId(page.tree_node_id)) {
+        std::move(done).Run(false);
+        return;
+      }
+      node->workspace_id = placement->workspace_id;
+      node->parent_id = placement->parent_id;
+      node->sort_key = page.sort_key;
+      node->modified_at = base::Time::Now();
+    }
+    if (archive->snapshot.split) {
+      auto split = state_.entries.find(archive->snapshot.split->id);
+      if (split == state_.entries.end() ||
+          !std::holds_alternative<sync::SplitGroupRecord>(
+              split->second.record) ||
+          std::get<sync::SplitGroupRecord>(split->second.record).tombstone) {
+        std::move(done).Run(false);
+        return;
+      }
+      auto& record = std::get<sync::SplitGroupRecord>(split->second.record);
+      if (record.workspace_id != placement->workspace_id) {
+        const auto old = split->second.record;
+        record.workspace_id = placement->workspace_id;
+        if (!Stamp(&split->second.record, &old)) {
+          split->second.record = old;
+          std::move(done).Run(false);
+          return;
+        }
+        split->second.pending.clear();
+        split->second.pending_expected.clear();
+      }
+    }
+  }
+  const auto before = found->second;
+  archive->restored = true;
+  if (!Stamp(&found->second.record, &before.record)) {
+    state_.entries = all_before;
+    std::move(done).Run(false);
+    return;
+  }
+  found->second.archived_locally = false;
+  found->second.restore_pending = false;
+  found->second.pending.clear();
+  found->second.pending_expected.clear();
+  const auto attempted = state_.entries;
+  Persist(
+      LocalAuthority(),
+      base::BindOnce(
+          [](base::WeakPtr<WorkspaceStructureController> owner,
+             std::map<base::Uuid, WorkspaceStructureEntry> before,
+             std::map<base::Uuid, WorkspaceStructureEntry> attempted,
+             base::OnceCallback<void(bool)> done, bool ok) {
+            if (!owner) {
+              std::move(done).Run(false);
+              return;
+            }
+            for (const auto& [entry_id, entry] : attempted) {
+              const auto prior = before.find(entry_id);
+              if (prior == before.end() || prior->second == entry)
+                continue;
+              auto current = owner->state_.entries.find(entry_id);
+              if (current == owner->state_.entries.end() ||
+                  current->second != entry)
+                continue;
+              if (!ok)
+                current->second = prior->second;
+              else {
+                owner->local_changes_.insert(entry_id);
+                owner->remote_authorities_.erase(entry_id);
+                owner->blocked_publications_.erase(entry_id);
+              }
+            }
+            if (ok)
+              owner->Schedule();
+            std::move(done).Run(ok);
+          },
+          weak_factory_.GetWeakPtr(), all_before, attempted, std::move(done)),
+      std::move(tree));
+}
+
+void WorkspaceStructureController::DeleteArchive(
+    sync::TabArchiveEntryRecord expected,
+    base::OnceCallback<void(bool)> done) {
+  const auto found = state_.entries.find(expected.id);
+  if (!observing_sync_ || !bridge_lifetime_ || persisting_ ||
+      publish_pending_ || found == state_.entries.end()) {
+    std::move(done).Run(false);
+    return;
+  }
+  auto* archive =
+      std::get_if<sync::TabArchiveEntryRecord>(&found->second.record);
+  if (archive && archive->tombstone) {
+    std::move(done).Run(true);
+    return;
+  }
+  // Confirmation is for exactly the version shown. A concurrent restore or
+  // rearchive is a new decision, not permission to delete its new content.
+  if (!archive || archive->restored || *archive != expected) {
+    std::move(done).Run(false);
+    return;
+  }
+  const auto before = state_.entries;
+  std::optional<tab_tree::TabTreeSnapshot> tree;
+  if (found->second.archived_locally) {
+    tree.emplace();
+    if (bridge_->tab_tree_store()->ExportSnapshot(&*tree) !=
+        Store::Result::kOk) {
+      std::move(done).Run(false);
+      return;
+    }
+    for (const auto& retained : found->second.private_nodes) {
+      auto node =
+          std::ranges::find(tree->nodes, retained.id, &tab_tree::TreeNode::id);
+      if (bridge_->FindTabByTreeNodeId(retained.id) ||
+          !bridge_->tab_tree_store()->IsNodeArchived(retained.id) ||
+          node == tree->nodes.end() || !node->is_temporary ||
+          (!node->tombstone && *node != retained)) {
+        std::move(done).Run(false);
+        return;
+      }
+      // Another retained archive may own the same page after a topology
+      // change. Never delete that independent entry's local restoration data.
+      for (const auto& [other_id, other] : state_.entries) {
+        if (other_id == expected.id || !other.archived_locally)
+          continue;
+        if (std::ranges::any_of(other.private_nodes, [&](const auto& page) {
+              return page.id == retained.id;
+            })) {
+          std::move(done).Run(false);
+          return;
+        }
+      }
+      node->tombstone = true;
+      node->modified_at = base::Time::Now();
+    }
+  }
+  // This is an archive tombstone, not a provider reset or a remote close.
+  // Keep the required bounded portable snapshot; drop only local restore data.
+  archive->tombstone = true;
+  if (!Stamp(&found->second.record, &before.at(expected.id).record)) {
+    state_.entries = before;
+    std::move(done).Run(false);
+    return;
+  }
+  found->second.archived_locally = false;
+  found->second.restore_pending = false;
+  found->second.private_nodes.clear();
+  found->second.pending.clear();
+  found->second.pending_expected.clear();
+  const auto attempted = found->second;
+  Persist(
+      LocalAuthority(),
+      base::BindOnce(
+          [](base::WeakPtr<WorkspaceStructureController> owner, base::Uuid id,
+             WorkspaceStructureEntry before, WorkspaceStructureEntry attempted,
+             base::OnceCallback<void(bool)> done, bool ok) {
+            if (!owner) {
+              std::move(done).Run(false);
+              return;
+            }
+            auto current = owner->state_.entries.find(id);
+            if (current != owner->state_.entries.end() &&
+                current->second == attempted) {
+              if (!ok)
+                current->second = std::move(before);
+              else {
+                owner->local_changes_.insert(id);
+                owner->remote_authorities_.erase(id);
+                owner->blocked_publications_.erase(id);
+              }
+            }
+            if (ok)
+              owner->Schedule();
+            std::move(done).Run(ok);
+          },
+          weak_factory_.GetWeakPtr(), expected.id, before.at(expected.id),
+          attempted, std::move(done)),
+      std::move(tree));
+}
+
+void WorkspaceStructureController::ReconcileArchives(
+    sync::SyncAuthorization authority) {
+  if (persisting_ || !authority.Run())
+    return;
+  const auto lifetime = weak_factory_.GetWeakPtr();
+  for (auto& [id, entry] : state_.entries) {
+    const auto* archive =
+        std::get_if<sync::TabArchiveEntryRecord>(&entry.record);
+    if (!archive || archive->tombstone)
+      continue;
+    const auto remote = remote_authorities_.find(id);
+    const bool local = local_changes_.contains(id) || entry.baseline.empty();
+    if (!local &&
+        (remote == remote_authorities_.end() || !remote->second.Run()))
+      continue;
+    if (archive->restored) {
+      // This only exposes retained tree rows; no loading, focus or navigation.
+      if (entry.archived_locally && CanRestore(*archive)) {
+        entry.archived_locally = false;
+        dirty_ = true;
+        Persist(local ? authority : remote->second,
+                base::BindOnce(
+                    [](base::WeakPtr<WorkspaceStructureController> owner,
+                       base::Uuid id, bool ok) {
+                      if (!owner)
+                        return;
+                      if (!ok)
+                        owner->state_.entries.at(id).archived_locally = true;
+                      else
+                        owner->Schedule();
+                    },
+                    weak_factory_.GetWeakPtr(), id));
+        return;
+      }
+      continue;
+    }
+    if (entry.archived_locally) {
+      CloseArchived(id, local ? authority : remote->second);
+      if (!lifetime || !bridge_lifetime_)
+        return;
+      continue;
+    }
+    const auto ids = PageIds(*archive);
+    if (!CanArchive(ids))
+      continue;
+    std::vector<tab_tree::TreeNode> retained;
+    for (const auto& page : archive->snapshot.pages) {
+      tab_tree::TreeNode node;
+      if (bridge_->tab_tree_store()->GetNode(page.tree_node_id, &node) !=
+              Store::Result::kOk ||
+          node.workspace_id != archive->snapshot.workspace_id ||
+          node.parent_id != page.parent_id || node.sort_key != page.sort_key ||
+          tab_tree::GetSharedPageTarget(node) != page.target ||
+          tab_tree::GetSharedHomeTarget(node) != page.home_target)
+        break;
+      retained.push_back(node);
+    }
+    if (retained.size() != ids.size())
+      continue;
+    entry.private_nodes = std::move(retained);
+    entry.archived_locally = true;
+    dirty_ = true;
+    auto original = local ? authority : remote->second;
+    Persist(original,
+            base::BindOnce(
+                [](base::WeakPtr<WorkspaceStructureController> owner,
+                   base::Uuid id, sync::SyncAuthorization original, bool ok) {
+                  if (!owner)
+                    return;
+                  if (ok && original.Run())
+                    owner->CloseArchived(id, original);
+                  else if (!ok)
+                    owner->state_.entries.at(id).archived_locally = false;
+                },
+                weak_factory_.GetWeakPtr(), id, original));
+    return;
+  }
+}
+
+void WorkspaceStructureController::ScanArchiveDeadline() {
+  if (persisting_ || !bridge_lifetime_)
+    return;
+  archive_timer_.Stop();
+  const auto now = base::Time::Now();
+  base::Time next;
+  for (const auto& browser : Windows()) {
+    if (!browser)
+      continue;
+    for (auto* tab : *browser->GetTabStripModel()) {
+      const auto id = bridge_->FindSharedTreeNodeIdForTab(tab);
+      const auto workspace_id = bridge_->GetWorkspaceForTab(tab);
+      tab_tree::Workspace workspace;
+      if (!id || !workspace_id ||
+          bridge_->tab_tree_store()->IsNodeArchived(*id) ||
+          bridge_->tab_tree_store()->GetWorkspace(*workspace_id, &workspace) !=
+              Store::Result::kOk ||
+          workspace.archive_policy == sync::SharedArchivePolicy::kNever)
+        continue;
+      std::vector<base::Uuid> ids{*id};
+      for (const auto& [entry_id, entry] : state_.entries) {
+        const auto* split = std::get_if<sync::SplitGroupRecord>(&entry.record);
+        if (split && !split->tombstone &&
+            std::ranges::find(split->topology.member_ids, *id) !=
+                split->topology.member_ids.end())
+          ids = split->topology.member_ids;
+      }
+      base::Time last;
+      bool complete = true;
+      for (const auto& member : ids) {
+        auto* live = bridge_->FindTabByTreeNodeId(member);
+        if (!live || live->GetLastActiveTime().is_null()) {
+          complete = false;
+          break;
+        }
+        last = std::max(last, live->GetLastActiveTime());
+      }
+      if (!complete || !CanArchive(ids))
+        continue;
+      const auto deadline = last + ArchiveAge(workspace.archive_policy);
+      if (deadline <= now) {
+        Archive(
+            ids, sync::SharedArchiveReason::kAutomatic,
+            base::BindOnce(
+                [](base::WeakPtr<WorkspaceStructureController> owner, bool ok) {
+                  if (owner && ok)
+                    owner->Schedule();
+                },
+                weak_factory_.GetWeakPtr()));
+        return;
+      }
+      if (next.is_null() || deadline < next)
+        next = deadline;
+    }
+  }
+  if (!next.is_null())
+    archive_timer_.Start(FROM_HERE, next - now,
+                         base::BindOnce(&WorkspaceStructureController::Schedule,
+                                        weak_factory_.GetWeakPtr()));
+}
+}  // namespace ahoi::session

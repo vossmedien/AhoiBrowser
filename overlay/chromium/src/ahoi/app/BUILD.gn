@@ -9,6 +9,10 @@ source_set("startup_policy") {
     "startup_policy.h",
   ]
   public_deps = [ "//base" ]
+  if (is_mac) {
+    sources += [ "development_acceptance_profile_mac.mm" ]
+    frameworks = [ "Foundation.framework" ]
+  }
 }
 
 source_set("startup_policy_unit_tests") {

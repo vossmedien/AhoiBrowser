@@ -20,20 +20,30 @@ def sha256(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def effective_lines(path: pathlib.Path) -> list:
+    return [
+        line
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+
+
 class LeanChromiumContractTests(unittest.TestCase):
     def test_full_profiles_are_byte_exact_pre_wave_one_baselines(self):
         matrix = load_json("config/lean-chromium-components.json")
         allowed_delta = matrix["fullBaselineContract"]["allowedLeanDelta"]
+        # Baselines include `enable_ahoi_ubo_classic = true`: since 75e20c1 every
+        # desktop profile, full ones included, ships uBO Classic (product decision).
         pairs = (
             (
                 "ahoi-dev.gn",
                 "ahoi-full-dev.gn",
-                "49b306d09fa8b6aa17b654d63527fe042eef77abf7f30b3d8727bc67d0c9e48d",
+                "e777f03b6b399dbfd20d686b72d60a6270fa0e2e63a16fdb7f88c8a9eeba6739",
             ),
             (
                 "ahoi-release.gn",
                 "ahoi-full-release.gn",
-                "cf144d4dcfb41383b3e863c363de0d89568a09baa06219b64e5627c516b0bf4c",
+                "31e26e961823603220792329db5f16cc1c4453dfcb318b2a5ca925af16203c0d",
             ),
         )
         for lean_name, full_name, baseline_hash in pairs:
@@ -41,11 +51,19 @@ class LeanChromiumContractTests(unittest.TestCase):
             full = ROOT / "config/build" / full_name
             with self.subTest(profile=lean_name):
                 self.assertEqual(baseline_hash, sha256(full))
-                lean_lines = lean.read_text(encoding="utf-8").splitlines()
-                self.assertEqual(allowed_delta, lean_lines[-len(allowed_delta) :])
+                # The lean profile is the full one plus the allowed delta as
+                # one block; comments and blank lines carry no build input.
+                lean_lines = effective_lines(lean)
+                starts = [
+                    i
+                    for i in range(len(lean_lines) - len(allowed_delta) + 1)
+                    if lean_lines[i : i + len(allowed_delta)] == allowed_delta
+                ]
+                self.assertEqual(1, len(starts))
+                start = starts[0]
                 self.assertEqual(
-                    full.read_text(encoding="utf-8").splitlines(),
-                    lean_lines[: -len(allowed_delta)],
+                    effective_lines(full),
+                    lean_lines[:start] + lean_lines[start + len(allowed_delta) :],
                 )
 
     def test_wave_one_has_exactly_two_active_exclusions(self):
@@ -218,8 +236,14 @@ class LeanChromiumContractTests(unittest.TestCase):
                 self.assertEqual(expected, actual)
 
     def test_measurement_fails_closed_on_provenance_and_size_gate(self):
-        source = (ROOT / "tools/measure_lean_bundles.py").read_text(
-            encoding="utf-8"
+        # The measurement spans the tool and its two helper modules.
+        source = "\n".join(
+            (ROOT / "tools" / name).read_text(encoding="utf-8")
+            for name in (
+                "measure_lean_bundles.py",
+                "lean_bundle_common.py",
+                "lean_bundle_provenance.py",
+            )
         )
         for marker in (
             'receipt.get("schemaVersion") != 2',

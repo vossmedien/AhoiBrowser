@@ -8,7 +8,12 @@
 #include "ahoi/browser/sync/sync_merge.h"
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "ahoi/browser/sync/sync_store.h"
+#include "base/base_paths.h"
+#include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/json/json_reader.h"
+#include "base/path_service.h"
+#include "base/strings/string_util.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "sql/database.h"
@@ -24,12 +29,19 @@ base::Uuid ParseId(const char* value) {
   return base::Uuid::ParseLowercase(value);
 }
 
-base::Time TimeAt(int64_t micros) {
-  return base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(micros));
+// Format 3 clocks and ordinary timestamps are at or after the Unix epoch and
+// clocks carry canonical device UUIDs. Fixtures use offsets from that minimum.
+constexpr char kDeviceA[] = "60000000-0000-4000-8000-00000000d00a";
+constexpr char kDeviceB[] = "60000000-0000-4000-8000-00000000d00b";
+
+base::Time TimeAt(int64_t offset) {
+  return base::Time::FromDeltaSinceWindowsEpoch(
+      base::Microseconds(kMinimumSyncClockPhysicalUs + offset));
 }
 
-SyncVersion MakeVersion(const char* device, int64_t physical) {
-  return {.stamp = {.physical_time_us = physical, .device_tiebreak = device}};
+SyncVersion MakeVersion(const char* device, int64_t offset) {
+  return {.stamp = {.physical_time_us = kMinimumSyncClockPhysicalUs + offset,
+                    .device_tiebreak = device}};
 }
 
 WorkspaceRecord MakeWorkspace() {
@@ -39,7 +51,7 @@ WorkspaceRecord MakeWorkspace() {
           .sort_key = "a",
           .created_at = TimeAt(1),
           .modified_at = TimeAt(100),
-          .version = MakeVersion("device-a", 100)};
+          .version = MakeVersion(kDeviceA, 100)};
 }
 
 SyncChange ChangeFor(const WorkspaceRecord& record, const char* mutation) {
@@ -53,42 +65,72 @@ SyncChange ChangeFor(const WorkspaceRecord& record, const char* mutation) {
           .payload = std::move(payload)};
 }
 
-TEST(SyncWireV2Test, CarriesCompleteCanonicalFieldClocks) {
+TEST(SyncWireV3Test, CarriesCompleteCanonicalFieldClocks) {
   const WorkspaceRecord workspace = MakeWorkspace();
   std::string payload;
   ASSERT_TRUE(SerializeRecord(workspace, &payload));
-  EXPECT_NE(payload.find("\"model_version\":2"), std::string::npos);
+  EXPECT_NE(payload.find("\"model_version\":3"), std::string::npos);
   EXPECT_NE(payload.find("\"field_versions\":{"), std::string::npos);
   EXPECT_NE(payload.find("\"accent_argb\":{"), std::string::npos);
+  EXPECT_NE(payload.find("\"archive_policy\":{"), std::string::npos);
   EXPECT_NE(payload.find("\"tombstone\":{"), std::string::npos);
 
   SyncRecord decoded;
   ASSERT_TRUE(DeserializeRecord(EntityType::kWorkspace, payload, &decoded));
   EXPECT_TRUE(HasCompleteFieldVersions(decoded));
   const WorkspaceRecord& round_trip = std::get<WorkspaceRecord>(decoded);
-  EXPECT_EQ(round_trip.field_versions.size(), 7u);
+  EXPECT_EQ(round_trip.field_versions.size(), 8u);
   EXPECT_EQ(round_trip.field_versions.at("name"), workspace.version.stamp);
 }
 
-TEST(SyncWireV2Test, MatchesCompanionRemoteTabGoldenBytes) {
-  constexpr int64_t kPhysical = 11644473601000000LL;
-  const RemoteTabRecord tab{
-      .id = ParseId("10000000-0000-4000-8000-000000000001"),
-      .device_id = ParseId("10000000-0000-4000-8000-000000000002"),
-      .session_id = ParseId("10000000-0000-4000-8000-000000000003"),
-      .url = "https://example.test/path",
-      .title = "Ahoi",
-      .opened_at = TimeAt(kPhysical),
-      .last_active = TimeAt(kPhysical),
-      .version = {.stamp = {.physical_time_us = kPhysical,
-                            .logical = 2,
-                            .device_tiebreak =
-                                "10000000-0000-4000-8000-000000000002"}}};
+std::string SharedGoldenPayload(const char* name) {
+  base::FilePath root;
+  EXPECT_TRUE(base::PathService::Get(base::DIR_SRC_TEST_DATA_ROOT, &root));
+  std::string bytes;
+  EXPECT_TRUE(base::ReadFileToString(
+      root.AppendASCII("ahoi/browser/sync/testdata/sync_wire_v3.json"),
+      &bytes));
+  const auto document = base::JSONReader::ReadDict(bytes, base::JSON_PARSE_RFC);
+  if (!document || !document->FindList("records")) {
+    ADD_FAILURE() << "unreadable sync_wire_v3.json";
+    return {};
+  }
+  for (const auto& item : *document->FindList("records")) {
+    const std::string* found = item.GetDict().FindString("name");
+    const std::string* payload = item.GetDict().FindString("payload");
+    if (found && payload && *found == name) {
+      return *payload;
+    }
+  }
+  ADD_FAILURE() << "missing golden " << name;
+  return {};
+}
+
+TEST(SyncWireV3Test, MatchesCompanionRemoteTabGoldenBytes) {
+  const std::string golden = SharedGoldenPayload("presence_saved_web");
+  ASSERT_FALSE(golden.empty());
+  SyncRecord decoded;
+  ASSERT_TRUE(DeserializeRecord(EntityType::kRemoteTab, golden, &decoded));
+  const auto& tab = std::get<RemoteTabRecord>(decoded);
+  EXPECT_EQ(3, tab.model_version);
+  EXPECT_TRUE(tab.tree_node_id.has_value());
   std::string payload;
-  ASSERT_TRUE(SerializeRecord(tab, &payload));
-  EXPECT_EQ(
-      payload,
-      R"json({"device_id":"10000000-0000-4000-8000-000000000002","field_versions":{"device_id":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"is_incognito":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"last_active":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"opened_at":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"pinned":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"session_id":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"title":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"tombstone":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"url":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"},"workspace_id":{"device":"10000000-0000-4000-8000-000000000002","logical":2,"physical":"11644473601000000"}},"id":"10000000-0000-4000-8000-000000000001","is_incognito":false,"last_active":"11644473601000000","model_version":2,"opened_at":"11644473601000000","pinned":false,"session_id":"10000000-0000-4000-8000-000000000003","title":"Ahoi","tombstone":false,"url":"https://example.test/path","version_device":"10000000-0000-4000-8000-000000000002","version_logical":2,"version_model":2,"version_physical":"11644473601000000"})json");
+  ASSERT_TRUE(SerializeRecord(decoded, &payload));
+  EXPECT_EQ(golden, payload);
+}
+
+// Format 2 is removed (ADR 0009): the same companion bytes relabelled as
+// model 2 fail closed instead of being upgraded.
+TEST(SyncWireV3Test, RejectsCompanionRemoteTabBytesFromRemovedFormat) {
+  std::string legacy = SharedGoldenPayload("presence_saved_web");
+  ASSERT_NE(legacy.find("\"model_version\":3"), std::string::npos);
+  ASSERT_NE(legacy.find("\"version_model\":3"), std::string::npos);
+  base::ReplaceSubstringsAfterOffset(&legacy, 0, "\"model_version\":3",
+                                     "\"model_version\":2");
+  base::ReplaceSubstringsAfterOffset(&legacy, 0, "\"version_model\":3",
+                                     "\"version_model\":2");
+  SyncRecord decoded;
+  EXPECT_FALSE(DeserializeRecord(EntityType::kRemoteTab, legacy, &decoded));
 }
 
 TEST(SyncStoreV3Test, MergesDisjointFieldsAndRequeuesConvergedUnion) {
@@ -103,13 +145,13 @@ TEST(SyncStoreV3Test, MergesDisjointFieldsAndRequeuesConvergedUnion) {
             SyncStore::Result::kOk);
   WorkspaceRecord local = std::get<WorkspaceRecord>(value);
   local.sort_key = "z";
-  local.version = MakeVersion("device-a", 120);
+  local.version = MakeVersion(kDeviceA, 120);
   ASSERT_EQ(store.PutLocalRecord(local, "local-order"), SyncStore::Result::kOk);
   ASSERT_EQ(store.AcknowledgeOutbox({"local-order"}), SyncStore::Result::kOk);
 
   WorkspaceRecord remote = std::get<WorkspaceRecord>(value);
   remote.name = "Remote name";
-  remote.version = MakeVersion("device-b", 110);
+  remote.version = MakeVersion(kDeviceB, 110);
   remote.field_versions.insert_or_assign("name", remote.version.stamp);
   ASSERT_EQ(
       store.ApplyRemoteBatch({.changes = {ChangeFor(remote, "remote-name")},
@@ -165,7 +207,7 @@ TEST(SyncStoreV3Test, QuarantinesMutationIdCollisionWithoutPinningToken) {
             SyncStore::Result::kOk);
   WorkspaceRecord collision = first;
   collision.name = "Different payload";
-  collision.version = MakeVersion("device-b", 200);
+  collision.version = MakeVersion(kDeviceB, 200);
   ASSERT_EQ(store.ApplyRemoteBatch(
                 {.changes = {ChangeFor(collision, "provider-mutation")},
                  .next_change_token = "second-token"}),
@@ -196,7 +238,7 @@ TEST(SyncStoreV3Test, CompactionWatermarkRejectsDelayedResurrection) {
   ASSERT_TRUE(store.InitializeInMemory());
   WorkspaceRecord deleted = MakeWorkspace();
   deleted.tombstone = true;
-  deleted.version = MakeVersion("device-a", 200);
+  deleted.version = MakeVersion(kDeviceA, 200);
   ASSERT_EQ(store.PutLocalRecord(deleted, "delete"), SyncStore::Result::kOk);
   ASSERT_EQ(store.AcknowledgeOutbox({"delete"}), SyncStore::Result::kOk);
   ASSERT_EQ(store.CompactExpiredTombstones(base::Time::Now() + base::Days(31),
@@ -207,9 +249,13 @@ TEST(SyncStoreV3Test, CompactionWatermarkRejectsDelayedResurrection) {
   EXPECT_EQ(store.GetRecord(EntityType::kWorkspace, deleted.id, &value),
             SyncStore::Result::kNotFound);
 
-  WorkspaceRecord resurrected = deleted;
+  // A delayed peer write carries the complete field-clock map of the deleted
+  // record with only its tombstone register advanced.
+  SyncRecord complete_deleted = deleted;
+  ASSERT_TRUE(NormalizeFieldVersions(&complete_deleted));
+  WorkspaceRecord resurrected = std::get<WorkspaceRecord>(complete_deleted);
   resurrected.tombstone = false;
-  resurrected.version = MakeVersion("device-b", 300);
+  resurrected.version = MakeVersion(kDeviceB, 300);
   resurrected.field_versions.insert_or_assign("tombstone",
                                               resurrected.version.stamp);
   ASSERT_EQ(store.ApplyRemoteBatch(
@@ -223,24 +269,17 @@ TEST(SyncStoreV3Test, CompactionWatermarkRejectsDelayedResurrection) {
             SyncStore::Result::kNotFound);
 }
 
-TEST(SyncStoreV3Test, MigratesV2DatabaseAndLazilyUpgradesWireV1Row) {
+// Pre-launch format reset (ADR 0009): an old v2 store is refused, never
+// migrated, and its bytes stay untouched.
+TEST(SyncStoreV3Test, RefusesV2DatabaseWithoutMigration) {
   base::ScopedTempDir directory;
   ASSERT_TRUE(directory.CreateUniqueTempDir());
   const base::FilePath path = directory.GetPath().AppendASCII("sync.sqlite");
-  const RemoteTabRecord legacy{
-      .model_version = 1,
-      .id = ParseId("80000000-0000-4000-8000-000000000001"),
-      .device_id = ParseId("80000000-0000-4000-8000-000000000002"),
-      .session_id = ParseId("80000000-0000-4000-8000-000000000003"),
-      .url = "https://example.test/legacy",
-      .title = "Legacy",
-      .opened_at = TimeAt(100),
-      .last_active = TimeAt(100),
-      .version = {.model_version = 1,
-                  .stamp = {.physical_time_us = 100,
-                            .device_tiebreak = "legacy-device"}}};
-  std::string legacy_payload;
-  ASSERT_TRUE(SerializeRecord(legacy, &legacy_payload));
+  constexpr char kLegacyId[] = "80000000-0000-4000-8000-000000000001";
+  constexpr char kLegacyPayload[] =
+      R"json({"model_version":1,"id":"80000000-0000-4000-8000-000000000001",)json"
+      R"json("version_model":1,"version_physical":"100","version_logical":0,)json"
+      R"json("version_device":"legacy-device","url":"https://example.test/"})json";
   {
     sql::Database database(sql::test::kTestTag);
     ASSERT_TRUE(database.Open(path));
@@ -255,34 +294,34 @@ TEST(SyncStoreV3Test, MigratesV2DatabaseAndLazilyUpgradesWireV1Row) {
     sql::Statement insert(database.GetUniqueStatement(
         "INSERT INTO sync_records VALUES(?,?,?,?,?,?,?,?)"));
     insert.BindInt(0, static_cast<int>(EntityType::kRemoteTab));
-    insert.BindString(1, legacy.id.AsLowercaseString());
-    insert.BindString(2, legacy_payload);
+    insert.BindString(1, kLegacyId);
+    insert.BindString(2, kLegacyPayload);
     insert.BindInt(3, 0);
-    insert.BindInt(4, legacy.version.model_version);
-    insert.BindInt64(5, legacy.version.stamp.physical_time_us);
-    insert.BindInt(6, static_cast<int>(legacy.version.stamp.logical));
-    insert.BindString(7, legacy.version.stamp.device_tiebreak);
+    insert.BindInt(4, 1);
+    insert.BindInt64(5, 100);
+    insert.BindInt(6, 0);
+    insert.BindString(7, "legacy-device");
     ASSERT_TRUE(insert.Run());
   }
 
-  SyncStore store;
-  ASSERT_TRUE(store.Initialize(path));
-  EXPECT_EQ(store.QuarantineCount(), 0);
-  SyncRecord value;
-  ASSERT_EQ(store.GetRecord(EntityType::kRemoteTab, legacy.id, &value),
-            SyncStore::Result::kOk);
-  RemoteTabRecord upgraded = std::get<RemoteTabRecord>(value);
-  EXPECT_EQ(upgraded.model_version, 1);
-  upgraded.title = "Upgraded";
-  upgraded.model_version = kCurrentModelVersion;
-  upgraded.version = MakeVersion("current-device", 200);
-  ASSERT_EQ(store.PutLocalRecord(upgraded, "upgrade-v1-row"),
-            SyncStore::Result::kOk);
-  std::vector<SyncChange> outbox;
-  ASSERT_EQ(store.ReadOutbox(10, &outbox), SyncStore::Result::kOk);
-  ASSERT_EQ(outbox.size(), 1u);
-  EXPECT_NE(outbox[0].payload.find("\"model_version\":2"), std::string::npos);
-  EXPECT_NE(outbox[0].payload.find("\"field_versions\":{"), std::string::npos);
+  {
+    SyncStore store;
+    EXPECT_FALSE(store.Initialize(path));
+  }
+
+  sql::Database database(sql::test::kTestTag);
+  ASSERT_TRUE(database.Open(path));
+  sql::MetaTable meta;
+  ASSERT_TRUE(meta.Init(&database, 2, 2));
+  EXPECT_EQ(2, meta.GetVersionNumber());
+  EXPECT_FALSE(database.DoesTableExist("sync_outbox"));
+  sql::Statement query(database.GetUniqueStatement(
+      "SELECT entity_id,payload,model_version FROM sync_records"));
+  ASSERT_TRUE(query.Step());
+  EXPECT_EQ(kLegacyId, query.ColumnString(0));
+  EXPECT_EQ(kLegacyPayload, query.ColumnString(1));
+  EXPECT_EQ(1, query.ColumnInt(2));
+  EXPECT_FALSE(query.Step());
 }
 
 }  // namespace

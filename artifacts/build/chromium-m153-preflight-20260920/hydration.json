@@ -1,0 +1,2531 @@
+{
+  "command": "hydrate",
+  "inputs": {
+    "includePaths": [],
+    "patchCount": 43,
+    "patchStack": {
+      "patches": [
+        {
+          "bytes": 1039211,
+          "path": "0001-ahoi-m152-integration-seams.patch",
+          "sha256": "f5af959f0ec8f83d7c4891c6b9f46ffa23b10b0d40461e479bcc93d60d3293db"
+        },
+        {
+          "bytes": 2610,
+          "path": "0002-ahoi-deterministic-platform-tests.patch",
+          "sha256": "686d590c7b3523449a95cd42a51835b0df3f6fc318b26bd00b79e1cf7e04a956"
+        },
+        {
+          "bytes": 4278,
+          "path": "0003-ahoi-upstream-page-load-tracing-test-isolation.patch",
+          "sha256": "40abf58d5cae77b17f7a9fd5974fa84bad62abb7d7cf00b274699b78abc9b284"
+        },
+        {
+          "bytes": 11810,
+          "path": "0004-ahoi-lean-profile-compose-guards.patch",
+          "sha256": "ece7d10ab1ae94ecb53be59772871809aa250e8b1537624783d66276c7ad2824"
+        },
+        {
+          "bytes": 6642,
+          "path": "0005-ahoi-content-card-seam-and-resize-affordance.patch",
+          "sha256": "4bc324de531f39bad962a6b7a9ac3322d1f94314a085ffd5ebfbe27cdf7dd452"
+        },
+        {
+          "bytes": 2594,
+          "path": "0006-ahoi-command-bar-current-tab-semantics.patch",
+          "sha256": "4fac88fab33b0b466008a2b80890e916bce6db5ebab726c1867fd005e0fd7c98"
+        },
+        {
+          "bytes": 5937,
+          "path": "0007-ahoi-split-resize-hit-testing-and-accessibility.patch",
+          "sha256": "d224e69e97ea5e36f917fb8d360fd92e9999fce3e38d58a40165dfb23bd8a402"
+        },
+        {
+          "bytes": 8463,
+          "path": "0008-ahoi-focused-split-pane-reorder.patch",
+          "sha256": "a3add6d51906d469956d78e18cf97e306f6819bc4bd9b12d82eae2eae45b79a1"
+        },
+        {
+          "bytes": 23117,
+          "path": "0009-ahoi-empty-surface-extension-menu.patch",
+          "sha256": "093e11a74e33cf9bed32b3510595899ec9d551ca7a5bf0432cbb1fc19046535d"
+        },
+        {
+          "bytes": 10764,
+          "path": "0010-ahoi-zen-standard-import-seam.patch",
+          "sha256": "c3ffe87dbeb282617bcdf1bd273e6ad443b406608093fa599db672d248f052e4"
+        },
+        {
+          "bytes": 28251,
+          "path": "0011-ahoi-command-scroll-and-auth-policy-hardening.patch",
+          "sha256": "727c9cd7e464290d5fb71a8de62c356b820f758f6f3ecc6f19a3fab3b1823879"
+        },
+        {
+          "bytes": 48381,
+          "path": "0012-ahoi-daily-driver-lifecycle-and-branding.patch",
+          "sha256": "20179f6e051b3cfec73a74d01a275cc73d8680b115ba80553642856d53792636"
+        },
+        {
+          "bytes": 20979,
+          "path": "0013-ahoi-standard-import-surface.patch",
+          "sha256": "94be5a899235a8e9a8550dcfc78cd9c0ad0947dcbfd3a000a69d8372f6917add"
+        },
+        {
+          "bytes": 5617,
+          "path": "0014-ahoi-ubo-build-gate.patch",
+          "sha256": "4b27da77d88b9ce94203eb787a5c3e812ddd94775f5cd7f8e2b2fd6b04336864"
+        },
+        {
+          "bytes": 19961,
+          "path": "0015-ahoi-zen-import-availability.patch",
+          "sha256": "c5c621c6d07b29aa99d4f39ec32171ee5072af8cc2c2a4847df400798f9495e8"
+        },
+        {
+          "bytes": 29823,
+          "path": "0016-ahoi-current-session-receipt.patch",
+          "sha256": "2f4102df453d7eb102623b34826e857435a5a59b19c7d65b8f883550c1ced381"
+        },
+        {
+          "bytes": 8230,
+          "path": "0017-ahoi-session-receipt-durability.patch",
+          "sha256": "c27c91d85a614e4375d5584ec811f7d6f5ba2b5bf89af18c6d63df3713b3b410"
+        },
+        {
+          "bytes": 953,
+          "path": "0018-ahoi-arc-import-web-component-build.patch",
+          "sha256": "d116ded61e1af6db2e34b2c6a3edaf7123f6f7dd24735b7719571cf9b99dbbca"
+        },
+        {
+          "bytes": 2284,
+          "path": "0019-ahoi-session-receipt-callback-adapter.patch",
+          "sha256": "1046378b140b9e64bd11b8d37e04086a17b40f8ab1f0f300db6f837f113f0dc9"
+        },
+        {
+          "bytes": 8978,
+          "path": "0020-ahoi-sidebar-navigation-non-overlap.patch",
+          "sha256": "aad1c00a0dfd6d73d43702b719c34d2caec9942139b70b475c73e6a3b3581a4b"
+        },
+        {
+          "bytes": 8633,
+          "path": "0021-ahoi-zero-tab-extension-context-menu.patch",
+          "sha256": "6912744a6caf4a70f85f6d3003089e693cebac47945a878017b52296682bcdaf"
+        },
+        {
+          "bytes": 5291,
+          "path": "0022-ahoi-zero-tab-split-command.patch",
+          "sha256": "68df428761e456d4de41ae57d4a629fc6465b407eb75304705fd08124a142026"
+        },
+        {
+          "bytes": 17302,
+          "path": "0023-ahoi-sidebar-presentation-geometry.patch",
+          "sha256": "f06e8c3fac90d4a5178f34eff5dcdbebb474095e0f5ff4e508e37a2f9c6083a0"
+        },
+        {
+          "bytes": 5036,
+          "path": "0024-ahoi-sidebar-settled-viewport-refresh.patch",
+          "sha256": "582d87641cb660e0bd1a9a0bbdac90d0517064f873bacd94a1963229afb49010"
+        },
+        {
+          "bytes": 35120,
+          "path": "0025-ahoi-import-source-truth.patch",
+          "sha256": "9de8a0b0c7862612b822ba5cfc6d8db435d80578ac1048d70ac4a7ee3db4f16a"
+        },
+        {
+          "bytes": 4333,
+          "path": "0026-ahoi-extension-accelerator-compatibility.patch",
+          "sha256": "711d0984383b3395741aca653895f9e310156a230572d780759116e836eeb191"
+        },
+        {
+          "bytes": 2968,
+          "path": "0027-ahoi-arc-schema-preview-and-sidebar-a11y.patch",
+          "sha256": "3db989c46370f29b992e0bb9a14d5b16485f3b5a6689e54c1988e35960b9c235"
+        },
+        {
+          "bytes": 1618,
+          "path": "0028-ahoi-empty-window-commands-and-quit.patch",
+          "sha256": "a2ad7bb8ad8e344c9da65be9d99d5541a12ecd78691d8abe32db7edc9836b5d5"
+        },
+        {
+          "bytes": 2759,
+          "path": "0029-ahoi-arc-import-backup-notice.patch",
+          "sha256": "dd11e0283845af357ccdd8693d494a339c9562eb19048cc69abc5ee4f8e6c876"
+        },
+        {
+          "bytes": 2725,
+          "path": "0030-ahoi-bookmark-context-menu-presentation.patch",
+          "sha256": "95b73b8c01ad2eab9c2dd0efc83bedad538e58ecdf163c058a3a7b963d28d92a"
+        },
+        {
+          "bytes": 4301,
+          "path": "0031-ahoi-rounded-navigation-surface.patch",
+          "sha256": "496888bceced2b92287d764b7d8a83ebc954e19abb19e4e715145a9d88106580"
+        },
+        {
+          "bytes": 4327,
+          "path": "0032-ahoi-explicit-arc-recovery.patch",
+          "sha256": "2e13bfd814023b47dddc8333e3340263f2ae31c57aa25feb5c93b0f63473221a"
+        },
+        {
+          "bytes": 1942,
+          "path": "0033-ahoi-sidebar-layout-idempotence.patch",
+          "sha256": "3577756696f6f47200684d905e3bd35803ae2a31167f92d52b25df176955f357"
+        },
+        {
+          "bytes": 6134,
+          "path": "0034-ahoi-navigation-pin-home-and-hover.patch",
+          "sha256": "4ac2adb7cf1d3a16663cfdd0508028cf22b72bb80ab42353715b2401c0a36aed"
+        },
+        {
+          "bytes": 7388,
+          "path": "0035-ahoi-browser-settings-sync-consent.patch",
+          "sha256": "946881f56352a4b7bd4cf3143a35cc876a10a01e82273ac716d1e7839264dd93"
+        },
+        {
+          "bytes": 6014,
+          "path": "0036-ahoi-native-sync-storage-observer.patch",
+          "sha256": "154985ad4dc611df25838247801f311590a09c180da992eabd5801623cce30ca"
+        },
+        {
+          "bytes": 995,
+          "path": "0037-ahoi-sidebar-exclusive-bookmark-surface.patch",
+          "sha256": "6e58e1982d6cb16c4f80a2824fc340da9c55c26bfedf727e405eb5773ccbdb90"
+        },
+        {
+          "bytes": 5519,
+          "path": "0038-ahoi-concise-arc-recovery-copy.patch",
+          "sha256": "554045d4144705fae1b50c85e8f2fcd0557821d6d99995bf6b1cf42dd374115a"
+        },
+        {
+          "bytes": 25392,
+          "path": "0039-ahoi-extension-activation-authorization.patch",
+          "sha256": "fd3451c072d9c9b21622dadf3ba9695f2ed31cf0984aa1c76d2df61301133d72"
+        },
+        {
+          "bytes": 4928,
+          "path": "0040-ahoi-native-sync-storage-write-request.patch",
+          "sha256": "9f8ef3ca5fbb23970e41b9feec0afd1697a85d5204568f59d8171c2e30dcfecf"
+        },
+        {
+          "bytes": 8460,
+          "path": "0041-ahoi-extension-user-settings-intent.patch",
+          "sha256": "cb813b5a1f4e32cf9668697cf2762ee442e1a89160c1887cabdcfdcd0bd1436f"
+        },
+        {
+          "bytes": 585,
+          "path": "0042-ahoi-development-acceptance-profile.patch",
+          "sha256": "c1c03bc80340192bf8b25f48264e61a9437bcc0d00f2bad867b3a5af31e9403e"
+        },
+        {
+          "bytes": 3613,
+          "path": "0043-ahoi-reader-and-link-copy-strings.patch",
+          "sha256": "458ad12543da32b40595587f701c8e3d8e209b0413db2a674e0dcb88ef15d83a"
+        }
+      ],
+      "sha256": "4ff7d077552c05eed84cf0058462ea933ee0f942691066b54aa60294c4c76f5d"
+    },
+    "series": "patches/chromium/series"
+  },
+  "limits": {
+    "maxResponseBytes": 8388608,
+    "maxTotalResponseBytes": 67108864,
+    "networkTimeoutSeconds": 20,
+    "totalTimeoutSeconds": 600
+  },
+  "mutationGuard": {
+    "allowedMutation": "verified target blobs added to the Git object store only",
+    "head": "fc4d67f1788019a27e32511137ceccbd2fafdaaa",
+    "indexSha256": "309f1818c7b280761fffe5185331b7b4bb73449d539f63e1ec11040dfbc0fb50",
+    "statusSha256": "24288482930280231cdbb26e374baffbe9948e17391dc572e15be12a703c4ada",
+    "unchanged": true,
+    "verified": true,
+    "worktreeSha256": "43c922f8af70b45d16132db6b53de08605504bd3b469ffc57782a3c5ebdd30de"
+  },
+  "paths": [
+    {
+      "bytes": 72438,
+      "disposition": "hydrated",
+      "objectId": "c84f6d48986034c51b14cad7278025a9f4e57adb",
+      "path": "chrome/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6325,
+      "disposition": "hydrated",
+      "objectId": "07e4d3aa8789b0a9631bb84312b0e22916b2c3b5",
+      "path": "chrome/app/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2061,
+      "disposition": "already_present",
+      "objectId": "c7a76ae050c06e7e7520201d33d950bc1a975c2d",
+      "path": "chrome/app/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 17941,
+      "disposition": "already_present",
+      "objectId": "6fada0a2b1a1f4b5675fc657a3a7b2337e43c4a1",
+      "path": "chrome/app/app-Info.plist",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 26567,
+      "disposition": "hydrated",
+      "objectId": "65b9ce9bc44ceaf7b7cec1d1ec6d0aadcbf541d1",
+      "path": "chrome/app/chrome_command_ids.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 75249,
+      "disposition": "hydrated",
+      "objectId": "5655d73273aa361b224cc4e5efd74a22e80413ab",
+      "path": "chrome/app/chrome_main_delegate.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 261588,
+      "disposition": "hydrated",
+      "objectId": "a741f89bf54c65b3b188def7b03270015356debe",
+      "path": "chrome/app/chromium_strings.grd",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1407873,
+      "disposition": "hydrated",
+      "objectId": "0cc3df52b0bcc6e31fc3691979bdae703b74f137",
+      "path": "chrome/app/generated_resources.grd",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 111220,
+      "disposition": "hydrated",
+      "objectId": "92097f9eb8569d6bdcfd2b54bdd699df0d6b3575",
+      "path": "chrome/app/resources/chromium_strings_de.xtb",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1138263,
+      "disposition": "hydrated",
+      "objectId": "9c407820d88b7e81b02be05fdb94e6a5bcc34de6",
+      "path": "chrome/app/resources/generated_resources_de.xtb",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1018285,
+      "disposition": "hydrated",
+      "objectId": "8d166acbcf821d67f8bdfc650a4748b963321aab",
+      "path": "chrome/app/resources/generated_resources_en-GB.xtb",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 43168,
+      "disposition": "hydrated",
+      "objectId": "237b2a8517c3c1e20595dacbb543a33d758b6c01",
+      "path": "chrome/app/settings_chromium_strings.grdp",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 177448,
+      "disposition": "hydrated",
+      "objectId": "eaa7929a316674a9d2673e07bab3b8a110b895b1",
+      "path": "chrome/browser/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 24486,
+      "disposition": "hydrated",
+      "objectId": "e0c73d6d4ea22fcb1ec9ce118dfb43a2fe76843d",
+      "path": "chrome/browser/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 110708,
+      "disposition": "hydrated",
+      "objectId": "51af775d30ce385bde20b47f84fbc43009cc1dd0",
+      "path": "chrome/browser/app_controller_mac.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 392622,
+      "disposition": "hydrated",
+      "objectId": "e30528ed87d953945e26395ce2c7c1ff52ac7d5a",
+      "path": "chrome/browser/chrome_content_browser_client.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 27971,
+      "disposition": "hydrated",
+      "objectId": "14dbe4670dbc24bd8f8ef0a828b70c7ab415f329",
+      "path": "chrome/browser/chrome_content_browser_client_navigation_throttles.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13957,
+      "disposition": "hydrated",
+      "objectId": "19b64707562d88cea8053ca890322d5c3c929a63",
+      "path": "chrome/browser/component_updater/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13144,
+      "disposition": "already_present",
+      "objectId": "744a905fa17d6f54d6e19c16292d7720d4ea5aa4",
+      "path": "chrome/browser/component_updater/chrome_component_updater_configurator.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5841,
+      "disposition": "already_present",
+      "objectId": "70c9d7fc38fa8ea5c6429b5a8b5c99d63008bd90",
+      "path": "chrome/browser/component_updater/chrome_component_updater_configurator_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11008,
+      "disposition": "hydrated",
+      "objectId": "aaae33aba8849015a0f73701c44044616f7baf0a",
+      "path": "chrome/browser/content_settings/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4458,
+      "disposition": "already_present",
+      "objectId": "5af94b81c35b5c5874d8cae8f2e8bddfee25f027",
+      "path": "chrome/browser/content_settings/cookie_settings_factory.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3494,
+      "disposition": "already_present",
+      "objectId": "141d2a194d8dc92df47aa2ae329f70f8f9385749",
+      "path": "chrome/browser/contextual_tasks/contextual_tasks_context_service_factory.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 135334,
+      "disposition": "hydrated",
+      "objectId": "1046137d6a74e0fb178e953866e97bdccd199ff3",
+      "path": "chrome/browser/extensions/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4047,
+      "disposition": "already_present",
+      "objectId": "71d928daaedc7d696387b58a69ec226313fab0ee",
+      "path": "chrome/browser/extensions/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10274,
+      "disposition": "already_present",
+      "objectId": "f52cfce94e0bf3e208b079c4d21638e686b53c69",
+      "path": "chrome/browser/extensions/api/management/chrome_management_api_delegate.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 82200,
+      "disposition": "hydrated",
+      "objectId": "93efa759d535182ba84a7b5cd0563ab2de56303a",
+      "path": "chrome/browser/extensions/api/settings_private/prefs_util.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 28093,
+      "disposition": "hydrated",
+      "objectId": "9b76aa55907b17a1ac66f78ee51708a756277d57",
+      "path": "chrome/browser/extensions/chrome_extension_registrar_delegate.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 52183,
+      "disposition": "hydrated",
+      "objectId": "0f89eff01970621556641ffd4647c0769bf57ddf",
+      "path": "chrome/browser/extensions/chrome_extensions_browser_client.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 17823,
+      "disposition": "hydrated",
+      "objectId": "0ae07d842eec643e7ffaa8a34194586aaf0b7250",
+      "path": "chrome/browser/extensions/chrome_extensions_browser_client.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 44597,
+      "disposition": "hydrated",
+      "objectId": "d8b4c6491fb5d6e41863ff8d92e0b973c77f63b1",
+      "path": "chrome/browser/extensions/extension_context_menu_model.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 107924,
+      "disposition": "hydrated",
+      "objectId": "90d41c43495281ac70615c5f2635e0374485bc64",
+      "path": "chrome/browser/extensions/extension_context_menu_model_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13297,
+      "disposition": "already_present",
+      "objectId": "2465fb793e284a380c4467c1886181df4ca0fd93",
+      "path": "chrome/browser/extensions/webstore_standalone_installer.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 31026,
+      "disposition": "hydrated",
+      "objectId": "9b7c30c3b2f7c3489d32a0e82a3ce0288d249f98",
+      "path": "chrome/browser/file_select_helper.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15734,
+      "disposition": "already_present",
+      "objectId": "16e77ae3d7c3576d36076e1f3133f2806fd759b3",
+      "path": "chrome/browser/file_select_helper.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 43190,
+      "disposition": "hydrated",
+      "objectId": "74fd48dc28044c8683b602b8ac4bbf7ccc6172b5",
+      "path": "chrome/browser/glic/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3828,
+      "disposition": "already_present",
+      "objectId": "4311dfe4802cf49501096005c32520ea170aa515",
+      "path": "chrome/browser/importer/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 62,
+      "disposition": "already_present",
+      "objectId": "6f0957d48299e596d4e4e79054f76aec52f77124",
+      "path": "chrome/browser/importer/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 8569,
+      "disposition": "already_present",
+      "objectId": "62546b572bab849b182fed62ad964d5cef136571",
+      "path": "chrome/browser/importer/importer_list.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2523,
+      "disposition": "already_present",
+      "objectId": "214e01496eafc6480acce3c777e1249b5512597d",
+      "path": "chrome/browser/importer/importer_list.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 12595,
+      "disposition": "already_present",
+      "objectId": "90e572fe4efe1baa00ca8218dbcb3a5d0ad36ddb",
+      "path": "chrome/browser/metrics/chrome_feature_list_creator.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 18417,
+      "disposition": "hydrated",
+      "objectId": "04ca8424ae65cbd228cb445e36b86eb23271173d",
+      "path": "chrome/browser/net/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 70702,
+      "disposition": "already_present",
+      "objectId": "c9ae7f58abdc9e650501363db9da48231ffecc15",
+      "path": "chrome/browser/net/profile_network_context_service.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11534,
+      "disposition": "already_present",
+      "objectId": "042b06278c2252d981103d416837579b1155bf97",
+      "path": "chrome/browser/net/profile_network_context_service.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 23368,
+      "disposition": "hydrated",
+      "objectId": "3b46ea761345ceea74fd9c32bd0b259a63b5c90c",
+      "path": "chrome/browser/prefs/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 346,
+      "disposition": "already_present",
+      "objectId": "d725aa6b9b910dcdecdb8da5038c92a4bd1d2fdb",
+      "path": "chrome/browser/prefs/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 132558,
+      "disposition": "hydrated",
+      "objectId": "6ccdf1e52f7fd305c36b0f109586b19d6080004b",
+      "path": "chrome/browser/prefs/browser_prefs.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6506,
+      "disposition": "hydrated",
+      "objectId": "48cdd12e1c6a913de15671ee416b62445e10d52e",
+      "path": "chrome/browser/privacy_sandbox/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2184,
+      "disposition": "hydrated",
+      "objectId": "0fdea050347af0fe5030547e2b9fa10785bbf612",
+      "path": "chrome/browser/privacy_sandbox/privacy_sandbox_settings_factory.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 40414,
+      "disposition": "hydrated",
+      "objectId": "f01dcbb6ab11052e2588125225a63708b97e7695",
+      "path": "chrome/browser/profiles/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 572,
+      "disposition": "already_present",
+      "objectId": "93832e7e0f6cd129e7bf35ebc90b86a39c536301",
+      "path": "chrome/browser/profiles/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 83525,
+      "disposition": "hydrated",
+      "objectId": "de5cbeb641bb5f587a5a4b9078c59edbc7354217",
+      "path": "chrome/browser/profiles/chrome_browser_main_extra_parts_profiles.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4705,
+      "disposition": "already_present",
+      "objectId": "8986f4d47cc58ab13493cbafea52e91673e25144",
+      "path": "chrome/browser/profiles/pref_service_builder_utils.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 92896,
+      "disposition": "already_present",
+      "objectId": "afd1085d964048745d5decf994d240888713e7cf",
+      "path": "chrome/browser/profiles/profile_manager.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 14775,
+      "disposition": "hydrated",
+      "objectId": "db3ab9dae742191cb8138c5fb8d6f432a2199dbc",
+      "path": "chrome/browser/renderer_context_menu/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 22491,
+      "disposition": "already_present",
+      "objectId": "97a9e990f7419fb732df3279945aae5163290523",
+      "path": "chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 21894,
+      "disposition": "hydrated",
+      "objectId": "6f3b8ef4b288c73c92d682ffc6604ed4e3c3f684",
+      "path": "chrome/browser/renderer_host/chrome_render_widget_host_view_mac_history_swiper_unittest.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 35877,
+      "disposition": "hydrated",
+      "objectId": "91d544e2bdf1aff0237ebfe18252c6c6ecf66930",
+      "path": "chrome/browser/resources/history/app.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2252,
+      "disposition": "hydrated",
+      "objectId": "d7d9f6f251947c8ec899259888a87b450bd3f500",
+      "path": "chrome/browser/resources/history/side_bar.html.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7886,
+      "disposition": "already_present",
+      "objectId": "f1667adc562780c4bf697c7e32a6d79ac227c965",
+      "path": "chrome/browser/resources/history/side_bar.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 16576,
+      "disposition": "already_present",
+      "objectId": "9e734e7ac98e82cbba502ed21d83b95cdbea75c3",
+      "path": "chrome/browser/resources/history/synced_device_manager.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6084,
+      "disposition": "hydrated",
+      "objectId": "1c4aaa1cfe12d3633828943dde411f0ae654a795",
+      "path": "chrome/browser/resources/pdf/pdf_viewer_wrapper.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 25139,
+      "disposition": "hydrated",
+      "objectId": "976b9be21f9c1379d782718127641d169a01d0d0",
+      "path": "chrome/browser/resources/settings/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2488,
+      "disposition": "already_present",
+      "objectId": "064f725d0afa575cd21341337790da46bb7122ac",
+      "path": "chrome/browser/resources/settings/on_startup_page/on_startup_page.html.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4557,
+      "disposition": "already_present",
+      "objectId": "5f3a324970436d1b540a6be47e3bfa0f278b136a",
+      "path": "chrome/browser/resources/settings/on_startup_page/on_startup_page.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2131,
+      "disposition": "already_present",
+      "objectId": "ca628e702953f73b9fbebcdc716b845c7978f1ba",
+      "path": "chrome/browser/resources/settings/people_page/import_data_browser_proxy.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4035,
+      "disposition": "hydrated",
+      "objectId": "500b01562f069254e7b5e517871ed133072bae4a",
+      "path": "chrome/browser/resources/settings/people_page/import_data_dialog.html",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6973,
+      "disposition": "hydrated",
+      "objectId": "14f48fb394062a34b28a31afa100765a3993ae79",
+      "path": "chrome/browser/resources/settings/people_page/import_data_dialog.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13585,
+      "disposition": "hydrated",
+      "objectId": "2aaa938c7e14a03b6528aa087ff6109f8ac335eb",
+      "path": "chrome/browser/resources/settings/route.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 16956,
+      "disposition": "hydrated",
+      "objectId": "a6b043271a7318309f7490d90f6ffd8ee4bc0a2a",
+      "path": "chrome/browser/resources/settings/router.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15131,
+      "disposition": "hydrated",
+      "objectId": "a1fd5590e47e4d8179a11de571d77770a25dba00",
+      "path": "chrome/browser/resources/settings/settings.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7181,
+      "disposition": "hydrated",
+      "objectId": "7b00df716ccbf2adc37f38fd2c71f9bdc1997c29",
+      "path": "chrome/browser/resources/settings/settings_main/settings_main.html",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 9510,
+      "disposition": "hydrated",
+      "objectId": "a0b80ace900665c6bd466b9329ec054551a5cb99",
+      "path": "chrome/browser/resources/settings/settings_main/settings_main.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6441,
+      "disposition": "hydrated",
+      "objectId": "efde1c73dfca6509223b6a626ab426faeed9af76",
+      "path": "chrome/browser/resources/settings/settings_menu/settings_menu.html",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 423,
+      "disposition": "already_present",
+      "objectId": "56b2ccfba05fe16599e75cc12326dcd3a654318f",
+      "path": "chrome/browser/resources/webui_toolbar/reload_button.css",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10481,
+      "disposition": "hydrated",
+      "objectId": "c8d07e45c8bfa88e2e63bab68f14ffe3f02ad456",
+      "path": "chrome/browser/sessions/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 379,
+      "disposition": "already_present",
+      "objectId": "76ec91b598190c6ca8766851a3ae33a8ce6e91d9",
+      "path": "chrome/browser/sessions/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 68710,
+      "disposition": "hydrated",
+      "objectId": "31cc627e9a6f978367e994a44e39ff94d80908d4",
+      "path": "chrome/browser/sessions/session_restore.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 29127,
+      "disposition": "hydrated",
+      "objectId": "781d2e2f7ef99797284888c446e290488cdc1620",
+      "path": "chrome/browser/sessions/session_service.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13483,
+      "disposition": "hydrated",
+      "objectId": "92d191c30c8f4919631d1a1e06a1929afac29225",
+      "path": "chrome/browser/sessions/session_service.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7085,
+      "disposition": "hydrated",
+      "objectId": "10bda8612f4040f9788fe4ce40ac96c7003d82ee",
+      "path": "chrome/browser/sessions/session_service_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 72599,
+      "disposition": "hydrated",
+      "objectId": "ea1ef8957c423b99799e2ec5235d46d087f43327",
+      "path": "chrome/browser/sessions/tab_restore_service_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 32469,
+      "disposition": "hydrated",
+      "objectId": "5772c48b0976e78b7d5e0f1e8007bd3c92a9404f",
+      "path": "chrome/browser/signin/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7699,
+      "disposition": "already_present",
+      "objectId": "f11db47c92ff8bc14da47d494f6a14cd64832d41",
+      "path": "chrome/browser/signin/account_consistency_mode_manager.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3759,
+      "disposition": "already_present",
+      "objectId": "d43fd679548920dca45d09714368bfcdbd7dfa1f",
+      "path": "chrome/browser/signin/account_consistency_mode_manager.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2188,
+      "disposition": "already_present",
+      "objectId": "bf8db216efacee37bf25f38427fe316c4ea6e0f3",
+      "path": "chrome/browser/signin/account_investigator_factory.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5624,
+      "disposition": "already_present",
+      "objectId": "f07275b2fd2863bc69cf820ecff33f121cceabd6",
+      "path": "chrome/browser/signin/account_reconcilor_factory.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 467,
+      "disposition": "already_present",
+      "objectId": "6f9c38f9ed2daff80ce534e90473a53e43094246",
+      "path": "chrome/browser/tab/protocol/split_collection_state.proto",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7443,
+      "disposition": "already_present",
+      "objectId": "43584ac274296f5c1a570294093d9147d0739b01",
+      "path": "chrome/browser/tab/tab_storage_packager.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 167393,
+      "disposition": "hydrated",
+      "objectId": "2e7510e36dd0cf138f4249dbad4ba02b18869b9f",
+      "path": "chrome/browser/ui/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3153,
+      "disposition": "already_present",
+      "objectId": "d2fb0123004e614f3903c282fd6a531866005717",
+      "path": "chrome/browser/ui/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 28922,
+      "disposition": "hydrated",
+      "objectId": "637e84f591e0a459094c0e74a29894293bcdf986",
+      "path": "chrome/browser/ui/actions/chrome_action_id.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4592,
+      "disposition": "already_present",
+      "objectId": "e06d5296911be0504eb11dff78e6417c1aad4933",
+      "path": "chrome/browser/ui/android/chrome_http_auth_handler.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11060,
+      "disposition": "hydrated",
+      "objectId": "9495ee40efd9b62cb226c27027dc4b7e80f0a57e",
+      "path": "chrome/browser/ui/android/tab_model/android_live_tab_context.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3843,
+      "disposition": "hydrated",
+      "objectId": "8825702452d031cb43ebce8bbc3364dbb9a3e41b",
+      "path": "chrome/browser/ui/android/tab_model/android_live_tab_context.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 37585,
+      "disposition": "hydrated",
+      "objectId": "b3a4744e88c7799761c26d51a884c79c3c4e6b0b",
+      "path": "chrome/browser/ui/browser.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 12695,
+      "disposition": "hydrated",
+      "objectId": "4d75f489e195da3eec5562ede4e280610c2a4c6a",
+      "path": "chrome/browser/ui/browser.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 201279,
+      "disposition": "hydrated",
+      "objectId": "a899f322a795f1da39c4676c59c2bc237610f9b9",
+      "path": "chrome/browser/ui/browser_actions.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 110180,
+      "disposition": "hydrated",
+      "objectId": "3f62ffd338d63016d1c2b6c2c9f3aa0be3be4e94",
+      "path": "chrome/browser/ui/browser_command_controller.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 118330,
+      "disposition": "hydrated",
+      "objectId": "ec6ecb7da85d13df72713ff4446c412383c62ab6",
+      "path": "chrome/browser/ui/browser_commands.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 21691,
+      "disposition": "hydrated",
+      "objectId": "d80d6550e73ccd088505e8dd00350cf5002caea9",
+      "path": "chrome/browser/ui/browser_live_tab_context.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5683,
+      "disposition": "hydrated",
+      "objectId": "6b5e2433d337f4db99fa0c8cff55bb28c5d8cf03",
+      "path": "chrome/browser/ui/browser_live_tab_context.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 16991,
+      "disposition": "already_present",
+      "objectId": "77de23b7ce1e6efe7e6871dc9f9106fa6fa7e996",
+      "path": "chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11851,
+      "disposition": "hydrated",
+      "objectId": "6997bb36d901fdeb10c035ed015e3a8945c183cf",
+      "path": "chrome/browser/ui/browser_ui_prefs.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 635,
+      "disposition": "already_present",
+      "objectId": "e28f7554e2783428124eb4a0f65763572b56c078",
+      "path": "chrome/browser/ui/cocoa/confirm_quit.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5930,
+      "disposition": "already_present",
+      "objectId": "278340d773567b8202dbf98cc8604931ea4de26f",
+      "path": "chrome/browser/ui/cocoa/history_overlay_controller.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1382,
+      "disposition": "already_present",
+      "objectId": "c17d14cceead0f28aaab0e395c0ad996a76dbb7b",
+      "path": "chrome/browser/ui/cocoa/history_overlay_controller_unittest.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10306,
+      "disposition": "already_present",
+      "objectId": "4134275dcbc5304fac670e1fa06f1b4e2ca39107",
+      "path": "chrome/browser/ui/extensions/extension_enable_flow.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5325,
+      "disposition": "already_present",
+      "objectId": "386e4541ab38f64dcf8d1e8551d94d84907dd8d7",
+      "path": "chrome/browser/ui/extensions/extension_enable_flow.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 56170,
+      "disposition": "hydrated",
+      "objectId": "39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a",
+      "path": "chrome/browser/ui/extensions/extensions_menu_view_model.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 18581,
+      "disposition": "already_present",
+      "objectId": "65e40b94a90768b2c0db8a1fb0e8c029fe7b0156",
+      "path": "chrome/browser/ui/extensions/extensions_menu_view_model.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 67655,
+      "disposition": "already_present",
+      "objectId": "22a4cf07a06b51f4d71243eb6bf557db4b2bd39a",
+      "path": "chrome/browser/ui/extensions/extensions_menu_view_model_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2939,
+      "disposition": "hydrated",
+      "objectId": "06c6800a75c994c5e9cf969c386f14c11a70d289",
+      "path": "chrome/browser/ui/login/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10938,
+      "disposition": "hydrated",
+      "objectId": "8e93da6a6704bad3b0659e0ca46244f6969c9bf0",
+      "path": "chrome/browser/ui/login/http_auth_coordinator.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15138,
+      "disposition": "hydrated",
+      "objectId": "abca7d4ec91a16c79ea936d399280d30219a180a",
+      "path": "chrome/browser/ui/login/login_handler.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7402,
+      "disposition": "hydrated",
+      "objectId": "873d2f607cb50095f55f41f7701ac3d54463f2af",
+      "path": "chrome/browser/ui/login/login_handler.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 120064,
+      "disposition": "already_present",
+      "objectId": "591c171e2d94c342ca622df936086db404951bca",
+      "path": "chrome/browser/ui/login/login_handler_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11858,
+      "disposition": "hydrated",
+      "objectId": "fe68c7266d9997ebbf074813b4f71cec5e539b30",
+      "path": "chrome/browser/ui/login/login_tab_helper.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5328,
+      "disposition": "already_present",
+      "objectId": "b495153e255d2577f96de2d64baf200daa79ae34",
+      "path": "chrome/browser/ui/login/login_tab_helper.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 9505,
+      "disposition": "already_present",
+      "objectId": "dfdb678c22c66c2d5abfdbd1c9f53ea0c6508658",
+      "path": "chrome/browser/ui/prefs/pref_watcher.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10063,
+      "disposition": "hydrated",
+      "objectId": "33e868125209336ec85e28a38f3f282e1986d8bd",
+      "path": "chrome/browser/ui/signin/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 41662,
+      "disposition": "hydrated",
+      "objectId": "19e090343c1613bcbd7aeccb9b95c103100c7f2a",
+      "path": "chrome/browser/ui/signin/signin_view_controller.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 18154,
+      "disposition": "hydrated",
+      "objectId": "705bf830a0633d23123f6f29f786378eb31315be",
+      "path": "chrome/browser/ui/startup/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11822,
+      "disposition": "hydrated",
+      "objectId": "d7ebcfb01b316351d8fe0ee962710d482eb47314",
+      "path": "chrome/browser/ui/startup/infobar_utils.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 199052,
+      "disposition": "hydrated",
+      "objectId": "baa6a65f8187052220bf0c3ec3a30f9c2d37bfec",
+      "path": "chrome/browser/ui/startup/startup_browser_creator_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 34624,
+      "disposition": "hydrated",
+      "objectId": "332a48ebee92fde32f995f387230cb8b6c780e9c",
+      "path": "chrome/browser/ui/startup/startup_browser_creator_impl.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10923,
+      "disposition": "hydrated",
+      "objectId": "69a5634cf4ce279b3df53f68b46c7b4de6a60b78",
+      "path": "chrome/browser/ui/startup/startup_browser_creator_impl.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13948,
+      "disposition": "hydrated",
+      "objectId": "17dc6e180456b614c57cd034c34391efbba537d4",
+      "path": "chrome/browser/ui/tab_ui_helper.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3988,
+      "disposition": "hydrated",
+      "objectId": "2cc9aa1cda8238ddfe12e9153632a873094031f1",
+      "path": "chrome/browser/ui/tab_ui_helper.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 27638,
+      "disposition": "hydrated",
+      "objectId": "2e07ee15fe90a3c679d23664ebd02ba22c314f6a",
+      "path": "chrome/browser/ui/tabs/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4904,
+      "disposition": "hydrated",
+      "objectId": "9f151cf8e346533f5528b7d60e9c8f04d93b2988",
+      "path": "chrome/browser/ui/tabs/features.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 23965,
+      "disposition": "hydrated",
+      "objectId": "42a1091d608bccaa56f06407039ee12dd2b2f206",
+      "path": "chrome/browser/ui/tabs/public/tab_features.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15371,
+      "disposition": "hydrated",
+      "objectId": "d09ed0f7c8abbcd1437deb56fc5ee2f13a276e1e",
+      "path": "chrome/browser/ui/tabs/split_tab_menu_model.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3290,
+      "disposition": "hydrated",
+      "objectId": "6d8db4344e032892fc34624aa23efae3f7165bd2",
+      "path": "chrome/browser/ui/tabs/split_tab_menu_model.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4943,
+      "disposition": "hydrated",
+      "objectId": "d2d3a1db11a77e8ce2f071e6681b86cc25f4f698",
+      "path": "chrome/browser/ui/tabs/split_tab_metrics.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5634,
+      "disposition": "already_present",
+      "objectId": "7b3307b7856fdc4e2b8c42cd541225fda943c519",
+      "path": "chrome/browser/ui/tabs/split_tab_swap_menu_model.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2859,
+      "disposition": "already_present",
+      "objectId": "6382385b3f5f85ddcf3d12d9dd56cd5429486faa",
+      "path": "chrome/browser/ui/tabs/split_tab_util.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 36651,
+      "disposition": "hydrated",
+      "objectId": "aa10f7737951a587f2adf43dca5126307c8cd058",
+      "path": "chrome/browser/ui/tabs/tab_features.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 216067,
+      "disposition": "hydrated",
+      "objectId": "48140cb488e51ca30e55afcd492861b94dec6278",
+      "path": "chrome/browser/ui/tabs/tab_strip_model.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 69061,
+      "disposition": "hydrated",
+      "objectId": "eb02a95efe49df7b96d89eb395ed518293ce6bbc",
+      "path": "chrome/browser/ui/tabs/tab_strip_model.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 318905,
+      "disposition": "hydrated",
+      "objectId": "d0899d9eb873e653bc468ff93af3e9cb3150ffba",
+      "path": "chrome/browser/ui/tabs/tab_strip_model_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3692,
+      "disposition": "already_present",
+      "objectId": "24873dd76bd280dd9e4acf1ac48966ff70aea9df",
+      "path": "chrome/browser/ui/tabs/tab_strip_prefs.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 16065,
+      "disposition": "hydrated",
+      "objectId": "669dec8f7efca52c377c2003bd58aab1c30f8e52",
+      "path": "chrome/browser/ui/tabs/vertical_tab_strip_state_controller.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 18391,
+      "disposition": "hydrated",
+      "objectId": "7558731e8a4be3184ffdc84486d74bd27945e383",
+      "path": "chrome/browser/ui/tabs/vertical_tab_strip_state_controller_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 16843,
+      "disposition": "hydrated",
+      "objectId": "74a8839903a7474f25f75f44b8d94ed7617c6fb4",
+      "path": "chrome/browser/ui/toolbar/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 110029,
+      "disposition": "hydrated",
+      "objectId": "7c3624d660c56d7b37aca31d6e01f2ef3d503189",
+      "path": "chrome/browser/ui/toolbar/app_menu_model.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 38465,
+      "disposition": "hydrated",
+      "objectId": "e5cd22968a6d8569e1853a1926f0c187adc56fba",
+      "path": "chrome/browser/ui/unload_controller.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 92895,
+      "disposition": "hydrated",
+      "objectId": "0d9060ce56a9f453941a19388bdb1285aa1eaac6",
+      "path": "chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 53069,
+      "disposition": "hydrated",
+      "objectId": "e5409f1de216d9a155a68be8d536473e6fce91b0",
+      "path": "chrome/browser/ui/views/bookmarks/bookmark_menu_delegate.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15973,
+      "disposition": "hydrated",
+      "objectId": "0377020eb0845b3b27e298e7ee71a7e84316d71f",
+      "path": "chrome/browser/ui/views/bookmarks/bookmark_menu_delegate.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11927,
+      "disposition": "already_present",
+      "objectId": "2633c402ad09525623b0103618ab61fe1ab2c228",
+      "path": "chrome/browser/ui/views/device_chooser_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 21233,
+      "disposition": "hydrated",
+      "objectId": "4f01efd742548b57a1c23e568cbc512e1e484303",
+      "path": "chrome/browser/ui/views/extensions/extensions_menu_delegate_desktop.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7588,
+      "disposition": "already_present",
+      "objectId": "3e914fce906bdaaca76c4d6f0cbf1990c772d454",
+      "path": "chrome/browser/ui/views/extensions/extensions_menu_site_permissions_page_view_interactive_uitest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7760,
+      "disposition": "already_present",
+      "objectId": "d4766d0fb25a16ea2ffd47a740ce1bbe5c93ad70",
+      "path": "chrome/browser/ui/views/file_system_access/file_system_access_restore_permission_bubble_view_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1116,
+      "disposition": "already_present",
+      "objectId": "0a36a14d9b330eb290e6b6f5e45d1b01307d9faf",
+      "path": "chrome/browser/ui/views/frame/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5744,
+      "disposition": "hydrated",
+      "objectId": "a5b8539afc1a0b74b97780419a559bafa0e84442",
+      "path": "chrome/browser/ui/views/frame/browser_native_widget_mac.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 40387,
+      "disposition": "hydrated",
+      "objectId": "fd63fdec82640fdb42de8388dfd691900f706674",
+      "path": "chrome/browser/ui/views/frame/browser_native_widget_mac.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 234724,
+      "disposition": "hydrated",
+      "objectId": "f9b1d3de0545b1426169859660f555f825e02468",
+      "path": "chrome/browser/ui/views/frame/browser_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 59102,
+      "disposition": "hydrated",
+      "objectId": "3c9907fe4a326ef47e17a5bfe96908511a2cd2dd",
+      "path": "chrome/browser/ui/views/frame/browser_view.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13440,
+      "disposition": "hydrated",
+      "objectId": "a06c33543478192b4349623cd2e87aeeb44afd42",
+      "path": "chrome/browser/ui/views/frame/browser_view_focus_interactive_uitest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 8920,
+      "disposition": "already_present",
+      "objectId": "d4cf5067cc380b29ff81ae2e6bc3efeb862b13a6",
+      "path": "chrome/browser/ui/views/frame/contents_container_outline.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2289,
+      "disposition": "already_present",
+      "objectId": "3dd6c5cf3093b6ab68040a4b6d37395618f03730",
+      "path": "chrome/browser/ui/views/frame/contents_container_outline.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 27654,
+      "disposition": "already_present",
+      "objectId": "6c1080488d4d3f9a88d44f2aba5868d29c9e4378",
+      "path": "chrome/browser/ui/views/frame/contents_container_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 77571,
+      "disposition": "hydrated",
+      "objectId": "75f02715c7af13fa992eb95586cfbd860286bef6",
+      "path": "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 42611,
+      "disposition": "hydrated",
+      "objectId": "43a003839a23c9b87c2189f4ee045e1d95eb9e25",
+      "path": "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl_interactive_uitest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7948,
+      "disposition": "already_present",
+      "objectId": "37a68df743470656997d8fc707ffa5b9055e2a1d",
+      "path": "chrome/browser/ui/views/frame/multi_contents_resize_area.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2807,
+      "disposition": "already_present",
+      "objectId": "460c40a7c5033c97ace6c442d347d7ebab13a82f",
+      "path": "chrome/browser/ui/views/frame/multi_contents_resize_area.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 33650,
+      "disposition": "hydrated",
+      "objectId": "54069adbee0558d7bf8031f48fa80f20cff2c48e",
+      "path": "chrome/browser/ui/views/frame/multi_contents_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13844,
+      "disposition": "hydrated",
+      "objectId": "6ecb49a239f704f61442eee7d14a0454553aea4f",
+      "path": "chrome/browser/ui/views/frame/multi_contents_view.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 34991,
+      "disposition": "hydrated",
+      "objectId": "e257cd9836e0f14b459a5b03d84dbb2da0d21c28",
+      "path": "chrome/browser/ui/views/frame/multi_contents_view_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6898,
+      "disposition": "hydrated",
+      "objectId": "b1024f94e9934909db7e44972b6482085b490cd9",
+      "path": "chrome/browser/ui/views/frame/multi_contents_view_delegate.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2576,
+      "disposition": "hydrated",
+      "objectId": "e182430481fed7ac4c17b0fd11b57c3d511a80b9",
+      "path": "chrome/browser/ui/views/frame/multi_contents_view_delegate.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13356,
+      "disposition": "hydrated",
+      "objectId": "35dbfda4249c6d7266b2f5684a34bee1085168f1",
+      "path": "chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2503,
+      "disposition": "already_present",
+      "objectId": "de2fb5ff5f7f6fc249f729731fe9e2dd7038c2ae",
+      "path": "chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7451,
+      "disposition": "already_present",
+      "objectId": "7ad0e2b5aa68192110b721666509c2bc97d285da",
+      "path": "chrome/browser/ui/views/frame/tab_modal_dialog_host.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 43151,
+      "disposition": "hydrated",
+      "objectId": "ab919030ae2fbd70240f192e1a7060776530523a",
+      "path": "chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 12890,
+      "disposition": "hydrated",
+      "objectId": "b35f686251462c443d02dcd284f9b4fc46b610ad",
+      "path": "chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 12608,
+      "disposition": "hydrated",
+      "objectId": "d15829cb543ac0aa69a50c8d3a3312459b244458",
+      "path": "chrome/browser/ui/views/location_bar/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 88908,
+      "disposition": "hydrated",
+      "objectId": "335b2902fd43016d45fa176e4aeec65ec87dcb64",
+      "path": "chrome/browser/ui/views/location_bar/location_bar_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 25100,
+      "disposition": "hydrated",
+      "objectId": "e5a30ce42aa40c3630b25fe79238612baeb6b401",
+      "path": "chrome/browser/ui/views/location_bar/location_bar_view.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 8527,
+      "disposition": "already_present",
+      "objectId": "14a99f40f3109feca6d091f9256cd888c1758809",
+      "path": "chrome/browser/ui/views/login_handler_views.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5480,
+      "disposition": "already_present",
+      "objectId": "81c2464564946db33d1a1518e2e095ef8df21ceb",
+      "path": "chrome/browser/ui/views/login_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2218,
+      "disposition": "already_present",
+      "objectId": "27e642f304298e97559c1d39c6c774c81681c1e0",
+      "path": "chrome/browser/ui/views/login_view.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 93402,
+      "disposition": "hydrated",
+      "objectId": "ae5f0f10e51eca0477a8d1c10df63321b0f09d08",
+      "path": "chrome/browser/ui/views/omnibox/omnibox_view_views.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 21594,
+      "disposition": "hydrated",
+      "objectId": "b6a1a7d04303cff2015f61f0001983d13e81969c",
+      "path": "chrome/browser/ui/views/omnibox/omnibox_view_views.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 38475,
+      "disposition": "hydrated",
+      "objectId": "5bcdfb8d63a66cc03cf61d9ef0547a4687e6f9f7",
+      "path": "chrome/browser/ui/views/page_info/page_info_main_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 8914,
+      "disposition": "hydrated",
+      "objectId": "da0ce6e403d0ad3c34678aa0e4821785562d0950",
+      "path": "chrome/browser/ui/views/page_info/page_info_main_view.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 76134,
+      "disposition": "hydrated",
+      "objectId": "451d41f1a4105ebf3963e5a6542b05928f6cdeca",
+      "path": "chrome/browser/ui/views/page_info/safety_tip_page_info_bubble_view_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 29248,
+      "disposition": "hydrated",
+      "objectId": "0cc5a17a9748ffa50f7916b51758ef248f13320b",
+      "path": "chrome/browser/ui/views/tabs/common/dragged_tabs_container.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11179,
+      "disposition": "hydrated",
+      "objectId": "68199dc0279e9426f383785e09fec94ce4c36b60",
+      "path": "chrome/browser/ui/views/tabs/common/dragged_tabs_container.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 14329,
+      "disposition": "hydrated",
+      "objectId": "440a3076e5f80c6b393dba0b311ba15ea808681e",
+      "path": "chrome/browser/ui/views/tabs/common/split_tab_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10791,
+      "disposition": "already_present",
+      "objectId": "693c28aa0da4045c158fa9954db371b906a4f96c",
+      "path": "chrome/browser/ui/views/tabs/common/tab_drag_handler.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 14770,
+      "disposition": "hydrated",
+      "objectId": "a96f4b8bbca86aec1cc98ddf7d52f632c9529d0a",
+      "path": "chrome/browser/ui/views/tabs/common/unpinned_tab_container_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3630,
+      "disposition": "hydrated",
+      "objectId": "a7cf7995a40d34164d2a88f1b8ff0f94a2b8b5b5",
+      "path": "chrome/browser/ui/views/tabs/common/unpinned_tab_container_view.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 58974,
+      "disposition": "hydrated",
+      "objectId": "668a2d050fed37b99098fa58687b732d80bb0164",
+      "path": "chrome/browser/ui/views/tabs/tab.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 9461,
+      "disposition": "hydrated",
+      "objectId": "6ddbb101fd97d3adedd419fba43288e90b88827a",
+      "path": "chrome/browser/ui/views/tabs/tab/tab_accessibility.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 92887,
+      "disposition": "hydrated",
+      "objectId": "d9928110d93f06d53f1d5e98ce882aa35b4d54f6",
+      "path": "chrome/browser/ui/views/tabs/tab_strip.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 21396,
+      "disposition": "hydrated",
+      "objectId": "0f29e63644028f5482e539653c60abaa1724dfa0",
+      "path": "chrome/browser/ui/views/toolbar/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13838,
+      "disposition": "already_present",
+      "objectId": "afd3610958c4470ec545f0eb11b4f8c5a8367861",
+      "path": "chrome/browser/ui/views/toolbar/split_tabs_button.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 76767,
+      "disposition": "hydrated",
+      "objectId": "ec09e6aae6023dba4eaf6537f14685f7a20adb2f",
+      "path": "chrome/browser/ui/views/toolbar/toolbar_view.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1237,
+      "disposition": "already_present",
+      "objectId": "f51b286b954ddeccc0dd4f824c9614b2212c2749",
+      "path": "chrome/browser/ui/webui/cr_components/history/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7116,
+      "disposition": "hydrated",
+      "objectId": "655b45423ce55b5187e84e6a1127a0903e252534",
+      "path": "chrome/browser/ui/webui/cr_components/history/history_util.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5919,
+      "disposition": "hydrated",
+      "objectId": "21c974bb5154ee6a8379279cf711c182daabf652",
+      "path": "chrome/browser/ui/webui/history/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 35229,
+      "disposition": "hydrated",
+      "objectId": "eda3810aa634cc025ccc77fddc9d58e2f70202c2",
+      "path": "chrome/browser/ui/webui/history/browsing_history_handler.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7061,
+      "disposition": "hydrated",
+      "objectId": "99c85f72fc64fe31b4ff651480918f243cb168f1",
+      "path": "chrome/browser/ui/webui/history/browsing_history_handler.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 33850,
+      "disposition": "hydrated",
+      "objectId": "f2fd60948e77d218b7effd9c59e174bffbf0d618",
+      "path": "chrome/browser/ui/webui/history/browsing_history_handler_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 26122,
+      "disposition": "hydrated",
+      "objectId": "fc817a0be4151d4d401b068657bd624613e93c82",
+      "path": "chrome/browser/ui/webui/settings/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 315,
+      "disposition": "already_present",
+      "objectId": "eff7c13aedc3751eb4b2f9e9c2e12010891e7ce1",
+      "path": "chrome/browser/ui/webui/settings/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 9797,
+      "disposition": "already_present",
+      "objectId": "07ad45a8be20ae3390f6fff34f7d17a8363d4019",
+      "path": "chrome/browser/ui/webui/settings/import_data_handler.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 238431,
+      "disposition": "hydrated",
+      "objectId": "4a53cfbc0ecc60b14902fdd344c851a2da932a3f",
+      "path": "chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 41194,
+      "disposition": "hydrated",
+      "objectId": "42854fe44420c30e654bfc3ad3076e65646bb391",
+      "path": "chrome/browser/ui/webui/settings/settings_ui.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 434169,
+      "disposition": "hydrated",
+      "objectId": "62e11c5a7a4f2d235b97fdaae2abb26a8b9aa053",
+      "path": "chrome/test/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4199,
+      "disposition": "already_present",
+      "objectId": "82600d3031002f75fbbf577b80f34aa1c783ffdc",
+      "path": "chrome/test/data/pdf/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 22406,
+      "disposition": "already_present",
+      "objectId": "b4ec8e1c2f9da2587b3a318ff1674cee7e215424",
+      "path": "chrome/test/data/pdf/ink2_save_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3966,
+      "disposition": "already_present",
+      "objectId": "e1e5a65cfdfad6202735fa9d8e47f75846b35658",
+      "path": "chrome/test/data/pdf/test_pdf_viewer_private_proxy.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 27744,
+      "disposition": "hydrated",
+      "objectId": "ddb981d110f1750774a3b9d43a7f9f09ca64fb92",
+      "path": "chrome/test/data/pdf/test_util.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 27267,
+      "disposition": "already_present",
+      "objectId": "066b01228817a8be302f6c8e5ffc483d292ac16d",
+      "path": "chrome/test/data/webui/history/history_app_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2023,
+      "disposition": "already_present",
+      "objectId": "e8d9e1a64848c1be773cfce9e5bc907946d16ff5",
+      "path": "chrome/test/data/webui/history/history_drawer_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 37280,
+      "disposition": "hydrated",
+      "objectId": "88dbb60076b0e396aab6b42630a1a4b63f20c538",
+      "path": "chrome/test/data/webui/history/history_list_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 16712,
+      "disposition": "hydrated",
+      "objectId": "301f1671dd7afff6ac3d4f45c495ed2a84002745",
+      "path": "chrome/test/data/webui/history/history_metrics_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15657,
+      "disposition": "already_present",
+      "objectId": "367f1a4736e09a63daa6a9a0745df419cbcbda57",
+      "path": "chrome/test/data/webui/history/history_routing_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11256,
+      "disposition": "hydrated",
+      "objectId": "bc1d3e9facd9ef2b02c547f910acc5e5090290dc",
+      "path": "chrome/test/data/webui/settings/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 34991,
+      "disposition": "already_present",
+      "objectId": "e7696ff22b83c90036f0a557ba2f34d69711b3d2",
+      "path": "chrome/test/data/webui/settings/appearance_page_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 9488,
+      "disposition": "hydrated",
+      "objectId": "b0d52e62e2945e8229c3f22b201b6d3323cff678",
+      "path": "chrome/test/data/webui/settings/import_data_dialog_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 8555,
+      "disposition": "already_present",
+      "objectId": "e54f81985ca855d2df8ff898455fa688cadcd660",
+      "path": "chrome/test/data/webui/settings/on_startup_page_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 70402,
+      "disposition": "hydrated",
+      "objectId": "bc6404463a4633c9ceac15028b6b47e99bd0e5a9",
+      "path": "chrome/test/data/webui/settings/settings_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7668,
+      "disposition": "hydrated",
+      "objectId": "00150f9244ca849b0e83ea229d5ec96445c1ffe2",
+      "path": "chrome/test/data/webui/settings/settings_main_plugins_test.ts",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 9130,
+      "disposition": "already_present",
+      "objectId": "500cbc7ed8e76b552a23147279fc233af9649197",
+      "path": "chrome/utility/BUILD.gn",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3734,
+      "disposition": "hydrated",
+      "objectId": "a9a577de0511657072258a450d59206704561be3",
+      "path": "chrome/utility/DEPS",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 23750,
+      "disposition": "already_present",
+      "objectId": "e2bf3edc0a2d9190f887fc556d7de6c33fa3dbf3",
+      "path": "chrome/utility/importer/firefox_importer.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5492,
+      "disposition": "already_present",
+      "objectId": "fea3060ce40e8157eca71d54b79427b9d6ed345c",
+      "path": "chrome/utility/importer/firefox_importer.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 14871,
+      "disposition": "already_present",
+      "objectId": "d5ae8759097fb99a6f0d40d938f1365cb88900d4",
+      "path": "chrome/utility/importer/firefox_importer_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 22601,
+      "disposition": "hydrated",
+      "objectId": "22b15ea3a1f495fccaf290c8d4e9445b37211719",
+      "path": "chrome/utility/services.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 20652,
+      "disposition": "hydrated",
+      "objectId": "316ba032f338440304c0dac52a00f21883f6ae4c",
+      "path": "components/autofill/core/browser/metrics/autofill_metrics_test_base.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2872,
+      "disposition": "already_present",
+      "objectId": "2a61e87cd855c0a146096b008743eb61da9d26a8",
+      "path": "components/browser_apis/tab_strip/tab_strip_api_data_model.mojom",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1543,
+      "disposition": "already_present",
+      "objectId": "603bd2305dad21db5867e2a122f7d8afdad9c7a1",
+      "path": "components/browser_apis/tab_strip/types/split_tab_visual_data_mojom_traits.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1497,
+      "disposition": "already_present",
+      "objectId": "34d44ebadcdc418170bd5dcdedced32af3a51d8a",
+      "path": "components/browser_apis/tab_strip/types/split_tab_visual_data_mojom_traits.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 5914,
+      "disposition": "already_present",
+      "objectId": "2ff9716b246fc75c8a70c114581c8da6fc38bf7a",
+      "path": "components/component_updater/configurator_impl.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13326,
+      "disposition": "already_present",
+      "objectId": "183e84960da3ff5681415b08a5d9861976a04efa",
+      "path": "components/content_settings/core/browser/cookie_settings.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 9547,
+      "disposition": "already_present",
+      "objectId": "b4f742118490507c9bd74ea742fb7fed5c5c52e9",
+      "path": "components/content_settings/core/browser/cookie_settings.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 34209,
+      "disposition": "already_present",
+      "objectId": "3f87ec84fb32acff28c7efa855409a89395af80d",
+      "path": "components/embedder_support/user_agent_utils.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 43373,
+      "disposition": "already_present",
+      "objectId": "b08ceb2aee5818af762ef2586211242a7992b252",
+      "path": "components/input/web_input_event_builders_mac_unittest.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1838,
+      "disposition": "already_present",
+      "objectId": "db851ccd99a0e8efd7c7512d2f234e1f7ec3e285",
+      "path": "components/login_dialog_strings.grdp",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 82834,
+      "disposition": "hydrated",
+      "objectId": "87b1220a1995279a87eb66154dee8be22e872b60",
+      "path": "components/page_load_metrics/browser/observers/core/uma_page_load_metrics_observer_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 16958,
+      "disposition": "hydrated",
+      "objectId": "0a3ce76477eab200dfadbb50c13c3c78687522c8",
+      "path": "components/policy/resources/policy_templates.py",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 64843,
+      "disposition": "hydrated",
+      "objectId": "2a61a9c13e00932f95256a8e2b662aeed321fc93",
+      "path": "components/remote_cocoa/app_shim/bridged_content_view.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1288,
+      "disposition": "already_present",
+      "objectId": "e8d850b6e92f6a762b82472fb5ce431f2f388623",
+      "path": "components/remote_cocoa/app_shim/drag_drop_client.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 30162,
+      "disposition": "already_present",
+      "objectId": "ecab96800d28216be0fc6930e32cd870492965d0",
+      "path": "components/sessions/core/command_storage_backend.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 12965,
+      "disposition": "already_present",
+      "objectId": "db51666c9731cf69e82508f737d90f4c7246029c",
+      "path": "components/sessions/core/command_storage_backend.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 57080,
+      "disposition": "already_present",
+      "objectId": "a89d86ae526e9438fd65e90bec7ca6e5b9114aac",
+      "path": "components/sessions/core/command_storage_backend_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 24966,
+      "disposition": "already_present",
+      "objectId": "30fc6e03a652537b00aaab12f9b98e59b6d6fa7d",
+      "path": "components/sessions/core/command_storage_manager.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 7668,
+      "disposition": "already_present",
+      "objectId": "cf6dec3b2ce69f19ebbb96155fa9707e6380664a",
+      "path": "components/sessions/core/command_storage_manager.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 50105,
+      "disposition": "already_present",
+      "objectId": "775231132d0e93f2bee38fc4353400613306bc91",
+      "path": "components/sessions/core/command_storage_manager_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4960,
+      "disposition": "hydrated",
+      "objectId": "99c5a9b2d96815a5d94d2d23fe05a6df4f8500c7",
+      "path": "components/sessions/core/live_tab_context.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 52997,
+      "disposition": "already_present",
+      "objectId": "c7c19d9eef5edb3d05470dcecbe219e69a02f695",
+      "path": "components/sessions/core/session_service_commands.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 61852,
+      "disposition": "hydrated",
+      "objectId": "f2913423e5d1f8bd08987517d3774bf01f9dea8e",
+      "path": "components/sessions/core/tab_restore_service_helper.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13272,
+      "disposition": "hydrated",
+      "objectId": "bba43ebb4b835db6717edceb64eec0d65df01c6c",
+      "path": "components/sessions/core/tab_restore_service_helper.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 72304,
+      "disposition": "hydrated",
+      "objectId": "28174f9137db041562b18257c7f8d0adce80b34c",
+      "path": "components/sessions/core/tab_restore_service_impl.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 699,
+      "disposition": "already_present",
+      "objectId": "f10ddcf5a839e4e9366c1d71b6a23a4e034d2411",
+      "path": "components/split_tabs/split_tab_visual_data.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2059,
+      "disposition": "already_present",
+      "objectId": "5d14b4e38373ead928a469e954d60c10678ea472",
+      "path": "components/split_tabs/split_tab_visual_data.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 525136,
+      "disposition": "hydrated",
+      "objectId": "cd6264fe48ec4090b0990377fa84363d63cdeaa6",
+      "path": "components/strings/components_strings_de.xtb",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 468479,
+      "disposition": "hydrated",
+      "objectId": "7538ba18e1f4929ffd103d76e80182a21aec4e25",
+      "path": "components/strings/components_strings_en-GB.xtb",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15427,
+      "disposition": "already_present",
+      "objectId": "2ef12f429ef6a86ec45c7bfb084fccd663318cd1",
+      "path": "components/sync/service/sync_session_durations_metrics_recorder.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 19257,
+      "disposition": "already_present",
+      "objectId": "1dca407e597326561cd8c86cfbc63c184ba5d018",
+      "path": "components/sync/service/sync_session_durations_metrics_recorder_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 29114,
+      "disposition": "hydrated",
+      "objectId": "bfb0b512753a58c0486b3a82669c17c024076e54",
+      "path": "components/tabs/impl/tab_strip_collection.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1205,
+      "disposition": "already_present",
+      "objectId": "a8a039b0c1e7fb2c42850cd843526b694157f367",
+      "path": "components/tabs/public/split_tab_collection.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10174,
+      "disposition": "hydrated",
+      "objectId": "8e9717922fe779ae432a0c2df38609547108aefc",
+      "path": "components/tabs/public/tab_strip_collection.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 22693,
+      "disposition": "already_present",
+      "objectId": "94da7540e099609322c7f7a8e0c72a1a04b4fe57",
+      "path": "content/app_shim_remote_cocoa/web_contents_view_cocoa.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15757,
+      "disposition": "already_present",
+      "objectId": "128b62bdb55b3cd8121f036296161be0e712d015",
+      "path": "content/browser/renderer_host/input/autoscroll_browsertest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 167210,
+      "disposition": "already_present",
+      "objectId": "29ec13460d9dcb54a368c57b13adac8b981ce0f3",
+      "path": "content/browser/renderer_host/render_widget_host_impl.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 34057,
+      "disposition": "hydrated",
+      "objectId": "82e539a2a42af04a5df2676dc30a76418e39627d",
+      "path": "content/browser/renderer_host/render_widget_host_view_mac.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 102580,
+      "disposition": "hydrated",
+      "objectId": "5bcb6d94d79418ffa2e82c61ca11cc501148ccc1",
+      "path": "content/browser/renderer_host/render_widget_host_view_mac.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2414,
+      "disposition": "hydrated",
+      "objectId": "66feb5091cc9436cbb12a83434ac748c1549149f",
+      "path": "content/public/browser/tracing_support.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2582,
+      "disposition": "already_present",
+      "objectId": "b493790ba408e3a30bea857092ab91b5dc9d28e7",
+      "path": "content/public/browser/tracing_support.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 44330,
+      "disposition": "already_present",
+      "objectId": "d88571b4a8eccfaa267b682f1415d5e152b23196",
+      "path": "extensions/browser/api/management/management_api.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 27271,
+      "disposition": "already_present",
+      "objectId": "5c70ae28774f54f4a6ea103229c6d8a713dd446b",
+      "path": "extensions/browser/api/storage/storage_frontend.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 8747,
+      "disposition": "already_present",
+      "objectId": "909f9e5daa83c9e06fd631b22213c8b3d1daa51f",
+      "path": "extensions/browser/api/storage/storage_frontend.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1131,
+      "disposition": "already_present",
+      "objectId": "0b788a24e9a1cfb8ca8c8dc451661acd111bc7f0",
+      "path": "extensions/browser/crx_file_info.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1127,
+      "disposition": "already_present",
+      "objectId": "2e90ba673c275ee0fbbdca111c98cec46323b120",
+      "path": "extensions/browser/crx_file_info.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 49127,
+      "disposition": "already_present",
+      "objectId": "f683c189470a2a9234398cdbde0833800877e764",
+      "path": "extensions/browser/crx_installer.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 22475,
+      "disposition": "already_present",
+      "objectId": "27352c236270b9b4122272c0d4373da0a82614a8",
+      "path": "extensions/browser/crx_installer.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 56860,
+      "disposition": "hydrated",
+      "objectId": "834a5e38a231cac17e4c400042a3a2c2361234ad",
+      "path": "extensions/browser/extension_registrar.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 23591,
+      "disposition": "hydrated",
+      "objectId": "11c4aaf94187648d4184c027c1f028ff8bf1a4ca",
+      "path": "extensions/browser/extension_registrar.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 12121,
+      "disposition": "hydrated",
+      "objectId": "da1cb6274b88e63241a5e0b5a0de96ff64519c34",
+      "path": "extensions/browser/extensions_browser_client.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 30431,
+      "disposition": "hydrated",
+      "objectId": "e779a72b69098e9d9da9a265dee44e311c4c623b",
+      "path": "extensions/browser/extensions_browser_client.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4179,
+      "disposition": "already_present",
+      "objectId": "00a98e0c32293c7e03e7825c925dc1259f2b9d19",
+      "path": "extensions/browser/install_approval.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1226,
+      "disposition": "already_present",
+      "objectId": "6882b24aa6316e5f0962670fd57a753b633fa15c",
+      "path": "extensions/browser/install_flag.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11923,
+      "disposition": "already_present",
+      "objectId": "5841d3dfbc88884916629485c70b7c2671a6bc6b",
+      "path": "extensions/browser/manifest_v2_handler.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 41650,
+      "disposition": "already_present",
+      "objectId": "f590c5f00affaf0c0f19fb8764adc56927b4b9bb",
+      "path": "extensions/browser/sandboxed_unpacker.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 25076,
+      "disposition": "already_present",
+      "objectId": "292c06d2fe703700744e1094f4f66f80fcb0551a",
+      "path": "extensions/browser/sandboxed_unpacker_unittest.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 25209,
+      "disposition": "already_present",
+      "objectId": "fd67930f53114be959b83e59ef715811b17e652b",
+      "path": "extensions/browser/webstore_installer.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 4073,
+      "disposition": "hydrated",
+      "objectId": "33112c9ed37b039db4b479e4f2f3007a7c4e9747",
+      "path": "ios/chrome/browser/sessions/model/live_tab_context_browser_agent.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6729,
+      "disposition": "hydrated",
+      "objectId": "d7953c4e48ef4f5b84055c0d5967ff0b6847f350",
+      "path": "ios/chrome/browser/sessions/model/live_tab_context_browser_agent.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 17882,
+      "disposition": "already_present",
+      "objectId": "24740b2adea6bd54b65fe8bfcd376539b4cd7c45",
+      "path": "services/network/cookie_manager.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6895,
+      "disposition": "already_present",
+      "objectId": "358694095498d16867467dabf3e8d320a686933e",
+      "path": "services/network/cookie_manager.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 17775,
+      "disposition": "already_present",
+      "objectId": "43f944ed99a7609fccb5ba95110a0984d23bc10c",
+      "path": "services/network/cookie_settings.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 10546,
+      "disposition": "already_present",
+      "objectId": "d4d2c133091994ffb13699dd041c180cd88ffb11",
+      "path": "services/network/cookie_settings.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 20379,
+      "disposition": "already_present",
+      "objectId": "993124ac04024e6243dcc722d733d18babdafc88",
+      "path": "services/network/public/mojom/cookie_manager.mojom",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 3274,
+      "disposition": "already_present",
+      "objectId": "c7136042902c5bf2aaba888f3d59127c409c93db",
+      "path": "services/network/test/test_cookie_manager.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 13930,
+      "disposition": "already_present",
+      "objectId": "3ecf125021caa0ab6bd0eae1cc7529e2a6d62238",
+      "path": "third_party/blink/common/web_preferences/web_preferences_mojom_traits.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 21588,
+      "disposition": "already_present",
+      "objectId": "b042d68a4d06b59942775e04ef81a32b347e58a3",
+      "path": "third_party/blink/public/common/web_preferences/web_preferences.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 25927,
+      "disposition": "hydrated",
+      "objectId": "91593851bc33781ca0a986f0100a5f334847fec0",
+      "path": "third_party/blink/public/common/web_preferences/web_preferences_mojom_traits.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 19812,
+      "disposition": "already_present",
+      "objectId": "9a04abd87af48b5baf441ebb98fdac0571ef1f30",
+      "path": "third_party/blink/public/mojom/webpreferences/web_preferences.mojom",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 15884,
+      "disposition": "already_present",
+      "objectId": "5d61a18001c6faf01c7e99e24756357ef010dab8",
+      "path": "third_party/blink/public/web/web_settings.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 144194,
+      "disposition": "hydrated",
+      "objectId": "8d5c833981ffa5f445a383117fb330920264b932",
+      "path": "third_party/blink/renderer/core/dom/node.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 27731,
+      "disposition": "already_present",
+      "objectId": "f9d2d0aa39e5291aa8e75fb50dc3fe6df389758b",
+      "path": "third_party/blink/renderer/core/exported/web_settings_impl.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 14178,
+      "disposition": "already_present",
+      "objectId": "2bb646bc6aa6fcd8eb60481bb4bb205aa46e57ac",
+      "path": "third_party/blink/renderer/core/exported/web_settings_impl.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 175262,
+      "disposition": "hydrated",
+      "objectId": "0707d2f2c6ffc4134ddd98a0151440f5593b2884",
+      "path": "third_party/blink/renderer/core/exported/web_view_impl.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 346743,
+      "disposition": "hydrated",
+      "objectId": "c33ad74aa6097298c8bb7a30c5a16e788b0baa27",
+      "path": "third_party/blink/renderer/core/exported/web_view_test.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 37571,
+      "disposition": "already_present",
+      "objectId": "302de6560185150699a272010595d9be590705d4",
+      "path": "third_party/blink/renderer/core/frame/settings.json5",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 111505,
+      "disposition": "hydrated",
+      "objectId": "857058965e8f4e9d336bf5134cd8142258267f20",
+      "path": "third_party/blink/renderer/core/input/event_handler.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 19774,
+      "disposition": "hydrated",
+      "objectId": "10fec1ba6f7d29b27252c8613e195fcc9340f1ff",
+      "path": "third_party/blink/renderer/core/page/autoscroll_controller.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6404,
+      "disposition": "already_present",
+      "objectId": "c03b3cfe87e54d4481944975dc9b361fb3f0292c",
+      "path": "third_party/blink/renderer/core/page/autoscroll_controller.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 17788,
+      "disposition": "already_present",
+      "objectId": "c8d1fb8cd637e718a3aba89fdc500ebf48418fd6",
+      "path": "third_party/blink/renderer/core/page/autoscroll_controller_test.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 18571,
+      "disposition": "already_present",
+      "objectId": "33ee45bd5c21161d616ae5f89acfa65c274bdf98",
+      "path": "third_party/blink/renderer/core/page/pointer_lock_controller_test.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 16057,
+      "disposition": "hydrated",
+      "objectId": "858751870a6ebfe439b47b3e80e66828d55aaa51",
+      "path": "tools/metrics/histograms/metadata/sql/histograms.xml",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 22896,
+      "disposition": "hydrated",
+      "objectId": "474c747036efe1e8f3e4363cb4826f80b1ac4dc5",
+      "path": "tools/metrics/histograms/metadata/tab/enums.xml",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 20470,
+      "disposition": "hydrated",
+      "objectId": "d03a2d6990a71459738524a0fdbc4e434bbe290e",
+      "path": "ui/base/ui_base_features.cc",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 2808,
+      "disposition": "already_present",
+      "objectId": "293196eeb08f45de1e99cb8bd164f9c8c337936e",
+      "path": "ui/views/cocoa/drag_drop_client_mac.h",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 6931,
+      "disposition": "already_present",
+      "objectId": "b7aa80c925d32c876af4f742bf550eea991e1c5e",
+      "path": "ui/views/cocoa/drag_drop_client_mac.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 11712,
+      "disposition": "already_present",
+      "objectId": "9c7bf093468c630eb6ba47f653263da68754b283",
+      "path": "ui/views/cocoa/drag_drop_client_mac_unittest.mm",
+      "targetType": "blob"
+    },
+    {
+      "bytes": 1602,
+      "disposition": "already_present",
+      "objectId": "cd2df191413e185f4f168f35b1d63887f4216b04",
+      "path": "ui/views/drag_controller.h",
+      "targetType": "blob"
+    }
+  ],
+  "schemaVersion": 1,
+  "source": {
+    "baseUrl": "https://chromium.googlesource.com/chromium/src",
+    "configuredTransport": "official_gitiles",
+    "transportUsed": "official_gitiles"
+  },
+  "summary": {
+    "absentFromTargetCount": 0,
+    "alreadyPresentBlobCount": 141,
+    "decodedBytes": 13366205,
+    "hydratedBlobCount": 181,
+    "promotionBatchSize": 16,
+    "requestedBlobCount": 181,
+    "responseBytes": 17821860,
+    "targetBlobCount": 322,
+    "touchedPathCount": 322,
+    "writeModel": "validated_resumable_immutable_object_batches"
+  },
+  "target": {
+    "binding": {
+      "configs": [
+        {
+          "commit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+          "config": "config/upstream-roll-candidate.json",
+          "tag": "refs/tags/153.0.8010.53",
+          "version": "153.0.8010.53"
+        }
+      ],
+      "verified": true
+    },
+    "commit": "792bf6722e73a45aa9e47c163b9901bdc17f3230"
+  }
+}

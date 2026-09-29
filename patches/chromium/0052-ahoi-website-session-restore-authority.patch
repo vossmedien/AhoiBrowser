@@ -1,0 +1,39 @@
+diff --git a/chrome/browser/ui/browser_tabrestore.cc b/chrome/browser/ui/browser_tabrestore.cc
+--- a/chrome/browser/ui/browser_tabrestore.cc
++++ b/chrome/browser/ui/browser_tabrestore.cc
+@@ -71,14 +71,19 @@
+     bool from_session_restore) {
+   GURL restore_url = navigations[selected_navigation].virtual_url();
+   std::optional<ahoi::session::WebsiteSessionBinding> website_binding =
+-      ahoi::session::ReadRestoredWebsiteSessionBinding(extra_data);
++      ahoi::session::ReadRestoredWebsiteSessionBinding(browser->GetProfile(),
++                                                       extra_data);
+   if (!website_binding) {
+     // A corrupt local binding never authorizes a request using the shared
+     // default cookie jar. Preserve the serialized session for recovery and
+     // open this tab in a fresh, separate native partition instead.
+     LOG(ERROR) << "Ahoi restored tab has invalid website-session binding";
+-    website_binding = ahoi::session::WebsiteSessionBinding{
+-        .context_id = base::Uuid::GenerateRandomV4()};
++    website_binding = ahoi::session::GetWebsiteSessionRecoveryBinding(
++        browser->GetProfile()->GetPrefs());
++    if (!website_binding) {
++      website_binding = ahoi::session::WebsiteSessionBinding{
++          .context_id = base::Uuid::GenerateRandomV4()};
++    }
+     session_storage_namespace = nullptr;
+   }
+   // TODO(ajwong): Remove the temporary session_storage_namespace_map when
+diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
+--- a/chrome/browser/sessions/session_restore.cc
++++ b/chrome/browser/sessions/session_restore.cc
+@@ -1108,7 +1108,8 @@
+     if (!tab.session_storage_persistent_id.empty()) {
+ #if !BUILDFLAG(IS_ANDROID)
+       const std::optional<ahoi::session::WebsiteSessionBinding> binding =
+-          ahoi::session::ReadRestoredWebsiteSessionBinding(tab.extra_data);
++          ahoi::session::ReadRestoredWebsiteSessionBinding(profile_,
++                                                           tab.extra_data);
+       if (binding) {
+         content::StoragePartition* partition = profile_->GetStoragePartition(
+             ahoi::session::StoragePartitionConfigForWebsiteSession(profile_,

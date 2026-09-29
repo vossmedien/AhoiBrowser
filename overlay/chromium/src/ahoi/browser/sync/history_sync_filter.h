@@ -17,7 +17,8 @@ struct HistorySyncCandidate {
 
 // This allowlist is shared by visit observation and deletion export. It never
 // accepts credentials or non-network schemes and deliberately excludes visits
-// inserted by sync so reconciliation cannot loop back into the outbox.
+// inserted by sync so reconciliation cannot loop back into the outbox. A visit
+// whose address is longer than every reader accepts stays local.
 bool ShouldSyncHistoryVisit(const HistorySyncCandidate& candidate);
 bool IsSafeHistoryUrlForSync(const GURL& url);
 

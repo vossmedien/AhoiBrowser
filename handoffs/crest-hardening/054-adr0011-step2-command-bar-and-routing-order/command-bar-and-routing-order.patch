@@ -1,0 +1,276 @@
+diff --git a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
+index 20a05bd..bf4c0ec 100644
+--- a/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
++++ b/overlay/chromium/src/ahoi/browser/command_bar/command_execution_adapter_chromium.cc
+@@ -229,9 +229,17 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
+     }
+     const base::Uuid workspace_id = base::Uuid::ParseLowercase(stable_id);
+     SessionBridge* bridge = SessionBridgeFactory::GetForProfile(profile);
+-    return workspace_id.is_valid() && bridge &&
+-           bridge->SetActiveWorkspaceForWindow(
+-               browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
++    if (!workspace_id.is_valid() || !bridge) {
++      return false;
++    }
++    if (bridge->SetActiveWorkspaceForWindow(
++            browser_, workspace_id, WorkspaceActivationSource::kKeyboard)) {
++      return true;
++    }
++    // Another Profile's Workspace (ADR 0011 step 2, handoff 054): the
++    // sidebar's shared switcher hands this window's frame over.
++    return sidebar_host_ &&
++           sidebar::ActivateBrowserWorkspaceById(sidebar_host_, workspace_id);
+   }
+ 
+   bool CanRevealFolder(std::string_view stable_id) const override {
+diff --git a/overlay/chromium/src/ahoi/browser/navigation/link_routing_dispatch.cc b/overlay/chromium/src/ahoi/browser/navigation/link_routing_dispatch.cc
+index 2aaa73d..adae0b5 100644
+--- a/overlay/chromium/src/ahoi/browser/navigation/link_routing_dispatch.cc
++++ b/overlay/chromium/src/ahoi/browser/navigation/link_routing_dispatch.cc
+@@ -3,6 +3,7 @@
+ 
+ #include "ahoi/browser/navigation/link_routing_dispatch.h"
+ 
++#include <map>
+ #include <optional>
+ #include <set>
+ #include <string>
+@@ -17,6 +18,7 @@
+ #include "ahoi/browser/session/isolated_workspace_directory.h"
+ #include "ahoi/browser/session/session_bridge.h"
+ #include "ahoi/browser/session/session_bridge_factory.h"
++#include "ahoi/browser/session/workspace_directory_order.h"
+ #include "ahoi/browser/session/workspace_service_factory.h"
+ #include "base/files/file_path.h"
+ #include "base/functional/bind.h"
+@@ -268,21 +270,36 @@ void OpenRouted(const GURL& url,
+   OpenLastActive(url, mode, main_profile, fallback);
+ }
+ 
+-// Normal Workspaces of the main Profile, then the openable fully separated
+-// Workspaces. Only logical Workspace ids leave this function.
++// The main Profile's Workspaces and the openable fully separated ones, in
++// the process-wide order (ADR 0011 step 2, handoff 054). Only logical
++// Workspace ids leave this function.
+ std::vector<LinkRoutingTargetOption> TargetOptions(Profile* main_profile) {
+-  std::vector<LinkRoutingTargetOption> options;
++  std::vector<session::DirectoryWorkspace> main_keys;
++  std::map<base::Uuid, LinkRoutingTargetOption> by_id;
+   if (WorkspaceService* service =
+           WorkspaceServiceFactory::GetForProfile(main_profile)) {
+     for (const tab_tree::Workspace& workspace : service->ordered_workspaces()) {
+-      options.push_back({.workspace_id = workspace.id, .name = workspace.name});
++      main_keys.push_back(
++          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
++      by_id.emplace(workspace.id,
++                    LinkRoutingTargetOption{.workspace_id = workspace.id,
++                                            .name = workspace.name});
+     }
+   }
+-  for (const session::IsolatedProfileEntry& entry :
+-       session::GetOpenableIsolatedWorkspaces()) {
+-    options.push_back({.workspace_id = entry.workspace_id,
+-                       .name = entry.name,
+-                       .separated = true});
++  const std::vector<session::IsolatedProfileEntry> isolated =
++      session::GetOpenableIsolatedWorkspaces();
++  for (const session::IsolatedProfileEntry& entry : isolated) {
++    by_id.emplace(entry.workspace_id,
++                  LinkRoutingTargetOption{.workspace_id = entry.workspace_id,
++                                          .name = entry.name,
++                                          .separated = true});
++  }
++  std::vector<LinkRoutingTargetOption> options;
++  for (const session::DirectoryWorkspace& key :
++       session::OrderDirectoryWorkspaces(main_keys, isolated)) {
++    if (auto it = by_id.find(key.workspace_id); it != by_id.end()) {
++      options.push_back(it->second);
++    }
+   }
+   return options;
+ }
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_runtime.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_runtime.cc
+index 31a663a..bc21e05 100644
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_runtime.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_runtime.cc
+@@ -9,7 +9,10 @@
+ 
+ #include "ahoi/browser/navigation/command_service.h"
+ #include "ahoi/browser/session/session_bridge.h"
++#include "ahoi/browser/session/isolated_profile_creation.h"
++#include "ahoi/browser/session/isolated_workspace_directory.h"
+ #include "ahoi/browser/session/session_bridge_internal.h"
++#include "ahoi/browser/session/workspace_service_factory.h"
+ #include "ahoi/browser/tab_tree/shared_tab_target_policy.h"
+ #include "base/check.h"
+ #include "base/files/file_util.h"
+@@ -453,8 +456,10 @@ void SessionBridge::PublishCommandItems() {
+ 
+   std::vector<CommandItem> workspaces;
+   workspaces.reserve(workspace_service_->ordered_workspaces().size());
++  std::set<base::Uuid> listed;
+   for (const tab_tree::Workspace& workspace :
+        workspace_service_->ordered_workspaces()) {
++    listed.insert(workspace.id);
+     workspaces.push_back({
+         .type = CommandItemType::kWorkspace,
+         .stable_id = workspace.id.AsLowercaseString(),
+@@ -462,6 +467,39 @@ void SessionBridge::PublishCommandItems() {
+         .priority = 100,
+     });
+   }
++  // ADR 0011 step 2 (handoff 054): the command bar reaches every Profile's
++  // Workspaces. Choosing one of another Profile hands the window over
++  // through the sidebar's shared switcher (SwitchWorkspace).
++  const std::u16string separated = u"Vollständig getrennt";
++  for (const session::IsolatedProfileEntry& entry :
++       session::GetOpenableIsolatedWorkspaces()) {
++    if (listed.insert(entry.workspace_id).second) {
++      workspaces.push_back({
++          .type = CommandItemType::kWorkspace,
++          .stable_id = entry.workspace_id.AsLowercaseString(),
++          .title = entry.name,
++          .secondary_text = separated,
++          .priority = 100,
++      });
++    }
++  }
++  Profile* main_profile = session::GetLoadedMainProfile();
++  if (main_profile && main_profile != profile_) {
++    if (WorkspaceService* main_workspaces =
++            WorkspaceServiceFactory::GetForProfile(main_profile)) {
++      for (const tab_tree::Workspace& workspace :
++           main_workspaces->ordered_workspaces()) {
++        if (listed.insert(workspace.id).second) {
++          workspaces.push_back({
++              .type = CommandItemType::kWorkspace,
++              .stable_id = workspace.id.AsLowercaseString(),
++              .title = workspace.name,
++              .priority = 100,
++          });
++        }
++      }
++    }
++  }
+   CHECK(command_service_->ReplaceItems(CommandItemType::kWorkspace,
+                                        std::move(workspaces)));
+ }
+diff --git a/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_link_routing.cc b/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_link_routing.cc
+index 667696b..dd7974b 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_link_routing.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_link_routing.cc
+@@ -9,6 +9,7 @@
+ #include "ahoi/browser/navigation/workspace_service.h"
+ #include "ahoi/browser/session/isolated_profile_creation.h"
+ #include "ahoi/browser/session/isolated_workspace_directory.h"
++#include "ahoi/browser/session/workspace_directory_order.h"
+ #include "ahoi/browser/session/workspace_service_factory.h"
+ #include "ahoi/browser/ui/settings/ahoi_settings_handler.h"
+ #include "ahoi/browser/ui/settings/link_routing_settings_model.h"
+@@ -56,18 +57,33 @@ std::vector<LinkRoutingWorkspace> AhoiSettingsHandler::LinkRoutingWorkspaces()
+   if (!main_profile) {
+     return workspaces;
+   }
++  // Process-wide order (ADR 0011 step 2, handoff 054).
++  std::vector<session::DirectoryWorkspace> main_keys;
++  std::map<base::Uuid, LinkRoutingWorkspace> by_id;
+   if (WorkspaceService* service =
+           WorkspaceServiceFactory::GetForProfile(main_profile)) {
+     for (const tab_tree::Workspace& workspace : service->ordered_workspaces()) {
+-      workspaces.push_back(
+-          {.id = workspace.id, .name = base::UTF16ToUTF8(workspace.name)});
++      main_keys.push_back(
++          {.workspace_id = workspace.id, .sort_key = workspace.sort_key});
++      by_id.emplace(workspace.id,
++                    LinkRoutingWorkspace{
++                        .id = workspace.id,
++                        .name = base::UTF16ToUTF8(workspace.name)});
+     }
+   }
+-  for (const session::IsolatedProfileEntry& entry :
+-       session::GetOpenableIsolatedWorkspaces()) {
+-    workspaces.push_back({.id = entry.workspace_id,
+-                          .name = base::UTF16ToUTF8(entry.name),
+-                          .separated = true});
++  const std::vector<session::IsolatedProfileEntry> isolated =
++      session::GetOpenableIsolatedWorkspaces();
++  for (const session::IsolatedProfileEntry& entry : isolated) {
++    by_id.emplace(entry.workspace_id,
++                  LinkRoutingWorkspace{.id = entry.workspace_id,
++                                       .name = base::UTF16ToUTF8(entry.name),
++                                       .separated = true});
++  }
++  for (const session::DirectoryWorkspace& key :
++       session::OrderDirectoryWorkspaces(main_keys, isolated)) {
++    if (auto it = by_id.find(key.workspace_id); it != by_id.end()) {
++      workspaces.push_back(it->second);
++    }
+   }
+   return workspaces;
+ }
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
+index 26bb3a5..47b7872 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.cc
+@@ -182,6 +182,12 @@ bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index) {
+   return host && host->ActivateWorkspaceAtIndex(index);
+ }
+ 
++bool ActivateBrowserWorkspaceById(views::View* sidebar_host,
++                                  const base::Uuid& workspace_id) {
++  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
++  return host && host->ActivateWorkspaceById(workspace_id);
++}
++
+ bool RevealBrowserSidebarFolder(views::View* sidebar_host,
+                                 const base::Uuid& folder_id) {
+   auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.h
+index 116a0ad..99eaac9 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host.h
+@@ -78,6 +78,10 @@ base::WeakPtr<tabs::TabInterface> ResolveRelativeBrowserRuntimeTab(
+     int delta);
+ bool ActivateRelativeBrowserRuntimeTab(views::View* sidebar_host, int delta);
+ bool ActivateBrowserWorkspaceAtIndex(views::View* sidebar_host, size_t index);
++// Any Workspace of the shared switcher, including another Profile's (ADR 0011
++// step 2): switches in place or hands the window's frame over.
++bool ActivateBrowserWorkspaceById(views::View* sidebar_host,
++                                  const base::Uuid& workspace_id);
+ // Activates the folder's workspace, expands its complete ancestor path and
+ // selects the folder in the native tree.
+ bool RevealBrowserSidebarFolder(views::View* sidebar_host,
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+index 4a0c49d..bf4b962 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+@@ -145,6 +145,7 @@ class BrowserSidebarHostView final
+   // `index` counts the process-wide order of the shared switcher (ADR 0011
+   // step 2), not only this Profile's Workspaces.
+   bool ActivateWorkspaceAtIndex(size_t index);
++  bool ActivateWorkspaceById(const base::Uuid& workspace_id);
+ 
+   bool RevealFolder(const base::Uuid& folder_id);
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc
+index 7344edd..98b0fcb 100644
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc
+@@ -48,6 +48,17 @@ bool BrowserSidebarHostView::ActivateWorkspaceAtIndex(size_t index) {
+                            delta, WorkspaceActivationSource::kKeyboard);
+ }
+ 
++bool BrowserSidebarHostView::ActivateWorkspaceById(
++    const base::Uuid& workspace_id) {
++  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
++  for (size_t index = 0; index < switcher.size(); ++index) {
++    if (switcher[index].key.workspace_id == workspace_id) {
++      return ActivateWorkspaceAtIndex(index);
++    }
++  }
++  return false;
++}
++
+ bool BrowserSidebarHostView::ActivateRelativeWorkspace(int delta) {
+   return ActivateRelativeSwitcherWorkspace(
+       delta, WorkspaceActivationSource::kKeyboard);

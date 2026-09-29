@@ -4,6 +4,8 @@
 #ifndef AHOI_BROWSER_SYNC_PROFILE_SYNC_PREFS_H_
 #define AHOI_BROWSER_SYNC_PROFILE_SYNC_PREFS_H_
 
+class PrefRegistrySimple;
+
 namespace user_prefs {
 class PrefRegistrySyncable;
 }
@@ -13,6 +15,10 @@ namespace ahoi::sync {
 // Stable, profile-local identity used by HLC tie-breaking and device-tab
 // ownership. It is deliberately not a Chrome account or GAIA identifier.
 inline constexpr char kSyncEnabledPref[] = "ahoi.sync.enabled";
+// Separate, profile-local consent. A legacy global opt-in does not authorize
+// this newly added category, and opening the bookmark shelf never changes it.
+inline constexpr char kBookmarkSyncEnabledPref[] =
+    "ahoi.sync.bookmarks.enabled";
 inline constexpr char kDeviceIdPref[] = "ahoi.sync.device_id";
 inline constexpr char kDeviceDisplayNamePref[] =
     "ahoi.sync.device_display_name";
@@ -20,6 +26,14 @@ inline constexpr char kHistoryRetentionDaysPref[] =
     "ahoi.sync.history_retention_days";
 inline constexpr char kPermittedSettingIdsPref[] =
     "ahoi.sync.permitted_setting_ids";
+// Local recovery queue of canonical current-format user intents, with their
+// ORIGINAL versions. Never part of the syncable preference catalogue.
+inline constexpr char kBrowserSettingIntentsPref[] =
+    "ahoi.sync.browser_setting_intents";
+inline constexpr char kExtensionSetupSyncEnabledPref[] =
+    "ahoi.sync.extension_setup.enabled";
+inline constexpr char kExtensionSettingsSyncEnabledPref[] =
+    "ahoi.sync.extension_settings.enabled";
 inline constexpr char kDeveloperAssetOptInIdsPref[] =
     "ahoi.sync.developer_asset_opt_in_ids";
 inline constexpr char kRemoteControlEnabledPref[] =
@@ -28,6 +42,12 @@ inline constexpr char kApprovedRemoteCommandKeysPref[] =
     "ahoi.sync.remote_control.approved_public_keys";
 
 void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
+
+// Local State of the sync layer: pending retirements of deleted fully
+// separated Workspaces' CloudKit zones (workspace_zone_retirement.h).
+inline constexpr char kPendingWorkspaceZoneRetirementsPref[] =
+    "ahoi.sync.pending_workspace_zone_retirements";
+void RegisterLocalStatePrefs(PrefRegistrySimple* registry);
 
 }  // namespace ahoi::sync
 

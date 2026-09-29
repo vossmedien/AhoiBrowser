@@ -1,0 +1,26 @@
+{
+ "approvedBy": "user, 28 Sep 2026",
+ "destination": "CE3513BF (shut down after each phase)",
+ "jobs": 2,
+ "phases": {
+  "red": "54c29011db655cae595a9c19f4dd4f2cfbd29761",
+  "green": "ec3024e533d160fc12f83ce653e033d7bf202b7b"
+ },
+ "red": {
+  "test": "SyncMergeConformanceTests/testMarkerCollisionProjectionFrames",
+  "exit": 65,
+  "failures": 18,
+  "firstFailure": "ordinary_key_without_merge/ordinary_only workspaces=0 nodes=0 sibling order"
+ },
+ "green": {
+  "tests": [
+   "SyncMergeConformanceTests/testMarkerCollisionProjectionFrames",
+   "SyncMergeConformanceTests/testBrowserSettingValueVectors"
+  ],
+  "summary": "Executed 2 tests, with 0 failures (0 unexpected) in 0.113 (0.116) seconds"
+ },
+ "binarySha256": {
+  "red": "1bb12ad0fa01c664c10dd4bec8a2e86777c8b8bd7011f4e96244c716ce6dad4e",
+  "green": "930f9f94dab23d3f1c1fb5654530f489f0e0a0b5c3f23fd9981801f538edb577"
+ }
+}

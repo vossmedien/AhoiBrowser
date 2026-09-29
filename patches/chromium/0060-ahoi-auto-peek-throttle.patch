@@ -1,0 +1,32 @@
+diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+index 20aa39b..884a993 100644
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -926,6 +926,7 @@ source_set("core") {
+     ":universal_web_contents_observers",
+     "//ahoi/browser/developer_toolkit:developer_profile_runtime",
+     "//ahoi/browser/navigation:navigation_preferences",
++    "//ahoi/browser/popup:link_peek_throttle",
+     "//ahoi/browser/privacy:privacy_mode_runtime",
+     "//ahoi/browser/resource_policy",
+     "//base/allocator:buildflags",
+diff --git a/chrome/browser/chrome_content_browser_client_navigation_throttles.cc b/chrome/browser/chrome_content_browser_client_navigation_throttles.cc
+index 4777870..09c3395 100644
+--- a/chrome/browser/chrome_content_browser_client_navigation_throttles.cc
++++ b/chrome/browser/chrome_content_browser_client_navigation_throttles.cc
+@@ -5,6 +5,7 @@
+ #include "chrome/browser/chrome_content_browser_client_navigation_throttles.h"
+ 
+ #include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
++#include "ahoi/browser/popup/link_peek_throttle.h"
+ #include "base/command_line.h"
+ #include "base/feature_list.h"
+ #include "build/build_config.h"
+@@ -286,6 +287,7 @@ void CreateAndAddChromeThrottlesForNavigation(
+     content::NavigationThrottleRegistry& registry) {
+   content::NavigationHandle& handle = registry.GetNavigationHandle();
+   ahoi::DeveloperProfileNavigationThrottle::MaybeCreateAndAdd(registry);
++  ahoi::popup::LinkPeekNavigationThrottle::MaybeCreateAndAdd(registry);
+   if (handle.IsInMainFrame()) {
+     // MetricsNavigationThrottle requires that it runs before
+     // NavigationThrottles that may delay or cancel navigations, so only

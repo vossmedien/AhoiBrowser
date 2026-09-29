@@ -1,0 +1,36 @@
+==> host: macOS 26.6 (25G72), arm64
+==> hardware: Apple M2 Max, 32 GiB RAM
+==> toolchain (compatible-development): Xcode 26.5 Build version 17F42 , macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F73)
+==> work root: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work
+==> free disk: 123.0 GiB; required: 64.0 GiB
+==> host check passed
+==> Sparkle 2.9.6 verified from fetched-material receipt (ac2def288cbff5cfc7df3ffef6abdf45b72bcb0a)
+==> host: macOS 26.6 (25G72), arm64
+==> hardware: Apple M2 Max, 32 GiB RAM
+==> toolchain (compatible-development): Xcode 26.5 Build version 17F42 , macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F73)
+==> work root: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work
+==> free disk: 123.0 GiB; required: 64.0 GiB
+==> host check passed
+/private/tmp/ahoi-native-unified.1FqoG5/repo/artifacts/build/chromium-dependencies.json
+==> running Chromium hooks with compatible-development Xcode/SDK (overlay checkout)
+________ running 'vpython3 -vpython-spec src/.vpython3 -vpython-tool install' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/landmines.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/third_party/depot_tools/update_depot_tools_toggle.py --disable' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/tools/remove_stale_files.py src/third_party/test_fonts/test_fonts.tar.gz src/third_party/node/node_modules.tar.gz src/third_party/tfhub_models src/tools/clang/crashreports' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/tools/remove_stale_pyc_files.py src/android_webview/tools src/build/android src/gpu/gles2_conform_support src/infra src/ppapi src/printing src/third_party/blink/renderer/build/scripts src/third_party/blink/tools src/third_party/catapult src/third_party/mako src/tools' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/mac_toolchain.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+Skipping Mac toolchain installation for mac
+________ running 'python3 src/build/util/lastchange.py -o src/build/util/LASTCHANGE' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m GPU_LISTS_VERSION --revision-id-only --header src/gpu/config/gpu_lists_version.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m SKIA_COMMIT_HASH -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m DAWN_COMMIT_HASH -s src/third_party/dawn --revision src/gpu/webgpu/DAWN_VERSION --header src/gpu/webgpu/dawn_commit_hash.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/third_party/depot_tools/download_from_google_storage.py --no_resume --bucket chromium-browser-clang -s src/tools/clang/dsymutil/bin/dsymutil.arm64.sha1 -o src/tools/clang/dsymutil/bin/dsymutil' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/testing/generate_location_tags.py --out src/testing/location_tags.json' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/buildtools/reclient_cfgs/configure_reclient_cfgs.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reproxy_cfg_template reproxy.cfg.template --rewrapper_cfg_project  --skip_remoteexec_cfg_fetch --quiet' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/config/siso/configure_siso.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reapi_instance  --reapi_address  --reapi_backend_config_path  --credential-helper ' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/tast_control.py -o src/chromeos/tast_control.gni -t src/chromeos/tast_control.gni.template -i src/chromeos/tast_control_disabled_tests.txt --input-public src/chromeos/tast_control_disabled_tests_public_builders.txt -f src/chromeos/tast_control_flaky_tests.txt' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'vpython3 scripts/deps/sync_rollup_libs.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/third_party/devtools-frontend/src'
+/private/tmp/ahoi-native-unified.1FqoG5/repo/artifacts/build/chromium-dependencies.json
+==> pinned Chromium hooks verified: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/state/hooks-792bf6722e73a45aa9e47c163b9901bdc17f3230.json
+==> generating Ahoi dev build
+error: corrupt patch at /private/tmp/ahoi-native-unified.1FqoG5/repo/patches/dependencies/chromium/0001-rust-depfile-space-paths.patch:110

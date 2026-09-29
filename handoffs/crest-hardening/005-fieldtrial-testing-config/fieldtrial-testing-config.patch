@@ -1,0 +1,49 @@
+diff --git a/config/build/ahoi-dev.gn b/config/build/ahoi-dev.gn
+index f57fd8e..6c5c597 100644
+--- a/config/build/ahoi-dev.gn
++++ b/config/build/ahoi-dev.gn
+@@ -21,6 +21,7 @@ ffmpeg_branding = "Chromium"
+ mac_min_system_version = "26.0"
+ enable_compose = false
+ enable_pdf_save_to_drive = false
++disable_fieldtrial_testing_config = true
+ 
+ # Product feature: every supported AhoiBrowser desktop profile uses the same
+ # pinned Classic identity and fail-closed authorization contract.
+diff --git a/config/build/ahoi-release.gn b/config/build/ahoi-release.gn
+index 7de3581..03a5f90 100644
+--- a/config/build/ahoi-release.gn
++++ b/config/build/ahoi-release.gn
+@@ -21,4 +21,5 @@ ffmpeg_branding = "Chromium"
+ mac_min_system_version = "26.0"
+ enable_compose = false
+ enable_pdf_save_to_drive = false
++disable_fieldtrial_testing_config = true
+ enable_ahoi_ubo_classic = true
+diff --git a/config/lean-bundle-measurement.json b/config/lean-bundle-measurement.json
+index f543c16..4f87ae4 100644
+--- a/config/lean-bundle-measurement.json
++++ b/config/lean-bundle-measurement.json
+@@ -37,7 +37,7 @@
+     {
+       "id": "ahoi-release",
+       "argsPath": "config/build/ahoi-release.gn",
+-      "expectedArgsSha256": "59b1ca1639c96a25a1c908aa936f8a04c582ad7e37dcb79bf619ba66954a9b95",
++      "expectedArgsSha256": "4aac87e5a99928e2a169bc4030e0c468a7b2339977c8b7472201495e74ab7b4c",
+       "bundlePath": "chromium/src/out/AhoiRelease/AhoiBrowser.app",
+       "generatedArgsPath": "chromium/src/out/AhoiRelease/args.gn",
+       "receiptPath": "artifacts/build/ahoi-release-build.json",
+diff --git a/config/lean-chromium-components.json b/config/lean-chromium-components.json
+index 05d7db3..46423db 100644
+--- a/config/lean-chromium-components.json
++++ b/config/lean-chromium-components.json
+@@ -100,7 +100,8 @@
+     },
+     "allowedLeanDelta": [
+       "enable_compose = false",
+-      "enable_pdf_save_to_drive = false"
++      "enable_pdf_save_to_drive = false",
++      "disable_fieldtrial_testing_config = true"
+     ]
+   },
+   "verificationPolicy": {

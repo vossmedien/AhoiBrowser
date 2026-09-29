@@ -54,8 +54,17 @@ class SidebarTreeViewDelegate {
   // keeps embedders/tests on the legacy balanced horizontal presentation.
   virtual std::optional<split_tabs::SplitTabVisualData>
   GetSplitSavedPageVisualData(const std::vector<base::Uuid>&) const = 0;
+  // Updates the Chromium-owned ratio represented by this saved split row.
+  // Intermediate pointer updates are deliberately distinguished from the
+  // final persistence boundary, matching MultiContentsView resize semantics.
+  virtual bool ResizeSavedPageSplit(const std::vector<base::Uuid>& node_ids,
+                                    size_t divider_index,
+                                    double ratio,
+                                    bool done_resizing) = 0;
   // Returns the complete saved-page unit that must follow a dragged pane.
   // Non-split pages return a one-element vector containing `source_node_id`.
+  // Empty means a split member is not bound yet: callers refuse the move
+  // instead of moving only part of the split (Crest 142 R6).
   virtual std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const = 0;
   // A drop from a split segment onto an ordinary tree target extracts only
@@ -80,6 +89,9 @@ class SidebarTreeViewDelegate {
   // discarded/sleeping instance. Kept separate from `running` so a sleeping
   // tab remains a first-class saved page in the tree.
   virtual bool IsSavedPageSleeping(const base::Uuid&) const = 0;
+  // Native Chromium bookmarks are independent from a page's saved/temporary
+  // tree state. Embedders without a BookmarkModel have no such decoration.
+  virtual bool IsSavedPageBookmarked(const tab_tree::TreeNode&) const;
   virtual ui::ImageModel GetSavedPageIcon(const tab_tree::TreeNode&) = 0;
   virtual ui::ImageModel GetSavedPageMediaIndicator(
       const tab_tree::TreeNode&) const = 0;
@@ -92,6 +104,11 @@ class SidebarTreeViewDelegate {
   // A running saved page is closed but retained. A closed saved page is moved
   // to Trash, matching the stateful trailing action painted by the row.
   virtual void PerformSavedPageTrailingAction(const base::Uuid&) {}
+  // A temporary row is its live tab. Deleting it closes that tab, and the
+  // tab-close path removes the row; deleting only the row would unbind the
+  // tab and recreate the row under a new id (handoff 011 S8). Returns true
+  // when the delegate handled the deletion this way.
+  virtual bool CloseTemporaryPageForDeletion(const base::Uuid&);
   virtual void OnFolderHoverChanged(const base::Uuid&,
                                     views::View* anchor,
                                     bool hovered) {}

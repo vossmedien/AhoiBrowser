@@ -7,6 +7,8 @@
 #include <utility>
 
 #include "ahoi/browser/popup/popup_types.h"
+#include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
 #include "ahoi/browser/ui/popup/popup_overlay_view.h"
 #include "ahoi/browser/ui/visual_style.h"
@@ -21,9 +23,12 @@
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/prefs/pref_service.h"
 #include "components/split_tabs/split_tab_visual_data.h"
+#include "components/tabs/public/tab_interface.h"
 #include "components/tabs/public/split_tab_collection.h"
 #include "components/tabs/public/split_tab_data.h"
+#include "content/public/browser/browser_context.h"
 #include "content/public/browser/web_contents.h"
 #include "third_party/blink/public/mojom/window_features/window_features.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -54,6 +59,32 @@ std::u16string FallbackNotice(popup::PopupFallbackReason reason) {
   return l10n_util::GetStringUTF16(IDS_AHOI_POPUP_FALLBACK_SEPARATE_WINDOW);
 }
 
+// Handoff 011 S7: a promoted popup keeps the opener's website session, so it
+// must join the opener's Workspace. Selecting that Workspace before the
+// insertion lets SessionBridge bind the new tab to it, instead of to whichever
+// Workspace the window shows by then. False only when a needed switch failed;
+// the caller then keeps the popup rather than landing it in the wrong
+// Workspace (Crest 142 R5).
+[[nodiscard]] bool SelectOpenerWorkspace(Browser* browser,
+                                         content::WebContents* opener) {
+  SessionBridge* const bridge =
+      browser ? SessionBridgeFactory::GetForProfile(browser->GetProfile())
+              : nullptr;
+  tabs::TabInterface* const opener_tab =
+      opener ? tabs::TabInterface::MaybeGetFromContents(opener) : nullptr;
+  if (!bridge || !opener_tab) {
+    return true;
+  }
+  const std::optional<base::Uuid> workspace =
+      bridge->GetWorkspaceForTab(opener_tab);
+  if (!workspace.has_value() ||
+      workspace == bridge->GetActiveWorkspaceForWindow(browser)) {
+    return true;
+  }
+  return bridge->SetActiveWorkspaceForWindow(
+      browser, *workspace, WorkspaceActivationSource::kDataReconciliation);
+}
+
 }  // namespace
 
 PopupOverlayController::PopupOverlayController(Browser* browser,
@@ -65,9 +96,11 @@ PopupOverlayController::PopupOverlayController(Browser* browser,
   CHECK(browser_);
   CHECK(contents_host_);
   contents_host_observation_.Observe(contents_host_);
+  popup::AddLinkPeekHost(this);
 }
 
 PopupOverlayController::~PopupOverlayController() {
+  popup::RemoveLinkPeekHost(this);
   weak_ptr_factory_.InvalidateWeakPtrs();
   opener_pane_observation_.Reset();
   contents_host_observation_.Reset();
@@ -82,6 +115,18 @@ PopupOverlayController::~PopupOverlayController() {
   contents_host_ = nullptr;
 }
 
+bool PopupOverlayController::CanHostFor(content::WebContents* opener) const {
+  if (!browser_ || browser_->GetType() != BrowserWindowInterface::TYPE_NORMAL ||
+      !opener || IsShowing() || popup_view_ || !contents_host_ ||
+      !contents_host_->GetWidget() ||
+      opener->GetBrowserContext() != browser_->GetProfile()) {
+    return false;
+  }
+  // A background or detached opener has no pane to cover without creating a
+  // misleading window-wide overlay. Keep it on Chromium's native path.
+  return opener_pane_provider_ && opener_pane_provider_.Run(opener);
+}
+
 bool PopupOverlayController::TryShow(
     content::WebContents* opener,
     std::unique_ptr<content::WebContents>* popup_contents,
@@ -89,23 +134,23 @@ bool PopupOverlayController::TryShow(
     WindowOpenDisposition disposition,
     const blink::mojom::WindowFeatures& window_features,
     bool user_gesture) {
-  if (!browser_ || !browser_->is_type_normal() || !opener || !popup_contents ||
-      !*popup_contents || !user_gesture || IsShowing() || popup_view_ ||
-      !contents_host_ || !contents_host_->GetWidget() ||
-      opener->GetBrowserContext() != (*popup_contents)->GetBrowserContext() ||
-      opener->GetBrowserContext() != browser_->GetProfile()) {
-    return false;
-  }
-  if (!opener_pane_provider_ || !opener_pane_provider_.Run(opener)) {
-    // A background or detached opener has no pane to cover without creating a
-    // misleading window-wide overlay. Keep it on Chromium's native path.
+  if (!popup_contents || !*popup_contents || !user_gesture ||
+      !CanHostFor(opener) ||
+      opener->GetBrowserContext() != (*popup_contents)->GetBrowserContext()) {
     return false;
   }
   if (!popup::IsOverlayEligible(popup::ClassifyPopupForOverlay(
           target_url, disposition, window_features))) {
     return false;
   }
+  return AdoptAndShow(opener, popup_contents, window_features, user_gesture);
+}
 
+bool PopupOverlayController::AdoptAndShow(
+    content::WebContents* opener,
+    std::unique_ptr<content::WebContents>* popup_contents,
+    const blink::mojom::WindowFeatures& window_features,
+    bool user_gesture) {
   // A detached popup has no TabModel yet. Browser attaches Chromium's
   // idempotent tab helpers and all delegate-side observers explicitly; the
   // matching teardown happens synchronously before every ownership transfer.
@@ -118,6 +163,7 @@ bool PopupOverlayController::TryShow(
                               weak_ptr_factory_.GetWeakPtr()));
   initial_window_features_ = window_features.Clone();
   original_user_gesture_ = user_gesture;
+  fallback_disposition_ = WindowOpenDisposition::NEW_POPUP;
   CaptureFocusReturnTarget(opener);
   if (!service_.Adopt(opener, popup_contents)) {
     browser_->SetAsDelegateForAhoiPopupOverlay(popup_contents->get(),
@@ -239,6 +285,9 @@ void PopupOverlayController::PromotePopupToTab() {
     return;
   }
   content::WebContents* const popup = service_.popup_contents();
+  if (!SelectOpenerWorkspace(browser_, service_.opener())) {
+    return;
+  }
   std::unique_ptr<content::WebContents> contents =
       service_.ReleaseForTransfer();
   if (!contents) {
@@ -247,10 +296,10 @@ void PopupOverlayController::PromotePopupToTab() {
   DismissOverlayView(/*animate=*/true, /*restore_focus=*/false);
   ClearFocusReturnTarget();
   ClearRequestMetadata();
-  browser_->tab_strip_model()->AddWebContents(
+  browser_->GetTabStripModel()->AddWebContents(
       std::move(contents), TabStripModel::kNoTab, ui::PAGE_TRANSITION_LINK,
       AddTabTypes::ADD_ACTIVE | AddTabTypes::ADD_INHERIT_OPENER);
-  DCHECK_NE(browser_->tab_strip_model()->GetIndexOfWebContents(popup),
+  DCHECK_NE(browser_->GetTabStripModel()->GetIndexOfWebContents(popup),
             TabStripModel::kNoTab);
 }
 
@@ -264,7 +313,10 @@ void PopupOverlayController::SplitPopupWithOpener() {
     return;
   }
 
-  TabStripModel* const model = browser_->tab_strip_model();
+  TabStripModel* const model = browser_->GetTabStripModel();
+  if (!SelectOpenerWorkspace(browser_, service_.opener())) {
+    return;
+  }
   base::WeakPtr<content::WebContents> opener = service_.opener()->GetWeakPtr();
   content::WebContents* const popup = service_.popup_contents();
   std::unique_ptr<content::WebContents> contents =
@@ -353,9 +405,9 @@ bool PopupOverlayController::OpenPopupInSeparateWindow(
   const blink::mojom::WindowFeatures& window_features =
       initial_window_features_ ? *initial_window_features_ : default_features;
   content::WebContents* const inserted = chrome::AddWebContents(
-      browser_, opener, std::move(contents), target_url,
-      WindowOpenDisposition::NEW_POPUP, window_features,
-      NavigateParams::WindowAction::kShowWindow, original_user_gesture_);
+      browser_, opener, std::move(contents), target_url, fallback_disposition_,
+      window_features, NavigateParams::WindowAction::kShowWindow,
+      original_user_gesture_);
   ClearRequestMetadata();
   return inserted == popup;
 }
@@ -367,7 +419,7 @@ popup::PopupSplitAvailability PopupOverlayController::GetSplitAvailability()
                                             0u,
                                             tabs::SplitTabCollection::kMaxTabs);
   }
-  TabStripModel* const model = browser_->tab_strip_model();
+  TabStripModel* const model = browser_->GetTabStripModel();
   const int opener_index = model->GetIndexOfWebContents(service_.opener());
   size_t pane_count = 1u;
   if (opener_index != TabStripModel::kNoTab) {
@@ -518,12 +570,12 @@ void PopupOverlayController::RestoreFocus() {
     return;
   }
   const int opener_index =
-      browser_->tab_strip_model()->GetIndexOfWebContents(contents.get());
+      browser_->GetTabStripModel()->GetIndexOfWebContents(contents.get());
   if (opener_index == TabStripModel::kNoTab || !opener_pane_provider_ ||
       !opener_pane_provider_.Run(contents.get())) {
     return;
   }
-  browser_->tab_strip_model()->ActivateTabAt(opener_index);
+  browser_->GetTabStripModel()->ActivateTabAt(opener_index);
   if (browser_->GetWindow()) {
     browser_->GetWindow()->Activate();
   }
@@ -566,6 +618,7 @@ void PopupOverlayController::ClearRequestMetadata() {
   opener_pane_ = nullptr;
   initial_window_features_.reset();
   original_user_gesture_ = false;
+  fallback_disposition_ = WindowOpenDisposition::NEW_POPUP;
 }
 
 void PopupOverlayController::OnPopupServiceStateChanged() {

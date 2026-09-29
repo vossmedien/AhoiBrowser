@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/extensions/ubo_migration_state.h"
+#include "ahoi/browser/extensions/ubo_product_config.h"
 #include "base/base64.h"
 #include "base/no_destructor.h"
 #include "base/strings/string_number_conversions.h"
@@ -27,7 +29,9 @@ namespace ahoi::extensions {
 
 namespace {
 
-constexpr int kStateSchemaVersion = 1;
+// Schema 2 intentionally invalidates the former fixed-ID authorization state.
+// The Official GitHub release key derives a different extension identity.
+constexpr int kStateSchemaVersion = 2;
 constexpr char kSchemaKey[] = "schema_version";
 constexpr char kSequenceKey[] = "sequence";
 constexpr char kExtensionIdKey[] = "extension_id";
@@ -93,6 +97,17 @@ bool ExtensionMatchesState(const ::extensions::Extension& extension,
   return public_key_hash && *public_key_hash == state.crx_public_key_sha256;
 }
 
+bool HasAllowedUpdateContract(const UboCatalogEntry& entry) {
+  if (IsPinnedUboBootstrapCatalogEntry(entry)) {
+    return entry.update_manifest_url.is_empty();
+  }
+  return entry.update_manifest_url.is_valid() &&
+         entry.update_manifest_url.SchemeIs("https") &&
+         !entry.update_manifest_url.has_username() &&
+         !entry.update_manifest_url.has_password() &&
+         !entry.update_manifest_url.has_ref();
+}
+
 base::DictValue SerializeState(const UboAuthorizationState& state) {
   return base::DictValue()
       .Set(kSchemaKey, kStateSchemaVersion)
@@ -130,8 +145,20 @@ std::optional<UboAuthorizationState> ParseState(const base::DictValue& dict) {
   state.package_sha256 = *package_hash;
   state.crx_public_key_sha256 = *crx_key_hash;
   state.update_manifest_url = GURL(*update_manifest_url);
-  if (!state.version.IsValid() || !state.update_manifest_url.is_valid() ||
-      !state.update_manifest_url.SchemeIs("https")) {
+  const bool valid_signed_update_url =
+      state.update_manifest_url.is_valid() &&
+      state.update_manifest_url.SchemeIs("https") &&
+      !state.update_manifest_url.has_username() &&
+      !state.update_manifest_url.has_password() &&
+      !state.update_manifest_url.has_ref();
+  const bool exact_pinned_bootstrap =
+      state.sequence == kUboClassicBootstrapSequence &&
+      state.update_manifest_url.is_empty() &&
+      IsPinnedUboBootstrapIdentity(
+          state.extension_id, state.version.GetString(), state.package_sha256,
+          state.crx_public_key_sha256);
+  if (!state.version.IsValid() ||
+      (!valid_signed_update_url && !exact_pinned_bootstrap)) {
     return std::nullopt;
   }
   return state;
@@ -156,6 +183,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   // Intentionally not SYNCABLE_PREF. Extension authorization and storage are
   // local security state and never cross Ahoi CloudKit or Chrome Sync.
   registry->RegisterDictionaryPref(kUboAuthorizationPref);
+  RegisterUboMigrationProfilePrefs(registry);
 }
 
 std::optional<UboAuthorizationState> ReadCommittedUboAuthorization(
@@ -189,20 +217,25 @@ void ClearCommittedUboAuthorization(PrefService* prefs) {
   if (!prefs) {
     return;
   }
-  PendingRegistry& registry = GetPendingRegistry();
-  {
-    base::AutoLock lock(registry.lock);
-    registry.entries.erase(prefs);
-  }
+  ClearPendingUboInstallAuthorization(prefs);
   if (prefs->FindPreference(kUboAuthorizationPref) &&
       !prefs->IsManagedPreference(kUboAuthorizationPref)) {
     prefs->ClearPref(kUboAuthorizationPref);
   }
 }
 
+void ClearPendingUboInstallAuthorization(PrefService* prefs) {
+  if (!prefs) {
+    return;
+  }
+  PendingRegistry& registry = GetPendingRegistry();
+  base::AutoLock lock(registry.lock);
+  registry.entries.erase(prefs);
+}
+
 bool IsUboManifestV2ExtensionAllowed(const PrefService& prefs,
                                      const ::extensions::Extension& extension) {
-  if (extension.manifest_version() != 2 ||
+  if (!IsUboClassicEnabled() || extension.manifest_version() != 2 ||
       extension.id() != kUboClassicExtensionId) {
     return false;
   }
@@ -252,10 +285,16 @@ base::expected<void, UboVerificationError> UboInstallAuthorization::Commit(
       prefs_->IsManagedPreference(kUboAuthorizationPref)) {
     return base::unexpected(UboVerificationError::kStateWriteFailed);
   }
+  base::DictValue previous_state =
+      prefs_->GetDict(kUboAuthorizationPref).Clone();
   prefs_->SetDict(kUboAuthorizationPref, SerializeState(state_));
   std::optional<UboAuthorizationState> readback =
       ReadCommittedUboAuthorization(*prefs_);
   if (!readback || !StateEquals(*readback, state_)) {
+    // Do not leave a partially written or mismatched authorization behind.
+    // The pending in-memory exception remains active only until the caller
+    // aborts this transaction and removes a newly installed package.
+    prefs_->SetDict(kUboAuthorizationPref, std::move(previous_state));
     return base::unexpected(UboVerificationError::kStateWriteFailed);
   }
 
@@ -281,7 +320,9 @@ BeginUboInstallAuthorization(PrefService* prefs,
                              const UboCatalogEntry& entry,
                              const VerifiedUboPackage& package) {
   if (!prefs || !prefs->FindPreference(kUboAuthorizationPref) ||
+      prefs->IsManagedPreference(kUboAuthorizationPref) ||
       entry.extension_id != kUboClassicExtensionId ||
+      !HasAllowedUpdateContract(entry) ||
       package.extension_id != entry.extension_id ||
       package.package_sha256 != entry.package_sha256 ||
       package.crx_public_key_sha256 != entry.crx_public_key_sha256) {

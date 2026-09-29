@@ -12,7 +12,9 @@ namespace ahoi::startup {
 
 // Applies product invariants that must be present before Chromium constructs
 // its FeatureList. The operation is deterministic and idempotent.
-void ApplyEarlyStartupPolicy(base::CommandLine& command_line);
+bool ApplyEarlyStartupPolicy(base::CommandLine& command_line);
+// Scoped Development candidates never open the user's ordinary browser stores.
+bool ApplyDevelopmentAcceptanceProfile(base::CommandLine& command_line);
 
 }  // namespace ahoi::startup
 

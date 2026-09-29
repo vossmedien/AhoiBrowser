@@ -1,0 +1,322 @@
+diff --git a/content/browser/loader/browser_initiated_resource_request.cc b/content/browser/loader/browser_initiated_resource_request.cc
+index 30673aa..e9f0039 100644
+--- a/content/browser/loader/browser_initiated_resource_request.cc
++++ b/content/browser/loader/browser_initiated_resource_request.cc
+@@ -34,7 +34,8 @@ void UpdateAdditionalHeadersForBrowserInitiatedRequest(
+ 
+   // Set the GlobalPrivacyControl header if appropriate.
+   // https://w3c.github.io/gpc/#expression-format
+-  if (blink::IsGlobalPrivacyControlEnabled()) {
++  if (blink::IsGlobalPrivacyControlEnabled() ||
++      renderer_preferences.enable_global_privacy_control) {
+     if (should_update_existing_headers) {
+       headers->RemoveHeader(blink::kGlobalPrivacyControlHeader);
+     }
+diff --git a/content/renderer/render_frame_impl.cc b/content/renderer/render_frame_impl.cc
+index b9cf2bc..f9030d4 100644
+--- a/content/renderer/render_frame_impl.cc
++++ b/content/renderer/render_frame_impl.cc
+@@ -4682,7 +4682,8 @@ void RenderFrameImpl::FinalizeRequestInternal(
+     request.SetHttpHeaderField(
+         blink::WebString::FromUtf8(blink::kDoNotTrackHeader), "1");
+   }
+-  if (blink::IsGlobalPrivacyControlEnabled()) {
++  if (blink::IsGlobalPrivacyControlEnabled() ||
++      GetWebView()->GetRendererPreferences().enable_global_privacy_control) {
+     request.SetHttpHeaderField(
+         blink::WebString::FromUtf8(blink::kGlobalPrivacyControlHeader), "1");
+     blink::MaybeRecordGlobalPrivacyControlSourceMetric(
+@@ -4942,6 +4943,12 @@ void RenderFrameImpl::DidCreateScriptContext(v8::Local<v8::Context> context,
+       }
+     }
+   }
++  // AhoiBrowser (handoff 070): navigator.globalPrivacyControl for documents
++  // whose WebContents enabled Global Privacy Control.
++  if (world_id == ISOLATED_WORLD_ID_GLOBAL &&
++      GetWebView()->GetRendererPreferences().enable_global_privacy_control) {
++    blink::WebV8Features::EnableGlobalPrivacyControl(context, true);
++  }
+ 
+   if (world_id == ISOLATED_WORLD_ID_GLOBAL &&
+       base::FeatureList::IsEnabled(blink::features::kUnboundedElement)) {
+diff --git a/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc b/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
+index 8cb33aa..ed609e0 100644
+--- a/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
++++ b/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
+@@ -54,6 +54,7 @@ bool StructTraits<blink::mojom::RendererPreferencesDataView,
+   out->enable_referrers = data.enable_referrers();
+   out->allow_cross_origin_auth_prompt = data.allow_cross_origin_auth_prompt();
+   out->enable_do_not_track = data.enable_do_not_track();
++  out->enable_global_privacy_control = data.enable_global_privacy_control();
+   out->enable_encrypted_media = data.enable_encrypted_media();
+ 
+   if (!data.ReadWebrtcIpHandlingPolicy(&out->webrtc_ip_handling_policy))
+diff --git a/third_party/blink/public/common/renderer_preferences/renderer_preferences.h b/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
+index 194428d..0fddaa6 100644
+--- a/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
++++ b/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
+@@ -53,6 +53,9 @@ struct BLINK_COMMON_EXPORT RendererPreferences {
+   bool enable_referrers{true};
+   bool allow_cross_origin_auth_prompt{false};
+   bool enable_do_not_track{false};
++  // AhoiBrowser (handoff 070): Global Privacy Control for this WebContents' documents
++  // (Sec-GPC and navigator.globalPrivacyControl), set per top-level site.
++  bool enable_global_privacy_control{false};
+   bool enable_encrypted_media{true};
+ #if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN)
+   bool use_overlay_scrollbar{false};
+diff --git a/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h b/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
+index 92377b0..888867a 100644
+--- a/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
++++ b/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
+@@ -125,6 +125,11 @@ struct BLINK_COMMON_EXPORT
+     return data.enable_do_not_track;
+   }
+ 
++  static const bool& enable_global_privacy_control(
++      const ::blink::RendererPreferences& data) {
++    return data.enable_global_privacy_control;
++  }
++
+   static const bool& enable_encrypted_media(
+       const ::blink::RendererPreferences& data) {
+     return data.enable_encrypted_media;
+diff --git a/third_party/blink/public/mojom/renderer_preferences.mojom b/third_party/blink/public/mojom/renderer_preferences.mojom
+index 28a17da..a022e0d 100644
+--- a/third_party/blink/public/mojom/renderer_preferences.mojom
++++ b/third_party/blink/public/mojom/renderer_preferences.mojom
+@@ -89,6 +89,9 @@ struct RendererPreferences {
+   // Set to true to indicate that the preference to set DNT to 1 is enabled.
+   bool enable_do_not_track = false;
+ 
++  // AhoiBrowser (handoff 070): send Sec-GPC and expose navigator.globalPrivacyControl.
++  bool enable_global_privacy_control = false;
++
+   // Whether to allow the use of Encrypted Media Extensions (EME), except for
+   // the use of Clear Key key system which is always allowed as required by the
+   // spec.
+diff --git a/third_party/blink/public/platform/web_worker_fetch_context.h b/third_party/blink/public/platform/web_worker_fetch_context.h
+index d40563c..0b81643 100644
+--- a/third_party/blink/public/platform/web_worker_fetch_context.h
++++ b/third_party/blink/public/platform/web_worker_fetch_context.h
+@@ -156,6 +156,12 @@ class WebWorkerFetchContext : public base::RefCounted<WebWorkerFetchContext> {
+     return false;
+   }
+ 
++  // AhoiBrowser (handoff 070): the creating document's
++  // RendererPreferences::enable_global_privacy_control.
++  virtual bool IsGlobalPrivacyControlEnabledForContext() const {
++    return false;
++  }
++
+   virtual std::unique_ptr<WebServiceWorkerProvider>
+   CreateServiceWorkerProvider() {
+     return nullptr;
+diff --git a/third_party/blink/public/web/web_v8_features.h b/third_party/blink/public/web/web_v8_features.h
+index 687bf2c..15317fd 100644
+--- a/third_party/blink/public/web/web_v8_features.h
++++ b/third_party/blink/public/web/web_v8_features.h
+@@ -35,6 +35,9 @@ class BLINK_EXPORT WebV8Features {
+ 
+   static void EnableUnboundedElement(v8::Local<v8::Context>, bool);
+ 
++  // AhoiBrowser (handoff 070): installs navigator.globalPrivacyControl.
++  static void EnableGlobalPrivacyControl(v8::Local<v8::Context>, bool);
++
+   // Protected memory values require initialization before they can be used.
+   // This method is used to perform that initialization of the static protected
+   // memory bool is used to track if MojoJS has been properly enabled for a
+diff --git a/third_party/blink/renderer/core/context_features/context_feature_settings.h b/third_party/blink/renderer/core/context_features/context_feature_settings.h
+index 0c6f84c..e5b59c5 100644
+--- a/third_party/blink/renderer/core/context_features/context_feature_settings.h
++++ b/third_party/blink/renderer/core/context_features/context_feature_settings.h
+@@ -82,6 +82,14 @@ class CORE_EXPORT ContextFeatureSettings final
+   }
+   bool isUnboundedElementEnabled() const;
+ 
++  // ContextEnabled=GlobalPrivacyControlPreference (AhoiBrowser, handoff 070)
++  void EnableGlobalPrivacyControl(bool enable) {
++    enable_global_privacy_control_ = enable;
++  }
++  bool isGlobalPrivacyControlPreferenceEnabled() const {
++    return enable_global_privacy_control_;
++  }
++
+   void Trace(Visitor*) const override;
+ 
+  private:
+@@ -89,6 +97,7 @@ class CORE_EXPORT ContextFeatureSettings final
+   bool enable_mojo_js_file_system_access_helper_ = false;
+   bool enable_private_aggregation_in_shared_storage_ = false;
+   bool enable_unbounded_element_ = false;
++  bool enable_global_privacy_control_ = false;
+ 
+   // Protected memory bool that indicates if MojoJS bindings are allowed to be
+   // enabled for any given context of the process. Should be set to true by
+diff --git a/third_party/blink/renderer/core/exported/web_v8_features.cc b/third_party/blink/renderer/core/exported/web_v8_features.cc
+index 0aa7cd0..f203987 100644
+--- a/third_party/blink/renderer/core/exported/web_v8_features.cc
++++ b/third_party/blink/renderer/core/exported/web_v8_features.cc
+@@ -105,6 +105,19 @@ void WebV8Features::EnableUnboundedElement(v8::Local<v8::Context> context,
+       ->EnableUnboundedElement(enable);
+ }
+ 
++// static
++void WebV8Features::EnableGlobalPrivacyControl(v8::Local<v8::Context> context,
++                                               bool enable) {
++  ExecutionContext* execution_context = ExecutionContext::From(context);
++  if (!execution_context) {
++    return;
++  }
++  ContextFeatureSettings::From(
++      execution_context,
++      ContextFeatureSettings::CreationMode::kCreateIfNotExists)
++      ->EnableGlobalPrivacyControl(enable);
++}
++
+ // static
+ void WebV8Features::InitializeMojoJSAllowedProtectedMemory() {
+   ContextFeatureSettings::InitializeMojoJSAllowedProtectedMemory();
+diff --git a/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc b/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
+index 52bfd9f..0c17b23 100644
+--- a/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
++++ b/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
+@@ -9,6 +9,8 @@
+ #include "base/metrics/histogram_functions.h"
+ #include "base/task/single_thread_task_runner.h"
+ #include "base/threading/thread_checker.h"
++#include "third_party/blink/public/platform/web_worker_fetch_context.h"
++#include "third_party/blink/renderer/core/context_features/context_feature_settings.h"
+ #include "services/network/public/mojom/web_sandbox_flags.mojom-blink.h"
+ #include "third_party/blink/public/common/features.h"
+ #include "third_party/blink/public/mojom/devtools/inspector_issue.mojom-blink.h"
+@@ -241,6 +243,15 @@ WorkerOrWorkletGlobalScope::WorkerOrWorkletGlobalScope(
+           /*is_default_world_of_isolate=*/is_default_world_of_isolate)),
+       v8_cache_options_(v8_cache_options),
+       reporting_proxy_(reporting_proxy) {
++  // AhoiBrowser (handoff 070): WorkerNavigator.globalPrivacyControl follows
++  // the creating document's RendererPreferences (installed with the other
++  // conditional features before the first script runs).
++  if (web_worker_fetch_context_ &&
++      web_worker_fetch_context_->IsGlobalPrivacyControlEnabledForContext()) {
++    ContextFeatureSettings::From(
++        this, ContextFeatureSettings::CreationMode::kCreateIfNotExists)
++        ->EnableGlobalPrivacyControl(true);
++  }
+   GetSecurityContext().SetIsWorkerLoadedFromDataURL(
+       is_worker_loaded_from_data_url);
+   GetSecurityContext().SetSecurityOrigin(std::move(origin));
+diff --git a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
+index 488311d..41bc380 100644
+--- a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
++++ b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
+@@ -5,6 +5,7 @@
+ #include "third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.h"
+ 
+ #include "third_party/blink/public/common/global_privacy_control/global_privacy_control_util.h"
++#include "third_party/blink/renderer/core/context_features/context_feature_settings.h"
+ #include "third_party/blink/renderer/core/execution_context/navigator_base.h"
+ #include "third_party/blink/renderer/core/frame/local_dom_window.h"
+ #include "third_party/blink/renderer/core/frame/local_frame.h"
+@@ -14,7 +15,15 @@ namespace blink {
+ namespace NavigatorGlobalPrivacyControl {
+ 
+ bool globalPrivacyControl(NavigatorBase& navigator) {
+-  return IsGlobalPrivacyControlEnabled();
++  if (IsGlobalPrivacyControlEnabled()) {
++    return true;
++  }
++  // AhoiBrowser (handoff 070): installed per context only when the
++  // WebContents enabled Global Privacy Control.
++  const ContextFeatureSettings* settings = ContextFeatureSettings::From(
++      navigator.GetExecutionContext(),
++      ContextFeatureSettings::CreationMode::kDontCreateIfNotExists);
++  return settings && settings->isGlobalPrivacyControlPreferenceEnabled();
+ }
+ 
+ }  // namespace NavigatorGlobalPrivacyControl
+diff --git a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
+index 48094ca..1a66fd9 100644
+--- a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
++++ b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
+@@ -4,7 +4,8 @@
+ 
+ [
+     ImplementedAs=NavigatorGlobalPrivacyControl,
+-    RuntimeEnabled=GlobalPrivacyControl
++    RuntimeEnabled=GlobalPrivacyControl,
++    ContextEnabled=GlobalPrivacyControlPreference
+ ] interface mixin NavigatorGlobalPrivacyControl {
+     [Measure] readonly attribute boolean globalPrivacyControl;
+ };
+diff --git a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
+index fe3cc62..c04f23c 100644
+--- a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
++++ b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
+@@ -147,11 +147,17 @@ URLLoaderFactory* WebServiceWorkerFetchContextImpl::GetScriptLoaderFactory() {
+   return web_script_loader_factory_.get();
+ }
+ 
++bool WebServiceWorkerFetchContextImpl::IsGlobalPrivacyControlEnabledForContext()
++    const {
++  return renderer_preferences_.enable_global_privacy_control;
++}
++
+ void WebServiceWorkerFetchContextImpl::FinalizeRequest(WebURLRequest& request) {
+   if (renderer_preferences_.enable_do_not_track) {
+     request.SetHttpHeaderField(WebString::FromUtf8(kDoNotTrackHeader), "1");
+   }
+-  if (IsGlobalPrivacyControlEnabled()) {
++  if (IsGlobalPrivacyControlEnabled() ||
++      renderer_preferences_.enable_global_privacy_control) {
+     request.SetHttpHeaderField(WebString::FromUtf8(kGlobalPrivacyControlHeader),
+                                "1");
+     blink::MaybeRecordGlobalPrivacyControlSourceMetric(
+diff --git a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
+index 26cfff7..c0bd63d 100644
+--- a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
++++ b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
+@@ -68,6 +68,7 @@ class BLINK_EXPORT WebServiceWorkerFetchContextImpl final
+           url_loader_factory) override;
+   URLLoaderFactory* GetScriptLoaderFactory() override;
+   void FinalizeRequest(WebURLRequest&) override;
++  bool IsGlobalPrivacyControlEnabledForContext() const override;
+   std::vector<std::unique_ptr<URLLoaderThrottle>> CreateThrottles(
+       const network::ResourceRequest& request) override;
+   mojom::ControllerServiceWorkerMode GetControllerServiceWorkerMode()
+diff --git a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
+index 6a19e63..02aee01 100644
+--- a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
++++ b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
+@@ -373,12 +373,18 @@ DedicatedOrSharedWorkerGlobalScopeContextImpl::WillSendRequest(
+   return std::nullopt;
+ }
+ 
++bool DedicatedOrSharedWorkerGlobalScopeContextImpl::IsGlobalPrivacyControlEnabledForContext()
++    const {
++  return renderer_preferences_.enable_global_privacy_control;
++}
++
+ void DedicatedOrSharedWorkerGlobalScopeContextImpl::FinalizeRequest(
+     WebURLRequest& request) {
+   if (renderer_preferences_.enable_do_not_track) {
+     request.SetHttpHeaderField(WebString::FromUtf8(kDoNotTrackHeader), "1");
+   }
+-  if (IsGlobalPrivacyControlEnabled()) {
++  if (IsGlobalPrivacyControlEnabled() ||
++      renderer_preferences_.enable_global_privacy_control) {
+     request.SetHttpHeaderField(WebString::FromUtf8(kGlobalPrivacyControlHeader),
+                                "1");
+     blink::MaybeRecordGlobalPrivacyControlSourceMetric(
+diff --git a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
+index 63f0a4d..2fdabbe 100644
+--- a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
++++ b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
+@@ -117,6 +117,7 @@ class BLINK_PLATFORM_EXPORT DedicatedOrSharedWorkerGlobalScopeContextImpl final
+           url_loader_factory) override;
+   std::optional<WebURL> WillSendRequest(const WebURL& url) override;
+   void FinalizeRequest(WebURLRequest&) override;
++  bool IsGlobalPrivacyControlEnabledForContext() const override;
+   std::vector<std::unique_ptr<URLLoaderThrottle>> CreateThrottles(
+       const network::ResourceRequest& request) override;
+   mojom::ControllerServiceWorkerMode GetControllerServiceWorkerMode()

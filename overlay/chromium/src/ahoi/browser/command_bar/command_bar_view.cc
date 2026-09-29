@@ -18,6 +18,7 @@
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_runner.h"
+#include "base/trace_event/trace_event.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/omnibox/browser/omnibox_text_util.h"
 #include "components/vector_icons/vector_icons.h"
@@ -461,6 +462,7 @@ bool CommandBarView::HandleKeyEvent(views::Textfield* sender,
       return MoveSelection(key_event.IsShiftDown() ? -1 : 1,
                            /*request_focus=*/false);
     case ui::VKEY_RETURN:
+      accepting_as_peek_ = key_event.IsShiftDown();
       return AcceptSelection();
     case ui::VKEY_ESCAPE:
       CloseCommandBar();
@@ -494,6 +496,8 @@ views::View::DropCallback CommandBarView::CreateDropCallback(
 }
 
 void CommandBarView::RebuildSuggestions(bool prefer_input_fallback) {
+  // Measured by tools/perf (PERF-03): keystroke to rebuilt result rows.
+  TRACE_EVENT("browser", "Ahoi.CommandBar.RebuildSuggestions");
   suggestions_ = suggestions_callback_.Run(textfield_->GetText());
   if (suggestions_.size() > kMaximumSuggestionCount) {
     suggestions_.resize(kMaximumSuggestionCount);
@@ -556,6 +560,10 @@ void CommandBarView::RebuildSuggestions(bool prefer_input_fallback) {
   SelectIndex(selection, /*request_focus=*/false);
   results_view_->InvalidateLayout();
   InvalidateLayout();
+  // InvalidateLayout() alone only begins a compositor frame; without damage
+  // it ends as "no update" and the new rows waited for an unrelated paint
+  // such as the caret blink (Crest H3 trace on build 45: ~350-410 ms).
+  SchedulePaint();
 }
 
 void CommandBarView::SelectIndex(std::optional<size_t> index,
@@ -607,6 +615,9 @@ bool CommandBarView::AcceptSelection() {
   // its bind state survives destruction of this View during the invocation.
   const ExecuteCallback execute_callback = execute_callback_;
   if (!execute_callback.Run(suggestion, input)) {
+    if (weak_this) {
+      weak_this->accepting_as_peek_ = false;
+    }
     return false;
   }
   // Cross-window activation and focus-changing browser commands can close and
@@ -652,6 +663,7 @@ bool CommandBarView::HandleResultKeyEvent(size_t index,
                            /*request_focus=*/true);
     case ui::VKEY_RETURN:
       SelectIndex(index, /*request_focus=*/false);
+      accepting_as_peek_ = event.IsShiftDown();
       ScheduleAcceptSelection();
       return true;
     case ui::VKEY_ESCAPE:

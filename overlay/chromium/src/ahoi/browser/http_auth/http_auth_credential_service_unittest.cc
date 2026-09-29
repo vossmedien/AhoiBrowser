@@ -337,7 +337,7 @@ TEST_F(HttpAuthCredentialServiceTest,
                     base::OnceClosure done) {
         stored_old_username = old_key.username_value;
         stored_new_username = updated.username_value;
-        stored_new_password = updated.password_value;
+        stored_new_password = updated.password_value.value();
         std::move(done).Run();
       });
 
@@ -402,7 +402,7 @@ TEST_F(HttpAuthCredentialServiceTest,
   EXPECT_CALL(*store_, UpdateLogin(_, _))
       .WillOnce([&stored_password](password_manager::StoredCredential updated,
                                    base::OnceClosure done) {
-        stored_password = updated.password_value;
+        stored_password = updated.password_value.value();
         std::move(done).Run();
       });
   bool update_succeeded = false;

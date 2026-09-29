@@ -7,12 +7,14 @@
 
 #include <cstdint>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_observer.h"
 #include "base/files/file_path.h"
+#include "base/functional/callback.h"
 #include "base/observer_list.h"
 #include "base/sequence_checker.h"
 #include "sql/database.h"
@@ -25,7 +27,7 @@ namespace ahoi::tab_tree {
 
 class TabTreeStore {
  public:
-  static constexpr int kCurrentSchemaVersion = 2;
+  static constexpr int kCurrentSchemaVersion = 6;
   static constexpr int kLowestSupportedSchemaVersion = 1;
 
   enum class Result {
@@ -37,6 +39,23 @@ class TabTreeStore {
     kCycle,
     kNothingToUndo,
     kDatabaseError,
+    kCancelled,
+  };
+
+  // One "Zusammenführen mit …" (ADR 0012); see MergeWorkspace().
+  struct WorkspaceMerge {
+    base::Uuid source_workspace_id;
+    base::Uuid target_workspace_id;
+    bool into_folder = true;
+    // Position of the new folder, or prefix of the flat keys, among the
+    // target's roots; must sort after the target's last root.
+    std::string sort_key;
+    // Temporary pages whose tabs the caller closes with the source.
+    std::set<base::Uuid> closing_temporary_ids;
+    // False when the caller retires state that undo could not bring back,
+    // such as the source's own website sessions.
+    bool record_undo = true;
+    base::Time modified_at;
   };
 
   struct SavedPageMove {
@@ -44,7 +63,34 @@ class TabTreeStore {
     base::Uuid workspace_id;
     std::optional<base::Uuid> parent_id;
     std::string sort_key;
+    // Optional saved/temporary change in the same move transaction and undo.
+    // Omitted preserves the page's current presentation state.
+    std::optional<bool> is_temporary = std::nullopt;
   };
+
+  // Local persistence envelope, not part of the logical/sync/Arc snapshot.
+  // The receipt identifies the last applied Sync baseline, not the current
+  // local contents: ordinary edits must preserve it.
+  struct PersistenceSnapshot {
+    TabTreeSnapshot tree;
+    std::string sync_baseline_receipt;
+    // Local split/archive domain state, bindings and durable original intents.
+    // Kept in this same SQLite database; never exposed by the tree wire codec.
+    std::string workspace_structure_state;
+
+    bool operator==(const PersistenceSnapshot&) const = default;
+  };
+
+  std::optional<std::string> ReadWorkspaceStructureState();
+  [[nodiscard]] Result SetWorkspaceStructureState(std::string state);
+  bool IsNodeArchived(const base::Uuid& id) const;
+  [[nodiscard]] Result SetSavedPageHome(const base::Uuid& node_id,
+                                        const GURL& url,
+                                        base::Time modified_at);
+  [[nodiscard]] Result SetWorkspaceArchivePolicy(
+      const base::Uuid& workspace_id,
+      sync::SharedArchivePolicy policy,
+      base::Time modified_at);
 
   TabTreeStore();
   TabTreeStore(const TabTreeStore&) = delete;
@@ -54,7 +100,8 @@ class TabTreeStore {
   // Opens (or creates) a profile-local database and atomically initializes its
   // versioned schema. All later calls must run on this same sequence.
   [[nodiscard]] bool Initialize(const base::FilePath& path);
-  // Opens an in-memory database for isolated tests and transient tools.
+  // Opens an in-memory database, including the UI store whose complete state
+  // is mirrored by the profile bridge on its dedicated persistence sequence.
   [[nodiscard]] bool InitializeInMemory();
 
   void AddObserver(TabTreeObserver* observer);
@@ -80,7 +127,34 @@ class TabTreeStore {
   // any live Chromium tabs to that fallback before presenting the result.
   [[nodiscard]] Result DeleteWorkspace(const base::Uuid& workspace_id,
                                        base::Time modified_at);
+  // Merges one Workspace into another (ADR 0012) in one transaction and, with
+  // `record_undo`, one undo operation: every active saved root of the source
+  // moves with its subtree, in order, into a new folder at `sort_key` among
+  // the target's roots that carries the source's name, icon and accent
+  // (`into_folder`), or flat to `sort_key` + its own key, which keeps the
+  // source order after the target's last root. Temporary roots (open tabs)
+  // always move flat. Those in `closing_temporary_ids` are tombstoned instead,
+  // without undo, like an explicit tab close. The source is tombstoned. Undo
+  // moves everything back, removes the folder and revives the source. An
+  // empty source records a node-less kWorkspaceMerge entry whose undo only
+  // revives the source with its identity and settings.
+  // Live Chromium tabs, bindings and the structure state stay the caller's
+  // job. `folder_id` receives the new folder, if any.
+  [[nodiscard]] Result MergeWorkspace(const WorkspaceMerge& merge,
+                                      std::optional<base::Uuid>* folder_id);
   [[nodiscard]] Result CreateNode(const TreeNode& node);
+  // Persists a normal temporary page without a tree undo entry. Chromium's
+  // native tab/session restore remains authoritative for opening/closing it.
+  [[nodiscard]] Result CreateTemporaryPage(const TreeNode& node);
+  // Explicit native tab close only: tombstones an active temporary page
+  // without a tree undo entry. Window detach or shutdown must not call this.
+  [[nodiscard]] Result DeleteTemporaryPage(const base::Uuid& node_id,
+                                           base::Time modified_at);
+  // Changes saved/temporary presentation as one reversible tree mutation,
+  // retaining the page's identity, native URL, parent and manual order.
+  [[nodiscard]] Result SetPageTemporary(const base::Uuid& node_id,
+                                        bool is_temporary,
+                                        base::Time modified_at);
   // Atomically creates one connected tree in one durable undo operation.
   // Parents may be part of the same batch and input order is irrelevant. This
   // is the storage primitive used when the native sidebar copies a subtree.
@@ -129,8 +203,9 @@ class TabTreeStore {
                                 std::optional<base::Uuid> parent_id,
                                 std::string sort_key,
                                 base::Time modified_at);
-  // Applies every saved-page destination in one SQLite transaction and one
-  // durable undo entry. Validation completes before any row is changed.
+  // Applies every page destination and optional saved/temporary change in one
+  // SQLite transaction and one durable undo entry. Validation completes before
+  // any row is changed.
   [[nodiscard]] Result MoveSavedPagesAtomically(
       const std::vector<SavedPageMove>& moves,
       base::Time modified_at);
@@ -165,20 +240,43 @@ class TabTreeStore {
   // undo history. A profile bridge uses these methods on an in-memory store;
   // a dedicated MayBlock sequence owns the on-disk mirror.
   [[nodiscard]] Result ExportSnapshot(TabTreeSnapshot* snapshot);
+  // Logical replacements (including local import/undo recovery) retain the
+  // current receipt. Only an explicit full-state replacement changes it.
   [[nodiscard]] Result ReplaceWithSnapshot(const TabTreeSnapshot& snapshot);
+  [[nodiscard]] Result ExportPersistenceSnapshot(PersistenceSnapshot* snapshot);
+  // Remote callers pass their original thread-safe scope, checked before
+  // replacement and immediately before commit. Empty is for ordinary local
+  // persistence only; it does not authorize a remote projection.
+  [[nodiscard]] Result ReplacePersistenceSnapshot(
+      const PersistenceSnapshot& snapshot,
+      base::RepeatingCallback<bool()> authorization = {});
 
  private:
+  static constexpr char kSyncBaselineReceiptKey[] = "sync_baseline_receipt";
+
   struct NodeSnapshot {
     base::Uuid node_id;
     std::optional<TreeNode> previous;
   };
 
   [[nodiscard]] bool CreateSchema();
+  [[nodiscard]] bool MigrateNodesToSchema3();
+  [[nodiscard]] bool MigrateUndoToSchema6();
   [[nodiscard]] bool MigrateSchema(sql::MetaTable* meta_table);
+  bool LoadWorkspaceStructureState();
   [[nodiscard]] bool InitializeSchema();
   [[nodiscard]] bool IsReady() const;
   [[nodiscard]] bool ValidateWorkspace(const Workspace& workspace) const;
   [[nodiscard]] bool ValidateNode(const TreeNode& node) const;
+  [[nodiscard]] Result CreateNodeInternal(const TreeNode& node,
+                                          bool record_undo)
+      VALID_CONTEXT_REQUIRED(sequence_checker_);
+  [[nodiscard]] Result ReplaceSnapshot(
+      const TabTreeSnapshot& snapshot,
+      const std::string* sync_baseline_receipt,
+      const std::string* workspace_structure_state,
+      const base::RepeatingCallback<bool()>& authorization)
+      VALID_CONTEXT_REQUIRED(sequence_checker_);
 
   [[nodiscard]] Result ReadWorkspace(const base::Uuid& workspace_id,
                                      Workspace* workspace)
@@ -214,6 +312,7 @@ class TabTreeStore {
       VALID_CONTEXT_REQUIRED(sequence_checker_);
 
   sql::Database db_ GUARDED_BY_CONTEXT(sequence_checker_);
+  std::set<base::Uuid> archived_node_ids_ GUARDED_BY_CONTEXT(sequence_checker_);
   base::ObserverList<TabTreeObserver> observers_;
   SEQUENCE_CHECKER(sequence_checker_);
 };

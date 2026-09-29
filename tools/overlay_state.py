@@ -496,9 +496,43 @@ def refresh_overlay_state(
     previous_tree = current_checkout_tree(checkout, expected_commit)
     recorded_tree_fingerprint = delta_fingerprint(expected_commit, previous_tree)
     if previous_state["checkoutDeltaFingerprint"] != recorded_tree_fingerprint:
-        raise OverlayStateError(
-            "Chromium checkout does not match the previously recorded applied "
-            "overlay tree; refusing to refresh foreign or partial edits"
+        # A coordinated source update may already have been materialized while
+        # its cached state still describes the prior overlay. Reconcile that
+        # narrow case only when the complete checkout is byte-for-byte equal to
+        # the tree freshly derived from current source inputs. Partial or
+        # foreign edits still fail before any mutation.
+        expected = derive_expected_overlay(
+            repository, checkout, expected_commit
+        )
+        if previous_tree != expected.tree:
+            raise OverlayStateError(
+                "Chromium checkout does not match the previously recorded "
+                "applied overlay tree or the freshly composed overlay tree; "
+                "refusing to refresh foreign or partial edits"
+            )
+        _assert_refresh_preconditions(
+            repository,
+            checkout,
+            state_path,
+            expected_commit,
+            previous_state,
+            previous_tree,
+            expected.input_fingerprint,
+        )
+        next_state = _new_overlay_state(expected)
+        _write_overlay_state_atomic(state_path, next_state)
+        verify_overlay_state(
+            repository, checkout, state_path, expected_commit
+        )
+        return OverlayRefreshResult(
+            chromium_commit=expected.chromium_commit,
+            input_fingerprint=expected.input_fingerprint,
+            checkout_delta_fingerprint=expected.delta_fingerprint,
+            previous_tree=previous_tree,
+            actual_tree=previous_tree,
+            applied_at=next_state["appliedAt"],
+            checkout_changed=False,
+            state_changed=True,
         )
 
     expected, transition = _compose_expected_overlay(

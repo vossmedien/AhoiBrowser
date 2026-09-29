@@ -10,10 +10,12 @@
 #include <vector>
 
 #include "ahoi/browser/tab_tree/tab_tree_observer.h"
+#include "ahoi/browser/tab_tree/tab_tree_store_unittest_support.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/time/time.h"
 #include "sql/database.h"
 #include "sql/meta_table.h"
+#include "sql/test/scoped_error_expecter.h"
 #include "sql/test/test_helpers.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -30,63 +32,7 @@ class RecordingObserver : public TabTreeObserver {
   std::vector<TabTreeChange> changes;
 };
 
-class AhoiTabTreeStoreTest : public testing::Test {
- public:
-  void SetUp() override {
-    ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
-    database_path_ = temp_dir_.GetPath().AppendASCII("AhoiTree.sqlite");
-    ASSERT_TRUE(ReopenStore());
-  }
-
- protected:
-  bool ReopenStore() {
-    store_ = std::make_unique<TabTreeStore>();
-    return store_->Initialize(database_path_);
-  }
-
-  Workspace NewWorkspace(std::u16string name, std::string sort_key) {
-    Workspace workspace;
-    workspace.id = base::Uuid::GenerateRandomV4();
-    workspace.name = std::move(name);
-    workspace.icon = u"folder";
-    workspace.sort_key = std::move(sort_key);
-    workspace.created_at = base::Time::Now();
-    workspace.modified_at = workspace.created_at;
-    return workspace;
-  }
-
-  TreeNode NewFolder(const Workspace& workspace,
-                     std::optional<base::Uuid> parent_id,
-                     std::u16string title,
-                     std::string sort_key) {
-    TreeNode node;
-    node.id = base::Uuid::GenerateRandomV4();
-    node.workspace_id = workspace.id;
-    node.parent_id = std::move(parent_id);
-    node.type = TreeNodeType::kFolder;
-    node.title = std::move(title);
-    node.sort_key = std::move(sort_key);
-    node.created_at = base::Time::Now();
-    node.modified_at = node.created_at;
-    return node;
-  }
-
-  TreeNode NewSavedPage(const Workspace& workspace,
-                        std::optional<base::Uuid> parent_id,
-                        std::u16string title,
-                        const GURL& url,
-                        std::string sort_key) {
-    TreeNode node = NewFolder(workspace, std::move(parent_id), std::move(title),
-                              std::move(sort_key));
-    node.type = TreeNodeType::kSavedPage;
-    node.url = url;
-    return node;
-  }
-
-  base::ScopedTempDir temp_dir_;
-  base::FilePath database_path_;
-  std::unique_ptr<TabTreeStore> store_;
-};
+using test_support::AhoiTabTreeStoreTest;
 
 TEST_F(AhoiTabTreeStoreTest, PersistsDeepHierarchyAndManualOrder) {
   Workspace workspace = NewWorkspace(u"Development", "workspace-a");
@@ -645,81 +591,6 @@ TEST_F(AhoiTabTreeStoreTest, LiveMetadataUpdatePersistsWithoutPollutingUndo) {
   ASSERT_EQ(TabTreeStore::Result::kOk, store_->UndoLastMutation());
   EXPECT_EQ(TabTreeStore::Result::kNotFound,
             store_->GetNode(page.id, &updated));
-}
-
-TEST_F(AhoiTabTreeStoreTest, SnapshotRoundTripsTreeTombstonesAndUndoHistory) {
-  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
-  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
-  TreeNode folder = NewFolder(workspace, std::nullopt, u"Project", "folder-a");
-  TreeNode page = NewSavedPage(workspace, folder.id, u"Before",
-                               GURL("https://example.test/"), "page-a");
-  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(folder));
-  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page));
-  ASSERT_EQ(TabTreeStore::Result::kOk,
-            store_->RenameNode(page.id, u"After", base::Time::Now()));
-  ASSERT_EQ(TabTreeStore::Result::kOk,
-            store_->DeleteNode(folder.id, base::Time::Now()));
-
-  TabTreeSnapshot snapshot;
-  ASSERT_EQ(TabTreeStore::Result::kOk, store_->ExportSnapshot(&snapshot));
-  ASSERT_EQ(1u, snapshot.workspaces.size());
-  ASSERT_EQ(2u, snapshot.nodes.size());
-  ASSERT_EQ(4u, snapshot.undo_operations.size());
-
-  TabTreeStore restored;
-  ASSERT_TRUE(restored.InitializeInMemory());
-  ASSERT_EQ(TabTreeStore::Result::kOk, restored.ReplaceWithSnapshot(snapshot));
-  TabTreeSnapshot restored_snapshot;
-  ASSERT_EQ(TabTreeStore::Result::kOk,
-            restored.ExportSnapshot(&restored_snapshot));
-  EXPECT_EQ(snapshot, restored_snapshot);
-
-  ASSERT_EQ(TabTreeStore::Result::kOk, restored.UndoLastMutation());
-  TreeNode restored_page;
-  ASSERT_EQ(TabTreeStore::Result::kOk,
-            restored.GetNode(page.id, &restored_page));
-  EXPECT_FALSE(restored_page.tombstone);
-  EXPECT_EQ(u"After", restored_page.title);
-  ASSERT_EQ(TabTreeStore::Result::kOk, restored.UndoLastMutation());
-  ASSERT_EQ(TabTreeStore::Result::kOk,
-            restored.GetNode(page.id, &restored_page));
-  EXPECT_EQ(u"Before", restored_page.title);
-}
-
-TEST_F(AhoiTabTreeStoreTest, RejectsSavedPageAsParent) {
-  Workspace workspace = NewWorkspace(u"Development", "workspace-a");
-  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateWorkspace(workspace));
-  TreeNode page = NewSavedPage(workspace, std::nullopt, u"Page",
-                               GURL("https://example.test/"), "a");
-  ASSERT_EQ(TabTreeStore::Result::kOk, store_->CreateNode(page));
-  TreeNode invalid_child = NewFolder(workspace, page.id, u"Invalid child", "a");
-  EXPECT_EQ(TabTreeStore::Result::kInvalidArgument,
-            store_->CreateNode(invalid_child));
-}
-
-TEST_F(AhoiTabTreeStoreTest, RefusesTooNewSchemaWithoutRazingData) {
-  store_.reset();
-  {
-    sql::Database database(sql::test::kTestTag);
-    ASSERT_TRUE(database.Open(database_path_));
-    sql::MetaTable meta_table;
-    ASSERT_TRUE(meta_table.Init(&database, TabTreeStore::kCurrentSchemaVersion,
-                                TabTreeStore::kCurrentSchemaVersion));
-    ASSERT_TRUE(
-        meta_table.SetVersionNumber(TabTreeStore::kCurrentSchemaVersion + 1));
-    ASSERT_TRUE(meta_table.SetCompatibleVersionNumber(
-        TabTreeStore::kCurrentSchemaVersion + 1));
-    ASSERT_TRUE(database.Execute(
-        "CREATE TABLE schema_sentinel(value INTEGER NOT NULL)"));
-  }
-
-  store_ = std::make_unique<TabTreeStore>();
-  EXPECT_FALSE(store_->Initialize(database_path_));
-  store_.reset();
-
-  sql::Database database(sql::test::kTestTag);
-  ASSERT_TRUE(database.Open(database_path_));
-  EXPECT_TRUE(database.DoesTableExist("schema_sentinel"));
 }
 
 }  // namespace

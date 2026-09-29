@@ -1,0 +1,74 @@
+{
+  "candidate": {
+    "source": "894c9a2ac3f21711a3f9ed3eba702d16413bdf9c",
+    "build": "DebugLocal 0.1 (18)",
+    "appTreeSHA256": "bdeb580e666a4462a5cd541e45d99ab7c41402510f264b1d6eab93243c70a111",
+    "archiveAndInstalledMatchOriginalReceipt": true,
+    "deepStrictSignatureVerified": true,
+    "rebuild": false,
+    "reinstall": false
+  },
+  "device": {
+    "udid": "FE1B566C-F706-47E0-9D21-D96139C03B18",
+    "name": "Ahoi Search Build18 20260908",
+    "runtime": "iOS 26.5",
+    "bootSession": 98445,
+    "bootExitCode": 0,
+    "bootFinishedAt": "2026-09-08T14:31:32Z",
+    "cleanupState": "Shutdown",
+    "cleanupVerifiedAt": "2026-09-08T14:34:19Z"
+  },
+  "preflight": {
+    "cpuCores": 12,
+    "aggregateIdlePercent": [
+      81.41,
+      84.91
+    ],
+    "memoryHeadroomPercent": 65,
+    "newSwapouts": 0,
+    "diskFreeKiB": 46222180,
+    "otherBootedSimulatorsBeforeStart": 0
+  },
+  "journey": {
+    "requested": "Search engine choice -> real search -> restart -> retained value -> explicit reset",
+    "status": "BLOCKED_TOOL_BEFORE_VISIBLE_WINDOW",
+    "inputActions": 0,
+    "appLaunchViaUI": false,
+    "visibleAssertionsReached": 0,
+    "screenshots": [],
+    "oldPassReusedAsNewPass": false
+  },
+  "tool": {
+    "inventorySucceeded": true,
+    "appPath": "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app",
+    "attempts": [
+      {
+        "phase": "during/after own device boot",
+        "result": "Computer Use server error -10005: timeoutReached"
+      },
+      {
+        "phase": "after terminal boot and installed candidate verification",
+        "result": "Computer Use server error -10005: timeoutReached"
+      },
+      {
+        "phase": "after one JS session reset",
+        "result": "Computer Use server error -10005: timeoutReached"
+      }
+    ]
+  },
+  "boundaries": {
+    "foreignUIInput": false,
+    "nativeAhoiLaunch": false,
+    "desktopProfileChange": false,
+    "keyOrCloudOperation": false,
+    "productionAction": false
+  },
+  "startMessages": [
+    "01a0816e-4e4c-7a31-a69f-a7cd841d0ccc",
+    "01a0816e-4e7f-7862-8bad-82a2594542dc"
+  ],
+  "handbackMessages": {
+    "coordinator": "01a08173-49e3-7850-be05-a3c093db8811",
+    "desktop": "01a08173-4a1d-7ec2-9a01-eb5487d010b7"
+  }
+}

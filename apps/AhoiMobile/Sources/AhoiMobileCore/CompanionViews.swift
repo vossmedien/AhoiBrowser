@@ -2,15 +2,16 @@ import Foundation
 import SwiftUI
 import AhoiCloudKitSpike
 
-private func L(_ key: String, _ fallback: String) -> String {
-    CompanionL10n.string(key, fallback: fallback)
-}
-
 public struct CompanionRootView: View {
     @ObservedObject private var model: CompanionAppModel
     @Environment(\.openURL) private var systemOpenURL
     private let overriddenOpenURL: OpenURLAction?
+    private let onOpenTreeNode: ((TreeNodeID) -> Void)?
     private let accentTint: Color
+    private let onDone: (() -> Void)?
+    // Read at the sheet root, outside NavigationSplitView, so it dismisses the
+    // library sheet itself rather than popping a pushed detail column.
+    @Environment(\.dismiss) private var dismissLibrary
     @State private var selectedWorkspaceID: WorkspaceID?
     @State private var query = ""
     @State private var draftTitle = ""
@@ -18,27 +19,39 @@ public struct CompanionRootView: View {
     @State private var creationKind: CreationKind?
     @State private var workspacePendingDeletion: WorkspaceID?
     @State private var workspacePendingRename: Workspace?
+    @State private var workspacePendingMerge: WorkspaceMergeRequest?
     @State private var renameDraft = ""
     @State private var selectedRemoteDeviceID: DeviceID?
     @State private var settingsPresented = false
     @State private var sendLinkPresented = false
-    @AppStorage(CompanionSyncPreferences.enabledKey) private var syncEnabled = false
+    @State private var bookmarksPresented = false
+    @Binding private var syncEnabled: Bool
 
     public init(
         model: CompanionAppModel,
+        syncEnabled: Binding<Bool>,
         openURL: OpenURLAction? = nil,
-        accentTint: Color = .accentColor
+        onOpenTreeNode: ((TreeNodeID) -> Void)? = nil,
+        accentTint: Color = .accentColor,
+        onDone: (() -> Void)? = nil
     ) {
         self.model = model
+        self._syncEnabled = syncEnabled
         self.overriddenOpenURL = openURL
+        self.onOpenTreeNode = onOpenTreeNode
         self.accentTint = accentTint
+        self.onDone = onDone
     }
 
     private var openURL: OpenURLAction { overriddenOpenURL ?? systemOpenURL }
 
     public var body: some View {
         NavigationSplitView {
+            if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             List(selection: $selectedWorkspaceID) {
+                Section {
+                    CompanionBookmarkLibraryEntry { bookmarksPresented = true }
+                }
                 Section(L("root.workspaces", "Workspaces")) {
                     ForEach(model.snapshot.visibleWorkspaces) { workspace in
                         HStack(spacing: 8) {
@@ -46,16 +59,31 @@ public struct CompanionRootView: View {
                             Text(workspace.name)
                         }
                         .tag(workspace.id)
+                        .accessibilityIdentifier(
+                            "browser.library.workspace.\(stableUUID(workspace.id.rawValue))"
+                        )
                         .contextMenu {
                             Button(L("action.rename", "Rename")) {
                                 renameDraft = workspace.name
                                 workspacePendingRename = workspace
                             }
+                            .accessibilityIdentifier(
+                                "browser.library.workspace.rename.\(stableUUID(workspace.id.rawValue))"
+                            )
+                            mergeMenu(for: workspace)
                             Button(L("workspace.delete", "Delete workspace"), role: .destructive) {
                                 workspacePendingDeletion = workspace.id
                             }
+                            .accessibilityIdentifier(
+                                "browser.library.workspace.delete.\(stableUUID(workspace.id.rawValue))"
+                            )
                         }
                     }
+                    SeparatedWorkspaceRows(
+                        coordinator: model.separatedWorkspaces,
+                        accentTint: .accentColor,
+                        onOpen: nil
+                    )
                 }
 
                 if !model.snapshot.visibleRemoteTabs.isEmpty {
@@ -97,7 +125,72 @@ public struct CompanionRootView: View {
             }
             .scrollContentBackground(.hidden)
             .background(accentTint.opacity(0.055))
+            .accessibilityIdentifier("browser.library.root")
             .navigationTitle("AhoiBrowser")
+            .modifier(LibraryDoneToolbar(onDone: libraryDoneAction))
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Menu {
+                        Button(L("workspace.title", "Workspace")) { beginCreation(.workspace) }
+                            .accessibilityIdentifier("browser.library.create.workspace")
+                        Button(L("folder.title", "Folder")) { beginCreation(.folder) }
+                            .disabled(selectedWorkspaceID == nil)
+                            .accessibilityIdentifier("browser.library.create.folder")
+                        Button(L("saved_page.title", "Saved page")) { beginCreation(.savedPage) }
+                            .disabled(selectedWorkspaceID == nil)
+                            .accessibilityIdentifier("browser.library.create.saved-page")
+                        Divider()
+                        Toggle(L("settings.sync.enabled", "CloudKit sync"), isOn: $syncEnabled)
+                        if syncEnabled && !model.isSyncConfigured {
+                            Text(L(
+                                "settings.sync.configuration_short",
+                                "Apple configuration or encryption key is missing"
+                            ))
+                        }
+                    } label: {
+                        Label(L("action.manage", "Manage"), systemImage: "plus.circle")
+                    }
+                    .accessibilityIdentifier("browser.library.manage")
+                }
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        Task { await model.sync() }
+                    } label: {
+                        Label(L("action.sync_now", "Sync now"), systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    .accessibilityHint(L(
+                        "sync.action.hint",
+                        "Starts a CloudKit sync when a provider is configured."
+                    ))
+                    .disabled(!model.isSyncConfigured)
+                }
+                ToolbarItemGroup(placement: .automatic) {
+                    Button {
+                        sendLinkPresented = true
+                    } label: {
+                        Label(
+                            CompanionL10n.string(
+                                "send_link.title",
+                                fallback: "Send link"
+                            ),
+                            systemImage: "paperplane"
+                        )
+                    }
+                    .disabled(!model.isRemoteControlAvailable || remoteDevices.isEmpty)
+
+                    Button {
+                        settingsPresented = true
+                    } label: {
+                        Label(
+                            CompanionL10n.string(
+                                "settings.title",
+                                fallback: "Settings"
+                            ),
+                            systemImage: "gearshape"
+                        )
+                    }
+                }
+            }
             .overlay {
                 if model.snapshot.visibleWorkspaces.isEmpty && model.snapshot.visibleRemoteTabs.isEmpty {
                     Text(L("root.empty", "No synced data yet"))
@@ -105,10 +198,16 @@ public struct CompanionRootView: View {
                         .padding()
                 }
             }
+            } else {
+                CompanionSearchResultsView(
+                    results: model.searchResults,
+                    openURL: openURL,
+                    onOpenTreeNode: onOpenTreeNode
+                )
+            }
         } detail: {
-            if !model.searchResults.isEmpty && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                SearchResultsView(results: model.searchResults, openURL: openURL)
-            } else if let workspace = model.snapshot.visibleWorkspaces.first(where: { $0.id == selectedWorkspaceID }) {
+            Group {
+            if let workspace = model.snapshot.visibleWorkspaces.first(where: { $0.id == selectedWorkspaceID }) {
                 WorkspaceDetailView(
                     workspace: workspace,
                     nodes: model.snapshot.visibleTreeNodes.filter { $0.workspaceID == workspace.id },
@@ -118,6 +217,7 @@ public struct CompanionRootView: View {
                     ),
                     actionableTabIDs: model.actionableRemoteTabIDs,
                     openURL: openURL,
+                    onOpenTreeNode: onOpenTreeNode,
                     remoteControlAvailable: model.isRemoteControlAvailable,
                     onRemoteOpen: { tab in
                         Task { await model.remotelyOpen(tab) }
@@ -142,6 +242,14 @@ public struct CompanionRootView: View {
                                 parentID: target.parentID
                             )
                         }
+                    },
+                    onReorderNode: { node, successorID in
+                        Task {
+                            await model.reorderTreeNode(
+                                node.id,
+                                before: successorID
+                            )
+                        }
                     }
                 )
             } else {
@@ -154,89 +262,57 @@ public struct CompanionRootView: View {
                     ))
                 )
             }
+            }
+            // A pushed compact detail hides the sidebar's Done, so it carries its own.
+            .modifier(LibraryDoneToolbar(onDone: libraryDoneAction, onlyWhenCompact: true))
         }
         .tint(accentTint)
+        .sheet(isPresented: $bookmarksPresented) {
+            BookmarkLibraryView(model: model, openURL: openURL)
+        }
         .searchable(
             text: $query,
             placement: .sidebar,
             prompt: L("search.prompt", "Workspaces, tabs, history")
         )
+        .accessibilityIdentifier("browser.library.search")
         .onChange(of: query) { _, value in
             Task { await model.refreshSearch(query: value) }
-        }
-        .onChange(of: syncEnabled) { _, enabled in
-            Task { await model.setSyncEnabled(enabled) }
-        }
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Menu {
-                    Button(L("workspace.title", "Workspace")) { beginCreation(.workspace) }
-                    Button(L("folder.title", "Folder")) { beginCreation(.folder) }
-                        .disabled(selectedWorkspaceID == nil)
-                    Button(L("saved_page.title", "Saved page")) { beginCreation(.savedPage) }
-                        .disabled(selectedWorkspaceID == nil)
-                    Divider()
-                    Toggle(L("settings.sync.enabled", "CloudKit sync"), isOn: $syncEnabled)
-                    if syncEnabled && !model.isSyncConfigured {
-                        Text(L(
-                            "settings.sync.configuration_short",
-                            "Apple configuration or encryption key is missing"
-                        ))
-                    }
-                } label: {
-                    Label(L("action.manage", "Manage"), systemImage: "plus.circle")
-                }
-            }
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    Task { await model.sync() }
-                } label: {
-                    Label(L("action.sync_now", "Sync now"), systemImage: "arrow.triangle.2.circlepath")
-                }
-                .accessibilityHint(L(
-                    "sync.action.hint",
-                    "Starts a CloudKit sync when a provider is configured."
-                ))
-                .disabled(!model.isSyncConfigured)
-            }
-            ToolbarItemGroup(placement: .automatic) {
-                Button {
-                    sendLinkPresented = true
-                } label: {
-                    Label(
-                        CompanionL10n.string(
-                            "send_link.title",
-                            fallback: "Send link"
-                        ),
-                        systemImage: "paperplane"
-                    )
-                }
-                .disabled(!model.isRemoteControlAvailable || remoteDevices.isEmpty)
-
-                Button {
-                    settingsPresented = true
-                } label: {
-                    Label(
-                        CompanionL10n.string(
-                            "settings.title",
-                            fallback: "Settings"
-                        ),
-                        systemImage: "gearshape"
-                    )
-                }
-            }
         }
         .task {
             await model.load()
             await model.sync()
         }
-        .alert(creationTitle, isPresented: creationPresented) {
-            TextField(L("field.name", "Name"), text: $draftTitle)
-            if creationKind == .savedPage {
-                TextField("https://…", text: $draftURL)
+        // A small form sheet instead of a text-field alert: an alert presentation
+        // could outlive the pushed Workspace detail and resurface after the
+        // library closed, blocking Done and the browser underneath.
+        .sheet(isPresented: creationPresented) {
+            NavigationStack {
+                Form {
+                    TextField(L("field.name", "Name"), text: $draftTitle)
+                        .accessibilityIdentifier("browser.library.create.name")
+                    if creationKind == .savedPage {
+                        TextField("https://…", text: $draftURL)
+                            .keyboardType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .accessibilityIdentifier("browser.library.create.url")
+                    }
+                }
+                .navigationTitle(creationTitle)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(L("action.cancel", "Cancel")) { resetCreation() }
+                            .accessibilityIdentifier("browser.library.create.cancel")
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(L("action.create", "Create")) { commitCreation() }
+                            .disabled(draftTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .accessibilityIdentifier("browser.library.create.confirm")
+                    }
+                }
             }
-            Button(L("action.cancel", "Cancel"), role: .cancel) { resetCreation() }
-            Button(L("action.create", "Create")) { commitCreation() }
+            .presentationDetents([.medium])
         }
         .confirmationDialog(
             L("workspace.delete.confirmation", "Delete workspace and its tree?"),
@@ -251,9 +327,34 @@ public struct CompanionRootView: View {
                 Task { await model.deleteWorkspace(id) }
                 workspacePendingDeletion = nil
             }
+            .accessibilityIdentifier("browser.library.workspace.delete.confirm")
             Button(L("action.cancel", "Cancel"), role: .cancel) {
                 workspacePendingDeletion = nil
             }
+            .accessibilityIdentifier("browser.library.workspace.delete.cancel")
+        }
+        .confirmationDialog(
+            mergeConfirmationTitle,
+            isPresented: Binding(
+                get: { workspacePendingMerge != nil },
+                set: { if !$0 { workspacePendingMerge = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: workspacePendingMerge
+        ) { request in
+            Button(L("workspace.merge.as_folder", "Merge as folder")) {
+                merge(request, intoFolder: true)
+            }
+            .accessibilityIdentifier("browser.library.workspace.merge.folder")
+            Button(L("workspace.merge.flat", "Merge without folder")) {
+                merge(request, intoFolder: false)
+            }
+            .accessibilityIdentifier("browser.library.workspace.merge.flat")
+            Button(L("action.cancel", "Cancel"), role: .cancel) {
+                workspacePendingMerge = nil
+            }
+        } message: { request in
+            Text(mergeConfirmationMessage(request))
         }
         .alert(
             L("workspace.rename", "Rename workspace"),
@@ -263,14 +364,17 @@ public struct CompanionRootView: View {
             )
         ) {
             TextField(L("field.name", "Name"), text: $renameDraft)
+                .accessibilityIdentifier("browser.library.workspace.rename.field")
             Button(L("action.cancel", "Cancel"), role: .cancel) {
                 workspacePendingRename = nil
             }
+            .accessibilityIdentifier("browser.library.workspace.rename.cancel")
             Button(L("action.save", "Save")) {
                 guard let workspace = workspacePendingRename else { return }
                 Task { await model.renameWorkspace(workspace.id, name: renameDraft) }
                 workspacePendingRename = nil
             }
+            .accessibilityIdentifier("browser.library.workspace.rename.save")
         }
         .sheet(isPresented: $settingsPresented) {
             CompanionSettingsView(model: model, syncEnabled: $syncEnabled)
@@ -278,6 +382,95 @@ public struct CompanionRootView: View {
         .sheet(isPresented: $sendLinkPresented) {
             CompanionSendLinkView(model: model)
         }
+        .safeAreaInset(edge: .top) {
+            if let message = model.loadError {
+                CompanionOperationErrorBanner(message: message, dismiss: model.dismissLoadError)
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let receipt = model.pendingWorkspaceMergeUndo {
+                WorkspaceMergeUndoBanner(
+                    message: CompanionL10n.format(
+                        "workspace.merge.done",
+                        fallback: "“%1$@” merged into “%2$@”.",
+                        receipt.previousSourceName,
+                        workspaceName(receipt.targetID)
+                    ),
+                    undo: { Task { await model.undoWorkspaceMerge() } },
+                    dismiss: model.dismissWorkspaceMergeUndo
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func mergeMenu(for workspace: Workspace) -> some View {
+        let targets = model.snapshot.visibleWorkspaces.filter {
+            model.canMergeWorkspace(workspace.id, into: $0.id)
+        }
+        if !targets.isEmpty {
+            Menu(L("workspace.merge", "Merge into…")) {
+                ForEach(targets) { target in
+                    Button(target.name) { requestMerge(workspace, into: target) }
+                        .accessibilityIdentifier(
+                            "browser.library.workspace.merge.\(stableUUID(workspace.id.rawValue)).\(stableUUID(target.id.rawValue))"
+                        )
+                }
+            }
+        }
+    }
+
+    /// ADR 0012: an empty Workspace merges without asking.
+    private func requestMerge(_ source: Workspace, into target: Workspace) {
+        let request = WorkspaceMergeRequest(source: source, target: target)
+        if mergeCounts(request).pages + mergeCounts(request).folders == 0 {
+            merge(request, intoFolder: true)
+        } else {
+            workspacePendingMerge = request
+        }
+    }
+
+    private func merge(_ request: WorkspaceMergeRequest, intoFolder: Bool) {
+        workspacePendingMerge = nil
+        if selectedWorkspaceID == request.source.id { selectedWorkspaceID = request.target.id }
+        Task {
+            await model.mergeWorkspace(
+                request.source.id,
+                into: request.target.id,
+                intoFolder: intoFolder
+            )
+        }
+    }
+
+    private func mergeCounts(_ request: WorkspaceMergeRequest) -> (pages: Int, folders: Int) {
+        let nodes = model.snapshot.visibleTreeNodes.filter { $0.workspaceID == request.source.id }
+        return (nodes.filter { $0.kind == .savedPage }.count, nodes.filter { $0.kind == .folder }.count)
+    }
+
+    private var mergeConfirmationTitle: String {
+        guard let request = workspacePendingMerge else { return "" }
+        return CompanionL10n.format(
+            "workspace.merge.confirmation",
+            fallback: "Merge “%1$@” into “%2$@”?",
+            request.source.name,
+            request.target.name
+        )
+    }
+
+    private func mergeConfirmationMessage(_ request: WorkspaceMergeRequest) -> String {
+        let counts = mergeCounts(request)
+        return CompanionL10n.format(
+            "workspace.merge.message",
+            fallback: "%1$d pages and %2$d folders move to “%3$@”, and “%4$@” is removed. You can undo this right afterwards.",
+            counts.pages,
+            counts.folders,
+            request.target.name,
+            request.source.name
+        )
+    }
+
+    private func workspaceName(_ id: WorkspaceID) -> String {
+        model.snapshot.visibleWorkspaces.first { $0.id == id }?.name ?? ""
     }
 
     private func remoteTabRow(_ tab: RemoteTab) -> some View {
@@ -308,6 +501,16 @@ public struct CompanionRootView: View {
         }
     }
 
+    /// Updates the caller's binding and dismisses the sheet directly: after a
+    /// Workspace push the binding alone could leave the sheet on screen.
+    private var libraryDoneAction: (() -> Void)? {
+        guard let onDone else { return nil }
+        return {
+            onDone()
+            dismissLibrary()
+        }
+    }
+
     private var creationPresented: Binding<Bool> {
         Binding(
             get: { creationKind != nil },
@@ -327,7 +530,13 @@ public struct CompanionRootView: View {
     private func beginCreation(_ kind: CreationKind) {
         draftTitle = ""
         draftURL = ""
-        creationKind = kind
+        // Called from the Manage menu: presenting while that menu is still
+        // closing leaves its popover dismiss region behind, which then
+        // swallows taps such as Done after the Workspace is created.
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            creationKind = kind
+        }
     }
 
     private func resetCreation() {
@@ -345,6 +554,8 @@ public struct CompanionRootView: View {
             switch kind {
             case .workspace:
                 if let workspace = await model.createWorkspace(name: title) {
+                    // Push the new detail only after the form sheet has closed.
+                    try? await Task.sleep(for: .milliseconds(450))
                     selectedWorkspaceID = workspace.id
                 }
             case .folder:
@@ -373,300 +584,54 @@ public struct CompanionRootView: View {
     }
 }
 
-public struct WorkspaceDetailView: View {
-    public let workspace: Workspace
-    public let nodes: [TreeNode]
-    public let tabs: [RemoteTab]
-    public let moveTargets: [CompanionTreeMoveTarget]
-    public let actionableTabIDs: Set<TabID>
-    public let openURL: OpenURLAction
-    public let remoteControlAvailable: Bool
-    public let onRemoteOpen: ((RemoteTab) -> Void)?
-    public let onRemoteFocus: ((RemoteTab) -> Void)?
-    public let onRemoteClose: ((RemoteTab) -> Void)?
-    public let onDeleteNode: ((TreeNode) -> Void)?
-    public let onRenameNode: ((TreeNode, String) -> Void)?
-    public let onMoveNode: ((TreeNode, CompanionTreeMoveTarget) -> Void)?
-    @State private var nodePendingRename: TreeNode?
-    @State private var nodePendingDeletion: TreeNode?
-    @State private var renameDraft = ""
+private struct LibraryDoneToolbar: ViewModifier {
+    let onDone: (() -> Void)?
+    var onlyWhenCompact = false
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
-    public init(
-        workspace: Workspace,
-        nodes: [TreeNode],
-        tabs: [RemoteTab],
-        moveTargets: [CompanionTreeMoveTarget] = [],
-        actionableTabIDs: Set<TabID> = [],
-        openURL: OpenURLAction,
-        remoteControlAvailable: Bool = false,
-        onRemoteOpen: ((RemoteTab) -> Void)? = nil,
-        onRemoteFocus: ((RemoteTab) -> Void)? = nil,
-        onRemoteClose: ((RemoteTab) -> Void)? = nil,
-        onDeleteNode: ((TreeNode) -> Void)? = nil,
-        onRenameNode: ((TreeNode, String) -> Void)? = nil,
-        onMoveNode: ((TreeNode, CompanionTreeMoveTarget) -> Void)? = nil
-    ) {
-        self.workspace = workspace
-        self.nodes = nodes
-        self.tabs = tabs
-        self.moveTargets = moveTargets
-        self.actionableTabIDs = actionableTabIDs
-        self.openURL = openURL
-        self.remoteControlAvailable = remoteControlAvailable
-        self.onRemoteOpen = onRemoteOpen
-        self.onRemoteFocus = onRemoteFocus
-        self.onRemoteClose = onRemoteClose
-        self.onDeleteNode = onDeleteNode
-        self.onRenameNode = onRenameNode
-        self.onMoveNode = onMoveNode
-    }
-
-    public var body: some View {
-        List {
-            Section(workspace.name) {
-                ForEach(orderedNodes) { item in
-                    TreeNodeRow(node: item.node, depth: item.depth, openURL: openURL)
-                        .contextMenu {
-                            Button(L("action.rename", "Rename")) {
-                                renameDraft = item.node.title
-                                nodePendingRename = item.node
-                            }
-                            .disabled(onRenameNode == nil)
-                            Menu(CompanionL10n.string(
-                                "tree.move",
-                                fallback: "Move to"
-                            )) {
-                                ForEach(moveTargets) { target in
-                                    Button(target.label) {
-                                        onMoveNode?(item.node, target)
-                                    }
-                                    .disabled(isInvalidMoveTarget(target, for: item.node))
-                                }
-                            }
-                            .disabled(onMoveNode == nil)
-                            Button(L("action.delete", "Delete"), role: .destructive) {
-                                nodePendingDeletion = item.node
-                            }
-                            .disabled(onDeleteNode == nil)
-                        }
+    func body(content: Content) -> some View {
+        if let onDone, !onlyWhenCompact || sizeClass == .compact {
+            content.toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(CompanionL10n.string("action.done", fallback: "Done"), action: onDone)
+                        .accessibilityIdentifier("browser.library.done")
                 }
             }
-            if !tabs.isEmpty {
-                Section(L("workspace.normal_device_tabs", "Normal tabs on devices")) {
-                    ForEach(tabs) { tab in
-                        RemoteTabRow(
-                            tab: tab,
-                            openURL: openURL,
-                            remoteControlAvailable: remoteControlAvailable &&
-                                actionableTabIDs.contains(tab.id),
-                            onRemoteOpen: onRemoteOpen.map { action in
-                                { action(tab) }
-                            },
-                            onRemoteFocus: onRemoteFocus.map { action in
-                                { action(tab) }
-                            },
-                            onRemoteClose: onRemoteClose.map { action in
-                                { action(tab) }
-                            }
-                        )
-                    }
-                }
-            }
+        } else {
+            content
         }
-        .navigationTitle(workspace.name)
-        .alert(
-            L("tree.rename", "Rename item"),
-            isPresented: Binding(
-                get: { nodePendingRename != nil },
-                set: { if !$0 { nodePendingRename = nil } }
-            )
-        ) {
-            TextField(L("field.name", "Name"), text: $renameDraft)
-            Button(L("action.cancel", "Cancel"), role: .cancel) {
-                nodePendingRename = nil
-            }
-            Button(L("action.save", "Save")) {
-                guard let node = nodePendingRename else { return }
-                onRenameNode?(node, renameDraft)
-                nodePendingRename = nil
-            }
-        }
-        .confirmationDialog(
-            nodePendingDeletion.map {
-                CompanionL10n.format(
-                    "tree.delete.confirmation",
-                    fallback: "Delete %@ and its contents?",
-                    $0.title
-                )
-            } ?? "",
-            isPresented: Binding(
-                get: { nodePendingDeletion != nil },
-                set: { if !$0 { nodePendingDeletion = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button(L("action.delete", "Delete"), role: .destructive) {
-                guard let node = nodePendingDeletion else { return }
-                nodePendingDeletion = nil
-                onDeleteNode?(node)
-            }
-            Button(L("action.cancel", "Cancel"), role: .cancel) {
-                nodePendingDeletion = nil
-            }
-        } message: {
-            Text(CompanionL10n.string(
-                "tree.delete.message",
-                fallback: "Deleted items are removed from Ahoi sync on your other devices too."
-            ))
-        }
-    }
-
-    private var orderedNodes: [IndentedTreeNode] {
-        let liveIDs = Set(nodes.map(\.id))
-        let children = Dictionary(grouping: nodes) { node in
-            node.parentID.flatMap { liveIDs.contains($0) ? $0 : nil }
-        }
-        var result: [IndentedTreeNode] = []
-        var visited = Set<TreeNodeID>()
-
-        func appendForest(_ roots: [TreeNode], depth: Int) {
-            var pending = roots.reversed().map { ($0, depth) }
-            while let (node, rawDepth) = pending.popLast() {
-                guard visited.insert(node.id).inserted else { continue }
-                result.append(.init(
-                    node: node,
-                    depth: min(rawDepth, CompanionHierarchyPolicy.maximumDepth)
-                ))
-                let descendants = (children[node.id] ?? []).sorted(by: nodeOrder)
-                pending.append(contentsOf: descendants.reversed().map {
-                    ($0, rawDepth + 1)
-                })
-            }
-        }
-        appendForest((children[nil] ?? []).sorted(by: nodeOrder), depth: 0)
-        for orphan in nodes.sorted(by: nodeOrder) where !visited.contains(orphan.id) {
-            appendForest([orphan], depth: 0)
-        }
-        return result
-    }
-
-    private func nodeOrder(_ left: TreeNode, _ right: TreeNode) -> Bool {
-        if left.syncSortKey != right.syncSortKey {
-            return left.syncSortKey < right.syncSortKey
-        }
-        return left.id < right.id
-    }
-
-    private func isInvalidMoveTarget(
-        _ target: CompanionTreeMoveTarget,
-        for node: TreeNode
-    ) -> Bool {
-        if target.workspaceID == node.workspaceID && target.parentID == node.parentID {
-            return true
-        }
-        guard node.kind == .folder, let parentID = target.parentID else {
-            return false
-        }
-        var descendants = Set<TreeNodeID>()
-        var pending = [node.id]
-        while let current = pending.popLast(), descendants.insert(current).inserted {
-            pending.append(contentsOf: nodes.filter {
-                $0.parentID == current
-            }.map(\.id))
-        }
-        return descendants.contains(parentID)
     }
 }
 
-private struct IndentedTreeNode: Identifiable {
-    let node: TreeNode
-    let depth: Int
-    var id: TreeNodeID { node.id }
+struct WorkspaceMergeRequest: Identifiable, Equatable {
+    let source: Workspace
+    let target: Workspace
+    var id: String { "\(source.id.rawValue).\(target.id.rawValue)" }
 }
 
-private struct TreeNodeRow: View {
-    let node: TreeNode
-    let depth: Int
-    let openURL: OpenURLAction
+/// The one-step undo offered right after a Workspace merge (ADR 0012).
+struct WorkspaceMergeUndoBanner: View {
+    let message: String
+    let undo: () -> Void
+    let dismiss: () -> Void
 
     var body: some View {
-        Button {
-            guard let url = node.url.flatMap(URL.init(string:)) else { return }
-            openURL(url)
-        } label: {
-            HStack(spacing: 8) {
-                if !node.icon.isEmpty {
-                    Text(node.icon)
-                } else {
-                    Image(systemName: node.kind == .folder ? "folder" : "bookmark")
-                }
-                Text(node.title)
-                if let accent = node.accent.flatMap(Color.init(argbHex:)) {
-                    Circle().fill(accent).frame(width: 7, height: 7)
-                }
-            }
-                .padding(.leading, CGFloat(depth) * 18)
+        HStack(spacing: 12) {
+            Text(message)
+                .font(.callout)
                 .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .buttonStyle(.plain)
-        .disabled(node.kind == .folder || node.url == nil)
-    }
-}
-
-private struct WorkspaceIcon: View {
-    let workspace: Workspace
-
-    var body: some View {
-        HStack(spacing: 4) {
-            if workspace.icon.isEmpty {
-                Image(systemName: "square.stack.3d.up")
-            } else {
-                Text(workspace.icon)
+            Button(L("action.undo", "Undo"), action: undo)
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("browser.library.workspace.merge.undo")
+            Button(action: dismiss) {
+                Image(systemName: "xmark")
             }
-            if let accent = workspace.accent.flatMap(Color.init(argbHex:)) {
-                Circle().fill(accent).frame(width: 7, height: 7)
-            }
+            .accessibilityLabel(L("action.close", "Close"))
+            .accessibilityIdentifier("browser.library.workspace.merge.undo.dismiss")
         }
-    }
-}
-
-private extension Color {
-    init?(argbHex: String) {
-        let raw = argbHex.trimmingCharacters(
-            in: CharacterSet(charactersIn: "#")
-        )
-        guard let value = UInt32(raw, radix: 16), raw.count == 8 else { return nil }
-        self.init(
-            .sRGB,
-            red: Double((value >> 16) & 0xff) / 255,
-            green: Double((value >> 8) & 0xff) / 255,
-            blue: Double(value & 0xff) / 255,
-            opacity: Double((value >> 24) & 0xff) / 255
-        )
-    }
-}
-
-private struct SearchResultsView: View {
-    let results: [CompanionSearchResult]
-    let openURL: OpenURLAction
-
-    var body: some View {
-        List(results) { result in
-            Button {
-                guard let url = result.url.flatMap(URL.init(string:)) else { return }
-                openURL(url)
-            } label: {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(result.title)
-                    Text(result.detail)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-            .disabled(result.url == nil)
-        }
-        .navigationTitle(L("search.title", "Search"))
+        .padding(12)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
     }
 }

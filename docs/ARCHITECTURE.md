@@ -69,6 +69,13 @@ and exact Sparkle upstream artifact. See `docs/UPDATES.md`.
 
 ## Profile and window invariants
 
+The table below describes the existing runtime, not completion of the renewed
+workspace-session goal. The user now requires isolated local website sessions
+while retaining global History/password/extension services. The superseding
+target, native integration constraints and Sync boundary are in
+`WORKSPACE_SESSIONS.md`. Do not infer that all normal-workspace cookies must
+remain shared or that each workspace needs a duplicated full Chromium Profile.
+
 | Surface | Chromium context | Persistent | Normal cookies/extensions | Synced |
 | --- | --- | --- | --- | --- |
 | Workspace window | shared normal profile | yes | yes | permitted UI records |
@@ -95,6 +102,20 @@ is independent from transient `SessionID` values.
 
 The controller must tolerate renderer crashes, discarded tabs, restored
 sessions, extension-created tabs, popups, and tabs moved between windows.
+
+
+### Single writer
+
+An Ahoi operation decides a semantic transition (Workspace switch, move,
+archive, delete, split) and commits it once. Chromium executes and reports
+completion. Observers of a self-caused change do not write again. They
+recognize it by an operation guard that lasts until Chromium's asynchronous
+execution has finished, not merely until the call returns. Only externally
+caused changes (native UI, extensions, restore) become new facts. Late or
+repeated completions are idempotent through a process-local operation ID.
+Authority epochs expire only on changes to the guarded precondition.
+(Crest-hardening handoff 011; audit
+`docs/reviews/crest-hardening-2026-09-25-single-writer-audit.md`.)
 
 ## Split-view model
 
@@ -148,12 +169,12 @@ and dependent patches are evaluated in series order. Each patch has an entry in
 `patches/chromium/README.md` with owner, affected upstream paths, rationale,
 tests, and expected rebase risk.
 
-For the active Chromium M152 pin, the ordered series contains exactly four
-entries: one consolidated integration-seam patch, one deterministic-platform
-test patch, one upstream page-load tracing-isolation patch, and one bounded
-Lean-profile Compose-guard patch. The former 21-entry M151 stack is preserved
-through its recovery evidence, not kept active as duplicated maintenance
-surface.
+For the active Chromium M152 pin, `patches/chromium/series` is the sole count
+and order authority. The stack starts with the consolidated integration seam
+and then carries small, reviewable feature and regression patches, currently
+through the sidebar/navigation non-overlap and zero-tab extension-context-menu
+corrections. The former 21-entry M151 stack is preserved through its recovery
+evidence, not kept active as duplicated maintenance surface.
 
 Within the M152 integration-seam patch, split view preserves upstream two-pane
 behavior, connects Ahoi sidebar drag targets, introduces versioned

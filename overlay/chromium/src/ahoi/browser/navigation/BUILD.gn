@@ -9,9 +9,104 @@ source_set("navigation_preferences") {
     "navigation_input_prefs.h",
   ]
   public_deps = [
+    ":keyboard_shortcuts",
     ":navigation",
     "//components/prefs",
     "//components/sync_preferences",
+  ]
+  deps = [
+    ":link_routing",
+    "//ahoi/browser/popup:link_peek",
+  ]
+}
+
+# One catalog of Ahoi keyboard commands, their user bindings and the
+# conflict check. Pure model: no views, no //chrome.
+source_set("keyboard_shortcuts") {
+  sources = [
+    "keyboard_shortcut_registration.cc",
+    "keyboard_shortcut_registration.h",
+    "keyboard_shortcuts.cc",
+    "keyboard_shortcuts.h",
+  ]
+  public_deps = [
+    "//base",
+    "//components/prefs",
+    "//ui/base",
+  ]
+  deps = [
+    "//base:i18n",
+    "//components/pref_registry",
+    "//ui/events",
+  ]
+}
+
+# Pure external-link routing model, matcher and pref codec.
+source_set("link_routing") {
+  sources = [
+    "link_routing.cc",
+    "link_routing.h",
+    "link_routing_editor.cc",
+    "link_routing_editor.h",
+  ]
+  public_deps = [
+    "//base",
+    "//url",
+  ]
+  deps = [ "//components/prefs" ]
+}
+
+# Opens routed external links in their target Workspace. Depended on only by
+# the macOS app controller seam (patch 0057); it must not depend on
+# //chrome/browser/ui or //chrome/browser:browser.
+source_set("link_routing_dispatch") {
+  sources = [
+    "link_routing_dispatch.cc",
+    "link_routing_dispatch.h",
+  ]
+  public_deps = [
+    ":link_routing",
+    "//base",
+    "//url",
+  ]
+  deps = [
+    ":link_routing_target_chooser",
+    ":navigation",
+    "//ahoi/browser/command_bar:quick_window_policy",
+    "//ahoi/browser/session:isolated_profiles",
+    "//ahoi/browser/session:session_bridge_api",
+    "//ahoi/browser/session:session_preferences",
+    "//chrome/app:generated_resources",
+    "//chrome/browser:browser_process",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/profiles:profile_manager",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/browser_window:create_browser_window",
+    "//components/prefs",
+    "//ui/base",
+    "//ui/display",
+    "//ui/gfx/geometry",
+  ]
+}
+
+# Window-modal "Für diese Website merken" chooser for a routed link whose
+# explicit target Workspace is gone. Views and constrained_window only, never
+# //chrome/browser/ui.
+source_set("link_routing_target_chooser") {
+  sources = [
+    "link_routing_target_chooser.cc",
+    "link_routing_target_chooser.h",
+  ]
+  public_deps = [
+    "//base",
+    "//ui/gfx",
+    "//url",
+  ]
+  deps = [
+    "//base:i18n",
+    "//components/constrained_window",
+    "//ui/base",
+    "//ui/views",
   ]
 }
 
@@ -21,6 +116,8 @@ source_set("navigation") {
     "cmd_scroll_tab_switcher.h",
     "command_service.cc",
     "command_service.h",
+    "tab_mru.cc",
+    "tab_mru.h",
     "workspace_service.cc",
     "workspace_service.h",
     "workspace_swipe_event_handler.cc",
@@ -53,16 +150,24 @@ source_set("unit_tests") {
   sources = [
     "cmd_scroll_tab_switcher_unittest.cc",
     "command_service_unittest.cc",
+    "keyboard_shortcut_registration_unittest.cc",
+    "keyboard_shortcuts_unittest.cc",
+    "link_routing_editor_unittest.cc",
+    "link_routing_unittest.cc",
     "navigation_input_prefs_unittest.cc",
+    "tab_mru_unittest.cc",
     "workspace_service_unittest.cc",
     "workspace_swipe_event_handler_unittest.cc",
     "workspace_swipe_tracker_unittest.cc",
   ]
   deps = [
+    ":keyboard_shortcuts",
+    ":link_routing",
     ":navigation",
     ":navigation_preferences",
     "//base/test:test_support",
     "//components/omnibox/browser:location_bar",
+    "//components/prefs:test_support",
     "//components/sync_preferences:test_support",
     "//testing/gtest",
     "//ui/events",

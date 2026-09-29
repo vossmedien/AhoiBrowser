@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/ui/sidebar/sidebar_split_resize_area.h"
 #include "base/functional/callback.h"
 #include "base/memory/weak_ptr.h"
 #include "base/uuid.h"
@@ -47,6 +48,21 @@ enum class OpenTabDropPosition {
 // target and a non-split tab has nothing to detach.
 bool CanDetachRuntimeSplitPaneOnSelfDrop(bool source_is_split,
                                          OpenTabDropPosition position);
+
+// Drop-zone geometry of an open-tab row of `row_height`: the painted 30/40/30
+// before/split/after zones, shared by hit testing and painting.
+OpenTabDropPosition OpenTabDropPositionForY(int y, int row_height);
+
+// The row edge nearest to `y`, used when the central split zone is rejected.
+OpenTabDropPosition NearestOpenTabDropEdge(int y, int row_height);
+
+// Whether a pointer at `y` keeps the `current` zone instead of switching to
+// `next`: a small hysteresis around each zone boundary stops the highlight
+// from flickering while the pointer rests on a boundary.
+bool KeepsOpenTabDropPosition(OpenTabDropPosition current,
+                              std::optional<OpenTabDropPosition> next,
+                              int y,
+                              int row_height);
 
 // A composite segment keeps its durable saved-node identity when available;
 // only genuinely temporary panes use Chromium's process-local tab handle.
@@ -99,15 +115,22 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     SidebarDropTargetClaimCallback drop_target_claim_callback,
     CanDropOnRuntimeTabCallback can_drop_callback,
     DropOnRuntimeTabCallback drop_callback,
-    views::ContextMenuController* context_menu_controller);
+    views::ContextMenuController* context_menu_controller,
+    ui::ImageModel origin_badge = {},
+    bool bookmarked = false);
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view);
 std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view);
 void SetOpenTabSearchSelected(views::View* view, bool selected);
 
+// Marks a row created by CreateOpenTabRowView() as one pane of a composite
+// split row. Returns false when `view` is not a runtime tab row.
+bool SetOpenTabSplitSegmentPresentation(views::View* view);
+
 std::unique_ptr<views::View> CreateOpenTabSplitRowView(
     std::vector<std::unique_ptr<views::View>> tabs,
-    split_tabs::SplitTabVisualData visual_data);
+    split_tabs::SplitTabVisualData visual_data,
+    SidebarSplitResizeCallback resize_callback = {});
 
 using DropSavedNodeToTemporaryCallback =
     base::RepeatingCallback<bool(const base::Uuid&)>;

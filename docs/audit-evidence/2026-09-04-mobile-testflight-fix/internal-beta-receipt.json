@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "scope": "Internal Beta Ready",
+  "status": "internal-beta-ready-with-documented-external-gates",
+  "date": "2026-09-05",
+  "sourceCommit": "ab2e709d9cf77c4e73d548bb8d2869090940c0a0",
+  "version": "0.1",
+  "buildNumber": "10",
+  "bundleId": "app.ahoibrowser.AhoiBrowser",
+  "release": {
+    "configuration": "TestFlightBootstrap",
+    "teamId": "248AJ5BN47",
+    "signatureVerified": true,
+    "getTaskAllow": false,
+    "cloudKitEnvironment": "Production",
+    "cloudKitContainer": "iCloud.app.ahoibrowser.AhoiBrowser",
+    "ipaSha256": "d77e810b8f3c2a49617519ff09d7948c256c46ead85940da6d0664e3e0b5c7b1",
+    "appStoreConnectAppId": "6808754773",
+    "appStoreConnectBuildId": "84cf0b2e-c1b9-4ff7-b104-8d99cce8ae9f",
+    "internalGroup": "AhoiBrowser Intern",
+    "internalStatusObserved": "Im Test",
+    "physicalBuild10Installed": false,
+    "testFlightAppInstalled": true,
+    "physicalGate": "07:15 CEST readback: developer Build 9, TestFlight installed. Terms approval pending; mirroring unavailable while phone is used."
+  },
+  "simulator": {
+    "configuration": "DebugLocal",
+    "model": "iPhone 17 Pro Max",
+    "osVersion": "26.5",
+    "distributionEligible": false,
+    "appTreeSha256": "ef0d813072dd3b772f3ea2d8c68f1272baf1d3842a161f72d07a3e54e2d1bdc5",
+    "binarySha256": "7912f7d27bfe4f158a7c6ef6102be9d3210690fabd37873ac1a4251e703a09b9",
+    "candidateRelation": "Same committed product source, different platform/configuration from the signed IPA."
+  },
+  "artifactHashAlgorithm": "mobile_evidence_artifacts.sha256_path: domain-prefixed file or tree-v1",
+  "rawEvidenceRoot": "artifacts/e2e/0.1-10-ab2e709-internal-beta",
+  "rawEvidenceStorage": "Canonical local Git-ignored artifacts; summary and screenshots are tracked.",
+  "results": [
+    {
+      "artifact": "e2e-harbor-collapse-build10-astra.xcresult",
+      "sha256": "fcaa175387865cf011b1e1edd7f3de76f4589fa9cc70f99ce97056ee5430ba2c",
+      "kind": "visible-e2e",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "artifact": "golden-sync-status.xcresult",
+      "sha256": "b168bf0be11ae9b2c92e488dcd5a72f7d49f975a5572cf360f123ce8dd7e1813",
+      "kind": "visible-e2e-local-only-sync",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "artifact": "e2e-cold-launch-build10-astra.xcresult",
+      "sha256": "d67ccb08ba17a118b39728267c8ff86251218b1fe6c71dadb1815ddfc6c3517c",
+      "kind": "visible-e2e-host-input-failure",
+      "result": "Failed",
+      "passed": 0,
+      "failed": 1,
+      "boundary": "Synthetic address input lost characters. Independent Computer Use HTTPS navigation passed with individually delivered keys."
+    },
+    {
+      "artifact": "internal-beta-core.xcresult",
+      "sha256": "0f79ecc642a16451c6c4104a8ad7c0cc7474b79c2a21f6ca77bc4dfe9f186819",
+      "kind": "programmatic-core-after-visible-e2e",
+      "result": "Passed",
+      "passed": 213,
+      "failed": 0,
+      "skipped": 2,
+      "skipReason": "Expected CloudKit-entitlement absence in DebugLocal."
+    },
+    {
+      "artifact": "internal-beta-analyze.log",
+      "sha256": "550945c471a8c0227265f824499f7735fa8d7c3e716875eaee34a753120c1ceb",
+      "kind": "static-analysis-after-visible-e2e",
+      "result": "ANALYZE SUCCEEDED"
+    },
+    {
+      "artifact": "internal-beta-repository.log",
+      "sha256": "22833aa90f69b5d0f3ff402f77280876a1086418b73c486f2a3892be618b36bd",
+      "kind": "repository-initial",
+      "result": "Failed",
+      "passed": 38,
+      "failed": 3,
+      "errors": 3,
+      "boundary": "Five macOS temporary-root fixture failures and one stale bounded-read-model assertion. All six are covered by the passing seven-test focused rerun; original aggregate remains failed."
+    },
+    {
+      "artifact": "internal-beta-repository-focused.log",
+      "sha256": "839027e1da61851a73566bc1fe026ea3f251d42a0acebcba36b02bbe7aedb301",
+      "kind": "repository-focused-correction",
+      "result": "Passed",
+      "passed": 7,
+      "failed": 0,
+      "boundary": "All six earlier failures and one passing overlap; test fixtures/contracts only, no product change."
+    },
+    {
+      "artifact": "cloudkit-package-reused.log",
+      "sha256": "c98808ce85d76daa2ed98c662cbd0192a099dc1e84f3cdb7fa9ee8e7acd31b3d",
+      "kind": "reused-unchanged-cloudkit-package",
+      "result": "Passed",
+      "passed": 36,
+      "failed": 0,
+      "boundary": "No package diff from 3c1af83 through ab2e709/current Mobile source. Offline model/crypto tests, not Apple transport."
+    },
+    {
+      "artifact": "secret-scan-mobile.log",
+      "sha256": "264a71a3772941d8747894318d8bdcb94f9db9b1db7aa3914c03a667e020d499",
+      "kind": "redacted-secret-scan-exact-mobile-source",
+      "result": "No leaks found"
+    },
+    {
+      "artifact": "secret-scan-cloudkit.log",
+      "sha256": "b201b1d04e355145667700d27a565ba8d6d2f9dd9f4c2e914fb9d12c16b9930f",
+      "kind": "redacted-secret-scan-exact-cloudkit-package",
+      "result": "No leaks found"
+    },
+    {
+      "artifact": "secret-scan-evidence.log",
+      "sha256": "68472ee5c4477c20ff522cdd4c9d482782aaf4f6586a99297b030ffd10ad47fe",
+      "kind": "redacted-secret-scan-evidence",
+      "result": "No leaks found"
+    },
+    {
+      "artifact": "ahoi-mobile-afa5cb6-cloudkit-real-e2e-07.xcresult",
+      "sha256": "4ebbe692b69f34f594d6874c3971100d48d160f6783fbd90f16adfbe23064ce8",
+      "kind": "reused-real-development-cloudkit",
+      "sourceCommit": "afa5cb64f79d348919001f27efea4db0f8c10bca",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0,
+      "boundary": "Same sync/schema code as ab2e709; real active/tombstone transport, encrypted-field privacy and authenticated cleanup on iPhone. Not Production or multi-device evidence."
+    }
+  ],
+  "projectChecks": {
+    "xcodeGenVersion": "2.46.0",
+    "generationNoOp": true,
+    "generatedProjectSha256": "bd7c59414bfa66ef5804c7e3de95535a71dd304daef5c7a8ef45b51c725af016",
+    "mobileSourceUnchanged": true,
+    "mobileSwiftMaximumLines": 800,
+    "ownedDiffWhitespacePass": true
+  },
+  "computerUseScreenshots": {
+    "golden-01-https.png": "3943b866d121c240aed2d9bb9146d7b2198c27076e1d845ff7a413f876128b24",
+    "golden-02-second-https.png": "dde6163b464b153db7d2e586e88a71afd630033cb74b53b633dd40c1eb001017",
+    "golden-03-back.png": "06e1089572943497e429503741f21433551477cfbed602503e3d131a00df81b5",
+    "golden-04-normal-tab.png": "a28c81c473cfdbc6ac349fe8138882dc776919c9fe26539f2c8e3a0de5148977",
+    "golden-05-private-tab.png": "ee62aadcb9ada169bc1673411f2a73a95db31b91f65039ddf874c56dbe03d224",
+    "golden-06-normal-tabs.png": "67badf09753d926a22c6570cf699a8a7abfe4cc9811f21fdd1580a732efaf20b",
+    "golden-07-downloads.png": "af0616c9082c39642187390866d028623cea987e0faab0dd371101b518ad0b52"
+  },
+  "externalGates": [
+    "Physical TestFlight Build 10 installation and cold-launch/HTTPS smoke",
+    "Compatible physical iPad",
+    "Production CloudKit and Mac/iPhone/iPad domain roundtrip",
+    "Public TestFlight Beta Review and link",
+    "Managed default-browser grant and post-grant build",
+    "Public Store release approval"
+  ]
+}

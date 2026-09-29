@@ -1,0 +1,76 @@
+{
+ "kind": "source-syntax-only",
+ "sourceCommit": "d7c9109cc3e21c1f41824669f62b4e8f861d94c0",
+ "maxConcurrentCompilers": 2,
+ "planSha256": "eccf3dcc6ef8f477605e9a940363f731b2799d18ba7df69401bd05d86f3864c5",
+ "checks": [
+  {
+   "name": "workspace_structure_controller",
+   "template": "obj/ahoi/browser/session/session/workspace_structure_controller.o",
+   "sourceSha256": "a6bcb39d604c0247e1921e44459091b7ce3d16768485ee1f0fea70f26e1a10ac"
+  },
+  {
+   "name": "workspace_structure_invalidation_unittest",
+   "template": "obj/ahoi/browser/session/unit_tests/workspace_structure_invalidation_unittest.o",
+   "sourceSha256": "ac4cf3490843b7a58dd68ea14a50bb0ce2a6914a0c79e7c1d3b8bd903f2689da"
+  },
+  {
+   "name": "popup_overlay_controller",
+   "template": "obj/ahoi/browser/ui/popup/popup_overlay/popup_overlay_controller.o",
+   "sourceSha256": "10ae50e873c22ee392cf61c5b0bfcb0cbef497108b9fa77ba722ccc7e284a65f"
+  },
+  {
+   "name": "browser_sidebar_host_discovery",
+   "template": "obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_discovery.o",
+   "sourceSha256": "0eeedaadc5ed2314cb439327eefca4610f1a56e7cd902ce174fbf1379dd1471c"
+  },
+  {
+   "name": "browser_sidebar_host_tree_actions",
+   "template": "obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_tree_actions.o",
+   "sourceSha256": "0ac4d5cdcbbd3b3437e045e4c5add5422add4a44db659a9d397be55c19c2a5a6"
+  },
+  {
+   "name": "browser_sidebar_host_command_dispatch",
+   "template": "obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_command_dispatch.o",
+   "sourceSha256": "9cb52b616767c2f215f5b0fa30eeffb9a4bbb619d5313717aa520fee46dd9e24"
+  },
+  {
+   "name": "browser_sidebar_host_move_command",
+   "template": "obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_move_command.o",
+   "sourceSha256": "8a34df40faf24cbbb7307d79cf41a6a6959cbee64ca5f918c9948d9903c2fa81"
+  },
+  {
+   "name": "browser_sidebar_host_group_dialog",
+   "template": "obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_group_dialog.o",
+   "sourceSha256": "2290e6dda5e3d8c22459f044f7650ef2760a8750d7f35902c7090022a62c4c39"
+  },
+  {
+   "name": "sidebar_tree_view_drop_execution",
+   "template": "obj/ahoi/browser/ui/sidebar/sidebar_views/sidebar_tree_view_drop_execution.o",
+   "sourceSha256": "7e63474e1b5faf1f4b5d914b3e1f31d3c73918273ab567ab9b4b54091076f5cd"
+  },
+  {
+   "name": "sidebar_tree_view_test_support",
+   "template": "obj/ahoi/browser/ui/sidebar/unit_tests/sidebar_tree_view_test_support.o",
+   "sourceSha256": "77e79b75ee0228447a74e0fcceee3a322f8804520924893c54d2c492ca336822"
+  },
+  {
+   "name": "sidebar_tree_view_drag_lifecycle_unittest",
+   "template": "obj/ahoi/browser/ui/sidebar/unit_tests/sidebar_tree_view_drag_lifecycle_unittest.o",
+   "sourceSha256": "130ab9a542cbfe4f711d21c9227efeb4e9c079982fcbaf6d25e8bafac669815c"
+  }
+ ],
+ "results": {
+  "workspace_structure_controller": 0,
+  "workspace_structure_invalidation_unittest": 0,
+  "popup_overlay_controller": 0,
+  "browser_sidebar_host_discovery": 0,
+  "browser_sidebar_host_tree_actions": 0,
+  "browser_sidebar_host_command_dispatch": 0,
+  "browser_sidebar_host_move_command": 0,
+  "browser_sidebar_host_group_dialog": 0,
+  "sidebar_tree_view_drop_execution": 0,
+  "sidebar_tree_view_test_support": 0,
+  "sidebar_tree_view_drag_lifecycle_unittest": 0
+ }
+}

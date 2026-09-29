@@ -1,0 +1,142 @@
+{
+  "app": {
+    "path": "/Applications/AhoiBrowser.app",
+    "executable": "/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser",
+    "binarySha256": "926000eed6daa1af23aba9e9d2feb5613612b1d8b03c28f25c70037092580f8b",
+    "bundleIdentifier": "app.ahoibrowser.AhoiBrowser",
+    "chromiumVersion": "153.0.8010.53",
+    "sourceCommit": "4746af81d6ffe01984012fa44c5c99c55d152766",
+    "buildProfile": "dev",
+    "chromiumCommit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+    "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+  },
+  "buildEvidence": null,
+  "metrics": {
+    "workspace_switch_ms": [],
+    "workspace_switch_presented_ms": []
+  },
+  "schemaVersion": 2,
+  "kind": "ahoi-perf-run",
+  "startedAt": "2026-09-28T17:37:21.346991+00:00",
+  "conditions": {
+    "chromiumVersion": "153.0.8010.53",
+    "hardwareModel": "Mac14,6",
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "flags": [
+      "--no-default-browser-check",
+      "--no-first-run",
+      "--window-position=0,0",
+      "--window-size=1440,900"
+    ],
+    "windowSize": "1440,900",
+    "accessibilityClients": [],
+    "scenarioVersion": 2,
+    "validationRun": true
+  },
+  "hostBefore": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      12.59814453125,
+      8.50732421875,
+      8.39013671875
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [
+      "swift-frontend",
+      "xcodebuild"
+    ],
+    "hidIdleSeconds": 124.81,
+    "hidIdleSampledAt": 71061.3953765,
+    "hidIdleSampledWall": 1790617041.345355
+  },
+  "hostAfter": {
+    "hardwareModel": "Mac14,6",
+    "cpuCount": 12,
+    "osBuild": "26A428",
+    "powerSource": "ac",
+    "loadAverage": [
+      11.12353515625,
+      9.34716796875,
+      8.74560546875
+    ],
+    "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+    "accessibilityClients": [],
+    "busyProcesses": [
+      "swift-frontend",
+      "xcodebuild"
+    ],
+    "hidIdleSeconds": 192.441,
+    "hidIdleSampledAt": 71129.026351291,
+    "hidIdleSampledWall": 1790617108.976782
+  },
+  "runtimeGuard": {
+    "checkpoint": ".work/crest-h3/lease-45.md",
+    "leaseId": "crest-h3-validation-4746af81",
+    "grantSha256": "89747057e168a8a2185fa140e23ac7e52993022ee3f6143e382adc7690d9789a",
+    "expiresAt": "2026-09-29T04:32:51.523947+00:00",
+    "pollIntervalSeconds": 1.0,
+    "checks": 62,
+    "completed": true,
+    "cancelled": false,
+    "reason": null,
+    "lockRetained": false,
+    "driverAccessibilityClients": [],
+    "driverInputs": 0,
+    "idleSamples": [
+      [
+        55.75,
+        180.557
+      ],
+      [
+        56.85,
+        181.662
+      ],
+      [
+        57.96,
+        182.771
+      ],
+      [
+        59.07,
+        183.881
+      ],
+      [
+        60.18,
+        184.987
+      ],
+      [
+        61.28,
+        186.09
+      ],
+      [
+        62.38,
+        187.189
+      ],
+      [
+        63.5,
+        188.306
+      ],
+      [
+        64.64,
+        189.452
+      ],
+      [
+        65.81,
+        190.623
+      ],
+      [
+        66.93,
+        191.742
+      ],
+      [
+        67.67,
+        192.486
+      ]
+    ],
+    "inputEpochOffset": -124.81
+  }
+}

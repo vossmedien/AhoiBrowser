@@ -1,0 +1,158 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project apps/AhoiMobile/AhoiMobile.xcodeproj -scheme AhoiMobile -configuration DebugLocal -destination "platform=iOS Simulator,id=15C1EB97-A65C-4D93-842D-AB889339BE8D" -derivedDataPath /private/tmp/ahoi-mobile-4113c14-sim-derived -resultBundlePath /private/tmp/ahoi-mobile-4113c14-iphone-ui-missing-01.xcresult -parallel-testing-enabled NO "-only-testing:AhoiMobileUITests/AhoiMobileUITests/testUnsafeSchemeIsExplainedAndRejected" "-only-testing:AhoiMobileUITests/AhoiMobileUITests/testOfflineFailureExplainsAndOffersRetry" "-only-testing:AhoiMobileUITests/MobileBrowserLayoutUITests/testPrivateFocusVoyageDoesNotExposeNormalJourneySections" AHOI_SOURCE_COMMIT=4113c14c1e0d21061a1c5927e25ab55663d547a7 AHOI_MOBILE_MARKETING_VERSION=0.1 AHOI_MOBILE_BUILD_NUMBER=1 AHOI_APP_USES_NON_EXEMPT_ENCRYPTION=NO test-without-building
+
+Build settings from command line:
+    AHOI_APP_USES_NON_EXEMPT_ENCRYPTION = NO
+    AHOI_MOBILE_BUILD_NUMBER = 1
+    AHOI_MOBILE_MARKETING_VERSION = 0.1
+    AHOI_SOURCE_COMMIT = 4113c14c1e0d21061a1c5927e25ab55663d547a7
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  AhoiCloudKitSpike: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/spikes/cloudkit
+
+Writing result bundle at path:
+	/private/tmp/ahoi-mobile-4113c14-iphone-ui-missing-01.xcresult
+
+2026-08-30 19:57:30.038240+0200 AhoiMobileUITests-Runner[94955:143975692] [Default] Running tests...
+objc[94955]: Class UIAccessibilityLoaderWebShared is implemented in both /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1033b8310) and /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10623c398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-08-30 19:57:40.946.
+Test Suite 'AhoiMobileUITests.xctest' started at 2026-08-30 19:57:40.948.
+Test Suite 'AhoiMobileUITests' started at 2026-08-30 19:57:40.949.
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testOfflineFailureExplainsAndOffersRetry]' started.
+    t =     0.01s Start Test at 2026-08-30 19:57:40.956
+    t =     0.72s Set Up
+    t =     1.00s Open app.ahoibrowser.AhoiBrowser
+    t =     1.00s     Launch app.ahoibrowser.AhoiBrowser
+2026-08-30 19:57:43.787 xcodebuild[92517:143971677] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:57:43.787 xcodebuild[92517:143971677] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     7.79s         Setting up automation session
+    t =    10.01s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    11.69s Waiting 8.0s for "browser.page-failure" Any to exist
+    t =    12.83s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.page-failure" Any`
+    t =    12.84s         Checking existence of `"browser.page-failure" Any`
+    t =    13.42s Checking existence of `"browser.retry" Any`
+    t =    13.66s Tear Down
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testOfflineFailureExplainsAndOffersRetry]' passed (14.896 seconds).
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testUnsafeSchemeIsExplainedAndRejected]' started.
+    t =     0.00s Start Test at 2026-08-30 19:57:55.853
+    t =     0.05s Set Up
+    t =     0.06s Open app.ahoibrowser.AhoiBrowser
+    t =     0.06s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.06s         Terminate app.ahoibrowser.AhoiBrowser:96278
+2026-08-30 19:57:56.989 xcodebuild[92517:143971677] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:57:56.989 xcodebuild[92517:143971677] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.88s         Setting up automation session
+    t =     3.72s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.22s Waiting 5.0s for "browser.address" Button to exist
+    t =     6.31s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =     6.31s         Checking existence of `"browser.address" Button`
+    t =     6.59s Tap "browser.address" Button
+    t =     6.59s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.61s     Find the "browser.address" Button
+    t =     6.72s     Check for interrupting elements affecting "browser.address" Button
+    t =     6.85s     Synthesize event
+    t =     7.29s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.81s Waiting 3.0s for TextField (First Match) to exist
+    t =     8.89s     Checking `Expect predicate `existsNoRetry == 1` for object TextField (First Match)`
+    t =     8.89s         Checking existence of `TextField (First Match)`
+    t =    11.15s         Capturing element debug description
+    t =    11.17s     Checking existence of `TextField (First Match)`
+    t =    12.58s Ignoring failure to get hierarchy for remote element in process 96782 (Error getting main window kAXErrorServerNotFound)
+    t =    12.62s Waiting 2.0s for "browser.address.clear" Button to exist
+    t =    13.71s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    13.72s         Checking existence of `"browser.address.clear" Button`
+    t =    14.66s     Checking existence of `"browser.address.clear" Button`
+    t =    14.98s Tap "browser.address.clear" Button
+    t =    14.99s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    15.02s     Find the "browser.address.clear" Button
+    t =    15.43s     Check for interrupting elements affecting "browser.address.clear" Button
+    t =    15.87s     Synthesize event
+    t =    16.66s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.30s Find the TextField (First Match)
+    t =    18.29s Tap "Suchen oder Adresse eingeben" TextField
+    t =    18.29s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    18.30s     Find the "Suchen oder Adresse eingeben" TextField
+    t =    18.76s     Check for interrupting elements affecting "Suchen oder Adresse eingeben" TextField
+    t =    18.90s     Synthesize event
+    t =    19.22s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    19.92s Waiting 2.0s for Keyboard (First Match) to exist
+    t =    21.00s     Checking `Expect predicate `existsNoRetry == 1` for object Keyboard (First Match)`
+    t =    21.00s         Checking existence of `Keyboard (First Match)`
+    t =    21.15s Type 'javascript:alert(1)' into "Suchen oder Adresse eingeben" TextField
+    t =    21.15s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    21.15s     Find the "Suchen oder Adresse eingeben" TextField
+    t =    21.60s     Check for interrupting elements affecting "Suchen oder Adresse eingeben" TextField
+    t =    21.80s     Synthesize event
+    t =    22.35s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    22.83s Find the "Suchen oder Adresse eingeben" TextField
+    t =    23.19s Tap "Go" Button
+    t =    23.19s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    23.19s     Find the "Go" Button
+    t =    23.41s     Check for interrupting elements affecting "Go" Button
+    t =    23.56s     Synthesize event
+    t =    23.88s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    24.03s Waiting 3.0s for "browser.error.message" Any to exist
+    t =    25.11s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.error.message" Any`
+    t =    25.12s         Checking existence of `"browser.error.message" Any`
+    t =    25.49s Checking existence of `"Suchen oder Adresse eingeben" TextField`
+    t =    25.63s Tear Down
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testUnsafeSchemeIsExplainedAndRejected]' passed (25.911 seconds).
+Test Suite 'AhoiMobileUITests' passed at 2026-08-30 19:58:21.763.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 40.807 (40.814) seconds
+Test Suite 'MobileBrowserLayoutUITests' started at 2026-08-30 19:58:21.765.
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testPrivateFocusVoyageDoesNotExposeNormalJourneySections]' started.
+    t =     0.00s Start Test at 2026-08-30 19:58:21.766
+    t =     0.05s Set Up
+    t =     0.05s Open app.ahoibrowser.AhoiBrowser
+    t =     0.05s     Launch app.ahoibrowser.AhoiBrowser
+    t =     0.05s         Terminate app.ahoibrowser.AhoiBrowser:96578
+2026-08-30 19:58:22.925 xcodebuild[92517:143971677] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-08-30 19:58:22.925 xcodebuild[92517:143971677] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     4.12s         Setting up automation session
+    t =     6.31s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.70s Waiting 8.0s for "browser.more" Button to exist
+    t =     8.78s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.more" Button`
+    t =     8.78s         Checking existence of `"browser.more" Button`
+    t =     9.12s Tap "browser.more" Button
+    t =     9.13s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.13s     Find the "browser.more" Button
+    t =     9.19s     Check for interrupting elements affecting "browser.more" Button
+    t =     9.24s     Synthesize event
+    t =     9.55s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.02s Waiting 3.0s for "browser.new-private-tab" Button to exist
+    t =    11.09s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.new-private-tab" Button`
+    t =    11.10s         Checking existence of `"browser.new-private-tab" Button`
+    t =    11.49s Tap "browser.new-private-tab" Button
+    t =    11.49s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    11.50s     Find the "browser.new-private-tab" Button
+    t =    11.63s     Check for interrupting elements affecting "browser.new-private-tab" Button
+    t =    11.75s     Synthesize event
+    t =    12.07s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.75s Waiting 3.0s for "browser.focus-voyage.private" Any to exist
+    t =    13.79s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.focus-voyage.private" Any`
+    t =    13.80s         Checking existence of `"browser.focus-voyage.private" Any`
+    t =    13.88s Checking existence of `"browser.address.private" Button`
+    t =    13.93s Checking existence of `"browser.focus-voyage.private-explanation" Any`
+    t =    14.03s Checking existence of `Button (First Match)`
+    t =    14.22s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserLayoutUITests testPrivateFocusVoyageDoesNotExposeNormalJourneySections]' passed (14.504 seconds).
+Test Suite 'MobileBrowserLayoutUITests' passed at 2026-08-30 19:58:36.275.
+	 Executed 1 test, with 0 failures (0 unexpected) in 14.504 (14.511) seconds
+Test Suite 'AhoiMobileUITests.xctest' passed at 2026-08-30 19:58:36.280.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 55.311 (55.332) seconds
+Test Suite 'Selected tests' passed at 2026-08-30 19:58:36.282.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 55.311 (55.336) seconds
+2026-08-30 19:58:36.715 xcodebuild[92517:143971677] [MT] IDETestOperationsObserverDebug: 86.908 elapsed -- Testing started completed.
+2026-08-30 19:58:36.716 xcodebuild[92517:143971677] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-08-30 19:58:36.716 xcodebuild[92517:143971677] [MT] IDETestOperationsObserverDebug: 86.908 sec, +86.908 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/ahoi-mobile-4113c14-iphone-ui-missing-01.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

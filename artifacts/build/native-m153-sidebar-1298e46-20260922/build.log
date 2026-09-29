@@ -1,0 +1,265 @@
+==> host: macOS 27.0 (26A428), arm64
+==> hardware: Apple M2 Max, 32 GiB RAM
+==> toolchain (compatible-development): Xcode 26.5 Build version 17F42 , macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F73)
+==> work root: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work
+==> free disk: 169.2 GiB; required: 64.0 GiB
+==> host check passed
+==> Sparkle 2.9.6 verified from fetched-material receipt (ac2def288cbff5cfc7df3ffef6abdf45b72bcb0a)
+==> host: macOS 27.0 (26A428), arm64
+==> hardware: Apple M2 Max, 32 GiB RAM
+==> toolchain (compatible-development): Xcode 26.5 Build version 17F42 , macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F73)
+==> work root: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work
+==> free disk: 169.2 GiB; required: 64.0 GiB
+==> host check passed
+/private/tmp/ahoi-native-m153-correction.uiS2Ae/repo/artifacts/build/chromium-dependencies.json
+==> running Chromium hooks with compatible-development Xcode/SDK (overlay checkout)
+________ running 'vpython3 -vpython-spec src/.vpython3 -vpython-tool install' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/landmines.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/third_party/depot_tools/update_depot_tools_toggle.py --disable' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/tools/remove_stale_files.py src/third_party/test_fonts/test_fonts.tar.gz src/third_party/node/node_modules.tar.gz src/third_party/tfhub_models src/tools/clang/crashreports' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/tools/remove_stale_pyc_files.py src/android_webview/tools src/build/android src/gpu/gles2_conform_support src/infra src/ppapi src/printing src/third_party/blink/renderer/build/scripts src/third_party/blink/tools src/third_party/catapult src/third_party/mako src/tools' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/mac_toolchain.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+Skipping Mac toolchain installation for mac
+________ running 'python3 src/build/util/lastchange.py -o src/build/util/LASTCHANGE' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m GPU_LISTS_VERSION --revision-id-only --header src/gpu/config/gpu_lists_version.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m SKIA_COMMIT_HASH -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m DAWN_COMMIT_HASH -s src/third_party/dawn --revision src/gpu/webgpu/DAWN_VERSION --header src/gpu/webgpu/dawn_commit_hash.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/third_party/depot_tools/download_from_google_storage.py --no_resume --bucket chromium-browser-clang -s src/tools/clang/dsymutil/bin/dsymutil.arm64.sha1 -o src/tools/clang/dsymutil/bin/dsymutil' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/testing/generate_location_tags.py --out src/testing/location_tags.json' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/buildtools/reclient_cfgs/configure_reclient_cfgs.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reproxy_cfg_template reproxy.cfg.template --rewrapper_cfg_project  --skip_remoteexec_cfg_fetch --quiet' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/config/siso/configure_siso.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reapi_instance  --reapi_address  --reapi_backend_config_path  --credential-helper ' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/tast_control.py -o src/chromeos/tast_control.gni -t src/chromeos/tast_control.gni.template -i src/chromeos/tast_control_disabled_tests.txt --input-public src/chromeos/tast_control_disabled_tests_public_builders.txt -f src/chromeos/tast_control_flaky_tests.txt' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'vpython3 scripts/deps/sync_rollup_libs.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/third_party/devtools-frontend/src'
+/private/tmp/ahoi-native-m153-correction.uiS2Ae/repo/artifacts/build/chromium-dependencies.json
+==> pinned Chromium hooks verified: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/state/hooks-792bf6722e73a45aa9e47c163b9901bdc17f3230.json
+==> generating Ahoi dev build
+==> applying chromium-rust-depfile-space-paths and v8-inspector-protocol-relative-depfile-paths only for gn gen and autoninja
+Done. Made 32713 targets from 4982 files in 5805ms
+ninja: Entering directory `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev'
+[0/1] Regenerating ninja files
+[1/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_archive.o
+[2/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host.o
+[3/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_command_dispatch.o
+[4/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_context_menu.o
+[5/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_device_tabs.o
+[6/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_core.o
+[7/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_discovery.o
+[8/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_drag_presentation.o
+[9/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_drag_routing.o
+[10/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_group_dialog.o
+[11/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_layout.o
+[12/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_media.o
+[13/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_page_actions.o
+[14/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_previews.o
+[15/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_presentation.o
+[16/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_recent_links.o
+[17/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_runtime_actions.o
+[18/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_runtime_refresh.o
+[19/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_split_actions.o
+[20/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_structure.o
+[21/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_tree_actions.o
+[22/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_workspace_dialog.o
+[23/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/browser_sidebar_host_workspace_transition.o
+[24/3384] CXX obj/ahoi/browser/ui/sidebar/browser_sidebar/sidebar_bookmark_menu.o
+FAILED: obj/ahoi/browser/ui/sidebar/browser_sidebar/sidebar_bookmark_menu.o 
+../../third_party/llvm-build/Release+Asserts/bin/clang++ -MMD -MF obj/ahoi/browser/ui/sidebar/browser_sidebar/sidebar_bookmark_menu.o.d -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FORTIFY_SOURCE=3 -D__ARM_NEON__=1 -DCR_XCODE_BUILD=17F42 -DCR_CLANG_REVISION=\"llvmorg-24-init-3796-g20e97c4b-2\" -DCOMPONENT_BUILD -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE -D_LIBCPP_INSTRUMENTED_WITH_ASAN=0 -DCR_LIBCXX_REVISION=97b436da4c33663581d394f4ee0a5977fc38c2f4 -DDCHECK_ALWAYS_ON=1 -DNDEBUG -DNVALGRIND -DDYNAMIC_ANNOTATIONS_ENABLED=0 -DTOOLKIT_VIEWS=1 -DSK_ENABLE_SKSL -DSK_UNTIL_CRBUG_1187654_IS_FIXED -DSK_USER_CONFIG_HEADER=\"../../skia/config/SkUserConfig.h\" -DSK_USE_PARTITION_ALLOC -DSK_WIN_FONTMGR_NO_SIMULATIONS -DSK_ENABLE_LEGACY_SHADERCONTEXT -DSK_LEGACY_DESERIAL_IMAGE_PROC -DSK_CODEC_DECODES_PNG -DSK_CODEC_DECODES_PNG_WITH_RUST -DSK_CODEC_ENCODES_PNG -DSK_CODEC_ENCODES_PNG_WITH_RUST -DSK_CODEC_DECODES_BMP_WITH_RUST -DSK_CODEC_DECODES_ICO_WITH_RUST -DSK_CODEC_COLOR_PROFILE_PARSE_WITH_RUST -DSK_EXIF_PARSE_WITH_RUST -DSK_ENABLE_AVX512_OPTS -DSK_CODEC_DECODES_JPEG -DSK_CODEC_ENCODES_JPEG -DSKIA_DLL -DSK_BUILD_FOR_MAC -DSK_GAMMA_SRGB -DSK_GAMMA_CONTRAST=0.0 -DSK_GANESH -DSK_GPU_WORKAROUNDS_HEADER=\"gpu/config/gpu_driver_bug_workaround_autogen.h\" -DSK_GL -DSK_GRAPHITE -DSK_DAWN -DSKCMS_DLL=1 -DCHROMIUM -DLIBYUV_DISABLE_SME -DLIBYUV_DISABLE_LSX -DLIBYUV_DISABLE_LASX -DON_FOCUS_PING_ENABLED -DABSL_CONSUME_DLL -DABSL_FLAGS_STRIP_NAMES=0 -DBORINGSSL_SHARED_LIBRARY -DWGPU_SHARED_LIBRARY -DSKCMS_IMPLEMENTATION=1 -DU_USING_ICU_NAMESPACE=0 -DU_ENABLE_DYLOAD=0 -DUSE_CHROMIUM_ICU=1 -DU_ENABLE_TRACING=1 -DU_ENABLE_RESOURCE_TRACING=0 -DICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_FILE -DGOOGLE_PROTOBUF_NO_RTTI -DPROTOBUF_INTERNAL_BOUNDS_CHECK_MODE_ABORT -DHAVE_PTHREAD -DPROTOBUF_USE_DLLS -DPROTOBUF_ENABLE_DEBUG_LOGGING_MAY_LEAK_PII=0 -DWEBRTC_ENABLE_SYMBOL_EXPORT -DWEBRTC_ENABLE_AVX2 -DWEBRTC_DEPRECATE_PLAN_B -DWEBRTC_CHROMIUM_BUILD -DWEBRTC_POSIX -DWEBRTC_MAC -DABSL_ALLOCATOR_NOTHROW=1 -DLOGGING_INSIDE_WEBRTC -DLEVELDB_PLATFORM_CHROMIUM=1 -DLEVELDB_SHARED_LIBRARY -DCRASHPAD_ZLIB_SOURCE_EXTERNAL -DV8_USE_EXTERNAL_STARTUP_DATA -DUSING_V8_SHARED -DUSING_V8_SHARED_PRIVATE -DV8_ARRAY_BUFFER_INTERNAL_FIELD_COUNT=0 -DV8_ARRAY_BUFFER_VIEW_INTERNAL_FIELD_COUNT=0 -DV8_PROMISE_INTERNAL_FIELD_COUNT=0 -DV8_USE_DEFAULT_HASHER_SECRET=true -DV8_ENABLE_MEMORY_ACCOUNTING_CHECKS -DV8_COMPRESS_POINTERS -DV8_COMPRESS_POINTERS_IN_SHARED_CAGE -DV8_31BIT_SMIS_ON_64BIT_ARCH -DV8_ENABLE_SANDBOX -DV8_DEPRECATION_WARNINGS -DV8_DISALLOW_JS_IN_API_INTERRUPTS_IS_CHECKED -DV8_USE_PERFETTO -DV8_USE_PERFETTO_JSON_EXPORT -DV8_CPPGC_MICROTASK_QUEUE -DV8_HAVE_TARGET_OS -DV8_TARGET_OS_MACOS -DV8_TARGET_ARCH_ARM64 -DCPPGC_ENABLE_API_CHECKS -DCPPGC_SUPPORTS_OBJECT_NAMES -DCPPGC_CAGED_HEAP -DCPPGC_YOUNG_GENERATION -DCPPGC_POINTER_COMPRESSION -DCPPGC_ENABLE_LARGER_CAGE -DCPPGC_SLIM_WRITE_BARRIER -DFLATBUFFERS_LOCALE_INDEPENDENT=0 -DTFL_STATIC_LIBRARY_BUILD -DTF_MAJOR_VERSION=2 -DTF_MINOR_VERSION=22 -DTF_PATCH_VERSION=0 -DTF_VERSION_SUFFIX= -DEIGEN_MPL2_ONLY -DEIGEN_MAX_ALIGN_BYTES=64 -DEIGEN_HAS_TYPE_TRAITS=0 -DI18N_ADDRESS_VALIDATION_DATA_URL=\"https://chromium-i18n.appspot.com/ssl-aggregate-address/\" -DUSE_LIBCXX_MODULES -I../.. -Igen -I../../buildtools/third_party/libc++ -I../../third_party/perfetto/include -Igen/third_party/perfetto/build_config -Igen/third_party/perfetto -I../../third_party/skia -Igen/third_party/skia -I../../third_party/wuffs/src/release/c -Igen/third_party/dawn/include -I../../third_party/dawn/include -I../../net/third_party/quiche/overrides -I../../net/third_party/quiche/src/quiche/common/platform/default -I../../net/third_party/quiche/src -I../../third_party/khronos -I../../gpu -I../../third_party/libyuv/include -Igen/third_party/private_membership/src -Igen/third_party/shell-encryption/src -Igen/components/policy/proto -I../../base/allocator/partition_allocator/src -Igen/base/allocator/partition_allocator/src -I../../third_party/abseil-cpp -I../../third_party/boringssl/src/include -I../../third_party/protobuf/src -I../../third_party/ipcz/include -I../../third_party/icu/source/common -I../../third_party/icu/source/i18n -I../../third_party/ced/src -Igen/net/third_party/quiche/src -I../../third_party/re2/src -I../../third_party/webrtc_overrides -I../../third_party/webrtc -Igen/third_party/webrtc -I../../third_party/libwebm/source -I../../third_party/angle/include -I../../third_party/leveldatabase -I../../third_party/leveldatabase/src -I../../third_party/leveldatabase/src/include -I../../third_party/crashpad/crashpad -I../../third_party/crashpad/crashpad/compat/mac -I../../third_party/crashpad/crashpad/compat/non_win -I../../third_party/zlib -I../../third_party/libaom/source/libaom -I../../third_party/libaom/source/config/linux/arm64-cpu-detect -I../../v8/include -I../../third_party/flatbuffers/src/include -I../../third_party/flatbuffers/src/src -I../../third_party/flatbuffers/src -I../../third_party/flatbuffers/generated -Igen/components/reporting/proto/synced -Igen/components/optimization_guide/proto/features -Igen/third_party/omnibox_proto -Igen/third_party/metrics_proto -I../../third_party/ml_dtypes/src -I../../third_party/ml_dtypes/src/ml_dtypes -Igen/third_party/tflite/src -I../../third_party/tflite/shims -I../../third_party/tflite/src -I../../third_party/tflite/src/third_party/xla -I../../third_party/tflite/src/third_party/xla/third_party/tsl -I../../third_party/pthreadpool/src/include -I../../third_party/eigen3/src -I../../third_party/neon_2_sse/src -I../../third_party/ruy/src -I../../third_party/fp16/src/include -I../../third_party/tflite_support/src -I../../third_party/tflite_support/src/tensorflow_lite_support -Igen/third_party/tflite_support/src -I../../third_party/libaddressinput/src/cpp/include -Igen/third_party/content_analysis_sdk/src/proto -Wall -Wextra -Wimplicit-fallthrough -Wextra-semi -Wunreachable-code-aggressive -Wgnu -Wno-gnu-anonymous-struct -Wno-gnu-conditional-omitted-operand -Wno-gnu-include-next -Wno-gnu-label-as-value -Wno-gnu-redeclared-enum -Wno-gnu-statement-expression -Wno-gnu-zero-variadic-macro-arguments -Wno-zero-length-array -Wthread-safety -Wno-unused-template -Wunguarded-availability -Wno-missing-field-initializers -Wno-unused-parameter -Wno-psabi -Wno-stringop-overread -Wloop-analysis -Wno-unneeded-internal-declaration -Wno-cast-function-type -Wno-thread-safety-reference-return -Wno-nontrivial-memcall -Wno-uninitialized-const-pointer -Wno-unused-but-set-global -Wexit-time-destructors -Wshadow -Werror -Werror=\#pragma-messages -fno-delete-null-pointer-checks -fno-strict-overflow -fno-ident -fno-math-errno -fno-strict-aliasing -fstack-protector -fcolor-diagnostics -fdiagnostics-show-inlining-chain -fmerge-all-constants -fcrash-diagnostics-dir=../clang-crashreports -fno-lifetime-dse -mllvm -instcombine-lower-dbg-declare=0 -mllvm -split-threshold-for-reg-with-hint=0 -ffp-contract=off -fcomplete-member-pointers --target=arm64-apple-macos -mno-outline -Wno-builtin-macro-redefined -D__DATE__= -D__TIME__= -D__TIMESTAMP__= -ffile-compilation-dir=. -no-canonical-prefixes -Xclang -fmodule-file-home-is-cwd -Xclang -fmodules-cache-path=/not_exist_dummy_dir --warning-suppression-mappings=../../build/config/warning_suppression.txt -ftrivial-auto-var-init=pattern -O2 -fno-omit-frame-pointer -gdwarf-4 -g1 -gdwarf-aranges -isysroot sdk/xcode_links/MacOSX26.5.sdk -mmacos-version-min=13.0 -fsanitize=array-bounds -fsanitize-trap=array-bounds -fsanitize-ignore-for-ubsan-feature=array-bounds -Wno-unsafe-buffer-usage-in-static-sized-array -fsanitize=return -fsanitize-trap=return -fsanitize-ignore-for-ubsan-feature=return -fvisibility=hidden -Wheader-hygiene -Wstring-conversion -Wtautological-overlap-compare -Xclang -add-plugin -Xclang find-bad-constructs -Xclang -plugin-arg-find-bad-constructs -Xclang check-stack-allocated -Xclang -plugin-arg-find-bad-constructs -Xclang relax-ctor-checks-for-aggregates -Xclang -add-plugin -Xclang raw-ptr-plugin -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-to-stack-allocated -Xclang -plugin-arg-raw-ptr-plugin -Xclang disable-check-raw-ptr-to-stack-allocated-error -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../third_party/dawn/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang raw-ptr-exclude-path=../../build/config/clang/chrome/test/fuzzing/webidl_fuzzing/ -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ptr-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-span-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang check-raw-ref-fields -Xclang -plugin-arg-raw-ptr-plugin -Xclang no-special-treatment-for-oilpanized-paths -DUNSAFE_BUFFERS_BUILD -Wunsafe-buffer-usage -Wno-error=unsafe-buffer-usage -Xclang -add-plugin -Xclang unsafe-buffers -Xclang -plugin-arg-unsafe-buffers -Xclang ../../build/config/unsafe_buffers_paths.txt -Wno-invalid-offsetof -Wenum-compare-conditional -Wno-nullability-completeness -Wunique-object-duplication -std=c++23 -Wno-trigraphs -fno-exceptions -fno-rtti -nostdinc++ -isystem../../third_party/libc++/src/include -isystem../../third_party/libc++abi/src/include -fvisibility-inlines-hidden -fmodules -fno-implicit-module-maps -fno-implicit-modules -Xclang -fmodules-local-submodule-visibility -Wno-modules-ambiguous-internal-linkage -Wno-modules-import-nested-redundant -Xclang -fmodules-disable-diagnostic-validation -Wno-module-import-in-extern-c -fmodule-map-file=gen/build/modules/module.modulemap -fmodule-file=//build/modules:system=obj/build/modules/system/module.pcm -fmodule-name="//ahoi/browser/ui/sidebar:browser_sidebar_Private" -c ../../ahoi/browser/ui/sidebar/sidebar_bookmark_menu.cc -o obj/ahoi/browser/ui/sidebar/browser_sidebar/sidebar_bookmark_menu.o
+In module '//build/modules:system' imported from ../../ahoi/browser/ui/sidebar/sidebar_bookmark_menu.h:7:
+../../third_party/libc++/src/include/__memory/unique_ptr.h:708:30: error: no matching constructor for initialization of 'BookmarkMenuDelegate'
+  708 |   return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...));
+      |                              ^   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../ahoi/browser/ui/sidebar/sidebar_bookmark_menu.cc:74:20: note: in instantiation of function template specialization 'std::make_unique<BookmarkMenuDelegate, Browser *, views::Widget *, ahoi::sidebar::SidebarBookmarkMenu *, BookmarkLaunchLocation, 0>' requested here
+   74 |   delegate_ = std::make_unique<BookmarkMenuDelegate>(
+      |                    ^
+../../chrome/browser/ui/views/bookmarks/bookmark_menu_delegate.h:59:3: note: candidate constructor not viable: cannot convert argument of incomplete type 'Browser *' to 'BrowserWindowInterface *' for 1st argument
+   59 |   BookmarkMenuDelegate(BrowserWindowInterface* browser,
+      |   ^                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../chrome/browser/ui/views/bookmarks/bookmark_menu_delegate.h:64:3: note: candidate constructor not viable: requires 1 argument, but 4 were provided
+   64 |   BookmarkMenuDelegate(const BookmarkMenuDelegate&) = delete;
+      |   ^                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../../ahoi/browser/ui/sidebar/sidebar_bookmark_menu.cc:183:31: error: cannot initialize a parameter of type 'BrowserWindowInterface *' with an rvalue of type 'Browser *'
+  183 |   bookmarks::OpenAllIfAllowed(browser_.get(), selection,
+      |                               ^~~~~~~~~~~~~~
+../../ahoi/browser/ui/sidebar/sidebar_bookmark_menu.h:20:7: note: 'Browser' is not defined, but forward declared here; conversion would be valid if it was derived from 'BrowserWindowInterface'
+   20 | class Browser;
+      |       ^
+../../chrome/browser/ui/bookmarks/bookmark_utils_desktop.h:77:29: note: passing argument to parameter 'browser' here
+   77 |     BrowserWindowInterface* browser,
+      |                             ^
+2 errors generated.
+[25/3384] CXX obj/chrome/browser/apps/app_shim/app_shim/app_shim_termination_manager.o
+[26/3384] CXX obj/chrome/browser/apps/app_shim/app_shim/mach_bootstrap_acceptor.o
+[27/3384] CXX obj/chrome/browser/apps/app_shim/app_shim/app_shim_manager_mac.o
+[28/3384] CXX obj/chrome/browser/apps/app_shim/app_shim/web_app_shim_manager_delegate_mac.o
+[29/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/app_load_service.o
+[30/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/app_load_service_factory.o
+[31/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/app_termination_observer_factory.o
+[32/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/app_termination_observer.o
+[33/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/app_window_registry_util.o
+[34/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/browser_context_keyed_service_factories.o
+[35/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/chrome_apps_browser_api_provider.o
+[36/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/audio_focus_web_contents_observer.o
+[37/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/install_chrome_app.o
+[38/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/platform_app_launch.o
+[39/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/platform_app_navigation_redirector.o
+[40/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/shortcut_manager_factory.o
+[41/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/shortcut_manager.o
+[42/3384] LIBTOOL-STATIC obj/chrome/browser/apps/platform_apps/api/libapi_registration.a
+[43/3384] CXX obj/chrome/browser/content_settings/content_settings_factory_impl/cookie_settings_factory.o
+[44/3384] CXX obj/chrome/browser/apps/platform_apps/platform_apps/extension_app_shim_manager_delegate_mac.o
+[45/3384] CXX obj/chrome/browser/content_settings/content_settings_factory_impl/host_content_settings_map_factory.o
+[46/3384] CXX obj/chrome/browser/contextual_tasks/user_data/contextual_tasks_web_contents_user_data.o
+[47/3384] CXX obj/chrome/browser/download/impl/background_download_service_factory.o
+[48/3384] CXX obj/chrome/browser/content_settings/content_settings_util_impl/chrome_content_settings_utils.o
+[49/3384] CXX obj/chrome/browser/download/impl/deferred_client_wrapper.o
+[50/3384] CXX obj/chrome/browser/download/impl/download_completion_blocker.o
+[51/3384] CXX obj/chrome/browser/download/impl/download_core_service.o
+[52/3384] CXX obj/chrome/browser/download/impl/download_core_service_factory.o
+[53/3384] CXX obj/chrome/browser/download/impl/download_core_service_impl.o
+[54/3384] CXX obj/chrome/browser/download/impl/chrome_download_manager_delegate.o
+[55/3384] CXX obj/chrome/browser/download/impl/download_danger_prompt.o
+[56/3384] CXX obj/chrome/browser/download/impl/download_file_picker.o
+[57/3384] CXX obj/chrome/browser/download/impl/download_history.o
+[58/3384] CXX obj/chrome/browser/download/impl/download_item_warning_data.o
+[59/3384] CXX obj/chrome/browser/download/impl/download_item_model.o
+[60/3384] CXX obj/chrome/browser/download/impl/download_manager_utils.o
+[61/3384] CXX obj/chrome/browser/download/impl/download_offline_content_provider_factory.o
+[62/3384] CXX obj/chrome/browser/download/impl/download_offline_content_provider.o
+[63/3384] CXX obj/chrome/browser/download/impl/download_permission_request.o
+[64/3384] CXX obj/chrome/browser/download/impl/download_prefs.o
+[65/3384] CXX obj/chrome/browser/download/impl/download_query.o
+[66/3384] CXX obj/chrome/browser/download/impl/download_stats.o
+[67/3384] CXX obj/chrome/browser/download/impl/download_request_limiter.o
+[68/3384] CXX obj/chrome/browser/download/impl/download_status_updater.o
+[69/3384] CXX obj/chrome/browser/download/impl/download_target_determiner.o
+[70/3384] CXX obj/chrome/browser/download/impl/download_ui_model.o
+[71/3384] CXX obj/chrome/browser/download/impl/download_ui_controller.o
+[72/3384] CXX obj/chrome/browser/download/impl/insecure_download_blocking.o
+[73/3384] CXX obj/chrome/browser/download/impl/multi_profile_download_notifier.o
+[74/3384] CXX obj/chrome/browser/download/impl/download_ui_safe_browsing_util.o
+[75/3384] CXX obj/chrome/browser/download/impl/offline_item_utils.o
+[76/3384] CXX obj/chrome/browser/download/impl/save_package_file_picker.o
+[77/3384] CXX obj/chrome/browser/download/impl/trusted_sources_manager.o
+[78/3384] CXX obj/chrome/browser/download/impl/simple_download_manager_coordinator_factory.o
+[79/3384] CXX obj/chrome/browser/download/impl/default_download_dir_policy_handler.o
+[80/3384] CXX obj/chrome/browser/download/impl/download_auto_open_policy_handler.o
+[81/3384] CXX obj/chrome/browser/download/impl/download_dir_policy_handler.o
+[82/3384] CXX obj/chrome/browser/download/impl/download_commands.o
+[83/3384] CXX obj/chrome/browser/download/impl/download_dir_util.o
+[84/3384] CXX obj/chrome/browser/download/impl/download_item_web_app_data.o
+[85/3384] CXX obj/chrome/browser/download/impl/download_ui_enterprise_util.o
+[86/3384] CXX obj/chrome/browser/download/impl/download_warning_desktop_hats_utils.o
+[87/3384] CXX obj/chrome/browser/download/impl/offline_item_model_manager.o
+[88/3384] CXX obj/chrome/browser/download/impl/offline_item_model_manager_factory.o
+[89/3384] CXX obj/chrome/browser/download/impl/offline_item_model.o
+[90/3384] CXX obj/chrome/browser/download/impl/download_ui_context_menu.o
+[91/3384] OBJCXX obj/chrome/browser/download/impl/download_status_updater_mac.o
+[92/3384] CXX obj/chrome/browser/download/impl/trusted_sources_manager_posix.o
+[93/3384] CXX obj/chrome/browser/download/impl/download_crx_util.o
+[94/3384] CXX obj/chrome/browser/download/bubble/impl/download_bubble_accessible_alerts_map.o
+[95/3384] CXX obj/chrome/browser/download/bubble/impl/download_bubble_display_info.o
+[96/3384] OBJCXX obj/chrome/browser/download/impl/drag_download_item_mac.o
+[97/3384] CXX obj/chrome/browser/download/bubble/impl/download_bubble_prefs.o
+[98/3384] CXX obj/chrome/browser/download/bubble/impl/download_bubble_ui_controller.o
+[99/3384] CXX obj/chrome/browser/download/bubble/impl/download_bubble_update_service.o
+[100/3384] CXX obj/chrome/browser/download/bubble/impl/download_bubble_update_service_factory.o
+[101/3384] CXX obj/chrome/browser/download/bubble/impl/download_bubble_utils.o
+[102/3384] CXX obj/chrome/browser/download/bubble/impl/download_display_controller.o
+[103/3384] CXX obj/chrome/browser/enterprise/impl/browser_management_status_provider.o
+[104/3384] CXX obj/chrome/browser/enterprise/impl/browser_management_service.o
+[105/3384] CXX obj/chrome/browser/enterprise/impl/management_service_factory.o
+[106/3384] CXX obj/chrome/browser/enterprise/impl/analysis_service_settings.o
+[107/3384] CXX obj/chrome/browser/enterprise/impl/chrome_browser_main_extra_parts_enterprise.o
+[108/3384] CXX obj/chrome/browser/enterprise/impl/connectors_manager.o
+[109/3384] CXX obj/chrome/browser/enterprise/impl/enterprise_block_controller_client.o
+[110/3384] CXX obj/chrome/browser/enterprise/impl/connectors_service.o
+[111/3384] CXX obj/chrome/browser/enterprise/impl/enterprise_warn_controller_client.o
+[112/3384] CXX obj/chrome/browser/enterprise/impl/enterprise_block_page.o
+[113/3384] CXX obj/chrome/browser/enterprise/impl/enterprise_warn_page.o
+[114/3384] CXX obj/chrome/browser/enterprise/impl/referrer_cache_utils.o
+[115/3384] CXX obj/chrome/browser/enterprise/impl/data_protection_features.o
+[116/3384] CXX obj/chrome/browser/enterprise/impl/dependency_factory_impl.o
+[117/3384] CXX obj/chrome/browser/enterprise/impl/data_protection_navigation_controller.o
+[118/3384] CXX obj/chrome/browser/enterprise/impl/data_protection_navigation_observer.o
+[119/3384] CXX obj/chrome/browser/enterprise/impl/data_protection_page_user_data.o
+[120/3384] CXX obj/chrome/browser/enterprise/impl/data_protection_url_lookup_service_factory.o
+[121/3384] CXX obj/chrome/browser/enterprise/impl/cache_encryption_provider_impl.o
+[122/3384] CXX obj/chrome/browser/enterprise/impl/profile_id_delegate_impl.o
+[123/3384] CXX obj/chrome/browser/enterprise/impl/view_source_navigation_throttle.o
+[124/3384] CXX obj/chrome/browser/enterprise/impl/profile_id_service_factory.o
+[125/3384] CXX obj/chrome/browser/enterprise/impl/enterprise_network_auth_service_factory.o
+[126/3384] CXX obj/chrome/browser/enterprise/impl/enterprise_proxy_error_service_factory.o
+[127/3384] CXX obj/chrome/browser/enterprise/impl/enterprise_proxy_service_factory.o
+[128/3384] CXX obj/chrome/browser/enterprise/impl/saml_response_parser.o
+[129/3384] CXX obj/chrome/browser/enterprise/impl/job_profile_picker.o
+[130/3384] CXX obj/chrome/browser/enterprise/impl/cloud_profile_reporting_service.o
+[131/3384] CXX obj/chrome/browser/enterprise/impl/cloud_profile_reporting_service_factory.o
+[132/3384] CXX obj/chrome/browser/enterprise/impl/legacy_tech_report_generator.o
+[133/3384] CXX obj/chrome/browser/enterprise/impl/legacy_tech_report_policy_handler.o
+[134/3384] CXX obj/chrome/browser/enterprise/impl/prefs.o
+[135/3384] CXX obj/chrome/browser/enterprise/impl/legacy_tech_service.o
+[136/3384] CXX obj/chrome/browser/enterprise/impl/real_time_report_controller_delegate.o
+[137/3384] CXX obj/chrome/browser/enterprise/impl/real_time_report_generator_delegate.o
+[138/3384] CXX obj/chrome/browser/enterprise/impl/profile_report_generator_delegate_base.o
+[139/3384] CXX obj/chrome/browser/enterprise/impl/managed_profile_required_controller_client.o
+[140/3384] CXX obj/chrome/browser/enterprise/impl/profile_signals_collector.o
+[141/3384] CXX obj/chrome/browser/enterprise/impl/affiliation.o
+[142/3384] CXX obj/chrome/browser/enterprise/impl/managed_profile_required_page.o
+[143/3384] CXX obj/chrome/browser/enterprise/impl/cbcm_remote_commands_factory.o
+[144/3384] CXX obj/chrome/browser/enterprise/impl/managed_browser_utils.o
+[145/3384] CXX obj/chrome/browser/enterprise/impl/browser_report_generator_desktop.o
+[146/3384] CXX obj/chrome/browser/enterprise/impl/report_generator_desktop.o
+[147/3384] CXX obj/chrome/browser/enterprise/impl/data_protection_ui_controller.o
+[148/3384] CXX obj/chrome/browser/enterprise/impl/report_scheduler_desktop.o
+[149/3384] CXX obj/chrome/browser/enterprise/impl/reporting_delegate_factory_desktop.o
+[150/3384] CXX obj/chrome/browser/enterprise/impl/client_certificate_fetcher.o
+[151/3384] CXX obj/chrome/browser/enterprise/impl/device_info_fetcher.o
+[152/3384] CXX obj/chrome/browser/enterprise/impl/context_info_fetcher.o
+[153/3384] CXX obj/chrome/browser/enterprise/impl/enterprise_groups_handler_factory.o
+[154/3384] CXX obj/chrome/browser/enterprise/impl/clear_browsing_data_job.o
+[155/3384] CXX obj/chrome/browser/enterprise/impl/user_remote_commands_factory.o
+[156/3384] CXX obj/chrome/browser/enterprise/impl/user_remote_commands_service.o
+[157/3384] CXX obj/chrome/browser/enterprise/impl/user_remote_commands_service_factory.o
+[158/3384] CXX obj/chrome/browser/enterprise/impl/platform_auth_navigation_throttle.o
+[159/3384] CXX obj/chrome/browser/enterprise/impl/platform_auth_policy_observer.o
+[160/3384] CXX obj/chrome/browser/enterprise/impl/platform_auth_provider_manager.o
+[161/3384] CXX obj/chrome/browser/enterprise/impl/extensible_enterprise_sso_policy_handler.o
+[162/3384] OBJCXX obj/chrome/browser/enterprise/impl/extensible_enterprise_sso_entra.o
+[163/3384] CXX obj/chrome/browser/enterprise/impl/extensible_enterprise_sso_prefs_handler.o
+[164/3384] OBJCXX obj/chrome/browser/enterprise/impl/extensible_enterprise_sso_provider_mac.o
+[165/3384] OBJCXX obj/chrome/browser/enterprise/impl/device_info_fetcher_mac.o
+[166/3384] OBJCXX obj/chrome/browser/enterprise/impl/platform_auth_proxying_url_loader_factory.o
+[167/3384] CXX obj/chrome/browser/enterprise/impl/chrome_clipboard_context.o
+[168/3384] CXX obj/chrome/browser/enterprise/impl/clipboard_toast_tracker.o
+[169/3384] CXX obj/chrome/browser/enterprise/impl/paste_allowed_request.o
+[170/3384] CXX obj/chrome/browser/enterprise/impl/data_protection_clipboard_utils.o
+[171/3384] CXX obj/chrome/browser/enterprise/impl/browser_context_delegate.o
+[172/3384] CXX obj/chrome/browser/enterprise/impl/cert_utils.o
+[173/3384] CXX obj/chrome/browser/enterprise/impl/certificate_store_factory.o
+[174/3384] CXX obj/chrome/browser/enterprise/impl/certificate_provisioning_service_factory.o
+[175/3384] CXX obj/chrome/browser/enterprise/impl/user_delegate_impl.o
+[176/3384] CXX obj/chrome/browser/enterprise/impl/profile_context_delegate.o
+[177/3384] CXX obj/chrome/browser/enterprise/impl/user_permission_service_factory.o
+[178/3384] CXX obj/chrome/browser/enterprise/impl/device_trust_connector_service_factory.o
+[179/3384] CXX obj/chrome/browser/enterprise/impl/device_trust_service_factory.o
+[180/3384] CXX obj/chrome/browser/enterprise/impl/navigation_throttle.o
+[181/3384] CXX obj/chrome/browser/enterprise/impl/context_signals_decorator.o
+[182/3384] CXX obj/chrome/browser/enterprise/impl/signals_service_factory.o
+[183/3384] CXX obj/chrome/browser/enterprise/impl/action_runner.o
+[184/3384] CXX obj/chrome/browser/enterprise/impl/action.o
+[185/3384] CXX obj/chrome/browser/enterprise/impl/idle_service_factory.o
+[186/3384] CXX obj/chrome/browser/enterprise/impl/idle_service.o
+[187/3384] CXX obj/chrome/browser/enterprise/impl/signals_aggregator_factory.o
+[188/3384] CXX obj/chrome/browser/enterprise/impl/content_analysis_info.o
+[189/3384] CXX obj/chrome/browser/enterprise/impl/common.o
+[190/3384] CXX obj/chrome/browser/enterprise/impl/content_analysis_dialog_controller.o
+[191/3384] CXX obj/chrome/browser/enterprise/impl/content_analysis_delegate.o
+[192/3384] CXX obj/chrome/browser/enterprise/impl/content_analysis_downloads_delegate.o
+[193/3384] CXX obj/chrome/browser/enterprise/impl/content_analysis_dialog_delegate.o
+[194/3384] CXX obj/chrome/browser/enterprise/impl/content_analysis_views.o
+[195/3384] CXX obj/chrome/browser/enterprise/impl/copy_warning_delegate_tracker.o
+[196/3384] CXX obj/chrome/browser/enterprise/impl/files_request_handler.o
+[197/3384] CXX obj/chrome/browser/enterprise/impl/page_print_analysis_request.o
+[198/3384] CXX obj/chrome/browser/enterprise/impl/page_print_request_handler.o
+[199/3384] CXX obj/chrome/browser/enterprise/impl/local_binary_upload_service.o
+[200/3384] CXX obj/chrome/browser/enterprise/impl/local_binary_upload_service_factory.o
+ninja: build stopped: interrupted by user.

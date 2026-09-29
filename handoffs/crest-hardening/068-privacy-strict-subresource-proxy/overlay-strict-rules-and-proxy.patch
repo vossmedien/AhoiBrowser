@@ -1,0 +1,697 @@
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/BUILD.gn b/overlay/chromium/src/ahoi/browser/privacy/BUILD.gn
+index 146a522..ee30c65 100644
+--- a/overlay/chromium/src/ahoi/browser/privacy/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/privacy/BUILD.gn
+@@ -62,8 +62,12 @@ source_set("secure_component_transport") {
+ 
+ source_set("privacy_mode_runtime") {
+   sources = [
++    "privacy_mode_url_loader_factory_proxy.cc",
++    "privacy_mode_url_loader_factory_proxy.h",
+     "privacy_mode_url_loader_throttle.cc",
+     "privacy_mode_url_loader_throttle.h",
++    "privacy_strict_request_rules.cc",
++    "privacy_strict_request_rules.h",
+   ]
+   public_deps = [
+     ":privacy_mode",
+@@ -72,6 +76,7 @@ source_set("privacy_mode_runtime") {
+   ]
+   deps = [
+     "//components/prefs",
++    "//mojo/public/cpp/bindings",
+     "//net",
+   ]
+ }
+@@ -80,7 +85,9 @@ source_set("unit_tests") {
+   testonly = true
+   sources = [
+     "privacy_cookie_enforcement_unittest.cc",
++    "privacy_mode_url_loader_factory_proxy_unittest.cc",
+     "privacy_mode_url_loader_throttle_unittest.cc",
++    "privacy_strict_request_rules_unittest.cc",
+   ]
+   deps = [
+     ":privacy_mode_runtime",
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.cc b/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.cc
+new file mode 100644
+index 0000000..bc6daca
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.cc
+@@ -0,0 +1,88 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.h"
++
++#include <utility>
++
++#include "ahoi/browser/privacy/privacy_mode_service.h"
++#include "ahoi/browser/privacy/privacy_strict_request_rules.h"
++#include "base/functional/bind.h"
++#include "base/types/pass_key.h"
++#include "components/prefs/pref_service.h"
++#include "net/base/isolation_info.h"
++#include "services/network/public/cpp/resource_request.h"
++#include "url/origin.h"
++
++namespace ahoi::privacy {
++
++GURL PolicySiteForSubresourceFactory(const net::IsolationInfo& isolation_info,
++                                     const url::Origin& request_initiator) {
++  if (const std::optional<url::Origin>& top = isolation_info.top_frame_origin();
++      top.has_value() && !top->opaque()) {
++    return top->GetURL();
++  }
++  return request_initiator.GetURL();
++}
++
++void MaybeProxyPrivacyModeURLLoaderFactory(
++    const PrefService* prefs,
++    bool is_off_the_record,
++    bool is_subresource_factory,
++    const net::IsolationInfo& isolation_info,
++    const url::Origin& request_initiator,
++    network::URLLoaderFactoryBuilder& factory_builder) {
++  // Navigations, worker and service-worker scripts, prefetch and downloads
++  // pass PrivacyModeURLLoaderThrottle already.
++  if (!prefs || !is_subresource_factory) {
++    return;
++  }
++  const GURL site =
++      PolicySiteForSubresourceFactory(isolation_info, request_initiator);
++  if (!site.SchemeIsHTTPOrHTTPS() ||
++      !GetPolicySnapshot(*prefs, is_off_the_record).IsStrictForUrl(site)) {
++    return;
++  }
++  auto [receiver, remote] = factory_builder.Append();
++  base::MakeSelfDeleting<PrivacyModeURLLoaderFactoryProxy>(std::move(receiver),
++                                                           std::move(remote));
++}
++
++PrivacyModeURLLoaderFactoryProxy::PrivacyModeURLLoaderFactoryProxy(
++    mojo::PendingReceiver<network::mojom::URLLoaderFactory> loader_receiver,
++    mojo::PendingRemote<network::mojom::URLLoaderFactory> target_factory_remote,
++    base::SelfDeletingPassKey pass_key)
++    : network::SelfDeletingURLLoaderFactory(std::move(loader_receiver),
++                                            pass_key) {
++  target_factory_.Bind(std::move(target_factory_remote));
++  target_factory_.set_disconnect_handler(
++      base::BindOnce(&PrivacyModeURLLoaderFactoryProxy::OnTargetFactoryError,
++                     base::Unretained(this)));
++}
++
++PrivacyModeURLLoaderFactoryProxy::~PrivacyModeURLLoaderFactoryProxy() =
++    default;
++
++void PrivacyModeURLLoaderFactoryProxy::CreateLoaderAndStart(
++    mojo::PendingReceiver<network::mojom::URLLoader> loader_receiver,
++    int32_t request_id,
++    uint32_t options,
++    const network::ResourceRequest& request,
++    mojo::PendingRemote<network::mojom::URLLoaderClient> client,
++    const net::MutableNetworkTrafficAnnotationTag& traffic_annotation) {
++  network::ResourceRequest strict_request = request;
++  if (strict_request.url.SchemeIsHTTPOrHTTPS()) {
++    ApplyStrictRequestRules(strict_request, /*is_main_frame=*/false);
++  }
++  // Every request is forwarded; blocking stays with the next interceptor
++  // (webRequest) or the network service.
++  target_factory_->CreateLoaderAndStart(
++      std::move(loader_receiver), request_id, options, strict_request,
++      std::move(client), traffic_annotation);
++}
++
++void PrivacyModeURLLoaderFactoryProxy::OnTargetFactoryError() {
++  DisconnectReceiversAndDestroy();
++}
++
++}  // namespace ahoi::privacy
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.h b/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.h
+new file mode 100644
+index 0000000..e14b6e0
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.h
+@@ -0,0 +1,85 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#ifndef AHOI_BROWSER_PRIVACY_PRIVACY_MODE_URL_LOADER_FACTORY_PROXY_H_
++#define AHOI_BROWSER_PRIVACY_PRIVACY_MODE_URL_LOADER_FACTORY_PROXY_H_
++
++#include "mojo/public/cpp/bindings/pending_receiver.h"
++#include "mojo/public/cpp/bindings/pending_remote.h"
++#include "mojo/public/cpp/bindings/remote.h"
++#include "services/network/public/cpp/self_deleting_url_loader_factory.h"
++#include "services/network/public/cpp/url_loader_factory_builder.h"
++#include "services/network/public/mojom/url_loader_factory.mojom.h"
++#include "url/gurl.h"
++
++class PrefService;
++
++namespace net {
++class IsolationInfo;
++}  // namespace net
++
++namespace url {
++class Origin;
++}  // namespace url
++
++namespace ahoi::privacy {
++
++// Handoff 066: the top-level site whose mode governs a subresource factory.
++// Frames, dedicated/shared workers and (storage-partitioned) service workers
++// all carry the embedding top-level origin in their IsolationInfo; without
++// one (unpartitioned service worker) the factory's own origin decides. A
++// service worker therefore follows the site it runs for, not the page it
++// happens to control: the conservative choice, since a strict site's worker
++// never loses the rules because a compatibility page uses it.
++GURL PolicySiteForSubresourceFactory(const net::IsolationInfo& isolation_info,
++                                     const url::Origin& request_initiator);
++
++// Appends PrivacyModeURLLoaderFactoryProxy to `factory_builder` when the
++// factory serves subresources of a strict document, and does nothing in the
++// default mode (no extra hop, PRIV-17). The mode is a snapshot at factory
++// creation, i.e. per committed document: a changed mode applies from the next
++// load. Off the record, per-site exceptions are not consulted
++// (GetPolicySnapshot). Call it before the extension webRequest proxy is
++// appended, so webRequest (uBO Classic) sees and can block the request with
++// its strict-mode headers.
++void MaybeProxyPrivacyModeURLLoaderFactory(
++    const PrefService* prefs,
++    bool is_off_the_record,
++    bool is_subresource_factory,
++    const net::IsolationInfo& isolation_info,
++    const url::Origin& request_initiator,
++    network::URLLoaderFactoryBuilder& factory_builder);
++
++class PrivacyModeURLLoaderFactoryProxy final
++    : public network::SelfDeletingURLLoaderFactory {
++ public:
++  PrivacyModeURLLoaderFactoryProxy(
++      mojo::PendingReceiver<network::mojom::URLLoaderFactory> loader_receiver,
++      mojo::PendingRemote<network::mojom::URLLoaderFactory>
++          target_factory_remote,
++      base::SelfDeletingPassKey pass_key);
++  PrivacyModeURLLoaderFactoryProxy(const PrivacyModeURLLoaderFactoryProxy&) =
++      delete;
++  PrivacyModeURLLoaderFactoryProxy& operator=(
++      const PrivacyModeURLLoaderFactoryProxy&) = delete;
++
++  // network::mojom::URLLoaderFactory:
++  void CreateLoaderAndStart(
++      mojo::PendingReceiver<network::mojom::URLLoader> loader_receiver,
++      int32_t request_id,
++      uint32_t options,
++      const network::ResourceRequest& request,
++      mojo::PendingRemote<network::mojom::URLLoaderClient> client,
++      const net::MutableNetworkTrafficAnnotationTag& traffic_annotation)
++      override;
++
++ private:
++  ~PrivacyModeURLLoaderFactoryProxy() override;
++  void OnTargetFactoryError();
++
++  mojo::Remote<network::mojom::URLLoaderFactory> target_factory_;
++};
++
++}  // namespace ahoi::privacy
++
++#endif  // AHOI_BROWSER_PRIVACY_PRIVACY_MODE_URL_LOADER_FACTORY_PROXY_H_
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy_unittest.cc b/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy_unittest.cc
+new file mode 100644
+index 0000000..60f7c8e
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy_unittest.cc
+@@ -0,0 +1,200 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.h"
++
++#include <optional>
++#include <utility>
++#include <vector>
++
++#include "ahoi/browser/privacy/privacy_mode_service.h"
++#include "base/memory/scoped_refptr.h"
++#include "base/test/task_environment.h"
++#include "components/sync_preferences/testing_pref_service_syncable.h"
++#include "mojo/public/cpp/bindings/receiver_set.h"
++#include "mojo/public/cpp/bindings/remote.h"
++#include "net/base/isolation_info.h"
++#include "net/base/net_errors.h"
++#include "net/cookies/site_for_cookies.h"
++#include "services/network/public/cpp/resource_request.h"
++#include "services/network/public/cpp/shared_url_loader_factory.h"
++#include "services/network/public/cpp/url_loader_completion_status.h"
++#include "services/network/public/mojom/url_loader.mojom.h"
++#include "testing/gtest/include/gtest/gtest.h"
++#include "url/origin.h"
++
++namespace ahoi::privacy {
++namespace {
++
++// Stands in for a later interceptor on the same chain (extension webRequest)
++// or for the terminal network factory: records every request, and can block
++// like webRequest does.
++class RecordingFactory final : public network::SharedURLLoaderFactory {
++ public:
++  explicit RecordingFactory(
++      mojo::PendingRemote<network::mojom::URLLoaderFactory> next =
++          mojo::NullRemote())
++      : next_(std::move(next)) {}
++
++  void CreateLoaderAndStart(
++      mojo::PendingReceiver<network::mojom::URLLoader> loader,
++      int32_t request_id,
++      uint32_t options,
++      const network::ResourceRequest& request,
++      mojo::PendingRemote<network::mojom::URLLoaderClient> client,
++      const net::MutableNetworkTrafficAnnotationTag& annotation) override {
++    seen.push_back(request);
++    if (block) {
++      mojo::Remote<network::mojom::URLLoaderClient>(std::move(client))
++          ->OnComplete(
++              network::URLLoaderCompletionStatus(net::ERR_BLOCKED_BY_CLIENT));
++      return;
++    }
++    if (next_) {
++      next_->CreateLoaderAndStart(std::move(loader), request_id, options,
++                                  request, std::move(client), annotation);
++    }
++  }
++  void Clone(
++      mojo::PendingReceiver<network::mojom::URLLoaderFactory> r) override {
++    receivers_.Add(this, std::move(r));
++  }
++  std::unique_ptr<network::PendingSharedURLLoaderFactory> Clone() override {
++    NOTREACHED();
++  }
++
++  std::vector<network::ResourceRequest> seen;
++  bool block = false;
++
++ private:
++  ~RecordingFactory() override = default;
++  mojo::ReceiverSet<network::mojom::URLLoaderFactory> receivers_;
++  mojo::Remote<network::mojom::URLLoaderFactory> next_;
++};
++
++class ClientSink final : public network::mojom::URLLoaderClient {
++ public:
++  mojo::PendingRemote<network::mojom::URLLoaderClient> Bind() {
++    return receiver_.BindNewPipeAndPassRemote();
++  }
++  void OnReceiveEarlyHints(network::mojom::EarlyHintsPtr) override {}
++  void OnReceiveResponse(network::mojom::URLResponseHeadPtr,
++                         mojo::ScopedDataPipeConsumerHandle,
++                         std::optional<mojo_base::BigBuffer>) override {}
++  void OnReceiveRedirect(const net::RedirectInfo&,
++                         network::mojom::URLResponseHeadPtr) override {}
++  void OnUploadProgress(int64_t, int64_t, OnUploadProgressCallback) override {}
++  void OnTransferSizeUpdated(int32_t) override {}
++  void OnComplete(const network::URLLoaderCompletionStatus& status) override {
++    completed = status.error_code;
++  }
++  std::optional<int> completed;
++
++ private:
++  mojo::Receiver<network::mojom::URLLoaderClient> receiver_{this};
++};
++
++class PrivacyModeURLLoaderFactoryProxyTest : public testing::Test {
++ protected:
++  PrivacyModeURLLoaderFactoryProxyTest() {
++    RegisterProfilePrefs(prefs_.registry());
++  }
++
++  // Builds privacy proxy -> `web_request` -> `terminal`, the order of
++  // ChromeContentBrowserClient::WillCreateURLLoaderFactory after the seam.
++  scoped_refptr<network::SharedURLLoaderFactory> Build(
++      bool is_subresource_factory) {
++    network::URLLoaderFactoryBuilder builder;
++    MaybeProxyPrivacyModeURLLoaderFactory(
++        &prefs_, /*is_off_the_record=*/false, is_subresource_factory,
++        net::IsolationInfo::CreateForInternalRequest(top_), top_, builder);
++    auto [receiver, remote] = builder.Append();
++    web_request_ = base::MakeRefCounted<RecordingFactory>(std::move(remote));
++    web_request_->Clone(std::move(receiver));
++    terminal_ = base::MakeRefCounted<RecordingFactory>();
++    return std::move(builder).Finish(terminal_);
++  }
++
++  void Load(network::SharedURLLoaderFactory& factory, ClientSink& client) {
++    network::ResourceRequest request;
++    request.url = GURL("https://tracker.test/pixel");
++    request.site_for_cookies = net::SiteForCookies::FromOrigin(top_);
++    request.request_initiator = top_;
++    request.referrer = GURL("https://site.test/top?secret=1");
++    request.referrer_policy = net::ReferrerPolicy::NEVER_CLEAR;
++    mojo::PendingRemote<network::mojom::URLLoader> loader;
++    factory.CreateLoaderAndStart(loader.InitWithNewPipeAndPassReceiver(), 0, 0,
++                                 request, client.Bind(),
++                                 net::MutableNetworkTrafficAnnotationTag());
++    task_environment_.RunUntilIdle();
++  }
++
++  base::test::SingleThreadTaskEnvironment task_environment_;
++  sync_preferences::TestingPrefServiceSyncable prefs_;
++  const url::Origin top_ = url::Origin::Create(GURL("https://site.test/"));
++  scoped_refptr<RecordingFactory> web_request_;
++  scoped_refptr<RecordingFactory> terminal_;
++};
++
++// Handoff 066: webRequest (uBO Classic) sees the strict-mode request and the
++// request still reaches the network.
++TEST_F(PrivacyModeURLLoaderFactoryProxyTest, WebRequestSeesStrictRequest) {
++  ASSERT_TRUE(SetGlobalMode(&prefs_, PrivacyMode::kStrict));
++  scoped_refptr<network::SharedURLLoaderFactory> factory =
++      Build(/*is_subresource_factory=*/true);
++  ClientSink client;
++  Load(*factory, client);
++  ASSERT_EQ(1u, web_request_->seen.size());
++  EXPECT_EQ("1",
++            web_request_->seen[0].headers.GetHeader("Sec-GPC").value_or(""));
++  EXPECT_EQ(GURL("https://site.test/"), web_request_->seen[0].referrer);
++  EXPECT_EQ(1u, terminal_->seen.size());
++}
++
++// A blocking webRequest listener still blocks; the proxy drops nothing.
++TEST_F(PrivacyModeURLLoaderFactoryProxyTest, WebRequestCanStillBlock) {
++  ASSERT_TRUE(SetGlobalMode(&prefs_, PrivacyMode::kStrict));
++  scoped_refptr<network::SharedURLLoaderFactory> factory =
++      Build(/*is_subresource_factory=*/true);
++  web_request_->block = true;
++  ClientSink client;
++  Load(*factory, client);
++  EXPECT_EQ(std::optional<int>(net::ERR_BLOCKED_BY_CLIENT), client.completed);
++  EXPECT_TRUE(terminal_->seen.empty());
++}
++
++// PRIV-17: the default mode installs no proxy and rewrites nothing.
++TEST_F(PrivacyModeURLLoaderFactoryProxyTest, DefaultModeIsUntouched) {
++  scoped_refptr<network::SharedURLLoaderFactory> factory =
++      Build(/*is_subresource_factory=*/true);
++  ClientSink client;
++  Load(*factory, client);
++  ASSERT_EQ(1u, web_request_->seen.size());
++  EXPECT_FALSE(web_request_->seen[0].headers.HasHeader("Sec-GPC"));
++  EXPECT_EQ(GURL("https://site.test/top?secret=1"),
++            web_request_->seen[0].referrer);
++}
++
++// Navigation and script factories are the throttle's; no double rewriting.
++TEST_F(PrivacyModeURLLoaderFactoryProxyTest, NonSubresourceFactoryNotProxied) {
++  ASSERT_TRUE(SetGlobalMode(&prefs_, PrivacyMode::kStrict));
++  scoped_refptr<network::SharedURLLoaderFactory> factory =
++      Build(/*is_subresource_factory=*/false);
++  ClientSink client;
++  Load(*factory, client);
++  ASSERT_EQ(1u, web_request_->seen.size());
++  EXPECT_FALSE(web_request_->seen[0].headers.HasHeader("Sec-GPC"));
++}
++
++TEST(PrivacyModePolicySiteTest, TopFrameOriginDecides) {
++  const url::Origin top = url::Origin::Create(GURL("https://site.test/"));
++  const url::Origin frame = url::Origin::Create(GURL("https://embed.test/"));
++  EXPECT_EQ(GURL("https://site.test/"),
++            PolicySiteForSubresourceFactory(
++                net::IsolationInfo::CreateForInternalRequest(top), frame));
++  EXPECT_EQ(GURL("https://embed.test/"),
++            PolicySiteForSubresourceFactory(net::IsolationInfo(), frame));
++}
++
++}  // namespace
++}  // namespace ahoi::privacy
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_throttle.cc b/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_throttle.cc
+index d0a5729..1c0f695 100644
+--- a/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_throttle.cc
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_mode_url_loader_throttle.cc
+@@ -7,6 +7,7 @@
+ #include <string_view>
+ #include <utility>
+ 
++#include "ahoi/browser/privacy/privacy_strict_request_rules.h"
+ #include "components/prefs/pref_service.h"
+ #include "net/http/http_request_headers.h"
+ #include "net/url_request/redirect_info.h"
+@@ -19,17 +20,6 @@ namespace ahoi::privacy {
+ 
+ namespace {
+ 
+-constexpr std::string_view kHighEntropyUaClientHintHeaders[] = {
+-    "Sec-CH-UA-Arch",
+-    "Sec-CH-UA-Bitness",
+-    "Sec-CH-UA-Form-Factors",
+-    "Sec-CH-UA-Full-Version",
+-    "Sec-CH-UA-Full-Version-List",
+-    "Sec-CH-UA-Model",
+-    "Sec-CH-UA-Platform-Version",
+-    "Sec-CH-UA-WoW64",
+-};
+-
+ GURL PolicyOriginForRequest(const network::ResourceRequest& request) {
+   if (request.is_outermost_main_frame) {
+     return request.url;
+@@ -99,10 +89,12 @@ void PrivacyModeURLLoaderThrottle::WillRedirectRequest(
+   }
+   headers_update_params->modified_headers.SetHeader("Sec-GPC", "1");
+   if (IsThirdPartyRequest(redirect_info->new_url)) {
+-    for (std::string_view header : kHighEntropyUaClientHintHeaders) {
++    for (std::string_view header : HighEntropyUaClientHintHeaders()) {
+       headers_update_params->removed_headers.emplace_back(header);
+     }
+   }
++  // The referrer of later hops follows the (capped) policy set at the start
++  // (ApplyStrictRequestRules), so it stays reduced across redirects.
+   if (is_main_frame_) {
+     redirect_info->new_url =
+         StripKnownTrackingParameters(redirect_info->new_url);
+@@ -119,24 +111,11 @@ void PrivacyModeURLLoaderThrottle::ApplyToRequest(
+   if (mode != PrivacyMode::kStrict) {
+     return;
+   }
+-  request.headers.SetHeader("Sec-GPC", "1");
+-  if (IsThirdPartyRequest(request.url)) {
+-    for (std::string_view header : kHighEntropyUaClientHintHeaders) {
+-      request.headers.RemoveHeader(header);
+-    }
+-  }
+   if (is_main_frame_) {
+     request.url = StripKnownTrackingParameters(request.url);
+   }
+-
+-  // Preserve the destination host while removing path/query detail from a
+-  // cross-origin referrer. Chromium remains authoritative for the final
+-  // Referrer-Policy header and can still tighten this further.
+-  if (request.referrer.is_valid() && url::Origin::Create(request.referrer) !=
+-                                         url::Origin::Create(request.url)) {
+-    request.referrer = url::Origin::Create(request.referrer).GetURL();
+-    request.referrer_policy = net::ReferrerPolicy::ORIGIN;
+-  }
++  // Handoff 066: the same rules as the subresource factory proxy.
++  ApplyStrictRequestRules(request, is_main_frame_);
+ }
+ 
+ bool PrivacyModeURLLoaderThrottle::IsThirdPartyRequest(const GURL& url) const {
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.cc b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.cc
+new file mode 100644
+index 0000000..761d781
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.cc
+@@ -0,0 +1,67 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/privacy/privacy_strict_request_rules.h"
++
++#include "net/http/http_request_headers.h"
++#include "services/network/public/cpp/resource_request.h"
++#include "url/origin.h"
++
++namespace ahoi::privacy {
++
++namespace {
++
++constexpr std::string_view kHighEntropyUaClientHintHeaders[] = {
++    "Sec-CH-UA-Arch",
++    "Sec-CH-UA-Bitness",
++    "Sec-CH-UA-Form-Factors",
++    "Sec-CH-UA-Full-Version",
++    "Sec-CH-UA-Full-Version-List",
++    "Sec-CH-UA-Model",
++    "Sec-CH-UA-Platform-Version",
++    "Sec-CH-UA-WoW64",
++};
++
++}  // namespace
++
++base::span<const std::string_view> HighEntropyUaClientHintHeaders() {
++  return kHighEntropyUaClientHintHeaders;
++}
++
++net::ReferrerPolicy CapReferrerPolicyForStrictMode(net::ReferrerPolicy policy) {
++  switch (policy) {
++    case net::ReferrerPolicy::NEVER_CLEAR:
++    case net::ReferrerPolicy::CLEAR_ON_TRANSITION_FROM_SECURE_TO_INSECURE:
++    case net::ReferrerPolicy::ORIGIN_ONLY_ON_TRANSITION_CROSS_ORIGIN:
++      return net::ReferrerPolicy::REDUCE_GRANULARITY_ON_TRANSITION_CROSS_ORIGIN;
++    default:
++      return policy;
++  }
++}
++
++bool IsThirdPartyForStrictMode(const network::ResourceRequest& request,
++                               bool is_main_frame) {
++  return !is_main_frame && !request.site_for_cookies.IsFirstParty(request.url);
++}
++
++void ApplyStrictRequestRules(network::ResourceRequest& request,
++                             bool is_main_frame) {
++  request.headers.SetHeader("Sec-GPC", "1");
++  if (IsThirdPartyForStrictMode(request, is_main_frame)) {
++    for (std::string_view header : kHighEntropyUaClientHintHeaders) {
++      request.headers.RemoveHeader(header);
++    }
++  }
++  // Preserve the destination host while removing path/query detail from a
++  // cross-origin referrer. Chromium remains authoritative for the final
++  // Referrer-Policy header and can still tighten this further.
++  if (request.referrer.is_valid() && url::Origin::Create(request.referrer) !=
++                                         url::Origin::Create(request.url)) {
++    request.referrer = url::Origin::Create(request.referrer).GetURL();
++    request.referrer_policy = net::ReferrerPolicy::ORIGIN;
++    return;
++  }
++  request.referrer_policy = CapReferrerPolicyForStrictMode(request.referrer_policy);
++}
++
++}  // namespace ahoi::privacy
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.h b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.h
+new file mode 100644
+index 0000000..4d68670
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules.h
+@@ -0,0 +1,47 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#ifndef AHOI_BROWSER_PRIVACY_PRIVACY_STRICT_REQUEST_RULES_H_
++#define AHOI_BROWSER_PRIVACY_PRIVACY_STRICT_REQUEST_RULES_H_
++
++#include <string_view>
++
++#include "base/containers/span.h"
++#include "net/url_request/referrer_policy.h"
++
++namespace network {
++struct ResourceRequest;
++}  // namespace network
++
++namespace ahoi::privacy {
++
++// The request rules of `Mehr Schutz` (docs/PRIVACY.md, Master 1488-1507),
++// shared by the navigation throttle and the subresource factory proxy so the
++// two paths cannot diverge (handoff 066). Callers apply them only to requests
++// of a strict document; the default mode rewrites nothing.
++
++// High-entropy User-Agent client hints removed from third-party requests.
++base::span<const std::string_view> HighEntropyUaClientHintHeaders();
++
++// A page may ask for more referrer detail than strict mode allows. Policies
++// that would send a full URL cross-origin (or on a downgrade) are capped to
++// strict-origin-when-cross-origin; stricter policies stay. Because the
++// network service applies the policy on every hop, this also keeps
++// redirects of an initially same-origin request reduced.
++net::ReferrerPolicy CapReferrerPolicyForStrictMode(net::ReferrerPolicy policy);
++
++// Third party: not the main frame and not first-party to the request's
++// site_for_cookies.
++bool IsThirdPartyForStrictMode(const network::ResourceRequest& request,
++                               bool is_main_frame);
++
++// Sets `Sec-GPC: 1`, removes high-entropy UA client hints from third-party
++// requests, reduces a cross-origin referrer to its origin (policy ORIGIN) and
++// caps the referrer policy otherwise. Tracking parameters are the caller's
++// concern: the contract strips them from main-frame navigations only.
++void ApplyStrictRequestRules(network::ResourceRequest& request,
++                             bool is_main_frame);
++
++}  // namespace ahoi::privacy
++
++#endif  // AHOI_BROWSER_PRIVACY_PRIVACY_STRICT_REQUEST_RULES_H_
+diff --git a/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules_unittest.cc b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules_unittest.cc
+new file mode 100644
+index 0000000..c062ce3
+--- /dev/null
++++ b/overlay/chromium/src/ahoi/browser/privacy/privacy_strict_request_rules_unittest.cc
+@@ -0,0 +1,68 @@
++// Copyright 2026 The AhoiBrowser Authors
++// SPDX-License-Identifier: GPL-3.0-or-later
++
++#include "ahoi/browser/privacy/privacy_strict_request_rules.h"
++
++#include "net/cookies/site_for_cookies.h"
++#include "services/network/public/cpp/resource_request.h"
++#include "testing/gtest/include/gtest/gtest.h"
++#include "url/origin.h"
++
++namespace ahoi::privacy {
++namespace {
++
++network::ResourceRequest Subresource(const char* url, const char* top) {
++  network::ResourceRequest request;
++  request.url = GURL(url);
++  request.site_for_cookies =
++      net::SiteForCookies::FromOrigin(url::Origin::Create(GURL(top)));
++  request.request_initiator = url::Origin::Create(GURL(top));
++  return request;
++}
++
++// Handoff 066: a third-party image of a strict page (the fixture's /pixel).
++TEST(PrivacyStrictRequestRulesTest, ThirdPartySubresourceGetsAllRules) {
++  network::ResourceRequest request =
++      Subresource("https://tracker.test/pixel", "https://site.test/");
++  request.referrer = GURL("https://site.test/top?secret=1");
++  request.referrer_policy = net::ReferrerPolicy::NEVER_CLEAR;  // unsafe-url
++  request.headers.SetHeader("Sec-CH-UA", "\"Chromium\";v=\"153\"");
++  request.headers.SetHeader("Sec-CH-UA-Model", "\"Mac\"");
++  ApplyStrictRequestRules(request, /*is_main_frame=*/false);
++  EXPECT_EQ("1", request.headers.GetHeader("Sec-GPC").value_or(""));
++  EXPECT_EQ(GURL("https://site.test/"), request.referrer);
++  EXPECT_EQ(net::ReferrerPolicy::ORIGIN, request.referrer_policy);
++  EXPECT_FALSE(request.headers.HasHeader("Sec-CH-UA-Model"));
++  EXPECT_TRUE(request.headers.HasHeader("Sec-CH-UA"));  // low entropy stays
++}
++
++TEST(PrivacyStrictRequestRulesTest, FirstPartyKeepsHintsAndFullReferrer) {
++  network::ResourceRequest request =
++      Subresource("https://site.test/app.js", "https://site.test/");
++  request.referrer = GURL("https://site.test/top?page=2");
++  request.referrer_policy = net::ReferrerPolicy::NEVER_CLEAR;
++  request.headers.SetHeader("Sec-CH-UA-Model", "\"Mac\"");
++  ApplyStrictRequestRules(request, /*is_main_frame=*/false);
++  EXPECT_TRUE(request.headers.HasHeader("Sec-CH-UA-Model"));
++  EXPECT_EQ(GURL("https://site.test/top?page=2"), request.referrer);
++  // Capped, so a later cross-site redirect only carries the origin.
++  EXPECT_EQ(net::ReferrerPolicy::REDUCE_GRANULARITY_ON_TRANSITION_CROSS_ORIGIN,
++            request.referrer_policy);
++}
++
++TEST(PrivacyStrictRequestRulesTest, CapKeepsStricterPolicies) {
++  EXPECT_EQ(net::ReferrerPolicy::REDUCE_GRANULARITY_ON_TRANSITION_CROSS_ORIGIN,
++            CapReferrerPolicyForStrictMode(
++                net::ReferrerPolicy::CLEAR_ON_TRANSITION_FROM_SECURE_TO_INSECURE));
++  EXPECT_EQ(net::ReferrerPolicy::REDUCE_GRANULARITY_ON_TRANSITION_CROSS_ORIGIN,
++            CapReferrerPolicyForStrictMode(
++                net::ReferrerPolicy::ORIGIN_ONLY_ON_TRANSITION_CROSS_ORIGIN));
++  EXPECT_EQ(net::ReferrerPolicy::NO_REFERRER,
++            CapReferrerPolicyForStrictMode(net::ReferrerPolicy::NO_REFERRER));
++  EXPECT_EQ(net::ReferrerPolicy::CLEAR_ON_TRANSITION_CROSS_ORIGIN,
++            CapReferrerPolicyForStrictMode(
++                net::ReferrerPolicy::CLEAR_ON_TRANSITION_CROSS_ORIGIN));
++}
++
++}  // namespace
++}  // namespace ahoi::privacy

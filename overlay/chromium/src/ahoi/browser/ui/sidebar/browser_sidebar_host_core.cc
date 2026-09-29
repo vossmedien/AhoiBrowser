@@ -55,9 +55,11 @@
 #include "cc/paint/paint_flags.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/app/vector_icons/vector_icons.h"
+#include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/sessions/session_restore.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
@@ -69,6 +71,7 @@
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/bookmarks/browser/bookmark_model.h"
 #include "components/favicon/content/content_favicon_driver.h"
 #include "components/favicon/core/favicon_service.h"
 #include "components/favicon_base/favicon_types.h"
@@ -130,343 +133,16 @@
 #include "ui/views/widget/widget.h"
 
 namespace ahoi::sidebar {
-BrowserSidebarHostView::BrowserSidebarHostView(
-    Browser* browser,
-    SessionBridge* session_bridge,
-    WorkspaceService* workspace_service,
-    ModalOverlayController* modal_overlay_controller)
-    : browser_(browser),
-      session_bridge_(session_bridge),
-      workspace_service_(workspace_service),
-      modal_overlay_controller_(modal_overlay_controller),
-      tab_strip_model_(browser->tab_strip_model()),
-      controller_(std::make_unique<SidebarTreeController>(
-          session_bridge->tab_tree_store())) {
-  CHECK(modal_overlay_controller_);
-  CHECK(browser_);
-  CHECK(session_bridge_);
-  CHECK(session_bridge_->tab_tree_store());
-  CHECK(workspace_service_);
-  CHECK(tab_strip_model_);
-  favicon_service_ = FaviconServiceFactory::GetForProfile(
-      browser_->GetProfile(), ServiceAccessType::EXPLICIT_ACCESS);
-  history_service_ = HistoryServiceFactory::GetForProfile(
-      browser_->GetProfile(), ServiceAccessType::EXPLICIT_ACCESS);
-  // SessionBridge and CommandServiceFactory both reject OTR and non-regular
-  // profiles. Keep that boundary explicit here as well: discovery must never
-  // expose another profile's durable tree or recently-closed session list.
-  Profile* const profile = browser_->GetProfile();
-  if (profile && profile->IsRegularProfile() && !profile->IsOffTheRecord()) {
-    command_service_ = CommandServiceFactory::GetForProfile(profile);
-    if (command_service_) {
-      discovery_model_ = std::make_unique<SidebarDiscoveryModel>(
-          command_service_, TabRestoreServiceFactory::GetForProfile(profile));
-    }
-  }
-  tab_preview_controller_ = std::make_unique<SidebarTabPreviewController>(
-      base::BindRepeating(
-          [](base::WeakPtr<BrowserSidebarHostView> host,
-             const SidebarTabPreviewTarget& target)
-              -> std::optional<SidebarTabPreviewData> {
-            return host ? host->ResolveTabPreviewData(target) : std::nullopt;
-          },
-          weak_ptr_factory_.GetWeakPtr()),
-      base::BindRepeating(
-          [](base::WeakPtr<BrowserSidebarHostView> host,
-             const SidebarTabPreviewTarget& target, const views::View* anchor) {
-            return host && host->ValidateTabPreviewAnchor(target, anchor);
-          },
-          weak_ptr_factory_.GetWeakPtr()));
-
-  SetPreferredSize(gfx::Size(visual_style::kSidebarWidthDefault, 480));
-  // The appearance resolver installs the themed opaque/glass surface after
-  // the child hierarchy exists. Keeping this container transparent here lets
-  // the resolver's backdrop blur sample the browser content behind the tree.
-  SetBackground(nullptr);
-  GetViewAccessibility().SetRole(ax::mojom::Role::kGenericContainer);
-  GetViewAccessibility().SetName(u"AhoiBrowser");
-
-  auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
-      views::BoxLayout::Orientation::kVertical,
-      gfx::Insets::TLBR(visual_style::kSidebarTopInset,
-                        visual_style::kSidebarHorizontalInset,
-                        visual_style::kSidebarBottomInset,
-                        visual_style::kSidebarHorizontalInset),
-      visual_style::kSidebarSectionSpacing));
-  layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kStretch);
-
-  auto workspace_header = std::make_unique<views::View>();
-  auto* workspace_header_layout =
-      workspace_header->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kHorizontal, gfx::Insets(),
-          visual_style::kSidebarFooterSpacing));
-  workspace_header_layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kCenter);
-  auto workspace_selector_host = std::make_unique<views::View>();
-  workspace_selector_host->SetPreferredSize(
-      gfx::Size(0, visual_style::kSidebarActionCellHeight));
-  workspace_selector_host->SetLayoutManager(
-      std::make_unique<views::FillLayout>());
-  workspace_button_ =
-      workspace_selector_host->AddChildView(CreateWorkspaceSelectorButton(
-          base::BindRepeating(&BrowserSidebarHostView::OnWorkspacePressed,
-                              base::Unretained(this))));
-
-  // The drag-only target is a sibling of the selector inside a fixed-height
-  // FillLayout. It therefore covers the workspace name while dragging but can
-  // never insert a row or move the saved/open-tab surfaces below it.
-  new_group_drop_target_ =
-      workspace_selector_host->AddChildView(CreateNewGroupDropTargetView(
-          base::BindRepeating(
-              [](base::WeakPtr<BrowserSidebarHostView> host,
-                 const base::Uuid& node_id) {
-                if (!host ||
-                    !host->controller_->view_model().GetNode(node_id)) {
-                  return false;
-                }
-                host->ShowCreateGroupDialog(node_id);
-                return host && host->group_dialog_widget_;
-              },
-              weak_ptr_factory_.GetWeakPtr()),
-          base::BindRepeating(
-              [](base::WeakPtr<BrowserSidebarHostView> host,
-                 int runtime_tab_handle) {
-                if (!host || !host->FindTemporaryTab(runtime_tab_handle)) {
-                  return false;
-                }
-                host->ShowCreateGroupDialogForTemporaryTab(runtime_tab_handle);
-                return host && host->group_dialog_widget_;
-              },
-              weak_ptr_factory_.GetWeakPtr()),
-          base::BindRepeating(
-              &BrowserSidebarHostView::ClaimDropTargetPresentation,
-              weak_ptr_factory_.GetWeakPtr())));
-  SetNewGroupDropTargetVisible(new_group_drop_target_, false);
-
-  views::View* workspace_selector_host_ptr =
-      workspace_header->AddChildView(std::move(workspace_selector_host));
-  workspace_header_layout->SetFlexForView(workspace_selector_host_ptr, 1);
-  if (discovery_model_) {
-    workspace_header->AddChildView(CreateSidebarHeaderActionButton(
-        base::BindRepeating(&BrowserSidebarHostView::OnSidebarDiscoveryPressed,
-                            weak_ptr_factory_.GetWeakPtr()),
-        vector_icons::kSearchIcon,
-        l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_DISCOVERY_SEARCH)));
-  }
-  workspace_header->AddChildView(CreateSidebarHeaderActionButton(
-      base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
-                          weak_ptr_factory_.GetWeakPtr(),
-                          /*toggle_visibility=*/false),
-      kDockToLeftIcon,
-      l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_FLOATING_SIDEBAR)));
-  workspace_header->AddChildView(CreateSidebarHeaderActionButton(
-      base::BindRepeating(&BrowserSidebarHostView::OnSidebarHeaderActionPressed,
-                          weak_ptr_factory_.GetWeakPtr(),
-                          /*toggle_visibility=*/true),
-      kLeftPanelCloseFlippableIcon,
-      l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_HIDE_SIDEBAR)));
-  AddChildView(std::move(workspace_header));
-  SetWorkspaceSelectorPresentation(workspace_button_, u"Ahoi", u"A",
-                                   visual_style::kDefaultAccent);
-  workspace_button_->set_context_menu_controller(this);
-
-  auto tabs_surface = CreateSidebarTabsSurfaceView();
-  auto* tabs_surface_layout =
-      tabs_surface->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kVertical));
-  tabs_surface_layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kStretch);
-
-  auto tree = std::make_unique<SidebarTreeView>(
-      controller_.get(), this,
-      l10n_util::GetStringUTF16(IDS_AHOI_SIDEBAR_TREE_ACCESSIBLE_NAME),
-      l10n_util::GetStringUTF16(IDS_AHOI_SPLIT_WITH_PREFIX));
-  tree_view_ = tree.get();
-  tabs_surface->AddChildView(std::move(tree));
-
-  open_tabs_header_ = tabs_surface->AddChildView(CreateSidebarSectionDivider(
-      base::BindRepeating(&BrowserSidebarHostView::CloseAllTemporaryTabs,
-                          base::Unretained(this)),
-      l10n_util::GetStringUTF16(IDS_DOWNLOAD_LINK_CLEAR_ALL)));
-
-  auto open_tabs = CreateOpenTabsDropTargetView(
-      base::BindRepeating(&BrowserSidebarHostView::CanDropOpenTabToTemporary,
-                          base::Unretained(this)),
-      base::BindRepeating(&BrowserSidebarHostView::DropOpenTabToTemporary,
-                          base::Unretained(this)),
-      base::BindRepeating(&BrowserSidebarHostView::ClaimDropTargetPresentation,
-                          weak_ptr_factory_.GetWeakPtr()));
-  open_tabs->GetViewAccessibility().SetRole(ax::mojom::Role::kTabList);
-  open_tabs->GetViewAccessibility().SetName(
-      l10n_util::GetStringUTF16(IDS_TAB_SEARCH_OPEN_TABS));
-  open_tabs_container_ = tabs_surface->AddChildView(std::move(open_tabs));
-  // ScrollView expands its contents to at least the viewport. Giving the
-  // temporary-tab target the remaining height makes the entire free lower
-  // sidebar a valid saved-to-temporary or split-detach drop zone instead of
-  // requiring a hit on the narrow list itself.
-  tabs_surface_layout->SetFlexForView(open_tabs_container_, 1,
-                                      /*use_min_size=*/true);
-
-  auto remote_tabs_header = std::make_unique<views::View>();
-  auto* remote_header_layout =
-      remote_tabs_header->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kHorizontal,
-          gfx::Insets::TLBR(10, 8, 4, 8)));
-  remote_header_layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kCenter);
-  auto* remote_header_label = remote_tabs_header->AddChildView(
-      std::make_unique<views::Label>(l10n_util::GetStringUTF16(
-          IDS_SIDE_PANEL_TABS_FROM_OTHER_DEVICES_TITLE)));
-  remote_header_label->SetSubpixelRenderingEnabled(false);
-  remote_header_label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
-  remote_header_label->SetEnabledColor(visual_style::kMutedText);
-  remote_tabs_header_ =
-      tabs_surface->AddChildView(std::move(remote_tabs_header));
-  remote_tabs_header_->SetVisible(false);
-
-  auto remote_tabs = std::make_unique<views::View>();
-  auto* remote_tabs_layout =
-      remote_tabs->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kVertical));
-  remote_tabs_layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kStretch);
-  remote_tabs_container_ = tabs_surface->AddChildView(std::move(remote_tabs));
-  remote_tabs_container_->SetVisible(false);
-  // Cross-device rows are part of the tab list, not a detached management
-  // page. Keep them immediately below the saved tree and above temporary
-  // local tabs; the latter may flex into otherwise unused sidebar height.
-  tabs_surface->ReorderChildView(remote_tabs_header_, 1);
-  tabs_surface->ReorderChildView(remote_tabs_container_, 2);
-  auto* const mini_player_scroll_inset =
-      tabs_surface->AddChildView(std::make_unique<views::View>());
-  mini_player_scroll_inset->SetPreferredSize(gfx::Size());
-
-  auto scroll = std::make_unique<views::ScrollView>();
-  scroll->SetBackground(nullptr);
-  scroll->SetDrawOverflowIndicator(false);
-  scroll->SetHorizontalScrollBarMode(
-      views::ScrollView::ScrollBarMode::kDisabled);
-  // Re-query SidebarTabsSurfaceView with the live viewport width on every
-  // layout pass. Without this, ScrollView keeps the contents' former preferred
-  // width after a native sidebar resize, so the separator and "Clear all"
-  // action remain at their old x position and are clipped by the new viewport.
-  scroll->SetUseContentsPreferredSize(true);
-  scroll->SetContents(std::move(tabs_surface));
-  auto media_overlay =
-      CreateMiniPlayerOverlay(std::move(scroll), mini_player_scroll_inset);
-  media_overlay_view_ = media_overlay.get();
-  if (discovery_model_) {
-    auto discovery = std::make_unique<SidebarDiscoveryView>(
-        discovery_model_.get(), std::move(media_overlay),
-        base::BindRepeating(
-            [](base::WeakPtr<BrowserSidebarHostView> host,
-               const std::u16string& query,
-               const std::vector<SidebarDiscoveryItem>& items) {
-              return host ? host->ApplySidebarDiscoveryFilter(query, items)
-                          : std::set<std::string>();
-            },
-            weak_ptr_factory_.GetWeakPtr()),
-        base::BindRepeating(
-            [](base::WeakPtr<BrowserSidebarHostView> host,
-               SidebarDiscoveryView::PrimaryResultAction action) {
-              return host && host->HandleSidebarDiscoveryPrimaryResult(action);
-            },
-            weak_ptr_factory_.GetWeakPtr()),
-        base::BindRepeating(
-            [](base::WeakPtr<BrowserSidebarHostView> host,
-               const CommandItem& item) {
-              return host && host->ActivateSidebarDiscoveryCommand(item);
-            },
-            weak_ptr_factory_.GetWeakPtr()),
-        base::BindRepeating(
-            [](base::WeakPtr<BrowserSidebarHostView> host, SessionID entry_id) {
-              return host && host->RestoreSidebarDiscoveryEntry(entry_id);
-            },
-            weak_ptr_factory_.GetWeakPtr()),
-        base::BindRepeating(&BrowserSidebarHostView::CloseSidebarDiscovery,
-                            weak_ptr_factory_.GetWeakPtr()));
-    discovery_view_ = AddChildView(std::move(discovery));
-    layout->SetFlexForView(discovery_view_, 1, /*use_min_size=*/true);
-  } else {
-    media_overlay_view_ = AddChildView(std::move(media_overlay));
-    layout->SetFlexForView(media_overlay_view_, 1, /*use_min_size=*/true);
-  }
-
-  auto actions = std::make_unique<views::View>();
-  auto* actions_layout =
-      actions->SetLayoutManager(std::make_unique<views::BoxLayout>(
-          views::BoxLayout::Orientation::kHorizontal, gfx::Insets::VH(2, 0),
-          visual_style::kSidebarFooterSpacing));
-  actions_layout->set_main_axis_alignment(
-      views::BoxLayout::MainAxisAlignment::kStart);
-  actions_layout->set_cross_axis_alignment(
-      views::BoxLayout::CrossAxisAlignment::kCenter);
-  const auto add_action = [&](int command_id, const gfx::VectorIcon& icon,
-                              int label_id) {
-    auto* action = actions->AddChildView(CreateSidebarActionButton(
-        base::BindRepeating(&BrowserSidebarHostView::RunBrowserCommand,
-                            weak_ptr_factory_.GetWeakPtr(), command_id),
-        icon, l10n_util::GetStringUTF16(label_id)));
-    actions_layout->SetFlexForView(action, 1);
-  };
-  auto* split_action = actions->AddChildView(CreateSidebarSplitActionCell(
-      base::BindRepeating(&BrowserSidebarHostView::RunBrowserCommand,
-                          weak_ptr_factory_.GetWeakPtr(), IDC_NEW_TAB),
-      vector_icons::kAddWeight500Icon, l10n_util::GetStringUTF16(IDS_NEW_TAB),
-      base::BindRepeating(&BrowserSidebarHostView::RunBrowserCommand,
-                          weak_ptr_factory_.GetWeakPtr(),
-                          IDC_NEW_INCOGNITO_WINDOW),
-      kIncognitoIcon, l10n_util::GetStringUTF16(IDS_NEW_INCOGNITO_WINDOW)));
-  actions_layout->SetFlexForView(split_action, 1);
-  add_action(IDC_SHOW_DOWNLOADS, vector_icons::kDownloadIcon,
-             IDS_DOWNLOAD_HISTORY_TITLE);
-  add_action(IDC_SHOW_HISTORY, vector_icons::kHistoryIcon, IDS_HISTORY_MENU);
-  add_action(IDC_OPTIONS, vector_icons::kSettingsIcon, IDS_SETTINGS);
-  sidebar_actions_ = AddChildView(std::move(actions));
-
-  // The drag-only action overlays the workspace pill at exactly the same
-  // bounds. It therefore remains easy to hit without changing the scroll
-  // viewport or moving any saved/temporary tab while AppKit owns the drag.
-
-  workspace_service_->AddObserver(this);
-  tab_strip_model_->AddObserver(this);
-  session_presentation_subscription_ =
-      session_bridge_->AddRuntimePresentationChangedCallback(
-          base::BindRepeating(
-              &BrowserSidebarHostView::OnSessionPresentationChanged,
-              base::Unretained(this)));
-  window_id_ = session_bridge_->GetWindowId(browser_);
-  ActivateInitialWorkspace();
-  UpdateWorkspaceSelectorIndicators();
-  SynchronizeSelection();
-  // Project the local TabStrip/session state before attaching remote sync.
-  // CloudKit transport, device snapshots and thumbnail work must never hold
-  // the first interactive sidebar frame hostage.
-  RefreshRuntimePresentation();
-
-  profile_sync_service_ =
-      sync::ProfileSyncServiceFactory::GetForProfile(browser_->GetProfile());
-
-  appearance_signal_source_ =
-      std::make_unique<appearance::AppearanceRuntimeSignalSource>(
-          browser_->GetProfile()->GetPrefs(),
-          base::BindRepeating(&BrowserSidebarHostView::OnAppearanceChanged,
-                              weak_ptr_factory_.GetWeakPtr()));
-  PrefService* const prefs = browser_->GetProfile()->GetPrefs();
-  if (prefs->FindPreference(appearance::kSidebarPageTintEnabledPref)) {
-    page_tint_pref_change_registrar_.Init(prefs);
-    page_tint_pref_change_registrar_.Add(
-        appearance::kSidebarPageTintEnabledPref,
-        base::BindRepeating(&BrowserSidebarHostView::RefreshPageTint,
-                            weak_ptr_factory_.GetWeakPtr(),
-                            /*allow_animation=*/true));
-  }
-  OnAppearanceChanged(appearance_signal_source_->policy());
-}
-
 void BrowserSidebarHostView::AddedToWidget() {
   views::View::AddedToWidget();
+  if (!bookmark_observation_.IsObserving()) {
+    bookmark_model_ =
+        BookmarkModelFactory::GetForBrowserContext(browser_->GetProfile());
+    if (bookmark_model_) {
+      bookmark_observation_.Observe(bookmark_model_);
+      BookmarkModelChanged();
+    }
+  }
   if (views::Widget* const widget = GetWidget()) {
     widget_drag_observation_.Observe(widget);
     // The semantic sidebar color becomes available with the Widget. Re-resolve
@@ -497,6 +173,8 @@ void BrowserSidebarHostView::AddedToWidget() {
 }
 
 void BrowserSidebarHostView::RemovedFromWidget() {
+  bookmark_observation_.Reset();
+  bookmark_model_ = nullptr;
   if (tab_preview_controller_) {
     tab_preview_controller_->Hide();
   }
@@ -545,15 +223,6 @@ bool BrowserSidebarHostView::UndoLastMutationIfAvailable() {
   // A database error belongs to this attempted sidebar undo as well; do not
   // unexpectedly undo page content after surfacing that failure.
   return true;
-}
-
-bool BrowserSidebarHostView::ActivateWorkspaceAtIndex(size_t index) {
-  if (index >= workspace_service_->ordered_workspaces().size()) {
-    return false;
-  }
-  return session_bridge_->SetActiveWorkspaceForWindow(
-      browser_, workspace_service_->ordered_workspaces()[index].id,
-      WorkspaceActivationSource::kKeyboard);
 }
 
 bool BrowserSidebarHostView::RevealFolder(const base::Uuid& folder_id) {
@@ -608,18 +277,25 @@ bool BrowserSidebarHostView::RevealFolder(const base::Uuid& folder_id) {
 }
 
 BrowserSidebarHostView::~BrowserSidebarHostView() {
+  bookmark_observation_.Reset();
+  bookmark_model_ = nullptr;
   CancelWorkspaceTransition();
   SetBrowserSidebarDragRoutingActive(this, false);
   tab_preview_controller_.reset();
   weak_ptr_factory_.InvalidateWeakPtrs();
+  structure_dialog_widget_.reset();
+  archive_search_widget_.reset();
+  archive_search_delegate_.reset();
   widget_drag_observation_.Reset();
-  group_recent_show_timer_.Stop();
-  group_recent_hide_timer_.Stop();
-  group_recent_history_task_tracker_.TryCancelAll();
-  group_recent_links_view_ = nullptr;
-  group_recent_widget_.reset();
-  group_recent_delegate_.reset();
+  group_recent_.show_timer.Stop();
+  group_recent_.hide_timer.Stop();
+  group_recent_.history_task_tracker.TryCancelAll();
+  group_recent_.links_view = nullptr;
+  group_recent_.widget.reset();
+  group_recent_.delegate.reset();
   session_presentation_subscription_ = {};
+  shared_tab_capture_subscription_ = {};
+  session_restored_subscription_ = {};
   if (profile_sync_service_ && profile_sync_ui_attached_) {
     if (window_id_.has_value()) {
       profile_sync_service_->RemoveWindowTabs(window_id_->AsLowercaseString());
@@ -632,21 +308,21 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
   if (workspace_button_) {
     workspace_button_->set_context_menu_controller(nullptr);
   }
-  workspace_name_field_ = nullptr;
-  workspace_icon_field_ = nullptr;
-  if (workspace_dialog_widget_) {
+  workspace_dialog_.name_field = nullptr;
+  workspace_dialog_.icon_field = nullptr;
+  if (workspace_dialog_.widget) {
     modal_overlay_controller_->DismissPanelImmediately(
-        workspace_dialog_widget_.get());
+        workspace_dialog_.widget.get());
   }
-  workspace_dialog_widget_.reset();
-  workspace_dialog_delegate_.reset();
-  group_name_field_ = nullptr;
-  if (group_dialog_widget_) {
+  workspace_dialog_.widget.reset();
+  workspace_dialog_.delegate.reset();
+  group_dialog_.name_field = nullptr;
+  if (group_dialog_.widget) {
     modal_overlay_controller_->DismissPanelImmediately(
-        group_dialog_widget_.get());
+        group_dialog_.widget.get());
   }
-  group_dialog_widget_.reset();
-  group_dialog_delegate_.reset();
+  group_dialog_.widget.reset();
+  group_dialog_.delegate.reset();
   if (tab_strip_model_) {
     tab_strip_model_->RemoveObserver(this);
   }
@@ -661,6 +337,27 @@ BrowserSidebarHostView::~BrowserSidebarHostView() {
 void BrowserSidebarHostView::OnSessionPresentationChanged() {
   SynchronizeSelection();
   ScheduleRuntimePresentationRefresh();
+}
+
+void BrowserSidebarHostView::BookmarkModelChanged() {
+  ScheduleRuntimePresentationRefresh();
+}
+
+void BrowserSidebarHostView::BookmarkModelBeingDeleted() {
+  bookmark_observation_.Reset();
+  bookmark_model_ = nullptr;
+  ScheduleRuntimePresentationRefresh();
+}
+
+bool BrowserSidebarHostView::IsUrlBookmarked(const GURL& url) const {
+  return bookmark_model_ && bookmark_model_->loaded() && url.is_valid() &&
+         !url.is_empty() && bookmark_model_->IsBookmarked(url);
+}
+
+void BrowserSidebarHostView::OnSidebarPresentationSettled() {
+  if (tree_view_) {
+    tree_view_->OnPresentationAnimationSettled();
+  }
 }
 
 void BrowserSidebarHostView::ActivateInitialWorkspace() {
@@ -705,24 +402,22 @@ void BrowserSidebarHostView::UpdateWorkspaceSelectorIndicators() {
   if (!workspace_button_ || !workspace_service_) {
     return;
   }
-  const std::optional<base::Uuid> active_workspace =
-      window_id_.has_value()
-          ? workspace_service_->GetActiveWorkspace(*window_id_)
-          : std::nullopt;
+  // ADR 0011 step 2 (handoff 048): dots cover every Profile's Workspaces in
+  // the process-wide order; `workspace_index` is the switcher position.
+  const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
+  const std::optional<size_t> active = ActiveSwitcherIndex(switcher);
   std::vector<WorkspaceSelectorIndicator> indicators;
-  indicators.reserve(workspace_service_->ordered_workspaces().size());
-  const auto& workspaces = workspace_service_->ordered_workspaces();
-  for (size_t index = 0; index < workspaces.size(); ++index) {
-    const tab_tree::Workspace& workspace = workspaces[index];
+  indicators.reserve(switcher.size());
+  for (size_t index = 0; index < switcher.size(); ++index) {
     // The active workspace is already represented by icon and name. Only
     // inactive workspaces become dots, matching the compact Arc-like model.
-    if (active_workspace.has_value() && *active_workspace == workspace.id) {
+    if (active == index) {
       continue;
     }
     indicators.push_back({.workspace_index = index,
-                          .name = workspace.name,
-                          .icon = workspace.icon,
-                          .accent_argb = workspace.accent_argb});
+                          .name = switcher[index].name,
+                          .icon = switcher[index].icon,
+                          .accent_argb = switcher[index].accent_argb});
   }
   SetWorkspaceSelectorIndicators(
       workspace_button_, std::move(indicators),
@@ -763,7 +458,7 @@ tabs::TabInterface* BrowserSidebarHostView::FindRuntimeTab(
 
 void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
     const base::Uuid& workspace_id) {
-  if (!tab_strip_model_) {
+  if (!tab_strip_model_ || DeferWorkspaceSurfaceDuringRestore()) {
     return;
   }
   tabs::TabInterface* active_tab = tab_strip_model_->GetActiveTab();
@@ -772,7 +467,8 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
   if (active_tab && (!active_tab_workspace.has_value() ||
                      active_tab_workspace == workspace_id)) {
     if (browser_->GetWindow()) {
-      browser_->GetBrowserView().SetAhoiEmptyStateVisible(false);
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->SetAhoiEmptyStateVisible(false);
     }
     return;
   }
@@ -815,7 +511,8 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
           TabStripUserGestureDetails(
               TabStripUserGestureDetails::GestureType::kKeyboard));
       if (browser_->GetWindow()) {
-        browser_->GetBrowserView().SetAhoiEmptyStateVisible(false);
+        BrowserView::GetBrowserViewForBrowser(browser_.get())
+            ->SetAhoiEmptyStateVisible(false);
       }
     }
     return;
@@ -825,7 +522,8 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
   // Tab page when switching into one; the native empty surface remains visible
   // and the user can create a tab explicitly through Cmd+T or the sidebar.
   if (browser_->GetWindow()) {
-    browser_->GetBrowserView().SetAhoiEmptyStateVisible(true);
+    BrowserView::GetBrowserViewForBrowser(browser_.get())
+        ->SetAhoiEmptyStateVisible(true);
   }
 }
 
@@ -834,13 +532,83 @@ void BrowserSidebarHostView::EnsureWorkspaceSurface() {
       browser_->IsWindowCloseRequested()) {
     return;
   }
-  const std::optional<base::Uuid> active_workspace =
-      controller_->view_model().workspace_id();
+  // Crest 142 R4: the service is the single writer, and patch 0054 reads it
+  // for the empty state too. The view model is only a projection that can lag
+  // behind after a failed activation; use it just while the window is not yet
+  // tracked by the service.
+  std::optional<base::Uuid> active_workspace =
+      session_bridge_ ? session_bridge_->GetActiveWorkspaceForWindow(browser_)
+                      : std::nullopt;
+  if (!active_workspace.has_value()) {
+    active_workspace = controller_->view_model().workspace_id();
+  }
   if (active_workspace.has_value()) {
     ActivateWorkspaceRuntimeTab(*active_workspace);
   } else {
-    browser_->GetBrowserView().SetAhoiEmptyStateVisible(false);
+    BrowserView::GetBrowserViewForBrowser(browser_.get())
+        ->SetAhoiEmptyStateVisible(false);
   }
+}
+
+void BrowserSidebarHostView::ReconcileWorkspaceSurface(
+    uint64_t generation,
+    bool follow_selected_tab) {
+  if (generation != workspace_surface_generation_ || !tab_strip_model_ ||
+      !browser_ || browser_->IsWindowCloseRequested() ||
+      DeferWorkspaceSurfaceDuringRestore()) {
+    return;
+  }
+  if (follow_selected_tab) {
+    const std::optional<base::Uuid> tab_workspace =
+        session_bridge_->GetWorkspaceForTab(tab_strip_model_->GetActiveTab());
+    if (tab_workspace.has_value() &&
+        tab_workspace != session_bridge_->GetActiveWorkspaceForWindow(browser_) &&
+        session_bridge_->SetActiveWorkspaceForWindow(
+            browser_, *tab_workspace,
+            WorkspaceActivationSource::kDataReconciliation)) {
+      // The WorkspaceService observer projects the selected workspace and
+      // sees the already-active tab; it cannot re-enter TabStripModel here.
+      return;
+    }
+  }
+  EnsureWorkspaceSurface();
+}
+
+bool BrowserSidebarHostView::DeferWorkspaceSurfaceDuringRestore() {
+  Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
+  if (!profile || session_restore_notified_ ||
+      !SessionRestore::IsRestoring(profile)) {
+    return false;
+  }
+  if (!session_restored_subscription_) {
+    session_restored_subscription_ =
+        SessionRestore::RegisterOnSessionRestoredCallback(base::BindRepeating(
+            &BrowserSidebarHostView::OnSessionRestored,
+            weak_ptr_factory_.GetWeakPtr()));
+  }
+  return true;
+}
+
+void BrowserSidebarHostView::OnSessionRestored(Profile* profile, int) {
+  if (!browser_ || profile != browser_->GetProfile()) {
+    return;
+  }
+  // SessionRestore notifies while it is still registered as restoring; the
+  // reconciliation runs after its stack has unwound.
+  session_restore_notified_ = true;
+  session_restored_subscription_ = {};
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE,
+      base::BindOnce(
+          &BrowserSidebarHostView::ReconcileWorkspaceSurfaceAfterRestore,
+          weak_ptr_factory_.GetWeakPtr()));
+}
+
+void BrowserSidebarHostView::ReconcileWorkspaceSurfaceAfterRestore() {
+  // The window's restored Workspace wins; the selected tab does not pull the
+  // window into another Workspace.
+  ReconcileWorkspaceSurface(workspace_surface_generation_,
+                            /*follow_selected_tab=*/false);
 }
 
 void BrowserSidebarHostView::SynchronizeSelection() {
@@ -855,7 +623,14 @@ void BrowserSidebarHostView::SynchronizeSelection() {
 // WorkspaceServiceObserver:
 void BrowserSidebarHostView::OnWorkspaceListChanged() {
   UpdateWorkspaceSelectorIndicators();
-  ActivateInitialWorkspace();
+  // Activating the fallback Workspace notifies WorkspaceService observers
+  // again, which the list being iterated here does not allow (build 32
+  // crashed deleting the active Workspace). Run it once the notification is
+  // over.
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE,
+      base::BindOnce(&BrowserSidebarHostView::ActivateInitialWorkspace,
+                     weak_ptr_factory_.GetWeakPtr()));
 }
 
 void BrowserSidebarHostView::OnActiveWorkspaceChanged(
@@ -866,6 +641,11 @@ void BrowserSidebarHostView::OnActiveWorkspaceChanged(
   if (!window_id_.has_value()) {
     window_id_ = session_bridge_->GetWindowId(browser_);
   }
+  if (window_id_ == window_id) {
+    // An explicit Workspace switch supersedes a queued response to an older
+    // native tab notification, especially when switching to an empty space.
+    ++workspace_surface_generation_;
+  }
   if (window_id_ == window_id && new_workspace_id.has_value()) {
     UpdateWorkspaceSelectorIndicators();
     RememberActiveTabForWorkspace(old_workspace_id);
@@ -875,21 +655,31 @@ void BrowserSidebarHostView::OnActiveWorkspaceChanged(
 
 // TabStripModelObserver:
 void BrowserSidebarHostView::OnTabStripModelChanged(
-    TabStripModel*,
-    const TabStripModelChange&,
-    const TabStripSelectionChange&) {
+    TabStripModel* tab_strip_model,
+    const TabStripModelChange& change,
+    const TabStripSelectionChange& selection) {
   SynchronizeSelection();
   RefreshPageTint();
-  EnsureWorkspaceSurface();
+  if (tab_strip_model == tab_strip_model_ &&
+      (selection.active_tab_changed() ||
+       change.type() == TabStripModelChange::kRemoved)) {
+    const uint64_t generation = ++workspace_surface_generation_;
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE,
+        base::BindOnce(
+            &BrowserSidebarHostView::ReconcileWorkspaceSurface,
+            weak_ptr_factory_.GetWeakPtr(), generation,
+            selection.active_tab_changed() &&
+                change.type() != TabStripModelChange::kRemoved));
+  }
   ScheduleRuntimePresentationRefresh();
 }
 
 void BrowserSidebarHostView::OnTabChangedAt(tabs::TabInterface* tab,
-                                            int,
                                             TabChangeType change_type) {
   if (tab && change_type == TabChangeType::kAll) {
-    const auto it = tab_thumbnail_cache_.find(tab->GetHandle().raw_value());
-    if (it != tab_thumbnail_cache_.end()) {
+    const auto it = thumbnails_.tab_cache.find(tab->GetHandle().raw_value());
+    if (it != thumbnails_.tab_cache.end()) {
       it->second->Refresh(tab);
     }
   }
@@ -901,6 +691,18 @@ void BrowserSidebarHostView::OnTabChangedAt(tabs::TabInterface* tab,
 }
 
 void BrowserSidebarHostView::OnSplitTabChanged(const SplitTabChange& change) {
+  const SplitTabChange::VisualsChange* const visuals =
+      change.type == SplitTabChange::Type::kVisualsChanged
+          ? change.GetVisualsChange()
+          : nullptr;
+  if (sidebar_split_resize_update_in_progress_ && visuals &&
+      visuals->reason() ==
+          SplitTabChange::SplitVisualChangeReason::kRatioUpdated) {
+    // The captured SidebarSplitResizeArea updates its own compact geometry in
+    // place. Rebuilding the runtime rows inside this synchronous callback
+    // would destroy the mouse-capture owner mid-drag.
+    return;
+  }
   if (change.model == tab_strip_model_ && tree_view_) {
     tree_view_->OnSplitGroupsChanged();
   }
@@ -922,7 +724,7 @@ void BrowserSidebarHostView::OnTabStripModelDestroyed(
     if (tab_preview_controller_) {
       tab_preview_controller_->Hide();
     }
-    tab_thumbnail_cache_.clear();
+    thumbnails_.tab_cache.clear();
     tab_strip_model_ = nullptr;
   }
 }

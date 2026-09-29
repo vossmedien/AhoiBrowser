@@ -1,0 +1,26 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "AEC81322-7E6E-41EA-A990-664C04610124.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "reader-unavailable-original-page_0_71FEC1A9-96E6-4D07-B118-1E1E337F0A72.png",
+        "timestamp" : 1790270052.745
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A168C9AA-1018-4C41-9D20-10ED6206D4B2",
+        "deviceName" : "Ahoi URL Policy 20260922",
+        "exportedFileName" : "B05F53F9-46CF-45FF-98F1-2A03C1ABE0B5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "page-link-copy-actions_0_2E2EE953-570A-464D-A751-AADCD8FF9DAA.png",
+        "timestamp" : 1790270045.291
+      }
+    ],
+    "testIdentifier" : "AhoiMobileUITests/testPageLinkCopiesAndUnavailableReaderKeepOriginalPage()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/AhoiMobileUITests/testPageLinkCopiesAndUnavailableReaderKeepOriginalPage"
+  }
+]

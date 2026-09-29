@@ -1,0 +1,70 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 856263b6618ffc09f9eec4ffa86036aa3bfde0ba..722af407f5c9dd2e742341121c1c7f4ffabdfc03 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -185,6 +185,7 @@
+ #include "chrome/browser/ui/views/frame/browser_widget.h"
+ #include "chrome/browser/ui/views/frame/contents_container_view.h"
+ #include "chrome/browser/ui/views/frame/contents_separator.h"
++#include "chrome/browser/ui/views/frame/custom_corners_background.h"
+ #include "chrome/browser/ui/views/frame/custom_floating_corner.h"
+ #include "chrome/browser/ui/views/frame/horizontal_tab_strip_region_view.h"
+ #include "chrome/browser/ui/views/frame/layout/browser_view_layout.h"
+@@ -1287,7 +1288,41 @@ BrowserView::BrowserView(Browser* browser)
+         std::make_unique<ahoi::NavigationSurfaceController>(
+             this, top_container_, toolbar_,
+             l10n_util::GetStringUTF16(IDS_AHOI_REVEAL_NAVIGATION),
+-            browser_->GetProfile()->GetPrefs());
++            browser_->GetProfile()->GetPrefs(),
++            base::BindRepeating(
++                [](base::WeakPtr<BrowserView> view,
++                   const ahoi::appearance::SurfaceAppearance& surface) {
++                  // Construction and teardown can lack widget ownership.
++                  // The controller replays its saved material after layout.
++                  if (!view || !view->toolbar_ || !view->GetWidget() ||
++                      !view->browser_widget() || view->IsFullscreen()) {
++                    return;
++                  }
++                  auto* const painter = view->toolbar_->background();
++                  auto* const background =
++                      painter ? painter->AsA<CustomCornersBackground>() : nullptr;
++                  if (!background) {
++                    // ToolbarView::Init has not installed its native painter
++                    // yet. NavigationSurfaceController retries after layout.
++                    return;
++                  }
++                  background->SetPrimaryColor(
++                      CustomCornersBackground::ColorChoiceWithAlpha(
++                          surface.background_color, surface.opacity));
++                  CustomCornersBackground::Corners corners;
++                  for (CornerOrientation corner : {
++                           CornerOrientation::kTopLeading,
++                           CornerOrientation::kTopTrailing,
++                           CornerOrientation::kBottomTrailing,
++                           CornerOrientation::kBottomLeading,
++                       }) {
++                    corners[corner].type =
++                        CustomCornersBackground::CornerType::kRounded;
++                    corners[corner].radius = surface.corner_radius;
++                  }
++                  background->SetCorners(corners);
++                },
++                weak_ptr_factory_.GetWeakPtr()));
+ 
+     vertical_tab_strip_top_corner_ =
+         AddChildView(std::make_unique<CustomFloatingCorner>(
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+index ce2a751243cde446c3f107375b93fd0293957a25..76c78a1cfee71a08d807e5ed6f0372c5b93e1503 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -1718,7 +1718,9 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+   // Set toolbar corners.
+   CustomCornersBackground::Corners toolbar_corners;
+   if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {
+-    toolbar_background->SetPrimaryColor(ahoi::visual_style::kRaisedSurface);
++    // The navigation material callback updates this native painter after
++    // initialization/layout and on appearance changes. Do not replace its
++    // resolved alpha with an opaque color on every layout.
+     for (CornerOrientation corner : {
+              CornerOrientation::kTopLeading,
+              CornerOrientation::kTopTrailing,

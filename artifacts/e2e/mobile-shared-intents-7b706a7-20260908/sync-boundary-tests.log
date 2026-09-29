@@ -1,0 +1,55 @@
+[0/1] Planning build
+Building for debugging...
+[0/5] Write sources
+[2/5] Write swift-version--58304C5D6DBC2206.txt
+[4/11] Compiling AhoiCloudKitSpike BookmarkModels.swift
+[5/11] Compiling AhoiCloudKitSpike CompanionModels.swift
+[6/11] Compiling AhoiCloudKitSpike DeviceCapabilityRecord.swift
+[7/11] Compiling AhoiCloudKitSpike Identifiers.swift
+[8/11] Compiling AhoiCloudKitSpike SharedSyncFormat.swift
+[9/11] Emitting module AhoiCloudKitSpike
+[10/21] Compiling AhoiCloudKitSpike SharedTabContract.swift
+[11/21] Compiling AhoiCloudKitSpike SharedTabTarget.swift
+[12/21] Compiling AhoiCloudKitSpike SyncBoundary.swift
+[13/21] Compiling AhoiCloudKitSpike SyncModels.swift
+[14/21] Compiling AhoiCloudKitSpike TreeNodeEquality.swift
+[15/26] Compiling AhoiCloudKitSpike AppleCloudKitAdapter.swift
+[16/26] Compiling AhoiCloudKitSpike AppleCloudKitRecordCodec.swift
+[17/26] Compiling AhoiCloudKitSpike CloudSyncTransport.swift
+[18/26] Compiling AhoiCloudKitSpike CommandSecurity.swift
+[19/26] Compiling AhoiCloudKitSpike ConflictCanonicalization.swift
+[20/26] Compiling AhoiCloudKitSpike ConflictResolver.swift
+[21/26] Compiling AhoiCloudKitSpike FileCommandReplayStore.swift
+[22/26] Compiling AhoiCloudKitSpike HybridLogicalClock.swift
+[23/26] Compiling AhoiCloudKitSpike OrderKey.swift
+[24/26] Compiling AhoiCloudKitSpike RemoteCommands.swift
+[25/30] Compiling AhoiCloudKitSpikeTests AppleCloudKitRecordCodecTests.swift
+[26/30] Compiling AhoiCloudKitSpikeTests CloudSyncCoordinatorTests.swift
+[27/30] Compiling AhoiCloudKitSpikeTests ModelTests.swift
+[28/30] Emitting module AhoiCloudKitSpikeTests
+[29/32] Compiling AhoiCloudKitSpikeTests RemoteCommandTests.swift
+[30/32] Compiling AhoiCloudKitSpikeTests SyncBoundaryTests.swift
+[30/32] Write Objects.LinkFileList
+[31/32] Linking AhoiCloudKitSpikePackageTests
+Build complete! (4.63s)
+Test Suite 'Selected tests' started at 2026-09-08 10:25:51.182.
+Test Suite 'AhoiCloudKitSpikePackageTests.xctest' started at 2026-09-08 10:25:51.184.
+Test Suite 'SyncBoundaryTests' started at 2026-09-08 10:25:51.184.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn]' started.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn]' passed (0.002 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testCiphertextShapeIsValidatedBeforeUpload]' started.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testCiphertextShapeIsValidatedBeforeUpload]' passed (0.000 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testEverySensitiveDataClassIsDenied]' started.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testEverySensitiveDataClassIsDenied]' passed (0.000 seconds).
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testSchemaAndTombstoneShapeAreValidated]' started.
+Test Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testSchemaAndTombstoneShapeAreValidated]' passed (0.000 seconds).
+Test Suite 'SyncBoundaryTests' passed at 2026-09-08 10:25:51.186.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'AhoiCloudKitSpikePackageTests.xctest' passed at 2026-09-08 10:25:51.186.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'Selected tests' passed at 2026-09-08 10:25:51.186.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.004) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

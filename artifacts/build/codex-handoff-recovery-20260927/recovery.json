@@ -1,0 +1,27 @@
+{
+  "at": "2026-09-27T00:41:02.541877+00:00",
+  "owner": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "restored": [
+    {
+      "id": "chromium-rust-depfile-space-paths",
+      "target": "build/rust/gni_impl/rustc_wrapper.py",
+      "beforeSha256": "4bb44b3c98e5267d573ba70ad1d72dab746e9b1ffb2240018b4eceaa58e96bd5",
+      "restoredSha256": "98652ff31065e413500cc6c7ed7611d79534f27f58ddd99880b8fcc59715d88a",
+      "mtimeNs": 1789897093319659194,
+      "mtimePreserved": true
+    },
+    {
+      "id": "v8-inspector-protocol-relative-depfile-paths",
+      "target": "v8/third_party/inspector_protocol/code_generator.py",
+      "beforeSha256": "d603a6c4388db55de027ba7039b17fe598fefbd5b16ef8860a6d1375f392c62e",
+      "restoredSha256": "2d6b7a3f3bcb1becadc1bc9518d1016cd5d9eee221c8180c49c54350002ad619",
+      "mtimeNs": 1787860781354593269,
+      "mtimePreserved": true
+    }
+  ],
+  "overlayVerification": {
+    "repositorySource": "cc1429640358e91bba1f2cb54a762ff6564081c3",
+    "exitCode": 0,
+    "verifiedCheckoutDeltaFingerprint": "09f46587fec92e8c3ea5c4bf53246db2942b85a2166a3398566f640c49de717e"
+  }
+}

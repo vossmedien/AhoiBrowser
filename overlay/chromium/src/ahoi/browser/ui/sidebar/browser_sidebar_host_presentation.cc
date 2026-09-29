@@ -29,7 +29,6 @@
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_remote_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
-#include "ahoi/browser/ui/sidebar/sidebar_sync_controls.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -58,6 +57,7 @@
 #include "chrome/browser/favicon/favicon_service_factory.h"
 #include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/ui/bookmarks/bookmark_utils.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
@@ -136,12 +136,22 @@ bool BrowserSidebarHostView::SetSidebarPresentationMode(
       !SetPresentationMode(browser_->GetProfile()->GetPrefs(), mode)) {
     return false;
   }
-  return browser_->GetBrowserView().SetAhoiSidebarPresentationMode(mode);
+  const bool applied = BrowserView::GetBrowserViewForBrowser(browser_.get())
+                           ->SetAhoiSidebarPresentationMode(mode);
+  if (applied) {
+    SetSidebarHeaderActionToggleState(
+        floating_sidebar_button_, mode == SidebarPresentationMode::kFloating);
+    if (appearance_signal_source_) {
+      OnAppearanceChanged(appearance_signal_source_->policy());
+    }
+  }
+  return applied;
 }
 
 bool BrowserSidebarHostView::ToggleFloatingSidebar() {
   const SidebarPresentationMode current =
-      browser_->GetBrowserView().GetAhoiSidebarPresentationMode();
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->GetAhoiSidebarPresentationMode();
   if (current == SidebarPresentationMode::kHidden) {
     return SetSidebarPresentationMode(
         GetVisibleModeBeforeHidden(*browser_->GetProfile()->GetPrefs()));
@@ -154,7 +164,8 @@ bool BrowserSidebarHostView::ToggleFloatingSidebar() {
 
 bool BrowserSidebarHostView::ToggleSidebarVisibility() {
   const SidebarPresentationMode current =
-      browser_->GetBrowserView().GetAhoiSidebarPresentationMode();
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->GetAhoiSidebarPresentationMode();
   if (current == SidebarPresentationMode::kHidden) {
     return RestoreSidebar();
   }
@@ -162,7 +173,8 @@ bool BrowserSidebarHostView::ToggleSidebarVisibility() {
 }
 
 bool BrowserSidebarHostView::RestoreSidebar() {
-  if (browser_->GetBrowserView().GetAhoiSidebarPresentationMode() !=
+  if (BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->GetAhoiSidebarPresentationMode() !=
       SidebarPresentationMode::kHidden) {
     return false;
   }
@@ -181,7 +193,8 @@ void BrowserSidebarHostView::OnSidebarHeaderActionPressed(
 
 void BrowserSidebarHostView::RunSidebarHeaderAction(bool toggle_visibility) {
   const SidebarPresentationMode current =
-      browser_->GetBrowserView().GetAhoiSidebarPresentationMode();
+      BrowserView::GetBrowserViewForBrowser(browser_.get())
+          ->GetAhoiSidebarPresentationMode();
   if (current == SidebarPresentationMode::kHidden) {
     // The visibility button is also used by the edge-reveal overlay. In that
     // state the persisted mode is already hidden, so reapplying it closes only
@@ -214,174 +227,40 @@ bool BrowserSidebarHostView::OnKeyPressed(const ui::KeyEvent& event) {
   return views::View::OnKeyPressed(event);
 }
 
-void BrowserSidebarHostView::RefreshMediaTrackers() {
-  if (!tab_strip_model_) {
-    media_state_subscriptions_.clear();
-    media_trackers_.clear();
-    RefreshMiniPlayerSources();
-    return;
-  }
-
-  std::set<int> live_handles;
-  for (tabs::TabInterface* tab : *tab_strip_model_) {
-    if (!tab) {
-      continue;
-    }
-    const int handle = tab->GetHandle().raw_value();
-    live_handles.insert(handle);
-    auto [it, inserted] = media_trackers_.try_emplace(handle, nullptr);
-    if (inserted) {
-      it->second = std::make_unique<AhoiMediaStateTracker>(tab->GetContents());
-      media_state_subscriptions_.insert_or_assign(
-          handle, it->second->AddStateChangedCallback(base::BindRepeating(
-                      &BrowserSidebarHostView::OnTrackedMediaStateChanged,
-                      weak_ptr_factory_.GetWeakPtr())));
-    } else if (!it->second->IsTracking(tab->GetContents())) {
-      it->second->SetWebContents(tab->GetContents());
-    }
-  }
-
-  for (auto it = media_trackers_.begin(); it != media_trackers_.end();) {
-    if (!live_handles.contains(it->first)) {
-      media_state_subscriptions_.erase(it->first);
-      it = media_trackers_.erase(it);
-    } else {
-      ++it;
-    }
-  }
-  RefreshMiniPlayerSources();
-}
-
-std::string BrowserSidebarHostView::GetMiniPlayerSourceId(
-    tabs::TabInterface* tab) const {
-  return tab ? base::NumberToString(tab->GetHandle().raw_value())
-             : std::string();
-}
-
-ui::ImageModel BrowserSidebarHostView::GetMiniPlayerFavicon(
-    const MediaMiniPlayerSourceId& source_id) const {
-  if (!tab_strip_model_) {
-    return ui::ImageModel();
-  }
-  for (tabs::TabInterface* tab : *tab_strip_model_) {
-    if (tab && GetMiniPlayerSourceId(tab) == source_id) {
-      return GetLiveTabFavicon(tab);
-    }
-  }
-  return ui::ImageModel();
-}
-
-void BrowserSidebarHostView::RefreshMiniPlayerSources() {
-  if (!mini_player_adapter_) {
-    mini_player_tab_handles_.clear();
-    return;
-  }
-  if (!tab_strip_model_) {
-    for (const int handle : mini_player_tab_handles_) {
-      mini_player_adapter_->UnregisterWebContents(base::NumberToString(handle));
-    }
-    mini_player_tab_handles_.clear();
-    return;
-  }
-
-  std::set<int> live_handles;
-  int presentation_order = 0;
-  for (tabs::TabInterface* tab : *tab_strip_model_) {
-    if (!tab || !tab->GetContents()) {
-      continue;
-    }
-    const int handle = tab->GetHandle().raw_value();
-    const std::string source_id = GetMiniPlayerSourceId(tab);
-    live_handles.insert(handle);
-    if (!mini_player_adapter_->IsRegistered(source_id)) {
-      mini_player_adapter_->RegisterWebContents(source_id, tab->GetContents(),
-                                                presentation_order);
-    } else {
-      mini_player_adapter_->UpdateWebContents(source_id, tab->GetContents(),
-                                              presentation_order);
-    }
-    ++presentation_order;
-  }
-
-  for (auto it = mini_player_tab_handles_.begin();
-       it != mini_player_tab_handles_.end();) {
-    if (!live_handles.contains(*it)) {
-      mini_player_adapter_->UnregisterWebContents(base::NumberToString(*it));
-      it = mini_player_tab_handles_.erase(it);
-    } else {
-      ++it;
-    }
-  }
-  mini_player_tab_handles_.insert(live_handles.begin(), live_handles.end());
-  if (mini_player_view_) {
-    // Favicon updates are tab presentation changes, not MediaSession changes.
-    // Refreshing the decoration here keeps navigation and discarded/restored
-    // WebContents truthful without perturbing player state or source choice.
-    mini_player_view_->RefreshSourceDecoration();
-  }
-}
-
-void BrowserSidebarHostView::OnTrackedMediaStateChanged(const AhoiMediaState&) {
-  ScheduleRuntimePresentationRefresh();
-}
-
-std::optional<tabs::TabAlert> BrowserSidebarHostView::GetMediaAlertForTab(
-    tabs::TabInterface* tab) const {
-  if (!tab) {
-    return std::nullopt;
-  }
-  const auto tracker = media_trackers_.find(tab->GetHandle().raw_value());
-  if (tracker != media_trackers_.end() &&
-      tracker->second->state().capture_activity.primary_activity.has_value()) {
-    return tracker->second->state().capture_activity.primary_activity;
-  }
-  if (mini_player_service_) {
-    const MediaMiniPlayerSourceId source_id = GetMiniPlayerSourceId(tab);
-    const auto source = std::ranges::find_if(
-        mini_player_service_->state().sources,
-        [&source_id](const MediaMiniPlayerSource& candidate) {
-          return candidate.id == source_id;
-        });
-    if (source != mini_player_service_->state().sources.end()) {
-      // WebContents::IsCurrentlyAudible() intentionally turns false while a
-      // playing tab is muted. MediaSession playback keeps the muted indicator
-      // truthful after Chromium's short "recently audible" grace period.
-      const std::optional<tabs::TabAlert> alert =
-          GetSidebarMediaAlertForSession(
-              source->playback == MediaMiniPlayerPlaybackState::kPlaying,
-              source->is_muted, source->is_in_picture_in_picture,
-              source->IsRelevant());
-      if (alert.has_value()) {
-        return alert;
-      }
-    }
-  }
-  return tracker == media_trackers_.end()
-             ? std::nullopt
-             : tracker->second->state().primary_alert;
-}
-
-ui::ImageModel BrowserSidebarHostView::GetMediaIndicatorForTab(
-    tabs::TabInterface* tab) const {
-  return GetSidebarMediaIndicator(GetMediaAlertForTab(tab));
-}
-
-std::u16string BrowserSidebarHostView::GetTabAlertStatusText(
-    tabs::TabInterface* tab) const {
-  const std::optional<tabs::TabAlert> alert = GetMediaAlertForTab(tab);
-  return alert.has_value()
-             ? tabs::TabAlertController::GetTabAlertStateText(*alert)
-             : std::u16string();
-}
-
 std::u16string BrowserSidebarHostView::GetSavedPageStatusText(
     const tab_tree::TreeNode& node) const {
-  return GetTabAlertStatusText(session_bridge_->FindTabByTreeNodeId(node.id));
+  auto status =
+      GetTabAlertStatusText(session_bridge_->FindTabByTreeNodeId(node.id));
+  if (node.is_temporary) {
+    if (!status.empty()) {
+      status += u" — ";
+    }
+    status += GetSharedTabOriginText(node.id);
+  }
+  if (IsSavedPageBookmarked(node)) {
+    if (!status.empty()) {
+      status += u" — ";
+    }
+    status +=
+        l10n_util::GetStringUTF16(IDS_NTP_MODULES_HISTORY_CLUSTERS_BOOKMARKED);
+  }
+  return status;
+}
+
+bool BrowserSidebarHostView::IsSavedPageBookmarked(
+    const tab_tree::TreeNode& node) const {
+  if (node.type != tab_tree::TreeNodeType::kSavedPage) {
+    return false;
+  }
+  tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(node.id);
+  content::WebContents* contents = tab ? tab->GetContents() : nullptr;
+  return IsUrlBookmarked(contents ? chrome::GetURLToBookmark(contents)
+                                  : node.url);
 }
 
 void BrowserSidebarHostView::RefreshThumbnailCache() {
   if (!tab_strip_model_) {
-    tab_thumbnail_cache_.clear();
+    thumbnails_.tab_cache.clear();
     return;
   }
 
@@ -392,7 +271,7 @@ void BrowserSidebarHostView::RefreshThumbnailCache() {
     }
     const int handle = tab->GetHandle().raw_value();
     live_handles.insert(handle);
-    auto [it, inserted] = tab_thumbnail_cache_.try_emplace(handle, nullptr);
+    auto [it, inserted] = thumbnails_.tab_cache.try_emplace(handle, nullptr);
     if (inserted) {
       it->second = std::make_unique<CachedTabThumbnail>(
           base::BindRepeating(&BrowserSidebarHostView::OnTabThumbnailChanged,
@@ -400,10 +279,10 @@ void BrowserSidebarHostView::RefreshThumbnailCache() {
     }
     it->second->Observe(tab);
   }
-  for (auto it = tab_thumbnail_cache_.begin();
-       it != tab_thumbnail_cache_.end();) {
+  for (auto it = thumbnails_.tab_cache.begin();
+       it != thumbnails_.tab_cache.end();) {
     if (!live_handles.contains(it->first)) {
-      it = tab_thumbnail_cache_.erase(it);
+      it = thumbnails_.tab_cache.erase(it);
     } else {
       ++it;
     }
@@ -419,8 +298,8 @@ std::vector<gfx::ImageSkia> BrowserSidebarHostView::GetCachedDragThumbnails(
       thumbnails.emplace_back();
       continue;
     }
-    const auto it = tab_thumbnail_cache_.find(tab->GetHandle().raw_value());
-    if (it != tab_thumbnail_cache_.end() && !it->second->image().isNull() &&
+    const auto it = thumbnails_.tab_cache.find(tab->GetHandle().raw_value());
+    if (it != thumbnails_.tab_cache.end() && !it->second->image().isNull() &&
         !it->second->image().size().IsEmpty()) {
       thumbnails.push_back(it->second->image());
     } else {
@@ -451,11 +330,11 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   // clear the old visual state while those rows are still alive. Async favicon,
   // tab and sync updates must not reset a user's current keyboard position.
   std::optional<SidebarDiscoveryPrimaryResult> primary_result_before_refresh;
-  if (sidebar_discovery_primary_selection_.has_value() &&
-      *sidebar_discovery_primary_selection_ <
-          sidebar_discovery_primary_results_.size()) {
-    primary_result_before_refresh = sidebar_discovery_primary_results_
-        [*sidebar_discovery_primary_selection_];
+  if (discovery_state_.primary_selection.has_value() &&
+      *discovery_state_.primary_selection <
+          discovery_state_.primary_results.size()) {
+    primary_result_before_refresh = discovery_state_.primary_results
+        [*discovery_state_.primary_selection];
     primary_result_before_refresh->row = nullptr;
   }
   ClearSidebarDiscoveryPrimarySelection(/*restore_tree_selection=*/false);
@@ -463,6 +342,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
     RefreshThumbnailCache();
     RefreshMediaTrackers();
     PublishLocalDeviceTabs();
+    PublishDeviceTabCommands();
   }
   open_tabs_container_->RemoveAllChildViews();
   const std::optional<base::Uuid> active_workspace =
@@ -488,7 +368,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
         return !active_workspace.has_value() || !tab_workspace.has_value() ||
                active_workspace == tab_workspace;
       };
-  const bool search_active = !sidebar_discovery_query_.empty();
+  const bool search_active = !discovery_state_.query.empty();
   const auto is_search_match_tab = [this,
                                     search_active](tabs::TabInterface* tab) {
     if (!search_active) {
@@ -502,16 +382,36 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
         saved_node_id.has_value()) {
       return controller_->view_model().IsSearchMatch(*saved_node_id);
     }
-    return sidebar_discovery_runtime_tab_handles_.contains(
+    return discovery_state_.runtime_tab_handles.contains(
         tab->GetHandle().raw_value());
   };
   const auto create_open_tab_row = [this,
                                     search_active](tabs::TabInterface* tab) {
     const std::optional<base::Uuid> saved_node_id =
         session_bridge_->FindTreeNodeIdForTab(tab);
+    const auto shared_id = session_bridge_->FindSharedTreeNodeIdForTab(tab);
+    auto status = GetTabAlertStatusText(tab);
+    ui::ImageModel origin_badge;
+    if (!saved_node_id && shared_id) {
+      origin_badge = GetSharedTabOriginIcon(*shared_id);
+      if (!status.empty()) {
+        status += u" — ";
+      }
+      status += GetSharedTabOriginText(*shared_id);
+    }
+    const bool bookmarked =
+        tab->GetContents() &&
+        IsUrlBookmarked(chrome::GetURLToBookmark(tab->GetContents()));
+    if (bookmarked) {
+      if (!status.empty()) {
+        status += u" — ";
+      }
+      status += l10n_util::GetStringUTF16(
+          IDS_NTP_MODULES_HISTORY_CLUSTERS_BOOKMARKED);
+    }
     return CreateOpenTabRowView(
         tab, saved_node_id, GetLiveTabFavicon(tab), GetMediaAlertForTab(tab),
-        GetTabAlertStatusText(tab), tab == tab_strip_model_->GetActiveTab(),
+        std::move(status), tab == tab_strip_model_->GetActiveTab(),
         ahoi::memory::IsTabSleeping(tab), /*drag_enabled=*/!search_active,
         base::BindRepeating(&BrowserSidebarHostView::ActivateRuntimeTab,
                             weak_ptr_factory_.GetWeakPtr()),
@@ -556,7 +456,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
                                                     target, position);
             },
             weak_ptr_factory_.GetWeakPtr()),
-        this);
+        this, std::move(origin_badge), bookmarked);
   };
 
   // Rebuild temporary and mixed split rows directly from Chromium's
@@ -569,6 +469,15 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   // tab cannot briefly render twice in the temporary section during a move.
   std::set<int> presented_temporary_handles;
   std::set<base::Uuid> mixed_split_saved_nodes;
+  // Temporary pages now have real tree identities too. Their live row remains
+  // in the existing temporary/split section, never duplicated above it.
+  for (tabs::TabInterface* tab : *tab_strip_model_) {
+    if (is_visible_temporary_tab(tab)) {
+      if (const auto id = session_bridge_->FindSharedTreeNodeIdForTab(tab)) {
+        mixed_split_saved_nodes.insert(*id);
+      }
+    }
+  }
   for (int index = 0; index < tab_strip_model_->count(); ++index) {
     tabs::TabInterface* tab = tab_strip_model_->GetTabAtIndex(index);
     if (!is_visible_temporary_tab(tab)) {
@@ -628,8 +537,18 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
                 split_tab->GetHandle().raw_value());
           }
         }
+        const std::optional<split_tabs::SplitTabId> split_id = tab->GetSplit();
+        CHECK(split_id.has_value());
         open_tabs_container_->AddChildView(CreateOpenTabSplitRowView(
-            std::move(split_rows), *split_data->visual_data()));
+            std::move(split_rows), *split_data->visual_data(),
+            base::BindRepeating(
+                [](base::WeakPtr<BrowserSidebarHostView> host,
+                   split_tabs::SplitTabId id, size_t divider_index,
+                   double ratio, bool done_resizing) {
+                  return host && host->ResizeSidebarSplit(id, divider_index,
+                                                          ratio, done_resizing);
+                },
+                weak_ptr_factory_.GetWeakPtr(), *split_id)));
         continue;
       }
     }
@@ -667,10 +586,10 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   RebuildSidebarDiscoveryPrimaryResults();
   bool primary_selection_restored = false;
   if (primary_result_before_refresh.has_value()) {
-    for (size_t index = 0; index < sidebar_discovery_primary_results_.size();
+    for (size_t index = 0; index < discovery_state_.primary_results.size();
          ++index) {
       const SidebarDiscoveryPrimaryResult& candidate =
-          sidebar_discovery_primary_results_[index];
+          discovery_state_.primary_results[index];
       const bool same_identity =
           candidate.kind == primary_result_before_refresh->kind &&
           ((candidate.kind == SidebarDiscoveryPrimaryResultKind::kTreeNode &&
@@ -684,7 +603,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
       if (!same_identity) {
         continue;
       }
-      sidebar_discovery_primary_selection_ = index;
+      discovery_state_.primary_selection = index;
       switch (candidate.kind) {
         case SidebarDiscoveryPrimaryResultKind::kTreeNode:
           primary_selection_restored =
@@ -700,7 +619,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
           break;
       }
       if (!primary_selection_restored) {
-        sidebar_discovery_primary_selection_.reset();
+        discovery_state_.primary_selection.reset();
       }
       break;
     }
@@ -730,102 +649,6 @@ ui::ImageModel BrowserSidebarHostView::GetFaviconForUrl(const GURL& page_url) {
         &favicon_task_tracker_);
   }
   return ui::ImageModel();
-}
-
-void BrowserSidebarHostView::ActivateRuntimeTab(
-    base::WeakPtr<tabs::TabInterface> tab) {
-  if (!tab || !tab_strip_model_) {
-    return;
-  }
-  const int index = tab_strip_model_->GetIndexOfTab(tab.get());
-  if (index >= 0) {
-    tab_strip_model_->ActivateTabAt(
-        index, TabStripUserGestureDetails(
-                   TabStripUserGestureDetails::GestureType::kMouse));
-    ScheduleCloseSidebarDiscoveryAfterActivation();
-  }
-}
-
-bool BrowserSidebarHostView::ActivateRelativeRuntimeTab(int delta) {
-  if (!tab_strip_model_ || tab_strip_model_->empty() || delta == 0) {
-    return false;
-  }
-
-  const std::optional<base::Uuid> active_workspace =
-      controller_->view_model().workspace_id();
-  tabs::TabInterface* const active_tab = tab_strip_model_->GetActiveTab();
-  std::vector<tabs::TabInterface*> workspace_tabs;
-  workspace_tabs.reserve(tab_strip_model_->count());
-  for (tabs::TabInterface* tab : *tab_strip_model_) {
-    if (!tab) {
-      continue;
-    }
-    const std::optional<base::Uuid> tab_workspace =
-        session_bridge_->GetWorkspaceForTab(tab);
-    if (!active_workspace.has_value() || tab_workspace == active_workspace ||
-        (tab == active_tab && !tab_workspace.has_value())) {
-      workspace_tabs.push_back(tab);
-    }
-  }
-  if (workspace_tabs.empty()) {
-    return false;
-  }
-
-  auto current = std::ranges::find(workspace_tabs, active_tab);
-  size_t target_index = delta > 0 ? 0u : workspace_tabs.size() - 1u;
-  if (current != workspace_tabs.end()) {
-    const size_t current_index =
-        static_cast<size_t>(std::distance(workspace_tabs.begin(), current));
-    target_index = delta > 0 ? (current_index + 1u) % workspace_tabs.size()
-                             : (current_index + workspace_tabs.size() - 1u) %
-                                   workspace_tabs.size();
-  }
-
-  tabs::TabInterface* const target = workspace_tabs[target_index];
-  const int tab_strip_index = tab_strip_model_->GetIndexOfTab(target);
-  if (tab_strip_index < 0) {
-    return false;
-  }
-  tab_strip_model_->ActivateTabAt(
-      tab_strip_index, TabStripUserGestureDetails(
-                           TabStripUserGestureDetails::GestureType::kWheel));
-  return true;
-}
-
-void BrowserSidebarHostView::CloseRuntimeTab(
-    base::WeakPtr<tabs::TabInterface> tab) {
-  if (tab) {
-    tab->Close();
-  }
-}
-
-void BrowserSidebarHostView::CloseAllTemporaryTabs(const ui::Event&) {
-  if (!tab_strip_model_) {
-    return;
-  }
-  const std::optional<base::Uuid> active_workspace =
-      controller_->view_model().workspace_id();
-  std::vector<base::WeakPtr<tabs::TabInterface>> tabs_to_close;
-  for (tabs::TabInterface* tab : *tab_strip_model_) {
-    if (!tab || session_bridge_->FindTreeNodeIdForTab(tab).has_value()) {
-      continue;
-    }
-    const std::optional<base::Uuid> tab_workspace =
-        session_bridge_->GetWorkspaceForTab(tab);
-    if (!active_workspace.has_value() || !tab_workspace.has_value() ||
-        active_workspace == tab_workspace) {
-      tabs_to_close.push_back(tab->GetWeakPtr());
-    }
-  }
-
-  // Ahoi intentionally keeps the browser window and workspace alive when the
-  // last temporary tab is closed. The empty native surface is owned by
-  // BrowserView; never create a synthetic replacement WebContents here.
-  for (auto tab : tabs_to_close) {
-    if (tab) {
-      tab->Close();
-    }
-  }
 }
 
 }  // namespace ahoi::sidebar

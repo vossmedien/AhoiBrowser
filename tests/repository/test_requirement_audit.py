@@ -57,20 +57,21 @@ class RequirementAuditTests(unittest.TestCase):
             (ROOT / "config/test-registry.json").read_text(encoding="utf-8")
         )["tests"]
         expected_ids = {entry["id"] for entry in registry}
+        expected_count = len(expected_ids)
         actual_ids = [entry["id"] for entry in audit["requirements"]]
-        self.assertEqual(373, len(actual_ids))
-        self.assertEqual(373, len(set(actual_ids)))
+        self.assertEqual(expected_count, len(actual_ids))
+        self.assertEqual(expected_count, len(set(actual_ids)))
         self.assertEqual(expected_ids, set(actual_ids))
-        self.assertEqual(373, audit["summary"]["total"])
+        self.assertEqual(expected_count, audit["summary"]["total"])
         self.assertEqual(
-            373,
+            expected_count,
             sum(
                 item["count"]
                 for item in audit["summary"]["byPrimaryClass"].values()
             ),
         )
         self.assertEqual(
-            373,
+            expected_count,
             sum(item["count"] for item in audit["summary"]["bySuite"].values()),
         )
         self.assertEqual(
@@ -414,25 +415,26 @@ class RequirementAuditTests(unittest.TestCase):
         self.assertIn(
             "cloudkit-device-validation", by_id["IOS-01"]["externalGateIds"]
         )
-        ubo_production_gates = {
+        for number in (*range(0, 9), 10, 11):
+            test_id = f"UBO-{number:02d}"
+            self.assertEqual([], by_id[test_id]["externalGateIds"])
+            self.assertTrue(by_id[test_id]["locallyControllable"])
+        self.assertIn(
             "ubo-catalog-hosting-and-signing",
-            "ubo-fixed-id-crx-publisher-provenance",
-            "ubo-redistribution",
-        }
-        for number in range(1, 11):
-            self.assertLessEqual(
-                ubo_production_gates,
-                set(by_id[f"UBO-{number:02d}"]["externalGateIds"]),
-            )
-        self.assertEqual([], by_id["UBO-11"]["externalGateIds"])
-        self.assertTrue(by_id["UBO-11"]["locallyControllable"])
+            by_id["UBO-09"]["externalGateIds"],
+        )
+        self.assertNotIn(
+            "ubo-redistribution", by_id["UBO-09"]["externalGateIds"]
+        )
         self.assertEqual("CU_E2E", by_id["UBO-11"]["primaryClass"])
-        self.assertLessEqual(
-            ubo_production_gates | {"chrome-web-store"},
+        self.assertEqual(
+            {"chrome-web-store", "signed-release-provenance"},
             set(by_id["UBO-12"]["externalGateIds"]),
         )
         self.assertEqual([], by_id["UBO-13"]["externalGateIds"])
         self.assertTrue(by_id["UBO-13"]["locallyControllable"])
+        for test_id in ("EXT-11", "EXT-15", "RECOVERY-MAC-15"):
+            self.assertIn("chrome-web-store", by_id[test_id]["externalGateIds"])
         for number in range(1, 16):
             perf = by_id[f"PERF-{number:02d}"]
             self.assertFalse(perf["locallyControllable"])

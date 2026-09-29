@@ -7,9 +7,10 @@
 #include <type_traits>
 #include <utility>
 
+#include "ahoi/browser/sync/bookmark_sync_serialization.h"
 #include "ahoi/browser/sync/sync_merge.h"
-#include "base/json/json_reader.h"
-#include "base/json/json_writer.h"
+#include "ahoi/browser/sync/sync_serialization_internal.h"
+#include "ahoi/browser/sync/workspace_structure_sync.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/values.h"
 
@@ -18,154 +19,47 @@ namespace {
 
 using Dict = base::DictValue;
 
-void SetTime(Dict& dict, const char* key, base::Time value) {
-  dict.Set(key, base::NumberToString(
-                    value.ToDeltaSinceWindowsEpoch().InMicroseconds()));
+using serialization_internal::ParseDict;
+using serialization_internal::ReadCommon;
+using serialization_internal::ReadInt32;
+using serialization_internal::ReadString;
+using serialization_internal::ReadTime;
+using serialization_internal::ReadUuid;
+using serialization_internal::SetCommon;
+using serialization_internal::SetTime;
+using serialization_internal::WriteDict;
+
+void SetTarget(Dict& dict,
+               const std::optional<SharedTabTargetKind>& kind,
+               const std::optional<std::string>& local_scheme) {
+  if (kind) {
+    dict.Set("target_kind", static_cast<int>(*kind));
+  }
+  if (local_scheme) {
+    dict.Set("local_scheme", *local_scheme);
+  }
 }
 
-bool ReadTime(const Dict& dict, const char* key, base::Time* value) {
-  const std::string* serialized = dict.FindString(key);
-  int64_t micros = 0;
-  if (!serialized || !base::StringToInt64(*serialized, &micros)) {
+bool ReadTarget(const Dict& dict,
+                bool folder,
+                std::optional<SharedTabTargetKind>* kind,
+                std::optional<std::string>* local_scheme) {
+  if (folder) {
+    return !dict.contains("target_kind") && !dict.contains("local_scheme");
+  }
+  const std::optional<int> raw = ReadInt32(dict, "target_kind");
+  if (!raw || *raw < 0 || *raw > 2) {
     return false;
   }
-  *value = base::Time::FromDeltaSinceWindowsEpoch(base::Microseconds(micros));
-  return true;
-}
-
-void SetVersion(Dict& dict, const SyncVersion& version) {
-  dict.Set("version_model", version.model_version);
-  dict.Set("version_physical",
-           base::NumberToString(version.stamp.physical_time_us));
-  dict.Set("version_logical", static_cast<int>(version.stamp.logical));
-  dict.Set("version_device", version.stamp.device_tiebreak);
-}
-
-bool ReadVersion(const Dict& dict, SyncVersion* version) {
-  const std::string* physical = dict.FindString("version_physical");
-  const std::string* device = dict.FindString("version_device");
-  const std::optional<int> model = dict.FindInt("version_model");
-  const std::optional<int> logical = dict.FindInt("version_logical");
-  int64_t physical_us = 0;
-  if (!physical || !device || device->empty() || !model || !logical ||
-      *logical < 0 || !base::StringToInt64(*physical, &physical_us)) {
-    return false;
-  }
-  version->model_version = *model;
-  version->stamp = HlcStamp{.physical_time_us = physical_us,
-                            .logical = static_cast<uint32_t>(*logical),
-                            .device_tiebreak = *device};
-  return true;
-}
-
-void SetFieldVersions(Dict& dict,
-                      int model_version,
-                      const FieldVersionMap& versions) {
-  if (model_version < 2) {
-    return;
-  }
-  Dict fields;
-  for (const auto& [name, stamp] : versions) {
-    Dict value;
-    value.Set("physical", base::NumberToString(stamp.physical_time_us));
-    value.Set("logical", static_cast<int>(stamp.logical));
-    value.Set("device", stamp.device_tiebreak);
-    fields.Set(name, std::move(value));
-  }
-  dict.Set("field_versions", std::move(fields));
-}
-
-bool ReadFieldVersions(const Dict& dict,
-                       int model_version,
-                       FieldVersionMap* versions) {
-  const Dict* fields = dict.FindDict("field_versions");
-  if (!fields) {
-    return model_version < 2;
-  }
-  for (const auto [name, value] : *fields) {
-    if (!value.is_dict()) {
+  *kind = static_cast<SharedTabTargetKind>(*raw);
+  if (dict.contains("local_scheme")) {
+    const auto* value = dict.FindString("local_scheme");
+    if (!value) {
       return false;
     }
-    const Dict& stamp = value.GetDict();
-    const std::string* physical = stamp.FindString("physical");
-    const std::optional<int> logical = stamp.FindInt("logical");
-    const std::string* device = stamp.FindString("device");
-    int64_t physical_us = 0;
-    if (!physical || !logical || *logical < 0 || !device || device->empty() ||
-        !base::StringToInt64(*physical, &physical_us) || physical_us < 0 ||
-        !versions
-             ->try_emplace(std::string(name),
-                           HlcStamp{.physical_time_us = physical_us,
-                                    .logical = static_cast<uint32_t>(*logical),
-                                    .device_tiebreak = *device})
-             .second) {
-      return false;
-    }
+    *local_scheme = *value;
   }
-  return model_version < 2 || !versions->empty();
-}
-
-void SetCommon(Dict& dict,
-               int model_version,
-               const base::Uuid& id,
-               bool tombstone,
-               const SyncVersion& version,
-               const FieldVersionMap& field_versions) {
-  dict.Set("model_version", model_version);
-  dict.Set("id", id.AsLowercaseString());
-  dict.Set("tombstone", tombstone);
-  SetVersion(dict, version);
-  SetFieldVersions(dict, model_version, field_versions);
-}
-
-bool ReadCommon(const Dict& dict,
-                int* model_version,
-                base::Uuid* id,
-                bool* tombstone,
-                SyncVersion* version,
-                FieldVersionMap* field_versions) {
-  const std::optional<int> model = dict.FindInt("model_version");
-  const std::string* serialized_id = dict.FindString("id");
-  const std::optional<bool> deleted = dict.FindBool("tombstone");
-  if (!model || !serialized_id || !deleted ||
-      !base::Uuid::ParseLowercase(*serialized_id).is_valid() ||
-      !ReadVersion(dict, version)) {
-    return false;
-  }
-  *model_version = *model;
-  *id = base::Uuid::ParseLowercase(*serialized_id);
-  *tombstone = *deleted;
-  return *model == version->model_version &&
-         ReadFieldVersions(dict, *model, field_versions);
-}
-
-bool ReadUuid(const Dict& dict,
-              const char* key,
-              base::Uuid* value,
-              bool optional) {
-  const std::string* serialized = dict.FindString(key);
-  if (!serialized) {
-    return optional;
-  }
-  *value = base::Uuid::ParseLowercase(*serialized);
-  return value->is_valid();
-}
-
-bool ReadString(const Dict& dict, const char* key, std::string* value) {
-  const std::string* serialized = dict.FindString(key);
-  if (!serialized) {
-    return false;
-  }
-  *value = *serialized;
   return true;
-}
-
-bool WriteDict(const Dict& dict, std::string* payload) {
-  return base::JSONWriter::Write(base::Value(dict.Clone()), payload);
-}
-
-std::optional<Dict> ParseDict(const std::string& payload) {
-  return base::JSONReader::ReadDict(payload, base::JSON_PARSE_RFC);
 }
 
 bool SerializeDevice(const DeviceRecord& record, std::string* payload) {
@@ -185,6 +79,10 @@ bool SerializeWorkspace(const WorkspaceRecord& record, std::string* payload) {
   SetCommon(dict, record.model_version, record.id, record.tombstone,
             record.version, record.field_versions);
   dict.Set("name", record.name);
+  dict.Set("archive_policy", static_cast<int>(record.archive_policy));
+  if (record.merged_into) {
+    dict.Set("merged_into", record.merged_into->AsLowercaseString());
+  }
   dict.Set("icon", record.icon);
   dict.Set("sort_key", record.sort_key);
   if (record.accent_argb) {
@@ -204,6 +102,9 @@ bool SerializeTreeNode(const TreeNodeRecord& record, std::string* payload) {
     dict.Set("parent_id", record.parent_id->AsLowercaseString());
   }
   dict.Set("node_kind", static_cast<int>(record.kind));
+  dict.Set("is_temporary", record.is_temporary);
+  SetTarget(dict, record.target_kind, record.local_scheme);
+  serialization_internal::SetHomeTarget(dict, record.home_target);
   dict.Set("title", record.title);
   dict.Set("icon", record.icon);
   if (record.accent_argb) {
@@ -237,6 +138,11 @@ bool SerializeRemoteTab(const RemoteTabRecord& record, std::string* payload) {
             record.version, record.field_versions);
   dict.Set("device_id", record.device_id.AsLowercaseString());
   dict.Set("session_id", record.session_id.AsLowercaseString());
+  if (!record.tree_node_id) {
+    return false;
+  }
+  dict.Set("tree_node_id", record.tree_node_id->AsLowercaseString());
+  SetTarget(dict, record.target_kind, record.local_scheme);
   if (record.workspace_id) {
     dict.Set("workspace_id", record.workspace_id->AsLowercaseString());
   }
@@ -333,6 +239,59 @@ bool SerializeDeveloperAsset(const DeveloperAssetRecord& record,
   return WriteDict(dict, payload);
 }
 
+bool SerializeCapability(const DeviceCapabilityRecord& record,
+                         std::string* payload) {
+  Dict dict;
+  SetCommon(dict, record.model_version, record.id, record.tombstone,
+            record.version, record.field_versions);
+  dict.Set("device_id", record.device_id.AsLowercaseString());
+  base::ListValue readers;
+  base::ListValue writers;
+  base::ListValue features;
+  for (int value : record.readable_models) {
+    readers.Append(value);
+  }
+  for (int value : record.writable_models) {
+    writers.Append(value);
+  }
+  for (const auto& value : record.features) {
+    features.Append(value);
+  }
+  dict.Set("readable_models", std::move(readers));
+  dict.Set("writable_models", std::move(writers));
+  dict.Set("features", std::move(features));
+  return WriteDict(dict, payload);
+}
+
+bool DeserializeCapability(const Dict& dict, DeviceCapabilityRecord* record) {
+  if (!ReadCommon(dict, &record->model_version, &record->id, &record->tombstone,
+                  &record->version, &record->field_versions) ||
+      !ReadUuid(dict, "device_id", &record->device_id, false)) {
+    return false;
+  }
+  const auto* readers = dict.FindList("readable_models");
+  const auto* writers = dict.FindList("writable_models");
+  const auto* features = dict.FindList("features");
+  if (!readers || !writers || !features || readers->size() != 1 ||
+      writers->size() != 1) {
+    return false;
+  }
+  const auto reader = ReadInt32(readers->front());
+  const auto writer = ReadInt32(writers->front());
+  if (!reader || !writer) {
+    return false;
+  }
+  record->readable_models = {*reader};
+  record->writable_models = {*writer};
+  for (const auto& feature : *features) {
+    if (!feature.is_string()) {
+      return false;
+    }
+    record->features.push_back(feature.GetString());
+  }
+  return true;
+}
+
 bool DeserializeDevice(const Dict& dict, DeviceRecord* record) {
   if (!ReadCommon(dict, &record->model_version, &record->id, &record->tombstone,
                   &record->version, &record->field_versions) ||
@@ -341,7 +300,7 @@ bool DeserializeDevice(const Dict& dict, DeviceRecord* record) {
       !ReadTime(dict, "last_seen", &record->last_seen)) {
     return false;
   }
-  const std::optional<int> type = dict.FindInt("device_type");
+  const std::optional<int> type = ReadInt32(dict, "device_type");
   const std::optional<bool> retired = dict.FindBool("retired");
   if (!type || *type < static_cast<int>(DeviceType::kMacDesktop) ||
       *type > static_cast<int>(DeviceType::kOther) || !retired) {
@@ -353,6 +312,10 @@ bool DeserializeDevice(const Dict& dict, DeviceRecord* record) {
 }
 
 bool DeserializeWorkspace(const Dict& dict, WorkspaceRecord* record) {
+  const auto policy = ReadInt32(dict, "archive_policy");
+  if (!policy || *policy < 0 || *policy > 4)
+    return false;
+  record->archive_policy = static_cast<SharedArchivePolicy>(*policy);
   if (!ReadCommon(dict, &record->model_version, &record->id, &record->tombstone,
                   &record->version, &record->field_versions) ||
       !ReadString(dict, "name", &record->name) ||
@@ -362,17 +325,28 @@ bool DeserializeWorkspace(const Dict& dict, WorkspaceRecord* record) {
       !ReadTime(dict, "modified_at", &record->modified_at)) {
     return false;
   }
+  // Optional and additive: older peers never write it.
+  base::Uuid merged_into;
+  if (!ReadUuid(dict, "merged_into", &merged_into, true)) {
+    return false;
+  }
+  if (merged_into.is_valid()) {
+    record->merged_into = merged_into;
+  }
   const base::Value* accent = dict.Find("accent_argb");
   if (accent) {
-    if (!accent->is_int()) {
+    const auto parsed = ReadInt32(*accent);
+    if (!parsed) {
       return false;
     }
-    record->accent_argb = static_cast<uint32_t>(accent->GetInt());
+    record->accent_argb = static_cast<uint32_t>(*parsed);
   }
   return true;
 }
 
 bool DeserializeTreeNode(const Dict& dict, TreeNodeRecord* record) {
+  if (!serialization_internal::ReadHomeTarget(dict, &record->home_target))
+    return false;
   if (!ReadCommon(dict, &record->model_version, &record->id, &record->tombstone,
                   &record->version, &record->field_versions) ||
       !ReadUuid(dict, "workspace_id", &record->workspace_id, false) ||
@@ -390,20 +364,27 @@ bool DeserializeTreeNode(const Dict& dict, TreeNodeRecord* record) {
   if (parent.is_valid()) {
     record->parent_id = parent;
   }
-  const std::optional<int> kind = dict.FindInt("node_kind");
+  const std::optional<int> kind = ReadInt32(dict, "node_kind");
   if (!kind || *kind < static_cast<int>(TreeNodeKind::kFolder) ||
       *kind > static_cast<int>(TreeNodeKind::kPage)) {
     return false;
   }
   record->kind = static_cast<TreeNodeKind>(*kind);
+  const auto temporary = dict.FindBool("is_temporary");
+  if (!temporary || !ReadTarget(dict, record->kind == TreeNodeKind::kFolder,
+                                &record->target_kind, &record->local_scheme)) {
+    return false;
+  }
+  record->is_temporary = *temporary;
   if (const std::string* icon = dict.FindString("icon")) {
     record->icon = *icon;
   }
   if (const base::Value* accent = dict.Find("accent_argb")) {
-    if (!accent->is_int()) {
+    const auto parsed = ReadInt32(*accent);
+    if (!parsed) {
       return false;
     }
-    record->accent_argb = static_cast<uint32_t>(accent->GetInt());
+    record->accent_argb = static_cast<uint32_t>(*parsed);
   }
   return true;
 }
@@ -413,6 +394,7 @@ bool DeserializeHistory(const Dict& dict, HistoryRecord* record) {
                   &record->version, &record->field_versions) ||
       !ReadString(dict, "url", &record->url) ||
       !ReadString(dict, "title", &record->title) ||
+      !ReadString(dict, "transition", &record->transition) ||
       !ReadTime(dict, "last_visit", &record->last_visit)) {
     return false;
   }
@@ -422,14 +404,11 @@ bool DeserializeHistory(const Dict& dict, HistoryRecord* record) {
     return false;
   }
   base::Uuid device_id;
-  if (!ReadUuid(dict, "device_id", &device_id, true)) {
+  if (!ReadUuid(dict, "device_id", &device_id, false)) {
     return false;
   }
   if (device_id.is_valid()) {
     record->device_id = device_id;
-  }
-  if (const std::string* transition = dict.FindString("transition")) {
-    record->transition = *transition;
   }
   return true;
 }
@@ -446,6 +425,12 @@ bool DeserializeRemoteTab(const Dict& dict, RemoteTabRecord* record) {
     return false;
   }
   base::Uuid workspace;
+  base::Uuid tree_node_id;
+  if (!ReadUuid(dict, "tree_node_id", &tree_node_id, false) ||
+      !ReadTarget(dict, false, &record->target_kind, &record->local_scheme)) {
+    return false;
+  }
+  record->tree_node_id = tree_node_id;
   if (!ReadUuid(dict, "workspace_id", &workspace, true)) {
     return false;
   }
@@ -503,8 +488,8 @@ bool DeserializeRemoteCommand(const Dict& dict, RemoteCommandRecord* record) {
   if (tab.is_valid()) {
     record->tab_id = tab;
   }
-  const std::optional<int> kind = dict.FindInt("command_kind");
-  const std::optional<int> status = dict.FindInt("status");
+  const std::optional<int> kind = ReadInt32(dict, "command_kind");
+  const std::optional<int> status = ReadInt32(dict, "status");
   if (!kind || *kind < static_cast<int>(RemoteCommandKind::kOpen) ||
       *kind > static_cast<int>(RemoteCommandKind::kClose) || !status ||
       *status < static_cast<int>(RemoteCommandStatus::kQueued) ||
@@ -523,10 +508,11 @@ bool DeserializeAppearance(const Dict& dict, AppearanceRecord* record) {
     return false;
   }
   if (const base::Value* accent = dict.Find("accent_argb")) {
-    if (!accent->is_int()) {
+    const auto parsed = ReadInt32(*accent);
+    if (!parsed) {
       return false;
     }
-    record->accent_argb = static_cast<uint32_t>(accent->GetInt());
+    record->accent_argb = static_cast<uint32_t>(*parsed);
   }
   const std::optional<bool> system = dict.FindBool("use_system_accent");
   if (!system) {
@@ -571,7 +557,7 @@ bool DeserializeDeveloperAsset(const Dict& dict, DeveloperAssetRecord* record) {
       !ReadString(dict, "source", &record->source)) {
     return false;
   }
-  const std::optional<int> kind = dict.FindInt("asset_kind");
+  const std::optional<int> kind = ReadInt32(dict, "asset_kind");
   const std::optional<bool> enabled = dict.FindBool("enabled");
   const std::optional<bool> opted_in = dict.FindBool("opted_in");
   if (!kind || *kind < static_cast<int>(DeveloperAssetKind::kCss) ||
@@ -592,7 +578,8 @@ bool SerializeRecord(const SyncRecord& record, std::string* payload) {
     return false;
   }
   SyncRecord normalized = record;
-  if (!NormalizeFieldVersions(&normalized, nullptr)) {
+  if (!NormalizeFieldVersions(&normalized, nullptr) ||
+      !ValidateRecord(normalized)) {
     return false;
   }
   return std::visit(
@@ -618,9 +605,17 @@ bool SerializeRecord(const SyncRecord& record, std::string* payload) {
           return SerializePermittedSetting(value, payload);
         } else if constexpr (std::is_same_v<T, ExtensionInventoryRecord>) {
           return SerializeExtensionInventory(value, payload);
-        } else {
-          static_assert(std::is_same_v<T, DeveloperAssetRecord>);
+        } else if constexpr (std::is_same_v<T, DeveloperAssetRecord>) {
           return SerializeDeveloperAsset(value, payload);
+        } else if constexpr (std::is_same_v<T, DeviceCapabilityRecord>) {
+          return SerializeCapability(value, payload);
+        } else if constexpr (std::is_same_v<T, SplitGroupRecord>) {
+          return serialization_internal::SerializeSplitGroup(value, payload);
+        } else if constexpr (std::is_same_v<T, TabArchiveEntryRecord>) {
+          return serialization_internal::SerializeArchiveEntry(value, payload);
+        } else {
+          static_assert(std::is_same_v<T, BookmarkRecord>);
+          return serialization_internal::SerializeBookmark(value, payload);
         }
       },
       normalized);
@@ -629,6 +624,9 @@ bool SerializeRecord(const SyncRecord& record, std::string* payload) {
 bool DeserializeRecord(EntityType expected_type,
                        const std::string& payload,
                        SyncRecord* record) {
+  if (expected_type == EntityType::kTabArchiveEntry &&
+      payload.size() > 512 * 1024)
+    return false;
   std::optional<Dict> dict = ParseDict(payload);
   if (!dict || !record) {
     return false;
@@ -723,8 +721,38 @@ bool DeserializeRecord(EntityType expected_type,
       decoded = std::move(value);
       break;
     }
+    case EntityType::kBookmark: {
+      BookmarkRecord value;
+      if (!serialization_internal::DeserializeBookmark(*dict, &value)) {
+        return false;
+      }
+      decoded = std::move(value);
+      break;
+    }
+    case EntityType::kSplitGroup: {
+      SplitGroupRecord value;
+      if (!serialization_internal::DeserializeSplitGroup(*dict, &value))
+        return false;
+      decoded = std::move(value);
+      break;
+    }
+    case EntityType::kTabArchiveEntry: {
+      TabArchiveEntryRecord value;
+      if (!serialization_internal::DeserializeArchiveEntry(*dict, &value))
+        return false;
+      decoded = std::move(value);
+      break;
+    }
+    case EntityType::kDeviceCapability: {
+      DeviceCapabilityRecord value;
+      if (!DeserializeCapability(*dict, &value)) {
+        return false;
+      }
+      decoded = std::move(value);
+      break;
+    }
   }
-  if (!HasCompleteFieldVersions(decoded)) {
+  if (!HasCompleteFieldVersions(decoded) || !ValidateRecord(decoded)) {
     return false;
   }
   *record = std::move(decoded);

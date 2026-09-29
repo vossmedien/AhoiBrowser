@@ -1,0 +1,37 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "install",
+      "app",
+      "--device",
+      "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+      "artifacts/build/mobile-development-fa53e31-20260912/AhoiMobile-fa53e31-development-signed.app",
+      "--json-output",
+      "artifacts/build/mobile-development-fa53e31-20260912/device-install-20260912.json"
+    ],
+    "commandType" : "devicectl.device.install.app",
+    "environment" : {
+      "TERM" : "xterm-256color"
+    },
+    "jsonVersion" : 3,
+    "outcome" : "success",
+    "version" : "518.33"
+  },
+  "result" : {
+    "deviceIdentifier" : "839E273D-7C25-5B8C-983D-CBA20BA3E3F5",
+    "installedApplications" : [
+      {
+        "bundleID" : "app.ahoibrowser.AhoiBrowser",
+        "databaseSequenceNumber" : 4228,
+        "databaseUUID" : "A4859A73-A39E-4A20-A9FC-66FC35679971",
+        "installationURL" : "file:///private/var/containers/Bundle/Application/A4DE506E-5237-4588-A59E-49BA7AD87E35/AhoiMobile-fa53e31-development-signed.app/",
+        "launchServicesIdentifier" : "unknown",
+        "options" : {
+
+        }
+      }
+    ]
+  }
+}

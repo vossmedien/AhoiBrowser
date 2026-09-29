@@ -4,25 +4,29 @@ import WebKit
 import UIKit
 import Combine
 import AhoiCloudKitSpike
-
 public struct AhoiMobileBrowserView: View {
     @ObservedObject private var companionModel: CompanionAppModel
     @ObservedObject private var browser: MobileBrowserController
     @ObservedObject private var permissions: MobilePermissionCoordinator
     @ObservedObject private var downloads: MobileDownloadCoordinator
+    @ObservedObject private var privateLock: MobilePrivateSessionLock
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.mobileBrowserCommandRouter) private var commandRouter
     @State private var addressPresented = false
     @State private var tabsPresented = false
     @State private var libraryPresented = false
+    @State private var bookmarkCapture: MobileBookmarkCapture?
     @State private var historyPresented = false
     @State private var settingsPresented = false
     @State private var downloadsPresented = false
     @State private var browserActionsPresented = false
+    @State private var afterBrowserActions: (@MainActor () -> Void)?
     @State private var findNavigatorPresented = false
+    @State private var harborDeckCollapsed = false
+    @State private var harborDeckResetGeneration: UInt64 = 0
     @State private var clearWebsiteDataRequested = false
     @State private var clearPrivateTabsRequested = false
     @State private var downloadPreviewURL: URL?
@@ -31,67 +35,118 @@ public struct AhoiMobileBrowserView: View {
     @State private var addressText = ""
     @State private var addressSelection: TextSelection?
     @State private var tabSwitcherMode: MobileBrowsingMode = .normal
-    @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @AppStorage(CompanionSyncPreferences.enabledKey) private var syncEnabled = false
     @AppStorage(MobileBrowserPreferences.searchEngineKey)
     private var searchEngineRawValue = MobileSearchEngine.duckDuckGo.rawValue
-
     public init(
         companionModel: CompanionAppModel,
         browser: MobileBrowserController
     ) {
         self.companionModel = companionModel
         self.browser = browser
+        _privateLock = ObservedObject(wrappedValue: companionModel.privateSessionLock)
+        companionModel.privateSessionLock.sessionGeneration = { [weak browser] in
+            guard let browser, !browser.privateTabs.isEmpty else { return nil }
+            return browser.privateSessionGeneration
+        }
+        _syncEnabled = AppStorage(wrappedValue: false, CompanionSyncPreferences.enabledKey,
+                                  store: companionModel.defaults)
+        _searchEngineRawValue = AppStorage(wrappedValue: MobileSearchEngine.duckDuckGo.rawValue,
+                                           MobileBrowserPreferences.searchEngineKey,
+                                           store: companionModel.defaults)
         _permissions = ObservedObject(wrappedValue: browser.permissionCoordinator)
         _downloads = ObservedObject(wrappedValue: browser.downloadCoordinator)
     }
-
     public var body: some View {
+        MobileE2EEvidenceOverlay(content: finalPresentationLayer)
+            .mobileBrowserCommandRegistration(browserCommandActions, router: commandRouter)
+            .background(MobileBrowserKeyboardFocusAnchor(router: commandRouter).frame(width: 1, height: 1))
+            .background(MobilePrivateSceneShield(
+                title: CompanionL10n.string("browser.private.cover.title", fallback: "Private browsing protected"),
+                message: CompanionL10n.string("browser.private.cover.message", fallback: "Return to AhoiBrowser to view this private tab."),
+                lock: privateLock, privateContentVisible: { isPrivateContentVisible },
+                presentationVisible: { addressPresented || tabsPresented || bookmarkCapture != nil || browserActionsPresented ||
+                    downloadsPresented || downloadPreviewURL != nil || renameTab != nil || settingsPresented ||
+                    findNavigatorPresented || clearWebsiteDataRequested || clearPrivateTabsRequested ||
+                    browser.pendingLink != nil || browser.linkPreview != nil ||
+                    browser.pendingExternalOpen != nil },
+                prepareForInactive: { browser.prepareForInactiveScene() },
+                dismissPrivatePresentations: dismissPrivatePresentations).frame(width: 0, height: 0)
+                .id(ObjectIdentifier(privateLock)))
+            .onChange(of: browser.privateTabs.count) { _, _ in privateLock.privateSessionChanged() }
+    }
+    private var privacyLayer: some View {
         ZStack {
-            Group {
-                if horizontalSizeClass == .regular {
-                    NavigationSplitView(columnVisibility: $columnVisibility) {
-                        librarySidebar
-                    } detail: {
-                        browserSurface
-                    }
-                } else {
-                    browserSurface
-                }
-            }
-            .accessibilityHidden(privatePrivacyCoverPresented)
-            .animation(
-                reduceMotion ? nil : .easeInOut(duration: 0.34),
-                value: browser.selectedTab?.websiteTintARGB
-            )
+            adaptiveBrowserLayout
 
             if privatePrivacyCoverPresented {
                 privatePrivacyCover
                     .zIndex(10_000)
             }
         }
+        .environment(
+            \.mobileBrowserReduceMotionOverride,
+            resolvedPerformanceReduceMotionOverride
+        )
         .transaction { transaction in
             if privatePrivacyCoverPresented {
                 transaction.animation = nil
             }
         }
+    }
+    private var lifecycleLayer: some View {
+        privacyLayer
         .task {
-            await browser.load()
-#if DEBUG
             let launchArguments = ProcessInfo.processInfo.arguments
+            switch MobilePerformanceLaunchRequest.validate(arguments: launchArguments) {
+            case let .valid(request):
+#if DEBUG
+                browser.loadPerformanceFixture(request)
+                await browser.runPerformanceWorkload(request)
+#endif
+                return
+            case .invalid:
+                return
+            case .notRequested:
+                break
+            }
+            await browser.load()
+            await companionModel.load()
+#if DEBUG
             if launchArguments.contains("-AhoiUITestFixture") {
+                // The fixture replaces the restored local population. Close
+                // that population through the product path first, so its
+                // temporary shared pages are tombstoned instead of returning
+                // as dormant tabs and inflating the requested tab count.
+                for tab in browser.normalTabs {
+                    _ = await companionModel.closePublishedMobileTab(tab) {}
+                }
                 browser.loadUITestFixture()
             }
             if launchArguments.contains("-AhoiUITestOffline") {
                 browser.loadUITestOfflineFailure()
             }
 #endif
-            await companionModel.load()
-            await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+            await companionModel.setSyncEnabled(syncEnabled)
+            await companionModel.reconcilePublishedMobileTabs(browser)
+#if DEBUG
+            await companionModel.loadSyncVisibleUITestConflictIfRequested()
+#endif
             await companionModel.sync()
         }
         .onOpenURL { browser.handleExternalURL($0) }
+        .modifier(MobileSharedTabIntentBinding(browser: browser, model: companionModel, enabled: !isPerformanceRuntime))
+        .onChange(of: companionModel.snapshot.treeNodes) { _, _ in
+            companionModel.reconcileBrowserSharedProjection(browser)
+            if !isPerformanceRuntime { companionModel.scheduleMobileSharedCapture(browser) }
+        }
+        .onChange(of: companionModel.snapshot.workspaces) { _, _ in
+            companionModel.reconcileBrowserSharedProjection(browser)
+            if !isPerformanceRuntime { companionModel.scheduleMobileSharedCapture(browser) }
+        }
         .onChange(of: syncEnabled) { _, enabled in
+            guard !isPerformanceRuntime else { return }
             Task { await companionModel.setSyncEnabled(enabled) }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -102,8 +157,10 @@ public struct AhoiMobileBrowserView: View {
                 browser.discardInactivePages(keeping: 2)
                 flushSessionDuringBackgroundTransition()
             } else if phase == .active {
+                expandHarborDeck()
+                guard !isPerformanceRuntime else { return }
                 Task {
-                    await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+                    await companionModel.reconcilePublishedMobileTabs(browser)
                     await companionModel.sync()
                 }
             }
@@ -113,16 +170,25 @@ public struct AhoiMobileBrowserView: View {
         )) { _ in
             browser.discardInactivePages(keeping: 1)
         }
+    }
+    private var sheetLayer: some View {
+        lifecycleLayer
         .sheet(isPresented: $addressPresented) { addressSheet }
         .sheet(isPresented: $tabsPresented) { tabSwitcher }
         .sheet(isPresented: $libraryPresented) { librarySheet }
+        .sheet(item: $bookmarkCapture) { capture in
+            BookmarkLibraryView(model: companionModel, openURL: browserOpenURLAction,
+                                initialTitle: capture.title, initialURL: capture.url)
+        }
         .sheet(isPresented: $historyPresented) {
             MobileBrowserHistoryView(model: companionModel) { url in
                 browser.handleExternalURL(url)
             }
         }
         .sheet(isPresented: $downloadsPresented) { downloadsSheet }
-        .sheet(isPresented: $browserActionsPresented) { browserActionsSheet }
+        .sheet(isPresented: $browserActionsPresented, onDismiss: runAfterBrowserActions) {
+            browserActionsSheet
+        }
         .sheet(isPresented: $settingsPresented) {
             CompanionSettingsView(
                 model: companionModel,
@@ -132,13 +198,26 @@ public struct AhoiMobileBrowserView: View {
         .sheet(item: Binding<MobilePendingLink?>(
             get: { browser.pendingLink },
             set: { if $0 == nil { browser.dismissPendingLink() } }
-        )) { link in
+        ), onDismiss: {
+            browser.presentStagedLinkPreview()
+        }) { link in
             MobileLinkActionSheet(
                 link: link,
                 companionModel: companionModel,
                 browser: browser
             )
         }
+        .fullScreenCover(item: Binding<MobileLinkPreviewSession?>(
+            get: { browser.linkPreview },
+            set: { if $0 == nil { browser.dismissLinkPreview() } }
+        ), onDismiss: {
+            browser.completeStagedLinkPreviewAdoption()
+        }) { preview in
+            MobileLinkPreviewView(preview: preview, browser: browser)
+        }
+    }
+    private var confirmationLayer: some View {
+        sheetLayer
         .confirmationDialog(
             CompanionL10n.string(
                 "browser.clear_website_data.title",
@@ -184,6 +263,9 @@ public struct AhoiMobileBrowserView: View {
                 fallback: "Open private tabs and their in-memory browsing session will be discarded."
             ))
         }
+    }
+    private var finalPresentationLayer: some View {
+        confirmationLayer
         .alert(
             CompanionL10n.string("browser.error.title", fallback: "AhoiBrowser"),
             isPresented: Binding(
@@ -197,72 +279,70 @@ public struct AhoiMobileBrowserView: View {
             Button(CompanionL10n.string("action.ok", fallback: "OK")) {
                 browser.dismissError()
             }
+            .accessibilityIdentifier("browser.error.dismiss")
         } message: {
             Text(browser.lastError ?? "")
                 .accessibilityIdentifier("browser.error.message")
         }
-        .alert(
-            CompanionL10n.string("browser.permission.title", fallback: "Website permission"),
-            isPresented: Binding(
-                get: { permissions.pendingRequest != nil },
-                set: { _ in }
-            ),
-            presenting: permissions.pendingRequest
-        ) { request in
-            Button(CompanionL10n.string("action.deny", fallback: "Don't Allow"), role: .cancel) {
-                permissions.deny(requestID: request.id)
-            }
-            Button(CompanionL10n.string("action.allow", fallback: "Allow")) {
-                permissions.allow(requestID: request.id)
-            }
-        } message: { request in
-            Text(CompanionL10n.format(
-                "browser.permission.message",
-                fallback: "%@ wants access to %@.",
-                request.origin,
-                permissionLabel(request.kind)
-            ))
-        }
-        .alert(
-            CompanionL10n.string("browser.external.title", fallback: "Open another app?"),
-            isPresented: Binding(
-                get: { browser.pendingExternalOpen != nil },
-                set: { _ in }
-            ),
-            presenting: browser.pendingExternalOpen
-        ) { request in
-            Button(CompanionL10n.string("action.cancel", fallback: "Cancel"), role: .cancel) {
-                browser.cancelPendingExternalOpen(requestID: request.id)
-            }
-            Button(CompanionL10n.string("browser.external.open", fallback: "Open App")) {
-                if let url = browser.confirmPendingExternalOpen(requestID: request.id) {
-                    Task { _ = await UIApplication.shared.open(url) }
-                }
-            }
-        } message: { request in
-            Text(CompanionL10n.format(
-                "browser.external.message",
-                fallback: "%@ wants to open %@.",
-                request.origin,
-                request.url.scheme ?? request.url.absoluteString
-            ))
-        }
+        .mobileBrowserSystemAlerts(
+            browser: browser,
+            permissions: permissions
+        )
         .overlay {
             if let presenter = browser.selectedDialogPresenter {
-                MobileWebDialogHost(presenter: presenter)
+                MobileWebDialogHost(
+                    presenter: presenter,
+                    onPresentationRequested: expandHarborDeck
+                )
             }
+        }
+        .onChange(of: chromeResetContext) { previous, current in
+            if current.requiresExpansion(comparedTo: previous) { expandHarborDeck() }
         }
     }
 
+    @ViewBuilder
+    private var adaptiveBrowserLayout: some View {
+        Group {
+            if horizontalSizeClass == .regular {
+                NavigationSplitView(columnVisibility: $columnVisibility) {
+                    librarySidebar
+                } detail: {
+                    browserSurface
+                }
+            } else {
+                browserSurface
+            }
+        }
+        .accessibilityHidden(privatePrivacyCoverPresented)
+        .animation(
+            effectiveReduceMotion ? nil : .easeInOut(
+                duration: MobileBrowserChromeTheme.motionDuration
+            ),
+            value: browser.selectedTab?.websiteTintARGB
+        )
+    }
+
     private var browserSurface: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
             ZStack {
-                if browser.selectedPage?.url == nil {
-                    newTabLanding
-                } else if let page = browser.selectedPage {
+                if browser.selectedPageIsRetrying {
+                    MobilePageRetryingView()
+                } else if let failure = browser.selectedPageFailure {
+                    MobilePageFailureView(
+                        failure: failure,
+                        onRetry: browser.retrySelectedPage
+                    )
+                } else if browser.selectedPage?.url == nil {
+                    focusVoyage
+                } else if let page = browser.selectedPage,
+                          let scrollCoordinator = browser.selectedLinkInteractionCoordinator {
                     MobileWebPageView(
                         page: page,
+                        scrollCoordinator: scrollCoordinator,
                         findNavigatorPresented: $findNavigatorPresented,
+                        chromeCollapsed: $harborDeckCollapsed,
+                        chromeResetGeneration: harborDeckResetGeneration,
                         onRefresh: browser.reload
                     ) {
                         Task {
@@ -276,19 +356,18 @@ public struct AhoiMobileBrowserView: View {
                                     title: navigation.title,
                                     url: navigation.url.absoluteString
                                 )
-                                await companionModel.publishMobileTab(navigation.tab)
+                                await companionModel.reconcilePublishedMobileTabs(browser)
                             }
                         }
                     }
-                }
-                if let failure = browser.selectedPageFailure {
-                    pageFailureView(failure)
+                    .id(browser.selectedTabID)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(uiColor: .systemBackground))
             .overlay(alignment: .top) {
-                if let page = browser.selectedPage, page.isLoading {
+                if browser.selectedPageFailure == nil,
+                   let page = browser.selectedPage, page.isLoading {
                     ProgressView(value: page.estimatedProgress)
                         .progressViewStyle(.linear)
                         .tint(chromeTintColor)
@@ -303,303 +382,65 @@ public struct AhoiMobileBrowserView: View {
                         )))
                 }
             }
-            bottomBar
+            .padding(.bottom, MobileBrowserChromeTheme.compactHarborDeckHeight)
+            harborDeck
         }
         .background(Color(uiColor: .systemBackground))
         .tint(chromeTintColor)
         .animation(
-            reduceMotion ? nil : .easeInOut(duration: 0.34),
+            effectiveReduceMotion ? nil : .easeInOut(
+                duration: MobileBrowserChromeTheme.motionDuration
+            ),
             value: browser.selectedTab?.websiteTintARGB
         )
     }
-
-    private var newTabLanding: some View {
-        ZStack {
-            if isPrivateBrowsing {
-                Color(red: 0.055, green: 0.060, blue: 0.085)
-                    .ignoresSafeArea()
-            }
-            LinearGradient(
-                colors: [
-                    chromeTintColor.opacity(isPrivateBrowsing ? 0.24 : 0.11),
-                    .clear,
-                    chromeTintColor.opacity(isPrivateBrowsing ? 0.10 : 0.045),
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            VStack(spacing: 18) {
-                Image(systemName: browser.selectedTab?.mode == .privateBrowsing
-                      ? "hand.raised.fill"
-                      : "sailboat.fill")
-                    .font(.system(size: 42, weight: .semibold))
-                    .foregroundStyle(chromeTintColor)
-                    .accessibilityHidden(true)
-                Text(browser.selectedTab?.mode == .privateBrowsing
-                     ? CompanionL10n.string("browser.private", fallback: "Private")
-                     : "AhoiBrowser")
-                    .font(.title.bold())
-                    .accessibilityIdentifier(
-                        browser.selectedTab?.mode == .privateBrowsing
-                            ? "browser.private-indicator"
-                            : "browser.brand"
-                    )
-                    .foregroundStyle(isPrivateBrowsing ? Color.white : Color.primary)
-                Button {
-                    presentAddress()
-                } label: {
-                    Label(
-                        CompanionL10n.string(
-                            "browser.search_or_address",
-                            fallback: "Search or enter address"
-                        ),
-                        systemImage: "magnifyingglass"
-                    )
-                    .frame(maxWidth: 420, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 13)
-                    .background {
-                        if reduceTransparency {
-                            Capsule().fill(Color(uiColor: .secondarySystemBackground))
-                        } else {
-                            Capsule().fill(.thinMaterial)
-                        }
-                    }
-                    .overlay {
-                        Capsule().stroke(chromeTintColor.opacity(0.22), lineWidth: 1)
-                            .allowsHitTesting(false)
-                    }
-                    .shadow(color: chromeTintColor.opacity(0.10), radius: 14, y: 6)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(isPrivateBrowsing ? Color.white : Color.primary)
-            }
-            .padding(24)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityIdentifier("browser.new-tab-landing")
-    }
-
-    private var bottomBar: some View {
-        HStack(spacing: 10) {
-            Button(action: browser.goBack) {
-                Image(systemName: "chevron.backward")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .disabled(browser.selectedPage?.backForwardList.backList.isEmpty != false)
-            .keyboardShortcut("[", modifiers: .command)
-            .accessibilityIdentifier("browser.back")
-            .accessibilityLabel(CompanionL10n.string("browser.back", fallback: "Back"))
-
-            Button(action: browser.goForward) {
-                Image(systemName: "chevron.forward")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .disabled(browser.selectedPage?.backForwardList.forwardList.isEmpty != false)
-            .keyboardShortcut("]", modifiers: .command)
-            .accessibilityIdentifier("browser.forward")
-            .accessibilityLabel(CompanionL10n.string("browser.forward", fallback: "Forward"))
-
-            Button(action: presentAddress) {
-                HStack(spacing: 7) {
-                    if browser.selectedTab?.mode == .normal {
-                        Image(systemName: "sailboat.fill")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(chromeTintColor)
-                    }
-                    Image(systemName: securitySymbol)
-                        .font(.caption)
-                    Text(addressLabel)
-                        .lineLimit(1)
-                        .font(.subheadline.weight(.medium))
-                }
-                .frame(maxWidth: .infinity)
-                .frame(minHeight: 44)
-                .padding(.horizontal, 12)
-                .background {
-                    if reduceTransparency {
-                        Capsule().fill(Color(uiColor: .secondarySystemBackground))
-                    } else {
-                        Capsule().fill(.ultraThinMaterial)
-                    }
-                }
-                .overlay {
-                    ZStack {
-                        Capsule()
-                            .fill(chromeTintColor.opacity(reduceTransparency ? 0.12 : 0.075))
-                        Capsule().stroke(chromeTintColor.opacity(0.18), lineWidth: 1)
-                    }
-                    .allowsHitTesting(false)
-                }
-            }
-            .buttonStyle(.plain)
-            .keyboardShortcut("l", modifiers: .command)
-            .accessibilityIdentifier(
-                browser.selectedTab?.mode == .privateBrowsing
-                    ? "browser.address.private"
-                    : "browser.address"
-            )
-            .accessibilityLabel(CompanionL10n.string(
-                browser.selectedTab?.mode == .privateBrowsing
-                    ? "browser.private.address.accessibility"
-                    : "browser.address.accessibility",
-                fallback: browser.selectedTab?.mode == .privateBrowsing
-                    ? "Private address and search"
-                    : "Address and search"
-            ))
-            .accessibilityValue(Text(addressAccessibilityValue))
-
-            Button(action: browser.reloadOrStop) {
-                Image(systemName: browser.selectedPage?.isLoading == true ? "xmark" : "arrow.clockwise")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .keyboardShortcut("r", modifiers: .command)
-            .accessibilityIdentifier("browser.reload-stop")
-            .accessibilityLabel(CompanionL10n.string("browser.reload", fallback: "Reload"))
-
-            Button(action: presentTabs) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 5)
-                        .stroke(lineWidth: 1.5)
-                        .frame(width: 24, height: 24)
-                    Text("\(visibleTabCount)")
-                        .font(.caption2.monospacedDigit().weight(.bold))
-                }
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
-            }
-            .accessibilityIdentifier("browser.tabs")
-            .accessibilityLabel(CompanionL10n.format(
-                "browser.tabs.count",
-                fallback: "%d tabs",
-                visibleTabCount
-            ))
-
-            Button {
-                browserActionsPresented = true
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .accessibilityIdentifier("browser.more")
-            .accessibilityLabel(CompanionL10n.string(
-                "browser.more.accessibility",
-                fallback: "More browser actions"
-            ))
-        }
-        .font(.body.weight(.semibold))
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background {
-            if reduceTransparency {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color(uiColor: .secondarySystemBackground))
-            } else {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(.regularMaterial)
-            }
-        }
-        .overlay {
-            ZStack {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(chromeTintColor.opacity(reduceTransparency ? 0.13 : 0.085))
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(chromeTintColor.opacity(0.20), lineWidth: 1)
-            }
-            .allowsHitTesting(false)
-        }
-        .shadow(color: Color.black.opacity(0.13), radius: 16, y: 7)
-        .padding(.horizontal, horizontalSizeClass == .regular ? 16 : 8)
-        .padding(.vertical, 7)
-        .background {
-            if isPrivateBrowsing {
-                Color(red: 0.055, green: 0.060, blue: 0.085)
-            } else {
-                Color(uiColor: .systemBackground)
-            }
-        }
-        .environment(\.colorScheme, isPrivateBrowsing ? .dark : colorScheme)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 28).onEnded { value in
-                let horizontal = value.translation.width
-                let vertical = abs(value.translation.height)
-                guard abs(horizontal) >= 72, abs(horizontal) > vertical * 1.35 else {
-                    return
-                }
-                switchWorkspace(direction: horizontal < 0 ? 1 : -1)
-            }
+    private var focusVoyage: some View {
+        MobileFocusVoyageView(
+            mode: selectedMode,
+            workspaceName: selectedWorkspace?.name,
+            workspaceSystemImage: MobileWorkspaceIconPolicy.systemName(for: selectedWorkspace),
+            content: MobileFocusVoyageContent.make(
+                mode: selectedMode,
+                tabs: browser.normalTabs,
+                snapshot: companionModel.snapshot,
+                workspaceID: selectedWorkspace?.id
+            ),
+            accentTint: chromeTintColor,
+            onSearch: presentAddress,
+            onOpen: openFocusVoyageItem
         )
-        .accessibilityAction(named: Text(CompanionL10n.string(
-            "browser.workspace.next",
-            fallback: "Next workspace"
-        ))) {
-            switchWorkspace(direction: 1)
-        }
-        .accessibilityAction(named: Text(CompanionL10n.string(
-            "browser.workspace.previous",
-            fallback: "Previous workspace"
-        ))) {
-            switchWorkspace(direction: -1)
-        }
+        .environment(\.colorScheme, isPrivateBrowsing ? .dark : colorScheme)
     }
-
-    private func pageFailureView(_ failure: MobilePageFailureKind) -> some View {
-        ContentUnavailableView {
-            Label(pageFailureTitle(failure), systemImage: failure == .offline
-                  ? "wifi.slash"
-                  : "exclamationmark.icloud")
-        } description: {
-            Text(pageFailureDescription(failure))
-        } actions: {
-            Button(action: browser.retrySelectedPage) {
-                Label(
-                    CompanionL10n.string("browser.retry", fallback: "Try Again"),
-                    systemImage: "arrow.clockwise"
-                )
-                .accessibilityIdentifier("browser.retry")
-            }
-            .buttonStyle(.borderedProminent)
-            .accessibilityIdentifier("browser.retry")
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(uiColor: .systemBackground))
-        .accessibilityIdentifier("browser.page-failure")
+    private var harborDeck: some View {
+        MobileHarborDeckView(
+            mode: selectedMode,
+            isCollapsed: harborDeckCollapsed,
+            workspaceName: selectedWorkspace?.name,
+            workspaceSystemImage: MobileWorkspaceIconPolicy.systemName(for: selectedWorkspace),
+            accentTint: chromeTintColor,
+            addressLabel: addressPresentation.label,
+            addressAccessibilityValue: addressPresentation.accessibilityValue,
+            securitySystemImage: addressPresentation.securitySymbol,
+            visibleTabCount: visibleTabCount,
+            canGoBack: browser.selectedPage?.backForwardList.backList.isEmpty == false,
+            canGoForward: browser.selectedPage?.backForwardList.forwardList.isEmpty == false,
+            isLoading: browser.selectedPage?.isLoading == true,
+            canSwitchWorkspace: selectedMode == .normal &&
+                companionModel.snapshot.visibleWorkspaces.count > 1,
+            onGoBack: browser.goBack,
+            onGoForward: browser.goForward,
+            onPresentAddress: presentAddress,
+            onReloadOrStop: browser.reloadOrStop,
+            onPresentTabs: presentTabs,
+            onPresentMore: {
+                expandHarborDeck()
+                browserActionsPresented = true
+            },
+            onSwitchWorkspace: switchWorkspace,
+            onSwitchRecentTab: { browser.switchRecentTab(direction: $0) }
+        )
+        .accessibilitySortPriority(10)
     }
-
-    private func pageFailureTitle(_ failure: MobilePageFailureKind) -> String {
-        switch failure {
-        case .offline:
-            CompanionL10n.string("browser.failure.offline.title", fallback: "You're Offline")
-        case .timedOut:
-            CompanionL10n.string("browser.failure.timeout.title", fallback: "The Page Took Too Long")
-        case .webContentTerminated:
-            CompanionL10n.string("browser.failure.process.title", fallback: "Page Reload Required")
-        case .invalidURL:
-            CompanionL10n.string("browser.failure.invalid.title", fallback: "This Address Can't Be Opened")
-        case .failed:
-            CompanionL10n.string("browser.failure.generic.title", fallback: "Page Couldn't Load")
-        }
-    }
-
-    private func pageFailureDescription(_ failure: MobilePageFailureKind) -> String {
-        switch failure {
-        case .offline:
-            CompanionL10n.string("browser.failure.offline.message", fallback: "Check your connection and try again.")
-        case .timedOut:
-            CompanionL10n.string("browser.failure.timeout.message", fallback: "The website did not respond in time.")
-        case .webContentTerminated:
-            CompanionL10n.string("browser.failure.process.message", fallback: "iOS released the page process. Reload it to continue.")
-        case .invalidURL:
-            CompanionL10n.string("browser.failure.invalid.message", fallback: "Check the address and try again.")
-        case .failed:
-            CompanionL10n.string("browser.failure.generic.message", fallback: "The website could not be reached.")
-        }
-    }
-
     private var addressSheet: some View {
         MobileAddressCommandSheet(
             companionModel: companionModel,
@@ -607,10 +448,10 @@ public struct AhoiMobileBrowserView: View {
             isPresented: $addressPresented,
             addressText: $addressText,
             addressSelection: $addressSelection,
-            searchEngine: MobileSearchEngine.resolved(from: searchEngineRawValue)
+            searchEngine: MobileSearchEngine.resolved(from: searchEngineRawValue),
+            onOpenTreeNode: openSharedPage
         )
     }
-
     private var tabSwitcher: some View {
         MobileTabSwitcherSheet(
             companionModel: companionModel,
@@ -621,7 +462,6 @@ public struct AhoiMobileBrowserView: View {
             renameText: $renameText
         )
     }
-
     private var downloadsSheet: some View {
         MobileDownloadsSheet(
             downloads: downloads,
@@ -630,7 +470,6 @@ public struct AhoiMobileBrowserView: View {
             mode: browser.selectedTab?.mode ?? .normal
         )
     }
-
     private var browserActionsSheet: some View {
         MobileBrowserActionsSheet(
             companionModel: companionModel,
@@ -646,6 +485,13 @@ public struct AhoiMobileBrowserView: View {
             onToggleSidebar: toggleSidebar,
             onSwitchWorkspace: switchWorkspace,
             onSaveToWorkspace: saveSelectedPage,
+            onSaveBookmark: {
+                guard let tab = browser.selectedTab, tab.mode == .normal,
+                      let url = MobileTabRecord.normalizedURLString(tab.url) else { return }
+                presentAfterBrowserActions {
+                    bookmarkCapture = .init(title: tab.effectiveTitle, url: url)
+                }
+            },
             onCloseSelectedTab: {
                 guard let selectedTabID = browser.selectedTabID else { return }
                 closeTab(selectedTabID)
@@ -658,235 +504,173 @@ public struct AhoiMobileBrowserView: View {
             }
         )
     }
-
     private var librarySidebar: some View {
         MobileBrowserSidebar(
             model: companionModel,
             browser: browser,
             accentTint: chromeTintColor,
+            onPresentCommand: presentAddress,
             onSelectWorkspace: selectWorkspace,
             onSelectTab: browser.select,
             onOpenPage: openSidebarPage,
+            onOpenTreeNode: openSharedPage,
             onCreateTab: createSidebarTab
         )
     }
-
     private var librarySheet: some View {
         CompanionRootView(
             model: companionModel,
+            syncEnabled: $syncEnabled,
             openURL: browserOpenURLAction,
-            accentTint: chromeTintColor
+            onOpenTreeNode: openSharedPage,
+            accentTint: chromeTintColor,
+            onDone: { libraryPresented = false }
         )
-        .overlay(alignment: .topTrailing) {
-            Button(CompanionL10n.string("action.done", fallback: "Done")) {
-                libraryPresented = false
-            }
-            .buttonStyle(.borderedProminent)
-            .padding(.top, 16)
-            .padding(.trailing, 18)
-            .accessibilityIdentifier("browser.library.done")
-        }
     }
-
     private var browserOpenURLAction: OpenURLAction {
         OpenURLAction { url in
-            browser.handleExternalURL(url)
+            guard (try? MobileBrowserInputRouter.validateWebURL(url)) != nil else { return .discarded }
+            _ = browser.createTab(url: url)
+            reconcileSidebarTabs()
             libraryPresented = false
             return .handled
         }
     }
-
-    private var addressLabel: String {
-        if browser.selectedTab?.mode == .privateBrowsing {
-            if let host = selectedOriginHost {
-                return CompanionL10n.format(
-                    "browser.private.address",
-                    fallback: "Private · %@",
-                    host
-                )
-            }
-            return CompanionL10n.string("browser.private", fallback: "Private")
-        }
-        if let url = selectedAddressURL {
-            return selectedOriginHost ?? url.absoluteString
-        }
-        return CompanionL10n.string("browser.search_or_address", fallback: "Search or address")
+    private var addressPresentation: MobileAddressPresentation {
+        MobileAddressPresentation(
+            isPrivate: browser.selectedTab?.mode == .privateBrowsing,
+            url: MobileAddressPresentation.addressURL(
+                pageFailed: browser.selectedPageFailure != nil,
+                tabURL: browser.selectedTab?.url,
+                pageURL: browser.selectedPage?.url
+            )
+        )
     }
-
-    private var addressAccessibilityValue: String {
-        if browser.selectedTab?.mode == .privateBrowsing {
-            if let host = selectedOriginHost {
-                return CompanionL10n.format(
-                    "browser.private.address.value",
-                    fallback: "Private browsing, %@",
-                    host
-                )
-            }
-            return CompanionL10n.string("browser.private", fallback: "Private")
-        }
-        return selectedAddressURL?.absoluteString
-            ?? CompanionL10n.string("browser.search_or_address", fallback: "Search or address")
-    }
-
-    private var selectedOriginHost: String? {
-        guard let url = selectedAddressURL,
-              let host = url.host(), !host.isEmpty else { return nil }
-        guard let port = url.port else { return host }
-        return "\(host):\(port)"
-    }
-
-    private var selectedAddressURL: URL? {
-        browser.selectedPage?.url ?? browser.selectedTab?.url.flatMap(URL.init(string:))
-    }
-
     private var privatePrivacyCoverPresented: Bool {
-        scenePhase != .active && isPrivateContentVisible
+        (scenePhase != .active || privateLock.isLocked) && isPrivateContentVisible
     }
-
+    private func dismissPrivatePresentations() {
+        addressPresented = false; tabsPresented = false; bookmarkCapture = nil
+        browserActionsPresented = false; downloadsPresented = false; downloadPreviewURL = nil
+        renameTab = nil; renameText = ""; addressText = ""; addressSelection = nil
+        findNavigatorPresented = false; clearWebsiteDataRequested = false; clearPrivateTabsRequested = false
+        browser.prepareForInactiveScene()
+    }
     private var isPrivateContentVisible: Bool {
         browser.selectedTab?.mode == .privateBrowsing ||
             (tabsPresented && tabSwitcherMode == .privateBrowsing)
     }
-
     private var visibleTabCount: Int {
         browser.selectedTab?.mode == .privateBrowsing
             ? browser.privateTabs.count
             : browser.normalTabs.count
     }
-
     private var visibleDownloadCount: Int {
         let isPrivate = browser.selectedTab?.mode == .privateBrowsing
         return downloads.downloads.lazy.filter { $0.isPrivate == isPrivate }.count
     }
-
     private var privatePrivacyCover: some View {
-        ZStack {
-            Color(red: 0.055, green: 0.060, blue: 0.085)
-                .ignoresSafeArea()
-            VStack(spacing: 12) {
-                Image(systemName: "hand.raised.fill")
-                    .font(.system(size: 34, weight: .semibold))
-                    .foregroundStyle(chromeTintColor)
-                Text(CompanionL10n.string(
-                    "browser.private.cover.title",
-                    fallback: "Private browsing protected"
-                ))
-                .font(.headline)
-                .foregroundStyle(.white)
-                Text(CompanionL10n.string(
-                    "browser.private.cover.message",
-                    fallback: "Return to AhoiBrowser to view this private tab."
-                ))
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.72))
-                .multilineTextAlignment(.center)
-            }
-            .padding(28)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("browser.private-privacy-cover")
-        .background {
-            MobilePrivateSceneShield(
-                title: CompanionL10n.string(
-                    "browser.private.cover.title",
-                    fallback: "Private browsing protected"
-                ),
-                message: CompanionL10n.string(
-                    "browser.private.cover.message",
-                    fallback: "Return to AhoiBrowser to view this private tab."
-                )
-            )
-        }
+        MobilePrivatePrivacyCoverView(accentTint: chromeTintColor)
     }
-
-    private var securitySymbol: String {
-        selectedAddressURL?.scheme?.lowercased() == "https" ? "lock.fill" : "globe"
-    }
-
     private var chromeTintColor: Color {
-        if isPrivateBrowsing {
-            return Color(red: 0.53, green: 0.48, blue: 0.88)
-        }
-        guard let argb = browser.selectedTab?.websiteTintARGB else {
-            return Color(red: 0.10, green: 0.43, blue: 0.84)
-        }
-        let channels = contrastAdjustedTint(
-            red: Double((argb >> 16) & 0xFF) / 255,
-            green: Double((argb >> 8) & 0xFF) / 255,
-            blue: Double(argb & 0xFF) / 255
+        MobileBrowserChromeTheme.chromeTint(
+            websiteTintARGB: browser.selectedTab?.websiteTintARGB,
+            mode: selectedMode,
+            colorScheme: colorScheme
         )
-        return Color(red: channels.red, green: channels.green, blue: channels.blue)
     }
-
     private var isPrivateBrowsing: Bool {
-        browser.selectedTab?.mode == .privateBrowsing
+        selectedMode == .privateBrowsing
     }
-
-    /// Website colors remain recognizable, but functional controls never use
-    /// a tint below the WCAG 3:1 non-text contrast floor against the active
-    /// system background.
-    private func contrastAdjustedTint(
-        red: Double,
-        green: Double,
-        blue: Double
-    ) -> (red: Double, green: Double, blue: Double) {
-        let backgroundLuminance = colorScheme == .dark ? 0.0 : 1.0
-        var candidate = (red, green, blue)
-        for _ in 0..<32 {
-            let luminance = relativeLuminance(
-                red: candidate.0,
-                green: candidate.1,
-                blue: candidate.2
-            )
-            let contrast = (max(luminance, backgroundLuminance) + 0.05) /
-                (min(luminance, backgroundLuminance) + 0.05)
-            if contrast >= 3 { break }
-            if colorScheme == .dark {
-                candidate = (
-                    candidate.0 + (1 - candidate.0) * 0.08,
-                    candidate.1 + (1 - candidate.1) * 0.08,
-                    candidate.2 + (1 - candidate.2) * 0.08
-                )
-            } else {
-                candidate = (
-                    candidate.0 * 0.90,
-                    candidate.1 * 0.90,
-                    candidate.2 * 0.90
-                )
-            }
-        }
-        return candidate
+    private var selectedMode: MobileBrowsingMode {
+        browser.selectedTab?.mode ?? .normal
     }
-
-    private func relativeLuminance(red: Double, green: Double, blue: Double) -> Double {
-        func linear(_ channel: Double) -> Double {
-            channel <= 0.04045
-                ? channel / 12.92
-                : pow((channel + 0.055) / 1.055, 2.4)
-        }
-        return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
+    private var commandTabs: [MobileTabRecord] {
+        selectedMode == .privateBrowsing ? browser.privateTabs : browser.normalTabs
     }
-
+    private var browserCommandActions: MobileBrowserCommandActions {
+        .init(
+            tabCount: commandTabs.count,
+            canReopenClosedTab: browser.recentlyClosedTab != nil,
+            canSwitchWorkspace: selectedMode == .normal &&
+                companionModel.snapshot.visibleWorkspaces.count > 1,
+            canToggleSidebar: horizontalSizeClass == .regular,
+            executionAllowed: { UIApplication.shared.applicationState == .active &&
+                !(privateLock.isLocked && isPrivateContentVisible) },
+            newTab: { createSidebarTab(nil, .normal) },
+            newPrivateTab: { createSidebarTab(nil, .privateBrowsing) },
+            reopenClosedTab: { browser.undoClose(); reconcileSidebarTabs() },
+            closeSelectedTab: {
+                if let id = browser.selectedTabID { closeTab(id) }
+            },
+            presentAddress: presentAddress,
+            presentTabs: presentTabs,
+            toggleSidebar: toggleSidebar,
+            switchWorkspace: switchWorkspace,
+            switchTab: browser.switchSelectedTab,
+            selectNumberedTab: selectNumberedTab
+        )
+    }
+    private var chromeResetContext: MobileChromeResetContext {
+        MobileChromeResetContext(
+            selectedTabID: browser.selectedTabID, pageIsLoading: browser.selectedPage?.isLoading == true,
+            hasPageFailure: browser.selectedPageFailure != nil, browserErrorMessage: browser.lastError,
+            permissionRequestID: permissions.pendingRequest?.id,
+            externalRequestID: browser.pendingExternalOpen?.id, pendingLinkID: browser.pendingLink?.id,
+            findPresented: findNavigatorPresented, addressPresented: addressPresented,
+            regularWidth: horizontalSizeClass == .regular
+        )
+    }
+    private var selectedWorkspace: Workspace? {
+        guard selectedMode == .normal,
+              let workspaceID = browser.selectedTab?.workspaceID else { return nil }
+        return companionModel.snapshot.visibleWorkspaces.first { $0.id == workspaceID }
+    }
     private func presentAddress() {
-        addressText = selectedAddressURL?.absoluteString ?? ""
+        expandHarborDeck()
+        addressText = addressPresentation.url?.absoluteString ?? ""
         selectAllAddressText()
         addressPresented = true
     }
-
     private func presentTabs() {
+        expandHarborDeck()
         tabSwitcherMode = browser.selectedTab?.mode ?? .normal
         tabsPresented = true
     }
-
+    /// Presents the follow-up only once the actions sheet has finished
+    /// dismissing. Presenting a sibling sheet during that animation could leave
+    /// it unable to dismiss later (e.g. the library after creating a Workspace).
     private func presentAfterBrowserActions(_ action: @escaping @MainActor () -> Void) {
-        browserActionsPresented = false
-        Task { @MainActor in
-            await Task.yield()
+        guard browserActionsPresented else {
             action()
+            return
+        }
+        afterBrowserActions = action
+        browserActionsPresented = false
+    }
+    private func runAfterBrowserActions() {
+        guard let action = afterBrowserActions else { return }
+        afterBrowserActions = nil
+        action()
+    }
+    private func expandHarborDeck() {
+        harborDeckResetGeneration &+= 1
+        withAnimation(MobileBrowserChromeTheme.chromeAnimation(
+            toCollapsed: false,
+            reduceMotion: effectiveReduceMotion
+        )) {
+            harborDeckCollapsed = false
         }
     }
-
+    private var effectiveReduceMotion: Bool {
+        reduceMotion || performanceReduceMotionOverride == true
+    }
+    private var resolvedPerformanceReduceMotionOverride: Bool? {
+        performanceReduceMotionOverride.map { reduceMotion || $0 }
+    }
+    private var performanceReduceMotionOverride: Bool? {
+        MobilePerformanceLaunchRequest.currentReduceMotionOverride
+    }
     private func switchWorkspace(direction: Int) {
         let workspaces = companionModel.snapshot.visibleWorkspaces
         guard !workspaces.isEmpty else { return }
@@ -906,10 +690,17 @@ public struct AhoiMobileBrowserView: View {
             _ = browser.createTab(workspaceID: target.id)
         }
         Task {
-            await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+            await companionModel.reconcilePublishedMobileTabs(browser)
         }
     }
-
+    private func selectNumberedTab(_ number: Int) {
+        guard let index = MobileBrowserCommandTabPolicy.targetIndex(
+            number: number,
+            tabCount: commandTabs.count
+        ) else { return }
+        browser.select(commandTabs[index].id)
+        expandHarborDeck()
+    }
     private func selectWorkspace(_ workspaceID: WorkspaceID) {
         if let tab = browser.normalTabs
             .filter({ $0.workspaceID == workspaceID })
@@ -920,24 +711,52 @@ public struct AhoiMobileBrowserView: View {
         }
         reconcileSidebarTabs()
     }
-
     private func openSidebarPage(_ url: URL, _ workspaceID: WorkspaceID?) {
         guard (try? MobileBrowserInputRouter.validateWebURL(url)) != nil else { return }
         _ = browser.createTab(url: url, workspaceID: workspaceID)
         reconcileSidebarTabs()
     }
-
-    private func createSidebarTab(_ workspaceID: WorkspaceID?) {
-        _ = browser.createTab(workspaceID: workspaceID)
+    private func openFocusVoyageItem(_ item: MobileFocusVoyageItem) {
+        if let nodeID = item.treeNodeID {
+            openSharedPage(nodeID)
+            return
+        }
+        if let tabID = item.existingTabID,
+           browser.normalTabs.contains(where: { $0.id == tabID }) {
+            browser.select(tabID)
+            return
+        }
+        guard (try? MobileBrowserInputRouter.validateWebURL(item.url)) != nil else { return }
+        if selectedMode == .normal, browser.selectedPage?.url == nil {
+            if let workspaceID = item.workspaceID {
+                browser.moveSelectedTab(to: workspaceID)
+            }
+            browser.navigate(item.url.absoluteString)
+        } else {
+            _ = browser.createTab(url: item.url, workspaceID: item.workspaceID)
+        }
         reconcileSidebarTabs()
     }
-
+    private func openSharedPage(_ nodeID: TreeNodeID) {
+        guard let node = companionModel.snapshot.visibleTreeNodes.first(where: {
+            $0.id == nodeID
+        }), browser.openSharedPage(node) != nil else { return }
+        libraryPresented = false
+        reconcileSidebarTabs()
+    }
+    private func createSidebarTab(
+        _ workspaceID: WorkspaceID?,
+        _ mode: MobileBrowsingMode
+    ) {
+        _ = browser.createTab(workspaceID: workspaceID, mode: mode)
+        reconcileSidebarTabs()
+    }
     private func reconcileSidebarTabs() {
+        guard !isPerformanceRuntime else { return }
         Task {
-            await companionModel.reconcilePublishedMobileTabs(browser.normalTabs)
+            await companionModel.reconcilePublishedMobileTabs(browser)
         }
     }
-
     private func flushSessionDuringBackgroundTransition() {
         let backgroundTask = MobileBackgroundTaskLease(
             name: "AhoiBrowser browser-session flush"
@@ -945,216 +764,36 @@ public struct AhoiMobileBrowserView: View {
         backgroundTask.begin()
         Task { @MainActor in
             defer { backgroundTask.end() }
-            await browser.flushSession()
+            async let sessionFlush: Void = companionModel.flushSharedBrowserSession(browser)
+            async let downloadFlush: Void = downloads.flushRecoveryState()
+            _ = await (sessionFlush, downloadFlush)
         }
     }
-
+    private var isPerformanceRuntime: Bool {
+        MobilePerformanceLaunchRequest.isCurrentProcessPerformanceRun
+    }
     private func toggleSidebar() {
         columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
     }
-
     private func selectAllAddressText() {
         addressSelection = TextSelection(range: addressText.startIndex..<addressText.endIndex)
     }
-
     private func saveSelectedPage(to workspace: Workspace) {
-        guard let tab = browser.selectedTab,
-              let url = MobileTabRecord.normalizedURLString(tab.url) else { return }
-        let normalizedTitle = MobileTabRecord.normalizedTitle(tab.title)
-        let title = normalizedTitle.isEmpty ? url : normalizedTitle
+        guard let tabID = browser.selectedTabID else { return }
         Task {
-            let node = await companionModel.createSavedPage(
-                workspaceID: workspace.id,
-                title: title,
-                url: url
-            )
-            guard node != nil else { return }
-            browser.moveSelectedTab(to: workspace.id)
-            browser.setSelectedTabSaved(true)
-            if let tab = browser.selectedTab {
-                await companionModel.publishMobileTab(tab)
-            }
+            guard let _ = await browser.saveSharedPage(for: tabID, commit: { original, didCommit in
+                await companionModel.saveBrowserPage(
+                    original, workspaceID: workspace.id, didCommit: didCommit
+                )
+            }) else { return }
+            await companionModel.reconcilePublishedMobileTabs(browser)
         }
     }
-
     private func closeTab(_ id: UUID) {
-        let shouldRemovePublication = browser.tabs.first(where: { $0.id == id })?.mode == .normal
-        browser.close(id)
-        if shouldRemovePublication {
-            Task { await companionModel.closePublishedMobileTab(id) }
-        }
-    }
-
-    private func permissionLabel(_ kind: MobilePermissionRequest.Kind) -> String {
-        switch kind {
-        case .camera:
-            return CompanionL10n.string("browser.permission.camera", fallback: "the camera")
-        case .microphone:
-            return CompanionL10n.string("browser.permission.microphone", fallback: "the microphone")
-        case .cameraAndMicrophone:
-            return CompanionL10n.string("browser.permission.camera_microphone", fallback: "the camera and microphone")
-        case .motion:
-            return CompanionL10n.string("browser.permission.motion", fallback: "motion sensors")
-        }
-    }
-}
-
-@MainActor
-private final class MobileBackgroundTaskLease {
-    private let name: String
-    private var identifier: UIBackgroundTaskIdentifier = .invalid
-
-    init(name: String) {
-        self.name = name
-    }
-
-    func begin() {
-        guard identifier == .invalid else { return }
-        identifier = UIApplication.shared.beginBackgroundTask(withName: name) { [weak self] in
-            Task { @MainActor [weak self] in
-                self?.end()
-            }
-        }
-    }
-
-    func end() {
-        guard identifier != .invalid else { return }
-        let activeIdentifier = identifier
-        identifier = .invalid
-        UIApplication.shared.endBackgroundTask(activeIdentifier)
-    }
-}
-
-/// SwiftUI presentations live above their presenting view, so a root overlay
-/// alone does not protect an already-open sheet or alert in the app-switcher
-/// snapshot. This marker installs a matching opaque shield at the owning
-/// window level and removes it with the conditional SwiftUI cover.
-@MainActor
-private struct MobilePrivateSceneShield: UIViewRepresentable {
-    let title: String
-    let message: String
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(title: title, message: message)
-    }
-
-    func makeUIView(context: Context) -> MobilePrivateSceneMarkerView {
-        let marker = MobilePrivateSceneMarkerView()
-        marker.backgroundColor = .clear
-        marker.isUserInteractionEnabled = false
-        marker.onWindowChange = { [weak coordinator = context.coordinator] window in
-            coordinator?.install(in: window)
-        }
-        return marker
-    }
-
-    func updateUIView(_ uiView: MobilePrivateSceneMarkerView, context: Context) {
-        context.coordinator.update(title: title, message: message)
-        context.coordinator.install(in: uiView.window)
-    }
-
-    static func dismantleUIView(
-        _ uiView: MobilePrivateSceneMarkerView,
-        coordinator: Coordinator
-    ) {
-        uiView.onWindowChange = nil
-        coordinator.remove()
-    }
-
-    @MainActor
-    final class Coordinator {
-        private let shield = UIView()
-        private let titleLabel = UILabel()
-        private let messageLabel = UILabel()
-
-        init(title: String, message: String) {
-            shield.backgroundColor = .systemBackground
-            shield.isOpaque = true
-            shield.isUserInteractionEnabled = true
-            shield.isAccessibilityElement = true
-            shield.accessibilityViewIsModal = true
-            shield.accessibilityIdentifier = "browser.private-window-shield"
-            shield.layer.zPosition = 10_000
-
-            let icon = UIImageView(image: UIImage(
-                systemName: "hand.raised.fill",
-                withConfiguration: UIImage.SymbolConfiguration(
-                    pointSize: 34,
-                    weight: .semibold
-                )
-            ))
-            icon.tintColor = .systemPurple
-            icon.contentMode = .scaleAspectFit
-            icon.isAccessibilityElement = false
-
-            titleLabel.font = .preferredFont(forTextStyle: .headline)
-            titleLabel.textAlignment = .center
-            titleLabel.adjustsFontForContentSizeCategory = true
-
-            messageLabel.font = .preferredFont(forTextStyle: .subheadline)
-            messageLabel.textColor = .secondaryLabel
-            messageLabel.textAlignment = .center
-            messageLabel.numberOfLines = 0
-            messageLabel.adjustsFontForContentSizeCategory = true
-
-            let stack = UIStackView(arrangedSubviews: [icon, titleLabel, messageLabel])
-            stack.axis = .vertical
-            stack.alignment = .center
-            stack.spacing = 12
-            stack.translatesAutoresizingMaskIntoConstraints = false
-            shield.addSubview(stack)
-            NSLayoutConstraint.activate([
-                icon.widthAnchor.constraint(equalToConstant: 48),
-                icon.heightAnchor.constraint(equalToConstant: 48),
-                stack.centerXAnchor.constraint(equalTo: shield.centerXAnchor),
-                stack.centerYAnchor.constraint(equalTo: shield.centerYAnchor),
-                stack.leadingAnchor.constraint(
-                    greaterThanOrEqualTo: shield.leadingAnchor,
-                    constant: 28
-                ),
-                stack.trailingAnchor.constraint(
-                    lessThanOrEqualTo: shield.trailingAnchor,
-                    constant: -28
-                )
-            ])
-            update(title: title, message: message)
-        }
-
-        func update(title: String, message: String) {
-            titleLabel.text = title
-            messageLabel.text = message
-            shield.accessibilityLabel = "\(title). \(message)"
-        }
-
-        func install(in window: UIWindow?) {
-            guard let window else {
-                remove()
-                return
-            }
-            window.endEditing(true)
-            if shield.superview !== window {
-                shield.removeFromSuperview()
-                shield.frame = window.bounds
-                shield.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                window.addSubview(shield)
-            } else {
-                shield.frame = window.bounds
-                window.bringSubviewToFront(shield)
-            }
-        }
-
-        func remove() {
-            shield.removeFromSuperview()
-        }
-    }
-}
-
-@MainActor
-private final class MobilePrivateSceneMarkerView: UIView {
-    var onWindowChange: (@MainActor (UIWindow?) -> Void)?
-
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        onWindowChange?(window)
+        guard let tab = browser.tabs.first(where: { $0.id == id }) else { return }
+        guard tab.mode == .normal else { browser.close(id); return }
+        Task { await companionModel.closePublishedMobileTab(tab) {
+            if browser.tabs.first(where: { $0.id == id })?.presenceID == tab.presenceID { browser.close(id) }
+        } }
     }
 }

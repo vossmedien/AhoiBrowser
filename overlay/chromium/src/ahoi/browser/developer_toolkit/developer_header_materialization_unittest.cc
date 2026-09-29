@@ -15,11 +15,15 @@
 #include "base/functional/bind.h"
 #include "components/prefs/testing_pref_service.h"
 #include "components/user_prefs/user_prefs.h"
+#include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/navigation_entry.h"
 #include "content/public/browser/site_instance.h"
 #include "content/public/test/browser_task_environment.h"
 #include "content/public/test/mock_navigation_handle.h"
 #include "content/public/test/mock_navigation_throttle_registry.h"
+#include "content/public/test/navigation_simulator.h"
 #include "content/public/test/test_browser_context.h"
+#include "content/public/test/test_navigation_throttle_inserter.h"
 #include "content/public/test/test_renderer_host.h"
 #include "content/public/test/web_contents_tester.h"
 #include "content/test/test_web_contents.h"
@@ -151,6 +155,37 @@ class DeveloperHeaderMaterializationTest : public testing::Test {
   content::TestBrowserContext browser_context_;
   std::unique_ptr<content::WebContents> web_contents_;
 };
+
+// Build 40 crashed on the first navigation once any developer profile was
+// saved: the throttle set the navigation's user-agent flag in
+// WillStartRequest, which NavigationRequest only allows from
+// DidStartNavigation. A real NavigationRequest (not a mock handle) with the
+// throttle inserted covers that path.
+TEST_F(DeveloperHeaderMaterializationTest,
+       UserAgentOverrideIsDecidedAtNavigationStart) {
+  DeveloperProfile profile{.name = "User agent"};
+  profile.user_agent_enabled = true;
+  profile.user_agent = "AhoiTestAgent/1.0";
+  SaveProfile(profile);
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  content::TestNavigationThrottleInserter inserter(
+      web_contents_.get(),
+      base::BindRepeating(
+          [](PrefService* prefs, content::NavigationThrottleRegistry& registry) {
+            registry.AddThrottle(
+                std::make_unique<DeveloperProfileNavigationThrottle>(registry,
+                                                                     prefs));
+          },
+          &prefs_));
+
+  content::NavigationSimulator::NavigateAndCommitFromBrowser(
+      web_contents_.get(), TestOrigin().GetURL());
+
+  content::NavigationEntry* const entry =
+      web_contents_->GetController().GetLastCommittedEntry();
+  ASSERT_TRUE(entry);
+  EXPECT_TRUE(entry->GetIsOverridingUserAgent());
+}
 
 TEST_F(DeveloperHeaderMaterializationTest,
        ResolvesRequestAndResponseAsOneTransaction) {

@@ -1,0 +1,119 @@
+==> host: macOS 26.6 (25G72), arm64
+==> hardware: Apple M2 Max, 32 GiB RAM
+==> toolchain (compatible-development): Xcode 26.6 Build version 17F113 , macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F81a)
+==> work root: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work
+==> free disk: 77.6 GiB; required: 64.0 GiB
+==> host check passed
+==> Sparkle 2.9.6 verified from fetched-material receipt (ac2def288cbff5cfc7df3ffef6abdf45b72bcb0a)
+==> host: macOS 26.6 (25G72), arm64
+==> hardware: Apple M2 Max, 32 GiB RAM
+==> toolchain (compatible-development): Xcode 26.6 Build version 17F113 , macOS SDK 26.5 (25F70), iOS SDK 26.5 (23F81a)
+==> work root: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work
+==> free disk: 77.6 GiB; required: 64.0 GiB
+==> host check passed
+/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo/artifacts/build/chromium-dependencies.json
+==> running Chromium hooks with compatible-development Xcode/SDK (overlay checkout)
+________ running 'vpython3 -vpython-spec src/.vpython3 -vpython-tool install' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/landmines.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/third_party/depot_tools/update_depot_tools_toggle.py --disable' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/tools/remove_stale_files.py src/third_party/test_fonts/test_fonts.tar.gz src/third_party/node/node_modules.tar.gz src/third_party/tfhub_models src/tools/clang/crashreports' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/tools/remove_stale_pyc_files.py src/android_webview/tools src/build/android src/gpu/gles2_conform_support src/infra src/ppapi src/printing src/third_party/blink/renderer/build/scripts src/third_party/blink/tools src/third_party/catapult src/third_party/mako src/tools' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/mac_toolchain.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+Skipping Mac toolchain installation for mac
+________ running 'python3 src/build/util/lastchange.py -o src/build/util/LASTCHANGE' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m GPU_LISTS_VERSION --revision-id-only --header src/gpu/config/gpu_lists_version.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m SKIA_COMMIT_HASH -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/lastchange.py -m DAWN_COMMIT_HASH -s src/third_party/dawn --revision src/gpu/webgpu/DAWN_VERSION --header src/gpu/webgpu/dawn_commit_hash.h' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/third_party/depot_tools/download_from_google_storage.py --no_resume --bucket chromium-browser-clang -s src/tools/clang/dsymutil/bin/dsymutil.arm64.sha1 -o src/tools/clang/dsymutil/bin/dsymutil' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/testing/generate_location_tags.py --out src/testing/location_tags.json' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/buildtools/reclient_cfgs/configure_reclient_cfgs.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reproxy_cfg_template reproxy.cfg.template --rewrapper_cfg_project  --skip_remoteexec_cfg_fetch --quiet' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/config/siso/configure_siso.py --rbe_instance projects/rbe-chrome-untrusted/instances/default_instance --reapi_instance  --reapi_address  --reapi_backend_config_path  --credential-helper ' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'python3 src/build/util/tast_control.py -o src/chromeos/tast_control.gni -t src/chromeos/tast_control.gni.template -i src/chromeos/tast_control_disabled_tests.txt --input-public src/chromeos/tast_control_disabled_tests_public_builders.txt -f src/chromeos/tast_control_flaky_tests.txt' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium'
+________ running 'vpython3 scripts/deps/sync_rollup_libs.py' in '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/third_party/devtools-frontend/src'
+/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo/artifacts/build/chromium-dependencies.json
+==> pinned Chromium hooks verified: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/state/hooks-fc4d67f1788019a27e32511137ceccbd2fafdaaa.json
+==> generating Ahoi dev build
+==> applying chromium-rust-depfile-space-paths and v8-inspector-protocol-relative-depfile-paths only for gn gen and autoninja
+Done. Made 32148 targets from 4939 files in 9852ms
+ninja: Entering directory `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev'
+[0/1] Regenerating ninja files
+[1/64] ACTION //chrome/test/data/webui/settings:preprocess(//build/toolchain/mac:clang_arm64)
+[2/64] ACTION //chrome/test/data/webui/webui_toolbar:build_ts(//build/toolchain/mac:clang_arm64)
+[3/64] ACTION //chrome/test/data/webui/settings:check_tests_referenced(//build/toolchain/mac:clang_arm64)
+[4/64] ACTION //chrome/test/data/webui/webui_toolbar:lint(//build/toolchain/mac:clang_arm64)
+[5/64] ACTION //chrome/test/data/webui/webui_toolbar:build_grdp(//build/toolchain/mac:clang_arm64)
+[6/64] ACTION //chrome/test/data/webui/settings:build_ts(//build/toolchain/mac:clang_arm64)
+[7/64] ACTION //chrome/test/data/webui/settings:lint(//build/toolchain/mac:clang_arm64)
+[8/64] ACTION //chrome/test/data/webui/settings:build_grdp(//build/toolchain/mac:clang_arm64)
+[9/64] ACTION //chrome/test/data/webui:build_grd(//build/toolchain/mac:clang_arm64)
+[10/64] ACTION //chrome/test/data/webui:resources_grit(//build/toolchain/mac:clang_arm64)
+[11/59] CXX obj/chrome/browser/ui/views/toolbar/test_support/mock_webui_toolbar_control_delegate.o
+[12/59] CXX obj/chrome/browser/ui/test_support/extensions_menu_test_util.o
+[13/59] CXX obj/chrome/browser/ui/views/toolbar/test_support/webui_test_utils.o
+[14/59] CXX obj/extensions/test_support/settings_test_util.o
+[15/59] CXX obj/extensions/test_support/extensions_test.o
+[16/59] CXX obj/extensions/test_support/test_event_router.o
+[17/59] CXX obj/extensions/test_support/extension_state_tester.o
+[18/59] CXX obj/extensions/browser/test_support/test_extension_prefs.o
+[19/59] LIBTOOL-STATIC obj/chrome/browser/ui/libtest_support.a
+[20/59] CXX obj/extensions/browser/test_support/test_utils.o
+[21/59] LIBTOOL-STATIC obj/extensions/libtest_support.a
+[22/59] CXX obj/chrome/app/test_support/chrome_main_delegate.o
+[23/59] CXX obj/chrome/browser/extensions/test_support/chrome_test_extension_loader.o
+[24/59] CXX obj/chrome/browser/extensions/test_support/extension_action_test_util.o
+[25/59] CXX obj/chrome/browser/extensions/test_support/extension_service_test_base.o
+[26/59] CXX obj/chrome/browser/extensions/test_support/extension_browsertest.o
+[27/59] CXX obj/chrome/browser/extensions/test_support/fake_crx_installer.o
+[28/59] CXX obj/chrome/browser/extensions/test_support/mock_crx_installer.o
+[29/59] CXX obj/chrome/browser/extensions/test_support/extension_service_test_with_install.o
+[30/59] CXX obj/chrome/browser/extensions/test_support/test_extension_environment.o
+[31/59] CXX obj/chrome/browser/extensions/test_support/test_extension_service.o
+[32/59] LIBTOOL-STATIC obj/chrome/app/libtest_support.a
+[33/59] CXX obj/chrome/browser/task_manager/test_support/mock_web_contents_task_manager.o
+[34/59] CXX obj/chrome/browser/task_manager/test_support/task_manager_browsertest_util.o
+[35/59] CXX obj/chrome/browser/task_manager/test_support/task_manager_tester.o
+[36/59] CXX obj/chrome/browser/extensions/test_support/test_extension_system.o
+[37/59] LIBTOOL-STATIC obj/chrome/browser/extensions/libtest_support.a
+[38/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_profile_consent_unittest.o
+[39/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_sync_authorization_unittest.o
+[40/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_sync_bridge_types_unittest.o
+[41/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_sync_consent_unittest.o
+[42/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_sync_journal_unittest.o
+[43/59] CXX obj/chrome/test/base/testing_profile_impl/testing_profile.o
+[44/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_sync_model_unittest.o
+[45/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_sync_recovery_unittest.o
+[46/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_sync_serialization_unittest.o
+[47/59] CXX obj/ahoi/browser/sync/unit_tests/bookmark_sync_store_unittest.o
+[48/59] CXX obj/ahoi/browser/sync/unit_tests/native_bookmark_sync_adapter_unittest.o
+[49/59] CXX obj/ahoi/browser/sync/unit_tests/sync_convergence_unittest.o
+[50/59] CXX obj/ahoi/browser/sync/unit_tests/profile_sync_service_unittest.o
+[51/59] CXX obj/ahoi/browser/sync/unit_tests/sync_product_settings_unittest.o
+[52/59] CXX obj/ahoi/browser/sync/unit_tests/sync_unified_serialization_unittest.o
+[53/59] CXX obj/ahoi/browser/sync/unit_tests/sync_security_tree_unittest.o
+[54/59] CXX obj/ahoi/browser/sync/unit_tests/sync_unified_store_unittest.o
+[55/59] CXX obj/ahoi/browser/sync/unit_tests/sync_unittest.o
+[56/59] CXX obj/ahoi/browser/sync/unit_tests/cloudkit_sync_provider_mac_unittest.o
+[57/59] OBJCXX obj/ahoi/browser/sync/unit_tests/cloudkit_bookmark_sync_consent_unittest.o
+[58/59] LINK ./ahoi_sync_unittests
+==> restored Chromium and V8 sources after timestamp-stable temporary build workarounds
+==> staged current component framework and verified its resource manifest
+==> staged 533 component runtime dylibs into the portable development app
+==> stamped product/revision provenance and fail-closed Sparkle 2.9.6 configuration into Info.plist
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (Alerts).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (GPU).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper (Renderer).app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework/Versions/Current/Helpers/AhoiBrowser Helper.app: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework: replacing existing signature
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app: replacing existing signature
+==> signed development app with stable identity: Apple Development: Christian Voss (2265UJB5KF)
+==> verified nested development code
+==> portable component runtime: 533 verified dylibs; 238 verified framework resources
+==> bundle: AhoiBrowser 0.0.1 (app.ahoibrowser.AhoiBrowser)
+==> Ahoi product/build/channel: 0.0.1-dev (1, nightly)
+==> Ahoi source: 48f7d716d15eeb763e2e1eee6a5ba53bb43d3396
+==> Chromium: 152.0.7977.65 (fc4d67f1788019a27e32511137ceccbd2fafdaaa); dev GN args: 866027eb6fc429784f9cc95557344d2c8bc0be2ac554a6fcff932197e4e81c64
+==> Sparkle: 2.9.6; reviewed feed configured: false
+==> binary: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/MacOS/AhoiBrowser: Mach-O 64-bit executable arm64
+==> binary SHA-256: 7e7432fe80f730acb38fbbde62b9ca09889980806bd27c39efe4848a084eb9d5
+/private/tmp/ahoi-native-sync-recovery.DxdGLK/repo/artifacts/build/ahoi-dev-build.json
+==> Ahoi dev build complete: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app

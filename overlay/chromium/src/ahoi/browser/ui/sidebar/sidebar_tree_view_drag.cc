@@ -183,8 +183,8 @@ bool SidebarTreeView::CanStartDragForView(views::View* sender,
     return false;
   }
   auto* row = views::AsViewClass<SidebarTreeRowView>(sender);
-  const bool allowed = row && row->is_bound() && !row->is_editing() &&
-                       !row->IsTrailingActionAt(press_pt);
+  const bool allowed = row && row->is_bound() && !row->is_exiting() &&
+                       !row->is_editing() && !row->IsTrailingActionAt(press_pt);
   return allowed;
 }
 
@@ -225,10 +225,14 @@ void SidebarTreeView::NotifyNativeDragStarted(base::Uuid node_id) {
 }
 
 void SidebarTreeView::ShowContextMenuForViewImpl(
-    views::View* /*source*/,
+    views::View* source,
     const gfx::Point& screen_point,
     ui::mojom::MenuSourceType source_type) {
   if (!delegate_) {
+    return;
+  }
+  if (auto* row = views::AsViewClass<SidebarTreeRowView>(source);
+      row && row->is_exiting()) {
     return;
   }
   std::optional<base::Uuid> node_id;
@@ -358,6 +362,16 @@ SidebarTreeView::CalculateTemporaryTabDropIndicator(DropIndicator probe) {
              : std::nullopt;
 }
 
+gfx::Rect SidebarTreeView::GetRootAppendDropBounds(
+    const std::vector<VisualRow>& visual_rows) const {
+  // Keep the drop surface below both target rows and their currently animated
+  // extent; it must not cover entering/exiting labels during folder motion.
+  const int top =
+      std::max(GetVisualRowsHeight(visual_rows),
+               preferred_height_animation_active_ ? GetAnimatedHeight() : 0);
+  return gfx::Rect(0, top, width(), std::max(height() - top, 0));
+}
+
 std::optional<SidebarTreeView::DropIndicator> SidebarTreeView::BuildDropProbe(
     const base::Uuid& source_node_id,
     const gfx::Point& point,
@@ -371,6 +385,14 @@ std::optional<SidebarTreeView::DropIndicator> SidebarTreeView::BuildDropProbe(
                       .target_node_id = std::nullopt,
                       .position = SidebarTreeController::DropPosition::kInside,
                       .operation = operation};
+  if (visual_rows.empty() || point.y() >= GetVisualRowsHeight(visual_rows)) {
+    const gfx::Rect append_bounds = GetRootAppendDropBounds(visual_rows);
+    if (!append_bounds.Contains(point)) {
+      return std::nullopt;
+    }
+    probe.target_bounds = append_bounds;
+    return probe;
+  }
   const auto& rows = model().rows();
   if (!visual_rows.empty()) {
     const int clamped_y =
@@ -425,6 +447,14 @@ SidebarTreeView::BuildTemporaryTabDropProbe(
                       .target_node_id = std::nullopt,
                       .position = SidebarTreeController::DropPosition::kInside,
                       .operation = SidebarTreeController::DropOperation::kMove};
+  if (visual_rows.empty() || point.y() >= GetVisualRowsHeight(visual_rows)) {
+    const gfx::Rect append_bounds = GetRootAppendDropBounds(visual_rows);
+    if (!append_bounds.Contains(point)) {
+      return std::nullopt;
+    }
+    probe.target_bounds = append_bounds;
+    return probe;
+  }
   const auto& rows = model().rows();
   if (!visual_rows.empty()) {
     const int clamped_y =
@@ -687,127 +717,6 @@ void SidebarTreeView::MaybeAutoScroll(const gfx::Point& point) {
                            std::max(height() - 1, 0)),
                   1, 1));
   }
-}
-
-void SidebarTreeView::PerformDrop(
-    DropIndicator indicator,
-    const ui::DropTargetEvent& /*event*/,
-    ui::mojom::DragOperation& output_drag_op,
-    std::unique_ptr<ui::LayerTreeOwner> /*drag_image_owner*/) {
-  // A successful tree mutation can synchronously recycle the dragged row.
-  // Widget then cannot deliver OnDragDone() to that source View, so clear the
-  // host's drag-only UI from the drop callback on every exit path as well.
-  base::ScopedClosureRunner clear_drag_state(base::BindOnce(
-      [](SidebarTreeViewDelegate* delegate, bool temporary_tab) {
-        if (!delegate) {
-          return;
-        }
-        if (temporary_tab) {
-          delegate->OnTemporaryTabDragStateChanged(std::nullopt);
-        } else {
-          delegate->OnSidebarDragStateChanged(std::nullopt);
-        }
-      },
-      delegate_, indicator.source_runtime_tab_handle.has_value()));
-  if (!model().workspace_id().has_value()) {
-    output_drag_op = ui::mojom::DragOperation::kNone;
-    return;
-  }
-  if (indicator.source_runtime_tab_handle.has_value()) {
-    bool saved = false;
-    if (delegate_) {
-      if (indicator.action == DropIndicator::Action::kReorderSplitPane &&
-          indicator.target_node_id.has_value()) {
-        saved = delegate_->ReorderTemporarySplitPane(
-            *indicator.source_runtime_tab_handle, *indicator.target_node_id);
-      } else if (indicator.action == DropIndicator::Action::kSplit &&
-                 indicator.target_node_id.has_value()) {
-        saved = delegate_->SaveAndSplitTemporaryTab(
-            *indicator.source_runtime_tab_handle, *indicator.target_node_id);
-      } else {
-        saved = delegate_->SaveTemporaryTab(
-            *indicator.source_runtime_tab_handle,
-            {.workspace_id = *model().workspace_id(),
-             .target_node_id = indicator.target_node_id,
-             .position = indicator.position});
-      }
-    }
-    output_drag_op = saved ? ui::mojom::DragOperation::kMove
-                           : ui::mojom::DragOperation::kNone;
-    return;
-  }
-  if (indicator.action == DropIndicator::Action::kExtractSplitPane) {
-    const bool extracted =
-        delegate_ &&
-        delegate_->CanExtractSavedSplitPaneForDrop(indicator.source_node_id,
-                                                   std::nullopt) &&
-        delegate_->ExtractSavedSplitPaneAfterDrop(indicator.source_node_id);
-    output_drag_op = extracted ? ui::mojom::DragOperation::kMove
-                               : ui::mojom::DragOperation::kNone;
-    return;
-  }
-  if (indicator.action == DropIndicator::Action::kSplit) {
-    const bool split = delegate_ && indicator.target_node_id.has_value() &&
-                       delegate_->SplitSavedPages(indicator.source_node_id,
-                                                  *indicator.target_node_id);
-    output_drag_op = split ? ui::mojom::DragOperation::kMove
-                           : ui::mojom::DragOperation::kNone;
-    return;
-  }
-  if (indicator.action == DropIndicator::Action::kReorderSplitPane) {
-    const bool reordered =
-        delegate_ && indicator.target_node_id.has_value() &&
-        delegate_->ReorderSavedSplitPanes(indicator.source_node_id,
-                                          *indicator.target_node_id);
-    output_drag_op = reordered ? ui::mojom::DragOperation::kMove
-                               : ui::mojom::DragOperation::kNone;
-    return;
-  }
-  SidebarTreeController::DropTarget target{
-      .workspace_id = *model().workspace_id(),
-      .target_node_id = indicator.target_node_id,
-      .position = indicator.position};
-  const bool extract_split_pane =
-      delegate_ &&
-      indicator.operation == SidebarTreeController::DropOperation::kMove &&
-      delegate_->CanExtractSavedSplitPaneForDrop(indicator.source_node_id,
-                                                 indicator.target_node_id);
-  std::vector<base::Uuid> move_group{indicator.source_node_id};
-  if (!extract_split_pane && delegate_ &&
-      indicator.operation == SidebarTreeController::DropOperation::kMove) {
-    move_group = delegate_->GetMoveGroupNodeIds(indicator.source_node_id);
-  }
-  const std::optional<base::Uuid> selected_before_drop =
-      model().selected_node_id();
-  SidebarTreeController::DropExecutionResult result =
-      move_group.size() > 1
-          ? controller_->PerformGroupedDrop(
-                move_group, target, indicator.operation, base::Time::Now())
-          : controller_->PerformDrop(indicator.source_node_id, target,
-                                     indicator.operation, base::Time::Now());
-  if (!result.ok()) {
-    output_drag_op = ui::mojom::DragOperation::kNone;
-    if (delegate_) {
-      delegate_->OnMutationFailed(result.store_result);
-    }
-    return;
-  }
-  const base::Uuid selected_id =
-      result.copied_root_id.value_or(indicator.source_node_id);
-  if (extract_split_pane) {
-    if (!delegate_->ExtractSavedSplitPaneAfterDrop(indicator.source_node_id)) {
-      const tab_tree::TabTreeStore::Result undo_result =
-          controller_->UndoLastMutation();
-      if (undo_result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
-        delegate_->OnMutationFailed(undo_result);
-      }
-      std::ignore = controller_->SelectNode(selected_before_drop);
-      output_drag_op = ui::mojom::DragOperation::kNone;
-      return;
-    }
-  }
-  std::ignore = controller_->SelectNode(selected_id);
-  output_drag_op = ToNativeDragOperation(indicator.operation);
 }
 
 }  // namespace ahoi::sidebar

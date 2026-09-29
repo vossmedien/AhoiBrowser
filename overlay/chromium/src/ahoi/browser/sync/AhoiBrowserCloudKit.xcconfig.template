@@ -1,9 +1,19 @@
-// Fork-owned development values belong in a local/signing configuration.
-// Never commit a production container, Team ID, access group, or key material.
-AHOI_CLOUDKIT_CONTAINER_ID =
+// Public, non-secret Mac/Mobile CloudKit contract. Private keys, certificates
+// and provisioning profiles remain outside the repository.
+AHOI_APPLE_TEAM_ID = 248AJ5BN47
+AHOI_APP_IDENTIFIER_PREFIX = 248AJ5BN47
+AHOI_MACOS_BUNDLE_ID = app.ahoibrowser.AhoiBrowser
+AHOI_CLOUDKIT_CONTAINER_ID = iCloud.app.ahoibrowser.AhoiBrowser
 AHOI_CLOUDKIT_ZONE_NAME = AhoiBrowserSyncZone
 AHOI_CLOUDKIT_SUBSCRIPTION_ID = AhoiBrowserSyncSubscription
-AHOI_SYNC_KEYCHAIN_SERVICE =
-AHOI_SYNC_KEYCHAIN_ACCOUNT =
-AHOI_SYNC_KEYCHAIN_ACCESS_GROUP =
+AHOI_SYNC_KEYCHAIN_SERVICE = app.ahoibrowser.sync.payload-key
+AHOI_SYNC_KEYCHAIN_ACCOUNT = payload-key
+AHOI_SYNC_KEYCHAIN_ACCESS_GROUP = 248AJ5BN47.app.ahoibrowser.sync
 AHOI_SYNC_KEY_VERSION = 1
+AHOI_COMMAND_KEYCHAIN_SERVICE = app.ahoibrowser.remote-command.signing-key
+AHOI_COMMAND_KEYCHAIN_ACCOUNT = device-signing-key
+AHOI_COMMAND_KEYCHAIN_ACCESS_GROUP = 248AJ5BN47.app.ahoibrowser.commands
+AHOI_CLOUDKIT_DEVELOPMENT_CONTAINER_ENVIRONMENT = Development
+AHOI_CLOUDKIT_DEVELOPMENT_APS_ENVIRONMENT = development
+AHOI_CLOUDKIT_PRODUCTION_CONTAINER_ENVIRONMENT = Production
+AHOI_CLOUDKIT_PRODUCTION_APS_ENVIRONMENT = production

@@ -26,6 +26,8 @@ enum class WorkspaceActivationSource {
   kGesture = 2,
   kRestore = 3,
   kDataReconciliation = 4,
+  // An external link routed into its target Workspace (link_routing).
+  kRouting = 5,
 };
 
 class WorkspaceServiceObserver : public base::CheckedObserver {

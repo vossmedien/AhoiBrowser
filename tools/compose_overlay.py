@@ -6,10 +6,11 @@ from __future__ import annotations
 import argparse
 import os
 import pathlib
-import stat
 import subprocess
 import tempfile
 from typing import Optional
+
+from chromium_roll_git import RollError, add_overlay
 
 
 GIT_CONTEXT_VARIABLES = (
@@ -96,42 +97,6 @@ def overlay_entries(root: pathlib.Path):
             if ".git" in relative.parts or ".." in relative.parts:
                 raise SystemExit(f"unsafe overlay path: {relative}")
             yield path, relative
-
-
-def add_overlay_file(
-    checkout: pathlib.Path,
-    environment: dict[str, str],
-    source: pathlib.Path,
-    destination: pathlib.PurePosixPath,
-) -> None:
-    source_stat = source.lstat()
-    if stat.S_ISLNK(source_stat.st_mode):
-        mode = "120000"
-        content = os.readlink(source).encode("utf-8")
-    elif source_stat.st_mode & 0o111:
-        mode = "100755"
-        content = source.read_bytes()
-    else:
-        mode = "100644"
-        content = source.read_bytes()
-    object_id = run(
-        "git",
-        "hash-object",
-        "-w",
-        "--stdin",
-        cwd=checkout,
-        env=environment,
-        input_bytes=content,
-    ).decode("ascii").strip()
-    run(
-        "git",
-        "update-index",
-        "--add",
-        "--cacheinfo",
-        f"{mode},{object_id},{destination.as_posix()}",
-        cwd=checkout,
-        env=environment,
-    )
 
 
 def series_entries(series_path: pathlib.Path) -> list[str]:
@@ -228,13 +193,20 @@ def compose_overlay(
                 raise SystemExit(
                     f"invalid diff base revision: {diff_base_revision!r}"
                 ) from error
-        for source, relative in overlay_entries(overlay):
-            add_overlay_file(
+        try:
+            # Reuse roll preflight's NUL-delimited batch and isolated object
+            # writer. Rewriting Chromium's entire index once per overlay file
+            # made every verification needlessly quadratic in index I/O.
+            add_overlay(
                 checkout,
                 environment,
-                source,
-                pathlib.PurePosixPath(relative.as_posix()),
+                [
+                    (source, relative.as_posix())
+                    for source, relative in overlay_entries(overlay)
+                ],
             )
+        except RollError as error:
+            raise SystemExit(f"could not compose overlay entries: {error}") from error
         for entry in series_entries(series):
             patch = (patch_root / entry).resolve()
             try:

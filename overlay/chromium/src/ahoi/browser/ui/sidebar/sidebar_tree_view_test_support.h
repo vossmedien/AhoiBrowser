@@ -13,6 +13,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/pickle.h"
+#include "base/test/scoped_command_line.h"
 #include "base/time/time.h"
 #include "base/uuid.h"
 #include "components/split_tabs/split_tab_visual_data.h"
@@ -58,6 +59,10 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   std::vector<std::vector<base::Uuid>> GetSplitSavedPageGroups() const override;
   std::optional<split_tabs::SplitTabVisualData> GetSplitSavedPageVisualData(
       const std::vector<base::Uuid>&) const override;
+  bool ResizeSavedPageSplit(const std::vector<base::Uuid>& node_ids,
+                            size_t divider_index,
+                            double ratio,
+                            bool done_resizing) override;
   std::vector<base::Uuid> GetMoveGroupNodeIds(
       const base::Uuid& source_node_id) const override;
   bool CanExtractSavedSplitPaneForDrop(
@@ -85,6 +90,7 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   std::vector<gfx::ImageSkia> GetSavedPageDragThumbnails(
       const base::Uuid&) const override;
   void OnMutationFailed(tab_tree::TabTreeStore::Result result) override;
+  bool CloseTemporaryPageForDeletion(const base::Uuid& node_id) override;
   void OnSidebarDragStateChanged(
       std::optional<base::Uuid> dragged_node_id) override;
 
@@ -101,6 +107,8 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   bool can_reorder_temporary_split = false;
   bool reorder_temporary_split_succeeds = false;
   bool saved_page_running = false;
+  bool close_temporary_for_deletion = false;
+  std::vector<base::Uuid> close_for_deletion_requests;
   std::u16string saved_page_status_text;
   std::optional<base::Uuid> activated_node;
   std::optional<tab_tree::TabTreeStore::Result> last_error;
@@ -113,7 +121,17 @@ class RecordingDelegate : public SidebarTreeViewDelegate {
   std::vector<std::pair<int, base::Uuid>> split_temporary_requests;
   std::vector<std::pair<int, base::Uuid>> reorder_temporary_split_requests;
   std::vector<std::vector<base::Uuid>> split_groups;
+  // Sources whose split has a member without a node (Crest 142 R6).
+  std::vector<base::Uuid> unbound_split_sources;
   std::optional<split_tabs::SplitTabVisualData> split_visual_data;
+  struct ResizeRequest {
+    std::vector<base::Uuid> node_ids;
+    size_t divider_index = 0;
+    double ratio = 0.5;
+    bool done_resizing = false;
+  };
+  std::vector<ResizeRequest> resize_requests;
+  bool resize_split_succeeds = true;
 };
 
 class SidebarTreeViewTest : public views::ViewsTestBase {
@@ -126,6 +144,9 @@ class SidebarTreeViewTest : public views::ViewsTestBase {
  protected:
   std::unique_ptr<SidebarTreeView> NewTreeView();
 
+  // M153 macOS renders rich animation unless the system prefers reduced
+  // motion. Layout tests read settled geometry; motion tests force it on.
+  base::test::ScopedCommandLine command_line_;
   base::ScopedTempDir temp_dir_;
   tab_tree::TabTreeStore store_;
   std::unique_ptr<SidebarTreeController> controller_;

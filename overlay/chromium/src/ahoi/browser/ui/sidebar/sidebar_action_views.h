@@ -60,13 +60,16 @@ std::unique_ptr<views::View> CreateSidebarHeaderActionButton(
     views::Button::PressedCallback callback,
     const gfx::VectorIcon& icon,
     std::u16string accessible_name);
+void SetSidebarHeaderActionToggleState(views::View* button, bool checked);
 
 // Compact separator between saved/remote tabs and temporary local tabs. The
 // complete row owns one shared geometry contract, avoiding stacked host and
 // button insets around the subtle clear action.
 std::unique_ptr<views::View> CreateSidebarSectionDivider(
     views::Button::PressedCallback callback,
-    std::u16string action_name);
+    std::u16string action_name,
+    std::u16string section_name = {});
+std::unique_ptr<views::View> CreateSidebarSectionLabel(std::u16string name);
 
 std::unique_ptr<views::View> CreateSidebarSplitActionCell(
     views::Button::PressedCallback top_callback,

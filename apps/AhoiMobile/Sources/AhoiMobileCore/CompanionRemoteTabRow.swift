@@ -159,6 +159,7 @@ public struct RemoteTabRow: View {
         case .mac: "desktopcomputer"
         case .iPhone: "iphone"
         case .iPad: "ipad"
+        case .other: "laptopcomputer.and.iphone"
         }
     }
 
@@ -167,6 +168,7 @@ public struct RemoteTabRow: View {
         case .mac: CompanionL10n.string("device.kind.mac", fallback: "Mac")
         case .iPhone: CompanionL10n.string("device.kind.iphone", fallback: "iPhone")
         case .iPad: CompanionL10n.string("device.kind.ipad", fallback: "iPad")
+        case .other: CompanionL10n.string("device.kind.other", fallback: "Device")
         }
     }
 }

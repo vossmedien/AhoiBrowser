@@ -1,0 +1,2 @@
+SUCCESS: all tests passed.
+Tests took 13 seconds.

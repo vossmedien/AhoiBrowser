@@ -17,6 +17,12 @@ TEST(AppearancePolicyTest, GlassIsEnabledForTheDefaultMacPolicy) {
   EXPECT_TRUE(policy.AllowsGlass());
   EXPECT_EQ(GlassMode::kGlass, AppearanceResolver::ResolveMode(policy));
 
+  const SurfaceAppearance browser_chrome =
+      AppearanceResolver::Resolve(SurfaceRole::kBrowserChrome, policy);
+  EXPECT_TRUE(browser_chrome.uses_glass());
+  EXPECT_EQ(ui::kColorSysSurfaceVariant, browser_chrome.background_color);
+  EXPECT_LT(browser_chrome.opacity, 1.0f);
+
   const SurfaceAppearance sidebar =
       AppearanceResolver::Resolve(SurfaceRole::kSidebar, policy);
   EXPECT_TRUE(sidebar.uses_glass());

@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/sync/bookmark_sync_bridge_types.h"
+#include "ahoi/browser/sync/sync_authorization.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
@@ -30,6 +32,7 @@ class SyncPump final {
     size_t upload_batch_size = 100;
     base::TimeDelta initial_retry_delay = base::Seconds(5);
     base::TimeDelta maximum_retry_delay = base::Hours(1);
+    bool bookmark_sync_enabled = false;
   };
 
   using CompletionCallback =
@@ -43,20 +46,35 @@ class SyncPump final {
 
   // Coalesces a request received during an active cycle and runs it before
   // completing callers. Returns false only when this object cannot start.
-  bool SyncNow(CompletionCallback callback);
+  // A user request bypasses only the local retry deadline for this attempt;
+  // provider authorization and server/SDK retry limits remain authoritative.
+  bool SyncNow(CompletionCallback callback, bool user_initiated = false);
+  void SetIncomingAppliedCallback(
+      base::RepeatingCallback<void(SyncAuthorization)> callback);
   void Cancel();
+  // Separate local approval, default off. A transition cancels old cycle
+  // callbacks without acknowledging or removing queued records.
+  void SetBookmarkSyncEnabled(bool enabled);
 
   bool syncing_for_testing() const { return syncing_; }
 
  private:
-  void StartCycle();
+  void BindIncomingCallback();
+  void OnIncomingAvailable(SyncAuthorization authorization);
+  void StartPendingReceive();
+  void FinishReceive(bool success);
+  void StartCycle(bool user_initiated = false);
   void UploadNextPage();
   void OnUploadFinished(std::vector<SyncChange> attempted,
+                        SyncAuthorization transport_authorization,
+                        BookmarkSyncAuthorization authorization,
                         bool success,
                         std::vector<std::string> acknowledged_ids,
                         std::string error);
   void DownloadNextPage(std::string requested_token);
   void OnDownloadFinished(std::string requested_token,
+                          SyncAuthorization transport_authorization,
+                          BookmarkSyncAuthorization authorization,
                           bool success,
                           ProviderBatch batch,
                           std::string error);
@@ -72,6 +90,13 @@ class SyncPump final {
   std::vector<CompletionCallback> callbacks_;
   bool syncing_ = false;
   bool cycle_requested_ = false;
+  bool bookmark_sync_enabled_ = false;
+  bool receive_only_ = false;
+  bool received_changes_ = false;
+  bool queued_user_sync_ = false;
+  SyncAuthorization receive_authorization_;
+  SyncAuthorization pending_receive_authorization_;
+  base::RepeatingCallback<void(SyncAuthorization)> incoming_applied_callback_;
   base::WeakPtrFactory<SyncPump> weak_ptr_factory_{this};
 };
 

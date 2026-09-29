@@ -13,13 +13,14 @@
 namespace ahoi::sidebar {
 
 SidebarPresentationVisualState CalculateSidebarPresentationVisualState(
-    double progress) {
+    double progress,
+    int horizontal_travel) {
   const double clamped_progress = std::clamp(progress, 0.0, 1.0);
+  const int clamped_travel = std::max(0, horizontal_travel);
   return {
       .opacity = static_cast<float>(clamped_progress),
       .horizontal_offset = static_cast<int>(
-          std::lround((1.0 - clamped_progress) *
-                      visual_style::kSidebarPresentationRevealOffset)),
+          std::lround((1.0 - clamped_progress) * clamped_travel)),
   };
 }
 
@@ -59,9 +60,14 @@ bool SidebarPresentationAnimator::ShouldKeepSurfaceMounted() const {
          animation_.GetCurrentValue() > 0.0;
 }
 
-SidebarPresentationVisualState SidebarPresentationAnimator::visual_state()
-    const {
-  return CalculateSidebarPresentationVisualState(animation_.GetCurrentValue());
+double SidebarPresentationAnimator::visibility_fraction() const {
+  return std::clamp(animation_.GetCurrentValue(), 0.0, 1.0);
+}
+
+SidebarPresentationVisualState SidebarPresentationAnimator::visual_state(
+    int horizontal_travel) const {
+  return CalculateSidebarPresentationVisualState(visibility_fraction(),
+                                                  horizontal_travel);
 }
 
 void SidebarPresentationAnimator::AnimationProgressed(
