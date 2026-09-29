@@ -25,6 +25,13 @@ SidebarGroupDialogState::~SidebarGroupDialogState() = default;
 SidebarWorkspaceDialogState::SidebarWorkspaceDialogState() = default;
 SidebarWorkspaceDialogState::~SidebarWorkspaceDialogState() = default;
 
+CrossLevelMoveRequest::CrossLevelMoveRequest() = default;
+CrossLevelMoveRequest::CrossLevelMoveRequest(const CrossLevelMoveRequest&) =
+    default;
+CrossLevelMoveRequest& CrossLevelMoveRequest::operator=(
+    const CrossLevelMoveRequest&) = default;
+CrossLevelMoveRequest::~CrossLevelMoveRequest() = default;
+
 SidebarContextMenuState::SidebarContextMenuState() = default;
 SidebarContextMenuState::~SidebarContextMenuState() = default;
 

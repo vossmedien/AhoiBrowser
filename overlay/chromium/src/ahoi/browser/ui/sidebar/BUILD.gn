@@ -207,6 +207,8 @@ source_set("browser_sidebar") {
     "browser_sidebar_host_command_dispatch.cc",
     "browser_sidebar_host_context_menu.cc",
     "browser_sidebar_host_core.cc",
+    "browser_sidebar_host_cross_level_drop.cc",
+    "browser_sidebar_host_cross_level_move.cc",
     "browser_sidebar_host_device_tabs.cc",
     "browser_sidebar_host_discovery.cc",
     "browser_sidebar_host_drag_presentation.cc",

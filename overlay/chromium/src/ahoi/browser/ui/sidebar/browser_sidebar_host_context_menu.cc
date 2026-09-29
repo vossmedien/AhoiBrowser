@@ -208,7 +208,9 @@ void BrowserSidebarHostView::ShowOpenTabContextMenu(
   context_.model->AddItem(
       kCreateGroupAroundNode,
       l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_NEW_GROUP_WITH_TAB));
-  if (BuildMoveToMenu(nullptr)) {
+  const bool has_move_menu = BuildMoveToMenu(nullptr);
+  if (AppendCrossLevelMoveItems(CrossLevelRootsForTab(tab.get()),
+                                has_move_menu)) {
     context_.model->AddSubMenu(
         kMoveTo, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_MOVE_TO),
         context_move_menu_model_.get());
@@ -539,7 +541,9 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
   if (node) {
     context_.model->AddItem(
         kDuplicateNode, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_DUPLICATE));
-    if (BuildMoveToMenu(node)) {
+    const bool has_move_menu = BuildMoveToMenu(node);
+    if (AppendCrossLevelMoveItems(GetMoveGroupNodeIds(node->id),
+                                  has_move_menu)) {
       context_.model->AddSubMenu(
           kMoveTo, l10n_util::GetStringUTF16(IDS_AHOI_CONTEXT_MOVE_TO),
           context_move_menu_model_.get());
