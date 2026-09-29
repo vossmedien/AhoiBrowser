@@ -1,5 +1,45 @@
 # Chromium M153 patch ledger
 
+## `0077-ahoi-peek-original-request-and-blank-links.patch`
+
+- **Owner:** Desktop (Crest adoption A1 and A4, Crest 02b7f9d6 and
+  351237e3). Three hunks in files that 0059 and 0061 already touch, no new
+  GN dependency:
+  - `RenderViewContextMenu::ExecuteCommand` previews the link with the
+    request "Open link in new tab" would send: `CreateReferrer` (frame URL
+    under the menu's referrer policy, so `rel=noreferrer` stays silent),
+    `frame_origin` as initiator (the iframe, not the main frame) and
+    `started_from_context_menu`.
+  - The Shift-click block of `BrowserWebContentsDelegate::OpenURLFromTab`
+    passes `PeekRequest::FromOpenURLParams(params)`, the page's own referrer
+    and initiator, instead of the bare URL.
+  - `BrowserWebContentsDelegate::AddNewContents` offers a
+    `NEW_FOREGROUND_TAB` from a source to
+    `PopupOverlayController::TryAutoPeekNewWindow`, after the `NEW_POPUP`
+    overlay branch. On success the overlay owns that same WebContents and
+    content loads the link into it once, with its referrer and initiator.
+- **Safety:** `PopupOverlayController::ShowPeek` no longer substitutes the
+  opener's URL and origin with a fixed policy; it re-sanitizes the request's
+  referrer under its own policy. The command bar's Shift+Return previews
+  like the omnibox (no referrer, no initiator, typed/generated transition),
+  and auto-Peek copies the cancelled navigation's referrer and initiator
+  and skips the preview if the page changed document meanwhile. The new
+  window branch needs the opt-in `ahoi.peek.auto_from_saved_pages`, a user
+  gesture, a window without opener (`window.open()` and `rel=opener` keep
+  their tab), a plain last input on the source page (Cmd+Shift-click also
+  arrives as a foreground tab; `LinkPeekInputTracker` tells them apart), a
+  saved, not temporary, source page, another site and an overlay that can
+  host it; everything else falls through to `chrome::AddWebContents`.
+  Script `window.open(url, "_blank", "noopener")` from a click is still
+  indistinguishable from a link and previews too, as in Crest.
+- **Tests:** `ahoi_popup_unittests` (`link_peek_unittest.cc`,
+  `link_peek_input_unittest.cc`), `ahoi_popup_overlay_browsertests`
+  (`popup_overlay_peek_browsertest.cc`: Referer and Sec-Fetch-Site per entry
+  point, new-window adoption and the tab cases) and the extended
+  `tools/desktop_e2e/link-peek-journey.sh` on the exact candidate.
+- **Rebase/removal:** low; regenerate after 0059 and 0061 against a
+  checkout with patches 0001–0074 applied.
+
 ## `0076-ahoi-tab-stepping-follows-sidebar.patch`
 
 One tab strip backs every Workspace of a window, so Chromium's next/previous

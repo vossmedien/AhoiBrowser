@@ -172,16 +172,19 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
           browser_->GetTabStripModel()->GetActiveWebContents();
       if (popup::CanPeekLink(opener, url)) {
         // The command bar closes first; the preview then opens over the page
-        // it covered.
+        // it covered. A typed address or search is sent like the omnibox
+        // sends it: the covered page is neither referrer nor initiator.
         base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
-            FROM_HERE, base::BindOnce(
-                           [](base::WeakPtr<content::WebContents> opener,
-                              GURL url) {
-                             if (opener) {
-                               popup::PeekLink(opener.get(), url);
-                             }
-                           },
-                           opener->GetWeakPtr(), url));
+            FROM_HERE,
+            base::BindOnce(
+                [](base::WeakPtr<content::WebContents> opener,
+                   popup::PeekRequest request) {
+                  if (opener) {
+                    popup::PeekLink(opener.get(), request);
+                  }
+                },
+                opener->GetWeakPtr(),
+                popup::PeekRequest::ForTypedUrl(url, is_search)));
         return true;
       }
       // Where no preview fits, Shift+Return behaves like opening a new tab.

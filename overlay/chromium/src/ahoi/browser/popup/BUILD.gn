@@ -25,11 +25,20 @@ source_set("link_peek") {
   sources = [
     "link_peek.cc",
     "link_peek.h",
+    "link_peek_input.cc",
+    "link_peek_input.h",
   ]
-  public_deps = [ "//base" ]
+  public_deps = [
+    "//base",
+    "//content/public/browser",
+    "//content/public/common",
+    "//ui/base",
+    "//url",
+  ]
   deps = [
     "//base:i18n",
-    "//url",
+    "//net",
+    "//third_party/blink/public/common",
   ]
 }
 
@@ -45,7 +54,7 @@ source_set("link_peek_throttle") {
     "//base",
     "//chrome/browser/profiles:profile",
     "//components/prefs",
-    "//net",
+    "//content/public/common",
     "//ui/base",
     "//url",
   ]
@@ -54,13 +63,17 @@ source_set("link_peek_throttle") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "link_peek_input_unittest.cc",
+    "link_peek_unittest.cc",
     "popup_overlay_service_unittest.cc",
     "popup_types_unittest.cc",
   ]
   deps = [
+    ":link_peek",
     ":popup",
     "//content/test:test_support",
     "//testing/gtest",
+    "//third_party/blink/public/common",
   ]
 }
 

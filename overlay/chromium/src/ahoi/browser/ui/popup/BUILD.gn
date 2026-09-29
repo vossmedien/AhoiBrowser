@@ -33,6 +33,7 @@ source_set("popup_overlay") {
     "//chrome/browser/ui/browser_window",
     "//chrome/browser/ui/navigator",
     "//chrome/browser/ui/tabs:tab_strip",
+    "//components/prefs",
     "//components/split_tabs",
     "//components/vector_icons",
     "//ui/accessibility",
@@ -77,16 +78,27 @@ test("ahoi_popup_ui_unittests") {
 source_set("browser_tests") {
   testonly = true
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
-  sources = [ "popup_overlay_browsertest.cc" ]
+  sources = [
+    "popup_overlay_browsertest.cc",
+    "popup_overlay_peek_browsertest.cc",
+  ]
   deps = [
     ":popup_overlay",
+    "//ahoi/browser/popup:link_peek",
+    "//ahoi/browser/session:session_bridge_api",
+    "//base",
     "//chrome/browser",
     "//chrome/browser/ui",
     "//chrome/test:test_support",
     "//chrome/test:test_support_ui",
+    "//components/prefs",
+    "//components/tabs:public",
     "//content/public/browser",
+    "//content/public/common",
     "//content/test:test_support",
+    "//net:test_support",
     "//testing/gtest",
+    "//third_party/blink/public/common",
     "//ui/base",
     "//ui/events",
     "//ui/gfx",

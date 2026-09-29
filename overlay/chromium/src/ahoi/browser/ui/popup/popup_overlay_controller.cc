@@ -23,6 +23,7 @@
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/grit/generated_resources.h"
+#include "components/prefs/pref_service.h"
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/tab_interface.h"
 #include "components/tabs/public/split_tab_collection.h"
@@ -35,7 +36,6 @@
 #include "content/public/browser/storage_partition_config.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/common/referrer.h"
-#include "services/network/public/mojom/referrer_policy.mojom-shared.h"
 #include "third_party/blink/public/mojom/window_features/window_features.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/page_transition_types.h"
@@ -158,7 +158,8 @@ bool PopupOverlayController::CanPeek(content::WebContents* opener,
 }
 
 bool PopupOverlayController::ShowPeek(content::WebContents* opener,
-                                      const GURL& url) {
+                                      const popup::PeekRequest& request) {
+  const GURL& url = request.url;
   if (!CanPeek(opener, url) || !opener->GetPrimaryMainFrame()) {
     return false;
   }
@@ -183,16 +184,38 @@ bool PopupOverlayController::ShowPeek(content::WebContents* opener,
                     /*user_gesture=*/true)) {
     return false;
   }
+  // The intercepted request as the page sent it; the opener's own URL and
+  // origin are never substituted. Sanitizing again under the request's own
+  // policy keeps rel=noreferrer and Referrer-Policy: no-referrer silent.
   content::NavigationController::LoadURLParams load(url);
-  load.transition_type = ui::PAGE_TRANSITION_LINK;
-  load.initiator_origin =
-      opener->GetPrimaryMainFrame()->GetLastCommittedOrigin();
-  load.referrer = content::Referrer::SanitizeForRequest(
-      url, content::Referrer(opener->GetLastCommittedURL(),
-                             network::mojom::ReferrerPolicy::
-                                 kStrictOriginWhenCrossOrigin));
+  load.transition_type = request.transition;
+  load.initiator_origin = request.initiator_origin;
+  load.referrer = content::Referrer::SanitizeForRequest(url, request.referrer);
+  load.started_from_context_menu = request.started_from_context_menu;
   peek->GetController().LoadURLWithParams(load);
   return true;
+}
+
+bool PopupOverlayController::TryAutoPeekNewWindow(
+    content::WebContents* source,
+    std::unique_ptr<content::WebContents>* new_contents,
+    const GURL& target_url,
+    WindowOpenDisposition disposition,
+    bool user_gesture) {
+  if (!new_contents || !*new_contents || !browser_ ||
+      !browser_->GetProfile()->GetPrefs()->GetBoolean(
+          popup::kAutoPeekFromSavedPagesPref) ||
+      !CanPeek(source, target_url) ||
+      !popup::ShouldAutoPeekNewWindow(source, new_contents->get(), target_url,
+                                      disposition, user_gesture)) {
+    return false;
+  }
+  // Content has not started loading `new_contents` yet; it loads the link,
+  // with its referrer and initiator, into the adopted WebContents once this
+  // returns, so the page is requested exactly once and keeps its noopener
+  // browsing context.
+  return AdoptAndShow(source, new_contents, blink::mojom::WindowFeatures(),
+                      user_gesture);
 }
 
 bool PopupOverlayController::IsSavedPage(content::WebContents* contents) {
@@ -201,12 +224,18 @@ bool PopupOverlayController::IsSavedPage(content::WebContents* contents) {
   SessionBridge* const bridge =
       browser_ ? SessionBridgeFactory::GetForProfile(browser_->GetProfile())
                : nullptr;
-  if (!tab || !bridge) {
+  if (!tab || !bridge || !bridge->tab_tree_store()) {
     return false;
   }
   const std::optional<session::TabSessionMetadata> metadata =
       bridge->GetTabSessionMetadata(tab);
-  return metadata && metadata->tree_node_id.has_value();
+  // A temporary tab is bound to a temporary tree row too; only a page the
+  // user saved counts.
+  tab_tree::TreeNode node;
+  return metadata && metadata->tree_node_id.has_value() &&
+         bridge->tab_tree_store()->GetNode(*metadata->tree_node_id, &node) ==
+             tab_tree::TabTreeStore::Result::kOk &&
+         !node.is_temporary;
 }
 
 bool PopupOverlayController::AdoptAndShow(
