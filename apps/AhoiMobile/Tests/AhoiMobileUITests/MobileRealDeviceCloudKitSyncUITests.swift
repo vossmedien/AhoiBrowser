@@ -218,10 +218,15 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
     private func closeLibrary(in app: XCUIApplication) {
         let searchField = app.searchFields.firstMatch
         if searchField.exists, fieldValue(searchField) != "" {
-            for label in ["Cancel", "Abbrechen"] where app.buttons[label].exists {
-                app.buttons[label].tap()
-                break
+            // Only the dismiss button in the search bar row, never another
+            // "close" control elsewhere on screen.
+            let row = searchField.frame
+            let dismiss = app.buttons.allElementsBoundByIndex.first { button in
+                ["Schließen", "Close", "Cancel", "Abbrechen"].contains(button.label) &&
+                    abs(button.frame.midY - row.midY) < 30 && button.frame.minX > row.maxX - 5
             }
+            dismiss?.tap()
+            sleepRunLoop(1)
         }
         let done = app.buttons.matching(identifier: "browser.library.done").firstMatch
         XCTAssertTrue(done.waitForExistence(timeout: 5))
@@ -282,22 +287,31 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
             typed = target
         }
         transitions.append("\(timestamp()) receive-\(attempt): search typed \(typed)")
+        // Any kind (history, remoteTab, ...) is recorded; only a remoteTab
+        // result carrying the exact URL proves the open tab arrived.
         let results = app.descendants(matching: .any)
             .matching(NSPredicate(
-                format: "identifier BEGINSWITH %@", "browser.library.search-result.remoteTab."
+                format: "identifier BEGINSWITH %@", "browser.library.search-result."
             ))
-        let exact = app.staticTexts[expectedURL]
-        _ = exact.waitForExistence(timeout: 5)
+        _ = results.firstMatch.waitForExistence(timeout: 5)
+        sleepRunLoop(1)
         var lines: [String] = []
+        var found = false
+        var kinds: [String] = []
         for result in results.allElementsBoundByIndex where result.exists {
             let texts = result.staticTexts.allElementsBoundByIndex.map(\.label)
+            let carriesURL = result.label.contains(expectedURL) || texts.contains(expectedURL)
+            let isRemoteTab = result.identifier.hasPrefix("browser.library.search-result.remoteTab.")
+            if carriesURL { kinds.append(result.identifier) }
+            if carriesURL && isRemoteTab { found = true }
             lines.append("\(result.identifier)|\(result.label)|\(texts.joined(separator: " || "))")
         }
-        let found = exact.exists
-        lines.append("exact-url-visible=\(found)")
+        lines.append("remote-tab-with-exact-url=\(found)")
         record("search-results-\(attempt)", lines.joined(separator: "\n"))
         capture("library-search-\(attempt)", app)
-        transitions.append("\(timestamp()) receive-\(attempt): remote results=\(results.count) exact=\(found)")
+        transitions.append(
+            "\(timestamp()) receive-\(attempt): results=\(results.count) exact-url-in=\(kinds) remoteTab=\(found)"
+        )
         return found
     }
 
