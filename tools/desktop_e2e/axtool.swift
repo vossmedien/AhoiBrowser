@@ -9,6 +9,7 @@ import AppKit
 //        axtool hidscroll <pid> <element> <dy> [dx] [phased|line] [cmd|shift|opt|ctrl ...]
 //        axtool hidmiddle <pid> <element> <dx> <dy>
 //        axtool hidclick <pid> <label substring>
+//        axtool menukeys <pid>
 import ApplicationServices
 import Foundation
 
@@ -228,6 +229,18 @@ case "enabled":
         if l.contains(where: { $0 == needle }) {
             let enabled = (attr(e, kAXEnabledAttribute) as? Bool).map { String($0) } ?? "?"
             print("\(label(e)) enabled=\(enabled)")
+        }
+        return false
+    }
+case "menukeys":
+    // Key equivalents of the menu items: "title | key | modifiers", where
+    // AXMenuItemCmdModifiers is 0 for ⌘ alone (+1 ⇧, +2 ⌥, +4 ⌃, +8 no ⌘).
+    _ = walk(app, 0, 8) { e, _ in
+        if str(e, kAXRoleAttribute) == "AXMenuItem" {
+            let key = str(e, "AXMenuItemCmdChar")
+            if !key.isEmpty {
+                print("\(str(e, kAXTitleAttribute)) | \(key) | \(str(e, "AXMenuItemCmdModifiers"))")
+            }
         }
         return false
     }
