@@ -217,8 +217,11 @@ TEST(GlassMaterialTest, WorkspaceAccentOnlyNudgesTheMilk) {
             SkColorGetR(plain) - SkColorGetG(plain));
   // At most a light nudge: every channel stays within the accent share.
   const int max_delta = static_cast<int>(glass_tokens::kAccentShare * 255) + 1;
-  EXPECT_LE(std::abs(SkColorGetG(tinted) - SkColorGetG(plain)), max_delta);
-  EXPECT_LE(std::abs(SkColorGetB(tinted) - SkColorGetB(plain)), max_delta);
+  const auto delta = [](U8CPU a, U8CPU b) {
+    return std::abs(static_cast<int>(a) - static_cast<int>(b));
+  };
+  EXPECT_LE(delta(SkColorGetG(tinted), SkColorGetG(plain)), max_delta);
+  EXPECT_LE(delta(SkColorGetB(tinted), SkColorGetB(plain)), max_delta);
 }
 
 TEST(GlassMaterialTest, PanelsTintTheGlassWithoutAWindowFoundation) {
