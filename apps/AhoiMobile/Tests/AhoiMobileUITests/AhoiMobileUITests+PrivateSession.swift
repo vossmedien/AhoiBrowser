@@ -341,4 +341,74 @@ extension AhoiMobileUITests {
         attachScreenshot(named: "private-nomatch-after-cancel", of: app)
     }
 
+    /// The native shield over a loaded private page must pass Xcode's
+    /// accessibility audit and must not leave private content in the
+    /// accessibility tree. Needs no biometric event: it audits the locked state.
+    @MainActor
+    func testPrivateLockShieldPassesAccessibilityAudit() throws {
+        guard ProcessInfo.processInfo.environment["AHOI_PRIVATE_LOCK_E2E"] == "1" else {
+            throw XCTSkip("Explicitly opt in to the device-authentication UI journey.")
+        }
+        let app = XCUIApplication()
+        app.launchArguments = []
+        app.terminate()
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.buttons["browser.address"].waitForExistence(timeout: 8))
+        openSettings(in: app)
+        let toggle = app.switches["settings.private.lock"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        revealSyncToggle(toggle, in: app)
+        if (toggle.value as? String) != "1" {
+            toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        }
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "1"), object: toggle
+        )], timeout: 5) == .completed)
+        app.buttons["settings.done"].tap()
+
+        app.terminate()
+        app.launchArguments = [
+            "-AhoiUITestFixture", "-AhoiUITestPrivateTabCount", "1", "-AhoiUITestSelectPrivate"
+        ]
+        app.launch()
+        let privateAddress = app.buttons["browser.address.private"]
+        let privatePage = app.webViews.staticTexts["Scale tab"]
+        XCTAssertTrue(privatePage.waitForExistence(timeout: 10))
+
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        let unlock = app.buttons["browser.private.lock.unlock"]
+        XCTAssertTrue(unlock.waitForExistence(timeout: 10))
+        XCTAssertTrue(unlock.isEnabled)
+        XCTAssertFalse(privatePage.exists)
+        XCTAssertFalse(privateAddress.exists)
+        XCTAssertEqual(
+            app.webViews.count, 0,
+            "No web content may remain reachable by assistive technology behind the shield."
+        )
+        attachScreenshot(named: "private-lock-audit-shield", of: app)
+        let tree = XCTAttachment(string: app.debugDescription)
+        tree.name = "private-lock-audit-accessibility-tree"
+        tree.lifetime = .keepAlways
+        add(tree)
+
+        var issues: [String] = []
+        try app.performAccessibilityAudit { issue in
+            issues.append(
+                "\(issue.auditType) \(issue.compactDescription) — "
+                    + "\(issue.element?.debugDescription ?? "no element")"
+            )
+            return false
+        }
+        let report = XCTAttachment(
+            string: issues.isEmpty ? "no issues" : issues.joined(separator: "\n")
+        )
+        report.name = "private-lock-audit-issues"
+        report.lifetime = .keepAlways
+        add(report)
+        // The audit must not reveal the page either.
+        XCTAssertTrue(unlock.exists)
+        XCTAssertFalse(privatePage.exists)
+    }
 }
