@@ -206,16 +206,21 @@ row_menu() { # <row title> <menu item>
   $AX press $PID "AXMenuItem:$2" >> "$OUT/steps.txt"; sleep 2
 }
 # "Verschieben nach" -> Getrennt (label may carry the Workspace icon);
-# leaves the confirmation open.
-TARGET_ITEM='AXMenuItem \| ([^|]*  )?Getrennt'
+# leaves the confirmation open. The title must end at " |": the section
+# header "Getrennte Anmeldungen" starts with the same word. The press is
+# scoped to the submenu, because the menu bar's Profile menu has a
+# "Getrennt" item (switchToProfileFromMenu:) that a global press finds
+# first (builds 51, 53, 54).
+TARGET_ITEM='AXMenuItem \| ([^|]*  )?Getrennt \|'
 move_menu() { # <row title> <evidence name>
   row_menu "$1" "Verschieben nach" || return 1
   waitax "$TARGET_ITEM" 5 \
     || { $AX dump $PID 40 > "$OUT/ax-move-submenu-missing.txt"; return 1; }
   $AX dump $PID 40 > "$OUT/ax-move-menu-$2.txt"
   local item; item=$(grep -oE "$TARGET_ITEM" "$OUT/ax-move-menu-$2.txt" \
-    | head -1 | sed -E 's/^AXMenuItem \| //')
-  $AX press $PID "AXMenuItem:$item" >> "$OUT/steps.txt"
+    | head -1 | sed -E 's/^AXMenuItem \| //; s/ \|$//')
+  $AX pressin $PID "AXMenuItem:Verschieben nach" "AXMenuItem:$item" \
+    >> "$OUT/steps.txt"
   waitax "AXButton \\| Verschieben" 8
 }
 dialog_dump() { # <evidence name>
@@ -224,7 +229,9 @@ dialog_dump() { # <evidence name>
 has() { grep -q -F -- "$2" "$OUT/ax-$1.txt"; } # <evidence> <text>
 confirm_dialog() { # <evidence name>
   dialog_dump "confirm-$1"
-  $AX press $PID "AXButton:Verschieben" >> "$OUT/steps.txt"; sleep 6
+  # A press within the double-click interval after the dialog showed is
+  # dropped by Chromium's dialog input protection.
+  sleep 1; $AX press $PID "AXButton:Verschieben" >> "$OUT/steps.txt"; sleep 6
 }
 # Native Tab menu split of the active tab with <file>, chosen in
 # Chromium's tab picker as a person would (split_journey_lib.sh).
