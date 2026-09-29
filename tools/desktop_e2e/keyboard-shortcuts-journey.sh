@@ -171,12 +171,26 @@ waitvisible epsilon 5 || fail_setup "epsilon not visible"
 echo "zwei pages: $(pages)" >> "$OUT/steps.txt"
 # Zwei shows delta, epsilon; the strip also holds Inbox's alpha, beta, gamma
 # before them. Stepping wraps inside Zwei; strip order would reach Inbox.
-step_in_zwei ctrlTabWrapsInWorkspace delta 48 ctrl
-step_in_zwei ctrlShiftTabWrapsInWorkspace epsilon 48 ctrl shift
-step_in_zwei cmdShiftBracketWrapsInWorkspace delta 30 cmd shift
-step_in_zwei cmdShiftLeftBracketWrapsInWorkspace epsilon 33 cmd shift
-step_in_zwei cmdOneSelectsFirstSidebarRow delta 18 cmd
-step_in_zwei cmdNineSelectsLastSidebarRow epsilon 25 cmd
+# Each step starts on the other Zwei tab, so a pass needs real movement
+# (build 49 passed two checks that never moved).
+start_at() { # <title>; Ctrl+Tab until it is visible
+  for i in 1 2 3; do [ "$(visible)" = "$1" ] && return 0; key 48 ctrl; waitvisible "$1" 3 && return 0; done
+  echo "info: could not start at $1" >> "$OUT/steps.txt"
+}
+start_at epsilon; step_in_zwei ctrlTabWrapsInWorkspace delta 48 ctrl
+start_at delta; step_in_zwei ctrlShiftTabWrapsInWorkspace epsilon 48 ctrl shift
+# Cmd+Shift+[ and ] are ANSI bracket keys; other layouts (German: + and ü)
+# put Chromium's tab shortcuts elsewhere, so they run on US/ABC only.
+LAYOUT=$(defaults read ~/Library/Preferences/com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null)
+echo "keyboard layout: $LAYOUT" >> "$OUT/steps.txt"
+if echo "$LAYOUT" | grep -q -E "\.(US|ABC)$"; then
+  start_at epsilon; step_in_zwei cmdShiftBracketWrapsInWorkspace delta 30 cmd shift
+  start_at delta; step_in_zwei cmdShiftLeftBracketWrapsInWorkspace epsilon 33 cmd shift
+else
+  echo "info: bracket shortcuts skipped on $LAYOUT" >> "$OUT/steps.txt"
+fi
+start_at epsilon; step_in_zwei cmdOneSelectsFirstSidebarRow delta 18 cmd
+start_at delta; step_in_zwei cmdNineSelectsLastSidebarRow epsilon 25 cmd
 key 48 ctrl opt; sleep 2; NOW=$(visible)
 waitax "Zwei, Workspace wechseln" 3 && [ "$NOW" != gamma ] && [ "$NOW" != beta ] && [ "$NOW" != alpha ] \
   && record mruStaysInWorkspace true || record mruStaysInWorkspace false
