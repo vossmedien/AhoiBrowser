@@ -107,7 +107,7 @@ extension MobileBrowserController {
             </section>
             <ul>
               <li><a href="https://example.com">Open HTTPS page</a></li>
-              <li><a id="link-actions-fixture" href="https://example.com/ahoi-link-actions" aria-label="Open Ahoi link actions">Long-press for link actions</a></li>
+              <li><a id="link-actions-fixture" href="https://example.com/?ahoi-link-actions=1" aria-label="Open Ahoi link actions">Long-press for link actions</a></li>
               <li><a href="https://example.com/?ahoi-popup=1" target="_blank">Open target blank</a></li>
               <li><a href="https://httpbin.org/response-headers?Content-Disposition=attachment%3B%20filename%3Dahoi-fixture.txt&amp;Content-Type=text%2Fplain">Download fixture</a></li>
               <li><a aria-label="Open privacy-sensitive mail app" href="mailto:browser-test@example.com?subject=ahoi-secret-subject&amp;body=ahoi-secret-body">Open mail app</a></li>
