@@ -175,7 +175,8 @@ void ArcImportService::OnRecoveryJournalRestored(
     std::move(callback).Run({.status = ArcImportStatus::kRecoveryRequired});
     return;
   }
-  DiscoverAndPreview(std::move(callback));
+  // Recovery previews the default layout; the UI adopts the echoed layout.
+  DiscoverAndPreview(ArcImportPlanOptions(), std::move(callback));
 }
 
 void ArcImportService::MarkPreparedRecoveryManual(

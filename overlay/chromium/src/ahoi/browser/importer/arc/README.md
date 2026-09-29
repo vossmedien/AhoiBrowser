@@ -27,6 +27,18 @@ The user-visible workflow is deliberately two-phase:
    A repeated commit is a no-op only after both the live split model and the
    durable native-session receipt match the selected snapshot.
 
+The optional, default-off layout "Hauptordner als Workspaces anlegen"
+(`ArcImportPlanOptions::folders_as_workspaces`) turns every folder directly in
+a space's pinned container into its own workspace named after the folder; the
+folder's content moves up one level in source order. Loose pinned tabs and the
+rest of the space (including unpinned tabs) stay in a workspace named after
+the space, which is omitted only when it would be empty. The layout uses its
+own identity domains, so switching layouts never collides with IDs of an
+earlier import; name clashes go through the normal conflict policy. Toggling
+the option requests a fresh preview. The option is part of the selection
+fingerprint and idempotency key, and Commit rejects a selection whose layout
+differs from the pending preview as `kStalePreview`.
+
 Security invariants:
 
 - only schema version 1 of `Arc/StorableSidebar.json` below the macOS
