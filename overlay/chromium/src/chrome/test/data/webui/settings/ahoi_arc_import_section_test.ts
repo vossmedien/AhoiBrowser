@@ -426,6 +426,71 @@ suite('AhoiArcStandardImportSurface', () => {
     assertEquals('3', resultText('#ahoiArcResultFourPane'));
   });
 
+  test('foldersAsWorkspacesIsAPreviewBoundCategoryOption', async () => {
+    selectSource(1);
+    const section = getArcSection();
+    section.arcImportStage_ = 'preview';
+    section.arcImportPreview_ = preview(0);
+    section.arcSelectedProfiles_ = ['Default'];
+    section.requestUpdate();
+    await section.updateComplete;
+    const root = section.shadowRoot!;
+    // Only offered when the source has pinned top-level folders.
+    assertFalse(!!root.querySelector('#ahoiArcFoldersAsWorkspaces'));
+
+    section.arcImportPreview_ = {
+      ...preview(0),
+      stats: {...stats, splits: 0, topLevelFolders: 2, folderWorkspaces: 0},
+    };
+    section.requestUpdate();
+    await section.updateComplete;
+    const option = root.querySelector<HTMLElement&{checked: boolean}>(
+        '#ahoiArcFoldersAsWorkspaces')!;
+    assertTrue(!!option);
+    assertTrue(option.classList.contains('arc-import-checkbox'));
+    assertTrue(!!option.closest('fieldset.options'));
+    assertFalse(option.checked);
+
+    const requests: Array<{message: string, args: unknown[]}> = [];
+    const originalSend = chrome.send;
+    chrome.send = (message: string, args?: unknown[]) => {
+      if (['ahoiArcDiscover', 'ahoiArcCommit'].includes(message)) {
+        requests.push({message, args: args ?? []});
+      } else {
+        originalSend(message, args);
+      }
+    };
+    try {
+      // Changing the layout never commits; it requests a fresh preview.
+      option.click();
+      await microtasksFinished();
+      assertEquals(1, requests.length);
+      assertEquals('ahoiArcDiscover', requests[0]!.message);
+      assertEquals(true, requests[0]!.args[1]);
+      assertEquals('discovering', section.arcImportStage_);
+
+      webUIResponse(requests[0]!.args[0] as string, true, {
+        ...preview(0),
+        foldersAsWorkspaces: true,
+        stats: {...stats, splits: 0, topLevelFolders: 2, folderWorkspaces: 2},
+        targetWorkspaces: ['Crew', 'Alpha', 'Beta'],
+      });
+      await microtasksFinished();
+      assertEquals('preview', section.arcImportStage_);
+      assertDeepEquals(['Default'], section.arcSelectedProfiles_);
+      assertTrue(root.querySelector<HTMLElement&{checked: boolean}>(
+                         '#ahoiArcFoldersAsWorkspaces')!.checked);
+      assertEquals(3, root.querySelectorAll('.targets > li').length);
+
+      root.querySelector<HTMLElement>('#ahoiArcCommit')!.click();
+      assertEquals(2, requests.length);
+      assertEquals('ahoiArcCommit', requests[1]!.message);
+      assertEquals(true, requests[1]!.args[8]);
+    } finally {
+      chrome.send = originalSend;
+    }
+  });
+
   test('unsupportedArcSchemaHasSpecificFailClosedStatus', async () => {
     selectSource(1);
     const arcSection = getArcSection();
