@@ -126,7 +126,12 @@
   accounts in `ahoi::SelectSavedAccountMenuEntries` order, the chosen one on
   the opaque selection surface. Choosing a row fills both fields exactly
   like choosing it from the username menu; typing a saved name checks its
-  row. The save choice moves below the fields. `login_view` gains
+  row. The save choice moves below the fields. The saved accounts load
+  after the web-modal widget was sized and it does not autosize, so
+  `LoginView::FitDialogToContents` re-applies the dialog host's desired
+  bounds whenever the rows or account actions change; otherwise BoxLayout
+  truncated the last section, the save choice, to zero height (build 51:
+  a second account and a password update were never saved). `login_view` gains
   `//ahoi/browser/ui:dialog_style`, `:visual_style` and `//ui/accessibility`;
   `chrome/browser/ui/views/DEPS` allows the two headers for `login_view.cc`.
 - **Safety:** presentation only. Rows are rebuilt only when the saved
@@ -135,7 +140,10 @@
   their existing paths; incognito still loads accounts only on the explicit
   button; subresource prompts still show no account controls.
 - **Tests:** covered by the existing HTTP auth browser tests and the
-  installed HTTP auth journey; visual acceptance against the reference.
+  installed HTTP auth journey (`save_second`, `store_two_accounts`,
+  `update_no_duplicate`, `auth08_update_persisted` need a visible, hittable
+  save choice once saved accounts exist); visual acceptance against the
+  reference.
 - **Rebase/removal:** medium; `login_view.cc` also carries 0001, 0011 and
   0078. Generated against those; `login_handler_views.cc` carries 0001.
 

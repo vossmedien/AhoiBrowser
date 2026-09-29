@@ -313,6 +313,10 @@ store_q() { cp "$STORE_P/Default/Login Data" "$P-ld.db" 2>/dev/null || { echo ""
   sqlite3 "$P-ld.db" "select signon_realm||'|'||username_value from logins where scheme=$1 order by 1;" | tr '\n' ' '
   rm -f "$P-ld.db"; }
 store() { store_q 1; }
+# Login Data is written after the signed-in page loaded (lookup, then an
+# async write): poll up to 10 s for the expected rows.
+wait_store() { local i; for i in 1 2 3 4 5 6 7 8 9 10; do
+  [ "$(store)" = "$1" ] && return 0; sleep 1; done; return 1; }
 # The command bar is key while it is open, so Escape reaches only the bar.
 bar_open() { $AX dump $PID 3 | grep -q 'AXWindow | Suchen oder URL eingeben'; }
 closed_cmdbar() { local end=$(( $(date +%s) + 10 ))
@@ -475,8 +479,9 @@ command switch
 if dialog; then record auth15_switch_shows_chooser PASS; login bob bob-pass-1 "$SAVE"
 else record auth15_switch_shows_chooser FAIL; fi
 waittitle "auth:bob@Ahoi Realm A:$A" 15 && record save_second PASS || record save_second FAIL
-[ "$(store)" = "http://127.0.0.1:$A/Ahoi Realm A|alice http://127.0.0.1:$A/Ahoi Realm A|bob " ] \
-  && record store_two_accounts PASS || record store_two_accounts "FAIL:$(store)"
+RA="http://127.0.0.1:$A/Ahoi Realm A"; AB="$RA|alice $RA|bob "
+wait_store "$AB" && record store_two_accounts PASS \
+  || record store_two_accounts "FAIL:$(store)"
 # 3 Choice + autocomplete: both listed, pick alice, password filled from store.
 settle; command switch; dialog
 LIST=$(accounts); [ "$LIST" = "alice bob " ] && record choice_lists_both PASS || record choice_lists_both "FAIL:$LIST"
