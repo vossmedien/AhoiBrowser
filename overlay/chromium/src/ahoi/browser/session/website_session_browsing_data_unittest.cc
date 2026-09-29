@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/session_prefs.h"
 #include "ahoi/browser/session/website_session_context.h"
 #include "base/files/file_path.h"
@@ -19,6 +20,7 @@
 #include "base/uuid.h"
 #include "base/values.h"
 #include "chrome/test/base/testing_profile.h"
+#include "components/keyed_service/content/browser_context_keyed_service_factory.h"
 #include "components/prefs/pref_service.h"
 #include "content/public/browser/browsing_data_filter_builder.h"
 #include "content/public/browser/browsing_data_remover.h"
@@ -46,7 +48,13 @@ using ::testing::UnorderedElementsAre;
 class WebsiteSessionBrowsingDataTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    profile_ = TestingProfile::Builder().Build();
+    // Without SessionBridge: it retires bindings of Workspaces its tree does
+    // not know, and these tests bind Workspaces that exist only in prefs.
+    profile_ = TestingProfile::Builder()
+                   .AddTestingFactory(
+                       SessionBridgeFactory::GetInstance(),
+                       BrowserContextKeyedServiceFactory::TestingFactory())
+                   .Build();
     remover()->SetEmbedderDelegate(&embedder_delegate_);
   }
 
