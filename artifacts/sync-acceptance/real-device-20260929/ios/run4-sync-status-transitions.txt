@@ -1,0 +1,4 @@
+2026-09-29T10:55:09Z opt-in: state=Bereit | encryption=Verschlüsselung bereit | detail=Synchronisiert | footer=<none>
+2026-09-29T10:56:08Z address typed: https://example.com/?ahoi-sync-ios-20260929T105445Z
+2026-09-29T10:56:37Z upload: tap settings.sync.now
+2026-09-29T10:56:39Z upload: state=Bereit | encryption=Verschlüsselung bereit | detail=Synchronisiert | footer=<none>

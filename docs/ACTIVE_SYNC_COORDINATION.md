@@ -1,5 +1,111 @@
 # Active sync coordination
 
+## Real-device Mac–iPhone test in progress — 29 September 2026, 13:15 CEST
+
+Owner-approved real test in the isolated CloudKit Development scope
+`23855a90-ee61-499e-abed-bfdc52a881d7`
+(`artifacts/sync-acceptance/real-device-20260929/scope.json`; no key copy,
+no deletion, no Production).
+
+- **iPhone 16 Pro Max "Servusla" (real device):** scoped CloudKitDevelopment
+  build `d065a744` installed; device XCUITest run 4 PASSED: status "Bereit",
+  "Verschlüsselung bereit", "Synchronisiert", test tab
+  `https://example.com/?ahoi-sync-ios-20260929T105445Z`
+  (`artifacts/sync-acceptance/real-device-20260929/ios/README.md`). Upload of
+  that specific record is not separately proven.
+- **Mac:** copy of installed build 50 (`bdfcea08`) prepared, signed and
+  verified with `prepare/verify-macos-cloudkit --acceptance-scope` (from a
+  worktree at `bdfcea08`) and installed with `development_installation.py
+  --acceptance-scope` (receipt
+  `artifacts/install/ahoi-dev-bdfcea08-cloudkit-scope-23855a90-*.json`).
+  Ahoi Sync switched on at 13:07: "Sync-Verbindung wird eingerichtet" →
+  **"iCloud-Accountwechsel benötigt Bestätigung"**; "Ohne lokalen Upload
+  fortfahren" clicked at 13:08, status unchanged (same symptom as 23 Sep).
+  Log 13:07:11 `AhoiSyncUpload stage=lease_revoked expected=6 saved=0`.
+  Diagnosis of the stuck account transition is in progress. **No record
+  round trip yet — DoD 13 stays RED.**
+
+## Stuck "iCloud-Accountwechsel" with a provider — diagnosis, 29 September 2026
+
+Live `bdfcea08` Settings status (CDP, 13:12): `providerAvailable=true`,
+`keySetupIssue=key_setup_account_changed`, `accountTransitionPending=true`;
+no `cksync-format3.state.inbox`, so the provider never ran
+`ResetAccountState()` and does not own a transition. The key bootstrap's
+`CKAccountChangedNotification` observer outlives a successful bootstrap and
+revokes the provider's key lease on any notification (hence 13:07:11
+`lease_revoked`), then reports `key_setup_account_changed` while the provider
+is kept. `CurrentState()` shows that as pending, but
+`ProfileSyncBackend::ConfirmAccountTransition` handled the key-setup case only
+when `!provider_` (fix `30cd18f`) and otherwise required
+`provider_->IsAccountTransitionPending()`, so both buttons were accepted by
+Settings and silently returned false. Fix on branch
+`sync/account-change-confirm-with-provider`: route the key-setup case
+regardless of a lease-revoked provider (drop pump/provider/bootstrap after the
+outbox choice, restart verified key setup); unit tests in
+`profile_sync_backend_account_transition_unittest.cc`, not yet built. Open
+follow-up: the bootstrap observer treats any account notification as a switch
+without re-verifying the user record ID.
+
+## WS-MERGE-06 `mergedInto` contract and compaction routes — 29 September 2026
+
+Owner-authorized sync-lane session (ADR 0012 WS-MERGE-06, Crest 108/114/118).
+Worktree `../AhoiBrowser-mergedinto` from `4991771e`, not pushed.
+**Nothing compiled or run natively**: load average was 179–216 (gate: 60), so
+no `swift test`/`xcodebuild`, no Chromium build. Only the repository
+conformance checks ran (field-group drift 37/37 copies, 0 findings; catalogue
+`--check` fresh; 16/16 `test_sync_conformance_*` tests).
+
+- **Contract.** New top-level `workspaceMerge` section in
+  `config/sync-format.json`: optional `merged_into` payload key (canonical
+  lowercase UUID, absent when unset, null rejected), only with a tombstone,
+  never self; part of the existing `tombstone` field group (no new field
+  group, `records[]` and the catalogue digest unchanged); undo clears it,
+  ordinary deletion never writes it; routing is projection-only with chain/
+  cycle rules, parent/root-order rules and the Crest 126 marker binding;
+  compaction retains only source/target locally (Desktop
+  `sync_workspace_merge_watermarks`, Mobile `CompanionDeletionWatermark.mergedInto`);
+  additive for Format 3, readers without it fall back to deletion re-homing.
+  Matches C++ `628c158`/`9bc5924`/`5a7d6b3`/`2bd75cb`/`14297bc3` and Swift
+  `4f2b154`/`980c7137`/`0e7d5516`/`0962fd37`, projection `6f7fafc`/`cfd0127`.
+- **Compaction already keeps the route on both clients.** The premise that
+  compaction drops `merged_into` is outdated: Desktop since `5a7d6b3`
+  (natively GREEN in the `ba9f26cb` run), Mobile since `980c7137`/`0e7d5516`.
+  This session only adds the missing negative case on both sides — an undone
+  merge that is later deleted normally compacts **without** a stale route and
+  its late Page keeps generic recovery: C++
+  `SyncWorkspaceMergeTest.UndoneMergeCompactsWithoutAStaleRoute`
+  (in `ahoi_sync_unittests`), Swift
+  `CompanionWorkspaceRetentionTests.testUndoneMergeCompactsWithoutAStaleRoute`.
+  Both are **unexecuted source**; the desktop owner must build and run
+  `ahoi_sync_unittests` (whole `SyncWorkspaceMergeTest` suite), Mobile the
+  `CompanionWorkspaceRetentionTests` class.
+- **Owed by Crest-hardening (not edited here):** a post-compaction routing
+  vector in `fixtures/sync-conformance/workspace_merge_projection_v3.json`
+  (its README still calls retention "deliberately open"): frames with an extra
+  local input `compactedWorkspaceRoutes` (source→target, not wire) and no raw
+  source record — (a) single late root after A→B compaction resolves to B at
+  B's root end, byte/clock-identical raw Page; (b) compacted A→M plus live
+  tombstone M→B chain; (c) compacted cycle and compacted ordinary deletion
+  (no route) stay `unconstrained`; (d) stale live native A must not shadow the
+  route (Crest 114 R1). Runners would need a way to feed the route map.
+- **Doc changes owed (foreign uncommitted edits in the main checkout, not
+  touched):** ADR 0009 should reference `workspaceMerge` as an additive
+  Format-3 key in the tombstone group; `docs/SYNC.md` retention section should
+  state that Workspace compaction keeps the merge source→target route.
+- **Crest 118 not implemented.** No operational 118 test exists on either
+  client. It needs nine real-writer cases × four passive/reload checks through
+  the production Desktop tree/drop key allocator (after the 124 fix), search
+  recapture, and opposite-platform replay of actual output. That is not
+  source-sized and cannot be written blind without compiling; it stays with
+  the desktop/mobile owners for a slot with native builds.
+- **Open risks.** An old tombstone replay after compaction drains on both
+  clients, but only Mobile checks that its `merged_into` equals the retained
+  route (a differing one is rejected); Desktop drains it by version alone.
+  Harmless (nothing is materialized) but asymmetric. The
+  route table is local only: a fresh device that never saw the tombstone
+  depends on the server still holding it (no CloudKit physical delete is
+  issued, so this holds today).
+
 ## Crest adoption A6 and C1 — 29 September 2026
 
 Owner-approved session for the unstaffed sync and mobile lanes, from

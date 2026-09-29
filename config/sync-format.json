@@ -487,5 +487,43 @@
       "automaticDeletion": false,
       "missingRelations": "retain pending; never fabricate or treat absence as deletion"
     }
+  },
+  "workspaceMerge": {
+    "contract": "ADR 0012 WS-MERGE-06; Crest 084, 108, 112, 114, 126",
+    "dataClass": "workspace",
+    "payloadField": "merged_into",
+    "type": "canonical lowercase UUID string of another Workspace",
+    "fieldGroup": "tombstone",
+    "newFieldGroup": false,
+    "presence": "optional; absent when unset; JSON null or any non-canonical value is rejected",
+    "requiresTombstone": true,
+    "selfTargetAllowed": false,
+    "merge": "travels with the tombstone field clock as one last-writer-wins unit; FieldEqual compares tombstone and merged_into together",
+    "undo": "a revive clears merged_into in the same tombstone-group write; an ordinary deletion writes no merged_into",
+    "semantics": "a merge moves the source Workspace's nodes into the target and tombstones the source with merged_into; a live node that still names the source (e.g. added offline) is presented in the first live Workspace reached along the merged_into chain",
+    "routing": {
+      "projectionOnly": true,
+      "rewritesReceivedNodeLocation": false,
+      "chainResolution": "follow present or compacted routes with a visited set; a present live or ordinary-deleted record takes precedence over a compacted route",
+      "unresolved": "missing target, cycle or ordinary deletion never fabricates a destination; the platform's existing deletion recovery applies",
+      "parentOnResolvedMerge": "keep a valid parent; missing, deleted, cross-Workspace or non-folder parent detaches to the target root without a recovery folder",
+      "rootOrder": "late source roots follow the target's existing roots in raw sort-key/ID order; later explicit moves write a real newly stamped location",
+      "mergeRootMarker": "honored only when the marker's source Workspace resolves through merged_into or a compacted route to the node's Workspace (Crest 126 option 1)"
+    },
+    "compaction": {
+      "retainedLocally": "source and target Workspace IDs, stored with the deletion watermark in the same transaction that removes the tombstone payload",
+      "desktop": "sync_workspace_merge_watermarks(source_id,target_id), read only when joined to a Workspace deletion watermark",
+      "mobile": "CompanionDeletionWatermark.mergedInto in the Snapshot",
+      "ordinaryDeletion": "no route; a compaction without merged_into clears any route for that source",
+      "wire": false,
+      "resurrectionAfterCompaction": "a live or newer record is refused/quarantined as for every compacted entity; an old tombstone replay drains without materializing (Mobile additionally requires the same merged_into)"
+    },
+    "compatibility": {
+      "wireModelVersion": 3,
+      "additive": true,
+      "fieldGroupsCatalogueChanged": false,
+      "readersWithoutField": "ignore it and apply the existing deletion re-homing (ADR 0012 R6)",
+      "vectors": "field merge in fixtures/sync-conformance/merge_v3.json; projection in workspace_merge_projection_v3.json; a post-compaction routing vector is still owed by Crest-hardening"
+    }
   }
 }

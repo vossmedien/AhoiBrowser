@@ -406,6 +406,43 @@ TEST(SyncWorkspaceMergeTest, CompactedMergeChainSurvivesStoreReopen) {
   EXPECT_TRUE(HasRecoveryFolder(*cycle));
 }
 
+TEST(SyncWorkspaceMergeTest, UndoneMergeCompactsWithoutAStaleRoute) {
+  // Only the tombstone that is actually compacted decides the route: an undo
+  // clears merged_into in the tombstone group, so a later ordinary deletion
+  // must not leave a forwarding row from the superseded merge.
+  SyncStore store;
+  ASSERT_TRUE(store.InitializeInMemory());
+  WorkspaceRecord source = Workspace(kSource, "Source", 10);
+  source.tombstone = true;
+  source.merged_into = Id(kTarget);
+  ASSERT_EQ(store.PutLocalRecord(source, "merge"), SyncStore::Result::kOk);
+  WorkspaceRecord revived = Workspace(kSource, "Source", 20);
+  ASSERT_EQ(store.PutLocalRecord(revived, "undo"), SyncStore::Result::kOk);
+  WorkspaceRecord deleted = Workspace(kSource, "Source", 30);
+  deleted.tombstone = true;
+  ASSERT_EQ(store.PutLocalRecord(deleted, "delete"), SyncStore::Result::kOk);
+  const WorkspaceRecord target = Workspace(kTarget, "Target", 10);
+  ASSERT_EQ(store.PutLocalRecord(target, "target"), SyncStore::Result::kOk);
+  ASSERT_EQ(store.AcknowledgeOutbox({"merge", "undo", "delete"}),
+            SyncStore::Result::kOk);
+  ASSERT_EQ(store.CompactExpiredTombstones(base::Time::Now() + base::Days(31),
+                                          base::Days(30)),
+            SyncStore::Result::kOk);
+  SyncRecord record;
+  EXPECT_EQ(store.GetRecord(EntityType::kWorkspace, Id(kSource), &record),
+            SyncStore::Result::kNotFound);
+  std::map<base::Uuid, base::Uuid> routes;
+  ASSERT_EQ(store.ReadCompactedWorkspaceMergeTargets(&routes),
+            SyncStore::Result::kOk);
+  EXPECT_TRUE(routes.empty());
+
+  // A late Page of the plainly deleted Workspace keeps the generic recovery.
+  const auto applied = ReconcileTabTreeRecords(
+      {}, {target}, {Page(kNode, Id(kSource))}, routes);
+  ASSERT_TRUE(applied);
+  EXPECT_TRUE(HasRecoveryFolder(*applied));
+}
+
 TEST(SyncWorkspaceMergeTest, TailProjectionPreservesExplicitMovesAndRebases) {
   WorkspaceRecord source = Workspace(kSource, "Source", 10);
   source.tombstone = true;

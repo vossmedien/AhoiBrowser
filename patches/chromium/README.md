@@ -1,5 +1,36 @@
 # Chromium M153 patch ledger
 
+## `0079-ahoi-own-safe-storage-keychain-item.patch`
+
+- **Owner:** Desktop (crest-hardening handoff 148). Ahoi used Chromium's
+  default OSCrypt Keychain item `Chromium Safe Storage` / `Chromium`, so
+  every Chromium build on the Mac shared its cookie and password key,
+  guarded only by the Keychain ACL.
+- **Change:** `components/os_crypt/common/keychain_password_mac.mm`, the
+  single M153 reader of the item (OSCrypt async's `KeychainKeyProvider` goes
+  through `KeychainPassword`; there is no sync backend any more), names the
+  non-Chrome-branded item `Ahoi Safe Storage` / `Ahoi`. When that item is
+  missing, `GetPasswordImpl` first reads the legacy item: if it exists, its
+  exact bytes are added as Ahoi's item and returned, so the derived key,
+  `Secure Preferences` MACs, cookies, passwords and extensions stay valid;
+  otherwise a random secret is created as upstream does.
+- **Safety:** the legacy item is only read, never updated or deleted. A
+  failed copy still returns the legacy secret and the next start retries;
+  a legacy lookup error other than "not found" (for example a denied
+  prompt) returns an error instead of minting a new key that would orphan
+  existing data. An unreadable Ahoi item never falls through to the legacy
+  item. Chrome branding keeps its item and skips the migration.
+- **Tests:** `components_unittests`
+  `--gtest_filter='AhoiKeychainPasswordTest.*:KeychainPasswordTest.*'`
+  (new `ahoi_keychain_password_mac_unittest.mm`, an in-memory keychain
+  subclassing `crypto::apple::FakeKeychainV2`; no real Keychain access).
+  Visible: an existing dev profile keeps cookies, saved passwords and
+  extensions across the upgrade; a fresh profile leaves `Chromium Safe
+  Storage` untouched.
+- **Rebase/removal:** low; two hunks in `keychain_password_mac.mm`, one
+  comment in the header, one test source and one dep in
+  `components/os_crypt/common/BUILD.gn`. No other patch touches these files.
+
 ## `0078-ahoi-http-auth-full-saved-account-list.patch`
 
 - **Owner:** Desktop (HTTP auth, AUTH-03/AUTH-06; defect found on installed

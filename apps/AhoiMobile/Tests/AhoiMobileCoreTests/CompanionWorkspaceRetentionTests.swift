@@ -130,6 +130,40 @@ final class CompanionWorkspaceRetentionTests: XCTestCase {
         XCTAssertTrue(compacted)
     }
 
+    /// Only the compacted tombstone decides the route: an undo clears
+    /// `mergedInto`, so a later ordinary deletion leaves no forwarding target.
+    func testUndoneMergeCompactsWithoutAStaleRoute() async throws {
+        let repository = LocalFirstRepository(store: InMemoryCompanionStore())
+        let source = try await repository.createWorkspace(name: "Source")
+        let target = try await repository.createWorkspace(name: "Target")
+        let offline = LocalFirstRepository(store: InMemoryCompanionStore(
+            snapshot: try await repository.currentSnapshot()))
+        let receipt = try await repository.mergeWorkspace(
+            source.id, into: target.id, intoFolder: false)
+        let revived = try await repository.undoWorkspaceMerge(receipt).workspace
+        XCTAssertNil(revived.mergedInto)
+        let deleted = try await repository.deleteWorkspace(source.id).workspace
+        XCTAssertNil(deleted.mergedInto)
+        let late = try await offline.createTreeNode(
+            workspaceID: source.id, kind: .savedPage, title: "Late",
+            url: "https://example.test/late")
+        _ = try await repository.upsert(late)
+        let expiry = try XCTUnwrap(deleted.tombstone?.purgeAfterMilliseconds)
+        let floor = try XCTUnwrap(deleted.tombstone).deletedAt.physicalMilliseconds
+            + 30 * 24 * 60 * 60 * 1_000
+        let compacted = try await repository.compactWorkspaceTombstone(
+            matching: deleted, nowMilliseconds: max(expiry, floor))
+        XCTAssertTrue(compacted)
+
+        let snapshot = try await repository.currentSnapshot()
+        XCTAssertFalse(snapshot.workspaces.contains { $0.id == source.id })
+        XCTAssertEqual(snapshot.deletionWatermarks.count, 1)
+        XCTAssertEqual(snapshot.deletionWatermarks[0].version, deleted.version)
+        XCTAssertNil(snapshot.deletionWatermarks[0].mergedInto)
+        XCTAssertNil(snapshot.liveWorkspaceDestination(source.id))
+        XCTAssertNotEqual(snapshot.presentationNode(late.id)?.workspaceID, target.id)
+    }
+
 #if DEBUG
     func testTransientCompactionLeaseLossDefersWithoutThrowing() async throws {
         let (bridge, repository, transport, sourceID, expiry) = try await makeMergeBridge()
