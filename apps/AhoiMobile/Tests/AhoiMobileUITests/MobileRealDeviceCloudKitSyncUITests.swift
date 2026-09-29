@@ -74,9 +74,10 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
         // 3. Create one recognizable normal tab through the visible address UI.
         closeSettings(in: app)
         navigateOnDevice(to: tabURL, in: app)
+        // example.com localizes its body per visitor; its single link is stable.
         XCTAssertTrue(
-            app.webViews.staticTexts["Example Domain"].waitForExistence(timeout: 30),
-            "The recognizable test page must load."
+            app.webViews.links.firstMatch.waitForExistence(timeout: 30),
+            "The recognizable test page must load its content."
         )
         capture("test-tab-loaded", app)
 
