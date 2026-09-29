@@ -165,7 +165,7 @@ await_account 'check.html?kunde-after' "|" 30 && record ownWorkspaceLoggedOut tr
 # A2 step 4: per-site "Delete data" removes only that site in Kunde.
 open_url "$SITE/login.html?site-a"
 open_url "$OTHER/login.html?site-b"
-[ "$(account_of 'login.html?site-a')" = "acct=site-a|site-a" ] && [ "$(account_of 'login.html?site-b')" = "acct=site-b|site-b" ] \
+await_account 'login.html?site-a' "acct=site-a|site-a" 15 && await_account 'login.html?site-b' "acct=site-b|site-b" 15 \
   && record perSiteSetup true || record perSiteSetup false
 open_url "chrome://settings/content/all"
 R=$(settings_chrome_send settings/content/all clearUnpartitionedUsage "[\"$SITE/\"]")
@@ -178,7 +178,9 @@ await_account 'check.html?site-a-after' "|" 30 && record siteDataDeleted true ||
 # Review follow-up: a site-details page clears its host, not its eTLD+1.
 open_url "$SUB_A/login.html?sub-a"
 open_url "$SUB_B/login.html?sub-b"
-[ "$(account_of 'login.html?sub-a')" = "acct=sub-a|sub-a" ] && [ "$(account_of 'login.html?sub-b')" = "acct=sub-b|sub-b" ] \
+# The login pages set their account by script after load (build 49 read
+# sub-a too early); wait for it like the other setups.
+await_account 'login.html?sub-a' "acct=sub-a|sub-a" 15 && await_account 'login.html?sub-b' "acct=sub-b|sub-b" 15 \
   && record subdomainSetup true || record subdomainSetup false
 open_url "chrome://settings/content/all"
 R=$(settings_chrome_send settings/content/all clearUnpartitionedUsage "[\"$SUB_A/\"]")
