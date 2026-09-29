@@ -1,0 +1,25 @@
+Zeigt die gewünschte Desktop-Konfiguration. Chromium-Erweiterungen laufen nicht auf iOS.
+Sync
+Status, Bereit
+Verschlüsselung, Verschlüsselung bereit
+Synchronisiert
+Verlauf
+Abgelaufene Besuche werden in Sync-Löschmarken umgewandelt, damit die Löschung auf deine anderen Geräte übertragen wird.
+Geräte
+iPhone
+Dieses Gerät
+30 Sek.
+Online
+Das Entfernen stoppt Ahoi Sync und Fernbefehle für das Gerät in den aktuellen Datensätzen. Da der verschlüsselte Nutzdaten-Schlüssel derzeit geteilt wird, ist dies noch keine vollständige kryptografische Isolierung pro Gerät.
+Fernsteuerung
+Signaturschlüssel, 16:f7:b2:cc:40:a6:fd:f7:8e:0f:4e:1f
+Dieses iPhone oder iPad muss auf jedem Mac freigegeben werden, bevor es Befehle senden kann.
+Unterstützte Erweiterungseinstellungen anzeigen
+CloudKit-Sync
+Status, Bereit
+Status
+Verschlüsselung, Verschlüsselung bereit
+Verschlüsselung
+Jetzt synchronisieren
+90 Tage
+Signaturschlüssel wechseln

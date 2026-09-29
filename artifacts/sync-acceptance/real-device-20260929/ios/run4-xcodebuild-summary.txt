@@ -1,0 +1,4 @@
+Test Case '-[AhoiMobileUITests.MobileRealDeviceCloudKitSyncUITests testRealDeviceOptInReachesReadyAndUploadsRecognizableTab]' started.
+Test Case '-[AhoiMobileUITests.MobileRealDeviceCloudKitSyncUITests testRealDeviceOptInReachesReadyAndUploadsRecognizableTab]' passed (121.714 seconds).
+** TEST EXECUTE SUCCEEDED **
+EXIT 0
