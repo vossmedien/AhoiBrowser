@@ -1,5 +1,38 @@
 # Chromium M153 patch ledger
 
+## `0078-ahoi-http-auth-full-saved-account-list.patch`
+
+- **Owner:** Desktop (HTTP auth, AUTH-03/AUTH-06; defect found on installed
+  build 50). The login dialog's username field is a Views
+  `EditableCombobox` created with `filter_on_edit=true`, which lists only
+  items starting with the field's text. Because `OnSavedCredentials`
+  prefills the preferred account, and a failed attempt keeps the typed
+  name, the arrow menu showed that one account and hid the others until the
+  field was cleared.
+- **Change:** `LoginView` creates the combobox with `filter_on_edit=false`
+  and filters its own `SimpleComboboxModel`: `RefreshSavedAccountModel`
+  asks `ahoi::SelectSavedAccountMenuEntries` (overlay
+  `ahoi/browser/http_auth/http_auth_saved_account_menu.{h,cc}`, new
+  `:saved_account_menu` source set, only `//base` and `//base:i18n`) and
+  `OnUsernameChanged` refreshes it; the combobox updates its menu after that
+  callback, as upstream intends. An empty field or one naming a saved
+  account (case folded, surrounding whitespace ignored) lists every account
+  in preferred order; other text narrows by case-folded prefix; a new name
+  lists nothing. `//chrome/browser/ui/views:login_view` gains that one dep.
+- **Safety:** only the menu contents change. Filling the password, the
+  preferred/delete actions and the update label still require the exact
+  saved username (`FindSavedCredential`); nothing is chosen or submitted
+  automatically, and incognito still loads accounts only on the explicit
+  "use saved account" gesture.
+- **Tests:** `ahoi_http_auth_unittests`
+  (`http_auth_saved_account_menu_unittest.cc`) and
+  `tools/desktop_e2e/http-auth-journey.sh`, whose account menu now opens
+  with the arrow button without clearing the prefilled name, on the exact
+  candidate.
+- **Rebase/removal:** low; four hunks in `login_view.cc` (0001, 0011) and
+  one dep line in `chrome/browser/ui/views/BUILD.gn`. Regenerate against a
+  checkout with patches 0001–0077 applied.
+
 ## `0077-ahoi-peek-original-request-and-blank-links.patch`
 
 - **Owner:** Desktop (Crest adoption A1 and A4, Crest 02b7f9d6 and

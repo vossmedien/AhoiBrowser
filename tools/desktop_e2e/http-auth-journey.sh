@@ -396,20 +396,20 @@ login() { # <user> <password> <save-option-label or ''>
   ax press $PID "AXButton:Anmelden"; }
 menu_items() { $AX dump $PID 45 | awk '/AXMenuBar$/{exit} {print}' | grep -o -E 'AXMenuItem \| [a-z]+ \|' \
     | sort -u | awk '{print $3}' | tr '\n' ' '; }
-# The username field is a Views EditableCombobox (filter_on_edit, show_on_empty):
-# its menu lists only accounts starting with the field's text, so a prefilled
-# "alice" hides "bob". Clearing the field opens the full list by itself; the
-# arrow button toggles the menu. Never close it with Escape: without an open
-# menu Escape cancels the login dialog (build 50 lost the realm-B, port,
+# The username field is a Views EditableCombobox whose menu LoginView filters
+# (patch 0078): while the field is empty or names a saved account (the
+# prefilled preferred one, a menu choice, the name kept after a failure) it
+# lists every account; other text narrows it by prefix. Open it with the
+# arrow button and never clear the field first: a prefilled "alice" must
+# still offer "bob" (build 50 hid it). Never close it with Escape: without an
+# open menu Escape cancels the login dialog (build 50 lost the realm-B, port,
 # Digest, /z/, preferred-account and proxy dialogs that way).
 menu_open() { [ -n "$(menu_items)" ]; }
 open_account_menu() {
   ax focus $PID "AXTextField:Nutzername" || return 1
-  ax key $PID 0 cmd; ax key $PID 51
-  local end=$(( $(date +%s) + 2 ))
-  while [ $(date +%s) -lt $end ]; do menu_open && return 0; sleep 0.5; done
+  echo "-- account menu opened over \"$(prefilled)\"" >> "$OUT/steps.txt"
   ax press $PID "AXButton:Nutzername"
-  end=$(( $(date +%s) + 3 ))
+  local end=$(( $(date +%s) + 3 ))
   while [ $(date +%s) -lt $end ]; do menu_open && return 0; sleep 0.5; done
   return 1; }
 close_account_menu() { menu_open || return 0
