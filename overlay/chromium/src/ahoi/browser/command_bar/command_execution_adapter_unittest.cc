@@ -344,6 +344,14 @@ TEST_F(CommandExecutionAdapterTest, MoveToWorkspaceItemsRouteToTheDelegate) {
                 .front()
                 .title,
             u"Move to Workspace: Work");
+  EXPECT_TRUE(item.secondary_text.empty());
+  // WS-ISO-05: a Workspace of another Profile says that sign-ins stay.
+  EXPECT_EQ(internal::BuildMoveToWorkspaceCommands(
+                {{.id = work, .name = u"Work", .separate_sign_ins = true}},
+                /*german=*/true)
+                .front()
+                .secondary_text,
+            u"Anmeldungen ziehen nicht mit");
   // The index accepts the items next to the other browser commands.
   EXPECT_TRUE(command_service_.ReplaceItems(CommandItemType::kBrowserCommand,
                                             items));

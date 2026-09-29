@@ -36,6 +36,9 @@ inline constexpr char kMoveToWorkspaceCommandPrefix[] = "move-to-workspace.";
 struct MoveToWorkspaceTarget {
   base::Uuid id;
   std::u16string name;
+  // ADR 0011 WS-ISO-05: the Workspace lives in another Profile, so the item
+  // says that sign-ins stay behind.
+  bool separate_sign_ins = false;
 };
 
 // One browser-command item per target, findable by the command's words in

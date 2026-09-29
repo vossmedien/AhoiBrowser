@@ -142,6 +142,10 @@ std::vector<CommandItem> BuildMoveToWorkspaceCommands(
         .stable_id = std::string(kMoveToWorkspaceCommandPrefix) +
                      target.id.AsLowercaseString(),
         .title = prefix + target.name,
+        .secondary_text =
+            !target.separate_sign_ins ? std::u16string()
+            : german                  ? u"Anmeldungen ziehen nicht mit"
+                                      : u"Sign-ins don't move along",
         .keywords = {u"in workspace verschieben", u"move to workspace",
                      u"verschieben", u"move", target.name},
         .priority = 180,

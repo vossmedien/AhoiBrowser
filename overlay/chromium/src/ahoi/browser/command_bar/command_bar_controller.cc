@@ -15,6 +15,7 @@
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/session/command_service_factory.h"
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/ui/modal_overlay_controller.h"
@@ -613,6 +614,13 @@ void CommandBarController::PublishBrowserCommands() {
       targets.reserve(workspaces.size());
       for (const tab_tree::Workspace& workspace : workspaces) {
         targets.push_back({.id = workspace.id, .name = workspace.name});
+      }
+      // WS-ISO-05: other Profiles' Workspaces reopen the item there.
+      for (const auto& other :
+           session::ListOtherProfileWorkspaces(browser_->GetProfile())) {
+        targets.push_back({.id = other.workspace_id,
+                           .name = other.name,
+                           .separate_sign_ins = true});
       }
       const bool german =
           base::i18n::GetConfiguredLocale().starts_with("de");
