@@ -1,0 +1,9 @@
+{
+ "results": {
+  "PRIV-08_exception_active_after_reload": "PASS",
+  "PRIV-10_protection_without_ubo": "PASS",
+  "PRIV-08_exception_survives_restart": "PASS",
+  "PRIV-09_exception_removed_restores_strict": "PASS"
+ },
+ "pass": true
+}

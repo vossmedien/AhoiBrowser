@@ -1,0 +1,15 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey refused: target not frontmost
+hidkey 17
+typed 32
+hidkey 36
+hidkey 12

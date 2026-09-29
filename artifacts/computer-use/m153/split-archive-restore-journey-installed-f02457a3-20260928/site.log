@@ -1,0 +1,6 @@
+127.0.0.1 - - [28/Sep/2026 15:20:34] "GET /left.html HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 15:20:36] code 404, message File not found
+127.0.0.1 - - [28/Sep/2026 15:20:36] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [28/Sep/2026 15:20:42] "GET /right.html HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 15:21:13] "GET /right.html HTTP/1.1" 304 -
+127.0.0.1 - - [28/Sep/2026 15:21:13] "GET /left.html HTTP/1.1" 304 -

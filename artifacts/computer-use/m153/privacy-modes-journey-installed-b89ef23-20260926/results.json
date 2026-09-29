@@ -1,0 +1,18 @@
+{
+ "results": {
+  "PRIV-17_default_mode": "FAIL:[object Object]",
+  "PRIV-17_default_unchanged": "PASS",
+  "PRIV-01_first_party_login": "PASS",
+  "PRIV-02_third_party_cookie_blocked": "INCONCLUSIVE:default-run-could-not-set:",
+  "PRIV-03_chips_in_strict": "FAIL:",
+  "PRIV-04_gpc_js_signal": "FAIL:strict=undefined,default=undefined",
+  "PRIV-04_gpc_subresource": "PASS",
+  "PRIV-04_gpc": "PASS",
+  "PRIV-05_referrer_origin_only": "PASS",
+  "PRIV-05_tracking_parameter_stripped": "PASS",
+  "PRIV-06_ad_apis_disabled": "FAIL:measurement=[object Object]",
+  "PRIV-15_standard_not_enhanced": "FAIL:sb=[object Object],enhanced=[object Object]",
+  "PRIV-18_no_api_key_infobar": "PASS"
+ },
+ "pass": false
+}

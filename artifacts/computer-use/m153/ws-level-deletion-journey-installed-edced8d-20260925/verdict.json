@@ -1,0 +1,9 @@
+{
+ "dialogClosed_Kunde": true,
+ "levelChoiceShown": true,
+ "loginInOwnWorkspace": true,
+ "menuNamesLevel": true,
+ "sharedWorkspaceNotLoggedIn": true,
+ "setupFailed": "switch to Kunde failed",
+ "pass": false
+}

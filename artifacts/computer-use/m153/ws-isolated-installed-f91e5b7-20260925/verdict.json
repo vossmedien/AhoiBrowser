@@ -1,0 +1,10 @@
+{
+ "ownWindowCreated": true,
+ "noProfilePicker": true,
+ "secondWindow": true,
+ "loginInSeparated": true,
+ "handOverToMain": true,
+ "separatedHidden": true,
+ "setupFailed": "did not load http://127.0.0.1:8793/check.html",
+ "pass": false
+}

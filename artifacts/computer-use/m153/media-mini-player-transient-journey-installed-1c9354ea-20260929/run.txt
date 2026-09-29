@@ -1,0 +1,1 @@
+pid=53901 profile=/private/tmp/ahoi-miniplayer-profile.WGrXBq

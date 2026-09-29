@@ -1,0 +1,185 @@
+objc[74382]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142668a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127740a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74382]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x110724188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11732a430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[74382:4993556:0928/152302.144832:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:98] error removing quarantine attribute "/var/folders/zn/wn74lz2s2bsfp734gbqytmpr0000gn/X/"
+[74382:4993556:0928/152302.170077:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:98] error removing quarantine attribute "/var/folders/zn/wn74lz2s2bsfp734gbqytmpr0000gn/X/"
+
+DevTools listening on ws://127.0.0.1:9346/devtools/browser/16765c2d-8841-47d2-b827-b24776f9dfcd
+[74382:4993039:0928/152302.976560:ERROR:ahoi/browser/updater/sparkle_runtime_mac.mm:148] Ahoi updater disabled (fail closed): missing-feed-url
+objc[74488]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142148a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127220a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74488]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11e81c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x116e0a430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74489]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x143798a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x128870a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74489]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11fa08188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11845a430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74487]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x14427ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x129354a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74487]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x112468188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x118f3e430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74486]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x143e88a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x128f60a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74486]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x12055c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x118b4a430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74492]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x141da8a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x126e80a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74492]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11002c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x116a6a430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74500]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x140424a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1254fca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74500]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11c590188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1150e6430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74499]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x13fc38a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x124d10a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[74499]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x10dd78188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1148fa430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[74382:4993039:0928/152321.696022:FATAL:base/observer_list.h:192] Check failed: !check_reentrancy || reentrancy != ObserverListReentrancyPolicy::kDisallowReentrancy || list_.IsOnlyRemainingNode(). 
+0   libbase.dylib                       0x00000001039439a8 base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   libbase.dylib                       0x00000001039253a0 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   libbase.dylib                       0x00000001037d7d2c logging::LogMessage::Flush() + 172
+3   libbase.dylib                       0x00000001037d7bd0 logging::LogMessage::~LogMessage() + 36
+4   libbase.dylib                       0x00000001037b7198 logging::(anonymous namespace)::CheckLogMessage::~CheckLogMessage() + 76
+5   libbase.dylib                       0x00000001037b6b8c logging::CheckError::~CheckError() + 44
+6   libbase.dylib                       0x00000001037b6bec logging::CheckError::~CheckError() + 12
+7   libchrome_dll.dylib                 0x00000001118121bc base::ObserverList<ahoi::CommandServiceObserver, false, (base::ObserverListReentrancyPolicy)0, base::internal::CheckedObserverAdapter>::Iter<true>::Iter(base::ObserverList<ahoi::CommandServiceObserver, false, (base::ObserverListReentrancyPolicy)0, base::internal::CheckedObserverAdapter> const*) + 216
+8   libchrome_dll.dylib                 0x000000011180dd60 ahoi::CommandService::ReplaceItems(ahoi::CommandItemType, std::__Cr::vector<ahoi::CommandItem, std::__Cr::allocator<ahoi::CommandItem>>) + 1808
+9   libchrome_dll.dylib                 0x0000000113394fc0 ahoi::CommandBarController::PublishBrowserCommands() + 15340
+10  libchrome_dll.dylib                 0x000000011180df30 ahoi::CommandService::ReplaceItems(ahoi::CommandItemType, std::__Cr::vector<ahoi::CommandItem, std::__Cr::allocator<ahoi::CommandItem>>) + 2272
+11  libchrome_dll.dylib                 0x0000000113eaaea8 ahoi::SessionBridge::PublishCommandItems() + 5960
+12  libchrome_dll.dylib                 0x0000000113ea773c non-virtual thunk to ahoi::SessionBridge::OnActiveWorkspaceChanged(base::Uuid const&, std::__Cr::optional<base::Uuid> const&, std::__Cr::optional<base::Uuid> const&, ahoi::WorkspaceActivationSource) + 84
+13  libchrome_dll.dylib                 0x0000000111816398 ahoi::WorkspaceService::SetActiveWorkspace(base::Uuid const&, base::Uuid const&, ahoi::WorkspaceActivationSource) + 792
+14  libchrome_dll.dylib                 0x0000000113eb6d40 ahoi::SessionBridge::SetActiveWorkspaceForWindow(BrowserWindowInterface*, base::Uuid const&, ahoi::WorkspaceActivationSource) + 276
+15  libchrome_dll.dylib                 0x0000000113e9fe90 ahoi::SessionBridge::ActivateTabInItsWorkspace(tabs::TabInterface*, ahoi::WorkspaceActivationSource, bool) + 424
+16  libchrome_dll.dylib                 0x000000011339a35c ahoi::(anonymous namespace)::BrowserCommandExecutionDelegate::ActivateOpenTab(ahoi::CommandItem const&) + 176
+17  libchrome_dll.dylib                 0x00000001133a323c ahoi::CommandExecutionAdapter::ExecuteItem(ahoi::CommandItem const&, ahoi::CommandBarDisposition) + 172
+18  libchrome_dll.dylib                 0x00000001133981f4 _ZN4base8internal7InvokerINS0_13FunctorTraitsIRKZN4ahoi20CommandBarController4ShowENS3_21CommandBarDispositionEE3$_1JRKNS_7WeakPtrIS4_EEEEENS0_9BindStateILb0ELb0ELb0ES6_JSA_EEEFbRKNS3_20CommandBarSuggestionENSt4__Cr17basic_string_viewIDsNSJ_11char_traitsIDsEEEEEE3RunEPNS0_13BindStateBaseESI_OSN_ + 216
+19  libchrome_dll.dylib                 0x000000011339f6d0 base::RepeatingCallback<bool (ahoi::CommandBarSuggestion const&, std::__Cr::basic_string_view<char16_t, std::__Cr::char_traits<char16_t>>)>::Run(ahoi::CommandBarSuggestion const&, std::__Cr::basic_string_view<char16_t, std::__Cr::char_traits<char16_t>>) const & + 144
+20  libchrome_dll.dylib                 0x000000011339ef2c ahoi::CommandBarView::AcceptSelection() + 596
+21  libui_views.dylib                   0x000000011e7d7258 views::Textfield::OnKeyPressed(ui::KeyEvent const&) + 108
+22  libui_views.dylib                   0x000000011e83a220 non-virtual thunk to views::View::OnKeyEvent(ui::KeyEvent*) + 48
+23  libui_events.dylib                  0x000000010547dfc8 ui::EventDispatcher::ProcessEvent(ui::EventTarget*, ui::Event*) + 396
+24  libui_events.dylib                  0x000000010547dd88 ui::EventDispatcherDelegate::DispatchEventToTarget(ui::EventTarget*, ui::Event*) + 72
+25  libui_events.dylib                  0x000000010547dc6c ui::EventDispatcherDelegate::DispatchEvent(ui::EventTarget*, ui::Event*) + 108
+26  libui_events.dylib                  0x0000000105480744 ui::EventProcessor::OnEventFromSource(ui::Event*) + 892
+27  libui_views.dylib                   0x000000011e85f518 views::Widget::OnKeyEvent(ui::KeyEvent*) + 32
+28  libui_views.dylib                   0x000000011e89b8f0 views::NativeWidgetMac::DispatchKeyEventPostIME(ui::KeyEvent*) + 128
+29  libui_base_ime.dylib                0x00000001083c7370 ui::InputMethodBase::DispatchKeyEventPostIME(ui::KeyEvent*) const + 84
+30  libcomponents_remote_cocoa_app_shim 0x000000011f01fe14 -[BridgedContentView handleKeyEvent:] + 104
+31  libcomponents_remote_cocoa_app_shim 0x000000011f01fe98 -[BridgedContentView handleUnhandledKeyDownAsKeyEvent] + 116
+32  libcomponents_remote_cocoa_app_shim 0x000000011f020e1c -[BridgedContentView keyDown:] + 328
+33  AppKit                              0x00000001a0a3ae38 -[NSWindow(NSEventRouting) _reallySendEvent:isDelayedEvent:] + 304
+34  AppKit                              0x00000001a0a3ab70 -[NSWindow(NSEventRouting) sendEvent:] + 304
+35  libcomponents_remote_cocoa_app_shim 0x000000011f02e61c -[NativeWidgetMacNSWindow sendEvent:] + 1124
+36  AppKit                              0x00000001a118ab7c -[NSApplication(NSEventRouting) sendEvent:] + 736
+37  libchrome_dll.dylib                 0x0000000111948b40 __34-[BrowserCrApplication sendEvent:]_block_invoke + 308
+38  libbase.dylib                       0x000000010394fa84 base::apple::CallWithEHFrame(void () block_pointer) + 16
+39  libchrome_dll.dylib                 0x0000000111948814 -[BrowserCrApplication sendEvent:] + 1156
+40  AppKit                              0x00000001a0cb0d48 -[NSApplication _handleEvent:] + 60
+41  AppKit                              0x00000001a090795c -[NSApplication run] + 476
+42  libbase.dylib                       0x00000001039595a0 base::MessagePumpNSApplication::DoRun(base::MessagePump::Delegate*) + 316
+43  libbase.dylib                       0x0000000103957d14 base::MessagePumpCFRunLoopBase::Run(base::MessagePump::Delegate*) + 120
+44  libbase.dylib                       0x00000001038b8fa8 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 684
+45  libbase.dylib                       0x00000001038482bc base::RunLoop::Run(base::Location const&) + 436
+46  libcontent.dylib                    0x0000000122440974 content::BrowserMainLoop::RunMainMessageLoop() + 232
+47  libcontent.dylib                    0x0000000122442e04 content::BrowserMainRunnerImpl::Run() + 140
+48  libcontent.dylib                    0x000000012243de78 content::BrowserMain(content::MainFunctionParams) + 132
+49  libcontent.dylib                    0x00000001234510a0 content::RunBrowserProcessMain(content::MainFunctionParams, content::ContentMainDelegate*) + 136
+50  libcontent.dylib                    0x0000000123452840 content::ContentMainRunnerImpl::RunBrowser(content::MainFunctionParams, bool) + 1356
+51  libcontent.dylib                    0x0000000123452290 content::ContentMainRunnerImpl::Run() + 792
+52  libcontent.dylib                    0x000000012345072c content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 1012
+53  libcontent.dylib                    0x00000001234508f0 content::ContentMain(content::ContentMainParams) + 112
+54  libchrome_dll.dylib                 0x0000000110993184 ChromeMain + 388
+55  AhoiBrowser                         0x0000000102bbc6dc main + 292
+56  dyld                                0x000000019bec7e80 start + 6688
+Crash keys:
+  "ax_mode" = "kNativeAPIs | kWebContents"
+  "nsevent" = "NSEvent type=10 modifierFlags=0x0 locationInWindow=(0,326) keyCode=0x36 ARepeat=0 characters='' unmodifiedCharacters=''"
+  "component-extension-1" = "Chromium PDF Viewer"
+  "num-component-extensions" = "1"
+  "num-extensions" = "0"
+  "chrome-trace-id" = "10170492403929062179"
+  "reentry_guard_tls_slot" = "389"
+  "switch-5" = "about:blank"
+  "switch-4" = "--remote-debugging-port=9346"
+  "switch-3" = "--no-default-browser-check"
+  "switch-2" = "--no-first-run"
+  "switch-1" = "--user-data-dir=/private/tmp/ahoi-wsdelx-profile.vfF5Df"
+  "num-switches" = "9"
+  "commandline-disabled-feature-21" = "AIWriterAPI"
+  "commandline-disabled-feature-20" = "AISummarizationAPI"
+  "commandline-disabled-feature-19" = "AIRewriterAPI"
+  "commandline-disabled-feature-18" = "AIProofreadingAPI"
+  "commandline-disabled-feature-17" = "AIPromptAPI"
+  "commandline-disabled-feature-16" = "HistoryEmbeddingsAnswers"
+  "commandline-disabled-feature-15" = "HistoryEmbeddings"
+  "commandline-disabled-feature-14" = "BuiltInAIEagerInit"
+  "commandline-disabled-feature-13" = "ModelQualityLogging"
+  "commandline-disabled-feature-12" = "OptimizationGuideManifestBroker"
+  "commandline-disabled-feature-11" = "OptimizationGuideOnDeviceModel"
+  "commandline-disabled-feature-10" = "OptimizationGuideModelExecution"
+  "commandline-disabled-feature-9" = "OptimizationHintsFetchingSRP"
+  "commandline-disabled-feature-8" = "OptimizationHints"
+  "commandline-disabled-feature-7" = "ContextualTasksContext"
+  "commandline-disabled-feature-6" = "ContextualTasksSidePanel"
+  "commandline-disabled-feature-5" = "ContextualTasks"
+  "commandline-disabled-feature-4" = "AimServerRequestOnIdentityChangeEnabled"
+  "commandline-disabled-feature-3" = "AimServerRequestOnStartupEnabled"
+  "commandline-disabled-feature-2" = "AimServerEligibilityEnabled"
+  "commandline-disabled-feature-1" = "AimEnabled"
+  "commandline-enabled-feature-1" = "SplitViewHorizontal"
+  "osarch" = "arm64"
+  "pid" = "74382"
+  "ptype" = "browser"
+
+Received signal 6
+0   libbase.dylib                       0x00000001039439a8 base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   libbase.dylib                       0x00000001039253a0 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   libbase.dylib                       0x0000000103943894 base::debug::(anonymous namespace)::StackDumpSignalHandler(int, __siginfo*, void*) + 924
+3   libsystem_platform.dylib            0x000000019c2a8144 _sigtramp + 56
+4   libsystem_pthread.dylib             0x000000019c29d97c pthread_kill + 296
+5   libsystem_c.dylib                   0x000000019c1a0458 abort + 148
+6   libbase.dylib                       0x00000001037d88bc logging::LogMessage::HandleFatal(unsigned long, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>> const&) const + 456
+7   libbase.dylib                       0x00000001037d832c logging::LogMessage::Flush() + 1708
+8   libbase.dylib                       0x00000001037d7bd0 logging::LogMessage::~LogMessage() + 36
+9   libbase.dylib                       0x00000001037b7198 logging::(anonymous namespace)::CheckLogMessage::~CheckLogMessage() + 76
+10  libbase.dylib                       0x00000001037b6b8c logging::CheckError::~CheckError() + 44
+11  libbase.dylib                       0x00000001037b6bec logging::CheckError::~CheckError() + 12
+12  libchrome_dll.dylib                 0x00000001118121bc base::ObserverList<ahoi::CommandServiceObserver, false, (base::ObserverListReentrancyPolicy)0, base::internal::CheckedObserverAdapter>::Iter<true>::Iter(base::ObserverList<ahoi::CommandServiceObserver, false, (base::ObserverListReentrancyPolicy)0, base::internal::CheckedObserverAdapter> const*) + 216
+13  libchrome_dll.dylib                 0x000000011180dd60 ahoi::CommandService::ReplaceItems(ahoi::CommandItemType, std::__Cr::vector<ahoi::CommandItem, std::__Cr::allocator<ahoi::CommandItem>>) + 1808
+14  libchrome_dll.dylib                 0x0000000113394fc0 ahoi::CommandBarController::PublishBrowserCommands() + 15340
+15  libchrome_dll.dylib                 0x000000011180df30 ahoi::CommandService::ReplaceItems(ahoi::CommandItemType, std::__Cr::vector<ahoi::CommandItem, std::__Cr::allocator<ahoi::CommandItem>>) + 2272
+16  libchrome_dll.dylib                 0x0000000113eaaea8 ahoi::SessionBridge::PublishCommandItems() + 5960
+17  libchrome_dll.dylib                 0x0000000113ea773c non-virtual thunk to ahoi::SessionBridge::OnActiveWorkspaceChanged(base::Uuid const&, std::__Cr::optional<base::Uuid> const&, std::__Cr::optional<base::Uuid> const&, ahoi::WorkspaceActivationSource) + 84
+18  libchrome_dll.dylib                 0x0000000111816398 ahoi::WorkspaceService::SetActiveWorkspace(base::Uuid const&, base::Uuid const&, ahoi::WorkspaceActivationSource) + 792
+19  libchrome_dll.dylib                 0x0000000113eb6d40 ahoi::SessionBridge::SetActiveWorkspaceForWindow(BrowserWindowInterface*, base::Uuid const&, ahoi::WorkspaceActivationSource) + 276
+20  libchrome_dll.dylib                 0x0000000113e9fe90 ahoi::SessionBridge::ActivateTabInItsWorkspace(tabs::TabInterface*, ahoi::WorkspaceActivationSource, bool) + 424
+21  libchrome_dll.dylib                 0x000000011339a35c ahoi::(anonymous namespace)::BrowserCommandExecutionDelegate::ActivateOpenTab(ahoi::CommandItem const&) + 176
+22  libchrome_dll.dylib                 0x00000001133a323c ahoi::CommandExecutionAdapter::ExecuteItem(ahoi::CommandItem const&, ahoi::CommandBarDisposition) + 172
+23  libchrome_dll.dylib                 0x00000001133981f4 _ZN4base8internal7InvokerINS0_13FunctorTraitsIRKZN4ahoi20CommandBarController4ShowENS3_21CommandBarDispositionEE3$_1JRKNS_7WeakPtrIS4_EEEEENS0_9BindStateILb0ELb0ELb0ES6_JSA_EEEFbRKNS3_20CommandBarSuggestionENSt4__Cr17basic_string_viewIDsNSJ_11char_traitsIDsEEEEEE3RunEPNS0_13BindStateBaseESI_OSN_ + 216
+24  libchrome_dll.dylib                 0x000000011339f6d0 base::RepeatingCallback<bool (ahoi::CommandBarSuggestion const&, std::__Cr::basic_string_view<char16_t, std::__Cr::char_traits<char16_t>>)>::Run(ahoi::CommandBarSuggestion const&, std::__Cr::basic_string_view<char16_t, std::__Cr::char_traits<char16_t>>) const & + 144
+25  libchrome_dll.dylib                 0x000000011339ef2c ahoi::CommandBarView::AcceptSelection() + 596
+26  libui_views.dylib                   0x000000011e7d7258 views::Textfield::OnKeyPressed(ui::KeyEvent const&) + 108
+27  libui_views.dylib                   0x000000011e83a220 non-virtual thunk to views::View::OnKeyEvent(ui::KeyEvent*) + 48
+28  libui_events.dylib                  0x000000010547dfc8 ui::EventDispatcher::ProcessEvent(ui::EventTarget*, ui::Event*) + 396
+29  libui_events.dylib                  0x000000010547dd88 ui::EventDispatcherDelegate::DispatchEventToTarget(ui::EventTarget*, ui::Event*) + 72
+30  libui_events.dylib                  0x000000010547dc6c ui::EventDispatcherDelegate::DispatchEvent(ui::EventTarget*, ui::Event*) + 108
+31  libui_events.dylib                  0x0000000105480744 ui::EventProcessor::OnEventFromSource(ui::Event*) + 892
+32  libui_views.dylib                   0x000000011e85f518 views::Widget::OnKeyEvent(ui::KeyEvent*) + 32
+33  libui_views.dylib                   0x000000011e89b8f0 views::NativeWidgetMac::DispatchKeyEventPostIME(ui::KeyEvent*) + 128
+34  libui_base_ime.dylib                0x00000001083c7370 ui::InputMethodBase::DispatchKeyEventPostIME(ui::KeyEvent*) const + 84
+35  libcomponents_remote_cocoa_app_shim 0x000000011f01fe14 -[BridgedContentView handleKeyEvent:] + 104
+36  libcomponents_remote_cocoa_app_shim 0x000000011f01fe98 -[BridgedContentView handleUnhandledKeyDownAsKeyEvent] + 116
+37  libcomponents_remote_cocoa_app_shim 0x000000011f020e1c -[BridgedContentView keyDown:] + 328
+38  AppKit                              0x00000001a0a3ae38 -[NSWindow(NSEventRouting) _reallySendEvent:isDelayedEvent:] + 304
+39  AppKit                              0x00000001a0a3ab70 -[NSWindow(NSEventRouting) sendEvent:] + 304
+40  libcomponents_remote_cocoa_app_shim 0x000000011f02e61c -[NativeWidgetMacNSWindow sendEvent:] + 1124
+41  AppKit                              0x00000001a118ab7c -[NSApplication(NSEventRouting) sendEvent:] + 736
+42  libchrome_dll.dylib                 0x0000000111948b40 __34-[BrowserCrApplication sendEvent:]_block_invoke + 308
+43  libbase.dylib                       0x000000010394fa84 base::apple::CallWithEHFrame(void () block_pointer) + 16
+44  libchrome_dll.dylib                 0x0000000111948814 -[BrowserCrApplication sendEvent:] + 1156
+45  AppKit                              0x00000001a0cb0d48 -[NSApplication _handleEvent:] + 60
+46  AppKit                              0x00000001a090795c -[NSApplication run] + 476
+47  libbase.dylib                       0x00000001039595a0 base::MessagePumpNSApplication::DoRun(base::MessagePump::Delegate*) + 316
+48  libbase.dylib                       0x0000000103957d14 base::MessagePumpCFRunLoopBase::Run(base::MessagePump::Delegate*) + 120
+49  libbase.dylib                       0x00000001038b8fa8 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 684
+50  libbase.dylib                       0x00000001038482bc base::RunLoop::Run(base::Location const&) + 436
+51  libcontent.dylib                    0x0000000122440974 content::BrowserMainLoop::RunMainMessageLoop() + 232
+52  libcontent.dylib                    0x0000000122442e04 content::BrowserMainRunnerImpl::Run() + 140
+53  libcontent.dylib                    0x000000012243de78 content::BrowserMain(content::MainFunctionParams) + 132
+54  libcontent.dylib                    0x00000001234510a0 content::RunBrowserProcessMain(content::MainFunctionParams, content::ContentMainDelegate*) + 136
+55  libcontent.dylib                    0x0000000123452840 content::ContentMainRunnerImpl::RunBrowser(content::MainFunctionParams, bool) + 1356
+56  libcontent.dylib                    0x0000000123452290 content::ContentMainRunnerImpl::Run() + 792
+57  libcontent.dylib                    0x000000012345072c content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 1012
+58  libcontent.dylib                    0x00000001234508f0 content::ContentMain(content::ContentMainParams) + 112
+59  libchrome_dll.dylib                 0x0000000110993184 ChromeMain + 388
+60  AhoiBrowser                         0x0000000102bbc6dc main + 292
+61  dyld                                0x000000019bec7e80 start + 6688
+[end of stack trace]
+[0928/152321.811837:WARNING:third_party/crashpad/crashpad/util/process/process_memory_mac.cc:94] mach_vm_read(0x16d240000, 0x8000): (os/kern) invalid address (1)
+[0928/152322.654864:WARNING:third_party/crashpad/crashpad/util/numeric/in_range_cast.h:38] value -634136515 out of range

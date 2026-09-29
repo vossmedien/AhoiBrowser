@@ -1,0 +1,45 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Kunde -> true
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+ok
+AXPress AXMenuItem | Link in Vorschau öffnen | itemSelected: -> 0
+peekShown -> true
+peekLoadsLink -> true
+cookie target.html: acct=kunde
+peekKeepsWebsiteSession -> true
+AXPress AXButton | Popup schließen | Popup schließen -> 0
+peekCloses -> true
+peekLeavesNoTab -> true
+pageStateKept -> true
+AXPress AXMenuItem | Link in Vorschau öffnen | itemSelected: -> 0
+marked
+AXPress AXButton | Popup als Tab öffnen | Popup als Tab öffnen -> 0
+promoteKeepsSamePage -> true
+promotedInSameWorkspace -> true
+hidkey 12
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 37
+hidkey 36
+hidkey 2
+autoPeekFromSavedPage -> true
+savedPageStays -> true
+AXPress AXButton | Popup schließen | Popup schließen -> 0
+shiftClickPeeks -> true
+AXPress AXButton | Popup schließen | Popup schließen -> 0
+hidkey 17
+typed 41
+hidkey 36
+commandShiftReturnPeeks -> true
+AXPress AXButton | Popup schließen | Popup schließen -> 0
+hidkey 12

@@ -1,0 +1,62 @@
+objc[85718]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12e160a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13c2b8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[85721]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12e53ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13c694a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarBookmarkShelfViewTest.UsesIndependentHorizontalToolbarAndFixedManagerAction:SidebarBookmarkShelfViewTest.ProjectsBookmarkBarFoldersUrlsAndOtherBookmarks:SidebarBookmarkShelfViewTest.KeepsButtonIdentityOnRenameAndReorder:SidebarBookmarkShelfViewTest.FaviconUpdatePreservesFocusedOverflowItem:SidebarBookmarkShelfViewTest.EmptyAndRemovedCollectionsKeepManagerAccess:SidebarBookmarkShelfViewTest.BookmarkScrollingCannotStartWorkspaceSwipe:SidebarBookmarkShelfViewTest.DefaultActivationDoesNotNavigateASavedTab:SidebarBookmarkShelfViewTest.OverflowCuesAndFocusFollowAReorderedItem:SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton:SidebarBookmarkShelfViewTest.NestedContextIsConfiguredAfterClipboardCheck
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SidebarBookmarkShelfViewTest
+[ RUN      ] SidebarBookmarkShelfViewTest.UsesIndependentHorizontalToolbarAndFixedManagerAction
+[       OK ] SidebarBookmarkShelfViewTest.UsesIndependentHorizontalToolbarAndFixedManagerAction (406 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.ProjectsBookmarkBarFoldersUrlsAndOtherBookmarks
+[       OK ] SidebarBookmarkShelfViewTest.ProjectsBookmarkBarFoldersUrlsAndOtherBookmarks (138 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.KeepsButtonIdentityOnRenameAndReorder
+[       OK ] SidebarBookmarkShelfViewTest.KeepsButtonIdentityOnRenameAndReorder (105 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.FaviconUpdatePreservesFocusedOverflowItem
+[       OK ] SidebarBookmarkShelfViewTest.FaviconUpdatePreservesFocusedOverflowItem (249 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.EmptyAndRemovedCollectionsKeepManagerAccess
+[       OK ] SidebarBookmarkShelfViewTest.EmptyAndRemovedCollectionsKeepManagerAccess (103 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.BookmarkScrollingCannotStartWorkspaceSwipe
+[       OK ] SidebarBookmarkShelfViewTest.BookmarkScrollingCannotStartWorkspaceSwipe (106 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.DefaultActivationDoesNotNavigateASavedTab
+[       OK ] SidebarBookmarkShelfViewTest.DefaultActivationDoesNotNavigateASavedTab (105 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.OverflowCuesAndFocusFollowAReorderedItem
+[       OK ] SidebarBookmarkShelfViewTest.OverflowCuesAndFocusFollowAReorderedItem (1015 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton
+[       OK ] SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton (897 ms)
+[ RUN      ] SidebarBookmarkShelfViewTest.NestedContextIsConfiguredAfterClipboardCheck
+[       OK ] SidebarBookmarkShelfViewTest.NestedContextIsConfiguredAfterClipboardCheck (997 ms)
+[----------] 10 tests from SidebarBookmarkShelfViewTest (4353 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (4353 ms total)
+[  PASSED  ] 10 tests.
+[1/11] SidebarBookmarkShelfViewTest.UsesIndependentHorizontalToolbarAndFixedManagerAction (406 ms)
+[2/11] SidebarBookmarkShelfViewTest.ProjectsBookmarkBarFoldersUrlsAndOtherBookmarks (138 ms)
+[3/11] SidebarBookmarkShelfViewTest.KeepsButtonIdentityOnRenameAndReorder (105 ms)
+[4/11] SidebarBookmarkShelfViewTest.FaviconUpdatePreservesFocusedOverflowItem (249 ms)
+[5/11] SidebarBookmarkShelfViewTest.EmptyAndRemovedCollectionsKeepManagerAccess (103 ms)
+[6/11] SidebarBookmarkShelfViewTest.BookmarkScrollingCannotStartWorkspaceSwipe (106 ms)
+[7/11] SidebarBookmarkShelfViewTest.DefaultActivationDoesNotNavigateASavedTab (105 ms)
+[8/11] SidebarBookmarkShelfViewTest.OverflowCuesAndFocusFollowAReorderedItem (1014 ms)
+[9/11] SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton (897 ms)
+[10/11] SidebarBookmarkShelfViewTest.NestedContextIsConfiguredAfterClipboardCheck (997 ms)
+objc[86043]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12fd7ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13ded4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarBookmarkShelfViewTest.ContextQueryRejectsANoLongerVisibleSource
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SidebarBookmarkShelfViewTest
+[ RUN      ] SidebarBookmarkShelfViewTest.ContextQueryRejectsANoLongerVisibleSource
+[       OK ] SidebarBookmarkShelfViewTest.ContextQueryRejectsANoLongerVisibleSource (270 ms)
+[----------] 1 test from SidebarBookmarkShelfViewTest (291 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (291 ms total)
+[  PASSED  ] 1 test.
+[11/11] SidebarBookmarkShelfViewTest.ContextQueryRejectsANoLongerVisibleSource (270 ms)
+SUCCESS: all tests passed.
+Tests took 6 seconds.

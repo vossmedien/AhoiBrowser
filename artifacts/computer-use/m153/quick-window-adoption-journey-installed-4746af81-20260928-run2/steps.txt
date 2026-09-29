@@ -1,0 +1,12 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+hidkey 49
+quickWindowOpened -> true
+typed 32
+hidkey 36
+notInTreeBeforeAdoption -> true
+hidkey 37
+hidkey 12

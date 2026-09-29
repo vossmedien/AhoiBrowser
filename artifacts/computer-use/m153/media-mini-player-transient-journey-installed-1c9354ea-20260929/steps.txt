@@ -1,0 +1,17 @@
+manual=-25205 enhanced=-25208
+music play: playing
+ok
+started
+chimeKeepsMusicCard -> true
+chimeIsNoSecondSource -> true
+chime: ended
+musicCardAfterChime -> true
+noLingeringChimeSource -> true
+second: ok
+music again: ok
+AXPress AXButton | Stummschalten | Stummschalten -> 0
+mutedCardShowsUnmute -> true
+mutedCardStays -> true
+AXPress AXButton | Ton einschalten | Ton einschalten -> 0
+unmuteFromCard -> true
+unmutedCardStaysOnMusic -> true

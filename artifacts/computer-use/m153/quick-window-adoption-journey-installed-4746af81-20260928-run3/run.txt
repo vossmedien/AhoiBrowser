@@ -1,0 +1,2 @@
+pid=41942 profile=/private/tmp/ahoi-quick-profile.SELAYP
+still running after quit

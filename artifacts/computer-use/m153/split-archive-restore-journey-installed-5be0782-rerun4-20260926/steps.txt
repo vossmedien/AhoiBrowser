@@ -1,0 +1,13 @@
+frontmost -> 0
+split menu item: Tab zu neuer geteilter Ansicht hinzufügen
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+{"frameId":"16CD833ED1F2340A6CBD75B2B564CE08","loaderId":"EACA12F543B137882A3F29F166DE7D91","isDownload":false}
+== split_created PASS
+row: AXRadioButton | Ahoi split left — Temporärer Tab
+frontmost -> 0
+hidrightclicked AXRadioButton | Ahoi split left — Temporärer Tab | Ahoi split left — Temporärer Tab | 0 at (92.5, 328.0)
+== split_archived FAIL
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+== archive_lists_split FAIL
+hidkey 12

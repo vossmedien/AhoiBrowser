@@ -1,0 +1,19 @@
+{
+ "dialogClosed_Zwei": true,
+ "restart1_workspace": true,
+ "restart1_front_page": true,
+ "restart1_no_empty_state": true,
+ "restart2_workspace": true,
+ "restart2_front_page": true,
+ "restart2_no_empty_state": true,
+ "restart3_workspace": true,
+ "restart3_front_page": true,
+ "restart3_no_empty_state": true,
+ "restart4_workspace": true,
+ "restart4_front_page": true,
+ "restart4_no_empty_state": true,
+ "restart5_workspace": true,
+ "restart5_front_page": true,
+ "restart5_no_empty_state": true,
+ "pass": true
+}

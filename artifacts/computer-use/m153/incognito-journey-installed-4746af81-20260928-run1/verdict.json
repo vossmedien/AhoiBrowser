@@ -1,0 +1,13 @@
+{
+ "normalCookieSet": true,
+ "incognitoIsolatedFromNormal": true,
+ "notInTree": true,
+ "nothingOnDiskAfterCrash": true,
+ "incognitoNotRestored": true,
+ "normalSessionOffered": false,
+ "noIncognitoWindowBack": true,
+ "normalSessionUntouched": false,
+ "nothingOnDiskFinal": true,
+ "historyOnlyNormal": true,
+ "pass": false
+}

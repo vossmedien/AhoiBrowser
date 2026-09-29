@@ -1,0 +1,6 @@
+127.0.0.1 - - [29/Sep/2026 07:02:53] "GET /alpha.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 07:02:53] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 07:02:53] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 07:03:01] "GET /beta.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 07:03:09] "GET /gamma.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 07:03:32] "GET /delta.html HTTP/1.1" 200 -

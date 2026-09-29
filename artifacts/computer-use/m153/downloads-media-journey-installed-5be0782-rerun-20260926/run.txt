@@ -1,0 +1,2 @@
+pid=7842 profile=/private/tmp/ahoi-downloads-profile.G7Fkvf downloads=/private/tmp/ahoi-downloads-profile.G7Fkvf-downloads
+audio: playing

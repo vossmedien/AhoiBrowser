@@ -1,0 +1,16 @@
+save_first PASS
+save_second PASS
+store_two_accounts PASS
+choice_lists_both PASS
+autocomplete_password PASS
+choose_account PASS
+realm_separation PASS
+port_separation PASS
+rejected_reprompt PASS
+rejected_keeps_account PASS
+password_update_signin PASS
+update_no_duplicate PASS
+sign_out_without_restart FAIL:127.0.0.1:8793/a/
+same_browser_process PASS
+forget_realm PASS
+no_secret_in_logs PASS

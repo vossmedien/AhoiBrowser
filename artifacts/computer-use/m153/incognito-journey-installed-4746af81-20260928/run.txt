@@ -1,0 +1,2 @@
+pid=58201 profile=/private/tmp/ahoi-incognito-profile.5xXbHk
+pid=58965 profile=/private/tmp/ahoi-incognito-profile.5xXbHk

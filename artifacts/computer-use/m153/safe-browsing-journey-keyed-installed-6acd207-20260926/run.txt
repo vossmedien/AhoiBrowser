@@ -1,0 +1,10 @@
+pid=60183 profile=/private/tmp/ahoi-safe-browsing-profile.dVY622 api_key=yes
+PRIV-14_malware_interstitial 08:54:42 
+PRIV-14_malware_interstitial 08:55:16 page:
+PRIV-14_malware_interstitial 08:55:47 page:
+PRIV-14_malware_interstitial 08:56:17 page:
+PRIV-14_malware_interstitial 08:56:46 page:
+PRIV-14_malware_interstitial 08:57:23 
+PRIV-14_malware_interstitial 08:57:52 interstitial:Gefährliche Website
+PRIV-14_phishing_interstitial 08:58:00 interstitial:Gefährliche Website
+control page:Safe Browsing Testing Links

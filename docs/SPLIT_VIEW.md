@@ -59,17 +59,54 @@ leaf maps one-to-one to a normal `WebContents`.
 A split group has:
 
 - a stable split-group UUID plus Chromium's runtime split identifier;
-- one window and one workspace-session owner;
-- an ordered set of exactly two, three, or four tab handles;
-- a canonical layout tree and primary/secondary divider ratios;
-- exactly one focused/active pane;
+- one logical workspace owner plus a device-local window/session presentation;
+- an ordered set of exactly two, three, or four stable normal `TreeNode` IDs,
+  each resolved to a device-local tab handle while resident;
+- a canonical layout tree and normalized primary/secondary divider ratios;
+- exactly one device-local focused/active pane;
 - timestamps needed for atomic session persistence.
 
-Membership is runtime presentation state. Creating a split does not silently
+Creating a split does not silently
 move, save, delete, or re-parent sidebar tree nodes. Saved pages remain saved;
 temporary tabs remain temporary. A separate before/after/inside drop performs a
-tree move. Normal split topology is device-, window-, and workspace-session
-local and is not CloudKit-synced. Incognito topology never leaves memory.
+tree move. Normal split identity, ordered membership, canonical layout and
+normalized ratios are shared product state and synchronize between opted-in
+Desktop installations through the one format-3 contract. Chromium runtime split
+IDs, `TabInterface`/`WebContents` handles, window ownership and coordinates,
+local focus, navigation state, cookies, login and form state remain device-local.
+Incognito topology never leaves memory.
+
+## Cross-installation sync and Mobile preservation
+
+The binding user decision of 12 September 2026 makes normal split groups and
+their arrangements high-priority shared state. A synchronized split contains:
+
+- the stable logical split UUID and owning workspace UUID;
+- two to four ordered stable normal `TreeNode` IDs;
+- the canonical layout identifier and normalized divider ratios; and
+- field clocks/timestamps needed for deterministic offline merge, removal,
+  restore and tombstone handling.
+
+Receiving a split update never closes a currently active local page, changes its
+workspace website-session/account context, replaces its `WebContents`, submits or
+discards a form, or navigates it without a user action. Removing a logical member
+from another installation updates shared membership but leaves a currently open
+local page alive as an ordinary tab; local projection may defer presentation
+changes until it can do so without disrupting active work. It never interprets
+missing local runtime presence as deletion of the logical group or page.
+
+Concurrent membership, ordering, layout, ratio, removal, restore and offline
+changes use the shared format-3 field-clock/conflict contract. All Desktop
+installations materialize the same valid logical result without focus stealing
+or eager page loading. Native handles and window geometry are reconstructed
+locally and never appear in a sync payload.
+
+Mobile reads and writes the same recognized split metadata losslessly so a
+normal single-page open, save, edit or sync roundtrip cannot flatten, discard or
+rewrite the Desktop arrangement. This contract does not require Split View UI on
+iPhone or iPad. Any adaptive multi-pane or sequential-card presentation is a
+separate later UX decision and must preserve the shared logical layout when
+absent.
 
 ## Canonical layouts
 
@@ -88,7 +125,9 @@ Four-pane groups support `four-grid`, a row-ordered 2×2 layout. The primary
 ratio sizes the two columns in side-by-side orientation beziehungsweise the
 two rows in stacked orientation. The secondary ratio sizes the shared cross
 axis, so both rows/columns remain aligned. Both ratios survive session restore,
-browser restart, crash recovery, and supported layout changes.
+browser restart, crash recovery, supported layout changes and opted-in sync as
+normalized logical values. Device-local pixel dimensions and window geometry do
+not sync.
 
 The representation is a bounded layout tree with two to four leaves,
 not ad-hoc rectangles. The root divider uses the primary ratio and the nested
@@ -248,6 +287,17 @@ loses a restorable survivor. Browser-process crash recovery follows the same
 rule. Off-the-record groups are never serialized, shown in restore UI, synced,
 or sent to the companion app.
 
+Automatic archive is a separate, non-destructive lifecycle action. When an
+eligible normal tab belongs to a split, automatic archive waits until every
+member is eligible and archives the complete group. The shared entry retains
+the logical split UUID, complete ordered membership, canonical layout, normalized
+ratios, reason and archive time needed for a faithful restore. Archiving never
+deletes a page. Active, saved, pinned, Keep Loaded, media/capture/download or
+unsaved-form pages are ineligible. A received archive update never force-closes
+an active page on another installation; its local runtime remains open while the
+shared archive state converges. Restoring uses stable logical identities and
+reconstructs only device-local native handles.
+
 ## Accessibility and localization
 
 The sidebar announces reorder, folder nesting, proposed split position,
@@ -273,6 +323,12 @@ session serialization/migration, extension API behavior, invalid drops, and
 crash degradation. Views interaction tests must cover vertical-sidebar drag
 targets and dividers on macOS. None of that replaces visible Computer Use tests
 against the signed app installed at `/Applications/AhoiBrowser.app`.
+
+Sync acceptance additionally requires a matching opted-in Desktop pair covering
+create, reorder, ratio/layout edit, concurrent member removal, automatic archive,
+restore, offline convergence and restart without closing or navigating an active
+peer page. Mobile must roundtrip the same metadata without mutation; a Mobile
+Split View UI is not an acceptance requirement.
 
 All `SPLIT-*` IDs in the master target and `config/test-registry.json` are
 release-critical. The upstream M152 foundation alone does not satisfy them.

@@ -1,0 +1,7 @@
+first: pid=55842 profile=/private/tmp/ahoi-privacy-exception-profile.ZlZDGU
+first excepted_gpc=None,None excepted_js=undefined control_gpc=1 control_js=true
+stored after first run: chromium-compatible
+restarted: pid=55974 profile=/private/tmp/ahoi-privacy-exception-profile.ZlZDGU
+restarted excepted_gpc=None,None excepted_js=undefined control_gpc=1 control_js=true
+removed: pid=56093 profile=/private/tmp/ahoi-privacy-exception-profile.ZlZDGU
+removed excepted_gpc=1,1 excepted_js=true control_gpc=1 control_js=true

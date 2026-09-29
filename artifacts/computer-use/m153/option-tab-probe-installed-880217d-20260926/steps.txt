@@ -1,0 +1,4 @@
+hidkey 48
+hidkey 48
+hidkey 48
+hidkey 40

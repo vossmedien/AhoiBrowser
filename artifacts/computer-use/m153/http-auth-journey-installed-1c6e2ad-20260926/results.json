@@ -1,0 +1,24 @@
+{
+ "pass": false,
+ "harnessReloads": 0,
+ "steps": {
+  "save_first": "PASS",
+  "save_second": "PASS",
+  "store_two_accounts": "PASS",
+  "choice_lists_both": "PASS",
+  "autocomplete_password": "PASS",
+  "choose_account": "PASS",
+  "realm_separation": "PASS",
+  "port_separation": "PASS",
+  "rejected_reprompt": "PASS",
+  "rejected_keeps_account": "PASS",
+  "password_update_signin": "PASS",
+  "update_no_duplicate": "PASS",
+  "sign_out_without_restart": "PASS",
+  "same_browser_process": "PASS",
+  "own_sessions_signin": "FAIL:",
+  "own_sessions_sign_out": "PASS",
+  "forget_realm": "FAIL:http://127.0.0.1:8793/Ahoi Realm A|alice http://127.0.0.1:8793/Ahoi Realm A|bob ",
+  "no_secret_in_logs": "PASS"
+ }
+}

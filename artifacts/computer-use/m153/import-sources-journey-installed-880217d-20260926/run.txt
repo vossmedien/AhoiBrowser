@@ -1,0 +1,5 @@
+pid=34551 profile=/private/tmp/ahoi-import-profile.WckE5F
+sources: Arc — Arc vor dem Import schließen|Lesezeichen-HTML-Datei
+zen bundle on host: false
+arc bundle on host: true
+arc listed in dialog: true

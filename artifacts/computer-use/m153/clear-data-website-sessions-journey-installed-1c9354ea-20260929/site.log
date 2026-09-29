@@ -1,0 +1,20 @@
+127.0.0.1 - - [29/Sep/2026 10:14:52] "GET /login.html?kunde HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:14:54] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 10:14:54] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 10:15:03] "GET /login.html?inbox HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:15:20] "GET /check.html?inbox-after HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:15:35] "GET /check.html?kunde-after HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:15:43] "GET /login.html?site-a HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:15:51] "GET /login.html?site-b HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:15:53] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 10:15:53] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 10:16:08] "GET /check.html?site-a-after HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:16:16] "GET /check.html?site-b-after HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:16:25] "GET /login.html?sub-a HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:16:27] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 10:16:27] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 10:16:33] "GET /login.html?sub-b HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:16:35] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 10:16:35] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 10:16:53] "GET /check.html?sub-a-after HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:17:01] "GET /check.html?sub-b-after HTTP/1.1" 200 -

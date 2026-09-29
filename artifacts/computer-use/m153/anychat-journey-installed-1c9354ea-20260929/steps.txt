@@ -1,0 +1,37 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 99
+info: typed text missing, retyping
+hidkey 0
+typed 99
+info: typed text missing, retyping
+hidkey 0
+typed 99
+info: typed text missing, retyping
+hidkey 0
+hidkey 36
+1
+info: declined Google cookie consent
+storeShowsApprovedVersion -> true
+1
+promptScopeMatchesApproval -> true
+AXPress AXButton | Erweiterung hinzufügen | Erweiterung hinzufügen -> 0
+installedApprovedVersion -> true
+hostsWithinApproval -> true
+permissionsWithinApproval -> true
+extensionRunning -> true
+AXPress AXButton | Schließen | Schließen -> 0
+frontmost -> 0
+hidkey 17
+typed 15
+hidkey 36
+newTabIsAnyChat -> true
+AXPress AXButton | Beibehalten | Beibehalten -> 0
+hidkey 12
+frontmost -> 0
+runningAfterRestart -> true
+noFileAccessNorOptionalGrants -> true
+owner profile AnyChat: absent -> absent
+ownerProfileUntouched -> true
+hidkey 12

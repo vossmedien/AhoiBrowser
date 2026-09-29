@@ -1,0 +1,17 @@
+{
+ "mruToPrevious": true,
+ "mruTogglesBack": true,
+ "cyclingIsSeparate": true,
+ "mruAfterCycling": true,
+ "dialogClosed_Zwei": true,
+ "mruStaysInWorkspace": true,
+ "editorShowsDefault": true,
+ "editorRebinds": true,
+ "conflictNamesHolder": true,
+ "conflictNotOverwritten": true,
+ "oldKeyReleased": true,
+ "newKeyWorks": true,
+ "bindingPersists": true,
+ "resetRestoresDefault": true,
+ "pass": true
+}

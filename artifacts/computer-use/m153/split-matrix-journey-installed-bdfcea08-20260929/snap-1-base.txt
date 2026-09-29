@@ -1,0 +1,2 @@
+E5F302EE26018ABB43924FC2044A59F3|1737876266|{"t":"PaneA","w":896,"h":1227,"v":"visible","f":true,"m":"","val":""}
+2E8CE7495FA88C65D279A9EF118AC4ED|1737876266|{"t":"Solo","w":896,"h":1227,"v":"hidden","f":false,"m":"","val":""}

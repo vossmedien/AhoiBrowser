@@ -1,0 +1,5 @@
+AhoiTabTreePersistenceTest.
+  ReceiptSurvivesLocalEditsAndDiskReload
+  ReceiptWriteFailureRollsBackTheWholeTree
+  ReadingOldStoreDoesNotWriteAnEmptyReceipt
+  RevocationBeforeCommitKeepsTreeAndBaseline

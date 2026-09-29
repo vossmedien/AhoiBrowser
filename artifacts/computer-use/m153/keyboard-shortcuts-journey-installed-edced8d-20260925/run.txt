@@ -1,0 +1,2 @@
+pid=1025 profile=/private/tmp/ahoi-shortcut-profile.z2jNnS
+pid=10363 profile=/private/tmp/ahoi-shortcut-profile.z2jNnS

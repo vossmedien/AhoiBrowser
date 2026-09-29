@@ -1,0 +1,8 @@
+== trial 1 after Workspace creation
+focusedElement: AXGroup | about:blank - Chromium
+focusedWindow: AXWindow | about:blank - Chromium
+mainWindow: AXWindow | about:blank - Chromium
+== trial 1 before cmd-T
+focusedElement: AXGroup | about:blank - Chromium
+focusedWindow: AXWindow | about:blank - Chromium
+mainWindow: AXWindow | about:blank - Chromium

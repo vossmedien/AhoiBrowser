@@ -1,0 +1,9 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 28
+hidkey 36
+baseline 896x1227
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+split new-tab pane: 
+hidkey 12

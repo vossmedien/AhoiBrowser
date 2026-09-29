@@ -1,0 +1,8 @@
+{
+ "dialogClosed_Kunde": true,
+ "promptShown": false,
+ "noRehomingWhileClosing": true,
+ "latePageClosedToo": true,
+ "setupFailed": "workspace menu did not open for Zwei",
+ "pass": false
+}

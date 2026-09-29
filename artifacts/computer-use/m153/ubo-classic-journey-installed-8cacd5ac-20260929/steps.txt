@@ -1,0 +1,20 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 29
+hidkey 36
+adVisibleWithoutUbo -> true
+hidkey 17
+typed 3
+installerOfferedInCommandBar -> true
+hidkey 36
+AXPress AXButton | uBlock Origin Classic installieren | uBlock Origin Classic installieren -> 0
+AXPress AXButton | Erweiterung hinzufügen | Erweiterung hinzufügen -> 0
+chromiumPromptShown -> true
+uboInstalledAndRunning -> true
+AXPress AXButton | Schließen | Schließen -> 0
+frontmost -> 0
+hidkey 17
+typed 36
+hidkey 36
+hidkey 12

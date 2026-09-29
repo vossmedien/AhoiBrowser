@@ -1,0 +1,3 @@
+127.0.0.1 - - [29/Sep/2026 07:29:18] "GET /ad.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 07:29:18] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 07:29:18] "GET /favicon.ico HTTP/1.1" 404 -

@@ -1,0 +1,6 @@
+pid=10213 profile=/private/tmp/ahoi-downloads-profile.WEIRIT downloads=/private/tmp/ahoi-downloads-profile.WEIRIT-downloads
+audio: playing
+{"error":{"code":-32000,"message":"Could not find object with given id"}}
+upload: want=upload 1048576 fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83 got=upload 0 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+pip: pip
+notification permission: default

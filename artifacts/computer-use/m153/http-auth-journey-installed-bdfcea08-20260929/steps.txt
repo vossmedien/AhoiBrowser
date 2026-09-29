@@ -1,0 +1,463 @@
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+== auth19_http_warning PASS
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+typed 5
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 13
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== auth01_not_saved_before_success PASS
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+typed 5
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 12
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== save_first PASS
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+== auth15_switch_shows_chooser PASS
+focus AXTextField | Nutzername | Nutzername | alice -> 0
+hidkey 0
+typed 3
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 10
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== save_second PASS
+== store_two_accounts PASS
+frontmost -> 0
+hidkey 17
+typed 4
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | auth:bob@Ahoi Realm A:8793 - AhoiBrowser
+auth:bob@Ahoi Realm A:8793
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | auth:bob@Ahoi Realm A:8793 - AhoiBrowser
+auth:bob@Ahoi Realm A:8793
+== choice_lists_both FAIL:no-dialog
+NOT FOUND
+NOT FOUND
+== autocomplete_password FAIL
+NOT FOUND
+== choose_account FAIL
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | auth:bob@Ahoi Realm A:8793 - AhoiBrowser
+auth:bob@Ahoi Realm A:8793
+NOT FOUND
+hidkey 0
+hidkey 51
+typed 1
+== auth04_filter_by_typing FAIL:
+hidkey 125
+hidkey 36
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | auth:bob@Ahoi Realm A:8793 - AhoiBrowser
+auth:bob@Ahoi Realm A:8793
+-- dialog closed by Return
+== auth04_keyboard_select PASS
+== auth04_signin PASS
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 44
+hidkey 36
+preemptive inside /a/: 1
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 43
+hidkey 36
+== auth14_no_preemptive_outside_path PASS
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 38
+hidkey 36
+== auth13_cross_origin_redirect_no_auth PASS
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+== realm_b_prompt PASS
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== realm_separation PASS
+NOT FOUND
+hidkey 0
+typed 5
+NOT FOUND
+hidkey 0
+typed 12
+NOT FOUND
+NOT FOUND
+== auth18_never_save_first PASS
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+-- never-save realm still shows the save option
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+typed 5
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 12
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== auth18_suppresses_save FAIL
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== port_separation PASS
+NOT FOUND
+hidkey 0
+typed 5
+NOT FOUND
+hidkey 0
+typed 12
+NOT FOUND
+-- :8794/a/ title: Ahoi auth required
+== b2_signed_in FAIL
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+-- command bar still open after Return
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | Ahoi auth required - AhoiBrowser
+Ahoi auth required
+NOT FOUND
+NOT FOUND
+NOT FOUND
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | Ahoi auth required - AhoiBrowser
+Ahoi auth required
+== rejected_reprompt FAIL
+== auth06_error_text FAIL
+== rejected_keeps_account PASS
+NOT FOUND
+hidkey 0
+typed 5
+NOT FOUND
+hidkey 0
+typed 12
+NOT FOUND
+NOT FOUND
+== password_update_signin FAIL
+== update_no_duplicate FAIL:http://127.0.0.1:8793/Ahoi Realm A|alice http://127.0.0.1:8793/Ahoi Realm A|bob http://127.0.0.1:8793/Ahoi Realm B|carol 
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | Ahoi auth required - AhoiBrowser
+Ahoi auth required
+NOT FOUND
+hidkey 0
+typed 5
+NOT FOUND
+hidkey 0
+typed 13
+NOT FOUND
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | Ahoi auth required - AhoiBrowser
+Ahoi auth required
+== auth06_error_after_wrong_password FAIL
+NOT FOUND
+NOT FOUND
+NOT FOUND
+== auth06_switch_other_account FAIL
+== auth07_after_second_failure FAIL:http://127.0.0.1:8793/Ahoi Realm A|alice http://127.0.0.1:8793/Ahoi Realm A|bob http://127.0.0.1:8793/Ahoi Realm B|carol 
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+-- dialog timeout; windows and page:
+  AXWindow | Suchen oder URL eingeben
+  AXWindow | Ahoi auth required - AhoiBrowser
+Ahoi auth required
+page: http://127.0.0.1:8794/a/ | Ahoi auth required
+page: http://127.0.0.1:8793/b/ | auth:carol@Ahoi Realm B:8793
+page: http://127.0.0.1:8794/pub/observe?k=redirect-cross | public:redirect-cross
+page: http://127.0.0.1:8793/pub/observe?k=outside | public:outside
+page: http://127.0.0.1:8793/a/sub/observe?k=inside | auth:bob@Ahoi Realm A:8793
+page: about:blank | about:blank
+{"result":{"type":"string","value":"signed in as carol"}}
+== sign_out_without_restart FAIL:Ahoi auth required
+== same_browser_process PASS
+== auth16_signout_keeps_saved FAIL:http://127.0.0.1:8793/Ahoi Realm A|alice http://127.0.0.1:8793/Ahoi Realm A|bob http://127.0.0.1:8793/Ahoi Realm B|carol 
+{"result":{"type":"undefined"}}
+-- :8794/a/ title: 127.0.0.1:8794/a/
+== auth15_other_origin_kept FAIL
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+== own_sessions_signin FAIL:workspace-not-created
+== phase1_browser_alive PASS
+hidkey 12
+== restart_same_profile PASS
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 28
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== auth14_chooser_path_scoped PASS
+NOT FOUND
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 40
+hidkey 36
+== auth26_same_origin_prompt_labelled PASS
+== auth26_no_persistence_controls PASS
+AXPress AXButton | Abbrechen | Abbrechen -> 0
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 47
+hidkey 36
+== auth26_cross_origin_no_prompt FAIL
+AXPress AXButton | Abbrechen | Abbrechen -> 0
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 32
+hidkey 36
+== auth20_digest_prompt PASS
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== auth20_digest_no_basic_accounts PASS
+NOT FOUND
+hidkey 0
+typed 4
+NOT FOUND
+hidkey 0
+typed 13
+NOT FOUND
+NOT FOUND
+-- r=dg title: Ahoi auth required
+== auth20_digest_signin FAIL
+digest store: 
+== auth20_digest_saved_separately FAIL
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 28
+hidkey 36
+prefilled after restart: alice
+== auth05_prefilled_after_restart PASS
+== auth19_no_auto_login PASS
+focus AXTextField | Nutzername | Nutzername | alice -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== auth02_accounts_offered PASS
+== auth20_basic_not_mixed PASS
+NOT FOUND
+NOT FOUND
+NOT FOUND
+NOT FOUND
+frontmost -> 0
+hidkey 15
+== auth05_preferred_first FAIL:alice
+AXPress AXButton | Nutzername | Nutzername -> 0
+AXPress AXMenuItem | alice | alice | 1 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+-- r=2 title: 127.0.0.1:8793/a/?r=2
+== auth02_signin_saved FAIL
+== auth08_update_persisted FAIL
+hidkey 45
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 30
+hidkey 36
+== auth21_no_automatic_fill FAIL
+NOT FOUND
+AXPress AXButton | Nutzername | Nutzername -> 0
+NOT FOUND
+AXPress AXButton | Anmelden | Anmelden -> 0
+-- inc=1 title: 127.0.0.1:8793/a/?inc=1
+== auth21_explicit_selection FAIL
+== auth21_no_persistence PASS
+hidkey 13
+== incognito_window_closed PASS
+hidkey 45
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 30
+hidkey 36
+== auth22_cache_discarded PASS
+AXPress AXButton | Abbrechen | Abbrechen -> 0
+hidkey 13
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+AXPress AXButton | Nutzername | Nutzername -> 0
+NOT FOUND
+AXPress AXButton | Gespeichertes Konto löschen | Gespeichertes Konto löschen -> 0
+AXPress AXButton | Löschen des Kontos bestätigen | Löschen des Kontos bestätigen -> 0
+== auth17_single_delete FAIL:http://127.0.0.1:8793/Ahoi Realm A|bob http://127.0.0.1:8793/Ahoi Realm B|carol 
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== auth17_deleted_not_offered FAIL:bob 
+AXPress AXButton | Nutzername | Nutzername -> 0
+NOT FOUND
+AXPress AXButton | Anmelden | Anmelden -> 0
+-- r=2 title: 127.0.0.1:8793/a/?r=2
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 125
+hidkey 36
+== auth24_manager_opened FAIL
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+focus AXTextField | Nutzername | Nutzername | bob -> 0
+hidkey 0
+typed 5
+focus AXTextField | Passwort | •••••••••• -> 0
+hidkey 0
+typed 12
+NOT FOUND
+AXPress AXButton | Anmelden | Anmelden -> 0
+-- r=6 title: <no tab>
+== auth18_save_after_reset PASS
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 28
+hidkey 36
+-- dialog timeout; windows and page:
+  AXWindow | auth:bob@Ahoi Realm A:8793 - AhoiBrowser
+auth:bob@Ahoi Realm A:8793
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+focus AXTextField | Nutzername | Nutzername | bob -> 0
+hidkey 0
+typed 3
+focus AXTextField | Passwort | •••••••••• -> 0
+hidkey 0
+typed 10
+AXPress AXButton | Anmelden | Anmelden -> 0
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 125
+hidkey 36
+== forget_realm PASS
+== forget_keeps_other_realm PASS
+digest store after forget: 
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== auth17_empty_after_forget PASS
+NOT FOUND
+== no_secret_in_logs PASS
+hidkey 12
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 41
+hidkey 36
+== auth11_proxy_prompt PASS
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+typed 3
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 11
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== auth11_proxy_signin PASS
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 29
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== auth11_origin_prompt_separate PASS
+NOT FOUND
+hidkey refused: target not frontmost
+hidkey 0
+typed 5
+NOT FOUND
+hidkey 0
+typed 12
+NOT FOUND
+NOT FOUND
+-- px=1 title: Ahoi auth required
+proxy-phase store: 127.0.0.1:8797/Ahoi Proxy|pia 
+== auth11_store_separate FAIL
+== auth11_headers_separate PASS
+hidkey 12
+== auth25_no_canary_in_evidence PASS
+== auth25_no_canary_in_profile PASS
+== auth25_no_canary_in_crash_reports PASS
+== auth25_no_auth_header_in_logs PASS

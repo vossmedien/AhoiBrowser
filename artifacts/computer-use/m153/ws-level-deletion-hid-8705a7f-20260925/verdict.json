@@ -1,0 +1,9 @@
+{
+ "dialogClosed_Kunde": true,
+ "levelChoiceShown": true,
+ "loginInOwnWorkspace": true,
+ "menuNamesLevel": false,
+ "sharedWorkspaceNotLoggedIn": true,
+ "setupFailed": "delete dialog for Kunde did not open",
+ "pass": false
+}

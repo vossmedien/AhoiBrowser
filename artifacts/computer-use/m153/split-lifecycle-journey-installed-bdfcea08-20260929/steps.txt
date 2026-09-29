@@ -1,0 +1,14 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 28
+hidkey 36
+baseline 896x1227
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+target browser_ui chrome://tab-search.top-chrome/split_new_tab_page.html
+target page http://127.0.0.1:8827/a.html
+target page http://127.0.0.1:8827/solo.html
+target browser_ui chrome://omnibox-popup.top-chrome/
+target browser_ui chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html
+split new-tab pane: 
+hidkey 12

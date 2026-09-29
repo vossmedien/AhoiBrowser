@@ -73,6 +73,57 @@ the current startup-fix candidate:
 Finish working integration and representative E2E, not a new exhaustive test
 matrix. Existing runtime, CPU, privacy and non-destructive boundaries remain.
 
+## Binding format-3 split, archive and preference scope — 2026-09-12
+
+The user's latest decision makes automatic archive and synchronized normal
+Desktop split groups/arrangements high priority. It replaces every earlier v1
+archive exclusion and device-local-only split-topology rule. Extend the existing
+single format-3 contract; do not create format 4, a parallel writer, a second
+transport or a permanent compatibility path. The original 13 data classes and
+26 examples remain a baseline, not a scope ceiling.
+
+The coordinated C++/Swift schema, codec, validation, merge, store, provider and
+canonical golden must add:
+
+- normal logical split groups with stable split UUID, workspace UUID, two to
+  four ordered stable normal TreeNode IDs, canonical layout and normalized
+  divider ratios;
+- per-workspace automatic-archive policy `12h`, `24h`, `7d`, `30d` or `never`,
+  plus shared restorable archive entry, reason/time, normal split structure and
+  restore state;
+- a saved-page Home URL separate from its current runtime/navigation URL; and
+- positively typed Home, link-routing, shortcut and archive preferences in the
+  existing permitted-settings catalogue.
+
+Native Chromium split/tab/`WebContents` handles, window coordinates, local live
+focus, cookies, website-session/login/account, navigation and form state remain
+device-local. An incoming split/archive update must not close an active local
+page, change its account context, discard a form or navigate without a user
+action. A remotely removed split member may remain locally open as an ordinary
+tab while shared membership converges. Absence of runtime Presence is never
+logical deletion.
+
+Automatic archive is non-destructive. Active, saved, pinned, Keep Loaded,
+media/capture/download and unsaved-form tabs are excluded. Receiving archive
+state never force-closes an active peer page. Restore preserves stable logical
+page/split identities and creates only local native handles. Simultaneous
+membership/order/layout/ratio edits, removal, archive/restore, offline work and
+restart must converge on a matching Desktop pair without focus stealing or
+eager navigation.
+
+Desktop installations are the primary presentation target. Mobile must preserve
+recognized split/archive metadata losslessly across decode, unrelated edits and
+encode; opening one member may not flatten or overwrite the arrangement. No
+iPhone/iPad Split View UI is required by this scope. A later adaptive multi-pane
+or sequential-card UI remains a separate UX decision.
+
+This documentation decision is not implementation evidence. At this revision
+the runtime config/maps, C++/Swift adapters, product projection and candidate-
+bound tests for this new scope are still open and must not be advertised as
+working. Privacy, explicit opt-in/default-off, account/key/recovery, ADR 0010
+extension-setting review and all credential/private-data exclusions remain
+unchanged.
+
 ## Authorized native toolbar follow-up — 2026-09-08
 
 The user directly requested these additions for the existing Desktop owner:
@@ -83,7 +134,9 @@ The user directly requested these additions for the existing Desktop owner:
   pinned remains visible, unpinned uses the existing auto-hide behavior, with
   the user's choice retained across restart.
 - Add a compact Home button using the native Home command and configured start
-  page for the active tab/pane; do not create another start-page mechanism.
+  page for the active tab/pane; do not create another start-page mechanism. This
+  global browser Home command is distinct from the saved-page Home URL added to
+  format 3, whose value changes only through an explicit saved-page action.
 
 User reference: [toolbar screenshot](../artifacts/computer-use/toolbar-feedback-20260908/user-toolbar-hover.png).
 This is user-reported feedback, not a version-bound E2E proof. Direct assignment
@@ -170,6 +223,16 @@ save/unsave preserves logical identity; temporary and persistent behavior and
 local-only targets remain coherent. Exercise persistence/restart and a bounded
 edit/delete roundtrip, followed by focused version-rejection, provenance, consent,
 conflict/no-echo and private-data exclusion regressions.
+
+A matching opted-in Desktop pair must additionally demonstrate split creation,
+ordered membership, layout and normalized-ratio edits, simultaneous member
+removal, automatic archive and restore, offline convergence and restart. No
+received change closes or navigates an active peer page or changes its account/
+form context. Mobile acceptance is lossless metadata roundtrip and preservation
+during ordinary single-tab use; Mobile Split UI is not required. Saved-page Home
+URL and positively catalogued routing, shortcut and archive preferences converge
+without carrying credentials, cookies, site data, private state or native runtime
+handles.
 
 ADR 0010 additionally requires a configured Mac A -> fresh install/link Mac B
 journey with native settings actually applied, a supported extension installed

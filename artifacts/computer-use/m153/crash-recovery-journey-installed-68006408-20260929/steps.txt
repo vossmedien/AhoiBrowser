@@ -1,0 +1,42 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+info: Return repeated
+hidkey 36
+hidkey 12
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+otherTabIntact -> true
+crashedRendererGone -> true
+browserSurvivesRendererCrash -> true
+crashedTabReloads -> true
+gpu before: 44072
+gpu after: 44303
+gpuProcessReplaced -> true
+uiSurvivesGpuCrash -> true
+hidkey 45
+frontmost -> 0
+hidkey 17
+typed 34
+hidkey 36
+frontmost -> 0
+noIncognitoWindowBack -> true
+restoreOffered -> true
+AXPress AXButton | Wieder­her­stellen | Wieder­her­stellen -> 0
+normalSessionRestored -> true
+noDuplicatesAfterRestore -> true
+incognitoNotRestored -> true
+hidkey 12

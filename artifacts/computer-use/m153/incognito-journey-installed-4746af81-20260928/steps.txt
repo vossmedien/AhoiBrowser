@@ -1,0 +1,33 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 33
+hidkey 36
+normalCookieSet -> true
+hidkey 45
+frontmost -> 0
+hidkey 17
+typed 30
+hidkey 36
+incognito cookies: inc=secret
+incognitoIsolatedFromNormal -> true
+notInTree -> true
+hidkey 13
+incognitoWindowClosed -> true
+normal cookies after close: acct=normal
+normalSessionUntouched -> true
+hidkey 45
+frontmost -> 0
+hidkey 17
+typed 36
+hidkey 36
+nothingOnDiskAfterCrash -> true
+frontmost -> 0
+noIncognitoWindowBack -> true
+restoreOffered -> true
+AXPress AXButton | Wieder­her­stellen | Wieder­her­stellen -> 0
+normalSessionRestored -> true
+incognitoNotRestored -> true
+hidkey 12
+nothingOnDiskFinal -> true
+historyOnlyNormal -> true

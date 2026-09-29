@@ -1,0 +1,24 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 99
+hidkey 36
+storeShowsApprovedVersion -> false
+hidkey 12
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 99
+info: typed text missing, retyping
+hidkey 0
+typed 99
+info: typed text missing, retyping
+hidkey 0
+typed 99
+info: typed text missing, retyping
+hidkey 0
+hidkey 36
+1
+info: declined Google cookie consent
+storeShowsApprovedVersion -> false
+hidkey 12

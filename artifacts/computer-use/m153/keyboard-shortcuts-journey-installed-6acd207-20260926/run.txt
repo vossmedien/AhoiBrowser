@@ -1,0 +1,2 @@
+pid=55142 profile=/private/tmp/ahoi-shortcut-profile.VccFWa
+still running after quit

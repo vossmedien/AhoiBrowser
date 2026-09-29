@@ -1,0 +1,8 @@
+== malware sample:
+https://testsafebrowsing.appspot.com/s/malware.html |  | Malware Page Example.
+
+Malware download
+== chrome://safe-browsing:
+Interne Debugging-Seiten sind derzeit deaktiviert.
+
+Diese Seiten sind für Chromium-Entwickler gedacht und werden möglicherweise nicht aktiv gepflegt oder getestet. Wenn du sie aktivieren möchtest, gehe zu chrome://chrome-urls und klicke auf den Button zum Aktivieren von Debugging-Seiten. Rufe diese Seite dann noch einmal auf.

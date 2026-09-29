@@ -1,0 +1,1 @@
+after relaunch ["about:blank"]

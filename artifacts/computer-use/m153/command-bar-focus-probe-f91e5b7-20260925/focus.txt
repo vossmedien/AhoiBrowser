@@ -1,0 +1,4 @@
+== trial 5 before Return
+focusedElement: AXTextField | Mit Google suchen oder eine URL eingeben | Mit Google suchen oder eine URL eingeben | http://127.0.0.1:8794/check.html?t=5
+focusedWindow: AXWindow | Suchen oder URL eingeben
+mainWindow: AXWindow | about:blank - Chromium

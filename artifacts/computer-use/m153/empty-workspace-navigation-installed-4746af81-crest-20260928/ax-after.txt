@@ -1,0 +1,3 @@
+  AXWindow | Ahoi empty workspace probe - Chromium
+                    AXButton | Leer-Zwei, Workspace wechseln | Leer-Zwei, Workspace wechseln
+                            AXRadioButton | Ahoi empty workspace probe — Temporärer Tab | Ahoi empty workspace probe — Temporärer Tab | 1

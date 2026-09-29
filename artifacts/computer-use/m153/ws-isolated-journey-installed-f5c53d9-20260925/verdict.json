@@ -1,0 +1,18 @@
+{
+ "ownWindowCreated": true,
+ "noProfilePicker": true,
+ "secondWindow": true,
+ "loginInSeparated": true,
+ "handOverToMain": true,
+ "separatedHidden": true,
+ "mainNotLoggedIn": true,
+ "handOverBack": true,
+ "noReload": true,
+ "reachableAfterRelaunch": true,
+ "loginKeptAfterRelaunch": true,
+ "deleteDialogNamesLevel": true,
+ "mainBackAfterDelete": false,
+ "noChromiumProfileUi": true,
+ "profileAndEntryGone": false,
+ "pass": false
+}

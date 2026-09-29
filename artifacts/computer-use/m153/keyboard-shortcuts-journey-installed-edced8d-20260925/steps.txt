@@ -1,0 +1,64 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+hidkey refused: target not frontmost
+hidkey 50
+mruToPrevious -> false
+hidkey 50
+mruTogglesBack -> true
+hidkey 48
+after ctrl-tab: 
+cyclingIsSeparate -> false
+hidkey 50
+mruAfterCycling -> false
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Zwei -> 0 now=Zwei
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Zwei -> true
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+hidkey 50
+mruStaysInWorkspace -> true
+key 53
+AXShowMenu AXButton | Zwei, Workspace wechseln | Zwei, Workspace wechseln -> -25204
+AXPress AXButton | Inbox | Inbox -> 0
+frontmost -> 0
+hidkey 17
+typed 22
+hidkey 36
+editorShowsDefault -> true
+ok
+hidkey 40
+editorRebinds -> true
+ok
+hidkey 1
+conflict: 
+conflictNamesHolder -> false
+conflictNotOverwritten -> true
+hidkey 50
+after old key: Einstellungen – AhoiBrowser
+oldKeyReleased -> true
+hidkey 40
+after new key: 
+newKeyWorks -> false
+hidkey 12
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 22
+hidkey 36
+hidkey 12

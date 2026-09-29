@@ -1,0 +1,33 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Kunde -> true
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+alphaHiddenInKunde -> true
+AXPress AXButton | Tabs, gespeicherte Seiten, Gruppen, Workspaces und Geräte durchsuchen | Tabs, gespeicherte Seiten, Gruppen, Workspaces und Geräte durchsuchen -> 0
+typed 5
+hiddenTabFound -> true
+hidkey 36
+switchedToTabWorkspace -> false
+hiddenTabActivated -> false
+otherWorkspaceTabHidden -> false
+key 53
+NOT FOUND
+key 53
+NOT FOUND
+key 53
+NOT FOUND
+key 53
+NOT FOUND
+key 53
+hidkey 12

@@ -1,0 +1,12 @@
+{
+ "results": {
+  "DEV-01_css_applies_after_reload": "FAIL:/",
+  "DEV-04_saved_less_without_compiler_process": "FAIL:color=,compiler=0",
+  "DEV-05_javascript_isolated_world": "FAIL:attr=,global=",
+  "DEV-09_cache_off_reaches_server": "FAIL:site=0,control=0",
+  "DEV-14_request_header_rule": "FAIL:site=none,control=none",
+  "DEV-15_response_header_rule": "FAIL:",
+  "DEV-01_css_applies_after_restart": "FAIL:"
+ },
+ "pass": false
+}

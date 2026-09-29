@@ -1,0 +1,4 @@
+127.0.0.1 - - [25/Sep/2026 22:13:04] "GET /login.html HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 22:13:18] "GET /unload.html HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 22:13:22] code 404, message File not found
+127.0.0.1 - - [25/Sep/2026 22:13:22] "GET /favicon.ico HTTP/1.1" 404 -

@@ -1,0 +1,17 @@
+{"path": "/page.html", "host": "127.0.0.1:8794", "referer": null, "site": "none"}
+{"path": "/favicon.ico", "host": "127.0.0.1:8794", "referer": "http://127.0.0.1:8794/page.html", "site": "same-origin"}
+{"path": "/target.html", "host": "127.0.0.1:8794", "referer": null, "site": "same-origin"}
+{"path": "/target.html", "host": "127.0.0.1:8794", "referer": null, "site": "same-origin"}
+{"path": "/page.html?saved", "host": "127.0.0.1:8794", "referer": null, "site": "none"}
+{"path": "/favicon.ico", "host": "127.0.0.1:8794", "referer": "http://127.0.0.1:8794/page.html?saved", "site": "same-origin"}
+{"path": "/target.html", "host": "localhost:8794", "referer": "http://127.0.0.1:8794/", "site": "cross-site"}
+{"path": "/target.html?noreferrer", "host": "localhost:8794", "referer": null, "site": "cross-site"}
+{"path": "/target.html?blank", "host": "localhost:8794", "referer": "http://127.0.0.1:8794/", "site": "cross-site"}
+{"path": "/favicon.ico", "host": "localhost:8794", "referer": "http://localhost:8794/target.html?blank", "site": "same-origin"}
+{"path": "/target.html", "host": "127.0.0.1:8794", "referer": null, "site": "same-origin"}
+{"path": "/target.html?command", "host": "127.0.0.1:8794", "referer": null, "site": "none"}
+{"path": "/target.html?cmdshift", "host": "localhost:8794", "referer": "http://127.0.0.1:8794/", "site": "cross-site"}
+{"path": "/target.html?samesite", "host": "127.0.0.1:8794", "referer": "http://127.0.0.1:8794/page.html?saved", "site": "same-origin"}
+{"path": "/login.html?blank", "host": "localhost:8794", "referer": "http://127.0.0.1:8794/", "site": "cross-site"}
+{"path": "/page.html?temp", "host": "127.0.0.1:8794", "referer": null, "site": "none"}
+{"path": "/target.html?blank", "host": "localhost:8794", "referer": "http://127.0.0.1:8794/", "site": "cross-site"}

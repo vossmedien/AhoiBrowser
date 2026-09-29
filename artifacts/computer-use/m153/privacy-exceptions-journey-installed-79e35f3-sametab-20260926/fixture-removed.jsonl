@@ -1,0 +1,6 @@
+{"host": "127.0.0.1:8808", "path": "/landing", "query": "", "gpc": "1", "referer": null, "cookie": false}
+{"host": "127.0.0.1:8808", "path": "/landing", "query": "", "gpc": "1", "referer": null, "cookie": false}
+{"host": "127.0.0.1:8808", "path": "/favicon.ico", "query": "", "gpc": "1", "referer": "http://127.0.0.1:8808/landing", "cookie": false}
+{"host": "localhost:8808", "path": "/landing", "query": "", "gpc": "1", "referer": null, "cookie": false}
+{"host": "localhost:8808", "path": "/favicon.ico", "query": "", "gpc": "1", "referer": "http://localhost:8808/landing", "cookie": false}
+{"host": "127.0.0.1:8808", "path": "/ads", "query": "sametab=1", "gpc": "1", "referer": "http://localhost:8808/", "cookie": false}

@@ -1,0 +1,11 @@
+{
+ "dialogClosed_Kunde": true,
+ "peekShown": false,
+ "peekLoadsLink": false,
+ "peekKeepsWebsiteSession": false,
+ "peekCloses": true,
+ "peekLeavesNoTab": true,
+ "pageStateKept": false,
+ "setupFailed": "second peek did not open",
+ "pass": false
+}

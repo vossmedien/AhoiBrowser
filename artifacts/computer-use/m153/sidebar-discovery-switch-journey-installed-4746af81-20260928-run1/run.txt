@@ -1,0 +1,2 @@
+pid=70261 profile=/private/tmp/ahoi-discovery-profile.AiShfM
+still running after quit

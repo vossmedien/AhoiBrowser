@@ -1,0 +1,28 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Kunde -> true
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+ok
+AXPress AXMenuItem | Link in Vorschau öffnen | itemSelected: -> 0
+peekShown -> false
+peekLoadsLink -> false
+cookie target.html: 
+peekKeepsWebsiteSession -> false
+NOT FOUND
+peekCloses -> true
+peekLeavesNoTab -> true
+pageStateKept -> false
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 12 cmd

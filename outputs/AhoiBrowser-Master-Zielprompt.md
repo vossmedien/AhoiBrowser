@@ -1,10 +1,10 @@
 # AhoiBrowser – vollständiger Master-Zielprompt
 
-**Geltungsstand: 5. September 2026, Produkt- und Ausführungsreview.** Diese Datei ist die autoritative vollständige Produktvorgabe. Das Gesamtziel bleibt Feature-Vollständigkeit einschließlich sichtbarer Abnahme, Sync, AnyChat, uBlock Origin Classic, Arc-Import, Entgooglifizierung, Entschlackung und Performance. Die vom Nutzer am 5. September beauftragte Revue löst widersprüchliche Altvorgaben auf und verbessert die Ausführung. Sie ist kein Neustart des Projekts und kein Nachweis bereits fertiger Funktionen. Der aktuelle Arbeitsstand liegt ausschließlich in `docs/ACTIVE_DESKTOP_CHECKPOINT.md`; historische Fehlerchronologien gehören in Evidenzdokumente.
+**Geltungsstand: 12. September 2026, einschließlich bestätigter Crest-Produktempfehlungen und Desktop-Sync-Präzisierung.** Diese Datei ist die autoritative vollständige Produktvorgabe. Das Gesamtziel bleibt Feature-Vollständigkeit einschließlich sichtbarer Abnahme, Sync, AnyChat, uBlock Origin Classic, Arc-Import, Entgooglifizierung, Entschlackung und Performance und umfasst die unten integrierten Ergänzungen. Die Nutzerentscheidung vom 12. September ersetzt insbesondere die früheren Ausschlüsse automatischer Archivierung und synchronisierter Split-Anordnungen. Sie ist kein Neustart und kein Nachweis bereits fertiger Funktionen. Der aktuelle Arbeitsstand liegt in `docs/ACTIVE_DESKTOP_CHECKPOINT.md`; historische Fehlerchronologien gehören in Evidenzdokumente.
 
 **Verbindliche Ausführungsabgrenzung, fortgeschrieben am 1. September 2026:** Desktop und Mobile bleiben klar getrennte, explizit übergebene Arbeitslinien. Innerhalb der aktiven Desktop-Linie ist parallele Implementierungsarbeit nur an überschneidungsfreien Teilpaketen im selben kanonischen Workstate zulässig. Es gibt keine konkurrierenden Chromium-Builds, keine voneinander abweichenden Overlay-Stände und keine stillschweigende Übernahme fremder Mobile-Änderungen. Integration, Build, Installation, sichtbare Abnahme und Push erfolgen aus genau einem nachvollziehbaren Desktop-Stand.
 
-## Verbindliches Gesamtziel und Ausführung ab 5. September 2026
+## Verbindliches Gesamtziel und Ausführung ab 12. September 2026
 
 Führe AhoiBrowser im vorhandenen kanonischen Repository bis zur vollständigen
 Umsetzung und Abnahme dieses Master-Zielprompts. Schließe zuerst das integrierte
@@ -26,6 +26,18 @@ nachgewiesenen Lebenszyklus-/Ownership-Grund. Modellwechsel rechtfertigen weder
 eine Neuentwicklung funktionierender Komponenten noch eine pauschale Abwertung
 bereits belegter Arbeit.
 
+### Verbindliche Produktergänzung vom 12. September 2026
+
+Der Nutzer hat die Empfehlungen aus dem [Crest-Vergleich](../docs/reviews/2026-09-12-crest-vergleich.md) in das Hauptziel aufgenommen. Automatische Archivierung und die Synchronisierung vollständiger normaler Split-Gruppen einschließlich Anordnung haben ausdrücklich **hohe Priorität**. Primäres Ziel ist die vollständige unterstützte Organisation und Einrichtung zwischen sämtlichen verknüpften Ahoi-Desktop-Installationen. Innerhalb des bestehenden v1-Plattformumfangs bedeutet das Mac–Mac, keine zusätzliche Windows-/Linux-Portierung.
+
+Verbindlich hinzu kommen Workspace-Link-Routing mit bewusst gemerkten Zielen, gespeicherte Ausgangsadressen, explizites und optional automatisch aktivierbares Link-Peek, frei belegbare Tastenkürzel und MRU-Tabwechsel, Reader und Markdown-Linkkopie, bessere Import-Zielvorschau, portabler Workspace-Export, kontextbezogener Entwicklerzugang sowie kurze Aufgabenhilfe und verständliche Site-/Extension-Zustände. Die mobile Privatsperre wird als native Ergänzung umgesetzt. Diese Funktionen gehören zum Gesamtabschluss; die frühere Bewertung „danach“ bezeichnet ihre sinnvolle Integrationsfolge und keinen unbestimmten späteren Backlog.
+
+Die Detailverträge stehen in den jeweiligen Funktionsabschnitten. Bestehende Suche, Quick Window, Sidebar, Split View, NeverSleep, Importer und Chromium-Dienste werden erweitert und abgenommen. Es entsteht weder ein zweiter Browser-/History-/Sync-Store noch eine neue Extension-Engine. Crest ist eine WebKit-basierte Verhaltensreferenz, keine neue Abhängigkeit; tatsächliche Codeübernahmen benötigen eine dateibezogene Lizenz-/Notice-Prüfung und verwenden keine fremden Markenassets.
+
+**Mobile-Abgrenzung:** iOS/iPadOS muss gemeinsame Split-Metadaten verlustfrei erhalten und bei unterstützten gemeinsamen Änderungen korrekt behandeln. Eine gleichzeitige Split-Ansicht, ein Kartenpager oder Desktop-Pixelparität auf iPhone/iPad sind **keine v1-Abnahmevoraussetzung**. Ihre praktische Bedienung wird getrennt entschieden. Fehlende mobile Darstellung darf Gruppen, Anordnung oder Ratios auf den Desktops weder verwerfen noch als leeren Zustand zurückschreiben. Das normale Öffnen eines Gruppenmitglieds auf Mobile löst keinen Split auf.
+
+Die laufende Stabilitäts-/Importkorrektur bleibt Voraussetzung für sichere Integration. Die Datenverträge für Archiv und Split-Sync werden früh im bestehenden Sync-Paket abgestimmt; sie werden nicht bis nach Release zurückgestellt. Native Session-/UI-Verantwortung und gemeinsamer C++-/Swift-Sync bleiben bei den benannten Eigentümern. Quell-, Konfigurations-, Build- und Laufzeitreife bleiben getrennt: eine neue Sollvorgabe aktiviert keine unimplementierte Capability.
+
 ### Verbindliche Parallel-Lane Crest-Konvergenz-Härtung vom 25. September 2026
 
 Der Nutzer hat die fünf Nachschärfungen aus der [Bewertung von Crests Chromium-Umbau](../docs/reviews/2026-09-25-crest-chromium-core.md) beauftragt: Sync-Konformität zwischen C++ und Swift, eine Schreibhoheit für Tab-Baum und Chromium-Session, vergleichbare Performance-Methodik, Engine-Eingabeschlüssel für Kandidaten-Wiederverwendung sowie Crest-Referenz und Netzwerk-Stille. Sie laufen als eigene Lane `crest-hardening` **parallel** zu Desktop, Mobile und Sync nach dem [Zielprompt Crest-Konvergenz-Härtung](AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md). Die Lane schreibt nur ihre in `config/agent-lanes.json` gelisteten Pfade, baut und installiert nicht und liefert Beiträge zu fremdem Besitz als Handoff unter `handoffs/crest-hardening/`, die der jeweilige Eigentümer in sein nächstes geplantes Paket übernimmt. Produktumfang, Architektur, Paketfolge und bestehende Eigentümerschaften bleiben unverändert. Der Terminal-Cockpit-Orchestrator prüft die Grenzen mit `tools/check_lane_boundaries.py`.
@@ -33,6 +45,7 @@ Der Nutzer hat die fünf Nachschärfungen aus der [Bewertung von Crests Chromium
 ### Verbindliche Workspace-Isolationsstufen vom 25. September 2026
 
 Der Nutzer hat beauftragt, Workspaces optional so vollständig wie Profile zu trennen. [ADR 0011](../docs/decisions/0011-optional-isolated-workspace-profiles.md) legt drei Stufen fest, die beim Anlegen gewählt werden: `Gemeinsam` (Standard, ADR 0002), `Eigene Website-Sitzungen` (Paket 1b, feste `StoragePartition`) und `Vollständig getrennt` (eigenes Chromium-Profil je Workspace mit gemeinsamem Workspace-Umschalter und deckungsgleicher Fensterübergabe). Die Umsetzung folgt nach Paket 1b in drei Schritten (getrennte Welt, gemeinsamer Umschalter mit Routing/Quick Window/Import/Export, Sync-Namensraum und Mobile). Sessions, Passwörter und Website-Daten wandern nie zwischen Stufen; `WebContents` wechseln nie das Profil. Vor Aktivierung der Stufe `Eigene Website-Sitzungen` muss das Löschen eines solchen Workspaces seine Tabs mit Before-Unload schließen sowie Bindung und Partitionsdaten entfernen. Der Desktop-Owner implementiert; Vertrag, Abnahmefälle und Review liefert die Lane `crest-hardening` (Paket H6).
+
 
 ### Verbindliche Workspace-Zusammenführung und mobile Ergänzungen vom 26. September 2026
 
@@ -70,9 +83,10 @@ seine bisherigen Sync-Ergebnisse sind keine Endabnahme des neuen Formats.
 | Vor dem nächsten notwendigen Build | Build-Ausführung und Übergabe | Ein Owner für Checkout und Ausgabeverzeichnis; Kandidat, Terminalstatus, Receipt und nächste Aktion bekannt. Wiederholte Overlay-Komposition messen und sicher beschleunigen; vorhandene passende Kandidaten zuerst prüfen. |
 | 1 | Import, Erweiterungen und sichtbare Sidebar-Fixes | Standardmenü öffnet denselben Importdialog auch ohne Tab; alle fünf bisher sichtbaren Checkboxen korrekt; Ordnericons, Hierarchie und Abstände stimmig; realer Arc-Import mit gültigen Splits, Neustart und No-op; AnyChat normal aus dem Store; Classic filtert und überlebt Neustart; Lite erst danach bewusst ablösen; Null-Tab-Split und Beenden stabil. |
 | 1b | Lokale Website-Sitzungen pro Workspace | Nach Abschluss des laufenden Browser-Fixpakets: Arbeit und Privat können dieselbe Website mit getrennten Accounts verwenden; vollständige native Site-Storage-Isolation, Neustart und sichere Tab-/Popup-Kontextbindung sichtbar geprüft. History, Passwortspeicher und installierte Erweiterungen bleiben global. Geeignete Workspace-Metadaten mit dem Sync-Owner integrieren, niemals Website-Sitzungsdaten synchronisieren. |
-| 2 | Daily Driver, Fenster, Tabs und Medien | Navigation, Command Bar, Quick Window, Inkognito, Sessions, sämtliche zugesagten Split-/DnD-/Resize-Wege, Popup-Promotion, MiniPlayer/PiP, Dateien, Passwörter und HTTP Auth in zusammenhängenden Nutzerreisen abgenommen. Bereits bestandene Teilverträge gezielt wiederverwenden. |
-| 3 | Sync und Geräteintegration | Ein aktives Format für alle erlaubten Entitytypen auf macOS/iOS; gemeinsame normale Tabs und separate Lesezeichen, lokaler Zustand/Outbox, echter CloudKit-Transport, Konflikte sowie Pairing/Remote Control an passenden frischen isolierten Kandidaten abgenommen. Kein Altclient-Mischbetrieb; ausgeschlossene Daten bleiben ausgeschlossen. Externe Gerätevoraussetzungen früh vorbereiten. |
-| 4 | Developer Toolkit, Privacy und Entgooglifizierung | Vorhandene Werkzeuge vollständig bedienen; Produktdienste zentral konfigurieren; nachvollziehbares frisches Profil ohne ungefragte Produkttelemetrie; dokumentierte Sicherheitsdienste und normale Google-Webseiten funktionieren. |
+| 2 | Daily Driver, Arbeitsorganisation, Fenster, Tabs und Medien | Bestehende Browserreisen einschließlich Split/DnD, Quick Window, Popup, Inkognito, Medien, Dateien und HTTP Auth abschließen; hohe Priorität für sichere Auto-Archivierung, Home-URL, Routing/Peek und Tastenkürzel. Reader, Markdown-Kopie, MRU und Aufgabenhilfe integrieren. |
+| 2b | Verständlicher Umzug und Datenportabilität | Vorhandenen Import-Hub um kompakte Vorher-/Nachher-Zielvorschau und Einzelwahl ergänzen; Workspace-Struktur einschließlich normaler Split-/Archivmetadaten sicher exportieren, atomar wieder einlesen und No-op-Wiederholung belegen. |
+| 3 | Vollständiger Desktop-Sync und Geräteintegration | Ein aktives Format für erlaubte Daten auf macOS/iOS; mit hoher Priorität normale Split-Gruppen samt Reihenfolge/Layout/Ratios sowie Archivzustand, Wiederherstellung und erlaubte Einstellungen zwischen Desktops synchronisieren. Gemeinsame Tabs, separate Lesezeichen, Browser-Setup, CloudKit-Konflikte und Remote Control abnehmen; Mobile erhält Metadaten ohne Pflicht zur Split-UI. |
+| 4 | Developer Toolkit, Privacy und Entgooglifizierung | Vorhandene Werkzeuge mit bewusst aktivierbarem Kontextzugang vollständig bedienen; Site-/Extension-Zustände verständlich machen; mobile Privatsperre, frisches Profil ohne Produkttelemetrie und erhaltene Sicherheitsdienste abnehmen. |
 | 5 | Entschlackung und Performance | Gemessene, rückbaubare GN-/Runtime-Ausschlüsse, schnelles Starten/Suchen/Wechseln, Memory Saver und die bestehenden Bundle-/CPU-/RAM-/Netzwerkbudgets mit vergleichbaren Builds belegen. |
 | 6 | Release und Gesamtabschluss | Verbleibende vollständige Abnahmematrix, Security-/Upstream-Roll, Geräte-/Account-Nachweise, Updates, Recht/DRM, signierte Distribution und Daily-Driver-Soak bestanden; eigene Änderungen dokumentiert und gepusht. |
 
@@ -407,7 +421,7 @@ Implementiere klar abgegrenzte Services:
 - `WorkspaceService`: Workspaces, Reihenfolge, aktiver Zustand und Appearance.
 - `TabTreeService`: persistente Ordner und gespeicherte Seiten.
 - `SessionBridge`: Zuordnung von Baumknoten, temporären Tabs, `WebContents`, Fenstern und `TabStripModel`.
-- `SplitViewService`: Split-Mitgliedschaft, Zwei-/Drei-/Vier-Pane-Layout, Fokus, Divider, Drag-and-drop-Policy und lokale Session-Persistenz auf Chromiums `TabStripModel`-/Split-Collection-Infrastruktur.
+- `SplitViewService`: native Split-Mitgliedschaft, Zwei-/Drei-/Vier-Pane-Layout, Fokus, Divider und Drag-and-drop auf Chromiums `TabStripModel`-/Split-Collection-Infrastruktur; lokale Session-Persistenz und Integration des gemeinsam synchronisierten logischen Gruppen-/Anordnungszustands.
 - `PopupOverlayService`: sichere Zuordnung von Web-Popups zu ihrem Opener, Overlay-Lebenszyklus, Promotion in einen normalen Tab und Übergabe an `SplitViewService`, ohne einen zweiten WebView-Host einzuführen.
 - `MediaMiniPlayerService`: sichtbare Medienzustände, MiniPlayer-Platzierung, Quellenwechsel und Übergabe an Chromiums Picture-in-Picture- und Media-Session-Infrastruktur.
 - `DeviceTabsService`: lokale, CloudKit-basierte Geräte-/Tab-Sicht auf Grundlage von `SyncProvider`, ohne Google-Konto oder Chrome Sync.
@@ -429,9 +443,10 @@ Neue Mojo-Schnittstellen dürfen nur dort entstehen, wo eine Prozessgrenze dies 
 Verwende versionierte, migrationsfähige Kerntypen:
 
 - `Workspace`: UUID, Name, Icon, Sortierschlüssel, optionaler Akzent, Zeitstempel.
-- `TreeNode`: UUID, Workspace-ID, Parent-ID, Typ `folder` oder `savedPage`, Titel, URL, Sortierschlüssel, bei Ordnern optionales Icon und optionaler semantischer Farbakzent, Zeitstempel, Tombstone.
+- `TreeNode`: UUID, Workspace-ID, Parent-ID, Typ `folder` oder `savedPage`, Titel, aktuelle Seiten-URL, bei gespeicherten Seiten eine getrennte optionale Ausgangsadresse, Sortierschlüssel, bei Ordnern optionales Icon und optionaler semantischer Farbakzent, Zeitstempel, Tombstone.
 - `RuntimeTab`: Geräte-, Fenster- und Tab-ID, optionale TreeNode-ID, URL, Titel, Aktivitätszeit, Ladezustand.
-- `SplitGroup`: stabile UUID, Chromium-Split-ID, Fenster- und Workspace-Session, zwei bis vier geordnete Tab-Handles, kanonischer Layoutbaum, primäre/sekundäre Divider-Ratios, fokussiertes Pane und Zeitstempel.
+- `SplitGroup`: synchronisierte logische UUID, Workspace-Zuordnung, zwei bis vier geordnete globale TreeNode-IDs, kanonischer Layoutbaum, normalisierte primäre/sekundäre Divider-Ratios und Konflikt-/Löschmetadaten. Chromium-Split-ID, Tab-Handles, konkrete Fensterbindung und aktiver Fokus gehören ausschließlich zur lokalen Runtime-Projektion.
+- `TabArchiveEntry`: stabile Identität, referenzierte normale Seiten-/Gruppen-IDs, vorherige Platzierung und sichere Ziel-/Home-/Split-Metadaten, Archivierungsgrund und Zeitpunkt sowie eindeutiger Wiederherstellungs-/Löschzustand; keine Kopie von WebContents, History, Formularen oder Website-Sitzungen.
 - `HistoryVisit`: Visit-ID, Geräte-ID, URL, Titel, Zeitpunkt und Transition-Typ.
 - `DeveloperAsset`: Typ CSS/LESS/SASS/JavaScript/Headerprofil, Scope, Aktivierung, Sync-Opt-in.
 - `RemoteCommand`: Zielgerät, Befehlstyp, Payload, Nonce, Ablaufzeit, Status und Signatur.
@@ -758,7 +773,7 @@ Darstellungskonfiguration:
 - Das Schließen eines gespeicherten Knotens entlädt dessen `WebContents`, löscht aber nicht den Knoten.
 - Löschen ist eine separate, klar erkennbare Aktion.
 - Geschlossene temporäre Tabs verschwinden, bleiben kurzfristig über Undo beziehungsweise Chromiums Tab Restore verfügbar.
-- Es gibt keine automatische Archivierung in v1.
+- Automatische Archivierung und ein wiederherstellbares Tab-Archiv sind verbindlicher v1-Umfang gemäß dem folgenden Abschnitt; Archivieren, Entladen und endgültiges Löschen sind verschiedene Aktionen.
 - „Temporär“ bedeutet nicht, dass die Seite bei normalem App-Ende zwingend verloren geht.
 - Beim Browserstart wird standardmäßig gefragt: „Letzte Sitzung fortsetzen“ oder „Leer starten“.
 - In den Einstellungen kann dauerhaft `fragen`, `fortsetzen` oder `leer starten` gewählt werden; Default ist `fragen`.
@@ -769,6 +784,22 @@ Darstellungskonfiguration:
 - Das Schließen des letzten Tabs schließt ein normales AhoiBrowser-Fenster nicht und erzeugt weder automatisch ein Ersatz-`WebContents` noch eine künstliche New-Tab-Seite. Ein Workspace und ein Fenster dürfen einen echten Zustand mit null Tabs und null aktivem Tab besitzen.
 - Im Null-Tab-Zustand bleibt die komplette native Browserhülle bedienbar: Sidebar, Workspaces, Command Bar, `⌘T`, Downloads, Verlauf, Einstellungen, Extension-/Browseraktionen und Fenstersteuerung funktionieren. Die Content-Fläche zeigt ausschließlich eine ruhige, native, theme- und appearancefähige Leerdarstellung ohne Renderer, Netzwerkzugriff oder Fake-Tab.
 - Nur das explizite Schließen des Fensters beziehungsweise Beenden der App zerstört das leere Fenster. `⌘W` schließt bei vorhandenem Tab zunächst den Tab; bei bereits leerem Fenster folgt es der dokumentierten macOS-Fenstersemantik. Session Restore, Downloads, Before-Unload, Split-Auflösung und Crash Recovery sind null-tab-sicher.
+
+### Gespeicherte Ausgangsadresse
+
+Eine gespeicherte Seite behält neben ihrer aktuellen Navigations-URL eine feste Ausgangsadresse. Beim erstmaligen Speichern wird sie aus dem gewählten Ziel gesetzt; vorhandene Ein-URL-Einträge behalten ihren aktuellen Wert als initiale Ausgangsadresse, ohne einen historischen Ursprung zu erfinden. Normale Navigation verändert ausschließlich die aktuelle URL. `Zur Ausgangsadresse` und `Aktuelle Seite als Ausgangsadresse setzen` sind getrennte, per Kontextmenü/Command Bar/Tastatur erreichbare Aktionen mit erkennbarem Abweichungszustand.
+
+Schließen bleibt Entladen ohne Löschen oder heimliches Zurücksetzen. Explizites Zurückkehren respektiert Before-Unload und den lokalen Workspace-Kontext; eine abgebrochene Navigation verändert weder Ausgangsadresse noch Identität. Namen, Baumposition und native Lesezeichen bleiben unabhängig. Sichere portable Ausgangsadressen gehören zum bestehenden verschlüsselten Tree-Sync und Workspace-Export; nichtportable Ziele bleiben lokal. Der Sync-Owner integriert das zusätzliche Feld samt Konfliktgruppe in den gemeinsamen Vertrag, ohne laufende Seiten durch Empfang ungefragt zu navigieren.
+
+### Automatische Archivierung und Wiederherstellung
+
+Hohe Priorität: Pro Workspace sind `12 Stunden`, `24 Stunden`, `7 Tage`, `30 Tage` oder `nie` seit letzter tatsächlicher Nutzung konfigurierbar. Ohne bewusste Wahl bleibt Auto-Archivierung aus; ihre Implementierung und Abnahme sind trotzdem Pflicht. Eine Einstellung erklärt knapp, dass geeignete inaktive temporäre Tabs ins wiederherstellbare Archiv verschoben und nicht gelöscht werden. Manuelles Archivieren und Wiederherstellen bleiben unabhängig erreichbar.
+
+Gespeicherte/gepinnte Seiten, Keep-Loaded-Ziele, aktive sichtbare Panes, Audio/Video/PiP/Capture, laufende Transfers, nicht abgesendete Formulare, Before-Unload, Auth-/Permission-/Dateidialoge und andere native Schutzgründe werden nicht automatisch wegarchiviert. Die bestehende ResourcePolicy liefert die Eignungsgrenzen. Eine Split-Gruppe wird automatisch nur als vollständige Gruppe archiviert, wenn alle Mitglieder geeignet sind; eine geschützte Seite verhindert die automatische Auflösung ihrer Gruppe.
+
+Das Archiv zeigt Suche, Grund und Zeitpunkt; Wiederherstellung erhält Seitenidentität, Workspace/Ordner, Reihenfolge und normale Split-Anordnung, soweit die Ziele noch existieren. Fehlende Eltern führen zu einem erklärten Wiederherstellungsziel statt Datenverlust. Wiederholte Aktionen sind idempotent. Endgültiges Löschen ist separat und bewusst; Auto-Archivierung erzeugt keine automatische dauerhafte Löschung. Chromiums kurzfristiger TabRestoreService bleibt für `Zuletzt geschlossen` zuständig; das Langzeitarchiv verwendet denselben Ahoi-Domänenstore und dieselbe Outbox, keine zweite History-Datenbank.
+
+Archivrichtlinie, erlaubte Archivmetadaten, Wiederherstellung und bewusste Löschung synchronisieren zwischen Desktops. Unbekannte Aktivität einer Gegenstelle ist kein Beleg, dass deren laufende Seite gefahrlos geschlossen werden kann. Empfangene Archivierung überschreibt keine neuere Nutzung und beendet keine aktive oder geschützte lokale Seite; eine nötige lokale Anwendung bleibt sichtbar ausstehend. Archivieren/Wiederherstellen/Löschen besitzen einen abgestimmten deterministischen Konfliktvertrag, damit Offline-Geräte weder Duplikate erzeugen noch gelöschte Einträge wiederbeleben. Inkognito gelangt nie in dieses Archiv, dessen Export oder Sync.
 
 ### Verbindlicher Drag-and-drop-Vertrag der Sidebar
 
@@ -840,8 +871,10 @@ Fokus- und Security-Regeln:
 Lebenszyklus und Persistenz:
 
 - Das Erzeugen eines Splits ändert weder gespeicherten/temporären Zustand noch Parent, Reihenfolge oder Persistenz eines Tree-Knotens.
-- Normale Split-Mitgliedschaft, Layoutbaum, Divider-Ratios und fokussiertes Pane gehören zur Fenster-/Workspace-Sitzung und werden lokal atomar über Session Restore gespeichert.
-- Split-Topologie wird nicht über CloudKit synchronisiert.
+- Normale Split-Mitgliedschaft, Reihenfolge, Layoutbaum und normalisierte Divider-Ratios werden mit stabiler logischer Gruppen-ID und Workspace-Zuordnung synchronisiert und lokal atomar mit Session Restore verbunden. Verschiedene Fenster dürfen dieselbe logische Gruppe lokal darstellen, ohne eine zweite gemeinsame Gruppenidentität zu erfinden.
+- Native Tab-/WebContents-Handles, konkrete Fensterposition/-größe, laufender Eingabefokus und Website-Sitzungszustand bleiben lokal. Empfangene Änderungen werden ohne automatischen Fokus-/Accountwechsel oder ungefragte Navigation projiziert; ein konfliktträchtiger Umbau einer laufenden Gruppe wird sicher aufgeschoben statt Seitenzustand zu verlieren.
+- Ein zweiter Desktop stellt zwei-, drei- und vierteilige Gruppen einschließlich 2×2, Reihenfolge und Ratios wieder her. Kleinere Desktopfenster passen die lokale Darstellung an, ohne das gemeinsame Wunschlayout nur wegen ihrer Größe zu überschreiben. Die portable Topologie bildet eine konsistente Konfliktgruppe; unvollständig empfangene Mitglieder bleiben bis zur Auflösung erhalten statt durch Phantom-Tabs ersetzt zu werden.
+- Mobile bewahrt dieselben Gruppen-/Layoutmetadaten roundtrip-sicher. Lesen oder Öffnen eines einzelnen Mitglieds verändert die Gruppierung nicht; eine eigene iOS-/iPadOS-Split-Oberfläche ist keine v1-Pflicht.
 - Inkognito-Splits funktionieren innerhalb eines `OffTheRecordProfile`, werden aber nie serialisiert, wiederhergestellt, synchronisiert oder in der Companion-App angezeigt.
 - Bei nicht wiederherstellbarem Leaf degradiert eine Vierergruppe ohne Phantom-Tab zur passenden Dreiergruppe, eine Dreiergruppe zur passenden Zweiergruppe und eine Zweiergruppe zu einem normalen Tab.
 - Renderercrash betrifft nur das jeweilige Pane; andere Panes bleiben bedienbar.
@@ -900,6 +933,28 @@ Implementiere eine native, latenzarme Command Bar:
 - `g Suchbegriff` als direkter Google-Befehl.
 - erweiterbares Suchkürzelmodell.
 - Klick auf die sichtbare beziehungsweise per Notch eingeblendete Adressleiste öffnet dieselbe Command Bar im Kontext des aktiven Panes; es existiert kein zweiter abweichender URL-Editor.
+
+### Eigene Tastenkürzel, MRU und Entdeckbarkeit
+
+Auf macOS lassen sich die angebotenen Browser-, Tab-, Workspace-, Split- und Seitenbefehle suchen, neu belegen, von einer Belegung lösen und auf ihren Default zurücksetzen. Menü, Command Bar und Einstellungseditor verwenden denselben Katalog. Kollisionen mit anderen Browserbefehlen, aktiven Extension-Kürzeln und reservierten Systemkombinationen werden vor Übernahme verständlich angezeigt; keine fremde Belegung wird still überschrieben. Bestehende Standardkürzel bleiben erhalten, bis der Nutzer sie ändert. Unterstützte iPad-Hardwaretastaturbefehle nutzen denselben semantischen Katalog, ohne einen vollständigen mobilen Belegungseditor vorauszusetzen.
+
+Ein konfigurierbarer MRU-Befehl wechselt zum tatsächlich zuletzt benutzten Tab im aktuellen Fenster/Workspace. Zyklisches Tab-Cycling bleibt getrennt wählbar; Peek, modale Dialoge und andere Workspaces dürfen nicht versehentlich aktiviert werden. Kurze kontextbezogene Hilfe erklärt gespeicherte Seiten/Home-URL, Peek, Routing, Archiv und Wiederherstellung direkt an ihren bestehenden Oberflächen, vollständig auf Deutsch und Englisch und ohne vorgeschalteten Pflicht-Wizard.
+
+### Workspace-Routing externer Links
+
+Externe HTTP-/HTTPS-Links werden nach Normalisierung und Deduplizierung vor der ersten Navigation einem normalen Workspace und dem Modus normaler Tab oder Quick Window zugeordnet. Geordnete aktivierte Regeln verwenden exakten Host, ausdrücklich eingeschlossene Subdomains und optional einen Pfad. Querywerte oder bloße Zeichenkettenfragmente dürfen keinen Domain-Treffer erzeugen; Schema, Port und Pfadsemantik bleiben eindeutig. Ein Beispiel-Link zeigt bereits im Editor das wirksame Ziel und die gewinnende Regel.
+
+Ohne Treffer gilt eine klar konfigurierte Standardroute; ein nicht mehr verfügbares ausdrücklich gewähltes Ziel verlangt eine verständliche Zielauswahl. `Für diese Website merken` speichert nur eine bewusste Entscheidung, kein heimlich gelerntes Verhalten. Regeln sind deaktivierbar, umordnungsfähig und rücksetzbar. Ihre sicheren logischen Ziele und Einstellungen gehören in den positiv definierten Setup-Sync-Katalog; lokale Profil-/Partitionskennungen und Berechtigungen niemals. Fehlende mobile Fähigkeiten dürfen Desktop-Regeln nicht entfernen.
+
+Der Sitzungskontext steht vor WebContents-Erzeugung beziehungsweise erstem Request fest. Vorhandene Seiten werden nur innerhalb derselben lokalen Sitzung ohne Reload übernommen; ein Wechsel des Sitzungskontexts öffnet nach bewusster Entscheidung im Zielkontext, ohne Cookies, Formulare oder Login-Zustand zu kopieren. Normale Routingregeln öffnen niemals implizit Inkognito. Website-Redirects, OAuth-Callbacks und Custom Protocols behalten ihre nativen Sicherheits- und Opener-Regeln.
+
+### Link-Peek
+
+Normale Links können explizit über Kontextmenü, Befehl und einen konfigurierbaren konfliktfreien Modifier als kurze Vorschau über der Ausgangsseite geöffnet werden. Der bestehende Popup-Overlay-Lebenszyklus und ein echtes natives WebContents bleiben zuständig; es entsteht kein DOM-/WebView-Ersatz. Origin, Workspace-Kontext, aktives Pane, Escape, Fokus, Before-Unload, Auth, Permissions, Dateiaktionen und sichere Fenster-Fallbacks folgen dem vorhandenen Popup-Vertrag.
+
+Schließen erhält den Zustand der Ausgangsseite. Übernahme als normaler Tab oder als Split mit der Ausgangsseite verwendet im gleichen Sitzungskontext dasselbe WebContents ohne unnötigen Reload; ein voller Vierer-Split weist weitere Mitglieder verständlich ab. Ein Peek erzeugt erst bei bewusster Übernahme einen dauerhaften Baum-/Sync-/Restoreeintrag. Der normale History-Dienst und die Inkognito-Grenzen bleiben maßgeblich.
+
+Optionales automatisches Peek für Links zu anderen Websites aus gespeicherten Seiten ist Teil der konfigurierbaren Funktion, standardmäßig aus. Ohne Aktivierung bleiben normale Klicks, Mittelklick, Modifier und target=_blank browserüblich. Es gibt keinen automatischen Wechsel in einen anderen Account-Kontext und keine Übernahme privater Inhalte in normale Tabs.
 
 ### Quick Window im Stil von Little Arc
 
@@ -968,6 +1023,14 @@ Erhalte beziehungsweise integriere vollständig:
 - DevTools und Entwicklermodus;
 - PWA-Funktionen soweit upstream vorhanden, ohne prominenten v1-Schwerpunkt.
 
+### Reader, Linkkopie und kompakte Seitenaktionen
+
+Ein lokal arbeitender Reader öffnet geeignete Artikel als gut lesbare Ansicht und kehrt zur ursprünglichen Seite zurück, ohne deren Navigation, Scrollposition oder Formularzustand unnötig zu verlieren. Desktop nutzt zuerst die vorhandene geeignete Chromium-Funktion, Mobile einen sicheren WebKit-/nativen Ablauf; kein Cloud-/AI-Zwang. Nicht geeignete Seiten erhalten eine klare Rückmeldung statt einer defekten Ansicht.
+
+`Link kopieren` und `Link als Markdown kopieren` verwenden stets das aktive Pane und einen korrekt maskierten Titel sowie eine sichere URL ohne eingebettete Zugangsdaten. Native Share-, PDF-/Druck- und vorhandene Capture-Aktionen bleiben erreichbar. Ein schlanker Zugang zu Seiten-/Bereichsaufnahmen ist zulässig, ohne Screenshot-Editor oder zweiten Responsive-/Network-Inspector.
+
+Site Controls bündeln die schon vorhandenen Seitenaktionen und zeigen betroffene Origin, Workspace-Sitzung, Rechte und aktive Modifikationen verständlich. Es entstehen keine neuen parallelen Permission- oder Datenschutzdienste. Optional kompakte Favoritendarstellung verwendet vorhandene gespeicherte Ziele beziehungsweise native Lesezeichen statt einer dritten Sammlung. Zeitweise Ordner für aktuelle Tabs verwenden dieselbe Baum-/Verschiebelogik. Optionaler Hover-Fokus in Splits bleibt standardmäßig aus; aktivierte Nutzung muss Adresse und Aktionsziel eindeutig anzeigen und darf keine wartende geschützte Aktion allein durch Pointerbewegung freigeben.
+
 ## Medien, DRM und Berechtigungen
 
 Implementiere und verifiziere:
@@ -1021,6 +1084,8 @@ Erhalte allgemeine Chromium-/Chrome-Extension-Kompatibilität:
 - Installation, Update, Neustartpersistenz und Deinstallation.
 
 Gepinnte Extension-Actions erscheinen kompakt im Sidebar-Kopf; weitere Actions liegen in einem Overflow-Menü.
+
+Bekannte konkrete Kompatibilitätsgrenzen werden vor Installation und danach im bestehenden Extension-Bereich verständlich erklärt. Installiert, deaktiviert, Berechtigung ausstehend, eingeschränkt und fehlgeschlagen sind unterscheidbar; technische Details bleiben aufklappbar. Paketinstallation oder ein angezeigtes Popup gelten nicht als Beweis vollständiger Funktion. Diese Darstellung ergänzt Chromiums native Prüf-/Updatewege und ersetzt sie nicht durch einen Crest-artigen Mehr-Engine-Host.
 
 Bei eingeblendeter schwebender Navigationszeile erscheinen gepinnte Extension-Actions innerhalb derselben Overlay-Zeile rechts von der Adresse. Das Ein-/Ausblenden verändert weder die Höhe noch die Viewportmetriken des WebContents. Popup, Badge, Kontextmenü und Tastaturbefehl einer Extension bleiben vollständig funktionsfähig; Extensions dürfen weiterhin nicht AhoiBrowsers eigenes Chrome verändern.
 
@@ -1079,6 +1144,7 @@ Passwörter, Cookies, Login Data, Web Sessions, Tokens, `Secure Preferences`, Ex
 - Der `StorableSidebar.json`-Parser ist versionsgebunden. Für Schema 1 verarbeitet er typisiert Container, Spaces, Lists, Tabs und Split Views; unbekannte Schema-Versionen oder Varianten werden nicht geraten.
 - Setze harte Grenzen für Dateigröße, Objektanzahl, Stringlängen, Verschachtelung und Split-Mitglieder. Erkenne doppelte IDs, Zyklen, Waisen, ungültige URLs, interne Arc-/Extension-URLs und beschädigte Referenzen.
 - Die kompakte Importoberfläche zeigt vor jeder Mutation auf derselben vertrauten Fläche Kategorien, Objektzahlen, Ziel-Workspaces, Konflikte, Deduplizierungen, Degradierungen und ausgeschlossene Datentypen. Titel und URLs dürfen in dieser lokalen Nutzervorschau erscheinen, nicht aber unredigiert in Logs, Crash Reports oder veröffentlichter Evidenz.
+- Eine kompakte Vorher-/Nachher-Vorschau macht Quellstruktur und Zielplatzierung pro Workspace sichtbar. Einzelne Seiten/Ordner lassen sich abwählen; neue oder vorhandene Ziele sowie deren Name/Icon/Akzent sind vor Commit kontrollierbar. Die Vorschau verwendet exakt denselben unveränderlichen ImportPlan wie der Commit. Sie erweitert den vorhandenen Hub, keinen separaten Onboarding-Wizard.
 - Erzeuge deterministische Ziel-IDs und einen `ImportPlan`, sodass derselbe Snapshot bei Wiederholung keine Duplikate erzeugt.
 - Führe den Plan als additive, atomare Mehr-Workspace-Transaktion aus. Bei Fehler oder Prozessabsturz muss das `ImportJournal` vollständig zurückrollen oder beim Neustart deterministisch fortsetzen können; ein halb importierter Baum ist unzulässig.
 - Überschreibe bestehende Ahoi-Inhalte nie still. Für gleichnamige Workspaces und Ordner gilt eine klar beschriftete, browserübliche Konfliktstrategie für den ganzen Lauf – beispielsweise zusammenführen, neue Kopie anlegen oder überspringen – statt eines Dialogs pro Objekt.
@@ -1093,6 +1159,14 @@ Zen wird in derselben kompakten Importoberfläche wie andere Browser angeboten u
 Zen-spezifische Seitenleisten-, Workspace-, Ordner-, Pin- oder Splitdaten werden nur verarbeitet, wenn ihr lokaler Speicherort und Schema für die konkrete Zen-Version nachgewiesen, gebunden, begrenzt und mit Fixtures dokumentiert sind. Fehlt dieses Wissen, zeigt die Oberfläche die Standardkategorien und erklärt den noch nicht unterstützten Strukturimport; sie erzeugt keine leeren Workspaces, Phantom-Tabs oder geratenen Beziehungen. Discovery und Preview bleiben read-only. Ein späterer Strukturimport übernimmt die für Arc geltenden Invarianten für immutable Snapshot, explizite Konfliktentscheidung, deterministische IDs, atomaren Commit, Rollback, No-op-Wiederholung und Geheimnisausschluss.
 
 Ist Zen auf dem Testsystem nicht installiert, muss ein realistisches, temporäres Fixture die Erkennung und Capability-Anzeige sichtbar belegbar machen. Das Fehlen einer echten lokalen Zen-Quelle ist kein Grund, Arc-, Standardimport- oder andere kontrollierbare Arbeit anzuhalten; ein realer Zen-Datenimport bleibt dann präzise als `BLOCKED_EXTERNAL` beziehungsweise nicht vorhanden ausgewiesen.
+
+## Portabler Workspace-Export und Wiederimport
+
+Ein nativer Dateibefehl exportiert ausgewählte normale Workspaces, Ordner, gespeicherte Ziele samt Ausgangsadressen, Reihenfolge und Appearance. Temporäre Tabs und Archivdaten sind ausdrücklich auswählbare Kategorien. Enthaltene normale Split-Gruppen behalten logische Mitgliedschaft, Reihenfolge, Layout und normalisierte Ratios. Dieser portable Strukturexport ist von internem Import-Backup, Passwortexport und vollständigen Profilkopien getrennt und funktioniert ohne Cloud.
+
+Eine versionierte Positivliste schließt Credentials, Cookies, Site Storage, Permissions, private Tabs, Downloads, lokale Pfade, native Handles, Extension-Pakete/-Rohstorage, Pairing-/Keychain-/Header-Geheimnisse aus. Nichtportable Ziele werden mit Anzahl und Grund ausgewiesen. Die gewählte Datei enthält persönliche Browserstruktur und wird nicht ohne technische Grundlage als verschlüsselt bezeichnet; kein automatisches Hochladen oder Teilen.
+
+Der Wiederimport nutzt vorhandene Parser-/Importtransaktionen mit Grenzen für Größe, Anzahl, Tiefe, URLs, IDs und Beziehungen. Er bietet Zielvorschau, additive Konfliktentscheidung, atomaren Commit, Rollback und idempotente Wiederholung. Bestehende Daten werden weder still überschrieben noch als entfernt interpretiert. Ein Export mit Wiederimport in einen frischen lokalen Zustand muss Hierarchie, Home-URLs, ausgewählte Archivdaten und Split-Anordnung nachvollziehbar erhalten. Mobile erhält gemeinsame Metadaten ohne dadurch eine Split-Darstellung anbieten zu müssen.
 
 ## Erstklassige HTTP-Authentifizierung für `.htaccess`
 
@@ -1293,6 +1367,8 @@ Wenn die Funktion nur durch eine allgemeine MV2-Freigabe oder eine große, unwar
 ## Integriertes Developer Toolkit
 
 Das Toolkit ist eine native Browserfunktion und keine Extension. Es ist für normale Nutzer standardmäßig verborgen und wird einmalig in den Einstellungen oder über einen Befehl aktiviert.
+
+Nach bewusster Aktivierung kann der Nutzer passende Werkzeuge bei Loopback-/lokalen Entwicklungsadressen sowie ausdrücklich gewählten Staging-/Projektseiten automatisch sichtbar machen. Der bestehende Toolbar-/Seitenkontext bietet URL-/Linkkopie, Reload, Site Data und native DevTools für das aktive Pane an. Automatische Sichtbarkeit aktiviert weder Injection noch Headerregeln oder Berechtigungen und umgeht keine Zertifikatsprüfung. Verlassen des Kontexts entfernt nur die kontextuelle Darstellung; ungespeicherte Editorarbeit bleibt geschützt. Ein zweiter Inspector oder dauerhaft laufender Projekt-/Netzwerkscanner ist nicht Teil dieser Funktion.
 
 Wenn es deaktiviert ist:
 
@@ -1497,6 +1573,7 @@ dadurch weder erweitert noch gelockert.
 ### Grundprinzip
 
 - local-first;
+- Sync ist standardmäßig aus und wird bewusst aktiviert; eine fehlende Einstellung ist kein Opt-in. Ohne Aktivierung werden weder CloudKit-Transport noch Account-/Schlüsselzugriff gestartet;
 - Browser und Companion funktionieren ohne iCloud und ohne Netzwerk mit dem lokalen Datenstand;
 - das lokale Ahoi-Domänenmodell, sein SQLite-Store und seine Outbox sind die kanonische Quelle; CloudKit ist Transport und niemals das einzige Datenlager;
 - austauschbare `SyncProvider`-Schnittstelle;
@@ -1522,6 +1599,9 @@ Synchronisiere:
 - gemeinsame Desktop-/Mobile-Lesezeichen als separate Sammlung mit eigener Zustimmung, nicht als Workspace-Seitenbaum;
 - Reihenfolge und Tombstones;
 - alle normalen Tabs, temporäre wie gespeicherte, in einer gemeinsamen Workspace-Tabstruktur mit stabiler globaler TreeNode-ID; gerätebezogene Presence-/Runtime-IDs bleiben getrennt;
+- normale Split-Gruppen mit logischer Gruppen-/Workspace-ID, geordneten TreeNode-Mitgliedern, Layout und normalisierten Divider-Ratios; Desktop–Desktop mit hoher Priorität, Mobile verlustfrei erhaltend ohne Pflicht zur Split-UI;
+- erlaubte Archivierungsrichtlinien, Archivmetadaten einschließlich normaler Gruppenstruktur sowie Wiederherstellungs-/Löschzustand;
+- sichere gespeicherte Ausgangsadressen sowie positiv katalogisierte Routing-, Shortcut- und weitere übertragbare Produkteinstellungen; keine implizite Übertragung lokaler Sitzungsbindungen;
 - Verlauf;
 - Appearance und Workspace-Akzente;
 - unterstützte, sicher übertragbare native Chromium-Nutzereinstellungen gemäß dem expliziten Katalog aus ADR 0010;
@@ -1552,7 +1632,7 @@ Synchronisiere niemals:
 - Site Permissions;
 - geheimer, opaker oder ungeprüfter roher Extension Storage; zulässig sind ausschließlich positiv freigegebene Einstellungswerte aus ADR 0010;
 - Inkognito-Daten;
-- lokale Split-Topologie einschließlich Fenster-/Workspace-Zuordnung, Pane-Reihenfolge, Layout, Divider-Ratios und Fokus;
+- native Split-/Tab-Handles, konkrete Fensterkoordinaten/-größen, laufenden lokalen Fokus sowie Renderer-/Formular-/Sitzungszustand; die oben erlaubte logische Split-Anordnung ist ausdrücklich eingeschlossen;
 - Keychain-Werte;
 - geheime Headerwerte.
 
@@ -1604,6 +1684,8 @@ Implementiere klare Zustände für:
 
 Ein lokales Gerät kann nach bestätigtem Recovery seinen lokalen Datenstand neu hochladen. Keine automatische Datenvernichtung bei CloudKit-Key- oder Zone-Fehlern.
 
+Der eine gemeinsame C++-/Swift-Vertrag wird um Split-, Archiv-, Ausgangsadress- und geprüfte Einstellungsmetadaten erweitert. Die bisherige Zahl von Entityklassen begrenzt den beauftragten Umfang nicht. Neue Positivlisten, atomare Konfliktgruppen und konkrete native Adapter müssen übereinstimmen, bevor die Funktion aktiviert wird; kein bloßes Entfernen einer Denylist oder Erfinden von Wire-Feldern. Mobile muss bekannte Desktop-Metadaten bei nicht unterstützter Darstellung erhalten. Gleichzeitige Änderungen, Entfernen von Mitgliedern, Archivierung/Wiederherstellung und gelöschte Ziele konvergieren ohne Duplikate, Phantom-Tabs oder ungefragte Änderung laufender lokaler Seiten.
+
 Offizielle Builds verwenden den Projekt-CloudKit-Container. Selbst gebaute Forks müssen eigene Apple-Team-, Bundle- und Container-Identifier konfigurieren können.
 
 ## Nativer iOS-/iPadOS-Browser
@@ -1618,12 +1700,20 @@ Funktionen:
 - Webseiten im eigenen normalen oder privaten Browserkontext öffnen;
 - als verwalteter iOS-Standardbrowser HTTP-/HTTPS-Links annehmen;
 - Adress-/Suchfeld, Back/Forward/Reload, Tabs, Undo Close und normalen Session Restore bereitstellen;
+- gespeicherte Ausgangsadressen, explizite native Linkvorschau/Peek, Reader, Markdown-Linkkopie und kontextbezogene Hilfe in die vorhandene Oberfläche integrieren;
+- gemeinsame normale Split-/Archiv-/Einstellungsmetadaten bei Lesen und unterstützten Änderungen verlustfrei erhalten; das einzelne Öffnen eines Tabs löst keine Desktop-Gruppe auf. Eine iOS-/iPadOS-Split-Ansicht ist keine v1-Pflicht;
 - Link an einen konkreten Mac oder Workspace senden;
 - normalen Mac-Tab öffnen;
 - normalen Mac-Tab fokussieren;
 - normalen Mac-Tab nach Bestätigung schließen;
 - Gerätestatus und Befehlsstatus anzeigen;
-- Inkognito vollständig ausblenden.
+- entfernte Inkognito-Daten vollständig ausblenden; lokale private Tabs bleiben ausschließlich in ihrem lokalen privaten Modus sichtbar.
+
+### Mobile Privatsperre
+
+Eine optionale Einstellung schützt den lokalen privaten Bereich bei Inaktivität/Hintergrundwechsel durch Geräteauthentifizierung. Eine opake neutrale Abdeckung erscheint rechtzeitig vor dem App-Umschalter-Snapshot; private Pixel und Accessibility-Inhalte werden nicht exponiert. Rückkehr erfordert Face ID, Touch ID oder die systemseitige Geräteauthentifizierung. Abbruch, Fehler und Hintergrund-/Authentifizierungsrennen lassen die private Ansicht gesperrt.
+
+Die Sperre ist Sicht-/Zugriffsschutz, keine zusätzliche Verschlüsselungs- oder Tresorgarantie. Sie beendet die private Session nicht und löscht nicht den gemeinsam von deren Tabs verwendeten nichtpersistenten WebKit-Store. Erst das Schließen der gesamten privaten Session verwirft ihn; nach Prozessende gibt es keinen privaten Restore. Bereits bewusst gespeicherte/geteilte Dateien werden nicht gelöscht. Mehrere iPad-Szenen, Tastatur und VoiceOver respektieren dieselbe lokale Sperre. Desktop-Quick-Window und eine mobile Mehrpane-Oberfläche werden daraus nicht abgeleitet.
 
 ### Remote Control
 
@@ -1760,6 +1850,8 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - Session Restore;
 - Command Bar;
 - Quick Window;
+- Workspace-Link-Routing, gespeicherte Ausgangsadressen, explizites/optional automatisches Peek, freie Tastenkürzel und MRU;
+- sichere automatische Archivierung mit wiederherstellbarer normaler Tab-/Split-Struktur;
 - Inkognito;
 - eigene Magic-Mouse-/Trackpad-Geste für Workspaces, unveränderte Chromium-Zurück/Vor-Geste als Regression, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling;
 - Extension-Actions;
@@ -1769,6 +1861,7 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 
 - Downloads und Uploads;
 - PDF/Drucken;
+- Reader, Markdown-Linkkopie, kurze Aufgabenhilfe und verständliche Site-/Extension-Zustände;
 - Standardbrowser;
 - Medien, Sidebar-MiniPlayer und PiP-Wechsel;
 - WebRTC;
@@ -1783,6 +1876,7 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 - Bitwarden;
 - uBlock Origin Classic;
 - kompakter sicherer Arc-Import mit Vorschau, atomarem Commit, Rollback und idempotenter Wiederholung;
+- visuelle Zielvorschau und Einzelwahl im vorhandenen Hub sowie portabler Workspace-Export/-Wiederimport;
 - realer Import des vorhandenen lokalen Arc-Datenstands nach unveränderlichem Backup;
 - Zen-Erkennung und browserübliche Standardkategorien über vorhandene Importer-Seams; strukturtreue Zen-Migration nur für nachgewiesene, versionsgebundene Schemata;
 - reale User-E2E-Abnahme.
@@ -1790,6 +1884,7 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 ### Phase 4 – Developer Toolkit und Privacy
 
 - CSS/LESS/SASS/JavaScript;
+- bewusst aktivierbarer kontextbezogener Zugang zu bestehenden Entwicklerwerkzeugen;
 - Cache und Site Data;
 - Cookie Manager;
 - Headerregeln;
@@ -1804,6 +1899,8 @@ Erstelle am Ende nicht nur einen Bericht. Wenn die technische Grundrichtung trag
 
 - Sync-Schema;
 - Konfliktauflösung;
+- Desktop–Desktop-Sync normaler Split-Gruppen mit Layout/Ratios, Archivrichtlinien/-einträgen/-wiederherstellung und erlaubten Home-/Routing-/Shortcut-Einstellungen;
+- verlustfreier Mobile-Metadatenerhalt ohne Pflicht zur Split-Darstellung sowie lokale mobile Privatsperre;
 - Verlauf;
 - gerätebezogene offene Tabs als native, gerätegekennzeichnete Zeilen direkt in der normalen Desktop-Sidebar;
 - Developer-Asset-Opt-in;
@@ -1932,6 +2029,19 @@ Fixtures ersetzen keine Live-Abnahme von YouTube, Meet beziehungsweise einem ver
 
 ## Vollständige Abnahmematrix
 
+### Ergänzte Arbeitsabläufe vom 12. September 2026
+
+Diese Fälle sind verbindlicher Sollumfang und zunächst `NOT_RUN`. Vorhandene passende Nachweise dürfen mehrere Anforderungen gemeinsam abdecken; keine doppelten Läufe allein wegen einer zusätzlichen ID. Zuerst den jeweiligen sichtbaren Ablauf am passenden Kandidaten ausführen, danach die notwendigen fokussierten Grenzprüfungen. Neue Datenklassen oder Registry-Einträge allein sind kein Implementierungsnachweis.
+
+- `WORKFLOW-01`: Externen Link nach Deduplizierung zum richtigen Workspace/Account und gewählten Tab-/Quick-Window-Modus routen; Regelreihenfolge, Host/Subdomain/Pfad, irreführendes URL-Fragment, fehlendes Ziel, bewusstes Merken und Zurücksetzen prüfen. Kein vorheriger Request im falschen Sitzungskontext.
+- `WORKFLOW-02`: Gespeichertes Dashboard zu einer Unterseite navigieren, zur Ausgangsadresse zurückkehren und diese explizit ändern; Neustart/Sync erhalten beide URL-Bedeutungen. Link per Peek prüfen, schließen und identitätstreu als Tab/Split übernehmen; Before-Unload-Abbruch, Ursprungszustand und aus-/eingeschaltetes automatisches Peek bleiben korrekt.
+- `WORKFLOW-03`: Browser-/Workspace-/Split-Kürzel über den gemeinsamen Katalog finden, umbelegen, Konflikt mit Browser/Extension/System behandeln und zurücksetzen; MRU und zyklischen Wechsel getrennt bedienen, ohne fremden Workspace oder modalen Zustand zu aktivieren.
+- `WORKFLOW-04`: Geeignete inaktive temporäre Tabs beziehungsweise vollständige Gruppen nach konfigurierter Frist mit kontrolliert fortgeschrittener Zeit sichtbar archivieren und wiederherstellen. Alle aktiven/gespeicherten/Keep-Loaded-/Medien-/Formular-Ausnahmen bleiben erhalten; `nie`, manuelle Aktion, Neustart, Idempotenz und getrennte endgültige Löschung prüfen.
+- `WORKFLOW-05`: Auf zwei passenden Desktop-Kandidaten normale Zwei-/Drei-/Vier-Pane-Gruppen einschließlich 2×2, Mitgliederreihenfolge und Ratios synchronisieren; Offline-/Konflikt-/Entfernungsfälle sowie Archivierung/Wiederherstellung konvergieren. Aktive Seiten der Gegenstelle verlieren weder Fokus noch Login-/Formularzustand. Mobile liest/bearbeitet unterstützte gemeinsame Daten und schreibt Desktop-Splitmetadaten verlustfrei zurück, ohne Split-UI vorauszusetzen.
+- `WORKFLOW-06`: Quell-/Zielstruktur im Import-Hub prüfen, Einzelwahl ändern, abbrechen und anschließend importieren; wiederholter Lauf bleibt No-op. Ausgewählte Workspace-/Home-/Split-/Archivdaten exportieren und in frischem lokalem Zustand wiederherstellen; ungültige Versionen/Beziehungen und ausgeschlossene private/Secret-/Pfaddaten ohne Teilmutation zurückweisen.
+- `WORKFLOW-07`: Artikel im Reader öffnen/zurückkehren, Link des aktiven Panes normal und als Markdown kopieren, kontextbezogene Hilfe und vorhandene Site-/Extension-Aktionen bedienen. Entwicklerkontext nur nach Aktivierung anzeigen; Capture-/Darstellungsoptionen und ausgeschaltete Defaults verändern keine Rechte, Webseiten oder fremden Fokus.
+- `WORKFLOW-08`: Lokalen privaten Mobile-Bereich mit aktivierter Sperre in Hintergrund/App-Umschalter versetzen und per Systemauthentifizierung wieder öffnen; Abbruch, Fehler, erneuter Hintergrundwechsel, iPad-Szenen und VoiceOver schützen Inhalte. Sperren beendet die Session nicht; Schließen der gesamten privaten Session beziehungsweise Prozessende hinterlässt keinen Restore-/Sync-/Archivbestand.
+
 Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn die Implementierung zusätzliche Risiken erzeugt.
 
 ### Packaging, Installation und erster Start
@@ -2033,7 +2143,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `SPLIT-19`: Origin-/Security-/Media-Indikatoren aller Panes und den nicht nur farblichen aktiven Fokusrahmen bei Omnibox, Page Info und Device Chooser prüfen.
 - `SPLIT-20`: Permission Prompt, System-Dateipicker und tabmodalen Dialog aus aktivem und inaktivem Pane auslösen; Unterdrückung, Fokusübergabe, Scrim und Origin-Zuordnung prüfen.
 - `SPLIT-21`: normale Zwei-, Drei- und Vier-Pane-Sitzung vollständig beenden und neu starten; Workspace/Fenster, Mitgliedschaft, Layout, beide 2×2-Ratios und Fokus exakt wiederherstellen.
-- `SPLIT-22`: Split-Zustand bleibt fenster- und Workspace-sessionbezogen; Wechsel und zweites Fenster beschädigen ihn nicht, CloudKit und iOS enthalten keine Split-Topologie.
+- `SPLIT-22`: Normale logische Split-Gruppen einschließlich geordneter Mitglieder, Layout und Ratios werden zwischen Desktops synchronisiert und lokal korrekt an Fenster/Workspace-Sitzungen gebunden. Mobile erhält Metadaten ohne Split-UI-Pflicht. Native Handles, aktiver Fokus und Website-Sitzungen bleiben lokal; Wechsel, zweites Fenster und Empfang verursachen keine Phantom-Tabs oder ungefragte Navigation.
 - `SPLIT-23`: Zwei-/Drei-/Vier-Pane-Split innerhalb Inkognito funktioniert; Normal-/Inkognito-Mischung wird abgewiesen und nach Schließen oder Crash wird nichts wiederhergestellt, synchronisiert oder historisiert.
 - `SPLIT-24`: Audio und Video in allen Panes simultan abspielen; Fokuswechsel pausiert nichts, Mute und Media-/Capture-Indikatoren bleiben pro Pane korrekt.
 - `SPLIT-25`: Picture in Picture aus jeder Pane-Position starten und über Fokus-, Layout-, Divider-, Workspace-, Minimize- und Sidebar-Wechsel prüfen.
@@ -2059,9 +2169,9 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `CMD-03`: `g Suchbegriff` führt direkte Google-Suche aus.
 - `CMD-04`: offene Tabs, Baum, Ordner, Workspaces, Verlauf und Befehle finden.
 - `CMD-05`: gesamte Command-Bar-Reise nur per Tastatur.
-- `CMD-06`: Ranking und Command-Bar-Latenz im installierten sichtbaren Lauf messen; `Ahoi.CommandBar.QueryLatency` erfasst nur die synchrone lokale Rankingdauer und niemals Query-/URL-/Identitäts- oder Ergebnisinhalt.
-- `QUICK-01`: globalen Shortcut bei inaktiver App verwenden; Registrierung ist retryfähig, wird nach dem letzten regulären Fenster abgemeldet und Cooldown startet erst nach tatsächlich geöffnetem Quick Window.
-- `QUICK-02`: eingeloggte Website öffnen; Quick Window nutzt dasselbe normale Profil.
+- `CMD-06`: Ranking und Command-Bar-Latenz im installierten sichtbaren Lauf messen; `Ahoi.CommandBar.QueryLatency` erfasst ausschließlich die synchrone lokale Normalize-/Score-/Sort-/Dedup-/Limit-Dauer und niemals Suchtext, URL, Titel, Identität oder Ergebnisinhalt.
+- `QUICK-01`: globalen Shortcut bei inaktiver App verwenden; eine zunächst fehlgeschlagene Registrierung wird im Browser-/Focus-Lebenszyklus erneut versucht, nach dem letzten regulären Fenster abgemeldet und der Cooldown beginnt erst nach tatsächlich geöffnetem Quick Window.
+- `QUICK-02`: eingeloggte Website öffnen; Quick Window nutzt das normale Profil und genau den bewusst gewählten Workspace-Sitzungskontext, nicht die Login-Sitzung eines anderen Workspaces.
 - `QUICK-03`: Seite in normalen Tab beziehungsweise Baum übernehmen.
 - `QUICK-04`: Quick Window schließen, ohne normale Sitzung zu beschädigen.
 - `POPUP-01`: Fixture und reale Website öffnen ein geeignetes Popup; es erscheint als fokussiertes Overlay über dem auslösenden Pane, mit korrekter Origin und ohne dessen Viewport dauerhaft umzubauen.
@@ -2085,7 +2195,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `NAV-04`: Drag-and-drop einer Datei in Website und Browser-Chrome.
 - `NAV-05`: Drucken und PDF-Vorschau.
 - `NAV-06`: OAuth-Testlogin.
-- `NAV-07`: echte Plattform-Passkey-/WebAuthn-Zeremonie mit macOS-Systemauthentifizierung; die lokale simulierte Challenge zählt nur als Plumbing-Teilbeleg.
+- `NAV-07`: echte Plattform-Passkey-/WebAuthn-Zeremonie mit macOS-Systemauthentifizierung ausführen; die lokale simulierte Challenge belegt nur das Browser-Plumbing und zählt nicht als Plattform-Pass.
 - `NAV-08`: sicherer Custom-Protocol-Prompt.
 - `NAV-09`: Chromiums unveränderte Trackpad-/Magic-Mouse-Wischgeste über einer Seite für Zurück und Vor als Regression prüfen; langsame, schnelle und abgebrochene Bewegung mit sichtbarem Fortschritt, aber keine Ahoi-Parallelimplementierung.
 - `NAV-10`: Seiten-, Workspace- und horizontale Website-Scrollgeste gegeneinander testen; genau eine erkannte Aktion, kein Doppelwechsel und konfigurierbare Deaktivierung.
@@ -2132,7 +2242,7 @@ Führe jeden Test als eigenen dokumentierten Fall. Ergänze weitere Tests, wenn 
 - `AUTH-22`: Schließen des letzten Inkognito-Fensters verwirft dessen Auth-Cache.
 - `AUTH-23`: HTTP-Auth-Credentials erscheinen nach kandidatgebundener Mehrgeräte-Negativprüfung weder auf Mac B noch in CloudKit oder iOS; lokale Provider-/Scanner-Nachweise reichen allein nicht.
 - `AUTH-24`: Passwortanzeige in der HTTP-Zugangsverwaltung erfordert Touch ID/Systemauthentifizierung.
-- `AUTH-25`: kandidatgebundene Logs, NetLog, Crash Reports und Evidenz enthalten weder synthetisch injizierte Passwort-/Authorization-Canaries noch unredigierte Credential-Felder, Cookie- oder vollständige Authorization-Header; der wertblinde Scanner läuft erst nach den sichtbaren installierten Journeys über die exakten Capture-Wurzeln.
+- `AUTH-25`: kandidatgebundene Logs, NetLog, Crash Reports und Evidenz enthalten weder die ausschließlich synthetisch injizierten Passwort-/Authorization-Canaries noch unredigierte Credential-Felder, Cookie- oder vollständige Authorization-Header. Der wertblinde Scanner läuft erst nach den sichtbaren installierten Journeys über die exakten Capture-Wurzeln und ersetzt diese Journeys nicht.
 - `AUTH-26`: Subresource-Auth-Challenge kann keine unklare oder irreführende Credential-Abfrage erzeugen.
 - `AUTH-27`: vollständige sichtbare Reise – Speichern, Neustart, Autocomplete, Kontowahl, Fehlerkorrektur, Wechsel und Abmeldung – via Computer Use im installierten Build.
 
@@ -2506,6 +2616,7 @@ Bei externen Blockern dokumentiere:
 - Hell/Dunkel/System/Glass und Accessibility abgenommen;
 - mehrere Fenster, Cross-Window-Tab-Drag, 10.000-Knoten-Baum, Workspace-Dots, echte Magic-Mouse-/Trackpad-Gesten, `⌘`-Scroll-Tabwechsel und Mittelklick-Auto-Scrolling funktionieren;
 - alle `SPLIT-*`-Tests einschließlich Layouts, Divider, Fokus-/Origin-Zuordnung, Accessibility und normalem/Inkognito-Recovery sind `PASS`.
+- die ergänzten Arbeitsabläufe `WORKFLOW-01` bis `WORKFLOW-08` sind im jeweils genannten Desktop-/Mobile-Scope mit passenden Kandidaten abgenommen; dies verlangt keine mobile Split-Oberfläche.
 
 ### Browser Capability Gate
 
@@ -2563,6 +2674,7 @@ Bei externen Blockern dokumentiere:
 - zwei Macs plus iOS/iPadOS bestehen Online-, Offline-, Konflikt-, Lösch-, Recovery- und Geräteentzugstests;
 - History, normale Tabs und Baum funktionieren;
 - die normale Sidebar zeigt die gemeinsame Workspace-Tabstruktur auch bei bereits geöffneter Gegenstelle, ohne Identitätsduplikate, automatischen Fokuswechsel oder ungefragtes Laden; temporäre Tabs tragen Herkunftshinweise, und die separate Lesezeichensammlung synchronisiert unabhängig davon;
+- normale Split-Gruppen samt Anordnung/Ratios sowie Archivzustand, Wiederherstellung, Home-URLs und katalogisierte Einstellungen konvergieren zwischen Desktops; mobile Nichtdarstellung löscht oder verändert diese Metadaten nicht;
 - weder Google-Konto noch Chrome Sync erforderlich; vorhandene Profile, CloudKit-Daten und Schlüssel werden für die neue Abnahme nicht still verändert oder gelöscht;
 - Remote Control ist signiert und replay-sicher;
 - Cookies, Passwörter, HTTP Auth, Site Storage, Berechtigungsfreigaben, geheime/ungeprüfte Extension-Stores, Inkognito und Keychain-Secrets bleiben lokal; positiv geprüfte Einstellungswerte folgen ADR 0010.
@@ -2626,6 +2738,9 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 25. Lokale Workspace-Website-Sitzungen trennen zwei Accounts derselben Site einschließlich Site Storage, Worker, Popup-/Restore- und Tab-Transfer-Pfaden; History, Passwörter und Extensions bleiben global. Nur abgestimmte nicht geheime Workspace-Metadaten werden synchronisiert; laufende Gegenseiten wechseln dadurch weder Fokus noch Account-Kontext.
 26. Browser-Setup-Sync nach ADR 0010 stellt auf einem neuen verknüpften Mac unterstützte native Nutzereinstellungen und eine vertrauenswürdige unterstützte Erweiterung tatsächlich nutzbar wieder her; freigegebene Extension-Einstellungen konvergieren. Policy/Freigaben, Offline/Neustart, Deaktivierung/Deinstallation und Default-Reset bleiben korrekt; fünf Ahoi-Preferences oder ein Inventar allein erfüllen diesen Auftrag nicht.
 
+27. Die integrierten Crest-Empfehlungen einschließlich Workspace-Routing, gespeicherter Ausgangsadressen, Peek, Tastenkürzel/MRU, Reader/Markdown, Import-Zielvorschau, portablem Export, Entwicklerkontext, verständlicher Hilfe/Zustände und mobiler Privatsperre sind gemäß ihrem Plattformscope sichtbar abgenommen.
+28. Automatische Archivierung und vollständige normale Split-/Archiv-Synchronisierung zwischen Desktops sind funktionsfähig, wiederherstellbar und konfliktfest; aktive lokale Seiten werden nicht ungefragt beendet oder umnavigiert. Mobile bewahrt die gemeinsamen Metadaten; eine eigene mobile Split-Ansicht ist keine Voraussetzung.
+
 ## Explizit nicht Bestandteil von v1
 
 - Windows;
@@ -2647,6 +2762,8 @@ AhoiBrowser ist erst öffentlich releasebereit, wenn gleichzeitig gilt:
 - Boost-Plattform;
 - eigenes soziales Sharing-System;
 - importierbare Theme-Pakete;
+- ein umfangreicher Wappen-/Theme-Baukasten, ein Wechsel der Desktop-Engine oder ein eigener Firefox-/Safari-Extension-Host;
+- verpflichtende gleichzeitige Split-/Mehrpane-Oberflächen oder ein Kartenpager auf iPhone/iPad; ihre spätere UX-Bewertung blockiert den Desktop-Sync nicht;
 - vollständiger Nachbau von Web Developer;
 - integrierter vollständiger Accessibility-Scanner;
 - Unterstützung von Extensions, die AhoiBrowsers eigene UI verändern wollen;

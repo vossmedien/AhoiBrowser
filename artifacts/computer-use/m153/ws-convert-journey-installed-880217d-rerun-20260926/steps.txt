@@ -1,0 +1,31 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Wandel -> 0 now=Wandel
+AXPress AXButton | Erstellen | Erstellen -> 0
+hidkey 17
+typed 36
+hidkey 36
+{"frameId":"BBAB4EA21B18C9B448011DE5AEC269F7","loaderId":"59F5F9A4F5853DB79A3BED2D7DBB72A1","isDownload":false}
+key 53
+AXShowMenu AXButton | Wandel, Workspace wechseln | Wandel, Workspace wechseln -> -25204
+AXPress AXMenuItem | In vollständig getrennten Workspace umwandeln … | itemSelected: -> 0
+convertDialogShown -> true
+dialogStatesWhatStays -> true
+AXPress AXButton | Abbrechen | Abbrechen -> 0
+cancelChangesNothing -> true
+key 53
+AXShowMenu AXButton | Wandel, Workspace wechseln | Wandel, Workspace wechseln -> -25204
+AXPress AXMenuItem | In vollständig getrennten Workspace umwandeln … | itemSelected: -> 0
+AXPress AXButton | Umwandeln | Umwandeln -> 0
+convertedWindowShown -> true
+key 53
+AXShowMenu AXButton | Wandel, Workspace wechseln | Wandel, Workspace wechseln -> -25204
+levelIsSeparated -> true
+mainKeepsInbox -> true
+key 53
+tabs after convert: ["about:blank", "chrome://newtab/", "http://127.0.0.1:8805/login.html"]
+temporaryPageReopened -> true
+loginDidNotMove -> true
+hidkey 12

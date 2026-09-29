@@ -1,0 +1,11 @@
+{
+ "cmdScrollTrackpadSwitchesTab": true,
+ "cmdScrollNoZoom": true,
+ "cmdScrollMouseWheelSwitchesTab": false,
+ "burstSwitchesOnce": false,
+ "plainScrollScrollsPage": true,
+ "autoscrollMainPage": true,
+ "escapeEndsAutoscroll": true,
+ "autoscrollNestedScroller": true,
+ "pass": false
+}

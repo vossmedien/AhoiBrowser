@@ -1,0 +1,11 @@
+{
+ "dialogClosed_Kunde": true,
+ "promptShown": true,
+ "noRehomingWhileClosing": true,
+ "latePageClosedToo": true,
+ "dialogClosed_Zwei": true,
+ "partitionNotRecreatedAtStartup": true,
+ "killedDeletionConsistent": true,
+ "bindingAndPartitionConsistentAfterCrash": true,
+ "pass": true
+}

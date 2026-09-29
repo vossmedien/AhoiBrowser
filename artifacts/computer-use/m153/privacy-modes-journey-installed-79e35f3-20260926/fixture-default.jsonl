@@ -1,0 +1,11 @@
+{"host": "127.0.0.1:8808", "path": "/top", "query": "", "gpc": null, "referer": null, "cookie": false}
+{"host": "localhost:8808", "path": "/pixel", "query": "from=top", "gpc": null, "referer": "http://127.0.0.1:8808/top", "cookie": false}
+{"host": "localhost:8808", "path": "/frame", "query": "", "gpc": null, "referer": "http://127.0.0.1:8808/top", "cookie": false}
+{"host": "127.0.0.1:8808", "path": "/favicon.ico", "query": "", "gpc": null, "referer": "http://127.0.0.1:8808/top", "cookie": false}
+{"host": "127.0.0.1:8809", "path": "/top3p", "query": "", "gpc": null, "referer": null, "cookie": false}
+{"host": "localhost:8809", "path": "/frame3p", "query": "", "gpc": null, "referer": "https://127.0.0.1:8809/", "cookie": true}
+{"host": "127.0.0.1:8809", "path": "/favicon.ico", "query": "", "gpc": null, "referer": "https://127.0.0.1:8809/top3p", "cookie": false}
+{"host": "127.0.0.1:8808", "path": "/landing", "query": "utm_source=ahoi&keep=1", "gpc": null, "referer": null, "cookie": false}
+{"host": "127.0.0.1:8808", "path": "/login", "query": "", "gpc": null, "referer": null, "cookie": false}
+{"host": "127.0.0.1:8808", "path": "/whoami", "query": "", "gpc": null, "referer": null, "cookie": true}
+{"host": "127.0.0.1:8808", "path": "/ads", "query": "", "gpc": null, "referer": null, "cookie": true}

@@ -1,0 +1,5 @@
+start: visible=two
+opt-tab (page focused): visible=two one=[] two=["alt+Alt"] handled=0
+ctrl-tab: visible=one one=[] two=["alt+Alt","ctrl+Control"] handled=0
+opt-tab after ctrl-tab: visible=one one=["alt+Alt"] two=["alt+Alt","ctrl+Control"] handled=0
+opt-cmd-k (not bound): visible=one one=["alt+Alt","alt+cmd+Meta","alt+cmd+Alt","alt+cmd+∆"] two=["alt+Alt","ctrl+Control"] handled=0

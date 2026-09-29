@@ -1,0 +1,2 @@
+pid=1474 profile=/private/tmp/ahoi-incognito-profile.O7ipjI
+pid=2262 profile=/private/tmp/ahoi-incognito-profile.O7ipjI

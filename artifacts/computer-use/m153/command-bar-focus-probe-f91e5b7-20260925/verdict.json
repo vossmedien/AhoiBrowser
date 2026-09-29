@@ -1,0 +1,15 @@
+{
+ "dialogClosed_Probe1": true,
+ "barOpened_1": false,
+ "dialogClosed_Probe2": true,
+ "barOpened_2": false,
+ "dialogClosed_Probe3": true,
+ "barOpened_3": false,
+ "dialogClosed_Probe4": true,
+ "barOpened_4": false,
+ "dialogClosed_Probe5": true,
+ "firstReturnNavigated_5": true,
+ "dialogClosed_Probe6": true,
+ "barOpened_6": false,
+ "pass": false
+}

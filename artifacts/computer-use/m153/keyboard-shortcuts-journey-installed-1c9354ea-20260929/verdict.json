@@ -1,0 +1,21 @@
+{
+ "mruToPrevious": true,
+ "mruTogglesBack": true,
+ "cyclingIsSeparate": true,
+ "mruAfterCycling": true,
+ "dialogClosed_Zwei": true,
+ "ctrlTabWrapsInWorkspace": true,
+ "ctrlShiftTabWrapsInWorkspace": true,
+ "cmdOneSelectsFirstSidebarRow": false,
+ "cmdNineSelectsLastSidebarRow": true,
+ "mruStaysInWorkspace": true,
+ "editorShowsDefault": true,
+ "editorRebinds": true,
+ "conflictNamesHolder": true,
+ "conflictNotOverwritten": true,
+ "oldKeyReleased": true,
+ "newKeyWorks": true,
+ "bindingPersists": true,
+ "resetRestoresDefault": true,
+ "pass": false
+}

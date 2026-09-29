@@ -1,0 +1,40 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+Target is closing
+hidscrolled phased dy=-90 dx=0 at (754.0, 693.5)
+after cmd trackpad scroll: beta
+cmdScrollTrackpadSwitchesTab -> true
+cmdScrollNoZoom -> true
+hidscrolled line dy=-1 dx=0 at (754.0, 693.5)
+after cmd wheel notch from beta: beta
+cmdScrollMouseWheelSwitchesTab -> false
+hidscrolled line dy=-1 dx=0 at (754.0, 693.5)
+hidscrolled line dy=-1 dx=0 at (754.0, 693.5)
+hidscrolled line dy=-1 dx=0 at (754.0, 693.5)
+wheel burst from beta -> beta
+burstSwitchesOnce -> false
+hidscrolled pixel dy=-200 dx=0 at (754.0, 693.5)
+plain scroll on beta: 160 -> 360, visible beta
+plainScrollScrollsPage -> true
+hidmiddle at (754.0, 693.5) moved by (0.0, 120.0)
+autoscroll main: 580 -> 958
+autoscrollMainPage -> true
+hidkey 53
+after escape: 1200.5 -> 1200.5
+escapeEndsAutoscroll -> true
+hidmiddle at (754.0, 693.5) moved by (0.0, 120.0)
+autoscroll nested: 585 -> 971.5 (page 0)
+autoscrollNestedScroller -> true
+hidkey 53
+hidkey 12

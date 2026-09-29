@@ -1,0 +1,2 @@
+afterKundeDeleted {"ownBindings": [], "pending": [{"context_id": "db7252fa-3f7d-4305-a858-86a8ef045ec2", "path": "/private/tmp/ahoi-wsdelx-profile.KxmS56/Default/Storage/ext/ahoi/69DB15CFA96B"}], "partitionDirs": ["69DB15CFA96B"]}
+afterZweiCreated {"ownBindings": ["07f7a591-3c6e-4c7c-adf3-97af2d8d6637"], "pending": [{"context_id": "db7252fa-3f7d-4305-a858-86a8ef045ec2", "path": "/private/tmp/ahoi-wsdelx-profile.KxmS56/Default/Storage/ext/ahoi/69DB15CFA96B"}], "partitionDirs": ["69DB15CFA96B"]}

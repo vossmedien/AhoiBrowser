@@ -1,8 +1,112 @@
 {
   "schemaVersion": 1,
   "source": "outputs/AhoiBrowser-Master-Zielprompt.md",
-  "generatedAt": "2026-08-30T00:00:00Z",
+  "generatedAt": "2026-09-12T09:46:41Z",
   "tests": [
+    {
+      "id": "WORKFLOW-01",
+      "suite": "WORKFLOW",
+      "description": "Externen Link nach Deduplizierung zum richtigen Workspace/Account und gewählten Tab-/Quick-Window-Modus routen; Regelreihenfolge, Host/Subdomain/Pfad, irreführendes URL-Fragment, fehlendes Ziel, bewusstes Merken und Zurücksetzen prüfen. Kein vorheriger Request im falschen Sitzungskontext.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WORKFLOW-02",
+      "suite": "WORKFLOW",
+      "description": "Gespeichertes Dashboard zu einer Unterseite navigieren, zur Ausgangsadresse zurückkehren und diese explizit ändern; Neustart/Sync erhalten beide URL-Bedeutungen. Link per Peek prüfen, schließen und identitätstreu als Tab/Split übernehmen; Before-Unload-Abbruch, Ursprungszustand und aus-/eingeschaltetes automatisches Peek bleiben korrekt.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WORKFLOW-03",
+      "suite": "WORKFLOW",
+      "description": "Browser-/Workspace-/Split-Kürzel über den gemeinsamen Katalog finden, umbelegen, Konflikt mit Browser/Extension/System behandeln und zurücksetzen; MRU und zyklischen Wechsel getrennt bedienen, ohne fremden Workspace oder modalen Zustand zu aktivieren.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WORKFLOW-04",
+      "suite": "WORKFLOW",
+      "description": "Geeignete inaktive temporäre Tabs beziehungsweise vollständige Gruppen nach konfigurierter Frist mit kontrolliert fortgeschrittener Zeit sichtbar archivieren und wiederherstellen. Alle aktiven/gespeicherten/Keep-Loaded-/Medien-/Formular-Ausnahmen bleiben erhalten; `nie`, manuelle Aktion, Neustart, Idempotenz und getrennte endgültige Löschung prüfen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WORKFLOW-05",
+      "suite": "WORKFLOW",
+      "description": "Auf zwei passenden Desktop-Kandidaten normale Zwei-/Drei-/Vier-Pane-Gruppen einschließlich 2×2, Mitgliederreihenfolge und Ratios synchronisieren; Offline-/Konflikt-/Entfernungsfälle sowie Archivierung/Wiederherstellung konvergieren. Aktive Seiten der Gegenstelle verlieren weder Fokus noch Login-/Formularzustand. Mobile liest/bearbeitet unterstützte gemeinsame Daten und schreibt Desktop-Splitmetadaten verlustfrei zurück, ohne Split-UI vorauszusetzen.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WORKFLOW-06",
+      "suite": "WORKFLOW",
+      "description": "Quell-/Zielstruktur im Import-Hub prüfen, Einzelwahl ändern, abbrechen und anschließend importieren; wiederholter Lauf bleibt No-op. Ausgewählte Workspace-/Home-/Split-/Archivdaten exportieren und in frischem lokalem Zustand wiederherstellen; ungültige Versionen/Beziehungen und ausgeschlossene private/Secret-/Pfaddaten ohne Teilmutation zurückweisen.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WORKFLOW-07",
+      "suite": "WORKFLOW",
+      "description": "Artikel im Reader öffnen/zurückkehren, Link des aktiven Panes normal und als Markdown kopieren, kontextbezogene Hilfe und vorhandene Site-/Extension-Aktionen bedienen. Entwicklerkontext nur nach Aktivierung anzeigen; Capture-/Darstellungsoptionen und ausgeschaltete Defaults verändern keine Rechte, Webseiten oder fremden Fokus.",
+      "primaryClass": "CU_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "CU_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "WORKFLOW-08",
+      "suite": "WORKFLOW",
+      "description": "Lokalen privaten Mobile-Bereich mit aktivierter Sperre in Hintergrund/App-Umschalter versetzen und per Systemauthentifizierung wieder öffnen; Abbruch, Fehler, erneuter Hintergrundwechsel, iPad-Szenen und VoiceOver schützen Inhalte. Sperren beendet die Session nicht; Schließen der gesamten privaten Session beziehungsweise Prozessende hinterlässt keinen Restore-/Sync-/Archivbestand.",
+      "primaryClass": "ASSISTED_E2E",
+      "requiredEvidenceClasses": [
+        "UNIT",
+        "INTEGRATION",
+        "ASSISTED_E2E"
+      ],
+      "releaseCritical": true,
+      "status": "NOT_RUN"
+    },
     {
       "id": "RECOVERY-MAC-01",
       "suite": "RECOVERY-MAC",
@@ -969,7 +1073,7 @@
     {
       "id": "SPLIT-22",
       "suite": "SPLIT",
-      "description": "Split-Zustand bleibt fenster- und Workspace-sessionbezogen; Wechsel und zweites Fenster beschädigen ihn nicht, CloudKit und iOS enthalten keine Split-Topologie.",
+      "description": "Normale logische Split-Gruppen einschließlich geordneter Mitglieder, Layout und Ratios werden zwischen Desktops synchronisiert und lokal korrekt an Fenster/Workspace-Sitzungen gebunden. Mobile erhält Metadaten ohne Split-UI-Pflicht. Native Handles, aktiver Fokus und Website-Sitzungen bleiben lokal; Wechsel, zweites Fenster und Empfang verursachen keine Phantom-Tabs oder ungefragte Navigation.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -1293,7 +1397,7 @@
     {
       "id": "QUICK-02",
       "suite": "QUICK",
-      "description": "eingeloggte Website öffnen; Quick Window nutzt dasselbe normale Profil.",
+      "description": "eingeloggte Website öffnen; Quick Window nutzt das normale Profil und genau den bewusst gewählten Workspace-Sitzungskontext, nicht die Login-Sitzung eines anderen Workspaces.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -1917,7 +2021,7 @@
     {
       "id": "AUTH-23",
       "suite": "AUTH",
-      "description": "HTTP-Auth-Credentials erscheinen weder auf Mac B noch in CloudKit oder iOS.",
+      "description": "HTTP-Auth-Credentials erscheinen nach kandidatgebundener Mehrgeräte-Negativprüfung weder auf Mac B noch in CloudKit oder iOS; lokale Provider-/Scanner-Nachweise reichen allein nicht.",
       "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -3348,7 +3452,7 @@
     {
       "id": "SYNC-13",
       "suite": "SYNC",
-      "description": "Site Storage, Permissions, Extension Storage und Keychain-Secrets bleiben lokal.",
+      "description": "Site Storage, Berechtigungsfreigaben, geheimer/ungeprüfter roher Extension Storage und Keychain-Secrets bleiben lokal; nur positiv freigegebene Extension-Einstellungswerte dürfen übertragen werden.",
       "primaryClass": "INTEGRATION",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -3384,7 +3488,7 @@
     {
       "id": "SYNC-16",
       "suite": "SYNC",
-      "description": "Extension-Inventar erzeugt nur Installationsvorschlag, keine stille Installation.",
+      "description": "Auf einem verknüpften neuen Mac vertrauenswürdige unterstützte Erweiterungen über native verifizierte Pfade tatsächlich wiederherstellen; Freigabe-/Blockzustände sichtbar erhalten, keine Zustimmung simulieren und ein leeres frisches Inventar nicht als Deinstallationsauftrag behandeln. ADR 0010 ersetzt die frühere Inventar-only-Vorgabe.",
       "primaryClass": "INTEGRATION",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -4592,7 +4696,7 @@
       {
         "id": "SYNC-25",
         "suite": "SYNC",
-        "description": "Inkognito-, Passwort-, Cookie-, Site-Storage-, Permission- und Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf.",
+        "description": "Inkognito-, Passwort-, Cookie-, Site-Storage-, Berechtigungs- sowie geheime/ungeprüfte Extension-Storage-Daten tauchen weder in Geräte-Tabs-Suche noch Vorschau oder Remote-Payload auf. Freigegebene Extension-Einstellungen verwenden allein ihren getrennten positiv geprüften Vertrag aus ADR 0010.",
         "primaryClass": "ASSISTED_E2E",
         "requiredEvidenceClasses": [
           "UNIT",
@@ -4709,7 +4813,7 @@
       {
         "id": "WS-09",
         "suite": "WS",
-        "description": "Workspace per Dot, Tastatur und echter Wischgeste vorwärts und rückwärts wechseln; ausschließlich der Sidebar-Inhalt gleitet horizontal in Ordnungsrichtung, während der Webview nie seitlich verschoben wird. Falls ein anderes aktives Tab beziehungsweise WebContents gewählt wird, blendet nur der Webview-Bereich kurz über; bei unverändertem WebContents bleibt er effektfrei. Animation beziehungsweise Geste abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab, Split-Fokus und WebContents niemals auseinanderlaufen. Mit Bewegung reduzieren gibt es keinen räumlichen Slide und nur bei tatsächlichem Inhaltswechsel eine kurze dezente Überblendung.",
+        "description": "Workspace per Dot, Tastatur und echter Wischgeste vorwärts und rückwärts wechseln; ausschließlich der Sidebar-Inhalt gleitet horizontal in Ordnungsrichtung, während der Webview nie seitlich verschoben wird. Falls ein anderes aktives Tab beziehungsweise `WebContents` gewählt wird, blendet nur der Webview-Bereich kurz über; bei unverändertem `WebContents` bleibt er effektfrei. Animation beziehungsweise Geste abbrechen und sicherstellen, dass aktiver Dot, Baum, Tab, Split-Fokus und `WebContents` niemals auseinanderlaufen. Mit `Bewegung reduzieren` gibt es keinen räumlichen Slide und nur bei tatsächlichem Inhaltswechsel eine kurze dezente Überblendung.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": [
           "UNIT",

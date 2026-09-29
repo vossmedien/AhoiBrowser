@@ -1,0 +1,80 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+Target is closing
+hidscrolled dy=-60 dx=0 at (754.0, 693.5)
+after cmd-scroll: gamma zoom-before 1/134
+cmdScrollSwitchesTab -> false
+cmdScrollNoZoom -> true
+hidscrolled dy=-60 dx=0 at (754.0, 693.5)
+hidscrolled dy=-60 dx=0 at (754.0, 693.5)
+hidscrolled dy=-60 dx=0 at (754.0, 693.5)
+burst from gamma -> gamma
+burstSwitchesOnce -> false
+hidscrolled dy=-200 dx=0 at (754.0, 693.5)
+plain scroll on gamma: 240 -> 440, visible gamma
+plainScrollScrollsPage -> true
+hidmiddle refused: target not frontmost
+autoscroll main: 0 -> 0
+autoscrollMainPage -> false
+hidkey 53
+after escape: 0 -> 0
+escapeEndsAutoscroll -> true
+hidmiddle at (754.0, 693.5) moved by (0.0, 120.0)
+autoscroll nested: 588.5 -> 975 (page 0)
+autoscrollNestedScroller -> true
+hidkey 53
+hidkey 12
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+info: typed text missing, retyping
+hidkey 0
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+Target is closing
+hidscrolled phased dy=-90 dx=0 at (754.0, 693.5)
+after cmd trackpad scroll: beta
+cmdScrollTrackpadSwitchesTab -> true
+cmdScrollNoZoom -> true
+hidscrolled line dy=-1 dx=0 at (754.0, 693.5)
+after cmd wheel notch from beta: beta
+cmdScrollMouseWheelSwitchesTab -> false
+hidscrolled line dy=-1 dx=0 at (754.0, 693.5)
+hidscrolled line dy=-1 dx=0 at (754.0, 693.5)
+hidscrolled line dy=-1 dx=0 at (754.0, 693.5)
+wheel burst from beta -> beta
+burstSwitchesOnce -> false
+hidscrolled pixel dy=-200 dx=0 at (754.0, 693.5)
+plain scroll on beta: 160 -> 360, visible beta
+plainScrollScrollsPage -> true
+hidmiddle at (754.0, 693.5) moved by (0.0, 120.0)
+autoscroll main: 88 -> 122
+autoscrollMainPage -> true
+hidkey 53
+after escape: 143 -> 143
+escapeEndsAutoscroll -> true
+hidmiddle at (754.0, 693.5) moved by (0.0, 120.0)
+autoscroll nested: 603.5 -> 1009 (page 0)
+autoscrollNestedScroller -> true
+hidkey 53
+hidkey 12

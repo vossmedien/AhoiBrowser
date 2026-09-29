@@ -1,0 +1,5 @@
+{
+ "dialogClosed_Kunde": true,
+ "setupFailed": "delete dialog for Kunde did not open",
+ "pass": false
+}

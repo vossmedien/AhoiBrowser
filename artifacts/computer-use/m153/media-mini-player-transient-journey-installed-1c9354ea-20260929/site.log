@@ -1,0 +1,15 @@
+127.0.0.1 - - [29/Sep/2026 09:08:28] "GET /music.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 09:08:28] "GET /music-30s.wav HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 09:08:30] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 09:08:30] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 09:08:31] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 09:08:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 09:08:34] "GET /chime.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 09:08:37] "GET /chime-1s.wav HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 09:08:37] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 09:08:37] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 09:08:41] "GET /second.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 09:08:41] "GET /music-30s.wav HTTP/1.1" 304 -
+127.0.0.1 - - [29/Sep/2026 09:08:44] "GET /music-30s.wav HTTP/1.1" 304 -
+127.0.0.1 - - [29/Sep/2026 09:08:44] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 09:08:44] "GET /favicon.ico HTTP/1.1" 404 -

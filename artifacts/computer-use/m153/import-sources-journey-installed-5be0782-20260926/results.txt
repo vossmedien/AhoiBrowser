@@ -1,0 +1,2 @@
+dialog_lists_sources FAIL
+zen_listed_only_when_installed PASS

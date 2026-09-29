@@ -1,0 +1,5 @@
+pid=31302 profile=/private/tmp/ahoi-import-profile.Y8xub5
+sources: 
+zen bundle on host: false
+arc bundle on host: true
+arc listed in dialog: false

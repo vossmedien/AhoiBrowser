@@ -1,0 +1,39 @@
+frontmost -> 0
+hidkey 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Getrennt -> 0 now=Getrennt
+AXPress AXRadioButton | Vollständig getrennt | Vollständig getrennt | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+ownWindowCreated -> true
+noProfilePicker -> true
+secondWindow -> true
+hidkey 17
+typed 32
+hidkey 36
+loginInSeparated -> true
+hidkey 53
+AXShowMenu AXButton | Getrennt, Workspace wechseln | Getrennt, Workspace wechseln -> -25204
+AXPress AXMenuItem | Inbox | itemSelected: -> 0
+handOverToMain -> true
+separatedHidden -> true
+hidkey 17
+typed 32
+hidkey 36
+mainNotLoggedIn -> true
+hidkey 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Getrennt | itemSelected: -> 0
+handOverBack -> true
+noReload -> true
+hidkey 12
+frontmost -> 0
+reachableAfterRelaunch -> true
+hidkey 17
+typed 41
+hidkey 36
+loginKeptAfterRelaunch -> true
+hidkey 53
+AXShowMenu AXButton | Getrennt, Workspace wechseln | Getrennt, Workspace wechseln -> -25204
+AXPress AXMenuItem | Workspace löschen… | itemSelected: -> 0
+hidkey 12

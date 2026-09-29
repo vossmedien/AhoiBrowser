@@ -1,0 +1,2 @@
+before kill ["about:blank", "chrome://newtab/", "http://127.0.0.1:8821/alpha.html", "http://127.0.0.1:8821/beta.html", "http://127.0.0.1:8821/incpage.html"]
+after restore ["about:blank", "about:blank", "http://127.0.0.1:8821/alpha.html", "http://127.0.0.1:8821/beta.html"]
