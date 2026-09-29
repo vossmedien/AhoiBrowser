@@ -1,0 +1,59 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload:AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree:AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt:AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from AhoiTabTreePersistenceTest
+[ RUN      ] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload
+[       OK ] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload (101 ms)
+[ RUN      ] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree
+../../ahoi/browser/tab_tree/tab_tree_store_persistence_unittest.cc:92: Failure
+Expected equality of these values:
+  TabTreeStore::Result::kDatabaseError
+    Which is: 4-byte object <07-00 00-00>
+  store_->ReplacePersistenceSnapshot(rejected)
+    Which is: 4-byte object <00-00 00-00>
+Stack trace:
+0   ahoi_tab_tree_unittests             0x0000000104fa918c ahoi::tab_tree::(anonymous namespace)::AhoiTabTreePersistenceTest_ReceiptWriteFailureRollsBackTheWholeTree_Test::TestBody() + 1552
+
+../../ahoi/browser/tab_tree/tab_tree_store_persistence_unittest.cc:93: Failure
+Value of: errors.SawExpectedErrors()
+  Actual: false
+Expected: true
+Stack trace:
+0   ahoi_tab_tree_unittests             0x0000000104fa925c ahoi::tab_tree::(anonymous namespace)::AhoiTabTreePersistenceTest_ReceiptWriteFailureRollsBackTheWholeTree_Test::TestBody() + 1760
+
+../../ahoi/browser/tab_tree/tab_tree_store_persistence_unittest.cc:101: Failure
+Expected equality of these values:
+  initial_
+    Which is: 96-byte object <E0-01 45-1B 08-00 00-00 68-02 45-1B 08-00 00-00 68-02 45-1B 08-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 70-72 65-76 69-6F 75-73 2D-62 61-73 65-6C 69-6E 65-00 00-00 00-00 00-11>
+  persisted
+    Which is: 96-byte object <20-03 45-1B 08-00 00-00 A8-03 45-1B 08-00 00-00 A8-03 45-1B 08-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 72-65 6A-65 63-74 65-64 2D-62 61-73 65-6C 69-6E 65-00 E5-6A 01-00 00-11>
+Stack trace:
+0   ahoi_tab_tree_unittests             0x0000000104fa9518 ahoi::tab_tree::(anonymous namespace)::AhoiTabTreePersistenceTest_ReceiptWriteFailureRollsBackTheWholeTree_Test::TestBody() + 2460
+
+[  FAILED  ] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree (70 ms)
+[ RUN      ] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt
+[       OK ] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt (37 ms)
+[ RUN      ] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline
+[       OK ] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline (50 ms)
+[----------] 4 tests from AhoiTabTreePersistenceTest (262 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (262 ms total)
+[  PASSED  ] 3 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree
+
+ 1 FAILED TEST
+[1/4] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload (101 ms)
+[2/4] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree (70 ms)
+[3/4] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt (37 ms)
+[4/4] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline (50 ms)
+1 test failed:
+    AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree (../../ahoi/browser/tab_tree/tab_tree_store_persistence_unittest.cc:70)
+Tests took 0 seconds.

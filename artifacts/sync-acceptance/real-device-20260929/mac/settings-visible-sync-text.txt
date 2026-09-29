@@ -1,0 +1,19 @@
+AhoiBrowser-Synchronisierung
+Lokale Sync-Daten, die optionale CloudKit-Übertragung und die zu synchronisierenden Browserdaten konfigurieren.
+Verwendet CloudKit, nicht Chrome Sync
+Diese Einstellung meldet dich weder bei Google an noch aktiviert sie Chrome oder Google Sync.
+Synchronisiert und bereit
+Jetzt synchronisieren
+Lesezeichen und Ordner dieses Profils werden mit deinen Ahoi-Geräten zusammengeführt. Diese Freigabe schaltet Ahoi Sync nicht selbst ein; lokale Lesezeichen bleiben ohne sie nutzbar.
+Lesezeichen-Sync freigeben
+Erweiterungen synchronisieren
+Browsereinstellungen synchronisieren
+Companion-Gerät freigeben
+Gib die Geräte-UUID und den Base64-codierten öffentlichen Ed25519-Schlüssel ein. Der Schlüssel bleibt in diesem lokalen Profil und wird niemals synchronisiert.
+Gerät freigeben
+Gib mindestens ein Companion-Gerät mit seinem verifizierten öffentlichen Schlüssel frei. Danach wird der Empfangsschalter sofort bedienbar.
+Wähle, wie lange der synchronisierte Verlauf verfügbar bleibt.
+Ahoi Sync
+Speichert Arbeitsbereiche, gespeicherte Tabs und freigegebene Einstellungen in der lokalen Sync-Datenbank und der ausstehenden Outbox. Ein konfigurierter CloudKit-Transport verschlüsselt sie vor der geräteübergreifenden Übertragung.
+Geräte-UUID
+Öffentlicher Ed25519-Schlüssel (Base64)

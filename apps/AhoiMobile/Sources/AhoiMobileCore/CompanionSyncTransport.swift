@@ -45,6 +45,10 @@ protocol CompanionSyncTransporting: AnyObject, Sendable {
     func quarantineImportedRecord(_ record: SyncRecord, reason: String) async throws
     func resolveQuarantinedRecord(_ record: SyncRecord) async throws
     func acknowledgeFetchedRecords(_ records: [SyncRecord]) async throws
+    /// True only when the server has acknowledged an upload of this record and
+    /// no newer local save for it is still pending (the desktop
+    /// `SyncStore::IsRecordAcknowledged` equivalent for the shared-tab gate).
+    func isRecordAcknowledged(_ recordID: UUID) async -> Bool
     /// Commits an exact server-acknowledged tombstone under a transport lease.
     /// The closure writes only the local domain watermark and payload removal.
     func compactAcknowledgedWorkspace(
@@ -79,6 +83,8 @@ extension CompanionSyncTransporting {
     func enqueue(_ record: SyncRecord) async throws {
         try await enqueue(record, authorization: .init())
     }
+    /// Fail closed for a transport that cannot prove a server receipt.
+    func isRecordAcknowledged(_ recordID: UUID) async -> Bool { false }
 }
 
 @available(iOS 17.0, macOS 14.0, *)
@@ -325,6 +331,14 @@ final class CompanionSyncVisibleTestTransport: CompanionSyncTransporting,
 
     func acknowledgeFetchedRecords(_ records: [SyncRecord]) async throws {
         try await recordStore.acknowledgeFetchedRecords(records)
+    }
+
+    /// The in-memory relay "acknowledges" exactly what a completed send pass
+    /// delivered: the record exists and is no longer pending.
+    func isRecordAcknowledged(_ recordID: UUID) async -> Bool {
+        guard lock.withLock({ !pendingRecordIDs.contains(recordID) }),
+              (try? await recordStore.record(for: recordID)) != nil else { return false }
+        return lock.withLock { !pendingRecordIDs.contains(recordID) }
     }
 
     func compactAcknowledgedWorkspace(

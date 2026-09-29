@@ -1,0 +1,8 @@
+{
+ "adVisibleWithoutUbo": true,
+ "installerOfferedInCommandBar": true,
+ "chromiumPromptShown": true,
+ "uboInstalledAndRunning": true,
+ "setupFailed": "did not load http://127.0.0.1:8817/ad.html?normal",
+ "pass": false
+}

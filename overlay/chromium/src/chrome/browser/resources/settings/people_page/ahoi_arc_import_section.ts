@@ -27,6 +27,10 @@ export interface ArcImportStats {
   deduplicatedWorkspaces: number;
   deduplicatedItems: number;
   deduplicatedSplits: number;
+  // Pinned top-level folders that can become workspaces (source statistic).
+  topLevelFolders?: number;
+  // Workspaces planned from such folders; zero unless the option is on.
+  folderWorkspaces?: number;
 }
 
 export interface ArcImportPreviewResponse {
@@ -38,6 +42,8 @@ export interface ArcImportPreviewResponse {
   sourceInUse: boolean;
   targetWorkspaces: string[];
   profiles: string[];
+  // The layout this preview was built for. Commit must repeat it.
+  foldersAsWorkspaces?: boolean;
 }
 
 export interface ArcImportCommitResponse {
@@ -74,6 +80,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
       arcConflictPolicy_: {type: String},
       arcImportSidebar_: {type: Boolean},
       arcReconstructSplits_: {type: Boolean},
+      arcFoldersAsWorkspaces_: {type: Boolean},
       arcSelectedProfiles_: {type: Array},
     };
   }
@@ -84,30 +91,47 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   protected accessor arcConflictPolicy_: string = 'rename';
   protected accessor arcImportSidebar_: boolean = true;
   protected accessor arcReconstructSplits_: boolean = false;
+  protected accessor arcFoldersAsWorkspaces_: boolean = false;
   protected accessor arcSelectedProfiles_: string[] = [];
 
   isComplete(): boolean {
     return this.arcImportStage_ === 'done';
   }
 
-  protected async onArcDiscoverClick_() {
+  protected onArcDiscoverClick_() {
+    return this.discoverArc_(/*keepChoices=*/ false);
+  }
+
+  // The folders-as-workspaces layout changes the plan, its identities and its
+  // transaction key. A fresh preview is therefore required for every change.
+  private async discoverArc_(keepChoices: boolean) {
     if (this.isArcBusy_()) {
       return;
     }
+    const previousProfiles = this.arcSelectedProfiles_;
+    const previousSplits = this.arcReconstructSplits_;
     this.arcImportStage_ = 'discovering';
     this.arcImportPreview_ = null;
     this.arcImportResult_ = null;
     this.notifyComplete_(false);
     this.notifyBusy_(true);
     try {
-      const preview =
-          await sendWithPromise<ArcImportPreviewResponse>('ahoiArcDiscover');
+      const preview = await sendWithPromise<ArcImportPreviewResponse>(
+          'ahoiArcDiscover', this.arcFoldersAsWorkspaces_);
       if (!this.isConnected) {
         return;
       }
       this.arcImportPreview_ = preview;
-      this.arcSelectedProfiles_ = [...preview.profiles];
-      this.arcReconstructSplits_ = preview.stats.splits > 0;
+      if (preview.status === 'ok') {
+        // Recovery previews use the default layout; adopt what was planned.
+        this.arcFoldersAsWorkspaces_ = !!preview.foldersAsWorkspaces;
+      }
+      this.arcSelectedProfiles_ = keepChoices ?
+          preview.profiles.filter(
+              profile => previousProfiles.includes(profile)) :
+          [...preview.profiles];
+      this.arcReconstructSplits_ =
+          preview.stats.splits > 0 && (!keepChoices || previousSplits);
       this.arcImportStage_ = preview.status === 'ok' ?
           'preview' :
           (preview.status === 'sourceInUse' ? 'sourceInUse' : 'error');
@@ -136,7 +160,8 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
           'ahoiArcCommit', preview.snapshotToken, this.arcConflictPolicy_,
           this.arcSelectedProfiles_, this.arcImportSidebar_,
           this.arcReconstructSplits_,
-          /*backupConfirmed=*/ true, /*commitConfirmed=*/ true);
+          /*backupConfirmed=*/ true, /*commitConfirmed=*/ true,
+          !!preview.foldersAsWorkspaces);
       if (!this.isConnected) {
         return;
       }
@@ -223,10 +248,37 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
         (event.currentTarget as HTMLElement & {checked: boolean}).checked;
   }
 
+  protected async onArcFoldersAsWorkspacesChange_(event: Event) {
+    const checked =
+        (event.currentTarget as HTMLElement & {checked: boolean}).checked;
+    if (checked === this.arcFoldersAsWorkspaces_) {
+      return;
+    }
+    this.arcFoldersAsWorkspaces_ = checked;
+    await this.discoverArc_(/*keepChoices=*/ true);
+  }
+
+  protected showArcFoldersAsWorkspaces_(): boolean {
+    return (this.arcImportPreview_?.stats.topLevelFolders ?? 0) > 0;
+  }
+
+  // TODO: Replace the fallback once the proposed Settings string
+  // `ahoiArcImportFoldersAsWorkspaces` is part of the integration patch.
+  protected arcFoldersAsWorkspacesLabel_(): string {
+    if (loadTimeData.valueExists('ahoiArcImportFoldersAsWorkspaces')) {
+      return loadTimeData.getString('ahoiArcImportFoldersAsWorkspaces');
+    }
+    return document.documentElement.lang.startsWith('de') ?
+        'Hauptordner als Workspaces anlegen' :
+        'Create workspaces from top-level folders';
+  }
+
   protected canCommitArcImport_(): boolean {
     return this.arcImportStage_ === 'preview' && this.arcImportSidebar_ &&
         this.arcSelectedProfiles_.length > 0 &&
-        this.arcImportPreview_?.status === 'ok';
+        this.arcImportPreview_?.status === 'ok' &&
+        !!this.arcImportPreview_?.foldersAsWorkspaces ===
+        this.arcFoldersAsWorkspaces_;
   }
 
   protected excludedItemCount_(stats: ArcImportStats): number {

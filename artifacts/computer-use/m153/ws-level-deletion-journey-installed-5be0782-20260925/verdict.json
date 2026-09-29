@@ -1,0 +1,13 @@
+{
+ "dialogClosed_Kunde": true,
+ "levelChoiceShown": true,
+ "loginInOwnWorkspace": true,
+ "menuNamesLevel": true,
+ "sharedWorkspaceNotLoggedIn": true,
+ "vetoPromptShown": true,
+ "vetoKeepsWorkspace": true,
+ "ownPagesClosed": true,
+ "workspaceRemoved": false,
+ "setupFailed": "command bar did not open for http://127.0.0.1:8792/check.html?after",
+ "pass": false
+}

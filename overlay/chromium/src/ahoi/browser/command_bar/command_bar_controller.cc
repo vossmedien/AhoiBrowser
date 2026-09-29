@@ -89,6 +89,14 @@ const gfx::VectorIcon* GetCommandIcon(std::string_view stable_id) {
       stable_id == "developer.screenshot-full-page") {
     return &vector_icons::kPhotoIcon;
   }
+  // ADR 0012: moving a node into another Workspace, and a whole Workspace
+  // joining another one (by default as one folder named after it).
+  if (stable_id.starts_with(internal::kMoveToWorkspaceCommandPrefix)) {
+    return &vector_icons::kArrowRightAltIcon;
+  }
+  if (stable_id.starts_with(internal::kMergeWorkspaceCommandPrefix)) {
+    return &vector_icons::kFolderOpenIcon;
+  }
   if (stable_id.starts_with("developer.") || stable_id == "browser.devtools" ||
       stable_id == "browser.view-source") {
     return &vector_icons::kCodeIcon;
@@ -582,7 +590,7 @@ void CommandBarController::PublishBrowserCommands() {
           ? shortcuts::ReadOverrides(*browser_->GetProfile()->GetPrefs())
           : shortcuts::Overrides();
   for (const shortcuts::ShortcutCommand& command : shortcuts::Catalog()) {
-    if (!command.rebindable) {
+    if (!shortcuts::ShownInCommandBar(command)) {
       continue;
     }
     const std::vector<ui::Accelerator> keys =
@@ -626,6 +634,13 @@ void CommandBarController::PublishBrowserCommands() {
           base::i18n::GetConfiguredLocale().starts_with("de");
       for (CommandItem& item :
            internal::BuildMoveToWorkspaceCommands(targets, german)) {
+        commands.push_back(std::move(item));
+      }
+      // ADR 0012 section 1: "Zusammenführen mit …" for the same targets. The
+      // source is the window's shown Workspace; the sidebar refuses it as its
+      // own target (CanMergeWorkspaceInto) and opens the menu's dialog.
+      for (CommandItem& item :
+           internal::BuildMergeWorkspaceCommands(targets, german)) {
         commands.push_back(std::move(item));
       }
     }

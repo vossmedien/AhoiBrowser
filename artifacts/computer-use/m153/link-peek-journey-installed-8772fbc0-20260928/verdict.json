@@ -1,0 +1,16 @@
+{
+ "dialogClosed_Kunde": true,
+ "peekShown": true,
+ "peekLoadsLink": true,
+ "peekKeepsWebsiteSession": true,
+ "peekCloses": true,
+ "peekLeavesNoTab": true,
+ "pageStateKept": false,
+ "promoteKeepsSamePage": true,
+ "promotedInSameWorkspace": true,
+ "autoPeekFromSavedPage": true,
+ "savedPageStays": true,
+ "shiftClickPeeks": true,
+ "commandShiftReturnPeeks": true,
+ "pass": false
+}

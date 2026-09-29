@@ -1,0 +1,10 @@
+afterKundeDeleted {"ownBindings": [], "pending": [{"context_id": "df97d4c1-28dc-4be3-acf9-6a28dd6ac522", "path": "/private/tmp/ahoi-wsdelx-profile.M8kITm/Default/Storage/ext/ahoi/2ACE6A37D7F0"}], "partitionDirs": ["2ACE6A37D7F0"]}
+afterZweiCreated {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [{"context_id": "df97d4c1-28dc-4be3-acf9-6a28dd6ac522", "path": "/private/tmp/ahoi-wsdelx-profile.M8kITm/Default/Storage/ext/ahoi/2ACE6A37D7F0"}], "partitionDirs": ["2ACE6A37D7F0"]}
+afterKill {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [{"context_id": "df97d4c1-28dc-4be3-acf9-6a28dd6ac522", "path": "/private/tmp/ahoi-wsdelx-profile.M8kITm/Default/Storage/ext/ahoi/2ACE6A37D7F0"}], "partitionDirs": ["2ACE6A37D7F0", "754B208D9CD2"]}
+t+5s {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [], "partitionDirs": ["754B208D9CD2"]}
+t+10s {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [], "partitionDirs": ["754B208D9CD2"]}
+t+15s {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [], "partitionDirs": ["754B208D9CD2"]}
+t+20s {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [], "partitionDirs": ["754B208D9CD2"]}
+t+25s {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [], "partitionDirs": ["754B208D9CD2"]}
+t+30s {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [], "partitionDirs": ["754B208D9CD2"]}
+final {"ownBindings": ["130194c8-7fbc-4465-b99c-50ed9aaff498"], "pending": [], "partitionDirs": ["754B208D9CD2"]}

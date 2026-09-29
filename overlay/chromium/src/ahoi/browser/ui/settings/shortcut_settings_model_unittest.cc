@@ -3,6 +3,9 @@
 
 #include "ahoi/browser/ui/settings/shortcut_settings_model.h"
 
+#include <string>
+#include <string_view>
+
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
 #include "components/sync_preferences/testing_pref_service_syncable.h"
@@ -46,9 +49,87 @@ TEST_F(ShortcutSettingsModelTest, ShowsEveryCatalogCommandWithItsKeys) {
   EXPECT_TRUE(*last_used->FindBool("rebindable"));
   const base::DictValue* quick = FindCommand(state, shortcuts::kQuickWindow);
   ASSERT_TRUE(quick);
-  EXPECT_FALSE(*quick->FindBool("rebindable"));
+  EXPECT_TRUE(*quick->FindBool("rebindable"));
   EXPECT_EQ("⌥Space", (*quick->FindList("keys"))[0].GetString());
+  EXPECT_FALSE(quick->FindString("hint")->empty());
+  EXPECT_TRUE(FindCommand(state, shortcuts::kNextWorkspace)
+                  ->FindString("hint")
+                  ->empty());
   EXPECT_TRUE(*state.FindBool("canChange"));
+}
+
+TEST_F(ShortcutSettingsModelTest, FormerlyFixedCommandsChangeInTheEditor) {
+  const std::string_view kIds[] = {
+      shortcuts::kQuickWindow, shortcuts::kSidebarUndo,
+      shortcuts::kCommandBar, shortcuts::kCommandBarNewTab,
+      shortcuts::kSaveTab};
+  const base::DictValue defaults = BuildShortcutState({}, true);
+  for (std::string_view id : kIds) {
+    const base::DictValue* item = FindCommand(defaults, id);
+    ASSERT_TRUE(item) << id;
+    EXPECT_TRUE(*item->FindBool("rebindable")) << id;
+    EXPECT_EQ(1u, item->FindList("keys")->size()) << id;
+  }
+  EXPECT_EQ("⌘L", (*FindCommand(defaults, shortcuts::kCommandBar)
+                        ->FindList("keys"))[0]
+                      .GetString());
+  EXPECT_EQ("⌘T", (*FindCommand(defaults, shortcuts::kCommandBarNewTab)
+                        ->FindList("keys"))[0]
+                      .GetString());
+  EXPECT_EQ("⌘D", (*FindCommand(defaults, shortcuts::kSaveTab)
+                        ->FindList("keys"))[0]
+                      .GetString());
+  EXPECT_EQ("⌘Z", (*FindCommand(defaults, shortcuts::kSidebarUndo)
+                        ->FindList("keys"))[0]
+                      .GetString());
+
+  // Save moves to ⌥⌘S; Quick Window may not take a system key.
+  EXPECT_TRUE(ApplyShortcutAction(&prefs_, "set",
+                                  base::DictValue()
+                                      .Set("id", shortcuts::kSaveTab)
+                                      .Set("keyCode", ui::VKEY_S)
+                                      .Set("cmd", true)
+                                      .Set("alt", true),
+                                  {})
+                  .error.empty());
+  const ShortcutActionResult system = ApplyShortcutAction(
+      &prefs_, "set",
+      base::DictValue()
+          .Set("id", shortcuts::kQuickWindow)
+          .Set("keyCode", ui::VKEY_1)
+          .Set("cmd", true),
+      {.is_system_accelerator = base::BindRepeating(
+           [](const ui::Accelerator&) { return true; })});
+  EXPECT_EQ("conflict", system.error);
+  EXPECT_EQ(shortcuts::ConflictKind::kReservedBySystem, system.conflict.kind);
+  EXPECT_NE(std::string::npos,
+            ShortcutErrorLabel(system).find("System Settings"));
+  // The command bar may not take Save's new key either.
+  const ShortcutActionResult taken = ApplyShortcutAction(
+      &prefs_, "set",
+      base::DictValue()
+          .Set("id", shortcuts::kCommandBar)
+          .Set("keyCode", ui::VKEY_S)
+          .Set("cmd", true)
+          .Set("alt", true),
+      {});
+  EXPECT_NE(std::string::npos, ShortcutErrorLabel(taken).find("Save tab"));
+
+  const base::DictValue state =
+      BuildShortcutState(shortcuts::ReadOverrides(prefs_), true);
+  const base::DictValue* save = FindCommand(state, shortcuts::kSaveTab);
+  EXPECT_EQ("⌥⌘S", (*save->FindList("keys"))[0].GetString());
+  EXPECT_TRUE(*save->FindBool("customized"));
+  EXPECT_EQ("⌘D", (*save->FindList("defaultKeys"))[0].GetString());
+  EXPECT_FALSE(
+      *FindCommand(state, shortcuts::kQuickWindow)->FindBool("customized"));
+
+  EXPECT_TRUE(ApplyShortcutAction(&prefs_, "reset",
+                                  base::DictValue().Set(
+                                      "id", shortcuts::kSaveTab),
+                                  {})
+                  .error.empty());
+  EXPECT_TRUE(prefs_.GetDict(shortcuts::kShortcutBindingsPref).empty());
 }
 
 TEST_F(ShortcutSettingsModelTest, KeyTextUsesMacOrder) {

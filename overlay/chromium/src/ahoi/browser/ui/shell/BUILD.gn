@@ -47,6 +47,9 @@ source_set("navigation_surface_controller") {
   ]
   deps = [
     "//ahoi/browser/ui:visual_style",
+    "//cc/paint",
+    "//skia",
+    "//ui/color",
     "//ui/compositor",
     "//ui/events",
   ]

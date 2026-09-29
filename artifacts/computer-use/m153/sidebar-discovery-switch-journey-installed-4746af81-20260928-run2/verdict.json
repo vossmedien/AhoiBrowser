@@ -1,0 +1,10 @@
+{
+ "dialogClosed_Kunde": true,
+ "alphaHiddenInKunde": true,
+ "hiddenTabFound": true,
+ "switchedToTabWorkspace": false,
+ "hiddenTabActivated": false,
+ "otherWorkspaceTabHidden": false,
+ "setupFailed": "menu to switch to Kunde did not open",
+ "pass": false
+}

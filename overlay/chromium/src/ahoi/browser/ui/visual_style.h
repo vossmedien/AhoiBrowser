@@ -32,22 +32,31 @@ inline constexpr ui::ColorId kModalScrim = ui::kColorSysStateScrim;
 // Chromium ThemeService's user color is the one global chrome accent input.
 // This default belongs only to persisted workspace/folder identity data and
 // must never be used as a component paint replacement for `kAccent` above.
-inline constexpr SkColor kDefaultAccent = SkColorSetRGB(0x0A, 0x84, 0xFF);
+// Design spec 2026-09-29: accent #006B73, #70D6DE on dark surfaces.
+inline constexpr SkColor kDefaultAccent = SkColorSetRGB(0x00, 0x6B, 0x73);
+inline constexpr SkColor kDefaultAccentDark = SkColorSetRGB(0x70, 0xD6, 0xDE);
+// The persisted default stays one value; paint maps it to its dark partner
+// so it keeps contrast on dark chrome. Chosen accents paint unchanged.
+constexpr SkColor AdaptDefaultAccent(SkColor accent, bool dark_surface) {
+  return dark_surface && accent == kDefaultAccent ? kDefaultAccentDark
+                                                  : accent;
+}
 // Persisted workspace/folder accent choices. These are user data values, not
 // component paint colors; Views still resolve every chrome state through the
 // semantic ColorProvider roles above.
 inline constexpr SkColor kUserAccentRed = SkColorSetRGB(0xE4, 0x5E, 0x68);
-inline constexpr SkColor kUserAccentOrange = SkColorSetRGB(0xF2, 0x8C, 0x45);
+// The spec's workspace amber and violet.
+inline constexpr SkColor kUserAccentOrange = SkColorSetRGB(0xB8, 0x6C, 0x16);
 inline constexpr SkColor kUserAccentYellow = SkColorSetRGB(0xE2, 0xB8, 0x4B);
 inline constexpr SkColor kUserAccentGreen = SkColorSetRGB(0x54, 0xA9, 0x6B);
 inline constexpr SkColor kUserAccentBlue = SkColorSetRGB(0x4F, 0x8D, 0xE8);
-inline constexpr SkColor kUserAccentViolet = SkColorSetRGB(0x8B, 0x6A, 0xDD);
+inline constexpr SkColor kUserAccentViolet = SkColorSetRGB(0x79, 0x61, 0xB3);
 
 // Shared geometry tokens. Keep dimensions here rather than in individual
 // views so later density/theme work can tune the complete native surface as a
 // unit. The command bar's content width is derived from its outer width and
 // delegate margins; it must not be re-encoded in the view.
-inline constexpr int kSidebarWidthDefault = 264;
+inline constexpr int kSidebarWidthDefault = 236;
 inline constexpr int kSidebarWidthMinimum = 208;
 inline constexpr int kSidebarWidthMaximum = 420;
 inline constexpr int kSidebarResizeAreaWidth = 10;
@@ -57,7 +66,7 @@ inline constexpr int kSidebarResizeAreaWidth = 10;
 inline constexpr int kSidebarEdgeRevealHotZoneWidth = 5;
 // Compatibility alias for components that use the default layout width.
 inline constexpr int kSidebarWidth = kSidebarWidthDefault;
-inline constexpr int kSidebarHorizontalInset = 10;
+inline constexpr int kSidebarHorizontalInset = 12;
 inline constexpr int kSidebarTopInset = 10;
 inline constexpr int kSidebarBottomInset = 8;
 // Floating/edge-revealed presentation is a card above the page rather than a
@@ -78,7 +87,8 @@ inline constexpr int kSidebarContentWidth =
 // Saved, temporary, remote and split-tab rows share one density contract.
 // Keeping the token sidebar-semantic rather than tree-specific prevents the
 // runtime and remote sections from drifting to separate per-view heights.
-inline constexpr int kSidebarTabRowHeight = 40;
+// Design spec 2026-09-29: sidebar 236 wide, 12 inset, rows 36 high.
+inline constexpr int kSidebarTabRowHeight = 36;
 inline constexpr int kTreeIndent = 16;
 // Every saved, temporary and split-pane row keeps the same breathing room
 // around its active/hover surface. Split segments use the narrower horizontal
@@ -125,9 +135,15 @@ inline constexpr float kBookmarkShelfCornerRadius = 8.0f;
 // and sides for the native Glass material to read as a backdrop rather than
 // only a sidebar treatment. Its bottom still meets the window edge. These
 // insets are real layout, so the renderer receives the viewport it sees.
-inline constexpr int kContentCardInset = 20;
+// Design spec 2026-09-29: a 12 gutter around a 14-radius opaque card.
+inline constexpr int kContentCardInset = 12;
 inline constexpr int kContentCardCornerRadius = 14;
-inline constexpr int kContentCardShadowElevation = 10;
+// views::ViewShadow takes a Material elevation whose key shadow blurs by
+// twice the elevation. These map the glass_tokens elevation shadows (card
+// 0 2 8, free panel 0 12 32) onto that scale by blur radius;
+// appearance/glass_material.cc static_asserts the correspondence.
+inline constexpr int kContentCardShadowElevation = 4;
+inline constexpr int kPanelShadowElevation = 16;
 // Split panes live inside the same content card and therefore share its
 // curvature. The semantic outline roles distinguish inactive, ordinary active
 // and security/focus-highlighted panes without hard-coding a light-only
@@ -139,14 +155,22 @@ inline constexpr int kSplitPaneHighlightedOutlineThickness = 3;
 inline constexpr ui::ColorId kSplitPaneInactiveOutline = kDivider;
 inline constexpr ui::ColorId kSplitPaneActiveOutline = kAccent;
 inline constexpr ui::ColorId kSplitPaneHighlightedOutline = kFocusRing;
-inline constexpr int kNavigationSurfaceHorizontalInset = 10;
+inline constexpr int kNavigationSurfaceHorizontalInset = 12;
 inline constexpr int kNavigationSurfaceTopGap = 12;
 inline constexpr int kNavigationSurfaceCornerRadius = 14;
 inline constexpr int kNavigationSurfaceShadowElevation = 6;
 inline constexpr int kNavigationSurfaceRevealOffset = 10;
-inline constexpr int kNavigationRevealNotchWidth = 56;
-inline constexpr int kNavigationRevealNotchHeight = 12;
-inline constexpr int kNavigationRevealNotchVisualHeight = 5;
+// The reveal notch paints a 32x4 tab centered at the top of a transparent
+// 44x24 hit area, so it stays easy to hit without looking heavy.
+inline constexpr int kNavigationRevealNotchWidth = 44;
+inline constexpr int kNavigationRevealNotchHeight = 24;
+inline constexpr int kNavigationRevealNotchVisualWidth = 32;
+inline constexpr int kNavigationRevealNotchVisualHeight = 4;
+static_assert(kNavigationRevealNotchVisualWidth <=
+                      kNavigationRevealNotchWidth &&
+                  kNavigationRevealNotchVisualHeight <=
+                      kNavigationRevealNotchHeight,
+              "the visible notch lies inside its hit area");
 
 inline constexpr int kCornerRadiusSmall = 8;
 inline constexpr int kCornerRadiusMedium = 12;
@@ -156,13 +180,22 @@ inline constexpr int kControlCornerRadius = kCornerRadiusMedium;
 inline constexpr int kRowCornerRadius = kCornerRadiusSmall;
 inline constexpr int kControlBorderThickness = 1;
 
-inline constexpr int kCommandBarWidth = 600;
+// Design spec 2026-09-29: 640 wide, 16 padding, a 48-high search field and
+// 44-52 high result rows. Input 20/28 regular, result 14/20 medium, origin
+// 12/16 regular.
+inline constexpr int kCommandBarWidth = 640;
 inline constexpr int kCommandBarMaximumWidth = 720;
-inline constexpr int kCommandBarPanelInset = 14;
+inline constexpr int kCommandBarPanelInset = 16;
 inline constexpr int kCommandBarContentWidth =
     kCommandBarWidth - (2 * kCommandBarPanelInset);
-inline constexpr int kCommandBarInputHeight = 52;
+inline constexpr int kCommandBarInputHeight = 48;
 inline constexpr int kCommandBarResultRowHeight = 46;
+static_assert(kCommandBarResultRowHeight >= 44 &&
+                  kCommandBarResultRowHeight <= 52,
+              "command bar rows are 44-52 high");
+inline constexpr int kCommandBarInputFontSize = 20;
+inline constexpr int kCommandBarResultTitleFontSize = 14;
+inline constexpr int kCommandBarResultOriginFontSize = 12;
 inline constexpr int kCommandBarVerticalSpacing = 8;
 inline constexpr int kCommandBarResultSpacing = 1;
 inline constexpr int kCommandBarResultVerticalInset = 5;
@@ -174,8 +207,21 @@ inline constexpr int kCommandBarInputSpacing = 10;
 inline constexpr int kCommandBarInputIconSize = 18;
 inline constexpr int kCommandBarResultIconSize = 18;
 inline constexpr int kCommandBarResultIconBoxSize = 20;
-inline constexpr int kCommandBarAcceptHintWidth = 16;
+// The ↵ keycap of the selected row; a small key, not a row surface.
+inline constexpr int kCommandBarAcceptHintWidth = 24;
 inline constexpr int kCommandBarAcceptHintHeight = 20;
+inline constexpr int kCommandBarKeycapCornerRadius = 5;
+inline constexpr int kCommandBarKeycapHorizontalPadding = 5;
+// The panel is at least 400 high; the result list takes the slack so the
+// key-hint footer stays at the bottom edge.
+inline constexpr int kCommandBarMinimumHeight = 400;
+inline constexpr int kCommandBarContentMinimumHeight =
+    kCommandBarMinimumHeight - (2 * kCommandBarPanelInset);
+// Footer: a hairline, then keycap hints in 12 pt secondary text.
+inline constexpr int kCommandBarFooterHeight = 36;
+inline constexpr int kCommandBarFooterGroupSpacing = 24;
+inline constexpr int kCommandBarKeycapSpacing = 4;
+inline constexpr int kCommandBarKeycapLabelGap = 8;
 inline constexpr int kCommandBarSecondaryTextMaximumWidth = 180;
 
 // Compact, address-bar-anchored developer controls. The surface deliberately
@@ -211,11 +257,25 @@ inline constexpr int kPopupStatusRowHeight = 32;
 inline constexpr int kPopupRevealOffset = 8;
 inline constexpr float kPopupScrimOpacity = 0.62f;
 
-// Dialog geometry is shared by workspace/group editors and the recent-links
-// hover panel. Keeping the two horizontal insets explicit preserves their
-// slightly different visual density while giving the host one source of truth.
+// The recent-links hover panel is a compact non-modal surface, not a dialog;
+// it keeps its own narrower width and inset.
 inline constexpr int kSidebarDialogWidth = 340;
-inline constexpr int kSidebarDialogInset = 14;
+
+// Modal dialogs (design spec 2026-09-29): Workspace, group and merge dialogs
+// are 420 wide, HTTP Auth 480. Every modal shares the panel radius, a 24
+// padding, 36-high fields, 32-high buttons and a 20/25 semibold title.
+// ahoi/browser/ui/dialog_style applies these to a DialogDelegate.
+inline constexpr int kWorkspaceDialogWidth = 420;
+inline constexpr int kAuthDialogWidth = 480;
+inline constexpr int kDialogPadding = 24;
+inline constexpr int kDialogSectionSpacing = 16;
+inline constexpr int kDialogLabelSpacing = 8;
+inline constexpr int kDialogFieldHeight = 36;
+inline constexpr int kDialogButtonHeight = 32;
+inline constexpr int kDialogCornerRadius = kCornerRadiusLarge;
+inline constexpr int kDialogTitleFontSize = 20;
+inline constexpr int kDialogTitleLineHeight = 25;
+inline constexpr ui::ColorId kErrorText = ui::kColorSysError;
 inline constexpr int kSidebarRecentLinksDialogInset = 10;
 inline constexpr int kSidebarSearchTextHorizontalInset = 8;
 

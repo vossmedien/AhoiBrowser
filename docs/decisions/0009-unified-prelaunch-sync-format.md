@@ -1,10 +1,13 @@
 # ADR 0009: One pre-launch sync format, no legacy migration project
 
-Status: binding user decision, 2026-09-05. The app is not live and is not being
-actively used. The user explicitly requests one uniform sync format on iOS and
-macOS and excludes an elaborate development-data migration. This supersedes
-ADR 0006/0008 wherever they require continuing wire-v2 authoring, parallel
-v2/v3 operation, legacy promotion or mixed-version merge support.
+Status: binding user decisions, 2026-09-05 and 2026-09-12. The app is not live
+and is not being actively used. The user explicitly requests one uniform sync
+format on iOS and macOS and excludes an elaborate development-data migration.
+The 12 September decision additionally makes automatic archive and synchronized
+normal Desktop split groups/arrangements high priority and supersedes every
+earlier v1 exclusion or device-local-only rule for those logical domains. This
+ADR supersedes ADR 0006/0008 wherever they require continuing wire-v2 authoring,
+parallel v2/v3 operation, legacy promotion or mixed-version merge support.
 
 Additional user scope is binding in ADR 0010: transferable native Chromium
 settings, real extension restore/enabled state and safely supported extension
@@ -40,6 +43,10 @@ merge private browser state into the sync collection.
 | 12 | deviceCapability | Functional capability declaration |
 
 IDs 0–11 and dataClass strings are preserved; Capability remains reserved 12.
+This table is the original baseline, not the complete authorized format-3
+catalogue. The machine-readable contract still needs one coordinated extension
+for the additional domains below; this ADR does not invent a parallel format or
+claim those maps are already implemented.
 All unchanged payload fields/atomic clock groups keep their current meaning.
 The existing Device kind 3 (`other`) is represented losslessly on both clients;
 it is descriptive metadata, not authority to execute commands. The existing
@@ -54,6 +61,42 @@ may be temporarily unlinked while capture is deferred, but a newly published
 shared Presence must link its actual page. It may not reuse that page's UUID
 as its own Presence record ID. Missing peers/parents delivered out of order are
 retained pending validation/materialization, never replaced by fabricated rows.
+
+## Binding format-3 extensions — 12 September 2026
+
+The single format-3 contract is extended, with exact IDs/maps/bounds and common
+C++/Swift goldens required before activation, to cover:
+
+- normal logical split groups: stable split UUID, owning workspace UUID, two to
+  four ordered stable normal `TreeNode` IDs, canonical layout and normalized
+  divider ratios;
+- shared automatic-archive state: per-workspace policy `12h`, `24h`, `7d`,
+  `30d` or `never`, restorable entries with stable identity, reason/time, normal
+  split structure and explicit restore state;
+- a saved-page Home URL distinct from current runtime/navigation URL; and
+- positively defined Home, routing, shortcut and archive preferences in the
+  existing permitted-settings catalogue.
+
+This is primarily a contract for every opted-in Desktop installation. Native
+Chromium split IDs, tab/`WebContents` handles, window coordinates, local active
+focus, cookies, login/account, live navigation and form state remain local.
+Incoming state may not close an active local page, move it into another website-
+session/account context, discard a form or navigate without a user action. A
+remotely removed member can remain locally open as an ordinary tab while shared
+membership converges.
+
+Mobile preserves every recognized split/archive field losslessly when reading,
+editing and writing related records. Opening one page or changing unrelated
+metadata may not flatten or overwrite the shared arrangement. Neither iPhone nor
+iPad is required by this decision to provide Split View UI; any later adaptive
+multi-pane or sequential-card presentation is a separate UX decision.
+
+Automatic archive never means deletion. Active, saved, pinned, Keep Loaded,
+media/capture/download and unsaved-form pages are ineligible. Receiving an
+archive transition never force-closes an active peer page. Restore retains stable
+logical page/split identity and creates native runtime handles only on the local
+device. Concurrent member removal, archive/restore, ordering, layout and ratio
+edits use the existing deterministic field-clock/tombstone/conflict rules.
 
 All incoming/outgoing records use complete exact field-clock maps. No incoming
 missing clocks are filled from a newer enclosing record clock. Local authoring
@@ -128,9 +171,10 @@ This readiness boundary must not become a second simultaneous wire format.
 
 Global/category opt-in, account/key/recovery boundaries and the new original-
 generation authorization guards stay intact. Cookies, passwords, autofill, site
-data/cache/permissions, private tabs, extension storage, secret headers and
-Keychain material remain excluded; the current sync allowlist is not broadened.
-Device-local split topology remains local unless separately decided by the user.
+data/cache/permissions, private tabs, unknown/raw extension storage, secret
+headers and Keychain material remain excluded. Only the explicitly listed normal
+logical split/archive fields and positively catalogued settings broaden the
+allowlist; device-local runtime and browsing/account state remain excluded.
 
 ## Ownership and implementation sequence
 
@@ -153,16 +197,19 @@ compiler baseline. It is not the final unified-format sync candidate. The three
 bounded test-API fixes in 22e2f2b do not activate or implement this format.
 Future integration uses only agreed committed source, not another owner's WIP.
 
-Concrete package sequence: common format/fixtures and strict fresh-store C++;
-matching Swift one-format domain/wire/persistence; native/Mobile capture and
-live projection on the agreed headers; then one coordinated candidate wave,
-representative visible E2E and the focused cross-language/consent suites. Native
-Tree/Session/UI files require a specific Desktop handoff rather than silent edits.
+Concrete package sequence: extend the common format/fixtures and strict fresh-
+store C++ for the authorized baseline plus split/archive/Home/routing/shortcut
+domains; implement matching Swift one-format domain/wire/persistence and lossless
+Mobile preservation; bind native Desktop capture/projection on the agreed
+headers; then run one coordinated candidate wave, representative visible E2E and
+the focused cross-language/consent suites. Native Tree/Session/UI files require a
+specific Desktop handoff rather than silent edits.
 
 ## Acceptance
 
-- One canonical golden set for all 13 entity classes, consumed directly by both
-  C++ and Swift; roundtrip and exact field/clock/identity validation.
+- One canonical format-3 golden set for the full authorized catalogue; the
+  original 13 classes remain covered but do not cap scope. C++ and Swift consume
+  it directly with roundtrip and exact field/clock/identity validation.
 - Only format 3 is authored/accepted by the live boundary. Formats 1/2, incomplete
   maps and incompatible stores are rejected without mutation; fresh stores work.
 - Real candidate-bound macOS/iOS visible bookmark and shared normal-tab journeys,
@@ -170,6 +217,12 @@ Tree/Session/UI files require a specific Desktop handoff rather than silent edit
 - Actual cross-client CRUD/order/offline-conflict/restart/delete convergence,
   no duplicate identities, no focus stealing/eager loading, correct native-
   target handling and preserving incomplete capture.
+- A matching Desktop pair covers split create/reorder/layout/ratio edits,
+  simultaneous membership removal, automatic archive/restore, offline merge and
+  restart without closing or navigating an active peer page. Mobile roundtrips
+  the metadata without flattening it; Mobile Split UI is not required.
+- Saved Home URL and positively catalogued routing/shortcut/archive preferences
+  converge without leaking excluded session, credential or private state.
 - Original-scope consent/recovery regressions remain required. Production,
   provisioning/key bootstrap and real CloudKit proof are separate evidence.
 

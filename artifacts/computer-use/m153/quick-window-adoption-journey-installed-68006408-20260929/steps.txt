@@ -1,0 +1,41 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+hidkey 49
+quickWindowOpened -> true
+typed 32
+hidkey 36
+info: Return repeated
+hidkey 36
+hidkey 12
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+hidkey 49
+quickWindowOpened -> true
+typed 32
+hidkey 36
+notInTreeBeforeAdoption -> true
+hidkey 37
+cmdLOpensQuickWindowCommandBar -> true
+typed 30
+adoptOffered -> true
+hidkey 36
+sameWebContents -> true
+pageStateKeptNoReload -> true
+quickWindowClosed -> true
+adoptedIntoSidebar -> true
+hidkey 17
+typed 30
+adoptNotOfferedAgain -> true
+hidkey 53
+singleAdoptedPage -> true
+hidkey 49
+hidkey 53
+hidkey 13
+closeKeepsSession -> true
+hidkey 12

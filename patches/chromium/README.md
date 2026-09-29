@@ -1,5 +1,140 @@
 # Chromium M153 patch ledger
 
+## `0085-ahoi-rebindable-fixed-shortcuts.patch`
+
+- **Owner:** Desktop (DoD "Tastenkürzel/MRU": Quick Window, Undo, command
+  bar and Save rebindable).
+- **Change:** in `browser_view.cc/.h` only. The four commands 0058 left
+  fixed now run through `HandleAhoiShortcutCommand` and the catalog's
+  `ShortcutRegistration`: the hard-coded ⌘Z and ⌥Space registrations and
+  their `AcceleratorPressed` blocks are gone. `AhoiQuickWindowGlobalShortcut`
+  holds the bound key (`SetAccelerator`) instead of a fixed ⌥Space. New
+  `ApplyAhoiAppWideShortcuts()` (on binding changes and window activation)
+  moves the key equivalents of the main-menu items Open Location
+  (`browser.command-bar`, ⌘L), New Tab (`browser.command-bar-new-tab`, ⌘T)
+  and Bookmark This Tab (`tab.save`, ⌘D) through overlay
+  `ahoi/browser/navigation/keyboard_shortcut_platform_mac`, and re-registers
+  the system-wide Quick Window hotkey.
+- **Safety:** defaults unchanged. Chromium resolves main-menu keys from the
+  live NSMenu, so the key, its dispatch and its menu display move together
+  and the old key is free; mouse clicks on those items keep Chromium's
+  commands, and `BrowserNativeWidgetMac::ExecuteCommand` (0001) still maps
+  keyboard Open Location / New Tab / Bookmark to the command bar and Save.
+  App-wide state follows the most recently activated window's Profile.
+  Sidebar Undo returns false with nothing to undo, so native Undo keeps ⌘Z.
+- **Tests:** `ahoi_navigation_unittests` (`KeyboardShortcutsTest.*`,
+  `ShortcutRegistrationTest.*`, `KeyboardShortcutPlatformMacTest.*`),
+  `ahoi_settings_private_unittests` (`ShortcutSettingsModelTest.*`);
+  guarded build, then `tools/desktop_e2e/keyboard-shortcuts-journey.sh`
+  on the exact candidate.
+- **Rebase/removal:** medium; context follows 0058's `LoadAccelerators`,
+  `AcceleratorPressed` and `HandleAhoiShortcutCommand` hunks and 0001's
+  Quick Window class. Removing it needs the overlay catalog's
+  `rebindable=false` for the four commands back.
+
+## `0083-ahoi-command-bar-key-hints.patch`
+
+- **Owner:** Desktop (design spec 2026-09-29, command bar footer).
+- **Change:** three strings for the command bar footer's key hints,
+  `IDS_AHOI_COMMAND_BAR_HINT_SELECT` / `_OPEN` / `_CLOSE` ("Select" /
+  "Open" / "Close"; German "Auswählen" / "Öffnen" / "Schließen"), next to
+  `IDS_AHOI_COMMAND_BAR_CURRENT_TAB` in `generated_resources.grd` with the
+  same meaning, plus their `de` and `en-GB` translations. The keycaps
+  (↑ ↓ ↵ esc) are symbols in overlay
+  `ahoi/browser/command_bar/command_bar_decorations.cc`, not strings.
+- **Safety:** strings only.
+- **Tests:** `tools/check_ahoi_translations.py` on a patched checkout;
+  `ahoi_command_bar_unittests` builds the footer.
+- **Rebase/removal:** trivial; numbered 0083 so 0081/0082 keep their
+  planned numbers. It touches only resource files, so its position in
+  `series` after 0080 is free.
+
+## `0082-ahoi-color-mixer.patch`
+
+- **Owner:** Desktop (design spec 2026-09-29, "Typografie, Palette und
+  Zustände").
+- **Change:** `AddChromeColorMixers` calls overlay
+  `ahoi::appearance::AddAhoiColorMixer` after the Material mixers and
+  before the native and custom-theme mixers. `chrome_color_id.h` gains
+  `kColorAhoiFrame`, `kColorAhoiWebSurface`, `kColorAhoiSelection` and
+  `kColorAhoiDisabled`. `//chrome/browser/ui/color:mixers` depends on the
+  small overlay target `//ahoi/browser/ui/appearance:ahoi_color_mixer`
+  (only `:opaque_palette`, `//ui/color`, `//skia` and this directory's
+  `:color_headers`, so no cycle); a new `chrome/browser/ui/color/DEPS`
+  allows its header.
+- **Mapping:** with no user main colour (incl. grayscale), no custom or
+  policy theme, normal contrast and no forced colours, the opaque palette
+  sets the sys ids `kColorSysPrimary`/`OnPrimary`, `StateFocusRing` (=
+  primary), `TonalContainer`/`PrimaryContainer` (selection) with their
+  `On*` ids (primary text), `OnSurface`, `OnSurfaceSubtle`, `Divider`,
+  `Error`, `StateDisabled` and `StateRipplePrimary` (accent at 12 %). No
+  `kColorRef*` id is touched. Ids that earlier mixers derive from
+  `kColorSysPrimary` follow, because recipes resolve against the final
+  mixer. Otherwise only the Ahoi ids are defined, from the active sys
+  colours; Chromium's values stay untouched.
+- **Safety:** colours only. On macOS this replaces the system keyboard
+  focus colour with the spec accent unless a user colour is set; the
+  native Mac mixer still owns text-highlight colours.
+- **Tests:** `ahoi_appearance_unittests` (`AhoiColorMixerTest`: light,
+  dark, user colour, grayscale, high contrast, custom theme).
+- **Rebase/removal:** easy; the hook is one call, one include, one GN dep
+  and four ids at the end of `COMMON_CHROME_COLOR_IDS`. Removing it
+  requires dropping the `kColorAhoi*` users first.
+
+## `0081-ahoi-http-auth-dialog-spec-style.patch`
+
+- **Owner:** Desktop (design spec 2026-09-29, reference
+  `06-http-auth-*.png`).
+- **Change:** `LoginHandlerViewsDialog` gets the shared Ahoi dialog frame
+  through two static `LoginView` hooks: `ApplyAhoiDialogFrame` (480 wide,
+  radius 18, 24 padding; overlay `ahoi::dialog_style::ApplyDialogFrame`)
+  before the widget exists and `ApplyAhoiDialogChrome` (20/25 semibold
+  title, 32-high buttons) after. `LoginView` drops its own dialog insets,
+  spaces sections 16 apart with hairlines, gives the username and password
+  fields 36-high spec focus rings, and shows the saved accounts as radio
+  rows under "Saved accounts" (`IDS_LOGIN_DIALOG_SAVED_ACCOUNTS`), all
+  accounts in `ahoi::SelectSavedAccountMenuEntries` order, the chosen one on
+  the opaque selection surface. Choosing a row fills both fields exactly
+  like choosing it from the username menu; typing a saved name checks its
+  row. The save choice moves below the fields. `login_view` gains
+  `//ahoi/browser/ui:dialog_style`, `:visual_style` and `//ui/accessibility`;
+  `chrome/browser/ui/views/DEPS` allows the two headers for `login_view.cc`.
+- **Safety:** presentation only. Rows are rebuilt only when the saved
+  accounts change (load, make preferred, delete), never inside a row's own
+  callback. Password filling, preferred/delete and the save decision keep
+  their existing paths; incognito still loads accounts only on the explicit
+  button; subresource prompts still show no account controls.
+- **Tests:** covered by the existing HTTP auth browser tests and the
+  installed HTTP auth journey; visual acceptance against the reference.
+- **Rebase/removal:** medium; `login_view.cc` also carries 0001, 0011 and
+  0078. Generated against those; `login_handler_views.cc` carries 0001.
+
+## `0080-ahoi-milky-liquid-glass-backdrop.patch`
+
+- **Owner:** Desktop (DoD 6 Liquid Glass, rated RED by the owner: Glass ON
+  changed mainly the Sidebar instead of a milky browser backdrop).
+- **Change:** `BrowserNativeWidgetMac` tints the full-window
+  `NSGlassEffectView` through its own `tintColor` with the milky colour from
+  overlay `ahoi::appearance::ResolveNativeBackdrop` (theme surface lifted
+  toward white; light 42%, dark 40%) and lowers the NSWindow foundation to
+  30% of that milk. The former tint `NSView` was an arbitrary glass subview,
+  whose z-order AppKit does not guarantee; it is now the glass `contentView`
+  and stays clear. Chromium's `GetGlassFrameTintOpacity` (dark cap 0.90) is
+  removed. `BrowserFrameViewMac` paints transparent only when
+  `GlassFrameService` eligibility **and** Ahoi's `GlassPolicy` (Glass
+  setting, Reduce Transparency, Increase Contrast, power) allow glass; its
+  opaque path paints the same semantic chrome surface as the widget's opaque
+  NSWindow, fixing the undefined/saturated frame at Glass OFF. DEPS allows
+  `browser_frame_view_mac.mm` to include `ahoi/browser/ui/appearance`.
+- **Safety:** WebContents stays an opaque sibling above the glass; no
+  hit-testing, sandbox, permission or profile ownership changes. The glass
+  view keeps `hitTest:` returning nil. Chromium's one-glass-window limit
+  (`kMaxGlassWindows`) and fullscreen/extension-theme exclusions stay.
+- **Tests:** policy matrix in `ahoi_appearance_unittests`
+  (`glass_material_unittest.cc`); installed journey
+  `tools/desktop_e2e/glass-appearance-journey.sh`. Visual acceptance is the
+  owner's.
+
 ## `0079-ahoi-own-safe-storage-keychain-item.patch`
 
 - **Owner:** Desktop (crest-hardening handoff 148). Ahoi used Chromium's
@@ -1552,7 +1687,8 @@ reference.
   catalog command first and runs it by id (`HandleAhoiShortcutCommand`, and
   `HandleAhoiSplitCommand` replacing the key-based split handler). Quick
   Window, sidebar Undo, the command bar and Save keep their 0001 handling;
-  they are listed in the catalog but not rebindable yet.
+  they are listed in the catalog but not rebindable yet (0085 makes them
+  rebindable).
 - **Safety:** defaults are the keys 0001 registered, plus Option+Tab for the
   new last-used-tab command (`SessionBridge::ActivateLastUsedTab`, active
   Workspace of the window only). A key Chromium's own accelerator table

@@ -1,0 +1,4 @@
+127.0.0.1 - - [28/Sep/2026 18:41:54] "GET /?empty-probe=1 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 18:42:04] "GET /?empty-probe=2 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 18:42:06] code 404, message File not found
+127.0.0.1 - - [28/Sep/2026 18:42:06] "GET /favicon.ico HTTP/1.1" 404 -

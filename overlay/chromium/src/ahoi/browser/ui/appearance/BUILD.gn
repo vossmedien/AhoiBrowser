@@ -17,6 +17,33 @@ source_set("appearance_preferences") {
   ]
 }
 
+# The spec palette values. Kept dependency-free so the Chrome colour pipeline
+# can consume them without pulling in the views-based appearance code.
+source_set("opaque_palette") {
+  sources = [
+    "opaque_palette.cc",
+    "opaque_palette.h",
+  ]
+
+  public_deps = [ "//skia" ]
+}
+
+# Linked into //chrome/browser/ui/color:mixers (patch 0082). It must not depend
+# on //chrome/browser/ui/color:mixers or anything that links it.
+source_set("ahoi_color_mixer") {
+  sources = [
+    "ahoi_color_mixer.cc",
+    "ahoi_color_mixer.h",
+  ]
+
+  deps = [
+    ":opaque_palette",
+    "//chrome/browser/ui/color:color_headers",
+    "//skia",
+    "//ui/color",
+  ]
+}
+
 source_set("appearance") {
   sources = [
     "appearance_policy.cc",
@@ -25,6 +52,10 @@ source_set("appearance") {
     "appearance_runtime_signals.h",
     "appearance_views.cc",
     "appearance_views.h",
+    "glass_material.cc",
+    "glass_material.h",
+    "native_panel_material.cc",
+    "native_panel_material.h",
     "sidebar_page_tint.cc",
     "sidebar_page_tint.h",
     "sidebar_tint_transition.cc",
@@ -33,6 +64,7 @@ source_set("appearance") {
 
   public_deps = [
     ":appearance_preferences",
+    ":opaque_palette",
     "//base",
     "//skia",
     "//ui/color",
@@ -63,19 +95,27 @@ source_set("appearance") {
 source_set("unit_tests") {
   testonly = true
   sources = [
+    "ahoi_color_mixer_unittest.cc",
     "appearance_policy_unittest.cc",
     "appearance_prefs_unittest.cc",
     "appearance_runtime_signals_unittest.cc",
+    "glass_material_unittest.cc",
+    "opaque_palette_unittest.cc",
     "sidebar_page_tint_unittest.cc",
   ]
   if (is_mac) {
     sources += [ "native_glass_bridge_unittest.cc" ]
   }
   deps = [
+    ":ahoi_color_mixer",
     ":appearance",
+    ":opaque_palette",
     "//base/test:test_support",
+    "//chrome/browser/ui/color:color_headers",
     "//components/sync_preferences:test_support",
+    "//skia",
     "//testing/gtest",
+    "//ui/color",
   ]
 }
 

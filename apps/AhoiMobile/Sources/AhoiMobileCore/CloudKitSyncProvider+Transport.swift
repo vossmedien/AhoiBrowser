@@ -71,6 +71,26 @@ extension CloudKitSyncProvider {
         )
     }
 
+    /// Shared-tab writer gate input: a savedRecords receipt persisted the
+    /// record's server system fields and no newer save is pending. Any
+    /// unavailable/replaced engine or unreadable sidecar fails closed.
+    func isRecordAcknowledged(_ recordID: UUID) async -> Bool {
+        let cloudID = CKRecord.ID(recordName: recordID.uuidString.lowercased(), zoneID: zoneID)
+        let pending = statusLock.withLock { () -> Bool in
+            guard !isInvalidated, !engineReplacementInProgress,
+                  !accountTransitionPending, !zoneRecoveryPending,
+                  let engine else { return true }
+            return engine.state.pendingRecordZoneChanges.contains { change in
+                switch change {
+                case .saveRecord(let id), .deleteRecord(let id): return id == cloudID
+                @unknown default: return true
+                }
+            }
+        }
+        guard !pending else { return false }
+        return (try? await systemFieldsStore.data(for: recordID)) != nil
+    }
+
     /// Only a savedRecords receipt for the exact current encrypted Workspace
     /// tombstone may authorize the domain's local compaction write. Hold an
     /// exclusive public-provider activity across the two local files. Engine

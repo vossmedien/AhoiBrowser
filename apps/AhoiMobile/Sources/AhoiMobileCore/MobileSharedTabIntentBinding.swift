@@ -11,6 +11,7 @@ struct MobileSharedTabIntentBinding: ViewModifier {
     func body(content: Content) -> some View {
         content.onAppear {
             guard enabled else { return }
+            model.activateSharedTabNativeSupport()
             browser.onSharedTabIntent = { [weak browser, weak model] tab, intent in
                 guard let browser, let model else { return }
                 model.receiveSharedTabIntent(tab, intent, browser: browser)

@@ -1,0 +1,28 @@
+Zeigt die gewünschte Desktop-Konfiguration. Chromium-Erweiterungen laufen nicht auf iOS.
+Sync
+Status, Bereit
+Verschlüsselung, Verschlüsselung bereit
+Synchronisiert
+Verlauf
+Abgelaufene Besuche werden in Sync-Löschmarken umgewandelt, damit die Löschung auf deine anderen Geräte übertragen wird.
+Geräte
+iPhone
+Dieses Gerät
+5 Min., 22 Sek.
+Online
+Mac.fritz.box
+11 Min., 6 Sek.
+Online
+Das Entfernen stoppt Ahoi Sync und Fernbefehle für das Gerät in den aktuellen Datensätzen. Da der verschlüsselte Nutzdaten-Schlüssel derzeit geteilt wird, ist dies noch keine vollständige kryptografische Isolierung pro Gerät.
+Synchronisierte Produktdaten
+Darstellung, System
+Chromium PDF Viewer
+Mac.fritz.box · Version 1
+Unterstützte Erweiterungseinstellungen anzeigen
+CloudKit-Sync
+Status, Bereit
+Status
+Verschlüsselung, Verschlüsselung bereit
+Verschlüsselung
+Jetzt synchronisieren
+90 Tage

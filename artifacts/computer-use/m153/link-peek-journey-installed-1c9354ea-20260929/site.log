@@ -1,0 +1,20 @@
+127.0.0.1 - - [29/Sep/2026 09:59:58] "GET /page.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:00:00] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 10:00:00] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 10:00:01] "GET /target.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:00:09] "GET /target.html HTTP/1.1" 304 -
+127.0.0.1 - - [29/Sep/2026 10:00:30] "GET /page.html?saved HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:00:30] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 10:00:30] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 10:00:35] "GET /target.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:00:38] "GET /target.html?noreferrer HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:00:40] "GET /target.html?blank HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:00:40] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 10:00:40] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 10:00:45] "GET /target.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:00:51] "GET /target.html?command HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:00:55] "GET /target.html?cmdshift HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:01:01] "GET /target.html?samesite HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:01:06] "GET /login.html?blank HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:01:18] "GET /page.html?temp HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 10:01:21] "GET /target.html?blank HTTP/1.1" 304 -

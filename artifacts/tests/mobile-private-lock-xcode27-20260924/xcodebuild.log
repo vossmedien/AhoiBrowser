@@ -1,0 +1,128 @@
+Writing result bundle at path:
+	/private/tmp/ahoi-private-lock-tests.4pPuUC/private-lock.xcresult
+
+error: the following command failed with exit code 0 but produced no further output
+SwiftCompile normal arm64 /Volumes/Macintosh\ HD\ -\ Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Sources/AhoiMobileCore/MobileSharedTabIntentBinding.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Sources/AhoiMobileCore/MobileSharedTabIntentBinding.swift:14:49: warning: 'weak' ownership of capture 'browser' differs from implicitly-captured strong reference in outer scope [#ImplicitStrongCapture]
+10 | 
+11 |     func body(content: Content) -> some View {
+12 |         content.onAppear {
+   |                          |- note: 'browser' implicitly strongly captured here
+   |                          `- note: add 'browser' as a capture list item to silence
+13 |             guard enabled else { return }
+14 |             browser.onSharedTabIntent = { [weak browser, weak model] tab, intent in
+   |                                                 |- warning: 'weak' ownership of capture 'browser' differs from implicitly-captured strong reference in outer scope [#ImplicitStrongCapture]
+   |                                                 `- note: explicitly assign the capture list item to silence
+15 |                 guard let browser, let model else { return }
+16 |                 model.receiveSharedTabIntent(tab, intent, browser: browser)
+
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Sources/AhoiMobileCore/MobileSharedTabIntentBinding.swift:14:63: warning: 'weak' ownership of capture 'model' differs from implicitly-captured strong reference in outer scope [#ImplicitStrongCapture]
+10 | 
+11 |     func body(content: Content) -> some View {
+12 |         content.onAppear {
+   |                          |- note: 'model' implicitly strongly captured here
+   |                          `- note: add 'model' as a capture list item to silence
+13 |             guard enabled else { return }
+14 |             browser.onSharedTabIntent = { [weak browser, weak model] tab, intent in
+   |                                                               |- warning: 'weak' ownership of capture 'model' differs from implicitly-captured strong reference in outer scope [#ImplicitStrongCapture]
+   |                                                               `- note: explicitly assign the capture list item to silence
+15 |                 guard let browser, let model else { return }
+16 |                 model.receiveSharedTabIntent(tab, intent, browser: browser)
+
+[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift:51:16: warning: 'internal(set)' modifier is redundant for an internal property
+ 49 |     @Published public internal(set) var pendingExternalOpen: MobilePendingExternalOpen?
+ 50 |     @Published public internal(set) var pendingLink: MobilePendingLink?
+ 51 |     @Published internal(set) var linkPreview: MobileLinkPreviewSession?
+    |                `- warning: 'internal(set)' modifier is redundant for an internal property
+ 52 |     var stagedLinkPreview: MobilePendingLink?
+ 53 |     var linkPreviewNavigationTask: Task<Void, Never>?
+error: the following command failed with exit code 0 but produced no further output
+SwiftCompile normal arm64 /Volumes/Macintosh\ HD\ -\ Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift (in target 'AhoiMobileCore' from project 'AhoiMobile')
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserController.swift:51:16: warning: 'internal(set)' modifier is redundant for an internal property
+ 49 |     @Published public internal(set) var pendingExternalOpen: MobilePendingExternalOpen?
+ 50 |     @Published public internal(set) var pendingLink: MobilePendingLink?
+ 51 |     @Published internal(set) var linkPreview: MobileLinkPreviewSession?
+    |                `- warning: 'internal(set)' modifier is redundant for an internal property
+ 52 |     var stagedLinkPreview: MobilePendingLink?
+ 53 |     var linkPreviewNavigationTask: Task<Void, Never>?
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Tests/AhoiMobileCoreTests/MobilePrivateSessionLockTests.swift:74:17: warning: 'session' mutated after capture by sendable closure
+61 |         let auth = Auth()
+62 |         let lock = MobilePrivateSessionLock(defaults: defaults, makeAuthenticator: { auth })
+63 |         var session: UInt64? = 1
+   |             `- note: variable defined here
+64 |         lock.sessionGeneration = { session }
+   |                                  | `- note: capturing use
+   |                                  `- note: variable captured by sendable closure
+65 |         lock.sceneBecameActive("A")
+66 |         lock.sceneBecameActive("B")
+   :
+72 |         XCTAssertTrue(lock.isLocked)
+73 |         lock.authenticate(scene: "A")
+74 |         session = 2
+   |                 `- warning: 'session' mutated after capture by sendable closure
+75 |         auth.reply?(true)
+76 |         XCTAssertTrue(lock.isLocked)
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Tests/AhoiMobileUITests/MobileBrowserAccessibilityAppearanceUITests.swift:355:20: warning: main actor-isolated property 'orientation' can not be mutated from a nonisolated context
+350 |     }
+351 | 
+352 |     private func restore(_ orientation: UIDeviceOrientation, on device: XCUIDevice) {
+    |                  `- note: add '@MainActor' to make instance method 'restore(_:on:)' part of global actor 'MainActor'
+353 |         switch orientation {
+354 |         case .portrait, .portraitUpsideDown, .landscapeLeft, .landscapeRight:
+355 |             device.orientation = orientation
+    |                    `- warning: main actor-isolated property 'orientation' can not be mutated from a nonisolated context
+356 |         default:
+357 |             device.orientation = .portrait
+
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIDevice.h:55:43: note: mutation of this property is only permitted within the actor
+ 53 | #if TARGET_OS_IOS
+ 54 | /*! The orientation of the device. */
+ 55 | @property (nonatomic) UIDeviceOrientation orientation;
+    |                                           `- note: mutation of this property is only permitted within the actor
+ 56 | /*!
+ 57 |  * Provides access to an object representing the Siri interface on the device.
+
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Tests/AhoiMobileUITests/MobileBrowserAccessibilityAppearanceUITests.swift:357:20: warning: main actor-isolated property 'orientation' can not be mutated from a nonisolated context
+350 |     }
+351 | 
+352 |     private func restore(_ orientation: UIDeviceOrientation, on device: XCUIDevice) {
+    |                  `- note: add '@MainActor' to make instance method 'restore(_:on:)' part of global actor 'MainActor'
+353 |         switch orientation {
+354 |         case .portrait, .portraitUpsideDown, .landscapeLeft, .landscapeRight:
+355 |             device.orientation = orientation
+356 |         default:
+357 |             device.orientation = .portrait
+    |                    `- warning: main actor-isolated property 'orientation' can not be mutated from a nonisolated context
+358 |         }
+359 |     }
+
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIDevice.h:55:43: note: mutation of this property is only permitted within the actor
+ 53 | #if TARGET_OS_IOS
+ 54 | /*! The orientation of the device. */
+ 55 | @property (nonatomic) UIDeviceOrientation orientation;
+    |                                           `- note: mutation of this property is only permitted within the actor
+ 56 | /*!
+ 57 |  * Provides access to an object representing the Siri interface on the device.
+/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/apps/AhoiMobile/Tests/AhoiMobileUITests/MobileBrowserRealE2ETestSupport.swift:559:24: warning: main actor-isolated property 'value' can not be referenced from a nonisolated context
+556 |     }
+557 | 
+558 |     static func switchIsOn(_ element: XCUIElement) -> Bool? {
+    |                 `- note: add '@MainActor' to make static method 'switchIsOn' part of global actor 'MainActor'
+559 |         switch element.value {
+    |                        `- warning: main actor-isolated property 'value' can not be referenced from a nonisolated context
+560 |         case let value as String:
+561 |             switch value.lowercased() {
+
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks/XCUIAutomation.framework/Headers/XCUIElementAttributes.h:41:35: note: property declared here
+ 39 | 
+ 40 | /*! The raw value attribute of the element. Depending on the element, the actual type can vary. */
+ 41 | @property (readonly, nullable) id value;
+    |                                   `- note: property declared here
+ 42 | 
+ 43 | /*! The title attribute of the element. */
+note: Run script build phase 'Mobile signing mode preflight' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'AhoiMobile' from project 'AhoiMobile')
+2026-09-24 16:26:13.181 xcodebuild[76740:16285486] [MT] IDETestOperationsObserverDebug: 8.064 elapsed -- Testing started completed.
+2026-09-24 16:26:13.181 xcodebuild[76740:16285486] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-24 16:26:13.181 xcodebuild[76740:16285486] [MT] IDETestOperationsObserverDebug: 8.064 sec, +8.064 sec -- end
+Testing started

@@ -69,7 +69,8 @@ struct ArcImportService::DiscoveryResult {
 };
 
 ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
-    const base::FilePath& profile_path) {
+    const base::FilePath& profile_path,
+    ArcImportPlanOptions options) {
   DiscoveryResult result;
   const ArcImportJournalReadResult journal = ReadArcImportJournal(profile_path);
   if (journal.status != ArcImportStatus::kOk) {
@@ -110,7 +111,7 @@ ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
     return result;
   }
   result.snapshot_token = ArcImportSnapshotToken(*snapshot.snapshot);
-  ArcParseResult parsed = ParseArcSnapshot(*snapshot.snapshot);
+  ArcParseResult parsed = ParseArcSnapshot(*snapshot.snapshot, options);
   if (parsed.status != ArcImportStatus::kOk || !parsed.plan) {
     result.status = parsed.status;
     return result;
@@ -149,7 +150,8 @@ void ArcImportService::Shutdown() {
   profile_ = nullptr;
 }
 
-void ArcImportService::DiscoverAndPreview(ArcImportPreviewCallback callback) {
+void ArcImportService::DiscoverAndPreview(ArcImportPlanOptions options,
+                                          ArcImportPreviewCallback callback) {
   if (!callback) {
     return;
   }
@@ -164,7 +166,8 @@ void ArcImportService::DiscoverAndPreview(ArcImportPreviewCallback callback) {
   const uint64_t generation = ++discovery_generation_;
   base::ThreadPool::PostTaskAndReplyWithResult(
       FROM_HERE, {base::MayBlock(), base::TaskPriority::USER_VISIBLE},
-      base::BindOnce(&ArcImportService::DiscoverImport, profile_->GetPath()),
+      base::BindOnce(&ArcImportService::DiscoverImport, profile_->GetPath(),
+                     options),
       base::BindOnce(&ArcImportService::OnDiscoveryComplete,
                      weak_factory_.GetWeakPtr(), generation,
                      std::move(callback)));
@@ -183,6 +186,8 @@ void ArcImportService::OnDiscoveryComplete(uint64_t generation,
   operation_in_progress_ = false;
   ArcImportPreview preview{.status = result.status};
   preview.arc_is_running = result.arc_is_running;
+  preview.folders_as_workspaces =
+      result.plan && result.plan->options.folders_as_workspaces;
   if (result.status != ArcImportStatus::kOk || !result.plan || !result.source ||
       !session_bridge_ || !session_bridge_->is_ready()) {
     if (result.status == ArcImportStatus::kOk) {
@@ -252,6 +257,13 @@ void ArcImportService::Commit(std::string snapshot_token,
   if (!callback) {
     return;
   }
+  if (pending_plan_ && selection.folders_as_workspaces !=
+                           pending_plan_->options.folders_as_workspaces) {
+    // The displayed preview was built for the other layout.
+    result.status = ArcImportStatus::kStalePreview;
+    std::move(callback).Run(std::move(result));
+    return;
+  }
   if (!profile_ || !session_bridge_ || !session_bridge_->is_ready() ||
       operation_in_progress_ || !browser || !pending_plan_ ||
       !pending_source_ || browser->GetProfile() != profile_ ||
@@ -309,6 +321,8 @@ void ArcImportService::OnCommitSourceValidated(
       !session_bridge_ || !session_bridge_->is_ready() || !browser ||
       browser->GetProfile() != profile_ || !pending_plan_ || !pending_source_ ||
       !IsValidArcImportSelection(selection, *pending_source_) ||
+      selection.folders_as_workspaces !=
+          pending_plan_->options.folders_as_workspaces ||
       snapshot_token != pending_snapshot_token_) {
     operation_in_progress_ = false;
     result.status = validation_status == ArcImportStatus::kOk
@@ -330,6 +344,7 @@ void ArcImportService::OnCommitSourceValidated(
       ComputeArcImportSelectionFingerprint(
           {.import_sidebar = selection.import_sidebar,
            .reconstruct_splits = selection.reconstruct_splits,
+           .folders_as_workspaces = selection.folders_as_workspaces,
            .conflict_resolution = conflict_resolution,
            .selected_browser_profiles = selection.selected_browser_profiles});
   const std::string idempotency_key =

@@ -1,0 +1,3 @@
+PRIV-07_repair_applies PASS
+PRIV-07_effect_explained FAIL:security-sentence-missing
+PRIV-07_no_jargon PASS

@@ -1,0 +1,46 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Kunde -> true
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 33
+hidkey 36
+key 53
+AXShowMenu AXButton | Kunde, Workspace wechseln | Kunde, Workspace wechseln -> -25204
+AXPress AXMenuItem | Workspace löschen… | itemSelected: -> 0
+AXPress AXButton | Löschen | Löschen -> 0
+promptShown -> true
+hidkey 17
+latePage blocked by the prompt
+AXPress AXButton | Verlassen | action-button-1 -> 0
+noRehomingWhileClosing -> false
+latePageClosedToo -> true
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Zwei -> 0 now=Zwei
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Zwei -> true
+frontmost -> 0
+hidkey 17
+typed 37
+hidkey 36
+key 53
+AXShowMenu AXButton | Zwei, Workspace wechseln | Zwei, Workspace wechseln -> -25204
+AXPress AXMenuItem | Workspace löschen… | itemSelected: -> 0
+AXPress AXButton | Löschen | Löschen -> 0
+frontmost -> 0
+partitionNotRecreatedAtStartup -> false
+killedDeletionStaysDeleted -> true
+hidkey 12
+bindingAndPartitionGoneAfterCrash -> false

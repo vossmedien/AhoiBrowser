@@ -1,0 +1,9 @@
+tables/counts (read from a copy):
+sync_records 17
+sync_inbox 19
+sync_outbox 0
+sync_acknowledged_records 7
+sync_quarantine 0
+iPhone test tab markers found in the Mac store:
+ahoi-sync-ios-20260929T104849Z
+ahoi-sync-ios-20260929T105445Z

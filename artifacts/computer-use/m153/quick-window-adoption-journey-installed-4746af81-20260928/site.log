@@ -1,0 +1,4 @@
+127.0.0.1 - - [28/Sep/2026 19:03:59] "GET /home.html HTTP/1.1" 200 -
+127.0.0.1 - - [28/Sep/2026 19:04:00] code 404, message File not found
+127.0.0.1 - - [28/Sep/2026 19:04:00] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [28/Sep/2026 19:04:06] "GET /quick.html HTTP/1.1" 200 -

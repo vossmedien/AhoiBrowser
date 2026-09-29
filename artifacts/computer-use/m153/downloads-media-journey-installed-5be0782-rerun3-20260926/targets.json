@@ -1,0 +1,67 @@
+[ {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9383/devtools/page/F7E332789D0428944017777F4A85819E",
+   "id": "F7E332789D0428944017777F4A85819E",
+   "title": "doc.pdf",
+   "type": "page",
+   "url": "http://127.0.0.1:8804/doc.pdf",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9383/devtools/page/F7E332789D0428944017777F4A85819E"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9383/devtools/page/F6C68230D8ADA5697D9D1393B7DF5049",
+   "id": "F6C68230D8ADA5697D9D1393B7DF5049",
+   "parentId": "F7E332789D0428944017777F4A85819E",
+   "title": "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html",
+   "type": "iframe",
+   "url": "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/index.html",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9383/devtools/page/F6C68230D8ADA5697D9D1393B7DF5049"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9383/devtools/page/11E278C94AB8C05CB0E3331C8D2249E3",
+   "id": "11E278C94AB8C05CB0E3331C8D2249E3",
+   "parentId": "F6C68230D8ADA5697D9D1393B7DF5049",
+   "title": "http://127.0.0.1:8804/doc.pdf",
+   "type": "iframe",
+   "url": "http://127.0.0.1:8804/doc.pdf",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9383/devtools/page/11E278C94AB8C05CB0E3331C8D2249E3"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9383/devtools/page/39F3191B7D8EB7F8F690FF9D69F6ED31",
+   "id": "39F3191B7D8EB7F8F690FF9D69F6ED31",
+   "title": "Ahoi media",
+   "type": "page",
+   "url": "http://127.0.0.1:8804/media.html?link",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9383/devtools/page/39F3191B7D8EB7F8F690FF9D69F6ED31"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9383/devtools/page/FC65FB4F1D0B9A01974C3161276E7C74",
+   "id": "FC65FB4F1D0B9A01974C3161276E7C74",
+   "title": "Ahoi media",
+   "type": "page",
+   "url": "http://127.0.0.1:8804/media.html",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9383/devtools/page/FC65FB4F1D0B9A01974C3161276E7C74"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9383/devtools/page/245C36F0138F8CD727ADE448987A787D",
+   "id": "245C36F0138F8CD727ADE448987A787D",
+   "title": "about:blank",
+   "type": "page",
+   "url": "about:blank",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9383/devtools/page/245C36F0138F8CD727ADE448987A787D"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9383/devtools/page/F2BA2C488F69C0BCFC4DA519C3323C87",
+   "id": "F2BA2C488F69C0BCFC4DA519C3323C87",
+   "title": "Omnibox Popup",
+   "type": "browser_ui",
+   "url": "chrome://omnibox-popup.top-chrome/",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9383/devtools/page/F2BA2C488F69C0BCFC4DA519C3323C87"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9383/devtools/page/9BDE673AC3098F8905EDBE2B5040C6EE",
+   "id": "9BDE673AC3098F8905EDBE2B5040C6EE",
+   "title": "Omnibox Popup",
+   "type": "browser_ui",
+   "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9383/devtools/page/9BDE673AC3098F8905EDBE2B5040C6EE"
+} ]

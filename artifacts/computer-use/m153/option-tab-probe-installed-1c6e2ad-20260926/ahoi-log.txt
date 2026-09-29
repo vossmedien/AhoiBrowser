@@ -1,0 +1,4 @@
+[56687:31264894:0926/032009.484913:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=http://127.0.0.1:8806/two.html
+[56687:31264894:0926/032009.486132:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=http://127.0.0.1:8806/two.html
+[56687:31264894:0926/032014.298234:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 0 url=http://127.0.0.1:8806/one.html
+[56687:31264894:0926/032014.309255:VERBOSE1:content/app_shim_remote_cocoa/render_widget_host_view_cocoa.mm:1436] Ahoi key trace: RWHV keyEvent tab type=11 equiv=0 flags=262144

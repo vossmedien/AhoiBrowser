@@ -1,0 +1,5 @@
+PRIV-07_panel_opens FAIL:no-privacy-button
+PRIV-07_repair_action FAIL:no-repair-action
+PRIV-07_repair_applies FAIL:stored=<absent>,gpc=1
+PRIV-07_effect_explained FAIL:security-sentence-missing
+PRIV-07_no_jargon PASS

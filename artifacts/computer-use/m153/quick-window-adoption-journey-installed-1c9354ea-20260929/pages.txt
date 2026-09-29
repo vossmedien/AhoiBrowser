@@ -1,0 +1,3 @@
+base ["about:blank", "http://127.0.0.1:8811/home.html"]
+quick target before 279F9A67EF65089FB349BEA2379A8A0B
+after ["about:blank", "http://127.0.0.1:8811/home.html", "http://127.0.0.1:8811/quick.html"] / 279F9A67EF65089FB349BEA2379A8A0B

@@ -11,19 +11,25 @@
 #include <vector>
 
 #include "ahoi/browser/navigation/command_service.h"
+#include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
+#include "chrome/grit/generated_resources.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/accessibility/ax_enums.mojom.h"
+#include "ui/base/resource/resource_bundle.h"
 #include "ui/events/event.h"
 #include "ui/events/keycodes/keyboard_codes.h"
 #include "ui/events/test/test_event.h"
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/bubble/bubble_dialog_delegate_view.h"
 #include "ui/views/controls/button/button.h"
+#include "ui/views/controls/label.h"
 #include "ui/views/controls/textfield/textfield.h"
+#include "ui/views/focus/focus_manager.h"
 #include "ui/views/test/button_test_api.h"
 #include "ui/views/test/views_test_base.h"
 #include "ui/views/view.h"
+#include "ui/views/view_utils.h"
 #include "ui/views/widget/widget.h"
 
 namespace ahoi {
@@ -34,6 +40,17 @@ class CommandBarViewTest : public views::ViewsTestBase {
  public:
   void SetUp() override {
     views::ViewsTestBase::SetUp();
+    // The unit-test pak carries no Chrome strings; the view's own strings
+    // are supplied here instead.
+    auto& bundle = ui::ResourceBundle::GetSharedInstance();
+    bundle.OverrideLocaleStringResource(IDS_AHOI_COMMAND_BAR_HINT_SELECT,
+                                        u"Auswählen");
+    bundle.OverrideLocaleStringResource(IDS_AHOI_COMMAND_BAR_HINT_OPEN,
+                                        u"Öffnen");
+    bundle.OverrideLocaleStringResource(IDS_AHOI_COMMAND_BAR_HINT_CLOSE,
+                                        u"Schließen");
+    bundle.OverrideLocaleStringResource(IDS_AHOI_COMMAND_BAR_CURRENT_TAB,
+                                        u"Aktueller Tab");
     CreateView(CommandBarDisposition::kCurrentTab);
   }
 
@@ -175,6 +192,25 @@ TEST_F(CommandBarViewTest, ArrowKeysWrapAndEnterExecutesSelection) {
   EXPECT_EQ(executed_suggestion_->kind,
             CommandBarSuggestionKind::kInputFallback);
   EXPECT_EQ(executed_input_, u"project");
+}
+
+// Design spec 2026-09-29: only the selected row shows the ↵ keycap.
+TEST_F(CommandBarViewTest, OnlySelectedRowShowsReturnKeycap) {
+  const auto keycap_text = [](views::View* row) -> std::u16string {
+    // The keycap is the row's last child and keeps its slot when hidden.
+    const views::Label* keycap =
+        views::AsViewClass<views::Label>(row->children().back());
+    return keycap ? std::u16string(keycap->GetText()) : u"<no keycap>";
+  };
+  view_->SetInitialQuery(u"project", /*prefer_input_fallback=*/false);
+  ASSERT_EQ(view_->suggestion_count_for_testing(), 2u);
+  EXPECT_EQ(u"↵", keycap_text(view_->row_for_testing(0)));
+  EXPECT_EQ(u"", keycap_text(view_->row_for_testing(1)));
+
+  EXPECT_TRUE(view_->HandleKeyEventForTesting(
+      ui::KeyEvent(ui::EventType::kKeyPressed, ui::VKEY_DOWN, ui::EF_NONE)));
+  EXPECT_EQ(u"", keycap_text(view_->row_for_testing(0)));
+  EXPECT_EQ(u"↵", keycap_text(view_->row_for_testing(1)));
 }
 
 TEST_F(CommandBarViewTest, UserEditsRebuildAndSelectFirstResult) {
@@ -335,6 +371,35 @@ TEST_F(CommandBarViewTest,
   EXPECT_TRUE(destroyed_);
   ASSERT_TRUE(executed_suggestion_.has_value());
   EXPECT_EQ(executed_suggestion_->kind, CommandBarSuggestionKind::kLocalItem);
+}
+
+TEST_F(CommandBarViewTest, KeepsMinimumHeightAndKeyboardOnlyInputRing) {
+  EXPECT_GE(view_->GetPreferredSize().height(),
+            visual_style::kCommandBarContentMinimumHeight);
+
+  auto widget = CreateTestWidget(views::Widget::InitParams::CLIENT_OWNS_WIDGET);
+  CommandBarView* const view = widget->SetContentsView(std::move(view_));
+  widget->Show();
+  widget->Activate();
+  views::Textfield* const textfield = view->textfield_for_testing();
+  views::FocusManager* const focus_manager = textfield->GetFocusManager();
+  ASSERT_TRUE(focus_manager);
+
+  // Opening the bar focuses the input directly: no outline.
+  focus_manager->SetFocusedView(textfield);
+  ASSERT_TRUE(textfield->HasFocus());
+  EXPECT_FALSE(view->input_focus_ring_showing_for_testing());
+
+  // Keyboard traversal into the input shows the spec ring.
+  focus_manager->ClearFocus();
+  focus_manager->SetFocusedViewWithReason(
+      textfield, views::FocusManager::FocusChangeReason::kFocusTraversal);
+  EXPECT_TRUE(view->input_focus_ring_showing_for_testing());
+
+  focus_manager->ClearFocus();
+  EXPECT_FALSE(view->input_focus_ring_showing_for_testing());
+  widget.reset();
+  EXPECT_TRUE(destroyed_);
 }
 
 TEST_F(CommandBarViewTest, SeparateDelegateOutlivesClientOwnedWidget) {

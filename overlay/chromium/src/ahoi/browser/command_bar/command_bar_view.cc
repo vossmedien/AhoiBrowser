@@ -8,6 +8,7 @@
 #include <optional>
 #include <utility>
 
+#include "ahoi/browser/command_bar/command_bar_decorations.h"
 #include "ahoi/browser/ui/appearance/appearance_views.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
@@ -36,6 +37,8 @@
 #include "ui/compositor/layer_tree_owner.h"
 #include "ui/events/event.h"
 #include "ui/events/keycodes/keyboard_codes.h"
+#include "ui/gfx/font.h"
+#include "ui/gfx/font_list.h"
 #include "ui/gfx/geometry/insets.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/views/accessibility/view_accessibility.h"
@@ -56,6 +59,13 @@ namespace ahoi {
 namespace {
 
 constexpr size_t kMaximumSuggestionCount = 5u;
+constexpr char16_t kAcceptKeycap[] = u"↵";  // A keycap, never "Return".
+
+gfx::FontList CommandBarFont(int size, gfx::Font::Weight weight) {
+  const gfx::FontList base;
+  return base.DeriveWithSizeDelta(size - base.GetFontSize())
+      .DeriveWithWeight(weight);
+}
 
 std::u16string AccessibleRowName(const CommandBarSuggestion& suggestion) {
   if (suggestion.secondary_text.empty()) {
@@ -140,6 +150,9 @@ class CommandBarResultRow final : public views::Button {
         suggestion.title, views::style::CONTEXT_LABEL,
         views::style::STYLE_PRIMARY));
     title->SetSubpixelRenderingEnabled(false);
+    title->SetFontList(CommandBarFont(
+        visual_style::kCommandBarResultTitleFontSize,
+        gfx::Font::Weight::MEDIUM));
     title->SetHorizontalAlignment(gfx::ALIGN_LEFT);
     title->SetEnabledColor(is_active_tab_ ? visual_style::kAccent
                                           : visual_style::kText);
@@ -151,6 +164,9 @@ class CommandBarResultRow final : public views::Button {
         suggestion.secondary_text, views::style::CONTEXT_LABEL,
         views::style::STYLE_SECONDARY));
     secondary->SetSubpixelRenderingEnabled(false);
+    secondary->SetFontList(
+        CommandBarFont(visual_style::kCommandBarResultOriginFontSize,
+                       gfx::Font::Weight::NORMAL));
     secondary->SetHorizontalAlignment(gfx::ALIGN_RIGHT);
     secondary->SetEnabledColor(visual_style::kMutedText);
     secondary->SetElideBehavior(gfx::ELIDE_MIDDLE);
@@ -178,15 +194,18 @@ class CommandBarResultRow final : public views::Button {
     }
     active_tab_indicator->GetViewAccessibility().SetIsIgnored(true);
 
-    auto* accept_hint = AddChildView(std::make_unique<views::Label>(
-        u"↵", views::style::CONTEXT_LABEL, views::style::STYLE_SECONDARY));
-    accept_hint->SetSubpixelRenderingEnabled(false);
-    accept_hint->SetEnabledColor(visual_style::kMutedText);
-    accept_hint->SetHorizontalAlignment(gfx::ALIGN_CENTER);
-    accept_hint->SetPreferredSize(
+    // The keycap slot is always reserved; only the selected row shows the
+    // key, so selection never moves titles.
+    accept_hint_ = AddChildView(std::make_unique<views::Label>(
+        std::u16string(), views::style::CONTEXT_LABEL,
+        views::style::STYLE_SECONDARY));
+    accept_hint_->SetSubpixelRenderingEnabled(false);
+    accept_hint_->SetEnabledColor(visual_style::kMutedText);
+    accept_hint_->SetHorizontalAlignment(gfx::ALIGN_CENTER);
+    accept_hint_->SetPreferredSize(
         gfx::Size(visual_style::kCommandBarAcceptHintWidth,
                   visual_style::kCommandBarAcceptHintHeight));
-    accept_hint->GetViewAccessibility().SetIsIgnored(true);
+    accept_hint_->GetViewAccessibility().SetIsIgnored(true);
 
     GetViewAccessibility().SetRole(ax::mojom::Role::kListBoxOption);
     GetViewAccessibility().SetName(AccessibleRowName(suggestion));
@@ -257,8 +276,23 @@ class CommandBarResultRow final : public views::Button {
                       ? views::CreateRoundedRectBackground(
                             *surface, visual_style::kRowCornerRadius)
                       : nullptr);
+    UpdateAcceptHint(selected_or_focused);
   }
 
+  void UpdateAcceptHint(bool show) {
+    if (!accept_hint_) {
+      return;
+    }
+    accept_hint_->SetText(show ? kAcceptKeycap : u"");
+    accept_hint_->SetBorder(
+        show ? views::CreateRoundedRectBorder(
+                   visual_style::kControlBorderThickness,
+                   visual_style::kCommandBarKeycapCornerRadius,
+                   visual_style::kDivider)
+             : nullptr);
+  }
+
+  raw_ptr<views::Label> accept_hint_ = nullptr;
   base::RepeatingClosure selected_callback_;
   KeyCallback key_callback_;
   const bool is_active_tab_;
@@ -283,7 +317,7 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
   CHECK(suggestions_callback_);
   CHECK(execute_callback_);
 
-  SetLayoutManager(std::make_unique<views::BoxLayout>(
+  auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
       views::BoxLayout::Orientation::kVertical, gfx::Insets(),
       visual_style::kCommandBarVerticalSpacing));
   // The central appearance package owns this full-size surface. Child rows
@@ -297,9 +331,6 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
                 visual_style::kCommandBarInputHeight));
   input_shell->SetBackground(views::CreateRoundedRectBackground(
       visual_style::kRaisedSurface, visual_style::kControlCornerRadius));
-  input_shell->SetBorder(views::CreateRoundedRectBorder(
-      visual_style::kControlBorderThickness, visual_style::kControlCornerRadius,
-      visual_style::kAccent));
   auto* input_layout =
       input_shell->SetLayoutManager(std::make_unique<views::BoxLayout>(
           views::BoxLayout::Orientation::kHorizontal,
@@ -324,11 +355,15 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
   textfield_->SetPlaceholderText(placeholder);
   textfield_->SetAccessibleName(placeholder);
   textfield_->SetBorder(nullptr);
+  textfield_->SetFontList(CommandBarFont(
+      visual_style::kCommandBarInputFontSize, gfx::Font::Weight::NORMAL));
   textfield_->SetBackgroundColor(visual_style::kRaisedSurface);
   textfield_->SetTextColorId(visual_style::kText);
   textfield_->SetPlaceholderTextColorId(visual_style::kMutedText);
   textfield_->RemoveHoverEffect();
   input_layout->SetFlexForView(textfield_, 1);
+  input_focus_ring_ =
+      std::make_unique<CommandBarInputFocusRing>(input_shell.get(), textfield_);
   AddChildView(std::move(input_shell));
 
   auto results_view = std::make_unique<views::View>();
@@ -338,6 +373,8 @@ CommandBarView::CommandBarView(CommandBarDisposition disposition,
       visual_style::kCommandBarResultSpacing));
   results_view->GetViewAccessibility().SetRole(ax::mojom::Role::kListBox);
   results_view_ = AddChildView(std::move(results_view));
+  layout->SetFlexForView(results_view_, 1);
+  AddChildView(CreateCommandBarKeyHints());
 
   const ui::AXPlatformNodeId textfield_id =
       textfield_->GetViewAccessibility().GetUniqueId();
@@ -364,19 +401,19 @@ CommandBarView::~CommandBarView() {
   }
 }
 
+gfx::Size CommandBarView::CalculatePreferredSize(
+    const views::SizeBounds& available_size) const {
+  gfx::Size size = views::View::CalculatePreferredSize(available_size);
+  size.set_height(
+      std::max(size.height(), visual_style::kCommandBarContentMinimumHeight));
+  return size;
+}
+
 void CommandBarView::OnAppearanceChanged(
     const appearance::GlassPolicy& policy) {
-  const appearance::SurfaceAppearance surface =
-      appearance::AppearanceResolver::Resolve(
-          appearance::SurfaceRole::kCommandBar, policy);
-  views::ClientView* client_view =
-      GetWidget() ? GetWidget()->client_view() : nullptr;
-  if (!client_view) {
-    appearance::ApplySurfaceAppearance(this, surface);
-    return;
-  }
-  appearance::ClearSurfaceBackgroundAppearance(this);
-  appearance::ApplySurfaceBackgroundAppearance(client_view, surface);
+  // Bubble panels are separate windows: native glass behind the visible
+  // panel, a light Views veil on top, opaque under every fallback.
+  panel_material_.Apply(this, policy);
 }
 
 void CommandBarView::SetInitialQuery(std::u16string query,
@@ -429,6 +466,10 @@ bool CommandBarView::row_selected_for_testing(size_t index) const {
 
 bool CommandBarView::HandleKeyEventForTesting(const ui::KeyEvent& event) {
   return HandleKeyEvent(textfield_, event);
+}
+
+bool CommandBarView::input_focus_ring_showing_for_testing() const {
+  return input_focus_ring_ && input_focus_ring_->IsShowingForTesting();
 }
 
 bool CommandBarView::HandleResultKeyEventForTesting(size_t index,

@@ -3,8 +3,11 @@
 
 #include "ahoi/browser/navigation/keyboard_shortcut_registration.h"
 
+#include <optional>
 #include <set>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "base/functional/bind.h"
 #include "components/sync_preferences/testing_pref_service_syncable.h"
@@ -41,19 +44,55 @@ class ShortcutRegistrationTest : public ::testing::Test {
   int calls_ = 0;
 };
 
-TEST_F(ShortcutRegistrationTest, RegistersRebindableDefaultsOnly) {
+TEST_F(ShortcutRegistrationTest, RegistersEveryCatalogDefault) {
   auto registration = Create();
   const ui::Accelerator last_used(ui::VKEY_TAB,
                                   ui::EF_CONTROL_DOWN | ui::EF_ALT_DOWN);
   EXPECT_TRUE(registered_.contains(last_used));
-  // Fixed commands keep their own registration in BrowserView.
-  EXPECT_FALSE(registered_.contains(
-      ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN)));
-  EXPECT_FALSE(
-      registered_.contains(ui::Accelerator(ui::VKEY_Z, ui::EF_COMMAND_DOWN)));
   EXPECT_EQ(kSwitchToLastUsedTab, registration->CommandFor(last_used));
-  EXPECT_FALSE(registration->CommandFor(
-      ui::Accelerator(ui::VKEY_L, ui::EF_COMMAND_DOWN)));
+  // Quick Window, sidebar Undo, the command bar and Save follow the catalog
+  // like every other command; their old fixed registrations are gone.
+  const struct {
+    ui::Accelerator key;
+    const char* id;
+  } kFormerlyFixed[] = {
+      {ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN), kQuickWindow},
+      {ui::Accelerator(ui::VKEY_Z, ui::EF_COMMAND_DOWN), kSidebarUndo},
+      {ui::Accelerator(ui::VKEY_L, ui::EF_COMMAND_DOWN), kCommandBar},
+      {ui::Accelerator(ui::VKEY_T, ui::EF_COMMAND_DOWN), kCommandBarNewTab},
+      {ui::Accelerator(ui::VKEY_D, ui::EF_COMMAND_DOWN), kSaveTab},
+  };
+  for (const auto& entry : kFormerlyFixed) {
+    EXPECT_TRUE(registered_.contains(entry.key)) << entry.id;
+    EXPECT_EQ(entry.id, registration->CommandFor(entry.key));
+  }
+}
+
+TEST_F(ShortcutRegistrationTest, ChangedCallbackRunsAfterEachBindingChange) {
+  auto registration = Create();
+  const ui::Accelerator new_key(ui::VKEY_K,
+                                ui::EF_COMMAND_DOWN | ui::EF_ALT_DOWN);
+  int changes = 0;
+  std::optional<std::string> seen;
+  registration->SetChangedCallback(base::BindRepeating(
+      [](ShortcutRegistration* registration, ui::Accelerator key,
+         int* changes, std::optional<std::string>* seen) {
+        ++*changes;
+        // The registration already follows the new binding.
+        *seen = registration->CommandFor(key);
+      },
+      registration.get(), new_key, &changes, &seen));
+  EXPECT_EQ(0, changes);
+
+  ASSERT_TRUE(SetBinding(&prefs_, kQuickWindow, new_key, {}, nullptr));
+  EXPECT_EQ(1, changes);
+  EXPECT_EQ(kQuickWindow, seen);
+  EXPECT_EQ(std::vector<ui::Accelerator>{new_key},
+            EffectiveAccelerators(registration->overrides(), kQuickWindow));
+
+  ASSERT_TRUE(ResetToDefault(&prefs_, kQuickWindow));
+  EXPECT_EQ(2, changes);
+  EXPECT_FALSE(seen);
 }
 
 TEST_F(ShortcutRegistrationTest, FollowsBindingChangesWithMinimalUpdates) {

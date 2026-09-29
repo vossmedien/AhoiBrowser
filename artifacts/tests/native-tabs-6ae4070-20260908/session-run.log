@@ -1,0 +1,48 @@
+objc[45307]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142dbca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1260b4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[45314]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13f5e4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1228dca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SessionBridgeTest.BackupFlushPersistsSecondNestedTreeMutation:SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently:SharedTabTargetPolicyTest.ConsumesCanonicalV3TargetCases:SharedTabTargetPolicyTest.OnlyExplicitEmptyTemporaryTargetsBecomeNewTabs:SharedTabTargetPolicyTest.NativeLocalTargetsLoseAllPrivateUrlBytes:SharedTabTargetPolicyTest.TargetGroupsAreCanonicalBoundedAndExact:SharedTabTargetPolicyTest.PresenceRequiresIdentityAndAtomicTargetAgreement:SharedTabTargetPolicyTest.ActivationNeverInventsLocalTargetOrBinding
+[==========] Running 8 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from SessionBridgeTest
+[ RUN      ] SessionBridgeTest.BackupFlushPersistsSecondNestedTreeMutation
+[       OK ] SessionBridgeTest.BackupFlushPersistsSecondNestedTreeMutation (480 ms)
+[ RUN      ] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently
+[45314:180863711:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[45314:180863711:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:3976] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently (675 ms)
+[----------] 2 tests from SessionBridgeTest (1387 ms total)
+
+[----------] 6 tests from SharedTabTargetPolicyTest
+[ RUN      ] SharedTabTargetPolicyTest.ConsumesCanonicalV3TargetCases
+[       OK ] SharedTabTargetPolicyTest.ConsumesCanonicalV3TargetCases (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.OnlyExplicitEmptyTemporaryTargetsBecomeNewTabs
+[       OK ] SharedTabTargetPolicyTest.OnlyExplicitEmptyTemporaryTargetsBecomeNewTabs (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.NativeLocalTargetsLoseAllPrivateUrlBytes
+[       OK ] SharedTabTargetPolicyTest.NativeLocalTargetsLoseAllPrivateUrlBytes (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.TargetGroupsAreCanonicalBoundedAndExact
+[       OK ] SharedTabTargetPolicyTest.TargetGroupsAreCanonicalBoundedAndExact (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.PresenceRequiresIdentityAndAtomicTargetAgreement
+[       OK ] SharedTabTargetPolicyTest.PresenceRequiresIdentityAndAtomicTargetAgreement (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.ActivationNeverInventsLocalTargetOrBinding
+[       OK ] SharedTabTargetPolicyTest.ActivationNeverInventsLocalTargetOrBinding (0 ms)
+[----------] 6 tests from SharedTabTargetPolicyTest (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 2 test suites ran. (1391 ms total)
+[  PASSED  ] 8 tests.
+[1/8] SessionBridgeTest.BackupFlushPersistsSecondNestedTreeMutation (480 ms)
+[2/8] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently (675 ms)
+[3/8] SharedTabTargetPolicyTest.ConsumesCanonicalV3TargetCases (0 ms)
+[4/8] SharedTabTargetPolicyTest.OnlyExplicitEmptyTemporaryTargetsBecomeNewTabs (0 ms)
+[5/8] SharedTabTargetPolicyTest.NativeLocalTargetsLoseAllPrivateUrlBytes (0 ms)
+[6/8] SharedTabTargetPolicyTest.TargetGroupsAreCanonicalBoundedAndExact (0 ms)
+[7/8] SharedTabTargetPolicyTest.PresenceRequiresIdentityAndAtomicTargetAgreement (0 ms)
+[8/8] SharedTabTargetPolicyTest.ActivationNeverInventsLocalTargetOrBinding (0 ms)
+SUCCESS: all tests passed.
+Tests took 2 seconds.

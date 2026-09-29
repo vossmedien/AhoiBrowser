@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_UI_MODAL_OVERLAY_CONTROLLER_H_
 
 #include <cstdint>
+#include <vector>
 
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
@@ -64,6 +65,13 @@ class ModalOverlayController final : public views::ViewObserver,
   // always-present scrim view.
   bool IsShowingAnyPanel() const;
 
+  // Runs `callback` once no panel is open or closing: soon when idle, else
+  // after the active panel has closed. A panel action that opens another panel
+  // (the command bar's "Zusammenführen mit …" opening the merge dialog) uses
+  // this, because ShowPanel() refuses while the first panel still fades out.
+  // Callbacks run one at a time; when one opens a panel, the rest wait for it.
+  void RunWhenIdle(base::OnceClosure callback);
+
   views::View* scrim_view_for_testing() const;
 
  private:
@@ -81,6 +89,8 @@ class ModalOverlayController final : public views::ViewObserver,
   void ScheduleFocusRestore();
   void RestoreFocus();
   void OnScrimPressed();
+  void ScheduleIdleCallbacks();
+  void RunIdleCallbacks();
 
   // views::ViewObserver:
   void OnViewBoundsChanged(views::View* observed_view) override;
@@ -100,6 +110,7 @@ class ModalOverlayController final : public views::ViewObserver,
   State state_ = State::kIdle;
   uint64_t close_generation_ = 0;
   int focus_restore_attempts_ = 0;
+  std::vector<base::OnceClosure> idle_callbacks_;
 
   base::ScopedObservation<views::View, views::ViewObserver>
       window_host_observation_{this};

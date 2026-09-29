@@ -19,8 +19,10 @@ base::Uuid MakeDeterministicArcId(std::string_view domain,
 
 // Parses only the documented Arc v1 StorableSidebar structure. The returned
 // plan contains no live-profile mutation and is safe to preview before a later
-// explicit, atomic merge.
-ArcParseResult ParseArcSnapshot(const ArcImportSnapshot& snapshot);
+// explicit, atomic merge. `options` selects the deterministic layout; the
+// same snapshot and options always yield the same plan and identities.
+ArcParseResult ParseArcSnapshot(const ArcImportSnapshot& snapshot,
+                                const ArcImportPlanOptions& options = {});
 
 }  // namespace ahoi::importer::arc
 

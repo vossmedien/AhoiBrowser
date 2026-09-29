@@ -1,0 +1,71 @@
+objc[55142]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x13fd38a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x124e10a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[55142]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x10ddc0188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x114a02430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[55142:34191667:0926/103404.766862:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:98] error removing quarantine attribute "/var/folders/zn/wn74lz2s2bsfp734gbqytmpr0000gn/X/"
+[55142:34191667:0926/103404.806778:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:98] error removing quarantine attribute "/var/folders/zn/wn74lz2s2bsfp734gbqytmpr0000gn/X/"
+[55142:34187315:0926/103404.850385:WARNING:chrome/browser/signin/account_consistency_mode_manager.cc:74] Desktop Identity Consistency cannot be enabled as no OAuth client ID and client secret have been configured.
+
+DevTools listening on ws://127.0.0.1:9345/devtools/browser/3747d00b-3911-4646-aaa4-086549652fff
+[55142:34187315:0926/103405.262933:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+alt+9
+[55142:34187315:0926/103405.262958:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+alt+37
+[55142:34187315:0926/103405.262966:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+alt+39
+[55142:34187315:0926/103405.262972:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+49
+[55142:34187315:0926/103405.262978:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+50
+[55142:34187315:0926/103405.262983:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+51
+[55142:34187315:0926/103405.262989:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+52
+[55142:34187315:0926/103405.262995:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+53
+[55142:34187315:0926/103405.263001:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+54
+[55142:34187315:0926/103405.263006:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+55
+[55142:34187315:0926/103405.263011:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+56
+[55142:34187315:0926/103405.263015:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: ctrl+57
+[55142:34187315:0926/103405.263020:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+shift+83
+[55142:34187315:0926/103405.263025:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+shift+72
+[55142:34187315:0926/103405.263030:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+shift+70
+[55142:34187315:0926/103405.263034:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+49
+[55142:34187315:0926/103405.263047:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+50
+[55142:34187315:0926/103405.263054:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+51
+[55142:34187315:0926/103405.263058:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+52
+[55142:34187315:0926/103405.263064:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+shift+37
+[55142:34187315:0926/103405.263102:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+shift+39
+[55142:34187315:0926/103405.263106:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+37
+[55142:34187315:0926/103405.263110:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+39
+[55142:34187315:0926/103405.263115:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+76
+[55142:34187315:0926/103405.263119:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+48
+[55142:34187315:0926/103405.263122:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:57] Ahoi shortcut registered: cmd+ctrl+87
+[55142:34187315:0926/103405.473885:ERROR:ahoi/browser/updater/sparkle_runtime_mac.mm:148] Ahoi updater disabled (fail closed): missing-feed-url
+[55142:34187315:0926/103425.345738:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:549] Ahoi persist window metadata: workspace=83699047-edf8-580d-948d-9c37acc35cb6 service=1 window_id_valid=1
+[55142:34187315:0926/103425.346817:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 0 url=about:blank
+[55142:34187315:0926/103425.347629:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 0 url=about:blank
+[55142:34187315:0926/103425.347710:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:549] Ahoi persist window metadata: workspace=83699047-edf8-580d-948d-9c37acc35cb6 service=1 window_id_valid=1
+[55142:34187315:0926/103503.377509:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=http://127.0.0.1:8792/alpha.html
+[55142:34187315:0926/103503.381816:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=http://127.0.0.1:8792/alpha.html
+[55142:34187315:0926/103503.382456:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=http://127.0.0.1:8792/alpha.html
+[55142:34187315:0926/103522.050286:WARNING:ui/views/bubble/bubble_dialog_delegate_view.cc:1377] |anchor_view| has already anchored a focusable widget.
+[55142:34187315:0926/103522.050373:WARNING:ui/views/bubble/bubble_dialog_delegate_view.cc:1377] |anchor_view| has already anchored a focusable widget.
+objc[56699]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x14019ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x125274a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56699]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x10e2b4188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x114e66430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56697]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x1424e8a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1275c0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56697]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1106fc188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1171b2430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56707]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142140a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127218a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56707]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1102ec188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x116e0a430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[55142:34187315:0926/103544.369668:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=
+[55142:34187315:0926/103544.371753:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=http://127.0.0.1:8792/beta.html
+objc[56704]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x14252ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127604a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56704]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11ec00188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1171f6430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56705]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x141c00a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x126cd8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56696]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x13fb44a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x124c1ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56696]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11c218188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11480e430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56705]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11e2d4188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1168ca430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56698]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x14031ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1253f4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[56698]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x10e5f8188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x114fe6430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[56697:34197445:0926/103544.633000:WARNING:net/disk_cache/simple/simple_synchronous_entry.cc:1507] Could not open platform files for entry.
+[55142:34187315:0926/103544.811958:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=http://127.0.0.1:8792/beta.html
+[55142:34187315:0926/103544.839354:VERBOSE1:ahoi/browser/session/session_bridge_session.cc:465] Ahoi last-used record: index 1 url=http://127.0.0.1:8792/beta.html
+objc[57174]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x1444f8a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1295d0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[57174]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1200c0188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1191c2430). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[56696:34197545:0926/103604.886474:ERROR:components/viz/service/surfaces/surface_manager.cc:479] Old/orphaned temporary reference to SurfaceId(FrameSinkId[DelegatedFrameHost](6, 3), LocalSurfaceId(2, 2, BEFE...))
+[55142:34187315:0926/103618.390454:ERROR:base/process/kill_posix.cc:33] waitpid(56697): No child processes (10)
+[55142:34194121:0926/103618.466807:WARNING:components/leveldb_proto/internal/unique_proto_database.cc:37] Proto database will not be deleted.
+[55142:34194121:0926/103618.466848:WARNING:components/leveldb_proto/internal/unique_proto_database.cc:37] Proto database will not be deleted.
+[55142:34194121:0926/103618.466862:WARNING:components/leveldb_proto/internal/unique_proto_database.cc:37] Proto database will not be deleted.
+[55142:34194121:0926/103618.504012:WARNING:components/leveldb_proto/internal/unique_proto_database.cc:37] Proto database will not be deleted.
+[55142:34194121:0926/103618.504107:WARNING:components/leveldb_proto/internal/unique_proto_database.cc:37] Proto database will not be deleted.

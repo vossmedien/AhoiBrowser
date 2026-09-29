@@ -1,0 +1,1 @@
+public.utf8-plain-text,NSStringPboardType

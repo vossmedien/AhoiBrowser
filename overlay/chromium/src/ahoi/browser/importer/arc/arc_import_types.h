@@ -119,8 +119,29 @@ struct ArcImportStats {
   size_t deduplicated_workspace_count = 0;
   size_t deduplicated_item_count = 0;
   size_t deduplicated_split_count = 0;
+  // Source statistic, independent of the chosen layout: folders directly in
+  // a space's pinned container that the folders-as-workspaces option would
+  // turn into workspaces.
+  size_t source_top_level_folder_count = 0;
+  // Planned workspaces created from such folders (zero unless the option is
+  // on). Included in `imported_workspace_count` of the source plan.
+  size_t folder_workspace_count = 0;
 
   bool operator==(const ArcImportStats&) const = default;
+};
+
+// Explicit, preview-bound mapping choices. Each combination yields its own
+// deterministic plan with domain-separated identities. The service binds the
+// options to the preview and to the transaction key, so a preview built for
+// one layout can never be committed as another.
+struct ArcImportPlanOptions {
+  // Every top-level folder of a space's pinned container becomes a workspace
+  // named after the folder; its content moves one level up in source order.
+  // Loose pinned tabs and all remaining space content (including unpinned
+  // tabs) stay in a workspace named after the space.
+  bool folders_as_workspaces = false;
+
+  bool operator==(const ArcImportPlanOptions&) const = default;
 };
 
 enum class ArcSplitOrientation {
@@ -147,6 +168,8 @@ struct ArcSplitDescriptor {
 // seam, not by discovery or parsing.
 struct ArcImportPlan {
   int schema_version = kArcImportPlanSchemaVersion;
+  // The layout this plan was built for; never changed after parsing.
+  ArcImportPlanOptions options;
   tab_tree::TabTreeSnapshot tree;
   std::vector<ArcSplitDescriptor> splits;
   // Parser-authored semantic markers make result accounting deterministic.

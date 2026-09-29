@@ -1,5 +1,7 @@
 # Sync architecture
 
+## Current binding target — 12 September 2026
+
 Ahoi sync is optional, local-first and disabled by default. The default path
 does not construct `CKContainer`, request an iCloud account, read a sync key or
 start network work. Enabling the profile/Companion preference creates transport
@@ -8,16 +10,34 @@ entitlements and an externally provisioned 32-byte payload key. Failure at any
 of those gates leaves SQLite/JSON persistence, workspaces, tabs and history
 usable locally.
 
-`config/sync-policy.json` is the normative allow/deny contract. Cookies,
+`config/sync-policy.json` remains the normative machine-readable runtime
+allow/deny contract and must be updated atomically with the new format maps
+before these target additions can activate. Cookies,
 passwords, autofill, HTTP-auth or header credentials, permissions, site data,
-cache, extension storage, Keychain secrets, split topology and incognito data
-never enter a sync record. The currently implemented record slice is devices,
-device sessions, workspaces, tree nodes/order, tombstones, normal device tabs,
-ordinary browser history and signed remote commands. Other allowlisted policy
-domains remain future work and must not be reported as transported until they
-have a concrete record adapter and tests.
+cache, unknown/raw extension storage, Keychain secrets, device-local runtime
+handles, window geometry, live focus, cookies/login/form state and incognito data
+never enter a sync record. The one active format-3 target additionally includes
+normal logical split groups/arrangements, shared automatic-archive policy and
+entries/restore state, saved-page Home URLs, typed link-routing preferences and
+configurable shortcut preferences. These additions extend format 3; they do not
+create another wire format or a second sync architecture. The original 13 entity
+classes are a baseline rather than a product-scope ceiling.
 
-## Wire v2
+The historical implementation notes below cover devices, sessions, workspaces,
+tree nodes, tabs and history. Current source/build/runtime status is recorded in
+`UNIFIED_SYNC_IMPLEMENTATION_CHECKPOINT.md`; the old slice is not a ceiling on
+already implemented work. At this documentation revision the new split,
+archive, Home URL, routing and shortcut maps/adapters are not implemented or
+runtime-accepted. `config/sync-format.json`, `config/sync-policy.json`, both
+language models/codecs, canonical fixtures and real consumers must agree before
+any capability is advertised or any transport claim is made.
+
+## Historical implementation note: wire v2
+
+The following describes the superseded source implementation and its useful
+merge invariants. It is not the current authoring target: format 3 is the only
+target writer, and this section does not authorize continued v2 output or a
+v2/v3 compatibility product.
 
 Chromium's `sync_serialization.cc` and the Companion's
 `DesktopWirePayloadCodec.swift` emit the same sorted JSON. UUIDs are lowercase,
@@ -45,7 +65,36 @@ Exact Mac/Swift golden tests pin the v2 remote-tab bytes and the command signing
 canonicalization. Device kinds map to Mac/iPhone/iPad explicitly; unknown kinds
 are not silently promoted.
 
-## Local store v3 and lifecycle
+## Format-3 extension contract
+
+The format-3 schema extends the existing baseline with the following typed
+state. Exact data-class IDs, field maps, bounds and canonical fixtures must be
+published atomically in the machine-readable contract before implementation is
+enabled:
+
+- a normal logical split group with stable split UUID, workspace UUID, two to
+  four ordered stable `TreeNode` IDs, canonical layout and normalized divider
+  ratios;
+- a shared archive entry with stable page identity, archive reason/time and the
+  normal split structure required for restore, plus per-workspace automatic-
+  archive policy values `12h`, `24h`, `7d`, `30d` or `never`;
+- a saved-page Home URL distinct from its current runtime/navigation URL; and
+- positively catalogued typed link-routing and shortcut preferences. Routing
+  host/path patterns are encrypted user payload, not queryable plaintext.
+
+The existing field-clock, atomic-group, tombstone, deletion-watermark, quarantine
+and fail-closed validation rules apply. Home URL and current URL never overwrite
+one another by implication. Split membership/order/layout/ratios and archive
+restore transitions merge deterministically through stable logical identities.
+Native tab/split IDs, `WebContents` handles, window coordinates, local active
+focus and live browsing/account/form state remain outside the schema.
+
+## Historical implementation note: local store v3 and lifecycle
+
+This describes the earlier implemented profile-store slice. The unified target's
+dedicated C++ sync-store schema is independently versioned as documented in ADR
+0009; neither storage schema number is the wire-format number. The transaction,
+quarantine, tombstone and retention invariants below remain requirements.
 
 The profile database is SQLite schema v3. Migration is transactional: existing
 v1/v2 rows remain readable and are upgraded lazily, while v3 adds quarantine and
@@ -92,6 +141,44 @@ IDs derive from the profile device plus Chromium visit ID. Only browsed
 excluded. Remote changes are inserted/deleted through the regular history
 service, with source/version guards preventing reflection loops and duplicates.
 
+A saved page owns a stable Home URL while its currently resident tab owns the
+live navigation URL. Ordinary navigation may update the existing current-URL metadata, but never
+Home implicitly. Existing local one-URL saved pages initialize Home from their
+existing value; this does not reopen legacy sync-store migration. Home follows
+the same URL validation,
+encryption, merge and export privacy rules as other saved-page structure.
+
+## Logical splits and automatic archive
+
+Normal split UUID, owning workspace, ordered stable TreeNode membership,
+canonical layout and normalized ratios synchronize to all opted-in Desktop
+installations. A local materializer resolves that logical state to native
+Chromium split IDs and tab handles. Mobile preserves recognized split metadata
+losslessly across read/edit/write roundtrips but is not required to present a
+Split View UI; opening or editing one member must not flatten the shared group.
+
+An incoming topology update may rearrange shared logical state but may not close
+a currently active local page, change its workspace website-session/account
+context, replace its `WebContents`, discard a form or navigate it without user
+action. A remotely removed member remains locally open as an ordinary tab when
+necessary. Missing device presence is not logical deletion. Desktop-pair
+acceptance covers simultaneous membership/order/layout/ratio changes, removal,
+offline convergence, restart and restore without focus stealing or eager loads.
+
+Automatic archive is configured per workspace as `12h`, `24h`, `7d`, `30d` or
+`never`. It archives eligible inactive normal work without deleting it. Active,
+saved, pinned, Keep Loaded, media-playing, capturing, downloading or unsaved-form
+tabs are excluded. Shared policy, archive entry, reason/time, retained normal
+split structure and restore state synchronize. A received archive transition
+does not force-close an active peer page; runtime presentation can remain local
+while domain state converges. Restore preserves stable page/split identity and
+recreates only local native handles.
+
+Link-routing and shortcut values enter sync only through their positive typed
+settings catalogue. Routing still selects the workspace/session context before
+the first request; sync never carries the resulting cookies, login, form or live
+navigation state.
+
 ## CloudKit transport
 
 The macOS and Companion providers use the private database and one custom zone.
@@ -99,6 +186,10 @@ URLs, titles, history, tab and tree payloads are sealed with AES-256-GCM before
 the envelope is written exclusively through `CKRecord.encryptedValues`.
 Queryable fields contain only conflict/routing metadata. The code does not
 invent a KDF, recovery phrase, fallback key or fake credential.
+
+Here `routing metadata` means minimal record transport/type/version routing. It
+does not authorize plaintext user link-routing hosts or paths; those are encrypted
+payload fields under the positive settings catalogue.
 
 `CKSyncEngine` opaque state is stored atomically. On Mobile, durable local
 mutations enqueue pending record changes and CKSyncEngine automatic transport

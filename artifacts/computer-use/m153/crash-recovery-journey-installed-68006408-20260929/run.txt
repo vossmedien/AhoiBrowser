@@ -1,0 +1,3 @@
+pid=36642 profile=/private/tmp/ahoi-crash-profile.SZSRVc
+pid=44060 profile=/private/tmp/ahoi-crash-profile.b26vU4
+pid=44554 profile=/private/tmp/ahoi-crash-profile.b26vU4

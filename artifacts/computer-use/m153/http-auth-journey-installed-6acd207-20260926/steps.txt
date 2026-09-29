@@ -1,0 +1,161 @@
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+-- command bar still open after Return
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+typed 5
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 12
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== save_first FAIL
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+typed 3
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 10
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== save_second PASS
+== store_two_accounts FAIL:http://127.0.0.1:8793/Ahoi Realm A|bob 
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+focus AXTextField | Nutzername | Nutzername | bob -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== choice_lists_both FAIL:bob 
+AXPress AXButton | Nutzername | Nutzername -> 0
+NOT FOUND
+== autocomplete_password FAIL
+AXPress AXButton | Anmelden | Anmelden -> 0
+== choose_account FAIL
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== realm_separation PASS
+NOT FOUND
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== port_separation PASS
+NOT FOUND
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+AXPress AXButton | Nutzername | Nutzername -> 0
+NOT FOUND
+AXPress AXButton | Anmelden | Anmelden -> 0
+-- dialog timeout; windows and page:
+  AXWindow | auth:bob@Ahoi Realm A:8793 - Chromium
+auth:bob@Ahoi Realm A:8793
+== rejected_reprompt FAIL
+== rejected_keeps_account FAIL
+NOT FOUND
+hidkey 0
+typed 5
+NOT FOUND
+hidkey 0
+typed 12
+NOT FOUND
+NOT FOUND
+== password_update_signin FAIL
+== update_no_duplicate FAIL:http://127.0.0.1:8793/Ahoi Realm A|bob 
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+AXPress AXButton | Abbrechen | Abbrechen -> 0
+== sign_out_without_restart PASS
+after switch+cancel: Ahoi auth required
+== same_browser_process PASS
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+== own_sessions_signin FAIL:workspace-not-created
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- dialog timeout; windows and page:
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+== forget_realm FAIL:http://127.0.0.1:8793/Ahoi Realm A|bob 
+== no_secret_in_logs PASS
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 12 cmd

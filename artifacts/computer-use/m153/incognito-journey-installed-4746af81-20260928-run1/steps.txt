@@ -1,0 +1,28 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 33
+hidkey 36
+normalCookieSet -> true
+hidkey 45
+frontmost -> 0
+hidkey 17
+typed 30
+hidkey 36
+incognito cookies: inc=secret
+incognitoIsolatedFromNormal -> true
+notInTree -> true
+nothingOnDiskAfterCrash -> true
+frontmost -> 0
+incognitoNotRestored -> true
+normalSessionOffered -> false
+noIncognitoWindowBack -> true
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+normal cookies after: 
+normalSessionUntouched -> false
+hidkey 12
+nothingOnDiskFinal -> true
+historyOnlyNormal -> true

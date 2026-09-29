@@ -158,6 +158,9 @@ class BrowserSidebarHostView final
   bool RevealFolder(const base::Uuid& folder_id);
   bool MoveSelectionToWorkspace(const base::Uuid& workspace_id, bool dry_run);
   bool MoveSelectionAcrossLevels(const base::Uuid& workspace_id, bool dry_run);
+  // Command bar "Zusammenführen mit …": the Workspace menu's merge dialog for
+  // the shown Workspace into `target_id`, shown after the command bar closed.
+  bool ShowWorkspaceMergeDialog(const base::Uuid& target_id, bool dry_run);
 
   bool SetSidebarPresentationMode(SidebarPresentationMode mode);
   bool ToggleFloatingSidebar();
@@ -602,6 +605,10 @@ class BrowserSidebarHostView final
   // ADR 0012 (handoff 080), browser_sidebar_host_workspace_merge.cc.
   void AddWorkspaceMergeChoice(views::View* contents);
   bool AcceptWorkspaceMerge();
+  // The deferred half of ShowWorkspaceMergeDialog; checks again that the
+  // window still shows `source_id` and both Workspaces still exist.
+  void OpenWorkspaceMergeDialog(const base::Uuid& source_id,
+                                const base::Uuid& target_id);
   bool AcceptWorkspaceDialog();
   std::string NextProcessWideWorkspaceSortKey() const;
 

@@ -1,0 +1,86 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+Target is closing
+hidkey 48
+after ctrlTabControl (48 ctrl): alpha
+ctrlTabControl -> true
+hidkey 20
+after cmdThree (20 cmd): gamma
+cmdThree -> true
+hidkey 18
+after cmdOne (18 cmd): gamma
+cmdOne -> false
+hidkey 19
+after cmdTwo (19 cmd): beta
+cmdTwo -> true
+hidkey 25
+after cmdNine (25 cmd): gamma
+cmdNine -> true
+hidkey 18
+after cmdOneAgain (18 cmd): gamma
+cmdOneAgain -> false
+hidkey 48
+after ctrlTabBack (48 ctrl): alpha
+ctrlTabBack -> true
+hidkey 19
+after cmdTwoAgain (19 cmd): beta
+cmdTwoAgain -> true
+hidkey 83
+after cmdKeypadOne (83 cmd): beta
+cmdKeypadOne -> false
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Zwei -> 0 now=Zwei
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Zwei -> true
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+typed 32
+info: typed text missing, retyping
+hidkey 0
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 34
+info: typed text missing, retyping
+hidkey 0
+typed 34
+info: typed text missing, retyping
+hidkey 0
+typed 34
+hidkey 36
+hidkey 83
+after zweiKeypadOneFromEpsilon (83 cmd): epsilon
+zweiKeypadOneFromEpsilon -> false
+hidkey 48
+after zweiCtrlTabToDelta (48 ctrl): delta
+zweiCtrlTabToDelta -> true
+hidkey 19
+after zweiCmdTwoFromDelta (19 cmd): epsilon
+zweiCmdTwoFromDelta -> true
+hidkey 48
+after zweiCtrlTabBack (48 ctrl): delta
+zweiCtrlTabBack -> true
+hidkey 25
+after zweiCmdNineFromDelta (25 cmd): epsilon
+zweiCmdNineFromDelta -> true
+hidkey 12

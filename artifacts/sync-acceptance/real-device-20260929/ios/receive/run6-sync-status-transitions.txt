@@ -1,0 +1,15 @@
+2026-09-29T11:29:30Z receive-1: tap settings.sync.now
+2026-09-29T11:29:31Z receive-1: state=Bereit | encryption=Verschlüsselung bereit | detail=Synchronisiert | footer=<none>
+2026-09-29T11:29:35Z receive-1: synced=true
+2026-09-29T11:31:13Z receive-1: search typed ahoi-sync-mac-20260929T112130Z
+2026-09-29T11:31:16Z receive-1: results=1 exact-url-in=["browser.library.search-result.history.f17bab9f-e478-444a-4a17-b7508f973c39"] remoteTab=false
+2026-09-29T11:31:55Z receive-2: tap settings.sync.now
+2026-09-29T11:31:57Z receive-2: state=Bereit | encryption=Verschlüsselung bereit | detail=Synchronisiert | footer=<none>
+2026-09-29T11:32:01Z receive-2: synced=true
+2026-09-29T11:33:45Z receive-2: search typed ahoi-sync-mac-20260929T112130Z
+2026-09-29T11:33:48Z receive-2: results=1 exact-url-in=["browser.library.search-result.history.f17bab9f-e478-444a-4a17-b7508f973c39"] remoteTab=false
+2026-09-29T11:34:27Z receive-3: tap settings.sync.now
+2026-09-29T11:34:28Z receive-3: state=Bereit | encryption=Verschlüsselung bereit | detail=Synchronisiert | footer=<none>
+2026-09-29T11:34:32Z receive-3: synced=true
+2026-09-29T11:36:15Z receive-3: search typed ahoi-sync-mac-20260929T112130Z
+2026-09-29T11:36:18Z receive-3: results=1 exact-url-in=["browser.library.search-result.history.f17bab9f-e478-444a-4a17-b7508f973c39"] remoteTab=false

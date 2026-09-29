@@ -48,8 +48,12 @@ constexpr auto kProductDisabledFeatures = std::to_array<std::string_view>({
 // feature. Keep it enabled at the same early boundary as the deny-list above;
 // otherwise the toolbar can expose split actions while the underlying tab
 // model still runs with the upstream default-disabled feature state.
+// UseSCContentSharingPicker lets getDisplayMedia() use the macOS system
+// picker, which needs no Screen Recording permission on macOS 15+ (Crest
+// b76bdf46); the feature only exists on macOS and is inert elsewhere.
 constexpr auto kProductEnabledFeatures = std::to_array<std::string_view>({
     "SplitViewHorizontal",
+    "UseSCContentSharingPicker",
 });
 
 std::string_view FeatureName(std::string_view entry) {

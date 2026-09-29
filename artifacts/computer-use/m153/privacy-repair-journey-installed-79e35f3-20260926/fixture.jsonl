@@ -1,0 +1,4 @@
+{"host": "127.0.0.1:8808", "path": "/top", "query": "", "gpc": "1", "referer": null, "cookie": false}
+{"host": "localhost:8808", "path": "/pixel", "query": "from=top", "gpc": "1", "referer": "http://127.0.0.1:8808/", "cookie": false}
+{"host": "localhost:8808", "path": "/frame", "query": "", "gpc": "1", "referer": "http://127.0.0.1:8808/", "cookie": false}
+{"host": "127.0.0.1:8808", "path": "/favicon.ico", "query": "", "gpc": "1", "referer": "http://127.0.0.1:8808/top", "cookie": false}

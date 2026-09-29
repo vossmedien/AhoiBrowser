@@ -48,6 +48,8 @@ struct ArcImportPreview {
   size_t conflicting_workspace_count = 0;
   bool already_imported = false;
   bool arc_is_running = false;
+  // The layout this preview (and its pending plan) was built for.
+  bool folders_as_workspaces = false;
 };
 
 // Explicit user choices carried from the mutation-free preview to Commit().
@@ -58,6 +60,8 @@ struct ArcImportPreview {
 struct ArcImportSelection {
   bool import_sidebar = true;
   bool reconstruct_splits = true;
+  // Must equal the previewed layout; a mismatch is a stale preview.
+  bool folders_as_workspaces = false;
   bool backup_confirmed = false;
   bool commit_confirmed = false;
   std::vector<std::string> selected_browser_profiles;
@@ -90,7 +94,8 @@ class ArcImportService : public KeyedService {
 
   void Shutdown() override;
 
-  void DiscoverAndPreview(ArcImportPreviewCallback callback);
+  void DiscoverAndPreview(ArcImportPlanOptions options,
+                          ArcImportPreviewCallback callback);
   // Explicit user recovery only. Rolls back unchanged import-owned rows while
   // preserving independent baseline edits and temporary pages. Live/durable
   // tabs must reference no affected node or removed workspace. Refused
@@ -110,7 +115,8 @@ class ArcImportService : public KeyedService {
   struct CommitContext;
   struct ManualRecoveryContext;
 
-  static DiscoveryResult DiscoverImport(const base::FilePath& profile_path);
+  static DiscoveryResult DiscoverImport(const base::FilePath& profile_path,
+                                        ArcImportPlanOptions options);
   bool HasAffectedLiveTabs(
       const ArcImportPreparedState& prepared,
       const std::vector<base::Uuid>& removed_workspaces = {}) const;

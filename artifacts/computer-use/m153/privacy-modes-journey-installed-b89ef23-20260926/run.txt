@@ -1,0 +1,22 @@
+default: pid=80333 profile=/private/tmp/ahoi-privacy-profile.nQ06AV seeded=none
+default third_party_cookie_in_frame=
+default https_frame_cookies=
+default gpc_on_top=
+default pixel_referer=http://127.0.0.1:8808/top
+default pixel_gpc=
+default landing_query=utm_source=ahoi&keep=1
+default whoami=whoami session=fp
+default topics=rejected:NotSupportedError fledge=joined gpc_js=undefined
+default prefs={"mode":"[object Object]","sb":"[object Object]","enhanced":"[object Object]","topics":"[object Object]","fledge":"[object Object]","measurement":"[object Object]"}
+default api_key_infobar=absent
+strict: pid=80915 profile=/private/tmp/ahoi-privacy-profile.QE4ZI0 seeded=strict
+strict third_party_cookie_in_frame=
+strict https_frame_cookies=
+strict gpc_on_top=1
+strict pixel_referer=http://127.0.0.1:8808/
+strict pixel_gpc=1
+strict landing_query=keep=1
+strict whoami=whoami session=fp
+strict topics=rejected:NotSupportedError fledge=joined gpc_js=undefined
+strict prefs={"mode":"[object Object]","sb":"[object Object]","enhanced":"[object Object]","topics":"[object Object]","fledge":"[object Object]","measurement":"[object Object]"}
+strict api_key_infobar=absent

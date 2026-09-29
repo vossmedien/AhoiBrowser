@@ -1,0 +1,4 @@
+{
+ "setupFailed": "command bar did not open for http://127.0.0.1:8813/alpha.html",
+ "pass": false
+}

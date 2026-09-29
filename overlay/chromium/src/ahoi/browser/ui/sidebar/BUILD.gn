@@ -298,6 +298,7 @@ source_set("browser_sidebar") {
     "//ahoi/browser/session:isolated_profiles",
     "//ahoi/browser/session:session_preferences",
     "//ahoi/browser/sync:profile_sync_preferences",
+    "//ahoi/browser/ui:dialog_style",
     "//ahoi/browser/ui:modal_overlay",
     "//ahoi/browser/ui:visual_style",
     "//ahoi/browser/ui/appearance",

@@ -24,10 +24,16 @@
 #include "base/strings/string_util.h"
 #include "base/synchronization/lock.h"
 #include "base/task/sequenced_task_runner.h"
+#include "base/time/time.h"
 #include "crypto/sha2.h"
 
 namespace ahoi::sync {
 namespace {
+
+// cloudd can leave a request unanswered (29 Sep 2026: the Mac stayed in
+// "Sync-Verbindung wird eingerichtet" for over 15 minutes). A bounded
+// setup turns that into a visible, retryable interruption.
+constexpr base::TimeDelta kKeySetupTimeout = base::Minutes(2);
 NSString* const kClaimType = @"AhoiKeyBootstrapClaim";
 NSString* const kClaimName = @"payload-key-bootstrap-v1";
 
@@ -197,6 +203,16 @@ class CloudKitSyncKeyBootstrapMac::Core
 
  private:
   void Begin() {
+    const std::weak_ptr<Core> watchdog = weak_from_this();
+    runner_->PostDelayedTask(FROM_HERE,
+                             base::BindOnce(
+                                 [](std::weak_ptr<Core> weak) {
+                                   if (auto core = weak.lock()) {
+                                     core->OnTimeout();
+                                   }
+                                 },
+                                 watchdog),
+                             kKeySetupTimeout);
     if (!authorization_.Run()) {
       Finish("key_setup_cancelled");
       return;
@@ -345,6 +361,8 @@ class CloudKitSyncKeyBootstrapMac::Core
                            },
                            weak, scan, error));
     };
+    // Key setup blocks the visible sync state; never leave it discretionary.
+    operation.qualityOfService = NSQualityOfServiceUserInitiated;
     operation_ = operation;
     [container_.privateCloudDatabase addOperation:operation];
   }
@@ -438,6 +456,8 @@ class CloudKitSyncKeyBootstrapMac::Core
                   },
                   weak, saved.count == 1, error));
         };
+    // Key setup blocks the visible sync state; never leave it discretionary.
+    operation.qualityOfService = NSQualityOfServiceUserInitiated;
     operation_ = operation;
     [container_.privateCloudDatabase addOperation:operation];
   }
@@ -473,6 +493,8 @@ class CloudKitSyncKeyBootstrapMac::Core
                                },
                                weak, saved, error));
         };
+    // Key setup blocks the visible sync state; never leave it discretionary.
+    operation.qualityOfService = NSQualityOfServiceUserInitiated;
     operation_ = operation;
     [container_.privateCloudDatabase addOperation:operation];
   }
@@ -587,6 +609,12 @@ class CloudKitSyncKeyBootstrapMac::Core
                   .cryptor = std::move(cryptor),
                   .key_sha256 = claim_->key_sha256,
                   .authorization = authorization_});
+  }
+
+  void OnTimeout() {
+    if (pending_ && !waiting_ && !terminal_failure_) {
+      Finish("key_setup_timed_out");
+    }
   }
 
   void Finish(std::string issue, bool keep_waiting = false) {

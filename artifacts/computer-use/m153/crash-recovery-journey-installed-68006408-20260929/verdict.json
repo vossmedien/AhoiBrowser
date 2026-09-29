@@ -1,0 +1,14 @@
+{
+ "otherTabIntact": true,
+ "crashedRendererGone": true,
+ "browserSurvivesRendererCrash": true,
+ "crashedTabReloads": true,
+ "gpuProcessReplaced": true,
+ "uiSurvivesGpuCrash": true,
+ "noIncognitoWindowBack": true,
+ "restoreOffered": true,
+ "normalSessionRestored": true,
+ "noDuplicatesAfterRestore": true,
+ "incognitoNotRestored": true,
+ "pass": true
+}

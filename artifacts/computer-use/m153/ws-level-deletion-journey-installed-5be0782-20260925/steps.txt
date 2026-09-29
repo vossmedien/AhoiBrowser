@@ -1,0 +1,76 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Kunde -> true
+levelChoiceShown -> true
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+cookie login.html: acct=kunde
+loginInOwnWorkspace -> true
+key 53
+AXShowMenu AXButton | Kunde, Workspace wechseln | Kunde, Workspace wechseln -> -25204
+hidkey 53
+menuNamesLevel -> true
+key 53
+AXShowMenu AXButton | Kunde, Workspace wechseln | Kunde, Workspace wechseln -> -25204
+AXPress AXButton | Inbox | Inbox -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+cookie check.html: 
+sharedWorkspaceNotLoggedIn -> true
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Kunde – Eigene Website-Sitzungen | itemSelected: -> 0
+frontmost -> 0
+hidkey 17
+typed 33
+hidkey 36
+key 53
+AXShowMenu AXButton | Kunde, Workspace wechseln | Kunde, Workspace wechseln -> -25204
+AXPress AXMenuItem | Workspace löschen… | itemSelected: -> 0
+AXPress AXButton | Löschen | Löschen -> 0
+AXPress AXButton | Abbrechen | action-button-2 -> 0
+vetoPromptShown -> true
+vetoKeepsWorkspace -> true
+key 53
+AXShowMenu AXButton | Kunde, Workspace wechseln | Kunde, Workspace wechseln -> -25204
+AXPress AXMenuItem | Workspace löschen… | itemSelected: -> 0
+AXPress AXButton | Löschen | Löschen -> 0
+AXPress AXButton | Verlassen | action-button-1 -> 0
+ownPagesClosed -> true
+workspaceRemoved -> false
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 12 cmd

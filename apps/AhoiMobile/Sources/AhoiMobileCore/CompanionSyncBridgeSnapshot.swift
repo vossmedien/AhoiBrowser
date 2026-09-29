@@ -17,6 +17,12 @@ extension CompanionSyncBridge {
         }
         var records: [SyncRecord] = []
         var developerAssetIDs = Set<UUID>()
+        // Desktop-equivalent writer gate: while closed, this device's own
+        // shared-tab Presences and the Pages they carry stay local-only.
+        let localDevice = repository.localDeviceID
+        let withholdSharedTabs = !sharedTabWriteAllowed
+        let localPresencePages = Set(snapshot.remoteTabs.lazy
+            .filter { $0.deviceID == localDevice }.compactMap(\.treeNodeID))
 
         func appendIfRequired(
             id: UUID,
@@ -55,6 +61,15 @@ extension CompanionSyncBridge {
                 tombstone: device.tombstone
             ) { try wireCodec.encode(device) }
         }
+        for value in snapshot.deviceCapabilities where value.deviceID == localDevice {
+            // Control metadata, never gated: peers need it to open their gate.
+            try appendIfRequired(
+                id: value.id,
+                dataClass: .deviceCapability,
+                version: value.version,
+                tombstone: value.tombstone
+            ) { try wireCodec.encode(value) }
+        }
         for workspace in snapshot.workspaces {
             try appendIfRequired(
                 id: workspace.id.rawValue,
@@ -74,6 +89,11 @@ extension CompanionSyncBridge {
             }
         }
         for node in snapshot.treeNodes {
+            if withholdSharedTabs, node.version.modifiedBy == localDevice,
+               localPresencePages.contains(node.id) {
+                sharedTabOutboundWithheld = true
+                continue
+            }
             try appendIfRequired(
                 id: node.id.rawValue,
                 dataClass: .treeNode,
@@ -99,6 +119,10 @@ extension CompanionSyncBridge {
             ) { try wireCodec.encode(session) }
         }
         for tab in snapshot.remoteTabs where tab.context == .normal {
+            if withholdSharedTabs, tab.deviceID == localDevice {
+                sharedTabOutboundWithheld = true
+                continue
+            }
             try appendIfRequired(
                 id: tab.id.rawValue,
                 dataClass: .deviceTab,

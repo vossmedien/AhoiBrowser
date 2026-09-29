@@ -1,0 +1,5 @@
+127.0.0.1 - - [29/Sep/2026 06:59:15] "GET /idle.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 06:59:15] code 404, message File not found
+127.0.0.1 - - [29/Sep/2026 06:59:15] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Sep/2026 06:59:25] "GET /form.html HTTP/1.1" 200 -
+127.0.0.1 - - [29/Sep/2026 06:59:36] "GET /active.html HTTP/1.1" 200 -

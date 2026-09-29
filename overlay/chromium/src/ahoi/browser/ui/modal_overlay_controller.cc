@@ -224,6 +224,33 @@ bool ModalOverlayController::IsShowingAnyPanel() const {
   return panel_widget_ && state_ != State::kIdle;
 }
 
+void ModalOverlayController::RunWhenIdle(base::OnceClosure callback) {
+  if (callback.is_null()) {
+    return;
+  }
+  idle_callbacks_.push_back(std::move(callback));
+  if (!IsShowingAnyPanel()) {
+    ScheduleIdleCallbacks();
+  }
+}
+
+void ModalOverlayController::ScheduleIdleCallbacks() {
+  // Posted, so a callback never runs inside a Widget close or an animation
+  // callback of the panel that just went away.
+  base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+      FROM_HERE, base::BindOnce(&ModalOverlayController::RunIdleCallbacks,
+                                weak_ptr_factory_.GetWeakPtr()));
+}
+
+void ModalOverlayController::RunIdleCallbacks() {
+  // A panel opened meanwhile: its ResetActivePanel() schedules the rest.
+  while (!idle_callbacks_.empty() && !IsShowingAnyPanel()) {
+    base::OnceClosure callback = std::move(idle_callbacks_.front());
+    idle_callbacks_.erase(idle_callbacks_.begin());
+    std::move(callback).Run();
+  }
+}
+
 views::View* ModalOverlayController::scrim_view_for_testing() const {
   return const_cast<views::View*>(scrim_tracker_.view());
 }
@@ -306,6 +333,9 @@ void ModalOverlayController::ResetActivePanel(bool restore_focus) {
 
   if (!restore_focus) {
     previously_focused_view_tracker_.SetView(nullptr);
+  }
+  if (!idle_callbacks_.empty()) {
+    ScheduleIdleCallbacks();
   }
 }
 

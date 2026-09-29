@@ -1,0 +1,137 @@
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+typed 5
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 12
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== save_first PASS
+frontmost -> 0
+hidkey refused: target not frontmost
+hidkey 17
+typed 4
+hidkey 125
+hidkey 125
+hidkey 36
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+== save_second FAIL
+== store_two_accounts FAIL:http://127.0.0.1:8793/Ahoi Realm A|alice 
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+== choice_lists_both FAIL:no-dialog
+NOT FOUND
+NOT FOUND
+== autocomplete_password FAIL
+NOT FOUND
+== choose_account PASS
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+== realm_b_prompt FAIL
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+== realm_separation FAIL:no-dialog
+NOT FOUND
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+== port_separation FAIL:no-dialog
+NOT FOUND
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+NOT FOUND
+NOT FOUND
+NOT FOUND
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+== rejected_reprompt FAIL
+== rejected_keeps_account PASS
+NOT FOUND
+hidkey 0
+typed 5
+NOT FOUND
+hidkey 0
+typed 12
+NOT FOUND
+NOT FOUND
+== password_update_signin PASS
+== update_no_duplicate FAIL:http://127.0.0.1:8793/Ahoi Realm A|alice 
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+== sign_out_without_restart FAIL:auth:alice@Ahoi Realm A:8793
+== same_browser_process PASS
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+-- dialog timeout; windows and page:
+  AXWindow | auth:alice@Ahoi Realm A:8793 - Chromium
+auth:alice@Ahoi Realm A:8793
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+frontmost -> 0
+hidkey 17
+== forget_realm FAIL:http://127.0.0.1:8793/Ahoi Realm A|alice 
+== no_secret_in_logs PASS
+hidkey 12

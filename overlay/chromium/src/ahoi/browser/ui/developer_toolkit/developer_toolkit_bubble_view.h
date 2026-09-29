@@ -10,6 +10,7 @@
 
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_types.h"
+#include "ahoi/browser/ui/appearance/native_panel_material.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -104,6 +105,8 @@ class DeveloperToolkitBubbleView final : public views::View {
   raw_ptr<views::Checkbox> cache_visibility_ = nullptr;
   raw_ptr<views::Checkbox> toolkit_visibility_ = nullptr;
   DeveloperActivationState activation_state_;
+  appearance::NativePanelMaterial panel_material_{
+      appearance::SurfaceRole::kDeveloperTools};
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>
       appearance_signal_source_;
   base::WeakPtrFactory<DeveloperToolkitBubbleView> weak_ptr_factory_{this};

@@ -29,6 +29,11 @@ std::string ComputeArcImportSelectionFingerprint(
   canonical += selection.import_sidebar ? "1" : "0";
   canonical += "\nsplits=";
   canonical += selection.reconstruct_splits ? "1" : "0";
+  // Appended only for the non-default layout, so keys of journals written
+  // before this option existed stay valid for the unchanged default layout.
+  if (selection.folders_as_workspaces) {
+    canonical += "\nfolders_as_workspaces=1";
+  }
   canonical += "\nconflict=";
   canonical +=
       base::NumberToString(static_cast<int>(selection.conflict_resolution));

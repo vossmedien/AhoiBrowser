@@ -1,0 +1,18 @@
+{
+ "schemaVersion": 1,
+ "environment": "Development",
+ "containerIdentifier": "iCloud.app.ahoibrowser.AhoiBrowser",
+ "zoneName": "AhoiSyncAcceptance-23855a90-ee61-499e-abed-bfdc52a881d7",
+ "subscriptionIdentifier": "AhoiSyncAcceptanceSubscription-23855a90-ee61-499e-abed-bfdc52a881d7",
+ "syncKeychainService": "app.ahoibrowser.sync.payload-key",
+ "syncKeychainAccount": "payload-key.acceptance-23855a90-ee61-499e-abed-bfdc52a881d7",
+ "syncKeychainAccessGroup": "248AJ5BN47.app.ahoibrowser.sync",
+ "syncKeyVersion": "1",
+ "constraints": {
+  "freshLocalStoresRequired": true,
+  "existingKeysOrRecordsMayBeDeleted": false,
+  "manualKeyCopyAllowed": false,
+  "productionAllowed": false
+ },
+ "scopeID": "23855a90-ee61-499e-abed-bfdc52a881d7"
+}

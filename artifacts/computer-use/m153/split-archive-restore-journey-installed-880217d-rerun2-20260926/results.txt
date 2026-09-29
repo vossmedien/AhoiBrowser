@@ -1,0 +1,3 @@
+split_created PASS
+split_archived PASS
+archive_lists_split FAIL

@@ -32,6 +32,10 @@ inline constexpr char kShortcutCommandPrefix[] = "shortcut.";
 // Command-bar ids of "In Workspace verschieben" (ADR 0012 section 2): the
 // prefix plus the target Workspace's lowercase UUID.
 inline constexpr char kMoveToWorkspaceCommandPrefix[] = "move-to-workspace.";
+// Command-bar ids of "Zusammenführen mit …" (ADR 0012 section 1): the prefix
+// plus the target Workspace's lowercase UUID. The source is the window's
+// shown Workspace at execution time.
+inline constexpr char kMergeWorkspaceCommandPrefix[] = "merge-workspace.";
 
 struct MoveToWorkspaceTarget {
   base::Uuid id;
@@ -48,6 +52,15 @@ std::vector<CommandItem> BuildMoveToWorkspaceCommands(
     bool german);
 // The target Workspace id of a move command's stable id, if it is one.
 std::optional<std::string_view> GetMoveToWorkspaceTarget(
+    std::string_view stable_id);
+
+// One browser-command item per merge target, findable by the command's words
+// in both languages and by the Workspace's name.
+std::vector<CommandItem> BuildMergeWorkspaceCommands(
+    const std::vector<MoveToWorkspaceTarget>& targets,
+    bool german);
+// The target Workspace id of a merge command's stable id, if it is one.
+std::optional<std::string_view> GetMergeWorkspaceTarget(
     std::string_view stable_id);
 
 // Converts only the deliberately small, reviewed command-bar allowlist into

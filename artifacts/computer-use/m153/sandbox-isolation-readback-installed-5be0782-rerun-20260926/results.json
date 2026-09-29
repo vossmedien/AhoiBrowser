@@ -1,0 +1,9 @@
+{
+ "results": {
+  "no_sandbox_opt_out": "PASS",
+  "children_sandboxed": "PASS",
+  "site_per_process": "FAIL",
+  "cross_site_separate_processes": "NOT_MEASURED"
+ },
+ "pass": false
+}

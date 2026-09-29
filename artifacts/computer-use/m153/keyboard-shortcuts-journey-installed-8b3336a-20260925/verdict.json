@@ -1,0 +1,16 @@
+{
+ "mruToPrevious": false,
+ "mruTogglesBack": true,
+ "cyclingIsSeparate": true,
+ "mruAfterCycling": false,
+ "dialogClosed_Zwei": true,
+ "mruStaysInWorkspace": true,
+ "editorShowsDefault": true,
+ "editorRebinds": true,
+ "conflictNamesHolder": false,
+ "conflictNotOverwritten": false,
+ "oldKeyReleased": false,
+ "newKeyWorks": false,
+ "setupFailed": "did not load chrome://settings/ahoi",
+ "pass": false
+}

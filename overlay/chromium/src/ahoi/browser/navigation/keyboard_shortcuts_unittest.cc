@@ -4,6 +4,7 @@
 #include "ahoi/browser/navigation/keyboard_shortcuts.h"
 
 #include <set>
+#include <vector>
 
 #include "base/functional/bind.h"
 #include "base/values.h"
@@ -96,8 +97,8 @@ TEST_F(KeyboardShortcutsTest, ConflictsAreReportedAndNeverOverwritten) {
           base::BindRepeating(is_key, Key(ui::VKEY_E, kCmd | kShift)),
   };
   Conflict conflict;
-  EXPECT_FALSE(SetBinding(&prefs_, kNextWorkspace, Key(ui::VKEY_L, kCmd | kCtrl),
-                          sources, &conflict));
+  EXPECT_FALSE(SetBinding(&prefs_, kNextWorkspace,
+                          Key(ui::VKEY_L, kCmd | kCtrl), sources, &conflict));
   EXPECT_EQ((Conflict{.kind = ConflictKind::kOtherCommand,
                       .other_command_id = kSplitCycleLayout}),
             conflict);
@@ -120,8 +121,8 @@ TEST_F(KeyboardShortcutsTest, ConflictsAreReportedAndNeverOverwritten) {
   EXPECT_FALSE(SetBinding(&prefs_, kNextWorkspace, Key(ui::VKEY_K, ui::EF_NONE),
                           sources, &conflict));
   EXPECT_EQ(ConflictKind::kInvalid, conflict.kind);
-  EXPECT_FALSE(SetBinding(&prefs_, kQuickWindow, Key(ui::VKEY_K, kCmd | kAlt),
-                          sources, &conflict));
+  EXPECT_FALSE(SetBinding(&prefs_, "unknown.command",
+                          Key(ui::VKEY_K, kCmd | kAlt), sources, &conflict));
   EXPECT_EQ(ConflictKind::kNotRebindable, conflict.kind);
   // Nothing was written by the refused attempts.
   EXPECT_TRUE(prefs_.GetDict(kShortcutBindingsPref).empty());
@@ -153,11 +154,113 @@ TEST_F(KeyboardShortcutsTest, SerializationRoundTripsAndRejectsDamage) {
 
   base::DictValue stored;
   stored.Set(kNextWorkspace, base::ListValue().Append("garbage"));
-  stored.Set(kQuickWindow, base::ListValue().Append("cmd+75"));
   stored.Set("unknown.command", base::ListValue().Append("cmd+75"));
   prefs_.SetDict(kShortcutBindingsPref, std::move(stored));
-  // Damaged, fixed and unknown entries fall back to the defaults.
+  // Damaged and unknown entries fall back to the defaults.
   EXPECT_TRUE(ReadOverrides(prefs_).empty());
+}
+
+TEST_F(KeyboardShortcutsTest, FormerlyFixedCommandsKeepTheirDefaults) {
+  const struct {
+    const char* id;
+    ui::Accelerator key;
+  } kDefaults[] = {
+      {kCommandBar, Key(ui::VKEY_L, kCmd)},
+      {kCommandBarNewTab, Key(ui::VKEY_T, kCmd)},
+      {kQuickWindow, Key(ui::VKEY_SPACE, kAlt)},
+      {kSaveTab, Key(ui::VKEY_D, kCmd)},
+      {kSidebarUndo, Key(ui::VKEY_Z, kCmd)},
+  };
+  for (const auto& entry : kDefaults) {
+    const ShortcutCommand* command = FindCommand(entry.id);
+    ASSERT_TRUE(command) << entry.id;
+    EXPECT_TRUE(command->rebindable) << entry.id;
+    EXPECT_EQ(std::vector<ui::Accelerator>{entry.key}, command->defaults)
+        << entry.id;
+    EXPECT_EQ(entry.id, CommandForAccelerator({}, entry.key));
+  }
+  // The command bar lists Quick Window, Undo and Save with their keys, but
+  // not itself.
+  EXPECT_TRUE(ShownInCommandBar(*FindCommand(kQuickWindow)));
+  EXPECT_TRUE(ShownInCommandBar(*FindCommand(kSidebarUndo)));
+  EXPECT_TRUE(ShownInCommandBar(*FindCommand(kSaveTab)));
+  EXPECT_FALSE(ShownInCommandBar(*FindCommand(kCommandBar)));
+  EXPECT_FALSE(ShownInCommandBar(*FindCommand(kCommandBarNewTab)));
+  // The sidebar's ⇧⌘S is not Save; Save stays on ⌘D.
+  EXPECT_EQ(kToggleSidebarFloating,
+            CommandForAccelerator({}, Key(ui::VKEY_S, kCmd | kShift)));
+}
+
+TEST_F(KeyboardShortcutsTest, FormerlyFixedCommandsRebindAndResetPerEntry) {
+  const ui::Accelerator quick = Key(ui::VKEY_SPACE, kCtrl | kAlt | kShift);
+  const ui::Accelerator undo = Key(ui::VKEY_Z, kCmd | kCtrl);
+  const ui::Accelerator bar = Key(ui::VKEY_K, kCmd);
+  const ui::Accelerator save = Key(ui::VKEY_S, kCmd | kAlt);
+  Conflict conflict;
+  ASSERT_TRUE(
+      SetBinding(&prefs_, kQuickWindow, quick, NoSources(), &conflict));
+  ASSERT_TRUE(SetBinding(&prefs_, kSidebarUndo, undo, NoSources(), &conflict));
+  ASSERT_TRUE(SetBinding(&prefs_, kCommandBar, bar, NoSources(), &conflict));
+  ASSERT_TRUE(SetBinding(&prefs_, kSaveTab, save, NoSources(), &conflict));
+  Overrides overrides = ReadOverrides(prefs_);
+  EXPECT_EQ(kQuickWindow, CommandForAccelerator(overrides, quick));
+  EXPECT_EQ(kSidebarUndo, CommandForAccelerator(overrides, undo));
+  EXPECT_EQ(kCommandBar, CommandForAccelerator(overrides, bar));
+  EXPECT_EQ(kSaveTab, CommandForAccelerator(overrides, save));
+  // The old keys are free again; ⌘T still opens the command bar for a new
+  // tab because that entry was not changed.
+  EXPECT_FALSE(CommandForAccelerator(overrides, Key(ui::VKEY_L, kCmd)));
+  EXPECT_FALSE(CommandForAccelerator(overrides, Key(ui::VKEY_D, kCmd)));
+  EXPECT_FALSE(CommandForAccelerator(overrides, Key(ui::VKEY_Z, kCmd)));
+  EXPECT_FALSE(CommandForAccelerator(overrides, Key(ui::VKEY_SPACE, kAlt)));
+  EXPECT_EQ(kCommandBarNewTab,
+            CommandForAccelerator(overrides, Key(ui::VKEY_T, kCmd)));
+
+  // Taking another entry's key is refused and names that entry.
+  EXPECT_FALSE(SetBinding(&prefs_, kSaveTab, Key(ui::VKEY_T, kCmd),
+                          NoSources(), &conflict));
+  EXPECT_EQ((Conflict{.kind = ConflictKind::kOtherCommand,
+                      .other_command_id = kCommandBarNewTab}),
+            conflict);
+  EXPECT_FALSE(
+      SetBinding(&prefs_, kNextWorkspace, quick, NoSources(), &conflict));
+  EXPECT_EQ(kQuickWindow, conflict.other_command_id);
+
+  // Reset is per entry: only Quick Window goes back to ⌥Space.
+  ASSERT_TRUE(ResetToDefault(&prefs_, kQuickWindow));
+  overrides = ReadOverrides(prefs_);
+  EXPECT_EQ(kQuickWindow,
+            CommandForAccelerator(overrides, Key(ui::VKEY_SPACE, kAlt)));
+  EXPECT_EQ(kSidebarUndo, CommandForAccelerator(overrides, undo));
+  EXPECT_EQ(kCommandBar, CommandForAccelerator(overrides, bar));
+  EXPECT_EQ(3u, overrides.size());
+
+  // A freed default can be taken; resetting its owner is then refused.
+  ASSERT_TRUE(SetBinding(&prefs_, kNextWorkspace, Key(ui::VKEY_D, kCmd),
+                         NoSources(), &conflict));
+  EXPECT_FALSE(ResetToDefault(&prefs_, kSaveTab));
+  EXPECT_EQ(std::vector<ui::Accelerator>{save},
+            EffectiveAccelerators(ReadOverrides(prefs_), kSaveTab));
+}
+
+TEST_F(KeyboardShortcutsTest, SystemShortcutsFromSettingsAreRefused) {
+  // For example Mission Control's "Switch to Desktop 1" (symbolic hotkey
+  // 118) moved to ⌘1 in System Settings.
+  ConflictSources sources{
+      .is_system_accelerator =
+          base::BindRepeating([](const ui::Accelerator& a) {
+            return a == ui::Accelerator(ui::VKEY_1, ui::EF_COMMAND_DOWN);
+          }),
+  };
+  Conflict conflict;
+  EXPECT_FALSE(SetBinding(&prefs_, kQuickWindow, Key(ui::VKEY_1, kCmd),
+                          sources, &conflict));
+  EXPECT_EQ(ConflictKind::kReservedBySystem, conflict.kind);
+  EXPECT_TRUE(prefs_.GetDict(kShortcutBindingsPref).empty());
+  // Defaults are not moved because of it.
+  EXPECT_EQ("workspace.1", CommandForAccelerator({}, Key(ui::VKEY_1, kCtrl)));
+  EXPECT_TRUE(SetBinding(&prefs_, kQuickWindow, Key(ui::VKEY_2, kCmd | kAlt),
+                         sources, &conflict));
 }
 
 TEST_F(KeyboardShortcutsTest, ManagedBindingsAreNotWritten) {

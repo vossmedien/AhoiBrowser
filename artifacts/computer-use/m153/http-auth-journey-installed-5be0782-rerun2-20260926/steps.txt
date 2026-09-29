@@ -1,0 +1,123 @@
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+typed 5
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 12
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== save_first PASS
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+focus AXTextField | Nutzername | Nutzername | alice -> 0
+hidkey 0
+typed 3
+focus AXTextField | Passwort -> 0
+hidkey 0
+typed 10
+AXPress AXRadioButton | Zugang nach erfolgreicher Anmeldung speichern | Zugang nach erfolgreicher Anmeldung speichern | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== save_second PASS
+== store_two_accounts PASS
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+focus AXTextField | Nutzername | Nutzername | alice -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== choice_lists_both PASS
+AXPress AXButton | Nutzername | Nutzername -> 0
+AXPress AXMenuItem | alice | alice | 0 -> 0
+== autocomplete_password PASS
+AXPress AXButton | Anmelden | Anmelden -> 0
+== choose_account PASS
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== realm_separation PASS
+NOT FOUND
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+focus AXTextField | Nutzername | Nutzername -> 0
+hidkey 0
+hidkey 51
+AXPress AXButton | Nutzername | Nutzername -> 0
+hidkey 53
+== port_separation PASS
+NOT FOUND
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+AXPress AXButton | Nutzername | Nutzername -> 0
+AXPress AXMenuItem | alice | alice | 1 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== rejected_reprompt PASS
+== rejected_keeps_account PASS
+focus AXTextField | Nutzername | Nutzername | alice -> 0
+hidkey 0
+typed 5
+focus AXTextField | Passwort | •••••••••••• -> 0
+hidkey 0
+typed 12
+AXPress AXRadioButton | Gespeicherten Zugang nach erfolgreicher Anmeldung aktualisieren | Gespeicherten Zugang nach erfolgreicher Anmeldung aktualisieren | 0 -> 0
+AXPress AXButton | Anmelden | Anmelden -> 0
+== password_update_signin PASS
+== update_no_duplicate PASS
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 36
+AXPress AXButton | Abbrechen | Abbrechen -> 0
+page: http://127.0.0.1:8793/a/ | 127.0.0.1:8793/a/
+page: http://127.0.0.1:8794/a/ | Ahoi auth required
+page: http://127.0.0.1:8793/b/ | Ahoi auth required
+page: about:blank | about:blank
+{"result":{"type":"string","value":""}}
+== sign_out_without_restart FAIL:127.0.0.1:8793/a/
+== same_browser_process PASS
+frontmost -> 0
+hidkey 17
+hidkey 0
+typed 24
+hidkey 36
+focus AXTextField | Nutzername | Nutzername | alice -> 0
+hidkey 0
+typed 3
+focus AXTextField | Passwort | •••••••••••• -> 0
+hidkey 0
+typed 10
+AXPress AXButton | Anmelden | Anmelden -> 0
+frontmost -> 0
+hidkey 17
+typed 4
+hidkey 125
+hidkey 36
+== forget_realm PASS
+== no_secret_in_logs PASS
+hidkey 12

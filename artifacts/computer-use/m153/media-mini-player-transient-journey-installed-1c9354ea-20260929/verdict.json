@@ -1,0 +1,11 @@
+{
+ "chimeKeepsMusicCard": true,
+ "chimeIsNoSecondSource": true,
+ "musicCardAfterChime": true,
+ "noLingeringChimeSource": true,
+ "mutedCardShowsUnmute": true,
+ "mutedCardStays": true,
+ "unmuteFromCard": true,
+ "unmutedCardStaysOnMusic": true,
+ "pass": true
+}

@@ -3,11 +3,17 @@
 
 #include "ahoi/browser/ui/appearance/appearance_policy.h"
 
+#include <algorithm>
 #include <utility>
+
+#include "ahoi/browser/ui/appearance/glass_material.h"
 
 namespace ahoi::appearance {
 
 namespace {
+
+constexpr int kEmbedded = glass_tokens::kEmbeddedRadius;
+constexpr int kPanel = glass_tokens::kPanelRadius;
 
 struct RoleDefaults {
   ui::ColorId background_color;
@@ -22,17 +28,17 @@ constexpr RoleDefaults GetRoleDefaults(SurfaceRole role) {
     case SurfaceRole::kBrowserChrome:
       return {ui::kColorSysSurfaceVariant, 0, 0.55f, 0.0f, 0};
     case SurfaceRole::kSidebar:
-      return {ui::kColorSysSurface2, 14, 0.82f, 24.0f, 0};
+      return {ui::kColorSysSurface2, kEmbedded, 0.82f, 24.0f, 0};
     case SurfaceRole::kFloatingNavigation:
-      return {ui::kColorSysSurface3, 14, 0.62f, 30.0f, 0};
+      return {ui::kColorSysSurface3, kEmbedded, 0.62f, 30.0f, 0};
     case SurfaceRole::kCommandBar:
-      return {ui::kColorSysSurface, 18, 0.68f, 32.0f, 0};
+      return {ui::kColorSysSurface, kPanel, 0.68f, 32.0f, 0};
     case SurfaceRole::kPopup:
-      return {ui::kColorSysSurface3, 18, 0.70f, 30.0f, 0};
+      return {ui::kColorSysSurface3, kPanel, 0.70f, 30.0f, 0};
     case SurfaceRole::kDeveloperTools:
-      return {ui::kColorSysSurface3, 18, 0.97f, 24.0f, 0};
+      return {ui::kColorSysSurface3, kPanel, 0.97f, 24.0f, 0};
     case SurfaceRole::kMiniPlayer:
-      return {ui::kColorSysSurface4, 14, 0.62f, 26.0f, 0};
+      return {ui::kColorSysSurface4, kEmbedded, 0.62f, 26.0f, 0};
     case SurfaceRole::kCount:
       break;
   }
@@ -62,6 +68,13 @@ SurfaceAppearance AppearanceResolver::Resolve(SurfaceRole role,
   // translucent NSWindow foundation, so neither layer should hide the Glass.
   // WebContents stays opaque; only browser-chrome gaps reveal the glass.
   appearance.mode = ResolveMode(policy);
+  // Increase Contrast removes translucency, which also removes the depth cue
+  // that separates a floating surface from the page. A one-pixel semantic
+  // outline restores that edge. Window-embedded chrome keeps no outline.
+  if (policy.high_contrast && role != SurfaceRole::kBrowserChrome &&
+      role != SurfaceRole::kSidebar) {
+    appearance.border_thickness = std::max(1, appearance.border_thickness);
+  }
   if (appearance.uses_glass()) {
     appearance.opacity = defaults.glass_opacity;
     appearance.background_blur_sigma = defaults.glass_blur_sigma;

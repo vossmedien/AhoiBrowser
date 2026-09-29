@@ -1,0 +1,4 @@
+pid=51969 profile=/private/tmp/ahoi-wsiso-profile.3G1HWS
+still running after quit
+pid=43136 profile=/private/tmp/ahoi-wsiso-profile.tbAuBk
+pid=46727 profile=/private/tmp/ahoi-wsiso-profile.tbAuBk

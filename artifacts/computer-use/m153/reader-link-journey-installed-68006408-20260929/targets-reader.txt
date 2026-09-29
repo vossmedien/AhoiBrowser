@@ -1,0 +1,6 @@
+page http://user:secret@127.0.0.1:8819/article.html
+browser_ui chrome-untrusted://read-anything-side-panel.top-chrome/
+page http://127.0.0.1:8819/article.html?x=(y)
+page about:blank
+browser_ui chrome://omnibox-popup.top-chrome/
+browser_ui chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html

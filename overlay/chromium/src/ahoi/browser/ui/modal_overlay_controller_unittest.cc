@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "base/functional/bind.h"
+#include "base/test/bind.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/events/base_event_utils.h"
 #include "ui/events/event.h"
@@ -136,6 +137,59 @@ TEST_F(ModalOverlayControllerTest, ImmediateDismissDoesNotInvokeClose) {
   EXPECT_EQ(0, close_count_);
   EXPECT_FALSE(controller_->scrim_view_for_testing()->GetVisible());
   EXPECT_FALSE(controller_->IsShowingPanel(panel_widget_.get()));
+}
+
+// ADR 0012: the command bar's "Zusammenführen mit …" opens the merge dialog
+// only after the command bar itself has closed.
+TEST_F(ModalOverlayControllerTest, RunWhenIdleWaitsForTheActivePanel) {
+  int runs = 0;
+  controller_->RunWhenIdle(base::BindLambdaForTesting([&] { ++runs; }));
+  task_environment()->RunUntilIdle();
+  EXPECT_EQ(1, runs);
+
+  ASSERT_TRUE(ShowPanel());
+  bool saw_idle_overlay = false;
+  controller_->RunWhenIdle(base::BindLambdaForTesting([&] {
+    ++runs;
+    saw_idle_overlay = !controller_->IsShowingAnyPanel();
+  }));
+  task_environment()->RunUntilIdle();
+  EXPECT_EQ(1, runs);
+
+  ASSERT_TRUE(controller_->RequestClose(panel_widget_.get()));
+  task_environment()->RunUntilIdle();
+  EXPECT_EQ(2, runs);
+  EXPECT_TRUE(saw_idle_overlay);
+  EXPECT_EQ(1, close_count_);
+}
+
+TEST_F(ModalOverlayControllerTest, RunWhenIdleCallbackMayOpenTheNextPanel) {
+  ASSERT_TRUE(ShowPanel());
+  auto next_params = CreateParamsForTestWidget(
+      views::Widget::InitParams::CLIENT_OWNS_WIDGET,
+      views::Widget::InitParams::TYPE_WINDOW_FRAMELESS);
+  next_params.parent = host_widget_->GetNativeView();
+  std::unique_ptr<views::Widget> next_panel =
+      CreateTestWidget(std::move(next_params));
+  next_panel->SetContentsView(std::make_unique<views::View>());
+  bool next_shown = false;
+  int later_runs = 0;
+  controller_->RunWhenIdle(base::BindLambdaForTesting([&] {
+    next_shown =
+        controller_->ShowPanel(next_panel.get(), base::BindRepeating([] {}));
+  }));
+  controller_->RunWhenIdle(base::BindLambdaForTesting([&] { ++later_runs; }));
+
+  controller_->DismissPanelImmediately(panel_widget_.get());
+  task_environment()->RunUntilIdle();
+  EXPECT_TRUE(next_shown);
+  EXPECT_TRUE(controller_->IsShowingPanel(next_panel.get()));
+  // The second callback waits for the panel the first one opened.
+  EXPECT_EQ(0, later_runs);
+
+  controller_->DismissPanelImmediately(next_panel.get());
+  task_environment()->RunUntilIdle();
+  EXPECT_EQ(1, later_runs);
 }
 
 }  // namespace

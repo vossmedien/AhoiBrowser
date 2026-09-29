@@ -1,0 +1,10 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+hidkey 12

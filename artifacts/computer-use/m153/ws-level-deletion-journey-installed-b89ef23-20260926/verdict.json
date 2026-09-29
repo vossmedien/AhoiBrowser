@@ -1,0 +1,16 @@
+{
+ "dialogClosed_Kunde": true,
+ "levelChoiceShown": true,
+ "loginInOwnWorkspace": true,
+ "menuNamesLevel": true,
+ "sharedWorkspaceNotLoggedIn": true,
+ "vetoPromptShown": true,
+ "vetoKeepsWorkspace": true,
+ "ownPagesClosed": true,
+ "workspaceRemoved": true,
+ "fallbackNotLoggedIn": true,
+ "dialogClosed_Teilen": true,
+ "sharedTabsMoveToFallback": true,
+ "bindingAndPartitionGone": true,
+ "pass": true
+}

@@ -1,0 +1,29 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload:AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree:AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt:AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from AhoiTabTreePersistenceTest
+[ RUN      ] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload
+[       OK ] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload (110 ms)
+[ RUN      ] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree
+[       OK ] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree (61 ms)
+[ RUN      ] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt
+[       OK ] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt (37 ms)
+[ RUN      ] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline
+[       OK ] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline (41 ms)
+[----------] 4 tests from AhoiTabTreePersistenceTest (254 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (254 ms total)
+[  PASSED  ] 4 tests.
+[1/4] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload (110 ms)
+[2/4] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree (61 ms)
+[3/4] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt (37 ms)
+[4/4] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline (41 ms)
+SUCCESS: all tests passed.
+Tests took 0 seconds.

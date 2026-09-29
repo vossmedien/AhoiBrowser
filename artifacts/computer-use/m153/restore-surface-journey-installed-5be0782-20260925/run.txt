@@ -1,0 +1,7 @@
+pid=91256 profile=/private/tmp/ahoi-restore-profile.XqClrH
+restart 1 pid=92142
+restart 2 pid=92696
+restart 3 pid=93909
+still running after quit
+restart 4 pid=94699
+restart 5 pid=95042

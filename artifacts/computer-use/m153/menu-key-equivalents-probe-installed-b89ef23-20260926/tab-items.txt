@@ -1,0 +1,7 @@
+Apple	Sofort beenden …	"⎋"	53	2
+Apple	AhoiBrowser sofort beenden	"⎋"	53	3
+AhoiBrowser > Dienste	Monitore - Alle Displays	""	120	1
+AhoiBrowser > Dienste	Monitore - Nur MacBook	""	122	1
+Bearbeiten	Diktat starten	"🎤"	128	8
+Tab	Nächsten Tab auswählen	"\t"	48	12
+Tab	Vorherigen Tab auswählen	"\t"	48	13

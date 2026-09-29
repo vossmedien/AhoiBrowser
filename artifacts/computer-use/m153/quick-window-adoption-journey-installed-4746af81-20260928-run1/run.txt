@@ -1,0 +1,2 @@
+pid=69601 profile=/private/tmp/ahoi-quick-profile.091TXZ
+still running after quit

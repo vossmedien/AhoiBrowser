@@ -1,0 +1,82 @@
+frontmost -> 0
+hidkey 17
+typed 40
+hidkey 36
+hidkey 17
+typed 31
+hidkey 36
+copyLinkOffered -> true
+url: http://127.0.0.1:8819/article.html?x=(y)
+copiedUrl -> true
+hidkey 17
+typed 44
+hidkey 36
+copyMarkdownOffered -> true
+markdown: [Ahoi \*Test\* \[Artikel\] \(1\)](http://127.0.0.1:8819/article.html?x=\(y\))
+markdownEscaped -> true
+hidkey 17
+typed 46
+hidkey 36
+hidkey 17
+typed 31
+hidkey 36
+credentialsStripped -> true
+normalCopyNotConcealed -> true
+hidkey 17
+typed 32
+hidkey 36
+readerOffered -> true
+readerPanelOpened -> true
+readerKeepsPage -> true
+hidkey 45
+hidkey 17
+typed 44
+hidkey 36
+hidkey 17
+typed 31
+hidkey 36
+incognitoCopyConcealed -> false
+hidkey 12
+frontmost -> 0
+hidkey 17
+typed 40
+hidkey 36
+hidkey 17
+typed 31
+hidkey 36
+copyLinkOffered -> true
+url: http://127.0.0.1:8819/article.html?x=(y)
+copiedUrl -> true
+hidkey 17
+typed 44
+info: typed text missing, retyping
+hidkey 0
+typed 44
+hidkey 36
+copyMarkdownOffered -> true
+markdown: [Ahoi \*Test\* \[Artikel\] \(1\)](http://127.0.0.1:8819/article.html?x=\(y\))
+markdownEscaped -> true
+hidkey 17
+typed 46
+hidkey 36
+hidkey 17
+typed 31
+hidkey 36
+credentialsStripped -> true
+normalCopyNotConcealed -> true
+hidkey 17
+typed 32
+hidkey 36
+readerOffered -> true
+readerPanelOpened -> true
+readerKeepsPage -> true
+hidkey 45
+hidkey 17
+typed 44
+hidkey 36
+hidkey 17
+typed 31
+hidkey 36
+incognitoCopyIsLinkOnly -> true
+hidkey 12
+incognitoCopyExpires -> true

@@ -1,0 +1,13 @@
+==> applying chromium-rust-depfile-space-paths and v8-inspector-protocol-relative-depfile-paths only for gn gen and autoninja
+Done. Made 32143 targets from 4939 files in 5483ms
+ninja: Entering directory `/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev'
+[0/1] Regenerating ninja files
+[1/9] CXX obj/ahoi/browser/session/unit_tests/session_restore_integration_unittest.o
+[2/9] CXX obj/ahoi/browser/session/unit_tests/session_bridge_unittest.o
+[3/9] CXX obj/ahoi/browser/session/unit_tests/shared_tab_target_policy_unittest.o
+[4/9] CXX obj/ahoi/browser/session/unit_tests/workspace_session_metadata_unittest.o
+[5/9] CXX obj/ahoi/browser/tab_tree/unit_tests/tab_tree_store_persistence_unittest.o
+[6/9] CXX obj/ahoi/browser/tab_tree/unit_tests/tab_tree_store_unittest.o
+[7/9] LINK ./ahoi_tab_tree_unittests
+[8/9] LINK ./ahoi_session_unittests
+==> restored Chromium and V8 sources after timestamp-stable temporary build workarounds

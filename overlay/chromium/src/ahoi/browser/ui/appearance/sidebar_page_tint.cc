@@ -14,13 +14,18 @@
 namespace ahoi::appearance {
 namespace {
 
-// Before a View has a ColorProvider, use a restrained fallback. Once attached,
-// choose the smallest bounded alpha that makes the tint clearly perceptible
-// while retaining the semantic text contrast of the active theme.
-constexpr uint8_t kFallbackSidebarPageTintAlpha = 0x24;
-constexpr uint8_t kMinimumSidebarPageTintAlpha = 0x30;
-constexpr uint8_t kMaximumSidebarPageTintAlpha = 0x50;
+// Design spec 2026-09-29: the page tint is subtle, at most 8 %. Before a View
+// has a ColorProvider, use a restrained fallback. Once attached, choose the
+// smallest alpha in the bounded range that makes the tint perceptible while
+// retaining the semantic text contrast of the active theme.
+constexpr uint8_t kMaximumSidebarPageTintAlpha = 0x14;
+constexpr uint8_t kMinimumSidebarPageTintAlpha = 0x0c;
+constexpr uint8_t kFallbackSidebarPageTintAlpha = 0x10;
 constexpr uint8_t kSidebarPageTintAlphaStep = 0x04;
+static_assert(kMaximumSidebarPageTintAlpha * 100 <= 8 * 255,
+              "the sidebar page tint is capped at 8 %");
+static_assert(kMinimumSidebarPageTintAlpha <= kFallbackSidebarPageTintAlpha &&
+              kFallbackSidebarPageTintAlpha <= kMaximumSidebarPageTintAlpha);
 constexpr int kMaxFaviconAnalysisDimension = 32;
 constexpr int kMinimumBrandColorDistance = 80;
 constexpr int kTargetTintDistance = 26;

@@ -1,0 +1,11 @@
+{
+ "dialogClosed_Kunde": true,
+ "levelChoiceShown": true,
+ "loginInOwnWorkspace": true,
+ "menuNamesLevel": true,
+ "sharedWorkspaceNotLoggedIn": true,
+ "vetoPromptShown": false,
+ "vetoKeepsWorkspace": false,
+ "setupFailed": "delete item missing for Kunde",
+ "pass": false
+}

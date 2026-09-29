@@ -1,0 +1,4 @@
+total 2048
+drwxr-xr-x    3 vossmedien  wheel       96 26 Sep. 00:31 .
+drwxrwxrwt  818 root        wheel    26176 26 Sep. 00:31 ..
+-rw-r--r--@   1 vossmedien  wheel  1048576 26 Sep. 00:31 ahoi-payload.bin

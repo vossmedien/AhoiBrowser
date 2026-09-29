@@ -319,7 +319,7 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             "InspectDefaultArcApplication()",
             "DiscoverArcSourceAt(application_support_dir)",
             "CaptureArcSnapshot(*discovery.source)",
-            "ParseArcSnapshot(*snapshot.snapshot)",
+            "ParseArcSnapshot(*snapshot.snapshot, options)",
             "AreArcProfileFilesOpen(*discovery.source)",
         )
         positions = [discovery.index(marker) for marker in ordered_markers]

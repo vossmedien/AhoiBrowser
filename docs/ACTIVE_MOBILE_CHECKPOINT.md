@@ -2,6 +2,73 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## iPhone announces shared-normal-tabs-v3 and gates its tab writes — 29 September 2026
+
+Owner-authorized mobile-lane session; commit `2658cfe8` on branch `mobile/ios-shared-tab-capability` in the
+worktree `../AhoiBrowser-ios-capability` (base `e0cb5086`), not pushed.
+Cause: the real-device run
+([evidence](../artifacts/sync-acceptance/real-device-20260929/),
+[coordination](ACTIVE_SYNC_COORDINATION.md)) showed the Mac correctly
+withholding its Page/Presence writes, because the iPhone never wrote its own
+capability record, and the iPhone wrote tabs without checking its peers.
+
+- **Announcement** (`SharedTabWriterGate.swift`,
+  `LocalFirstRepository.publishLocalSharedTabCapability`). This mirrors
+  desktop `PublishLocalCapability`: one Format-3 `DeviceCapabilityRecord`,
+  entity 12, id UUIDv5 `ahoi:sync:capability:v1:<device>`, models `[3]`.
+  It is written after the own Device record, first as a control announcement
+  with `features: []`. It declares `shared-normal-tabs-v3` once
+  `MobileSharedTabIntentBinding` has wired native capture and projection
+  (`activateSharedTabNativeSupport`). It is never downgraded, and it is never
+  written for a retired or tombstoned own Device or a tombstoned
+  declaration. `performSync` publishes it before `syncNow`, and the
+  local-snapshot reseed carries it. There is no withdrawal path, as on
+  desktop (ADR 0009: local wiring gaps are not a format downgrade; peers
+  ignore a retired Device's declaration).
+- **Writer gate.** After every completed bounded pass,
+  `refreshSharedTabWriterGate` feeds `SharedTabCapabilityReadiness` from the
+  snapshot Devices and declarations and from provider acknowledgements. A new
+  transport query `isRecordAcknowledged` requires a savedRecords
+  system-field receipt and no pending save. The semantics match desktop
+  `SharedTabState()`: every non-retired, non-tombstoned Device needs a valid
+  declaration with the feature; a declaration for an unknown Device blocks;
+  and the own Device and capability records must be acknowledged. While the
+  gate is closed, the bridge keeps this device's Presences and the Pages
+  written by the shared-tab paths (capture, intent, close, saved page) out of
+  transport, including in `enqueueLocalSnapshot`. Opening the gate reseeds
+  that backlog. If only the own acknowledgements are missing, one extra pass
+  runs per runtime generation. Device, Session and Workspace records are not
+  gated. Generic companion tree edits (rename, move, delete in the Workspace
+  UI) keep their old path. The desktop gates its native tree journal as well;
+  this difference is left for the owner to decide.
+- **Tests (not run yet)**: `SharedTabWriterGateTests` (golden parity with
+  `device_capability_iphone` from `sync_wire_v3.json`: id, key sets, feature,
+  models, decode through the peer path; announcement rules; gate open and
+  closed, including the Mac-without-declaration case, retired and offline
+  peers, unknown device, missing acks, native wiring and sync; transport
+  withholding and reseed; model wiring end to end on the in-memory
+  transport). The convergence relay, the CloudKit domain E2E and the
+  single-device visible UI projection open the gate explicitly. See the
+  report line below for the run status.
+- **Owner verification on the iPhone.** Rebuild `AhoiMobile-CloudKitDevelopment`
+  / `CloudKitDevelopment` from `2658cfe8` or later with the **same** scope
+  settings as [ios/README.md](../artifacts/sync-acceptance/real-device-20260929/ios/README.md)
+  (scope `23855a90-…`, zone, subscription and Keychain account unchanged).
+  Install over the existing app with `devicectl` and do not reset its data.
+  Open it and run Settings "Jetzt synchronisieren" once or twice. No Mac
+  rebuild is needed.
+- **Expected Mac readback** (scoped `sync-format3.sqlite`, read from a copy):
+  two `deviceCapability` rows (entity 12), the Mac's and the iPhone's. The
+  iPhone row has `features=["shared-normal-tabs-v3"]` and device_id equal to
+  the iPhone Device row. After that the Mac gate opens and a new capture
+  writes a `treeNode` (entity 2) Page and a `deviceTab` (entity 4) Presence
+  for `https://example.com/?ahoi-sync-mac-20260929T112130Z`, if that Mac tab
+  is still open. The iPhone receive journey should then find it under
+  "Geräte-Tabs". Two preconditions: the Mac's own declaration must carry the
+  feature (the iPhone received a Mac `deviceCapability` in run 6, but its
+  feature list was not read out), and the zone must hold no stale active
+  Device without a declaration. Either one keeps both gates closed by design.
+
 ## Crest adoption A6 and C1 — 29 September 2026
 
 Owner-approved session for the unstaffed mobile and sync lanes

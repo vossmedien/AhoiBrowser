@@ -1,0 +1,12 @@
+== trial 5 before Return
+focusedElement: none
+focusedWindow: AXWindow | Suchen oder URL eingeben
+mainWindow: AXWindow | about:blank - Chromium
+== trial 5 after failed Return
+focusedElement: none
+focusedWindow: AXWindow | Suchen oder URL eingeben
+mainWindow: AXWindow | about:blank - Chromium
+== trial 5 after second Return
+focusedElement: none
+focusedWindow: AXWindow | Suchen oder URL eingeben
+mainWindow: AXWindow | about:blank - Chromium

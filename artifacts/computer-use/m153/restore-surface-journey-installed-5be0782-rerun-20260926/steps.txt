@@ -1,0 +1,47 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Zwei -> 0 now=Zwei
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Zwei -> true
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+hidkey 48
+before quit: gamma
+hidkey 12
+restart 1: workspace_zwei=false front=gamma empty_state=false
+restart1_workspace -> false
+restart1_front_page -> true
+restart1_no_empty_state -> true
+hidkey 12
+restart 2: workspace_zwei=false front=gamma empty_state=false
+restart2_workspace -> false
+restart2_front_page -> true
+restart2_no_empty_state -> true
+hidkey 12
+restart 3: workspace_zwei=false front=gamma empty_state=false
+restart3_workspace -> false
+restart3_front_page -> true
+restart3_no_empty_state -> true
+hidkey 12
+restart 4: workspace_zwei=false front=gamma empty_state=false
+restart4_workspace -> false
+restart4_front_page -> true
+restart4_no_empty_state -> true
+hidkey 12
+restart 5: workspace_zwei=false front=gamma empty_state=false
+restart5_workspace -> false
+restart5_front_page -> true
+restart5_no_empty_state -> true
+hidkey 12

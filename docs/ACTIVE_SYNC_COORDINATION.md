@@ -22,8 +22,61 @@ no deletion, no Production).
   **"iCloud-Accountwechsel benötigt Bestätigung"**; "Ohne lokalen Upload
   fortfahren" clicked at 13:08, status unchanged (same symptom as 23 Sep).
   Log 13:07:11 `AhoiSyncUpload stage=lease_revoked expected=6 saved=0`.
-  Diagnosis of the stuck account transition is in progress. **No record
-  round trip yet — DoD 13 stays RED.**
+  Stuck transition: root cause and fix `fb280c26` (any iCloud notification
+  was treated as an account switch; the confirm path ignored the
+  with-provider case). A normal quit/relaunch unblocked the live app.
+- **13:20 Mac "Synchronisiert und bereit"** — the E2E key arrived from the
+  iPhone via iCloud Keychain (the 23 Sep blocker is gone).
+- **iPhone → Mac:** the iPhone's tab records arrived and decrypted on the Mac
+  (`mac/store-readback.txt`).
+- **Mac → iPhone:** device, sessions, capability, appearance, extension
+  inventory and the history visit of
+  `https://example.com/?ahoi-sync-mac-20260929T112130Z` arrived on the iPhone;
+  the iPhone lists "Mac.fritz.box · Online" (`ios/receive/README.md`).
+- **Mac open tab not sent — by design:** the desktop shared-tab writer waits
+  until every active peer announces `shared-normal-tabs-v3`
+  (`profile_sync_backend_shared_tabs.cc` ~164–188, ADR 0009); the iOS app
+  never writes its own capability record and writes tabs without the same
+  gate. Mobile wiring is in progress; after reinstalling the scoped iPhone
+  build, the Mac should start writing page/tab records without a new Mac
+  build. **DoD 13 stays RED until the Mac tab is visible on the iPhone.**
+
+## iPhone reinstalled; Mac key setup hangs — 29 September 2026, 15:40 CEST
+
+- iPhone: scoped CloudKitDevelopment build `0cab6711` (capability
+  announcement + writer gate) installed in place (data kept), syncs
+  ("Synchronisiert"); the Mac marker tab did not arrive because the Mac
+  side is not syncing.
+- Mac `bdfcea08`: after relaunches it first showed "iCloud-Accountwechsel
+  benötigt Bestätigung" again, then stayed > 25 min in "Sync-Verbindung wird
+  eingerichtet" (`key_setup_in_progress`): the bootstrap held its own family
+  lock while a CloudKit request never answered, with no timeout. Fix
+  `27916f3b`: user-initiated QoS and a 2-minute timeout
+  (`key_setup_timed_out` → "Sync-Einrichtung unterbrochen", retryable).
+- Next: build 51 → re-prepare the scoped Mac app → open the marker tab →
+  iPhone receive test (`MobileRealDeviceCloudKitSyncUITests`). DoD 13 stays
+  RED until then.
+
+## Stuck "iCloud-Accountwechsel" with a provider — diagnosis, 29 September 2026
+
+Live `bdfcea08` Settings status (CDP, 13:12): `providerAvailable=true`,
+`keySetupIssue=key_setup_account_changed`, `accountTransitionPending=true`;
+no `cksync-format3.state.inbox`, so the provider never ran
+`ResetAccountState()` and does not own a transition. The key bootstrap's
+`CKAccountChangedNotification` observer outlives a successful bootstrap and
+revokes the provider's key lease on any notification (hence 13:07:11
+`lease_revoked`), then reports `key_setup_account_changed` while the provider
+is kept. `CurrentState()` shows that as pending, but
+`ProfileSyncBackend::ConfirmAccountTransition` handled the key-setup case only
+when `!provider_` (fix `30cd18f`) and otherwise required
+`provider_->IsAccountTransitionPending()`, so both buttons were accepted by
+Settings and silently returned false. Fix on branch
+`sync/account-change-confirm-with-provider`: route the key-setup case
+regardless of a lease-revoked provider (drop pump/provider/bootstrap after the
+outbox choice, restart verified key setup); unit tests in
+`profile_sync_backend_account_transition_unittest.cc`, not yet built. Open
+follow-up: the bootstrap observer treats any account notification as a switch
+without re-verifying the user record ID.
 
 ## Stuck "iCloud-Accountwechsel" with a provider — diagnosis, 29 September 2026
 

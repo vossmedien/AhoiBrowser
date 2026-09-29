@@ -1,0 +1,1 @@
+/Applications/AhoiBrowser.app/Contents/MacOS/AhoiBrowser --user-data-dir=/private/tmp/ahoi-sandbox-profile.ZLNjAd --no-first-run --no-default-browser-check --remote-debugging-port=9388 about:blank

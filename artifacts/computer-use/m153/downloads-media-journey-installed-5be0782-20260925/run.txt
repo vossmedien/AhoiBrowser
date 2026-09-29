@@ -1,0 +1,2 @@
+pid=96017 profile=/private/tmp/ahoi-downloads-profile.E4GAuN downloads=/private/tmp/ahoi-downloads-profile.E4GAuN-downloads
+audio: playing

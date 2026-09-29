@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/navigation/keyboard_shortcuts.h"
 #include "ahoi/browser/session/cross_level_move.h"
 #include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
@@ -27,6 +28,7 @@
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_util.h"
+#include "base/strings/utf_string_conversions.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
 #include "chrome/browser/profiles/profile.h"
@@ -242,6 +244,19 @@ void BrowserSidebarHostView::RequestCrossLevelMove(
     return;
   }
   const bool german = IsGerman();
+  // Names the sidebar Undo key the user bound, or nothing when it is unbound.
+  const std::vector<ui::Accelerator> undo_keys =
+      shortcuts::EffectiveAccelerators(
+          shortcuts::ReadOverrides(*browser_->GetProfile()->GetPrefs()),
+          shortcuts::kSidebarUndo);
+  const std::u16string undo_hint =
+      undo_keys.empty()
+          ? std::u16string()
+          : base::StrCat(
+                {u" ",
+                 base::UTF8ToUTF16(shortcuts::ShortcutKeyText(undo_keys[0])),
+                 StructureText(u" holt alles zurück.",
+                               u" brings everything back.")});
   CrossLevelMoveRequest request;
   request.root_ids = std::move(roots);
   request.target = target;
@@ -260,13 +275,15 @@ void BrowserSidebarHostView::RequestCrossLevelMove(
               {DescribeMove(german, payload, target.name),
                StructureText(u" Geöffnete Seiten laden dort neu.",
                              u" Open pages reload there.")})))
-          .AddParagraph(ui::DialogModelLabel(StructureText(
-              u"Anmeldungen ziehen nicht mit: Cookies, Logins und "
-              u"Website-Daten bleiben hier, weil die beiden Workspaces "
-              u"vollständig getrennt sind. ⌘Z holt alles zurück.",
-              u"Sign-ins don't move along: cookies, logins and website data "
-              u"stay here, because the two Workspaces are kept fully "
-              u"separate. ⌘Z brings everything back.")))
+          .AddParagraph(ui::DialogModelLabel(base::StrCat(
+              {StructureText(
+                   u"Anmeldungen ziehen nicht mit: Cookies, Logins und "
+                   u"Website-Daten bleiben hier, weil die beiden Workspaces "
+                   u"vollständig getrennt sind.",
+                   u"Sign-ins don't move along: cookies, logins and website "
+                   u"data stay here, because the two Workspaces are kept "
+                   u"fully separate."),
+               undo_hint})))
           .AddOkButton(
               base::BindOnce(
                   [](base::WeakPtr<BrowserSidebarHostView> source,

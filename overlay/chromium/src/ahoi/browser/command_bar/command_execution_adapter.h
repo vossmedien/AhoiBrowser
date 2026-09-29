@@ -86,6 +86,11 @@ class CommandExecutionDelegate {
   // selected folder or the active page into the Workspace.
   virtual bool CanMoveToWorkspace(std::string_view workspace_id) const;
   virtual bool MoveToWorkspace(std::string_view workspace_id);
+  // "Zusammenführen mit …" (ADR 0012 section 1): opens the Workspace menu's
+  // merge confirmation for the window's shown Workspace into `workspace_id`.
+  // The merge itself runs only when the user confirms that dialog.
+  virtual bool CanMergeWorkspaceInto(std::string_view workspace_id) const;
+  virtual bool MergeWorkspaceInto(std::string_view workspace_id);
 };
 
 class CommandExecutionAdapter {

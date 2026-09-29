@@ -1,0 +1,2 @@
+whilePrompt ["about:blank", "http://127.0.0.1:8793/late.html"]
+afterDelete ["about:blank", "http://127.0.0.1:8793/late.html"]

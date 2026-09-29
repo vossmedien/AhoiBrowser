@@ -1,0 +1,15 @@
+{
+ "pass": true,
+ "steps": {
+  "default_never": "PASS",
+  "policy_selected": "PASS",
+  "policy_explained": "PASS",
+  "idle_tab_archived": "PASS",
+  "edited_form_protected": "PASS",
+  "active_tab_kept": "PASS",
+  "archive_lists_entry": "PASS",
+  "archive_shows_reason": "PASS",
+  "restore_brings_url_back": "PASS",
+  "policy_reset_to_never": "PASS"
+ }
+}

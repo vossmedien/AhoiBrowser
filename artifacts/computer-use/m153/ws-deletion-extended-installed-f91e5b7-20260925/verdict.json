@@ -1,0 +1,5 @@
+{
+ "dialogClosed_Kunde": true,
+ "setupFailed": "did not load http://127.0.0.1:8793/unload.html",
+ "pass": false
+}

@@ -1,0 +1,6 @@
+pid=12852 profile=/private/tmp/ahoi-downloads-profile.Qx2JnY downloads=/private/tmp/ahoi-downloads-profile.Qx2JnY-downloads
+audio: playing
+{"ok":true,"nodeId":12}
+upload: want=upload 1048576 fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83 got=upload 1048576 fbbab289f7f94b25736c58be46a994c441fd02552cc6022352e3d86d2fab7c83
+pip: pip
+notification permission: default

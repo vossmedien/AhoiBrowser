@@ -10,6 +10,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -27,8 +28,17 @@ class ArcPlanBuilder {
  public:
   ArcPlanBuilder(const std::map<std::string, SourceSpace>& spaces,
                  const std::map<std::string, SourceItem>& items,
-                 const std::vector<std::string>& ordered_space_ids)
-      : spaces_(spaces), items_(items), ordered_space_ids_(ordered_space_ids) {}
+                 const std::vector<std::string>& ordered_space_ids,
+                 const ArcImportPlanOptions& options)
+      : spaces_(spaces),
+        items_(items),
+        ordered_space_ids_(ordered_space_ids),
+        options_(options),
+        workspace_domain_(options.folders_as_workspaces
+                              ? kFolderLayoutWorkspaceIdDomain
+                              : kWorkspaceIdDomain),
+        item_domain_(options.folders_as_workspaces ? kFolderLayoutItemIdDomain
+                                                   : kItemIdDomain) {}
 
   ArcPlanBuilder(const ArcPlanBuilder&) = delete;
   ArcPlanBuilder& operator=(const ArcPlanBuilder&) = delete;
@@ -36,6 +46,7 @@ class ArcPlanBuilder {
   ArcImportStatus Run(ArcImportPlan* plan) {
     // The parser already recorded the source counts in `plan`'s stats.
     plan_ = std::move(*plan);
+    plan_.options = *options_;
     if (!BuildPlan()) {
       return status_;
     }
@@ -72,7 +83,7 @@ class ArcPlanBuilder {
         .folder_node_id = folder_id,
         .orientation = item.split_orientation,
         .focused_member_node_id =
-            MakeDeterministicArcId(kItemIdDomain, *item.split_focus_item_id),
+            MakeDeterministicArcId(item_domain_, *item.split_focus_item_id),
     };
     std::vector<double> weights(item.children.size(), 0.0);
     double known_total = 0.0;
@@ -86,7 +97,7 @@ class ArcPlanBuilder {
         return std::nullopt;
       }
       descriptor.member_node_ids.push_back(
-          MakeDeterministicArcId(kItemIdDomain, child_it->second.id));
+          MakeDeterministicArcId(item_domain_, child_it->second.id));
       const auto factor_it = item.split_width_factors.find(child_it->second.id);
       if (factor_it == item.split_width_factors.end()) {
         ++missing_count;
@@ -170,7 +181,7 @@ class ArcPlanBuilder {
         }
       }
       plan_.tree.nodes.push_back(tab_tree::TreeNode{
-          .id = MakeDeterministicArcId(kItemIdDomain, item.id),
+          .id = MakeDeterministicArcId(item_domain_, item.id),
           .workspace_id = workspace_id,
           .parent_id = destination_parent_id,
           .type = tab_tree::TreeNodeType::kSavedPage,
@@ -184,7 +195,7 @@ class ArcPlanBuilder {
       return true;
     }
 
-    const base::Uuid folder_id = MakeDeterministicArcId(kItemIdDomain, item.id);
+    const base::Uuid folder_id = MakeDeterministicArcId(item_domain_, item.id);
     const std::optional<ArcSplitDescriptor> split_descriptor =
         item.kind == SourceItemKind::kSplit
             ? BuildSplitDescriptor(item, folder_id)
@@ -244,7 +255,7 @@ class ArcPlanBuilder {
     }
 
     const base::Uuid folder_id =
-        MakeDeterministicArcId(kItemIdDomain, top_apps->id);
+        MakeDeterministicArcId(item_domain_, top_apps->id);
     plan_.tree.nodes.push_back(tab_tree::TreeNode{
         .id = folder_id,
         .workspace_id = workspace_id,
@@ -278,31 +289,82 @@ class ArcPlanBuilder {
     return true;
   }
 
-  bool BuildWorkspace(const SourceSpace& space,
-                      size_t workspace_position,
-                      bool include_global_top_apps) {
-    std::string title =
-        space.title.empty() ? "Imported Workspace" : space.title;
-    const base::Uuid workspace_id =
-        MakeDeterministicArcId(kWorkspaceIdDomain, space.id);
-    if (!workspace_id.is_valid()) {
+  bool AddWorkspace(const base::Uuid& id, const std::string& title) {
+    if (!id.is_valid()) {
       return Fail(ArcImportStatus::kInvalidText);
     }
+    if (plan_.tree.workspaces.size() >= kMaxWorkspaceCount) {
+      return Fail(ArcImportStatus::kLimitExceeded);
+    }
     plan_.tree.workspaces.push_back(tab_tree::Workspace{
-        .id = workspace_id,
+        .id = id,
         .name = base::UTF8ToUTF16(title),
-        .sort_key = SortKey(workspace_position),
+        .sort_key = SortKey(workspace_position_++),
         .created_at = base::Time::UnixEpoch(),
         .modified_at = base::Time::UnixEpoch(),
     });
     ++plan_.stats.imported_workspace_count;
+    return true;
+  }
+
+  // Only a list directly inside a pinned root can become a workspace. Splits,
+  // tabs and unsupported items never do.
+  bool IsFolder(const std::string& item_id) const {
+    const auto item_it = items_->find(item_id);
+    return item_it != items_->end() &&
+           item_it->second.kind == SourceItemKind::kFolder;
+  }
+
+  // Emits `folder_id` as a workspace named after the folder. Its children
+  // become the workspace's top-level nodes in source order; deeper content
+  // keeps its structure, so split members stay inside their split folder and
+  // therefore in the same workspace.
+  bool BuildFolderWorkspace(const std::string& folder_id,
+                            const std::string& expected_parent_id) {
+    const auto item_it = items_->find(folder_id);
+    if (item_it == items_->end() || !item_it->second.parent_id.has_value() ||
+        *item_it->second.parent_id != expected_parent_id ||
+        item_it->second.kind != SourceItemKind::kFolder ||
+        !claimed_item_ids_.insert(folder_id).second) {
+      return Fail(ArcImportStatus::kGraphViolation);
+    }
+    const SourceItem& folder = item_it->second;
+    const base::Uuid workspace_id =
+        MakeDeterministicArcId(kFolderWorkspaceIdDomain, folder.id);
+    if (!AddWorkspace(workspace_id, folder.title.empty() ? "Untitled Folder"
+                                                         : folder.title)) {
+      return false;
+    }
+    ++plan_.stats.folder_workspace_count;
+    size_t position = 0;
+    for (const std::string& child_id : folder.children) {
+      if (!VisitItem(child_id, folder.id, workspace_id, std::nullopt,
+                     SortKey(position++), /*depth=*/2, /*emit=*/true)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool BuildWorkspace(const SourceSpace& space, bool include_global_top_apps) {
+    const base::Uuid workspace_id =
+        MakeDeterministicArcId(workspace_domain_, space.id);
+    if (!AddWorkspace(workspace_id, space.title.empty() ? "Imported Workspace"
+                                                        : space.title)) {
+      return false;
+    }
+    const size_t nodes_before = plan_.tree.nodes.size();
 
     size_t top_level_position = 0;
     if (include_global_top_apps &&
         !BuildGlobalTopApps(workspace_id, &top_level_position)) {
       return false;
     }
-    for (const std::string& root_id : space.root_container_ids) {
+    // (folder item ID, pinned root ID) in source order.
+    std::vector<std::pair<std::string, std::string>> folder_workspaces;
+    for (size_t root_index = 0; root_index < space.root_container_ids.size();
+         ++root_index) {
+      const std::string& root_id = space.root_container_ids[root_index];
       const auto root_it = items_->find(root_id);
       if (root_it == items_->end() ||
           root_it->second.kind != SourceItemKind::kContainer ||
@@ -312,13 +374,38 @@ class ArcPlanBuilder {
           !claimed_item_ids_.insert(root_id).second) {
         return Fail(ArcImportStatus::kGraphViolation);
       }
+      // SourceSpace guarantees {pinned, unpinned} root order.
+      const bool pinned_root = root_index == 0;
       for (const std::string& child_id : root_it->second.children) {
+        if (pinned_root && IsFolder(child_id)) {
+          ++plan_.stats.source_top_level_folder_count;
+          if (options_->folders_as_workspaces) {
+            folder_workspaces.emplace_back(child_id, root_id);
+            continue;
+          }
+        }
         if (!VisitItem(child_id, root_id, workspace_id, std::nullopt,
                        SortKey(top_level_position++), /*depth=*/1,
                        /*emit=*/true)) {
           return false;
         }
       }
+    }
+    const bool space_workspace_is_empty =
+        plan_.tree.nodes.size() == nodes_before;
+    for (const auto& [folder_id, root_id] : folder_workspaces) {
+      if (!BuildFolderWorkspace(folder_id, root_id)) {
+        return false;
+      }
+    }
+    // When every item of a space moved into folder workspaces, an empty space
+    // workspace would only be clutter. Without promotion it is always kept.
+    if (!folder_workspaces.empty() && space_workspace_is_empty) {
+      std::erase_if(plan_.tree.workspaces,
+                    [&workspace_id](const tab_tree::Workspace& workspace) {
+                      return workspace.id == workspace_id;
+                    });
+      --plan_.stats.imported_workspace_count;
     }
     return true;
   }
@@ -327,7 +414,7 @@ class ArcPlanBuilder {
     for (size_t index = 0; index < ordered_space_ids_->size(); ++index) {
       const auto space_it = spaces_->find((*ordered_space_ids_)[index]);
       if (space_it == spaces_->end() ||
-          !BuildWorkspace(space_it->second, index,
+          !BuildWorkspace(space_it->second,
                           /*include_global_top_apps=*/index == 0)) {
         return false;
       }
@@ -341,6 +428,10 @@ class ArcPlanBuilder {
   const base::raw_ref<const std::map<std::string, SourceSpace>> spaces_;
   const base::raw_ref<const std::map<std::string, SourceItem>> items_;
   const base::raw_ref<const std::vector<std::string>> ordered_space_ids_;
+  const base::raw_ref<const ArcImportPlanOptions> options_;
+  const std::string_view workspace_domain_;
+  const std::string_view item_domain_;
+  size_t workspace_position_ = 0;
   // Same default as ArcParser: a failure without Fail() reports it.
   ArcImportStatus status_ = ArcImportStatus::kInvalidJson;
   ArcImportPlan plan_;
@@ -353,8 +444,9 @@ ArcImportStatus BuildArcImportPlan(
     const std::map<std::string, SourceSpace>& spaces,
     const std::map<std::string, SourceItem>& items,
     const std::vector<std::string>& ordered_space_ids,
+    const ArcImportPlanOptions& options,
     ArcImportPlan* plan) {
-  return ArcPlanBuilder(spaces, items, ordered_space_ids).Run(plan);
+  return ArcPlanBuilder(spaces, items, ordered_space_ids, options).Run(plan);
 }
 
 }  // namespace ahoi::importer::arc::internal

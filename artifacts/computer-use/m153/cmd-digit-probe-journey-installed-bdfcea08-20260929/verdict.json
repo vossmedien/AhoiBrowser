@@ -1,0 +1,18 @@
+{
+ "ctrlTabControl": true,
+ "cmdThree": true,
+ "cmdOne": false,
+ "cmdTwo": true,
+ "cmdNine": true,
+ "cmdOneAgain": false,
+ "ctrlTabBack": true,
+ "cmdTwoAgain": true,
+ "cmdKeypadOne": false,
+ "dialogClosed_Zwei": true,
+ "zweiKeypadOneFromEpsilon": false,
+ "zweiCtrlTabToDelta": true,
+ "zweiCmdTwoFromDelta": true,
+ "zweiCtrlTabBack": true,
+ "zweiCmdNineFromDelta": true,
+ "pass": false
+}

@@ -9,6 +9,7 @@
 #include "ahoi/browser/http_auth/http_auth_management_model.h"
 #include "ahoi/browser/http_auth/http_auth_secret_access_controller.h"
 #include "ahoi/browser/http_auth/http_auth_session_controller.h"
+#include "ahoi/browser/ui/dialog_style.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
 #include "base/task/sequenced_task_runner.h"
@@ -148,6 +149,8 @@ bool ShowHttpAuthManagementDialog(content::WebContents* source_web_contents) {
   if (!widget) {
     return false;
   }
+  dialog_style::ApplyDialogChrome(
+      *widget->widget_delegate()->AsDialogDelegate());
   widget->Show();
   return true;
 }

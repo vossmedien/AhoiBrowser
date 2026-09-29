@@ -1,0 +1,10 @@
+{
+ "results": {
+  "split_created": "PASS",
+  "split_archived": "PASS",
+  "archive_lists_split": "PASS",
+  "restore_without_error": "PASS",
+  "restore_brings_split_back": "PASS"
+ },
+ "pass": true
+}

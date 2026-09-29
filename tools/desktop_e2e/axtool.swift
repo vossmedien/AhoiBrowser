@@ -3,11 +3,13 @@ import AppKit
 // usage: axtool dump <pid> [depth]
 //        axtool enable <pid>
 //        axtool press <pid> <substring-of-title|description|identifier>
+//        axtool pressin <pid> <parent> <child> [action]
 //        axtool type <pid> <text>
 //        axtool key <pid> <virtualKeyCode> [cmd|shift|opt|ctrl ...]
 //        axtool hidscroll <pid> <element> <dy> [dx] [phased|line] [cmd|shift|opt|ctrl ...]
 //        axtool hidmiddle <pid> <element> <dx> <dy>
 //        axtool hidclick <pid> <label substring>
+//        axtool menukeys <pid>
 import ApplicationServices
 import Foundation
 
@@ -110,6 +112,26 @@ case "press":
     let action = args.count > 4 ? args[4] : kAXPressAction
     AXUIElementSetMessagingTimeout(f, 1.5)
     print("\(action) \(label(f)) -> \(AXUIElementPerformAction(f, action as CFString).rawValue)")
+case "pressin":
+    // Presses <child> only inside the first <parent> subtree: a submenu item
+    // whose title another item of the same menu also has (the Workspace
+    // menu's "Zusammenführen mit" targets repeat the switcher's names).
+    guard args.count >= 5 else { print("bad args"); exit(2) }
+    var parent: AXUIElement?
+    _ = walk(app, 0, 45) { e, _ in
+        if matches(e, args[3]) { parent = e; return true }
+        return false
+    }
+    guard let p = parent else { print("PARENT NOT FOUND"); exit(1) }
+    var found: AXUIElement?
+    _ = walk(p, 0, 12) { e, d in
+        if d > 0, matches(e, args[4]) { found = e; return true }
+        return false
+    }
+    guard let f = found else { print("NOT FOUND in \(label(p))"); exit(1) }
+    let action = args.count > 5 ? args[5] : kAXPressAction
+    AXUIElementSetMessagingTimeout(f, 1.5)
+    print("\(action) \(label(f)) in \(label(p)) -> \(AXUIElementPerformAction(f, action as CFString).rawValue)")
 case "checked":
     // Exit 0 when the menu item carries a check mark (native NSMenu state).
     var found: AXUIElement?
@@ -207,6 +229,18 @@ case "enabled":
         if l.contains(where: { $0 == needle }) {
             let enabled = (attr(e, kAXEnabledAttribute) as? Bool).map { String($0) } ?? "?"
             print("\(label(e)) enabled=\(enabled)")
+        }
+        return false
+    }
+case "menukeys":
+    // Key equivalents of the menu items: "title | key | modifiers", where
+    // AXMenuItemCmdModifiers is 0 for ⌘ alone (+1 ⇧, +2 ⌥, +4 ⌃, +8 no ⌘).
+    _ = walk(app, 0, 8) { e, _ in
+        if str(e, kAXRoleAttribute) == "AXMenuItem" {
+            let key = str(e, "AXMenuItemCmdChar")
+            if !key.isEmpty {
+                print("\(str(e, kAXTitleAttribute)) | \(key) | \(str(e, "AXMenuItemCmdModifiers"))")
+            }
         }
         return false
     }

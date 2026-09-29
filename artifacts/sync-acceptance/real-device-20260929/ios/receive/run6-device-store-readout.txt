@@ -1,0 +1,22 @@
+Read-only devicectl copy of the scoped store at ~13:37 CEST (after run 6). Ciphertexts omitted.
+sync-records.json (accepted CloudKit records), dataClass x originating device:
+  appearance           Mac.fritz.box   1
+  device               Mac.fritz.box   1
+  device               iPhone          1
+  deviceCapability     Mac.fritz.box   1
+  deviceSession        Mac.fritz.box   2
+  deviceSession        iPhone          1
+  deviceTab            iPhone          1
+  extensionInventory   Mac.fritz.box   1
+  historyVisit         Mac.fritz.box   1
+  historyVisit         iPhone          7
+  treeNode             iPhone          1
+  workspace            9E20C6C4-C12A-52ED-B9C5-6E65B49A2D86 1
+snapshot remoteTabs:
+   iPhone F666B697-F251-48D4-BE70-0C57B6F0FB2C Example Domain https://example.com/?ahoi-sync-ios-20260929T105445Z open= True
+snapshot history from Mac:
+   Mac.fritz.box https://example.com/?ahoi-sync-mac-20260929T112130Z auto_toplevel
+snapshot sessions:
+   iPhone FDDDA7E2-84B1-4847-8114-40A64F04B06B online= True lastActiveMs= 1790681356511
+   Mac.fritz.box 91988674-CF9F-479F-A264-270FF09FB18C online= True lastActiveMs= 1790681013584
+   Mac.fritz.box 580E9E36-579C-43A9-80DF-5E0A2265B0D6 online= False lastActiveMs= 1790680713120

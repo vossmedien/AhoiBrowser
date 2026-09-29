@@ -1,0 +1,2 @@
+browser.library.search-result.history.f17bab9f-e478-444a-4a17-b7508f973c39|https://example.com/?ahoi-sync-mac-20260929T112130Z|https://example.com/?ahoi-sync-mac-20260929T112130Z || 
+remote-tab-with-exact-url=false

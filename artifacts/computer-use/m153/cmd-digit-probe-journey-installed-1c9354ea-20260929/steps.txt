@@ -1,0 +1,107 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+Target is closing
+hidkey 48
+after ctrlTabControl (48 ctrl): alpha
+ctrlTabControl -> true
+hidkey 20
+after cmdThree (20 cmd): gamma
+cmdThree -> true
+hidkey 18
+after cmdOne (18 cmd): gamma
+cmdOne -> false
+hidkey 19
+after cmdTwo (19 cmd): beta
+cmdTwo -> true
+hidkey 25
+after cmdNine (25 cmd): gamma
+cmdNine -> true
+hidkey 18
+after cmdOneAgain (18 cmd): gamma
+cmdOneAgain -> false
+hidkey 48
+after ctrlTabBack (48 ctrl): alpha
+ctrlTabBack -> false
+hidkey 83
+after cmdKeypadOne (83 cmd): alpha
+cmdKeypadOne -> true
+hidkey 12
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+Target is closing
+hidkey 48
+after ctrlTabControl (48 ctrl): alpha
+ctrlTabControl -> true
+hidkey 20
+after cmdThree (20 cmd): gamma
+cmdThree -> true
+hidkey 18
+after cmdOne (18 cmd): gamma
+cmdOne -> false
+hidkey 19
+after cmdTwo (19 cmd): beta
+cmdTwo -> true
+hidkey 25
+after cmdNine (25 cmd): gamma
+cmdNine -> true
+hidkey 18
+after cmdOneAgain (18 cmd): gamma
+cmdOneAgain -> false
+hidkey 48
+after ctrlTabBack (48 ctrl): alpha
+ctrlTabBack -> false
+hidkey 83
+after cmdKeypadOne (83 cmd): alpha
+cmdKeypadOne -> true
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Zwei -> 0 now=Zwei
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Zwei -> true
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 34
+hidkey 36
+hidkey 83
+after zweiKeypadOneFromEpsilon (83 cmd): epsilon
+zweiKeypadOneFromEpsilon -> false
+hidkey 19
+after zweiCmdTwoFromDelta (19 cmd): epsilon
+zweiCmdTwoFromDelta -> true
+hidkey 25
+after zweiCmdNineStays (25 cmd): epsilon
+zweiCmdNineStays -> true
+hidkey 83
+after zweiKeypadOneAgain (83 cmd): epsilon
+zweiKeypadOneAgain -> false
+hidkey 48
+after zweiCtrlTab (48 ctrl): delta
+zweiCtrlTab -> false
+hidkey 12

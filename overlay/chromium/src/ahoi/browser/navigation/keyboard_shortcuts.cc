@@ -54,12 +54,14 @@ std::vector<ShortcutCommand> BuildCatalog() {
   std::vector<ShortcutCommand> catalog;
   catalog.push_back(Command(kCommandBar, ShortcutCategory::kBrowser,
                             u"Command Bar öffnen", u"Open the command bar",
-                            {Key(ui::VKEY_L, kCmd), Key(ui::VKEY_T, kCmd)},
-                            /*rebindable=*/false));
+                            {Key(ui::VKEY_L, kCmd)}));
+  catalog.push_back(Command(kCommandBarNewTab, ShortcutCategory::kBrowser,
+                            u"Command Bar für neuen Tab",
+                            u"Open the command bar for a new tab",
+                            {Key(ui::VKEY_T, kCmd)}));
   catalog.push_back(Command(kQuickWindow, ShortcutCategory::kBrowser,
                             u"Quick Window öffnen", u"Open Quick Window",
-                            {Key(ui::VKEY_SPACE, kAlt)},
-                            /*rebindable=*/false));
+                            {Key(ui::VKEY_SPACE, kAlt)}));
   // New in the catalog. Control+Option+Tab is layout independent (the key
   // left of 1 is "^" on German keyboards), types no character, is free in
   // Chromium and sits next to Control+Tab, which cycles tabs in order.
@@ -71,7 +73,7 @@ std::vector<ShortcutCommand> BuildCatalog() {
                             {Key(ui::VKEY_TAB, kCtrl | kAlt)}));
   catalog.push_back(Command(kSaveTab, ShortcutCategory::kTab,
                             u"Tab speichern", u"Save tab",
-                            {Key(ui::VKEY_D, kCmd)}, /*rebindable=*/false));
+                            {Key(ui::VKEY_D, kCmd)}));
   catalog.push_back(Command(kPreviousWorkspace, ShortcutCategory::kWorkspace,
                             u"Vorheriger Workspace", u"Previous Workspace",
                             {Key(ui::VKEY_LEFT, kCmd | kAlt)}));
@@ -100,7 +102,7 @@ std::vector<ShortcutCommand> BuildCatalog() {
                             {Key(ui::VKEY_F, kCmd | kShift)}));
   catalog.push_back(Command(kSidebarUndo, ShortcutCategory::kSidebar,
                             u"Seitenleiste: Rückgängig", u"Sidebar: Undo",
-                            {Key(ui::VKEY_Z, kCmd)}, /*rebindable=*/false));
+                            {Key(ui::VKEY_Z, kCmd)}));
   for (int i = 1; i <= 4; ++i) {
     const std::u16string number = base::NumberToString16(i);
     catalog.push_back(Command(
@@ -301,7 +303,8 @@ void SetRecordingActive(bool active) {
 }
 
 bool IsRecordingActive() {
-  return !RecordingUntil().is_null() && base::TimeTicks::Now() < RecordingUntil();
+  return !RecordingUntil().is_null() &&
+         base::TimeTicks::Now() < RecordingUntil();
 }
 
 std::u16string CommandTitle(const ShortcutCommand& command) {
@@ -338,6 +341,11 @@ const ShortcutCommand* FindCommand(std::string_view id) {
     }
   }
   return nullptr;
+}
+
+bool ShownInCommandBar(const ShortcutCommand& command) {
+  return command.rebindable && command.id != kCommandBar &&
+         command.id != kCommandBarNewTab;
 }
 
 std::optional<size_t> IndexedCommandIndex(std::string_view id,
@@ -453,7 +461,9 @@ Conflict CheckBinding(const Overrides& overrides,
   if (!IsValid(accelerator)) {
     return {.kind = ConflictKind::kInvalid};
   }
-  if (IsReservedBySystem(accelerator)) {
+  if (IsReservedBySystem(accelerator) ||
+      (sources.is_system_accelerator &&
+       sources.is_system_accelerator.Run(accelerator))) {
     return {.kind = ConflictKind::kReservedBySystem};
   }
   if (std::optional<std::string> owner =
@@ -518,13 +528,21 @@ bool ResetToDefault(PrefService* prefs, std::string_view id) {
   }
   // The default may meanwhile be bound to another command; that command
   // keeps it, and this one is not reset instead of taking it silently.
+  // Every other command is checked: the first catalog match for a key may
+  // be this command's own default, which hides a later command's override.
   Overrides others = ReadOverrides(*prefs);
   others.erase(std::string(id));
-  for (const ui::Accelerator& accelerator : command->defaults) {
-    const std::optional<std::string> owner =
-        CommandForAccelerator(others, accelerator);
-    if (owner && *owner != id) {
-      return false;
+  for (const ShortcutCommand& other : Catalog()) {
+    if (other.id == id) {
+      continue;
+    }
+    for (const ui::Accelerator& bound :
+         EffectiveAccelerators(others, other.id)) {
+      for (const ui::Accelerator& accelerator : command->defaults) {
+        if (SameKey(bound, accelerator)) {
+          return false;
+        }
+      }
     }
   }
   ScopedDictPrefUpdate(prefs, kShortcutBindingsPref)->Remove(id);

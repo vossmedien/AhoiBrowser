@@ -20,7 +20,7 @@ namespace {
 class SidebarTabDensityTest : public views::ViewsTestBase {};
 
 TEST_F(SidebarTabDensityTest, SavedRemoteAndSplitRowsShareSemanticHeight) {
-  EXPECT_EQ(40, visual_style::kSidebarTabRowHeight);
+  EXPECT_EQ(36, visual_style::kSidebarTabRowHeight);
   EXPECT_EQ(visual_style::kSidebarTabRowHeight, SidebarTreeRowView::kRowHeight);
 
   RemoteTabRowModel remote_model;

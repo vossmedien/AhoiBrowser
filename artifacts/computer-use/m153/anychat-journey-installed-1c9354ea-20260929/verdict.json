@@ -1,0 +1,13 @@
+{
+ "storeShowsApprovedVersion": true,
+ "promptScopeMatchesApproval": true,
+ "installedApprovedVersion": true,
+ "hostsWithinApproval": true,
+ "permissionsWithinApproval": true,
+ "extensionRunning": true,
+ "newTabIsAnyChat": true,
+ "runningAfterRestart": true,
+ "noFileAccessNorOptionalGrants": true,
+ "ownerProfileUntouched": true,
+ "pass": true
+}

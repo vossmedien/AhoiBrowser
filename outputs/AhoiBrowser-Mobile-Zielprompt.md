@@ -4,6 +4,14 @@
 > 31. August 2026. Tatsächliche Portal-, Geräte- und Buildzustände sind vor
 > jeder Mutation erneut zu prüfen und mit zeitgestempelter Evidenz zu binden.
 
+## Verbindlicher Produktabgleich vom 12. September 2026
+
+Die bestätigten Ergänzungen im [Master-Zielprompt](AhoiBrowser-Master-Zielprompt.md) sind Teil des Gesamtziels. Hohe Priorität haben vollständige normale Split-Anordnungen und Archivierung samt Wiederherstellung **zwischen Desktop-Installationen**. Mobile bewahrt bekannte gemeinsame Split-/Archiv-/Home-/Einstellungsmetadaten bei Lesen und unterstützten Änderungen verlustfrei; normales Öffnen eines Gruppenmitglieds löst keine Desktop-Gruppe auf. Eine mobile Split-Ansicht oder ein Kartenpager ist keine v1-Pflicht. Eine spätere iPad-/iPhone-UX-Entscheidung darf nicht aus fehlender Darstellung auf Löschung schließen.
+
+Gespeicherte Ausgangsadressen, explizite native Linkvorschau/Peek, Reader, Markdown-Linkkopie, Aufgabenhilfe und die optionale Geräteauthentifizierung des lokalen privaten Bereichs werden in die bestehenden Browseroberflächen integriert. Reader ist damit verbindlich, nicht mehr nur ein zu bewertender Kandidat. Der Privatsperrvertrag im Master gilt einschließlich opaker Snapshot-/Accessibility-Abschirmung, sicherem Auth-Abbruch und Erhalt der flüchtigen Session bis zu deren tatsächlichem Ende. Ein optionaler Nutzerschalter ist keine optionale Implementierung.
+
+Mobile erhält keine macOS-Quick-Window-Fenster und keine Chromium-Extensions. Eingehende URLs werden weiterhin vor dem einmaligen Öffnen normalisiert/dedupliziert. Die bisherige gemeinsame persistente normale WebKit-Sitzung bleibt maßgeblich; mobile Workspace-Auswahl darf ohne implementierte native Isolation keine getrennten Website-Accounts versprechen. Alle privaten Sessions, Cookies, Credentials und native Laufzeitzustände bleiben außerhalb des gemeinsamen Struktur-Sync. Die aktuelle Eigentümerschaft und Kandidatenevidenz bestimmt weiterhin der Mobile-/Sync-Checkpoint.
+
 ## Verbindlicher Ausführungszusatz: parallele Mobile-Abschlusswelle
 
 Dieser Zusatz ist für die aktuelle Abschlusswelle vorrangig, soweit ältere,
@@ -282,8 +290,9 @@ unter `artifacts/e2e/<candidate>/` geführt und dürfen den Katalog nicht
 - keine Arc-Marke, keine fremden Assets und kein pixelgenauer Klon;
 - kein verpflichtender AI-Antwortdienst wie Browse for Me;
 - kein Arc-Account und keine von Arc abgeleitete Sync-Architektur;
-- kein stilles Auto-Archivieren oder Löschen; Aufräumen nur opt-in mit Vorschau
-  und Undo;
+- keine stillschweigende endgültige Löschung; Archivrichtlinien werden bewusst
+  gewählt und normale Archivdaten bleiben wiederherstellbar. Der Desktop-
+  Archivierungsvertrag und mobile Metadatenerhalt folgen dem Master;
 - kein Zertifikats-Bypass, kein stilles Öffnen fremder Apps und kein eigener
   Netzwerk-, TLS-, Cookie- oder Rendering-Stack;
 - kein breiter Ad-/Tracker-/Cookie-Banner-Blocker in dieser Welle, solange
@@ -409,14 +418,15 @@ um erneut zwischen Produktkonzepten wählen zu lassen.
 - Workspace-Gesten beginnen nur in konfliktfreien Bereichen und verdrängen
   keine WebKit-Navigation;
 - komplexe Baumoperationen erhalten klare Sheets und Edit-Modi;
-- Desktop-Splits werden höchstens zu einem speichersicheren iPad-Zwei-Pane-
-  Modus.
+- Desktop-Split-Metadaten bleiben vollständig erhalten. Eine eigene iPad-/
+  iPhone-Mehrseitenansicht wird gesondert auf praktischen Nutzen geprüft und
+  ist keine Voraussetzung für Desktop-Sync oder Mobile-v1.
 
 ### Nach stabilem Kern bewerten
 
-- Reader, Übersetzung, Picture-in-Picture, Handoff/NSUserActivity;
+- Übersetzung, Picture-in-Picture, Handoff/NSUserActivity; Reader gehört bereits
+  zum verbindlichen Produktabgleich vom 12. September;
 - Share Extension, Spotlight, Home-/Lock-Screen-Widgets;
-- opt-in Tab-Aufräumen mit Vorschau und Undo;
 - Split-Webansicht auf iPad.
 
 ### Bewusst nicht migrieren
@@ -1021,6 +1031,11 @@ Exitcode, Toolchain, Zielgerät und `.xcresult`; ein generisches Beispiel ist
 keine ausgeführte Evidenz.
 
 ### Sichtbare Browserjourneys
+
+Zusätzlich gelten die mobilen Anteile von `WORKFLOW-02`, `WORKFLOW-05`,
+`WORKFLOW-07` und `WORKFLOW-08` des Masters: Home-/Peek-/Reader-/Kopierabläufe,
+verlustfreier Desktop-Metadatenerhalt und lokale Privatsperre. Geeignete bestehende
+Journeys können dieselben Nachweise liefern. Keine mobile Split-UI-Testmatrix.
 
 - `MOB-USER-01`: AhoiBrowser Mobile kalt starten, URL eingeben, HTTPS-
   Navigation und sichtbare Origin-Zuordnung im aktiven WebKit-Tab prüfen;

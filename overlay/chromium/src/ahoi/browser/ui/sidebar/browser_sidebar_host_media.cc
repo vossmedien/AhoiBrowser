@@ -8,6 +8,7 @@
 #include "ahoi/browser/ui/appearance/appearance_policy.h"
 #include "ahoi/browser/ui/appearance/appearance_prefs.h"
 #include "ahoi/browser/ui/appearance/appearance_views.h"
+#include "ahoi/browser/ui/appearance/glass_material.h"
 #include "ahoi/browser/ui/appearance/sidebar_page_tint.h"
 #include "ahoi/browser/ui/media/media_mini_player_view.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
@@ -100,20 +101,20 @@ void BrowserSidebarHostView::OnAppearanceChanged(
   if (reduced_motion_) {
     CancelWorkspaceTransition();
   }
-  appearance::SurfaceAppearance surface =
-      appearance::AppearanceResolver::Resolve(appearance::SurfaceRole::kSidebar,
-                                              policy);
-  // A backdrop filter on the full-height docked surface samples Chromium's
-  // saturated frame color outside the sidebar bounds on macOS. Keep the
-  // docked material translucent, but reserve compositor blur for the smaller
-  // floating sidebar where its backdrop is the actual browser content.
-  if (surface.uses_glass() &&
-      GetPresentationMode(*browser_->GetProfile()->GetPrefs()) ==
-          SidebarPresentationMode::kDocked) {
-    surface.background_color = ui::kColorSysSurfaceVariant;
-    surface.opacity = 0.90f;
-    surface.background_blur_sigma = 0.0f;
-  }
+  // Docked, the Sidebar rests on the window's native Liquid Glass backdrop
+  // and paints only a thin milky veil: frame and Sidebar read as one
+  // continuous pane, and no second (compositor) blur muddies the glass.
+  // Floating, it hovers over the content card and uses compositor glass.
+  const bool floating =
+      GetPresentationMode(*browser_->GetProfile()->GetPrefs()) !=
+      SidebarPresentationMode::kDocked;
+  const bool native_glass = appearance::IsNativeBackdropAvailable();
+  const appearance::SurfaceAppearance surface =
+      appearance::ResolveHostedSurfaceAppearance(
+          appearance::SurfaceRole::kSidebar,
+          appearance::DefaultHostForRole(appearance::SurfaceRole::kSidebar,
+                                         floating),
+          policy, native_glass);
   surface_corner_radius_ = surface.corner_radius;
   appearance::ApplySurfaceAppearance(
       this, surface, appearance::SurfaceCornerOwnership::kCaller);
@@ -132,8 +133,11 @@ void BrowserSidebarHostView::OnAppearanceChanged(
   }
   if (mini_player_view_) {
     mini_player_view_->SetSurfaceAppearance(
-        appearance::AppearanceResolver::Resolve(
-            appearance::SurfaceRole::kMiniPlayer, policy));
+        appearance::ResolveHostedSurfaceAppearance(
+            appearance::SurfaceRole::kMiniPlayer,
+            appearance::DefaultHostForRole(
+                appearance::SurfaceRole::kMiniPlayer, floating),
+            policy, native_glass));
   }
   // Semantic base colors and accessibility policy changed. Snap to the newly
   // resolved endpoint instead of blending through an obsolete theme.

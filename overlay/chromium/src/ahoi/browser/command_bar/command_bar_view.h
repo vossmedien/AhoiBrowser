@@ -13,6 +13,7 @@
 
 #include "ahoi/browser/command_bar/command_bar_types.h"
 #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
+#include "ahoi/browser/ui/appearance/native_panel_material.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -33,6 +34,7 @@ class PrefService;
 
 namespace ahoi {
 
+class CommandBarInputFocusRing;
 class CommandBarResultRow;
 
 // Content view hosted by a separate BubbleDialogDelegate. Keeping the delegate
@@ -81,6 +83,11 @@ class CommandBarView : public views::View, public views::TextfieldController {
   bool row_selected_for_testing(size_t index) const;
   bool HandleKeyEventForTesting(const ui::KeyEvent& event);
   bool HandleResultKeyEventForTesting(size_t index, const ui::KeyEvent& event);
+  bool input_focus_ring_showing_for_testing() const;
+
+  // views::View:
+  gfx::Size CalculatePreferredSize(
+      const views::SizeBounds& available_size) const override;
 
   // views::TextfieldController:
   void ContentsChanged(views::Textfield* sender,
@@ -117,9 +124,12 @@ class CommandBarView : public views::View, public views::TextfieldController {
 
   raw_ptr<views::Textfield> textfield_ = nullptr;
   raw_ptr<views::View> results_view_ = nullptr;
+  std::unique_ptr<CommandBarInputFocusRing> input_focus_ring_;
   std::vector<raw_ptr<CommandBarResultRow>> rows_;
   std::vector<CommandBarSuggestion> suggestions_;
   std::optional<size_t> selected_index_;
+  appearance::NativePanelMaterial panel_material_{
+      appearance::SurfaceRole::kCommandBar};
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>
       appearance_signal_source_;
   base::WeakPtrFactory<CommandBarView> weak_ptr_factory_{this};

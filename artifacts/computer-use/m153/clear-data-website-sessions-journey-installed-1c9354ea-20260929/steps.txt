@@ -1,0 +1,342 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+frontmost -> 0
+hidkey 17
+typed 38
+hidkey 36
+account login.html?kunde: acct=kunde|kunde
+loginInOwnWorkspace -> true
+key 53
+AXShowMenu AXButton | Kunde, Workspace wechseln | Kunde, Workspace wechseln -> -25204
+AXPress AXButton | Inbox | Inbox -> 0
+frontmost -> 0
+hidkey 17
+typed 38
+hidkey 36
+account login.html?inbox: acct=inbox|inbox
+loginInSharedWorkspace -> true
+partition dirs before: AF5E6EA4C60E 
+ownPartitionOnDisk -> true
+frontmost -> 0
+hidkey 17
+typed 34
+hidkey 36
+clearBrowsingData: done
+clearBrowsingDataRan -> true
+frontmost -> 0
+hidkey 17
+typed 44
+hidkey 36
+account check.html?inbox-after: |
+sharedLoggedOut -> true
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Kunde – Eigene Website-Sitzungen | itemSelected: -> 0
+frontmost -> 0
+hidkey 17
+typed 44
+hidkey 36
+account check.html?kunde-after: |
+ownWorkspaceLoggedOut -> true
+frontmost -> 0
+hidkey 17
+typed 39
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 39
+hidkey 36
+account login.html?site-a: acct=site-a|site-a
+account login.html?site-b: acct=site-b|site-b
+perSiteSetup -> true
+frontmost -> 0
+hidkey 17
+typed 29
+hidkey 36
+clearUnpartitionedUsage: sent
+frontmost -> 0
+hidkey 17
+typed 45
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 45
+hidkey 36
+account check.html?site-a-after: |
+siteDataDeleted -> true
+account check.html?site-b-after: acct=site-b|site-b
+otherSiteKept -> true
+frontmost -> 0
+hidkey 17
+typed 42
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 42
+hidkey 36
+account login.html?sub-a: 
+subdomainSetup -> false
+frontmost -> 0
+hidkey 17
+typed 29
+hidkey 36
+clearUnpartitionedUsage (subdomain): sent
+frontmost -> 0
+hidkey 17
+typed 48
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 48
+hidkey 36
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+account check.html?sub-a-after: 
+subdomainDataDeleted -> false
+account check.html?sub-b-after: 
+siblingSubdomainKept -> false
+partition dirs after: AF5E6EA4C60E 
+noPartitionCreated -> true
+hidkey 12
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+frontmost -> 0
+hidkey 17
+typed 38
+hidkey 36
+account login.html?kunde: acct=kunde|kunde
+loginInOwnWorkspace -> true
+key 53
+AXShowMenu AXButton | Kunde, Workspace wechseln | Kunde, Workspace wechseln -> -25204
+AXPress AXButton | Inbox | Inbox -> 0
+frontmost -> 0
+hidkey 17
+typed 38
+hidkey 36
+account login.html?inbox: acct=inbox|inbox
+loginInSharedWorkspace -> true
+partition dirs before: 6EEC79679DBB 
+ownPartitionOnDisk -> true
+frontmost -> 0
+hidkey 17
+typed 34
+hidkey 36
+clearBrowsingData: done
+clearBrowsingDataRan -> true
+frontmost -> 0
+hidkey 17
+typed 44
+info: typed text missing, retyping
+hidkey 0
+typed 44
+hidkey 36
+account check.html?inbox-after: |
+sharedLoggedOut -> true
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Kunde – Eigene Website-Sitzungen | itemSelected: -> 0
+frontmost -> 0
+hidkey 17
+typed 44
+hidkey 36
+account check.html?kunde-after: |
+ownWorkspaceLoggedOut -> true
+frontmost -> 0
+hidkey 17
+typed 39
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 39
+hidkey 36
+account login.html?site-a: acct=site-a|site-a
+account login.html?site-b: acct=site-b|site-b
+perSiteSetup -> true
+frontmost -> 0
+hidkey 17
+typed 29
+hidkey 36
+clearUnpartitionedUsage: sent
+frontmost -> 0
+hidkey 17
+typed 45
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 45
+hidkey 36
+account check.html?site-a-after: |
+siteDataDeleted -> true
+account check.html?site-b-after: acct=site-b|site-b
+otherSiteKept -> true
+frontmost -> 0
+hidkey 17
+typed 46
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 46
+hidkey 36
+account login.html?sub-a: acct=sub-a|sub-a
+account login.html?sub-b: |
+subdomainSetup -> false
+frontmost -> 0
+hidkey 17
+typed 29
+hidkey 36
+clearUnpartitionedUsage (subdomain): sent
+frontmost -> 0
+hidkey 17
+typed 52
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 52
+hidkey 36
+account check.html?sub-a-after: |
+subdomainDataDeleted -> true
+account check.html?sub-b-after: acct=sub-b|sub-b
+siblingSubdomainKept -> true
+partition dirs after: 6EEC79679DBB 
+noPartitionCreated -> true
+hidkey 12
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Kunde -> 0 now=Kunde
+AXPress AXRadioButton | Eigene Website-Sitzungen | Eigene Website-Sitzungen | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+frontmost -> 0
+hidkey 17
+typed 38
+hidkey 36
+account login.html?kunde: acct=kunde|kunde
+loginInOwnWorkspace -> true
+key 53
+AXShowMenu AXButton | Kunde, Workspace wechseln | Kunde, Workspace wechseln -> -25204
+AXPress AXButton | Inbox | Inbox -> 0
+frontmost -> 0
+hidkey 17
+typed 38
+hidkey 36
+account login.html?inbox: acct=inbox|inbox
+loginInSharedWorkspace -> true
+partition dirs before: 93454D5C2710 
+ownPartitionOnDisk -> true
+frontmost -> 0
+hidkey 17
+typed 34
+hidkey 36
+clearBrowsingData: done
+clearBrowsingDataRan -> true
+frontmost -> 0
+hidkey 17
+typed 44
+hidkey 36
+account check.html?inbox-after: |
+sharedLoggedOut -> true
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Kunde – Eigene Website-Sitzungen | itemSelected: -> 0
+frontmost -> 0
+hidkey 17
+typed 44
+hidkey 36
+account check.html?kunde-after: |
+ownWorkspaceLoggedOut -> true
+frontmost -> 0
+hidkey 17
+typed 39
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 39
+hidkey 36
+account login.html?site-a: acct=site-a|site-a
+account login.html?site-b: acct=site-b|site-b
+perSiteSetup -> true
+frontmost -> 0
+hidkey 17
+typed 29
+hidkey 36
+clearUnpartitionedUsage: sent
+frontmost -> 0
+hidkey 17
+typed 45
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 45
+hidkey 36
+account check.html?site-a-after: |
+siteDataDeleted -> true
+account check.html?site-b-after: acct=site-b|site-b
+otherSiteKept -> true
+frontmost -> 0
+hidkey 17
+typed 46
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 46
+hidkey 36
+account login.html?sub-a: acct=sub-a|sub-a
+account login.html?sub-b: acct=sub-b|sub-b
+subdomainSetup -> true
+frontmost -> 0
+hidkey 17
+typed 29
+info: typed text missing, retyping
+hidkey 0
+typed 29
+hidkey 36
+clearUnpartitionedUsage (subdomain): sent
+frontmost -> 0
+hidkey 17
+typed 52
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 52
+hidkey 36
+account check.html?sub-a-after: |
+subdomainDataDeleted -> true
+account check.html?sub-b-after: acct=sub-b|sub-b
+siblingSubdomainKept -> true
+partition dirs after: 93454D5C2710 
+noPartitionCreated -> true
+hidkey 12

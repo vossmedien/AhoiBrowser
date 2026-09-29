@@ -1,0 +1,11 @@
+127.0.0.1 - - [25/Sep/2026 23:50:43] "GET /page.html HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 23:50:44] code 404, message File not found
+127.0.0.1 - - [25/Sep/2026 23:50:44] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [25/Sep/2026 23:50:46] "GET /target.html HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 23:50:53] "GET /target.html HTTP/1.1" 304 -
+127.0.0.1 - - [25/Sep/2026 23:51:16] "GET /page.html?saved HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 23:51:16] code 404, message File not found
+127.0.0.1 - - [25/Sep/2026 23:51:16] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [25/Sep/2026 23:51:21] "GET /target.html HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 23:51:24] "GET /target.html HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 23:51:29] "GET /target.html?command HTTP/1.1" 200 -

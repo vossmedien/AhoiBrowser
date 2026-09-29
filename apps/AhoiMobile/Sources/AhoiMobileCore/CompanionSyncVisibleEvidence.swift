@@ -194,10 +194,14 @@ final class CompanionSyncVisibleUITestRuntime {
         self.transport = transport
         self.recordStore = recordStore
         self.payloadCodec = CompanionPayloadCodec(sealer: sealer)
+        // The deterministic single-device projection has no peer roster and
+        // no server receipt; it proves encryption/outbox evidence, not the
+        // capability negotiation covered by SharedTabWriterGateTests.
         self.bridge = CompanionSyncBridge(
             repository: repository,
             transport: transport,
-            sealer: sealer
+            sealer: sealer,
+            sharedTabWriterGateOpen: true
         )
         self.conflictRequested = arguments.contains(Self.conflictArgument)
         self.conflictState = conflictRequested ? .pending : .notRequested

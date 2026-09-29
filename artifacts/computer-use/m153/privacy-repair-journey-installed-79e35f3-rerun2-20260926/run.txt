@@ -1,0 +1,6 @@
+manual=-25205 enhanced=-25208
+NOT FOUND
+AXPress AXButton | Show address bar | Show address bar -> 0
+AXPress AXButton | Datenschutzmodus: Mehr Schutz | Datenschutzmodus: Mehr Schutz -> 0
+AXPress AXButton | Kompatibilität für diese Website maximieren | Kompatibilität für diese Website maximieren -> 0
+stored=chromium-compatible top_gpc_sequence=1,1

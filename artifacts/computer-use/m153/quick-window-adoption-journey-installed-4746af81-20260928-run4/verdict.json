@@ -1,0 +1,13 @@
+{
+ "quickWindowOpened": true,
+ "notInTreeBeforeAdoption": true,
+ "adoptOffered": true,
+ "sameWebContents": true,
+ "pageStateKeptNoReload": true,
+ "quickWindowClosed": false,
+ "adoptedIntoSidebar": true,
+ "adoptNotOfferedAgain": false,
+ "singleAdoptedPage": true,
+ "closeKeepsSession": true,
+ "pass": false
+}

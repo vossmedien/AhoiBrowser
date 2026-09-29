@@ -1,0 +1,16 @@
+{
+ "loginInOwnWorkspace": true,
+ "loginInSharedWorkspace": true,
+ "ownPartitionOnDisk": true,
+ "clearBrowsingDataRan": true,
+ "sharedLoggedOut": true,
+ "ownWorkspaceLoggedOut": true,
+ "perSiteSetup": true,
+ "siteDataDeleted": true,
+ "otherSiteKept": true,
+ "subdomainSetup": true,
+ "subdomainDataDeleted": true,
+ "siblingSubdomainKept": true,
+ "noPartitionCreated": true,
+ "pass": true
+}

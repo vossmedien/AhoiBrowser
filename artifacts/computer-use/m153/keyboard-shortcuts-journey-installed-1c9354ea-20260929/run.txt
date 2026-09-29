@@ -1,0 +1,7 @@
+pid=49474 profile=/private/tmp/ahoi-shortcut-profile.jIj6im
+pid=86765 profile=/private/tmp/ahoi-shortcut-profile.KtNUB7
+pid=94256 profile=/private/tmp/ahoi-shortcut-profile.KtNUB7
+pid=27262 profile=/private/tmp/ahoi-shortcut-profile.vev3zv
+pid=32568 profile=/private/tmp/ahoi-shortcut-profile.vev3zv
+pid=77801 profile=/private/tmp/ahoi-shortcut-profile.9OaXAK
+pid=83145 profile=/private/tmp/ahoi-shortcut-profile.9OaXAK
