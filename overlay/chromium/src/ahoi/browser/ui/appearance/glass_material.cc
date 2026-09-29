@@ -170,4 +170,32 @@ NativeBackdropSpec ResolveNativeBackdrop(SurfaceHost host,
   return spec;
 }
 
+SkColor ResolveGlassHairline(bool dark) {
+  return SkColorSetA(SK_ColorWHITE,
+                     ToAlpha(dark ? glass_tokens::kHairlineDark
+                                  : glass_tokens::kHairlineLight));
+}
+
+ElevationShadow ResolveElevationShadow(Elevation elevation, bool dark) {
+  namespace t = glass_tokens;
+  switch (elevation) {
+    case Elevation::kWindow:
+      return {t::kWindowShadowY, t::kWindowShadowBlur,
+              SkColorSetA(t::kWindowShadowColor,
+                          ToAlpha(dark ? t::kWindowShadowDark
+                                       : t::kWindowShadowLight))};
+    case Elevation::kPanel:
+      return {t::kPanelShadowY, t::kPanelShadowBlur,
+              SkColorSetA(t::kSurfaceShadowColor,
+                          ToAlpha(dark ? t::kPanelShadowDark
+                                       : t::kPanelShadowLight))};
+    case Elevation::kContentCard:
+      return {t::kContentCardShadowY, t::kContentCardShadowBlur,
+              SkColorSetA(t::kSurfaceShadowColor,
+                          ToAlpha(dark ? t::kContentCardShadowDark
+                                       : t::kContentCardShadowLight))};
+  }
+  return {};
+}
+
 }  // namespace ahoi::appearance

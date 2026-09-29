@@ -37,6 +37,10 @@ float Alpha(SkColor color) {
   return SkColorGetA(color) / 255.0f;
 }
 
+unsigned ShadowAlpha(Elevation elevation, bool dark) {
+  return SkColorGetA(ResolveElevationShadow(elevation, dark).color);
+}
+
 TEST(GlassMaterialTest, RolesLiveOnTheirContractHosts) {
   EXPECT_EQ(SurfaceHost::kWindowBackdrop,
             DefaultHostForRole(SurfaceRole::kBrowserChrome));
@@ -246,6 +250,67 @@ TEST(GlassMaterialTest, IncreaseContrastOutlinesOnlyFloatingSurfaces) {
                                                 GlassPolicy(), true)
                      .border_thickness);
   }
+}
+
+// DESIGN_SPEC 2026-09-29, geometry and material tables.
+TEST(GlassMaterialTest, GeometryTokensMatchTheDesignSpec) {
+  EXPECT_EQ(14, glass_tokens::kEmbeddedRadius);
+  EXPECT_EQ(18, glass_tokens::kPanelRadius);
+  EXPECT_EQ(8, glass_tokens::kRowRadius);
+  EXPECT_EQ(6, glass_tokens::kRowInset);
+  EXPECT_EQ(22, glass_tokens::kWindowRadius);
+}
+
+TEST(GlassMaterialTest, HairlineIsTranslucentWhite) {
+  const SkColor light = ResolveGlassHairline(false);
+  const SkColor dark = ResolveGlassHairline(true);
+  EXPECT_EQ(SK_ColorWHITE, SkColorSetA(light, SK_AlphaOPAQUE));
+  EXPECT_EQ(SK_ColorWHITE, SkColorSetA(dark, SK_AlphaOPAQUE));
+  EXPECT_EQ(115u, SkColorGetA(light));  // 45 %
+  EXPECT_EQ(36u, SkColorGetA(dark));    // 14 %
+}
+
+TEST(GlassMaterialTest, ElevationShadowsFollowTheSpec) {
+  const ElevationShadow window =
+      ResolveElevationShadow(Elevation::kWindow, false);
+  EXPECT_EQ(16, window.y_offset);
+  EXPECT_EQ(48, window.blur);
+  EXPECT_EQ(SkColorSetARGB(41, 10, 28, 34), window.color);
+  EXPECT_EQ(82u, ShadowAlpha(Elevation::kWindow, true));
+
+  const ElevationShadow panel =
+      ResolveElevationShadow(Elevation::kPanel, true);
+  EXPECT_EQ(12, panel.y_offset);
+  EXPECT_EQ(32, panel.blur);
+  EXPECT_EQ(SkColorSetARGB(102, 8, 25, 30), panel.color);
+  EXPECT_EQ(46u, ShadowAlpha(Elevation::kPanel, false));
+
+  const ElevationShadow card =
+      ResolveElevationShadow(Elevation::kContentCard, false);
+  EXPECT_EQ(2, card.y_offset);
+  EXPECT_EQ(8, card.blur);
+  EXPECT_EQ(15u, SkColorGetA(card.color));
+  EXPECT_EQ(46u, ShadowAlpha(Elevation::kContentCard, true));
+  // Dark appearance always needs the deeper shadow.
+  for (Elevation elevation :
+       {Elevation::kWindow, Elevation::kPanel, Elevation::kContentCard}) {
+    EXPECT_GT(ShadowAlpha(elevation, true), ShadowAlpha(elevation, false));
+  }
+}
+
+TEST(GlassMaterialTest, MaterialAlphasMatchTheDesignSpec) {
+  EXPECT_FLOAT_EQ(0.42f, glass_tokens::kBackdropTintLight);
+  EXPECT_FLOAT_EQ(0.40f, glass_tokens::kBackdropTintDark);
+  EXPECT_FLOAT_EQ(0.30f, glass_tokens::kWindowFoundation);
+  EXPECT_FLOAT_EQ(0.22f, glass_tokens::kSidebarVeil);
+  EXPECT_FLOAT_EQ(0.40f, glass_tokens::kMiniPlayerVeil);
+  EXPECT_FLOAT_EQ(0.30f, glass_tokens::kPanelTintLight);
+  EXPECT_FLOAT_EQ(0.34f, glass_tokens::kPanelTintDark);
+  EXPECT_FLOAT_EQ(0.32f, glass_tokens::kCommandBarVeil);
+  EXPECT_FLOAT_EQ(0.62f, glass_tokens::kOverWebMinimumTint);
+  EXPECT_FLOAT_EQ(0.55f, glass_tokens::kMilkLiftLight);
+  EXPECT_FLOAT_EQ(0.12f, glass_tokens::kMilkLiftDark);
+  EXPECT_FLOAT_EQ(0.08f, glass_tokens::kAccentShare);
 }
 
 }  // namespace
