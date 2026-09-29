@@ -64,6 +64,9 @@ open_url() { # <url> ; ⌘T + type + Return in the normal window
   done
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
   sleep 1; $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1; key 36
+  # A Return lost before the bar has key focus leaves the URL typed but
+  # unsubmitted (build-46 run); submit once more before giving up.
+  waiturl "$1" 5 || { echo "info: Return repeated" >> "$OUT/steps.txt"; key 36; }
   waiturl "$1" 20 || fail_setup "did not load $1"; sleep 2
 }
 
