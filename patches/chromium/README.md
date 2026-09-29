@@ -15,7 +15,11 @@ directory check runs off the UI thread under a new tracing task
 `kAhoiWebsiteSessions` (48, with its `enums.xml` label and histogram
 variant), which ends once the removals are queued. Site settings'
 `RemoveNonModelData` (per-site and site-group "Delete data") also removes
-those sites' cookies and storage from the own partitions on macOS. BUILD
+the same hosts' unpartitioned data from the own partitions on macOS, through
+a `BrowsingDataModel` of each partition, so sibling subdomains are kept.
+`RemoveAndReply` callers hear "done" before the queued partition removals
+finish, and clearing on exit is best effort there (known gap, see
+`docs/WORKSPACE_SESSIONS.md`). BUILD
 deps: `//ahoi/browser/session:website_session_browsing_data`. Tests:
 `website_session_browsing_data_unittest.cc` in `ahoi_session_unittests`.
 

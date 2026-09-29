@@ -51,6 +51,9 @@ class WebsiteSessionBrowsingDataTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    // Site data models are deleted soon after their removal completes; that
+    // must happen while their partitions still exist.
+    task_environment_.RunUntilIdle();
     remover()->SetEmbedderDelegate(nullptr);
     profile_.reset();
   }
@@ -118,6 +121,14 @@ class WebsiteSessionBrowsingDataTest : public ::testing::Test {
     std::vector<content::StoragePartitionConfig> reached = queued.Take();
     WaitForRemover();
     return reached;
+  }
+
+  // Returns once every partition's site data removal has completed.
+  std::vector<content::StoragePartitionConfig> RemoveSiteData(
+      const std::vector<url::Origin>& origins) {
+    base::test::TestFuture<std::vector<content::StoragePartitionConfig>> done;
+    RemoveWebsiteSessionSiteData(profile_.get(), origins, done.GetCallback());
+    return done.Take();
   }
 
   void WaitForRemover() {
@@ -241,20 +252,39 @@ TEST_F(WebsiteSessionBrowsingDataTest, IgnoresModifierOnlyAndEmptyFilters) {
   EXPECT_THAT(queued.Take(), IsEmpty());
 }
 
-TEST_F(WebsiteSessionBrowsingDataTest, SiteDataRemovalIsScopedToTheSite) {
+TEST_F(WebsiteSessionBrowsingDataTest, SiteDataRemovalKeepsSiblingHosts) {
   const WebsiteSessionBinding own = BindWorkspace(true);
   content::StoragePartition* partition = LoadPartition(own);
   ASSERT_TRUE(partition);
+  ASSERT_TRUE(AddCookie(partition, GURL("https://www.host1.com/")));
+  ASSERT_TRUE(AddCookie(partition, GURL("https://app.host1.com/")));
   ASSERT_TRUE(AddCookie(partition, GURL("https://host1.com/")));
   ASSERT_TRUE(AddCookie(partition, GURL("https://host2.com/")));
 
-  base::test::TestFuture<std::vector<content::StoragePartitionConfig>> queued;
-  RemoveWebsiteSessionSiteData(
-      profile_.get(), {url::Origin::Create(GURL("https://www.host1.com/"))},
-      queued.GetCallback());
-  EXPECT_THAT(queued.Take(), ElementsAre(Config(own)));
-  WaitForRemover();
+  // A site-details page clears its host only, like the default partition's
+  // BrowsingDataModel does, not the whole registrable domain.
+  EXPECT_THAT(RemoveSiteData({url::Origin::Create(
+                  GURL("https://www.host1.com/"))}),
+              ElementsAre(Config(own)));
+  EXPECT_THAT(CookieDomains(partition),
+              UnorderedElementsAre("app.host1.com", "host1.com", "host2.com"));
+}
 
+TEST_F(WebsiteSessionBrowsingDataTest, SiteGroupRemovalNamesEachHost) {
+  const WebsiteSessionBinding own = BindWorkspace(true);
+  content::StoragePartition* partition = LoadPartition(own);
+  ASSERT_TRUE(partition);
+  ASSERT_TRUE(AddCookie(partition, GURL("https://www.host1.com/")));
+  ASSERT_TRUE(AddCookie(partition, GURL("https://app.host1.com/")));
+  ASSERT_TRUE(AddCookie(partition, GURL("https://host1.com/")));
+  ASSERT_TRUE(AddCookie(partition, GURL("https://host2.com/")));
+
+  // A site group passes each of its origins and its eTLD+1.
+  EXPECT_THAT(
+      RemoveSiteData({url::Origin::Create(GURL("https://www.host1.com/")),
+                      url::Origin::Create(GURL("https://app.host1.com/")),
+                      url::Origin::Create(GURL("https://host1.com/"))}),
+      ElementsAre(Config(own)));
   EXPECT_THAT(CookieDomains(partition), ElementsAre("host2.com"));
 }
 
@@ -265,14 +295,20 @@ TEST_F(WebsiteSessionBrowsingDataTest, SiteDataRemovalCoversLocalHosts) {
   ASSERT_TRUE(AddCookie(partition, GURL("http://127.0.0.1:8080/")));
   ASSERT_TRUE(AddCookie(partition, GURL("https://host2.com/")));
 
-  base::test::TestFuture<std::vector<content::StoragePartitionConfig>> queued;
-  RemoveWebsiteSessionSiteData(
-      profile_.get(), {url::Origin::Create(GURL("http://127.0.0.1:8080/"))},
-      queued.GetCallback());
-  EXPECT_THAT(queued.Take(), ElementsAre(Config(own)));
-  WaitForRemover();
-
+  EXPECT_THAT(
+      RemoveSiteData({url::Origin::Create(GURL("http://127.0.0.1:8080/"))}),
+      ElementsAre(Config(own)));
   EXPECT_THAT(CookieDomains(partition), ElementsAre("host2.com"));
+}
+
+TEST_F(WebsiteSessionBrowsingDataTest, SiteDataRemovalNeverCreatesAPartition) {
+  const WebsiteSessionBinding own = BindWorkspace(true);
+
+  EXPECT_THAT(
+      RemoveSiteData({url::Origin::Create(GURL("https://host1.com/"))}),
+      IsEmpty());
+  EXPECT_FALSE(IsLoaded(own));
+  EXPECT_FALSE(base::PathExists(PathOf(own)));
 }
 
 }  // namespace

@@ -11,7 +11,7 @@ index 5181cf3a..688d1e4f 100644
        "//chrome/browser/ui/browser_window",
        "//chrome/browser/ui/tabs:tab_strip",
 diff --git a/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc b/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc
-index 1cd494a5..2df64f2c 100644
+index 1cd494a5..2ba914cf 100644
 --- a/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc
 +++ b/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc
 @@ -12,6 +12,7 @@
@@ -22,7 +22,7 @@ index 1cd494a5..2df64f2c 100644
  #include "base/barrier_closure.h"
  #include "base/check_deref.h"
  #include "base/containers/flat_set.h"
-@@ -1457,6 +1458,23 @@ void ChromeBrowsingDataRemoverDelegate::RemoveEmbedderData(
+@@ -1457,6 +1458,26 @@ void ChromeBrowsingDataRemoverDelegate::RemoveEmbedderData(
        }
      }
    }
@@ -33,7 +33,10 @@ index 1cd494a5..2df64f2c 100644
 +  // storage in a persistent non-default StoragePartition. Like the IWA
 +  // partitions above, a removal that names no StoragePartition also reaches
 +  // every existing one of them; none is created for it. This task ends once
-+  // those removals are queued, since nested Remove calls are not supported.
++  // those removals are queued, since nested Remove calls are not supported,
++  // so RemoveAndReply callers (the Settings dialog, chrome.browsingData, BTM)
++  // hear "done" before the Workspace partitions are cleared. The queued
++  // removals hold no keep-alive: clearing on exit may not reach them.
 +  if (!filter_builder->GetStoragePartitionConfig().has_value() &&
 +      !profile_->IsOffTheRecord()) {
 +    ahoi::session::RemoveWebsiteSessionPartitionData(
@@ -46,7 +49,7 @@ index 1cd494a5..2df64f2c 100644
  #endif  // !BUILDFLAG(IS_ANDROID)
  
    //////////////////////////////////////////////////////////////////////////////
-@@ -1647,6 +1665,8 @@ const char* ChromeBrowsingDataRemoverDelegate::GetHistogramSuffix(
+@@ -1647,6 +1668,8 @@ const char* ChromeBrowsingDataRemoverDelegate::GetHistogramSuffix(
        return "MediaDeviceSalts";
      case TracingDataType::kPrivateVerificationTokens:
        return "PrivateVerificationTokens";
@@ -84,7 +87,7 @@ index 6828b02a..d121cce6 100644
      ]
    }
 diff --git a/chrome/browser/ui/webui/settings/site_settings_handler.cc b/chrome/browser/ui/webui/settings/site_settings_handler.cc
-index 4ada2bea..c8816c7e 100644
+index 4ada2bea..e7ad6755 100644
 --- a/chrome/browser/ui/webui/settings/site_settings_handler.cc
 +++ b/chrome/browser/ui/webui/settings/site_settings_handler.cc
 @@ -137,6 +137,10 @@
@@ -98,14 +101,15 @@ index 4ada2bea..c8816c7e 100644
  #if BUILDFLAG(IS_WIN)
  #include "chrome/browser/media/cdm_document_service_impl.h"
  #endif
-@@ -2648,6 +2652,14 @@ void SiteSettingsHandler::RemoveNonModelData(
+@@ -2648,6 +2652,15 @@ void SiteSettingsHandler::RemoveNonModelData(
      return;
    }
  
 +#if BUILDFLAG(IS_MAC)
 +  // Ahoi: the BrowsingDataModel covers only the default StoragePartition.
-+  // Workspaces with their own website sessions keep these sites' cookies and
-+  // storage in their own partitions; existing ones are cleared as well.
++  // Workspaces with their own website sessions keep these origins' cookies
++  // and storage in their own partitions; a model of each existing one
++  // removes the same hosts' unpartitioned data there as well.
 +  ahoi::session::RemoveWebsiteSessionSiteData(profile_, origins,
 +                                              base::DoNothing());
 +#endif

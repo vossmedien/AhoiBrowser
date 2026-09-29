@@ -117,8 +117,8 @@ source_set("website_session_browsing_data") {
   deps = [
     ":website_session_context",
     "//chrome/browser/profiles:profile",
+    "//components/browsing_data/content",
     "//components/prefs",
-    "//net",
     "//url",
   ]
 }

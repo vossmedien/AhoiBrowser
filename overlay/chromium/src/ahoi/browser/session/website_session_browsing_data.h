@@ -58,13 +58,20 @@ void RemoveWebsiteSessionPartitionData(
     content::BrowsingDataFilterBuilder& filter_builder,
     WebsiteSessionRemovalsQueuedCallback queued);
 
+// Receives the partitions whose site data was removed, possibly none.
+using WebsiteSessionSiteDataRemovedCallback =
+    base::OnceCallback<void(std::vector<content::StoragePartitionConfig>)>;
+
 // Settings' per-site "Delete data" goes through a BrowsingDataModel of the
-// default partition only. This removes the cookies and site storage of the
-// sites of `origins` (registrable domain, or host for IP addresses and
-// internal names) from every existing own website-session partition.
+// default partition only. This removes the same unpartitioned data from
+// every existing own website-session partition, with the same granularity:
+// a BrowsingDataModel of each partition removes the data owned by each
+// origin's host (or by the origin itself for non-web schemes), so data of a
+// sibling subdomain or of the registrable domain stays unless it is named.
+// `done` runs once every partition's removal has completed.
 void RemoveWebsiteSessionSiteData(Profile* profile,
                                   const std::vector<url::Origin>& origins,
-                                  WebsiteSessionRemovalsQueuedCallback queued);
+                                  WebsiteSessionSiteDataRemovedCallback done);
 
 }  // namespace ahoi::session
 
