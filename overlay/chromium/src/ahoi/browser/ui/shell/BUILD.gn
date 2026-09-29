@@ -64,6 +64,7 @@ source_set("unit_tests") {
   deps = [
     ":navigation_surface_controller",
     ":navigation_surface_state",
+    "//ahoi/browser/ui:visual_style",
     "//base/test:test_support",
     "//cc",
     "//testing/gtest",

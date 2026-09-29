@@ -1533,6 +1533,11 @@ reference.
   resetting the resolved material alpha. The overlay applies matching rounded
   output clipping and truthful nonopaque corners, preserving caller-owned
   sidebar geometry, external shadows and rectangular blur-input sampling.
+  `CalculateTopContainerLayout` floats the toolbar inside the content card
+  (visual_style `NavigationSurfaceLeadingInset`, `...TrailingInset`,
+  `...TopInset`: card gutter plus the spec's 12) instead of flush on the
+  card's top edge; it stays an overlay, the viewport is unchanged. This
+  hunk needs `GetAhoiContentCardLeadingInsetForLayout` from 0023.
 - **Tests:** visible sidebar/navigation seam and Glass/fallback journeys first,
   then `NavigationSurfaceControllerTest.*` and
   `VerticalTabStripRegionViewTest.AhoiNavigationMaterialPreservesNativeBackground`.

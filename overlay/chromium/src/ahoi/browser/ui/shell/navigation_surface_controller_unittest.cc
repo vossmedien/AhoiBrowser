@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "ahoi/browser/ui/appearance/appearance_views.h"
+#include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "base/test/run_until.h"
 #include "cc/trees/layer_tree_host.h"
@@ -25,6 +26,22 @@ namespace ahoi {
 namespace {
 
 class NavigationSurfaceControllerTest : public views::ViewsTestBase {};
+
+// The floating row sits inside the content card with the spec's 12 inset,
+// not flush on the card's top edge, whatever the sidebar presentation.
+TEST_F(NavigationSurfaceControllerTest, FloatingRowIsInsetInsideContentCard) {
+  namespace vs = visual_style;
+  EXPECT_EQ(12, vs::kContentCardInset);
+  EXPECT_EQ(12, vs::kNavigationSurfaceHorizontalInset);
+  // Docked sidebar: the card starts one gutter into the browser column.
+  EXPECT_EQ(24, vs::NavigationSurfaceLeadingInset(vs::kContentCardInset));
+  // Floating or hidden sidebar: the card has no leading gutter.
+  EXPECT_EQ(12, vs::NavigationSurfaceLeadingInset(0));
+  EXPECT_EQ(24, vs::kNavigationSurfaceTrailingInset);
+  EXPECT_EQ(24, vs::kNavigationSurfaceTopInset);
+  EXPECT_GT(vs::kNavigationSurfaceTopInset - vs::kNavigationSurfaceRevealOffset,
+            vs::kContentCardInset);
+}
 
 TEST_F(NavigationSurfaceControllerTest,
        OnlyToolbarAnchoredNonModalBubbleKeepsNavigationVisible) {

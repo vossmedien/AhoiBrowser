@@ -155,11 +155,27 @@ inline constexpr int kSplitPaneHighlightedOutlineThickness = 3;
 inline constexpr ui::ColorId kSplitPaneInactiveOutline = kDivider;
 inline constexpr ui::ColorId kSplitPaneActiveOutline = kAccent;
 inline constexpr ui::ColorId kSplitPaneHighlightedOutline = kFocusRing;
+// Design spec 2026-09-29: the floating navigation keeps a 12 inset. It
+// floats over the content card rather than on its edge: the card's gutter
+// plus this inset on both sides and a gap below the card top, so the row
+// never looks glued to the window or the card. It stays an overlay; the
+// page viewport never changes when it shows or hides.
 inline constexpr int kNavigationSurfaceHorizontalInset = 12;
 inline constexpr int kNavigationSurfaceTopGap = 12;
 inline constexpr int kNavigationSurfaceCornerRadius = 14;
 inline constexpr int kNavigationSurfaceShadowElevation = 6;
 inline constexpr int kNavigationSurfaceRevealOffset = 10;
+// Insets of the navigation row within the browser column. The leading card
+// inset follows the sidebar presentation (0 while it floats or hides).
+constexpr int NavigationSurfaceLeadingInset(int card_leading_inset) {
+  return card_leading_inset + kNavigationSurfaceHorizontalInset;
+}
+inline constexpr int kNavigationSurfaceTrailingInset =
+    kContentCardInset + kNavigationSurfaceHorizontalInset;
+inline constexpr int kNavigationSurfaceTopInset =
+    kContentCardInset + kNavigationSurfaceTopGap;
+static_assert(kNavigationSurfaceRevealOffset < kNavigationSurfaceTopGap,
+              "the reveal slide starts below the card's top edge");
 // The reveal notch paints a 32x4 tab centered at the top of a transparent
 // 44x24 hit area, so it stays easy to hit without looking heavy.
 inline constexpr int kNavigationRevealNotchWidth = 44;

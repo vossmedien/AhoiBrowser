@@ -57,7 +57,30 @@ diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_imp
 index ce2a751243cde446c3f107375b93fd0293957a25..76c78a1cfee71a08d807e5ed6f0372c5b93e1503 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -1718,7 +1718,9 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+@@ -1367,10 +1367,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
+       if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {
+         // Preserve the toolbar's preferred height. The previous top inset
+         // achieved spacing by clipping the controls, which made the floating
+-        // surface cramped and its reveal animation appear to jump.
+-        toolbar_bounds.Inset(gfx::Insets::VH(
+-            0, ahoi::visual_style::kNavigationSurfaceHorizontalInset));
+-        toolbar_bounds.Offset(0, ahoi::visual_style::kNavigationSurfaceTopGap);
++        // surface cramped and its reveal animation appear to jump. The row
++        // floats inside the content card, inset from its edges, instead of
++        // sitting flush on the card's top edge.
++        toolbar_bounds.Inset(gfx::Insets::TLBR(
++            0,
++            ahoi::visual_style::NavigationSurfaceLeadingInset(
++                views()
++                    .vertical_tab_strip_region_view
++                    ->GetAhoiContentCardLeadingInsetForLayout()),
++            0, ahoi::visual_style::kNavigationSurfaceTrailingInset));
++        toolbar_bounds.Offset(0,
++                              ahoi::visual_style::kNavigationSurfaceTopInset);
+       }
+       params.SetTop(toolbar_bounds.bottom());
+       needs_exclusion = false;
+@@ -1718,7 +1726,9 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
    // Set toolbar corners.
    CustomCornersBackground::Corners toolbar_corners;
    if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {
