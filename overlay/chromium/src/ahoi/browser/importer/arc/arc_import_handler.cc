@@ -123,6 +123,18 @@ base::DictValue StatsValue(const ArcImportStats& stats) {
   return value;
 }
 
+base::DictValue HistoryValue(const ArcHistoryImportResult& history) {
+  // Counters only; history titles and URLs never leave the browser process.
+  base::DictValue value;
+  value.Set("selected", history.selected);
+  value.Set("status", StatusName(history.status));
+  value.Set("added", static_cast<int>(history.added_pages));
+  value.Set("deduplicated", static_cast<int>(history.deduplicated_pages));
+  value.Set("expired", static_cast<int>(history.expired_pages));
+  value.Set("excluded", static_cast<int>(history.excluded_pages));
+  return value;
+}
+
 }  // namespace
 
 ArcImportHandler::ArcImportHandler(Profile* profile) : profile_(profile) {
@@ -187,10 +199,12 @@ void ArcImportHandler::HandleRecover(const base::ListValue& args) {
 void ArcImportHandler::HandleCommit(const base::ListValue& args) {
   // The optional ninth argument is the previewed folders-as-workspaces
   // layout; the service rejects it as stale unless it matches the preview.
-  if ((args.size() != 8u && args.size() != 9u) || !args[0].is_string() ||
+  // The optional tenth argument selects the separate history category.
+  if (args.size() < 8u || args.size() > 10u || !args[0].is_string() ||
       !args[1].is_string() || !args[2].is_string() || !args[3].is_list() ||
       !args[4].is_bool() || !args[5].is_bool() || !args[6].is_bool() ||
-      !args[7].is_bool() || (args.size() == 9u && !args[8].is_bool())) {
+      !args[7].is_bool() || (args.size() >= 9u && !args[8].is_bool()) ||
+      (args.size() == 10u && !args[9].is_bool())) {
     return;
   }
   AllowJavascript();
@@ -202,7 +216,8 @@ void ArcImportHandler::HandleCommit(const base::ListValue& args) {
   selection.reconstruct_splits = args[5].GetBool();
   selection.backup_confirmed = args[6].GetBool();
   selection.commit_confirmed = args[7].GetBool();
-  selection.folders_as_workspaces = args.size() == 9u && args[8].GetBool();
+  selection.folders_as_workspaces = args.size() >= 9u && args[8].GetBool();
+  selection.import_history = args.size() == 10u && args[9].GetBool();
   for (const base::Value& profile : args[3].GetList()) {
     if (!profile.is_string()) {
       ResolveCommit(std::move(callback_id),
@@ -246,6 +261,7 @@ void ArcImportHandler::ResolvePreview(base::Value callback_id,
   value.Set("alreadyImported", preview.already_imported);
   value.Set("sourceInUse", preview.arc_is_running);
   value.Set("foldersAsWorkspaces", preview.folders_as_workspaces);
+  value.Set("historyAvailable", preview.history_available);
   base::ListValue workspaces;
   for (const std::u16string& workspace : preview.target_workspace_names) {
     workspaces.Append(base::UTF16ToUTF8(workspace));
@@ -277,6 +293,7 @@ void ArcImportHandler::ResolveCommit(base::Value callback_id,
             static_cast<int>(result.reconstructed_split_count));
   value.Set("approximatedFourPaneRatios",
             static_cast<int>(result.approximated_four_pane_ratio_count));
+  value.Set("history", HistoryValue(result.history));
   ResolveJavascriptCallback(callback_id, base::Value(std::move(value)));
 }
 

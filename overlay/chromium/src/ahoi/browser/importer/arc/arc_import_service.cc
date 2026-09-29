@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/importer/arc/arc_import_service.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -28,6 +29,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/base_paths.h"
 #include "base/files/file_path.h"
+#include "base/files/file_util.h"
 #include "base/functional/bind.h"
 #include "base/path_service.h"
 #include "base/task/task_traits.h"
@@ -64,8 +66,10 @@ struct ArcImportService::DiscoveryResult {
   std::string snapshot_token;
   std::optional<ArcImportCommittedState> committed;
   std::optional<ArcImportPreparedState> prepared;
+  std::optional<ArcHistoryPreparedState> history_prepared;
   std::optional<ArcSource> source;
   bool arc_is_running = false;
+  bool history_available = false;
 };
 
 ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
@@ -83,6 +87,18 @@ ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
     return result;
   }
   result.committed = journal.committed;
+  const ArcHistoryJournalReadResult history_journal =
+      ReadArcHistoryJournal(profile_path);
+  if (history_journal.status != ArcImportStatus::kOk) {
+    result.status = history_journal.status;
+    return result;
+  }
+  if (history_journal.prepared) {
+    // An interrupted history import is finished before any new preview.
+    result.status = ArcImportStatus::kRecoveryRequired;
+    result.history_prepared = history_journal.prepared;
+    return result;
+  }
 
   const ArcApplicationState application = InspectDefaultArcApplication();
   if (!application.installed) {
@@ -126,6 +142,12 @@ ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
     return result;
   }
   result.status = ArcImportStatus::kOk;
+  // Presence only (lstat); the database is read later from the backup.
+  result.history_available = std::ranges::any_of(
+      discovery.source->browser_profiles, [](const ArcBrowserProfile& arc) {
+        const base::FilePath history = arc.path.AppendASCII("History");
+        return !base::IsLink(history) && base::PathExists(history);
+      });
   result.source = discovery.source;
   result.plan = std::move(parsed.plan);
   return result;
@@ -139,6 +161,7 @@ ArcImportService::~ArcImportService() = default;
 
 void ArcImportService::Shutdown() {
   navigation_barrier_.reset();
+  history_runner_.reset();
   ++discovery_generation_;
   operation_in_progress_ = false;
   pending_plan_.reset();
@@ -183,9 +206,15 @@ void ArcImportService::OnDiscoveryComplete(uint64_t generation,
     BeginPreparedRecovery(std::move(callback), std::move(*result.prepared));
     return;
   }
+  if (result.history_prepared) {
+    BeginHistoryRecovery(std::move(callback),
+                         std::move(*result.history_prepared));
+    return;
+  }
   operation_in_progress_ = false;
   ArcImportPreview preview{.status = result.status};
   preview.arc_is_running = result.arc_is_running;
+  preview.history_available = result.history_available && CanImportHistory();
   preview.folders_as_workspaces =
       result.plan && result.plan->options.folders_as_workspaces;
   if (result.status != ArcImportStatus::kOk || !result.plan || !result.source ||
@@ -297,6 +326,13 @@ void ArcImportService::Commit(std::string snapshot_token,
             if (journal.state == ArcImportJournalState::kPrepared) {
               return ArcImportStatus::kRecoveryRequired;
             }
+            const auto history = ReadArcHistoryJournal(profile_path);
+            if (history.status != ArcImportStatus::kOk) {
+              return history.status;
+            }
+            if (history.prepared) {
+              return ArcImportStatus::kRecoveryRequired;
+            }
             return journal.committed == expected_committed
                        ? ArcImportStatus::kOk
                        : ArcImportStatus::kStalePreview;
@@ -349,14 +385,31 @@ void ArcImportService::OnCommitSourceValidated(
            .selected_browser_profiles = selection.selected_browser_profiles});
   const std::string idempotency_key =
       ComputeArcImportIdempotencyKey(snapshot_token, selection_fingerprint);
+  if (!selection.import_sidebar) {
+    // History alone: no sidebar backup, tree, session or journal work.
+    result.status = ArcImportStatus::kNoChanges;
+    StartHistoryWithoutSidebarChange(
+        std::move(callback), std::move(result), /*import_sidebar=*/false,
+        SelectArcImportBrowserProfiles(*pending_source_, selection),
+        std::move(snapshot_token));
+    return;
+  }
   if (IsCommittedSelection(committed_journal_state_, snapshot_token,
                            selection_fingerprint)) {
     // The source and the durable successful selection were revalidated above.
     // Replaying that transaction is not authority to overwrite later local
     // edits, recreate closed/deleted pages or reconstruct changed split state.
     // No backup, tree/session flush, marker replacement or native action runs.
-    operation_in_progress_ = false;
+    // A selected history category still runs as its own transaction.
     result.status = ArcImportStatus::kNoChanges;
+    if (selection.import_history) {
+      StartHistoryWithoutSidebarChange(
+          std::move(callback), std::move(result), /*import_sidebar=*/true,
+          SelectArcImportBrowserProfiles(*pending_source_, selection),
+          std::move(snapshot_token));
+      return;
+    }
+    operation_in_progress_ = false;
     std::move(callback).Run(std::move(result));
     return;
   }
@@ -392,6 +445,7 @@ void ArcImportService::OnCommitSourceValidated(
   context->snapshot_hash = std::move(snapshot_token);
   context->selection_fingerprint = selection_fingerprint;
   context->idempotency_key = idempotency_key;
+  context->import_history = selection.import_history;
   context->prepared.previous_committed = committed_journal_state_;
   // Runtime work must always consume the merge result. In particular, a
   // kMerge replay can be a tree no-op while its split descriptors and member

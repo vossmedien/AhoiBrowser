@@ -37,6 +37,9 @@ struct ArcImportService::CommitContext {
   std::optional<ArcImportCommittedState> next_committed;
   bool tree_changed = false;
   bool runtime_started = false;
+  // Category choices; the history phase runs after the sidebar transaction.
+  bool import_sidebar = true;
+  bool import_history = false;
   base::ScopedClosureRunner resume_automatic_metadata;
 };
 

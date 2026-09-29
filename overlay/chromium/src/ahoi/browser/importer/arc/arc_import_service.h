@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/importer/arc/arc_history_import_runner.h"
+#include "ahoi/browser/importer/arc/arc_history_journal.h"
 #include "ahoi/browser/importer/arc/arc_import_journal.h"
 #include "ahoi/browser/importer/arc/arc_import_manual_recovery_plan.h"
 #include "ahoi/browser/importer/arc/arc_import_transaction.h"
@@ -50,15 +52,23 @@ struct ArcImportPreview {
   bool arc_is_running = false;
   // The layout this preview (and its pending plan) was built for.
   bool folders_as_workspaces = false;
+  // At least one Arc profile has a History database. Its pages are counted
+  // only after the commit, from the verified backup, never from Arc itself.
+  bool history_available = false;
 };
 
 // Explicit user choices carried from the mutation-free preview to Commit().
-// Sidebar import is the supported category today; native split recreation can
-// be independently disabled, in which case split members remain in a named
-// folder. Selected profiles determine which local Arc profile artifacts are
-// included in the pre-commit safety backup.
+// Sidebar and history are separately selectable categories; at least one is
+// required. Native split recreation can be independently disabled, in which
+// case split members remain in a named folder. Selected profiles determine
+// which local Arc profile artifacts are included in the pre-commit safety
+// backup and whose history is imported.
 struct ArcImportSelection {
   bool import_sidebar = true;
+  // Runs as its own transaction after the sidebar transaction committed. It
+  // is not part of the sidebar selection fingerprint, so adding history
+  // later never re-runs a committed sidebar import.
+  bool import_history = false;
   bool reconstruct_splits = true;
   // Must equal the previewed layout; a mismatch is a stale preview.
   bool folders_as_workspaces = false;
@@ -75,6 +85,7 @@ struct ArcImportCommitResult {
   size_t merged_workspace_count = 0;
   size_t reconstructed_split_count = 0;
   size_t approximated_four_pane_ratio_count = 0;
+  ArcHistoryImportResult history;
 };
 
 using ArcImportPreviewCallback = base::OnceCallback<void(ArcImportPreview)>;
@@ -117,6 +128,24 @@ class ArcImportService : public KeyedService {
 
   static DiscoveryResult DiscoverImport(const base::FilePath& profile_path,
                                         ArcImportPlanOptions options);
+  // History category (arc_import_service_history.cc).
+  ArcHistoryImportRunner* GetHistoryRunner();
+  // False when history saving is disabled (for example by policy).
+  bool CanImportHistory() const;
+  void BeginHistoryRecovery(ArcImportPreviewCallback callback,
+                            ArcHistoryPreparedState prepared);
+  void OnHistoryRecovered(ArcImportPreviewCallback callback,
+                          ArcImportStatus status);
+  // Runs the history phase when selected, then reports the commit result.
+  void FinishCommit(std::unique_ptr<CommitContext> context);
+  // History when the sidebar is unselected or an exact committed replay.
+  void StartHistoryWithoutSidebarChange(ArcImportCommitCallback callback,
+                                        ArcImportCommitResult result,
+                                        bool import_sidebar,
+                                        ArcSource selected_source,
+                                        std::string snapshot_token);
+  void OnHistoryImported(std::unique_ptr<CommitContext> context,
+                         ArcHistoryImportResult history);
   bool HasAffectedLiveTabs(
       const ArcImportPreparedState& prepared,
       const std::vector<base::Uuid>& removed_workspaces = {}) const;
@@ -229,6 +258,7 @@ class ArcImportService : public KeyedService {
   uint64_t discovery_generation_ = 0;
   bool operation_in_progress_ = false;
   std::unique_ptr<ArcImportNavigationBarrier> navigation_barrier_;
+  std::unique_ptr<ArcHistoryImportRunner> history_runner_;
 
   base::WeakPtrFactory<ArcImportService> weak_factory_{this};
 };

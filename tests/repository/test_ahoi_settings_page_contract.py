@@ -295,7 +295,19 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             self.assertIn(marker, self.arc_import_webui_test)
         self.assertNotIn("<dt", self.arc_import_component)
         self.assertNotIn("<dd", self.arc_import_component)
-        self.assertEqual(2, self.arc_import_component.count('<ul class="counts'))
+        # Preview, sidebar result and the separate history result.
+        self.assertEqual(3, self.arc_import_component.count('<ul class="counts'))
+        for marker in (
+            'id="ahoiArcImportHistory"',
+            'id="ahoiArcHistoryFailure"',
+            'id="ahoiArcResultHistoryAdded"',
+        ):
+            self.assertIn(marker, self.arc_import_component)
+        for marker in (
+            "historyIsASeparateDefaultOnCategoryWithCountOnlyResult",
+            "historyFailureIsReportedBesideACommittedSidebar",
+        ):
+            self.assertIn(marker, self.arc_import_webui_test)
 
     def test_pref_service_imports_are_available_on_every_platform(self):
         chromeos_guard = self.controller.index(

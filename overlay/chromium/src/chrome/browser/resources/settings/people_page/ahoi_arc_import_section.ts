@@ -44,6 +44,18 @@ export interface ArcImportPreviewResponse {
   profiles: string[];
   // The layout this preview was built for. Commit must repeat it.
   foldersAsWorkspaces?: boolean;
+  // At least one Arc profile has browsing history to offer.
+  historyAvailable?: boolean;
+}
+
+// Counters of the separately selectable history category; never URLs.
+export interface ArcHistoryImportResponse {
+  selected: boolean;
+  status: string;
+  added: number;
+  deduplicated: number;
+  expired: number;
+  excluded: number;
 }
 
 export interface ArcImportCommitResponse {
@@ -54,7 +66,54 @@ export interface ArcImportCommitResponse {
   mergedWorkspaces: number;
   reconstructedSplits: number;
   approximatedFourPaneRatios: number;
+  history?: ArcHistoryImportResponse;
 }
+
+// Fallbacks until the proposed Settings strings are part of a strings patch
+// (see ahoiArcImportFoldersAsWorkspaces). loadTimeData wins when present.
+const ARC_HISTORY_FALLBACK_TEXT: {[key: string]: {de: string, en: string}} = {
+  ahoiArcImportHistoryCategory: {
+    de: 'Browserverlauf (ein Eintrag pro Seite)',
+    en: 'Browsing history (one entry per page)',
+  },
+  ahoiArcImportPrivacySublabelWithHistory: {
+    de: 'Passwörter, Cookies, Formulardaten, Erweiterungsdaten, Zugangsdaten ' +
+        'in URLs, lokale Dateien und nicht unterstützte Arc-Elemente werden ' +
+        'nicht importiert. Der Browserverlauf wird nur übernommen, wenn du ' +
+        'ihn auswählst.',
+    en: 'Passwords, cookies, form data, extension state, credentials in ' +
+        'URLs, local files, and unsupported Arc items are not imported. ' +
+        'Browsing history is imported only when you select it.',
+  },
+  ahoiArcImportHistorySuccess: {
+    de: 'Der Arc-Verlauf wurde importiert.',
+    en: 'Arc browsing history was imported.',
+  },
+  ahoiArcImportHistoryAdded: {
+    de: 'Verlauf: neue Seiten',
+    en: 'History: new pages',
+  },
+  ahoiArcImportHistoryPresent: {
+    de: 'Verlauf: bereits vorhanden',
+    en: 'History: already present',
+  },
+  ahoiArcImportHistorySkipped: {
+    de: 'Verlauf: zu alt oder ausgeschlossen',
+    en: 'History: too old or excluded',
+  },
+  ahoiArcImportHistoryPending: {
+    de: 'Der Verlauf wurde nicht vollständig bestätigt. Er wird beim ' +
+        'nächsten Start des Arc-Imports sicher abgeschlossen.',
+    en: 'Browsing history was not fully confirmed. It is completed safely ' +
+        'the next time you start the Arc import.',
+  },
+  ahoiArcImportHistoryFailed: {
+    de: 'Der Verlauf konnte nicht importiert werden. Dein Verlauf in ' +
+        'AhoiBrowser ist unverändert.',
+    en: 'Browsing history could not be imported. Your AhoiBrowser history ' +
+        'is unchanged.',
+  },
+};
 
 type ArcImportStage = 'idle'|'discovering'|'preview'|'committing'|'recovering'|
     'recovered'|'sourceInUse'|'done'|'error';
@@ -81,6 +140,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
       arcImportSidebar_: {type: Boolean},
       arcReconstructSplits_: {type: Boolean},
       arcFoldersAsWorkspaces_: {type: Boolean},
+      arcImportHistory_: {type: Boolean},
       arcSelectedProfiles_: {type: Array},
     };
   }
@@ -92,6 +152,8 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   protected accessor arcImportSidebar_: boolean = true;
   protected accessor arcReconstructSplits_: boolean = false;
   protected accessor arcFoldersAsWorkspaces_: boolean = false;
+  // Selected by default when offered, like history in the standard import.
+  protected accessor arcImportHistory_: boolean = true;
   protected accessor arcSelectedProfiles_: string[] = [];
 
   isComplete(): boolean {
@@ -110,6 +172,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
     }
     const previousProfiles = this.arcSelectedProfiles_;
     const previousSplits = this.arcReconstructSplits_;
+    const previousHistory = this.arcImportHistory_;
     this.arcImportStage_ = 'discovering';
     this.arcImportPreview_ = null;
     this.arcImportResult_ = null;
@@ -132,6 +195,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
           [...preview.profiles];
       this.arcReconstructSplits_ =
           preview.stats.splits > 0 && (!keepChoices || previousSplits);
+      this.arcImportHistory_ = !keepChoices || previousHistory;
       this.arcImportStage_ = preview.status === 'ok' ?
           'preview' :
           (preview.status === 'sourceInUse' ? 'sourceInUse' : 'error');
@@ -161,7 +225,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
           this.arcSelectedProfiles_, this.arcImportSidebar_,
           this.arcReconstructSplits_,
           /*backupConfirmed=*/ true, /*commitConfirmed=*/ true,
-          !!preview.foldersAsWorkspaces);
+          !!preview.foldersAsWorkspaces, this.isArcHistorySelected_());
       if (!this.isConnected) {
         return;
       }
@@ -243,6 +307,55 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
         (event.currentTarget as HTMLElement & {checked: boolean}).checked;
   }
 
+  protected onArcImportHistoryChange_(event: Event) {
+    this.arcImportHistory_ =
+        (event.currentTarget as HTMLElement & {checked: boolean}).checked;
+  }
+
+  protected showArcHistory_(): boolean {
+    return !!this.arcImportPreview_?.historyAvailable;
+  }
+
+  protected isArcHistorySelected_(): boolean {
+    return this.showArcHistory_() && this.arcImportHistory_;
+  }
+
+  protected arcHistoryText_(key: string): string {
+    if (loadTimeData.valueExists(key)) {
+      return loadTimeData.getString(key);
+    }
+    const fallback = ARC_HISTORY_FALLBACK_TEXT[key];
+    if (!fallback) {
+      return '';
+    }
+    return document.documentElement.lang.startsWith('de') ? fallback.de :
+                                                             fallback.en;
+  }
+
+  protected showArcHistoryResult_(): boolean {
+    return (this.arcImportStage_ === 'done' ||
+            this.arcImportStage_ === 'error') &&
+        !!this.arcImportResult_?.history?.selected;
+  }
+
+  protected arcHistoryFailed_(): boolean {
+    const status = this.arcImportResult_?.history?.status;
+    return status !== undefined && status !== 'ok' && status !== 'noChanges';
+  }
+
+  protected arcHistoryFailureText_(): string {
+    return this.arcHistoryText_(
+        this.arcImportResult_?.history?.status === 'recoveryRequired' ?
+            'ahoiArcImportHistoryPending' :
+            'ahoiArcImportHistoryFailed');
+  }
+
+  protected arcPrivacySublabel_(): string {
+    return this.showArcHistory_() ?
+        this.arcHistoryText_('ahoiArcImportPrivacySublabelWithHistory') :
+        loadTimeData.getString('ahoiArcImportPrivacySublabel');
+  }
+
   protected onArcReconstructSplitsChange_(event: Event) {
     this.arcReconstructSplits_ =
         (event.currentTarget as HTMLElement & {checked: boolean}).checked;
@@ -274,7 +387,8 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   }
 
   protected canCommitArcImport_(): boolean {
-    return this.arcImportStage_ === 'preview' && this.arcImportSidebar_ &&
+    return this.arcImportStage_ === 'preview' &&
+        (this.arcImportSidebar_ || this.isArcHistorySelected_()) &&
         this.arcSelectedProfiles_.length > 0 &&
         this.arcImportPreview_?.status === 'ok' &&
         !!this.arcImportPreview_?.foldersAsWorkspaces ===
@@ -303,6 +417,11 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
       case 'sourceInUse':
         return loadTimeData.getString('ahoiArcImportSourceInUse');
       case 'done':
+        if (this.arcImportResult_?.status === 'ok' &&
+            !this.arcImportSidebar_ &&
+            this.arcImportResult_?.history?.selected) {
+          return this.arcHistoryText_('ahoiArcImportHistorySuccess');
+        }
         return loadTimeData.getString(
             this.arcImportResult_?.status === 'noChanges' ?
                 'ahoiArcImportNoChanges' :

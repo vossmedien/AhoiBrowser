@@ -119,6 +119,16 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
               $i18n{ahoiArcImportSidebarCategory}
             </cr-checkbox>
             ${
+              this.showArcHistory_() ? html`
+              <cr-checkbox id="ahoiArcImportHistory"
+                  class="arc-import-checkbox"
+                  .checked="${this.arcImportHistory_}"
+                  @change="${this.onArcImportHistoryChange_}">
+                ${this.arcHistoryText_('ahoiArcImportHistoryCategory')}
+              </cr-checkbox>
+            ` :
+                                       ''}
+            ${
               this.arcImportPreview_.stats.splits > 0 ? html`
               <cr-checkbox id="ahoiArcReconstructSplits"
                   class="arc-import-checkbox"
@@ -157,7 +167,7 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
 
           <div class="exclusions" role="note">
             <div>$i18n{ahoiArcImportPrivacyTitle}</div>
-            <div class="secondary">$i18n{ahoiArcImportPrivacySublabel}</div>
+            <div class="secondary">${this.arcPrivacySublabel_()}</div>
           </div>
           <div id="ahoiArcBackupNotice" class="secondary backup-notice"
               role="note">
@@ -222,6 +232,43 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
         </section>
       ` :
           ''}
+
+      ${
+      this.showArcHistoryResult_() ? html`
+        <section class="result history-result"
+            aria-labelledby="ahoiArcImportStatus">
+          ${
+              this.arcHistoryFailed_() ? html`
+            <div id="ahoiArcHistoryFailure" class="warning" role="alert">
+              ${this.arcHistoryFailureText_()}
+            </div>
+          ` :
+                                         html`
+            <ul class="counts history-counts">
+              <li><span class="count-label">
+                ${this.arcHistoryText_('ahoiArcImportHistoryAdded')}
+              </span>
+              <span id="ahoiArcResultHistoryAdded" class="count-value">
+                ${this.arcImportResult_!.history!.added}
+              </span></li>
+              <li><span class="count-label">
+                ${this.arcHistoryText_('ahoiArcImportHistoryPresent')}
+              </span>
+              <span id="ahoiArcResultHistoryPresent" class="count-value">
+                ${this.arcImportResult_!.history!.deduplicated}
+              </span></li>
+              <li><span class="count-label">
+                ${this.arcHistoryText_('ahoiArcImportHistorySkipped')}
+              </span>
+              <span id="ahoiArcResultHistorySkipped" class="count-value">
+                ${this.arcImportResult_!.history!.expired +
+                  this.arcImportResult_!.history!.excluded}
+              </span></li>
+            </ul>
+          `}
+        </section>
+      ` :
+                                     ''}
     </section>
   <!--_html_template_end_-->`;
 }

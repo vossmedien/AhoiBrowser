@@ -1,0 +1,12 @@
+include_rules = [
+  "+chrome/browser/history/history_service_factory.h",
+  "+components/history/core/browser",
+  "+components/history/core/common/pref_names.h",
+  "+components/keyed_service/core/service_access_type.h",
+]
+
+specific_include_rules = {
+  ".*_unittest\.cc": [
+    "+components/history/core/test",
+  ],
+}
