@@ -32,6 +32,7 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
             environment["AHOI_REAL_DEVICE_SYNC_READY_TIMEOUT"].flatMap(Double.init) ?? 300
         )
         record("tab-url", rawURL)
+        addTeardownBlock { [weak self] in self?.attachTransitions() }
 
         let app = XCUIApplication()
         app.launch()
@@ -66,14 +67,13 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
         }
         capture("after-opt-in", app)
         guard reachedReady else {
-            attachTransitions()
             XCTFail("Sync did not reach Ready + encryption ready: \(transitions.suffix(6))")
             return
         }
 
         // 3. Create one recognizable normal tab through the visible address UI.
         closeSettings(in: app)
-        navigate(to: tabURL, in: app)
+        navigateOnDevice(to: tabURL, in: app)
         XCTAssertTrue(
             app.webViews.staticTexts["Example Domain"].waitForExistence(timeout: 30),
             "The recognizable test page must load."
@@ -107,7 +107,6 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
         revealTop(in: app)
         capture("after-sync-now", app)
         recordSettingsTexts(in: app)
-        attachTransitions()
         XCTAssertTrue(
             synced,
             "The bounded Sync pass must visibly finish as Ready + Synced: \(transitions.suffix(6))"
@@ -182,6 +181,63 @@ final class MobileRealDeviceCloudKitSyncUITests: MobileBrowserUITestCase {
             }
         }
         return "<none>"
+    }
+
+    // MARK: - Address input
+
+    /// A physical keyboard drops characters when a whole URL is injected at
+    /// once while the address suggestions re-render. Type one character at a
+    /// time and wait for the visible field to confirm each one.
+    @MainActor
+    private func navigateOnDevice(to url: URL, in app: XCUIApplication) {
+        openAddressEditor(in: app)
+        let field = app.textFields["browser.address.field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        clearAddressEditor(field, in: app)
+        let expected = url.absoluteString
+        var typed = ""
+        for character in expected {
+            let target = typed + String(character)
+            var confirmed = false
+            for _ in 0..<3 {
+                let current = fieldValue(field)
+                if current == target { confirmed = true; break }
+                guard current == typed else { break }
+                field.typeText(String(character))
+                confirmed = waitForFieldValue(field, target, timeout: 3)
+                if confirmed { break }
+            }
+            guard confirmed else {
+                XCTFail("Address input diverged after \(typed); field shows \(fieldValue(field)).")
+                return
+            }
+            typed = target
+        }
+        transitions.append("\(timestamp()) address typed: \(fieldValue(field))")
+        let navigate = app.buttons["browser.search.navigate"]
+        XCTAssertTrue(waitForHittable(navigate, timeout: 5))
+        navigate.tap()
+        XCTAssertTrue(field.waitForNonExistence(timeout: 8))
+        assertAddress(url, containsOrigin: origin(of: url), in: app)
+    }
+
+    @MainActor
+    private func fieldValue(_ field: XCUIElement) -> String {
+        let raw = field.value as? String ?? ""
+        if let placeholder = field.placeholderValue, raw == placeholder { return "" }
+        return raw
+    }
+
+    @MainActor
+    private func waitForFieldValue(
+        _ field: XCUIElement, _ expected: String, timeout: TimeInterval
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if fieldValue(field) == expected { return true }
+            sleepRunLoop(0.1)
+        } while Date() < deadline
+        return fieldValue(field) == expected
     }
 
     // MARK: - Settings navigation
