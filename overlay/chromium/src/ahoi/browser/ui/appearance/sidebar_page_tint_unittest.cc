@@ -14,7 +14,8 @@ TEST(SidebarPageTintTest, UsesSubtleOpaquePageColorWhenEnabled) {
       ResolveSidebarPageTint(true, false, SkColorSetRGB(0x22, 0x88, 0xee));
 
   ASSERT_TRUE(tint.has_value());
-  EXPECT_EQ(0x1cu, SkColorGetA(*tint));
+  // Without a ColorProvider the restrained fallback applies.
+  EXPECT_EQ(0x10u, SkColorGetA(*tint));
   EXPECT_EQ(0x22u, SkColorGetR(*tint));
   EXPECT_EQ(0x88u, SkColorGetG(*tint));
   EXPECT_EQ(0xeeu, SkColorGetB(*tint));
@@ -36,7 +37,7 @@ TEST(SidebarPageTintTest, FallsBackToFaviconAndPrefersThemeColor) {
   const std::optional<SkColor> fallback =
       ResolveSidebarPageTint(true, false, std::nullopt, favicon_color);
   ASSERT_TRUE(fallback.has_value());
-  EXPECT_EQ(SkColorSetARGB(0x1c, 0xaa, 0xbb, 0xcc), *fallback);
+  EXPECT_EQ(SkColorSetARGB(0x10, 0xaa, 0xbb, 0xcc), *fallback);
 
   const std::optional<SkColor> transparent_theme_fallback =
       ResolveSidebarPageTint(true, false, SK_ColorTRANSPARENT, favicon_color);
@@ -46,11 +47,34 @@ TEST(SidebarPageTintTest, FallsBackToFaviconAndPrefersThemeColor) {
   const std::optional<SkColor> preferred_theme =
       ResolveSidebarPageTint(true, false, theme_color, favicon_color);
   ASSERT_TRUE(preferred_theme.has_value());
-  EXPECT_EQ(SkColorSetARGB(0x1c, 0x12, 0x34, 0x56), *preferred_theme);
+  EXPECT_EQ(SkColorSetARGB(0x10, 0x12, 0x34, 0x56), *preferred_theme);
 
   EXPECT_FALSE(ResolveSidebarPageTint(false, false, std::nullopt, favicon_color)
                    .has_value());
   EXPECT_FALSE(ResolveSidebarPageTint(true, true, std::nullopt, favicon_color)
+                   .has_value());
+}
+
+TEST(SidebarPageTintTest, CapsAdaptiveTintAtEightPercent) {
+  // A pale page color on a light sidebar never reaches the perceptibility
+  // target, so the adaptive search runs to its upper bound.
+  const SkColor page_color = SkColorSetRGB(0x7f, 0xc4, 0xe8);
+  const SkColor background = SkColorSetRGB(0xe8, 0xef, 0xf0);
+  const SkColor text = SkColorSetRGB(0x14, 0x2d, 0x35);
+  const std::optional<SkColor> tint = ResolveSidebarPageTint(
+      true, false, page_color, std::nullopt, background, text, false, text);
+  ASSERT_TRUE(tint.has_value());
+  EXPECT_LE(SkColorGetA(*tint) * 100u, 8u * 255u);
+
+  // Reduced transparency keeps the same bounded strength as an opaque blend.
+  const std::optional<SkColor> opaque = ResolveSidebarPageTint(
+      true, false, page_color, std::nullopt, background, text, true, text);
+  ASSERT_TRUE(opaque.has_value());
+  EXPECT_EQ(SK_AlphaOPAQUE, SkColorGetA(*opaque));
+
+  // High contrast turns the tint off.
+  EXPECT_FALSE(ResolveSidebarPageTint(true, true, page_color, std::nullopt,
+                                      background, text, false, text)
                    .has_value());
 }
 
