@@ -1,6 +1,8 @@
 import Foundation
 import AhoiCloudKitSpike
 
+/// Records authored by a local shared-tab path. Device, Session and Workspace
+/// records pass; Pages and this device's Presences obey the writer gate.
 struct CompanionMobilePublicationBatch: Sendable {
     var devices: [Device] = []
     var workspaces: [Workspace] = []
@@ -11,9 +13,9 @@ struct CompanionMobilePublicationBatch: Sendable {
     func enqueue(using bridge: CompanionSyncBridge) async throws {
         for device in devices { try await bridge.enqueue(device) }
         for workspace in workspaces { try await bridge.enqueue(workspace) }
-        for node in nodes { try await bridge.enqueue(node) }
+        for node in nodes { try await bridge.enqueueSharedTabPage(node) }
         for session in sessions { try await bridge.enqueue(session) }
-        for tab in tabs { try await bridge.enqueue(tab) }
+        for tab in tabs { try await bridge.enqueueSharedTabPresence(tab) }
     }
 }
 

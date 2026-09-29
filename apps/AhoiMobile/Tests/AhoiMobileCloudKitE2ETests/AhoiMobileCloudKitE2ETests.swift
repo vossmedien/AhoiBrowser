@@ -55,6 +55,10 @@ final class AhoiMobileCloudKitE2ETests: XCTestCase {
             directory: directory.appendingPathComponent("logical-iphone"),
             deviceID: DeviceID()
         )
+        // Domain transport proof without capability negotiation: both logical
+        // peers open the shared-tab writer gate explicitly.
+        _ = await mac.bridge.setSharedTabWriteAllowed(true)
+        _ = await phone.bridge.setSharedTabWriteAllowed(true)
 
         let workspace = try await mac.repository.createWorkspace(name: "Domain E2E")
         let folder = try await mac.repository.createTreeNode(
