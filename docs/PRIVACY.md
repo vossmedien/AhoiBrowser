@@ -40,6 +40,16 @@ The exact sync allow/deny lists are machine-readable in
 secrets, passwords, cookies, autofill, site storage, extension storage,
 permissions, cache, Keychain values, and secret headers never sync.
 
+On macOS, Ahoi Desktop encrypts cookies, passwords and other OSCrypt data with
+a key derived from its own Keychain item, `Ahoi Safe Storage` (account `Ahoi`),
+instead of the `Chromium Safe Storage` item that every Chromium build on the
+Mac shares (patch 0079). An installation that used the shared item copies its
+secret once into the Ahoi item, so existing profiles stay readable; the shared
+item is only read, never changed or deleted, and a fresh Mac without it gets
+only the Ahoi item. On a Mac where another Chromium build created the shared
+item before Ahoi's first start, Ahoi adopts that same secret, so the separate
+name alone does not isolate the key there.
+
 History sync defaults to 90 days with 30, 90, 365, and unlimited choices.
 Deleting local or synced permitted records creates tombstones so deleted items
 do not silently reappear from an offline device.
