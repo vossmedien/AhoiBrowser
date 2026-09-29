@@ -1,0 +1,22 @@
+Verlauf
+Abgelaufene Besuche werden in Sync-Löschmarken umgewandelt, damit die Löschung auf deine anderen Geräte übertragen wird.
+Geräte
+iPhone
+Dieses Gerät
+5 Min., 32 Sek.
+Online
+Mac.fritz.box
+11 Min., 15 Sek.
+Online
+Das Entfernen stoppt Ahoi Sync und Fernbefehle für das Gerät in den aktuellen Datensätzen. Da der verschlüsselte Nutzdaten-Schlüssel derzeit geteilt wird, ist dies noch keine vollständige kryptografische Isolierung pro Gerät.
+Synchronisierte Produktdaten
+Darstellung, System
+Chromium PDF Viewer
+Mac.fritz.box · Version 1
+Das Erweiterungsinventar dient nur als Hinweis. Es installiert oder aktiviert niemals eine Erweiterung. Entwickler-Assets erscheinen erst nach ausdrücklicher Freigabe pro Asset.
+Fernsteuerung
+Signaturschlüssel, 16:f7:b2:cc:40:a6:fd:f7:8e:0f:4e:1f
+Dieses iPhone oder iPad muss auf jedem Mac freigegeben werden, bevor es Befehle senden kann.
+Der Ed25519-Signaturschlüssel bleibt lokal auf diesem Gerät. Löschen blockiert neue Fernbefehle; nach einem Wechsel muss jeder Mac den neuen Schlüssel erneut freigeben.
+Signaturschlüssel wechseln
+Signaturschlüssel löschen

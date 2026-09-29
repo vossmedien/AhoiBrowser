@@ -1,0 +1,16 @@
+1||Vertikaler Rollbalken, 1 Seite
+9|bookmark.library.open|Lesezeichen
+48||Arbeitsbereiche
+43|browser.library.workspace.83699047-edf8-580d-948d-9c37acc35cb6|Hdr
+48|browser.library.workspace.83699047-edf8-580d-948d-9c37acc35cb6|Inbox
+48||Geräte-Tabs
+9||Geräte-Tabs filtern
+9||Example Domain, iPhone, normaler Tab
+43|bookmark|Lesezeichen
+48||Lesezeichen
+43|iphone|iPhone
+48||Example Domain
+48||39 Min., 6 Sek.
+48||iPhone · Inbox
+43|line.3.horizontal.decrease.circle|Geräte-Tabs filtern
+48||39 Min., 21 Sek.
