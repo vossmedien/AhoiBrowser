@@ -39,13 +39,28 @@ eval_in() { CDP "$1" Runtime.evaluate "$(python3 -c 'import json,sys;print(json.
 # Escape before AXShowMenu goes straight to the process: an HID Escape
 # arrives asynchronously and would close the menu just opened by AX.
 menu() { # <active workspace name> <menu item regex>
-  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
+  close_menu; $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
   for attempt in 1 2 3 4; do
     $AX press $PID "$1, Workspace wechseln" AXShowMenu >> "$OUT/steps.txt"
     waitax "AXMenuItem \\| $2" 4 14 && return 0
     $AX key $PID 53 >> "$OUT/steps.txt"; sleep 2
   done
+  $AX dump $PID 40 > "$OUT/ax-menu-missing-$1.txt"
   return 1
+}
+# A Workspace menu that is still open (its NSMenu loop keeps running)
+# makes the next AXShowMenu return 0 without a menu: ShowWorkspaceMenu()
+# refuses while a context menu scope is active, and a dump of the stale
+# menu lacks Workspaces added since (build 53/54 merge03InSwitcher). The
+# process-posted Escape first, then an HID Escape, until it is gone.
+WS_MENU='AXMenuItem \| Neuer Workspace…'
+close_menu() {
+  $AX dump $PID 14 | grep -q -E "$WS_MENU" || return 0
+  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
+  $AX dump $PID 14 | grep -q -E "$WS_MENU" || return 0
+  echo "info: Workspace menu still open, HID Escape" >> "$OUT/steps.txt"
+  key 53; sleep 1
+  ! $AX dump $PID 14 | grep -q -E "$WS_MENU"
 }
 menuitem() { # <workspace name>; menu items carry a non-shared level in the title
   $AX dump $PID 14 | grep -oE "AXMenuItem \| $1( – [^|]*)? \|" | head -1 | sed -E 's/^AXMenuItem \| //; s/ \|$//'
@@ -114,7 +129,23 @@ bar_merge() { # <source> <target>
 here() { $AX dump $PID 14 | grep -o -E "[^|]+, Workspace wechseln" | head -1 | sed -E 's/^ *//; s/, Workspace wechseln$//'; }
 # Exit 0 when <after> is <before> with at least one root appended.
 appended() { case "$2" in "$1",?*) return 0 ;; ?*) [ -z "$1" ] ;; *) return 1 ;; esac; }
-confirm_merge() { $AX press $PID "AXButton:Zusammenführen" >> "$OUT/steps.txt"; }
+# Chromium's dialog input protection drops a button press that comes
+# within the double-click interval after the dialog was shown or its
+# window activated (DialogClientView::ButtonPressed). The command bar's
+# fade-out activates the dialog late, so an early press left the bar's
+# merge dialogs open (builds 53/54): wait, press, and retry once.
+confirm_merge() {
+  for attempt in 1 2; do
+    sleep 1; $AX press $PID "AXButton:Zusammenführen" >> "$OUT/steps.txt"
+    local end=$(( $(date +%s) + 3 ))
+    while [ $(date +%s) -lt $end ]; do
+      $AX dump $PID 14 | grep -q "AXButton | Zusammenführen" || return 0
+      sleep 0.5
+    done
+    echo "info: merge dialog still open, pressing again" >> "$OUT/steps.txt"
+  done
+  return 1
+}
 until_state() { # <workspace id> <state prefix> <seconds>
   local end=$(( $(date +%s) + $3 ))
   while [ $(date +%s) -lt $end ]; do tree wsstate "$1" | grep -q "^$2" && return 0; sleep 1; done
@@ -188,7 +219,8 @@ for n in "$NODE_B" "$NODE_C" "$NODE_D"; do tree nodeinfo "$n"; done > "$OUT/merg
 sleep 2; [ "$(here)" = Ziel ] || switchws "$(here)" Ziel
 sidebar_group split-after-merge01 PaneB PaneC && [ "$(tree nodeid /b.html)" = "$NODE_B" ] \
   && record merge01SplitIntact true || record merge01SplitIntact false
-menu "$(here)" "Neuer Workspace…"; $AX dump $PID 14 > "$OUT/ax-menu-after-merge01.txt"; $AX key $PID 53
+menu "$(here)" "Neuer Workspace…"
+$AX dump $PID 14 > "$OUT/ax-menu-after-merge01.txt"; close_menu
 { ! grep -q "AXMenuItem | Quelle" "$OUT/ax-menu-after-merge01.txt"; } && record merge01NotInSwitcher true || record merge01NotInSwitcher false
 
 # ---- WS-MERGE-03: ⌘Z restores Quelle with its ID, name, nodes and tabs.
@@ -199,7 +231,8 @@ sleep 2; tree_dump after-undo03
   && record merge03NodesBack true || record merge03NodesBack false
 [ "$(tree nodeinfo "$FOLDER" | cut -d' ' -f1-2)" = "$SRC -" ] && [ "$(tree nodeinfo "$NODE_D" | cut -d' ' -f1)" = "$SRC" ] \
   && [ "$(target_of /d.html)" = "$TARGET_D" ] && record merge03TabsBack true || record merge03TabsBack false
-menu "$(here)" "Quelle" && $AX dump $PID 14 > "$OUT/ax-menu-after-undo03.txt"; $AX key $PID 53
+menu "$(here)" "Quelle" && $AX dump $PID 14 > "$OUT/ax-menu-after-undo03.txt"
+close_menu
 grep -q "AXMenuItem | Quelle" "$OUT/ax-menu-after-undo03.txt" 2>/dev/null && record merge03InSwitcher true || record merge03InSwitcher false
 
 # ---- WS-MERGE-01 again, this time from the command bar (ADR 0012 entry).
@@ -253,7 +286,10 @@ newws "$(here)" Absturz ""
 open_url "$SITE/solo.html"; group_with Solo Kiste
 CRASH=$(tree wsid Absturz); KISTE=$(tree nodeid title:Kiste); ROOTS_CRASH=$(tree roots "$CRASH"); ROOTS_DST=$(tree roots "$DST")
 menu_merge Absturz Ziel || fail_setup "merge dialog for Absturz did not open"
-confirm_merge; sleep 0.2; kill -9 $PID; sleep 3
+# No wait for the dialog to go (confirm_merge): the kill has to land
+# while the merge runs; the pause only clears the input protection.
+sleep 1; $AX press $PID "AXButton:Zusammenführen" >> "$OUT/steps.txt"
+sleep 0.2; kill -9 $PID; sleep 3
 echo "killed $PID right after confirming the Absturz merge" >> "$OUT/run.txt"
 
 # ---- Relaunch: WS-MERGE-01/02/04 persist, WS-MERGE-05 is atomic.
@@ -270,7 +306,8 @@ esac && record merge05AllOrNothing true || record merge05AllOrNothing false
   && [ -n "$(tree nodeid title:Quelle)" ] && record merge01PersistsAfterRelaunch true || record merge01PersistsAfterRelaunch false
 [ "$(tree wsstate "$FLAT")" = "gone|$DST" ] && [ -z "$(tree nodeid title:Flach)" ] \
   && record merge02PersistsAfterRelaunch true || record merge02PersistsAfterRelaunch false
-menu "$(here)" "Neuer Workspace…"; $AX dump $PID 14 > "$OUT/ax-menu-after-relaunch.txt"; $AX key $PID 53
+menu "$(here)" "Neuer Workspace…"
+$AX dump $PID 14 > "$OUT/ax-menu-after-relaunch.txt"; close_menu
 { ! grep -q -E "AXMenuItem \| (Quelle|Flach|Kunde)( |$)" "$OUT/ax-menu-after-relaunch.txt"; } \
   && record mergedWorkspacesStayGone true || record mergedWorkspacesStayGone false
 quit
