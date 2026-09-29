@@ -1,5 +1,34 @@
 # Active Desktop checkpoint
 
+## Builds 51–53, real Arc import done — 29 September 2026, 23:55 CEST
+
+- **Builds:** 51 `47a37617`, 52 `cf57973d`, 53 `efb78511` installed; all
+  20 unit binaries green on each (53: arc import 116/116 with the
+  rendered-sidebar tests, sync incl. the no-store tests).
+- **Arc import (IMPORT-ARC-12) GREEN on 53:** the parser used Arc Sync's
+  stale `sidebarSyncState` mirror (172 of ~550 items; Sep-8 import had the
+  same loss) — fixed `cf57973d` to read `sidebar.containers`. The 52 attempt
+  crashed in `ProfileSyncBackend::Put` on a null store during split
+  reconstruction (fixed `63262373`, audit `efb78511`); its journal went to
+  manual recovery, so the post-crash profile was set aside
+  (`.work/arc-import-20260929/ahoi-profile-after-crash-2154`) and the 15:02
+  clone restored. Then, folders as workspaces: 5 workspaces (Voss (Arc),
+  VOSSMEDIEN, Caeli Wind, Privat, Projekt-Backups), 424 pages, 106 folders,
+  13 splits reconstructed, 2 degraded, 12 unsafe URLs and 4 unreachable
+  excluded, 1 rename; repeat = "noChanges". Evidence (counts only, local):
+  `artifacts/e2e/arc-import-real-20260929/`. The stale Sep "Voss" workspace
+  remains for the owner to delete.
+- **Journeys on 53:** glass-appearance and cmd-move (incl. ⌘Z undo) PASS;
+  nav-gestures 8/8 on 51. HTTP auth 13→6→8 red on 51/52/53 — the 52 reds
+  were harness faults (fixed `588f7655`); the 53 run started with idle 0.
+  cross-level-move, merge, isolated: setup failures while the owner used
+  the Mac (idle 0–1 s). keyboard-shortcuts: ⌥⌘S never reaches the
+  recorder (binding stays ⌘D) — open.
+- **Owner-reported visual defects (23:45):** floating address bar margins,
+  saved tab disappears on click, workspace name truncated in the switcher,
+  square corners behind the command bar, cut-off password field in the
+  sign-in dialog — agents fixing in source for build 54.
+
 ## Design waves, Arc import, build 51 contents — 29 September 2026, 15:40 CEST
 
 - **Design references (Codex delegation 7202e164):** 19 PNGs plus a binding
