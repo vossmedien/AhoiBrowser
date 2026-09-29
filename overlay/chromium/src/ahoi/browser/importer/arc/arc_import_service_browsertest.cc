@@ -110,35 +110,34 @@ std::string SidebarFixture(const GURL& first, const GURL& second) {
   // parser fixtures, reduced to one workspace and one two-member split.
   return base::StringPrintf(R"json({
     "version":1,
-    "sidebarSyncState":{
-      "container":{"value":{"version":6,"orderedSpaceIDs":["space-a"]}},
-      "spaceModels":["space-a",{"value":{
+    "sidebar":{"containers":[{"global":{}},{
+      "spaces":["space-a",{
         "id":"space-a","title":"Imported workspace",
         "newContainerIDs":[{"pinned":{}},"root-pinned",
           {"unpinned":{"_0":{"shared":{}}}},"root-unpinned"]
-      }}],
+      }],
       "items":[
-        "root-pinned",{"value":{"id":"root-pinned","parentID":null,
+        "root-pinned",{"id":"root-pinned","parentID":null,
           "childrenIds":[],"title":null,
           "data":{"itemContainer":{"containerType":{
-            "spaceItems":{"_0":"space-a"}}}}}},
-        "root-unpinned",{"value":{"id":"root-unpinned","parentID":null,
+            "spaceItems":{"_0":"space-a"}}}}},
+        "root-unpinned",{"id":"root-unpinned","parentID":null,
           "childrenIds":["split-a"],"title":null,
           "data":{"itemContainer":{"containerType":{
-            "spaceItems":{"_0":"space-a"}}}}}},
-        "split-a",{"value":{"id":"split-a","parentID":"root-unpinned",
+            "spaceItems":{"_0":"space-a"}}}}},
+        "split-a",{"id":"split-a","parentID":"root-unpinned",
           "childrenIds":["first","second"],"title":"Imported split",
           "data":{"splitView":{"layoutOrientation":"horizontal",
             "focusItemID":"second",
-            "itemWidthFactors":["first",0.4,"second",0.6]}}}},
-        "first",{"value":{"id":"first","parentID":"split-a",
+            "itemWidthFactors":["first",0.4,"second",0.6]}}},
+        "first",{"id":"first","parentID":"split-a",
           "childrenIds":[],"title":"Imported first",
-          "data":{"tab":{"savedTitle":"Imported first","savedURL":"%s"}}}},
-        "second",{"value":{"id":"second","parentID":"split-a",
+          "data":{"tab":{"savedTitle":"Imported first","savedURL":"%s"}}},
+        "second",{"id":"second","parentID":"split-a",
           "childrenIds":[],"title":"Imported second",
-          "data":{"tab":{"savedTitle":"Imported second","savedURL":"%s"}}}}
+          "data":{"tab":{"savedTitle":"Imported second","savedURL":"%s"}}}
       ]
-    }
+    }]}
   })json",
                             first.spec().c_str(), second.spec().c_str());
 }

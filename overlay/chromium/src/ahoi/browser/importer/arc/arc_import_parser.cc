@@ -77,24 +77,28 @@ class ArcParser {
       return {.status = ArcImportStatus::kUnsupportedSchema};
     }
 
-    const base::DictValue* sync_state = root.FindDict("sidebarSyncState");
-    const base::ListValue* space_models =
-        sync_state ? sync_state->FindList("spaceModels") : nullptr;
-    const base::ListValue* items =
-        sync_state ? sync_state->FindList("items") : nullptr;
-    const base::DictValue* container =
-        sync_state ? sync_state->FindDict("container") : nullptr;
-    const base::DictValue* container_value =
-        container ? container->FindDict("value") : nullptr;
-    const base::ListValue* ordered_space_ids =
-        container_value ? container_value->FindList("orderedSpaceIDs")
-                        : nullptr;
-    if (!space_models || !items || !ordered_space_ids) {
+    // `sidebar.containers` is the sidebar Arc renders. The root also carries
+    // `sidebarSyncState` and `firebaseSyncState`, which mirror Arc Sync
+    // records: they can hold only a stale subset of the tree with outdated
+    // parents, so they are never an import source.
+    const base::DictValue* sidebar = root.FindDict("sidebar");
+    const base::ListValue* containers =
+        sidebar ? sidebar->FindList("containers") : nullptr;
+    if (!containers) {
+      return {.status = ArcImportStatus::kMissingRequiredField};
+    }
+    const base::DictValue* global = nullptr;
+    if (!ParseContainers(*containers, &global)) {
+      return {.status = status_};
+    }
+    const base::ListValue* space_models = global->FindList("spaces");
+    const base::ListValue* items = global->FindList("items");
+    if (!space_models || !items) {
       return {.status = ArcImportStatus::kMissingRequiredField};
     }
 
     if (!ParseSpaces(*space_models) || !ParseItems(*items) ||
-        !ParseSpaceOrder(*ordered_space_ids) || !ValidateGraph()) {
+        !ValidateGraph()) {
       return {.status = status_};
     }
     const ArcImportStatus status = internal::BuildArcImportPlan(
@@ -265,6 +269,48 @@ class ArcParser {
     return true;
   }
 
+  // `containers` is a serialized map. Its {"global": {}} entry holds every
+  // space. {"standalone": {"_0": ...}} entries hold windows outside any space
+  // (such as Little Arc); their items belong to no workspace, so they are
+  // counted as unreachable instead of disappearing. Other keys fail closed.
+  bool ParseContainers(const base::ListValue& serialized,
+                       const base::DictValue** global) {
+    if (serialized.size() % 2 != 0) {
+      return Fail(ArcImportStatus::kMalformedSerializedMap);
+    }
+    size_t standalone_item_count = 0;
+    for (size_t index = 0; index < serialized.size(); index += 2) {
+      const base::DictValue* key = serialized[index].GetIfDict();
+      const base::DictValue* value = serialized[index + 1].GetIfDict();
+      if (!key || !value || key->size() != 1) {
+        return Fail(ArcImportStatus::kMalformedSerializedMap);
+      }
+      if (const base::DictValue* marker = key->FindDict("global");
+          marker && marker->empty()) {
+        if (*global) {
+          return Fail(ArcImportStatus::kMalformedSerializedMap);
+        }
+        *global = value;
+        continue;
+      }
+      const base::ListValue* items = value->FindList("items");
+      if (!key->FindDict("standalone") || !items || items->size() % 2 != 0) {
+        return Fail(ArcImportStatus::kMalformedSerializedMap);
+      }
+      standalone_item_count += items->size() / 2;
+      if (standalone_item_count > kMaxItemCount) {
+        return Fail(ArcImportStatus::kLimitExceeded);
+      }
+    }
+    if (!*global) {
+      return Fail(ArcImportStatus::kMissingRequiredField);
+    }
+    plan_.stats.ignored_unreachable_item_count = standalone_item_count;
+    return true;
+  }
+
+  // Spaces are a serialized map in sidebar order, which is also the
+  // workspace order.
   bool ParseSpaces(const base::ListValue& serialized) {
     if (serialized.size() % 2 != 0 ||
         serialized.size() / 2 > kMaxWorkspaceCount) {
@@ -274,15 +320,13 @@ class ArcParser {
     }
     for (size_t index = 0; index < serialized.size(); index += 2) {
       const std::string* map_key = serialized[index].GetIfString();
-      const base::DictValue* wrapper = serialized[index + 1].GetIfDict();
-      const base::DictValue* value =
-          wrapper ? wrapper->FindDict("value") : nullptr;
+      const base::DictValue* value = serialized[index + 1].GetIfDict();
       const std::string* id = value ? value->FindString("id") : nullptr;
       const std::string* title = value ? value->FindString("title") : nullptr;
       if (!ValidateIdentifier(map_key) || !ValidateIdentifier(id) ||
           *map_key != *id || !title || title->size() > kMaxTitleBytes ||
           !base::IsStringUTF8(*title)) {
-        return Fail(!map_key || !id || !value || !wrapper
+        return Fail(!map_key || !id || !value
                         ? ArcImportStatus::kMalformedSerializedMap
                         : ArcImportStatus::kInvalidText);
       }
@@ -290,6 +334,7 @@ class ArcParser {
       if (!ReadSpaceRoots(*value, &space.root_container_ids)) {
         return false;
       }
+      ordered_space_ids_.push_back(space.id);
       if (!spaces_.emplace(space.id, std::move(space)).second) {
         return Fail(ArcImportStatus::kDuplicateIdentifier);
       }
@@ -416,16 +461,17 @@ class ArcParser {
   }
 
   bool ParseItems(const base::ListValue& serialized) {
-    if (serialized.size() % 2 != 0 || serialized.size() / 2 > kMaxItemCount) {
-      return Fail(serialized.size() / 2 > kMaxItemCount
+    // Standalone items share the source item budget.
+    const size_t unreachable = plan_.stats.ignored_unreachable_item_count;
+    if (serialized.size() % 2 != 0 ||
+        serialized.size() / 2 > kMaxItemCount - unreachable) {
+      return Fail(serialized.size() % 2 == 0
                       ? ArcImportStatus::kLimitExceeded
                       : ArcImportStatus::kMalformedSerializedMap);
     }
     for (size_t index = 0; index < serialized.size(); index += 2) {
       const std::string* map_key = serialized[index].GetIfString();
-      const base::DictValue* wrapper = serialized[index + 1].GetIfDict();
-      const base::DictValue* value =
-          wrapper ? wrapper->FindDict("value") : nullptr;
+      const base::DictValue* value = serialized[index + 1].GetIfDict();
       const std::string* id = value ? value->FindString("id") : nullptr;
       const base::DictValue* data = value ? value->FindDict("data") : nullptr;
       if (!ValidateIdentifier(map_key) || !ValidateIdentifier(id) ||
@@ -453,23 +499,7 @@ class ArcParser {
         return Fail(ArcImportStatus::kDuplicateIdentifier);
       }
     }
-    plan_.stats.source_item_count = items_.size();
-    return true;
-  }
-
-  bool ParseSpaceOrder(const base::ListValue& ordered_space_ids) {
-    if (!ReadIdentifierList(ordered_space_ids, kMaxWorkspaceCount,
-                            &ordered_space_ids_)) {
-      return false;
-    }
-    if (ordered_space_ids_.size() != spaces_.size()) {
-      return Fail(ArcImportStatus::kGraphViolation);
-    }
-    for (const std::string& id : ordered_space_ids_) {
-      if (!spaces_.contains(id)) {
-        return Fail(ArcImportStatus::kGraphViolation);
-      }
-    }
+    plan_.stats.source_item_count = items_.size() + unreachable;
     return true;
   }
 

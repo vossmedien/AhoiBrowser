@@ -53,6 +53,12 @@ Security invariants:
 - a running Arc bundle process/helper or any positively observed open sidebar
   or selected-profile handle blocks both discovery and commit; an inaccessible
   unrelated process is not treated as proof that Arc is running;
+- the tree comes only from the rendered sidebar (`sidebar.containers`, its
+  `global` entry, spaces in serialized order). The `sidebarSyncState` and
+  `firebaseSyncState` Arc Sync mirrors can hold a stale subset with outdated
+  parents and are never read; items of `standalone` containers (windows
+  outside any space) are counted as unreachable, and unknown container kinds
+  fail closed;
 - source size, JSON depth, workspaces, items, children, identifiers, text, URLs,
   and tree depth are bounded;
 - a source file changed while being read is rejected;

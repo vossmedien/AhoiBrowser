@@ -273,8 +273,8 @@ TEST(ArcImportParserTest, GlobalTopAppPagesCarryExplicitSemanticMarkers) {
 
 TEST(ArcImportParserTest, RejectsMalformedSerializedMap) {
   std::string json = kValidArcSidebar;
-  ASSERT_TRUE(ReplaceOnce(&json, "\"spaceModels\": [",
-                          "\"spaceModels\": [\"dangling\","));
+  ASSERT_TRUE(ReplaceOnce(&json, "\"spaces\": [",
+                          "\"spaces\": [\"dangling\","));
   EXPECT_EQ(ArcImportStatus::kMalformedSerializedMap,
             ParseArcSnapshot(SnapshotFor(std::move(json))).status);
 }

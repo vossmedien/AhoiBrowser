@@ -80,7 +80,7 @@ void AddItem(base::ListValue* items,
   value.Set("title", title ? base::Value(*title) : base::Value());
   value.Set("data", std::move(data));
   items->Append(id);
-  items->Append(base::DictValue().Set("value", std::move(value)));
+  items->Append(std::move(value));
 }
 
 // Space "Crew": pinned [loose-a, Alpha, Beta, loose-b], unpinned [temp].
@@ -144,17 +144,16 @@ std::string CrewSidebar(bool with_loose_items) {
   base::DictValue root;
   root.Set("version", 1);
   root.Set(
-      "sidebarSyncState",
-      base::DictValue()
-          .Set("container",
-               base::DictValue().Set(
-                   "value", base::DictValue()
-                                .Set("version", 6)
-                                .Set("orderedSpaceIDs", Ids({"space-crew"}))))
-          .Set("spaceModels",
-               base::ListValue().Append("space-crew").Append(
-                   base::DictValue().Set("value", std::move(space))))
-          .Set("items", std::move(items)));
+      "sidebar",
+      base::DictValue().Set(
+          "containers",
+          base::ListValue()
+              .Append(base::DictValue().Set("global", base::DictValue()))
+              .Append(base::DictValue()
+                          .Set("spaces", base::ListValue()
+                                             .Append("space-crew")
+                                             .Append(std::move(space)))
+                          .Set("items", std::move(items)))));
   std::optional<std::string> json = base::WriteJson(root);
   return json.value_or(std::string());
 }

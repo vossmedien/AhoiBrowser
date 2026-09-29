@@ -18,17 +18,13 @@ namespace ahoi::importer::arc::test_support {
 
 inline constexpr char kValidArcSidebar[] = R"json({
   "version": 1,
-  "sidebarSyncState": {
-    "container": {
-      "value": {
-        "version": 6,
-        "orderedSpaceIDs": ["space-a"]
-      }
-    },
-    "spaceModels": [
-      "space-a",
-      {
-        "value": {
+  "sidebar": {"containers": [
+    {"global": {}},
+    {
+      "topAppsContainerIDs": [{"default": true}, "topapps-root"],
+      "spaces": [
+        "space-a",
+        {
           "id": "space-a",
           "title": "Work",
           "containerIDs": [],
@@ -39,12 +35,10 @@ inline constexpr char kValidArcSidebar[] = R"json({
             "root-pinned"
           ]
         }
-      }
-    ],
-    "items": [
-      "root-pinned",
-      {
-        "value": {
+      ],
+      "items": [
+        "root-pinned",
+        {
           "id": "root-pinned",
           "parentID": null,
           "childrenIds": ["tab-a"],
@@ -54,11 +48,9 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "containerType": {"spaceItems": {"_0": "space-a"}}
             }
           }
-        }
-      },
-      "root-unpinned",
-      {
-        "value": {
+        },
+        "root-unpinned",
+        {
           "id": "root-unpinned",
           "parentID": null,
           "childrenIds": [
@@ -71,11 +63,9 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "containerType": {"spaceItems": {"_0": "space-a"}}
             }
           }
-        }
-      },
-      "topapps-root",
-      {
-        "value": {
+        },
+        "topapps-root",
+        {
           "id": "topapps-root",
           "parentID": null,
           "childrenIds": [],
@@ -85,11 +75,9 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "containerType": {"topApps": {"_0": {}}}
             }
           }
-        }
-      },
-      "tab-a",
-      {
-        "value": {
+        },
+        "tab-a",
+        {
           "id": "tab-a",
           "parentID": "root-pinned",
           "childrenIds": [],
@@ -100,21 +88,17 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "savedURL": "https://pinned.example.test/path"
             }
           }
-        }
-      },
-      "folder-a",
-      {
-        "value": {
+        },
+        "folder-a",
+        {
           "id": "folder-a",
           "parentID": "root-unpinned",
           "childrenIds": ["tab-b"],
           "title": "Folder",
           "data": {"list": {}}
-        }
-      },
-      "tab-b",
-      {
-        "value": {
+        },
+        "tab-b",
+        {
           "id": "tab-b",
           "parentID": "folder-a",
           "childrenIds": [],
@@ -125,11 +109,9 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "savedURL": "https://nested.example.test/"
             }
           }
-        }
-      },
-      "split-a",
-      {
-        "value": {
+        },
+        "split-a",
+        {
           "id": "split-a",
           "parentID": "root-unpinned",
           "childrenIds": ["split-tab-a", "split-tab-b"],
@@ -146,11 +128,9 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "timeLastActiveAt": null
             }
           }
-        }
-      },
-      "split-tab-a",
-      {
-        "value": {
+        },
+        "split-tab-a",
+        {
           "id": "split-tab-a",
           "parentID": "split-a",
           "childrenIds": [],
@@ -161,11 +141,9 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "savedURL": "https://left.example.test/"
             }
           }
-        }
-      },
-      "split-tab-b",
-      {
-        "value": {
+        },
+        "split-tab-b",
+        {
           "id": "split-tab-b",
           "parentID": "split-a",
           "childrenIds": [],
@@ -176,11 +154,9 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "savedURL": "https://right.example.test/"
             }
           }
-        }
-      },
-      "unsafe-file",
-      {
-        "value": {
+        },
+        "unsafe-file",
+        {
           "id": "unsafe-file",
           "parentID": "root-unpinned",
           "childrenIds": [],
@@ -191,11 +167,9 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "savedURL": "file:///private/example.txt"
             }
           }
-        }
-      },
-      "unsafe-creds",
-      {
-        "value": {
+        },
+        "unsafe-creds",
+        {
           "id": "unsafe-creds",
           "parentID": "root-unpinned",
           "childrenIds": [],
@@ -206,20 +180,18 @@ inline constexpr char kValidArcSidebar[] = R"json({
               "savedURL": "https://user:password@example.test/"
             }
           }
-        }
-      },
-      "unsupported-a",
-      {
-        "value": {
+        },
+        "unsupported-a",
+        {
           "id": "unsupported-a",
           "parentID": "root-unpinned",
           "childrenIds": [],
           "title": "Unsupported",
           "data": {"easel": {}}
         }
-      }
-    ]
-  }
+      ]
+    }
+  ]}
 })json";
 
 inline ArcImportSnapshot SnapshotFor(std::string json) {

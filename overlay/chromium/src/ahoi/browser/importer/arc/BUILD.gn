@@ -116,6 +116,7 @@ source_set("unit_tests") {
     "arc_import_parser_unittest.cc",
     "arc_import_recovery_policy_unittest.cc",
     "arc_import_recovery_unittest.cc",
+    "arc_import_source_tree_unittest.cc",
     "arc_import_transaction_key_unittest.cc",
     "arc_import_transaction_unittest.cc",
     "arc_import_tree_fingerprint_unittest.cc",
