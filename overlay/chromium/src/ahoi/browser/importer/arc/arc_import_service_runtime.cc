@@ -301,12 +301,13 @@ void ArcImportService::FinishJournalWrite(
                        weak_factory_.GetWeakPtr(), std::move(context)));
     return;
   }
-  operation_in_progress_ = false;
   context->result.status = context->tree_changed || context->runtime_started
                                ? ArcImportStatus::kOk
                                : ArcImportStatus::kNoChanges;
   committed_journal_state_ = std::move(context->next_committed);
-  std::move(context->callback).Run(std::move(context->result));
+  // The sidebar transaction is committed; a selected history category now
+  // runs as its own transaction and reuses this commit's backup.
+  FinishCommit(std::move(context));
 }
 
 void ArcImportService::OnPreparedAfterCommitFailure(

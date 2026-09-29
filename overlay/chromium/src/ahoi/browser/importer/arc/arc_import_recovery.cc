@@ -243,14 +243,19 @@ bool CopyVerifiedPayload(const base::FilePath& source,
          destination_digest == source_after_copy;
 }
 
-}  // namespace
+struct VerifiedBackup {
+  base::FilePath directory;
+  std::map<std::string, ManifestFile> by_name;
+};
 
-ArcImportBackupRecoveryResult VerifyAndLoadArcImportBackup(
+// Verifies the owner-only backup directory, the manifest digest, every listed
+// payload and the exact directory listing. Shared by tree recovery and the
+// Arc history reader so both consume only a complete, unchanged backup.
+std::optional<VerifiedBackup> VerifyBackup(
     const base::FilePath& profile_path,
     const std::string& backup_identifier,
     const std::string& expected_manifest_sha256,
     const std::string& expected_snapshot_sha256) {
-  ArcImportBackupRecoveryResult result;
   if (profile_path.empty() || !profile_path.IsAbsolute() ||
       profile_path.ReferencesParent() ||
       !IsSafeBackupIdentifier(backup_identifier) ||
@@ -258,26 +263,26 @@ ArcImportBackupRecoveryResult VerifyAndLoadArcImportBackup(
       !IsLowerSha256(expected_snapshot_sha256) ||
       !base::StartsWith(backup_identifier,
                         expected_snapshot_sha256.substr(0, 12) + "-")) {
-    return result;
+    return std::nullopt;
   }
   const base::FilePath ahoi_directory = profile_path.AppendASCII("Ahoi");
   const base::FilePath backup_root =
       ahoi_directory.AppendASCII("Arc Import Backups");
-  const base::FilePath backup_directory =
-      backup_root.AppendASCII(backup_identifier);
-  if (backup_directory.DirName() != backup_root ||
+  VerifiedBackup backup;
+  backup.directory = backup_root.AppendASCII(backup_identifier);
+  if (backup.directory.DirName() != backup_root ||
       !IsOwnerOnlyDirectory(ahoi_directory) ||
       !IsOwnerOnlyDirectory(backup_root) ||
-      !IsOwnerOnlyDirectory(backup_directory)) {
-    return result;
+      !IsOwnerOnlyDirectory(backup.directory)) {
+    return std::nullopt;
   }
 
   std::string manifest_json;
   std::string manifest_digest;
-  if (!ReadAndHashFile(backup_directory.AppendASCII(kManifestFilename),
+  if (!ReadAndHashFile(backup.directory.AppendASCII(kManifestFilename),
                        kMaxManifestBytes, &manifest_json, &manifest_digest) ||
       manifest_digest != expected_manifest_sha256) {
-    return result;
+    return std::nullopt;
   }
   std::optional<base::Value> parsed =
       base::JSONReader::Read(manifest_json, base::JSON_PARSE_RFC);
@@ -292,33 +297,33 @@ ArcImportBackupRecoveryResult VerifyAndLoadArcImportBackup(
   if (!version.has_value() || *version != kBackupManifestVersion ||
       !snapshot_hash || *snapshot_hash != expected_snapshot_sha256 || !files ||
       files->empty() || files->size() > kMaxManifestFiles) {
-    return result;
+    return std::nullopt;
   }
 
-  std::map<std::string, ManifestFile> by_name;
   std::set<std::string> roles;
   for (const base::Value& value : *files) {
     std::optional<ManifestFile> file = ParseManifestFile(value);
     if (!file || !roles.insert(file->role).second ||
-        !by_name.emplace(file->backup_name, *file).second ||
-        !VerifyPayload(backup_directory, *file)) {
-      return result;
+        !backup.by_name.emplace(file->backup_name, *file).second ||
+        !VerifyPayload(backup.directory, *file)) {
+      return std::nullopt;
     }
   }
-  const auto database = by_name.find(kAhoiDatabaseBackupName);
-  if (database == by_name.end() || database->second.role != "ahoi_tab_tree" ||
+  const auto database = backup.by_name.find(kAhoiDatabaseBackupName);
+  if (database == backup.by_name.end() ||
+      database->second.role != "ahoi_tab_tree" ||
       database->second.source_path != "AhoiProfile/Ahoi Tab Tree" ||
       !database->second.present) {
-    return result;
+    return std::nullopt;
   }
 
   std::set<std::string> expected_files = {kManifestFilename};
-  for (const auto& [name, file] : by_name) {
+  for (const auto& [name, file] : backup.by_name) {
     if (file.present) {
       expected_files.insert(name);
     }
   }
-  base::FileEnumerator enumerator(backup_directory, false,
+  base::FileEnumerator enumerator(backup.directory, false,
                                   base::FileEnumerator::FILES |
                                       base::FileEnumerator::DIRECTORIES |
                                       base::FileEnumerator::SHOW_SYM_LINKS);
@@ -326,50 +331,73 @@ ArcImportBackupRecoveryResult VerifyAndLoadArcImportBackup(
        path = enumerator.Next()) {
     const std::string name = path.BaseName().AsUTF8Unsafe();
     if (!expected_files.erase(name)) {
-      return result;
+      return std::nullopt;
     }
   }
   if (!expected_files.empty()) {
+    return std::nullopt;
+  }
+  return backup;
+}
+
+// Returns the manifest entry for `backup_name` if it carries `role`.
+const ManifestFile* FindManifestFile(const VerifiedBackup& backup,
+                                     const std::string& backup_name,
+                                     const std::string& role) {
+  const auto entry = backup.by_name.find(backup_name);
+  return entry != backup.by_name.end() && entry->second.role == role
+             ? &entry->second
+             : nullptr;
+}
+
+// Copies a verified database payload and its WAL (when present) to
+// `destination`. SQLite rebuilds the SHM index from the WAL, and a stale
+// index must never be reused, so the SHM payload is not copied.
+bool CopyVerifiedDatabase(const VerifiedBackup& backup,
+                          const ManifestFile& database,
+                          const ManifestFile& wal,
+                          const base::FilePath& destination) {
+  if (!database.present ||
+      !CopyVerifiedPayload(backup.directory.AppendASCII(database.backup_name),
+                           database, destination)) {
+    return false;
+  }
+  return !wal.present ||
+         CopyVerifiedPayload(
+             backup.directory.AppendASCII(wal.backup_name), wal,
+             base::FilePath(destination.value() + FILE_PATH_LITERAL("-wal")));
+}
+
+}  // namespace
+
+ArcImportBackupRecoveryResult VerifyAndLoadArcImportBackup(
+    const base::FilePath& profile_path,
+    const std::string& backup_identifier,
+    const std::string& expected_manifest_sha256,
+    const std::string& expected_snapshot_sha256) {
+  ArcImportBackupRecoveryResult result;
+  const std::optional<VerifiedBackup> backup =
+      VerifyBackup(profile_path, backup_identifier, expected_manifest_sha256,
+                   expected_snapshot_sha256);
+  if (!backup) {
     return result;
   }
-
+  const ManifestFile* database =
+      FindManifestFile(*backup, kAhoiDatabaseBackupName, "ahoi_tab_tree");
+  const ManifestFile* wal =
+      FindManifestFile(*backup, std::string(kAhoiDatabaseBackupName) + "-wal",
+                       "ahoi_tab_tree_wal");
+  const ManifestFile* shm =
+      FindManifestFile(*backup, std::string(kAhoiDatabaseBackupName) + "-shm",
+                       "ahoi_tab_tree_shm");
   base::ScopedTempDir recovery_directory;
-  if (!recovery_directory.CreateUniqueTempDir()) {
+  if (!database || !wal || !shm || !recovery_directory.CreateUniqueTempDir()) {
     return result;
   }
   const base::FilePath recovery_database =
       recovery_directory.GetPath().AppendASCII(kTabTreeDatabaseFilename);
-  if (!CopyVerifiedPayload(
-          backup_directory.AppendASCII(database->second.backup_name),
-          database->second, recovery_database)) {
+  if (!CopyVerifiedDatabase(*backup, *database, *wal, recovery_database)) {
     return result;
-  }
-  for (std::string_view suffix : {"-wal", "-shm"}) {
-    const std::string backup_name =
-        std::string(kAhoiDatabaseBackupName) + std::string(suffix);
-    const auto sidecar = by_name.find(backup_name);
-    if (sidecar == by_name.end()) {
-      return result;
-    }
-    const std::string expected_role =
-        suffix == "-wal" ? "ahoi_tab_tree_wal" : "ahoi_tab_tree_shm";
-    if (sidecar->second.role != expected_role) {
-      return result;
-    }
-    if (!sidecar->second.present) {
-      continue;
-    }
-    if (suffix == "-shm") {
-      continue;
-    }
-    const base::FilePath destination =
-        base::FilePath(recovery_database.value() +
-                       base::FilePath::FromUTF8Unsafe(suffix).value());
-    if (!CopyVerifiedPayload(
-            backup_directory.AppendASCII(sidecar->second.backup_name),
-            sidecar->second, destination)) {
-      return result;
-    }
   }
 
   tab_tree::TabTreeStore store;
@@ -380,6 +408,64 @@ ArcImportBackupRecoveryResult VerifyAndLoadArcImportBackup(
   }
   result.status = ArcImportStatus::kOk;
   result.previous_tree = std::move(previous);
+  return result;
+}
+
+ArcHistoryBackupCopyResult CopyArcHistoryFromBackup(
+    const base::FilePath& profile_path,
+    const std::string& backup_identifier,
+    const std::string& expected_manifest_sha256,
+    const std::string& expected_snapshot_sha256,
+    const base::FilePath& destination) {
+  ArcHistoryBackupCopyResult result;
+  const std::optional<VerifiedBackup> backup =
+      VerifyBackup(profile_path, backup_identifier, expected_manifest_sha256,
+                   expected_snapshot_sha256);
+  if (!backup || !IsOwnerOnlyDirectory(destination)) {
+    return result;
+  }
+  // Roles are "arc_<sha256(profile directory)>_history[_wal|_shm]" with the
+  // matching "Arc-<sha256>-History.sqlite[-wal|-shm]" payload names; the
+  // manifest therefore never exposes the Arc profile label itself.
+  std::string key_material = "arc-history-v1";
+  for (const auto& [name, file] : backup->by_name) {
+    constexpr std::string_view kPrefix = "arc_";
+    constexpr std::string_view kSuffix = "_history";
+    const std::string_view role = file.role;
+    if (!base::StartsWith(role, kPrefix) || !base::EndsWith(role, kSuffix) ||
+        role.size() != kPrefix.size() + 64 + kSuffix.size()) {
+      continue;
+    }
+    const std::string profile_key(role.substr(kPrefix.size(), 64));
+    const std::string backup_name = "Arc-" + profile_key + "-History.sqlite";
+    const ManifestFile* wal =
+        FindManifestFile(*backup, backup_name + "-wal", file.role + "_wal");
+    if (!IsLowerSha256(profile_key) || name != backup_name || !wal ||
+        !FindManifestFile(*backup, backup_name + "-shm", file.role + "_shm")) {
+      result.status = ArcImportStatus::kBackupError;
+      result.copies.clear();
+      return result;
+    }
+    if (!file.present) {
+      continue;
+    }
+    // The key binds the imported content, never paths or labels. The SHM
+    // index is derived state and deliberately not part of it.
+    key_material += "\n" + profile_key + "=" + file.sha256 + "/" +
+                    (wal->present ? wal->sha256 : std::string("absent"));
+    ArcHistoryBackupCopy copy{
+        .profile_key = profile_key,
+        .database = destination.AppendASCII(profile_key + "-History")};
+    if (!CopyVerifiedDatabase(*backup, file, *wal, copy.database)) {
+      result.status = ArcImportStatus::kBackupError;
+      result.copies.clear();
+      return result;
+    }
+    result.copies.push_back(std::move(copy));
+  }
+  // `by_name` is ordered, so copies and key are deterministic.
+  result.history_key = base::HexEncodeLower(crypto::hash::Sha256(key_material));
+  result.status = ArcImportStatus::kOk;
   return result;
 }
 

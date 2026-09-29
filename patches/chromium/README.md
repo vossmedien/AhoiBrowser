@@ -32,6 +32,28 @@
   Quick Window class. Removing it needs the overlay catalog's
   `rebindable=false` for the four commands back.
 
+## `0084-ahoi-arc-imported-visit-source.patch`
+
+- **Owner:** Desktop (Arc history import,
+  `docs/ARC_HISTORY_IMPORT_PLAN.md`).
+- **Change:** `history::VisitSource` gains `SOURCE_ARC_IMPORTED = 8`, mapped
+  in `VisitSourceFromInt()` (the only exhaustive switch; no histogram mirrors
+  the enum). `HistoryBackend` gains the public `CommitForAhoiImport()`, a
+  wrapper of the private `Commit()`, so the overlay history writer can
+  bracket its batch as one durable unit before it records its journal.
+  `tools/metrics/histograms/metadata/sql/histograms.xml` registers the
+  `AhoiArcHistoryImport` database tag used by the reader's disposable copy.
+- **Safety:** additive. No existing source value, conversion or behavior
+  changes; `CommitForAhoiImport()` only runs `Commit()` earlier than the 10 s
+  timer would.
+- **Tests:** `ahoi_arc_import_unittests` (the writer tests read
+  `SOURCE_ARC_IMPORTED` back through `VisitSourceFromInt()`).
+- **Rebase/removal:** low; five small hunks. Only `histograms.xml` is shared
+  with another Ahoi patch (0001 adds `AhoiTabTree` next to the new tag).
+  Generated with `git diff --no-index` from copies of the M153 checkout files
+  and checked with `git apply --check`; it touches none of the files of
+  0079-0083.
+
 ## `0083-ahoi-command-bar-key-hints.patch`
 
 - **Owner:** Desktop (design spec 2026-09-29, command bar footer).

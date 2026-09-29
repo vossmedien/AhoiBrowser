@@ -102,9 +102,54 @@ Security invariants:
   the focused tab in the active target window, flushed Current Session
   readback, and post-worker live revalidation;
 
-Arc remains read-only throughout. Passwords, cookies, form data, browsing
-history, extension state, credential-bearing URLs, local files, and unsupported
-Arc items are excluded. The module also does not install extensions.
+Arc remains read-only throughout. Passwords, cookies, form data, extension
+state, credential-bearing URLs, local files, and unsupported Arc items are
+excluded. Browsing history is imported only as the separately selectable
+history category described below. The module also does not install
+extensions.
+
+## History category
+
+The compact preview offers "Browserverlauf (ein Eintrag pro Seite)" /
+"Browsing history (one entry per page)" when at least one Arc profile has a
+`History` database (presence check only). It is selected by default, like
+history in Chromium's standard import, and can be committed alone or together
+with the sidebar. See
+[the history import plan](../../../../../../../docs/ARC_HISTORY_IMPORT_PLAN.md).
+
+- Input: only the verified backup of the commit (`History` plus its WAL; the
+  SHM index is rebuilt by SQLite and deliberately not reused). The payloads
+  are copied into a private temporary directory, opened there with
+  `PRAGMA query_only=1`, integrity-checked, schema-bound (`meta` version
+  40-99 plus the `urls` columns in use) and deleted after reading. Arc's live
+  files and the immutable backup are never opened for SQLite access.
+- Limits and filters (`arc_history_reader.h`): at most 200 000 pages (the
+  newest are kept), at most 2 000 000 source rows, database and WAL at most
+  1 GiB each, URLs at most 32 KiB, titles at most 4 KiB of valid UTF-8
+  (otherwise imported untitled). Only visible, credential-free HTTP(S) rows
+  inside Chromium's history retention window are imported; `arc:`,
+  `chrome-extension:`, `file:` and every other scheme are counted and dropped.
+- Write (`arc_history_writer.h`): one `HistoryDBTask` run on the history
+  sequence checks, writes, verifies and, on failure, removes the batch, so no
+  other history work interleaves. `HistoryBackend::CommitForAhoiImport()`
+  (patch 0084) brackets the batch, which therefore commits atomically. Pages
+  go through `HistoryBackend::AddPagesWithDetails()` with the new
+  `SOURCE_ARC_IMPORTED` visit source (patch 0084), one entry per page with
+  its latest visit, title and counters, like Chromium's own importers.
+- Idempotence: a page whose URL already has a visit at exactly its Arc visit
+  time is skipped, so any replay is a data no-op. The history journal
+  (`Ahoi/ArcHistoryImportJournal.json`, separate from the sidebar journal)
+  records a content key over the backed-up History databases; a replay with
+  the committed key does not even touch the history database.
+- Rollback and recovery: if verification fails, created URL rows are deleted
+  and visits added to existing rows are removed row by row, which restores the
+  prior state exactly. The prepared journal binds the backup; after a crash
+  the next discovery re-reads that backup and finishes the import
+  deterministically before any new preview. If that backup can no longer be
+  verified, the marker is released; pages already written are complete Arc
+  visits, and a later import skips them as duplicates.
+- Privacy: the journal holds only keys, backup identifiers and counters; the
+  WebUI receives only counters. No title or URL is logged.
 
 The Settings surface is registered through the canonical Chromium integration
 patch and provides DE/EN strings, keyboard-accessible controls, progress/result

@@ -64,8 +64,8 @@ ArcImportStatus ValidateArcImportCommitSource(
 
 bool IsValidArcImportSelection(const ArcImportSelection& selection,
                                const ArcSource& source) {
-  if (!selection.import_sidebar || !selection.backup_confirmed ||
-      !selection.commit_confirmed ||
+  if ((!selection.import_sidebar && !selection.import_history) ||
+      !selection.backup_confirmed || !selection.commit_confirmed ||
       selection.selected_browser_profiles.empty()) {
     return false;
   }
