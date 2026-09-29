@@ -258,6 +258,8 @@ key 53; sleep 1
 key 40 cmd; waitax "AXWindow \\| Suchen oder URL eingeben" 6 && record commandBarNewKeyOpens true || record commandBarNewKeyOpens false
 key 53; sleep 1
 record_key tab.save; key 1 cmd opt; sleep 2   # ⌥⌘S
+echo "tab.save keys: '$(keys_of tab.save)'" >> "$OUT/steps.txt"
+settings_js "const e=q('.shortcut-row[data-command-id=\"tab.save\"] .shortcut-error');return e&&!e.hidden?'error: '+e.textContent.trim():'no error'" >> "$OUT/steps.txt"
 [ "$(keys_of tab.save)" = "⌥⌘S" ] && record saveRebinds true || record saveRebinds false
 # The command bar's entry shows the current key ("title, key" in AX).
 key 40 cmd
