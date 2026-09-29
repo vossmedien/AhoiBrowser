@@ -119,9 +119,23 @@ public struct SeparatedWorkspaceRecord: Codable, Hashable, Sendable {
     }
 }
 
+/// What a state store found. `unreadable` is persisted state this build cannot
+/// decode; it is never the same as no state (Crest 2dbdc442, review row C1).
+public enum SeparatedWorkspaceStateLoad: Equatable, Sendable {
+    case records([SeparatedWorkspaceRecord])
+    case unreadable
+}
+
 public protocol SeparatedWorkspaceStateStoring: AnyObject, Sendable {
     func load() -> [SeparatedWorkspaceRecord]
+    /// Distinguishes absent state (`.records([])`) from state that exists but
+    /// cannot be read. The default reads `load()`, which cannot fail.
+    func loadState() -> SeparatedWorkspaceStateLoad
     func save(_ records: [SeparatedWorkspaceRecord])
+}
+
+extension SeparatedWorkspaceStateStoring {
+    public func loadState() -> SeparatedWorkspaceStateLoad { .records(load()) }
 }
 
 public final class InMemorySeparatedWorkspaceStateStore: SeparatedWorkspaceStateStoring,
@@ -144,11 +158,23 @@ public final class UserDefaultsSeparatedWorkspaceStateStore: SeparatedWorkspaceS
     public init(defaults: UserDefaults) { self.defaults = defaults }
 
     public func load() -> [SeparatedWorkspaceRecord] {
-        guard let data = defaults.data(forKey: Self.key),
+        guard case let .records(records) = loadState() else { return [] }
+        return records
+    }
+
+    /// A missing key is no state yet. Bytes that do not decode, or a value of
+    /// another type, are unreadable: the coordinator then must neither sync
+    /// nor overwrite them, because that would lose every opt-in and pending
+    /// retirement for good.
+    public func loadState() -> SeparatedWorkspaceStateLoad {
+        guard let stored = defaults.object(forKey: Self.key) else { return .records([]) }
+        guard let data = stored as? Data,
               let records = try? JSONDecoder().decode(
                   [SeparatedWorkspaceRecord].self, from: data
-              ) else { return [] }
-        return records.filter { SyncNamespace.separatedWorkspace($0.workspaceID) != nil }
+              ) else { return .unreadable }
+        return .records(
+            records.filter { SyncNamespace.separatedWorkspace($0.workspaceID) != nil }
+        )
     }
 
     public func save(_ records: [SeparatedWorkspaceRecord]) {
@@ -191,6 +217,10 @@ public typealias SeparatedWorkspaceSessionFactory = @MainActor (
 @MainActor
 public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     @Published public private(set) var entries: [SeparatedWorkspaceEntry] = []
+    /// The persisted opt-ins could not be read. Nothing is synced, retired or
+    /// persisted until a later read succeeds, so the unreadable bytes and the
+    /// data store registry stay exactly as they are.
+    @Published public private(set) var isStateUnreadable = false
     /// Most recent retirements, for diagnostics and tests.
     public private(set) var retirements: [UUID: SeparatedWorkspaceRetirementReason] = [:]
 
@@ -223,17 +253,47 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
         self.dataStores = dataStores
         self.sessionFactory = sessionFactory
         self.removeLocalData = removeLocalData
-        let loaded = self.base == nil ? [] : stateStore.load()
-        self.records = Dictionary(
-            loaded.map { ($0.workspaceID, $0) }, uniquingKeysWith: { lhs, _ in lhs }
-        )
-        for id in records.keys { dataStores?.registerSeparatedWorkspace(id) }
+        self.records = [:]
+        if self.base != nil { adoptPersistedState() }
         publish()
+    }
+
+    /// Reads the persisted state. Readable state replaces the in-memory one and
+    /// registers its data stores; unreadable state keeps everything paused.
+    @discardableResult
+    private func adoptPersistedState() -> Bool {
+        switch stateStore.loadState() {
+        case .unreadable:
+            isStateUnreadable = true
+            return false
+        case let .records(loaded):
+            isStateUnreadable = false
+            records = Dictionary(
+                loaded.map { ($0.workspaceID, $0) }, uniquingKeysWith: { lhs, _ in lhs }
+            )
+            for id in records.keys { dataStores?.registerSeparatedWorkspace(id) }
+            return true
+        }
+    }
+
+    /// While the state is unreadable, reads it again; true once it is readable.
+    private func stateIsReadable() -> Bool {
+        guard isStateUnreadable else { return true }
+        let readable = adoptPersistedState()
+        if readable { publish() }
+        return readable
     }
 
     public var isConfigured: Bool { base != nil }
 
     public var hasActiveSessions: Bool { !sessions.isEmpty }
+
+    public static var stateUnreadableLabel: String {
+        CompanionL10n.string(
+            "workspace.separated.state_unreadable",
+            fallback: "Separated workspace settings can't be read on this device, so their sync is paused."
+        )
+    }
 
     public func isSeparatedWorkspace(_ workspaceID: UUID) -> Bool {
         records[workspaceID].map { $0.pendingRetirement == nil } ?? false
@@ -250,7 +310,7 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     /// only a successful listing without a zone retires that Workspace.
     @discardableResult
     public func refreshDiscovery(using lister: any CloudKitRecordZoneListing) async -> Bool {
-        guard isConfigured else { return false }
+        guard isConfigured, stateIsReadable() else { return false }
         let zoneNames: [String]
         do {
             zoneNames = try await lister.allRecordZoneNames()
@@ -283,7 +343,7 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     public func applyDiscoveredZoneNames(
         _ zoneNames: [String], accountIdentifier account: String? = nil
     ) async {
-        guard let base else { return }
+        guard let base, stateIsReadable() else { return }
         let discovered = Set(zoneNames.compactMap {
             SyncNamespace.separatedWorkspace(fromZoneName: $0, base: base)?.workspaceID
         })
@@ -312,7 +372,8 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
 
     /// The user's per-Workspace opt-in. Disabling keeps its local data.
     public func setSyncEnabled(_ enabled: Bool, for workspaceID: UUID) async {
-        guard var record = records[workspaceID], record.pendingRetirement == nil else {
+        guard stateIsReadable(),
+              var record = records[workspaceID], record.pendingRetirement == nil else {
             return
         }
         record.syncEnabled = enabled
@@ -330,7 +391,7 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     /// One pass over every enabled separated Workspace, each in its own
     /// session. Applies tombstones and key loss.
     public func syncEnabledWorkspaces() async {
-        guard isConfigured, !passInProgress else { return }
+        guard isConfigured, !passInProgress, stateIsReadable() else { return }
         passInProgress = true
         defer { passInProgress = false }
         await retryPendingRetirements()
@@ -437,7 +498,7 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     }
 
     private func retire(_ id: UUID, reason: SeparatedWorkspaceRetirementReason) async {
-        guard var record = records[id] else { return }
+        guard !isStateUnreadable, var record = records[id] else { return }
         record.pendingRetirement = record.pendingRetirement ?? reason
         record.syncEnabled = false
         records[id] = record
@@ -468,7 +529,8 @@ public final class SeparatedWorkspaceSyncCoordinator: ObservableObject {
     }
 
     private func persist() {
-        guard isConfigured else { return }
+        // Never replace state this build could not read with a blank one.
+        guard isConfigured, !isStateUnreadable else { return }
         stateStore.save(records.values.sorted { $0.workspaceID.uuidString < $1.workspaceID.uuidString })
     }
 

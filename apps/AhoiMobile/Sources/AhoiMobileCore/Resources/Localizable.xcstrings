@@ -2712,6 +2712,7 @@
     "workspace.separated.unnamed": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Getrennter Workspace"}},"en":{"stringUnit":{"state":"translated","value":"Separated workspace"}}}},
     "workspace.separated.key_missing": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Schlüssel fehlt"}},"en":{"stringUnit":{"state":"translated","value":"Key missing"}}}},
     "workspace.separated.other_account": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Anderes iCloud-Konto"}},"en":{"stringUnit":{"state":"translated","value":"Other iCloud account"}}}},
+    "workspace.separated.state_unreadable": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Einstellungen getrennter Workspaces sind auf diesem Gerät nicht lesbar, ihre Synchronisierung ist pausiert."}},"en":{"stringUnit":{"state":"translated","value":"Separated workspace settings can't be read on this device, so their sync is paused."}}}},
     "workspace.separated.sync_toggle": {"extractionState":"manual","localizations":{"de":{"stringUnit":{"state":"translated","value":"Auf diesem Gerät synchronisieren"}},"en":{"stringUnit":{"state":"translated","value":"Sync on this device"}}}},
     "workspace.delete": {
       "extractionState": "manual",

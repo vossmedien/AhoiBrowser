@@ -10,6 +10,15 @@ struct SeparatedWorkspaceRows: View {
     let onOpen: ((WorkspaceID) -> Void)?
 
     var body: some View {
+        if coordinator.isStateUnreadable {
+            Label(
+                SeparatedWorkspaceSyncCoordinator.stateUnreadableLabel,
+                systemImage: "exclamationmark.triangle"
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("browser.workspace.separated.state_unreadable")
+        }
         ForEach(coordinator.entries) { entry in
             HStack(spacing: 10) {
                 Button {
