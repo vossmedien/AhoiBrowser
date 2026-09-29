@@ -325,8 +325,9 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
                 'ahoiArcImportNoChanges' :
                 'ahoiArcImportSuccess');
       case 'error':
-        if ((this.arcImportResult_?.status ?? this.arcImportPreview_?.status) ===
-            'conflict') {
+        const failed =
+            this.arcImportResult_?.status ?? this.arcImportPreview_?.status;
+        if (failed === 'conflict') {
           return this.arcConflictText_();
         }
         return loadTimeData.getString(this.arcErrorStatusKey_());
