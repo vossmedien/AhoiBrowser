@@ -2,6 +2,39 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## Crest adoption A6 and C1 — 29 September 2026
+
+Owner-approved session for the unstaffed mobile and sync lanes
+([review](reviews/2026-09-29-crest-adoption.md) rows A6 and C1; sync side in
+[the sync checkpoint](ACTIVE_SYNC_COORDINATION.md)). Commits `7a90b6e8` (sync, C++ and contract), `1add8641` (mobile A6) and `4f7b677d` (mobile C1) on branch `worktree-agent-abc2d37f1c3746507`, not pushed.
+
+- **C1, unreadable separated-Workspace state fails closed** (Crest 2dbdc442).
+  `UserDefaultsSeparatedWorkspaceStateStore.loadState()` returns
+  `.records` or `.unreadable` (a missing key is `.records([])`; bytes that do
+  not decode or a value of another type are unreadable). While
+  `isStateUnreadable`, the coordinator lists nothing, never persists, and
+  discovery, opt-in, sync passes and retirement return early; the
+  `DataStoreIDs` registry is untouched. Each later refresh/sync pass reads
+  again and resumes once the state is readable. The Workspace list shows
+  `workspace.separated.state_unreadable` (en/de).
+- **A6, Mobile writer and reader.** `SyncRecordTextFitting` cuts on whole
+  `Character`s: own device name, Presence device/Workspace names, created and
+  renamed Workspace names, history title and transition; a navigation whose
+  URL exceeds 16 KiB is not recorded. The desktop codec fits the device and
+  Workspace names a Presence borrows from other records, so an older desktop's
+  long name no longer quarantines every tab; the record's own fields stay
+  strictly validated.
+- **Evidence** (headless `xcodebuild`, CE3513BF, `-jobs 4`, own derived data,
+  no Simulator.app, simulator Shutdown afterwards):
+  [README](../artifacts/tests/sync-mobile-a6-c1-20260929/README.md). The four
+  classes pending since 28 September now ran: `CompanionWorkspaceRetentionTests`
+  5/5, `SyncMergeConformanceTests` 10/10, `CompanionWorkspaceMergeTests` 24/24,
+  `MobileWebExtensionRuntimeTests` 5/5. New: `SyncRecordTextFittingTests` 7/7,
+  `SeparatedWorkspaceStateTests` 4/4; 111/111 in the focused run, and the whole
+  `AhoiMobileCoreTests` target 371 executed, 0 failures, 2 known CloudKit skips.
+- **Open.** No visible journey or real CloudKit peer; the desktop C++ side of
+  A6 is source-only until the desktop owner builds `ahoi_sync_unittests`.
+
 ## Native GREEN on ba9f26cb — 28 September 2026, 14:19 CEST
 
 User-approved bounded runs, owner `build.lock` held. **C++**: tab_tree, session
