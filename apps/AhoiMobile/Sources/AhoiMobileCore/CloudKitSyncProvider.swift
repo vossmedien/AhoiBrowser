@@ -258,6 +258,7 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
     var boundedSyncPassOutboundBlocked = false
     var outboundBatchWindowDepth = 0
     var eventDrivenSyncHandler: (@Sendable () -> Void)?
+    var followUpGate = BoundedPassFollowUpGate()
     var statePersistenceBlocked = false
     var quarantineResolutionCandidates: [UUID: QuarantineResolutionCandidate] = [:]
     var authorizedDeveloperAssetIDs: Set<UUID> = []

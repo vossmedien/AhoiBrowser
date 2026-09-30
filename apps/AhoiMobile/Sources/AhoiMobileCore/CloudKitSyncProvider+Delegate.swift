@@ -82,7 +82,14 @@ extension CloudKitSyncProvider {
                 return
             }
             await applyFetched(changes)
-            requestEventDrivenSyncIfUnbounded()
+            // Only a page that carries this zone's records is new remote work.
+            if changes.modifications.contains(where: {
+                $0.record.recordID.zoneID == zoneID
+            }) || changes.deletions.contains(where: {
+                $0.recordID.zoneID == zoneID
+            }) {
+                requestEventDrivenSyncIfUnbounded()
+            }
         case let .sentRecordZoneChanges(changes):
             guard statusLock.withLock({
                 accountContinuityVerified && !accountTransitionPending &&

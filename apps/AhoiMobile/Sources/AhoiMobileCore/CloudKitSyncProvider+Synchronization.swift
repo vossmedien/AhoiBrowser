@@ -151,9 +151,11 @@ extension CloudKitSyncProvider {
                 boundedSyncPassCompletionBlocked
             )
         }
-        let pendingFetched = try await recordStore.fetchedRecords().count
+        let fetchedLeftovers = try await recordStore.fetchedRecords()
+        let pendingFetched = fetchedLeftovers.count
         let engine = try activeEngine()
-        let pendingRecords = engine.state.pendingRecordZoneChanges.count
+        let pendingChanges = engine.state.pendingRecordZoneChanges
+        let pendingRecords = pendingChanges.count
         let persistentQuarantine = !(await quarantineStore.allQuarantined()).isEmpty
         var shouldRequestFollowUp = false
         if persistentQuarantine {
@@ -166,7 +168,16 @@ extension CloudKitSyncProvider {
             ))
         } else if pendingRecords > 0 || pendingFetched > 0 {
             setRetryScheduledUnlessBlocked()
-            shouldRequestFollowUp = true
+            // Leftovers this pass could not change must not restart it: a
+            // follow-up would fetch nothing, defer the same records and ask
+            // again every few seconds, keeping the app permanently busy.
+            let leftovers = Self.followUpLeftovers(
+                fetched: fetchedLeftovers,
+                pending: pendingChanges
+            )
+            shouldRequestFollowUp = statusLock.withLock {
+                followUpGate.shouldRequestFollowUp(leftovers: leftovers)
+            }
         } else {
             let completed = setSyncedIfActivityUnchanged(
                 activitySnapshot.0,
@@ -174,7 +185,9 @@ extension CloudKitSyncProvider {
                 observedPhase: activitySnapshot.2,
                 observedBlocked: activitySnapshot.3
             )
-            if !completed {
+            if completed {
+                statusLock.withLock { followUpGate.passCompleted() }
+            } else {
                 setRetryScheduledUnlessBlocked()
                 shouldRequestFollowUp = true
             }
@@ -183,6 +196,24 @@ extension CloudKitSyncProvider {
         if shouldRequestFollowUp, status().phase == .retryScheduled {
             requestEventDrivenSyncIfUnbounded()
         }
+    }
+
+    static func followUpLeftovers(
+        fetched: [SyncRecord],
+        pending: [CKSyncEngine.PendingRecordZoneChange]
+    ) -> Set<String> {
+        var leftovers = Set(fetched.map { "fetched:\($0.recordID.uuidString.lowercased())" })
+        for change in pending {
+            switch change {
+            case let .saveRecord(id):
+                leftovers.insert("save:\(id.recordName)")
+            case let .deleteRecord(id):
+                leftovers.insert("delete:\(id.recordName)")
+            @unknown default:
+                leftovers.insert("unknown:\(change)")
+            }
+        }
+        return leftovers
     }
 
     func enqueue(

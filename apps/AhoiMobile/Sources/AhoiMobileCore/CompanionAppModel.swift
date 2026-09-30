@@ -55,9 +55,14 @@ public final class CompanionAppModel: ObservableObject {
     var syncActivationInProgress = false
     var syncActivationCompletedIntentGeneration: UInt64?
     var syncActivationWaiters: [CheckedContinuation<Void, Never>] = []
-    var eventDrivenSyncTask: Task<Void, Never>?
-    var eventDrivenSyncRequested = false
-    var eventDrivenSyncGeneration: UInt64 = 0
+    /// At most one running and one queued event-driven pass, spaced >= 2 s.
+    lazy var eventDrivenSync = EventDrivenSyncCoalescer(
+        retryDelay: { [weak self] in self?.eventDrivenRetryDelay() },
+        shouldRun: { [weak self] in self?.desiredSyncEnabled == true },
+        pass: { [weak self] in await self?.runEventDrivenSyncPass() }
+    )
+    /// The library's current query; a sync refresh must not reset it to "".
+    var activeSearchQuery = ""
     var localSnapshotReseedRequired = false
     var mobileSharedIntentTasks: [UUID: Task<Void, Never>] = [:]
     var mobileSharedIntentTokens: [UUID: UUID] = [:]
@@ -151,9 +156,7 @@ public final class CompanionAppModel: ObservableObject {
     public func load() async {
         do {
             try await repository.load()
-            snapshot = try await repository.currentSnapshot()
-            applySharedBrowserSettings()
-            searchResults = try await repository.search("")
+            try await publishLocalProjection()
             loadError = nil
             syncStatus = syncProvider?.status()
             syncSafetyState = syncProvider?.safetyState() ?? .init()
@@ -175,8 +178,12 @@ public final class CompanionAppModel: ObservableObject {
     }
 
     public func refreshSearch(query: String) async {
+        activeSearchQuery = query
         do {
-            searchResults = try await repository.search(query)
+            let results = try await repository.search(query)
+            // A slower, older keystroke must not replace a newer query's results.
+            guard activeSearchQuery == query else { return }
+            if results != searchResults { searchResults = results }
             loadError = nil
         } catch {
             presentOperationFailure(error)
@@ -483,9 +490,7 @@ public final class CompanionAppModel: ObservableObject {
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return
             }
-            snapshot = try await repository.currentSnapshot()
-            applySharedBrowserSettings()
-            searchResults = try await repository.search("")
+            try await publishLocalProjection()
             guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
                 return
             }
@@ -509,10 +514,16 @@ public final class CompanionAppModel: ObservableObject {
         guard isCurrentSyncRuntime(syncProvider, generation: generation) else {
             return
         }
-        syncStatus = syncProvider.status()
-        syncSafetyState = syncProvider.safetyState()
-        physicalDeletionRecoveryRequired = await syncProvider
-            .hasPhysicalDeletionQuarantine()
+        // Unchanged values must not republish: each assignment re-renders
+        // every observing view on the main actor.
+        let status = syncProvider.status()
+        if status != syncStatus { syncStatus = status }
+        let safety = syncProvider.safetyState()
+        if safety != syncSafetyState { syncSafetyState = safety }
+        let deletionRecovery = await syncProvider.hasPhysicalDeletionQuarantine()
+        if deletionRecovery != physicalDeletionRecoveryRequired {
+            physicalDeletionRecoveryRequired = deletionRecovery
+        }
     }
 
     func isCurrentSyncRuntime(
@@ -530,42 +541,35 @@ public final class CompanionAppModel: ObservableObject {
         }
     }
 
-    private func scheduleEventDrivenSync() {
+    func scheduleEventDrivenSync() {
         guard desiredSyncEnabled else { return }
-        let providerStatus = syncProvider?.status()
-        if syncInProgress, providerStatus?.phase != .retryScheduled {
-            // A normal enqueue during an active pass belongs to the same
-            // coalesced sync loop and must not spawn a competing task.
-            syncRequestedWhileInProgress = true
-            return
-        }
-        eventDrivenSyncRequested = true
-        guard eventDrivenSyncTask == nil else { return }
-        eventDrivenSyncGeneration &+= 1
-        let taskGeneration = eventDrivenSyncGeneration
-        eventDrivenSyncTask = Task { @MainActor [weak self] in
-            await Task.yield()
-            guard let self else { return }
-            while !Task.isCancelled,
-                  self.desiredSyncEnabled,
-                  self.eventDrivenSyncRequested {
-                self.eventDrivenSyncRequested = false
-                let status = self.syncProvider?.status()
-                if status?.phase == .retryScheduled {
-                    let rawDelay = status?.retryAfterSeconds ?? 0
-                    let boundedDelay = rawDelay.isFinite && rawDelay > 0
-                        ? min(rawDelay, 3_600)
-                        : 2
-                    let delay = max(boundedDelay, 2)
-                    let delayMilliseconds = Int64((delay * 1_000).rounded(.up))
-                    try? await Task.sleep(for: .milliseconds(delayMilliseconds))
-                    guard !Task.isCancelled, self.desiredSyncEnabled else { break }
-                }
-                await self.sync()
+        // Requests raised by a running pass (a follow-up, an enqueue after
+        // its bounded section) queue behind it instead of restarting the
+        // pass immediately; the coalescer spaces and backs off chained passes.
+        eventDrivenSync.request()
+    }
+
+    /// Waits for a user-started or in-flight sync to finish instead of
+    /// joining it: joining would mark it for an immediate, unspaced repeat.
+    func runEventDrivenSyncPass() async {
+        while syncInProgress {
+            await withCheckedContinuation { continuation in
+                syncWaiters.append(continuation)
             }
-            guard self.eventDrivenSyncGeneration == taskGeneration else { return }
-            self.eventDrivenSyncTask = nil
         }
+        guard desiredSyncEnabled else { return }
+        await sync()
+    }
+
+    func eventDrivenRetryDelay() -> Duration? {
+        guard let status = syncProvider?.status(),
+              status.phase == .retryScheduled else { return nil }
+        let rawDelay = status.retryAfterSeconds ?? 0
+        let boundedDelay = rawDelay.isFinite && rawDelay > 0
+            ? min(rawDelay, 3_600)
+            : 2
+        let delayMilliseconds = Int64((max(boundedDelay, 2) * 1_000).rounded(.up))
+        return .milliseconds(delayMilliseconds)
     }
 
     public func setHistoryRetentionDays(_ days: Int) async {
@@ -711,10 +715,21 @@ public final class CompanionAppModel: ObservableObject {
     }
 
     func refreshLocalState() async throws {
-        snapshot = try await repository.currentSnapshot()
-        applySharedBrowserSettings()
-        searchResults = try await repository.search("")
+        try await publishLocalProjection()
         loadError = nil
+    }
+
+    /// Publishes the repository projection only where it changed, and keeps
+    /// the library's active query instead of resetting it to all results.
+    func publishLocalProjection() async throws {
+        let current = try await repository.currentSnapshot()
+        if current != snapshot { snapshot = current }
+        applySharedBrowserSettings()
+        let query = activeSearchQuery
+        let results = try await repository.search(query)
+        if query == activeSearchQuery, results != searchResults {
+            searchResults = results
+        }
     }
 
 }

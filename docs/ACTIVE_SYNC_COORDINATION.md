@@ -1,5 +1,33 @@
 # Active sync coordination
 
+## iPhone never idle in the receive test — cause and fix, 30 September 2026
+
+Build `a6d20b2c` no longer crashed, but XCUITest waited ~70 s per
+keystroke for the app to become idle. There is no device log for the
+run; the cause is established from the code. Events that CKSyncEngine
+delivers inside a bounded pass do not trigger a new one: the Unbounded
+guard drops them. The loop came from `finalizeBoundedSync`: any pass
+that ended with records it could not import (a Presence whose Page is
+missing, a missing dependency, an unknown device — the Mac tabs from
+08:45) or with pending sends it defers set `retryScheduled` and
+requested a follow-up. The follow-up fetched nothing, left the same
+records and asked again, so a sync ran every ~2 s without end. Each
+pass republished `snapshot`, `searchResults` and the sync status on the
+main actor, re-rendering every observing view, and reset the library
+search to all results. **Fix (Lane mobile):**
+`BoundedPassFollowUpGate` requests a follow-up only for a new set of
+leftovers; the unchanged set stays visible as "retry scheduled" until a
+push or local change. `EventDrivenSyncCoalescer` keeps at most one
+running and one queued event-driven pass. It no longer joins a running
+sync for an immediate repeat, spaces passes at least 2 s and doubles
+the spacing (up to 60 s) while passes request themselves. A fetched page
+without records of the zone no longer requests a pass. The model
+publishes only changed values and keeps the active search query.
+`EventDrivenSyncCoalescingTests` (8 tests, a fake engine that delivers
+fetched events on every fetch) passes; so do all 398 core tests on
+"Ahoi E2E iPhone 17 ADR12". Retest: install this build on the iPhone,
+then rerun the receive test.
+
 ## iPhone crash in the receive test — cause and fix, 30 September 2026
 
 Build `964ebc78` on "Servusla" crashed twice (09:02, 09:21) in

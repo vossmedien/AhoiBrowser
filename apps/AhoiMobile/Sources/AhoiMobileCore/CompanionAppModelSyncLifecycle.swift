@@ -122,10 +122,7 @@ extension CompanionAppModel {
     private func disableSyncRuntime() async {
         syncActivationAuthorization?.revoke()
         syncActivationAuthorization = nil
-        eventDrivenSyncGeneration &+= 1
-        eventDrivenSyncTask?.cancel()
-        eventDrivenSyncTask = nil
-        eventDrivenSyncRequested = false
+        eventDrivenSync.cancel()
         syncRequestedWhileInProgress = false
 
         syncGeneration &+= 1
