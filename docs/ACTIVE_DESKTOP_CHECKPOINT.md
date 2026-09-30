@@ -33,35 +33,44 @@ New journeys: `tools/desktop_e2e/ws-isolated-{switch,routing,recovery,perf}-jour
 All new C++ is syntax-checked against M154 (`clang -fsyntax-only`, AhoiDev
 flags); first real proof is the next build plus its unit binaries.
 
-## M154 roll: first dev build in progress — 30 September 2026
+## M154 roll: first dev build and Ahoi unit tests green — 30 September 2026, 23:40 CEST
 
-- `build.lock` held by the roll agent since 11:43 (checkout switch + build).
-- M153 checkout restored to its exact base tree. `restore-overlay.sh`
-  reverse-applied the delta but refused because removing the overlay's
-  `third_party/sparkle/.gitignore` exposed the untracked fetched
-  `prebuilt/`; it was parked in `.work/state/sparkle-prebuilt-parked-m154-roll`
-  (back after the M154 overlay apply), old state archived.
-- Roll commit `a13f3fa7`: pin → `154.0.8037.93`, candidate binding removed,
-  staged stack active (83), 0079/0082 new files moved into the overlay,
-  workaround pins and pin-bound tests on M154.
-- `fetch-chromium.sh --prehydrate-target` stalled: 25 978 target blobs
-  missing, each 16-blob fetch in the shallow blobless checkout ran into the
-  300 s timeout (12 blobs in 37 min); stopped with SIGINT (checkout
-  unchanged). The same fetch from a non-shallow scratch repo takes
-  5–15 min per 2 000 blobs, so the 25 966 missing blobs were fetched there
-  (`.work/agent-queue/m154-roll/blobfetch*`), packed and added with
-  `index-pack` (object ids recomputed; HEAD/index/worktree unchanged). The
-  guarded rerun then reported `complete`, 0 missing, mutation guard
-  verified, and `gclient sync` + dependency verification passed:
-  checkout `f89f3a43`, V8 `31fac3be`.
-- Commits `8083278a` (Quick Window → `BrowserWindowInterface`) and
-  `04c67bec` (entitlement policy → M154). Repository tests: no new
-  failures (sidebar-runtime/line-budget already red before the roll;
-  zen-import contract reads the live checkout).
-- Hooks (`--compatible-dev-xcode`) and `apply-overlay.sh` green on M154;
-  Sparkle prebuilt back in place. Running: `build-ahoi.sh dev` + 20 unit
-  targets (`.work/agent-queue/m154-roll/build.sh`, log `build1.log`,
-  `progress`). No install, no journeys.
+- **Result:** guarded `build-ahoi.sh dev` of source `a8c4f479` on Chromium
+  `154.0.8037.93` (`f89f3a43`) completed: compile, link, staging, Apple
+  Development signing, nested-code verification and build provenance
+  (`out/AhoiDev/AhoiBrowser.app`, binary SHA-256 `20ecab50…`). All 20 Ahoi
+  unit binaries (chain48 list + popup, media, sidebar_search, appearance,
+  startup_policy; `--test-launcher-jobs=4`) pass: 1 305 tests, 0 failures
+  (logs `.work/agent-queue/m154-roll/unittests6/`). **Not installed**;
+  `/Applications` stays M153 build 56; no journeys run. Upstream control
+  build not run.
+- **Roll:** `a13f3fa7` (pin, candidate binding removed, stack active with 83
+  patches, 0079/0082 new files into the overlay, workaround pins,
+  pin-bound tests), `04c67bec` (entitlement policy), `a8c4f479`
+  (`config/toolchain.json` GN/Siso/Clang pins from M154 DEPS).
+- **Checkout switch:** `restore-overlay.sh` refused only because removing the
+  overlay's `third_party/sparkle/.gitignore` exposed the fetched
+  `prebuilt/` (tooling gap: restore should ignore it); parked, restored
+  after the M154 apply. `fetch-chromium.sh --prehydrate-target` stalled
+  (16-blob fetches in the shallow blobless checkout hit the 300 s timeout);
+  the 25 966 missing blobs were fetched in a non-shallow scratch repo,
+  added with `index-pack`, and the guarded rerun verified them (complete,
+  0 missing, mutation guard clean) before `gclient sync`.
+- **Compile fixes (M154 API):** Quick Window and all BrowserView-owned
+  overlay controllers take `BrowserWindowInterface` (`8083278a`,
+  `9f564dfb`); `PasswordString` (`84c9637e`, `a1f31a6c`); `TabAlert::kNone`
+  (`f865dfab`); `GetPrepopulatedEngineFromBuiltInData` regional variants in
+  the sync-owned `native_search_engine_setting.cc` (`5608defd`, sync lane
+  please review); `ThumbnailTabHelper::From(tab)` (`b39518e6`,
+  `e4629b45`); `MdTextButton` include (`1f6ed380`); test window helper
+  (`677196b0`). 0001: saved-group bar recheck without the removed pref
+  hook (`14f37b18`), explicit window-close flag moved into
+  `UnloadController` (`2f7484ec`), `BrowserWindowInterface::
+  SetAsDelegateForAhoiPopupOverlay` non-pure seam (`92543aaf`).
+- **Open:** installed-app E2E on this candidate, upstream control build,
+  repository tests `test_sidebar_runtime_contracts` and
+  `test_source_line_budget` (already red before the roll), browser tests.
+  `build.lock` released.
 
 ## M154 roll: candidate bound, patch stack rebased (source only) — 30 September 2026, 11:45 CEST
 
