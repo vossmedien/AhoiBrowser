@@ -37,14 +37,16 @@ namespace ahoi::sidebar {
 
 namespace {
 
-content::WebContents* GetActivePageActionContents(Browser* browser) {
+content::WebContents* GetActivePageActionContents(
+    BrowserWindowInterface* browser) {
   return browser && browser->GetTabStripModel()
              ? browser->GetTabStripModel()->GetActiveWebContents()
              : nullptr;
 }
 
-std::optional<std::u16string> GetActivePageLinkText(Browser* browser,
-                                                    PageLinkCopyFormat format) {
+std::optional<std::u16string> GetActivePageLinkText(
+    BrowserWindowInterface* browser,
+    PageLinkCopyFormat format) {
   content::WebContents* const contents = GetActivePageActionContents(browser);
   if (!contents) {
     return std::nullopt;
@@ -58,11 +60,12 @@ std::optional<std::u16string> GetActivePageLinkText(Browser* browser,
 
 }  // namespace
 
-bool CanCopyActivePageLink(Browser* browser) {
+bool CanCopyActivePageLink(BrowserWindowInterface* browser) {
   return GetActivePageLinkText(browser, PageLinkCopyFormat::kUrl).has_value();
 }
 
-bool CopyActivePageLink(Browser* browser, PageLinkCopyFormat format) {
+bool CopyActivePageLink(BrowserWindowInterface* browser,
+                        PageLinkCopyFormat format) {
   std::optional<std::u16string> text = GetActivePageLinkText(browser, format);
   if (!text.has_value()) {
     return false;
@@ -77,7 +80,7 @@ bool CopyActivePageLink(Browser* browser, PageLinkCopyFormat format) {
   return true;
 }
 
-bool CanOpenActivePageInReadingMode(Browser* browser) {
+bool CanOpenActivePageInReadingMode(BrowserWindowInterface* browser) {
   content::WebContents* const contents = GetActivePageActionContents(browser);
   if (!contents) {
     return false;
@@ -87,7 +90,7 @@ bool CanOpenActivePageInReadingMode(Browser* browser) {
          chrome::IsCommandEnabled(browser, IDC_SHOW_READING_MODE_SIDE_PANEL);
 }
 
-bool OpenActivePageInReadingMode(Browser* browser) {
+bool OpenActivePageInReadingMode(BrowserWindowInterface* browser) {
   return CanOpenActivePageInReadingMode(browser) &&
          chrome::ExecuteCommand(browser, IDC_SHOW_READING_MODE_SIDE_PANEL);
 }
@@ -352,7 +355,7 @@ BrowserSidebarSplitDropSource BrowserSidebarHostView::MaterializeSavedPage(
       navigation_url = node.url;
       break;
   }
-  Browser* const navigation_browser = browser_;
+  BrowserWindowInterface* const navigation_browser = browser_;
   NavigateParams params(navigation_browser, navigation_url,
                         ui::PAGE_TRANSITION_AUTO_BOOKMARK);
   params.disposition = WindowOpenDisposition::NEW_FOREGROUND_TAB;

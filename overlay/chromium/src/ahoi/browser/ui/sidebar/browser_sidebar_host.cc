@@ -122,7 +122,7 @@
 namespace ahoi::sidebar {
 
 std::unique_ptr<views::View> CreateBrowserSidebarHost(
-    Browser* browser,
+    BrowserWindowInterface* browser,
     ModalOverlayController* modal_overlay_controller) {
   if (!browser ||
       browser->GetType() != BrowserWindowInterface::TYPE_NORMAL ||

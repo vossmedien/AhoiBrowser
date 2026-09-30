@@ -14,7 +14,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/uuid.h"
 
-class Browser;
+class BrowserWindowInterface;
 
 namespace gfx {
 class Point;
@@ -50,7 +50,7 @@ struct BrowserSidebarSplitDropSource {
 // Creates the profile-backed Ahoi organization surface for a normal browser
 // window. Unsupported and private profiles deliberately return nullptr.
 std::unique_ptr<views::View> CreateBrowserSidebarHost(
-    Browser* browser,
+    BrowserWindowInterface* browser,
     ModalOverlayController* modal_overlay_controller);
 
 // Notifies a production Ahoi host that its presentation animation and final
@@ -127,10 +127,11 @@ bool ToggleBrowserSidebarDiscovery(views::View* sidebar_host);
 // Compact page actions always resolve the currently active split pane at
 // execution time. They never materialize a saved page or persist clipboard
 // contents into Ahoi profile/sync state, including in off-the-record windows.
-bool CanCopyActivePageLink(Browser* browser);
-bool CopyActivePageLink(Browser* browser, PageLinkCopyFormat format);
-bool CanOpenActivePageInReadingMode(Browser* browser);
-bool OpenActivePageInReadingMode(Browser* browser);
+bool CanCopyActivePageLink(BrowserWindowInterface* browser);
+bool CopyActivePageLink(BrowserWindowInterface* browser,
+                        PageLinkCopyFormat format);
+bool CanOpenActivePageInReadingMode(BrowserWindowInterface* browser);
+bool OpenActivePageInReadingMode(BrowserWindowInterface* browser);
 
 // Resolves only Ahoi's private drag identity. A closed saved page is valid but
 // remains unopened during hover. A committed drop can activate it through the

@@ -89,7 +89,8 @@ DeveloperToolbarSurface SurfaceForAnchor(views::View* anchor_view) {
 
 }  // namespace
 
-DeveloperToolkitController::DeveloperToolkitController(Browser* browser)
+DeveloperToolkitController::DeveloperToolkitController(
+    BrowserWindowInterface* browser)
     : browser_(browser) {
   CHECK(browser_);
 }

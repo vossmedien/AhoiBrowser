@@ -10,7 +10,7 @@
 #include "base/memory/weak_ptr.h"
 #include "ui/views/window/dialog_delegate.h"
 
-class Browser;
+class BrowserWindowInterface;
 
 namespace views {
 class Label;
@@ -28,7 +28,7 @@ class UboInstallDialog final : public views::DialogDelegate,
   ~UboInstallDialog() override;
 
   static views::Widget* CreateWidget(
-      Browser* browser,
+      BrowserWindowInterface* browser,
       UboService* service,
       UboInstallDialog** dialog_for_testing = nullptr);
 
@@ -42,12 +42,12 @@ class UboInstallDialog final : public views::DialogDelegate,
   void OnUboServiceStatusChanged(const UboServiceStatus& status) override;
 
  private:
-  UboInstallDialog(Browser* browser, UboService* service);
+  UboInstallDialog(BrowserWindowInterface* browser, UboService* service);
   void HandleDialogClosed();
   void ToggleDetails();
   void Update(const UboServiceStatus& status);
 
-  raw_ptr<Browser> browser_;
+  raw_ptr<BrowserWindowInterface> browser_;
   raw_ptr<UboService> service_;
   bool prompt_handoff_pending_ = false;
   UboDialogAction action_ = UboDialogAction::kNone;
@@ -70,7 +70,7 @@ class UboInstallDialog final : public views::DialogDelegate,
   base::WeakPtrFactory<UboInstallDialog> weak_ptr_factory_{this};
 };
 
-void ShowUboInstallDialog(Browser* browser);
+void ShowUboInstallDialog(BrowserWindowInterface* browser);
 
 }  // namespace ahoi::extensions
 

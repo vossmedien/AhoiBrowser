@@ -68,6 +68,7 @@
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/thumbnails/thumbnail_image.h"
 #include "chrome/browser/ui/thumbnails/thumbnail_tab_helper.h"
+#include "chrome/browser/ui/unload_controller.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/grit/generated_resources.h"
@@ -133,6 +134,18 @@
 #include "ui/views/widget/widget.h"
 
 namespace ahoi::sidebar {
+
+namespace {
+
+// M154 keeps Ahoi's explicit window-close request in UnloadController.
+bool IsAhoiWindowCloseRequested(const BrowserWindowInterface* browser) {
+  const UnloadController* const unload_controller =
+      browser ? UnloadController::From(browser) : nullptr;
+  return unload_controller && unload_controller->ahoi_window_close_requested();
+}
+
+}  // namespace
+
 void BrowserSidebarHostView::AddedToWidget() {
   views::View::AddedToWidget();
   TrackBrowserSidebarHostForCrossLevelDrop(this, true);
@@ -537,7 +550,7 @@ void BrowserSidebarHostView::ActivateWorkspaceRuntimeTab(
 
 void BrowserSidebarHostView::EnsureWorkspaceSurface() {
   if (!controller_ || !browser_ || !browser_->GetWindow() ||
-      browser_->IsWindowCloseRequested()) {
+      IsAhoiWindowCloseRequested(browser_)) {
     return;
   }
   // Crest 142 R4: the service is the single writer, and patch 0054 reads it
@@ -562,7 +575,7 @@ void BrowserSidebarHostView::ReconcileWorkspaceSurface(
     uint64_t generation,
     bool follow_selected_tab) {
   if (generation != workspace_surface_generation_ || !tab_strip_model_ ||
-      !browser_ || browser_->IsWindowCloseRequested() ||
+      !browser_ || IsAhoiWindowCloseRequested(browser_) ||
       DeferWorkspaceSurfaceDuringRestore()) {
     return;
   }

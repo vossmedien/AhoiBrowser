@@ -20,7 +20,7 @@
 #include "components/prefs/pref_change_registrar.h"
 #include "url/gurl.h"
 
-class Browser;
+class BrowserWindowInterface;
 class TabStripModel;
 
 namespace favicon {
@@ -56,7 +56,7 @@ class ModalOverlayController;
 class CommandBarController : public TabStripModelObserver,
                              public CommandServiceObserver {
  public:
-  CommandBarController(Browser* browser,
+  CommandBarController(BrowserWindowInterface* browser,
                        ModalOverlayController* modal_overlay_controller,
                        views::View* sidebar_host);
   CommandBarController(const CommandBarController&) = delete;
@@ -98,7 +98,7 @@ class CommandBarController : public TabStripModelObserver,
 
   void ScheduleSuggestionRefresh();
 
-  raw_ptr<Browser> browser_ = nullptr;
+  raw_ptr<BrowserWindowInterface> browser_ = nullptr;
   raw_ptr<TabStripModel> tab_strip_model_ = nullptr;
   raw_ptr<ModalOverlayController> modal_overlay_controller_ = nullptr;
   raw_ptr<CommandService> command_service_ = nullptr;

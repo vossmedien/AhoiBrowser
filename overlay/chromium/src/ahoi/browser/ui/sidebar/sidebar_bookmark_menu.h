@@ -18,7 +18,7 @@
 
 class BookmarkMenuDelegate;
 class BookmarkMergedSurfaceService;
-class Browser;
+class BrowserWindowInterface;
 
 namespace views {
 class MenuRunner;
@@ -31,7 +31,7 @@ namespace ahoi::sidebar {
 // the shelf owns the runner and cancels it on structural model changes.
 class SidebarBookmarkMenu final : public views::MenuDelegate {
  public:
-  SidebarBookmarkMenu(Browser* browser,
+  SidebarBookmarkMenu(BrowserWindowInterface* browser,
                       BookmarkMergedSurfaceService* bookmark_service,
                       const BookmarkParentFolder& folder,
                       base::RepeatingClosure closed_callback);
@@ -67,7 +67,7 @@ class SidebarBookmarkMenu final : public views::MenuDelegate {
   std::optional<BookmarkParentFolder> ResolveFolder() const;
   bool PrepareContextMenu(views::MenuItemView* menu);
 
-  const raw_ptr<Browser> browser_;
+  const raw_ptr<BrowserWindowInterface> browser_;
   const raw_ptr<BookmarkMergedSurfaceService> bookmark_service_;
   const std::optional<BookmarkParentFolder::PermanentFolderType>
       permanent_type_;

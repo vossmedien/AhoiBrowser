@@ -22,7 +22,7 @@
 #include "ui/views/view_tracker.h"
 
 class BookmarkMergedSurfaceService;
-class Browser;
+class BrowserWindowInterface;
 
 namespace bookmarks {
 class BookmarkNode;
@@ -55,7 +55,7 @@ class SidebarBookmarkShelfView final
   METADATA_HEADER(SidebarBookmarkShelfView, views::View)
 
  public:
-  explicit SidebarBookmarkShelfView(Browser* browser);
+  explicit SidebarBookmarkShelfView(BrowserWindowInterface* browser);
   SidebarBookmarkShelfView(const SidebarBookmarkShelfView&) = delete;
   SidebarBookmarkShelfView& operator=(const SidebarBookmarkShelfView&) = delete;
   ~SidebarBookmarkShelfView() override;
@@ -134,7 +134,7 @@ class SidebarBookmarkShelfView final
   void ResetClosedMenu(size_t generation);
   void OpenBookmarkManager(const ui::Event& event);
 
-  const raw_ptr<Browser> browser_;
+  const raw_ptr<BrowserWindowInterface> browser_;
   raw_ptr<BookmarkMergedSurfaceService> bookmark_service_ = nullptr;
   raw_ptr<views::ScrollView> scroll_view_ = nullptr;
   raw_ptr<views::View> leading_overflow_ = nullptr;
@@ -159,7 +159,8 @@ class SidebarBookmarkShelfView final
   base::WeakPtrFactory<SidebarBookmarkShelfView> weak_ptr_factory_{this};
 };
 
-std::unique_ptr<views::View> CreateSidebarBookmarkShelfView(Browser* browser);
+std::unique_ptr<views::View> CreateSidebarBookmarkShelfView(
+    BrowserWindowInterface* browser);
 
 }  // namespace ahoi::sidebar
 

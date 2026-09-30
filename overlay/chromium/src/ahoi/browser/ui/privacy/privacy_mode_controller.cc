@@ -55,7 +55,7 @@ std::optional<privacy::PrivacyMode> GetExplicitOriginMode(
 
 }  // namespace
 
-PrivacyModeController::PrivacyModeController(Browser* browser)
+PrivacyModeController::PrivacyModeController(BrowserWindowInterface* browser)
     : browser_(browser) {
   CHECK(browser_);
 }

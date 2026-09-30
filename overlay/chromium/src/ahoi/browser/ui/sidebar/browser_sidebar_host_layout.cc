@@ -136,7 +136,7 @@
 
 namespace ahoi::sidebar {
 BrowserSidebarHostView::BrowserSidebarHostView(
-    Browser* browser,
+    BrowserWindowInterface* browser,
     SessionBridge* session_bridge,
     WorkspaceService* workspace_service,
     ModalOverlayController* modal_overlay_controller)

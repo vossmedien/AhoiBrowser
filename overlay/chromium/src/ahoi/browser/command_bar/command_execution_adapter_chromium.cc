@@ -113,7 +113,8 @@ class TemplateUrlSearchResolver final : public CommandBarSearchResolver {
 
 class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
  public:
-  BrowserCommandExecutionDelegate(Browser* browser, views::View* sidebar_host)
+  BrowserCommandExecutionDelegate(BrowserWindowInterface* browser,
+                                  views::View* sidebar_host)
       : browser_(browser), sidebar_host_(sidebar_host) {
     CHECK(browser_);
   }
@@ -415,7 +416,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
   }
 
  private:
-  raw_ptr<Browser> browser_ = nullptr;
+  raw_ptr<BrowserWindowInterface> browser_ = nullptr;
   raw_ptr<views::View> sidebar_host_ = nullptr;
   std::unique_ptr<DeveloperActionExecutor> developer_action_executor_;
 };
@@ -424,7 +425,7 @@ class BrowserCommandExecutionDelegate final : public CommandExecutionDelegate {
 
 // static
 std::unique_ptr<CommandExecutionAdapter>
-CommandExecutionAdapter::CreateForBrowser(Browser* browser,
+CommandExecutionAdapter::CreateForBrowser(BrowserWindowInterface* browser,
                                           CommandService* command_service,
                                           views::View* sidebar_host) {
   if (!browser || !command_service || !browser->GetProfile()) {

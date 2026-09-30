@@ -89,7 +89,8 @@ std::unique_ptr<views::View> OverflowArrow(const gfx::VectorIcon& icon) {
 
 }  // namespace
 
-SidebarBookmarkShelfView::SidebarBookmarkShelfView(Browser* browser)
+SidebarBookmarkShelfView::SidebarBookmarkShelfView(
+    BrowserWindowInterface* browser)
     : browser_(browser) {
   CHECK(browser_);
   set_context_menu_controller(this);
@@ -697,7 +698,8 @@ void SidebarBookmarkShelfView::ResetContextMenu(size_t generation) {
   }
 }
 
-std::unique_ptr<views::View> CreateSidebarBookmarkShelfView(Browser* browser) {
+std::unique_ptr<views::View> CreateSidebarBookmarkShelfView(
+    BrowserWindowInterface* browser) {
   return std::make_unique<SidebarBookmarkShelfView>(browser);
 }
 

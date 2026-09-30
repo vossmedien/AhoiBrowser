@@ -18,7 +18,7 @@
 #include "ui/views/view_tracker.h"
 
 class BookmarkMergedSurfaceService;
-class Browser;
+class BrowserWindowInterface;
 
 namespace ahoi::sidebar {
 
@@ -30,7 +30,7 @@ void HideStockBookmarkBarOptions(views::MenuItemView* menu);
 // the clicked button. Only stable node IDs cross the asynchronous boundary.
 class SidebarBookmarkContextMenu final : public BookmarkContextMenuObserver {
  public:
-  SidebarBookmarkContextMenu(Browser* browser,
+  SidebarBookmarkContextMenu(BrowserWindowInterface* browser,
                              BookmarkMergedSurfaceService* service,
                              base::RepeatingClosure closed_callback);
   SidebarBookmarkContextMenu(const SidebarBookmarkContextMenu&) = delete;
@@ -58,7 +58,7 @@ class SidebarBookmarkContextMenu final : public BookmarkContextMenuObserver {
                         ui::mojom::MenuSourceType source_type,
                         bool can_paste);
 
-  const raw_ptr<Browser> browser_;
+  const raw_ptr<BrowserWindowInterface> browser_;
   const raw_ptr<BookmarkMergedSurfaceService> service_;
   base::WeakPtr<views::Widget> widget_;
   views::ViewTracker source_;

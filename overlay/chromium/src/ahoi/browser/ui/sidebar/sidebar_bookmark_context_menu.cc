@@ -34,7 +34,7 @@ void HideStockBookmarkBarOptions(views::MenuItemView* menu) {
 }
 
 SidebarBookmarkContextMenu::SidebarBookmarkContextMenu(
-    Browser* browser,
+    BrowserWindowInterface* browser,
     BookmarkMergedSurfaceService* service,
     base::RepeatingClosure closed_callback)
     : browser_(browser),

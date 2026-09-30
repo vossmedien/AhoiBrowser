@@ -26,7 +26,7 @@ namespace views {
 class View;
 }  // namespace views
 
-class Browser;
+class BrowserWindowInterface;
 class GURL;
 
 namespace ahoi::appearance {
@@ -49,7 +49,7 @@ class PopupOverlayController final
   using OpenerPaneProvider =
       base::RepeatingCallback<views::View*(content::WebContents*)>;
 
-  PopupOverlayController(Browser* browser,
+  PopupOverlayController(BrowserWindowInterface* browser,
                          views::View* contents_host,
                          OpenerPaneProvider opener_pane_provider);
   PopupOverlayController(const PopupOverlayController&) = delete;
@@ -146,7 +146,7 @@ class PopupOverlayController final
   void OnViewBoundsChanged(views::View* observed_view) override;
   void OnViewIsDeleting(views::View* observed_view) override;
 
-  raw_ptr<Browser> browser_ = nullptr;
+  raw_ptr<BrowserWindowInterface> browser_ = nullptr;
   raw_ptr<views::View> contents_host_ = nullptr;
   OpenerPaneProvider opener_pane_provider_;
   raw_ptr<views::View> opener_pane_ = nullptr;

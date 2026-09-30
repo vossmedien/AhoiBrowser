@@ -35,7 +35,7 @@ constexpr int kOpenAllCommand = 1;
 }  // namespace
 
 SidebarBookmarkMenu::SidebarBookmarkMenu(
-    Browser* browser,
+    BrowserWindowInterface* browser,
     BookmarkMergedSurfaceService* bookmark_service,
     const BookmarkParentFolder& folder,
     base::RepeatingClosure closed_callback)

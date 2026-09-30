@@ -11,7 +11,7 @@
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 
-class Browser;
+class BrowserWindowInterface;
 
 namespace content {
 class WebContents;
@@ -30,7 +30,7 @@ namespace ahoi {
 // profile data and the request throttle consumes immutable snapshots.
 class PrivacyModeController {
  public:
-  explicit PrivacyModeController(Browser* browser);
+  explicit PrivacyModeController(BrowserWindowInterface* browser);
   PrivacyModeController(const PrivacyModeController&) = delete;
   PrivacyModeController& operator=(const PrivacyModeController&) = delete;
   ~PrivacyModeController();
@@ -47,7 +47,7 @@ class PrivacyModeController {
   void ReloadActivePage();
   void OnBubbleClosed();
 
-  raw_ptr<Browser> browser_ = nullptr;
+  raw_ptr<BrowserWindowInterface> browser_ = nullptr;
   std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate_;
   std::unique_ptr<views::Widget> bubble_widget_;
   bool bubble_close_pending_ = false;

@@ -15,7 +15,7 @@
 #include "url/gurl.h"
 
 class AutocompleteSchemeClassifier;
-class Browser;
+class BrowserWindowInterface;
 
 namespace views {
 class View;
@@ -96,7 +96,7 @@ class CommandExecutionDelegate {
 class CommandExecutionAdapter {
  public:
   static std::unique_ptr<CommandExecutionAdapter> CreateForBrowser(
-      Browser* browser,
+      BrowserWindowInterface* browser,
       CommandService* command_service,
       views::View* sidebar_host);
 

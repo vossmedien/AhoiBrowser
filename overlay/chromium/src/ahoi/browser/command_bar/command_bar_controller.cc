@@ -106,7 +106,7 @@ const gfx::VectorIcon* GetCommandIcon(std::string_view stable_id) {
 }  // namespace
 
 CommandBarController::CommandBarController(
-    Browser* browser,
+    BrowserWindowInterface* browser,
     ModalOverlayController* modal_overlay_controller,
     views::View* sidebar_host)
     : browser_(browser), modal_overlay_controller_(modal_overlay_controller) {

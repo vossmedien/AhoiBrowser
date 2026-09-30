@@ -11,7 +11,7 @@
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 
-class Browser;
+class BrowserWindowInterface;
 
 namespace content {
 class WebContents;
@@ -42,7 +42,7 @@ enum class DeveloperToolbarSurface {
 // renderer hooks or background work.
 class DeveloperToolkitController {
  public:
-  explicit DeveloperToolkitController(Browser* browser);
+  explicit DeveloperToolkitController(BrowserWindowInterface* browser);
   DeveloperToolkitController(const DeveloperToolkitController&) = delete;
   DeveloperToolkitController& operator=(const DeveloperToolkitController&) =
       delete;
@@ -87,7 +87,7 @@ class DeveloperToolkitController {
   void OnCacheStatusClosed();
   void OnProfileEditorClosed();
 
-  raw_ptr<Browser> browser_ = nullptr;
+  raw_ptr<BrowserWindowInterface> browser_ = nullptr;
   std::unique_ptr<DeveloperActionExecutor> executor_;
   base::WeakPtr<content::WebContents> bubble_contents_;
   std::unique_ptr<views::BubbleDialogDelegate> bubble_delegate_;

@@ -66,7 +66,6 @@
 #include "ui/views/widget/widget_observer.h"
 #include "url/gurl.h"
 
-class Browser;
 class BrowserWindowInterface;
 class Profile;
 class SessionID;
@@ -136,7 +135,7 @@ class BrowserSidebarHostView final
   METADATA_HEADER(BrowserSidebarHostView, views::View)
 
  public:
-  BrowserSidebarHostView(Browser* browser,
+  BrowserSidebarHostView(BrowserWindowInterface* browser,
                          SessionBridge* session_bridge,
                          WorkspaceService* workspace_service,
                          ModalOverlayController* modal_overlay_controller);
@@ -705,7 +704,7 @@ class BrowserSidebarHostView final
 
   void OnTabStripModelDestroyed(TabStripModel* tab_strip_model) override;
 
-  const raw_ptr<Browser> browser_;
+  const raw_ptr<BrowserWindowInterface> browser_;
   const raw_ptr<SessionBridge> session_bridge_;
   const raw_ptr<WorkspaceService> workspace_service_;
   const raw_ptr<ModalOverlayController> modal_overlay_controller_;

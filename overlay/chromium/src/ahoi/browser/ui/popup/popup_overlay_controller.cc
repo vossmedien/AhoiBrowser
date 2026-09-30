@@ -65,7 +65,7 @@ std::u16string FallbackNotice(popup::PopupFallbackReason reason) {
 // Workspace the window shows by then. False only when a needed switch failed;
 // the caller then keeps the popup rather than landing it in the wrong
 // Workspace (Crest 142 R5).
-[[nodiscard]] bool SelectOpenerWorkspace(Browser* browser,
+[[nodiscard]] bool SelectOpenerWorkspace(BrowserWindowInterface* browser,
                                          content::WebContents* opener) {
   SessionBridge* const bridge =
       browser ? SessionBridgeFactory::GetForProfile(browser->GetProfile())
@@ -87,7 +87,7 @@ std::u16string FallbackNotice(popup::PopupFallbackReason reason) {
 
 }  // namespace
 
-PopupOverlayController::PopupOverlayController(Browser* browser,
+PopupOverlayController::PopupOverlayController(BrowserWindowInterface* browser,
                                                views::View* contents_host,
                                                OpenerPaneProvider provider)
     : browser_(browser),

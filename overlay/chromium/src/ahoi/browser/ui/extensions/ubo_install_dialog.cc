@@ -109,7 +109,8 @@ std::u16string InventoryText(int label_id, const UboExtensionState& state) {
 
 }  // namespace
 
-UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
+UboInstallDialog::UboInstallDialog(BrowserWindowInterface* browser,
+                                   UboService* service)
     : browser_(browser), service_(service) {
   CHECK(browser_);
   CHECK(service_);
@@ -213,7 +214,7 @@ UboInstallDialog::UboInstallDialog(Browser* browser, UboService* service)
 
 // static
 views::Widget* UboInstallDialog::CreateWidget(
-    Browser* browser,
+    BrowserWindowInterface* browser,
     UboService* service,
     UboInstallDialog** dialog_for_testing) {
   CHECK(browser);
@@ -386,7 +387,7 @@ void UboInstallDialog::Update(const UboServiceStatus& status) {
   }
 }
 
-void ShowUboInstallDialog(Browser* browser) {
+void ShowUboInstallDialog(BrowserWindowInterface* browser) {
   if (!IsUboClassicEnabled() || !browser || !browser->GetProfile() ||
       !browser->GetProfile()->IsRegularProfile() || !browser->GetWindow()) {
     return;
