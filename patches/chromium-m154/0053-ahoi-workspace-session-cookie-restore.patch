@@ -1,0 +1,44 @@
+diff --git a/chrome/browser/net/BUILD.gn b/chrome/browser/net/BUILD.gn
+index 7b3dae..a5956d 100644
+--- a/chrome/browser/net/BUILD.gn
++++ b/chrome/browser/net/BUILD.gn
+@@ -168,6 +168,7 @@ source_set("impl") {
+   deps = [
+     ":key_pinning_proto",
+     "//ahoi/browser/privacy:privacy_mode",
++    "//ahoi/browser/session:session_preferences",
+     "//base:build_time",
+     "//chrome/browser:browser_features",
+     "//chrome/browser:browser_process",
+diff --git a/chrome/browser/net/profile_network_context_service.cc b/chrome/browser/net/profile_network_context_service.cc
+index 64cc27..b624868 100644
+--- a/chrome/browser/net/profile_network_context_service.cc
++++ b/chrome/browser/net/profile_network_context_service.cc
+@@ -9,6 +9,7 @@
+ #include <string_view>
+ 
+ #include "ahoi/browser/privacy/privacy_mode_service.h"
++#include "ahoi/browser/session/session_prefs.h"
+ #include "base/base64.h"
+ #include "base/byte_size.h"
+ #include "base/check_op.h"
+@@ -1489,7 +1490,18 @@ void ProfileNetworkContextService::ConfigureNetworkContextParamsInternal(
+         base::FilePath(chrome::kReportingAndNelStoreFilename);
+ #endif  // BUILDFLAG(ENABLE_REPORTING)
+ 
+-    if (relative_partition_path.empty()) {  // This is the main partition.
++    const base::FilePath ahoi_session_partition_root =
++        base::FilePath::FromUTF8Unsafe("Storage")
++            .AppendASCII("ext")
++            .AppendASCII("ahoi");
++    const bool is_ahoi_website_session_partition =
++        relative_partition_path.DirName() == ahoi_session_partition_root &&
++        ahoi::session::ShouldUseWorkspaceWebsiteSessions(profile_->GetPrefs());
++    if (relative_partition_path.empty() ||
++        is_ahoi_website_session_partition) {
++      // Ahoi's persistent native website sessions follow the same normal
++      // profile cookie-restoration policy as its default partition. Other
++      // non-default partitions, including extensions and guests, do not.
+       network_context_params->restore_old_session_cookies =
+           profile_->ShouldRestoreOldSessionCookies();
+       network_context_params->persist_session_cookies =
