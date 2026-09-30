@@ -1,0 +1,54 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index 48d3ccc2b14b3bcc66c9cfba9db2f013b7e038a4..266fa1c775512e442c5e4888653e86594ead5daa 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20404,16 +20404,16 @@ Please help our engineers fix this problem. Tell us what happened right before y
+       A previous Arc import needs manual recovery before another import can start.
+     </message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERY_NOTICE" desc="Safety conditions and scope of explicit failed Arc import recovery." meaning="AhoiBrowser Arc import">
+-      Restore the sidebar backup from before this failed import only if the imported tree is unchanged and no affected tab is open or saved in the current session. Otherwise recovery stops without replacing your sidebar. The backup is kept.
++      Close tabs from this import before undoing it. Changed imported items block recovery. Other pages and the backup are kept.
+     </message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVER" desc="Explicit action restoring the sidebar snapshot from before a failed Arc import." meaning="AhoiBrowser Arc import">
+-      Restore the pre-import sidebar
++      Undo failed import
+     </message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERING" desc="Progress status during explicit failed Arc import recovery." meaning="AhoiBrowser Arc import">
+       Checking the backup and restoring the sidebar…
+     </message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERED" desc="Sidebar recovery succeeded, without starting another import." meaning="AhoiBrowser Arc import">
+-      The previous sidebar was restored. Review it, then create a new import preview when ready.
++      The failed import was undone. Review the sidebar, then start a new preview when ready.
+     </message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_SOURCE" desc="Instruction shown when Arc must be closed before importing." meaning="AhoiBrowser Arc import">Close Arc before importing</message>
+     <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE" desc="Instruction to close Arc before import discovery." meaning="AhoiBrowser Arc import">
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index 1695b5bae11614f45da0be6f36155c53aaf5bec3..0b36eb50100624be94770a5389a2ff5eb75d8d46 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11269,10 +11269,10 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="4131831590543916816">Kürzlich geschlossener Split</translation>
+ <translation id="5502679562240472247">Kürzlich geschlossene Gruppe</translation>
+ <translation id="5461107725978398953">Kürzlich geschlossenes Fenster</translation>
+-<translation id="3951572487430475774">Die Seitenleiste aus der Sicherung vor diesem fehlgeschlagenen Import wiederherstellen – nur wenn der importierte Baum unverändert ist und kein betroffener Tab geöffnet oder in der aktuellen Sitzung gespeichert ist. Andernfalls wird die Wiederherstellung beendet, ohne die Seitenleiste zu ersetzen. Die Sicherung bleibt erhalten.</translation>
+-<translation id="8353852870894009464">Seitenleiste vor dem Import wiederherstellen</translation>
++<translation id="4474610624900854258">Schließe zuerst die Tabs aus diesem Import. Nachträglich geänderte Import-Einträge blockieren die Wiederherstellung. Andere Seiten und die Sicherung bleiben erhalten.</translation>
++<translation id="554473421888566226">Import zurücknehmen</translation>
+ <translation id="8579437155006490485">Sicherung prüfen und Seitenleiste wiederherstellen…</translation>
+-<translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
++<translation id="2451348137617820571">Der fehlgeschlagene Import wurde zurückgenommen. Prüfe die Seitenleiste und starte bei Bedarf eine neue Vorschau.</translation>
+ <translation id="2666937824263873395">Adressleiste anheften</translation>
+ <translation id="5599938554451751534">Adressleiste lösen</translation>
+ <translation id="3587386781101745139">Browsereinstellungen synchronisieren</translation>
+diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
+index 03b8e15f39b62f419366ee6c53c3de9ad9b40d29..f2aec50f9051812c1f27b647ed15f4a4a8cdec9b 100644
+--- a/chrome/app/resources/generated_resources_en-GB.xtb
++++ b/chrome/app/resources/generated_resources_en-GB.xtb
+@@ -11075,4 +11075,7 @@ This can include information about installed software, files, your browser, the
+ <translation id="1555692962934226231">Loading selection…</translation>
+ <translation id="3373635015517088468">No supported settings are currently available for this profile.</translation>
+ <translation id="5831405800489376068">Could not change the selection.</translation>
++<translation id="4474610624900854258">Close tabs from this import before undoing it. Changed imported items block recovery. Other pages and the backup are kept.</translation>
++<translation id="554473421888566226">Undo failed import</translation>
++<translation id="2451348137617820571">The failed import was undone. Review the sidebar, then start a new preview when ready.</translation>
+ </translationbundle>
