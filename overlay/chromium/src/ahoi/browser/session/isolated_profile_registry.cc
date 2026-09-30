@@ -213,4 +213,17 @@ std::vector<std::string> RemoveIsolatedProfilesNotIn(
   return removed;
 }
 
+std::vector<std::string> UnregisteredIsolatedProfileDirs(
+    const PrefService* local_state,
+    const std::set<std::string>& existing_profile_dirs) {
+  std::vector<std::string> dirs;
+  for (const IsolatedProfileEntry& entry : GetIsolatedProfiles(local_state)) {
+    if (entry.state != IsolatedProfileState::kActive &&
+        !existing_profile_dirs.contains(entry.profile_dir)) {
+      dirs.push_back(entry.profile_dir);
+    }
+  }
+  return dirs;
+}
+
 }  // namespace ahoi::session

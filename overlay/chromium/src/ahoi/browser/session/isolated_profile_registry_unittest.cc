@@ -3,6 +3,10 @@
 
 #include "ahoi/browser/session/isolated_profile_registry.h"
 
+#include <set>
+#include <string>
+#include <vector>
+
 #include "base/values.h"
 #include "components/prefs/testing_pref_service.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -100,6 +104,37 @@ TEST_F(IsolatedProfileRegistryTest, SweepRemovesProfilesThatNoLongerExist) {
                                         {"Default", "Profile 2"}));
   ASSERT_EQ(1u, GetIsolatedProfiles(&local_state_).size());
   EXPECT_EQ("Profile 2", GetIsolatedProfiles(&local_state_)[0].profile_dir);
+}
+
+// WS-ISO-15: a creation killed before Chromium committed its Profile
+// attributes leaves a `creating` or `converting` entry for an unknown
+// Profile, an unfinished deletion a `deleting` one; those name a directory
+// to remove first. An active entry of an unknown Profile is a plain
+// leftover, and known Profiles are never listed.
+TEST_F(IsolatedProfileRegistryTest, ListsUnregisteredHalfCreatedProfiles) {
+  IsolatedProfileEntry creating = Entry("Profile 2");
+  IsolatedProfileEntry converting = Entry("Profile 3");
+  converting.state = IsolatedProfileState::kConverting;
+  IsolatedProfileEntry deleting = Entry("Profile 4");
+  deleting.state = IsolatedProfileState::kDeleting;
+  IsolatedProfileEntry active = Entry("Profile 5");
+  active.state = IsolatedProfileState::kActive;
+  const IsolatedProfileEntry known = Entry("Profile 6");
+  for (const IsolatedProfileEntry& entry :
+       {creating, converting, deleting, active, known}) {
+    ASSERT_TRUE(AddIsolatedProfile(&local_state_, entry));
+  }
+  const std::vector<std::string> unregistered =
+      UnregisteredIsolatedProfileDirs(&local_state_, {"Default", "Profile 6"});
+  EXPECT_EQ((std::vector<std::string>{"Profile 2", "Profile 3", "Profile 4"}),
+            unregistered);
+  // The sweep keeps these entries until their directory is gone.
+  std::set<std::string> kept(unregistered.begin(), unregistered.end());
+  kept.insert({"Default", "Profile 6"});
+  EXPECT_TRUE(UnregisteredIsolatedProfileDirs(&local_state_, kept).empty());
+  EXPECT_EQ(std::vector<std::string>{"Profile 5"},
+            RemoveIsolatedProfilesNotIn(&local_state_, kept));
+  EXPECT_EQ(4u, GetIsolatedProfiles(&local_state_).size());
 }
 
 // ADR 0011 step 2: the directory position round-trips; entries written

@@ -88,6 +88,17 @@ std::vector<std::string> RemoveIsolatedProfilesNotIn(
     PrefService* local_state,
     const std::set<std::string>& existing_profile_dirs);
 
+// WS-ISO-15: directories of entries not `active` whose Profile Chromium does
+// not know. A creation or conversion that crashed after registering the
+// Workspace but before the Profile attributes were committed, or a deletion
+// Chromium did not finish on disk, may have left a Profile directory behind
+// that Chromium never looks at again. The sweep marks such an entry
+// `deleting` and removes the directory before the entry, so the entry is
+// the crash journal of the cleanup.
+std::vector<std::string> UnregisteredIsolatedProfileDirs(
+    const PrefService* local_state,
+    const std::set<std::string>& existing_profile_dirs);
+
 }  // namespace ahoi::session
 
 #endif  // AHOI_BROWSER_SESSION_ISOLATED_PROFILE_REGISTRY_H_

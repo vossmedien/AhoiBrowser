@@ -145,16 +145,28 @@ create Inbox Absturz kill
 echo "after kill during creation: $(state)" >> "$OUT/steps.txt"
 launch; sleep 5; quit; launch
 echo "after restarts: $(state)" >> "$OUT/steps.txt"
-whole_or_nothing() {
+# Profile directories no registry entry names: orphans of a half creation.
+orphan_dirs() { state | python3 -c 'import json,sys;s=json.load(sys.stdin);k={e["profile_dir"] for e in s["entries"]};print(" ".join(d for d in s["dirs"] if d not in k))'; }
+whole_or_nothing_now() {
   local n; n=$(entries_named Absturz)
   if [ "$n" = 0 ]; then
-    # Only Getrennt's Profile directory may remain.
-    [ "$(dir_count)" = 1 ]
+    # Nothing: no entry and no Profile directory without an entry.
+    [ -z "$(orphan_dirs)" ]
   else
-    # IsolatedProfileState::kActive is stored as 1.
-    [ "$n" = 1 ] && state | grep -q '"name": "Absturz", "state": 1' \
-      && switch_to Inbox Absturz && switch_to Absturz Inbox
+    # Whole: IsolatedProfileState::kActive is stored as 1.
+    [ "$n" = 1 ] && state | grep -q '"name": "Absturz", "state": 1'
   fi
+}
+whole_or_nothing() {
+  # The startup sweep deletes asynchronously and Local State is written
+  # lazily; judge the settled end state, not the first snapshot.
+  local end=$(( $(date +%s) + ${AHOI_E2E_SETTLE_SECONDS:-45} ))
+  until whole_or_nothing_now; do
+    [ $(date +%s) -lt $end ] || { echo "unsettled: $(state)" >> "$OUT/steps.txt"; return 1; }
+    sleep 2
+  done
+  echo "settled: $(state)" >> "$OUT/steps.txt"
+  [ "$(entries_named Absturz)" = 0 ] || { switch_to Inbox Absturz && switch_to Absturz Inbox; }
 }
 check creationCrashWholeOrNothing whole_or_nothing
 at Inbox 5 || switch_to Absturz Inbox || switch_to Getrennt Inbox

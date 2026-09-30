@@ -73,6 +73,39 @@ void OnIsolatedProfileInitialized(std::string dir,
       /*open_command_line_urls=*/false, profile);
 }
 
+// Removes the directory (and cache) of a Profile whose creation crashed
+// before Chromium registered it, then its registry entry. If the directory
+// survives, the entry stays and the next start retries.
+void RemoveUnregisteredIsolatedProfileDir(base::FilePath path) {
+  LOG(WARNING) << "Ahoi removes the half-created profile "
+               << DirName(path);
+  auto drop_entry_when_gone = base::BindOnce(
+      [](base::FilePath path) {
+        base::ThreadPool::PostTaskAndReplyWithResult(
+            FROM_HERE, {base::MayBlock(), base::TaskPriority::BEST_EFFORT},
+            base::BindOnce(&base::PathExists, path),
+            base::BindOnce(
+                [](std::string dir, bool exists) {
+                  PrefService* local_state =
+                      g_browser_process ? g_browser_process->local_state()
+                                        : nullptr;
+                  if (exists || !local_state) {
+                    return;
+                  }
+                  RemoveIsolatedProfile(local_state, dir);
+                  local_state->CommitPendingWrite();
+                },
+                DirName(path)));
+      },
+      path);
+  base::ThreadPool::PostTask(
+      FROM_HERE,
+      {base::MayBlock(), base::TaskPriority::BEST_EFFORT,
+       base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN},
+      base::BindOnce(&NukeProfileFromDisk, path,
+                     std::move(drop_entry_when_gone)));
+}
+
 }  // namespace
 
 namespace {
@@ -98,14 +131,13 @@ std::optional<std::string> RegisterAndCreateIsolatedProfile(
     path = profile_manager->GenerateNextProfileDirectoryPath();
   } while (storage.GetProfileAttributesWithPath(path));
 
-  // Registered and committed before the Profile exists, so its SessionBridge
-  // seeds this Workspace and a crash leaves only a sweepable entry.
+  // Registered before the Profile exists, so its SessionBridge seeds this
+  // Workspace.
   entry.profile_dir = DirName(path);
   if (!AddIsolatedProfile(local_state, entry)) {
     std::move(done).Run(false);
     return std::nullopt;
   }
-  local_state->CommitPendingWrite();
 
   // Not ephemeral and not omitted: an ephemeral Profile is wiped at every
   // start. The Workspace name doubles as the Profile name.
@@ -114,6 +146,12 @@ std::optional<std::string> RegisterAndCreateIsolatedProfile(
   init_params.profile_name = entry.name;
   init_params.icon_index = 0;
   storage.AddProfile(std::move(init_params));
+  // WS-ISO-15: the registry entry and Chromium's Profile attributes live in
+  // the same Local State file and are committed in one atomic write before
+  // the directory is created. A crash then leaves both (the startup sweep
+  // deletes the half-created Profile) or neither, never a registry entry
+  // for a Profile Chromium does not know.
+  local_state->CommitPendingWrite();
 
   // As upstream does: clear any orphan directory at that path first.
   base::ThreadPool::PostTask(
@@ -344,6 +382,25 @@ void SweepIsolatedProfileRegistry() {
   for (const ProfileAttributesEntry* attributes :
        profile_manager->GetProfileAttributesStorage().GetAllProfilesAttributes()) {
     existing.insert(DirName(attributes->GetPath()));
+  }
+  // WS-ISO-15: a creation that crashed before Chromium's Profile attributes
+  // were committed can still have written the Profile directory. Chromium
+  // never looks at it again, so it is removed here. The entry, now
+  // `deleting` (never offered for opening), is the journal and is dropped
+  // only once the directory is gone.
+  const std::vector<std::string> unregistered =
+      UnregisteredIsolatedProfileDirs(local_state, existing);
+  for (const std::string& dir : unregistered) {
+    existing.insert(dir);
+    SetIsolatedProfileState(local_state, dir,
+                            IsolatedProfileState::kDeleting);
+  }
+  if (!unregistered.empty()) {
+    local_state->CommitPendingWrite();
+  }
+  for (const std::string& dir : unregistered) {
+    RemoveUnregisteredIsolatedProfileDir(
+        profile_manager->user_data_dir().AppendASCII(dir));
   }
   for (const std::string& dir :
        RemoveIsolatedProfilesNotIn(local_state, existing)) {
