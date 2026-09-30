@@ -1,5 +1,41 @@
 # Active sync coordination
 
+## Both open findings of the round trip fixed in source — 30 September 2026
+
+No build, launch or install (M154 holds `build.lock`). No CloudKit call,
+no deletion, no Production.
+
+1. **Mac retry after `domain_merge_required` (`7e5b8a21`, Lane sync).**
+   The provider staged the newer server version but answered
+   `provider_error`. `SyncPump` stored a deadline from the persisted
+   attempt count (up to 1 h) and the 5-min periodic sync honoured it;
+   only the user sync bypassed it. Now the provider answers
+   `merge_required` (never masking another failure) and the pump
+   downloads (domain merge) and resends in the same cycle, up to two
+   rounds. A persisting conflict gets its own 5 s deadline (doubling to
+   5 min) and a self-scheduled wake-up. Test `sync_pump_merge_unittest.cc`
+   (4): syntax-checked with AhoiDev flags; **runs after the next desktop
+   build** (`ahoi_sync_unittests --gtest_filter='SyncPumpMerge*'`).
+2. **Old subscription `…cloudkit-e2e.7e6bb1c7…` (`1f6f1229` sync,
+   `39503e08` mobile).** Every engine state (iPhone, three Mac scopes)
+   holds it in `CKSyncEngineState.existingDatabaseSubscriptionID`.
+   CKSyncEngine adopts an existing database subscription on a fresh
+   state, creates the configured ID only when none exists, and never
+   revisits it; the iOS E2E harness left its subscription in the
+   Development database. On load both providers now rewrite exactly two
+   state fields (remembered ID → configured, `needsToSave` → true; guarded
+   probe, refuses unknown shapes) and save the configured subscription
+   themselves (create-only). The old one is not deleted (it belongs to
+   the harness). Logs: `AhoiSyncSubscription action=rebind|save ok=…`.
+   Tests: `cloudkit_sync_subscription_mac_unittest.mm` (4) passed
+   standalone against system CloudKit, in `ahoi_sync_unittests` after the
+   next build; `EngineSubscriptionBindingTests` (4) passed as macOS
+   XCTest, the iOS target compiles (simulator boot timed out under load).
+   Copies of the real Mac and iPhone states rebind, and CloudKit's own
+   `CKSyncEngineState` decodes the result. Retest on devices: the first
+   launch logs `rebind`, then `save ok=1`; later states name
+   `AhoiSyncAcceptanceSubscription-<scope>`.
+
 ## Real Mac → iPhone tab round trip GREEN — 30 September 2026, 10:38 CEST
 
 Owner-approved real devices, isolated CloudKit Development scope
