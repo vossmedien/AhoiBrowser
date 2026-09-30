@@ -33,6 +33,15 @@ export interface ArcImportStats {
   folderWorkspaces?: number;
 }
 
+// ADR 0011 WS-ISO-10: an Arc profile that owns spaces. The user can import
+// it as one fully separated Workspace instead of into this profile.
+export interface ArcImportArcProfile {
+  name: string;
+  spaces: number;
+  workspaceName: string;
+  alreadySeparated: boolean;
+}
+
 export interface ArcImportPreviewResponse {
   status: string;
   snapshotToken: string;
@@ -44,6 +53,7 @@ export interface ArcImportPreviewResponse {
   profiles: string[];
   // The layout this preview was built for. Commit must repeat it.
   foldersAsWorkspaces?: boolean;
+  arcProfiles?: ArcImportArcProfile[];
 }
 
 export interface ArcImportCommitResponse {
@@ -54,6 +64,9 @@ export interface ArcImportCommitResponse {
   mergedWorkspaces: number;
   reconstructedSplits: number;
   approximatedFourPaneRatios: number;
+  separatedWorkspaces?: number;
+  existingSeparatedWorkspaces?: number;
+  failedSeparatedWorkspaces?: number;
 }
 
 type ArcImportStage = 'idle'|'discovering'|'preview'|'committing'|'recovering'|
@@ -82,6 +95,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
       arcReconstructSplits_: {type: Boolean},
       arcFoldersAsWorkspaces_: {type: Boolean},
       arcSelectedProfiles_: {type: Array},
+      arcSeparatedProfiles_: {type: Array},
     };
   }
 
@@ -93,6 +107,8 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
   protected accessor arcReconstructSplits_: boolean = false;
   protected accessor arcFoldersAsWorkspaces_: boolean = false;
   protected accessor arcSelectedProfiles_: string[] = [];
+  // Arc profiles imported as fully separated Workspaces. None by default.
+  protected accessor arcSeparatedProfiles_: string[] = [];
 
   isComplete(): boolean {
     return this.arcImportStage_ === 'done';
@@ -110,6 +126,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
     }
     const previousProfiles = this.arcSelectedProfiles_;
     const previousSplits = this.arcReconstructSplits_;
+    const previousSeparated = this.arcSeparatedProfiles_;
     this.arcImportStage_ = 'discovering';
     this.arcImportPreview_ = null;
     this.arcImportResult_ = null;
@@ -132,6 +149,11 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
           [...preview.profiles];
       this.arcReconstructSplits_ =
           preview.stats.splits > 0 && (!keepChoices || previousSplits);
+      const arcProfileNames =
+          (preview.arcProfiles ?? []).map(profile => profile.name);
+      this.arcSeparatedProfiles_ = keepChoices ?
+          previousSeparated.filter(name => arcProfileNames.includes(name)) :
+          [];
       this.arcImportStage_ = preview.status === 'ok' ?
           'preview' :
           (preview.status === 'sourceInUse' ? 'sourceInUse' : 'error');
@@ -161,7 +183,7 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
           this.arcSelectedProfiles_, this.arcImportSidebar_,
           this.arcReconstructSplits_,
           /*backupConfirmed=*/ true, /*commitConfirmed=*/ true,
-          !!preview.foldersAsWorkspaces);
+          !!preview.foldersAsWorkspaces, this.arcSeparatedProfiles_);
       if (!this.isConnected) {
         return;
       }
@@ -232,6 +254,81 @@ export class SettingsAhoiArcImportSectionElement extends CrLitElement {
     const selected = new Set(this.arcSelectedProfiles_);
     checkbox.checked ? selected.add(profile) : selected.delete(profile);
     this.arcSelectedProfiles_ = [...selected];
+  }
+
+  protected onArcSeparatedProfileChange_(event: Event) {
+    const checkbox = event.currentTarget as HTMLElement & {checked: boolean};
+    const profile = checkbox.dataset['arcProfile'];
+    if (!profile) {
+      return;
+    }
+    const separated = new Set(this.arcSeparatedProfiles_);
+    checkbox.checked ? separated.add(profile) : separated.delete(profile);
+    this.arcSeparatedProfiles_ = [...separated];
+  }
+
+  protected arcProfiles_(): ArcImportArcProfile[] {
+    return this.arcImportPreview_?.arcProfiles ?? [];
+  }
+
+  // TODO: Replace the fallbacks once the proposed Settings strings are part
+  // of the integration patch.
+  private arcText_(key: string, german: string, english: string): string {
+    if (loadTimeData.valueExists(key)) {
+      return loadTimeData.getString(key);
+    }
+    return document.documentElement.lang.startsWith('de') ? german : english;
+  }
+
+  protected arcSeparatedLegend_(): string {
+    return this.arcText_(
+        'ahoiArcImportSeparatedProfiles', 'Arc-Profile', 'Arc profiles');
+  }
+
+  protected arcSeparatedLabel_(): string {
+    return this.arcText_(
+        'ahoiArcImportSeparatedProfile',
+        'Als vollständig getrennten Workspace importieren',
+        'Import as a fully separated workspace');
+  }
+
+  protected arcSeparatedDetail_(profile: ArcImportArcProfile): string {
+    const spaces = this.arcText_(
+        'ahoiArcImportSeparatedSpaces', 'Spaces', 'spaces');
+    const detail =
+        `${profile.name} · ${profile.spaces} ${spaces} → ` +
+        `„${profile.workspaceName}“`;
+    if (!profile.alreadySeparated) {
+      return detail;
+    }
+    return `${detail} · ` +
+        this.arcText_(
+            'ahoiArcImportSeparatedExists',
+            'bereits vorhanden, bleibt unverändert',
+            'already exists, stays unchanged');
+  }
+
+  protected arcSeparatedResultLabel_(): string {
+    return this.arcText_(
+        'ahoiArcImportResultSeparated', 'Vollständig getrennte Workspaces',
+        'Fully separated workspaces');
+  }
+
+  protected showArcSeparatedResult_(): boolean {
+    const result = this.arcImportResult_;
+    return !!result &&
+        ((result.separatedWorkspaces ?? 0) +
+         (result.existingSeparatedWorkspaces ?? 0) +
+         (result.failedSeparatedWorkspaces ?? 0)) > 0;
+  }
+
+  protected arcSeparatedFailedText_(): string {
+    return this.arcText_(
+        'ahoiArcImportSeparatedFailed',
+        'Mindestens ein vollständig getrennter Workspace konnte nicht ' +
+            'angelegt werden. Der übrige Import ist abgeschlossen.',
+        'At least one fully separated workspace could not be created. ' +
+            'The rest of the import is complete.');
   }
 
   protected onArcConflictPolicyChange_(event: Event) {

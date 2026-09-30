@@ -306,7 +306,9 @@ void ArcImportService::FinishJournalWrite(
                                ? ArcImportStatus::kOk
                                : ArcImportStatus::kNoChanges;
   committed_journal_state_ = std::move(context->next_committed);
-  std::move(context->callback).Run(std::move(context->result));
+  FinishWithSeparatedWorkspaces(std::move(context->separated),
+                                std::move(context->result),
+                                std::move(context->callback));
 }
 
 void ArcImportService::OnPreparedAfterCommitFailure(

@@ -41,6 +41,14 @@ std::string ComputeArcImportSelectionFingerprint(
     canonical += "\nprofile_sha256=";
     canonical += Sha256(profile);
   }
+  // Appended only when a profile is separated, so keys of journals written
+  // before WS-ISO-10 stay valid for the unchanged all-in-one mapping.
+  std::vector<std::string> separated = selection.separated_arc_profiles;
+  std::ranges::sort(separated);
+  for (const std::string& profile : separated) {
+    canonical += "\nseparated_profile_sha256=";
+    canonical += Sha256(profile);
+  }
   return Sha256(canonical);
 }
 

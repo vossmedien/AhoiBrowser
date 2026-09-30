@@ -110,6 +110,26 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
             `)}
           </fieldset>
 
+          ${
+              this.arcProfiles_().length > 0 ? html`
+            <fieldset id="ahoiArcSeparatedProfiles" class="options">
+              <legend>${this.arcSeparatedLegend_()}</legend>
+              ${this.arcProfiles_().map(profile => html`
+                <cr-checkbox class="arc-import-checkbox arc-separated-profile"
+                    data-arc-profile="${profile.name}"
+                    .checked="${
+                  this.arcSeparatedProfiles_.includes(profile.name)}"
+                    @change="${this.onArcSeparatedProfileChange_}">
+                  <div>${this.arcSeparatedLabel_()}</div>
+                  <div class="secondary">
+                    ${this.arcSeparatedDetail_(profile)}
+                  </div>
+                </cr-checkbox>
+              `)}
+            </fieldset>
+          ` :
+                                               ''}
+
           <fieldset class="options">
             <legend>$i18n{ahoiArcImportCategories}</legend>
             <cr-checkbox id="ahoiArcImportSidebar"
@@ -218,7 +238,27 @@ export function getHtml(this: SettingsAhoiArcImportSectionElement) {
               <span id="ahoiArcResultFourPane" class="count-value">
                 ${this.arcImportResult_.approximatedFourPaneRatios}
               </span></li>
+            ${
+              this.showArcSeparatedResult_() ? html`
+            <li><span class="count-label">
+                ${this.arcSeparatedResultLabel_()}
+              </span>
+              <span id="ahoiArcResultSeparated" class="count-value">
+                ${
+                  (this.arcImportResult_.separatedWorkspaces ?? 0) +
+                  (this.arcImportResult_.existingSeparatedWorkspaces ?? 0)}
+              </span></li>
+            ` :
+                                               ''}
           </ul>
+          ${
+              (this.arcImportResult_.failedSeparatedWorkspaces ?? 0) > 0 ?
+                  html`
+            <div id="ahoiArcSeparatedFailed" class="warning" role="alert">
+              ${this.arcSeparatedFailedText_()}
+            </div>
+          ` :
+                  ''}
         </section>
       ` :
           ''}

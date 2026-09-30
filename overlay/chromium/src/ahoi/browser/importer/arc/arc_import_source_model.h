@@ -50,6 +50,8 @@ struct SourceSpace {
   std::string title;
   // Always exactly {pinned root, unpinned root}, in this order.
   std::vector<std::string> root_container_ids;
+  // The owning Arc browser profile's directory basename (WS-ISO-10).
+  std::string arc_profile = kArcDefaultProfileName;
 };
 
 struct SourceItem {

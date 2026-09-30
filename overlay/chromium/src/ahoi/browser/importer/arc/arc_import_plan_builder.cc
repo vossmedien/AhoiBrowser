@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iterator>
 #include <map>
 #include <numeric>
 #include <optional>
@@ -320,7 +321,8 @@ class ArcPlanBuilder {
   // keeps its structure, so split members stay inside their split folder and
   // therefore in the same workspace.
   bool BuildFolderWorkspace(const std::string& folder_id,
-                            const std::string& expected_parent_id) {
+                            const std::string& expected_parent_id,
+                            const std::string& arc_profile) {
     const auto item_it = items_->find(folder_id);
     if (item_it == items_->end() || !item_it->second.parent_id.has_value() ||
         *item_it->second.parent_id != expected_parent_id ||
@@ -335,6 +337,7 @@ class ArcPlanBuilder {
                                                          : folder.title)) {
       return false;
     }
+    plan_.workspace_arc_profiles[workspace_id] = arc_profile;
     ++plan_.stats.folder_workspace_count;
     size_t position = 0;
     for (const std::string& child_id : folder.children) {
@@ -346,13 +349,29 @@ class ArcPlanBuilder {
     return true;
   }
 
+  static std::string SpaceTitle(const SourceSpace& space) {
+    return space.title.empty() ? "Imported Workspace" : space.title;
+  }
+
+  // WS-ISO-10: the Arc profiles owning spaces, in sidebar order.
+  void RecordArcProfileSpace(const SourceSpace& space) {
+    auto profile_it =
+        std::ranges::find(plan_.arc_profiles, space.arc_profile,
+                          &ArcImportProfileSpaces::directory_name);
+    if (profile_it == plan_.arc_profiles.end()) {
+      plan_.arc_profiles.push_back({.directory_name = space.arc_profile});
+      profile_it = std::prev(plan_.arc_profiles.end());
+    }
+    profile_it->space_titles.push_back(SpaceTitle(space));
+  }
+
   bool BuildWorkspace(const SourceSpace& space, bool include_global_top_apps) {
     const base::Uuid workspace_id =
         MakeDeterministicArcId(workspace_domain_, space.id);
-    if (!AddWorkspace(workspace_id, space.title.empty() ? "Imported Workspace"
-                                                        : space.title)) {
+    if (!AddWorkspace(workspace_id, SpaceTitle(space))) {
       return false;
     }
+    plan_.workspace_arc_profiles[workspace_id] = space.arc_profile;
     const size_t nodes_before = plan_.tree.nodes.size();
 
     size_t top_level_position = 0;
@@ -394,7 +413,7 @@ class ArcPlanBuilder {
     const bool space_workspace_is_empty =
         plan_.tree.nodes.size() == nodes_before;
     for (const auto& [folder_id, root_id] : folder_workspaces) {
-      if (!BuildFolderWorkspace(folder_id, root_id)) {
+      if (!BuildFolderWorkspace(folder_id, root_id, space.arc_profile)) {
         return false;
       }
     }
@@ -405,6 +424,7 @@ class ArcPlanBuilder {
                     [&workspace_id](const tab_tree::Workspace& workspace) {
                       return workspace.id == workspace_id;
                     });
+      plan_.workspace_arc_profiles.erase(workspace_id);
       --plan_.stats.imported_workspace_count;
     }
     return true;
@@ -418,6 +438,7 @@ class ArcPlanBuilder {
                           /*include_global_top_apps=*/index == 0)) {
         return false;
       }
+      RecordArcProfileSpace(space_it->second);
     }
     if (claimed_item_ids_.size() != items_->size()) {
       return Fail(ArcImportStatus::kGraphViolation);

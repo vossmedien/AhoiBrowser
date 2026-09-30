@@ -19,6 +19,9 @@ struct ArcImportTransactionSelection {
   bool folders_as_workspaces = false;
   ArcConflictResolution conflict_resolution = ArcConflictResolution::kRename;
   std::vector<std::string> selected_browser_profiles;
+  // ADR 0011 WS-ISO-10: Arc profiles imported as fully separated Workspaces.
+  // Part of the key because it selects a different target for their spaces.
+  std::vector<std::string> separated_arc_profiles;
 };
 
 // Privacy-minimal stable keys: local profile labels are hashed before they

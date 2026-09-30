@@ -14,6 +14,7 @@
 
 #include "ahoi/browser/importer/arc/arc_import_journal.h"
 #include "ahoi/browser/importer/arc/arc_import_manual_recovery_plan.h"
+#include "ahoi/browser/importer/arc/arc_import_profile_mapping.h"
 #include "ahoi/browser/importer/arc/arc_import_transaction.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback.h"
@@ -39,6 +40,18 @@ struct ArcImportBackupRecoveryResult;
 struct ArcImportBackupResult;
 class ArcImportNavigationBarrier;
 
+// ADR 0011 WS-ISO-10: an Arc profile that owns spaces and can be imported as
+// one fully separated Workspace.
+struct ArcImportPreviewArcProfile {
+  std::string directory_name;
+  size_t space_count = 0;
+  // The name the separated Workspace gets (ArcSeparatedWorkspaceName()).
+  std::u16string separated_workspace_name;
+  // An earlier import already created that separated Workspace; importing
+  // it separated again changes nothing.
+  bool already_separated = false;
+};
+
 struct ArcImportPreview {
   ArcImportStatus status = ArcImportStatus::kNotFound;
   std::string snapshot_token;
@@ -50,6 +63,7 @@ struct ArcImportPreview {
   bool arc_is_running = false;
   // The layout this preview (and its pending plan) was built for.
   bool folders_as_workspaces = false;
+  std::vector<ArcImportPreviewArcProfile> arc_profiles;
 };
 
 // Explicit user choices carried from the mutation-free preview to Commit().
@@ -65,6 +79,10 @@ struct ArcImportSelection {
   bool backup_confirmed = false;
   bool commit_confirmed = false;
   std::vector<std::string> selected_browser_profiles;
+  // WS-ISO-10: Arc profiles (directory names of `arc_profiles`) whose spaces
+  // become one fully separated Workspace each instead of importing here.
+  // Empty keeps every space in this Profile.
+  std::vector<std::string> separated_arc_profiles;
 };
 
 struct ArcImportCommitResult {
@@ -75,6 +93,10 @@ struct ArcImportCommitResult {
   size_t merged_workspace_count = 0;
   size_t reconstructed_split_count = 0;
   size_t approximated_four_pane_ratio_count = 0;
+  // WS-ISO-10 outcome per separated Arc profile (ArcSeparatedImportOutcome).
+  size_t separated_workspace_count = 0;
+  size_t existing_separated_workspace_count = 0;
+  size_t failed_separated_workspace_count = 0;
 };
 
 using ArcImportPreviewCallback = base::OnceCallback<void(ArcImportPreview)>;
@@ -219,6 +241,12 @@ class ArcImportService : public KeyedService {
   void FinishRollbackJournal(std::unique_ptr<CommitContext> context,
                              ArcImportStatus failure_status,
                              bool journal_restored);
+  // WS-ISO-10: after the main Profile's transaction (or its verified no-op)
+  // finished with `result`, creates the separated Workspaces and reports.
+  void FinishWithSeparatedWorkspaces(
+      std::vector<ArcSeparatedWorkspacePlan> separated,
+      ArcImportCommitResult result,
+      ArcImportCommitCallback callback);
 
   raw_ptr<Profile> profile_ = nullptr;
   raw_ptr<SessionBridge> session_bridge_ = nullptr;

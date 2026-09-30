@@ -55,6 +55,56 @@ TEST(ArcImportTransactionKeyTest, ProfileOrderingIsCanonical) {
             ComputeArcImportSelectionFingerprint(second));
 }
 
+// ADR 0011 WS-ISO-10: separating an Arc profile targets another Profile, so
+// it can never replay as the no-op of the all-in-one import.
+TEST(ArcImportTransactionKeyTest, SeparatedArcProfilesArePartOfTheKey) {
+  ArcImportTransactionSelection all_here{
+      .selected_browser_profiles = {"Default", "Profile 1"}};
+  ArcImportTransactionSelection separated = all_here;
+  separated.separated_arc_profiles = {"Profile 1"};
+  ArcImportTransactionSelection other_separated = all_here;
+  other_separated.separated_arc_profiles = {"Default"};
+
+  const std::string all_here_fingerprint =
+      ComputeArcImportSelectionFingerprint(all_here);
+  const std::string separated_fingerprint =
+      ComputeArcImportSelectionFingerprint(separated);
+  EXPECT_NE(all_here_fingerprint, separated_fingerprint);
+  EXPECT_NE(separated_fingerprint,
+            ComputeArcImportSelectionFingerprint(other_separated));
+  EXPECT_NE(ComputeArcImportIdempotencyKey(kSnapshot, all_here_fingerprint),
+            ComputeArcImportIdempotencyKey(kSnapshot, separated_fingerprint));
+  // A browser profile name and a separated Arc profile never alias.
+  ArcImportTransactionSelection moved{
+      .selected_browser_profiles = {"Default"},
+      .separated_arc_profiles = {"Profile 1"}};
+  EXPECT_NE(ComputeArcImportSelectionFingerprint(moved),
+            separated_fingerprint);
+}
+
+TEST(ArcImportTransactionKeyTest, SeparatedOrderingIsCanonical) {
+  ArcImportTransactionSelection first{
+      .selected_browser_profiles = {"Default"},
+      .separated_arc_profiles = {"Profile 2", "Profile 1"}};
+  ArcImportTransactionSelection second{
+      .selected_browser_profiles = {"Default"},
+      .separated_arc_profiles = {"Profile 1", "Profile 2"}};
+
+  EXPECT_EQ(ComputeArcImportSelectionFingerprint(first),
+            ComputeArcImportSelectionFingerprint(second));
+}
+
+// Journals written before WS-ISO-10 keep their key for the unchanged
+// mapping: the canonical text only grows when something is separated.
+TEST(ArcImportTransactionKeyTest, NoSeparationKeepsTheLegacyKey) {
+  ArcImportTransactionSelection selection{
+      .selected_browser_profiles = {"Default"}};
+  // sha256("arc-selection-v1\nsidebar=1\nsplits=1\nconflict=0\n"
+  //        "profile_sha256=" + sha256("Default")), the pre-WS-ISO-10 text.
+  EXPECT_EQ("8ff79cc02c63f941536d41b802375a165a014785008e019a2365ce774760cca6",
+            ComputeArcImportSelectionFingerprint(selection));
+}
+
 }  // namespace
 
 }  // namespace ahoi::importer::arc

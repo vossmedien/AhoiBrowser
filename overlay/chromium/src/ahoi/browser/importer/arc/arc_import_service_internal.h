@@ -38,6 +38,8 @@ struct ArcImportService::CommitContext {
   bool tree_changed = false;
   bool runtime_started = false;
   base::ScopedClosureRunner resume_automatic_metadata;
+  // WS-ISO-10: created only after this transaction succeeded.
+  std::vector<ArcSeparatedWorkspacePlan> separated;
 };
 
 struct ArcImportService::ManualRecoveryContext {

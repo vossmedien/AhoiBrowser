@@ -7,6 +7,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -306,6 +307,83 @@ TEST(ArcImportParserTest, RejectsOversizedText) {
                               std::string(kMaxTitleBytes + 1, 'w') + "\""));
   EXPECT_NE(ArcImportStatus::kOk,
             ParseArcSnapshot(SnapshotFor(std::move(json))).status);
+}
+
+// ADR 0011 WS-ISO-10: the owning Arc profile of every space.
+std::optional<ArcImportPlan> ParseWithSpaceProfile(std::string_view profile) {
+  std::string json = kValidArcSidebar;
+  if (!ReplaceOnce(&json, "\"title\": \"Work\",",
+                   std::string("\"title\": \"Work\", \"profile\": ") +
+                       std::string(profile) + ",")) {
+    return std::nullopt;
+  }
+  return ParseArcSnapshot(SnapshotFor(std::move(json))).plan;
+}
+
+std::string OnlyWorkspaceProfile(const ArcImportPlan& plan) {
+  if (plan.tree.workspaces.size() != 1u ||
+      plan.workspace_arc_profiles.size() != 1u) {
+    return std::string();
+  }
+  return plan.workspace_arc_profiles.at(plan.tree.workspaces.front().id);
+}
+
+TEST(ArcImportParserTest, ReadsTheCustomArcProfileOfASpace) {
+  const std::optional<ArcImportPlan> plan = ParseWithSpaceProfile(
+      R"json({"custom": {"_0": {"directoryBasename": "Profile 1",
+                                 "machineID": "fixture-machine"}}})json");
+  ASSERT_TRUE(plan.has_value());
+  EXPECT_EQ("Profile 1", OnlyWorkspaceProfile(*plan));
+  EXPECT_EQ((std::vector<ArcImportProfileSpaces>{
+                {.directory_name = "Profile 1", .space_titles = {"Work"}}}),
+            plan->arc_profiles);
+}
+
+TEST(ArcImportParserTest, ReadsTheDefaultArcProfileOfASpace) {
+  const std::optional<ArcImportPlan> plan =
+      ParseWithSpaceProfile(R"json({"default": true})json");
+  ASSERT_TRUE(plan.has_value());
+  EXPECT_EQ(kArcDefaultProfileName, OnlyWorkspaceProfile(*plan));
+  EXPECT_EQ((std::vector<ArcImportProfileSpaces>{
+                {.directory_name = kArcDefaultProfileName,
+                 .space_titles = {"Work"}}}),
+            plan->arc_profiles);
+}
+
+TEST(ArcImportParserTest, MissingOrUnknownArcProfileMeansDefault) {
+  // The base fixture carries no profile at all.
+  const ArcParseResult missing =
+      ParseArcSnapshot(SnapshotFor(kValidArcSidebar));
+  ASSERT_TRUE(missing.plan.has_value());
+  EXPECT_EQ(kArcDefaultProfileName, OnlyWorkspaceProfile(*missing.plan));
+
+  for (std::string_view unknown : {
+           R"json(null)json",
+           R"json("Profile 1")json",
+           R"json({"custom": 5})json",
+           R"json({"custom": {"_0": {}}})json",
+           R"json({"custom": {"_0": {"directoryBasename": 7}}})json",
+           R"json({"custom": {"_0": {"directoryBasename": ""}}})json",
+           R"json({"custom": {"_0": {"directoryBasename": "a/b"}}})json",
+           R"json({"custom": {"_0": {"directoryBasename": ".."}}})json",
+           R"json({"shared": {"_0": {"directoryBasename": "P"}}})json",
+       }) {
+    SCOPED_TRACE(unknown);
+    const std::optional<ArcImportPlan> plan = ParseWithSpaceProfile(unknown);
+    ASSERT_TRUE(plan.has_value());
+    EXPECT_EQ(kArcDefaultProfileName, OnlyWorkspaceProfile(*plan));
+  }
+}
+
+TEST(ArcImportParserTest, ArcProfileDoesNotChangePlanIdentities) {
+  const std::optional<ArcImportPlan> custom = ParseWithSpaceProfile(
+      R"json({"custom": {"_0": {"directoryBasename": "Profile 3"}}})json");
+  const ArcParseResult plain =
+      ParseArcSnapshot(SnapshotFor(kValidArcSidebar));
+  ASSERT_TRUE(custom.has_value());
+  ASSERT_TRUE(plain.plan.has_value());
+  EXPECT_EQ(plain.plan->tree, custom->tree);
+  EXPECT_EQ(plain.plan->splits, custom->splits);
 }
 
 }  // namespace

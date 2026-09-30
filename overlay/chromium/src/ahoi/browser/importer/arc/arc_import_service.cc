@@ -3,6 +3,7 @@
 
 #include "ahoi/browser/importer/arc/arc_import_service.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -17,6 +18,7 @@
 #include "ahoi/browser/importer/arc/arc_import_discovery.h"
 #include "ahoi/browser/importer/arc/arc_import_navigation_barrier.h"
 #include "ahoi/browser/importer/arc/arc_import_parser.h"
+#include "ahoi/browser/importer/arc/arc_import_profile_mapping.h"
 #include "ahoi/browser/importer/arc/arc_import_recovery.h"
 #include "ahoi/browser/importer/arc/arc_import_service_internal.h"
 #include "ahoi/browser/importer/arc/arc_import_snapshot.h"
@@ -24,6 +26,7 @@
 #include "ahoi/browser/importer/arc/arc_import_tree_fingerprint.h"
 #include "ahoi/browser/importer/arc/arc_split_receipt.h"
 #include "ahoi/browser/importer/arc/arc_split_runtime.h"
+#include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "base/base_paths.h"
@@ -221,6 +224,22 @@ void ArcImportService::OnDiscoveryComplete(uint64_t generation,
   for (const ArcBrowserProfile& profile : result.source->browser_profiles) {
     preview.available_browser_profiles.push_back(profile.directory_name);
   }
+  // WS-ISO-10: Arc profiles the user can import as separated Workspaces.
+  const std::vector<session::IsolatedProfileEntry> separated_entries =
+      session::GetOpenableIsolatedWorkspaces();
+  for (const ArcImportProfileSpaces& arc_profile : result.plan->arc_profiles) {
+    const base::Uuid separated_id =
+        ArcSeparatedWorkspaceId(arc_profile.directory_name);
+    preview.arc_profiles.push_back(
+        {.directory_name = arc_profile.directory_name,
+         .space_count = arc_profile.space_titles.size(),
+         .separated_workspace_name = ArcSeparatedWorkspaceName(arc_profile),
+         .already_separated = std::ranges::any_of(
+             separated_entries,
+             [&separated_id](const session::IsolatedProfileEntry& entry) {
+               return entry.workspace_id == separated_id;
+             })});
+  }
   if (IsCommittedSource(result.committed, result.snapshot_token)) {
     // Successfully imported pages can subsequently navigate, move or be
     // renamed. Discovery has no confirmed selection yet, so it must not
@@ -268,6 +287,8 @@ void ArcImportService::Commit(std::string snapshot_token,
       operation_in_progress_ || !browser || !pending_plan_ ||
       !pending_source_ || browser->GetProfile() != profile_ ||
       !IsValidArcImportSelection(selection, *pending_source_) ||
+      !IsValidArcSeparatedProfiles(*pending_plan_,
+                                   selection.separated_arc_profiles) ||
       snapshot_token.empty() || snapshot_token != pending_snapshot_token_) {
     result.status = snapshot_token == pending_snapshot_token_
                         ? ArcImportStatus::kTransactionFailed
@@ -321,6 +342,8 @@ void ArcImportService::OnCommitSourceValidated(
       !session_bridge_ || !session_bridge_->is_ready() || !browser ||
       browser->GetProfile() != profile_ || !pending_plan_ || !pending_source_ ||
       !IsValidArcImportSelection(selection, *pending_source_) ||
+      !IsValidArcSeparatedProfiles(*pending_plan_,
+                                   selection.separated_arc_profiles) ||
       selection.folders_as_workspaces !=
           pending_plan_->options.folders_as_workspaces ||
       snapshot_token != pending_snapshot_token_) {
@@ -332,8 +355,12 @@ void ArcImportService::OnCommitSourceValidated(
     return;
   }
 
-  ArcImportPlan selected_plan =
-      SelectArcImportCategories(*pending_plan_, selection);
+  // WS-ISO-10: separated Arc profiles leave the main plan here; their
+  // Workspaces are created only after this transaction succeeded.
+  ArcProfileMapping mapping = MapArcImportPlanByProfile(
+      SelectArcImportCategories(*pending_plan_, selection),
+      selection.separated_arc_profiles);
+  ArcImportPlan selected_plan = std::move(mapping.main_plan);
   tab_tree::TabTreeSnapshot current;
   if (!session_bridge_->ExportTabTreeSnapshot(&current)) {
     operation_in_progress_ = false;
@@ -346,7 +373,8 @@ void ArcImportService::OnCommitSourceValidated(
            .reconstruct_splits = selection.reconstruct_splits,
            .folders_as_workspaces = selection.folders_as_workspaces,
            .conflict_resolution = conflict_resolution,
-           .selected_browser_profiles = selection.selected_browser_profiles});
+           .selected_browser_profiles = selection.selected_browser_profiles,
+           .separated_arc_profiles = selection.separated_arc_profiles});
   const std::string idempotency_key =
       ComputeArcImportIdempotencyKey(snapshot_token, selection_fingerprint);
   if (IsCommittedSelection(committed_journal_state_, snapshot_token,
@@ -355,9 +383,13 @@ void ArcImportService::OnCommitSourceValidated(
     // Replaying that transaction is not authority to overwrite later local
     // edits, recreate closed/deleted pages or reconstruct changed split state.
     // No backup, tree/session flush, marker replacement or native action runs.
+    // Separated Workspaces are looked up by identity: an existing one is
+    // reported as such, a missing one (deleted, or its creation failed) is
+    // created again, never duplicated.
     operation_in_progress_ = false;
     result.status = ArcImportStatus::kNoChanges;
-    std::move(callback).Run(std::move(result));
+    FinishWithSeparatedWorkspaces(std::move(mapping.separated),
+                                  std::move(result), std::move(callback));
     return;
   }
   ArcImportMergeResult merge =
@@ -392,6 +424,7 @@ void ArcImportService::OnCommitSourceValidated(
   context->snapshot_hash = std::move(snapshot_token);
   context->selection_fingerprint = selection_fingerprint;
   context->idempotency_key = idempotency_key;
+  context->separated = std::move(mapping.separated);
   context->prepared.previous_committed = committed_journal_state_;
   // Runtime work must always consume the merge result. In particular, a
   // kMerge replay can be a tree no-op while its split descriptors and member

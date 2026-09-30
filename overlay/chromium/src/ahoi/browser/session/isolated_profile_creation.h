@@ -11,6 +11,7 @@
 
 #include "ahoi/browser/session/isolated_profile_registry.h"
 #include "ahoi/browser/session/portable_workspace_structure.h"
+#include "ahoi/browser/session/workspace_directory_order.h"
 #include "base/functional/callback.h"
 #include "url/gurl.h"
 
@@ -57,6 +58,30 @@ void ConvertToIsolatedWorkspace(const IsolatedProfileEntry& presentation,
                                 PendingWorkspaceConversion pending);
 std::optional<PendingWorkspaceConversion> TakePendingWorkspaceConversion(
     const std::string& profile_dir);
+
+// ADR 0011 WS-ISO-10 (Arc import): creates a fully separated Workspace that
+// receives `pending.structure` through the same path as a conversion, but
+// has no source Workspace anywhere; nothing is deleted except the new
+// Profile when its import fails. The structure's single Workspace record must
+// equal the seed from `presentation` (sort key "0", default archive policy).
+// Idempotent by Workspace identity: when a registry entry already carries
+// `presentation.workspace_id`, nothing is created, `pending.done` never runs
+// and the result is kAlreadyExists (kBeingDeleted for an entry whose deletion
+// is still running). Otherwise `pending.done` runs exactly once, possibly
+// synchronously with false.
+enum class IsolatedStructureCreation {
+  kStarted,
+  kAlreadyExists,
+  kBeingDeleted,
+};
+IsolatedStructureCreation CreateIsolatedWorkspaceWithStructure(
+    const IsolatedProfileEntry& presentation,
+    PendingWorkspaceConversion pending);
+
+// Sort key after every Workspace of the process-wide order: the main
+// Profile's `main_workspaces` and every registered separated Workspace.
+std::string NextIsolatedWorkspaceSortKey(
+    const std::vector<DirectoryWorkspace>& main_workspaces);
 
 // Deletes a fully separated Workspace together with its Profile. Every page of
 // the Profile is first asked as one before-unload group; a veto changes

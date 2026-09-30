@@ -187,10 +187,13 @@ void ArcImportHandler::HandleRecover(const base::ListValue& args) {
 void ArcImportHandler::HandleCommit(const base::ListValue& args) {
   // The optional ninth argument is the previewed folders-as-workspaces
   // layout; the service rejects it as stale unless it matches the preview.
-  if ((args.size() != 8u && args.size() != 9u) || !args[0].is_string() ||
+  // The optional tenth lists the Arc profiles imported as fully separated
+  // Workspaces (WS-ISO-10); the service validates them against the preview.
+  if (args.size() < 8u || args.size() > 10u || !args[0].is_string() ||
       !args[1].is_string() || !args[2].is_string() || !args[3].is_list() ||
       !args[4].is_bool() || !args[5].is_bool() || !args[6].is_bool() ||
-      !args[7].is_bool() || (args.size() == 9u && !args[8].is_bool())) {
+      !args[7].is_bool() || (args.size() >= 9u && !args[8].is_bool()) ||
+      (args.size() == 10u && !args[9].is_list())) {
     return;
   }
   AllowJavascript();
@@ -202,7 +205,7 @@ void ArcImportHandler::HandleCommit(const base::ListValue& args) {
   selection.reconstruct_splits = args[5].GetBool();
   selection.backup_confirmed = args[6].GetBool();
   selection.commit_confirmed = args[7].GetBool();
-  selection.folders_as_workspaces = args.size() == 9u && args[8].GetBool();
+  selection.folders_as_workspaces = args.size() >= 9u && args[8].GetBool();
   for (const base::Value& profile : args[3].GetList()) {
     if (!profile.is_string()) {
       ResolveCommit(std::move(callback_id),
@@ -210,6 +213,16 @@ void ArcImportHandler::HandleCommit(const base::ListValue& args) {
       return;
     }
     selection.selected_browser_profiles.push_back(profile.GetString());
+  }
+  if (args.size() == 10u) {
+    for (const base::Value& profile : args[9].GetList()) {
+      if (!profile.is_string()) {
+        ResolveCommit(std::move(callback_id),
+                      {.status = ArcImportStatus::kTransactionFailed});
+        return;
+      }
+      selection.separated_arc_profiles.push_back(profile.GetString());
+    }
   }
   if (!conflict_resolution || !selection.backup_confirmed ||
       !selection.commit_confirmed) {
@@ -256,6 +269,17 @@ void ArcImportHandler::ResolvePreview(base::Value callback_id,
     profiles.Append(profile);
   }
   value.Set("profiles", std::move(profiles));
+  base::ListValue arc_profiles;
+  for (const ArcImportPreviewArcProfile& profile : preview.arc_profiles) {
+    arc_profiles.Append(
+        base::DictValue()
+            .Set("name", profile.directory_name)
+            .Set("spaces", static_cast<int>(profile.space_count))
+            .Set("workspaceName",
+                 base::UTF16ToUTF8(profile.separated_workspace_name))
+            .Set("alreadySeparated", profile.already_separated));
+  }
+  value.Set("arcProfiles", std::move(arc_profiles));
   ResolveJavascriptCallback(callback_id, base::Value(std::move(value)));
 }
 
@@ -277,6 +301,12 @@ void ArcImportHandler::ResolveCommit(base::Value callback_id,
             static_cast<int>(result.reconstructed_split_count));
   value.Set("approximatedFourPaneRatios",
             static_cast<int>(result.approximated_four_pane_ratio_count));
+  value.Set("separatedWorkspaces",
+            static_cast<int>(result.separated_workspace_count));
+  value.Set("existingSeparatedWorkspaces",
+            static_cast<int>(result.existing_separated_workspace_count));
+  value.Set("failedSeparatedWorkspaces",
+            static_cast<int>(result.failed_separated_workspace_count));
   ResolveJavascriptCallback(callback_id, base::Value(std::move(value)));
 }
 

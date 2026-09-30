@@ -47,6 +47,29 @@ bool IsBoundedUtf8(std::string_view value, size_t max_bytes) {
          base::IsStringUTF8(value);
 }
 
+// ADR 0011 WS-ISO-10: Arc records each space's browser profile as
+// "profile": {"default": true} or
+// {"custom": {"_0": {"directoryBasename": "Profile 1", "machineID": ...}}}.
+// A missing, unknown or unusable shape means Default: the profile only
+// decides where a space may go, never whether it imports.
+std::string ReadSpaceProfile(const base::DictValue& space) {
+  const base::DictValue* profile = space.FindDict("profile");
+  const base::DictValue* custom =
+      profile ? profile->FindDict("custom") : nullptr;
+  const base::DictValue* payload = custom ? custom->FindDict("_0") : nullptr;
+  const std::string* name =
+      payload ? payload->FindString("directoryBasename") : nullptr;
+  if (!name || !IsBoundedUtf8(*name, kMaxSourceIdentifierBytes) ||
+      *name == "." || *name == ".." ||
+      std::ranges::any_of(*name, [](char c) {
+        const unsigned char byte = static_cast<unsigned char>(c);
+        return byte == '/' || byte < 0x20 || byte == 0x7f;
+      })) {
+    return kArcDefaultProfileName;
+  }
+  return *name;
+}
+
 class ArcParser {
  public:
   ArcParser(const ArcImportSnapshot& snapshot,
@@ -330,7 +353,9 @@ class ArcParser {
                         ? ArcImportStatus::kMalformedSerializedMap
                         : ArcImportStatus::kInvalidText);
       }
-      SourceSpace space{.id = *id, .title = *title};
+      SourceSpace space{.id = *id,
+                        .title = *title,
+                        .arc_profile = ReadSpaceProfile(*value)};
       if (!ReadSpaceRoots(*value, &space.root_container_ids)) {
         return false;
       }

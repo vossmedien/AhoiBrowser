@@ -193,6 +193,33 @@ void ConvertToIsolatedWorkspace(const IsolatedProfileEntry& presentation,
   PendingConversions().insert_or_assign(*created, std::move(pending));
 }
 
+IsolatedStructureCreation CreateIsolatedWorkspaceWithStructure(
+    const IsolatedProfileEntry& presentation,
+    PendingWorkspaceConversion pending) {
+  PrefService* local_state =
+      g_browser_process ? g_browser_process->local_state() : nullptr;
+  if (const std::optional<IsolatedProfileEntry> existing =
+          FindIsolatedProfileByWorkspaceId(local_state,
+                                           presentation.workspace_id)) {
+    return existing->state == IsolatedProfileState::kDeleting
+               ? IsolatedStructureCreation::kBeingDeleted
+               : IsolatedStructureCreation::kAlreadyExists;
+  }
+  // The `converting` state and the pending import are exactly those of a
+  // conversion; only the source side (which would delete its Workspace
+  // after success) does not exist here.
+  ConvertToIsolatedWorkspace(presentation, std::move(pending));
+  return IsolatedStructureCreation::kStarted;
+}
+
+std::string NextIsolatedWorkspaceSortKey(
+    const std::vector<DirectoryWorkspace>& main_workspaces) {
+  return NextDirectorySortKey(OrderDirectoryWorkspaces(
+      main_workspaces,
+      GetIsolatedProfiles(g_browser_process ? g_browser_process->local_state()
+                                            : nullptr)));
+}
+
 std::optional<PendingWorkspaceConversion> TakePendingWorkspaceConversion(
     const std::string& profile_dir) {
   auto& all = PendingConversions();

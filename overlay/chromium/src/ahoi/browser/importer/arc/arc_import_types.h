@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -32,6 +33,10 @@ inline constexpr size_t kMaxUrlBytes = 32 * 1024;
 inline constexpr int kArcSourceSchemaVersion = 1;
 inline constexpr int kArcSnapshotSchemaVersion = 1;
 inline constexpr int kArcImportPlanSchemaVersion = 2;
+
+// The Arc browser profile of a space whose sidebar record names none, or a
+// shape this importer does not know (WS-ISO-10).
+inline constexpr char kArcDefaultProfileName[] = "Default";
 
 enum class ArcImportStatus {
   kOk = 0,
@@ -163,6 +168,17 @@ struct ArcSplitDescriptor {
   bool operator==(const ArcSplitDescriptor&) const = default;
 };
 
+// ADR 0011 WS-ISO-10: one Arc browser profile that owns spaces, with the
+// titles of its spaces in sidebar order. The user can map such a profile to
+// one fully separated Workspace instead of the running Ahoi Profile.
+struct ArcImportProfileSpaces {
+  // Arc's profile directory basename ("Default", "Profile 1", ...).
+  std::string directory_name;
+  std::vector<std::string> space_titles;
+
+  bool operator==(const ArcImportProfileSpaces&) const = default;
+};
+
 // This is a detached, deterministic import plan. Applying or merging it into
 // a live profile is deliberately owned by a later confirmation/transaction
 // seam, not by discovery or parsing.
@@ -178,6 +194,11 @@ struct ArcImportPlan {
   std::vector<base::Uuid> degraded_split_folder_node_ids;
   std::vector<base::Uuid> global_top_app_page_node_ids;
   ArcImportStats stats;
+  // Arc profiles owning spaces, in the sidebar order of their first space.
+  std::vector<ArcImportProfileSpaces> arc_profiles;
+  // The Arc profile of every planned Workspace (space and folder Workspaces
+  // alike; the global Arc Favorites follow the first space's Workspace).
+  std::map<base::Uuid, std::string> workspace_arc_profiles;
 
   bool operator==(const ArcImportPlan&) const = default;
 };

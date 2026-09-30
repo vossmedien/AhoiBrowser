@@ -38,6 +38,7 @@ interface MutableArcImportSection extends HTMLElement {
   arcImportPreview_: object|null;
   arcImportResult_: object|null;
   arcSelectedProfiles_: string[];
+  arcSeparatedProfiles_: string[];
   requestUpdate(): void;
   updateComplete: Promise<boolean>;
 }
@@ -486,6 +487,97 @@ suite('AhoiArcStandardImportSurface', () => {
       assertEquals(2, requests.length);
       assertEquals('ahoiArcCommit', requests[1]!.message);
       assertEquals(true, requests[1]!.args[8]);
+    } finally {
+      chrome.send = originalSend;
+    }
+  });
+
+  // ADR 0011 WS-ISO-10: an Arc profile can become one fully separated
+  // Workspace. The choice is per Arc profile, off by default, and travels
+  // with the confirmed preview as the tenth commit argument.
+  test('arcProfileCanBeImportedAsAFullySeparatedWorkspace', async () => {
+    selectSource(1);
+    const section = getArcSection();
+    section.arcImportStage_ = 'preview';
+    section.arcImportPreview_ = preview(0);
+    section.arcSelectedProfiles_ = ['Default'];
+    section.arcSeparatedProfiles_ = [];
+    section.requestUpdate();
+    await section.updateComplete;
+    const root = section.shadowRoot!;
+    // No Arc profile information, no separation choice.
+    assertFalse(!!root.querySelector('#ahoiArcSeparatedProfiles'));
+
+    section.arcImportPreview_ = {
+      ...preview(0),
+      arcProfiles: [
+        {
+          name: 'Default',
+          spaces: 2,
+          workspaceName: 'Arc \u2013 Default',
+          alreadySeparated: false,
+        },
+        {
+          name: 'Profile 1',
+          spaces: 1,
+          workspaceName: 'Kunde',
+          alreadySeparated: true,
+        },
+      ],
+    };
+    section.requestUpdate();
+    await section.updateComplete;
+    const choices =
+        Array.from(root.querySelectorAll<HTMLElement&{checked: boolean}>(
+            '#ahoiArcSeparatedProfiles .arc-separated-profile'));
+    assertEquals(2, choices.length);
+    assertTrue(!!choices[0]!.closest('fieldset.options'));
+    assertFalse(choices[0]!.checked);
+    assertFalse(choices[1]!.checked);
+    assertEquals('Profile 1', choices[1]!.dataset['arcProfile']);
+    assertTrue(choices[1]!.textContent.includes('Kunde'));
+
+    choices[1]!.click();
+    await microtasksFinished();
+    assertDeepEquals(['Profile 1'], section.arcSeparatedProfiles_);
+
+    const requests: unknown[][] = [];
+    const originalSend = chrome.send;
+    chrome.send = (message: string, args?: unknown[]) => {
+      if (message === 'ahoiArcCommit') {
+        requests.push(args ?? []);
+      } else {
+        originalSend(message, args);
+      }
+    };
+    try {
+      root.querySelector<HTMLElement>('#ahoiArcCommit')!.click();
+      assertEquals(1, requests.length);
+      assertEquals(10, requests[0]!.length);
+      assertEquals(false, requests[0]![8]);
+      assertDeepEquals(['Profile 1'], requests[0]![9]);
+
+      // A repeated import finds the earlier separated Workspace instead of
+      // creating a second one; the result reports it.
+      webUIResponse(requests[0]![0] as string, true, {
+        status: 'ok',
+        stats,
+        renamedWorkspaces: 0,
+        skippedWorkspaces: 0,
+        mergedWorkspaces: 0,
+        reconstructedSplits: 0,
+        approximatedFourPaneRatios: 0,
+        separatedWorkspaces: 0,
+        existingSeparatedWorkspaces: 1,
+        failedSeparatedWorkspaces: 0,
+      });
+      await microtasksFinished();
+      assertEquals('done', section.arcImportStage_);
+      assertEquals(10, root.querySelectorAll('.result-counts > li').length);
+      assertEquals(
+          '1',
+          root.querySelector('#ahoiArcResultSeparated')!.textContent.trim());
+      assertFalse(!!root.querySelector('#ahoiArcSeparatedFailed'));
     } finally {
       chrome.send = originalSend;
     }
