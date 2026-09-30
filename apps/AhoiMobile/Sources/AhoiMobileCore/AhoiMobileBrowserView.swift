@@ -437,7 +437,8 @@ public struct AhoiMobileBrowserView: View {
                 browserActionsPresented = true
             },
             onSwitchWorkspace: switchWorkspace,
-            onSwitchRecentTab: { browser.switchRecentTab(direction: $0) }
+            onSwitchRecentTab: { browser.switchRecentTab(direction: $0) },
+            recentTabPreview: { browser.recentTabPreview(direction: $0) }
         )
         .accessibilitySortPriority(10)
     }

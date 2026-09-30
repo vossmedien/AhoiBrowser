@@ -44,11 +44,17 @@ public struct MobileRecentTabCycler: Equatable, Sendable {
 
     /// Positive steps go to older tabs, negative ones back toward newer; both wrap.
     public mutating func step(_ direction: Int, now: Date) -> UUID? {
+        guard let target = peek(direction) else { return nil }
+        position = (position + (direction < 0 ? -1 : 1) + order.count) % order.count
+        lastStepAt = now
+        return target
+    }
+
+    /// The tab `step(direction)` would select, without stepping.
+    public func peek(_ direction: Int) -> UUID? {
         guard direction != 0 else { return nil }
         let delta = direction < 0 ? -1 : 1
-        position = (position + delta + order.count) % order.count
-        lastStepAt = now
-        return order[position]
+        return order[(position + delta + order.count) % order.count]
     }
 
     private static func candidates(
@@ -77,5 +83,21 @@ extension MobileBrowserController {
         recentTabCycler = cycler
         select(target)
         return true
+    }
+
+    /// The tab a flick in `direction` would switch to, for the preview the
+    /// deck shows while the finger is still down (ADR 0012: the neighbor
+    /// page is visible during the drag). Nothing changes here: a running
+    /// sequence keeps its captured order, otherwise the order a new
+    /// sequence would capture now is used.
+    public func recentTabPreview(direction: Int, now: Date = Date()) -> MobileTabRecord? {
+        guard direction != 0, let selectedTabID else { return nil }
+        let cycler = recentTabCycler?.isContinuation(
+            tabs: tabs, selectedID: selectedTabID, now: now
+        ) == true
+            ? recentTabCycler
+            : MobileRecentTabCycler(tabs: tabs, selectedID: selectedTabID, now: now)
+        guard let target = cycler?.peek(direction) else { return nil }
+        return tabs.first { $0.id == target }
     }
 }

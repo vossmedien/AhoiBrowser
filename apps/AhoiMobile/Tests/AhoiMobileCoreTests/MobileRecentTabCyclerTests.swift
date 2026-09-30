@@ -99,4 +99,78 @@ final class MobileRecentTabCyclerTests: XCTestCase {
         XCTAssertTrue(browser.switchRecentTab(direction: 1))
         XCTAssertEqual(browser.selectedTabID, second)
     }
+
+    func testPeekNamesTheNextStepWithoutTakingIt() throws {
+        let current = tab(0), previous = tab(10), oldest = tab(20)
+        var cycler = try XCTUnwrap(MobileRecentTabCycler(
+            tabs: [current, previous, oldest], selectedID: current.id, now: start))
+        XCTAssertEqual(cycler.peek(1), previous.id)
+        XCTAssertEqual(cycler.peek(-1), oldest.id)
+        XCTAssertNil(cycler.peek(0))
+        XCTAssertEqual(cycler.position, 0)
+        XCTAssertEqual(cycler.step(1, now: start), previous.id)
+        XCTAssertEqual(cycler.peek(1), oldest.id)
+        XCTAssertEqual(cycler.peek(-1), current.id)
+    }
+
+    /// The drag preview names the tab the flick will select and changes
+    /// nothing, also in the middle of a running flick sequence.
+    @MainActor
+    func testControllerPreviewMatchesTheFlickAndSelectsNothing() throws {
+        let browser = MobileBrowserController()
+        let oldest = browser.createTab()
+        let previous = browser.createTab()
+        let current = browser.createTab()
+        browser.select(current)
+        for (id, seconds) in [(oldest, 10.0), (previous, 20.0), (current, 30.0)] {
+            let index = try XCTUnwrap(browser.tabs.firstIndex { $0.id == id })
+            browser.tabs[index].lastActiveAt = Date(timeIntervalSince1970: seconds)
+        }
+
+        XCTAssertEqual(browser.recentTabPreview(direction: 1)?.id, previous)
+        XCTAssertEqual(browser.recentTabPreview(direction: -1)?.id, oldest)
+        XCTAssertNil(browser.recentTabPreview(direction: 0))
+        XCTAssertEqual(browser.selectedTabID, current)
+        XCTAssertNil(browser.recentTabCycler, "A preview must not start a sequence.")
+
+        XCTAssertTrue(browser.switchRecentTab(direction: 1))
+        XCTAssertEqual(browser.selectedTabID, previous)
+        // Selecting refreshed `previous`; the running order still leads on.
+        XCTAssertEqual(browser.recentTabPreview(direction: 1)?.id, oldest)
+        XCTAssertTrue(browser.switchRecentTab(direction: 1))
+        XCTAssertEqual(browser.selectedTabID, oldest)
+    }
+
+    @MainActor
+    func testSingleTabHasNoPreview() {
+        let browser = MobileBrowserController()
+        let only = browser.createTab()
+        browser.select(only)
+        XCTAssertNil(browser.recentTabPreview(direction: 1))
+        XCTAssertNil(browser.recentTabPreview(direction: -1))
+    }
+
+    func testFlickStatePreviewsBeforeItCommits() {
+        let record = tab(0)
+        XCTAssertNil(MobileRecentTabFlickState.direction(
+            of: CGSize(width: 20, height: 0), committing: false))
+        XCTAssertEqual(MobileRecentTabFlickState.direction(
+            of: CGSize(width: 40, height: 4), committing: false), 1)
+        XCTAssertNil(MobileRecentTabFlickState.direction(
+            of: CGSize(width: 40, height: 4), committing: true))
+        XCTAssertEqual(MobileRecentTabFlickState.direction(
+            of: CGSize(width: -90, height: 10), committing: true), -1)
+        XCTAssertNil(
+            MobileRecentTabFlickState.direction(
+                of: CGSize(width: 80, height: 70), committing: false),
+            "A mostly vertical drag is not a flick."
+        )
+        let short = MobileRecentTabFlickState(
+            tab: record, direction: 1, translation: CGSize(width: 40, height: 0))
+        XCTAssertFalse(short.willCommit)
+        let far = MobileRecentTabFlickState(
+            tab: record, direction: 1, translation: CGSize(width: 300, height: 0))
+        XCTAssertTrue(far.willCommit)
+        XCTAssertEqual(far.offset, 40, "The card follows the finger only a little.")
+    }
 }

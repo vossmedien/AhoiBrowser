@@ -31,7 +31,10 @@ struct MobileHarborDeckView: View {
     let onSwitchWorkspace: (Int) -> Void
     /// Flick through recently used tabs (ADR 0012, MOB-FLICK); false if none.
     let onSwitchRecentTab: (Int) -> Bool
+    /// The tab a flick in a direction would reach, for the drag preview.
+    var recentTabPreview: (Int) -> MobileTabRecord? = { _ in nil }
     @State private var recentTabFlicks = 0
+    @State private var flickPreview: MobileRecentTabFlickState?
     private var reduceMotion: Bool { reduceMotionOverride ?? systemReduceMotion }
     var body: some View {
         deckContent
@@ -227,15 +230,35 @@ struct MobileHarborDeckView: View {
         .accessibilityValue(Text(addressAccessibilityValue))
         // One finger on the control row only: the web view keeps WebKit's
         // back/forward edge swipe, the top rail keeps the Workspace swipe.
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 28).onEnded { value in
-                let horizontal = value.translation.width
-                guard abs(horizontal) >= 72,
-                      abs(horizontal) > abs(value.translation.height) * 1.35 else { return }
-                // Rightward reveals the previously used tab, as in Safari.
-                flickRecentTab(horizontal > 0 ? 1 : -1)
-            }
+        // High priority: once the finger has moved 28 pt the drag owns the
+        // touch, so lifting it inside the control is not also a tap that
+        // opens the address editor. A shorter touch stays a tap.
+        .highPriorityGesture(
+            DragGesture(minimumDistance: 28)
+                .onChanged(updateFlickPreview)
+                .onEnded { value in
+                    flickPreview = nil
+                    guard let direction = MobileRecentTabFlickState.direction(
+                        of: value.translation, committing: true
+                    ) else { return }
+                    // Rightward reveals the previously used tab, as in Safari.
+                    flickRecentTab(direction)
+                }
         )
+        .overlay(alignment: .top) {
+            if let flickPreview {
+                MobileRecentTabFlickPreview(
+                    tab: flickPreview.tab,
+                    direction: flickPreview.direction,
+                    willCommit: flickPreview.willCommit,
+                    accentTint: accentTint
+                )
+                .offset(x: flickPreview.offset, y: -58)
+                .allowsHitTesting(false)
+                .transition(chromeVisibilityTransition)
+            }
+        }
+        .animation(contentAnimation, value: flickPreview?.tab.id)
         .sensoryFeedback(.selection, trigger: recentTabFlicks)
         .accessibilityAction(named: Text(CompanionL10n.string(
             "browser.tabs.previous", fallback: "Previous Tab"
@@ -248,6 +271,26 @@ struct MobileHarborDeckView: View {
     private func flickRecentTab(_ direction: Int) {
         guard visibleTabCount > 1, onSwitchRecentTab(direction) else { return }
         recentTabFlicks += 1
+    }
+
+    private func updateFlickPreview(_ value: DragGesture.Value) {
+        guard visibleTabCount > 1,
+              let direction = MobileRecentTabFlickState.direction(
+                of: value.translation, committing: false
+              ) else {
+            flickPreview = nil
+            return
+        }
+        let tab = flickPreview?.direction == direction
+            ? flickPreview?.tab
+            : recentTabPreview(direction)
+        guard let tab else {
+            flickPreview = nil
+            return
+        }
+        flickPreview = MobileRecentTabFlickState(
+            tab: tab, direction: direction, translation: value.translation
+        )
     }
 
     private var reloadButton: some View {
