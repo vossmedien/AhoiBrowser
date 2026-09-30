@@ -129,7 +129,7 @@ void BrowserSidebarHostView::OnSavedPageHoverChanged(const base::Uuid& node_id,
     InvalidateAndCloseGroupRecentBubble();
     if (tabs::TabInterface* live_tab =
             session_bridge_->FindTabByTreeNodeId(node_id)) {
-      if (content::WebContents* contents = live_tab->GetContents()) {
+      if (live_tab->GetContents()) {
         const auto cached =
             thumbnails_.tab_cache.find(live_tab->GetHandle().raw_value());
         const bool needs_thumbnail =
@@ -137,8 +137,7 @@ void BrowserSidebarHostView::OnSavedPageHoverChanged(const base::Uuid& node_id,
             cached->second->image().isNull() ||
             cached->second->image().size().IsEmpty();
         if (needs_thumbnail) {
-          if (ThumbnailTabHelper* helper =
-                  ThumbnailTabHelper::From(live_tab)) {
+          if (ThumbnailTabHelper* helper = ThumbnailTabHelper::From(live_tab)) {
             helper->CaptureThumbnailOnTabBackgrounded();
           }
         }
