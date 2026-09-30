@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+## ADR 0011 (WS-ISO) status — 30 September 2026
+
+Source only; nothing built or run (the M154 build holds the host). "green" =
+installed journey verdict `pass`. Registry entries stay `NOT_RUN` (owner).
+
+| ID | Evidence | Still open |
+| --- | --- | --- |
+| 01 level choice/labels | ws-isolated `d466bfef` green; ws-level-deletion `8cacd5ac` green (levelChoiceShown, menuNamesLevel) | — |
+| 02 data separation | ws-isolated `d466bfef` 28/28 (cookies, history, passwords, autofill, permissions, downloads, relaunch); command-bar suggestions added (`57799c08`) | rerun; only one separated + one shared Workspace (acceptance: two + shared) |
+| 03 extensions/uBO | ws-isolated `d466bfef` green | a second separated Workspace unchecked |
+| 04 switching | hand-over by menu green; sidebar presentation now carried (`c0d0e0c3`); ⌃1/⌃2, command bar, frame, no reflow: new ws-isolated-switch-journey | run it; trackpad swipe manual CU |
+| 05 cross-level move | ws-cross-level-move `964ebc78` 24/25, only undoLeavesTargetEmpty (harness, fixed `ae355f4c`) | rerun; drag-and-drop manual CU |
+| 06 routing/Quick Window | unit link_routing*; new ws-isolated-routing-journey | run it |
+| 07 delete + before-unload | delete green (`d466bfef`); cancel/confirm with before-unload in ws-isolated-switch-journey | run it |
+| 08 killed deletion | new ws-isolated-recovery-journey | run it |
+| 09 convert | ws-convert 8/8 (`880217d`, build 33) | rerun on current candidate |
+| 10 Arc profile → separated | Arc profile → one separated Workspace, repeat finds it (`89940ea7`; ArcImportProfileMappingTest, parser/key/WebUI tests) | build + tests; journey with a multi-profile Arc fixture; no merge into an existing separated tree |
+| 11 cost/load/unload | new ws-isolated-perf-journey (1/3/5; base/loaded/hidden/closed/restart); unload is upstream DestroyProfileOnBrowserClose (on by default, M154 Mac) | measure |
+| 12 sync namespace | desktop sync_namespace + WsIso20 unit tests; iOS SeparatedWorkspaceSyncTests 20/20 (29 Sep) | real CloudKit (owner) |
+| 13 website-sessions delete | ws-level-deletion + ws-deletion-extended `8cacd5ac` green | — |
+| 14 reopen after restart | ws-isolated reachableAfterRelaunch green; close-window variant in ws-isolated-recovery-journey | run it |
+| 15 killed creation | ws-isolated-recovery-journey | run it |
+| 16 delete, only separated window | ws-isolated `d466bfef` green | — |
+| 17 hand-over + relaunch | ws-isolated partly green; one visible window + no reload loop in ws-isolated-switch-journey | run it |
+| 18 audio of hidden Workspace | mark + pause from the menu (`372e7e33`, OtherProfileMediaTest); ws-isolated-switch-journey | build, run |
+| 19 under CPU load | ws-isolated-switch-journey with `AHOI_E2E_CPU_LOAD=<n>` | run it |
+| 20 zone retirement | WsIso20* unit tests | signed CloudKit runtime |
+| 21/22 iOS account switch / retire | 024/056 code + unit tests | real CloudKit (owner) |
+
+New journeys: `tools/desktop_e2e/ws-isolated-{switch,routing,recovery,perf}-journey.sh`.
+All new C++ is syntax-checked against M154 (`clang -fsyntax-only`, AhoiDev
+flags); first real proof is the next build plus its unit binaries.
+
 ## M154 roll: first dev build in progress — 30 September 2026
 
 - `build.lock` held by the roll agent since 11:43 (checkout switch + build).
