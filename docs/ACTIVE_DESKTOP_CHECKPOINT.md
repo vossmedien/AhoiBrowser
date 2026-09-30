@@ -1,5 +1,24 @@
 # Active Desktop checkpoint
 
+## M154 installed and verified — 1 October 2026, 01:56 CEST
+
+- **M154 roll done:** Chromium 154.0.8037.93; first green dev build
+  `a8c4f479`, then build 58 `21b49fb9` installed. All 20 unit binaries green
+  on both (1305 tests on a8c4f479).
+- **Journeys on M154, all green:** crash-recovery 13/13, http-auth (all
+  cases incl. AUTH-17/18/20), glass-appearance, keyboard-shortcuts 28/28,
+  ws-isolated 30/30 (harness fix `6a386aa8`), ws-merge 31/31, cmd-move 9/9,
+  ws-cross-level-move 25/25, nav-gestures 8/8, and the new
+  ws-isolated-switch 22/22, ws-isolated-routing 11/11,
+  ws-isolated-recovery 9/9 on build 58 (product fix `21b49fb9`: a creation
+  crash no longer leaves an orphan Profile directory).
+- **Real sync on M154 GREEN** (see `docs/ACTIVE_SYNC_COORDINATION.md`).
+- **Open for the owner:** visual acceptance (Glass on the redesigned M154
+  frame, dialogs, sidebar 236, command bar); registry proposal
+  `docs/registry-proposal-20260930.md`; decision on the two release builds
+  needed for a valid performance baseline; real CloudKit for
+  WS-ISO-12/20–22.
+
 ## ADR 0011 (WS-ISO) status — 30 September 2026
 
 Source only; nothing built or run (the M154 build holds the host). "green" =

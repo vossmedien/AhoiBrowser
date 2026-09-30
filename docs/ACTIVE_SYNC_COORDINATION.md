@@ -1,5 +1,17 @@
 # Active sync coordination
 
+## Real Mac → iPhone round trip GREEN on M154 — 1 October 2026, 01:55 CEST
+
+- Mac: scoped M154 build 58 `21b49fb9` (Chromium 154.0.8037.93). The
+  subscription migration ran (`AhoiSyncSubscription action=rebind`, then
+  `save ok=1`); a `domain_merge_required` at 01:08:34 resolved in the same
+  cycle (`stage=ok` 01:08:35, previously > 5 min until a manual sync).
+- iPhone "Servusla": scoped build `e2561770`;
+  `testRealDeviceReceivesRecognizableRemoteTab` **passed** (181.1 s) for
+  `https://example.com/?ahoi-sync-mac-20260930T230911Z`.
+- Evidence: `artifacts/sync-acceptance/real-device-20260929/receive-20261001-m154/`.
+  The normal (unscoped) M154 build was reinstalled afterwards.
+
 ## Both open findings of the round trip fixed in source — 30 September 2026
 
 No build, launch or install (M154 holds `build.lock`). No CloudKit call,
