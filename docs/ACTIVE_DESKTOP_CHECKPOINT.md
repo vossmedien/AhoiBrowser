@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## M154 roll: first dev build in progress — 30 September 2026
+
+- `build.lock` held by the roll agent since 11:43 (checkout switch + build).
+- M153 checkout restored to its exact base tree. `restore-overlay.sh`
+  reverse-applied the delta but refused because removing the overlay's
+  `third_party/sparkle/.gitignore` exposed the untracked fetched
+  `prebuilt/`; it was parked in `.work/state/sparkle-prebuilt-parked-m154-roll`
+  (back after the M154 overlay apply), old state archived.
+- Roll commit `a13f3fa7`: pin → `154.0.8037.93`, candidate binding removed,
+  staged stack active (83), 0079/0082 new files moved into the overlay,
+  workaround pins and pin-bound tests on M154.
+- `fetch-chromium.sh --prehydrate-target` stalled: 25 978 target blobs
+  missing, each 16-blob fetch in the shallow blobless checkout ran into the
+  300 s timeout (12 blobs in 37 min); stopped with SIGINT (checkout
+  unchanged). The same fetch from a non-shallow scratch repo takes
+  5–15 min per 2 000 blobs, so the 25 966 missing blobs were fetched there
+  (`.work/agent-queue/m154-roll/blobfetch*`), packed and added with
+  `index-pack` (object ids recomputed; HEAD/index/worktree unchanged). The
+  guarded rerun then reported `complete`, 0 missing, mutation guard
+  verified, and `gclient sync` + dependency verification passed:
+  checkout `f89f3a43`, V8 `31fac3be`.
+- Commits `8083278a` (Quick Window → `BrowserWindowInterface`) and
+  `04c67bec` (entitlement policy → M154). Repository tests: no new
+  failures (sidebar-runtime/line-budget already red before the roll;
+  zen-import contract reads the live checkout).
+- Hooks (`--compatible-dev-xcode`) and `apply-overlay.sh` green on M154;
+  Sparkle prebuilt back in place. Running: `build-ahoi.sh dev` + 20 unit
+  targets (`.work/agent-queue/m154-roll/build.sh`, log `build1.log`,
+  `progress`). No install, no journeys.
+
 ## M154 roll: candidate bound, patch stack rebased (source only) — 30 September 2026, 11:45 CEST
 
 - **Candidate:** `154.0.8037.93` = `f89f3a4363808e117c592adedcf9947882ac3b79`,
