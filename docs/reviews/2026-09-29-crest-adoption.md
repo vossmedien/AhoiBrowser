@@ -106,3 +106,9 @@ Neun neue Commits (ccc2d1fe, 02212a4f, 354f6bbe (Merge), 5e1f7fcd (Squash von #2
 - **Nicht übernehmen: Extension-Popups als Tab im aktuellen Fenster** (8a5885fd). Das ist Crests Fenstermodell: Jeder Browser muss in einem Crest-Fenster leben, deshalb fehlt dort ein echtes Popup-Fenster. Ahoi behält Chromiums `TYPE_APP_POPUP`-Fenster. Die Fenster-ID, `chrome.windows.remove` und `windows.onRemoved` funktionieren dort nativ. Die `OwnsWindow`-Schutzlogik für Bounds, Minimize und Hide braucht Ahoi also nicht.
 - **Nicht betroffen: Quit per Apple Event blieb hängen, Sparkle-Update ging verloren** (ccc2d1fe). Die Ursache ist Crests Swift-`ChromiumApplicationDelegate`, das den Quit über die eigene Shell zurückhielt. Widerlegungsversuch: Ahoi nutzt den Stock-`AppController` samt `applicationShouldTerminate`. Sparkle hängt nur Menüeinträge und Statusmeldungen an (`overlay/chromium/src/ahoi/browser/updater/sparkle_runtime_mac.mm:349-361`) und hält keinen Quit zurück. `0028-ahoi-empty-window-commands-and-quit.patch` ändert nur den Default von `kConfirmToQuitEnabled`. Stock wendet das nur auf Cmd-Q-Tastenereignisse an, nicht auf Apple Events.
 - **Rest:** Split-Fokus beim ersten Klick (f4eeeda6, Swift-`BrowserWebHostView`), Dual-Engine-Release, CI und lokales Installationsskript (cfaf7410, 02212a4f, 4b61213f) sowie Doku, HelpCenter und Website (b5906461) sind reine Crest-Shell.
+
+## Crest-Nachtrag 30.09.2026 (ccc2d1fe..b7b3893b)
+
+Ein neuer Commit (b7b3893b, Dependabot: `fast-uri` 3.1.7 → 3.1.8 in `HelpCenter/package-lock.json`, GHSA-hrr3-gc8f-f4qj). **Keine Empfehlung.**
+
+- **Nicht anwendbar:** Die Änderung betrifft nur die Build-Abhängigkeiten von Crests HelpCenter-Dokuseite. Kein Engine-, Extension-, Sync- oder iOS-Bezug. Widerlegungsversuch: `rg fast-uri` findet außerhalb von `.work/` keinen Treffer im Ahoi-Repo. Ahoi nutzt das Paket also weder direkt noch transitiv über ein getracktes Lockfile.
