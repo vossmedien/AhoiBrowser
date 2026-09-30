@@ -217,3 +217,59 @@ extension CompanionSyncBridge {
         return true
     }
 }
+
+extension CompanionSyncBridge {
+    /// Desktop Format 3 seals a Page's order only in the encrypted
+    /// `sort_key`; its CloudKit envelope carries no order key. The decoder
+    /// always derives one from `sort_key`, so requiring equality with the
+    /// absent envelope value quarantined every Mac Page (real device,
+    /// 30 Sep 2026: 14 tree nodes, `plaintext_or_merge_validation_failed`)
+    /// and left each Mac tab waiting for its Page forever. An envelope that
+    /// does carry an order key must still match the authenticated payload.
+    static func validateTreeNodeEnvelope(
+        _ record: SyncRecord,
+        node: TreeNode
+    ) throws {
+        try validateEnvelope(
+            record,
+            identity: node.id.rawValue,
+            version: node.version,
+            orderKey: record.orderKey == nil ? nil : node.orderKey,
+            tombstone: node.tombstone
+        )
+    }
+
+    static func validateEnvelope(
+        _ record: SyncRecord,
+        identity: UUID,
+        version: SyncVersion,
+        orderKey: OrderKey? = nil,
+        tombstone: Tombstone? = nil
+    ) throws {
+        guard record.recordID == identity,
+              record.entityID == identity,
+              record.schemaVersion == version.schemaVersion,
+              record.modifiedAt == version.modifiedAt,
+              record.originatingDevice == version.modifiedBy,
+              record.orderKey == orderKey,
+              record.tombstone == tombstone else {
+            throw CompanionSyncBridgeError.envelopeMismatch
+        }
+    }
+
+    func validate(
+        _ record: SyncRecord,
+        identity: UUID,
+        version: SyncVersion,
+        orderKey: OrderKey? = nil,
+        tombstone: Tombstone? = nil
+    ) throws {
+        try Self.validateEnvelope(
+            record,
+            identity: identity,
+            version: version,
+            orderKey: orderKey,
+            tombstone: tombstone
+        )
+    }
+}

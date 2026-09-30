@@ -190,6 +190,65 @@ final class SharedTabWireReadTests: XCTestCase {
         }
     }
 
+    /// Real device, 30 Sep 2026: the Mac's Format-3 Page envelopes carry no
+    /// order key (it is sealed in `sort_key`), and the import compared it
+    /// with the decoded key, quarantining every Mac Page and stranding the
+    /// linked Mac tab. The Page must pass envelope validation and satisfy
+    /// its Presence; an envelope key that disagrees must still fail.
+    func testDesktopPageEnvelopeWithoutOrderKeyPassesImportValidation() throws {
+        let (page, pageSample) = try goldenNode("tree_saved_web")
+        let (tab, _) = try goldenTab("presence_saved_web")
+        let desktop = try UnifiedSyncFixture.envelope(pageSample)
+        XCTAssertNil(desktop.orderKey)
+        XCTAssertNoThrow(
+            try CompanionSyncBridge.validateTreeNodeEnvelope(
+                desktop, node: page
+            )
+        )
+        XCTAssertNoThrow(
+            try codec.validatePresenceTarget(tab, pages: [page.id: page])
+        )
+
+        let matching = withOrderKey(desktop, page.orderKey)
+        XCTAssertNoThrow(
+            try CompanionSyncBridge.validateTreeNodeEnvelope(
+                matching, node: page
+            )
+        )
+        let other = try OrderKey(
+            components: [1], tieBreaker: page.orderKey.tieBreaker
+        )
+        XCTAssertNotEqual(other, page.orderKey)
+        XCTAssertThrowsError(
+            try CompanionSyncBridge.validateTreeNodeEnvelope(
+                withOrderKey(desktop, other), node: page
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CompanionSyncBridgeError, .envelopeMismatch
+            )
+        }
+        // Other classes still require an envelope without an order key.
+        XCTAssertThrowsError(
+            try CompanionSyncBridge.validateEnvelope(
+                matching, identity: page.id.rawValue, version: page.version,
+                tombstone: page.tombstone
+            )
+        )
+    }
+
+    private func withOrderKey(
+        _ base: SyncRecord, _ orderKey: OrderKey
+    ) -> SyncRecord {
+        SyncRecord(
+            recordID: base.recordID, entityID: base.entityID,
+            schemaVersion: base.schemaVersion, dataClass: base.dataClass,
+            modifiedAt: base.modifiedAt,
+            originatingDevice: base.originatingDevice, orderKey: orderKey,
+            encryptedValue: base.encryptedValue, tombstone: base.tombstone
+        )
+    }
+
     // MARK: - Golden helpers
 
     private func sample(_ name: String) throws -> UnifiedSyncFixture.Sample {

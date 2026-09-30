@@ -501,8 +501,7 @@ public actor CompanionSyncBridge {
             return .domain(.bookmark(try decodeBookmarkRecord(record, plaintext: plaintext)))
         case .treeNode:
             let value = try wireCodec.decodeTreeNode(record, plaintext: plaintext)
-            try validate(record, identity: value.id.rawValue, version: value.version,
-                         orderKey: value.orderKey, tombstone: value.tombstone)
+            try Self.validateTreeNodeEnvelope(record, node: value)
             context.pages[value.id] = try context.pages[value.id].map {
                 try CompanionFieldMerge.merge($0, value)
             } ?? value
@@ -699,8 +698,7 @@ public actor CompanionSyncBridge {
                          tombstone: value.tombstone)
         case .treeNode:
             let value = try wireCodec.decodeTreeNode(record, plaintext: plaintext)
-            try validate(record, identity: value.id.rawValue, version: value.version,
-                         orderKey: value.orderKey, tombstone: value.tombstone)
+            try Self.validateTreeNodeEnvelope(record, node: value)
         case .deviceSession:
             let value = try wireCodec.decodeSession(
                 record,
@@ -767,23 +765,5 @@ public actor CompanionSyncBridge {
             throw SyncBoundaryError.dataClassDenied(record.dataClass)
         }
         return .restore
-    }
-
-    func validate(
-        _ record: SyncRecord,
-        identity: UUID,
-        version: SyncVersion,
-        orderKey: OrderKey? = nil,
-        tombstone: Tombstone? = nil
-    ) throws {
-        guard record.recordID == identity,
-              record.entityID == identity,
-              record.schemaVersion == version.schemaVersion,
-              record.modifiedAt == version.modifiedAt,
-              record.originatingDevice == version.modifiedBy,
-              record.orderKey == orderKey,
-              record.tombstone == tombstone else {
-            throw CompanionSyncBridgeError.envelopeMismatch
-        }
     }
 }
