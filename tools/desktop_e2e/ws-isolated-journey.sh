@@ -8,7 +8,8 @@
 # main window without any Chromium profile UI (WS-ISO-16). The remaining
 # WS-ISO-02 areas are separated too: history, a saved password, an
 # autocomplete entry, a site permission (notifications) and a download,
-# each present in the separated Profile only; WS-ISO-03: uBlock Origin
+# each present in the separated Profile only, and the main window's command
+# bar never suggests the separated Profile's page; WS-ISO-03: uBlock Origin
 # Classic installed in the separated window filters there and is absent
 # from the main Profile (needs network for the pinned GitHub release; set
 # AHOI_E2E_SKIP_NETWORK=1 to leave WS-ISO-03 out). Product default launch,
@@ -194,6 +195,17 @@ sleep 3; $AX dump $PID 14 > "$OUT/ax-after-create.txt"
 open_url "$SITE/login.html"
 [ "$(cookie_of login.html)" = "acct=getrennt" ] && record loginInSeparated true || record loginInSeparated false
 ORIGIN=$(origin_of login.html)
+# Positive control for suggestionsSeparated below: the separated window's
+# own command bar offers its page.
+key 17 cmd
+if waitax "AXWindow \\| Suchen oder URL eingeben" 6; then
+  sleep 1; type_in "login"; sleep 2
+  $AX dump $PID 14 > "$OUT/ax-separated-suggestions.txt"; key 53; sleep 1
+  grep -q -E "AXStaticText \| login, " "$OUT/ax-separated-suggestions.txt" \
+    && record suggestionInSeparated true || record suggestionInSeparated false
+else
+  record suggestionInSeparated false
+fi
 # WS-ISO-17: hand over to the main Workspace; the separated window hides.
 menu Getrennt "Inbox" || fail_setup "separated window menu has no main Workspaces"
 $AX dump $PID 14 > "$OUT/ax-menu-separated.txt"
@@ -201,6 +213,18 @@ $AX press $PID "$(menuitem Inbox)" >> "$OUT/steps.txt"
 waitax "Inbox, Workspace wechseln" 10 && record handOverToMain true || record handOverToMain false
 sleep 2; $AX dump $PID 14 > "$OUT/ax-after-handover.txt"
 { ! grep -q 'Getrennt, Workspace wechseln' "$OUT/ax-after-handover.txt"; } && record separatedHidden true || record separatedHidden false
+# WS-ISO-02 suggestions: the main window's command bar never offers the
+# separated Profile's visit ("login, <url>" row; "<query>, Google" is the
+# search row).
+key 17 cmd
+if waitax "AXWindow \\| Suchen oder URL eingeben" 6; then
+  sleep 1; type_in "login"; sleep 2
+  $AX dump $PID 14 > "$OUT/ax-main-suggestions.txt"; key 53; sleep 1
+  { ! grep -q -E "AXStaticText \| login, " "$OUT/ax-main-suggestions.txt"; } \
+    && record suggestionsSeparated true || record suggestionsSeparated false
+else
+  record suggestionsSeparated false
+fi
 open_url "$SITE/check.html"
 [ -z "$(cookie_of check.html)" ] && record mainNotLoggedIn true || record mainNotLoggedIn false
 # Back to the separated Workspace: same page, no reload.
