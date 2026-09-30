@@ -20,6 +20,9 @@
 namespace ahoi::sync {
 namespace {
 
+// The provider staged the newer server version of a conflicting record.
+constexpr char kMergeRequired[] = "merge_required";
+
 SyncAuthorization Both(SyncAuthorization first, SyncAuthorization second) {
   return base::BindRepeating(
       [](SyncAuthorization a, SyncAuthorization b) {
@@ -33,6 +36,7 @@ std::string SafeProviderError(std::string error) {
   // payloads. Fail closed if a future provider violates that boundary.
   static constexpr const char* kAllowedErrors[] = {"account_unavailable",
                                                    "cancelled",
+                                                   kMergeRequired,
                                                    "network",
                                                    "provider_error",
                                                    "quota",
@@ -63,6 +67,9 @@ SyncPump::SyncPump(SyncStore* store, SyncProvider* provider, Options options)
   CHECK_GT(options_.upload_batch_size, 0u);
   CHECK_GT(options_.initial_retry_delay, base::TimeDelta());
   CHECK_GE(options_.maximum_retry_delay, options_.initial_retry_delay);
+  CHECK_GE(options_.maximum_merge_rounds, 0);
+  CHECK_GT(options_.merge_retry_delay, base::TimeDelta());
+  CHECK_GE(options_.maximum_merge_retry_delay, options_.merge_retry_delay);
   bookmark_sync_enabled_ =
       options_.bookmark_sync_enabled && !provider_->IsBookmarkConsentRevoked();
   provider_->SetBookmarkSyncEnabled(bookmark_sync_enabled_);
@@ -99,6 +106,7 @@ void SyncPump::Cancel() {
   cycle_requested_ = false;
   receive_only_ = false;
   queued_user_sync_ = false;
+  merge_rounds_ = 0;
   receive_authorization_.Reset();
   pending_receive_authorization_.Reset();
   RunCallbacks(false, "cancelled");
@@ -165,6 +173,7 @@ void SyncPump::SetBookmarkSyncEnabled(bool enabled) {
   cycle_requested_ = false;
   receive_only_ = false;
   queued_user_sync_ = false;
+  merge_rounds_ = 0;
   receive_authorization_.Reset();
   pending_receive_authorization_.Reset();
   provider_->SetBookmarkSyncEnabled(enabled);
@@ -271,7 +280,20 @@ void SyncPump::OnUploadFinished(std::vector<SyncChange> attempted,
     return;
   }
   if (!success) {
-    FinishFailure(SafeProviderError(std::move(error)));
+    error = SafeProviderError(std::move(error));
+    if (error == kMergeRequired &&
+        merge_rounds_ < options_.maximum_merge_rounds) {
+      // CloudKit rejected a save because the server holds a newer version.
+      // The provider staged that version durably, so fetch it now: the
+      // store's domain merge queues the merged mutation, and the coalesced
+      // follow-up resends it. A conflict is not a transport outage and must
+      // not wait out the generic backoff.
+      ++merge_rounds_;
+      cycle_requested_ = true;
+      DownloadNextPage(store_->GetChangeToken());
+      return;
+    }
+    FinishFailure(std::move(error));
     return;
   }
 
@@ -422,6 +444,8 @@ void SyncPump::FinishSuccess() {
     return;
   }
   syncing_ = false;
+  merge_rounds_ = 0;
+  merge_failures_ = 0;
   RunCallbacks(true, std::string());
   StartPendingReceive();
 }
@@ -432,14 +456,44 @@ void SyncPump::FinishFailure(std::string error) {
     return;
   }
   error = SafeProviderError(std::move(error));
-  std::ignore = store_->MarkRetry(base::Time::Now() + NextRetryDelay(), error);
+  const bool merge_required = error == kMergeRequired;
+  merge_failures_ = merge_required ? merge_failures_ + 1 : 0;
+  const base::TimeDelta delay = NextRetryDelay(error);
+  std::ignore = store_->MarkRetry(base::Time::Now() + delay, error);
   syncing_ = false;
   cycle_requested_ = false;
+  merge_rounds_ = 0;
+  if (merge_required) {
+    // The periodic check alone would leave an unresolved conflict for
+    // minutes. Wake up once the short, conflict-specific deadline is due.
+    task_runner_->PostDelayedTask(
+        FROM_HERE,
+        base::BindOnce(&SyncPump::OnMergeRetryDue,
+                       weak_ptr_factory_.GetWeakPtr()),
+        delay);
+  }
   RunCallbacks(false, error);
   StartPendingReceive();
 }
 
-base::TimeDelta SyncPump::NextRetryDelay() const {
+void SyncPump::OnMergeRetryDue() {
+  // A newer failure keeps its own deadline; StartCycle honors it.
+  if (!syncing_)
+    std::ignore = SyncNow({});
+}
+
+base::TimeDelta SyncPump::NextRetryDelay(const std::string& error) const {
+  if (error == kMergeRequired) {
+    // Independent of earlier transport failures: doubles only while the
+    // conflict itself persists, up to the periodic sync interval.
+    base::TimeDelta delay = options_.merge_retry_delay;
+    for (int index = 1; index < merge_failures_ &&
+                        delay < options_.maximum_merge_retry_delay;
+         ++index) {
+      delay = std::min(delay * 2, options_.maximum_merge_retry_delay);
+    }
+    return delay;
+  }
   base::TimeDelta delay = options_.initial_retry_delay;
   const int attempts = std::max(0, store_->GetRetryState().attempt);
   for (int index = 0; index < attempts && delay < options_.maximum_retry_delay;

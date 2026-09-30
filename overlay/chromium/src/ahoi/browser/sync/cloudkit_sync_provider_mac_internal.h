@@ -508,9 +508,7 @@ class CloudKitSyncProviderMac::Core
           continue;
         }
         if (valid) {
-          ++upload_unresolved_count_;
-          upload_error_ = "provider_error";
-          upload_failure_stage_ = "domain_merge_required";
+          NoteMergeRequired();
           continue;
         }
       }
@@ -528,6 +526,16 @@ class CloudKitSyncProviderMac::Core
       upload_error_ = "provider_error";
       upload_failure_stage_ = "unexpected_record_delete";
     }
+  }
+
+  // The newer server version (or the queued original) is staged for the
+  // domain merge. "merge_required" lets the pump import it and resend at
+  // once; it never masks another failure category of the same send.
+  void NoteMergeRequired() {
+    ++upload_unresolved_count_;
+    if (upload_error_.empty() || upload_error_ == "merge_required")
+      upload_error_ = "merge_required";
+    upload_failure_stage_ = "domain_merge_required";
   }
 
   void LogUploadOutcome(const std::string& stage, NSError* error) const {

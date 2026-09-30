@@ -33,6 +33,11 @@ class SyncPump final {
     base::TimeDelta initial_retry_delay = base::Seconds(5);
     base::TimeDelta maximum_retry_delay = base::Hours(1);
     bool bookmark_sync_enabled = false;
+    // A "merge_required" upload first imports the staged server version and
+    // resends within the same cycle; only then does a short retry follow.
+    int maximum_merge_rounds = 2;
+    base::TimeDelta merge_retry_delay = base::Seconds(5);
+    base::TimeDelta maximum_merge_retry_delay = base::Minutes(5);
   };
 
   using CompletionCallback =
@@ -80,7 +85,8 @@ class SyncPump final {
                           std::string error);
   void FinishSuccess();
   void FinishFailure(std::string error);
-  base::TimeDelta NextRetryDelay() const;
+  base::TimeDelta NextRetryDelay(const std::string& error) const;
+  void OnMergeRetryDue();
   void RunCallbacks(bool success, const std::string& safe_error);
 
   const raw_ptr<SyncStore> store_;
@@ -94,6 +100,9 @@ class SyncPump final {
   bool receive_only_ = false;
   bool received_changes_ = false;
   bool queued_user_sync_ = false;
+  // Resend rounds in this cycle, and merge failures since the last success.
+  int merge_rounds_ = 0;
+  int merge_failures_ = 0;
   SyncAuthorization receive_authorization_;
   SyncAuthorization pending_receive_authorization_;
   base::RepeatingCallback<void(SyncAuthorization)> incoming_applied_callback_;

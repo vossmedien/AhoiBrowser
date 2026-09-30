@@ -380,11 +380,13 @@ CKRecord* CloudKitSyncProviderMac::Core::PendingRecordForGeneration(
     if (!local || !remote || !ValidateChangeEnvelope(*local, &local_record) ||
         !ValidateChangeEnvelope(*remote, &remote_record) ||
         !DomainCovers(local_record, remote_record)) {
-      if (remote)
-        StageUploadMergeInput(key, *remote, server->second);
-      ++upload_unresolved_count_;
-      upload_error_ = "provider_error";
-      upload_failure_stage_ = "domain_merge_required";
+      if (remote && StageUploadMergeInput(key, *remote, server->second)) {
+        NoteMergeRequired();
+      } else {
+        ++upload_unresolved_count_;
+        upload_error_ = "provider_error";
+        upload_failure_stage_ = "domain_merge_required";
+      }
       return nil;
     }
   }

@@ -286,6 +286,7 @@ source_set("unit_tests") {
     "sync_merge_conformance_unittest.cc",
     "sync_namespace_unittest.cc",
     "sync_product_settings_unittest.cc",
+    "sync_pump_merge_unittest.cc",
     "sync_record_limits_unittest.cc",
     "sync_secret_boundary_unittest.cc",
     "sync_security_tree_unittest.cc",

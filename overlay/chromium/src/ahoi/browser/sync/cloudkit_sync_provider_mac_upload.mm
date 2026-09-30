@@ -277,18 +277,22 @@ void CloudKitSyncProviderMac::Core::Upload(std::vector<SyncChange> changes,
         // Feed an unchanged, still-queued original to the existing domain
         // merge against its materialized local winner. No synthetic remote
         // record, new mutation ID, or provider-authored clock is manufactured.
+        bool staged = false;
         for (const auto& original : group) {
           if (!DomainCovers(latest->record, original.record)) {
-            StageUploadMergeInput(key, original.change);
+            staged = StageUploadMergeInput(key, original.change);
             break;
           }
         }
-        fail("domain_merge_required", "provider_error");
+        fail("domain_merge_required",
+             staged ? "merge_required" : "provider_error");
         return;
       }
       if (server_change && !DomainCovers(selected->record, server_record)) {
-        StageUploadMergeInput(key, *server_change, server->second);
-        fail("domain_merge_required", "provider_error");
+        const bool staged =
+            StageUploadMergeInput(key, *server_change, server->second);
+        fail("domain_merge_required",
+             staged ? "merge_required" : "provider_error");
         return;
       }
       auto sealed = cryptor_->Seal(selected->change.payload);
