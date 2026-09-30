@@ -92,9 +92,9 @@ Owner-approved real test, scope `23855a90-ee61-499e-abed-bfdc52a881d7`
      Page in any case.
 5. Run `testRealDeviceReceivesRecognizableRemoteTab`
    (`MobileRealDeviceCloudKitSyncUITests`) with the new marker. It
-   passes only when a `remoteTab` result carries the exact URL. Then confirm with a read-only `devicectl` copy: no Mac
-   tree node is in `sync-quarantine.json`, and the fetched inbox holds no
-   Mac device tab. DoD 13 stays RED until step 5 passes.
+   passes only when a `remoteTab` result carries the exact URL. Then
+   confirm with a read-only `devicectl` copy: no Mac tree node is in
+   `sync-quarantine.json`, and the fetched inbox holds no Mac device tab. DoD 13 stays RED until step 5 passes.
 
 ## Real-device Mac–iPhone test in progress — 29 September 2026, 13:15 CEST
 
