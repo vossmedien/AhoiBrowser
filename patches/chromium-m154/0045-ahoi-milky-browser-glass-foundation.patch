@@ -1,0 +1,54 @@
+diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
+index 19bda9..5a5ddc 100644
+--- a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
++++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
+@@ -1055,12 +1055,17 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
+   if (@available(macOS 26.0, *)) {
+     [ns_window setOpaque:NO];
+ 
+-    // A completely transparent background ([NSColor clearColor]) causes AppKit
+-    // to continuously invalidate the window surface, resulting in high CPU
+-    // and energy usage. Using an almost-transparent color (alpha 0.001) avoids
+-    // this performance issue while remaining visually indistinguishable.
+-    [ns_window setBackgroundColor:[[NSColor windowBackgroundColor]
+-                                      colorWithAlphaComponent:0.001]];
++    // The native material sits behind Chromium's Views. A nearly clear
++    // NSWindow exposes the desktop through WebUI/chrome gaps instead of
++    // producing frosted glass. Keep a neutral translucent foundation beneath
++    // the full-window material while leaving WebContents itself untouched.
++    const SkColor foundation = material.fallback_color;
++    [ns_window
++        setBackgroundColor:[NSColor
++                               colorWithSRGBRed:SkColorGetR(foundation) / 255.0
++                                          green:SkColorGetG(foundation) / 255.0
++                                           blue:SkColorGetB(foundation) / 255.0
++                                          alpha:0.55]];
+ 
+     if (!glass_background_view_) {
+       NSView* const content_view = [ns_window contentView];
+@@ -1115,6 +1120,25 @@ void BrowserNativeWidgetMac::UpdateBackgroundGeometry() {
+ 
+   NSView* const content_view = [ns_window contentView];
+ 
++  if (appearance_signals_ && appearance_signals_->policy().AllowsGlass()) {
++    glass_background_view_.frame = content_view.bounds;
++    glass_background_view_.autoresizingMask =
++        NSViewWidthSizable | NSViewHeightSizable;
++    if (tint_view_) {
++      tint_view_.frame = glass_background_view_.bounds;
++    }
++    // The milky backdrop spans the whole window. M154's opaque background
++    // view must not sit below it, or the glass would sample that opaque
++    // colour instead of the desktop.
++    if (opaque_background_view_) {
++      opaque_background_view_.hidden = YES;
++    }
++    return;
++  }
++  if (opaque_background_view_) {
++    opaque_background_view_.hidden = NO;
++  }
++
+   const int content_width = static_cast<int>(content_view.bounds.size.width);
+   const int content_height = static_cast<int>(content_view.bounds.size.height);
+ 
