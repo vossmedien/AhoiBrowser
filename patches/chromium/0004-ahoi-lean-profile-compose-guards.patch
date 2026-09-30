@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/glic/BUILD.gn b/chrome/browser/glic/BUILD.gn
-index 74fd48dc28044c8683b602b8ac4bbf7ccc6172b5..325ebda4d5d86eb13d8fe969f6cb2692afa0bbf8 100644
+index 68a41caa43eb66d1467e7b653d259522dc346835..dc3d41c05ca8f90540adb3bc668098bf63396a49 100644
 --- a/chrome/browser/glic/BUILD.gn
 +++ b/chrome/browser/glic/BUILD.gn
 @@ -5,6 +5,7 @@
@@ -10,7 +10,7 @@ index 74fd48dc28044c8683b602b8ac4bbf7ccc6172b5..325ebda4d5d86eb13d8fe969f6cb2692
  import("//components/enterprise/buildflags/buildflags.gni")
  import("//components/guest_view/buildflags/buildflags.gni")
  import("//mojo/public/tools/bindings/mojom.gni")
-@@ -1032,7 +1033,6 @@ if (!is_android) {
+@@ -1066,7 +1067,6 @@ if (!is_android) {
      defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
      sources = [
        "glic_selection_observer_interactive_uitest.cc",
@@ -18,7 +18,7 @@ index 74fd48dc28044c8683b602b8ac4bbf7ccc6172b5..325ebda4d5d86eb13d8fe969f6cb2692
        "glic_user_status_interactive_uitest.cc",
        "host/glic_actor_attempt_form_filling_interactive_ui_test.cc",
        "host/glic_actor_autofill_interactive_uitest.cc",
-@@ -1077,7 +1077,6 @@ if (!is_android) {
+@@ -1109,7 +1109,6 @@ if (!is_android) {
        "//chrome/browser/actor:tools_test_support",
        "//chrome/browser/autofill",
        "//chrome/browser/background/glic",
@@ -26,7 +26,7 @@ index 74fd48dc28044c8683b602b8ac4bbf7ccc6172b5..325ebda4d5d86eb13d8fe969f6cb2692
        "//chrome/browser/contextual_tasks:ui",
        "//chrome/browser/devtools:test_support",
        "//chrome/browser/download:test_support",
-@@ -1106,6 +1105,10 @@ if (!is_android) {
+@@ -1140,6 +1139,10 @@ if (!is_android) {
        "//content/test:test_support",
        "//ui/display:test_support",
      ]
@@ -38,7 +38,7 @@ index 74fd48dc28044c8683b602b8ac4bbf7ccc6172b5..325ebda4d5d86eb13d8fe969f6cb2692
        deps += [
          "//chrome/browser/pdf:pdf_extension_test_utils",
 diff --git a/chrome/browser/renderer_context_menu/BUILD.gn b/chrome/browser/renderer_context_menu/BUILD.gn
-index db3ab9dae742191cb8138c5fb8d6f432a2199dbc..e15704bd97f4bdc7902cbca8841a4972f5a1165f 100644
+index b4adeb3db0ea24fcb492217a999b509da4787ee6..0858bc653a7d4a7d108b5ad2369e38bb83291ce6 100644
 --- a/chrome/browser/renderer_context_menu/BUILD.gn
 +++ b/chrome/browser/renderer_context_menu/BUILD.gn
 @@ -3,6 +3,7 @@
@@ -57,7 +57,7 @@ index db3ab9dae742191cb8138c5fb8d6f432a2199dbc..e15704bd97f4bdc7902cbca8841a4972
        "//chrome/browser/context_hub",
        "//chrome/browser/custom_handlers",
        "//chrome/browser/devtools",
-@@ -187,6 +187,10 @@ source_set("impl") {
+@@ -189,6 +189,10 @@ source_set("impl") {
        "//url",
      ]
  
@@ -68,18 +68,22 @@ index db3ab9dae742191cb8138c5fb8d6f432a2199dbc..e15704bd97f4bdc7902cbca8841a4972
      if (enable_print_preview) {
        deps += [ "//chrome/browser/printing" ]
      }
-@@ -272,7 +276,9 @@ static_library("test_support") {
+@@ -274,10 +278,10 @@ static_library("test_support") {
        "render_view_context_menu_test_util.cc",
      ]
      public_deps += [ "//extensions/buildflags" ]
--    deps += [ "//chrome/browser/compose" ]
+-    deps += [
+-      "//chrome/browser/compose",
+-      "//chrome/browser/indigo",
+-    ]
++    deps += [ "//chrome/browser/indigo" ]
 +    if (enable_compose) {
 +      deps += [ "//chrome/browser/compose" ]
 +    }
    }
  
    if (is_chromeos) {
-@@ -375,7 +381,6 @@ if (!is_android) {
+@@ -379,7 +383,6 @@ if (!is_android) {
        ":test_support",
        "//base/test:test_support",
        "//chrome/browser",
@@ -87,7 +91,7 @@ index db3ab9dae742191cb8138c5fb8d6f432a2199dbc..e15704bd97f4bdc7902cbca8841a4972
        "//chrome/browser/context_hub",
        "//chrome/browser/devtools",
        "//chrome/browser/enterprise/data_controls:test_support",
-@@ -411,6 +416,10 @@ if (!is_android) {
+@@ -416,6 +419,10 @@ if (!is_android) {
        "//url",
      ]
  
@@ -238,7 +242,7 @@ index e1e5a65cfdfad6202735fa9d8e47f75846b35658..47b3cd39076a1c27e3bda19ee7163836
  }
 +// </if>
 diff --git a/chrome/test/data/pdf/test_util.ts b/chrome/test/data/pdf/test_util.ts
-index ddb981d110f1750774a3b9d43a7f9f09ca64fb92..3ed7b5a9f7701a3176edf3521470d7c188cf24c4 100644
+index d9bbdc6cac92991d3a7962d428e8a2bc6c572c71..96777bfb6ff7352653e860e0a6cfa186d29dbad0 100644
 --- a/chrome/test/data/pdf/test_util.ts
 +++ b/chrome/test/data/pdf/test_util.ts
 @@ -8,13 +8,13 @@

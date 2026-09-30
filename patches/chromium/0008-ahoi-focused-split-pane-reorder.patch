@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 87d7cfe077350b0222979e0462ec10a6986ccf6c..61770d4b65a8ddb93ec59fe1ee295f665eda4f32 100644
+index 82b736d9a1e7f757bb18c6407b4c6974239a281d..05d64c3d73ce44564be8c887510fe62837262adc 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -4771,28 +4771,38 @@ void BrowserView::ShowSplitView(bool focus_active_view) {
+@@ -4799,28 +4799,38 @@ void BrowserView::ShowSplitView(bool focus_active_view) {
  
    const auto& pane_containers =
        multi_contents_view_->contents_container_views();
@@ -57,13 +57,13 @@ index 87d7cfe077350b0222979e0462ec10a6986ccf6c..61770d4b65a8ddb93ec59fe1ee295f66
 -                                            split_tabs.size());
 -      });
    const int first_split_tab_index =
-       browser_->tab_strip_model()->GetIndexOfTab(split_tabs[0]);
+       browser_->GetTabStripModel()->GetIndexOfTab(split_tabs[0]);
    const int relative_active_position = active_index - first_split_tab_index;
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
-index a5de6db46596d99952fbcd66be0c516d041a025a..8682945c72e3b239a1013917323ed65b79730a38 100644
+index 755121431f3e494bcf09218b67d0bde608e89ab0..4b2765e7a5d3be77e913a092e7366d14422eca2c 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
-@@ -418,23 +418,76 @@ void MultiContentsView::CloseSplitView() {
+@@ -422,23 +422,76 @@ void MultiContentsView::CloseSplitView() {
    }
  }
  

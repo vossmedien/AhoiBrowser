@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 722af407f5c9dd2e742341121c1c7f4ffabdfc03..af8c80b6945162145a123f69c6a8b96102edfb9e 100644
+index 2c28f0c9e435ba8b687dd6f22cff1eda679d8619..e2da3203415e011f64880c39eeba190812f21523 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -6503,8 +6503,10 @@ BrowserViewLayout* BrowserView::GetBrowserViewLayout() const {
+@@ -6546,8 +6546,10 @@ BrowserViewLayout* BrowserView::GetBrowserViewLayout() const {
  }
  
  bool BrowserView::MaybeShowBookmarkBar(WebContents* contents) {

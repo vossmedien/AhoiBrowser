@@ -1,7 +1,8 @@
 diff --git a/chrome/browser/policy/cloud/user_fm_registration_token_uploader_factory.cc b/chrome/browser/policy/cloud/user_fm_registration_token_uploader_factory.cc
+index 220db2..b470f3 100644
 --- a/chrome/browser/policy/cloud/user_fm_registration_token_uploader_factory.cc
 +++ b/chrome/browser/policy/cloud/user_fm_registration_token_uploader_factory.cc
-@@ -48,6 +48,15 @@
+@@ -48,6 +48,15 @@ UserFmRegistrationTokenUploaderFactory::BuildServiceInstanceForBrowserContext(
    if (!policy_manager) {
      return nullptr;
    }

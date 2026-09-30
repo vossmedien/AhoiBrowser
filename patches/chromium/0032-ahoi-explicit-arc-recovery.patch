@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 44b72f603f9a716e219928fec1c9afb89de62bab..e91156c319443ab31451a8012b33453a0bcda5b5 100644
+index 188f04e8b0e3cb2d0baa30fe473ab6512284c709..53cb4d6482288078718a3f6739425644e106f9da 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20390,6 +20390,18 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20403,6 +20403,18 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERY_REQUIRED" desc="Fail-closed status shown when a previous Arc import requires manual recovery." meaning="AhoiBrowser Arc import">
        A previous Arc import needs manual recovery before another import can start.
      </message>
@@ -22,10 +22,10 @@ index 44b72f603f9a716e219928fec1c9afb89de62bab..e91156c319443ab31451a8012b33453a
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE" desc="Instruction to close Arc before import discovery." meaning="AhoiBrowser Arc import">
        Close Arc completely
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index d3c0f56f8ce71a7b61feab6cb185e5c5317f677a..f37f8e944bc176ca0fed59658074c345d23babc0 100644
+index cfb0b04aac1918f53bd7061698ee137532b74287..a270fb08f8def376e7c6ba980aa45e2ebee3fe62 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11251,4 +11251,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11269,4 +11269,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="4131831590543916816">Kürzlich geschlossener Split</translation>
  <translation id="5502679562240472247">Kürzlich geschlossene Gruppe</translation>
  <translation id="5461107725978398953">Kürzlich geschlossenes Fenster</translation>
@@ -35,10 +35,10 @@ index d3c0f56f8ce71a7b61feab6cb185e5c5317f677a..f37f8e944bc176ca0fed59658074c345
 +<translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
  </translationbundle>
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index 0cb4bc839f2a96a70cc73b40a41a7a344e6b508c..be12f5e90e31fb46a4ee33767c745ebfc06309f2 100644
+index 0f459a669f08e140646bceecf199823867fcf6b0..d4753994a3f1c52c5796aae8c3b376c2b4dade2a 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -644,6 +644,14 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -643,6 +643,14 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
         IDS_SETTINGS_AHOI_ARC_IMPORT_BACKUP_QUOTA_EXCEEDED},
        {"ahoiArcImportRecoveryRequired",
         IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERY_REQUIRED},

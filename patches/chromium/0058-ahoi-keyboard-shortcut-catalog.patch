@@ -1,64 +1,5 @@
-diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
-index ecf6bf5..443d5de 100644
---- a/chrome/browser/ui/views/frame/browser_view.h
-+++ b/chrome/browser/ui/views/frame/browser_view.h
-@@ -9,6 +9,7 @@
- #include <memory>
- #include <optional>
- #include <string>
-+#include <string_view>
- #include <vector>
- 
- #include "base/callback_list.h"
-@@ -121,6 +122,9 @@ enum class SidebarPresentationMode;
- namespace popup_ui {
- class PopupOverlayController;
- }  // namespace popup_ui
-+namespace shortcuts {
-+class ShortcutRegistration;
-+}  // namespace shortcuts
- }  // namespace ahoi
- 
- namespace gfx {
-@@ -806,6 +810,12 @@ class BrowserView : public BrowserWindow,
-   // bookmark command outside Ahoi's regular browsing surface.
-   bool SaveCurrentTabToAhoiTree();
- 
-+  // Runs one rebindable command of Ahoi's shortcut catalog, from its key or
-+  // from the command bar. Returns false when it does not apply now (for
-+  // example a split command outside a split), so Chromium and the page keep
-+  // the key.
-+  bool HandleAhoiShortcutCommand(std::string_view command_id);
-+
-   // ImmersiveModeController::Observer:
-   void OnImmersiveFullscreenEntered() override;
-   void OnImmersiveFullscreenExited() override;
-@@ -1042,10 +1052,10 @@ class BrowserView : public BrowserWindow,
-   // use.
-   void LoadAccelerators();
- 
--  // Handles Ahoi's macOS split-view keyboard contract without navigating or
-+  // Handles Ahoi's macOS split-view keyboard commands without navigating or
-   // recreating the participating WebContents. Returns false outside an active
-   // split so Chromium and the page retain their normal shortcuts.
--  bool HandleAhoiSplitAccelerator(const ui::Accelerator& accelerator);
-+  bool HandleAhoiSplitCommand(std::string_view command_id);
- 
-   void RefreshAhoiNavigationInputSettings();
-   bool CanUseAhoiCmdScrollTabSwitch(int delta) const;
-@@ -1371,6 +1381,10 @@ class BrowserView : public BrowserWindow,
-   // one BrowserView makes bubble and profile lifetimes explicit.
-   std::unique_ptr<ahoi::CommandBarController> ahoi_command_bar_controller_;
- 
-+  // Registers the rebindable catalog shortcuts with the focus manager and
-+  // follows the user's bindings.
-+  std::unique_ptr<ahoi::shortcuts::ShortcutRegistration> ahoi_shortcuts_;
-+
-   // Lazily created on first use. Normal browsing therefore adds no developer
-   // toolkit renderer hooks, observers or background work.
-   std::unique_ptr<ahoi::DeveloperToolkitController>
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 78bf753..03ea167 100644
+index d4a348b..e206289 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -17,6 +17,8 @@
@@ -70,7 +11,7 @@ index 78bf753..03ea167 100644
  #include "ahoi/browser/navigation/navigation_input_prefs.h"
  #include "ahoi/browser/navigation/workspace_swipe_event_handler.h"
  #endif
-@@ -6110,8 +6112,18 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6151,8 +6153,18 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
    }
  
  #if BUILDFLAG(IS_MAC)
@@ -91,7 +32,7 @@ index 78bf753..03ea167 100644
    }
    if (browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
        !browser_->GetProfile()->IsOffTheRecord() &&
-@@ -6120,56 +6132,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6161,56 +6173,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
        AhoiQuickWindowGlobalShortcut::GetInstance()->Activate()) {
      return true;
    }
@@ -148,7 +89,7 @@ index 78bf753..03ea167 100644
    const bool is_ahoi_sidebar_undo =
        accelerator.IsCmdDown() && !accelerator.IsCtrlDown() &&
        !accelerator.IsAltDown() && !accelerator.IsShiftDown() &&
-@@ -6235,13 +6197,53 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6276,13 +6238,53 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
        browser_.get(), command_id, std::move(context), accelerator.time_stamp());
  }
  
@@ -206,7 +147,7 @@ index 78bf753..03ea167 100644
      return false;
    }
  
-@@ -6279,16 +6281,17 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6320,16 +6322,17 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return true;
    };
  
@@ -231,7 +172,7 @@ index 78bf753..03ea167 100644
      const auto target_index = ahoi::split_drop::ResolveReorderTarget(
          active_index, panes.size(), direction);
      if (!target_index.has_value()) {
-@@ -6297,7 +6300,7 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6338,7 +6341,7 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return model->ReorderTabInSplit(active_tab, panes[*target_index]);
    }
  
@@ -240,7 +181,7 @@ index 78bf753..03ea167 100644
      const split_tabs::SplitTabVisualData next =
          ahoi::split_drop::NextKeyboardLayout(*split_data->visual_data(),
                                               panes.size());
-@@ -6306,21 +6309,20 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6347,21 +6350,20 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return true;
    }
  
@@ -267,7 +208,7 @@ index 78bf753..03ea167 100644
      active_tab->Close();
      return true;
    }
-@@ -6865,50 +6867,26 @@ void BrowserView::LoadAccelerators() {
+@@ -6905,50 +6907,26 @@ void BrowserView::LoadAccelerators() {
          ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN),
          kAhoiFallthroughPriority, this);
    }
@@ -338,3 +279,62 @@ index 78bf753..03ea167 100644
  #endif
  
    // Register the Esc accelerators (both press and release) to ensure they are
+diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
+index ee1c875..7ec1fcc 100644
+--- a/chrome/browser/ui/views/frame/browser_view.h
++++ b/chrome/browser/ui/views/frame/browser_view.h
+@@ -9,6 +9,7 @@
+ #include <memory>
+ #include <optional>
+ #include <string>
++#include <string_view>
+ #include <vector>
+ 
+ #include "base/callback_list.h"
+@@ -121,6 +122,9 @@ enum class SidebarPresentationMode;
+ namespace popup_ui {
+ class PopupOverlayController;
+ }  // namespace popup_ui
++namespace shortcuts {
++class ShortcutRegistration;
++}  // namespace shortcuts
+ }  // namespace ahoi
+ 
+ namespace gfx {
+@@ -820,6 +824,12 @@ class BrowserView : public BrowserWindow,
+   // bookmark command outside Ahoi's regular browsing surface.
+   bool SaveCurrentTabToAhoiTree();
+ 
++  // Runs one rebindable command of Ahoi's shortcut catalog, from its key or
++  // from the command bar. Returns false when it does not apply now (for
++  // example a split command outside a split), so Chromium and the page keep
++  // the key.
++  bool HandleAhoiShortcutCommand(std::string_view command_id);
++
+   // ImmersiveModeController::Observer:
+   void OnImmersiveFullscreenEntered() override;
+   void OnImmersiveFullscreenExited() override;
+@@ -1056,10 +1066,10 @@ class BrowserView : public BrowserWindow,
+   // use.
+   void LoadAccelerators();
+ 
+-  // Handles Ahoi's macOS split-view keyboard contract without navigating or
++  // Handles Ahoi's macOS split-view keyboard commands without navigating or
+   // recreating the participating WebContents. Returns false outside an active
+   // split so Chromium and the page retain their normal shortcuts.
+-  bool HandleAhoiSplitAccelerator(const ui::Accelerator& accelerator);
++  bool HandleAhoiSplitCommand(std::string_view command_id);
+ 
+   void RefreshAhoiNavigationInputSettings();
+   bool CanUseAhoiCmdScrollTabSwitch(int delta) const;
+@@ -1386,6 +1396,10 @@ class BrowserView : public BrowserWindow,
+   // one BrowserView makes bubble and profile lifetimes explicit.
+   std::unique_ptr<ahoi::CommandBarController> ahoi_command_bar_controller_;
+ 
++  // Registers the rebindable catalog shortcuts with the focus manager and
++  // follows the user's bindings.
++  std::unique_ptr<ahoi::shortcuts::ShortcutRegistration> ahoi_shortcuts_;
++
+   // Lazily created on first use. Normal browsing therefore adds no developer
+   // toolkit renderer hooks, observers or background work.
+   std::unique_ptr<ahoi::DeveloperToolkitController>

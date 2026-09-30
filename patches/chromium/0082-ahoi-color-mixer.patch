@@ -10,20 +10,11 @@ index f3f7ea8c..868009b1 100644
      "//build:branding_buildflags",
      "//chrome/app/theme:theme_resources",
      "//chrome/browser/task_manager/common",
-diff --git a/chrome/browser/ui/color/DEPS b/chrome/browser/ui/color/DEPS
-new file mode 100644
-index 00000000..9d40c897
---- /dev/null
-+++ b/chrome/browser/ui/color/DEPS
-@@ -0,0 +1,3 @@
-+include_rules = [
-+  "+ahoi/browser/ui/appearance/ahoi_color_mixer.h",
-+]
 diff --git a/chrome/browser/ui/color/chrome_color_id.h b/chrome/browser/ui/color/chrome_color_id.h
-index 5e1ea378..ec546592 100644
+index 0f4b952a..f0c64245 100644
 --- a/chrome/browser/ui/color/chrome_color_id.h
 +++ b/chrome/browser/ui/color/chrome_color_id.h
-@@ -1143,6 +1143,11 @@
+@@ -1159,6 +1159,11 @@
    /* Window control button background colors. */ \
    E_CPONLY(kColorWindowControlButtonBackgroundActive) \
    E_CPONLY(kColorWindowControlButtonBackgroundInactive) \

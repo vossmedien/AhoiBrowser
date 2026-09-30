@@ -1,77 +1,5 @@
-diff --git a/chrome/browser/ui/browser_tabrestore.cc b/chrome/browser/ui/browser_tabrestore.cc
---- a/chrome/browser/ui/browser_tabrestore.cc
-+++ b/chrome/browser/ui/browser_tabrestore.cc
-@@ -6,9 +6,14 @@
- 
- #include <map>
- #include <memory>
-+#include <optional>
- #include <utility>
- 
-+#include "ahoi/browser/session/session_restore_integration.h"
-+#include "ahoi/browser/session/website_session_context.h"
- #include "base/containers/span.h"
-+#include "base/logging.h"
-+#include "base/uuid.h"
- #include "build/build_config.h"
- #include "chrome/browser/apps/app_service/web_contents_app_id_utils.h"
- #include "chrome/browser/glic/glic_tab_restore_helper.h"
-@@ -36,6 +41,7 @@
- #include "content/public/browser/render_widget_host_view.h"
- #include "content/public/browser/restore_type.h"
- #include "content/public/browser/session_storage_namespace.h"
-+#include "content/public/browser/site_instance.h"
- #include "content/public/browser/web_contents.h"
- #include "third_party/blink/public/common/user_agent/user_agent_metadata.h"
- #include "ui/gfx/geometry/size.h"
-@@ -64,17 +70,42 @@
-     bool initially_hidden,
-     bool from_session_restore) {
-   GURL restore_url = navigations[selected_navigation].virtual_url();
-+  std::optional<ahoi::session::WebsiteSessionBinding> website_binding =
-+      ahoi::session::ReadRestoredWebsiteSessionBinding(extra_data);
-+  if (!website_binding) {
-+    // A corrupt local binding never authorizes a request using the shared
-+    // default cookie jar. Preserve the serialized session for recovery and
-+    // open this tab in a fresh, separate native partition instead.
-+    LOG(ERROR) << "Ahoi restored tab has invalid website-session binding";
-+    website_binding = ahoi::session::WebsiteSessionBinding{
-+        .context_id = base::Uuid::GenerateRandomV4()};
-+    session_storage_namespace = nullptr;
-+  }
-   // TODO(ajwong): Remove the temporary session_storage_namespace_map when
-   // we teach session restore to understand that one tab can have multiple
-   // SessionStorageNamespace objects. Also remove the
-   // session_storage_namespace.h include since we only need that to assign
-   // into the map.
--  content::SessionStorageNamespaceMap session_storage_namespace_map =
--      content::CreateMapWithDefaultSessionStorageNamespace(
--          browser->GetProfile(), session_storage_namespace);
-+  content::SessionStorageNamespaceMap session_storage_namespace_map;
-+  if (website_binding->is_default()) {
-+    session_storage_namespace_map =
-+        content::CreateMapWithDefaultSessionStorageNamespace(
-+            browser->GetProfile(), session_storage_namespace);
-+  } else if (session_storage_namespace) {
-+    session_storage_namespace_map.emplace(
-+        ahoi::session::StoragePartitionConfigForWebsiteSession(
-+            browser->GetProfile(), *website_binding),
-+        session_storage_namespace);
-+  }
-   WebContents::CreateParams create_params(
-       browser->GetProfile(),
--      tab_util::GetSiteInstanceForNewTab(browser->GetProfile(), restore_url));
-+      website_binding->is_default()
-+          ? tab_util::GetSiteInstanceForNewTab(browser->GetProfile(),
-+                                               restore_url)
-+          : content::SiteInstance::CreateForFixedStoragePartition(
-+                browser->GetProfile(), restore_url,
-+                ahoi::session::StoragePartitionConfigForWebsiteSession(
-+                    browser->GetProfile(), *website_binding)));
-   create_params.initially_hidden = initially_hidden;
-   create_params.desired_renderer_state =
-       WebContents::CreateParams::kNoRendererProcess;
 diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
+index 7c1f23e..4ca4f5 100644
 --- a/chrome/browser/sessions/session_restore.cc
 +++ b/chrome/browser/sessions/session_restore.cc
 @@ -40,6 +40,7 @@
@@ -82,7 +10,7 @@ diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/session
  #endif
  #include "chrome/browser/after_startup_task_utils.h"
  #include "chrome/browser/browser_process.h"
-@@ -1105,10 +1106,23 @@
+@@ -1104,10 +1105,23 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
      // Associate sessionStorage (if any) to the restored tab.
      scoped_refptr<content::SessionStorageNamespace> session_storage_namespace;
      if (!tab.session_storage_persistent_id.empty()) {
@@ -106,3 +34,81 @@ diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/session
      }
  
      // Relabel group IDs to prevent duplicating groups. See crbug.com/40055647.
+diff --git a/chrome/browser/ui/browser_tabrestore.cc b/chrome/browser/ui/browser_tabrestore.cc
+index fa43dd..6ac4e6 100644
+--- a/chrome/browser/ui/browser_tabrestore.cc
++++ b/chrome/browser/ui/browser_tabrestore.cc
+@@ -6,9 +6,14 @@
+ 
+ #include <map>
+ #include <memory>
++#include <optional>
+ #include <utility>
+ 
++#include "ahoi/browser/session/session_restore_integration.h"
++#include "ahoi/browser/session/website_session_context.h"
+ #include "base/containers/span.h"
++#include "base/logging.h"
++#include "base/uuid.h"
+ #include "build/build_config.h"
+ #include "chrome/browser/apps/app_service/web_contents_app_id_utils.h"
+ #include "chrome/browser/glic/glic_tab_restore_helper.h"
+@@ -35,6 +40,7 @@
+ #include "content/public/browser/render_widget_host_view.h"
+ #include "content/public/browser/restore_type.h"
+ #include "content/public/browser/session_storage_namespace.h"
++#include "content/public/browser/site_instance.h"
+ #include "content/public/browser/web_contents.h"
+ #include "third_party/blink/public/common/user_agent/user_agent_metadata.h"
+ #include "ui/gfx/geometry/size.h"
+@@ -62,15 +68,46 @@ std::unique_ptr<WebContents> CreateRestoredTab(
+     const std::map<std::string, std::string>& extra_data,
+     bool initially_hidden,
+     bool from_session_restore) {
++  GURL restore_url = navigations[selected_navigation].virtual_url();
++  std::optional<ahoi::session::WebsiteSessionBinding> website_binding =
++      ahoi::session::ReadRestoredWebsiteSessionBinding(extra_data);
++  if (!website_binding) {
++    // A corrupt local binding never authorizes a request using the shared
++    // default cookie jar. Preserve the serialized session for recovery and
++    // open this tab in a fresh, separate native partition instead.
++    LOG(ERROR) << "Ahoi restored tab has invalid website-session binding";
++    website_binding = ahoi::session::WebsiteSessionBinding{
++        .context_id = base::Uuid::GenerateRandomV4()};
++    session_storage_namespace = nullptr;
++  }
+   // TODO(ajwong): Remove the temporary session_storage_namespace_map when
+   // we teach session restore to understand that one tab can have multiple
+   // SessionStorageNamespace objects. Also remove the
+   // session_storage_namespace.h include since we only need that to assign
+   // into the map.
+-  content::SessionStorageNamespaceMap session_storage_namespace_map =
+-      content::CreateMapWithDefaultSessionStorageNamespace(
+-          browser->GetProfile(), session_storage_namespace);
+-  WebContents::CreateParams create_params(browser->GetProfile());
++  content::SessionStorageNamespaceMap session_storage_namespace_map;
++  if (website_binding->is_default()) {
++    session_storage_namespace_map =
++        content::CreateMapWithDefaultSessionStorageNamespace(
++            browser->GetProfile(), session_storage_namespace);
++  } else if (session_storage_namespace) {
++    session_storage_namespace_map.emplace(
++        ahoi::session::StoragePartitionConfigForWebsiteSession(
++            browser->GetProfile(), *website_binding),
++        session_storage_namespace);
++  }
++  // Upstream M154 no longer preselects a SiteInstance for default-partition
++  // restores; only a fixed Ahoi website-session partition needs one.
++  scoped_refptr<content::SiteInstance> website_site_instance;
++  if (!website_binding->is_default()) {
++    website_site_instance =
++        content::SiteInstance::CreateForFixedStoragePartition(
++            browser->GetProfile(), restore_url,
++            ahoi::session::StoragePartitionConfigForWebsiteSession(
++                browser->GetProfile(), *website_binding));
++  }
++  WebContents::CreateParams create_params(browser->GetProfile(),
++                                          std::move(website_site_instance));
+   create_params.initially_hidden = initially_hidden;
+   create_params.desired_renderer_state =
+       WebContents::CreateParams::kNoRendererProcess;

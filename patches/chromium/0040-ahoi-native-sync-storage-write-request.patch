@@ -1,5 +1,5 @@
 diff --git a/extensions/browser/api/storage/storage_frontend.cc b/extensions/browser/api/storage/storage_frontend.cc
-index 498830bdb4f973359fe7504461d37a7048ecf06d..e053b3790a62949b52afc5284a05c1340ab33296 100644
+index e0aeaa0fab8c642133eece4aab1ed264493bf98f..03c26271fa64db7645fecfc9eeebab5019ec0e75 100644
 --- a/extensions/browser/api/storage/storage_frontend.cc
 +++ b/extensions/browser/api/storage/storage_frontend.cc
 @@ -479,6 +479,10 @@ void StorageFrontend::Set(scoped_refptr<const Extension> extension,

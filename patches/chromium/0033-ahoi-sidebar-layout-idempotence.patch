@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index 388e7eaea97719379cb2897e1033605a28a9dbbb..e3ffd325a85815b5ae46459d6898c50f2b7a1884 100644
+index 5ce9725e96674c12ffcbebe6e46f64b8f8b4bee7..5e05e1b2642ffad892489333707399f45818f6f9 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 @@ -712,14 +712,21 @@ bool VerticalTabStripRegionView::IsPositionInWindowCaption(

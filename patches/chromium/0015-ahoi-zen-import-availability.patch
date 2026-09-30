@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index fe4a7f2d9bf0b5d33185cea7342f73d58db6b6dc..51db695b1d46faa67014c65b985b9cd9e20ec0e3 100644
+index 742c7d2c99b67779aa2a8bbfddc1e6d94a6ace82..49d6325852e64ca428f6cd315ba975cbc30d2332 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20403,6 +20403,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20416,6 +20416,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SKIPPED_WORKSPACES" desc="Text preceding the number of Arc workspaces skipped by the selected conflict policy." meaning="AhoiBrowser Arc import">Skipped workspaces:</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE" desc="Text preceding the number of imported four-pane layouts whose ratios required a bounded approximation." meaning="AhoiBrowser Arc import">Four-pane ratios approximated:</message>
  
@@ -13,10 +13,10 @@ index fe4a7f2d9bf0b5d33185cea7342f73d58db6b6dc..51db695b1d46faa67014c65b985b9cd9
      <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
        AhoiBrowser
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index 9ca6b9888808fec059ce58997100b808b13a494d..6c19f414d29f51132ecff00f9eafd5026e6013ce 100644
+index 78bc13ba61cb1b0d31c041d099ae523b37e9dd9a..804ab08eb6ff614db2645b1f76114dc3affb0eaf 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11223,6 +11223,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11241,6 +11241,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
  <translation id="8933186299020613227">Übersprungene Arbeitsbereiche:</translation>
  <translation id="4082790717577320066">Annähernd übernommene Vier-Pane-Verhältnisse:</translation>
@@ -228,11 +228,11 @@ index 35085c9fdf56643df7aa027baf06519b52cb95d7..175e7df24a3294d9032e20a383c8438e
 +#sourceDisabledReason {
 +  color: var(--cr-secondary-text-color);
 +}
-diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.html b/chrome/browser/resources/settings/people_page/import_data_dialog.html
-index 1f8703f2c87a243c6ccdd7dbd88cc5159b5ff62f..8b80c54722c103ac1978ecc2f77cfa032179edbf 100644
---- a/chrome/browser/resources/settings/people_page/import_data_dialog.html
-+++ b/chrome/browser/resources/settings/people_page/import_data_dialog.html
-@@ -23,12 +23,19 @@ import {ImportDataStatus} from './import_data_browser_proxy.js';
+diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.html.ts b/chrome/browser/resources/settings/people_page/import_data_dialog.html.ts
+index bcf2d4923546d7df5cfc8fea158a0ec4595b4b84..859ff3e5d08073e80426e40d793f4ab161af3a59 100644
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.html.ts
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.html.ts
+@@ -31,12 +31,19 @@ export function getHtml(this: SettingsImportDataDialogElement) {
                ?disabled="${this.arcImportBusy_}"
                @change="${this.onBrowserProfileSelectionChange_}">
              ${this.browserProfiles_.map(item => html`
@@ -256,7 +256,7 @@ index 1f8703f2c87a243c6ccdd7dbd88cc5159b5ff62f..8b80c54722c103ac1978ecc2f77cfa03
  
              <!--
 diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.ts b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
-index 0c40ecf69e705cb725ff6fdf3c093c43bef83f7d..1393f051c7877e56de824e26c0cff1a650b1295c 100644
+index 00d03c5bb0bcdb111b596e29279870dbfd538aca..cfe3e701b933a2d8c214d80f5d890f593bcec240 100644
 --- a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
 +++ b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
 @@ -25,7 +25,7 @@ import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
@@ -276,7 +276,7 @@ index 0c40ecf69e705cb725ff6fdf3c093c43bef83f7d..1393f051c7877e56de824e26c0cff1a6
    };
  }
  
-@@ -121,6 +122,7 @@ export class SettingsImportDataDialogElement extends
+@@ -119,6 +120,7 @@ export class SettingsImportDataDialogElement extends
        // </if>
        this.browserProfiles_ = browserProfiles;
        this.selected_ = this.browserProfiles_[0];
@@ -284,7 +284,7 @@ index 0c40ecf69e705cb725ff6fdf3c093c43bef83f7d..1393f051c7877e56de824e26c0cff1a6
  
        // Show the dialog only after the browser profiles data is populated
        // to avoid UI flicker.
-@@ -154,20 +156,38 @@ export class SettingsImportDataDialogElement extends
+@@ -152,20 +154,38 @@ export class SettingsImportDataDialogElement extends
      }
    }
  
@@ -325,7 +325,7 @@ index 0c40ecf69e705cb725ff6fdf3c093c43bef83f7d..1393f051c7877e56de824e26c0cff1a6
        profileName: '',
        search: false,
      };
-@@ -212,7 +232,8 @@ export class SettingsImportDataDialogElement extends
+@@ -210,7 +230,8 @@ export class SettingsImportDataDialogElement extends
    }
  
    protected onActionButtonClick_() {
@@ -335,7 +335,7 @@ index 0c40ecf69e705cb725ff6fdf3c093c43bef83f7d..1393f051c7877e56de824e26c0cff1a6
        return;
      }
      const checkboxes = this.shadowRoot.querySelectorAll('settings-checkbox');
-@@ -223,7 +244,7 @@ export class SettingsImportDataDialogElement extends
+@@ -221,7 +242,7 @@ export class SettingsImportDataDialogElement extends
        checkboxes.forEach(checkbox => {
          types[checkbox.pref!.key] = checkbox.checked && !checkbox.hidden;
        });
@@ -344,7 +344,7 @@ index 0c40ecf69e705cb725ff6fdf3c093c43bef83f7d..1393f051c7877e56de824e26c0cff1a6
      }
      checkboxes.forEach(checkbox => checkbox.sendPrefChange());
    }
-@@ -255,6 +276,11 @@ export class SettingsImportDataDialogElement extends
+@@ -253,6 +274,11 @@ export class SettingsImportDataDialogElement extends
          this.arcImportSelected_;
    }
  
@@ -356,7 +356,7 @@ index 0c40ecf69e705cb725ff6fdf3c093c43bef83f7d..1393f051c7877e56de824e26c0cff1a6
    protected shouldHideDone_(): boolean {
      return !this.hasImportStatus_(ImportDataStatus.SUCCEEDED) &&
          !this.arcImportComplete_;
-@@ -270,7 +296,8 @@ export class SettingsImportDataDialogElement extends
+@@ -268,7 +294,8 @@ export class SettingsImportDataDialogElement extends
     */
    protected shouldDisableImport_(): boolean {
      return this.hasImportStatus_(ImportDataStatus.IN_PROGRESS) ||
@@ -430,10 +430,10 @@ index 07ad45a8be20ae3390f6fff34f7d17a8363d4019..647e801aaeddb3120d18f1e2f8d0b33a
                          (browser_services & user_data_importer::HISTORY) != 0);
      browser_profile.Set(
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index facdb20cde139c34459be0961b23fce94efa248f..8495c5c6fc2089932e2de11360aefc8c8fe9cd4e 100644
+index 5cd7fc3e703ca0f455891cfc1af0d59c9f4b0c60..d6c73cb65c38b2362de03eed4950b7e96d76a693 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -669,6 +669,8 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -668,6 +668,8 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
         IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SKIPPED_WORKSPACES},
        {"ahoiArcImportResultFourPane",
         IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE},
@@ -443,10 +443,10 @@ index facdb20cde139c34459be0961b23fce94efa248f..8495c5c6fc2089932e2de11360aefc8c
        {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
        {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},
 diff --git a/chrome/test/data/webui/settings/BUILD.gn b/chrome/test/data/webui/settings/BUILD.gn
-index e1b1a96531a3ff93b6fe0f0a9b1c9f9b3fd1d8e2..c4ec2fd95e27c3b021a258b6943d832ad89d3703 100644
+index feba1cd7df4bbe89ee49d3b3a13df6186d92dcb6..a7b21cb9ae6f2a648106f0cd8099cd065a9d3f3d 100644
 --- a/chrome/test/data/webui/settings/BUILD.gn
 +++ b/chrome/test/data/webui/settings/BUILD.gn
-@@ -258,6 +258,7 @@ build_webui_tests("build") {
+@@ -261,6 +261,7 @@ build_webui_tests("build") {
    if (is_mac) {
      files += [
        "ahoi_arc_import_section_test.ts",
@@ -455,7 +455,7 @@ index e1b1a96531a3ff93b6fe0f0a9b1c9f9b3fd1d8e2..c4ec2fd95e27c3b021a258b6943d832a
      ]
    }
 diff --git a/chrome/test/data/webui/settings/settings_browsertest.cc b/chrome/test/data/webui/settings/settings_browsertest.cc
-index e5a01b841938db7e5fcfd70ee9a87b609f8ab3c5..af979672908ebcc60669d8772560adabcf8ea28d 100644
+index b085c4612ff69925f6bdc4728685e2c4affc5312..a1007664ce7f701bad97f99f3b74f6ac7b04e8cf 100644
 --- a/chrome/test/data/webui/settings/settings_browsertest.cc
 +++ b/chrome/test/data/webui/settings/settings_browsertest.cc
 @@ -104,6 +104,12 @@ IN_PROC_BROWSER_TEST_F(SettingsTest, AhoiPage) {

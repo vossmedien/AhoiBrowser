@@ -1,7 +1,22 @@
+diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
+index 4ca4f5..0cc758 100644
+--- a/chrome/browser/sessions/session_restore.cc
++++ b/chrome/browser/sessions/session_restore.cc
+@@ -1107,7 +1107,8 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
+     if (!tab.session_storage_persistent_id.empty()) {
+ #if !BUILDFLAG(IS_ANDROID)
+       const std::optional<ahoi::session::WebsiteSessionBinding> binding =
+-          ahoi::session::ReadRestoredWebsiteSessionBinding(tab.extra_data);
++          ahoi::session::ReadRestoredWebsiteSessionBinding(profile_,
++                                                           tab.extra_data);
+       if (binding) {
+         content::StoragePartition* partition = profile_->GetStoragePartition(
+             ahoi::session::StoragePartitionConfigForWebsiteSession(profile_,
 diff --git a/chrome/browser/ui/browser_tabrestore.cc b/chrome/browser/ui/browser_tabrestore.cc
+index 6ac4e6..e7d552d0 100644
 --- a/chrome/browser/ui/browser_tabrestore.cc
 +++ b/chrome/browser/ui/browser_tabrestore.cc
-@@ -71,14 +71,19 @@
+@@ -70,14 +70,19 @@ std::unique_ptr<WebContents> CreateRestoredTab(
      bool from_session_restore) {
    GURL restore_url = navigations[selected_navigation].virtual_url();
    std::optional<ahoi::session::WebsiteSessionBinding> website_binding =
@@ -24,16 +39,3 @@ diff --git a/chrome/browser/ui/browser_tabrestore.cc b/chrome/browser/ui/browser
      session_storage_namespace = nullptr;
    }
    // TODO(ajwong): Remove the temporary session_storage_namespace_map when
-diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
---- a/chrome/browser/sessions/session_restore.cc
-+++ b/chrome/browser/sessions/session_restore.cc
-@@ -1108,7 +1108,8 @@
-     if (!tab.session_storage_persistent_id.empty()) {
- #if !BUILDFLAG(IS_ANDROID)
-       const std::optional<ahoi::session::WebsiteSessionBinding> binding =
--          ahoi::session::ReadRestoredWebsiteSessionBinding(tab.extra_data);
-+          ahoi::session::ReadRestoredWebsiteSessionBinding(profile_,
-+                                                           tab.extra_data);
-       if (binding) {
-         content::StoragePartition* partition = profile_->GetStoragePartition(
-             ahoi::session::StoragePartitionConfigForWebsiteSession(profile_,

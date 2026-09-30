@@ -15,7 +15,6 @@
 0015-ahoi-zen-import-availability.patch
 0016-ahoi-current-session-receipt.patch
 0017-ahoi-session-receipt-durability.patch
-0018-ahoi-arc-import-web-component-build.patch
 0019-ahoi-session-receipt-callback-adapter.patch
 0020-ahoi-sidebar-navigation-non-overlap.patch
 0021-ahoi-zero-tab-extension-context-menu.patch

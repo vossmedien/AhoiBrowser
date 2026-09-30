@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/extensions/extensions_menu_view_model.cc b/chrome/browser/ui/extensions/extensions_menu_view_model.cc
-index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a807282615 100644
+index 7975bea175fb780386e671290406d99fbf9cbe00..68302988e1d4297a3c0eccdf8ebe070315b51d42 100644
 --- a/chrome/browser/ui/extensions/extensions_menu_view_model.cc
 +++ b/chrome/browser/ui/extensions/extensions_menu_view_model.cc
 @@ -585,23 +585,31 @@ void ExtensionsMenuViewModel::UpdateSiteAccess(
@@ -121,7 +121,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
            ? ExtensionsMenuViewModel::ControlState::Status::kEnabled
            : ExtensionsMenuViewModel::ControlState::Status::kDisabled;
    button_state.icon = action_model->GetIcon(web_contents, icon_size);
-@@ -887,13 +917,17 @@ ExtensionsMenuViewModel::ExtensionSitePermissionsState
+@@ -889,13 +919,17 @@ ExtensionsMenuViewModel::ExtensionSitePermissionsState
  ExtensionsMenuViewModel::GetExtensionSitePermissionsState(
      const extensions::ExtensionId& extension_id,
      const gfx::Size& icon_size) {
@@ -140,7 +140,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
    const GURL& url = web_contents->GetLastCommittedURL();
  
    // Extension's site permissions can only be computed when site access can be
-@@ -975,13 +1009,17 @@ ExtensionsMenuViewModel::GetMenuEntryState(
+@@ -977,13 +1011,17 @@ ExtensionsMenuViewModel::GetMenuEntryState(
    entry_state.action_button =
        GetActionButtonState(extension_id, action_icon_size);
    entry_state.context_menu_button = GetContextMenuButtonState(action_model);
@@ -161,7 +161,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
    entry_state.origin =
        web_contents->GetPrimaryMainFrame()->GetLastCommittedOrigin();
  
-@@ -1004,6 +1042,9 @@ ExtensionsMenuViewModel::GetMenuEntryState(
+@@ -1006,6 +1044,9 @@ ExtensionsMenuViewModel::GetMenuEntryState(
  ExtensionsMenuViewModel::OptionalSection
  ExtensionsMenuViewModel::GetOptionalSection() {
    content::WebContents* web_contents = GetActiveWebContents();
@@ -171,7 +171,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
    auto reload_required = [web_contents]() {
      return extensions::TabHelper::FromWebContents(web_contents)
          ->IsReloadRequired();
-@@ -1100,6 +1141,9 @@ void ExtensionsMenuViewModel::OnHostAccessRequestAdded(
+@@ -1102,6 +1143,9 @@ void ExtensionsMenuViewModel::OnHostAccessRequestAdded(
      int tab_id) {
    // Ignore requests for other tabs.
    auto* web_contents = GetActiveWebContents();
@@ -181,7 +181,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
    int current_tab_id = extensions::ExtensionTabUtil::GetTabId(web_contents);
    if (tab_id != current_tab_id) {
      return;
-@@ -1125,8 +1169,11 @@ void ExtensionsMenuViewModel::OnHostAccessRequestUpdated(
+@@ -1127,8 +1171,11 @@ void ExtensionsMenuViewModel::OnHostAccessRequestUpdated(
      const extensions::ExtensionId& extension_id,
      int tab_id) {
    // Ignore requests for other tabs.
@@ -195,7 +195,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
    if (tab_id != current_tab_id) {
      return;
    }
-@@ -1166,6 +1213,9 @@ void ExtensionsMenuViewModel::OnHostAccessRequestRemoved(
+@@ -1168,6 +1215,9 @@ void ExtensionsMenuViewModel::OnHostAccessRequestRemoved(
      int tab_id) {
    // Ignore requests for other tabs.
    auto* web_contents = GetActiveWebContents();
@@ -205,7 +205,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
    int current_tab_id = extensions::ExtensionTabUtil::GetTabId(web_contents);
    if (tab_id != current_tab_id) {
      return;
-@@ -1176,8 +1226,12 @@ void ExtensionsMenuViewModel::OnHostAccessRequestRemoved(
+@@ -1178,8 +1228,12 @@ void ExtensionsMenuViewModel::OnHostAccessRequestRemoved(
  
  void ExtensionsMenuViewModel::OnHostAccessRequestsCleared(int tab_id) {
    // Ignore requests for other tabs.
@@ -220,7 +220,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
    if (tab_id != current_tab_id) {
      return;
    }
-@@ -1195,8 +1249,9 @@ void ExtensionsMenuViewModel::OnHostAccessRequestDismissedByUser(
+@@ -1197,8 +1251,9 @@ void ExtensionsMenuViewModel::OnHostAccessRequestDismissedByUser(
    // Ignore request dismissal if web contents have navigated to a different
    // origin from where the request originated, as navigation listeners will
    // handle menu updates.
@@ -232,7 +232,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
      return;
    }
  
-@@ -1314,7 +1369,7 @@ void ExtensionsMenuViewModel::OnActiveTabChanged(TabListInterface& tab_list,
+@@ -1316,7 +1371,7 @@ void ExtensionsMenuViewModel::OnActiveTabChanged(TabListInterface& tab_list,
    if (!tab_list_interface_observation_.IsObserving()) {
      return;
    }
@@ -241,7 +241,7 @@ index 39a87bcad5e10b7d3dc17dc8a3acc87ca919d14a..97bc2c738045a11b8c5cc55482d655a8
    WebContentsObserver::Observe(web_contents);
  
    OnWebContentsChanged(web_contents);
-@@ -1414,12 +1469,17 @@ void ExtensionsMenuViewModel::RemoveHostAccessRequest(
+@@ -1416,12 +1471,17 @@ void ExtensionsMenuViewModel::RemoveHostAccessRequest(
  void ExtensionsMenuViewModel::UpdateHostAccessRequests() {
    host_access_requests_.clear();
  
@@ -278,13 +278,13 @@ index 65e40b94a90768b2c0db8a1fb0e8c029fe7b0156..270f26ad772faafbbfa93334789bc534
        const extensions::ExtensionId& extension_id,
        const gfx::Size& icon_size);
 diff --git a/chrome/browser/ui/extensions/extensions_menu_view_model_browsertest.cc b/chrome/browser/ui/extensions/extensions_menu_view_model_browsertest.cc
-index 22a4cf07a06b51f4d71243eb6bf557db4b2bd39a..8eee890bc3ec67567dfabfb54e68894f120dbedb 100644
+index bc48deceefe7549d6fde2185b7c3c59f7ec60860..16fccc8732ab263d5c4fd1b8209f1505b4812f58 100644
 --- a/chrome/browser/ui/extensions/extensions_menu_view_model_browsertest.cc
 +++ b/chrome/browser/ui/extensions/extensions_menu_view_model_browsertest.cc
-@@ -8,11 +8,13 @@
- 
- #include "base/memory/scoped_refptr.h"
+@@ -14,11 +14,13 @@
  #include "base/test/metrics/user_action_tester.h"
+ #include "base/threading/thread_restrictions.h"
+ #include "base/values.h"
 +#include "build/build_config.h"
  #include "chrome/browser/extensions/extension_action_runner.h"
  #include "chrome/browser/extensions/extension_browsertest.h"
@@ -295,7 +295,7 @@ index 22a4cf07a06b51f4d71243eb6bf557db4b2bd39a..8eee890bc3ec67567dfabfb54e68894f
  #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
  #include "chrome/browser/ui/extensions/extension_action_delegate.h"
  #include "chrome/grit/generated_resources.h"
-@@ -1403,6 +1405,107 @@ IN_PROC_BROWSER_TEST_F(ExtensionsMenuViewModelBrowserTest,
+@@ -1437,6 +1439,107 @@ IN_PROC_BROWSER_TEST_F(ExtensionsMenuViewModelBrowserTest,
    EXPECT_EQ(actions[2]->GetActionName(), u"Gamma");
  }
  
@@ -439,7 +439,7 @@ index 4f01efd742548b57a1c23e568cbc512e1e484303..fc1920cbc2404feb5d6463ac31508c3d
    auto site_permissions_page =
        std::make_unique<ExtensionsMenuSitePermissionsPageView>(
 diff --git a/chrome/browser/ui/views/extensions/extensions_menu_site_permissions_page_view_interactive_uitest.cc b/chrome/browser/ui/views/extensions/extensions_menu_site_permissions_page_view_interactive_uitest.cc
-index 3e914fce906bdaaca76c4d6f0cbf1990c772d454..8e4261f5543f5d64aca34e2f93d1ed1b6f3e2210 100644
+index 1442ef33654438d2c39665739fdd54b89eb311be..0fbd70447971767b0c5f2d54d565e0dad5529424 100644
 --- a/chrome/browser/ui/views/extensions/extensions_menu_site_permissions_page_view_interactive_uitest.cc
 +++ b/chrome/browser/ui/views/extensions/extensions_menu_site_permissions_page_view_interactive_uitest.cc
 @@ -183,3 +183,35 @@ IN_PROC_BROWSER_TEST_F(ExtensionsMenuSitePermissionsPageViewInteractiveUITest,

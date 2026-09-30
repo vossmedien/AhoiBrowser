@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/browser_web_contents_delegate/BUILD.gn b/chrome/browser/ui/browser_web_contents_delegate/BUILD.gn
-index 90c2bc4..ca4d11c 100644
+index d69f5af..ca38480 100644
 --- a/chrome/browser/ui/browser_web_contents_delegate/BUILD.gn
 +++ b/chrome/browser/ui/browser_web_contents_delegate/BUILD.gn
 @@ -13,6 +13,7 @@ if (!is_android) {
@@ -11,7 +11,7 @@ index 90c2bc4..ca4d11c 100644
        "//chrome/browser:file_select_helper",
        "//chrome/browser:repost_form_warning_controller",
 diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
-index 3ea7bc0..2471fbd 100644
+index aa2c871..c31e4c9 100644
 --- a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
 +++ b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
 @@ -4,6 +4,7 @@
@@ -22,7 +22,7 @@ index 3ea7bc0..2471fbd 100644
  #include "ahoi/browser/session/group_page_close.h"
  #include "ahoi/browser/ui/popup/popup_overlay_controller.h"
  #include "base/check_deref.h"
-@@ -70,6 +71,7 @@
+@@ -71,6 +72,7 @@
  #include "components/page_load_metrics/browser/metrics_web_contents_observer.h"
  #include "components/paint_preview/browser/paint_preview_client.h"
  #include "components/permissions/permission_request_manager.h"
@@ -30,7 +30,7 @@ index 3ea7bc0..2471fbd 100644
  #include "components/printing/browser/print_composite_client.h"
  #include "components/split_tabs/split_tab_id.h"
  #include "components/tabs/public/split_tab_data.h"
-@@ -100,6 +102,7 @@
+@@ -102,6 +104,7 @@
  #include "third_party/blink/public/mojom/frame/fullscreen.mojom.h"
  #include "third_party/blink/public/mojom/use_counter/metrics/web_feature.mojom.h"
  #include "ui/base/base_window.h"
@@ -38,7 +38,7 @@ index 3ea7bc0..2471fbd 100644
  #include "url/origin.h"
  
  #if defined(USE_AURA)
-@@ -550,6 +553,19 @@ content::WebContents* BrowserWebContentsDelegate::OpenURLFromTab(
+@@ -546,6 +549,19 @@ content::WebContents* BrowserWebContentsDelegate::OpenURLFromTab(
                                    std::move(navigation_handle_callback));
    }
  

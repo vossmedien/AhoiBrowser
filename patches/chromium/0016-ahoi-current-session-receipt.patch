@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/sessions/session_service.cc b/chrome/browser/sessions/session_service.cc
-index 781d2e2f7ef99797284888c446e290488cdc1620..65b19fa9edc007d53fa1939bbb5ddcadc916f6ba 100644
+index 781d2e2f7ef99797284888c446e290488cdc1620..3503ca2e0d833f56513c596e77b6aaa39e5e903c 100644
 --- a/chrome/browser/sessions/session_service.cc
 +++ b/chrome/browser/sessions/session_service.cc
 @@ -12,6 +12,7 @@
@@ -145,7 +145,7 @@ index 781d2e2f7ef99797284888c446e290488cdc1620..65b19fa9edc007d53fa1939bbb5ddcad
    for (auto id : pending_tab_close_ids_) {
      ScheduleCommand(sessions::CreateTabClosedCommand(id));
 diff --git a/chrome/browser/sessions/session_service.h b/chrome/browser/sessions/session_service.h
-index 92d191c30c8f4919631d1a1e06a1929afac29225..2c86812a6c06f279c9ae92906faae999b8313696 100644
+index 92d191c30c8f4919631d1a1e06a1929afac29225..1494a88f97623b6f01e805bcb611ffc7423649e6 100644
 --- a/chrome/browser/sessions/session_service.h
 +++ b/chrome/browser/sessions/session_service.h
 @@ -56,6 +56,7 @@ using StartupTabs = std::vector<StartupTab>;
@@ -189,7 +189,7 @@ index 92d191c30c8f4919631d1a1e06a1929afac29225..2c86812a6c06f279c9ae92906faae999
    void CommitPendingCloses();
  
 diff --git a/chrome/browser/sessions/session_service_browsertest.cc b/chrome/browser/sessions/session_service_browsertest.cc
-index 10bda8612f4040f9788fe4ce40ac96c7003d82ee..d1bd9308af6668e8106ab1d42743d6cd789dad42 100644
+index 575d551fe13f8ee1ffda7e62e31b6fdee5b21eab..70c00d081cf7901095350231a7a3981cf1482292 100644
 --- a/chrome/browser/sessions/session_service_browsertest.cc
 +++ b/chrome/browser/sessions/session_service_browsertest.cc
 @@ -8,6 +8,7 @@
@@ -200,7 +200,7 @@ index 10bda8612f4040f9788fe4ce40ac96c7003d82ee..d1bd9308af6668e8106ab1d42743d6cd
  #include "base/threading/thread_restrictions.h"
  #include "build/build_config.h"
  #include "chrome/browser/profiles/profile.h"
-@@ -20,6 +21,7 @@
+@@ -21,6 +22,7 @@
  #include "components/sessions/content/session_tab_helper.h"
  #include "components/sessions/core/command_storage_manager.h"
  #include "components/sessions/core/session_command.h"
@@ -208,7 +208,7 @@ index 10bda8612f4040f9788fe4ce40ac96c7003d82ee..d1bd9308af6668e8106ab1d42743d6cd
  #include "content/public/test/browser_test.h"
  
  #if BUILDFLAG(IS_CHROMEOS)
-@@ -152,6 +154,33 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, PinnedAfterReset) {
+@@ -153,6 +155,33 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, PinnedAfterReset) {
    EXPECT_TRUE(found_pinned_command);
  }
  

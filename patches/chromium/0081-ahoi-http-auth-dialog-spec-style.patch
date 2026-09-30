@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/BUILD.gn b/chrome/browser/ui/views/BUILD.gn
-index 5241e59a..c0a176e2 100644
+index 939e6ebb..cd0088e8 100644
 --- a/chrome/browser/ui/views/BUILD.gn
 +++ b/chrome/browser/ui/views/BUILD.gn
-@@ -415,7 +415,10 @@ source_set("login_view") {
+@@ -480,7 +480,10 @@ source_set("login_view") {
    deps = [
      ":layout_provider",
      "//ahoi/browser/http_auth:saved_account_menu",
@@ -14,10 +14,10 @@ index 5241e59a..c0a176e2 100644
    ]
  }
 diff --git a/chrome/browser/ui/views/DEPS b/chrome/browser/ui/views/DEPS
-index 4f5c6725..a54136ef 100644
+index ef5b25b7..217c33e3 100644
 --- a/chrome/browser/ui/views/DEPS
 +++ b/chrome/browser/ui/views/DEPS
-@@ -11,6 +11,10 @@ include_rules = [
+@@ -10,6 +10,10 @@ include_rules = [
  ]
  
  specific_include_rules = {
@@ -45,7 +45,7 @@ index 657c3c62..33727c3f 100644
  
  void LoginHandlerViewsDialog::CloseDialog() {
 diff --git a/chrome/browser/ui/views/login_view.cc b/chrome/browser/ui/views/login_view.cc
-index 2c514ae6..88c5a994 100644
+index 2c514ae6..278c6fc2 100644
 --- a/chrome/browser/ui/views/login_view.cc
 +++ b/chrome/browser/ui/views/login_view.cc
 @@ -11,6 +11,8 @@
@@ -385,7 +385,7 @@ index 2c514ae6..88c5a994 100644
      const favicon_base::FaviconImageResult& result) {
    if (result.image.IsEmpty() || !saved_account_model_) {
 diff --git a/chrome/browser/ui/views/login_view.h b/chrome/browser/ui/views/login_view.h
-index e5bd4872..62fdc5b6 100644
+index e5bd4872..2f934f7b 100644
 --- a/chrome/browser/ui/views/login_view.h
 +++ b/chrome/browser/ui/views/login_view.h
 @@ -10,6 +10,7 @@

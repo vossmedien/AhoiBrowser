@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index 8459249c31a9f9d8c2ebf158ef2c1d1fda0369eb..870111fadc84f6452fa75a4c516e70d82d2741eb 100644
+index d9396c0729c6841e83c2c73ff2fdcfce328dd950..628a6d9ea9548dcaf639f9052ecbfa4d6c027040 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -382,7 +382,8 @@ BrowserViewTabbedLayoutImpl::CalculateHorizontalLayout(
+@@ -449,7 +449,8 @@ BrowserViewTabbedLayoutImpl::CalculateHorizontalLayout(
      // A hidden Ahoi sidebar contributes no viewport width. Keeping the native
      // region in the hierarchy lets the BrowserView restore it through the
      // keyboard/accessibility path without creating a second host surface.
@@ -12,7 +12,7 @@ index 8459249c31a9f9d8c2ebf158ef2c1d1fda0369eb..870111fadc84f6452fa75a4c516e70d8
        min_vertical_tab_strip_width = 0;
        preferred_vertical_tab_strip_width = 0;
      }
-@@ -774,12 +775,18 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -834,12 +835,18 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
  
        const int inset_amount = horizontal_layout.vertical_tab_strip_width -
                                 GetVerticalTabStripContentOverlap();
@@ -33,7 +33,7 @@ index 8459249c31a9f9d8c2ebf158ef2c1d1fda0369eb..870111fadc84f6452fa75a4c516e70d8
        if (reserve_sidebar_space) {
          params.InsetHorizontal(inset_amount, /*leading=*/true);
        }
-@@ -1308,6 +1315,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
+@@ -1391,6 +1398,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
      ProposedLayout& layout,
      BrowserLayoutParams params,
      bool needs_exclusion) const {
@@ -53,7 +53,7 @@ index 8459249c31a9f9d8c2ebf158ef2c1d1fda0369eb..870111fadc84f6452fa75a4c516e70d8
  
    if (IsParentedTo(views().horizontal_tab_strip_region_view,
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index cdd8796150259b24bc463174fa85278966edd2d1..d4ebd41dc5466982e772d6aa1fda50ce0c3f87c9 100644
+index 23c41dd11b094f5fbd38cad42a149334ef08a3f8..5a841b6f40a698889bb502c96c7cbf91e07c99ec 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 @@ -88,10 +88,15 @@ constexpr int kCollapsedResizeAreaWidth = 2;
@@ -133,7 +133,7 @@ index cdd8796150259b24bc463174fa85278966edd2d1..d4ebd41dc5466982e772d6aa1fda50ce
    }
  }
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
-index 0f48009bc62e242904c435d63fcb52f7601d9458..1f7503ffa0746bc0e8f36a06245903409be81715 100644
+index c54fb694cff0af914c1ec6241f4a18a13dbd82c1..0951fb62aa06b1bc97318427e02f3197eff7cfac 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h
 @@ -115,6 +115,14 @@ class VerticalTabStripRegionView final
@@ -151,7 +151,7 @@ index 0f48009bc62e242904c435d63fcb52f7601d9458..1f7503ffa0746bc0e8f36a0624590340
    // Temporarily reveals a persisted hidden sidebar as an overlay. This state
    // is window-local and must never mutate the profile presentation pref.
    void SetAhoiSidebarEdgeRevealed(bool revealed);
-@@ -296,6 +304,7 @@ class VerticalTabStripRegionView final
+@@ -293,6 +301,7 @@ class VerticalTabStripRegionView final
        ahoi::sidebar::SidebarPresentationMode::kDocked;
    bool ahoi_sidebar_edge_revealed_ = false;
    bool ahoi_sidebar_visual_floating_ = false;

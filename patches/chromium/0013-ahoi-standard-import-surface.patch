@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index d472f7058816e5090a624e14614d961c99af812b..fe4a7f2d9bf0b5d33185cea7342f73d58db6b6dc 100644
+index 914c409d0d37c25f0228b1f58b96cdb9d95d07ae..742c7d2c99b67779aa2a8bbfddc1e6d94a6ace82 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20400,6 +20400,8 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20413,6 +20413,8 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION" desc="Second explicit confirmation to commit the previewed additive import." meaning="AhoiBrowser Arc import">I reviewed this preview and want to add these items now</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT" desc="Button that commits the explicitly confirmed Arc import." meaning="AhoiBrowser Arc import">Import selected data</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SPLITS" desc="Text preceding the number of natively reconstructed Arc splits." meaning="AhoiBrowser Arc import">Reconstructed split views:</message>
@@ -12,10 +12,10 @@ index d472f7058816e5090a624e14614d961c99af812b..fe4a7f2d9bf0b5d33185cea7342f73d5
      <!-- AhoiBrowser feature activation and discoverability -->
      <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index fd4357899aa1a233f19138b3edeaec5b5b51e285..9ca6b9888808fec059ce58997100b808b13a494d 100644
+index 5a00f92569637df469cf7b1c1bffeedc4cff4e03..78bc13ba61cb1b0d31c041d099ae523b37e9dd9a 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11221,6 +11221,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11239,6 +11239,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="604366452320429368">Ich habe die Vorschau geprüft und möchte diese Elemente jetzt hinzufügen</translation>
  <translation id="536686936509624394">Ausgewählte Daten importieren</translation>
  <translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
@@ -25,26 +25,19 @@ index fd4357899aa1a233f19138b3edeaec5b5b51e285..9ca6b9888808fec059ce58997100b808
  <translation id="1323743597646662877">Geöffneter Tab</translation>
  <translation id="5052185113772701312">Schlafender Tab</translation>
 diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
-index cb67b8e0c984d1703ee0034e7cb619eed515ced8..ba2c1d799c11a67a8ad2d80ec1f75f68abf7357f 100644
+index 0d472a52ff5a077dafb263d256978b77a4d55c59..6d31795095b894b5007485e069592d607f0a6653 100644
 --- a/chrome/browser/resources/settings/BUILD.gn
 +++ b/chrome/browser/resources/settings/BUILD.gn
-@@ -227,6 +227,7 @@ build_webui("build") {
-       "languages_page/languages_page_index.ts",
-       "languages_page/spell_check_page.ts",
-       "languages_page/translate_page.ts",
-+      "people_page/ahoi_arc_import_section.ts",
-       "people_page/import_data_dialog.ts",
-       "people_page/manage_profile.ts",
-       "relaunch_confirmation_dialog.ts",
-@@ -433,6 +434,7 @@ build_webui("build") {
+@@ -449,6 +449,8 @@ build_webui("build") {
        "languages_page/languages_settings_metrics_proxy.ts",
        "languages_page/languages_types.ts",
        "languages_page/languages_util.ts",
 +      "people_page/ahoi_arc_import_section.html.ts",
++      "people_page/ahoi_arc_import_section.ts",
        "people_page/import_data_browser_proxy.ts",
-       "people_page/manage_profile_browser_proxy.ts",
-       "system_page/system_page.html.ts",
-@@ -539,6 +541,10 @@ build_webui("build") {
+       "people_page/import_data_dialog.html.ts",
+       "people_page/import_data_dialog.ts",
+@@ -564,6 +566,10 @@ build_webui("build") {
      "system_page/system_page.css",
    ]
  
@@ -67,11 +60,11 @@ index ca628e702953f73b9fbebcdc716b845c7978f1ba..d94ab47f32a6252f42c0c743e030e2b1
  }
  
  /**
-diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.html b/chrome/browser/resources/settings/people_page/import_data_dialog.html
-index 500b01562f069254e7b5e517871ed133072bae4a..1f8703f2c87a243c6ccdd7dbd88cc5159b5ff62f 100644
---- a/chrome/browser/resources/settings/people_page/import_data_dialog.html
-+++ b/chrome/browser/resources/settings/people_page/import_data_dialog.html
-@@ -20,6 +20,7 @@ import {ImportDataStatus} from './import_data_browser_proxy.js';
+diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.html.ts b/chrome/browser/resources/settings/people_page/import_data_dialog.html.ts
+index 89321068222f0387855a126a3fd8ea2deca1a4bf..bcf2d4923546d7df5cfc8fea158a0ec4595b4b84 100644
+--- a/chrome/browser/resources/settings/people_page/import_data_dialog.html.ts
++++ b/chrome/browser/resources/settings/people_page/import_data_dialog.html.ts
+@@ -28,6 +28,7 @@ export function getHtml(this: SettingsImportDataDialogElement) {
          <div ?hidden="${this.hasImportStatus_(ImportDataStatus.SUCCEEDED)}">
            <select id="browserSelect" class="md-select"
                aria-label="$i18n{importFromLabel}"
@@ -79,7 +72,7 @@ index 500b01562f069254e7b5e517871ed133072bae4a..1f8703f2c87a243c6ccdd7dbd88cc515
                @change="${this.onBrowserProfileSelectionChange_}">
              ${this.browserProfiles_.map(item => html`
                <option value="${item.index}">
-@@ -27,63 +28,70 @@ import {ImportDataStatus} from './import_data_browser_proxy.js';
+@@ -35,63 +36,70 @@ export function getHtml(this: SettingsImportDataDialogElement) {
                </option>
              `)}
            </select>
@@ -190,7 +183,7 @@ index 500b01562f069254e7b5e517871ed133072bae4a..1f8703f2c87a243c6ccdd7dbd88cc515
        </div>
      </cr-dialog>
 diff --git a/chrome/browser/resources/settings/people_page/import_data_dialog.ts b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
-index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43bef83f7d 100644
+index 61e876cf10ab140f9cdaa66c0b8f82fc5314540e..00d03c5bb0bcdb111b596e29279870dbfd538aca 100644
 --- a/chrome/browser/resources/settings/people_page/import_data_dialog.ts
 +++ b/chrome/browser/resources/settings/people_page/import_data_dialog.ts
 @@ -13,6 +13,7 @@ import 'chrome://resources/cr_elements/icons.html.js';
@@ -217,7 +210,7 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
    };
  }
  
-@@ -65,6 +68,9 @@ export class SettingsImportDataDialogElement extends
+@@ -63,6 +66,9 @@ export class SettingsImportDataDialogElement extends
        selected_: {type: Object},
        noImportDataTypeSelected_: {type: Boolean},
        importStatus_: {type: String},
@@ -227,7 +220,7 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
      };
    }
  
-@@ -83,6 +89,9 @@ export class SettingsImportDataDialogElement extends
+@@ -81,6 +87,9 @@ export class SettingsImportDataDialogElement extends
    };
    protected accessor noImportDataTypeSelected_: boolean = false;
    protected accessor importStatus_: ImportDataStatus = ImportDataStatus.INITIAL;
@@ -237,7 +230,7 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
    private browserProxy_: ImportDataBrowserProxy =
        ImportDataBrowserProxyImpl.getInstance();
  
-@@ -104,7 +113,13 @@ export class SettingsImportDataDialogElement extends
+@@ -102,7 +111,13 @@ export class SettingsImportDataDialogElement extends
          return;
        }
  
@@ -252,7 +245,7 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
        this.selected_ = this.browserProfiles_[0];
  
        // Show the dialog only after the browser profiles data is populated
-@@ -143,6 +158,22 @@ export class SettingsImportDataDialogElement extends
+@@ -141,6 +156,22 @@ export class SettingsImportDataDialogElement extends
      return profileName ? `${name} - ${profileName}` : name;
    }
  
@@ -275,7 +268,7 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
    protected updateImportDataTypesSelected_() {
      const checkboxes = this.shadowRoot.querySelectorAll(
          'settings-checkbox[checked]:not([hidden])');
-@@ -159,7 +190,12 @@ export class SettingsImportDataDialogElement extends
+@@ -157,7 +188,12 @@ export class SettingsImportDataDialogElement extends
    private isImportFromFileSelected_(): boolean {
      // The last entry in |browserProfiles_| always refers to dummy profile for
      // importing from a bookmarks file.
@@ -289,7 +282,7 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
    }
  
    protected getActionButtonText_(): string {
-@@ -169,9 +205,16 @@ export class SettingsImportDataDialogElement extends
+@@ -167,9 +203,16 @@ export class SettingsImportDataDialogElement extends
  
    protected onBrowserProfileSelectionChange_() {
      this.selected_ = this.browserProfiles_[this.$.browserSelect.selectedIndex];
@@ -306,7 +299,7 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
      const checkboxes = this.shadowRoot.querySelectorAll('settings-checkbox');
      if (this.isImportFromFileSelected_()) {
        this.browserProxy_.importFromBookmarksFile();
-@@ -189,12 +232,45 @@ export class SettingsImportDataDialogElement extends
+@@ -187,12 +230,45 @@ export class SettingsImportDataDialogElement extends
      this.$.dialog.close();
    }
  
@@ -354,10 +347,10 @@ index 14f48fb394062a34b28a31afa100765a3993ae79..0c40ecf69e705cb725ff6fdf3c093c43
  }
  
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index 692f47698ecbb5cbb2cf29fb3324eb470a7f9331..facdb20cde139c34459be0961b23fce94efa248f 100644
+index 5ee1a32ec7d026358f91769771101c6b7aecae9f..5cd7fc3e703ca0f455891cfc1af0d59c9f4b0c60 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -665,6 +665,10 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -664,6 +664,10 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
         IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION},
        {"ahoiArcImportCommit", IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT},
        {"ahoiArcImportResultSplits", IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SPLITS},
@@ -369,10 +362,10 @@ index 692f47698ecbb5cbb2cf29fb3324eb470a7f9331..facdb20cde139c34459be0961b23fce9
        {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
        {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},
 diff --git a/chrome/test/data/webui/settings/BUILD.gn b/chrome/test/data/webui/settings/BUILD.gn
-index 87fceec502701295862057622534658c8306915d..e1b1a96531a3ff93b6fe0f0a9b1c9f9b3fd1d8e2 100644
+index 541564835dd996541feef4829be20e58efe5530d..feba1cd7df4bbe89ee49d3b3a13df6186d92dcb6 100644
 --- a/chrome/test/data/webui/settings/BUILD.gn
 +++ b/chrome/test/data/webui/settings/BUILD.gn
-@@ -256,7 +256,10 @@ build_webui_tests("build") {
+@@ -259,7 +259,10 @@ build_webui_tests("build") {
    }
  
    if (is_mac) {
@@ -440,7 +433,7 @@ index b0d52e62e2945e8229c3f22b201b6d3323cff678..984d51229546b29182d52a805d621221
      await browserProxy.whenCalled('importFromBookmarksFile');
      await simulateImportStatusChange(ImportDataStatus.IN_PROGRESS);
 diff --git a/chrome/test/data/webui/settings/settings_browsertest.cc b/chrome/test/data/webui/settings/settings_browsertest.cc
-index d2c5958ca3cbbff74a759a2c44304917e335d4bd..e5a01b841938db7e5fcfd70ee9a87b609f8ab3c5 100644
+index 5220e3b523dd0415caffea7227231e3ced4cb1ef..b085c4612ff69925f6bdc4728685e2c4affc5312 100644
 --- a/chrome/test/data/webui/settings/settings_browsertest.cc
 +++ b/chrome/test/data/webui/settings/settings_browsertest.cc
 @@ -94,6 +94,12 @@ IN_PROC_BROWSER_TEST_F(SettingsTest, AccountPage) {

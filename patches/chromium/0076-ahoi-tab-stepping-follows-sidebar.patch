@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
-index bba3fcb..27bcfd5 100644
+index 8de12f6..5a66683 100644
 --- a/chrome/browser/ui/browser_commands.cc
 +++ b/chrome/browser/ui/browser_commands.cc
 @@ -12,6 +12,7 @@
@@ -10,7 +10,7 @@ index bba3fcb..27bcfd5 100644
  #include "base/check.h"
  #include "base/check_deref.h"
  #include "base/command_line.h"
-@@ -1506,15 +1507,67 @@ bool CanResetZoom(content::WebContents* contents) {
+@@ -1550,15 +1551,67 @@ bool CanResetZoom(content::WebContents* contents) {
           !zoom_controller->PageScaleFactorIsOne();
  }
  
@@ -78,7 +78,7 @@ index bba3fcb..27bcfd5 100644
    browser->GetTabStripModel()->SelectPreviousTab(gesture_detail);
  }
  
-@@ -1549,6 +1602,11 @@ void MoveTabPrevious(BrowserWindowInterface* browser) {
+@@ -1593,6 +1646,11 @@ void MoveTabPrevious(BrowserWindowInterface* browser) {
  void SelectNumberedTab(BrowserWindowInterface* browser,
                         int index,
                         TabStripUserGestureDetails gesture_detail) {
@@ -90,7 +90,7 @@ index bba3fcb..27bcfd5 100644
    TabStripModel* model = browser->GetTabStripModel();
    std::optional<tab_groups::TabGroupId> focused_group =
        model->GetFocusedGroup();
-@@ -1569,6 +1627,10 @@ void SelectNumberedTab(BrowserWindowInterface* browser,
+@@ -1613,6 +1671,10 @@ void SelectNumberedTab(BrowserWindowInterface* browser,
  
  void SelectLastTab(BrowserWindowInterface* browser,
                     TabStripUserGestureDetails gesture_detail) {
@@ -102,10 +102,10 @@ index bba3fcb..27bcfd5 100644
    std::optional<tab_groups::TabGroupId> focused_group =
        model->GetFocusedGroup();
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index e22adf9..83a6fc1 100644
+index ab039d6..f9edb7b 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -6429,6 +6429,12 @@ bool BrowserView::CanShowAhoiPrivacyMode() const {
+@@ -6470,6 +6470,12 @@ bool BrowserView::CanShowAhoiPrivacyMode() const {
                     browser_->tab_strip_model()->GetActiveWebContents();
  }
  
@@ -119,10 +119,10 @@ index e22adf9..83a6fc1 100644
    if (!browser_ ||
        browser_->GetType() != BrowserWindowInterface::Type::TYPE_NORMAL ||
 diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
-index 443d5de..fa4f35f 100644
+index 7ec1fcc..ca7bb46 100644
 --- a/chrome/browser/ui/views/frame/browser_view.h
 +++ b/chrome/browser/ui/views/frame/browser_view.h
-@@ -809,6 +809,10 @@ class BrowserView : public BrowserWindow,
+@@ -823,6 +823,10 @@ class BrowserView : public BrowserWindow,
    // for unsupported browser/profile types so Chromium retains its normal
    // bookmark command outside Ahoi's regular browsing surface.
    bool SaveCurrentTabToAhoiTree();

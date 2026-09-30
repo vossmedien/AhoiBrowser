@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 130624e5b993d775448b02be3351ba0eeabc017e..a43592d9101c7c0c209bd503b73065a3a4954c69 100644
+index 48d3ccc2b14b3bcc66c9cfba9db2f013b7e038a4..266fa1c775512e442c5e4888653e86594ead5daa 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20391,16 +20391,16 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20404,16 +20404,16 @@ Please help our engineers fix this problem. Tell us what happened right before y
        A previous Arc import needs manual recovery before another import can start.
      </message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RECOVERY_NOTICE" desc="Safety conditions and scope of explicit failed Arc import recovery." meaning="AhoiBrowser Arc import">
@@ -23,10 +23,10 @@ index 130624e5b993d775448b02be3351ba0eeabc017e..a43592d9101c7c0c209bd503b73065a3
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_SOURCE" desc="Instruction shown when Arc must be closed before importing." meaning="AhoiBrowser Arc import">Close Arc before importing</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE" desc="Instruction to close Arc before import discovery." meaning="AhoiBrowser Arc import">
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index 85fc15c92b2295b3c18232b215d82ae7caaf4611..6f735721324cea3ae90f676c4045a811a85478fb 100644
+index 1695b5bae11614f45da0be6f36155c53aaf5bec3..0b36eb50100624be94770a5389a2ff5eb75d8d46 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11251,10 +11251,10 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11269,10 +11269,10 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="4131831590543916816">Kürzlich geschlossener Split</translation>
  <translation id="5502679562240472247">Kürzlich geschlossene Gruppe</translation>
  <translation id="5461107725978398953">Kürzlich geschlossenes Fenster</translation>
@@ -41,10 +41,10 @@ index 85fc15c92b2295b3c18232b215d82ae7caaf4611..6f735721324cea3ae90f676c4045a811
  <translation id="5599938554451751534">Adressleiste lösen</translation>
  <translation id="3587386781101745139">Browsereinstellungen synchronisieren</translation>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index 6cc1edc2e20e0ed3e079fb8d5e4a2eb68178aaba..aca89ceb55628d5960b6a9389a3c5463d10d882e 100644
+index 03b8e15f39b62f419366ee6c53c3de9ad9b40d29..f2aec50f9051812c1f27b647ed15f4a4a8cdec9b 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -11057,4 +11057,7 @@ This can include information about installed software, files, your browser, the
+@@ -11075,4 +11075,7 @@ This can include information about installed software, files, your browser, the
  <translation id="1555692962934226231">Loading selection…</translation>
  <translation id="3373635015517088468">No supported settings are currently available for this profile.</translation>
  <translation id="5831405800489376068">Could not change the selection.</translation>

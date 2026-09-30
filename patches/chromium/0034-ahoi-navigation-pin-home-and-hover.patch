@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index e91156c319443ab31451a8012b33453a0bcda5b5..cf0b5848fad1181394e3984b74da0e06ddb7c1b6 100644
+index 53cb4d6482288078718a3f6739425644e106f9da..6013a6a21ab550fb49ac2524baa2c23fbc8df11c 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20859,6 +20859,12 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20872,6 +20872,12 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_AHOI_REVEAL_NAVIGATION" desc="Accessible name and tooltip for the small hover target that reveals AhoiBrowser's floating address and extension bar." meaning="AhoiBrowser browser shell">
        Show address bar
      </message>
@@ -16,10 +16,10 @@ index e91156c319443ab31451a8012b33453a0bcda5b5..cf0b5848fad1181394e3984b74da0e06
      <message name="IDS_AHOI_MEDIA_MINI_PLAYER_NAME" desc="Accessible name for AhoiBrowser's sidebar media mini player." meaning="AhoiBrowser media mini player">
        Media mini player
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index f37f8e944bc176ca0fed59658074c345d23babc0..8d9d86c06f38b047e053908afb8ae7df4486ffb4 100644
+index a270fb08f8def376e7c6ba980aa45e2ebee3fe62..579d30573bac0715d9190dd2f5776711a442fdb4 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11255,4 +11255,6 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11273,4 +11273,6 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="8353852870894009464">Seitenleiste vor dem Import wiederherstellen</translation>
  <translation id="8579437155006490485">Sicherung prüfen und Seitenleiste wiederherstellen…</translation>
  <translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
@@ -27,10 +27,10 @@ index f37f8e944bc176ca0fed59658074c345d23babc0..8d9d86c06f38b047e053908afb8ae7df
 +<translation id="5599938554451751534">Adressleiste lösen</translation>
  </translationbundle>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index d1b664f09d3c65e090bd29fb812e8295d11376d4..937604dfdb8840196f990c0c69b6a9894edf552e 100644
+index 944dd07588eda0cb3eb1472874aa475e6eb3e56f..c7adcec19f4653dd4827141a94ab393123b3ca79 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -11048,4 +11048,6 @@ This can include information about installed software, files, your browser, the
+@@ -11066,4 +11066,6 @@ This can include information about installed software, files, your browser, the
  <translation id="4131831590543916816">Recently closed split</translation>
  <translation id="5502679562240472247">Recently closed group</translation>
  <translation id="5461107725978398953">Recently closed window</translation>
@@ -66,10 +66,10 @@ index 6997bb36d901fdeb10c035ed015e3a8945c183cf..f177c89d1b4ee459c470fce16aa48122
    registry->RegisterBooleanPref(prefs::kSplitViewDragAndDropEnabled, true,
                                  pref_registration_flags);
 diff --git a/chrome/browser/ui/views/toolbar/BUILD.gn b/chrome/browser/ui/views/toolbar/BUILD.gn
-index 0f29e63644028f5482e539653c60abaa1724dfa0..bc671a35558d439f246200e887231c8e4fec26dc 100644
+index 25eaf429eefaf43e3091bb0eb6e164910fb8bcf0..796179051c565dee9bf02eba200d077a44046eb4 100644
 --- a/chrome/browser/ui/views/toolbar/BUILD.gn
 +++ b/chrome/browser/ui/views/toolbar/BUILD.gn
-@@ -165,6 +165,7 @@ source_set("impl") {
+@@ -167,6 +167,7 @@ source_set("impl") {
  
    deps = [
      ":toolbar",
@@ -78,7 +78,7 @@ index 0f29e63644028f5482e539653c60abaa1724dfa0..bc671a35558d439f246200e887231c8e
      "//build:branding_buildflags",
      "//cc/paint",
 diff --git a/chrome/browser/ui/views/toolbar/toolbar_view.cc b/chrome/browser/ui/views/toolbar/toolbar_view.cc
-index ec09e6aae6023dba4eaf6537f14685f7a20adb2f..a3e2e1f552401d619cae23574c50758dafd2bc7f 100644
+index c824f203b2cb5851f61e8a2f6045fa946b3d542f..8c9e57fde4f1d431a175a8948d0288bedb4231c8 100644
 --- a/chrome/browser/ui/views/toolbar/toolbar_view.cc
 +++ b/chrome/browser/ui/views/toolbar/toolbar_view.cc
 @@ -8,6 +8,7 @@
@@ -89,7 +89,7 @@ index ec09e6aae6023dba4eaf6537f14685f7a20adb2f..a3e2e1f552401d619cae23574c50758d
  #include "base/command_line.h"
  #include "base/containers/fixed_flat_map.h"
  #include "base/feature_list.h"
-@@ -408,6 +409,12 @@ void ToolbarView::Init() {
+@@ -421,6 +422,12 @@ void ToolbarView::Init() {
  #endif
  
    // Always add children in order from left to right, for accessibility.

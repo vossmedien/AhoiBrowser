@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
-index e0b38e3..6dc627a 100644
+index 5a5ddc8..5164da5 100644
 --- a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
 +++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
-@@ -412,6 +412,15 @@ void BrowserNativeWidgetMac::ValidateUserInterfaceItem(
+@@ -425,6 +425,15 @@ void BrowserNativeWidgetMac::ValidateUserInterfaceItem(
  
    // Generate return value (enabled state).
    result->enable = chrome::IsCommandEnabled(browser, tag);

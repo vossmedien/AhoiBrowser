@@ -240,7 +240,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
         self.assertEqual(2, config["schemaVersion"])
         rust_workaround = config["chromiumRustDepfileSpacePaths"]
         self.assertEqual(
-            "792bf6722e73a45aa9e47c163b9901bdc17f3230",
+            "f89f3a4363808e117c592adedcf9947882ac3b79",
             rust_workaround["upstreamCommit"],
         )
         self.assertEqual(
@@ -271,7 +271,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
 
         workaround = config["v8InspectorProtocolRelativeDepfilePaths"]
         self.assertEqual(
-            "d1fed5cd7e3b114dea70f18b20d26f816322833d",
+            "31fac3bef58c3def36b0760e4ddc54ec77099596",
             workaround["upstreamCommit"],
         )
         self.assertEqual(

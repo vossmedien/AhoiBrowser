@@ -8,8 +8,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCH_ROOT = ROOT / "patches/chromium"
 PATCH_PATH = PATCH_ROOT / "0001-ahoi-m153-integration-seams.patch"
 SERIES_PATH = PATCH_ROOT / "series"
-M153_VERSION = "153.0.8010.53"
-M153_COMMIT = "792bf6722e73a45aa9e47c163b9901bdc17f3230"
+M154_VERSION = "154.0.8037.93"
+M154_COMMIT = "f89f3a4363808e117c592adedcf9947882ac3b79"
 
 
 def series_entries() -> tuple[str, ...]:
@@ -51,14 +51,14 @@ class VerticalTabsPatchContractTests(unittest.TestCase):
         self.assertEqual(len(entries), len(set(entries)))
 
         pin = json.loads((ROOT / "config/chromium.json").read_text(encoding="utf-8"))
-        self.assertEqual(M153_VERSION, pin["version"])
-        self.assertEqual(M153_COMMIT, pin["commit"])
+        self.assertEqual(M154_VERSION, pin["version"])
+        self.assertEqual(M154_COMMIT, pin["commit"])
         self.assertEqual("Stable", pin["channel"])
         self.assertEqual("Mac", pin["platform"])
 
         ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertEqual(1, ledger.count(f"## `{PATCH_PATH.name}`"))
-        self.assertIn(M153_COMMIT, ledger)
+        self.assertIn(M154_COMMIT, ledger)
 
     def test_ahoi_defaults_the_existing_vertical_tabs_profile_pref_to_true(self):
         prefs = file_section(

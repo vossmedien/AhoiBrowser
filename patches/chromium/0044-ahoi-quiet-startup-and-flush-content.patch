@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/startup/infobar_utils.cc b/chrome/browser/ui/startup/infobar_utils.cc
-index a7dbbd4..c56a7bf 100644
+index 7c2500e..1465276 100644
 --- a/chrome/browser/ui/startup/infobar_utils.cc
 +++ b/chrome/browser/ui/startup/infobar_utils.cc
-@@ -234,6 +234,11 @@ void AddInfoBarsIfNecessary(BrowserWindowInterface* browser,
+@@ -293,6 +293,11 @@ void AddInfoBarsIfNecessary(BrowserWindowInterface* browser,
    }
  #endif
  
@@ -14,41 +14,17 @@ index a7dbbd4..c56a7bf 100644
  #if !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_ANDROID)
    if (is_web_app ||
        startup_command_line.HasSwitch(switches::kNoDefaultBrowserCheck) ||
-@@ -293,4 +298,5 @@ void AddInfoBarsIfNecessary(BrowserWindowInterface* browser,
+@@ -352,4 +357,5 @@ void AddInfoBarsIfNecessary(BrowserWindowInterface* browser,
  #endif  // BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
    }
  #endif  // !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_ANDROID)
 +#endif  // !BUILDFLAG(IS_MAC)
  }
-diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index 76c78a1..4fe48e3 100644
---- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-+++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -1166,7 +1166,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
-                           views()
-                               .vertical_tab_strip_region_view
-                               ->GetAhoiContentCardLeadingInsetForLayout(),
--                          ahoi::visual_style::kContentCardInset,
-+                          0,
-                           ahoi::visual_style::kContentCardInset));
-   }
- 
-@@ -1213,7 +1213,9 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
- 
-   if (uses_ahoi_content_card) {
-     views().multi_contents_view->SetBackgroundRadii(
--        gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius));
-+        gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius,
-+                             ahoi::visual_style::kContentCardCornerRadius,
-+                             0.0f, 0.0f));
-   } else if (in_glass_mode()) {
-     // If the window goes out of glass mode, these changes won't hurt anything.
-     gfx::RoundedCornersF content_corners;
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 4d06a29..78bf753 100644
+index e2da320..d4a348b 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -1265,13 +1265,15 @@ BrowserView::BrowserView(Browser* browser)
+@@ -1268,13 +1268,15 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
  
      // Keep the product treatment at the BrowserView seam: MultiContentsView
      // remains responsible for clipping every live WebContents (including
@@ -67,3 +43,27 @@ index 4d06a29..78bf753 100644
      ahoi_contents_shadow_ = std::make_unique<views::ViewShadow>(
          contents_container(), ahoi::visual_style::kContentCardShadowElevation);
      ahoi_contents_shadow_->SetRoundedCornerRadius(
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+index 779939d..5dd7955 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -1226,7 +1226,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+                           views()
+                               .vertical_tab_strip_region_view
+                               ->GetAhoiContentCardLeadingInsetForLayout(),
+-                          ahoi::visual_style::kContentCardInset,
++                          0,
+                           ahoi::visual_style::kContentCardInset));
+   }
+ 
+@@ -1273,7 +1273,9 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+ 
+   if (uses_ahoi_content_card) {
+     views().multi_contents_view->SetBackgroundRadii(
+-        gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius));
++        gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius,
++                             ahoi::visual_style::kContentCardCornerRadius,
++                             0.0f, 0.0f));
+   } else if (in_glass_mode()) {
+     // If the window goes out of glass mode, these changes won't hurt anything.
+     gfx::RoundedCornersF content_corners;

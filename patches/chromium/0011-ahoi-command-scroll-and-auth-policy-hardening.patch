@@ -23,7 +23,7 @@ index e06d5296911be0504eb11dff78e6417c1aad4933..262db76ed0276659def1986a6ddc4131
  }
  
 diff --git a/chrome/browser/ui/login/http_auth_coordinator.cc b/chrome/browser/ui/login/http_auth_coordinator.cc
-index 8e93da6a6704bad3b0659e0ca46244f6969c9bf0..8c684b850a77a89f27b86fe93cfd837cf4656e5e 100644
+index 827147078de85c3942748282c4281177ddd24ed0..5a4152c6ef7867f6400a0e72ce7048d837f5524a 100644
 --- a/chrome/browser/ui/login/http_auth_coordinator.cc
 +++ b/chrome/browser/ui/login/http_auth_coordinator.cc
 @@ -76,7 +76,10 @@ HttpAuthCoordinator::CreateLoginDelegateFromLoginHandler(
@@ -39,10 +39,10 @@ index 8e93da6a6704bad3b0659e0ca46244f6969c9bf0..8c684b850a77a89f27b86fe93cfd837c
  }
  
 diff --git a/chrome/browser/ui/login/login_handler.cc b/chrome/browser/ui/login/login_handler.cc
-index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500f7949d37 100644
+index 1dd3cbad9b9f83b9920403e2dd1b7f57cc9021ae..5cc19f186938bac6f2aff19802fabb4f0511a91a 100644
 --- a/chrome/browser/ui/login/login_handler.cc
 +++ b/chrome/browser/ui/login/login_handler.cc
-@@ -73,7 +73,8 @@ LoginHandler::LoginModelData::LoginModelData(
+@@ -74,7 +74,8 @@ LoginHandler::LoginModelData::LoginModelData(
      const password_manager::PasswordForm& observed_form,
      LoginHandler* login_handler)
      : model(login_model), form(observed_form), login_handler(login_handler) {
@@ -52,7 +52,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
  }
  
  struct LoginHandler::AhoiCredentialState {
-@@ -95,7 +96,7 @@ LoginHandler::~LoginHandler() {
+@@ -96,7 +97,7 @@ LoginHandler::~LoginHandler() {
  
    password_manager::HttpAuthManager* http_auth_manager =
        GetHttpAuthManagerForLogin();
@@ -61,7 +61,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
      http_auth_manager->OnPasswordFormDismissed();
    }
  
-@@ -144,7 +145,7 @@ void LoginHandler::SetAuth(std::u16string_view username,
+@@ -145,7 +146,7 @@ void LoginHandler::SetAuth(std::u16string_view username,
  
    if (credential_save_decision_ ==
            CredentialSaveDecision::kSaveAfterSuccessfulAuth &&
@@ -70,7 +70,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
        ahoi_credential_state_->request_context !=
            ahoi::HttpAuthRequestContext::kIncognito &&
        !username.empty() && !password.empty()) {
-@@ -163,7 +164,7 @@ void LoginHandler::SetAuth(std::u16string_view username,
+@@ -164,7 +165,7 @@ void LoginHandler::SetAuth(std::u16string_view username,
    // Ahoi's supported Basic/Digest flow has an explicit save choice and writes
    // through HttpAuthCredentialService only after a successful challenge. Do
    // not also arm Chromium's generic save prompt for the same submission.
@@ -79,7 +79,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
      if (password_manager::HttpAuthManager* httpauth_manager =
              GetHttpAuthManagerForLogin()) {
        password_form_.username_value = credentials.username();
-@@ -198,7 +199,7 @@ void LoginHandler::LoadSavedCredentials(bool explicit_user_selection,
+@@ -203,7 +204,7 @@ void LoginHandler::LoadSavedCredentials(bool explicit_user_selection,
      return;
    }
  
@@ -88,7 +88,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
        (ahoi_credential_state_->request_context ==
             ahoi::HttpAuthRequestContext::kIncognito &&
         !explicit_user_selection)) {
-@@ -232,7 +233,7 @@ void LoginHandler::LoadSavedCredentials(bool explicit_user_selection,
+@@ -237,7 +238,7 @@ void LoginHandler::LoadSavedCredentials(bool explicit_user_selection,
  
  void LoginHandler::SetCredentialSaveDecision(CredentialSaveDecision decision) {
    DCHECK_CURRENTLY_ON(BrowserThread::UI);
@@ -97,7 +97,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
      return;
    }
    credential_save_decision_ = decision;
-@@ -249,7 +250,7 @@ void LoginHandler::SetCredentialSaveDecision(CredentialSaveDecision decision) {
+@@ -254,7 +255,7 @@ void LoginHandler::SetCredentialSaveDecision(CredentialSaveDecision decision) {
  void LoginHandler::DeleteSavedCredential(std::u16string_view username,
                                           base::OnceClosure done) {
    DCHECK_CURRENTLY_ON(BrowserThread::UI);
@@ -106,7 +106,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
        ahoi_credential_state_->request_context ==
            ahoi::HttpAuthRequestContext::kIncognito) {
      std::move(done).Run();
-@@ -262,7 +263,7 @@ void LoginHandler::DeleteSavedCredential(std::u16string_view username,
+@@ -267,7 +268,7 @@ void LoginHandler::DeleteSavedCredential(std::u16string_view username,
  
  bool LoginHandler::SetPreferredSavedCredential(std::u16string_view username) {
    DCHECK_CURRENTLY_ON(BrowserThread::UI);
@@ -115,7 +115,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
           ahoi_credential_state_->request_context !=
               ahoi::HttpAuthRequestContext::kIncognito &&
           ahoi_credential_state_->service->SetPreferredCredential(
-@@ -282,6 +283,14 @@ bool LoginHandler::HasAhoiCredentialService() const {
+@@ -287,6 +288,14 @@ bool LoginHandler::HasAhoiCredentialService() const {
    return ahoi_credential_state_ && ahoi_credential_state_->service;
  }
  
@@ -130,7 +130,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
  bool LoginHandler::IsAhoiCredentialRequestIncognito() const {
    return ahoi_credential_state_ && ahoi_credential_state_->request_context ==
                                         ahoi::HttpAuthRequestContext::kIncognito;
-@@ -528,12 +537,14 @@ void LoginHandler::GetDialogStrings(const GURL& request_url,
+@@ -533,12 +542,14 @@ void LoginHandler::GetDialogStrings(const GURL& request_url,
  void LoginHandler::ShowLoginPrompt(
      const GURL& request_url,
      net::NetworkAnonymizationKey network_anonymization_key,
@@ -146,7 +146,7 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
  
    Profile* profile =
        web_contents_
-@@ -565,7 +576,7 @@ void LoginHandler::ShowLoginPrompt(
+@@ -570,7 +581,7 @@ void LoginHandler::ShowLoginPrompt(
    password_manager::HttpAuthManager* httpauth_manager =
        GetHttpAuthManagerForLogin();
  
@@ -156,10 +156,10 @@ index aaf5cb7884e559e8012db811ad4dc1c5c5f0c598..4800d23542fa87e9d13d7f0435921500
      // manager hooked up.
      BuildViewAndNotify(authority, explanation, nullptr);
 diff --git a/chrome/browser/ui/login/login_handler.h b/chrome/browser/ui/login/login_handler.h
-index f7ea6df1dad87b8485aa6dfd5e10f88daca71ebc..18ff20acb7aaa9ebdca059bd3a25489461b474d5 100644
+index 12f7a0d06f3d45ce0f12c75a8a59dbc4f8d85b03..090d75b7935c45c6b8b7f3c4223cff0fe95ef9c2 100644
 --- a/chrome/browser/ui/login/login_handler.h
 +++ b/chrome/browser/ui/login/login_handler.h
-@@ -43,6 +43,9 @@ class LoginHandler : public content::LoginDelegate {
+@@ -42,6 +42,9 @@ class LoginHandler : public content::LoginDelegate {
    // structs, because the guide's rationale still applies. Therefore at least
    // the constructor DCHECKs that |login_model| is not null.
    struct LoginModelData {
@@ -169,7 +169,7 @@ index f7ea6df1dad87b8485aa6dfd5e10f88daca71ebc..18ff20acb7aaa9ebdca059bd3a254894
      LoginModelData(password_manager::HttpAuthManager* login_model,
                     const password_manager::PasswordForm& observed_form,
                     LoginHandler* login_handler);
-@@ -97,8 +100,9 @@ class LoginHandler : public content::LoginDelegate {
+@@ -96,8 +99,9 @@ class LoginHandler : public content::LoginDelegate {
    // Call after `Create()` to show the dialog.
    void ShowLoginPrompt(
        const GURL& request_url,
@@ -181,7 +181,7 @@ index f7ea6df1dad87b8485aa6dfd5e10f88daca71ebc..18ff20acb7aaa9ebdca059bd3a254894
  
    // Exposed for testing.
    static std::vector<LoginHandler*> GetAllLoginHandlersForTest();
-@@ -128,6 +132,8 @@ class LoginHandler : public content::LoginDelegate {
+@@ -127,6 +131,8 @@ class LoginHandler : public content::LoginDelegate {
    std::optional<CredentialSaveRequest> TakeCredentialSaveRequest();
  
    bool HasAhoiCredentialService() const;
@@ -190,7 +190,7 @@ index f7ea6df1dad87b8485aa6dfd5e10f88daca71ebc..18ff20acb7aaa9ebdca059bd3a254894
    bool IsAhoiCredentialRequestIncognito() const;
    const GURL& request_url() const { return request_url_; }
    std::u16string GetAuthRealmForDisplay() const;
-@@ -147,6 +153,13 @@ class LoginHandler : public content::LoginDelegate {
+@@ -146,6 +152,13 @@ class LoginHandler : public content::LoginDelegate {
    // The WebContents.
    content::WebContents* web_contents() { return web_contents_.get(); }
  
@@ -204,7 +204,7 @@ index f7ea6df1dad87b8485aa6dfd5e10f88daca71ebc..18ff20acb7aaa9ebdca059bd3a254894
   protected:
    LoginHandler(
        const net::AuthChallengeInfo& auth_info,
-@@ -154,8 +167,9 @@ class LoginHandler : public content::LoginDelegate {
+@@ -153,8 +166,9 @@ class LoginHandler : public content::LoginDelegate {
        content::LoginDelegate::LoginAuthRequiredCallback auth_required_callback);
  
    // Implement this to initialize the underlying platform specific view. If
@@ -216,7 +216,7 @@ index f7ea6df1dad87b8485aa6dfd5e10f88daca71ebc..18ff20acb7aaa9ebdca059bd3a254894
    // `false` if the view cannot be built.
    virtual bool BuildViewImpl(const std::u16string& authority,
                               const std::u16string& explanation,
-@@ -245,6 +259,7 @@ class LoginHandler : public content::LoginDelegate {
+@@ -244,6 +258,7 @@ class LoginHandler : public content::LoginDelegate {
        CredentialSaveDecision::kUnset;
    std::optional<CredentialSaveRequest> credential_save_request_;
    bool previous_attempt_failed_ = false;
@@ -225,7 +225,7 @@ index f7ea6df1dad87b8485aa6dfd5e10f88daca71ebc..18ff20acb7aaa9ebdca059bd3a254894
    // The PasswordForm sent to the PasswordManager. This is so we can refer to it
    // when later notifying the password manager if the credentials were accepted
 diff --git a/chrome/browser/ui/login/login_handler_browsertest.cc b/chrome/browser/ui/login/login_handler_browsertest.cc
-index 591c171e2d94c342ca622df936086db404951bca..2620dc7abf95cc5fc3b4e0052062aa0fb76abd0d 100644
+index fd2f8723155f50dae39ad0587b7bb08b33ea28ff..d2e32b9635572c7b5391c960c26b9eb7ee2165a9 100644
 --- a/chrome/browser/ui/login/login_handler_browsertest.cc
 +++ b/chrome/browser/ui/login/login_handler_browsertest.cc
 @@ -7,6 +7,7 @@
@@ -236,7 +236,7 @@ index 591c171e2d94c342ca622df936086db404951bca..2620dc7abf95cc5fc3b4e0052062aa0f
  #include <tuple>
  
  #include "base/feature_list.h"
-@@ -150,12 +151,20 @@ class LoginHandlerFake : public LoginHandler {
+@@ -151,12 +152,20 @@ class LoginHandlerFake : public LoginHandler {
    bool BuildViewImpl(const std::u16string& authority,
                       const std::u16string& explanation,
                       LoginModelData* login_model_data) override {
@@ -257,7 +257,7 @@ index 591c171e2d94c342ca622df936086db404951bca..2620dc7abf95cc5fc3b4e0052062aa0f
  };
  
  class LoginTabHelperFake : public LoginTabHelper {
-@@ -203,7 +212,10 @@ class HttpAuthCoordinatorFake : public HttpAuthCoordinator {
+@@ -204,7 +213,10 @@ class HttpAuthCoordinatorFake : public HttpAuthCoordinator {
      auto login_handler = std::make_unique<LoginHandlerFake>(
          auth_info, web_contents, std::move(auth_required_callback),
          browser_client_);
@@ -269,7 +269,7 @@ index 591c171e2d94c342ca622df936086db404951bca..2620dc7abf95cc5fc3b4e0052062aa0f
      return login_handler;
    }
  
-@@ -390,6 +402,32 @@ INSTANTIATE_TEST_SUITE_P(
+@@ -391,6 +403,32 @@ INSTANTIATE_TEST_SUITE_P(
      ::testing::Values(SplitAuthCacheByNetworkIsolationKey::kFalse,
                        SplitAuthCacheByNetworkIsolationKey::kTrue));
  
@@ -317,10 +317,10 @@ index 59a5451fc9e972b2759c11641cf8244e606ba0b1..c47b15c9ab157044595b5b35dec7144f
    // If the challenge comes from a proxy, the URL should be hidden in the
    // omnibox to avoid origin confusion. Call DidChangeVisibleSecurityState() to
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 61770d4b65a8ddb93ec59fe1ee295f665eda4f32..31735d0933f6903037d42e5328523ceab6a3deb3 100644
+index 05d64c3d73ce44564be8c887510fe62837262adc..7c3e94baddb602818e010b652ec8a1d4b9a73624 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -4920,7 +4920,8 @@ void BrowserView::MaybeUpdateStoredFocusForWebContents(
+@@ -4948,7 +4948,8 @@ void BrowserView::MaybeUpdateStoredFocusForWebContents(
    }
  }
  
@@ -330,7 +330,7 @@ index 61770d4b65a8ddb93ec59fe1ee295f665eda4f32..31735d0933f6903037d42e5328523cea
    std::vector<ContentsWebView*> contents_views;
    contents_views.push_back(multi_contents_view_->GetActiveContentsView());
    for (ContentsContainerView* container :
-@@ -5473,15 +5474,7 @@ void BrowserView::AddedToWidget() {
+@@ -5512,15 +5513,7 @@ void BrowserView::AddedToWidget() {
                  },
                  base::Unretained(this)),
              base::BindRepeating(
@@ -347,7 +347,7 @@ index 61770d4b65a8ddb93ec59fe1ee295f665eda4f32..31735d0933f6903037d42e5328523cea
                  base::Unretained(this)),
              base::BindRepeating(
                  [](BrowserView* browser_view) {
-@@ -5725,9 +5718,8 @@ void BrowserView::RefreshAhoiNavigationInputSettings() {
+@@ -5766,9 +5759,8 @@ void BrowserView::RefreshAhoiNavigationInputSettings() {
        workspace_settings));
    CHECK(ahoi_workspace_swipe_event_handler_->SetCmdScrollSettings(
        cmd_scroll_settings));
@@ -359,7 +359,7 @@ index 61770d4b65a8ddb93ec59fe1ee295f665eda4f32..31735d0933f6903037d42e5328523cea
    }
  #endif
  }
-@@ -5736,29 +5728,32 @@ bool BrowserView::ShowAhoiTabSwitchPreview(int delta) {
+@@ -5777,29 +5769,32 @@ bool BrowserView::ShowAhoiTabSwitchPreview(int delta) {
  #if !BUILDFLAG(IS_MAC)
    return false;
  #else
@@ -407,7 +407,7 @@ index 61770d4b65a8ddb93ec59fe1ee295f665eda4f32..31735d0933f6903037d42e5328523cea
  
    if (!ahoi_tab_switch_preview_label_) {
      auto label = std::make_unique<views::Label>();
-@@ -5776,9 +5771,9 @@ bool BrowserView::ShowAhoiTabSwitchPreview(int delta) {
+@@ -5817,9 +5812,9 @@ bool BrowserView::ShowAhoiTabSwitchPreview(int delta) {
          multi_contents_view_->AddChildView(std::move(label));
    }
  
@@ -419,7 +419,7 @@ index 61770d4b65a8ddb93ec59fe1ee295f665eda4f32..31735d0933f6903037d42e5328523cea
    }
    const std::u16string arrow =
        (delta > 0) != base::i18n::IsRTL() ? u"→  " : u"←  ";
-@@ -5810,8 +5805,95 @@ bool BrowserView::ShowAhoiTabSwitchPreview(int delta) {
+@@ -5851,8 +5846,95 @@ bool BrowserView::ShowAhoiTabSwitchPreview(int delta) {
  #endif
  }
  
@@ -516,7 +516,7 @@ index 61770d4b65a8ddb93ec59fe1ee295f665eda4f32..31735d0933f6903037d42e5328523cea
      ahoi_workspace_swipe_event_handler_->SetNativeEventMonitor(nullptr);
      ahoi_workspace_swipe_event_handler_->Cancel();
 diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
-index 25cbace16072d16790686e80d1b8d662e59e81c0..ecf6bf53707a29888a7aece87ee8222284fc820f 100644
+index b1b5e560b5375eef47149ddeca0c096063a30436..ee1c875d1a0e5e6d5360c8fc57aba6ef531612f5 100644
 --- a/chrome/browser/ui/views/frame/browser_view.h
 +++ b/chrome/browser/ui/views/frame/browser_view.h
 @@ -15,6 +15,7 @@
@@ -535,7 +535,7 @@ index 25cbace16072d16790686e80d1b8d662e59e81c0..ecf6bf53707a29888a7aece87ee82222
  class VerticalTabStripStateController;
  }  // namespace tabs
  
-@@ -846,7 +848,7 @@ class BrowserView : public BrowserWindow,
+@@ -860,7 +862,7 @@ class BrowserView : public BrowserWindow,
  
    // Returns the list of tab content's web views that is visible.
    // It returns > 1 elements when there is a split view that is active.
@@ -544,7 +544,7 @@ index 25cbace16072d16790686e80d1b8d662e59e81c0..ecf6bf53707a29888a7aece87ee82222
  
    bool is_window_controls_overlay_available() const {
      return is_window_controls_overlay_available_;
-@@ -1046,7 +1048,10 @@ class BrowserView : public BrowserWindow,
+@@ -1060,7 +1062,10 @@ class BrowserView : public BrowserWindow,
    bool HandleAhoiSplitAccelerator(const ui::Accelerator& accelerator);
  
    void RefreshAhoiNavigationInputSettings();
@@ -555,7 +555,7 @@ index 25cbace16072d16790686e80d1b8d662e59e81c0..ecf6bf53707a29888a7aece87ee82222
  
    // Retrieves the command id for the specified Windows app command.
    int GetCommandIDForAppCommandID(int app_command_id) const;
-@@ -1398,6 +1403,9 @@ class BrowserView : public BrowserWindow,
+@@ -1413,6 +1418,9 @@ class BrowserView : public BrowserWindow,
        ahoi_workspace_swipe_event_handler_;
    raw_ptr<views::Label> ahoi_tab_switch_preview_label_ = nullptr;
    base::OneShotTimer ahoi_tab_switch_preview_timer_;

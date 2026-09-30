@@ -1,12 +1,11 @@
 diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/ui/navigator/browser_navigator.cc
+index 394d01..a553d5 100644
 --- a/chrome/browser/ui/navigator/browser_navigator.cc
 +++ b/chrome/browser/ui/navigator/browser_navigator.cc
-@@ -708,6 +708,28 @@
-     params->source_contents = params->browser->GetBrowserForMigrationOnly()
-                                   ->tab_strip_model()
-                                   ->GetActiveWebContents();
-+  }
-+
+@@ -708,6 +708,28 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
+         params->browser->GetTabStripModel()->GetActiveWebContents();
+   }
+ 
 +  // Ahoi may show a selected Workspace with no visible tab while Chromium's
 +  // TabStripModel still has a tab from another Workspace selected. Typed
 +  // browser-UI input must create a tab for the selected Workspace before its
@@ -27,6 +26,8 @@ diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/u
 +      params->referrer = content::Referrer();
 +      params->tabstrip_add_types &= ~AddTabTypes::ADD_INHERIT_OPENER;
 +    }
-   }
- 
++  }
++
    WebContents* contents_to_navigate_or_insert =
+       params->contents_to_insert.get();
+   if (params->switch_to_singleton_tab) {

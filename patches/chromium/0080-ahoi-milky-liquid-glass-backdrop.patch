@@ -52,7 +52,7 @@ index 4e55674..d1b29e9 100644
  
  #endif  // CHROME_BROWSER_UI_VIEWS_FRAME_BROWSER_FRAME_VIEW_MAC_H_
 diff --git a/chrome/browser/ui/views/frame/browser_frame_view_mac.mm b/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
-index 6c489fb..9b1a0a4 100644
+index 39c36aa..5b3e6ec 100644
 --- a/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
 +++ b/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
 @@ -7,9 +7,14 @@
@@ -70,7 +70,7 @@ index 6c489fb..9b1a0a4 100644
  #include "base/i18n/rtl.h"
  #include "base/metrics/histogram_macros.h"
  #include "base/numerics/safe_conversions.h"
-@@ -98,6 +103,14 @@ BrowserFrameViewMac::BrowserFrameViewMac(BrowserWidget* frame,
+@@ -99,6 +104,14 @@ BrowserFrameViewMac::BrowserFrameViewMac(BrowserWidget* frame,
              base::BindRepeating(
                  &BrowserFrameViewMac::OnGlassFrameEligibilityChanged,
                  base::Unretained(this)));
@@ -85,34 +85,39 @@ index 6c489fb..9b1a0a4 100644
    }
  
    if (web_app::AppBrowserController::IsWebApp(browser_view->browser())) {
-@@ -500,13 +513,24 @@ void BrowserFrameViewMac::OnPaint(gfx::Canvas* canvas) {
+@@ -500,15 +513,26 @@ void BrowserFrameViewMac::OnPaint(gfx::Canvas* canvas) {
+     return;
    }
  
-   SkColor frame_color = GetFrameColor(BrowserFrameActiveState::kUseCurrent);
 -  if (is_glass_frame_eligible_) {
 +  if (IsAhoiGlassActive()) {
-     const SkAlpha frame_alpha = color_utils::IsDark(frame_color)
-                                     ? kBrowserFrameAlphaDark
-                                     : kBrowserFrameAlphaLight;
-     canvas->DrawColor(SkColorSetA(frame_color, frame_alpha));
-   } else {
--    canvas->DrawColor(frame_color);
-+    // Opaque Ahoi frame: the same semantic chrome surface the native widget
-+    // uses for its opaque NSWindow, so Glass OFF, accessibility fallbacks
-+    // and background windows share one calm colour instead of the saturated
-+    // frame colour.
-+    if (const auto* provider = GetColorProvider()) {
-+      frame_color = provider->GetColor(
-+          ahoi::appearance::AppearanceResolver::Resolve(
-+              ahoi::appearance::SurfaceRole::kBrowserChrome,
-+              ahoi::appearance::GlassPolicy{.enabled = false})
-+              .background_color);
-+    }
-+    canvas->DrawColor(SkColorSetA(frame_color, SK_AlphaOPAQUE));
+     // In glass mode, painting to frame color happens in the opaque background
+-    // view instead.
++    // view instead. BrowserNativeWidgetMac paints it with the same semantic
++    // chrome surface as the opaque path below.
+     return;
+   }
  
-     auto* theme_service = ThemeServiceFactory::GetForProfile(
-         GetBrowserView()->browser()->GetProfile());
-@@ -583,7 +607,7 @@ void BrowserFrameViewMac::UpdateCaptionButtonPlaceholderContainerBackground() {
+-  const SkColor frame_color =
+-      GetFrameColor(BrowserFrameActiveState::kUseCurrent);
+-  canvas->DrawColor(frame_color);
++  // Opaque Ahoi frame: the same semantic chrome surface the native widget
++  // uses for its opaque NSWindow, so Glass OFF, accessibility fallbacks
++  // and background windows share one calm colour instead of the saturated
++  // frame colour.
++  SkColor frame_color = GetFrameColor(BrowserFrameActiveState::kUseCurrent);
++  if (const auto* provider = GetColorProvider()) {
++    frame_color = provider->GetColor(
++        ahoi::appearance::AppearanceResolver::Resolve(
++            ahoi::appearance::SurfaceRole::kBrowserChrome,
++            ahoi::appearance::GlassPolicy{.enabled = false})
++            .background_color);
++  }
++  canvas->DrawColor(SkColorSetA(frame_color, SK_AlphaOPAQUE));
+ 
+   auto* theme_service = ThemeServiceFactory::GetForProfile(
+       GetBrowserView()->browser()->GetProfile());
+@@ -584,7 +608,7 @@ void BrowserFrameViewMac::UpdateCaptionButtonPlaceholderContainerBackground() {
    if (caption_button_placeholder_container_) {
      caption_button_placeholder_container_->SetBackground(
          views::CreateSolidBackground(
@@ -121,7 +126,7 @@ index 6c489fb..9b1a0a4 100644
                  ? SK_ColorTRANSPARENT
                  : GetFrameColor(BrowserFrameActiveState::kUseCurrent)));
    }
-@@ -607,6 +631,19 @@ void BrowserFrameViewMac::OnGlassFrameEligibilityChanged(bool is_eligible) {
+@@ -608,6 +632,19 @@ void BrowserFrameViewMac::OnGlassFrameEligibilityChanged(bool is_eligible) {
      return;
    }
    is_glass_frame_eligible_ = is_eligible;
@@ -143,7 +148,7 @@ index 6c489fb..9b1a0a4 100644
    SchedulePaint();
  }
 diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.h b/chrome/browser/ui/views/frame/browser_native_widget_mac.h
-index 5062fe2..209bac2 100644
+index 882c971..8559a57 100644
 --- a/chrome/browser/ui/views/frame/browser_native_widget_mac.h
 +++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.h
 @@ -21,6 +21,7 @@
@@ -165,10 +170,14 @@ index 5062fe2..209bac2 100644
    std::optional<int> GetGlassFrameWidth() const;
    void OnVerticalTabStripModeChanged(
 diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
-index 6dc627a..df6c3ee 100644
+index 5164da5..edee9a1 100644
 --- a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
 +++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
-@@ -8,6 +8,7 @@
+@@ -5,10 +5,10 @@
+ #import "chrome/browser/ui/views/frame/browser_native_widget_mac.h"
+ 
+ #include <algorithm>
+-#include <array>
  
  #include "ahoi/browser/ui/appearance/appearance_policy.h"
  #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
@@ -176,7 +185,7 @@ index 6dc627a..df6c3ee 100644
  #include "ahoi/browser/ui/appearance/native_glass_bridge.h"
  #import "base/apple/foundation_util.h"
  #include "base/functional/bind.h"
-@@ -65,6 +66,7 @@
+@@ -66,6 +66,7 @@
  #include "components/remote_cocoa/common/native_widget_ns_window.mojom.h"
  #include "components/remote_cocoa/common/native_widget_ns_window_host.mojom.h"
  #include "components/web_modal/web_contents_modal_dialog_host.h"
@@ -184,30 +193,26 @@ index 6dc627a..df6c3ee 100644
  #include "ui/accessibility/platform/ax_platform_node.h"
  #include "ui/actions/actions.h"
  #include "ui/base/accelerators/global_accelerator_listener/global_accelerator_listener.h"
-@@ -108,22 +110,6 @@ bool ShouldHandleKeyboardEvent(const input::NativeWebKeyboardEvent& event) {
+@@ -110,18 +111,6 @@ bool ShouldHandleKeyboardEvent(const input::NativeWebKeyboardEvent& event) {
    return event.os_event && event.os_event.Get().type == NSEventTypeKeyDown;
  }
  
 -double GetGlassFrameTintOpacity(bool is_dark_mode, bool is_vertical_tabs) {
--  double opacity_value = is_dark_mode
--                             ? features::kGlassTintOpacityForDarkMode.Get()
--                             : features::kGlassTintOpacityForLightMode.Get();
+-  // Default opacities mapped by [is_vertical_tabs][is_dark_mode]:
+-  // Values updated after discussion with UX.
+-  static constexpr std::array<std::array<double, 2>, 2> kDefaultOpacities = {{
+-      {0.55, 0.80},  // Horizontal: light, dark
+-      {0.65, 0.80},  // Vertical: light, dark
+-  }};
 -
--  constexpr double kLiquidGlassOpacityLightMode = 0.55;
--  constexpr double kLiquidGlassOpacityDarkMode = 0.90;
--
--  double opacity = opacity_value >= 0.0
--                       ? opacity_value
--                       : (is_dark_mode ? kLiquidGlassOpacityDarkMode
--                                       : kLiquidGlassOpacityLightMode);
--
+-  const double opacity = kDefaultOpacities[is_vertical_tabs][is_dark_mode];
 -  return std::clamp(opacity, 0.0, 1.0);
 -}
 -
  bool IsCommandTriggeredFromMacMenu(NSInteger parent_menu_tag, int command_id) {
    NSEvent* current_event = [NSApp currentEvent];
    const bool is_mouse_click =
-@@ -1046,17 +1032,15 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
+@@ -1064,17 +1053,15 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
    if (@available(macOS 26.0, *)) {
      [ns_window setOpaque:NO];
  
@@ -232,9 +237,9 @@ index 6dc627a..df6c3ee 100644
 +    [ns_window setBackgroundColor:skia::SkColorToSRGBNSColor(
 +                                      backdrop.window_foundation)];
  
-     if (!background_view_) {
+     if (!glass_background_view_) {
        NSView* const content_view = [ns_window contentView];
-@@ -1067,15 +1051,19 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
+@@ -1085,15 +1072,19 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
        glass_view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
        glass_view.style = NSGlassEffectViewStyleRegular;
        glass_view.cornerRadius = material.corner_radius;
@@ -255,10 +260,10 @@ index 6dc627a..df6c3ee 100644
 -      [glass_view addSubview:tint_view_];
 +      glass_view.contentView = tint_view_;
  
-       background_view_ = glass_view;
-       [content_view addSubview:background_view_
-@@ -1163,15 +1151,6 @@ void BrowserNativeWidgetMac::UpdateBackgroundColor() {
-   const bool is_active = GetWidget()->IsActive();
+       glass_background_view_ = glass_view;
+       [content_view addSubview:glass_background_view_
+@@ -1226,15 +1217,6 @@ void BrowserNativeWidgetMac::UpdateBackgroundColor() {
+   const bool is_active = GetWidget()->ShouldPaintAsActive();
    const SkColor theme_color = browser_view_->GetColorProvider()->GetColor(
        is_active ? ui::kColorFrameActive : ui::kColorFrameInactive);
 -  const auto appearance = ahoi::appearance::AppearanceResolver::Resolve(
@@ -273,7 +278,7 @@ index 6dc627a..df6c3ee 100644
    bool is_vertical_tabs = browser_view_->ShouldDrawVerticalTabStrip();
  
    // Avoid updating the background view if the theme colors and the tab strip
-@@ -1186,15 +1165,38 @@ void BrowserNativeWidgetMac::UpdateBackgroundColor() {
+@@ -1247,19 +1229,51 @@ void BrowserNativeWidgetMac::UpdateBackgroundColor() {
    last_theme_color_ = theme_color;
    last_is_vertical_tabs_ = is_vertical_tabs;
  
@@ -282,8 +287,7 @@ index 6dc627a..df6c3ee 100644
 -  const CGFloat b = SkColorGetB(material.tint_color) / 255.0;
 -  const CGFloat a = std::min(
 -      SkColorGetA(material.tint_color) / 255.0,
--      GetGlassFrameTintOpacity(last_preferred_color_scheme_ ==
--                                   ui::NativeTheme::PreferredColorScheme::kDark,
+-      GetGlassFrameTintOpacity(color_utils::IsDark(theme_color),
 -                               is_vertical_tabs));
 -
 -  tint_view_.layer.backgroundColor =
@@ -294,14 +298,28 @@ index 6dc627a..df6c3ee 100644
 +  const auto appearance = ahoi::appearance::AppearanceResolver::Resolve(
 +      ahoi::appearance::SurfaceRole::kBrowserChrome,
 +      appearance_signals_->policy());
-+  const ahoi::appearance::NativeBackdropSpec backdrop = ResolveAhoiBackdrop(
-+      browser_view_->GetColorProvider()->GetColor(appearance.background_color));
++  const SkColor surface_color =
++      browser_view_->GetColorProvider()->GetColor(appearance.background_color);
+ 
++  // M154 covers the window area outside the glass frame with an opaque
++  // background view (BrowserFrameViewMac no longer paints there in glass
++  // mode). Give it the same calm semantic chrome surface as Ahoi's opaque
++  // frame instead of the saturated frame colour.
+   if (opaque_background_view_) {
+     opaque_background_view_.layer.backgroundColor =
+-        [NSColor colorWithSRGBRed:r green:g blue:b alpha:1.0].CGColor;
++        skia::SkColorToSRGBNSColor(SkColorSetA(surface_color, SK_AlphaOPAQUE))
++            .CGColor;
+   }
++
++  const ahoi::appearance::NativeBackdropSpec backdrop =
++      ResolveAhoiBackdrop(surface_color);
 +  if (!backdrop.use_native_glass) {
 +    return;
 +  }
 +  if (@available(macOS 26.0, *)) {
-+    if (auto* glass_view =
-+            base::apple::ObjCCast<NSGlassEffectView>(background_view_)) {
++    if (auto* glass_view = base::apple::ObjCCast<NSGlassEffectView>(
++            glass_background_view_)) {
 +      glass_view.tintColor = skia::SkColorToSRGBNSColor(backdrop.glass_tint);
 +    }
 +  }

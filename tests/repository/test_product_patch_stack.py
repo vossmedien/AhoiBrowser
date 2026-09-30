@@ -21,15 +21,15 @@ FOUNDATION_SERIES = (
     DETERMINISTIC_PATCH,
     LEAN_GUARDS_PATCH,
 )
-M153_PIN = {
-    "version": "153.0.8010.53",
-    "milestone": 153,
-    "tag": "refs/tags/153.0.8010.53",
-    "commit": "792bf6722e73a45aa9e47c163b9901bdc17f3230",
-    "branchHead": 8010,
-    "branchHeadPosition": 1444,
-    "branchPoint": "86cee6df69e0463a839c0cc8435c9d4c259434d3",
-    "branchPosition": 1681091,
+M154_PIN = {
+    "version": "154.0.8037.93",
+    "milestone": 154,
+    "tag": "refs/tags/154.0.8037.93",
+    "commit": "f89f3a4363808e117c592adedcf9947882ac3b79",
+    "branchHead": 8037,
+    "branchHeadPosition": 1590,
+    "branchPoint": "e10b20e60f162e7ad88e4930833695a54f4e15fb",
+    "branchPosition": 1689415,
     "channel": "Stable",
     "platform": "Mac",
     "rolloutFraction": 1.0,
@@ -97,14 +97,14 @@ class ProductPatchStackTests(unittest.TestCase):
         ):
             self.assertNotIn(marker, payload)
 
-    def test_production_pin_is_the_exact_fully_rolled_m153_mac_stable(self):
+    def test_production_pin_is_the_exact_fully_rolled_m154_mac_stable(self):
         pin = json.loads((ROOT / "config/chromium.json").read_text(encoding="utf-8"))
-        self.assertEqual(M153_PIN, {key: pin.get(key) for key in M153_PIN})
+        self.assertEqual(M154_PIN, {key: pin.get(key) for key in M154_PIN})
 
         ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("Chromium M153 patch ledger", ledger)
-        self.assertIn(f"Chromium Mac Stable `{M153_PIN['version']}` at", ledger)
-        self.assertIn(f"`{M153_PIN['commit']}`", ledger)
+        self.assertIn("Chromium M154 patch ledger", ledger)
+        self.assertIn(f"Chromium Mac Stable `{M154_PIN['version']}` at", ledger)
+        self.assertIn(f"`{M154_PIN['commit']}`", ledger)
 
     def test_series_leads_with_the_foundation_layers(self):
         entries = series_entries()

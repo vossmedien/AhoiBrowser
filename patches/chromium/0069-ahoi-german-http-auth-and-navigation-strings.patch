@@ -1,8 +1,8 @@
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index 56c0a68..3ca5e02 100644
+index 1d6df5b..aa5f377 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11268,4 +11268,19 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11286,4 +11286,19 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="7654016057361100771">Link der aktiven Seite als Markdown kopieren</translation>
  <translation id="603968043160528313">Aktive Seite im Lesemodus öffnen</translation>
  <translation id="8762882822589517341">Der Lesemodus ist für diese Seite nicht verfügbar</translation>

@@ -12,10 +12,10 @@ index e3306c54..d7492329 100644
    NOTREACHED();
  }
 diff --git a/components/performance_manager/freezing/freezing_policy.cc b/components/performance_manager/freezing/freezing_policy.cc
-index 280bad86..679a24eb 100644
+index 9c8c76cd..a69ca710 100644
 --- a/components/performance_manager/freezing/freezing_policy.cc
 +++ b/components/performance_manager/freezing/freezing_policy.cc
-@@ -580,6 +580,11 @@ void FreezingPolicy::OnPageNodeAdded(const PageNode* page_node) {
+@@ -593,6 +593,11 @@ void FreezingPolicy::OnPageNodeAdded(const PageNode* page_node) {
      page_freezing_state.cannot_freeze_reasons.Put(CannotFreezeReason::kAudible);
    }
  
@@ -27,7 +27,7 @@ index 280bad86..679a24eb 100644
    if (opt_out_checker_ &&
        opt_out_checker_->IsPageOptedOutOfFreezing(
            page_node->GetBrowserContextID(), page_node->GetMainFrameUrl())) {
-@@ -754,6 +759,12 @@ void FreezingPolicy::OnPageUsesWebRTCChanged(const PageNode* page_node) {
+@@ -767,6 +772,12 @@ void FreezingPolicy::OnPageUsesWebRTCChanged(const PageNode* page_node) {
                               CannotFreezeReason::kWebRTC);
  }
  
@@ -41,10 +41,10 @@ index 280bad86..679a24eb 100644
      const PageNode* page_node,
      std::optional<blink::mojom::PermissionStatus> previous_status) {
 diff --git a/components/performance_manager/freezing/freezing_policy.h b/components/performance_manager/freezing/freezing_policy.h
-index 86f5034d..b20400ac 100644
+index 83d1b857..a2733c94 100644
 --- a/components/performance_manager/freezing/freezing_policy.h
 +++ b/components/performance_manager/freezing/freezing_policy.h
-@@ -180,6 +180,7 @@ class FreezingPolicy : public PageNodeObserver,
+@@ -191,6 +191,7 @@ class FreezingPolicy : public PageNodeObserver,
                       PageType previous_type) override;
    void OnIsVisibleChanged(const PageNode* page_node) override;
    void OnIsAudibleChanged(const PageNode* page_node) override;
@@ -53,7 +53,7 @@ index 86f5034d..b20400ac 100644
    void OnPageHasFreezingOriginTrialOptOutChanged(
        const PageNode* page_node) override;
 diff --git a/components/performance_manager/freezing/freezing_policy_unittest.cc b/components/performance_manager/freezing/freezing_policy_unittest.cc
-index 60514102..ae7f220a 100644
+index 2ce7d53f..fafa25ae 100644
 --- a/components/performance_manager/freezing/freezing_policy_unittest.cc
 +++ b/components/performance_manager/freezing/freezing_policy_unittest.cc
 @@ -1032,6 +1032,57 @@ TEST_F(FreezingPolicyTest, StartsUsingWebRTCWhenFrozen) {

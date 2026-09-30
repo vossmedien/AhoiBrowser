@@ -1,32 +1,32 @@
 diff --git a/content/browser/loader/browser_initiated_resource_request.cc b/content/browser/loader/browser_initiated_resource_request.cc
-index 30673aa..e9f0039 100644
+index 67f2c53..6b22511 100644
 --- a/content/browser/loader/browser_initiated_resource_request.cc
 +++ b/content/browser/loader/browser_initiated_resource_request.cc
-@@ -34,7 +34,8 @@ void UpdateAdditionalHeadersForBrowserInitiatedRequest(
- 
+@@ -35,7 +35,8 @@ void UpdateAdditionalHeadersForBrowserInitiatedRequest(
    // Set the GlobalPrivacyControl header if appropriate.
    // https://w3c.github.io/gpc/#expression-format
--  if (blink::IsGlobalPrivacyControlEnabled()) {
-+  if (blink::IsGlobalPrivacyControlEnabled() ||
+   if (blink::IsGlobalPrivacyControlFeatureAndSettingEnabled(
+-          renderer_preferences)) {
++          renderer_preferences) ||
 +      renderer_preferences.enable_global_privacy_control) {
      if (should_update_existing_headers) {
        headers->RemoveHeader(blink::kGlobalPrivacyControlHeader);
      }
 diff --git a/content/renderer/render_frame_impl.cc b/content/renderer/render_frame_impl.cc
-index b9cf2bc..f9030d4 100644
+index 822048a..1d80054 100644
 --- a/content/renderer/render_frame_impl.cc
 +++ b/content/renderer/render_frame_impl.cc
-@@ -4682,7 +4682,8 @@ void RenderFrameImpl::FinalizeRequestInternal(
-     request.SetHttpHeaderField(
+@@ -4695,7 +4695,8 @@ void RenderFrameImpl::FinalizeRequestInternal(
          blink::WebString::FromUtf8(blink::kDoNotTrackHeader), "1");
    }
--  if (blink::IsGlobalPrivacyControlEnabled()) {
-+  if (blink::IsGlobalPrivacyControlEnabled() ||
+   if (blink::IsGlobalPrivacyControlFeatureAndSettingEnabled(
+-          GetWebView()->GetRendererPreferences())) {
++          GetWebView()->GetRendererPreferences()) ||
 +      GetWebView()->GetRendererPreferences().enable_global_privacy_control) {
      request.SetHttpHeaderField(
          blink::WebString::FromUtf8(blink::kGlobalPrivacyControlHeader), "1");
      blink::MaybeRecordGlobalPrivacyControlSourceMetric(
-@@ -4942,6 +4943,12 @@ void RenderFrameImpl::DidCreateScriptContext(v8::Local<v8::Context> context,
+@@ -4964,6 +4965,12 @@ void RenderFrameImpl::DidCreateScriptContext(v8::Local<v8::Context> context,
        }
      }
    }
@@ -40,10 +40,10 @@ index b9cf2bc..f9030d4 100644
    if (world_id == ISOLATED_WORLD_ID_GLOBAL &&
        base::FeatureList::IsEnabled(blink::features::kUnboundedElement)) {
 diff --git a/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc b/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
-index 8cb33aa..ed609e0 100644
+index 1401e99..1214fde 100644
 --- a/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
 +++ b/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
-@@ -54,6 +54,7 @@ bool StructTraits<blink::mojom::RendererPreferencesDataView,
+@@ -55,6 +55,7 @@ bool StructTraits<blink::mojom::RendererPreferencesDataView,
    out->enable_referrers = data.enable_referrers();
    out->allow_cross_origin_auth_prompt = data.allow_cross_origin_auth_prompt();
    out->enable_do_not_track = data.enable_do_not_track();
@@ -52,7 +52,7 @@ index 8cb33aa..ed609e0 100644
  
    if (!data.ReadWebrtcIpHandlingPolicy(&out->webrtc_ip_handling_policy))
 diff --git a/third_party/blink/public/common/renderer_preferences/renderer_preferences.h b/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
-index 194428d..0fddaa6 100644
+index 336c806..a921f5b 100644
 --- a/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
 +++ b/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
 @@ -53,6 +53,9 @@ struct BLINK_COMMON_EXPORT RendererPreferences {
@@ -63,10 +63,10 @@ index 194428d..0fddaa6 100644
 +  // (Sec-GPC and navigator.globalPrivacyControl), set per top-level site.
 +  bool enable_global_privacy_control{false};
    bool enable_encrypted_media{true};
- #if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN)
-   bool use_overlay_scrollbar{false};
+ #if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || \
+     BUILDFLAG(IS_WIN)
 diff --git a/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h b/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
-index 92377b0..888867a 100644
+index d0279aa1..f5180d2 100644
 --- a/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
 +++ b/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
 @@ -125,6 +125,11 @@ struct BLINK_COMMON_EXPORT
@@ -82,7 +82,7 @@ index 92377b0..888867a 100644
        const ::blink::RendererPreferences& data) {
      return data.enable_encrypted_media;
 diff --git a/third_party/blink/public/mojom/renderer_preferences.mojom b/third_party/blink/public/mojom/renderer_preferences.mojom
-index 28a17da..a022e0d 100644
+index 026d009..67f2d05 100644
 --- a/third_party/blink/public/mojom/renderer_preferences.mojom
 +++ b/third_party/blink/public/mojom/renderer_preferences.mojom
 @@ -89,6 +89,9 @@ struct RendererPreferences {
@@ -96,10 +96,10 @@ index 28a17da..a022e0d 100644
    // the use of Clear Key key system which is always allowed as required by the
    // spec.
 diff --git a/third_party/blink/public/platform/web_worker_fetch_context.h b/third_party/blink/public/platform/web_worker_fetch_context.h
-index d40563c..0b81643 100644
+index 237899e..d2d3667 100644
 --- a/third_party/blink/public/platform/web_worker_fetch_context.h
 +++ b/third_party/blink/public/platform/web_worker_fetch_context.h
-@@ -156,6 +156,12 @@ class WebWorkerFetchContext : public base::RefCounted<WebWorkerFetchContext> {
+@@ -157,6 +157,12 @@ class WebWorkerFetchContext : public base::RefCounted<WebWorkerFetchContext> {
      return false;
    }
  
@@ -178,7 +178,7 @@ index 0aa7cd0..f203987 100644
  void WebV8Features::InitializeMojoJSAllowedProtectedMemory() {
    ContextFeatureSettings::InitializeMojoJSAllowedProtectedMemory();
 diff --git a/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc b/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
-index 52bfd9f..0c17b23 100644
+index 7958f89..f62ab92 100644
 --- a/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
 +++ b/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
 @@ -9,6 +9,8 @@
@@ -207,7 +207,7 @@ index 52bfd9f..0c17b23 100644
        is_worker_loaded_from_data_url);
    GetSecurityContext().SetSecurityOrigin(std::move(origin));
 diff --git a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
-index 488311d..41bc380 100644
+index a6d1fb8..ec35a2e 100644
 --- a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
 +++ b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
 @@ -5,6 +5,7 @@
@@ -218,14 +218,30 @@ index 488311d..41bc380 100644
  #include "third_party/blink/renderer/core/execution_context/navigator_base.h"
  #include "third_party/blink/renderer/core/frame/local_dom_window.h"
  #include "third_party/blink/renderer/core/frame/local_frame.h"
-@@ -14,7 +15,15 @@ namespace blink {
- namespace NavigatorGlobalPrivacyControl {
+@@ -17,15 +18,27 @@ namespace NavigatorGlobalPrivacyControl {
  
  bool globalPrivacyControl(NavigatorBase& navigator) {
--  return IsGlobalPrivacyControlEnabled();
-+  if (IsGlobalPrivacyControlEnabled()) {
-+    return true;
-+  }
+   if (navigator.DomWindow()) {
+-    return IsGlobalPrivacyControlFeatureAndSettingEnabled(
+-        navigator.DomWindow()->GetFrame()->GetPage()->GetRendererPreferences());
++    if (IsGlobalPrivacyControlFeatureAndSettingEnabled(
++            navigator.DomWindow()
++                ->GetFrame()
++                ->GetPage()
++                ->GetRendererPreferences())) {
++      return true;
++    }
+   } else if (WorkerOrWorkletGlobalScope* worker_scope =
+                  DynamicTo<WorkerOrWorkletGlobalScope>(
+                      navigator.GetExecutionContext())) {
+-    return IsGlobalPrivacyControlFeatureAndSettingEnabled(
+-        worker_scope->GetRendererPreferences());
++    if (IsGlobalPrivacyControlFeatureAndSettingEnabled(
++            worker_scope->GetRendererPreferences())) {
++      return true;
++    }
+   }
+-  return false;
 +  // AhoiBrowser (handoff 070): installed per context only when the
 +  // WebContents enabled Global Privacy Control.
 +  const ContextFeatureSettings* settings = ContextFeatureSettings::From(
@@ -236,7 +252,7 @@ index 488311d..41bc380 100644
  
  }  // namespace NavigatorGlobalPrivacyControl
 diff --git a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
-index 48094ca..1a66fd9 100644
+index 48094caa..1a66fd9 100644
 --- a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
 +++ b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
 @@ -4,7 +4,8 @@
@@ -250,7 +266,7 @@ index 48094ca..1a66fd9 100644
      [Measure] readonly attribute boolean globalPrivacyControl;
  };
 diff --git a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
-index fe3cc62..c04f23c 100644
+index 08d0b52..f26fc3a 100644
 --- a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
 +++ b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
 @@ -147,11 +147,17 @@ URLLoaderFactory* WebServiceWorkerFetchContextImpl::GetScriptLoaderFactory() {
@@ -266,14 +282,14 @@ index fe3cc62..c04f23c 100644
    if (renderer_preferences_.enable_do_not_track) {
      request.SetHttpHeaderField(WebString::FromUtf8(kDoNotTrackHeader), "1");
    }
--  if (IsGlobalPrivacyControlEnabled()) {
-+  if (IsGlobalPrivacyControlEnabled() ||
+-  if (IsGlobalPrivacyControlFeatureAndSettingEnabled(renderer_preferences_)) {
++  if (IsGlobalPrivacyControlFeatureAndSettingEnabled(renderer_preferences_) ||
 +      renderer_preferences_.enable_global_privacy_control) {
      request.SetHttpHeaderField(WebString::FromUtf8(kGlobalPrivacyControlHeader),
                                 "1");
      blink::MaybeRecordGlobalPrivacyControlSourceMetric(
 diff --git a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
-index 26cfff7..c0bd63d 100644
+index a1f7680..c8d9745 100644
 --- a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
 +++ b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
 @@ -68,6 +68,7 @@ class BLINK_EXPORT WebServiceWorkerFetchContextImpl final
@@ -285,7 +301,7 @@ index 26cfff7..c0bd63d 100644
        const network::ResourceRequest& request) override;
    mojom::ControllerServiceWorkerMode GetControllerServiceWorkerMode()
 diff --git a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
-index 6a19e63..02aee01 100644
+index 5457b11..cf8e98e 100644
 --- a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
 +++ b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
 @@ -373,12 +373,18 @@ DedicatedOrSharedWorkerGlobalScopeContextImpl::WillSendRequest(
@@ -302,14 +318,14 @@ index 6a19e63..02aee01 100644
    if (renderer_preferences_.enable_do_not_track) {
      request.SetHttpHeaderField(WebString::FromUtf8(kDoNotTrackHeader), "1");
    }
--  if (IsGlobalPrivacyControlEnabled()) {
-+  if (IsGlobalPrivacyControlEnabled() ||
+-  if (IsGlobalPrivacyControlFeatureAndSettingEnabled(renderer_preferences_)) {
++  if (IsGlobalPrivacyControlFeatureAndSettingEnabled(renderer_preferences_) ||
 +      renderer_preferences_.enable_global_privacy_control) {
      request.SetHttpHeaderField(WebString::FromUtf8(kGlobalPrivacyControlHeader),
                                 "1");
      blink::MaybeRecordGlobalPrivacyControlSourceMetric(
 diff --git a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
-index 63f0a4d..2fdabbe 100644
+index 008b896..8c2913e 100644
 --- a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
 +++ b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
 @@ -117,6 +117,7 @@ class BLINK_PLATFORM_EXPORT DedicatedOrSharedWorkerGlobalScopeContextImpl final

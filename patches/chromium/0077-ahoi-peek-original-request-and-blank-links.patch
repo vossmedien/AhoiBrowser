@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/renderer_context_menu/render_view_context_menu.cc b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
-index 7d73fb3..aa1ff5d 100644
+index 0ea2ebf..cb13ac4 100644
 --- a/chrome/browser/renderer_context_menu/render_view_context_menu.cc
 +++ b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
-@@ -3785,9 +3785,17 @@ void RenderViewContextMenu::ExecuteCommand(int id, int event_flags) {
+@@ -3803,9 +3803,17 @@ void RenderViewContextMenu::ExecuteCommand(int id, int event_flags) {
    }
  
    switch (id) {
@@ -23,10 +23,10 @@ index 7d73fb3..aa1ff5d 100644
      case IDC_CONTENT_CONTEXT_OPENLINKNEWTAB: {
        WindowOpenDisposition new_tab_disposition =
 diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
-index 2471fbd..3cb8081 100644
+index c31e4c9..de5e736 100644
 --- a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
 +++ b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
-@@ -562,7 +562,8 @@ content::WebContents* BrowserWebContentsDelegate::OpenURLFromTab(
+@@ -558,7 +558,8 @@ content::WebContents* BrowserWebContentsDelegate::OpenURLFromTab(
                                     ui::PAGE_TRANSITION_LINK) &&
        browser_->GetProfile()->GetPrefs()->GetBoolean(
            ahoi::popup::kPeekOnShiftClickPref) &&
@@ -36,7 +36,7 @@ index 2471fbd..3cb8081 100644
      return nullptr;
    }
  
-@@ -759,6 +760,22 @@ content::WebContents* BrowserWebContentsDelegate::AddNewContents(
+@@ -755,6 +756,22 @@ content::WebContents* BrowserWebContentsDelegate::AddNewContents(
      }
    }
  
