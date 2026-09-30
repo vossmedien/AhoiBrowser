@@ -1,0 +1,93 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 81a337529c0ffca41873bb80b7ac4c77de6241e3..2c28f0c9e435ba8b687dd6f22cff1eda679d8619 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -188,6 +188,7 @@
+ #include "chrome/browser/ui/views/frame/browser_widget.h"
+ #include "chrome/browser/ui/views/frame/contents_container_view.h"
+ #include "chrome/browser/ui/views/frame/contents_separator.h"
++#include "chrome/browser/ui/views/frame/custom_corners_background.h"
+ #include "chrome/browser/ui/views/frame/custom_floating_corner.h"
+ #include "chrome/browser/ui/views/frame/horizontal_tab_strip_region_view.h"
+ #include "chrome/browser/ui/views/frame/layout/browser_view_layout.h"
+@@ -1290,7 +1291,41 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
+         std::make_unique<ahoi::NavigationSurfaceController>(
+             this, top_container_, toolbar_,
+             l10n_util::GetStringUTF16(IDS_AHOI_REVEAL_NAVIGATION),
+-            browser_->GetProfile()->GetPrefs());
++            browser_->GetProfile()->GetPrefs(),
++            base::BindRepeating(
++                [](base::WeakPtr<BrowserView> view,
++                   const ahoi::appearance::SurfaceAppearance& surface) {
++                  // Construction and teardown can lack widget ownership.
++                  // The controller replays its saved material after layout.
++                  if (!view || !view->toolbar_ || !view->GetWidget() ||
++                      !view->browser_widget() || view->IsFullscreen()) {
++                    return;
++                  }
++                  auto* const painter = view->toolbar_->background();
++                  auto* const background =
++                      painter ? painter->AsA<CustomCornersBackground>() : nullptr;
++                  if (!background) {
++                    // ToolbarView::Init has not installed its native painter
++                    // yet. NavigationSurfaceController retries after layout.
++                    return;
++                  }
++                  background->SetPrimaryColor(
++                      CustomCornersBackground::ColorChoiceWithAlpha(
++                          surface.background_color, surface.opacity));
++                  CustomCornersBackground::Corners corners;
++                  for (CornerOrientation corner : {
++                           CornerOrientation::kTopLeading,
++                           CornerOrientation::kTopTrailing,
++                           CornerOrientation::kBottomTrailing,
++                           CornerOrientation::kBottomLeading,
++                       }) {
++                    corners[corner].type =
++                        CustomCornersBackground::CornerType::kRounded;
++                    corners[corner].radius = surface.corner_radius;
++                  }
++                  background->SetCorners(corners);
++                },
++                weak_ptr_factory_.GetWeakPtr()));
+ 
+     vertical_tab_strip_top_corner_ =
+         AddChildView(std::make_unique<CustomFloatingCorner>(
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+index e0d26c9de41e22388d4cdbc0e046dcde6f0ab804..779939d3dd6636411d38970f3020ef4b0b59c29a 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -1450,10 +1450,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
+       if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {
+         // Preserve the toolbar's preferred height. The previous top inset
+         // achieved spacing by clipping the controls, which made the floating
+-        // surface cramped and its reveal animation appear to jump.
+-        toolbar_bounds.Inset(gfx::Insets::VH(
+-            0, ahoi::visual_style::kNavigationSurfaceHorizontalInset));
+-        toolbar_bounds.Offset(0, ahoi::visual_style::kNavigationSurfaceTopGap);
++        // surface cramped and its reveal animation appear to jump. The row
++        // floats inside the content card, inset from its edges, instead of
++        // sitting flush on the card's top edge.
++        toolbar_bounds.Inset(gfx::Insets::TLBR(
++            0,
++            ahoi::visual_style::NavigationSurfaceLeadingInset(
++                views()
++                    .vertical_tab_strip_region_view
++                    ->GetAhoiContentCardLeadingInsetForLayout()),
++            0, ahoi::visual_style::kNavigationSurfaceTrailingInset));
++        toolbar_bounds.Offset(0,
++                              ahoi::visual_style::kNavigationSurfaceTopInset);
+       }
+       params.SetTop(toolbar_bounds.bottom());
+       needs_exclusion = false;
+@@ -1805,7 +1813,9 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+   // Set toolbar corners.
+   CustomCornersBackground::Corners toolbar_corners;
+   if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {
+-    toolbar_background->SetPrimaryColor(ahoi::visual_style::kRaisedSurface);
++    // The navigation material callback updates this native painter after
++    // initialization/layout and on appearance changes. Do not replace its
++    // resolved alpha with an opaque color on every layout.
+     for (CornerOrientation corner : {
+              CornerOrientation::kTopLeading,
+              CornerOrientation::kTopTrailing,
