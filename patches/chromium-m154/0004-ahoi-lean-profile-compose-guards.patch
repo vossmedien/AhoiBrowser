@@ -1,0 +1,263 @@
+diff --git a/chrome/browser/glic/BUILD.gn b/chrome/browser/glic/BUILD.gn
+index 68a41caa43eb66d1467e7b653d259522dc346835..dc3d41c05ca8f90540adb3bc668098bf63396a49 100644
+--- a/chrome/browser/glic/BUILD.gn
++++ b/chrome/browser/glic/BUILD.gn
+@@ -5,6 +5,7 @@
+ import("//build/config/gclient_args.gni")
+ import("//build/config/ozone.gni")
+ import("//chrome/common/features.gni")
++import("//components/compose/features.gni")
+ import("//components/enterprise/buildflags/buildflags.gni")
+ import("//components/guest_view/buildflags/buildflags.gni")
+ import("//mojo/public/tools/bindings/mojom.gni")
+@@ -1066,7 +1067,6 @@ if (!is_android) {
+     defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+     sources = [
+       "glic_selection_observer_interactive_uitest.cc",
+-      "glic_settings_util_interactive_uitest.cc",
+       "glic_user_status_interactive_uitest.cc",
+       "host/glic_actor_attempt_form_filling_interactive_ui_test.cc",
+       "host/glic_actor_autofill_interactive_uitest.cc",
+@@ -1109,7 +1109,6 @@ if (!is_android) {
+       "//chrome/browser/actor:tools_test_support",
+       "//chrome/browser/autofill",
+       "//chrome/browser/background/glic",
+-      "//chrome/browser/compose",
+       "//chrome/browser/contextual_tasks:ui",
+       "//chrome/browser/devtools:test_support",
+       "//chrome/browser/download:test_support",
+@@ -1140,6 +1139,10 @@ if (!is_android) {
+       "//content/test:test_support",
+       "//ui/display:test_support",
+     ]
++    if (enable_compose) {
++      sources += [ "glic_settings_util_interactive_uitest.cc" ]
++      deps += [ "//chrome/browser/compose" ]
++    }
+     if (enable_pdf) {
+       deps += [
+         "//chrome/browser/pdf:pdf_extension_test_utils",
+diff --git a/chrome/browser/renderer_context_menu/BUILD.gn b/chrome/browser/renderer_context_menu/BUILD.gn
+index b4adeb3db0ea24fcb492217a999b509da4787ee6..0858bc653a7d4a7d108b5ad2369e38bb83291ce6 100644
+--- a/chrome/browser/renderer_context_menu/BUILD.gn
++++ b/chrome/browser/renderer_context_menu/BUILD.gn
+@@ -3,6 +3,7 @@
+ # found in the LICENSE file.
+ 
+ import("//components/spellcheck/spellcheck_build_features.gni")
++import("//components/compose/features.gni")
+ import("//extensions/buildflags/buildflags.gni")
+ import("//pdf/features.gni")
+ import("//printing/buildflags/buildflags.gni")
+@@ -119,7 +120,6 @@ source_set("impl") {
+       "//chrome/browser/apps/app_service",
+       "//chrome/browser/apps/platform_apps",
+       "//chrome/browser/autocomplete",
+-      "//chrome/browser/compose",
+       "//chrome/browser/context_hub",
+       "//chrome/browser/custom_handlers",
+       "//chrome/browser/devtools",
+@@ -189,6 +189,10 @@ source_set("impl") {
+       "//url",
+     ]
+ 
++    if (enable_compose) {
++      deps += [ "//chrome/browser/compose" ]
++    }
++
+     if (enable_print_preview) {
+       deps += [ "//chrome/browser/printing" ]
+     }
+@@ -274,10 +278,10 @@ static_library("test_support") {
+       "render_view_context_menu_test_util.cc",
+     ]
+     public_deps += [ "//extensions/buildflags" ]
+-    deps += [
+-      "//chrome/browser/compose",
+-      "//chrome/browser/indigo",
+-    ]
++    deps += [ "//chrome/browser/indigo" ]
++    if (enable_compose) {
++      deps += [ "//chrome/browser/compose" ]
++    }
+   }
+ 
+   if (is_chromeos) {
+@@ -379,7 +383,6 @@ if (!is_android) {
+       ":test_support",
+       "//base/test:test_support",
+       "//chrome/browser",
+-      "//chrome/browser/compose:test_support",
+       "//chrome/browser/context_hub",
+       "//chrome/browser/devtools",
+       "//chrome/browser/enterprise/data_controls:test_support",
+@@ -416,6 +419,10 @@ if (!is_android) {
+       "//url",
+     ]
+ 
++    if (enable_compose) {
++      deps += [ "//chrome/browser/compose:test_support" ]
++    }
++
+     if (is_linux || is_chromeos || is_win) {
+       sources += [
+         # This test is for the spelling options submenu that's only for
+diff --git a/chrome/browser/resources/pdf/pdf_viewer_wrapper.ts b/chrome/browser/resources/pdf/pdf_viewer_wrapper.ts
+index 1c4aaa1cfe12d3633828943dde411f0ae654a795..f3609dfc7c1c11c436cb6fc0470a86a67bd1804f 100644
+--- a/chrome/browser/resources/pdf/pdf_viewer_wrapper.ts
++++ b/chrome/browser/resources/pdf/pdf_viewer_wrapper.ts
+@@ -80,7 +80,7 @@ export type {NavigatorDelegate, PdfNavigator} from './navigator.js';
+ export {OpenPdfParamsParser, ViewMode} from './open_pdf_params_parser.js';
+ export {getFilenameFromURL, PdfViewerElement} from './pdf_viewer.js';
+ export {PdfViewerBaseElement} from './pdf_viewer_base.js';
+-// <if expr="enable_pdf_save_to_drive">
++// <if expr="enable_pdf_ink2 or enable_pdf_save_to_drive">
+ export {PdfViewerPrivateProxyImpl} from './pdf_viewer_private_proxy.js';
+ export type {PdfViewerPrivateProxy} from './pdf_viewer_private_proxy.js';
+ // </if>
+diff --git a/chrome/test/data/pdf/BUILD.gn b/chrome/test/data/pdf/BUILD.gn
+index 82600d3031002f75fbbf577b80f34aa1c783ffdc..e39909383ecafc9a05ccfc84b22e0197a23d3eb4 100644
+--- a/chrome/test/data/pdf/BUILD.gn
++++ b/chrome/test/data/pdf/BUILD.gn
+@@ -108,12 +108,14 @@ build_webui_tests("build") {
+       "save_to_drive_bubble_test.ts",
+       "save_to_drive_controls_test.ts",
+       "save_to_drive_test.ts",
+-      "test_pdf_viewer_private_proxy.ts",
+     ]
+   }
+ 
+   if (enable_pdf_ink2 || enable_pdf_save_to_drive) {
+-    files += [ "test_before_unload_proxy.ts" ]
++    files += [
++      "test_before_unload_proxy.ts",
++      "test_pdf_viewer_private_proxy.ts",
++    ]
+   }
+ 
+   if (is_chromeos) {
+diff --git a/chrome/test/data/pdf/ink2_save_test.ts b/chrome/test/data/pdf/ink2_save_test.ts
+index b4ec8e1c2f9da2587b3a318ff1674cee7e215424..a6a60dd16e2a74ba90fdb07dff96976b8bfaeeca 100644
+--- a/chrome/test/data/pdf/ink2_save_test.ts
++++ b/chrome/test/data/pdf/ink2_save_test.ts
+@@ -8,7 +8,9 @@ import {loadTimeData} from 'chrome://resources/js/load_time_data.js';
+ import {eventToPromise, isVisible, microtasksFinished} from 'chrome://webui-test/test_util.js';
+ 
+ import {getNewTestBeforeUnloadProxy} from './test_before_unload_proxy.js';
++// <if expr="enable_pdf_save_to_drive">
+ import {setUpTestPdfViewerPrivateProxy} from './test_pdf_viewer_private_proxy.js';
++// </if>
+ import {createTextBox, getRequiredElement, getTextBox, setupMockMetricsPrivate, setupTestMockPluginForInk, startFinishModifiedInkStroke} from './test_util.js';
+ 
+ const viewer = document.body.querySelector('pdf-viewer')!;
+diff --git a/chrome/test/data/pdf/test_pdf_viewer_private_proxy.ts b/chrome/test/data/pdf/test_pdf_viewer_private_proxy.ts
+index e1e5a65cfdfad6202735fa9d8e47f75846b35658..47b3cd39076a1c27e3bda19ee71638366024ba82 100644
+--- a/chrome/test/data/pdf/test_pdf_viewer_private_proxy.ts
++++ b/chrome/test/data/pdf/test_pdf_viewer_private_proxy.ts
+@@ -4,31 +4,46 @@
+ 
+ import 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
+ 
+-import type {PdfViewerElement, PdfViewerPrivateProxy} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
++import type {PdfViewerPrivateProxy} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
++// <if expr="enable_pdf_save_to_drive">
+ import {PdfViewerPrivateProxyImpl} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
++import type {PdfViewerElement} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
+ import {FakeChromeEvent} from 'chrome://webui-test/fake_chrome_event.js';
++// </if>
+ import {TestBrowserProxy} from 'chrome://webui-test/test_browser_proxy.js';
+ 
++// <if expr="enable_pdf_save_to_drive">
+ const SaveToDriveStatus = chrome.pdfViewerPrivate.SaveToDriveStatus;
+ const SaveToDriveErrorType = chrome.pdfViewerPrivate.SaveToDriveErrorType;
++// </if>
+ 
+ export class TestPdfViewerPrivateProxy extends TestBrowserProxy implements
+     PdfViewerPrivateProxy {
++  // <if expr="enable_pdf_save_to_drive">
+   onSaveToDriveProgress: FakeChromeEvent;
+   private streamUrl_: string = '';
++  // </if>
++  // <if expr="enable_pdf_ink2">
+   private getTextInfoResult_: chrome.pdfViewerPrivate.GetTextInfoResult = {
+     typefaces: [],
+     mojoTextInfo: new ArrayBuffer(0),
+   };
++  // </if>
+ 
+   constructor() {
+     super([
++      // <if expr="enable_pdf_ink2">
+       'getTextInfo',
++      // </if>
++      // <if expr="enable_pdf_save_to_drive">
+       'saveToDrive',
++      // </if>
+       'setPdfDocumentTitle',
+     ]);
+ 
++    // <if expr="enable_pdf_save_to_drive">
+     this.onSaveToDriveProgress = new FakeChromeEvent();
++    // </if>
+   }
+ 
+ 
+@@ -48,6 +63,11 @@ export class TestPdfViewerPrivateProxy extends TestBrowserProxy implements
+     this.methodCalled('glicSummarize');
+   }
+ 
++  setPdfDocumentTitle(title: string): void {
++    this.methodCalled('setPdfDocumentTitle', title);
++  }
++
++  // <if expr="enable_pdf_save_to_drive">
+   sendSaveToDriveProgress(
+       progress: chrome.pdfViewerPrivate.SaveToDriveProgress): void {
+     this.onSaveToDriveProgress.callListeners(this.streamUrl_, progress);
+@@ -57,10 +77,6 @@ export class TestPdfViewerPrivateProxy extends TestBrowserProxy implements
+     this.methodCalled('saveToDrive', saveRequestType);
+   }
+ 
+-  setPdfDocumentTitle(title: string): void {
+-    this.methodCalled('setPdfDocumentTitle', title);
+-  }
+-
+   setStreamUrl(streamUrl: string): void {
+     this.streamUrl_ = streamUrl;
+   }
+@@ -108,8 +124,10 @@ export class TestPdfViewerPrivateProxy extends TestBrowserProxy implements
+       errorType: SaveToDriveErrorType.NO_ERROR,
+     });
+   }
++  // </if>
+ }
+ 
++// <if expr="enable_pdf_save_to_drive">
+ export function setUpTestPdfViewerPrivateProxy(viewer: PdfViewerElement):
+     TestPdfViewerPrivateProxy {
+   const privateProxy = new TestPdfViewerPrivateProxy();
+@@ -118,3 +136,4 @@ export function setUpTestPdfViewerPrivateProxy(viewer: PdfViewerElement):
+   viewer.setOnSaveToDriveProgressListenerForTesting();
+   return privateProxy;
+ }
++// </if>
+diff --git a/chrome/test/data/pdf/test_util.ts b/chrome/test/data/pdf/test_util.ts
+index d9bbdc6cac92991d3a7962d428e8a2bc6c572c71..96777bfb6ff7352653e860e0a6cfa186d29dbad0 100644
+--- a/chrome/test/data/pdf/test_util.ts
++++ b/chrome/test/data/pdf/test_util.ts
+@@ -8,13 +8,13 @@
+ import './test_bookmarks.js';
+ 
+ import type {DocumentDimensions, LayoutOptions, PdfViewerElement, SaveMessage, ViewerToolbarElement, TextAnnotation} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
+-import {PostMessageDataType, resetForTesting as resetMetricsForTesting, UserAction, Viewport} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
++import {resetForTesting as resetMetricsForTesting, UserAction, Viewport} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
+ // <if expr="enable_pdf_ink2">
+ import type {AnnotationBrush, AnnotationBrushMessage, InkBrushSelectorElement, InkColorSelectorElement, InkSizeSelectorElement, SelectableIconButtonElement, ViewerBottomToolbarDropdownElement, InkTextBoxElement, InkTextAnnotationsElement} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
+ import {AnnotationBrushType, DEFAULT_TEXTBOX_WIDTH, MIN_TEXTBOX_SIZE_PX, hexToColor, Ink2Manager, TEXT_COLORS, TextAlignment, PluginController, PluginControllerEventType, TextTypeface} from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
+ // </if>
+ // <if expr="enable_pdf_save_to_drive">
+-import {SaveToDriveBubbleAction, SaveToDriveBubbleState, SaveToDriveSaveType } from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
++import {PostMessageDataType, SaveToDriveBubbleAction, SaveToDriveBubbleState, SaveToDriveSaveType } from 'chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js';
+ 
+ // </if>
+ import type {TestBookmarksElement} from './test_bookmarks.js';
