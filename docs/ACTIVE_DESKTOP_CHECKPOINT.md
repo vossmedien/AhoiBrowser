@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## M154 roll: candidate bound, patch stack rebased (source only) — 30 September 2026, 11:45 CEST
+
+- **Candidate:** `154.0.8037.93` = `f89f3a4363808e117c592adedcf9947882ac3b79`,
+  the only pinnable, fully rolled Mac ARM64 Stable record (Dash,
+  VersionHistory and the Gitiles tag agree). `promote-candidate` wrote
+  `config/upstream-roll-candidate.json`; `config/chromium.json` still pins
+  M153. The filtered tag fetch and `hydrate` only added objects to
+  `.work/chromium/src` (HEAD/index/worktree unchanged, under `build.lock`).
+- **Preflight of the M153 stack on M154:** 22 apply, 62 conflict (most of
+  them follow-on conflicts of 0001 and the shared string files); overlay
+  collisions 22 as on M153.
+- **Rebased:** all 84 patches, one commit each, in the isolated sparse
+  repository `.work/chromium-m154-rebase` (branch `m154`). The result is
+  staged in `patches/chromium-m154/` (83 patches, 0018 folded into 0013; no
+  build reads it). It applies in series order with
+  `--whitespace=error-all` on the M154 base and, with the overlay, through
+  `compose_overlay.py` on the full M154 index. 19 patches changed content
+  (M154's `BrowserWindowInterface` migration, Lit import dialog, glass
+  frame with an opaque background view, upstream's own GPC setting,
+  regenerated 0071/0073); dispositions and the overlay compatibility list
+  are in `patches/chromium-m154/README.md`.
+- **Open before the first M154 build:** overlay
+  `quick_window_chromium.cc` still calls the removed
+  `GetBrowserForMigrationOnly()` (3×); repin `upstreamCommit` in
+  `config/dependency-build-workarounds.json` (both target files are
+  byte-identical on M154); full `--prehydrate-target`, dependency sync and
+  hooks; then the upstream control build and the Ahoi build. Nothing was
+  compiled; expect a few compile-fix rounds in the 105 changed headers
+  the overlay includes.
+
 ## Builds 51–53, real Arc import done — 29 September 2026, 23:55 CEST
 
 - **Builds:** 51 `47a37617`, 52 `cf57973d`, 53 `efb78511` installed; all
