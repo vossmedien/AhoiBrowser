@@ -34,9 +34,7 @@ const gfx::ImageSkia& CachedTabThumbnail::image() const {
 void CachedTabThumbnail::ObserveImpl(tabs::TabInterface* tab,
                                      bool force_refresh) {
   ThumbnailTabHelper* helper =
-      tab && tab->GetContents()
-          ? ThumbnailTabHelper::FromWebContents(tab->GetContents())
-          : nullptr;
+      tab && tab->GetContents() ? ThumbnailTabHelper::From(tab) : nullptr;
   scoped_refptr<ThumbnailImage> thumbnail =
       helper ? helper->thumbnail() : nullptr;
   if (thumbnail == thumbnail_ && subscription_ && !force_refresh) {

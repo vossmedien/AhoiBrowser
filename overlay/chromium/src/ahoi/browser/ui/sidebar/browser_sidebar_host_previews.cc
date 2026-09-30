@@ -108,7 +108,7 @@ void BrowserSidebarHostView::OnRuntimeTabHoverChanged(
         continue;
       }
       if (ThumbnailTabHelper* helper =
-              ThumbnailTabHelper::FromWebContents(preview_tab->GetContents())) {
+              ThumbnailTabHelper::From(preview_tab)) {
         // Capture the already-visible renderer surface on demand. This does
         // not activate, navigate or materialize a closed saved tab.
         helper->CaptureThumbnailOnTabBackgrounded();
@@ -138,7 +138,7 @@ void BrowserSidebarHostView::OnSavedPageHoverChanged(const base::Uuid& node_id,
             cached->second->image().size().IsEmpty();
         if (needs_thumbnail) {
           if (ThumbnailTabHelper* helper =
-                  ThumbnailTabHelper::FromWebContents(contents)) {
+                  ThumbnailTabHelper::From(live_tab)) {
             helper->CaptureThumbnailOnTabBackgrounded();
           }
         }
