@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_menu_presence.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
@@ -200,9 +201,13 @@ class RemoteTabRowView final : public views::Button,
     menu_runner_ = std::make_unique<views::MenuRunner>(
         menu_model_.get(),
         views::MenuRunner::HAS_MNEMONICS | views::MenuRunner::CONTEXT_MENU);
-    menu_runner_->RunMenuAt(GetWidget(), nullptr,
-                            gfx::Rect(screen_point, gfx::Size()),
-                            views::MenuAnchorPosition::kTopLeft, source_type);
+    {
+      // The context menu runs nested; the row is its anchor inside the host.
+      const ScopedSidebarMenu showing(this);
+      menu_runner_->RunMenuAt(GetWidget(), nullptr,
+                              gfx::Rect(screen_point, gfx::Size()),
+                              views::MenuAnchorPosition::kTopLeft, source_type);
+    }
     menu_runner_.reset();
     menu_model_.reset();
   }

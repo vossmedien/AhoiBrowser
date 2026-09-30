@@ -6,8 +6,10 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <vector>
 
+#include "ahoi/browser/ui/sidebar/sidebar_menu_presence.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -62,6 +64,8 @@ class SidebarBookmarkContextMenu final : public BookmarkContextMenuObserver {
   views::ViewTracker source_;
   base::RepeatingClosure closed_callback_;
   std::unique_ptr<BookmarkContextMenu> menu_;
+  // Present while the menu shows; keeps an edge-revealed sidebar open.
+  std::optional<ScopedSidebarMenu> showing_;
   base::ScopedObservation<BookmarkContextMenu, BookmarkContextMenuObserver>
       observation_{this};
   base::WeakPtrFactory<SidebarBookmarkContextMenu> weak_ptr_factory_{this};

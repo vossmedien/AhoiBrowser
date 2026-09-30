@@ -44,6 +44,7 @@ SidebarBookmarkContextMenu::SidebarBookmarkContextMenu(
 SidebarBookmarkContextMenu::~SidebarBookmarkContextMenu() {
   weak_ptr_factory_.InvalidateWeakPtrs();
   observation_.Reset();
+  showing_.reset();
   menu_.reset();
 }
 
@@ -110,6 +111,7 @@ void SidebarBookmarkContextMenu::ClipboardChecked(
       /*close_on_remove=*/true, can_paste);
   observation_.Observe(menu_.get());
   HideStockBookmarkBarOptions(menu_->menu());
+  showing_.emplace(source_.view());
   menu_->RunMenuAt(point, source_type);
 }
 
@@ -121,6 +123,7 @@ void SidebarBookmarkContextMenu::DidRemoveBookmarks() {}
 
 void SidebarBookmarkContextMenu::OnContextMenuClosed() {
   observation_.Reset();
+  showing_.reset();
   if (closed_callback_) {
     // The shelf defers destruction until the native command stack unwinds.
     std::exchange(closed_callback_, {}).Run();

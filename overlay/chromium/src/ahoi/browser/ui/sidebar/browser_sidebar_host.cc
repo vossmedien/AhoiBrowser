@@ -22,6 +22,7 @@
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+#include "ahoi/browser/ui/sidebar/sidebar_menu_presence.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
@@ -322,8 +323,11 @@ bool IsBrowserSidebarMenuRunning(views::View* sidebar_host) {
   if (!host) {
     return false;
   }
+  // The host's own context menus run through its runner; the bookmark
+  // shelf, bookmark context and remote-tab menus register a presence token
+  // anchored inside the host.
   views::MenuRunner* const runner = BrowserSidebarHostMenuAccess::Runner(*host);
-  return runner && runner->IsRunning();
+  return (runner && runner->IsRunning()) || IsSidebarMenuShowingWithin(host);
 }
 
 void SetBrowserSidebarContextMenuRunnerForTesting(

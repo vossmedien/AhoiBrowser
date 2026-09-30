@@ -95,6 +95,7 @@ void SidebarBookmarkMenu::RunAt(views::View* anchor, const ui::Event& event) {
   // when opened. Views supplies the standard empty-folder item.
   runner_ = std::make_unique<views::MenuRunner>(std::move(menu),
                                                 views::MenuRunner::NO_FLAGS);
+  showing_.emplace(anchor);
   runner_->RunMenuAt(anchor->GetWidget(), /*button_controller=*/nullptr,
                      anchor->GetBoundsInScreen(),
                      views::MenuAnchorPosition::kTopLeft,
@@ -104,6 +105,7 @@ void SidebarBookmarkMenu::RunAt(views::View* anchor, const ui::Event& event) {
 
 void SidebarBookmarkMenu::Cancel() {
   cancelled_ = true;
+  showing_.reset();
   if (runner_) {
     runner_->Cancel();
   }
@@ -217,6 +219,7 @@ bool SidebarBookmarkMenu::ShouldTryPositioningBesideAnchor() const {
 
 void SidebarBookmarkMenu::OnMenuClosed(views::MenuItemView* menu) {
   cancelled_ = true;
+  showing_.reset();
   if (closed_callback_) {
     std::exchange(closed_callback_, {}).Run();
   }

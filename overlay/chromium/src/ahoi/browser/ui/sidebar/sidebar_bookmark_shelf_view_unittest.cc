@@ -9,6 +9,7 @@
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host.h"
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_context_menu.h"
 #include "ahoi/browser/ui/sidebar/sidebar_bookmark_menu.h"
+#include "ahoi/browser/ui/sidebar/sidebar_menu_presence.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
@@ -359,6 +360,7 @@ TEST_F(SidebarBookmarkShelfViewTest, NativeContextActionCanDeleteItsOwnButton) {
                                  ui::mojom::MenuSourceType::kMouse);
   ASSERT_TRUE(base::test::RunUntil([&] { return opened; }));
   ASSERT_TRUE(shelf_->context_menu_for_testing());
+  EXPECT_TRUE(IsSidebarMenuShowingWithin(host_));
   auto* menu = shelf_->context_menu_for_testing()->native_menu_for_testing();
   ASSERT_TRUE(menu);
   EXPECT_TRUE(menu->IsCommandEnabled(IDC_BOOKMARK_BAR_REMOVE));
@@ -389,6 +391,7 @@ TEST_F(SidebarBookmarkShelfViewTest,
   ASSERT_TRUE(shelf_->folder_menu_for_testing());
   auto* folder_menu = shelf_->folder_menu_for_testing();
   ASSERT_TRUE(folder_menu->menu_for_testing());
+  EXPECT_TRUE(IsSidebarMenuShowingWithin(host_));
   auto items = folder_menu->menu_for_testing()->GetSubmenu()->GetMenuItems();
   ASSERT_FALSE(items.empty());
   auto* child = items.front();
@@ -435,6 +438,7 @@ TEST_F(SidebarBookmarkShelfViewTest,
 
   ASSERT_TRUE(base::test::RunUntil([&] { return closed; }));
   EXPECT_EQ(nullptr, context.native_menu_for_testing());
+  EXPECT_FALSE(IsSidebarMenuShowingWithin(host_));
 }
 
 }  // namespace

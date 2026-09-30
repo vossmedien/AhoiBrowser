@@ -168,10 +168,12 @@ bool IsBrowserSidebarDragActive(views::View* sidebar_host);
 void SetBrowserSidebarDragRoutingActive(views::View* sidebar_host, bool active);
 bool IsAnyBrowserSidebarDragActive();
 
-// Returns whether a context menu opened from this host is still showing. An
-// edge-revealed hidden sidebar stays open underneath it: the menu may extend
-// past the sidebar, so the pointer over the menu is not a reason to retract.
-// Callers that poll this re-check after the menu has closed.
+// Returns whether any menu opened from this host is still showing: its own
+// context menus and every menu anchored inside it that holds a
+// ScopedSidebarMenu (bookmark folder and bookmark context menus, remote-tab
+// menu). An edge-revealed hidden sidebar stays open underneath it: the menu
+// may extend past the sidebar, so the pointer over the menu is not a reason
+// to retract. Callers that poll this re-check after the menu has closed.
 bool IsBrowserSidebarMenuRunning(views::View* sidebar_host);
 
 // Test seam: installs `runner` as the host's context menu runner, as the

@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 
+#include "ahoi/browser/ui/sidebar/sidebar_menu_presence.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -77,6 +78,8 @@ class SidebarBookmarkMenu final : public views::MenuDelegate {
   // Cancel stops dispatch, then releases the native delegate's borrowed
   // references before releasing the menu views owned by the runner.
   std::unique_ptr<views::MenuRunner> runner_;
+  // Present while the menu shows; keeps an edge-revealed sidebar open.
+  std::optional<ScopedSidebarMenu> showing_;
   raw_ptr<views::MenuItemView> open_all_item_ = nullptr;
   bool cancelled_ = false;
   views::ViewTracker anchor_;
