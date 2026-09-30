@@ -38,7 +38,8 @@ std::unique_ptr<TemplateURLData> BuiltinData(int prepopulate_id) {
   // supplied by a peer. Only the choice identifier crosses the sync boundary.
   const auto* engine =
       TemplateURLPrepopulateData::GetPrepopulatedEngineFromBuiltInData(
-          prepopulate_id, {});
+          prepopulate_id, /*regional_prepopulated_engines=*/{},
+          /*regional_variants=*/{});
   return engine ? TemplateURLDataFromPrepopulatedEngine(*engine) : nullptr;
 }
 
