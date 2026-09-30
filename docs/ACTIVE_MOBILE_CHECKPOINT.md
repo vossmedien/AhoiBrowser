@@ -2,6 +2,30 @@
 
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
+## ADR 0012 visible checks on the simulator — 30 September 2026
+
+XCUITests on source `9e493762`, own simulator "Ahoi E2E iPhone 17 ADR12"
+(iOS 27.0), no physical device
+([evidence](../artifacts/computer-use/mobile/adr0012-visible-20260930/README.md)).
+Final run 8 tests: 7 passed, 1 expected failure; `AhoiMobileCoreTests`
+387 tests, 0 failures.
+
+- **MOB-FLICK-01: PASS**, except the web view edge swipe. Last-used tab and
+  back, fixed order within a flick sequence, the neighbor preview while
+  the finger is down, and page history intact (Back works). The edge swipe
+  is **OPEN**: XCUI's edge drag pops a library NavigationStack, but WebKit
+  cancels its back swipe. A device check has to decide whether this is a
+  product or a synthesized-touch limit.
+- **MOB-FLICK-02: PARTIAL.** No flick with one tab: PASS. VoiceOver reaches
+  the address control and offers "Vorheriger Tab"/"Nächster Tab". XCUI
+  can't perform the chosen action through VoiceOver on the simulator.
+- **WS-MERGE-07 (merge, one-level undo): PASS.**
+- **MOB-EXT-01 (spike): PASS.** The content script is injected, the
+  `declarativeNetRequest` rule blocks while a control loads, storage counts
+  across loads, and nothing runs without `-AhoiWebExtensionSpike`.
+- **Fixed:** each flick also opened the address editor, and the ADR's drag
+  preview was missing (unit tests in `MobileRecentTabCyclerTests`).
+
 ## iPhone announces shared-normal-tabs-v3 and gates its tab writes — 29 September 2026
 
 Owner-authorized mobile-lane session; commit `2658cfe8` on branch `mobile/ios-shared-tab-capability` in the
