@@ -196,7 +196,7 @@ TEST_F(SessionBridgeTest, BindingFollowsDiscardAndNativeWindowMove) {
   EXPECT_EQ(tab, bridge_->FindTabByTreeNodeId(node.id));
 
   BrowserWindowCreateParams params(profile(), /*from_user_gesture=*/true);
-  std::unique_ptr<Browser> second_browser =
+  std::unique_ptr<BrowserWindowInterface> second_browser =
       CreateBrowserWithTestWindowForParams(std::move(params));
   ASSERT_TRUE(second_browser);
   ASSERT_EQ(2u, bridge_->tracked_window_count());
