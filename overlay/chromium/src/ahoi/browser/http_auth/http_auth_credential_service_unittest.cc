@@ -60,7 +60,7 @@ password_manager::StoredCredential MakeStoredCredential(
   form.signon_realm = protection_space.SignonRealm();
   form.url = protection_space.OriginUrl();
   form.username_value = std::move(username);
-  form.password_value = std::move(password);
+  form.password_value = password_manager::PasswordString(std::move(password));
   form.date_last_used = last_used;
   return password_manager::FromPasswordForm(std::move(form));
 }
