@@ -1,0 +1,24 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index c5355f0..02fa46f 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -21115,6 +21115,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
+     <message name="IDS_AHOI_DEVELOPER_CLEAR_SITE_CACHE" desc="Action that clears cached resources only for the current site origin." meaning="AhoiBrowser developer toolkit">
+       Clear site cache
+     </message>
++    <message name="IDS_AHOI_DEVELOPER_HARD_RELOAD" desc="Action that reloads the current page without using cached files." meaning="AhoiBrowser developer toolkit">
++      Reload without cache
++    </message>
+     <message name="IDS_AHOI_DEVELOPER_CLEAR_SITE_DATA" desc="Action that deletes cookies and storage only for the current site origin." meaning="AhoiBrowser developer toolkit">
+       Delete site data
+     </message>
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index aa5f377..47e7108 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11301,4 +11301,5 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="8940806682482998749">Passwörter bleiben im verschlüsselten Passwortspeicher von Chromium. Zum Anzeigen, Kopieren oder Ändern von Zugangsdaten ist die macOS-Systemauthentifizierung erforderlich. Geheimnisse werden nie exportiert, protokolliert, ins NetLog aufgenommen oder über AhoiBrowser oder CloudKit synchronisiert.</translation>
+ <translation id="4772486138467656777">Passwort anzeigen</translation>
+ <translation id="4156509787962966072">Adressleiste einblenden</translation>
++<translation id="6205724696772443279">Ohne Cache neu laden</translation>
+ </translationbundle>
