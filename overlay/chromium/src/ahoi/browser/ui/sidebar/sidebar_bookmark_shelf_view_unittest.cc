@@ -407,7 +407,12 @@ TEST_F(SidebarBookmarkShelfViewTest,
       child, child->GetCommand(), button->GetBoundsInScreen().CenterPoint(),
       ui::mojom::MenuSourceType::kKeyboard));
   ASSERT_TRUE(base::test::RunUntil([&] { return prepared; }));
-  folder_menu->Cancel();
+  // The shelf may already have released the folder menu while the context
+  // menu ran; cancel only the one it still owns (build 55: a stale pointer
+  // crashed intermittently in Cancel()).
+  if (auto* open_menu = shelf_->folder_menu_for_testing()) {
+    open_menu->Cancel();
+  }
   RunPendingModelUpdates();
 }
 
