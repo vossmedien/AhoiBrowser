@@ -46,6 +46,14 @@ bool SetPresentationMode(PrefService* prefs, SidebarPresentationMode mode);
 
 SidebarPresentationMode GetVisibleModeBeforeHidden(const PrefService& prefs);
 
+// ADR 0011 WS-ISO-04: a hand-over to another Profile's window carries the
+// source window's presentation. Stores `mode` and the visible mode a hidden
+// sidebar restores to (`before_hidden`, docked or floating) in `to`; false
+// when `to` cannot take them.
+bool AdoptPresentation(PrefService* to,
+                       SidebarPresentationMode mode,
+                       SidebarPresentationMode before_hidden);
+
 bool IsMiniPlayerExpanded(const PrefService& prefs);
 bool SetMiniPlayerExpanded(PrefService* prefs, bool expanded);
 

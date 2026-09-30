@@ -6,17 +6,22 @@
 // calm drop card for its Workspace. Its rows cannot take the item (their
 // tree lives in another Profile), so the card covers them for the drag and
 // says what a drop means before the confirmation says it in full.
+// WS-ISO-04: the same live sidebars carry the sidebar presentation into the
+// window a hand-over between Profiles presents.
 
 #include <memory>
 #include <optional>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/session/isolated_workspace_directory.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
+#include "ahoi/browser/ui/sidebar/sidebar_presentation_state.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
@@ -27,6 +32,8 @@
 #include "cc/paint/paint_flags.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+#include "chrome/browser/ui/views/frame/browser_view.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/dragdrop/drag_drop_types.h"
@@ -184,6 +191,13 @@ void TrackBrowserSidebarHostForCrossLevelDrop(BrowserSidebarHostView* host,
                                               bool live) {
   if (live) {
     LiveHosts().insert(host);
+    // The first live sidebar installs the process-wide hand-over hook.
+    static bool hand_over_hook_installed = false;
+    if (!hand_over_hook_installed) {
+      hand_over_hook_installed = true;
+      session::SetHandOverPresentationHook(
+          base::BindRepeating(&HandOverBrowserSidebarPresentation));
+    }
     return;
   }
   LiveHosts().erase(host);
@@ -198,6 +212,40 @@ void UpdateBrowserSidebarCrossLevelDropTargets(
       host->SetCrossLevelDropSource(source);
     }
   }
+}
+
+void HandOverBrowserSidebarPresentation(BrowserWindowInterface* source,
+                                        BrowserWindowInterface* target) {
+  if (!source || !target || source == target ||
+      source->GetProfile() == target->GetProfile()) {
+    return;
+  }
+  BrowserView* const source_view =
+      BrowserView::GetBrowserViewForBrowser(source);
+  BrowserSidebarHostView* target_host = nullptr;
+  for (BrowserSidebarHostView* host : LiveHosts()) {
+    if (static_cast<BrowserWindowInterface*>(host->browser_.get()) ==
+        target) {
+      target_host = host;
+      break;
+    }
+  }
+  if (!source_view || !source_view->IsAhoiBrowserSurface() || !target_host) {
+    return;
+  }
+  const SidebarPresentationMode mode =
+      source_view->GetAhoiSidebarPresentationMode();
+  const SidebarPresentationMode before_hidden =
+      GetVisibleModeBeforeHidden(*source->GetProfile()->GetPrefs());
+  BrowserView* const target_view =
+      BrowserView::GetBrowserViewForBrowser(target);
+  if (target_view && target_view->GetAhoiSidebarPresentationMode() != mode) {
+    // Applies the mode to the window and its header toggles.
+    std::ignore = target_host->SetSidebarPresentationMode(mode);
+  }
+  // Afterwards, since hiding records the target's own visible mode.
+  std::ignore = AdoptPresentation(target->GetProfile()->GetPrefs(), mode,
+                                  before_hidden);
 }
 
 void BrowserSidebarHostView::SetCrossLevelDropSource(

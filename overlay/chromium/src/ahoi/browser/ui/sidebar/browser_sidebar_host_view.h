@@ -114,6 +114,10 @@ void TrackBrowserSidebarHostForCrossLevelDrop(BrowserSidebarHostView* host,
                                               bool live);
 // Arms those of another Profile than `source`'s drag; nullptr disarms.
 void UpdateBrowserSidebarCrossLevelDropTargets(BrowserSidebarHostView* source);
+// WS-ISO-04: `target`'s sidebar takes `source`'s presentation in a
+// hand-over between Profiles (session::SetHandOverPresentationHook).
+void HandOverBrowserSidebarPresentation(BrowserWindowInterface* source,
+                                        BrowserWindowInterface* target);
 
 class BrowserSidebarHostView final
     : public views::View,
@@ -567,6 +571,8 @@ class BrowserSidebarHostView final
       BrowserSidebarHostView*, bool);
   friend void UpdateBrowserSidebarCrossLevelDropTargets(
       BrowserSidebarHostView*);
+  friend void HandOverBrowserSidebarPresentation(BrowserWindowInterface*,
+                                                 BrowserWindowInterface*);
   void SetCrossLevelDropSource(BrowserSidebarHostView* source);
   void AcceptCrossLevelDrop();
   // ui::SimpleMenuModel::Delegate:

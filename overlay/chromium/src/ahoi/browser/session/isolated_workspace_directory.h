@@ -59,6 +59,14 @@ void PresentProfileWindow(
     BrowserWindowInterface* source,
     base::OnceCallback<void(BrowserWindowInterface*)> done);
 
+// Runs in every hand-over once `target` has `source`'s frame and before it
+// is shown, so the sidebar can carry its presentation over (WS-ISO-04). One
+// hook for the process; the sidebar installs it. A null hook clears it.
+using HandOverPresentationHook =
+    base::RepeatingCallback<void(BrowserWindowInterface* source,
+                                 BrowserWindowInterface* target)>;
+void SetHandOverPresentationHook(HandOverPresentationHook hook);
+
 // After a restart session restore shows every window again. Called once per
 // Profile after its restore: when the last hand-over presented another
 // Profile whose window is visible, this Profile's windows in that frame are

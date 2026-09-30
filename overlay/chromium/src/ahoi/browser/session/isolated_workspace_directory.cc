@@ -203,6 +203,11 @@ class HandOverWatch {
 };
 
 
+HandOverPresentationHook& PresentationHook() {
+  static base::NoDestructor<HandOverPresentationHook> hook;
+  return *hook;
+}
+
 struct SourceFrame {
   SessionID id = SessionID::InvalidValue();
   gfx::Rect bounds;
@@ -246,6 +251,11 @@ void FinishHandOver(SourceFrame frame,
     if (frame.maximized) {
       target_window->Maximize();
     }
+  }
+  // Before Show(), so the target never appears with its own sidebar state
+  // first (WS-ISO-04).
+  if (source && PresentationHook()) {
+    PresentationHook().Run(source, target);
   }
   // Show() makes a hidden window visible again and activates it.
   target_window->Show();
@@ -400,6 +410,10 @@ void FinishOpening(base::FilePath path,
 }
 
 }  // namespace
+
+void SetHandOverPresentationHook(HandOverPresentationHook hook) {
+  PresentationHook() = std::move(hook);
+}
 
 void PresentProfileWindow(
     Profile* target,

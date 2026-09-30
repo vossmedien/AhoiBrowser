@@ -77,6 +77,25 @@ bool SetPresentationMode(PrefService* prefs, SidebarPresentationMode mode) {
   return true;
 }
 
+bool AdoptPresentation(PrefService* to,
+                       SidebarPresentationMode mode,
+                       SidebarPresentationMode before_hidden) {
+  if (!to || !to->FindPreference(kSidebarPresentationModePref) ||
+      !to->FindPreference(kSidebarPresentationModeBeforeHiddenPref) ||
+      to->IsManagedPreference(kSidebarPresentationModePref) ||
+      !ModeFromInt(static_cast<int>(mode)).has_value()) {
+    return false;
+  }
+  const SidebarPresentationMode restore =
+      before_hidden == SidebarPresentationMode::kFloating
+          ? SidebarPresentationMode::kFloating
+          : SidebarPresentationMode::kDocked;
+  to->SetInteger(kSidebarPresentationModeBeforeHiddenPref,
+                 static_cast<int>(restore));
+  to->SetInteger(kSidebarPresentationModePref, static_cast<int>(mode));
+  return true;
+}
+
 bool IsVisible(SidebarPresentationMode mode) {
   return mode != SidebarPresentationMode::kHidden;
 }
