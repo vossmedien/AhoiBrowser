@@ -40,19 +40,19 @@
     }
   },
   "buildTools": {
-    "gnRevision": "e8a8e0932a5e42a99e5896aa58e3b8290f4e5b8c",
-    "gnVersionOutput": "2517 (e8a8e0932a5e)",
-    "gnBinarySha256": "327d0a225e4d1c67dd528683bd60d6165dd9a0241345b864ea0c9f99c4fd8019",
+    "gnRevision": "150a9d6ba0aa7f407aa4feeabc5f03ce9aa7e04b",
+    "gnVersionOutput": "2540 (150a9d6ba0aa)",
+    "gnBinarySha256": "3b61815967f587b25bfef1faf7e786c041a82e6e597974071829e8ee513169e6",
     "ninjaVersion": "version:3@1.12.1.chromium.4",
     "ninjaVersionOutput": "1.12.1",
     "ninjaBinarySha256": "6c03e94e3ee141301a7e5151227508ac8cec05c12d79ed9240062a86a0e2d14f",
-    "sisoRevision": "bc45e8f67ae0f37d337190ad64aa8bb440c791eb",
-    "clangPackage": "llvmorg-24-init-3796-g20e97c4b-2",
-    "clangVersionLine": "clang version 24.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 20e97c4b113b79586c29ac57738548939a34d22e)",
-    "clangArchiveSha256": "50946ba4d9fef901a4a5f7cbf3893103ef4c82c569d088082f5497c7ae038515",
-    "clangBinarySha256": "70efde6fd29b79dd209f99a1007fffadf9fb780d5650e2d0d693fd5fb196fbfc",
-    "lldVersionLine": "LLD 24.0.0 (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 20e97c4b113b79586c29ac57738548939a34d22e)",
-    "lldBinarySha256": "6a23f8ae8e5b2fd87814aaab188ee49ba022693905108bc78ff038fe55e2b581"
+    "sisoRevision": "efbbe7f1892211b5e9512576843a3c247b6a6d7c",
+    "clangPackage": "llvmorg-24-init-3796-g20e97c4b-27",
+    "clangVersionLine": "clang version 24.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 9fca3cf47d011a0af295d4252d70f16f8693d6a2)",
+    "clangArchiveSha256": "b5f701db4574f37e7e3e9f9952b91b2607442a7b939da65cc0380df158cc6912",
+    "clangBinarySha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3",
+    "lldVersionLine": "LLD 24.0.0 (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 9fca3cf47d011a0af295d4252d70f16f8693d6a2)",
+    "lldBinarySha256": "5444919cda506fc997dbf19507387e40dfae8e5f0026eb0cd2016bf66741755f"
   },
   "buildSystem": "ninja",
   "targetCpu": "arm64"
