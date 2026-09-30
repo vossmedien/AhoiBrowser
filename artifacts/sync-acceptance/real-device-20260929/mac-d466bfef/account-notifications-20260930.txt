@@ -1,0 +1,30 @@
+Unified log, process AhoiBrowser pid 10083 (build 54, d466bfef),
+30 Sep 2026 01:46-08:12 CEST, messages containing "account".
+No other account event; CKSyncEngine raised no account change
+(provider inbox accountTransitionPending=false).
+
+2026-09-30 01:47:19.253 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 01:47:19.253 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 01:47:19.265 [com.apple.cloudkit:Engine] <private> received CKAccount
+2026-09-30 01:47:19.797 (CloudKit) client/account-info
+2026-09-30 03:04:07.038 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 03:04:07.038 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 03:04:07.038 [com.apple.cloudkit:Engine] <private> received CKAccount
+2026-09-30 03:04:07.550 (CloudKit) client/account-info
+2026-09-30 03:30:47.674 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 03:30:47.674 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 03:30:47.679 [com.apple.cloudkit:Engine] <private> received CKAccount
+2026-09-30 03:30:48.201 (CloudKit) client/account-info
+2026-09-30 03:41:16.854 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 03:41:16.854 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 03:41:16.858 [com.apple.cloudkit:Engine] <private> received CKAccount
+2026-09-30 03:41:17.368 (CloudKit) client/account-info
+2026-09-30 07:12:21.861 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 07:12:21.861 [com.apple.cloudkit:CK] Account change notification rece
+2026-09-30 07:12:21.862 [com.apple.cloudkit:Engine] <private> received CKAccount
+2026-09-30 07:12:22.392 (CloudKit) client/account-info
+
+Settings status via CDP (ahoiGetSyncControlsStatus, read-only),
+08:15 CEST: providerAvailable=true accountTransitionPending=true
+keySetupIssue=key_setup_account_changed zoneRecoveryPending=false
+statusLabel="iCloud-Accountwechsel benötigt Bestätigung"

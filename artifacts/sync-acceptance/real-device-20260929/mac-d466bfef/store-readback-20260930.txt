@@ -1,0 +1,39 @@
+Read-only copy of the scoped Mac store (build 54, d466bfef),
+taken 2026-09-30 08:11 CEST: sync-format3.sqlite + cksync-format3.state
+(+ .inbox). Scope 23855a90-ee61-499e-abed-bfdc52a881d7.
+Devices: Mac 74adab23-d5e7-4b75-b51f-5a12e036707b,
+         iPhone a0ab43bb-1b0f-42ee-9742-c4f9ce8a9718.
+
+Types: 0 device, 3 history, 4 remote tab, 12 capability. Times UTC, day
+of month + time. URLs are https://example.com/?ahoi-sync-<value>.
+"refetched": when the own saved record came back in a server fetch batch.
+
+type id       from ver         state     refetched value
+   0 a0ab43bb a0ab 29T12:49:58Z remote    -         iPhone
+   0 74adab23 74ad 29T23:43:54Z acked     23:46:46  Mac.fritz.box
+   3 291477d3 a0ab 29T10:50:09Z remote    -         ?ios-20260929T104849Z
+   3 fb733984 a0ab 29T10:52:43Z remote    -         ?ios-20260929T104849Z
+   3 1eddd865 a0ab 29T10:54:52Z remote    -         ?ios-20260929T104849Z
+   3 50422062 a0ab 29T10:56:11Z remote    -         ?ios-20260929T105445Z
+   3 68d48499 a0ab 29T11:21:23Z remote    -         ?ios-20260929T105445Z
+   3 f17bab9f 74ad 29T11:21:30Z acked     11:21:32  ?mac-20260929T112130Z
+   3 db2d2dac a0ab 29T11:25:28Z remote    -         ?ios-20260929T105445Z
+   3 99b55997 a0ab 29T11:29:12Z remote    -         ?ios-20260929T105445Z
+   3 fb5262de a0ab 29T12:41:14Z remote    -         ?ios-20260929T105445Z
+   3 6b7953c7 a0ab 29T12:44:02Z remote    -         ?ios-20260929T105445Z
+   3 e5782c17 a0ab 29T12:49:53Z remote    -         ?ios-20260929T105445Z
+   3 b6ce5c72 74ad 29T12:57:31Z acked     23:45:05  ?mac-20260929T112130Z
+   3 2376bfae 74ad 29T12:58:52Z acked     23:45:05  ?mac-20260929T112130Z
+   3 115745e6 74ad 29T13:04:45Z acked     23:45:05  ?mac-20260929T112130Z
+   3 4b59eda9 74ad 29T23:45:03Z acked     23:46:46  ?mac-20260929T234503Z
+   4 f666b697 a0ab 29T10:56:11Z remote    -         ?ios-20260929T105445Z
+   4 016cf078 74ad 29T23:45:09Z acked     23:46:46  ?mac-20260929T234503Z
+   4 328a1451 74ad 29T23:45:09Z acked     23:46:46  New tab
+   4 425cc638 74ad 29T23:45:09Z acked     23:46:46  Local page
+  12 bed7edcc 74ad 29T11:06:33Z acked     11:21:32  shared-normal-tabs-v3
+  12 845b2206 a0ab 29T12:41:18Z remote    -         shared-normal-tabs-v3
+
+Outbox: [(5, 76, 13435199335017202, 13435222135289445)]
+Retry: attempt=15 last=30T05:53:55Z next=30T06:53:55Z error=cancelled
+Outbox range: ['29T23:48:55Z', '30T06:08:55Z']
+Provider inbox file: accountTransitionPending=false, zoneRecoveryPending=false

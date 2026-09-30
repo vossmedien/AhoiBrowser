@@ -1,5 +1,101 @@
 # Active sync coordination
 
+## Mac tab not on the iPhone — causes and fixes, 30 September 2026, 08:45 CEST
+
+Owner-approved real test, scope `23855a90-ee61-499e-abed-bfdc52a881d7`
+(no key copy, no deletion, no Production). Mac build 54 (`d466bfef`, pid
+10083, CDP 9421) kept running; no Settings button was pressed. Evidence:
+`artifacts/sync-acceptance/real-device-20260929/mac-d466bfef/`
+(`store-readback-20260930.txt`, `account-notifications-20260930.txt`).
+
+1. **Mac fell back to "iCloud-Accountwechsel benötigt Bestätigung".**
+   The unified log shows `CKAccountChangedNotification` at 01:47:19, 03:04,
+   03:30, 03:41 and 07:12 for the unchanged account. CKSyncEngine raised no
+   account change (`cksync-format3.state.inbox`:
+   `accountTransitionPending=false`). The key bootstrap observer, still alive
+   after the 01:46 success, revoked the verified key lease on the first one
+   and reported `key_setup_account_changed` (CDP 08:15:
+   `providerAvailable=true`, `keySetupIssue=key_setup_account_changed`).
+   `fb280c26` only made the recovery buttons work; the trigger stayed.
+   Since 01:48:55 the outbox has held 76 session heartbeats (retry attempt
+   15, `cancelled`), and the Mac has not fetched since 01:46:46. **Fix
+   `13e390d3` (Lane sync):** after a successful bootstrap a notification
+   only fences the lease (`SyncAccountFence`). It then re-checks the account
+   status and the bound user record ID. If the account is the same, the
+   lease reopens. A different user record or a sign-out revokes it as
+   before. A failed check keeps the lease fenced and retries every minute,
+   and only the newest check decides. Each verdict logs
+   `AhoiSyncKeyLease account_check=<n> verdict=<v> action=<a>`
+   (verdict 0 same, 1 other, 2 unavailable, 3 error; action 0 ignore,
+   1 reopen, 2 revoke, 3 retry). `sync_account_fence_unittest.cc` (7 tests)
+   passed in a standalone googletest run. The `.mm` passes `-fsyntax-only`
+   with the out/AhoiDev flags. Not yet built into `ahoi_sync_unittests`.
+2. **Mac upload was complete.** The history visit `4b59eda9`
+   (`…234503Z`, 23:45:03 UTC) and the shared tab `016cf078` (workspace
+   `83699047…`, 23:45:09 UTC) are acknowledged in the store copy, and both
+   came back in a server fetch batch at 23:46:46 UTC. The same holds for 14
+   tree nodes and the device and capability records. The writer gate did
+   not withhold the tab: the Mac holds the iPhone's `DeviceCapability`
+   record (`845b2206`, `shared-normal-tabs-v3`, 12:41:18 UTC).
+3. **The iPhone dropped the Mac's Pages.** This was established from a
+   read-only `devicectl` copy of the scoped iPhone store (08:21 CEST), the
+   code and `test54.log`/`run54.xcresult`.
+   - `sync-quarantine.json` holds all 14 Mac tree nodes with reason
+     `plaintext_or_merge_validation_failed`.
+   - The fetched inbox holds the 3 Mac device tabs, including `016cf078`,
+     unacknowledged.
+   - The Mac history `…234503Z` did import.
+   - Zone, subscription and key match: the same zone was pushed to the Mac
+     at 08:07, the payloads decrypt, and no key mismatch is reported.
+
+   Cause: Mac Format-3 Page envelopes carry no `orderKey` (the order is
+   sealed in `sort_key`). The iOS bridge compared the decoded order key
+   with the absent envelope value, which produced `envelopeMismatch` and
+   quarantine. Every linked tab then failed `validatePresenceTarget` with
+   `targetMismatch` and waited forever. **Fix `f36ca9df` (Lane mobile):**
+   the order key is compared only when the envelope carries one. Test
+   `testDesktopPageEnvelopeWithoutOrderKeyPassesImportValidation` was added
+   to `SharedTabWireReadTests`. It was parse-checked only; not built.
+   The 06:02/06:04 UTC test passes fetched nothing new. Why is not proven:
+   the test accepts "Synchronisiert" after 3 s without proving a new fetch.
+   The records only arrived in a later app session.
+   Separate open lead for the owner: both engine states list the
+   database subscription `…cloudkit-e2e.7e6bb1c7…` rather than
+   `AhoiSyncAcceptanceSubscription-<scope>`.
+
+**Re-test without an owner decision:**
+1. Mac: build 55 from a HEAD that contains `13e390d3`, using
+   `./scripts/build-ahoi.sh dev`. Run `ahoi_sync_unittests
+   --gtest_filter='SyncAccountFence*:*AccountTransition*'`. Prepare, verify
+   and install the scoped copy with `--acceptance-scope`, as with
+   `bdfcea08`.
+2. Quit build 54 normally (a relaunch cleared this state before). Start
+   55 with CDP. `ahoiGetSyncControlsStatus` must show an empty
+   `keySetupIssue` and "Synchronisiert und bereit". Then:
+   - Open a new marker tab `https://example.com/?ahoi-sync-mac-<UTC>`.
+   - Expect `AhoiSyncUpload stage=ok` in the log.
+   - In a store copy, the outbox must drain and `sync_retry_state` must
+     clear.
+   - Mac check: iPhone records newer than 29 Sep 12:49 UTC arrive (the
+     phone uploaded at 06:01–06:11 UTC).
+3. Leave the Mac running overnight, or through a sleep/wake. The log must
+   show each `Account change notification` followed by
+   `AhoiSyncKeyLease … verdict=0 action=1`, and Settings must still read
+   "Synchronisiert und bereit".
+4. iPhone:
+   - Build the scoped CloudKitDevelopment app from a HEAD that contains
+     `f36ca9df`.
+   - Run `SharedTabWireReadTests`.
+   - Install in place on "Servusla".
+   - Tap "Retry quarantined records" (`settings.sync.retry_quarantine`,
+     a full refetch, nothing is deleted). A new Mac marker creates a new
+     Page in any case.
+5. Run `testRealDeviceReceivesRecognizableRemoteTab`
+   (`MobileRealDeviceCloudKitSyncUITests`) with the new marker. It
+   passes only when a `remoteTab` result carries the exact URL. Then confirm with a read-only `devicectl` copy: no Mac
+   tree node is in `sync-quarantine.json`, and the fetched inbox holds no
+   Mac device tab. DoD 13 stays RED until step 5 passes.
+
 ## Real-device Mac–iPhone test in progress — 29 September 2026, 13:15 CEST
 
 Owner-approved real test in the isolated CloudKit Development scope
