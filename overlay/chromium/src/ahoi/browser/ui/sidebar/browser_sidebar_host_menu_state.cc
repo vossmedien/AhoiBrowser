@@ -349,6 +349,12 @@ bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
     if (command_id == kOpenMainWorkspacesCommand) {
       return context_.offers_main_workspaces;
     }
+    if (command_id >= kPauseOtherProfileMediaCommandBase &&
+        command_id < kMergeWorkspaceCommandBase) {
+      return static_cast<size_t>(command_id -
+                                 kPauseOtherProfileMediaCommandBase) <
+             context_.media_pause_targets.size();
+    }
     if (command_id >= kOpenMainWorkspaceCommandBase &&
         command_id < kOpenIsolatedWorkspaceCommandBase) {
       return static_cast<size_t>(command_id - kOpenMainWorkspaceCommandBase) <

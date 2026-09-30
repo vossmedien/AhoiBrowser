@@ -214,6 +214,8 @@ struct SidebarContextMenuState {
   // Main Profile Workspaces listed in a fully separated Workspace's window.
   std::vector<base::Uuid> main_workspace_ids;
   bool offers_main_workspaces = false;
+  // WS-ISO-18: other Profiles' Workspaces that play audio, for "pause".
+  std::vector<session::DirectoryWorkspace> media_pause_targets;
   std::vector<ContextMoveDestination> move_destinations;
   // WS-ISO-05: other Profiles' Workspaces in "Move to", and the item.
   std::vector<SwitcherWorkspace> cross_level_targets;

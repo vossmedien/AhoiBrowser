@@ -548,6 +548,7 @@ class BrowserSidebarHostView final
   bool AppendCrossLevelMoveItems(std::vector<base::Uuid> roots,
                                  bool has_menu);
   bool RunCrossLevelMoveCommand(int command_id);
+  bool RunOtherProfileMediaCommand(int command_id);  // WS-ISO-18
   // Explains a refusal, or asks for confirmation in `presenter` (the window
   // the user looks at) and then moves. `follow`: the window follows.
   void RequestCrossLevelMove(std::vector<base::Uuid> roots,

@@ -43,6 +43,16 @@ source_set("sidebar_presentation") {
   deps = [ "//ui/compositor" ]
 }
 
+# ADR 0011 WS-ISO-18: which Workspace of another Profile plays audio; pure.
+source_set("other_profile_media") {
+  sources = [
+    "other_profile_media.cc",
+    "other_profile_media.h",
+  ]
+
+  public_deps = [ "//base" ]
+}
+
 # Pure keyboard tab-stop order of the sidebar; no Views or tab strip types.
 source_set("sidebar_tab_stops") {
   sources = [
@@ -252,6 +262,8 @@ source_set("browser_sidebar") {
     "sidebar_open_tab_drop_zones.cc",
     "sidebar_recent_links_view.cc",
     "sidebar_recent_links_view.h",
+    "other_profile_media_chromium.cc",
+    "other_profile_media_chromium.h",
     "sidebar_remote_tab_views.cc",
     "sidebar_remote_tab_views.h",
     "sidebar_runtime_refresh_gate.h",
@@ -273,6 +285,7 @@ source_set("browser_sidebar") {
 
   public_deps = [
     ":move_destination_model",
+    ":other_profile_media",
     ":sidebar_link_copy",
     ":sidebar_media_overlay",
     ":sidebar_presentation",
@@ -321,6 +334,7 @@ source_set("browser_sidebar") {
     "//chrome/browser/ui/browser_window",
     "//chrome/browser/ui/navigator",
     "//chrome/browser/ui/tabs:tab_strip",
+    "//chrome/browser/ui/tabs:utils",
     "//chrome/browser/ui/tabs/alert:tab_alert",
     "//chrome/browser/ui/thumbnails",
     "//components/favicon/content",
@@ -347,6 +361,7 @@ source_set("unit_tests") {
   sources = [
     "../../memory/tab_sleeping_unittest.cc",
     "move_destination_menu_model_unittest.cc",
+    "other_profile_media_unittest.cc",
     "sidebar_action_views_unittest.cc",
     "sidebar_bookmark_shelf_view_unittest.cc",
     "sidebar_device_tab_commands_unittest.cc",
@@ -379,6 +394,7 @@ source_set("unit_tests") {
   deps = [
     ":browser_sidebar",
     ":move_destination_model",
+    ":other_profile_media",
     ":sidebar_discovery",
     ":sidebar_link_copy",
     ":sidebar_media_overlay",

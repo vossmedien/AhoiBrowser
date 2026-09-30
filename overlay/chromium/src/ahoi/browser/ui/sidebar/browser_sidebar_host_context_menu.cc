@@ -24,6 +24,8 @@
 #include "ahoi/browser/ui/modal_overlay_controller.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
+#include "ahoi/browser/ui/sidebar/other_profile_media.h"
+#include "ahoi/browser/ui/sidebar/other_profile_media_chromium.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
@@ -37,6 +39,7 @@
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/i18n/case_conversion.h"
+#include "base/i18n/rtl.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/pickle.h"
@@ -278,18 +281,29 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
   context_.main_workspace_ids.clear();
   context_.workspace_positions.clear();
   context_.offers_main_workspaces = false;
+  context_.media_pause_targets.clear();
+  const bool german = base::i18n::GetConfiguredLocale().starts_with("de");
+  std::vector<std::u16string> media_pause_names;
   // ADR 0011 step 2 (handoff 048): one list in the process-wide order. The
   // check mark shows this window's Workspace; items of another Profile hand
   // this window's frame over to that Profile's window.
   const std::vector<SwitcherWorkspace> switcher = SwitcherWorkspaces();
   for (size_t position = 0; position < switcher.size(); ++position) {
     const SwitcherWorkspace& workspace = switcher[position];
-    const std::u16string title =
+    std::u16string title =
         !workspace.key.profile_dir.empty()
             ? with_level(workspace.name, isolated_level)
         : workspace.own_website_sessions
             ? with_level(workspace.name, own_sessions_level)
             : workspace.name;
+    // WS-ISO-18: a hidden window of another Profile may still play.
+    if (!workspace.own && context_.media_pause_targets.size() < 99 &&
+        OtherProfileWorkspacePlaysAudio(workspace.key.profile_dir,
+                                        workspace.key.workspace_id)) {
+      title = AudibleSwitcherTitle(title, german);
+      context_.media_pause_targets.push_back(workspace.key);
+      media_pause_names.push_back(workspace.name);
+    }
     int command_id = 0;
     if (workspace.own) {
       command_id = kActivateWorkspaceCommandBase +
@@ -314,6 +328,14 @@ void BrowserSidebarHostView::ShowWorkspaceMenu(
       context_.model->AddItem(command_id, title);
     }
     context_.workspace_positions.emplace(command_id, position);
+  }
+  if (!media_pause_names.empty()) {
+    context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
+    for (size_t index = 0; index < media_pause_names.size(); ++index) {
+      context_.model->AddItem(
+          kPauseOtherProfileMediaCommandBase + static_cast<int>(index),
+          PauseOtherProfileMediaLabel(media_pause_names[index], german));
+    }
   }
   // In a separated window whose main Profile is not loaded, its Workspaces
   // are not known yet; this entry loads it.

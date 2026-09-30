@@ -309,7 +309,8 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
                  << " ignored: menu scope already reset";
     return;
   }
-  if (RunCrossLevelMoveCommand(command_id)) {
+  if (RunCrossLevelMoveCommand(command_id) ||
+      RunOtherProfileMediaCommand(command_id)) {
     return;
   }
   if (command_id == kCopyActivePageLink ||

@@ -58,6 +58,9 @@ enum SidebarContextMenuCommand {
   kMergeWorkspace,
 };
 
+// ADR 0011 WS-ISO-18: pauses the audio of another Profile's Workspace from
+// the Workspace menu; below the merge targets, at most 99.
+constexpr int kPauseOtherProfileMediaCommandBase = 400;
 // ADR 0012 (handoff 080): "Zusammenführen mit" the Workspace at this index
 // of the menu's Workspace list; below the archive policies, at most 99.
 constexpr int kMergeWorkspaceCommandBase = 500;
