@@ -355,7 +355,11 @@ extension CloudKitSyncProvider {
             guard !isInvalidated, !boundedSyncPassActive else { return nil }
             return eventDrivenSyncHandler
         }
-        handler?()
+        guard let handler else { return }
+        // Most callers are CKSyncEngine delegate events. The host answers
+        // with a bounded pass that awaits fetchChanges(), so the request must
+        // leave the callback's task-local context first.
+        CKSyncEngineDelegateEscape.dispatch(handler)
     }
 
     func setRetryScheduledUnlessBlocked() {
@@ -488,6 +492,18 @@ extension CloudKitSyncProvider {
         guard let primaryError = decision.primaryError else { return }
         markStatePersistenceFailure()
         throw primaryError
+    }
+}
+
+/// CKSyncEngine marks each delegate callback with a task-local value and traps
+/// ("BUG IN CLIENT OF CLOUDKIT: Cannot await a call into CKSyncEngine from
+/// within a delegate callback") when fetchChanges() or sendChanges() is
+/// awaited by any task that still carries it. An unstructured `Task {}`
+/// created inside a callback inherits every task-local, including that one,
+/// so work that may await the engine must start from a detached task.
+enum CKSyncEngineDelegateEscape {
+    static func dispatch(_ work: @escaping @Sendable () -> Void) {
+        Task.detached { work() }
     }
 }
 #endif

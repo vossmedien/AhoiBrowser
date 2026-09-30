@@ -7,6 +7,18 @@ import CloudKit
 
 @available(iOS 17.0, macOS 14.0, *)
 final class CloudKitRecoveryPolicyTests: XCTestCase {
+    func testUnstructuredTaskKeepsDelegateCallbackTaskLocal() async {
+        // Control: this inheritance is what made CKSyncEngine trap on the
+        // device when an event-driven sync awaited fetchChanges().
+        let observed = await markerSeenByTask(escaping: false)
+        XCTAssertTrue(observed)
+    }
+
+    func testDelegateEscapeDropsDelegateCallbackTaskLocal() async {
+        let observed = await markerSeenByTask(escaping: true)
+        XCTAssertFalse(observed)
+    }
+
     func testAccountTransitionDenialKeepsLocalDataIsolated() {
         let plan = CloudKitRecoveryPolicy.accountTransitionPlan(
             allowLocalUpload: false
@@ -104,5 +116,30 @@ final class CloudKitRecoveryPolicyTests: XCTestCase {
         )
         return CloudKitRecoveryPolicy.status(for: error)
     }
+
+    /// Mirrors the host path: a delegate callback asks for a sync, the host
+    /// starts a main-actor Task, and that Task later awaits the engine.
+    private func markerSeenByTask(escaping: Bool) async -> Bool {
+        await withCheckedContinuation { continuation in
+            DelegateCallbackMarker.$active.withValue(true) {
+                let request: @Sendable () -> Void = {
+                    Task { @MainActor in
+                        continuation.resume(
+                            returning: DelegateCallbackMarker.active
+                        )
+                    }
+                }
+                if escaping {
+                    CKSyncEngineDelegateEscape.dispatch(request)
+                } else {
+                    request()
+                }
+            }
+        }
+    }
+}
+
+private enum DelegateCallbackMarker {
+    @TaskLocal static var active = false
 }
 #endif

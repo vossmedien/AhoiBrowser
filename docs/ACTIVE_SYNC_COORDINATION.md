@@ -1,5 +1,26 @@
 # Active sync coordination
 
+## iPhone crash in the receive test — cause and fix, 30 September 2026
+
+Build `964ebc78` on "Servusla" crashed twice (09:02, 09:21) in
+`testRealDeviceReceivesRecognizableRemoteTab` with `EXC_BREAKPOINT`. The
+two CloudKit frames symbolize against the matching iOS 27.0 CloudKit
+(UUID `5afbd6e3…`) to `CKSyncEngine.fetchChanges(_:)` and its fatal error
+"BUG IN CLIENT OF CLOUDKIT: Cannot await a call into CKSyncEngine from
+within a delegate callback …". CKSyncEngine tags each delegate callback
+with a task-local. `handleEvent(.fetchedRecordZoneChanges)` outside a
+bounded pass calls the event-driven handler, whose `Task {}` inherited
+that task-local, so the following `sync()` → `fetchChanges()` trapped. It
+fires only when a push-driven engine fetch delivers remote records. That
+happened for the first time once the Mac resumed uploading after
+`13e390d3`. `f36ca9df` and the old subscription ID are not involved.
+**Fix (Lane mobile):** `requestEventDrivenSyncIfUnbounded()` hands the
+request to `CKSyncEngineDelegateEscape`, a `Task.detached` that has no
+callback task-local. Two tests in `CloudKitRecoveryPolicyTests` cover
+the inheritance and the escape. Retest: install a build that contains
+this fix on the iPhone, then rerun the receive test while the Mac
+uploads.
+
 ## Mac tab not on the iPhone — causes and fixes, 30 September 2026, 08:45 CEST
 
 Owner-approved real test, scope `23855a90-ee61-499e-abed-bfdc52a881d7`
