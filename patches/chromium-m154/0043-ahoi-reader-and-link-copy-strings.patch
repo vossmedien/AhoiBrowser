@@ -1,0 +1,49 @@
+diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
+index 266fa1c775512e442c5e4888653e86594ead5daa..c5355f0d212049a396cce3895169f4f2bed8e15e 100644
+--- a/chrome/app/generated_resources.grd
++++ b/chrome/app/generated_resources.grd
+@@ -20806,6 +20806,18 @@ Please help our engineers fix this problem. Tell us what happened right before y
+     <message name="IDS_AHOI_CONTEXT_COPY_ALL_LINKS" desc="Context-menu action that copies every saved page URL inside an AhoiBrowser group." meaning="AhoiBrowser native sidebar">
+       Copy all links
+     </message>
++    <message name="IDS_AHOI_COPY_ACTIVE_PAGE_LINK" desc="Accessible menu and command-bar label for copying the active split pane's credential-free HTTP(S) URL." meaning="AhoiBrowser page actions">
++      Copy active page link
++    </message>
++    <message name="IDS_AHOI_COPY_ACTIVE_PAGE_LINK_AS_MARKDOWN" desc="Accessible menu and command-bar label for copying the active split pane's title and credential-free URL as Markdown." meaning="AhoiBrowser page actions">
++      Copy active page link as Markdown
++    </message>
++    <message name="IDS_AHOI_OPEN_ACTIVE_PAGE_IN_READING_MODE" desc="Accessible menu and command-bar label for opening Chromium reading mode for the active split pane." meaning="AhoiBrowser page actions">
++      Open active page in reading mode
++    </message>
++    <message name="IDS_AHOI_READING_MODE_UNAVAILABLE" desc="Disabled menu label explaining that Chromium reading mode cannot open the active page." meaning="AhoiBrowser page actions">
++      Reading mode is unavailable for this page
++    </message>
+     <message name="IDS_AHOI_CONTEXT_MOVE_TO" desc="Context-menu submenu for moving an AhoiBrowser sidebar item to another group or workspace root." meaning="AhoiBrowser native sidebar">
+       Move to
+     </message>
+diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
+index 0b36eb50100624be94770a5389a2ff5eb75d8d46..1d6df5bcd4a9a92e90b6e3fa138be7354b33925b 100644
+--- a/chrome/app/resources/generated_resources_de.xtb
++++ b/chrome/app/resources/generated_resources_de.xtb
+@@ -11282,4 +11282,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+ <translation id="1555692962934226231">Auswahl wird geladen…</translation>
+ <translation id="3373635015517088468">Für dieses Profil sind derzeit keine unterstützten Einstellungen verfügbar.</translation>
+ <translation id="5831405800489376068">Die Auswahl konnte nicht geändert werden.</translation>
++<translation id="1523246957163920213">Link der aktiven Seite kopieren</translation>
++<translation id="7654016057361100771">Link der aktiven Seite als Markdown kopieren</translation>
++<translation id="603968043160528313">Aktive Seite im Lesemodus öffnen</translation>
++<translation id="8762882822589517341">Der Lesemodus ist für diese Seite nicht verfügbar</translation>
+ </translationbundle>
+diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
+index f2aec50f9051812c1f27b647ed15f4a4a8cdec9b..38584bdb6bcee48af9685e5ddcc1e35f36067e21 100644
+--- a/chrome/app/resources/generated_resources_en-GB.xtb
++++ b/chrome/app/resources/generated_resources_en-GB.xtb
+@@ -11078,4 +11078,8 @@ This can include information about installed software, files, your browser, the
+ <translation id="4474610624900854258">Close tabs from this import before undoing it. Changed imported items block recovery. Other pages and the backup are kept.</translation>
+ <translation id="554473421888566226">Undo failed import</translation>
+ <translation id="2451348137617820571">The failed import was undone. Review the sidebar, then start a new preview when ready.</translation>
++<translation id="1523246957163920213">Copy active page link</translation>
++<translation id="7654016057361100771">Copy active page link as Markdown</translation>
++<translation id="603968043160528313">Open active page in reading mode</translation>
++<translation id="8762882822589517341">Reading mode is unavailable for this page</translation>
+ </translationbundle>
