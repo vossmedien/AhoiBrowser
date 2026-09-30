@@ -1,0 +1,20 @@
+diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
+index 5a5ddc8..5164da5 100644
+--- a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
++++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
+@@ -425,6 +425,15 @@ void BrowserNativeWidgetMac::ValidateUserInterfaceItem(
+ 
+   // Generate return value (enabled state).
+   result->enable = chrome::IsCommandEnabled(browser, tag);
++  // A trusted popup such as Ahoi's Quick Window has no location bar, so
++  // Chromium disables IDC_FOCUS_LOCATION and ⌘L never reached Ahoi's command
++  // bar there, although ⌘T did. Keyboard ⌘L is routed to the command bar by
++  // ExecuteCommand() below whenever the window has a toolbar.
++  if (tag == IDC_FOCUS_LOCATION && !result->enable &&
++      browser->GetType() == BrowserWindowInterface::TYPE_POPUP &&
++      browser_view_->toolbar()) {
++    result->enable = true;
++  }
+   switch (tag) {
+     case IDC_CLOSE_TAB:
+       // Disable "close tab" if the receiving window is not tabbed.

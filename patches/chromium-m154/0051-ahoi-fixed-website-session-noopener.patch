@@ -1,0 +1,21 @@
+diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
+index c6d3b300d2d5..103e2b99c188 100644
+--- a/content/browser/web_contents/web_contents_impl.cc
++++ b/content/browser/web_contents/web_contents_impl.cc
+@@ -5686,6 +5686,16 @@ FrameTree* WebContentsImpl::CreateNewWindow(
+       // as long as they preserve the guest's StoragePartition.
+       site_instance =
+           SiteInstance::CreateForGuest(GetBrowserContext(), partition_config);
++    } else if (source_site_instance->IsFixedStoragePartition() &&
++               !partition_config.is_default()) {
++      // A non-Guest fixed partition is still the opener's website-session
++      // authority. Suppressing script access must not switch its new window
++      // back to the BrowserContext's default cookie and storage partition.
++      site_instance = SiteInstance::CreateForFixedStoragePartition(
++          GetBrowserContext(),
++          params.target_url.is_valid() ? params.target_url
++                                       : GURL(url::kAboutBlankURL),
++          partition_config);
+     } else {
+       site_instance = SiteInstance::Create(GetBrowserContext());
+     }
