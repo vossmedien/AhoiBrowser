@@ -1,0 +1,10 @@
+iPhone build: 7a172676 (scoped CloudKitDevelopment, scope 23855a90)
+Mac build: 964ebc78 scoped (installed ahoi-dev-964ebc78-cloudkit-scope-23855a90-20260930T065047Z.json)
+marker: https://example.com/?ahoi-sync-mac-20260930T065219Z
+Test Case '-[AhoiMobileUITests.MobileRealDeviceCloudKitSyncUITests testRealDeviceReceivesRecognizableRemoteTab]' passed (188.561 seconds)
+2026-09-30 10:11:34.313 AhoiBrowser[27299:21999441] AhoiSyncUpload stageCode=1 stage=ok domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 cached=0 unresolved=0 ack=1
+2026-09-30 10:16:33.536 AhoiBrowser[27299:22022096] AhoiSyncUpload stageCode=1 stage=ok domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 cached=0 unresolved=0 ack=1
+2026-09-30 10:21:33.620 AhoiBrowser[27299:22051958] AhoiSyncUpload stageCode=1 stage=ok domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 cached=0 unresolved=0 ack=1
+2026-09-30 10:26:33.952 AhoiBrowser[27299:22082587] AhoiSyncUpload stageCode=1 stage=ok domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 cached=0 unresolved=0 ack=1
+2026-09-30 10:31:34.358 AhoiBrowser[27299:22113785] AhoiSyncUpload stageCode=1 stage=ok domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 cached=0 unresolved=0 ack=1
+2026-09-30 10:36:34.266 AhoiBrowser[27299:22137220] AhoiSyncUpload stageCode=1 stage=ok domain=none code=0 itemDomain=other itemCode=0 expected=1 saved=1 resolved=0 cached=0 unresolved=0 ack=1

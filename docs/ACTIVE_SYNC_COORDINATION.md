@@ -1,5 +1,29 @@
 # Active sync coordination
 
+## Real Mac → iPhone tab round trip GREEN — 30 September 2026, 10:38 CEST
+
+Owner-approved real devices, isolated CloudKit Development scope
+`23855a90-ee61-499e-abed-bfdc52a881d7` (no key copy, no deletion, no
+Production).
+
+- **Mac:** scoped build 56 `964ebc78` (account-fence fix `13e390d3`).
+  "Synchronisiert und bereit" since 08:58; marker tab
+  `https://example.com/?ahoi-sync-mac-20260930T065219Z` uploaded; heartbeat
+  uploads `stage=ok` every 5 min through 10:36 — no fall-back into the
+  account-transition state.
+- **iPhone "Servusla":** scoped build `7a172676` (import accepts desktop
+  Pages without envelope order key `f36ca9df`, CKSyncEngine callback escape
+  `a6d20b2c`, sync-loop coalescing `7a172676`).
+  `MobileRealDeviceCloudKitSyncUITests.testRealDeviceReceivesRecognizableRemoteTab`
+  **passed** (188.6 s): the Mac tab arrived as a recognizable remote tab with
+  the exact URL.
+- iPhone → Mac tabs were already proven on 29 Sep. With this, the real
+  two-device tab round trip (DoD 13) is **GREEN**. Evidence:
+  `artifacts/sync-acceptance/real-device-20260929/receive-20260930/`.
+- Open, not blocking: CKSyncEngine states on both devices still list the old
+  subscription `…cloudkit-e2e.7e6bb1c7…`; the Mac's automatic retry after
+  `domain_merge_required` waited > 5 min until a manual sync.
+
 ## iPhone never idle in the receive test — cause and fix, 30 September 2026
 
 Build `a6d20b2c` no longer crashed, but XCUITest waited ~70 s per
