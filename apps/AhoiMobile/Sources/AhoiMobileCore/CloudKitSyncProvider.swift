@@ -317,7 +317,14 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
             zoneName: configuration.zoneName,
             ownerName: CKCurrentUserDefaultName
         )
-        let initialState = try stateStore.load()
+        let storedState = try stateStore.load()
+        // CKSyncEngine never revisits a database subscription it adopted;
+        // point a foreign one at the configured subscription (see
+        // EngineSubscriptionBinding). The old subscription is not deleted.
+        let reboundState = storedState.flatMap {
+            EngineSubscriptionBinding.rebound($0, to: configuration.subscriptionID)
+        }
+        let initialState = reboundState ?? storedState
         self.transportRehydrationRequired = initialState == nil
         super.init()
 
@@ -329,6 +336,20 @@ public final class CloudKitSyncProvider: NSObject, @unchecked Sendable, CKSyncEn
         engineConfiguration.automaticallySync = configuration.automaticallySync
         engineConfiguration.subscriptionID = configuration.subscriptionID
         self.engine = CKSyncEngine(engineConfiguration)
+        if reboundState == nil, let storedState,
+           let remembered = EngineSubscriptionBinding.read(storedState),
+           EngineSubscriptionBinding.shouldRebind(
+               remembered, configured: configuration.subscriptionID
+           ) {
+            EngineSubscriptionBinding.log("rebind_unrecognized_state")
+        }
+        if reboundState != nil {
+            EngineSubscriptionBinding.log("rebind")
+            if !accountTransitionPending, !zoneRecoveryPending,
+               let subscriptionID = configuration.subscriptionID {
+                EngineSubscriptionBinding.saveConfigured(subscriptionID, in: database)
+            }
+        }
     }
 
     public func status() -> CloudKitSyncStatus {
