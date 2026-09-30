@@ -294,6 +294,24 @@ not_ax() { ! waitax "$1" 3; }
 # History items ("AXMenuItem | Login", build 54), the window title and
 # notice text, so a "gone" check could never pass.
 ROW_RE='AX(RadioButton|Tab|Row|Cell|Button) \| [^|]*'
+# The AX subtree of the window whose title ends in " – <Profile>" only.
+# A whole-app dump also holds the source window, so after the undo the
+# restored Inbox row "Login" failed "target empty" (builds 55, 56).
+window_ax() { # <profile name>
+  $AX dump $PID 40 | awk -v s=" – $1" '
+    /^  [^ ]/ { t = substr($0, length($0) - length(s) + 1)
+      w = ($1 == "AXWindow" && t == s) }
+    w'
+}
+# No row matching <regex> in the <profile>'s window within 10 s; the
+# copy closes asynchronously after the undo. A closed window holds none.
+gone_from() { # <profile name> <regex>
+  local end=$(( $(date +%s) + 10 ))
+  while [ $(date +%s) -lt $end ]; do
+    window_ax "$1" | grep -q -E "$2" || return 0; sleep 1
+  done
+  return 1
+}
 
 launch
 # The fully separated Workspace, created once; its window takes over.
@@ -345,7 +363,10 @@ ROW=$(row_of Login)
 undo_key; sleep 6
 check undoRestoresSource in_main login.html
 check undoBringsLoginBack logged_in login.html
-check undoLeavesTargetEmpty not_ax "${ROW_RE}Login"
+check undoLeavesTargetEmpty gone_from Getrennt "${ROW_RE}Login"
+$AX dump $PID 40 > "$OUT/ax-after-undo.txt"
+window_ax Getrennt | grep -q . \
+  || echo "info: no Getrennt window after undo" >> "$OUT/steps.txt"
 back_to_inbox || fail_setup "no hand-over to Inbox after undo"
 
 # (3) A split moves as a whole: both panes arrive in one window of the
