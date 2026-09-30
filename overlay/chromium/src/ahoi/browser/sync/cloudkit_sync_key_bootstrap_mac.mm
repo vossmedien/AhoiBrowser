@@ -16,6 +16,7 @@
 #include "ahoi/browser/sync/cloudkit_sync_util_mac.h"
 #include "ahoi/browser/sync/keychain_sync_bootstrap_mac.h"
 #include "ahoi/browser/sync/keychain_sync_key_mac.h"
+#include "ahoi/browser/sync/sync_account_fence.h"
 #include "base/files/file.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
@@ -34,6 +35,9 @@ namespace {
 // "Sync-Verbindung wird eingerichtet" for over 15 minutes). A bounded
 // setup turns that into a visible, retryable interruption.
 constexpr base::TimeDelta kKeySetupTimeout = base::Minutes(2);
+// A fenced lease whose account check failed (offline after wake, busy
+// cloudd) checks again; it stays fenced, never silently reopened.
+constexpr base::TimeDelta kAccountRecheckDelay = base::Minutes(1);
 NSString* const kClaimType = @"AhoiKeyBootstrapClaim";
 NSString* const kClaimName = @"payload-key-bootstrap-v1";
 
@@ -168,12 +172,14 @@ class CloudKitSyncKeyBootstrapMac::Core
         runner_(base::SequencedTaskRunner::GetCurrentDefault()),
         authorization_(base::BindRepeating(
             [](SyncAuthorization original,
-               std::shared_ptr<std::atomic<bool>> cancelled) {
-              return !cancelled->load(std::memory_order_acquire) && original &&
-                     original.Run();
+               std::shared_ptr<std::atomic<bool>> cancelled,
+               std::shared_ptr<SyncAccountFence> fence) {
+              return !cancelled->load(std::memory_order_acquire) &&
+                     fence->open() && original && original.Run();
             },
             original_,
-            cancelled_)),
+            cancelled_,
+            fence_)),
         keys_(configuration_, authorization_) {}
 
   void Start() {
@@ -234,22 +240,24 @@ class CloudKitSyncKeyBootstrapMac::Core
                ownerName:CKCurrentUserDefaultName];
     const std::weak_ptr<Core> weak = weak_from_this();
     const auto runner = runner_;
-    const auto cancelled = cancelled_;
+    const auto fence = fence_;
     account_observer_ = [[NSNotificationCenter defaultCenter]
         addObserverForName:CKAccountChangedNotification
                     object:nil
                      queue:nil
                 usingBlock:^(NSNotification* notification) {
-                  cancelled->store(true, std::memory_order_release);
+                  // Fence the lease before anything else can upload; the
+                  // owner sequence decides whether the account changed.
+                  const uint64_t check = fence->Close();
                   runner->PostTask(
                       FROM_HERE,
                       base::BindOnce(
-                          [](std::weak_ptr<Core> weak) {
+                          [](std::weak_ptr<Core> weak, uint64_t check) {
                             if (auto core = weak.lock()) {
-                              core->Finish("key_setup_account_changed");
+                              core->OnAccountNotification(check);
                             }
                           },
-                          weak));
+                          weak, check));
                 }];
     [container_ accountStatusWithCompletionHandler:^(CKAccountStatus status,
                                                      NSError* error) {
@@ -603,12 +611,118 @@ class CloudKitSyncKeyBootstrapMac::Core
     }
     pending_ = false;
     waiting_ = false;
+    ready_ = true;
     family_lock_.Release();
     const auto callback = completion_;
     callback.Run({.configuration = std::move(verified_configuration),
                   .cryptor = std::move(cryptor),
                   .key_sha256 = claim_->key_sha256,
                   .authorization = authorization_});
+  }
+
+  void OnAccountNotification(uint64_t check) {
+    if (terminal_failure_) {
+      return;
+    }
+    if (!ready_ || !identity_) {
+      // Setup has not bound an account yet: keep the fail-closed setup
+      // result; the explicit account choice restarts a verified setup.
+      Finish("key_setup_account_changed");
+      return;
+    }
+    // 30 Sep 2026: five notifications overnight for the unchanged account
+    // left Settings stuck in "Accountwechsel benötigt Bestätigung". Re-check
+    // the bound user record while fenced; only a real change revokes.
+    RecheckAccount(check);
+  }
+
+  void RecheckAccount(uint64_t check) {
+    if (terminal_failure_ || cancelled_->load(std::memory_order_acquire)) {
+      return;
+    }
+    const std::weak_ptr<Core> weak = weak_from_this();
+    const auto runner = runner_;
+    [container_ accountStatusWithCompletionHandler:^(CKAccountStatus status,
+                                                     NSError* error) {
+      using Verdict = SyncAccountFence::Verdict;
+      std::optional<Verdict> verdict;
+      if (error || status == CKAccountStatusCouldNotDetermine ||
+          status == CKAccountStatusTemporarilyUnavailable) {
+        verdict = Verdict::kError;
+      } else if (status != CKAccountStatusAvailable) {
+        verdict = Verdict::kUnavailable;
+      }
+      runner->PostTask(
+          FROM_HERE,
+          base::BindOnce(
+              [](std::weak_ptr<Core> weak, uint64_t check,
+                 std::optional<Verdict> verdict) {
+                if (auto core = weak.lock()) {
+                  if (verdict) {
+                    core->ApplyAccountVerdict(check, *verdict);
+                  } else {
+                    core->RecheckIdentity(check);
+                  }
+                }
+              },
+              weak, check, verdict));
+    }];
+  }
+
+  void RecheckIdentity(uint64_t check) {
+    if (terminal_failure_) {
+      return;
+    }
+    const std::weak_ptr<Core> weak = weak_from_this();
+    const auto runner = runner_;
+    CKRecordID* const verified = identity_;
+    [container_ fetchUserRecordIDWithCompletionHandler:^(CKRecordID* identity,
+                                                         NSError* error) {
+      using Verdict = SyncAccountFence::Verdict;
+      const Verdict verdict = error || !identity ? Verdict::kError
+                              : [verified isEqual:identity]
+                                  ? Verdict::kSameAccount
+                                  : Verdict::kOtherAccount;
+      runner->PostTask(FROM_HERE,
+                       base::BindOnce(
+                           [](std::weak_ptr<Core> weak, uint64_t check,
+                              Verdict verdict) {
+                             if (auto core = weak.lock()) {
+                               core->ApplyAccountVerdict(check, verdict);
+                             }
+                           },
+                           weak, check, verdict));
+    }];
+  }
+
+  void ApplyAccountVerdict(uint64_t check, SyncAccountFence::Verdict verdict) {
+    if (terminal_failure_) {
+      return;
+    }
+    const auto action = fence_->OnVerified(check, verdict);
+    NSLog(@"AhoiSyncKeyLease account_check=%llu verdict=%d action=%d",
+          static_cast<unsigned long long>(check), static_cast<int>(verdict),
+          static_cast<int>(action));
+    switch (action) {
+      case SyncAccountFence::Action::kIgnore:
+      case SyncAccountFence::Action::kReopen:
+        return;
+      case SyncAccountFence::Action::kRevoke:
+        Finish("key_setup_account_changed");
+        return;
+      case SyncAccountFence::Action::kRetry:
+        runner_->PostDelayedTask(FROM_HERE,
+                                 base::BindOnce(
+                                     [](std::weak_ptr<Core> weak,
+                                        uint64_t check) {
+                                       if (auto core = weak.lock()) {
+                                         core->RecheckAccount(check);
+                                       }
+                                     },
+                                     weak_from_this(), check),
+                                 kAccountRecheckDelay);
+        return;
+    }
   }
 
   void OnTimeout() {
@@ -640,6 +754,8 @@ class CloudKitSyncKeyBootstrapMac::Core
   const scoped_refptr<base::SequencedTaskRunner> runner_;
   const std::shared_ptr<std::atomic<bool>> cancelled_ =
       std::make_shared<std::atomic<bool>>(false);
+  const std::shared_ptr<SyncAccountFence> fence_ =
+      std::make_shared<SyncAccountFence>();
   const SyncAuthorization authorization_;
   KeychainSyncBootstrapMac keys_;
   KeyFamilyLock family_lock_;
@@ -652,6 +768,7 @@ class CloudKitSyncKeyBootstrapMac::Core
   bool created_zone_ = false;
   bool waiting_ = false;
   bool pending_ = true;
+  bool ready_ = false;
   bool terminal_failure_ = false;
 };
 

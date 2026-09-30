@@ -30,8 +30,10 @@ struct MacSyncKeyBootstrapResult {
 
 // Short-lived CloudKit CONTROL operations, then the existing single domain
 // CKSyncEngine. No second sync database/engine, manual key injection or key
-// replacement. Keep the object alive after ready: account notifications revoke
-// the original authorization immediately, including a delayed native upload.
+// replacement. Keep the object alive after ready: an account notification
+// fences the authorization immediately, including a delayed native upload,
+// until the bound user record is re-verified. Only a verified switch or
+// sign-out revokes it permanently (key_setup_account_changed).
 class CloudKitSyncKeyBootstrapMac {
  public:
   using Completion = base::RepeatingCallback<void(MacSyncKeyBootstrapResult)>;
