@@ -555,7 +555,8 @@ password_manager::PasswordForm HttpAuthCredentialService::MakePasswordForm(
   form.signon_realm = protection_space.SignonRealm();
   form.url = protection_space.OriginUrl();
   form.username_value = credentials.username();
-  form.password_value = credentials.password();
+  form.password_value =
+      password_manager::PasswordString(std::u16string(credentials.password()));
   form.type = password_manager::PasswordForm::Type::kFormSubmission;
   form.date_created = now;
   form.date_last_used = now;
