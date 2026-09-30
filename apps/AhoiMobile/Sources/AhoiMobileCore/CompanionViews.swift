@@ -90,6 +90,9 @@ public struct CompanionRootView: View {
                     Section {
                         ForEach(filteredRemoteTabs) { tab in
                             remoteTabRow(tab)
+                                // The rows carry their own device label and
+                                // spacing; the stock hairlines only add noise.
+                                .listRowSeparator(.hidden)
                         }
                     } header: {
                         HStack {
