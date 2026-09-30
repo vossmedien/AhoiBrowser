@@ -4,6 +4,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunguarded-availability-new"
 #include "ahoi/browser/sync/cloudkit_sync_provider_mac_internal.h"
+#include "ahoi/browser/sync/cloudkit_sync_subscription_mac.h"
 
 namespace ahoi::sync {
 namespace {
@@ -66,6 +67,7 @@ CKSyncEngineStateSerialization* CloudKitSyncProviderMac::Core::LoadState() {
   if (!data) {
     return nil;
   }
+  data = BindConfiguredSubscription(data);
   NSError* error = nil;
   CKSyncEngineStateSerialization* state = [NSKeyedUnarchiver
       unarchivedObjectOfClass:[CKSyncEngineStateSerialization class]
@@ -79,6 +81,52 @@ CKSyncEngineStateSerialization* CloudKitSyncProviderMac::Core::LoadState() {
     return nil;
   }
   return state;
+}
+
+NSData* CloudKitSyncProviderMac::Core::BindConfiguredSubscription(
+    NSData* data) {
+  const std::string& configured = configuration_.subscription_identifier;
+  const std::optional<EngineSubscriptionState> remembered =
+      ReadEngineSubscription(data);
+  if (!remembered ||
+      !ShouldRebindEngineSubscription(*remembered, configured)) {
+    return data;
+  }
+  // CKSyncEngine never revisits the subscription it adopted. Point it at the
+  // configured one and let it save that. The old subscription may belong to
+  // another client or test in the same database: it is not deleted.
+  NSData* rebound = RebindEngineSubscription(data, configured);
+  NSLog(@"AhoiSyncSubscription action=%@",
+        rebound ? @"rebind" : @"rebind_unrecognized_state");
+  if (!rebound) {
+    return data;
+  }
+  subscription_rebound_ = true;
+  return rebound;
+}
+
+void CloudKitSyncProviderMac::Core::SaveConfiguredSubscription(
+    CKDatabase* database) {
+  // Create-only and idempotent: the engine also saves it (needsToSave), but
+  // pushes must not depend on that private behavior alone.
+  CKDatabaseSubscription* subscription = [[CKDatabaseSubscription alloc]
+      initWithSubscriptionID:ToNSString(
+                                 configuration_.subscription_identifier)];
+  CKNotificationInfo* info = [[CKNotificationInfo alloc] init];
+  info.shouldSendContentAvailable = YES;
+  subscription.notificationInfo = info;
+  CKModifySubscriptionsOperation* operation =
+      [[CKModifySubscriptionsOperation alloc]
+          initWithSubscriptionsToSave:@[ subscription ]
+              subscriptionIDsToDelete:@[]];
+  operation.qualityOfService = NSQualityOfServiceUtility;
+  operation.modifySubscriptionsCompletionBlock =
+      ^(NSArray<CKSubscription*>*, NSArray<CKSubscriptionID>*,
+        NSError* error) {
+        NSLog(@"AhoiSyncSubscription action=save ok=%d code=%ld",
+              error == nil, static_cast<long>(error.code));
+      };
+  [database addOperation:operation];
 }
 
 void CloudKitSyncProviderMac::Core::PersistState(

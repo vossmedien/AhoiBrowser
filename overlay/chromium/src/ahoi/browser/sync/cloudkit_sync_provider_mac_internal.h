@@ -135,6 +135,8 @@ class CloudKitSyncProviderMac::Core
       [engine_.state
           addPendingDatabaseChanges:@[ [[CKSyncEnginePendingZoneSave alloc]
                                         initWithZone:zone] ]];
+      if (subscription_rebound_)
+        SaveConfiguredSubscription(database);
     }
     return engine_ != nil;
   }
@@ -587,6 +589,8 @@ class CloudKitSyncProviderMac::Core
   }
 
   CKSyncEngineStateSerialization* LoadState() API_AVAILABLE(macos(14.0));
+  NSData* BindConfiguredSubscription(NSData* data);
+  void SaveConfiguredSubscription(CKDatabase* database);
   void PersistState(CKSyncEngineStateSerialization* state)
       API_AVAILABLE(macos(14.0));
   bool AcknowledgeLastDelivery(const std::string& change_token);
@@ -666,6 +670,9 @@ class CloudKitSyncProviderMac::Core
   bool operations_cancelling_ = false;
   bool inbox_persistence_failed_ = false;
   bool persisted_state_invalid_ = false;
+  // The loaded engine state remembered another database subscription and
+  // now names the configured one (see cloudkit_sync_subscription_mac.h).
+  bool subscription_rebound_ = false;
   bool account_transition_pending_ = false;
   bool zone_recovery_pending_ = false;
   bool shutting_down_ = false;

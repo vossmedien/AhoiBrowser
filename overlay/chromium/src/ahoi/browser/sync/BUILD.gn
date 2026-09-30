@@ -157,6 +157,8 @@ source_set("sync") {
       "cloudkit_sync_provider_mac_upload.mm",
       "cloudkit_sync_record_codec_mac.h",
       "cloudkit_sync_record_codec_mac.mm",
+      "cloudkit_sync_subscription_mac.h",
+      "cloudkit_sync_subscription_mac.mm",
       "cloudkit_sync_util_mac.h",
       "cloudkit_sync_util_mac.mm",
       "keychain_sync_bootstrap_mac.h",
@@ -315,6 +317,7 @@ source_set("unit_tests") {
     sources += [
       "cloudkit_bookmark_sync_consent_unittest.mm",
       "cloudkit_sync_provider_mac_unittest.cc",
+      "cloudkit_sync_subscription_mac_unittest.mm",
     ]
   }
   deps = [
