@@ -85,3 +85,9 @@ Ein neuer Commit (89e04d76). **Keine Empfehlung.**
 - **Crest:** Branch `chromium-control-plane` existiert nicht mehr; die gesamte Arbeit ist als Squash-Commit `0cca8969` („Make Crest's native dual-engine app the default desktop release“) in `main` gelandet. Gegenüber dem geprüften `89e04d76` ändert er nur `Config/Version.xcconfig`, `Localizable.xcstrings` und `ReleaseNotes.json` — nichts zu übernehmen. Die Beobachtung verfolgt ab jetzt `main` (geprüfter Stand `0cca8969`).
 - **Chromium:** mac_arm64 stable unverändert 154.0.8037.93 bei 100 %.
 - **googlesource wieder erreichbar** (HTTP 200 für `+refs` und `refs/tags/154.0.8037.93`; Chromium Dash 200). Nach Owner-Entscheidung folgt der M154-Roll (Ziel 154.0.8037.93) direkt nach dem iPhone-Gerätetest über googlesource; der GitHub-Mirror wird nicht mehr gebraucht.
+
+## Crest-Nachtrag 30.09.2026 (0cca8969..c7febf4f)
+
+Ein neuer Commit (c7febf4f, „Keep Chromium pages rendering during Space swipes“). **Keine Empfehlung.** Kein CloudKit-, CKSyncEngine-, Sync- oder iOS-Bezug.
+
+- **Nicht anwendbar:** Crests Space-Pager zeigt während eines Swipes beide Spaces live. Crests Swift-Host (`BrowserWebHostView`, `ChromiumNativePage`) meldete den Vorschau-Space als versteckt, rief also `HidePage` auf, und die Seite wurde grau. Der Fix ersetzt das Bool durch `hidden`/`preview`/`presented`. Eine Vorschau bleibt gerendert, bekommt aber keinen Fokus. Widerlegungsversuch: Ahoi wechselt den Workspace diskret über `WorkspaceSwipeTracker`/`WorkspaceSwipeEventHandler`. Der Tab-Wechsel und damit die Sichtbarkeit der WebContents laufen synchron über Chromiums TabStripModel. Erst danach animiert Ahoi nur den Layer des bereits aktiven `contents_container` (`overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_workspace_transition.cc:141-162`). Eine Vorschau mit zwei Spaces und einem Host-seitigen Hidden-Zustand gibt es in Ahoi nicht. Die Versionsdatei und die Release Notes sind Crest-Shell.
