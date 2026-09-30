@@ -7,7 +7,7 @@
 #include "base/time/time.h"
 #include "ui/gfx/geometry/rect.h"
 
-class Browser;
+class BrowserWindowInterface;
 class Profile;
 
 namespace ui {
@@ -30,14 +30,16 @@ gfx::Rect CalculateQuickWindowBounds(const gfx::Rect& anchor_bounds);
 // Creates an ephemeral popup that shares `profile`'s on-device website state.
 // Only a regular, non-OTR profile is accepted. `anchor_bounds` is the source
 // window bounds, or the primary work area when no source window exists.
-Browser* CreateAndShowQuickWindow(Profile* profile,
-                                  const gfx::Rect& anchor_bounds);
+BrowserWindowInterface* CreateAndShowQuickWindow(
+    Profile* profile,
+    const gfx::Rect& anchor_bounds);
 
 // Moves the active popup tab, without cloning its WebContents, into the most
 // recently active normal window for the same regular profile. A normal window
 // is created only when none exists.
-bool CanMoveActiveTabToNormalWindow(const Browser* popup_browser);
-bool MoveActiveTabToNormalWindow(Browser* popup_browser);
+bool CanMoveActiveTabToNormalWindow(
+    const BrowserWindowInterface* popup_browser);
+bool MoveActiveTabToNormalWindow(BrowserWindowInterface* popup_browser);
 
 }  // namespace ahoi::quick_window
 

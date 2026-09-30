@@ -52,7 +52,7 @@ IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
   const size_t original_tracked_tabs = bridge->tracked_tab_count();
 
   const gfx::Rect anchor_bounds = browser()->GetWindow()->GetBounds();
-  Browser* const quick_browser =
+  BrowserWindowInterface* const quick_browser =
       CreateAndShowQuickWindow(profile, anchor_bounds);
   ASSERT_TRUE(quick_browser);
   EXPECT_EQ(BrowserWindowInterface::TYPE_POPUP, quick_browser->GetType());
@@ -101,7 +101,7 @@ IN_PROC_BROWSER_TEST_F(QuickWindowBrowserTest,
   ASSERT_TRUE(bridge->is_ready());
   const size_t original_tracked_tabs = bridge->tracked_tab_count();
 
-  Browser* const quick_browser =
+  BrowserWindowInterface* const quick_browser =
       CreateAndShowQuickWindow(profile, browser()->GetWindow()->GetBounds());
   ASSERT_TRUE(quick_browser);
   const GURL transfer_url(
@@ -157,7 +157,7 @@ IN_PROC_BROWSER_TEST_F(QuickWindowWebsiteSessionBrowserTest,
   ASSERT_TRUE(bridge->SetActiveWorkspaceForWindow(
       browser(), *own_sessions, WorkspaceActivationSource::kKeyboard));
 
-  Browser* const quick_browser =
+  BrowserWindowInterface* const quick_browser =
       CreateAndShowQuickWindow(profile, browser()->GetWindow()->GetBounds());
   ASSERT_TRUE(quick_browser);
   const GURL url("data:text/html,<title>Reopen</title>reopen-state");
@@ -195,7 +195,7 @@ IN_PROC_BROWSER_TEST_F(QuickWindowWebsiteSessionBrowserTest,
   ASSERT_TRUE(bridge->SetActiveWorkspaceForWindow(
       browser(), *own_sessions, WorkspaceActivationSource::kKeyboard));
 
-  Browser* const quick_browser =
+  BrowserWindowInterface* const quick_browser =
       CreateAndShowQuickWindow(profile, browser()->GetWindow()->GetBounds());
   ASSERT_TRUE(quick_browser);
   const GURL url(

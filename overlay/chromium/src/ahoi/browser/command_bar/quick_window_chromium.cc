@@ -44,8 +44,9 @@ const void* const kReopenedForAdoptionKey = &kReopenedForAdoptionKey;
 
 }  // namespace
 
-Browser* CreateAndShowQuickWindow(Profile* profile,
-                                  const gfx::Rect& anchor_bounds) {
+BrowserWindowInterface* CreateAndShowQuickWindow(
+    Profile* profile,
+    const gfx::Rect& anchor_bounds) {
   if (!IsEligibleProfile(profile)) {
     return nullptr;
   }
@@ -59,10 +60,8 @@ Browser* CreateAndShowQuickWindow(Profile* profile,
   params.initial_origin_specified =
       BrowserWindowCreateParams::ValueSpecified::kSpecified;
   params.user_title = l10n_util::GetStringUTF8(IDS_AHOI_QUICK_WINDOW_TITLE);
-  BrowserWindowInterface* const quick_window =
+  BrowserWindowInterface* const quick_browser =
       CreateBrowserWindow(std::move(params));
-  Browser* const quick_browser =
-      quick_window ? quick_window->GetBrowserForMigrationOnly() : nullptr;
   if (!quick_browser) {
     return nullptr;
   }
@@ -85,7 +84,8 @@ Browser* CreateAndShowQuickWindow(Profile* profile,
   return quick_browser;
 }
 
-bool CanMoveActiveTabToNormalWindow(const Browser* popup_browser) {
+bool CanMoveActiveTabToNormalWindow(
+    const BrowserWindowInterface* popup_browser) {
   if (!popup_browser ||
       popup_browser->GetType() != BrowserWindowInterface::TYPE_POPUP ||
       !IsEligibleProfile(popup_browser->GetProfile()) ||
@@ -105,7 +105,7 @@ namespace {
 // example a fully separated Workspace), or be newly created. Showing it
 // directly would put two windows over one frame; the regular hand-over
 // presents it in the presented window's frame and hides that one instead.
-void ShowAdoptingWindow(Browser* target) {
+void ShowAdoptingWindow(BrowserWindowInterface* target) {
   ui::BaseWindow* const window = target->GetWindow();
   if (!window) {
     return;
@@ -136,29 +136,26 @@ void ShowAdoptingWindow(Browser* target) {
 
 }  // namespace
 
-bool MoveActiveTabToNormalWindow(Browser* popup_browser) {
+bool MoveActiveTabToNormalWindow(BrowserWindowInterface* popup_browser) {
   if (!CanMoveActiveTabToNormalWindow(popup_browser)) {
     return false;
   }
 
-  Browser* target = nullptr;
+  BrowserWindowInterface* target = nullptr;
   ForEachCurrentAndNewBrowserWindowInterfaceOrderedByActivation(
       [popup_browser, &target](BrowserWindowInterface* candidate) {
         if (candidate != popup_browser &&
             candidate->GetType() == BrowserWindowInterface::TYPE_NORMAL &&
             candidate->GetProfile() == popup_browser->GetProfile()) {
-          target = candidate->GetBrowserForMigrationOnly();
+          target = candidate;
           return false;
         }
         return true;
       });
   const bool created_target = !target;
   if (!target) {
-    BrowserWindowInterface* const target_window = CreateBrowserWindow(
-        BrowserWindowCreateParams(popup_browser->GetProfile(),
-                                  /*from_user_gesture=*/true));
-    target = target_window ? target_window->GetBrowserForMigrationOnly()
-                           : nullptr;
+    target = CreateBrowserWindow(BrowserWindowCreateParams(
+        popup_browser->GetProfile(), /*from_user_gesture=*/true));
   }
   if (!target) {
     return false;
