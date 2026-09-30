@@ -51,6 +51,7 @@
   (`docs/ARC_HISTORY_IMPORT_PLAN.md`, needs a visit-source patch). The real
   import runs on build 51 or later: preview → import → repeat as no-op.
 - **Owner, 16:54:** start build 51 regardless of load ("ich will hier fertig werden"); the load gate of `wait51.sh` is lifted for this build. Build 51 = `6d87699b`.
+- **Upstream watch 30 Sep 03:50:** googlesource reachable again (200); M154 roll to 154.0.8037.93 via googlesource right after the iPhone device test (owner order). Crest merged its control plane into `main` (`0cca8969`, only version/l10n/release notes vs. reviewed `89e04d76`); the watch now follows `main`.
 - **Upstream watch 21:00:** stable 154.0.8037.93 at 100 % (new M154 patch release; roll target once the owner's condition holds); Crest `6038460e` reviewed (PiP freeze patch 0086 adopted); googlesource 503.
 - **Upstream watch 16:20:** Crest unchanged (`bd458366`); stable 154.0.8037.58 at 99 %, 0.5 % slices of 155.0.8059.12 and 153.0.8010.55; googlesource 503. Details `docs/reviews/2026-09-29-crest-adoption.md`.
 - **Build 51** (`wait51.sh`, ≥38 GiB and load < 60) now also runs

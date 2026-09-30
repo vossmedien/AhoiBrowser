@@ -79,3 +79,9 @@ Vier neue Commits (fbb48de0, a946fa9f, cd860d3e, d5dfd6bf). Geprüft gegen `over
 Ein neuer Commit (89e04d76). **Keine Empfehlung.**
 
 - **Nicht anwendbar:** `.github/workflows/ci.yml` installiert `zsh` für die portablen Core-CI-Checks unter Linux. Reine Crest-CI, kein Engine-, Chromium-, Sync- oder iOS-Bezug.
+
+## Upstream-Beobachtung 30.09.2026, ~03:50 MESZ
+
+- **Crest:** Branch `chromium-control-plane` existiert nicht mehr; die gesamte Arbeit ist als Squash-Commit `0cca8969` („Make Crest's native dual-engine app the default desktop release“) in `main` gelandet. Gegenüber dem geprüften `89e04d76` ändert er nur `Config/Version.xcconfig`, `Localizable.xcstrings` und `ReleaseNotes.json` — nichts zu übernehmen. Die Beobachtung verfolgt ab jetzt `main` (geprüfter Stand `0cca8969`).
+- **Chromium:** mac_arm64 stable unverändert 154.0.8037.93 bei 100 %.
+- **googlesource wieder erreichbar** (HTTP 200 für `+refs` und `refs/tags/154.0.8037.93`; Chromium Dash 200). Nach Owner-Entscheidung folgt der M154-Roll (Ziel 154.0.8037.93) direkt nach dem iPhone-Gerätetest über googlesource; der GitHub-Mirror wird nicht mehr gebraucht.
