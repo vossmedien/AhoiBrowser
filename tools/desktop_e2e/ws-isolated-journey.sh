@@ -220,7 +220,9 @@ key 17 cmd
 if waitax "AXWindow \\| Suchen oder URL eingeben" 6; then
   sleep 1; type_in "login"; sleep 2
   $AX dump $PID 14 > "$OUT/ax-main-suggestions.txt"; key 53; sleep 1
-  { ! grep -q -E "AXStaticText \| login, " "$OUT/ax-main-suggestions.txt"; } \
+  # Only a visit row counts; the "login, Google" search row is not a leak.
+  { ! grep -E "AXStaticText \| login, " "$OUT/ax-main-suggestions.txt" \
+      | grep -q -v "login, Google\$"; } \
     && record suggestionsSeparated true || record suggestionsSeparated false
 else
   record suggestionsSeparated false
