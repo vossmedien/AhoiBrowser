@@ -5159,7 +5159,7 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..8f2308aba6a2ec6b18e0ab0af6341c5b
  
    SetAsDelegate(contents, false);
 diff --git a/chrome/browser/ui/browser.h b/chrome/browser/ui/browser.h
-index a80862e7642648370b91c2c0962fd3538f5fa366..65c9735df8c401c854801fca0b3e66a30298b697 100644
+index a80862e7642648370b91c2c0962fd3538f5fa366..3ca287fb97c7ea1fd384a26795b1b0498221b61b 100644
 --- a/chrome/browser/ui/browser.h
 +++ b/chrome/browser/ui/browser.h
 @@ -67,6 +67,10 @@ class ScopedKeepAlive;
@@ -5214,7 +5214,7 @@ index a80862e7642648370b91c2c0962fd3538f5fa366..65c9735df8c401c854801fca0b3e66a3
 +  // idempotent, and detaching removes every Browser observer before the exact
 +  // WebContents moves to a tab, split, or native popup window.
 +  void SetAsDelegateForAhoiPopupOverlay(content::WebContents* web_contents,
-+                                        bool set_delegate);
++                                        bool set_delegate) override;
 +
    void TabDetachedAtImpl(content::WebContents* contents,
                           bool was_active,
@@ -5390,6 +5390,35 @@ index 94bf57893cdbc778261c9e5a1c61c78ed9f97992..c9b0a8176c3c243b12b1e4e0784af852
        split_tabs::SplitTabId split_id,
        const split_tabs::SplitTabVisualData& visual_data) override;
    void CloseTab() override;
+diff --git a/chrome/browser/ui/browser_window/public/browser_window_interface.h b/chrome/browser/ui/browser_window/public/browser_window_interface.h
+index 5d1a05d3c55e84d7a8fc6bb23fda2cb6600fad29..4513ff252dee67de7bc08b221dbeeaa4e231b7f4 100644
+--- a/chrome/browser/ui/browser_window/public/browser_window_interface.h
++++ b/chrome/browser/ui/browser_window/public/browser_window_interface.h
+@@ -31,6 +31,10 @@
+ // or on DesktopBrowserWindowCapabilities.
+ 
+ #if !BUILDFLAG(IS_ANDROID)
++namespace content {
++class WebContents;
++}  // namespace content
++
+ namespace tabs {
+ class TabInterface;
+ }  // namespace tabs
+@@ -231,6 +235,13 @@ class BrowserWindowInterface : public content::PageNavigator {
+   virtual void OpenGURL(const GURL& gurl,
+                         WindowOpenDisposition disposition) = 0;
+ 
++  // Ahoi: attaches or detaches a popup-overlay WebContents that lives outside
++  // the TabStripModel until promotion. Only Browser implements it; other
++  // windows have no Ahoi popup overlay.
++  virtual void SetAsDelegateForAhoiPopupOverlay(
++      content::WebContents* web_contents,
++      bool set_delegate) {}
++
+   // Never nullptr.
+   //
+   // When the last tab is removed, the browser attempts to close, see
 diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
 index 9e27bdcb53a5030b4226560272138debce274d56..2d9eaa85ff528534179caaf583798ba20d0bf7a3 100644
 --- a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
