@@ -1,0 +1,37 @@
+diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
+index dfd179..d56fc0d 100644
+--- a/chrome/browser/ui/BUILD.gn
++++ b/chrome/browser/ui/BUILD.gn
+@@ -1313,6 +1313,7 @@ static_library("ui") {
+     deps += [
+       "//ahoi/browser/extensions:policy",
+       "//ahoi/browser/http_auth",
++      "//ahoi/browser/session:group_page_close",
+       "//ahoi/browser/session:session_restore_integration",
+     ]
+     sources += [
+diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
+index 2d9eaa8..aa2c87 100644
+--- a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
++++ b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.h"
+ 
++#include "ahoi/browser/session/group_page_close.h"
+ #include "ahoi/browser/ui/popup/popup_overlay_controller.h"
+ #include "base/check_deref.h"
+ #include "base/metrics/histogram_macros.h"
+@@ -907,6 +908,12 @@ void BrowserWebContentsDelegate::BeforeUnloadFired(
+     content::WebContents* web_contents,
+     bool proceed,
+     bool* proceed_to_fire_unload) {
++  // Ahoi group closes ask every page before committing and closing any of
++  // them; an agreeing page must not close early.
++  if (ahoi::session::GroupPageClose::HandleBeforeUnloadFired(
++          web_contents, proceed, proceed_to_fire_unload)) {
++    return;
++  }
+   if (auto* view = BrowserView::GetBrowserViewForBrowser(&*browser_)) {
+     if (auto* popup = view->ahoi_popup_overlay_controller();
+         popup && popup->HandleBeforeUnloadFired(web_contents, proceed,
