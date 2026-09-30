@@ -13,6 +13,7 @@ bool IsAhoiCaptureActivityAlert(tabs::TabAlert alert) {
     case tabs::TabAlert::kTabCapturing:
     case tabs::TabAlert::kDesktopCapturing:
       return true;
+    case tabs::TabAlert::kNone:
     case tabs::TabAlert::kAudioPlaying:
     case tabs::TabAlert::kAudioMuting:
     case tabs::TabAlert::kBluetoothConnected:
