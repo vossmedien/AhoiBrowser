@@ -184,6 +184,7 @@ class BrowserSidebarHostView final
 
  private:
   friend bool IsBrowserSidebarDragActive(views::View* sidebar_host);
+  friend class BrowserSidebarHostMenuAccess;
   friend bool ToggleBrowserSidebarDiscovery(views::View* sidebar_host);
 
   // views::View:

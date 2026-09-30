@@ -14346,7 +14346,7 @@ index 0ad4b063558a0d9b9565ab819aee5c38242453dc..23c41dd11b094f5fbd38cad42a149334
    if (mouse_exit_timer_.IsRunning()) {
      mouse_exit_timer_.Stop();
    }
-@@ -472,9 +813,33 @@ void VerticalTabStripRegionView::OnMouseMoved(const ui::MouseEvent& event) {
+@@ -472,9 +813,36 @@ void VerticalTabStripRegionView::OnMouseMoved(const ui::MouseEvent& event) {
  }
  
  void VerticalTabStripRegionView::OnMouseExited(const ui::MouseEvent& event) {
@@ -14366,7 +14366,10 @@ index 0ad4b063558a0d9b9565ab819aee5c38242453dc..23c41dd11b094f5fbd38cad42a149334
 +  }
 +  const bool focus_inside =
 +      GetFocusManager() && Contains(GetFocusManager()->GetFocusedView());
-+  if (IsMouseHovered() || focus_inside) {
++  // A context menu opened from the sidebar may extend past it; keep the
++  // sidebar under the open menu and re-check once the menu has closed.
++  if (IsMouseHovered() || focus_inside ||
++      ahoi::sidebar::IsBrowserSidebarMenuRunning(ahoi_sidebar_tree_view_)) {
 +    ahoi_sidebar_edge_hide_timer_.Start(
 +        FROM_HERE, ahoi::visual_style::kSidebarEdgeRevealHideDelay,
 +        base::BindOnce(
@@ -14380,7 +14383,7 @@ index 0ad4b063558a0d9b9565ab819aee5c38242453dc..23c41dd11b094f5fbd38cad42a149334
  void VerticalTabStripRegionView::HandleMouseExited() {
    // On Windows, we get mouse exit events when moving between the caption area
    // and client as well as when we transition between web contents area
-@@ -587,9 +952,33 @@ void VerticalTabStripRegionView::OnResize(int resize_amount,
+@@ -587,9 +955,33 @@ void VerticalTabStripRegionView::OnResize(int resize_amount,
    CHECK(tab_strip_view());
    tab_strip_view()->SetIsAnimatingSize(!done_resizing);
    if (!starting_width_on_resize_.has_value()) {
@@ -14415,7 +14418,7 @@ index 0ad4b063558a0d9b9565ab819aee5c38242453dc..23c41dd11b094f5fbd38cad42a149334
    bool previously_collapsed = target_collapse_state_.collapsed;
    const int proposed_width = starting_width_on_resize_.value() + resize_amount;
    if (done_resizing) {
-@@ -678,8 +1067,6 @@ void VerticalTabStripRegionView::RequestCollapse(bool collapse) {
+@@ -678,8 +1070,6 @@ void VerticalTabStripRegionView::RequestCollapse(bool collapse) {
        ->Start(TabStripAnimations::kVerticalTabStrip, motion);
  }
  
@@ -14424,7 +14427,7 @@ index 0ad4b063558a0d9b9565ab819aee5c38242453dc..23c41dd11b094f5fbd38cad42a149334
  VerticalTabStripRegionView::RegionViewFocusListener::RegionViewFocusListener(
      VerticalTabStripRegionView* region_view)
      : region_view_(region_view) {}
-@@ -708,6 +1095,7 @@ void VerticalTabStripRegionView::ClickEventHandler::OnMouseEvent(
+@@ -708,6 +1098,7 @@ void VerticalTabStripRegionView::ClickEventHandler::OnMouseEvent(
  }
  
  void VerticalTabStripRegionView::OnTabStripViewSet() {
@@ -14432,7 +14435,7 @@ index 0ad4b063558a0d9b9565ab819aee5c38242453dc..23c41dd11b094f5fbd38cad42a149334
    tab_strip_view()->SetProperty(
        views::kFlexBehaviorKey,
        views::FlexSpecification(views::MinimumFlexSizeRule::kScaleToMinimum,
-@@ -764,7 +1152,10 @@ void VerticalTabStripRegionView::OnCollapseStateChanged(
+@@ -764,7 +1155,10 @@ void VerticalTabStripRegionView::OnCollapseStateChanged(
                             !state_controller_->IsExpandOnHoverEnabled() ||
                             resize_area_->is_resizing());
  

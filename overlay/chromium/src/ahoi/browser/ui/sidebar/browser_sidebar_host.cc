@@ -304,4 +304,34 @@ bool IsBrowserSidebarDragActive(views::View* sidebar_host) {
   return host && host->IsSidebarDragActive();
 }
 
+// The only reader of the host's private context menu runner outside the
+// context menu paths themselves.
+class BrowserSidebarHostMenuAccess {
+ public:
+  static views::MenuRunner* Runner(BrowserSidebarHostView& host) {
+    return host.context_menu_runner_.get();
+  }
+  static void SetRunner(BrowserSidebarHostView& host,
+                        std::unique_ptr<views::MenuRunner> runner) {
+    host.context_menu_runner_ = std::move(runner);
+  }
+};
+
+bool IsBrowserSidebarMenuRunning(views::View* sidebar_host) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  if (!host) {
+    return false;
+  }
+  views::MenuRunner* const runner = BrowserSidebarHostMenuAccess::Runner(*host);
+  return runner && runner->IsRunning();
+}
+
+void SetBrowserSidebarContextMenuRunnerForTesting(
+    views::View* sidebar_host,
+    std::unique_ptr<views::MenuRunner> runner) {
+  auto* host = views::AsViewClass<BrowserSidebarHostView>(sidebar_host);
+  CHECK(host);
+  BrowserSidebarHostMenuAccess::SetRunner(*host, std::move(runner));
+}
+
 }  // namespace ahoi::sidebar

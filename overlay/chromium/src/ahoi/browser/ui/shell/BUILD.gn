@@ -83,6 +83,7 @@ source_set("floating_browser_view_browser_tests") {
     "floating_browser_view_browsertest_support.cc",
     "floating_browser_view_browsertest_support.h",
     "location_bar_view_browsertest.cc",
+    "sidebar_edge_reveal_menu_browsertest.cc",
     "sidebar_layout_invalidation_browsertest.cc",
   ]
   deps = [
@@ -104,8 +105,11 @@ source_set("floating_browser_view_browser_tests") {
     "//ui/accessibility",
     "//ui/base",
     "//ui/compositor",
+    "//ui/display",
+    "//ui/events",
     "//ui/gfx",
     "//ui/gfx:test_support",
+    "//ui/menus",
     "//ui/views",
   ]
 }

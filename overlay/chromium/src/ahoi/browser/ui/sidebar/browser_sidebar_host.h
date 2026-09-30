@@ -25,6 +25,7 @@ class TabInterface;
 }
 
 namespace views {
+class MenuRunner;
 class View;
 }
 
@@ -166,6 +167,18 @@ bool IsBrowserSidebarDragActive(views::View* sidebar_host);
 // allowing its higher-painted navigation surface to participate in hit tests.
 void SetBrowserSidebarDragRoutingActive(views::View* sidebar_host, bool active);
 bool IsAnyBrowserSidebarDragActive();
+
+// Returns whether a context menu opened from this host is still showing. An
+// edge-revealed hidden sidebar stays open underneath it: the menu may extend
+// past the sidebar, so the pointer over the menu is not a reason to retract.
+// Callers that poll this re-check after the menu has closed.
+bool IsBrowserSidebarMenuRunning(views::View* sidebar_host);
+
+// Test seam: installs `runner` as the host's context menu runner, as the
+// context menu paths do while their menu is showing. nullptr releases it.
+void SetBrowserSidebarContextMenuRunnerForTesting(
+    views::View* sidebar_host,
+    std::unique_ptr<views::MenuRunner> runner);
 
 }  // namespace ahoi::sidebar
 
