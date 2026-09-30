@@ -8755,21 +8755,24 @@ index 6ac2d32db9d0ba5775ba07deee644a210d3b1b68..3ca1dd02ab6aa7255e02fe4414a83954
  
  ////////////////////////////////////////////////////////////////////////////////
 diff --git a/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc b/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
-index 658ff47afb8a8b96b6bab3b890d4ac6687d0f8ff..18cc1b2c5fc7d32a0de1b35dc7c4628f35306ad2 100644
+index 658ff47afb8a8b96b6bab3b890d4ac6687d0f8ff..e090b83b2c55e41a3460e5380a06363a90940833 100644
 --- a/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
 +++ b/chrome/browser/ui/views/bookmarks/bookmark_bar_view.cc
-@@ -1129,6 +1129,10 @@ void BookmarkBarView::ChildPreferredSizeChanged(views::View* child) {
+@@ -1129,6 +1129,13 @@ void BookmarkBarView::ChildPreferredSizeChanged(views::View* child) {
  }
  
  void BookmarkBarView::AddedToWidget() {
 +  // BrowserView installs Ahoi's sidebar after BookmarkBarView::Init(). Recheck
 +  // here, once the complete hierarchy exists, so Chromium's saved-group grid
-+  // and separator cannot survive the initialization-order boundary.
-+  OnTabGroupsVisibilityPrefChanged();
++  // and separator cannot survive the initialization-order boundary. An Ahoi
++  // surface always hides them; other surfaces keep the pushed visibility.
++  if (browser_view_ && browser_view_->IsAhoiBrowserSurface()) {
++    SetSavedTabGroupsVisibility(false);
++  }
    MaybeShowSavedTabGroupsIntroPromo();
  }
  
-@@ -1604,11 +1608,15 @@ void BookmarkBarView::Init() {
+@@ -1604,11 +1611,15 @@ void BookmarkBarView::Init() {
      saved_tab_group_bar_ =
          AddChildView(std::make_unique<tab_groups::SavedTabGroupBar>(
              browser_, animations_enabled));
@@ -8788,7 +8791,7 @@ index 658ff47afb8a8b96b6bab3b890d4ac6687d0f8ff..18cc1b2c5fc7d32a0de1b35dc7c4628f
    }
  
    overflow_button_ = AddChildView(CreateOverflowButton());
-@@ -2227,10 +2235,18 @@ void BookmarkBarView::SetSavedTabGroupsVisibility(bool visible) {
+@@ -2227,10 +2238,18 @@ void BookmarkBarView::SetSavedTabGroupsVisibility(bool visible) {
    }
  
    // Only perform layout if required.
