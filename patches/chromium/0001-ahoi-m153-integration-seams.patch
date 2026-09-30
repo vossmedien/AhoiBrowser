@@ -5017,7 +5017,7 @@ index 8825702452d031cb43ebce8bbc3364dbb9a3e41b..b22f93e5046a5cca502c8827bf47cef8
        const split_tabs::SplitTabVisualData& visual_data) override;
    void CloseTab() override;
 diff --git a/chrome/browser/ui/browser.cc b/chrome/browser/ui/browser.cc
-index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234ea0daee2 100644
+index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..8f2308aba6a2ec6b18e0ab0af6341c5b1f8e40a5 100644
 --- a/chrome/browser/ui/browser.cc
 +++ b/chrome/browser/ui/browser.cc
 @@ -12,6 +12,7 @@
@@ -5036,13 +5036,27 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234
  #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
  #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
  #include "chrome/browser/ui/browser_window/public/create_browser_window.h"
-@@ -603,14 +605,32 @@ void Browser::OnTabStripModelChanged(TabStripModel* tab_strip_model,
+@@ -603,14 +605,49 @@ void Browser::OnTabStripModelChanged(TabStripModel* tab_strip_model,
    OnActiveTabChanged(change, selection);
  }
  
 +bool Browser::IsAhoiBrowserSurface() const {
 +  return window_ && window_->AsBrowserView() &&
 +         window_->AsBrowserView()->IsAhoiBrowserSurface();
++}
++
++bool Browser::IsWindowCloseRequested() const {
++  const UnloadController* const unload_controller =
++      UnloadController::From(this);
++  return unload_controller &&
++         unload_controller->ahoi_window_close_requested();
++}
++
++void Browser::MarkWindowCloseRequested() {
++  if (UnloadController* const unload_controller =
++          UnloadController::From(this)) {
++    unload_controller->set_ahoi_window_close_requested(true);
++  }
 +}
  
  void Browser::TabStripEmpty() {
@@ -5052,7 +5066,7 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234
 +  if (!window_) {
 +    return;
 +  }
-+  if (IsAhoiBrowserSurface() && !window_close_requested_) {
++  if (IsAhoiBrowserSurface() && !IsWindowCloseRequested()) {
 +    window_->AsBrowserView()->SetAhoiEmptyStateVisible(true);
 +    return;
 +  }
@@ -5062,18 +5076,21 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234
 +void Browser::CloseAllTabsStopped(TabStripModel* tab_strip_model,
 +                                  CloseAllStoppedReason reason) {
 +  if (reason == kCloseAllCanceled) {
-+    window_close_requested_ = false;
++    if (UnloadController* const unload_controller =
++            UnloadController::From(this)) {
++      unload_controller->set_ahoi_window_close_requested(false);
++    }
 +  }
 +}
 +
  void Browser::OnTabGroupFocusChanged(
      std::optional<tab_groups::TabGroupId> new_focused_group,
      std::optional<tab_groups::TabGroupId> old_focused_group) {
-@@ -687,6 +707,19 @@ void Browser::OnTabDetached(tabs::TabInterface* tab,
+@@ -687,6 +724,19 @@ void Browser::OnTabDetached(tabs::TabInterface* tab,
                              bool was_active,
                              bool had_active_modal_dialog) {
    WebContents* contents = tab->GetContents();
-+  if (!window_close_requested_ &&
++  if (!IsWindowCloseRequested() &&
 +      !capabilities()->IsAttemptingToCloseBrowser() && !IsDeleteScheduled()) {
 +    if (BrowserView* const browser_view =
 +            BrowserView::GetBrowserViewForBrowser(this)) {
@@ -5089,7 +5106,7 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234
    TabDetachedAtImpl(contents, was_active, DetachType::kDetach);
  
    window_->OnTabDetached(contents, was_active);
-@@ -835,12 +868,10 @@ void Browser::OnActiveTabChanged(const TabStripModelChange& change,
+@@ -835,12 +885,10 @@ void Browser::OnActiveTabChanged(const TabStripModelChange& change,
          selection.new_contents);
    }
  
@@ -5102,11 +5119,11 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234
  void Browser::OnTabReplacedAt(WebContents* old_contents,
                                WebContents* new_contents,
                                int index) {
-@@ -848,6 +879,14 @@ void Browser::OnTabReplacedAt(WebContents* old_contents,
+@@ -848,6 +896,14 @@ void Browser::OnTabReplacedAt(WebContents* old_contents,
    if (was_active) {
      did_active_tab_change_callback_list_.Notify(this);
    }
-+  if (!window_close_requested_ &&
++  if (!IsWindowCloseRequested() &&
 +      !capabilities()->IsAttemptingToCloseBrowser() && !IsDeleteScheduled()) {
 +    if (BrowserView* const view = BrowserView::GetBrowserViewForBrowser(this)) {
 +      if (auto* const popup = view->ahoi_popup_overlay_controller()) {
@@ -5117,7 +5134,7 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234
    TabDetachedAtImpl(old_contents, was_active, DetachType::kReplace);
    GetFeatures().exclusive_access_manager()->OnTabClosing(old_contents);
    OnTabInsertedAt(new_contents, index);
-@@ -863,6 +902,15 @@ void Browser::OnTabReplacedAt(WebContents* old_contents,
+@@ -863,6 +919,15 @@ void Browser::OnTabReplacedAt(WebContents* old_contents,
  ///////////////////////////////////////////////////////////////////////////////
  // Browser, Assorted utility functions (private):
  
@@ -5133,7 +5150,7 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234
  void Browser::SetAsDelegate(WebContents* web_contents, bool set_delegate) {
    content::WebContentsDelegate* delegate =
        set_delegate ? BrowserWebContentsDelegate::From(this) : nullptr;
-@@ -898,7 +946,6 @@ void Browser::TabDetachedAtImpl(content::WebContents* contents,
+@@ -898,7 +963,6 @@ void Browser::TabDetachedAtImpl(content::WebContents* contents,
          location_bar->SaveStateToContents(contents);
        }
      }
@@ -5142,7 +5159,7 @@ index 5fc408984834cd0feb0aee5fcda1e78eb209fb10..6b34246e1d4f990110e83282c652b234
  
    SetAsDelegate(contents, false);
 diff --git a/chrome/browser/ui/browser.h b/chrome/browser/ui/browser.h
-index a80862e7642648370b91c2c0962fd3538f5fa366..ffa99218ecb5ddcd7c27819c681968ad8fc2e201 100644
+index a80862e7642648370b91c2c0962fd3538f5fa366..65c9735df8c401c854801fca0b3e66a30298b697 100644
 --- a/chrome/browser/ui/browser.h
 +++ b/chrome/browser/ui/browser.h
 @@ -67,6 +67,10 @@ class ScopedKeepAlive;
@@ -5156,19 +5173,21 @@ index a80862e7642648370b91c2c0962fd3538f5fa366..ffa99218ecb5ddcd7c27819c681968ad
  namespace tabs {
  class TabInterface;
  }
-@@ -112,6 +116,11 @@ class Browser : public TabStripModelObserver,
+@@ -112,6 +116,13 @@ class Browser : public TabStripModelObserver,
  
    ~Browser() override;
  
 +  // An empty Ahoi tab tree keeps its native window until an explicit close.
 +  bool IsAhoiBrowserSurface() const;
-+  bool IsWindowCloseRequested() const { return window_close_requested_; }
-+  void MarkWindowCloseRequested() { window_close_requested_ = true; }
++  // The explicit window-close state lives in UnloadController (M154 hands
++  // it a BrowserWindowInterface); these read and write it for this window.
++  bool IsWindowCloseRequested() const;
++  void MarkWindowCloseRequested();
 +
    // Interface implementations ////////////////////////////////////////////////
  
    // Overridden from TabStripModelObserver:
-@@ -120,6 +129,8 @@ class Browser : public TabStripModelObserver,
+@@ -120,6 +131,8 @@ class Browser : public TabStripModelObserver,
        const TabStripModelChange& change,
        const TabStripSelectionChange& selection) override;
    void TabStripEmpty() override;
@@ -5177,7 +5196,7 @@ index a80862e7642648370b91c2c0962fd3538f5fa366..ffa99218ecb5ddcd7c27819c681968ad
    void OnTabGroupFocusChanged(
        std::optional<tab_groups::TabGroupId> new_focused_group,
        std::optional<tab_groups::TabGroupId> old_focused_group) override;
-@@ -171,6 +182,7 @@ class Browser : public TabStripModelObserver,
+@@ -171,6 +184,7 @@ class Browser : public TabStripModelObserver,
    const DesktopBrowserWindowCapabilities* capabilities() const override;
  
   private:
@@ -5185,7 +5204,7 @@ index a80862e7642648370b91c2c0962fd3538f5fa366..ffa99218ecb5ddcd7c27819c681968ad
    friend BrowserWindowInterface* CreateBrowserWindow(
        BrowserWindowCreateParams create_params);
    friend std::unique_ptr<Browser> DeprecatedCreateOwnedBrowserWindowForTesting(
-@@ -244,6 +256,14 @@ class Browser : public TabStripModelObserver,
+@@ -244,6 +258,14 @@ class Browser : public TabStripModelObserver,
    // is is removed as a delegate.
    void SetAsDelegate(content::WebContents* web_contents, bool set_delegate);
  
@@ -5200,15 +5219,6 @@ index a80862e7642648370b91c2c0962fd3538f5fa366..ffa99218ecb5ddcd7c27819c681968ad
    void TabDetachedAtImpl(content::WebContents* contents,
                           bool was_active,
                           DetachType type);
-@@ -286,6 +306,8 @@ class Browser : public TabStripModelObserver,
- 
-   WebContentsCollection web_contents_collection_{this};
- 
-+  bool window_close_requested_ = false;
-+
-   // If true, the browser window was created as a tab modal pop-up.
-   bool is_tab_modal_popup_ = false;
- 
 diff --git a/chrome/browser/ui/browser_actions.cc b/chrome/browser/ui/browser_actions.cc
 index 73053a0a02b258ea1e21abdc2c4ee30469b54589..e62eb0500e9f33bd279ac67253de928657264cec 100644
 --- a/chrome/browser/ui/browser_actions.cc
@@ -8722,23 +8732,62 @@ index 45cd05f34337285d387d617a160c84bc32904fd1..5c5315aa437b6949b8766300c560547b
  }
  
  ////////////////////////////////////////////////////////////////////////////////
+diff --git a/chrome/browser/ui/unload_controller.h b/chrome/browser/ui/unload_controller.h
+index 1c994941bdeabf521db6042b7e9233120bac6b3c..fcd759070973032bf0c0660c839080fe2c5491b3 100644
+--- a/chrome/browser/ui/unload_controller.h
++++ b/chrome/browser/ui/unload_controller.h
+@@ -95,6 +95,16 @@ class UnloadController : public WebContentsCollection::Observer,
+   static UnloadController* From(BrowserWindowInterface* browser);
+   static const UnloadController* From(const BrowserWindowInterface* browser);
+ 
++  // Ahoi keeps an empty browser surface open when its last tab closes; only
++  // an explicit window close (OnWindowClosing) tears it down. Canceling a
++  // close-all resets the request.
++  bool ahoi_window_close_requested() const {
++    return ahoi_window_close_requested_;
++  }
++  void set_ahoi_window_close_requested(bool requested) {
++    ahoi_window_close_requested_ = requested;
++  }
++
+   UnloadController(const UnloadController&) = delete;
+   UnloadController& operator=(const UnloadController&) = delete;
+ 
+@@ -356,6 +366,9 @@ class UnloadController : public WebContentsCollection::Observer,
+   // Browser window isn't just immediately closed.
+   bool is_attempting_to_close_browser_;
+ 
++  // See ahoi_window_close_requested().
++  bool ahoi_window_close_requested_ = false;
++
+   // A callback to call to report whether the user chose to close all tabs of
+   // |browser_| that have beforeunload event handlers. This is set only if we
+   // are currently confirming that the browser is closable. This can be called
 diff --git a/chrome/browser/ui/unload_controller.cc b/chrome/browser/ui/unload_controller.cc
-index 6ac2d32db9d0ba5775ba07deee644a210d3b1b68..3ca1dd02ab6aa7255e02fe4414a839548f91ea96 100644
+index 6ac2d32db9d0ba5775ba07deee644a210d3b1b68..6a75d82d4e28a7fdad0a36b79b36cebd62136cc0 100644
 --- a/chrome/browser/ui/unload_controller.cc
 +++ b/chrome/browser/ui/unload_controller.cc
-@@ -151,6 +151,11 @@ void UnloadController::OnWindowClosing() {
+@@ -32,6 +32,7 @@
+ #include "chrome/browser/ui/tabs/tab_group_model.h"
+ #include "chrome/browser/ui/tabs/tab_strip_model.h"
+ #include "chrome/browser/ui/tabs/tab_strip_model_delegate.h"
++#include "chrome/browser/ui/views/frame/browser_view.h"
+ #include "chrome/browser/ui/web_applications/app_browser_controller.h"
+ #include "chrome/browser/ui/web_applications/web_app_tabbed_utils.h"
+ #include "chrome/browser/web_applications/policy/web_app_policy_manager.h"
+@@ -151,6 +152,11 @@ void UnloadController::OnWindowClosing() {
      return;
    }
  
 +  // M152 moved the close lifecycle out of Browser. Preserve Ahoi's explicit
 +  // window-close signal here so an ordinary last-tab close can still leave the
 +  // native empty surface alive while this path tears the window down normally.
-+  browser_->MarkWindowCloseRequested();
++  ahoi_window_close_requested_ = true;
 +
    // Don't use GetForProfileIfExisting here, we want to force creation of the
    // session service so that user can restore what was open.
    SessionServiceBase* service =
-@@ -575,7 +580,14 @@ void UnloadController::OnTabStripModelChanged(
+@@ -575,7 +581,16 @@ void UnloadController::OnTabStripModelChanged(
  void UnloadController::TabStripEmpty() {
    // Set is_attempting_to_close_browser_ here, so that extensions, etc, do not
    // attempt to add tabs to the browser before it closes.
@@ -8747,8 +8796,10 @@ index 6ac2d32db9d0ba5775ba07deee644a210d3b1b68..3ca1dd02ab6aa7255e02fe4414a83954
 +  // closes the last tab. In that state there is no browser-close unload pass;
 +  // an explicit BrowserWindow close still sets the flag and follows the
 +  // regular Chromium lifecycle.
-+  if (!browser_->IsAhoiBrowserSurface() ||
-+      browser_->IsWindowCloseRequested()) {
++  BrowserView* const browser_view =
++      BrowserView::GetBrowserViewForBrowser(browser_);
++  if (!browser_view || !browser_view->IsAhoiBrowserSurface() ||
++      ahoi_window_close_requested_) {
 +    is_attempting_to_close_browser_ = true;
 +  }
  }
