@@ -1,0 +1,61 @@
+diff --git a/chrome/browser/renderer_context_menu/render_view_context_menu.cc b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+index 0ea2ebf..cb13ac4 100644
+--- a/chrome/browser/renderer_context_menu/render_view_context_menu.cc
++++ b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+@@ -3803,9 +3803,17 @@ void RenderViewContextMenu::ExecuteCommand(int id, int event_flags) {
+   }
+ 
+   switch (id) {
+-    case IDC_CONTENT_CONTEXT_AHOI_PEEK_LINK:
+-      ahoi::popup::PeekLink(source_web_contents_, params_.link_url);
++    case IDC_CONTENT_CONTEXT_AHOI_PEEK_LINK: {
++      // The request "Open link in new tab" sends: the clicked frame's URL
++      // under its referrer policy (rel=noreferrer included) and the frame's
++      // origin as initiator, also for a link inside an iframe.
++      ahoi::popup::PeekRequest request(params_.link_url);
++      request.referrer = CreateReferrer(params_.link_url, params_);
++      request.initiator_origin = params_.frame_origin;
++      request.started_from_context_menu = true;
++      ahoi::popup::PeekLink(source_web_contents_, request);
+       break;
++    }
+ 
+     case IDC_CONTENT_CONTEXT_OPENLINKNEWTAB: {
+       WindowOpenDisposition new_tab_disposition =
+diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
+index c31e4c9..de5e736 100644
+--- a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
++++ b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
+@@ -558,7 +558,8 @@ content::WebContents* BrowserWebContentsDelegate::OpenURLFromTab(
+                                    ui::PAGE_TRANSITION_LINK) &&
+       browser_->GetProfile()->GetPrefs()->GetBoolean(
+           ahoi::popup::kPeekOnShiftClickPref) &&
+-      ahoi::popup::PeekLink(source, params.url)) {
++      ahoi::popup::PeekLink(
++          source, ahoi::popup::PeekRequest::FromOpenURLParams(params))) {
+     return nullptr;
+   }
+ 
+@@ -755,6 +756,22 @@ content::WebContents* BrowserWebContentsDelegate::AddNewContents(
+     }
+   }
+ 
++  // Ahoi auto-Peek (opt-in): a plain target=_blank click of a saved page that
++  // leaves its site previews the page. The overlay adopts this WebContents
++  // before content loads it, so the link is requested only once.
++  if (disposition == WindowOpenDisposition::NEW_FOREGROUND_TAB && source) {
++    if (auto* view = BrowserView::GetBrowserViewForBrowser(&*browser_)) {
++      if (auto* popup_controller = view->ahoi_popup_overlay_controller()) {
++        content::WebContents* const peek = new_contents.get();
++        if (popup_controller->TryAutoPeekNewWindow(
++                source, &new_contents, target_url, disposition,
++                window_features, user_gesture)) {
++          return peek;
++        }
++      }
++    }
++  }
++
+   // If a backgrounded actor task triggered a new tab/popup, don't interrupt the
+   // user.
+   if (base::FeatureList::IsEnabled(
