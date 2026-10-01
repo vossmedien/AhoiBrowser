@@ -32,7 +32,8 @@ PROBE='(async () => {
     }
     return null;
   };
-  for (let i = 0; i < 20; i++) {
+  // cdp.mjs gives up after 8 s; answer before that with diagnostics.
+  for (let i = 0; i < 12; i++) {
     const page = find(document, "settings-ahoi-page");
     const routing = page && page.shadowRoot && page.shadowRoot.querySelector("settings-ahoi-link-routing");
     const shortcuts = page && page.shadowRoot && page.shadowRoot.querySelector("settings-ahoi-shortcuts");
@@ -48,11 +49,13 @@ PROBE='(async () => {
     await new Promise(r => setTimeout(r, 500));
   }
   const page = find(document, "settings-ahoi-page");
-  return JSON.stringify({page: !!page,
+  return JSON.stringify({page: !!page, url: location.href,
     routing: !!(page && page.shadowRoot && page.shadowRoot.querySelector("settings-ahoi-link-routing")),
     shortcuts: !!(page && page.shadowRoot && page.shadowRoot.querySelector("settings-ahoi-shortcuts"))});
 })()'
 result=$(eval_in "settings/ahoi" "$PROBE")
+[ -z "$result" ] && sleep 5 && result=$(eval_in "settings/ahoi" "$PROBE")
+curl -s http://127.0.0.1:$PORT/json >> "$OUT/run.txt"
 echo "probe $result" >> "$OUT/run.txt"
 python3 - "$result" "$OUT/results.txt" <<'PY'
 import json, sys
