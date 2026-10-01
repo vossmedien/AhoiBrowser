@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Installed navigation diagnosis prepared; fixture gate verified — 1 October 2026
+
+Source c4bdfee0's installed finding remains unresolved, not a product PASS.
+The shared split harness now proves its own HTTP fixture responds with exact
+PaneA bytes before any browser action, waits for committed/complete documents
+after Command Bar navigation, and retains target/frame/document details on
+setup failure. The actual fixture-only library startup passes without app/HID/
+CDP action: [scoped evidence](../artifacts/tests/split-fixture-readiness-20261001/README.md).
+This fixes an evidence gap; it does not establish the previous blank-page cause.
+
+`tools/desktop_e2e/installed_navigation_probe.py` is a bounded separate diagnosis
+for the exact installed source: isolated profile and owned HTTP server, startup
+target snapshot, Page/Network events, explicit Page.navigate and document reads,
+owned process teardown. It checks actual input idle, app absence, port and
+resource ownership, cancels on returning user input, and never drives HID.
+Its first invocation is terminal/deferred-owner-active (idle 0, app absent),
+so no browser was launched and no installed navigation claim is made:
+`artifacts/computer-use/m154/navigation-probe-9acb43c8-20261001T192815Z/state.json`.
+No background observer/queue is waiting. Python/Node/bash syntax checks pass.
+
+Next: at a fresh quiet UI opportunity, run that diagnostic against installed
+9acb43c8 with the existing owner lock directory. Read actual HTTP/protocol/
+document evidence, fix the established cause, then affected lifecycle/matrix/
+archive/auto-archive/devtoolkit/settings journeys. No build is currently needed
+for these harness changes. Crest 106/110 remain deferred to the separate future
+performance lease; no product patch or runtime lease is implied. The installed
+M154 source and full Master/worker/Sync/external/release boundaries persist.
+
 ## Installed candidate testable; lifecycle setup finding — 1 October 2026
 
 Verified installed development candidate remains 9acb43c8 (Build 67), Chromium

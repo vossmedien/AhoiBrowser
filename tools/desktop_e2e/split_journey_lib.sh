@@ -26,6 +26,21 @@ done
 printf '<title>Solo</title><h1>Solo</h1><input id=f>' > $P-site/solo.html
 python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/site.log" 2>&1 &
 SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; SITE=http://127.0.0.1:$SITE_PORT
+# Bind/listen readiness and exact fixture bytes precede any browser action.
+# A target URL alone can describe a pending navigation with a blank document.
+SITE_READY=false
+for attempt in 1 2 3 4 5; do
+  if curl -fsS --connect-timeout 1 --max-time 2 "$SITE/a.html" > "$OUT/site-readiness.html" 2> "$OUT/site-readiness-error.txt" &&
+      grep -q '<title>PaneA</title>' "$OUT/site-readiness.html"; then
+    SITE_READY=true; break
+  fi
+  kill -0 "$SITE_PID" 2>/dev/null || break
+  sleep 1
+done
+if [ "$SITE_READY" != true ]; then
+  echo '{"setupFailed":"local fixture server was not ready","pass":false}' > "$OUT/verdict.json"
+  cat "$OUT/verdict.json"; exit 4
+fi
 # ⌘⌃1…4 and ⌘⌃0 can be taken system-wide (symbolic hotkeys); then the key
 # never reaches Ahoi and a failed focus check is a Mac setting, not a defect.
 python3 - >> "$OUT/steps.txt" <<'PY'
@@ -151,6 +166,26 @@ type_in() {
 }
 waitax() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do $AX dump $PID ${3:-40} | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
 waiturl() { local end=$(( $(date +%s) + $2 )); while [ $(date +%s) -lt $end ]; do urls | grep -q "$1" && return 0; sleep 1; done; return 1; }
+wait_document() { # <exact fixture URL> <seconds>, committed document, not target intent
+  local end=$(( $(date +%s) + $2 )) id params
+  params=$(python3 -c 'import json,sys;print(json.dumps({"expression":"location.href === "+json.dumps(sys.argv[1])+" && document.readyState === \"complete\"", "returnByValue":True}))' "$1")
+  while [ $(date +%s) -lt "$end" ]; do
+    for id in $(site_ids); do
+      CDP "$id" Runtime.evaluate "$params" 2>/dev/null |
+        python3 -c 'import json,sys;sys.exit(0 if json.load(sys.stdin).get("result",{}).get("value") is True else 1)' 2>/dev/null && return 0
+    done
+    sleep 1
+  done
+  return 1
+}
+dump_navigation() {
+  curl -fsS --max-time 3 http://127.0.0.1:$PORT/json > "$OUT/targets-at-failure.json" 2> "$OUT/targets-at-failure-error.txt"
+  local id
+  for id in $(site_ids); do
+    CDP "$id" Page.getFrameTree '{}' > "$OUT/frame-$id-at-failure.json" 2>&1
+    CDP "$id" Runtime.evaluate '{"expression":"JSON.stringify({href:location.href,title:document.title,ready:document.readyState,body:document.body?.innerText?.slice(0,2000)})","returnByValue":true}' > "$OUT/document-$id-at-failure.json" 2>&1
+  done
+}
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
 check() { if eval "$2"; then record "$1" true; else record "$1" false; fi; } # <name> <shell condition>
 finish() {
@@ -159,7 +194,7 @@ finish() {
   echo "{${joined}${1:+$sep\"setupFailed\": \"$1\"}}" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["pass"]=("setupFailed" not in d) and all(v is True for k,v in d.items() if k!="setupFailed");print(json.dumps(d,indent=1))' > "$OUT/verdict.json"
   cat "$OUT/verdict.json"
 }
-fail_setup() { $AX dump $PID 40 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4; }
+fail_setup() { dump_navigation; $AX dump $PID 40 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4; }
 open_url() { # <url> ; ⌘T + type + Return
   local opened=0
   for attempt in 1 2 3; do
@@ -169,7 +204,8 @@ open_url() { # <url> ; ⌘T + type + Return
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
   sleep 1; type_in "$1"; sleep 1; key 36
   waiturl "${1##*/}" 5 || { echo "info: Return repeated" >> "$OUT/steps.txt"; key 36; }
-  waiturl "${1##*/}" 20 || fail_setup "did not load $1"; sleep 2
+  waiturl "${1##*/}" 20 || fail_setup "did not load $1"
+  wait_document "$1" 20 || fail_setup "fixture document did not commit $1"; sleep 2
 }
 # Every site page: title, CSS viewport, visibility, focus, reload mark, draft
 # text and window id, one line each in $OUT/snap-<n>-<name>.txt.

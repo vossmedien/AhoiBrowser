@@ -1,0 +1,10 @@
+{
+  "runnerPid": 47088,
+  "phase": "deferred-owner-active",
+  "source": "9acb43c81917a847c2d94303053c304b981757d3",
+  "startedAt": "2026-10-01T19:28:15.718352+00:00",
+  "acceptance": false,
+  "installedInfoSha256": "97fe1180acae353423a5ab7c81895b1a0722b8335ef79f46941061c5bae11949",
+  "idleSeconds": 0,
+  "appRunning": false
+}

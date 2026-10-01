@@ -14,25 +14,25 @@ architecture decision, test, or release gate.
 
 ## Current status
 
-The current source roll targets Chromium Mac Stable `153.0.8010.53` at exact commit
-`792bf6722e73a45aa9e47c163b9901bdc17f3230`. Its 48-patch ordered
-composition, guarded Development build, and bounded zero-tab/fullscreen
-visual journeys are verified on source `13a992c`; the full product and
-release gates remain open. Installed candidates retain
-their own older source receipts and are not relabelled by this update.
+The current pin is Chromium Mac Stable `154.0.8037.93` at exact commit
+`f89f3a4363808e117c592adedcf9947882ac3b79`. Development Build 67, source
+`9acb43c81917a847c2d94303053c304b981757d3`, is installed at
+`/Applications/AhoiBrowser.app`; its guarded build, stable development signing,
+required native gates and atomic installation are verified. The first installed
+split lifecycle journey failed during fixture navigation setup, before lifecycle
+assertions. Full installed-browser, product and release acceptance remain open.
+Use [the desktop checkpoint](docs/ACTIVE_DESKTOP_CHECKPOINT.md) for the current
+finding, evidence and next action; historical candidates retain their own receipts.
 The active source delta is the
 tracked overlay plus the complete ordered series declared in
 `patches/chromium/series`; that file is the single source of truth for patch
-count and order. It contains the M153 integration seams, deterministic
+count and order. It contains the current Chromium integration seams, deterministic
 platform tests, Compose guards, native sidebar/split fixes, the null-tab
 extension-menu guard, Arc 1.162 sidebar-schema compatibility, the accessible
 docked/floating sidebar toggle, and the compact Zen importer seam. The product contains
 the profile-backed sidebar, SQLite-backed nested tree, saved/temporary live-tab
 lifecycle, drag-and-drop, command bar, shared
-visual language, and bounded split-view integration. The current M153 ARM64
-development build from source `820cf4e` is installed at
-`/Applications/AhoiBrowser.app`; newer signed candidates are tested in isolated
-profiles and are not installed. The Chromium base is Stable while
+visual language, and bounded split-view integration. The Chromium base is Stable while
 the Ahoi development product channel remains `nightly`. This milestone does not
 claim the master prompt's complete binary/device matrix, `CU_E2E PASS`, or a
 Developer-ID-signed, notarized Ahoi Stable release. The previous M151 evidence

@@ -1,0 +1,19 @@
+{
+  "scope": "Actual shared-library fixture startup only; no app/HID/CDP action, no product acceptance",
+  "exitCode": 0,
+  "createdAt": "2026-10-01T19:29:11.398716+00:00",
+  "response": "<title>PaneA</title><h1>Pane A</h1><input id=f>",
+  "inputsSha256": {
+    "tools/desktop_e2e/split_journey_lib.sh": "e3df7f433366c080f29dc622be7bbc015623c551331dd6b13e8c71c3ee1c9893",
+    "tools/desktop_e2e/installed_navigation_probe.py": "062fcdc3e91b5cb10fd9f47ffe171d6445bf371f05762efa24b48630e4da21da",
+    "tools/desktop_e2e/navigation-probe.mjs": "519beb1fa74df1ac8adcd5df5558d98038ab13c779df1ddd9b54aceda51d0642"
+  },
+  "evidenceSha256": {
+    "site.log": "186be7470fe706d2fd597737f31959f7bab78ba9d0d2aa028c19d8ba52045e5f",
+    "steps.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "site-readiness-error.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "README.md": "5529cc2bd31da0a5ad33e61afcb88eb58984bbf3da896ffb2816d711742df980",
+    "site-readiness.html": "dac85b1606c49512c50ed81d7cc05a430c9b53a42b14d1576318f36e87649a1b",
+    "fixture-only.log": "5b0244e9b19f338b4c62ae3a5075f8f2215aab3fc13b8fe3af97ce04958e3b27"
+  }
+}
