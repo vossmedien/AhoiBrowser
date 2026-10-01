@@ -1,5 +1,22 @@
 # Active Desktop checkpoint
 
+## Frozen native TestingProfile editor candidate 67 running — 1 October 2026
+
+Source 9acb43c8 is frozen in the clean queue repository. Owned detached runner
+42132 is live at this entry; verify PID and `.work/agent-queue/67/state.json`.
+One guarded incremental job, explicit Chrome editor target retained. The single
+code delta uses TestingProfile/registered prefs in the native editor fixture;
+no product code or Profile/AX check changed. [Exact plan/hash](../artifacts/build/codex-build67-20261001-plan.json).
+Host check passes; no new native/editor/install pass is claimed yet.
+
+Next after compiled/signed/provenance success: execute both actual editor
+regression methods through the correct native target. Keep the setup REDs;
+carry Core127/Mojo20/Sidebar191/dedicated-worker3 only with exact unchanged
+executables/runtime-input proof. Run remaining required native gates and
+canonical install, then representative affected installed journeys. Old tests
+and build handles are terminal; do not create a competing writer/queue. Installed
+source is still Build 59/d3ebc1b9, full Master and external boundaries preserved.
+
 ## Real dedicated worker 3/3 GREEN; native Profile fixture corrected — 1 October 2026
 
 Build 66 e26bd335 compiles/signs/provenance-verifies. Its generated worker
