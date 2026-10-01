@@ -1,0 +1,66 @@
+{
+  "sourceCommit": "c2943397d86499f563070e8ee09adce7bde66436",
+  "jobs": 1,
+  "retries": 0,
+  "core": {
+    "binary": "ahoi_developer_toolkit_unittests",
+    "requiredCases": [
+      "DeveloperProfileRuntimeTest.TemporaryHeadersStayInOwningTabAndNeverPersistOrSync",
+      "DeveloperProfileRuntimeTest.TemporaryHeadersRetireWithHelperEvenIfDocumentSurvives",
+      "DeveloperProfileRuntimeTest.TemporaryHeadersResetAndPersistenceConversionRetireOldSnapshot",
+      "DeveloperProfileRuntimeTest.TemporaryHeaderOwnerRejectsOtherPreferencesAndForeignOrigin",
+      "DeveloperProfileRuntimeTest.ReplacingTemporaryHeaderOwnerCannotReviveEarlierDocumentSnapshot",
+      "DeveloperProfileRuntimeTest.TemporaryHeaderNavigationPreservesAnotherNativeUserAgentDecision",
+      "DeveloperProfileRuntimeTest.HeaderNavigationCanApplyAndRetireOnlyItsOwnUserAgentDecision",
+      "DeveloperProfileRuntimeTest.HeaderHelperBoundToOtherPreferencesCannotReadOrMutateThatProfile",
+      "DeveloperProfileRuntimeTest.HelperAcquiringItsContextLaterStillTracksMasterActivation",
+      "DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests",
+      "DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections",
+      "DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules",
+      "DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution"
+    ],
+    "scope": "whole suite once, includes all 24 Mojo cases; no duplicate standalone Mojo rerun"
+  },
+  "editor": {
+    "binary": "ahoi_developer_profile_editor_unittests",
+    "requiredCases": [
+      "DeveloperProfileEditorActivationTest.DisabledEditorStartsNoCompilerAndPreservesDraft",
+      "DeveloperProfileEditorActivationTest.DisableDropsCompilerAndRejectsLateReplyAcrossReenable",
+      "DeveloperProfileEditorActivationTest.TemporaryHeaderLifetimeDisablesBothSyncControlsAndSavesLocalMode",
+      "DeveloperProfileEditorActivationTest.HeaderLifetimeConversionDoesNotRegrantPreviousSyncOptIn",
+      "DeveloperProfileEditorActivationTest.HeaderLifetimeChangeRejectsEarlierPersistentCompileCommit"
+    ],
+    "scope": "actual native Chrome/TestingProfile UI; fresh UI/input ownership required"
+  },
+  "baseline": [
+    "ahoi_appearance_unittests",
+    "ahoi_arc_import_unittests",
+    "ahoi_command_bar_unittests",
+    "ahoi_extension_policy_unittests",
+    "ahoi_http_auth_unittests",
+    "ahoi_media_unittests",
+    "ahoi_navigation_unittests",
+    "ahoi_privacy_mode_unittests",
+    "ahoi_privacy_policy_unittests",
+    "ahoi_resource_policy_unittests",
+    "ahoi_session_unittests",
+    "ahoi_settings_private_unittests",
+    "ahoi_startup_policy_unittests",
+    "ahoi_sync_unittests",
+    "ahoi_tab_tree_unittests"
+  ],
+  "otherUi": [
+    "ahoi_sidebar_tree_unittests",
+    "ahoi_developer_toolkit_ui_unittests",
+    "ahoi_popup_unittests",
+    "ahoi_sidebar_search_unittests"
+  ],
+  "browser": [
+    "ahoi_split_layout_browsertests",
+    "ahoi_popup_overlay_browsertests",
+    "ahoi_developer_style_compiler_browsertests"
+  ],
+  "gate": "actual build/sign/provenance completion, live process/owner/resource checks, exact executable/component binding; no installer before required green",
+  "preparedCoreRunnerSha256": "77fcfa5f14cf163fe2b0120bfe16da4b3ee978ead465301220a2b7784adc0fb8",
+  "preparedOnly": true
+}

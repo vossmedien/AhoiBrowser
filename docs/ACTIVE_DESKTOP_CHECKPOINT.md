@@ -1,5 +1,27 @@
 # Active Desktop checkpoint
 
+## Exact native execution prepared while Build 68 advances — 2 October 2026
+
+Runner66795 remains authoritative/live, source c2943397, one guarded job.
+Observed frontier advanced from217 to381/1460; no observation failure or elapsed
+time is treated as terminal. The later capacity sample returns pressure level1,
+CPU60% idle, stable swapouts at847568,111GiB free. No competing output refresh,
+app/test/simulator or installer is started.
+
+[Saved candidate-bound native plan and unlaunched core runner](../artifacts/tests/native-header-candidate-c2943397-plan-20261002/README.md)
+require actual compile/sign/provenance completion, free locks, exact app source,
+executable/component hashes, and real launcher statuses. Thirteen added backend/
+Mojo names must execute successfully in the full developer suite; that includes
+the Mojo cases and avoids an unchanged duplicate standalone run. All five editor
+methods require their actual native UI phase; the baseline/browser gates retain
+their own ownership checks. Nothing in this preparation is a native PASS.
+
+Next: keep observing the same build handle/PID until its actual terminal result,
+preserve any failure, then execute the prepared core and required gates after
+fresh checks. Only exact required GREEN leads to canonical installation and
+representative visible affected journeys. Installed9acb43c8/M154, full Master,
+worker/Sync/external/release scopes and Crest's separate H3 lease remain unchanged.
+
 ## Combined temporary-header candidate Build 68 running — 2 October 2026
 
 Clean queue source c2943397d86499f563070e8ee09adce7bde66436 is frozen. Owned
