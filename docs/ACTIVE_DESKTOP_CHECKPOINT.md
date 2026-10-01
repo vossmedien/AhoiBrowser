@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Frozen Build 61 running — 1 October 2026
+
+Source 1c7e20aa4e3c64dac1a209354380698ae869b083 is frozen in the clean
+queue repository. The owned detached runner PID 67186 is live at this entry;
+verify `.work/agent-queue/61/state.json` and that PID before any continuation.
+Two jobs, guarded overlay and build scripts, all 20 native unit targets plus
+split/popup/developer-style-and-worker browser binaries. No automatic tests
+or install. [Exact plan and runner hash](../artifacts/build/codex-build61-20261001-plan.json).
+Overlay/preflight passes; build has started. No compile/sign/provenance GREEN
+yet. The preflight records 72–74 percent idle, normal VM pressure (level 1),
+143 GiB free, no compiler/app or owner lock. Phase-boundary samples are in
+`61/resources-*.log`. The existing explicit Apple Development Keychain/name
+path is configured; no identity/key/trust settings changed.
+
+Next: poll this exact runner/build, preserve a terminal failure if one occurs,
+and never start a duplicate from an expired observer handle. After a proven
+compiled/signed/provenance-complete result, run the changed native sidebar case
+and full sidebar suite serially in a fresh real UI idle window. Execute the
+new document Mojo/editor and worker browser regressions and required remaining
+native gates on this exact output. Canonical installation and affected visible
+journeys remain later distinct gates. Build 60's isolated RED stays preserved;
+installed app remains Build 59/d3ebc1b9. Full original Master stays active.
+
 ## Isolated sidebar RED; next source package checked — 1 October 2026
 
 The frozen d0688d88 native menu case actually ran with one job, no retries and
