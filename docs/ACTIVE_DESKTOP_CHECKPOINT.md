@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Build 60 signed; one native UI failure holds installation — 1 October 2026
+
+No browser compiler runs. Frozen d0688d88 is signed and verified; its original
+clean-source provenance passes. The continuation runner PID 98368 ended exit 1
+at the native unit gate and released its owner lock; it did not install.
+20 programs completed: 19 exit 0, 1311 cases succeed and one fails. The native
+bookmark context deletion test finds its menu already closed. The two-job run
+can overlap native windows; this is a diagnostic hypothesis, not a waived
+product failure. [Exact candidate, tool and raw-result hashes](../artifacts/tests/build60-sign-unit-20261001/README.md).
+Installed Ahoi remains Build 59 / d3ebc1b9.
+
+The serial diagnostic is live via its explicit exec session; inspect
+`.work/agent-queue/60/sidebar-serial/state.json` and its runner PID before any
+continuation. It first waits for a 90-second user-idle interval and free owner
+locks, runs the failing case alone with one job/no retries, then the complete
+191-case sidebar suite if the focused case passes. It does not install.
+Do not start a duplicate worker or repeat the other 19 unchanged green programs.
+After a proven clean serial result, assess whether native UI interference
+explains the initial failure, complete the canonical atomic installer for the
+same frozen source and run affected installed journeys. If it fails again,
+fix the actual menu/lifetime issue in the next exact source package. The full
+Master goal stays active. Other Devtoolkit source work can continue without UI
+while the diagnostic awaits an idle window.
+
 ## Build 60 signing access recovered — 1 October 2026, 13:10 CEST
 
 The existing Apple Development identity successfully signs an owned scratch
@@ -21,6 +45,34 @@ original verifier/provenance and native unit gates, then atomically install
 and run the affected installed journeys. No new browser compilation is needed.
 The uncommitted renderer-subresource proxy is separate source work and is not
 part of Build 60. The existing Master goal stays active.
+
+## Next Devtoolkit source package — unbuilt draft, 1 October 2026
+
+Owned WIP: `developer_network_factory_proxy.{h,cc}` and its unittest under
+`overlay/chromium/src/ahoi/browser/developer_toolkit/`, that directory's
+BUILD.gn, `patches/chromium/0089-ahoi-developer-document-subresources.patch`
+and series. Ordered patch composition passes. No C++ compilation or runtime
+acceptance yet; this draft is not in the frozen Build 60 candidate.
+
+The installed failures are CSS cache bypass, fetch response headers and CSS
+profile persistence. Renderer document subresources bypass the existing
+browser-initiated URLLoaderThrottle hook. The draft appends a request-local
+adapter to the native URLLoaderFactoryBuilder before extension interception;
+it forwards loader/client/control pipes and leaves native CORS/network and
+later webRequest decisions in charge. Every request rechecks live WebContents,
+committed origin, initiator, normal profile and master enablement. Ten written
+Mojo regressions cover rules/cache, redirects, extension blocking, disabled and
+closed/navigated contexts, unresolved secret references and cancellation.
+
+Next source steps: compile the draft against pinned M154 interfaces, validate
+its document lifetime boundary and keep materialized secret snapshots bound to
+the exact successful navigation and unchanged source metadata before clearing
+the pending navigation state. The current unresolved-reference branch fails
+closed; it does not yet deliver approved secret-backed rules to subresources.
+Worker factories need their own proved owner binding. These are open product
+scope, not waived acceptance. Freeze a separate exact package only after the
+source checks pass; do not change the Build-60 source stamp or shared checkout
+while its sign/install/test work owns the output.
 
 ## Build 60 compiled; native split GREEN; signing blocked — 1 October 2026
 
@@ -746,7 +798,7 @@ removed on 25 September 2026: Xcode 27 is now the only toolchain (handoff 022).
 |---|---|---|
 | Real Sync peers + Apple key | CloudKit container/key access and a second real Mac/iPhone with the owner's Apple account for an encrypted Mac↔iOS record round trip | 13–14, 26, 28 cross-device parts |
 | Developer ID + notarization | Developer ID Application certificate, notary credentials, approval to sign/notarize | 1–4 release bundle, 15 signed updates, 23 release chain |
-| Valid development signing access | Current Apple Development certificate is present and passes offline chain validation, but is excluded from valid codesigning identities in this process; restore approved access to a valid development identity, keeping the stable team/Keychain boundary | Build 60 signing and subsequent installed journeys; developer runtime portions of 5–11, 19–20 |
+| Development signing access | Resolved on 1 October: explicit existing Keychain/name, exact public-leaf native trust evaluation, real scratch signing and Build-60 deep/strict signature verification pass; no key or trust mutation | Not an outstanding external gate; installed acceptance remains a separate runtime gate |
 | Codec/DRM rights | H.264/AAC licensing decision, Widevine agreement/CDM access, test accounts for two DRM services | 16–17 |
 | Formal reviews | Named reviewers / external security and product reviews | 20–21 |
 | Third-party accounts | Credentials for password-manager extensions (1Password, Bitwarden) if a real vault must be unlocked | 8 password-manager journey |

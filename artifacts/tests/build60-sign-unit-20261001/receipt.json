@@ -1,0 +1,202 @@
+{
+  "sourceCommit": "d0688d88601ee073dc383f81273786af79956ab4",
+  "capturedAt": "2026-10-01T11:19:19.423639+00:00",
+  "compileRepeated": false,
+  "signerCommit": "46f5d4aeee9fa62256c032b149e1c98f160e8fa4",
+  "signerSha256": "bbaa668bebff3d05e0ebd2f80d18ea38cbc41cbd735438d4b753fa845470304a",
+  "selectorSha256": "7b2b5628c9db14a8ea6a4f62b10a42313cb25b8291aeb9277f96c5ad9c353d04",
+  "steps": [
+    {
+      "name": "overlay-preflight",
+      "exitCode": 0
+    },
+    {
+      "name": "sign",
+      "exitCode": 0
+    },
+    {
+      "name": "verify",
+      "exitCode": 0
+    },
+    {
+      "name": "provenance",
+      "exitCode": 0
+    }
+  ],
+  "provenancePath": ".work/agent-queue/repo/artifacts/build/ahoi-dev-build.json",
+  "provenanceSha256": "b0434cee1667d4475bdafb58058f84a344118245759cd8ce3e199a026c1a31d3",
+  "results": {
+    "SUCCESS": 1311,
+    "FAILURE": 1
+  },
+  "programs": [
+    {
+      "name": "ahoi_appearance_unittests",
+      "exitCode": 0,
+      "binarySha256": "824ce45ed488b3dcba85ed40ccf2b282959a4478a44790f96f5aaa5b85f970d7",
+      "tests": 56,
+      "summarySha256": "fc07ebcdf2d62ad70c362c009bf71848dbbd5017a9b0ec9bba04b9028f6829a2",
+      "failures": []
+    },
+    {
+      "name": "ahoi_arc_import_unittests",
+      "exitCode": 0,
+      "binarySha256": "fb9e427b30cf1c1f9de57f338e9d2f1662948309d01e87aa7ed78ee0fc69d02d",
+      "tests": 132,
+      "summarySha256": "a826e7b439ff1bc7b990614761cb03482a9c7deb2d5c45dcc4c48209f6a04513",
+      "failures": []
+    },
+    {
+      "name": "ahoi_command_bar_unittests",
+      "exitCode": 0,
+      "binarySha256": "619c495b982789859a5a08063ebda1d832a534283d333338d0f25ed0f2d4fefa",
+      "tests": 55,
+      "summarySha256": "096b735a3f23eb7fc12d0e39c356d0983cbd640058efd51c8ad15e114775078f",
+      "failures": []
+    },
+    {
+      "name": "ahoi_developer_toolkit_ui_unittests",
+      "exitCode": 0,
+      "binarySha256": "c5ad037990e43eb72d3241e662382edf7415bb302f25162572d5ca1433be1eb3",
+      "tests": 33,
+      "summarySha256": "c96d435df4b5364cbd9827e19f7cca499967fb4b280e6c21ca5fc29a2fe53b24",
+      "failures": []
+    },
+    {
+      "name": "ahoi_developer_toolkit_unittests",
+      "exitCode": 0,
+      "binarySha256": "9801e2488312d35239c65c3dca037e40bd27ef02e26c760c89a2001697f88f58",
+      "tests": 102,
+      "summarySha256": "b0623260c4e22deb9cc44a559d7afe536daecf87151b11280e2e24498e992fd2",
+      "failures": []
+    },
+    {
+      "name": "ahoi_extension_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "865574c956c332e5b2a9fc0f10a24321d66ebda4e4ff8dc3d26528245f7c4fa4",
+      "tests": 43,
+      "summarySha256": "9d2f8e48373c653a06897c125b3b635045b798a5ec69f35d5ff0554a8137b4ff",
+      "failures": []
+    },
+    {
+      "name": "ahoi_http_auth_unittests",
+      "exitCode": 0,
+      "binarySha256": "41069acfac51b33c228bd1e6aaa1e488c97691a9f69d24e5b8cce6ec3904427c",
+      "tests": 36,
+      "summarySha256": "0204e8edae1415f8e7bbe549432f27e0e92e4e3615f6c09619ebb4188009c05f",
+      "failures": []
+    },
+    {
+      "name": "ahoi_media_unittests",
+      "exitCode": 0,
+      "binarySha256": "7d25688293997f4ef6256835f3754402aa4afcd6db3452b7cf48f41f5e6bc02c",
+      "tests": 33,
+      "summarySha256": "b4ff5d2c5ffea981d88b051b88cab66b4381e13bf7df13db9a88df49e4b583bf",
+      "failures": []
+    },
+    {
+      "name": "ahoi_navigation_unittests",
+      "exitCode": 0,
+      "binarySha256": "6ecb53227e094209319dd018d91798af51aca6005a6a37fd20ca9d723dac3354",
+      "tests": 83,
+      "summarySha256": "9257d2437ef42e0e763266b4c10bc97b8ba35dccefc5df827fc9360960604466",
+      "failures": []
+    },
+    {
+      "name": "ahoi_popup_unittests",
+      "exitCode": 0,
+      "binarySha256": "ec1b660cc583776b9e4cb4e74a819ef02fe1f66dddc89b16d090278c8af56a9e",
+      "tests": 28,
+      "summarySha256": "ace413607302646f63c32bd03b5401a353efc6be728bcb4ecbc6e3b75b87e487",
+      "failures": []
+    },
+    {
+      "name": "ahoi_privacy_mode_unittests",
+      "exitCode": 0,
+      "binarySha256": "ad03b589f21a5a94fb1fbd0033b42d6a09b3f5ac81bf8e5f69d42ee1d85ffda4",
+      "tests": 21,
+      "summarySha256": "99d81cdf899759866bc965e00b86fbc809a8022623e6bce621c5952482752140",
+      "failures": []
+    },
+    {
+      "name": "ahoi_privacy_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "a6b4b0cc5687f9f733e9e951228e6f07db013806ff42b14eaeefe3b122e3f02e",
+      "tests": 17,
+      "summarySha256": "3f3a51c61f631dd1010632594cc7f1a5510a6c70bb9f1126fa114df52b203a72",
+      "failures": []
+    },
+    {
+      "name": "ahoi_resource_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "0b24f2a6513ba99ba669b7a40b0f4500ae0184da6e79b6b64557626a6266c6a1",
+      "tests": 4,
+      "summarySha256": "779083de345c4169edd7f32ce98f9bc839c5161d083f6f636fd25d7f922c8228",
+      "failures": []
+    },
+    {
+      "name": "ahoi_session_unittests",
+      "exitCode": 0,
+      "binarySha256": "1b9356ba05644a6d2d192002a9994cdde88e37f1b03e69e3c5b6b9046cff96d9",
+      "tests": 110,
+      "summarySha256": "3f61c41ac674159732fd73434fa50b7689db47d60f18c28556b4c30529b35d73",
+      "failures": []
+    },
+    {
+      "name": "ahoi_settings_private_unittests",
+      "exitCode": 0,
+      "binarySha256": "bc69231ccdb1264cb7b227435327e6dfbe21342e810d74ffb795da252b6d1925",
+      "tests": 12,
+      "summarySha256": "2fab58898378751cd43cd1b62a518d9f4fe912937eefca1768d0e9d38604c43f",
+      "failures": []
+    },
+    {
+      "name": "ahoi_sidebar_search_unittests",
+      "exitCode": 0,
+      "binarySha256": "1c0b0807331cbcaa20c985be440c2461da278942ba6ca2e7b8836d93d8591a4b",
+      "tests": 86,
+      "summarySha256": "9e4fec8e4888b6f8037a11292e62a87df59bf1282a38ea3d1bd8ddf27dc0b24c",
+      "failures": []
+    },
+    {
+      "name": "ahoi_sidebar_tree_unittests",
+      "exitCode": 1,
+      "binarySha256": "d9c70fbe6bad9c9605f5b092e5be69686682a18f17490b64444ab50ac59f1a59",
+      "tests": 191,
+      "summarySha256": "2cb22a4c6b28c3c2f88b99436dc96b8e65d5e713e52548d3c66d69c21f29395f",
+      "failures": [
+        {
+          "name": "SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton",
+          "status": "FAILURE",
+          "output": "[ RUN      ] SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton\n../../ahoi/browser/ui/sidebar/sidebar_bookmark_shelf_view_unittest.cc:362: Failure\nValue of: shelf_->context_menu_for_testing()\n  Actual: false\nExpected: true\nStack trace:\n0   ahoi_sidebar_tree_unittests         0x0000000100faaf94 ahoi::sidebar::(anonymous namespace)::SidebarBookmarkShelfViewTest_NativeContextActionCanDeleteItsOwnButton_Test::TestBody() + 2260\n\n[  FAILED  ] SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton (647 ms)\n"
+        }
+      ]
+    },
+    {
+      "name": "ahoi_startup_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "8ef33dc978546dc1e245e4102ed4c69e247c4cd0497898e49f5fda6518ba9f8c",
+      "tests": 2,
+      "summarySha256": "1807a971029d29feb20c5766383a03c0af60ba1dd022a5b95d84068d69893042",
+      "failures": []
+    },
+    {
+      "name": "ahoi_sync_unittests",
+      "exitCode": 0,
+      "binarySha256": "3dc528065ce8c50ba56edb9d24d2a5199caf925125ae8cb516acc8d428c1e85d",
+      "tests": 233,
+      "summarySha256": "7e6cf4d8362fc15d9bb7ebd476c3d9f25ab2fd78a760b7a39990d76e77a3bfc2",
+      "failures": []
+    },
+    {
+      "name": "ahoi_tab_tree_unittests",
+      "exitCode": 0,
+      "binarySha256": "fa6ede06dc4006afd9a00c72828a5c378f01e6e1b2f431b78cbf2f19675568b5",
+      "tests": 35,
+      "summarySha256": "e6782f188da78c58c9057110238a0400eb427ea00c8addd459c213a2798a341c",
+      "failures": []
+    }
+  ],
+  "installed": false,
+  "releaseEvidenceEligible": false
+}
