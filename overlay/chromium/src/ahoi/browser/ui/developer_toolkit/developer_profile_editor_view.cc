@@ -15,6 +15,7 @@
 #include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
 #include "ahoi/browser/developer_toolkit/developer_style_compiler.h"
 #include "ahoi/browser/developer_toolkit/developer_style_compiler_service_client.h"
+#include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_user_agent_presets.h"
 #include "ahoi/browser/ui/appearance/appearance_runtime_signals.h"
 #include "ahoi/browser/ui/appearance/appearance_views.h"
@@ -27,6 +28,8 @@
 #include "base/strings/utf_string_conversions.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/embedder_support/user_agent_utils.h"
+#include "components/prefs/pref_service.h"
+#include "components/user_prefs/user_prefs.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/navigation_handle.h"
 #include "content/public/browser/web_contents.h"
@@ -148,7 +151,8 @@ DeveloperProfileEditorView::DeveloperProfileEditorView(
     SaveCallback save_callback,
     RemoveCallback remove_callback,
     base::RepeatingClosure close_callback,
-    PrefService* prefs)
+    PrefService* prefs,
+    LazyDeveloperStyleCompiler::ServiceFactory compiler_factory)
     : content::WebContentsObserver(source_web_contents),
       save_callback_(std::move(save_callback)),
       remove_callback_(std::move(remove_callback)),
@@ -162,9 +166,25 @@ DeveloperProfileEditorView::DeveloperProfileEditorView(
       DeveloperProfileTabHelper::FromWebContents(source_web_contents);
   const std::string current_tab_token =
       tab_helper ? tab_helper->tab_token() : std::string();
-  style_compiler_ = std::make_unique<LazyDeveloperStyleCompiler>(
-      base::BindRepeating(&CreateSandboxedDeveloperStyleCompilerService));
+  if (!compiler_factory) {
+    compiler_factory =
+        base::BindRepeating(&CreateSandboxedDeveloperStyleCompilerService);
+  }
+  style_compiler_ =
+      std::make_unique<LazyDeveloperStyleCompiler>(std::move(compiler_factory));
   style_compiler_->OpenEditor();
+  toolkit_active_ = CanPersistObservedTarget();
+  if (prefs && prefs->FindPreference(developer_toolkit_prefs::kToolkitEnabled)) {
+    toolkit_pref_registrar_.Init(prefs);
+    for (const char* key : {developer_toolkit_prefs::kToolkitEnabled,
+                            developer_toolkit_prefs::kShowCookieButton,
+                            developer_toolkit_prefs::kShowCacheButton,
+                            developer_toolkit_prefs::kShowToolkitButton}) {
+      toolkit_pref_registrar_.Add(key, base::BindRepeating(
+          &DeveloperProfileEditorView::OnToolkitActivationChanged,
+          base::Unretained(this)));
+    }
+  }
   DeveloperAsset initial_style{
       .id = style_asset_id_,
       .name = "Style",
@@ -404,7 +424,7 @@ void DeveloperProfileEditorView::ReapplyAppearance() {
 }
 
 bool DeveloperProfileEditorView::Save() {
-  if (compile_in_flight_) {
+  if (compile_in_flight_ || !CanPersistObservedTarget()) {
     return false;
   }
   std::optional<DeveloperProfile> profile = BuildProfileForSave();
@@ -438,7 +458,8 @@ bool DeveloperProfileEditorView::Save() {
   style_compiler_->Compile(
       {.language = style_asset->style_language, .source = style_asset->source},
       base::BindOnce(&DeveloperProfileEditorView::OnStyleCompiled,
-                     weak_ptr_factory_.GetWeakPtr(), std::move(*profile)));
+                     weak_ptr_factory_.GetWeakPtr(), ++compile_generation_,
+                     std::move(*profile)));
   return false;
 }
 
@@ -540,9 +561,17 @@ DeveloperProfileEditorView::BuildProfileForSave() {
 }
 
 void DeveloperProfileEditorView::OnStyleCompiled(
+    uint64_t generation,
     DeveloperProfile profile,
     DeveloperStyleCompileResult result) {
+  if (generation != compile_generation_) {
+    return;
+  }
   compile_in_flight_ = false;
+  if (!CanPersistObservedTarget()) {
+    header_secret_editor_->CompleteProfileCommit(false);
+    return;
+  }
   if (!result.succeeded()) {
     header_secret_editor_->CompleteProfileCommit(false);
     if (result.status == DeveloperStyleCompileStatus::kSyntaxError ||
@@ -712,9 +741,32 @@ bool DeveloperProfileEditorView::CanPersistObservedTarget() const {
       web_contents()->GetBrowserContext()->IsOffTheRecord()) {
     return false;
   }
+  auto* context = web_contents()->GetBrowserContext();
+  if (!user_prefs::UserPrefs::IsInitialized(context) ||
+      !developer_toolkit_prefs::IsToolkitEnabled(
+          *user_prefs::UserPrefs::Get(context))) {
+    return false;
+  }
   const url::Origin current =
       url::Origin::Create(web_contents()->GetLastCommittedURL());
   return !current.opaque() && current.Serialize() == origin_scope_;
+}
+
+void DeveloperProfileEditorView::OnToolkitActivationChanged() {
+  const bool enabled = CanPersistObservedTarget();
+  if (enabled == toolkit_active_) {
+    return;
+  }
+  toolkit_active_ = enabled;
+  ++compile_generation_;
+  compile_in_flight_ = false;
+  style_compiler_->CloseEditor();
+  header_secret_editor_->CompleteProfileCommit(false);
+  if (enabled) {
+    style_compiler_->OpenEditor();
+  }
+  // The controls and source draft stay intact. Re-enabling permits the next
+  // explicit save; it starts no utility and replays no pending compilation.
 }
 
 }  // namespace ahoi

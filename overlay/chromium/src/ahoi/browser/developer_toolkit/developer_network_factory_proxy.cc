@@ -10,6 +10,7 @@
 
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
 #include "base/functional/bind.h"
 #include "base/memory/self_deleting.h"
@@ -40,6 +41,11 @@ namespace {
 
 bool ToolkitEnabled(const PrefService* prefs) {
   return prefs && developer_toolkit_prefs::IsToolkitEnabled(*prefs);
+}
+
+uint64_t ActivationGeneration(content::WebContents* contents) {
+  const auto* helper = DeveloperProfileTabHelper::FromWebContents(contents);
+  return helper ? helper->activation_generation() : 0;
 }
 
 std::optional<DeveloperProfile> ResolveRequestSecrets(
@@ -286,6 +292,7 @@ class DeveloperFactoryProxy final
         target_(std::move(target)), contents_(std::move(contents)),
         origin_(std::move(origin)), frame_token_(frame_token),
         navigation_id_(navigation_id),
+        activation_generation_(ActivationGeneration(contents_.get())),
         secret_store_factory_(std::move(secret_store_factory)) {
     target_.set_disconnect_handler(base::BindOnce(
         &DeveloperFactoryProxy::DisconnectReceiversAndDestroy,
@@ -342,6 +349,7 @@ class DeveloperFactoryProxy final
       bool verify_saved_rules = false) {
     auto* frame = content::RenderFrameHost::FromFrameToken(frame_token_);
     if (contents_ && frame && frame->IsActive() &&
+        ActivationGeneration(contents_.get()) == activation_generation_ &&
         frame->GetNavigationId() == navigation_id_ &&
         frame->GetLastCommittedOrigin() == origin_ &&
         content::WebContents::FromRenderFrameHost(frame) == contents_.get() &&
@@ -376,6 +384,7 @@ class DeveloperFactoryProxy final
   const url::Origin origin_;
   const content::GlobalRenderFrameHostToken frame_token_;
   const int64_t navigation_id_;
+  const uint64_t activation_generation_;
   const DeveloperSecretStoreFactory secret_store_factory_;
   base::WeakPtrFactory<DeveloperFactoryProxy> weak_factory_{this};
 };

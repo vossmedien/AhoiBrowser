@@ -5,6 +5,7 @@
 #define AHOI_BROWSER_DEVELOPER_TOOLKIT_DEVELOPER_PROFILE_RUNTIME_H_
 
 #include <memory>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/navigation_throttle.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "url/gurl.h"
@@ -43,6 +45,7 @@ bool ApplyDeveloperAssetsToCurrentDocument(
 // another Chromium surface are never cleared.
 void ApplyAhoiUserAgentOverride(content::WebContents& web_contents,
                                 const DeveloperProfile* profile);
+bool HasAhoiUserAgentOverride(content::WebContents& web_contents);
 
 // Per-tab observer for persisted CSS/JavaScript. It performs a single pref
 // lookup after a primary document commits and owns no timers/background work.
@@ -60,6 +63,7 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
 
   void SetWebContents(content::WebContents* web_contents);
   const std::string& tab_token() const { return tab_token_; }
+  uint64_t activation_generation() const { return activation_generation_; }
 
   // Stores restart assets in the profile PrefService and keeps once/reload
   // assets in this tab-owned helper. Transient source never reaches prefs or
@@ -95,6 +99,8 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
  private:
   void AttachToWebContents(content::WebContents* web_contents);
   void DetachFromWebContents(content::WebContents* web_contents);
+  void InitializeActivationObserver();
+  void OnToolkitActivationChanged();
 
   const raw_ptr<PrefService> prefs_;
   PrefDeveloperProfileStore store_;
@@ -102,6 +108,9 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   InMemoryDeveloperProfileStore once_store_;
   const std::string tab_token_;
   std::vector<DeveloperAsset> active_assets_;
+  bool toolkit_active_ = false;
+  uint64_t activation_generation_ = 0;
+  PrefChangeRegistrar activation_pref_registrar_;
   base::WeakPtrFactory<DeveloperProfileTabHelper> weak_factory_{this};
 };
 
@@ -146,6 +155,7 @@ class DeveloperProfileNavigationThrottle final
   DeveloperSecretStoreFactory secret_store_factory_;
   base::WeakPtr<content::WebContents> web_contents_;
   const int64_t navigation_id_;
+  const uint64_t activation_generation_;
   base::WeakPtrFactory<DeveloperProfileNavigationThrottle> weak_factory_{this};
 };
 

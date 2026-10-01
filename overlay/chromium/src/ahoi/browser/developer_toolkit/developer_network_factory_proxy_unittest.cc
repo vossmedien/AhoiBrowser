@@ -11,6 +11,7 @@
 
 #include "ahoi/browser/developer_toolkit/developer_profile_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "base/functional/bind.h"
@@ -220,6 +221,7 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
         &context_, nullptr);
     content::NavigationSimulator::NavigateAndCommitFromBrowser(
         contents_.get(), origin_.GetURL());
+    helper_ = std::make_unique<DeveloperProfileTabHelper>(contents_.get(), &prefs_);
     profile_.name = "Synthetic network fixture";
     profile_.cache_disabled = true;
     profile_.header_rules_enabled = true;
@@ -289,6 +291,7 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
   TestingPrefServiceSimple prefs_;
   content::TestBrowserContext context_;
   std::unique_ptr<content::WebContents> contents_;
+  std::unique_ptr<DeveloperProfileTabHelper> helper_;
   const url::Origin origin_ = url::Origin::Create(GURL("https://site.test/"));
   DeveloperProfile profile_;
   bool installed_proxy_ = false;
@@ -521,7 +524,7 @@ TEST_F(DeveloperNetworkFactoryProxyTest, FailedSecretResolutionIsAtomic) {
 
 TEST_F(DeveloperNetworkFactoryProxyTest,
        DeferredSecretsRecheckEnablementRulesAndDocument) {
-  for (int revoke = 0; revoke < 3; ++revoke) {
+  for (int revoke = 0; revoke < 4; ++revoke) {
     SCOPED_TRACE(revoke);
     prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
     UseSecrets();
@@ -533,9 +536,13 @@ TEST_F(DeveloperNetworkFactoryProxyTest,
     } else if (revoke == 1) {
       PrefDeveloperProfileStore store(&prefs_, false);
       ASSERT_TRUE(store.Remove(origin_));
-    } else {
+    } else if (revoke == 2) {
       content::NavigationSimulator::NavigateAndCommitFromBrowser(
           contents_.get(), origin_.GetURL().Resolve("replacement"));
+    } else {
+      prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+      prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+      Save();
     }
     environment_.RunUntilIdle();
     ASSERT_EQ(1u, terminal_->seen.size());

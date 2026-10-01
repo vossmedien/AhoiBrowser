@@ -5,16 +5,19 @@
 #define AHOI_BROWSER_UI_DEVELOPER_TOOLKIT_DEVELOPER_PROFILE_EDITOR_VIEW_H_
 
 #include <memory>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "ahoi/browser/developer_toolkit/developer_profile_types.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
+#include "ahoi/browser/developer_toolkit/developer_style_compiler.h"
 #include "ahoi/browser/ui/appearance/native_panel_material.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "ui/views/view.h"
 
@@ -59,7 +62,9 @@ class DeveloperProfileEditorView final : public views::View,
                              SaveCallback save_callback,
                              RemoveCallback remove_callback,
                              base::RepeatingClosure close_callback,
-                             PrefService* prefs = nullptr);
+                             PrefService* prefs = nullptr,
+                             LazyDeveloperStyleCompiler::ServiceFactory
+                                 compiler_factory = {});
   DeveloperProfileEditorView(const DeveloperProfileEditorView&) = delete;
   DeveloperProfileEditorView& operator=(const DeveloperProfileEditorView&) =
       delete;
@@ -76,7 +81,8 @@ class DeveloperProfileEditorView final : public views::View,
 
  private:
   std::optional<DeveloperProfile> BuildProfileForSave();
-  void OnStyleCompiled(DeveloperProfile profile,
+  void OnStyleCompiled(uint64_t generation,
+                       DeveloperProfile profile,
                        DeveloperStyleCompileResult result);
   views::Textfield* AddTextControl(std::unique_ptr<views::Textfield> field,
                                    int height,
@@ -90,6 +96,7 @@ class DeveloperProfileEditorView final : public views::View,
   void ShowStatus(std::u16string text, bool is_error);
   void OnAppearanceChanged(const appearance::GlassPolicy& policy);
   bool CanPersistObservedTarget() const;
+  void OnToolkitActivationChanged();
 
   const SaveCallback save_callback_;
   const RemoveCallback remove_callback_;
@@ -125,6 +132,9 @@ class DeveloperProfileEditorView final : public views::View,
   std::string current_browser_user_agent_;
   std::unique_ptr<LazyDeveloperStyleCompiler> style_compiler_;
   bool compile_in_flight_ = false;
+  bool toolkit_active_ = false;
+  uint64_t compile_generation_ = 0;
+  PrefChangeRegistrar toolkit_pref_registrar_;
   appearance::NativePanelMaterial panel_material_{
       appearance::SurfaceRole::kDeveloperTools};
   std::unique_ptr<appearance::AppearanceRuntimeSignalSource>

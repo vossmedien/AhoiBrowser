@@ -15,6 +15,7 @@
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_target.h"
+#include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "ahoi/browser/ui/developer_toolkit/developer_profile_editor_view.h"
 #include "ahoi/browser/ui/developer_toolkit/developer_toolkit_controller.h"
 #include "ahoi/browser/ui/visual_style.h"
@@ -53,7 +54,8 @@ bool DeveloperToolkitController::ShowProfileEditor(views::View* anchor_view) {
   content::WebContents* const contents = GetActiveWebContents();
   Profile* profile = browser_ ? browser_->GetProfile() : nullptr;
   if (!anchor_view || !anchor_view->GetWidget() || !contents || !profile ||
-      profile->IsOffTheRecord() || !IsSupportedDeveloperTarget(contents)) {
+      profile->IsOffTheRecord() || !IsSupportedDeveloperTarget(contents) ||
+      !developer_toolkit_prefs::IsToolkitEnabled(*profile->GetPrefs())) {
     return false;
   }
   if (profile_editor_widget_) {

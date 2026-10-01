@@ -1,0 +1,100 @@
+{
+  "kind": "source-syntax-only",
+  "nativeExecuted": false,
+  "installedAcceptance": false,
+  "baseCommit": "8b0c0e11",
+  "capturedAt": "2026-10-01T12:59:17.364758+00:00",
+  "checks": [
+    {
+      "name": "activation",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime_activation.cc",
+      "sourceSha256": "41512ce1849fd35db57636178d983698f71d77c68a109efc228a31b1388620f4",
+      "commandSha256": "07817965900db7994493044a881a4ded9930b1812fb3545c54df88704a159246",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "activation-tests",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_activation_unittest.cc",
+      "sourceSha256": "8955c0f1f1ba00c1326dfc0ad0790be9ba72c6abb7a250fb09ba99fd82fb048c",
+      "commandSha256": "30a2a853e2a366fcd8e8716ba75637403d320b279f613ce85238422dedf8bdf2",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "controller",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_controller_profile_editor.cc",
+      "sourceSha256": "1c0efcc7d38f052730283095247563108c7e7fdaa4fd9e22231ccf6ec7cb2843",
+      "commandSha256": "767c2124ca05901dcd6482cfd5488e52cf6b0d2d42d54beb70e0aabb12008ca7",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "editor",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_view.cc",
+      "sourceSha256": "ac55878bb9959f7483f00c8e8c2ef8966768d7067a792be96e852d0e976821af",
+      "commandSha256": "2d1c3257fce625e8821ce62ed186647b6c922d5e865d628ca7446781c5f17d5c",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "materialization",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_header_materialization_unittest.cc",
+      "sourceSha256": "5b4008415c02717c1090e060ffe140fde0c153e536b4a9d0e4b9e7fa252524d9",
+      "commandSha256": "4dc6335b32affcd7f513374f44a76c084261702d046530f4114d688d815da808",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "proxy",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc",
+      "sourceSha256": "30c9aa66c1bce66bea6cc9e1e1bfc94c9dc12d8c3b5aa7d955aa8c9194dc6a01",
+      "commandSha256": "e762287f3ce5d8741d893bde15519098c6d746c0f9e61082bf07cf1703d7a1aa",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "proxy-tests",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy_unittest.cc",
+      "sourceSha256": "c470b0d2bab0b258acc165a9d0696368e310f71faa5084733c6ab926417ac72e",
+      "commandSha256": "631ecee9c21be2433442d03d6e1e6e22ba2c268289d85d42c5e716591dbc9bee",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "runtime",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime.cc",
+      "sourceSha256": "0e00b8d89dba5b09f0967fbdaba2cab2e61acf8886e2e02fd1b4105030645aca",
+      "commandSha256": "e98598748fd483501e63f68f8256a338588a12350ad3df2d588be245cb9e3348",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "runtime-tests",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime_unittest.cc",
+      "sourceSha256": "8ac375e0398c7b872bfd1b82c082fb8795113fc1710248d946d7a5acb7f1c392",
+      "commandSha256": "1ea374d288c9cbe5b893299eb81d024c96d43ae376365a22d8d00c219154bb06",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "throttle",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.cc",
+      "sourceSha256": "0a0c50be5a9ab3139db9c312733ff014ab72a844f3f6743b5578dfb1360ca9dd",
+      "commandSha256": "c76db919a502f517bb7efd096ee4248f1801d909a1fffd264cf8a29a47e46067",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ua",
+      "exitCode": 0,
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime_user_agent.cc",
+      "sourceSha256": "5e0db540143b39af65f86bda1f585f602ebb492bba876acb353278bf12656390",
+      "commandSha256": "35fa01ad7b8b3987122589288fabfe2bb076be7b8f3cf7271f31feec8bd0eed5",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "compositionSha256": "458080a36dc12dd16b78415e459e0282443c7234ead40894cdc579e13179e8fc",
+  "clangSha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3",
+  "generatedArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
+}

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
+#include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 
 #include <memory>
 #include <optional>
@@ -82,7 +83,8 @@ bool IsEligibleWebContents(content::WebContents* web_contents,
                            PrefService* prefs,
                            bool is_off_the_record) {
   if (!web_contents || !prefs || is_off_the_record ||
-      web_contents->IsBeingDestroyed()) {
+      web_contents->IsBeingDestroyed() ||
+      !developer_toolkit_prefs::IsToolkitEnabled(*prefs)) {
     return false;
   }
   content::BrowserContext* const browser_context =

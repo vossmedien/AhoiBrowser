@@ -18,6 +18,7 @@
 #include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_document_actions.h"
+#include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
@@ -40,10 +41,7 @@
 namespace ahoi {
 namespace {
 
-const char kAhoiUserAgentMarkerKey = 0;
 const char kDeveloperProfileTabHelperKey = 0;
-
-class AhoiUserAgentMarker final : public base::SupportsUserData::Data {};
 
 class DeveloperProfileTabHelperMarker final
     : public base::SupportsUserData::Data {
@@ -190,7 +188,8 @@ void AppendAssets(const std::optional<DeveloperProfile>& source,
 
 bool IsEligibleNavigationContext(content::WebContents* web_contents,
                                  PrefService* prefs) {
-  if (!web_contents || !prefs || web_contents->IsBeingDestroyed()) {
+  if (!web_contents || !prefs || web_contents->IsBeingDestroyed() ||
+      !developer_toolkit_prefs::IsToolkitEnabled(*prefs)) {
     return false;
   }
   content::BrowserContext* const browser_context =
@@ -289,6 +288,12 @@ bool ApplyDeveloperProfileToCurrentDocument(content::WebContents& web_contents,
 bool ApplyDeveloperAssetsToCurrentDocument(
     content::WebContents& web_contents,
     const std::vector<DeveloperAsset>& assets) {
+  auto* context = web_contents.GetBrowserContext();
+  if (!context || !user_prefs::UserPrefs::IsInitialized(context) ||
+      !IsEligibleNavigationContext(
+          &web_contents, user_prefs::UserPrefs::Get(context))) {
+    return false;
+  }
   content::RenderFrameHost* const frame = web_contents.GetPrimaryMainFrame();
   if (!frame || !web_contents.GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) {
     return false;
@@ -328,21 +333,6 @@ bool ApplyDeveloperAssetsToCurrentDocument(
   return all_applied;
 }
 
-void ApplyAhoiUserAgentOverride(content::WebContents& web_contents,
-                                const DeveloperProfile* profile) {
-  if (profile && profile->user_agent_enabled && !profile->user_agent.empty()) {
-    web_contents.SetUserAgentOverride(
-        blink::UserAgentOverride::UserAgentOnly(profile->user_agent), false);
-    web_contents.SetUserData(&kAhoiUserAgentMarkerKey,
-                             std::make_unique<AhoiUserAgentMarker>());
-    return;
-  }
-  if (web_contents.GetUserData(&kAhoiUserAgentMarkerKey)) {
-    web_contents.SetUserAgentOverride(blink::UserAgentOverride(), false);
-    web_contents.RemoveUserData(&kAhoiUserAgentMarkerKey);
-  }
-}
-
 DeveloperProfileTabHelper::DeveloperProfileTabHelper(
     content::WebContents* web_contents,
     PrefService* prefs)
@@ -351,6 +341,7 @@ DeveloperProfileTabHelper::DeveloperProfileTabHelper(
       store_(prefs, /*is_off_the_record=*/false),
       tab_token_(base::Uuid::GenerateRandomV4().AsLowercaseString()) {
   AttachToWebContents(web_contents);
+  InitializeActivationObserver();
 }
 
 DeveloperProfileTabHelper::~DeveloperProfileTabHelper() {
@@ -529,6 +520,10 @@ bool DeveloperProfileTabHelper::ResetProfilesForUrl(const GURL& url) {
 
 std::vector<DeveloperAsset> DeveloperProfileTabHelper::TakeAssetsForNavigation(
     const GURL& url) {
+  if (!prefs_ || !developer_toolkit_prefs::IsToolkitEnabled(*prefs_)) {
+    active_assets_.clear();
+    return {};
+  }
   std::vector<DeveloperAsset> result =
       GetDeveloperAssetsForNavigation(store_, url, tab_token_);
   std::vector<DeveloperAsset> reload =
@@ -554,6 +549,15 @@ void DeveloperProfileTabHelper::DidStartNavigation(
       navigation_handle->GetWebContents() != web_contents() ||
       !IsEligibleNavigationContext(web_contents(), prefs_) ||
       prefs_->GetDict(kDeveloperProfilesPref).empty()) {
+    if (navigation_handle && navigation_handle->IsInPrimaryMainFrame() &&
+        !navigation_handle->IsSameDocument() && web_contents() &&
+        navigation_handle->GetWebContents() == web_contents()) {
+      const bool owned = HasAhoiUserAgentOverride(*web_contents());
+      ApplyAhoiUserAgentOverride(*web_contents(), nullptr);
+      if (owned) {
+        navigation_handle->SetIsOverridingUserAgent(false);
+      }
+    }
     return;
   }
   const std::optional<DeveloperProfile> profile =
@@ -567,7 +571,19 @@ void DeveloperProfileTabHelper::DidFinishNavigation(
     content::NavigationHandle* navigation_handle) {
   if (!navigation_handle || !navigation_handle->HasCommitted() ||
       !navigation_handle->IsInPrimaryMainFrame() ||
-      navigation_handle->IsSameDocument()) {
+      navigation_handle->IsSameDocument() ||
+      navigation_handle->GetWebContents() != web_contents()) {
+    return;
+  }
+  if (!IsEligibleNavigationContext(web_contents(), prefs_)) {
+    active_assets_.clear();
+    if (web_contents()) {
+      ClearDeveloperProfileNavigationRequest(*web_contents());
+      UpdateDeveloperProfileNetworkState(*web_contents(),
+                                         navigation_handle->GetURL(),
+                                         std::nullopt);
+      ApplyAhoiUserAgentOverride(*web_contents(), nullptr);
+    }
     return;
   }
   const std::optional<DeveloperProfile> profile =
@@ -643,7 +659,10 @@ DeveloperProfileNavigationThrottle::DeveloperProfileNavigationThrottle(
           registry.GetNavigationHandle().GetWebContents()
               ? registry.GetNavigationHandle().GetWebContents()->GetWeakPtr()
               : base::WeakPtr<content::WebContents>()),
-      navigation_id_(registry.GetNavigationHandle().GetNavigationId()) {}
+      navigation_id_(registry.GetNavigationHandle().GetNavigationId()),
+      activation_generation_(DeveloperProfileTabHelper::FromWebContents(
+          web_contents_.get()) ? DeveloperProfileTabHelper::FromWebContents(
+          web_contents_.get())->activation_generation() : 0) {}
 
 DeveloperProfileNavigationThrottle::~DeveloperProfileNavigationThrottle() {
   if (web_contents_ && !web_contents_->IsBeingDestroyed()) {
@@ -738,6 +757,10 @@ void DeveloperProfileNavigationThrottle::OnHeaderSecretsMaterialized(
                navigation_handle()->GetURL() == request_url &&
                url::Origin::Create(navigation_handle()->GetURL()) == origin;
   valid = valid && IsEligibleNavigationContext(web_contents_.get(), prefs_);
+  const auto* helper =
+      DeveloperProfileTabHelper::FromWebContents(web_contents_.get());
+  valid = valid && (helper ? helper->activation_generation() : 0) ==
+                       activation_generation_;
   if (!valid || !materialized_profile ||
       !StageDeveloperProfileNavigationRequest(
           *web_contents_, navigation_id, request_url, std::move(source_profile),

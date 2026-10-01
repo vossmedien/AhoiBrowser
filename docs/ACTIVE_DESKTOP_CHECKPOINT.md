@@ -1,5 +1,36 @@
 # Active Desktop checkpoint
 
+## Toolkit disable/re-enable source closed — 1 October 2026
+
+Source now enforces the shared activation predicate on main navigation,
+network metadata, direct document injection and editor save. Disabled mode
+preserves saved profiles and pending once assets. Tab-owned pref observation
+clears pending/network state and own UA; only an affected injected document
+reloads through Chromium to retire its prior JS/DOM work. A later native
+surface's replacement UA survives. Off/on increments the tab generation:
+old main/document secret requests cannot become approved again just because
+the boolean and rule metadata match. Enabling starts no automatic replay.
+
+The editor drops its owned lazy compiler on disable, retains its controls/
+draft and rejects old compiler responses by generation. Only a fresh explicit
+save starts work. Seven new regression methods plus the fourth deferred Mojo
+revocation variant are written. Eleven pinned-Clang translation units and
+ordered composition pass. [Exact checks and acceptance limits](../artifacts/tests/cpp-devtoolkit-disable-source-20261001/README.md).
+No native linking, execution, affected-page reload or installed DEV acceptance
+is claimed. Next guarded candidate must exercise main/document/editor off/on,
+unsaved drafts and foreign UA ownership. Worker coverage remains open.
+Crest ready 106/110 were checked and remain deferred to actual performance work.
+
+Build 60 is still signed/verified d0688d88, with its 19/20 unit-program gate.
+A fresh narrow attempt recorded 140 seconds idle and free locks, but its
+immediate launch check found input resumed. Worker 20555 ended exit 2 before
+acquiring locks or executing a test (`60/sidebar-focused-2/state.json`).
+No focused result or installation is claimed; installed source stays d3ebc1b9.
+No waiter/observer was restarted. Next UI action remains a fresh input/resource/
+ownership check followed by the failing menu case, then the serial sidebar
+suite and canonical frozen-candidate installation. Other 19 green programs
+must not repeat without a changed candidate or new concern. Master stays active.
+
 ## Header secrets stay request-local — 1 October 2026
 
 Source policy audit corrected the unbuilt 7b27d411 design: the existing secret

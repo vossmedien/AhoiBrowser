@@ -12,7 +12,9 @@
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
+#include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "base/functional/bind.h"
+#include "base/functional/callback_helpers.h"
 #include "components/prefs/testing_pref_service.h"
 #include "components/user_prefs/user_prefs.h"
 #include "content/public/browser/navigation_controller.h"
@@ -138,6 +140,8 @@ class DeveloperHeaderMaterializationTest : public testing::Test {
 
   void SetUp() override {
     developer_profile_prefs::RegisterProfilePrefs(prefs_.registry());
+    developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
+    prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
     user_prefs::UserPrefs::Set(&browser_context_, &prefs_);
     web_contents_ = content::WebContentsTester::CreateTestWebContents(
         &browser_context_, nullptr);
@@ -374,6 +378,77 @@ TEST_F(DeveloperHeaderMaterializationTest,
   other_origin.url = GURL("https://other.example.test/app.js");
   EXPECT_FALSE(MaybeCreateDeveloperProfileURLLoaderThrottle(
       other_origin, &prefs_, /*is_off_the_record=*/false, web_contents_.get()));
+}
+
+TEST_F(DeveloperHeaderMaterializationTest,
+       DisabledToolkitStartsNeitherKeychainWorkNorMainFrameOverrides) {
+  const auto profile = MakeSecretHeaderProfile();
+  SaveProfile(profile);
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  const GURL url = TestOrigin().GetURL();
+  testing::NiceMock<content::MockNavigationHandle> handle(
+      url, web_contents_->GetPrimaryMainFrame());
+  content::MockNavigationThrottleRegistry registry(
+      &handle,
+      content::MockNavigationThrottleRegistry::RegistrationMode::kHold);
+  DeveloperProfileNavigationThrottle navigation_throttle(
+      registry, &prefs_, SecretStoreFactory(/*resolve_response=*/true));
+  int resumed = 0;
+  navigation_throttle.set_resume_callback_for_testing(
+      base::BindRepeating([](int* value) { ++*value; }, &resumed));
+  EXPECT_EQ(content::NavigationThrottle::PROCEED,
+            navigation_throttle.WillStartRequest().action());
+  task_environment_.RunUntilIdle();
+  EXPECT_EQ(0, resumed);
+  EXPECT_FALSE(MaybeCreateDeveloperProfileURLLoaderThrottle(
+      MainFrameRequest(url), &prefs_, false, web_contents_.get()));
+  EXPECT_FALSE(GetDeveloperProfileNetworkSnapshotForRequest(
+      MainFrameRequest(url), &prefs_, false, web_contents_.get()));
+}
+
+TEST_F(DeveloperHeaderMaterializationTest,
+       MasterRevocationRejectsPendingNavigationSecretsAfterReenable) {
+  SaveProfile(MakeSecretHeaderProfile());
+  const GURL url = TestOrigin().GetURL();
+  testing::NiceMock<content::MockNavigationHandle> handle(
+      url, web_contents_->GetPrimaryMainFrame());
+  content::MockNavigationThrottleRegistry registry(
+      &handle,
+      content::MockNavigationThrottleRegistry::RegistrationMode::kHold);
+  DeveloperProfileNavigationThrottle navigation_throttle(
+      registry, &prefs_, SecretStoreFactory(/*resolve_response=*/true));
+  navigation_throttle.set_resume_callback_for_testing(base::DoNothing());
+  EXPECT_EQ(content::NavigationThrottle::DEFER,
+            navigation_throttle.WillStartRequest().action());
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  task_environment_.RunUntilIdle();
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  EXPECT_FALSE(MaybeCreateDeveloperProfileURLLoaderThrottle(
+      MainFrameRequest(url), &prefs_, false, web_contents_.get()));
+}
+
+TEST_F(DeveloperHeaderMaterializationTest,
+       ReenableBeforeReplyDoesNotResurrectOldNavigationApproval) {
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  SaveProfile(MakeSecretHeaderProfile());
+  const GURL url = TestOrigin().GetURL();
+  testing::NiceMock<content::MockNavigationHandle> handle(
+      url, web_contents_->GetPrimaryMainFrame());
+  content::MockNavigationThrottleRegistry registry(
+      &handle,
+      content::MockNavigationThrottleRegistry::RegistrationMode::kHold);
+  DeveloperProfileNavigationThrottle navigation_throttle(
+      registry, &prefs_, SecretStoreFactory(/*resolve_response=*/true));
+  navigation_throttle.set_resume_callback_for_testing(base::DoNothing());
+  EXPECT_EQ(content::NavigationThrottle::DEFER,
+            navigation_throttle.WillStartRequest().action());
+  const auto previous_generation = helper.activation_generation();
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  EXPECT_GT(helper.activation_generation(), previous_generation);
+  task_environment_.RunUntilIdle();
+  EXPECT_FALSE(MaybeCreateDeveloperProfileURLLoaderThrottle(
+      MainFrameRequest(url), &prefs_, false, web_contents_.get()));
 }
 
 TEST_F(DeveloperHeaderMaterializationTest,

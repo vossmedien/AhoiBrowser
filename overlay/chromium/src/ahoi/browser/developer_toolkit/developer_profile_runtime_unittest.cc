@@ -12,10 +12,13 @@
 
 #include "ahoi/browser/developer_toolkit/developer_profile_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_action_executor.h"
+#include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "components/prefs/testing_pref_service.h"
+#include "components/user_prefs/user_prefs.h"
 #include "content/public/test/browser_task_environment.h"
 #include "content/public/test/test_browser_context.h"
 #include "content/public/test/web_contents_tester.h"
+#include "third_party/blink/public/common/user_agent/user_agent_metadata.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 namespace ahoi {
@@ -25,13 +28,16 @@ class DeveloperProfileRuntimeTest : public testing::Test {
  protected:
   DeveloperProfileRuntimeTest() {
     developer_profile_prefs::RegisterProfilePrefs(prefs_.registry());
+    developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
+    prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+    user_prefs::UserPrefs::Set(&browser_context_, &prefs_);
     web_contents_ = content::WebContentsTester::CreateTestWebContents(
         &browser_context_, nullptr);
   }
 
   content::BrowserTaskEnvironment task_environment_;
-  content::TestBrowserContext browser_context_;
   TestingPrefServiceSimple prefs_;
+  content::TestBrowserContext browser_context_;
   std::unique_ptr<content::WebContents> web_contents_;
 };
 
@@ -118,6 +124,42 @@ TEST_F(DeveloperProfileRuntimeTest,
                                             &DeveloperAsset::id));
   ASSERT_TRUE(helper.GetProfile(origin));
   EXPECT_EQ(2u, helper.GetProfile(origin)->assets.size());
+}
+
+TEST_F(DeveloperProfileRuntimeTest,
+       DisabledToolkitPreservesOnceAssetsUntilNextEnabledNavigation) {
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  const GURL url("https://disabled.example.test/");
+  const url::Origin origin = url::Origin::Create(url);
+  DeveloperProfile profile{.name = "Dormant profile"};
+  profile.assets.push_back(Asset(
+      "once", DeveloperAssetLifetime::kOnce,
+      {.kind = DeveloperAssetScopeKind::kOrigin, .value = origin.Serialize()}));
+  ASSERT_TRUE(helper.SaveProfile(origin, profile));
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  EXPECT_TRUE(helper.TakeAssetsForNavigation(url).empty());
+  EXPECT_TRUE(helper.active_assets().empty());
+  ASSERT_TRUE(helper.GetProfile(origin));
+  EXPECT_EQ(1u, helper.GetProfile(origin)->assets.size());
+  EXPECT_FALSE(ApplyDeveloperProfileToCurrentDocument(*web_contents_, profile));
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  EXPECT_EQ(1u, helper.TakeAssetsForNavigation(url).size());
+  EXPECT_TRUE(helper.TakeAssetsForNavigation(url).empty());
+}
+
+TEST_F(DeveloperProfileRuntimeTest,
+       ShutdownPreservesAUserAgentReplacedByAnotherNativeSurface) {
+  DeveloperProfile profile{.name = "Own override"};
+  profile.user_agent_enabled = true;
+  profile.user_agent = "Ahoi owned value";
+  ApplyAhoiUserAgentOverride(*web_contents_, &profile);
+  ASSERT_TRUE(HasAhoiUserAgentOverride(*web_contents_));
+  web_contents_->SetUserAgentOverride(
+      blink::UserAgentOverride::UserAgentOnly("Other native surface"), false);
+  EXPECT_FALSE(HasAhoiUserAgentOverride(*web_contents_));
+  ApplyAhoiUserAgentOverride(*web_contents_, nullptr);
+  EXPECT_EQ("Other native surface",
+            web_contents_->GetUserAgentOverride().ua_string_override);
 }
 
 TEST_F(DeveloperProfileRuntimeTest,
