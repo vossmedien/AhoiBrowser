@@ -1,5 +1,27 @@
 # Active Desktop checkpoint
 
+## Build 60 signing access recovered — 1 October 2026, 13:10 CEST
+
+The existing Apple Development identity successfully signs an owned scratch
+Mach-O; strict verification passes with Team 248AJ5BN47 and the normal Apple
+certificate chain. Explicit certificate trust evaluation also passes. The
+isolated process search list caused the automatic selector to refuse access;
+no certificate renewal or new identity is needed.
+
+The development signer now supports an explicit Keychain path and exact
+Apple Development name. If valid-identity enumeration omits that exact match,
+it independently binds its public leaf fingerprint and requires native
+codeSign trust evaluation before selection. Actual signing and deep/strict
+bundle verification remain mandatory. Default selection, release identity
+exclusion and the explicit ad-hoc gate remain enforced. Nine repository
+regressions pass. No Keychain search-list/trust/ACL change or key export.
+
+Next: sign the already compiled frozen d0688d88 candidate, complete its
+original verifier/provenance and native unit gates, then atomically install
+and run the affected installed journeys. No new browser compilation is needed.
+The uncommitted renderer-subresource proxy is separate source work and is not
+part of Build 60. The existing Master goal stays active.
+
 ## Build 60 compiled; native split GREEN; signing blocked — 1 October 2026
 
 Frozen source `d0688d88` compiled and linked through the guarded development

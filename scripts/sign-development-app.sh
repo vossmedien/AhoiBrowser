@@ -30,6 +30,9 @@ helpers="${framework}/Versions/Current/Helpers"
 identity="$(python3 "${AHOI_REPO_ROOT}/tools/development_signing.py")" || \
   ahoi_die "cannot resolve a safe development signing identity"
 signing_arguments=(--force --sign "${identity}" --timestamp=none)
+if [ -n "${AHOI_DEV_CODESIGN_KEYCHAIN:-}" ]; then
+  signing_arguments+=(--keychain "${AHOI_DEV_CODESIGN_KEYCHAIN}")
+fi
 if [ "${identity}" != "-" ]; then
   # Development profiles are component builds. Their staged Chromium dylibs
   # intentionally keep their linker signatures. A stable identity fixes the

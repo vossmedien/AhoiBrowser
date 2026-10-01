@@ -129,6 +129,15 @@ machine-readable provenance binds the app and binary hashes, generated and
 configured GN arguments, complete dependency closure, Chromium/depot_tools
 commits, trusted GN/Ninja/Clang/LLD binary hashes, and exact Xcode/SDK versions.
 
+For an agent process with an isolated Keychain search list, development signing
+can use `AHOI_DEV_CODESIGN_KEYCHAIN` (an existing absolute Keychain file) and
+`AHOI_DEV_CODESIGN_IDENTITY` (the exact existing Apple Development name). If
+identity enumeration omits this explicit match, its exact public certificate
+must still pass native codeSign trust evaluation. The signer uses the same
+Keychain for private-key access and verifies the resulting bundle. It does not
+change the search list, trust settings or key permissions; Developer ID remains
+reserved for release. No certificate or private key needs to be copied.
+
 ## Ahoi build
 
 ```sh

@@ -4,10 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
 import os
+import pathlib
 import re
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from typing import Iterable, Optional
 
@@ -97,9 +101,17 @@ def select_identity(
     )
 
 
-def read_security_identities() -> tuple[CodeSigningIdentity, ...]:
+def read_security_identities(
+    *, keychain: Optional[str] = None, valid_only: bool = True,
+) -> tuple[CodeSigningIdentity, ...]:
+    command = ["security", "find-identity"]
+    if valid_only:
+        command.append("-v")
+    command.extend(["-p", "codesigning"])
+    if keychain:
+        command.append(keychain)
     completed = subprocess.run(
-        ["security", "find-identity", "-v", "-p", "codesigning"],
+        command,
         check=False,
         capture_output=True,
         text=True,
@@ -112,6 +124,41 @@ def read_security_identities() -> tuple[CodeSigningIdentity, ...]:
     return parse_identities(completed.stdout)
 
 
+def verify_explicit_certificate(
+    identity: CodeSigningIdentity, keychain: str,
+) -> None:
+    """Verify the exact public leaf when an isolated search list omits it."""
+    certificates = subprocess.run(
+        ["security", "find-certificate", "-a", "-p", "-c", identity.name,
+         keychain], capture_output=True, text=True, check=False,
+    )
+    leaves = []
+    for pem in re.findall(
+        r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----",
+        certificates.stdout, re.DOTALL,
+    ):
+        encoded = "".join(pem.splitlines()[1:-1])
+        fingerprint = hashlib.sha1(base64.b64decode(encoded)).hexdigest()
+        if fingerprint.upper() == identity.fingerprint:
+            leaves.append(pem)
+    if certificates.returncode or len(leaves) != 1:
+        raise DevelopmentSigningError("cannot bind the exact development leaf")
+    # Only public certificate bytes leave the Keychain. No search-list, trust,
+    # ACL or private-key change is made; native trust evaluation must succeed.
+    with tempfile.TemporaryDirectory(prefix="ahoi-development-leaf-") as folder:
+        leaf = pathlib.Path(folder) / "leaf.pem"
+        leaf.write_text(leaves[0] + "\n")
+        verified = subprocess.run(
+            ["security", "verify-cert", "-p", "codeSign", "-c", str(leaf),
+             "-k", keychain, "-k", "/Library/Keychains/System.keychain"],
+            capture_output=True, text=True, check=False,
+        )
+    if verified.returncode:
+        raise DevelopmentSigningError(
+            "explicit Apple Development certificate fails native trust evaluation"
+        )
+
+
 def boolean_environment(name: str) -> bool:
     value = os.environ.get(name, "0")
     if value not in {"0", "1"}:
@@ -121,8 +168,23 @@ def boolean_environment(name: str) -> bool:
 
 def resolve_from_environment() -> str:
     configured = os.environ.get("AHOI_DEV_CODESIGN_IDENTITY") or None
+    keychain = os.environ.get("AHOI_DEV_CODESIGN_KEYCHAIN") or None
+    if keychain and (not pathlib.Path(keychain).is_absolute()
+                     or not pathlib.Path(keychain).is_file()):
+        raise DevelopmentSigningError("development Keychain must be an absolute file")
+    identities = read_security_identities(keychain=keychain)
+    if (keychain and configured
+            and configured.startswith(APPLE_DEVELOPMENT_PREFIX)
+            and configured not in {item.name for item in identities}):
+        matches = tuple(item for item in read_security_identities(
+            keychain=keychain, valid_only=False,
+        ) if item.name == configured)
+        if len(matches) != 1:
+            raise DevelopmentSigningError("explicit development identity is ambiguous or absent")
+        verify_explicit_certificate(matches[0], keychain)
+        identities = (*identities, matches[0])
     return select_identity(
-        read_security_identities(),
+        identities,
         configured=configured,
         allow_adhoc=boolean_environment("AHOI_ALLOW_ADHOC_DEV_SIGNING"),
     )
