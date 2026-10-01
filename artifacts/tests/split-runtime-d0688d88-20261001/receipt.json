@@ -1,0 +1,38 @@
+{
+  "sourceCommit": "d0688d88601ee073dc383f81273786af79956ab4",
+  "runnerPid": 55196,
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "installedAcceptance": false,
+  "bundleSigning": "blocked-no-valid-Apple-Development-identity",
+  "command": [
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_split_layout_browsertests",
+    "--gtest_filter=SplitLayoutMenuBrowserTest.*",
+    "--test-launcher-jobs=1",
+    "--test-launcher-retry-limit=0",
+    "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/60/native-split/summary.json"
+  ],
+  "binarySha256": "2c2d0b1e42adf2599ba9be6e49fb5508f17816735051f79ef8208ebbf9e4c518",
+  "startedAt": "2026-10-01T10:08:22.289740+00:00",
+  "idleAtStartSeconds": 96,
+  "testPid": 55342,
+  "exitCode": 0,
+  "finishedAt": "2026-10-01T10:09:58.001616+00:00",
+  "testCount": 15,
+  "failedTests": 0,
+  "skippedTests": 0,
+  "iterations": 1,
+  "rawSummarySha256": "2f1df6fe90f45a310c15f477008d1e46bfd568b5b47b7f0492baba5c7db937f1",
+  "testLogSha256": "e9f8e7c337cd900acb6a828af08dc498734d87053510a9a68f23b5799e2fdfa2",
+  "guardedBuildLogSha256": "3c41f2f537de8b62b3d83e508c45e95a6f3c484f333a0a4c3967ece27cd2f6a8",
+  "guardedBuildExitCode": 1,
+  "guardedBuildFailureStage": "development-signing",
+  "testSourceSha256": "3f01f122fcb6ccc2870311b29847b7616423f6b1dcd97889f97c81a6bd2c7e85",
+  "linkedComponentSha256": {
+    "libbrowser_ui_views.dylib": "251680570ae3c18fc6419eaaa64b4370dfa1391fb35e1c1cd1c616641c34da92",
+    "libchrome_dll.dylib": "50a8ac949861b54a23217433c98901e5cfe86d5e38a9f65309f99b49a5af7e15",
+    "libui_views.dylib": "61a3df6a8a56526bfed03d3ba55c3baf65fc442a271bc026ba5648747015ef6f"
+  },
+  "recordedAt": "2026-10-01T10:16:30.593541+00:00"
+}

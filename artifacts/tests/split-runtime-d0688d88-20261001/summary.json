@@ -1,0 +1,52 @@
+{
+  "tests": {
+    "SplitLayoutMenuBrowserTest.DragExtractionDissolvesTwoPaneSplit": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.DragExtractionKeepsFourPaneRemainderAsThreePaneSplit": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.DragExtractionKeepsThreePaneRemainderAsTwoPaneSplit": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.DragExtractionRejectsUnsplitSourceWithoutMutation": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.FailedDesiredOrderAddRestoresEntireOriginalSplitTransaction": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.FailedDesiredOrderReorderRestoresEntireExistingSplitTransaction": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.FocusedPaneCloseRetainsLiveHostsUntilOnePane": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.FourPanePresetsKeepWebContents": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.KeyboardReorderMovesOnlyFocusedPane": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.PaneMiniToolbarPublishesRuntimeDragIdentity": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.ReloadInThreePaneSplitReloadsOnlyActivePane": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.RuntimePaneDropDoesNotRequireSidebarSource": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.SidebarRowPresetSubmenuAppliesPresets": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.SidebarRowPresetSubmenuOffersBothGridOrders": [
+      "SUCCESS"
+    ],
+    "SplitLayoutMenuBrowserTest.ThreePanePresetsKeepWebContents": [
+      "SUCCESS"
+    ]
+  },
+  "passed": 15,
+  "failed": 0,
+  "skipped": 0
+}

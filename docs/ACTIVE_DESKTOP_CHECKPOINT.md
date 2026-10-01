@@ -1,5 +1,40 @@
 # Active Desktop checkpoint
 
+## Build 60 compiled; native split GREEN; signing blocked — 1 October 2026
+
+Frozen source `d0688d88` compiled and linked through the guarded development
+path, restored its temporary dependency workarounds, staged 534 component
+dylibs and stamped its source/pin. The build then ended **exit 1 at signing**:
+no valid Apple Development identity is available to the current process.
+The old runner PID 28931 is gone; installation and queued journeys never
+started. Installed Ahoi remains Build 59 / `d3ebc1b9`.
+
+The generated native test program separately passes **15/15**
+`SplitLayoutMenuBrowserTest` cases, one job, one iteration, no retries/skips,
+direct exit 0. Both new regressions (focused four-to-one close and actual
+BrowserView keyboard reorder) pass; the earlier multi-pane presets, reload,
+extraction and rollback failures also pass on this candidate. The retained
+host fix therefore has native runtime evidence. Installed lifecycle/matrix
+acceptance is still open. [Source, binaries, components and raw-result binding](../artifacts/tests/split-runtime-d0688d88-20261001/README.md).
+The native runner is terminal, both owner locks are released, and no former
+queue or observer is a valid running-work handle.
+
+Signing diagnostics were read-only. The process's default Keychain search
+list is empty. Explicit native Keychain queries find a valid Developer ID
+identity (reserved for release), and a matching Apple Development certificate
+valid through December 2026. Offline certificate-chain validation succeeds,
+but codesigning identity enumeration still excludes it from valid identities.
+This does not prove its private key can sign. No Keychain/trust setting was
+changed, no ad-hoc fallback or Developer-ID substitution was used. The needed
+valid development-signing access is collected in the owner gate table below.
+
+Next: continue the real Devtoolkit renderer-subresource gap (cache bypass and
+fetch response headers), while resolving development-signing access before
+installation. Once signing is valid, complete the guarded provenance/install
+steps for an exact candidate and run the affected installed journeys. Do not
+repeat the already green native split suite without a changed source or a new
+concern. Full Master goal and the remaining owner/release gates stay open.
+
 ## Frozen Build 60 running — 1 October 2026, 11:45 CEST
 
 Build 60 now owns the build slot, runner PID `28931` (verify live before
@@ -689,6 +724,7 @@ removed on 25 September 2026: Xcode 27 is now the only toolchain (handoff 022).
 |---|---|---|
 | Real Sync peers + Apple key | CloudKit container/key access and a second real Mac/iPhone with the owner's Apple account for an encrypted Mac↔iOS record round trip | 13–14, 26, 28 cross-device parts |
 | Developer ID + notarization | Developer ID Application certificate, notary credentials, approval to sign/notarize | 1–4 release bundle, 15 signed updates, 23 release chain |
+| Valid development signing access | Current Apple Development certificate is present and passes offline chain validation, but is excluded from valid codesigning identities in this process; restore approved access to a valid development identity, keeping the stable team/Keychain boundary | Build 60 signing and subsequent installed journeys; developer runtime portions of 5–11, 19–20 |
 | Codec/DRM rights | H.264/AAC licensing decision, Widevine agreement/CDM access, test accounts for two DRM services | 16–17 |
 | Formal reviews | Named reviewers / external security and product reviews | 20–21 |
 | Third-party accounts | Credentials for password-manager extensions (1Password, Bitwarden) if a real vault must be unlocked | 8 password-manager journey |
