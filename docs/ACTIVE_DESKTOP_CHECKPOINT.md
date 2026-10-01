@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Real dedicated worker 3/3 GREEN; native Profile fixture corrected — 1 October 2026
+
+Build 66 e26bd335 compiles/signs/provenance-verifies. Its generated worker
+browser program actually runs three cases with one job/no retries: 3/3 GREEN,
+direct exit 0. Real worker header/cache behavior, disabled defaults and cross-
+origin cache bypass without header leak execute through Chromium and local
+servers. [Exact native browser evidence](../artifacts/tests/worker-browser-native-green-e26bd335-20261001/README.md).
+This does not prove shared/service-worker ownership or installed acceptance.
+Runner 26619 is terminal, all locks released.
+
+The native Chrome editor suite reaches Profile::FromBrowserContext and correctly
+rejects its general TestBrowserContext before the editor is constructed.
+[Preserved setup RED](../artifacts/tests/editor-profile-context-red-e26bd335-20261001/README.md).
+The test now owns TestingProfile and borrows its already registered PrefService;
+no new registration/cast or production change. Pinned-Clang check passes. Runner
+2517 is terminal. Next exact candidate must execute these actual editor cases.
+
+Next: freeze this single fixture change in a guarded one-job incremental
+candidate, execute the editor target, then required remaining gates and install/
+visible journeys. Preserve Core127/Mojo20/Sidebar191/worker3 via unchanged
+executables/runtime-input proof; do not redo an unchanged passed suite. Other
+DoD, real external/release and worker boundaries stay open. Installed source
+remains Build 59/d3ebc1b9 and full Master active.
+
 ## Frozen native Chrome editor suite Build 66 running — 1 October 2026
 
 Source e26bd335a458cdd57e8767cc369e79e9bc39a148 is frozen in the clean queue

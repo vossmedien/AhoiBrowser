@@ -11,12 +11,12 @@
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
-#include "components/prefs/testing_pref_service.h"
-#include "components/user_prefs/user_prefs.h"
+#include "base/memory/raw_ptr.h"
+#include "components/prefs/pref_service.h"
 #include "chrome/test/views/chrome_views_test_base.h"
 #include "content/public/test/browser_task_environment.h"
 #include "content/public/test/navigation_simulator.h"
-#include "content/public/test/test_browser_context.h"
+#include "chrome/test/base/testing_profile.h"
 #include "content/public/test/test_renderer_host.h"
 #include "content/public/test/web_contents_tester.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -49,10 +49,8 @@ class DeveloperProfileEditorActivationTest : public ChromeViewsTestBase {
  protected:
   void SetUp() override {
     ChromeViewsTestBase::SetUp();
-    context_ = std::make_unique<content::TestBrowserContext>();
-    // Toolkit registration also owns the profile dictionary.
-    developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
-    user_prefs::UserPrefs::Set(context_.get(), &prefs_);
+    context_ = std::make_unique<TestingProfile>();
+    prefs_ = context_->GetPrefs();
     contents_ = content::WebContentsTester::CreateTestWebContents(
         context_.get(), nullptr);
     content::NavigationSimulator::NavigateAndCommitFromBrowser(
@@ -61,6 +59,7 @@ class DeveloperProfileEditorActivationTest : public ChromeViewsTestBase {
   void TearDown() override {
     editor_.reset();
     contents_.reset();
+    prefs_ = nullptr;
     context_.reset();
     ChromeViewsTestBase::TearDown();
   }
@@ -84,7 +83,7 @@ class DeveloperProfileEditorActivationTest : public ChromeViewsTestBase {
               *saved = profile;
               return true;
             }, &saved_),
-        base::BindRepeating([] { return false; }), base::DoNothing(), &prefs_,
+        base::BindRepeating([] { return false; }), base::DoNothing(), prefs_,
         base::BindRepeating(
             [](std::shared_ptr<CompilerFixture> state)
                 -> std::unique_ptr<DeveloperStyleCompilerService> {
@@ -98,9 +97,9 @@ class DeveloperProfileEditorActivationTest : public ChromeViewsTestBase {
         .css = "body { color: red; }"});
   }
 
-  TestingPrefServiceSimple prefs_;
+  raw_ptr<PrefService> prefs_ = nullptr;
   content::RenderViewHostTestEnabler renderer_;
-  std::unique_ptr<content::TestBrowserContext> context_;
+  std::unique_ptr<TestingProfile> context_;
   std::unique_ptr<content::WebContents> contents_;
   std::shared_ptr<CompilerFixture> compiler_ =
       std::make_shared<CompilerFixture>();
@@ -110,12 +109,12 @@ class DeveloperProfileEditorActivationTest : public ChromeViewsTestBase {
 
 TEST_F(DeveloperProfileEditorActivationTest,
        DisabledEditorStartsNoCompilerAndPreservesDraft) {
-  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  prefs_->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
   OpenEditor();
   EXPECT_FALSE(editor_->Save());
   EXPECT_EQ(0, compiler_->created);
   EXPECT_FALSE(saved_);
-  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  prefs_->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
   EXPECT_EQ(0, compiler_->created);
   EXPECT_FALSE(editor_->Save());
   ASSERT_EQ(1, compiler_->created);
@@ -128,13 +127,13 @@ TEST_F(DeveloperProfileEditorActivationTest,
 
 TEST_F(DeveloperProfileEditorActivationTest,
        DisableDropsCompilerAndRejectsLateReplyAcrossReenable) {
-  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  prefs_->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
   OpenEditor();
   EXPECT_FALSE(editor_->Save());
   ASSERT_EQ(1, compiler_->created);
-  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  prefs_->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
   EXPECT_EQ(1, compiler_->destroyed);
-  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  prefs_->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
   EXPECT_EQ(1, compiler_->created);
   Reply(0);
   EXPECT_FALSE(saved_);
