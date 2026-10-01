@@ -1,5 +1,23 @@
 # Active Desktop checkpoint
 
+## Native sidebar GREEN; fixture-only next candidate — 1 October 2026
+
+Build-61 sidebar runner 5239 ended successfully and released both owner locks.
+The corrected focused case passes 1/1 and the complete sidebar target passes
+191/191, one job/no retries, 652 seconds launch idle. [Binary/raw-result proof](../artifacts/tests/sidebar-native-green-1c7e20aa-20261001/README.md).
+No old worker is live. This closes the exact sidebar native gate; it does not
+approve the separate core fixture crash or installed/browser acceptance.
+
+Source b926d9b1 corrects the four test registrations, preserving the original
+PrefRegistry DCHECK and production path. Next: fresh ownership/resource check,
+then guarded incremental candidate 62 (at most two jobs) on that exact source.
+Run corrected core and editor fixtures plus required remaining native/worker
+browser gates; prior source/binary evidence can carry only with explicit
+unchanged-input proof. Keep Build-61's registration RED and Build-60's menu RED.
+Canonical installation remains after the native gate, followed by affected
+installed journeys. Installed app is still Build 59/d3ebc1b9; no release/real-API
+scope is expanded. Full Master remains active.
+
 ## Build 61 signed; native fixture registration correction — 1 October 2026
 
 Frozen 1c7e20aa guarded build ended exit 0. All targets compile/link, stable

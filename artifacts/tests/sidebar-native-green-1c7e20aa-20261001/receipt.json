@@ -1,0 +1,26 @@
+{
+  "runnerPid": 5239,
+  "sourceCommit": "1c7e20aa4e3c64dac1a209354380698ae869b083",
+  "phase": "passed-needs-owner-install",
+  "jobs": 1,
+  "retries": 0,
+  "binarySha256": "fa7d3cf883ea9574c144b979246393555cf9e2fb00a4b6a4e853c22d95ef5100",
+  "startedAt": "2026-10-01T14:12:30.211500+00:00",
+  "idleSeconds": 652,
+  "focusedExitCode": 0,
+  "fullExitCode": 0,
+  "results": {
+    "focused": {
+      "tests": 1,
+      "summarySha256": "bd6cef06e6a8de4aff0e6c005742290db5f66d3fdbf741c68cacb47caf3e80d7",
+      "logSha256": "1b208ea922895ca52a2abfd70a364b1bebaeac97aca14fa1b18f115d5766246f"
+    },
+    "full": {
+      "tests": 191,
+      "summarySha256": "7c2ab8de32c5258bf23ee2ff92f8bc6353188ff2dd4cd80302b67a30f498aead",
+      "logSha256": "e3471b9983ea69d7af7450acca0ea32d8d93abeae75470fae0a7548bea2799e4"
+    }
+  },
+  "installed": false,
+  "otherNativeGatesPassed": false
+}
