@@ -1,5 +1,25 @@
 # Active Desktop checkpoint
 
+## Frozen fixture correction Build 62 running — 1 October 2026
+
+Source b926d9b1b2c198637515574d25c1ca28b42ebf45 is frozen in the clean queue
+repository. Owned detached runner 15658 is live at this entry; verify its PID
+and `.work/agent-queue/62/state.json`. One job because free RAM is tight;
+normal VM pressure level 1 and no competing compiler/app/resource lock were
+confirmed. Overlay refresh passes and the guarded build has begun. All 20 unit
+and three browser targets are retained. [Exact plan/hash](../artifacts/build/codex-build62-20261001-plan.json).
+No compile/sign/provenance or native GREEN is claimed yet for Build 62.
+
+Next: observe this exact handle, preserve a terminal failure, and do not create
+a duplicate from a missing observation handle. After success run the corrected
+core and editor fixture gates; their Build-61 CRASH/NOTRUN evidence remains.
+`62-before-unchanged-sidebar.json` binds the previous executed sidebar binary
+and component manifest before refreshing outputs: carry 191/191 only if exact
+unchanged inputs are proved after the build, otherwise run the required new
+native sidebar gate serially. The other native/worker and installed acceptance
+gates remain separate. No automatic tests or install occur in this runner.
+Build 59/d3ebc1b9 stays installed; full Master and external boundaries persist.
+
 ## Native sidebar GREEN; fixture-only next candidate — 1 October 2026
 
 Build-61 sidebar runner 5239 ended successfully and released both owner locks.
