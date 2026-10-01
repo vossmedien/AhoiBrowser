@@ -121,7 +121,12 @@ DeveloperAssetValidationError ValidateDeveloperAsset(
       if (asset.enabled || asset.compiled_style_version != 0) {
         return DeveloperAssetValidationError::kInvalidSource;
       }
-    } else if (asset.compiled_style_version != kDeveloperStyleCompilerVersion) {
+    } else if (asset.compiled_style_version == 0) {
+      // Compiled output needs its compiler version. Output of another version
+      // stays valid but inert: the runtime applies only current-version CSS
+      // until the editor recompiles. Rejecting it would drop the whole
+      // profile (CSS, scripts, headers) after an update or a sync from a
+      // device with a different compiler.
       return DeveloperAssetValidationError::kInvalidSource;
     }
   } else if (asset.style_language != DeveloperStyleLanguage::kCss ||

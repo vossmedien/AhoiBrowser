@@ -190,6 +190,7 @@ source_set("unit_tests") {
     "developer_cookie_chromium_adapter_unittest.cc",
     "developer_cookie_manager_unittest.cc",
     "developer_header_materialization_unittest.cc",
+    "developer_profile_pref_seed_unittest.cc",
     "developer_profile_runtime_unittest.cc",
     "developer_profile_unittest.cc",
     "developer_style_preprocessor_unittest.cc",

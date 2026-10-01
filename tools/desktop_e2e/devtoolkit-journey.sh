@@ -36,10 +36,15 @@ mkdir -p "$P/Default"
 python3 - "$P/Default/Preferences" "$A" <<'PY'
 import json, sys
 path, origin = sys.argv[1:3]
+# The shape must pass the product's validation: one invalid asset makes
+# the store drop the whole profile, so every check would fail at once.
+# Stored LESS/SASS output carries the compiler version that produced it
+# (kDeveloperStyleCompilerVersion); plain CSS and scripts carry 0.
+COMPILER_VERSION = 1
 def asset(asset_id, kind, source, world="isolated", language="css", compiled=""):
     return {"id": asset_id, "name": asset_id, "kind": kind, "language": language,
             "enabled": True, "source": source, "compiled_css": compiled,
-            "compiled_style_version": 0,
+            "compiled_style_version": COMPILER_VERSION if compiled else 0,
             "scope": {"kind": "origin", "value": origin},
             "domain_scope_warning_accepted": False, "lifetime": "restart",
             "sync_enabled": False, "world": world,
