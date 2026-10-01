@@ -1,0 +1,188 @@
+{
+  "editor": {
+    "runnerPid": 73274,
+    "sourceCommit": "9acb43c81917a847c2d94303053c304b981757d3",
+    "phase": "complete",
+    "jobs": 1,
+    "retries": 0,
+    "results": [],
+    "startedAt": "2026-10-01T17:27:05.058140+00:00",
+    "command": [
+      "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_profile_editor_unittests",
+      "--gtest_filter=DeveloperProfileEditorActivationTest.*",
+      "--test-launcher-jobs=1",
+      "--test-launcher-retry-limit=0",
+      "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/67/editor-native/summary.json"
+    ],
+    "binarySha256": "85bc95f98cf9f7c43f3ff6b2f010a0c4178cfac6855b367974e515e76aa8792d",
+    "testPid": 73275,
+    "exitCode": 0,
+    "finishedAt": "2026-10-01T17:27:14.969797+00:00",
+    "tests": 2,
+    "summarySha256": "0b262fefd292f1b0e24ed34db639d4e366cb09b2187b7f257689d55f3b7f974d",
+    "logSha256": "f7d617ffde9209bd398be465946e2b4e2386e3c4791d862ba28d3222287212ab"
+  },
+  "remaining": [
+    {
+      "name": "ahoi_appearance_unittests",
+      "exitCode": 0,
+      "binarySha256": "824ce45ed488b3dcba85ed40ccf2b282959a4478a44790f96f5aaa5b85f970d7",
+      "counts": {
+        "SUCCESS": 56
+      },
+      "summarySha256": "df7d14d99b7bb869d1c804123a317d4a0cfb2d3b906fccea7112422f8f4daf35"
+    },
+    {
+      "name": "ahoi_arc_import_unittests",
+      "exitCode": 0,
+      "binarySha256": "c253fd5f8e5ae0a9936a401c1fdd5748cc4d5c1a79ae0cc3fad3421ce3053c75",
+      "counts": {
+        "SUCCESS": 132
+      },
+      "summarySha256": "126a4c7db77f98ac3182de325184838d6a7741b70b03be61891d2170a1285014"
+    },
+    {
+      "name": "ahoi_command_bar_unittests",
+      "exitCode": 0,
+      "binarySha256": "49d109d2db418ba0c4c17e79ce7ab0f01ea5ca72dafef0cbed0cd8ab27c96809",
+      "counts": {
+        "SUCCESS": 55
+      },
+      "summarySha256": "c0589aab93692e6d6a0cbc993fcf2271da7a0b01575c186a5242607dcf2a39a8"
+    },
+    {
+      "name": "ahoi_extension_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "cd75b974e2d404c5f4524835e5031585da2168cc7e53b83ee40ea70df7e6aa5f",
+      "counts": {
+        "SUCCESS": 43
+      },
+      "summarySha256": "33f13b302078d0076338d8700221b0f2ff94aba81c9dadeb3a5663dc2c2ae9bf"
+    },
+    {
+      "name": "ahoi_http_auth_unittests",
+      "exitCode": 0,
+      "binarySha256": "41069acfac51b33c228bd1e6aaa1e488c97691a9f69d24e5b8cce6ec3904427c",
+      "counts": {
+        "SUCCESS": 36
+      },
+      "summarySha256": "465d2871158d0e6653355f86a907cdad4a1e2bbfa1c2778b9dbe449a1bdd7c1c"
+    },
+    {
+      "name": "ahoi_media_unittests",
+      "exitCode": 0,
+      "binarySha256": "7d25688293997f4ef6256835f3754402aa4afcd6db3452b7cf48f41f5e6bc02c",
+      "counts": {
+        "SUCCESS": 33
+      },
+      "summarySha256": "eeb02289f73450a9f92cdbb7e1df5c20288e5cdbfd4784ed740bd0065129ec95"
+    },
+    {
+      "name": "ahoi_navigation_unittests",
+      "exitCode": 0,
+      "binarySha256": "6ecb53227e094209319dd018d91798af51aca6005a6a37fd20ca9d723dac3354",
+      "counts": {
+        "SUCCESS": 83
+      },
+      "summarySha256": "a19ce13b12a5c6c088065b908325673aef9c9f20d6435c33b6b09b3440c8f83d"
+    },
+    {
+      "name": "ahoi_privacy_mode_unittests",
+      "exitCode": 0,
+      "binarySha256": "ad03b589f21a5a94fb1fbd0033b42d6a09b3f5ac81bf8e5f69d42ee1d85ffda4",
+      "counts": {
+        "SUCCESS": 21
+      },
+      "summarySha256": "9b3fda2f3f1b4263b6b9da67b76a7fd2f1c89e98ed932ac260c562de960da0cf"
+    },
+    {
+      "name": "ahoi_privacy_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "a6b4b0cc5687f9f733e9e951228e6f07db013806ff42b14eaeefe3b122e3f02e",
+      "counts": {
+        "SUCCESS": 17
+      },
+      "summarySha256": "1464bc8bff5785944bed6886eba7c58ddbb16d44b2edd32e05f1c26fa4764523"
+    },
+    {
+      "name": "ahoi_resource_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "0b24f2a6513ba99ba669b7a40b0f4500ae0184da6e79b6b64557626a6266c6a1",
+      "counts": {
+        "SUCCESS": 4
+      },
+      "summarySha256": "28e35d68d8c712703894ca82b4aa62f8c9c71f7f3296e0324723addcf1d86e13"
+    },
+    {
+      "name": "ahoi_session_unittests",
+      "exitCode": 0,
+      "binarySha256": "2346b6b9bf518af92d64c21779e726a6361f52f23ca8d4d3e8ca056acd23d7cc",
+      "counts": {
+        "SUCCESS": 110
+      },
+      "summarySha256": "0dd5f8104bae4c93c20a8ac159018b59aeeac5e486d81299209c2b9472b8cb4e"
+    },
+    {
+      "name": "ahoi_settings_private_unittests",
+      "exitCode": 0,
+      "binarySha256": "519d35606cee71b5b610f1b0165e0abaca24490706f74ef27856ef437e13f273",
+      "counts": {
+        "SUCCESS": 12
+      },
+      "summarySha256": "4892b25cf6933bf2c838aa954293f0ca6bbc1fe52fc883ad0271a7c33861b734"
+    },
+    {
+      "name": "ahoi_startup_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "8ef33dc978546dc1e245e4102ed4c69e247c4cd0497898e49f5fda6518ba9f8c",
+      "counts": {
+        "SUCCESS": 2
+      },
+      "summarySha256": "4909cbd062eef584dae1ea3ab11ff2fdcc112af2b5c4c36fcbfe5b1e59bf3a21"
+    },
+    {
+      "name": "ahoi_sync_unittests",
+      "exitCode": 0,
+      "binarySha256": "ddf7bf08f006d08d467714fe360efa9e83728a637d53e086f448799adc4a5e18",
+      "counts": {
+        "SUCCESS": 233
+      },
+      "summarySha256": "8b83eef3ba5d5656fb9b96a1645de64da256ebf74d8ba1abbfff5823427b45a6"
+    },
+    {
+      "name": "ahoi_tab_tree_unittests",
+      "exitCode": 0,
+      "binarySha256": "fa6ede06dc4006afd9a00c72828a5c378f01e6e1b2f431b78cbf2f19675568b5",
+      "counts": {
+        "SUCCESS": 35
+      },
+      "summarySha256": "c8a1c9e7d5a07b0b919a15905961b3a80b08ff98d3f32870f3a4082c6cb982b7"
+    }
+  ],
+  "carry": {
+    "core": {
+      "sourceCommit": "bb2e9b28395ce36875aebc8bddb28587594af42b",
+      "binarySha256": "ecb3244a07fb904f8d21296d23dd41f53ac97cf73735adfded0a3c4ae89c8b98",
+      "currentBinaryUnchanged": true,
+      "rawStatePath": ".work/agent-queue/64/dev-native/state.json"
+    },
+    "mojo": {
+      "sourceCommit": "bb2e9b28395ce36875aebc8bddb28587594af42b",
+      "binarySha256": "ecb3244a07fb904f8d21296d23dd41f53ac97cf73735adfded0a3c4ae89c8b98",
+      "currentBinaryUnchanged": true,
+      "rawStatePath": ".work/agent-queue/64/mojo-native/state.json"
+    },
+    "worker": {
+      "sourceCommit": "e26bd335a458cdd57e8767cc369e79e9bc39a148",
+      "binarySha256": "3f492b3fa62fe908b9e2815761a058d9eaabc2a0205604d5f602ab37d77a9fd3",
+      "currentBinaryUnchanged": true,
+      "rawStatePath": ".work/agent-queue/66/worker-native/state.json"
+    },
+    "sidebar": {
+      ".work/chromium/src/out/AhoiDev/ahoi_sidebar_tree_unittests": "fa7d3cf883ea9574c144b979246393555cf9e2fb00a4b6a4e853c22d95ef5100",
+      ".work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Resources/ahoi-component-runtime.sha256": "eca19d18548a16be8c085c9ceb1a1bd375673b5cbba3cada2c601c4042a3e86b"
+    }
+  },
+  "componentManifestSha256": "eca19d18548a16be8c085c9ceb1a1bd375673b5cbba3cada2c601c4042a3e86b",
+  "installed": false
+}

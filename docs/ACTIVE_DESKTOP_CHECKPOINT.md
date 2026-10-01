@@ -1,5 +1,25 @@
 # Active Desktop checkpoint
 
+## Editor2 GREEN; fifteen native baselines pass — 1 October 2026
+
+Build 67 9acb43c8 compiles/signs/provenance-verifies. Its native Chrome editor
+fixture executes both regression methods, 2/2 GREEN, one job/no retries, exit 0.
+Fifteen other required native programs also complete serially with exit 0.
+[Counts, exact executable/summary hashes and carried inputs](../artifacts/tests/native-candidate-9acb43c8-20261001/README.md).
+Core127/Mojo20/dedicated-worker3 executables and component manifest remain
+byte-identical to executed inputs; sidebar binary likewise retains its 191/191
+proof. Setup REDs remain historical; no product/editor result was faked.
+Runners 73274/92789 are terminal and locks released.
+
+The remaining pure Views/popup/sidebar-search native gate is now owned by
+bounded UI runner 6530 (`67/ui-baseline/state.json`); verify PID/state, do not
+start a competing output refresh/UI. It uses one job/no retries after the actual
+input/lock gate. No installation or overall native pass is claimed yet.
+Next after its exact GREEN: canonical atomic installer for frozen 9acb43c8,
+then representative affected installed split/devtoolkit/settings journeys and
+required focused regressions. Installed source remains Build 59/d3ebc1b9.
+Full Master, shared/service-worker work and external/release bounds stay open.
+
 ## Frozen native TestingProfile editor candidate 67 running — 1 October 2026
 
 Source 9acb43c8 is frozen in the clean queue repository. Owned detached runner
