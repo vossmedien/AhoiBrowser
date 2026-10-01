@@ -16,6 +16,9 @@ struct SavedRowRuntimeFacts {
   bool archived = false;
   // Sync provenance names another device as the page's creator.
   bool created_on_other_device = false;
+  // A restored archive entry lists the page. Restore exposes the retained
+  // rows unloaded; opening one rebuilds its split.
+  bool restored_from_archive = false;
 };
 
 // Whether the "Saved tabs" tree must leave out this node's row.
@@ -24,7 +27,8 @@ struct SavedRowRuntimeFacts {
 // closed temporary tab (for example after an unclean exit that was not
 // restored). It is not a saved page: activating it would reopen it as a
 // temporary tab in "Open tabs", so the row would seem to vanish on click.
-// Such a row is hidden until a restored tab binds it again. Saved pages are
+// Such a row is hidden until a restored tab binds it again. A page that an
+// archive restore brought back is not such an orphan and stays. Saved pages are
 // never hidden: closing their tab only releases the live WebContents. A
 // temporary page from another device stays visible with its origin, as the
 // shared workspace tab structure requires.

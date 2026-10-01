@@ -293,6 +293,7 @@ source_set("unit_tests") {
     "workspace_session_metadata_unittest.cc",
     "workspace_structure_invalidation_unittest.cc",
     "workspace_structure_split_capture_unittest.cc",
+    "workspace_structure_state_unittest.cc",
   ]
   deps = [
     ":cross_level_move",

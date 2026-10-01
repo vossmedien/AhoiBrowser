@@ -565,6 +565,8 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   // ShouldHideClosedTemporaryPageRow. Hiding it is presentation-only, so a
   // later session restore that binds its tab brings it back under "Open tabs".
   const SidebarTreeViewModel& tree_model = controller_->view_model();
+  const std::set<base::Uuid> restored_archive_pages =
+      session_bridge_->GetRestoredArchivePageIds();
   for (const SidebarTreeViewModel::Row& row : tree_model.rows()) {
     const tab_tree::TreeNode* const node = tree_model.GetNode(row.node_id);
     if (!node || !node->is_temporary) {
@@ -582,7 +584,8 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
                     session_bridge_->tab_tree_store()->IsNodeArchived(node->id),
         .created_on_other_device =
             creator.has_value() &&
-            *creator != profile_sync_service_->local_device_id()};
+            *creator != profile_sync_service_->local_device_id(),
+        .restored_from_archive = restored_archive_pages.contains(node->id)};
     if (ShouldHideClosedTemporaryPageRow(*node, facts)) {
       mixed_split_saved_nodes.insert(node->id);
     }

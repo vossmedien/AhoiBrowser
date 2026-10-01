@@ -8,6 +8,7 @@
 
 #include "ahoi/browser/session/portable_workspace_import_plan.h"
 #include "ahoi/browser/session/workspace_structure_controller.h"
+#include "ahoi/browser/session/workspace_structure_state.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
 
@@ -78,6 +79,13 @@ std::vector<sync::TabArchiveEntryRecord> SessionBridge::GetArchivedPages()
   return workspace_structure_controller_
              ? workspace_structure_controller_->Archives()
              : std::vector<sync::TabArchiveEntryRecord>();
+}
+
+std::set<base::Uuid> SessionBridge::GetRestoredArchivePageIds() const {
+  return workspace_structure_controller_
+             ? session::RestoredArchivePageIds(
+                   workspace_structure_controller_->state_)
+             : std::set<base::Uuid>();
 }
 
 void SessionBridge::RestoreArchivedPagesAt(

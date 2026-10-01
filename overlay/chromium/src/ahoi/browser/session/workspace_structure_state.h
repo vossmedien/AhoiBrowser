@@ -4,6 +4,7 @@
 #define AHOI_BROWSER_SESSION_WORKSPACE_STRUCTURE_STATE_H_
 
 #include <map>
+#include <set>
 #include "ahoi/browser/sync/sync_model.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
 
@@ -28,5 +29,9 @@ std::optional<std::string> EncodeWorkspaceStructureState(
     const WorkspaceStructureState& state);
 std::optional<WorkspaceStructureState> DecodeWorkspaceStructureState(
     std::string_view value);
+// Tree pages of live archive entries that were restored. Restore only exposes
+// the retained rows again, unloaded; the sidebar must keep presenting them.
+std::set<base::Uuid> RestoredArchivePageIds(
+    const WorkspaceStructureState& state);
 }  // namespace ahoi::session
 #endif

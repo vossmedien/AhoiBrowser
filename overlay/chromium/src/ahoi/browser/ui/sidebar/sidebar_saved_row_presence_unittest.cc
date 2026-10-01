@@ -55,6 +55,15 @@ TEST(SidebarSavedRowPresenceTest, RemoteAndArchivedTemporaryPagesStay) {
       temporary, {.archived = true}));
 }
 
+// Split archive journey on build 58: restoring an archived split brings its
+// temporary members back unloaded, with no live tab. They are not orphans of
+// an unrestored session; the row must stay so opening it rebuilds the split.
+TEST(SidebarSavedRowPresenceTest, RestoredArchivePageStaysUnloaded) {
+  const tab_tree::TreeNode temporary = MakePage(/*is_temporary=*/true);
+  EXPECT_FALSE(ShouldHideClosedTemporaryPageRow(
+      temporary, {.restored_from_archive = true}));
+}
+
 TEST(SidebarSavedRowPresenceTest, FoldersAndTombstonesAreNeverHiddenHere) {
   tab_tree::TreeNode folder = MakePage(/*is_temporary=*/false);
   folder.type = tab_tree::TreeNodeType::kFolder;

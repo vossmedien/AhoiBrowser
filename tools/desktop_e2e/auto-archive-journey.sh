@@ -103,12 +103,13 @@ waitax "Am ursprünglichen Ort wiederherstellen" 6 && ax press $PID "Am ursprün
 sleep 5
 # Restoring puts the entry back without loading it, so an unloaded tab may be
 # missing from the DevTools list; the sidebar row counts too once the archive
-# dialog is closed. A failure notice always fails.
+# dialog is closed. A failure notice always fails. The History menu also
+# lists the title, so menu items never count as the restored row.
 ax press $PID "AXButton:Schließen"; sleep 2
 "$AX" dump $PID 45 > "$OUT/after-restore.txt"; echo "restored $(urls)" >> "$OUT/steps.txt"
 if grep -q -E 'konnte nicht|could not complete' "$OUT/after-restore.txt"; then
   record restore_brings_url_back FAIL
-elif urls | grep -q idle.html || grep -v -E 'Wiederherstellen|löschen' "$OUT/after-restore.txt" | grep -q 'Ahoi archive idle'; then
+elif urls | grep -q idle.html || grep -v -E 'Wiederherstellen|löschen|AXMenuItem' "$OUT/after-restore.txt" | grep -q 'Ahoi archive idle'; then
   record restore_brings_url_back PASS
 else record restore_brings_url_back FAIL; fi
 ax key $PID 53

@@ -7,9 +7,9 @@ namespace ahoi::sidebar {
 
 bool ShouldHideClosedTemporaryPageRow(const tab_tree::TreeNode& node,
                                       const SavedRowRuntimeFacts& facts) {
-  return node.type == tab_tree::TreeNodeType::kSavedPage &&
-         !node.tombstone && node.is_temporary && !facts.has_live_tab &&
-         !facts.archived && !facts.created_on_other_device;
+  return node.type == tab_tree::TreeNodeType::kSavedPage && !node.tombstone &&
+         node.is_temporary && !facts.has_live_tab && !facts.archived &&
+         !facts.created_on_other_device && !facts.restored_from_archive;
 }
 
 }  // namespace ahoi::sidebar

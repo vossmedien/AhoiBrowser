@@ -354,4 +354,18 @@ std::optional<WorkspaceStructureState> DecodeWorkspaceStructureState(
     return std::nullopt;
   return state;
 }
+
+std::set<base::Uuid> RestoredArchivePageIds(
+    const WorkspaceStructureState& state) {
+  std::set<base::Uuid> result;
+  for (const auto& [id, entry] : state.entries) {
+    const auto* archive =
+        std::get_if<sync::TabArchiveEntryRecord>(&entry.record);
+    if (!archive || archive->tombstone || !archive->restored)
+      continue;
+    for (const auto& page : archive->snapshot.pages)
+      result.insert(page.tree_node_id);
+  }
+  return result;
+}
 }  // namespace ahoi::session
