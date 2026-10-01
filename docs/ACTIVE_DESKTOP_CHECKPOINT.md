@@ -1,5 +1,23 @@
 # Active Desktop checkpoint
 
+## Frozen single-line test gate Build 64 running — 1 October 2026
+
+Source bb2e9b28 is frozen in the clean queue repository. Owned detached runner
+83058 is live at this entry; verify PID and `.work/agent-queue/64/state.json`.
+One guarded job, normal VM pressure (level 1), free resource locks at launch.
+[Exact plan/hash](../artifacts/build/codex-build64-20261001-plan.json).
+The only code delta is a test-scoped allow around the synthetic worker wait;
+no product permission/trait or assertion changes. No native/sign/install GREEN
+yet for this candidate.
+
+Next: observe this exact build; after successful provenance execute the 20-case
+Mojo gate first, no retries, then full core and editor/worker/remaining native
+gates. Keep 14 SUCCESS/one CRASH/five NOTRUN of Build 63 as preserved evidence.
+Do not repeat the unchanged crashing binary or duplicate a live build. Carry
+191/191 sidebar only with exact unchanged inputs. Installed Ahoi remains
+Build 59/d3ebc1b9; no automatic UI action or installation is in this runner.
+Full original Master and external/release boundaries stay active.
+
 ## Native Mojo 14 pass; synthetic wait permission corrected — 1 October 2026
 
 Build 63 b5d5e783 compiles/signs/provenance-verifies with exit 0. Its 20-case
