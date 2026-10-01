@@ -142,6 +142,14 @@ bool HasActiveAdvancedDeveloperResponseHeaderRules(
 DeveloperProfileValidationError ValidateDeveloperProfile(
     const url::Origin& origin,
     const DeveloperProfile& profile) {
+  if (profile.headers_persistent && !profile.headers_owner_token.empty()) {
+    return DeveloperProfileValidationError::kEphemeralHeadersCannotPersist;
+  }
+  if (!profile.headers_persistent &&
+      (profile.header_rules_sync_enabled ||
+       profile.response_header_rules_sync_enabled)) {
+    return DeveloperProfileValidationError::kEphemeralHeadersCannotSync;
+  }
   const GURL origin_url = origin.GetURL();
   if (origin.opaque() || !origin_url.is_valid() ||
       !origin_url.SchemeIsHTTPOrHTTPS()) {
@@ -200,6 +208,9 @@ DeveloperProfileValidationError ValidateDeveloperProfileForPersistence(
       ValidateDeveloperProfile(origin, profile);
   if (validation != DeveloperProfileValidationError::kNone) {
     return validation;
+  }
+  if (!profile.headers_persistent) {
+    return DeveloperProfileValidationError::kEphemeralHeadersCannotPersist;
   }
   for (const DeveloperAsset& asset : profile.assets) {
     if (!IsDeveloperAssetPersistable(asset)) {

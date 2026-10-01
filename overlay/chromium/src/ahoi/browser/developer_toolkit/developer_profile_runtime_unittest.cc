@@ -10,11 +10,17 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/developer_toolkit/developer_profile_codec.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
+#include "services/network/public/cpp/resource_request.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_action_executor.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "components/prefs/testing_pref_service.h"
 #include "components/user_prefs/user_prefs.h"
 #include "content/public/test/browser_task_environment.h"
+#include "content/public/test/mock_navigation_handle.h"
+#include "testing/gmock/include/gmock/gmock.h"
 #include "content/public/test/test_browser_context.h"
 #include "content/public/test/web_contents_tester.h"
 #include "third_party/blink/public/common/user_agent/user_agent_metadata.h"
@@ -467,6 +473,269 @@ TEST_F(DeveloperProfileRuntimeTest,
       std::make_unique<DeveloperProfileTabHelper>(web_contents_.get(), &prefs_);
   web_contents_.reset();
   helper.reset();
+}
+
+
+TEST_F(DeveloperProfileRuntimeTest,
+       TemporaryHeadersStayInOwningTabAndNeverPersistOrSync) {
+  const auto origin = url::Origin::Create(GURL("https://temporary.test/"));
+  DeveloperProfile profile{.name = "Temporary headers"};
+  profile.headers_persistent = false;
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Temporary", .value = "local"});
+  profile.response_header_rules_enabled = true;
+  profile.response_header_rules.push_back(
+      {.name = "X-Response", .secret_reference = "ahoi-keychain:temporary"});
+  profile.cache_disabled = true;
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  ASSERT_TRUE(helper.SaveProfile(origin, profile));
+  ASSERT_TRUE(helper.GetProfile(origin));
+  EXPECT_FALSE(helper.GetProfile(origin)->headers_persistent);
+  EXPECT_EQ(profile.header_rules, helper.GetProfile(origin)->header_rules);
+  EXPECT_EQ(profile.response_header_rules,
+            helper.GetProfile(origin)->response_header_rules);
+  PrefDeveloperProfileStore durable(&prefs_, false);
+  ASSERT_TRUE(durable.Get(origin));
+  EXPECT_TRUE(durable.Get(origin)->cache_disabled);
+  EXPECT_TRUE(durable.Get(origin)->headers_persistent);
+  EXPECT_TRUE(durable.Get(origin)->header_rules.empty());
+  EXPECT_TRUE(durable.Get(origin)->response_header_rules.empty());
+  auto second = content::WebContentsTester::CreateTestWebContents(
+      &browser_context_, nullptr);
+  DeveloperProfileTabHelper other(second.get(), &prefs_);
+  ASSERT_TRUE(other.GetProfile(origin));
+  EXPECT_TRUE(other.GetProfile(origin)->header_rules.empty());
+  EXPECT_TRUE(other.GetProfile(origin)->response_header_rules.empty());
+  EXPECT_FALSE(SerializeDeveloperProfile(profile));
+  EXPECT_FALSE(durable.Set(origin, profile));
+  // Even a malformed direct caller cannot opt temporary header values into sync.
+  profile.header_rules_sync_enabled = true;
+  profile.response_header_rules_sync_enabled = true;
+  EXPECT_EQ(DeveloperProfileValidationError::kEphemeralHeadersCannotSync,
+            ValidateDeveloperProfile(origin, profile));
+  const auto sync = SerializeDeveloperProfileForSync(profile);
+  ASSERT_TRUE(sync);
+  EXPECT_TRUE(sync->FindDict("headers")->FindList("rules")->empty());
+  EXPECT_TRUE(sync->FindDict("response_headers")->FindList("rules")->empty());
+  profile.headers_persistent = true;
+  profile.headers_owner_token = "runtime-tab-owner";
+  EXPECT_FALSE(SerializeDeveloperProfile(profile));
+  const auto malformed = SerializeDeveloperProfileForSync(profile);
+  ASSERT_TRUE(malformed);
+  EXPECT_TRUE(malformed->FindDict("headers")->FindList("rules")->empty());
+  EXPECT_TRUE(malformed->FindDict("response_headers")->FindList("rules")->empty());
+}
+
+TEST_F(DeveloperProfileRuntimeTest,
+       TemporaryHeadersRetireWithHelperEvenIfDocumentSurvives) {
+  const GURL url("https://temporary.test/page");
+  const auto origin = url::Origin::Create(url);
+  content::WebContentsTester::For(web_contents_.get())->NavigateAndCommit(url);
+  DeveloperProfile profile{.name = "Temporary header owner"};
+  profile.headers_persistent = false;
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Temporary", .value = "local"});
+  network::ResourceRequest request;
+  request.url = url;
+  request.request_initiator = origin;
+  {
+    DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+    ASSERT_TRUE(helper.SaveProfile(origin, profile));
+    UpdateDeveloperProfileNetworkState(*web_contents_, url, helper.GetProfile(origin));
+    const auto active = GetDeveloperProfileNetworkSnapshotForRequest(
+        request, &prefs_, false, web_contents_.get());
+    ASSERT_TRUE(active);
+    EXPECT_TRUE(active->header_rules_enabled);
+    EXPECT_TRUE(prefs_.GetDict(kDeveloperProfilesPref).empty());
+  }
+  EXPECT_FALSE(GetDeveloperProfileNetworkSnapshotForRequest(
+      request, &prefs_, false, web_contents_.get()));
+  DeveloperProfileTabHelper replacement(web_contents_.get(), &prefs_);
+  EXPECT_FALSE(replacement.GetProfile(origin));
+}
+
+TEST_F(DeveloperProfileRuntimeTest,
+       TemporaryHeadersResetAndPersistenceConversionRetireOldSnapshot) {
+  const GURL url("https://temporary.test/page");
+  const auto origin = url::Origin::Create(url);
+  content::WebContentsTester::For(web_contents_.get())->NavigateAndCommit(url);
+  DeveloperProfile profile{.name = "Temporary headers"};
+  profile.headers_persistent = false;
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Temporary", .value = "local"});
+  profile.response_header_rules_enabled = true;
+  profile.response_header_rules.push_back({.name = "X-Response", .value = "local"});
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  ASSERT_TRUE(helper.SaveProfile(origin, profile));
+  UpdateDeveloperProfileNetworkState(*web_contents_, url, helper.GetProfile(origin));
+  network::ResourceRequest request;
+  request.url = url;
+  request.request_initiator = origin;
+  ASSERT_TRUE(helper.ResetProfilesForUrl(url));
+  ASSERT_TRUE(helper.GetProfile(origin));
+  EXPECT_FALSE(helper.GetProfile(origin)->header_rules_enabled);
+  EXPECT_FALSE(helper.GetProfile(origin)->response_header_rules_enabled);
+  EXPECT_FALSE(GetDeveloperProfileNetworkSnapshotForRequest(
+      request, &prefs_, false, web_contents_.get()));
+  profile.headers_persistent = true;
+  ASSERT_TRUE(helper.SaveProfile(origin, profile));
+  EXPECT_FALSE(helper.HasTemporaryHeaders());
+  PrefDeveloperProfileStore durable(&prefs_, false);
+  ASSERT_TRUE(durable.Get(origin));
+  EXPECT_TRUE(durable.Get(origin)->headers_persistent);
+  EXPECT_EQ(profile.header_rules, durable.Get(origin)->header_rules);
+  ASSERT_TRUE(helper.RemoveProfile(origin));
+  EXPECT_FALSE(helper.GetProfile(origin));
+}
+
+TEST_F(DeveloperProfileRuntimeTest,
+       TemporaryHeaderOwnerRejectsOtherPreferencesAndForeignOrigin) {
+  const GURL url("https://temporary.test/page");
+  const auto origin = url::Origin::Create(url);
+  DeveloperProfile profile{.name = "Temporary headers"};
+  profile.headers_persistent = false;
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Temporary", .value = "local"});
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  ASSERT_TRUE(helper.SaveProfile(origin, profile));
+  EXPECT_TRUE(GetDeveloperProfileForTab(&prefs_, web_contents_.get(), url));
+  EXPECT_FALSE(GetDeveloperProfileForTab(
+      &prefs_, web_contents_.get(), GURL("https://foreign.test/page")));
+  TestingPrefServiceSimple other;
+  developer_toolkit_prefs::RegisterProfilePrefs(other.registry());
+  other.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  EXPECT_FALSE(GetDeveloperProfileForTab(&other, web_contents_.get(), url));
+}
+
+
+TEST_F(DeveloperProfileRuntimeTest,
+       ReplacingTemporaryHeaderOwnerCannotReviveEarlierDocumentSnapshot) {
+  const GURL url("https://temporary.test/page");
+  const auto origin = url::Origin::Create(url);
+  content::WebContentsTester::For(web_contents_.get())->NavigateAndCommit(url);
+  DeveloperProfile profile{.name = "Temporary header owner"};
+  profile.headers_persistent = false;
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Temporary", .value = "local"});
+  std::string original_owner;
+  {
+    DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+    ASSERT_TRUE(helper.SaveProfile(origin, profile));
+    original_owner = helper.GetProfile(origin)->headers_owner_token;
+    EXPECT_EQ(helper.tab_token(), original_owner);
+    UpdateDeveloperProfileNetworkState(*web_contents_, url, helper.GetProfile(origin));
+  }
+  DeveloperProfileTabHelper replacement(web_contents_.get(), &prefs_);
+  ASSERT_TRUE(replacement.SaveProfile(origin, profile));
+  EXPECT_NE(original_owner, replacement.GetProfile(origin)->headers_owner_token);
+  network::ResourceRequest request;
+  request.url = url;
+  request.request_initiator = origin;
+  EXPECT_FALSE(GetDeveloperProfileNetworkSnapshotForRequest(
+      request, &prefs_, false, web_contents_.get()));
+  UpdateDeveloperProfileNetworkState(*web_contents_, url, replacement.GetProfile(origin));
+  EXPECT_TRUE(GetDeveloperProfileNetworkSnapshotForRequest(
+      request, &prefs_, false, web_contents_.get()));
+}
+
+
+TEST_F(DeveloperProfileRuntimeTest,
+       TemporaryHeaderNavigationPreservesAnotherNativeUserAgentDecision) {
+  const GURL url("https://temporary.test/page");
+  DeveloperProfile profile{.name = "Temporary headers"};
+  profile.headers_persistent = false;
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Temporary", .value = "local"});
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  ASSERT_TRUE(helper.SaveProfile(url::Origin::Create(url), profile));
+  web_contents_->SetUserAgentOverride(
+      blink::UserAgentOverride::UserAgentOnly("Other native surface"), false);
+  testing::NiceMock<content::MockNavigationHandle> handle(
+      url, web_contents_->GetPrimaryMainFrame());
+  EXPECT_CALL(handle, SetIsOverridingUserAgent(testing::_)).Times(0);
+  helper.DidStartNavigation(&handle);
+  EXPECT_EQ("Other native surface",
+            web_contents_->GetUserAgentOverride().ua_string_override);
+}
+
+TEST_F(DeveloperProfileRuntimeTest,
+       HeaderNavigationCanApplyAndRetireOnlyItsOwnUserAgentDecision) {
+  const GURL url("https://temporary.test/page");
+  DeveloperProfile profile{.name = "Temporary headers"};
+  profile.headers_persistent = false;
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Temporary", .value = "local"});
+  profile.user_agent_enabled = true;
+  profile.user_agent = "Ahoi native fixture";
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  ASSERT_TRUE(helper.SaveProfile(url::Origin::Create(url), profile));
+  {
+    testing::NiceMock<content::MockNavigationHandle> handle(
+        url, web_contents_->GetPrimaryMainFrame());
+    EXPECT_CALL(handle, SetIsOverridingUserAgent(true)).Times(1);
+    helper.DidStartNavigation(&handle);
+  }
+  ASSERT_TRUE(HasAhoiUserAgentOverride(*web_contents_));
+  profile.user_agent_enabled = false;
+  profile.user_agent.clear();
+  ASSERT_TRUE(helper.SaveProfile(url::Origin::Create(url), profile));
+  testing::NiceMock<content::MockNavigationHandle> handle(
+      url, web_contents_->GetPrimaryMainFrame());
+  EXPECT_CALL(handle, SetIsOverridingUserAgent(false)).Times(1);
+  helper.DidStartNavigation(&handle);
+  EXPECT_TRUE(web_contents_->GetUserAgentOverride().ua_string_override.empty());
+}
+
+
+TEST_F(DeveloperProfileRuntimeTest,
+       HeaderHelperBoundToOtherPreferencesCannotReadOrMutateThatProfile) {
+  const GURL url("https://temporary.test/page");
+  const auto origin = url::Origin::Create(url);
+  TestingPrefServiceSimple other;
+  developer_toolkit_prefs::RegisterProfilePrefs(other.registry());
+  other.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  DeveloperProfile profile{.name = "Other profile"};
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Other", .value = "other context"});
+  PrefDeveloperProfileStore store(&other, false);
+  ASSERT_TRUE(store.Set(origin, profile));
+  DeveloperProfileTabHelper correct(web_contents_.get(), &prefs_);
+  DeveloperProfileTabHelper misplaced(web_contents_.get(), &other);
+  EXPECT_EQ(&correct, DeveloperProfileTabHelper::FromWebContents(web_contents_.get()));
+  EXPECT_FALSE(misplaced.GetProfile(origin));
+  EXPECT_FALSE(GetDeveloperProfileForTab(&prefs_, web_contents_.get(), url));
+  EXPECT_FALSE(misplaced.RemoveProfile(origin));
+  EXPECT_FALSE(misplaced.ResetProfilesForUrl(url));
+  profile.headers_persistent = false;
+  EXPECT_FALSE(misplaced.SaveProfile(origin, profile));
+  ASSERT_TRUE(store.Get(origin));
+  EXPECT_EQ("other context", store.Get(origin)->header_rules.front().value);
+  EXPECT_TRUE(prefs_.GetDict(kDeveloperProfilesPref).empty());
+  DeveloperProfile own{.name = "Own user agent"};
+  own.user_agent_enabled = true;
+  own.user_agent = "Own native UA";
+  ApplyAhoiUserAgentOverride(*web_contents_, &own);
+  other.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  testing::NiceMock<content::MockNavigationHandle> handle(
+      url, web_contents_->GetPrimaryMainFrame());
+  EXPECT_CALL(handle, SetIsOverridingUserAgent(testing::_)).Times(0);
+  misplaced.DidStartNavigation(&handle);
+  EXPECT_EQ("Own native UA",
+            web_contents_->GetUserAgentOverride().ua_string_override);
+}
+
+
+TEST_F(DeveloperProfileRuntimeTest,
+       HelperAcquiringItsContextLaterStillTracksMasterActivation) {
+  DeveloperProfileTabHelper helper(nullptr, &prefs_);
+  helper.SetWebContents(web_contents_.get());
+  ASSERT_EQ(&helper, DeveloperProfileTabHelper::FromWebContents(web_contents_.get()));
+  const auto bound_generation = helper.activation_generation();
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  EXPECT_GT(helper.activation_generation(), bound_generation);
+  const auto disabled_generation = helper.activation_generation();
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  EXPECT_GT(helper.activation_generation(), disabled_generation);
 }
 
 }  // namespace

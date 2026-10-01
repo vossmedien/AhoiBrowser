@@ -29,6 +29,8 @@ enum class DeveloperProfileValidationError {
   kDuplicateHeaderName,
   kHeadersTooLarge,
   kAdvancedResponseHeadersNotAcknowledged,
+  kEphemeralHeadersCannotPersist,
+  kEphemeralHeadersCannotSync,
 };
 
 DeveloperProfileValidationError ValidateDeveloperProfile(

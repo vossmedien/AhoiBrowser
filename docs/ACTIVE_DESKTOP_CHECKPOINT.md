@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Temporary header backend source and syntax verified — 1 October 2026
+
+Header rules previously persisted unconditionally; CSS/JS lifetimes did not
+provide the Master's temporary-header choice. The tracked backend now supports
+tab-local request/response rules with runtime owner identity, never Preferences
+or sync. Other persistent fields stay intact; reset/removal/replaced helpers and
+late secret replies revalidate the real tab's current metadata. Context-mismatched
+helpers cannot read/mutate another profile, replace the proper marker, or clear
+its native UA; late valid binding observes master activation. Header-only
+navigation preserves foreign native UA decisions. No worker-parent guess or
+materialized secret is retained as a document/temporary-store profile.
+[Exact source/proof scope and next implementation step](../artifacts/tests/cpp-temporary-header-backend-20261001/README.md).
+
+Eight actual pinned-Clang syntax checks pass, one job; nine new regressions are
+written/syntax-checked, NOT executed. The store routines moved to their tracked
+runtime source/GN entry to preserve the source line budget. No native build,
+signing/install, Keychain action or new binary acceptance occurred. Installed
+candidate stays 9acb43c8/M154 with its own prior receipts and open visible gate.
+
+Next product source: native editor lifetime selection, temporary-sync gating and
+editor/real Mojo lifetime regressions, then guarded exact candidate and required
+native/visible gates. The user still cannot select this mode in the old installed
+editor; do not call the complete feature or DEV DoD accepted. Separately, the
+previous elapsed UI opportunity stays terminal; a newly idle desktop permits
+a fresh ownership/resource check for corrected installed split lifecycle.
+Full Master, shared/service workers, Sync and external/release bounds persist;
+Crest 106/110 still defer to the separate future performance lease.
+
 ## Strict split focus yield verified; bounded UI opportunity ended — 1 October 2026
 
 The shared split helper can now opt into `AHOI_E2E_YIELD_ON_FOCUS_LOSS=1`.

@@ -71,6 +71,7 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   bool SaveProfile(const url::Origin& origin, const DeveloperProfile& profile);
   bool RemoveProfile(const url::Origin& origin);
   std::optional<DeveloperProfile> GetProfile(const url::Origin& origin) const;
+  bool HasTemporaryHeaders() const;
 
   // Removes every saved or tab-local asset that currently contributes to
   // `url`, while preserving unrelated assets owned by the same profile.
@@ -101,6 +102,7 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   void DetachFromWebContents(content::WebContents* web_contents);
   void InitializeActivationObserver();
   void OnToolkitActivationChanged();
+  bool HasBoundContext() const;
 
   const raw_ptr<PrefService> prefs_;
   PrefDeveloperProfileStore store_;
@@ -113,6 +115,14 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   PrefChangeRegistrar activation_pref_registrar_;
   base::WeakPtrFactory<DeveloperProfileTabHelper> weak_factory_{this};
 };
+
+// Resolves only the actual native tab's context and local header lifetime.
+// Callers use this at navigation boundaries and request revalidation; there
+// is no global lookup that assigns an arbitrary tab to a worker.
+std::optional<DeveloperProfile> GetDeveloperProfileForTab(
+    PrefService* prefs,
+    content::WebContents* web_contents,
+    const GURL& url);
 
 // Request-stage half of the feature. It is created only when the regular
 // profile actually contains developer profiles. Opaque header secrets defer

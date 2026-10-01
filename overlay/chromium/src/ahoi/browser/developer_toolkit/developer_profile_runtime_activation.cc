@@ -13,7 +13,10 @@
 namespace ahoi {
 
 void DeveloperProfileTabHelper::InitializeActivationObserver() {
-  if (!prefs_ || !prefs_->FindPreference(developer_toolkit_prefs::kToolkitEnabled)) {
+  if (!HasBoundContext() ||
+      !prefs_->FindPreference(developer_toolkit_prefs::kToolkitEnabled) ||
+      activation_pref_registrar_.IsObserved(
+          developer_toolkit_prefs::kToolkitEnabled)) {
     return;
   }
   toolkit_active_ = developer_toolkit_prefs::IsToolkitEnabled(*prefs_);
@@ -35,7 +38,7 @@ void DeveloperProfileTabHelper::OnToolkitActivationChanged() {
   }
   toolkit_active_ = enabled;
   ++activation_generation_;
-  if (enabled || !web_contents() || web_contents()->IsBeingDestroyed()) {
+  if (enabled || !HasBoundContext()) {
     return;
   }
   const bool modified_document = !active_assets_.empty() ||

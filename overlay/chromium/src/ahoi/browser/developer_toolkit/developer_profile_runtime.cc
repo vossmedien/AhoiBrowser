@@ -53,139 +53,6 @@ class DeveloperProfileTabHelperMarker final
   const base::WeakPtr<DeveloperProfileTabHelper> helper;
 };
 
-struct DeveloperProfileChange {
-  url::Origin origin;
-  std::optional<DeveloperProfile> before;
-  std::optional<DeveloperProfile> after;
-};
-
-bool HasPersistentProfileData(const DeveloperProfile& profile) {
-  return !profile.assets.empty() || profile.user_agent_enabled ||
-         !profile.user_agent.empty() || profile.header_rules_enabled ||
-         profile.header_rules_sync_enabled || !profile.header_rules.empty() ||
-         profile.response_header_rules_enabled ||
-         profile.response_header_rules_sync_enabled ||
-         profile.response_header_advanced_mode_acknowledged ||
-         !profile.response_header_rules.empty() || profile.cache_disabled;
-}
-
-bool CanReplaceProfile(const DeveloperProfileStore& store,
-                       const url::Origin& origin,
-                       const std::optional<DeveloperProfile>& profile) {
-  if (!profile || store.Get(origin)) {
-    return true;
-  }
-  return store.ListOrigins().size() < kMaxDeveloperProfiles;
-}
-
-bool ReplaceProfile(DeveloperProfileStore& store,
-                    const url::Origin& origin,
-                    const std::optional<DeveloperProfile>& profile) {
-  if (profile) {
-    return store.Set(origin, *profile);
-  }
-  return !store.Get(origin) || store.Remove(origin);
-}
-
-bool ApplyProfileChanges(DeveloperProfileStore& store,
-                         const std::vector<DeveloperProfileChange>& changes) {
-  size_t applied = 0;
-  for (; applied < changes.size(); ++applied) {
-    if (ReplaceProfile(store, changes[applied].origin,
-                       changes[applied].after)) {
-      continue;
-    }
-    while (applied > 0) {
-      --applied;
-      CHECK(ReplaceProfile(store, changes[applied].origin,
-                           changes[applied].before));
-    }
-    return false;
-  }
-  return true;
-}
-
-bool RestoreProfileChanges(DeveloperProfileStore& store,
-                           const std::vector<DeveloperProfileChange>& changes) {
-  bool restored = true;
-  for (auto it = changes.rbegin(); it != changes.rend(); ++it) {
-    restored = ReplaceProfile(store, it->origin, it->before) && restored;
-  }
-  return restored;
-}
-
-void DisablePersistentOverrides(DeveloperProfile* profile) {
-  profile->user_agent_enabled = false;
-  profile->header_rules_enabled = false;
-  profile->response_header_rules_enabled = false;
-  // A full reset also withdraws the CSP/CORS consent, so enabling advanced
-  // response rules again shows the warning again (DEV-16).
-  profile->response_header_advanced_mode_acknowledged = false;
-  profile->cache_disabled = false;
-}
-
-bool BuildResetChanges(const DeveloperProfileStore& store,
-                       const GURL& url,
-                       std::string_view tab_token,
-                       bool persistent,
-                       std::vector<DeveloperProfileChange>* changes) {
-  CHECK(changes);
-  const url::Origin target_origin = url::Origin::Create(url);
-  for (const url::Origin& owner_origin : store.ListOrigins()) {
-    const std::optional<DeveloperProfile> before = store.Get(owner_origin);
-    if (!before) {
-      continue;
-    }
-    DeveloperProfile after = *before;
-    const size_t old_asset_count = after.assets.size();
-    std::erase_if(after.assets, [&](const DeveloperAsset& asset) {
-      return DoesDeveloperAssetMatch(owner_origin, asset, url, tab_token);
-    });
-    bool changed = after.assets.size() != old_asset_count;
-    if (persistent && owner_origin == target_origin) {
-      const DeveloperProfile before_disabling = after;
-      DisablePersistentOverrides(&after);
-      changed = changed || after != before_disabling;
-    }
-    if (!changed) {
-      continue;
-    }
-
-    std::optional<DeveloperProfile> replacement;
-    if (persistent ? HasPersistentProfileData(after) : !after.assets.empty()) {
-      replacement = std::move(after);
-      const DeveloperProfileValidationError validation =
-          persistent ? ValidateDeveloperProfileForPersistence(owner_origin,
-                                                              *replacement)
-                     : ValidateDeveloperProfile(owner_origin, *replacement);
-      if (validation != DeveloperProfileValidationError::kNone) {
-        return false;
-      }
-    }
-    changes->push_back(
-        {.origin = owner_origin, .before = before, .after = replacement});
-  }
-  return true;
-}
-
-void ClearTransientStore(InMemoryDeveloperProfileStore& store) {
-  for (const url::Origin& origin : store.ListOrigins()) {
-    store.Remove(origin);
-  }
-}
-
-void AppendAssets(const std::optional<DeveloperProfile>& source,
-                  DeveloperProfile* target) {
-  if (!source || !target) {
-    return;
-  }
-  if (target->name.empty()) {
-    target->name = source->name;
-  }
-  target->assets.insert(target->assets.end(), source->assets.begin(),
-                        source->assets.end());
-}
-
 bool IsEligibleNavigationContext(content::WebContents* web_contents,
                                  PrefService* prefs) {
   if (!web_contents || !prefs || web_contents->IsBeingDestroyed() ||
@@ -365,178 +232,10 @@ void DeveloperProfileTabHelper::SetWebContents(
     return;
   }
   DetachFromWebContents(this->web_contents());
+  ++activation_generation_;
   Observe(web_contents);
   AttachToWebContents(web_contents);
-}
-
-bool DeveloperProfileTabHelper::SaveProfile(const url::Origin& origin,
-                                            const DeveloperProfile& profile) {
-  if (ValidateDeveloperProfile(origin, profile) !=
-      DeveloperProfileValidationError::kNone) {
-    return false;
-  }
-
-  DeveloperProfile persistent = profile;
-  DeveloperProfile reload{.name = profile.name};
-  DeveloperProfile once{.name = profile.name};
-  persistent.assets.clear();
-  for (const DeveloperAsset& asset : profile.assets) {
-    if (asset.scope.kind == DeveloperAssetScopeKind::kCurrentTab &&
-        asset.scope.value != tab_token_) {
-      return false;
-    }
-    switch (asset.lifetime) {
-      case DeveloperAssetLifetime::kOnce:
-        once.assets.push_back(asset);
-        break;
-      case DeveloperAssetLifetime::kReload:
-        reload.assets.push_back(asset);
-        break;
-      case DeveloperAssetLifetime::kRestart:
-        persistent.assets.push_back(asset);
-        break;
-    }
-  }
-  if (ValidateDeveloperProfileForPersistence(origin, persistent) !=
-          DeveloperProfileValidationError::kNone ||
-      (!reload.assets.empty() && ValidateDeveloperProfile(origin, reload) !=
-                                     DeveloperProfileValidationError::kNone) ||
-      (!once.assets.empty() && ValidateDeveloperProfile(origin, once) !=
-                                   DeveloperProfileValidationError::kNone)) {
-    return false;
-  }
-
-  const std::optional<DeveloperProfile> old_persistent = store_.Get(origin);
-  const std::optional<DeveloperProfile> old_reload = reload_store_.Get(origin);
-  const std::optional<DeveloperProfile> old_once = once_store_.Get(origin);
-  std::optional<DeveloperProfile> new_persistent;
-  std::optional<DeveloperProfile> new_reload;
-  std::optional<DeveloperProfile> new_once;
-  if (HasPersistentProfileData(persistent)) {
-    new_persistent = std::move(persistent);
-  }
-  if (!reload.assets.empty()) {
-    new_reload = std::move(reload);
-  }
-  if (!once.assets.empty()) {
-    new_once = std::move(once);
-  }
-
-  // Prefs can be changed by sync or another surface while this tab retains
-  // transient state. Prove that every new entry fits before mutating any of
-  // the three stores. Opaque secret references remain only in the persistent
-  // snapshot; transient profiles contain name/assets exclusively.
-  if (!CanReplaceProfile(store_, origin, new_persistent) ||
-      !CanReplaceProfile(reload_store_, origin, new_reload) ||
-      !CanReplaceProfile(once_store_, origin, new_once)) {
-    return false;
-  }
-  if (!ReplaceProfile(reload_store_, origin, new_reload)) {
-    return false;
-  }
-  if (!ReplaceProfile(once_store_, origin, new_once)) {
-    CHECK(ReplaceProfile(reload_store_, origin, old_reload));
-    return false;
-  }
-  // Commit PrefService last so pref observers can never see the new durable
-  // profile paired with stale once/reload state. Any unexpected Pref failure
-  // restores both transient snapshots before returning.
-  if (!ReplaceProfile(store_, origin, new_persistent)) {
-    CHECK(ReplaceProfile(once_store_, origin, old_once));
-    CHECK(ReplaceProfile(reload_store_, origin, old_reload));
-    return false;
-  }
-  return true;
-}
-
-bool DeveloperProfileTabHelper::RemoveProfile(const url::Origin& origin) {
-  const std::optional<DeveloperProfile> old_persistent = store_.Get(origin);
-  const std::optional<DeveloperProfile> old_reload = reload_store_.Get(origin);
-  const std::optional<DeveloperProfile> old_once = once_store_.Get(origin);
-  if (!old_persistent && !old_reload && !old_once) {
-    return false;
-  }
-  if (!ReplaceProfile(reload_store_, origin, std::nullopt)) {
-    return false;
-  }
-  if (!ReplaceProfile(once_store_, origin, std::nullopt)) {
-    CHECK(ReplaceProfile(reload_store_, origin, old_reload));
-    return false;
-  }
-  if (!ReplaceProfile(store_, origin, std::nullopt)) {
-    CHECK(ReplaceProfile(once_store_, origin, old_once));
-    CHECK(ReplaceProfile(reload_store_, origin, old_reload));
-    return false;
-  }
-  return true;
-}
-
-std::optional<DeveloperProfile> DeveloperProfileTabHelper::GetProfile(
-    const url::Origin& origin) const {
-  std::optional<DeveloperProfile> result = store_.Get(origin);
-  DeveloperProfile merged;
-  if (result) {
-    merged = std::move(*result);
-  }
-  AppendAssets(reload_store_.Get(origin), &merged);
-  AppendAssets(once_store_.Get(origin), &merged);
-  if (merged.name.empty()) {
-    return std::nullopt;
-  }
-  return merged;
-}
-
-bool DeveloperProfileTabHelper::ResetProfilesForUrl(const GURL& url) {
-  if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS()) {
-    return false;
-  }
-  std::vector<DeveloperProfileChange> persistent_changes;
-  std::vector<DeveloperProfileChange> reload_changes;
-  std::vector<DeveloperProfileChange> once_changes;
-  if (!BuildResetChanges(store_, url, tab_token_, /*persistent=*/true,
-                         &persistent_changes) ||
-      !BuildResetChanges(reload_store_, url, tab_token_, /*persistent=*/false,
-                         &reload_changes) ||
-      !BuildResetChanges(once_store_, url, tab_token_, /*persistent=*/false,
-                         &once_changes)) {
-    return false;
-  }
-
-  if (!ApplyProfileChanges(reload_store_, reload_changes)) {
-    return false;
-  }
-  if (!ApplyProfileChanges(once_store_, once_changes)) {
-    CHECK(RestoreProfileChanges(reload_store_, reload_changes));
-    return false;
-  }
-  if (!ApplyProfileChanges(store_, persistent_changes)) {
-    CHECK(RestoreProfileChanges(once_store_, once_changes));
-    CHECK(RestoreProfileChanges(reload_store_, reload_changes));
-    return false;
-  }
-  active_assets_.clear();
-  return true;
-}
-
-std::vector<DeveloperAsset> DeveloperProfileTabHelper::TakeAssetsForNavigation(
-    const GURL& url) {
-  if (!prefs_ || !developer_toolkit_prefs::IsToolkitEnabled(*prefs_)) {
-    active_assets_.clear();
-    return {};
-  }
-  std::vector<DeveloperAsset> result =
-      GetDeveloperAssetsForNavigation(store_, url, tab_token_);
-  std::vector<DeveloperAsset> reload =
-      GetDeveloperAssetsForNavigation(reload_store_, url, tab_token_);
-  std::vector<DeveloperAsset> once =
-      GetDeveloperAssetsForNavigation(once_store_, url, tab_token_);
-  result.insert(result.end(), std::make_move_iterator(reload.begin()),
-                std::make_move_iterator(reload.end()));
-  result.insert(result.end(), std::make_move_iterator(once.begin()),
-                std::make_move_iterator(once.end()));
-  ClearTransientStore(once_store_);
-  active_assets_ = result;
-  return result;
+  InitializeActivationObserver();
 }
 
 void DeveloperProfileTabHelper::DidStartNavigation(
@@ -548,8 +247,10 @@ void DeveloperProfileTabHelper::DidStartNavigation(
       navigation_handle->IsSameDocument() ||
       navigation_handle->GetWebContents() != web_contents() ||
       !IsEligibleNavigationContext(web_contents(), prefs_) ||
-      prefs_->GetDict(kDeveloperProfilesPref).empty()) {
-    if (navigation_handle && navigation_handle->IsInPrimaryMainFrame() &&
+      (prefs_->GetDict(kDeveloperProfilesPref).empty() &&
+       !HasTemporaryHeaders())) {
+    if (HasBoundContext() && navigation_handle &&
+        navigation_handle->IsInPrimaryMainFrame() &&
         !navigation_handle->IsSameDocument() && web_contents() &&
         navigation_handle->GetWebContents() == web_contents()) {
       const bool owned = HasAhoiUserAgentOverride(*web_contents());
@@ -561,10 +262,14 @@ void DeveloperProfileTabHelper::DidStartNavigation(
     return;
   }
   const std::optional<DeveloperProfile> profile =
-      GetDeveloperProfileForNavigation(store_, navigation_handle->GetURL());
+      GetDeveloperProfileForTab(prefs_, web_contents(), navigation_handle->GetURL());
+  const bool was_owned = HasAhoiUserAgentOverride(*web_contents());
   ApplyAhoiUserAgentOverride(*web_contents(), profile ? &*profile : nullptr);
-  navigation_handle->SetIsOverridingUserAgent(profile &&
-                                              profile->user_agent_enabled);
+  if (profile && profile->user_agent_enabled) {
+    navigation_handle->SetIsOverridingUserAgent(true);
+  } else if (was_owned) {
+    navigation_handle->SetIsOverridingUserAgent(false);
+  }
 }
 
 void DeveloperProfileTabHelper::DidFinishNavigation(
@@ -577,7 +282,7 @@ void DeveloperProfileTabHelper::DidFinishNavigation(
   }
   if (!IsEligibleNavigationContext(web_contents(), prefs_)) {
     active_assets_.clear();
-    if (web_contents()) {
+    if (HasBoundContext()) {
       ClearDeveloperProfileNavigationRequest(*web_contents());
       UpdateDeveloperProfileNetworkState(*web_contents(),
                                          navigation_handle->GetURL(),
@@ -587,7 +292,7 @@ void DeveloperProfileTabHelper::DidFinishNavigation(
     return;
   }
   const std::optional<DeveloperProfile> profile =
-      GetDeveloperProfileForNavigation(store_, navigation_handle->GetURL());
+      GetDeveloperProfileForTab(prefs_, web_contents(), navigation_handle->GetURL());
   const std::vector<DeveloperAsset> assets =
       TakeAssetsForNavigation(navigation_handle->GetURL());
   ClearDeveloperProfileNavigationRequest(*web_contents(),
@@ -601,7 +306,7 @@ void DeveloperProfileTabHelper::DidFinishNavigation(
 
 void DeveloperProfileTabHelper::AttachToWebContents(
     content::WebContents* web_contents) {
-  if (!web_contents || web_contents->IsBeingDestroyed()) {
+  if (!web_contents || web_contents->IsBeingDestroyed() || !HasBoundContext()) {
     return;
   }
   web_contents->SetUserData(&kDeveloperProfileTabHelperKey,
@@ -632,7 +337,10 @@ void DeveloperProfileNavigationThrottle::MaybeCreateAndAdd(
     return;
   }
   PrefService* const prefs = user_prefs::UserPrefs::Get(browser_context);
-  if (!prefs || prefs->GetDict(kDeveloperProfilesPref).empty()) {
+  const auto* helper = DeveloperProfileTabHelper::FromWebContents(web_contents);
+  if (!prefs || !developer_toolkit_prefs::IsToolkitEnabled(*prefs) ||
+      (prefs->GetDict(kDeveloperProfilesPref).empty() &&
+                 (!helper || !helper->HasTemporaryHeaders()))) {
     return;
   }
   registry.AddThrottle(
@@ -686,7 +394,8 @@ DeveloperProfileNavigationThrottle::WillRedirectRequest() {
     return content::NavigationThrottle::PROCEED;
   }
   const std::optional<DeveloperProfile> profile =
-      GetDeveloperProfileForNavigation(store_, navigation_handle()->GetURL());
+      GetDeveloperProfileForTab(prefs_, web_contents_.get(),
+                                navigation_handle()->GetURL());
   // A redirect cannot change the navigation's user-agent flag any more
   // (only DidStartNavigation may); the WebContents override still follows
   // the redirect target for the requests after it.
@@ -712,7 +421,8 @@ DeveloperProfileNavigationThrottle::ApplyInitialRequestOverrides() {
   }
   ClearDeveloperProfileNavigationRequest(*web_contents_);
   const std::optional<DeveloperProfile> profile =
-      GetDeveloperProfileForNavigation(store_, navigation_handle()->GetURL());
+      GetDeveloperProfileForTab(prefs_, web_contents_.get(),
+                                navigation_handle()->GetURL());
   // The user-agent decision is made in DeveloperProfileTabHelper::
   // DidStartNavigation; here it would trip NavigationRequest's CHECK.
   if (!profile) {
@@ -761,6 +471,11 @@ void DeveloperProfileNavigationThrottle::OnHeaderSecretsMaterialized(
       DeveloperProfileTabHelper::FromWebContents(web_contents_.get());
   valid = valid && (helper ? helper->activation_generation() : 0) ==
                        activation_generation_;
+  const auto current = valid ? GetDeveloperProfileForTab(
+                                   prefs_, web_contents_.get(), request_url)
+                             : std::nullopt;
+  valid = valid && current &&
+          MakeDeveloperProfileNetworkSnapshot(*current) == source_profile;
   if (!valid || !materialized_profile ||
       !StageDeveloperProfileNavigationRequest(
           *web_contents_, navigation_id, request_url, std::move(source_profile),

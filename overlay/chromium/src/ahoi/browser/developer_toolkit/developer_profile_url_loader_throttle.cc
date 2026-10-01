@@ -12,6 +12,7 @@
 
 #include "ahoi/browser/developer_toolkit/developer_profile_integration.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
 #include "base/strings/string_util.h"
@@ -190,8 +191,7 @@ std::optional<DeveloperProfile> GetDeveloperProfileNetworkSnapshotForRequest(
         request.navigation_redirect_chain.back() != request.url) {
       return std::nullopt;
     }
-    PrefDeveloperProfileStore store(prefs, is_off_the_record);
-    profile = GetDeveloperProfileForNavigation(store, request.url);
+    profile = GetDeveloperProfileForTab(prefs, web_contents, request.url);
     if (profile) {
       profile = MakeDeveloperProfileNetworkSnapshot(std::move(*profile));
     }
@@ -206,6 +206,14 @@ std::optional<DeveloperProfile> GetDeveloperProfileNetworkSnapshotForRequest(
   } else if (const DeveloperProfileNetworkState* state =
                  GetNetworkState(web_contents);
              state) {
+    if (!state->profile.headers_persistent) {
+      const auto current = GetDeveloperProfileForTab(
+          prefs, web_contents, web_contents->GetLastCommittedURL());
+      if (!current || MakeDeveloperProfileNetworkSnapshot(*current) !=
+                          state->profile) {
+        return std::nullopt;
+      }
+    }
     if (state->origin == origin) {
       profile = state->profile;
     } else if (state->profile.cache_disabled) {

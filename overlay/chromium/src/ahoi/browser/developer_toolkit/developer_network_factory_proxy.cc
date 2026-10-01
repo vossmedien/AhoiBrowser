@@ -366,8 +366,8 @@ class DeveloperFactoryProxy final
           if (!verify_saved_rules) {
             return snapshot;
           }
-          PrefDeveloperProfileStore store(prefs, false);
-          auto current = store.Get(origin_);
+          auto current = GetDeveloperProfileForTab(
+              prefs, contents_.get(), origin_.GetURL());
           if (snapshot && current &&
               *snapshot == MakeDeveloperProfileNetworkSnapshot(*current)) {
             return snapshot;
@@ -409,8 +409,8 @@ void MaybeProxyDeveloperProfileURLLoaderFactory(
   if (!web_contents) {
     return;
   }
-  PrefDeveloperProfileStore store(prefs, false);
-  const auto profile = store.Get(factory_origin);
+  const auto profile = GetDeveloperProfileForTab(
+      prefs, web_contents, factory_origin.GetURL());
   if (!profile || (!profile->user_agent_enabled &&
                    !profile->header_rules_enabled &&
                    !profile->response_header_rules_enabled &&

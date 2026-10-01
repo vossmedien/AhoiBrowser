@@ -162,6 +162,9 @@ void StripDeviceLocalDomainScopeConsent(DeveloperProfile* profile) {
 
 std::optional<base::DictValue> SerializeDeveloperProfile(
     const DeveloperProfile& profile) {
+  if (!profile.headers_persistent || !profile.headers_owner_token.empty()) {
+    return std::nullopt;
+  }
   base::DictValue result;
   result.Set(kName, profile.name);
   result.Set(kAssets, SerializeDeveloperAssets(profile.assets));
@@ -296,20 +299,27 @@ std::optional<base::DictValue> SerializeDeveloperProfileForSync(
   const auto remove_local_secret = [](const DeveloperHeaderRule& rule) {
     return !rule.secret_reference.empty();
   };
-  if (!sync_profile.header_rules_sync_enabled) {
+  const bool temporary_headers =
+      !profile.headers_persistent || !profile.headers_owner_token.empty();
+  if (temporary_headers || !sync_profile.header_rules_sync_enabled) {
     sync_profile.header_rules_enabled = false;
+    sync_profile.header_rules_sync_enabled = false;
     sync_profile.header_rules.clear();
   } else {
     std::erase_if(sync_profile.header_rules, remove_local_secret);
   }
-  if (!sync_profile.response_header_rules_sync_enabled) {
+  if (temporary_headers ||
+      !sync_profile.response_header_rules_sync_enabled) {
     sync_profile.response_header_rules_enabled = false;
+    sync_profile.response_header_rules_sync_enabled = false;
     sync_profile.response_header_rules.clear();
   } else {
     std::erase_if(sync_profile.response_header_rules, remove_local_secret);
   }
   StripDeviceLocalDomainScopeConsent(&sync_profile);
   StripDeviceLocalAdvancedModeConsent(&sync_profile);
+  sync_profile.headers_persistent = true;
+  sync_profile.headers_owner_token.clear();
   return SerializeDeveloperProfile(sync_profile);
 }
 

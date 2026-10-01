@@ -130,6 +130,12 @@ struct DeveloperProfile {
   bool user_agent_enabled = false;
   std::string user_agent;
 
+  // False keeps both header directions in the owning tab until it closes.
+  // This transient choice is never encoded in Preferences or sync.
+  bool headers_persistent = true;
+  // Runtime-only identity assigned by the owning tab helper, never by decoding.
+  // Replacing that helper must retire an earlier document/request snapshot.
+  std::string headers_owner_token;
   bool header_rules_enabled = false;
   bool header_rules_sync_enabled = false;
   std::vector<DeveloperHeaderRule> header_rules;

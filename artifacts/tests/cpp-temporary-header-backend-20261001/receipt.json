@@ -1,0 +1,61 @@
+{
+  "kind": "source-only-temporary-header-backend",
+  "jobs": 1,
+  "syntaxChecks": 8,
+  "newRegressionsWritten": 9,
+  "newRegressionsExecuted": 0,
+  "installedCandidate": "9acb43c81917a847c2d94303053c304b981757d3",
+  "nativeOrVisibleAcceptance": false,
+  "checks": [
+    {
+      "name": "developer_profile_runtime.cc",
+      "exitCode": 0,
+      "sourceSha256": "68924f71565caae89cfa27ca32729d52bf5326560d0248315b11519d0ee1a391"
+    },
+    {
+      "name": "developer_profile_runtime_store.cc",
+      "exitCode": 0,
+      "sourceSha256": "1610b5a1b8915d335a099ba78cd18b2968c1bcdd878a994f2150910ba6d30bae"
+    },
+    {
+      "name": "developer_profile_url_loader_throttle.cc",
+      "exitCode": 0,
+      "sourceSha256": "69d3c5cfe9a27f4d23967ed5a95e71a9c9d399e709654844e764c29c567c0012"
+    },
+    {
+      "name": "developer_network_factory_proxy.cc",
+      "exitCode": 0,
+      "sourceSha256": "c8d51e2bc23e23c92df6d6ff54758be4a8cbc5659b6ac78f9dc6b4d5e05a0f7b"
+    },
+    {
+      "name": "developer_profile_validation.cc",
+      "exitCode": 0,
+      "sourceSha256": "e341c861cdbd152494ca819ea1540aa483ddfe31bd38e740a7703342d0134038"
+    },
+    {
+      "name": "developer_profile_codec.cc",
+      "exitCode": 0,
+      "sourceSha256": "00392a6d43169f7e18fe6c208ac87fa9e5d4890a9f9e5aad07f7e889673891b0"
+    },
+    {
+      "name": "developer_profile_runtime_unittest.cc",
+      "exitCode": 0,
+      "sourceSha256": "db18536db71b030ec8c4b51e154472963c6bbfbab5d7b2b7fde68311e5af29fa"
+    },
+    {
+      "name": "developer_profile_runtime_activation.cc",
+      "exitCode": 0,
+      "sourceSha256": "128ffe0d2cda1b4c7079962306b06abd44759ed0a8f46464e35880354d066326"
+    }
+  ],
+  "logsSha256": {
+    "developer_profile_runtime.cc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_profile_runtime_store.cc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_profile_url_loader_throttle.cc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_network_factory_proxy.cc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_profile_validation.cc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_profile_codec.cc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_profile_runtime_unittest.cc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_profile_runtime_activation.cc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

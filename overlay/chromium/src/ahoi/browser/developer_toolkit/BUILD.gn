@@ -70,6 +70,7 @@ source_set("developer_profile_runtime") {
     "developer_network_factory_proxy.cc",
     "developer_network_factory_proxy.h",
     "developer_profile_runtime.cc",
+    "developer_profile_runtime_store.cc",
     "developer_profile_runtime.h",
     "developer_profile_runtime_activation.cc",
     "developer_profile_runtime_user_agent.cc",
