@@ -1,5 +1,17 @@
 # Active sync coordination
 
+## Scope of the real-device GREEN — 1 October 2026, Codex audit
+
+The M154 receive log retains the passing
+`testRealDeviceReceivesRecognizableRemoteTab` result (181.106 s), supporting
+the real Mac-to-iPhone tab-visibility claim below. Together with the recorded
+inverse direction, this is the two-device tab portion of DoD 13. The complete
+Master criterion also requires Mac-to-Mac, offline conflicts, recovery and
+Remote Control on real devices; each needs its own candidate-bound evidence.
+Do not promote the tab result alone to completion of that entire criterion.
+Preserve the approved isolated Development scope and the no-key-copy/no-delete
+boundaries; no unchanged tab test is repeated merely for the provider switch.
+
 ## Real Mac → iPhone round trip GREEN on M154 — 1 October 2026, 01:55 CEST
 
 - Mac: scoped M154 build 58 `21b49fb9` (Chromium 154.0.8037.93). The
@@ -66,7 +78,7 @@ Production).
   **passed** (188.6 s): the Mac tab arrived as a recognizable remote tab with
   the exact URL.
 - iPhone → Mac tabs were already proven on 29 Sep. With this, the real
-  two-device tab round trip (DoD 13) is **GREEN**. Evidence:
+  two-device tab round trip (the tab portion of DoD 13) is **GREEN**. Evidence:
   `artifacts/sync-acceptance/real-device-20260929/receive-20260930/`.
 - Open, not blocking: CKSyncEngine states on both devices still list the old
   subscription `…cloudkit-e2e.7e6bb1c7…`; the Mac's automatic retry after
