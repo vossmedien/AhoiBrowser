@@ -16,7 +16,7 @@
 #include "content/public/test/browser_task_environment.h"
 #include "content/public/test/navigation_simulator.h"
 #include "content/public/test/test_browser_context.h"
-#include "content/public/test/test_renderer_host.h"
+#include "content/public/test/test_content_client_initializer.h"
 #include "content/public/test/web_contents_tester.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/views/test/views_test_base.h"
@@ -53,17 +53,22 @@ class DeveloperProfileEditorActivationTest : public views::ViewsTestBase {
 
   void SetUp() override {
     views::ViewsTestBase::SetUp();
+    content_clients_ = std::make_unique<content::TestContentClientInitializer>();
+    content_clients_->CreateTestRenderViewHosts();
+    context_ = std::make_unique<content::TestBrowserContext>();
     // Toolkit registration also owns the profile dictionary.
     developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
-    user_prefs::UserPrefs::Set(&context_, &prefs_);
+    user_prefs::UserPrefs::Set(context_.get(), &prefs_);
     contents_ = content::WebContentsTester::CreateTestWebContents(
-        &context_, nullptr);
+        context_.get(), nullptr);
     content::NavigationSimulator::NavigateAndCommitFromBrowser(
         contents_.get(), GURL("https://editor.test/"));
   }
   void TearDown() override {
     editor_.reset();
     contents_.reset();
+    context_.reset();
+    content_clients_.reset();
     views::ViewsTestBase::TearDown();
   }
   void OpenEditor() {
@@ -100,9 +105,9 @@ class DeveloperProfileEditorActivationTest : public views::ViewsTestBase {
         .css = "body { color: red; }"});
   }
 
-  content::RenderViewHostTestEnabler renderer_;
   TestingPrefServiceSimple prefs_;
-  content::TestBrowserContext context_;
+  std::unique_ptr<content::TestContentClientInitializer> content_clients_;
+  std::unique_ptr<content::TestBrowserContext> context_;
   std::unique_ptr<content::WebContents> contents_;
   std::shared_ptr<CompilerFixture> compiler_ =
       std::make_shared<CompilerFixture>();

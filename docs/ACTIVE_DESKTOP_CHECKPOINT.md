@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Native core 127/127 and Mojo20/20 GREEN — 1 October 2026
+
+Build 64 bb2e9b28 compiles/signs/provenance-verifies with exit 0. Its 20-case
+Mojo and full 127-case core native runs pass, one job/no retries/no skips,
+direct exit 0. [Exact runtime evidence](../artifacts/tests/dev-core-native-green-bb2e9b28-20261001/README.md).
+Sidebar binary and staged component manifest are byte-identical to the earlier
+executed Build-61 inputs; its 191/191 result carries only within that proved
+unchanged scope. Prior red results stay preserved.
+
+The separate editor two-case fixture crashes before the editor is built:
+pure Views test suite lacks ContentBrowserClient for test WebContents/BFCache.
+[Native failure](../artifacts/tests/editor-native-initialization-red-bb2e9b28-20261001/README.md).
+The fixture now initializes Chromium test content clients/render hosts and
+tears down its owned BrowserContext before those clients. Pinned-Clang check
+passes; no product path changed and no native UI pass claimed. Both runners
+are terminal, lock released. Installed app remains Build 59/d3ebc1b9.
+
+Next: guarded one-job incremental candidate for this single editor-fixture
+correction; execute the editor cases, then required remaining UI/native worker
+browser gates. Reuse unchanged core/Mojo/sidebar evidence only with explicit
+binary/runtime-input verification. All native gates precede canonical install
+and representative affected installed journeys. Full Master remains active;
+remaining shared/service worker and external/release scopes are not waived.
+
 ## Frozen single-line test gate Build 64 running — 1 October 2026
 
 Source bb2e9b28 is frozen in the clean queue repository. Owned detached runner

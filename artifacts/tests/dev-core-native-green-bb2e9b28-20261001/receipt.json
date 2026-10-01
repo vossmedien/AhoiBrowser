@@ -1,0 +1,52 @@
+{
+  "mojo": {
+    "runnerPid": 11739,
+    "sourceCommit": "bb2e9b28395ce36875aebc8bddb28587594af42b",
+    "phase": "complete",
+    "jobs": 1,
+    "retries": 0,
+    "results": [],
+    "startedAt": "2026-10-01T15:31:10.354893+00:00",
+    "command": [
+      "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests",
+      "--gtest_filter=DeveloperNetworkFactoryProxyTest.*",
+      "--test-launcher-jobs=1",
+      "--test-launcher-retry-limit=0",
+      "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/64/mojo-native/summary.json"
+    ],
+    "binarySha256": "ecb3244a07fb904f8d21296d23dd41f53ac97cf73735adfded0a3c4ae89c8b98",
+    "testPid": 11740,
+    "exitCode": 0,
+    "finishedAt": "2026-10-01T15:31:26.283069+00:00",
+    "tests": 20,
+    "summarySha256": "361db87e282977af33ad9ba056f6e8606ec1f9785e78117092f9f36e0250015a",
+    "logSha256": "bd646d659ed72f86dc570000007004eeeb3d1e5e4357d89a8ce876b6a7fad586"
+  },
+  "core": {
+    "runnerPid": 22275,
+    "sourceCommit": "bb2e9b28395ce36875aebc8bddb28587594af42b",
+    "phase": "complete",
+    "jobs": 1,
+    "retries": 0,
+    "results": [],
+    "startedAt": "2026-10-01T15:36:51.805996+00:00",
+    "command": [
+      "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests",
+      "--test-launcher-jobs=1",
+      "--test-launcher-retry-limit=0",
+      "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/64/dev-native/summary.json"
+    ],
+    "binarySha256": "ecb3244a07fb904f8d21296d23dd41f53ac97cf73735adfded0a3c4ae89c8b98",
+    "testPid": 22276,
+    "exitCode": 0,
+    "finishedAt": "2026-10-01T15:37:34.794619+00:00",
+    "tests": 127,
+    "summarySha256": "50001f4727fe9aa8140feccbd8239d56d3562768d294801ffdeabd212fc59c3e",
+    "logSha256": "1821efd865b3a38e91df182925005d4c9fb256680738c1cd76817407125e77fe"
+  },
+  "unchangedSidebarInputs": {
+    ".work/chromium/src/out/AhoiDev/ahoi_sidebar_tree_unittests": "fa7d3cf883ea9574c144b979246393555cf9e2fb00a4b6a4e853c22d95ef5100",
+    ".work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Resources/ahoi-component-runtime.sha256": "eca19d18548a16be8c085c9ceb1a1bd375673b5cbba3cada2c601c4042a3e86b"
+  },
+  "installed": false
+}
