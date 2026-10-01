@@ -1,0 +1,23 @@
+{
+  "runnerPid": 55473,
+  "phase": "complete",
+  "source": "9acb43c81917a847c2d94303053c304b981757d3",
+  "startedAt": "2026-10-01T19:38:41.028635+00:00",
+  "acceptance": false,
+  "mode": "headless",
+  "installedInfoSha256": "97fe1180acae353423a5ab7c81895b1a0722b8335ef79f46941061c5bae11949",
+  "idleSeconds": 0,
+  "appRunning": false,
+  "httpReadiness": {
+    "status": 200,
+    "body": "<title>PaneA</title><h1>Pane A</h1>"
+  },
+  "profile": "/private/tmp/ahoi-navigation-profile.r7wenp5j",
+  "fixtureOrigin": "http://127.0.0.1:62273",
+  "browserPid": 55681,
+  "driverSha256": "bfd327a86d6d11ed51577e2292c00efb7d32858653c99d8ebe294cd32779f2bc",
+  "driverPid": 55843,
+  "driverExitCode": 0,
+  "browserExitCode": 0,
+  "cleanupComplete": true
+}

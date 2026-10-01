@@ -1,0 +1,29 @@
+[
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9413/devtools/page/BECD96946A8462734BB2147FE81B5B4C",
+    "id": "BECD96946A8462734BB2147FE81B5B4C",
+    "title": "PaneA",
+    "type": "page",
+    "url": "http://127.0.0.1:62273/a.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9413/devtools/page/BECD96946A8462734BB2147FE81B5B4C"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9413/devtools/page/EDD6DC60188217450921B8CDCE341F03",
+    "id": "EDD6DC60188217450921B8CDCE341F03",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9413/devtools/page/EDD6DC60188217450921B8CDCE341F03"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9413/devtools/page/24648EF1BCAC3E3B042743B79766940A",
+    "id": "24648EF1BCAC3E3B042743B79766940A",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9413/devtools/page/24648EF1BCAC3E3B042743B79766940A"
+  }
+]

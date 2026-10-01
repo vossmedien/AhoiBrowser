@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Installed headless network/startup diagnosis executed — 1 October 2026
+
+Both bounded isolated probes on installed 9acb43c8 finish exit 0, native browser
+exit 0 and owned cleanup complete. They use the installed signed bundle's
+headless mode, not an upstream/test executable or visible browser acceptance.
+[Protocol documents, HTTP counts and exact driver bindings](../artifacts/tests/installed-navigation-diagnosis-9acb43c8-20261001/README.md).
+
+First run: after startup the target URL is `/a.html` while the document remains
+about:blank. Explicit Page.navigate to `/b.html` loads HTTP 200/PaneB/complete;
+the superseded startup loader records ERR_ABORTED. The later run gives the
+startup intent its own observation window and finds PaneA/complete already at
+the first snapshot, remains correct through all startup samples, then loads
+PaneB/complete. Its two `/a.html` requests distinguish browser navigation from
+the fixture's independent readiness request. No permanent network/startup
+failure or precise cause of the earlier visible blank documents is established.
+
+Next: corrected shared-harness visible split lifecycle on installed 9acb43c8
+after fresh UI/input/ownership checks; preserve actual committed-document
+readiness and any setup target/frame/document failure. Other representative
+journeys follow its actual verdict. No build is needed for these tools; no
+headless result waives visible split, full Master or worker/Sync/release gates.
+Both runners 51794/55473 and children are terminal, locks released; no observer
+is waiting. Probe source now additionally cancels on a new foreign main app
+and records its own source hash; those additions have syntax validation, not
+a falsely attributed runtime-cancellation PASS.
+
 ## Installed navigation diagnosis prepared; fixture gate verified — 1 October 2026
 
 Source c4bdfee0's installed finding remains unresolved, not a product PASS.

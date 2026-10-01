@@ -1,0 +1,504 @@
+{
+  "target": {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9413/devtools/page/BECD96946A8462734BB2147FE81B5B4C",
+    "id": "BECD96946A8462734BB2147FE81B5B4C",
+    "title": "PaneA",
+    "type": "page",
+    "url": "http://127.0.0.1:62273/a.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9413/devtools/page/BECD96946A8462734BB2147FE81B5B4C"
+  },
+  "events": [
+    {
+      "method": "Page.frameStartedNavigating",
+      "params": {
+        "frameId": "BECD96946A8462734BB2147FE81B5B4C",
+        "url": "http://127.0.0.1:62273/b.html",
+        "loaderId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "navigationType": "differentDocument"
+      }
+    },
+    {
+      "method": "Page.frameStartedLoading",
+      "params": {
+        "frameId": "BECD96946A8462734BB2147FE81B5B4C"
+      }
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "requestId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "loaderId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "documentURL": "http://127.0.0.1:62273/b.html",
+        "request": {
+          "url": "http://127.0.0.1:62273/b.html",
+          "method": "GET",
+          "headers": {
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"154\", \"AhoiBrowser\";v=\"154\", \"Not A(Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\""
+          },
+          "mixedContentType": "none",
+          "initialPriority": "VeryHigh",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "isSameSite": true
+        },
+        "timestamp": 37986.082694,
+        "wallTime": 1790883538.871007,
+        "initiator": {
+          "type": "other"
+        },
+        "redirectHasExtraInfo": false,
+        "type": "Document",
+        "frameId": "BECD96946A8462734BB2147FE81B5B4C",
+        "hasUserGesture": false
+      }
+    },
+    {
+      "method": "Network.responseReceived",
+      "params": {
+        "requestId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "loaderId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "timestamp": 37986.085833,
+        "type": "Document",
+        "response": {
+          "url": "http://127.0.0.1:62273/b.html",
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "Content-Length": "35",
+            "Content-type": "text/html",
+            "Date": "Thu, 01 Oct 2026 19:38:58 GMT",
+            "Last-Modified": "Thu, 01 Oct 2026 19:38:41 GMT",
+            "Server": "SimpleHTTP/0.6 Python/3.14.6"
+          },
+          "mimeType": "text/html",
+          "charset": "",
+          "connectionReused": false,
+          "connectionId": 86,
+          "remoteIPAddress": "127.0.0.1",
+          "remotePort": 62273,
+          "fromDiskCache": false,
+          "fromServiceWorker": false,
+          "fromPrefetchCache": false,
+          "encodedDataLength": 185,
+          "timing": {
+            "requestTime": 37986.083423,
+            "proxyStart": -1,
+            "proxyEnd": -1,
+            "dnsStart": 0.131,
+            "dnsEnd": 0.302,
+            "connectStart": 0.302,
+            "connectEnd": 0.484,
+            "sslStart": -1,
+            "sslEnd": -1,
+            "workerStart": -1,
+            "workerReady": -1,
+            "workerFetchStart": -1,
+            "workerRespondWithSettled": -1,
+            "sendStart": 0.56,
+            "sendEnd": 0.6,
+            "pushStart": 0,
+            "pushEnd": 0,
+            "receiveHeadersStart": 1.536,
+            "receiveHeadersEnd": 1.594
+          },
+          "responseTime": 1790883538873.265,
+          "protocol": "http/1.0",
+          "alternateProtocolUsage": "unspecifiedReason",
+          "securityState": "secure"
+        },
+        "hasExtraInfo": true,
+        "frameId": "BECD96946A8462734BB2147FE81B5B4C"
+      }
+    },
+    {
+      "method": "Network.requestWillBeSentExtraInfo",
+      "params": {
+        "requestId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "associatedCookies": [],
+        "headers": {
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          "Accept-Encoding": "gzip, deflate, br, zstd",
+          "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7",
+          "Connection": "keep-alive",
+          "Host": "127.0.0.1:62273",
+          "Sec-Fetch-Dest": "document",
+          "Sec-Fetch-Mode": "navigate",
+          "Sec-Fetch-Site": "none",
+          "Sec-Fetch-User": "?1",
+          "Upgrade-Insecure-Requests": "1",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+          "sec-ch-ua": "\"Chromium\";v=\"154\", \"AhoiBrowser\";v=\"154\", \"Not A(Brand\";v=\"99\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"macOS\""
+        },
+        "connectTiming": {
+          "requestTime": 37986.083423
+        },
+        "siteHasCookieInOtherPartition": false
+      }
+    },
+    {
+      "method": "Network.responseReceivedExtraInfo",
+      "params": {
+        "requestId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "blockedCookies": [],
+        "headers": {
+          "Content-Length": "35",
+          "Content-type": "text/html",
+          "Date": "Thu, 01 Oct 2026 19:38:58 GMT",
+          "Last-Modified": "Thu, 01 Oct 2026 19:38:41 GMT",
+          "Server": "SimpleHTTP/0.6 Python/3.14.6"
+        },
+        "resourceIPAddressSpace": "Loopback",
+        "statusCode": 200,
+        "headersText": "HTTP/1.0 200 OK\r\nServer: SimpleHTTP/0.6 Python/3.14.6\r\nDate: Thu, 01 Oct 2026 19:38:58 GMT\r\nContent-type: text/html\r\nContent-Length: 35\r\nLast-Modified: Thu, 01 Oct 2026 19:38:41 GMT\r\n\r\n",
+        "cookiePartitionKey": {
+          "topLevelSite": "http://127.0.0.1",
+          "hasCrossSiteAncestor": false
+        },
+        "cookiePartitionKeyOpaque": false,
+        "exemptedCookies": []
+      }
+    },
+    {
+      "method": "Page.frameNavigated",
+      "params": {
+        "frame": {
+          "id": "BECD96946A8462734BB2147FE81B5B4C",
+          "loaderId": "F3C896C5DC5D0C13D7C8583266E768E2",
+          "url": "http://127.0.0.1:62273/b.html",
+          "domainAndRegistry": "",
+          "securityOrigin": "http://127.0.0.1:62273",
+          "securityOriginDetails": {
+            "isLocalhost": true
+          },
+          "mimeType": "text/html",
+          "adFrameStatus": {
+            "adFrameType": "none"
+          },
+          "secureContextType": "SecureLocalhost",
+          "crossOriginIsolatedContextType": "NotIsolated",
+          "gatedAPIFeatures": []
+        },
+        "type": "Navigation"
+      }
+    },
+    {
+      "method": "Network.policyUpdated",
+      "params": {}
+    },
+    {
+      "method": "Network.dataReceived",
+      "params": {
+        "requestId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "timestamp": 37986.091267,
+        "dataLength": 35,
+        "encodedDataLength": 0
+      }
+    },
+    {
+      "method": "Network.loadingFinished",
+      "params": {
+        "requestId": "F3C896C5DC5D0C13D7C8583266E768E2",
+        "timestamp": 37986.085303,
+        "encodedDataLength": 220
+      }
+    },
+    {
+      "method": "Page.domContentEventFired",
+      "params": {
+        "timestamp": 37986.094902
+      }
+    },
+    {
+      "method": "Page.loadEventFired",
+      "params": {
+        "timestamp": 37986.095259
+      }
+    },
+    {
+      "method": "Page.frameStoppedLoading",
+      "params": {
+        "frameId": "BECD96946A8462734BB2147FE81B5B4C"
+      }
+    }
+  ],
+  "snapshots": [
+    {
+      "phase": "before-explicit-navigation",
+      "frames": {
+        "id": 3,
+        "result": {
+          "frameTree": {
+            "frame": {
+              "id": "BECD96946A8462734BB2147FE81B5B4C",
+              "loaderId": "9D53189B0D9EF00C3D5E887528819200",
+              "url": "http://127.0.0.1:62273/a.html",
+              "domainAndRegistry": "",
+              "securityOrigin": "http://127.0.0.1:62273",
+              "securityOriginDetails": {
+                "isLocalhost": true
+              },
+              "mimeType": "text/html",
+              "adFrameStatus": {
+                "adFrameType": "none"
+              },
+              "secureContextType": "SecureLocalhost",
+              "crossOriginIsolatedContextType": "NotIsolated",
+              "gatedAPIFeatures": []
+            }
+          }
+        }
+      },
+      "document": {
+        "id": 4,
+        "result": {
+          "result": {
+            "type": "string",
+            "value": "{\"href\":\"http://127.0.0.1:62273/a.html\",\"title\":\"PaneA\",\"ready\":\"complete\",\"body\":\"Pane A\",\"visibility\":\"visible\"}"
+          }
+        }
+      }
+    },
+    {
+      "phase": "startup-after-1-second-wait",
+      "frames": {
+        "id": 5,
+        "result": {
+          "frameTree": {
+            "frame": {
+              "id": "BECD96946A8462734BB2147FE81B5B4C",
+              "loaderId": "9D53189B0D9EF00C3D5E887528819200",
+              "url": "http://127.0.0.1:62273/a.html",
+              "domainAndRegistry": "",
+              "securityOrigin": "http://127.0.0.1:62273",
+              "securityOriginDetails": {
+                "isLocalhost": true
+              },
+              "mimeType": "text/html",
+              "adFrameStatus": {
+                "adFrameType": "none"
+              },
+              "secureContextType": "SecureLocalhost",
+              "crossOriginIsolatedContextType": "NotIsolated",
+              "gatedAPIFeatures": []
+            }
+          }
+        }
+      },
+      "document": {
+        "id": 6,
+        "result": {
+          "result": {
+            "type": "string",
+            "value": "{\"href\":\"http://127.0.0.1:62273/a.html\",\"title\":\"PaneA\",\"ready\":\"complete\",\"body\":\"Pane A\",\"visibility\":\"visible\"}"
+          }
+        }
+      }
+    },
+    {
+      "phase": "startup-after-3-second-wait",
+      "frames": {
+        "id": 7,
+        "result": {
+          "frameTree": {
+            "frame": {
+              "id": "BECD96946A8462734BB2147FE81B5B4C",
+              "loaderId": "9D53189B0D9EF00C3D5E887528819200",
+              "url": "http://127.0.0.1:62273/a.html",
+              "domainAndRegistry": "",
+              "securityOrigin": "http://127.0.0.1:62273",
+              "securityOriginDetails": {
+                "isLocalhost": true
+              },
+              "mimeType": "text/html",
+              "adFrameStatus": {
+                "adFrameType": "none"
+              },
+              "secureContextType": "SecureLocalhost",
+              "crossOriginIsolatedContextType": "NotIsolated",
+              "gatedAPIFeatures": []
+            }
+          }
+        }
+      },
+      "document": {
+        "id": 8,
+        "result": {
+          "result": {
+            "type": "string",
+            "value": "{\"href\":\"http://127.0.0.1:62273/a.html\",\"title\":\"PaneA\",\"ready\":\"complete\",\"body\":\"Pane A\",\"visibility\":\"visible\"}"
+          }
+        }
+      }
+    },
+    {
+      "phase": "startup-after-6-second-wait",
+      "frames": {
+        "id": 9,
+        "result": {
+          "frameTree": {
+            "frame": {
+              "id": "BECD96946A8462734BB2147FE81B5B4C",
+              "loaderId": "9D53189B0D9EF00C3D5E887528819200",
+              "url": "http://127.0.0.1:62273/a.html",
+              "domainAndRegistry": "",
+              "securityOrigin": "http://127.0.0.1:62273",
+              "securityOriginDetails": {
+                "isLocalhost": true
+              },
+              "mimeType": "text/html",
+              "adFrameStatus": {
+                "adFrameType": "none"
+              },
+              "secureContextType": "SecureLocalhost",
+              "crossOriginIsolatedContextType": "NotIsolated",
+              "gatedAPIFeatures": []
+            }
+          }
+        }
+      },
+      "document": {
+        "id": 10,
+        "result": {
+          "result": {
+            "type": "string",
+            "value": "{\"href\":\"http://127.0.0.1:62273/a.html\",\"title\":\"PaneA\",\"ready\":\"complete\",\"body\":\"Pane A\",\"visibility\":\"visible\"}"
+          }
+        }
+      }
+    },
+    {
+      "phase": "after-1-second-wait",
+      "frames": {
+        "id": 12,
+        "result": {
+          "frameTree": {
+            "frame": {
+              "id": "BECD96946A8462734BB2147FE81B5B4C",
+              "loaderId": "F3C896C5DC5D0C13D7C8583266E768E2",
+              "url": "http://127.0.0.1:62273/b.html",
+              "domainAndRegistry": "",
+              "securityOrigin": "http://127.0.0.1:62273",
+              "securityOriginDetails": {
+                "isLocalhost": true
+              },
+              "mimeType": "text/html",
+              "adFrameStatus": {
+                "adFrameType": "none"
+              },
+              "secureContextType": "SecureLocalhost",
+              "crossOriginIsolatedContextType": "NotIsolated",
+              "gatedAPIFeatures": []
+            }
+          }
+        }
+      },
+      "document": {
+        "id": 13,
+        "result": {
+          "result": {
+            "type": "string",
+            "value": "{\"href\":\"http://127.0.0.1:62273/b.html\",\"title\":\"PaneB\",\"ready\":\"complete\",\"body\":\"Pane B\",\"visibility\":\"visible\"}"
+          }
+        }
+      }
+    },
+    {
+      "phase": "after-3-second-wait",
+      "frames": {
+        "id": 14,
+        "result": {
+          "frameTree": {
+            "frame": {
+              "id": "BECD96946A8462734BB2147FE81B5B4C",
+              "loaderId": "F3C896C5DC5D0C13D7C8583266E768E2",
+              "url": "http://127.0.0.1:62273/b.html",
+              "domainAndRegistry": "",
+              "securityOrigin": "http://127.0.0.1:62273",
+              "securityOriginDetails": {
+                "isLocalhost": true
+              },
+              "mimeType": "text/html",
+              "adFrameStatus": {
+                "adFrameType": "none"
+              },
+              "secureContextType": "SecureLocalhost",
+              "crossOriginIsolatedContextType": "NotIsolated",
+              "gatedAPIFeatures": []
+            }
+          }
+        }
+      },
+      "document": {
+        "id": 15,
+        "result": {
+          "result": {
+            "type": "string",
+            "value": "{\"href\":\"http://127.0.0.1:62273/b.html\",\"title\":\"PaneB\",\"ready\":\"complete\",\"body\":\"Pane B\",\"visibility\":\"visible\"}"
+          }
+        }
+      }
+    },
+    {
+      "phase": "after-6-second-wait",
+      "frames": {
+        "id": 16,
+        "result": {
+          "frameTree": {
+            "frame": {
+              "id": "BECD96946A8462734BB2147FE81B5B4C",
+              "loaderId": "F3C896C5DC5D0C13D7C8583266E768E2",
+              "url": "http://127.0.0.1:62273/b.html",
+              "domainAndRegistry": "",
+              "securityOrigin": "http://127.0.0.1:62273",
+              "securityOriginDetails": {
+                "isLocalhost": true
+              },
+              "mimeType": "text/html",
+              "adFrameStatus": {
+                "adFrameType": "none"
+              },
+              "secureContextType": "SecureLocalhost",
+              "crossOriginIsolatedContextType": "NotIsolated",
+              "gatedAPIFeatures": []
+            }
+          }
+        }
+      },
+      "document": {
+        "id": 17,
+        "result": {
+          "result": {
+            "type": "string",
+            "value": "{\"href\":\"http://127.0.0.1:62273/b.html\",\"title\":\"PaneB\",\"ready\":\"complete\",\"body\":\"Pane B\",\"visibility\":\"visible\"}"
+          }
+        }
+      }
+    }
+  ],
+  "networkEnable": {
+    "id": 1,
+    "result": {}
+  },
+  "pageEnable": {
+    "id": 2,
+    "result": {}
+  },
+  "navigation": {
+    "id": 11,
+    "result": {
+      "frameId": "BECD96946A8462734BB2147FE81B5B4C",
+      "loaderId": "F3C896C5DC5D0C13D7C8583266E768E2",
+      "isDownload": false
+    }
+  },
+  "close": {
+    "id": 18,
+    "result": {}
+  }
+}

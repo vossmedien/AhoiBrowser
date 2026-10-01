@@ -23,9 +23,19 @@ def idle_seconds():
     return int(re.search(r'"HIDIdleTime"\s*=\s*(\d+)', raw).group(1)) // 10**9
 
 
-def app_running(app):
-    commands = subprocess.check_output(['ps', '-axww', '-o', 'comm='], text=True)
-    return str(app / 'Contents') + '/' in commands
+def app_running(app, exclude_pid=None):
+    commands = subprocess.check_output(['ps', '-axww', '-o', 'pid=,comm='], text=True)
+    for line in commands.splitlines():
+        fields = line.strip().split(maxsplit=1)
+        if len(fields) != 2:
+            continue
+        pid, command = fields
+        if exclude_pid is None and command.startswith(str(app / 'Contents') + '/'):
+            return True
+        if (exclude_pid is not None and int(pid) != exclude_pid and
+                command == str(app / 'Contents/MacOS/AhoiBrowser')):
+            return True
+    return False
 
 
 def stop_owned(process):
@@ -51,11 +61,14 @@ def main():
     parser.add_argument('--output', type=pathlib.Path, required=True)
     parser.add_argument('--lock-directory', type=pathlib.Path, required=True)
     parser.add_argument('--port', type=int, default=9413)
+    parser.add_argument('--headless', action='store_true',
+                        help='diagnose installed network without a window; never visible acceptance')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     state = {'runnerPid': os.getpid(), 'phase': 'preflight', 'source': args.source,
              'startedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-             'acceptance': False}
+             'acceptance': False, 'mode': 'headless' if args.headless else 'windowed',
+             'probeSha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()}
     def save():
         (args.output / 'state.json').write_text(json.dumps(state, indent=2) + '\n')
     save()
@@ -66,7 +79,8 @@ def main():
         (args.app / 'Contents/Info.plist').read_bytes()).hexdigest()
     locks = [args.lock_directory / name for name in ('build.lock', 'e2e.lock', 'h3.lock')]
     state.update(idleSeconds=idle_seconds(), appRunning=app_running(args.app))
-    if state['idleSeconds'] < 90 or state['appRunning'] or any(p.exists() for p in locks):
+    if ((not args.headless and state['idleSeconds'] < 90) or
+            state['appRunning'] or any(p.exists() for p in locks)):
         state['phase'] = 'deferred-owner-active'
         save()
         return 2
@@ -107,15 +121,18 @@ def main():
         state.update(profile=str(profile), fixtureOrigin=url, phase='launching')
         save()
         # Recheck immediately before the only app action.
-        if idle_seconds() < 90 or app_running(args.app):
+        if (not args.headless and idle_seconds() < 90) or app_running(args.app):
             state['phase'] = 'deferred-owner-active'
             save()
             return 2
         with (args.output / 'browser.log').open('w') as log:
-            browser = subprocess.Popen([
+            command = [
                 str(args.app / 'Contents/MacOS/AhoiBrowser'), f'--user-data-dir={profile}',
                 '--no-first-run', '--no-default-browser-check',
-                f'--remote-debugging-port={args.port}', url + '/a.html'],
+                f'--remote-debugging-port={args.port}', url + '/a.html']
+            if args.headless:
+                command.insert(1, '--headless=new')
+            browser = subprocess.Popen(command,
                 stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             state.update(browserPid=browser.pid, phase='observing')
             save()
@@ -123,7 +140,9 @@ def main():
             while True:
                 if browser.poll() is not None:
                     raise RuntimeError('owned browser exited during startup')
-                if idle_seconds() < 2:
+                if app_running(args.app, exclude_pid=browser.pid):
+                    raise RuntimeError('another app owner returned; cancelling diagnostic')
+                if not args.headless and idle_seconds() < 2:
                     raise RuntimeError('owner input returned; cancelling diagnostic')
                 try:
                     with urllib.request.urlopen(f'http://127.0.0.1:{args.port}/json', timeout=1) as response:
@@ -137,6 +156,8 @@ def main():
                     raise RuntimeError('owned DevTools startup deadline')
                 time.sleep(0.5)
             time.sleep(4)
+            if app_running(args.app, exclude_pid=browser.pid):
+                raise RuntimeError('another app owner returned; cancelling diagnostic')
             with urllib.request.urlopen(f'http://127.0.0.1:{args.port}/json', timeout=2) as response:
                 targets = json.load(response)
             (args.output / 'startup-targets.json').write_text(json.dumps(targets, indent=2) + '\n')
@@ -150,7 +171,9 @@ def main():
             save()
             deadline = time.monotonic() + 45
             while driver.poll() is None:
-                if idle_seconds() < 2:
+                if app_running(args.app, exclude_pid=browser.pid):
+                    raise RuntimeError('another app owner returned; cancelling diagnostic')
+                if not args.headless and idle_seconds() < 2:
                     raise RuntimeError('owner input returned; cancelling diagnostic')
                 if time.monotonic() > deadline:
                     raise RuntimeError('owned protocol driver deadline')

@@ -1,0 +1,147 @@
+{
+  "kind": "installed-headless-navigation-diagnosis",
+  "visibleAcceptance": false,
+  "masterAchieved": false,
+  "runs": [
+    {
+      "directory": "artifacts/computer-use/m154/navigation-headless-9acb43c8-20261001T193615Z",
+      "recordedDriverSha256": "519beb1fa74df1ac8adcd5df5558d98038ab13c779df1ddd9b54aceda51d0642",
+      "source": "9acb43c81917a847c2d94303053c304b981757d3",
+      "mode": "headless",
+      "documents": [
+        {
+          "phase": "before-explicit-navigation",
+          "document": {
+            "href": "about:blank",
+            "title": "",
+            "ready": "complete",
+            "body": "",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "after-1-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:61962/b.html",
+            "title": "PaneB",
+            "ready": "complete",
+            "body": "Pane B",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "after-3-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:61962/b.html",
+            "title": "PaneB",
+            "ready": "complete",
+            "body": "Pane B",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "after-6-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:61962/b.html",
+            "title": "PaneB",
+            "ready": "complete",
+            "body": "Pane B",
+            "visibility": "visible"
+          }
+        }
+      ],
+      "sha256": {
+        "browser.log": "cd21e9de06db29a044d20d7f20225cda5e707f3c7bedd469d4cb795698f54e3b",
+        "protocol.json": "a18d3879003c5a78cde2301ac97232f73305abaf2c6d0d7cf21c34e4f1ce71c0",
+        "site.log": "ba382331b7e3585cb98f6e93fa9aa0450926c6825e5a29462b2325c8122c1525",
+        "startup-targets.json": "4d577f37b1f81eed5948662b13d4205bf0d90836f579aa174a466a3d923d3bd9",
+        "state.json": "091e0e96d5882d982ec2afd98f109aab8fdf9e650eadc63bd1ba6b059e9663c5"
+      }
+    },
+    {
+      "directory": "artifacts/computer-use/m154/navigation-startup-headless-9acb43c8-20261001T193840Z",
+      "recordedDriverSha256": "bfd327a86d6d11ed51577e2292c00efb7d32858653c99d8ebe294cd32779f2bc",
+      "source": "9acb43c81917a847c2d94303053c304b981757d3",
+      "mode": "headless",
+      "documents": [
+        {
+          "phase": "before-explicit-navigation",
+          "document": {
+            "href": "http://127.0.0.1:62273/a.html",
+            "title": "PaneA",
+            "ready": "complete",
+            "body": "Pane A",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "startup-after-1-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:62273/a.html",
+            "title": "PaneA",
+            "ready": "complete",
+            "body": "Pane A",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "startup-after-3-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:62273/a.html",
+            "title": "PaneA",
+            "ready": "complete",
+            "body": "Pane A",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "startup-after-6-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:62273/a.html",
+            "title": "PaneA",
+            "ready": "complete",
+            "body": "Pane A",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "after-1-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:62273/b.html",
+            "title": "PaneB",
+            "ready": "complete",
+            "body": "Pane B",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "after-3-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:62273/b.html",
+            "title": "PaneB",
+            "ready": "complete",
+            "body": "Pane B",
+            "visibility": "visible"
+          }
+        },
+        {
+          "phase": "after-6-second-wait",
+          "document": {
+            "href": "http://127.0.0.1:62273/b.html",
+            "title": "PaneB",
+            "ready": "complete",
+            "body": "Pane B",
+            "visibility": "visible"
+          }
+        }
+      ],
+      "sha256": {
+        "browser.log": "37c3b7015739518fc4b1422bb735952a7f2748d40dded17582308fb054310e85",
+        "protocol.json": "b3d56c9f76e382a4d48075d61b91ee0f55bbd0fec729a3b245b879072428e74a",
+        "site.log": "42228a41533dcb2c9a07d455852ab9ebeebf428af1f4b888a1fe8502a08410ea",
+        "startup-targets.json": "f8815651ce8e247516ff3382a0280275964c29b87ea590eda2b33354ec4acc6a",
+        "state.json": "c8e1a34ff6b0d91f3bfe8ffe44821240a802e86ad544697ec5c69bf1f853b6e7"
+      }
+    }
+  ]
+}

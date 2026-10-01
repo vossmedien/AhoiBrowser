@@ -53,6 +53,12 @@ try {
   evidence.networkEnable = await command('Network.enable');
   evidence.pageEnable = await command('Page.enable');
   await snapshot('before-explicit-navigation');
+  // Give the pending startup intent its own observation window. Otherwise a
+  // subsequent Page.navigate aborts it before its actual outcome is known.
+  for (const seconds of [1, 3, 6]) {
+    await pause(seconds * 1000);
+    await snapshot(`startup-after-${seconds}-second-wait`);
+  }
   evidence.navigation = await command('Page.navigate', {url});
   save();
   for (const seconds of [1, 3, 6]) {

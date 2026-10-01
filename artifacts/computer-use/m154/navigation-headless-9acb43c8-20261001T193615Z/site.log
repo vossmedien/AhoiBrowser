@@ -1,0 +1,4 @@
+"GET /a.html HTTP/1.1" 200 -
+"GET /b.html HTTP/1.1" 200 -
+code 404, message File not found
+"GET /favicon.ico HTTP/1.1" 404 -
