@@ -1,0 +1,62 @@
+{
+  "kind": "source-syntax-only",
+  "nativeExecuted": false,
+  "installedAcceptance": false,
+  "baseCommit": "6608962b3057003210594e82f311d21548c9450a",
+  "chromiumCommit": "f89f3a4363808e117c592adedcf9947882ac3b79",
+  "clangSha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3",
+  "generatedArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4",
+  "capturedAt": "2026-10-01T11:36:49.868512+00:00",
+  "checks": [
+    {
+      "exitCode": 0,
+      "sourceSha256": "ebd966132b4ce7a4f183ddb7022875837bb32e6e56360ef021c763d485fcf390",
+      "name": "client",
+      "source": ".work/agent-queue/dev-network-20261001/after/chrome/browser/chrome_content_browser_client.cc",
+      "commandSha256": "5363dcca4532efcefd213ab8d3a81209d23139f627103a782d35befcc723e6b1",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "materialization",
+      "exitCode": 0,
+      "sourceSha256": "2b305c014e9a2e14b3c2f1994c2afec076c9f3517609940ff20373e4a28db275",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_header_materialization_unittest.cc",
+      "commandSha256": "4dc6335b32affcd7f513374f44a76c084261702d046530f4114d688d815da808",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "proxy",
+      "exitCode": 0,
+      "sourceSha256": "06f42d440480bb8fa1195a09a1c0e3f36729beeab8086270ed0f678b578ea6a7",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc",
+      "commandSha256": "e762287f3ce5d8741d893bde15519098c6d746c0f9e61082bf07cf1703d7a1aa",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "runtime",
+      "exitCode": 0,
+      "sourceSha256": "d079eb83da5a277e30be4a240585704499fd942146436a37ff88d294b8247175",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime.cc",
+      "commandSha256": "e98598748fd483501e63f68f8256a338588a12350ad3df2d588be245cb9e3348",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "tests",
+      "exitCode": 0,
+      "sourceSha256": "77a0874d20e358b160c649a3db34dc6a3ccdca1da4b5e36be3eb787c61792513",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy_unittest.cc",
+      "commandSha256": "631ecee9c21be2433442d03d6e1e6e22ba2c268289d85d42c5e716591dbc9bee",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "throttle",
+      "exitCode": 0,
+      "sourceSha256": "d40d6177e51755546ee1e962ccea2c37d1b64e10e55d7a2424a988deb98b13b7",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.cc",
+      "commandSha256": "c76db919a502f517bb7efd096ee4248f1801d909a1fffd264cf8a29a47e46067",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "compositionSha256": "721ce1beb1421ac4d0c1da11db582a6d4cd94e3995cd238ba20439db5ce92527",
+  "draftHeaderSha256": "015e17136cb5d43d61cc980ad520c977c33985be08121a112d96eda5c1e13648"
+}

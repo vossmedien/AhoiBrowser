@@ -1,0 +1,25 @@
+diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+index 10d27449..cbac6258 100644
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -15,6 +15,7 @@
+ #include <utility>
+ #include <vector>
+ 
++#include "ahoi/browser/developer_toolkit/developer_network_factory_proxy.h"
+ #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
+ #include "ahoi/browser/navigation/navigation_input_prefs.h"
+ #include "ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.h"
+@@ -6645,6 +6646,12 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
+             type == URLLoaderFactoryType::kWorkerSubResource ||
+             type == URLLoaderFactoryType::kServiceWorkerSubResource,
+         isolation_info, request_initiator, factory_builder);
++    // Document renderer requests bypass CreateURLLoaderThrottles. Keep the
++    // developer adapter before webRequest so extensions still see/block them.
++    ahoi::MaybeProxyDeveloperProfileURLLoaderFactory(
++        ahoi_profile->GetPrefs(), ahoi_profile->IsOffTheRecord(),
++        type == URLLoaderFactoryType::kDocumentSubResource,
++        frame, navigation_id, request_initiator, factory_builder);
+   }
+ #endif
+ #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)

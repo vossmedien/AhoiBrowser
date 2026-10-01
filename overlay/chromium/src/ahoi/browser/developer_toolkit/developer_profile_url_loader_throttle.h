@@ -50,11 +50,13 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
 
 // Updates the cheap per-tab network snapshot after a primary commit. This
 // keeps subresource creation O(1) and avoids deserializing potentially large
-// CSS/JavaScript sources for every request.
+// CSS/JavaScript sources for every request. A materialized secret snapshot is
+// adopted only for the exact successful navigation and unchanged source rules.
 void UpdateDeveloperProfileNetworkState(
     content::WebContents& web_contents,
     const GURL& committed_url,
-    const std::optional<DeveloperProfile>& profile);
+    const std::optional<DeveloperProfile>& profile,
+    std::optional<int64_t> navigation_id = std::nullopt);
 
 // Stages a materialized header snapshot for one exact primary navigation. The
 // source profile contains only persisted values/references; the materialized

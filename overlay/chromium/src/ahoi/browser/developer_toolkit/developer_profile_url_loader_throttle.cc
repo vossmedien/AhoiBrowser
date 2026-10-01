@@ -222,15 +222,25 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
 void UpdateDeveloperProfileNetworkState(
     content::WebContents& web_contents,
     const GURL& committed_url,
-    const std::optional<DeveloperProfile>& profile) {
+    const std::optional<DeveloperProfile>& profile,
+    std::optional<int64_t> navigation_id) {
   if (!profile || !committed_url.SchemeIsHTTPOrHTTPS()) {
     web_contents.RemoveUserData(&kDeveloperProfileNetworkStateKey);
     return;
   }
+  DeveloperProfile snapshot = MakeDeveloperProfileNetworkSnapshot(*profile);
+  const auto* pending = GetNavigationRequestState(&web_contents);
+  if (navigation_id && pending &&
+      pending->navigation_id == *navigation_id &&
+      pending->request_url == committed_url &&
+      pending->origin == url::Origin::Create(committed_url) &&
+      pending->source_profile == snapshot) {
+    snapshot = pending->materialized_profile;
+  }
   web_contents.SetUserData(&kDeveloperProfileNetworkStateKey,
                            std::make_unique<DeveloperProfileNetworkState>(
                                url::Origin::Create(committed_url),
-                               MakeDeveloperProfileNetworkSnapshot(*profile)));
+                               std::move(snapshot)));
 }
 
 bool StageDeveloperProfileNavigationRequest(

@@ -574,10 +574,11 @@ void DeveloperProfileTabHelper::DidFinishNavigation(
       GetDeveloperProfileForNavigation(store_, navigation_handle->GetURL());
   const std::vector<DeveloperAsset> assets =
       TakeAssetsForNavigation(navigation_handle->GetURL());
+  UpdateDeveloperProfileNetworkState(*web_contents(),
+                                     navigation_handle->GetURL(), profile,
+                                     navigation_handle->GetNavigationId());
   ClearDeveloperProfileNavigationRequest(*web_contents(),
                                          navigation_handle->GetNavigationId());
-  UpdateDeveloperProfileNetworkState(*web_contents(),
-                                     navigation_handle->GetURL(), profile);
   if (!assets.empty()) {
     ApplyDeveloperAssetsToCurrentDocument(*web_contents(), assets);
   }

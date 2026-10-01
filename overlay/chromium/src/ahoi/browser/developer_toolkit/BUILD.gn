@@ -67,6 +67,8 @@ source_set("developer_profile_runtime") {
   sources = [
     "developer_main_world_executor.cc",
     "developer_main_world_executor.h",
+    "developer_network_factory_proxy.cc",
+    "developer_network_factory_proxy.h",
     "developer_profile_runtime.cc",
     "developer_profile_runtime.h",
     "developer_profile_url_loader_throttle.cc",
@@ -82,8 +84,10 @@ source_set("developer_profile_runtime") {
   ]
   deps = [
     ":developer_toolkit_core",
+    ":developer_toolkit_preferences",
     "//base",
     "//components/user_prefs",
+    "//mojo/public/cpp/bindings",
     "//net",
     "//services/network/public/cpp",
     "//services/network/public/mojom",
@@ -190,6 +194,7 @@ source_set("unit_tests") {
     "developer_cookie_chromium_adapter_unittest.cc",
     "developer_cookie_manager_unittest.cc",
     "developer_header_materialization_unittest.cc",
+    "developer_network_factory_proxy_unittest.cc",
     "developer_profile_pref_seed_unittest.cc",
     "developer_profile_runtime_unittest.cc",
     "developer_profile_unittest.cc",
@@ -206,10 +211,12 @@ source_set("unit_tests") {
     "//base/test:test_support",
     "//components/prefs:test_support",
     "//components/user_prefs",
+    "//mojo/public/cpp/bindings",
     "//content/public/browser",
     "//content/test:test_support",
     "//net",
     "//services/network/public/cpp",
+    "//services/network/public/mojom",
     "//testing/gmock",
     "//testing/gtest",
   ]

@@ -1,5 +1,37 @@
 # Active Desktop checkpoint
 
+## Devtoolkit document adapter source checked — 1 October 2026
+
+The next package now has a native-chain document URLLoaderFactory adapter
+(patch 0089 + owned overlay), preserving webRequest interception and native
+CORS/network ownership. Every request binds the live frame token and exact
+committed document navigation ID as well as WebContents/profile/origin.
+Cross-origin redirects restore/remove own rules across both header maps;
+response/control/cancellation pipes stay native. Thirteen written Mojo
+regressions cover these paths. Exact successful navigation snapshots now carry
+approved header-secret values into document subrequests before the pending
+state clears; exact ID, URL/origin and source rules must still match. Two
+additional materialization regression methods include four rejected mismatches.
+
+Six pinned-Clang translation-unit checks and ordered patch composition pass.
+[Source hashes, commands and scope](../artifacts/tests/cpp-dev-network-source-20261001/README.md).
+No linking, native execution or installed acceptance is claimed for this
+package. No shared Chromium/output mutation or fresh heavy build occurred.
+Ready Crest 106/110 were reread; both remain deferred to their actual future
+performance candidate/lease, with no product patch needed here.
+
+Build 60 remains signed/verified d0688d88, with its 1311/1 native unit result
+and installer hold preserved. The serial worker PID 2736 ended exit 2 with
+`deferred-no-idle-window`; neither test executed and both locks remain free.
+No pending UI worker is live. Installed source remains d3ebc1b9 (Build 59).
+Next UI step: a fresh ownership/capacity/input check and single-job diagnosis
+of the native bookmark menu case, then its whole sidebar suite. Do not restart
+an idle watcher or repeat the other 19 green programs. Once that gate is
+resolved, use the canonical frozen-candidate installer and affected journeys.
+Next source/build step: link and execute the new adapter regressions in the
+next guarded exact package; prove first-subresource and BFCache behavior, then
+complete the separate worker binding. The full Master goal stays active.
+
 ## Build 60 signed; one native UI failure holds installation — 1 October 2026
 
 No browser compiler runs. Frozen d0688d88 is signed and verified; its original
