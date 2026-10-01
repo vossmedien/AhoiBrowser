@@ -15,13 +15,34 @@ P=$(mktemp -d /private/tmp/ahoi-settings-profile.XXXXXX)
 record() { echo "$1 $2" >> "$OUT/results.txt"; }
 eval_in() { # <url substring> <expression>
   node "$S/cdp.mjs" $PORT "$1" Runtime.evaluate "$(python3 -c 'import json,sys;print(json.dumps({"expression":sys.argv[1],"returnByValue":True,"awaitPromise":True}))' "$2")" \
-    | python3 -c 'import json,sys;v=json.load(sys.stdin).get("result",{}).get("value","");print(v if isinstance(v,str) else json.dumps(v))'; }
+    | python3 -c 'import json,sys;r=json.load(sys.stdin);v=r.get("result",{}).get("value");print(v if isinstance(v,str) else json.dumps(v if v is not None else r))'; }
 "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
   --remote-debugging-port=$PORT chrome://settings/ahoi > "$OUT/browser.log" 2>&1 &
 PID=$!; echo "pid=$PID profile=$P" >> "$OUT/run.txt"
 trap 'kill $PID 2>/dev/null; sleep 2; kill -9 $PID 2>/dev/null; rm -rf "$P"' EXIT
+python3 - "$0" "$APP/Contents/Info.plist" >> "$OUT/run.txt" <<'PY'
+import hashlib, json, plistlib, sys
+from pathlib import Path
+info = plistlib.loads(Path(sys.argv[2]).read_bytes())
+print(json.dumps({"journeySha256": hashlib.sha256(
+    Path(sys.argv[1]).read_bytes()).hexdigest(),
+    "appSourceCommit": info.get("AhoiSourceCommit"),
+    "chromiumVersion": info.get("AhoiChromiumVersion")}))
+PY
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 8
+# This journey measures Settings rendering, independent of startup URL
+# routing. Build 59 opened only a New Tab target for the command-line URL.
+# Navigate that real page explicitly, retaining any protocol failure as proof.
+TARGET=$(curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(next((t["id"] for t in json.load(sys.stdin) if t["type"]=="page"),""))')
+if [ -n "$TARGET" ]; then
+  node "$S/cdp.mjs" $PORT "$TARGET" Page.navigate \
+    '{"url":"chrome://settings/ahoi"}' >> "$OUT/run.txt"
+fi
+for i in $(seq 1 20); do
+  curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;sys.exit(0 if any(t["type"]=="page" and "settings/ahoi" in t["url"] for t in json.load(sys.stdin)) else 1)' && break
+  sleep 1
+done
 # Walks open shadow roots from settings-ui down to the Ahoi page.
 PROBE='(async () => {
   const find = (root, selector) => {

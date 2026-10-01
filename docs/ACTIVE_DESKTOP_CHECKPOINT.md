@@ -11,6 +11,17 @@ No compile/test/install success is claimed yet.
 [Frozen command/target plan](../artifacts/build/codex-build60-20261001-plan.json).
 Live progress/logs: `.work/agent-queue/60/`, output `60-codex.nohup`.
 
+While this frozen build runs, read-only review of Build 59 shows that the
+settings journey had no Settings target at all (only chrome://newtab/).
+Its rendering harness now explicitly navigates that real target to
+chrome://settings/ahoi and preserves protocol failures; it records the app
+source and harness SHA in run.txt. Shell syntax passes, runtime remains
+pending in the queued journey. This tool correction changes no Build-60
+product source. The original startup-URL routing discrepancy remains a
+separate open finding. Devtoolkit review shows main-document request headers
+working but CSS-subresource cache bypass and fetch response headers failing;
+do not narrow those acceptance tests to conceal the runtime gap.
+
 The candidate contains 7d11f9be's M154 pivot correction and 7043d524's
 retained-host close path. It also adds the actual BrowserView accelerator
 test `KeyboardReorderMovesOnlyFocusedPane` (pinned-Clang source check passes)
