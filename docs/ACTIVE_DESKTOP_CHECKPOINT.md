@@ -20,8 +20,13 @@
   `cdp.mjs` times out at 8 s → empty result; `d3ebc1b9`); safe-browsing
   unkeyed FAIL is the known no-key state, the keyed run
   (`AHOI_SB_KEYCHAIN_KEY=1`) is queued after build 59.
-- **Under investigation:** cmd-digit-probe (⌘1/⌘9/Ctrl+Tab/⌘Keypad1 work,
-  ⌘2/⌘3 miss their row); never green on M153 either.
+- **Harness, rerun pending:** cmd-digit-probe was never green because this
+  Mac binds ⌘1–⌘4 to "Switch to Desktop 1–4" (symbolic hotkeys 118–121,
+  live while that Desktop exists); macOS takes the key, so build 58 logged
+  no tab activation for ⌘1/⌘2/⌘3/⌘Keypad1, and ⌘3 switched the Space
+  (empty title). ⌘9 and Ctrl+Tab, same 0076 path, passed. The probe now
+  skips held digits (listed in `infoSkipped`) and checks ⌘5, ⌘Keypad5, ⌘8
+  (no row) with five rows per Workspace. No build needed.
 
 ## M154 installed and verified — 1 October 2026, 01:56 CEST
 
