@@ -15,6 +15,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/test/bind.h"
 #include "base/test/run_until.h"
+#include "base/task/single_thread_task_runner.h"
 #include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service.h"
 #include "chrome/browser/bookmarks/bookmark_merged_surface_service_factory.h"
@@ -47,6 +48,7 @@
 #include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/controls/button/label_button.h"
 #include "ui/views/controls/menu/menu_item_view.h"
+#include "ui/views/controls/menu/menu_controller.h"
 #include "ui/views/controls/menu/submenu_view.h"
 #include "ui/views/controls/scroll_view.h"
 #include "ui/views/focus/focus_manager.h"
@@ -352,24 +354,37 @@ TEST_F(SidebarBookmarkShelfViewTest, NativeContextActionCanDeleteItsOwnButton) {
   RunPendingModelUpdates();
   MountShelf();
   auto* button = shelf_->bookmark_item_at_for_testing(0);
-  bool opened = false;
+  widget_->Activate();
+  ASSERT_TRUE(base::test::RunUntil([&] { return widget_->IsActive(); }));
+  RunPendingModelUpdates();
+  bool action_ran = false;
   BookmarkContextMenu::InstallPreRunCallback(
-      base::BindLambdaForTesting([&] { opened = true; }));
+      base::BindLambdaForTesting([&] {
+        // Like Chromium's bookmark interaction observer, schedule after
+        // RunMenuAt initializes its controller rather than treating a pre-run
+        // notification as proof that an interactive menu is already open.
+        base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+            FROM_HERE, base::BindLambdaForTesting([&] {
+              action_ran = true;
+              ASSERT_TRUE(shelf_->context_menu_for_testing());
+              EXPECT_TRUE(IsSidebarMenuShowingWithin(host_));
+              auto* menu = shelf_->context_menu_for_testing()
+                               ->native_menu_for_testing();
+              ASSERT_TRUE(menu);
+              ASSERT_TRUE(menu->menu()->GetMenuController());
+              EXPECT_TRUE(menu->menu()->GetMenuController()->showing_for_testing());
+              EXPECT_TRUE(menu->IsCommandEnabled(IDC_BOOKMARK_BAR_REMOVE));
+              if (auto* option = menu->menu()->GetMenuItemByID(
+                      IDC_BOOKMARK_BAR_SUBMENU)) {
+                EXPECT_FALSE(option->GetVisible());
+              }
+              menu->ExecuteCommand(IDC_BOOKMARK_BAR_REMOVE, 0);
+            }));
+      }));
   shelf_->ShowContextMenuForView(button,
                                  button->GetBoundsInScreen().CenterPoint(),
                                  ui::mojom::MenuSourceType::kMouse);
-  ASSERT_TRUE(base::test::RunUntil([&] { return opened; }));
-  ASSERT_TRUE(shelf_->context_menu_for_testing());
-  EXPECT_TRUE(IsSidebarMenuShowingWithin(host_));
-  auto* menu = shelf_->context_menu_for_testing()->native_menu_for_testing();
-  ASSERT_TRUE(menu);
-  EXPECT_TRUE(menu->IsCommandEnabled(IDC_BOOKMARK_BAR_REMOVE));
-  if (auto* bar_option =
-          menu->menu()->GetMenuItemByID(IDC_BOOKMARK_BAR_SUBMENU)) {
-    EXPECT_FALSE(bar_option->GetVisible());
-  }
-
-  menu->ExecuteCommand(IDC_BOOKMARK_BAR_REMOVE, 0);
+  ASSERT_TRUE(base::test::RunUntil([&] { return action_ran; }));
   RunPendingModelUpdates();
 
   EXPECT_TRUE(bookmark_model()->bookmark_bar_node()->children().empty());

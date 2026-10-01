@@ -244,7 +244,10 @@ test("ahoi_developer_toolkit_unittests") {
 source_set("browser_tests") {
   testonly = true
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
-  sources = [ "developer_style_compiler_browsertest.cc" ]
+  sources = [
+    "developer_network_worker_browsertest.cc",
+    "developer_style_compiler_browsertest.cc",
+  ]
   deps = [
     ":developer_profile_runtime",
     "//ahoi/browser/developer_toolkit/public/mojom",
@@ -254,6 +257,7 @@ source_set("browser_tests") {
     "//content/public/browser",
     "//content/test:test_support",
     "//sandbox/policy/mojom",
+    "//net:test_support",
     "//testing/gtest",
   ]
 }

@@ -205,8 +205,14 @@ std::optional<DeveloperProfile> GetDeveloperProfileNetworkSnapshotForRequest(
     }
   } else if (const DeveloperProfileNetworkState* state =
                  GetNetworkState(web_contents);
-             state && state->origin == origin) {
-    profile = state->profile;
+             state) {
+    if (state->origin == origin) {
+      profile = state->profile;
+    } else if (state->profile.cache_disabled) {
+      // Cache-off belongs to the owning document, including its CDN fetches.
+      // Header/UA rules and secret references retain their exact-origin scope.
+      profile = DeveloperProfile{.cache_disabled = true};
+    }
   }
   return profile;
 }

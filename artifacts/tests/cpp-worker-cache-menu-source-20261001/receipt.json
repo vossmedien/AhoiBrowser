@@ -1,0 +1,58 @@
+{
+  "kind": "source-syntax-only",
+  "nativeExecuted": false,
+  "baseCommit": "443a84fe",
+  "capturedAt": "2026-10-01T13:35:47.403128+00:00",
+  "checks": [
+    {
+      "name": "proxy",
+      "exitCode": 0,
+      "sourceSha256": "574e02042b9b0cd0079fff19be597db0d121b08422acd1fefc69aa52c290ae84",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc",
+      "commandSha256": "e762287f3ce5d8741d893bde15519098c6d746c0f9e61082bf07cf1703d7a1aa",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "tests",
+      "exitCode": 0,
+      "sourceSha256": "4e8f38b50b727c9925054ce735be462f028afbee6cef2e6b7def70d023528953",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy_unittest.cc",
+      "commandSha256": "631ecee9c21be2433442d03d6e1e6e22ba2c268289d85d42c5e716591dbc9bee",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "throttle",
+      "exitCode": 0,
+      "sourceSha256": "59b89ff57bb39dfc1369b02680c856e0b7ca5148c1d26a3ea1e6c5793e4726a4",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.cc",
+      "commandSha256": "c76db919a502f517bb7efd096ee4248f1801d909a1fffd264cf8a29a47e46067",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "client",
+      "exitCode": 0,
+      "sourceSha256": "6eafc7675640cf2be4ad0f8e6e6ffd072889cc050f406dfe1e3adf879b340c48",
+      "source": ".work/agent-queue/dev-network-20261001/after/chrome/browser/chrome_content_browser_client.cc",
+      "commandSha256": "5363dcca4532efcefd213ab8d3a81209d23139f627103a782d35befcc723e6b1",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "worker-browser",
+      "exitCode": 0,
+      "sourceSha256": "46118bedfba44d0aed6f79891bfe4936e0465579e5e077a23fe7000df3470b3f",
+      "source": "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_worker_browsertest.cc",
+      "commandSha256": "43e0d0935e1f537c23546d0f204e17a4f71ca3e72106a65d181e25feccb56519",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "menu",
+      "exitCode": 0,
+      "sourceSha256": "a44ee301f563dc66446ee013ba93ff627516ce5caa275282d23b410f2bb10b08",
+      "source": "overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_bookmark_shelf_view_unittest.cc",
+      "commandSha256": "895e8ec0adb0ced04c530b662f52c583a598ee0714616e10e213ff53e3cb3172",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "compositionSha256": "3edc6bd1bb7b8fb5349d3050241ca3a88c8cb736ca74fd043e2dafb8a198a01b",
+  "clangSha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3"
+}

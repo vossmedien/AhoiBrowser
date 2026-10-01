@@ -343,6 +343,39 @@ TEST_F(DeveloperNetworkFactoryProxyTest, CrossOriginRedirectCannotResurrectRule)
   EXPECT_FALSE(client.head->headers->HasHeader("X-Ahoi-Response"));
 }
 
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       CrossOriginResourcesBypassCacheWithoutOriginHeaders) {
+  UseSecrets();
+  auto factory = Build();
+  ClientSink client;
+  auto request = Request();
+  request.url = GURL("https://cdn.test/style.css");
+  Load(*factory, client, request);
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_NE(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+  EXPECT_NE(0, terminal_->seen[0].load_flags & net::LOAD_DISABLE_CACHE);
+  EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
+  EXPECT_EQ(0, secrets_->request_reads);
+  terminal_->loaders[0]->Respond();
+  environment_.RunUntilIdle();
+  ASSERT_TRUE(client.head);
+  EXPECT_FALSE(client.head->headers->HasHeader("X-Ahoi-Response"));
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults) {
+  profile_.cache_disabled = false;
+  Save();
+  auto factory = Build();
+  ClientSink client;
+  auto request = Request();
+  request.url = GURL("https://cdn.test/style.css");
+  Load(*factory, client, request);
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_EQ(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+  EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
+}
+
 TEST_F(DeveloperNetworkFactoryProxyTest, SameOriginRedirectForwardsControl) {
   auto factory = Build();
   ClientSink client;

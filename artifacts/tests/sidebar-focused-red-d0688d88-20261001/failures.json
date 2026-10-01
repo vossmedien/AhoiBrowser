@@ -1,0 +1,7 @@
+[
+  {
+    "test": "SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton",
+    "status": "FAILURE",
+    "output": ""
+  }
+]

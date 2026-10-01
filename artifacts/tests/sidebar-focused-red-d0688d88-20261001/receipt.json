@@ -1,0 +1,14 @@
+{
+  "runnerPid": 54266,
+  "sourceCommit": "d0688d88601ee073dc383f81273786af79956ab4",
+  "phase": "failed",
+  "jobs": 1,
+  "retries": 0,
+  "binarySha256": "d9c70fbe6bad9c9605f5b092e5be69686682a18f17490b64444ab50ac59f1a59",
+  "startedAt": "2026-10-01T13:17:16.409683+00:00",
+  "idleSeconds": 285,
+  "focusedExitCode": 1,
+  "summarySha256": "580fb698bc806e84e8cb2afeae27c0c06e84639126f5c24a178891ce25b3a097",
+  "logSha256": "012d6886d379900e98fe834a81048d24c74cbd7cce0f7436c383bd799fc45278",
+  "installed": false
+}

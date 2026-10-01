@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+## Isolated sidebar RED; next source package checked — 1 October 2026
+
+The frozen d0688d88 native menu case actually ran with one job, no retries and
+285 seconds idle. It fails at the same ownership assertion (direct exit 1).
+The runner is terminal and its locks are released. Parallel UI interference
+alone therefore does not explain this gate. [Preserved native result](../artifacts/tests/sidebar-focused-red-d0688d88-20261001/README.md).
+Build 60 must not install; its other native gates remain evidence, not a full
+pass. Installed Ahoi is still d3ebc1b9 (Build 59).
+
+The next source package strengthens the menu regression: wait for owner
+activation, then post the real action from Chromium's pre-run hook; require a
+live showing native MenuController before delete and retain all model/button
+assertions. This must prove GREEN in a new exact native binary; it has not run.
+
+The same package includes frame-owned dedicated worker routing using M154's
+actual ancestor-frame hook, and tab-owned cache bypass for HTTP(S) CDN fetches
+without origin header/UA/secret leakage. Two Mojo and three native worker
+browser cases are written. Shared/service workers remain an explicit open
+owner-binding scope. Six pinned-Clang checks and ordered composition pass.
+[Exact source and open runtime gates](../artifacts/tests/cpp-worker-cache-menu-source-20261001/README.md).
+No native link/run or installed acceptance is claimed for the new source.
+Crest ready 106/110 checked; no product patch applies and both remain deferred
+until a true performance candidate/lease.
+
+Next: freeze this source and run one guarded incremental candidate with at
+most two jobs after fresh slot/resource checks. Use the existing explicit
+Apple Development Keychain/name path; no new credentials/key/trust mutation.
+Its changed native sidebar suite runs serially in a real idle UI window; do not
+rerun Build 60 hoping for GREEN. Run the new document/worker regressions and
+required native gates, then canonical atomic installation and affected journeys.
+No old observer/queue PID is live or resumable by assumption. Full Master stays
+active and other owner/release boundaries remain unchanged.
+
 ## Toolkit disable/re-enable source closed — 1 October 2026
 
 Source now enforces the shared activation predicate on main navigation,

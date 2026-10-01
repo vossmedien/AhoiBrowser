@@ -394,14 +394,14 @@ class DeveloperFactoryProxy final
 void MaybeProxyDeveloperProfileURLLoaderFactory(
     PrefService* prefs,
     bool is_off_the_record,
-    bool is_document_subresource_factory,
+    bool is_frame_owned_subresource_factory,
     content::RenderFrameHost* frame,
     std::optional<int64_t> navigation_id,
     const url::Origin& factory_origin,
     network::URLLoaderFactoryBuilder& builder,
     DeveloperSecretStoreFactory secret_store_factory) {
   if (!ToolkitEnabled(prefs) || is_off_the_record ||
-      !is_document_subresource_factory || !frame ||
+      !is_frame_owned_subresource_factory || !frame ||
       !factory_origin.GetURL().SchemeIsHTTPOrHTTPS()) {
     return;
   }
