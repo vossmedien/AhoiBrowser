@@ -1,5 +1,24 @@
 # Active Desktop checkpoint
 
+## Frozen native Chrome editor suite Build 66 running — 1 October 2026
+
+Source e26bd335a458cdd57e8767cc369e79e9bc39a148 is frozen in the clean queue
+repository. Owned detached runner 62052 is live at this entry; verify PID and
+`.work/agent-queue/66/state.json`. One guarded incremental job with explicit
+new target `ahoi_developer_profile_editor_unittests`, native ChromeUnitTestSuite
+entry via test_support_unit. The test source stays in UI ownership; only test
+harness/target wiring changes, no product logic or AX DCHECK suppression.
+[Exact build plan/hash](../artifacts/build/codex-build66-20261001-plan.json).
+No new native execution or installation pass is claimed yet.
+
+Next after compiled/signed/provenance success: execute the two actual editor
+regressions through the new native target, preserving both earlier setup REDs.
+Verify unchanged core/Mojo/sidebar executable/runtime inputs before carrying
+Core127/Mojo20/Sidebar191. Run remaining native/worker browser gates in current
+resource/UI windows, then canonical install and representative affected journeys.
+No duplicate observer/build/test is authorized. Installed source remains
+Build 59/d3ebc1b9. Full original Master and owner/release bounds persist.
+
 ## Editor tests need Chrome native suite; source wiring corrected — 1 October 2026
 
 Build 65 a8e0ef5a builds/signs/provenance-verifies. Native editor setup hits
