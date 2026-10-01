@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## Candidate 9acb43c8 installed and verified — 1 October 2026
+
+Canonical frozen-source installer ended exit 0. `/Applications/AhoiBrowser.app`
+now reports source 9acb43c81917a847c2d94303053c304b981757d3, Chromium
+154.0.8037.93, development profile. [Atomic installer receipt](../artifacts/install/installed-ahoi-dev-9acb43c8-20261001T182454Z.json).
+Candidate-before-stage, same-volume stage and activated installed bundle were
+independently reverified; stable Apple Development signature and source/component
+bindings remain intact. No user profile was opened or modified by installation,
+no release/Developer-ID/Notarisierung permission was added. The old installer
+runner is terminal, its owner lock released. This is the locally testable new
+Build 67; native passes do not imply full installed/Master acceptance.
+
+Required development native gate is GREEN (core/Mojo/editor/sidebar/worker and
+remaining baseline/browser targets, receipts linked above). The first affected
+installed lifecycle journey is an owned bounded job, runner 67098, inspect
+`67/installed-lifecycle/state.json` and PID before acting. It waits for true
+input idle and absence of the real installed app process, so the user can test
+without a competing automated browser. No general observer/restart loop is active.
+
+Next: actual installed lifecycle verdict, then split matrix/archive/auto-archive,
+devtoolkit/settings representative journeys and required focused checks. Preserve
+red verdicts and fixes; do not relabel setup/process exits as product acceptance.
+Shared/service-worker, full Sync/other DoD and external/release scopes remain
+open under the complete active original Master.
+
 ## Exact native installation gate GREEN — 1 October 2026
 
 Candidate 9acb43c8 now has executed remaining native gates: Views33/popup28/
