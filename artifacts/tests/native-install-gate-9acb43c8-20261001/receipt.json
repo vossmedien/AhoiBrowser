@@ -1,0 +1,74 @@
+{
+  "sourceCommit": "9acb43c81917a847c2d94303053c304b981757d3",
+  "installed": false,
+  "releaseEvidenceEligible": false,
+  "groups": {
+    "ui-baseline": [
+      {
+        "name": "ahoi_developer_toolkit_ui_unittests",
+        "exitCode": 0,
+        "binarySha256": "e6d481beaef14560ae9a3ee451be194d5d262496477350eb2900c384547ddd21",
+        "tests": 33,
+        "summarySha256": "b5011e24db22ee2926b08ba6067a656c397ddf6e009720452196cfe146236acf",
+        "logSha256": "a3f9b9afb5ab57c5c75ea3802559472cd28c9da7c48806e9484c3e7e0fe505df"
+      },
+      {
+        "name": "ahoi_popup_unittests",
+        "exitCode": 0,
+        "binarySha256": "ec1b660cc583776b9e4cb4e74a819ef02fe1f66dddc89b16d090278c8af56a9e",
+        "tests": 28,
+        "summarySha256": "96dabc8b56375217a07d9cd8e6509253c0dd18130a6e258141b01bf65d9187c3",
+        "logSha256": "9f51878dd28d325365859db0ae310219cac44186be12fa50d9aef44283ae75a2"
+      },
+      {
+        "name": "ahoi_sidebar_search_unittests",
+        "exitCode": 0,
+        "binarySha256": "1c0b0807331cbcaa20c985be440c2461da278942ba6ca2e7b8836d93d8591a4b",
+        "tests": 86,
+        "summarySha256": "d89e3be9d2d27913279b8a5e4bde58917bf3d0138ccee0773dd6b554697d3e62",
+        "logSha256": "b7d800d6fad5f104f6e759184bf748e944623a20babcd60b480957c575570b5d"
+      }
+    ],
+    "split-popup-native": [
+      {
+        "name": "ahoi_split_layout_browsertests",
+        "exitCode": 0,
+        "binarySha256": "3e8686749839e967cda0344230825a9817ff8d609285eee6abb09c1b30b720ba",
+        "tests": 15,
+        "summarySha256": "d0c426da57f74b8c430ef7ac07b0292e3e266c2e1d36d4abd5ccea8930d3df43",
+        "logSha256": "7e4860730555ced4fa6dd6a71ad375c1ce72debe6ef73169186660d9ba6f8e4a"
+      },
+      {
+        "name": "ahoi_popup_overlay_browsertests",
+        "exitCode": 0,
+        "binarySha256": "57cc6ad9ee5ee488861ab8cf7f89bb99f2b4dcb32bfcde7eb9b70abfafb482ee",
+        "tests": 14,
+        "summarySha256": "ef3a356778661d91d6c3025b1a123bce34dea8a2d7059997ad2f8bd9f82f4e24",
+        "logSha256": "c2a3d205920636dee6eccbe41f0b0df98896b81be3f5a27eec7489448dbc6733"
+      }
+    ],
+    "compiler": {
+      "runnerPid": 30422,
+      "sourceCommit": "9acb43c81917a847c2d94303053c304b981757d3",
+      "phase": "complete",
+      "jobs": 1,
+      "retries": 0,
+      "binarySha256": "3f492b3fa62fe908b9e2815761a058d9eaabc2a0205604d5f602ab37d77a9fd3",
+      "startedAt": "2026-10-01T18:10:33.792411+00:00",
+      "idleSeconds": 366,
+      "command": [
+        "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_style_compiler_browsertests",
+        "--gtest_filter=DeveloperStyleCompilerBrowserTest.*",
+        "--test-launcher-jobs=1",
+        "--test-launcher-retry-limit=0",
+        "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/67/compiler-native/summary.json"
+      ],
+      "testPid": 30425,
+      "exitCode": 0,
+      "finishedAt": "2026-10-01T18:10:43.348422+00:00",
+      "tests": 1,
+      "summarySha256": "9a2199ca63067e6350f9ee87c56e9290b36d194afc6358a1e8def170d467586a",
+      "logSha256": "05ecd85c3462e2b8a12b22d225a9c618c8fbc0041522f9d5a92712f9fe98baf9"
+    }
+  }
+}

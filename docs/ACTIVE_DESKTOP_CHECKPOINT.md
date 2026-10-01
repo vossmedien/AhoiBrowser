@@ -1,5 +1,23 @@
 # Active Desktop checkpoint
 
+## Exact native installation gate GREEN — 1 October 2026
+
+Candidate 9acb43c8 now has executed remaining native gates: Views33/popup28/
+sidebar-search86, split-browser15, popup-browser14, compiler-sandbox1, all GREEN
+on its exact output, one job/no retries/no skips. [Hashes/raw-result binding](../artifacts/tests/native-install-gate-9acb43c8-20261001/README.md).
+Editor2, fifteen other native programs and proved unchanged Core127/Mojo20/
+Sidebar191/dedicated-worker3 remain valid separate evidence. All owner runners
+are terminal; no general observer/watch loop is active. Development compile,
+stable signing, provenance and required native gate pass for this package.
+
+Next authorized atomic action: canonical development installer on the frozen
+queue repository/source 9acb43c8, while no Ahoi app or competing resource owner
+runs. Save/reverify the receipt, then affected installed split lifecycle/matrix,
+archive/auto-archive, devtoolkit and settings journeys under fresh actual input/
+UI ownership checks. No installed-browser or complete DEV/Master pass is implied
+by this native gate. Installed source is still Build 59/d3ebc1b9 until the actual
+installer succeeds. Remaining product/worker/external/release scopes stay open.
+
 ## Editor2 GREEN; fifteen native baselines pass — 1 October 2026
 
 Build 67 9acb43c8 compiles/signs/provenance-verifies. Its native Chrome editor
