@@ -1,5 +1,25 @@
 # Active Desktop checkpoint
 
+## Frozen Content-client editor fixture Build 65 running — 1 October 2026
+
+Source a8e0ef5a is frozen in the clean queue repository. Owned detached runner
+82011 is live at this entry; verify its PID and `.work/agent-queue/65/state.json`.
+One guarded incremental job; the only code delta is the editor test's Content
+initialization/lifetime correction. No production implementation changed.
+[Exact plan and runner hash](../artifacts/build/codex-build65-20261001-plan.json).
+Current memory warning (VM pressure 2) was sampled; CPU 60–71 percent idle,
+no compiler/app/lock, so this single-file/single-job correction remains bounded.
+No full milestone build or new simulator/API/release action is authorized here.
+No compile/native/install pass is claimed yet for Build 65.
+
+Next after build/provenance success: execute the two corrected editor cases;
+run the native worker browser and remaining gates under current ownership/UI
+input checks. Do not repeat Core127/Mojo20/Sidebar191 if exact executable and
+runtime-input hashes are unchanged; otherwise the new input needs its relevant
+gate. Preserve the pre-editor crash as separate evidence. Canonical installation
+and representative affected installed journeys remain subsequent stages.
+Installed source remains d3ebc1b9 (Build 59); full Master unchanged and active.
+
 ## Native core 127/127 and Mojo20/20 GREEN — 1 October 2026
 
 Build 64 bb2e9b28 compiles/signs/provenance-verifies with exit 0. Its 20-case
