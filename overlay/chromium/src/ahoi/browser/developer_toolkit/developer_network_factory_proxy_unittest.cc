@@ -254,9 +254,9 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
     environment_.RunUntilIdle();
   }
   void Save() {
-    PrefDeveloperProfileStore store(&prefs_, false);
-    ASSERT_TRUE(store.Set(origin_, profile_));
-    UpdateDeveloperProfileNetworkState(*contents_, origin_.GetURL(), profile_);
+    ASSERT_TRUE(helper_->SaveProfile(origin_, profile_));
+    UpdateDeveloperProfileNetworkState(*contents_, origin_.GetURL(),
+                                       helper_->GetProfile(origin_));
   }
   scoped_refptr<network::SharedURLLoaderFactory> Build(
       bool document = true,
@@ -646,6 +646,97 @@ TEST_F(DeveloperNetworkFactoryProxyTest, NativeDisconnectCompletesExactlyOnce) {
   environment_.RunUntilIdle();
   EXPECT_EQ(net::ERR_ABORTED, client.completed);
   EXPECT_EQ(1, client.completion_count);
+}
+
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests) {
+  profile_.headers_persistent = false;
+  UseSecrets();
+  auto factory = Build();
+  for (int index = 0; index < 2; ++index) {
+    ClientSink client;
+    Load(*factory, client, Request());
+    ASSERT_EQ(static_cast<size_t>(index + 1), terminal_->seen.size());
+    EXPECT_EQ("request-" + std::to_string(index + 1),
+              terminal_->seen[index].headers.GetHeader("X-Ahoi-Dev"));
+    terminal_->loaders[index]->Respond();
+    environment_.RunUntilIdle();
+    ASSERT_TRUE(client.head);
+    EXPECT_EQ("response-value", client.head->headers->GetNormalizedHeader(
+                                    "X-Ahoi-Response"));
+    const auto metadata = helper_->GetProfile(origin_);
+    ASSERT_TRUE(metadata);
+    EXPECT_FALSE(metadata->headers_persistent);
+    EXPECT_TRUE(metadata->header_rules[0].value.empty());
+    EXPECT_EQ(helper_->tab_token(), metadata->headers_owner_token);
+    terminal_->loaders[index]->Complete();
+    environment_.RunUntilIdle();
+    loader_.reset();
+  }
+  PrefDeveloperProfileStore durable(&prefs_, false);
+  ASSERT_TRUE(durable.Get(origin_));
+  EXPECT_TRUE(durable.Get(origin_)->header_rules.empty());
+  EXPECT_TRUE(durable.Get(origin_)->response_header_rules.empty());
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections) {
+  profile_.headers_persistent = false;
+  UseSecrets();
+  auto factory = Build();
+  ClientSink client;
+  QueueLoad(*factory, client);
+  ASSERT_TRUE(helper_->ResetProfilesForUrl(origin_.GetURL()));
+  secrets_->allow_read.Signal();
+  environment_.RunUntilIdle();
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
+  EXPECT_EQ(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+  terminal_->loaders[0]->Respond();
+  environment_.RunUntilIdle();
+  ASSERT_TRUE(client.head);
+  EXPECT_FALSE(client.head->headers->HasHeader("X-Ahoi-Response"));
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules) {
+  profile_.headers_persistent = false;
+  UseSecrets();
+  const auto original_owner = helper_->tab_token();
+  auto factory = Build();
+  ClientSink client;
+  QueueLoad(*factory, client);
+  helper_.reset();
+  helper_ = std::make_unique<DeveloperProfileTabHelper>(contents_.get(), &prefs_);
+  ASSERT_NE(original_owner, helper_->tab_token());
+  Save();
+  secrets_->allow_read.Signal();
+  environment_.RunUntilIdle();
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
+  EXPECT_EQ(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+  terminal_->loaders[0]->Respond();
+  environment_.RunUntilIdle();
+  ASSERT_TRUE(client.head);
+  EXPECT_FALSE(client.head->headers->HasHeader("X-Ahoi-Response"));
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution) {
+  profile_.headers_persistent = false;
+  UseSecrets();
+  auto factory = Build();
+  helper_.reset();
+  ClientSink client;
+  Load(*factory, client, Request());
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
+  EXPECT_EQ(0, secrets_->request_reads);
+  terminal_->loaders[0]->Respond();
+  environment_.RunUntilIdle();
+  ASSERT_TRUE(client.head);
+  EXPECT_FALSE(client.head->headers->HasHeader("X-Ahoi-Response"));
 }
 
 }  // namespace

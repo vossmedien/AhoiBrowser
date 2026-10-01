@@ -1,0 +1,14 @@
+{
+  "runnerPid": 37171,
+  "compilerPid": 37193,
+  "exitCode": 0,
+  "sourceSha256": "a8cad482942e62d06b8eac16cc5c9bf5a28d47d431ffe784c1ae5f857fc7b955",
+  "newTestsWritten": 4,
+  "newTestsExecuted": 0,
+  "evidenceSha256": {
+    "result.json": "432841062ba7a1721705e77ed2a7d13f727ef47bcd7d9a8f48cba76d70c5bffc",
+    "README.md": "a53dfd72a3bf5681e0367e24ecaaec0d2bd243a4b63cd329d90530573783b458",
+    "command.json": "631ecee9c21be2433442d03d6e1e6e22ba2c268289d85d42c5e716591dbc9bee",
+    "syntax.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

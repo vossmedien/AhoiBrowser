@@ -1,6 +1,6 @@
 # 110 – H3 active-run lease, owner-input cancellation and resource ownership
 
-Status: ready (lane source complete; owner lease and real-candidate acceptance pending)
+Status: ready (desktop owner reviewed 1 October; no product patch for header candidate; deferred to separate H3 lease; owner lease and real-candidate acceptance pending)
 Owner: crest-hardening tools; desktop confirms the next measurement window
 Base: `56951bd` / Crest runtime cleanup `dcb513b`.
 

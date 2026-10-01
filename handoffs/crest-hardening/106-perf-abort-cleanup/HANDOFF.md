@@ -1,6 +1,6 @@
 # 106 – H3 exception cleanup and incomplete-run evidence
 
-Status: ready (lane implementation; owner runtime acceptance pending)
+Status: ready (desktop owner reviewed 1 October; no product patch for header candidate; deferred to separate H3 lease; owner runtime acceptance pending)
 Owner lane: crest-hardening (tools); desktop (future exact-candidate lease)
 Base: `f141273`.
 

@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Temporary header Mojo cases source-verified; combined candidate next — 1 October 2026
+
+Four new actual-proxy/Mojo methods cover per-request temporary secret values,
+reference-only tab metadata, reset while secret reads are pending, identical
+rules under a replaced helper, and retirement before another request. The fixture
+saves through the native helper/merged metadata; no Pref shortcut substitutes
+for temporary lifetime behavior. [Exact syntax scope](../artifacts/tests/cpp-header-lifetime-mojo-20261001/README.md).
+Pinned-Clang syntax passes; four methods are NOT executed. Backend nine/editor
+three likewise still require actual native execution, sixteen new methods total.
+The older candidate's Core127/Mojo20/editor2 proof is not promoted to these sources.
+
+Next authorized source package: freeze the combined backend/editor/Mojo source
+and guarded one-job incremental development build with the actual editor and
+all required native targets. Before integration and each phase recheck current
+capacity, owner locks and foreign compilers/apps; defer instead of competing.
+Only real candidate-bound native passes permit canonical installation, then
+representative visible affected journeys and required focused checks. No full
+Chromium roll, performance lease, API or release permission is inferred.
+
+Crest 106/110 ready handoffs were reread: lane-owned tool changes already exist,
+no product patch to integrate into this candidate; defer their actual performance
+acceptance to a separate owner-granted H3 lease. Their owner status lines record
+that review. Installed source stays 9acb43c8/M154; source changed, compiled
+components will need new binding and cannot inherit older passes by label alone.
+Full Master, workers/Sync/external/release boundaries remain open.
+
 ## Native header lifetime editor source verified — 1 October 2026
 
 The native editor now offers temporary/current-tab versus persistent headers,
