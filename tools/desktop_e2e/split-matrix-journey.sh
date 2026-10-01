@@ -111,10 +111,10 @@ check fourGridLayoutShortcut '[ "$(q layout)" = four-grid ] && [ "$(q kept)" = "
 # visible reason; nothing is replaced, hidden, closed or reloaded.
 focus_pane 1
 popup_from "$(file_of "$(q focused)")" e.html || fail_setup "popup overlay for e.html did not open"
-# The refusal is the status line (AXStaticText) after the press; up to
-# build 58 the split button's own name carried the same sentence.
+# The status label is exposed as AXGroup on the M154 macOS Views bridge;
+# accept that exact visible message or its AXStaticText representation.
 popup_to_split
-waitax "AXStaticText \\| Dieser Split hat bereits vier Bereiche" 6 && REFUSED=true || REFUSED=false
+waitax "AX(StaticText|Group) \\| Dieser Split hat bereits vier Bereiche" 6 && REFUSED=true || REFUSED=false
 $AX dump $PID 40 > "$OUT/ax-fifth-pane.txt"; snap fifth
 check fifthPaneRefused '$REFUSED && [ "$(q visible -PaneE)" = "PaneA,PaneB,PaneC,PaneD" ] && [ "$(q layout -PaneE)" = four-grid ] && [ "$(q kept -PaneE)" = "PaneA,PaneB,PaneC,PaneD" ]'
 $AX press $PID "AXButton:Popup schließen" >> "$OUT/steps.txt"; sleep 2; snap popup-closed
@@ -134,7 +134,12 @@ check restoredOneRowProductStart 'sidebar_group relaunch PaneA PaneB PaneC PaneD
 AREAS=$($AX dump $PID 40 | grep -o -E "AXWebArea \| Pane[A-D]" | sort -u | wc -l | tr -d " ")
 check restoredFourPanesProductStart '[ "$AREAS" = 4 ]'
 quit; sleep 2
-launch; sleep 4; snap relaunch
+# The product start above owns Ahoi's Continue path and may reset Chromium's
+# startup preference. Re-arm only the fixture's separate DevTools restore path.
+prefs_continue
+launch; sleep 4
+waiturl a.html 20 || echo "debug restore has no PaneA target" >> "$OUT/steps.txt"
+snap relaunch
 NOWSHARES=$(q shares); echo "after restart: focus=$(q focused) shares=$NOWSHARES urls=$(urls)" >> "$OUT/steps.txt"
 check restoredMembershipAndLayout '[ "$(q visible)" = "PaneA,PaneB,PaneC,PaneD" ] && [ "$(q layout)" = four-grid ]'
 check restoredWithoutPhantomTabs '[ "$(urls)" = "$URLS" ]'

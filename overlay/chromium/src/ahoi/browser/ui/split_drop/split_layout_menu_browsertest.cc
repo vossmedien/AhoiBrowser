@@ -33,10 +33,12 @@
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "ui/base/accelerators/accelerator.h"
 #include "ui/base/dragdrop/drag_drop_types.h"
 #include "ui/base/dragdrop/os_exchange_data.h"
 #include "ui/base/models/menu_model.h"
 #include "ui/base/window_open_disposition.h"
+#include "ui/events/event_constants.h"
 #include "ui/gfx/geometry/point.h"
 #include "ui/gfx/geometry/rect.h"
 #include "ui/views/drag_controller.h"
@@ -123,6 +125,37 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
     EXPECT_EQ(expected, presented);
   }
   EXPECT_TRUE(model->ListSplits().empty());
+}
+
+IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
+                       KeyboardReorderMovesOnlyFocusedPane) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  TabStripModel* const model = browser()->GetTabStripModel();
+  const auto split = model->AddToNewSplit(
+      {model->active_index(), 0, 1},
+      split_tabs::SplitTabVisualData::ForThreePane(
+          split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  const auto original = model->GetSplitData(split)->ListTabs();
+  ASSERT_EQ(3u, original.size());
+  BrowserView* const view = BrowserView::GetBrowserViewForBrowser(browser());
+  MultiContentsView* const hosts = view->multi_contents_view();
+  auto* const focused_host =
+      hosts->GetContentsContainerViewFor(original[0]->GetContents());
+  ASSERT_TRUE(focused_host);
+  model->ActivateTabAt(model->GetIndexOfTab(original[0]));
+  focused_host->contents_view()->RequestFocus();
+  EXPECT_TRUE(view->AcceleratorPressed(ui::Accelerator(
+      ui::VKEY_RIGHT,
+      ui::EF_COMMAND_DOWN | ui::EF_CONTROL_DOWN | ui::EF_SHIFT_DOWN)));
+  base::RunLoop().RunUntilIdle();
+  EXPECT_EQ((std::vector<tabs::TabInterface*>{original[1], original[0],
+                                           original[2]}),
+            model->GetSplitData(split)->ListTabs());
+  EXPECT_EQ(original[0], model->GetActiveTab());
+  EXPECT_EQ(focused_host,
+            hosts->GetContentsContainerViewFor(original[0]->GetContents()));
 }
 
 IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
