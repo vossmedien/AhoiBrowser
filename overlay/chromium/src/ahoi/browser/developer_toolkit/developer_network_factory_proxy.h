@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <optional>
 
+#include "ahoi/browser/developer_toolkit/developer_secret_store.h"
+
 class PrefService;
 namespace content {
 class RenderFrameHost;
@@ -33,7 +35,8 @@ void MaybeProxyDeveloperProfileURLLoaderFactory(
     content::RenderFrameHost* frame,
     std::optional<int64_t> navigation_id,
     const url::Origin& factory_origin,
-    network::URLLoaderFactoryBuilder& factory_builder);
+    network::URLLoaderFactoryBuilder& factory_builder,
+    DeveloperSecretStoreFactory secret_store_factory = {});
 
 }  // namespace ahoi
 

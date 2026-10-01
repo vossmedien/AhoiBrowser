@@ -169,25 +169,24 @@ DeveloperProfile MakeDeveloperProfileNetworkSnapshot(DeveloperProfile profile) {
   return profile;
 }
 
-std::unique_ptr<blink::URLLoaderThrottle>
-MaybeCreateDeveloperProfileURLLoaderThrottle(
+std::optional<DeveloperProfile> GetDeveloperProfileNetworkSnapshotForRequest(
     const network::ResourceRequest& request,
     PrefService* prefs,
     bool is_off_the_record,
     content::WebContents* web_contents) {
   if (!request.url.SchemeIsHTTPOrHTTPS() ||
       !IsEligibleWebContents(web_contents, prefs, is_off_the_record)) {
-    return nullptr;
+    return std::nullopt;
   }
   const url::Origin origin = url::Origin::Create(request.url);
   if (origin.opaque()) {
-    return nullptr;
+    return std::nullopt;
   }
   std::optional<DeveloperProfile> profile;
   if (request.is_outermost_main_frame) {
     if (request.navigation_redirect_chain.empty() ||
         request.navigation_redirect_chain.back() != request.url) {
-      return nullptr;
+      return std::nullopt;
     }
     PrefDeveloperProfileStore store(prefs, is_off_the_record);
     profile = GetDeveloperProfileForNavigation(store, request.url);
@@ -207,6 +206,17 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
              state && state->origin == origin) {
     profile = state->profile;
   }
+  return profile;
+}
+
+std::unique_ptr<blink::URLLoaderThrottle>
+MaybeCreateDeveloperProfileURLLoaderThrottle(
+    const network::ResourceRequest& request,
+    PrefService* prefs,
+    bool is_off_the_record,
+    content::WebContents* web_contents) {
+  auto profile = GetDeveloperProfileNetworkSnapshotForRequest(
+      request, prefs, is_off_the_record, web_contents);
   if (profile) {
     profile = DisableUnresolvedHeaderProfile(std::move(*profile));
   }
@@ -216,31 +226,21 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
     return nullptr;
   }
   return std::make_unique<DeveloperProfileURLLoaderThrottle>(
-      origin, std::move(*profile));
+      url::Origin::Create(request.url), std::move(*profile));
 }
 
 void UpdateDeveloperProfileNetworkState(
     content::WebContents& web_contents,
     const GURL& committed_url,
-    const std::optional<DeveloperProfile>& profile,
-    std::optional<int64_t> navigation_id) {
+    const std::optional<DeveloperProfile>& profile) {
   if (!profile || !committed_url.SchemeIsHTTPOrHTTPS()) {
     web_contents.RemoveUserData(&kDeveloperProfileNetworkStateKey);
     return;
   }
-  DeveloperProfile snapshot = MakeDeveloperProfileNetworkSnapshot(*profile);
-  const auto* pending = GetNavigationRequestState(&web_contents);
-  if (navigation_id && pending &&
-      pending->navigation_id == *navigation_id &&
-      pending->request_url == committed_url &&
-      pending->origin == url::Origin::Create(committed_url) &&
-      pending->source_profile == snapshot) {
-    snapshot = pending->materialized_profile;
-  }
   web_contents.SetUserData(&kDeveloperProfileNetworkStateKey,
                            std::make_unique<DeveloperProfileNetworkState>(
                                url::Origin::Create(committed_url),
-                               std::move(snapshot)));
+                               MakeDeveloperProfileNetworkSnapshot(*profile)));
 }
 
 bool StageDeveloperProfileNavigationRequest(

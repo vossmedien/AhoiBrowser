@@ -37,6 +37,15 @@ namespace ahoi {
 // request boundary. Header, UA and cache fields remain unchanged.
 DeveloperProfile MakeDeveloperProfileNetworkSnapshot(DeveloperProfile profile);
 
+// Returns eligible request metadata, including unresolved secret references.
+// A document snapshot never owns resolved plaintext. Only the caller's current
+// request may materialize these references after revalidating its context.
+std::optional<DeveloperProfile> GetDeveloperProfileNetworkSnapshotForRequest(
+    const network::ResourceRequest& request,
+    PrefService* prefs,
+    bool is_off_the_record,
+    content::WebContents* web_contents);
+
 // Creates a request-local throttle only when the exact HTTP(S) origin has an
 // enabled UA/header/cache override. Secret values are accepted only from the
 // matching staged navigation snapshot; unresolved references disable both
@@ -50,13 +59,11 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
 
 // Updates the cheap per-tab network snapshot after a primary commit. This
 // keeps subresource creation O(1) and avoids deserializing potentially large
-// CSS/JavaScript sources for every request. A materialized secret snapshot is
-// adopted only for the exact successful navigation and unchanged source rules.
+// CSS/JavaScript sources for every request.
 void UpdateDeveloperProfileNetworkState(
     content::WebContents& web_contents,
     const GURL& committed_url,
-    const std::optional<DeveloperProfile>& profile,
-    std::optional<int64_t> navigation_id = std::nullopt);
+    const std::optional<DeveloperProfile>& profile);
 
 // Stages a materialized header snapshot for one exact primary navigation. The
 // source profile contains only persisted values/references; the materialized

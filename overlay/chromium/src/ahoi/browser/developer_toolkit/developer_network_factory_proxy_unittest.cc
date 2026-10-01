@@ -4,6 +4,7 @@
 #include "ahoi/browser/developer_toolkit/developer_network_factory_proxy.h"
 
 #include <memory>
+#include <atomic>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -14,6 +15,7 @@
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "base/functional/bind.h"
 #include "base/notreached.h"
+#include "base/run_loop.h"
 #include "components/prefs/testing_pref_service.h"
 #include "components/user_prefs/user_prefs.h"
 #include "content/public/browser/web_contents.h"
@@ -50,6 +52,35 @@ network::mojom::URLResponseHeadPtr Response(const char* status = "200 OK") {
                       .Build();
   return head;
 }
+
+struct SecretFixture {
+  std::atomic<int> request_reads = 0;
+  bool resolve_response = true;
+};
+
+class FixtureSecretStore final : public DeveloperSecretStore {
+ public:
+  explicit FixtureSecretStore(std::shared_ptr<SecretFixture> fixture)
+      : fixture_(std::move(fixture)) {}
+  std::optional<std::string> Store(std::string_view,
+                                   std::string_view) override {
+    return std::nullopt;
+  }
+  bool Remove(std::string_view) override { return false; }
+  std::optional<std::string> Resolve(std::string_view reference) const override {
+    if (reference == "ahoi-keychain:test-request") {
+      return "request-" + std::to_string(++fixture_->request_reads);
+    }
+    if (reference == "ahoi-keychain:test-response" &&
+        fixture_->resolve_response) {
+      return "response-value";
+    }
+    return std::nullopt;
+  }
+
+ private:
+  const std::shared_ptr<SecretFixture> fixture_;
+};
 
 class ClientSink final : public network::mojom::URLLoaderClient {
  public:
@@ -212,7 +243,11 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
     network::URLLoaderFactoryBuilder builder;
     MaybeProxyDeveloperProfileURLLoaderFactory(
         &prefs_, false, document, contents_->GetPrimaryMainFrame(),
-        navigation_id, origin_, builder);
+        navigation_id, origin_, builder, base::BindRepeating(
+            [](std::shared_ptr<SecretFixture> fixture) {
+              return std::unique_ptr<DeveloperSecretStore>(
+                  std::make_unique<FixtureSecretStore>(std::move(fixture)));
+            }, secrets_));
     installed_proxy_ = builder.RequiresFreshFactory();
     auto [receiver, remote] = builder.Append();
     interceptor_ = base::MakeRefCounted<RecordingFactory>(std::move(remote));
@@ -233,7 +268,23 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
                                  net::MutableNetworkTrafficAnnotationTag());
     environment_.RunUntilIdle();
   }
-  content::BrowserTaskEnvironment environment_;
+  void UseSecrets() {
+    profile_.header_rules[0].value.clear();
+    profile_.header_rules[0].secret_reference = "ahoi-keychain:test-request";
+    profile_.response_header_rules[0].value.clear();
+    profile_.response_header_rules[0].secret_reference =
+        "ahoi-keychain:test-response";
+    Save();
+  }
+  void QueueLoad(network::SharedURLLoaderFactory& factory, ClientSink& client) {
+    factory.CreateLoaderAndStart(loader_.BindNewPipeAndPassReceiver(), 7, 0,
+                                 Request(), client.Bind(),
+                                 net::MutableNetworkTrafficAnnotationTag());
+    base::RunLoop().RunUntilIdle();
+    EXPECT_TRUE(terminal_->seen.empty());
+  }
+  content::BrowserTaskEnvironment environment_{
+      base::test::TaskEnvironment::ThreadPoolExecutionMode::QUEUED};
   content::RenderViewHostTestEnabler enabler_;
   TestingPrefServiceSimple prefs_;
   content::TestBrowserContext context_;
@@ -244,6 +295,7 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
   scoped_refptr<RecordingFactory> interceptor_;
   scoped_refptr<RecordingFactory> terminal_;
   mojo::Remote<network::mojom::URLLoader> loader_;
+  std::shared_ptr<SecretFixture> secrets_ = std::make_shared<SecretFixture>();
 };
 
 TEST_F(DeveloperNetworkFactoryProxyTest, RulesAndCacheReachLaterInterceptor) {
@@ -423,6 +475,102 @@ TEST_F(DeveloperNetworkFactoryProxyTest, RendererDisconnectCancelsNativeLoader) 
   client.Disconnect();
   environment_.RunUntilIdle();
   EXPECT_TRUE(terminal_->loaders[0]->disconnected);
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       SecretsAreResolvedForEachRequestWithoutDocumentPlaintext) {
+  UseSecrets();
+  auto factory = Build();
+  for (int index = 0; index < 2; ++index) {
+    ClientSink client;
+    Load(*factory, client, Request());
+    ASSERT_EQ(static_cast<size_t>(index + 1), terminal_->seen.size());
+    EXPECT_EQ("request-" + std::to_string(index + 1),
+              terminal_->seen[index].headers.GetHeader("X-Ahoi-Dev"));
+    terminal_->loaders[index]->Respond();
+    environment_.RunUntilIdle();
+    ASSERT_TRUE(client.head);
+    EXPECT_EQ("response-value", client.head->headers->GetNormalizedHeader(
+                                    "X-Ahoi-Response"));
+    auto metadata = GetDeveloperProfileNetworkSnapshotForRequest(
+        Request(), &prefs_, false, contents_.get());
+    ASSERT_TRUE(metadata);
+    EXPECT_TRUE(metadata->header_rules[0].value.empty());
+    EXPECT_FALSE(metadata->header_rules[0].secret_reference.empty());
+    terminal_->loaders[index]->Complete();
+    environment_.RunUntilIdle();
+    loader_.reset();
+  }
+  EXPECT_EQ(2, secrets_->request_reads);
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest, FailedSecretResolutionIsAtomic) {
+  UseSecrets();
+  secrets_->resolve_response = false;
+  auto factory = Build();
+  ClientSink client;
+  Load(*factory, client, Request());
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
+  EXPECT_NE(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+  terminal_->loaders[0]->Respond();
+  environment_.RunUntilIdle();
+  ASSERT_TRUE(client.head);
+  EXPECT_FALSE(client.head->headers->HasHeader("X-Ahoi-Response"));
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       DeferredSecretsRecheckEnablementRulesAndDocument) {
+  for (int revoke = 0; revoke < 3; ++revoke) {
+    SCOPED_TRACE(revoke);
+    prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+    UseSecrets();
+    auto factory = Build();
+    ClientSink client;
+    QueueLoad(*factory, client);
+    if (revoke == 0) {
+      prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+    } else if (revoke == 1) {
+      PrefDeveloperProfileStore store(&prefs_, false);
+      ASSERT_TRUE(store.Remove(origin_));
+    } else {
+      content::NavigationSimulator::NavigateAndCommitFromBrowser(
+          contents_.get(), origin_.GetURL().Resolve("replacement"));
+    }
+    environment_.RunUntilIdle();
+    ASSERT_EQ(1u, terminal_->seen.size());
+    EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
+    EXPECT_EQ(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+    loader_.reset();
+    factory.reset();
+    environment_.RunUntilIdle();
+  }
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect) {
+  UseSecrets();
+  auto factory = Build();
+  ClientSink client;
+  QueueLoad(*factory, client);
+  client.Disconnect();
+  base::RunLoop().RunUntilIdle();
+  environment_.RunUntilIdle();
+  EXPECT_TRUE(terminal_->seen.empty());
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       DeferredSecretRequestPreservesEarlyPriority) {
+  UseSecrets();
+  auto factory = Build();
+  ClientSink client;
+  QueueLoad(*factory, client);
+  loader_->SetPriority(net::HIGHEST, 99);
+  base::RunLoop().RunUntilIdle();
+  environment_.RunUntilIdle();
+  ASSERT_EQ(1u, terminal_->loaders.size());
+  EXPECT_EQ(net::HIGHEST, terminal_->loaders[0]->priority);
+  EXPECT_EQ(99, terminal_->loaders[0]->intra_priority);
 }
 
 TEST_F(DeveloperNetworkFactoryProxyTest, NativeDisconnectCompletesExactlyOnce) {

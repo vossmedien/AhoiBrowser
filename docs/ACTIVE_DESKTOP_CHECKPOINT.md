@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Header secrets stay request-local — 1 October 2026
+
+Source policy audit corrected the unbuilt 7b27d411 design: the existing secret
+store contract forbids retaining resolved plaintext beyond its request. The
+committed-document adoption and its two tests are replaced by asynchronous
+per-request resolution in the native factory adapter. A cloned native chain
+stays owned while independent Keychain I/O runs. Reply revalidates live frame/
+committed navigation, master enablement and exact current saved rule metadata.
+Failure is atomic across both header directions; revocation removes overrides.
+The ordinary fast path still uses metadata only. Early priority, cancellation
+and invalid pre-start redirects preserve native control/lifetime handling.
+
+Eighteen written Mojo regression methods use synthetic stores exclusively.
+Five affected pinned-Clang checks and ordered composition pass; no native
+link/run or installed acceptance is claimed. [Exact corrected source evidence](../artifacts/tests/cpp-dev-request-local-secrets-20261001/README.md).
+Prior source-only evidence stays historical, and the document-plaintext design
+must not be revived. Worker coverage, first-subresource/BFCache behavior and
+consistent disable handling across existing main-document/injection paths
+remain part of the full Devtoolkit acceptance.
+
+Live input check: IOHID and CoreGraphics both report near-zero idle, with
+recent mouse/scroll events. The earlier serial worker is terminal; no duplicate
+waiter, compiler, Ahoi browser or owner lock is live after these source checks.
+Build 60 is still signed d0688d88 with 19/20 unit programs green; installation
+remains held by the native bookmark menu case. Installed source is d3ebc1b9.
+Next: run that case and its sidebar suite serially after a fresh actual idle/
+ownership/capacity check, then canonical installation and affected journeys.
+Until then, continue concrete source work; do not restart an idle watcher or
+repeat unchanged green suites. Preserve the full active Master goal.
+
 ## Devtoolkit document adapter source checked — 1 October 2026
 
 The next package now has a native-chain document URLLoaderFactory adapter
