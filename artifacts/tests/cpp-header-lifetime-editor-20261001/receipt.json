@@ -1,0 +1,53 @@
+{
+  "kind": "header-lifetime-editor-source-only",
+  "syntaxChecks": [
+    {
+      "name": "developer_profile_editor_view.cc",
+      "exitCode": 0,
+      "sourceSha256": "e160dfa20407ef82e6dc244c7484dc58dba8f3fe8396321f731be4cb0c8d6f7c"
+    },
+    {
+      "name": "developer_profile_editor_headers.cc",
+      "exitCode": 0,
+      "sourceSha256": "550578aad150dcdf0da878632a5fc24a934e72122567b492805444f835b923a3"
+    },
+    {
+      "runnerPid": 17145,
+      "compilerPid": 17147,
+      "exitCode": 0,
+      "sourceSha256": "330fc698b23c7fc807d364c70994c314f6c09f7400d85020ff93348852ddf449",
+      "name": "developer_profile_editor_activation_unittest.cc"
+    }
+  ],
+  "officialGrit": {
+    "officialGenerator": "grit.grd_reader + grit.format.rc_header",
+    "baselineExactMatch": true,
+    "allowlistSupport": false,
+    "sourceHeaderSha256": "a41de563692ada0889013bdaae5d1c33e0a5ef38d57706f8342cdccdafa2eabf",
+    "baselineHeaderSha256": "a41de563692ada0889013bdaae5d1c33e0a5ef38d57706f8342cdccdafa2eabf",
+    "patchedHeaderSha256": "3f8ae7d591426085696d291d9a6e19b222ccbb815a17f67f6946b4c27ded5cff",
+    "patchSha256": "5f0ac5774beea978d8c2d5baf29c51f3fa742314d4becd7cb8bbd95fb1cf80c3"
+  },
+  "newRegressionsWritten": 3,
+  "newRegressionsExecuted": 0,
+  "installedAcceptance": false,
+  "patchSha256": "5f0ac5774beea978d8c2d5baf29c51f3fa742314d4becd7cb8bbd95fb1cf80c3",
+  "evidenceSha256": {
+    "grit-first-allowlist-receipt.json": "90a7209c4788a719cdbb1312da6445cdd8931d577f527752152852ff5bf4ed08",
+    "developer_profile_editor_headers.cc.syntax.log": "982147b39b0a57eb3682e153ebfc023de9ddd79fc5b8344d8a85c017623149f4",
+    "syntax-corrected-plan.json": "111939367235583ecaee398dd2513f66667fd2e007875faced1b7194e22eeb2f",
+    "editor-tests-final-result.json": "ab227d1704362980c3c43cb025ef45c44450f05aa356ce0226186a8d77214790",
+    "developer_profile_editor_view.cc.syntax.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-corrected-state.json": "ac5c9c25ba9ec12c4ef91b10cf5b855b1df4060e055d6085030d44249d112c2f",
+    "messages.json": "190f9ec378ead1d80b7c28396cf23bf2bb0216dcc465e8f5ffc6b76a4369415c",
+    "bounded-ui-opportunity-state.json": "4f2761f53ad44c9a357b8244e2365c91da682ba17e45c27ce4c1a43654a52f4b",
+    "developer_profile_editor_activation_unittest.cc.corrected.log": "1fcfd2e1ef5a60d05bb79b4193ffbaae27cf3d493ecdd792067182db3d33d0f8",
+    "README.md": "f3fecbb99b04e43e99d4899813682a195f7ec394652e892ac17137d551df78cb",
+    "grit-header-receipt.json": "021a8dbbf15b729156ba302ac64985bb9f7173c06de847552bc38f6ddc349d0c",
+    "editor-tests-final-command.json": "650bb4ba6523b38e1f7eba75acdaa5ec257ee617503630f1cdab86c2e3053d32",
+    "editor-tests-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_profile_editor_headers.cc.corrected.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-state.json": "8fa09402cf40f6f26e111b94130b4eafcea67e5601f50bc37b32c00b9a95193e",
+    "syntax-plan.json": "7bd023f26316e6eb5987473ba65d03efc09e2eebcbead397c5f011fdf89d5c1c"
+  }
+}

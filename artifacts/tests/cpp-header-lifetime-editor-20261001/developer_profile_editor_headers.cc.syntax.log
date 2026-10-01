@@ -1,0 +1,14 @@
+In module '//build/modules:system' imported from /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_view.h:7:
+[1m../../third_party/libc++/src/include/__memory/unique_ptr.h:708:30: [0m[0;1;31merror: [0m[1mno matching constructor for initialization of 'ui::SimpleComboboxModel'[0m
+  708 |   return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...));[0m
+      | [0;1;32m                             ^   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_headers.cc:109:12: [0m[0;1;36mnote: [0min instantiation of function template specialization 'std::make_unique<ui::SimpleComboboxModel, std::vector<std::u16string>, 0>' requested here[0m
+  109 |       std::make_unique<ui::SimpleComboboxModel>(std::move(lifetimes)));[0m
+      | [0;1;32m           ^
+[0m[1m../../ui/base/models/simple_combobox_model.h:39:12: [0m[0;1;36mnote: [0mcandidate constructor not viable: no known conversion from 'vector<[0;1;36mstd::u16string[0m, allocator<[0;1;36mstd::u16string[0m>>' to 'vector<[0;1;36mItem[0m, allocator<[0;1;36mui::SimpleComboboxModel::Item[0m>>' for 1st argument[0m
+   39 |   explicit SimpleComboboxModel(std::vector<Item> items);[0m
+      | [0;1;32m           ^                   ~~~~~~~~~~~~~~~~~~~~~~~
+[0m[1m../../ui/base/models/simple_combobox_model.h:41:3: [0m[0;1;36mnote: [0mcandidate constructor not viable: no known conversion from 'std::vector<std::u16string>' to 'const SimpleComboboxModel' for 1st argument[0m
+   41 |   SimpleComboboxModel(const SimpleComboboxModel&) = delete;[0m
+      | [0;1;32m  ^                   ~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m1 error generated.

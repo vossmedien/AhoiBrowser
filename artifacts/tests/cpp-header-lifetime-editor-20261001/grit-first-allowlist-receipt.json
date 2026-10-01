@@ -1,0 +1,27 @@
+{
+  "officialGenerator": "grit.grd_reader + grit.format.rc_header",
+  "baselineExactMatch": false,
+  "sourceHeaderSha256": "a41de563692ada0889013bdaae5d1c33e0a5ef38d57706f8342cdccdafa2eabf",
+  "baselineHeaderSha256": "25dbff7fa986b715d88bdd53f23e01d2d821e200e0672307e7f89e61c48b67a5",
+  "patchedHeaderSha256": "4856eda91416475971a5592ce3d2dce510dfc44ac53bef298b4d451c6c5e5662",
+  "messages": [
+    {
+      "name": "IDS_AHOI_DEVELOPER_HEADER_LIFETIME",
+      "en": "Header rule lifetime",
+      "de": "Dauer der Headerregeln",
+      "messageId": "3477672943250760514"
+    },
+    {
+      "name": "IDS_AHOI_DEVELOPER_HEADER_LIFETIME_TAB",
+      "en": "Until this tab is closed",
+      "de": "Bis dieser Tab geschlossen wird",
+      "messageId": "4595629620678597857"
+    },
+    {
+      "name": "IDS_AHOI_DEVELOPER_HEADER_LIFETIME_HELP",
+      "en": "Temporary header rules apply only in this tab and stay out of sync.",
+      "de": "Vorübergehende Headerregeln gelten nur in diesem Tab und werden nicht synchronisiert.",
+      "messageId": "3570996243294328609"
+    }
+  ]
+}

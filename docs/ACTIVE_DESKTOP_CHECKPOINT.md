@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+## Native header lifetime editor source verified — 1 October 2026
+
+The native editor now offers temporary/current-tab versus persistent headers,
+with English/German labels in ordered patch 0090. Temporary mode clears and
+disables both sync controls; persistence conversion does not regrant opt-in.
+Changing the lifetime cancels an outstanding compiler/secret commit, so an old
+persistent snapshot cannot save after a temporary selection. Header construction
+was split into its tracked UI/GN source without changing the existing text-area
+height or exceeding the line budget.
+[Source, real staged GRIT header and exact syntax proof scope](../artifacts/tests/cpp-header-lifetime-editor-20261001/README.md).
+
+Three final pinned-Clang syntax checks pass, one job; three new editor regression
+methods are written/syntax-checked, NOT executed. Official GRIT generation using
+actual build defines/IDs reproduces the existing baseline header byte-for-byte;
+the patched header is generated only in the owned staging directory. XML,
+translation fingerprints and patch applicability pass; initial source/test
+syntax errors are preserved. No new binary/resource package acceptance exists.
+
+One genuinely fresh installed lifecycle opportunity started with actual idle
+307, then waited on an authoritative foreign xcodebuild (25197). Runner 26275
+is now terminal/deferred, idle 431/compilerRunning:true in its final state,
+no app/journey started and no E2E lock claimed. Both PIDs are absent at the last
+inventory; do not resume/restart that elapsed queue. Its saved state is included
+in the editor evidence. No general observer remains active.
+
+Next source: real Mojo temporary-header lifetime cases, then one exact guarded
+candidate and necessary native/visible gates under fresh ownership/resource
+checks. Backend 94fff54c's nine new regressions and these three editor methods
+still need actual native execution. Installed source remains 9acb43c8/M154;
+the user cannot yet select this new mode in that older binary. Full Master,
+worker/Sync/external/release scopes persist; Crest 106/110 remain deferred to
+their separate future performance lease, no grant implied.
+
 ## Temporary header backend source and syntax verified — 1 October 2026
 
 Header rules previously persisted unconditionally; CSS/JS lifetimes did not

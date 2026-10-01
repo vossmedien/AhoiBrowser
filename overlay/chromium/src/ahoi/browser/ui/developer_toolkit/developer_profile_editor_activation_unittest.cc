@@ -20,10 +20,45 @@
 #include "content/public/test/test_renderer_host.h"
 #include "content/public/test/web_contents_tester.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "chrome/grit/generated_resources.h"
+#include "ui/base/l10n/l10n_util.h"
+#include "ui/views/controls/button/checkbox.h"
+#include "ui/views/controls/combobox/combobox.h"
+#include "ui/views/view_utils.h"
+#include "ui/views/test/combobox_test_api.h"
 #include "ui/views/test/views_test_base.h"
 
 namespace ahoi {
 namespace {
+
+views::Combobox* FindHeaderLifetime(views::View* view) {
+  if (auto* combo = views::AsViewClass<views::Combobox>(view)) {
+    if (combo->GetModel()->GetItemCount() == 2 &&
+        combo->GetModel()->GetItemAt(0) == l10n_util::GetStringUTF16(
+            IDS_AHOI_DEVELOPER_HEADER_LIFETIME_TAB)) {
+      return combo;
+    }
+  }
+  for (const auto& child : view->children()) {
+    if (auto* combo = FindHeaderLifetime(child.get())) {
+      return combo;
+    }
+  }
+  return nullptr;
+}
+
+void FindHeaderSyncControls(views::View* view,
+                            std::vector<views::Checkbox*>* controls) {
+  if (auto* checkbox = views::AsViewClass<views::Checkbox>(view)) {
+    if (checkbox->GetText() == l10n_util::GetStringUTF16(
+            IDS_AHOI_DEVELOPER_PROFILE_SYNC_HEADERS)) {
+      controls->push_back(checkbox);
+    }
+  }
+  for (const auto& child : view->children()) {
+    FindHeaderSyncControls(child.get(), controls);
+  }
+}
 
 struct CompilerFixture {
   int created = 0;
@@ -63,8 +98,11 @@ class DeveloperProfileEditorActivationTest : public ChromeViewsTestBase {
     context_.reset();
     ChromeViewsTestBase::TearDown();
   }
-  void OpenEditor() {
+  void OpenEditor(bool headers_persistent = true, bool sync_headers = false) {
     DeveloperProfile profile{.name = "Protected draft"};
+    profile.headers_persistent = headers_persistent;
+    profile.header_rules_sync_enabled = sync_headers;
+    profile.response_header_rules_sync_enabled = sync_headers;
     profile.assets.push_back({
         .id = "less-draft", .name = "Style",
         .kind = DeveloperAssetKind::kStyle,
@@ -142,6 +180,72 @@ TEST_F(DeveloperProfileEditorActivationTest,
   Reply(1);
   ASSERT_TRUE(saved_);
   EXPECT_EQ("Protected draft", saved_->name);
+}
+
+TEST_F(DeveloperProfileEditorActivationTest,
+       TemporaryHeaderLifetimeDisablesBothSyncControlsAndSavesLocalMode) {
+  prefs_->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  OpenEditor(false, true);
+  auto* lifetime = FindHeaderLifetime(editor_.get());
+  ASSERT_TRUE(lifetime);
+  EXPECT_EQ(0u, lifetime->GetSelectedIndex());
+  std::vector<views::Checkbox*> controls;
+  FindHeaderSyncControls(editor_.get(), &controls);
+  ASSERT_EQ(2u, controls.size());
+  for (auto* checkbox : controls) {
+    EXPECT_FALSE(checkbox->GetEnabled());
+    EXPECT_FALSE(checkbox->GetChecked());
+  }
+  EXPECT_FALSE(editor_->Save());
+  Reply(0);
+  ASSERT_TRUE(saved_);
+  EXPECT_FALSE(saved_->headers_persistent);
+  EXPECT_FALSE(saved_->header_rules_sync_enabled);
+  EXPECT_FALSE(saved_->response_header_rules_sync_enabled);
+}
+
+TEST_F(DeveloperProfileEditorActivationTest,
+       HeaderLifetimeConversionDoesNotRegrantPreviousSyncOptIn) {
+  prefs_->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  OpenEditor(true, true);
+  auto* lifetime = FindHeaderLifetime(editor_.get());
+  ASSERT_TRUE(lifetime);
+  std::vector<views::Checkbox*> controls;
+  FindHeaderSyncControls(editor_.get(), &controls);
+  ASSERT_EQ(2u, controls.size());
+  views::test::ComboboxTestApi(lifetime).PerformActionAt(0);
+  views::test::ComboboxTestApi(lifetime).PerformActionAt(1);
+  for (auto* checkbox : controls) {
+    EXPECT_TRUE(checkbox->GetEnabled());
+    EXPECT_FALSE(checkbox->GetChecked());
+  }
+  EXPECT_FALSE(editor_->Save());
+  Reply(0);
+  ASSERT_TRUE(saved_);
+  EXPECT_TRUE(saved_->headers_persistent);
+  EXPECT_FALSE(saved_->header_rules_sync_enabled);
+  EXPECT_FALSE(saved_->response_header_rules_sync_enabled);
+}
+
+TEST_F(DeveloperProfileEditorActivationTest,
+       HeaderLifetimeChangeRejectsEarlierPersistentCompileCommit) {
+  prefs_->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  OpenEditor(true, true);
+  EXPECT_FALSE(editor_->Save());
+  ASSERT_EQ(1, compiler_->created);
+  auto* lifetime = FindHeaderLifetime(editor_.get());
+  ASSERT_TRUE(lifetime);
+  views::test::ComboboxTestApi(lifetime).PerformActionAt(0);
+  EXPECT_EQ(1, compiler_->destroyed);
+  Reply(0);
+  EXPECT_FALSE(saved_);
+  EXPECT_FALSE(editor_->Save());
+  ASSERT_EQ(2, compiler_->created);
+  Reply(1);
+  ASSERT_TRUE(saved_);
+  EXPECT_FALSE(saved_->headers_persistent);
+  EXPECT_FALSE(saved_->header_rules_sync_enabled);
+  EXPECT_FALSE(saved_->response_header_rules_sync_enabled);
 }
 
 }  // namespace

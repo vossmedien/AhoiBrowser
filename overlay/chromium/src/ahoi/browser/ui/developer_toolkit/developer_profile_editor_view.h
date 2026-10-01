@@ -97,6 +97,11 @@ class DeveloperProfileEditorView final : public views::View,
   void OnAppearanceChanged(const appearance::GlassPolicy& policy);
   bool CanPersistObservedTarget() const;
   void OnToolkitActivationChanged();
+  void InitializeHeaderControls(
+      const DeveloperProfile& initial_profile,
+      content::WebContents* source_web_contents,
+      DeveloperSecretStoreFactory secret_store_factory);
+  void OnHeaderLifetimeChanged();
 
   const SaveCallback save_callback_;
   const RemoveCallback remove_callback_;
@@ -123,6 +128,7 @@ class DeveloperProfileEditorView final : public views::View,
   raw_ptr<DeveloperResponseHeaderAdvancedModeView>
       response_header_advanced_mode_ = nullptr;
   raw_ptr<DeveloperHeaderSecretEditorView> header_secret_editor_ = nullptr;
+  raw_ptr<views::Combobox> headers_lifetime_ = nullptr;
   raw_ptr<views::Label> status_label_ = nullptr;
   raw_ptr<views::Checkbox> cache_disabled_ = nullptr;
   std::string origin_scope_;

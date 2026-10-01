@@ -1,0 +1,9 @@
+{
+  "officialGenerator": "grit.grd_reader + grit.format.rc_header",
+  "baselineExactMatch": true,
+  "allowlistSupport": false,
+  "sourceHeaderSha256": "a41de563692ada0889013bdaae5d1c33e0a5ef38d57706f8342cdccdafa2eabf",
+  "baselineHeaderSha256": "a41de563692ada0889013bdaae5d1c33e0a5ef38d57706f8342cdccdafa2eabf",
+  "patchedHeaderSha256": "3f8ae7d591426085696d291d9a6e19b222ccbb815a17f67f6946b4c27ded5cff",
+  "patchSha256": "5f0ac5774beea978d8c2d5baf29c51f3fa742314d4becd7cb8bbd95fb1cf80c3"
+}

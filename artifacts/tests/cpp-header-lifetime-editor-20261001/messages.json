@@ -1,0 +1,20 @@
+[
+  {
+    "name": "IDS_AHOI_DEVELOPER_HEADER_LIFETIME",
+    "en": "Header rule lifetime",
+    "de": "Dauer der Headerregeln",
+    "messageId": "3477672943250760514"
+  },
+  {
+    "name": "IDS_AHOI_DEVELOPER_HEADER_LIFETIME_TAB",
+    "en": "Until this tab is closed",
+    "de": "Bis dieser Tab geschlossen wird",
+    "messageId": "4595629620678597857"
+  },
+  {
+    "name": "IDS_AHOI_DEVELOPER_HEADER_LIFETIME_HELP",
+    "en": "Temporary header rules apply only in this tab and stay out of sync.",
+    "de": "Vorübergehende Headerregeln gelten nur in diesem Tab und werden nicht synchronisiert.",
+    "messageId": "3570996243294328609"
+  }
+]

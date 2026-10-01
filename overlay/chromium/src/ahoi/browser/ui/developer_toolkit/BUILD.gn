@@ -17,6 +17,7 @@ source_set("developer_toolkit_ui") {
     "developer_header_secret_editor_model.h",
     "developer_header_secret_editor_view.cc",
     "developer_header_secret_editor_view.h",
+    "developer_profile_editor_headers.cc",
     "developer_profile_editor_view.cc",
     "developer_profile_editor_view.h",
     "developer_response_header_advanced_mode_view.cc",

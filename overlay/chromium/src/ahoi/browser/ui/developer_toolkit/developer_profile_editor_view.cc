@@ -55,7 +55,6 @@ namespace {
 
 constexpr int kSingleLineHeight = visual_style::kDeveloperToolkitRowHeight;
 constexpr int kCodeAreaHeight = 92;
-constexpr int kHeadersAreaHeight = 76;
 
 constexpr std::array<DeveloperUserAgentPreset, 7> kUserAgentPresets = {
     DeveloperUserAgentPreset::kBrowserDefault,
@@ -322,63 +321,8 @@ DeveloperProfileEditorView::DeveloperProfileEditorView(
   user_agent_->SetText(base::UTF8ToUTF16(initial_profile.user_agent));
   OnUserAgentPresetChanged();
 
-  const bool is_off_the_record =
-      !source_web_contents || !source_web_contents->GetBrowserContext() ||
-      source_web_contents->GetBrowserContext()->IsOffTheRecord();
-  auto header_secret_editor = std::make_unique<DeveloperHeaderSecretEditorView>(
-      is_off_the_record, initial_profile.header_rules,
-      initial_profile.response_header_rules, std::move(secret_store_factory),
-      base::BindRepeating(&DeveloperProfileEditorView::ShowStatus,
-                          weak_ptr_factory_.GetWeakPtr()));
-
-  header_rules_enabled_ = AddChildView(std::make_unique<views::Checkbox>(
-      l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_HEADERS)));
-  header_rules_enabled_->SetTextSubpixelRenderingEnabled(false);
-  header_rules_enabled_->SetChecked(initial_profile.header_rules_enabled);
-  header_rules_sync_enabled_ = AddChildView(std::make_unique<views::Checkbox>(
-      l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_SYNC_HEADERS)));
-  header_rules_sync_enabled_->SetChecked(
-      initial_profile.header_rules_sync_enabled);
-  header_rules_ =
-      AddTextControl(std::make_unique<views::Textarea>(), kHeadersAreaHeight,
-                     std::u16string(header_rules_enabled_->GetText()),
-                     l10n_util::GetStringUTF16(
-                         IDS_AHOI_DEVELOPER_PROFILE_HEADERS_PLACEHOLDER));
-  header_rules_->SetText(base::UTF8ToUTF16(
-      FormatDeveloperHeaderRules(header_secret_editor->PlainRulesForEditor(
-          DeveloperHeaderSecretDirection::kRequest))));
-
-  response_header_rules_enabled_ =
-      AddChildView(std::make_unique<views::Checkbox>(
-          l10n_util::GetStringUTF16(
-              IDS_AHOI_DEVELOPER_PROFILE_RESPONSE_HEADERS),
-          base::BindRepeating(
-              &DeveloperProfileEditorView::OnResponseHeaderRulesEnabledChanged,
-              base::Unretained(this))));
-  response_header_rules_enabled_->SetTextSubpixelRenderingEnabled(false);
-  response_header_rules_enabled_->SetChecked(
-      initial_profile.response_header_rules_enabled);
-  response_header_rules_sync_enabled_ =
-      AddChildView(std::make_unique<views::Checkbox>(
-          l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_SYNC_HEADERS)));
-  response_header_rules_sync_enabled_->SetChecked(
-      initial_profile.response_header_rules_sync_enabled);
-  response_header_rules_ = AddTextControl(
-      std::make_unique<views::Textarea>(), kHeadersAreaHeight,
-      std::u16string(response_header_rules_enabled_->GetText()),
-      l10n_util::GetStringUTF16(
-          IDS_AHOI_DEVELOPER_PROFILE_RESPONSE_HEADERS_PLACEHOLDER));
-  response_header_rules_->SetText(base::UTF8ToUTF16(
-      FormatDeveloperHeaderRules(header_secret_editor->PlainRulesForEditor(
-          DeveloperHeaderSecretDirection::kResponse))));
-  AddChildView(CreateMutedLabel(l10n_util::GetStringUTF16(
-      IDS_AHOI_DEVELOPER_PROFILE_RESPONSE_HEADERS_HELP)));
-  response_header_advanced_mode_ =
-      AddChildView(std::make_unique<DeveloperResponseHeaderAdvancedModeView>(
-          initial_profile.response_header_rules_enabled,
-          initial_profile.response_header_advanced_mode_acknowledged));
-
-  header_secret_editor_ = AddChildView(std::move(header_secret_editor));
+  InitializeHeaderControls(initial_profile, source_web_contents,
+                           std::move(secret_store_factory));
 
   cache_disabled_ = AddChildView(std::make_unique<views::Checkbox>(
       l10n_util::GetStringUTF16(IDS_AHOI_DEVELOPER_PROFILE_CACHE_OFF)));
@@ -532,12 +476,14 @@ DeveloperProfileEditorView::BuildProfileForSave() {
   profile.assets.push_back(std::move(script_asset));
   profile.user_agent_enabled = user_agent_enabled_->GetChecked();
   profile.user_agent = base::UTF16ToUTF8(user_agent_->GetText());
+  profile.headers_persistent = headers_lifetime_->GetSelectedIndex() == 1;
   profile.header_rules_enabled = header_rules_enabled_->GetChecked();
-  profile.header_rules_sync_enabled = header_rules_sync_enabled_->GetChecked();
+  profile.header_rules_sync_enabled = profile.headers_persistent &&
+                                      header_rules_sync_enabled_->GetChecked();
   profile.header_rules = std::move(parsed.rules);
   profile.response_header_rules_enabled =
       response_header_rules_enabled_->GetChecked();
-  profile.response_header_rules_sync_enabled =
+  profile.response_header_rules_sync_enabled = profile.headers_persistent &&
       response_header_rules_sync_enabled_->GetChecked();
   profile.response_header_advanced_mode_acknowledged =
       response_header_advanced_mode_->acknowledged();

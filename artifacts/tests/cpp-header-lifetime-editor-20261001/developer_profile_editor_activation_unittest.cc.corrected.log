@@ -1,0 +1,31 @@
+[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_activation_unittest.cc:41:14: [0m[0;1;31merror: [0m[1mvariable 'child' with type 'auto *' has incompatible initializer of type 'const base::raw_ptr<views::View, partition_alloc::internal::RawPtrTraits::kMayDangle>'[0m
+   41 |   for (auto* child : view->children()) {[0m
+      | [0;1;32m             ^     ~
+[0m[1m../../third_party/libc++/src/include/__vector/vector.h:353:88: [0m[0;1;36mnote: [0mselected 'begin' function with iterator type 'const_iterator' (aka '__wrap_iter<const base::raw_ptr<views::View, partition_alloc::internal::RawPtrTraits::kMayDangle> *>')[0m
+  353 |   [[__nodiscard__]] _LIBCPP_CONSTEXPR_SINCE_CXX20 _LIBCPP_HIDE_FROM_ABI const_iterator begin() const _NOEXCEPT {[0m
+      | [0;1;32m                                                                                       ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_activation_unittest.cc:57:14: [0m[0;1;31merror: [0m[1mvariable 'child' with type 'auto *' has incompatible initializer of type 'const base::raw_ptr<views::View, partition_alloc::internal::RawPtrTraits::kMayDangle>'[0m
+   57 |   for (auto* child : view->children()) {[0m
+      | [0;1;32m             ^     ~
+[0m[1m../../third_party/libc++/src/include/__vector/vector.h:353:88: [0m[0;1;36mnote: [0mselected 'begin' function with iterator type 'const_iterator' (aka '__wrap_iter<const base::raw_ptr<views::View, partition_alloc::internal::RawPtrTraits::kMayDangle> *>')[0m
+  353 |   [[__nodiscard__]] _LIBCPP_CONSTEXPR_SINCE_CXX20 _LIBCPP_HIDE_FROM_ABI const_iterator begin() const _NOEXCEPT {[0m
+      | [0;1;32m                                                                                       ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_activation_unittest.cc:216:13: [0m[0;1;31merror: [0m[1m'GetCallback' is a protected member of 'views::Combobox'[0m
+  216 |   lifetime->GetCallback().Run();[0m
+      | [0;1;32m            ^
+[0m[1m../../ui/views/controls/combobox/combobox.h:163:33: [0m[0;1;36mnote: [0mdeclared protected here[0m
+  163 |   const base::RepeatingClosure& GetCallback() const;[0m
+      | [0;1;32m                                ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_activation_unittest.cc:218:13: [0m[0;1;31merror: [0m[1m'GetCallback' is a protected member of 'views::Combobox'[0m
+  218 |   lifetime->GetCallback().Run();[0m
+      | [0;1;32m            ^
+[0m[1m../../ui/views/controls/combobox/combobox.h:163:33: [0m[0;1;36mnote: [0mdeclared protected here[0m
+  163 |   const base::RepeatingClosure& GetCallback() const;[0m
+      | [0;1;32m                                ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_activation_unittest.cc:240:13: [0m[0;1;31merror: [0m[1m'GetCallback' is a protected member of 'views::Combobox'[0m
+  240 |   lifetime->GetCallback().Run();[0m
+      | [0;1;32m            ^
+[0m[1m../../ui/views/controls/combobox/combobox.h:163:33: [0m[0;1;36mnote: [0mdeclared protected here[0m
+  163 |   const base::RepeatingClosure& GetCallback() const;[0m
+      | [0;1;32m                                ^
+[0m5 errors generated.

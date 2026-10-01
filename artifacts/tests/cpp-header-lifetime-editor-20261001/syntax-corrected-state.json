@@ -1,0 +1,18 @@
+{
+  "runnerPid": 16672,
+  "jobs": 1,
+  "phase": "failed",
+  "results": [
+    {
+      "name": "developer_profile_editor_headers.cc",
+      "exitCode": 0,
+      "sourceSha256": "550578aad150dcdf0da878632a5fc24a934e72122567b492805444f835b923a3"
+    },
+    {
+      "name": "developer_profile_editor_activation_unittest.cc",
+      "exitCode": 1,
+      "sourceSha256": "06fdd0d1e4dc5f61d53650d91879474109d4dec81e5dcec42f888ce316bb77b5"
+    }
+  ],
+  "compilerPid": 16678
+}

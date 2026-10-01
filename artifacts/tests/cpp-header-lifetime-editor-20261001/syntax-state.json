@@ -1,0 +1,19 @@
+{
+  "runnerPid": 15397,
+  "jobs": 1,
+  "phase": "failed",
+  "results": [
+    {
+      "name": "developer_profile_editor_view.cc",
+      "exitCode": 0,
+      "sourceSha256": "e160dfa20407ef82e6dc244c7484dc58dba8f3fe8396321f731be4cb0c8d6f7c"
+    },
+    {
+      "name": "developer_profile_editor_headers.cc",
+      "exitCode": 1,
+      "sourceSha256": "1dc0e7403c525c5b8af418c1f9ee74f66b7ce73fe7dc5dbe9d013a3e406e6065"
+    }
+  ],
+  "gritHeaderSha256": "3f8ae7d591426085696d291d9a6e19b222ccbb815a17f67f6946b4c27ded5cff",
+  "compilerPid": 15407
+}
