@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Combined temporary-header candidate Build 68 running — 2 October 2026
+
+Clean queue source c2943397d86499f563070e8ee09adce7bde66436 is frozen. Owned
+detached runner 66795 is live at this entry: `.work/agent-queue/68/state.json`,
+check actual PID/descendants/log before acting. Guarded overlay integration and
+hooks pass; the development compile now proceeds with ONE job, all required
+unit/editor/browser targets. [Frozen plan](../artifacts/build/codex-build68-20261001-plan.json).
+No parallel output refresh/test/install/UI ownership is granted while its
+build.lock is held. No native/installed pass is claimed yet.
+
+The resource-header dependency frontier is 1,460 incremental steps, 123 completed
+at the observed sample; this is not an unrestricted Chromium roll/full build.
+Before launch: host/Xcode27 pass, 114GiB available, two CPU-idle samples61–74%,
+pressure level1, stable swapouts, no app/compiler/owner locks. Phase probes are
+retained in queue68. During compile: CPU42% idle,12GiB compressor,412MiB unused,
+swapouts increased since preflight; no second job/workload is started. Keep
+capacity checked at subsequent phase boundaries and preserve this same live
+runner rather than restarting an observation timeout.
+
+Next after guarded compile/stable development sign/provenance success: actual
+new backend9/editor3/Mojo4 regression methods and required native gates on this
+exact output. Native shared components changed; older binary passes are not
+carried by label. Only required real native GREEN permits canonical install,
+then representative visible affected journeys and necessary focused regressions.
+Installed source remains 9acb43c8/M154; full Master, worker/Sync and external/
+release boundaries remain open. Crest106/110 still defer to their separate H3
+performance lease. No external API, device, trading or release scope changes.
+
 ## Temporary header Mojo cases source-verified; combined candidate next — 1 October 2026
 
 Four new actual-proxy/Mojo methods cover per-request temporary secret values,

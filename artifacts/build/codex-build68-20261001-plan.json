@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "c2943397d86499f563070e8ee09adce7bde66436",
+  "buildSequence": 68,
+  "jobs": 1,
+  "toolchain": "documented Xcode27 development",
+  "guardedEntrypoints": [
+    "scripts/apply-overlay.sh --compatible-dev-xcode",
+    "scripts/build-ahoi.sh dev"
+  ],
+  "installedBefore": "9acb43c81917a847c2d94303053c304b981757d3",
+  "runtimeGate": "compiled/signed/provenance then required actual native gates; no automatic install/test",
+  "resourceSample": "61-74% CPU idle, pressure level1, stable swapouts, 114GiB available, no compiler/app/owner locks",
+  "crest": "106/110 reviewed/deferred separate H3 lease; no product patch",
+  "launcherSha256": "802c6ab4869729ca7c1a3cef8cafc959b37189b8964d73fc2f36f96348947751",
+  "createdAt": "2026-10-01T22:02:29.350903+00:00"
+}
