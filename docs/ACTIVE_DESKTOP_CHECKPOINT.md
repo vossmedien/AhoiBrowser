@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Build 61 signed; native fixture registration correction — 1 October 2026
+
+Frozen 1c7e20aa guarded build ended exit 0. All targets compile/link, stable
+Apple Development signing, nested verification, 534 component hashes and the
+original clean-source provenance pass. Runner 67186 is terminal; do not resume
+its old PID. Installed Ahoi remains d3ebc1b9 (Build 59).
+
+The generated core Developer Toolkit native target ran one job/no retries:
+75 SUCCESS, 6 CRASH and 46 NOTRUN after batches crashed; direct exit 1.
+All observed crashes are the duplicate-pref-registration DCHECK in test setup.
+Toolkit registration already registers the profiles dictionary. Four affected
+fixtures now use that single registration path; stale-pref-only setup remains
+separate. [Exact red result and scope](../artifacts/tests/dev-native-red-1c7e20aa-20261001/README.md).
+No product/native gate is relabelled GREEN and no DCHECK is weakened. Next
+candidate must link and execute the corrected core/UI fixtures.
+
+The changed sidebar native test is independently pending on Build 61: owned
+bounded runner 5239 (`61/sidebar-serial-2/state.json`), verify PID/state live.
+Its maximum two-minute input gate is tied to this exact test job, not a general
+resource observer. It runs focused then full sidebar only if focused passes.
+Do not start a competing output refresh/build/UI while it owns the slot. Its
+result will decide whether the new menu initialization regression is valid.
+
+Next: preserve its terminal result, commit the four-fixture source correction,
+then run a fresh guarded incremental exact candidate after ownership/resources
+are free. Installation still requires all native and affected runtime gates;
+full Master and external/release bounds stay active and unchanged.
+
 ## Frozen Build 61 running — 1 October 2026
 
 Source 1c7e20aa4e3c64dac1a209354380698ae869b083 is frozen in the clean

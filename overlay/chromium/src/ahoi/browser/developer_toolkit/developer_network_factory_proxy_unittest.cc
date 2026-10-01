@@ -9,7 +9,6 @@
 #include <utility>
 #include <vector>
 
-#include "ahoi/browser/developer_toolkit/developer_profile_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
@@ -213,7 +212,7 @@ class RecordingFactory final : public network::SharedURLLoaderFactory {
 class DeveloperNetworkFactoryProxyTest : public testing::Test {
  protected:
   void SetUp() override {
-    developer_profile_prefs::RegisterProfilePrefs(prefs_.registry());
+    // Toolkit registration also owns the profile dictionary.
     developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
     prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
     user_prefs::UserPrefs::Set(&context_, &prefs_);

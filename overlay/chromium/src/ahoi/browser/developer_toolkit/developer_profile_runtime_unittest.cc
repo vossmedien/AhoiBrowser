@@ -10,7 +10,6 @@
 #include <utility>
 #include <vector>
 
-#include "ahoi/browser/developer_toolkit/developer_profile_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_action_executor.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "components/prefs/testing_pref_service.h"
@@ -27,7 +26,7 @@ namespace {
 class DeveloperProfileRuntimeTest : public testing::Test {
  protected:
   DeveloperProfileRuntimeTest() {
-    developer_profile_prefs::RegisterProfilePrefs(prefs_.registry());
+    // Toolkit registration also owns the profile dictionary.
     developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
     prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
     user_prefs::UserPrefs::Set(&browser_context_, &prefs_);

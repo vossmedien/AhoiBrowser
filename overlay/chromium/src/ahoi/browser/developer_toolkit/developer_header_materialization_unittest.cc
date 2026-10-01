@@ -7,8 +7,8 @@
 #include <string_view>
 #include <utility>
 
-#include "ahoi/browser/developer_toolkit/developer_profile_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
@@ -139,7 +139,7 @@ class DeveloperHeaderMaterializationTest : public testing::Test {
   DeveloperHeaderMaterializationTest() = default;
 
   void SetUp() override {
-    developer_profile_prefs::RegisterProfilePrefs(prefs_.registry());
+    // Toolkit registration also owns the profile dictionary.
     developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
     prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
     user_prefs::UserPrefs::Set(&browser_context_, &prefs_);

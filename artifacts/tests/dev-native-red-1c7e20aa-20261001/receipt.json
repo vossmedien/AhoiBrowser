@@ -1,0 +1,28 @@
+{
+  "runnerPid": 93743,
+  "sourceCommit": "1c7e20aa4e3c64dac1a209354380698ae869b083",
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "results": [],
+  "startedAt": "2026-10-01T14:01:45.939713+00:00",
+  "command": [
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests",
+    "--test-launcher-jobs=1",
+    "--test-launcher-retry-limit=0",
+    "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/61/dev-native/summary.json"
+  ],
+  "binarySha256": "736b9f4dc1d651e71b767cdf05dea02f05fa046dd3aa6ebb334d8cb2f58bbf7b",
+  "testPid": 93745,
+  "exitCode": 1,
+  "finishedAt": "2026-10-01T14:02:17.088004+00:00",
+  "counts": {
+    "SUCCESS": 75,
+    "CRASH": 6,
+    "NOTRUN": 46
+  },
+  "summarySha256": "53e09254984372f40efd0a62b1963257adde46b89207fcc2300d264a2a15a901",
+  "logSha256": "335e67dfdf52b3021a72754e54ac94762079beeefb88d77e3e3904d360c906de",
+  "failureCause": "DCHECK duplicate registration: ahoi.developer_toolkit.profiles",
+  "installed": false
+}

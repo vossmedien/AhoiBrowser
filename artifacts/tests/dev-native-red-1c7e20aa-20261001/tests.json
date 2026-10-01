@@ -1,0 +1,210 @@
+[
+  {
+    "test": "DeveloperHeaderMaterializationTest.DefersExactNavigationAndKeepsPlaintextRequestBound",
+    "status": "CRASH"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.DisabledToolkitStartsNeitherKeychainWorkNorMainFrameOverrides",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.FactoryRejectsNullDestroyedStaleOtrAndNavigationMismatch",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.MasterRevocationRejectsPendingNavigationSecretsAfterReenable",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.MissingResponseSecretDisablesWholeHeaderProfile",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.NavigationChangeBeforeReplyCannotStageStaleSecrets",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.NavigationThrottleDoesNotReadOrApplyAnOtrProfile",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.ProfileMutationAfterMaterializationInvalidatesSnapshot",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.ReenableBeforeReplyDoesNotResurrectOldNavigationApproval",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.ResolvesRequestAndResponseAsOneTransaction",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.SameOriginRedirectRetargetsAndCrossOriginRedirectClears",
+    "status": "CRASH"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.SubresourceOriginMismatchAndSecretsStayFailClosed",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperHeaderMaterializationTest.UserAgentOverrideIsDecidedAtNavigationStart",
+    "status": "CRASH"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce",
+    "status": "CRASH"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState",
+    "status": "CRASH"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfilePrefSeedTest.CompiledOutputWithoutVersionDropsTheWholeProfile",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfilePrefSeedTest.OtherCompilerVersionKeepsTheRestOfTheProfile",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfilePrefSeedTest.SeededProfileResolvesForItsSiteOnly",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.ActionExecutorChipsFollowLastCommittedEnabledAssetsOnly",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.DisabledToolkitPreservesOnceAssetsUntilNextEnabledNavigation",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.DisabledTransientAndPersistentAssetsNeverBecomeActive",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.KeepsTransientAssetsInTabAndConsumesOnceAtNavigation",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.KeepsTransientOnlyProfileInEditorWithoutPersistentShell",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.LookupMarkerExpiresWithHelperLifetime",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.MovesLookupMarkerAcrossDiscardReplacement",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.RejectsAnotherTabsCurrentTabToken",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.RejectsCapacityDivergenceWithoutChangingAnyProfileSnapshot",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.ResetRemovesAllContributingScopesButPreservesUnrelatedAssets",
+    "status": "CRASH"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.ResetTurnsOffAdvancedResponseRulesAndWithdrawsTheirConsent",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.ShutdownPreservesAUserAgentReplacedByAnotherNativeSurface",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileRuntimeTest.WebContentsCanBeDestroyedBeforeOwnedHelper",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileValidationTest.RejectsUnsafeOrAmbiguousValues",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileValidationTest.RequiresLocalAcknowledgementForActiveCspAndCorsResponseRules",
+    "status": "NOTRUN"
+  },
+  {
+    "test": "DeveloperProfileValidationTest.RestrictsOriginsToHttpAndHttps",
+    "status": "NOTRUN"
+  }
+]

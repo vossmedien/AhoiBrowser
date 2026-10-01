@@ -8,7 +8,6 @@
 #include <utility>
 #include <vector>
 
-#include "ahoi/browser/developer_toolkit/developer_profile_prefs.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
@@ -54,7 +53,7 @@ class DeveloperProfileEditorActivationTest : public views::ViewsTestBase {
 
   void SetUp() override {
     views::ViewsTestBase::SetUp();
-    developer_profile_prefs::RegisterProfilePrefs(prefs_.registry());
+    // Toolkit registration also owns the profile dictionary.
     developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
     user_prefs::UserPrefs::Set(&context_, &prefs_);
     contents_ = content::WebContentsTester::CreateTestWebContents(
