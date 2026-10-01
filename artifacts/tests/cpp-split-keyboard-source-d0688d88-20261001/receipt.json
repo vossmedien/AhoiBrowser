@@ -1,0 +1,10 @@
+{
+  "sourceSha256": "3f01f122fcb6ccc2870311b29847b7616423f6b1dcd97889f97c81a6bd2c7e85",
+  "exitCode": 0,
+  "kind": "source-syntax-only",
+  "sourceCommit": "d0688d88601ee073dc383f81273786af79956ab4",
+  "clangSha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3",
+  "generatedArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4",
+  "browserTest": "SplitLayoutMenuBrowserTest.KeyboardReorderMovesOnlyFocusedPane",
+  "nativeExecuted": false
+}

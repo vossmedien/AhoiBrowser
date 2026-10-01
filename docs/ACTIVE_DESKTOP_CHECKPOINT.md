@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+## Frozen Build 60 running — 1 October 2026, 11:45 CEST
+
+Build 60 now owns the build slot, runner PID `28931` (verify live before
+resuming). The inherited `chain48.sh` was copied privately with only its
+fetch ref changed from mutable HEAD to exact source
+`d0688d88601ee073dc383f81273786af79956ab4`. Two jobs; disk 171.9 GiB at the
+guarded host check. Overlay refresh/delta verification and host checks pass.
+No compile/test/install success is claimed yet.
+[Frozen command/target plan](../artifacts/build/codex-build60-20261001-plan.json).
+Live progress/logs: `.work/agent-queue/60/`, output `60-codex.nohup`.
+
+The candidate contains 7d11f9be's M154 pivot correction and 7043d524's
+retained-host close path. It also adds the actual BrowserView accelerator
+test `KeyboardReorderMovesOnlyFocusedPane` (pinned-Clang source check passes)
+and fixes the split-matrix harness's exact refusal role plus its separate
+Chromium restore setup. [Keyboard source evidence](../artifacts/tests/cpp-split-keyboard-source-d0688d88-20261001/README.md).
+The old red verdicts stay preserved. Native tests must still decide the
+keyboard/model issue and whether 0088 resolves the installed close crash.
+
+After a successful build and unit gate, the existing chain installs the
+candidate and runs split/popup browser tests, then lifecycle, matrix,
+archive restore, auto-archive, devtoolkit and settings journeys under the
+existing UI/idle locks. Do not start a competing build, install or browser.
+Inspect actual verdict files, not only journey process exits. If the source
+or installer gate fails, preserve that terminal evidence and correct it;
+do not relabel build 59 or start a duplicate from an observation timeout.
+
+Read-only upstream watch completed: the fully rolled pinnable Mac ARM64
+Stable remains 154.0.8037.93; Crest main remains the reviewed 778d140a.
+[Primary metadata comparison](reviews/2026-10-01-upstream-watch.md).
+Full native Master goal stays active; all unresolved DoD and owner gates
+listed below remain open.
+
 ## Codex takeover and split close source fix — 1 October 2026, 11:40 CEST
 
 Codex `01a0e047-9360-7122-ad28-f76ebc767c97` resumes the stopped Claude

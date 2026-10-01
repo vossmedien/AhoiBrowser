@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "d0688d88601ee073dc383f81273786af79956ab4",
+  "runner": ".work/agent-queue/chain60-codex-frozen.sh",
+  "runnerSha256": "48d6b88d5ee39a40078efd277a2d45e2666e08a1e9136d6dc28e3d1b8c78eeb3",
+  "inheritedRunnerSha256": "dbbf75c4813c3232261ad468a5b5a44d071bee1c94ba4b3aabd4851a38469581",
+  "jobs": 2,
+  "browserTests": [
+    "ahoi_split_layout_browsertests",
+    "ahoi_popup_overlay_browsertests"
+  ],
+  "journeys": [
+    "split-lifecycle-journey",
+    "split-matrix-journey",
+    "split-archive-restore-journey",
+    "auto-archive-journey",
+    "devtoolkit-journey",
+    "settings-sections-journey"
+  ],
+  "preparedAt": "2026-10-01T09:43:11.462318+00:00",
+  "diskFreeBytes": 184563187712,
+  "runnerPid": 28931
+}
