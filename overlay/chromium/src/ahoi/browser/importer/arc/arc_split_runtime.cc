@@ -460,10 +460,12 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
     }
 
     tabs::TabInterface* const leading_tab = observation.member_tabs.front();
-    // AddToNewSplit intentionally uses the model's active tab as its pivot.
+    // The leading member is passed explicitly as AddToNewSplit's first index
+    // (its pivot): since M154 the model adds its active tab implicitly only
+    // for a single index. It is still activated first because
     // BrowserSidebarHostView observes ActivateTab synchronously and restores
     // the active workspace surface, so switch workspaces first and verify the
-    // pivot survived that observer before creating any native split state.
+    // leading tab survived that observer before creating any split state.
     if (!ActivateSplitWorkspace(browser, session_bridge, nodes, split,
                                 leading_tab)) {
       return fail_after_workspace_activation();
@@ -474,18 +476,18 @@ ArcSplitRuntimeResult ReconstructArcSplits(BrowserWindowInterface* browser,
         model->GetSplitForTab(leading_index).has_value()) {
       return fail_after_workspace_activation();
     }
-    std::vector<int> remaining_indices;
+    std::vector<int> split_indices = {leading_index};
     for (size_t index = 1; index < observation.member_tabs.size(); ++index) {
       const int tab_index =
           model->GetIndexOfTab(observation.member_tabs[index]);
       if (tab_index < 0 || model->GetSplitForTab(tab_index).has_value()) {
         return fail_after_workspace_activation();
       }
-      remaining_indices.push_back(tab_index);
+      split_indices.push_back(tab_index);
     }
-    std::ranges::sort(remaining_indices);
+    std::ranges::sort(split_indices.begin() + 1, split_indices.end());
     const split_tabs::SplitTabId split_id =
-        model->AddToNewSplit(std::move(remaining_indices), visual.visual_data,
+        model->AddToNewSplit(std::move(split_indices), visual.visual_data,
                              split_tabs::SplitTabCreatedSource::kExtensionsApi);
     created_split_ids.push_back(split_id);
     if (!ReorderCreatedSplit(model, split_id, observation.member_tabs)) {

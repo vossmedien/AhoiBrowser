@@ -189,6 +189,18 @@ ui/views/widget/widget.h
 ui/views/window/dialog_delegate.h
 ```
 
+### `AddToNewSplit` pivot (after build 59)
+
+M153's `TabStripModel::AddToNewSplit(indices, …)` always added the active
+tab as the pivot. M154 adds it only for a single index; with two or more,
+`indices[0]` is the pivot and only the given indices form the split. Ahoi
+lifted the index limit to four panes in `0001`, so every multi-pane caller
+now passes the intended pivot first: the Arc split runtime (overlay), the
+`0001` `TabStripModelTest`/`MultiContentsViewBrowserTest` cases, the
+overlay `SplitLayoutMenuBrowserTest` cases and upstream `DuplicateSplit`
+in `browser_commands.cc` (new `0001` section; `0022`, `0076`, `0087`
+carry only the new blob ids). Single-index callers are unaffected.
+
 ## `0087-ahoi-split-reload-active-pane.patch`
 
 - **Owner:** Desktop (SPLIT-18 / SPLIT-37, split-matrix journey

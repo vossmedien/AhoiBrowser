@@ -65,6 +65,9 @@ class SplitLayoutMenuBrowserTest : public InProcessBrowserTest {
   base::test::ScopedFeatureList scoped_feature_list_;
 };
 
+// Since M154, AddToNewSplit() adds the active tab implicitly only for a
+// single index. Multi-pane splits below therefore pass the active tab first,
+// as the pivot, followed by the background tabs that complete the split.
 IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
                        ThreePanePresetsKeepWebContents) {
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
@@ -73,7 +76,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(tab_strip_model->count(), 3);
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {0, 1},
+      {tab_strip_model->active_index(), 0, 1},
       split_tabs::SplitTabVisualData::ForThreePane(
           split_tabs::SplitTabLayout::kSideBySide),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
@@ -124,7 +127,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(tab_strip_model->count(), 4);
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {0, 1, 2},
+      {tab_strip_model->active_index(), 0, 1, 2},
       split_tabs::SplitTabVisualData::ForFourPane(
           split_tabs::SplitTabLayout::kSideBySide),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
@@ -174,7 +177,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   ASSERT_EQ(3, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {0, 1},
+      {tab_strip_model->active_index(), 0, 1},
       split_tabs::SplitTabVisualData::ForThreePane(
           split_tabs::SplitTabLayout::kSideBySide),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
@@ -216,7 +219,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {0, 1, 2},
+      {tab_strip_model->active_index(), 0, 1, 2},
       split_tabs::SplitTabVisualData::ForFourPane(
           split_tabs::SplitTabLayout::kSideBySide),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
@@ -245,7 +248,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
   TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {0, 1},
+      {tab_strip_model->active_index(), 0, 1},
       split_tabs::SplitTabVisualData::ForThreePane(
           split_tabs::SplitTabLayout::kSideBySide),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
@@ -276,7 +279,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(4, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {0, 1, 2},
+      {tab_strip_model->active_index(), 0, 1, 2},
       split_tabs::SplitTabVisualData::ForFourPane(
           split_tabs::SplitTabLayout::kStacked),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
@@ -316,7 +319,7 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(3, tab_strip_model->count());
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {0, 1},
+      {tab_strip_model->active_index(), 0, 1},
       split_tabs::SplitTabVisualData::ForThreePane(
           split_tabs::SplitTabLayout::kStacked),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
@@ -486,10 +489,8 @@ IN_PROC_BROWSER_TEST_F(
 
   TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
   ASSERT_EQ(3, tab_strip_model->count());
-  // AddToNewSplit() includes the active tab implicitly; only pass the two
-  // background tabs that complete this three-pane split.
   const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
-      {0, 1},
+      {tab_strip_model->active_index(), 0, 1},
       split_tabs::SplitTabVisualData::ForThreePane(
           split_tabs::SplitTabLayout::kSideBySide),
       split_tabs::SplitTabCreatedSource::kToolbarButton);
