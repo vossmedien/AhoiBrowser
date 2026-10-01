@@ -5,7 +5,9 @@
 # overlay's "Popup im Split View öffnen" adds a pane to the opener's split
 # (CreateOrAddToSplitFromDrop, the same model path as a sidebar drop), and the
 # pane menu "Geteilte Ansicht anordnen", the sidebar row menu and the split
-# shortcuts from keyboard_shortcuts.cc do the rest. German labels are from
+# shortcuts from keyboard_shortcuts.cc do the rest. The layout presets sit in
+# the row menu's "Geteilte Ansicht anordnen" submenu (three or four panes);
+# Ahoi has no pane-toolbar menu. German labels are from
 # generated_resources.grd/_de.xtb (M153 composition). Layouts are read from
 # each pane's CSS viewport against the single-tab baseline W0 x H0.
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
@@ -209,18 +211,21 @@ tab_menu_split() { # <file>; splits the active page with <file> via the picker
   sleep 3; ! $AX dump $PID 14 | grep -q "AXWebArea | Tab auswählen"
 }
 # window.open with a user gesture from <opener file>; the popup overlay opens.
+# Waits for the overlay's close button: the split button's name carried the
+# refusal text on a full split up to build 58.
 popup_from() { # <opener file> <popup file>
   CDP "/$1" Runtime.evaluate "{\"expression\":\"window.open('$SITE/$2','_blank','popup,width=520,height=420')?1:0\",\"userGesture\":true,\"returnByValue\":true}" >> "$OUT/steps.txt"
   echo >> "$OUT/steps.txt"
-  waitax "AXButton \\| Popup im Split View öffnen" 10
+  waitax "AXButton \\| Popup schließen" 10
 }
 # The overlay's split action; ⌘⇧↩ is its keyboard equivalent.
 popup_to_split() {
   $AX press $PID "AXButton:Popup im Split View öffnen" >> "$OUT/steps.txt" || key 36 cmd shift
   sleep 3
 }
-# Sidebar row menu (AXShowMenu, then an HID right-click) and one item.
-row_menu() { # <row title> <menu item>
+# Opens the sidebar row menu of <row title> until <menu item> shows
+# (AXShowMenu, then an HID right-click).
+open_row_menu() { # <row title> <menu item>
   local line role name
   line=$($AX dump $PID 40 | grep -o -E "AX(RadioButton|Tab|Row|Cell|Button) \| [^|]*$1[^|]*" | head -1 | sed -E 's/ *$//')
   echo "row for $1: $line" >> "$OUT/steps.txt"
@@ -228,26 +233,40 @@ row_menu() { # <row title> <menu item>
   role=${line%% |*}; name=${line#*| }
   $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
   $AX press $PID "$role:$name" AXShowMenu >> "$OUT/steps.txt"
-  if ! waitax "AXMenuItem \\| $2" 5; then
-    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1; $AX activate $PID >> "$OUT/steps.txt"; sleep 1
-    $AX hidrightclick $PID "$role:$name" >> "$OUT/steps.txt"
-    waitax "AXMenuItem \\| $2" 5 || { $AX dump $PID 40 > "$OUT/ax-row-menu-missing.txt"; return 1; }
-  fi
+  waitax "AXMenuItem \\| $2" 5 && return 0
+  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1; $AX activate $PID >> "$OUT/steps.txt"; sleep 1
+  $AX hidrightclick $PID "$role:$name" >> "$OUT/steps.txt"
+  waitax "AXMenuItem \\| $2" 5
+}
+# Sidebar row menu and one item.
+row_menu() { # <row title> <menu item>
+  open_row_menu "$1" "$2" || { $AX dump $PID 40 > "$OUT/ax-row-menu-missing.txt"; return 1; }
   $AX press $PID "AXMenuItem:$2" >> "$OUT/steps.txt"; sleep 2
 }
-# Pane menu "Geteilte Ansicht anordnen": optionally reads the check mark of
-# <check item> into CHECKED, then presses <item> (or closes the menu).
+# The presets: PaneA's row menu, submenu "Geteilte Ansicht anordnen"
+# (IDS_TAB_CXMENU_ARRANGE_SPLIT, three or four panes only). Optionally reads
+# the check mark of <check item> into CHECKED, then presses <item> or
+# closes submenu and menu.
+SPLIT_MENU="Geteilte Ansicht anordnen"
 split_menu() { # <item or ""> <check item or "">
-  CHECKED=false; $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
+  CHECKED=false
   local want=${1:-$2} opened=0
   for attempt in 1 2 3; do
-    $AX press $PID "Geteilte Ansicht anordnen" >> "$OUT/steps.txt"
-    waitax "AXMenuItem \\| $want" 5 && { opened=1; break; }
+    if open_row_menu PaneA "$SPLIT_MENU"; then
+      # Pressing the submenu item opens it, so NSMenu refreshes the marks.
+      $AX press $PID "AXMenuItem:$SPLIT_MENU" >> "$OUT/steps.txt"; sleep 1
+      waitax "AXMenuItem \\| $want" 5 && { opened=1; break; }
+    fi
+    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
     $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
   done
   [ $opened = 1 ] || { $AX dump $PID 40 > "$OUT/ax-split-menu-missing.txt"; return 1; }
   if [ -n "$2" ]; then $AX checked $PID "AXMenuItem:$2" >> "$OUT/steps.txt" && CHECKED=true; fi
-  if [ -n "$1" ]; then $AX press $PID "AXMenuItem:$1" >> "$OUT/steps.txt"; else $AX key $PID 53 >> "$OUT/steps.txt"; fi
+  if [ -n "$1" ]; then
+    $AX press $PID "AXMenuItem:$1" >> "$OUT/steps.txt"
+  else
+    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 0.5; $AX key $PID 53 >> "$OUT/steps.txt"
+  fi
   sleep 2
 }
 # Exit 0 when exactly these sidebar rows share one AXGroup parent and nothing

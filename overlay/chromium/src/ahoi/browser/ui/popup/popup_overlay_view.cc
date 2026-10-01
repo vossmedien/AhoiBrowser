@@ -297,15 +297,24 @@ void PopupOverlayView::SetSplitAvailability(
   // Invoking it then presents a visible and VoiceOver-announced explanation
   // instead of making a full four-pane split look like a broken control.
   split_button_->SetEnabled(true);
+  std::u16string reason;
   if (availability == popup::PopupSplitAvailability::kSplitFull) {
-    split_button_->SetTooltipText(
-        l10n_util::GetStringUTF16(IDS_AHOI_POPUP_SPLIT_FULL));
+    reason = l10n_util::GetStringUTF16(IDS_AHOI_POPUP_SPLIT_FULL);
   } else if (availability != popup::PopupSplitAvailability::kAvailable) {
-    split_button_->SetTooltipText(
-        l10n_util::GetStringUTF16(IDS_AHOI_POPUP_SPLIT_UNAVAILABLE));
+    reason = l10n_util::GetStringUTF16(IDS_AHOI_POPUP_SPLIT_UNAVAILABLE);
+  }
+  const std::u16string action =
+      l10n_util::GetStringUTF16(IDS_AHOI_POPUP_OPEN_IN_SPLIT);
+  // views::Button renames itself after its tooltip while both match. Keep
+  // the action's name stable and expose a refusal reason as the tooltip and
+  // accessible description; a full split used to rename the button to the
+  // refusal sentence, so VoiceOver and AX lookups lost the action.
+  split_button_->SetTooltipText(reason.empty() ? action : reason);
+  split_button_->GetViewAccessibility().SetName(action);
+  if (reason.empty()) {
+    split_button_->GetViewAccessibility().RemoveDescription();
   } else {
-    split_button_->SetTooltipText(
-        l10n_util::GetStringUTF16(IDS_AHOI_POPUP_OPEN_IN_SPLIT));
+    split_button_->GetViewAccessibility().SetDescription(reason);
   }
 }
 

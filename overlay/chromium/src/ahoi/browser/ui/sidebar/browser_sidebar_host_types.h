@@ -56,6 +56,7 @@ enum SidebarContextMenuCommand {
   kOpenActivePageInReadingMode,
   kConvertWorkspaceToIsolated,
   kMergeWorkspace,
+  kArrangeSplit,
 };
 
 // ADR 0011 WS-ISO-18: pauses the audio of another Profile's Workspace from

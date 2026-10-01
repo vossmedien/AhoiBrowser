@@ -14,6 +14,7 @@
 #include "chrome/browser/ui/views/frame/contents_web_view.h"
 #include "chrome/browser/ui/views/frame/multi_contents_resize_area.h"
 #include "chrome/browser/ui/views/frame/multi_contents_view.h"
+#include "chrome/grit/generated_resources.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_delegate.h"
@@ -22,9 +23,11 @@
 #include "third_party/blink/public/mojom/window_features/window_features.mojom.h"
 #include "ui/accessibility/ax_node_data.h"
 #include "ui/base/accelerators/accelerator.h"
+#include "ui/base/l10n/l10n_util.h"
 #include "ui/events/event_constants.h"
 #include "ui/events/keycodes/keyboard_codes.h"
 #include "ui/views/accessibility/view_accessibility.h"
+#include "ui/views/controls/button/image_button.h"
 #include "ui/views/focus/focus_manager.h"
 
 namespace ahoi::popup_ui {
@@ -76,6 +79,32 @@ IN_PROC_BROWSER_TEST_F(AhoiPopupOverlayBrowserTest,
   EXPECT_EQ(identity, popup.get());
   EXPECT_FALSE(controller()->IsShowing());
   EXPECT_EQ(1, browser()->GetTabStripModel()->count());
+}
+
+// SPLIT-15: a full split keeps the action's accessible name; the refusal
+// is the tooltip and the accessible description (build 58 renamed it).
+IN_PROC_BROWSER_TEST_F(AhoiPopupOverlayBrowserTest,
+                       SplitRefusalKeepsTheActionName) {
+  ShowEligiblePopup();
+  PopupOverlayView* const view = controller()->popup_view_for_testing();
+  ASSERT_TRUE(view);
+  views::ImageButton* const button = view->split_button_for_testing();
+  ASSERT_TRUE(button);
+  const std::u16string action =
+      l10n_util::GetStringUTF16(IDS_AHOI_POPUP_OPEN_IN_SPLIT);
+  const std::u16string full =
+      l10n_util::GetStringUTF16(IDS_AHOI_POPUP_SPLIT_FULL);
+
+  view->SetSplitAvailability(popup::PopupSplitAvailability::kSplitFull);
+  EXPECT_EQ(action, button->GetViewAccessibility().GetCachedName());
+  EXPECT_EQ(full, button->GetViewAccessibility().GetCachedDescription());
+  EXPECT_EQ(full, button->GetTooltipText());
+  EXPECT_TRUE(button->GetEnabled());
+
+  view->SetSplitAvailability(popup::PopupSplitAvailability::kAvailable);
+  EXPECT_EQ(action, button->GetViewAccessibility().GetCachedName());
+  EXPECT_TRUE(button->GetViewAccessibility().GetCachedDescription().empty());
+  EXPECT_EQ(action, button->GetTooltipText());
 }
 
 IN_PROC_BROWSER_TEST_F(AhoiPopupOverlayBrowserTest,

@@ -60,7 +60,7 @@ mark_all
 SEQ=""; for i in 1 2 3 4 5 6; do key 37 cmd ctrl; sleep 2; snap "cycle3-$i"; SEQ="$SEQ $(q layout)"; done
 echo "three-pane ⌘⌃L cycle:$SEQ" >> "$OUT/steps.txt"
 check threePaneLayoutCycle '[ "$SEQ" = " three-rows main-vertical main-vertical main-horizontal main-horizontal three-columns" ] && [ "$(q kept)" = "PaneA,PaneB,PaneC" ]'
-# SPLIT-10: the pane menu applies each preset and checks it afterwards.
+# SPLIT-10: the row menu's preset submenu applies each preset and checks it.
 OK=true; PREV=""
 for pair in "Drei Zeilen:three-rows" "Großes Pane links:main-vertical" "Großes Pane rechts:main-vertical" \
             "Großes Pane oben:main-horizontal" "Großes Pane unten:main-horizontal" "Drei Spalten:three-columns"; do
@@ -111,8 +111,10 @@ check fourGridLayoutShortcut '[ "$(q layout)" = four-grid ] && [ "$(q kept)" = "
 # visible reason; nothing is replaced, hidden, closed or reloaded.
 focus_pane 1
 popup_from "$(file_of "$(q focused)")" e.html || fail_setup "popup overlay for e.html did not open"
-$AX press $PID "AXButton:Popup im Split View öffnen" >> "$OUT/steps.txt"
-waitax "bereits vier Bereiche" 6 && REFUSED=true || REFUSED=false
+# The refusal is the status line (AXStaticText) after the press; up to
+# build 58 the split button's own name carried the same sentence.
+popup_to_split
+waitax "AXStaticText \\| Dieser Split hat bereits vier Bereiche" 6 && REFUSED=true || REFUSED=false
 $AX dump $PID 40 > "$OUT/ax-fifth-pane.txt"; snap fifth
 check fifthPaneRefused '$REFUSED && [ "$(q visible -PaneE)" = "PaneA,PaneB,PaneC,PaneD" ] && [ "$(q layout -PaneE)" = four-grid ] && [ "$(q kept -PaneE)" = "PaneA,PaneB,PaneC,PaneD" ]'
 $AX press $PID "AXButton:Popup schließen" >> "$OUT/steps.txt"; sleep 2; snap popup-closed

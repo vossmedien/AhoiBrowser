@@ -273,6 +273,8 @@ source_set("browser_sidebar") {
     "sidebar_runtime_tab_support.cc",
     "sidebar_runtime_tab_support.h",
     "sidebar_runtime_tab_views.cc",
+    "sidebar_split_preset_menu_model.cc",
+    "sidebar_split_preset_menu_model.h",
     "sidebar_split_tab_operations.cc",
     "sidebar_split_tab_operations.h",
     "sidebar_tab_preview_controller.cc",

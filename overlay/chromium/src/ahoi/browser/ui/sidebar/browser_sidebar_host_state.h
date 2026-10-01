@@ -221,6 +221,8 @@ struct SidebarContextMenuState {
   std::vector<SwitcherWorkspace> cross_level_targets;
   std::vector<base::Uuid> cross_level_roots;
   ContextMenuScope scope = ContextMenuScope::kNone;
+  // Declared before `model`, which refers to it as a submenu.
+  std::unique_ptr<ui::SimpleMenuModel> split_arrange_model;
   std::unique_ptr<ui::SimpleMenuModel> model;
   std::unique_ptr<ui::SimpleMenuModel> archive_policy_model;
   std::optional<base::Uuid> archive_id;

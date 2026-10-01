@@ -88,6 +88,7 @@ source_set("browser_tests") {
     "//ahoi/browser/popup:link_peek",
     "//ahoi/browser/session:session_bridge_api",
     "//base",
+    "//chrome/app:generated_resources",
     "//chrome/browser",
     "//chrome/browser/ui",
     "//chrome/test:test_support",

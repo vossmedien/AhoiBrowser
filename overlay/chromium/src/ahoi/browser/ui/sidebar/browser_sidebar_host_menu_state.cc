@@ -236,6 +236,9 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
 }
 
 bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
+  if (command_id == kArrangeSplit) {
+    return context_.split_arrange_model != nullptr;
+  }
   if (command_id == kCopyActivePageLink ||
       command_id == kCopyActivePageMarkdownLink) {
     return IsContextPageActionTargetCurrent() &&

@@ -189,6 +189,25 @@ ui/views/widget/widget.h
 ui/views/window/dialog_delegate.h
 ```
 
+## `0087-ahoi-split-reload-active-pane.patch`
+
+- **Owner:** Desktop (SPLIT-18 / SPLIT-37, split-matrix journey
+  `reloadTargetsActivePane`, build 58).
+- **Change:** `ReloadInternal` in `chrome/browser/ui/browser_commands.cc`
+  treats the whole active split as one UI tab. Upstream compares the
+  selection size with 2 for a split tab, because its splits have two panes
+  and both are selected. Ahoi splits have up to four panes, all selected,
+  so a three- or four-pane split looked like a multi-tab selection and
+  ⌘R reloaded every pane. The comparison now uses the active split's pane
+  count from `GetSplitData(...)->ListTabs()`.
+- **Safety:** two-pane splits and unsplit tabs keep upstream behaviour; a
+  real multi-selection beyond the active split still reloads every selected
+  tab.
+- **Tests:** `ahoi_split_layout_browsertests`
+  (`SplitLayoutMenuBrowserTest.ReloadInThreePaneSplitReloadsOnlyActivePane`).
+- **Rebase/removal:** drop once upstream counts the split's panes; 0022
+  and 0076 touch the same file in other functions.
+
 ## `0086-ahoi-pip-pages-cannot-freeze.patch`
 
 - **Owner:** Desktop (Crest review 2026-09-29, b76bdf46..6038460e,

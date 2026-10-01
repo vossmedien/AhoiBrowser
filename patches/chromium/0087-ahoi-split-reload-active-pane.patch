@@ -1,0 +1,25 @@
+diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
+index 5a66683..d8ce2a3 100644
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -730,9 +730,18 @@ void ReloadInternal(BrowserWindowInterface* browser,
+   // tab strip. To detect whether the user has selected multiple UI tabs,
+   // compare the number of model selected tabs wither either 2 or 1 depending on
+   // whether the active tab is split.
++  // Ahoi: a split holds up to four panes and selects all of them, so the
++  // active UI tab spans the whole split, not two tabs. Otherwise Cmd+R in a
++  // three- or four-pane split would reload every pane, not the focused one.
++  const size_t active_ui_tab_size =
++      active_tab && active_tab->IsSplit()
++          ? tab_strip_model->GetSplitData(active_tab->GetSplit().value())
++                ->ListTabs()
++                .size()
++          : 1u;
+   bool multiple_ui_tabs_selected =
+-      active_tab && tab_strip_model->selection_model().size() >
+-                        (active_tab->IsSplit() ? 2 : 1);
++      active_tab &&
++      tab_strip_model->selection_model().size() > active_ui_tab_size;
+ 
+   if (multiple_ui_tabs_selected) {
+     // Reloading a tab may change the selection (see crbug.com/339061099), so

@@ -82,3 +82,4 @@
 0083-ahoi-command-bar-key-hints.patch
 0085-ahoi-rebindable-fixed-shortcuts.patch
 0086-ahoi-pip-pages-cannot-freeze.patch
+0087-ahoi-split-reload-active-pane.patch

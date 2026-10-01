@@ -30,6 +30,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_preset_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_thumbnail_cache.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -131,6 +132,26 @@
 
 namespace ahoi::sidebar {
 
+namespace {
+
+// SPLIT-10 / SPLIT-34: a split of three or four panes gets Chromium's
+// layout presets as an "Arrange split view" submenu below the row's split
+// items. Without it the presets had no pointer surface in Ahoi.
+void AddSplitArrangeSubmenu(SidebarContextMenuState& context,
+                            TabStripModel* tab_strip_model,
+                            tabs::TabInterface* tab) {
+  context.split_arrange_model =
+      SidebarSplitPresetMenuModel::CreateFor(tab_strip_model, tab);
+  if (context.split_arrange_model) {
+    context.model->AddSubMenu(
+        kArrangeSplit,
+        l10n_util::GetStringUTF16(IDS_TAB_CXMENU_ARRANGE_SPLIT),
+        context.split_arrange_model.get());
+  }
+}
+
+}  // namespace
+
 // views::ContextMenuController:
 void BrowserSidebarHostView::ShowContextMenuForViewImpl(
     views::View* source,
@@ -207,6 +228,9 @@ void BrowserSidebarHostView::ShowOpenTabContextMenu(
     context_.model->AddItem(
         kSeparateSplit,
         l10n_util::GetStringUTF16(IDS_SPLIT_TAB_SEPARATE_VIEWS));
+    AddSplitArrangeSubmenu(
+        context_, session_bridge_->FindTabStripModelForTab(tab.get()),
+        tab.get());
   }
   context_.model->AddItem(
       kCreateGroupAroundNode,
@@ -243,6 +267,7 @@ void BrowserSidebarHostView::ShowOpenTabContextMenu(
   }
   context_menu_runner_.reset();
   context_.model.reset();
+  context_.split_arrange_model.reset();
   context_move_menu_model_.reset();
   context_move_submenu_models_.clear();
   context_.move_destinations.clear();
@@ -520,6 +545,8 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
       context_.model->AddItem(
           kSeparateSplit,
           l10n_util::GetStringUTF16(IDS_SPLIT_TAB_SEPARATE_VIEWS));
+      AddSplitArrangeSubmenu(
+          context_, session_bridge_->FindTabStripModelForTab(tab), tab);
     }
     if (tab) {
       context_.model->AddSeparator(ui::NORMAL_SEPARATOR);
@@ -592,6 +619,7 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
   }
   context_menu_runner_.reset();
   context_.model.reset();
+  context_.split_arrange_model.reset();
   context_move_menu_model_.reset();
   context_move_submenu_models_.clear();
   context_.move_destinations.clear();

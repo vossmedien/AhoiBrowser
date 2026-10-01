@@ -1,10 +1,12 @@
 // Copyright 2026 The AhoiBrowser Authors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <memory>
 #include <optional>
 #include <vector>
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
+#include "ahoi/browser/ui/sidebar/sidebar_split_preset_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
 #include "ahoi/browser/ui/split_drop/split_drop_controller.h"
 #include "base/test/scoped_feature_list.h"
@@ -22,10 +24,15 @@
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tabs/public/split_tab_data.h"
 #include "components/tabs/public/tab_interface.h"
+#include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/web_contents.h"
 #include "content/public/test/browser_test.h"
+#include "content/public/test/browser_test_utils.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/base/dragdrop/drag_drop_types.h"
 #include "ui/base/dragdrop/os_exchange_data.h"
+#include "ui/base/models/menu_model.h"
+#include "ui/base/window_open_disposition.h"
 #include "ui/gfx/geometry/point.h"
 #include "ui/gfx/geometry/rect.h"
 #include "ui/views/drag_controller.h"
@@ -147,6 +154,117 @@ IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
   EXPECT_DOUBLE_EQ(visual_data->secondary_split_ratio(), 0.5);
   EXPECT_TRUE(menu.IsItemCheckedAt(rows_index));
   EXPECT_EQ(tab_strip_model->GetSplitData(split_id)->ListTabs(), original_tabs);
+}
+
+// SPLIT-10 / SPLIT-34: the sidebar row's "Arrange split view" submenu is
+// the only pointer surface for the presets in Ahoi; it lists exactly the
+// presets and applies them without replacing a WebContents.
+IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
+                       SidebarRowPresetSubmenuAppliesPresets) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
+  tab_strip_model->AddToNewSplit(
+      {0}, split_tabs::SplitTabVisualData(),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  EXPECT_FALSE(sidebar::SidebarSplitPresetMenuModel::CreateFor(
+      tab_strip_model, tab_strip_model->GetActiveTab()));
+  ASSERT_TRUE(tab_strip_model->GetActiveTab()->GetSplit().has_value());
+  tab_strip_model->RemoveSplit(*tab_strip_model->GetActiveTab()->GetSplit());
+
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  ASSERT_EQ(3, tab_strip_model->count());
+  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
+      {0, 1},
+      split_tabs::SplitTabVisualData::ForThreePane(
+          split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  const std::vector<tabs::TabInterface*> panes =
+      tab_strip_model->GetSplitData(split_id)->ListTabs();
+  std::unique_ptr<sidebar::SidebarSplitPresetMenuModel> menu =
+      sidebar::SidebarSplitPresetMenuModel::CreateFor(tab_strip_model,
+                                                      panes[0]);
+  ASSERT_TRUE(menu);
+  ASSERT_EQ(6u, menu->GetItemCount());
+  for (size_t index = 0; index < menu->GetItemCount(); ++index) {
+    EXPECT_EQ(ui::MenuModel::TYPE_CHECK, menu->GetTypeAt(index));
+    EXPECT_TRUE(menu->IsEnabledAt(index));
+  }
+  const size_t columns =
+      menu->GetIndexOfCommandId(
+              CommandId(SplitTabMenuModel::CommandId::kThreeColumns))
+          .value();
+  const size_t main_top =
+      menu->GetIndexOfCommandId(
+              CommandId(SplitTabMenuModel::CommandId::kThreeMainTop))
+          .value();
+  EXPECT_TRUE(menu->IsItemCheckedAt(columns));
+  menu->ActivatedAt(main_top);
+  const split_tabs::SplitTabVisualData* const visual_data =
+      tab_strip_model->GetSplitData(split_id)->visual_data();
+  EXPECT_EQ(split_tabs::SplitTabLayout::kStacked, visual_data->split_layout());
+  EXPECT_EQ(split_tabs::SplitTabArrangement::kMainStart,
+            visual_data->arrangement());
+  EXPECT_TRUE(menu->IsItemCheckedAt(main_top));
+  EXPECT_FALSE(menu->IsItemCheckedAt(columns));
+  EXPECT_EQ(panes, tab_strip_model->GetSplitData(split_id)->ListTabs());
+}
+
+IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
+                       SidebarRowPresetSubmenuOffersBothGridOrders) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
+  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
+      {0, 1, 2},
+      split_tabs::SplitTabVisualData::ForFourPane(
+          split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  std::unique_ptr<sidebar::SidebarSplitPresetMenuModel> menu =
+      sidebar::SidebarSplitPresetMenuModel::CreateFor(
+          tab_strip_model, tab_strip_model->GetTabAtIndex(1));
+  ASSERT_TRUE(menu);
+  ASSERT_EQ(2u, menu->GetItemCount());
+  const size_t rows =
+      menu->GetIndexOfCommandId(
+              CommandId(SplitTabMenuModel::CommandId::kFourGridRowsFirst))
+          .value();
+  EXPECT_FALSE(menu->IsItemCheckedAt(rows));
+  menu->ActivatedAt(rows);
+  EXPECT_EQ(
+      split_tabs::SplitTabLayout::kStacked,
+      tab_strip_model->GetSplitData(split_id)->visual_data()->split_layout());
+  EXPECT_TRUE(menu->IsItemCheckedAt(rows));
+}
+
+// SPLIT-18 / SPLIT-37 (patch 0087): all panes of the active split are
+// selected; Cmd+R must still reload only the focused pane.
+IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
+                       ReloadInThreePaneSplitReloadsOnlyActivePane) {
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  TabStripModel* const tab_strip_model = browser()->GetTabStripModel();
+  const split_tabs::SplitTabId split_id = tab_strip_model->AddToNewSplit(
+      {0, 1},
+      split_tabs::SplitTabVisualData::ForThreePane(
+          split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  const std::vector<tabs::TabInterface*> panes =
+      tab_strip_model->GetSplitData(split_id)->ListTabs();
+  ASSERT_EQ(3u, panes.size());
+  for (tabs::TabInterface* pane : panes) {
+    ASSERT_TRUE(content::WaitForLoadStop(pane->GetContents()));
+  }
+  tabs::TabInterface* const active = tab_strip_model->GetActiveTab();
+  ASSERT_EQ(3u, tab_strip_model->selection_model().size());
+
+  chrome::Reload(browser(), WindowOpenDisposition::CURRENT_TAB);
+
+  for (tabs::TabInterface* pane : panes) {
+    EXPECT_EQ(pane == active,
+              pane->GetContents()->GetController().GetPendingEntry() !=
+                  nullptr);
+  }
 }
 
 IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
