@@ -39,7 +39,10 @@ press() { local l; for l in "$@"; do "$AX" press $PID "$l" >> "$OUT/run.txt" 2>&
 press "Adressleiste einblenden" "Show address bar"; sleep 2
 press "Datenschutzmodus: Mehr Schutz" "Privacy mode: More protection" || { record PRIV-07_panel_opens "FAIL:no-privacy-button"; }
 sleep 2
-"$AX" dump $PID 40 > "$OUT/ax-panel-before.txt" 2>/dev/null
+# The effect sentences exceed axtool's default 80-character value cut;
+# dump them whole so the security sentence can be read at all.
+AHOI_AX_VALUE_MAX=600 "$AX" dump $PID 40 \
+  > "$OUT/ax-panel-before.txt" 2>/dev/null
 press "Kompatibilität für diese Website maximieren" "Fix this website with maximum compatibility" \
   || record PRIV-07_repair_action "FAIL:no-repair-action"
 sleep 5
@@ -50,7 +53,8 @@ press "Datenschutzmodus: Maximale Website-Kompatibilität" \
   "Privacy mode: Maximum website compatibility" \
   || record PRIV-07_panel_reopens "FAIL:no-compatibility-button"
 sleep 2
-"$AX" dump $PID 40 > "$OUT/ax-panel-after.txt" 2>/dev/null
+AHOI_AX_VALUE_MAX=600 "$AX" dump $PID 40 \
+  > "$OUT/ax-panel-after.txt" 2>/dev/null
 
 # The live preference; the Preferences file is written lazily.
 curl -s -X PUT "http://127.0.0.1:$PORT/json/new?chrome://prefs-internals" > /dev/null; sleep 4
