@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## M154 remaining journeys on build 58 — 1 October 2026, 03:15 CEST
+
+- **Green on build 58 `21b49fb9`:** ubo-classic 9/9, anychat 11/11,
+  import-sources, link-peek 30/30, reader 12/12, quick-window 12/12,
+  sidebar-discovery 8/8, incognito 13/13, privacy-modes 13/13,
+  privacy-exceptions 5/5, clear-data 14/14, downloads-media 7/7,
+  mini-player 9/9, restore-surface 17/17, ws-convert 9/9,
+  ws-deletion-extended 9/9, ws-level-deletion 14/14, privacy-repair 3/3
+  (PRIV-07 after the harness fix `2c54de88`).
+- **Fixed, waiting for build 59 (`d3ebc1b9`, running):**
+  split-archive-restore 4/5 and auto-archive (false PASS) → `dab2c09c`;
+  split-matrix 17/20 → `cbb53661` + patch 0087; split-lifecycle (setup lost
+  focus, rerun); devtoolkit 0/7 → `cc351402` (journey seeded LESS with
+  compiler version 0, so validation dropped the whole origin profile; the
+  product now keeps the profile and only skips stale compiled output; new
+  unit tests in `ahoi_developer_toolkit_unittests`).
+- **Harness, rerun after build 59:** settings-sections (probe polled 10 s,
+  `cdp.mjs` times out at 8 s → empty result; `d3ebc1b9`); safe-browsing
+  unkeyed FAIL is the known no-key state, the keyed run
+  (`AHOI_SB_KEYCHAIN_KEY=1`) is queued after build 59.
+- **Under investigation:** cmd-digit-probe (⌘1/⌘9/Ctrl+Tab/⌘Keypad1 work,
+  ⌘2/⌘3 miss their row); never green on M153 either.
+
 ## M154 installed and verified — 1 October 2026, 01:56 CEST
 
 - **M154 roll done:** Chromium 154.0.8037.93; first green dev build
