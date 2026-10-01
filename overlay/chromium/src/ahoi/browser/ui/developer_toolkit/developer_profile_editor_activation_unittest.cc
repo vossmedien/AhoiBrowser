@@ -13,10 +13,11 @@
 #include "base/functional/callback_helpers.h"
 #include "components/prefs/testing_pref_service.h"
 #include "components/user_prefs/user_prefs.h"
+#include "chrome/test/views/chrome_views_test_base.h"
 #include "content/public/test/browser_task_environment.h"
 #include "content/public/test/navigation_simulator.h"
 #include "content/public/test/test_browser_context.h"
-#include "content/public/test/test_content_client_initializer.h"
+#include "content/public/test/test_renderer_host.h"
 #include "content/public/test/web_contents_tester.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/views/test/views_test_base.h"
@@ -44,17 +45,10 @@ class FixtureCompiler final : public DeveloperStyleCompilerService {
   const std::shared_ptr<CompilerFixture> state_;
 };
 
-class DeveloperProfileEditorActivationTest : public views::ViewsTestBase {
+class DeveloperProfileEditorActivationTest : public ChromeViewsTestBase {
  protected:
-  DeveloperProfileEditorActivationTest()
-      : views::ViewsTestBase(std::unique_ptr<base::test::TaskEnvironment>(
-            std::make_unique<content::BrowserTaskEnvironment>(
-                content::BrowserTaskEnvironment::MainThreadType::UI))) {}
-
   void SetUp() override {
-    views::ViewsTestBase::SetUp();
-    content_clients_ = std::make_unique<content::TestContentClientInitializer>();
-    content_clients_->CreateTestRenderViewHosts();
+    ChromeViewsTestBase::SetUp();
     context_ = std::make_unique<content::TestBrowserContext>();
     // Toolkit registration also owns the profile dictionary.
     developer_toolkit_prefs::RegisterProfilePrefs(prefs_.registry());
@@ -68,8 +62,7 @@ class DeveloperProfileEditorActivationTest : public views::ViewsTestBase {
     editor_.reset();
     contents_.reset();
     context_.reset();
-    content_clients_.reset();
-    views::ViewsTestBase::TearDown();
+    ChromeViewsTestBase::TearDown();
   }
   void OpenEditor() {
     DeveloperProfile profile{.name = "Protected draft"};
@@ -106,7 +99,7 @@ class DeveloperProfileEditorActivationTest : public views::ViewsTestBase {
   }
 
   TestingPrefServiceSimple prefs_;
-  std::unique_ptr<content::TestContentClientInitializer> content_clients_;
+  content::RenderViewHostTestEnabler renderer_;
   std::unique_ptr<content::TestBrowserContext> context_;
   std::unique_ptr<content::WebContents> contents_;
   std::shared_ptr<CompilerFixture> compiler_ =

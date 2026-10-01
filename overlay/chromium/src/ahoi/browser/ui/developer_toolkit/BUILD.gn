@@ -79,7 +79,6 @@ source_set("unit_tests") {
     "developer_data_clear_view_unittest.cc",
     "developer_header_secret_editor_model_unittest.cc",
     "developer_header_secret_editor_view_unittest.cc",
-    "developer_profile_editor_activation_unittest.cc",
     "developer_response_header_advanced_mode_view_unittest.cc",
     "developer_toolkit_bubble_view_unittest.cc",
     "location_bar_bubble_button_unittest.cc",
@@ -88,12 +87,24 @@ source_set("unit_tests") {
     ":developer_toolkit_ui",
     "//ahoi/browser/ui:visual_style",
     "//base",
+    "//testing/gtest",
+    "//ui/events:test_support",
+    "//ui/views",
+    "//ui/views:test_support",
+  ]
+}
+
+# Editor tests use WebContents and native browser state. The pure Views suite
+# owns another AX test platform, so these belong to ChromeUnitTestSuite.
+test("ahoi_developer_profile_editor_unittests") {
+  sources = [ "developer_profile_editor_activation_unittest.cc" ]
+  deps = [
+    ":developer_toolkit_ui",
+    "//chrome/test:test_support_unit",
     "//components/prefs:test_support",
     "//components/user_prefs",
     "//content/test:test_support",
     "//testing/gtest",
-    "//ui/events:test_support",
-    "//ui/views",
     "//ui/views:test_support",
   ]
 }

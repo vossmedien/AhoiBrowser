@@ -1,5 +1,26 @@
 # Active Desktop checkpoint
 
+## Editor tests need Chrome native suite; source wiring corrected — 1 October 2026
+
+Build 65 a8e0ef5a builds/signs/provenance-verifies. Native editor setup hits
+the duplicate AXPlatform singleton DCHECK: the pure Views suite and complete
+Content initializer each create one. [Preserved pre-editor RED](../artifacts/tests/editor-views-ax-red-a8e0ef5a-20261001/README.md).
+No product editor result is inferred. Runner 26558 is terminal, lock released.
+
+The two unchanged real editor regression methods now belong to their own
+`ahoi_developer_profile_editor_unittests` ChromeUnitTestSuite target through
+upstream chrome/test:test_support_unit. ChromeViewsTestBase supplies browser
+thread setup; no manual Content/AX singleton is added. The other pure Views
+suite stays unchanged. This requires the new explicit build target before
+execution. Product code, compiler tests/assertions and native AX checks stay
+intact. Pinned-Clang source check passes; native setup/runtime still pending.
+
+Next: exact single-job guarded candidate with the new target included, then
+execute the two editor methods and the required native worker/remaining gates.
+Core127/Mojo20/Sidebar191 may carry only with unchanged executable/runtime
+inputs; no re-test merely for a metadata/source pointer change. Preserve all
+prior reds. Installed Ahoi remains Build 59/d3ebc1b9, Master active.
+
 ## Frozen Content-client editor fixture Build 65 running — 1 October 2026
 
 Source a8e0ef5a is frozen in the clean queue repository. Owned detached runner
