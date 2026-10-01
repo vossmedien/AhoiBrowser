@@ -201,6 +201,25 @@ overlay `SplitLayoutMenuBrowserTest` cases and upstream `DuplicateSplit`
 in `browser_commands.cc` (new `0001` section; `0022`, `0076`, `0087`
 carry only the new blob ids). Single-index callers are unaffected.
 
+## `0088-ahoi-retain-split-pane-hosts-on-close.patch`
+
+- **Owner:** Desktop, SPLIT-04/07/18 and the M154 lifecycle journey.
+- **Change:** shrink a split by moving the surviving native pane hosts,
+  retaining their WebContents bindings. Only obsolete hosts are cleared.
+  Unsplit likewise retains the active host before hiding the others. This
+  avoids detaching and reattaching live pages inside a synchronous model
+  removal notification, where native focus can re-enter the binding path.
+- **Safety:** the overlap checks remain for genuine new bindings. No new
+  WebContents, tab, session owner or split representation is introduced.
+- **Test:** `SplitLayoutMenuBrowserTest.
+  FocusedPaneCloseRetainsLiveHostsUntilOnePane` closes middle, last and first
+  focused panes from four to one and checks membership, unique visible
+  bindings, retained hosts and empty hidden hosts. Pinned-Clang source
+  checks pass; browser execution and installed acceptance remain pending.
+- **Rebase/removal:** follows 0008; drop when upstream retains pane hosts
+  during multi-pane shrink/unsplit. The patch modifies only BrowserView and
+  MultiContentsView.
+
 ## `0087-ahoi-split-reload-active-pane.patch`
 
 - **Owner:** Desktop (SPLIT-18 / SPLIT-37, split-matrix journey

@@ -1,0 +1,126 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index c8c27535e29f38fe5b7b765c2c668c6fe5d2124f..483c7bc6ce1b3a2ec59ed9c60e49cf64f20a018b 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -4917,7 +4917,10 @@
+   // use the overlap-safe two-phase binding lifecycle below.
+   if (multi_contents_view_->ReorderContentsInSplitView(
+           desired_visible_bindings)) {
+-    multi_contents_view_->UpdateSplitVisualData(*split_data->visual_data());
++    // Surviving hosts also handle a shrinking split without detaching the
++    // live pages while TabStripModel is delivering its removal notification.
++    multi_contents_view_->ShowSplitView(*split_data->visual_data(),
++                                       split_tabs.size());
+   } else {
+     ahoi::split_drop::RebindSplitPanesWithoutOverlap(
+         desired_bindings,
+diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
+index f7ec9795d5427514d60a30036652ff46806b5d11..67747def15aec9747f306ce0c6c48e0f953a66f1 100644
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -397,31 +397,42 @@
+     return;
+   }
+ 
+-  std::vector<content::WebContents*> desired_bindings(
+-      contents_container_views_.size(), nullptr);
+-  desired_bindings[0] = GetActiveContentsView()->web_contents();
+-  ahoi::split_drop::RebindSplitPanesWithoutOverlap(
+-      desired_bindings,
+-      [this](size_t index) {
+-        return contents_container_views_[index]
+-            ->contents_view()
+-            ->web_contents();
+-      },
+-      [this](size_t index, content::WebContents* web_contents) {
+-        contents_container_views_[index]->contents_view()->SetWebContents(
+-            web_contents);
+-      },
+-      [this]() {
+-        for (size_t index = 0; index < contents_container_views_.size();
+-             ++index) {
+-          contents_container_views_[index]->SetVisible(index == 0);
+-        }
+-        for (auto& resize_area : resize_areas_) {
+-          resize_area->SetVisible(false);
+-        }
+-        SetActiveIndex(0);
+-        UpdateContentsBorderAndOverlay();
+-      });
++  const auto finish_layout = [this]() {
++    for (size_t index = 0; index < contents_container_views_.size(); ++index) {
++      contents_container_views_[index]->SetVisible(index == 0);
++    }
++    for (auto& resize_area : resize_areas_) {
++      resize_area->SetVisible(false);
++    }
++    SetActiveIndex(0);
++    UpdateContentsBorderAndOverlay();
++  };
++  content::WebContents* const retained =
++      GetActiveContentsView()->web_contents();
++  if (retained && ReorderContentsInSplitView({retained})) {
++    // Keep the retained page attached to its existing host. Detaching it
++    // synchronously can advance native focus during the model notification.
++    finish_layout();
++    for (size_t index = 1; index < contents_container_views_.size(); ++index) {
++      contents_container_views_[index]->contents_view()->SetWebContents(nullptr);
++    }
++  } else {
++    std::vector<content::WebContents*> desired_bindings(
++        contents_container_views_.size(), nullptr);
++    desired_bindings[0] = retained;
++    ahoi::split_drop::RebindSplitPanesWithoutOverlap(
++        desired_bindings,
++        [this](size_t index) {
++          return contents_container_views_[index]
++              ->contents_view()
++              ->web_contents();
++        },
++        [this](size_t index, content::WebContents* web_contents) {
++          contents_container_views_[index]->contents_view()->SetWebContents(
++              web_contents);
++        },
++        finish_layout);
++  }
+ 
+   if (auto* active_web_contents = GetActiveContentsView()->web_contents()) {
+     tabs::TabInterface* tab =
+@@ -435,7 +446,8 @@
+ bool MultiContentsView::ReorderContentsInSplitView(
+     const std::vector<content::WebContents*>& desired_contents) {
+   const size_t pane_count = GetVisiblePaneCount();
+-  if (pane_count < 2u || desired_contents.size() != pane_count) {
++  if (pane_count < 2u || desired_contents.empty() ||
++      desired_contents.size() > pane_count) {
+     return false;
+   }
+ 
+@@ -457,7 +469,8 @@
+ 
+   ContentsContainerView* const active_container =
+       GetActiveContentsContainerView();
+-  for (size_t destination = 0; destination < pane_count; ++destination) {
++  for (size_t destination = 0; destination < desired_contents.size();
++       ++destination) {
+     if (contents_container_views_[destination] ==
+         desired_containers[destination]) {
+       continue;
+@@ -484,10 +497,13 @@
+ 
+   const auto active = std::ranges::find(
+       contents_container_views_.begin(),
+-      contents_container_views_.begin() + pane_count, active_container);
+-  CHECK(active != contents_container_views_.begin() + pane_count);
+-  SetActiveIndex(
+-      static_cast<int>(active - contents_container_views_.begin()));
++      contents_container_views_.begin() + desired_contents.size(),
++      active_container);
++  SetActiveIndex(active == contents_container_views_.begin() +
++                              desired_contents.size()
++                     ? 0
++                     : static_cast<int>(active -
++                                        contents_container_views_.begin()));
+   return true;
+ }
+ 

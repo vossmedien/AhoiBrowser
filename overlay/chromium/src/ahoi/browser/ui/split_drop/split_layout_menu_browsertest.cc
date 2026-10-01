@@ -3,12 +3,14 @@
 
 #include <memory>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_preset_menu_model.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
 #include "ahoi/browser/ui/split_drop/split_drop_controller.h"
+#include "base/run_loop.h"
 #include "base/test/scoped_feature_list.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_commands.h"
@@ -18,6 +20,8 @@
 #include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
+#include "chrome/browser/ui/views/frame/contents_container_view.h"
+#include "chrome/browser/ui/views/frame/contents_web_view.h"
 #include "chrome/browser/ui/views/frame/multi_contents_view.h"
 #include "chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h"
 #include "chrome/test/base/in_process_browser_test.h"
@@ -68,6 +72,59 @@ class SplitLayoutMenuBrowserTest : public InProcessBrowserTest {
 // Since M154, AddToNewSplit() adds the active tab implicitly only for a
 // single index. Multi-pane splits below therefore pass the active tab first,
 // as the pivot, followed by the background tabs that complete the split.
+IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
+                       FocusedPaneCloseRetainsLiveHostsUntilOnePane) {
+  for (int index = 0; index < 3; ++index) {
+    chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);
+  }
+  TabStripModel* const model = browser()->GetTabStripModel();
+  const auto split = model->AddToNewSplit(
+      {model->active_index(), 0, 1, 2},
+      split_tabs::SplitTabVisualData::ForFourPane(
+          split_tabs::SplitTabLayout::kSideBySide),
+      split_tabs::SplitTabCreatedSource::kToolbarButton);
+  BrowserView* const view = BrowserView::GetBrowserViewForBrowser(browser());
+  MultiContentsView* const hosts = view->multi_contents_view();
+  std::vector<std::pair<tabs::TabInterface*, ContentsContainerView*>> live;
+  for (auto* tab : model->GetSplitData(split)->ListTabs()) {
+    ASSERT_TRUE(content::WaitForLoadStop(tab->GetContents()));
+    auto* const host = hosts->GetContentsContainerViewFor(tab->GetContents());
+    ASSERT_TRUE(host);
+    live.emplace_back(tab, host);
+  }
+  // Close a middle, last and first member, with native page focus each time.
+  for (size_t position : {1u, 2u, 0u}) {
+    auto* const closing = live[position].first;
+    model->ActivateTabAt(model->GetIndexOfTab(closing));
+    live[position].second->contents_view()->RequestFocus();
+    live.erase(live.begin() + position);
+    closing->Close();
+    base::RunLoop().RunUntilIdle();
+    ASSERT_EQ(live.size(), static_cast<size_t>(model->count()));
+    ASSERT_EQ(live.size(), hosts->GetVisiblePaneCount());
+    std::set<content::WebContents*> expected;
+    for (const auto& [tab, original_host] : live) {
+      expected.insert(tab->GetContents());
+      if (live.size() > 1u) {
+        EXPECT_EQ(original_host,
+                  hosts->GetContentsContainerViewFor(tab->GetContents()));
+      }
+    }
+    std::set<content::WebContents*> presented;
+    for (ContentsContainerView* host : hosts->contents_container_views()) {
+      if (host->GetVisible()) {
+        ASSERT_TRUE(host->contents_view()->web_contents());
+        EXPECT_TRUE(presented.insert(
+            host->contents_view()->web_contents()).second);
+      } else {
+        EXPECT_EQ(nullptr, host->contents_view()->web_contents());
+      }
+    }
+    EXPECT_EQ(expected, presented);
+  }
+  EXPECT_TRUE(model->ListSplits().empty());
+}
+
 IN_PROC_BROWSER_TEST_F(SplitLayoutMenuBrowserTest,
                        ThreePanePresetsKeepWebContents) {
   chrome::NewTab(browser(), NewTabTypes::kNewTabCommand);

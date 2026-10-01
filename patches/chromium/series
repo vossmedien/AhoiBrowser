@@ -83,3 +83,4 @@
 0085-ahoi-rebindable-fixed-shortcuts.patch
 0086-ahoi-pip-pages-cannot-freeze.patch
 0087-ahoi-split-reload-active-pane.patch
+0088-ahoi-retain-split-pane-hosts-on-close.patch
