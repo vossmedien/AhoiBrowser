@@ -1,5 +1,34 @@
 # Active Desktop checkpoint
 
+## Strict split focus yield verified; bounded UI opportunity ended — 1 October 2026
+
+The shared split helper can now opt into `AHOI_E2E_YIELD_ON_FOCUS_LOSS=1`.
+After acquiring the owned app, a foreign frontmost app cancels the journey
+without reactivation/HID; owned fixture-target close uses CDP. Initial launch/
+relaunch retain their explicit acquisition. This is focus-loss cooperation,
+not a claimed distinction between human/generated input within the same app.
+[Actual key-path mock and space-path correction evidence](../artifacts/tests/split-focus-yield-spaces-20261001/README.md).
+The final fixture exits 8, cancelled/pass:false, only `focused` invoked.
+The earlier unquoted fake-helper fixture failure is preserved, not promoted.
+Bash syntax, diff and lane checks pass; no visible/runtime cancellation PASS.
+
+One corrected lifecycle opportunity ran as owned runner 81386, exact installed
+9acb43c8, strict focus mode, at most 120 seconds for real idle >=90/app absent/
+compiler absent/free owner locks. It is now terminal/deferred-owner-active,
+idle 49, no app or compiler, PID absent. It never launched a journey/browser or
+claimed the E2E lock. [Saved state](../artifacts/tests/split-focus-yield-spaces-20261001/bounded-window-state.json).
+No general observer or retry queue remains. The runner source is retained at
+`.work/agent-queue/67/installed-lifecycle-corrected.py`; do not resume its old
+PID or repeatedly restart this elapsed opportunity.
+
+Next at an actual fresh UI opportunity: corrected visible lifecycle on installed
+9acb43c8, exact harness input binding and strict focus yield, then the remaining
+representative matrix/archive/auto-archive/devtoolkit/settings journeys. Headless
+network/startup evidence below remains narrowly valid; full Master, shared/
+service workers, Sync and external/release gates remain open. No new build,
+install, simulator or external action occurred. Crest 106/110 still belong to
+the later separately granted performance lease, not this E2E.
+
 ## Installed headless network/startup diagnosis executed — 1 October 2026
 
 Both bounded isolated probes on installed 9acb43c8 finish exit 0, native browser

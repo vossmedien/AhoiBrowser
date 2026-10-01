@@ -1,0 +1,12 @@
+{
+  "scope": "Real shared-library key path with fake AX foreign focus; fixture only, no app/HID/CDP action",
+  "exitCode": 8,
+  "verdict": {
+    "cancelled": "owner focus returned elsewhere",
+    "pass": false
+  },
+  "axCalls": [
+    "focused 290001"
+  ],
+  "earlierFixtureRed": "The first fake AX path contained spaces and was not invoked; preserved separately, not a focus-check PASS."
+}

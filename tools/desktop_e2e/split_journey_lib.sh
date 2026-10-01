@@ -102,6 +102,25 @@ PY
 CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 site_ids() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;[print(t["id"]) for t in json.load(sys.stdin) if t["type"]=="page" and t["url"].startswith(sys.argv[1])]' "$SITE"; }
 urls() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(" ".join(sorted(t["url"].rsplit("/",1)[-1] for t in json.load(sys.stdin) if t["type"]=="page" and t["url"].startswith(sys.argv[1]))))' "$SITE"; }
+OWNED_FOCUS_ACQUIRED=false
+activate_owned() {
+  if [ "${AHOI_E2E_YIELD_ON_FOCUS_LOSS:-0}" = 1 ] && [ "$OWNED_FOCUS_ACQUIRED" = true ]; then
+    if ! "$AX" focused "$PID" | head -1 | grep -q " pid=$PID target=$PID$"; then
+      echo 'owner focus returned elsewhere; yielding without activation or HID' >> "$OUT/steps.txt"
+      echo '{"cancelled":"owner focus returned elsewhere","pass":false}' > "$OUT/verdict.json"
+      # Close only this journey's fixture target, without keyboard/focus actions.
+      local id
+      id=$(site_ids | head -1)
+      [ -z "$id" ] || CDP "$id" Browser.close '{}' > "$OUT/cancel-close.json" 2>&1
+      exit 8
+    fi
+    return 0
+  fi
+  "$AX" activate "$PID" >> "$OUT/steps.txt"
+  if "$AX" focused "$PID" | head -1 | grep -q " pid=$PID target=$PID$"; then
+    OWNED_FOCUS_ACQUIRED=true
+  fi
+}
 launch() { # [url] [nodevtools]
   local url=${1:-} dev=--remote-debugging-port=$PORT
   [ "${2:-}" = nodevtools ] && dev=""
@@ -113,7 +132,8 @@ launch() { # [url] [nodevtools]
   else
     waitax "AXWindow \\|" 40
   fi
-  sleep 4; $AX activate $PID >> "$OUT/steps.txt"
+  OWNED_FOCUS_ACQUIRED=false
+  sleep 4; activate_owned
 }
 quit() { key 12 cmd; for i in $(seq 1 20); do kill -0 $PID 2>/dev/null || return 0; sleep 1; done; echo "still running after quit" >> "$OUT/run.txt"; kill $PID; sleep 3; }
 # Continue the last session on the next start: Ahoi's own choice for a start
@@ -132,7 +152,7 @@ PY
 # unless the app is frontmost, so bring it forward and retry.
 key() {
   for attempt in 1 2 3 4 5; do
-    $AX activate $PID >/dev/null; sleep 0.3
+    activate_owned; sleep 0.3
     $AX hidkey $PID "$@" >> "$OUT/steps.txt" && return 0
     sleep 1
   done
@@ -198,7 +218,7 @@ fail_setup() { dump_navigation; $AX dump $PID 40 > "$OUT/ax-setup-failure.txt"; 
 open_url() { # <url> ; ⌘T + type + Return
   local opened=0
   for attempt in 1 2 3; do
-    $AX activate $PID >> "$OUT/steps.txt"; sleep 1; key 17 cmd
+    activate_owned; sleep 1; key 17 cmd
     waitax "AXWindow \\| Suchen oder URL eingeben" 6 14 && { opened=1; break; }
   done
   [ $opened = 1 ] || fail_setup "command bar did not open for $1"
@@ -241,7 +261,7 @@ tab_menu_split() { # <file>; splits the active page with <file> via the picker
   $AX press $PID "AXMenuItem:Tab zu neuer geteilter Ansicht hinzufügen" >> "$OUT/steps.txt"; sleep 3
   waitax "AXWebArea \\| Tab auswählen" 8 || { echo "info: no tab picker" >> "$OUT/steps.txt"; return 1; }
   local tries; for tries in 1 2 3; do
-    $AX activate $PID >/dev/null; sleep 0.3
+    activate_owned; sleep 0.3
     $AX hidclick $PID "$title " >> "$OUT/steps.txt" && break; sleep 1
   done
   sleep 3; ! $AX dump $PID 14 | grep -q "AXWebArea | Tab auswählen"
@@ -270,7 +290,7 @@ open_row_menu() { # <row title> <menu item>
   $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
   $AX press $PID "$role:$name" AXShowMenu >> "$OUT/steps.txt"
   waitax "AXMenuItem \\| $2" 5 && return 0
-  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1; $AX activate $PID >> "$OUT/steps.txt"; sleep 1
+  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1; activate_owned; sleep 1
   $AX hidrightclick $PID "$role:$name" >> "$OUT/steps.txt"
   waitax "AXMenuItem \\| $2" 5
 }

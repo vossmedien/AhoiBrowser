@@ -1,0 +1,25 @@
+{
+  "scope": "Shared-library key path with fake foreign focus and AX path containing spaces; no app/HID/CDP action",
+  "exitCode": 8,
+  "verdict": {
+    "cancelled": "owner focus returned elsewhere",
+    "pass": false
+  },
+  "axCalls": [
+    "focused 290001"
+  ],
+  "harnessSha256": "a63f3b2e0acc0b29b7130c9e37d464f3212acbf5a1c7a08b2ea84288b34354d5",
+  "runnerSourceSha256": "6d628063b26a356db2bff4c245964b6b0c4d7084c89a15f8e294db353174142a",
+  "evidenceSha256": {
+    "bounded-window-state.json": "137f95429c607d0dd435853aeeedc4c5a446388a9909f7e36d42c8c9dcc57a31",
+    "site.log": "720bb864e1155d2fc314f387f051e9c9b3faf55938afc932d1afc7aa24678ce8",
+    "fake-ax.sh": "7ab46fe7ba6affdadd6f07a63b19e39c711e835fe333cd702552c101d922bea7",
+    "steps.txt": "2bb3acfa86ee0b22471c9fdaf68b912371dfec8714bc301c28cba7a8d1c3fb16",
+    "verdict.json": "24d8a6404bfd7aa149a4039067534fa2aa7925fbebbd7aceec0924030c409fe9",
+    "site-readiness-error.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fixture.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "README.md": "8a2426e4f42730a0ade210544a1209883ac55ba37d4555e73cfb6e9cf6e82b5a",
+    "site-readiness.html": "dac85b1606c49512c50ed81d7cc05a430c9b53a42b14d1576318f36e87649a1b",
+    "ax-calls.log": "e68982c1dcfc1937c6f61e1d469973742acb415c64a2a6f49313af709ecb30e8"
+  }
+}
