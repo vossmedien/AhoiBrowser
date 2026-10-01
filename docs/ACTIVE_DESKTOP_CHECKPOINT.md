@@ -1,5 +1,23 @@
 # Active Desktop checkpoint
 
+## Frozen single-fixture Build 63 running — 1 October 2026
+
+Source b5d5e783d99ae318ef4b3f4b9df982295e08d9c2 is frozen in the clean queue
+repository. Detached owner runner 57481 is live at this entry; verify its PID
+and `.work/agent-queue/63/state.json`. One guarded job, overlay passes and build
+is in its mandatory hook/pin phase. [Exact plan/hash](../artifacts/build/codex-build63-20261001-plan.json).
+No new compile/sign/native pass or automatic installation is claimed.
+
+The only product/test code change since Build 62 is the one Mojo fixture:
+native workers remain asynchronous, only the injected secret store is gated,
+and no-hop checks use the finished terminal identity. Next after successful
+build/provenance: run its 20 cases first with one job/no retries, then the whole
+core target. Keep the 107/20 prior result and the earlier registration RED.
+Run editor activation and native worker/remaining gates in suitable UI windows;
+retain the 191/191 sidebar proof only with unchanged-input verification.
+No previous runner/test is live; the current build owns the sole output slot.
+Installed Ahoi is still Build 59/d3ebc1b9 and the full Master stays active.
+
 ## Core reaches assertions; Mojo fixture cleanup corrected — 1 October 2026
 
 Build 62 b926d9b1 compiles/signs/provenance-verifies with exit 0. Its core
