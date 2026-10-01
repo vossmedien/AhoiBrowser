@@ -1,5 +1,47 @@
 # Active Desktop checkpoint
 
+## Codex takeover and split close source fix — 1 October 2026, 11:40 CEST
+
+Codex `01a0e047-9360-7122-ad28-f76ebc767c97` resumes the stopped Claude
+source `40436dad-0008-4ea5-a38b-b0355fcdb768`. All 272 private archive files
+match manifest sizes/hashes. The interruption was the weekly limit, not
+product completion or a user pause. The existing full native Master goal
+stays active. No former helper or watcher was restarted. Desktop/Mobile/Sync
+ownership is inherited; Crest and the other project owners retain theirs.
+
+Live state: installed M154 build 59 is `d3ebc1b9`, Chromium 154.0.8037.93.
+No Ahoi build, journey, app process or owner resource lock is active; build
+60 never produced a candidate. Build 59's 20 unit binaries are green, popup
+browser tests 14/14; the split browser binary has six failures and two
+crashes. Its multi-pane setup uses the changed M154 AddToNewSplit API,
+corrected in source `7d11f9be` but not yet built.
+
+The installed lifecycle journey crashes while closing a pane at
+`split_pane_binding_lifecycle.h:70`. Source `7043d524` adds patch 0088:
+surviving native hosts remain attached through split shrink; only obsolete
+hosts are cleared. The real browser regression closes focused middle/last/
+first members from four to one, checking retained hosts, unique bindings and
+empty hidden hosts. Three pinned-Clang source checks and full ordered
+composition pass. [Evidence and limits](../artifacts/tests/cpp-split-close-source-7043d524-20261001/README.md).
+**Native execution and installed acceptance remain pending.**
+
+Build-59 verdicts read at takeover: split-archive-restore, auto-archive,
+keyed Safe Browsing and cmd-digit-probe pass. Split matrix has six reds:
+pane reorder, fifth-pane refusal and four CDP restore checks. The refusal
+status is actually exposed as AXGroup, while the journey waits for
+AXStaticText; PaneE is the still-open popup (empty split ID), not a fifth
+member. Both product-start restore checks are green; the second debug-port
+start has no site targets and must be investigated separately. Devtoolkit
+still fails cache-off, response header and CSS after restart; settings
+sections still report two failed render probes. No verdict is promoted.
+
+Next: fix/refute those harness paths and the actual reorder defect, then
+freeze one build-60 candidate containing 7d11f9be and 0088. Use the guarded
+build/test/install chain after fresh capacity/ownership checks; run the
+affected browser tests and installed journeys. Read-only upstream/Crest
+watch also remains due. Existing visual, registry, performance-release,
+WS-ISO CloudKit and public-release gates remain open.
+
 ## M154 remaining journeys on build 58 — 1 October 2026, 03:15 CEST
 
 - **Green on build 58 `21b49fb9`:** ubo-classic 9/9, anychat 11/11,

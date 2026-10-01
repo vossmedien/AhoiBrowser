@@ -1,0 +1,36 @@
+{
+  "kind": "pinned-clang-source-syntax-only",
+  "sourceCommit": "7043d5249472de381a788088fa0389833312f3cc",
+  "baseCommit": "7d11f9be4ff188164ae1744b1aef80523e29a379",
+  "patchSha256": "0961671e41e95a4d9a0a1a91346c01919aaa1752a4e396291d43854130cafe37",
+  "clangSha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3",
+  "generatedArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4",
+  "planSha256": "6faf15c801106bd8dc4a42facbc4a3f481641e1e78243d7e56eaa07b23c9513b",
+  "compositionSha256": "8e694c79e5fcdcabdfac22ac0a0e934aff15d434718bbbdff373e980a30eaf88",
+  "checks": [
+    {
+      "name": "browser_view",
+      "sourceSha256": "c5e89b14ed20821d55214a5845a19769e657a7d911711b503fbb56864b92df82",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "multi_contents_view",
+      "sourceSha256": "0fbc4655c54c282eb6db166046f7e5d8ac4ce21d46e981c67f2c0d1d5e985b8b",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "split_layout_menu_browsertest",
+      "sourceSha256": "b4cfd15d107d1247be22097dde429a0d1229469bc3244c3abfe7c4fd8774f8de",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "maximumCompilerProcesses": 1,
+  "initialTestCompileError": "raw_ptr range element required explicit pointer conversion; corrected test source exits 0",
+  "browserTestExecuted": false,
+  "installedAcceptance": false,
+  "privatePlan": ".work/agent-queue/codex-split-lifecycle-20261001/syntax-plan-corrected.json",
+  "recordedAt": "2026-10-01T09:38:23.259315+00:00"
+}
