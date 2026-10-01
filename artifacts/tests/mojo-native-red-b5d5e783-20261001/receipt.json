@@ -1,0 +1,27 @@
+{
+  "runnerPid": 77130,
+  "sourceCommit": "b5d5e783d99ae318ef4b3f4b9df982295e08d9c2",
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "results": [],
+  "startedAt": "2026-10-01T15:12:04.738610+00:00",
+  "command": [
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests",
+    "--gtest_filter=DeveloperNetworkFactoryProxyTest.*",
+    "--test-launcher-jobs=1",
+    "--test-launcher-retry-limit=0",
+    "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/63/mojo-native/summary.json"
+  ],
+  "binarySha256": "f9bf4636470da5c7be10f8ed1b3e30760225532b978696377749595f8d027c37",
+  "testPid": 77131,
+  "exitCode": 1,
+  "finishedAt": "2026-10-01T15:12:17.820211+00:00",
+  "counts": {
+    "SUCCESS": 14,
+    "NOTRUN": 5,
+    "CRASH": 1
+  },
+  "summarySha256": "79489ea20c4bf5b8f32d3da24e9ec1ba910a115ee267746a121fcf0087e43274",
+  "logSha256": "23877b4f8ed4735a09d9fd13395fa1a05096d6384bc4609eb6c7b3d459e2e055"
+}

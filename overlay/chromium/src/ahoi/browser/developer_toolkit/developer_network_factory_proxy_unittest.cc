@@ -76,6 +76,7 @@ class FixtureSecretStore final : public DeveloperSecretStore {
   std::optional<std::string> Resolve(std::string_view reference) const override {
     if (reference == "ahoi-keychain:test-request") {
       fixture_->entered.Signal();
+      base::ScopedAllowBaseSyncPrimitivesForTesting allow_test_gate;
       fixture_->allow_read.Wait();
       return "request-" + std::to_string(++fixture_->request_reads);
     }

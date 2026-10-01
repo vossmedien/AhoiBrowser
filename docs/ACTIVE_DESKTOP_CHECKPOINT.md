@@ -1,5 +1,22 @@
 # Active Desktop checkpoint
 
+## Native Mojo 14 pass; synthetic wait permission corrected — 1 October 2026
+
+Build 63 b5d5e783 compiles/signs/provenance-verifies with exit 0. Its 20-case
+Mojo target actually executes with one job/no retries: 14 SUCCESS, one CRASH,
+five NOTRUN. [Exact progress/red evidence](../artifacts/tests/mojo-native-red-b5d5e783-20261001/README.md).
+The fake secret store's deliberate WaitableEvent wait is forbidden by default
+worker ThreadRestrictions even under MayBlock. The single new fixture line
+uses ScopedAllowBaseSyncPrimitivesForTesting around that wait only; no product
+trait, native restriction or header assertion is changed. Runner 77130 is
+terminal and owner lock is released. No core or installation pass is claimed.
+
+Next: freeze this one-line synthetic-gate correction in a guarded single-job
+incremental candidate, execute all 20 Mojo methods, then full core and editor
+activation/worker browser/remaining gates. Do not restart the completed build
+or rerun its unchanged crashing binary. Preserve 191/191 sidebar via exact
+unchanged-input proof. Installed source remains d3ebc1b9; full Master active.
+
 ## Frozen single-fixture Build 63 running — 1 October 2026
 
 Source b5d5e783d99ae318ef4b3f4b9df982295e08d9c2 is frozen in the clean queue
