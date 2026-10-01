@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## Installed candidate testable; lifecycle setup finding — 1 October 2026
+
+Verified installed development candidate remains 9acb43c8 (Build 67), Chromium
+154.0.8037.93, `/Applications/AhoiBrowser.app`, native gate and atomic installer
+receipt valid. It is locally testable by the user; complete installed/Master
+acceptance is still open.
+
+The first installed lifecycle journey actually starts with 389 seconds idle,
+owned isolated profile and no real app running. It ends exit 4/pass:false at
+setup: expected PaneA is not visible. CDP sees two blank-title documents and AX
+two untitled/new tabs; fixture server has no logged request. Lifecycle close/
+restore assertions never ran. [Preserved diagnosis and raw hashes](../artifacts/tests/installed-lifecycle-setup-red-9acb43c8-20261001/README.md).
+Do not call this a close crash, a passing installed split journey or proof that
+only the harness is wrong. Runner 67098 is terminal, fixture quit/cleanup and
+owner lock release completed. No observer/queue remains live.
+
+Next concrete diagnostic: prove local HTTP server readiness, read exact CDP
+target URLs/loader errors and startup/Command-Bar intent on this installed
+candidate. Correct the root cause, then run lifecycle/matrix/archive/auto-archive,
+devtoolkit/settings representative journeys without weakening assertions. Real
+user app/input activity takes precedence over owned test profiles; reserve UI
+only after fresh resource/input/ownership checks. Remaining shared/service
+worker/full Sync/other product/external/release DoD scopes persist under the
+full active original Master.
+
 ## Candidate 9acb43c8 installed and verified — 1 October 2026
 
 Canonical frozen-source installer ended exit 0. `/Applications/AhoiBrowser.app`

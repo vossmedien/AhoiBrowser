@@ -1,0 +1,20 @@
+{
+  "runnerPid": 67098,
+  "sourceCommit": "9acb43c81917a847c2d94303053c304b981757d3",
+  "phase": "complete",
+  "journey": "split-lifecycle-journey",
+  "startedAt": "2026-10-01T18:41:22.846778+00:00",
+  "idleSeconds": 389,
+  "appRunning": false,
+  "output": "artifacts/computer-use/m154/split-lifecycle-installed-9acb43c8-20261001T184122Z",
+  "harnessSha256": "8de17d0782f367f72af831f501c384767d05cb491f61348e7eb9c87ada680b1e",
+  "journeyPid": 67101,
+  "exitCode": 4,
+  "verdict": {
+    "setupFailed": "PaneA is not the only visible page",
+    "pass": false
+  },
+  "verdictSha256": "574dd36a873a35a2f198a78bae9d51c7ffae6ceb94b5668e15e7e0f61bc7ff8e",
+  "stepsSha256": "daebe51f67fb7bef90a54d32a70d8993a8bb085d47b4b3a1fbb82ddd5213780b",
+  "snapSha256": "1fbe32ccf5462e4a46ecb8a157ee53c7ae41a7da4eec5ee1823774018a69893c"
+}
