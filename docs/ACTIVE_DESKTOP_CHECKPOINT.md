@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Core reaches assertions; Mojo fixture cleanup corrected — 1 October 2026
+
+Build 62 b926d9b1 compiles/signs/provenance-verifies with exit 0. Its core
+native target then completes 127 results: 107 SUCCESS, 20 FAILURE, one job/no
+retries. The six registration crashes are gone. [Preserved result](../artifacts/tests/dev-native-fixture-red-b926d9b1-20261001/README.md).
+The new Mojo fixture incorrectly equated RequiresFreshFactory (network target
+selection) with an installed interceptor, and its globally QUEUED ThreadPool
+blocked TestBrowserContext cleanup. No core/native overall pass is inferred.
+
+The corrected fixture keeps Chromium cleanup workers asynchronous and gates
+only its independent synthetic secret store with owned events. Every gate is
+released in teardown; deferred mutation/cancellation/priority retains its real
+IPC boundary. Disabled/unknown no-hop behavior compares the finished factory
+with the native terminal. Configured overrides remain checked by native request/
+response effects. Pinned-Clang type check passes. No production path or DCHECK
+was weakened. Runner 35078 and test 35079 are terminal, lock released; the owner
+TERM request found no descendant batch left and final summary is complete.
+
+Next: freeze this single fixture correction and use one guarded incremental
+candidate (one job under current memory conditions). Execute the corrected
+20 Mojo cases and then the whole core target without retries; run the editor
+activation tests and worker browser/remaining native gates in appropriate UI
+windows. Sidebar 191/191 remains valid only with explicit unchanged binary and
+component-input proof. Installation and visible journeys stay subsequent gates.
+Build 59/d3ebc1b9 remains installed. Full Master remains active.
+
 ## Frozen fixture correction Build 62 running — 1 October 2026
 
 Source b926d9b1b2c198637515574d25c1ca28b42ebf45 is frozen in the clean queue

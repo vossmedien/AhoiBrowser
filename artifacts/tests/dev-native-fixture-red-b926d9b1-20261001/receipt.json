@@ -1,0 +1,26 @@
+{
+  "runnerPid": 35078,
+  "sourceCommit": "b926d9b1b2c198637515574d25c1ca28b42ebf45",
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "results": [],
+  "startedAt": "2026-10-01T14:33:53.631465+00:00",
+  "command": [
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests",
+    "--test-launcher-jobs=1",
+    "--test-launcher-retry-limit=0",
+    "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/62/dev-native/summary.json"
+  ],
+  "binarySha256": "502d167d334babc601bac88e06221a1f7ff6c412dd71ee752bd5a8576dbf13e4",
+  "testPid": 35079,
+  "exitCode": 1,
+  "finishedAt": "2026-10-01T14:41:12.546210+00:00",
+  "counts": {
+    "SUCCESS": 107,
+    "FAILURE": 20
+  },
+  "summarySha256": "df6688860e992585dd8de68fe705651a12fe6b4c8eab933d45b0f6ca23ba883e",
+  "logSha256": "ae99fc5eb54f2532819ebb6e5180120289155ff95da833b88e0003ec4fc69c93",
+  "installed": false
+}

@@ -1,0 +1,102 @@
+[
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext",
+    "status": "FAILURE",
+    "output": ""
+  },
+  {
+    "test": "DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections",
+    "status": "FAILURE",
+    "output": ""
+  }
+]

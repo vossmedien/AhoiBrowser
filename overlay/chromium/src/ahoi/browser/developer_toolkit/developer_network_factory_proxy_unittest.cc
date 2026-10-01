@@ -16,6 +16,9 @@
 #include "base/functional/bind.h"
 #include "base/notreached.h"
 #include "base/run_loop.h"
+#include "base/synchronization/waitable_event.h"
+#include "base/threading/thread_restrictions.h"
+#include "base/time/time.h"
 #include "components/prefs/testing_pref_service.h"
 #include "components/user_prefs/user_prefs.h"
 #include "content/public/browser/web_contents.h"
@@ -56,6 +59,9 @@ network::mojom::URLResponseHeadPtr Response(const char* status = "200 OK") {
 struct SecretFixture {
   std::atomic<int> request_reads = 0;
   bool resolve_response = true;
+  base::WaitableEvent entered;
+  base::WaitableEvent allow_read{base::WaitableEvent::ResetPolicy::MANUAL,
+                                base::WaitableEvent::InitialState::SIGNALED};
 };
 
 class FixtureSecretStore final : public DeveloperSecretStore {
@@ -69,6 +75,8 @@ class FixtureSecretStore final : public DeveloperSecretStore {
   bool Remove(std::string_view) override { return false; }
   std::optional<std::string> Resolve(std::string_view reference) const override {
     if (reference == "ahoi-keychain:test-request") {
+      fixture_->entered.Signal();
+      fixture_->allow_read.Wait();
       return "request-" + std::to_string(++fixture_->request_reads);
     }
     if (reference == "ahoi-keychain:test-response" &&
@@ -233,6 +241,17 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
          .action = DeveloperHeaderAction::kSet});
     Save();
   }
+  void TearDown() override {
+    // Only the injected secret store is gated. Chromium's own cleanup worker
+    // sequences must remain asynchronous, including after failed assertions.
+    secrets_->allow_read.Signal();
+    loader_.reset();
+    interceptor_.reset();
+    terminal_.reset();
+    helper_.reset();
+    contents_.reset();
+    environment_.RunUntilIdle();
+  }
   void Save() {
     PrefDeveloperProfileStore store(&prefs_, false);
     ASSERT_TRUE(store.Set(origin_, profile_));
@@ -240,7 +259,8 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
   }
   scoped_refptr<network::SharedURLLoaderFactory> Build(
       bool document = true,
-      std::optional<int64_t> navigation_id = std::nullopt) {
+      std::optional<int64_t> navigation_id = std::nullopt,
+      bool later_interceptor = true) {
     network::URLLoaderFactoryBuilder builder;
     MaybeProxyDeveloperProfileURLLoaderFactory(
         &prefs_, false, document, contents_->GetPrimaryMainFrame(),
@@ -249,10 +269,11 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
               return std::unique_ptr<DeveloperSecretStore>(
                   std::make_unique<FixtureSecretStore>(std::move(fixture)));
             }, secrets_));
-    installed_proxy_ = builder.RequiresFreshFactory();
-    auto [receiver, remote] = builder.Append();
-    interceptor_ = base::MakeRefCounted<RecordingFactory>(std::move(remote));
-    interceptor_->Clone(std::move(receiver));
+    if (later_interceptor) {
+      auto [receiver, remote] = builder.Append();
+      interceptor_ = base::MakeRefCounted<RecordingFactory>(std::move(remote));
+      interceptor_->Clone(std::move(receiver));
+    }
     terminal_ = base::MakeRefCounted<RecordingFactory>();
     return std::move(builder).Finish(terminal_);
   }
@@ -278,14 +299,17 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
     Save();
   }
   void QueueLoad(network::SharedURLLoaderFactory& factory, ClientSink& client) {
+    secrets_->entered.Reset();
+    secrets_->allow_read.Reset();
     factory.CreateLoaderAndStart(loader_.BindNewPipeAndPassReceiver(), 7, 0,
                                  Request(), client.Bind(),
                                  net::MutableNetworkTrafficAnnotationTag());
     base::RunLoop().RunUntilIdle();
+    base::ScopedAllowBaseSyncPrimitivesForTesting allow_wait;
+    EXPECT_TRUE(secrets_->entered.TimedWait(base::Seconds(3)));
     EXPECT_TRUE(terminal_->seen.empty());
   }
-  content::BrowserTaskEnvironment environment_{
-      base::test::TaskEnvironment::ThreadPoolExecutionMode::QUEUED};
+  content::BrowserTaskEnvironment environment_;
   content::RenderViewHostTestEnabler enabler_;
   TestingPrefServiceSimple prefs_;
   content::TestBrowserContext context_;
@@ -293,7 +317,6 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
   std::unique_ptr<DeveloperProfileTabHelper> helper_;
   const url::Origin origin_ = url::Origin::Create(GURL("https://site.test/"));
   DeveloperProfile profile_;
-  bool installed_proxy_ = false;
   scoped_refptr<RecordingFactory> interceptor_;
   scoped_refptr<RecordingFactory> terminal_;
   mojo::Remote<network::mojom::URLLoader> loader_;
@@ -302,7 +325,6 @@ class DeveloperNetworkFactoryProxyTest : public testing::Test {
 
 TEST_F(DeveloperNetworkFactoryProxyTest, RulesAndCacheReachLaterInterceptor) {
   auto factory = Build();
-  ASSERT_TRUE(installed_proxy_);
   ClientSink client;
   Load(*factory, client, Request());
   ASSERT_EQ(1u, terminal_->seen.size());
@@ -427,12 +449,12 @@ TEST_F(DeveloperNetworkFactoryProxyTest, ExtensionInterceptorCanStillBlock) {
 }
 
 TEST_F(DeveloperNetworkFactoryProxyTest, DisabledAndUnknownFactoryAddNoHop) {
-  auto unknown = Build(false);
-  EXPECT_FALSE(installed_proxy_);
+  auto unknown = Build(false, std::nullopt, false);
+  EXPECT_EQ(terminal_.get(), unknown.get());
   unknown.reset();
   prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
-  auto disabled = Build();
-  EXPECT_FALSE(installed_proxy_);
+  auto disabled = Build(true, std::nullopt, false);
+  EXPECT_EQ(terminal_.get(), disabled.get());
   ClientSink client;
   Load(*disabled, client, Request());
   EXPECT_EQ(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
@@ -576,6 +598,7 @@ TEST_F(DeveloperNetworkFactoryProxyTest,
       prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
       Save();
     }
+    secrets_->allow_read.Signal();
     environment_.RunUntilIdle();
     ASSERT_EQ(1u, terminal_->seen.size());
     EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
@@ -594,6 +617,7 @@ TEST_F(DeveloperNetworkFactoryProxyTest,
   QueueLoad(*factory, client);
   client.Disconnect();
   base::RunLoop().RunUntilIdle();
+  secrets_->allow_read.Signal();
   environment_.RunUntilIdle();
   EXPECT_TRUE(terminal_->seen.empty());
 }
@@ -606,6 +630,7 @@ TEST_F(DeveloperNetworkFactoryProxyTest,
   QueueLoad(*factory, client);
   loader_->SetPriority(net::HIGHEST, 99);
   base::RunLoop().RunUntilIdle();
+  secrets_->allow_read.Signal();
   environment_.RunUntilIdle();
   ASSERT_EQ(1u, terminal_->loaders.size());
   EXPECT_EQ(net::HIGHEST, terminal_->loaders[0]->priority);
