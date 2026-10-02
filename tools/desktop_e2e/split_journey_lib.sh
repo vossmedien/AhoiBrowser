@@ -159,9 +159,15 @@ settings = call(seed, 'Target.createTarget', {'url': 'chrome://settings/ahoi'})[
 evidence = {}
 try:
     deadline = time.monotonic() + 15
-    while not any(t['id'] == settings and t.get('url', '').startswith('chrome://settings') for t in targets()):
+    while True:
+        if any(t['id'] == settings and t.get('url', '').startswith('chrome://settings') for t in targets()):
+            ready = call(settings, 'Runtime.evaluate', {
+                'expression': "document.readyState === 'complete' && typeof chrome !== 'undefined' && !!chrome.settingsPrivate",
+                'returnByValue': True})
+            if ready.get('result', {}).get('value') is True:
+                break
         if time.monotonic() >= deadline:
-            raise RuntimeError('Settings tab did not commit')
+            raise RuntimeError('Settings document/native API did not become ready')
         time.sleep(0.25)
     expression = '''(async () => {
       const results = [];

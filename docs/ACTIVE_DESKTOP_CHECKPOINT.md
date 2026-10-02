@@ -1,5 +1,19 @@
 # Active Desktop checkpoint
 
+## Corrected visible lifecycle deferred; no active Ahoi runtime — 2 October 2026
+
+Bounded runner50253 is terminal exit2, phase deferred-owner-active after120s;
+foreign Cockpit Xcode51921 continued, no journey/browser/lock was created.
+State: `.work/agent-queue/71/installed-lifecycle-native-pref-20261002T050020Z/`.
+No new window or general observer was started. Prior native readback/decoder
+proof remains valid; all three visible restore assertions stay OPEN/previously
+RED until the corrected journey actually executes. Settings setup additionally
+waits for the committed document and native API, not just a target URL.
+Shell and embedded Python syntax pass, lane check clean. Next allowed action:
+fresh capacity/input/ownership check, one corrected installed lifecycle run on
+unchanged Build71; no rebuild or unchanged native-suite repetition. Original
+full Master remains active and installed source6bf4c233/M154 is unchanged.
+
 ## Native protected pref confirmed; trusted session replay succeeds — 2 October 2026
 
 Installed Build71/6bf4c233 native Settings API reads restore_on_startup5 even
