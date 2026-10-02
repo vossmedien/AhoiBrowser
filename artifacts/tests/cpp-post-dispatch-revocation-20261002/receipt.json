@@ -1,0 +1,47 @@
+{
+  "kind": "source-only-post-dispatch-header-revocation",
+  "syntaxChecks": 5,
+  "jobs": 1,
+  "newNativeCasesWritten": 5,
+  "newNativeCasesExecuted": 0,
+  "testSupportHeaderSha256": "cf85df384c595e2c446757f0161d1c16e1a4e012bbf4f5a924fdb488e703eadd",
+  "results": [
+    {
+      "name": "developer_network_factory_proxy.cc",
+      "exitCode": 0,
+      "sourceSha256": "5fe9e36a436034d2440fa745300f709dcaa0a72a1850ac78a40a0d37a0385068"
+    },
+    {
+      "name": "developer_profile_url_loader_throttle.cc",
+      "exitCode": 0,
+      "sourceSha256": "247be5aee5988b562fb34699c36a0638911681d1e0f2d4ca9878ab0e2a64c02c"
+    },
+    {
+      "name": "developer_network_factory_test_support.cc",
+      "exitCode": 0,
+      "sourceSha256": "40122a2f2dfbb7f9a2d96fee5e507dcca2e7d2d66dfe5867b325795925c2f2c4"
+    },
+    {
+      "name": "developer_network_factory_proxy_unittest.cc",
+      "exitCode": 0,
+      "sourceSha256": "bbcefedcdaf4a7dbfa6a3a1bb6d144ba1b694144557b4ef0b2dffcce5d764020"
+    },
+    {
+      "name": "developer_network_factory_revocation_unittest.cc",
+      "exitCode": 0,
+      "sourceSha256": "4e58150b63a924d05659f4417b0b7b72f12723e9d4d7923fcf7638ff43b155be"
+    }
+  ],
+  "fullMasterAchieved": false,
+  "evidenceSha256": {
+    "initial-state.json": "de85aebda2d9647136bcb5a4e9571b8c07b722cccf3728b386c5c103783890c7",
+    "state.json": "fd4283bd697c7f49ad70ad47b10ac9187dd9d8f375b123194a4c4beab2d84aec",
+    "plan.json": "4899ea4a072d50d35a86f1b46b5e97d7e41aa203021088f4d5271e21f7988f40",
+    "developer_network_factory_revocation_unittest.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "initial-shared-header-style-red.log": "7d1de4aa769a7d02526450e840a46a3ee48163b5ba68bba35ec4c4c4f7b71e62",
+    "developer_network_factory_proxy_unittest.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_profile_url_loader_throttle.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_network_factory_proxy.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_network_factory_test_support.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

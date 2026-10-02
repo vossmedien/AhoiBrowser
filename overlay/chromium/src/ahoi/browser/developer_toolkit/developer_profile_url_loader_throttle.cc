@@ -323,6 +323,11 @@ DeveloperProfileURLLoaderThrottle::DeveloperProfileURLLoaderThrottle(
 DeveloperProfileURLLoaderThrottle::~DeveloperProfileURLLoaderThrottle() =
     default;
 
+void DeveloperProfileURLLoaderThrottle::RestoreOriginalHeadersForRedirect(
+    network::HttpRequestHeadersUpdateParams& headers_update_params) const {
+  RestoreForRedirect(headers_update_params);
+}
+
 void DeveloperProfileURLLoaderThrottle::WillStartRequest(
     network::ResourceRequest* request,
     bool* /*defer*/) {

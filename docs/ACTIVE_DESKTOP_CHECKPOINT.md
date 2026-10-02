@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Post-dispatch override retirement source verified — 2 October 2026
+
+The open review below found protocol phases that did not revalidate dispatched
+rules. Source now rechecks saved/native owner metadata for every admitted
+override request and retains a reference-only repeated approval check for
+response/redirect. After withdrawal, response rules/materialized values retire;
+redirect restores original header values and suppresses pending normal/exempt
+resurrection before discarding the throttle. Native loader/CORS/control remain
+authoritative. Cache-only cross-origin eligibility is compared in its actual
+scope, without guessing a worker's parent or creating background work.
+[Source, five new Mojo cases and final syntax proof](../artifacts/tests/cpp-post-dispatch-revocation-20261002/README.md).
+
+Five serial pinned-Clang syntax checks pass; five new methods are NOT executed.
+Shared test fixture has one named type across TUs and out-of-line support code;
+the initial header style failures are preserved, no check disabled. The old24
+methods remain; no changed-runtime native PASS or installed acceptance exists.
+Shelf activation fixture1d526fe2 likewise still needs its actual execution.
+
+Next: combined exact guarded one-job candidate with this correction and the
+shelf fixture, after current capacity/ownership and ready-Crest review. Execute
+actual core/Mojo29, sidebar gate, five editor methods and required remaining
+native/browser gates; compare input hashes before any narrow carry. Prior
+Core140/editor5/baseline872 remain separate valid evidence for c0afa449 only,
+not full acceptance of this new source. Native GREEN precedes canonical install
+and representative affected visible E2E/focused checks. Installed9acb43c8/M154,
+complete Master/worker/Sync/external/release bounds and Crest's separate H3
+performance lease remain intact.
+
 ## Sidebar focus/overflow gate RED; stronger setup source ready — 2 October 2026
 
 Build69 c0afa449 UI/sidebar gate executes jobs1/retries0:182SUCCESS,1TIMEOUT,

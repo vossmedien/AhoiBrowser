@@ -1,0 +1,33 @@
+{
+  "runnerPid": 33626,
+  "phase": "complete",
+  "jobs": 1,
+  "results": [
+    {
+      "name": "developer_network_factory_proxy.cc",
+      "exitCode": 0,
+      "sourceSha256": "5fe9e36a436034d2440fa745300f709dcaa0a72a1850ac78a40a0d37a0385068"
+    },
+    {
+      "name": "developer_profile_url_loader_throttle.cc",
+      "exitCode": 0,
+      "sourceSha256": "247be5aee5988b562fb34699c36a0638911681d1e0f2d4ca9878ab0e2a64c02c"
+    },
+    {
+      "name": "developer_network_factory_test_support.cc",
+      "exitCode": 0,
+      "sourceSha256": "40122a2f2dfbb7f9a2d96fee5e507dcca2e7d2d66dfe5867b325795925c2f2c4"
+    },
+    {
+      "name": "developer_network_factory_proxy_unittest.cc",
+      "exitCode": 0,
+      "sourceSha256": "bbcefedcdaf4a7dbfa6a3a1bb6d144ba1b694144557b4ef0b2dffcce5d764020"
+    },
+    {
+      "name": "developer_network_factory_revocation_unittest.cc",
+      "exitCode": 0,
+      "sourceSha256": "4e58150b63a924d05659f4417b0b7b72f12723e9d4d7923fcf7638ff43b155be"
+    }
+  ],
+  "compilerPid": 34369
+}

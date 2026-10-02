@@ -1,0 +1,23 @@
+{
+  "runnerPid": 16747,
+  "phase": "failed",
+  "jobs": 1,
+  "results": [
+    {
+      "name": "developer_network_factory_proxy.cc",
+      "exitCode": 0,
+      "sourceSha256": "5fe9e36a436034d2440fa745300f709dcaa0a72a1850ac78a40a0d37a0385068"
+    },
+    {
+      "name": "developer_profile_url_loader_throttle.cc",
+      "exitCode": 0,
+      "sourceSha256": "247be5aee5988b562fb34699c36a0638911681d1e0f2d4ca9878ab0e2a64c02c"
+    },
+    {
+      "name": "developer_network_factory_proxy_unittest.cc",
+      "exitCode": 1,
+      "sourceSha256": "bbcefedcdaf4a7dbfa6a3a1bb6d144ba1b694144557b4ef0b2dffcce5d764020"
+    }
+  ],
+  "compilerPid": 16956
+}

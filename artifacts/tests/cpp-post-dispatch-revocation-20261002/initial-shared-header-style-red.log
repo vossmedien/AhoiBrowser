@@ -1,0 +1,58 @@
+In file included from /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy_unittest.cc:4:
+[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:71:3: [0m[0;1;31merror: [0m[1m[chromium-style] Complex constructor has an inlined body.[0m
+   71 |   explicit FixtureSecretStore(std::shared_ptr<SecretFixture> fixture)[0m
+      | [0;1;32m  ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:69:1: [0m[0;1;31merror: [0m[1m[chromium-style] Complex class/struct needs an explicit out-of-line destructor.[0m
+   69 | class FixtureSecretStore final : public DeveloperSecretStore {[0m
+      | [0;1;32m^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:74:63: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+   74 |                                    std::string_view) override {[0m
+      | [0;1;32m                                                              ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:77:42: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+   77 |   bool Remove(std::string_view) override { return false; }[0m
+      | [0;1;32m                                         ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:78:81: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+   78 |   std::optional<std::string> Resolve(std::string_view reference) const override {[0m
+      | [0;1;32m                                                                                ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:96:1: [0m[0;1;31merror: [0m[1m[chromium-style] Complex class/struct needs an explicit out-of-line constructor.[0m
+   96 | class ClientSink final : public network::mojom::URLLoaderClient {[0m
+      | [0;1;32m^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:96:1: [0m[0;1;31merror: [0m[1m[chromium-style] Complex class/struct needs an explicit out-of-line destructor.[0m
+[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:105:72: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+  105 |                          std::optional<mojo_base::BigBuffer>) override {[0m
+      | [0;1;32m                                                                       ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:109:71: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+  109 |                          network::mojom::URLResponseHeadPtr) override {[0m
+      | [0;1;32m                                                                      ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:113:69: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+  113 |                         OnUploadProgressCallback callback) override {[0m
+      | [0;1;32m                                                                    ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:117:78: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+  117 |   void OnComplete(const network::URLLoaderCompletionStatus& status) override {[0m
+      | [0;1;32m                                                                             ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:132:3: [0m[0;1;31merror: [0m[1m[chromium-style] Complex constructor has an inlined body.[0m
+  132 |   NativeLoader(mojo::PendingReceiver<network::mojom::URLLoader> receiver,[0m
+      | [0;1;32m  ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:130:1: [0m[0;1;31merror: [0m[1m[chromium-style] Complex class/struct needs an explicit out-of-line destructor.[0m
+  130 | class NativeLoader final : public network::mojom::URLLoader {[0m
+      | [0;1;32m^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:141:65: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+  141 |                        const std::optional<GURL>& url) override {[0m
+      | [0;1;32m                                                                ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:146:72: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+  146 |   void SetPriority(net::RequestPriority value, int32_t intra) override {[0m
+      | [0;1;32m                                                                       ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:186:3: [0m[0;1;31merror: [0m[1m[chromium-style] Complex constructor has an inlined body.[0m
+  186 |   explicit RecordingFactory([0m
+      | [0;1;32m  ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:218:3: [0m[0;1;31merror: [0m[1m[chromium-style] Complex destructor has an inline body.[0m
+  218 |   ~RecordingFactory() override = default;[0m
+      | [0;1;32m  ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:193:75: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+  193 |       const net::MutableNetworkTrafficAnnotationTag& annotation) override {[0m
+      | [0;1;32m                                                                          ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_test_support.h:207:82: [0m[0;1;31merror: [0m[1m[chromium-style] virtual methods with non-empty bodies shouldn't be declared inline.[0m
+  207 |   void Clone(mojo::PendingReceiver<network::mojom::URLLoaderFactory> r) override {[0m
+      | [0;1;32m                                                                                 ^
+[0m[0;1;31mfatal error: [0m[1mtoo many errors emitted, stopping now [-ferror-limit=][0m
+20 errors generated.

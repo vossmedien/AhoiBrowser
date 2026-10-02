@@ -113,6 +113,11 @@ class DeveloperProfileURLLoaderThrottle final
                            bool* defer) override;
   const char* NameForLoggingWillProcessResponse() override;
 
+  // Retire a dispatched override without reapplying it on a same-origin hop.
+  // The caller discards this request-local throttle after restoring originals.
+  void RestoreOriginalHeadersForRedirect(
+      network::HttpRequestHeadersUpdateParams& headers_update_params) const;
+
  private:
   struct OriginalHeader {
     std::string name;

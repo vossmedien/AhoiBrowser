@@ -64,8 +64,10 @@ class DeveloperRequestProxy final : public network::mojom::URLLoader,
  public:
   DeveloperRequestProxy(
       mojo::PendingRemote<network::mojom::URLLoaderClient> client,
-      std::unique_ptr<blink::URLLoaderThrottle> throttle)
-      : client_(std::move(client)), throttle_(std::move(throttle)) {
+      std::unique_ptr<DeveloperProfileURLLoaderThrottle> throttle,
+      base::RepeatingCallback<bool()> still_allowed)
+      : client_(std::move(client)), throttle_(std::move(throttle)),
+        still_allowed_(std::move(still_allowed)) {
     client_.set_disconnect_handler(base::BindOnce(
         &DeveloperRequestProxy::Close, weak_factory_.GetWeakPtr()));
   }
@@ -78,8 +80,7 @@ class DeveloperRequestProxy final : public network::mojom::URLLoader,
       const network::ResourceRequest& request,
       const net::MutableNetworkTrafficAnnotationTag& annotation,
       std::optional<DeveloperProfile> secret_source = std::nullopt,
-      DeveloperSecretStoreFactory secret_factory = {},
-      base::OnceCallback<bool()> still_allowed = {}) {
+      DeveloperSecretStoreFactory secret_factory = {}) {
     owner_ = std::move(owner);
     if (secret_source) {
       // Own the native chain while this request awaits Keychain I/O. Only
@@ -94,7 +95,7 @@ class DeveloperRequestProxy final : public network::mojom::URLLoader,
                          std::move(*secret_source)),
           base::BindOnce(&DeveloperRequestProxy::SecretsResolved,
                          weak_factory_.GetWeakPtr(), request_id, options,
-                         request, annotation, std::move(still_allowed)));
+                         request, annotation));
       if (!posted) {
         Serve(*pending_factory_.get(), request_id, options, request, annotation);
       }
@@ -147,8 +148,14 @@ class DeveloperRequestProxy final : public network::mojom::URLLoader,
       }
       network::HttpRequestHeadersUpdateParams own_changes;
       bool defer = false;
-      throttle_->WillRedirectRequest(&redirect, *redirect_head_, &defer,
-                                     &own_changes);
+      if (!OverridesStillAllowed()) {
+        throttle_->RestoreOriginalHeadersForRedirect(own_changes);
+        throttle_.reset();
+        still_allowed_.Reset();
+      } else {
+        throttle_->WillRedirectRequest(&redirect, *redirect_head_, &defer,
+                                      &own_changes);
+      }
       if (defer) {
         OnComplete(network::URLLoaderCompletionStatus(net::ERR_UNEXPECTED));
         return;
@@ -192,6 +199,10 @@ class DeveloperRequestProxy final : public network::mojom::URLLoader,
       mojo::ScopedDataPipeConsumerHandle body,
       std::optional<mojo_base::BigBuffer> metadata) override {
     bool defer = false;
+    if (throttle_ && !OverridesStillAllowed()) {
+      throttle_.reset();
+      still_allowed_.Reset();
+    }
     if (throttle_) {
       throttle_->WillProcessResponse(response_url_, head.get(), &defer);
     }
@@ -232,15 +243,19 @@ class DeveloperRequestProxy final : public network::mojom::URLLoader,
   }
 
  private:
+  bool OverridesStillAllowed() const {
+    return still_allowed_ && still_allowed_.Run();
+  }
+
   void SecretsResolved(
       int32_t request_id,
       uint32_t options,
       network::ResourceRequest request,
       net::MutableNetworkTrafficAnnotationTag annotation,
-      base::OnceCallback<bool()> still_allowed,
       std::optional<DeveloperProfile> materialized) {
-    if (!std::move(still_allowed).Run()) {
+    if (!OverridesStillAllowed()) {
       throttle_.reset();
+      still_allowed_.Reset();
     } else if (materialized) {
       throttle_ = std::make_unique<DeveloperProfileURLLoaderThrottle>(
           url::Origin::Create(request.url), std::move(*materialized));
@@ -267,7 +282,8 @@ class DeveloperRequestProxy final : public network::mojom::URLLoader,
   mojo::Remote<network::mojom::URLLoaderFactory> pending_factory_;
   mojo::Receiver<network::mojom::URLLoaderClient> native_client_receiver_{this};
   mojo::SelfOwnedReceiverRef<network::mojom::URLLoader> owner_;
-  std::unique_ptr<blink::URLLoaderThrottle> throttle_;
+  std::unique_ptr<DeveloperProfileURLLoaderThrottle> throttle_;
+  base::RepeatingCallback<bool()> still_allowed_;
   GURL response_url_;
   std::optional<net::RedirectInfo> redirect_;
   network::mojom::URLResponseHeadPtr redirect_head_;
@@ -306,12 +322,13 @@ class DeveloperFactoryProxy final
       const network::ResourceRequest& request,
       mojo::PendingRemote<network::mojom::URLLoaderClient> client,
       const net::MutableNetworkTrafficAnnotationTag& annotation) override {
-    std::unique_ptr<blink::URLLoaderThrottle> throttle;
-    auto profile = CurrentSnapshot(request);
+    std::unique_ptr<DeveloperProfileURLLoaderThrottle> throttle;
+    auto profile = CurrentSnapshot(request, /*verify_saved_rules=*/true);
     if (profile) {
-      auto* prefs = user_prefs::UserPrefs::Get(contents_->GetBrowserContext());
-      throttle = MaybeCreateDeveloperProfileURLLoaderThrottle(
-          request, prefs, false, contents_.get());
+      // The typed throttle applies the same unresolved-secret fail-closed
+      // policy; CurrentSnapshot already validated this request's native owner.
+      throttle = std::make_unique<DeveloperProfileURLLoaderThrottle>(
+          url::Origin::Create(request.url), *profile);
     }
     const bool needs_secrets = profile &&
         DeveloperProfileHasActiveHeaderSecretReferences(*profile);
@@ -321,9 +338,9 @@ class DeveloperFactoryProxy final
                                     request, std::move(client), annotation);
       return;
     }
-    base::OnceCallback<bool()> still_allowed;
-    if (needs_secrets) {
-      still_allowed = base::BindOnce(
+    base::RepeatingCallback<bool()> still_allowed;
+    if (profile) {
+      still_allowed = base::BindRepeating(
           [](base::WeakPtr<DeveloperFactoryProxy> factory,
              network::ResourceRequest request, DeveloperProfile source) {
             return factory && factory->CurrentSnapshot(
@@ -331,7 +348,7 @@ class DeveloperFactoryProxy final
           }, weak_factory_.GetWeakPtr(), request, *profile);
     }
     auto proxy = std::make_unique<DeveloperRequestProxy>(
-        std::move(client), std::move(throttle));
+        std::move(client), std::move(throttle), std::move(still_allowed));
     DeveloperRequestProxy* const request_proxy = proxy.get();
     auto owner = mojo::MakeSelfOwnedReceiver<network::mojom::URLLoader>(
         std::move(proxy), std::move(loader));
@@ -339,7 +356,7 @@ class DeveloperFactoryProxy final
       request_proxy->Start(std::move(owner), *target_.get(), request_id,
                           options, request, annotation,
                           needs_secrets ? std::move(profile) : std::nullopt,
-                          secret_store_factory_, std::move(still_allowed));
+                          secret_store_factory_);
     }
   }
 
@@ -368,8 +385,16 @@ class DeveloperFactoryProxy final
           }
           auto current = GetDeveloperProfileForTab(
               prefs, contents_.get(), origin_.GetURL());
-          if (snapshot && current &&
-              *snapshot == MakeDeveloperProfileNetworkSnapshot(*current)) {
+          auto saved = current ? std::optional<DeveloperProfile>(
+                                     MakeDeveloperProfileNetworkSnapshot(*current))
+                               : std::nullopt;
+          if (saved && url::Origin::Create(request.url) != origin_) {
+            saved = saved->cache_disabled
+                        ? std::optional<DeveloperProfile>(
+                              DeveloperProfile{.cache_disabled = true})
+                        : std::nullopt;
+          }
+          if (snapshot && saved && *snapshot == *saved) {
             return snapshot;
           }
         }
