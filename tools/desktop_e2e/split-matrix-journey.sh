@@ -149,4 +149,4 @@ v=[float(x) for x in a.values()] or [0]
 sys.exit(0 if max(v)-min(v)>=0.05 and a.keys()==b.keys() and all(abs(float(a[k])-float(b[k]))<0.02 for k in a) else 1)" "$SHARES" "$NOWSHARES"'
 check restoredFocusedPane '[ -n "$FOCUS" ] && [ "$(q focused)" = "$FOCUS" ]'
 $AX dump $PID 40 > "$OUT/ax-final.txt"
-finish; quit
+finish; STATUS=$?; quit; exit "$STATUS"

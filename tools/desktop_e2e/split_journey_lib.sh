@@ -258,6 +258,13 @@ finish() {
   local sep=""; [ -n "$joined" ] && sep=", "
   echo "{${joined}${1:+$sep\"setupFailed\": \"$1\"}}" | python3 -c 'import json,sys;d=json.load(sys.stdin);d["pass"]=("setupFailed" not in d) and all(v is True for k,v in d.items() if k!="setupFailed");print(json.dumps(d,indent=1))' > "$OUT/verdict.json"
   cat "$OUT/verdict.json"
+  # A failed assertion must fail the command as well as the evidence verdict.
+  python3 - "$OUT/verdict.json" <<'PY'
+import json, sys
+with open(sys.argv[1]) as file:
+    verdict = json.load(file)
+sys.exit(0 if verdict.get('pass') is True else 1)
+PY
 }
 fail_setup() { dump_navigation; $AX dump $PID 40 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4; }
 open_url() { # <url> ; ⌘T + type + Return

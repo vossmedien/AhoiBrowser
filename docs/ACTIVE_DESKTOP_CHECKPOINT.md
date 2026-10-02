@@ -1,5 +1,24 @@
 # Active Desktop checkpoint
 
+## Split verdict now controls command exit — 2 October 2026
+
+Fresh check still finds foreign Cockpit Xcode51921; no new Ahoi runner, browser,
+build or idle observer was launched. Review of the next archive/Devtoolkit
+journeys finds no additional offline restore_on_startup writes. The separate
+restore-surface fixture writes Ahoi's unprotected own startup_mode only; this
+is not the protected Chrome-pref defect and was not changed speculatively.
+
+The two split commands previously printed pass:false yet returned shell0 after
+quit. Their shared finish now returns failure for a false/missing pass, and
+both journeys preserve that status through normal owned cleanup. Assertions
+and all old evidence remain unchanged. Actual shared finish exercised with
+the retained real12/3RED verdict returns1; a synthetic all-true input returns0.
+These are command-status checks only, no browser/product acceptance. Shell
+syntax/diff checks pass. Changed harness still needs its one installed visible
+lifecycle verification after fresh ownership/capacity/input checks; no prior
+native suite needs repeating and no Chromium rebuild is needed. Full Master,
+source/install identity, foreign work and external boundaries remain intact.
+
 ## Corrected visible lifecycle deferred; no active Ahoi runtime — 2 October 2026
 
 Bounded runner50253 is terminal exit2, phase deferred-owner-active after120s;

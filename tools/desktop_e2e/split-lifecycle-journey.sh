@@ -89,4 +89,4 @@ check restoredSecondWindowSplit '[ -n "$RG" ] && [ "$RG" = "$RH" ] && [ -n "$RS"
 check restoredWithoutPhantomTabs '[ "$(urls)" = "$URLS" ]'
 check restoredSecondWindowOneRow 'sidebar_group relaunch PaneG PaneH'
 $AX dump $PID 40 > "$OUT/ax-final.txt"
-finish; quit
+finish; STATUS=$?; quit; exit "$STATUS"
