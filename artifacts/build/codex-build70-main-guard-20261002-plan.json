@@ -1,0 +1,17 @@
+{
+  "sourceCommit": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "buildSequence": 70,
+  "jobs": 1,
+  "preparedOnly": false,
+  "scope": "document and main-navigation override revocation plus native shelf activation fixture",
+  "guardedEntrypoints": [
+    "scripts/apply-overlay.sh --compatible-dev-xcode",
+    "scripts/build-ahoi.sh dev"
+  ],
+  "requiredNative": "Core148 including Mojo29; editor5; sidebar191; other required native/browser gates before install",
+  "installedBefore": "9acb43c81917a847c2d94303053c304b981757d3",
+  "freshResources": "CPU64-66% idle, pressure1, about4GiB unused, stable swapouts900835,114GiB free, no app/compiler/owner locks; known Root archive absent",
+  "crest": "106/110 same ready tool handoffs reread; no product patch, separate H3 lease deferred",
+  "launcherSha256": "97d98b97e1e3f1d208c20f3252b3b162b72763f2bd2fea38021aafccbb8a9d7e",
+  "createdAt": "2026-10-02T01:37:00.783755+00:00"
+}

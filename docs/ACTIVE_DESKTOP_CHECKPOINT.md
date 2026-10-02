@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Combined candidate70 frozen and running — 2 October 2026
+
+Clean queue source2850678701edc170909e7cf7f1f8e8164e640fa9 includes main/document
+override retirement and shelf fixture1d526fe2. Owned detached runner81714 is live
+at this entry; inspect PID/descendants and `.work/agent-queue/70/state.json`.
+[Actual current build plan](../artifacts/build/codex-build70-main-guard-20261002-plan.json).
+Old0d7b807f prepared plan remains historical/unlaunched, not the current source.
+One guarded incremental job, no competing output refresh/test/install/UI phase
+while this runner holds build.lock. Phase resource probes are saved in queue70.
+
+Fresh admission: host/Xcode27 pass,114GiB available, two CPU64–66% idle samples,
+pressure level1, about4GiB unused, stable swapouts900835, no app/compiler/owner
+locks. Root archive38334 is absent; no Root build/app/install/release action is
+performed by this lane. Ready Crest106/110 were reread, same tools/no product
+patch, still deferred to their own separate H3 runtime lease.
+
+Core/editor/baseline/UI runners and native execution plan are prepared under
+queue70, syntax-parsed but UNLAUNCHED. Core148 must include all21 added core
+names (Mojo29 overall); five editor methods and the corrected sidebar/full UI
+and browser gates need actual verdicts. Three main and five post-dispatch cases
+are source-only until execution; the shelf cause/correction is also unproven.
+
+Next after actual guarded compile/stable sign/provenance completion: exact core
+and required remaining native gates, then canonical installer only if GREEN,
+representative visible affected journeys and focused checks. Changed runtime
+inputs invalidate blanket carry of c0afa449 partial passes. Installed source
+remains9acb43c8/M154; complete original Master/worker/Sync/external/release scope
+and archives/goals remain unchanged. No automatic general waiter or second
+build queue exists; observation timeouts must not restart this live job.
+
 ## Main-navigation retirement source verified; candidate70 must include it — 2 October 2026
 
 Main-navigation URLLoader throttle now revalidates actual saved/native context
