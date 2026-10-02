@@ -1,5 +1,24 @@
 # Active Desktop checkpoint
 
+## Remaining grid/startup/restore journey actually running — 2 October 2026
+
+New focused continuation copies ONLY the receipt-bound own retained synthetic
+four-pane profile/session into a fresh synthetic destination, selects SNSS6ad2abf…
+and uses the original immutable940x1235 baseline. No protected-pref edits or
+original-data writes; shared normal guarded launch/input/native menu helpers.
+The original ELEVEN remaining assertions are copied unchanged from the matrix,
+excluding its fourteen passed live assertions and corrected reorder case.
+
+Immediate preflight sees idle531, no compiler/app/free locks, CPU47–64%idle,
+pressure1/stable swapouts915303. Actual runner98437/journey98442/browser98501
+live on installed71/6bf4c233, state/resources/tool hashes under
+`.work/agent-queue/71/installed-grid-continuation-20261002T064358Z/`; raw
+`artifacts/computer-use/m154/split-grid-continuation-installed-6bf4c233-20261002T064358Z/`.
+Input receipt/baseline/session binding is retained-grid-seed.json. No matrix
+or full-Master PASS until actual results; inspect this same handle/PIDs before
+another app/build/install action. Prior scoped GREEN, original records and
+entire Master/worker/Sync/Mobile/external/release/ownership bounds remain.
+
 ## Native tracking menu caused false reorder RED; affected invariant now GREEN — 2 October 2026
 
 Guarded menu replay89004/browser89015 reaches actual reorder and reproduces the
