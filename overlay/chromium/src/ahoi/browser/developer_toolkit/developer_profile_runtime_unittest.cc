@@ -20,6 +20,7 @@
 #include "components/user_prefs/user_prefs.h"
 #include "content/public/test/browser_task_environment.h"
 #include "content/public/test/mock_navigation_handle.h"
+#include "content/public/test/test_renderer_host.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "content/public/test/test_browser_context.h"
 #include "content/public/test/web_contents_tester.h"
@@ -41,6 +42,7 @@ class DeveloperProfileRuntimeTest : public testing::Test {
   }
 
   content::BrowserTaskEnvironment task_environment_;
+  content::RenderViewHostTestEnabler renderer_;
   TestingPrefServiceSimple prefs_;
   content::TestBrowserContext browser_context_;
   std::unique_ptr<content::WebContents> web_contents_;

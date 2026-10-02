@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Build 68 complete; native runtime fixture RED corrected in source — 2 October 2026
+
+Guarded Build68 c2943397 ends exit0: compile, stable Apple Development signing,
+portable components and provenance verified. Runner66795 is terminal/absent,
+build lock released. Installed app remains9acb43c8/M154, not promoted.
+
+Full developer native suite actually runs once, jobs1/retries0:132SUCCESS,
+1CRASH,7NOTRUN, exit1/nativePass:false. All24 Mojo cases, including four new
+temporary-header methods, are SUCCESS; that does not make the complete core
+GREEN. [Preserved RED, counts and exact inputs](../artifacts/tests/dev-native-fixture-red-c2943397-20261002/README.md).
+Runtime fixture's first new navigation case DCHECKs on a non-test RFH before
+its assertion; native diagnostics explicitly require RenderViewHostTestEnabler.
+The fixture now owns it after BrowserTaskEnvironment and before contexts/
+WebContents. Pinned-Clang syntax passes, no product or native DCHECK changed.
+Runner24186/test24187 are terminal and owner lock released.
+
+Next: freeze the single fixture correction in guarded one-job incremental
+candidate; execute actual runtime/core and five editor methods, remaining
+required native/browser gates with current UI/resource ownership. Carry older
+partial execution only where exact executable/runtime-input equality is proved;
+do not promote 140 registered names or an old component manifest across changes.
+Only complete required native GREEN permits canonical installation and
+representative affected visible journeys. Full Master, worker/Sync/external/
+release and Crest's separate H3 lease stay open. No actual UI opportunity is
+started while current input is active.
+
 ## Exact native execution prepared while Build 68 advances — 2 October 2026
 
 Runner66795 remains authoritative/live, source c2943397, one guarded job.

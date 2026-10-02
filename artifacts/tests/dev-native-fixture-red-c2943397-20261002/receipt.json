@@ -1,0 +1,97 @@
+{
+  "sourceCommit": "c2943397d86499f563070e8ee09adce7bde66436",
+  "nativePass": false,
+  "exitCode": 1,
+  "registeredCases": 140,
+  "statuses": {
+    "SUCCESS": 132,
+    "NOTRUN": 7,
+    "CRASH": 1
+  },
+  "mojo": {
+    "DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests": [
+      "SUCCESS"
+    ],
+    "DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections": [
+      "SUCCESS"
+    ]
+  },
+  "binarySha256": "f1def401927b5e662a015078cee2f334045461a09f7381776f1c2ddf4a5a2c52",
+  "componentManifestSha256": "d561b8adbf9b3c6709d40771b728ebbf0619f6c3956eb8709db80e99aeab47ea",
+  "finding": "Native fixture missing RenderViewHostTestEnabler: TestWebContents primary RFH DCHECK; lifecycle assertions not reached in the crashing method",
+  "correctionScope": "test fixture only; no product change",
+  "evidenceSha256": {
+    "correction-syntax.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "summary.json": "a55fe2e8c3b94e30cc55cdb8c6bf456828d99a776182de6c13ecd75ca8ade4b6",
+    "state.json": "00bd77d8c20a41d9e75d1c0c41f81ca59b65928f82652a649245439c6f7503d7",
+    "correction-command.json": "1ea374d288c9cbe5b893299eb81d024c96d43ae376365a22d8d00c219154bb06",
+    "test.log": "64242900ced056ba64fa4003cc065598aa6e5f613acc2893dea199b79ff2ae8f",
+    "correction-result.json": "634151fdc805ba063e8c3789334a39bc71193c30d6fb40dcf6848086b34919c1"
+  }
+}
