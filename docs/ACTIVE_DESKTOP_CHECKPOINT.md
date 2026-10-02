@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Real reorder key responds in three focused contexts; original RED remains — 2 October 2026
+
+Own replay31157/browser31170 (four),35171/35182 (four→three),42577/42598
+(three plus six layout cycles, native focus sequence and marked form values)
+all complete on installed71/6bf4c233. Actual HID/native VLOG logs the reorder
+handled; focusedA moves to pane2 and B becomes pane1. Cycled marks/drafts stay.
+All browsers exit0, owned cleanup/locks complete, original SNSS6ad2abf… unchanged.
+Cycled CDP close itself times out4 despite native exit0; not called protocol0.
+[Exact source/tool/AX/HID/context/raw proof](../artifacts/tests/installed-reorder-key-context-traces-6bf4c233-20261002/README.md).
+No single original-matrix/full-Master acceptance follows. The full native menu
+preset sequence/fresh-construction context is still different; original reorder
+RED remains unresolved. No repeat of fourteen passed assertions or new build.
+
+Source hypothesis corrected: MoveTabToIndexImpl DOES emit
+NotifySplitTabContentsUpdated after the move; SessionBridge.OnSplitTabChanged
+forwards this to OnSplitChanged, marking its token. A missing move event is not
+an established cause and was not patched. Trusted matrix restore_on_startup1
+is actually retained in Secure Preferences, regular Preferences omits it; no
+new lost-setting defect is inferred from that omission, no hashes exported.
+
+Next: reproduce the remaining native menu-preset/fresh-three-pane context with
+command delivery and focused/AX snapshots, distinguish a transient key from a
+model/focus/layout defect, then fix actual cause and run affected visible flow
+before focused native regression. New helpers are source-checked, no Chromium
+source/output/build/install changed. Entire original Master/worker/Sync/Mobile/
+external/release rights, original records and prior scoped GREEN stay intact.
+
 ## Matrix14 GREEN, actual pane reorder RED, then focus cancellation — 2 October 2026
 
 Installed matrix2811/2819 reaches15 assertions:14 pass (two/three/four-pane

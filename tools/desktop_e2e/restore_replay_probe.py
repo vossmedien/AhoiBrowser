@@ -29,6 +29,13 @@ def main():
     parser.add_argument('--output', type=pathlib.Path, required=True)
     parser.add_argument('--lock-directory', type=pathlib.Path, required=True)
     parser.add_argument('--explicit-restore', action='store_true')
+    parser.add_argument('--site-port', type=int, default=8827)
+    parser.add_argument('--reorder-key-probe', action='store_true',
+                        help='trace the real owned pane-reorder key on the retained split')
+    parser.add_argument('--reorder-reduce-to-three', action='store_true',
+                        help='close the fourth owned pane before tracing the three-pane reorder')
+    parser.add_argument('--reorder-cycle-layouts', action='store_true',
+                        help='exercise the six three-pane layouts and marked form state before the key')
     parser.add_argument('--trusted-pref-probe', action='store_true',
                         help='observe/update the copied profile through native settings API')
     parser.add_argument('--trusted-pref-receipt', type=pathlib.Path,
@@ -44,6 +51,9 @@ def main():
     args.output.mkdir(parents=True, exist_ok=False)
     state = dict(runnerPid=os.getpid(), phase='preflight', acceptance=False,
                  source=args.source, explicitRestore=args.explicit_restore,
+                 sitePort=args.site_port, reorderKeyProbe=args.reorder_key_probe,
+                 reorderReduceToThree=args.reorder_reduce_to_three,
+                 reorderCycleLayouts=args.reorder_cycle_layouts,
                  trustedPrefProbe=args.trusted_pref_probe,
                  harnessSha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
                  cdpSha256=hashlib.sha256(pathlib.Path(__file__).with_name('cdp.mjs').read_bytes()).hexdigest(),
@@ -52,6 +62,12 @@ def main():
         (args.output / 'state.json').write_text(json.dumps(state, indent=2) + '\n')
     save()
     assert plistlib.loads((args.app / 'Contents/Info.plist').read_bytes())['AhoiSourceCommit'] == args.source
+    if args.reorder_key_probe:
+        assert not args.trusted_pref_probe and not args.restore_lifecycle_receipt
+        helper = pathlib.Path(__file__).with_name('reorder_key_probe.py')
+        state['reorderHelperSha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+    assert not args.reorder_reduce_to_three or args.reorder_key_probe
+    assert not args.reorder_cycle_layouts or args.reorder_reduce_to_three
     restore_expectations = None
     if args.restore_lifecycle_receipt:
         assert args.trusted_pref_receipt and not args.trusted_pref_probe
@@ -86,7 +102,7 @@ def main():
         state['phase'] = 'deferred-owner-active'
         save()
         return 2
-    for port in [9431, 8827]:
+    for port in [9431, args.site_port]:
         if subprocess.run(['lsof', '-nP', f'-iTCP:{port}', '-sTCP:LISTEN'], capture_output=True).returncode == 0:
             state['phase'] = 'deferred-port-busy'
             save()
@@ -130,16 +146,16 @@ def main():
         site.mkdir(exist_ok=True)
         for name in ['solo'] + list('abcdefgh'):
             title = 'Solo' if name == 'solo' else 'Pane' + name.upper()
-            (site / (name + '.html')).write_text(f'<title>{title}</title><h1>{title}</h1>')
+            (site / (name + '.html')).write_text(f'<title>{title}</title><h1>{title}</h1><input id=f>')
         class Handler(http.server.SimpleHTTPRequestHandler):
             def log_message(self, format, *values):
                 with (args.output / 'site.log').open('a') as log:
                     log.write(format % values + '\n')
-        server = http.server.ThreadingHTTPServer(('127.0.0.1', 8827),
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', args.site_port),
                  functools.partial(Handler, directory=str(site)))
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
-        with urllib.request.urlopen('http://127.0.0.1:8827/solo.html', timeout=5) as response:
+        with urllib.request.urlopen(f'http://127.0.0.1:{args.site_port}/solo.html', timeout=5) as response:
             assert response.status == 200
         state.update(profileCopy=str(profile), phase='replaying', mockKeychain=False)
         save()
@@ -147,7 +163,7 @@ def main():
             raise RuntimeError('owner returned before replay launch')
         command = [str(args.app / 'Contents/MacOS/AhoiBrowser'), f'--user-data-dir={profile}',
                    '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=9431',
-                   '--enable-logging=stderr', '--vmodule=command_storage_backend=1,session_service_commands=1,session_restore=1']
+                   '--enable-logging=stderr', '--vmodule=command_storage_backend=1,session_service_commands=1,session_restore=1,browser_view=1,keyboard_shortcut_registration=1']
         if args.explicit_restore:
             command.append('--restore-last-session')
         if args.trusted_pref_probe:
@@ -209,6 +225,11 @@ def main():
             time.sleep(1)
         if args.trusted_pref_probe and 'nativePrefAfter' not in state:
             raise RuntimeError('native preference probe did not obtain a settings readback')
+        if args.reorder_key_probe:
+            from reorder_key_probe import probe_reorder_key
+            probe_reorder_key(args.app, browser, args.output, args.site_port, state, save,
+                              reduce_to_three=args.reorder_reduce_to_three,
+                              cycle_layouts=args.reorder_cycle_layouts)
         if restore_expectations:
             # Read only owned targets and native AX; no activation, key or drag.
             def owner_check():
@@ -224,7 +245,7 @@ def main():
                     raise RuntimeError('restore capture protocol failed: ' + method)
                 return data
             rows = []
-            site_prefix = 'http://127.0.0.1:8827/'
+            site_prefix = f'http://127.0.0.1:{args.site_port}/'
             (args.output / 'restore-targets.json').write_text(json.dumps(targets, indent=2) + '\n')
             for target in targets:
                 if target.get('type') != 'page' or not target.get('url', '').startswith(site_prefix):

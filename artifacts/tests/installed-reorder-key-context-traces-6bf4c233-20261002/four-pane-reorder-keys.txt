@@ -1,0 +1,4 @@
+18 cmd ctrl: hidkey 18
+124 cmd ctrl shift: hidkey 124
+19 cmd ctrl: hidkey 19
+18 cmd ctrl: hidkey 18

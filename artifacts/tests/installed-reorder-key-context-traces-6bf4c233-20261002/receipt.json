@@ -1,0 +1,46 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "acceptance": false,
+  "originalMatrixFailureResolved": false,
+  "cases": {
+    "four-pane": {
+      "raw": "artifacts/computer-use/m154/reorder-key-native-trace-6bf4c233-20261002T055041Z",
+      "reorderSwapObserved": true,
+      "nativeCommandHandled": true,
+      "closeProtocolExitCode": 0,
+      "browserExitCode": 0
+    },
+    "three-pane": {
+      "raw": "artifacts/computer-use/m154/three-pane-reorder-key-native-trace-6bf4c233-20261002T055349Z",
+      "reorderSwapObserved": true,
+      "nativeCommandHandled": true,
+      "closeProtocolExitCode": 0,
+      "browserExitCode": 0
+    },
+    "cycled-three-pane": {
+      "raw": "artifacts/computer-use/m154/cycled-three-pane-reorder-native-trace-6bf4c233-20261002T055944Z",
+      "reorderSwapObserved": true,
+      "nativeCommandHandled": true,
+      "closeProtocolExitCode": 4,
+      "browserExitCode": 0
+    }
+  },
+  "filesSha256": {
+    "four-pane-state.json": "7c23f7392665a95ccddad4c6388872faf640f2afb18d0f2078ef6f6e1c3ab76a",
+    "four-pane-browser.log": "3de247edfda527266adaf2f205f22d8e162d8027888f51312540b399c43ae827",
+    "four-pane-site.log": "1b9e57b9126f2fd2ad366cd4a2d7cddb385c71bc5f0eafe25ea352b661470f5a",
+    "four-pane-reorder-keys.txt": "41a1722e4c5d10a992f91d00d43c07bb37718a9d8e6e5f56001423336ee4d961",
+    "four-pane-reorder-activation.txt": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25",
+    "three-pane-state.json": "de26c78adc75f5c6ea570c39885d466b9498bb590290e1d3169812dc59620aef",
+    "three-pane-browser.log": "9122b6b7ede4475126e9af5f873a1ee9daa8efae3909c51f33fc6f9feef4e129",
+    "three-pane-site.log": "a8310b7f875d575fcec05c744a0bf7f4198c6b42a7ee15991b6a3dd99f4020b1",
+    "three-pane-reorder-keys.txt": "6c0f56951e5ace10785110fcf9ce6f5bb612da0858c6e6e6f249bab28e360b44",
+    "three-pane-reorder-activation.txt": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25",
+    "cycled-three-pane-state.json": "46eef1b0185c400abb1aaf3c9460e8ac33d6b7aae710a182b350a6d04de4f99d",
+    "cycled-three-pane-browser.log": "370ea0e3b2250bbfebb941bd2a3be81e98fa432af61867bc3dbd5643207a9a1d",
+    "cycled-three-pane-site.log": "6e04bf92979abbb7be37c25112f869f4ec7af194259b6f33da02505f04db0ffa",
+    "cycled-three-pane-reorder-keys.txt": "323df7df0375580ff7f77abce0af6698b219026034210a932364db8519cdf8df",
+    "cycled-three-pane-reorder-activation.txt": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25",
+    "cycled-three-pane-reorder-before-key-ax.txt": "678f171354bd66dcb8dbfadde30e4b29dfcd052930aead83b99ea0a52ae1de53"
+  }
+}
