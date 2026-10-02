@@ -1,0 +1,14 @@
+{
+ "fourPaneFocusShortcuts": true,
+ "fourGridPresets": true,
+ "fourGridLayoutShortcut": true,
+ "fifthPaneRefused": true,
+ "refusedPopupClosesCleanly": true,
+ "restoredOneRowProductStart": true,
+ "restoredFourPanesProductStart": true,
+ "restoredMembershipAndLayout": true,
+ "restoredWithoutPhantomTabs": true,
+ "restoredRatios": true,
+ "restoredFocusedPane": false,
+ "pass": false
+}

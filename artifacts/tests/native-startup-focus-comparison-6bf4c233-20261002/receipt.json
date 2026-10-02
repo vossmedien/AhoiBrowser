@@ -1,0 +1,31 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "acceptance": false,
+  "gridFailureResolved": false,
+  "cases": {
+    "chromium": {
+      "raw": "artifacts/computer-use/m154/startup-pane-focus-native-probe-6bf4c233-20261002T065539Z",
+      "nativeTitleBeforeAfter": "PaneC",
+      "noDevTools": false,
+      "documentReadback": true
+    },
+    "ahoi": {
+      "raw": "artifacts/computer-use/m154/ahoi-continue-pane-focus-native-probe-6bf4c233-20261002T070037Z",
+      "nativeTitleBeforeAfter": "PaneC",
+      "noDevTools": true,
+      "documentReadback": false
+    }
+  },
+  "filesSha256": {
+    "chromium-state.json": "23c28f9ff79421185e9b797e87cbfc758f94451812bb82b5066e32fdfe1e9c09",
+    "chromium-browser.log": "0ae7d4cb51b1b91f6eb50e5143a5a049ba3027c6127d1b3fb1c1d3fe5c89c307",
+    "chromium-startup-focus-before-activation-ax.txt": "51fbd38cb936300ed3a0d95d2435cb01d2e329cf66874fcd6f844c7122a6bf4b",
+    "chromium-startup-focus-after-activation-ax.txt": "594fba892fec655131e3b761d7249c7f167d80b504856cbdd702d2f4cd39c9c3",
+    "chromium-startup-focus-activation.txt": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25",
+    "ahoi-state.json": "f7a4a50182447130c420a84c4aedf92dce75d4bb54e04b41039a0016462b2299",
+    "ahoi-browser.log": "36fcc15b98ce26497ced255c41d30f6f86fa257a35fa745b6671ab5d6f90673d",
+    "ahoi-startup-focus-before-activation-ax.txt": "66a0e886d2ae9035443365d7e6324f88d08ffc3badaaed73644c171931da74cd",
+    "ahoi-startup-focus-after-activation-ax.txt": "88bde25aeef8efe56db91f8314d78865a2bcd6c0f3f3cd43fbd203d9366ecac1",
+    "ahoi-startup-focus-activation.txt": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25"
+  }
+}

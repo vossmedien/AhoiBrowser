@@ -1,0 +1,52 @@
+frontmost -> 0
+hidkey 18
+hidkey 19
+hidkey 20
+hidkey 21
+four-pane order: PaneA PaneB PaneC PaneD
+fourPaneFocusShortcuts -> true
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+AXPress AXMenuItem | 2-mal-2-Raster, Zeilen zuerst | itemSelected: -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | 2-mal-2-Raster, Zeilen zuerst | itemSelected: mark=✓
+AXPress AXMenuItem | 2-mal-2-Raster, Spalten zuerst | itemSelected: -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | 2-mal-2-Raster, Spalten zuerst | itemSelected: mark=✓
+hidkey 53
+hidkey 53
+fourGridPresets -> true
+hidkey 37
+fourGridLayoutShortcut -> true
+hidkey 18
+{"result":{"type":"number","value":1,"description":"1"}}
+
+AXPress AXButton | Popup im Split View öffnen | Popup im Split View öffnen -> 0
+fifthPaneRefused -> true
+AXPress AXButton | Popup schließen | Popup schließen -> 0
+refusedPopupClosesCleanly -> true
+hidkey 124
+hidkey 124
+hidkey 20
+before quit: focus=PaneC shares=PaneA:0.300 PaneB:0.300 PaneC:0.200 PaneD:0.200 urls=a.html b.html c.html d.html solo.html
+hidkey 12
+frontmost -> 0
+sidebar group ['PaneA', 'PaneB', 'PaneC', 'PaneD']: found=['PaneA', 'PaneB', 'PaneC', 'PaneD'] parent='AXGroup' members=4 -> True
+restoredOneRowProductStart -> true
+restoredFourPanesProductStart -> true
+hidkey 12
+frontmost -> 0
+after restart: focus=PaneA shares=PaneA:0.300 PaneB:0.300 PaneC:0.200 PaneD:0.200 urls=a.html b.html c.html d.html solo.html
+restoredMembershipAndLayout -> true
+restoredWithoutPhantomTabs -> true
+restoredRatios -> true
+restoredFocusedPane -> false
+hidkey 12

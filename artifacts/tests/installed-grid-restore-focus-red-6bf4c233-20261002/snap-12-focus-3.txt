@@ -1,0 +1,5 @@
+DDC16080B3AAE5933CE0E8B5C84D88AA|1099952930|{"t":"PaneB","w":465,"h":735,"v":"visible","f":false,"m":"kept","val":"PaneB-draft"}
+6B92E6D18906DA579860FC0C2180CC12|1099952930|{"t":"PaneD","w":465,"h":490,"v":"visible","f":false,"m":"kept","val":"PaneD-draft"}
+59BD1042EBC18F42108D40CD195FEC6E|1099952930|{"t":"PaneA","w":465,"h":735,"v":"visible","f":false,"m":"kept","val":"PaneA-draft"}
+BC6B1CBAB38C6B5CFC1217D14B695962|1099952930|{"t":"PaneC","w":465,"h":490,"v":"visible","f":true,"m":"kept","val":"PaneC-draft"}
+DAD29ACA47D3E6B987D8F6CC9B55A761|1099952930|{"t":"Solo","w":940,"h":1235,"v":"hidden","f":false,"m":"kept","val":"Solo-draft"}

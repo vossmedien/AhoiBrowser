@@ -32,6 +32,10 @@ def main():
     parser.add_argument('--site-port', type=int, default=8827)
     parser.add_argument('--reorder-key-probe', action='store_true',
                         help='trace the real owned pane-reorder key on the retained split')
+    parser.add_argument('--startup-focus-probe', action='store_true',
+                        help='read native/document focus before and after ordinary owned activation')
+    parser.add_argument('--startup-no-devtools', action='store_true',
+                        help='use the real Ahoi Continue path and native AX only')
     parser.add_argument('--reorder-reduce-to-three', action='store_true',
                         help='close the fourth owned pane before tracing the three-pane reorder')
     parser.add_argument('--reorder-cycle-layouts', action='store_true',
@@ -56,6 +60,8 @@ def main():
     state = dict(runnerPid=os.getpid(), phase='preflight', acceptance=False,
                  source=args.source, explicitRestore=args.explicit_restore,
                  sitePort=args.site_port, reorderKeyProbe=args.reorder_key_probe,
+                 startupFocusProbe=args.startup_focus_probe,
+                 startupNoDevTools=args.startup_no_devtools,
                  reorderReduceToThree=args.reorder_reduce_to_three,
                  reorderCycleLayouts=args.reorder_cycle_layouts,
                  reorderMenuPresets=args.reorder_menu_presets,
@@ -76,6 +82,8 @@ def main():
     assert not args.reorder_cycle_layouts or args.reorder_reduce_to_three
     assert not args.reorder_menu_presets or args.reorder_reduce_to_three
     assert not args.reorder_hid_dismiss_menus or args.reorder_menu_presets
+    assert not args.startup_focus_probe or not (args.reorder_key_probe or args.trusted_pref_probe)
+    assert not args.startup_no_devtools or (args.startup_focus_probe and not args.explicit_restore)
     restore_expectations = None
     if args.restore_lifecycle_receipt:
         assert args.trusted_pref_receipt and not args.trusted_pref_probe
@@ -172,6 +180,8 @@ def main():
         command = [str(args.app / 'Contents/MacOS/AhoiBrowser'), f'--user-data-dir={profile}',
                    '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=9431',
                    '--enable-logging=stderr', '--vmodule=command_storage_backend=1,session_service_commands=1,session_restore=1,browser_view=1,keyboard_shortcut_registration=1']
+        if args.startup_no_devtools:
+            command.remove('--remote-debugging-port=9431')
         if args.explicit_restore:
             command.append('--restore-last-session')
         if args.trusted_pref_probe:
@@ -186,6 +196,9 @@ def main():
             if idle_seconds() < 2 or app_running(args.app, exclude_pid=browser.pid):
                 raise RuntimeError('owner input/app returned during replay')
             try:
+                if args.startup_no_devtools:
+                    time.sleep(1)
+                    continue
                 with urllib.request.urlopen('http://127.0.0.1:9431/json', timeout=1) as response:
                     targets = json.load(response)
                 state.setdefault('observations', []).append(dict(
@@ -233,6 +246,43 @@ def main():
             time.sleep(1)
         if args.trusted_pref_probe and 'nativePrefAfter' not in state:
             raise RuntimeError('native preference probe did not obtain a settings readback')
+        if args.startup_focus_probe:
+            ax = pathlib.Path('/private/tmp/ahoi-axtool')
+            ax_source = pathlib.Path(__file__).with_name('axtool.swift')
+            assert ax.is_file() and ax.stat().st_mtime >= ax_source.stat().st_mtime
+            state['axBinarySha256'] = hashlib.sha256(ax.read_bytes()).hexdigest()
+            state['axSourceSha256'] = hashlib.sha256(ax_source.read_bytes()).hexdigest()
+            state['startupFocusSamples'] = []
+            def capture_startup_focus(label):
+                if idle_seconds() < 2 or app_running(args.app, exclude_pid=browser.pid):
+                    raise RuntimeError('owner input/app returned during startup focus capture')
+                owned = []
+                if not args.startup_no_devtools:
+                    with urllib.request.urlopen('http://127.0.0.1:9431/json', timeout=2) as response:
+                        owned = json.load(response)
+                rows = []
+                for target in owned:
+                    if target.get('type') != 'page' or not target.get('url', '').startswith(f'http://127.0.0.1:{args.site_port}/'):
+                        continue
+                    result = subprocess.run(['node', str(pathlib.Path(__file__).with_name('cdp.mjs')), '9431',
+                        target['id'], 'Runtime.evaluate', json.dumps(dict(
+                        expression='({t:document.title,f:document.hasFocus(),v:document.visibilityState,href:location.href,ready:document.readyState})',
+                        returnByValue=True))], capture_output=True, text=True, timeout=12)
+                    assert result.returncode == 0
+                    rows.append(json.loads(result.stdout)['result']['value'])
+                focus = subprocess.run([str(ax), 'focused', str(browser.pid)], capture_output=True, text=True, timeout=5)
+                dump = subprocess.run([str(ax), 'dump', str(browser.pid), '40'], capture_output=True, text=True, timeout=12)
+                (args.output / f'startup-focus-{label}-ax.txt').write_text(dump.stdout)
+                state['startupFocusSamples'].append(dict(label=label, rows=rows, nativeFocus=focus.stdout,
+                                                        documentReadback=not args.startup_no_devtools))
+                save()
+            capture_startup_focus('before-activation')
+            if idle_seconds() < 90 or app_running(args.app, exclude_pid=browser.pid):
+                raise RuntimeError('owner returned before owned startup activation')
+            activation = subprocess.run([str(ax), 'activate', str(browser.pid)], capture_output=True, text=True, timeout=5)
+            (args.output / 'startup-focus-activation.txt').write_text(activation.stdout + activation.stderr)
+            time.sleep(1)
+            capture_startup_focus('after-activation')
         if args.reorder_key_probe:
             from reorder_key_probe import probe_reorder_key
             probe_reorder_key(args.app, browser, args.output, args.site_port, state, save,
@@ -295,8 +345,17 @@ def main():
             save()
         # Reorder diagnostics may close a pane. Do not use the startup target
         # list for native close: its first target can now have been destroyed.
-        with urllib.request.urlopen('http://127.0.0.1:9431/json', timeout=2) as response:
-            targets = json.load(response)
+        if args.startup_no_devtools:
+            focused = subprocess.run([str(ax), 'focused', str(browser.pid)], capture_output=True, text=True, timeout=5)
+            assert f' pid={browser.pid} target={browser.pid}' in focused.stdout.splitlines()[0]
+            close = subprocess.run([str(ax), 'hidkey', str(browser.pid), '12', 'cmd'],
+                                   capture_output=True, text=True, timeout=5)
+            state['nativeQuitKeyExitCode'] = close.returncode
+            assert close.returncode == 0
+            targets = []
+        else:
+            with urllib.request.urlopen('http://127.0.0.1:9431/json', timeout=2) as response:
+                targets = json.load(response)
         target = next((t for t in targets if t.get('type') == 'page'), None)
         if target:
             result = subprocess.run(['node', str(pathlib.Path(__file__).with_name('cdp.mjs')), '9431',

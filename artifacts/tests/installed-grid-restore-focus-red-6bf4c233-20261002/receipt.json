@@ -1,0 +1,35 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "pass": false,
+  "scope": "eleven previously unexecuted grid/startup/restore assertions",
+  "passedAssertions": 10,
+  "failedAssertions": [
+    "restoredFocusedPane"
+  ],
+  "syntheticProfile": "/private/tmp/ahoi-split-profile.5by7iG",
+  "sessionEvidence": [
+    {
+      "name": "Session_13435397149193636",
+      "bytes": 36947,
+      "sha256": "a0d3796e304bf69ee6a6a4346ef6594413bc2a0e94e0d1b36df91e26b4dadd90"
+    },
+    {
+      "name": "Session_13435397132453977",
+      "bytes": 34901,
+      "sha256": "f55240c8caf824dbf5f19ebc38253c19baf59f3676d36332451d54ecb3bb6623"
+    }
+  ],
+  "rawDirectory": "artifacts/computer-use/m154/split-grid-continuation-installed-6bf4c233-20261002T064358Z",
+  "filesSha256": {
+    "runner-state.json": "f154975357dfc17992507c9456811417f3672333d86acc023c6179e7ddc1d671",
+    "steps.txt": "d7b251618155c4b35c404ea493ccb172c715b0acd0ca5382ab79c3bb41b5682e",
+    "run.txt": "3ca61638083e89281b007ba78cde39377b0e51afb5d09765003875d95ad7a5e3",
+    "verdict.json": "bbd7abf8205e9834fbd7b2d66b78ee5f42f9eb5d09a4a08e8b7802ea8322aa47",
+    "retained-grid-seed.json": "21c4f1320c9215cf485c3c34cfa6f41c419a84b8c51decfa49c9714b1c980adc",
+    "launch-preflight.jsonl": "9555f9ded44e32ad5b6aa2d711f7b325b9346b55b51c8088701231f7543639e1",
+    "ax-final.txt": "63514f63aa4a169c76f1b04d5135c0143437af6139c06385223b4213859a8bc1",
+    "snap-12-focus-3.txt": "c358cade03e8c3b14934192528c5c519bd9ec4d49edcfd445950080c0b0dc552",
+    "snap-4-focus-3.txt": "74352e47a474c8c1ef6e880b400928439fa1e91eec2d6155d6e9a7da6ced83e5",
+    "snap-13-relaunch.txt": "4c983c0ff5b6de8f8460023f4ce683ba965568b954a7f3b50a609faf3e1d0b2f"
+  }
+}

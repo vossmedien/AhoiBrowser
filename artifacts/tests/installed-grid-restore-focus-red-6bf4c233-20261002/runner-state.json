@@ -1,0 +1,36 @@
+{
+  "runnerPid": 98437,
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "phase": "complete",
+  "startedAt": "2026-10-02T06:43:58.684570+00:00",
+  "journey": "split-grid-continuation",
+  "waitDeadlineSeconds": 0,
+  "idleSeconds": 531,
+  "appRunning": false,
+  "compilerRunning": false,
+  "output": "artifacts/computer-use/m154/split-grid-continuation-installed-6bf4c233-20261002T064358Z",
+  "inputSha256": {
+    "tools/desktop_e2e/split-grid-restore-journey.sh": "7f1c44dcc83d7bc8fe50edc515b615bce93da540125f8d64fd926e08c8a9d508",
+    "tools/desktop_e2e/split_journey_lib.sh": "c86f9d0fbe7775a866399cc536c1a7ef1fe09cc2c9007e70d681ae7d6cab2a83",
+    "tools/desktop_e2e/cdp.mjs": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+    "tools/desktop_e2e/axtool.swift": "05480adb28214085b330fd95d9a98e4e6bd36e76b5c1a85884a60bebed5eecbd",
+    "tools/desktop_e2e/split_sidebar_group.py": "ac81e3319196efccd5efb1259764aaa187f6ab9274c779c86cfc6cac6b4076c4"
+  },
+  "journeyPid": 98442,
+  "exitCode": 1,
+  "verdict": {
+    "fourPaneFocusShortcuts": true,
+    "fourGridPresets": true,
+    "fourGridLayoutShortcut": true,
+    "fifthPaneRefused": true,
+    "refusedPopupClosesCleanly": true,
+    "restoredOneRowProductStart": true,
+    "restoredFourPanesProductStart": true,
+    "restoredMembershipAndLayout": true,
+    "restoredWithoutPhantomTabs": true,
+    "restoredRatios": true,
+    "restoredFocusedPane": false,
+    "pass": false
+  },
+  "ownedRootsRemain": []
+}

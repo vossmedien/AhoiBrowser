@@ -1,0 +1,44 @@
+{
+  "runnerPid": 8385,
+  "phase": "complete",
+  "acceptance": false,
+  "source": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "explicitRestore": false,
+  "sitePort": 8825,
+  "reorderKeyProbe": false,
+  "startupFocusProbe": true,
+  "startupNoDevTools": true,
+  "reorderReduceToThree": false,
+  "reorderCycleLayouts": false,
+  "reorderMenuPresets": false,
+  "reorderHidDismissMenus": false,
+  "trustedPrefProbe": false,
+  "harnessSha256": "2f0b9f48e2c5eb688a0399bae22e36e3b020d8c91467166b0657a27afcc43962",
+  "cdpSha256": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+  "retainedSessionSha256": "6ad2abf131872ac5228dfda6c0551525a2fcd4b9e1ff307b87cb5de7862232d5",
+  "idleSeconds": 174,
+  "appRunning": false,
+  "profileCopy": "/private/tmp/ahoi-restore-replay.jij4jru9",
+  "mockKeychain": false,
+  "browserPid": 8396,
+  "axBinarySha256": "c3fde43738c81223f09b249f730eec095c48e0484b471a67098a4546aa9002a4",
+  "axSourceSha256": "05480adb28214085b330fd95d9a98e4e6bd36e76b5c1a85884a60bebed5eecbd",
+  "startupFocusSamples": [
+    {
+      "label": "before-activation",
+      "rows": [],
+      "nativeFocus": "frontmostApp: AhoiBrowser pid=8396 target=8396\nfocusedElement: AXWebArea | PaneC\nfocusedWindow: AXWindow | PaneC - Pane 3 of 4 - AhoiBrowser\nmainWindow: AXWindow | PaneC - Pane 3 of 4 - AhoiBrowser\n",
+      "documentReadback": false
+    },
+    {
+      "label": "after-activation",
+      "rows": [],
+      "nativeFocus": "frontmostApp: AhoiBrowser pid=8396 target=8396\nfocusedElement: AXWebArea | PaneC\nfocusedWindow: AXWindow | PaneC - Pane 3 of 4 - AhoiBrowser\nmainWindow: AXWindow | PaneC - Pane 3 of 4 - AhoiBrowser\n",
+      "documentReadback": false
+    }
+  ],
+  "nativeQuitKeyExitCode": 0,
+  "browserExitCode": 0,
+  "originalSessionUnchanged": true,
+  "cleanupComplete": true
+}

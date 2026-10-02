@@ -1,5 +1,34 @@
 # Active Desktop checkpoint
 
+## Remaining grid10 GREEN, focused-pane restore RED; simple activation ruled out — 2 October 2026
+
+Focused continuation98437/98442 actually completes eleven original remaining
+assertions, exit1/pass:false: ten GREEN (four focus/grid presets/checks/layout,
+fifth refusal/close, no-DevTools Ahoi Continue group/four panes, debug membership/
+exact URL set/ratios). Only restoredFocusedPane fails: C before first quit,
+A after no-DevTools then debug restart. Shares0.3/0.3/0.2/0.2 persist, no tab loss.
+All browser roots98501/99681/99826 terminal, own lock released; original SNSS
+hash unchanged. Own new profile `/private/tmp/ahoi-split-profile.5by7iG` retained.
+[Actual eleven verdicts, seed/tool/source/phase bindings](../artifacts/tests/installed-grid-restore-focus-red-6bf4c233-20261002/README.md).
+Prior14 and affected reorder GREEN remain separate; full matrix not accepted.
+
+Two focused original-session comparisons are terminal: normal debug startup
+5812/browser5821 and real Ahoi Continue8385/browser8396 keep native title/focusC
+before/after ordinary AX activation. Debug DOM
+also focusC; no-DevTools comparison uses AX only, no CDP claim. Native exits0,
+cleanup/original-hash/locks clean. [Exact differential readbacks](../artifacts/tests/native-startup-focus-comparison-6bf4c233-20261002/README.md).
+Thus neither general Ahoi-vs-Chromium startup nor ordinary activation alone
+is an established cause; no product patch is guessed from it. The failed
+chain also changes grid traversal/ratio and quits twice; isolate that context.
+
+Next concrete diagnosis: retained selected native pane versus actual renderer/
+native title after traversal/ratio edits BEFORE quit, then original session
+selected data through native quit and the two startup paths. Fix established
+cause and verify affected focused restore before native regression; do not
+repeat ten accepted scopes or rebuild for a guess. Source helper syntax passes,
+installed71/6bf4c233 unchanged. Entire original Master/worker/Sync/Mobile/
+external/release/data/archive/rollback/ownership bounds remain active.
+
 ## Remaining grid/startup/restore journey actually running — 2 October 2026
 
 New focused continuation copies ONLY the receipt-bound own retained synthetic
