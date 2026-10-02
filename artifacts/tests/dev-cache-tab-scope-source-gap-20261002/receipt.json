@@ -1,0 +1,17 @@
+{
+  "reviewedSource": "d8dc6df1429c203f85015eda754771a3d7548aa3",
+  "installedCandidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "finding": "Explicit active-tab-only cache control is missing; current editor writes origin profile",
+  "runtimeClaimed": false,
+  "fullDevAcceptance": false,
+  "filesSha256": {
+    "outputs/AhoiBrowser-Master-Zielprompt.md": "e37b9aceba662f226d9db982f2ffad0635b78aad3b378863a7193776511c85b5",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_types.h": "20e68c4c12a83f8d5b0135a0fe7246979186931755895e4dc4e4f72df85a9e95",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime_store.cc": "1610b5a1b8915d335a099ba78cd18b2968c1bcdd878a994f2150910ba6d30bae",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_types.h": "e463e6fcd3a22f7dc1bd2fb4f90f94d6acb657bd912c7936153ec610e6c9516e",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_action_executor.cc": "0fea3cb2516516142919f2a4beded6b7cd0a74448906dd2c8e17d49b5d8ef437",
+    "overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_profile_editor_view.cc": "e160dfa20407ef82e6dc244c7484dc58dba8f3fe8396321f731be4cb0c8d6f7c",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.cc": "9e088256f969561db53b38492f7b75957d74d60d6caac1e9e8852ec5b0508966",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc": "5fe9e36a436034d2440fa745300f709dcaa0a72a1850ac78a40a0d37a0385068"
+  }
+}

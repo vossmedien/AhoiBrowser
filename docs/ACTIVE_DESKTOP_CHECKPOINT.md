@@ -1,5 +1,37 @@
 # Active Desktop checkpoint
 
+## Concrete tab-cache product gap found during GUI hold — 2 October 2026
+
+Initial live foreign Xcode14346 is present/input active/pressure2; final read
+finds compiler absent and idle309 but memory pressure remains2, so no GUI test,
+app/delete/build/idle watcher launched. Previous turn was documentation progress;
+this source audit moves the next product action instead of another wait loop.
+
+Master Cache/SiteData explicitly requires cache disabled for the active tab.
+Current editor writes DeveloperProfile.cache_disabled; SaveProfile retains it
+in the Pref-backed origin profile and a second tab reads that same origin flag.
+Closed DeveloperAction catalog has ClearCache/HardReload, no explicit tab-only
+cache-disable control; temporary header/asset stores do not supply that cache
+state. [Exact source/hash-bound gap and required next package](../artifacts/tests/dev-cache-tab-scope-source-gap-20261002/README.md).
+Static gap only, no new runtime claim. Prior origin cache bypass/server-counter
+and native passes remain scoped, not proof of two-tab separation or fullDEV.
+
+Next authorized source package can progress while GUI stays held: a separate
+explicit active-tab cache control/state on existing WebContents/helper, out of
+Prefs/Sync and isolated from origin-profile editing; main/document/attested
+dedicated-worker resolution plus reset/disable/navigation/close and current-pane
+chip attribution must agree. Preserve explicit persistent origin profiles,
+native cache/network ownership, request-local secrets and existing generation
+guards. No Shared/ServiceWorker parent guessed. Freeze as a coherent package,
+then affected installed two-tab/split/counter/CDN/reset/close/restore journeys
+BEFORE necessary candidate-bound focused regression when actual capacity permits.
+
+The already prepared nine archive persistence/delete and six protection GUI
+checks remain NOT_RUN and are still the first free-GUI work, not abandoned.
+Do not rebuild or repeat old suites for this audit. Installed71/6bf4c233, source,
+all original full Master/worker/Sync/Mobile/external/release/data/archives/rollback
+ownership, earlier scoped GREEN/historical RED and rights preserved.
+
 ## No GUI window; stale build entry contract corrected — 2 October 2026
 
 Fresh Xcode14346 is actually live through the final6min phase, input recent,
