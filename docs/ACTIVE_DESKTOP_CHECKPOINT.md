@@ -1,5 +1,19 @@
 # Active Desktop checkpoint
 
+## Corrected installed split lifecycle actually running — 2 October 2026
+
+After independent source progress, a fresh immediate check sees idle119,
+no compiler/app and free resource locks. Runner79391/journey79396/browser79447
+are actually live on installed Build71/6bf4c233, no wait/retry observer.
+Exact state/tool hashes and resource samples:
+`.work/agent-queue/71/installed-lifecycle-trusted-immediate-20261002T051252Z/`;
+raw journey: `artifacts/computer-use/m154/split-lifecycle-trusted-installed-6bf4c233-20261002T051252Z/`.
+Trusted live preference setup precedes fixture construction; prior assertions
+are unchanged and the false verdict now fails command exit. Actual verdict
+is pending; inspect this same handle/PIDs before any further UI/build/installer
+action. No old RED is replaced before completion. Entire Master/Sync/worker/
+external/release scope remains active.
+
 ## Logical split-sync contract aligned; UI window expired — 2 October 2026
 
 Foreign Cockpit51921 is now absent; refreshed installed source remains
