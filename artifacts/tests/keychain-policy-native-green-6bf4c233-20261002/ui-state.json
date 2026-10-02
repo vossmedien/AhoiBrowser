@@ -1,0 +1,50 @@
+{
+  "componentManifestSha256": "34c4924329f3acfdae3cd9cb397e1019be1c0ae548c6bfae669e8fde3beb3a28",
+  "runnerPid": 83299,
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "results": [
+    {
+      "name": "ahoi_sidebar_tree_unittests",
+      "exitCode": 0,
+      "binarySha256": "e042ee94041e37ac1939fb92168c7f79a12182cf2b339c14a906a66b4aa669f7",
+      "executedCases": 191,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_developer_toolkit_ui_unittests",
+      "exitCode": 0,
+      "binarySha256": "0c9e64c20e61054870aa95b6e861fb116a66f7b477357b9488aa44d71faf49bc",
+      "executedCases": 33,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_popup_unittests",
+      "exitCode": 0,
+      "binarySha256": "ec1b660cc583776b9e4cb4e74a819ef02fe1f66dddc89b16d090278c8af56a9e",
+      "executedCases": 28,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_sidebar_search_unittests",
+      "exitCode": 0,
+      "binarySha256": "cd4902d744e86587ca3d60b8b8d7fcaf2600df697c823b47c276a887e44bb0fc",
+      "executedCases": 86,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    }
+  ],
+  "startedAt": "2026-10-02T03:26:18.141622+00:00",
+  "binarySha256": "cd4902d744e86587ca3d60b8b8d7fcaf2600df697c823b47c276a887e44bb0fc",
+  "testPid": 84000,
+  "finishedAt": "2026-10-02T03:28:00.280701+00:00"
+}

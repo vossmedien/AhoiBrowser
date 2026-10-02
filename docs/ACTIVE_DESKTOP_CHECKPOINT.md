@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Candidate71 real HTTP partial; editor/UI GREEN, browser gate live — 2 October 2026
+
+The bounded window76936 actually starts an owned output-candidate probe atidle309
+without mock-keychain. Server now receives browser PaneA/HTTP200 as well as
+readiness, unlike prior blocked real-provider runs. However Network.enable itself
+times out before DOM/Paneb samples; output launch also logs code-sign-clone EXDEV
+across filesystems. These are distinct preserved findings, not an encrypted-cookie
+or whole real-recovery PASS. [Actual partial HTTP/protocol/source bindings](../artifacts/tests/real-keychain-candidate-partial-6bf4c233-20261002/README.md).
+Probe/window/browser roots are terminal; owned cleanup and lock release complete.
+
+Native6bf4c233 Core152/policy4/baseline872 proof remains GREEN. Editor5 and full
+UI sidebar191/Views33/popup28/search86 also execute SUCCESS, no skips/retries.
+[Exact native inputs/results](../artifacts/tests/keychain-policy-native-green-6bf4c233-20261002/README.md).
+All these runners are terminal. Three required browser programs now execute
+serially under current idle>=90/app absence/free ownership; recorded live PID is
+in `.work/agent-queue/71/browser-native/state.json`, verify actual process before
+any refresh/test/install/UI. One job/no retries; this gate is not yet claimed.
+
+Next: actual browser verdicts, canonical installer only after required exact
+native GREEN, then genuine real-keychain windowed/cookie/encryption/restart and
+representative installed visible journeys. Do not use mocks to close that gap or
+repeat the output launch as installed acceptance. Installed Build70 remains
+unchanged until actual transaction succeeds. Full original Master/worker/Sync/
+external/release/data/archive/rollback boundaries remain intact; no general
+observer/readiness loop or new build was spawned for the partial trace.
+
 ## Candidate71 Core152/policy4 and baseline872 GREEN; real window pending — 2 October 2026
 
 Exact6bf4c233 Build71 completes guarded compile/stable sign/provenance. Actual

@@ -1,0 +1,19 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "appLocation": "signed output candidate, not installed",
+  "windowed": true,
+  "mockKeychain": false,
+  "browserHttpFixtureRequestReceived": true,
+  "domAndExplicitNavigationVerified": false,
+  "failure": "command deadline: Network.enable",
+  "rawDirectory": "artifacts/computer-use/m154/navigation-real-keychain-candidate-6bf4c233-20261002T032116Z",
+  "shutdownDeadline": true,
+  "cloneCrossDeviceLog": true,
+  "rawSha256": {
+    "browser.log": "1b973c582dc0021f399f3e6c8bc9c979e515ac6c61d52bdd42c2da1f07a210e0",
+    "state.json": "18155146cb0bc111ba3633735001f66f14b23fb677bc8ff13433d4427d1c5264",
+    "site.log": "30d9b9c668303be6d5f691dcd26cc412a3a50306072cf4cce4e180c047994dc6",
+    "startup-targets.json": "08307e5949efcd160a5c4e29719ea2b5a281dbeabfa65eb7fee2de46bd52a2b1",
+    "protocol.json": "60626b02e9cc0dcd5a05370847bec1905cb85fce583478b453db9cee268ed980"
+  }
+}
