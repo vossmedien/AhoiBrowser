@@ -30,6 +30,8 @@
 #include "content/public/test/web_contents_tester.h"
 #include "content/test/test_web_contents.h"
 #include "net/http/http_response_headers.h"
+#include "net/url_request/redirect_info.h"
+#include "services/network/public/cpp/http_request_headers_update_params.h"
 #include "services/network/public/cpp/resource_request.h"
 #include "services/network/public/mojom/url_response_head.mojom.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -530,6 +532,87 @@ TEST_F(DeveloperHeaderMaterializationTest,
   EXPECT_FALSE(MaybeCreateDeveloperProfileURLLoaderThrottle(
       MainFrameRequest(same_origin_redirect), &prefs_,
       /*is_off_the_record=*/false, web_contents_.get()));
+}
+
+
+TEST_F(DeveloperHeaderMaterializationTest,
+       DispatchedMainFrameResponseRetiresRulesAcrossDisableAndReenable) {
+  DeveloperProfile profile{.name = "Main navigation rules"};
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Own", .value = "configured"});
+  profile.response_header_rules_enabled = true;
+  profile.response_header_rules.push_back({.name = "X-Own-Response", .value = "configured"});
+  SaveProfile(profile);
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  auto request = MainFrameRequest(TestOrigin().GetURL());
+  auto throttle = MaybeCreateDeveloperProfileURLLoaderThrottle(
+      request, &prefs_, false, web_contents_.get());
+  ASSERT_TRUE(throttle);
+  bool defer = false;
+  throttle->WillStartRequest(&request, &defer);
+  EXPECT_EQ("configured", request.headers.GetHeader("X-Own"));
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, false);
+  prefs_.SetBoolean(developer_toolkit_prefs::kToolkitEnabled, true);
+  network::mojom::URLResponseHead response;
+  response.headers = net::HttpResponseHeaders::TryToCreate("HTTP/1.1 200 OK\r\nX-Native: kept\r\n\r\n");
+  throttle->WillProcessResponse(request.url, &response, &defer);
+  EXPECT_FALSE(response.headers->HasHeader("X-Own-Response"));
+  EXPECT_EQ("kept", response.headers->GetNormalizedHeader("X-Native"));
+}
+
+TEST_F(DeveloperHeaderMaterializationTest,
+       ResetMainNavigationRestoresHeaderWithoutPendingExemptValue) {
+  DeveloperProfile profile{.name = "Main navigation rules"};
+  profile.header_rules_enabled = true;
+  profile.header_rules.push_back({.name = "X-Own", .value = "configured"});
+  profile.response_header_rules_enabled = true;
+  profile.response_header_rules.push_back({.name = "X-Own-Response", .value = "configured"});
+  SaveProfile(profile);
+  DeveloperProfileTabHelper helper(web_contents_.get(), &prefs_);
+  auto request = MainFrameRequest(TestOrigin().GetURL());
+  request.headers.SetHeader("X-Own", "original");
+  auto throttle = MaybeCreateDeveloperProfileURLLoaderThrottle(
+      request, &prefs_, false, web_contents_.get());
+  ASSERT_TRUE(throttle);
+  bool defer = false;
+  throttle->WillStartRequest(&request, &defer);
+  ASSERT_TRUE(helper.ResetProfilesForUrl(request.url));
+  net::RedirectInfo redirect;
+  redirect.new_url = request.url.Resolve("same-origin-next");
+  network::mojom::URLResponseHead response;
+  response.headers = net::HttpResponseHeaders::TryToCreate("HTTP/1.1 302 Found\r\n\r\n");
+  network::HttpRequestHeadersUpdateParams updates;
+  updates.modified_headers.SetHeader("X-Own", "late");
+  updates.modified_cors_exempt_headers.SetHeader("X-Own", "late-exempt");
+  throttle->WillRedirectRequest(&redirect, response, &defer, &updates);
+  EXPECT_EQ("original", updates.modified_headers.GetHeader("X-Own"));
+  EXPECT_FALSE(updates.modified_cors_exempt_headers.HasHeader("X-Own"));
+  EXPECT_FALSE(defer);
+}
+
+TEST_F(DeveloperHeaderMaterializationTest,
+       RetiredStagedMainSecretCannotModifyALateResponse) {
+  const auto source = MakeSecretHeaderProfile();
+  SaveProfile(source);
+  const FixedDeveloperSecretStore store(true);
+  const auto materialized = MaterializeDeveloperProfileHeaderSecrets(source, store);
+  ASSERT_TRUE(materialized);
+  const auto url = TestOrigin().GetURL();
+  ASSERT_TRUE(StageDeveloperProfileNavigationRequest(
+      *web_contents_, 701, url, source, *materialized));
+  auto request = MainFrameRequest(url);
+  auto throttle = MaybeCreateDeveloperProfileURLLoaderThrottle(
+      request, &prefs_, false, web_contents_.get());
+  ASSERT_TRUE(throttle);
+  bool defer = false;
+  throttle->WillStartRequest(&request, &defer);
+  EXPECT_EQ(kRequestSecret, request.headers.GetHeader("Authorization"));
+  ClearDeveloperProfileNavigationRequest(*web_contents_, 701);
+  network::mojom::URLResponseHead response;
+  response.headers = net::HttpResponseHeaders::TryToCreate("HTTP/1.1 200 OK\r\n\r\n");
+  throttle->WillProcessResponse(url, &response, &defer);
+  EXPECT_FALSE(response.headers->HasHeader("X-Ahoi-Response-Secret"));
+  EXPECT_FALSE(defer);
 }
 
 }  // namespace

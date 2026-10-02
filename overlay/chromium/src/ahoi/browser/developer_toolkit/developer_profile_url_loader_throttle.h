@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "ahoi/browser/developer_toolkit/developer_profile_types.h"
+#include "base/functional/callback.h"
 #include "third_party/blink/public/common/loader/url_loader_throttle.h"
 #include "url/origin.h"
 
@@ -93,7 +94,8 @@ class DeveloperProfileURLLoaderThrottle final
     : public blink::URLLoaderThrottle {
  public:
   DeveloperProfileURLLoaderThrottle(url::Origin origin,
-                                    DeveloperProfile profile);
+                                    DeveloperProfile profile,
+                                    base::RepeatingCallback<bool()> approval = {});
   DeveloperProfileURLLoaderThrottle(const DeveloperProfileURLLoaderThrottle&) =
       delete;
   DeveloperProfileURLLoaderThrottle& operator=(
@@ -132,9 +134,12 @@ class DeveloperProfileURLLoaderThrottle final
   void ApplyForRedirect(
       network::HttpRequestHeadersUpdateParams& headers_update_params) const;
   void ApplyToResponseHeaders(net::HttpResponseHeaders& headers) const;
+  bool ValidateApproval();
 
   const url::Origin origin_;
-  const DeveloperProfile profile_;
+  DeveloperProfile profile_;
+  base::RepeatingCallback<bool()> approval_;
+  bool revoked_ = false;
   std::vector<OriginalHeader> original_headers_;
 };
 

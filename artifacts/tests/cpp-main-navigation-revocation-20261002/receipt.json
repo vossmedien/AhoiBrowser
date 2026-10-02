@@ -1,0 +1,37 @@
+{
+  "scope": "main-navigation URLLoader throttle source only",
+  "syntaxChecks": 3,
+  "jobs": 1,
+  "newMethodsWritten": 3,
+  "newMethodsExecuted": 0,
+  "results": [
+    {
+      "name": "developer_profile_url_loader_throttle.cc",
+      "exitCode": 0,
+      "sourceSha256": "9e088256f969561db53b38492f7b75957d74d60d6caac1e9e8852ec5b0508966"
+    },
+    {
+      "name": "developer_network_factory_proxy.cc",
+      "exitCode": 0,
+      "sourceSha256": "5fe9e36a436034d2440fa745300f709dcaa0a72a1850ac78a40a0d37a0385068"
+    },
+    {
+      "exitCode": 0,
+      "sourceSha256": "76801c5841d430ade9d829b9d6fc9d5aa77fe63557a5a7a5db5afb7bab584674",
+      "compilerPid": 68372,
+      "name": "developer_header_materialization_unittest.cc"
+    }
+  ],
+  "headerSha256": "090b7a9678a8d3a237a2a7c2f6eb81f987435e8d42fdf43d1266202febb8ea16",
+  "installedAcceptance": false,
+  "evidenceSha256": {
+    "state.json": "d7b2ef6625c461b85501321c777314160ed7672e4318df8c91539b223904911e",
+    "plan.json": "8be88f5b49ea07b7fadabe7f54b977d5282a874a04c6792682bb40003674a75e",
+    "developer_profile_url_loader_throttle.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests-direct-includes-command.json": "89be81afd079ec9fb48aba661c365fe8628ed0e823eefd8bae28e8da6923e55e",
+    "tests-direct-includes-result.json": "2fed00495fe3d89b92b863643735d8ce226b36113ade88d6aaf3cafe7c342fc3",
+    "developer_header_materialization_unittest.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "developer_network_factory_proxy.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests-direct-includes.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

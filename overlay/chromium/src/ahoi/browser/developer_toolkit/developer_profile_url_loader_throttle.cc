@@ -14,6 +14,7 @@
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
+#include "base/functional/bind.h"
 #include "ahoi/browser/developer_toolkit/developer_secret_store.h"
 #include "base/strings/string_util.h"
 #include "base/supports_user_data.h"
@@ -241,8 +242,60 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
        !profile->response_header_rules_enabled && !profile->cache_disabled)) {
     return nullptr;
   }
+  base::RepeatingCallback<bool()> approval;
+  if (request.is_outermost_main_frame) {
+    const auto source = GetDeveloperProfileForTab(prefs, web_contents, request.url);
+    if (!source) {
+      return nullptr;
+    }
+    const auto* helper = DeveloperProfileTabHelper::FromWebContents(web_contents);
+    const auto* staged = GetNavigationRequestState(web_contents);
+    const std::optional<int64_t> staged_id =
+        staged ? std::optional<int64_t>(staged->navigation_id) : std::nullopt;
+    approval = base::BindRepeating(
+        [](base::WeakPtr<content::WebContents> contents,
+           const PrefService* expected_prefs, GURL url,
+           DeveloperProfile source_metadata, std::string owner,
+           uint64_t generation, std::optional<int64_t> navigation_id) {
+          if (!contents || contents->IsBeingDestroyed()) {
+            return false;
+          }
+          auto* context = contents->GetBrowserContext();
+          if (!context || !user_prefs::UserPrefs::IsInitialized(context)) {
+            return false;
+          }
+          auto* current_prefs = user_prefs::UserPrefs::Get(context);
+          if (current_prefs != expected_prefs ||
+              !IsEligibleWebContents(contents.get(), current_prefs, false)) {
+            return false;
+          }
+          const auto* current_helper =
+              DeveloperProfileTabHelper::FromWebContents(contents.get());
+          if ((current_helper ? current_helper->tab_token() : std::string()) !=
+                  owner ||
+              (current_helper ? current_helper->activation_generation() : 0) !=
+                  generation) {
+            return false;
+          }
+          const auto current =
+              GetDeveloperProfileForTab(current_prefs, contents.get(), url);
+          if (!current || MakeDeveloperProfileNetworkSnapshot(*current) !=
+                              source_metadata) {
+            return false;
+          }
+          if (navigation_id) {
+            const auto* state = GetNavigationRequestState(contents.get());
+            return state && state->navigation_id == *navigation_id &&
+                   state->source_profile == source_metadata;
+          }
+          return true;
+        }, web_contents->GetWeakPtr(), prefs, request.url,
+        MakeDeveloperProfileNetworkSnapshot(*source),
+        helper ? helper->tab_token() : std::string(),
+        helper ? helper->activation_generation() : 0, staged_id);
+  }
   return std::make_unique<DeveloperProfileURLLoaderThrottle>(
-      url::Origin::Create(request.url), std::move(*profile));
+      url::Origin::Create(request.url), std::move(*profile), std::move(approval));
 }
 
 void UpdateDeveloperProfileNetworkState(
@@ -315,13 +368,28 @@ void ClearDeveloperProfileNavigationRequest(
 
 DeveloperProfileURLLoaderThrottle::DeveloperProfileURLLoaderThrottle(
     url::Origin origin,
-    DeveloperProfile profile)
+    DeveloperProfile profile,
+    base::RepeatingCallback<bool()> approval)
     : origin_(std::move(origin)),
       profile_(DisableUnresolvedHeaderProfile(
-          MakeDeveloperProfileNetworkSnapshot(std::move(profile)))) {}
+          MakeDeveloperProfileNetworkSnapshot(std::move(profile)))),
+      approval_(std::move(approval)) {}
 
 DeveloperProfileURLLoaderThrottle::~DeveloperProfileURLLoaderThrottle() =
     default;
+
+bool DeveloperProfileURLLoaderThrottle::ValidateApproval() {
+  if (revoked_) {
+    return false;
+  }
+  if (approval_ && !approval_.Run()) {
+    revoked_ = true;
+    profile_ = DeveloperProfile();
+    approval_.Reset();
+    return false;
+  }
+  return true;
+}
 
 void DeveloperProfileURLLoaderThrottle::RestoreOriginalHeadersForRedirect(
     network::HttpRequestHeadersUpdateParams& headers_update_params) const {
@@ -331,7 +399,8 @@ void DeveloperProfileURLLoaderThrottle::RestoreOriginalHeadersForRedirect(
 void DeveloperProfileURLLoaderThrottle::WillStartRequest(
     network::ResourceRequest* request,
     bool* /*defer*/) {
-  if (!request || url::Origin::Create(request->url) != origin_) {
+  if (!request || !ValidateApproval() ||
+      url::Origin::Create(request->url) != origin_) {
     return;
   }
   if (profile_.cache_disabled) {
@@ -353,6 +422,10 @@ void DeveloperProfileURLLoaderThrottle::WillRedirectRequest(
   if (!redirect_info || !headers_update_params) {
     return;
   }
+  if (!ValidateApproval()) {
+    RestoreForRedirect(*headers_update_params);
+    return;
+  }
   if (url::Origin::Create(redirect_info->new_url) == origin_) {
     ApplyForRedirect(*headers_update_params);
   } else {
@@ -364,7 +437,7 @@ void DeveloperProfileURLLoaderThrottle::WillProcessResponse(
     const GURL& response_url,
     network::mojom::URLResponseHead* response_head,
     bool* /*defer*/) {
-  if (!response_head || !response_head->headers ||
+  if (!ValidateApproval() || !response_head || !response_head->headers ||
       url::Origin::Create(response_url) != origin_ ||
       !profile_.response_header_rules_enabled) {
     return;
@@ -414,6 +487,8 @@ void DeveloperProfileURLLoaderThrottle::ApplyToHeaders(
 void DeveloperProfileURLLoaderThrottle::RestoreForRedirect(
     network::HttpRequestHeadersUpdateParams& headers_update_params) const {
   for (const OriginalHeader& header : original_headers_) {
+    headers_update_params.modified_headers.RemoveHeader(header.name);
+    headers_update_params.modified_cors_exempt_headers.RemoveHeader(header.name);
     headers_update_params.removed_headers.push_back(header.name);
     if (header.value) {
       headers_update_params.modified_headers.SetHeader(header.name,

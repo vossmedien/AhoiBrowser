@@ -1,0 +1,23 @@
+{
+  "runnerPid": 62881,
+  "phase": "complete",
+  "jobs": 1,
+  "results": [
+    {
+      "name": "developer_profile_url_loader_throttle.cc",
+      "exitCode": 0,
+      "sourceSha256": "9e088256f969561db53b38492f7b75957d74d60d6caac1e9e8852ec5b0508966"
+    },
+    {
+      "name": "developer_network_factory_proxy.cc",
+      "exitCode": 0,
+      "sourceSha256": "5fe9e36a436034d2440fa745300f709dcaa0a72a1850ac78a40a0d37a0385068"
+    },
+    {
+      "name": "developer_header_materialization_unittest.cc",
+      "exitCode": 0,
+      "sourceSha256": "440e679fa7ba42258805cf406213cc0490f2b7359a791d5dbacfe487e9c1dea4"
+    }
+  ],
+  "compilerPid": 62944
+}

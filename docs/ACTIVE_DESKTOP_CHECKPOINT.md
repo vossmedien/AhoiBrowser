@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## Main-navigation retirement source verified; candidate70 must include it — 2 October 2026
+
+Main-navigation URLLoader throttle now revalidates actual saved/native context
+at request/redirect/response boundaries, alongside the document factory fix.
+Its callback retains only metadata/references, weak contents, preference/helper
+identity, activation generation and staged navigation ID when present. Withdrawal
+irreversibly retires local values; redirect restoration removes pending normal/
+exempt conflicts. Native network/CORS/control and already dispatched traffic
+remain authoritative. [Exact implementation/API-consumer/test syntax proof](../artifacts/tests/cpp-main-navigation-revocation-20261002/README.md).
+
+Three final one-job pinned-Clang syntax checks pass; three new methods are NOT
+executed. Combined core expectation is148, including Mojo29. No native/installed
+pass is promoted from source checks; prior c0afa449 core/editor/baselines remain
+their own partial evidence. The earlier prepared0d7b807f candidate70 is obsolete
+and was never launched; freeze the combined new source before the next build.
+
+Root's known archive38334 is now absent at the latest inventory. That absence
+alone is not a capacity grant: recheck current compilers/apps/owner locks and
+aggregate resources immediately before launch and at guarded phase boundaries.
+No Root app/install/release action is performed by this lane. Required exact
+native GREEN precedes canonical install and representative visible affected
+journeys/focused checks. Installed9acb43c8/M154, full Master/worker/Sync/external/
+release scope, archive and goals remain intact; Crest106/110 still defer to their
+separate performance lease.
+
 ## Combined candidate70 prepared; Root universal archive owns window — 2 October 2026
 
 Source0d7b807f (post-dispatch/admission revocation, with shelf fixture1d526fe2)
