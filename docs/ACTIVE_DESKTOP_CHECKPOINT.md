@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Combined candidate70 prepared; Root universal archive owns window — 2 October 2026
+
+Source0d7b807f (post-dispatch/admission revocation, with shelf fixture1d526fe2)
+is committed/clean. [Exact candidate70 plan](../artifacts/build/codex-build70-20261002-prepared-plan.json)
+and `.work/agent-queue/build70-frozen-prepared.py` are prepared, syntax-parsed,
+UNLAUNCHED. No queue70/run/waiter, output refresh, build, install or app action
+starts in this preparation. Original Master remains active and unshrunk.
+
+Fresh host/toolchain/disk passes (Xcode27,113.5GiB), two samples CPU42–49% idle,
+pressure level1, stable swapouts900835. Actual process38334 belongs to Root's
+TerminalCockpit universal release1230 archive, jobs2, arm64+x86_64. This is an
+authoritative live foreign release build, not an old lock or a -version probe.
+Defer Ahoi's next heavy phase to that owner's handback/absence plus fresh
+capacity/ownership checks; do not signal or alter Root's build/app/release.
+Ahoi build/e2e/h3 locks are free. No automatic readiness/wait/retry loop exists.
+
+Next after that concrete window: guarded candidate70, jobs1, actual compile/
+stable development sign/provenance; execute Core145 including Mojo29, editor5,
+affected sidebar191 and necessary remaining native/browser gates. Changed
+runtime inputs require new actual proof; Core140/editor5/baseline872 remain
+valid evidence of c0afa449 only. The shelf correction and five new revocation
+methods are source/syntax-only until actual execution. Required native GREEN
+precedes canonical installation and candidate-bound representative visible
+journeys/focused regressions. Installed9acb43c8/M154, all worker/Sync/other
+Master and external/release boundaries persist; Crest106/110 are still deferred
+to a separate H3 lease, no product patch or runtime grant inferred.
+
 ## Post-dispatch override retirement source verified — 2 October 2026
 
 The open review below found protocol phases that did not revalidate dispatched
