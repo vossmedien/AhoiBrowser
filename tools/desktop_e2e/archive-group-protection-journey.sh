@@ -24,7 +24,13 @@ open_url "$SITE/c.html"
 key 2 cmd; sleep 2
 $AX dump $PID 40 > "$OUT/saved-page-before.txt"
 # Saving must be visible before it can support the saved-page exclusion.
-grep -E 'PaneC.*(Gespeichert|gespeichert)' "$OUT/saved-page-before.txt" > "$OUT/saved-page-marker.txt" || fail_setup "saved-page fixture state not confirmed"
+python3 "$S/tab_tree_state.py" "$P/Default/Ahoi Tab Tree" dump > "$OUT/saved-page-model.json" || fail_setup "saved-page model readback failed"
+python3 - "$OUT/saved-page-model.json" "$SITE/c.html" <<'PYSAVED'
+import json, sys
+rows = [n for n in json.load(open(sys.argv[1]))['nodes'] if n['url'] == sys.argv[2]]
+sys.exit(0 if len(rows) == 1 and rows[0]['temp'] == 0 and rows[0]['tomb'] == 0 else 1)
+PYSAVED
+[ "$?" = 0 ] || fail_setup "saved-page fixture state not confirmed"
 open_url "$SITE/d.html"
 CDP d.html Runtime.evaluate '{"expression":"window.onbeforeunload=e=>{e.preventDefault();e.returnValue=\"keep\";return \"keep\";};typeof window.onbeforeunload===\"function\"","userGesture":true,"returnByValue":true}' > "$OUT/before-unload-installed.json"
 python3 - "$OUT/before-unload-installed.json" <<'PYUNLOAD'
@@ -39,6 +45,16 @@ ROW=$(grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Solo[^|]*' "$OUT/solo-
 [ -n "$ROW" ] || fail_setup "active control row missing"
 $AX press $PID "${ROW%% |*}:${ROW#*| }" >> "$OUT/steps.txt"
 sleep 2
+snap before-age
+python3 - "$SNAP" <<'PYBACKGROUND'
+import json, sys
+rows = [json.loads(line.split('|', 2)[2]) for line in open(sys.argv[1])]
+solo = [r for r in rows if r['t'] == 'Solo']
+members = [r for r in rows if r['t'] in ('PaneA', 'PaneB')]
+sys.exit(0 if len(solo) == 1 and solo[0]['v'] == 'visible' and solo[0]['f']
+         and len(members) == 2 and all(r['v'] == 'hidden' for r in members) else 1)
+PYBACKGROUND
+[ "$?" = 0 ] || fail_setup "archive protection control/group background state not confirmed"
 policy_menu
 $AX press $PID "Nach 12 Stunden" >> "$OUT/steps.txt"
 key 53

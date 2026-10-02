@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Saved/group preconditions corrected; memory/input window terminal — 2 October 2026
+
+Fresh actual host state has no initial compiler, but input active/pressure2,
+CPU22–26%idle, stable sampled swapouts998087. One bounded wrapper14319 checks
+native memory pressure alongside existing ownership/input gates. Its120s
+window is actually terminal2/deferred-owner-active, no app/lock/delete; final
+sample again compilertrue/input recent/pressure2. State:
+`.work/agent-queue/71/installed-archive-persistence-current-20261002T101251Z/`.
+Process absent; no duplicate/resumed observer or inferred GUI permission.
+
+Independent concrete fixture correction: saved page AX status is NOT a
+generic "Gespeichert" marker (native GetSavedPageStatusText adds alerts/bookmark
+state). The six-protection journey now requires exactly one matching syntheticC
+with is_temporary0/tombstone0 from the existing tab_tree_state.py COPIED SQLite
+reader, retaining native AX proof separately. Before choosing a deadline, native
+document snapshot must show visible/focusedSolo and both split membersHIDDEN;
+otherwise protection cannot be attributed to editedB and setup fails. Fixture
+is executable; shell/four embedded Python bodies parse. No live test or archive
+protection acceptance yet. Future manifest MUST include tab_tree_state.py.
+
+Next GUI action is still corrected nine native persistence/delete assertions,
+then the corrected six group/saved/BeforeUnload/control protections under fresh
+normal capacity and actual UI ownership. Prior10/5/split scoped GREEN remain;
+broader missing protection/browser/worker/Sync/Mobile/release scopes and whole
+original active Master unchanged. Installed71/6bf4c233/source/user data/secrets/
+archives/rollback/external rights untouched; no build, publication or API action.
+
 ## Persistence evidence readers corrected before actual GUI run — 2 October 2026
 
 Live state revalidated: recent input, pressure2, CPU40–55%idle/stable sampled
