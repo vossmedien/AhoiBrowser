@@ -2,6 +2,13 @@
 
 ## Tab-cache cancellation source correction; native renewal, UNBUILT — 2 October 2026
 
+Committed source packeta864a44d; lane/diff checks PASS. Canonical branch push
+attempt is terminal128/authentication failure, no force or credential change.
+Private sanitized receipt `v2/push.json` under the source snapshot below.
+Local commits retained; collecting this external Git-auth prerequisite does not
+pause/narrow the Master or authorize new keys. Installed source independently
+rechecked6bf4c233; own build/e2e/h3 locks absent after the deferred syntax run.
+
 Source fixes the929c2b29 gap below: helper generation advances, committed
 network-only snapshot is replaced, then the current document's native factories
 and its registered dedicated workers are refreshed before native Reload.
