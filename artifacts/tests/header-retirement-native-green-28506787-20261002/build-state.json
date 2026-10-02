@@ -1,0 +1,67 @@
+{
+  "runnerPid": 81714,
+  "sourceCommit": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "phase": "compiled-signed-provenance-complete-native-gates-pending",
+  "jobs": 1,
+  "startedAt": "2026-10-02T01:37:00.823324+00:00",
+  "steps": [
+    {
+      "name": "fetch",
+      "exitCode": 0
+    },
+    {
+      "name": "checkout",
+      "exitCode": 0
+    },
+    {
+      "name": "resources-before-overlay",
+      "exitCode": 0
+    },
+    {
+      "name": "overlay",
+      "exitCode": 0
+    },
+    {
+      "name": "resources-before-build",
+      "exitCode": 0
+    },
+    {
+      "name": "build",
+      "exitCode": 0
+    },
+    {
+      "name": "resources-after-build",
+      "exitCode": 0
+    }
+  ],
+  "installed": false,
+  "testsExecuted": false,
+  "phasePid": 8695,
+  "targets": [
+    "ahoi_appearance_unittests",
+    "ahoi_arc_import_unittests",
+    "ahoi_command_bar_unittests",
+    "ahoi_developer_profile_editor_unittests",
+    "ahoi_developer_style_compiler_browsertests",
+    "ahoi_developer_toolkit_ui_unittests",
+    "ahoi_developer_toolkit_unittests",
+    "ahoi_extension_policy_unittests",
+    "ahoi_http_auth_unittests",
+    "ahoi_media_unittests",
+    "ahoi_navigation_unittests",
+    "ahoi_popup_overlay_browsertests",
+    "ahoi_popup_unittests",
+    "ahoi_privacy_mode_unittests",
+    "ahoi_privacy_policy_unittests",
+    "ahoi_resource_policy_unittests",
+    "ahoi_session_unittests",
+    "ahoi_settings_private_unittests",
+    "ahoi_sidebar_search_unittests",
+    "ahoi_sidebar_tree_unittests",
+    "ahoi_split_layout_browsertests",
+    "ahoi_startup_policy_unittests",
+    "ahoi_sync_unittests",
+    "ahoi_tab_tree_unittests"
+  ],
+  "finishedAt": "2026-10-02T01:49:04.029080+00:00"
+}

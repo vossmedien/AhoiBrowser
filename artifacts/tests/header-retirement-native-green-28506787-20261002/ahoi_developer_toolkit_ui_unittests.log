@@ -1,0 +1,174 @@
+objc[12160]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x139a08a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11d2c4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[12160]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1183d4188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_ui_unittests (0x104c09580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[12182]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x135a24a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1192e0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[12182]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x113f90188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_ui_unittests (0x100c35580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperAssetPolicyViewTest.ResolvesEveryExplicitScope:DeveloperAssetPolicyViewTest.RestoresOnlyAnExplicitLocalDomainAcknowledgement:DeveloperAssetPolicyViewTest.SyncIsAvailableOnlyAcrossRestarts:DeveloperAssetPolicyViewTest.RejectsCurrentTabWithoutOwnedToken:DeveloperCacheStatusViewTest.ExposesAnUnambiguousAsyncState:DeveloperCookieManagerViewTest.BatchConfirmationTracksTheCurrentFilterSnapshot:DeveloperCookieManagerViewTest.NoMatchesCannotArmADeleteConfirmation:DeveloperCookieManagerViewTest.EditorCreatesAndPreservesPartitionedCookieIntent:DeveloperDataClearViewTest.ToolkitButtonsUseCompactFocusableStates:DeveloperDataClearViewTest.AdvancedCleanupIsCollapsedUntilRequested
+[==========] Running 10 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from DeveloperAssetPolicyViewTest
+[ RUN      ] DeveloperAssetPolicyViewTest.ResolvesEveryExplicitScope
+[       OK ] DeveloperAssetPolicyViewTest.ResolvesEveryExplicitScope (178 ms)
+[ RUN      ] DeveloperAssetPolicyViewTest.RestoresOnlyAnExplicitLocalDomainAcknowledgement
+[       OK ] DeveloperAssetPolicyViewTest.RestoresOnlyAnExplicitLocalDomainAcknowledgement (3 ms)
+[ RUN      ] DeveloperAssetPolicyViewTest.SyncIsAvailableOnlyAcrossRestarts
+[       OK ] DeveloperAssetPolicyViewTest.SyncIsAvailableOnlyAcrossRestarts (8 ms)
+[ RUN      ] DeveloperAssetPolicyViewTest.RejectsCurrentTabWithoutOwnedToken
+[       OK ] DeveloperAssetPolicyViewTest.RejectsCurrentTabWithoutOwnedToken (8 ms)
+[----------] 4 tests from DeveloperAssetPolicyViewTest (200 ms total)
+
+[----------] 1 test from DeveloperCacheStatusViewTest
+[ RUN      ] DeveloperCacheStatusViewTest.ExposesAnUnambiguousAsyncState
+[       OK ] DeveloperCacheStatusViewTest.ExposesAnUnambiguousAsyncState (8 ms)
+[----------] 1 test from DeveloperCacheStatusViewTest (8 ms total)
+
+[----------] 3 tests from DeveloperCookieManagerViewTest
+[ RUN      ] DeveloperCookieManagerViewTest.BatchConfirmationTracksTheCurrentFilterSnapshot
+[       OK ] DeveloperCookieManagerViewTest.BatchConfirmationTracksTheCurrentFilterSnapshot (16 ms)
+[ RUN      ] DeveloperCookieManagerViewTest.NoMatchesCannotArmADeleteConfirmation
+[       OK ] DeveloperCookieManagerViewTest.NoMatchesCannotArmADeleteConfirmation (8 ms)
+[ RUN      ] DeveloperCookieManagerViewTest.EditorCreatesAndPreservesPartitionedCookieIntent
+[       OK ] DeveloperCookieManagerViewTest.EditorCreatesAndPreservesPartitionedCookieIntent (8 ms)
+[----------] 3 tests from DeveloperCookieManagerViewTest (33 ms total)
+
+[----------] 2 tests from DeveloperDataClearViewTest
+[ RUN      ] DeveloperDataClearViewTest.ToolkitButtonsUseCompactFocusableStates
+[       OK ] DeveloperDataClearViewTest.ToolkitButtonsUseCompactFocusableStates (8 ms)
+[ RUN      ] DeveloperDataClearViewTest.AdvancedCleanupIsCollapsedUntilRequested
+[       OK ] DeveloperDataClearViewTest.AdvancedCleanupIsCollapsedUntilRequested (8 ms)
+[----------] 2 tests from DeveloperDataClearViewTest (16 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 4 test suites ran. (258 ms total)
+[  PASSED  ] 10 tests.
+[1/33] DeveloperAssetPolicyViewTest.ResolvesEveryExplicitScope (178 ms)
+[2/33] DeveloperAssetPolicyViewTest.RestoresOnlyAnExplicitLocalDomainAcknowledgement (3 ms)
+[3/33] DeveloperAssetPolicyViewTest.SyncIsAvailableOnlyAcrossRestarts (8 ms)
+[4/33] DeveloperAssetPolicyViewTest.RejectsCurrentTabWithoutOwnedToken (8 ms)
+[5/33] DeveloperCacheStatusViewTest.ExposesAnUnambiguousAsyncState (8 ms)
+[6/33] DeveloperCookieManagerViewTest.BatchConfirmationTracksTheCurrentFilterSnapshot (16 ms)
+[7/33] DeveloperCookieManagerViewTest.NoMatchesCannotArmADeleteConfirmation (8 ms)
+[8/33] DeveloperCookieManagerViewTest.EditorCreatesAndPreservesPartitionedCookieIntent (8 ms)
+[9/33] DeveloperDataClearViewTest.ToolkitButtonsUseCompactFocusableStates (8 ms)
+[10/33] DeveloperDataClearViewTest.AdvancedCleanupIsCollapsedUntilRequested (8 ms)
+objc[12190]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x135bb8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119474a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[12190]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x114584188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_ui_unittests (0x100dad580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperDataClearViewTest.ConfirmationFreezesOptionsUntilSelectionChanges:DeveloperDataClearViewTest.GlobalSuccessNamesScopeTypesAndRange:DeveloperDataClearViewTest.ReentrantClickDoesNotExecuteTwice:DeveloperDataClearViewTest.AsyncCompletionKeepsFrozenRequestAndRestoresAction:DeveloperHeaderSecretEditorModelTest.DisplayAndPlainEditorStateCannotExposeOpaqueReferences:DeveloperHeaderSecretEditorModelTest.RotationKeepsOldItemUntilSuccessfulProfileCommit:DeveloperHeaderSecretEditorModelTest.CancelOwnsOnlyNewUncommittedItems:DeveloperHeaderSecretEditorModelTest.DeleteRequiresTwoMatchingConfirmations:DeveloperHeaderSecretEditorModelTest.OffTheRecordAndManualReferenceInputFailClosed:DeveloperHeaderSecretEditorModelTest.DuplicatePlainAndSecretHeaderNamesFailAtomically
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from DeveloperDataClearViewTest
+[ RUN      ] DeveloperDataClearViewTest.ConfirmationFreezesOptionsUntilSelectionChanges
+[       OK ] DeveloperDataClearViewTest.ConfirmationFreezesOptionsUntilSelectionChanges (163 ms)
+[ RUN      ] DeveloperDataClearViewTest.GlobalSuccessNamesScopeTypesAndRange
+[       OK ] DeveloperDataClearViewTest.GlobalSuccessNamesScopeTypesAndRange (3 ms)
+[ RUN      ] DeveloperDataClearViewTest.ReentrantClickDoesNotExecuteTwice
+[       OK ] DeveloperDataClearViewTest.ReentrantClickDoesNotExecuteTwice (8 ms)
+[ RUN      ] DeveloperDataClearViewTest.AsyncCompletionKeepsFrozenRequestAndRestoresAction
+[       OK ] DeveloperDataClearViewTest.AsyncCompletionKeepsFrozenRequestAndRestoresAction (8 ms)
+[----------] 4 tests from DeveloperDataClearViewTest (184 ms total)
+
+[----------] 6 tests from DeveloperHeaderSecretEditorModelTest
+[ RUN      ] DeveloperHeaderSecretEditorModelTest.DisplayAndPlainEditorStateCannotExposeOpaqueReferences
+[       OK ] DeveloperHeaderSecretEditorModelTest.DisplayAndPlainEditorStateCannotExposeOpaqueReferences (0 ms)
+[ RUN      ] DeveloperHeaderSecretEditorModelTest.RotationKeepsOldItemUntilSuccessfulProfileCommit
+[       OK ] DeveloperHeaderSecretEditorModelTest.RotationKeepsOldItemUntilSuccessfulProfileCommit (0 ms)
+[ RUN      ] DeveloperHeaderSecretEditorModelTest.CancelOwnsOnlyNewUncommittedItems
+[       OK ] DeveloperHeaderSecretEditorModelTest.CancelOwnsOnlyNewUncommittedItems (0 ms)
+[ RUN      ] DeveloperHeaderSecretEditorModelTest.DeleteRequiresTwoMatchingConfirmations
+[       OK ] DeveloperHeaderSecretEditorModelTest.DeleteRequiresTwoMatchingConfirmations (0 ms)
+[ RUN      ] DeveloperHeaderSecretEditorModelTest.OffTheRecordAndManualReferenceInputFailClosed
+[       OK ] DeveloperHeaderSecretEditorModelTest.OffTheRecordAndManualReferenceInputFailClosed (0 ms)
+[ RUN      ] DeveloperHeaderSecretEditorModelTest.DuplicatePlainAndSecretHeaderNamesFailAtomically
+[       OK ] DeveloperHeaderSecretEditorModelTest.DuplicatePlainAndSecretHeaderNamesFailAtomically (0 ms)
+[----------] 6 tests from DeveloperHeaderSecretEditorModelTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (184 ms total)
+[  PASSED  ] 10 tests.
+[11/33] DeveloperDataClearViewTest.ConfirmationFreezesOptionsUntilSelectionChanges (163 ms)
+[12/33] DeveloperDataClearViewTest.GlobalSuccessNamesScopeTypesAndRange (3 ms)
+[13/33] DeveloperDataClearViewTest.ReentrantClickDoesNotExecuteTwice (8 ms)
+[14/33] DeveloperDataClearViewTest.AsyncCompletionKeepsFrozenRequestAndRestoresAction (8 ms)
+[15/33] DeveloperHeaderSecretEditorModelTest.DisplayAndPlainEditorStateCannotExposeOpaqueReferences (0 ms)
+[16/33] DeveloperHeaderSecretEditorModelTest.RotationKeepsOldItemUntilSuccessfulProfileCommit (0 ms)
+[17/33] DeveloperHeaderSecretEditorModelTest.CancelOwnsOnlyNewUncommittedItems (0 ms)
+[18/33] DeveloperHeaderSecretEditorModelTest.DeleteRequiresTwoMatchingConfirmations (0 ms)
+[19/33] DeveloperHeaderSecretEditorModelTest.OffTheRecordAndManualReferenceInputFailClosed (0 ms)
+[20/33] DeveloperHeaderSecretEditorModelTest.DuplicatePlainAndSecretHeaderNamesFailAtomically (0 ms)
+objc[12487]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x137b04a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11b3c0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[12487]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1164d0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_ui_unittests (0x1028bd580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperHeaderSecretEditorViewTest.ExistingReferenceIsRepresentedOnlyByMaskedProductState:DeveloperHeaderSecretEditorViewTest.PrimaryNavigationClearsPlaintextAndFailsClosed:DeveloperHeaderSecretEditorViewTest.OffTheRecordStateIsUnavailable:DeveloperHeaderSecretEditorViewTest.CreateWipesInputAndCloseRemovesUncommittedItem:DeveloperHeaderSecretEditorViewTest.SuccessfulProfileCommitAdoptsCreatedItem:DeveloperResponseHeaderAdvancedModeViewTest.DisabledStateClearsConsentAndReenableRequiresNewConsent:DeveloperResponseHeaderAdvancedModeViewTest.ReloadRestoresExplicitConsentForEnabledRules:DeveloperToolkitBubbleViewTest.SavedPasswordsUsesDedicatedUpstreamRoute:LocationBarBubbleButtonTest.SecondMousePressClosesExactlyOnceWithoutReleaseReopen:LocationBarBubbleButtonTest.DisabledMousePressIsConsumedWithoutActivation
+[==========] Running 10 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from DeveloperHeaderSecretEditorViewTest
+[ RUN      ] DeveloperHeaderSecretEditorViewTest.ExistingReferenceIsRepresentedOnlyByMaskedProductState
+[       OK ] DeveloperHeaderSecretEditorViewTest.ExistingReferenceIsRepresentedOnlyByMaskedProductState (153 ms)
+[ RUN      ] DeveloperHeaderSecretEditorViewTest.PrimaryNavigationClearsPlaintextAndFailsClosed
+[       OK ] DeveloperHeaderSecretEditorViewTest.PrimaryNavigationClearsPlaintextAndFailsClosed (4 ms)
+[ RUN      ] DeveloperHeaderSecretEditorViewTest.OffTheRecordStateIsUnavailable
+[       OK ] DeveloperHeaderSecretEditorViewTest.OffTheRecordStateIsUnavailable (4 ms)
+[ RUN      ] DeveloperHeaderSecretEditorViewTest.CreateWipesInputAndCloseRemovesUncommittedItem
+[       OK ] DeveloperHeaderSecretEditorViewTest.CreateWipesInputAndCloseRemovesUncommittedItem (41 ms)
+[ RUN      ] DeveloperHeaderSecretEditorViewTest.SuccessfulProfileCommitAdoptsCreatedItem
+[       OK ] DeveloperHeaderSecretEditorViewTest.SuccessfulProfileCommitAdoptsCreatedItem (41 ms)
+[----------] 5 tests from DeveloperHeaderSecretEditorViewTest (246 ms total)
+
+[----------] 2 tests from DeveloperResponseHeaderAdvancedModeViewTest
+[ RUN      ] DeveloperResponseHeaderAdvancedModeViewTest.DisabledStateClearsConsentAndReenableRequiresNewConsent
+[       OK ] DeveloperResponseHeaderAdvancedModeViewTest.DisabledStateClearsConsentAndReenableRequiresNewConsent (7 ms)
+[ RUN      ] DeveloperResponseHeaderAdvancedModeViewTest.ReloadRestoresExplicitConsentForEnabledRules
+[       OK ] DeveloperResponseHeaderAdvancedModeViewTest.ReloadRestoresExplicitConsentForEnabledRules (8 ms)
+[----------] 2 tests from DeveloperResponseHeaderAdvancedModeViewTest (16 ms total)
+
+[----------] 1 test from DeveloperToolkitBubbleViewTest
+[ RUN      ] DeveloperToolkitBubbleViewTest.SavedPasswordsUsesDedicatedUpstreamRoute
+[       OK ] DeveloperToolkitBubbleViewTest.SavedPasswordsUsesDedicatedUpstreamRoute (11 ms)
+[----------] 1 test from DeveloperToolkitBubbleViewTest (11 ms total)
+
+[----------] 2 tests from LocationBarBubbleButtonTest
+[ RUN      ] LocationBarBubbleButtonTest.SecondMousePressClosesExactlyOnceWithoutReleaseReopen
+[       OK ] LocationBarBubbleButtonTest.SecondMousePressClosesExactlyOnceWithoutReleaseReopen (122 ms)
+[ RUN      ] LocationBarBubbleButtonTest.DisabledMousePressIsConsumedWithoutActivation
+[       OK ] LocationBarBubbleButtonTest.DisabledMousePressIsConsumedWithoutActivation (32 ms)
+[----------] 2 tests from LocationBarBubbleButtonTest (155 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 4 test suites ran. (430 ms total)
+[  PASSED  ] 10 tests.
+[21/33] DeveloperHeaderSecretEditorViewTest.ExistingReferenceIsRepresentedOnlyByMaskedProductState (153 ms)
+[22/33] DeveloperHeaderSecretEditorViewTest.PrimaryNavigationClearsPlaintextAndFailsClosed (4 ms)
+[23/33] DeveloperHeaderSecretEditorViewTest.OffTheRecordStateIsUnavailable (4 ms)
+[24/33] DeveloperHeaderSecretEditorViewTest.CreateWipesInputAndCloseRemovesUncommittedItem (41 ms)
+[25/33] DeveloperHeaderSecretEditorViewTest.SuccessfulProfileCommitAdoptsCreatedItem (41 ms)
+[26/33] DeveloperResponseHeaderAdvancedModeViewTest.DisabledStateClearsConsentAndReenableRequiresNewConsent (7 ms)
+[27/33] DeveloperResponseHeaderAdvancedModeViewTest.ReloadRestoresExplicitConsentForEnabledRules (8 ms)
+[28/33] DeveloperToolkitBubbleViewTest.SavedPasswordsUsesDedicatedUpstreamRoute (11 ms)
+[29/33] LocationBarBubbleButtonTest.SecondMousePressClosesExactlyOnceWithoutReleaseReopen (122 ms)
+[30/33] LocationBarBubbleButtonTest.DisabledMousePressIsConsumedWithoutActivation (32 ms)
+objc[12494]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x139f84a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11d840a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[12494]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118950188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_ui_unittests (0x104cc9580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = LocationBarBubbleButtonTest.ClosedSurfaceOpensOnMouseRelease:LocationBarBubbleButtonTest.NextMousePressClearsAnEarlierReleaseSuppression:LocationBarBubbleButtonTest.KeyboardAndTouchRemainTriggerableWhileSurfaceIsShowing
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from LocationBarBubbleButtonTest
+[ RUN      ] LocationBarBubbleButtonTest.ClosedSurfaceOpensOnMouseRelease
+[       OK ] LocationBarBubbleButtonTest.ClosedSurfaceOpensOnMouseRelease (217 ms)
+[ RUN      ] LocationBarBubbleButtonTest.NextMousePressClearsAnEarlierReleaseSuppression
+[       OK ] LocationBarBubbleButtonTest.NextMousePressClearsAnEarlierReleaseSuppression (45 ms)
+[ RUN      ] LocationBarBubbleButtonTest.KeyboardAndTouchRemainTriggerableWhileSurfaceIsShowing
+[       OK ] LocationBarBubbleButtonTest.KeyboardAndTouchRemainTriggerableWhileSurfaceIsShowing (36 ms)
+[----------] 3 tests from LocationBarBubbleButtonTest (300 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (300 ms total)
+[  PASSED  ] 3 tests.
+[31/33] LocationBarBubbleButtonTest.ClosedSurfaceOpensOnMouseRelease (217 ms)
+[32/33] LocationBarBubbleButtonTest.NextMousePressClearsAnEarlierReleaseSuppression (45 ms)
+[33/33] LocationBarBubbleButtonTest.KeyboardAndTouchRemainTriggerableWhileSurfaceIsShowing (36 ms)
+SUCCESS: all tests passed.
+Tests took 8 seconds.

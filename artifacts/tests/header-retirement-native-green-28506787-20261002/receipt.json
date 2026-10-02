@@ -1,0 +1,98 @@
+{
+  "candidate": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "fullMasterAchieved": false,
+  "installed": false,
+  "scopes": {
+    "dev-native": {
+      "successes": 148,
+      "exitCode": 0,
+      "binarySha256": "6ad8e01bcd5acd56a4cf9356426e8968a806efae3985aee7998c707a270567de",
+      "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932",
+      "missingRequiredCases": [],
+      "runnerPid": 9148
+    },
+    "editor-native": {
+      "successes": 5,
+      "exitCode": 0,
+      "binarySha256": "dea33babe596d7cdbed1d41295a30128a328b56a0ecbd41cab6e86053e45090e",
+      "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932",
+      "missingRequiredCases": [],
+      "runnerPid": 9780
+    },
+    "sidebar-focus-native": {
+      "successes": 1,
+      "exitCode": 0,
+      "binarySha256": "e042ee94041e37ac1939fb92168c7f79a12182cf2b339c14a906a66b4aa669f7",
+      "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932",
+      "missingRequiredCases": [],
+      "runnerPid": 10548
+    }
+  },
+  "mojoWithinCore": 29,
+  "newPostDispatchAndMainMethods": 8,
+  "newCoreMethodsTotal": 21,
+  "evidenceSha256": {
+    "ahoi_developer_toolkit_ui_unittests.log": "d168156cbaaaaa5f986cd62cf32569b1095599a6d586674bdac227e319371958",
+    "ahoi_popup_unittests-summary.json": "ac97b1173ce7027c856e6784bfc1b6a789fc8d96d665edc1dc8ad874302d7690",
+    "ahoi_popup_unittests.log": "8ab38ec3d72f0a9dbc358d801b64434f60131ba993b94e7a8ba663cd5ca06866",
+    "sidebar-focus-native-state.json": "a32c3dbb567b4e439dd2b413612af79013081723198a3ccb6e63564b5bffcee5",
+    "build-state.json": "29ecbf4dad61e91e828f4e6ada32f313d67f5dddbe38810022d0e34223e97464",
+    "editor-native-state.json": "ec0f8cce72dfcd006d64e4508f1978a483bf682784375a300eefabf8277adc0b",
+    "dev-native-test.log": "fd5033628e2453900c58b4a493657c34e745d940b2c813ab6b308477119fe1db",
+    "sidebar-focus-native-summary.json": "0f95647e517b44dffead1b16a9bfb20ea9a2bc932420a115e161301da71913c0",
+    "ahoi_sidebar_search_unittests-summary.json": "89e48a6f08d2f3cf3b0275b657211ca94183f0878d8aeaa23af400cbe1c470b9",
+    "dev-native-state.json": "783dc106841126572b53b83b7ee847d18fb5f9ee3557db0a024ac87b735b6242",
+    "dev-native-summary.json": "7f707427808cee8a251cc05d0571c8eeede2191834c33cd699646eccd7e1f203",
+    "editor-native-test.log": "8515cf7d91ebf136b6c98a28c40e7100133f6dc3c1ffd1eb85c95c6367e9666b",
+    "ahoi_sidebar_tree_unittests.log": "b7546938d8f5c82266e70a7f2e14911768a0d896d8a60c70d9e733c0dc25bd44",
+    "ahoi_sidebar_tree_unittests-summary.json": "8e2e25a3ee701ad1f57b9418c063cf5dea827f98a91f25ae90a1befc8fcea4a5",
+    "ahoi_developer_toolkit_ui_unittests-summary.json": "0fc5357825ef85b85615c2d2c20379692b9e8b9ee0d75725a9bd12e0585e0894",
+    "editor-native-summary.json": "706ace6784f2dd73ed59643e6a7ff2d67821bd6226ea71e6f68ec564d273aea9",
+    "ahoi_sidebar_search_unittests.log": "aef67d610afbf95a0b2c4c815787fe792a54632f3d11b87fe06f1ad486c596ff",
+    "ui-state.json": "6f41e047ada79cb45c8b684c8d78c15a03e3aa8c361f2b846f4eb05fd0cd99e7",
+    "sidebar-focus-native-test.log": "05726b94ddd9bdf602808df1cb621e7fdcd16bd2229ccb1f17f61d98dd237765"
+  },
+  "ui": {
+    "programs": 4,
+    "successes": 338,
+    "results": [
+      {
+        "name": "ahoi_sidebar_tree_unittests",
+        "exitCode": 0,
+        "binarySha256": "e042ee94041e37ac1939fb92168c7f79a12182cf2b339c14a906a66b4aa669f7",
+        "executedCases": 191,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_developer_toolkit_ui_unittests",
+        "exitCode": 0,
+        "binarySha256": "0c9e64c20e61054870aa95b6e861fb116a66f7b477357b9488aa44d71faf49bc",
+        "executedCases": 33,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_popup_unittests",
+        "exitCode": 0,
+        "binarySha256": "ec1b660cc583776b9e4cb4e74a819ef02fe1f66dddc89b16d090278c8af56a9e",
+        "executedCases": 28,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_sidebar_search_unittests",
+        "exitCode": 0,
+        "binarySha256": "cd4902d744e86587ca3d60b8b8d7fcaf2600df697c823b47c276a887e44bb0fc",
+        "executedCases": 86,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      }
+    ],
+    "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932"
+  }
+}

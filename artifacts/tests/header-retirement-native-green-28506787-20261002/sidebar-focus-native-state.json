@@ -1,0 +1,25 @@
+{
+  "runnerPid": 10548,
+  "sourceCommit": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "results": [],
+  "startedAt": "2026-10-02T01:51:12.463946+00:00",
+  "command": [
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sidebar_tree_unittests",
+    "--gtest_filter=SidebarBookmarkShelfViewTest.OverflowCuesAndFocusFollowAReorderedItem",
+    "--test-launcher-jobs=1",
+    "--test-launcher-retry-limit=0",
+    "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/70/sidebar-focus-native/summary.json"
+  ],
+  "binarySha256": "e042ee94041e37ac1939fb92168c7f79a12182cf2b339c14a906a66b4aa669f7",
+  "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932",
+  "testPid": 10552,
+  "registeredCases": 1,
+  "missingRequiredCases": [],
+  "nonSuccess": {},
+  "nativePass": true,
+  "exitCode": 0,
+  "finishedAt": "2026-10-02T01:51:22.195794+00:00"
+}

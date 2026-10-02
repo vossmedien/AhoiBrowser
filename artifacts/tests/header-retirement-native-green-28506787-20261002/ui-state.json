@@ -1,0 +1,50 @@
+{
+  "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932",
+  "runnerPid": 11627,
+  "sourceCommit": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "results": [
+    {
+      "name": "ahoi_sidebar_tree_unittests",
+      "exitCode": 0,
+      "binarySha256": "e042ee94041e37ac1939fb92168c7f79a12182cf2b339c14a906a66b4aa669f7",
+      "executedCases": 191,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_developer_toolkit_ui_unittests",
+      "exitCode": 0,
+      "binarySha256": "0c9e64c20e61054870aa95b6e861fb116a66f7b477357b9488aa44d71faf49bc",
+      "executedCases": 33,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_popup_unittests",
+      "exitCode": 0,
+      "binarySha256": "ec1b660cc583776b9e4cb4e74a819ef02fe1f66dddc89b16d090278c8af56a9e",
+      "executedCases": 28,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_sidebar_search_unittests",
+      "exitCode": 0,
+      "binarySha256": "cd4902d744e86587ca3d60b8b8d7fcaf2600df697c823b47c276a887e44bb0fc",
+      "executedCases": 86,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    }
+  ],
+  "startedAt": "2026-10-02T01:51:58.550923+00:00",
+  "binarySha256": "cd4902d744e86587ca3d60b8b8d7fcaf2600df697c823b47c276a887e44bb0fc",
+  "testPid": 12511,
+  "finishedAt": "2026-10-02T01:53:40.358584+00:00"
+}

@@ -1,0 +1,41 @@
+objc[9788]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14507ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129f98a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9788]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124850188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_profile_editor_unittests (0x10a7f3588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[9792]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x141a80a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12699ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9792]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x121254188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_profile_editor_unittests (0x10718f588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperProfileEditorActivationTest.DisabledEditorStartsNoCompilerAndPreservesDraft:DeveloperProfileEditorActivationTest.DisableDropsCompilerAndRejectsLateReplyAcrossReenable:DeveloperProfileEditorActivationTest.TemporaryHeaderLifetimeDisablesBothSyncControlsAndSavesLocalMode:DeveloperProfileEditorActivationTest.HeaderLifetimeConversionDoesNotRegrantPreviousSyncOptIn:DeveloperProfileEditorActivationTest.HeaderLifetimeChangeRejectsEarlierPersistentCompileCommit
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from DeveloperProfileEditorActivationTest
+[ RUN      ] DeveloperProfileEditorActivationTest.DisabledEditorStartsNoCompilerAndPreservesDraft
+[9792:5196292:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperProfileEditorActivationTest.DisabledEditorStartsNoCompilerAndPreservesDraft (247 ms)
+[ RUN      ] DeveloperProfileEditorActivationTest.DisableDropsCompilerAndRejectsLateReplyAcrossReenable
+[9792:5196292:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperProfileEditorActivationTest.DisableDropsCompilerAndRejectsLateReplyAcrossReenable (89 ms)
+[ RUN      ] DeveloperProfileEditorActivationTest.TemporaryHeaderLifetimeDisablesBothSyncControlsAndSavesLocalMode
+[9792:5196292:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperProfileEditorActivationTest.TemporaryHeaderLifetimeDisablesBothSyncControlsAndSavesLocalMode (89 ms)
+[ RUN      ] DeveloperProfileEditorActivationTest.HeaderLifetimeConversionDoesNotRegrantPreviousSyncOptIn
+[9792:5196292:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperProfileEditorActivationTest.HeaderLifetimeConversionDoesNotRegrantPreviousSyncOptIn (73 ms)
+[ RUN      ] DeveloperProfileEditorActivationTest.HeaderLifetimeChangeRejectsEarlierPersistentCompileCommit
+[9792:5196292:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperProfileEditorActivationTest.HeaderLifetimeChangeRejectsEarlierPersistentCompileCommit (80 ms)
+[----------] 5 tests from DeveloperProfileEditorActivationTest (616 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (616 ms total)
+[  PASSED  ] 5 tests.
+[1/5] DeveloperProfileEditorActivationTest.DisabledEditorStartsNoCompilerAndPreservesDraft (247 ms)
+[2/5] DeveloperProfileEditorActivationTest.DisableDropsCompilerAndRejectsLateReplyAcrossReenable (89 ms)
+[3/5] DeveloperProfileEditorActivationTest.TemporaryHeaderLifetimeDisablesBothSyncControlsAndSavesLocalMode (89 ms)
+[4/5] DeveloperProfileEditorActivationTest.HeaderLifetimeConversionDoesNotRegrantPreviousSyncOptIn (73 ms)
+[5/5] DeveloperProfileEditorActivationTest.HeaderLifetimeChangeRejectsEarlierPersistentCompileCommit (80 ms)
+SUCCESS: all tests passed.
+Tests took 2 seconds.

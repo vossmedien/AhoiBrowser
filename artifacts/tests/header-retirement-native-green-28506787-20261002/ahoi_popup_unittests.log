@@ -1,0 +1,149 @@
+objc[12496]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x134eb0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119dcca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[12497]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x132af8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x117a14a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = LinkPeekInputTest.PlainLeftClickAndKeyArePlain:LinkPeekInputTest.ModifiersAndOtherButtonsAreNotPlain:LinkPeekInputTrackerTest.UntrackedInputIsUnknown:LinkPeekInputTrackerTest.FollowsTheLastInput:LinkPeekRequestTest.DefaultRequestHasNoReferrerOrInitiator:LinkPeekRequestTest.TypedRequestLooksLikeTheOmnibox:LinkPeekRequestTest.ShiftClickKeepsThePagesReferrerAndInitiator:LinkPeekSiteTest.OnlyWebLinksToAnotherSiteLeaveTheSite:LinkPeekNewWindowTest.PlainBlankClickToAnotherSiteIsACandidate:LinkPeekNewWindowTest.EverythingButThePlainClickStaysATab
+[==========] Running 10 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from LinkPeekInputTest
+[ RUN      ] LinkPeekInputTest.PlainLeftClickAndKeyArePlain
+[       OK ] LinkPeekInputTest.PlainLeftClickAndKeyArePlain (0 ms)
+[ RUN      ] LinkPeekInputTest.ModifiersAndOtherButtonsAreNotPlain
+[       OK ] LinkPeekInputTest.ModifiersAndOtherButtonsAreNotPlain (0 ms)
+[----------] 2 tests from LinkPeekInputTest (17 ms total)
+
+[----------] 2 tests from LinkPeekInputTrackerTest
+[ RUN      ] LinkPeekInputTrackerTest.UntrackedInputIsUnknown
+[       OK ] LinkPeekInputTrackerTest.UntrackedInputIsUnknown (188 ms)
+[ RUN      ] LinkPeekInputTrackerTest.FollowsTheLastInput
+[       OK ] LinkPeekInputTrackerTest.FollowsTheLastInput (158 ms)
+[----------] 2 tests from LinkPeekInputTrackerTest (347 ms total)
+
+[----------] 3 tests from LinkPeekRequestTest
+[ RUN      ] LinkPeekRequestTest.DefaultRequestHasNoReferrerOrInitiator
+[       OK ] LinkPeekRequestTest.DefaultRequestHasNoReferrerOrInitiator (0 ms)
+[ RUN      ] LinkPeekRequestTest.TypedRequestLooksLikeTheOmnibox
+[       OK ] LinkPeekRequestTest.TypedRequestLooksLikeTheOmnibox (0 ms)
+[ RUN      ] LinkPeekRequestTest.ShiftClickKeepsThePagesReferrerAndInitiator
+[       OK ] LinkPeekRequestTest.ShiftClickKeepsThePagesReferrerAndInitiator (0 ms)
+[----------] 3 tests from LinkPeekRequestTest (0 ms total)
+
+[----------] 1 test from LinkPeekSiteTest
+[ RUN      ] LinkPeekSiteTest.OnlyWebLinksToAnotherSiteLeaveTheSite
+[       OK ] LinkPeekSiteTest.OnlyWebLinksToAnotherSiteLeaveTheSite (0 ms)
+[----------] 1 test from LinkPeekSiteTest (0 ms total)
+
+[----------] 2 tests from LinkPeekNewWindowTest
+[ RUN      ] LinkPeekNewWindowTest.PlainBlankClickToAnotherSiteIsACandidate
+[       OK ] LinkPeekNewWindowTest.PlainBlankClickToAnotherSiteIsACandidate (0 ms)
+[ RUN      ] LinkPeekNewWindowTest.EverythingButThePlainClickStaysATab
+[       OK ] LinkPeekNewWindowTest.EverythingButThePlainClickStaysATab (0 ms)
+[----------] 2 tests from LinkPeekNewWindowTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 5 test suites ran. (365 ms total)
+[  PASSED  ] 10 tests.
+[1/28] LinkPeekInputTest.PlainLeftClickAndKeyArePlain (0 ms)
+[2/28] LinkPeekInputTest.ModifiersAndOtherButtonsAreNotPlain (0 ms)
+[3/28] LinkPeekInputTrackerTest.UntrackedInputIsUnknown (188 ms)
+[4/28] LinkPeekInputTrackerTest.FollowsTheLastInput (158 ms)
+[5/28] LinkPeekRequestTest.DefaultRequestHasNoReferrerOrInitiator (0 ms)
+[6/28] LinkPeekRequestTest.TypedRequestLooksLikeTheOmnibox (0 ms)
+[7/28] LinkPeekRequestTest.ShiftClickKeepsThePagesReferrerAndInitiator (0 ms)
+[8/28] LinkPeekSiteTest.OnlyWebLinksToAnotherSiteLeaveTheSite (0 ms)
+[9/28] LinkPeekNewWindowTest.PlainBlankClickToAnotherSiteIsACandidate (0 ms)
+[10/28] LinkPeekNewWindowTest.EverythingButThePlainClickStaysATab (0 ms)
+objc[12500]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x134d10a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119c2ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = LinkPeekHostTest.PeekLinkHandsTheOriginalRequestToTheHost:LinkPeekHostTest.PeekLinkRejectsNonWebUrls:LinkPeekHostTest.NewWindowOfASavedPageBecomesAPeek:LinkPeekHostTest.NewWindowWithPopupFeaturesStaysATab:LinkPeekHostTest.NewWindowOfATemporaryPageStaysATab:LinkPeekHostTest.NewWindowAfterModifierClickStaysATab:LinkPeekHostTest.NewWindowOfAnUntrackedPageStaysATab:PopupOverlayServiceTest.TransfersAndRestoresSameWebContents:PopupOverlayServiceTest.FailedAdoptionDoesNotConsumeWebContents:PopupOverlayServiceTest.RejectedRestoreSurvivesMissingOpener
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from LinkPeekHostTest
+[ RUN      ] LinkPeekHostTest.PeekLinkHandsTheOriginalRequestToTheHost
+[12500:5207251:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] LinkPeekHostTest.PeekLinkHandsTheOriginalRequestToTheHost (196 ms)
+[ RUN      ] LinkPeekHostTest.PeekLinkRejectsNonWebUrls
+[12500:5207251:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] LinkPeekHostTest.PeekLinkRejectsNonWebUrls (160 ms)
+[ RUN      ] LinkPeekHostTest.NewWindowOfASavedPageBecomesAPeek
+[12500:5207251:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] LinkPeekHostTest.NewWindowOfASavedPageBecomesAPeek (170 ms)
+[ RUN      ] LinkPeekHostTest.NewWindowWithPopupFeaturesStaysATab
+[12500:5207251:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] LinkPeekHostTest.NewWindowWithPopupFeaturesStaysATab (167 ms)
+[ RUN      ] LinkPeekHostTest.NewWindowOfATemporaryPageStaysATab
+[12500:5207251:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] LinkPeekHostTest.NewWindowOfATemporaryPageStaysATab (166 ms)
+[ RUN      ] LinkPeekHostTest.NewWindowAfterModifierClickStaysATab
+[12500:5207251:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] LinkPeekHostTest.NewWindowAfterModifierClickStaysATab (166 ms)
+[ RUN      ] LinkPeekHostTest.NewWindowOfAnUntrackedPageStaysATab
+[12500:5207251:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[12500:5207251:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] LinkPeekHostTest.NewWindowOfAnUntrackedPageStaysATab (173 ms)
+[----------] 7 tests from LinkPeekHostTest (1226 ms total)
+
+[----------] 3 tests from PopupOverlayServiceTest
+[ RUN      ] PopupOverlayServiceTest.TransfersAndRestoresSameWebContents
+[       OK ] PopupOverlayServiceTest.TransfersAndRestoresSameWebContents (155 ms)
+[ RUN      ] PopupOverlayServiceTest.FailedAdoptionDoesNotConsumeWebContents
+[       OK ] PopupOverlayServiceTest.FailedAdoptionDoesNotConsumeWebContents (165 ms)
+[ RUN      ] PopupOverlayServiceTest.RejectedRestoreSurvivesMissingOpener
+[       OK ] PopupOverlayServiceTest.RejectedRestoreSurvivesMissingOpener (166 ms)
+[----------] 3 tests from PopupOverlayServiceTest (489 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1716 ms total)
+[  PASSED  ] 10 tests.
+[11/28] LinkPeekHostTest.PeekLinkHandsTheOriginalRequestToTheHost (196 ms)
+[12/28] LinkPeekHostTest.PeekLinkRejectsNonWebUrls (160 ms)
+[13/28] LinkPeekHostTest.NewWindowOfASavedPageBecomesAPeek (170 ms)
+[14/28] LinkPeekHostTest.NewWindowWithPopupFeaturesStaysATab (167 ms)
+[15/28] LinkPeekHostTest.NewWindowOfATemporaryPageStaysATab (166 ms)
+[16/28] LinkPeekHostTest.NewWindowAfterModifierClickStaysATab (166 ms)
+[17/28] LinkPeekHostTest.NewWindowOfAnUntrackedPageStaysATab (173 ms)
+[18/28] PopupOverlayServiceTest.TransfersAndRestoresSameWebContents (155 ms)
+[19/28] PopupOverlayServiceTest.FailedAdoptionDoesNotConsumeWebContents (165 ms)
+[20/28] PopupOverlayServiceTest.RejectedRestoreSurvivesMissingOpener (166 ms)
+objc[12504]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1327d0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1176eca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = PopupOverlayServiceTest.FailedRestoreDoesNotConsumeWebContents:PopupOverlayServiceTest.CoalescesNativeFallbackRequests:PopupOverlayServiceTest.OwnedCloseCleansUpWithoutPhantomContents:AhoiPopupTypesTest.OnlyUserPopupDispositionIsEligible:AhoiPopupTypesTest.AllowsAboutBlankBootstrapPopup:AhoiPopupTypesTest.KeepsUnsupportedSchemesOnNativePath:AhoiPopupTypesTest.KeepsSensitiveFlowsOnNativePath:AhoiPopupTypesTest.RejectsFifthPaneBeforeTransfer
+[==========] Running 8 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from PopupOverlayServiceTest
+[ RUN      ] PopupOverlayServiceTest.FailedRestoreDoesNotConsumeWebContents
+[       OK ] PopupOverlayServiceTest.FailedRestoreDoesNotConsumeWebContents (196 ms)
+[ RUN      ] PopupOverlayServiceTest.CoalescesNativeFallbackRequests
+[       OK ] PopupOverlayServiceTest.CoalescesNativeFallbackRequests (159 ms)
+[ RUN      ] PopupOverlayServiceTest.OwnedCloseCleansUpWithoutPhantomContents
+[       OK ] PopupOverlayServiceTest.OwnedCloseCleansUpWithoutPhantomContents (166 ms)
+[----------] 3 tests from PopupOverlayServiceTest (540 ms total)
+
+[----------] 5 tests from AhoiPopupTypesTest
+[ RUN      ] AhoiPopupTypesTest.OnlyUserPopupDispositionIsEligible
+[       OK ] AhoiPopupTypesTest.OnlyUserPopupDispositionIsEligible (0 ms)
+[ RUN      ] AhoiPopupTypesTest.AllowsAboutBlankBootstrapPopup
+[       OK ] AhoiPopupTypesTest.AllowsAboutBlankBootstrapPopup (0 ms)
+[ RUN      ] AhoiPopupTypesTest.KeepsUnsupportedSchemesOnNativePath
+[       OK ] AhoiPopupTypesTest.KeepsUnsupportedSchemesOnNativePath (0 ms)
+[ RUN      ] AhoiPopupTypesTest.KeepsSensitiveFlowsOnNativePath
+[       OK ] AhoiPopupTypesTest.KeepsSensitiveFlowsOnNativePath (0 ms)
+[ RUN      ] AhoiPopupTypesTest.RejectsFifthPaneBeforeTransfer
+[       OK ] AhoiPopupTypesTest.RejectsFifthPaneBeforeTransfer (0 ms)
+[----------] 5 tests from AhoiPopupTypesTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 2 test suites ran. (541 ms total)
+[  PASSED  ] 8 tests.
+[21/28] PopupOverlayServiceTest.FailedRestoreDoesNotConsumeWebContents (196 ms)
+[22/28] PopupOverlayServiceTest.CoalescesNativeFallbackRequests (159 ms)
+[23/28] PopupOverlayServiceTest.OwnedCloseCleansUpWithoutPhantomContents (166 ms)
+[24/28] AhoiPopupTypesTest.OnlyUserPopupDispositionIsEligible (0 ms)
+[25/28] AhoiPopupTypesTest.AllowsAboutBlankBootstrapPopup (0 ms)
+[26/28] AhoiPopupTypesTest.KeepsUnsupportedSchemesOnNativePath (0 ms)
+[27/28] AhoiPopupTypesTest.KeepsSensitiveFlowsOnNativePath (0 ms)
+[28/28] AhoiPopupTypesTest.RejectsFifthPaneBeforeTransfer (0 ms)
+SUCCESS: all tests passed.
+Tests took 7 seconds.

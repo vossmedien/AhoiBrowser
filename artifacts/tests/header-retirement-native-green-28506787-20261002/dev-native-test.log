@@ -1,0 +1,718 @@
+objc[9149]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136faca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11bec8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9149]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x116780188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x102aa91a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[9173]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x139094a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11dfb0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9173]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118868188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x104e611a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperAssetValidationTest.EnforcesScopeLifetimeAndMainWorldWarning:DeveloperAssetValidationTest.DomainScopeRequiresADeviceLocalAcknowledgementWhenEnabled:DeveloperAssetValidationTest.MatchesOriginDomainPathAndTabExplicitly:DeveloperProfileCodecTest.LegacyDomainAssetWithoutConsentMigratesDormantWithoutSourceLoss:DeveloperProfileCodecTest.RejectsMalformedDomainScopeConsent:DeveloperProfileCodecTest.SyncIsExplicitAndKeychainRulesStayLocal:DeveloperProfileCodecTest.SyncStripsLocalConsentAndKeepsAdvancedRulesDormant:DeveloperProfileCodecTest.SyncStripsDomainScopeConsentAndKeepsSourceDormant:DeveloperProfileCodecTest.SyncIngressNeverTrustsTransferredAdvancedConsent:DeveloperProfileCodecTest.RoundTripsExplicitOptInAndRules
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from DeveloperAssetValidationTest
+[ RUN      ] DeveloperAssetValidationTest.EnforcesScopeLifetimeAndMainWorldWarning
+[       OK ] DeveloperAssetValidationTest.EnforcesScopeLifetimeAndMainWorldWarning (0 ms)
+[ RUN      ] DeveloperAssetValidationTest.DomainScopeRequiresADeviceLocalAcknowledgementWhenEnabled
+[       OK ] DeveloperAssetValidationTest.DomainScopeRequiresADeviceLocalAcknowledgementWhenEnabled (0 ms)
+[ RUN      ] DeveloperAssetValidationTest.MatchesOriginDomainPathAndTabExplicitly
+[       OK ] DeveloperAssetValidationTest.MatchesOriginDomainPathAndTabExplicitly (0 ms)
+[----------] 3 tests from DeveloperAssetValidationTest (168 ms total)
+
+[----------] 7 tests from DeveloperProfileCodecTest
+[ RUN      ] DeveloperProfileCodecTest.LegacyDomainAssetWithoutConsentMigratesDormantWithoutSourceLoss
+[       OK ] DeveloperProfileCodecTest.LegacyDomainAssetWithoutConsentMigratesDormantWithoutSourceLoss (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.RejectsMalformedDomainScopeConsent
+[       OK ] DeveloperProfileCodecTest.RejectsMalformedDomainScopeConsent (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.SyncIsExplicitAndKeychainRulesStayLocal
+[       OK ] DeveloperProfileCodecTest.SyncIsExplicitAndKeychainRulesStayLocal (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.SyncStripsLocalConsentAndKeepsAdvancedRulesDormant
+[       OK ] DeveloperProfileCodecTest.SyncStripsLocalConsentAndKeepsAdvancedRulesDormant (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.SyncStripsDomainScopeConsentAndKeepsSourceDormant
+[       OK ] DeveloperProfileCodecTest.SyncStripsDomainScopeConsentAndKeepsSourceDormant (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.SyncIngressNeverTrustsTransferredAdvancedConsent
+[       OK ] DeveloperProfileCodecTest.SyncIngressNeverTrustsTransferredAdvancedConsent (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.RoundTripsExplicitOptInAndRules
+[       OK ] DeveloperProfileCodecTest.RoundTripsExplicitOptInAndRules (0 ms)
+[----------] 7 tests from DeveloperProfileCodecTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (168 ms total)
+[  PASSED  ] 10 tests.
+[1/148] DeveloperAssetValidationTest.EnforcesScopeLifetimeAndMainWorldWarning (0 ms)
+[2/148] DeveloperAssetValidationTest.DomainScopeRequiresADeviceLocalAcknowledgementWhenEnabled (0 ms)
+[3/148] DeveloperAssetValidationTest.MatchesOriginDomainPathAndTabExplicitly (0 ms)
+[4/148] DeveloperProfileCodecTest.LegacyDomainAssetWithoutConsentMigratesDormantWithoutSourceLoss (0 ms)
+[5/148] DeveloperProfileCodecTest.RejectsMalformedDomainScopeConsent (0 ms)
+[6/148] DeveloperProfileCodecTest.SyncIsExplicitAndKeychainRulesStayLocal (0 ms)
+[7/148] DeveloperProfileCodecTest.SyncStripsLocalConsentAndKeepsAdvancedRulesDormant (0 ms)
+[8/148] DeveloperProfileCodecTest.SyncStripsDomainScopeConsentAndKeepsSourceDormant (0 ms)
+[9/148] DeveloperProfileCodecTest.SyncIngressNeverTrustsTransferredAdvancedConsent (0 ms)
+[10/148] DeveloperProfileCodecTest.RoundTripsExplicitOptInAndRules (0 ms)
+objc[9179]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x138a40a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11d95ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9179]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118214188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x10482d1a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperProfileCodecTest.MissingAdvancedAcknowledgementMigratesToFalse:DeveloperProfileCodecTest.LegacyActiveAdvancedRulesMigrateDormantWithoutDataLoss:DeveloperProfileCodecTest.ExplicitLocalAdvancedAcknowledgementKeepsRulesActive:DeveloperProfileCodecTest.RejectsMalformedAdvancedAcknowledgement:DeveloperProfileCodecTest.MigratesV1FixedSlotsIntoScopedAssets:DeveloperProfileCodecTest.MigratesProfilesWithoutResponseRules:DeveloperProfileCodecTest.RejectsMalformedKnownResponseRules:DeveloperProfileIntegrationTest.RuntimeIdsNamespaceEqualAssetIdsByOwnerOrigin:DeveloperProfileIntegrationTest.ResolvesAtNavigationBoundaryOnly:DeveloperCookieChromiumAdapterTest.CreatesNewPartitionKeyThroughStorageFactory
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from DeveloperProfileCodecTest
+[ RUN      ] DeveloperProfileCodecTest.MissingAdvancedAcknowledgementMigratesToFalse
+[       OK ] DeveloperProfileCodecTest.MissingAdvancedAcknowledgementMigratesToFalse (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.LegacyActiveAdvancedRulesMigrateDormantWithoutDataLoss
+[       OK ] DeveloperProfileCodecTest.LegacyActiveAdvancedRulesMigrateDormantWithoutDataLoss (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.ExplicitLocalAdvancedAcknowledgementKeepsRulesActive
+[       OK ] DeveloperProfileCodecTest.ExplicitLocalAdvancedAcknowledgementKeepsRulesActive (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.RejectsMalformedAdvancedAcknowledgement
+[       OK ] DeveloperProfileCodecTest.RejectsMalformedAdvancedAcknowledgement (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.MigratesV1FixedSlotsIntoScopedAssets
+[       OK ] DeveloperProfileCodecTest.MigratesV1FixedSlotsIntoScopedAssets (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.MigratesProfilesWithoutResponseRules
+[       OK ] DeveloperProfileCodecTest.MigratesProfilesWithoutResponseRules (0 ms)
+[ RUN      ] DeveloperProfileCodecTest.RejectsMalformedKnownResponseRules
+[       OK ] DeveloperProfileCodecTest.RejectsMalformedKnownResponseRules (0 ms)
+[----------] 7 tests from DeveloperProfileCodecTest (16 ms total)
+
+[----------] 2 tests from DeveloperProfileIntegrationTest
+[ RUN      ] DeveloperProfileIntegrationTest.RuntimeIdsNamespaceEqualAssetIdsByOwnerOrigin
+[       OK ] DeveloperProfileIntegrationTest.RuntimeIdsNamespaceEqualAssetIdsByOwnerOrigin (0 ms)
+[ RUN      ] DeveloperProfileIntegrationTest.ResolvesAtNavigationBoundaryOnly
+[       OK ] DeveloperProfileIntegrationTest.ResolvesAtNavigationBoundaryOnly (0 ms)
+[----------] 2 tests from DeveloperProfileIntegrationTest (0 ms total)
+
+[----------] 1 test from DeveloperCookieChromiumAdapterTest
+[ RUN      ] DeveloperCookieChromiumAdapterTest.CreatesNewPartitionKeyThroughStorageFactory
+[       OK ] DeveloperCookieChromiumAdapterTest.CreatesNewPartitionKeyThroughStorageFactory (1 ms)
+[----------] 1 test from DeveloperCookieChromiumAdapterTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (18 ms total)
+[  PASSED  ] 10 tests.
+[11/148] DeveloperProfileCodecTest.MissingAdvancedAcknowledgementMigratesToFalse (0 ms)
+[12/148] DeveloperProfileCodecTest.LegacyActiveAdvancedRulesMigrateDormantWithoutDataLoss (0 ms)
+[13/148] DeveloperProfileCodecTest.ExplicitLocalAdvancedAcknowledgementKeepsRulesActive (0 ms)
+[14/148] DeveloperProfileCodecTest.RejectsMalformedAdvancedAcknowledgement (0 ms)
+[15/148] DeveloperProfileCodecTest.MigratesV1FixedSlotsIntoScopedAssets (0 ms)
+[16/148] DeveloperProfileCodecTest.MigratesProfilesWithoutResponseRules (0 ms)
+[17/148] DeveloperProfileCodecTest.RejectsMalformedKnownResponseRules (0 ms)
+[18/148] DeveloperProfileIntegrationTest.RuntimeIdsNamespaceEqualAssetIdsByOwnerOrigin (0 ms)
+[19/148] DeveloperProfileIntegrationTest.ResolvesAtNavigationBoundaryOnly (0 ms)
+[20/148] DeveloperCookieChromiumAdapterTest.CreatesNewPartitionKeyThroughStorageFactory (1 ms)
+objc[9184]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x138a3ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11d958a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9184]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118210188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x10457d1a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperCookieChromiumAdapterTest.PreservesDistinctExistingKeysAndToggleRemovesPartitioning:DeveloperCookieManagerTest.NormalizesCurrentHostAndPath:DeveloperCookieManagerTest.DomainCookiesMustMatchTheCurrentSite:DeveloperCookieManagerTest.RejectsUnsafeSameSiteAndPrefixCombinations:DeveloperCookieManagerTest.PartitionedCookiesRequireSecureContext:DeveloperCookieManagerTest.KeepExpirationIsEditOnly:DeveloperCookieManagerTest.RejectsOversizedOrDelimitedPaths:DeveloperCookieManagerTest.SearchCoversEveryVisibleIdentityField:DeveloperHeaderMaterializationTest.UserAgentOverrideIsDecidedAtNavigationStart:DeveloperHeaderMaterializationTest.ResolvesRequestAndResponseAsOneTransaction
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from DeveloperCookieChromiumAdapterTest
+[ RUN      ] DeveloperCookieChromiumAdapterTest.PreservesDistinctExistingKeysAndToggleRemovesPartitioning
+[       OK ] DeveloperCookieChromiumAdapterTest.PreservesDistinctExistingKeysAndToggleRemovesPartitioning (0 ms)
+[----------] 1 test from DeveloperCookieChromiumAdapterTest (17 ms total)
+
+[----------] 7 tests from DeveloperCookieManagerTest
+[ RUN      ] DeveloperCookieManagerTest.NormalizesCurrentHostAndPath
+[       OK ] DeveloperCookieManagerTest.NormalizesCurrentHostAndPath (0 ms)
+[ RUN      ] DeveloperCookieManagerTest.DomainCookiesMustMatchTheCurrentSite
+[       OK ] DeveloperCookieManagerTest.DomainCookiesMustMatchTheCurrentSite (0 ms)
+[ RUN      ] DeveloperCookieManagerTest.RejectsUnsafeSameSiteAndPrefixCombinations
+[       OK ] DeveloperCookieManagerTest.RejectsUnsafeSameSiteAndPrefixCombinations (0 ms)
+[ RUN      ] DeveloperCookieManagerTest.PartitionedCookiesRequireSecureContext
+[       OK ] DeveloperCookieManagerTest.PartitionedCookiesRequireSecureContext (1 ms)
+[ RUN      ] DeveloperCookieManagerTest.KeepExpirationIsEditOnly
+[       OK ] DeveloperCookieManagerTest.KeepExpirationIsEditOnly (0 ms)
+[ RUN      ] DeveloperCookieManagerTest.RejectsOversizedOrDelimitedPaths
+[       OK ] DeveloperCookieManagerTest.RejectsOversizedOrDelimitedPaths (0 ms)
+[ RUN      ] DeveloperCookieManagerTest.SearchCoversEveryVisibleIdentityField
+[       OK ] DeveloperCookieManagerTest.SearchCoversEveryVisibleIdentityField (0 ms)
+[----------] 7 tests from DeveloperCookieManagerTest (2 ms total)
+
+[----------] 2 tests from DeveloperHeaderMaterializationTest
+[ RUN      ] DeveloperHeaderMaterializationTest.UserAgentOverrideIsDecidedAtNavigationStart
+[9184:5192944:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperHeaderMaterializationTest.UserAgentOverrideIsDecidedAtNavigationStart (309 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.ResolvesRequestAndResponseAsOneTransaction
+[       OK ] DeveloperHeaderMaterializationTest.ResolvesRequestAndResponseAsOneTransaction (150 ms)
+[----------] 2 tests from DeveloperHeaderMaterializationTest (460 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (479 ms total)
+[  PASSED  ] 10 tests.
+[21/148] DeveloperCookieChromiumAdapterTest.PreservesDistinctExistingKeysAndToggleRemovesPartitioning (0 ms)
+[22/148] DeveloperCookieManagerTest.NormalizesCurrentHostAndPath (0 ms)
+[23/148] DeveloperCookieManagerTest.DomainCookiesMustMatchTheCurrentSite (0 ms)
+[24/148] DeveloperCookieManagerTest.RejectsUnsafeSameSiteAndPrefixCombinations (0 ms)
+[25/148] DeveloperCookieManagerTest.PartitionedCookiesRequireSecureContext (1 ms)
+[26/148] DeveloperCookieManagerTest.KeepExpirationIsEditOnly (0 ms)
+[27/148] DeveloperCookieManagerTest.RejectsOversizedOrDelimitedPaths (0 ms)
+[28/148] DeveloperCookieManagerTest.SearchCoversEveryVisibleIdentityField (0 ms)
+[29/148] DeveloperHeaderMaterializationTest.UserAgentOverrideIsDecidedAtNavigationStart (309 ms)
+[30/148] DeveloperHeaderMaterializationTest.ResolvesRequestAndResponseAsOneTransaction (150 ms)
+objc[9475]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x138ba4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11dac0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9475]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118378188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x1049c11a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperHeaderMaterializationTest.DefersExactNavigationAndKeepsPlaintextRequestBound:DeveloperHeaderMaterializationTest.MissingResponseSecretDisablesWholeHeaderProfile:DeveloperHeaderMaterializationTest.FactoryRejectsNullDestroyedStaleOtrAndNavigationMismatch:DeveloperHeaderMaterializationTest.NavigationThrottleDoesNotReadOrApplyAnOtrProfile:DeveloperHeaderMaterializationTest.SubresourceOriginMismatchAndSecretsStayFailClosed:DeveloperHeaderMaterializationTest.DisabledToolkitStartsNeitherKeychainWorkNorMainFrameOverrides:DeveloperHeaderMaterializationTest.MasterRevocationRejectsPendingNavigationSecretsAfterReenable:DeveloperHeaderMaterializationTest.ReenableBeforeReplyDoesNotResurrectOldNavigationApproval:DeveloperHeaderMaterializationTest.NavigationChangeBeforeReplyCannotStageStaleSecrets:DeveloperHeaderMaterializationTest.ProfileMutationAfterMaterializationInvalidatesSnapshot
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from DeveloperHeaderMaterializationTest
+[ RUN      ] DeveloperHeaderMaterializationTest.DefersExactNavigationAndKeepsPlaintextRequestBound
+[       OK ] DeveloperHeaderMaterializationTest.DefersExactNavigationAndKeepsPlaintextRequestBound (221 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.MissingResponseSecretDisablesWholeHeaderProfile
+[       OK ] DeveloperHeaderMaterializationTest.MissingResponseSecretDisablesWholeHeaderProfile (183 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.FactoryRejectsNullDestroyedStaleOtrAndNavigationMismatch
+[       OK ] DeveloperHeaderMaterializationTest.FactoryRejectsNullDestroyedStaleOtrAndNavigationMismatch (251 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.NavigationThrottleDoesNotReadOrApplyAnOtrProfile
+[       OK ] DeveloperHeaderMaterializationTest.NavigationThrottleDoesNotReadOrApplyAnOtrProfile (189 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.SubresourceOriginMismatchAndSecretsStayFailClosed
+[       OK ] DeveloperHeaderMaterializationTest.SubresourceOriginMismatchAndSecretsStayFailClosed (149 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.DisabledToolkitStartsNeitherKeychainWorkNorMainFrameOverrides
+[       OK ] DeveloperHeaderMaterializationTest.DisabledToolkitStartsNeitherKeychainWorkNorMainFrameOverrides (183 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.MasterRevocationRejectsPendingNavigationSecretsAfterReenable
+[       OK ] DeveloperHeaderMaterializationTest.MasterRevocationRejectsPendingNavigationSecretsAfterReenable (192 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.ReenableBeforeReplyDoesNotResurrectOldNavigationApproval
+[       OK ] DeveloperHeaderMaterializationTest.ReenableBeforeReplyDoesNotResurrectOldNavigationApproval (207 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.NavigationChangeBeforeReplyCannotStageStaleSecrets
+[       OK ] DeveloperHeaderMaterializationTest.NavigationChangeBeforeReplyCannotStageStaleSecrets (180 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.ProfileMutationAfterMaterializationInvalidatesSnapshot
+[       OK ] DeveloperHeaderMaterializationTest.ProfileMutationAfterMaterializationInvalidatesSnapshot (208 ms)
+[----------] 10 tests from DeveloperHeaderMaterializationTest (1989 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1989 ms total)
+[  PASSED  ] 10 tests.
+[31/148] DeveloperHeaderMaterializationTest.DefersExactNavigationAndKeepsPlaintextRequestBound (221 ms)
+[32/148] DeveloperHeaderMaterializationTest.MissingResponseSecretDisablesWholeHeaderProfile (183 ms)
+[33/148] DeveloperHeaderMaterializationTest.FactoryRejectsNullDestroyedStaleOtrAndNavigationMismatch (251 ms)
+[34/148] DeveloperHeaderMaterializationTest.NavigationThrottleDoesNotReadOrApplyAnOtrProfile (189 ms)
+[35/148] DeveloperHeaderMaterializationTest.SubresourceOriginMismatchAndSecretsStayFailClosed (149 ms)
+[36/148] DeveloperHeaderMaterializationTest.DisabledToolkitStartsNeitherKeychainWorkNorMainFrameOverrides (183 ms)
+[37/148] DeveloperHeaderMaterializationTest.MasterRevocationRejectsPendingNavigationSecretsAfterReenable (192 ms)
+[38/148] DeveloperHeaderMaterializationTest.ReenableBeforeReplyDoesNotResurrectOldNavigationApproval (207 ms)
+[39/148] DeveloperHeaderMaterializationTest.NavigationChangeBeforeReplyCannotStageStaleSecrets (180 ms)
+[40/148] DeveloperHeaderMaterializationTest.ProfileMutationAfterMaterializationInvalidatesSnapshot (208 ms)
+objc[9499]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1354c4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11a3e0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9499]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x114c98188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x100fb51a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperHeaderMaterializationTest.SameOriginRedirectRetargetsAndCrossOriginRedirectClears:DeveloperHeaderMaterializationTest.DispatchedMainFrameResponseRetiresRulesAcrossDisableAndReenable:DeveloperHeaderMaterializationTest.ResetMainNavigationRestoresHeaderWithoutPendingExemptValue:DeveloperHeaderMaterializationTest.RetiredStagedMainSecretCannotModifyALateResponse:DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor:DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule:DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders:DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults:DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl:DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from DeveloperHeaderMaterializationTest
+[ RUN      ] DeveloperHeaderMaterializationTest.SameOriginRedirectRetargetsAndCrossOriginRedirectClears
+[       OK ] DeveloperHeaderMaterializationTest.SameOriginRedirectRetargetsAndCrossOriginRedirectClears (219 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.DispatchedMainFrameResponseRetiresRulesAcrossDisableAndReenable
+[       OK ] DeveloperHeaderMaterializationTest.DispatchedMainFrameResponseRetiresRulesAcrossDisableAndReenable (149 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.ResetMainNavigationRestoresHeaderWithoutPendingExemptValue
+[       OK ] DeveloperHeaderMaterializationTest.ResetMainNavigationRestoresHeaderWithoutPendingExemptValue (150 ms)
+[ RUN      ] DeveloperHeaderMaterializationTest.RetiredStagedMainSecretCannotModifyALateResponse
+[       OK ] DeveloperHeaderMaterializationTest.RetiredStagedMainSecretCannotModifyALateResponse (149 ms)
+[----------] 4 tests from DeveloperHeaderMaterializationTest (686 ms total)
+
+[----------] 6 tests from DeveloperNetworkFactoryProxyTest
+[ RUN      ] DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor
+[9499:5193766:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor (249 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule
+[9499:5193766:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule (256 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders
+[9499:5193766:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders (216 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults
+[9499:5193766:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults (209 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl
+[9499:5193766:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl (248 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride
+[9499:5193766:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride (242 ms)
+[----------] 6 tests from DeveloperNetworkFactoryProxyTest (1425 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (2112 ms total)
+[  PASSED  ] 10 tests.
+[41/148] DeveloperHeaderMaterializationTest.SameOriginRedirectRetargetsAndCrossOriginRedirectClears (219 ms)
+[42/148] DeveloperHeaderMaterializationTest.DispatchedMainFrameResponseRetiresRulesAcrossDisableAndReenable (149 ms)
+[43/148] DeveloperHeaderMaterializationTest.ResetMainNavigationRestoresHeaderWithoutPendingExemptValue (150 ms)
+[44/148] DeveloperHeaderMaterializationTest.RetiredStagedMainSecretCannotModifyALateResponse (149 ms)
+[45/148] DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor (249 ms)
+[46/148] DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule (256 ms)
+[47/148] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders (216 ms)
+[48/148] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults (209 ms)
+[49/148] DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl (248 ms)
+[50/148] DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride (242 ms)
+objc[9506]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1351bca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11a0d8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9506]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x114990188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x100cb11a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock:DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop:DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory:DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState:DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval:DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument:DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections:DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader:DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext:DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock (271 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop (207 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory (208 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState (224 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval (216 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument (208 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections (224 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader (225 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext (291 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic
+[9506:5193970:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic (224 ms)
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest (2328 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (2328 ms total)
+[  PASSED  ] 10 tests.
+[51/148] DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock (271 ms)
+[52/148] DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop (207 ms)
+[53/148] DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory (208 ms)
+[54/148] DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState (224 ms)
+[55/148] DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval (216 ms)
+[56/148] DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument (208 ms)
+[57/148] DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections (224 ms)
+[58/148] DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader (225 ms)
+[59/148] DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext (291 ms)
+[60/148] DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic (224 ms)
+objc[9571]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x134cd0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119beca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9571]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1144a4188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x100b051a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument:DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect:DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority:DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce:DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests:DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections:DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules:DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution:DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative:DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest
+[ RUN      ] DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument (384 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect (200 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority (199 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce (224 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests (291 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections (241 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules (232 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution (240 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative (232 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection
+[9571:5194469:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection (258 ms)
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest (2527 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (2527 ms total)
+[  PASSED  ] 10 tests.
+[61/148] DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument (384 ms)
+[62/148] DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect (200 ms)
+[63/148] DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority (199 ms)
+[64/148] DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce (224 ms)
+[65/148] DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests (291 ms)
+[66/148] DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections (241 ms)
+[67/148] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules (232 ms)
+[68/148] DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution (240 ms)
+[69/148] DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative (232 ms)
+[70/148] DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection (258 ms)
+objc[9639]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x134d8ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119ca8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9639]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x114560188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x10080d1a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval:DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules:DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory:DeveloperProfilePrefSeedTest.SeededProfileResolvesForItsSiteOnly:DeveloperProfilePrefSeedTest.CompiledOutputWithoutVersionDropsTheWholeProfile:DeveloperProfilePrefSeedTest.OtherCompilerVersionKeepsTheRestOfTheProfile:DeveloperProfileRuntimeTest.KeepsTransientAssetsInTabAndConsumesOnceAtNavigation:DeveloperProfileRuntimeTest.DisabledToolkitPreservesOnceAssetsUntilNextEnabledNavigation:DeveloperProfileRuntimeTest.ShutdownPreservesAUserAgentReplacedByAnotherNativeSurface:DeveloperProfileRuntimeTest.KeepsTransientOnlyProfileInEditorWithoutPersistentShell
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from DeveloperNetworkFactoryProxyTest
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval
+[9639:5194828:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval (255 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules
+[9639:5194828:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules (224 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory
+[9639:5194828:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory (227 ms)
+[----------] 3 tests from DeveloperNetworkFactoryProxyTest (725 ms total)
+
+[----------] 3 tests from DeveloperProfilePrefSeedTest
+[ RUN      ] DeveloperProfilePrefSeedTest.SeededProfileResolvesForItsSiteOnly
+[       OK ] DeveloperProfilePrefSeedTest.SeededProfileResolvesForItsSiteOnly (0 ms)
+[ RUN      ] DeveloperProfilePrefSeedTest.CompiledOutputWithoutVersionDropsTheWholeProfile
+[       OK ] DeveloperProfilePrefSeedTest.CompiledOutputWithoutVersionDropsTheWholeProfile (0 ms)
+[ RUN      ] DeveloperProfilePrefSeedTest.OtherCompilerVersionKeepsTheRestOfTheProfile
+[       OK ] DeveloperProfilePrefSeedTest.OtherCompilerVersionKeepsTheRestOfTheProfile (0 ms)
+[----------] 3 tests from DeveloperProfilePrefSeedTest (1 ms total)
+
+[----------] 4 tests from DeveloperProfileRuntimeTest
+[ RUN      ] DeveloperProfileRuntimeTest.KeepsTransientAssetsInTabAndConsumesOnceAtNavigation
+[       OK ] DeveloperProfileRuntimeTest.KeepsTransientAssetsInTabAndConsumesOnceAtNavigation (146 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.DisabledToolkitPreservesOnceAssetsUntilNextEnabledNavigation
+[       OK ] DeveloperProfileRuntimeTest.DisabledToolkitPreservesOnceAssetsUntilNextEnabledNavigation (149 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.ShutdownPreservesAUserAgentReplacedByAnotherNativeSurface
+[       OK ] DeveloperProfileRuntimeTest.ShutdownPreservesAUserAgentReplacedByAnotherNativeSurface (149 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.KeepsTransientOnlyProfileInEditorWithoutPersistentShell
+[       OK ] DeveloperProfileRuntimeTest.KeepsTransientOnlyProfileInEditorWithoutPersistentShell (149 ms)
+[----------] 4 tests from DeveloperProfileRuntimeTest (596 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (1323 ms total)
+[  PASSED  ] 10 tests.
+[71/148] DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval (255 ms)
+[72/148] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules (224 ms)
+[73/148] DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory (227 ms)
+[74/148] DeveloperProfilePrefSeedTest.SeededProfileResolvesForItsSiteOnly (0 ms)
+[75/148] DeveloperProfilePrefSeedTest.CompiledOutputWithoutVersionDropsTheWholeProfile (0 ms)
+[76/148] DeveloperProfilePrefSeedTest.OtherCompilerVersionKeepsTheRestOfTheProfile (0 ms)
+[77/148] DeveloperProfileRuntimeTest.KeepsTransientAssetsInTabAndConsumesOnceAtNavigation (146 ms)
+[78/148] DeveloperProfileRuntimeTest.DisabledToolkitPreservesOnceAssetsUntilNextEnabledNavigation (149 ms)
+[79/148] DeveloperProfileRuntimeTest.ShutdownPreservesAUserAgentReplacedByAnotherNativeSurface (149 ms)
+[80/148] DeveloperProfileRuntimeTest.KeepsTransientOnlyProfileInEditorWithoutPersistentShell (149 ms)
+objc[9657]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x138fa4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11dec0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9657]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118778188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x1049391a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperProfileRuntimeTest.RejectsCapacityDivergenceWithoutChangingAnyProfileSnapshot:DeveloperProfileRuntimeTest.ActionExecutorChipsFollowLastCommittedEnabledAssetsOnly:DeveloperProfileRuntimeTest.ResetRemovesAllContributingScopesButPreservesUnrelatedAssets:DeveloperProfileRuntimeTest.DisabledTransientAndPersistentAssetsNeverBecomeActive:DeveloperProfileRuntimeTest.ResetTurnsOffAdvancedResponseRulesAndWithdrawsTheirConsent:DeveloperProfileRuntimeTest.RejectsAnotherTabsCurrentTabToken:DeveloperProfileRuntimeTest.MovesLookupMarkerAcrossDiscardReplacement:DeveloperProfileRuntimeTest.LookupMarkerExpiresWithHelperLifetime:DeveloperProfileRuntimeTest.WebContentsCanBeDestroyedBeforeOwnedHelper:DeveloperProfileRuntimeTest.TemporaryHeadersStayInOwningTabAndNeverPersistOrSync
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from DeveloperProfileRuntimeTest
+[ RUN      ] DeveloperProfileRuntimeTest.RejectsCapacityDivergenceWithoutChangingAnyProfileSnapshot
+[       OK ] DeveloperProfileRuntimeTest.RejectsCapacityDivergenceWithoutChangingAnyProfileSnapshot (262 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.ActionExecutorChipsFollowLastCommittedEnabledAssetsOnly
+[       OK ] DeveloperProfileRuntimeTest.ActionExecutorChipsFollowLastCommittedEnabledAssetsOnly (149 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.ResetRemovesAllContributingScopesButPreservesUnrelatedAssets
+[       OK ] DeveloperProfileRuntimeTest.ResetRemovesAllContributingScopesButPreservesUnrelatedAssets (151 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.DisabledTransientAndPersistentAssetsNeverBecomeActive
+[       OK ] DeveloperProfileRuntimeTest.DisabledTransientAndPersistentAssetsNeverBecomeActive (148 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.ResetTurnsOffAdvancedResponseRulesAndWithdrawsTheirConsent
+[       OK ] DeveloperProfileRuntimeTest.ResetTurnsOffAdvancedResponseRulesAndWithdrawsTheirConsent (149 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.RejectsAnotherTabsCurrentTabToken
+[       OK ] DeveloperProfileRuntimeTest.RejectsAnotherTabsCurrentTabToken (149 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.MovesLookupMarkerAcrossDiscardReplacement
+[       OK ] DeveloperProfileRuntimeTest.MovesLookupMarkerAcrossDiscardReplacement (149 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.LookupMarkerExpiresWithHelperLifetime
+[       OK ] DeveloperProfileRuntimeTest.LookupMarkerExpiresWithHelperLifetime (150 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.WebContentsCanBeDestroyedBeforeOwnedHelper
+[       OK ] DeveloperProfileRuntimeTest.WebContentsCanBeDestroyedBeforeOwnedHelper (149 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.TemporaryHeadersStayInOwningTabAndNeverPersistOrSync
+[       OK ] DeveloperProfileRuntimeTest.TemporaryHeadersStayInOwningTabAndNeverPersistOrSync (149 ms)
+[----------] 10 tests from DeveloperProfileRuntimeTest (1630 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1630 ms total)
+[  PASSED  ] 10 tests.
+[81/148] DeveloperProfileRuntimeTest.RejectsCapacityDivergenceWithoutChangingAnyProfileSnapshot (262 ms)
+[82/148] DeveloperProfileRuntimeTest.ActionExecutorChipsFollowLastCommittedEnabledAssetsOnly (149 ms)
+[83/148] DeveloperProfileRuntimeTest.ResetRemovesAllContributingScopesButPreservesUnrelatedAssets (151 ms)
+[84/148] DeveloperProfileRuntimeTest.DisabledTransientAndPersistentAssetsNeverBecomeActive (148 ms)
+[85/148] DeveloperProfileRuntimeTest.ResetTurnsOffAdvancedResponseRulesAndWithdrawsTheirConsent (149 ms)
+[86/148] DeveloperProfileRuntimeTest.RejectsAnotherTabsCurrentTabToken (149 ms)
+[87/148] DeveloperProfileRuntimeTest.MovesLookupMarkerAcrossDiscardReplacement (149 ms)
+[88/148] DeveloperProfileRuntimeTest.LookupMarkerExpiresWithHelperLifetime (150 ms)
+[89/148] DeveloperProfileRuntimeTest.WebContentsCanBeDestroyedBeforeOwnedHelper (149 ms)
+[90/148] DeveloperProfileRuntimeTest.TemporaryHeadersStayInOwningTabAndNeverPersistOrSync (149 ms)
+objc[9665]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1394b4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11e3d0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9665]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118c88188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x104ebd1a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperProfileRuntimeTest.TemporaryHeadersRetireWithHelperEvenIfDocumentSurvives:DeveloperProfileRuntimeTest.TemporaryHeadersResetAndPersistenceConversionRetireOldSnapshot:DeveloperProfileRuntimeTest.TemporaryHeaderOwnerRejectsOtherPreferencesAndForeignOrigin:DeveloperProfileRuntimeTest.ReplacingTemporaryHeaderOwnerCannotReviveEarlierDocumentSnapshot:DeveloperProfileRuntimeTest.TemporaryHeaderNavigationPreservesAnotherNativeUserAgentDecision:DeveloperProfileRuntimeTest.HeaderNavigationCanApplyAndRetireOnlyItsOwnUserAgentDecision:DeveloperProfileRuntimeTest.HeaderHelperBoundToOtherPreferencesCannotReadOrMutateThatProfile:DeveloperProfileRuntimeTest.HelperAcquiringItsContextLaterStillTracksMasterActivation:DeveloperProfileValidationTest.RestrictsOriginsToHttpAndHttps:DeveloperProfileValidationTest.RejectsUnsafeOrAmbiguousValues
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from DeveloperProfileRuntimeTest
+[ RUN      ] DeveloperProfileRuntimeTest.TemporaryHeadersRetireWithHelperEvenIfDocumentSurvives
+[9665:5195283:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperProfileRuntimeTest.TemporaryHeadersRetireWithHelperEvenIfDocumentSurvives (188 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.TemporaryHeadersResetAndPersistenceConversionRetireOldSnapshot
+[9665:5195283:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperProfileRuntimeTest.TemporaryHeadersResetAndPersistenceConversionRetireOldSnapshot (149 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.TemporaryHeaderOwnerRejectsOtherPreferencesAndForeignOrigin
+[       OK ] DeveloperProfileRuntimeTest.TemporaryHeaderOwnerRejectsOtherPreferencesAndForeignOrigin (152 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.ReplacingTemporaryHeaderOwnerCannotReviveEarlierDocumentSnapshot
+[9665:5195283:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperProfileRuntimeTest.ReplacingTemporaryHeaderOwnerCannotReviveEarlierDocumentSnapshot (148 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.TemporaryHeaderNavigationPreservesAnotherNativeUserAgentDecision
+[       OK ] DeveloperProfileRuntimeTest.TemporaryHeaderNavigationPreservesAnotherNativeUserAgentDecision (155 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.HeaderNavigationCanApplyAndRetireOnlyItsOwnUserAgentDecision
+[       OK ] DeveloperProfileRuntimeTest.HeaderNavigationCanApplyAndRetireOnlyItsOwnUserAgentDecision (144 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.HeaderHelperBoundToOtherPreferencesCannotReadOrMutateThatProfile
+[       OK ] DeveloperProfileRuntimeTest.HeaderHelperBoundToOtherPreferencesCannotReadOrMutateThatProfile (147 ms)
+[ RUN      ] DeveloperProfileRuntimeTest.HelperAcquiringItsContextLaterStillTracksMasterActivation
+[       OK ] DeveloperProfileRuntimeTest.HelperAcquiringItsContextLaterStillTracksMasterActivation (149 ms)
+[----------] 8 tests from DeveloperProfileRuntimeTest (1255 ms total)
+
+[----------] 2 tests from DeveloperProfileValidationTest
+[ RUN      ] DeveloperProfileValidationTest.RestrictsOriginsToHttpAndHttps
+[       OK ] DeveloperProfileValidationTest.RestrictsOriginsToHttpAndHttps (0 ms)
+[ RUN      ] DeveloperProfileValidationTest.RejectsUnsafeOrAmbiguousValues
+[       OK ] DeveloperProfileValidationTest.RejectsUnsafeOrAmbiguousValues (0 ms)
+[----------] 2 tests from DeveloperProfileValidationTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1256 ms total)
+[  PASSED  ] 10 tests.
+[91/148] DeveloperProfileRuntimeTest.TemporaryHeadersRetireWithHelperEvenIfDocumentSurvives (188 ms)
+[92/148] DeveloperProfileRuntimeTest.TemporaryHeadersResetAndPersistenceConversionRetireOldSnapshot (149 ms)
+[93/148] DeveloperProfileRuntimeTest.TemporaryHeaderOwnerRejectsOtherPreferencesAndForeignOrigin (152 ms)
+[94/148] DeveloperProfileRuntimeTest.ReplacingTemporaryHeaderOwnerCannotReviveEarlierDocumentSnapshot (148 ms)
+[95/148] DeveloperProfileRuntimeTest.TemporaryHeaderNavigationPreservesAnotherNativeUserAgentDecision (155 ms)
+[96/148] DeveloperProfileRuntimeTest.HeaderNavigationCanApplyAndRetireOnlyItsOwnUserAgentDecision (144 ms)
+[97/148] DeveloperProfileRuntimeTest.HeaderHelperBoundToOtherPreferencesCannotReadOrMutateThatProfile (147 ms)
+[98/148] DeveloperProfileRuntimeTest.HelperAcquiringItsContextLaterStillTracksMasterActivation (149 ms)
+[99/148] DeveloperProfileValidationTest.RestrictsOriginsToHttpAndHttps (0 ms)
+[100/148] DeveloperProfileValidationTest.RejectsUnsafeOrAmbiguousValues (0 ms)
+objc[9675]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136f94a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11beb0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9675]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x116308188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x102dc51a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperProfileValidationTest.RequiresLocalAcknowledgementForActiveCspAndCorsResponseRules:DeveloperProfileValidationTest.AllowsDormantAdvancedResponseRulesWithoutAcknowledgement:DeveloperProfileValidationTest.CountsRequestAndResponseRulesAgainstOneBoundedBudget:DeveloperSecretStoreTest.MaterializesAtomicallyWithoutPersistedSecret:DeveloperStyleCompilerTest.LoadsOnlyForOpenPreprocessorEditorAndReleases:DeveloperProfileStoreTest.PersistsExactOriginAndSchema:DeveloperProfileStoreTest.LegacyAdvancedRulesRemainVisibleButDormant:DeveloperProfileStoreTest.RejectsActiveAdvancedRulesUntilLocallyAcknowledged:DeveloperProfileStoreTest.IsFailClosedForIncognitoByDefault:DeveloperProfileStoreTest.SupportsExplicitEphemeralIncognitoOptIn
+[==========] Running 10 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from DeveloperProfileValidationTest
+[ RUN      ] DeveloperProfileValidationTest.RequiresLocalAcknowledgementForActiveCspAndCorsResponseRules
+[       OK ] DeveloperProfileValidationTest.RequiresLocalAcknowledgementForActiveCspAndCorsResponseRules (0 ms)
+[ RUN      ] DeveloperProfileValidationTest.AllowsDormantAdvancedResponseRulesWithoutAcknowledgement
+[       OK ] DeveloperProfileValidationTest.AllowsDormantAdvancedResponseRulesWithoutAcknowledgement (0 ms)
+[ RUN      ] DeveloperProfileValidationTest.CountsRequestAndResponseRulesAgainstOneBoundedBudget
+[       OK ] DeveloperProfileValidationTest.CountsRequestAndResponseRulesAgainstOneBoundedBudget (0 ms)
+[----------] 3 tests from DeveloperProfileValidationTest (17 ms total)
+
+[----------] 1 test from DeveloperSecretStoreTest
+[ RUN      ] DeveloperSecretStoreTest.MaterializesAtomicallyWithoutPersistedSecret
+[       OK ] DeveloperSecretStoreTest.MaterializesAtomicallyWithoutPersistedSecret (0 ms)
+[----------] 1 test from DeveloperSecretStoreTest (0 ms total)
+
+[----------] 1 test from DeveloperStyleCompilerTest
+[ RUN      ] DeveloperStyleCompilerTest.LoadsOnlyForOpenPreprocessorEditorAndReleases
+[       OK ] DeveloperStyleCompilerTest.LoadsOnlyForOpenPreprocessorEditorAndReleases (0 ms)
+[----------] 1 test from DeveloperStyleCompilerTest (0 ms total)
+
+[----------] 5 tests from DeveloperProfileStoreTest
+[ RUN      ] DeveloperProfileStoreTest.PersistsExactOriginAndSchema
+[       OK ] DeveloperProfileStoreTest.PersistsExactOriginAndSchema (0 ms)
+[ RUN      ] DeveloperProfileStoreTest.LegacyAdvancedRulesRemainVisibleButDormant
+[       OK ] DeveloperProfileStoreTest.LegacyAdvancedRulesRemainVisibleButDormant (0 ms)
+[ RUN      ] DeveloperProfileStoreTest.RejectsActiveAdvancedRulesUntilLocallyAcknowledged
+[       OK ] DeveloperProfileStoreTest.RejectsActiveAdvancedRulesUntilLocallyAcknowledged (0 ms)
+[ RUN      ] DeveloperProfileStoreTest.IsFailClosedForIncognitoByDefault
+[       OK ] DeveloperProfileStoreTest.IsFailClosedForIncognitoByDefault (0 ms)
+[ RUN      ] DeveloperProfileStoreTest.SupportsExplicitEphemeralIncognitoOptIn
+[       OK ] DeveloperProfileStoreTest.SupportsExplicitEphemeralIncognitoOptIn (0 ms)
+[----------] 5 tests from DeveloperProfileStoreTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 4 test suites ran. (17 ms total)
+[  PASSED  ] 10 tests.
+[101/148] DeveloperProfileValidationTest.RequiresLocalAcknowledgementForActiveCspAndCorsResponseRules (0 ms)
+[102/148] DeveloperProfileValidationTest.AllowsDormantAdvancedResponseRulesWithoutAcknowledgement (0 ms)
+[103/148] DeveloperProfileValidationTest.CountsRequestAndResponseRulesAgainstOneBoundedBudget (0 ms)
+[104/148] DeveloperSecretStoreTest.MaterializesAtomicallyWithoutPersistedSecret (0 ms)
+[105/148] DeveloperStyleCompilerTest.LoadsOnlyForOpenPreprocessorEditorAndReleases (0 ms)
+[106/148] DeveloperProfileStoreTest.PersistsExactOriginAndSchema (0 ms)
+[107/148] DeveloperProfileStoreTest.LegacyAdvancedRulesRemainVisibleButDormant (0 ms)
+[108/148] DeveloperProfileStoreTest.RejectsActiveAdvancedRulesUntilLocallyAcknowledged (0 ms)
+[109/148] DeveloperProfileStoreTest.IsFailClosedForIncognitoByDefault (0 ms)
+[110/148] DeveloperProfileStoreTest.SupportsExplicitEphemeralIncognitoOptIn (0 ms)
+objc[9687]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x135210a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11a12ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9687]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1149e4188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x100ce11a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperProfileTextCodecTest.ParsesSetRemoveCommentsAndWhitespace:DeveloperProfileTextCodecTest.ReportsPreciseInvalidLine:DeveloperProfileTextCodecTest.RoundTripsOpaqueKeychainReferences:DeveloperProfileURLLoaderThrottleTest.AppliesUserAgentAndSetAndRemoveRulesBeforeFirstRequest:DeveloperProfileURLLoaderThrottleTest.AppliesResponseRulesOnlyForTheConfiguredOrigin:DeveloperProfileURLLoaderThrottleTest.CacheOffBypassesReadsAndWritesWithoutBackgroundWork:DeveloperProfileURLLoaderThrottleTest.DisabledResponseRulesLeaveHeadersUntouched:DeveloperProfileURLLoaderThrottleTest.FactoryRequiresLiveWebContentsForResponseRules:DeveloperProfileURLLoaderThrottleTest.FactoryFailsClosedWithoutLiveWebContents:DeveloperStylePreprocessorTest.CompilesLessVariablesNestingAndParentSelectors
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from DeveloperProfileTextCodecTest
+[ RUN      ] DeveloperProfileTextCodecTest.ParsesSetRemoveCommentsAndWhitespace
+[       OK ] DeveloperProfileTextCodecTest.ParsesSetRemoveCommentsAndWhitespace (0 ms)
+[ RUN      ] DeveloperProfileTextCodecTest.ReportsPreciseInvalidLine
+[       OK ] DeveloperProfileTextCodecTest.ReportsPreciseInvalidLine (0 ms)
+[ RUN      ] DeveloperProfileTextCodecTest.RoundTripsOpaqueKeychainReferences
+[       OK ] DeveloperProfileTextCodecTest.RoundTripsOpaqueKeychainReferences (0 ms)
+[----------] 3 tests from DeveloperProfileTextCodecTest (16 ms total)
+
+[----------] 6 tests from DeveloperProfileURLLoaderThrottleTest
+[ RUN      ] DeveloperProfileURLLoaderThrottleTest.AppliesUserAgentAndSetAndRemoveRulesBeforeFirstRequest
+[       OK ] DeveloperProfileURLLoaderThrottleTest.AppliesUserAgentAndSetAndRemoveRulesBeforeFirstRequest (0 ms)
+[ RUN      ] DeveloperProfileURLLoaderThrottleTest.AppliesResponseRulesOnlyForTheConfiguredOrigin
+[       OK ] DeveloperProfileURLLoaderThrottleTest.AppliesResponseRulesOnlyForTheConfiguredOrigin (0 ms)
+[ RUN      ] DeveloperProfileURLLoaderThrottleTest.CacheOffBypassesReadsAndWritesWithoutBackgroundWork
+[       OK ] DeveloperProfileURLLoaderThrottleTest.CacheOffBypassesReadsAndWritesWithoutBackgroundWork (0 ms)
+[ RUN      ] DeveloperProfileURLLoaderThrottleTest.DisabledResponseRulesLeaveHeadersUntouched
+[       OK ] DeveloperProfileURLLoaderThrottleTest.DisabledResponseRulesLeaveHeadersUntouched (0 ms)
+[ RUN      ] DeveloperProfileURLLoaderThrottleTest.FactoryRequiresLiveWebContentsForResponseRules
+[       OK ] DeveloperProfileURLLoaderThrottleTest.FactoryRequiresLiveWebContentsForResponseRules (0 ms)
+[ RUN      ] DeveloperProfileURLLoaderThrottleTest.FactoryFailsClosedWithoutLiveWebContents
+[       OK ] DeveloperProfileURLLoaderThrottleTest.FactoryFailsClosedWithoutLiveWebContents (0 ms)
+[----------] 6 tests from DeveloperProfileURLLoaderThrottleTest (0 ms total)
+
+[----------] 1 test from DeveloperStylePreprocessorTest
+[ RUN      ] DeveloperStylePreprocessorTest.CompilesLessVariablesNestingAndParentSelectors
+[       OK ] DeveloperStylePreprocessorTest.CompilesLessVariablesNestingAndParentSelectors (0 ms)
+[----------] 1 test from DeveloperStylePreprocessorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (17 ms total)
+[  PASSED  ] 10 tests.
+[111/148] DeveloperProfileTextCodecTest.ParsesSetRemoveCommentsAndWhitespace (0 ms)
+[112/148] DeveloperProfileTextCodecTest.ReportsPreciseInvalidLine (0 ms)
+[113/148] DeveloperProfileTextCodecTest.RoundTripsOpaqueKeychainReferences (0 ms)
+[114/148] DeveloperProfileURLLoaderThrottleTest.AppliesUserAgentAndSetAndRemoveRulesBeforeFirstRequest (0 ms)
+[115/148] DeveloperProfileURLLoaderThrottleTest.AppliesResponseRulesOnlyForTheConfiguredOrigin (0 ms)
+[116/148] DeveloperProfileURLLoaderThrottleTest.CacheOffBypassesReadsAndWritesWithoutBackgroundWork (0 ms)
+[117/148] DeveloperProfileURLLoaderThrottleTest.DisabledResponseRulesLeaveHeadersUntouched (0 ms)
+[118/148] DeveloperProfileURLLoaderThrottleTest.FactoryRequiresLiveWebContentsForResponseRules (0 ms)
+[119/148] DeveloperProfileURLLoaderThrottleTest.FactoryFailsClosedWithoutLiveWebContents (0 ms)
+[120/148] DeveloperStylePreprocessorTest.CompilesLessVariablesNestingAndParentSelectors (0 ms)
+objc[9692]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x135048a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119f64a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9692]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x11481c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x100b311a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperStylePreprocessorTest.CompilesIndentedSass:DeveloperStylePreprocessorTest.ReportsSyntaxUnsupportedAndResourceBounds:DeveloperToolkitPrefsTest.IsMasterDisabledAndToolbarHiddenByDefault:DeveloperToolkitPrefsTest.ExplicitActivationAddsOneRecoverableEntry:DeveloperToolkitPrefsTest.MasterSwitchHidesConfiguredButtons:DeveloperToolkitPrefsTest.MasterSwitchActivationRestoresAReachableToolkitEntry:DeveloperToolkitPrefsTest.SettingsPrivateMasterWriteRevealsPreselectedToolkitEntry:DeveloperToolkitPrefsTest.MigratesLegacyVisibleToolbarWithoutMasterPref:DeveloperToolkitPrefsTest.LegacyMigrationPreservesExplicitMasterAndFreshDefaults:DeveloperToolkitPrefsTest.LegacyFalseToolbarChoicesDoNotActivateToolkit
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from DeveloperStylePreprocessorTest
+[ RUN      ] DeveloperStylePreprocessorTest.CompilesIndentedSass
+[       OK ] DeveloperStylePreprocessorTest.CompilesIndentedSass (0 ms)
+[ RUN      ] DeveloperStylePreprocessorTest.ReportsSyntaxUnsupportedAndResourceBounds
+[       OK ] DeveloperStylePreprocessorTest.ReportsSyntaxUnsupportedAndResourceBounds (0 ms)
+[----------] 2 tests from DeveloperStylePreprocessorTest (17 ms total)
+
+[----------] 8 tests from DeveloperToolkitPrefsTest
+[ RUN      ] DeveloperToolkitPrefsTest.IsMasterDisabledAndToolbarHiddenByDefault
+[       OK ] DeveloperToolkitPrefsTest.IsMasterDisabledAndToolbarHiddenByDefault (0 ms)
+[ RUN      ] DeveloperToolkitPrefsTest.ExplicitActivationAddsOneRecoverableEntry
+[       OK ] DeveloperToolkitPrefsTest.ExplicitActivationAddsOneRecoverableEntry (0 ms)
+[ RUN      ] DeveloperToolkitPrefsTest.MasterSwitchHidesConfiguredButtons
+[       OK ] DeveloperToolkitPrefsTest.MasterSwitchHidesConfiguredButtons (0 ms)
+[ RUN      ] DeveloperToolkitPrefsTest.MasterSwitchActivationRestoresAReachableToolkitEntry
+[       OK ] DeveloperToolkitPrefsTest.MasterSwitchActivationRestoresAReachableToolkitEntry (0 ms)
+[ RUN      ] DeveloperToolkitPrefsTest.SettingsPrivateMasterWriteRevealsPreselectedToolkitEntry
+[       OK ] DeveloperToolkitPrefsTest.SettingsPrivateMasterWriteRevealsPreselectedToolkitEntry (0 ms)
+[ RUN      ] DeveloperToolkitPrefsTest.MigratesLegacyVisibleToolbarWithoutMasterPref
+[       OK ] DeveloperToolkitPrefsTest.MigratesLegacyVisibleToolbarWithoutMasterPref (0 ms)
+[ RUN      ] DeveloperToolkitPrefsTest.LegacyMigrationPreservesExplicitMasterAndFreshDefaults
+[       OK ] DeveloperToolkitPrefsTest.LegacyMigrationPreservesExplicitMasterAndFreshDefaults (0 ms)
+[ RUN      ] DeveloperToolkitPrefsTest.LegacyFalseToolbarChoicesDoNotActivateToolkit
+[       OK ] DeveloperToolkitPrefsTest.LegacyFalseToolbarChoicesDoNotActivateToolkit (0 ms)
+[----------] 8 tests from DeveloperToolkitPrefsTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (18 ms total)
+[  PASSED  ] 10 tests.
+[121/148] DeveloperStylePreprocessorTest.CompilesIndentedSass (0 ms)
+[122/148] DeveloperStylePreprocessorTest.ReportsSyntaxUnsupportedAndResourceBounds (0 ms)
+[123/148] DeveloperToolkitPrefsTest.IsMasterDisabledAndToolbarHiddenByDefault (0 ms)
+[124/148] DeveloperToolkitPrefsTest.ExplicitActivationAddsOneRecoverableEntry (0 ms)
+[125/148] DeveloperToolkitPrefsTest.MasterSwitchHidesConfiguredButtons (0 ms)
+[126/148] DeveloperToolkitPrefsTest.MasterSwitchActivationRestoresAReachableToolkitEntry (0 ms)
+[127/148] DeveloperToolkitPrefsTest.SettingsPrivateMasterWriteRevealsPreselectedToolkitEntry (0 ms)
+[128/148] DeveloperToolkitPrefsTest.MigratesLegacyVisibleToolbarWithoutMasterPref (0 ms)
+[129/148] DeveloperToolkitPrefsTest.LegacyMigrationPreservesExplicitMasterAndFreshDefaults (0 ms)
+[130/148] DeveloperToolkitPrefsTest.LegacyFalseToolbarChoicesDoNotActivateToolkit (0 ms)
+objc[9695]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1393a4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11e2c0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9695]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118b78188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x1051691a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperToolkitTargetTest.RejectsNullAndUnsupportedSchemes:DeveloperToolkitBrowsingDataTest.BuildsExactOriginCacheRequest:DeveloperToolkitBrowsingDataTest.FullSiteDataHasNoHistoryOrPasswordBits:DeveloperToolkitBrowsingDataTest.GlobalRequestHasNoOriginAndPreservesGranularOptions:DeveloperToolkitBrowsingDataTest.RejectsEmptyOrUnknownTypeMask:DeveloperToolkitBrowsingDataTest.ControllerDoesNotCallAdapterForNullTarget:DeveloperToolkitBrowsingDataTest.RemoveForTabDefaultsToRemove:DeveloperToolkitBrowsingDataTest.CompletionClassifiesPartialAndFailure:DeveloperToolkitContentSettingsTest.ToggleDefaultsToBlockAndAlternates:DeveloperToolkitContentSettingsTest.ControllerRejectsNullTarget
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from DeveloperToolkitTargetTest
+[ RUN      ] DeveloperToolkitTargetTest.RejectsNullAndUnsupportedSchemes
+[       OK ] DeveloperToolkitTargetTest.RejectsNullAndUnsupportedSchemes (0 ms)
+[----------] 1 test from DeveloperToolkitTargetTest (16 ms total)
+
+[----------] 7 tests from DeveloperToolkitBrowsingDataTest
+[ RUN      ] DeveloperToolkitBrowsingDataTest.BuildsExactOriginCacheRequest
+[       OK ] DeveloperToolkitBrowsingDataTest.BuildsExactOriginCacheRequest (0 ms)
+[ RUN      ] DeveloperToolkitBrowsingDataTest.FullSiteDataHasNoHistoryOrPasswordBits
+[       OK ] DeveloperToolkitBrowsingDataTest.FullSiteDataHasNoHistoryOrPasswordBits (0 ms)
+[ RUN      ] DeveloperToolkitBrowsingDataTest.GlobalRequestHasNoOriginAndPreservesGranularOptions
+[       OK ] DeveloperToolkitBrowsingDataTest.GlobalRequestHasNoOriginAndPreservesGranularOptions (0 ms)
+[ RUN      ] DeveloperToolkitBrowsingDataTest.RejectsEmptyOrUnknownTypeMask
+[       OK ] DeveloperToolkitBrowsingDataTest.RejectsEmptyOrUnknownTypeMask (0 ms)
+[ RUN      ] DeveloperToolkitBrowsingDataTest.ControllerDoesNotCallAdapterForNullTarget
+[       OK ] DeveloperToolkitBrowsingDataTest.ControllerDoesNotCallAdapterForNullTarget (0 ms)
+[ RUN      ] DeveloperToolkitBrowsingDataTest.RemoveForTabDefaultsToRemove
+[       OK ] DeveloperToolkitBrowsingDataTest.RemoveForTabDefaultsToRemove (0 ms)
+[ RUN      ] DeveloperToolkitBrowsingDataTest.CompletionClassifiesPartialAndFailure
+[       OK ] DeveloperToolkitBrowsingDataTest.CompletionClassifiesPartialAndFailure (0 ms)
+[----------] 7 tests from DeveloperToolkitBrowsingDataTest (0 ms total)
+
+[----------] 2 tests from DeveloperToolkitContentSettingsTest
+[ RUN      ] DeveloperToolkitContentSettingsTest.ToggleDefaultsToBlockAndAlternates
+[       OK ] DeveloperToolkitContentSettingsTest.ToggleDefaultsToBlockAndAlternates (0 ms)
+[ RUN      ] DeveloperToolkitContentSettingsTest.ControllerRejectsNullTarget
+[       OK ] DeveloperToolkitContentSettingsTest.ControllerRejectsNullTarget (0 ms)
+[----------] 2 tests from DeveloperToolkitContentSettingsTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (17 ms total)
+[  PASSED  ] 10 tests.
+[131/148] DeveloperToolkitTargetTest.RejectsNullAndUnsupportedSchemes (0 ms)
+[132/148] DeveloperToolkitBrowsingDataTest.BuildsExactOriginCacheRequest (0 ms)
+[133/148] DeveloperToolkitBrowsingDataTest.FullSiteDataHasNoHistoryOrPasswordBits (0 ms)
+[134/148] DeveloperToolkitBrowsingDataTest.GlobalRequestHasNoOriginAndPreservesGranularOptions (0 ms)
+[135/148] DeveloperToolkitBrowsingDataTest.RejectsEmptyOrUnknownTypeMask (0 ms)
+[136/148] DeveloperToolkitBrowsingDataTest.ControllerDoesNotCallAdapterForNullTarget (0 ms)
+[137/148] DeveloperToolkitBrowsingDataTest.RemoveForTabDefaultsToRemove (0 ms)
+[138/148] DeveloperToolkitBrowsingDataTest.CompletionClassifiesPartialAndFailure (0 ms)
+[139/148] DeveloperToolkitContentSettingsTest.ToggleDefaultsToBlockAndAlternates (0 ms)
+[140/148] DeveloperToolkitContentSettingsTest.ControllerRejectsNullTarget (0 ms)
+objc[9700]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1390b8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11dfd4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[9700]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x11888c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x104b591a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperToolkitDocumentActionsTest.ExposesOnlyFixedStaticScripts:DeveloperToolkitDocumentActionsTest.PayloadsContainNoCallerInput:DeveloperActivationStateTest.TracksAndClearsCompactChips:DeveloperUserAgentPresetsTest.ResolvesAndMatchesConcretePresets:DeveloperUserAgentPresetsTest.KeepsDefaultAndCustomDistinct:DeveloperToolkitTest.RejectsUnsupportedTargetWithoutCallingAdapters:DeveloperSecretStoreMacTest.StoresOnlyOpaqueLocalKeychainReference:DeveloperSecretStoreMacTest.InvalidInputAndKeychainErrorsFailClosed
+[==========] Running 8 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from DeveloperToolkitDocumentActionsTest
+[ RUN      ] DeveloperToolkitDocumentActionsTest.ExposesOnlyFixedStaticScripts
+[       OK ] DeveloperToolkitDocumentActionsTest.ExposesOnlyFixedStaticScripts (0 ms)
+[ RUN      ] DeveloperToolkitDocumentActionsTest.PayloadsContainNoCallerInput
+[       OK ] DeveloperToolkitDocumentActionsTest.PayloadsContainNoCallerInput (0 ms)
+[----------] 2 tests from DeveloperToolkitDocumentActionsTest (18 ms total)
+
+[----------] 1 test from DeveloperActivationStateTest
+[ RUN      ] DeveloperActivationStateTest.TracksAndClearsCompactChips
+[       OK ] DeveloperActivationStateTest.TracksAndClearsCompactChips (0 ms)
+[----------] 1 test from DeveloperActivationStateTest (0 ms total)
+
+[----------] 2 tests from DeveloperUserAgentPresetsTest
+[ RUN      ] DeveloperUserAgentPresetsTest.ResolvesAndMatchesConcretePresets
+[       OK ] DeveloperUserAgentPresetsTest.ResolvesAndMatchesConcretePresets (0 ms)
+[ RUN      ] DeveloperUserAgentPresetsTest.KeepsDefaultAndCustomDistinct
+[       OK ] DeveloperUserAgentPresetsTest.KeepsDefaultAndCustomDistinct (0 ms)
+[----------] 2 tests from DeveloperUserAgentPresetsTest (0 ms total)
+
+[----------] 1 test from DeveloperToolkitTest
+[ RUN      ] DeveloperToolkitTest.RejectsUnsupportedTargetWithoutCallingAdapters
+[       OK ] DeveloperToolkitTest.RejectsUnsupportedTargetWithoutCallingAdapters (0 ms)
+[----------] 1 test from DeveloperToolkitTest (0 ms total)
+
+[----------] 2 tests from DeveloperSecretStoreMacTest
+[ RUN      ] DeveloperSecretStoreMacTest.StoresOnlyOpaqueLocalKeychainReference
+[       OK ] DeveloperSecretStoreMacTest.StoresOnlyOpaqueLocalKeychainReference (0 ms)
+[ RUN      ] DeveloperSecretStoreMacTest.InvalidInputAndKeychainErrorsFailClosed
+[       OK ] DeveloperSecretStoreMacTest.InvalidInputAndKeychainErrorsFailClosed (0 ms)
+[----------] 2 tests from DeveloperSecretStoreMacTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 5 test suites ran. (18 ms total)
+[  PASSED  ] 8 tests.
+[141/148] DeveloperToolkitDocumentActionsTest.ExposesOnlyFixedStaticScripts (0 ms)
+[142/148] DeveloperToolkitDocumentActionsTest.PayloadsContainNoCallerInput (0 ms)
+[143/148] DeveloperActivationStateTest.TracksAndClearsCompactChips (0 ms)
+[144/148] DeveloperUserAgentPresetsTest.ResolvesAndMatchesConcretePresets (0 ms)
+[145/148] DeveloperUserAgentPresetsTest.KeepsDefaultAndCustomDistinct (0 ms)
+[146/148] DeveloperToolkitTest.RejectsUnsupportedTargetWithoutCallingAdapters (0 ms)
+[147/148] DeveloperSecretStoreMacTest.StoresOnlyOpaqueLocalKeychainReference (0 ms)
+[148/148] DeveloperSecretStoreMacTest.InvalidInputAndKeychainErrorsFailClosed (0 ms)
+SUCCESS: all tests passed.
+Tests took 43 seconds.

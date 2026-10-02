@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Core148/editor5 and corrected sidebar/UI338 GREEN — 2 October 2026
+
+Guarded Build70 source28506787 completes compile/stable Apple Development sign/
+provenance. Actual full developer suite148/148SUCCESS, all21 new core names and
+Mojo29 included; editor5/5SUCCESS. Corrected previous shelf timeout case passes
+focused1/1, then full sidebar191/191, ToolkitViews33/popup28/search86 also pass:
+four UI programs338SUCCESS, no skipped/not-run/retries. [Exact binary/component,
+launcher status and raw evidence](../artifacts/tests/header-retirement-native-green-28506787-20261002/README.md).
+Both historical fixture REDs remain. Original shelf scroll/focus/identity/
+overflow/stale-frame assertions stay intact; no native check was relaxed.
+Build81714/core9148/editor/focused and UI11627 runners are terminal/absent,
+their recorded output locks released. No complete installed/native gate yet.
+
+The fifteen remaining baseline programs now execute serially in queue70 after
+fresh no-app/compiler/owner checks. Inspect `.work/agent-queue/70/remaining-native/
+state.json` plus actual recorded PID before refreshing output or starting any
+competing native/UI job. One job/no retries and real statuses, not process exit
+alone, decide each gate. The three native browser programs follow under current
+actual input/UI/resource ownership; no old changed-component result is carried.
+
+Next: actual baseline/browser verdicts; canonical installer only after required
+exact native GREEN, then installed representative split/devtoolkit/settings/
+archive journeys and focused checks. Installed source stays9acb43c8/M154 until
+an actual successful installer. Complete Master/worker/Sync/external/release
+scope remains open; Crest106/110 still require their separately granted H3 lease.
+
 ## Combined candidate70 frozen and running — 2 October 2026
 
 Clean queue source2850678701edc170909e7cf7f1f8e8164e640fa9 includes main/document

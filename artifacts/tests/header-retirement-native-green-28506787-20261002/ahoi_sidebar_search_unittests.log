@@ -1,0 +1,369 @@
+objc[12511]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136fe8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x115cf8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[12512]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136bb4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1158c4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarDiscoveryViewTest.TabAndShiftTabUseNativeFocusTraversal:SidebarDiscoveryViewTest.NarrowSearchHeaderKeepsPaddedControlsInsideFocusSurface:SidebarDiscoveryViewTest.EmptyEscapeDefersClosingUntilDispatchEnds:SidebarDiscoveryViewTest.FirstEscapeClearsQueryWithoutClosing:SidebarDiscoveryViewTest.ArrowAndEnterDelegateToInlineResults:SidebarSavedRowPresenceTest.SavedRowStaysAfterItsTabClosed:SidebarSavedRowPresenceTest.ClosedLocalTemporaryPageIsNotASavedRow:SidebarSavedRowPresenceTest.RemoteAndArchivedTemporaryPagesStay:SidebarSavedRowPresenceTest.RestoredArchivePageStaysUnloaded:SidebarSavedRowPresenceTest.FoldersAndTombstonesAreNeverHiddenHere
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from SidebarDiscoveryViewTest
+[ RUN      ] SidebarDiscoveryViewTest.TabAndShiftTabUseNativeFocusTraversal
+[       OK ] SidebarDiscoveryViewTest.TabAndShiftTabUseNativeFocusTraversal (156 ms)
+[ RUN      ] SidebarDiscoveryViewTest.NarrowSearchHeaderKeepsPaddedControlsInsideFocusSurface
+[       OK ] SidebarDiscoveryViewTest.NarrowSearchHeaderKeepsPaddedControlsInsideFocusSurface (8 ms)
+[ RUN      ] SidebarDiscoveryViewTest.EmptyEscapeDefersClosingUntilDispatchEnds
+[       OK ] SidebarDiscoveryViewTest.EmptyEscapeDefersClosingUntilDispatchEnds (24 ms)
+[ RUN      ] SidebarDiscoveryViewTest.FirstEscapeClearsQueryWithoutClosing
+[       OK ] SidebarDiscoveryViewTest.FirstEscapeClearsQueryWithoutClosing (8 ms)
+[ RUN      ] SidebarDiscoveryViewTest.ArrowAndEnterDelegateToInlineResults
+[       OK ] SidebarDiscoveryViewTest.ArrowAndEnterDelegateToInlineResults (8 ms)
+[----------] 5 tests from SidebarDiscoveryViewTest (206 ms total)
+
+[----------] 5 tests from SidebarSavedRowPresenceTest
+[ RUN      ] SidebarSavedRowPresenceTest.SavedRowStaysAfterItsTabClosed
+[       OK ] SidebarSavedRowPresenceTest.SavedRowStaysAfterItsTabClosed (0 ms)
+[ RUN      ] SidebarSavedRowPresenceTest.ClosedLocalTemporaryPageIsNotASavedRow
+[       OK ] SidebarSavedRowPresenceTest.ClosedLocalTemporaryPageIsNotASavedRow (0 ms)
+[ RUN      ] SidebarSavedRowPresenceTest.RemoteAndArchivedTemporaryPagesStay
+[       OK ] SidebarSavedRowPresenceTest.RemoteAndArchivedTemporaryPagesStay (0 ms)
+[ RUN      ] SidebarSavedRowPresenceTest.RestoredArchivePageStaysUnloaded
+[       OK ] SidebarSavedRowPresenceTest.RestoredArchivePageStaysUnloaded (0 ms)
+[ RUN      ] SidebarSavedRowPresenceTest.FoldersAndTombstonesAreNeverHiddenHere
+[       OK ] SidebarSavedRowPresenceTest.FoldersAndTombstonesAreNeverHiddenHere (0 ms)
+[----------] 5 tests from SidebarSavedRowPresenceTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (206 ms total)
+[  PASSED  ] 10 tests.
+[1/86] SidebarDiscoveryViewTest.TabAndShiftTabUseNativeFocusTraversal (156 ms)
+[2/86] SidebarDiscoveryViewTest.NarrowSearchHeaderKeepsPaddedControlsInsideFocusSurface (8 ms)
+[3/86] SidebarDiscoveryViewTest.EmptyEscapeDefersClosingUntilDispatchEnds (24 ms)
+[4/86] SidebarDiscoveryViewTest.FirstEscapeClearsQueryWithoutClosing (8 ms)
+[5/86] SidebarDiscoveryViewTest.ArrowAndEnterDelegateToInlineResults (8 ms)
+[6/86] SidebarSavedRowPresenceTest.SavedRowStaysAfterItsTabClosed (0 ms)
+[7/86] SidebarSavedRowPresenceTest.ClosedLocalTemporaryPageIsNotASavedRow (0 ms)
+[8/86] SidebarSavedRowPresenceTest.RemoteAndArchivedTemporaryPagesStay (0 ms)
+[9/86] SidebarSavedRowPresenceTest.RestoredArchivePageStaysUnloaded (0 ms)
+[10/86] SidebarSavedRowPresenceTest.FoldersAndTombstonesAreNeverHiddenHere (0 ms)
+objc[12557]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13ab18a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119828a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarTabStopsTest.StepsInSidebarOrderAndWraps:SidebarTabStopsTest.SplitIsOneStopEnteredAtItsFirstPane:SidebarTabStopsTest.CollapsedFolderIsSkippedButAnchorsItsTabs:SidebarTabStopsTest.HiddenTabsAtTheEndsWrap:SidebarTabStopsTest.UnknownActiveTabStepsFromTheEnds:SidebarTabStopsTest.NumberedStopsCountStopsOnly:SidebarTabStopsTest.SingleStopIsANoOp:SidebarTabStopsTest.EmptySidebarHasNothingToActivate:SidebarTreeControllerTest.StoreDeltasDriveExpandRenameDeleteSelectionAndUndo:SidebarTreeControllerTest.SearchLoadsUncachedSplitPartnerAndPreservesTreeState
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from SidebarTabStopsTest
+[ RUN      ] SidebarTabStopsTest.StepsInSidebarOrderAndWraps
+[       OK ] SidebarTabStopsTest.StepsInSidebarOrderAndWraps (0 ms)
+[ RUN      ] SidebarTabStopsTest.SplitIsOneStopEnteredAtItsFirstPane
+[       OK ] SidebarTabStopsTest.SplitIsOneStopEnteredAtItsFirstPane (0 ms)
+[ RUN      ] SidebarTabStopsTest.CollapsedFolderIsSkippedButAnchorsItsTabs
+[       OK ] SidebarTabStopsTest.CollapsedFolderIsSkippedButAnchorsItsTabs (0 ms)
+[ RUN      ] SidebarTabStopsTest.HiddenTabsAtTheEndsWrap
+[       OK ] SidebarTabStopsTest.HiddenTabsAtTheEndsWrap (0 ms)
+[ RUN      ] SidebarTabStopsTest.UnknownActiveTabStepsFromTheEnds
+[       OK ] SidebarTabStopsTest.UnknownActiveTabStepsFromTheEnds (0 ms)
+[ RUN      ] SidebarTabStopsTest.NumberedStopsCountStopsOnly
+[       OK ] SidebarTabStopsTest.NumberedStopsCountStopsOnly (0 ms)
+[ RUN      ] SidebarTabStopsTest.SingleStopIsANoOp
+[       OK ] SidebarTabStopsTest.SingleStopIsANoOp (0 ms)
+[ RUN      ] SidebarTabStopsTest.EmptySidebarHasNothingToActivate
+[       OK ] SidebarTabStopsTest.EmptySidebarHasNothingToActivate (0 ms)
+[----------] 8 tests from SidebarTabStopsTest (0 ms total)
+
+[----------] 2 tests from SidebarTreeControllerTest
+[ RUN      ] SidebarTreeControllerTest.StoreDeltasDriveExpandRenameDeleteSelectionAndUndo
+[       OK ] SidebarTreeControllerTest.StoreDeltasDriveExpandRenameDeleteSelectionAndUndo (152 ms)
+[ RUN      ] SidebarTreeControllerTest.SearchLoadsUncachedSplitPartnerAndPreservesTreeState
+[       OK ] SidebarTreeControllerTest.SearchLoadsUncachedSplitPartnerAndPreservesTreeState (103 ms)
+[----------] 2 tests from SidebarTreeControllerTest (256 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (257 ms total)
+[  PASSED  ] 10 tests.
+[11/86] SidebarTabStopsTest.StepsInSidebarOrderAndWraps (0 ms)
+[12/86] SidebarTabStopsTest.SplitIsOneStopEnteredAtItsFirstPane (0 ms)
+[13/86] SidebarTabStopsTest.CollapsedFolderIsSkippedButAnchorsItsTabs (0 ms)
+[14/86] SidebarTabStopsTest.HiddenTabsAtTheEndsWrap (0 ms)
+[15/86] SidebarTabStopsTest.UnknownActiveTabStepsFromTheEnds (0 ms)
+[16/86] SidebarTabStopsTest.NumberedStopsCountStopsOnly (0 ms)
+[17/86] SidebarTabStopsTest.SingleStopIsANoOp (0 ms)
+[18/86] SidebarTabStopsTest.EmptySidebarHasNothingToActivate (0 ms)
+[19/86] SidebarTreeControllerTest.StoreDeltasDriveExpandRenameDeleteSelectionAndUndo (152 ms)
+[20/86] SidebarTreeControllerTest.SearchLoadsUncachedSplitPartnerAndPreservesTreeState (103 ms)
+objc[12572]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136d24a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x115a34a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarTreeControllerTest.SearchLoadsNewSplitContextWhenLiveGroupsChange:SidebarTreeControllerTest.SearchEvictsDeletedExactMatchImmediately:SidebarTreeControllerTest.ValidatesCycleCrossWorkspaceAndBeforeAfterInsertion:SidebarTreeControllerTest.MovesAndAtomicallyCopiesSubtreeAcrossWorkspacesWithUndo:SidebarTreeControllerTest.GroupedDropMovesEverySplitPaneAndOneUndoRestoresMembership:SidebarTreeControllerTest.AtomicBatchAcceptsChildBeforeParentAndUndoDeletesTree:SidebarTreeControllerTest.CreatesNestedFolderAtEndOfParent:SidebarTreeControllerTest.CreatesRootFolderInActiveWorkspace:SidebarTreeControllerTest.CreatesTemporaryTabAtExactDropPosition:SidebarTreeControllerTest.DropKeysRemainValidAcrossUnicodeAndLengthBounds
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SidebarTreeControllerTest
+[ RUN      ] SidebarTreeControllerTest.SearchLoadsNewSplitContextWhenLiveGroupsChange
+[       OK ] SidebarTreeControllerTest.SearchLoadsNewSplitContextWhenLiveGroupsChange (139 ms)
+[ RUN      ] SidebarTreeControllerTest.SearchEvictsDeletedExactMatchImmediately
+[       OK ] SidebarTreeControllerTest.SearchEvictsDeletedExactMatchImmediately (113 ms)
+[ RUN      ] SidebarTreeControllerTest.ValidatesCycleCrossWorkspaceAndBeforeAfterInsertion
+[       OK ] SidebarTreeControllerTest.ValidatesCycleCrossWorkspaceAndBeforeAfterInsertion (155 ms)
+[ RUN      ] SidebarTreeControllerTest.MovesAndAtomicallyCopiesSubtreeAcrossWorkspacesWithUndo
+[       OK ] SidebarTreeControllerTest.MovesAndAtomicallyCopiesSubtreeAcrossWorkspacesWithUndo (182 ms)
+[ RUN      ] SidebarTreeControllerTest.GroupedDropMovesEverySplitPaneAndOneUndoRestoresMembership
+[       OK ] SidebarTreeControllerTest.GroupedDropMovesEverySplitPaneAndOneUndoRestoresMembership (193 ms)
+[ RUN      ] SidebarTreeControllerTest.AtomicBatchAcceptsChildBeforeParentAndUndoDeletesTree
+[       OK ] SidebarTreeControllerTest.AtomicBatchAcceptsChildBeforeParentAndUndoDeletesTree (99 ms)
+[ RUN      ] SidebarTreeControllerTest.CreatesNestedFolderAtEndOfParent
+[       OK ] SidebarTreeControllerTest.CreatesNestedFolderAtEndOfParent (123 ms)
+[ RUN      ] SidebarTreeControllerTest.CreatesRootFolderInActiveWorkspace
+[       OK ] SidebarTreeControllerTest.CreatesRootFolderInActiveWorkspace (95 ms)
+[ RUN      ] SidebarTreeControllerTest.CreatesTemporaryTabAtExactDropPosition
+[       OK ] SidebarTreeControllerTest.CreatesTemporaryTabAtExactDropPosition (126 ms)
+[ RUN      ] SidebarTreeControllerTest.DropKeysRemainValidAcrossUnicodeAndLengthBounds
+[       OK ] SidebarTreeControllerTest.DropKeysRemainValidAcrossUnicodeAndLengthBounds (306 ms)
+[----------] 10 tests from SidebarTreeControllerTest (1538 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1538 ms total)
+[  PASSED  ] 10 tests.
+[21/86] SidebarTreeControllerTest.SearchLoadsNewSplitContextWhenLiveGroupsChange (139 ms)
+[22/86] SidebarTreeControllerTest.SearchEvictsDeletedExactMatchImmediately (113 ms)
+[23/86] SidebarTreeControllerTest.ValidatesCycleCrossWorkspaceAndBeforeAfterInsertion (155 ms)
+[24/86] SidebarTreeControllerTest.MovesAndAtomicallyCopiesSubtreeAcrossWorkspacesWithUndo (182 ms)
+[25/86] SidebarTreeControllerTest.GroupedDropMovesEverySplitPaneAndOneUndoRestoresMembership (193 ms)
+[26/86] SidebarTreeControllerTest.AtomicBatchAcceptsChildBeforeParentAndUndoDeletesTree (99 ms)
+[27/86] SidebarTreeControllerTest.CreatesNestedFolderAtEndOfParent (123 ms)
+[28/86] SidebarTreeControllerTest.CreatesRootFolderInActiveWorkspace (95 ms)
+[29/86] SidebarTreeControllerTest.CreatesTemporaryTabAtExactDropPosition (126 ms)
+[30/86] SidebarTreeControllerTest.DropKeysRemainValidAcrossUnicodeAndLengthBounds (306 ms)
+objc[12587]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13af6ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119c7ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarTreeControllerTest.ExhaustedPrefixIntervalDoesNotMutateStore:SidebarTreeControllerTest.CreatesFirstSavedPageAtEmptyWorkspaceRoot:SidebarTreeControllerTest.OrdinaryMoveNeverCopiesTheSourceNode:SidebarTreeControllerTest.ExplicitDuplicateCopiesOneSavedRowWithinItsSection:SidebarTreeControllerTest.PersistsCustomEmojiAndAccentWithoutChangingTreeSchema:SidebarTreeViewTest.TrailingSurfaceAppendsAfterExpandedRootFolder:SidebarTreeViewTest.TemporaryTailDropUsesGuardWithoutLayoutJump:SidebarTreeViewTest.NativeDragAndOutsideReleaseDoNotActivateRow:SidebarTreeViewTest.SplitMoveWithUnboundMemberIsRefused:SidebarTreeViewTest.RenameCommitsThroughControllerAndStore
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from SidebarTreeControllerTest
+[ RUN      ] SidebarTreeControllerTest.ExhaustedPrefixIntervalDoesNotMutateStore
+[       OK ] SidebarTreeControllerTest.ExhaustedPrefixIntervalDoesNotMutateStore (69 ms)
+[ RUN      ] SidebarTreeControllerTest.CreatesFirstSavedPageAtEmptyWorkspaceRoot
+[       OK ] SidebarTreeControllerTest.CreatesFirstSavedPageAtEmptyWorkspaceRoot (50 ms)
+[ RUN      ] SidebarTreeControllerTest.OrdinaryMoveNeverCopiesTheSourceNode
+[       OK ] SidebarTreeControllerTest.OrdinaryMoveNeverCopiesTheSourceNode (82 ms)
+[ RUN      ] SidebarTreeControllerTest.ExplicitDuplicateCopiesOneSavedRowWithinItsSection
+[       OK ] SidebarTreeControllerTest.ExplicitDuplicateCopiesOneSavedRowWithinItsSection (71 ms)
+[ RUN      ] SidebarTreeControllerTest.PersistsCustomEmojiAndAccentWithoutChangingTreeSchema
+[       OK ] SidebarTreeControllerTest.PersistsCustomEmojiAndAccentWithoutChangingTreeSchema (76 ms)
+[----------] 5 tests from SidebarTreeControllerTest (352 ms total)
+
+[----------] 5 tests from SidebarTreeViewTest
+[ RUN      ] SidebarTreeViewTest.TrailingSurfaceAppendsAfterExpandedRootFolder
+[       OK ] SidebarTreeViewTest.TrailingSurfaceAppendsAfterExpandedRootFolder (323 ms)
+[ RUN      ] SidebarTreeViewTest.TemporaryTailDropUsesGuardWithoutLayoutJump
+[       OK ] SidebarTreeViewTest.TemporaryTailDropUsesGuardWithoutLayoutJump (54 ms)
+[ RUN      ] SidebarTreeViewTest.NativeDragAndOutsideReleaseDoNotActivateRow
+[       OK ] SidebarTreeViewTest.NativeDragAndOutsideReleaseDoNotActivateRow (27 ms)
+[ RUN      ] SidebarTreeViewTest.SplitMoveWithUnboundMemberIsRefused
+[       OK ] SidebarTreeViewTest.SplitMoveWithUnboundMemberIsRefused (75 ms)
+[ RUN      ] SidebarTreeViewTest.RenameCommitsThroughControllerAndStore
+[       OK ] SidebarTreeViewTest.RenameCommitsThroughControllerAndStore (102 ms)
+[----------] 5 tests from SidebarTreeViewTest (583 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (935 ms total)
+[  PASSED  ] 10 tests.
+[31/86] SidebarTreeControllerTest.ExhaustedPrefixIntervalDoesNotMutateStore (69 ms)
+[32/86] SidebarTreeControllerTest.CreatesFirstSavedPageAtEmptyWorkspaceRoot (50 ms)
+[33/86] SidebarTreeControllerTest.OrdinaryMoveNeverCopiesTheSourceNode (82 ms)
+[34/86] SidebarTreeControllerTest.ExplicitDuplicateCopiesOneSavedRowWithinItsSection (71 ms)
+[35/86] SidebarTreeControllerTest.PersistsCustomEmojiAndAccentWithoutChangingTreeSchema (76 ms)
+[36/86] SidebarTreeViewTest.TrailingSurfaceAppendsAfterExpandedRootFolder (323 ms)
+[37/86] SidebarTreeViewTest.TemporaryTailDropUsesGuardWithoutLayoutJump (54 ms)
+[38/86] SidebarTreeViewTest.NativeDragAndOutsideReleaseDoNotActivateRow (27 ms)
+[39/86] SidebarTreeViewTest.SplitMoveWithUnboundMemberIsRefused (75 ms)
+[40/86] SidebarTreeViewTest.RenameCommitsThroughControllerAndStore (102 ms)
+objc[12594]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13b640a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11a350a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarTreeViewTest.SuppressedRuntimeProxyRejectsStaleSelectionActions:SidebarTreeViewTest.EmptySavedTreeExposesAndClearsDragTargetPresentation:SidebarTreeViewTest.DropZonesValidateAndPaintBeforeInsideAfter:SidebarTreeViewTest.TabOnTabDropUsesVisibleSplitTarget:SidebarTreeViewTest.SavedTabDropHysteresisReleasesAfterFourDipBoundary:SidebarTreeViewTest.SplitDropPreviewUsesLeadingHalfAndSuppressesTrailingState:SidebarTreeViewTest.TemporaryTabDropSavesInsideFolder:SidebarTreeViewTest.TemporaryTabOnSavedTabUsesSplitTarget:SidebarTreeViewTest.SavedSplitPaneDropReordersTargetedGridSegment:SidebarTreeViewTest.SavedSplitPaneDropOnItsOwnGridEdgeExtractsThatPane
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SidebarTreeViewTest
+[ RUN      ] SidebarTreeViewTest.SuppressedRuntimeProxyRejectsStaleSelectionActions
+[       OK ] SidebarTreeViewTest.SuppressedRuntimeProxyRejectsStaleSelectionActions (171 ms)
+[ RUN      ] SidebarTreeViewTest.EmptySavedTreeExposesAndClearsDragTargetPresentation
+[       OK ] SidebarTreeViewTest.EmptySavedTreeExposesAndClearsDragTargetPresentation (36 ms)
+[ RUN      ] SidebarTreeViewTest.DropZonesValidateAndPaintBeforeInsideAfter
+[       OK ] SidebarTreeViewTest.DropZonesValidateAndPaintBeforeInsideAfter (130 ms)
+[ RUN      ] SidebarTreeViewTest.TabOnTabDropUsesVisibleSplitTarget
+[       OK ] SidebarTreeViewTest.TabOnTabDropUsesVisibleSplitTarget (86 ms)
+[ RUN      ] SidebarTreeViewTest.SavedTabDropHysteresisReleasesAfterFourDipBoundary
+[       OK ] SidebarTreeViewTest.SavedTabDropHysteresisReleasesAfterFourDipBoundary (103 ms)
+[ RUN      ] SidebarTreeViewTest.SplitDropPreviewUsesLeadingHalfAndSuppressesTrailingState
+[       OK ] SidebarTreeViewTest.SplitDropPreviewUsesLeadingHalfAndSuppressesTrailingState (21 ms)
+[ RUN      ] SidebarTreeViewTest.TemporaryTabDropSavesInsideFolder
+[       OK ] SidebarTreeViewTest.TemporaryTabDropSavesInsideFolder (57 ms)
+[ RUN      ] SidebarTreeViewTest.TemporaryTabOnSavedTabUsesSplitTarget
+[       OK ] SidebarTreeViewTest.TemporaryTabOnSavedTabUsesSplitTarget (60 ms)
+[ RUN      ] SidebarTreeViewTest.SavedSplitPaneDropReordersTargetedGridSegment
+[       OK ] SidebarTreeViewTest.SavedSplitPaneDropReordersTargetedGridSegment (155 ms)
+[ RUN      ] SidebarTreeViewTest.SavedSplitPaneDropOnItsOwnGridEdgeExtractsThatPane
+[       OK ] SidebarTreeViewTest.SavedSplitPaneDropOnItsOwnGridEdgeExtractsThatPane (112 ms)
+[----------] 10 tests from SidebarTreeViewTest (939 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (939 ms total)
+[  PASSED  ] 10 tests.
+[41/86] SidebarTreeViewTest.SuppressedRuntimeProxyRejectsStaleSelectionActions (171 ms)
+[42/86] SidebarTreeViewTest.EmptySavedTreeExposesAndClearsDragTargetPresentation (36 ms)
+[43/86] SidebarTreeViewTest.DropZonesValidateAndPaintBeforeInsideAfter (130 ms)
+[44/86] SidebarTreeViewTest.TabOnTabDropUsesVisibleSplitTarget (86 ms)
+[45/86] SidebarTreeViewTest.SavedTabDropHysteresisReleasesAfterFourDipBoundary (103 ms)
+[46/86] SidebarTreeViewTest.SplitDropPreviewUsesLeadingHalfAndSuppressesTrailingState (21 ms)
+[47/86] SidebarTreeViewTest.TemporaryTabDropSavesInsideFolder (57 ms)
+[48/86] SidebarTreeViewTest.TemporaryTabOnSavedTabUsesSplitTarget (60 ms)
+[49/86] SidebarTreeViewTest.SavedSplitPaneDropReordersTargetedGridSegment (155 ms)
+[50/86] SidebarTreeViewTest.SavedSplitPaneDropOnItsOwnGridEdgeExtractsThatPane (112 ms)
+objc[12598]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1372fca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11600ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarTreeViewTest.SavedSplitPaneDropOnOrdinaryTargetMovesOnlyExtractedPane:SidebarTreeViewTest.FailedSavedSplitExtractionRollsBackOrdinaryTargetMove:SidebarTreeViewTest.SavedSplitExtractionCallbackFailsClosedWhenStateChanges:SidebarTreeViewTest.TemporarySplitPaneDropReordersAgainstSavedSegmentWithoutSaving:SidebarTreeViewTest.ExpandAnimatesExistingRowsAndCompletes:SidebarTreeViewTest.RapidFolderReversalPreservesIntermediatePreferredHeight:SidebarTreeViewTest.MovingSplitClipFollowsEveryFolderAnimationFrame:SidebarTreeViewTest.ReducedMotionFinishesHeightAndRowsMidTransition:SidebarTreeViewTest.SelectingVisibleMovingRowDoesNotScrollToItsFuturePosition:SidebarTreeViewTest.InterveningLayerScrollAwayAndBackCancelsDeferredSelectionReveal
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SidebarTreeViewTest
+[ RUN      ] SidebarTreeViewTest.SavedSplitPaneDropOnOrdinaryTargetMovesOnlyExtractedPane
+[       OK ] SidebarTreeViewTest.SavedSplitPaneDropOnOrdinaryTargetMovesOnlyExtractedPane (250 ms)
+[ RUN      ] SidebarTreeViewTest.FailedSavedSplitExtractionRollsBackOrdinaryTargetMove
+[       OK ] SidebarTreeViewTest.FailedSavedSplitExtractionRollsBackOrdinaryTargetMove (121 ms)
+[ RUN      ] SidebarTreeViewTest.SavedSplitExtractionCallbackFailsClosedWhenStateChanges
+[       OK ] SidebarTreeViewTest.SavedSplitExtractionCallbackFailsClosedWhenStateChanges (52 ms)
+[ RUN      ] SidebarTreeViewTest.TemporarySplitPaneDropReordersAgainstSavedSegmentWithoutSaving
+[       OK ] SidebarTreeViewTest.TemporarySplitPaneDropReordersAgainstSavedSegmentWithoutSaving (59 ms)
+[ RUN      ] SidebarTreeViewTest.ExpandAnimatesExistingRowsAndCompletes
+[       OK ] SidebarTreeViewTest.ExpandAnimatesExistingRowsAndCompletes (133 ms)
+[ RUN      ] SidebarTreeViewTest.RapidFolderReversalPreservesIntermediatePreferredHeight
+[       OK ] SidebarTreeViewTest.RapidFolderReversalPreservesIntermediatePreferredHeight (57 ms)
+[ RUN      ] SidebarTreeViewTest.MovingSplitClipFollowsEveryFolderAnimationFrame
+[       OK ] SidebarTreeViewTest.MovingSplitClipFollowsEveryFolderAnimationFrame (58 ms)
+[ RUN      ] SidebarTreeViewTest.ReducedMotionFinishesHeightAndRowsMidTransition
+[       OK ] SidebarTreeViewTest.ReducedMotionFinishesHeightAndRowsMidTransition (58 ms)
+[ RUN      ] SidebarTreeViewTest.SelectingVisibleMovingRowDoesNotScrollToItsFuturePosition
+[       OK ] SidebarTreeViewTest.SelectingVisibleMovingRowDoesNotScrollToItsFuturePosition (83 ms)
+[ RUN      ] SidebarTreeViewTest.InterveningLayerScrollAwayAndBackCancelsDeferredSelectionReveal
+[       OK ] SidebarTreeViewTest.InterveningLayerScrollAwayAndBackCancelsDeferredSelectionReveal (634 ms)
+[----------] 10 tests from SidebarTreeViewTest (1510 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1510 ms total)
+[  PASSED  ] 10 tests.
+[51/86] SidebarTreeViewTest.SavedSplitPaneDropOnOrdinaryTargetMovesOnlyExtractedPane (250 ms)
+[52/86] SidebarTreeViewTest.FailedSavedSplitExtractionRollsBackOrdinaryTargetMove (121 ms)
+[53/86] SidebarTreeViewTest.SavedSplitExtractionCallbackFailsClosedWhenStateChanges (52 ms)
+[54/86] SidebarTreeViewTest.TemporarySplitPaneDropReordersAgainstSavedSegmentWithoutSaving (59 ms)
+[55/86] SidebarTreeViewTest.ExpandAnimatesExistingRowsAndCompletes (133 ms)
+[56/86] SidebarTreeViewTest.RapidFolderReversalPreservesIntermediatePreferredHeight (57 ms)
+[57/86] SidebarTreeViewTest.MovingSplitClipFollowsEveryFolderAnimationFrame (58 ms)
+[58/86] SidebarTreeViewTest.ReducedMotionFinishesHeightAndRowsMidTransition (58 ms)
+[59/86] SidebarTreeViewTest.SelectingVisibleMovingRowDoesNotScrollToItsFuturePosition (83 ms)
+[60/86] SidebarTreeViewTest.InterveningLayerScrollAwayAndBackCancelsDeferredSelectionReveal (634 ms)
+objc[12602]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13b6e0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11a3f0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarTreeViewTest.FolderChildrenFoldSymmetricallyAndReopenInPlace:SidebarTreeViewTest.ReducedMotionCollapseDoesNotRetainExitRows:SidebarTreeViewTest.ExpandLandsImmediatelyWhenRichMotionIsDisabled:SidebarTreeViewTest.SavedPageSelectsAndActivatesOnlyOnMouseUp:SidebarTreeViewTest.SavedPageTrailingActionRequiresRealHover:SidebarTreeViewTest.DeleteKeyLetsHostCloseTemporaryPage:SidebarTreeViewTest.DeleteKeyDeletesRowTheHostDoesNotClose:SidebarTreeViewTest.EmptyRootKeepsAVisibleSavedDropViewport:SidebarTreeViewTest.TransientEmptyViewportPreservesMaterializedRows:SidebarTreeViewTest.DefersWidthToResizableSidebarViewport
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SidebarTreeViewTest
+[ RUN      ] SidebarTreeViewTest.FolderChildrenFoldSymmetricallyAndReopenInPlace
+[       OK ] SidebarTreeViewTest.FolderChildrenFoldSymmetricallyAndReopenInPlace (880 ms)
+[ RUN      ] SidebarTreeViewTest.ReducedMotionCollapseDoesNotRetainExitRows
+[       OK ] SidebarTreeViewTest.ReducedMotionCollapseDoesNotRetainExitRows (65 ms)
+[ RUN      ] SidebarTreeViewTest.ExpandLandsImmediatelyWhenRichMotionIsDisabled
+[       OK ] SidebarTreeViewTest.ExpandLandsImmediatelyWhenRichMotionIsDisabled (20 ms)
+[ RUN      ] SidebarTreeViewTest.SavedPageSelectsAndActivatesOnlyOnMouseUp
+[       OK ] SidebarTreeViewTest.SavedPageSelectsAndActivatesOnlyOnMouseUp (20 ms)
+[ RUN      ] SidebarTreeViewTest.SavedPageTrailingActionRequiresRealHover
+[       OK ] SidebarTreeViewTest.SavedPageTrailingActionRequiresRealHover (20 ms)
+[ RUN      ] SidebarTreeViewTest.DeleteKeyLetsHostCloseTemporaryPage
+[       OK ] SidebarTreeViewTest.DeleteKeyLetsHostCloseTemporaryPage (55 ms)
+[ RUN      ] SidebarTreeViewTest.DeleteKeyDeletesRowTheHostDoesNotClose
+[       OK ] SidebarTreeViewTest.DeleteKeyDeletesRowTheHostDoesNotClose (69 ms)
+[ RUN      ] SidebarTreeViewTest.EmptyRootKeepsAVisibleSavedDropViewport
+[       OK ] SidebarTreeViewTest.EmptyRootKeepsAVisibleSavedDropViewport (38 ms)
+[ RUN      ] SidebarTreeViewTest.TransientEmptyViewportPreservesMaterializedRows
+[       OK ] SidebarTreeViewTest.TransientEmptyViewportPreservesMaterializedRows (450 ms)
+[ RUN      ] SidebarTreeViewTest.DefersWidthToResizableSidebarViewport
+[       OK ] SidebarTreeViewTest.DefersWidthToResizableSidebarViewport (20 ms)
+[----------] 10 tests from SidebarTreeViewTest (1643 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1643 ms total)
+[  PASSED  ] 10 tests.
+[61/86] SidebarTreeViewTest.FolderChildrenFoldSymmetricallyAndReopenInPlace (880 ms)
+[62/86] SidebarTreeViewTest.ReducedMotionCollapseDoesNotRetainExitRows (65 ms)
+[63/86] SidebarTreeViewTest.ExpandLandsImmediatelyWhenRichMotionIsDisabled (20 ms)
+[64/86] SidebarTreeViewTest.SavedPageSelectsAndActivatesOnlyOnMouseUp (20 ms)
+[65/86] SidebarTreeViewTest.SavedPageTrailingActionRequiresRealHover (20 ms)
+[66/86] SidebarTreeViewTest.DeleteKeyLetsHostCloseTemporaryPage (55 ms)
+[67/86] SidebarTreeViewTest.DeleteKeyDeletesRowTheHostDoesNotClose (69 ms)
+[68/86] SidebarTreeViewTest.EmptyRootKeepsAVisibleSavedDropViewport (38 ms)
+[69/86] SidebarTreeViewTest.TransientEmptyViewportPreservesMaterializedRows (450 ms)
+[70/86] SidebarTreeViewTest.DefersWidthToResizableSidebarViewport (20 ms)
+objc[12614]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x137194a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x115ea4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarTreeViewTest.RuntimeCompositeSuppressesOnlySavedPresentationProxy:SidebarTreeViewTest.ExposesLocalizedTabStatusOnSavedPageRows:SidebarTreeViewTest.MaterializesOnlyViewportRowsForTenThousandNodes:SidebarTreeViewTest.RecycledDragRowRestoresItsTitleVisibility:SidebarTreeViewTest.RebindingUnchangedRowDoesNotInvalidateLayout:SidebarTreeViewTest.ImportedFolderMetadataUsesClosedFolderVisualWithoutDisclosure:SidebarTreeViewTest.SplitTabsShareOneSegmentedVisualRow:SidebarTreeViewTest.SavedSplitVisualDataControlsSegmentBounds:SidebarTreeViewTest.ThreeAndFourPaneSavedSplitsReserveReadableMultilineHeight:SidebarTreeViewTest.CrossGroupSplitStaysAtDeepestVisibleParent
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SidebarTreeViewTest
+[ RUN      ] SidebarTreeViewTest.RuntimeCompositeSuppressesOnlySavedPresentationProxy
+[       OK ] SidebarTreeViewTest.RuntimeCompositeSuppressesOnlySavedPresentationProxy (181 ms)
+[ RUN      ] SidebarTreeViewTest.ExposesLocalizedTabStatusOnSavedPageRows
+[       OK ] SidebarTreeViewTest.ExposesLocalizedTabStatusOnSavedPageRows (32 ms)
+[ RUN      ] SidebarTreeViewTest.MaterializesOnlyViewportRowsForTenThousandNodes
+[       OK ] SidebarTreeViewTest.MaterializesOnlyViewportRowsForTenThousandNodes (78 ms)
+[ RUN      ] SidebarTreeViewTest.RecycledDragRowRestoresItsTitleVisibility
+[       OK ] SidebarTreeViewTest.RecycledDragRowRestoresItsTitleVisibility (22 ms)
+[ RUN      ] SidebarTreeViewTest.RebindingUnchangedRowDoesNotInvalidateLayout
+[       OK ] SidebarTreeViewTest.RebindingUnchangedRowDoesNotInvalidateLayout (22 ms)
+[ RUN      ] SidebarTreeViewTest.ImportedFolderMetadataUsesClosedFolderVisualWithoutDisclosure
+[       OK ] SidebarTreeViewTest.ImportedFolderMetadataUsesClosedFolderVisualWithoutDisclosure (19 ms)
+[ RUN      ] SidebarTreeViewTest.SplitTabsShareOneSegmentedVisualRow
+[       OK ] SidebarTreeViewTest.SplitTabsShareOneSegmentedVisualRow (24 ms)
+[ RUN      ] SidebarTreeViewTest.SavedSplitVisualDataControlsSegmentBounds
+[       OK ] SidebarTreeViewTest.SavedSplitVisualDataControlsSegmentBounds (21 ms)
+[ RUN      ] SidebarTreeViewTest.ThreeAndFourPaneSavedSplitsReserveReadableMultilineHeight
+[       OK ] SidebarTreeViewTest.ThreeAndFourPaneSavedSplitsReserveReadableMultilineHeight (22 ms)
+[ RUN      ] SidebarTreeViewTest.CrossGroupSplitStaysAtDeepestVisibleParent
+[       OK ] SidebarTreeViewTest.CrossGroupSplitStaysAtDeepestVisibleParent (120 ms)
+[----------] 10 tests from SidebarTreeViewTest (547 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (547 ms total)
+[  PASSED  ] 10 tests.
+[71/86] SidebarTreeViewTest.RuntimeCompositeSuppressesOnlySavedPresentationProxy (181 ms)
+[72/86] SidebarTreeViewTest.ExposesLocalizedTabStatusOnSavedPageRows (32 ms)
+[73/86] SidebarTreeViewTest.MaterializesOnlyViewportRowsForTenThousandNodes (78 ms)
+[74/86] SidebarTreeViewTest.RecycledDragRowRestoresItsTitleVisibility (22 ms)
+[75/86] SidebarTreeViewTest.RebindingUnchangedRowDoesNotInvalidateLayout (22 ms)
+[76/86] SidebarTreeViewTest.ImportedFolderMetadataUsesClosedFolderVisualWithoutDisclosure (19 ms)
+[77/86] SidebarTreeViewTest.SplitTabsShareOneSegmentedVisualRow (24 ms)
+[78/86] SidebarTreeViewTest.SavedSplitVisualDataControlsSegmentBounds (21 ms)
+[79/86] SidebarTreeViewTest.ThreeAndFourPaneSavedSplitsReserveReadableMultilineHeight (22 ms)
+[80/86] SidebarTreeViewTest.CrossGroupSplitStaysAtDeepestVisibleParent (120 ms)
+objc[12616]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x138ca0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1179b0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SidebarTreeViewTest.SearchKeepsCrossFolderSplitPartnersInTheirRealHierarchy:SidebarTreeViewTest.SearchFolderRowsExposeNavigationWithoutDisclosureState:SidebarTreeViewTest.RightArrowSelectsFirstVisibleChildPastRuntimeProxy:SidebarTreeViewTest.KeyboardSelectionAndAccessibilityExposeTreeContract:SidebarTreeViewTest.SingleClickOnFolderRowCollapsesAndExpands:SidebarTreeViewRangeTest.AddsBoundedOverscanAtBothEdges
+[==========] Running 6 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from SidebarTreeViewTest
+[ RUN      ] SidebarTreeViewTest.SearchKeepsCrossFolderSplitPartnersInTheirRealHierarchy
+[       OK ] SidebarTreeViewTest.SearchKeepsCrossFolderSplitPartnersInTheirRealHierarchy (250 ms)
+[ RUN      ] SidebarTreeViewTest.SearchFolderRowsExposeNavigationWithoutDisclosureState
+[       OK ] SidebarTreeViewTest.SearchFolderRowsExposeNavigationWithoutDisclosureState (74 ms)
+[ RUN      ] SidebarTreeViewTest.RightArrowSelectsFirstVisibleChildPastRuntimeProxy
+[       OK ] SidebarTreeViewTest.RightArrowSelectsFirstVisibleChildPastRuntimeProxy (26 ms)
+[ RUN      ] SidebarTreeViewTest.KeyboardSelectionAndAccessibilityExposeTreeContract
+[       OK ] SidebarTreeViewTest.KeyboardSelectionAndAccessibilityExposeTreeContract (26 ms)
+[ RUN      ] SidebarTreeViewTest.SingleClickOnFolderRowCollapsesAndExpands
+[       OK ] SidebarTreeViewTest.SingleClickOnFolderRowCollapsesAndExpands (36 ms)
+[----------] 5 tests from SidebarTreeViewTest (415 ms total)
+
+[----------] 1 test from SidebarTreeViewRangeTest
+[ RUN      ] SidebarTreeViewRangeTest.AddsBoundedOverscanAtBothEdges
+[       OK ] SidebarTreeViewRangeTest.AddsBoundedOverscanAtBothEdges (0 ms)
+[----------] 1 test from SidebarTreeViewRangeTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 2 test suites ran. (416 ms total)
+[  PASSED  ] 6 tests.
+[81/86] SidebarTreeViewTest.SearchKeepsCrossFolderSplitPartnersInTheirRealHierarchy (250 ms)
+[82/86] SidebarTreeViewTest.SearchFolderRowsExposeNavigationWithoutDisclosureState (74 ms)
+[83/86] SidebarTreeViewTest.RightArrowSelectsFirstVisibleChildPastRuntimeProxy (26 ms)
+[84/86] SidebarTreeViewTest.KeyboardSelectionAndAccessibilityExposeTreeContract (26 ms)
+[85/86] SidebarTreeViewTest.SingleClickOnFolderRowCollapsesAndExpands (36 ms)
+[86/86] SidebarTreeViewRangeTest.AddsBoundedOverscanAtBothEdges (0 ms)
+SUCCESS: all tests passed.
+Tests took 21 seconds.
