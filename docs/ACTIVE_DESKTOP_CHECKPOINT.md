@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+## Sidebar focus/overflow gate RED; stronger setup source ready — 2 October 2026
+
+Build69 c0afa449 UI/sidebar gate executes jobs1/retries0:182SUCCESS,1TIMEOUT,
+8NOTRUN, exit1/nativePass:false. `OverflowCuesAndFocusFollowAReorderedItem`
+times out; subsequent batch cases never run. The UI runner stops before its
+other three programs. [Preserved timeout/source correction scope](../artifacts/tests/sidebar-focus-timeout-c0afa449-20261002/README.md).
+Runner84809 and native children are terminal, output lock released, no retry
+watcher. No installer or overall native pass is claimed. Core140/editor5 and
+baseline872 from the same candidate remain valid partial evidence below.
+
+The fixture now activates its own native widget, waits for IsActive and verifies
+the requested focus before moving the bookmark. All original second-layout,
+identity/scroll/focus/overflow assertions remain. ScrollView uses content
+coordinates, so that existing containment assertion is retained. Pinned-Clang
+syntax passes; cause/corrected native execution are UNPROVEN. A later run must
+resolve whether activation alone suffices or a real frame/layout bug remains.
+
+Next: freeze this sole test-fixture correction in a guarded one-job candidate
+only after fresh owner/capacity checks. Execute affected sidebar/full gate,
+remaining UI/browser programs; carry Core140/editor5/baselines only with exact
+unchanged executable/component proof. Only full required GREEN permits the
+installer, then representative installed journeys. Latest host sample has a
+foreign transient xcodebuild and Load45; no new heavy action is started here.
+
+Further developer review remains open: request proxy redirect/response callbacks
+hold their dispatched throttle; late revocation after native dispatch requires
+its own explicit cases and contract assessment. The passed delayed-secret tests
+cover revocation before dispatch, not that distinct timing. No complete DEV/
+Master/worker/Sync/release acceptance is implied. Installed9acb43c8/M154 and
+external bounds remain unchanged; Crest106/110 still require their separate H3
+lease. Verbatim native logs keep their original whitespace; scoped source/doc
+diff and lane checks pass, not a claim of whitespace-clean raw log bytes.
+
 ## Corrected native Core140/editor5 and fifteen baselines GREEN — 2 October 2026
 
 Build69 c0afa449 completes guarded compile/stable sign/provenance, exit0.

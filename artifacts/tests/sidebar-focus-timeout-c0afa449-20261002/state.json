@@ -1,0 +1,50 @@
+{
+  "componentManifestSha256": "d561b8adbf9b3c6709d40771b728ebbf0619f6c3956eb8709db80e99aeab47ea",
+  "runnerPid": 84809,
+  "sourceCommit": "c0afa44917553098b9409b794a34cae1b61dba61",
+  "phase": "failed",
+  "jobs": 1,
+  "retries": 0,
+  "results": [
+    {
+      "name": "ahoi_sidebar_tree_unittests",
+      "exitCode": 1,
+      "binarySha256": "786cc0cd9b561ca4758ae635073d691ecf55d4db955a94211a9121fc883d69b3",
+      "executedCases": 191,
+      "nonSuccess": {
+        "SidebarBookmarkShelfViewTest.ContextQueryRejectsANoLongerVisibleSource": [
+          "NOTRUN"
+        ],
+        "SidebarBookmarkShelfViewTest.NativeContextActionCanDeleteItsOwnButton": [
+          "NOTRUN"
+        ],
+        "SidebarBookmarkShelfViewTest.NestedContextIsConfiguredAfterClipboardCheck": [
+          "NOTRUN"
+        ],
+        "SidebarBookmarkShelfViewTest.OverflowCuesAndFocusFollowAReorderedItem": [
+          "TIMEOUT"
+        ],
+        "SidebarDeviceTabCommandsTest.BlankProviderTitleFallsBackToSafeUrl": [
+          "NOTRUN"
+        ],
+        "SidebarDeviceTabCommandsTest.BuildsOpaqueSearchableIdentity": [
+          "NOTRUN"
+        ],
+        "SidebarDeviceTabCommandsTest.DuplicateProviderIdentityFailsAtomically": [
+          "NOTRUN"
+        ],
+        "SidebarDeviceTabCommandsTest.ExcludesPrivateOrCredentialBearingTabs": [
+          "NOTRUN"
+        ],
+        "SidebarDeviceTabCommandsTest.StaleActivationFailsClosed": [
+          "NOTRUN"
+        ]
+      },
+      "skippedCases": [],
+      "nativePass": false
+    }
+  ],
+  "startedAt": "2026-10-02T00:51:38.031820+00:00",
+  "binarySha256": "786cc0cd9b561ca4758ae635073d691ecf55d4db955a94211a9121fc883d69b3",
+  "testPid": 84812
+}

@@ -1,0 +1,22 @@
+{
+  "candidate": "c0afa44917553098b9409b794a34cae1b61dba61",
+  "nativePass": false,
+  "statuses": {
+    "SUCCESS": 182,
+    "NOTRUN": 8,
+    "TIMEOUT": 1
+  },
+  "correction": "Activate owning native widget, await IsActive and assert granted focus before reorder; original layout/identity/focus/overflow checks retained",
+  "rootCauseProven": false,
+  "correctedNativePass": false,
+  "binarySha256": "786cc0cd9b561ca4758ae635073d691ecf55d4db955a94211a9121fc883d69b3",
+  "componentManifestSha256": "d561b8adbf9b3c6709d40771b728ebbf0619f6c3956eb8709db80e99aeab47ea",
+  "evidenceSha256": {
+    "correction-syntax.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "state.json": "c9dbc4cb7a1373ea77095c930b96f0ed26486b98b303dbe100bed5ef42df79fb",
+    "correction-command.json": "895e8ec0adb0ced04c530b662f52c583a598ee0714616e10e213ff53e3cb3172",
+    "correction-result.json": "cf05ce31d521776bc05bcdc2e84d0d0bf6c4f6b5be3f426a09a2a90aea1a1876",
+    "ahoi_sidebar_tree_unittests.log": "462a36dffc7447579e1f0fabc3044bf7dd5410b1d885340f6a14ee52ac2a08d6",
+    "ahoi_sidebar_tree_unittests-summary.json": "2f8551dfc8510f6f1b7850045018dc24668624888e3e79140a33f68d8e983baa"
+  }
+}

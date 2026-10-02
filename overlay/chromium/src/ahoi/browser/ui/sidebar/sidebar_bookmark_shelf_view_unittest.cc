@@ -320,10 +320,13 @@ TEST_F(SidebarBookmarkShelfViewTest, OverflowCuesAndFocusFollowAReorderedItem) {
   }
   RunPendingModelUpdates();
   MountShelf();
+  widget_->Activate();
+  ASSERT_TRUE(base::test::RunUntil([&] { return widget_->IsActive(); }));
   ASSERT_TRUE(shelf_->trailing_overflow_for_testing()->IsDrawn());
   EXPECT_FALSE(shelf_->leading_overflow_for_testing()->IsDrawn());
   auto* focused = shelf_->bookmark_item_at_for_testing(0);
   focused->RequestFocus();
+  ASSERT_EQ(focused, widget_->GetFocusManager()->GetFocusedView());
 
   bookmark_model()->Move(first, bookmark_model()->bookmark_bar_node(), 12);
   RunPendingModelUpdates();
