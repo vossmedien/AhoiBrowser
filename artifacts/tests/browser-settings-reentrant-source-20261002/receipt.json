@@ -1,0 +1,16 @@
+{
+  "baseCommit": "8d5294f7",
+  "scope": "exact native preference echo and live pending intent source correction",
+  "regressionsWritten": 5,
+  "regressionsCompiled": 0,
+  "regressionsExecuted": 0,
+  "wireFormatChanged": false,
+  "sourceSha256": {
+    "overlay/chromium/src/ahoi/browser/sync/profile_sync_service.h": "0e817532b7c251e0986b7134c16060155c2aba5fb2237d19cbe619f89ee61cf8",
+    "overlay/chromium/src/ahoi/browser/sync/profile_sync_service_settings.cc": "281dd919401b976f0a45146c806e19cb317eae47b5b2bef5b96d4e476c33ca57",
+    "overlay/chromium/src/ahoi/browser/sync/profile_sync_service_unittest.cc": "62a3712a1408803dd9f32f1979010c87aded08fed5bb646205f4f2492967a758"
+  },
+  "frozenDesktopCandidateSource": "28c94e0a1c14242021a715773ee669b3df286d63",
+  "installedSource": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "nativeAcceptance": false
+}

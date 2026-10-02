@@ -13,6 +13,7 @@
 #include "ahoi/browser/sync/profile_sync_backend.h"
 #include "ahoi/browser/sync/profile_sync_prefs.h"
 #include "ahoi/browser/sync/profile_sync_service_factory.h"
+#include "ahoi/browser/sync/browser_settings_sync_types.h"
 #include "ahoi/browser/sync/sync_model.h"
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "ahoi/browser/sync/sync_store.h"
@@ -28,6 +29,7 @@
 #include "components/history/core/browser/url_row.h"
 #include "components/keyed_service/core/keyed_service.h"
 #include "components/prefs/pref_service.h"
+#include "components/prefs/pref_change_registrar.h"
 #include "content/public/test/browser_task_environment.h"
 #include "sql/database.h"
 #include "sql/statement.h"
@@ -166,6 +168,46 @@ std::optional<int> ReadActiveRecordPayloadCount(
 
 class ProfileSyncServiceTest : public testing::Test {
  protected:
+  PermittedSettingRecord RemoteSetting(std::string id, std::string value) {
+    return {.id = BrowserSettingRecordId(id),
+            .setting_id = std::move(id),
+            .value_json = std::move(value),
+            .version = {.stamp = {
+                .physical_time_us = 1000000,
+                .logical = 1,
+                .device_tiebreak = "11111111-1111-4111-8111-111111111111"}}};
+  }
+
+  void ApplySettingProjection(ProfileSyncService* service,
+                              std::vector<PermittedSettingRecord> records) {
+    BrowserSettingsProjection projection;
+    projection.authorization = base::BindRepeating([] { return true; });
+    projection.initial_fetch_complete = false;
+    for (const auto& record : records) {
+      projection.record_authorizations.emplace(record.id,
+                                               projection.authorization);
+    }
+    projection.records = std::move(records);
+    service->OnBrowserSettingsRead(service->browser_settings_generation_,
+                                    std::move(projection));
+  }
+
+  std::optional<PermittedSettingRecord> PendingSetting(
+      const TestingProfile& profile, std::string_view id) {
+    const auto* payload = profile.GetPrefs()->GetDict(kBrowserSettingIntentsPref)
+                              .FindString(id);
+    SyncRecord record;
+    if (!payload || !DeserializeRecord(EntityType::kPermittedSetting, *payload,
+                                        &record)) {
+      return std::nullopt;
+    }
+    return std::get<PermittedSettingRecord>(std::move(record));
+  }
+
+  bool HasRemoteSettingEchoScope(const ProfileSyncService& service) const {
+    return service.applying_browser_setting_.has_value();
+  }
+
   std::unique_ptr<TestingProfile> CreateProfile() {
     TestingProfile::Builder builder;
     // Each test owns the one service. An eagerly created keyed service would
@@ -514,6 +556,128 @@ TEST_F(ProfileSyncServiceTest,
                    &service, database_path, EntityType::kPermittedSetting,
                    appearance::kSidebarPageTintEnabledPref));
 
+  service.Shutdown();
+}
+
+TEST_F(ProfileSyncServiceTest,
+       ReentrantDifferentSettingRemainsLocalAndSkipsLaterRemoteOverwrite) {
+  auto profile = CreateProfile();
+  auto* prefs = profile->GetPrefs();
+  prefs->SetBoolean(appearance::kGlassEnabledPref, false);
+  prefs->SetBoolean(appearance::kSidebarPageTintEnabledPref, false);
+  ProfileSyncService service(profile.get());
+  ASSERT_TRUE(service.SetPermittedSettingSyncEnabled(appearance::kGlassEnabledPref, true));
+  ASSERT_TRUE(service.SetPermittedSettingSyncEnabled(appearance::kSidebarPageTintEnabledPref, true));
+  service.SetSyncEnabled(true);
+  DrainBackend(&service);
+  PrefChangeRegistrar local;
+  local.Init(prefs);
+  local.Add(appearance::kGlassEnabledPref, base::BindRepeating(
+      [](PrefService* prefs) {
+        prefs->SetBoolean(appearance::kSidebarPageTintEnabledPref, true);
+      }, prefs));
+  const auto later = RemoteSetting(appearance::kSidebarPageTintEnabledPref, "false");
+  ApplySettingProjection(&service, {RemoteSetting(appearance::kGlassEnabledPref, "true"), later});
+  EXPECT_TRUE(prefs->GetBoolean(appearance::kGlassEnabledPref));
+  EXPECT_TRUE(prefs->GetBoolean(appearance::kSidebarPageTintEnabledPref));
+  EXPECT_FALSE(PendingSetting(*profile, appearance::kGlassEnabledPref));
+  const auto intent = PendingSetting(*profile, appearance::kSidebarPageTintEnabledPref);
+  ASSERT_TRUE(intent);
+  EXPECT_EQ("true", intent->value_json);
+  EXPECT_GT(intent->version, later.version);
+  EXPECT_FALSE(HasRemoteSettingEchoScope(service));
+  service.Shutdown();
+}
+
+TEST_F(ProfileSyncServiceTest, ReentrantSameSettingIsNotMistakenForRemoteEcho) {
+  auto profile = CreateProfile();
+  auto* prefs = profile->GetPrefs();
+  prefs->SetBoolean(appearance::kGlassEnabledPref, false);
+  ProfileSyncService service(profile.get());
+  ASSERT_TRUE(service.SetPermittedSettingSyncEnabled(appearance::kGlassEnabledPref, true));
+  service.SetSyncEnabled(true);
+  DrainBackend(&service);
+  PrefChangeRegistrar local;
+  local.Init(prefs);
+  local.Add(appearance::kGlassEnabledPref, base::BindRepeating(
+      [](PrefService* prefs) {
+        if (prefs->GetBoolean(appearance::kGlassEnabledPref)) {
+          prefs->SetBoolean(appearance::kGlassEnabledPref, false);
+        }
+      }, prefs));
+  const auto remote = RemoteSetting(appearance::kGlassEnabledPref, "true");
+  ApplySettingProjection(&service, {remote});
+  EXPECT_FALSE(prefs->GetBoolean(appearance::kGlassEnabledPref));
+  const auto intent = PendingSetting(*profile, appearance::kGlassEnabledPref);
+  ASSERT_TRUE(intent);
+  EXPECT_EQ("false", intent->value_json);
+  EXPECT_GT(intent->version, remote.version);
+  EXPECT_FALSE(HasRemoteSettingEchoScope(service));
+  service.Shutdown();
+}
+
+TEST_F(ProfileSyncServiceTest, NormalizedNumericRemoteValueDoesNotAuthorAnEcho) {
+  auto profile = CreateProfile();
+  auto* prefs = profile->GetPrefs();
+  prefs->SetInteger(appearance::kFloatingNavigationAutoHideDelayMsPref, 500);
+  ProfileSyncService service(profile.get());
+  ASSERT_TRUE(service.SetPermittedSettingSyncEnabled(appearance::kFloatingNavigationAutoHideDelayMsPref, true));
+  service.SetSyncEnabled(true);
+  DrainBackend(&service);
+  ApplySettingProjection(&service,
+      {RemoteSetting(appearance::kFloatingNavigationAutoHideDelayMsPref, "1000.0")});
+  EXPECT_EQ(1000, prefs->GetInteger(appearance::kFloatingNavigationAutoHideDelayMsPref));
+  EXPECT_FALSE(PendingSetting(*profile, appearance::kFloatingNavigationAutoHideDelayMsPref));
+  EXPECT_FALSE(HasRemoteSettingEchoScope(service));
+  service.Shutdown();
+}
+
+TEST_F(ProfileSyncServiceTest, ReentrantLocalValueBounceRetainsItsLatestIntent) {
+  auto profile = CreateProfile();
+  auto* prefs = profile->GetPrefs();
+  prefs->SetBoolean(appearance::kGlassEnabledPref, false);
+  ProfileSyncService service(profile.get());
+  ASSERT_TRUE(service.SetPermittedSettingSyncEnabled(appearance::kGlassEnabledPref, true));
+  service.SetSyncEnabled(true);
+  DrainBackend(&service);
+  bool edited = false;
+  PrefChangeRegistrar local;
+  local.Init(prefs);
+  local.Add(appearance::kGlassEnabledPref, base::BindRepeating(
+      [](PrefService* prefs, bool* edited) {
+        if (*edited) {
+          return;
+        }
+        *edited = true;
+        prefs->SetBoolean(appearance::kGlassEnabledPref, false);
+        prefs->SetBoolean(appearance::kGlassEnabledPref, true);
+      }, prefs, &edited));
+  const auto remote = RemoteSetting(appearance::kGlassEnabledPref, "true");
+  ApplySettingProjection(&service, {remote});
+  EXPECT_TRUE(prefs->GetBoolean(appearance::kGlassEnabledPref));
+  const auto intent = PendingSetting(*profile, appearance::kGlassEnabledPref);
+  ASSERT_TRUE(intent);
+  EXPECT_EQ("true", intent->value_json);
+  EXPECT_GT(intent->version, remote.version);
+  EXPECT_FALSE(HasRemoteSettingEchoScope(service));
+  service.Shutdown();
+}
+
+TEST_F(ProfileSyncServiceTest, ReentrantSyncRevocationDoesNotRestoreOldEchoScope) {
+  auto profile = CreateProfile();
+  auto* prefs = profile->GetPrefs();
+  prefs->SetBoolean(appearance::kGlassEnabledPref, false);
+  ProfileSyncService service(profile.get());
+  ASSERT_TRUE(service.SetPermittedSettingSyncEnabled(appearance::kGlassEnabledPref, true));
+  service.SetSyncEnabled(true);
+  DrainBackend(&service);
+  PrefChangeRegistrar local;
+  local.Init(prefs);
+  local.Add(appearance::kGlassEnabledPref, base::BindRepeating(
+      [](ProfileSyncService* service) { service->SetSyncEnabled(false); }, &service));
+  ApplySettingProjection(&service, {RemoteSetting(appearance::kGlassEnabledPref, "true")});
+  EXPECT_FALSE(HasRemoteSettingEchoScope(service));
+  EXPECT_FALSE(PendingSetting(*profile, appearance::kGlassEnabledPref));
   service.Shutdown();
 }
 

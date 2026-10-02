@@ -410,6 +410,9 @@ class ProfileSyncService final
   bool initialized_ = false;
   bool backend_ready_ = false;
   bool applying_product_state_ = false;
+  // Exact synchronous browser-setting echo only. Other local changes,
+  // including reentrant changes to this same key, remain genuine intents.
+  std::optional<PermittedSettingRecord> applying_browser_setting_;
   bool appearance_publish_pending_ = false;
   bool permitted_settings_seeded_ = false;
   bool extension_inventory_seeded_ = false;

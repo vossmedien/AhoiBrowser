@@ -1,5 +1,29 @@
 # Active sync coordination
 
+## Reentrant native settings source correction, unbuilt — 2 October 2026
+
+Existing unified Desktop/Mobile/Sync owner. ADR0010/native consumer review finds
+applying_product_state_ suppresses every setting during remote PrefService apply,
+including genuine synchronous local B edits caused by remote A. The earlier
+pending-map snapshot can then let later remote B overwrite that edit. Exact
+remote key/value suppression now preserves different-key/same-key local intents
+and A->X->A; later apply/seed consults live pending intents. Native numeric
+normalization avoids own echoes; generation revocation clears expectation,
+weak lifetime checks remain and no AutoReset spans a potentially destroyed service.
+Appearance ThemeService guard remains independent, no wire/consent/provider/key
+change. [Source/hash/scope and five written regressions](../artifacts/tests/browser-settings-reentrant-source-20261002/README.md).
+
+Five existing-suite regressions written, NONE compiled/executed. Source review
+and diff checks only: fresh host CPU0.35%idle/pressure2 rejects new heavy/GUI work.
+The large paired Android emulator processes are owned by active FillIt crossplay;
+no foreign workload stopped. Frozen desktop72/28c94e0a/shared checkout and
+installed71/6bf4c233 stay unchanged: this Sync delta is not yet integrated.
+Next current capacity: source syntax, reviewed coherent package integration
+without an extra completed-package build, affected installed native settings
+and genuine available peer acceptance, then focused regression. Real Mac/iPhone
+tab proof stays scoped; broader native settings catalogue/extension setup and
+full real-device DoD13 remain open. Full Master and all external gates retained.
+
 ## Scope of the real-device GREEN — 1 October 2026, Codex audit
 
 The M154 receive log retains the passing

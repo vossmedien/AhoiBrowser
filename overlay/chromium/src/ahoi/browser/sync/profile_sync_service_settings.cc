@@ -17,11 +17,32 @@
 #include "ahoi/browser/sync/sync_product_settings.h"
 #include "ahoi/browser/sync/sync_serialization.h"
 #include "base/functional/bind.h"
+#include "base/json/json_reader.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/prefs/pref_service.h"
 
 namespace ahoi::sync {
 namespace {
+
+bool SameBrowserSettingValue(std::string_view id,
+                            std::string_view current_json,
+                            std::string_view expected_json) {
+  const auto current = base::JSONReader::Read(current_json, base::JSON_PARSE_RFC);
+  const auto expected = base::JSONReader::Read(expected_json, base::JSON_PARSE_RFC);
+  if (!current || !expected || !ValidateBrowserSettingValue(id, *current) ||
+      !ValidateBrowserSettingValue(id, *expected)) {
+    return false;
+  }
+  if (*current == *expected) {
+    return true;
+  }
+  // Native integer/double preference normalization must not create an echo
+  // merely because a valid wire value spells the same number differently.
+  const auto current_number = current->GetIfDouble();
+  const auto expected_number = expected->GetIfDouble();
+  return current_number && expected_number &&
+         *current_number == *expected_number;
+}
 
 bool Enabled(const PrefService& prefs, std::string_view id) {
   if (IsExtensionStorageSettingId(id)) {
@@ -98,6 +119,7 @@ void ProfileSyncService::InitializeBrowserSettings() {
 }
 
 void ProfileSyncService::ResetBrowserSettingsWork() {
+  applying_browser_setting_.reset();
   extension_setup_controller_.reset();
   extension_storage_controller_.reset();
   extension_storage_adapter_.reset();
@@ -224,11 +246,10 @@ void ProfileSyncService::OnBrowserSettingsRead(
   }
 
   {
-    // This guard spans only synchronous PrefService application. A native
-    // observer still updates its USER-value observation, but cannot echo it.
-    // Native service observers may shut down the profile. Do not leave an
-    // AutoReset pointing into a possibly destroyed KeyedService across Apply.
-    const bool was_applying = std::exchange(applying_product_state_, true);
+    // A native observer can make a genuine local edit while applying a remote
+    // setting. Suppress only the exact key/value echo, and consult live intents
+    // before applying each later record. Do not hold AutoReset across foreign
+    // observers: they may destroy this KeyedService or revoke the generation.
     const auto lifetime = weak_ptr_factory_.GetWeakPtr();
     for (const auto& record : projection->records) {
       if (!projection->authorization.Run()) {
@@ -238,7 +259,7 @@ void ProfileSyncService::OnBrowserSettingsRead(
           IsExtensionStorageSettingId(record.setting_id) || record.tombstone ||
           !Enabled(*prefs, record.setting_id) ||
           record.id != BrowserSettingRecordId(record.setting_id) ||
-          pending.contains(record.setting_id)) {
+          prefs->GetDict(kBrowserSettingIntentsPref).contains(record.setting_id)) {
         continue;
       }
       const auto record_scope =
@@ -247,6 +268,7 @@ void ProfileSyncService::OnBrowserSettingsRead(
           !record_scope->second || !record_scope->second.Run()) {
         continue;
       }
+      auto previous_apply = std::exchange(applying_browser_setting_, record);
       const bool applied =
           ApplyBrowserSetting(record.setting_id, record.value_json);
       if (!lifetime) {
@@ -254,9 +276,9 @@ void ProfileSyncService::OnBrowserSettingsRead(
       }
       if (shutting_down_ || !sync_enabled_ ||
           generation != browser_settings_generation_) {
-        applying_product_state_ = was_applying;
         return;
       }
+      applying_browser_setting_ = std::move(previous_apply);
       if (applied) {
         if (auto actual = ReadBrowserSetting(record.setting_id, true)) {
           observed_user_settings_.insert_or_assign(record.setting_id,
@@ -264,7 +286,6 @@ void ProfileSyncService::OnBrowserSettingsRead(
         }
       }
     }
-    applying_product_state_ = was_applying;
   }
   const auto after_native = weak_ptr_factory_.GetWeakPtr();
   ApplyExtensionSetupProjection(*projection);
@@ -284,7 +305,8 @@ void ProfileSyncService::OnBrowserSettingsRead(
     for (const std::string& id : permitted_setting_ids()) {
       const auto found = std::ranges::find(projection->records, id,
                                            &PermittedSettingRecord::setting_id);
-      if (found == projection->records.end() && !pending.contains(id)) {
+      if (found == projection->records.end() &&
+          !prefs->GetDict(kBrowserSettingIntentsPref).contains(id)) {
         PublishPermittedProductSetting(id);  // No USER value means no seed.
       }
     }
@@ -322,13 +344,22 @@ void ProfileSyncService::OnBrowserSettingIntentStored(
 void ProfileSyncService::PublishPermittedProductSetting(std::string setting_id,
                                                         bool explicit_reset) {
   if (!profile_ || shutting_down_ || !sync_enabled_ ||
-      applying_product_state_ || !Enabled(*profile_->GetPrefs(), setting_id) ||
+      !Enabled(*profile_->GetPrefs(), setting_id) ||
       (setting_id != kBrowserSearchEngineSettingId &&
        !profile_->GetPrefs()->IsUserModifiablePreference(setting_id))) {
     return;
   }
   auto value = ReadBrowserSetting(setting_id, explicit_reset);
   if (!value) {
+    return;
+  }
+  if (applying_browser_setting_ &&
+      applying_browser_setting_->setting_id == setting_id &&
+      !profile_->GetPrefs()->GetDict(kBrowserSettingIntentsPref).contains(setting_id) &&
+      SameBrowserSettingValue(setting_id, *value,
+                              applying_browser_setting_->value_json)) {
+    // Once a reentrant local edit queued an intent, returning to the remote
+    // value is still a newer genuine edit (A -> X -> A), not the initial echo.
     return;
   }
   PermittedSettingRecord record{
