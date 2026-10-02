@@ -9,11 +9,11 @@ app, or parallel WebView host.
 The machine-readable limits and layout names are authoritative in
 `config/split-view.json`. This document defines their behavior.
 
-## Chromium M152 integration map
+## Chromium integration map
 
-The active composition uses Chromium Mac Stable `152.0.7977.65` at exact
-revision `fc4d67f1788019a27e32511137ceccbd2fafdaaa`. It combines Chromium's
-two-tab foundation with the Ahoi M152 integration-seam patch:
+The active composition uses Chromium Mac Stable `154.0.8037.93` at exact
+revision `f89f3a4363808e117c592adedcf9947882ac3b79`. It combines Chromium's
+two-tab foundation with the ordered Ahoi integration patch stack:
 
 - `chrome/browser/ui/tabs/tab_strip_model.{h,cc}` owns `AddToNewSplit`, split
   layout/ratio updates, reverse, removal, focus, detach/attach, and observer
@@ -36,18 +36,19 @@ two-tab foundation with the Ahoi M152 integration-seam patch:
   split collection in Chromium's vertical tab strip, while the common tab-drag
   controller already reorders vertical tabs and whole split collections.
 - `SessionServiceBrowserHelper`, `SessionService`, `session_restore.cc`, and
-  Tab Restore persist two-pane IDs, orientation, ratio, and membership.
+  Tab Restore own local split IDs, orientation, ratios, and membership.
 - Chromium's split security model already requires an unmistakable active-pane
   outline, per-pane origin/media indicators, active-pane attribution for
   browser UI, and suppression of permission prompts and file pickers from an
   inactive pane.
 
 This is the seam AhoiBrowser extends rather than reimplementing. Its bounded
-generalization removes upstream M152's hard two-item assumptions from creation,
+generalization removes upstream's hard two-item assumptions from creation,
 restoration, visual data, utilities, menus, and content layout while retaining
-the upstream ownership model. The previous green M151 programmatic matrix is
-historical recovery evidence only; M152 still requires its own interaction
-coverage and installed Computer Use proof.
+the upstream ownership model. Previous milestone matrices are historical
+recovery evidence; current M154 interaction coverage and installed Computer Use
+proof remain candidate-bound. Native decoder or unit passes do not substitute
+for them.
 
 ## Model and ownership
 
@@ -77,6 +78,14 @@ local focus, navigation state, cookies, login and form state remain device-local
 Incognito topology never leaves memory.
 
 ## Cross-installation sync and Mobile preservation
+
+The persistence contract's `cloudSync: true` declares the permitted logical
+metadata scope, not runtime consent or transport acceptance. Its
+`cloudSyncScope`, `syncFormatContract` and `deviceLocalState` bind it to the
+same format-3 and no-sync boundaries as `config/sync-policy.json`. Global sync
+still defaults off; native split handles, window geometry, live focus and
+website-session state never become split payloads. Candidate-bound multi-device
+split convergence remains a separate acceptance gate.
 
 The binding user decision of 12 September 2026 makes normal split groups and
 their arrangements high-priority shared state. A synchronized split contains:

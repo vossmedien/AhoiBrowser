@@ -346,7 +346,33 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertFalse(contract["dragAndDrop"]["normalIncognitoMixing"])
         self.assertTrue(contract["persistence"]["normalWindowWorkspaceSession"])
         self.assertFalse(contract["persistence"]["incognito"])
-        self.assertFalse(contract["persistence"]["cloudSync"])
+        # The September product decision permits logical split sync. Runtime
+        # handles/focus/site state remain local, and this contract is not consent.
+        self.assertTrue(contract["persistence"]["cloudSync"])
+        self.assertEqual(
+            "logical-normal-split-metadata",
+            contract["persistence"]["cloudSyncScope"],
+        )
+        self.assertEqual(
+            "config/sync-format.json",
+            contract["persistence"]["syncFormatContract"],
+        )
+        policy = load_json("config/sync-policy.json")
+        self.assertIn("logicalSplitGroups", policy["sync"])
+        self.assertFalse(policy["enabledByDefault"])
+        local_state = set(contract["persistence"]["deviceLocalState"])
+        self.assertEqual(
+            {"nativeSplitHandles", "windowGeometry", "liveFocus", "websiteSessionState"},
+            local_state,
+        )
+        self.assertTrue(local_state.issubset(policy["neverSync"]))
+        wire = load_json(contract["persistence"]["syncFormatContract"])
+        split_record = next(r for r in wire["records"] if r["dataClass"] == "splitGroup")
+        self.assertEqual(3, split_record["wireModelVersion"])
+        self.assertEqual(
+            {"workspace_id", "topology", "ratios", "tombstone"},
+            set(split_record["fieldGroups"]),
+        )
         self.assertTrue(contract["security"]["oneActivePane"])
         self.assertTrue(contract["security"]["activePaneIndicatorRequired"])
         self.assertTrue(contract["security"]["originIndicatorForEveryPane"])

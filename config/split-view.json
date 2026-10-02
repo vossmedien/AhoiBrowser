@@ -39,7 +39,15 @@
     "restoreFocusedPane": true,
     "restoreLayoutAndRatios": true,
     "incognito": false,
-    "cloudSync": false,
+    "cloudSync": true,
+    "cloudSyncScope": "logical-normal-split-metadata",
+    "syncFormatContract": "config/sync-format.json",
+    "deviceLocalState": [
+      "nativeSplitHandles",
+      "windowGeometry",
+      "liveFocus",
+      "websiteSessionState"
+    ],
     "missingLeafPolicy": "degrade-without-phantom-tabs"
   },
   "security": {

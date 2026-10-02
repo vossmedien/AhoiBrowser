@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Logical split-sync contract aligned; UI window expired — 2 October 2026
+
+Foreign Cockpit51921 is now absent; refreshed installed source remains
+6bf4c233/M154, locks free. One fresh bounded window73082 checks that changed
+live state, but repeated human input prevents idle90 before120s: terminal2,
+deferred-owner-active, no journey/browser/lock. State under
+`.work/agent-queue/71/installed-lifecycle-trusted-20261002T050815Z/`.
+No retry observer was started. Corrected lifecycle remains unexecuted/OPEN;
+prior native/genuine-cookie proof and retained3RED are not relabelled.
+
+Concrete independent source correction: config/split-view.json still forbade
+cloud sync while the12September product decision, SPLIT_VIEW.md and Format3
+already require logical normal-split metadata. It now declares exactly that
+scope and links Format3, explicitly retaining native handles/window geometry/
+focus/website-session state as device-local. Only a repository contract reads
+this field; no runtime opt-in, provider, install or transport was changed.
+The old contradictory false assertion is replaced by checks against the real
+sync allowlist, unchanged default-off consent and neverSync boundaries and
+exact splitGroup field groups. This one metadata contract check passes; no
+native/browser/broad suite ran. SPLIT_VIEW integration pin is also corrected
+to current M154, historical matrices remain historical evidence. Ready Crest
+106/110 unchanged, H3 lease deferred; no product patch applicable here.
+
+Next: fresh actual UI ownership/capacity opportunity, corrected installed
+lifecycle, then matrix/archive/auto-archive/Devtoolkit/settings. Full Master
+also retains multi-device split convergence, workers, Mobile/Sync/external/
+release scopes; this metadata correction claims none of those as complete.
+
 ## Split verdict now controls command exit — 2 October 2026
 
 Fresh check still finds foreign Cockpit Xcode51921; no new Ahoi runner, browser,
