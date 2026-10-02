@@ -24,7 +24,11 @@ for n in A B C D E F G H; do
   printf '<title>Pane%s</title><h1>Pane %s</h1><input id=f>' $n $n > $P-site/$low.html
 done
 printf '<title>Solo</title><h1>Solo</h1><input id=f>' > $P-site/solo.html
-python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/site.log" 2>&1 &
+case "${AHOI_E2E_SITE_FIXTURE:-split}" in
+  split) python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/site.log" 2>&1 & ;;
+  tab-cache) python3 "$S/tab_cache_fixture.py" --port "$SITE_PORT" --log "$OUT/cache-server.jsonl" > "$OUT/site.log" 2>&1 & ;;
+  *) echo "unsupported local fixture" >&2; exit 4 ;;
+esac
 SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; SITE=http://127.0.0.1:$SITE_PORT
 # Bind/listen readiness and exact fixture bytes precede any browser action.
 # A target URL alone can describe a pending navigation with a blank document.

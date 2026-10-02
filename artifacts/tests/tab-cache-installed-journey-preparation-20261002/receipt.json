@@ -1,0 +1,21 @@
+{
+  "candidateSource": "28c94e0a1c14242021a715773ee669b3df286d63",
+  "visibleChecksWritten": 12,
+  "visibleChecksRun": 0,
+  "browserLaunched": false,
+  "fixtureOnlyActualHttp": {
+    "exactPaneReadinessAndUniqueNativeControl": true,
+    "separateActualHttpCountersAndCacheHeaders": true,
+    "arbitraryHeaderNeverReflectedOrLogged": true,
+    "workerScriptIsUncached": true,
+    "unknownCounterRefused": true,
+    "ownedFixtureExited": true
+  },
+  "sourcesSha256": {
+    "tools/desktop_e2e/tab-cache-journey.sh": "d8c2b443a4db12c72dd9bc453559b208462c968d1f070c6de6082db2f4cfe13f",
+    "tools/desktop_e2e/tab_cache_fixture.py": "36cf6e6da08061fa165b582cb7f6262253c3667c3827a37dd0200da2b3ea2e88",
+    "tools/desktop_e2e/split_journey_lib.sh": "29e3d13ce76e3eaf0d9cd9d2917a9d08a38bf0eec986e34323719a7ad1a38bbb"
+  },
+  "fixtureResultSha256": "136eb7af0509da9c16463f460764dfc290250d38c598baa8217a5c7834e20f5e",
+  "sourceProductChanged": false
+}

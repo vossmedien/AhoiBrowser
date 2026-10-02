@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Installed tab-cache visible journey prepared; build remains deferred — 2 October 2026
+
+Fresh host14:28 samples10.55/22.95%idle, pressure2, no own build/e2e/h3 lock:
+no heavy/app/GUI retry. Previous turn delivered actual corrected10-source syntax
+and guarded source integration; it was progress, not a live build wait.
+
+Concrete next acceptance is now written: tab-cache-journey.sh uses the native
+same-origin A/B split, actual HTTP counters, a long-lived dedicated worker,
+native toolbar action and native reload-dialog cancellation. Twelve visible
+checks cover preserved document loader/draft/worker, selected-tab/peer cache,
+both existing header directions, active-pane chips/reversal and real native
+quit/continued-session restore without persisting the local bit. It seeds only
+its own fresh profile and uses the trusted live startup setter. NOT_RUN; native
+UI names/flows and exact candidate still need actual verification.
+[Bound source/fixture checks and scope](../artifacts/tests/tab-cache-installed-journey-preparation-20261002/README.md).
+
+Shared library adds the closed tab-cache fixture option; split remains default,
+existing source/input/focus/owned cleanup boundaries retained. Six actual owned
+loopback-fixture checks PASS: exact page/distinct control, cache headers/separate
+counters, no arbitrary header reflection/logging, uncached worker, unknown-tag
+refusal and server termination. Shell/Python/embedded-block parse checks PASS.
+No browser, installed-native caching assertion or product acceptance inferred.
+
+Next viable build window: frozen integrated72/28c94e0a, canonical signer, guarded
+jobs1/nice10 app/core/UI/worker compilation and verified development install;
+then this visible journey before focused native regressions. Archive9/protection6
+remain first free existing-installed GUI work. Current installed71/6bf4c233,
+original full Master, historical proof, all ownership/externals/Sync/Mobile/release
+gates unchanged. Main test harness commit need not alter the frozen product source.
+
 ## Candidate72 source integrated; guarded build still NOT_STARTED — 2 October 2026
 
 Frozen source28c94e0a1c14242021a715773ee669b3df286d63 in clean detached private
