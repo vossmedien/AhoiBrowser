@@ -1,0 +1,53 @@
+{
+  "createdAt": "2026-10-02T12:25:05.156471+00:00",
+  "sourceCommit": "28c94e0a1c14242021a715773ee669b3df286d63",
+  "buildSequence": 72,
+  "phase": "source-integrated-build-deferred-capacity",
+  "jobs": 1,
+  "nice": 10,
+  "guardedEntrypoints": [
+    "scripts/apply-overlay.sh --compatible-dev-xcode",
+    "scripts/build-ahoi.sh dev"
+  ],
+  "sourceIntegration": [
+    {
+      "name": "fetch-frozen-source",
+      "exitCode": 0
+    },
+    {
+      "name": "checkout-frozen-source",
+      "exitCode": 0
+    },
+    {
+      "name": "overlay",
+      "exitCode": 0
+    }
+  ],
+  "syntaxChecks": "10/10 source syntax; no native execution",
+  "buildStarted": false,
+  "latestCapacity": {
+    "phase": "before-build",
+    "idlePercent": [
+      1.78,
+      4.71
+    ],
+    "memoryPressure": 2,
+    "aggregateIdlePercent": 3.245,
+    "time": "2026-10-02T14:20:33.021956+02:00"
+  },
+  "canonicalSignerVerified": true,
+  "signingScope": "same existing Apple Development identity, explicit native certificate trust verification; no changes",
+  "targets": [
+    "chrome",
+    "ahoi_developer_toolkit_unittests",
+    "ahoi_developer_toolkit_ui_unittests",
+    "ahoi_developer_style_compiler_browsertests"
+  ],
+  "installedBefore": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "remaining": "compile/stage/development-sign/verify/install/visible affected acceptance then focused regressions",
+  "statePaths": [
+    ".work/agent-queue/72/state.json",
+    ".work/agent-queue/72/build5-state.json"
+  ],
+  "fullOriginalGoalUnchanged": true
+}
