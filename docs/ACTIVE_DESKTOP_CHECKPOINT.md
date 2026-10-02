@@ -1,5 +1,20 @@
 # Active Desktop checkpoint
 
+## Installed split matrix actually running — 2 October 2026
+
+Fresh immediate check finds idle144, no compiler/app/free owner locks. CPU
+resamples34–58%idle, pressure1/stable swapouts915303; no new Chromium build.
+Runner2811/journey2819/browser2875 are actually live on installed71/6bf4c233.
+State/resource samples/input hashes (including shared sidebar reader):
+`.work/agent-queue/71/installed-matrix-phased-20261002T053256Z/`.
+Raw visible run: `artifacts/computer-use/m154/split-matrix-phased-installed-6bf4c233-20261002T053256Z/`.
+Expected source is bound in the wrapper; each launch boundary records current
+source/input/app/compiler checks. Trusted native startup setters precede
+fixture construction. Actual matrix verdict is pending; inspect this same
+handle/PIDs before further GUI/install/build work, no duplicate runner.
+Unchanged live12/focused restore3 GREEN and entire Master/worker/Sync/Mobile/
+external/release bounds remain; the matrix is not accepted merely for running.
+
 ## Matrix preflight yields; restart boundaries now recheck ownership — 2 October 2026
 
 Installed source still6bf4c233/M154, no Ahoi/compiler/lock. Resource resamples
