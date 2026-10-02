@@ -14,8 +14,22 @@ archive_search() {
   sleep 1
 }
 entry_count() {
-  $AX dump $PID 40 > "$OUT/ax-entry-readback.txt"
-  grep -c -E 'AXButton \| Wiederherstellen …: .*PaneA.*PaneB' "$OUT/ax-entry-readback.txt"
+  $AX dump $PID 40 > "$OUT/ax-entry-readback.txt" || return 2
+  python3 - "$OUT/ax-entry-readback.txt" <<'PYCOUNT'
+import re, sys
+lines = open(sys.argv[1]).read().splitlines()
+windows = [i for i, line in enumerate(lines) if line.strip() == 'AXWindow | Archiv']
+if len(windows) != 1:
+    sys.exit(2)
+start = windows[0]
+indent = len(lines[start]) - len(lines[start].lstrip())
+end = next((i for i in range(start + 1, len(lines))
+            if lines[i].strip() and len(lines[i]) - len(lines[i].lstrip()) <= indent), len(lines))
+dialog = lines[start:end]
+if not any('AXTextField | Archiv durchsuchen' in line for line in dialog):
+    sys.exit(2)
+print(sum(bool(re.search(r'AXButton \| Wiederherstellen …: .*PaneA.*PaneB', line)) for line in dialog))
+PYCOUNT
 }
 delete_entry() {
   $AX dump $PID 40 > "$OUT/ax-delete-entry.txt"
@@ -60,6 +74,8 @@ open_url "$SITE/solo.html"
 BEFORE=$(urls)
 archive_search
 check archiveSurvivesRestart '[ "$(entry_count)" = 1 ]'
+[ "$(entry_count)" = 1 ] || fail_setup "own persisted archive entry not uniquely confirmed"
+grep -q 'Split ·' "$OUT/ax-entry-readback.txt" || fail_setup "persisted entry lost its split metadata"
 check archivedPagesNotOpenedByRestart '! urls | grep -q -E "a.html|b.html"'
 delete_entry
 $AX dump $PID 40 > "$OUT/delete-confirmation.txt"

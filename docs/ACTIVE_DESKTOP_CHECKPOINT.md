@@ -1,5 +1,34 @@
 # Active Desktop checkpoint
 
+## Persistence evidence readers corrected before actual GUI run — 2 October 2026
+
+Live state revalidated: recent input, pressure2, CPU40–55%idle/stable sampled
+swapouts988879; new foreign Xcode8550 appears at the later phase. No app was
+started. Immediate corrected wrapper8790 is terminal2/deferred-owner-active
+(idle0/compilertrue), `.work/agent-queue/71/installed-archive-persistence-verified-20261002T101022Z/`.
+No owner lock/delete/idle observer. Existing native goal is read back ACTIVE;
+account/provider transition did not create a replacement goal or permission.
+
+Concrete pre-run corrections: the old derived persistence wrapper selected
+results.json WHEN verdict.json existed, dropping the shared actual verdict.
+New wrapper reads verdict.json and binds the actually used shared sidebar
+reader plus installed Info hash. The native AX evidence also exposes the
+same archive bubble twice: top-level Archiv and under the browser. Global
+button-line counting would falsely report two entries. entry_count now scopes
+to exactly one top-level native Archiv window, requires its real search field
+and refuses absent/ambiguous windows. Actual retained AX evidence counts1;
+a missing-dialog negative sample exits2 with no count. Native Split metadata
+and a unique actual entry are additionally required before deletion proceeds.
+No criteria weakened, no archive/product acceptance claimed from parser checks.
+
+Shell/embedded Python syntax and diff pass; nine persistence/delete GUI checks
+remain NOT_RUN. Saved/BeforeUnload/group fixture six checks also remain NOT_RUN,
+as do other remaining protection/browser/worker/Sync/Mobile/release obligations.
+Next actual GUI step: the corrected nine-check runner after fresh real capacity/
+input/ownership; never use the old wrapper's missing verdict as a PASS. Prior
+scoped10/5/split GREEN/historical RED, installed71/6bf4c233/data/rollback/rights
+and original full active Master preserved; no Chromium build/publication.
+
 ## Remaining group/saved/before-unload protection fixture prepared — 2 October 2026
 
 Fresh read still sees foreign Xcode69563 actually live (later5min sample),
