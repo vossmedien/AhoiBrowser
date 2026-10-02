@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Restore replay narrows protected-pref question; M155 status — 2 October 2026
+
+Installed Info.plist still independently reads source6bf4c233/M154.0.8037.93
+(Build71). No Ahoi compiler, browser or restore runner is currently live; the
+brief foreign Xcode process was not an Ahoi build and is now absent. M155 is
+Google's early Stable155.0.8059.26/.27, broad Stable scheduled6October, not an
+integrated Ahoi candidate. Official sources: Chrome Releases30September and
+ChromeStatus155 release notes. No milestone pin/source/build/install changed.
+
+Retained-profile COPY replay15204/browser15215 completed native close0 and
+cleanup; the original SNSS hash remains unchanged. Raw diagnostic:
+`artifacts/computer-use/m154/restore-native-pref-probe-6bf4c233-20261002T044849Z/`.
+Only an NTP appeared, no native settings getter/setter ran. Its `complete`
+phase is completion of observation, NOT pref/restore acceptance. After close,
+the copy's Preferences no longer contains session.restore_on_startup, whereas
+the retained original still contains1. This supports investigating protected
+pref validation but does not establish the effective native value or cause.
+
+Own replay tool now explicitly navigates the owned diagnostic tab to Settings
+when startup substitutes an NTP, records tool/CDP hashes, and refuses to finish
+the pref mode without an actual successful native getter/setter readback.
+Python syntax passes; this corrected diagnostic has NOT run. Next: establish
+the native effective preference and use the trusted setter on the synthetic
+copy, then distinguish harness setup from native session decoding/restore.
+No hash-check bypass, real profile edit, new heavy build or repeated live12
+suite. Full original Master/ownership/external/worker/Sync bounds remain active.
+
 ## Genuine cookie/restart GREEN; live split12 GREEN, restore3 RED — 2 October 2026
 
 Installed6bf4c233/Build71/M154 now proves a real synthetic persistent cookie:
