@@ -1,0 +1,53 @@
+{
+  "time": "2026-10-02T15:51:38.805497+00:00",
+  "sourceCommit": "a431d966",
+  "syntaxChecksPassed": 2,
+  "syntaxChecksPending": 1,
+  "nativeTestsExecuted": 0,
+  "binaryBuilt": false,
+  "results": [
+    {
+      "name": "profile_sync_service_settings.cc",
+      "sourceSha256": "281dd919401b976f0a45146c806e19cb317eae47b5b2bef5b96d4e476c33ca57",
+      "exitCode": 0,
+      "seconds": 3.02,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "profile_sync_service_product.cc",
+      "sourceSha256": "f56ad58dbe9d5bb9e316a5423628e0d1a057d2c3e85492c2df813aa21253de2f",
+      "exitCode": 0,
+      "seconds": 2.68,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "capacity": [
+    {
+      "name": "profile_sync_service_settings.cc",
+      "idlePercent": 37.71,
+      "memoryPressure": 1,
+      "time": "2026-10-02T17:12:14.639571+02:00"
+    },
+    {
+      "name": "profile_sync_service_product.cc",
+      "idlePercent": 40.15,
+      "memoryPressure": 1,
+      "time": "2026-10-02T17:12:19.241319+02:00"
+    },
+    {
+      "name": "profile_sync_service_unittest.cc",
+      "idlePercent": 4.25,
+      "memoryPressure": 1,
+      "time": "2026-10-02T17:12:23.645130+02:00"
+    }
+  ],
+  "nice": 10,
+  "jobs": 1,
+  "ruleExtraction": "Native Ninja expands exact scoped GN bindings/cxx recipe in minimal graphs; no unrelated build graph or compile edge runs",
+  "planSha256": "8638a07cd887436280e8fa3842c08e2d802f970d64ab6a207da678e845de5e02",
+  "clangSha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3",
+  "sourceSnapshotHeaderSha256": "0e817532b7c251e0986b7134c16060155c2aba5fb2237d19cbe619f89ee61cf8",
+  "statePath": ".work/agent-queue/browser-setting-echo-syntax-20261002T151212Z/state.json",
+  "stateSha256": "5c8c1a800703a39daf8554a3e802f0882669173582108a4065138ca909e82bfb",
+  "ownLockReleased": true
+}

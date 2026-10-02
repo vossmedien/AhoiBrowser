@@ -1,5 +1,26 @@
 # Active sync coordination
 
+## Reentrant settings production syntax2 GREEN; test translation unit pending — 2 October 2026
+
+New normal-memory window permitted two actual serial pinned-Clang source checks:
+profile_sync_service_settings.cc and caller profile_sync_service_product.cc exit0
+on immutable a431d966/private header snapshot. Native Ninja expands exact cxx
+recipe/GN target bindings in tiny private graphs; source/rule/binding/argv/compiler
+hashes retained, avoiding the previous huge-graph timeout without executing build
+edges. [Exact partial compiler proof](../artifacts/tests/browser-settings-reentrant-syntax-partial-20261002/README.md).
+Runner terminal2 after2 successful checks: before service-test file4.25%idle
+rejected next compiler; own source-check lock released. Five regressions remain
+NOT compiled/executed, no whole source/binary/native acceptance claim.
+
+Next source action uses remaining-only test plan/runner under
+`.work/agent-queue/browser-settings-reentrant-source-20261002/`; do not repeat
+unchanged successful production checks. After actual test-file syntax, review
+coherent integration of this Sync delta into next guarded desktop candidate,
+affected visible settings/available real-peer acceptance BEFORE focused tests.
+Frozen72/28c94e0a and installed71/6bf4c233 unchanged; full original Master and all
+Root/Crest/data/external/Mobile/release gates retained. This resumed turn is actual
+compiler-evidence progress, resets the resource no-progress audit; no goal complete.
+
 ## Compiler metadata extraction terminal; no native run — 2 October 2026
 
 Fresh15:36 host14.78%idle, pressure2, own locks absent. No safe build/GUI/source
