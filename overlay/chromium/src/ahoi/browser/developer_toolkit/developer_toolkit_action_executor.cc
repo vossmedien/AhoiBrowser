@@ -135,6 +135,20 @@ DeveloperActionResult DeveloperActionExecutor::Execute(
                                            /*check_for_repost=*/true);
       executed = true;
       break;
+    case DeveloperAction::kToggleTabCacheOff: {
+      auto* helper = DeveloperProfileTabHelper::FromWebContents(web_contents);
+      if (browser_context_ && web_contents->GetBrowserContext() == browser_context_ &&
+          !browser_context_->IsOffTheRecord() && helper) {
+        executed = helper->SetCacheDisabledForCurrentTab(
+            !helper->IsCacheDisabledForCurrentTab());
+        if (executed) {
+          // A fresh native document factory receives the tab-only policy.
+          // Before-unload/repost still belong to Chromium and may veto reload.
+          web_contents->GetController().Reload(content::ReloadType::NORMAL, true);
+        }
+      }
+      break;
+    }
   }
 
   return {action, executed ? DeveloperActionStatus::kExecuted
@@ -251,6 +265,8 @@ DeveloperActivationState DeveloperActionExecutor::GetActivationState(
           ContentSettingValue::kBlock);
   if (const DeveloperProfileTabHelper* const tab_helper =
           DeveloperProfileTabHelper::FromWebContents(web_contents)) {
+    state.Set(DeveloperActivation::kTabCacheOff,
+              tab_helper->IsCacheDisabledForCurrentTab());
     for (const DeveloperAsset& asset : tab_helper->active_assets()) {
       if (!asset.enabled) {
         continue;

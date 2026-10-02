@@ -1,0 +1,29 @@
+{
+  "baseCommit": "218876a424de2afd3371d4224abc435af8854e21",
+  "installedCandidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "scope": "tracked tab cache source package, no native compile/run/install",
+  "nativeAcceptance": false,
+  "testsWritten": 4,
+  "testsExecuted": 0,
+  "syntaxCommandsPrepared": 7,
+  "syntaxCommandsExecuted": 0,
+  "orderedCompositionSha256": "e5ccbc2efd3d2f44d0537b248f93db8fd54686ed1b12ac046cae99a581827dc2",
+  "sourcesSha256": {
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/BUILD.gn": "3b7eab2c9bd83908a214ff80ae8ffe85e6a7cf20856725b0d329b330766b573d",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime.h": "e158539439f8ffa4c42bed6819d2fa42dab0d506ca649f6ee5e6e7d513e5583c",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime.cc": "b7907ded1148444c8a64c3b88665e285b8956df901b50c0b9dfce5f34aff4024",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime_store.cc": "02ae42f4c5ea7d2397703bf0ece285ebdceff3c05c116abd97fbc0673588db7d",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.cc": "d280c88fd024b0bd49aa495b28dbc136118f9d15a600d459e03eba7335464993",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc": "111fe7ffcec1d327509c01952675ae2acdbf553d1188f802647e2e4138114ca2",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_types.h": "a4a4936a9fcaa041062ab93328267468244071ebf2d26aad98d6a6b85297461a",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_action_executor.cc": "304951e8bb9b53e8aafc097aa8283df3a1ea78d599d7e8edac544369693db6a9",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_tab_cache_unittest.cc": "d771d4eb2581428cd79dd403c0960d0afe147b0deefaddc76be494d4b99183ed",
+    "overlay/chromium/src/ahoi/browser/ui/developer_toolkit/developer_toolkit_bubble_view.cc": "074e3cfeed075967e1d815063ed32cf683091f5ad0e21d6ac35b62f44313e3d6",
+    "patches/chromium/0092-ahoi-tab-local-cache-control.patch": "cd0c88bc20e6cdd248a5264fcb23488bc6f640da79ede5e28495fbc4ee9e65a3",
+    "patches/chromium/series": "69179a9eee93815785c47e06ef2c803b7fc433b9697599d332f841ef0b0fc5a2"
+  },
+  "artifactSha256": {
+    "grit-receipt.json": "4ffd7c6cd4d700387d97fa2bfd05f74b013092d6c4b9696ac696c3acb186b728",
+    "syntax-plan.json": "ac9dce46cb833776e2093b0952bb7af4a98e7fd095e3cf51aac819f300217ab5"
+  }
+}

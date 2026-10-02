@@ -383,7 +383,7 @@ class DeveloperFactoryProxy final
           if (!verify_saved_rules) {
             return snapshot;
           }
-          auto current = GetDeveloperProfileForTab(
+          auto current = GetDeveloperNetworkProfileForTab(
               prefs, contents_.get(), origin_.GetURL());
           auto saved = current ? std::optional<DeveloperProfile>(
                                      MakeDeveloperProfileNetworkSnapshot(*current))
@@ -434,7 +434,7 @@ void MaybeProxyDeveloperProfileURLLoaderFactory(
   if (!web_contents) {
     return;
   }
-  const auto profile = GetDeveloperProfileForTab(
+  const auto profile = GetDeveloperNetworkProfileForTab(
       prefs, web_contents, factory_origin.GetURL());
   if (!profile || (!profile->user_agent_enabled &&
                    !profile->header_rules_enabled &&

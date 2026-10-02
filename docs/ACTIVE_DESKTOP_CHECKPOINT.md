@@ -1,5 +1,40 @@
 # Active Desktop checkpoint
 
+## Explicit tab-cache control source wired; unbuilt, source checks pending — 2 October 2026
+
+Actual fresh normal-pressure/idle378/no-compiler opportunity was rechecked by
+immediate archive27456 (state below); new input resumed, terminal2,
+no app/lock/delete. `.work/agent-queue/71/installed-archive-persistence-ready-20261002T102646Z/`.
+No unchanged archive repeat/idle observer. Later pressure2 prevents compilation.
+
+Concrete master product source gap is now addressed as one coherent UNBUILT
+packet: closed native kToggleTabCacheOff action/bubble/button/de+en label and
+TAB CACHE OFF chip, helper-owned in-memory choice, network-only profile view,
+main/document/factory/late-secret revalidation, existing generation retirement,
+native reload, reset and WebContents replacement. Existing site profiles/editor
+readers unchanged; local choice never enters Prefs/Sync. Explicit site cache
+settings remain effective when tab-only extra choice is turned off. Master
+disable leaves it inert; no automatic replay/process/JS/compiler is introduced.
+No shared/service-worker owner guessed; dedicated worker native binding remains.
+[Exact source/ordered patch/resource evidence and remaining acceptance](../artifacts/tests/tab-local-cache-source-20261002/README.md).
+
+Four targeted regressions WRITTEN, NOT compiled/executed. Seven pinned-Clang
+syntax commands prepared on private snapshot, NOT executed. Ordered composition
+against pinned f89f3a43 passes without checkout mutation. Official GRIT exact
+baseline header + new symbol/de message ID pass; early stream baseline mismatches
+were rejected (GRIT skips first-ID assignment for streams), then correctly
+assigned actual input identity. All output/header/source hashes retained.
+No source/output refresh, GN/Ninja build/test, app/install/profile/permission/
+release change. Installed71/6bf4c233 remains the prior accepted candidate.
+
+Next normal-capacity source step: bounded serial syntax on that snapshot, then
+freeze/guarded coherent candidate and actual installed two-tab/split/counter/CDN/
+native reload-cancel/reset/disable/close/restore/chip flows BEFORE necessary
+focused regression. Archive9 + group/saved/BeforeUnload6 still pending and use
+first free existing-installed GUI window. Preserve all earlier scoped GREEN,
+historical RED, full original Master/worker/Sync/Mobile/external/release/data/
+archive/rollback rights and ownership. No completed goal or broadDEV acceptance.
+
 ## Concrete tab-cache product gap found during GUI hold — 2 October 2026
 
 Initial live foreign Xcode14346 is present/input active/pressure2; final read

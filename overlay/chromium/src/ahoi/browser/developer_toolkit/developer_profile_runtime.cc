@@ -232,6 +232,7 @@ void DeveloperProfileTabHelper::SetWebContents(
     return;
   }
   DetachFromWebContents(this->web_contents());
+  cache_disabled_for_tab_ = false;
   ++activation_generation_;
   Observe(web_contents);
   AttachToWebContents(web_contents);
@@ -248,7 +249,7 @@ void DeveloperProfileTabHelper::DidStartNavigation(
       navigation_handle->GetWebContents() != web_contents() ||
       !IsEligibleNavigationContext(web_contents(), prefs_) ||
       (prefs_->GetDict(kDeveloperProfilesPref).empty() &&
-       !HasTemporaryHeaders())) {
+       !HasTemporaryHeaders() && !IsCacheDisabledForCurrentTab())) {
     if (HasBoundContext() && navigation_handle &&
         navigation_handle->IsInPrimaryMainFrame() &&
         !navigation_handle->IsSameDocument() && web_contents() &&
@@ -262,7 +263,7 @@ void DeveloperProfileTabHelper::DidStartNavigation(
     return;
   }
   const std::optional<DeveloperProfile> profile =
-      GetDeveloperProfileForTab(prefs_, web_contents(), navigation_handle->GetURL());
+      GetDeveloperNetworkProfileForTab(prefs_, web_contents(), navigation_handle->GetURL());
   const bool was_owned = HasAhoiUserAgentOverride(*web_contents());
   ApplyAhoiUserAgentOverride(*web_contents(), profile ? &*profile : nullptr);
   if (profile && profile->user_agent_enabled) {
@@ -292,7 +293,7 @@ void DeveloperProfileTabHelper::DidFinishNavigation(
     return;
   }
   const std::optional<DeveloperProfile> profile =
-      GetDeveloperProfileForTab(prefs_, web_contents(), navigation_handle->GetURL());
+      GetDeveloperNetworkProfileForTab(prefs_, web_contents(), navigation_handle->GetURL());
   const std::vector<DeveloperAsset> assets =
       TakeAssetsForNavigation(navigation_handle->GetURL());
   ClearDeveloperProfileNavigationRequest(*web_contents(),
@@ -340,7 +341,7 @@ void DeveloperProfileNavigationThrottle::MaybeCreateAndAdd(
   const auto* helper = DeveloperProfileTabHelper::FromWebContents(web_contents);
   if (!prefs || !developer_toolkit_prefs::IsToolkitEnabled(*prefs) ||
       (prefs->GetDict(kDeveloperProfilesPref).empty() &&
-                 (!helper || !helper->HasTemporaryHeaders()))) {
+                 (!helper || (!helper->HasTemporaryHeaders() && !helper->IsCacheDisabledForCurrentTab())))) {
     return;
   }
   registry.AddThrottle(
@@ -394,7 +395,7 @@ DeveloperProfileNavigationThrottle::WillRedirectRequest() {
     return content::NavigationThrottle::PROCEED;
   }
   const std::optional<DeveloperProfile> profile =
-      GetDeveloperProfileForTab(prefs_, web_contents_.get(),
+      GetDeveloperNetworkProfileForTab(prefs_, web_contents_.get(),
                                 navigation_handle()->GetURL());
   // A redirect cannot change the navigation's user-agent flag any more
   // (only DidStartNavigation may); the WebContents override still follows
@@ -421,7 +422,7 @@ DeveloperProfileNavigationThrottle::ApplyInitialRequestOverrides() {
   }
   ClearDeveloperProfileNavigationRequest(*web_contents_);
   const std::optional<DeveloperProfile> profile =
-      GetDeveloperProfileForTab(prefs_, web_contents_.get(),
+      GetDeveloperNetworkProfileForTab(prefs_, web_contents_.get(),
                                 navigation_handle()->GetURL());
   // The user-agent decision is made in DeveloperProfileTabHelper::
   // DidStartNavigation; here it would trip NavigationRequest's CHECK.
@@ -471,7 +472,7 @@ void DeveloperProfileNavigationThrottle::OnHeaderSecretsMaterialized(
       DeveloperProfileTabHelper::FromWebContents(web_contents_.get());
   valid = valid && (helper ? helper->activation_generation() : 0) ==
                        activation_generation_;
-  const auto current = valid ? GetDeveloperProfileForTab(
+  const auto current = valid ? GetDeveloperNetworkProfileForTab(
                                    prefs_, web_contents_.get(), request_url)
                              : std::nullopt;
   valid = valid && current &&

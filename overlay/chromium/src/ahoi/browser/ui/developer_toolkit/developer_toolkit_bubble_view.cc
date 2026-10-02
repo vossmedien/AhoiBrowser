@@ -41,6 +41,7 @@ const gfx::VectorIcon& ActionIcon(DeveloperAction action) {
     case DeveloperAction::kClearCache:
     case DeveloperAction::kResetDocumentModifications:
     case DeveloperAction::kHardReload:
+    case DeveloperAction::kToggleTabCacheOff:
       return vector_icons::kRefreshIcon;
     case DeveloperAction::kClearSiteData:
       return vector_icons::kCookieIcon;
@@ -88,6 +89,8 @@ int ActionStringId(DeveloperAction action) {
       return IDS_AHOI_DEVELOPER_SCREENSHOT_FULL_PAGE;
     case DeveloperAction::kHardReload:
       return IDS_AHOI_DEVELOPER_HARD_RELOAD;
+    case DeveloperAction::kToggleTabCacheOff:
+      return IDS_AHOI_DEVELOPER_TAB_CACHE_OFF;
   }
 }
 
@@ -107,6 +110,8 @@ std::optional<DeveloperActivation> ActivationForAction(DeveloperAction action) {
       return DeveloperActivation::kJavaScript;
     case DeveloperAction::kToggleImages:
       return DeveloperActivation::kImages;
+    case DeveloperAction::kToggleTabCacheOff:
+      return DeveloperActivation::kTabCacheOff;
     case DeveloperAction::kClearCache:
     case DeveloperAction::kClearSiteData:
     case DeveloperAction::kResetDocumentModifications:
@@ -228,6 +233,12 @@ DeveloperToolkitBubbleView::DeveloperToolkitBubbleView(
                                DeveloperAction::kToggleAltTitleLabels));
   AddChildView(CreateActionRow(DeveloperAction::kToggleDocumentMetadata,
                                DeveloperAction::kHardReload));
+  auto cache_row = std::make_unique<views::View>();
+  auto* cache_layout = cache_row->SetLayoutManager(std::make_unique<views::BoxLayout>(
+      views::BoxLayout::Orientation::kHorizontal));
+  cache_layout->SetFlexForView(
+      AddActionButton(cache_row.get(), DeveloperAction::kToggleTabCacheOff), 1);
+  AddChildView(std::move(cache_row));
   auto reset_row = std::make_unique<views::View>();
   auto* reset_layout =
       reset_row->SetLayoutManager(std::make_unique<views::BoxLayout>(
@@ -395,6 +406,7 @@ void DeveloperToolkitBubbleView::UpdateActivationChips() {
       {DeveloperActivation::kImages, u"IMG OFF"},
       {DeveloperActivation::kHeaders, u"HDR"},
       {DeveloperActivation::kCacheOff, u"CACHE OFF"},
+      {DeveloperActivation::kTabCacheOff, u"TAB CACHE OFF"},
       {DeveloperActivation::kPasswordFields, u"PASSWORD"},
       {DeveloperActivation::kStructureOutlines, u"OUTLINE"},
       {DeveloperActivation::kAltTitleLabels, u"ALT/TITLE"},

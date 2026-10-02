@@ -203,6 +203,7 @@ source_set("unit_tests") {
     "developer_network_factory_test_support.h",
     "developer_profile_pref_seed_unittest.cc",
     "developer_profile_runtime_unittest.cc",
+    "developer_tab_cache_unittest.cc",
     "developer_profile_unittest.cc",
     "developer_style_preprocessor_unittest.cc",
     "developer_toolkit_prefs_unittest.cc",

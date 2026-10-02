@@ -1,0 +1,10 @@
+{
+  "officialGenerator": "grit.grd_reader + grit.format.rc_header",
+  "baselineExactMatch": true,
+  "baselineSha256": "3f8ae7d591426085696d291d9a6e19b222ccbb815a17f67f6946b4c27ded5cff",
+  "patchedSha256": "b3693569c5082c1cf35b8031fa6818e67c90b3e6978cecf75d6c5b8c1e2ea174",
+  "translationId": "8375683371978036118",
+  "firstIdsSha256": "a624184872099ec2ee5ffbaee69bebe6bd8e96b4dade4c1bf15a71e73cd93698",
+  "predeterminedIdsSha256": "6f039153a2fb674ed4df36c3e21b7196e492daa8ec3e2555211f0f4879d97e67",
+  "earlierStreamAttempts": "Rejected baseline mismatches; stream input skipped AssignFirstIds. No mismatched header used."
+}

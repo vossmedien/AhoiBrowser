@@ -44,6 +44,8 @@ enum class DeveloperAction {
   kCaptureFullPageScreenshot,
   // Reloads the page bypassing the HTTP cache (DEV-08).
   kHardReload,
+  // This native tab only; local until it closes, distinct from site profiles.
+  kToggleTabCacheOff,
 };
 
 enum class DeveloperActionStatus {
@@ -62,6 +64,7 @@ enum class DeveloperActivation : uint32_t {
   kStructureOutlines = 1u << 6,
   kAltTitleLabels = 1u << 7,
   kDocumentMetadata = 1u << 8,
+  kTabCacheOff = 1u << 9,
 };
 
 struct DeveloperActivationState {

@@ -327,6 +327,31 @@ bool DeveloperProfileTabHelper::HasTemporaryHeaders() const {
   return false;
 }
 
+bool DeveloperProfileTabHelper::IsCacheDisabledForCurrentTab() const {
+  return HasBoundContext() &&
+         developer_toolkit_prefs::IsToolkitEnabled(*prefs_) &&
+         cache_disabled_for_tab_;
+}
+
+bool DeveloperProfileTabHelper::SetCacheDisabledForCurrentTab(bool disabled) {
+  if (!HasBoundContext() ||
+      !developer_toolkit_prefs::IsToolkitEnabled(*prefs_) ||
+      !web_contents()->GetLastCommittedURL().SchemeIsHTTPOrHTTPS()) {
+    return false;
+  }
+  if (cache_disabled_for_tab_ == disabled) {
+    return true;
+  }
+  cache_disabled_for_tab_ = disabled;
+  // A late request/secret response from the old setting cannot regain approval
+  // after off/on. The action reloads through Chromium to create a new native
+  // factory; this helper never creates a cache or background process.
+  ++activation_generation_;
+  ClearDeveloperProfileNavigationRequest(*web_contents());
+  UpdateDeveloperProfileNetworkState(*web_contents(), GURL(), std::nullopt);
+  return true;
+}
+
 std::optional<DeveloperProfile> GetDeveloperProfileForTab(
     PrefService* prefs,
     content::WebContents* web_contents,
@@ -347,6 +372,34 @@ std::optional<DeveloperProfile> GetDeveloperProfileForTab(
   }
   PrefDeveloperProfileStore store(prefs, false);
   return GetDeveloperProfileForNavigation(store, url);
+}
+
+std::optional<DeveloperProfile> GetDeveloperNetworkProfileForTab(
+    PrefService* prefs,
+    content::WebContents* web_contents,
+    const GURL& url) {
+  auto profile = GetDeveloperProfileForTab(prefs, web_contents, url);
+  // A null saved profile is normal, but a rejected foreign/OTR context must
+  // not be converted into an approved tab-only override.
+  if (!prefs || !web_contents || web_contents->IsBeingDestroyed() ||
+      !url.is_valid() || !url.SchemeIsHTTPOrHTTPS() ||
+      !developer_toolkit_prefs::IsToolkitEnabled(*prefs)) {
+    return std::nullopt;
+  }
+  auto* context = web_contents->GetBrowserContext();
+  if (!context || context->IsOffTheRecord() ||
+      !user_prefs::UserPrefs::IsInitialized(context) ||
+      user_prefs::UserPrefs::Get(context) != prefs) {
+    return std::nullopt;
+  }
+  const auto* helper = DeveloperProfileTabHelper::FromWebContents(web_contents);
+  if (helper && helper->IsCacheDisabledForCurrentTab()) {
+    if (!profile) {
+      profile = DeveloperProfile{};
+    }
+    profile->cache_disabled = true;
+  }
+  return profile;
 }
 
 bool DeveloperProfileTabHelper::ResetProfilesForUrl(const GURL& url) {
@@ -378,6 +431,8 @@ bool DeveloperProfileTabHelper::ResetProfilesForUrl(const GURL& url) {
     return false;
   }
   active_assets_.clear();
+  cache_disabled_for_tab_ = false;
+  ++activation_generation_;
   return true;
 }
 

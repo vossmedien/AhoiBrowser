@@ -72,6 +72,10 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   bool RemoveProfile(const url::Origin& origin);
   std::optional<DeveloperProfile> GetProfile(const url::Origin& origin) const;
   bool HasTemporaryHeaders() const;
+  // Explicit cache choice belongs to this native tab, survives reload and is
+  // never merged into the editor's saved origin profile or serialized.
+  bool IsCacheDisabledForCurrentTab() const;
+  bool SetCacheDisabledForCurrentTab(bool disabled);
 
   // Removes every saved or tab-local asset that currently contributes to
   // `url`, while preserving unrelated assets owned by the same profile.
@@ -111,6 +115,7 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   const std::string tab_token_;
   std::vector<DeveloperAsset> active_assets_;
   bool toolkit_active_ = false;
+  bool cache_disabled_for_tab_ = false;
   uint64_t activation_generation_ = 0;
   PrefChangeRegistrar activation_pref_registrar_;
   base::WeakPtrFactory<DeveloperProfileTabHelper> weak_factory_{this};
@@ -120,6 +125,14 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
 // Callers use this at navigation boundaries and request revalidation; there
 // is no global lookup that assigns an arbitrary tab to a worker.
 std::optional<DeveloperProfile> GetDeveloperProfileForTab(
+    PrefService* prefs,
+    content::WebContents* web_contents,
+    const GURL& url);
+
+// Network-only view: saved/tab header metadata plus the tab's cache choice.
+// Editors must keep using GetDeveloperProfileForTab to avoid persisting this
+// local choice while saving unrelated site settings or snippets.
+std::optional<DeveloperProfile> GetDeveloperNetworkProfileForTab(
     PrefService* prefs,
     content::WebContents* web_contents,
     const GURL& url);

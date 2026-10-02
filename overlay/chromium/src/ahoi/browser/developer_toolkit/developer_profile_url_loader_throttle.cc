@@ -192,7 +192,7 @@ std::optional<DeveloperProfile> GetDeveloperProfileNetworkSnapshotForRequest(
         request.navigation_redirect_chain.back() != request.url) {
       return std::nullopt;
     }
-    profile = GetDeveloperProfileForTab(prefs, web_contents, request.url);
+    profile = GetDeveloperNetworkProfileForTab(prefs, web_contents, request.url);
     if (profile) {
       profile = MakeDeveloperProfileNetworkSnapshot(std::move(*profile));
     }
@@ -208,7 +208,7 @@ std::optional<DeveloperProfile> GetDeveloperProfileNetworkSnapshotForRequest(
                  GetNetworkState(web_contents);
              state) {
     if (!state->profile.headers_persistent) {
-      const auto current = GetDeveloperProfileForTab(
+      const auto current = GetDeveloperNetworkProfileForTab(
           prefs, web_contents, web_contents->GetLastCommittedURL());
       if (!current || MakeDeveloperProfileNetworkSnapshot(*current) !=
                           state->profile) {
@@ -244,7 +244,7 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
   }
   base::RepeatingCallback<bool()> approval;
   if (request.is_outermost_main_frame) {
-    const auto source = GetDeveloperProfileForTab(prefs, web_contents, request.url);
+    const auto source = GetDeveloperNetworkProfileForTab(prefs, web_contents, request.url);
     if (!source) {
       return nullptr;
     }
@@ -278,7 +278,7 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
             return false;
           }
           const auto current =
-              GetDeveloperProfileForTab(current_prefs, contents.get(), url);
+              GetDeveloperNetworkProfileForTab(current_prefs, contents.get(), url);
           if (!current || MakeDeveloperProfileNetworkSnapshot(*current) !=
                               source_metadata) {
             return false;
