@@ -1,0 +1,14 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "acceptance": false,
+  "cancelled": true,
+  "restoreAssertionsReached": false,
+  "rawDirectory": "artifacts/computer-use/m154/split-lifecycle-trusted-installed-6bf4c233-20261002T051252Z",
+  "filesSha256": {
+    "runner-state.json": "67ca70ebe3130b4a166652df3bc598380266ef7b346a4f94988e44f1c269ef09",
+    "verdict.json": "24d8a6404bfd7aa149a4039067534fa2aa7925fbebbd7aceec0924030c409fe9",
+    "native-startup-prefs.json": "0ec0055cb4e0d29084fc1690b0ef44862495c6ed3f42e92c44bca54c9f1caa8a",
+    "steps.txt": "26302eeef4f142e7291db1552d1a18c1defe5114c9a4c6aeb8f13fadad492896",
+    "run.txt": "fb90de131c788484f6309899b019841de3212a76201921416e63be253de938e7"
+  }
+}

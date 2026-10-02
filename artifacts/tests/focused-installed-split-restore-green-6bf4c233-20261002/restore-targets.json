@@ -1,0 +1,120 @@
+[
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/FEE91427B43374CEBAD21D3B88F940F8",
+    "id": "FEE91427B43374CEBAD21D3B88F940F8",
+    "title": "PaneH",
+    "type": "page",
+    "url": "http://127.0.0.1:8827/h.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/FEE91427B43374CEBAD21D3B88F940F8"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/35E60BE0CC0BB88CAA8F6FB330E218C9",
+    "id": "35E60BE0CC0BB88CAA8F6FB330E218C9",
+    "title": "PaneG",
+    "type": "page",
+    "url": "http://127.0.0.1:8827/g.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/35E60BE0CC0BB88CAA8F6FB330E218C9"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/0720162F984DDB7E1CDA3ACD87A8A7FC",
+    "id": "0720162F984DDB7E1CDA3ACD87A8A7FC",
+    "title": "PaneF",
+    "type": "page",
+    "url": "http://127.0.0.1:8827/f.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/0720162F984DDB7E1CDA3ACD87A8A7FC"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/14CBF622A5EFE68E89CABF7CF15E825D",
+    "id": "14CBF622A5EFE68E89CABF7CF15E825D",
+    "title": "Tab Search",
+    "type": "browser_ui",
+    "url": "chrome://tab-search.top-chrome/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/14CBF622A5EFE68E89CABF7CF15E825D"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/F46598DCF8D08AD3E9F8BB9CEC83640C",
+    "id": "F46598DCF8D08AD3E9F8BB9CEC83640C",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/F46598DCF8D08AD3E9F8BB9CEC83640C"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/4A3C845B2218B5D7F77F0C3B57445400",
+    "id": "4A3C845B2218B5D7F77F0C3B57445400",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/4A3C845B2218B5D7F77F0C3B57445400"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/4B554A25F63B7B1BABDEBD8089A81B85",
+    "id": "4B554A25F63B7B1BABDEBD8089A81B85",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/4B554A25F63B7B1BABDEBD8089A81B85"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/9141FBA81336FD7FD68F77FF0E667BCF",
+    "id": "9141FBA81336FD7FD68F77FF0E667BCF",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/9141FBA81336FD7FD68F77FF0E667BCF"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/F7104C0B6AE08BCADC85DD0C79241AA1",
+    "id": "F7104C0B6AE08BCADC85DD0C79241AA1",
+    "title": "Neuer Tab",
+    "type": "page",
+    "url": "chrome://newtab/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/F7104C0B6AE08BCADC85DD0C79241AA1"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/4A84FD3AEA8B99A206F1AA8BD715EBD3",
+    "id": "4A84FD3AEA8B99A206F1AA8BD715EBD3",
+    "parentId": "F7104C0B6AE08BCADC85DD0C79241AA1",
+    "title": "chrome-untrusted://new-tab-page/one-google-bar?paramsencoded=",
+    "type": "iframe",
+    "url": "chrome-untrusted://new-tab-page/one-google-bar?paramsencoded=",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/4A84FD3AEA8B99A206F1AA8BD715EBD3"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/EB35EB211EF1169DD77C993452487594",
+    "id": "EB35EB211EF1169DD77C993452487594",
+    "title": "Solo",
+    "type": "page",
+    "url": "http://127.0.0.1:8827/solo.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/EB35EB211EF1169DD77C993452487594"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/77697B336C86439115CF5B3D5FB2762F",
+    "id": "77697B336C86439115CF5B3D5FB2762F",
+    "title": "PaneE",
+    "type": "page",
+    "url": "http://127.0.0.1:8827/e.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/77697B336C86439115CF5B3D5FB2762F"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9431/devtools/page/5B611E29CCFC316E9A9DD5F44F4DEBB4",
+    "id": "5B611E29CCFC316E9A9DD5F44F4DEBB4",
+    "title": "PaneD",
+    "type": "page",
+    "url": "http://127.0.0.1:8827/d.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9431/devtools/page/5B611E29CCFC316E9A9DD5F44F4DEBB4"
+  }
+]

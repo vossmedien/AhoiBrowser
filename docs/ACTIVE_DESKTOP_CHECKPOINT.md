@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Original installed restore3 now GREEN; live run cancellation preserved — 2 October 2026
+
+Corrected trusted full lifecycle79391/79396 confirms both native setters
+(Chrome LAST1/Ahoi continue) and first four live assertions, then yields on
+foreign focus, exit8/pass:false. All own roots terminal, lock released.
+[Actual cancelled partial proof](../artifacts/tests/trusted-lifecycle-focus-cancelled-6bf4c233-20261002/README.md).
+It is not a product failure or full15GREEN; the previous12liveGREEN remains
+the unchanged same-candidate live evidence.
+
+At a fresh immediate idle121/app absent/free-lock opportunity, focused owned
+replay85039/browser85048 actually restores the retained original session COPY
+with the trusted native preference pair. All three ORIGINAL restore predicates
+pass: G/H two columns in one second window distinct from Solo, exact six-site
+URL multiset (no duplicate), and precisely G/H in one native AXGroup. Uses the
+same old940x1235 baseline/layout thresholds and byte-identical sidebar parser,
+now shared by full journey and replay. All documents commit, NTP is explicitly
+retained in raw targets, no activation/HID/drag; native close/browser0,
+cleanup complete, original SNSS unchanged, locks released, no active Ahoi job.
+[Exact candidate/tools/AX/DOM/source-bound3GREEN](../artifacts/tests/focused-installed-split-restore-green-6bf4c233-20261002/README.md).
+Historical3RED is preserved; distinct12live/3targeted passes are NOT labelled
+as one uninterrupted15/15 run. No product rebuild, mock or protection bypass.
+
+Next concrete scope: corrected installed split matrix including no-DevTools
+Ahoi Continue and native geometry/ratios/focus, then archive/auto-archive and
+Devtoolkit/settings. Future full-run input manifests must include the new
+`tools/desktop_e2e/split_sidebar_group.py` dependency. Fresh resource/input/
+ownership gates still precede GUI work; never repeat already passed native or
+live12 without changed scope. Full original Master/worker/Sync/Mobile/external/
+release gates remain active/open, normal installed source6bf4c233 unchanged.
+
 ## Corrected installed split lifecycle actually running — 2 October 2026
 
 After independent source progress, a fresh immediate check sees idle119,

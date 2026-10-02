@@ -1,0 +1,1 @@
+sidebar group ['PaneG', 'PaneH']: found=['PaneG', 'PaneH'] parent='AXGroup' members=2 -> True

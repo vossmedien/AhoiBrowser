@@ -1,0 +1,37 @@
+frontmost -> 0
+hidkey 17
+typed 28
+hidkey 36
+baseline 940x1235
+hidkey 17
+typed 28
+hidkey 36
+hidkey 48
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+hidclicked  at (974.0, 205.0)
+hidkey 18
+{"result":{"type":"number","value":1,"description":"1"}}
+
+AXPress AXButton | Popup im Split View öffnen | Popup im Split View öffnen -> 0
+hidkey 18
+{"result":{"type":"number","value":1,"description":"1"}}
+
+AXPress AXButton | Popup im Split View öffnen | Popup im Split View öffnen -> 0
+hidkey 18
+hidkey 13
+⌘⌃W on PaneA: layout=three-columns visible=PaneB,PaneC,PaneD all=PaneB,PaneC,PaneD,Solo
+closePaneTo3 -> true
+hidkey 18
+hidkey 13
+⌘⌃W on PaneB: layout=two-columns visible=PaneC,PaneD all=PaneC,PaneD,Solo
+closePaneTo2 -> true
+hidkey 18
+hidkey 13
+⌘⌃W on PaneC: layout=single visible=PaneD all=PaneD,Solo
+closePaneTo1 -> true
+sidebar group ['PaneD']: found=['PaneD'] parent='AXTabGroup | Geöffnete Tabs | Geöffnete Tabs' members=2 -> False
+lastPaneIsNormalRow -> true
+hidkey 17
+typed 28
+info: typed text missing, retyping
+owner focus returned elsewhere; yielding without activation or HID

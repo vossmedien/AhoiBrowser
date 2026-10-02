@@ -1,0 +1,24 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "installedBuild": 71,
+  "pass": true,
+  "scope": "original three installed lifecycle restore assertions only",
+  "assertions": {
+    "restoredSecondWindowSplit": true,
+    "restoredWithoutPhantomTabs": true,
+    "restoredSecondWindowOneRow": true
+  },
+  "installedInfoSha256": "0ec8dafc1208f7254addb43235951ff4e76e7133db083fb34670738ae49020cf",
+  "rawDirectory": "artifacts/computer-use/m154/focused-lifecycle-restore-6bf4c233-20261002T051912Z",
+  "filesSha256": {
+    "state.json": "bdc3c32a561a0cbab9646562a9c44c4d98b830e8e9b376738dad5be0279600a4",
+    "browser.log": "bac7d79d8ac6d992a0375328b3feabe29b42c5119ed49e4d6f99b30a9790b4de",
+    "site.log": "a8310b7f875d575fcec05c744a0bf7f4198c6b42a7ee15991b6a3dd99f4020b1",
+    "restore-targets.json": "6b095ec5c923d2ef1797a65e5108a60085f27311e0fb9e4fa35d47ebe0f96f6b",
+    "restore-documents.json": "a5c4dc65c87a91cb07dbe0d52f16a6f550e02a29added21001b42a240804cc6d",
+    "restore-sidebar.txt": "f0f8b8e97229592d461cce296255e87a8d1a513fa9839ff564f81f556e3869dd",
+    "restore-sidebar-group.txt": "378b7f39fd252a2bb3e51f432315349fc7df1f90c755a0ceb943c3c0fe843388"
+  },
+  "previousLiveEvidence": "artifacts/tests/installed-lifecycle-restore-red-6bf4c233-20261002",
+  "singleFullJourneyPassClaimed": false
+}

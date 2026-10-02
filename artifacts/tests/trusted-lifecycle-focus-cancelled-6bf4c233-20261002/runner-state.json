@@ -1,0 +1,25 @@
+{
+  "runnerPid": 79391,
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "phase": "complete",
+  "startedAt": "2026-10-02T05:12:52.118210+00:00",
+  "journey": "split-lifecycle-trusted",
+  "waitDeadlineSeconds": 0,
+  "idleSeconds": 119,
+  "appRunning": false,
+  "compilerRunning": false,
+  "output": "artifacts/computer-use/m154/split-lifecycle-trusted-installed-6bf4c233-20261002T051252Z",
+  "inputSha256": {
+    "tools/desktop_e2e/split-lifecycle-journey.sh": "d78a6ebaf0ce9ab66cd44f0ac32fc3e52c17762650e1ac95ed71e54fbf44afc1",
+    "tools/desktop_e2e/split_journey_lib.sh": "1c2b92936db642baac28876fff2a2cfad274c3b208f4fe9731f71f874b2a2a7a",
+    "tools/desktop_e2e/cdp.mjs": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+    "tools/desktop_e2e/axtool.swift": "456cb3db10c6e52911f7a4b57cafd5771ae775b6441c6c6ef636eabd894371ec"
+  },
+  "journeyPid": 79396,
+  "exitCode": 8,
+  "verdict": {
+    "cancelled": "owner focus returned elsewhere",
+    "pass": false
+  },
+  "ownedRootsRemain": []
+}

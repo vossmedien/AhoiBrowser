@@ -9,6 +9,7 @@ import json
 import os
 import pathlib
 import plistlib
+import re
 import shutil
 import subprocess
 import tempfile
@@ -32,6 +33,8 @@ def main():
                         help='observe/update the copied profile through native settings API')
     parser.add_argument('--trusted-pref-receipt', type=pathlib.Path,
                         help='use the own synthetic native-setter profile preference pair')
+    parser.add_argument('--restore-lifecycle-receipt', type=pathlib.Path,
+                        help='verify just the original three restore assertions from retained evidence')
     args = parser.parse_args()
     # Never accept a normal browser/user profile as the replay source.
     retained = args.retained_profile.resolve()
@@ -49,6 +52,34 @@ def main():
         (args.output / 'state.json').write_text(json.dumps(state, indent=2) + '\n')
     save()
     assert plistlib.loads((args.app / 'Contents/Info.plist').read_bytes())['AhoiSourceCommit'] == args.source
+    restore_expectations = None
+    if args.restore_lifecycle_receipt:
+        assert args.trusted_pref_receipt and not args.trusted_pref_probe
+        prior = json.loads(args.restore_lifecycle_receipt.read_text())
+        assert prior['candidate'] == args.source
+        assert any(r['name'] == args.session_file and r['sha256'] == state['retainedSessionSha256']
+                   for r in prior['sessionEvidence'])
+        root = pathlib.Path(__file__).resolve().parents[2]
+        raw = (root / prior['rawDirectory']).resolve()
+        assert raw.is_relative_to(root / 'artifacts/computer-use/m154')
+        steps = raw / 'steps.txt'
+        baseline = raw / 'snap-1-base.txt'
+        for file in [steps, baseline]:
+            assert hashlib.sha256(file.read_bytes()).hexdigest() == prior['rawSha256'][file.name]
+        files = re.search(r'^before quit: (.+)$', steps.read_text(), re.MULTILINE).group(1).split()
+        base = next(json.loads(line.split('|', 2)[2]) for line in baseline.read_text().splitlines()
+                    if json.loads(line.split('|', 2)[2])['t'] == 'PaneA')
+        restore_expectations = dict(files=files, width=base['w'], height=base['h'])
+        assert 'g.html' in files and 'h.html' in files and 'solo.html' in files
+        ax_source = pathlib.Path(__file__).with_name('axtool.swift')
+        ax = pathlib.Path('/private/tmp/ahoi-axtool')
+        assert ax.is_file() and ax.stat().st_mtime >= ax_source.stat().st_mtime
+        state.update(restoreExpectations=restore_expectations,
+                     restoreReceiptSha256=hashlib.sha256(args.restore_lifecycle_receipt.read_bytes()).hexdigest(),
+                     axSourceSha256=hashlib.sha256(ax_source.read_bytes()).hexdigest(),
+                     axBinarySha256=hashlib.sha256(ax.read_bytes()).hexdigest(),
+                     sidebarHelperSha256=hashlib.sha256(pathlib.Path(__file__).with_name('split_sidebar_group.py').read_bytes()).hexdigest())
+        save()
     locks = [args.lock_directory / n for n in ('build.lock', 'e2e.lock', 'h3.lock')]
     state.update(idleSeconds=idle_seconds(), appRunning=app_running(args.app))
     if state['idleSeconds'] < 90 or state['appRunning'] or any(p.exists() for p in locks):
@@ -178,6 +209,59 @@ def main():
             time.sleep(1)
         if args.trusted_pref_probe and 'nativePrefAfter' not in state:
             raise RuntimeError('native preference probe did not obtain a settings readback')
+        if restore_expectations:
+            # Read only owned targets and native AX; no activation, key or drag.
+            def owner_check():
+                if idle_seconds() < 2 or app_running(args.app, exclude_pid=browser.pid):
+                    raise RuntimeError('owner input/app returned during restore assertions')
+            def cdp_call(target, method, params):
+                owner_check()
+                result = subprocess.run(['node', str(pathlib.Path(__file__).with_name('cdp.mjs')),
+                            '9431', target, method, json.dumps(params)],
+                            capture_output=True, text=True, timeout=12)
+                data = json.loads(result.stdout)
+                if result.returncode or 'error' in data or 'exceptionDetails' in data:
+                    raise RuntimeError('restore capture protocol failed: ' + method)
+                return data
+            rows = []
+            site_prefix = 'http://127.0.0.1:8827/'
+            (args.output / 'restore-targets.json').write_text(json.dumps(targets, indent=2) + '\n')
+            for target in targets:
+                if target.get('type') != 'page' or not target.get('url', '').startswith(site_prefix):
+                    continue
+                sample = cdp_call(target['id'], 'Runtime.evaluate', dict(
+                    expression='({t:document.title,w:innerWidth,h:innerHeight,v:document.visibilityState,href:location.href,ready:document.readyState})',
+                    returnByValue=True))['result']['value']
+                sample.update(id=target['id'], url=target['url'],
+                              win=cdp_call(target['id'], 'Browser.getWindowForTarget', {})['windowId'])
+                rows.append(sample)
+            (args.output / 'restore-documents.json').write_text(json.dumps(rows, indent=2) + '\n')
+            owner_check()
+            dump = subprocess.run([str(ax), 'dump', str(browser.pid), '40'],
+                                  capture_output=True, text=True, timeout=12)
+            assert dump.returncode == 0
+            ax_file = args.output / 'restore-sidebar.txt'
+            ax_file.write_text(dump.stdout)
+            group = subprocess.run(['python3', str(pathlib.Path(__file__).with_name('split_sidebar_group.py')),
+                                    str(ax_file), 'PaneG', 'PaneH'], capture_output=True, text=True, timeout=5)
+            (args.output / 'restore-sidebar-group.txt').write_text(group.stdout + group.stderr)
+            g = next((r for r in rows if r['t'] == 'PaneG'), None)
+            h = next((r for r in rows if r['t'] == 'PaneH'), None)
+            solo = next((r for r in rows if r['t'] == 'Solo'), None)
+            panes = [r for r in rows if g and r['win'] == g['win'] and r['t'] != 'Solo']
+            # Same hidden-pane layout predicate and baseline as the original q.
+            two_columns = (len(panes) == 2 and
+                sum(r['h'] / restore_expectations['height'] > 0.8 for r in panes) == 2 and
+                sum(r['w'] / restore_expectations['width'] > 0.8 for r in panes) == 0)
+            state['restoreChecks'] = dict(
+                restoredSecondWindowSplit=bool(g and h and solo and g['win'] == h['win'] and solo['win'] != g['win'] and two_columns),
+                restoredWithoutPhantomTabs=sorted(r['url'].removeprefix(site_prefix) for r in rows) == sorted(restore_expectations['files']),
+                restoredSecondWindowOneRow=group.returncode == 0)
+            state['restoreVerdictPass'] = all(state['restoreChecks'].values())
+            state['restoreAcceptanceScope'] = 'original three installed lifecycle restore assertions only'
+            assert all(r['ready'] == 'complete' and r['href'] == r['url'] for r in rows)
+            owner_check()
+            save()
         target = next((t for t in targets if t.get('type') == 'page'), None)
         if target:
             result = subprocess.run(['node', str(pathlib.Path(__file__).with_name('cdp.mjs')), '9431',
@@ -198,7 +282,9 @@ def main():
         save()
         if lock.exists() and lock.stat().st_ino == inode:
             lock.unlink()
-    return 0 if state['phase'] == 'complete' else 4
+    if state['phase'] != 'complete':
+        return 4
+    return 1 if state.get('restoreVerdictPass') is False else 0
 
 
 if __name__ == '__main__':
