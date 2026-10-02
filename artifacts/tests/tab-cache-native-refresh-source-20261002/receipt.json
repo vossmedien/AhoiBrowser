@@ -1,0 +1,73 @@
+{
+  "time": "2026-10-02T11:23:01.489939+00:00",
+  "baseCommit": "e656d002",
+  "previousTabCachePackage": "929c2b29",
+  "installedCandidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "chromiumBase": "f89f3a4363808e117c592adedcf9947882ac3b79",
+  "scope": "native current-document/dedicated-worker factory refresh and cache reload cancellation source correction",
+  "nativeAcceptance": false,
+  "newRegressionsWritten": {
+    "mojo": 2,
+    "browser": 1
+  },
+  "newRegressionsExecuted": 0,
+  "syntaxCommandsPrepared": 10,
+  "syntaxCommandsExecuted": 0,
+  "orderedCompositionPass": true,
+  "orderedCompositionSha256": "d2e6901b242416426b2c10b93e94d4d0cc3ef1180be6a14814efaa03622ed41f",
+  "sourcesSha256": {
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/BUILD.gn": "b0b9bd15748ebb8947af0f8eeb86344518a615fc71d2001c92f629d9fa3801af",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_profile_runtime_store.cc": "54ebf875812ad17f2619c3fd37432c08f7ceb7abe3ad325f68c68d7c77f5b120",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_toolkit_action_executor.cc": "2fadad1161f397783bcd3cfc0da56d9d03f2f3640c109aa02484f2d71d527d83",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_revocation_unittest.cc": "a69ce77d8e7324e1d001e1519dca0309a7a6a376e7f3e65653df8bb6beb14d31",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_worker_browsertest.cc": "d2562f12244ef271a6d9c5fbf3bd92f58d73654b8951486fde9e351716014568",
+    "patches/chromium/0093-ahoi-native-document-factory-refresh.patch": "5450e71cbc4d9d3934109dba36577e6db9c8b853a848fd4956f73f39ddac96ff",
+    "patches/chromium/series": "03ad697b3e277638de27d5bbc14d532c9f8a06bfe95bb0f69ccec81b64c1eb1b"
+  },
+  "privateNativeFilesSha256": {
+    "content/browser/BUILD.gn": "20cdf141f3fb84d692082f24dafa9e55ff6157f1aeec9c9a061cacfeaf7776ac",
+    "content/public/browser/BUILD.gn": "d987a9288dee8276369733639da6c3aa874b7cfa7b5c52d638d8739f08536368",
+    "content/public/browser/document_loader_factory_refresh.h": "6a846bdd444350eb927ec7834cc67c2c2de3c5e1c3189e93f0c64de296a408f6",
+    "content/browser/renderer_host/document_loader_factory_refresh.cc": "8bbb0095120323d2fa5875e6c31b4dfd2179b1e1ecc3a7276c9e9903425a4f89"
+  },
+  "syntaxPlanSha256": "5fa2cc2c43982016c566174c2adaf29b96b5b3be7424a15166acb59f49be500a",
+  "capacityDeferrals": [
+    {
+      "statePath": ".work/agent-queue/tab-cache-syntax-20261002T110551Z/state.json",
+      "stateSha256": "a88db22060a049807db7a6ecdb114f12f55ccbddc241d5fc85900a7eede5b5d3",
+      "phase": "deferred-capacity",
+      "capacity": [
+        {
+          "phase": "developer_profile_runtime_store.cc",
+          "time": "2026-10-02T13:05:53.966160+02:00",
+          "idlePercent": 47.26,
+          "memoryPressure": 1,
+          "foreignCompiler": true,
+          "locks": []
+        }
+      ],
+      "compilerInvocations": 0,
+      "ownLockReleased": true
+    },
+    {
+      "statePath": ".work/agent-queue/tab-cache-refresh-syntax-20261002T112117Z/state.json",
+      "stateSha256": "fd36621583fe9389314a7e26fd8a5c95ef19668fa2dbe339503b6684234af0a6",
+      "phase": "deferred-capacity",
+      "capacity": [
+        {
+          "time": "2026-10-02T13:21:19.609790+02:00",
+          "name": "developer_profile_runtime_store.cc",
+          "idlePercent": 27.88,
+          "memoryPressure": 1,
+          "foreignCompilers": 0
+        }
+      ],
+      "compilerInvocations": 0,
+      "ownLockReleased": true
+    }
+  ],
+  "checkoutRefresh": false,
+  "buildRun": false,
+  "appInstallOrLaunch": false,
+  "goalsUnchanged": true
+}

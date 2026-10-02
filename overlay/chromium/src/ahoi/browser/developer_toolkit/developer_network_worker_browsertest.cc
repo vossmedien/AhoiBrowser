@@ -6,14 +6,22 @@
 #include <string>
 
 #include "ahoi/browser/developer_toolkit/developer_profile_store.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "base/functional/bind.h"
+#include "base/functional/callback_helpers.h"
+#include "base/run_loop.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
 #include "components/prefs/pref_service.h"
+#include "components/javascript_dialogs/app_modal_dialog_controller.h"
+#include "components/javascript_dialogs/app_modal_dialog_view.h"
+#include "content/public/browser/navigation_controller.h"
+#include "content/public/browser/render_frame_host.h"
+#include "content/public/browser/web_contents.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
 #include "net/http/http_status_code.h"
@@ -77,11 +85,11 @@ class DeveloperNetworkWorkerBrowserTest : public InProcessBrowserTest {
     }
     return response;
   }
-  void Configure(bool enabled) {
+  void Configure(bool enabled, bool cache_disabled = true) {
     auto* prefs = browser()->GetProfile()->GetPrefs();
     prefs->SetBoolean(developer_toolkit_prefs::kToolkitEnabled, enabled);
     DeveloperProfile profile{.name = "Native worker network fixture"};
-    profile.cache_disabled = true;
+    profile.cache_disabled = cache_disabled;
     profile.header_rules_enabled = true;
     profile.header_rules.push_back({.name = "X-Ahoi-Dev", .value = "configured"});
     profile.response_header_rules_enabled = true;
@@ -103,11 +111,75 @@ class DeveloperNetworkWorkerBrowserTest : public InProcessBrowserTest {
       });
     )JS", target.spec())).ExtractString();
   }
+  std::string RunExistingWorker() {
+    auto* contents = browser()->tab_strip_model()->GetActiveWebContents();
+    return content::EvalJs(contents, R"JS(
+      new Promise((resolve, reject) => {
+        window.cacheWorker.onmessage = event => resolve(event.data);
+        window.cacheWorker.onerror = () => reject('worker failed');
+        window.cacheWorker.postMessage('/worker-cache');
+      });
+    )JS").ExtractString();
+  }
 
   std::atomic<int> own_requests_ = 0;
   std::atomic<int> foreign_requests_ = 0;
   net::EmbeddedTestServer foreign_;
 };
+
+IN_PROC_BROWSER_TEST_F(DeveloperNetworkWorkerBrowserTest,
+                       TabCacheRefreshSurvivesCancelledReloadAndKeepsWorker) {
+  Configure(true, false);
+  auto* contents = browser()->tab_strip_model()->GetActiveWebContents();
+  auto* helper = DeveloperProfileTabHelper::FromWebContents(contents);
+  ASSERT_TRUE(helper);
+  auto* prefs = browser()->GetProfile()->GetPrefs();
+  const auto saved = prefs->GetDict(kDeveloperProfilesPref).Clone();
+  const auto navigation = contents->GetPrimaryMainFrame()->GetNavigationId();
+  ASSERT_TRUE(content::ExecJs(contents, R"JS(
+    window.cacheWorker = new Worker('/worker.js');
+    window.fixtureDraft = 'keep this synthetic draft';
+    window.onbeforeunload = event => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+  )JS"));
+  base::ScopedClosureRunner fixture_cleanup(base::BindOnce(
+      [](base::WeakPtr<content::WebContents> live) {
+        if (live && !live->IsBeingDestroyed()) {
+          EXPECT_TRUE(content::ExecJs(live.get(), R"JS(
+            window.onbeforeunload = null;
+            if (window.cacheWorker) window.cacheWorker.terminate();
+          )JS"));
+        }
+      }, contents->GetWeakPtr()));
+  EXPECT_EQ("1|configured;1|configured;present", RunExistingWorker());
+  EXPECT_EQ(1, own_requests_);
+  content::PrepContentsForBeforeUnloadTest(contents);
+  ASSERT_TRUE(helper->SetCacheDisabledForCurrentTab(true));
+  contents->GetController().Reload(content::ReloadType::NORMAL, true);
+  auto* dialog = ui_test_utils::WaitForAppModalDialog();
+  ASSERT_TRUE(dialog);
+  dialog->view()->CancelAppModalDialog();
+  base::RunLoop().RunUntilIdle();
+  EXPECT_EQ(navigation, contents->GetPrimaryMainFrame()->GetNavigationId());
+  EXPECT_EQ("keep this synthetic draft",
+            content::EvalJs(contents, "window.fixtureDraft"));
+  EXPECT_TRUE(helper->IsCacheDisabledForCurrentTab());
+  EXPECT_EQ(saved, prefs->GetDict(kDeveloperProfilesPref));
+  // Same already-created worker and same document: neither is recreated by
+  // the cancelled reload. Both existing header directions must still work.
+  EXPECT_EQ("2|configured;3|configured;present", RunExistingWorker());
+  EXPECT_EQ(3, own_requests_);
+  ASSERT_TRUE(content::ExecJs(contents, "window.onbeforeunload = null"));
+  ASSERT_TRUE(helper->SetCacheDisabledForCurrentTab(false));
+  base::RunLoop().RunUntilIdle();
+  EXPECT_EQ("1|configured;1|configured;present", RunExistingWorker());
+  EXPECT_EQ(3, own_requests_);
+  EXPECT_EQ(saved, prefs->GetDict(kDeveloperProfilesPref));
+  EXPECT_EQ(navigation, contents->GetPrimaryMainFrame()->GetNavigationId());
+  ASSERT_TRUE(content::ExecJs(contents, "window.cacheWorker.terminate()"));
+}
 
 IN_PROC_BROWSER_TEST_F(DeveloperNetworkWorkerBrowserTest,
                        DedicatedWorkerUsesParentRulesAndCacheOptIn) {

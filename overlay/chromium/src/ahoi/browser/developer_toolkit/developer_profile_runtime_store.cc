@@ -18,6 +18,8 @@
 #include "components/prefs/pref_service.h"
 #include "components/user_prefs/user_prefs.h"
 #include "content/public/browser/browser_context.h"
+#include "content/public/browser/document_loader_factory_refresh.h"
+#include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/web_contents.h"
 
 namespace ahoi {
@@ -343,12 +345,26 @@ bool DeveloperProfileTabHelper::SetCacheDisabledForCurrentTab(bool disabled) {
     return true;
   }
   cache_disabled_for_tab_ = disabled;
-  // A late request/secret response from the old setting cannot regain approval
-  // after off/on. The action reloads through Chromium to create a new native
-  // factory; this helper never creates a cache or background process.
+  // Retire in-flight approvals without rolling back the generation. Renew the
+  // current document's native factories before requesting a reload: Chromium's
+  // before-unload/repost dialog can keep this same document alive.
   ++activation_generation_;
   ClearDeveloperProfileNavigationRequest(*web_contents());
-  UpdateDeveloperProfileNetworkState(*web_contents(), GURL(), std::nullopt);
+  const GURL committed_url = web_contents()->GetLastCommittedURL();
+  UpdateDeveloperProfileNetworkState(
+      *web_contents(), committed_url,
+      GetDeveloperNetworkProfileForTab(prefs_, web_contents(), committed_url));
+  if (auto* main_frame = web_contents()->GetPrimaryMainFrame()) {
+    main_frame->ForEachRenderFrameHostWithAction(
+        [this](content::RenderFrameHost* frame) {
+          // Inner WebContents retain their own native context and policy.
+          if (content::WebContents::FromRenderFrameHost(frame) != web_contents()) {
+            return content::RenderFrameHost::FrameIterationAction::kSkipChildren;
+          }
+          content::RecreateDocumentSubresourceLoaderFactories(*frame);
+          return content::RenderFrameHost::FrameIterationAction::kContinue;
+        });
+  }
   return true;
 }
 

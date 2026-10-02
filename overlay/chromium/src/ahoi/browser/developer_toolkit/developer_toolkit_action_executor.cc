@@ -142,8 +142,8 @@ DeveloperActionResult DeveloperActionExecutor::Execute(
         executed = helper->SetCacheDisabledForCurrentTab(
             !helper->IsCacheDisabledForCurrentTab());
         if (executed) {
-          // A fresh native document factory receives the tab-only policy.
-          // Before-unload/repost still belong to Chromium and may veto reload.
+          // Existing document/worker factories already use the tab policy.
+          // Native before-unload/repost may veto reload without undoing it.
           web_contents->GetController().Reload(content::ReloadType::NORMAL, true);
         }
       }

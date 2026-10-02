@@ -262,6 +262,7 @@ source_set("browser_tests") {
     "//base/test:test_support",
     "//chrome/browser",
     "//chrome/test:test_support",
+    "//components/javascript_dialogs",
     "//content/public/browser",
     "//content/test:test_support",
     "//sandbox/policy/mojom",

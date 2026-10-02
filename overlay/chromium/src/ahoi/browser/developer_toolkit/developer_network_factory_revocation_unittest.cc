@@ -6,6 +6,62 @@
 namespace ahoi::test {
 
 TEST_F(DeveloperNetworkFactoryProxyTest,
+       TabCachePolicyRefreshPreservesCurrentDocumentHeadersWithoutNavigation) {
+  profile_.cache_disabled = false;
+  Save();
+  const auto navigation = contents_->GetPrimaryMainFrame()->GetNavigationId();
+  const auto before = prefs_.GetDict(kDeveloperProfilesPref).Clone();
+  const auto generation = helper_->activation_generation();
+  ASSERT_TRUE(helper_->SetCacheDisabledForCurrentTab(true));
+  EXPECT_GT(helper_->activation_generation(), generation);
+  EXPECT_EQ(navigation, contents_->GetPrimaryMainFrame()->GetNavigationId());
+  EXPECT_EQ(before, prefs_.GetDict(kDeveloperProfilesPref));
+  auto factory = Build();
+  ClientSink client;
+  Load(*factory, client, Request());
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_NE(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+  EXPECT_EQ("configured", terminal_->seen[0].headers.GetHeader("X-Ahoi-Dev"));
+  terminal_->loaders[0]->Respond();
+  environment_.RunUntilIdle();
+  ASSERT_TRUE(client.head);
+  EXPECT_EQ("present", client.head->headers->GetNormalizedHeader("X-Ahoi-Response"));
+  terminal_->loaders[0]->Complete();
+  environment_.RunUntilIdle();
+  EXPECT_EQ(net::OK, client.completed);
+
+  ASSERT_TRUE(helper_->SetCacheDisabledForCurrentTab(false));
+  factory = Build();
+  ClientSink restored;
+  Load(*factory, restored, Request());
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_EQ(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+  EXPECT_EQ("configured", terminal_->seen[0].headers.GetHeader("X-Ahoi-Dev"));
+  EXPECT_EQ(navigation, contents_->GetPrimaryMainFrame()->GetNavigationId());
+  EXPECT_EQ(before, prefs_.GetDict(kDeveloperProfilesPref));
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       TabCacheOffOnCannotReapproveAlreadyDispatchedResponse) {
+  profile_.cache_disabled = false;
+  Save();
+  auto factory = Build();
+  ClientSink old_request;
+  Load(*factory, old_request, Request());
+  ASSERT_EQ(1u, terminal_->loaders.size());
+  ASSERT_TRUE(helper_->SetCacheDisabledForCurrentTab(true));
+  ASSERT_TRUE(helper_->SetCacheDisabledForCurrentTab(false));
+  terminal_->loaders[0]->Respond();
+  environment_.RunUntilIdle();
+  ASSERT_TRUE(old_request.head);
+  EXPECT_FALSE(old_request.head->headers->HasHeader("X-Ahoi-Response"));
+  EXPECT_EQ("kept", old_request.head->headers->GetNormalizedHeader("X-Native"));
+  terminal_->loaders[0]->Complete();
+  environment_.RunUntilIdle();
+  EXPECT_EQ(net::OK, old_request.completed);
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
        MasterDisableAfterDispatchLeavesResponseHeadersNative) {
   auto factory = Build();
   ClientSink client;

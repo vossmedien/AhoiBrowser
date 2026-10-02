@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+## Tab-cache cancellation source correction; native renewal, UNBUILT — 2 October 2026
+
+Source fixes the929c2b29 gap below: helper generation advances, committed
+network-only snapshot is replaced, then the current document's native factories
+and its registered dedicated workers are refreshed before native Reload.
+Cancellation retains the document/draft/worker and the explicit tab policy;
+no generation rollback or stale-request approval. Additive ordered patch0093
+exports a small Content seam using native builders/global frame identity and
+active/live checks. Existing RenderFrameHost headers/vtable stay unchanged;
+helper traversal excludes inner WebContents. No shared/service-worker owner,
+cache database, script replay, origin Pref, permission or secret persistence.
+[Exact source/package and remaining proof](../artifacts/tests/tab-cache-native-refresh-source-20261002/README.md).
+
+Two Mojo and one native browser regressions WRITTEN, NOT compiled/run. Browser
+case covers native reload cancellation, same document/draft/long-lived worker,
+cache counters, both header directions, unchanged Prefs and returning to warm
+native cache. Final ordered composition against f89f3a43 PASS. Ten pinned actual
+target syntax commands prepared on corrected immutable private snapshotv2,
+none executed. Earlier5393 exit2 at live foreign compiler; latest35028 exit2
+at27.88%CPU idle/pressure1 before any compiler, own source-check lock released.
+The latter guard measures aggregate headroom, admits at most one own syntax
+process and requires >=30%CPU idle/pressure1; no compiler/output/build started.
+Private state: `.work/agent-queue/tab-cache-refresh-syntax-20261002T112117Z/`.
+Previous seven-command929c2b29 plan remains historical, not this corrected input.
+
+Next source action: corrected10-command serial syntax at fresh capacity, then
+guarded coherent candidate and affected installed visible flows BEFORE required
+focused regression. Archive9/protection6 remain first free installed71 GUI work;
+fresh input0 previously kept it held. Installed71/6bf4c233 unchanged, no source
+refresh/app/test/install/API/release. Crest106/110 reviewed for this packet, no
+product delta to apply, their separate H3 lease remains deferred. Preserve full
+original Master/Mobile/Sync/external/release/ownership and all historical proof.
+
 ## User-authorized host cleanup; tab-cache cancellation finding — 2 October 2026, 13:02 CEST
 
 User requested closing unused workloads. Gracefully stopped the idle
