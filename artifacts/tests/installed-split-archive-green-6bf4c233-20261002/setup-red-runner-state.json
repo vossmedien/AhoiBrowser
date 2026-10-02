@@ -1,0 +1,30 @@
+{
+  "runnerPid": 89889,
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "phase": "complete",
+  "startedAt": "2026-10-02T08:08:20.670576+00:00",
+  "journey": "split-archive",
+  "waitDeadlineSeconds": 0,
+  "idleSeconds": 99,
+  "appRunning": false,
+  "compilerRunning": false,
+  "output": "artifacts/computer-use/m154/split-archive-installed-6bf4c233-20261002T080820Z",
+  "inputSha256": {
+    "tools/desktop_e2e/split-archive-restore-journey.sh": "48ca7e423d87f26ab5b41cef08e8c7ff742bc00792540e5bb896b2205cd32b56",
+    "tools/desktop_e2e/split_journey_lib.sh": "c86f9d0fbe7775a866399cc536c1a7ef1fe09cc2c9007e70d681ae7d6cab2a83",
+    "tools/desktop_e2e/cdp.mjs": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+    "tools/desktop_e2e/axtool.swift": "05480adb28214085b330fd95d9a98e4e6bd36e76b5c1a85884a60bebed5eecbd",
+    "tools/desktop_e2e/archive_focus_guard.sh": "bf8a004de7eaf38cc8fd9650fe93d46947652a22ec0600eda7f8f96fec50a6f9"
+  },
+  "journeyPid": 89894,
+  "exitCode": 1,
+  "verdict": {
+    "results": {
+      "split_created": "PASS",
+      "split_archived": "FAIL",
+      "archive_lists_split": "FAIL"
+    },
+    "pass": false
+  },
+  "ownedRootsRemain": []
+}

@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Installed split archive/restore5 GREEN — 2 October 2026
+
+Archive fixture now uses the already verified current native picker/shared
+document/ownership/menu helpers instead of the old blank-pane assumption.
+Initial archive89889/89894 has split creationPASS but incorrect partial Solo
+AX name returns NOT FOUND; still-active split is protected and archive fails.
+Historical setupRED preserved, not blamed on product or weakened CanArchive.
+
+Corrected95116/journey95121 independently verifies exact native Solo label,
+committed visibleSolo + both membersHIDDEN before archive. Actual five semantics
+GREEN: complete split created/archived, both member titles PLUS actual Split
+archive metadata, successful original-place lazy restore, explicit native row
+open returns both visible pages. Exit0/all own roots terminal/lock released.
+[Exact source/tool/before-after/control/native AX/DOM proof](../artifacts/tests/installed-split-archive-green-6bf4c233-20261002/README.md).
+Missing already-closed notice button is recorded, not inferred as a performed
+close action; actual row open/visibility prove restoration. No real data change.
+
+Next concrete scope: installed automatic archive defaults/expiry/form and active
+protections/search/reason/restore/reset, then its remaining idempotence/restart/
+delete scopes and Devtoolkit/settings. Five scoped archive checks are not the
+complete archive/Sync/release/Master matrix. No build or native-suite repetition
+for this harness correction; installed71/6bf4c233 unchanged, all earlier scoped
+GREEN/source/rollback/rights/full original goal and ownership limits remain.
+
 ## Fully marked exact focus invariant now GREEN; archive scope next — 2 October 2026
 
 Actual71331/journey71336 completes marked form values + initial four-pane focus

@@ -1,0 +1,54 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "pass": true,
+  "scope": "five installed split archive/restore semantic checks",
+  "fullMasterPassClaimed": false,
+  "cases": {
+    "setup-red": {
+      "rawDirectory": "artifacts/computer-use/m154/split-archive-installed-6bf4c233-20261002T080820Z",
+      "exitCode": 1,
+      "verdict": {
+        "results": {
+          "split_created": "PASS",
+          "split_archived": "FAIL",
+          "archive_lists_split": "FAIL"
+        },
+        "pass": false
+      }
+    },
+    "green": {
+      "rawDirectory": "artifacts/computer-use/m154/split-archive-installed-6bf4c233-20261002T081236Z",
+      "exitCode": 0,
+      "verdict": {
+        "results": {
+          "split_created": "PASS",
+          "split_archived": "PASS",
+          "archive_lists_split": "PASS",
+          "restore_without_error": "PASS",
+          "restore_brings_split_back": "PASS"
+        },
+        "pass": true
+      }
+    }
+  },
+  "filesSha256": {
+    "setup-red-runner-state.json": "af929d24d39c3dd3601726b5cb36d588228c029dc3c4284b027bba77a64df6b5",
+    "setup-red-steps.txt": "e03ba49193525655a0380575f0ff6fbfbb5569b5d5d4541752503299e081ac6c",
+    "setup-red-run.txt": "9b602fbabae88e7893b83b1447374bccfea819ec181fe7ed7ac2f78bfbc6a223",
+    "setup-red-results.json": "0e66a09d3d44f022ce14851aba5a7fb94ad077b23d56b718597e78506cd46031",
+    "setup-red-launch-preflight.jsonl": "4a80996a905c9f4aa32a86ae8f5df3f66cdce80687ed6f6e1d5802c7eb94c41d",
+    "setup-red-ax-final.txt": "3972d71db033138c54c285135dd8e9a24ea610a6c38dc72d5f89a300a5cadea8",
+    "setup-red-snap-1-split-created.txt": "c3acae6e20e69b015b970daf864bc5bdca6d7ad004b22d6eadffdbac0e9de377",
+    "green-runner-state.json": "ad125f0f65bb9a6c9170440bac43130ca094e05df7560c1bf7ce88d388c83ec5",
+    "green-steps.txt": "88b5c2e7708c85cf67eeaec892645cfb4fb231b8576a80f9be2556e746bab3f1",
+    "green-run.txt": "7356fd19ce37a329f5eb6e953b3fd017e947be9b8506a6c2fb765996226d975e",
+    "green-results.json": "7ffc5cc01e85e32de42cec39185cd93ff47cbbec02d565de7f8c3ad78dd433d0",
+    "green-launch-preflight.jsonl": "2d40e5862889a1e703dc1157eb0fb2dd5b750508e58d43857041d873a8af5be4",
+    "green-archive-dialog.txt": "12a55b50c8a968154fb3fc708edbcef10586d7c23ad7ebb3831ef9c7d25f3fbe",
+    "green-after-restore.txt": "61070a67bfe270bd38595c6f06352f1f5ec9bc3a00b8598c0a69f6cc4f8a36e0",
+    "green-ax-final.txt": "091252282e909b91375733901c3e399d5865be87b3fd9643653d2827a88d7801",
+    "green-snap-1-split-created.txt": "8ba07cf2476262abc449f0db7ed6590fcda0a1f784b0f9ae05c6d93cf0d027a2",
+    "green-snap-3-split-restored.txt": "03b1cac5d3282a371a972070c8e829d1c2196b468a310707308f1aabc69fff83",
+    "green-snap-2-archive-control.txt": "38d61896fb86c39f48416215704c11254ba8ff7f28708edd79b9d9101304854e"
+  }
+}

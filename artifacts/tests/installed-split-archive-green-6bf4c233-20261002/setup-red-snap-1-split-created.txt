@@ -1,0 +1,3 @@
+97A20FF63E5C8A6A31A523C9771806E0|1626333759|{"t":"PaneB","w":465,"h":1235,"v":"visible","f":true,"m":"","val":""}
+8959C5657AF5C7B75F378E8D0B74F8B0|1626333759|{"t":"PaneA","w":465,"h":1235,"v":"visible","f":false,"m":"","val":""}
+316F72FB07DB0E8EE1CD58C1F7EFBD27|1626333759|{"t":"Solo","w":940,"h":1235,"v":"hidden","f":false,"m":"","val":""}

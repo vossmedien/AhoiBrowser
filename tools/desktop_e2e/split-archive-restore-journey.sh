@@ -1,157 +1,79 @@
 #!/bin/bash
-# usage: split-archive-restore-journey.sh <App.app> <outdir>
-# PID-scoped AX + CDP journey for crest handoff 034 (S2) and DoD 28: a live
-# two-pane split of temporary tabs is archived from its sidebar row and
-# restored at its original place; the split must come back as a split (both
-# panes visible at once). Run it on a candidate without 034 to reproduce the
-# defect and on one with 034 to accept the fix. Results: <outdir>/results.json.
+# Installed split archive/restore using the current native picker and shared guards.
+# Five original semantic checks, synthetic data only; no drag or native test claim.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd)
 AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9379; SITE_PORT=${AHOI_E2E_SITE_PORT:-8802}
-[ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
-idle_seconds() { ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'; }
-if [ "$(idle_seconds)" -lt "${AHOI_E2E_MIN_IDLE:-300}" ]; then
-  echo "owner active (idle $(idle_seconds)s); refusing to drive the desktop" >&2; exit 7
-fi
-if lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1; then echo "DevTools port $PORT busy" >&2; exit 6; fi
-mkdir -p "$OUT"; P=$(mktemp -d /private/tmp/ahoi-split-profile.XXXXXX); : > "$OUT/steps.txt"; : > "$OUT/results.txt"
-mkdir -p "$P-site"
-printf '<title>Ahoi split left</title><h1>left</h1>' > "$P-site/left.html"
-printf '<title>Ahoi split right</title><h1>right</h1>' > "$P-site/right.html"
-python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory "$P-site" > "$OUT/site.log" 2>&1 &
-SITE_PID=$!; SITE=http://127.0.0.1:$SITE_PORT
-"$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
-  --remote-debugging-port=$PORT "$SITE/left.html" > "$OUT/browser.log" 2>&1 &
-PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; echo "pid=$PID profile=$P" > "$OUT/run.txt"
-for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
-sleep 4
-. "$S/archive_focus_guard.sh"
-
-ax() {
-  archive_check_focus
-  if [ "$1" = activate ]; then archive_activate_owned; return $?; fi
-  if [ "$1" = key ]; then
-    shift; local pid=$1; shift
-    for attempt in 1 2 3 4 5; do
-      archive_activate_owned; sleep 0.3
-      "$AX" hidkey "$pid" "$@" >> "$OUT/steps.txt" 2>&1
-      local status=$?
-      [ "$status" = 0 ] && return 0
-      [ "$status" != 8 ] || archive_yield_focus
-      sleep 1
-    done
-    echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
-  fi
-  "$AX" "$@" >> "$OUT/steps.txt" 2>&1
-}
-record() { echo "$1 $2" >> "$OUT/results.txt"; echo "== $1 $2" >> "$OUT/steps.txt"; }
-CDP() { node "$S/cdp.mjs" $PORT "$@"; }
-waitax() { local end=$(( $(date +%s) + $2 ))
-  while [ $(date +%s) -lt $end ]; do "$AX" dump $PID 40 | grep -q -E "$1" && return 0; sleep 1; done; return 1; }
-# Titles of all page targets whose document is visible right now.
-visible_titles() {
-  curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;[print(t["id"]) for t in json.load(sys.stdin) if t["type"]=="page"]' | while read -r id; do
-    CDP "$id" Runtime.evaluate '{"expression":"document.visibilityState===\"visible\"?document.title:\"\"","returnByValue":true}' \
-      | python3 -c 'import json,sys;v=json.load(sys.stdin).get("result",{}).get("value","");v and print(v)'
-  done | sort | tr '\n' '|'
-}
-both_visible() { case "$(visible_titles)" in *"Ahoi split left"*"Ahoi split right"*) return 0 ;; *) return 1 ;; esac; }
-finish() {
-  "$AX" dump $PID 45 > "$OUT/ax-final.txt"
-  ax key $PID 12 cmd; sleep 5
-  python3 - "$OUT/results.txt" > "$OUT/results.json" <<'PY'
-import json,sys
-rows=dict(l.split(None,1) for l in open(sys.argv[1]) if l.strip())
-rows={k:v.strip() for k,v in rows.items()}
-print(json.dumps({"results":rows,"pass":all(v=="PASS" for v in rows.values())},indent=1))
-PY
-  cat "$OUT/results.json"
-  python3 - "$OUT/results.json" <<'PY'
+. "$S/split_journey_lib.sh"
+: > "$OUT/results.txt"
+record_archive() { echo "$1 $2" >> "$OUT/results.txt"; echo "$1 -> $2" >> "$OUT/steps.txt"; }
+finish_archive() {
+  $AX dump $PID 40 > "$OUT/ax-final.txt"
+  quit
+  python3 - "$OUT/results.txt" > "$OUT/results.json" <<'PYRESULT'
 import json, sys
-with open(sys.argv[1]) as file:
-    verdict = json.load(file)
-sys.exit(0 if verdict.get('pass') is True else 1)
-PY
+rows = dict(line.strip().split(' ', 1) for line in open(sys.argv[1]) if line.strip())
+print(json.dumps({'results': rows, 'pass': len(rows) == 5 and all(value == 'PASS' for value in rows.values())}, indent=2))
+PYRESULT
+  cat "$OUT/results.json"
+  python3 - "$OUT/results.json" <<'PYEXIT'
+import json, sys
+sys.exit(0 if json.load(open(sys.argv[1])).get('pass') is True else 1)
+PYEXIT
   exit "$?"
 }
-
-# 1 Split the active page with a new pane via the native Tab menu, then load
-# the right page into the new (blank) pane.
-ax activate $PID; sleep 1
-ITEM=$("$AX" dump $PID 45 | grep -o -E 'AXMenuItem \| [^|]*(geteilte[rn]? Ansicht|[Ss]plit [Vv]iew)[^|]*' | head -1 | sed 's/^AXMenuItem | //; s/ *$//')
-echo "split menu item: $ITEM" >> "$OUT/steps.txt"
-[ -n "$ITEM" ] && ax press $PID "AXMenuItem:$ITEM"; sleep 3
-NEW=$(curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys
-t=[x for x in json.load(sys.stdin) if x["type"]=="page" and "left.html" not in x["url"]]
-print(t[0]["id"] if t else "")')
-[ -n "$NEW" ] && CDP "$NEW" Page.navigate "{\"url\":\"$SITE/right.html\"}" >> "$OUT/steps.txt"
-sleep 4
-both_visible && record split_created PASS || { record split_created FAIL; finish; }
-# Active tabs are never archived; bring a third tab forward first so the
-# split is a background split like the one a user archives.
-curl -s -X PUT "http://127.0.0.1:$PORT/json/new?about:blank" > /dev/null; sleep 3
-"$AX" dump $PID 45 > "$OUT/ax-split.txt"
-
-# 2 Archive the split from its sidebar row.
-ROW=$(grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Ahoi split left[^|]*' "$OUT/ax-split.txt" | head -1 | sed -E 's/ *$//')
-echo "row: $ROW" >> "$OUT/steps.txt"
-NAME=${ROW#*| }; ROLE=${ROW%% |*}
-# AXShowMenu opens the row menu but blocks until the menu closes, so it
-# reports -25204 like the Workspace button does; look for the menu item
-# instead of trusting the result. Fallbacks: a right-click through the HID
-# tap, then the keyboard context-menu key (Shift+F10) on the focused row.
-MENU_RE='AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))'
-ax activate $PID; sleep 1
-ax press $PID "$ROLE:$NAME" AXShowMenu
-if waitax "$MENU_RE" 5; then echo "row menu via AXShowMenu" >> "$OUT/steps.txt"
-else
-  "$AX" dump $PID 45 > "$OUT/ax-after-showmenu.txt"
-  ax key $PID 53; sleep 1
-  for attempt in 1 2 3; do
-    ax activate $PID; sleep 1
-    "$AX" hidrightclick $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1 && break; sleep 1
-  done
-  sleep 1; "$AX" dump $PID 45 > "$OUT/ax-after-rightclick.txt"
-  if ! grep -q -E "$MENU_RE" "$OUT/ax-after-rightclick.txt"; then
-    "$AX" focus $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1; sleep 0.5
-    ax key $PID 109 shift; sleep 1
-    "$AX" dump $PID 45 > "$OUT/ax-after-shift-f10.txt"
-    echo "menu after Shift+F10: $(grep -c -E "$MENU_RE" "$OUT/ax-after-shift-f10.txt")" >> "$OUT/steps.txt"
-  fi
-fi
-echo "frontmost after right-click: $(osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2>/dev/null)" >> "$OUT/steps.txt"
-# Open split tabs say "Split archivieren"; saved tree rows say "Archivieren
-# (inklusive Split)".
-if waitax "$MENU_RE" 5; then
-  ARCH=$("$AX" dump $PID 45 | grep -o -E 'AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))' | head -1 | sed 's/^AXMenuItem | //')
-  ax press $PID "AXMenuItem:$ARCH"
-else "$AX" dump $PID 45 > "$OUT/ax-row-menu.txt"; fi
-sleep 5
-# Archived pages close: neither split page may still be an open target.
-PAGES=$(curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(" ".join(t["url"] for t in json.load(sys.stdin) if t["type"]=="page"))')
-echo "pages after archive: $PAGES" >> "$OUT/steps.txt"
-case "$PAGES" in *left.html*|*right.html*) record split_archived FAIL ;; *) record split_archived PASS ;; esac
-
-# 3 Restore at the original place from the archive.
-ax press $PID "Inbox, Workspace wechseln" AXShowMenu
-waitax "Archiv durchsuchen" 5 && ax press $PID "Archiv durchsuchen …"
-waitax "Wiederherstellen …: " 10 || { record archive_lists_split FAIL; finish; }
-"$AX" dump $PID 45 > "$OUT/archive-dialog.txt"
+launch "$SITE/solo.html"
+open_url "$SITE/a.html"
+tab_menu_split b.html || { record_archive split_created FAIL; finish_archive; }
+snap split-created
+[ "$(q visible)" = "PaneA,PaneB" ] && record_archive split_created PASS || { record_archive split_created FAIL; finish_archive; }
+# Archive a resting complete split, not the currently visible/protected panes.
+activate_owned
+$AX dump $PID 40 > "$OUT/ax-archive-control.txt"
+CONTROL=$(grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Solo[^|]*' "$OUT/ax-archive-control.txt" | head -1 | sed 's/ *$//')
+[ -n "$CONTROL" ] || fail_setup "archive control row missing"
+$AX press $PID "${CONTROL%% |*}:${CONTROL#*| }" >> "$OUT/steps.txt" || fail_setup "archive control action failed"
+wait_document "$SITE/solo.html" 10 || fail_setup "archive control did not commit"
+sleep 2
+snap archive-control
+python3 - "$SNAP" <<'PYCONTROL'
+import json, sys
+rows = [json.loads(line.split('|', 2)[2]) for line in open(sys.argv[1])]
+solo = next((r for r in rows if r['t'] == 'Solo'), None)
+split = [r for r in rows if r['t'] in ('PaneA', 'PaneB')]
+sys.exit(0 if solo and solo['v'] == 'visible' and len(split) == 2 and all(r['v'] == 'hidden' for r in split) else 1)
+PYCONTROL
+[ "$?" = 0 ] || fail_setup "split is still visible/protected before archive"
+open_row_menu PaneA 'Split archivieren|Archivieren \(inklusive Split\)' || fail_setup "split archive menu missing"
+ARCH=$($AX dump $PID 40 | grep -o -E 'AXMenuItem \| (Split archivieren|Archivieren \(inklusive Split\))' | head -1 | sed 's/^AXMenuItem | //')
+activate_owned
+$AX press $PID "AXMenuItem:$ARCH" >> "$OUT/steps.txt"; sleep 5
+case "$(urls)" in *a.html*|*b.html*) record_archive split_archived FAIL ;; *) record_archive split_archived PASS ;; esac
+activate_owned
+$AX press $PID "Inbox, Workspace wechseln" AXShowMenu >> "$OUT/steps.txt"
+waitax 'Archiv durchsuchen' 5 || fail_setup "archive action missing"
+$AX press $PID "Archiv durchsuchen …" >> "$OUT/steps.txt"
+waitax 'Wiederherstellen …: ' 10 || { record_archive archive_lists_split FAIL; finish_archive; }
+$AX dump $PID 40 > "$OUT/archive-dialog.txt"
 RESTORE=$(grep -o -E 'AXButton \| Wiederherstellen …: [^|]*' "$OUT/archive-dialog.txt" | head -1 | sed 's/^AXButton | //; s/ *$//')
-echo "restore: $RESTORE" >> "$OUT/steps.txt"
-case "$RESTORE" in *split*|*Split*) record archive_lists_split PASS ;; *) record archive_lists_split FAIL ;; esac
-ax press $PID "AXButton:$RESTORE"
-waitax "Am ursprünglichen Ort wiederherstellen" 6 && ax press $PID "Am ursprünglichen Ort wiederherstellen"
-sleep 5
-"$AX" dump $PID 45 > "$OUT/after-restore.txt"
-grep -q -E 'konnte nicht|could not complete' "$OUT/after-restore.txt" && record restore_without_error FAIL || record restore_without_error PASS
-ax press $PID "AXButton:Schließen"; sleep 2
-# The restored entry may stay unloaded; open it from the sidebar, then both
-# panes must be visible together again.
-ROW2=$("$AX" dump $PID 45 | grep -v -E 'Wiederherstellen|löschen' | grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Ahoi split (left|right)[^|]*' | head -1 | sed -E 's/ *$//')
-echo "restored row: $ROW2" >> "$OUT/steps.txt"
-[ -n "$ROW2" ] && ax press $PID "${ROW2%% |*}:${ROW2#*| }"
-sleep 5
-both_visible && record restore_brings_split_back PASS || record restore_brings_split_back FAIL
-echo "visible after restore: $(visible_titles)" >> "$OUT/steps.txt"
-finish
+# Require both member titles and real Split metadata; fixture naming alone is insufficient.
+case "$RESTORE" in *PaneA*PaneB*|*PaneB*PaneA*)
+  grep -q 'Split ·' "$OUT/archive-dialog.txt" && record_archive archive_lists_split PASS || record_archive archive_lists_split FAIL ;;
+*) record_archive archive_lists_split FAIL ;;
+esac
+activate_owned
+$AX press $PID "AXButton:$RESTORE" >> "$OUT/steps.txt"
+waitax 'Am ursprünglichen Ort wiederherstellen' 6 || fail_setup "archive restore placement missing"
+$AX press $PID "Am ursprünglichen Ort wiederherstellen" >> "$OUT/steps.txt"; sleep 5
+$AX dump $PID 40 > "$OUT/after-restore.txt"
+grep -q -E 'konnte nicht|could not complete' "$OUT/after-restore.txt" && record_archive restore_without_error FAIL || record_archive restore_without_error PASS
+activate_owned
+$AX press $PID "AXButton:Schließen" >> "$OUT/steps.txt"; sleep 2
+# Restore stays lazy; explicitly open the retained identity before testing panes.
+ROW=$($AX dump $PID 40 | grep -v -E 'Wiederherstellen|löschen|AXMenuItem' | grep -o -E 'AX(RadioButton|Row|Cell|Button) \| [^|]*Pane(A|B)[^|]*' | head -1 | sed 's/ *$//')
+[ -n "$ROW" ] || fail_setup "restored split row missing"
+activate_owned
+$AX press $PID "${ROW%% |*}:${ROW#*| }" >> "$OUT/steps.txt"; sleep 5
+snap split-restored
+[ "$(q visible)" = "PaneA,PaneB" ] && record_archive restore_brings_split_back PASS || record_archive restore_brings_split_back FAIL
+finish_archive

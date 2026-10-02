@@ -1,0 +1,21 @@
+frontmost -> 0
+hidkey 17
+typed 28
+hidkey 36
+hidkey 17
+typed 28
+hidkey 36
+hidkey 48
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+hidclicked  at (974.0, 205.0)
+split_created -> PASS
+NOT FOUND
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Split archivieren | itemSelected: -> 0
+split_archived -> FAIL
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+archive_lists_split -> FAIL
+hidkey 12
