@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## Three consecutive capacity-blocked goal turns; native work cannot advance — 2 October 2026
+
+No live own build/GUI/compiler to wait for. The metadata timeout, subsequent
+same host gate and latest source compiler preflight are terminal, no compiler
+invocation. Latest source gate sampled3.29%CPU idle/pressure2 and released its
+own lock. Three consecutive no-progress turns audited privately under
+`.work/agent-queue/no-progress-audit-20261002/`: unexecuted plans/status restatements
+are not goal progress. No further evidence-based native acceptance or safe
+product correction can be validated until external host capacity changes.
+Active foreign FillIt paired crossplay emulators/other workloads are preserved;
+their use is not authorization to stop them. Full original Master remains open.
+
+Resume at current capacity/ownership: exact source compiler checks for
+a431d966, review/integrate that Sync delta with the unbuilt frozen desktop72
+source28c94e0a through guarded source/build scripts, jobs1/nice10, existing
+canonical development signer. Verify/sign/install the coherent candidate,
+perform affected visible flows BEFORE focused regression. No completed packages
+repeated. Archive9/protection6 and prepared tab-cache12 remain actual GUI work;
+installed71/6bf4c233, all profiles/archives/rollbacks and external gates retained.
+New metadata preparation is ready at
+`.work/agent-queue/browser-settings-reentrant-source-20261002/syntax-plan.json`:
+native Ninja expands the exact cxx rule/target bindings in three tiny private
+graphs, avoiding the huge unrelated graph. Rule/binding/command hashes retained;
+this is NOT compilation or execution. No source-check process remains running.
+
 ## Installed tab-cache visible journey prepared; build remains deferred — 2 October 2026
 
 Fresh host14:28 samples10.55/22.95%idle, pressure2, no own build/e2e/h3 lock:
