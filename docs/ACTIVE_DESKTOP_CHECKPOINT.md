@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Matrix preflight yields; restart boundaries now recheck ownership — 2 October 2026
+
+Installed source still6bf4c233/M154, no Ahoi/compiler/lock. Resource resamples
+show CPU41–54%idle,1.6GiB unused, pressure1 and stable swapouts915303; the first
+short0–2%idle spike was not used as capacity evidence. Foreign Chrome and
+simulator processes remain untouched. Immediate matrix preflight93686 then
+finds fresh input (idle4), terminal2/deferred-owner-active before any journey,
+app or lock. State: `.work/agent-queue/71/installed-matrix-trusted-20261002T052334Z/`.
+No idle observer or duplicate test was started; matrix remains OPEN.
+
+Source correction for that journey's two later restart phases: shared launch
+now rechecks input, existing main browser and compiler at EACH boundary before
+spawning/activating, and binds the installed source to the initial phase and
+optional wrapper's AHOI_E2E_EXPECTED_SOURCE_COMMIT. Own Cmd-Q settles2seconds;
+newer input yields8/pass:false instead of resetting focus and reclaiming it.
+Each preflight is recorded as launch-preflight.jsonl. All product assertions
+and source remain unchanged. Actual helper with synthetic metadata admits the
+original candidate and rejects a changed stamp, no process launched; shell/
+embedded-Python syntax/diff pass. This is guard verification, not matrix GREEN.
+
+Next actual matrix runner must bind the expected source and include the shared
+sidebar reader in input hashes. Run once at a fresh valid UI opportunity, then
+archive/auto-archive/Devtoolkit/settings; no source rebuild or native-suite
+repeat justified by harness-only changes. Full original Master/Sync/Mobile/
+worker/external/release boundaries and existing3restoreGREEN remain intact.
+
 ## Original installed restore3 now GREEN; live run cancellation preserved — 2 October 2026
 
 Corrected trusted full lifecycle79391/79396 confirms both native setters

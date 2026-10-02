@@ -124,6 +124,40 @@ activate_owned() {
 launch() { # [url] [nodevtools]
   local url=${1:-} dev=--remote-debugging-port=$PORT
   [ "${2:-}" = nodevtools ] && dev=""
+  # The initial owner check is not permission for a later restart. Recheck
+  # after each quit, before creating a new process or activating its window.
+  python3 - "$APP" "$OUT" <<'PY'
+import datetime, json, os, pathlib, plistlib, re, subprocess, sys
+app, output = map(pathlib.Path, sys.argv[1:])
+info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
+source = info.get('AhoiSourceCommit')
+phases = output / 'launch-preflight.jsonl'
+previous = json.loads(phases.read_text().splitlines()[0]) if phases.exists() else None
+commands = [c.strip() for c in subprocess.check_output(['ps', '-axww', '-o', 'comm='], text=True).splitlines()]
+idle_raw = subprocess.check_output(['ioreg', '-c', 'IOHIDSystem'], text=True)
+idle = int(re.search(r'"HIDIdleTime"\s*=\s*(\d+)', idle_raw).group(1)) // 10**9
+sample = dict(at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              source=source, idleSeconds=idle,
+              browserRunning=str(app / 'Contents/MacOS/AhoiBrowser') in commands,
+              compilerRunning=any(re.search(r'/(?:clang\+\+|clang|ninja|siso|xcodebuild)$', c) for c in commands))
+expected = os.environ.get('AHOI_E2E_EXPECTED_SOURCE_COMMIT')
+if not source or (expected and expected != source) or (previous and previous['source'] != source):
+    sample['refusal'] = 'installed candidate changed or lacks source metadata'
+elif sample['browserRunning'] or sample['compilerRunning']:
+    sample['refusal'] = 'another browser/build owns the launch boundary'
+elif os.environ.get('AHOI_E2E_YIELD_ON_FOCUS_LOSS') == '1' and idle < 2:
+    # Own Cmd-Q is followed by a two-second settle in both journeys. Newer
+    # input must yield; never reset the focus guard and reclaim the desktop.
+    sample['refusal'] = 'input returned before launch'
+with phases.open('a') as file:
+    file.write(json.dumps(sample) + '\n')
+if 'refusal' in sample:
+    (output / 'verdict.json').write_text(json.dumps(
+        {'cancelled': sample['refusal'], 'pass': False}) + '\n')
+    print(sample['refusal'], file=sys.stderr)
+    sys.exit(8)
+PY
+  [ "$?" = 0 ] || exit 8
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
     $dev $url >> "$OUT/browser.log" 2>&1 &
   PID=$!; echo "pid=$PID profile=$P devtools=${dev:+on}" >> "$OUT/run.txt"
