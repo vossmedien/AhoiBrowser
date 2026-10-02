@@ -1,0 +1,14 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "acceptance": false,
+  "partialMetadataOnly": true,
+  "nativeDecoderEquivalenceClaimed": false,
+  "readerSha256": "fb4d508ada5b7a6bf51ea1f693d598ec00b544ccfcbcb8800a1ed8c8df2d1d4b",
+  "readbackSha256": "21c5fdd3bee406ce408c15bc0c00f5b77274a34e3a64d1abda9eb386cc290db8",
+  "pinnedSourceSha256": {
+    "components/sessions/core/session_service_commands.cc": "bef93789c59f0a907ec5c616deda1738dd1efb9565703545d79be3c0d464f0c7",
+    "components/sessions/core/base_session_service_commands.cc": "6492d20d1aa667cae55e24c4c1a4ebf54ce14e880a3e8a3bca317e128e5fdaeb",
+    "components/sessions/core/serialized_navigation_entry.cc": "6bdd2b7ac4d7af710147c1a46bddbc25560fca9b0b9e0ed2d53ae10626694b21",
+    "components/sessions/core/session_command.cc": "e7e480c1c05adecc694c3047e49265bf5b57f6c24055b6ae9543d292dd2f9349"
+  }
+}

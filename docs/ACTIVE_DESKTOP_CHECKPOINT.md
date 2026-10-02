@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Durable selected-pane mismatch confirmed; exact focused chain prepared — 2 October 2026
+
+New read-only synthetic SNSS3 subset maps pinned commands0/2/8 plus navigation
+title prefix and closes, not a native/full decoder. Original6ad2abf records
+index3/PaneC; BOTH failing-chain sessions record index1/PaneA, first sequence
+0→3→1. [Reader/source/file-hash-bound metadata](../artifacts/tests/native-selected-session-metadata-6bf4c233-20261002/README.md).
+Thus selection is actually persisted differently, not merely a wrong DOM
+focus label; event/cause remains unproven. No original file or secret changed.
+
+Focused `split-focus-restore-journey.sh` copies the same bound seed and applies
+only exact traversal/ratio/focus/quit setup, captures native title/AX BEFORE
+quit, selected metadata after each quit and focus after both startup paths.
+Only the remaining focus invariant is asserted; no ten-GREEN replay or guessed
+product patch. Immediate preflight28286 sees idle0, terminal2/deferred before
+app/lock; `.work/agent-queue/71/installed-focus-chain-20261002T071814Z/`.
+Later fresh read still sees recent input, no observer was started.
+Shell/embedded-Python syntax and actual subset readback pass, GUI execution
+is OPEN. Future runner hashes include session_selected_readback.py.
+
+Next actual safe action: this prepared exact chain after fresh ownership/input/
+capacity, then fix established selection/focus cause and verify it. Installed
+71/6bf4c233, prior scoped14/reorder/10/restore3 GREEN, whole Master/worker/Sync/
+Mobile/external/release/archive/data/rollback ownership and rights stay intact.
+
 ## Remaining grid10 GREEN, focused-pane restore RED; simple activation ruled out — 2 October 2026
 
 Focused continuation98437/98442 actually completes eleven original remaining

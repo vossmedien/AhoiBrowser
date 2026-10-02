@@ -1,0 +1,84 @@
+[
+  {
+    "file": "Session_13435392991102158",
+    "sha256": "6ad2abf131872ac5228dfda6c0551525a2fcd4b9e1ff307b87cb5de7862232d5",
+    "bytes": 15340,
+    "parsedBytes": 15340,
+    "commands": 60,
+    "partialMetadataOnly": true,
+    "selected": {
+      "1099952853": 3
+    },
+    "selectionSequence": [
+      {
+        "window": 1099952853,
+        "index": 2
+      },
+      {
+        "window": 1099952853,
+        "index": 3
+      }
+    ],
+    "selectedFixtureTitles": {
+      "1099952853": [
+        "PaneC"
+      ]
+    }
+  },
+  {
+    "file": "Session_13435397132453977",
+    "sha256": "f55240c8caf824dbf5f19ebc38253c19baf59f3676d36332451d54ecb3bb6623",
+    "bytes": 34901,
+    "parsedBytes": 34901,
+    "commands": 147,
+    "partialMetadataOnly": true,
+    "selected": {
+      "1099953002": 1
+    },
+    "selectionSequence": [
+      {
+        "window": 1099953002,
+        "index": 0
+      },
+      {
+        "window": 1099953002,
+        "index": 3
+      },
+      {
+        "window": 1099953002,
+        "index": 1
+      }
+    ],
+    "selectedFixtureTitles": {
+      "1099953002": [
+        "PaneA"
+      ]
+    }
+  },
+  {
+    "file": "Session_13435397149193636",
+    "sha256": "a0d3796e304bf69ee6a6a4346ef6594413bc2a0e94e0d1b36df91e26b4dadd90",
+    "bytes": 36947,
+    "parsedBytes": 36947,
+    "commands": 145,
+    "partialMetadataOnly": true,
+    "selected": {
+      "1099953113": 1
+    },
+    "selectionSequence": [
+      {
+        "window": 1099953113,
+        "index": 0
+      },
+      {
+        "window": 1099953113,
+        "index": 1
+      }
+    ],
+    "selectedFixtureTitles": {
+      "1099953113": [
+        "PaneA"
+      ]
+    }
+  }
+]
