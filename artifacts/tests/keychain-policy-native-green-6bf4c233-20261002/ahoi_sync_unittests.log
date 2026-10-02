@@ -1,0 +1,1093 @@
+objc[69960]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14195ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126878a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[69960]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x121130188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10734f8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[70255]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1418c0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1267dca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[70255]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x121094188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1072878a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkProfileConsentTest.CategoryApprovalCannotEnableGlobalSync:BookmarkProfileConsentTest.LegacyGlobalOptInLeavesCategoryDefaultOff:BookmarkSyncAuthorizationTest.ProviderRevocationOverridesStaleBackendConsentForMergeReadAndAck:BookmarkSyncAuthorizationTest.DelayedServiceReplyCannotApplyAfterRevocationOrReapproval:BookmarkSyncAuthorizationTest.CategoryAndGlobalSuspensionInvalidateTheBackendScope:BookmarkSyncAuthorizationTest.ExistingProviderWithoutAuthorizationFailsClosed:BookmarkSyncBridgeTypesTest.NativeKeyRoundTripsBothStorageDomains:BookmarkSyncBridgeTypesTest.RejectsMalformedNativeKeysAndMissingOutputs:BookmarkSyncBridgeTypesTest.InitialIdentityIsStableAndStorageScoped:BookmarkSyncBridgeTypesTest.SortKeySupportsEmptyAndUnboundedIntervals
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from BookmarkProfileConsentTest
+[ RUN      ] BookmarkProfileConsentTest.CategoryApprovalCannotEnableGlobalSync
+[       OK ] BookmarkProfileConsentTest.CategoryApprovalCannotEnableGlobalSync (157 ms)
+[ RUN      ] BookmarkProfileConsentTest.LegacyGlobalOptInLeavesCategoryDefaultOff
+[       OK ] BookmarkProfileConsentTest.LegacyGlobalOptInLeavesCategoryDefaultOff (107 ms)
+[----------] 2 tests from BookmarkProfileConsentTest (288 ms total)
+
+[----------] 4 tests from BookmarkSyncAuthorizationTest
+[ RUN      ] BookmarkSyncAuthorizationTest.ProviderRevocationOverridesStaleBackendConsentForMergeReadAndAck
+[       OK ] BookmarkSyncAuthorizationTest.ProviderRevocationOverridesStaleBackendConsentForMergeReadAndAck (148 ms)
+[ RUN      ] BookmarkSyncAuthorizationTest.DelayedServiceReplyCannotApplyAfterRevocationOrReapproval
+[       OK ] BookmarkSyncAuthorizationTest.DelayedServiceReplyCannotApplyAfterRevocationOrReapproval (216 ms)
+[ RUN      ] BookmarkSyncAuthorizationTest.CategoryAndGlobalSuspensionInvalidateTheBackendScope
+[       OK ] BookmarkSyncAuthorizationTest.CategoryAndGlobalSuspensionInvalidateTheBackendScope (132 ms)
+[ RUN      ] BookmarkSyncAuthorizationTest.ExistingProviderWithoutAuthorizationFailsClosed
+[       OK ] BookmarkSyncAuthorizationTest.ExistingProviderWithoutAuthorizationFailsClosed (99 ms)
+[----------] 4 tests from BookmarkSyncAuthorizationTest (598 ms total)
+
+[----------] 4 tests from BookmarkSyncBridgeTypesTest
+[ RUN      ] BookmarkSyncBridgeTypesTest.NativeKeyRoundTripsBothStorageDomains
+[       OK ] BookmarkSyncBridgeTypesTest.NativeKeyRoundTripsBothStorageDomains (0 ms)
+[ RUN      ] BookmarkSyncBridgeTypesTest.RejectsMalformedNativeKeysAndMissingOutputs
+[       OK ] BookmarkSyncBridgeTypesTest.RejectsMalformedNativeKeysAndMissingOutputs (0 ms)
+[ RUN      ] BookmarkSyncBridgeTypesTest.InitialIdentityIsStableAndStorageScoped
+[       OK ] BookmarkSyncBridgeTypesTest.InitialIdentityIsStableAndStorageScoped (0 ms)
+[ RUN      ] BookmarkSyncBridgeTypesTest.SortKeySupportsEmptyAndUnboundedIntervals
+[       OK ] BookmarkSyncBridgeTypesTest.SortKeySupportsEmptyAndUnboundedIntervals (0 ms)
+[----------] 4 tests from BookmarkSyncBridgeTypesTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (888 ms total)
+[  PASSED  ] 10 tests.
+[1/233] BookmarkProfileConsentTest.CategoryApprovalCannotEnableGlobalSync (157 ms)
+[2/233] BookmarkProfileConsentTest.LegacyGlobalOptInLeavesCategoryDefaultOff (107 ms)
+[3/233] BookmarkSyncAuthorizationTest.ProviderRevocationOverridesStaleBackendConsentForMergeReadAndAck (148 ms)
+[4/233] BookmarkSyncAuthorizationTest.DelayedServiceReplyCannotApplyAfterRevocationOrReapproval (216 ms)
+[5/233] BookmarkSyncAuthorizationTest.CategoryAndGlobalSuspensionInvalidateTheBackendScope (132 ms)
+[6/233] BookmarkSyncAuthorizationTest.ExistingProviderWithoutAuthorizationFailsClosed (99 ms)
+[7/233] BookmarkSyncBridgeTypesTest.NativeKeyRoundTripsBothStorageDomains (0 ms)
+[8/233] BookmarkSyncBridgeTypesTest.RejectsMalformedNativeKeysAndMissingOutputs (0 ms)
+[9/233] BookmarkSyncBridgeTypesTest.InitialIdentityIsStableAndStorageScoped (0 ms)
+[10/233] BookmarkSyncBridgeTypesTest.SortKeySupportsEmptyAndUnboundedIntervals (0 ms)
+objc[70597]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14152ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126448a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[70597]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120d00188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x106e578a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkSyncBridgeTypesTest.SortKeyFitsAdjacentCharactersAndPrefixes:BookmarkSyncBridgeTypesTest.SortKeyUsesSpaceBeforeMinimalUpperPrefix:BookmarkSyncBridgeTypesTest.SortKeyReportsActuallyExhaustedIntervals:BookmarkSyncBridgeTypesTest.SortKeyHonorsMaximumLengthWithoutOverflow:BookmarkSyncBridgeTypesTest.SortKeyRejectsNonVisibleOrOversizedBounds:BookmarkSyncConsentTest.DefaultOffRetainsBookmarksWithoutStarvingOtherRows:BookmarkSyncConsentTest.RevocationInvalidatesLateUploadAcknowledgements:BookmarkSyncConsentTest.ConstructorCannotRestoreRevokedCategoryConsent:BookmarkSyncConsentTest.LateDownloadCannotHydrateOrAdvanceTokenAfterRevocation:BookmarkSyncConsentTest.ProviderIgnoringDefaultOffCannotImportMixedBatch
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from BookmarkSyncBridgeTypesTest
+[ RUN      ] BookmarkSyncBridgeTypesTest.SortKeyFitsAdjacentCharactersAndPrefixes
+[       OK ] BookmarkSyncBridgeTypesTest.SortKeyFitsAdjacentCharactersAndPrefixes (0 ms)
+[ RUN      ] BookmarkSyncBridgeTypesTest.SortKeyUsesSpaceBeforeMinimalUpperPrefix
+[       OK ] BookmarkSyncBridgeTypesTest.SortKeyUsesSpaceBeforeMinimalUpperPrefix (0 ms)
+[ RUN      ] BookmarkSyncBridgeTypesTest.SortKeyReportsActuallyExhaustedIntervals
+[       OK ] BookmarkSyncBridgeTypesTest.SortKeyReportsActuallyExhaustedIntervals (0 ms)
+[ RUN      ] BookmarkSyncBridgeTypesTest.SortKeyHonorsMaximumLengthWithoutOverflow
+[       OK ] BookmarkSyncBridgeTypesTest.SortKeyHonorsMaximumLengthWithoutOverflow (0 ms)
+[ RUN      ] BookmarkSyncBridgeTypesTest.SortKeyRejectsNonVisibleOrOversizedBounds
+[       OK ] BookmarkSyncBridgeTypesTest.SortKeyRejectsNonVisibleOrOversizedBounds (0 ms)
+[----------] 5 tests from BookmarkSyncBridgeTypesTest (20 ms total)
+
+[----------] 5 tests from BookmarkSyncConsentTest
+[ RUN      ] BookmarkSyncConsentTest.DefaultOffRetainsBookmarksWithoutStarvingOtherRows
+[       OK ] BookmarkSyncConsentTest.DefaultOffRetainsBookmarksWithoutStarvingOtherRows (2 ms)
+[ RUN      ] BookmarkSyncConsentTest.RevocationInvalidatesLateUploadAcknowledgements
+[       OK ] BookmarkSyncConsentTest.RevocationInvalidatesLateUploadAcknowledgements (1 ms)
+[ RUN      ] BookmarkSyncConsentTest.ConstructorCannotRestoreRevokedCategoryConsent
+[       OK ] BookmarkSyncConsentTest.ConstructorCannotRestoreRevokedCategoryConsent (1 ms)
+[ RUN      ] BookmarkSyncConsentTest.LateDownloadCannotHydrateOrAdvanceTokenAfterRevocation
+[       OK ] BookmarkSyncConsentTest.LateDownloadCannotHydrateOrAdvanceTokenAfterRevocation (1 ms)
+[ RUN      ] BookmarkSyncConsentTest.ProviderIgnoringDefaultOffCannotImportMixedBatch
+[       OK ] BookmarkSyncConsentTest.ProviderIgnoringDefaultOffCannotImportMixedBatch (1 ms)
+[----------] 5 tests from BookmarkSyncConsentTest (9 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (30 ms total)
+[  PASSED  ] 10 tests.
+[11/233] BookmarkSyncBridgeTypesTest.SortKeyFitsAdjacentCharactersAndPrefixes (0 ms)
+[12/233] BookmarkSyncBridgeTypesTest.SortKeyUsesSpaceBeforeMinimalUpperPrefix (0 ms)
+[13/233] BookmarkSyncBridgeTypesTest.SortKeyReportsActuallyExhaustedIntervals (0 ms)
+[14/233] BookmarkSyncBridgeTypesTest.SortKeyHonorsMaximumLengthWithoutOverflow (0 ms)
+[15/233] BookmarkSyncBridgeTypesTest.SortKeyRejectsNonVisibleOrOversizedBounds (0 ms)
+[16/233] BookmarkSyncConsentTest.DefaultOffRetainsBookmarksWithoutStarvingOtherRows (2 ms)
+[17/233] BookmarkSyncConsentTest.RevocationInvalidatesLateUploadAcknowledgements (1 ms)
+[18/233] BookmarkSyncConsentTest.ConstructorCannotRestoreRevokedCategoryConsent (1 ms)
+[19/233] BookmarkSyncConsentTest.LateDownloadCannotHydrateOrAdvanceTokenAfterRevocation (1 ms)
+[20/233] BookmarkSyncConsentTest.ProviderIgnoringDefaultOffCannotImportMixedBatch (1 ms)
+objc[70614]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142de0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127cfca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[70614]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122d08188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1089bb8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkSyncConsentTest.NewPumpNeverInfersConsentFromRetainedOutbox:BookmarkSyncConsentTest.ProviderRevocationAfterPostedUploadCannotAcknowledgeOutbox:BookmarkSyncConsentTest.ProviderReapprovalCannotAuthorizeAnAlreadyPostedDownload:BookmarkSyncJournalTest.SeedsNativeHierarchyAndMergedRootOrder:BookmarkSyncJournalTest.IdenticalSnapshotsKeepVersionAndOutbox:BookmarkSyncJournalTest.LocalAndAccountUuidCollisionHasDistinctIds:BookmarkSyncJournalTest.NativeCloneGetsNewIdentityDespiteEqualContent:BookmarkSyncJournalTest.ObservedStorageMoveRetainsLogicalIdentity:BookmarkSyncJournalTest.FolderStorageMoveKeepsDescendantIdentity:BookmarkSyncJournalTest.RejectsSimultaneousNodesClaimingOneAlias
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from BookmarkSyncConsentTest
+[ RUN      ] BookmarkSyncConsentTest.NewPumpNeverInfersConsentFromRetainedOutbox
+[       OK ] BookmarkSyncConsentTest.NewPumpNeverInfersConsentFromRetainedOutbox (1 ms)
+[ RUN      ] BookmarkSyncConsentTest.ProviderRevocationAfterPostedUploadCannotAcknowledgeOutbox
+[       OK ] BookmarkSyncConsentTest.ProviderRevocationAfterPostedUploadCannotAcknowledgeOutbox (1 ms)
+[ RUN      ] BookmarkSyncConsentTest.ProviderReapprovalCannotAuthorizeAnAlreadyPostedDownload
+[       OK ] BookmarkSyncConsentTest.ProviderReapprovalCannotAuthorizeAnAlreadyPostedDownload (1 ms)
+[----------] 3 tests from BookmarkSyncConsentTest (22 ms total)
+
+[----------] 7 tests from BookmarkSyncJournalTest
+[ RUN      ] BookmarkSyncJournalTest.SeedsNativeHierarchyAndMergedRootOrder
+[       OK ] BookmarkSyncJournalTest.SeedsNativeHierarchyAndMergedRootOrder (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.IdenticalSnapshotsKeepVersionAndOutbox
+[       OK ] BookmarkSyncJournalTest.IdenticalSnapshotsKeepVersionAndOutbox (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.LocalAndAccountUuidCollisionHasDistinctIds
+[       OK ] BookmarkSyncJournalTest.LocalAndAccountUuidCollisionHasDistinctIds (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.NativeCloneGetsNewIdentityDespiteEqualContent
+[       OK ] BookmarkSyncJournalTest.NativeCloneGetsNewIdentityDespiteEqualContent (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.ObservedStorageMoveRetainsLogicalIdentity
+[       OK ] BookmarkSyncJournalTest.ObservedStorageMoveRetainsLogicalIdentity (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.FolderStorageMoveKeepsDescendantIdentity
+[       OK ] BookmarkSyncJournalTest.FolderStorageMoveKeepsDescendantIdentity (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.RejectsSimultaneousNodesClaimingOneAlias
+[       OK ] BookmarkSyncJournalTest.RejectsSimultaneousNodesClaimingOneAlias (1 ms)
+[----------] 7 tests from BookmarkSyncJournalTest (13 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (36 ms total)
+[  PASSED  ] 10 tests.
+[21/233] BookmarkSyncConsentTest.NewPumpNeverInfersConsentFromRetainedOutbox (1 ms)
+[22/233] BookmarkSyncConsentTest.ProviderRevocationAfterPostedUploadCannotAcknowledgeOutbox (1 ms)
+[23/233] BookmarkSyncConsentTest.ProviderReapprovalCannotAuthorizeAnAlreadyPostedDownload (1 ms)
+[24/233] BookmarkSyncJournalTest.SeedsNativeHierarchyAndMergedRootOrder (1 ms)
+[25/233] BookmarkSyncJournalTest.IdenticalSnapshotsKeepVersionAndOutbox (1 ms)
+[26/233] BookmarkSyncJournalTest.LocalAndAccountUuidCollisionHasDistinctIds (1 ms)
+[27/233] BookmarkSyncJournalTest.NativeCloneGetsNewIdentityDespiteEqualContent (1 ms)
+[28/233] BookmarkSyncJournalTest.ObservedStorageMoveRetainsLogicalIdentity (1 ms)
+[29/233] BookmarkSyncJournalTest.FolderStorageMoveKeepsDescendantIdentity (1 ms)
+[30/233] BookmarkSyncJournalTest.RejectsSimultaneousNodesClaimingOneAlias (1 ms)
+objc[70732]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14330ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x128228a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[70732]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122ae0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x108c978a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkSyncJournalTest.RemoteTitleAndLocalUrlPreserveBothFieldEdits:BookmarkSyncJournalTest.NativeAcknowledgementNeverEchoesRemoteRecords:BookmarkSyncJournalTest.PlannedRemoteApplyBeforeAckKeepsIdentity:BookmarkSyncJournalTest.MissingAndIncompleteSnapshotsNeverDelete:BookmarkSyncJournalTest.ExplicitSubtreeRemovalDeletesEveryCapturedKey:BookmarkSyncJournalTest.UndoneAndUnknownRemovalsAreNoOps:BookmarkSyncJournalTest.InvalidInitialSnapshotsLeaveNoJournalState:BookmarkSyncJournalTest.LateKindFailureRollsBackRecordsBindingsAndOutbox:BookmarkSyncJournalTest.IncompleteSnapshotCannotCommitAChildOfStoredUrl:BookmarkSyncJournalTest.IncompleteSnapshotCannotCommitAStoredGraphCycle
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from BookmarkSyncJournalTest
+[ RUN      ] BookmarkSyncJournalTest.RemoteTitleAndLocalUrlPreserveBothFieldEdits
+[       OK ] BookmarkSyncJournalTest.RemoteTitleAndLocalUrlPreserveBothFieldEdits (2 ms)
+[ RUN      ] BookmarkSyncJournalTest.NativeAcknowledgementNeverEchoesRemoteRecords
+[       OK ] BookmarkSyncJournalTest.NativeAcknowledgementNeverEchoesRemoteRecords (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.PlannedRemoteApplyBeforeAckKeepsIdentity
+[       OK ] BookmarkSyncJournalTest.PlannedRemoteApplyBeforeAckKeepsIdentity (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.MissingAndIncompleteSnapshotsNeverDelete
+[       OK ] BookmarkSyncJournalTest.MissingAndIncompleteSnapshotsNeverDelete (2 ms)
+[ RUN      ] BookmarkSyncJournalTest.ExplicitSubtreeRemovalDeletesEveryCapturedKey
+[       OK ] BookmarkSyncJournalTest.ExplicitSubtreeRemovalDeletesEveryCapturedKey (3 ms)
+[ RUN      ] BookmarkSyncJournalTest.UndoneAndUnknownRemovalsAreNoOps
+[       OK ] BookmarkSyncJournalTest.UndoneAndUnknownRemovalsAreNoOps (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.InvalidInitialSnapshotsLeaveNoJournalState
+[       OK ] BookmarkSyncJournalTest.InvalidInitialSnapshotsLeaveNoJournalState (0 ms)
+[ RUN      ] BookmarkSyncJournalTest.LateKindFailureRollsBackRecordsBindingsAndOutbox
+[       OK ] BookmarkSyncJournalTest.LateKindFailureRollsBackRecordsBindingsAndOutbox (2 ms)
+[ RUN      ] BookmarkSyncJournalTest.IncompleteSnapshotCannotCommitAChildOfStoredUrl
+[       OK ] BookmarkSyncJournalTest.IncompleteSnapshotCannotCommitAChildOfStoredUrl (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.IncompleteSnapshotCannotCommitAStoredGraphCycle
+[       OK ] BookmarkSyncJournalTest.IncompleteSnapshotCannotCommitAStoredGraphCycle (1 ms)
+[----------] 10 tests from BookmarkSyncJournalTest (45 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (45 ms total)
+[  PASSED  ] 10 tests.
+[31/233] BookmarkSyncJournalTest.RemoteTitleAndLocalUrlPreserveBothFieldEdits (2 ms)
+[32/233] BookmarkSyncJournalTest.NativeAcknowledgementNeverEchoesRemoteRecords (1 ms)
+[33/233] BookmarkSyncJournalTest.PlannedRemoteApplyBeforeAckKeepsIdentity (1 ms)
+[34/233] BookmarkSyncJournalTest.MissingAndIncompleteSnapshotsNeverDelete (2 ms)
+[35/233] BookmarkSyncJournalTest.ExplicitSubtreeRemovalDeletesEveryCapturedKey (3 ms)
+[36/233] BookmarkSyncJournalTest.UndoneAndUnknownRemovalsAreNoOps (1 ms)
+[37/233] BookmarkSyncJournalTest.InvalidInitialSnapshotsLeaveNoJournalState (0 ms)
+[38/233] BookmarkSyncJournalTest.LateKindFailureRollsBackRecordsBindingsAndOutbox (2 ms)
+[39/233] BookmarkSyncJournalTest.IncompleteSnapshotCannotCommitAChildOfStoredUrl (1 ms)
+[40/233] BookmarkSyncJournalTest.IncompleteSnapshotCannotCommitAStoredGraphCycle (1 ms)
+objc[70941]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140c30a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125b4ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[70941]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120404188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10660f8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkSyncJournalTest.FailedAcknowledgementRollsBackEarlierBaseline:BookmarkSyncJournalTest.RejectsUnknownParentAndMalformedAcknowledgement:BookmarkSyncJournalTest.AuthorizationLossBeforeCommitRollsBackJournal:BookmarkSyncJournalRestartTest.StorageMoveAliasesSurviveWithoutNewOutbox:BookmarkSyncJournalRestartTest.PlannedRemoteGuidSurvivesBeforeNativeApply:BookmarkSyncModelTest.OnlyPortableWebUrlsCrossTheSyncBoundary:BookmarkSyncModelTest.RejectsInvalidIdentityKindVersionAndLocation:BookmarkSyncModelTest.EnforcesUtf8ByteLimitsAndVisibleAsciiOrderKeys:BookmarkSyncModelTest.RejectsCredentialsMalformedUrlsAndFolderUrls:BookmarkSyncModelTest.RejectsUnknownAndFutureFieldClocks
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from BookmarkSyncJournalTest
+[ RUN      ] BookmarkSyncJournalTest.FailedAcknowledgementRollsBackEarlierBaseline
+[       OK ] BookmarkSyncJournalTest.FailedAcknowledgementRollsBackEarlierBaseline (2 ms)
+[ RUN      ] BookmarkSyncJournalTest.RejectsUnknownParentAndMalformedAcknowledgement
+[       OK ] BookmarkSyncJournalTest.RejectsUnknownParentAndMalformedAcknowledgement (1 ms)
+[ RUN      ] BookmarkSyncJournalTest.AuthorizationLossBeforeCommitRollsBackJournal
+[       OK ] BookmarkSyncJournalTest.AuthorizationLossBeforeCommitRollsBackJournal (0 ms)
+[----------] 3 tests from BookmarkSyncJournalTest (23 ms total)
+
+[----------] 2 tests from BookmarkSyncJournalRestartTest
+[ RUN      ] BookmarkSyncJournalRestartTest.StorageMoveAliasesSurviveWithoutNewOutbox
+[       OK ] BookmarkSyncJournalRestartTest.StorageMoveAliasesSurviveWithoutNewOutbox (141 ms)
+[ RUN      ] BookmarkSyncJournalRestartTest.PlannedRemoteGuidSurvivesBeforeNativeApply
+[       OK ] BookmarkSyncJournalRestartTest.PlannedRemoteGuidSurvivesBeforeNativeApply (108 ms)
+[----------] 2 tests from BookmarkSyncJournalRestartTest (251 ms total)
+
+[----------] 5 tests from BookmarkSyncModelTest
+[ RUN      ] BookmarkSyncModelTest.OnlyPortableWebUrlsCrossTheSyncBoundary
+[       OK ] BookmarkSyncModelTest.OnlyPortableWebUrlsCrossTheSyncBoundary (0 ms)
+[ RUN      ] BookmarkSyncModelTest.RejectsInvalidIdentityKindVersionAndLocation
+[       OK ] BookmarkSyncModelTest.RejectsInvalidIdentityKindVersionAndLocation (0 ms)
+[ RUN      ] BookmarkSyncModelTest.EnforcesUtf8ByteLimitsAndVisibleAsciiOrderKeys
+[       OK ] BookmarkSyncModelTest.EnforcesUtf8ByteLimitsAndVisibleAsciiOrderKeys (0 ms)
+[ RUN      ] BookmarkSyncModelTest.RejectsCredentialsMalformedUrlsAndFolderUrls
+[       OK ] BookmarkSyncModelTest.RejectsCredentialsMalformedUrlsAndFolderUrls (0 ms)
+[ RUN      ] BookmarkSyncModelTest.RejectsUnknownAndFutureFieldClocks
+[       OK ] BookmarkSyncModelTest.RejectsUnknownAndFutureFieldClocks (0 ms)
+[----------] 5 tests from BookmarkSyncModelTest (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (277 ms total)
+[  PASSED  ] 10 tests.
+[41/233] BookmarkSyncJournalTest.FailedAcknowledgementRollsBackEarlierBaseline (2 ms)
+[42/233] BookmarkSyncJournalTest.RejectsUnknownParentAndMalformedAcknowledgement (1 ms)
+[43/233] BookmarkSyncJournalTest.AuthorizationLossBeforeCommitRollsBackJournal (0 ms)
+[44/233] BookmarkSyncJournalRestartTest.StorageMoveAliasesSurviveWithoutNewOutbox (141 ms)
+[45/233] BookmarkSyncJournalRestartTest.PlannedRemoteGuidSurvivesBeforeNativeApply (108 ms)
+[46/233] BookmarkSyncModelTest.OnlyPortableWebUrlsCrossTheSyncBoundary (0 ms)
+[47/233] BookmarkSyncModelTest.RejectsInvalidIdentityKindVersionAndLocation (0 ms)
+[48/233] BookmarkSyncModelTest.EnforcesUtf8ByteLimitsAndVisibleAsciiOrderKeys (0 ms)
+[49/233] BookmarkSyncModelTest.RejectsCredentialsMalformedUrlsAndFolderUrls (0 ms)
+[50/233] BookmarkSyncModelTest.RejectsUnknownAndFutureFieldClocks (0 ms)
+objc[71000]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1448d4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1297f0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71000]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1247fc188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10a46f8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkSyncModelTest.DisjointFieldsAndCorrectedCreatedAtConvergeBothWays:BookmarkSyncModelTest.RootParentAndOrderAreOneAtomicLocationBothWays:BookmarkSyncModelTest.RejectsKindChangesAndEqualClockDivergence:BookmarkSyncModelTest.TombstoneSurvivesConcurrentMetadataAndStaleReplay:BookmarkSyncGraphTest.AcceptsChildBeforeParentAndDeletedFolderAncestry:BookmarkSyncGraphTest.RejectsKnownUrlParentsDuplicateIdsAndCycles:BookmarkSyncGraphTest.HandlesTenThousandLevelsAndDetectsADeepCycle:BookmarkSyncRecoveryRestartTest.CrashBeforeNativeSaveCannotRepublishTheOldTitle:BookmarkSyncRecoveryRestartTest.DeletedNativeSnapshotRequiresDeliberateRestoreAfterRestart:BookmarkSyncRecoveryRestartTest.ReceiptsAreIdempotentAndOldTargetsSurviveRestart
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from BookmarkSyncModelTest
+[ RUN      ] BookmarkSyncModelTest.DisjointFieldsAndCorrectedCreatedAtConvergeBothWays
+[       OK ] BookmarkSyncModelTest.DisjointFieldsAndCorrectedCreatedAtConvergeBothWays (0 ms)
+[ RUN      ] BookmarkSyncModelTest.RootParentAndOrderAreOneAtomicLocationBothWays
+[       OK ] BookmarkSyncModelTest.RootParentAndOrderAreOneAtomicLocationBothWays (0 ms)
+[ RUN      ] BookmarkSyncModelTest.RejectsKindChangesAndEqualClockDivergence
+[       OK ] BookmarkSyncModelTest.RejectsKindChangesAndEqualClockDivergence (0 ms)
+[ RUN      ] BookmarkSyncModelTest.TombstoneSurvivesConcurrentMetadataAndStaleReplay
+[       OK ] BookmarkSyncModelTest.TombstoneSurvivesConcurrentMetadataAndStaleReplay (0 ms)
+[----------] 4 tests from BookmarkSyncModelTest (19 ms total)
+
+[----------] 3 tests from BookmarkSyncGraphTest
+[ RUN      ] BookmarkSyncGraphTest.AcceptsChildBeforeParentAndDeletedFolderAncestry
+[       OK ] BookmarkSyncGraphTest.AcceptsChildBeforeParentAndDeletedFolderAncestry (0 ms)
+[ RUN      ] BookmarkSyncGraphTest.RejectsKnownUrlParentsDuplicateIdsAndCycles
+[       OK ] BookmarkSyncGraphTest.RejectsKnownUrlParentsDuplicateIdsAndCycles (0 ms)
+[ RUN      ] BookmarkSyncGraphTest.HandlesTenThousandLevelsAndDetectsADeepCycle
+[       OK ] BookmarkSyncGraphTest.HandlesTenThousandLevelsAndDetectsADeepCycle (35 ms)
+[----------] 3 tests from BookmarkSyncGraphTest (37 ms total)
+
+[----------] 3 tests from BookmarkSyncRecoveryRestartTest
+[ RUN      ] BookmarkSyncRecoveryRestartTest.CrashBeforeNativeSaveCannotRepublishTheOldTitle
+[       OK ] BookmarkSyncRecoveryRestartTest.CrashBeforeNativeSaveCannotRepublishTheOldTitle (333 ms)
+[ RUN      ] BookmarkSyncRecoveryRestartTest.DeletedNativeSnapshotRequiresDeliberateRestoreAfterRestart
+[       OK ] BookmarkSyncRecoveryRestartTest.DeletedNativeSnapshotRequiresDeliberateRestoreAfterRestart (462 ms)
+[ RUN      ] BookmarkSyncRecoveryRestartTest.ReceiptsAreIdempotentAndOldTargetsSurviveRestart
+[       OK ] BookmarkSyncRecoveryRestartTest.ReceiptsAreIdempotentAndOldTargetsSurviveRestart (167 ms)
+[----------] 3 tests from BookmarkSyncRecoveryRestartTest (965 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (1022 ms total)
+[  PASSED  ] 10 tests.
+[51/233] BookmarkSyncModelTest.DisjointFieldsAndCorrectedCreatedAtConvergeBothWays (0 ms)
+[52/233] BookmarkSyncModelTest.RootParentAndOrderAreOneAtomicLocationBothWays (0 ms)
+[53/233] BookmarkSyncModelTest.RejectsKindChangesAndEqualClockDivergence (0 ms)
+[54/233] BookmarkSyncModelTest.TombstoneSurvivesConcurrentMetadataAndStaleReplay (0 ms)
+[55/233] BookmarkSyncGraphTest.AcceptsChildBeforeParentAndDeletedFolderAncestry (0 ms)
+[56/233] BookmarkSyncGraphTest.RejectsKnownUrlParentsDuplicateIdsAndCycles (0 ms)
+[57/233] BookmarkSyncGraphTest.HandlesTenThousandLevelsAndDetectsADeepCycle (35 ms)
+[58/233] BookmarkSyncRecoveryRestartTest.CrashBeforeNativeSaveCannotRepublishTheOldTitle (333 ms)
+[59/233] BookmarkSyncRecoveryRestartTest.DeletedNativeSnapshotRequiresDeliberateRestoreAfterRestart (462 ms)
+[60/233] BookmarkSyncRecoveryRestartTest.ReceiptsAreIdempotentAndOldTargetsSurviveRestart (167 ms)
+objc[71014]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14365ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x128578a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71014]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122e30188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x108fd78a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkSyncRecoveryRestartTest.PersistedObservedEditIsNotReplayedWithTheOldReceipt:BookmarkSyncRecoveryTest.FirstAcknowledgementRaceKeepsPeerTitleAndNewLocalUrl:BookmarkSyncRecoveryTest.OldReceiptDoesNotReplayAnObservedEditButAllowsDeliberateUndo:BookmarkSyncRecoveryTest.CopiedReceiptCannotClaimOrRebaseCloneIdentity:BookmarkSyncRecoveryTest.PartialNativeApplyDoesNotEchoPeerEdits:BookmarkSyncGoldenTest.SharedV3PayloadsRoundTripWithoutPlatformChanges:BookmarkSyncGoldenTest.RejectsFrozenV2Payloads:BookmarkSyncSerializationTest.PreservesPositiveCreationMetadataBeforeUnixEpoch:BookmarkSyncSerializationTest.RootAndNestedRecordsRoundTripWithoutRedundantRoots:BookmarkSyncSerializationTest.NormalizesExactlyTheSixWireV2FieldClocks
+[==========] Running 10 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from BookmarkSyncRecoveryRestartTest
+[ RUN      ] BookmarkSyncRecoveryRestartTest.PersistedObservedEditIsNotReplayedWithTheOldReceipt
+[       OK ] BookmarkSyncRecoveryRestartTest.PersistedObservedEditIsNotReplayedWithTheOldReceipt (217 ms)
+[----------] 1 test from BookmarkSyncRecoveryRestartTest (236 ms total)
+
+[----------] 4 tests from BookmarkSyncRecoveryTest
+[ RUN      ] BookmarkSyncRecoveryTest.FirstAcknowledgementRaceKeepsPeerTitleAndNewLocalUrl
+[       OK ] BookmarkSyncRecoveryTest.FirstAcknowledgementRaceKeepsPeerTitleAndNewLocalUrl (1 ms)
+[ RUN      ] BookmarkSyncRecoveryTest.OldReceiptDoesNotReplayAnObservedEditButAllowsDeliberateUndo
+[       OK ] BookmarkSyncRecoveryTest.OldReceiptDoesNotReplayAnObservedEditButAllowsDeliberateUndo (2 ms)
+[ RUN      ] BookmarkSyncRecoveryTest.CopiedReceiptCannotClaimOrRebaseCloneIdentity
+[       OK ] BookmarkSyncRecoveryTest.CopiedReceiptCannotClaimOrRebaseCloneIdentity (2 ms)
+[ RUN      ] BookmarkSyncRecoveryTest.PartialNativeApplyDoesNotEchoPeerEdits
+[       OK ] BookmarkSyncRecoveryTest.PartialNativeApplyDoesNotEchoPeerEdits (2 ms)
+[----------] 4 tests from BookmarkSyncRecoveryTest (10 ms total)
+
+[----------] 2 tests from BookmarkSyncGoldenTest
+[ RUN      ] BookmarkSyncGoldenTest.SharedV3PayloadsRoundTripWithoutPlatformChanges
+[       OK ] BookmarkSyncGoldenTest.SharedV3PayloadsRoundTripWithoutPlatformChanges (1 ms)
+[ RUN      ] BookmarkSyncGoldenTest.RejectsFrozenV2Payloads
+[       OK ] BookmarkSyncGoldenTest.RejectsFrozenV2Payloads (0 ms)
+[----------] 2 tests from BookmarkSyncGoldenTest (2 ms total)
+
+[----------] 3 tests from BookmarkSyncSerializationTest
+[ RUN      ] BookmarkSyncSerializationTest.PreservesPositiveCreationMetadataBeforeUnixEpoch
+[       OK ] BookmarkSyncSerializationTest.PreservesPositiveCreationMetadataBeforeUnixEpoch (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.RootAndNestedRecordsRoundTripWithoutRedundantRoots
+[       OK ] BookmarkSyncSerializationTest.RootAndNestedRecordsRoundTripWithoutRedundantRoots (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.NormalizesExactlyTheSixWireV2FieldClocks
+[       OK ] BookmarkSyncSerializationTest.NormalizesExactlyTheSixWireV2FieldClocks (0 ms)
+[----------] 3 tests from BookmarkSyncSerializationTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 4 test suites ran. (251 ms total)
+[  PASSED  ] 10 tests.
+[61/233] BookmarkSyncRecoveryRestartTest.PersistedObservedEditIsNotReplayedWithTheOldReceipt (217 ms)
+[62/233] BookmarkSyncRecoveryTest.FirstAcknowledgementRaceKeepsPeerTitleAndNewLocalUrl (1 ms)
+[63/233] BookmarkSyncRecoveryTest.OldReceiptDoesNotReplayAnObservedEditButAllowsDeliberateUndo (2 ms)
+[64/233] BookmarkSyncRecoveryTest.CopiedReceiptCannotClaimOrRebaseCloneIdentity (2 ms)
+[65/233] BookmarkSyncRecoveryTest.PartialNativeApplyDoesNotEchoPeerEdits (2 ms)
+[66/233] BookmarkSyncGoldenTest.SharedV3PayloadsRoundTripWithoutPlatformChanges (1 ms)
+[67/233] BookmarkSyncGoldenTest.RejectsFrozenV2Payloads (0 ms)
+[68/233] BookmarkSyncSerializationTest.PreservesPositiveCreationMetadataBeforeUnixEpoch (0 ms)
+[69/233] BookmarkSyncSerializationTest.RootAndNestedRecordsRoundTripWithoutRedundantRoots (0 ms)
+[70/233] BookmarkSyncSerializationTest.NormalizesExactlyTheSixWireV2FieldClocks (0 ms)
+objc[71017]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142974a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127890a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71017]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x12289c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1085538a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkSyncSerializationTest.TombstoneEnvelopeRetainsBookmarkIdentity:BookmarkSyncSerializationTest.RejectsMissingOrConflictingLocation:BookmarkSyncSerializationTest.RejectsInvalidEnumTypesAndValues:BookmarkSyncSerializationTest.RejectsMissingAndMistypedRequiredFields:BookmarkSyncSerializationTest.RejectsLegacyOrMismatchedModelVersions:BookmarkSyncSerializationTest.RejectsIncompleteOrUnknownFieldClocks:BookmarkSyncSerializationTest.RejectsMalformedFieldClockValues:BookmarkSyncSerializationTest.RefusesToSerializeInvalidBookmarkShape:BookmarkSyncStoreTest.RecordAndOutboxSurviveRestartWithoutDuplication:BookmarkSyncStoreTest.ChildBeforeParentAndRepeatedProviderPageAreSafe
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from BookmarkSyncSerializationTest
+[ RUN      ] BookmarkSyncSerializationTest.TombstoneEnvelopeRetainsBookmarkIdentity
+[       OK ] BookmarkSyncSerializationTest.TombstoneEnvelopeRetainsBookmarkIdentity (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.RejectsMissingOrConflictingLocation
+[       OK ] BookmarkSyncSerializationTest.RejectsMissingOrConflictingLocation (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.RejectsInvalidEnumTypesAndValues
+[       OK ] BookmarkSyncSerializationTest.RejectsInvalidEnumTypesAndValues (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.RejectsMissingAndMistypedRequiredFields
+[       OK ] BookmarkSyncSerializationTest.RejectsMissingAndMistypedRequiredFields (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.RejectsLegacyOrMismatchedModelVersions
+[       OK ] BookmarkSyncSerializationTest.RejectsLegacyOrMismatchedModelVersions (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.RejectsIncompleteOrUnknownFieldClocks
+[       OK ] BookmarkSyncSerializationTest.RejectsIncompleteOrUnknownFieldClocks (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.RejectsMalformedFieldClockValues
+[       OK ] BookmarkSyncSerializationTest.RejectsMalformedFieldClockValues (0 ms)
+[ RUN      ] BookmarkSyncSerializationTest.RefusesToSerializeInvalidBookmarkShape
+[       OK ] BookmarkSyncSerializationTest.RefusesToSerializeInvalidBookmarkShape (0 ms)
+[----------] 8 tests from BookmarkSyncSerializationTest (41 ms total)
+
+[----------] 2 tests from BookmarkSyncStoreTest
+[ RUN      ] BookmarkSyncStoreTest.RecordAndOutboxSurviveRestartWithoutDuplication
+[       OK ] BookmarkSyncStoreTest.RecordAndOutboxSurviveRestartWithoutDuplication (60 ms)
+[ RUN      ] BookmarkSyncStoreTest.ChildBeforeParentAndRepeatedProviderPageAreSafe
+[       OK ] BookmarkSyncStoreTest.ChildBeforeParentAndRepeatedProviderPageAreSafe (1 ms)
+[----------] 2 tests from BookmarkSyncStoreTest (62 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (104 ms total)
+[  PASSED  ] 10 tests.
+[71/233] BookmarkSyncSerializationTest.TombstoneEnvelopeRetainsBookmarkIdentity (0 ms)
+[72/233] BookmarkSyncSerializationTest.RejectsMissingOrConflictingLocation (0 ms)
+[73/233] BookmarkSyncSerializationTest.RejectsInvalidEnumTypesAndValues (0 ms)
+[74/233] BookmarkSyncSerializationTest.RejectsMissingAndMistypedRequiredFields (0 ms)
+[75/233] BookmarkSyncSerializationTest.RejectsLegacyOrMismatchedModelVersions (0 ms)
+[76/233] BookmarkSyncSerializationTest.RejectsIncompleteOrUnknownFieldClocks (0 ms)
+[77/233] BookmarkSyncSerializationTest.RejectsMalformedFieldClockValues (0 ms)
+[78/233] BookmarkSyncSerializationTest.RefusesToSerializeInvalidBookmarkShape (0 ms)
+[79/233] BookmarkSyncStoreTest.RecordAndOutboxSurviveRestartWithoutDuplication (60 ms)
+[80/233] BookmarkSyncStoreTest.ChildBeforeParentAndRepeatedProviderPageAreSafe (1 ms)
+objc[71028]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x145704a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12a620a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71028]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124ed8188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10b0a78a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = BookmarkSyncStoreTest.RejectsLocalKindChangeWithoutTouchingRecordOrOutbox:BookmarkSyncStoreTest.DeletedBookmarkAndWatermarkRejectStaleReplayOnRestart:BookmarkSyncStoreTest.RefusesRealV4SchemaWithoutRewritingLegacyData:NativeBookmarkSyncAdapterTest.CapturesNativeRootsAndNestedIdentity:NativeBookmarkSyncAdapterTest.AppliesRealModelWithoutNavigationOrEcho:NativeBookmarkSyncAdapterTest.PendingLocalEditRejectsOldRemoteReply:NativeBookmarkSyncAdapterTest.MissingParentNeverCreatesPlaceholderFolder:NativeBookmarkSyncAdapterTest.NativeFolderRemovalCapturesDescendants:NativeBookmarkSyncAdapterTest.AccountRootTeardownDoesNotExportDeletion:NativeBookmarkSyncAdapterTest.ObservedStorageMoveRetainsItsPreviousKey
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from BookmarkSyncStoreTest
+[ RUN      ] BookmarkSyncStoreTest.RejectsLocalKindChangeWithoutTouchingRecordOrOutbox
+[       OK ] BookmarkSyncStoreTest.RejectsLocalKindChangeWithoutTouchingRecordOrOutbox (2 ms)
+[ RUN      ] BookmarkSyncStoreTest.DeletedBookmarkAndWatermarkRejectStaleReplayOnRestart
+[       OK ] BookmarkSyncStoreTest.DeletedBookmarkAndWatermarkRejectStaleReplayOnRestart (184 ms)
+[ RUN      ] BookmarkSyncStoreTest.RefusesRealV4SchemaWithoutRewritingLegacyData
+[       OK ] BookmarkSyncStoreTest.RefusesRealV4SchemaWithoutRewritingLegacyData (18 ms)
+[----------] 3 tests from BookmarkSyncStoreTest (229 ms total)
+
+[----------] 7 tests from NativeBookmarkSyncAdapterTest
+[ RUN      ] NativeBookmarkSyncAdapterTest.CapturesNativeRootsAndNestedIdentity
+[       OK ] NativeBookmarkSyncAdapterTest.CapturesNativeRootsAndNestedIdentity (0 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.AppliesRealModelWithoutNavigationOrEcho
+[       OK ] NativeBookmarkSyncAdapterTest.AppliesRealModelWithoutNavigationOrEcho (0 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.PendingLocalEditRejectsOldRemoteReply
+[       OK ] NativeBookmarkSyncAdapterTest.PendingLocalEditRejectsOldRemoteReply (0 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.MissingParentNeverCreatesPlaceholderFolder
+[       OK ] NativeBookmarkSyncAdapterTest.MissingParentNeverCreatesPlaceholderFolder (1 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.NativeFolderRemovalCapturesDescendants
+[       OK ] NativeBookmarkSyncAdapterTest.NativeFolderRemovalCapturesDescendants (0 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.AccountRootTeardownDoesNotExportDeletion
+[       OK ] NativeBookmarkSyncAdapterTest.AccountRootTeardownDoesNotExportDeletion (1 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.ObservedStorageMoveRetainsItsPreviousKey
+[       OK ] NativeBookmarkSyncAdapterTest.ObservedStorageMoveRetainsItsPreviousKey (0 ms)
+[----------] 7 tests from NativeBookmarkSyncAdapterTest (12 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (241 ms total)
+[  PASSED  ] 10 tests.
+[81/233] BookmarkSyncStoreTest.RejectsLocalKindChangeWithoutTouchingRecordOrOutbox (2 ms)
+[82/233] BookmarkSyncStoreTest.DeletedBookmarkAndWatermarkRejectStaleReplayOnRestart (184 ms)
+[83/233] BookmarkSyncStoreTest.RefusesRealV4SchemaWithoutRewritingLegacyData (18 ms)
+[84/233] NativeBookmarkSyncAdapterTest.CapturesNativeRootsAndNestedIdentity (0 ms)
+[85/233] NativeBookmarkSyncAdapterTest.AppliesRealModelWithoutNavigationOrEcho (0 ms)
+[86/233] NativeBookmarkSyncAdapterTest.PendingLocalEditRejectsOldRemoteReply (0 ms)
+[87/233] NativeBookmarkSyncAdapterTest.MissingParentNeverCreatesPlaceholderFolder (1 ms)
+[88/233] NativeBookmarkSyncAdapterTest.NativeFolderRemovalCapturesDescendants (0 ms)
+[89/233] NativeBookmarkSyncAdapterTest.AccountRootTeardownDoesNotExportDeletion (1 ms)
+[90/233] NativeBookmarkSyncAdapterTest.ObservedStorageMoveRetainsItsPreviousKey (0 ms)
+objc[71035]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142914a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127830a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71035]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x12283c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1084af8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = NativeBookmarkSyncAdapterTest.TombstonesRemoveOnlyOwnedNativeNodes:NativeBookmarkSyncAdapterTest.RealNativeRoundTripHasNoRepeatOutboxWrite:NativeBookmarkSyncAdapterTest.DestructionCancelsPendingObserverWork:NativeBookmarkSyncAdapterTest.MoveThenRemoveKeepsTheKnownDeletionKey:NativeBookmarkSyncAdapterTest.CredentialMetadataBlocksReconciliationWithoutExportOrSanitizing:NativeBookmarkSyncAdapterTest.InvalidNativeEditCannotBeOverwrittenByEarlierSyncedValue:NativeBookmarkSyncAdapterTest.LocalOnlyBookmarksStayLocalWithoutPrivacyPause:ProfileSyncBackendAccountTransitionTest.KeySetupAccountChangeWithProviderRoutesToKeySetupRecovery:ProfileSyncBackendAccountTransitionTest.ProviderOwnedTransitionKeepsProviderConfirmationPath:ProfileSyncBackendAccountTransitionTest.NoUploadChoiceClearsOutboxAndDropsRevokedProvider
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from NativeBookmarkSyncAdapterTest
+[ RUN      ] NativeBookmarkSyncAdapterTest.TombstonesRemoveOnlyOwnedNativeNodes
+[       OK ] NativeBookmarkSyncAdapterTest.TombstonesRemoveOnlyOwnedNativeNodes (0 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.RealNativeRoundTripHasNoRepeatOutboxWrite
+[       OK ] NativeBookmarkSyncAdapterTest.RealNativeRoundTripHasNoRepeatOutboxWrite (2 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.DestructionCancelsPendingObserverWork
+[       OK ] NativeBookmarkSyncAdapterTest.DestructionCancelsPendingObserverWork (0 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.MoveThenRemoveKeepsTheKnownDeletionKey
+[       OK ] NativeBookmarkSyncAdapterTest.MoveThenRemoveKeepsTheKnownDeletionKey (1 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.CredentialMetadataBlocksReconciliationWithoutExportOrSanitizing
+[       OK ] NativeBookmarkSyncAdapterTest.CredentialMetadataBlocksReconciliationWithoutExportOrSanitizing (1 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.InvalidNativeEditCannotBeOverwrittenByEarlierSyncedValue
+[       OK ] NativeBookmarkSyncAdapterTest.InvalidNativeEditCannotBeOverwrittenByEarlierSyncedValue (1 ms)
+[ RUN      ] NativeBookmarkSyncAdapterTest.LocalOnlyBookmarksStayLocalWithoutPrivacyPause
+[       OK ] NativeBookmarkSyncAdapterTest.LocalOnlyBookmarksStayLocalWithoutPrivacyPause (0 ms)
+[----------] 7 tests from NativeBookmarkSyncAdapterTest (29 ms total)
+
+[----------] 3 tests from ProfileSyncBackendAccountTransitionTest
+[ RUN      ] ProfileSyncBackendAccountTransitionTest.KeySetupAccountChangeWithProviderRoutesToKeySetupRecovery
+[       OK ] ProfileSyncBackendAccountTransitionTest.KeySetupAccountChangeWithProviderRoutesToKeySetupRecovery (90 ms)
+[ RUN      ] ProfileSyncBackendAccountTransitionTest.ProviderOwnedTransitionKeepsProviderConfirmationPath
+[       OK ] ProfileSyncBackendAccountTransitionTest.ProviderOwnedTransitionKeepsProviderConfirmationPath (89 ms)
+[ RUN      ] ProfileSyncBackendAccountTransitionTest.NoUploadChoiceClearsOutboxAndDropsRevokedProvider
+[       OK ] ProfileSyncBackendAccountTransitionTest.NoUploadChoiceClearsOutboxAndDropsRevokedProvider (107 ms)
+[----------] 3 tests from ProfileSyncBackendAccountTransitionTest (289 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (318 ms total)
+[  PASSED  ] 10 tests.
+[91/233] NativeBookmarkSyncAdapterTest.TombstonesRemoveOnlyOwnedNativeNodes (0 ms)
+[92/233] NativeBookmarkSyncAdapterTest.RealNativeRoundTripHasNoRepeatOutboxWrite (2 ms)
+[93/233] NativeBookmarkSyncAdapterTest.DestructionCancelsPendingObserverWork (0 ms)
+[94/233] NativeBookmarkSyncAdapterTest.MoveThenRemoveKeepsTheKnownDeletionKey (1 ms)
+[95/233] NativeBookmarkSyncAdapterTest.CredentialMetadataBlocksReconciliationWithoutExportOrSanitizing (1 ms)
+[96/233] NativeBookmarkSyncAdapterTest.InvalidNativeEditCannotBeOverwrittenByEarlierSyncedValue (1 ms)
+[97/233] NativeBookmarkSyncAdapterTest.LocalOnlyBookmarksStayLocalWithoutPrivacyPause (0 ms)
+[98/233] ProfileSyncBackendAccountTransitionTest.KeySetupAccountChangeWithProviderRoutesToKeySetupRecovery (90 ms)
+[99/233] ProfileSyncBackendAccountTransitionTest.ProviderOwnedTransitionKeepsProviderConfirmationPath (89 ms)
+[100/233] ProfileSyncBackendAccountTransitionTest.NoUploadChoiceClearsOutboxAndDropsRevokedProvider (107 ms)
+objc[71043]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x143390a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1282aca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71043]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122b64188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x108d7b8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ProfileSyncBackendAccountTransitionTest.UploadChoiceRequeuesLocalRecordsAndDropsRevokedProvider:ProfileSyncBackendAccountTransitionTest.ConfirmWithoutCloudKitConfigurationFailsClosed:ProfileSyncBackendNoStoreTest.NeverInitializedWritesNothing:ProfileSyncBackendNoStoreTest.FailedInitializeWritesNothing:ProfileSyncBackendNoStoreTest.SuspendedSyncWritesNoHistory:ProfileSyncBackendNoStoreTest.OpenStoreStillRecordsHistoryVisit:ProfileSyncServiceTest.DisabledProfileDoesNotCreateOrCollectIntoLocalStore:ProfileSyncServiceTest.EnableAndReenableRequestCurrentRuntimeTabsWithoutLaterUiMutation:ProfileSyncServiceTest.EnabledWithoutCloudKitCapturesLocallyAndDisableFreezesStore:ProfileSyncServiceTest.EnableSeedsPermittedSettingSelectedWhileSyncWasDisabled
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from ProfileSyncBackendAccountTransitionTest
+[ RUN      ] ProfileSyncBackendAccountTransitionTest.UploadChoiceRequeuesLocalRecordsAndDropsRevokedProvider
+[       OK ] ProfileSyncBackendAccountTransitionTest.UploadChoiceRequeuesLocalRecordsAndDropsRevokedProvider (116 ms)
+[ RUN      ] ProfileSyncBackendAccountTransitionTest.ConfirmWithoutCloudKitConfigurationFailsClosed
+[       OK ] ProfileSyncBackendAccountTransitionTest.ConfirmWithoutCloudKitConfigurationFailsClosed (85 ms)
+[----------] 2 tests from ProfileSyncBackendAccountTransitionTest (235 ms total)
+
+[----------] 4 tests from ProfileSyncBackendNoStoreTest
+[ RUN      ] ProfileSyncBackendNoStoreTest.NeverInitializedWritesNothing
+[       OK ] ProfileSyncBackendNoStoreTest.NeverInitializedWritesNothing (0 ms)
+[ RUN      ] ProfileSyncBackendNoStoreTest.FailedInitializeWritesNothing
+[       OK ] ProfileSyncBackendNoStoreTest.FailedInitializeWritesNothing (0 ms)
+[ RUN      ] ProfileSyncBackendNoStoreTest.SuspendedSyncWritesNoHistory
+[       OK ] ProfileSyncBackendNoStoreTest.SuspendedSyncWritesNoHistory (72 ms)
+[ RUN      ] ProfileSyncBackendNoStoreTest.OpenStoreStillRecordsHistoryVisit
+[       OK ] ProfileSyncBackendNoStoreTest.OpenStoreStillRecordsHistoryVisit (97 ms)
+[----------] 4 tests from ProfileSyncBackendNoStoreTest (173 ms total)
+
+[----------] 4 tests from ProfileSyncServiceTest
+[ RUN      ] ProfileSyncServiceTest.DisabledProfileDoesNotCreateOrCollectIntoLocalStore
+[       OK ] ProfileSyncServiceTest.DisabledProfileDoesNotCreateOrCollectIntoLocalStore (187 ms)
+[ RUN      ] ProfileSyncServiceTest.EnableAndReenableRequestCurrentRuntimeTabsWithoutLaterUiMutation
+[       OK ] ProfileSyncServiceTest.EnableAndReenableRequestCurrentRuntimeTabsWithoutLaterUiMutation (532 ms)
+[ RUN      ] ProfileSyncServiceTest.EnabledWithoutCloudKitCapturesLocallyAndDisableFreezesStore
+[       OK ] ProfileSyncServiceTest.EnabledWithoutCloudKitCapturesLocallyAndDisableFreezesStore (498 ms)
+[ RUN      ] ProfileSyncServiceTest.EnableSeedsPermittedSettingSelectedWhileSyncWasDisabled
+[       OK ] ProfileSyncServiceTest.EnableSeedsPermittedSettingSelectedWhileSyncWasDisabled (290 ms)
+[----------] 4 tests from ProfileSyncServiceTest (1513 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (1923 ms total)
+[  PASSED  ] 10 tests.
+[101/233] ProfileSyncBackendAccountTransitionTest.UploadChoiceRequeuesLocalRecordsAndDropsRevokedProvider (116 ms)
+[102/233] ProfileSyncBackendAccountTransitionTest.ConfirmWithoutCloudKitConfigurationFailsClosed (85 ms)
+[103/233] ProfileSyncBackendNoStoreTest.NeverInitializedWritesNothing (0 ms)
+[104/233] ProfileSyncBackendNoStoreTest.FailedInitializeWritesNothing (0 ms)
+[105/233] ProfileSyncBackendNoStoreTest.SuspendedSyncWritesNoHistory (72 ms)
+[106/233] ProfileSyncBackendNoStoreTest.OpenStoreStillRecordsHistoryVisit (97 ms)
+[107/233] ProfileSyncServiceTest.DisabledProfileDoesNotCreateOrCollectIntoLocalStore (187 ms)
+[108/233] ProfileSyncServiceTest.EnableAndReenableRequestCurrentRuntimeTabsWithoutLaterUiMutation (532 ms)
+[109/233] ProfileSyncServiceTest.EnabledWithoutCloudKitCapturesLocallyAndDisableFreezesStore (498 ms)
+[110/233] ProfileSyncServiceTest.EnableSeedsPermittedSettingSelectedWhileSyncWasDisabled (290 ms)
+objc[71107]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140f08a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125e24a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71107]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1206dc188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1068738a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncAccountFenceTest.StartsOpen:SyncAccountFenceTest.SameAccountReopensAfterNotification:SyncAccountFenceTest.RealSwitchOrSignOutRevokes:SyncAccountFenceTest.FailedCheckStaysFencedAndRetries:SyncAccountFenceTest.OnlyTheNewestCheckDecides:SyncAccountFenceTest.StaleOrUnknownChecksAreIgnoredWhenOpen:SyncAccountFenceTest.NotificationAfterReopenFencesAgain:SyncWireV3Test.CarriesCompleteCanonicalFieldClocks:SyncWireV3Test.MatchesCompanionRemoteTabGoldenBytes:SyncWireV3Test.RejectsCompanionRemoteTabBytesFromRemovedFormat
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from SyncAccountFenceTest
+[ RUN      ] SyncAccountFenceTest.StartsOpen
+[       OK ] SyncAccountFenceTest.StartsOpen (0 ms)
+[ RUN      ] SyncAccountFenceTest.SameAccountReopensAfterNotification
+[       OK ] SyncAccountFenceTest.SameAccountReopensAfterNotification (0 ms)
+[ RUN      ] SyncAccountFenceTest.RealSwitchOrSignOutRevokes
+[       OK ] SyncAccountFenceTest.RealSwitchOrSignOutRevokes (0 ms)
+[ RUN      ] SyncAccountFenceTest.FailedCheckStaysFencedAndRetries
+[       OK ] SyncAccountFenceTest.FailedCheckStaysFencedAndRetries (0 ms)
+[ RUN      ] SyncAccountFenceTest.OnlyTheNewestCheckDecides
+[       OK ] SyncAccountFenceTest.OnlyTheNewestCheckDecides (0 ms)
+[ RUN      ] SyncAccountFenceTest.StaleOrUnknownChecksAreIgnoredWhenOpen
+[       OK ] SyncAccountFenceTest.StaleOrUnknownChecksAreIgnoredWhenOpen (0 ms)
+[ RUN      ] SyncAccountFenceTest.NotificationAfterReopenFencesAgain
+[       OK ] SyncAccountFenceTest.NotificationAfterReopenFencesAgain (0 ms)
+[----------] 7 tests from SyncAccountFenceTest (21 ms total)
+
+[----------] 3 tests from SyncWireV3Test
+[ RUN      ] SyncWireV3Test.CarriesCompleteCanonicalFieldClocks
+[       OK ] SyncWireV3Test.CarriesCompleteCanonicalFieldClocks (0 ms)
+[ RUN      ] SyncWireV3Test.MatchesCompanionRemoteTabGoldenBytes
+[       OK ] SyncWireV3Test.MatchesCompanionRemoteTabGoldenBytes (0 ms)
+[ RUN      ] SyncWireV3Test.RejectsCompanionRemoteTabBytesFromRemovedFormat
+[       OK ] SyncWireV3Test.RejectsCompanionRemoteTabBytesFromRemovedFormat (0 ms)
+[----------] 3 tests from SyncWireV3Test (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (23 ms total)
+[  PASSED  ] 10 tests.
+[111/233] SyncAccountFenceTest.StartsOpen (0 ms)
+[112/233] SyncAccountFenceTest.SameAccountReopensAfterNotification (0 ms)
+[113/233] SyncAccountFenceTest.RealSwitchOrSignOutRevokes (0 ms)
+[114/233] SyncAccountFenceTest.FailedCheckStaysFencedAndRetries (0 ms)
+[115/233] SyncAccountFenceTest.OnlyTheNewestCheckDecides (0 ms)
+[116/233] SyncAccountFenceTest.StaleOrUnknownChecksAreIgnoredWhenOpen (0 ms)
+[117/233] SyncAccountFenceTest.NotificationAfterReopenFencesAgain (0 ms)
+[118/233] SyncWireV3Test.CarriesCompleteCanonicalFieldClocks (0 ms)
+[119/233] SyncWireV3Test.MatchesCompanionRemoteTabGoldenBytes (0 ms)
+[120/233] SyncWireV3Test.RejectsCompanionRemoteTabBytesFromRemovedFormat (0 ms)
+objc[71133]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14236ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127288a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71133]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122aec188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1087038a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncStoreV3Test.MergesDisjointFieldsAndRequeuesConvergedUnion:SyncStoreV3Test.QuarantinesOneConflictAndAdvancesProviderToken:SyncStoreV3Test.QuarantinesMutationIdCollisionWithoutPinningToken:SyncStoreV3Test.QuarantinesMalformedCloudKitEnvelopeWithoutPayload:SyncStoreV3Test.CompactionWatermarkRejectsDelayedResurrection:SyncStoreV3Test.RefusesV2DatabaseWithoutMigration:SyncMergeConformanceTest.SharedVectors:SyncMergeConformanceTest.UTF8SortKeyVectors:SyncMergeConformanceTest.InventoryAssetVectors:SyncMergeConformanceTest.RemainingEntityVectors
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from SyncStoreV3Test
+[ RUN      ] SyncStoreV3Test.MergesDisjointFieldsAndRequeuesConvergedUnion
+[       OK ] SyncStoreV3Test.MergesDisjointFieldsAndRequeuesConvergedUnion (1 ms)
+[ RUN      ] SyncStoreV3Test.QuarantinesOneConflictAndAdvancesProviderToken
+[       OK ] SyncStoreV3Test.QuarantinesOneConflictAndAdvancesProviderToken (0 ms)
+[ RUN      ] SyncStoreV3Test.QuarantinesMutationIdCollisionWithoutPinningToken
+[       OK ] SyncStoreV3Test.QuarantinesMutationIdCollisionWithoutPinningToken (0 ms)
+[ RUN      ] SyncStoreV3Test.QuarantinesMalformedCloudKitEnvelopeWithoutPayload
+[       OK ] SyncStoreV3Test.QuarantinesMalformedCloudKitEnvelopeWithoutPayload (0 ms)
+[ RUN      ] SyncStoreV3Test.CompactionWatermarkRejectsDelayedResurrection
+[       OK ] SyncStoreV3Test.CompactionWatermarkRejectsDelayedResurrection (0 ms)
+[ RUN      ] SyncStoreV3Test.RefusesV2DatabaseWithoutMigration
+[       OK ] SyncStoreV3Test.RefusesV2DatabaseWithoutMigration (3 ms)
+[----------] 6 tests from SyncStoreV3Test (28 ms total)
+
+[----------] 4 tests from SyncMergeConformanceTest
+[ RUN      ] SyncMergeConformanceTest.SharedVectors
+[       OK ] SyncMergeConformanceTest.SharedVectors (17 ms)
+[ RUN      ] SyncMergeConformanceTest.UTF8SortKeyVectors
+[       OK ] SyncMergeConformanceTest.UTF8SortKeyVectors (1 ms)
+[ RUN      ] SyncMergeConformanceTest.InventoryAssetVectors
+[       OK ] SyncMergeConformanceTest.InventoryAssetVectors (1 ms)
+[ RUN      ] SyncMergeConformanceTest.RemainingEntityVectors
+[       OK ] SyncMergeConformanceTest.RemainingEntityVectors (5 ms)
+[----------] 4 tests from SyncMergeConformanceTest (27 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (56 ms total)
+[  PASSED  ] 10 tests.
+[121/233] SyncStoreV3Test.MergesDisjointFieldsAndRequeuesConvergedUnion (1 ms)
+[122/233] SyncStoreV3Test.QuarantinesOneConflictAndAdvancesProviderToken (0 ms)
+[123/233] SyncStoreV3Test.QuarantinesMutationIdCollisionWithoutPinningToken (0 ms)
+[124/233] SyncStoreV3Test.QuarantinesMalformedCloudKitEnvelopeWithoutPayload (0 ms)
+[125/233] SyncStoreV3Test.CompactionWatermarkRejectsDelayedResurrection (0 ms)
+[126/233] SyncStoreV3Test.RefusesV2DatabaseWithoutMigration (3 ms)
+[127/233] SyncMergeConformanceTest.SharedVectors (17 ms)
+[128/233] SyncMergeConformanceTest.UTF8SortKeyVectors (1 ms)
+[129/233] SyncMergeConformanceTest.InventoryAssetVectors (1 ms)
+[130/233] SyncMergeConformanceTest.RemainingEntityVectors (5 ms)
+objc[71144]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140e3ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125d58a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71144]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120610188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10683f8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncMergeConformanceTest.SeededMergeSequences:SyncMergeConformanceTest.BrowserSettingValueVectors:SyncMergeConformanceTest.DomainGroupVectors:SyncNamespaceTest.MainNamespaceKeepsBundleValuesByteForByte:SyncNamespaceTest.SeparatedWorkspaceGetsItsOwnZoneAndKey:SyncNamespaceTest.SeparatedNamespaceNeverResolvesToTheMainZone:SyncNamespaceTest.SeparatedNamespaceFailsClosed:SyncNamespaceTest.ZoneNameValidation:SyncNamespaceForProfileTest.UnlistedProfileUsesMainNamespace:SyncNamespaceForProfileTest.SeparatedProfileNeverResolvesToMainZone
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from SyncMergeConformanceTest
+[ RUN      ] SyncMergeConformanceTest.SeededMergeSequences
+[       OK ] SyncMergeConformanceTest.SeededMergeSequences (13 ms)
+[ RUN      ] SyncMergeConformanceTest.BrowserSettingValueVectors
+[       OK ] SyncMergeConformanceTest.BrowserSettingValueVectors (0 ms)
+[ RUN      ] SyncMergeConformanceTest.DomainGroupVectors
+[       OK ] SyncMergeConformanceTest.DomainGroupVectors (4 ms)
+[----------] 3 tests from SyncMergeConformanceTest (37 ms total)
+
+[----------] 5 tests from SyncNamespaceTest
+[ RUN      ] SyncNamespaceTest.MainNamespaceKeepsBundleValuesByteForByte
+[       OK ] SyncNamespaceTest.MainNamespaceKeepsBundleValuesByteForByte (0 ms)
+[ RUN      ] SyncNamespaceTest.SeparatedWorkspaceGetsItsOwnZoneAndKey
+[       OK ] SyncNamespaceTest.SeparatedWorkspaceGetsItsOwnZoneAndKey (0 ms)
+[ RUN      ] SyncNamespaceTest.SeparatedNamespaceNeverResolvesToTheMainZone
+[       OK ] SyncNamespaceTest.SeparatedNamespaceNeverResolvesToTheMainZone (0 ms)
+[ RUN      ] SyncNamespaceTest.SeparatedNamespaceFailsClosed
+[       OK ] SyncNamespaceTest.SeparatedNamespaceFailsClosed (0 ms)
+[ RUN      ] SyncNamespaceTest.ZoneNameValidation
+[       OK ] SyncNamespaceTest.ZoneNameValidation (0 ms)
+[----------] 5 tests from SyncNamespaceTest (1 ms total)
+
+[----------] 2 tests from SyncNamespaceForProfileTest
+[ RUN      ] SyncNamespaceForProfileTest.UnlistedProfileUsesMainNamespace
+[       OK ] SyncNamespaceForProfileTest.UnlistedProfileUsesMainNamespace (0 ms)
+[ RUN      ] SyncNamespaceForProfileTest.SeparatedProfileNeverResolvesToMainZone
+[       OK ] SyncNamespaceForProfileTest.SeparatedProfileNeverResolvesToMainZone (0 ms)
+[----------] 2 tests from SyncNamespaceForProfileTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (40 ms total)
+[  PASSED  ] 10 tests.
+[131/233] SyncMergeConformanceTest.SeededMergeSequences (13 ms)
+[132/233] SyncMergeConformanceTest.BrowserSettingValueVectors (0 ms)
+[133/233] SyncMergeConformanceTest.DomainGroupVectors (4 ms)
+[134/233] SyncNamespaceTest.MainNamespaceKeepsBundleValuesByteForByte (0 ms)
+[135/233] SyncNamespaceTest.SeparatedWorkspaceGetsItsOwnZoneAndKey (0 ms)
+[136/233] SyncNamespaceTest.SeparatedNamespaceNeverResolvesToTheMainZone (0 ms)
+[137/233] SyncNamespaceTest.SeparatedNamespaceFailsClosed (0 ms)
+[138/233] SyncNamespaceTest.ZoneNameValidation (0 ms)
+[139/233] SyncNamespaceForProfileTest.UnlistedProfileUsesMainNamespace (0 ms)
+[140/233] SyncNamespaceForProfileTest.SeparatedProfileNeverResolvesToMainZone (0 ms)
+objc[71149]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1415d0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1264eca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71149]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120da4188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x106f4b8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncNamespaceForProfileTest.MalformedEntryFailsClosed:SyncProductSettingsTest.SidebarPageTintUsesBooleanAllowlistBoundary:SyncPumpMergeTest.ImportsStagedServerVersionAndResendsInSameCycle:SyncPumpMergeTest.PersistentConflictRetriesAfterSecondsOnItsOwn:SyncPumpMergeTest.ConflictDeadlineIgnoresEarlierTransportBackoff:SyncPumpMergeTest.OtherFailuresKeepTheGenericBackoff:SyncRecordLimitsTest.TitleVectorsAroundTheReaderLimit:SyncRecordLimitsTest.CutsOnlyBetweenWholeCharacters:SyncRecordLimitsTest.NamesFitTheirOwnLimit:SyncRecordLimitsTest.HistoryAddressesPastTheLimitStayLocal
+[==========] Running 10 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from SyncNamespaceForProfileTest
+[ RUN      ] SyncNamespaceForProfileTest.MalformedEntryFailsClosed
+[       OK ] SyncNamespaceForProfileTest.MalformedEntryFailsClosed (0 ms)
+[----------] 1 test from SyncNamespaceForProfileTest (18 ms total)
+
+[----------] 1 test from SyncProductSettingsTest
+[ RUN      ] SyncProductSettingsTest.SidebarPageTintUsesBooleanAllowlistBoundary
+[       OK ] SyncProductSettingsTest.SidebarPageTintUsesBooleanAllowlistBoundary (0 ms)
+[----------] 1 test from SyncProductSettingsTest (0 ms total)
+
+[----------] 4 tests from SyncPumpMergeTest
+[ RUN      ] SyncPumpMergeTest.ImportsStagedServerVersionAndResendsInSameCycle
+[       OK ] SyncPumpMergeTest.ImportsStagedServerVersionAndResendsInSameCycle (2 ms)
+[ RUN      ] SyncPumpMergeTest.PersistentConflictRetriesAfterSecondsOnItsOwn
+[       OK ] SyncPumpMergeTest.PersistentConflictRetriesAfterSecondsOnItsOwn (1 ms)
+[ RUN      ] SyncPumpMergeTest.ConflictDeadlineIgnoresEarlierTransportBackoff
+[       OK ] SyncPumpMergeTest.ConflictDeadlineIgnoresEarlierTransportBackoff (1 ms)
+[ RUN      ] SyncPumpMergeTest.OtherFailuresKeepTheGenericBackoff
+[       OK ] SyncPumpMergeTest.OtherFailuresKeepTheGenericBackoff (1 ms)
+[----------] 4 tests from SyncPumpMergeTest (9 ms total)
+
+[----------] 4 tests from SyncRecordLimitsTest
+[ RUN      ] SyncRecordLimitsTest.TitleVectorsAroundTheReaderLimit
+[       OK ] SyncRecordLimitsTest.TitleVectorsAroundTheReaderLimit (0 ms)
+[ RUN      ] SyncRecordLimitsTest.CutsOnlyBetweenWholeCharacters
+[       OK ] SyncRecordLimitsTest.CutsOnlyBetweenWholeCharacters (0 ms)
+[ RUN      ] SyncRecordLimitsTest.NamesFitTheirOwnLimit
+[       OK ] SyncRecordLimitsTest.NamesFitTheirOwnLimit (0 ms)
+[ RUN      ] SyncRecordLimitsTest.HistoryAddressesPastTheLimitStayLocal
+[       OK ] SyncRecordLimitsTest.HistoryAddressesPastTheLimitStayLocal (0 ms)
+[----------] 4 tests from SyncRecordLimitsTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 4 test suites ran. (30 ms total)
+[  PASSED  ] 10 tests.
+[141/233] SyncNamespaceForProfileTest.MalformedEntryFailsClosed (0 ms)
+[142/233] SyncProductSettingsTest.SidebarPageTintUsesBooleanAllowlistBoundary (0 ms)
+[143/233] SyncPumpMergeTest.ImportsStagedServerVersionAndResendsInSameCycle (2 ms)
+[144/233] SyncPumpMergeTest.PersistentConflictRetriesAfterSecondsOnItsOwn (1 ms)
+[145/233] SyncPumpMergeTest.ConflictDeadlineIgnoresEarlierTransportBackoff (1 ms)
+[146/233] SyncPumpMergeTest.OtherFailuresKeepTheGenericBackoff (1 ms)
+[147/233] SyncRecordLimitsTest.TitleVectorsAroundTheReaderLimit (0 ms)
+[148/233] SyncRecordLimitsTest.CutsOnlyBetweenWholeCharacters (0 ms)
+[149/233] SyncRecordLimitsTest.NamesFitTheirOwnLimit (0 ms)
+[150/233] SyncRecordLimitsTest.HistoryAddressesPastTheLimitStayLocal (0 ms)
+objc[71153]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x145728a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12a644a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71153]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124efc188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10b0838a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncRecordLimitsTest.PresenceTitleIsFittedAndAddressKept:SyncRecordLimitsTest.WorkspaceProjectionFitsTheName:SyncRecordLimitsTest.BackendWritesOnlyRecordsEveryReaderAccepts:SyncSerializationTest.SamplesCoverEveryRecordType:SyncSerializationTest.EveryRecordTypeHasAStablePayload:SyncSerializationTest.RemoteTabRoundTripsAndRejectsIncognitoEnvelope:SyncSerializationTest.RejectsLegacyMacIOSWireV1GoldenPayload:SyncSecretBoundaryTest.NoRecordCarriesCredentialsOrLocalUrls:SyncSecretBoundaryTest.ArchiveTargetsCarryNoCredentialsOrLocalUrls:SyncSecretBoundaryTest.NoPayloadHasAFieldForSecrets
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from SyncRecordLimitsTest
+[ RUN      ] SyncRecordLimitsTest.PresenceTitleIsFittedAndAddressKept
+[       OK ] SyncRecordLimitsTest.PresenceTitleIsFittedAndAddressKept (0 ms)
+[ RUN      ] SyncRecordLimitsTest.WorkspaceProjectionFitsTheName
+[       OK ] SyncRecordLimitsTest.WorkspaceProjectionFitsTheName (0 ms)
+[ RUN      ] SyncRecordLimitsTest.BackendWritesOnlyRecordsEveryReaderAccepts
+[       OK ] SyncRecordLimitsTest.BackendWritesOnlyRecordsEveryReaderAccepts (111 ms)
+[----------] 3 tests from SyncRecordLimitsTest (132 ms total)
+
+[----------] 4 tests from SyncSerializationTest
+[ RUN      ] SyncSerializationTest.SamplesCoverEveryRecordType
+[       OK ] SyncSerializationTest.SamplesCoverEveryRecordType (0 ms)
+[ RUN      ] SyncSerializationTest.EveryRecordTypeHasAStablePayload
+[       OK ] SyncSerializationTest.EveryRecordTypeHasAStablePayload (0 ms)
+[ RUN      ] SyncSerializationTest.RemoteTabRoundTripsAndRejectsIncognitoEnvelope
+[       OK ] SyncSerializationTest.RemoteTabRoundTripsAndRejectsIncognitoEnvelope (0 ms)
+[ RUN      ] SyncSerializationTest.RejectsLegacyMacIOSWireV1GoldenPayload
+[       OK ] SyncSerializationTest.RejectsLegacyMacIOSWireV1GoldenPayload (0 ms)
+[----------] 4 tests from SyncSerializationTest (2 ms total)
+
+[----------] 3 tests from SyncSecretBoundaryTest
+[ RUN      ] SyncSecretBoundaryTest.NoRecordCarriesCredentialsOrLocalUrls
+[       OK ] SyncSecretBoundaryTest.NoRecordCarriesCredentialsOrLocalUrls (0 ms)
+[ RUN      ] SyncSecretBoundaryTest.ArchiveTargetsCarryNoCredentialsOrLocalUrls
+[       OK ] SyncSecretBoundaryTest.ArchiveTargetsCarryNoCredentialsOrLocalUrls (0 ms)
+[ RUN      ] SyncSecretBoundaryTest.NoPayloadHasAFieldForSecrets
+[       OK ] SyncSecretBoundaryTest.NoPayloadHasAFieldForSecrets (0 ms)
+[----------] 3 tests from SyncSecretBoundaryTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (136 ms total)
+[  PASSED  ] 10 tests.
+[151/233] SyncRecordLimitsTest.PresenceTitleIsFittedAndAddressKept (0 ms)
+[152/233] SyncRecordLimitsTest.WorkspaceProjectionFitsTheName (0 ms)
+[153/233] SyncRecordLimitsTest.BackendWritesOnlyRecordsEveryReaderAccepts (111 ms)
+[154/233] SyncSerializationTest.SamplesCoverEveryRecordType (0 ms)
+[155/233] SyncSerializationTest.EveryRecordTypeHasAStablePayload (0 ms)
+[156/233] SyncSerializationTest.RemoteTabRoundTripsAndRejectsIncognitoEnvelope (0 ms)
+[157/233] SyncSerializationTest.RejectsLegacyMacIOSWireV1GoldenPayload (0 ms)
+[158/233] SyncSecretBoundaryTest.NoRecordCarriesCredentialsOrLocalUrls (0 ms)
+[159/233] SyncSecretBoundaryTest.ArchiveTargetsCarryNoCredentialsOrLocalUrls (0 ms)
+[160/233] SyncSecretBoundaryTest.NoPayloadHasAFieldForSecrets (0 ms)
+objc[71448]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1437eca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x128708a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71448]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122fc0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1091678a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncMergeTest.ProductRecordsEnforceOptInAndSecretBoundaries:SyncMergeTest.ConcurrentVersionsUseDeviceTieBreakAndAreIdempotent:SyncMergeTest.TreeGraphRejectsCyclesAndCrossWorkspaceParents:RemoteCommandSecurityTest.MatchesSwiftGoldenAndVerifiesEd25519:HistorySyncFilterTest.AllowsOnlyOrdinaryBrowsedNetworkVisits:SyncStoreTest.RemoteCommandReplayPersistsCommandAndNonce:SyncStoreTest.AcceptsPartialTreeProviderPageForLaterRepair:SyncStoreTest.LocalMutationIsAtomicWithOutboxAndPersists:SyncStoreTest.CloudRecoveryPreservesRecordsAndRebuildsOutbox:SyncStoreTest.RemotePageIsIdempotentAndAdvancesTokenAtomically
+[==========] Running 10 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from SyncMergeTest
+[ RUN      ] SyncMergeTest.ProductRecordsEnforceOptInAndSecretBoundaries
+[       OK ] SyncMergeTest.ProductRecordsEnforceOptInAndSecretBoundaries (0 ms)
+[ RUN      ] SyncMergeTest.ConcurrentVersionsUseDeviceTieBreakAndAreIdempotent
+[       OK ] SyncMergeTest.ConcurrentVersionsUseDeviceTieBreakAndAreIdempotent (0 ms)
+[ RUN      ] SyncMergeTest.TreeGraphRejectsCyclesAndCrossWorkspaceParents
+[       OK ] SyncMergeTest.TreeGraphRejectsCyclesAndCrossWorkspaceParents (0 ms)
+[----------] 3 tests from SyncMergeTest (19 ms total)
+
+[----------] 1 test from RemoteCommandSecurityTest
+[ RUN      ] RemoteCommandSecurityTest.MatchesSwiftGoldenAndVerifiesEd25519
+[       OK ] RemoteCommandSecurityTest.MatchesSwiftGoldenAndVerifiesEd25519 (0 ms)
+[----------] 1 test from RemoteCommandSecurityTest (0 ms total)
+
+[----------] 1 test from HistorySyncFilterTest
+[ RUN      ] HistorySyncFilterTest.AllowsOnlyOrdinaryBrowsedNetworkVisits
+[       OK ] HistorySyncFilterTest.AllowsOnlyOrdinaryBrowsedNetworkVisits (0 ms)
+[----------] 1 test from HistorySyncFilterTest (0 ms total)
+
+[----------] 5 tests from SyncStoreTest
+[ RUN      ] SyncStoreTest.RemoteCommandReplayPersistsCommandAndNonce
+[       OK ] SyncStoreTest.RemoteCommandReplayPersistsCommandAndNonce (38 ms)
+[ RUN      ] SyncStoreTest.AcceptsPartialTreeProviderPageForLaterRepair
+[       OK ] SyncStoreTest.AcceptsPartialTreeProviderPageForLaterRepair (1 ms)
+[ RUN      ] SyncStoreTest.LocalMutationIsAtomicWithOutboxAndPersists
+[       OK ] SyncStoreTest.LocalMutationIsAtomicWithOutboxAndPersists (85 ms)
+[ RUN      ] SyncStoreTest.CloudRecoveryPreservesRecordsAndRebuildsOutbox
+[       OK ] SyncStoreTest.CloudRecoveryPreservesRecordsAndRebuildsOutbox (1 ms)
+[ RUN      ] SyncStoreTest.RemotePageIsIdempotentAndAdvancesTokenAtomically
+[       OK ] SyncStoreTest.RemotePageIsIdempotentAndAdvancesTokenAtomically (1 ms)
+[----------] 5 tests from SyncStoreTest (131 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 4 test suites ran. (151 ms total)
+[  PASSED  ] 10 tests.
+[161/233] SyncMergeTest.ProductRecordsEnforceOptInAndSecretBoundaries (0 ms)
+[162/233] SyncMergeTest.ConcurrentVersionsUseDeviceTieBreakAndAreIdempotent (0 ms)
+[163/233] SyncMergeTest.TreeGraphRejectsCyclesAndCrossWorkspaceParents (0 ms)
+[164/233] RemoteCommandSecurityTest.MatchesSwiftGoldenAndVerifiesEd25519 (0 ms)
+[165/233] HistorySyncFilterTest.AllowsOnlyOrdinaryBrowsedNetworkVisits (0 ms)
+[166/233] SyncStoreTest.RemoteCommandReplayPersistsCommandAndNonce (38 ms)
+[167/233] SyncStoreTest.AcceptsPartialTreeProviderPageForLaterRepair (1 ms)
+[168/233] SyncStoreTest.LocalMutationIsAtomicWithOutboxAndPersists (85 ms)
+[169/233] SyncStoreTest.CloudRecoveryPreservesRecordsAndRebuildsOutbox (1 ms)
+[170/233] SyncStoreTest.RemotePageIsIdempotentAndAdvancesTokenAtomically (1 ms)
+objc[71751]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x143130a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12804ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71751]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122904188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x108bcf8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = TabTreeSyncAdapterTest.RepairsCycleAndDeletedParentDeterministically:SyncWorkspaceMergeTest.MergeTargetRoundTripsWithItsTombstone:SyncWorkspaceMergeTest.MergeTargetOnlyAccompaniesATombstone:SyncWorkspaceMergeTest.TombstoneFieldGroupCarriesTheTarget:SyncWorkspaceMergeTest.NodeInAMergedWorkspaceFollowsTheMerge:SyncWorkspaceMergeTest.NodeFollowsAChainOfMerges:SyncWorkspaceMergeTest.WithoutALiveTargetTheRecoveryStillApplies:SyncWorkspaceMergeTest.MissingOrInvalidParentKeepsLatePageAtMergeTargetRoot:SyncWorkspaceMergeTest.ValidParentSurvivesBeforeOrTogetherWithLateChild:SyncWorkspaceMergeTest.CompactionRetainsOnlyTheRouteAndPreservesRawPage
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from TabTreeSyncAdapterTest
+[ RUN      ] TabTreeSyncAdapterTest.RepairsCycleAndDeletedParentDeterministically
+[       OK ] TabTreeSyncAdapterTest.RepairsCycleAndDeletedParentDeterministically (0 ms)
+[----------] 1 test from TabTreeSyncAdapterTest (18 ms total)
+
+[----------] 9 tests from SyncWorkspaceMergeTest
+[ RUN      ] SyncWorkspaceMergeTest.MergeTargetRoundTripsWithItsTombstone
+[       OK ] SyncWorkspaceMergeTest.MergeTargetRoundTripsWithItsTombstone (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.MergeTargetOnlyAccompaniesATombstone
+[       OK ] SyncWorkspaceMergeTest.MergeTargetOnlyAccompaniesATombstone (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.TombstoneFieldGroupCarriesTheTarget
+[       OK ] SyncWorkspaceMergeTest.TombstoneFieldGroupCarriesTheTarget (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.NodeInAMergedWorkspaceFollowsTheMerge
+[       OK ] SyncWorkspaceMergeTest.NodeInAMergedWorkspaceFollowsTheMerge (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.NodeFollowsAChainOfMerges
+[       OK ] SyncWorkspaceMergeTest.NodeFollowsAChainOfMerges (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.WithoutALiveTargetTheRecoveryStillApplies
+[       OK ] SyncWorkspaceMergeTest.WithoutALiveTargetTheRecoveryStillApplies (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.MissingOrInvalidParentKeepsLatePageAtMergeTargetRoot
+[       OK ] SyncWorkspaceMergeTest.MissingOrInvalidParentKeepsLatePageAtMergeTargetRoot (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.ValidParentSurvivesBeforeOrTogetherWithLateChild
+[       OK ] SyncWorkspaceMergeTest.ValidParentSurvivesBeforeOrTogetherWithLateChild (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.CompactionRetainsOnlyTheRouteAndPreservesRawPage
+[       OK ] SyncWorkspaceMergeTest.CompactionRetainsOnlyTheRouteAndPreservesRawPage (1 ms)
+[----------] 9 tests from SyncWorkspaceMergeTest (5 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (24 ms total)
+[  PASSED  ] 10 tests.
+[171/233] TabTreeSyncAdapterTest.RepairsCycleAndDeletedParentDeterministically (0 ms)
+[172/233] SyncWorkspaceMergeTest.MergeTargetRoundTripsWithItsTombstone (0 ms)
+[173/233] SyncWorkspaceMergeTest.MergeTargetOnlyAccompaniesATombstone (0 ms)
+[174/233] SyncWorkspaceMergeTest.TombstoneFieldGroupCarriesTheTarget (0 ms)
+[175/233] SyncWorkspaceMergeTest.NodeInAMergedWorkspaceFollowsTheMerge (0 ms)
+[176/233] SyncWorkspaceMergeTest.NodeFollowsAChainOfMerges (0 ms)
+[177/233] SyncWorkspaceMergeTest.WithoutALiveTargetTheRecoveryStillApplies (0 ms)
+[178/233] SyncWorkspaceMergeTest.MissingOrInvalidParentKeepsLatePageAtMergeTargetRoot (0 ms)
+[179/233] SyncWorkspaceMergeTest.ValidParentSurvivesBeforeOrTogetherWithLateChild (0 ms)
+[180/233] SyncWorkspaceMergeTest.CompactionRetainsOnlyTheRouteAndPreservesRawPage (1 ms)
+objc[71800]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140e54a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125d70a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71800]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120628188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1067af8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncWorkspaceMergeTest.CompactedSourceIsNotResurrectedAsNativeFallback:SyncWorkspaceMergeTest.NativeFallbackSkipsCompactedSourceForKnownTarget:SyncWorkspaceMergeTest.CompactedMergeChainSurvivesStoreReopen:SyncWorkspaceMergeTest.UndoneMergeCompactsWithoutAStaleRoute:SyncWorkspaceMergeTest.TailProjectionPreservesExplicitMovesAndRebases:SyncWorkspaceProjectionConformanceTest.SharedFramesAndArrayOrders:SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames:UnifiedSyncGoldenTest.EveryEntityRoundTripsTheSameCanonicalBytes:UnifiedSyncGoldenTest.OldAndUnknownFormatsAreRejectedForEveryEntity:UnifiedSyncGoldenTest.IncomingMissingOrUnknownFieldsNeverGetSyntheticClocks
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from SyncWorkspaceMergeTest
+[ RUN      ] SyncWorkspaceMergeTest.CompactedSourceIsNotResurrectedAsNativeFallback
+[       OK ] SyncWorkspaceMergeTest.CompactedSourceIsNotResurrectedAsNativeFallback (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.NativeFallbackSkipsCompactedSourceForKnownTarget
+[       OK ] SyncWorkspaceMergeTest.NativeFallbackSkipsCompactedSourceForKnownTarget (0 ms)
+[ RUN      ] SyncWorkspaceMergeTest.CompactedMergeChainSurvivesStoreReopen
+[       OK ] SyncWorkspaceMergeTest.CompactedMergeChainSurvivesStoreReopen (109 ms)
+[ RUN      ] SyncWorkspaceMergeTest.UndoneMergeCompactsWithoutAStaleRoute
+[       OK ] SyncWorkspaceMergeTest.UndoneMergeCompactsWithoutAStaleRoute (1 ms)
+[ RUN      ] SyncWorkspaceMergeTest.TailProjectionPreservesExplicitMovesAndRebases
+[       OK ] SyncWorkspaceMergeTest.TailProjectionPreservesExplicitMovesAndRebases (0 ms)
+[----------] 5 tests from SyncWorkspaceMergeTest (132 ms total)
+
+[----------] 2 tests from SyncWorkspaceProjectionConformanceTest
+[ RUN      ] SyncWorkspaceProjectionConformanceTest.SharedFramesAndArrayOrders
+[       OK ] SyncWorkspaceProjectionConformanceTest.SharedFramesAndArrayOrders (74 ms)
+[ RUN      ] SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames
+[       OK ] SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames (4 ms)
+[----------] 2 tests from SyncWorkspaceProjectionConformanceTest (79 ms total)
+
+[----------] 3 tests from UnifiedSyncGoldenTest
+[ RUN      ] UnifiedSyncGoldenTest.EveryEntityRoundTripsTheSameCanonicalBytes
+[       OK ] UnifiedSyncGoldenTest.EveryEntityRoundTripsTheSameCanonicalBytes (1 ms)
+[ RUN      ] UnifiedSyncGoldenTest.OldAndUnknownFormatsAreRejectedForEveryEntity
+[       OK ] UnifiedSyncGoldenTest.OldAndUnknownFormatsAreRejectedForEveryEntity (3 ms)
+[ RUN      ] UnifiedSyncGoldenTest.IncomingMissingOrUnknownFieldsNeverGetSyntheticClocks
+[       OK ] UnifiedSyncGoldenTest.IncomingMissingOrUnknownFieldsNeverGetSyntheticClocks (2 ms)
+[----------] 3 tests from UnifiedSyncGoldenTest (8 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (220 ms total)
+[  PASSED  ] 10 tests.
+[181/233] SyncWorkspaceMergeTest.CompactedSourceIsNotResurrectedAsNativeFallback (0 ms)
+[182/233] SyncWorkspaceMergeTest.NativeFallbackSkipsCompactedSourceForKnownTarget (0 ms)
+[183/233] SyncWorkspaceMergeTest.CompactedMergeChainSurvivesStoreReopen (109 ms)
+[184/233] SyncWorkspaceMergeTest.UndoneMergeCompactsWithoutAStaleRoute (1 ms)
+[185/233] SyncWorkspaceMergeTest.TailProjectionPreservesExplicitMovesAndRebases (0 ms)
+[186/233] SyncWorkspaceProjectionConformanceTest.SharedFramesAndArrayOrders (74 ms)
+[187/233] SyncWorkspaceProjectionConformanceTest.MarkerCollisionFrames (4 ms)
+[188/233] UnifiedSyncGoldenTest.EveryEntityRoundTripsTheSameCanonicalBytes (1 ms)
+[189/233] UnifiedSyncGoldenTest.OldAndUnknownFormatsAreRejectedForEveryEntity (3 ms)
+[190/233] UnifiedSyncGoldenTest.IncomingMissingOrUnknownFieldsNeverGetSyntheticClocks (2 ms)
+objc[71806]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144f30a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129e4ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71806]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1256b0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10b2e78a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = UnifiedSyncGoldenTest.LogicalNumbersRejectBooleanFractionNegativeAndOverflow:UnifiedSyncGoldenTest.PresenceRequiresDistinctPageIdentityForEveryTarget:UnifiedSyncStoreTest.CompleteCaptureIsOneCommitAndOneNotification:UnifiedSyncStoreTest.RevocationAtFinalBoundaryRollsBackEveryRow:UnifiedSyncStoreTest.MissingPageNeverCommitsAnUnlinkedLocalPresence:UnifiedSyncStoreTest.LateSqlFailureRollsBackEarlierRowsAndOutbox:UnifiedSyncStoreTest.OldDevelopmentStoreIsRefusedWithoutMigration:UnifiedSyncStoreTest.TwoNodeCycleRollsBackTheWholeBatch:UnifiedSyncStoreTest.IdempotentPresenceReplayDoesNotReauthorizeOldTarget:UnifiedSyncStoreTest.NativeInboxBootstrapUsesBottomAndCannotUndoUserEdit
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from UnifiedSyncGoldenTest
+[ RUN      ] UnifiedSyncGoldenTest.LogicalNumbersRejectBooleanFractionNegativeAndOverflow
+[       OK ] UnifiedSyncGoldenTest.LogicalNumbersRejectBooleanFractionNegativeAndOverflow (3 ms)
+[ RUN      ] UnifiedSyncGoldenTest.PresenceRequiresDistinctPageIdentityForEveryTarget
+[       OK ] UnifiedSyncGoldenTest.PresenceRequiresDistinctPageIdentityForEveryTarget (0 ms)
+[----------] 2 tests from UnifiedSyncGoldenTest (24 ms total)
+
+[----------] 8 tests from UnifiedSyncStoreTest
+[ RUN      ] UnifiedSyncStoreTest.CompleteCaptureIsOneCommitAndOneNotification
+[       OK ] UnifiedSyncStoreTest.CompleteCaptureIsOneCommitAndOneNotification (1 ms)
+[ RUN      ] UnifiedSyncStoreTest.RevocationAtFinalBoundaryRollsBackEveryRow
+[       OK ] UnifiedSyncStoreTest.RevocationAtFinalBoundaryRollsBackEveryRow (1 ms)
+[ RUN      ] UnifiedSyncStoreTest.MissingPageNeverCommitsAnUnlinkedLocalPresence
+[       OK ] UnifiedSyncStoreTest.MissingPageNeverCommitsAnUnlinkedLocalPresence (0 ms)
+[ RUN      ] UnifiedSyncStoreTest.LateSqlFailureRollsBackEarlierRowsAndOutbox
+[       OK ] UnifiedSyncStoreTest.LateSqlFailureRollsBackEarlierRowsAndOutbox (45 ms)
+[ RUN      ] UnifiedSyncStoreTest.OldDevelopmentStoreIsRefusedWithoutMigration
+[       OK ] UnifiedSyncStoreTest.OldDevelopmentStoreIsRefusedWithoutMigration (21 ms)
+[ RUN      ] UnifiedSyncStoreTest.TwoNodeCycleRollsBackTheWholeBatch
+[       OK ] UnifiedSyncStoreTest.TwoNodeCycleRollsBackTheWholeBatch (1 ms)
+[ RUN      ] UnifiedSyncStoreTest.IdempotentPresenceReplayDoesNotReauthorizeOldTarget
+[       OK ] UnifiedSyncStoreTest.IdempotentPresenceReplayDoesNotReauthorizeOldTarget (1 ms)
+[ RUN      ] UnifiedSyncStoreTest.NativeInboxBootstrapUsesBottomAndCannotUndoUserEdit
+[       OK ] UnifiedSyncStoreTest.NativeInboxBootstrapUsesBottomAndCannotUndoUserEdit (0 ms)
+[----------] 8 tests from UnifiedSyncStoreTest (78 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (103 ms total)
+[  PASSED  ] 10 tests.
+[191/233] UnifiedSyncGoldenTest.LogicalNumbersRejectBooleanFractionNegativeAndOverflow (3 ms)
+[192/233] UnifiedSyncGoldenTest.PresenceRequiresDistinctPageIdentityForEveryTarget (0 ms)
+[193/233] UnifiedSyncStoreTest.CompleteCaptureIsOneCommitAndOneNotification (1 ms)
+[194/233] UnifiedSyncStoreTest.RevocationAtFinalBoundaryRollsBackEveryRow (1 ms)
+[195/233] UnifiedSyncStoreTest.MissingPageNeverCommitsAnUnlinkedLocalPresence (0 ms)
+[196/233] UnifiedSyncStoreTest.LateSqlFailureRollsBackEarlierRowsAndOutbox (45 ms)
+[197/233] UnifiedSyncStoreTest.OldDevelopmentStoreIsRefusedWithoutMigration (21 ms)
+[198/233] UnifiedSyncStoreTest.TwoNodeCycleRollsBackTheWholeBatch (1 ms)
+[199/233] UnifiedSyncStoreTest.IdempotentPresenceReplayDoesNotReauthorizeOldTarget (1 ms)
+[200/233] UnifiedSyncStoreTest.NativeInboxBootstrapUsesBottomAndCannotUndoUserEdit (0 ms)
+objc[71818]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142b60a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127a7ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71818]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122a88188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1086fb8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = HybridLogicalClockTest.TicksAndObservesWithStableDeviceTieBreak:SyncPayloadCryptorTest.AESGCMEnvelopeRoundTripsAndRejectsTampering:SyncPayloadCryptorTest.OpensSharedCryptoKitGoldenEnvelope:DeviceTabsServiceTest.PublishesNormalLocalAndRemoteTabsOnly:SyncPumpTest.AcknowledgesOutboxAndDrainsEveryRemotePage:SyncPumpTest.InvalidAcknowledgementKeepsOutboxAndPersistsSafeBackoff:SyncPumpTest.RejectsNonAdvancingProviderPaginationToken:SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim:SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn:SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction
+[==========] Running 10 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from HybridLogicalClockTest
+[ RUN      ] HybridLogicalClockTest.TicksAndObservesWithStableDeviceTieBreak
+[       OK ] HybridLogicalClockTest.TicksAndObservesWithStableDeviceTieBreak (0 ms)
+[----------] 1 test from HybridLogicalClockTest (19 ms total)
+
+[----------] 2 tests from SyncPayloadCryptorTest
+[ RUN      ] SyncPayloadCryptorTest.AESGCMEnvelopeRoundTripsAndRejectsTampering
+[       OK ] SyncPayloadCryptorTest.AESGCMEnvelopeRoundTripsAndRejectsTampering (0 ms)
+[ RUN      ] SyncPayloadCryptorTest.OpensSharedCryptoKitGoldenEnvelope
+[       OK ] SyncPayloadCryptorTest.OpensSharedCryptoKitGoldenEnvelope (0 ms)
+[----------] 2 tests from SyncPayloadCryptorTest (1 ms total)
+
+[----------] 1 test from DeviceTabsServiceTest
+[ RUN      ] DeviceTabsServiceTest.PublishesNormalLocalAndRemoteTabsOnly
+[       OK ] DeviceTabsServiceTest.PublishesNormalLocalAndRemoteTabsOnly (4 ms)
+[----------] 1 test from DeviceTabsServiceTest (5 ms total)
+
+[----------] 3 tests from SyncPumpTest
+[ RUN      ] SyncPumpTest.AcknowledgesOutboxAndDrainsEveryRemotePage
+[       OK ] SyncPumpTest.AcknowledgesOutboxAndDrainsEveryRemotePage (1 ms)
+[ RUN      ] SyncPumpTest.InvalidAcknowledgementKeepsOutboxAndPersistsSafeBackoff
+[       OK ] SyncPumpTest.InvalidAcknowledgementKeepsOutboxAndPersistsSafeBackoff (1 ms)
+[ RUN      ] SyncPumpTest.RejectsNonAdvancingProviderPaginationToken
+[       OK ] SyncPumpTest.RejectsNonAdvancingProviderPaginationToken (0 ms)
+[----------] 3 tests from SyncPumpTest (5 ms total)
+
+[----------] 3 tests from SyncReceiveBoundaryTest
+[ RUN      ] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim
+[       OK ] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim (1 ms)
+[ RUN      ] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn
+[       OK ] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn (1 ms)
+[ RUN      ] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction
+[       OK ] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction (0 ms)
+[----------] 3 tests from SyncReceiveBoundaryTest (4 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 5 test suites ran. (35 ms total)
+[  PASSED  ] 10 tests.
+[201/233] HybridLogicalClockTest.TicksAndObservesWithStableDeviceTieBreak (0 ms)
+[202/233] SyncPayloadCryptorTest.AESGCMEnvelopeRoundTripsAndRejectsTampering (0 ms)
+[203/233] SyncPayloadCryptorTest.OpensSharedCryptoKitGoldenEnvelope (0 ms)
+[204/233] DeviceTabsServiceTest.PublishesNormalLocalAndRemoteTabsOnly (4 ms)
+[205/233] SyncPumpTest.AcknowledgesOutboxAndDrainsEveryRemotePage (1 ms)
+[206/233] SyncPumpTest.InvalidAcknowledgementKeepsOutboxAndPersistsSafeBackoff (1 ms)
+[207/233] SyncPumpTest.RejectsNonAdvancingProviderPaginationToken (0 ms)
+[208/233] SyncReceiveBoundaryTest.CachedBurstPreservesOutgoingRetryAndFetchClaim (1 ms)
+[209/233] SyncReceiveBoundaryTest.OriginalDeliveryLeaseStaysRevokedAfterOffOn (1 ms)
+[210/233] SyncReceiveBoundaryTest.RevocationAtCommitRollsBackReceiveTransaction (0 ms)
+objc[71830]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x141820a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12673ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71830]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120ff4188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1072638a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState:WorkspaceZoneRetirementTest.WsIso20InertWithoutRegisteredPref:WorkspaceZoneRetirementTest.WsIso20DueOnlyAfterTombstoneRetention:WorkspaceZoneRetirementTest.WsIso20ScheduleKeepsEarliestRequest:WorkspaceZoneRetirementTest.WsIso20CompleteRemovesOnlyThatEntry:WorkspaceZoneRetirementTest.WsIso20MalformedEntriesAreSkipped:WorkspaceZoneRetirementTest.WsIso20OnlyAProfileThatSyncedSchedules:WorkspaceZoneRetirementTest.WsIso20DeletingTheProfileSchedules:WorkspaceZoneRetirementTest.WsIso20NeverSyncedProfileSchedulesNothing:CloudKitBookmarkSyncConsentTest.OpaqueReceiveSurvivesRestartUntilOptIn
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from SyncReceiveBoundaryTest
+[ RUN      ] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState
+[       OK ] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState (1 ms)
+[----------] 1 test from SyncReceiveBoundaryTest (20 ms total)
+
+[----------] 8 tests from WorkspaceZoneRetirementTest
+[ RUN      ] WorkspaceZoneRetirementTest.WsIso20InertWithoutRegisteredPref
+[       OK ] WorkspaceZoneRetirementTest.WsIso20InertWithoutRegisteredPref (0 ms)
+[ RUN      ] WorkspaceZoneRetirementTest.WsIso20DueOnlyAfterTombstoneRetention
+[       OK ] WorkspaceZoneRetirementTest.WsIso20DueOnlyAfterTombstoneRetention (0 ms)
+[ RUN      ] WorkspaceZoneRetirementTest.WsIso20ScheduleKeepsEarliestRequest
+[       OK ] WorkspaceZoneRetirementTest.WsIso20ScheduleKeepsEarliestRequest (0 ms)
+[ RUN      ] WorkspaceZoneRetirementTest.WsIso20CompleteRemovesOnlyThatEntry
+[       OK ] WorkspaceZoneRetirementTest.WsIso20CompleteRemovesOnlyThatEntry (0 ms)
+[ RUN      ] WorkspaceZoneRetirementTest.WsIso20MalformedEntriesAreSkipped
+[       OK ] WorkspaceZoneRetirementTest.WsIso20MalformedEntriesAreSkipped (0 ms)
+[ RUN      ] WorkspaceZoneRetirementTest.WsIso20OnlyAProfileThatSyncedSchedules
+[       OK ] WorkspaceZoneRetirementTest.WsIso20OnlyAProfileThatSyncedSchedules (0 ms)
+[ RUN      ] WorkspaceZoneRetirementTest.WsIso20DeletingTheProfileSchedules
+[       OK ] WorkspaceZoneRetirementTest.WsIso20DeletingTheProfileSchedules (0 ms)
+[ RUN      ] WorkspaceZoneRetirementTest.WsIso20NeverSyncedProfileSchedulesNothing
+[       OK ] WorkspaceZoneRetirementTest.WsIso20NeverSyncedProfileSchedulesNothing (0 ms)
+[----------] 8 tests from WorkspaceZoneRetirementTest (3 ms total)
+
+[----------] 1 test from CloudKitBookmarkSyncConsentTest
+[ RUN      ] CloudKitBookmarkSyncConsentTest.OpaqueReceiveSurvivesRestartUntilOptIn
+[       OK ] CloudKitBookmarkSyncConsentTest.OpaqueReceiveSurvivesRestartUntilOptIn (8 ms)
+[----------] 1 test from CloudKitBookmarkSyncConsentTest (8 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (31 ms total)
+[  PASSED  ] 10 tests.
+[211/233] SyncReceiveBoundaryTest.RevocationAfterAckCannotPublishUiState (1 ms)
+[212/233] WorkspaceZoneRetirementTest.WsIso20InertWithoutRegisteredPref (0 ms)
+[213/233] WorkspaceZoneRetirementTest.WsIso20DueOnlyAfterTombstoneRetention (0 ms)
+[214/233] WorkspaceZoneRetirementTest.WsIso20ScheduleKeepsEarliestRequest (0 ms)
+[215/233] WorkspaceZoneRetirementTest.WsIso20CompleteRemovesOnlyThatEntry (0 ms)
+[216/233] WorkspaceZoneRetirementTest.WsIso20MalformedEntriesAreSkipped (0 ms)
+[217/233] WorkspaceZoneRetirementTest.WsIso20OnlyAProfileThatSyncedSchedules (0 ms)
+[218/233] WorkspaceZoneRetirementTest.WsIso20DeletingTheProfileSchedules (0 ms)
+[219/233] WorkspaceZoneRetirementTest.WsIso20NeverSyncedProfileSchedulesNothing (0 ms)
+[220/233] CloudKitBookmarkSyncConsentTest.OpaqueReceiveSurvivesRestartUntilOptIn (8 ms)
+objc[71836]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1421b4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1270d0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71836]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122934188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x10851b8a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = CloudKitBookmarkSyncConsentTest.RevocationInvalidatesAlreadyPostedDelivery:CloudKitBookmarkSyncConsentTest.OtherCategoriesProgressWithoutAcknowledgingOpaqueBookmarks:CloudKitBookmarkSyncConsentTest.MalformedCiphertextWaitsForConsentToQuarantine:CloudKitBookmarkSyncConsentTest.AccountChangeDiscardsCiphertextAndApproval:CloudKitBookmarkSyncConsentTest.VerifiedFirstSignInPreservesOriginalScopeButDifferentAccountRevokes:CloudKitBookmarkSyncConsentTest.OldRecordProviderCannotSendAfterRevocationOrReapproval:CloudKitBookmarkSyncConsentTest.LocalAuthorizationRevokesBeforeAnyFacadeStatusReadback:CloudKitBookmarkSyncConsentTest.LocalAuthorizationDoesNotReviveOnReapprovalOrOutliveProvider:CloudKitSyncProviderMacTest.LateCacheCallbackCannotPersistAfterProviderShutdown:CloudKitSyncSubscriptionTest.ReadsTheAdoptedSubscription
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from CloudKitBookmarkSyncConsentTest
+[ RUN      ] CloudKitBookmarkSyncConsentTest.RevocationInvalidatesAlreadyPostedDelivery
+[       OK ] CloudKitBookmarkSyncConsentTest.RevocationInvalidatesAlreadyPostedDelivery (5 ms)
+[ RUN      ] CloudKitBookmarkSyncConsentTest.OtherCategoriesProgressWithoutAcknowledgingOpaqueBookmarks
+[       OK ] CloudKitBookmarkSyncConsentTest.OtherCategoriesProgressWithoutAcknowledgingOpaqueBookmarks (4 ms)
+[ RUN      ] CloudKitBookmarkSyncConsentTest.MalformedCiphertextWaitsForConsentToQuarantine
+[       OK ] CloudKitBookmarkSyncConsentTest.MalformedCiphertextWaitsForConsentToQuarantine (3 ms)
+[ RUN      ] CloudKitBookmarkSyncConsentTest.AccountChangeDiscardsCiphertextAndApproval
+[       OK ] CloudKitBookmarkSyncConsentTest.AccountChangeDiscardsCiphertextAndApproval (1 ms)
+[ RUN      ] CloudKitBookmarkSyncConsentTest.VerifiedFirstSignInPreservesOriginalScopeButDifferentAccountRevokes
+[       OK ] CloudKitBookmarkSyncConsentTest.VerifiedFirstSignInPreservesOriginalScopeButDifferentAccountRevokes (1 ms)
+[ RUN      ] CloudKitBookmarkSyncConsentTest.OldRecordProviderCannotSendAfterRevocationOrReapproval
+[       OK ] CloudKitBookmarkSyncConsentTest.OldRecordProviderCannotSendAfterRevocationOrReapproval (1 ms)
+[ RUN      ] CloudKitBookmarkSyncConsentTest.LocalAuthorizationRevokesBeforeAnyFacadeStatusReadback
+[       OK ] CloudKitBookmarkSyncConsentTest.LocalAuthorizationRevokesBeforeAnyFacadeStatusReadback (0 ms)
+[ RUN      ] CloudKitBookmarkSyncConsentTest.LocalAuthorizationDoesNotReviveOnReapprovalOrOutliveProvider
+[       OK ] CloudKitBookmarkSyncConsentTest.LocalAuthorizationDoesNotReviveOnReapprovalOrOutliveProvider (0 ms)
+[----------] 8 tests from CloudKitBookmarkSyncConsentTest (41 ms total)
+
+[----------] 1 test from CloudKitSyncProviderMacTest
+[ RUN      ] CloudKitSyncProviderMacTest.LateCacheCallbackCannotPersistAfterProviderShutdown
+[       OK ] CloudKitSyncProviderMacTest.LateCacheCallbackCannotPersistAfterProviderShutdown (0 ms)
+[----------] 1 test from CloudKitSyncProviderMacTest (1 ms total)
+
+[----------] 1 test from CloudKitSyncSubscriptionTest
+[ RUN      ] CloudKitSyncSubscriptionTest.ReadsTheAdoptedSubscription
+[       OK ] CloudKitSyncSubscriptionTest.ReadsTheAdoptedSubscription (0 ms)
+[----------] 1 test from CloudKitSyncSubscriptionTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (43 ms total)
+[  PASSED  ] 10 tests.
+[221/233] CloudKitBookmarkSyncConsentTest.RevocationInvalidatesAlreadyPostedDelivery (5 ms)
+[222/233] CloudKitBookmarkSyncConsentTest.OtherCategoriesProgressWithoutAcknowledgingOpaqueBookmarks (4 ms)
+[223/233] CloudKitBookmarkSyncConsentTest.MalformedCiphertextWaitsForConsentToQuarantine (3 ms)
+[224/233] CloudKitBookmarkSyncConsentTest.AccountChangeDiscardsCiphertextAndApproval (1 ms)
+[225/233] CloudKitBookmarkSyncConsentTest.VerifiedFirstSignInPreservesOriginalScopeButDifferentAccountRevokes (1 ms)
+[226/233] CloudKitBookmarkSyncConsentTest.OldRecordProviderCannotSendAfterRevocationOrReapproval (1 ms)
+[227/233] CloudKitBookmarkSyncConsentTest.LocalAuthorizationRevokesBeforeAnyFacadeStatusReadback (0 ms)
+[228/233] CloudKitBookmarkSyncConsentTest.LocalAuthorizationDoesNotReviveOnReapprovalOrOutliveProvider (0 ms)
+[229/233] CloudKitSyncProviderMacTest.LateCacheCallbackCannotPersistAfterProviderShutdown (0 ms)
+[230/233] CloudKitSyncSubscriptionTest.ReadsTheAdoptedSubscription (0 ms)
+objc[71838]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1415d4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1264f0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[71838]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1214fc188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1071638a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = CloudKitSyncSubscriptionTest.RebindsToConfiguredAndKeepsEverythingElse:CloudKitSyncSubscriptionTest.LeavesMatchingOrUnsetStateAlone:CloudKitSyncSubscriptionTest.RefusesAmbiguousOrUnknownArchives
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from CloudKitSyncSubscriptionTest
+[ RUN      ] CloudKitSyncSubscriptionTest.RebindsToConfiguredAndKeepsEverythingElse
+[       OK ] CloudKitSyncSubscriptionTest.RebindsToConfiguredAndKeepsEverythingElse (0 ms)
+[ RUN      ] CloudKitSyncSubscriptionTest.LeavesMatchingOrUnsetStateAlone
+[       OK ] CloudKitSyncSubscriptionTest.LeavesMatchingOrUnsetStateAlone (0 ms)
+[ RUN      ] CloudKitSyncSubscriptionTest.RefusesAmbiguousOrUnknownArchives
+[       OK ] CloudKitSyncSubscriptionTest.RefusesAmbiguousOrUnknownArchives (0 ms)
+[----------] 3 tests from CloudKitSyncSubscriptionTest (21 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (21 ms total)
+[  PASSED  ] 3 tests.
+[231/233] CloudKitSyncSubscriptionTest.RebindsToConfiguredAndKeepsEverythingElse (0 ms)
+[232/233] CloudKitSyncSubscriptionTest.LeavesMatchingOrUnsetStateAlone (0 ms)
+[233/233] CloudKitSyncSubscriptionTest.RefusesAmbiguousOrUnknownArchives (0 ms)
+SUCCESS: all tests passed.
+Tests took 55 seconds.

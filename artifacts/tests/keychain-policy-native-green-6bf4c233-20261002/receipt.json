@@ -1,0 +1,189 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "coreSuccesses": 152,
+  "policySuccesses": 4,
+  "requiredCasesMissing": [],
+  "binarySha256": "0ab622bd5e462a426a22070e31d8ceca8e5a35e834ec4fd1a330194b843ec531",
+  "componentManifestSha256": "34c4924329f3acfdae3cd9cb397e1019be1c0ae548c6bfae669e8fde3beb3a28",
+  "realKeychainRecovery": false,
+  "installedAcceptance": false,
+  "evidenceSha256": {
+    "ahoi_resource_policy_unittests-summary.json": "9276321a6a32b61a59f96c58bb31964840f7b47a343a00fd82caa4f0a8b8f01e",
+    "ahoi_session_unittests-summary.json": "159e3f89059ae308101594b5707f72c73d27562f3568f07ca49914609f8f8f7c",
+    "summary.json": "f3c6421092448581967231a5c58d3a60dfc0d9950803659a4951c48698280774",
+    "ahoi_http_auth_unittests.log": "4caddf361c5f9c45a1d6594fddae3786efd35b901118d42da0fe2000797aa4ff",
+    "ahoi_http_auth_unittests-summary.json": "6b54125d0246fbf26eccc01669f0cf3cea3c0906ea345eff9b9307fae80cafa1",
+    "ahoi_navigation_unittests.log": "643eedbdded95a4794d8b7d7257cf671e3e9769a1a62f175d7d9f429ec182356",
+    "state.json": "a03492159f1947fa29df09532c26582b6019c31688bb8861fd9aadeb27accba5",
+    "ahoi_settings_private_unittests.log": "396b5976377b93d4d66e17a23f6f08f15c39244c2f14c6134f58fe1654480849",
+    "ahoi_command_bar_unittests-summary.json": "d7ac14459c82096ec7eae56e4121421d1a10d10ed607dd8980b99a7008af0163",
+    "ahoi_media_unittests-summary.json": "4dba39f555411c68d3bcf0254e6de78b59830500a70bec58b842483efa152168",
+    "ahoi_settings_private_unittests-summary.json": "91b32e003f6220ca1ac82dba817a3592eaeea73c56b987ddebf1cbbc4a847d4f",
+    "ahoi_startup_policy_unittests-summary.json": "7894529ce8fb5714b9278fd04f23df287fa0d40c321e853bc1d70193d1a2a64c",
+    "ahoi_startup_policy_unittests.log": "9c1b84d733d9f11062eaf7cc45eb918946cac68b6f7c321b134162ce26a64fbf",
+    "test.log": "1a4c35a6738cb5f0666044b0f1e8ad9086aa2a22a7c37d26da1eeedd20a0aff9",
+    "ahoi_extension_policy_unittests-summary.json": "04ec875cd969bd27b9f186ebe6f70d2ebfbe8c61d76bff7c32b3b6357d1e141b",
+    "ahoi_sync_unittests-summary.json": "e31dfb6f6329553f4cc0c9f5443e5ded3e3afaf1c0b6c145d3590060e2076cc8",
+    "ahoi_command_bar_unittests.log": "f6277fa41a6f876406b01feb0d95624ccfc5feb201ab63d47908c66cd8ba53a6",
+    "ahoi_arc_import_unittests.log": "5a30f59ce25d4341b6e91acc1437e57473918c72ee7d4b5c2cd4f39dcbb3104e",
+    "ahoi_sync_unittests.log": "ed21cfc6679911465c0eb5078755ee95202fe4fb43e5792f90cafb2c6636474b",
+    "build-state.json": "180e9f9a9df013fc77d847c3d1b3b045a8fce5dca9373336dc7e43c14969e262",
+    "ahoi_tab_tree_unittests.log": "5247c303610cf30353704cd087d19c5d7f3dd9c1274a5e8dc8fbb47fcec77fe9",
+    "ahoi_media_unittests.log": "738bfca62f917ecb93922fb974cd79c04ea1a8d9f99cd1b5137895ecef873a61",
+    "ahoi_appearance_unittests-summary.json": "f1d2bb9e94af30a1302ee2f0a875f6b4d19e8e6396ad810774000232ba47db03",
+    "ahoi_session_unittests.log": "8a168312dbbd2bf4b18d827602b4b0c79de492302c87a77a098f72d7afa86b57",
+    "ahoi_arc_import_unittests-summary.json": "5bfd6020b3cfa55516f50135fa6bcd7a7cde9eda3dcadd887d686326bd0c873e",
+    "ahoi_privacy_mode_unittests.log": "42f6b189bd4cfdb7b91fef3334d11602d25bc0d1ecf0a77fb8f4a315a1dae2c1",
+    "baseline-state.json": "89cc3531ea9317b126505ba23c222add53a28124d09e8301705de17d1b6a9da3",
+    "ahoi_appearance_unittests.log": "c214d69d6052135eeaf8cd3c32cab07fd6c4ba90f85e27214a966fe86f40271a",
+    "ahoi_extension_policy_unittests.log": "58b6a70c720761ca0f88e3fce110b813888e37e7603bd0eee09f7f69325a3d76",
+    "ahoi_resource_policy_unittests.log": "d2b09df09964ca502a8955b0bcb70b893ade0910f8990ce8167a4587d16d34fe",
+    "ahoi_privacy_policy_unittests.log": "3fa3d08009f75834f6070512a3c07a6f5d876cb1b39a2948d628c5b7367e3b63",
+    "ahoi_tab_tree_unittests-summary.json": "087fce526d5b7058aea4c6f9982f1573415fb900c7c671d3b1de58f0c99b07ba",
+    "ahoi_navigation_unittests-summary.json": "8cb32c80338307017540bea4fa6702f2ce9abea4144387ab8ad81817021c5437",
+    "ahoi_privacy_policy_unittests-summary.json": "c8f68da68e65c9002584589bd9a5331e83e37dff84cc74f05c42f4f442e0db57",
+    "ahoi_privacy_mode_unittests-summary.json": "013b0e8076e02609abd492646eb1d7415cf66358047c0cac5c3dc5c743660e15"
+  },
+  "baseline": {
+    "programs": 15,
+    "successes": 872,
+    "results": [
+      {
+        "name": "ahoi_appearance_unittests",
+        "exitCode": 0,
+        "binarySha256": "824ce45ed488b3dcba85ed40ccf2b282959a4478a44790f96f5aaa5b85f970d7",
+        "executedCases": 56,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_arc_import_unittests",
+        "exitCode": 0,
+        "binarySha256": "b02e79bb681b48547a1977389a8b41b4718c1b8ea8f173523ad204ac5019984b",
+        "executedCases": 132,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_command_bar_unittests",
+        "exitCode": 0,
+        "binarySha256": "49d109d2db418ba0c4c17e79ce7ab0f01ea5ca72dafef0cbed0cd8ab27c96809",
+        "executedCases": 55,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_extension_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "21c934e3a0ae0e2770afa5607c8287f48ce8465c31801d4c2d49aceea1978ebf",
+        "executedCases": 43,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_http_auth_unittests",
+        "exitCode": 0,
+        "binarySha256": "41069acfac51b33c228bd1e6aaa1e488c97691a9f69d24e5b8cce6ec3904427c",
+        "executedCases": 36,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_media_unittests",
+        "exitCode": 0,
+        "binarySha256": "7d25688293997f4ef6256835f3754402aa4afcd6db3452b7cf48f41f5e6bc02c",
+        "executedCases": 33,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_navigation_unittests",
+        "exitCode": 0,
+        "binarySha256": "6ecb53227e094209319dd018d91798af51aca6005a6a37fd20ca9d723dac3354",
+        "executedCases": 83,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_privacy_mode_unittests",
+        "exitCode": 0,
+        "binarySha256": "ad03b589f21a5a94fb1fbd0033b42d6a09b3f5ac81bf8e5f69d42ee1d85ffda4",
+        "executedCases": 21,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_privacy_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "a6b4b0cc5687f9f733e9e951228e6f07db013806ff42b14eaeefe3b122e3f02e",
+        "executedCases": 17,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_resource_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "0b24f2a6513ba99ba669b7a40b0f4500ae0184da6e79b6b64557626a6266c6a1",
+        "executedCases": 4,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_session_unittests",
+        "exitCode": 0,
+        "binarySha256": "910dd0bac02783aa89e35cde2c2e3d26d1a448d8d42aa25fad7316d3dfd09241",
+        "executedCases": 110,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_settings_private_unittests",
+        "exitCode": 0,
+        "binarySha256": "1e485ad246606707e3d5a9614f4663078f57c7ebc89213202647f2f8a61653b7",
+        "executedCases": 12,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_startup_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "8ef33dc978546dc1e245e4102ed4c69e247c4cd0497898e49f5fda6518ba9f8c",
+        "executedCases": 2,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_sync_unittests",
+        "exitCode": 0,
+        "binarySha256": "ea44d6015e648ca1a5172556add00405f929fb012f710010066444569345716a",
+        "executedCases": 233,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_tab_tree_unittests",
+        "exitCode": 0,
+        "binarySha256": "fa6ede06dc4006afd9a00c72828a5c378f01e6e1b2f431b78cbf2f19675568b5",
+        "executedCases": 35,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      }
+    ],
+    "componentManifestSha256": "34c4924329f3acfdae3cd9cb397e1019be1c0ae548c6bfae669e8fde3beb3a28"
+  }
+}

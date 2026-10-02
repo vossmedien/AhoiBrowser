@@ -1,0 +1,149 @@
+{
+  "componentManifestSha256": "34c4924329f3acfdae3cd9cb397e1019be1c0ae548c6bfae669e8fde3beb3a28",
+  "runnerPid": 64846,
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "results": [
+    {
+      "name": "ahoi_appearance_unittests",
+      "exitCode": 0,
+      "binarySha256": "824ce45ed488b3dcba85ed40ccf2b282959a4478a44790f96f5aaa5b85f970d7",
+      "executedCases": 56,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_arc_import_unittests",
+      "exitCode": 0,
+      "binarySha256": "b02e79bb681b48547a1977389a8b41b4718c1b8ea8f173523ad204ac5019984b",
+      "executedCases": 132,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_command_bar_unittests",
+      "exitCode": 0,
+      "binarySha256": "49d109d2db418ba0c4c17e79ce7ab0f01ea5ca72dafef0cbed0cd8ab27c96809",
+      "executedCases": 55,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_extension_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "21c934e3a0ae0e2770afa5607c8287f48ce8465c31801d4c2d49aceea1978ebf",
+      "executedCases": 43,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_http_auth_unittests",
+      "exitCode": 0,
+      "binarySha256": "41069acfac51b33c228bd1e6aaa1e488c97691a9f69d24e5b8cce6ec3904427c",
+      "executedCases": 36,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_media_unittests",
+      "exitCode": 0,
+      "binarySha256": "7d25688293997f4ef6256835f3754402aa4afcd6db3452b7cf48f41f5e6bc02c",
+      "executedCases": 33,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_navigation_unittests",
+      "exitCode": 0,
+      "binarySha256": "6ecb53227e094209319dd018d91798af51aca6005a6a37fd20ca9d723dac3354",
+      "executedCases": 83,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_privacy_mode_unittests",
+      "exitCode": 0,
+      "binarySha256": "ad03b589f21a5a94fb1fbd0033b42d6a09b3f5ac81bf8e5f69d42ee1d85ffda4",
+      "executedCases": 21,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_privacy_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "a6b4b0cc5687f9f733e9e951228e6f07db013806ff42b14eaeefe3b122e3f02e",
+      "executedCases": 17,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_resource_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "0b24f2a6513ba99ba669b7a40b0f4500ae0184da6e79b6b64557626a6266c6a1",
+      "executedCases": 4,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_session_unittests",
+      "exitCode": 0,
+      "binarySha256": "910dd0bac02783aa89e35cde2c2e3d26d1a448d8d42aa25fad7316d3dfd09241",
+      "executedCases": 110,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_settings_private_unittests",
+      "exitCode": 0,
+      "binarySha256": "1e485ad246606707e3d5a9614f4663078f57c7ebc89213202647f2f8a61653b7",
+      "executedCases": 12,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_startup_policy_unittests",
+      "exitCode": 0,
+      "binarySha256": "8ef33dc978546dc1e245e4102ed4c69e247c4cd0497898e49f5fda6518ba9f8c",
+      "executedCases": 2,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_sync_unittests",
+      "exitCode": 0,
+      "binarySha256": "ea44d6015e648ca1a5172556add00405f929fb012f710010066444569345716a",
+      "executedCases": 233,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_tab_tree_unittests",
+      "exitCode": 0,
+      "binarySha256": "fa6ede06dc4006afd9a00c72828a5c378f01e6e1b2f431b78cbf2f19675568b5",
+      "executedCases": 35,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    }
+  ],
+  "startedAt": "2026-10-02T03:12:50.034031+00:00",
+  "binarySha256": "fa6ede06dc4006afd9a00c72828a5c378f01e6e1b2f431b78cbf2f19675568b5",
+  "testPid": 71847,
+  "finishedAt": "2026-10-02T03:16:22.090177+00:00"
+}

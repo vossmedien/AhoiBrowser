@@ -1,0 +1,23 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = StartupPolicyTest.DisablesBackgroundAccountAndAiFeatures:StartupPolicyTest.OverridesHostileEnablesAndPreservesOtherArguments
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from StartupPolicyTest
+[ RUN      ] StartupPolicyTest.DisablesBackgroundAccountAndAiFeatures
+[       OK ] StartupPolicyTest.DisablesBackgroundAccountAndAiFeatures (0 ms)
+[ RUN      ] StartupPolicyTest.OverridesHostileEnablesAndPreservesOtherArguments
+[       OK ] StartupPolicyTest.OverridesHostileEnablesAndPreservesOtherArguments (0 ms)
+[----------] 2 tests from StartupPolicyTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+[1/2] StartupPolicyTest.DisablesBackgroundAccountAndAiFeatures (0 ms)
+[2/2] StartupPolicyTest.OverridesHostileEnablesAndPreservesOtherArguments (0 ms)
+SUCCESS: all tests passed.
+Tests took 0 seconds.

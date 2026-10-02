@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Candidate71 Core152/policy4 and baseline872 GREEN; real window pending — 2 October 2026
+
+Exact6bf4c233 Build71 completes guarded compile/stable sign/provenance. Actual
+full developer suite152/152SUCCESS, policy4 and Mojo29 included, one job/retries0,
+no missing/skipped/not-run rows. Fifteen baseline programs872/872SUCCESS, no
+skips/exits0. [Exact executable/components/raw summaries](../artifacts/tests/keychain-policy-native-green-6bf4c233-20261002/README.md).
+Build23233/core53953 and baseline64846 are terminal, locks released. These are
+policy/core/baseline passes, not real Keychain recovery or complete native gate.
+Editor/UI/browser gates still need current candidate input binding/execution.
+
+The first output-candidate real windowed probe defers at idle12, no app launched:
+`artifacts/computer-use/m154/navigation-real-keychain-candidate-6bf4c233-20261002T031210Z/state.json`.
+One bounded actual window now exists as runner76936, `.work/agent-queue/71/
+real-keychain-window/state.json`. Verify actual PID/status before acting. It
+waits at most120 seconds for idle>=90/app absent/free resource locks, then runs
+the diagnostic once on signed output candidate WITHOUT mock-keychain flags.
+It does not reserve a general watcher or claim installed acceptance.
+
+Next: actual real-provider diagnostic verdict; preserve prompt/permission/loader
+failures, then required remaining native gates and canonical install only after
+appropriate exact GREEN. Real installed cookie/restart/visible lifecycle evidence
+without mocks remains mandatory. User/other app input takes precedence; no
+unchanged split retry or new build is started merely for this wait. Installed
+Build70 still has its unresolved real-provider loading issue. Entire original
+Master/worker/Sync/external/release/archives/rollback scope remains intact.
+
 ## Scoped real-keychain candidate71 running — 2 October 2026
 
 Source6bf4c233c44d373924a5d815a85ecb8b7230f606 is frozen in the clean queue.

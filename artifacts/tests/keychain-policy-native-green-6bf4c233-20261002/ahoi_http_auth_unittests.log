@@ -1,0 +1,170 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = HttpAuthProtectionSpaceTest.SeparatesEveryProtectionDimension:HttpAuthProtectionSpaceTest.ChallengeAcceptsOnlyBasicAndDigest:HttpAuthCredentialServiceTest.MetadataPreferenceIsNotSyncable:HttpAuthCredentialServiceTest.ManagementCredentialSnapshotFailsClosedOnMalformedState:HttpAuthCredentialServiceTest.ManagementNeverSaveSnapshotFailsClosedOnMalformedState:HttpAuthCredentialServiceTest.RanksPreferredAccountBeforeLastSuccess:HttpAuthCredentialServiceTest.SingleFailureRetainsSavedMetadata:HttpAuthCredentialServiceTest.DeleteRemovesPartitionedMetadataForSharedPasswordStoreSecret:HttpAuthCredentialServiceTest.UpdateRenamesPasswordStorePrimaryKeyAndEveryPartitionedMetadataRow:HttpAuthCredentialServiceTest.UpdateFailsClosedOnUsernameCollisionWithoutPasswordStoreWrite
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from HttpAuthProtectionSpaceTest
+[ RUN      ] HttpAuthProtectionSpaceTest.SeparatesEveryProtectionDimension
+[       OK ] HttpAuthProtectionSpaceTest.SeparatesEveryProtectionDimension (0 ms)
+[ RUN      ] HttpAuthProtectionSpaceTest.ChallengeAcceptsOnlyBasicAndDigest
+[       OK ] HttpAuthProtectionSpaceTest.ChallengeAcceptsOnlyBasicAndDigest (0 ms)
+[----------] 2 tests from HttpAuthProtectionSpaceTest (0 ms total)
+
+[----------] 8 tests from HttpAuthCredentialServiceTest
+[ RUN      ] HttpAuthCredentialServiceTest.MetadataPreferenceIsNotSyncable
+[       OK ] HttpAuthCredentialServiceTest.MetadataPreferenceIsNotSyncable (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.ManagementCredentialSnapshotFailsClosedOnMalformedState
+[       OK ] HttpAuthCredentialServiceTest.ManagementCredentialSnapshotFailsClosedOnMalformedState (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.ManagementNeverSaveSnapshotFailsClosedOnMalformedState
+[       OK ] HttpAuthCredentialServiceTest.ManagementNeverSaveSnapshotFailsClosedOnMalformedState (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.RanksPreferredAccountBeforeLastSuccess
+[       OK ] HttpAuthCredentialServiceTest.RanksPreferredAccountBeforeLastSuccess (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.SingleFailureRetainsSavedMetadata
+[       OK ] HttpAuthCredentialServiceTest.SingleFailureRetainsSavedMetadata (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.DeleteRemovesPartitionedMetadataForSharedPasswordStoreSecret
+[       OK ] HttpAuthCredentialServiceTest.DeleteRemovesPartitionedMetadataForSharedPasswordStoreSecret (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.UpdateRenamesPasswordStorePrimaryKeyAndEveryPartitionedMetadataRow
+[       OK ] HttpAuthCredentialServiceTest.UpdateRenamesPasswordStorePrimaryKeyAndEveryPartitionedMetadataRow (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.UpdateFailsClosedOnUsernameCollisionWithoutPasswordStoreWrite
+[       OK ] HttpAuthCredentialServiceTest.UpdateFailsClosedOnUsernameCollisionWithoutPasswordStoreWrite (0 ms)
+[----------] 8 tests from HttpAuthCredentialServiceTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1 ms total)
+[  PASSED  ] 10 tests.
+[1/36] HttpAuthProtectionSpaceTest.SeparatesEveryProtectionDimension (0 ms)
+[2/36] HttpAuthProtectionSpaceTest.ChallengeAcceptsOnlyBasicAndDigest (0 ms)
+[3/36] HttpAuthCredentialServiceTest.MetadataPreferenceIsNotSyncable (0 ms)
+[4/36] HttpAuthCredentialServiceTest.ManagementCredentialSnapshotFailsClosedOnMalformedState (0 ms)
+[5/36] HttpAuthCredentialServiceTest.ManagementNeverSaveSnapshotFailsClosedOnMalformedState (0 ms)
+[6/36] HttpAuthCredentialServiceTest.RanksPreferredAccountBeforeLastSuccess (0 ms)
+[7/36] HttpAuthCredentialServiceTest.SingleFailureRetainsSavedMetadata (0 ms)
+[8/36] HttpAuthCredentialServiceTest.DeleteRemovesPartitionedMetadataForSharedPasswordStoreSecret (0 ms)
+[9/36] HttpAuthCredentialServiceTest.UpdateRenamesPasswordStorePrimaryKeyAndEveryPartitionedMetadataRow (0 ms)
+[10/36] HttpAuthCredentialServiceTest.UpdateFailsClosedOnUsernameCollisionWithoutPasswordStoreWrite (0 ms)
+Note: Google Test filter = HttpAuthCredentialServiceTest.PasswordOnlyUpdateKeepsPrimaryKeyAndUsesPasswordStoreUpdate:HttpAuthCredentialServiceTest.IncognitoDoesNotReadOrWrite:HttpAuthCredentialServiceTest.IncognitoReadsOnlyAfterExplicitUserSelection:HttpAuthCredentialServiceTest.NeverSaveSuppressesWritesButDoesNotHideExistingAccounts:HttpAuthCredentialServiceTest.InsecureHttpRequiresExplicitSaveConfirmation:HttpAuthCredentialServiceTest.CacheFilterIsExactOriginOnly:HttpAuthManagementModelTest.FiltersMetadataWithoutSecretFields:HttpAuthManagementModelTest.GroupsAndSortsPreferredAccountFirst:HttpAuthManagementModelTest.DeduplicatesPasswordStoreAccountAcrossNetworkPartitions:HttpAuthManagementModelTest.SwitchRequiresExactActiveProtectionSpace
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from HttpAuthCredentialServiceTest
+[ RUN      ] HttpAuthCredentialServiceTest.PasswordOnlyUpdateKeepsPrimaryKeyAndUsesPasswordStoreUpdate
+[       OK ] HttpAuthCredentialServiceTest.PasswordOnlyUpdateKeepsPrimaryKeyAndUsesPasswordStoreUpdate (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.IncognitoDoesNotReadOrWrite
+[       OK ] HttpAuthCredentialServiceTest.IncognitoDoesNotReadOrWrite (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.IncognitoReadsOnlyAfterExplicitUserSelection
+[       OK ] HttpAuthCredentialServiceTest.IncognitoReadsOnlyAfterExplicitUserSelection (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.NeverSaveSuppressesWritesButDoesNotHideExistingAccounts
+[       OK ] HttpAuthCredentialServiceTest.NeverSaveSuppressesWritesButDoesNotHideExistingAccounts (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.InsecureHttpRequiresExplicitSaveConfirmation
+[       OK ] HttpAuthCredentialServiceTest.InsecureHttpRequiresExplicitSaveConfirmation (0 ms)
+[ RUN      ] HttpAuthCredentialServiceTest.CacheFilterIsExactOriginOnly
+[       OK ] HttpAuthCredentialServiceTest.CacheFilterIsExactOriginOnly (0 ms)
+[----------] 6 tests from HttpAuthCredentialServiceTest (1 ms total)
+
+[----------] 4 tests from HttpAuthManagementModelTest
+[ RUN      ] HttpAuthManagementModelTest.FiltersMetadataWithoutSecretFields
+[       OK ] HttpAuthManagementModelTest.FiltersMetadataWithoutSecretFields (4 ms)
+[ RUN      ] HttpAuthManagementModelTest.GroupsAndSortsPreferredAccountFirst
+[       OK ] HttpAuthManagementModelTest.GroupsAndSortsPreferredAccountFirst (0 ms)
+[ RUN      ] HttpAuthManagementModelTest.DeduplicatesPasswordStoreAccountAcrossNetworkPartitions
+[       OK ] HttpAuthManagementModelTest.DeduplicatesPasswordStoreAccountAcrossNetworkPartitions (0 ms)
+[ RUN      ] HttpAuthManagementModelTest.SwitchRequiresExactActiveProtectionSpace
+[       OK ] HttpAuthManagementModelTest.SwitchRequiresExactActiveProtectionSpace (0 ms)
+[----------] 4 tests from HttpAuthManagementModelTest (4 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (6 ms total)
+[  PASSED  ] 10 tests.
+[11/36] HttpAuthCredentialServiceTest.PasswordOnlyUpdateKeepsPrimaryKeyAndUsesPasswordStoreUpdate (0 ms)
+[12/36] HttpAuthCredentialServiceTest.IncognitoDoesNotReadOrWrite (0 ms)
+[13/36] HttpAuthCredentialServiceTest.IncognitoReadsOnlyAfterExplicitUserSelection (0 ms)
+[14/36] HttpAuthCredentialServiceTest.NeverSaveSuppressesWritesButDoesNotHideExistingAccounts (0 ms)
+[15/36] HttpAuthCredentialServiceTest.InsecureHttpRequiresExplicitSaveConfirmation (0 ms)
+[16/36] HttpAuthCredentialServiceTest.CacheFilterIsExactOriginOnly (0 ms)
+[17/36] HttpAuthManagementModelTest.FiltersMetadataWithoutSecretFields (4 ms)
+[18/36] HttpAuthManagementModelTest.GroupsAndSortsPreferredAccountFirst (0 ms)
+[19/36] HttpAuthManagementModelTest.DeduplicatesPasswordStoreAccountAcrossNetworkPartitions (0 ms)
+[20/36] HttpAuthManagementModelTest.SwitchRequiresExactActiveProtectionSpace (0 ms)
+Note: Google Test filter = HttpAuthManagementModelTest.DestructiveIdentityMatchesPasswordStoreScopeAcrossNetworks:HttpAuthSavedAccountMenuTest.EmptyFieldOffersEveryAccount:HttpAuthSavedAccountMenuTest.PrefilledAccountKeepsFullList:HttpAuthSavedAccountMenuTest.SavedNameIgnoresCaseAndWhitespace:HttpAuthSavedAccountMenuTest.PartialNameFiltersByPrefix:HttpAuthSavedAccountMenuTest.UnknownNameOffersNothing:HttpAuthSavedAccountMenuTest.SavedNameThatPrefixesAnotherKeepsAll:HttpAuthSavedAccountMenuTest.NonAsciiNamesFoldCase:HttpAuthSavedAccountMenuTest.NoSavedAccountsOffersNothing:HttpAuthSecretAccessControllerTest.FetchesSecretOnlyAfterSuccessfulAuthentication
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from HttpAuthManagementModelTest
+[ RUN      ] HttpAuthManagementModelTest.DestructiveIdentityMatchesPasswordStoreScopeAcrossNetworks
+[       OK ] HttpAuthManagementModelTest.DestructiveIdentityMatchesPasswordStoreScopeAcrossNetworks (0 ms)
+[----------] 1 test from HttpAuthManagementModelTest (0 ms total)
+
+[----------] 8 tests from HttpAuthSavedAccountMenuTest
+[ RUN      ] HttpAuthSavedAccountMenuTest.EmptyFieldOffersEveryAccount
+[       OK ] HttpAuthSavedAccountMenuTest.EmptyFieldOffersEveryAccount (0 ms)
+[ RUN      ] HttpAuthSavedAccountMenuTest.PrefilledAccountKeepsFullList
+[       OK ] HttpAuthSavedAccountMenuTest.PrefilledAccountKeepsFullList (0 ms)
+[ RUN      ] HttpAuthSavedAccountMenuTest.SavedNameIgnoresCaseAndWhitespace
+[       OK ] HttpAuthSavedAccountMenuTest.SavedNameIgnoresCaseAndWhitespace (0 ms)
+[ RUN      ] HttpAuthSavedAccountMenuTest.PartialNameFiltersByPrefix
+[       OK ] HttpAuthSavedAccountMenuTest.PartialNameFiltersByPrefix (0 ms)
+[ RUN      ] HttpAuthSavedAccountMenuTest.UnknownNameOffersNothing
+[       OK ] HttpAuthSavedAccountMenuTest.UnknownNameOffersNothing (0 ms)
+[ RUN      ] HttpAuthSavedAccountMenuTest.SavedNameThatPrefixesAnotherKeepsAll
+[       OK ] HttpAuthSavedAccountMenuTest.SavedNameThatPrefixesAnotherKeepsAll (0 ms)
+[ RUN      ] HttpAuthSavedAccountMenuTest.NonAsciiNamesFoldCase
+[       OK ] HttpAuthSavedAccountMenuTest.NonAsciiNamesFoldCase (0 ms)
+[ RUN      ] HttpAuthSavedAccountMenuTest.NoSavedAccountsOffersNothing
+[       OK ] HttpAuthSavedAccountMenuTest.NoSavedAccountsOffersNothing (0 ms)
+[----------] 8 tests from HttpAuthSavedAccountMenuTest (0 ms total)
+
+[----------] 1 test from HttpAuthSecretAccessControllerTest
+[ RUN      ] HttpAuthSecretAccessControllerTest.FetchesSecretOnlyAfterSuccessfulAuthentication
+[       OK ] HttpAuthSecretAccessControllerTest.FetchesSecretOnlyAfterSuccessfulAuthentication (0 ms)
+[----------] 1 test from HttpAuthSecretAccessControllerTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (1 ms total)
+[  PASSED  ] 10 tests.
+[21/36] HttpAuthManagementModelTest.DestructiveIdentityMatchesPasswordStoreScopeAcrossNetworks (0 ms)
+[22/36] HttpAuthSavedAccountMenuTest.EmptyFieldOffersEveryAccount (0 ms)
+[23/36] HttpAuthSavedAccountMenuTest.PrefilledAccountKeepsFullList (0 ms)
+[24/36] HttpAuthSavedAccountMenuTest.SavedNameIgnoresCaseAndWhitespace (0 ms)
+[25/36] HttpAuthSavedAccountMenuTest.PartialNameFiltersByPrefix (0 ms)
+[26/36] HttpAuthSavedAccountMenuTest.UnknownNameOffersNothing (0 ms)
+[27/36] HttpAuthSavedAccountMenuTest.SavedNameThatPrefixesAnotherKeepsAll (0 ms)
+[28/36] HttpAuthSavedAccountMenuTest.NonAsciiNamesFoldCase (0 ms)
+[29/36] HttpAuthSavedAccountMenuTest.NoSavedAccountsOffersNothing (0 ms)
+[30/36] HttpAuthSecretAccessControllerTest.FetchesSecretOnlyAfterSuccessfulAuthentication (0 ms)
+Note: Google Test filter = HttpAuthSecretAccessControllerTest.AuthenticationFailureNeverInvokesSecretLoader:HttpAuthSecretAccessControllerTest.MissingOrInvalidContextFailsClosedBeforeAuthentication:HttpAuthSecretAccessControllerTest.InvalidationCancelsAuthenticationAndIgnoresStaleCallback:HttpAuthSecretAccessControllerTest.InvalidationIgnoresSecretArrivingAfterContextBecameStale:HttpAuthSecretAccessControllerStandaloneTest.MissingAuthenticatorFailsClosed:HttpAuthSecretUtilTest.ExplicitClearLeavesNoLogicalPlaintext
+[==========] Running 6 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from HttpAuthSecretAccessControllerTest
+[ RUN      ] HttpAuthSecretAccessControllerTest.AuthenticationFailureNeverInvokesSecretLoader
+[       OK ] HttpAuthSecretAccessControllerTest.AuthenticationFailureNeverInvokesSecretLoader (0 ms)
+[ RUN      ] HttpAuthSecretAccessControllerTest.MissingOrInvalidContextFailsClosedBeforeAuthentication
+[       OK ] HttpAuthSecretAccessControllerTest.MissingOrInvalidContextFailsClosedBeforeAuthentication (0 ms)
+[ RUN      ] HttpAuthSecretAccessControllerTest.InvalidationCancelsAuthenticationAndIgnoresStaleCallback
+[       OK ] HttpAuthSecretAccessControllerTest.InvalidationCancelsAuthenticationAndIgnoresStaleCallback (0 ms)
+[ RUN      ] HttpAuthSecretAccessControllerTest.InvalidationIgnoresSecretArrivingAfterContextBecameStale
+[       OK ] HttpAuthSecretAccessControllerTest.InvalidationIgnoresSecretArrivingAfterContextBecameStale (0 ms)
+[----------] 4 tests from HttpAuthSecretAccessControllerTest (0 ms total)
+
+[----------] 1 test from HttpAuthSecretAccessControllerStandaloneTest
+[ RUN      ] HttpAuthSecretAccessControllerStandaloneTest.MissingAuthenticatorFailsClosed
+[       OK ] HttpAuthSecretAccessControllerStandaloneTest.MissingAuthenticatorFailsClosed (0 ms)
+[----------] 1 test from HttpAuthSecretAccessControllerStandaloneTest (0 ms total)
+
+[----------] 1 test from HttpAuthSecretUtilTest
+[ RUN      ] HttpAuthSecretUtilTest.ExplicitClearLeavesNoLogicalPlaintext
+[       OK ] HttpAuthSecretUtilTest.ExplicitClearLeavesNoLogicalPlaintext (0 ms)
+[----------] 1 test from HttpAuthSecretUtilTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 3 test suites ran. (1 ms total)
+[  PASSED  ] 6 tests.
+[31/36] HttpAuthSecretAccessControllerTest.AuthenticationFailureNeverInvokesSecretLoader (0 ms)
+[32/36] HttpAuthSecretAccessControllerTest.MissingOrInvalidContextFailsClosedBeforeAuthentication (0 ms)
+[33/36] HttpAuthSecretAccessControllerTest.InvalidationCancelsAuthenticationAndIgnoresStaleCallback (0 ms)
+[34/36] HttpAuthSecretAccessControllerTest.InvalidationIgnoresSecretArrivingAfterContextBecameStale (0 ms)
+[35/36] HttpAuthSecretAccessControllerStandaloneTest.MissingAuthenticatorFailsClosed (0 ms)
+[36/36] HttpAuthSecretUtilTest.ExplicitClearLeavesNoLogicalPlaintext (0 ms)
+SUCCESS: all tests passed.
+Tests took 2 seconds.
