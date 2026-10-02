@@ -1,0 +1,8 @@
+21 cmd ctrl: hidkey 21
+13 cmd ctrl: hidkey 13
+37 cmd ctrl: hidkey 37
+37 cmd ctrl: hidkey 37
+37 cmd ctrl: hidkey 37
+37 cmd ctrl: hidkey 37
+37 cmd ctrl: hidkey 37
+37 cmd ctrl: hidkey 37

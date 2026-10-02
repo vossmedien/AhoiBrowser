@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Six-menu context reached but key not reached; HID chord guard compiled — 2 October 2026
+
+Combined52735/browser52744 cancels on foreign focus during cycle5 before menus.
+Fresh menu-only69730/browser69799 reaches all six native presets with viewport
+snapshots, then focus yields before reorder. Both terminal4, cleanup and own
+lock release complete, original SNSS unchanged. No new reorder result, matrix
+acceptance or product patch. [Exact contexts and cancellations](../artifacts/tests/reorder-menu-context-focus-cancellations-6bf4c233-20261002/README.md).
+Skip already proved keyboard-cycle setup for future menu-only diagnosis; do
+not repeat fourteen accepted assertions to seek an uninterrupted long run.
+
+Actual source safety gap: hidkey only checked foreground at entry, although
+assembling Cmd/Ctrl/Shift has several30ms gaps. It now checks before EACH
+key-down, releases just its posted modifiers and returns8 if focus is lost.
+Split/archive callers cancel8 without retrying a partially sent chord. No claim
+that this diagnoses the old failure. Bounded own Swift helper compile exit0,
+non-owner PID test refuses3 before HID; atomically updated `/private/tmp/ahoi-axtool`,
+rollback `/private/tmp/ahoi-axtool-before-chord-guard-20261002` preserved. Shell/
+Python syntax passes; actual mid-chord GUI cancellation is not claimed tested.
+Foreign Cockpit75505 plus its two Swift frontends are live and untouched. CPU
+45–47%idle,2.8GiB unused/pressure1/stable swapouts915303; own small helper build
+is terminal, no Chromium/compiler/test/simulator or app/release round started.
+
+Next concrete scope remains the native menu/fresh-construction reorder key
+context under a fresh GUI lease with the new helper, then actual missing matrix
+grid/fifth-pane/startup/restore and archive work. Installed71/6bf4c233/source,
+prior scoped GREEN, original full Master/worker/Sync/Mobile/external/release
+rights and all source records remain intact. No readiness/resource watcher.
+
 ## Real reorder key responds in three focused contexts; original RED remains — 2 October 2026
 
 Own replay31157/browser31170 (four),35171/35182 (four→three),42577/42598

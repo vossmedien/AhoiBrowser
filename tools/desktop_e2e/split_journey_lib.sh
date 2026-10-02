@@ -232,7 +232,16 @@ PY
 key() {
   for attempt in 1 2 3 4 5; do
     activate_owned; sleep 0.3
-    $AX hidkey $PID "$@" >> "$OUT/steps.txt" && return 0
+    $AX hidkey $PID "$@" >> "$OUT/steps.txt"
+    local status=$?
+    [ "$status" = 0 ] && return 0
+    if [ "$status" = 8 ]; then
+      echo '{"cancelled":"owner focus changed during key chord","pass":false}' > "$OUT/verdict.json"
+      local id
+      id=$(site_ids | head -1)
+      [ -z "$id" ] || CDP "$id" Browser.close '{}' > "$OUT/cancel-close.json" 2>&1
+      exit 8
+    fi
     sleep 1
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1

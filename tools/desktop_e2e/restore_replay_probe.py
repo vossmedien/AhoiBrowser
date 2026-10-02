@@ -36,6 +36,8 @@ def main():
                         help='close the fourth owned pane before tracing the three-pane reorder')
     parser.add_argument('--reorder-cycle-layouts', action='store_true',
                         help='exercise the six three-pane layouts and marked form state before the key')
+    parser.add_argument('--reorder-menu-presets', action='store_true',
+                        help='replay the original six native menu presets before the key')
     parser.add_argument('--trusted-pref-probe', action='store_true',
                         help='observe/update the copied profile through native settings API')
     parser.add_argument('--trusted-pref-receipt', type=pathlib.Path,
@@ -54,6 +56,7 @@ def main():
                  sitePort=args.site_port, reorderKeyProbe=args.reorder_key_probe,
                  reorderReduceToThree=args.reorder_reduce_to_three,
                  reorderCycleLayouts=args.reorder_cycle_layouts,
+                 reorderMenuPresets=args.reorder_menu_presets,
                  trustedPrefProbe=args.trusted_pref_probe,
                  harnessSha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
                  cdpSha256=hashlib.sha256(pathlib.Path(__file__).with_name('cdp.mjs').read_bytes()).hexdigest(),
@@ -68,6 +71,7 @@ def main():
         state['reorderHelperSha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
     assert not args.reorder_reduce_to_three or args.reorder_key_probe
     assert not args.reorder_cycle_layouts or args.reorder_reduce_to_three
+    assert not args.reorder_menu_presets or args.reorder_reduce_to_three
     restore_expectations = None
     if args.restore_lifecycle_receipt:
         assert args.trusted_pref_receipt and not args.trusted_pref_probe
@@ -229,7 +233,8 @@ def main():
             from reorder_key_probe import probe_reorder_key
             probe_reorder_key(args.app, browser, args.output, args.site_port, state, save,
                               reduce_to_three=args.reorder_reduce_to_three,
-                              cycle_layouts=args.reorder_cycle_layouts)
+                              cycle_layouts=args.reorder_cycle_layouts,
+                              menu_presets=args.reorder_menu_presets)
         if restore_expectations:
             # Read only owned targets and native AX; no activation, key or drag.
             def owner_check():

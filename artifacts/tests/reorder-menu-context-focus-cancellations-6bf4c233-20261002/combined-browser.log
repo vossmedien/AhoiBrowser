@@ -1,0 +1,140 @@
+objc[52744]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x140c68a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x125b84a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52744]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11e264188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x115666780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[52744:6573734:1002/080738.113065:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:98] error removing quarantine attribute "/var/folders/zn/wn74lz2s2bsfp734gbqytmpr0000gn/X/"
+[52744:6573734:1002/080738.137532:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:98] error removing quarantine attribute "/var/folders/zn/wn74lz2s2bsfp734gbqytmpr0000gn/X/"
+[52744:6573560:1002/080738.256389:WARNING:chrome/browser/signin/account_consistency_mode_manager.cc:74] Desktop Identity Consistency cannot be enabled as no OAuth client ID and client secret have been configured.
+
+DevTools listening on ws://127.0.0.1:9431/devtools/browser/b834c58f-bfe4-46a7-8dd3-dd6afe9370c4
+[52744:6573734:1002/080738.344742:VERBOSE1:components/sessions/core/command_storage_backend.cc:625] CommandStorageBackend::ReadLastSessionCommands, reading from: /private/tmp/ahoi-restore-replay.9f_y9fu6/Default/Sessions/Session_13435392991102158 encrypted: 0
+[52744:6573560:1002/080738.426642:VERBOSE1:components/sessions/core/session_service_commands.cc:1471] RestoreSessionFromCommands 59
+[52744:6573560:1002/080738.426665:VERBOSE1:components/sessions/core/session_service_commands.cc:580] CreateTabsAndWindows
+[52744:6573560:1002/080738.426672:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 14
+[52744:6573560:1002/080738.426686:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 9
+[52744:6573560:1002/080738.426691:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 23
+[52744:6573560:1002/080738.426698:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 32
+[52744:6573560:1002/080738.426702:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 8
+[52744:6573560:1002/080738.426707:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 37
+[52744:6573560:1002/080738.426713:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 0
+[52744:6573560:1002/080738.426721:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 21
+[52744:6573560:1002/080738.426726:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 6
+[52744:6573560:1002/080738.426978:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 7
+[52744:6573560:1002/080738.426994:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 2
+[52744:6573560:1002/080738.427000:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 19
+[52744:6573560:1002/080738.427006:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427012:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 0
+[52744:6573560:1002/080738.427023:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 21
+[52744:6573560:1002/080738.427028:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 6
+[52744:6573560:1002/080738.427040:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 7
+[52744:6573560:1002/080738.427046:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 2
+[52744:6573560:1002/080738.427051:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 19
+[52744:6573560:1002/080738.427067:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427072:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 36
+[52744:6573560:1002/080738.427076:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 0
+[52744:6573560:1002/080738.427084:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 21
+[52744:6573560:1002/080738.427089:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 6
+[52744:6573560:1002/080738.427099:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 7
+[52744:6573560:1002/080738.427104:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 2
+[52744:6573560:1002/080738.427108:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 19
+[52744:6573560:1002/080738.427112:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427115:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 36
+[52744:6573560:1002/080738.427119:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 0
+[52744:6573560:1002/080738.427125:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 21
+[52744:6573560:1002/080738.427129:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 6
+[52744:6573560:1002/080738.427140:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 7
+[52744:6573560:1002/080738.427144:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 2
+[52744:6573560:1002/080738.427147:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 19
+[52744:6573560:1002/080738.427151:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427155:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 36
+[52744:6573560:1002/080738.427159:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 0
+[52744:6573560:1002/080738.427166:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 21
+[52744:6573560:1002/080738.427170:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 6
+[52744:6573560:1002/080738.427180:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 7
+[52744:6573560:1002/080738.427185:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 2
+[52744:6573560:1002/080738.427188:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 19
+[52744:6573560:1002/080738.427192:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427196:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 36
+[52744:6573560:1002/080738.427201:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 34
+[52744:6573560:1002/080738.427205:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 20
+[52744:6573560:1002/080738.427209:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 21
+[52744:6573560:1002/080738.427212:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427216:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427220:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 23
+[52744:6573560:1002/080738.427224:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 32
+[52744:6573560:1002/080738.427227:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 8
+[52744:6573560:1002/080738.427230:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 21
+[52744:6573560:1002/080738.427233:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427242:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 33
+[52744:6573560:1002/080738.427246:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 23
+[52744:6573560:1002/080738.427249:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 32
+[52744:6573560:1002/080738.427253:VERBOSE1:components/sessions/core/session_service_commands.cc:586] Read command 14
+[52744:6573560:1002/080738.427256:VERBOSE1:components/sessions/core/session_service_commands.cc:454] AddTabsToWindows
+[52744:6573560:1002/080738.427261:VERBOSE1:components/sessions/core/session_service_commands.cc:455] Tabs 5, groups 0, windows 1
+[52744:6573560:1002/080738.430998:ERROR:ahoi/browser/updater/sparkle_runtime_mac.mm:148] Ahoi updater disabled (fail closed): missing-feed-url
+[52744:6573560:1002/080738.437775:VERBOSE1:chrome/browser/sessions/session_restore.cc:762] ProcessSessionWindows 1
+[52744:6573734:1002/080738.447201:VERBOSE1:components/sessions/core/command_storage_backend.cc:625] CommandStorageBackend::ReadLastSessionCommands, reading from: /private/tmp/ahoi-restore-replay.9f_y9fu6/Default/Sessions/Tabs_13435392790501995 encrypted: 0
+[52744:6573560:1002/080738.694041:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+76
+[52744:6573560:1002/080738.694071:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+84
+[52744:6573560:1002/080738.694078:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: alt+32
+[52744:6573560:1002/080738.694082:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+alt+9
+[52744:6573560:1002/080738.694086:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+68
+[52744:6573560:1002/080738.694090:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+alt+37
+[52744:6573560:1002/080738.694094:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+alt+39
+[52744:6573560:1002/080738.694098:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+49
+[52744:6573560:1002/080738.694102:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+50
+[52744:6573560:1002/080738.694106:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+51
+[52744:6573560:1002/080738.694110:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+52
+[52744:6573560:1002/080738.694113:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+53
+[52744:6573560:1002/080738.694117:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+54
+[52744:6573560:1002/080738.694121:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+55
+[52744:6573560:1002/080738.694124:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+56
+[52744:6573560:1002/080738.694128:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: ctrl+57
+[52744:6573560:1002/080738.694131:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+shift+83
+[52744:6573560:1002/080738.694135:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+shift+72
+[52744:6573560:1002/080738.694138:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+shift+70
+[52744:6573560:1002/080738.694142:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+90
+[52744:6573560:1002/080738.694157:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+49
+[52744:6573560:1002/080738.694161:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+50
+[52744:6573560:1002/080738.694165:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+51
+[52744:6573560:1002/080738.694169:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+52
+[52744:6573560:1002/080738.694172:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+shift+37
+[52744:6573560:1002/080738.694176:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+shift+39
+[52744:6573560:1002/080738.694179:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+37
+[52744:6573560:1002/080738.694184:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+39
+[52744:6573560:1002/080738.694188:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+76
+[52744:6573560:1002/080738.694192:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+48
+[52744:6573560:1002/080738.694195:VERBOSE1:ahoi/browser/navigation/keyboard_shortcut_registration.cc:62] Ahoi shortcut registered: cmd+ctrl+87
+[52744:6573560:1002/080738.721350:VERBOSE1:chrome/browser/sessions/session_restore.cc:1022] RestoreTabsToBrowser 5
+[52744:6573560:1002/080738.826107:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+objc[52766]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x1427b8a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1274cca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52766]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1201f0188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x116fae780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52767]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144ab4a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1299d0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52767]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1220b0188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1194b2780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52768]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x140c58a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x12596ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52768]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11e04c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11544e780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52769]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x140c7ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x125990a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52769]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11e6b4188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x115472780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52771]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x1407f0a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x125504a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52771]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11dbe4188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x114fe6780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52775]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x1440e4a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x128df8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52775]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1214d8188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1188da780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52773]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144600a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x129314a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52773]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x121b2c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x118df6780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52774]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142e8ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127ba0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52774]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1208c4188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x117682780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52776]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142a24a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127940a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52776]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11fe0c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x116bca780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52778]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x140344a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x125058a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52778]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11d738188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x114b3a780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52777]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144c60a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x129974a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[52777]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x122698188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x119456780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[52766:6573936:1002/080801.895050:ERROR:components/viz/service/surfaces/surface_manager.cc:479] Old/orphaned temporary reference to SurfaceId(FrameSinkId[DelegatedFrameHost](6, 3), LocalSurfaceId(3, 2, B2F5...))
+[52766:6573936:1002/080801.895368:ERROR:components/viz/service/surfaces/surface_manager.cc:479] Old/orphaned temporary reference to SurfaceId(FrameSinkId[DelegatedFrameHost](6, 3), LocalSurfaceId(4, 2, B2F5...))
+[52766:6573936:1002/080801.895385:ERROR:components/viz/service/surfaces/surface_manager.cc:479] Old/orphaned temporary reference to SurfaceId(FrameSinkId[DelegatedFrameHost](6, 6), LocalSurfaceId(2, 2, 322A...))
+[52744:6573560:1002/080802.396844:VERBOSE1:chrome/browser/ui/views/frame/browser_view.cc:6195] Ahoi shortcut split.focus-pane-4 handled
+[52744:6573560:1002/080805.064600:VERBOSE1:chrome/browser/ui/views/frame/browser_view.cc:6195] Ahoi shortcut split.close-pane handled
+[52744:6573560:1002/080810.244233:VERBOSE1:chrome/browser/ui/views/frame/browser_view.cc:6195] Ahoi shortcut split.cycle-layout handled
+[52744:6573560:1002/080813.571873:VERBOSE1:chrome/browser/ui/views/frame/browser_view.cc:6195] Ahoi shortcut split.cycle-layout handled
+[52744:6573560:1002/080816.935154:VERBOSE1:chrome/browser/ui/views/frame/browser_view.cc:6195] Ahoi shortcut split.cycle-layout handled
+[52744:6573560:1002/080820.247281:VERBOSE1:chrome/browser/ui/views/frame/browser_view.cc:6195] Ahoi shortcut split.cycle-layout handled
+[52744:6573560:1002/080823.636517:VERBOSE1:chrome/browser/ui/views/frame/browser_view.cc:6195] Ahoi shortcut split.cycle-layout handled
+[52744:6573560:1002/080827.044033:VERBOSE1:chrome/browser/ui/views/frame/browser_view.cc:6195] Ahoi shortcut split.cycle-layout handled

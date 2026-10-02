@@ -1,0 +1,45 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "acceptance": false,
+  "originalMatrixFailureResolved": false,
+  "cases": {
+    "combined": {
+      "raw": "artifacts/computer-use/m154/menu-three-pane-reorder-native-trace-6bf4c233-20261002T060735Z",
+      "failure": "owner focus returned during reorder key probe",
+      "reachedLabels": [
+        "fourth-pane-before-close",
+        "three-panes-after-close",
+        "three-layout-cycle-1",
+        "three-layout-cycle-2",
+        "three-layout-cycle-3",
+        "three-layout-cycle-4",
+        "three-layout-cycle-5"
+      ],
+      "reorderReached": false
+    },
+    "menus": {
+      "raw": "artifacts/computer-use/m154/menu-only-three-pane-reorder-native-trace-6bf4c233-20261002T061431Z",
+      "failure": "owner focus returned during reorder key probe",
+      "reachedLabels": [
+        "fourth-pane-before-close",
+        "three-panes-after-close",
+        "after-menu-preset-1",
+        "after-menu-preset-2",
+        "after-menu-preset-3",
+        "after-menu-preset-4",
+        "after-menu-preset-5",
+        "after-menu-preset-6"
+      ],
+      "reorderReached": false
+    }
+  },
+  "filesSha256": {
+    "combined-state.json": "a7b050b5b0137f6a4866f6ce638b01e6f079c216635022fe62da7294cbea2cc8",
+    "combined-browser.log": "bfcc2eebe09bce0a9123e1f489bbf613fc92601fa93cc0dd8a9165a9b696b6f4",
+    "combined-reorder-keys.txt": "7bce48bddba82eeb0e533e38d4da500b7667295a1cd92b978e89c7d24d5481f2",
+    "menus-state.json": "e5f600914704aeb36da0897ab18e7bd499ab2e4d4064072b5214cc52435b9d17",
+    "menus-browser.log": "e96ef3039f0b7c2bc988f25fe153a977e702eab0401fe8261bce000732a23109",
+    "menus-reorder-keys.txt": "17bc1ef691afae08b58d113644ec3fed93c8e2201aabcd5bd973c5f5318fea44",
+    "menus-reorder-menu-actions.txt": "99a7e9b02d0ea054f0c280ddb06d896b7930e8181c23f3f45125b1f89e0a5855"
+  }
+}

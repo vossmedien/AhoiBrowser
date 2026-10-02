@@ -1,0 +1,2 @@
+21 cmd ctrl: hidkey 21
+13 cmd ctrl: hidkey 13

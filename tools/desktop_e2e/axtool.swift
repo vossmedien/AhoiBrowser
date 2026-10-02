@@ -170,8 +170,8 @@ case "key":
     print("key \(code)")
 case "hidkey":
     // Like a real keyboard: through the HID event tap, with modifier
-    // flagsChanged events and short gaps. Refuses unless the target app is
-    // frontmost, so it can never type into another app.
+    // flagsChanged events and short gaps. Check the target before each
+    // key-down; focus can change while the modifier chord is assembled.
     guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
         print("hidkey refused: target not frontmost"); exit(3)
     }
@@ -194,7 +194,22 @@ case "hidkey":
         ev.post(tap: .cghidEventTap)
         usleep(30000)
     }
-    for m in modifierCodes { post(m, true, flags) }
+    var pressedModifiers: [CGKeyCode] = []
+    func checkOwnerBeforeDown() {
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
+            // Release only this invocation's already posted modifier downs.
+            // No character/action key is sent after ownership is lost.
+            for m in pressedModifiers.reversed() { post(m, false, []) }
+            print("hidkey cancelled: focus changed during chord")
+            exit(8)
+        }
+    }
+    for m in modifierCodes {
+        checkOwnerBeforeDown()
+        post(m, true, flags)
+        pressedModifiers.append(m)
+    }
+    checkOwnerBeforeDown()
     post(code, true, flags)
     post(code, false, flags)
     for m in modifierCodes.reversed() { post(m, false, []) }

@@ -1,0 +1,1100 @@
+{
+  "runnerPid": 69730,
+  "phase": "failed",
+  "acceptance": false,
+  "source": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "explicitRestore": false,
+  "sitePort": 8825,
+  "reorderKeyProbe": true,
+  "reorderReduceToThree": true,
+  "reorderCycleLayouts": false,
+  "reorderMenuPresets": true,
+  "trustedPrefProbe": false,
+  "harnessSha256": "60c21d3ee6d3e2ba026007ce4426e1c512b249b831401ee6de74d450c1a1b6b1",
+  "cdpSha256": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+  "retainedSessionSha256": "6ad2abf131872ac5228dfda6c0551525a2fcd4b9e1ff307b87cb5de7862232d5",
+  "reorderHelperSha256": "a08ac01a057f1e08dceacb0df5c263e23ca26993417811a34bee6f2e9a3b3575",
+  "idleSeconds": 364,
+  "appRunning": false,
+  "profileCopy": "/private/tmp/ahoi-restore-replay.lampf8v3",
+  "mockKeychain": false,
+  "browserPid": 69799,
+  "observations": [
+    {
+      "elapsedSeconds": 3.5,
+      "pages": [
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 4.7,
+      "pages": [
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 5.9,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 7.0,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 8.1,
+      "pages": [
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 9.2,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 10.3,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 11.4,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 12.5,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 13.6,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 14.7,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 15.8,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 16.9,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 18.0,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 19.2,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 20.3,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 21.4,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 22.5,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 23.6,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 24.7,
+      "pages": [
+        {
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html",
+          "title": "PaneD"
+        },
+        {
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html",
+          "title": "PaneC"
+        },
+        {
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html",
+          "title": "PaneB"
+        },
+        {
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html",
+          "title": "PaneA"
+        },
+        {
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html",
+          "title": "Solo"
+        }
+      ]
+    }
+  ],
+  "axBinarySha256": "3bdf51f9bf89697744b78e4d4ad60d85f4df77aa9775733980a4091cf59bc59c",
+  "axSourceSha256": "456cb3db10c6e52911f7a4b57cafd5771ae775b6441c6c6ef636eabd894371ec",
+  "reorderKeyObservations": [
+    {
+      "label": "fourth-pane-before-close",
+      "rows": [
+        {
+          "t": "PaneD",
+          "w": 465,
+          "h": 612,
+          "f": true,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/d.html",
+          "ready": "complete",
+          "m": "",
+          "val": "PaneD-draft",
+          "id": "2772CF9CE348DCA247408F510EE2A86F",
+          "url": "http://127.0.0.1:8825/d.html"
+        },
+        {
+          "t": "PaneC",
+          "w": 465,
+          "h": 612,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/c.html",
+          "ready": "complete",
+          "m": "",
+          "val": "PaneC-draft",
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html"
+        },
+        {
+          "t": "PaneB",
+          "w": 465,
+          "h": 613,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/b.html",
+          "ready": "complete",
+          "m": "",
+          "val": "PaneB-draft",
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html"
+        },
+        {
+          "t": "PaneA",
+          "w": 465,
+          "h": 613,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/a.html",
+          "ready": "complete",
+          "m": "",
+          "val": "PaneA-draft",
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html"
+        },
+        {
+          "t": "Solo",
+          "w": 940,
+          "h": 1235,
+          "f": false,
+          "v": "hidden",
+          "href": "http://127.0.0.1:8825/solo.html",
+          "ready": "complete",
+          "m": "",
+          "val": "Solo-draft",
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html"
+        }
+      ]
+    },
+    {
+      "label": "three-panes-after-close",
+      "rows": [
+        {
+          "t": "PaneC",
+          "w": 306,
+          "h": 1235,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/c.html",
+          "ready": "complete",
+          "m": "",
+          "val": "PaneC-draft",
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html"
+        },
+        {
+          "t": "PaneB",
+          "w": 307,
+          "h": 1235,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/b.html",
+          "ready": "complete",
+          "m": "",
+          "val": "PaneB-draft",
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html"
+        },
+        {
+          "t": "PaneA",
+          "w": 307,
+          "h": 1235,
+          "f": true,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/a.html",
+          "ready": "complete",
+          "m": "",
+          "val": "PaneA-draft",
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html"
+        },
+        {
+          "t": "Solo",
+          "w": 940,
+          "h": 1235,
+          "f": false,
+          "v": "hidden",
+          "href": "http://127.0.0.1:8825/solo.html",
+          "ready": "complete",
+          "m": "",
+          "val": "Solo-draft",
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html"
+        }
+      ]
+    },
+    {
+      "label": "after-menu-preset-1",
+      "rows": [
+        {
+          "t": "PaneC",
+          "w": 940,
+          "h": 405,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/c.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneC-draft",
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html"
+        },
+        {
+          "t": "PaneB",
+          "w": 940,
+          "h": 405,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/b.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneB-draft",
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html"
+        },
+        {
+          "t": "PaneA",
+          "w": 940,
+          "h": 405,
+          "f": true,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/a.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneA-draft",
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html"
+        },
+        {
+          "t": "Solo",
+          "w": 940,
+          "h": 1235,
+          "f": false,
+          "v": "hidden",
+          "href": "http://127.0.0.1:8825/solo.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "Solo-draft",
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html"
+        }
+      ]
+    },
+    {
+      "label": "after-menu-preset-2",
+      "rows": [
+        {
+          "t": "PaneC",
+          "w": 465,
+          "h": 612,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/c.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneC-draft",
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html"
+        },
+        {
+          "t": "PaneB",
+          "w": 465,
+          "h": 613,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/b.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneB-draft",
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html"
+        },
+        {
+          "t": "PaneA",
+          "w": 465,
+          "h": 1235,
+          "f": true,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/a.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneA-draft",
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html"
+        },
+        {
+          "t": "Solo",
+          "w": 940,
+          "h": 1235,
+          "f": false,
+          "v": "hidden",
+          "href": "http://127.0.0.1:8825/solo.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "Solo-draft",
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html"
+        }
+      ]
+    },
+    {
+      "label": "after-menu-preset-3",
+      "rows": [
+        {
+          "t": "PaneC",
+          "w": 465,
+          "h": 612,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/c.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneC-draft",
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html"
+        },
+        {
+          "t": "PaneB",
+          "w": 465,
+          "h": 613,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/b.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneB-draft",
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html"
+        },
+        {
+          "t": "PaneA",
+          "w": 465,
+          "h": 1235,
+          "f": true,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/a.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneA-draft",
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html"
+        },
+        {
+          "t": "Solo",
+          "w": 940,
+          "h": 1235,
+          "f": false,
+          "v": "hidden",
+          "href": "http://127.0.0.1:8825/solo.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "Solo-draft",
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html"
+        }
+      ]
+    },
+    {
+      "label": "after-menu-preset-4",
+      "rows": [
+        {
+          "t": "PaneC",
+          "w": 465,
+          "h": 612,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/c.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneC-draft",
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html"
+        },
+        {
+          "t": "PaneB",
+          "w": 465,
+          "h": 612,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/b.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneB-draft",
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html"
+        },
+        {
+          "t": "PaneA",
+          "w": 940,
+          "h": 613,
+          "f": true,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/a.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneA-draft",
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html"
+        },
+        {
+          "t": "Solo",
+          "w": 940,
+          "h": 1235,
+          "f": false,
+          "v": "hidden",
+          "href": "http://127.0.0.1:8825/solo.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "Solo-draft",
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html"
+        }
+      ]
+    },
+    {
+      "label": "after-menu-preset-5",
+      "rows": [
+        {
+          "t": "PaneC",
+          "w": 465,
+          "h": 612,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/c.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneC-draft",
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html"
+        },
+        {
+          "t": "PaneB",
+          "w": 465,
+          "h": 612,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/b.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneB-draft",
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html"
+        },
+        {
+          "t": "PaneA",
+          "w": 940,
+          "h": 613,
+          "f": true,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/a.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneA-draft",
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html"
+        },
+        {
+          "t": "Solo",
+          "w": 940,
+          "h": 1235,
+          "f": false,
+          "v": "hidden",
+          "href": "http://127.0.0.1:8825/solo.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "Solo-draft",
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html"
+        }
+      ]
+    },
+    {
+      "label": "after-menu-preset-6",
+      "rows": [
+        {
+          "t": "PaneC",
+          "w": 306,
+          "h": 1235,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/c.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneC-draft",
+          "id": "734C794F4E153FF18911F30F73FDF64B",
+          "url": "http://127.0.0.1:8825/c.html"
+        },
+        {
+          "t": "PaneB",
+          "w": 307,
+          "h": 1235,
+          "f": false,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/b.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneB-draft",
+          "id": "12CAC3C5D67554AF72C2C35786517B56",
+          "url": "http://127.0.0.1:8825/b.html"
+        },
+        {
+          "t": "PaneA",
+          "w": 307,
+          "h": 1235,
+          "f": true,
+          "v": "visible",
+          "href": "http://127.0.0.1:8825/a.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "PaneA-draft",
+          "id": "60FD98A3679108E2B663FB2856147D11",
+          "url": "http://127.0.0.1:8825/a.html"
+        },
+        {
+          "t": "Solo",
+          "w": 940,
+          "h": 1235,
+          "f": false,
+          "v": "hidden",
+          "href": "http://127.0.0.1:8825/solo.html",
+          "ready": "complete",
+          "m": "kept",
+          "val": "Solo-draft",
+          "id": "8153E4C41BAFF4E5FFB018778B4EA586",
+          "url": "http://127.0.0.1:8825/solo.html"
+        }
+      ]
+    }
+  ],
+  "failure": "owner focus returned during reorder key probe",
+  "originalSessionUnchanged": true,
+  "cleanupComplete": true
+}

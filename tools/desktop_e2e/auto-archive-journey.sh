@@ -38,7 +38,10 @@ ax() {
     shift; local pid=$1; shift
     for attempt in 1 2 3 4 5; do
       archive_activate_owned; sleep 0.3
-      "$AX" hidkey "$pid" "$@" >> "$OUT/steps.txt" 2>&1 && return 0
+      "$AX" hidkey "$pid" "$@" >> "$OUT/steps.txt" 2>&1
+      local status=$?
+      [ "$status" = 0 ] && return 0
+      [ "$status" != 8 ] || archive_yield_focus
       sleep 1
     done
     echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1

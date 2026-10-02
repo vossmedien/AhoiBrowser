@@ -2,6 +2,7 @@
 import hashlib
 import json
 import pathlib
+import re
 import subprocess
 import time
 import urllib.request
@@ -10,7 +11,7 @@ from installed_navigation_probe import app_running, idle_seconds
 
 
 def probe_reorder_key(app, browser, output, site_port, state, save, reduce_to_three=False,
-                      cycle_layouts=False):
+                      cycle_layouts=False, menu_presets=False):
     source = pathlib.Path(__file__).parent
     ax = pathlib.Path('/private/tmp/ahoi-axtool')
     assert ax.is_file() and ax.stat().st_mtime >= (source / 'axtool.swift').stat().st_mtime
@@ -64,6 +65,54 @@ def probe_reorder_key(app, browser, output, site_port, state, save, reduce_to_th
         if result.returncode:
             raise RuntimeError('owned reorder key refused')
 
+    def ax_action(action, *args):
+        own_focus()
+        result = subprocess.run([str(ax), action, str(browser.pid), *args],
+                                capture_output=True, text=True, timeout=12)
+        with (output / 'reorder-menu-actions.txt').open('a') as file:
+            file.write(f'{action} {args}: ' + result.stdout + result.stderr)
+        return result
+
+    def native_dump(label):
+        result = ax_action('dump', '40')
+        if result.returncode:
+            raise RuntimeError('owned native menu capture failed')
+        (output / f'reorder-menu-{label}.txt').write_text(result.stdout)
+        return result.stdout
+
+    def wait_menu(text, label):
+        deadline = time.monotonic() + 5
+        while True:
+            dump = native_dump(label)
+            if f'AXMenuItem | {text}' in dump:
+                return
+            if time.monotonic() >= deadline:
+                raise RuntimeError('native preset menu did not expose ' + text)
+            time.sleep(0.25)
+
+    def preset(item, previous, label):
+        dump = native_dump(label + '-row')
+        row = re.search(r'(AX(?:RadioButton|Tab|Row|Cell|Button)) \| ([^|\n]*PaneA[^|\n]*)', dump)
+        if not row:
+            raise RuntimeError('owned PaneA sidebar row missing')
+        # The same native row/submenu actions and check-mark sequence as matrix.
+        ax_action('key', '53')
+        time.sleep(1)
+        ax_action('press', row.group(1) + ':' + row.group(2).strip(), 'AXShowMenu')
+        wait_menu('Geteilte Ansicht anordnen', label + '-context')
+        ax_action('press', 'AXMenuItem:Geteilte Ansicht anordnen')
+        time.sleep(1)
+        wait_menu(item or previous, label + '-submenu')
+        if previous and ax_action('checked', 'AXMenuItem:' + previous).returncode:
+            raise RuntimeError('native previous preset mark missing')
+        if item:
+            ax_action('press', 'AXMenuItem:' + item)
+        else:
+            ax_action('key', '53')
+            time.sleep(0.5)
+            ax_action('key', '53')
+        time.sleep(2)
+
     if idle_seconds() < 90 or app_running(app, exclude_pid=browser.pid):
         raise RuntimeError('owner input/app returned before owned key activation')
     activated = subprocess.run([str(ax), 'activate', str(browser.pid)],
@@ -79,15 +128,24 @@ def probe_reorder_key(app, browser, output, site_port, state, save, reduce_to_th
         time.sleep(3)
         remaining = snapshot('three-panes-after-close')
         assert sorted(r['t'] for r in remaining if r['v'] == 'visible') == ['PaneA', 'PaneB', 'PaneC']
-    if cycle_layouts:
+    if cycle_layouts or menu_presets:
         for row in remaining:
             cdp(row['id'], 'Runtime.evaluate', dict(
                 expression='window.__m="kept";document.getElementById("f").value=document.title+"-draft";1',
                 returnByValue=True))
-        for index in range(6):
-            key(37, 'cmd', 'ctrl')
-            time.sleep(2)
-            snapshot(f'three-layout-cycle-{index + 1}')
+        if cycle_layouts:
+            for index in range(6):
+                key(37, 'cmd', 'ctrl')
+                time.sleep(2)
+                snapshot(f'three-layout-cycle-{index + 1}')
+        if menu_presets:
+            previous = ''
+            for index, item in enumerate(['Drei Zeilen', 'Großes Pane links', 'Großes Pane rechts',
+                                           'Großes Pane oben', 'Großes Pane unten', 'Drei Spalten']):
+                preset(item, previous, f'preset-{index + 1}')
+                snapshot(f'after-menu-preset-{index + 1}')
+                previous = item
+            preset('', previous, 'final-mark')
         for code in [18, 19, 20]:
             key(code, 'cmd', 'ctrl')
             time.sleep(1)
