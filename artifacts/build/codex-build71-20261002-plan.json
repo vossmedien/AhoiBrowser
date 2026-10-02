@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "buildSequence": 71,
+  "jobs": 1,
+  "scope": "real Safe Storage scoped existing-login fallback under relocated home; ordered patch91",
+  "guardedEntrypoints": [
+    "scripts/apply-overlay.sh --compatible-dev-xcode",
+    "scripts/build-ahoi.sh dev"
+  ],
+  "requiredNative": "Core152 including new keychain-policy4; all required native gates; real windowed crypto/cookie/restart evidence without mocks",
+  "installedBefore": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "resources": "host/Xcode27 pass,108GiB free, two CPU55-59% idle, pressure1, stable swapouts900835, no lasting foreign app/compiler/owner locks",
+  "launcherSha256": "1b8032030702544833dc936ca88ce76d9337d9d6168996d5fdd158aef47ac331",
+  "createdAt": "2026-10-02T02:55:55.371847+00:00",
+  "crest": "106/110 unchanged ready/no product patch, separate H3 lease still deferred;148 own storage already accepted"
+}

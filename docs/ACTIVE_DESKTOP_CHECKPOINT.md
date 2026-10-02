@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Scoped real-keychain candidate71 running — 2 October 2026
+
+Source6bf4c233c44d373924a5d815a85ecb8b7230f606 is frozen in the clean queue.
+Owned detached runner23233 is live at this entry; inspect actual PID/descendants
+and `.work/agent-queue/71/state.json` before any output/GUI/installer action.
+[Exact guarded one-job plan](../artifacts/build/codex-build71-20261002-plan.json).
+Tracked fallback overlay/ordered patch91 and four policy methods are included;
+no corrected runtime/real-keychain pass is claimed until actual execution.
+
+Root99157 archive is absent. Fresh host/Xcode27 passes,108GiB free, CPU55–59%
+idle samples, pressure1, about2GiB unused, stable swapouts900835; Ahoi locks
+free, no lasting app/compiler before launch. A transient xcodebuild during
+the probe was rechecked and absent; no foreign process was signalled/altered.
+The launcher independently refuses conflicting app/compiler/owner locks.
+Phase resource probes are retained, jobs1; no second queue or general waiter.
+Ready Crest106/110 reread, same tools/no product patch, H3 lease still deferred.
+
+Core152 (policy4/Mojo29), editor/baseline/UI/browser runners are prepared under
+queue71, syntax-parsed UNLAUNCHED. Changed crypto/runtime inputs need actual
+candidate-bound native proof, not the prior mock-assisted browser pass labels.
+After compile/stable sign/provenance and necessary native gates: canonical
+install, then real windowed default-keychain/cookie/restart/visible lifecycle
+checks WITHOUT --use-mock-keychain; preserve any real auth/dialog/metadata
+finding rather than bypass it. Native Security still owns permissions and keys.
+Installed Build70 keeps its current unresolved real-provider wait until that
+actual installed candidate succeeds. Full Master/external/worker/Sync/release,
+data/rollback/archives/goals remain intact.
+
 ## Real cookie/Keychain wait isolated; scoped fallback source ready — 2 October 2026
 
 Installed28506787 windowed requests stop after privacy/cookie preparation; ready
