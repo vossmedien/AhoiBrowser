@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## Fixture-correction Build 69 running — 2 October 2026
+
+Frozen clean queue source c0afa44917553098b9409b794a34cae1b61dba61, owned
+runner27556, one guarded incremental job. Overlay refresh succeeds; guarded
+build/host phase is live at this entry. Verify actual runner descendants and
+`.work/agent-queue/69/state.json`/logs before acting. [Exact plan](../artifacts/build/codex-build69-20261002-plan.json).
+Only the runtime test fixture changed from Build68; product code unchanged.
+Host/Xcode27 passes,126GiB free, pressure level1, swapouts900835 stable before
+launch. Retained phase probes track varying host CPU; no second job/test/UI or
+output refresh is started while this owner holds build.lock.
+
+Candidate-bound core/editor/baseline runners are prepared under queue69, parsed
+but UNLAUNCHED. Core checks all thirteen new backend/Mojo cases against actual
+launcher statuses; editor requires fresh idle>=90/app absence and all five
+actual methods. No general wait/retry watcher exists. The previous core RED
+is preserved below, not a pass merely because Build68 compilation succeeded.
+
+Next: actual terminal compile/sign/provenance outcome, corrected core/native
+execution then editor and required remaining gates under fresh resource/UI
+checks. Native test executable changed; do not carry old Core127 or partial
+Mojo24 across labels. Only candidate-bound required GREEN permits installer,
+then representative visible affected journeys and focused checks. Installed
+source remains9acb43c8/M154; full Master/worker/Sync/external/release boundaries
+and Crest's separate H3 lease persist.
+
 ## Build 68 complete; native runtime fixture RED corrected in source — 2 October 2026
 
 Guarded Build68 c2943397 ends exit0: compile, stable Apple Development signing,

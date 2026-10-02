@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "c0afa44917553098b9409b794a34cae1b61dba61",
+  "buildSequence": 69,
+  "jobs": 1,
+  "change": "runtime native test fixture RenderViewHostTestEnabler only; product unchanged from c2943397",
+  "guardedEntrypoints": [
+    "scripts/apply-overlay.sh --compatible-dev-xcode",
+    "scripts/build-ahoi.sh dev"
+  ],
+  "installedBefore": "9acb43c81917a847c2d94303053c304b981757d3",
+  "nativeGate": "Actual corrected core, editor and required baseline/browser gates; no automatic installation",
+  "launcherSha256": "d1c8d232f3923c68ade3c6e9f1497182beeec6adaff20445d2a84829f21e2c82",
+  "createdAt": "2026-10-02T00:30:18.870630+00:00"
+}
