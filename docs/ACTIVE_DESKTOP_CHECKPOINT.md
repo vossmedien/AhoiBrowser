@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Quit-chain differentials preserve C; marked full setup next — 2 October 2026
+
+Actual no-popup41696/41709 uses original traversal/cycle/ratio/focus setup:
+native title/focusC before quit, selectedC after first quit and after real Ahoi
+Continue/second quit. Final debug launch yields on a new foreign compiler,
+exit8/pass:false; no final result inferred. Actual popup47403/47408 adds the
+fifth-pane refusal/close context and completes all three launches/quit phases:
+native and savedC throughout, final debug C, scoped invarianttrue/exit0.
+Both roots/locks clean, original records unchanged. [Bounded exact differentials](../artifacts/tests/native-focus-quit-chain-differentials-6bf4c233-20261002/README.md).
+Thus popup alone, traversal/ratio alone or native quit alone do not establish
+the original grid failure's cause. These contexts omit the original marked
+form values plus initial four-pane focus sweep; do not call original RED fixed.
+
+Focused helper now optionally includes exactly those missing setup conditions
+alongside popup, with before-quit native/selected readbacks and all startup
+boundaries, still only the affected focus invariant. Immediate preflight61402
+defers2 on foreign Cockpit57689/Swift frontends,
+no app/lock; `.work/agent-queue/71/installed-focus-marked-full-context-20261002T074041Z/`.
+Shell syntax passes, this full-setup variant NOT executed. No watcher/retry loop.
+
+Next: fresh resource/input/ownership and the marked exact focus setup, then
+repair established cause and affected visible flow before necessary focused
+native checks. Preserve10/14/reorder/restore3 scoped GREEN; do not replay those
+assertions or build a guessed patch. Installed71/6bf4c233 and full original
+Master/worker/Sync/Mobile/external/release/data/archive/rollback scope intact.
+
 ## Durable selected-pane mismatch confirmed; exact focused chain prepared — 2 October 2026
 
 New read-only synthetic SNSS3 subset maps pinned commands0/2/8 plus navigation

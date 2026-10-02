@@ -1,0 +1,27 @@
+frontmost -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+AXPress AXMenuItem | 2-mal-2-Raster, Zeilen zuerst | itemSelected: -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | 2-mal-2-Raster, Zeilen zuerst | itemSelected: mark=✓
+AXPress AXMenuItem | 2-mal-2-Raster, Spalten zuerst | itemSelected: -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | 2-mal-2-Raster, Spalten zuerst | itemSelected: mark=✓
+hidkey 53
+hidkey 53
+hidkey 37
+hidkey 124
+hidkey 124
+hidkey 20
+before first quit: focused=PaneC shares=PaneA:0.300 PaneB:0.300 PaneC:0.200 PaneD:0.200
+hidkey 12
+frontmost -> 0
+hidkey 12

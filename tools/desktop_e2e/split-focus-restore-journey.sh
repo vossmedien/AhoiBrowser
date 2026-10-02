@@ -43,11 +43,27 @@ for file in a b c d; do
 done
 snap retained-four
 [ "$(q visible)" = "PaneA,PaneB,PaneC,PaneD" ] && [ "$(q layout)" = four-grid ] || fail_setup "retained four-grid input did not restore"
+if [ "${AHOI_E2E_FOCUS_REPRO_MARK_SWEEP:-0}" = 1 ]; then
+  echo 'focus diagnosis includes original marked forms and four-pane focus sweep' >> "$OUT/steps.txt"
+  mark_all
+  for n in 1 2 3 4; do focus_pane $n; done
+fi
 # Diagnostic context only: original traversal/resize before quit; no ten-check replay.
 split_menu "2-mal-2-Raster, Zeilen zuerst" ""
 split_menu "2-mal-2-Raster, Spalten zuerst" "2-mal-2-Raster, Zeilen zuerst"
 split_menu "" "2-mal-2-Raster, Spalten zuerst"
 key 37 cmd ctrl; sleep 2
+if [ "${AHOI_E2E_FOCUS_REPRO_POPUP:-0}" = 1 ]; then
+  echo 'focus diagnosis includes rejected fifth popup and its close' >> "$OUT/steps.txt"
+  focus_pane 1
+  popup_from "$(file_of "$(q focused)")" e.html || fail_setup "diagnostic fifth popup did not open"
+  popup_to_split
+  waitax "AX(StaticText|Group) \\| Dieser Split hat bereits vier Bereiche" 6 || fail_setup "diagnostic fifth popup was not refused"
+  activate_owned
+  $AX press $PID "AXButton:Popup schließen" >> "$OUT/steps.txt"; sleep 2
+  snap diagnostic-popup-closed
+  ! q all | grep -q PaneE || fail_setup "diagnostic popup remained open"
+fi
 key 124 cmd ctrl; sleep 1; key 124 cmd ctrl; sleep 1
 focus_pane 3; FOCUS=$(q focused)
 $AX focused $PID > "$OUT/focus-before-first-quit.txt"

@@ -1,0 +1,4 @@
+frontmostApp: AhoiBrowser pid=52985 target=52985
+focusedElement: none
+focusedWindow: AXWindow | PaneC - Pane 3 of 4 - AhoiBrowser
+mainWindow: AXWindow | PaneC - Pane 3 of 4 - AhoiBrowser

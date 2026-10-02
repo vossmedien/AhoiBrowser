@@ -1,0 +1,54 @@
+[
+  {
+    "file": "Session_13435399609378731",
+    "sha256": "030a357326708087f0100dd56baf4fc8feaf29fee5587ccf8171e64a3db14701",
+    "bytes": 48564,
+    "parsedBytes": 48564,
+    "commands": 208,
+    "partialMetadataOnly": true,
+    "selected": {
+      "1099952930": 3
+    },
+    "selectionSequence": [
+      {
+        "window": 1099952930,
+        "index": 0
+      },
+      {
+        "window": 1099952930,
+        "index": 3
+      }
+    ],
+    "selectedFixtureTitles": {
+      "1099952930": [
+        "PaneC"
+      ]
+    }
+  },
+  {
+    "file": "Session_13435399661766161",
+    "sha256": "d103a652a81adcc6e1ae901e80f9c9d5ee465920c10dcc31eb17b420b55796f5",
+    "bytes": 34871,
+    "parsedBytes": 34871,
+    "commands": 145,
+    "partialMetadataOnly": true,
+    "selected": {
+      "1099953001": 3
+    },
+    "selectionSequence": [
+      {
+        "window": 1099953001,
+        "index": 0
+      },
+      {
+        "window": 1099953001,
+        "index": 3
+      }
+    ],
+    "selectedFixtureTitles": {
+      "1099953001": [
+        "PaneC"
+      ]
+    }
+  }
+]

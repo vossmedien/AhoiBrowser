@@ -1,0 +1,27 @@
+{
+  "runnerPid": 47403,
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "phase": "complete",
+  "startedAt": "2026-10-02T07:32:28.432507+00:00",
+  "journey": "split-focus-chain",
+  "waitDeadlineSeconds": 0,
+  "idleSeconds": 277,
+  "appRunning": false,
+  "compilerRunning": false,
+  "output": "artifacts/computer-use/m154/split-focus-chain-installed-6bf4c233-20261002T073228Z",
+  "inputSha256": {
+    "tools/desktop_e2e/split-focus-restore-journey.sh": "6f2381505dffc7374144026eb78c7b57524daab8049ac1086e04950dbce9d539",
+    "tools/desktop_e2e/split_journey_lib.sh": "c86f9d0fbe7775a866399cc536c1a7ef1fe09cc2c9007e70d681ae7d6cab2a83",
+    "tools/desktop_e2e/cdp.mjs": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+    "tools/desktop_e2e/axtool.swift": "05480adb28214085b330fd95d9a98e4e6bd36e76b5c1a85884a60bebed5eecbd",
+    "tools/desktop_e2e/split_sidebar_group.py": "ac81e3319196efccd5efb1259764aaa187f6ab9274c779c86cfc6cac6b4076c4",
+    "tools/desktop_e2e/session_selected_readback.py": "fb4d508ada5b7a6bf51ea1f693d598ec00b544ccfcbcb8800a1ed8c8df2d1d4b"
+  },
+  "journeyPid": 47408,
+  "exitCode": 0,
+  "verdict": {
+    "focusedPaneSurvivesExactQuitChain": true,
+    "pass": true
+  },
+  "ownedRootsRemain": []
+}

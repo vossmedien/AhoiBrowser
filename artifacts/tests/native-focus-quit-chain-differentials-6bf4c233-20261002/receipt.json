@@ -1,0 +1,49 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "originalGridFailureResolved": false,
+  "cases": {
+    "no-popup": {
+      "raw": "artifacts/computer-use/m154/split-focus-chain-installed-6bf4c233-20261002T072641Z",
+      "exitCode": 8,
+      "selectedReadback": {
+        "selected-after-first-quit.json": "PaneC",
+        "selected-after-product-quit.json": "PaneC"
+      },
+      "pass": false,
+      "popupContext": false,
+      "markedFormsFocusSweepIncluded": false
+    },
+    "popup": {
+      "raw": "artifacts/computer-use/m154/split-focus-chain-installed-6bf4c233-20261002T073228Z",
+      "exitCode": 0,
+      "selectedReadback": {
+        "selected-after-first-quit.json": "PaneC",
+        "selected-after-product-quit.json": "PaneC"
+      },
+      "pass": true,
+      "popupContext": true,
+      "markedFormsFocusSweepIncluded": false
+    }
+  },
+  "filesSha256": {
+    "no-popup-runner-state.json": "3471b1f6c76f7687ff4135d5bb74f8a8e9c30879a6a14e94c52cb3e298586226",
+    "no-popup-steps.txt": "f897c678a43a0acf4f635e144c4b0e8c23e27a11c4ef0b7e21546b222be6556d",
+    "no-popup-run.txt": "13f906bebee2b5fe8da8df508dcf09ad2ab92425381c31514849dc6aab41fe62",
+    "no-popup-verdict.json": "1a9d9018a0fe24c48dc3890c369853e6bc8bdbe7869c9995ab51b81446683031",
+    "no-popup-focus-before-first-quit.txt": "64932f7dcf74b14ab7a9a1721ebd183bbda9a4c771547adc51d675c0351a179e",
+    "no-popup-focus-after-product-start.txt": "2fb1fae63a086c2c347b3f2d8a2d25f7ee26dff346b741a3f9ecf1cae609e674",
+    "no-popup-selected-after-first-quit.json": "c6fa32bdb8ed74df1b02c4a4fc024ede3e1894d7d063caa62f7bdafaf9191502",
+    "no-popup-selected-after-product-quit.json": "c09c30f306174983e4f2586c8f5d041cc6bc02c46f88bf704d213e1d4d3f2267",
+    "no-popup-launch-preflight.jsonl": "9f3dc69db282bcd41396fd924e7c2cc0c29801e89b349930698f36a662d20916",
+    "popup-runner-state.json": "1f4636a50d2bb80c8485c5ac516d0b620a3066e4e22bed7bab26d762c50cf76a",
+    "popup-steps.txt": "c0d248040dadeee4dd6d5291884321e72d658bfa94fd0ff980045b4715b9d636",
+    "popup-run.txt": "754f37da4c83b53ea74975b50a11bac91e432760d1369da410aa85d84bcdfd05",
+    "popup-verdict.json": "c2a619945c4a4733b36bfa25a9f6a3967f920eb014f693a293b722080cf5d560",
+    "popup-focus-before-first-quit.txt": "aec5b86817248949128c0889da826a2d1e00105736e87c8cf303b3d741ed36d3",
+    "popup-focus-after-product-start.txt": "368ede89a6ccf65ce7b801f0059519c662e744a999db73d2a5b6129cc4b657e2",
+    "popup-focus-after-debug-start.txt": "26e8cb93ba001ef6e7823163b6f6d08037c4b127500b333f655eaade3a563754",
+    "popup-selected-after-first-quit.json": "668f9d49483fb53f9533f0bf281ac8404a9fe00498933b7ce5a68663305fbfd9",
+    "popup-selected-after-product-quit.json": "391e3aa28c263e27d35d1d934ac835a860299b2b022b00194a424804bf014a71",
+    "popup-launch-preflight.jsonl": "5d3b6cfc4811b06806d0d74941ec6ca4f53f3fceb6763261e69c91a174537d29"
+  }
+}
