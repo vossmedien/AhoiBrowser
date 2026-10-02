@@ -1,0 +1,13 @@
+{
+  "runnerPid": 1686,
+  "phase": "failed",
+  "jobs": 1,
+  "results": [
+    {
+      "name": "fallback",
+      "exitCode": 1,
+      "sourceSha256": "3b82ea4be258737978c4f302c9ac6cf390aabbf40ff405aa05bb9fbe448fe846"
+    }
+  ],
+  "compilerPid": 2495
+}

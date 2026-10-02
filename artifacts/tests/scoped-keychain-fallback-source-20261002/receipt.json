@@ -1,0 +1,156 @@
+{
+  "kind": "synthetic crypto isolation and source-only native fallback",
+  "nativeEncryptedCookieAcceptance": false,
+  "realKeychainValuesReadOrExportedByDiagnostic": false,
+  "metadata": {
+    "processHomeDiffersFromAccountHome": true,
+    "nativeUserDefaultMissing": true,
+    "nativeUserSearchListEmpty": true,
+    "explicitExistingOwnItemMetadataFound": true,
+    "explicitUserLoginOpenStatus": 0,
+    "explicitUserLoginUnlocked": true,
+    "globalSettingsChanged": false
+  },
+  "syntax": [
+    {
+      "name": "fallback",
+      "exitCode": 0,
+      "sourceSha256": "b4045c4659c20fff99906fc8243b0c331619cf23d387aa207ac9bd51047307ba"
+    },
+    {
+      "name": "integration",
+      "exitCode": 0,
+      "sourceSha256": "a317ae37fcb39ff9aa6227011f5b66e595d54c98f77b9f60a4a6bdff6a417e4a"
+    },
+    {
+      "name": "tests",
+      "exitCode": 0,
+      "sourceSha256": "66fb90d677733df5557ad2e1be22f76b4bb3d4ef01f82be980a7946d6ce7d3d2"
+    }
+  ],
+  "nativePolicyMethodsWritten": 4,
+  "nativePolicyMethodsExecuted": 0,
+  "patch91Sha256": "2c036953aafd54f9e3f500b58a6f1f258af9418449714f9e35f8606c16b30705",
+  "runs": [
+    {
+      "directory": "artifacts/computer-use/m154/navigation-instrumented-28506787-20261002T021556Z",
+      "state": {
+        "runnerPid": 43784,
+        "phase": "failed",
+        "source": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+        "startedAt": "2026-10-02T02:15:56.493678+00:00",
+        "acceptance": false,
+        "mode": "windowed",
+        "probeSha256": "af794325566c63b5cb11821e136049f2cb10aaa29d494263b508d130fa8bfcdd",
+        "installedInfoSha256": "89e0c0399746cfff13c125f1bce0237ae172a9a293ac96af34968206bedd94a0",
+        "idleSeconds": 270,
+        "appRunning": false,
+        "httpReadiness": {
+          "status": 200,
+          "body": "<title>PaneA</title><h1>Pane A</h1>"
+        },
+        "profile": "/private/tmp/ahoi-navigation-profile.eb0yc0v4",
+        "fixtureOrigin": "http://127.0.0.1:64257",
+        "browserPid": 43793,
+        "driverSha256": "c34f9a05d873a0e93ac01bdfcec15382832592e147e3e7b69e455f1468235021",
+        "driverPid": 43881,
+        "failure": "Command '['sample', '43793', '2', '10', '-file', '/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/artifacts/computer-use/m154/navigation-instrumented-28506787-20261002T021556Z/browser-43793.sample.txt']' timed out after 8 seconds",
+        "cleanupComplete": true
+      },
+      "sha256": {
+        "browser.log": "e3a0b03872893db21b9d99cbc82df5aec3cd7d1184f13f7338d364a1c82c8730",
+        "state.json": "17953d6fbc0657df6582817bcd0cfe50b4549ee177d6f67eb909ddf5ea0d6bf0",
+        "site.log": "e13a32c7ba62156e556efaa9300a99a80f4e022cd86c1e262185cb0d9c1c2be6",
+        "startup-targets.json": "aee4e67943fcd99320117cd4b3b74905c1ce865123b0ee822604a5383be9b1b8",
+        "owned-processes.json": "61fd3540af38360a140979ff1149b379899418a9e3ae70f0c33d6fd11d8ef4e6",
+        "netlog.json": "f74e21e5224e71a70a52923c20922e45d259ccf5af604ef1153bddeb24ebd995",
+        "protocol.json": "04c5602cb0582b3a981d5e771c36f21609c790b0c399fd8f8255c71097778065"
+      }
+    },
+    {
+      "directory": "artifacts/computer-use/m154/navigation-network-first-28506787-20261002T021952Z",
+      "state": {
+        "runnerPid": 49476,
+        "phase": "complete",
+        "source": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+        "startedAt": "2026-10-02T02:19:52.474336+00:00",
+        "acceptance": false,
+        "mode": "windowed",
+        "probeSha256": "886c98fc2085180f4e15307f222b4855df32a16aa0ba558a31b9c78fa564eabd",
+        "installedInfoSha256": "89e0c0399746cfff13c125f1bce0237ae172a9a293ac96af34968206bedd94a0",
+        "idleSeconds": 506,
+        "appRunning": false,
+        "httpReadiness": {
+          "status": 200,
+          "body": "<title>PaneA</title><h1>Pane A</h1>"
+        },
+        "profile": "/private/tmp/ahoi-navigation-profile.5j35oxiv",
+        "fixtureOrigin": "http://127.0.0.1:65161",
+        "browserPid": 49648,
+        "driverSha256": "c34f9a05d873a0e93ac01bdfcec15382832592e147e3e7b69e455f1468235021",
+        "driverPid": 50303,
+        "driverExitCode": 4,
+        "shutdownDeadline": true,
+        "cleanupComplete": true
+      },
+      "sha256": {
+        "browser.log": "210f60003a22aeea56011bfab127d050dfca7048ba7a0daf2e47b2d230873062",
+        "state.json": "48402b64fa495aa3b4f5e9b116f0c5db90114c2b6988ad4ab6154f47c5a939a1",
+        "browser-49648.sockets.txt": "83d1686b7149811978d427b4b735c5070268826e9b3dcdf57b10d7b43bc686da",
+        "site.log": "e13a32c7ba62156e556efaa9300a99a80f4e022cd86c1e262185cb0d9c1c2be6",
+        "startup-targets.json": "2edd59252028a45588a86e0ae42839eddbaa7506426c258e6a559bcb1e24b5be",
+        "browser-49648.sample-command.txt": "ed1572d347322ee28b5e2dff909f8dfb1395e2e794b5bd5d6dfd9f9733943b68",
+        "owned-processes.json": "123ea490e5ad5e021662e9120bfd3a217ade41bb2f8ad69b27374b51bf30d283",
+        "network-49997.sockets.txt": "953279cc4eeb9430e7ccfb8ffc98384b5c86ffb5b7cfe3ebbab9cdda4fa37461",
+        "network-49997.sample-command.txt": "ed1572d347322ee28b5e2dff909f8dfb1395e2e794b5bd5d6dfd9f9733943b68",
+        "netlog.json": "4424be8aa8b69e33910ab579632e6158c850c02b5f9688982dd9ddc658048c22",
+        "protocol.json": "ca0abb52fd992a8ab84a9fda5c2f8f57a63fdac8e908ae7fd53a4df9c1dd6691"
+      }
+    },
+    {
+      "directory": "artifacts/computer-use/m154/navigation-mock-keychain-diagnostic-28506787-20261002T022326Z",
+      "state": {
+        "runnerPid": 57451,
+        "phase": "complete",
+        "source": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+        "startedAt": "2026-10-02T02:23:26.944401+00:00",
+        "acceptance": false,
+        "mode": "windowed",
+        "diagnosticMockKeychain": true,
+        "probeSha256": "79b0c0486c8a38708714eeaf1a1ec12d1e6ae513fa6c2e8eb624d6f02d0745b9",
+        "installedInfoSha256": "89e0c0399746cfff13c125f1bce0237ae172a9a293ac96af34968206bedd94a0",
+        "idleSeconds": 721,
+        "appRunning": false,
+        "httpReadiness": {
+          "status": 200,
+          "body": "<title>PaneA</title><h1>Pane A</h1>"
+        },
+        "profile": "/private/tmp/ahoi-navigation-profile.xe8womm3",
+        "fixtureOrigin": "http://127.0.0.1:49707",
+        "browserPid": 57458,
+        "driverSha256": "c34f9a05d873a0e93ac01bdfcec15382832592e147e3e7b69e455f1468235021",
+        "driverPid": 57493,
+        "driverExitCode": 0,
+        "browserExitCode": 0,
+        "cleanupComplete": true
+      },
+      "sha256": {
+        "browser.log": "4d5a5791e1945f361cbb483768e920c3c423d19abae476aa0d8d5545344805e0",
+        "state.json": "54848aaddfed99e72ce1cd8b10ebc28eb1843af0d236035b3877ed3335643a40",
+        "site.log": "42228a41533dcb2c9a07d455852ab9ebeebf428af1f4b888a1fe8502a08410ea",
+        "startup-targets.json": "4005de096199386ed8cf7cacf16cf5b532b171a066eb76ebd7579418678b6fc5",
+        "protocol.json": "87a28208bd8fe24ebd41845dd11a3e2934deda1dd6d16e34b125fb39938d933e"
+      }
+    }
+  ],
+  "evidenceSha256": {
+    "fallback.log": "4962a5101882094a1e2557d37811ef318b7c1893648b51b006d2a3690331c5ba",
+    "fallback.corrected.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-corrected-plan.json": "e820c1117e9cce3ae3505b6a09b23c88a5217da7b6ec008d51b87e51a3787587",
+    "tests.corrected.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-corrected-state.json": "9f0d9e430bc7af7e586c2600c4954011b2c20aa1a5eeecb4a0594bd91afe28ea",
+    "integration.corrected.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "syntax-state.json": "a7ce1bf9dd3a66dda9a7a19e88307769861c3be3ecd0148417374d6c7003942e",
+    "syntax-plan.json": "6d59ced98bc9438053af231e5a6d702d539a46902b2d091452a544c24e5af46a"
+  }
+}

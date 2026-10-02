@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+## Real cookie/Keychain wait isolated; scoped fallback source ready — 2 October 2026
+
+Installed28506787 windowed requests stop after privacy/cookie preparation; ready
+fixture gets no browser request. Owned netlog/inventory proves network service
+background connections work; native URLRequestHttpJob awaits the CookieStore
+callback at this point. Stack symbolication deadlines are preserved, not treated
+as recovered/proven stacks. Auxiliary sample failure no longer aborts the probe.
+
+Same installed/windowed candidate with explicit diagnostic-only mock keychain
+loads PaneA/PaneB HTTP200 and closes normally. This isolates the real crypto path,
+not an installed encrypted-cookie pass. Native browser launchers use the same
+mock switch, so their green network cases do not cover this provider wait.
+[Actual contrast, metadata boundaries and source proofs](../artifacts/tests/scoped-keychain-fallback-source-20261002/README.md).
+
+Metadata only: native user default/search list absent under relocated process
+HOME; current UID's explicit login file opens/unlocked and own item metadata is
+present. No secret value printed/exported, no HOME/default/search/ACL/trust/unlock
+change. Source helper+patch0091 selects that existing UID-owned file only for
+exact Ahoi Safe Storage with missing default and differing absolute homes;
+existing defaults/other errors stay authoritative. Legacy migration remains
+read-only; native access control/encryption remains mandatory. Four new policy
+methods are NOT executed. Three final pinned-Clang ObjC++ source/integration/
+test checks and patch applicability pass; real recovery is still UNPROVEN.
+
+Next candidate must include the tracked overlay/ordered patch, execute actual
+policy/required native gates then real windowed/cookie/restart/affected visible
+journeys without mocks. Root99157 is live with TerminalCockpit universal1231,
+jobs2; no Ahoi heavy build/app deployment is started beside it. No general
+waiter/retry queue exists. Installed Build70 keeps its current loading issue and
+rollback. Full original Master/external/worker/Sync and release bounds remain
+open; accepted own-keychain handoff148/patch79 rights are preserved, Crest106/110
+retain their separate performance lease. No completed package or goal restarted.
+
 ## Visible explicit navigation also pending; network/loader diagnosis next — 2 October 2026
 
 Installed28506787 windowed owned diagnostic starts idle247, ready HTTP200 fixture

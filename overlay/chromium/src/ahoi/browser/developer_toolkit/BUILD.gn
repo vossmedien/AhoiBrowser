@@ -228,7 +228,10 @@ source_set("unit_tests") {
   ]
 
   if (is_mac) {
-    sources += [ "developer_secret_store_mac_unittest.mm" ]
+    sources += [
+      "ahoi_keychain_scope_mac_unittest.mm",
+      "developer_secret_store_mac_unittest.mm",
+    ]
     deps += [ "//crypto" ]
     frameworks = [
       "Foundation.framework",

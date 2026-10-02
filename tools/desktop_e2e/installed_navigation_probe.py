@@ -54,6 +54,37 @@ def stop_owned(process):
     raise RuntimeError('owned process could not be reaped')
 
 
+def capture_owned_processes(browser, output):
+    """Inventory descendants only; sample this synthetic browser/network role."""
+    raw = subprocess.check_output(['ps', '-axo', 'pid=,ppid=,args='], text=True)
+    rows = []
+    for line in raw.splitlines():
+        parts = line.strip().split(maxsplit=2)
+        if len(parts) == 3:
+            rows.append((int(parts[0]), int(parts[1]), parts[2]))
+    owned = {browser.pid}
+    for _ in range(12):
+        owned.update(pid for pid, parent, _ in rows if parent in owned)
+    rows = [row for row in rows if row[0] in owned]
+    (output / 'owned-processes.json').write_text(json.dumps(rows, indent=2) + '\n')
+    for pid, _, command in sorted(rows, key=lambda row: row[0] == browser.pid):
+        if pid != browser.pid and 'network.mojom.NetworkService' not in command:
+            continue
+        role = 'browser' if pid == browser.pid else 'network'
+        # sampling is bounded and never attaches to a foreign app/profile.
+        sockets = subprocess.run(['lsof', '-nP', '-a', '-p', str(pid), '-iTCP'],
+                                 capture_output=True, text=True, timeout=5)
+        (output / f'{role}-{pid}.sockets.txt').write_text(sockets.stdout)
+        try:
+            result = subprocess.run(['sample', str(pid), '1', '20', '-file',
+                                     str(output / f'{role}-{pid}.sample.txt')],
+                                    capture_output=True, text=True, timeout=15)
+            text = f'exit={result.returncode}\n' + result.stdout + result.stderr
+        except subprocess.TimeoutExpired:
+            text = 'sample deadline; auxiliary stack unavailable\n'
+        (output / f'{role}-{pid}.sample-command.txt').write_text(text)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--app', type=pathlib.Path, required=True)
@@ -63,11 +94,16 @@ def main():
     parser.add_argument('--port', type=int, default=9413)
     parser.add_argument('--headless', action='store_true',
                         help='diagnose installed network without a window; never visible acceptance')
+    parser.add_argument('--instrument-network', action='store_true',
+                        help='owned synthetic netlog and bounded browser/network stacks')
+    parser.add_argument('--diagnostic-mock-keychain', action='store_true',
+                        help='isolate the native crypto wait in a fresh synthetic profile; not acceptance')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     state = {'runnerPid': os.getpid(), 'phase': 'preflight', 'source': args.source,
              'startedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
              'acceptance': False, 'mode': 'headless' if args.headless else 'windowed',
+             'diagnosticMockKeychain': args.diagnostic_mock_keychain,
              'probeSha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()}
     def save():
         (args.output / 'state.json').write_text(json.dumps(state, indent=2) + '\n')
@@ -132,6 +168,11 @@ def main():
                 f'--remote-debugging-port={args.port}', url + '/a.html']
             if args.headless:
                 command.insert(1, '--headless=new')
+            if args.diagnostic_mock_keychain:
+                command.insert(1, '--use-mock-keychain')
+            if args.instrument_network:
+                command[1:1] = [f'--log-net-log={args.output / "netlog.json"}',
+                                '--net-log-capture-mode=Default']
             browser = subprocess.Popen(command,
                 stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             state.update(browserPid=browser.pid, phase='observing')
@@ -164,12 +205,17 @@ def main():
             page = next(t for t in targets if t.get('type') == 'page')
             helper = pathlib.Path(__file__).with_name('navigation-probe.mjs')
             state['driverSha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
-            driver = subprocess.Popen(['node', str(helper), str(args.port), page['id'],
-                                       url + '/b.html', str(args.output / 'protocol.json')],
+            driver_command = ['node', str(helper), str(args.port), page['id'],
+                              url + '/b.html', str(args.output / 'protocol.json')]
+            if args.instrument_network:
+                driver_command.append('--diagnose-pending')
+            driver = subprocess.Popen(driver_command,
                                       stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             state['driverPid'] = driver.pid
             save()
-            deadline = time.monotonic() + 45
+            started = time.monotonic()
+            deadline = started + (70 if args.instrument_network else 45)
+            captured = False
             while driver.poll() is None:
                 if app_running(args.app, exclude_pid=browser.pid):
                     raise RuntimeError('another app owner returned; cancelling diagnostic')
@@ -177,6 +223,9 @@ def main():
                     raise RuntimeError('owner input returned; cancelling diagnostic')
                 if time.monotonic() > deadline:
                     raise RuntimeError('owned protocol driver deadline')
+                if args.instrument_network and not captured and time.monotonic() - started >= 16:
+                    capture_owned_processes(browser, args.output)
+                    captured = True
                 time.sleep(0.5)
             state['driverExitCode'] = driver.returncode
             try:

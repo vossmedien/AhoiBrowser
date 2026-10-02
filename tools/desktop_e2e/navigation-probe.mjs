@@ -1,7 +1,8 @@
 // Observe one owned fixture target, then navigate it explicitly. No HID input.
 // usage: node navigation-probe.mjs <port> <target-id> <url> <output.json>
 import {writeFileSync} from 'node:fs';
-const [port, targetId, url, output] = process.argv.slice(2);
+const [port, targetId, url, output, diagnosticMode] = process.argv.slice(2);
+const diagnosePending = diagnosticMode === '--diagnose-pending';
 const targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
 const target = targets.find(t => t.id === targetId);
 if (!target) throw new Error('owned target missing');
@@ -14,7 +15,7 @@ const deadline = setTimeout(() => {
   evidence.failure = 'protocol observation deadline';
   save();
   process.exit(4);
-}, 40000);
+}, diagnosePending ? 65000 : 40000);
 socket.onmessage = event => {
   const message = JSON.parse(event.data);
   if (message.id) {
@@ -22,15 +23,16 @@ socket.onmessage = event => {
     if (callback) { pending.delete(message.id); callback(message); }
   } else if (/^(Network|Page)\./.test(message.method ?? '')) {
     evidence.events.push(message);
+    if (diagnosePending) save();
   }
 };
-function command(method, params = {}) {
+function command(method, params = {}, timeoutMs = 7000) {
   return new Promise((resolve, reject) => {
     const id = ++nextId;
     const timer = setTimeout(() => {
       pending.delete(id);
       reject(new Error(`command deadline: ${method}`));
-    }, 7000);
+    }, timeoutMs);
     pending.set(id, response => { clearTimeout(timer); resolve(response); });
     socket.send(JSON.stringify({id, method, params}));
   });
@@ -59,7 +61,8 @@ try {
     await pause(seconds * 1000);
     await snapshot(`startup-after-${seconds}-second-wait`);
   }
-  evidence.navigation = await command('Page.navigate', {url});
+  evidence.navigation = await command('Page.navigate', {url},
+      diagnosePending ? 25000 : 7000);
   save();
   for (const seconds of [1, 3, 6]) {
     await pause(seconds * 1000);

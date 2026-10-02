@@ -1,0 +1,43 @@
+[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/crypto/apple/ahoi_keychain_scope_mac.mm:37:12: [0m[0;1;31merror: [0m[1mchosen constructor is explicit in copy-initialization[0m
+   37 |     [0;34mreturn[0m {};[0m
+      | [0;1;32m           ^~
+[0m[1m../../base/apple/scoped_typeref.h:57:22: [0m[0;1;36mnote: [0mexplicit constructor declared here[0m
+   57 |   [0;34mexplicit[0m [0;34mconstexpr[0m ScopedTypeRef([0m
+      | [0;1;32m                     ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/crypto/apple/ahoi_keychain_scope_mac.mm:46:12: [0m[0;1;31merror: [0m[1mchosen constructor is explicit in copy-initialization[0m
+   46 |     [0;34mreturn[0m {};[0m
+      | [0;1;32m           ^~
+[0m[1m../../base/apple/scoped_typeref.h:57:22: [0m[0;1;36mnote: [0mexplicit constructor declared here[0m
+   57 |   [0;34mexplicit[0m [0;34mconstexpr[0m ScopedTypeRef([0m
+      | [0;1;32m                     ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/crypto/apple/ahoi_keychain_scope_mac.mm:49:27: [0m[0;1;31merror: [0m[1m'SecKeychainCopyDomainDefault' is deprecated: first deprecated in macOS 10.10 - SecKeychain is deprecated [-Werror,-Wdeprecated-declarations][0m
+   49 |   [0;34mconst[0m OSStatus status = SecKeychainCopyDomainDefault([0m
+      | [0;1;32m                          ^
+[0m[1msdk/xcode_links/MacOSX27.0.sdk/System/Library/Frameworks/Security.framework/Headers/SecKeychain.h:430:10: [0m[0;1;36mnote: [0m'SecKeychainCopyDomainDefault' has been explicitly marked deprecated here[0m
+  430 | OSStatus SecKeychainCopyDomainDefault(SecPreferencesDomain domain, SecKeychainRef * __nonnull CF_RETURNS_RETAINED keychain)[0m
+      | [0;1;32m         ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/crypto/apple/ahoi_keychain_scope_mac.mm:53:12: [0m[0;1;31merror: [0m[1mchosen constructor is explicit in copy-initialization[0m
+   53 |     [0;34mreturn[0m {};[0m
+      | [0;1;32m           ^~
+[0m[1m../../base/apple/scoped_typeref.h:57:22: [0m[0;1;36mnote: [0mexplicit constructor declared here[0m
+   57 |   [0;34mexplicit[0m [0;34mconstexpr[0m ScopedTypeRef([0m
+      | [0;1;32m                     ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/crypto/apple/ahoi_keychain_scope_mac.mm:60:12: [0m[0;1;31merror: [0m[1mchosen constructor is explicit in copy-initialization[0m
+   60 |     [0;34mreturn[0m {};[0m
+      | [0;1;32m           ^~
+[0m[1m../../base/apple/scoped_typeref.h:57:22: [0m[0;1;36mnote: [0mexplicit constructor declared here[0m
+   57 |   [0;34mexplicit[0m [0;34mconstexpr[0m ScopedTypeRef([0m
+      | [0;1;32m                     ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/crypto/apple/ahoi_keychain_scope_mac.mm:63:7: [0m[0;1;31merror: [0m[1m'SecKeychainOpen' is deprecated: first deprecated in macOS 10.10 - SecKeychain is deprecated [-Werror,-Wdeprecated-declarations][0m
+   63 |   [0;34mif[0m (SecKeychainOpen(path.c_str(), keychain.InitializeInto()) != errSecSuccess) {[0m
+      | [0;1;32m      ^
+[0m[1msdk/xcode_links/MacOSX27.0.sdk/System/Library/Frameworks/Security.framework/Headers/SecKeychain.h:294:10: [0m[0;1;36mnote: [0m'SecKeychainOpen' has been explicitly marked deprecated here[0m
+  294 | OSStatus SecKeychainOpen([0;34mconst[0m [0;34mchar[0m *pathName, SecKeychainRef * __nonnull CF_RETURNS_RETAINED keychain)[0m
+      | [0;1;32m         ^
+[0m[1m/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/overlay/chromium/src/crypto/apple/ahoi_keychain_scope_mac.mm:64:12: [0m[0;1;31merror: [0m[1mchosen constructor is explicit in copy-initialization[0m
+   64 |     [0;34mreturn[0m {};[0m
+      | [0;1;32m           ^~
+[0m[1m../../base/apple/scoped_typeref.h:57:22: [0m[0;1;36mnote: [0mexplicit constructor declared here[0m
+   57 |   [0;34mexplicit[0m [0;34mconstexpr[0m ScopedTypeRef([0m
+      | [0;1;32m                     ^
+[0m7 errors generated.

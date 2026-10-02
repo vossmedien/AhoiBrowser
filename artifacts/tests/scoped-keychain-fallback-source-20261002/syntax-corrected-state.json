@@ -1,0 +1,23 @@
+{
+  "runnerPid": 5423,
+  "phase": "complete",
+  "jobs": 1,
+  "results": [
+    {
+      "name": "fallback",
+      "exitCode": 0,
+      "sourceSha256": "b4045c4659c20fff99906fc8243b0c331619cf23d387aa207ac9bd51047307ba"
+    },
+    {
+      "name": "integration",
+      "exitCode": 0,
+      "sourceSha256": "a317ae37fcb39ff9aa6227011f5b66e595d54c98f77b9f60a4a6bdff6a417e4a"
+    },
+    {
+      "name": "tests",
+      "exitCode": 0,
+      "sourceSha256": "66fb90d677733df5557ad2e1be22f76b4bb3d4ef01f82be980a7946d6ce7d3d2"
+    }
+  ],
+  "compilerPid": 5456
+}

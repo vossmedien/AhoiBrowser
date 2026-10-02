@@ -86,3 +86,4 @@
 0088-ahoi-retain-split-pane-hosts-on-close.patch
 0089-ahoi-developer-document-subresources.patch
 0090-ahoi-temporary-header-lifetime-ui.patch
+0091-ahoi-scoped-login-keychain-fallback.patch
