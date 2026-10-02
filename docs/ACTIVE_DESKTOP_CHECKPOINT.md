@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Native archive persistence/delete nine-check journey prepared — 2 October 2026
+
+Next source fixture `tools/desktop_e2e/archive-persistence-delete-journey.sh`
+uses the already accepted native picker/resting-control archive setup on fresh
+synthetic data only. Nine NEW scoped checks: entry survives restart, archive
+does not reopen members, separate confirmation, cancel keeps entry/open pages,
+confirmed delete removes entry/keeps open pages, second restart retains delete
+and does not restore deleted pages. Only this invocation's fakeA/B split is
+eligible for the explicit deletion; no real user/archive/profile action.
+The ten automatic/five manual baseline assertions are not replayed as scope.
+
+Shell and embedded-Python syntax passes; source/selector contract was read
+from native ConfirmArchiveDelete, including separate Cancel/default action.
+No runtime/acceptance yet. Immediate preflight60568 is terminal2/deferred:
+idle0/compilerRunningtrue (foreign Cockpit49650/49695 at initial sample),
+`.work/agent-queue/71/installed-archive-persistence-20261002T091827Z/`.
+No app/owner lock was created. Later current PS no compiler but input remains
+recent; no idle watcher or repeated unchanged attempt was started.
+
+Next actual action: fresh ownership/input/capacity then execute this exact
+native persistence/delete journey, fix any actual defect and its affected
+flow before focused regression. Saved/KeepLoaded/media/capture/download/
+dialog/beforeunload/whole-group protection and broader Sync/other Master gates
+stay OPEN. Installed71/6bf4c233/source/records/rollback/external rights and full
+original active Master are unchanged; no product build or release action.
+
 ## Installed automatic archive basics10 GREEN — 2 October 2026
 
 Runner6901/journey6960 actually completes exact installed71/6bf4c233, fresh
