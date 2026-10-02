@@ -73,17 +73,19 @@ remains recovery/history evidence only.
 ./scripts/bootstrap-depot-tools.sh
 ./scripts/fetch-chromium.sh
 ./scripts/run-chromium-hooks.sh
+./scripts/build-ahoi.sh dev
 ./scripts/build-upstream.sh
 ./scripts/restore-overlay.sh  # before changing the pin for a Stable roll
 ./scripts/test-repository.sh
 ```
 
-Upstream/release profiles retain pinned Xcode 26.6/17F113, macOS SDK 26.5/
-25F70 and iOS SDK 23F81a. The user-authorized 24 September development
-toolchain uses installed Xcode 27.0/27A266a with macOS SDK 27.0/26A425 and
-iOS SDK 27.0/24A430. Exact per-mode provenance checks remain; development
-evidence cannot satisfy release tests. This does not change global
-`xcode-select`. See [BUILDING.md](docs/BUILDING.md).
+The binding 25 September decision uses Xcode 27.0/27A266a with macOS SDK
+27.0/26A425 and iOS SDK 27.0/24A430 for development, the upstream reference
+and release. Both `pinned-reference` and `compatible-development` use these
+exact inputs; Xcode 26.6 is no longer required. Per-mode provenance and
+release gates remain distinct: development evidence cannot satisfy release
+tests. The guarded scripts do not change global `xcode-select`. See
+[BUILDING.md](docs/BUILDING.md) and [the toolchain pin](config/toolchain.json).
 
 A standalone hook run is useful as a preflight, but build scripts deliberately
 rerun Chromium hooks themselves. The local hook-state JSON is evidence only and

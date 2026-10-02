@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## No GUI window; stale build entry contract corrected — 2 October 2026
+
+Fresh Xcode14346 is actually live through the final6min phase, input recent,
+CPU1–2%idle at initial samples/pressure2; no Ahoi job/app/delete/build/idle waiter
+started. Existing archive persistence/protection fixtures remain NOT_RUN.
+Foreign workload, user input and existing owner resource boundaries preserved.
+
+Independent master-scope audit reads the current portable exporter/importer and
+23September complex/selected replay receipts: the implementation exists and
+has earlier scoped proof. Do not reimplement or repeat it as a fallback to a
+blocked GUI. Its installed/rollback/cross-profile/full acceptance stays scoped,
+not elevated by this read. A concrete entry-point contradiction was found:
+README still required Xcode26.6 for reference/release, unlike25September user
+decision, docs/BUILDING.md and config/toolchain.json. README now states the
+exact sole27.0/27A266a/macOS27.0/26A425/iOS27.0/24A430 inputs for all modes,
+retains distinct provenance/release gates and unchanged xcode-select, and lists
+the required guarded build-ahoi.sh dev entry. No pin/toolchain source/build or
+installed artifact changed. Documentation checked against actual JSON and
+BUILDING contract; diff clean, no tests/build warranted for this text correction.
+
+Next actual action remains the corrected nine native archive persistence/delete
+checks, then six native protection cases at a fresh real GUI/capacity opportunity.
+Prior scoped10/5/split GREEN, historical RED, original active full Master/worker/
+Sync/Mobile/external/release/data/archive/rollback goals and rights unchanged.
+
 ## Saved/group preconditions corrected; memory/input window terminal — 2 October 2026
 
 Fresh actual host state has no initial compiler, but input active/pressure2,
