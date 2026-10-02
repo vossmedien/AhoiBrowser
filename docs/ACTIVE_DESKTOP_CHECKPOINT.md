@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Corrected tab-cache/native refresh: ten syntax checks GREEN — 2 October 2026
+
+Actual v2 syntax runner51553 is terminal1: runtime_store lacked the direct
+header declaring ClearDeveloperProfileNavigationRequest and UpdateDeveloper-
+ProfileNetworkState. Corrected tracked include; immutable v2 RED retained.
+Corrected v3 runner56873 is terminal0, ten pinned-Clang syntax checks exit0:
+runtime store/observer, request throttle/factory, executor, four written tab-cache
+tests, bubble, two new Mojo regressions, cancelled-reload browser regression and
+native Content seam. No test executed or binary linked/built/installed.
+[Exact source/flag/compiler/log/capacity evidence](../artifacts/tests/tab-cache-syntax-green-20261002/README.md).
+
+These short source-only checks use jobs1/nice10 and a separate15% idle floor
+(1.8 logical cores on12), pressure1 and owned source-check lock. Actual phase
+samples25.3–48.69%idle/pressure1; all10 complete, own lock released. Earlier
+v3 runner53283 rejected19.23%idle under the initial30% source floor, no compiler.
+This measured source-only change grants no build/GUI/H3 slot or relaxed gate.
+State `.work/agent-queue/tab-cache-refresh-syntax-20261002T113119Z/` and private
+v3 source/plan/runner under `.work/agent-queue/tab-cache-native-refresh-source-20261002/`.
+
+Next: corrected coherent freeze, fresh guarded build-capacity/ownership check
+and candidate, then affected installed visible flows BEFORE focused native
+regression. Archive9/protection6 remain first free existing71 GUI work; input
+was again active at final native-seam check. Current71/6bf4c233, original full
+Master, all historical proof and external/release/Sync/Mobile/ownership gates
+remain. Canonical Git push still needs its collected authentication prerequisite.
+
 ## Tab-cache cancellation source correction; native renewal, UNBUILT — 2 October 2026
 
 Committed source packeta864a44d; lane/diff checks PASS. Canonical branch push

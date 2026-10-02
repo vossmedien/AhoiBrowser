@@ -1,0 +1,164 @@
+{
+  "time": "2026-10-02T11:42:47.322559+00:00",
+  "baseCommit": "5aef9a3c",
+  "sourceCorrection": "direct developer_profile_url_loader_throttle.h include in runtime_store",
+  "scope": "ten pinned-Clang -fsyntax-only translation units; no native test execution",
+  "syntaxPass": true,
+  "jobs": 1,
+  "nice": 10,
+  "sourceOnlyMinimumIdlePercent": 15,
+  "clangSha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3",
+  "planSha256": "21cb29c15b6048543ee196ed51eeb4a87e3d99dc7c66ef0968b338ed1eb74228",
+  "results": [
+    {
+      "name": "developer_profile_runtime_store.cc",
+      "sourceSha256": "9f320babe0b49309c49d77e3aafd91d65927ffaec9d5783f68464e6692f11627",
+      "exitCode": 0,
+      "seconds": 2.24,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_profile_runtime.cc",
+      "sourceSha256": "b7907ded1148444c8a64c3b88665e285b8956df901b50c0b9dfce5f34aff4024",
+      "exitCode": 0,
+      "seconds": 1.75,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_profile_url_loader_throttle.cc",
+      "sourceSha256": "d280c88fd024b0bd49aa495b28dbc136118f9d15a600d459e03eba7335464993",
+      "exitCode": 0,
+      "seconds": 3.1,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_network_factory_proxy.cc",
+      "sourceSha256": "111fe7ffcec1d327509c01952675ae2acdbf553d1188f802647e2e4138114ca2",
+      "exitCode": 0,
+      "seconds": 3.63,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_toolkit_action_executor.cc",
+      "sourceSha256": "2fadad1161f397783bcd3cfc0da56d9d03f2f3640c109aa02484f2d71d527d83",
+      "exitCode": 0,
+      "seconds": 2.11,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_tab_cache_unittest.cc",
+      "sourceSha256": "d771d4eb2581428cd79dd403c0960d0afe147b0deefaddc76be494d4b99183ed",
+      "exitCode": 0,
+      "seconds": 2.31,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_toolkit_bubble_view.cc",
+      "sourceSha256": "074e3cfeed075967e1d815063ed32cf683091f5ad0e21d6ac35b62f44313e3d6",
+      "exitCode": 0,
+      "seconds": 3.42,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_network_factory_revocation_unittest.cc",
+      "sourceSha256": "a69ce77d8e7324e1d001e1519dca0309a7a6a376e7f3e65653df8bb6beb14d31",
+      "exitCode": 0,
+      "seconds": 4.14,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_network_worker_browsertest.cc",
+      "sourceSha256": "d2562f12244ef271a6d9c5fbf3bd92f58d73654b8951486fde9e351716014568",
+      "exitCode": 0,
+      "seconds": 7.92,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "document_loader_factory_refresh.cc",
+      "sourceSha256": "8bbb0095120323d2fa5875e6c31b4dfd2179b1e1ecc3a7276c9e9903425a4f89",
+      "exitCode": 0,
+      "seconds": 9.99,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "capacity": [
+    {
+      "name": "developer_profile_runtime_store.cc",
+      "idlePercent": 38.2,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:20.864500+02:00"
+    },
+    {
+      "name": "developer_profile_runtime.cc",
+      "idlePercent": 25.3,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:24.735772+02:00"
+    },
+    {
+      "name": "developer_profile_url_loader_throttle.cc",
+      "idlePercent": 40.74,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:28.098921+02:00"
+    },
+    {
+      "name": "developer_network_factory_proxy.cc",
+      "idlePercent": 47.1,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:32.820857+02:00"
+    },
+    {
+      "name": "developer_toolkit_action_executor.cc",
+      "idlePercent": 34.31,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:38.081015+02:00"
+    },
+    {
+      "name": "developer_tab_cache_unittest.cc",
+      "idlePercent": 46.3,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:41.796585+02:00"
+    },
+    {
+      "name": "developer_toolkit_bubble_view.cc",
+      "idlePercent": 48.69,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:45.731257+02:00"
+    },
+    {
+      "name": "developer_network_factory_revocation_unittest.cc",
+      "idlePercent": 31.49,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:50.755061+02:00"
+    },
+    {
+      "name": "developer_network_worker_browsertest.cc",
+      "idlePercent": 43.6,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:31:56.520243+02:00"
+    },
+    {
+      "name": "document_loader_factory_refresh.cc",
+      "idlePercent": 43.43,
+      "memoryPressure": 1,
+      "time": "2026-10-02T13:32:06.069115+02:00"
+    }
+  ],
+  "testsExecuted": 0,
+  "binaryBuilt": false,
+  "installedCandidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "ownLockReleased": true,
+  "preservedRed": {
+    "statePath": ".work/agent-queue/tab-cache-refresh-syntax-20261002T112822Z/state.json",
+    "stateSha256": "df02491a09edcb6daa44479de4f3cb47ddb0f82fe3b6cf09aaa26c1151c0d657",
+    "result": {
+      "name": "developer_profile_runtime_store.cc",
+      "sourceSha256": "54ebf875812ad17f2619c3fd37432c08f7ceb7abe3ad325f68c68d7c77f5b120",
+      "exitCode": 1,
+      "seconds": 2.46,
+      "logSha256": "4b41eb9c93dbabb0665c889e71a2eede24d6515cdb4615e9455130251b1d5206"
+    }
+  },
+  "sourceSha256": "9f320babe0b49309c49d77e3aafd91d65927ffaec9d5783f68464e6692f11627",
+  "rawStatePath": ".work/agent-queue/tab-cache-refresh-syntax-20261002T113119Z/state.json",
+  "rawStateSha256": "ebe523e09a001f3c650a340e640f8ec171085fd4f2641fe4bde24c1f3def1315"
+}

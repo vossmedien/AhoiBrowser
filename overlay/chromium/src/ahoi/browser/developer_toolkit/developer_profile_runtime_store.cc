@@ -12,6 +12,7 @@
 
 #include "ahoi/browser/developer_toolkit/developer_asset_validation.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_integration.h"
+#include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_validation.h"
 #include "ahoi/browser/developer_toolkit/developer_toolkit_prefs.h"
 #include "base/check.h"
