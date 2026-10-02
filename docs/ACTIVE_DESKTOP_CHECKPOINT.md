@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Candidate70 installed/verified; visible navigation setup RED — 2 October 2026
+
+Canonical installer exits0 and installed Info.plist independently reports
+source2850678701edc170909e7cf7f1f8e8164e640fa9, Chromium154.0.8037.93. Candidate,
+same-volume stage and installed activation each verify. [Immutable install receipt](../artifacts/install/installed-ahoi-dev-28506787-20261002T020332Z.json).
+Previous bundle rollback is preserved; no user profile or release permission
+changed. Runner28154/installer28157 are terminal and output lock released.
+Installed source is now Build70, not the older9acb43c8 candidate.
+
+Corrected actual visible lifecycle runner31745 starts idle194/no app/compiler,
+owned isolated profile/strict focus yield. HTTP fixture readiness200/PaneA is
+proved. Startup Solo and Command Bar PaneA targets retain their intended URLs
+but both committed documents remain about:blank; server records only readiness,
+no browser request. Harness ends exit4/pass:false at committed-document setup;
+no split/lifecycle assertions ran. [Raw target/frame/DOM/AX/server bindings](../artifacts/tests/installed-lifecycle-setup-red-28506787-20261002/README.md).
+Runner and app roots are terminal, locks released, no watcher waits. Native
+required gate remains GREEN; installed visible/full Master acceptance does not.
+
+Next concrete action: visible-window owned navigation diagnostic on installed
+28506787, prove startup loader events versus explicit Page.navigate and real
+document readiness; then fix the established cause and affected representative
+journeys/focused regressions. Do not substitute another headless pass or weaken
+the document/lifecycle checks. Respect current real-user input/app ownership.
+Full worker/Sync/other Master and external/release boundaries stay open; the
+same prior visible-loading condition remains unresolved, now with stronger
+actual HTTP/DOM evidence. Crest106/110 keep their separate future H3 lease.
+
 ## Required native gate GREEN; canonical installer running — 2 October 2026
 
 Exact candidate28506787/Build70 has full required development native GREEN:

@@ -1,0 +1,30 @@
+{
+  "scope": "actual installed lifecycle setup failure, no lifecycle assertions executed",
+  "sourceCommit": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "verdict": {
+    "setupFailed": "fixture document did not commit http://127.0.0.1:8827/a.html",
+    "pass": false
+  },
+  "rawDirectory": "artifacts/computer-use/m154/split-lifecycle-corrected-installed-28506787-20261002T020531Z",
+  "fixtureReadiness": true,
+  "browserFixtureRequests": false,
+  "documents": "two about:blank complete documents despite target intentions /a.html and /solo.html",
+  "rawSha256": {
+    "browser.log": "3a5085181f694607d6c25380ad1c19add4c25eba38fcfa09a8cb5944c0933543",
+    "document-93DB46E4E4B2DB2520428FCDA11A77D6-at-failure.json": "f3f461a37205007be6566b93aeb8be6869f01b8bcc62e38b9d0a409aa4dd0736",
+    "ax-setup-failure.txt": "92248717f1d0f03a058d6cae45fcb8181a3d4de0c3b21a7d4cc4cfab53240c94",
+    "site.log": "b2768422320a11793df9f5da60a9231ffc0717fab8d24abc8caf49805b66a8fe",
+    "document-987567E1C536F50328D31980725D5168-at-failure.json": "f3f461a37205007be6566b93aeb8be6869f01b8bcc62e38b9d0a409aa4dd0736",
+    "targets-at-failure-error.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "steps.txt": "59cc9cb079adb21ba8d632516b77c08f98317173b7fab2f699ac7da11c5b983a",
+    "verdict.json": "91687b199ed2be51126663fc94d5177b30439f3e8252e972418869a7099e5c4b",
+    "site-readiness-error.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "frame-987567E1C536F50328D31980725D5168-at-failure.json": "335e035b25a7e09625f6130b86d0e8aefbabe869e0b1ec4f0113ed7feee8231b",
+    "site-readiness.html": "dac85b1606c49512c50ed81d7cc05a430c9b53a42b14d1576318f36e87649a1b",
+    "run.txt": "04375fcbe5d576f96beb26b26b98ff308b9c27128170325f0ff60aac2d34fa18",
+    "targets-at-failure.json": "6a435e5f104f784268672133cc966c68e6963812fe49c352db3fc2c05ac71f14",
+    "frame-93DB46E4E4B2DB2520428FCDA11A77D6-at-failure.json": "599023b48377c2d2f651591b4fcd29540b980ee6a1fbb1eafeb22ccf9ae14560"
+  },
+  "installerReceipt": "artifacts/install/installed-ahoi-dev-28506787-20261002T020332Z.json",
+  "installedVerificationPass": true
+}
