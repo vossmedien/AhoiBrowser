@@ -1,0 +1,23 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "pass": true,
+  "scope": "original focused-pane quit-chain invariant with marked four-pane/popup context",
+  "fullMatrixPassClaimed": false,
+  "rawDirectory": "artifacts/computer-use/m154/split-focus-chain-installed-6bf4c233-20261002T074829Z",
+  "originalGridFailureReclassified": false,
+  "filesSha256": {
+    "runner-state.json": "eaad6f7dc2996637bce6758d3aed256b4e8019a155c2db7ac9ca975f63c423c0",
+    "steps.txt": "fbc0d036f751f30fc6e50efd39ebbc6a38fb794a50f5c8904b9685ab59838be9",
+    "run.txt": "101b7ce22aa1adadba6ebf699d8abb17ed618b728314143218d5d16c1e140d43",
+    "verdict.json": "c2a619945c4a4733b36bfa25a9f6a3967f920eb014f693a293b722080cf5d560",
+    "focus-before-first-quit.txt": "b80b3afde488655dad00c942b35ec26b16752ca38a9b78d97230f8beb5cea8b4",
+    "focus-after-product-start.txt": "2f59a24de3aa1f3ec01297a2acd7e8e3b76e2a1eb068fb2376772489b6d98a61",
+    "focus-after-debug-start.txt": "503c5b3621217af3bd34c27469322fb71c15b3ce42650a19420da4d694c00123",
+    "selected-after-first-quit.json": "6e5794943d9478bbeaa22beabaef2aaef05dcbbbc1c1aa941ac778a0a34173da",
+    "selected-after-product-quit.json": "79c338314480a183d288b2e057b28c53c5cef74892de6a34b3671d7d0ebabecc",
+    "retained-grid-seed.json": "21c4f1320c9215cf485c3c34cfa6f41c419a84b8c51decfa49c9714b1c980adc",
+    "launch-preflight.jsonl": "4be70678b46a84d209fc54258bd9f141943909b97db83c542923745a6672acca",
+    "ax-before-first-quit.txt": "fae974e1ce93d71cdd1e57df4d9183a3fffb3e774d66db753a094a8ef4eb8e92",
+    "ax-after-product-start.txt": "525d2cb36509bd3573101a8e1bb0682c0ba959a27e2fd87dad643c7c1bdb0a79"
+  }
+}

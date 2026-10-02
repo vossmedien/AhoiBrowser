@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Fully marked exact focus invariant now GREEN; archive scope next — 2 October 2026
+
+Actual71331/journey71336 completes marked form values + initial four-pane focus
+sweep + both traversal presets/final check + layout cycle + refused fifth popup/
+close + primary ratio0.6 + focusedC + native quit/Ahoi no-DevTools Continue/
+second quit/debug startup. Native title/focusC before first quit and after Ahoi
+start, selectedC after BOTH quits, final debug documentC; scoped invarianttrue,
+exit0, all own roots terminal and lock released, original SNSS unchanged.
+[Exact complete marked-context focus proof](../artifacts/tests/marked-exact-focus-chain-green-6bf4c233-20261002/README.md).
+No product patch or guessed cause; original grid10GREEN/focusRED remains
+historical and is not rewritten. This CURRENT scoped invariant is GREEN, not
+a single uninterrupted full matrix or complete Master. Earlier same-candidate
+14/reorder/restore3/remaining10 retain their independent acceptance scope.
+
+Next concrete work moves to installed archive/split restoration and automatic
+archive protection/default/reset journeys, then Devtoolkit/settings and other
+remaining browser/Mobile/Sync/worker/release contracts. Do not repeat completed
+split setup or native suites merely to change a combined headline. A new
+actual focus concern can reopen its preserved diagnostics; release evidence
+must still retain the original failure and its lack of diagnosed product cause.
+Fresh GUI/input/capacity/ownership and exact native/helper hashes precede the
+archive runs. Installed71/6bf4c233, source, data, rollback, external permissions
+and the full original active Master remain intact; no current Ahoi job/watcher.
+
 ## Quit-chain differentials preserve C; marked full setup next — 2 October 2026
 
 Actual no-popup41696/41709 uses original traversal/cycle/ratio/focus setup:

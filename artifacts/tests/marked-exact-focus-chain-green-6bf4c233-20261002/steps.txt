@@ -1,0 +1,42 @@
+frontmost -> 0
+focus diagnosis includes original marked forms and four-pane focus sweep
+hidkey 18
+hidkey 19
+hidkey 20
+hidkey 21
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+AXPress AXMenuItem | 2-mal-2-Raster, Zeilen zuerst | itemSelected: -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | 2-mal-2-Raster, Zeilen zuerst | itemSelected: mark=✓
+AXPress AXMenuItem | 2-mal-2-Raster, Spalten zuerst | itemSelected: -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | 2-mal-2-Raster, Spalten zuerst | itemSelected: mark=✓
+hidkey 53
+hidkey 53
+hidkey 37
+focus diagnosis includes rejected fifth popup and its close
+hidkey 18
+{"result":{"type":"number","value":1,"description":"1"}}
+
+AXPress AXButton | Popup im Split View öffnen | Popup im Split View öffnen -> 0
+AXPress AXButton | Popup schließen | Popup schließen -> 0
+hidkey 124
+hidkey 124
+hidkey 20
+before first quit: focused=PaneC shares=PaneA:0.300 PaneB:0.300 PaneC:0.200 PaneD:0.200
+hidkey 12
+frontmost -> 0
+hidkey 12
+frontmost -> 0
+final debug focus: PaneC
+focusedPaneSurvivesExactQuitChain -> true
+hidkey 12
