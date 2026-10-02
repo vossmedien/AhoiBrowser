@@ -1,0 +1,25 @@
+{
+  "runnerPid": 93638,
+  "phase": "complete",
+  "source": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "startedAt": "2026-10-02T03:40:00.881728+00:00",
+  "acceptance": false,
+  "mode": "windowed",
+  "diagnosticMockKeychain": false,
+  "probeSha256": "79b0c0486c8a38708714eeaf1a1ec12d1e6ae513fa6c2e8eb624d6f02d0745b9",
+  "installedInfoSha256": "0ec8dafc1208f7254addb43235951ff4e76e7133db083fb34670738ae49020cf",
+  "idleSeconds": 704,
+  "appRunning": false,
+  "httpReadiness": {
+    "status": 200,
+    "body": "<title>PaneA</title><h1>Pane A</h1>"
+  },
+  "profile": "/private/tmp/ahoi-navigation-profile.ha5ap9k9",
+  "fixtureOrigin": "http://127.0.0.1:58556",
+  "browserPid": 93652,
+  "driverSha256": "c34f9a05d873a0e93ac01bdfcec15382832592e147e3e7b69e455f1468235021",
+  "driverPid": 93749,
+  "driverExitCode": 0,
+  "browserExitCode": 0,
+  "cleanupComplete": true
+}

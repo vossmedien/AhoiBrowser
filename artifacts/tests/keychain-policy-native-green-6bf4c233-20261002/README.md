@@ -17,8 +17,8 @@ idle12 before any app launch. A single bounded120-second owned window is then
 launched separately; inspect its actual PID/state, not this README, for status.
 Editor5 and sidebar191/Views33/popup28/search86 also actually execute SUCCESS,
 same exact component input, jobs1/no retries/skips. Their raw results are bound
-in the receipt. Three browser programs are the current separate remaining gate;
-inspect their actual PID/state before competing output/UI operations. Real
+in the receipt. Three browser programs now pass split15/popup14/compiler-worker4,
+33/33SUCCESS without skips/retries. Required native gate is GREEN. Real
 installed visible/keychain/cookie/restart acceptance remains open. The completed
 output-candidate real probe proves browser HTTP200 but times out on Network.enable
 and logs a cross-volume code-sign-clone error; its partial evidence is separate.

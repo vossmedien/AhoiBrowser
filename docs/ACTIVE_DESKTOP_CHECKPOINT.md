@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Build71 installed; genuine real-provider navigation GREEN, lifecycle yielded — 2 October 2026
+
+Exact6bf4c233 Build71/M154 canonically installs exit0; candidate/stage/installed
+each verify, independent Info.plist matches. [Immutable installer receipt](../artifacts/install/installed-ahoi-dev-6bf4c233-20261002T033603Z.json).
+Installer91573/91586 are terminal, locks released, old bundle rollback preserved.
+Installed source is now6bf4c233. No user-profile/HOME/default/search/ACL/trust
+or release permission changed. Native required gate152/editor5/UI338/baseline872/
+browser33 is GREEN, all jobs1/retries0/SUCCESS/no skips, exact inputs below.
+
+Actual installed windowed real-keychain diagnostic, idle704, owned fresh profile,
+NO mock switch: startup PaneA and explicit PaneB HTTP200; all four/three document
+samples correct URL/title/body/readyStatecomplete. Driver/browser each exit0,
+native close/owned cleanup complete. [Real HTTP/DOM/source/mode binding](../artifacts/tests/real-keychain-installed-navigation-green-6bf4c233-20261002/README.md).
+The prior default-provider loading blocker is resolved for these inputs, not a
+cookie/encryption/restart or complete visible/Master pass. Historical output
+EXDEV/protocol RED remains preserved, not substituted for installed proof.
+
+Affected installed lifecycle runner270 startsidle94, then strict focus-yield
+cancels on a foreign app, exit8/pass:false, ownedRootsRemain:[]. It is terminal,
+locks released, no retry watcher. State/raw binding is in the real-navigation
+receipt; no lifecycle acceptance or product crash inference follows cancellation.
+The user/other app was not reactivated or terminated. No active app/test remains.
+
+Next concrete work: synthetic genuine persisted/encrypted-cookie/restart proof
+and affected installed lifecycle/matrix/archive/auto-archive/devtoolkit/settings
+journeys under fresh UI/input ownership, then necessary focused checks. Do not
+restore mock flags or blanket-repeat native passes. Full original Master/worker/
+Sync/external/release/data/archive/rollback scope remains active/open; Crest106/
+110 keep their separately granted future H3 lease. No general readiness loop.
+
 ## Candidate71 real HTTP partial; editor/UI GREEN, browser gate live — 2 October 2026
 
 The bounded window76936 actually starts an owned output-candidate probe atidle309

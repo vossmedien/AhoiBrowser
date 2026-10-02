@@ -12,23 +12,29 @@
     "ahoi_session_unittests-summary.json": "159e3f89059ae308101594b5707f72c73d27562f3568f07ca49914609f8f8f7c",
     "summary.json": "f3c6421092448581967231a5c58d3a60dfc0d9950803659a4951c48698280774",
     "ahoi_http_auth_unittests.log": "4caddf361c5f9c45a1d6594fddae3786efd35b901118d42da0fe2000797aa4ff",
+    "ahoi_developer_style_compiler_browsertests.log": "8345b0c7a916c77580c9945e62ac8e833300ac4cabc7dd9cbbd4885eb3a8a470",
     "ahoi_http_auth_unittests-summary.json": "6b54125d0246fbf26eccc01669f0cf3cea3c0906ea345eff9b9307fae80cafa1",
     "ahoi_developer_toolkit_ui_unittests.log": "687ef8eb6911f4c13839036f7007565fbc142987d98a6123338329b6855be28f",
     "ahoi_navigation_unittests.log": "643eedbdded95a4794d8b7d7257cf671e3e9769a1a62f175d7d9f429ec182356",
+    "ahoi_popup_overlay_browsertests.log": "91f7763aff7a0de5592823c2f5419efeee3ec2d0ef5831d72668e014a616a9b8",
     "ahoi_popup_unittests-summary.json": "a62b842005030e91887d1103922ed385d7b1952d6fd30db287e6511810ee5c21",
     "state.json": "a03492159f1947fa29df09532c26582b6019c31688bb8861fd9aadeb27accba5",
     "editor-state.json": "1d716f4feb8a88f08913d4ed2c914581843b8e2d38b2e5b1c7f8ed260505ea6d",
     "ahoi_popup_unittests.log": "3966f155d243e134f1ab9b27b772f50b527cdd81483865dd0c033fc11f5d0497",
+    "ahoi_split_layout_browsertests-summary.json": "192210f06cf19dd6d7fbffd4d05a83079d83a18c386bf66c72f7176584e74499",
     "ahoi_settings_private_unittests.log": "396b5976377b93d4d66e17a23f6f08f15c39244c2f14c6134f58fe1654480849",
     "ahoi_command_bar_unittests-summary.json": "d7ac14459c82096ec7eae56e4121421d1a10d10ed607dd8980b99a7008af0163",
+    "ahoi_developer_style_compiler_browsertests-summary.json": "eded6edb747cf9e592d3828ea124bbf252d0e3c00a4433e9715031c73b731156",
     "ahoi_media_unittests-summary.json": "4dba39f555411c68d3bcf0254e6de78b59830500a70bec58b842483efa152168",
     "ahoi_settings_private_unittests-summary.json": "91b32e003f6220ca1ac82dba817a3592eaeea73c56b987ddebf1cbbc4a847d4f",
+    "browser-state.json": "df05e224f0d90d4ecc2a954985f52245176e01d37a5c2119706758e8d4d4fccc",
     "ahoi_startup_policy_unittests-summary.json": "7894529ce8fb5714b9278fd04f23df287fa0d40c321e853bc1d70193d1a2a64c",
     "ahoi_startup_policy_unittests.log": "9c1b84d733d9f11062eaf7cc45eb918946cac68b6f7c321b134162ce26a64fbf",
     "test.log": "1a4c35a6738cb5f0666044b0f1e8ad9086aa2a22a7c37d26da1eeedd20a0aff9",
     "ahoi_extension_policy_unittests-summary.json": "04ec875cd969bd27b9f186ebe6f70d2ebfbe8c61d76bff7c32b3b6357d1e141b",
     "ahoi_sync_unittests-summary.json": "e31dfb6f6329553f4cc0c9f5443e5ded3e3afaf1c0b6c145d3590060e2076cc8",
     "ahoi_command_bar_unittests.log": "f6277fa41a6f876406b01feb0d95624ccfc5feb201ab63d47908c66cd8ba53a6",
+    "ahoi_split_layout_browsertests.log": "c48ede4d78db92d3d341eae188df8f469219b566b114baa32e9ebe5392ea0569",
     "ahoi_arc_import_unittests.log": "5a30f59ce25d4341b6e91acc1437e57473918c72ee7d4b5c2cd4f39dcbb3104e",
     "editor-test.log": "75291c2cdb59dbb2c9fabbecd42c2e4b4faccb68f1f2a1aa91b93437865121ed",
     "ahoi_sync_unittests.log": "ed21cfc6679911465c0eb5078755ee95202fe4fb43e5792f90cafb2c6636474b",
@@ -37,13 +43,14 @@
     "ahoi_sidebar_search_unittests-summary.json": "683d736636c94ddc0b25a432e25a2d881059158d9843555b948fa429f746da98",
     "ahoi_media_unittests.log": "738bfca62f917ecb93922fb974cd79c04ea1a8d9f99cd1b5137895ecef873a61",
     "ahoi_appearance_unittests-summary.json": "f1d2bb9e94af30a1302ee2f0a875f6b4d19e8e6396ad810774000232ba47db03",
-    "README.md": "4f89f9f04ee90067aeb6f135b20741e22372743e8d01b5d367dd22bcba2f0a10",
+    "README.md": "65eb152b6d5d1994390e3150e010638fdf2742d7928e0ce2db5c05276f2f063a",
     "ahoi_session_unittests.log": "8a168312dbbd2bf4b18d827602b4b0c79de492302c87a77a098f72d7afa86b57",
     "ahoi_arc_import_unittests-summary.json": "5bfd6020b3cfa55516f50135fa6bcd7a7cde9eda3dcadd887d686326bd0c873e",
     "ahoi_sidebar_tree_unittests.log": "89183abdb5d4def4b5d78b83a8c684902bfd7a15e543f4817d35c5838974765b",
     "ahoi_sidebar_tree_unittests-summary.json": "99ac48edd80298d0295aa1a2408544dee2a627d3efe5dbe4382e7d531f56bd5b",
     "ahoi_privacy_mode_unittests.log": "42f6b189bd4cfdb7b91fef3334d11602d25bc0d1ecf0a77fb8f4a315a1dae2c1",
     "ahoi_developer_toolkit_ui_unittests-summary.json": "ba192a66a7c9bb484ee2eb23aad7253a90ea6391ca0b3ebf6849f1b988e07e7b",
+    "ahoi_popup_overlay_browsertests-summary.json": "0b08950d70dbb37edf397bbd19fc7268c5d1578289627f1862999a5520aff3c9",
     "editor-summary.json": "78b5f1591c5392f28c5e60ef5f4afda6cadd46fe494ea7e86206775ab62a0a3c",
     "baseline-state.json": "89cc3531ea9317b126505ba23c222add53a28124d09e8301705de17d1b6a9da3",
     "ahoi_appearance_unittests.log": "c214d69d6052135eeaf8cd3c32cab07fd6c4ba90f85e27214a966fe86f40271a",
@@ -246,5 +253,39 @@
       }
     ],
     "componentManifestSha256": "34c4924329f3acfdae3cd9cb397e1019be1c0ae548c6bfae669e8fde3beb3a28"
-  }
+  },
+  "browser": {
+    "successes": 33,
+    "results": [
+      {
+        "name": "ahoi_split_layout_browsertests",
+        "exitCode": 0,
+        "binarySha256": "41c31b7ce97c2491954c67e01cf302f4e18c5e49befbb3f11cf504b99821c7b1",
+        "executedCases": 15,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_popup_overlay_browsertests",
+        "exitCode": 0,
+        "binarySha256": "d66be67dc2c6796c5e74d9ad8f9df250218e837dbcbfe566a1dec18c5e379b96",
+        "executedCases": 14,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_developer_style_compiler_browsertests",
+        "exitCode": 0,
+        "binarySha256": "c93814aa6b7e0b2a9c095fe996b466e84f96b8e0fa3a18db7de49cea96736c62",
+        "executedCases": 4,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      }
+    ],
+    "componentManifestSha256": "34c4924329f3acfdae3cd9cb397e1019be1c0ae548c6bfae669e8fde3beb3a28"
+  },
+  "requiredNativeGatePass": true
 }

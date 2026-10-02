@@ -1,0 +1,65 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "app": "/Applications/AhoiBrowser.app",
+  "windowed": true,
+  "mockKeychain": false,
+  "startupDocument": "PaneA/complete",
+  "explicitNavigationDocument": "PaneB/complete",
+  "driverExitCode": 0,
+  "browserExitCode": 0,
+  "cleanupComplete": true,
+  "cookiePersistenceEncryptionRestartVerified": false,
+  "fullMasterAchieved": false,
+  "installReceipt": "artifacts/install/installed-ahoi-dev-6bf4c233-20261002T033603Z.json",
+  "rawDirectory": "artifacts/computer-use/m154/navigation-real-keychain-installed-6bf4c233-20261002T034000Z",
+  "sha256": {
+    "browser.log": "f27e04f686f430d539d1baa70d2aa3fb877fb4a1c8e5dab5727fb61b84875eb3",
+    "state.json": "476744bf353b5fff2899b56608791ab78732a38a888eb47a1128250af344bd77",
+    "site.log": "42228a41533dcb2c9a07d455852ab9ebeebf428af1f4b888a1fe8502a08410ea",
+    "startup-targets.json": "e63384b437d5250b301be2d61bf5c87de83e73757a1cd104591fa6385bc3df63",
+    "protocol.json": "6c89c2e97015b9abc3d80c99a92537314c0f9876ee16b4229d9595e972126335"
+  },
+  "cancelledLifecycle": {
+    "state": {
+      "runnerPid": 270,
+      "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+      "phase": "complete",
+      "startedAt": "2026-10-02T03:46:00.623729+00:00",
+      "journey": "split-lifecycle-corrected",
+      "waitDeadlineSeconds": 120,
+      "idleSeconds": 94,
+      "appRunning": false,
+      "compilerRunning": false,
+      "output": "artifacts/computer-use/m154/split-lifecycle-corrected-installed-6bf4c233-20261002T034641Z",
+      "inputSha256": {
+        "tools/desktop_e2e/split-lifecycle-journey.sh": "8de17d0782f367f72af831f501c384767d05cb491f61348e7eb9c87ada680b1e",
+        "tools/desktop_e2e/split_journey_lib.sh": "a63f3b2e0acc0b29b7130c9e37d464f3212acbf5a1c7a08b2ea84288b34354d5",
+        "tools/desktop_e2e/cdp.mjs": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+        "tools/desktop_e2e/axtool.swift": "456cb3db10c6e52911f7a4b57cafd5771ae775b6441c6c6ef636eabd894371ec"
+      },
+      "journeyPid": 440,
+      "exitCode": 8,
+      "verdict": {
+        "cancelled": "owner focus returned elsewhere",
+        "pass": false
+      },
+      "ownedRootsRemain": []
+    },
+    "rawSha256": {
+      "snap-4-four.txt": "4f8bd80e1a688a4f55a30176885c11207e2ec1dca6b6ebe26b28c4542aac5a34",
+      "snap-1-base.txt": "d70017655e0fdc385b347a304b60326a1d1b3fad84bb477dcff59184e7b00f61",
+      "browser.log": "24096ea38247f28c56f38a66f8de763953b7faeb82548c02ee6fd9ec5990fe5f",
+      "snap-2-focus-1.txt": "b04f9971dbf27723cfab120ee621ac67928ba437d59330ec0b391e09b0c08447",
+      "site.log": "8d266b634d1d1082421c7cb8379fca1d75dee30e2d627b23cf23419c89620922",
+      "snap-6-closed-to-3.txt": "9241ab25fed3ec9599794fe2f2efb92fb3bfe97b7c5ba0b94b5a11dc2ed0d4d7",
+      "steps.txt": "e6c9bf4c2e5a9ca1fcf72d09971be5b5546b96b9ae3a84f2965cc5c30a00ee8b",
+      "verdict.json": "24d8a6404bfd7aa149a4039067534fa2aa7925fbebbd7aceec0924030c409fe9",
+      "site-readiness-error.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "snap-3-focus-1.txt": "ae7edba89f4ab3ff375d0999165566b810eb383689f1b2e63d2d96615c8ef6ef",
+      "cancel-close.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "site-readiness.html": "dac85b1606c49512c50ed81d7cc05a430c9b53a42b14d1576318f36e87649a1b",
+      "run.txt": "ad8d18e79d985755608078495796e8f7e03d627d5488e073110fb0e3d0259129",
+      "snap-5-focus-1.txt": "3cae8249e7b20d38cccf91852d671910d40f5ad364bb8a982aa5b5337d728166"
+    }
+  }
+}
