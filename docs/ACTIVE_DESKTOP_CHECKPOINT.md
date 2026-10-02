@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Native tracking menu caused false reorder RED; affected invariant now GREEN — 2 October 2026
+
+Guarded menu replay89004/browser89015 reaches actual reorder and reproduces the
+matrix failure: A remains pane1/B pane2, marks/drafts intact, NO native reorder
+handled log; captured AX still exposes a tracking context menu under its window.
+After changing direct post-to-PID Escape to guarded HID Escape, same native
+six-preset/marked-three-pane/focus sequence91763/browser91772 has NO tracking
+menu before key, native reorder handled, A in pane2/B pane1, all marks/drafts
+retained. [Exact before/after native input/AX/DOM/source proof](../artifacts/tests/native-menu-dismissal-reorder-green-6bf4c233-20261002/README.md).
+No product patch, assertion relaxation, rebuild or fourteen-check replay.
+Historical matrix RED is preserved; this closes its affected reorder invariant,
+not a single uninterrupted full matrix. Prior14 live/restore3 proof stays scoped.
+
+Shared open-row/split-preset helpers now close native tracking menus with their
+guarded key path, including the final checked-preset menu. Archive fallback
+Escape follows its guarded path too. Before diagnostic's late close selected a
+destroyed fourth-pane startup target and timed out: separate preserved error,
+not failure of the captured reorder finding. Probe now refreshes its own CDP
+target list after pane removal; after protocol/native close0, all roots/locks
+terminal/released, original SNSS unchanged. Installed71/6bf4c233 untouched.
+
+Next concrete scope: remaining four-pane focus/grid traversal, fifth-pane
+refusal/close, Ahoi Continue without DevTools, then membership/ratios/focus
+restart and archive/auto-archive/Devtoolkit/settings. Reuse verified live setup
+where feasible, do not repeat14/earlier scoped native GREEN without a changed
+concern. Fresh input/capacity/ownership still gates each GUI phase. Entire full
+Master/worker/Sync/Mobile/external/release/archive/data/rollback rights remain.
+
 ## Six-menu context reached but key not reached; HID chord guard compiled — 2 October 2026
 
 Combined52735/browser52744 cancels on foreign focus during cycle5 before menus.

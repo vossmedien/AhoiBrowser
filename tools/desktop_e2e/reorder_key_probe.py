@@ -11,7 +11,7 @@ from installed_navigation_probe import app_running, idle_seconds
 
 
 def probe_reorder_key(app, browser, output, site_port, state, save, reduce_to_three=False,
-                      cycle_layouts=False, menu_presets=False):
+                      cycle_layouts=False, menu_presets=False, hid_dismiss_menus=False):
     source = pathlib.Path(__file__).parent
     ax = pathlib.Path('/private/tmp/ahoi-axtool')
     assert ax.is_file() and ax.stat().st_mtime >= (source / 'axtool.swift').stat().st_mtime
@@ -96,7 +96,10 @@ def probe_reorder_key(app, browser, output, site_port, state, save, reduce_to_th
         if not row:
             raise RuntimeError('owned PaneA sidebar row missing')
         # The same native row/submenu actions and check-mark sequence as matrix.
-        ax_action('key', '53')
+        if hid_dismiss_menus:
+            key(53)
+        else:
+            ax_action('key', '53')
         time.sleep(1)
         ax_action('press', row.group(1) + ':' + row.group(2).strip(), 'AXShowMenu')
         wait_menu('Geteilte Ansicht anordnen', label + '-context')
@@ -108,9 +111,15 @@ def probe_reorder_key(app, browser, output, site_port, state, save, reduce_to_th
         if item:
             ax_action('press', 'AXMenuItem:' + item)
         else:
-            ax_action('key', '53')
+            if hid_dismiss_menus:
+                key(53)
+            else:
+                ax_action('key', '53')
             time.sleep(0.5)
-            ax_action('key', '53')
+            if hid_dismiss_menus:
+                key(53)
+            else:
+                ax_action('key', '53')
         time.sleep(2)
 
     if idle_seconds() < 90 or app_running(app, exclude_pid=browser.pid):
@@ -159,6 +168,11 @@ def probe_reorder_key(app, browser, output, site_port, state, save, reduce_to_th
     dump = subprocess.run([str(ax), 'dump', str(browser.pid), '40'],
                           capture_output=True, text=True, timeout=12)
     (output / 'reorder-before-key-ax.txt').write_text(dump.stdout)
+    window_part = dump.stdout.split('AXMenuBar', 1)[0]
+    state['trackingMenuPresentBeforeReorder'] = bool(re.search(r'^\s*AXMenu(?:\s|$)', window_part, re.MULTILINE))
+    save()
+    if hid_dismiss_menus and state['trackingMenuPresentBeforeReorder']:
+        raise RuntimeError('native tracking menu remained after HID dismissal')
     key(124, 'cmd', 'ctrl', 'shift')
     for delay in [0.1, 0.5, 1.0]:
         time.sleep(delay)

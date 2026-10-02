@@ -382,10 +382,10 @@ open_row_menu() { # <row title> <menu item>
   echo "row for $1: $line" >> "$OUT/steps.txt"
   [ -n "$line" ] || return 1
   role=${line%% |*}; name=${line#*| }
-  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
+  key 53; sleep 1
   $AX press $PID "$role:$name" AXShowMenu >> "$OUT/steps.txt"
   waitax "AXMenuItem \\| $2" 5 && return 0
-  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1; activate_owned; sleep 1
+  key 53; sleep 1; activate_owned; sleep 1
   $AX hidrightclick $PID "$role:$name" >> "$OUT/steps.txt"
   waitax "AXMenuItem \\| $2" 5
 }
@@ -408,15 +408,15 @@ split_menu() { # <item or ""> <check item or "">
       $AX press $PID "AXMenuItem:$SPLIT_MENU" >> "$OUT/steps.txt"; sleep 1
       waitax "AXMenuItem \\| $want" 5 && { opened=1; break; }
     fi
-    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
-    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
+    key 53; sleep 1
+    key 53; sleep 1
   done
   [ $opened = 1 ] || { $AX dump $PID 40 > "$OUT/ax-split-menu-missing.txt"; return 1; }
   if [ -n "$2" ]; then $AX checked $PID "AXMenuItem:$2" >> "$OUT/steps.txt" && CHECKED=true; fi
   if [ -n "$1" ]; then
     $AX press $PID "AXMenuItem:$1" >> "$OUT/steps.txt"
   else
-    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 0.5; $AX key $PID 53 >> "$OUT/steps.txt"
+    key 53; sleep 0.5; key 53
   fi
   sleep 2
 }

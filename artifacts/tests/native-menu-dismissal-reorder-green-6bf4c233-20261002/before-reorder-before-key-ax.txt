@@ -1,0 +1,490 @@
+AXApplication | AhoiBrowser
+  AXWindow | PaneA - Pane 1 of 3 - AhoiBrowser
+    AXGroup | PaneA - Pane 1 of 3 - AhoiBrowser
+      AXGroup
+        AXGroup
+          AXGroup
+            AXGroup
+              AXGroup
+              AXGroup
+                AXGroup
+                AXScrollArea
+                  AXWebArea | PaneA
+                    AXHeading | Pane A
+                      AXStaticText | Pane A
+                    AXTextField | PaneA-draft
+                AXGroup
+                  AXImage | Ziehen, um das geteilte Fenster neu anzuordnen | Ziehen, um das geteilte Fenster neu anzuordnen
+                  AXGroup | Aktives geteiltes Fenster: 127.0.0.1:8825 | Aktives geteiltes Fenster: 127.0.0.1:8825
+                  AXStaticText | 127.0.0.1:8825
+                  AXButton | Diese Ansicht schließen | Diese Ansicht schließen
+              AXGroup
+                AXGroup
+                AXScrollArea
+                  AXWebArea | PaneB
+                    AXHeading | Pane B
+                      AXStaticText | Pane B
+                    AXTextField | PaneB-draft
+                AXGroup
+                  AXImage | Ziehen, um das geteilte Fenster neu anzuordnen | Ziehen, um das geteilte Fenster neu anzuordnen
+                  AXStaticText | 127.0.0.1:8825
+                  AXButton | Diese Ansicht schließen | Diese Ansicht schließen
+              AXGroup
+                AXGroup
+                AXScrollArea
+                  AXWebArea | PaneC
+                    AXHeading | Pane C
+                      AXStaticText | Pane C
+                    AXTextField | PaneC-draft
+                AXGroup
+                  AXImage | Ziehen, um das geteilte Fenster neu anzuordnen | Ziehen, um das geteilte Fenster neu anzuordnen
+                  AXStaticText | 127.0.0.1:8825
+                  AXButton | Diese Ansicht schließen | Diese Ansicht schließen
+              AXSplitter
+                AXSlider | Ziehpunkt zur Größenanpassung der geteilten Ansicht (ziehbar) | Ziehpunkt zur Größenanpassung der geteilten Ansicht (ziehbar) | 33
+              AXSplitter
+                AXSlider | Ziehpunkt zur Größenanpassung der geteilten Ansicht (ziehbar) | Ziehpunkt zur Größenanpassung der geteilten Ansicht (ziehbar) | 50
+            AXGroup
+              AXGroup | AhoiBrowser | AhoiBrowser
+                AXGroup
+                  AXGroup
+                    AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln
+                  AXButton | Tabs, gespeicherte Seiten, Gruppen, Workspaces und Geräte durchsuchen | Tabs, gespeicherte Seiten, Gruppen, Workspaces und Geräte durchsuchen
+                  AXCheckBox | Schwebende Sidebar | Schwebende Sidebar | 0
+                  AXButton | Sidebar ausblenden | Sidebar ausblenden
+                AXToolbar | Lesezeichen | Lesezeichen
+                  AXGroup
+                    AXStaticText | Lesezeichen
+                    AXButton | Lesezeichenmanager öffnen | Lesezeichenmanager öffnen
+                AXGroup
+                  AXGroup
+                    AXScrollArea
+                      AXGroup
+                        AXGroup
+                          AXGroup
+                          AXStaticText | Gespeicherte Tabs
+                          AXOutline | Tabs und gespeicherte Seiten | Tabs und gespeicherte Seiten
+                          AXGroup
+                          AXGroup
+                            AXStaticText | Offene Tabs
+                            AXButton | Alle schließen | Alle schließen
+                          AXTabGroup | Geöffnete Tabs | Geöffnete Tabs
+                            AXRadioButton | Solo — Temporärer Tab | Solo — Temporärer Tab | 0
+                            AXGroup
+                              AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 1
+                              AXRadioButton | PaneB — Temporärer Tab | PaneB — Temporärer Tab | 0
+                              AXRadioButton | PaneC — Temporärer Tab | PaneC — Temporärer Tab | 0
+                              AXSlider | Ziehpunkt zur Größenanpassung der geteilten Ansicht (ziehbar) | Ziehpunkt zur Größenanpassung der geteilten Ansicht (ziehbar) | 33.33333
+                              AXSlider | Ziehpunkt zur Größenanpassung der geteilten Ansicht (ziehbar) | Ziehpunkt zur Größenanpassung der geteilten Ansicht (ziehbar) | 50
+                          AXGroup
+                      AXGroup
+                AXGroup
+                  AXGroup
+                    AXButton | Neuer Tab | Neuer Tab
+                    AXButton | Neues Inkognitofenster | Neues Inkognitofenster
+                  AXButton | Downloadverlauf | Downloadverlauf
+                  AXButton | Verlauf | Verlauf
+                  AXButton | Einstellungen | Einstellungen
+              AXGroup
+              AXSlider | Ziehpunkt zur Größenanpassung der vertikalen Tableiste (ziehbar) | Ziehpunkt zur Größenanpassung der vertikalen Tableiste (ziehbar) | 236
+            AXButton | Adressleiste einblenden | Adressleiste einblenden
+            AXGroup
+    AXButton
+    AXButton
+      AXGroup
+    AXButton
+    AXMenu
+      AXMenuItem | Öffnen | itemSelected:
+      AXMenuItem | Lesezeichen hinzufügen | itemSelected:
+      AXMenuItem
+      AXMenuItem | Link der aktiven Seite kopieren | itemSelected:
+      AXMenuItem | Link der aktiven Seite als Markdown kopieren | itemSelected:
+      AXMenuItem | Aktive Seite im Lesemodus öffnen | itemSelected:
+      AXMenuItem
+      AXMenuItem | Tab schlafen legen | itemSelected:
+      AXMenuItem | Diese Website nie schlafen legen | itemSelected:
+      AXMenuItem
+      AXMenuItem | Nebeneinander anzeigen | itemSelected:
+      AXMenuItem | Gestapelte Tabs anzeigen | itemSelected:
+      AXMenuItem | Ansichten umkehren | itemSelected:
+      AXMenuItem | Ansichten trennen | itemSelected:
+      AXMenuItem | Geteilte Ansicht anordnen
+        AXMenu
+          AXMenuItem | Drei Spalten | itemSelected:
+          AXMenuItem | Drei Zeilen | itemSelected:
+          AXMenuItem | Großes Pane links | itemSelected:
+          AXMenuItem | Großes Pane rechts | itemSelected:
+          AXMenuItem | Großes Pane oben | itemSelected:
+          AXMenuItem | Großes Pane unten | itemSelected:
+      AXMenuItem | Neue Gruppe mit diesem Tab… | itemSelected:
+      AXMenuItem | Verschieben nach
+        AXMenu
+          AXMenuItem | Inbox
+            AXMenu
+              AXMenuItem | Oberste Ebene | itemSelected:
+      AXMenuItem | Duplizieren | itemSelected:
+      AXMenuItem
+      AXMenuItem | Schließen | itemSelected:
+      AXMenuItem | Split archivieren | itemSelected:
+      AXMenuItem
+  AXMenuBar
+    AXMenuBarItem | Apple
+      AXMenu
+        AXMenuItem | Über diesen Mac | _aboutThisMacRequested:
+        AXMenuItem | Systeminformationen | _systemInformationRequested:
+        AXMenuItem
+        AXMenuItem | Systemeinstellungen …, 1 Update | _systemSettingsRequested:
+        AXMenuItem | App Store | _appStoreRequested:
+        AXMenuItem
+        AXMenuItem | Benutzte Objekte | _recentsRequested:
+          AXMenu
+            AXMenuItem | Apps
+            AXMenuItem | Arc.app | _recentItemRequested:
+            AXMenuItem | „Arc.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | ChatGPT.app | _recentItemRequested:
+            AXMenuItem | „ChatGPT.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | Device Hub.app | _recentItemRequested:
+            AXMenuItem | „Device Hub.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | Festplatten­dienstprogramm.app | _recentItemRequested:
+            AXMenuItem | „Festplatten­dienstprogramm.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | Finder.app | _recentItemRequested:
+            AXMenuItem | „Finder.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | Firefox Developer Edition.app | _recentItemRequested:
+            AXMenuItem | „Firefox Developer Edition.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | Google Chrome.app | _recentItemRequested:
+            AXMenuItem | „Google Chrome.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | Terminal Cockpit.app | _recentItemRequested:
+            AXMenuItem | „Terminal Cockpit.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The Unarchiver.app | _recentItemRequested:
+            AXMenuItem | „The Unarchiver.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | Vorschau.app | _recentItemRequested:
+            AXMenuItem | „Vorschau.app“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem
+            AXMenuItem | Dokumente
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part15.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part15.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part16.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part16.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part17.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part17.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part18.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part18.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part19.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part19.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part20.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part20.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part21.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part21.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part22.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part22.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part23.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part23.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem | The.Blood.of.Dawnwalker.PS5-DUPLEX.part24.rar | _recentItemRequested:
+            AXMenuItem | „The.Blood.of.Dawnwalker.PS5-DUPLEX.part24.rar“ im Finder anzeigen | _recentItemRequested:
+            AXMenuItem
+            AXMenuItem | Server
+            AXMenuItem | etc | _recentItemRequested:
+            AXMenuItem | home | _recentItemRequested:
+            AXMenuItem | iPad | _recentItemRequested:
+            AXMenuItem | Macintosh HD | _recentItemRequested:
+            AXMenuItem | music | _recentItemRequested:
+            AXMenuItem | NetBackup | _recentItemRequested:
+            AXMenuItem | photo | _recentItemRequested:
+            AXMenuItem | software | _recentItemRequested:
+            AXMenuItem | video | _recentItemRequested:
+            AXMenuItem | vossmedien | _recentItemRequested:
+            AXMenuItem
+            AXMenuItem | Einträge löschen | _clearRecentItemsRequested:
+        AXMenuItem
+        AXMenuItem | Sofort beenden … | _forceQuitPanelRequested:
+        AXMenuItem | AhoiBrowser sofort beenden | _forceQuitRequested:
+        AXMenuItem
+        AXMenuItem | Ruhezustand | _sleepRequested:
+        AXMenuItem | Neustart … | _restartRequested:
+        AXMenuItem | Neustart | _restartNowRequested:
+        AXMenuItem | Ausschalten … | _shutDownRequested:
+        AXMenuItem | Ausschalten | _shutDownNowRequested:
+        AXMenuItem
+        AXMenuItem | Bildschirm sperren | _lockScreenRequested:
+        AXMenuItem | Christian Voss abmelden … | _logOutRequested:
+        AXMenuItem | Christian Voss abmelden | _logOutNowRequested:
+        AXMenuItem
+    AXMenuBarItem | AhoiBrowser
+      AXMenu
+        AXMenuItem | Über AhoiBrowser | orderFrontStandardAboutPanel:
+        AXMenuItem
+        AXMenuItem | Nach Updates suchen... | Nach Updates suchen... | checkForUpdates:
+        AXMenuItem
+        AXMenuItem | Einstellungen… | showPreferences:
+        AXMenuItem
+        AXMenuItem | Browserdaten löschen… | commandDispatch:
+        AXMenuItem | Lesezeichen und Einstellungen importieren… | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Dienste
+          AXMenu
+            AXMenuItem | Activity Monitor | _processRequest:
+            AXMenuItem | Allocations & Leaks | _processRequest:
+            AXMenuItem | File Activity | _processRequest:
+            AXMenuItem | System Trace | _processRequest:
+            AXMenuItem | Time Profile Active Application | _processRequest:
+            AXMenuItem | Time Profile App Under Mouse | _processRequest:
+            AXMenuItem | Time Profile Entire System | _processRequest:
+            AXMenuItem | Toggle Instruments Recording | _processRequest:
+            AXMenuItem | An Claude senden | _processRequest:
+            AXMenuItem | Bluetooth-Geräte umschalten | _processRequest:
+            AXMenuItem | Claude fragen | _processRequest:
+            AXMenuItem | Monitore - Alle Displays | _processRequest:
+            AXMenuItem | Monitore - Nur MacBook | _processRequest:
+            AXMenuItem | Neue Claude Code-Sitzung hier | _processRequest:
+            AXMenuItem | Dienste-Einstellungen … | _configureServicesMenu:
+        AXMenuItem
+        AXMenuItem | AhoiBrowser ausblenden | hide:
+        AXMenuItem | Andere ausblenden | hideOtherApplications:
+        AXMenuItem | Alle anzeigen | unhideAllApplications:
+        AXMenuItem
+        AXMenuItem | Vor Beenden warnen (⌘Q) | toggleConfirmToQuit:
+        AXMenuItem
+        AXMenuItem | AhoiBrowser beenden | terminate:
+    AXMenuBarItem | Datei
+      AXMenu
+        AXMenuItem | Neuer Tab | commandDispatch:
+        AXMenuItem | Neues Fenster | commandDispatch:
+        AXMenuItem | Neues Inkognitofenster | commandDispatch:
+        AXMenuItem | Geschlossenen Tab wieder öffnen | commandDispatch:
+        AXMenuItem | Datei öffnen… | commandDispatch:
+        AXMenuItem | Adresse öffnen… | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Fenster schließen | performClose:
+        AXMenuItem | Alle schließen | closeAll:
+        AXMenuItem | Tab schließen | commandDispatch:
+        AXMenuItem | Seite speichern unter… | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Teilen
+          AXMenu
+            AXMenuItem | Link per E-Mail versenden | emailLink:
+            AXMenuItem | AirDrop | performShare:
+            AXMenuItem | Nachrichten | performShare:
+            AXMenuItem | Notizen | performShare:
+            AXMenuItem | Freeform | performShare:
+            AXMenuItem | Journal | performShare:
+            AXMenuItem | Erinnerungen | performShare:
+            AXMenuItem | Mehr… | openSharingPrefs:
+        AXMenuItem
+        AXMenuItem | Drucken… | commandDispatch:
+        AXMenuItem | Über das Systemdialogfeld drucken… | commandDispatch:
+    AXMenuBarItem | Bearbeiten
+      AXMenu
+        AXMenuItem | Rückgängig | undo:
+        AXMenuItem | Wiederholen | redo:
+        AXMenuItem
+        AXMenuItem | Ausschneiden | cut:
+        AXMenuItem | Kopieren | copy:
+        AXMenuItem | Einfügen | paste:
+        AXMenuItem | Einsetzen und Stil anpassen | pasteAndMatchStyle:
+        AXMenuItem | Einsetzen und Stil anpassen | pasteAndMatchStyle:
+        AXMenuItem | Löschen | delete:
+        AXMenuItem | Alles auswählen | selectAll:
+        AXMenuItem
+        AXMenuItem | Suchen
+          AXMenu
+            AXMenuItem | Im Web suchen… | commandDispatch:
+            AXMenuItem
+            AXMenuItem | Suchen… | commandDispatch:
+            AXMenuItem | Weitersuchen (vorwärts) | commandDispatch:
+            AXMenuItem | Weitersuchen (rückwärts) | commandDispatch:
+            AXMenuItem | Auswahl für Suche übernehmen | copyToFindPboard:
+            AXMenuItem | Auswahl anzeigen | centerSelectionInVisibleArea:
+        AXMenuItem
+        AXMenuItem | Schreibtools | __NSTextViewContextSubmenuIdentifierWritingTools
+          AXMenu
+            AXMenuItem | Schreibtools anzeigen | showWritingTools:
+            AXMenuItem
+            AXMenuItem | Korrekturlesen | showWritingTools:
+            AXMenuItem | Umformulieren | showWritingTools:
+            AXMenuItem
+            AXMenuItem | Freundlich formulieren | showWritingTools:
+            AXMenuItem | Sachlich formulieren | showWritingTools:
+            AXMenuItem | Kompakt formulieren | showWritingTools:
+            AXMenuItem
+            AXMenuItem | Zusammenfassen | showWritingTools:
+            AXMenuItem | Hauptpunkte erstellen | showWritingTools:
+            AXMenuItem | Liste erstellen | showWritingTools:
+            AXMenuItem | Tabelle erstellen | showWritingTools:
+            AXMenuItem
+            AXMenuItem | Verfassen … | showWritingTools:
+        AXMenuItem | Rechtschreibung und Grammatik
+          AXMenu
+            AXMenuItem | Rechtschreibung und Grammatik einblenden | showGuessPanel:
+            AXMenuItem | Dokument jetzt prüfen | checkSpelling:
+            AXMenuItem | Rechtschreibung während der Eingabe prüfen | toggleContinuousSpellChecking:
+            AXMenuItem | Grammatik zusammen mit Rechtschreibung prüfen | toggleGrammarChecking:
+        AXMenuItem | Ersetzungen
+          AXMenu
+            AXMenuItem | Ersetzungen einblenden | orderFrontSubstitutionsPanel:
+            AXMenuItem
+            AXMenuItem | Intelligente Anführungszeichen | toggleAutomaticQuoteSubstitution:
+            AXMenuItem | Intelligente Gedankenstriche | toggleAutomaticDashSubstitution:
+            AXMenuItem | Text ersetzen | toggleAutomaticTextReplacement:
+        AXMenuItem | Transformationen
+          AXMenu
+            AXMenuItem | Großschreibung verwenden | uppercaseWord:
+            AXMenuItem | Kleinschreibung verwenden | lowercaseWord:
+            AXMenuItem | Großschreibung | capitalizeWord:
+        AXMenuItem | Sprachausgabe
+          AXMenu
+            AXMenuItem | Sprachausgabe starten | startSpeaking:
+            AXMenuItem | Sprachausgabe stoppen | stopSpeaking:
+        AXMenuItem
+        AXMenuItem | Automatisch ausfüllen | _NSMenuItemAutoFillIdentifier
+          AXMenu
+            AXMenuItem | Kontakt … | _handleInsertFromContactsCommand:
+            AXMenuItem | Passwörter … | _handleInsertFromPasswordsCommand:
+            AXMenuItem | Kreditkarte … | _handleInsertFromCreditCardsCommand:
+        AXMenuItem | Diktat starten | startDictation:
+        AXMenuItem | Emoji & Symbole | orderFrontCharacterPalette:
+    AXMenuBarItem | Darstellung
+      AXMenu
+        AXMenuItem | Lesezeichenleiste immer anzeigen | commandDispatch:
+        AXMenuItem | Symbolleiste im Vollbildmodus immer einblenden | commandDispatch:
+        AXMenuItem | Immer vollständige URLs anzeigen | commandDispatch:
+        AXMenuItem | Button für die Bildersuche immer anzeigen | commandDispatch:
+        AXMenuItem | KI‑Modus immer anzeigen | commandDispatch:
+        AXMenuItem | Suchkürzel anzeigen | commandDispatch:
+        AXMenuItem | Tabs vertikal anzeigen | commandDispatch:
+        AXMenuItem | Vertikale Tabs minimieren | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Stoppen | commandDispatch:
+        AXMenuItem | Diese Seite neu laden | commandDispatch:
+        AXMenuItem | Erneutes Laden dieser Seite erzwingen | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Vollbildmodus | toggleFullScreen:
+        AXMenuItem | Vollbildmodus | toggleFullScreen:
+        AXMenuItem | Originalgröße | commandDispatch:
+        AXMenuItem | Vergrößern | commandDispatch:
+        AXMenuItem | Verkleinern | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Streamen… | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Entwickler
+          AXMenu
+            AXMenuItem | Quelltext anzeigen | commandDispatch:
+            AXMenuItem | Entwicklertools | commandDispatch:
+            AXMenuItem | Elemente untersuchen | commandDispatch:
+            AXMenuItem | JavaScript-Konsole | commandDispatch:
+            AXMenuItem | JavaScript von Apple Events erlauben | commandDispatch:
+    AXMenuBarItem | Verlauf
+      AXMenu
+        AXMenuItem | Startseite | commandDispatch:
+        AXMenuItem | Zurück | commandDispatch:
+        AXMenuItem | Vorwärts | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Kürzlich geschlossen
+        AXMenuItem | 5 Tabs | openHistoryMenuItem:
+          AXMenu
+            AXMenuItem | Fenster wiederherstellen | openHistoryMenuItem:
+            AXMenuItem
+            AXMenuItem | Solo | openHistoryMenuItem:
+            AXMenuItem | PaneA | openHistoryMenuItem:
+            AXMenuItem | PaneB | openHistoryMenuItem:
+            AXMenuItem | PaneC | openHistoryMenuItem:
+            AXMenuItem | PaneD | openHistoryMenuItem:
+        AXMenuItem | Einstellungen – AhoiBrowser | openHistoryMenuItem:
+        AXMenuItem
+        AXMenuItem | Kürzlich besucht
+        AXMenuItem | PaneB | openHistoryMenuItem:
+        AXMenuItem | PaneA | openHistoryMenuItem:
+        AXMenuItem | http://127.0.0.1:8825/d.html | openHistoryMenuItem:
+        AXMenuItem | Solo | openHistoryMenuItem:
+        AXMenuItem | http://127.0.0.1:8825/c.html | openHistoryMenuItem:
+        AXMenuItem
+        AXMenuItem | Gesamtverlauf anzeigen | commandDispatch:
+    AXMenuBarItem | Lesezeichen
+      AXMenu
+        AXMenuItem | Lesezeichenmanager öffnen | commandDispatch:
+        AXMenuItem | Lesezeichen für diesen Tab erstellen… | commandDispatch:
+        AXMenuItem | Alle Tabs als Lesezeichen speichern… | commandDispatch:
+    AXMenuBarItem | Profile
+      AXMenu
+        AXMenuItem | Mein AhoiBrowser | switchToProfileFromMenu:
+        AXMenuItem
+        AXMenuItem | Bearbeiten… | editProfile:
+        AXMenuItem
+        AXMenuItem | Profil hinzufügen… | newProfile:
+    AXMenuBarItem | Tab
+      AXMenu
+        AXMenuItem | Neuen Tab unten hinzufügen | commandDispatch:
+        AXMenuItem | Nächsten Tab auswählen | commandDispatch:
+        AXMenuItem | Vorherigen Tab auswählen | commandDispatch:
+        AXMenuItem | Tab duplizieren | commandDispatch:
+        AXMenuItem | Ausgewählten Tab duplizieren | commandDispatch:
+        AXMenuItem | Website stummschalten | commandDispatch:
+        AXMenuItem | Ausgewählte Website stummschalten | commandDispatch:
+        AXMenuItem | Tab anpinnen | commandDispatch:
+        AXMenuItem | Ausgewählten Tab anpinnen | commandDispatch:
+        AXMenuItem | Tab gruppieren | commandDispatch:
+        AXMenuItem | Ausgewählten Tab zu neuer Gruppe hinzufügen | commandDispatch:
+        AXMenuItem | Andere Tabs schließen | commandDispatch:
+        AXMenuItem | Unten aufgeführte Tabs schließen | commandDispatch:
+        AXMenuItem | Tab in ein neues Fenster verschieben | commandDispatch:
+        AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch:
+        AXMenuItem | Tabs suchen… | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Solo | activateTab:
+        AXMenuItem | PaneA | activateTab:
+        AXMenuItem | PaneB | activateTab:
+        AXMenuItem | PaneC | activateTab:
+    AXMenuBarItem | Fenster
+      AXMenu
+        AXMenuItem | Im Dock ablegen | performMiniaturize:
+        AXMenuItem | Alle im Dock ablegen | miniaturizeAll:
+        AXMenuItem | Zoomen | performZoom:
+        AXMenuItem | Alle zoomen | zoomAll:
+        AXMenuItem | Füllen | _zoomFill:
+        AXMenuItem | Zentriert | _zoomCenter:
+        AXMenuItem
+        AXMenuItem | Bewegen & Skalieren
+          AXMenu
+            AXMenuItem | Hälften
+            AXMenuItem | Links | _zoomLeft:
+            AXMenuItem | Rechts | _zoomRight:
+            AXMenuItem | Oben | _zoomTop:
+            AXMenuItem | Unten | _zoomBottom:
+            AXMenuItem
+            AXMenuItem | Viertel
+            AXMenuItem | Oben links | _zoomTopLeft:
+            AXMenuItem | Oben rechts | _zoomTopRight:
+            AXMenuItem | Unten links | _zoomBottomLeft:
+            AXMenuItem | Unten rechts | _zoomBottomRight:
+            AXMenuItem
+            AXMenuItem | Anordnen
+            AXMenuItem | Links & Rechts | _zoomLeftAndRight:
+            AXMenuItem | Links & Viertel | _zoomLeftThreeUp:
+            AXMenuItem | Rechts & Links | _zoomRightAndLeft:
+            AXMenuItem | Rechts & Viertel | _zoomRightThreeUp:
+            AXMenuItem | Oben & Unten | _zoomTopAndBottom:
+            AXMenuItem | Oben & Viertel | _zoomTopThreeUp:
+            AXMenuItem | Unten & Oben | _zoomBottomAndTop:
+            AXMenuItem | Unten & Viertel | _zoomBottomThreeUp:
+            AXMenuItem | Viertel | _zoomQuarters:
+            AXMenuItem
+            AXMenuItem | Zur vorherigen Größe wechseln | _zoomUntile:
+        AXMenuItem | Vollbildkachel
+          AXMenu
+            AXMenuItem | Linke Bildschirmseite | _tileLeft:
+            AXMenuItem | Rechte Bildschirmseite | _tileRight:
+        AXMenuItem
+        AXMenuItem | Als Tab anzeigen | commandDispatch:
+        AXMenuItem | Fenster benennen… | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Downloads | commandDispatch:
+        AXMenuItem | Erweiterungen | commandDispatch:
+        AXMenuItem | Task-Manager | commandDispatch:
+        AXMenuItem
+        AXMenuItem | Alle nach vorn bringen | arrangeInFront:
+        AXMenuItem | Aufräumen | alternateArrangeInFront:
+        AXMenuItem | Fenster aus Satz entfernen | _removeWindowFromStageManagerSet:
+        AXMenuItem
+        AXMenuItem | PaneA | makeKeyAndOrderFront:
+    AXMenuBarItem | Hilfe
+      AXMenu
+        AXMenuItem | AhoiBrowser-Hilfe | commandDispatch:

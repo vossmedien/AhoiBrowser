@@ -106,7 +106,7 @@ ax press $PID "$ROLE:$NAME" AXShowMenu
 if waitax "$MENU_RE" 5; then echo "row menu via AXShowMenu" >> "$OUT/steps.txt"
 else
   "$AX" dump $PID 45 > "$OUT/ax-after-showmenu.txt"
-  $AX key $PID 53 >> "$OUT/steps.txt" 2>&1; sleep 1
+  ax key $PID 53; sleep 1
   for attempt in 1 2 3; do
     ax activate $PID; sleep 1
     "$AX" hidrightclick $PID "$ROLE:$NAME" >> "$OUT/steps.txt" 2>&1 && break; sleep 1

@@ -1,0 +1,53 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "pass": true,
+  "scope": "affected native-menu pane-reorder invariant only",
+  "fullMatrixPassClaimed": false,
+  "cases": {
+    "before": {
+      "rawDirectory": "artifacts/computer-use/m154/guarded-menu-three-pane-reorder-native-trace-6bf4c233-20261002T062716Z",
+      "menuPresentBeforeKey": true,
+      "nativeReorderHandled": false,
+      "focusedBefore": [
+        "PaneA"
+      ],
+      "focusedSecondAfter": [
+        "PaneB"
+      ],
+      "focusedFirstAfter": [
+        "PaneA"
+      ],
+      "phase": "failed",
+      "closeProtocolExitCode": 3,
+      "browserExitCode": null
+    },
+    "after": {
+      "rawDirectory": "artifacts/computer-use/m154/hid-dismissed-menu-reorder-native-trace-6bf4c233-20261002T063311Z",
+      "menuPresentBeforeKey": false,
+      "nativeReorderHandled": true,
+      "focusedBefore": [
+        "PaneA"
+      ],
+      "focusedSecondAfter": [
+        "PaneA"
+      ],
+      "focusedFirstAfter": [
+        "PaneB"
+      ],
+      "phase": "complete",
+      "closeProtocolExitCode": 0,
+      "browserExitCode": 0,
+      "draftsAndMarksRetained": true
+    }
+  },
+  "filesSha256": {
+    "before-state.json": "692e7da9f19d1cbca39e4aa650deb68147140ea2073de93ee8f4aa90ec495f5a",
+    "before-browser.log": "3ed446d4a48a1fcc10a9f6d90025c69d25432b53d5cdc6b8135bceefca329f74",
+    "before-reorder-keys.txt": "32a0f3d6507ed97e808c218159d55b6791c18f515156b514fd91fafe238acd16",
+    "before-reorder-before-key-ax.txt": "6429d31c85e3b5540a69ec012f1ce620241e8d2bfb6525237e0d9538bdc0ff0d",
+    "after-state.json": "00248b2550ac05d32d9ddd8a7c083344b268dd67a0a3e866ffccccc0fe8d0a51",
+    "after-browser.log": "0c90635d8d3405c73ff16cfd3f857708ae256bd6304c9ccf18e37a5b2b43b8d4",
+    "after-reorder-keys.txt": "fc30cca8b435e797c7da033c788f377f093baf03abcd72ca65c07923e86c4626",
+    "after-reorder-before-key-ax.txt": "97a45a07f7910ebc3f91708412ce9871eadccda7c98473c96cd65b1e30e55e15"
+  }
+}

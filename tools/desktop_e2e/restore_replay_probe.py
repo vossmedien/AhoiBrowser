@@ -38,6 +38,8 @@ def main():
                         help='exercise the six three-pane layouts and marked form state before the key')
     parser.add_argument('--reorder-menu-presets', action='store_true',
                         help='replay the original six native menu presets before the key')
+    parser.add_argument('--reorder-hid-dismiss-menus', action='store_true',
+                        help='dismiss native tracking menus through guarded HID Escape')
     parser.add_argument('--trusted-pref-probe', action='store_true',
                         help='observe/update the copied profile through native settings API')
     parser.add_argument('--trusted-pref-receipt', type=pathlib.Path,
@@ -57,6 +59,7 @@ def main():
                  reorderReduceToThree=args.reorder_reduce_to_three,
                  reorderCycleLayouts=args.reorder_cycle_layouts,
                  reorderMenuPresets=args.reorder_menu_presets,
+                 reorderHidDismissMenus=args.reorder_hid_dismiss_menus,
                  trustedPrefProbe=args.trusted_pref_probe,
                  harnessSha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
                  cdpSha256=hashlib.sha256(pathlib.Path(__file__).with_name('cdp.mjs').read_bytes()).hexdigest(),
@@ -72,6 +75,7 @@ def main():
     assert not args.reorder_reduce_to_three or args.reorder_key_probe
     assert not args.reorder_cycle_layouts or args.reorder_reduce_to_three
     assert not args.reorder_menu_presets or args.reorder_reduce_to_three
+    assert not args.reorder_hid_dismiss_menus or args.reorder_menu_presets
     restore_expectations = None
     if args.restore_lifecycle_receipt:
         assert args.trusted_pref_receipt and not args.trusted_pref_probe
@@ -234,7 +238,8 @@ def main():
             probe_reorder_key(args.app, browser, args.output, args.site_port, state, save,
                               reduce_to_three=args.reorder_reduce_to_three,
                               cycle_layouts=args.reorder_cycle_layouts,
-                              menu_presets=args.reorder_menu_presets)
+                              menu_presets=args.reorder_menu_presets,
+                              hid_dismiss_menus=args.reorder_hid_dismiss_menus)
         if restore_expectations:
             # Read only owned targets and native AX; no activation, key or drag.
             def owner_check():
@@ -288,6 +293,10 @@ def main():
             assert all(r['ready'] == 'complete' and r['href'] == r['url'] for r in rows)
             owner_check()
             save()
+        # Reorder diagnostics may close a pane. Do not use the startup target
+        # list for native close: its first target can now have been destroyed.
+        with urllib.request.urlopen('http://127.0.0.1:9431/json', timeout=2) as response:
+            targets = json.load(response)
         target = next((t for t in targets if t.get('type') == 'page'), None)
         if target:
             result = subprocess.run(['node', str(pathlib.Path(__file__).with_name('cdp.mjs')), '9431',
