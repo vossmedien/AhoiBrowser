@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## Installed automatic archive basics10 GREEN — 2 October 2026
+
+Runner6901/journey6960 actually completes exact installed71/6bf4c233, fresh
+synthetic profile/real provider/no mock. DefaultNever, policy selection/native
+mark/explanation, expired idle temporary tab archived, edited form kept, active
+tab kept, archive entry/reason, original-place lazy restore and resetNever:
+all10GREEN, exit0/passtrue/all own roots terminal/lock released.
+[Exact native/form/fixture/source/tool/result binding](../artifacts/tests/installed-auto-archive-basic-green-6bf4c233-20261002/README.md).
+Development-only25s override substitutes age for conscious12h choice; not actual
+12h elapsed/performance or release acceptance. Never remains Never.
+
+Source harness corrects its hand-built WebSocket prefix reader to the shared
+bounded CDP decoder and checks actual form value=draft after user-gesture input;
+each fixture document must commit before acceptance. No weakened protection,
+secret data, user profile, native product/build/install or permission change.
+Remaining saved/KeepLoaded/media/capture/download/native-dialog/BeforeUnload/
+whole-group protections, policy/restart/idempotence/delete/Sync scopes OPEN.
+
+Next concrete scope: remaining native archive protection and persistence/delete
+journeys, then Devtoolkit/settings and other browser/Mobile/Sync/worker/release
+contracts. No unchanged10/5/split/native suite replay merely for a combined
+headline. Current refreshed input is active, so no further GUI job starts until
+fresh actual ownership/capacity/input opportunity. Whole original active Master,
+all earlier scoped GREEN/historical RED/data/rollback/external rights retained.
+
 ## Installed split archive/restore5 GREEN — 2 October 2026
 
 Archive fixture now uses the already verified current native picker/shared

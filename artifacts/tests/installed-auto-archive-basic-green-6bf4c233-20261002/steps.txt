@@ -1,0 +1,48 @@
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+checked AXMenuItem | Nie (Standard) | itemSelected: mark=✓
+== default_never PASS
+frontmost -> 0
+hidkey 53
+hidkey 17
+hidkey 0
+typed 31
+hidkey 36
+hidkey 17
+hidkey 0
+typed 31
+hidkey 36
+hidkey 17
+hidkey 0
+typed 33
+hidkey 36
+before about:blank http://127.0.0.1:8799/active.html http://127.0.0.1:8799/form.html http://127.0.0.1:8799/idle.html
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Nach 12 Stunden | itemSelected: -> 0
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+checked AXMenuItem | Nach 12 Stunden | itemSelected: mark=✓
+== policy_selected PASS
+== policy_explained PASS
+hidkey 53
+after about:blank http://127.0.0.1:8799/active.html http://127.0.0.1:8799/form.html
+== idle_tab_archived PASS
+== edited_form_protected PASS
+== active_tab_kept PASS
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> 0
+hidkey 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+== archive_lists_entry PASS
+== archive_shows_reason PASS
+AXPress AXButton | Wiederherstellen …: Ahoi archive idle | Wiederherstellen …: Ahoi archive idle -> 0
+AXPress AXMenuItem | Am ursprünglichen Ort wiederherstellen | itemSelected: -> 0
+NOT FOUND
+restored about:blank http://127.0.0.1:8799/active.html http://127.0.0.1:8799/form.html
+== restore_brings_url_back PASS
+hidkey 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Nie (Standard) | itemSelected: -> 0
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+checked AXMenuItem | Nie (Standard) | itemSelected: mark=✓
+== policy_reset_to_never PASS
+hidkey 53
+hidkey 12

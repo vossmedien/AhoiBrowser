@@ -1,0 +1,37 @@
+{
+  "runnerPid": 6901,
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "phase": "complete",
+  "startedAt": "2026-10-02T08:21:02.047954+00:00",
+  "journey": "auto-archive",
+  "waitDeadlineSeconds": 0,
+  "idleSeconds": 420,
+  "appRunning": false,
+  "compilerRunning": false,
+  "output": "artifacts/computer-use/m154/auto-archive-installed-6bf4c233-20261002T082102Z",
+  "inputSha256": {
+    "tools/desktop_e2e/auto-archive-journey.sh": "5e0e2015b2879b0b32f3d651614e3af4fa598cda353ae4a4e39f5446f553d03a",
+    "tools/desktop_e2e/split_journey_lib.sh": "c86f9d0fbe7775a866399cc536c1a7ef1fe09cc2c9007e70d681ae7d6cab2a83",
+    "tools/desktop_e2e/cdp.mjs": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+    "tools/desktop_e2e/axtool.swift": "05480adb28214085b330fd95d9a98e4e6bd36e76b5c1a85884a60bebed5eecbd",
+    "tools/desktop_e2e/archive_focus_guard.sh": "bf8a004de7eaf38cc8fd9650fe93d46947652a22ec0600eda7f8f96fec50a6f9"
+  },
+  "journeyPid": 6960,
+  "exitCode": 0,
+  "verdict": {
+    "pass": true,
+    "steps": {
+      "default_never": "PASS",
+      "policy_selected": "PASS",
+      "policy_explained": "PASS",
+      "idle_tab_archived": "PASS",
+      "edited_form_protected": "PASS",
+      "active_tab_kept": "PASS",
+      "archive_lists_entry": "PASS",
+      "archive_shows_reason": "PASS",
+      "restore_brings_url_back": "PASS",
+      "policy_reset_to_never": "PASS"
+    }
+  },
+  "ownedRootsRemain": []
+}

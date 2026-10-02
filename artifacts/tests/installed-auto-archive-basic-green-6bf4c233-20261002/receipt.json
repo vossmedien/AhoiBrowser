@@ -1,0 +1,20 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "pass": true,
+  "scope": "ten installed automatic archive baseline/protection/restore/reset assertions",
+  "fullMasterPassClaimed": false,
+  "ageOverrideSeconds": 25,
+  "filesSha256": {
+    "runner-state.json": "3652c7da0feda65358b70663d29ffd0656f26f8266abd1ecb8b1cdeaa4e02879",
+    "steps.txt": "02f19329cdbfa9878f3e6bfcc8196068de41ea7924ead01d64f3835dc2f4546c",
+    "results.txt": "6f2346a25ab23bead2307a64ed9ed68256bdf979da6dabcc7ce0d7fb4682a68c",
+    "results.json": "23ba399cdf4d178dabe0f86a26bb6651ff36041de55532a04d33d70db6cd68ba",
+    "run.txt": "2046aff978dc3b4cbc27644e6edeab49d8fa898095c0c485857d9da12bd725d7",
+    "form-input.json": "0e94befc1c4b894b504c4bcdd1e2c7c4dfd6073ff415d130969e66feb9399f2b",
+    "document-readiness.json": "29731ea392db71659653d37e8844a51b13d529e9f27079d6eced8190117d8014",
+    "archive-dialog.txt": "cb6126d47ace3ebd04ff4bd8db3d71d46a1fdea008b7d38b643b23172fb599fa",
+    "after-restore.txt": "78d596bc5ac643eec3c8ff29efb1cdc610185d323554cb5c137caea5b5ee3120",
+    "site.log": "15adebf8b1b0744f03874c65ad1c30bf56e02462ddad14acca7b232a22421da9"
+  },
+  "rawDirectory": "artifacts/computer-use/m154/auto-archive-installed-6bf4c233-20261002T082102Z"
+}

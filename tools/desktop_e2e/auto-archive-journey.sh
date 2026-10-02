@@ -57,24 +57,22 @@ open_tab() { local ok=1
   for i in 1 2 3; do ax activate $PID; sleep 1; ax key $PID 17 cmd
     waitax "AXWindow \| Suchen oder URL eingeben" 6 && { ok=0; break; }; done
   [ $ok = 0 ] || return 1
-  ax key $PID 0 cmd; ax type $PID "$1"; sleep 1; ax key $PID 36; sleep 4; }
+  ax key $PID 0 cmd; ax type $PID "$1"; sleep 1; ax key $PID 36; sleep 2
+  local ready=false
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    cdp_eval "${1##*/}" "location.href === '$1' && document.readyState === 'complete'" > "$OUT/document-readiness.json" 2>&1
+    if python3 -c 'import json,sys;sys.exit(0 if json.load(open(sys.argv[1])).get("result",{}).get("value") is True else 1)' "$OUT/document-readiness.json"; then ready=true; break; fi
+    sleep 1
+  done
+  [ "$ready" = true ] || { echo '{"setupFailed":"fixture document did not commit","pass":false}' > "$OUT/results.json"; ax key $PID 12 cmd; exit 4; }
+}
 workspace_menu() { for i in 1 2 3; do ax press $PID "Inbox, Workspace wechseln" AXShowMenu
   waitax "Inaktive temporäre Tabs archivieren" 4 && return 0; ax key $PID 53; sleep 2; done; return 1; }
 # CDP helper: evaluate JS in the page whose URL contains $1 (form typing only).
-cdp_eval() { python3 - "$PORT" "$1" "$2" <<'PY'
-import json, socket, sys, urllib.request, base64, os
-port, needle, expr = sys.argv[1], sys.argv[2], sys.argv[3]
-targets = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json"))
-t = next(t for t in targets if t["type"] == "page" and needle in t["url"])
-ws = t["webSocketDebuggerUrl"]; host, path = ws[5:].split("/", 1)
-h, p = host.split(":"); s = socket.create_connection((h, int(p)))
-key = base64.b64encode(os.urandom(16)).decode()
-s.send(f"GET /{path} HTTP/1.1\r\nHost: {host}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n".encode())
-s.recv(4096)
-msg = json.dumps({"id": 1, "method": "Runtime.evaluate", "params": {"expression": expr, "userGesture": True}}).encode()
-mask = os.urandom(4); hdr = bytes([0x81]) + (bytes([0x80 | len(msg)]) if len(msg) < 126 else bytes([0x80 | 126]) + len(msg).to_bytes(2, "big"))
-s.send(hdr + mask + bytes(b ^ mask[i % 4] for i, b in enumerate(msg))); print(s.recv(65536)[2:200])
-PY
+cdp_eval() { # committed owned page; shared complete WebSocket/CDP decoder
+  local params
+  params=$(python3 -c 'import json,sys;print(json.dumps({"expression":sys.argv[1],"userGesture":True,"returnByValue":True,"awaitPromise":True}))' "$2")
+  node "$S/cdp.mjs" "$PORT" "$1" Runtime.evaluate "$params"
 }
 
 # 0 Default policy is Never.
@@ -84,7 +82,13 @@ workspace_menu && "$AX" checked $PID "AXMenuItem:Nie (Standard)" >> "$OUT/steps.
 ax key $PID 53; sleep 1
 # 1 Open idle, form and active pages; edit the form (unsaved user input).
 open_tab "$SITE/idle.html"; open_tab "$SITE/form.html"
-cdp_eval form.html 'document.getElementById("f").focus(); document.execCommand("insertText", false, "draft");' >> "$OUT/steps.txt" 2>&1
+cdp_eval form.html 'document.getElementById("f").focus(); document.execCommand("insertText", false, "draft"); document.getElementById("f").value' > "$OUT/form-input.json" 2>&1
+python3 - "$OUT/form-input.json" <<'PYFORM'
+import json, sys
+result = json.load(open(sys.argv[1]))
+sys.exit(0 if result.get('result', {}).get('value') == 'draft' and 'exceptionDetails' not in result else 1)
+PYFORM
+[ "$?" = 0 ] || { echo '{"setupFailed":"edited form was not confirmed","pass":false}' > "$OUT/results.json"; ax key $PID 12 cmd; exit 4; }
 open_tab "$SITE/active.html"
 echo "before $(urls)" >> "$OUT/steps.txt"
 # 2 Enable the shortest policy (age replaced by the E2E seam).
