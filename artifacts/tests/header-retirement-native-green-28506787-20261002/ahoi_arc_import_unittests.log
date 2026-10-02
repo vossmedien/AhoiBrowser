@@ -1,0 +1,602 @@
+objc[13175]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14095ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125878a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13175]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120790188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x1069cb4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[13180]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140db0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125ccca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13180]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120be4188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x106e8f4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportFolderWorkspacesTest.OptionOffKeepsTheSpaceLayout:ArcImportFolderWorkspacesTest.OptionOnPromotesTopLevelPinnedFolders:ArcImportFolderWorkspacesTest.LayoutsAreDeterministicAndDisjoint:ArcImportFolderWorkspacesTest.EmptySpaceWorkspaceIsNotCreated:ArcImportFolderWorkspacesTest.CommitIsAtomicAndRepeatIsNoOp:ArcImportFolderWorkspacesTest.LayoutChangeUsesConflictPolicyNotIds:ArcImportFolderWorkspacesTest.OptionIsPartOfTheTransactionKey:ArcImportJournalTest.MissingJournalIsAnEmptySuccessfulState:ArcImportJournalTest.AtomicallyReplacesOwnerOnlyJournal:ArcImportJournalTest.ReadsLegacyV2CommittedState
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from ArcImportFolderWorkspacesTest
+[ RUN      ] ArcImportFolderWorkspacesTest.OptionOffKeepsTheSpaceLayout
+[       OK ] ArcImportFolderWorkspacesTest.OptionOffKeepsTheSpaceLayout (0 ms)
+[ RUN      ] ArcImportFolderWorkspacesTest.OptionOnPromotesTopLevelPinnedFolders
+[       OK ] ArcImportFolderWorkspacesTest.OptionOnPromotesTopLevelPinnedFolders (0 ms)
+[ RUN      ] ArcImportFolderWorkspacesTest.LayoutsAreDeterministicAndDisjoint
+[       OK ] ArcImportFolderWorkspacesTest.LayoutsAreDeterministicAndDisjoint (0 ms)
+[ RUN      ] ArcImportFolderWorkspacesTest.EmptySpaceWorkspaceIsNotCreated
+[       OK ] ArcImportFolderWorkspacesTest.EmptySpaceWorkspaceIsNotCreated (0 ms)
+[ RUN      ] ArcImportFolderWorkspacesTest.CommitIsAtomicAndRepeatIsNoOp
+[       OK ] ArcImportFolderWorkspacesTest.CommitIsAtomicAndRepeatIsNoOp (3 ms)
+[ RUN      ] ArcImportFolderWorkspacesTest.LayoutChangeUsesConflictPolicyNotIds
+[       OK ] ArcImportFolderWorkspacesTest.LayoutChangeUsesConflictPolicyNotIds (4 ms)
+[ RUN      ] ArcImportFolderWorkspacesTest.OptionIsPartOfTheTransactionKey
+[       OK ] ArcImportFolderWorkspacesTest.OptionIsPartOfTheTransactionKey (0 ms)
+[----------] 7 tests from ArcImportFolderWorkspacesTest (49 ms total)
+
+[----------] 3 tests from ArcImportJournalTest
+[ RUN      ] ArcImportJournalTest.MissingJournalIsAnEmptySuccessfulState
+[       OK ] ArcImportJournalTest.MissingJournalIsAnEmptySuccessfulState (1 ms)
+[ RUN      ] ArcImportJournalTest.AtomicallyReplacesOwnerOnlyJournal
+[       OK ] ArcImportJournalTest.AtomicallyReplacesOwnerOnlyJournal (1 ms)
+[ RUN      ] ArcImportJournalTest.ReadsLegacyV2CommittedState
+[       OK ] ArcImportJournalTest.ReadsLegacyV2CommittedState (0 ms)
+[----------] 3 tests from ArcImportJournalTest (5 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (54 ms total)
+[  PASSED  ] 10 tests.
+[1/132] ArcImportFolderWorkspacesTest.OptionOffKeepsTheSpaceLayout (0 ms)
+[2/132] ArcImportFolderWorkspacesTest.OptionOnPromotesTopLevelPinnedFolders (0 ms)
+[3/132] ArcImportFolderWorkspacesTest.LayoutsAreDeterministicAndDisjoint (0 ms)
+[4/132] ArcImportFolderWorkspacesTest.EmptySpaceWorkspaceIsNotCreated (0 ms)
+[5/132] ArcImportFolderWorkspacesTest.CommitIsAtomicAndRepeatIsNoOp (3 ms)
+[6/132] ArcImportFolderWorkspacesTest.LayoutChangeUsesConflictPolicyNotIds (4 ms)
+[7/132] ArcImportFolderWorkspacesTest.OptionIsPartOfTheTransactionKey (0 ms)
+[8/132] ArcImportJournalTest.MissingJournalIsAnEmptySuccessfulState (1 ms)
+[9/132] ArcImportJournalTest.AtomicallyReplacesOwnerOnlyJournal (1 ms)
+[10/132] ArcImportJournalTest.ReadsLegacyV2CommittedState (0 ms)
+objc[13189]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144c68a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129b84a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13189]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124a9c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10ad034c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportJournalTest.RejectsSymlinkedDirectory:ArcImportJournalTest.RejectsSymlinkedJournalLeaf:ArcImportJournalTest.RejectsHardLinkedJournalLeaf:ArcImportJournalTest.RejectsOverPermissiveJournalState:ArcImportJournalTest.RejectsOverPermissiveJournalDirectory:ArcImportJournalTest.PreparedRecordIsPrivacyMinimalAndRestorable:ArcImportJournalTest.RejectsNonCanonicalAffectedIds:ArcImportJournalTest.ManualRecoveryMarkerRoundTripsFailClosed:ArcImportJournalTest.RuntimePersistedReceiptRoundTrips:ArcImportJournalTest.RuntimePersistedWithoutExactCommittedIntentIsRejected
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from ArcImportJournalTest
+[ RUN      ] ArcImportJournalTest.RejectsSymlinkedDirectory
+[       OK ] ArcImportJournalTest.RejectsSymlinkedDirectory (1 ms)
+[ RUN      ] ArcImportJournalTest.RejectsSymlinkedJournalLeaf
+[       OK ] ArcImportJournalTest.RejectsSymlinkedJournalLeaf (0 ms)
+[ RUN      ] ArcImportJournalTest.RejectsHardLinkedJournalLeaf
+[       OK ] ArcImportJournalTest.RejectsHardLinkedJournalLeaf (1 ms)
+[ RUN      ] ArcImportJournalTest.RejectsOverPermissiveJournalState
+[       OK ] ArcImportJournalTest.RejectsOverPermissiveJournalState (0 ms)
+[ RUN      ] ArcImportJournalTest.RejectsOverPermissiveJournalDirectory
+[       OK ] ArcImportJournalTest.RejectsOverPermissiveJournalDirectory (0 ms)
+[ RUN      ] ArcImportJournalTest.PreparedRecordIsPrivacyMinimalAndRestorable
+[       OK ] ArcImportJournalTest.PreparedRecordIsPrivacyMinimalAndRestorable (1 ms)
+[ RUN      ] ArcImportJournalTest.RejectsNonCanonicalAffectedIds
+[       OK ] ArcImportJournalTest.RejectsNonCanonicalAffectedIds (0 ms)
+[ RUN      ] ArcImportJournalTest.ManualRecoveryMarkerRoundTripsFailClosed
+[       OK ] ArcImportJournalTest.ManualRecoveryMarkerRoundTripsFailClosed (0 ms)
+[ RUN      ] ArcImportJournalTest.RuntimePersistedReceiptRoundTrips
+[       OK ] ArcImportJournalTest.RuntimePersistedReceiptRoundTrips (1 ms)
+[ RUN      ] ArcImportJournalTest.RuntimePersistedWithoutExactCommittedIntentIsRejected
+[       OK ] ArcImportJournalTest.RuntimePersistedWithoutExactCommittedIntentIsRejected (1 ms)
+[----------] 10 tests from ArcImportJournalTest (33 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (33 ms total)
+[  PASSED  ] 10 tests.
+[11/132] ArcImportJournalTest.RejectsSymlinkedDirectory (1 ms)
+[12/132] ArcImportJournalTest.RejectsSymlinkedJournalLeaf (0 ms)
+[13/132] ArcImportJournalTest.RejectsHardLinkedJournalLeaf (1 ms)
+[14/132] ArcImportJournalTest.RejectsOverPermissiveJournalState (0 ms)
+[15/132] ArcImportJournalTest.RejectsOverPermissiveJournalDirectory (0 ms)
+[16/132] ArcImportJournalTest.PreparedRecordIsPrivacyMinimalAndRestorable (1 ms)
+[17/132] ArcImportJournalTest.RejectsNonCanonicalAffectedIds (0 ms)
+[18/132] ArcImportJournalTest.ManualRecoveryMarkerRoundTripsFailClosed (0 ms)
+[19/132] ArcImportJournalTest.RuntimePersistedReceiptRoundTrips (1 ms)
+[20/132] ArcImportJournalTest.RuntimePersistedWithoutExactCommittedIntentIsRejected (1 ms)
+objc[13193]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1401f0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12510ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13193]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120024188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x1062d34c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportJournalTest.FirstImportRollbackDeletesPreparedMarker:ArcImportJournalTest.RejectsMissingOrMalformedTreeFingerprints:ArcImportJournalTest.LegacyV2PreparedStateIsManualAndNeverMutable:ArcImportJournalTest.LegacyV3PreparedStateIsManualAndNeverMutable:ArcImportJournalTest.LegacyV4PreparedStateIsManualAndNeverPublished:ArcImportJournalTest.RejectsOversizedJournal:ArcImportParserTest.BuildsDeterministicDetachedPlan:ArcImportParserTest.CurrentContainerMapOrderIsNotSemantic:ArcImportParserTest.SupportsLegacyContainerMapPairs:ArcImportParserTest.RejectsNonListCurrentMapInsteadOfFallingBack
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from ArcImportJournalTest
+[ RUN      ] ArcImportJournalTest.FirstImportRollbackDeletesPreparedMarker
+[       OK ] ArcImportJournalTest.FirstImportRollbackDeletesPreparedMarker (2 ms)
+[ RUN      ] ArcImportJournalTest.RejectsMissingOrMalformedTreeFingerprints
+[       OK ] ArcImportJournalTest.RejectsMissingOrMalformedTreeFingerprints (1 ms)
+[ RUN      ] ArcImportJournalTest.LegacyV2PreparedStateIsManualAndNeverMutable
+[       OK ] ArcImportJournalTest.LegacyV2PreparedStateIsManualAndNeverMutable (1 ms)
+[ RUN      ] ArcImportJournalTest.LegacyV3PreparedStateIsManualAndNeverMutable
+[       OK ] ArcImportJournalTest.LegacyV3PreparedStateIsManualAndNeverMutable (1 ms)
+[ RUN      ] ArcImportJournalTest.LegacyV4PreparedStateIsManualAndNeverPublished
+[       OK ] ArcImportJournalTest.LegacyV4PreparedStateIsManualAndNeverPublished (1 ms)
+[ RUN      ] ArcImportJournalTest.RejectsOversizedJournal
+[       OK ] ArcImportJournalTest.RejectsOversizedJournal (1 ms)
+[----------] 6 tests from ArcImportJournalTest (52 ms total)
+
+[----------] 4 tests from ArcImportParserTest
+[ RUN      ] ArcImportParserTest.BuildsDeterministicDetachedPlan
+[       OK ] ArcImportParserTest.BuildsDeterministicDetachedPlan (0 ms)
+[ RUN      ] ArcImportParserTest.CurrentContainerMapOrderIsNotSemantic
+[       OK ] ArcImportParserTest.CurrentContainerMapOrderIsNotSemantic (0 ms)
+[ RUN      ] ArcImportParserTest.SupportsLegacyContainerMapPairs
+[       OK ] ArcImportParserTest.SupportsLegacyContainerMapPairs (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsNonListCurrentMapInsteadOfFallingBack
+[       OK ] ArcImportParserTest.RejectsNonListCurrentMapInsteadOfFallingBack (0 ms)
+[----------] 4 tests from ArcImportParserTest (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (56 ms total)
+[  PASSED  ] 10 tests.
+[21/132] ArcImportJournalTest.FirstImportRollbackDeletesPreparedMarker (2 ms)
+[22/132] ArcImportJournalTest.RejectsMissingOrMalformedTreeFingerprints (1 ms)
+[23/132] ArcImportJournalTest.LegacyV2PreparedStateIsManualAndNeverMutable (1 ms)
+[24/132] ArcImportJournalTest.LegacyV3PreparedStateIsManualAndNeverMutable (1 ms)
+[25/132] ArcImportJournalTest.LegacyV4PreparedStateIsManualAndNeverPublished (1 ms)
+[26/132] ArcImportJournalTest.RejectsOversizedJournal (1 ms)
+[27/132] ArcImportParserTest.BuildsDeterministicDetachedPlan (0 ms)
+[28/132] ArcImportParserTest.CurrentContainerMapOrderIsNotSemantic (0 ms)
+[29/132] ArcImportParserTest.SupportsLegacyContainerMapPairs (0 ms)
+[30/132] ArcImportParserTest.RejectsNonListCurrentMapInsteadOfFallingBack (0 ms)
+objc[13548]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1423bca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1272d8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13548]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122a48188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10844b4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportParserTest.RejectsUnknownCurrentContainerSelector:ArcImportParserTest.RejectsNonStringCurrentContainerId:ArcImportParserTest.RejectsDuplicateCurrentContainerKind:ArcImportParserTest.RejectsDuplicateCurrentContainerId:ArcImportParserTest.DomainSeparatesDeterministicIds:ArcImportParserTest.RejectsMutationAfterSnapshot:ArcImportParserTest.RejectsUnsupportedSchema:ArcImportParserTest.InfersAndNormalizesPartialSplitFactors:ArcImportParserTest.InvalidSplitDegradesWithoutPhantomPages:ArcImportParserTest.GlobalTopAppPagesCarryExplicitSemanticMarkers
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from ArcImportParserTest
+[ RUN      ] ArcImportParserTest.RejectsUnknownCurrentContainerSelector
+[       OK ] ArcImportParserTest.RejectsUnknownCurrentContainerSelector (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsNonStringCurrentContainerId
+[       OK ] ArcImportParserTest.RejectsNonStringCurrentContainerId (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsDuplicateCurrentContainerKind
+[       OK ] ArcImportParserTest.RejectsDuplicateCurrentContainerKind (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsDuplicateCurrentContainerId
+[       OK ] ArcImportParserTest.RejectsDuplicateCurrentContainerId (0 ms)
+[ RUN      ] ArcImportParserTest.DomainSeparatesDeterministicIds
+[       OK ] ArcImportParserTest.DomainSeparatesDeterministicIds (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsMutationAfterSnapshot
+[       OK ] ArcImportParserTest.RejectsMutationAfterSnapshot (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsUnsupportedSchema
+[       OK ] ArcImportParserTest.RejectsUnsupportedSchema (0 ms)
+[ RUN      ] ArcImportParserTest.InfersAndNormalizesPartialSplitFactors
+[       OK ] ArcImportParserTest.InfersAndNormalizesPartialSplitFactors (0 ms)
+[ RUN      ] ArcImportParserTest.InvalidSplitDegradesWithoutPhantomPages
+[       OK ] ArcImportParserTest.InvalidSplitDegradesWithoutPhantomPages (0 ms)
+[ RUN      ] ArcImportParserTest.GlobalTopAppPagesCarryExplicitSemanticMarkers
+[       OK ] ArcImportParserTest.GlobalTopAppPagesCarryExplicitSemanticMarkers (0 ms)
+[----------] 10 tests from ArcImportParserTest (47 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (47 ms total)
+[  PASSED  ] 10 tests.
+[31/132] ArcImportParserTest.RejectsUnknownCurrentContainerSelector (0 ms)
+[32/132] ArcImportParserTest.RejectsNonStringCurrentContainerId (0 ms)
+[33/132] ArcImportParserTest.RejectsDuplicateCurrentContainerKind (0 ms)
+[34/132] ArcImportParserTest.RejectsDuplicateCurrentContainerId (0 ms)
+[35/132] ArcImportParserTest.DomainSeparatesDeterministicIds (0 ms)
+[36/132] ArcImportParserTest.RejectsMutationAfterSnapshot (0 ms)
+[37/132] ArcImportParserTest.RejectsUnsupportedSchema (0 ms)
+[38/132] ArcImportParserTest.InfersAndNormalizesPartialSplitFactors (0 ms)
+[39/132] ArcImportParserTest.InvalidSplitDegradesWithoutPhantomPages (0 ms)
+[40/132] ArcImportParserTest.GlobalTopAppPagesCarryExplicitSemanticMarkers (0 ms)
+objc[13602]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144bd4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129af0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13602]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x125260188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10af234c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportParserTest.RejectsMalformedSerializedMap:ArcImportParserTest.RejectsDuplicateIdentifiers:ArcImportParserTest.RejectsParentChildDisagreement:ArcImportParserTest.RejectsOversizedText:ArcImportParserTest.ReadsTheCustomArcProfileOfASpace:ArcImportParserTest.ReadsTheDefaultArcProfileOfASpace:ArcImportParserTest.MissingOrUnknownArcProfileMeansDefault:ArcImportParserTest.ArcProfileDoesNotChangePlanIdentities:ArcImportProfileMappingTest.PlanRecordsArcProfilesInSidebarOrder:ArcImportProfileMappingTest.NoSeparationKeepsThePlanUnchanged
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from ArcImportParserTest
+[ RUN      ] ArcImportParserTest.RejectsMalformedSerializedMap
+[       OK ] ArcImportParserTest.RejectsMalformedSerializedMap (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsDuplicateIdentifiers
+[       OK ] ArcImportParserTest.RejectsDuplicateIdentifiers (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsParentChildDisagreement
+[       OK ] ArcImportParserTest.RejectsParentChildDisagreement (0 ms)
+[ RUN      ] ArcImportParserTest.RejectsOversizedText
+[       OK ] ArcImportParserTest.RejectsOversizedText (0 ms)
+[ RUN      ] ArcImportParserTest.ReadsTheCustomArcProfileOfASpace
+[       OK ] ArcImportParserTest.ReadsTheCustomArcProfileOfASpace (0 ms)
+[ RUN      ] ArcImportParserTest.ReadsTheDefaultArcProfileOfASpace
+[       OK ] ArcImportParserTest.ReadsTheDefaultArcProfileOfASpace (0 ms)
+[ RUN      ] ArcImportParserTest.MissingOrUnknownArcProfileMeansDefault
+[       OK ] ArcImportParserTest.MissingOrUnknownArcProfileMeansDefault (0 ms)
+[ RUN      ] ArcImportParserTest.ArcProfileDoesNotChangePlanIdentities
+[       OK ] ArcImportParserTest.ArcProfileDoesNotChangePlanIdentities (0 ms)
+[----------] 8 tests from ArcImportParserTest (23 ms total)
+
+[----------] 2 tests from ArcImportProfileMappingTest
+[ RUN      ] ArcImportProfileMappingTest.PlanRecordsArcProfilesInSidebarOrder
+[       OK ] ArcImportProfileMappingTest.PlanRecordsArcProfilesInSidebarOrder (0 ms)
+[ RUN      ] ArcImportProfileMappingTest.NoSeparationKeepsThePlanUnchanged
+[       OK ] ArcImportProfileMappingTest.NoSeparationKeepsThePlanUnchanged (0 ms)
+[----------] 2 tests from ArcImportProfileMappingTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (24 ms total)
+[  PASSED  ] 10 tests.
+[41/132] ArcImportParserTest.RejectsMalformedSerializedMap (0 ms)
+[42/132] ArcImportParserTest.RejectsDuplicateIdentifiers (0 ms)
+[43/132] ArcImportParserTest.RejectsParentChildDisagreement (0 ms)
+[44/132] ArcImportParserTest.RejectsOversizedText (0 ms)
+[45/132] ArcImportParserTest.ReadsTheCustomArcProfileOfASpace (0 ms)
+[46/132] ArcImportParserTest.ReadsTheDefaultArcProfileOfASpace (0 ms)
+[47/132] ArcImportParserTest.MissingOrUnknownArcProfileMeansDefault (0 ms)
+[48/132] ArcImportParserTest.ArcProfileDoesNotChangePlanIdentities (0 ms)
+[49/132] ArcImportProfileMappingTest.PlanRecordsArcProfilesInSidebarOrder (0 ms)
+[50/132] ArcImportProfileMappingTest.NoSeparationKeepsThePlanUnchanged (0 ms)
+objc[13623]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14494ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129868a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13623]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124780188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10aa234c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportProfileMappingTest.SeparatedProfileLeavesTheMainPlan:ArcImportProfileMappingTest.OneSpaceProfileKeepsItsStructureAtRoot:ArcImportProfileMappingTest.SeparatedIdentitiesAreDeterministic:ArcImportProfileMappingTest.ValidatesTheSeparatedSelection:ArcImportProfileMappingTest.SeparatedTreeIsAPortableSelection:ArcImportProfileMappingTest.FullySeparatedMainPlanIsATransactionNoOp:ArcImportProfileMappingTest.RepeatedImportFindsTheSeparatedWorkspace:ArcImportRecoveryPolicyTest.ServiceStateMachineRestoresJournalWithoutTreeWriteWhenAlreadyPrevious:ArcImportRecoveryPolicyTest.ServiceStateMachineAuthorizesExactlyOneRollbackForExpectedTree:ArcImportRecoveryPolicyTest.ServiceStateMachineNeverWritesForeignTreeAndRequiresManualRecovery
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from ArcImportProfileMappingTest
+[ RUN      ] ArcImportProfileMappingTest.SeparatedProfileLeavesTheMainPlan
+[       OK ] ArcImportProfileMappingTest.SeparatedProfileLeavesTheMainPlan (0 ms)
+[ RUN      ] ArcImportProfileMappingTest.OneSpaceProfileKeepsItsStructureAtRoot
+[       OK ] ArcImportProfileMappingTest.OneSpaceProfileKeepsItsStructureAtRoot (0 ms)
+[ RUN      ] ArcImportProfileMappingTest.SeparatedIdentitiesAreDeterministic
+[       OK ] ArcImportProfileMappingTest.SeparatedIdentitiesAreDeterministic (0 ms)
+[ RUN      ] ArcImportProfileMappingTest.ValidatesTheSeparatedSelection
+[       OK ] ArcImportProfileMappingTest.ValidatesTheSeparatedSelection (0 ms)
+[ RUN      ] ArcImportProfileMappingTest.SeparatedTreeIsAPortableSelection
+[       OK ] ArcImportProfileMappingTest.SeparatedTreeIsAPortableSelection (0 ms)
+[ RUN      ] ArcImportProfileMappingTest.FullySeparatedMainPlanIsATransactionNoOp
+[       OK ] ArcImportProfileMappingTest.FullySeparatedMainPlanIsATransactionNoOp (1 ms)
+[ RUN      ] ArcImportProfileMappingTest.RepeatedImportFindsTheSeparatedWorkspace
+[       OK ] ArcImportProfileMappingTest.RepeatedImportFindsTheSeparatedWorkspace (0 ms)
+[----------] 7 tests from ArcImportProfileMappingTest (26 ms total)
+
+[----------] 3 tests from ArcImportRecoveryPolicyTest
+[ RUN      ] ArcImportRecoveryPolicyTest.ServiceStateMachineRestoresJournalWithoutTreeWriteWhenAlreadyPrevious
+[       OK ] ArcImportRecoveryPolicyTest.ServiceStateMachineRestoresJournalWithoutTreeWriteWhenAlreadyPrevious (0 ms)
+[ RUN      ] ArcImportRecoveryPolicyTest.ServiceStateMachineAuthorizesExactlyOneRollbackForExpectedTree
+[       OK ] ArcImportRecoveryPolicyTest.ServiceStateMachineAuthorizesExactlyOneRollbackForExpectedTree (0 ms)
+[ RUN      ] ArcImportRecoveryPolicyTest.ServiceStateMachineNeverWritesForeignTreeAndRequiresManualRecovery
+[       OK ] ArcImportRecoveryPolicyTest.ServiceStateMachineNeverWritesForeignTreeAndRequiresManualRecovery (0 ms)
+[----------] 3 tests from ArcImportRecoveryPolicyTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (27 ms total)
+[  PASSED  ] 10 tests.
+[51/132] ArcImportProfileMappingTest.SeparatedProfileLeavesTheMainPlan (0 ms)
+[52/132] ArcImportProfileMappingTest.OneSpaceProfileKeepsItsStructureAtRoot (0 ms)
+[53/132] ArcImportProfileMappingTest.SeparatedIdentitiesAreDeterministic (0 ms)
+[54/132] ArcImportProfileMappingTest.ValidatesTheSeparatedSelection (0 ms)
+[55/132] ArcImportProfileMappingTest.SeparatedTreeIsAPortableSelection (0 ms)
+[56/132] ArcImportProfileMappingTest.FullySeparatedMainPlanIsATransactionNoOp (1 ms)
+[57/132] ArcImportProfileMappingTest.RepeatedImportFindsTheSeparatedWorkspace (0 ms)
+[58/132] ArcImportRecoveryPolicyTest.ServiceStateMachineRestoresJournalWithoutTreeWriteWhenAlreadyPrevious (0 ms)
+[59/132] ArcImportRecoveryPolicyTest.ServiceStateMachineAuthorizesExactlyOneRollbackForExpectedTree (0 ms)
+[60/132] ArcImportRecoveryPolicyTest.ServiceStateMachineNeverWritesForeignTreeAndRequiresManualRecovery (0 ms)
+objc[13662]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x145114a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12a030a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13662]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124f48188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10b18f4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportRecoveryPolicyTest.EqualPreviousAndExpectedPrefersJournalOnlyWithoutTreeWrite:ArcImportRecoveryPolicyTest.RuntimeUncertaintyKeepsManualAfterAlreadyPreviousTree:ArcImportRecoveryPolicyTest.RuntimeUncertaintyNeverMutatesExpectedTreeAndKeepsManual:ArcImportRecoveryPolicyTest.RuntimePersistedReceiptCannotPublishWithoutFreshRuntimeRevalidation:ArcImportRecoveryPolicyTest.RuntimePersistedReceiptKeepsPreviousOrForeignTreeManual:ArcImportRecoveryPolicyTest.RuntimePersistedRemainsManualForEveryJournalizedReceiptVariant:ArcImportRecoveryPolicyTest.ManualAndMalformedStateNeverAuthorizeWrite:ArcImportRecoveryTest.LoadsExactSnapshotFromVerifiedImmutableBackup:ArcImportRecoveryTest.RejectsPayloadChangedAfterManifestCommit:ArcImportRecoveryTest.RejectsHardLinkedBackupPayload
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from ArcImportRecoveryPolicyTest
+[ RUN      ] ArcImportRecoveryPolicyTest.EqualPreviousAndExpectedPrefersJournalOnlyWithoutTreeWrite
+[       OK ] ArcImportRecoveryPolicyTest.EqualPreviousAndExpectedPrefersJournalOnlyWithoutTreeWrite (0 ms)
+[ RUN      ] ArcImportRecoveryPolicyTest.RuntimeUncertaintyKeepsManualAfterAlreadyPreviousTree
+[       OK ] ArcImportRecoveryPolicyTest.RuntimeUncertaintyKeepsManualAfterAlreadyPreviousTree (0 ms)
+[ RUN      ] ArcImportRecoveryPolicyTest.RuntimeUncertaintyNeverMutatesExpectedTreeAndKeepsManual
+[       OK ] ArcImportRecoveryPolicyTest.RuntimeUncertaintyNeverMutatesExpectedTreeAndKeepsManual (0 ms)
+[ RUN      ] ArcImportRecoveryPolicyTest.RuntimePersistedReceiptCannotPublishWithoutFreshRuntimeRevalidation
+[       OK ] ArcImportRecoveryPolicyTest.RuntimePersistedReceiptCannotPublishWithoutFreshRuntimeRevalidation (0 ms)
+[ RUN      ] ArcImportRecoveryPolicyTest.RuntimePersistedReceiptKeepsPreviousOrForeignTreeManual
+[       OK ] ArcImportRecoveryPolicyTest.RuntimePersistedReceiptKeepsPreviousOrForeignTreeManual (0 ms)
+[ RUN      ] ArcImportRecoveryPolicyTest.RuntimePersistedRemainsManualForEveryJournalizedReceiptVariant
+[       OK ] ArcImportRecoveryPolicyTest.RuntimePersistedRemainsManualForEveryJournalizedReceiptVariant (0 ms)
+[ RUN      ] ArcImportRecoveryPolicyTest.ManualAndMalformedStateNeverAuthorizeWrite
+[       OK ] ArcImportRecoveryPolicyTest.ManualAndMalformedStateNeverAuthorizeWrite (0 ms)
+[----------] 7 tests from ArcImportRecoveryPolicyTest (26 ms total)
+
+[----------] 3 tests from ArcImportRecoveryTest
+[ RUN      ] ArcImportRecoveryTest.LoadsExactSnapshotFromVerifiedImmutableBackup
+[       OK ] ArcImportRecoveryTest.LoadsExactSnapshotFromVerifiedImmutableBackup (45 ms)
+[ RUN      ] ArcImportRecoveryTest.RejectsPayloadChangedAfterManifestCommit
+[       OK ] ArcImportRecoveryTest.RejectsPayloadChangedAfterManifestCommit (39 ms)
+[ RUN      ] ArcImportRecoveryTest.RejectsHardLinkedBackupPayload
+[       OK ] ArcImportRecoveryTest.RejectsHardLinkedBackupPayload (40 ms)
+[----------] 3 tests from ArcImportRecoveryTest (127 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (153 ms total)
+[  PASSED  ] 10 tests.
+[61/132] ArcImportRecoveryPolicyTest.EqualPreviousAndExpectedPrefersJournalOnlyWithoutTreeWrite (0 ms)
+[62/132] ArcImportRecoveryPolicyTest.RuntimeUncertaintyKeepsManualAfterAlreadyPreviousTree (0 ms)
+[63/132] ArcImportRecoveryPolicyTest.RuntimeUncertaintyNeverMutatesExpectedTreeAndKeepsManual (0 ms)
+[64/132] ArcImportRecoveryPolicyTest.RuntimePersistedReceiptCannotPublishWithoutFreshRuntimeRevalidation (0 ms)
+[65/132] ArcImportRecoveryPolicyTest.RuntimePersistedReceiptKeepsPreviousOrForeignTreeManual (0 ms)
+[66/132] ArcImportRecoveryPolicyTest.RuntimePersistedRemainsManualForEveryJournalizedReceiptVariant (0 ms)
+[67/132] ArcImportRecoveryPolicyTest.ManualAndMalformedStateNeverAuthorizeWrite (0 ms)
+[68/132] ArcImportRecoveryTest.LoadsExactSnapshotFromVerifiedImmutableBackup (45 ms)
+[69/132] ArcImportRecoveryTest.RejectsPayloadChangedAfterManifestCommit (39 ms)
+[70/132] ArcImportRecoveryTest.RejectsHardLinkedBackupPayload (40 ms)
+objc[13695]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1410eca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126008a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13695]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120f20188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10716f4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportRecoveryTest.RejectsOverPermissiveManifest:ArcImportRecoveryTest.ManualPlanPreservesBaselineEditsAndIndependentTemporaryPages:ArcImportSourceTreeTest.KeepsEveryItemOfADeepTree:ArcImportSourceTreeTest.PromotesOnlyDirectPinnedFolders:ArcImportSourceTreeTest.IgnoresTheArcSyncMirror:ArcImportSourceTreeTest.CountsStandaloneItemsAsUnreachable:ArcImportSourceTreeTest.RejectsUnexpectedContainerMaps:ArcImportTransactionKeyTest.SplitUpgradeIsNotAFalseNoOp:ArcImportTransactionKeyTest.IncludesConflictAndSelectedComponents:ArcImportTransactionKeyTest.ProfileOrderingIsCanonical
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from ArcImportRecoveryTest
+[ RUN      ] ArcImportRecoveryTest.RejectsOverPermissiveManifest
+[       OK ] ArcImportRecoveryTest.RejectsOverPermissiveManifest (48 ms)
+[ RUN      ] ArcImportRecoveryTest.ManualPlanPreservesBaselineEditsAndIndependentTemporaryPages
+[       OK ] ArcImportRecoveryTest.ManualPlanPreservesBaselineEditsAndIndependentTemporaryPages (38 ms)
+[----------] 2 tests from ArcImportRecoveryTest (128 ms total)
+
+[----------] 5 tests from ArcImportSourceTreeTest
+[ RUN      ] ArcImportSourceTreeTest.KeepsEveryItemOfADeepTree
+[       OK ] ArcImportSourceTreeTest.KeepsEveryItemOfADeepTree (0 ms)
+[ RUN      ] ArcImportSourceTreeTest.PromotesOnlyDirectPinnedFolders
+[       OK ] ArcImportSourceTreeTest.PromotesOnlyDirectPinnedFolders (0 ms)
+[ RUN      ] ArcImportSourceTreeTest.IgnoresTheArcSyncMirror
+[       OK ] ArcImportSourceTreeTest.IgnoresTheArcSyncMirror (0 ms)
+[ RUN      ] ArcImportSourceTreeTest.CountsStandaloneItemsAsUnreachable
+[       OK ] ArcImportSourceTreeTest.CountsStandaloneItemsAsUnreachable (0 ms)
+[ RUN      ] ArcImportSourceTreeTest.RejectsUnexpectedContainerMaps
+[       OK ] ArcImportSourceTreeTest.RejectsUnexpectedContainerMaps (0 ms)
+[----------] 5 tests from ArcImportSourceTreeTest (3 ms total)
+
+[----------] 3 tests from ArcImportTransactionKeyTest
+[ RUN      ] ArcImportTransactionKeyTest.SplitUpgradeIsNotAFalseNoOp
+[       OK ] ArcImportTransactionKeyTest.SplitUpgradeIsNotAFalseNoOp (0 ms)
+[ RUN      ] ArcImportTransactionKeyTest.IncludesConflictAndSelectedComponents
+[       OK ] ArcImportTransactionKeyTest.IncludesConflictAndSelectedComponents (0 ms)
+[ RUN      ] ArcImportTransactionKeyTest.ProfileOrderingIsCanonical
+[       OK ] ArcImportTransactionKeyTest.ProfileOrderingIsCanonical (0 ms)
+[----------] 3 tests from ArcImportTransactionKeyTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (133 ms total)
+[  PASSED  ] 10 tests.
+[71/132] ArcImportRecoveryTest.RejectsOverPermissiveManifest (48 ms)
+[72/132] ArcImportRecoveryTest.ManualPlanPreservesBaselineEditsAndIndependentTemporaryPages (38 ms)
+[73/132] ArcImportSourceTreeTest.KeepsEveryItemOfADeepTree (0 ms)
+[74/132] ArcImportSourceTreeTest.PromotesOnlyDirectPinnedFolders (0 ms)
+[75/132] ArcImportSourceTreeTest.IgnoresTheArcSyncMirror (0 ms)
+[76/132] ArcImportSourceTreeTest.CountsStandaloneItemsAsUnreachable (0 ms)
+[77/132] ArcImportSourceTreeTest.RejectsUnexpectedContainerMaps (0 ms)
+[78/132] ArcImportTransactionKeyTest.SplitUpgradeIsNotAFalseNoOp (0 ms)
+[79/132] ArcImportTransactionKeyTest.IncludesConflictAndSelectedComponents (0 ms)
+[80/132] ArcImportTransactionKeyTest.ProfileOrderingIsCanonical (0 ms)
+objc[13730]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14077ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125698a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13730]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120e08188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x1068df4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportTransactionKeyTest.SeparatedArcProfilesArePartOfTheKey:ArcImportTransactionKeyTest.SeparatedOrderingIsCanonical:ArcImportTransactionKeyTest.NoSeparationKeepsTheLegacyKey:ArcImportTransactionTest.RenameIsAdditiveAndLeavesInputUntouched:ArcImportTransactionTest.RenamedWorkspaceSecondMergeIsNoOp:ArcImportTransactionTest.SkipConflictProducesNoMutation:ArcImportTransactionTest.MergeTargetsExistingWorkspaceWithoutOverwrite:ArcImportTransactionTest.MergeNoOpRetainsRemappedRuntimeSplitAndDeduplicationReceipt:ArcImportTransactionTest.PartialIdempotentSplitKeepsCompleteRuntimeStructure:ArcImportTransactionTest.PartialSplitMergedIntoExistingWorkspaceUsesRemappedRuntimeNodes
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from ArcImportTransactionKeyTest
+[ RUN      ] ArcImportTransactionKeyTest.SeparatedArcProfilesArePartOfTheKey
+[       OK ] ArcImportTransactionKeyTest.SeparatedArcProfilesArePartOfTheKey (0 ms)
+[ RUN      ] ArcImportTransactionKeyTest.SeparatedOrderingIsCanonical
+[       OK ] ArcImportTransactionKeyTest.SeparatedOrderingIsCanonical (0 ms)
+[ RUN      ] ArcImportTransactionKeyTest.NoSeparationKeepsTheLegacyKey
+[       OK ] ArcImportTransactionKeyTest.NoSeparationKeepsTheLegacyKey (0 ms)
+[----------] 3 tests from ArcImportTransactionKeyTest (29 ms total)
+
+[----------] 7 tests from ArcImportTransactionTest
+[ RUN      ] ArcImportTransactionTest.RenameIsAdditiveAndLeavesInputUntouched
+[       OK ] ArcImportTransactionTest.RenameIsAdditiveAndLeavesInputUntouched (4 ms)
+[ RUN      ] ArcImportTransactionTest.RenamedWorkspaceSecondMergeIsNoOp
+[       OK ] ArcImportTransactionTest.RenamedWorkspaceSecondMergeIsNoOp (4 ms)
+[ RUN      ] ArcImportTransactionTest.SkipConflictProducesNoMutation
+[       OK ] ArcImportTransactionTest.SkipConflictProducesNoMutation (2 ms)
+[ RUN      ] ArcImportTransactionTest.MergeTargetsExistingWorkspaceWithoutOverwrite
+[       OK ] ArcImportTransactionTest.MergeTargetsExistingWorkspaceWithoutOverwrite (3 ms)
+[ RUN      ] ArcImportTransactionTest.MergeNoOpRetainsRemappedRuntimeSplitAndDeduplicationReceipt
+[       OK ] ArcImportTransactionTest.MergeNoOpRetainsRemappedRuntimeSplitAndDeduplicationReceipt (3 ms)
+[ RUN      ] ArcImportTransactionTest.PartialIdempotentSplitKeepsCompleteRuntimeStructure
+[       OK ] ArcImportTransactionTest.PartialIdempotentSplitKeepsCompleteRuntimeStructure (1 ms)
+[ RUN      ] ArcImportTransactionTest.PartialSplitMergedIntoExistingWorkspaceUsesRemappedRuntimeNodes
+[       OK ] ArcImportTransactionTest.PartialSplitMergedIntoExistingWorkspaceUsesRemappedRuntimeNodes (3 ms)
+[----------] 7 tests from ArcImportTransactionTest (27 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (56 ms total)
+[  PASSED  ] 10 tests.
+[81/132] ArcImportTransactionKeyTest.SeparatedArcProfilesArePartOfTheKey (0 ms)
+[82/132] ArcImportTransactionKeyTest.SeparatedOrderingIsCanonical (0 ms)
+[83/132] ArcImportTransactionKeyTest.NoSeparationKeepsTheLegacyKey (0 ms)
+[84/132] ArcImportTransactionTest.RenameIsAdditiveAndLeavesInputUntouched (4 ms)
+[85/132] ArcImportTransactionTest.RenamedWorkspaceSecondMergeIsNoOp (4 ms)
+[86/132] ArcImportTransactionTest.SkipConflictProducesNoMutation (2 ms)
+[87/132] ArcImportTransactionTest.MergeTargetsExistingWorkspaceWithoutOverwrite (3 ms)
+[88/132] ArcImportTransactionTest.MergeNoOpRetainsRemappedRuntimeSplitAndDeduplicationReceipt (3 ms)
+[89/132] ArcImportTransactionTest.PartialIdempotentSplitKeepsCompleteRuntimeStructure (1 ms)
+[90/132] ArcImportTransactionTest.PartialSplitMergedIntoExistingWorkspaceUsesRemappedRuntimeNodes (3 ms)
+objc[13763]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x141ffca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126f18a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13763]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122688188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x1083234c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportTransactionTest.IdentityConflictReturnsNoReplacementSnapshot:ArcImportTransactionTest.SameSnapshotSecondMergeIsDeterministicNoOp:ArcImportTransactionTest.CanonicalMergeMatchesStoreReadbackAndPreservesUndoAndSourceOrdering:ArcImportTransactionTest.InvalidPlanFailsClosedWithoutCandidateTree:ArcImportTreeFingerprintTest.CanonicalizesPersistedCollectionOrder:ArcImportTreeFingerprintTest.PreservesPersistedUndoOrdinal:ArcImportTreeFingerprintTest.CoversEveryWorkspaceField:ArcImportTreeFingerprintTest.CoversEveryTreeNodeField:ArcImportTreeFingerprintTest.CoversUndoAndNestedPreviousFields:ArcImportFileTest.DiscoversAndCapturesStableBoundedSource
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from ArcImportTransactionTest
+[ RUN      ] ArcImportTransactionTest.IdentityConflictReturnsNoReplacementSnapshot
+[       OK ] ArcImportTransactionTest.IdentityConflictReturnsNoReplacementSnapshot (1 ms)
+[ RUN      ] ArcImportTransactionTest.SameSnapshotSecondMergeIsDeterministicNoOp
+[       OK ] ArcImportTransactionTest.SameSnapshotSecondMergeIsDeterministicNoOp (2 ms)
+[ RUN      ] ArcImportTransactionTest.CanonicalMergeMatchesStoreReadbackAndPreservesUndoAndSourceOrdering
+[       OK ] ArcImportTransactionTest.CanonicalMergeMatchesStoreReadbackAndPreservesUndoAndSourceOrdering (4 ms)
+[ RUN      ] ArcImportTransactionTest.InvalidPlanFailsClosedWithoutCandidateTree
+[       OK ] ArcImportTransactionTest.InvalidPlanFailsClosedWithoutCandidateTree (0 ms)
+[----------] 4 tests from ArcImportTransactionTest (31 ms total)
+
+[----------] 5 tests from ArcImportTreeFingerprintTest
+[ RUN      ] ArcImportTreeFingerprintTest.CanonicalizesPersistedCollectionOrder
+[       OK ] ArcImportTreeFingerprintTest.CanonicalizesPersistedCollectionOrder (0 ms)
+[ RUN      ] ArcImportTreeFingerprintTest.PreservesPersistedUndoOrdinal
+[       OK ] ArcImportTreeFingerprintTest.PreservesPersistedUndoOrdinal (0 ms)
+[ RUN      ] ArcImportTreeFingerprintTest.CoversEveryWorkspaceField
+[       OK ] ArcImportTreeFingerprintTest.CoversEveryWorkspaceField (0 ms)
+[ RUN      ] ArcImportTreeFingerprintTest.CoversEveryTreeNodeField
+[       OK ] ArcImportTreeFingerprintTest.CoversEveryTreeNodeField (0 ms)
+[ RUN      ] ArcImportTreeFingerprintTest.CoversUndoAndNestedPreviousFields
+[       OK ] ArcImportTreeFingerprintTest.CoversUndoAndNestedPreviousFields (0 ms)
+[----------] 5 tests from ArcImportTreeFingerprintTest (2 ms total)
+
+[----------] 1 test from ArcImportFileTest
+[ RUN      ] ArcImportFileTest.DiscoversAndCapturesStableBoundedSource
+[       OK ] ArcImportFileTest.DiscoversAndCapturesStableBoundedSource (1 ms)
+[----------] 1 test from ArcImportFileTest (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (35 ms total)
+[  PASSED  ] 10 tests.
+[91/132] ArcImportTransactionTest.IdentityConflictReturnsNoReplacementSnapshot (1 ms)
+[92/132] ArcImportTransactionTest.SameSnapshotSecondMergeIsDeterministicNoOp (2 ms)
+[93/132] ArcImportTransactionTest.CanonicalMergeMatchesStoreReadbackAndPreservesUndoAndSourceOrdering (4 ms)
+[94/132] ArcImportTransactionTest.InvalidPlanFailsClosedWithoutCandidateTree (0 ms)
+[95/132] ArcImportTreeFingerprintTest.CanonicalizesPersistedCollectionOrder (0 ms)
+[96/132] ArcImportTreeFingerprintTest.PreservesPersistedUndoOrdinal (0 ms)
+[97/132] ArcImportTreeFingerprintTest.CoversEveryWorkspaceField (0 ms)
+[98/132] ArcImportTreeFingerprintTest.CoversEveryTreeNodeField (0 ms)
+[99/132] ArcImportTreeFingerprintTest.CoversUndoAndNestedPreviousFields (0 ms)
+[100/132] ArcImportFileTest.DiscoversAndCapturesStableBoundedSource (1 ms)
+objc[13792]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144854a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129770a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13792]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124ee0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10abf34c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportFileTest.DiscoversEverySelectableChromiumProfileOnly:ArcImportFileTest.ProtectsSidebarAndSelectedProfileDatabaseFiles:ArcImportFileTest.CreatesVerifiedOwnerOnlyBackupFromStableGeneration:ArcImportFileTest.BackupRejectsFifoWithoutBlocking:ArcImportFileTest.BackupRejectsLeafSymlinkInsteadOfFollowingIt:ArcImportFileTest.BackupNamesRemainUniqueForSimilarProfileNames:ArcImportFileTest.RejectsSymlinkedArcRoot:ArcImportFileTest.RejectsSymlinkedSidebarFile:ArcImportFileTest.RejectsTraversalAndOversizedSource:ArcImportDiscoveryTest.RecognizesMainAndHelperExecutablesInArcBundle
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 9 tests from ArcImportFileTest
+[ RUN      ] ArcImportFileTest.DiscoversEverySelectableChromiumProfileOnly
+[       OK ] ArcImportFileTest.DiscoversEverySelectableChromiumProfileOnly (3 ms)
+[ RUN      ] ArcImportFileTest.ProtectsSidebarAndSelectedProfileDatabaseFiles
+[       OK ] ArcImportFileTest.ProtectsSidebarAndSelectedProfileDatabaseFiles (1 ms)
+[ RUN      ] ArcImportFileTest.CreatesVerifiedOwnerOnlyBackupFromStableGeneration
+[       OK ] ArcImportFileTest.CreatesVerifiedOwnerOnlyBackupFromStableGeneration (32 ms)
+[ RUN      ] ArcImportFileTest.BackupRejectsFifoWithoutBlocking
+[       OK ] ArcImportFileTest.BackupRejectsFifoWithoutBlocking (1 ms)
+[ RUN      ] ArcImportFileTest.BackupRejectsLeafSymlinkInsteadOfFollowingIt
+[       OK ] ArcImportFileTest.BackupRejectsLeafSymlinkInsteadOfFollowingIt (1 ms)
+[ RUN      ] ArcImportFileTest.BackupNamesRemainUniqueForSimilarProfileNames
+[       OK ] ArcImportFileTest.BackupNamesRemainUniqueForSimilarProfileNames (29 ms)
+[ RUN      ] ArcImportFileTest.RejectsSymlinkedArcRoot
+[       OK ] ArcImportFileTest.RejectsSymlinkedArcRoot (1 ms)
+[ RUN      ] ArcImportFileTest.RejectsSymlinkedSidebarFile
+[       OK ] ArcImportFileTest.RejectsSymlinkedSidebarFile (1 ms)
+[ RUN      ] ArcImportFileTest.RejectsTraversalAndOversizedSource
+[       OK ] ArcImportFileTest.RejectsTraversalAndOversizedSource (6 ms)
+[----------] 9 tests from ArcImportFileTest (101 ms total)
+
+[----------] 1 test from ArcImportDiscoveryTest
+[ RUN      ] ArcImportDiscoveryTest.RecognizesMainAndHelperExecutablesInArcBundle
+[       OK ] ArcImportDiscoveryTest.RecognizesMainAndHelperExecutablesInArcBundle (0 ms)
+[----------] 1 test from ArcImportDiscoveryTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (102 ms total)
+[  PASSED  ] 10 tests.
+[101/132] ArcImportFileTest.DiscoversEverySelectableChromiumProfileOnly (3 ms)
+[102/132] ArcImportFileTest.ProtectsSidebarAndSelectedProfileDatabaseFiles (1 ms)
+[103/132] ArcImportFileTest.CreatesVerifiedOwnerOnlyBackupFromStableGeneration (32 ms)
+[104/132] ArcImportFileTest.BackupRejectsFifoWithoutBlocking (1 ms)
+[105/132] ArcImportFileTest.BackupRejectsLeafSymlinkInsteadOfFollowingIt (1 ms)
+[106/132] ArcImportFileTest.BackupNamesRemainUniqueForSimilarProfileNames (29 ms)
+[107/132] ArcImportFileTest.RejectsSymlinkedArcRoot (1 ms)
+[108/132] ArcImportFileTest.RejectsSymlinkedSidebarFile (1 ms)
+[109/132] ArcImportFileTest.RejectsTraversalAndOversizedSource (6 ms)
+[110/132] ArcImportDiscoveryTest.RecognizesMainAndHelperExecutablesInArcBundle (0 ms)
+objc[13806]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144424a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129340a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13806]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124258188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10a4f34c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcImportDiscoveryTest.PrefersRunningInjectedBundleFixtureAcrossApplicationRoots:ArcImportDiscoveryTest.ProductionAuthenticationRejectsUnsignedOfficialIdentityFixture:ArcImportDiscoveryTest.RejectsStructurallyNamedUnauthenticatedBundle:ArcImportDiscoveryTest.InspectionFailuresClassifyOnlyRelevantLiveProcessesAsInconclusive:ArcImportDiscoveryTest.InExitFlagNeverProvesThatProcessExited:ArcImportDiscoveryTest.OpenFileInspectionRetriesChurnAndDoesNotAttributeReusedPid:ArcImportDiscoveryTest.OnlyPositiveRelevantHandleEvidenceBlocksTheSource:ArcImportBackupResourceTest.RejectsQuotaOverflowAndLowFreeSpace:ArcImportBackupRetentionTest.PreservesPreparedForeignAndSymlinkEntriesWhilePruningOwnedBackups:ArcImportBackupRetentionTest.DeletesOnlyContentVerifiedBackupsAndProtectsPreparedJournalIdentifier
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from ArcImportDiscoveryTest
+[ RUN      ] ArcImportDiscoveryTest.PrefersRunningInjectedBundleFixtureAcrossApplicationRoots
+[       OK ] ArcImportDiscoveryTest.PrefersRunningInjectedBundleFixtureAcrossApplicationRoots (3 ms)
+[ RUN      ] ArcImportDiscoveryTest.ProductionAuthenticationRejectsUnsignedOfficialIdentityFixture
+[       OK ] ArcImportDiscoveryTest.ProductionAuthenticationRejectsUnsignedOfficialIdentityFixture (15 ms)
+[ RUN      ] ArcImportDiscoveryTest.RejectsStructurallyNamedUnauthenticatedBundle
+[       OK ] ArcImportDiscoveryTest.RejectsStructurallyNamedUnauthenticatedBundle (1 ms)
+[ RUN      ] ArcImportDiscoveryTest.InspectionFailuresClassifyOnlyRelevantLiveProcessesAsInconclusive
+[       OK ] ArcImportDiscoveryTest.InspectionFailuresClassifyOnlyRelevantLiveProcessesAsInconclusive (0 ms)
+[ RUN      ] ArcImportDiscoveryTest.InExitFlagNeverProvesThatProcessExited
+[       OK ] ArcImportDiscoveryTest.InExitFlagNeverProvesThatProcessExited (0 ms)
+[ RUN      ] ArcImportDiscoveryTest.OpenFileInspectionRetriesChurnAndDoesNotAttributeReusedPid
+[       OK ] ArcImportDiscoveryTest.OpenFileInspectionRetriesChurnAndDoesNotAttributeReusedPid (0 ms)
+[ RUN      ] ArcImportDiscoveryTest.OnlyPositiveRelevantHandleEvidenceBlocksTheSource
+[       OK ] ArcImportDiscoveryTest.OnlyPositiveRelevantHandleEvidenceBlocksTheSource (0 ms)
+[----------] 7 tests from ArcImportDiscoveryTest (41 ms total)
+
+[----------] 1 test from ArcImportBackupResourceTest
+[ RUN      ] ArcImportBackupResourceTest.RejectsQuotaOverflowAndLowFreeSpace
+[       OK ] ArcImportBackupResourceTest.RejectsQuotaOverflowAndLowFreeSpace (0 ms)
+[----------] 1 test from ArcImportBackupResourceTest (0 ms total)
+
+[----------] 2 tests from ArcImportBackupRetentionTest
+[ RUN      ] ArcImportBackupRetentionTest.PreservesPreparedForeignAndSymlinkEntriesWhilePruningOwnedBackups
+[       OK ] ArcImportBackupRetentionTest.PreservesPreparedForeignAndSymlinkEntriesWhilePruningOwnedBackups (4 ms)
+[ RUN      ] ArcImportBackupRetentionTest.DeletesOnlyContentVerifiedBackupsAndProtectsPreparedJournalIdentifier
+[       OK ] ArcImportBackupRetentionTest.DeletesOnlyContentVerifiedBackupsAndProtectsPreparedJournalIdentifier (6 ms)
+[----------] 2 tests from ArcImportBackupRetentionTest (11 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (53 ms total)
+[  PASSED  ] 10 tests.
+[111/132] ArcImportDiscoveryTest.PrefersRunningInjectedBundleFixtureAcrossApplicationRoots (3 ms)
+[112/132] ArcImportDiscoveryTest.ProductionAuthenticationRejectsUnsignedOfficialIdentityFixture (15 ms)
+[113/132] ArcImportDiscoveryTest.RejectsStructurallyNamedUnauthenticatedBundle (1 ms)
+[114/132] ArcImportDiscoveryTest.InspectionFailuresClassifyOnlyRelevantLiveProcessesAsInconclusive (0 ms)
+[115/132] ArcImportDiscoveryTest.InExitFlagNeverProvesThatProcessExited (0 ms)
+[116/132] ArcImportDiscoveryTest.OpenFileInspectionRetriesChurnAndDoesNotAttributeReusedPid (0 ms)
+[117/132] ArcImportDiscoveryTest.OnlyPositiveRelevantHandleEvidenceBlocksTheSource (0 ms)
+[118/132] ArcImportBackupResourceTest.RejectsQuotaOverflowAndLowFreeSpace (0 ms)
+[119/132] ArcImportBackupRetentionTest.PreservesPreparedForeignAndSymlinkEntriesWhilePruningOwnedBackups (4 ms)
+[120/132] ArcImportBackupRetentionTest.DeletesOnlyContentVerifiedBackupsAndProtectsPreparedJournalIdentifier (6 ms)
+objc[13808]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14253ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127458a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13808]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122370188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10856b4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcSplitReceiptTest.StructureFingerprintIsPrivateAndRuntimeIndependent:ArcSplitReceiptTest.RejectsStructurallyInvalidDescriptors:ArcSplitReceiptTest.VerifiesExactDurableStructureAndFocus:ArcSplitReceiptTest.ReceiptDoesNotHashEphemeralSplitId:ArcSplitReceiptTest.RejectsWrongSourceOrder:ArcSplitReceiptTest.RejectsExtraOrDifferentlySplitMembers:ArcSplitReceiptTest.RejectsDuplicateMetadataAcrossWindows:ArcSplitReceiptTest.RejectsMissingMetadataOrSplitVisualRecord:ArcSplitReceiptTest.ChecksFocusOnlyWhenRequested:ArcSplitReceiptTest.OtherActiveWindowDoesNotInvalidateTargetMemberFocus
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from ArcSplitReceiptTest
+[ RUN      ] ArcSplitReceiptTest.StructureFingerprintIsPrivateAndRuntimeIndependent
+[       OK ] ArcSplitReceiptTest.StructureFingerprintIsPrivateAndRuntimeIndependent (0 ms)
+[ RUN      ] ArcSplitReceiptTest.RejectsStructurallyInvalidDescriptors
+[       OK ] ArcSplitReceiptTest.RejectsStructurallyInvalidDescriptors (0 ms)
+[ RUN      ] ArcSplitReceiptTest.VerifiesExactDurableStructureAndFocus
+[       OK ] ArcSplitReceiptTest.VerifiesExactDurableStructureAndFocus (0 ms)
+[ RUN      ] ArcSplitReceiptTest.ReceiptDoesNotHashEphemeralSplitId
+[       OK ] ArcSplitReceiptTest.ReceiptDoesNotHashEphemeralSplitId (0 ms)
+[ RUN      ] ArcSplitReceiptTest.RejectsWrongSourceOrder
+[       OK ] ArcSplitReceiptTest.RejectsWrongSourceOrder (0 ms)
+[ RUN      ] ArcSplitReceiptTest.RejectsExtraOrDifferentlySplitMembers
+[       OK ] ArcSplitReceiptTest.RejectsExtraOrDifferentlySplitMembers (0 ms)
+[ RUN      ] ArcSplitReceiptTest.RejectsDuplicateMetadataAcrossWindows
+[       OK ] ArcSplitReceiptTest.RejectsDuplicateMetadataAcrossWindows (0 ms)
+[ RUN      ] ArcSplitReceiptTest.RejectsMissingMetadataOrSplitVisualRecord
+[       OK ] ArcSplitReceiptTest.RejectsMissingMetadataOrSplitVisualRecord (0 ms)
+[ RUN      ] ArcSplitReceiptTest.ChecksFocusOnlyWhenRequested
+[       OK ] ArcSplitReceiptTest.ChecksFocusOnlyWhenRequested (0 ms)
+[ RUN      ] ArcSplitReceiptTest.OtherActiveWindowDoesNotInvalidateTargetMemberFocus
+[       OK ] ArcSplitReceiptTest.OtherActiveWindowDoesNotInvalidateTargetMemberFocus (0 ms)
+[----------] 10 tests from ArcSplitReceiptTest (25 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (25 ms total)
+[  PASSED  ] 10 tests.
+[121/132] ArcSplitReceiptTest.StructureFingerprintIsPrivateAndRuntimeIndependent (0 ms)
+[122/132] ArcSplitReceiptTest.RejectsStructurallyInvalidDescriptors (0 ms)
+[123/132] ArcSplitReceiptTest.VerifiesExactDurableStructureAndFocus (0 ms)
+[124/132] ArcSplitReceiptTest.ReceiptDoesNotHashEphemeralSplitId (0 ms)
+[125/132] ArcSplitReceiptTest.RejectsWrongSourceOrder (0 ms)
+[126/132] ArcSplitReceiptTest.RejectsExtraOrDifferentlySplitMembers (0 ms)
+[127/132] ArcSplitReceiptTest.RejectsDuplicateMetadataAcrossWindows (0 ms)
+[128/132] ArcSplitReceiptTest.RejectsMissingMetadataOrSplitVisualRecord (0 ms)
+[129/132] ArcSplitReceiptTest.ChecksFocusOnlyWhenRequested (0 ms)
+[130/132] ArcSplitReceiptTest.OtherActiveWindowDoesNotInvalidateTargetMemberFocus (0 ms)
+objc[13815]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1448f8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129814a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13815]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124f84188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_arc_import_unittests (0x10ac474c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ArcSplitReceiptTest.OtherActiveWindowDoesNotRelaxMemberWindowOwnership:ArcSplitRuntimeTest.ExactFocusRequiresActiveTabInsideTargetWindow
+[==========] Running 2 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from ArcSplitReceiptTest
+[ RUN      ] ArcSplitReceiptTest.OtherActiveWindowDoesNotRelaxMemberWindowOwnership
+[       OK ] ArcSplitReceiptTest.OtherActiveWindowDoesNotRelaxMemberWindowOwnership (0 ms)
+[----------] 1 test from ArcSplitReceiptTest (18 ms total)
+
+[----------] 1 test from ArcSplitRuntimeTest
+[ RUN      ] ArcSplitRuntimeTest.ExactFocusRequiresActiveTabInsideTargetWindow
+[       OK ] ArcSplitRuntimeTest.ExactFocusRequiresActiveTabInsideTargetWindow (0 ms)
+[----------] 1 test from ArcSplitRuntimeTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 2 test suites ran. (19 ms total)
+[  PASSED  ] 2 tests.
+[131/132] ArcSplitReceiptTest.OtherActiveWindowDoesNotRelaxMemberWindowOwnership (0 ms)
+[132/132] ArcSplitRuntimeTest.ExactFocusRequiresActiveTabInsideTargetWindow (0 ms)
+SUCCESS: all tests passed.
+Tests took 32 seconds.

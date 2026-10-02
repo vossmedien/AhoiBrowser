@@ -1,0 +1,36 @@
+objc[15874]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13d264a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11caa4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[15874]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x118308188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_resource_policy_unittests (0x1043bc4a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[16196]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13b9c8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11b208a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[16196]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x116a6c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_resource_policy_unittests (0x102b604a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ResourcePolicyTypesTest.CriticalStatesHaveStablePrimaryReasons:ResourcePolicyTypesTest.UpstreamOwnedSignalsDoNotNeedAhoiScheduler:ResourcePolicyTypesTest.ProductGapsUseLifecycleProtection:ResourcePolicyPrefsTest.AhoiDefaultsToChromiumMemorySaverMedium
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from ResourcePolicyTypesTest
+[ RUN      ] ResourcePolicyTypesTest.CriticalStatesHaveStablePrimaryReasons
+[       OK ] ResourcePolicyTypesTest.CriticalStatesHaveStablePrimaryReasons (0 ms)
+[ RUN      ] ResourcePolicyTypesTest.UpstreamOwnedSignalsDoNotNeedAhoiScheduler
+[       OK ] ResourcePolicyTypesTest.UpstreamOwnedSignalsDoNotNeedAhoiScheduler (0 ms)
+[ RUN      ] ResourcePolicyTypesTest.ProductGapsUseLifecycleProtection
+[       OK ] ResourcePolicyTypesTest.ProductGapsUseLifecycleProtection (0 ms)
+[----------] 3 tests from ResourcePolicyTypesTest (0 ms total)
+
+[----------] 1 test from ResourcePolicyPrefsTest
+[ RUN      ] ResourcePolicyPrefsTest.AhoiDefaultsToChromiumMemorySaverMedium
+[       OK ] ResourcePolicyPrefsTest.AhoiDefaultsToChromiumMemorySaverMedium (0 ms)
+[----------] 1 test from ResourcePolicyPrefsTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 4 tests.
+[1/4] ResourcePolicyTypesTest.CriticalStatesHaveStablePrimaryReasons (0 ms)
+[2/4] ResourcePolicyTypesTest.UpstreamOwnedSignalsDoNotNeedAhoiScheduler (0 ms)
+[3/4] ResourcePolicyTypesTest.ProductGapsUseLifecycleProtection (0 ms)
+[4/4] ResourcePolicyPrefsTest.AhoiDefaultsToChromiumMemorySaverMedium (0 ms)
+SUCCESS: all tests passed.
+Tests took 1 seconds.

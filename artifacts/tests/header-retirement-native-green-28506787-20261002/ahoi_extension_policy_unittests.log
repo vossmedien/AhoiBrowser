@@ -1,0 +1,200 @@
+objc[14636]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144bb4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129ad0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14636]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124adc188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_extension_policy_unittests (0x10a6ef4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[14985]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1433c8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1282e4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14985]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1232f0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_extension_policy_unittests (0x108f1f4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = UboAuthorizationTest.AllowsOnlyMatchingPendingThenCommittedMv2:UboAuthorizationTest.AuthorizationAndMigrationPrefsAreLocalOnly:UboAuthorizationTest.MigrationCheckpointRoundTripsExactAuthorizationLocally:UboAuthorizationTest.AllowsExactPinnedBootstrapWithNoGuessedUpdateUrl:UboAuthorizationTest.RejectsSchemaOneAndFormerIdentityAuthorizationState:UboAuthorizationTest.RejectsModifiedBootstrapMetadata:UboAuthorizationTest.AbortedTransactionLeavesNoMv2Exception:UboAuthorizationTest.ProfileShutdownClearsPendingAddressWithoutCommitting:UboAuthorizationTest.RejectsForeignMv2ManipulatedKeyAndUpdateUrl:UboAuthorizationTest.Mv3NeverReceivesTheMv2Exception
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from UboAuthorizationTest
+[ RUN      ] UboAuthorizationTest.AllowsOnlyMatchingPendingThenCommittedMv2
+[       OK ] UboAuthorizationTest.AllowsOnlyMatchingPendingThenCommittedMv2 (1 ms)
+[ RUN      ] UboAuthorizationTest.AuthorizationAndMigrationPrefsAreLocalOnly
+[       OK ] UboAuthorizationTest.AuthorizationAndMigrationPrefsAreLocalOnly (0 ms)
+[ RUN      ] UboAuthorizationTest.MigrationCheckpointRoundTripsExactAuthorizationLocally
+[       OK ] UboAuthorizationTest.MigrationCheckpointRoundTripsExactAuthorizationLocally (0 ms)
+[ RUN      ] UboAuthorizationTest.AllowsExactPinnedBootstrapWithNoGuessedUpdateUrl
+[       OK ] UboAuthorizationTest.AllowsExactPinnedBootstrapWithNoGuessedUpdateUrl (0 ms)
+[ RUN      ] UboAuthorizationTest.RejectsSchemaOneAndFormerIdentityAuthorizationState
+[       OK ] UboAuthorizationTest.RejectsSchemaOneAndFormerIdentityAuthorizationState (0 ms)
+[ RUN      ] UboAuthorizationTest.RejectsModifiedBootstrapMetadata
+[       OK ] UboAuthorizationTest.RejectsModifiedBootstrapMetadata (0 ms)
+[ RUN      ] UboAuthorizationTest.AbortedTransactionLeavesNoMv2Exception
+[       OK ] UboAuthorizationTest.AbortedTransactionLeavesNoMv2Exception (0 ms)
+[ RUN      ] UboAuthorizationTest.ProfileShutdownClearsPendingAddressWithoutCommitting
+[       OK ] UboAuthorizationTest.ProfileShutdownClearsPendingAddressWithoutCommitting (0 ms)
+[ RUN      ] UboAuthorizationTest.RejectsForeignMv2ManipulatedKeyAndUpdateUrl
+[       OK ] UboAuthorizationTest.RejectsForeignMv2ManipulatedKeyAndUpdateUrl (0 ms)
+[ RUN      ] UboAuthorizationTest.Mv3NeverReceivesTheMv2Exception
+[       OK ] UboAuthorizationTest.Mv3NeverReceivesTheMv2Exception (0 ms)
+[----------] 10 tests from UboAuthorizationTest (48 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (48 ms total)
+[  PASSED  ] 10 tests.
+[1/43] UboAuthorizationTest.AllowsOnlyMatchingPendingThenCommittedMv2 (1 ms)
+[2/43] UboAuthorizationTest.AuthorizationAndMigrationPrefsAreLocalOnly (0 ms)
+[3/43] UboAuthorizationTest.MigrationCheckpointRoundTripsExactAuthorizationLocally (0 ms)
+[4/43] UboAuthorizationTest.AllowsExactPinnedBootstrapWithNoGuessedUpdateUrl (0 ms)
+[5/43] UboAuthorizationTest.RejectsSchemaOneAndFormerIdentityAuthorizationState (0 ms)
+[6/43] UboAuthorizationTest.RejectsModifiedBootstrapMetadata (0 ms)
+[7/43] UboAuthorizationTest.AbortedTransactionLeavesNoMv2Exception (0 ms)
+[8/43] UboAuthorizationTest.ProfileShutdownClearsPendingAddressWithoutCommitting (0 ms)
+[9/43] UboAuthorizationTest.RejectsForeignMv2ManipulatedKeyAndUpdateUrl (0 ms)
+[10/43] UboAuthorizationTest.Mv3NeverReceivesTheMv2Exception (0 ms)
+objc[14990]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144f70a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129e8ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14990]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124744188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_extension_policy_unittests (0x10a4074c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = UboAuthorizationTest.RejectsSequenceAndVersionDowngrades:UboAuthorizationTest.RejectsSameVersionRepackWithDifferentHash:UboCatalogTest.AcceptsExactlySignedLaterUpdateCatalog:UboCatalogTest.RejectsSignedSchemaOneCatalog:UboCatalogTest.RejectsSignedCatalogWithoutUpstreamCommit:UboCatalogTest.RejectsSignedCatalogWithInvalidUpstreamCommit:UboCatalogTest.RejectsPayloadTamperingAfterSignature:UboCatalogTest.RejectsForeignMv2IdentityEvenWhenSigned:UboCatalogTest.RejectsInsecureOrRedirectedArtifactsAndManifests:UboCatalogTest.ProductionConfigBootstrapsWithoutCatalogTrustRoot
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from UboAuthorizationTest
+[ RUN      ] UboAuthorizationTest.RejectsSequenceAndVersionDowngrades
+[       OK ] UboAuthorizationTest.RejectsSequenceAndVersionDowngrades (0 ms)
+[ RUN      ] UboAuthorizationTest.RejectsSameVersionRepackWithDifferentHash
+[       OK ] UboAuthorizationTest.RejectsSameVersionRepackWithDifferentHash (0 ms)
+[----------] 2 tests from UboAuthorizationTest (20 ms total)
+
+[----------] 8 tests from UboCatalogTest
+[ RUN      ] UboCatalogTest.AcceptsExactlySignedLaterUpdateCatalog
+[       OK ] UboCatalogTest.AcceptsExactlySignedLaterUpdateCatalog (2 ms)
+[ RUN      ] UboCatalogTest.RejectsSignedSchemaOneCatalog
+[       OK ] UboCatalogTest.RejectsSignedSchemaOneCatalog (0 ms)
+[ RUN      ] UboCatalogTest.RejectsSignedCatalogWithoutUpstreamCommit
+[       OK ] UboCatalogTest.RejectsSignedCatalogWithoutUpstreamCommit (0 ms)
+[ RUN      ] UboCatalogTest.RejectsSignedCatalogWithInvalidUpstreamCommit
+[       OK ] UboCatalogTest.RejectsSignedCatalogWithInvalidUpstreamCommit (0 ms)
+[ RUN      ] UboCatalogTest.RejectsPayloadTamperingAfterSignature
+[       OK ] UboCatalogTest.RejectsPayloadTamperingAfterSignature (0 ms)
+[ RUN      ] UboCatalogTest.RejectsForeignMv2IdentityEvenWhenSigned
+[       OK ] UboCatalogTest.RejectsForeignMv2IdentityEvenWhenSigned (0 ms)
+[ RUN      ] UboCatalogTest.RejectsInsecureOrRedirectedArtifactsAndManifests
+[       OK ] UboCatalogTest.RejectsInsecureOrRedirectedArtifactsAndManifests (0 ms)
+[ RUN      ] UboCatalogTest.ProductionConfigBootstrapsWithoutCatalogTrustRoot
+[       OK ] UboCatalogTest.ProductionConfigBootstrapsWithoutCatalogTrustRoot (0 ms)
+[----------] 8 tests from UboCatalogTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (26 ms total)
+[  PASSED  ] 10 tests.
+[11/43] UboAuthorizationTest.RejectsSequenceAndVersionDowngrades (0 ms)
+[12/43] UboAuthorizationTest.RejectsSameVersionRepackWithDifferentHash (0 ms)
+[13/43] UboCatalogTest.AcceptsExactlySignedLaterUpdateCatalog (2 ms)
+[14/43] UboCatalogTest.RejectsSignedSchemaOneCatalog (0 ms)
+[15/43] UboCatalogTest.RejectsSignedCatalogWithoutUpstreamCommit (0 ms)
+[16/43] UboCatalogTest.RejectsSignedCatalogWithInvalidUpstreamCommit (0 ms)
+[17/43] UboCatalogTest.RejectsPayloadTamperingAfterSignature (0 ms)
+[18/43] UboCatalogTest.RejectsForeignMv2IdentityEvenWhenSigned (0 ms)
+[19/43] UboCatalogTest.RejectsInsecureOrRedirectedArtifactsAndManifests (0 ms)
+[20/43] UboCatalogTest.ProductionConfigBootstrapsWithoutCatalogTrustRoot (0 ms)
+objc[14991]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140f24a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125e40a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14991]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120e4c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_extension_policy_unittests (0x106a834c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = UboCatalogTest.AllowsOnlyExactOfficialGithubReleaseAssetRedirect:UboServiceTest.PinnedBootstrapRejectsForeignPackageRedirect:UboServiceTest.SignedCatalogCannotAuthorizeFirstInstall:UboServiceTest.SignedCatalogExplicitVerifiedUpdateFlow:UboServiceTest.RedirectOversizeAndOfflineAreDistinctSafeErrors:UboServiceTest.ManipulatedCatalogAndPackageHashFailClosed:UboServiceTest.UBO09SignedCatalogMustAdvancePinnedBootstrapSequence:UboServiceTest.SignedCatalogPeriodicCheckNeverDownloadsOrInstalls:UboServiceTest.UninstallClearsAuthorizationAndPeriodicEligibility:UboServiceTest.UBO13UnprovisionedFailsClosedWithoutNetwork
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from UboCatalogTest
+[ RUN      ] UboCatalogTest.AllowsOnlyExactOfficialGithubReleaseAssetRedirect
+[       OK ] UboCatalogTest.AllowsOnlyExactOfficialGithubReleaseAssetRedirect (0 ms)
+[----------] 1 test from UboCatalogTest (20 ms total)
+
+[----------] 9 tests from UboServiceTest
+[ RUN      ] UboServiceTest.PinnedBootstrapRejectsForeignPackageRedirect
+[       OK ] UboServiceTest.PinnedBootstrapRejectsForeignPackageRedirect (177 ms)
+[ RUN      ] UboServiceTest.SignedCatalogCannotAuthorizeFirstInstall
+[       OK ] UboServiceTest.SignedCatalogCannotAuthorizeFirstInstall (48 ms)
+[ RUN      ] UboServiceTest.SignedCatalogExplicitVerifiedUpdateFlow
+[       OK ] UboServiceTest.SignedCatalogExplicitVerifiedUpdateFlow (158 ms)
+[ RUN      ] UboServiceTest.RedirectOversizeAndOfflineAreDistinctSafeErrors
+[       OK ] UboServiceTest.RedirectOversizeAndOfflineAreDistinctSafeErrors (46 ms)
+[ RUN      ] UboServiceTest.ManipulatedCatalogAndPackageHashFailClosed
+[       OK ] UboServiceTest.ManipulatedCatalogAndPackageHashFailClosed (99 ms)
+[ RUN      ] UboServiceTest.UBO09SignedCatalogMustAdvancePinnedBootstrapSequence
+[       OK ] UboServiceTest.UBO09SignedCatalogMustAdvancePinnedBootstrapSequence (49 ms)
+[ RUN      ] UboServiceTest.SignedCatalogPeriodicCheckNeverDownloadsOrInstalls
+[       OK ] UboServiceTest.SignedCatalogPeriodicCheckNeverDownloadsOrInstalls (49 ms)
+[ RUN      ] UboServiceTest.UninstallClearsAuthorizationAndPeriodicEligibility
+[       OK ] UboServiceTest.UninstallClearsAuthorizationAndPeriodicEligibility (48 ms)
+[ RUN      ] UboServiceTest.UBO13UnprovisionedFailsClosedWithoutNetwork
+[       OK ] UboServiceTest.UBO13UnprovisionedFailsClosedWithoutNetwork (48 ms)
+[----------] 9 tests from UboServiceTest (736 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (757 ms total)
+[  PASSED  ] 10 tests.
+[21/43] UboCatalogTest.AllowsOnlyExactOfficialGithubReleaseAssetRedirect (0 ms)
+[22/43] UboServiceTest.PinnedBootstrapRejectsForeignPackageRedirect (177 ms)
+[23/43] UboServiceTest.SignedCatalogCannotAuthorizeFirstInstall (48 ms)
+[24/43] UboServiceTest.SignedCatalogExplicitVerifiedUpdateFlow (158 ms)
+[25/43] UboServiceTest.RedirectOversizeAndOfflineAreDistinctSafeErrors (46 ms)
+[26/43] UboServiceTest.ManipulatedCatalogAndPackageHashFailClosed (99 ms)
+[27/43] UboServiceTest.UBO09SignedCatalogMustAdvancePinnedBootstrapSequence (49 ms)
+[28/43] UboServiceTest.SignedCatalogPeriodicCheckNeverDownloadsOrInstalls (49 ms)
+[29/43] UboServiceTest.UninstallClearsAuthorizationAndPeriodicEligibility (48 ms)
+[30/43] UboServiceTest.UBO13UnprovisionedFailsClosedWithoutNetwork (48 ms)
+objc[15006]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1439aca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1288c8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[15006]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x123180188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_extension_policy_unittests (0x108eab4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = UboServiceTest.UBO01PinnedOfficialGithubBootstrapSkipsCatalogNetwork:UboServiceTest.OneClickDownloadsVerifiesAndHandsOffWithoutCatalogOrSecondCta:UboServiceTest.ShutdownCancelsNoCallbackInstallAndReleasesTemporaryPackage:UboServiceTest.CancelWhileDialogOwnsPreHandoffDownloadDiscardsLatePackage:UboServiceTest.LostTabBeforePromptFailsClosedAndDeletesPackage:UboServiceTest.HashAndKeyVerificationFailuresKeepLiteWithoutSecurityState:UboServiceTest.FormerClassicBlocksInitialOneClickByExactIdentity:UboServiceTest.UnauthorizedPinnedClassicBlocksInitialOneClickByExactIdentity:UboServiceTest.RegistryInstallBeforeAuthorizationCommitDoesNotFakeMigrationError:UboServiceTest.InventoriesPinnedFormerAndLiteByExactIdentity
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from UboServiceTest
+[ RUN      ] UboServiceTest.UBO01PinnedOfficialGithubBootstrapSkipsCatalogNetwork
+[       OK ] UboServiceTest.UBO01PinnedOfficialGithubBootstrapSkipsCatalogNetwork (155 ms)
+[ RUN      ] UboServiceTest.OneClickDownloadsVerifiesAndHandsOffWithoutCatalogOrSecondCta
+[       OK ] UboServiceTest.OneClickDownloadsVerifiesAndHandsOffWithoutCatalogOrSecondCta (166 ms)
+[ RUN      ] UboServiceTest.ShutdownCancelsNoCallbackInstallAndReleasesTemporaryPackage
+[       OK ] UboServiceTest.ShutdownCancelsNoCallbackInstallAndReleasesTemporaryPackage (139 ms)
+[ RUN      ] UboServiceTest.CancelWhileDialogOwnsPreHandoffDownloadDiscardsLatePackage
+[       OK ] UboServiceTest.CancelWhileDialogOwnsPreHandoffDownloadDiscardsLatePackage (138 ms)
+[ RUN      ] UboServiceTest.LostTabBeforePromptFailsClosedAndDeletesPackage
+[       OK ] UboServiceTest.LostTabBeforePromptFailsClosedAndDeletesPackage (139 ms)
+[ RUN      ] UboServiceTest.HashAndKeyVerificationFailuresKeepLiteWithoutSecurityState
+[       OK ] UboServiceTest.HashAndKeyVerificationFailuresKeepLiteWithoutSecurityState (138 ms)
+[ RUN      ] UboServiceTest.FormerClassicBlocksInitialOneClickByExactIdentity
+[       OK ] UboServiceTest.FormerClassicBlocksInitialOneClickByExactIdentity (72 ms)
+[ RUN      ] UboServiceTest.UnauthorizedPinnedClassicBlocksInitialOneClickByExactIdentity
+[       OK ] UboServiceTest.UnauthorizedPinnedClassicBlocksInitialOneClickByExactIdentity (64 ms)
+[ RUN      ] UboServiceTest.RegistryInstallBeforeAuthorizationCommitDoesNotFakeMigrationError
+[       OK ] UboServiceTest.RegistryInstallBeforeAuthorizationCommitDoesNotFakeMigrationError (122 ms)
+[ RUN      ] UboServiceTest.InventoriesPinnedFormerAndLiteByExactIdentity
+[       OK ] UboServiceTest.InventoriesPinnedFormerAndLiteByExactIdentity (46 ms)
+[----------] 10 tests from UboServiceTest (1224 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1224 ms total)
+[  PASSED  ] 10 tests.
+[31/43] UboServiceTest.UBO01PinnedOfficialGithubBootstrapSkipsCatalogNetwork (155 ms)
+[32/43] UboServiceTest.OneClickDownloadsVerifiesAndHandsOffWithoutCatalogOrSecondCta (166 ms)
+[33/43] UboServiceTest.ShutdownCancelsNoCallbackInstallAndReleasesTemporaryPackage (139 ms)
+[34/43] UboServiceTest.CancelWhileDialogOwnsPreHandoffDownloadDiscardsLatePackage (138 ms)
+[35/43] UboServiceTest.LostTabBeforePromptFailsClosedAndDeletesPackage (139 ms)
+[36/43] UboServiceTest.HashAndKeyVerificationFailuresKeepLiteWithoutSecurityState (138 ms)
+[37/43] UboServiceTest.FormerClassicBlocksInitialOneClickByExactIdentity (72 ms)
+[38/43] UboServiceTest.UnauthorizedPinnedClassicBlocksInitialOneClickByExactIdentity (64 ms)
+[39/43] UboServiceTest.RegistryInstallBeforeAuthorizationCommitDoesNotFakeMigrationError (122 ms)
+[40/43] UboServiceTest.InventoriesPinnedFormerAndLiteByExactIdentity (46 ms)
+objc[15055]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144fc0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x129edca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[15055]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124794188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_extension_policy_unittests (0x10a40f4c8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = UboServiceTest.LiteRemovalRequiresReadyClassicInLaterBrowserProcess:UboServiceTest.MalformedMigrationStateIsIntegrityBlockedAndKeepsLite:UboServiceTest.MismatchedMigrationStateIsIntegrityBlockedAndKeepsLite
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from UboServiceTest
+[ RUN      ] UboServiceTest.LiteRemovalRequiresReadyClassicInLaterBrowserProcess
+[       OK ] UboServiceTest.LiteRemovalRequiresReadyClassicInLaterBrowserProcess (104 ms)
+[ RUN      ] UboServiceTest.MalformedMigrationStateIsIntegrityBlockedAndKeepsLite
+[       OK ] UboServiceTest.MalformedMigrationStateIsIntegrityBlockedAndKeepsLite (49 ms)
+[ RUN      ] UboServiceTest.MismatchedMigrationStateIsIntegrityBlockedAndKeepsLite
+[       OK ] UboServiceTest.MismatchedMigrationStateIsIntegrityBlockedAndKeepsLite (49 ms)
+[----------] 3 tests from UboServiceTest (224 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (224 ms total)
+[  PASSED  ] 3 tests.
+[41/43] UboServiceTest.LiteRemovalRequiresReadyClassicInLaterBrowserProcess (104 ms)
+[42/43] UboServiceTest.MalformedMigrationStateIsIntegrityBlockedAndKeepsLite (49 ms)
+[43/43] UboServiceTest.MismatchedMigrationStateIsIntegrityBlockedAndKeepsLite (49 ms)
+SUCCESS: all tests passed.
+Tests took 13 seconds.

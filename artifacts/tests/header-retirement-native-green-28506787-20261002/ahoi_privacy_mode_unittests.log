@@ -1,0 +1,110 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = PrivacyCookieEnforcementTest.StrictBlocksUnpartitionedButKeepsChipsAvailable:PrivacyCookieEnforcementTest.CompatibilityOverrideIsScopedToExactTopFrameOrigin:PrivacyCookieEnforcementTest.CompatibilityNeverWeakensChromiumCookieControls:PrivacyCookieEnforcementTest.StorageAccessGrantStillTakesPrecedence:PrivacyCookieEnforcementTest.EnterpriseCookieExceptionStillWins:GpcRendererPreferenceTest.FollowsTopLevelSiteMode:PrivacyModeURLLoaderFactoryProxyTest.WebRequestSeesStrictRequest:PrivacyModeURLLoaderFactoryProxyTest.WebRequestCanStillBlock:PrivacyModeURLLoaderFactoryProxyTest.DefaultModeIsUntouched:PrivacyModeURLLoaderFactoryProxyTest.NonSubresourceFactoryNotProxied
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from PrivacyCookieEnforcementTest
+[ RUN      ] PrivacyCookieEnforcementTest.StrictBlocksUnpartitionedButKeepsChipsAvailable
+[       OK ] PrivacyCookieEnforcementTest.StrictBlocksUnpartitionedButKeepsChipsAvailable (1 ms)
+[ RUN      ] PrivacyCookieEnforcementTest.CompatibilityOverrideIsScopedToExactTopFrameOrigin
+[       OK ] PrivacyCookieEnforcementTest.CompatibilityOverrideIsScopedToExactTopFrameOrigin (0 ms)
+[ RUN      ] PrivacyCookieEnforcementTest.CompatibilityNeverWeakensChromiumCookieControls
+[       OK ] PrivacyCookieEnforcementTest.CompatibilityNeverWeakensChromiumCookieControls (0 ms)
+[ RUN      ] PrivacyCookieEnforcementTest.StorageAccessGrantStillTakesPrecedence
+[       OK ] PrivacyCookieEnforcementTest.StorageAccessGrantStillTakesPrecedence (0 ms)
+[ RUN      ] PrivacyCookieEnforcementTest.EnterpriseCookieExceptionStillWins
+[       OK ] PrivacyCookieEnforcementTest.EnterpriseCookieExceptionStillWins (0 ms)
+[----------] 5 tests from PrivacyCookieEnforcementTest (3 ms total)
+
+[----------] 1 test from GpcRendererPreferenceTest
+[ RUN      ] GpcRendererPreferenceTest.FollowsTopLevelSiteMode
+[       OK ] GpcRendererPreferenceTest.FollowsTopLevelSiteMode (0 ms)
+[----------] 1 test from GpcRendererPreferenceTest (0 ms total)
+
+[----------] 4 tests from PrivacyModeURLLoaderFactoryProxyTest
+[ RUN      ] PrivacyModeURLLoaderFactoryProxyTest.WebRequestSeesStrictRequest
+[       OK ] PrivacyModeURLLoaderFactoryProxyTest.WebRequestSeesStrictRequest (0 ms)
+[ RUN      ] PrivacyModeURLLoaderFactoryProxyTest.WebRequestCanStillBlock
+[       OK ] PrivacyModeURLLoaderFactoryProxyTest.WebRequestCanStillBlock (0 ms)
+[ RUN      ] PrivacyModeURLLoaderFactoryProxyTest.DefaultModeIsUntouched
+[       OK ] PrivacyModeURLLoaderFactoryProxyTest.DefaultModeIsUntouched (0 ms)
+[ RUN      ] PrivacyModeURLLoaderFactoryProxyTest.NonSubresourceFactoryNotProxied
+[       OK ] PrivacyModeURLLoaderFactoryProxyTest.NonSubresourceFactoryNotProxied (0 ms)
+[----------] 4 tests from PrivacyModeURLLoaderFactoryProxyTest (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (5 ms total)
+[  PASSED  ] 10 tests.
+[1/21] PrivacyCookieEnforcementTest.StrictBlocksUnpartitionedButKeepsChipsAvailable (1 ms)
+[2/21] PrivacyCookieEnforcementTest.CompatibilityOverrideIsScopedToExactTopFrameOrigin (0 ms)
+[3/21] PrivacyCookieEnforcementTest.CompatibilityNeverWeakensChromiumCookieControls (0 ms)
+[4/21] PrivacyCookieEnforcementTest.StorageAccessGrantStillTakesPrecedence (0 ms)
+[5/21] PrivacyCookieEnforcementTest.EnterpriseCookieExceptionStillWins (0 ms)
+[6/21] GpcRendererPreferenceTest.FollowsTopLevelSiteMode (0 ms)
+[7/21] PrivacyModeURLLoaderFactoryProxyTest.WebRequestSeesStrictRequest (0 ms)
+[8/21] PrivacyModeURLLoaderFactoryProxyTest.WebRequestCanStillBlock (0 ms)
+[9/21] PrivacyModeURLLoaderFactoryProxyTest.DefaultModeIsUntouched (0 ms)
+[10/21] PrivacyModeURLLoaderFactoryProxyTest.NonSubresourceFactoryNotProxied (0 ms)
+Note: Google Test filter = PrivacyModePolicySiteTest.TopFrameOriginDecides:PrivacyModeURLLoaderThrottleTest.AddsGpcAndStripsMainFrameQuery:PrivacyModeURLLoaderThrottleTest.DoesNotStripSubresourceQuery:PrivacyModeURLLoaderThrottleTest.StrictModeReducesOnlyThirdPartyHighEntropyUaHints:PrivacyModeURLLoaderThrottleTest.StrictModePreservesFirstPartyHighEntropyUaHints:PrivacyModeURLLoaderThrottleTest.CompatibilityExceptionIsNoOp:PrivacyModeURLLoaderThrottleTest.CompatibilityExceptionRemovesGpcInheritedFromStrictPage:PrivacyModeURLLoaderThrottleTest.RedirectToCompatibilityRemovesGpc:PrivacyStrictRequestRulesTest.ThirdPartySubresourceGetsAllRules:PrivacyStrictRequestRulesTest.FirstPartyKeepsHintsAndFullReferrer
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from PrivacyModePolicySiteTest
+[ RUN      ] PrivacyModePolicySiteTest.TopFrameOriginDecides
+[       OK ] PrivacyModePolicySiteTest.TopFrameOriginDecides (0 ms)
+[----------] 1 test from PrivacyModePolicySiteTest (0 ms total)
+
+[----------] 7 tests from PrivacyModeURLLoaderThrottleTest
+[ RUN      ] PrivacyModeURLLoaderThrottleTest.AddsGpcAndStripsMainFrameQuery
+[       OK ] PrivacyModeURLLoaderThrottleTest.AddsGpcAndStripsMainFrameQuery (0 ms)
+[ RUN      ] PrivacyModeURLLoaderThrottleTest.DoesNotStripSubresourceQuery
+[       OK ] PrivacyModeURLLoaderThrottleTest.DoesNotStripSubresourceQuery (0 ms)
+[ RUN      ] PrivacyModeURLLoaderThrottleTest.StrictModeReducesOnlyThirdPartyHighEntropyUaHints
+[       OK ] PrivacyModeURLLoaderThrottleTest.StrictModeReducesOnlyThirdPartyHighEntropyUaHints (0 ms)
+[ RUN      ] PrivacyModeURLLoaderThrottleTest.StrictModePreservesFirstPartyHighEntropyUaHints
+[       OK ] PrivacyModeURLLoaderThrottleTest.StrictModePreservesFirstPartyHighEntropyUaHints (0 ms)
+[ RUN      ] PrivacyModeURLLoaderThrottleTest.CompatibilityExceptionIsNoOp
+[       OK ] PrivacyModeURLLoaderThrottleTest.CompatibilityExceptionIsNoOp (0 ms)
+[ RUN      ] PrivacyModeURLLoaderThrottleTest.CompatibilityExceptionRemovesGpcInheritedFromStrictPage
+[       OK ] PrivacyModeURLLoaderThrottleTest.CompatibilityExceptionRemovesGpcInheritedFromStrictPage (0 ms)
+[ RUN      ] PrivacyModeURLLoaderThrottleTest.RedirectToCompatibilityRemovesGpc
+[       OK ] PrivacyModeURLLoaderThrottleTest.RedirectToCompatibilityRemovesGpc (0 ms)
+[----------] 7 tests from PrivacyModeURLLoaderThrottleTest (1 ms total)
+
+[----------] 2 tests from PrivacyStrictRequestRulesTest
+[ RUN      ] PrivacyStrictRequestRulesTest.ThirdPartySubresourceGetsAllRules
+[       OK ] PrivacyStrictRequestRulesTest.ThirdPartySubresourceGetsAllRules (0 ms)
+[ RUN      ] PrivacyStrictRequestRulesTest.FirstPartyKeepsHintsAndFullReferrer
+[       OK ] PrivacyStrictRequestRulesTest.FirstPartyKeepsHintsAndFullReferrer (0 ms)
+[----------] 2 tests from PrivacyStrictRequestRulesTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (2 ms total)
+[  PASSED  ] 10 tests.
+[11/21] PrivacyModePolicySiteTest.TopFrameOriginDecides (0 ms)
+[12/21] PrivacyModeURLLoaderThrottleTest.AddsGpcAndStripsMainFrameQuery (0 ms)
+[13/21] PrivacyModeURLLoaderThrottleTest.DoesNotStripSubresourceQuery (0 ms)
+[14/21] PrivacyModeURLLoaderThrottleTest.StrictModeReducesOnlyThirdPartyHighEntropyUaHints (0 ms)
+[15/21] PrivacyModeURLLoaderThrottleTest.StrictModePreservesFirstPartyHighEntropyUaHints (0 ms)
+[16/21] PrivacyModeURLLoaderThrottleTest.CompatibilityExceptionIsNoOp (0 ms)
+[17/21] PrivacyModeURLLoaderThrottleTest.CompatibilityExceptionRemovesGpcInheritedFromStrictPage (0 ms)
+[18/21] PrivacyModeURLLoaderThrottleTest.RedirectToCompatibilityRemovesGpc (0 ms)
+[19/21] PrivacyStrictRequestRulesTest.ThirdPartySubresourceGetsAllRules (0 ms)
+[20/21] PrivacyStrictRequestRulesTest.FirstPartyKeepsHintsAndFullReferrer (0 ms)
+Note: Google Test filter = PrivacyStrictRequestRulesTest.CapKeepsStricterPolicies
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PrivacyStrictRequestRulesTest
+[ RUN      ] PrivacyStrictRequestRulesTest.CapKeepsStricterPolicies
+[       OK ] PrivacyStrictRequestRulesTest.CapKeepsStricterPolicies (0 ms)
+[----------] 1 test from PrivacyStrictRequestRulesTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+[21/21] PrivacyStrictRequestRulesTest.CapKeepsStricterPolicies (0 ms)
+SUCCESS: all tests passed.
+Tests took 1 seconds.

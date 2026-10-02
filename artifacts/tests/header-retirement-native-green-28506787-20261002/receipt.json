@@ -32,25 +32,64 @@
   "newPostDispatchAndMainMethods": 8,
   "newCoreMethodsTotal": 21,
   "evidenceSha256": {
+    "ahoi_resource_policy_unittests-summary.json": "0f4b6d46134b8309f7665af75c2b835b191b5fe5ac0839e394075fb32d022915",
+    "ahoi_session_unittests-summary.json": "c9ca9b149b435035fda97e7b758730a6b2ae65eacad7d02d10bc432be1951a0a",
+    "ahoi_http_auth_unittests.log": "ad809f76ad339121df83ad8d084b2acd2a3beb1b0c73e0efe0bfd673fa60459e",
+    "ahoi_developer_style_compiler_browsertests.log": "02c0681b701f601f37722a442519e14a602eb0ff87d6ca731e440c102bff876a",
+    "ahoi_http_auth_unittests-summary.json": "1e6c07693f3c62b995aba03125335af270f5b85b1b7b91a69a099d001b5a2378",
     "ahoi_developer_toolkit_ui_unittests.log": "d168156cbaaaaa5f986cd62cf32569b1095599a6d586674bdac227e319371958",
+    "ahoi_navigation_unittests.log": "d37c9a3387d04f5255aea0eea1a01d22bc8d8feb5b5a10df3bc7f82e145180fd",
+    "ahoi_popup_overlay_browsertests.log": "5203a71f24e3aac5418b93eb66192ba2f55c7340ea027bf4869d16be6822350e",
     "ahoi_popup_unittests-summary.json": "ac97b1173ce7027c856e6784bfc1b6a789fc8d96d665edc1dc8ad874302d7690",
     "ahoi_popup_unittests.log": "8ab38ec3d72f0a9dbc358d801b64434f60131ba993b94e7a8ba663cd5ca06866",
+    "ahoi_split_layout_browsertests-summary.json": "5b37f5afab88e052964e53ebe6e601ba8ad099ff3b9f4ad1442ea40094b3308f",
+    "ahoi_settings_private_unittests.log": "5b2ab1c608734cb03cf11072abfaaf09baec9ae918423ae1441805d24bf3fa2f",
+    "ahoi_command_bar_unittests-summary.json": "61fe74c58f9512a1b0caaf269adea8017253e43bea548c6994e55c1f90055bcf",
+    "ahoi_developer_style_compiler_browsertests-summary.json": "855bd8936d19de7e32edf8486a5142ef59fa78a16672347000aec0938ca9be8b",
+    "ahoi_media_unittests-summary.json": "573d21557f02a455878ab628e7060ed4ba8454a001b94897fff1aa12c894ada1",
+    "ahoi_settings_private_unittests-summary.json": "a348eabeb2d43716151ddb0e0cea94374c160785bd5182cc4c526c8e72008108",
+    "browser-state.json": "afff538c3be354bbf6578b1ad58f80d3f2f511435870a52aefee2d34d7e7c6a9",
+    "ahoi_startup_policy_unittests-summary.json": "7eb14a1e806bd53072ad42e1d295d09ea7d5d1dbf300ebbc9a12bf1ad121b547",
+    "ahoi_startup_policy_unittests.log": "9c1b84d733d9f11062eaf7cc45eb918946cac68b6f7c321b134162ce26a64fbf",
+    "ahoi_extension_policy_unittests-summary.json": "bd970f815d441da8a2aebd25dba9bcd74d3268dcac085f69bb979793e9984422",
     "sidebar-focus-native-state.json": "a32c3dbb567b4e439dd2b413612af79013081723198a3ccb6e63564b5bffcee5",
+    "ahoi_sync_unittests-summary.json": "0a945a3a1e319138cfb100ae10ac74b6bdaaaceab96c8ac42a2835e540eabec7",
+    "ahoi_command_bar_unittests.log": "ae07bf22c7b02d3193a3df503e984e05e7aa21c020de84f9c0e4e948bb8db3d9",
+    "ahoi_split_layout_browsertests.log": "71933dd9a73738e6f6a28190ae669d9a1162e0e9b9ce570d5b3198cda55b4bbe",
+    "ahoi_arc_import_unittests.log": "11d2ff89886be40f396e886b14c64057ee331bade7dfdfecb2d40d7eade8612f",
+    "ahoi_sync_unittests.log": "f41c25a6a95d26a4445e76375354938f085322f6ad19677995efc10f037ddbb5",
     "build-state.json": "29ecbf4dad61e91e828f4e6ada32f313d67f5dddbe38810022d0e34223e97464",
     "editor-native-state.json": "ec0f8cce72dfcd006d64e4508f1978a483bf682784375a300eefabf8277adc0b",
     "dev-native-test.log": "fd5033628e2453900c58b4a493657c34e745d940b2c813ab6b308477119fe1db",
+    "ahoi_tab_tree_unittests.log": "ccb85d4290c7adebcab89af66fc8ee4fa7019ea9bafc8a84dc39869dba9c3be8",
     "sidebar-focus-native-summary.json": "0f95647e517b44dffead1b16a9bfb20ea9a2bc932420a115e161301da71913c0",
     "ahoi_sidebar_search_unittests-summary.json": "89e48a6f08d2f3cf3b0275b657211ca94183f0878d8aeaa23af400cbe1c470b9",
+    "ahoi_media_unittests.log": "96ba0dbb8e77c8e32f3eec157e683f8a006f6c7d926668edb7cc3c0eba6f8a4d",
+    "ahoi_appearance_unittests-summary.json": "523ecb41605189359a174a8b4f8d72ffe50fdcf93e278883a40f21b6890a8b0e",
+    "README.md": "65ac1b0176cc8e2f4dbde1d7bf9372fd36c214dba5d775e8ea493855231e0138",
     "dev-native-state.json": "783dc106841126572b53b83b7ee847d18fb5f9ee3557db0a024ac87b735b6242",
     "dev-native-summary.json": "7f707427808cee8a251cc05d0571c8eeede2191834c33cd699646eccd7e1f203",
+    "ahoi_session_unittests.log": "1ad425e8661c199b0c227dbff57b01bc2f32f8078f0bc41e09ca21e07612a5fe",
+    "ahoi_arc_import_unittests-summary.json": "b45e33afa5472379b52269457bc4a96609238e15ddf06b4e5439f760ed4e63dd",
     "editor-native-test.log": "8515cf7d91ebf136b6c98a28c40e7100133f6dc3c1ffd1eb85c95c6367e9666b",
     "ahoi_sidebar_tree_unittests.log": "b7546938d8f5c82266e70a7f2e14911768a0d896d8a60c70d9e733c0dc25bd44",
     "ahoi_sidebar_tree_unittests-summary.json": "8e2e25a3ee701ad1f57b9418c063cf5dea827f98a91f25ae90a1befc8fcea4a5",
+    "ahoi_privacy_mode_unittests.log": "5c5827f7eb6221c933025698598d29fab23d48ef2ddc86aed2fa7cf20199d452",
     "ahoi_developer_toolkit_ui_unittests-summary.json": "0fc5357825ef85b85615c2d2c20379692b9e8b9ee0d75725a9bd12e0585e0894",
+    "ahoi_popup_overlay_browsertests-summary.json": "7501e02e789d08fae6b43dd6f35e828681aa4110891c437f2928e5b0994ebff3",
+    "baseline-state.json": "84ea28f4ad28ed3660b858cb83ef3df99025bce69791c2cd4e6554cf6604207c",
+    "ahoi_appearance_unittests.log": "785d2dfbc3ffd41100560db12df98da670d57dfaf21640e759741034d2013e62",
+    "ahoi_extension_policy_unittests.log": "3a0c66d6c8820d528363d4c6f6945ed795f7b9db81fbf5f461daef8dd96e5079",
+    "ahoi_resource_policy_unittests.log": "b368e3b21351173172a44c771c88e32dcf95acd425f117f71c3bdce5da405997",
+    "ahoi_privacy_policy_unittests.log": "3fa3d08009f75834f6070512a3c07a6f5d876cb1b39a2948d628c5b7367e3b63",
     "editor-native-summary.json": "706ace6784f2dd73ed59643e6a7ff2d67821bd6226ea71e6f68ec564d273aea9",
     "ahoi_sidebar_search_unittests.log": "aef67d610afbf95a0b2c4c815787fe792a54632f3d11b87fe06f1ad486c596ff",
     "ui-state.json": "6f41e047ada79cb45c8b684c8d78c15a03e3aa8c361f2b846f4eb05fd0cd99e7",
-    "sidebar-focus-native-test.log": "05726b94ddd9bdf602808df1cb621e7fdcd16bd2229ccb1f17f61d98dd237765"
+    "sidebar-focus-native-test.log": "05726b94ddd9bdf602808df1cb621e7fdcd16bd2229ccb1f17f61d98dd237765",
+    "ahoi_tab_tree_unittests-summary.json": "3fce070b132e9e4ecdafa974e1f84e9f5487950e2691e9084477c183ec0e12a9",
+    "ahoi_navigation_unittests-summary.json": "c65f647c91cf69d75ccc700d9b1600d153c2b8e26035cac8657ce363c2fb9529",
+    "ahoi_privacy_policy_unittests-summary.json": "f96b73af2fb916488c21125948b743e1b537a8d7ba9f0f30ab9e45f62b8800ff",
+    "ahoi_privacy_mode_unittests-summary.json": "3d61f0dc5fd702c4197cee1dbbceba392ab80682313e4c6eccd0599c0f64bb99"
   },
   "ui": {
     "programs": 4,
@@ -94,5 +133,182 @@
       }
     ],
     "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932"
-  }
+  },
+  "baseline": {
+    "programs": 15,
+    "successes": 872,
+    "results": [
+      {
+        "name": "ahoi_appearance_unittests",
+        "exitCode": 0,
+        "binarySha256": "824ce45ed488b3dcba85ed40ccf2b282959a4478a44790f96f5aaa5b85f970d7",
+        "executedCases": 56,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_arc_import_unittests",
+        "exitCode": 0,
+        "binarySha256": "b02e79bb681b48547a1977389a8b41b4718c1b8ea8f173523ad204ac5019984b",
+        "executedCases": 132,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_command_bar_unittests",
+        "exitCode": 0,
+        "binarySha256": "49d109d2db418ba0c4c17e79ce7ab0f01ea5ca72dafef0cbed0cd8ab27c96809",
+        "executedCases": 55,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_extension_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "21c934e3a0ae0e2770afa5607c8287f48ce8465c31801d4c2d49aceea1978ebf",
+        "executedCases": 43,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_http_auth_unittests",
+        "exitCode": 0,
+        "binarySha256": "41069acfac51b33c228bd1e6aaa1e488c97691a9f69d24e5b8cce6ec3904427c",
+        "executedCases": 36,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_media_unittests",
+        "exitCode": 0,
+        "binarySha256": "7d25688293997f4ef6256835f3754402aa4afcd6db3452b7cf48f41f5e6bc02c",
+        "executedCases": 33,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_navigation_unittests",
+        "exitCode": 0,
+        "binarySha256": "6ecb53227e094209319dd018d91798af51aca6005a6a37fd20ca9d723dac3354",
+        "executedCases": 83,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_privacy_mode_unittests",
+        "exitCode": 0,
+        "binarySha256": "ad03b589f21a5a94fb1fbd0033b42d6a09b3f5ac81bf8e5f69d42ee1d85ffda4",
+        "executedCases": 21,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_privacy_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "a6b4b0cc5687f9f733e9e951228e6f07db013806ff42b14eaeefe3b122e3f02e",
+        "executedCases": 17,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_resource_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "0b24f2a6513ba99ba669b7a40b0f4500ae0184da6e79b6b64557626a6266c6a1",
+        "executedCases": 4,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_session_unittests",
+        "exitCode": 0,
+        "binarySha256": "910dd0bac02783aa89e35cde2c2e3d26d1a448d8d42aa25fad7316d3dfd09241",
+        "executedCases": 110,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_settings_private_unittests",
+        "exitCode": 0,
+        "binarySha256": "1e485ad246606707e3d5a9614f4663078f57c7ebc89213202647f2f8a61653b7",
+        "executedCases": 12,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_startup_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "8ef33dc978546dc1e245e4102ed4c69e247c4cd0497898e49f5fda6518ba9f8c",
+        "executedCases": 2,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_sync_unittests",
+        "exitCode": 0,
+        "binarySha256": "ea44d6015e648ca1a5172556add00405f929fb012f710010066444569345716a",
+        "executedCases": 233,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_tab_tree_unittests",
+        "exitCode": 0,
+        "binarySha256": "fa6ede06dc4006afd9a00c72828a5c378f01e6e1b2f431b78cbf2f19675568b5",
+        "executedCases": 35,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      }
+    ],
+    "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932"
+  },
+  "browser": {
+    "programs": 3,
+    "successes": 33,
+    "results": [
+      {
+        "name": "ahoi_split_layout_browsertests",
+        "exitCode": 0,
+        "binarySha256": "41c31b7ce97c2491954c67e01cf302f4e18c5e49befbb3f11cf504b99821c7b1",
+        "executedCases": 15,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_popup_overlay_browsertests",
+        "exitCode": 0,
+        "binarySha256": "d66be67dc2c6796c5e74d9ad8f9df250218e837dbcbfe566a1dec18c5e379b96",
+        "executedCases": 14,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_developer_style_compiler_browsertests",
+        "exitCode": 0,
+        "binarySha256": "c93814aa6b7e0b2a9c095fe996b466e84f96b8e0fa3a18db7de49cea96736c62",
+        "executedCases": 4,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      }
+    ],
+    "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932"
+  },
+  "requiredNativeGatePass": true
 }

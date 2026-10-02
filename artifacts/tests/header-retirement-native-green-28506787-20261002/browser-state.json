@@ -1,0 +1,41 @@
+{
+  "componentManifestSha256": "ca73e1f477a1d57253ed34de5105b236fbb306906d7a2b62614367e63bf73932",
+  "runnerPid": 19641,
+  "sourceCommit": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "phase": "complete",
+  "jobs": 1,
+  "retries": 0,
+  "results": [
+    {
+      "name": "ahoi_split_layout_browsertests",
+      "exitCode": 0,
+      "binarySha256": "41c31b7ce97c2491954c67e01cf302f4e18c5e49befbb3f11cf504b99821c7b1",
+      "executedCases": 15,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_popup_overlay_browsertests",
+      "exitCode": 0,
+      "binarySha256": "d66be67dc2c6796c5e74d9ad8f9df250218e837dbcbfe566a1dec18c5e379b96",
+      "executedCases": 14,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    },
+    {
+      "name": "ahoi_developer_style_compiler_browsertests",
+      "exitCode": 0,
+      "binarySha256": "c93814aa6b7e0b2a9c095fe996b466e84f96b8e0fa3a18db7de49cea96736c62",
+      "executedCases": 4,
+      "nonSuccess": {},
+      "skippedCases": [],
+      "nativePass": true
+    }
+  ],
+  "startedAt": "2026-10-02T01:58:24.232112+00:00",
+  "binarySha256": "c93814aa6b7e0b2a9c095fe996b466e84f96b8e0fa3a18db7de49cea96736c62",
+  "testPid": 21955,
+  "finishedAt": "2026-10-02T02:01:40.118562+00:00"
+}

@@ -19,9 +19,15 @@ including the formerly blocked batch. Toolkit Views33, popup28 and sidebar searc
 scroll/identity/focus/overflow/stale-frame checks remain. Old Build69 timeout is
 retained as history, not deleted or relabelled.
 
-These runs prove only the stated native inputs/cases. The fifteen baseline
-programs and three browser programs retain their separate current gates; the
-ongoing baseline runner's PID/state must be checked independently. No full
+Fifteen additional baseline programs actually execute872/872 SUCCESS, no skips.
+Three native browser programs execute split15, popup14, compiler/worker4:
+33/33SUCCESS. The dedicated worker3 and real compiler sandbox1 are included;
+all runs use one job/no retries and this exact component input. Individual
+program/raw-result hashes and counts are bound in the receipt. Required native
+development gate is GREEN. Build and all native runners are terminal; no old
+changed-component pass was carried by label.
+
+These runs prove only the stated native inputs/cases. No full
 installed-browser/CU E2E, complete Master/worker/Sync/release acceptance or
 permission expansion is implied. No app install, device/API or trading action.
 Verbatim native logs keep original whitespace for evidence/hash integrity.

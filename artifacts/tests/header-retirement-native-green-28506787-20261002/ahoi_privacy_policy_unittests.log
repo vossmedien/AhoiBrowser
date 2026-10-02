@@ -1,0 +1,86 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = BrowserAccountPolicyTest.DisablesChromiumSyncAndBrowserSignin:BrowserAccountPolicyTest.ReplacesHostileOverrideAndPreservesWebUrl:BrowserAccountPolicyTest.NetworkInitializationMatchesExplicitPolicy:PrivacyDefaultsTest.ProfileDefaultsAreSafeAndRemainUserModifiable:PrivacyDefaultsTest.ProfileDefaultsPreserveHigherPriorityValues:PrivacyDefaultsTest.LocalStateDisablesReportingAndVariations:PrivacyModeServiceTest.DefaultsToChromiumCompatible:PrivacyModeServiceTest.UnknownFutureModePreservesCompatibility:PrivacyModeServiceTest.PersistsGlobalAndOriginModes:PrivacyModeServiceTest.RejectsNonHttpOriginAndManagedPrefs
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from BrowserAccountPolicyTest
+[ RUN      ] BrowserAccountPolicyTest.DisablesChromiumSyncAndBrowserSignin
+[       OK ] BrowserAccountPolicyTest.DisablesChromiumSyncAndBrowserSignin (0 ms)
+[ RUN      ] BrowserAccountPolicyTest.ReplacesHostileOverrideAndPreservesWebUrl
+[       OK ] BrowserAccountPolicyTest.ReplacesHostileOverrideAndPreservesWebUrl (0 ms)
+[ RUN      ] BrowserAccountPolicyTest.NetworkInitializationMatchesExplicitPolicy
+[       OK ] BrowserAccountPolicyTest.NetworkInitializationMatchesExplicitPolicy (0 ms)
+[----------] 3 tests from BrowserAccountPolicyTest (0 ms total)
+
+[----------] 3 tests from PrivacyDefaultsTest
+[ RUN      ] PrivacyDefaultsTest.ProfileDefaultsAreSafeAndRemainUserModifiable
+[       OK ] PrivacyDefaultsTest.ProfileDefaultsAreSafeAndRemainUserModifiable (0 ms)
+[ RUN      ] PrivacyDefaultsTest.ProfileDefaultsPreserveHigherPriorityValues
+[       OK ] PrivacyDefaultsTest.ProfileDefaultsPreserveHigherPriorityValues (0 ms)
+[ RUN      ] PrivacyDefaultsTest.LocalStateDisablesReportingAndVariations
+[       OK ] PrivacyDefaultsTest.LocalStateDisablesReportingAndVariations (0 ms)
+[----------] 3 tests from PrivacyDefaultsTest (0 ms total)
+
+[----------] 4 tests from PrivacyModeServiceTest
+[ RUN      ] PrivacyModeServiceTest.DefaultsToChromiumCompatible
+[       OK ] PrivacyModeServiceTest.DefaultsToChromiumCompatible (0 ms)
+[ RUN      ] PrivacyModeServiceTest.UnknownFutureModePreservesCompatibility
+[       OK ] PrivacyModeServiceTest.UnknownFutureModePreservesCompatibility (0 ms)
+[ RUN      ] PrivacyModeServiceTest.PersistsGlobalAndOriginModes
+[       OK ] PrivacyModeServiceTest.PersistsGlobalAndOriginModes (0 ms)
+[ RUN      ] PrivacyModeServiceTest.RejectsNonHttpOriginAndManagedPrefs
+[       OK ] PrivacyModeServiceTest.RejectsNonHttpOriginAndManagedPrefs (0 ms)
+[----------] 4 tests from PrivacyModeServiceTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (1 ms total)
+[  PASSED  ] 10 tests.
+[1/17] BrowserAccountPolicyTest.DisablesChromiumSyncAndBrowserSignin (0 ms)
+[2/17] BrowserAccountPolicyTest.ReplacesHostileOverrideAndPreservesWebUrl (0 ms)
+[3/17] BrowserAccountPolicyTest.NetworkInitializationMatchesExplicitPolicy (0 ms)
+[4/17] PrivacyDefaultsTest.ProfileDefaultsAreSafeAndRemainUserModifiable (0 ms)
+[5/17] PrivacyDefaultsTest.ProfileDefaultsPreserveHigherPriorityValues (0 ms)
+[6/17] PrivacyDefaultsTest.LocalStateDisablesReportingAndVariations (0 ms)
+[7/17] PrivacyModeServiceTest.DefaultsToChromiumCompatible (0 ms)
+[8/17] PrivacyModeServiceTest.UnknownFutureModePreservesCompatibility (0 ms)
+[9/17] PrivacyModeServiceTest.PersistsGlobalAndOriginModes (0 ms)
+[10/17] PrivacyModeServiceTest.RejectsNonHttpOriginAndManagedPrefs (0 ms)
+Note: Google Test filter = PrivacyModeServiceTest.OtrInheritsGlobalButNotExceptions:PrivacyModeServiceTest.RemovesOnlyKnownTrackingParameters:PrivacyModeServiceTest.BuildsCookieSettingsPolicyByTopFrameOrigin:PrivacyModeServiceTest.CookiePolicyFailsClosedInOtrAndHonorsManagement:SecureComponentTransportTest.AllowsOnlyCryptographicUrls:SecureComponentTransportTest.RejectsPlaintextWithoutCallingDelegate:SecureComponentTransportTest.DelegatesHttpsRequests
+[==========] Running 7 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from PrivacyModeServiceTest
+[ RUN      ] PrivacyModeServiceTest.OtrInheritsGlobalButNotExceptions
+[       OK ] PrivacyModeServiceTest.OtrInheritsGlobalButNotExceptions (0 ms)
+[ RUN      ] PrivacyModeServiceTest.RemovesOnlyKnownTrackingParameters
+[       OK ] PrivacyModeServiceTest.RemovesOnlyKnownTrackingParameters (0 ms)
+[ RUN      ] PrivacyModeServiceTest.BuildsCookieSettingsPolicyByTopFrameOrigin
+[       OK ] PrivacyModeServiceTest.BuildsCookieSettingsPolicyByTopFrameOrigin (0 ms)
+[ RUN      ] PrivacyModeServiceTest.CookiePolicyFailsClosedInOtrAndHonorsManagement
+[       OK ] PrivacyModeServiceTest.CookiePolicyFailsClosedInOtrAndHonorsManagement (0 ms)
+[----------] 4 tests from PrivacyModeServiceTest (0 ms total)
+
+[----------] 3 tests from SecureComponentTransportTest
+[ RUN      ] SecureComponentTransportTest.AllowsOnlyCryptographicUrls
+[       OK ] SecureComponentTransportTest.AllowsOnlyCryptographicUrls (0 ms)
+[ RUN      ] SecureComponentTransportTest.RejectsPlaintextWithoutCallingDelegate
+[       OK ] SecureComponentTransportTest.RejectsPlaintextWithoutCallingDelegate (0 ms)
+[ RUN      ] SecureComponentTransportTest.DelegatesHttpsRequests
+[       OK ] SecureComponentTransportTest.DelegatesHttpsRequests (0 ms)
+[----------] 3 tests from SecureComponentTransportTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 2 test suites ran. (1 ms total)
+[  PASSED  ] 7 tests.
+[11/17] PrivacyModeServiceTest.OtrInheritsGlobalButNotExceptions (0 ms)
+[12/17] PrivacyModeServiceTest.RemovesOnlyKnownTrackingParameters (0 ms)
+[13/17] PrivacyModeServiceTest.BuildsCookieSettingsPolicyByTopFrameOrigin (0 ms)
+[14/17] PrivacyModeServiceTest.CookiePolicyFailsClosedInOtrAndHonorsManagement (0 ms)
+[15/17] SecureComponentTransportTest.AllowsOnlyCryptographicUrls (0 ms)
+[16/17] SecureComponentTransportTest.RejectsPlaintextWithoutCallingDelegate (0 ms)
+[17/17] SecureComponentTransportTest.DelegatesHttpsRequests (0 ms)
+SUCCESS: all tests passed.
+Tests took 0 seconds.

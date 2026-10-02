@@ -1,0 +1,256 @@
+objc[13819]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x137470a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11ad2ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13819]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x115e3c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_command_bar_unittests (0x1025d1580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[13842]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x135640a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x118efca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13842]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x11400c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_command_bar_unittests (0x10041d580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = CommandBarShortcutItemsTest.ShowsTheDefaultKey:CommandBarShortcutItemsTest.ShowsTheReboundKey:CommandBarShortcutItemsTest.UnboundCommandHasNoKey:CommandBarShortcutItemsTest.OmitsTheCommandBarItself:CommandBarTypesTest.KeepsRichestSuggestionForDuplicateTypedUrl:CommandBarTypesTest.TypedHostPrecedesUnrelatedFuzzyHistoryMatches:CommandBarTypesTest.ExactLocalDestinationRepresentsTypedHostFirst:CommandBarTypesTest.SearchFallbackRemainsLastWhenResultsAreCapped:CommandBarViewTest.ExposesListboxAndOptionSemantics:CommandBarViewTest.InitialCurrentQueryPrefersInputFallback
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from CommandBarShortcutItemsTest
+[ RUN      ] CommandBarShortcutItemsTest.ShowsTheDefaultKey
+[       OK ] CommandBarShortcutItemsTest.ShowsTheDefaultKey (0 ms)
+[ RUN      ] CommandBarShortcutItemsTest.ShowsTheReboundKey
+[       OK ] CommandBarShortcutItemsTest.ShowsTheReboundKey (0 ms)
+[ RUN      ] CommandBarShortcutItemsTest.UnboundCommandHasNoKey
+[       OK ] CommandBarShortcutItemsTest.UnboundCommandHasNoKey (0 ms)
+[ RUN      ] CommandBarShortcutItemsTest.OmitsTheCommandBarItself
+[       OK ] CommandBarShortcutItemsTest.OmitsTheCommandBarItself (0 ms)
+[----------] 4 tests from CommandBarShortcutItemsTest (0 ms total)
+
+[----------] 4 tests from CommandBarTypesTest
+[ RUN      ] CommandBarTypesTest.KeepsRichestSuggestionForDuplicateTypedUrl
+[       OK ] CommandBarTypesTest.KeepsRichestSuggestionForDuplicateTypedUrl (0 ms)
+[ RUN      ] CommandBarTypesTest.TypedHostPrecedesUnrelatedFuzzyHistoryMatches
+[       OK ] CommandBarTypesTest.TypedHostPrecedesUnrelatedFuzzyHistoryMatches (0 ms)
+[ RUN      ] CommandBarTypesTest.ExactLocalDestinationRepresentsTypedHostFirst
+[       OK ] CommandBarTypesTest.ExactLocalDestinationRepresentsTypedHostFirst (0 ms)
+[ RUN      ] CommandBarTypesTest.SearchFallbackRemainsLastWhenResultsAreCapped
+[       OK ] CommandBarTypesTest.SearchFallbackRemainsLastWhenResultsAreCapped (0 ms)
+[----------] 4 tests from CommandBarTypesTest (0 ms total)
+
+[----------] 2 tests from CommandBarViewTest
+[ RUN      ] CommandBarViewTest.ExposesListboxAndOptionSemantics
+[       OK ] CommandBarViewTest.ExposesListboxAndOptionSemantics (197 ms)
+[ RUN      ] CommandBarViewTest.InitialCurrentQueryPrefersInputFallback
+[       OK ] CommandBarViewTest.InitialCurrentQueryPrefersInputFallback (3 ms)
+[----------] 2 tests from CommandBarViewTest (201 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (202 ms total)
+[  PASSED  ] 10 tests.
+[1/55] CommandBarShortcutItemsTest.ShowsTheDefaultKey (0 ms)
+[2/55] CommandBarShortcutItemsTest.ShowsTheReboundKey (0 ms)
+[3/55] CommandBarShortcutItemsTest.UnboundCommandHasNoKey (0 ms)
+[4/55] CommandBarShortcutItemsTest.OmitsTheCommandBarItself (0 ms)
+[5/55] CommandBarTypesTest.KeepsRichestSuggestionForDuplicateTypedUrl (0 ms)
+[6/55] CommandBarTypesTest.TypedHostPrecedesUnrelatedFuzzyHistoryMatches (0 ms)
+[7/55] CommandBarTypesTest.ExactLocalDestinationRepresentsTypedHostFirst (0 ms)
+[8/55] CommandBarTypesTest.SearchFallbackRemainsLastWhenResultsAreCapped (0 ms)
+[9/55] CommandBarViewTest.ExposesListboxAndOptionSemantics (197 ms)
+[10/55] CommandBarViewTest.InitialCurrentQueryPrefersInputFallback (3 ms)
+objc[13870]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x139c0ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11d4c8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13870]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1185d8188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_command_bar_unittests (0x104df1580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = CommandBarViewTest.ArrowKeysWrapAndEnterExecutesSelection:CommandBarViewTest.OnlySelectedRowShowsReturnKeycap:CommandBarViewTest.UserEditsRebuildAndSelectFirstResult:CommandBarViewTest.EscapeIsHandled:CommandBarViewTest.TabAndShiftTabCycleOnlyVisibleSuggestionsAndSyncAccessibility:CommandBarViewTest.EnterExecutesSuggestionSelectedByTab:CommandBarViewTest.TabTraversalKeepsInputFocusedForContinuedTyping:CommandBarViewTest.FocusedRowTabAndEnterUseSynchronizedSelection:CommandBarViewTest.ModifiedTabTraversalRemainsUnhandled:CommandBarViewTest.DestroyedCallbackRunsExactlyWithViewLifetime
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from CommandBarViewTest
+[ RUN      ] CommandBarViewTest.ArrowKeysWrapAndEnterExecutesSelection
+[       OK ] CommandBarViewTest.ArrowKeysWrapAndEnterExecutesSelection (165 ms)
+[ RUN      ] CommandBarViewTest.OnlySelectedRowShowsReturnKeycap
+[       OK ] CommandBarViewTest.OnlySelectedRowShowsReturnKeycap (8 ms)
+[ RUN      ] CommandBarViewTest.UserEditsRebuildAndSelectFirstResult
+[       OK ] CommandBarViewTest.UserEditsRebuildAndSelectFirstResult (8 ms)
+[ RUN      ] CommandBarViewTest.EscapeIsHandled
+[       OK ] CommandBarViewTest.EscapeIsHandled (8 ms)
+[ RUN      ] CommandBarViewTest.TabAndShiftTabCycleOnlyVisibleSuggestionsAndSyncAccessibility
+[       OK ] CommandBarViewTest.TabAndShiftTabCycleOnlyVisibleSuggestionsAndSyncAccessibility (8 ms)
+[ RUN      ] CommandBarViewTest.EnterExecutesSuggestionSelectedByTab
+[       OK ] CommandBarViewTest.EnterExecutesSuggestionSelectedByTab (8 ms)
+[ RUN      ] CommandBarViewTest.TabTraversalKeepsInputFocusedForContinuedTyping
+[       OK ] CommandBarViewTest.TabTraversalKeepsInputFocusedForContinuedTyping (126 ms)
+[ RUN      ] CommandBarViewTest.FocusedRowTabAndEnterUseSynchronizedSelection
+[       OK ] CommandBarViewTest.FocusedRowTabAndEnterUseSynchronizedSelection (23 ms)
+[ RUN      ] CommandBarViewTest.ModifiedTabTraversalRemainsUnhandled
+[       OK ] CommandBarViewTest.ModifiedTabTraversalRemainsUnhandled (8 ms)
+[ RUN      ] CommandBarViewTest.DestroyedCallbackRunsExactlyWithViewLifetime
+[       OK ] CommandBarViewTest.DestroyedCallbackRunsExactlyWithViewLifetime (8 ms)
+[----------] 10 tests from CommandBarViewTest (374 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (374 ms total)
+[  PASSED  ] 10 tests.
+[11/55] CommandBarViewTest.ArrowKeysWrapAndEnterExecutesSelection (165 ms)
+[12/55] CommandBarViewTest.OnlySelectedRowShowsReturnKeycap (8 ms)
+[13/55] CommandBarViewTest.UserEditsRebuildAndSelectFirstResult (8 ms)
+[14/55] CommandBarViewTest.EscapeIsHandled (8 ms)
+[15/55] CommandBarViewTest.TabAndShiftTabCycleOnlyVisibleSuggestionsAndSyncAccessibility (8 ms)
+[16/55] CommandBarViewTest.EnterExecutesSuggestionSelectedByTab (8 ms)
+[17/55] CommandBarViewTest.TabTraversalKeepsInputFocusedForContinuedTyping (126 ms)
+[18/55] CommandBarViewTest.FocusedRowTabAndEnterUseSynchronizedSelection (23 ms)
+[19/55] CommandBarViewTest.ModifiedTabTraversalRemainsUnhandled (8 ms)
+[20/55] CommandBarViewTest.DestroyedCallbackRunsExactlyWithViewLifetime (8 ms)
+objc[13878]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136084a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119940a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[13878]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x114a50188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_command_bar_unittests (0x100ec9580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = CommandBarViewTest.ExecutionMaySynchronouslyDestroyBubble:CommandBarViewTest.CapsResultsAtFiveWithoutScrollableContainer:CommandBarViewTest.MouseClickDefersDestructiveExecutionUntilDispatchEnds:CommandBarViewTest.KeepsMinimumHeightAndKeyboardOnlyInputRing:CommandBarViewTest.SeparateDelegateOutlivesClientOwnedWidget:CommandExecutionAdapterTest.DirectUrlUsesRequestedDisposition:CommandExecutionAdapterTest.ExplicitHttpUrlDisablesHttpsFirstUpgrade:CommandExecutionAdapterTest.BareHttpsUrlPreservesDefaultSchemeMetadata:CommandExecutionAdapterTest.GShortcutUsesDefaultSearchWithoutSuggestions:CommandExecutionAdapterTest.PlainQueryUsesConfiguredDefaultSearch
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from CommandBarViewTest
+[ RUN      ] CommandBarViewTest.ExecutionMaySynchronouslyDestroyBubble
+[       OK ] CommandBarViewTest.ExecutionMaySynchronouslyDestroyBubble (171 ms)
+[ RUN      ] CommandBarViewTest.CapsResultsAtFiveWithoutScrollableContainer
+[       OK ] CommandBarViewTest.CapsResultsAtFiveWithoutScrollableContainer (8 ms)
+[ RUN      ] CommandBarViewTest.MouseClickDefersDestructiveExecutionUntilDispatchEnds
+[       OK ] CommandBarViewTest.MouseClickDefersDestructiveExecutionUntilDispatchEnds (24 ms)
+[ RUN      ] CommandBarViewTest.KeepsMinimumHeightAndKeyboardOnlyInputRing
+[       OK ] CommandBarViewTest.KeepsMinimumHeightAndKeyboardOnlyInputRing (125 ms)
+[ RUN      ] CommandBarViewTest.SeparateDelegateOutlivesClientOwnedWidget
+[       OK ] CommandBarViewTest.SeparateDelegateOutlivesClientOwnedWidget (41 ms)
+[----------] 5 tests from CommandBarViewTest (372 ms total)
+
+[----------] 5 tests from CommandExecutionAdapterTest
+[ RUN      ] CommandExecutionAdapterTest.DirectUrlUsesRequestedDisposition
+[       OK ] CommandExecutionAdapterTest.DirectUrlUsesRequestedDisposition (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.ExplicitHttpUrlDisablesHttpsFirstUpgrade
+[       OK ] CommandExecutionAdapterTest.ExplicitHttpUrlDisablesHttpsFirstUpgrade (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.BareHttpsUrlPreservesDefaultSchemeMetadata
+[       OK ] CommandExecutionAdapterTest.BareHttpsUrlPreservesDefaultSchemeMetadata (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.GShortcutUsesDefaultSearchWithoutSuggestions
+[       OK ] CommandExecutionAdapterTest.GShortcutUsesDefaultSearchWithoutSuggestions (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.PlainQueryUsesConfiguredDefaultSearch
+[       OK ] CommandExecutionAdapterTest.PlainQueryUsesConfiguredDefaultSearch (0 ms)
+[----------] 5 tests from CommandExecutionAdapterTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (373 ms total)
+[  PASSED  ] 10 tests.
+[21/55] CommandBarViewTest.ExecutionMaySynchronouslyDestroyBubble (171 ms)
+[22/55] CommandBarViewTest.CapsResultsAtFiveWithoutScrollableContainer (8 ms)
+[23/55] CommandBarViewTest.MouseClickDefersDestructiveExecutionUntilDispatchEnds (24 ms)
+[24/55] CommandBarViewTest.KeepsMinimumHeightAndKeyboardOnlyInputRing (125 ms)
+[25/55] CommandBarViewTest.SeparateDelegateOutlivesClientOwnedWidget (41 ms)
+[26/55] CommandExecutionAdapterTest.DirectUrlUsesRequestedDisposition (0 ms)
+[27/55] CommandExecutionAdapterTest.ExplicitHttpUrlDisablesHttpsFirstUpgrade (0 ms)
+[28/55] CommandExecutionAdapterTest.BareHttpsUrlPreservesDefaultSchemeMetadata (0 ms)
+[29/55] CommandExecutionAdapterTest.GShortcutUsesDefaultSearchWithoutSuggestions (0 ms)
+[30/55] CommandExecutionAdapterTest.PlainQueryUsesConfiguredDefaultSearch (0 ms)
+objc[14052]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x135304a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x118bc0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14052]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x113870188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_command_bar_unittests (0x100535580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = CommandExecutionAdapterTest.PreviewIsPresentationReady:CommandExecutionAdapterTest.OpenTabActivatesBeforeFallingBackToUrl:CommandExecutionAdapterTest.BrowserCommandsAreExplicitlyAllowlisted:CommandExecutionAdapterTest.HttpAuthManagerUsesReviewedNativeSurface:CommandExecutionAdapterTest.DeveloperCommandsAreExplicitlyAllowlistedAndTargetGated:CommandExecutionAdapterTest.FolderAndWorkspaceAreExecutable:CommandExecutionAdapterTest.MoveToWorkspaceItemsRouteToTheDelegate:CommandExecutionAdapterTest.MergeWorkspaceItemsRouteToTheDelegate:CommandExecutionAdapterTest.ExplicitLocalPrefixHasNoSearchFallback:CommandExecutionAdapterTest.DailyDriverCommandsStayAllowlisted
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from CommandExecutionAdapterTest
+[ RUN      ] CommandExecutionAdapterTest.PreviewIsPresentationReady
+[       OK ] CommandExecutionAdapterTest.PreviewIsPresentationReady (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.OpenTabActivatesBeforeFallingBackToUrl
+[       OK ] CommandExecutionAdapterTest.OpenTabActivatesBeforeFallingBackToUrl (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.BrowserCommandsAreExplicitlyAllowlisted
+[       OK ] CommandExecutionAdapterTest.BrowserCommandsAreExplicitlyAllowlisted (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.HttpAuthManagerUsesReviewedNativeSurface
+[       OK ] CommandExecutionAdapterTest.HttpAuthManagerUsesReviewedNativeSurface (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.DeveloperCommandsAreExplicitlyAllowlistedAndTargetGated
+[       OK ] CommandExecutionAdapterTest.DeveloperCommandsAreExplicitlyAllowlistedAndTargetGated (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.FolderAndWorkspaceAreExecutable
+[       OK ] CommandExecutionAdapterTest.FolderAndWorkspaceAreExecutable (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.MoveToWorkspaceItemsRouteToTheDelegate
+[       OK ] CommandExecutionAdapterTest.MoveToWorkspaceItemsRouteToTheDelegate (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.MergeWorkspaceItemsRouteToTheDelegate
+[       OK ] CommandExecutionAdapterTest.MergeWorkspaceItemsRouteToTheDelegate (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.ExplicitLocalPrefixHasNoSearchFallback
+[       OK ] CommandExecutionAdapterTest.ExplicitLocalPrefixHasNoSearchFallback (0 ms)
+[ RUN      ] CommandExecutionAdapterTest.DailyDriverCommandsStayAllowlisted
+[       OK ] CommandExecutionAdapterTest.DailyDriverCommandsStayAllowlisted (0 ms)
+[----------] 10 tests from CommandExecutionAdapterTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 10 tests.
+[31/55] CommandExecutionAdapterTest.PreviewIsPresentationReady (0 ms)
+[32/55] CommandExecutionAdapterTest.OpenTabActivatesBeforeFallingBackToUrl (0 ms)
+[33/55] CommandExecutionAdapterTest.BrowserCommandsAreExplicitlyAllowlisted (0 ms)
+[34/55] CommandExecutionAdapterTest.HttpAuthManagerUsesReviewedNativeSurface (0 ms)
+[35/55] CommandExecutionAdapterTest.DeveloperCommandsAreExplicitlyAllowlistedAndTargetGated (0 ms)
+[36/55] CommandExecutionAdapterTest.FolderAndWorkspaceAreExecutable (0 ms)
+[37/55] CommandExecutionAdapterTest.MoveToWorkspaceItemsRouteToTheDelegate (0 ms)
+[38/55] CommandExecutionAdapterTest.MergeWorkspaceItemsRouteToTheDelegate (0 ms)
+[39/55] CommandExecutionAdapterTest.ExplicitLocalPrefixHasNoSearchFallback (0 ms)
+[40/55] CommandExecutionAdapterTest.DailyDriverCommandsStayAllowlisted (0 ms)
+objc[14244]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x137588a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11ae44a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14244]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x115f54188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_command_bar_unittests (0x1023b9580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = QuickWindowPolicyTest.AcceptsOnlyUnmodifiedAltSpace:QuickWindowPolicyTest.EnforcesActivationCooldownAtExactBoundary:QuickWindowPolicyTest.CentersFixedSizeBoundsOnAnchor:DialogStyleTest.TokensMatchTheDesignSpec:DialogStyleTest.FrameUsesSpecWidthPaddingAndRadius:DialogStyleTest.TitleIsTwentyPointSemibold:DialogStyleTest.FieldsAndButtonsGetSpecHeights:DialogStyleTest.FocusRingHasTwoPointStrokeAndTwoPointGap:DialogStyleTest.FieldErrorIsWrittenOutAndClearable:ModalOverlayControllerTest.ScrimCoversWindowAndUsesContentsCenterAnchor
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from QuickWindowPolicyTest
+[ RUN      ] QuickWindowPolicyTest.AcceptsOnlyUnmodifiedAltSpace
+[       OK ] QuickWindowPolicyTest.AcceptsOnlyUnmodifiedAltSpace (0 ms)
+[ RUN      ] QuickWindowPolicyTest.EnforcesActivationCooldownAtExactBoundary
+[       OK ] QuickWindowPolicyTest.EnforcesActivationCooldownAtExactBoundary (0 ms)
+[ RUN      ] QuickWindowPolicyTest.CentersFixedSizeBoundsOnAnchor
+[       OK ] QuickWindowPolicyTest.CentersFixedSizeBoundsOnAnchor (0 ms)
+[----------] 3 tests from QuickWindowPolicyTest (0 ms total)
+
+[----------] 6 tests from DialogStyleTest
+[ RUN      ] DialogStyleTest.TokensMatchTheDesignSpec
+[       OK ] DialogStyleTest.TokensMatchTheDesignSpec (159 ms)
+[ RUN      ] DialogStyleTest.FrameUsesSpecWidthPaddingAndRadius
+[       OK ] DialogStyleTest.FrameUsesSpecWidthPaddingAndRadius (2 ms)
+[ RUN      ] DialogStyleTest.TitleIsTwentyPointSemibold
+[       OK ] DialogStyleTest.TitleIsTwentyPointSemibold (20 ms)
+[ RUN      ] DialogStyleTest.FieldsAndButtonsGetSpecHeights
+[       OK ] DialogStyleTest.FieldsAndButtonsGetSpecHeights (4 ms)
+[ RUN      ] DialogStyleTest.FocusRingHasTwoPointStrokeAndTwoPointGap
+[       OK ] DialogStyleTest.FocusRingHasTwoPointStrokeAndTwoPointGap (8 ms)
+[ RUN      ] DialogStyleTest.FieldErrorIsWrittenOutAndClearable
+[       OK ] DialogStyleTest.FieldErrorIsWrittenOutAndClearable (8 ms)
+[----------] 6 tests from DialogStyleTest (203 ms total)
+
+[----------] 1 test from ModalOverlayControllerTest
+[ RUN      ] ModalOverlayControllerTest.ScrimCoversWindowAndUsesContentsCenterAnchor
+[       OK ] ModalOverlayControllerTest.ScrimCoversWindowAndUsesContentsCenterAnchor (134 ms)
+[----------] 1 test from ModalOverlayControllerTest (134 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (339 ms total)
+[  PASSED  ] 10 tests.
+[41/55] QuickWindowPolicyTest.AcceptsOnlyUnmodifiedAltSpace (0 ms)
+[42/55] QuickWindowPolicyTest.EnforcesActivationCooldownAtExactBoundary (0 ms)
+[43/55] QuickWindowPolicyTest.CentersFixedSizeBoundsOnAnchor (0 ms)
+[44/55] DialogStyleTest.TokensMatchTheDesignSpec (159 ms)
+[45/55] DialogStyleTest.FrameUsesSpecWidthPaddingAndRadius (2 ms)
+[46/55] DialogStyleTest.TitleIsTwentyPointSemibold (20 ms)
+[47/55] DialogStyleTest.FieldsAndButtonsGetSpecHeights (4 ms)
+[48/55] DialogStyleTest.FocusRingHasTwoPointStrokeAndTwoPointGap (8 ms)
+[49/55] DialogStyleTest.FieldErrorIsWrittenOutAndClearable (8 ms)
+[50/55] ModalOverlayControllerTest.ScrimCoversWindowAndUsesContentsCenterAnchor (134 ms)
+objc[14277]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1379dca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11b298a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14277]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1163a8188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_command_bar_unittests (0x102831580). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ModalOverlayControllerTest.OutsidePressClosesExactlyOnceAndRestoresFocus:ModalOverlayControllerTest.RejectsConcurrentPanel:ModalOverlayControllerTest.ImmediateDismissDoesNotInvokeClose:ModalOverlayControllerTest.RunWhenIdleWaitsForTheActivePanel:ModalOverlayControllerTest.RunWhenIdleCallbackMayOpenTheNextPanel
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from ModalOverlayControllerTest
+[ RUN      ] ModalOverlayControllerTest.OutsidePressClosesExactlyOnceAndRestoresFocus
+[       OK ] ModalOverlayControllerTest.OutsidePressClosesExactlyOnceAndRestoresFocus (333 ms)
+[ RUN      ] ModalOverlayControllerTest.RejectsConcurrentPanel
+[       OK ] ModalOverlayControllerTest.RejectsConcurrentPanel (41 ms)
+[ RUN      ] ModalOverlayControllerTest.ImmediateDismissDoesNotInvokeClose
+[       OK ] ModalOverlayControllerTest.ImmediateDismissDoesNotInvokeClose (49 ms)
+[ RUN      ] ModalOverlayControllerTest.RunWhenIdleWaitsForTheActivePanel
+[       OK ] ModalOverlayControllerTest.RunWhenIdleWaitsForTheActivePanel (300 ms)
+[ RUN      ] ModalOverlayControllerTest.RunWhenIdleCallbackMayOpenTheNextPanel
+[       OK ] ModalOverlayControllerTest.RunWhenIdleCallbackMayOpenTheNextPanel (99 ms)
+[----------] 5 tests from ModalOverlayControllerTest (825 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (825 ms total)
+[  PASSED  ] 5 tests.
+[51/55] ModalOverlayControllerTest.OutsidePressClosesExactlyOnceAndRestoresFocus (333 ms)
+[52/55] ModalOverlayControllerTest.RejectsConcurrentPanel (41 ms)
+[53/55] ModalOverlayControllerTest.ImmediateDismissDoesNotInvokeClose (49 ms)
+[54/55] ModalOverlayControllerTest.RunWhenIdleWaitsForTheActivePanel (300 ms)
+[55/55] ModalOverlayControllerTest.RunWhenIdleCallbackMayOpenTheNextPanel (99 ms)
+SUCCESS: all tests passed.
+Tests took 14 seconds.

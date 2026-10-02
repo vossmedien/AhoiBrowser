@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Required native gate GREEN; canonical installer running — 2 October 2026
+
+Exact candidate28506787/Build70 has full required development native GREEN:
+Core148/Mojo29, editor5, sidebar191/Views33/popup28/search86, fifteen baseline
+programs872 and browser split15/popup14/compiler+worker4, all SUCCESS, jobs1,
+no retries/skips/not-run cases. [Exact hashes/raw-result binding](../artifacts/tests/header-retirement-native-green-28506787-20261002/README.md).
+All native/build runners are terminal, no current output/input test remains.
+No installed or complete Master acceptance is claimed by these native passes.
+
+Fresh installation boundary: no app/compiler/test process, owner locks free,
+CPU52% idle,113GiB free; /Applications writable. The canonical frozen-repository
+installer now runs as owned runner28154 with exact source/guarded native evidence,
+same-volume staging, verification and rollback contract. Check actual PID plus
+`.work/agent-queue/70/install-state.json` and log/receipt before acting; keep
+output immutable while its build.lock is held. No DeveloperID/notarization or
+release/API scope is added. Installed source stays9acb43c8 until the transaction
+actually activates/verifies the new bundle; do not infer it from runner startup.
+
+Next: actual installer exit/immutable receipt and independent installed source
+readback, then representative affected visible lifecycle/matrix/archive/
+auto-archive/devtoolkit/settings journeys under fresh input/UI ownership, plus
+necessary focused checks. Original Master, worker/Sync/external/release bounds
+and Crest's separately granted H3 performance window remain open/intact.
+
 ## Core148/editor5 and corrected sidebar/UI338 GREEN — 2 October 2026
 
 Guarded Build70 source28506787 completes compile/stable Apple Development sign/
