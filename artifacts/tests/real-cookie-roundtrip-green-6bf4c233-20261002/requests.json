@@ -1,0 +1,30 @@
+[
+  {
+    "path": "/ready",
+    "syntheticCookieMatched": false
+  },
+  {
+    "path": "/set",
+    "syntheticCookieMatched": false
+  },
+  {
+    "path": "/favicon.ico",
+    "syntheticCookieMatched": true
+  },
+  {
+    "path": "/read",
+    "syntheticCookieMatched": true
+  },
+  {
+    "path": "/favicon.ico",
+    "syntheticCookieMatched": true
+  },
+  {
+    "path": "/read",
+    "syntheticCookieMatched": true
+  },
+  {
+    "path": "/favicon.ico",
+    "syntheticCookieMatched": true
+  }
+]

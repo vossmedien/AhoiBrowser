@@ -1,5 +1,39 @@
 # Active Desktop checkpoint
 
+## Genuine cookie/restart GREEN; live split12 GREEN, restore3 RED — 2 October 2026
+
+Installed6bf4c233/Build71/M154 now proves a real synthetic persistent cookie:
+server receives it before and after native browser close/relaunch, no mock/sandbox
+exception; both documents commit and native exits0. Own read-only cookie SQLite
+row has empty clear value, encrypted67 bytes/prefixv10 and persistent expiry.
+No real user cookie/key/password or ciphertext blob is printed/exported.
+[Real encryption/server/restart/tool binding](../artifacts/tests/real-cookie-roundtrip-green-6bf4c233-20261002/README.md).
+Runner6479/browser6484,6534 are terminal; own lock released. This is one actual
+cookie's encrypted round trip, not whole cookie/isolated-workspace/Sync acceptance.
+
+Fresh affected installed lifecycle runner16097 startsidle460, real provider,
+owned fixture/no other app/compiler. All12 live assertions pass:4→3→2→1 pane
+close/drafts/normal row, shortcut+menu dissolve, second-window split/group,
+first-window preservation and focused-pane shortcuts. Three post-relaunch
+window/URL/group restore assertions are false. [Actual verdict and retained own
+session records](../artifacts/tests/installed-lifecycle-restore-red-6bf4c233-20261002/README.md).
+Exit0 is NOT PASS; verdictpass:false decides acceptance. Runner/app roots are
+terminal, locks released, no retry observer. Earlier focus cancellation remains
+separate history. Rest/close source assertions were not weakened.
+
+The retained synthetic profile is `/private/tmp/ahoi-split-profile.62CENW`.
+Startup prefs restore1/continue remain; older SNSS v3 data contains fixture URLs,
+two live recorded windows and no window-closed command, framing fully parsed.
+Later SNSS captures the fallback NTP. This read-only analysis is not native
+decoder/selected-session proof or a diagnosed cause. All records remain intact.
+
+Next concrete work: isolated startup/last-session/native restore diagnosis,
+including debugging intent/pref/readback and actual decoded windows. Fix the
+established cause, verify restart/window/group invariants and remaining visible
+matrix/archive/auto-archive/devtoolkit/settings scopes; do not repeat live12
+without justification or run another heavy build for a guess. Original complete
+Master/worker/Sync/external/release/data/archive/rollback bounds remain active.
+
 ## Build71 installed; genuine real-provider navigation GREEN, lifecycle yielded — 2 October 2026
 
 Exact6bf4c233 Build71/M154 canonically installs exit0; candidate/stage/installed

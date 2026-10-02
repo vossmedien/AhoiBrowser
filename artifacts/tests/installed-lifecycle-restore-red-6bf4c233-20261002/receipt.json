@@ -1,0 +1,78 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "pass": false,
+  "processExitCode": 0,
+  "passedAssertions": 12,
+  "failedAssertions": [
+    "restoredSecondWindowSplit",
+    "restoredWithoutPhantomTabs",
+    "restoredSecondWindowOneRow"
+  ],
+  "originalRestorePrefs": {
+    "session.restore_on_startup": 1,
+    "ahoi.session.startup_mode": "continue"
+  },
+  "syntheticProfile": "/private/tmp/ahoi-split-profile.62CENW",
+  "sessionEvidence": [
+    {
+      "name": "Session_13435387317245331",
+      "sha256": "991b5d78440a019af92d608036fe4fe5eb266cc4a89b94e746b0ae9b466bf13d",
+      "bytes": 46544,
+      "version": 3,
+      "parsedBytes": 46544,
+      "commands": 168,
+      "windowTypesAfterCloseCommands": {
+        "1563500750": 0,
+        "1563500761": 0
+      },
+      "windowClosedIds": []
+    },
+    {
+      "name": "Session_13435387358879622",
+      "sha256": "38218c91e94faaecc6609eae5ede91bc668f4b01290edf709f94dca9fcf5b6c9",
+      "bytes": 7840,
+      "version": 3,
+      "parsedBytes": 7840,
+      "commands": 28,
+      "windowTypesAfterCloseCommands": {
+        "1563500825": 0
+      },
+      "windowClosedIds": []
+    }
+  ],
+  "nativeParserEquivalenceClaimed": false,
+  "rawDirectory": "artifacts/computer-use/m154/split-lifecycle-corrected-installed-6bf4c233-20261002T040001Z",
+  "rawSha256": {
+    "snap-4-four.txt": "78cc4f90fedcde6fb94e335c351b2f6d41b3bcd49f9fce0535e7dc47f378d848",
+    "snap-1-base.txt": "1f9828573a5194cc3e0ae2f17b50806c1abf11aa38776de3bf7a0c17b8c26424",
+    "browser.log": "e0791192154af8a5d90a725cbf59deb0bcb2d0d64e629d1ac39587856f8f7627",
+    "snap-7-focus-1.txt": "6f4654677d1a4d144586a6779051a949629cc2b3b3cfeebbedd8b90eae791b64",
+    "snap-13-split-f.txt": "24ba2284dbb7b2084f6d41f313c73c84fc2800ce59f8ca68a8ca646194557613",
+    "snap-2-focus-1.txt": "483d02952bfa435e669b641fb7e2c788fa62205c41d10acaf608ede7e576c83a",
+    "snap-14-unsplit-menu.txt": "a18591647ed6a9f0853cd3023a32fe7442bb917af2c987260582c092d82b6cf6",
+    "snap-8-closed-to-2.txt": "7e27e6c8d90e391747b1c38f6c23de82e37b76bc5e63f179f94b9abcb678266b",
+    "ax-sidebar-collapsed.txt": "ae77bca6c2729637cd205833a4a392e7e939b22b5e6a80bf210c481b5b22066e",
+    "site.log": "daf779d9338f0132cd8e41b82f7aab3ff6bf35af01f1a75a04aedefcac18fbcc",
+    "snap-17-focus-1.txt": "d915937a3c250119c28c818e157a38428bf5320a18bdd6e759644ee590ec0a4b",
+    "snap-12-unsplit-key.txt": "93bc4c8521fb743217c15ea84e90aa93906c092d0a980fb4a46d6c9244d86743",
+    "ax-final.txt": "502a998ea69aa7a16a921fdef2051e479b34f4ba680b88603bc4e1a0de9fe64e",
+    "snap-6-closed-to-3.txt": "6f4654677d1a4d144586a6779051a949629cc2b3b3cfeebbedd8b90eae791b64",
+    "steps.txt": "756443e33e1e4085a577c68c7c82feee3113126d61ad21e2b7138156ddd65a1d",
+    "snap-15-second-window.txt": "96ae8a5fad5e3f9d1092fbd3e3985d36d7a168786ccc552e19c1bb9a0d616d8a",
+    "verdict.json": "b502acb03dea6a25e609e2ac028b8a0779e47dad308371ba2b24a6e9722b5231",
+    "site-readiness-error.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "snap-10-closed-to-1.txt": "ffc71b60f32e00eea74b8c64fbafe784a4d0eedd7d430879ef7de8357afc45e3",
+    "ax-sidebar-relaunch.txt": "eaa51459f56dd0ee30c312ae60585a9f08dc32be6f635eda73e84412622a02de",
+    "ax-sidebar-unsplit-key.txt": "c1a38e77c3f2e6774c127531610ccd7e23c634e29e194e1204d6fc58f923b43b",
+    "ax-sidebar-second-window.txt": "c721bc1c4f193521b932789ec853a9c1e06086a9cac34e6e074a3995a6ae03ae",
+    "snap-16-focus-2.txt": "f655d8a99731debfb9ca69c730e42a7f5c2d4212ae3e97255bcc32cebc98d52f",
+    "snap-3-focus-1.txt": "cee23dfcf301cb94c0702c2df1bf7268c3b8c5ce4e6d7725e7ef8e9376fd989f",
+    "snap-18-relaunch.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "site-readiness.html": "dac85b1606c49512c50ed81d7cc05a430c9b53a42b14d1576318f36e87649a1b",
+    "run.txt": "0cee13795ed78939cd35b48ccd5b1ccd46a838f5a77db9b6bdfe0aeb93d403e6",
+    "snap-5-focus-1.txt": "88dffcc1cb0daff550eca4aa21a6e4b489cb86cfa6af80a7b5843c1a02fdbb33",
+    "ax-sidebar-unsplit-menu.txt": "250bdf465510f3f437488507ff40ec72f6b372ced294eb74ca1bc61016079609",
+    "snap-11-split-e.txt": "a243d6749755c2a06dbcd5c581ca4971d556f7fd79302dab349bf59b608b0ec9",
+    "snap-9-focus-1.txt": "7e27e6c8d90e391747b1c38f6c23de82e37b76bc5e63f179f94b9abcb678266b"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "runnerPid": 6479,
+  "phase": "complete",
+  "source": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "mockKeychain": false,
+  "headless": false,
+  "pass_": true,
+  "checks": {
+    "serverCookieBeforeClose": true,
+    "firstNativeClose": true,
+    "encryptedAtRest": true,
+    "serverCookieAfterRestart": true,
+    "secondNativeClose": true
+  },
+  "startedAt": "2026-10-02T03:56:29.281836+00:00",
+  "harnessSha256": "16acc862bad8c9ae47e050cfb6fde7f01507ab6b246a9d7df83fa91587f5d6a6",
+  "idleSeconds": 247,
+  "appRunning": false,
+  "profile": "/private/tmp/ahoi-cookie-profile.u1g2ai9k",
+  "fixtureOrigin": "http://127.0.0.1:62415",
+  "cdpSha256": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+  "browserPids": [
+    6484,
+    6534
+  ],
+  "documents": [
+    {
+      "href": "http://127.0.0.1:62415/set",
+      "title": "CookieSet",
+      "ready": "complete"
+    },
+    {
+      "href": "http://127.0.0.1:62415/read",
+      "title": "CookieRestored",
+      "ready": "complete"
+    }
+  ],
+  "browserExitCodes": [
+    0,
+    0
+  ],
+  "database": {
+    "path": "/private/tmp/ahoi-cookie-profile.u1g2ai9k/Default/Cookies",
+    "syntheticRowPresent": true,
+    "clearValueEmpty": true,
+    "encryptedBytes": 67,
+    "encryptedPrefix": "763130",
+    "persistentExpiry": true
+  },
+  "cleanupComplete": true
+}

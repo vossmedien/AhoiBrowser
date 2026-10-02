@@ -1,0 +1,35 @@
+{
+  "scope": "genuine installed windowed synthetic encrypted cookie persistence/restart",
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "pass": true,
+  "mockKeychain": false,
+  "headless": false,
+  "checks": {
+    "serverCookieBeforeClose": true,
+    "firstNativeClose": true,
+    "encryptedAtRest": true,
+    "serverCookieAfterRestart": true,
+    "secondNativeClose": true
+  },
+  "database": {
+    "path": "/private/tmp/ahoi-cookie-profile.u1g2ai9k/Default/Cookies",
+    "syntheticRowPresent": true,
+    "clearValueEmpty": true,
+    "encryptedBytes": 67,
+    "encryptedPrefix": "763130",
+    "persistentExpiry": true
+  },
+  "harnessSha256": "16acc862bad8c9ae47e050cfb6fde7f01507ab6b246a9d7df83fa91587f5d6a6",
+  "browserExitCodes": [
+    0,
+    0
+  ],
+  "rawDirectory": "artifacts/computer-use/m154/real-cookie-roundtrip-6bf4c233-20261002T035629Z",
+  "fullMasterAchieved": false,
+  "sha256": {
+    "state.json": "cf0716a519b550c6b2a87a2ed0fe75ceff39478312cd823ebb1a65f3fa14d764",
+    "first-launch-browser.log": "367045cdedc7fb474ae22cc68ed5cb9d7671758398e3bd022f4eb42706be46b5",
+    "second-launch-browser.log": "7a656786dce0798cc2b57594c56632005b5db8cfa8c9ab9c395a1009bfcb64c6",
+    "requests.json": "2c73558d19cf96d952b6935c4118119d968cb2f8b367e4e6220be0043bbd4104"
+  }
+}

@@ -1,0 +1,18 @@
+{
+ "closePaneTo3": true,
+ "closePaneTo2": true,
+ "closePaneTo1": true,
+ "lastPaneIsNormalRow": true,
+ "unsplitShortcutKeepsBothTabs": true,
+ "unsplitRowsSeparated": true,
+ "unsplitMenuKeepsBothTabs": true,
+ "unsplitMenuRowsSeparated": true,
+ "secondWindowSplit": true,
+ "secondWindowOneRow": true,
+ "firstWindowUntouched": true,
+ "paneShortcutsInSecondWindow": true,
+ "restoredSecondWindowSplit": false,
+ "restoredWithoutPhantomTabs": false,
+ "restoredSecondWindowOneRow": false,
+ "pass": false
+}
