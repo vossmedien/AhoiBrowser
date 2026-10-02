@@ -1,0 +1,74 @@
+objc[81509]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x141d0ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126c28a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[81509]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x123f08188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_settings_private_unittests (0x108373518). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[81823]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140678a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125594a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[81823]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122874188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_settings_private_unittests (0x106f37518). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = LinkRoutingSettingsModelTest.StateListsRulesTargetsAndWorkspaces:LinkRoutingSettingsModelTest.ActionsEditInOrderAndReportErrors:LinkRoutingSettingsModelTest.UpdateMayKeepAnUnavailableTarget:LinkRoutingSettingsModelTest.ExampleShowsTargetAndWinningRule:LinkRoutingSettingsModelTest.EveryErrorHasAVisibleLabel:AhoiSettingsPrivatePrefsTest.AhoiSettingsPrefsAreAllowlistedWithStableTypes:AhoiSettingsPrivatePrefsTest.AhoiStartupModeIsAllowlistedAndWritable:ShortcutSettingsModelTest.ShowsEveryCatalogCommandWithItsKeys:ShortcutSettingsModelTest.FormerlyFixedCommandsChangeInTheEditor:ShortcutSettingsModelTest.KeyTextUsesMacOrder
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from LinkRoutingSettingsModelTest
+[ RUN      ] LinkRoutingSettingsModelTest.StateListsRulesTargetsAndWorkspaces
+[       OK ] LinkRoutingSettingsModelTest.StateListsRulesTargetsAndWorkspaces (0 ms)
+[ RUN      ] LinkRoutingSettingsModelTest.ActionsEditInOrderAndReportErrors
+[       OK ] LinkRoutingSettingsModelTest.ActionsEditInOrderAndReportErrors (0 ms)
+[ RUN      ] LinkRoutingSettingsModelTest.UpdateMayKeepAnUnavailableTarget
+[       OK ] LinkRoutingSettingsModelTest.UpdateMayKeepAnUnavailableTarget (0 ms)
+[ RUN      ] LinkRoutingSettingsModelTest.ExampleShowsTargetAndWinningRule
+[       OK ] LinkRoutingSettingsModelTest.ExampleShowsTargetAndWinningRule (0 ms)
+[ RUN      ] LinkRoutingSettingsModelTest.EveryErrorHasAVisibleLabel
+[       OK ] LinkRoutingSettingsModelTest.EveryErrorHasAVisibleLabel (0 ms)
+[----------] 5 tests from LinkRoutingSettingsModelTest (34 ms total)
+
+[----------] 2 tests from AhoiSettingsPrivatePrefsTest
+[ RUN      ] AhoiSettingsPrivatePrefsTest.AhoiSettingsPrefsAreAllowlistedWithStableTypes
+[       OK ] AhoiSettingsPrivatePrefsTest.AhoiSettingsPrefsAreAllowlistedWithStableTypes (139 ms)
+[ RUN      ] AhoiSettingsPrivatePrefsTest.AhoiStartupModeIsAllowlistedAndWritable
+[       OK ] AhoiSettingsPrivatePrefsTest.AhoiStartupModeIsAllowlistedAndWritable (48 ms)
+[----------] 2 tests from AhoiSettingsPrivatePrefsTest (189 ms total)
+
+[----------] 3 tests from ShortcutSettingsModelTest
+[ RUN      ] ShortcutSettingsModelTest.ShowsEveryCatalogCommandWithItsKeys
+[       OK ] ShortcutSettingsModelTest.ShowsEveryCatalogCommandWithItsKeys (0 ms)
+[ RUN      ] ShortcutSettingsModelTest.FormerlyFixedCommandsChangeInTheEditor
+[       OK ] ShortcutSettingsModelTest.FormerlyFixedCommandsChangeInTheEditor (0 ms)
+[ RUN      ] ShortcutSettingsModelTest.KeyTextUsesMacOrder
+[       OK ] ShortcutSettingsModelTest.KeyTextUsesMacOrder (0 ms)
+[----------] 3 tests from ShortcutSettingsModelTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (226 ms total)
+[  PASSED  ] 10 tests.
+[1/12] LinkRoutingSettingsModelTest.StateListsRulesTargetsAndWorkspaces (0 ms)
+[2/12] LinkRoutingSettingsModelTest.ActionsEditInOrderAndReportErrors (0 ms)
+[3/12] LinkRoutingSettingsModelTest.UpdateMayKeepAnUnavailableTarget (0 ms)
+[4/12] LinkRoutingSettingsModelTest.ExampleShowsTargetAndWinningRule (0 ms)
+[5/12] LinkRoutingSettingsModelTest.EveryErrorHasAVisibleLabel (0 ms)
+[6/12] AhoiSettingsPrivatePrefsTest.AhoiSettingsPrefsAreAllowlistedWithStableTypes (139 ms)
+[7/12] AhoiSettingsPrivatePrefsTest.AhoiStartupModeIsAllowlistedAndWritable (48 ms)
+[8/12] ShortcutSettingsModelTest.ShowsEveryCatalogCommandWithItsKeys (0 ms)
+[9/12] ShortcutSettingsModelTest.FormerlyFixedCommandsChangeInTheEditor (0 ms)
+[10/12] ShortcutSettingsModelTest.KeyTextUsesMacOrder (0 ms)
+objc[81846]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1425b0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1274cca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[81846]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x123f54188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_settings_private_unittests (0x10867f518). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ShortcutSettingsModelTest.SetUnbindResetAndConflictMessages:ShortcutSettingsModelTest.RejectsMalformedRequests
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from ShortcutSettingsModelTest
+[ RUN      ] ShortcutSettingsModelTest.SetUnbindResetAndConflictMessages
+[       OK ] ShortcutSettingsModelTest.SetUnbindResetAndConflictMessages (0 ms)
+[ RUN      ] ShortcutSettingsModelTest.RejectsMalformedRequests
+[       OK ] ShortcutSettingsModelTest.RejectsMalformedRequests (0 ms)
+[----------] 2 tests from ShortcutSettingsModelTest (18 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (18 ms total)
+[  PASSED  ] 2 tests.
+[11/12] ShortcutSettingsModelTest.SetUnbindResetAndConflictMessages (0 ms)
+[12/12] ShortcutSettingsModelTest.RejectsMalformedRequests (0 ms)
+SUCCESS: all tests passed.
+Tests took 4 seconds.

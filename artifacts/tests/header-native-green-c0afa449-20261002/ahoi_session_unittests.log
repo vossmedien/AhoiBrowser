@@ -1,0 +1,533 @@
+objc[79540]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x14573ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x128ae8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[79540]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x125570188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x10ae87588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[79728]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142818a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126218a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[79728]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122ca0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x1085fb588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = CrossLevelMoveTest.FolderMovesWithItsSubtreeParentFirst:CrossLevelMoveTest.SplitMovesWholeOrNotAtAll:CrossLevelMoveTest.RefusesLocalPagesAndOverlappingRoots:CrossLevelMoveTest.TemporaryPageArrivesSaved:CrossLevelMoveTest.PlacementIsFreshAdditiveAndAfterLastRoot:CrossLevelMoveTest.UndoOnlyWhileTheMoveIsTheLatestChange:CrossLevelMoveTest.ContainsNodesInsideAMovedFolder:IsolatedProfileRegistryTest.RoundTripsEntriesInOrder:IsolatedProfileRegistryTest.FindsEntryByWorkspaceId:IsolatedProfileRegistryTest.RejectsDuplicatesAndInvalidEntries
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from CrossLevelMoveTest
+[ RUN      ] CrossLevelMoveTest.FolderMovesWithItsSubtreeParentFirst
+[       OK ] CrossLevelMoveTest.FolderMovesWithItsSubtreeParentFirst (0 ms)
+[ RUN      ] CrossLevelMoveTest.SplitMovesWholeOrNotAtAll
+[       OK ] CrossLevelMoveTest.SplitMovesWholeOrNotAtAll (0 ms)
+[ RUN      ] CrossLevelMoveTest.RefusesLocalPagesAndOverlappingRoots
+[       OK ] CrossLevelMoveTest.RefusesLocalPagesAndOverlappingRoots (0 ms)
+[ RUN      ] CrossLevelMoveTest.TemporaryPageArrivesSaved
+[       OK ] CrossLevelMoveTest.TemporaryPageArrivesSaved (0 ms)
+[ RUN      ] CrossLevelMoveTest.PlacementIsFreshAdditiveAndAfterLastRoot
+[       OK ] CrossLevelMoveTest.PlacementIsFreshAdditiveAndAfterLastRoot (2 ms)
+[ RUN      ] CrossLevelMoveTest.UndoOnlyWhileTheMoveIsTheLatestChange
+[       OK ] CrossLevelMoveTest.UndoOnlyWhileTheMoveIsTheLatestChange (0 ms)
+[ RUN      ] CrossLevelMoveTest.ContainsNodesInsideAMovedFolder
+[       OK ] CrossLevelMoveTest.ContainsNodesInsideAMovedFolder (0 ms)
+[----------] 7 tests from CrossLevelMoveTest (62 ms total)
+
+[----------] 3 tests from IsolatedProfileRegistryTest
+[ RUN      ] IsolatedProfileRegistryTest.RoundTripsEntriesInOrder
+[       OK ] IsolatedProfileRegistryTest.RoundTripsEntriesInOrder (0 ms)
+[ RUN      ] IsolatedProfileRegistryTest.FindsEntryByWorkspaceId
+[       OK ] IsolatedProfileRegistryTest.FindsEntryByWorkspaceId (0 ms)
+[ RUN      ] IsolatedProfileRegistryTest.RejectsDuplicatesAndInvalidEntries
+[       OK ] IsolatedProfileRegistryTest.RejectsDuplicatesAndInvalidEntries (0 ms)
+[----------] 3 tests from IsolatedProfileRegistryTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (63 ms total)
+[  PASSED  ] 10 tests.
+[1/110] CrossLevelMoveTest.FolderMovesWithItsSubtreeParentFirst (0 ms)
+[2/110] CrossLevelMoveTest.SplitMovesWholeOrNotAtAll (0 ms)
+[3/110] CrossLevelMoveTest.RefusesLocalPagesAndOverlappingRoots (0 ms)
+[4/110] CrossLevelMoveTest.TemporaryPageArrivesSaved (0 ms)
+[5/110] CrossLevelMoveTest.PlacementIsFreshAdditiveAndAfterLastRoot (2 ms)
+[6/110] CrossLevelMoveTest.UndoOnlyWhileTheMoveIsTheLatestChange (0 ms)
+[7/110] CrossLevelMoveTest.ContainsNodesInsideAMovedFolder (0 ms)
+[8/110] IsolatedProfileRegistryTest.RoundTripsEntriesInOrder (0 ms)
+[9/110] IsolatedProfileRegistryTest.FindsEntryByWorkspaceId (0 ms)
+[10/110] IsolatedProfileRegistryTest.RejectsDuplicatesAndInvalidEntries (0 ms)
+objc[80117]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x143ad4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x12671ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[80117]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1239fc188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x109277588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = IsolatedProfileRegistryTest.TracksStateAndRemoves:IsolatedProfileRegistryTest.SweepRemovesProfilesThatNoLongerExist:IsolatedProfileRegistryTest.ListsUnregisteredHalfCreatedProfiles:IsolatedProfileRegistryTest.RoundTripsSortKey:IsolatedProfileRegistryTest.RoundTripsConvertingState:IsolatedProfileRegistryTest.SkipsMalformedStoredEntries:IsolatedProfileRegistryTest.ManagedListIsNotWritten:IsolatedWorkspaceDirectoryTest.NeverChoosesASeparatedProfile:IsolatedWorkspaceDirectoryTest.PrefersLoadedThenLastUsedThenRecent:PortableWorkspaceImportPlanTest.AtomicFreshArchiveCommitReplaysWithoutDuplicatesAndRejectsConflict
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from IsolatedProfileRegistryTest
+[ RUN      ] IsolatedProfileRegistryTest.TracksStateAndRemoves
+[       OK ] IsolatedProfileRegistryTest.TracksStateAndRemoves (0 ms)
+[ RUN      ] IsolatedProfileRegistryTest.SweepRemovesProfilesThatNoLongerExist
+[       OK ] IsolatedProfileRegistryTest.SweepRemovesProfilesThatNoLongerExist (0 ms)
+[ RUN      ] IsolatedProfileRegistryTest.ListsUnregisteredHalfCreatedProfiles
+[       OK ] IsolatedProfileRegistryTest.ListsUnregisteredHalfCreatedProfiles (0 ms)
+[ RUN      ] IsolatedProfileRegistryTest.RoundTripsSortKey
+[       OK ] IsolatedProfileRegistryTest.RoundTripsSortKey (0 ms)
+[ RUN      ] IsolatedProfileRegistryTest.RoundTripsConvertingState
+[       OK ] IsolatedProfileRegistryTest.RoundTripsConvertingState (0 ms)
+[ RUN      ] IsolatedProfileRegistryTest.SkipsMalformedStoredEntries
+[       OK ] IsolatedProfileRegistryTest.SkipsMalformedStoredEntries (0 ms)
+[ RUN      ] IsolatedProfileRegistryTest.ManagedListIsNotWritten
+[       OK ] IsolatedProfileRegistryTest.ManagedListIsNotWritten (0 ms)
+[----------] 7 tests from IsolatedProfileRegistryTest (43 ms total)
+
+[----------] 2 tests from IsolatedWorkspaceDirectoryTest
+[ RUN      ] IsolatedWorkspaceDirectoryTest.NeverChoosesASeparatedProfile
+[       OK ] IsolatedWorkspaceDirectoryTest.NeverChoosesASeparatedProfile (0 ms)
+[ RUN      ] IsolatedWorkspaceDirectoryTest.PrefersLoadedThenLastUsedThenRecent
+[       OK ] IsolatedWorkspaceDirectoryTest.PrefersLoadedThenLastUsedThenRecent (0 ms)
+[----------] 2 tests from IsolatedWorkspaceDirectoryTest (0 ms total)
+
+[----------] 1 test from PortableWorkspaceImportPlanTest
+[ RUN      ] PortableWorkspaceImportPlanTest.AtomicFreshArchiveCommitReplaysWithoutDuplicatesAndRejectsConflict
+[       OK ] PortableWorkspaceImportPlanTest.AtomicFreshArchiveCommitReplaysWithoutDuplicatesAndRejectsConflict (2 ms)
+[----------] 1 test from PortableWorkspaceImportPlanTest (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (47 ms total)
+[  PASSED  ] 10 tests.
+[11/110] IsolatedProfileRegistryTest.TracksStateAndRemoves (0 ms)
+[12/110] IsolatedProfileRegistryTest.SweepRemovesProfilesThatNoLongerExist (0 ms)
+[13/110] IsolatedProfileRegistryTest.ListsUnregisteredHalfCreatedProfiles (0 ms)
+[14/110] IsolatedProfileRegistryTest.RoundTripsSortKey (0 ms)
+[15/110] IsolatedProfileRegistryTest.RoundTripsConvertingState (0 ms)
+[16/110] IsolatedProfileRegistryTest.SkipsMalformedStoredEntries (0 ms)
+[17/110] IsolatedProfileRegistryTest.ManagedListIsNotWritten (0 ms)
+[18/110] IsolatedWorkspaceDirectoryTest.NeverChoosesASeparatedProfile (0 ms)
+[19/110] IsolatedWorkspaceDirectoryTest.PrefersLoadedThenLastUsedThenRecent (0 ms)
+[20/110] PortableWorkspaceImportPlanTest.AtomicFreshArchiveCommitReplaysWithoutDuplicatesAndRejectsConflict (2 ms)
+objc[80150]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144feca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x128398a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[80150]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124e20188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x10a6bb588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SessionBridgeTest.ActivateTabInItsWorkspaceSelectsWorkspaceFirst:SessionBridgeTest.ActivateLastUsedTabTogglesWithinTheActiveWorkspace:SessionBridgeTest.TracksNativeWindowTabContentsAndWorkspace:SessionBridgeTest.BindingFollowsDiscardAndNativeWindowMove:SessionBridgeTest.DroppedDetachedTabIsRetiredFailClosed:SessionBridgeTest.ClosingBoundTabKeepsSavedPageButNotTemporary:SessionBridgeTest.ShutdownDetachesAndFailsClosed:SessionBridgeTest.FactoriesRejectOffTheRecordWithoutRedirection:SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation:SessionBridgeTest.BackupFlushPersistsSecondNestedTreeMutation
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SessionBridgeTest
+[ RUN      ] SessionBridgeTest.ActivateTabInItsWorkspaceSelectsWorkspaceFirst
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.ActivateTabInItsWorkspaceSelectsWorkspaceFirst (569 ms)
+[ RUN      ] SessionBridgeTest.ActivateLastUsedTabTogglesWithinTheActiveWorkspace
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.ActivateLastUsedTabTogglesWithinTheActiveWorkspace (285 ms)
+[ RUN      ] SessionBridgeTest.TracksNativeWindowTabContentsAndWorkspace
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.TracksNativeWindowTabContentsAndWorkspace (202 ms)
+[ RUN      ] SessionBridgeTest.BindingFollowsDiscardAndNativeWindowMove
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80150:4799309:ERROR:chrome/browser/ui/tabs/tab_strip_api/tab_strip_model_impl/tab_strip_model_event_bridge.cc:109] Not implemented reached in virtual void tabs_api::tab_strip_model::TabStripModelEventBridge::OnTabStripModelChanged(TabStripModel *, const TabStripModelChange &, const TabStripSelectionChange &). 
+[       OK ] SessionBridgeTest.BindingFollowsDiscardAndNativeWindowMove (186 ms)
+[ RUN      ] SessionBridgeTest.DroppedDetachedTabIsRetiredFailClosed
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.DroppedDetachedTabIsRetiredFailClosed (218 ms)
+[ RUN      ] SessionBridgeTest.ClosingBoundTabKeepsSavedPageButNotTemporary
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.ClosingBoundTabKeepsSavedPageButNotTemporary (202 ms)
+[ RUN      ] SessionBridgeTest.ShutdownDetachesAndFailsClosed
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.ShutdownDetachesAndFailsClosed (219 ms)
+[ RUN      ] SessionBridgeTest.FactoriesRejectOffTheRecordWithoutRedirection
+[       OK ] SessionBridgeTest.FactoriesRejectOffTheRecordWithoutRedirection (111 ms)
+[ RUN      ] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80150:4799309:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation (212 ms)
+[ RUN      ] SessionBridgeTest.BackupFlushPersistsSecondNestedTreeMutation
+[       OK ] SessionBridgeTest.BackupFlushPersistsSecondNestedTreeMutation (161 ms)
+[----------] 10 tests from SessionBridgeTest (2460 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (2460 ms total)
+[  PASSED  ] 10 tests.
+[21/110] SessionBridgeTest.ActivateTabInItsWorkspaceSelectsWorkspaceFirst (569 ms)
+[22/110] SessionBridgeTest.ActivateLastUsedTabTogglesWithinTheActiveWorkspace (285 ms)
+[23/110] SessionBridgeTest.TracksNativeWindowTabContentsAndWorkspace (202 ms)
+[24/110] SessionBridgeTest.BindingFollowsDiscardAndNativeWindowMove (186 ms)
+[25/110] SessionBridgeTest.DroppedDetachedTabIsRetiredFailClosed (218 ms)
+[26/110] SessionBridgeTest.ClosingBoundTabKeepsSavedPageButNotTemporary (202 ms)
+[27/110] SessionBridgeTest.ShutdownDetachesAndFailsClosed (219 ms)
+[28/110] SessionBridgeTest.FactoriesRejectOffTheRecordWithoutRedirection (111 ms)
+[29/110] SessionBridgeTest.PersistsAndRebindsNestedPageAfterTabRecreation (212 ms)
+[30/110] SessionBridgeTest.BackupFlushPersistsSecondNestedTreeMutation (161 ms)
+objc[80550]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x144c54a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x128000a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[80550]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x124a88188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x10a3bb588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar:SessionBridgeTest.NewTabPageNeverRebindsToSavedGenericPage:SessionBridgeTest.ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching:SessionBridgeTest.ComputedPartitionPathMatchesTheLoadedPartition:SessionBridgeTest.WorkspaceLevelIsChosenAtCreationAndDuplicated:SessionBridgeTest.CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab:SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource:SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently:SessionBridgeTest.PublishesNestedSavedPagesToCommandBarIndex:SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from SessionBridgeTest
+[ RUN      ] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar
+[80550:4800262:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar (299 ms)
+[ RUN      ] SessionBridgeTest.NewTabPageNeverRebindsToSavedGenericPage
+[80550:4800262:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.NewTabPageNeverRebindsToSavedGenericPage (194 ms)
+[ RUN      ] SessionBridgeTest.ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching
+[80550:4800262:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching (177 ms)
+[ RUN      ] SessionBridgeTest.ComputedPartitionPathMatchesTheLoadedPartition
+[       OK ] SessionBridgeTest.ComputedPartitionPathMatchesTheLoadedPartition (111 ms)
+[ RUN      ] SessionBridgeTest.WorkspaceLevelIsChosenAtCreationAndDuplicated
+[       OK ] SessionBridgeTest.WorkspaceLevelIsChosenAtCreationAndDuplicated (127 ms)
+[ RUN      ] SessionBridgeTest.CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab
+[80550:4800262:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab (196 ms)
+[ RUN      ] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource
+[       OK ] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource (110 ms)
+[ RUN      ] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently
+[80550:4800262:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80550:4800262:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently (213 ms)
+[ RUN      ] SessionBridgeTest.PublishesNestedSavedPagesToCommandBarIndex
+[       OK ] SessionBridgeTest.PublishesNestedSavedPagesToCommandBarIndex (110 ms)
+[ RUN      ] SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing
+[       OK ] SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing (121 ms)
+[----------] 10 tests from SessionBridgeTest (1731 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1731 ms total)
+[  PASSED  ] 10 tests.
+[31/110] SessionBridgeTest.NewTabRemainsTemporaryAndIsAddressableByCommandBar (299 ms)
+[32/110] SessionBridgeTest.NewTabPageNeverRebindsToSavedGenericPage (194 ms)
+[33/110] SessionBridgeTest.ExplicitSavedNewTabBindingSurvivesDeferredGenericMatching (177 ms)
+[34/110] SessionBridgeTest.ComputedPartitionPathMatchesTheLoadedPartition (111 ms)
+[35/110] SessionBridgeTest.WorkspaceLevelIsChosenAtCreationAndDuplicated (127 ms)
+[36/110] SessionBridgeTest.CreatesUpdatesSwitchesAndDeletesWorkspaceWithoutLosingLiveTab (196 ms)
+[37/110] SessionBridgeTest.DuplicatesWorkspaceTreeAndPlacesItAfterSource (110 ms)
+[38/110] SessionBridgeTest.SavesTemporaryTabAtWorkspaceRootIdempotently (213 ms)
+[39/110] SessionBridgeTest.PublishesNestedSavedPagesToCommandBarIndex (110 ms)
+[40/110] SessionBridgeTest.RemovesUrlUserinfoBeforeCommandIndexing (121 ms)
+objc[80768]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1437fca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126444a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[80768]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122ecc188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x10894f588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SessionBridgeWorkspaceMergeTest.SharedMergeKeepsTheLiveTabAndUndoes:SessionBridgeWorkspaceMergeTest.EmptySourceUndoRestoresOnlyItsRouting:SessionBridgeWorkspaceMergeTest.OwnSessionsAreRetiredWithoutUndo:SessionBridgeWorkspaceMergeTest.RejectsSelfAndUnknownTargets:SessionPrefsTest.DefaultsToAsk:SessionPrefsTest.PersistsEverySupportedMode:SessionPrefsTest.InvalidStoredValueFallsBackToAsk:SessionPrefsTest.ManagedValueCannotBeOverwritten:SessionPrefsTest.InvalidEnumIsRejected:SessionPrefsTest.ExistingWorkspacesStayDefaultAndNewOnesAreLocal
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from SessionBridgeWorkspaceMergeTest
+[ RUN      ] SessionBridgeWorkspaceMergeTest.SharedMergeKeepsTheLiveTabAndUndoes
+[80768:4800892:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionBridgeWorkspaceMergeTest.SharedMergeKeepsTheLiveTabAndUndoes (323 ms)
+[ RUN      ] SessionBridgeWorkspaceMergeTest.EmptySourceUndoRestoresOnlyItsRouting
+[       OK ] SessionBridgeWorkspaceMergeTest.EmptySourceUndoRestoresOnlyItsRouting (177 ms)
+[ RUN      ] SessionBridgeWorkspaceMergeTest.OwnSessionsAreRetiredWithoutUndo
+[       OK ] SessionBridgeWorkspaceMergeTest.OwnSessionsAreRetiredWithoutUndo (146 ms)
+[ RUN      ] SessionBridgeWorkspaceMergeTest.RejectsSelfAndUnknownTargets
+[       OK ] SessionBridgeWorkspaceMergeTest.RejectsSelfAndUnknownTargets (113 ms)
+[----------] 4 tests from SessionBridgeWorkspaceMergeTest (795 ms total)
+
+[----------] 6 tests from SessionPrefsTest
+[ RUN      ] SessionPrefsTest.DefaultsToAsk
+[       OK ] SessionPrefsTest.DefaultsToAsk (0 ms)
+[ RUN      ] SessionPrefsTest.PersistsEverySupportedMode
+[       OK ] SessionPrefsTest.PersistsEverySupportedMode (0 ms)
+[ RUN      ] SessionPrefsTest.InvalidStoredValueFallsBackToAsk
+[       OK ] SessionPrefsTest.InvalidStoredValueFallsBackToAsk (0 ms)
+[ RUN      ] SessionPrefsTest.ManagedValueCannotBeOverwritten
+[       OK ] SessionPrefsTest.ManagedValueCannotBeOverwritten (0 ms)
+[ RUN      ] SessionPrefsTest.InvalidEnumIsRejected
+[       OK ] SessionPrefsTest.InvalidEnumIsRejected (0 ms)
+[ RUN      ] SessionPrefsTest.ExistingWorkspacesStayDefaultAndNewOnesAreLocal
+[       OK ] SessionPrefsTest.ExistingWorkspacesStayDefaultAndNewOnesAreLocal (0 ms)
+[----------] 6 tests from SessionPrefsTest (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (797 ms total)
+[  PASSED  ] 10 tests.
+[41/110] SessionBridgeWorkspaceMergeTest.SharedMergeKeepsTheLiveTabAndUndoes (323 ms)
+[42/110] SessionBridgeWorkspaceMergeTest.EmptySourceUndoRestoresOnlyItsRouting (177 ms)
+[43/110] SessionBridgeWorkspaceMergeTest.OwnSessionsAreRetiredWithoutUndo (146 ms)
+[44/110] SessionBridgeWorkspaceMergeTest.RejectsSelfAndUnknownTargets (113 ms)
+[45/110] SessionPrefsTest.DefaultsToAsk (0 ms)
+[46/110] SessionPrefsTest.PersistsEverySupportedMode (0 ms)
+[47/110] SessionPrefsTest.InvalidStoredValueFallsBackToAsk (0 ms)
+[48/110] SessionPrefsTest.ManagedValueCannotBeOverwritten (0 ms)
+[49/110] SessionPrefsTest.InvalidEnumIsRejected (0 ms)
+[50/110] SessionPrefsTest.ExistingWorkspacesStayDefaultAndNewOnesAreLocal (0 ms)
+objc[80777]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140ca8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1238f0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[80777]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120bd0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x106413588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SessionPrefsTest.UnknownWorkspaceIsSharedWithoutTheGate:SessionPrefsTest.SharedLevelNeedsNoBindingState:SessionPrefsTest.OwnLevelAdoptsOthersAsSharedAndIsFixed:SessionPrefsTest.OwnLevelRefusesCorruptOrManagedState:SessionPrefsTest.CorruptBindingDoesNotFallBackToDefault:SessionRestoreIntegrationTest.ExtraDataRoundTripsWindowAndTabState:SessionRestoreIntegrationTest.RestoredNativeContextMustBelongToLocalProfile:SessionRestoreIntegrationTest.TypedNavigationDoesNotTargetHiddenWorkspaceTab:SessionRestoreIntegrationTest.RestoredTemporaryTabDoesNotAutoBindByUrl:SessionRestoreIntegrationTest.LastActiveFlagFollowsChromiumTabSelection
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from SessionPrefsTest
+[ RUN      ] SessionPrefsTest.UnknownWorkspaceIsSharedWithoutTheGate
+[       OK ] SessionPrefsTest.UnknownWorkspaceIsSharedWithoutTheGate (0 ms)
+[ RUN      ] SessionPrefsTest.SharedLevelNeedsNoBindingState
+[       OK ] SessionPrefsTest.SharedLevelNeedsNoBindingState (0 ms)
+[ RUN      ] SessionPrefsTest.OwnLevelAdoptsOthersAsSharedAndIsFixed
+[       OK ] SessionPrefsTest.OwnLevelAdoptsOthersAsSharedAndIsFixed (0 ms)
+[ RUN      ] SessionPrefsTest.OwnLevelRefusesCorruptOrManagedState
+[       OK ] SessionPrefsTest.OwnLevelRefusesCorruptOrManagedState (0 ms)
+[ RUN      ] SessionPrefsTest.CorruptBindingDoesNotFallBackToDefault
+[       OK ] SessionPrefsTest.CorruptBindingDoesNotFallBackToDefault (0 ms)
+[----------] 5 tests from SessionPrefsTest (20 ms total)
+
+[----------] 5 tests from SessionRestoreIntegrationTest
+[ RUN      ] SessionRestoreIntegrationTest.ExtraDataRoundTripsWindowAndTabState
+[80777:4801042:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionRestoreIntegrationTest.ExtraDataRoundTripsWindowAndTabState (308 ms)
+[ RUN      ] SessionRestoreIntegrationTest.RestoredNativeContextMustBelongToLocalProfile
+[       OK ] SessionRestoreIntegrationTest.RestoredNativeContextMustBelongToLocalProfile (111 ms)
+[ RUN      ] SessionRestoreIntegrationTest.TypedNavigationDoesNotTargetHiddenWorkspaceTab
+[80777:4801042:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80777:4801042:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionRestoreIntegrationTest.TypedNavigationDoesNotTargetHiddenWorkspaceTab (195 ms)
+[ RUN      ] SessionRestoreIntegrationTest.RestoredTemporaryTabDoesNotAutoBindByUrl
+[80777:4801042:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionRestoreIntegrationTest.RestoredTemporaryTabDoesNotAutoBindByUrl (178 ms)
+[ RUN      ] SessionRestoreIntegrationTest.LastActiveFlagFollowsChromiumTabSelection
+[80777:4801042:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[80777:4801042:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionRestoreIntegrationTest.LastActiveFlagFollowsChromiumTabSelection (227 ms)
+[----------] 5 tests from SessionRestoreIntegrationTest (1047 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1068 ms total)
+[  PASSED  ] 10 tests.
+[51/110] SessionPrefsTest.UnknownWorkspaceIsSharedWithoutTheGate (0 ms)
+[52/110] SessionPrefsTest.SharedLevelNeedsNoBindingState (0 ms)
+[53/110] SessionPrefsTest.OwnLevelAdoptsOthersAsSharedAndIsFixed (0 ms)
+[54/110] SessionPrefsTest.OwnLevelRefusesCorruptOrManagedState (0 ms)
+[55/110] SessionPrefsTest.CorruptBindingDoesNotFallBackToDefault (0 ms)
+[56/110] SessionRestoreIntegrationTest.ExtraDataRoundTripsWindowAndTabState (308 ms)
+[57/110] SessionRestoreIntegrationTest.RestoredNativeContextMustBelongToLocalProfile (111 ms)
+[58/110] SessionRestoreIntegrationTest.TypedNavigationDoesNotTargetHiddenWorkspaceTab (195 ms)
+[59/110] SessionRestoreIntegrationTest.RestoredTemporaryTabDoesNotAutoBindByUrl (178 ms)
+[60/110] SessionRestoreIntegrationTest.LastActiveFlagFollowsChromiumTabSelection (227 ms)
+objc[81071]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142ad4a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x1264d4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[81071]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122f5c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x1088f3588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = SessionRestoreIntegrationTest.StaleWorkspaceFallsBackAndConflictingNodeIsIgnored:SharedTabTargetPolicyTest.ConsumesCanonicalV3TargetCases:SharedTabTargetPolicyTest.OnlyExplicitEmptyTemporaryTargetsBecomeNewTabs:SharedTabTargetPolicyTest.NativeLocalTargetsLoseAllPrivateUrlBytes:SharedTabTargetPolicyTest.TargetGroupsAreCanonicalBoundedAndExact:SharedTabTargetPolicyTest.PresenceRequiresIdentityAndAtomicTargetAgreement:SharedTabTargetPolicyTest.ActivationNeverInventsLocalTargetOrBinding:StartupPolicyTest.AppliesConfiguredModeForCleanRegularStartup:StartupPolicyTest.NoRestorableSessionSkipsChoice:StartupPolicyTest.OffTheRecordAlwaysDefersToChromium
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from SessionRestoreIntegrationTest
+[ RUN      ] SessionRestoreIntegrationTest.StaleWorkspaceFallsBackAndConflictingNodeIsIgnored
+[81071:4801658:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] SessionRestoreIntegrationTest.StaleWorkspaceFallsBackAndConflictingNodeIsIgnored (280 ms)
+[----------] 1 test from SessionRestoreIntegrationTest (304 ms total)
+
+[----------] 6 tests from SharedTabTargetPolicyTest
+[ RUN      ] SharedTabTargetPolicyTest.ConsumesCanonicalV3TargetCases
+[       OK ] SharedTabTargetPolicyTest.ConsumesCanonicalV3TargetCases (2 ms)
+[ RUN      ] SharedTabTargetPolicyTest.OnlyExplicitEmptyTemporaryTargetsBecomeNewTabs
+[       OK ] SharedTabTargetPolicyTest.OnlyExplicitEmptyTemporaryTargetsBecomeNewTabs (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.NativeLocalTargetsLoseAllPrivateUrlBytes
+[       OK ] SharedTabTargetPolicyTest.NativeLocalTargetsLoseAllPrivateUrlBytes (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.TargetGroupsAreCanonicalBoundedAndExact
+[       OK ] SharedTabTargetPolicyTest.TargetGroupsAreCanonicalBoundedAndExact (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.PresenceRequiresIdentityAndAtomicTargetAgreement
+[       OK ] SharedTabTargetPolicyTest.PresenceRequiresIdentityAndAtomicTargetAgreement (0 ms)
+[ RUN      ] SharedTabTargetPolicyTest.ActivationNeverInventsLocalTargetOrBinding
+[       OK ] SharedTabTargetPolicyTest.ActivationNeverInventsLocalTargetOrBinding (0 ms)
+[----------] 6 tests from SharedTabTargetPolicyTest (5 ms total)
+
+[----------] 3 tests from StartupPolicyTest
+[ RUN      ] StartupPolicyTest.AppliesConfiguredModeForCleanRegularStartup
+[       OK ] StartupPolicyTest.AppliesConfiguredModeForCleanRegularStartup (0 ms)
+[ RUN      ] StartupPolicyTest.NoRestorableSessionSkipsChoice
+[       OK ] StartupPolicyTest.NoRestorableSessionSkipsChoice (0 ms)
+[ RUN      ] StartupPolicyTest.OffTheRecordAlwaysDefersToChromium
+[       OK ] StartupPolicyTest.OffTheRecordAlwaysDefersToChromium (0 ms)
+[----------] 3 tests from StartupPolicyTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (310 ms total)
+[  PASSED  ] 10 tests.
+[61/110] SessionRestoreIntegrationTest.StaleWorkspaceFallsBackAndConflictingNodeIsIgnored (280 ms)
+[62/110] SharedTabTargetPolicyTest.ConsumesCanonicalV3TargetCases (2 ms)
+[63/110] SharedTabTargetPolicyTest.OnlyExplicitEmptyTemporaryTargetsBecomeNewTabs (0 ms)
+[64/110] SharedTabTargetPolicyTest.NativeLocalTargetsLoseAllPrivateUrlBytes (0 ms)
+[65/110] SharedTabTargetPolicyTest.TargetGroupsAreCanonicalBoundedAndExact (0 ms)
+[66/110] SharedTabTargetPolicyTest.PresenceRequiresIdentityAndAtomicTargetAgreement (0 ms)
+[67/110] SharedTabTargetPolicyTest.ActivationNeverInventsLocalTargetOrBinding (0 ms)
+[68/110] StartupPolicyTest.AppliesConfiguredModeForCleanRegularStartup (0 ms)
+[69/110] StartupPolicyTest.NoRestorableSessionSkipsChoice (0 ms)
+[70/110] StartupPolicyTest.OffTheRecordAlwaysDefersToChromium (0 ms)
+objc[81362]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x140d8ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x124138a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[81362]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x120bc0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x1064cf588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = StartupPolicyTest.ManagedRestorePolicyWins:StartupPolicyTest.ExplicitCommandLineIntentWins:StartupPolicyTest.BrowserRestartWins:StartupPolicyTest.SuppressedTabbedRestoreWins:StartupPolicyTest.CrashRecoveryWins:StartupPolicyTest.FirstRunWins:WebsiteSessionBrowsingDataTest.ReachesOwnAndRecoveryContextsOnce:WebsiteSessionBrowsingDataTest.WithoutOwnSessionsNothingIsQueued:WebsiteSessionBrowsingDataTest.ClearsCookiesOfALoadedOwnPartition:WebsiteSessionBrowsingDataTest.NeverCreatesAPartition
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from StartupPolicyTest
+[ RUN      ] StartupPolicyTest.ManagedRestorePolicyWins
+[       OK ] StartupPolicyTest.ManagedRestorePolicyWins (0 ms)
+[ RUN      ] StartupPolicyTest.ExplicitCommandLineIntentWins
+[       OK ] StartupPolicyTest.ExplicitCommandLineIntentWins (0 ms)
+[ RUN      ] StartupPolicyTest.BrowserRestartWins
+[       OK ] StartupPolicyTest.BrowserRestartWins (0 ms)
+[ RUN      ] StartupPolicyTest.SuppressedTabbedRestoreWins
+[       OK ] StartupPolicyTest.SuppressedTabbedRestoreWins (0 ms)
+[ RUN      ] StartupPolicyTest.CrashRecoveryWins
+[       OK ] StartupPolicyTest.CrashRecoveryWins (0 ms)
+[ RUN      ] StartupPolicyTest.FirstRunWins
+[       OK ] StartupPolicyTest.FirstRunWins (0 ms)
+[----------] 6 tests from StartupPolicyTest (21 ms total)
+
+[----------] 4 tests from WebsiteSessionBrowsingDataTest
+[ RUN      ] WebsiteSessionBrowsingDataTest.ReachesOwnAndRecoveryContextsOnce
+[       OK ] WebsiteSessionBrowsingDataTest.ReachesOwnAndRecoveryContextsOnce (109 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.WithoutOwnSessionsNothingIsQueued
+[       OK ] WebsiteSessionBrowsingDataTest.WithoutOwnSessionsNothingIsQueued (73 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.ClearsCookiesOfALoadedOwnPartition
+[       OK ] WebsiteSessionBrowsingDataTest.ClearsCookiesOfALoadedOwnPartition (116 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.NeverCreatesAPartition
+[       OK ] WebsiteSessionBrowsingDataTest.NeverCreatesAPartition (79 ms)
+[----------] 4 tests from WebsiteSessionBrowsingDataTest (385 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (407 ms total)
+[  PASSED  ] 10 tests.
+[71/110] StartupPolicyTest.ManagedRestorePolicyWins (0 ms)
+[72/110] StartupPolicyTest.ExplicitCommandLineIntentWins (0 ms)
+[73/110] StartupPolicyTest.BrowserRestartWins (0 ms)
+[74/110] StartupPolicyTest.SuppressedTabbedRestoreWins (0 ms)
+[75/110] StartupPolicyTest.CrashRecoveryWins (0 ms)
+[76/110] StartupPolicyTest.FirstRunWins (0 ms)
+[77/110] WebsiteSessionBrowsingDataTest.ReachesOwnAndRecoveryContextsOnce (109 ms)
+[78/110] WebsiteSessionBrowsingDataTest.WithoutOwnSessionsNothingIsQueued (73 ms)
+[79/110] WebsiteSessionBrowsingDataTest.ClearsCookiesOfALoadedOwnPartition (116 ms)
+[80/110] WebsiteSessionBrowsingDataTest.NeverCreatesAPartition (79 ms)
+objc[81364]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1456aca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x128a58a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[81364]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1254e0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x10ad93588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = WebsiteSessionBrowsingDataTest.ReachesAnUnloadedPartitionOnDisk:WebsiteSessionBrowsingDataTest.SkipsARetiredPartition:WebsiteSessionBrowsingDataTest.IgnoresModifierOnlyAndEmptyFilters:WebsiteSessionBrowsingDataTest.SiteDataRemovalKeepsSiblingHosts:WebsiteSessionBrowsingDataTest.SiteGroupRemovalNamesEachHost:WebsiteSessionBrowsingDataTest.SiteDataRemovalCoversLocalHosts:WebsiteSessionBrowsingDataTest.SiteDataRemovalNeverCreatesAPartition:WorkspaceDirectoryOrderTest.MergesByKeyAcrossProfiles:WorkspaceDirectoryOrderTest.EqualKeysPutMainFirst:WorkspaceDirectoryOrderTest.UnkeyedFollowAndDeletingIsSkipped
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from WebsiteSessionBrowsingDataTest
+[ RUN      ] WebsiteSessionBrowsingDataTest.ReachesAnUnloadedPartitionOnDisk
+[       OK ] WebsiteSessionBrowsingDataTest.ReachesAnUnloadedPartitionOnDisk (607 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.SkipsARetiredPartition
+[       OK ] WebsiteSessionBrowsingDataTest.SkipsARetiredPartition (115 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.IgnoresModifierOnlyAndEmptyFilters
+[       OK ] WebsiteSessionBrowsingDataTest.IgnoresModifierOnlyAndEmptyFilters (95 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.SiteDataRemovalKeepsSiblingHosts
+[       OK ] WebsiteSessionBrowsingDataTest.SiteDataRemovalKeepsSiblingHosts (193 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.SiteGroupRemovalNamesEachHost
+[       OK ] WebsiteSessionBrowsingDataTest.SiteGroupRemovalNamesEachHost (138 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.SiteDataRemovalCoversLocalHosts
+[       OK ] WebsiteSessionBrowsingDataTest.SiteDataRemovalCoversLocalHosts (136 ms)
+[ RUN      ] WebsiteSessionBrowsingDataTest.SiteDataRemovalNeverCreatesAPartition
+[       OK ] WebsiteSessionBrowsingDataTest.SiteDataRemovalNeverCreatesAPartition (69 ms)
+[----------] 7 tests from WebsiteSessionBrowsingDataTest (1432 ms total)
+
+[----------] 3 tests from WorkspaceDirectoryOrderTest
+[ RUN      ] WorkspaceDirectoryOrderTest.MergesByKeyAcrossProfiles
+[       OK ] WorkspaceDirectoryOrderTest.MergesByKeyAcrossProfiles (0 ms)
+[ RUN      ] WorkspaceDirectoryOrderTest.EqualKeysPutMainFirst
+[       OK ] WorkspaceDirectoryOrderTest.EqualKeysPutMainFirst (0 ms)
+[ RUN      ] WorkspaceDirectoryOrderTest.UnkeyedFollowAndDeletingIsSkipped
+[       OK ] WorkspaceDirectoryOrderTest.UnkeyedFollowAndDeletingIsSkipped (0 ms)
+[----------] 3 tests from WorkspaceDirectoryOrderTest (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1435 ms total)
+[  PASSED  ] 10 tests.
+[81/110] WebsiteSessionBrowsingDataTest.ReachesAnUnloadedPartitionOnDisk (607 ms)
+[82/110] WebsiteSessionBrowsingDataTest.SkipsARetiredPartition (115 ms)
+[83/110] WebsiteSessionBrowsingDataTest.IgnoresModifierOnlyAndEmptyFilters (95 ms)
+[84/110] WebsiteSessionBrowsingDataTest.SiteDataRemovalKeepsSiblingHosts (193 ms)
+[85/110] WebsiteSessionBrowsingDataTest.SiteGroupRemovalNamesEachHost (138 ms)
+[86/110] WebsiteSessionBrowsingDataTest.SiteDataRemovalCoversLocalHosts (136 ms)
+[87/110] WebsiteSessionBrowsingDataTest.SiteDataRemovalNeverCreatesAPartition (69 ms)
+[88/110] WorkspaceDirectoryOrderTest.MergesByKeyAcrossProfiles (0 ms)
+[89/110] WorkspaceDirectoryOrderTest.EqualKeysPutMainFirst (0 ms)
+[90/110] WorkspaceDirectoryOrderTest.UnkeyedFollowAndDeletingIsSkipped (0 ms)
+objc[81454]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x143284a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x126630a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[81454]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1230b8188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x10895b588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = WorkspaceDirectoryOrderTest.NextKeyFollowsEveryWorkspace:WorkspaceSessionMetadataTest.WindowRoundTrips:WorkspaceSessionMetadataTest.TabRoundTripsWithOptionalTreeNode:WorkspaceSessionMetadataTest.TemporaryTabRoundTripsWithoutTreeNode:WorkspaceSessionMetadataTest.IsolatedTabKeepsLocalContextAcrossMove:WorkspaceSessionMetadataTest.RejectsInvalidUuidWithoutPartialMutation:WorkspaceSessionMetadataTest.RejectsUnsupportedOrExtendedSchema:WorkspaceSessionMetadataTest.InvalidModelCannotBeEncoded:WorkspaceSessionMetadataTest.ResolveUsesRequestedWorkspaceOrFallback:WorkspaceStructureInvalidationTest.SelectionOnlyKeepsStructureAuthority
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from WorkspaceDirectoryOrderTest
+[ RUN      ] WorkspaceDirectoryOrderTest.NextKeyFollowsEveryWorkspace
+[       OK ] WorkspaceDirectoryOrderTest.NextKeyFollowsEveryWorkspace (0 ms)
+[----------] 1 test from WorkspaceDirectoryOrderTest (39 ms total)
+
+[----------] 8 tests from WorkspaceSessionMetadataTest
+[ RUN      ] WorkspaceSessionMetadataTest.WindowRoundTrips
+[       OK ] WorkspaceSessionMetadataTest.WindowRoundTrips (0 ms)
+[ RUN      ] WorkspaceSessionMetadataTest.TabRoundTripsWithOptionalTreeNode
+[       OK ] WorkspaceSessionMetadataTest.TabRoundTripsWithOptionalTreeNode (0 ms)
+[ RUN      ] WorkspaceSessionMetadataTest.TemporaryTabRoundTripsWithoutTreeNode
+[       OK ] WorkspaceSessionMetadataTest.TemporaryTabRoundTripsWithoutTreeNode (0 ms)
+[ RUN      ] WorkspaceSessionMetadataTest.IsolatedTabKeepsLocalContextAcrossMove
+[       OK ] WorkspaceSessionMetadataTest.IsolatedTabKeepsLocalContextAcrossMove (0 ms)
+[ RUN      ] WorkspaceSessionMetadataTest.RejectsInvalidUuidWithoutPartialMutation
+[       OK ] WorkspaceSessionMetadataTest.RejectsInvalidUuidWithoutPartialMutation (0 ms)
+[ RUN      ] WorkspaceSessionMetadataTest.RejectsUnsupportedOrExtendedSchema
+[       OK ] WorkspaceSessionMetadataTest.RejectsUnsupportedOrExtendedSchema (0 ms)
+[ RUN      ] WorkspaceSessionMetadataTest.InvalidModelCannotBeEncoded
+[       OK ] WorkspaceSessionMetadataTest.InvalidModelCannotBeEncoded (0 ms)
+[ RUN      ] WorkspaceSessionMetadataTest.ResolveUsesRequestedWorkspaceOrFallback
+[       OK ] WorkspaceSessionMetadataTest.ResolveUsesRequestedWorkspaceOrFallback (0 ms)
+[----------] 8 tests from WorkspaceSessionMetadataTest (4 ms total)
+
+[----------] 1 test from WorkspaceStructureInvalidationTest
+[ RUN      ] WorkspaceStructureInvalidationTest.SelectionOnlyKeepsStructureAuthority
+[       OK ] WorkspaceStructureInvalidationTest.SelectionOnlyKeepsStructureAuthority (0 ms)
+[----------] 1 test from WorkspaceStructureInvalidationTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (44 ms total)
+[  PASSED  ] 10 tests.
+[91/110] WorkspaceDirectoryOrderTest.NextKeyFollowsEveryWorkspace (0 ms)
+[92/110] WorkspaceSessionMetadataTest.WindowRoundTrips (0 ms)
+[93/110] WorkspaceSessionMetadataTest.TabRoundTripsWithOptionalTreeNode (0 ms)
+[94/110] WorkspaceSessionMetadataTest.TemporaryTabRoundTripsWithoutTreeNode (0 ms)
+[95/110] WorkspaceSessionMetadataTest.IsolatedTabKeepsLocalContextAcrossMove (0 ms)
+[96/110] WorkspaceSessionMetadataTest.RejectsInvalidUuidWithoutPartialMutation (0 ms)
+[97/110] WorkspaceSessionMetadataTest.RejectsUnsupportedOrExtendedSchema (0 ms)
+[98/110] WorkspaceSessionMetadataTest.InvalidModelCannotBeEncoded (0 ms)
+[99/110] WorkspaceSessionMetadataTest.ResolveUsesRequestedWorkspaceOrFallback (0 ms)
+[100/110] WorkspaceStructureInvalidationTest.SelectionOnlyKeepsStructureAuthority (0 ms)
+objc[81497]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x141310a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x123f58a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[81497]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1209e0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_session_unittests (0x1063ef588). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = WorkspaceStructureInvalidationTest.ArchiveSurvivesUnrelatedTitleChange:WorkspaceStructureInvalidationTest.OnlyNewProtectionCancels:WorkspaceStructureInvalidationTest.CancelledCommitRetriesBounded:SplitCaptureTest.WorkspaceOnlyMoveIsAdoptedWithoutNativeChange:SplitCaptureTest.NativeChangeIsAdopted:SplitCaptureTest.UnchangedTombstonedOrUnobservedIsIgnored:SplitCaptureTest.UnobservedLayoutChangeIsNotAdoptedAsWorkspaceMove:SplitCaptureTest.RecordAlreadyInTheMembersWorkspaceNeedsNoMove:ArchiveCloseTokenTest.ExpiresAfterTheGrace:WorkspaceStructureStateTest.RestoredArchivePagesAreListed
+[==========] Running 10 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from WorkspaceStructureInvalidationTest
+[ RUN      ] WorkspaceStructureInvalidationTest.ArchiveSurvivesUnrelatedTitleChange
+[       OK ] WorkspaceStructureInvalidationTest.ArchiveSurvivesUnrelatedTitleChange (0 ms)
+[ RUN      ] WorkspaceStructureInvalidationTest.OnlyNewProtectionCancels
+[       OK ] WorkspaceStructureInvalidationTest.OnlyNewProtectionCancels (0 ms)
+[ RUN      ] WorkspaceStructureInvalidationTest.CancelledCommitRetriesBounded
+[       OK ] WorkspaceStructureInvalidationTest.CancelledCommitRetriesBounded (0 ms)
+[----------] 3 tests from WorkspaceStructureInvalidationTest (24 ms total)
+
+[----------] 5 tests from SplitCaptureTest
+[ RUN      ] SplitCaptureTest.WorkspaceOnlyMoveIsAdoptedWithoutNativeChange
+[       OK ] SplitCaptureTest.WorkspaceOnlyMoveIsAdoptedWithoutNativeChange (0 ms)
+[ RUN      ] SplitCaptureTest.NativeChangeIsAdopted
+[       OK ] SplitCaptureTest.NativeChangeIsAdopted (0 ms)
+[ RUN      ] SplitCaptureTest.UnchangedTombstonedOrUnobservedIsIgnored
+[       OK ] SplitCaptureTest.UnchangedTombstonedOrUnobservedIsIgnored (0 ms)
+[ RUN      ] SplitCaptureTest.UnobservedLayoutChangeIsNotAdoptedAsWorkspaceMove
+[       OK ] SplitCaptureTest.UnobservedLayoutChangeIsNotAdoptedAsWorkspaceMove (0 ms)
+[ RUN      ] SplitCaptureTest.RecordAlreadyInTheMembersWorkspaceNeedsNoMove
+[       OK ] SplitCaptureTest.RecordAlreadyInTheMembersWorkspaceNeedsNoMove (0 ms)
+[----------] 5 tests from SplitCaptureTest (2 ms total)
+
+[----------] 1 test from ArchiveCloseTokenTest
+[ RUN      ] ArchiveCloseTokenTest.ExpiresAfterTheGrace
+[       OK ] ArchiveCloseTokenTest.ExpiresAfterTheGrace (0 ms)
+[----------] 1 test from ArchiveCloseTokenTest (0 ms total)
+
+[----------] 1 test from WorkspaceStructureStateTest
+[ RUN      ] WorkspaceStructureStateTest.RestoredArchivePagesAreListed
+[       OK ] WorkspaceStructureStateTest.RestoredArchivePagesAreListed (0 ms)
+[----------] 1 test from WorkspaceStructureStateTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 4 test suites ran. (28 ms total)
+[  PASSED  ] 10 tests.
+[101/110] WorkspaceStructureInvalidationTest.ArchiveSurvivesUnrelatedTitleChange (0 ms)
+[102/110] WorkspaceStructureInvalidationTest.OnlyNewProtectionCancels (0 ms)
+[103/110] WorkspaceStructureInvalidationTest.CancelledCommitRetriesBounded (0 ms)
+[104/110] SplitCaptureTest.WorkspaceOnlyMoveIsAdoptedWithoutNativeChange (0 ms)
+[105/110] SplitCaptureTest.NativeChangeIsAdopted (0 ms)
+[106/110] SplitCaptureTest.UnchangedTombstonedOrUnobservedIsIgnored (0 ms)
+[107/110] SplitCaptureTest.UnobservedLayoutChangeIsNotAdoptedAsWorkspaceMove (0 ms)
+[108/110] SplitCaptureTest.RecordAlreadyInTheMembersWorkspaceNeedsNoMove (0 ms)
+[109/110] ArchiveCloseTokenTest.ExpiresAfterTheGrace (0 ms)
+[110/110] WorkspaceStructureStateTest.RestoredArchivePagesAreListed (0 ms)
+SUCCESS: all tests passed.
+Tests took 37 seconds.

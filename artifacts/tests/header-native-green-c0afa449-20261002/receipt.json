@@ -1,0 +1,213 @@
+{
+  "dev-native": {
+    "sourceCommit": "c0afa44917553098b9409b794a34cae1b61dba61",
+    "successes": 140,
+    "binarySha256": "5c43567bca7901cc36c02c526f986c34d4b8a55dd94de8953b4f8abe319dddbe",
+    "componentManifestSha256": "d561b8adbf9b3c6709d40771b728ebbf0619f6c3956eb8709db80e99aeab47ea",
+    "missingRequiredCases": [],
+    "exitCode": 0
+  },
+  "editor-native": {
+    "sourceCommit": "c0afa44917553098b9409b794a34cae1b61dba61",
+    "successes": 5,
+    "binarySha256": "2ecf89e96e38cbc6ee4fdb2ad86c203adf7a75b3b409655d955f70f2c366600e",
+    "componentManifestSha256": "d561b8adbf9b3c6709d40771b728ebbf0619f6c3956eb8709db80e99aeab47ea",
+    "missingRequiredCases": [],
+    "exitCode": 0
+  },
+  "mojoWithinCore": {
+    "successes": 24,
+    "duplicateStandaloneRun": false
+  },
+  "newCases": {
+    "backend": 9,
+    "mojo": 4,
+    "editor": 3,
+    "allExecuted": true
+  },
+  "fullMasterAchieved": false,
+  "evidenceSha256": {
+    "ahoi_resource_policy_unittests-summary.json": "fabe58ce73fb51a633abf7564e87d674ca26440f145d116e701b4b1fc8df78e2",
+    "ahoi_session_unittests-summary.json": "e34631a36cbd7de2602b3d67b885680e9d4f7bda910d07eb39d41981ddb5f57b",
+    "ahoi_http_auth_unittests.log": "d9ec33ccc5ce3088e5c9d78285bbac054036398267e2d4c890cef89fc81ff3f6",
+    "ahoi_http_auth_unittests-summary.json": "635aecc9d906f7d9dd1955ad7730887c2ba96f09a93bb3691c33ac06bf118811",
+    "ahoi_navigation_unittests.log": "baa446903a85661d4b6a4de392fdbf39c1eb6748ca886434ecce60c57db1a6b1",
+    "ahoi_settings_private_unittests.log": "b066935178e1b51dfd9173b9bef28edac8f675eac440d1803fa84596e72a269b",
+    "ahoi_command_bar_unittests-summary.json": "f5c3a5a9e61affcf7d7d97bb1a715175de5c04945199bd284eb55ab88dd21626",
+    "ahoi_media_unittests-summary.json": "46009b94c4b71fd2aa5a5b3f6c405141508bb49ef645b2bac00b2e30110162dd",
+    "ahoi_settings_private_unittests-summary.json": "3b35607820ec7bea20fbe2c7bb513212b155c84fe3b56a3b6578369d2f81ce36",
+    "ahoi_startup_policy_unittests-summary.json": "2454daf03f0bf55e55cdf14a63c2d8487750c2f002345cf6ab4ed8b399244fdc",
+    "ahoi_startup_policy_unittests.log": "9c1b84d733d9f11062eaf7cc45eb918946cac68b6f7c321b134162ce26a64fbf",
+    "ahoi_extension_policy_unittests-summary.json": "e7bd5d9f7b748baa2158ee3bf72056c83c22fa7ae6347f092b7a1a62eab5f281",
+    "ahoi_sync_unittests-summary.json": "35caa574dba2b18a4e348ccf6c598cbf9b9c9ae22efbf60c194c1f31862a4599",
+    "ahoi_command_bar_unittests.log": "af4cb7dbf02bb4294b7eb5039b574b6ace46e1979deb309e616410c2f126da5a",
+    "ahoi_arc_import_unittests.log": "1d3c2ebe208602fede91700bfa1eb7a61d99c87b9c4bc2cac68694c42faaf52f",
+    "ahoi_sync_unittests.log": "e394d4e2c33520c1e20419847cf24a4b09b0043d7fb3613c3f771b733a77376b",
+    "build-state.json": "40f2128e70eb689bf4c91f2bb5ab19964ae6d9e6a65f21322b6282fc684f59fe",
+    "editor-native-state.json": "921228aa5bd9d0a8f2abbefdf126a60ab0e93ee6353e08cb8f69f5b820195463",
+    "dev-native-test.log": "d37945612546fcdce51927e15f56423df6579254f7a8940e5fa8b798fe45eaf3",
+    "ahoi_tab_tree_unittests.log": "a1326eff2f44de6bcea16be3c5d19b7b0788b9f398662ebcad3e739df1858afc",
+    "ahoi_media_unittests.log": "c71c03e5827bee901190c59283f398dd11959f9bd9df4c7962ce97dc05e1602e",
+    "ahoi_appearance_unittests-summary.json": "d500c6df6473a7b79f5cbfd7b73467fc4850d65118a26c072457c5c17d164522",
+    "README.md": "195d358c1e1717e9d4601c35e9e3f6b824979ede14cacbfe180f28e4dd1d1ac8",
+    "dev-native-state.json": "87d6ebe49cb4b349ec4445221c9d06ce04aca557a20dc08d13e410053cd3741a",
+    "dev-native-summary.json": "c5b7d6c95f43b34ec32e8198c3ee913e7bbea4bba2b6a39f783557c8f7908f9b",
+    "ahoi_session_unittests.log": "42e5f76130ed00d5d8a7d9931af4d2a89cc1b835e47798d2070c5d3c5a548b4a",
+    "ahoi_arc_import_unittests-summary.json": "bd5b53826f8dcb64dbb1d8795ffadbcb66356c05e352adb919aab1f8c85fb0e0",
+    "editor-native-test.log": "4221c3e0050b9eb6fd3c0ab21f62ba12d7bf2d1bf76801594842922c725265da",
+    "ahoi_privacy_mode_unittests.log": "d500a004712b43857877842fb128b22bad6420ccc0d091e7d4517f41b14af474",
+    "baseline-state.json": "a050ef2d199e2e0c0f5f4135b195b27d4ee95bb979b7872ff62eb17a54430f9d",
+    "ahoi_appearance_unittests.log": "e696735b57cc9a4373366037bfde7d8800135e136b492ceb80053e745e86f675",
+    "ahoi_extension_policy_unittests.log": "c742b49103d6947690375f84c31c470d3c23a4630ac560145ad1d248d8a36df5",
+    "ahoi_resource_policy_unittests.log": "3d281d6d5c4d24eebe6468bcb14ee14d90bc5472108a6bdd97cf493de17191c6",
+    "ahoi_privacy_policy_unittests.log": "4648dac4009037642d0e8e212391bb9f657528872864abbe5206d95c50dc1899",
+    "editor-native-summary.json": "e455c41e9ae0e15acbfb08507ce0a0ec106400da75b051a90ab47227fae5fa99",
+    "ahoi_tab_tree_unittests-summary.json": "7861d79f4a456f53cae9470d807920bb1da336bafb7685861f7922b41c1d96cc",
+    "ahoi_navigation_unittests-summary.json": "ba2178ca9da723e3139b904f4d60977686dd80d24616deb5582a5dd20926fc7c",
+    "ahoi_privacy_policy_unittests-summary.json": "15c23fcce2ca53dc9216ffa16420234edbf0e00d5c1244b0294e09624776556d",
+    "ahoi_privacy_mode_unittests-summary.json": "ac34739abdaacfd7228cc6f3773c6b1a61e14738cda4c059c428798b30e8222e"
+  },
+  "baseline": {
+    "programs": 15,
+    "successes": 872,
+    "skips": 0,
+    "results": [
+      {
+        "name": "ahoi_appearance_unittests",
+        "exitCode": 0,
+        "binarySha256": "824ce45ed488b3dcba85ed40ccf2b282959a4478a44790f96f5aaa5b85f970d7",
+        "executedCases": 56,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_arc_import_unittests",
+        "exitCode": 0,
+        "binarySha256": "dbfa6c4c24c14c7b571aac21b8d676e5527d8102d826c1ab8a88f1afa2ce5492",
+        "executedCases": 132,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_command_bar_unittests",
+        "exitCode": 0,
+        "binarySha256": "49d109d2db418ba0c4c17e79ce7ab0f01ea5ca72dafef0cbed0cd8ab27c96809",
+        "executedCases": 55,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_extension_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "5877d8b5b11fa99bccadc7142100de959efe3fba97b8abc87c3710e4e54d6848",
+        "executedCases": 43,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_http_auth_unittests",
+        "exitCode": 0,
+        "binarySha256": "41069acfac51b33c228bd1e6aaa1e488c97691a9f69d24e5b8cce6ec3904427c",
+        "executedCases": 36,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_media_unittests",
+        "exitCode": 0,
+        "binarySha256": "7d25688293997f4ef6256835f3754402aa4afcd6db3452b7cf48f41f5e6bc02c",
+        "executedCases": 33,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_navigation_unittests",
+        "exitCode": 0,
+        "binarySha256": "6ecb53227e094209319dd018d91798af51aca6005a6a37fd20ca9d723dac3354",
+        "executedCases": 83,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_privacy_mode_unittests",
+        "exitCode": 0,
+        "binarySha256": "ad03b589f21a5a94fb1fbd0033b42d6a09b3f5ac81bf8e5f69d42ee1d85ffda4",
+        "executedCases": 21,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_privacy_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "a6b4b0cc5687f9f733e9e951228e6f07db013806ff42b14eaeefe3b122e3f02e",
+        "executedCases": 17,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_resource_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "0b24f2a6513ba99ba669b7a40b0f4500ae0184da6e79b6b64557626a6266c6a1",
+        "executedCases": 4,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_session_unittests",
+        "exitCode": 0,
+        "binarySha256": "e736844208c3b09b2646f4d5ce118b8477157b08d87fbde9dd1af83f107a5c56",
+        "executedCases": 110,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_settings_private_unittests",
+        "exitCode": 0,
+        "binarySha256": "642eedba664ef9d179baef410ef7a95a903dc4a0d6014920cd74db8278225d98",
+        "executedCases": 12,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_startup_policy_unittests",
+        "exitCode": 0,
+        "binarySha256": "8ef33dc978546dc1e245e4102ed4c69e247c4cd0497898e49f5fda6518ba9f8c",
+        "executedCases": 2,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_sync_unittests",
+        "exitCode": 0,
+        "binarySha256": "c4475e17dfebec0f08b61e3fa4dbcff7ec1b51a864bd9adc98ae565c84b4d585",
+        "executedCases": 233,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      },
+      {
+        "name": "ahoi_tab_tree_unittests",
+        "exitCode": 0,
+        "binarySha256": "fa6ede06dc4006afd9a00c72828a5c378f01e6e1b2f431b78cbf2f19675568b5",
+        "executedCases": 35,
+        "nonSuccess": {},
+        "skippedCases": [],
+        "nativePass": true
+      }
+    ],
+    "componentManifestSha256": "d561b8adbf9b3c6709d40771b728ebbf0619f6c3956eb8709db80e99aeab47ea"
+  }
+}

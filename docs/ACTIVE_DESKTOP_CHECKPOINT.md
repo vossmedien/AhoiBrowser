@@ -1,5 +1,30 @@
 # Active Desktop checkpoint
 
+## Corrected native Core140/editor5 and fifteen baselines GREEN — 2 October 2026
+
+Build69 c0afa449 completes guarded compile/stable sign/provenance, exit0.
+Actual whole developer native suite:140/140SUCCESS, all13 new backend/Mojo cases,
+including Mojo24; native Chrome editor5/5SUCCESS including three lifetime cases.
+All16 new methods execute, one job/no retries, no missing/skipped/not-run case.
+Fifteen other required baseline programs run serially:872SUCCESS, no skips,
+all exits0. [Exact hashes/raw launcher evidence](../artifacts/tests/header-native-green-c0afa449-20261002/README.md).
+Prior Build68 fixture RED remains history, not rewritten. Runners27556/73939,
+editor75281 and baseline75392
+are terminal. Installed app stays9acb43c8/M154, no new installed acceptance.
+
+Remaining UI/sidebar gate now runs as owned runner84809 from queue69 after
+fresh actual idle>1000 seconds, no app/compiler and free owner locks. Its PID
+is recorded in `.work/agent-queue/69/ui-native/state.json`; verify that and actual
+process before any competing native test/output refresh. Only one job/no retries,
+exact executable/component inputs and all launcher statuses are admissible.
+No complete native gate or installer permission is inferred from core alone.
+
+Next: actual remaining UI and native browser program verdicts, then canonical
+installer only after required exact native GREEN. Representative visible
+affected split/devtoolkit/settings/archive journeys and focused checks remain
+required on the actual installed candidate. Full Master/worker/Sync/external/
+release bounds and Crest's separate H3 performance lease stay open.
+
 ## Fixture-correction Build 69 running — 2 October 2026
 
 Frozen clean queue source c0afa44917553098b9409b794a34cae1b61dba61, owned

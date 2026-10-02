@@ -1,0 +1,165 @@
+objc[77164]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136df8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11bd14a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[77164]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1165cc188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_media_unittests (0x10302c4a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[77167]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13473ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119658a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[77167]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1139ac188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_media_unittests (0x10047c4a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = AhoiMediaStateTest.MapsSignalsAndPriority:AhoiMediaStateTest.EmptySignalsHaveNoPrimaryAlert:AhoiMediaStateTest.MutingRequiresRecentAudioForIndicator:AhoiMediaStateTest.ChromiumCaptureActivityOutranksPlayback:AhoiMediaStateModelTest.NotifiesOnlyForActualChanges:MediaMiniPlayerChromiumAdapterTest.MapsAdvertisedCapabilities:MediaMiniPlayerChromiumAdapterTest.DoesNotInventCapabilities:MediaMiniPlayerChromiumAdapterTest.MapsPlaybackState:MediaMiniPlayerChromiumAdapterTest.RejectsNullOrEmptyRegistration:MediaMiniPlayerChromiumAdapterTest.TransientChimeIsNotAMediaSource
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from AhoiMediaStateTest
+[ RUN      ] AhoiMediaStateTest.MapsSignalsAndPriority
+[       OK ] AhoiMediaStateTest.MapsSignalsAndPriority (0 ms)
+[ RUN      ] AhoiMediaStateTest.EmptySignalsHaveNoPrimaryAlert
+[       OK ] AhoiMediaStateTest.EmptySignalsHaveNoPrimaryAlert (0 ms)
+[ RUN      ] AhoiMediaStateTest.MutingRequiresRecentAudioForIndicator
+[       OK ] AhoiMediaStateTest.MutingRequiresRecentAudioForIndicator (0 ms)
+[ RUN      ] AhoiMediaStateTest.ChromiumCaptureActivityOutranksPlayback
+[       OK ] AhoiMediaStateTest.ChromiumCaptureActivityOutranksPlayback (0 ms)
+[----------] 4 tests from AhoiMediaStateTest (1 ms total)
+
+[----------] 1 test from AhoiMediaStateModelTest
+[ RUN      ] AhoiMediaStateModelTest.NotifiesOnlyForActualChanges
+[       OK ] AhoiMediaStateModelTest.NotifiesOnlyForActualChanges (0 ms)
+[----------] 1 test from AhoiMediaStateModelTest (0 ms total)
+
+[----------] 5 tests from MediaMiniPlayerChromiumAdapterTest
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.MapsAdvertisedCapabilities
+[       OK ] MediaMiniPlayerChromiumAdapterTest.MapsAdvertisedCapabilities (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.DoesNotInventCapabilities
+[       OK ] MediaMiniPlayerChromiumAdapterTest.DoesNotInventCapabilities (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.MapsPlaybackState
+[       OK ] MediaMiniPlayerChromiumAdapterTest.MapsPlaybackState (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.RejectsNullOrEmptyRegistration
+[       OK ] MediaMiniPlayerChromiumAdapterTest.RejectsNullOrEmptyRegistration (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.TransientChimeIsNotAMediaSource
+[       OK ] MediaMiniPlayerChromiumAdapterTest.TransientChimeIsNotAMediaSource (0 ms)
+[----------] 5 tests from MediaMiniPlayerChromiumAdapterTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (2 ms total)
+[  PASSED  ] 10 tests.
+[1/33] AhoiMediaStateTest.MapsSignalsAndPriority (0 ms)
+[2/33] AhoiMediaStateTest.EmptySignalsHaveNoPrimaryAlert (0 ms)
+[3/33] AhoiMediaStateTest.MutingRequiresRecentAudioForIndicator (0 ms)
+[4/33] AhoiMediaStateTest.ChromiumCaptureActivityOutranksPlayback (0 ms)
+[5/33] AhoiMediaStateModelTest.NotifiesOnlyForActualChanges (0 ms)
+[6/33] MediaMiniPlayerChromiumAdapterTest.MapsAdvertisedCapabilities (0 ms)
+[7/33] MediaMiniPlayerChromiumAdapterTest.DoesNotInventCapabilities (0 ms)
+[8/33] MediaMiniPlayerChromiumAdapterTest.MapsPlaybackState (0 ms)
+[9/33] MediaMiniPlayerChromiumAdapterTest.RejectsNullOrEmptyRegistration (0 ms)
+[10/33] MediaMiniPlayerChromiumAdapterTest.TransientChimeIsNotAMediaSource (0 ms)
+objc[77757]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x138fdca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11def8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[77757]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x11824c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_media_unittests (0x104c984a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = MediaMiniPlayerChromiumAdapterTest.EndedChimeSessionStaysIrrelevant:MediaMiniPlayerChromiumAdapterTest.TransientChimeDoesNotTakeSelectionFromPausedPlayer:MediaMiniPlayerChromiumAdapterTest.ControllablePlayerStillTakesSelection:MediaMiniPlayerChromiumAdapterTest.PagePlayHandlerMakesSessionOwnCard:MediaMiniPlayerChromiumAdapterTest.MutedControllableSessionKeepsCard:MediaMiniPlayerChromiumAdapterTest.UnmutedCardWaitsForSession:MediaMiniPlayerChromiumAdapterTest.PreMutedAudibleTabOffersUnmute:MediaMiniPlayerChromiumAdapterTest.MutedChimeDoesNotKeepCard:MediaMiniPlayerChromiumAdapterTest.EndedSessionReleasesCard:MediaMiniPlayerChromiumAdapterTest.AudibleTabWithoutSessionPlays
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from MediaMiniPlayerChromiumAdapterTest
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.EndedChimeSessionStaysIrrelevant
+[       OK ] MediaMiniPlayerChromiumAdapterTest.EndedChimeSessionStaysIrrelevant (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.TransientChimeDoesNotTakeSelectionFromPausedPlayer
+[       OK ] MediaMiniPlayerChromiumAdapterTest.TransientChimeDoesNotTakeSelectionFromPausedPlayer (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.ControllablePlayerStillTakesSelection
+[       OK ] MediaMiniPlayerChromiumAdapterTest.ControllablePlayerStillTakesSelection (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.PagePlayHandlerMakesSessionOwnCard
+[       OK ] MediaMiniPlayerChromiumAdapterTest.PagePlayHandlerMakesSessionOwnCard (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.MutedControllableSessionKeepsCard
+[       OK ] MediaMiniPlayerChromiumAdapterTest.MutedControllableSessionKeepsCard (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.UnmutedCardWaitsForSession
+[       OK ] MediaMiniPlayerChromiumAdapterTest.UnmutedCardWaitsForSession (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.PreMutedAudibleTabOffersUnmute
+[       OK ] MediaMiniPlayerChromiumAdapterTest.PreMutedAudibleTabOffersUnmute (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.MutedChimeDoesNotKeepCard
+[       OK ] MediaMiniPlayerChromiumAdapterTest.MutedChimeDoesNotKeepCard (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.EndedSessionReleasesCard
+[       OK ] MediaMiniPlayerChromiumAdapterTest.EndedSessionReleasesCard (0 ms)
+[ RUN      ] MediaMiniPlayerChromiumAdapterTest.AudibleTabWithoutSessionPlays
+[       OK ] MediaMiniPlayerChromiumAdapterTest.AudibleTabWithoutSessionPlays (0 ms)
+[----------] 10 tests from MediaMiniPlayerChromiumAdapterTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 10 tests.
+[11/33] MediaMiniPlayerChromiumAdapterTest.EndedChimeSessionStaysIrrelevant (0 ms)
+[12/33] MediaMiniPlayerChromiumAdapterTest.TransientChimeDoesNotTakeSelectionFromPausedPlayer (0 ms)
+[13/33] MediaMiniPlayerChromiumAdapterTest.ControllablePlayerStillTakesSelection (0 ms)
+[14/33] MediaMiniPlayerChromiumAdapterTest.PagePlayHandlerMakesSessionOwnCard (0 ms)
+[15/33] MediaMiniPlayerChromiumAdapterTest.MutedControllableSessionKeepsCard (0 ms)
+[16/33] MediaMiniPlayerChromiumAdapterTest.UnmutedCardWaitsForSession (0 ms)
+[17/33] MediaMiniPlayerChromiumAdapterTest.PreMutedAudibleTabOffersUnmute (0 ms)
+[18/33] MediaMiniPlayerChromiumAdapterTest.MutedChimeDoesNotKeepCard (0 ms)
+[19/33] MediaMiniPlayerChromiumAdapterTest.EndedSessionReleasesCard (0 ms)
+[20/33] MediaMiniPlayerChromiumAdapterTest.AudibleTabWithoutSessionPlays (0 ms)
+objc[77773]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136ef0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11be0ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[77773]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x116160188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_media_unittests (0x102bf84a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = MediaMiniPlayerSourceTest.ProjectsPlayingPositionWithoutServiceTimer:MediaMiniPlayerServiceTest.KeepsExplicitSelectionAndSortedSources:MediaMiniPlayerServiceTest.RemovedSelectionUsesDeterministicFallback:MediaMiniPlayerServiceTest.SourceNavigationUsesBrowserPresentationOrder:MediaMiniPlayerServiceTest.SelectsRelevantSourcesAndCyclesDeterministically:MediaMiniPlayerServiceTest.FollowsTheSourceThatStartsPlaying:MediaMiniPlayerServiceTest.DoesNotNotifyForEquivalentChanges:MediaMiniPlayerServiceTest.DispatchesCapabilitiesThroughAdapter:MediaMiniPlayerServiceTest.RejectsUnavailableActions:MediaMiniPlayerServiceTest.SelectedSourceDrivesPipPresentation
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from MediaMiniPlayerSourceTest
+[ RUN      ] MediaMiniPlayerSourceTest.ProjectsPlayingPositionWithoutServiceTimer
+[       OK ] MediaMiniPlayerSourceTest.ProjectsPlayingPositionWithoutServiceTimer (0 ms)
+[----------] 1 test from MediaMiniPlayerSourceTest (0 ms total)
+
+[----------] 9 tests from MediaMiniPlayerServiceTest
+[ RUN      ] MediaMiniPlayerServiceTest.KeepsExplicitSelectionAndSortedSources
+[       OK ] MediaMiniPlayerServiceTest.KeepsExplicitSelectionAndSortedSources (0 ms)
+[ RUN      ] MediaMiniPlayerServiceTest.RemovedSelectionUsesDeterministicFallback
+[       OK ] MediaMiniPlayerServiceTest.RemovedSelectionUsesDeterministicFallback (0 ms)
+[ RUN      ] MediaMiniPlayerServiceTest.SourceNavigationUsesBrowserPresentationOrder
+[       OK ] MediaMiniPlayerServiceTest.SourceNavigationUsesBrowserPresentationOrder (0 ms)
+[ RUN      ] MediaMiniPlayerServiceTest.SelectsRelevantSourcesAndCyclesDeterministically
+[       OK ] MediaMiniPlayerServiceTest.SelectsRelevantSourcesAndCyclesDeterministically (0 ms)
+[ RUN      ] MediaMiniPlayerServiceTest.FollowsTheSourceThatStartsPlaying
+[       OK ] MediaMiniPlayerServiceTest.FollowsTheSourceThatStartsPlaying (0 ms)
+[ RUN      ] MediaMiniPlayerServiceTest.DoesNotNotifyForEquivalentChanges
+[       OK ] MediaMiniPlayerServiceTest.DoesNotNotifyForEquivalentChanges (0 ms)
+[ RUN      ] MediaMiniPlayerServiceTest.DispatchesCapabilitiesThroughAdapter
+[       OK ] MediaMiniPlayerServiceTest.DispatchesCapabilitiesThroughAdapter (0 ms)
+[ RUN      ] MediaMiniPlayerServiceTest.RejectsUnavailableActions
+[       OK ] MediaMiniPlayerServiceTest.RejectsUnavailableActions (0 ms)
+[ RUN      ] MediaMiniPlayerServiceTest.SelectedSourceDrivesPipPresentation
+[       OK ] MediaMiniPlayerServiceTest.SelectedSourceDrivesPipPresentation (0 ms)
+[----------] 9 tests from MediaMiniPlayerServiceTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 10 tests.
+[21/33] MediaMiniPlayerSourceTest.ProjectsPlayingPositionWithoutServiceTimer (0 ms)
+[22/33] MediaMiniPlayerServiceTest.KeepsExplicitSelectionAndSortedSources (0 ms)
+[23/33] MediaMiniPlayerServiceTest.RemovedSelectionUsesDeterministicFallback (0 ms)
+[24/33] MediaMiniPlayerServiceTest.SourceNavigationUsesBrowserPresentationOrder (0 ms)
+[25/33] MediaMiniPlayerServiceTest.SelectsRelevantSourcesAndCyclesDeterministically (0 ms)
+[26/33] MediaMiniPlayerServiceTest.FollowsTheSourceThatStartsPlaying (0 ms)
+[27/33] MediaMiniPlayerServiceTest.DoesNotNotifyForEquivalentChanges (0 ms)
+[28/33] MediaMiniPlayerServiceTest.DispatchesCapabilitiesThroughAdapter (0 ms)
+[29/33] MediaMiniPlayerServiceTest.RejectsUnavailableActions (0 ms)
+[30/33] MediaMiniPlayerServiceTest.SelectedSourceDrivesPipPresentation (0 ms)
+objc[77791]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1366a8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11b5c4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[77791]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x115e7c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_media_unittests (0x1028cc4a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = MediaMiniPlayerServiceTest.RejectsEmptyAndDuplicateSourceIds:AhoiTabActivityStateTest.ProjectsOnlyChromiumCaptureAlerts:AhoiTabActivityStateTest.RetainsDistinctCaptureSemantics
+[==========] Running 3 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from MediaMiniPlayerServiceTest
+[ RUN      ] MediaMiniPlayerServiceTest.RejectsEmptyAndDuplicateSourceIds
+[       OK ] MediaMiniPlayerServiceTest.RejectsEmptyAndDuplicateSourceIds (0 ms)
+[----------] 1 test from MediaMiniPlayerServiceTest (0 ms total)
+
+[----------] 2 tests from AhoiTabActivityStateTest
+[ RUN      ] AhoiTabActivityStateTest.ProjectsOnlyChromiumCaptureAlerts
+[       OK ] AhoiTabActivityStateTest.ProjectsOnlyChromiumCaptureAlerts (0 ms)
+[ RUN      ] AhoiTabActivityStateTest.RetainsDistinctCaptureSemantics
+[       OK ] AhoiTabActivityStateTest.RetainsDistinctCaptureSemantics (0 ms)
+[----------] 2 tests from AhoiTabActivityStateTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 3 tests.
+[31/33] MediaMiniPlayerServiceTest.RejectsEmptyAndDuplicateSourceIds (0 ms)
+[32/33] AhoiTabActivityStateTest.ProjectsOnlyChromiumCaptureAlerts (0 ms)
+[33/33] AhoiTabActivityStateTest.RetainsDistinctCaptureSemantics (0 ms)
+SUCCESS: all tests passed.
+Tests took 7 seconds.

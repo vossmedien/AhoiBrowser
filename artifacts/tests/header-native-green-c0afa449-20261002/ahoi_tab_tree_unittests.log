@@ -1,0 +1,155 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = AhoiTabTreeMergeWorkspaceTest.MergesIntoOneFolderAndUndoRevivesSource:AhoiTabTreeMergeWorkspaceTest.MergesFlatAfterTargetInSourceOrder:AhoiTabTreeMergeWorkspaceTest.OpenTabsStayOutOfTheFolder:AhoiTabTreeMergeWorkspaceTest.RejectsInvalidMergesWithoutChange:AhoiTabTreeMergeWorkspaceTest.EmptySourceUndoRevivesItsIdentity:AhoiTabTreeMergeWorkspaceTest.EmptySourceUndoSurvivesReopenAndReplace:AhoiTabTreeMergeWorkspaceTest.EmptySourceWithoutUndoStaysMerged:AhoiTabTreeMergeWorkspaceTest.NoUndoWhenTheCallerRetiresState:AhoiTabTreeMergeWorkspaceTest.MergeSurvivesReopen:AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 9 tests from AhoiTabTreeMergeWorkspaceTest
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.MergesIntoOneFolderAndUndoRevivesSource
+[       OK ] AhoiTabTreeMergeWorkspaceTest.MergesIntoOneFolderAndUndoRevivesSource (196 ms)
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.MergesFlatAfterTargetInSourceOrder
+[       OK ] AhoiTabTreeMergeWorkspaceTest.MergesFlatAfterTargetInSourceOrder (137 ms)
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.OpenTabsStayOutOfTheFolder
+[       OK ] AhoiTabTreeMergeWorkspaceTest.OpenTabsStayOutOfTheFolder (196 ms)
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.RejectsInvalidMergesWithoutChange
+[       OK ] AhoiTabTreeMergeWorkspaceTest.RejectsInvalidMergesWithoutChange (89 ms)
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.EmptySourceUndoRevivesItsIdentity
+[       OK ] AhoiTabTreeMergeWorkspaceTest.EmptySourceUndoRevivesItsIdentity (94 ms)
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.EmptySourceUndoSurvivesReopenAndReplace
+[       OK ] AhoiTabTreeMergeWorkspaceTest.EmptySourceUndoSurvivesReopenAndReplace (113 ms)
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.EmptySourceWithoutUndoStaysMerged
+[       OK ] AhoiTabTreeMergeWorkspaceTest.EmptySourceWithoutUndoStaysMerged (75 ms)
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.NoUndoWhenTheCallerRetiresState
+[       OK ] AhoiTabTreeMergeWorkspaceTest.NoUndoWhenTheCallerRetiresState (111 ms)
+[ RUN      ] AhoiTabTreeMergeWorkspaceTest.MergeSurvivesReopen
+[       OK ] AhoiTabTreeMergeWorkspaceTest.MergeSurvivesReopen (123 ms)
+[----------] 9 tests from AhoiTabTreeMergeWorkspaceTest (1143 ms total)
+
+[----------] 1 test from AhoiTabTreePersistenceTest
+[ RUN      ] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload
+[       OK ] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload (100 ms)
+[----------] 1 test from AhoiTabTreePersistenceTest (100 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1244 ms total)
+[  PASSED  ] 10 tests.
+[1/35] AhoiTabTreeMergeWorkspaceTest.MergesIntoOneFolderAndUndoRevivesSource (196 ms)
+[2/35] AhoiTabTreeMergeWorkspaceTest.MergesFlatAfterTargetInSourceOrder (137 ms)
+[3/35] AhoiTabTreeMergeWorkspaceTest.OpenTabsStayOutOfTheFolder (196 ms)
+[4/35] AhoiTabTreeMergeWorkspaceTest.RejectsInvalidMergesWithoutChange (89 ms)
+[5/35] AhoiTabTreeMergeWorkspaceTest.EmptySourceUndoRevivesItsIdentity (94 ms)
+[6/35] AhoiTabTreeMergeWorkspaceTest.EmptySourceUndoSurvivesReopenAndReplace (113 ms)
+[7/35] AhoiTabTreeMergeWorkspaceTest.EmptySourceWithoutUndoStaysMerged (75 ms)
+[8/35] AhoiTabTreeMergeWorkspaceTest.NoUndoWhenTheCallerRetiresState (111 ms)
+[9/35] AhoiTabTreeMergeWorkspaceTest.MergeSurvivesReopen (123 ms)
+[10/35] AhoiTabTreePersistenceTest.ReceiptSurvivesLocalEditsAndDiskReload (100 ms)
+Note: Google Test filter = AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree:AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt:AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline:AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory:AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree:AhoiTabTreeStoreTest.RejectsSavedPageAsParent:AhoiTabTreeStoreTest.RefusesTooNewSchemaWithoutRazingData:AhoiTabTreeStoreTest.Schema2UpgradeKeepsNestedRowsUndoAndConstraints:AhoiTabTreeStoreTest.PersistsDeepHierarchyAndManualOrder:AhoiTabTreeStoreTest.ListsActiveWorkspacesInStableOrder
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from AhoiTabTreePersistenceTest
+[ RUN      ] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree
+[       OK ] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree (72 ms)
+[ RUN      ] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt
+[       OK ] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt (38 ms)
+[ RUN      ] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline
+[       OK ] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline (43 ms)
+[----------] 3 tests from AhoiTabTreePersistenceTest (155 ms total)
+
+[----------] 7 tests from AhoiTabTreeStoreTest
+[ RUN      ] AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory
+[       OK ] AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory (205 ms)
+[ RUN      ] AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree
+[       OK ] AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree (103 ms)
+[ RUN      ] AhoiTabTreeStoreTest.RejectsSavedPageAsParent
+[       OK ] AhoiTabTreeStoreTest.RejectsSavedPageAsParent (73 ms)
+[ RUN      ] AhoiTabTreeStoreTest.RefusesTooNewSchemaWithoutRazingData
+[       OK ] AhoiTabTreeStoreTest.RefusesTooNewSchemaWithoutRazingData (26 ms)
+[ RUN      ] AhoiTabTreeStoreTest.Schema2UpgradeKeepsNestedRowsUndoAndConstraints
+[       OK ] AhoiTabTreeStoreTest.Schema2UpgradeKeepsNestedRowsUndoAndConstraints (104 ms)
+[ RUN      ] AhoiTabTreeStoreTest.PersistsDeepHierarchyAndManualOrder
+[       OK ] AhoiTabTreeStoreTest.PersistsDeepHierarchyAndManualOrder (368 ms)
+[ RUN      ] AhoiTabTreeStoreTest.ListsActiveWorkspacesInStableOrder
+[       OK ] AhoiTabTreeStoreTest.ListsActiveWorkspacesInStableOrder (64 ms)
+[----------] 7 tests from AhoiTabTreeStoreTest (948 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1104 ms total)
+[  PASSED  ] 10 tests.
+[11/35] AhoiTabTreePersistenceTest.ReceiptWriteFailureRollsBackTheWholeTree (72 ms)
+[12/35] AhoiTabTreePersistenceTest.ReadingOldStoreDoesNotWriteAnEmptyReceipt (38 ms)
+[13/35] AhoiTabTreePersistenceTest.RevocationBeforeCommitKeepsTreeAndBaseline (43 ms)
+[14/35] AhoiTabTreeStoreTest.SnapshotRoundTripsTreeTombstonesAndUndoHistory (205 ms)
+[15/35] AhoiTabTreeStoreTest.SnapshotReplacementFailurePreservesExistingTree (103 ms)
+[16/35] AhoiTabTreeStoreTest.RejectsSavedPageAsParent (73 ms)
+[17/35] AhoiTabTreeStoreTest.RefusesTooNewSchemaWithoutRazingData (26 ms)
+[18/35] AhoiTabTreeStoreTest.Schema2UpgradeKeepsNestedRowsUndoAndConstraints (104 ms)
+[19/35] AhoiTabTreeStoreTest.PersistsDeepHierarchyAndManualOrder (368 ms)
+[20/35] AhoiTabTreeStoreTest.ListsActiveWorkspacesInStableOrder (64 ms)
+Note: Google Test filter = AhoiTabTreeStoreTest.UpdatesWorkspacePresentationAndPersistsIt:AhoiTabTreeStoreTest.DeletesWorkspaceAndItsTreeAtomically:AhoiTabTreeStoreTest.DuplicatesDeepWorkspaceAndRemapsParents:AhoiTabTreeStoreTest.RejectsInvalidWorkspaceDuplicateAtomically:AhoiTabTreeStoreTest.FindsSavedPagesByUrlAtAnyNestingDepth:AhoiTabTreeStoreTest.RejectsCycleWithoutCreatingUndoEntry:AhoiTabTreeStoreTest.MovesWholeSubtreeAcrossWorkspacesAndUndoes:AhoiTabTreeStoreTest.SameWorkspaceMoveDoesNotRewriteDescendantsAndUndoes:AhoiTabTreeStoreTest.MovesSavedPagesAtomicallyAndOneUndoRestoresBoth:AhoiTabTreeStoreTest.WrapsSplitPagesInOneFolderAndUndoRestoresBoth
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from AhoiTabTreeStoreTest
+[ RUN      ] AhoiTabTreeStoreTest.UpdatesWorkspacePresentationAndPersistsIt
+[       OK ] AhoiTabTreeStoreTest.UpdatesWorkspacePresentationAndPersistsIt (80 ms)
+[ RUN      ] AhoiTabTreeStoreTest.DeletesWorkspaceAndItsTreeAtomically
+[       OK ] AhoiTabTreeStoreTest.DeletesWorkspaceAndItsTreeAtomically (173 ms)
+[ RUN      ] AhoiTabTreeStoreTest.DuplicatesDeepWorkspaceAndRemapsParents
+[       OK ] AhoiTabTreeStoreTest.DuplicatesDeepWorkspaceAndRemapsParents (220 ms)
+[ RUN      ] AhoiTabTreeStoreTest.RejectsInvalidWorkspaceDuplicateAtomically
+[       OK ] AhoiTabTreeStoreTest.RejectsInvalidWorkspaceDuplicateAtomically (75 ms)
+[ RUN      ] AhoiTabTreeStoreTest.FindsSavedPagesByUrlAtAnyNestingDepth
+[       OK ] AhoiTabTreeStoreTest.FindsSavedPagesByUrlAtAnyNestingDepth (155 ms)
+[ RUN      ] AhoiTabTreeStoreTest.RejectsCycleWithoutCreatingUndoEntry
+[       OK ] AhoiTabTreeStoreTest.RejectsCycleWithoutCreatingUndoEntry (141 ms)
+[ RUN      ] AhoiTabTreeStoreTest.MovesWholeSubtreeAcrossWorkspacesAndUndoes
+[       OK ] AhoiTabTreeStoreTest.MovesWholeSubtreeAcrossWorkspacesAndUndoes (245 ms)
+[ RUN      ] AhoiTabTreeStoreTest.SameWorkspaceMoveDoesNotRewriteDescendantsAndUndoes
+[       OK ] AhoiTabTreeStoreTest.SameWorkspaceMoveDoesNotRewriteDescendantsAndUndoes (186 ms)
+[ RUN      ] AhoiTabTreeStoreTest.MovesSavedPagesAtomicallyAndOneUndoRestoresBoth
+[       OK ] AhoiTabTreeStoreTest.MovesSavedPagesAtomicallyAndOneUndoRestoresBoth (212 ms)
+[ RUN      ] AhoiTabTreeStoreTest.WrapsSplitPagesInOneFolderAndUndoRestoresBoth
+[       OK ] AhoiTabTreeStoreTest.WrapsSplitPagesInOneFolderAndUndoRestoresBoth (182 ms)
+[----------] 10 tests from AhoiTabTreeStoreTest (1678 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1678 ms total)
+[  PASSED  ] 10 tests.
+[21/35] AhoiTabTreeStoreTest.UpdatesWorkspacePresentationAndPersistsIt (80 ms)
+[22/35] AhoiTabTreeStoreTest.DeletesWorkspaceAndItsTreeAtomically (173 ms)
+[23/35] AhoiTabTreeStoreTest.DuplicatesDeepWorkspaceAndRemapsParents (220 ms)
+[24/35] AhoiTabTreeStoreTest.RejectsInvalidWorkspaceDuplicateAtomically (75 ms)
+[25/35] AhoiTabTreeStoreTest.FindsSavedPagesByUrlAtAnyNestingDepth (155 ms)
+[26/35] AhoiTabTreeStoreTest.RejectsCycleWithoutCreatingUndoEntry (141 ms)
+[27/35] AhoiTabTreeStoreTest.MovesWholeSubtreeAcrossWorkspacesAndUndoes (245 ms)
+[28/35] AhoiTabTreeStoreTest.SameWorkspaceMoveDoesNotRewriteDescendantsAndUndoes (186 ms)
+[29/35] AhoiTabTreeStoreTest.MovesSavedPagesAtomicallyAndOneUndoRestoresBoth (212 ms)
+[30/35] AhoiTabTreeStoreTest.WrapsSplitPagesInOneFolderAndUndoRestoresBoth (182 ms)
+Note: Google Test filter = AhoiTabTreeStoreTest.DeleteTombstonesSubtreeAndDurableUndoRestoresIt:AhoiTabTreeStoreTest.AtomicDeleteAndUndoKeepsSplitPagesTogether:AhoiTabTreeStoreTest.AtomicDeleteWithoutUndoLeavesHistoryAlone:AhoiTabTreeStoreTest.CreateRenameAndUndoAreLifoAndAtomic:AhoiTabTreeStoreTest.LiveMetadataUpdatePersistsWithoutPollutingUndo
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from AhoiTabTreeStoreTest
+[ RUN      ] AhoiTabTreeStoreTest.DeleteTombstonesSubtreeAndDurableUndoRestoresIt
+[       OK ] AhoiTabTreeStoreTest.DeleteTombstonesSubtreeAndDurableUndoRestoresIt (164 ms)
+[ RUN      ] AhoiTabTreeStoreTest.AtomicDeleteAndUndoKeepsSplitPagesTogether
+[       OK ] AhoiTabTreeStoreTest.AtomicDeleteAndUndoKeepsSplitPagesTogether (159 ms)
+[ RUN      ] AhoiTabTreeStoreTest.AtomicDeleteWithoutUndoLeavesHistoryAlone
+[       OK ] AhoiTabTreeStoreTest.AtomicDeleteWithoutUndoLeavesHistoryAlone (96 ms)
+[ RUN      ] AhoiTabTreeStoreTest.CreateRenameAndUndoAreLifoAndAtomic
+[       OK ] AhoiTabTreeStoreTest.CreateRenameAndUndoAreLifoAndAtomic (153 ms)
+[ RUN      ] AhoiTabTreeStoreTest.LiveMetadataUpdatePersistsWithoutPollutingUndo
+[       OK ] AhoiTabTreeStoreTest.LiveMetadataUpdatePersistsWithoutPollutingUndo (115 ms)
+[----------] 5 tests from AhoiTabTreeStoreTest (693 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (693 ms total)
+[  PASSED  ] 5 tests.
+[31/35] AhoiTabTreeStoreTest.DeleteTombstonesSubtreeAndDurableUndoRestoresIt (164 ms)
+[32/35] AhoiTabTreeStoreTest.AtomicDeleteAndUndoKeepsSplitPagesTogether (159 ms)
+[33/35] AhoiTabTreeStoreTest.AtomicDeleteWithoutUndoLeavesHistoryAlone (96 ms)
+[34/35] AhoiTabTreeStoreTest.CreateRenameAndUndoAreLifoAndAtomic (153 ms)
+[35/35] AhoiTabTreeStoreTest.LiveMetadataUpdatePersistsWithoutPollutingUndo (115 ms)
+SUCCESS: all tests passed.
+Tests took 5 seconds.

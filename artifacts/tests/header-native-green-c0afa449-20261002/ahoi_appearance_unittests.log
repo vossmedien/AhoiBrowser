@@ -1,0 +1,251 @@
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+Note: Google Test filter = AhoiColorMixerTest.LightMapsTheSpecPalette:AhoiColorMixerTest.DarkMapsTheSpecPalette:AhoiColorMixerTest.UserMainColourIsNotOverridden:AhoiColorMixerTest.GrayscaleIsNotOverridden:AhoiColorMixerTest.HighContrastIsNotOverridden:AhoiColorMixerTest.CustomThemeIsNotOverridden:AppearancePolicyTest.GlassIsEnabledForTheDefaultMacPolicy:AppearancePolicyTest.EverySafetyGateUsesOpaqueDeterministicFallback:AppearancePolicyTest.ReducedMotionDoesNotInventAnotherPalette:AppearancePolicyTest.SurfaceRolesRemainSemanticAndDistinct
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from AhoiColorMixerTest
+[ RUN      ] AhoiColorMixerTest.LightMapsTheSpecPalette
+[       OK ] AhoiColorMixerTest.LightMapsTheSpecPalette (0 ms)
+[ RUN      ] AhoiColorMixerTest.DarkMapsTheSpecPalette
+[       OK ] AhoiColorMixerTest.DarkMapsTheSpecPalette (0 ms)
+[ RUN      ] AhoiColorMixerTest.UserMainColourIsNotOverridden
+[       OK ] AhoiColorMixerTest.UserMainColourIsNotOverridden (0 ms)
+[ RUN      ] AhoiColorMixerTest.GrayscaleIsNotOverridden
+[       OK ] AhoiColorMixerTest.GrayscaleIsNotOverridden (0 ms)
+[ RUN      ] AhoiColorMixerTest.HighContrastIsNotOverridden
+[       OK ] AhoiColorMixerTest.HighContrastIsNotOverridden (0 ms)
+[ RUN      ] AhoiColorMixerTest.CustomThemeIsNotOverridden
+[       OK ] AhoiColorMixerTest.CustomThemeIsNotOverridden (0 ms)
+[----------] 6 tests from AhoiColorMixerTest (1 ms total)
+
+[----------] 4 tests from AppearancePolicyTest
+[ RUN      ] AppearancePolicyTest.GlassIsEnabledForTheDefaultMacPolicy
+[       OK ] AppearancePolicyTest.GlassIsEnabledForTheDefaultMacPolicy (0 ms)
+[ RUN      ] AppearancePolicyTest.EverySafetyGateUsesOpaqueDeterministicFallback
+[       OK ] AppearancePolicyTest.EverySafetyGateUsesOpaqueDeterministicFallback (0 ms)
+[ RUN      ] AppearancePolicyTest.ReducedMotionDoesNotInventAnotherPalette
+[       OK ] AppearancePolicyTest.ReducedMotionDoesNotInventAnotherPalette (0 ms)
+[ RUN      ] AppearancePolicyTest.SurfaceRolesRemainSemanticAndDistinct
+[       OK ] AppearancePolicyTest.SurfaceRolesRemainSemanticAndDistinct (0 ms)
+[----------] 4 tests from AppearancePolicyTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1 ms total)
+[  PASSED  ] 10 tests.
+[1/56] AhoiColorMixerTest.LightMapsTheSpecPalette (0 ms)
+[2/56] AhoiColorMixerTest.DarkMapsTheSpecPalette (0 ms)
+[3/56] AhoiColorMixerTest.UserMainColourIsNotOverridden (0 ms)
+[4/56] AhoiColorMixerTest.GrayscaleIsNotOverridden (0 ms)
+[5/56] AhoiColorMixerTest.HighContrastIsNotOverridden (0 ms)
+[6/56] AhoiColorMixerTest.CustomThemeIsNotOverridden (0 ms)
+[7/56] AppearancePolicyTest.GlassIsEnabledForTheDefaultMacPolicy (0 ms)
+[8/56] AppearancePolicyTest.EverySafetyGateUsesOpaqueDeterministicFallback (0 ms)
+[9/56] AppearancePolicyTest.ReducedMotionDoesNotInventAnotherPalette (0 ms)
+[10/56] AppearancePolicyTest.SurfaceRolesRemainSemanticAndDistinct (0 ms)
+Note: Google Test filter = AppearancePolicyTest.ProductGlassSurfacesUseDepthInsteadOfOutlines:AppearancePolicyTest.StateNotifiesOnlyWhenPolicyChanges:AppearancePolicyTest.PolicyCanRecoverFromPerformancePressure:AppearancePrefsTest.ProductDefaultsAreProfilePersistent:AppearancePrefsTest.SidebarPageTintRoundTrips:AppearancePrefsTest.NavigationConfigurationRoundTrips:AppearancePrefsTest.NavigationDelayIsClampedAtReadBoundary:AppearanceRuntimeSignalSourceTest.InjectedSystemSignalsDriveTransparencyAndContrast:AppearanceRuntimeSignalSourceTest.ReadsReducedMotionIndependently:AppearanceRuntimeSignalSourceTest.ProfileGlassPrefUpdatesLive
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from AppearancePolicyTest
+[ RUN      ] AppearancePolicyTest.ProductGlassSurfacesUseDepthInsteadOfOutlines
+[       OK ] AppearancePolicyTest.ProductGlassSurfacesUseDepthInsteadOfOutlines (0 ms)
+[ RUN      ] AppearancePolicyTest.StateNotifiesOnlyWhenPolicyChanges
+[       OK ] AppearancePolicyTest.StateNotifiesOnlyWhenPolicyChanges (0 ms)
+[ RUN      ] AppearancePolicyTest.PolicyCanRecoverFromPerformancePressure
+[       OK ] AppearancePolicyTest.PolicyCanRecoverFromPerformancePressure (0 ms)
+[----------] 3 tests from AppearancePolicyTest (0 ms total)
+
+[----------] 4 tests from AppearancePrefsTest
+[ RUN      ] AppearancePrefsTest.ProductDefaultsAreProfilePersistent
+[       OK ] AppearancePrefsTest.ProductDefaultsAreProfilePersistent (0 ms)
+[ RUN      ] AppearancePrefsTest.SidebarPageTintRoundTrips
+[       OK ] AppearancePrefsTest.SidebarPageTintRoundTrips (0 ms)
+[ RUN      ] AppearancePrefsTest.NavigationConfigurationRoundTrips
+[       OK ] AppearancePrefsTest.NavigationConfigurationRoundTrips (0 ms)
+[ RUN      ] AppearancePrefsTest.NavigationDelayIsClampedAtReadBoundary
+[       OK ] AppearancePrefsTest.NavigationDelayIsClampedAtReadBoundary (0 ms)
+[----------] 4 tests from AppearancePrefsTest (0 ms total)
+
+[----------] 3 tests from AppearanceRuntimeSignalSourceTest
+[ RUN      ] AppearanceRuntimeSignalSourceTest.InjectedSystemSignalsDriveTransparencyAndContrast
+[       OK ] AppearanceRuntimeSignalSourceTest.InjectedSystemSignalsDriveTransparencyAndContrast (0 ms)
+[ RUN      ] AppearanceRuntimeSignalSourceTest.ReadsReducedMotionIndependently
+[       OK ] AppearanceRuntimeSignalSourceTest.ReadsReducedMotionIndependently (0 ms)
+[ RUN      ] AppearanceRuntimeSignalSourceTest.ProfileGlassPrefUpdatesLive
+[       OK ] AppearanceRuntimeSignalSourceTest.ProfileGlassPrefUpdatesLive (0 ms)
+[----------] 3 tests from AppearanceRuntimeSignalSourceTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (2 ms total)
+[  PASSED  ] 10 tests.
+[11/56] AppearancePolicyTest.ProductGlassSurfacesUseDepthInsteadOfOutlines (0 ms)
+[12/56] AppearancePolicyTest.StateNotifiesOnlyWhenPolicyChanges (0 ms)
+[13/56] AppearancePolicyTest.PolicyCanRecoverFromPerformancePressure (0 ms)
+[14/56] AppearancePrefsTest.ProductDefaultsAreProfilePersistent (0 ms)
+[15/56] AppearancePrefsTest.SidebarPageTintRoundTrips (0 ms)
+[16/56] AppearancePrefsTest.NavigationConfigurationRoundTrips (0 ms)
+[17/56] AppearancePrefsTest.NavigationDelayIsClampedAtReadBoundary (0 ms)
+[18/56] AppearanceRuntimeSignalSourceTest.InjectedSystemSignalsDriveTransparencyAndContrast (0 ms)
+[19/56] AppearanceRuntimeSignalSourceTest.ReadsReducedMotionIndependently (0 ms)
+[20/56] AppearanceRuntimeSignalSourceTest.ProfileGlassPrefUpdatesLive (0 ms)
+Note: Google Test filter = AppearanceRuntimeSignalSourceTest.ExplicitBatteryAndPerformanceSignalsRemainIndependent:AppearanceRuntimeSignalSourceTest.ChangesArePublishedOncePerEffectiveUpdate:AppearanceRuntimeSignalSourceTest.CurrentSystemReaderIsCallable:GlassMaterialTest.RolesLiveOnTheirContractHosts:GlassMaterialTest.GlassOnUsesNativeGlassWhereAppKitCanRenderIt:GlassMaterialTest.MissingNativeGlassNeverLeavesASeeThroughSheet:GlassMaterialTest.EverySafetyGateResolvesEveryHostToOpaque:GlassMaterialTest.ReducedMotionAloneKeepsTheMaterial:GlassMaterialTest.OnlyOneLayerEverBlursAPixel:GlassMaterialTest.DockedSidebarIsAThinVeilOverTheWindowGlass
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from AppearanceRuntimeSignalSourceTest
+[ RUN      ] AppearanceRuntimeSignalSourceTest.ExplicitBatteryAndPerformanceSignalsRemainIndependent
+[       OK ] AppearanceRuntimeSignalSourceTest.ExplicitBatteryAndPerformanceSignalsRemainIndependent (0 ms)
+[ RUN      ] AppearanceRuntimeSignalSourceTest.ChangesArePublishedOncePerEffectiveUpdate
+[       OK ] AppearanceRuntimeSignalSourceTest.ChangesArePublishedOncePerEffectiveUpdate (0 ms)
+[ RUN      ] AppearanceRuntimeSignalSourceTest.CurrentSystemReaderIsCallable
+[       OK ] AppearanceRuntimeSignalSourceTest.CurrentSystemReaderIsCallable (9 ms)
+[----------] 3 tests from AppearanceRuntimeSignalSourceTest (9 ms total)
+
+[----------] 7 tests from GlassMaterialTest
+[ RUN      ] GlassMaterialTest.RolesLiveOnTheirContractHosts
+[       OK ] GlassMaterialTest.RolesLiveOnTheirContractHosts (0 ms)
+[ RUN      ] GlassMaterialTest.GlassOnUsesNativeGlassWhereAppKitCanRenderIt
+[       OK ] GlassMaterialTest.GlassOnUsesNativeGlassWhereAppKitCanRenderIt (0 ms)
+[ RUN      ] GlassMaterialTest.MissingNativeGlassNeverLeavesASeeThroughSheet
+[       OK ] GlassMaterialTest.MissingNativeGlassNeverLeavesASeeThroughSheet (0 ms)
+[ RUN      ] GlassMaterialTest.EverySafetyGateResolvesEveryHostToOpaque
+[       OK ] GlassMaterialTest.EverySafetyGateResolvesEveryHostToOpaque (0 ms)
+[ RUN      ] GlassMaterialTest.ReducedMotionAloneKeepsTheMaterial
+[       OK ] GlassMaterialTest.ReducedMotionAloneKeepsTheMaterial (0 ms)
+[ RUN      ] GlassMaterialTest.OnlyOneLayerEverBlursAPixel
+[       OK ] GlassMaterialTest.OnlyOneLayerEverBlursAPixel (0 ms)
+[ RUN      ] GlassMaterialTest.DockedSidebarIsAThinVeilOverTheWindowGlass
+[       OK ] GlassMaterialTest.DockedSidebarIsAThinVeilOverTheWindowGlass (0 ms)
+[----------] 7 tests from GlassMaterialTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (10 ms total)
+[  PASSED  ] 10 tests.
+[21/56] AppearanceRuntimeSignalSourceTest.ExplicitBatteryAndPerformanceSignalsRemainIndependent (0 ms)
+[22/56] AppearanceRuntimeSignalSourceTest.ChangesArePublishedOncePerEffectiveUpdate (0 ms)
+[23/56] AppearanceRuntimeSignalSourceTest.CurrentSystemReaderIsCallable (9 ms)
+[24/56] GlassMaterialTest.RolesLiveOnTheirContractHosts (0 ms)
+[25/56] GlassMaterialTest.GlassOnUsesNativeGlassWhereAppKitCanRenderIt (0 ms)
+[26/56] GlassMaterialTest.MissingNativeGlassNeverLeavesASeeThroughSheet (0 ms)
+[27/56] GlassMaterialTest.EverySafetyGateResolvesEveryHostToOpaque (0 ms)
+[28/56] GlassMaterialTest.ReducedMotionAloneKeepsTheMaterial (0 ms)
+[29/56] GlassMaterialTest.OnlyOneLayerEverBlursAPixel (0 ms)
+[30/56] GlassMaterialTest.DockedSidebarIsAThinVeilOverTheWindowGlass (0 ms)
+Note: Google Test filter = GlassMaterialTest.SurfacesOverPagesKeepTheirContrastFloor:GlassMaterialTest.DeveloperToolsStayDenserThanTheCommandBar:GlassMaterialTest.BackdropIsMilkyInLightAndDarkAppearance:GlassMaterialTest.MilkKeepsTheAppearanceItWasDerivedFrom:GlassMaterialTest.WorkspaceAccentOnlyNudgesTheMilk:GlassMaterialTest.PanelsTintTheGlassWithoutAWindowFoundation:GlassMaterialTest.IncreaseContrastOutlinesOnlyFloatingSurfaces:GlassMaterialTest.GeometryTokensMatchTheDesignSpec:GlassMaterialTest.OwnWindowPanelsKeepThePanelRadiusOnEveryBacking:GlassMaterialTest.HairlineIsTranslucentWhite
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from GlassMaterialTest
+[ RUN      ] GlassMaterialTest.SurfacesOverPagesKeepTheirContrastFloor
+[       OK ] GlassMaterialTest.SurfacesOverPagesKeepTheirContrastFloor (0 ms)
+[ RUN      ] GlassMaterialTest.DeveloperToolsStayDenserThanTheCommandBar
+[       OK ] GlassMaterialTest.DeveloperToolsStayDenserThanTheCommandBar (0 ms)
+[ RUN      ] GlassMaterialTest.BackdropIsMilkyInLightAndDarkAppearance
+[       OK ] GlassMaterialTest.BackdropIsMilkyInLightAndDarkAppearance (0 ms)
+[ RUN      ] GlassMaterialTest.MilkKeepsTheAppearanceItWasDerivedFrom
+[       OK ] GlassMaterialTest.MilkKeepsTheAppearanceItWasDerivedFrom (0 ms)
+[ RUN      ] GlassMaterialTest.WorkspaceAccentOnlyNudgesTheMilk
+[       OK ] GlassMaterialTest.WorkspaceAccentOnlyNudgesTheMilk (0 ms)
+[ RUN      ] GlassMaterialTest.PanelsTintTheGlassWithoutAWindowFoundation
+[       OK ] GlassMaterialTest.PanelsTintTheGlassWithoutAWindowFoundation (0 ms)
+[ RUN      ] GlassMaterialTest.IncreaseContrastOutlinesOnlyFloatingSurfaces
+[       OK ] GlassMaterialTest.IncreaseContrastOutlinesOnlyFloatingSurfaces (0 ms)
+[ RUN      ] GlassMaterialTest.GeometryTokensMatchTheDesignSpec
+[       OK ] GlassMaterialTest.GeometryTokensMatchTheDesignSpec (0 ms)
+[ RUN      ] GlassMaterialTest.OwnWindowPanelsKeepThePanelRadiusOnEveryBacking
+[       OK ] GlassMaterialTest.OwnWindowPanelsKeepThePanelRadiusOnEveryBacking (0 ms)
+[ RUN      ] GlassMaterialTest.HairlineIsTranslucentWhite
+[       OK ] GlassMaterialTest.HairlineIsTranslucentWhite (0 ms)
+[----------] 10 tests from GlassMaterialTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 10 tests.
+[31/56] GlassMaterialTest.SurfacesOverPagesKeepTheirContrastFloor (0 ms)
+[32/56] GlassMaterialTest.DeveloperToolsStayDenserThanTheCommandBar (0 ms)
+[33/56] GlassMaterialTest.BackdropIsMilkyInLightAndDarkAppearance (0 ms)
+[34/56] GlassMaterialTest.MilkKeepsTheAppearanceItWasDerivedFrom (0 ms)
+[35/56] GlassMaterialTest.WorkspaceAccentOnlyNudgesTheMilk (0 ms)
+[36/56] GlassMaterialTest.PanelsTintTheGlassWithoutAWindowFoundation (0 ms)
+[37/56] GlassMaterialTest.IncreaseContrastOutlinesOnlyFloatingSurfaces (0 ms)
+[38/56] GlassMaterialTest.GeometryTokensMatchTheDesignSpec (0 ms)
+[39/56] GlassMaterialTest.OwnWindowPanelsKeepThePanelRadiusOnEveryBacking (0 ms)
+[40/56] GlassMaterialTest.HairlineIsTranslucentWhite (0 ms)
+Note: Google Test filter = GlassMaterialTest.ElevationShadowsFollowTheSpec:GlassMaterialTest.MaterialAlphasMatchTheDesignSpec:OpaquePaletteTest.ValuesMatchTheDesignSpec:OpaquePaletteTest.EveryColourIsOpaque:OpaquePaletteTest.TextMeetsTheContrastTargetsOnEverySurface:OpaquePaletteTest.StateOverlaysKeepTheirHue:OpaquePaletteTest.StateTokensMatchTheDesignSpec:SidebarPageTintTest.UsesSubtleOpaquePageColorWhenEnabled:SidebarPageTintTest.RespectsToggleContrastAndMissingThemeColor:SidebarPageTintTest.FallsBackToFaviconAndPrefersThemeColor
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from GlassMaterialTest
+[ RUN      ] GlassMaterialTest.ElevationShadowsFollowTheSpec
+[       OK ] GlassMaterialTest.ElevationShadowsFollowTheSpec (0 ms)
+[ RUN      ] GlassMaterialTest.MaterialAlphasMatchTheDesignSpec
+[       OK ] GlassMaterialTest.MaterialAlphasMatchTheDesignSpec (0 ms)
+[----------] 2 tests from GlassMaterialTest (0 ms total)
+
+[----------] 5 tests from OpaquePaletteTest
+[ RUN      ] OpaquePaletteTest.ValuesMatchTheDesignSpec
+[       OK ] OpaquePaletteTest.ValuesMatchTheDesignSpec (0 ms)
+[ RUN      ] OpaquePaletteTest.EveryColourIsOpaque
+[       OK ] OpaquePaletteTest.EveryColourIsOpaque (0 ms)
+[ RUN      ] OpaquePaletteTest.TextMeetsTheContrastTargetsOnEverySurface
+[       OK ] OpaquePaletteTest.TextMeetsTheContrastTargetsOnEverySurface (0 ms)
+[ RUN      ] OpaquePaletteTest.StateOverlaysKeepTheirHue
+[       OK ] OpaquePaletteTest.StateOverlaysKeepTheirHue (0 ms)
+[ RUN      ] OpaquePaletteTest.StateTokensMatchTheDesignSpec
+[       OK ] OpaquePaletteTest.StateTokensMatchTheDesignSpec (0 ms)
+[----------] 5 tests from OpaquePaletteTest (0 ms total)
+
+[----------] 3 tests from SidebarPageTintTest
+[ RUN      ] SidebarPageTintTest.UsesSubtleOpaquePageColorWhenEnabled
+[       OK ] SidebarPageTintTest.UsesSubtleOpaquePageColorWhenEnabled (0 ms)
+[ RUN      ] SidebarPageTintTest.RespectsToggleContrastAndMissingThemeColor
+[       OK ] SidebarPageTintTest.RespectsToggleContrastAndMissingThemeColor (0 ms)
+[ RUN      ] SidebarPageTintTest.FallsBackToFaviconAndPrefersThemeColor
+[       OK ] SidebarPageTintTest.FallsBackToFaviconAndPrefersThemeColor (0 ms)
+[----------] 3 tests from SidebarPageTintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (0 ms total)
+[  PASSED  ] 10 tests.
+[41/56] GlassMaterialTest.ElevationShadowsFollowTheSpec (0 ms)
+[42/56] GlassMaterialTest.MaterialAlphasMatchTheDesignSpec (0 ms)
+[43/56] OpaquePaletteTest.ValuesMatchTheDesignSpec (0 ms)
+[44/56] OpaquePaletteTest.EveryColourIsOpaque (0 ms)
+[45/56] OpaquePaletteTest.TextMeetsTheContrastTargetsOnEverySurface (0 ms)
+[46/56] OpaquePaletteTest.StateOverlaysKeepTheirHue (0 ms)
+[47/56] OpaquePaletteTest.StateTokensMatchTheDesignSpec (0 ms)
+[48/56] SidebarPageTintTest.UsesSubtleOpaquePageColorWhenEnabled (0 ms)
+[49/56] SidebarPageTintTest.RespectsToggleContrastAndMissingThemeColor (0 ms)
+[50/56] SidebarPageTintTest.FallsBackToFaviconAndPrefersThemeColor (0 ms)
+Note: Google Test filter = SidebarPageTintTest.CapsAdaptiveTintAtEightPercent:SidebarPageTintTest.ExtractsLoadedFaviconColorWithBoundedAnalysis:SidebarPageTintTest.RejectsMissingAndFullyTransparentFavicons:NativeGlassBridgeTest.GlassConfigurationUsesNeutralTintAndRoleGeometry:NativeGlassBridgeTest.OpaquePolicyNeverLeavesTranslucentFallback:NativeGlassBridgeTest.TintOpacityIsClampedAtNativeBoundary
+[==========] Running 6 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from SidebarPageTintTest
+[ RUN      ] SidebarPageTintTest.CapsAdaptiveTintAtEightPercent
+[       OK ] SidebarPageTintTest.CapsAdaptiveTintAtEightPercent (0 ms)
+[ RUN      ] SidebarPageTintTest.ExtractsLoadedFaviconColorWithBoundedAnalysis
+[       OK ] SidebarPageTintTest.ExtractsLoadedFaviconColorWithBoundedAnalysis (3 ms)
+[ RUN      ] SidebarPageTintTest.RejectsMissingAndFullyTransparentFavicons
+[       OK ] SidebarPageTintTest.RejectsMissingAndFullyTransparentFavicons (0 ms)
+[----------] 3 tests from SidebarPageTintTest (4 ms total)
+
+[----------] 3 tests from NativeGlassBridgeTest
+[ RUN      ] NativeGlassBridgeTest.GlassConfigurationUsesNeutralTintAndRoleGeometry
+[       OK ] NativeGlassBridgeTest.GlassConfigurationUsesNeutralTintAndRoleGeometry (0 ms)
+[ RUN      ] NativeGlassBridgeTest.OpaquePolicyNeverLeavesTranslucentFallback
+[       OK ] NativeGlassBridgeTest.OpaquePolicyNeverLeavesTranslucentFallback (0 ms)
+[ RUN      ] NativeGlassBridgeTest.TintOpacityIsClampedAtNativeBoundary
+[       OK ] NativeGlassBridgeTest.TintOpacityIsClampedAtNativeBoundary (0 ms)
+[----------] 3 tests from NativeGlassBridgeTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 2 test suites ran. (4 ms total)
+[  PASSED  ] 6 tests.
+[51/56] SidebarPageTintTest.CapsAdaptiveTintAtEightPercent (0 ms)
+[52/56] SidebarPageTintTest.ExtractsLoadedFaviconColorWithBoundedAnalysis (3 ms)
+[53/56] SidebarPageTintTest.RejectsMissingAndFullyTransparentFavicons (0 ms)
+[54/56] NativeGlassBridgeTest.GlassConfigurationUsesNeutralTintAndRoleGeometry (0 ms)
+[55/56] NativeGlassBridgeTest.OpaquePolicyNeverLeavesTranslucentFallback (0 ms)
+[56/56] NativeGlassBridgeTest.TintOpacityIsClampedAtNativeBoundary (0 ms)
+SUCCESS: all tests passed.
+Tests took 4 seconds.
