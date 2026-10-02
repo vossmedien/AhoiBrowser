@@ -1,5 +1,23 @@
 # Active Desktop checkpoint
 
+## Archive persistence start window terminal; no GUI or deletion — 2 October 2026
+
+Fresh state is compiler/app-free, pressure1/stable sampled swapouts988879,
+CPU46–51%idle. Scoped start window62680 actually waited at most120seconds,
+but repeated input prevents idle90 and the final sample also sees a new
+compiler: terminal2/deferred-owner-active, process
+absent, no journey/app/owner lock or delete action.
+State: `.work/agent-queue/71/installed-archive-persistence-20261002T092108Z/`.
+This is a verified bounded wait, not nine-check runtime acceptance; fixture
+source remains unchanged. No general observer or elapsed-time restart.
+
+Next actual action stays the prepared nine native persistence/delete checks
+after a new real ownership/input/capacity opportunity. Prior10 automatic and5
+manual archive results are unchanged and will not be replayed as this scope.
+Other protection/browser/worker/Sync/Mobile/external/release contracts remain
+OPEN; entire original Master stays active, installed71/6bf4c233/data/rollback/
+archives/goals/rights unchanged. No user response or permission is inferred.
+
 ## Native archive persistence/delete nine-check journey prepared — 2 October 2026
 
 Next source fixture `tools/desktop_e2e/archive-persistence-delete-journey.sh`
