@@ -1,0 +1,24 @@
+{
+  "runnerPid": 35140,
+  "phase": "complete",
+  "source": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "startedAt": "2026-10-02T02:10:18.497043+00:00",
+  "acceptance": false,
+  "mode": "windowed",
+  "probeSha256": "3b20d0403dbcc06493879e8d84eca754b072b6110286e5d72bb6d13213eeab44",
+  "installedInfoSha256": "89e0c0399746cfff13c125f1bce0237ae172a9a293ac96af34968206bedd94a0",
+  "idleSeconds": 247,
+  "appRunning": false,
+  "httpReadiness": {
+    "status": 200,
+    "body": "<title>PaneA</title><h1>Pane A</h1>"
+  },
+  "profile": "/private/tmp/ahoi-navigation-profile.tbz_kech",
+  "fixtureOrigin": "http://127.0.0.1:62823",
+  "browserPid": 35148,
+  "driverSha256": "bfd327a86d6d11ed51577e2292c00efb7d32858653c99d8ebe294cd32779f2bc",
+  "driverPid": 35241,
+  "driverExitCode": 4,
+  "shutdownDeadline": true,
+  "cleanupComplete": true
+}

@@ -1,5 +1,27 @@
 # Active Desktop checkpoint
 
+## Visible explicit navigation also pending; network/loader diagnosis next — 2 October 2026
+
+Installed28506787 windowed owned diagnostic starts idle247, ready HTTP200 fixture
+and no competing app. Four startup DOM samples stayabout:blank. Explicit
+Page.navigate cancels the old loader (ERR_ABORTED), emits requestWillBeSent for
+PaneB, then times out without response or any browser GET at the ready server.
+This is more than a Command Bar-only finding; underlying native path is not yet
+identified. [Exact windowed protocol/fixture hashes](../artifacts/tests/installed-windowed-navigation-red-28506787-20261002/README.md).
+Driver exit4; shutdown deadline also recorded, owned groups cleaned up, no
+browser/driver/helper remains at subsequent inventory. No retry watcher waits.
+Phasecomplete means terminated diagnostic, not PASS. Isolated profile retained.
+
+Next concrete investigation: owned visible network-service/loader state and
+bounded native call-path instrumentation while the local request is pending;
+compare with earlier headless observations, fix the established cause, then
+representative visible journeys/focused checks. Do not repeat unchanged split
+setup or promote another headless pass. Native148/editor5/UI338/baseline872/
+browser33 and canonical installed verification remain valid separate proof.
+Installed app is Build70/M154 with this unresolved visible-loading issue; full
+Master/worker/Sync/external/release acceptance remains open and original goal
+stays intact. Preserve user input/app ownership, archives and rollback.
+
 ## Candidate70 installed/verified; visible navigation setup RED — 2 October 2026
 
 Canonical installer exits0 and installed Info.plist independently reports

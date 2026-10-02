@@ -1,0 +1,18 @@
+{
+  "candidate": "2850678701edc170909e7cf7f1f8e8164e640fa9",
+  "mode": "windowed",
+  "acceptance": false,
+  "driverExitCode": 4,
+  "failure": "command deadline: Page.navigate",
+  "requestWillBeSent": true,
+  "fixtureBrowserRequestReceived": false,
+  "cleanupComplete": true,
+  "rawDirectory": "artifacts/computer-use/m154/navigation-windowed-28506787-20261002T021018Z",
+  "sha256": {
+    "browser.log": "a2ebec7ce03e537224c98d2c1d4fb25a0d9777909d6e32af69a7eb0509bbca9b",
+    "state.json": "23ac3a12a7a5487aff499fdc0a2b5ba3affecd2b63242ddd638397aa8ac501ff",
+    "site.log": "e13a32c7ba62156e556efaa9300a99a80f4e022cd86c1e262185cb0d9c1c2be6",
+    "startup-targets.json": "e8c9ef03e6f6acec70cfc764b0a155cda48fde7d5264620f21e21e528387501c",
+    "protocol.json": "9bc2a0dd2f3b795360733d96e96a62464a32283d32d480041d8d36a2f121a9b9"
+  }
+}
