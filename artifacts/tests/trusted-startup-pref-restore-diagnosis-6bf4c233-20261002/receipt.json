@@ -1,0 +1,17 @@
+{
+  "source": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "installedBuild": 71,
+  "acceptance": false,
+  "raw": {
+    "native-readback": "artifacts/computer-use/m154/restore-native-pref-readback-6bf4c233-20261002T045604Z",
+    "trusted-replay": "artifacts/computer-use/m154/restore-trusted-pref-replay-6bf4c233-20261002T045758Z"
+  },
+  "filesSha256": {
+    "native-readback-state.json": "faa67b2cab4820b2eb4b6e1d3a7fb018af1094067014d6d79be267c408468023",
+    "native-readback-browser.log": "4ae546a21a109fc52cded1c420c12c949dcc82abe7ddd840cb0121cb4238bf21",
+    "native-readback-site.log": "994ddaa040d77dfd796be474f0a564012300f0c051e43633558246748318e3b9",
+    "trusted-replay-state.json": "0762555e4c71d828016d60afab59dfdd8802c19a1c2220037c1682dde9a7edd6",
+    "trusted-replay-browser.log": "b217997e8460faece6f3b200af3599843a6a86db9dee1f8e6a0b96707d1e715b",
+    "trusted-replay-site.log": "1b9e57b9126f2fd2ad366cd4a2d7cddb385c71bc5f0eafe25ea352b661470f5a"
+  }
+}

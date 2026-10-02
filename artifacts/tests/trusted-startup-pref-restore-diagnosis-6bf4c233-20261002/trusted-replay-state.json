@@ -1,0 +1,743 @@
+{
+  "runnerPid": 39132,
+  "phase": "complete",
+  "acceptance": false,
+  "source": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "explicitRestore": false,
+  "trustedPrefProbe": false,
+  "harnessSha256": "65d5442dcf129ea17ec03d3c96100a87965a244c58fb0e501eab295942a06043",
+  "cdpSha256": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+  "retainedSessionSha256": "991b5d78440a019af92d608036fe4fe5eb266cc4a89b94e746b0ae9b466bf13d",
+  "idleSeconds": 639,
+  "appRunning": false,
+  "trustedPrefReceiptSha256": "faa67b2cab4820b2eb4b6e1d3a7fb018af1094067014d6d79be267c408468023",
+  "profileCopy": "/private/tmp/ahoi-restore-replay.a10qyr0i",
+  "mockKeychain": false,
+  "browserPid": 39213,
+  "observations": [
+    {
+      "elapsedSeconds": 4.3,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 5.5,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 6.7,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 7.9,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 9.0,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 10.2,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 11.5,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 12.6,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 14.2,
+      "pages": [
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 15.3,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 16.4,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 17.5,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 18.6,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 19.7,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 20.8,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 21.9,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 23.0,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 24.1,
+      "pages": [
+        {
+          "id": "01700EFD3AB4CCC65C46DB7483286819",
+          "url": "http://127.0.0.1:8827/g.html",
+          "title": "PaneG"
+        },
+        {
+          "id": "CDA46A200C44FA6B9BD2366279C56756",
+          "url": "http://127.0.0.1:8827/f.html",
+          "title": "PaneF"
+        },
+        {
+          "id": "15DF52B54098903147221E4EBAD03F56",
+          "url": "http://127.0.0.1:8827/h.html",
+          "title": "PaneH"
+        },
+        {
+          "id": "A81BFCCB87A422F30F3AD7FC8D3E84CA",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        },
+        {
+          "id": "46E70BED961ED84C68127135F0468E6A",
+          "url": "http://127.0.0.1:8827/solo.html",
+          "title": "Solo"
+        },
+        {
+          "id": "C05A0C3552F526828B4CB7D9CD230E24",
+          "url": "http://127.0.0.1:8827/e.html",
+          "title": "PaneE"
+        },
+        {
+          "id": "CB1622BE2BD6C51A5BA277EE09791F90",
+          "url": "http://127.0.0.1:8827/d.html",
+          "title": "PaneD"
+        }
+      ]
+    }
+  ],
+  "closeProtocolExitCode": 0,
+  "browserExitCode": 0,
+  "originalSessionUnchanged": true,
+  "cleanupComplete": true
+}

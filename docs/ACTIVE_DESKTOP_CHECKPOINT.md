@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Native protected pref confirmed; trusted session replay succeeds — 2 October 2026
+
+Installed Build71/6bf4c233 native Settings API reads restore_on_startup5 even
+though the offline-written JSON contains1. Trusted native setter succeeds and
+reads back1. On a fresh synthetic copy, this native preference pair makes the
+actual decoder read the exact retained original Session file: two windows,
+4+3 tabs, all six fixture URLs plus the recorded NTP. Native exits0, locks and
+own processes clean, original SNSS unchanged; no mock or hash bypass.
+[Exact raw native readback/decoder/source/tool proof](../artifacts/tests/trusted-startup-pref-restore-diagnosis-6bf4c233-20261002/README.md).
+This is not visible split/window/group acceptance; the prior restore3 RED stays.
+
+Both split journeys now configure Chrome LAST and Ahoi continue through the
+trusted Settings API while live, close that setup tab before constructing the
+fixture, and stop editing protected preferences after quit. All original
+assertions remain unchanged. Shell/Python syntax passes. The changed setup
+requires one affected installed lifecycle verification; prior native GREEN is
+unchanged and is not rerun, no Chromium build required. Fresh owner/input/lock/
+compiler checks precede it; inspect the actual current runner before another
+app action. Original full Master/ownership/worker/Sync/external bounds remain.
+
+Bounded owner window50253 is actually live at this entry, state under
+`.work/agent-queue/71/installed-lifecycle-native-pref-20261002T050020Z/`.
+It waits at most120 seconds for idle90/app absent/free locks/no compiler;
+foreign Xcode51921 currently owns compute and no journey/browser was launched.
+Verify actual PID/handle and terminal state; do not restart merely because the
+window expires or treat a prepared script as runtime proof.
+
 ## Restore replay narrows protected-pref question; M155 status — 2 October 2026
 
 Installed Info.plist still independently reads source6bf4c233/M154.0.8037.93

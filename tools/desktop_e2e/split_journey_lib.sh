@@ -136,17 +136,56 @@ launch() { # [url] [nodevtools]
   sleep 4; activate_owned
 }
 quit() { key 12 cmd; for i in $(seq 1 20); do kill -0 $PID 2>/dev/null || return 0; sleep 1; done; echo "still running after quit" >> "$OUT/run.txt"; kill $PID; sleep 3; }
-# Continue the last session on the next start: Ahoi's own choice for a start
-# without DevTools, Chromium's restore-last-session for a start with
-# --remote-debugging-port (an explicit startup intent Ahoi defers on).
+# Configure both startup paths through the live, trusted native setter before
+# constructing the fixture. Offline edits to restore_on_startup invalidate its
+# protected-pref hash and Chromium resets it to DEFAULT on the next launch.
+# Close the temporary Settings tab before taking any tab/window baseline.
 prefs_continue() {
-  python3 - "$P/Default/Preferences" <<'PY'
-import json, sys
-p = sys.argv[1]; d = json.load(open(p))
-d.setdefault("ahoi", {}).setdefault("session", {})["startup_mode"] = "continue"
-d.setdefault("session", {})["restore_on_startup"] = 1
-json.dump(d, open(p, "w"))
+  python3 - "$S/cdp.mjs" "$PORT" "$OUT/native-startup-prefs.json" <<'PY'
+import json, subprocess, sys, time, urllib.request
+cdp, port, output = sys.argv[1:]
+def targets():
+    with urllib.request.urlopen(f'http://127.0.0.1:{port}/json', timeout=2) as response:
+        return json.load(response)
+def call(target, method, params):
+    result = subprocess.run(['node', cdp, port, target, method, json.dumps(params)],
+                            capture_output=True, text=True, timeout=12)
+    data = json.loads(result.stdout)
+    if result.returncode or 'error' in data or 'exceptionDetails' in data:
+        raise RuntimeError(f'{method} failed: {data}')
+    return data
+seed = next(t['id'] for t in targets() if t.get('type') == 'page')
+settings = call(seed, 'Target.createTarget', {'url': 'chrome://settings/ahoi'})['targetId']
+evidence = {}
+try:
+    deadline = time.monotonic() + 15
+    while not any(t['id'] == settings and t.get('url', '').startswith('chrome://settings') for t in targets()):
+        if time.monotonic() >= deadline:
+            raise RuntimeError('Settings tab did not commit')
+        time.sleep(0.25)
+    expression = '''(async () => {
+      const results = [];
+      for (const [key, expected] of [['session.restore_on_startup', 1],
+                                    ['ahoi.session.startup_mode', 'continue']]) {
+        results.push(await new Promise(resolve =>
+          chrome.settingsPrivate.setPref(key, expected, '', ok =>
+            chrome.settingsPrivate.getPref(key, p =>
+              resolve({key, expected, setterSucceeded:ok, value:p.value})))));
+      }
+      return results;
+    })()'''
+    evidence = call(settings, 'Runtime.evaluate',
+                    {'expression': expression, 'awaitPromise': True, 'returnByValue': True})
+    values = evidence.get('result', {}).get('value', [])
+    if len(values) != 2 or any(v.get('setterSucceeded') is not True or v.get('value') != v['expected'] for v in values):
+        raise RuntimeError('Native startup preference readback failed')
+finally:
+    with open(output, 'w') as file:
+        json.dump(evidence, file, indent=2)
+        file.write('\n')
+    call(seed, 'Target.closeTarget', {'targetId': settings})
 PY
+  [ "$?" = 0 ] || fail_setup "trusted startup preferences did not confirm"
 }
 # Keys go through the HID event tap like a real keyboard; hidkey refuses
 # unless the app is frontmost, so bring it forward and retry.

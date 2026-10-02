@@ -1,0 +1,76 @@
+{
+  "runnerPid": 36472,
+  "phase": "complete",
+  "acceptance": false,
+  "source": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "explicitRestore": false,
+  "trustedPrefProbe": true,
+  "harnessSha256": "288dddb0daefb0d0d6f6c03e5f5698fdb2d3e68e22fc689f15e3be89e0b21243",
+  "cdpSha256": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+  "retainedSessionSha256": "991b5d78440a019af92d608036fe4fe5eb266cc4a89b94e746b0ae9b466bf13d",
+  "idleSeconds": 524,
+  "appRunning": false,
+  "profileCopy": "/private/tmp/ahoi-restore-replay.jiggtth8",
+  "mockKeychain": false,
+  "browserPid": 36481,
+  "observations": [
+    {
+      "elapsedSeconds": 3.4,
+      "pages": [
+        {
+          "id": "8B00D32B5107E9E6ED393A870C4D0798",
+          "url": "chrome://newtab/",
+          "title": "Neuer Tab"
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 4.8,
+      "pages": [
+        {
+          "id": "8B00D32B5107E9E6ED393A870C4D0798",
+          "url": "",
+          "title": ""
+        }
+      ]
+    },
+    {
+      "elapsedSeconds": 5.9,
+      "pages": [
+        {
+          "id": "8B00D32B5107E9E6ED393A870C4D0798",
+          "url": "chrome://settings/ahoi",
+          "title": "Einstellungen"
+        }
+      ]
+    }
+  ],
+  "settingsNavigationAttempted": true,
+  "settingsNavigation": {
+    "frameId": "8B00D32B5107E9E6ED393A870C4D0798",
+    "loaderId": "861F6E99F864B05DF72CD69008E93CDC",
+    "isDownload": false
+  },
+  "nativePrefBefore": {
+    "result": {
+      "type": "object",
+      "value": {
+        "value": 5,
+        "controlledBy": ""
+      }
+    }
+  },
+  "nativePrefAfter": {
+    "result": {
+      "type": "object",
+      "value": {
+        "setterSucceeded": true,
+        "value": 1
+      }
+    }
+  },
+  "closeProtocolExitCode": 0,
+  "browserExitCode": 0,
+  "originalSessionUnchanged": true,
+  "cleanupComplete": true
+}

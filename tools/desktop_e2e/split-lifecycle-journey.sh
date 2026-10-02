@@ -15,6 +15,7 @@ PORT=9409; SITE_PORT=${AHOI_E2E_SITE_PORT:-8827}
 . "$S/split_journey_lib.sh"
 
 launch "$SITE/solo.html"
+prefs_continue
 open_url "$SITE/a.html"
 snap base; read -r W0 H0 < <(q size PaneA); echo "baseline ${W0}x${H0}" >> "$OUT/steps.txt"
 [ "$W0" -gt 0 ] && [ "$(q visible)" = PaneA ] || fail_setup "PaneA is not the only visible page"
@@ -80,7 +81,7 @@ check paneShortcutsInSecondWindow '[ -n "$F1" ] && [ -n "$F2" ] && [ "$F1" != "$
 # SPLIT-21 (windows) / SPLIT-22: after ⌘Q both windows return; the split is
 # back in the second window, window 1 has no split, no phantom tabs.
 URLS=$(urls); echo "before quit: $URLS" >> "$OUT/steps.txt"
-quit; sleep 2; prefs_continue
+quit; sleep 2
 launch; sleep 4; snap relaunch
 RG=$(q win PaneG); RH=$(q win PaneH); RS=$(q win Solo)
 echo "after restart: urls=$(urls) windows g=$RG h=$RH solo=$RS" >> "$OUT/steps.txt"

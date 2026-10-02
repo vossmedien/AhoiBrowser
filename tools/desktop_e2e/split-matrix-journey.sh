@@ -16,6 +16,7 @@ PORT=9407; SITE_PORT=${AHOI_E2E_SITE_PORT:-8825}
 . "$S/split_journey_lib.sh"
 
 launch "$SITE/solo.html"
+prefs_continue
 open_url "$SITE/a.html"
 snap base; read -r W0 H0 < <(q size PaneA); echo "baseline ${W0}x${H0}" >> "$OUT/steps.txt"
 [ "$W0" -gt 0 ] && [ "$(q visible)" = PaneA ] || fail_setup "PaneA is not the only visible page"
@@ -128,15 +129,14 @@ check refusedPopupClosesCleanly '! q all | grep -q PaneE && [ "$(q layout)" = fo
 key 124 cmd ctrl; sleep 1; key 124 cmd ctrl; sleep 1
 focus_pane 3; FOCUS=$(q focused); SHARES=$(q shares); URLS=$(urls)
 echo "before quit: focus=$FOCUS shares=$SHARES urls=$URLS" >> "$OUT/steps.txt"
-quit; sleep 2; prefs_continue
+quit; sleep 2
 launch "" nodevtools; sleep 4
 check restoredOneRowProductStart 'sidebar_group relaunch PaneA PaneB PaneC PaneD'
 AREAS=$($AX dump $PID 40 | grep -o -E "AXWebArea \| Pane[A-D]" | sort -u | wc -l | tr -d " ")
 check restoredFourPanesProductStart '[ "$AREAS" = 4 ]'
 quit; sleep 2
-# The product start above owns Ahoi's Continue path and may reset Chromium's
-# startup preference. Re-arm only the fixture's separate DevTools restore path.
-prefs_continue
+# Both native preferences were set before fixture construction; preserve their
+# protected hashes across both launches instead of editing JSON after quit.
 launch; sleep 4
 waiturl a.html 20 || echo "debug restore has no PaneA target" >> "$OUT/steps.txt"
 snap relaunch

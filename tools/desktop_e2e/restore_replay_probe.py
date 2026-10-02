@@ -30,6 +30,8 @@ def main():
     parser.add_argument('--explicit-restore', action='store_true')
     parser.add_argument('--trusted-pref-probe', action='store_true',
                         help='observe/update the copied profile through native settings API')
+    parser.add_argument('--trusted-pref-receipt', type=pathlib.Path,
+                        help='use the own synthetic native-setter profile preference pair')
     args = parser.parse_args()
     # Never accept a normal browser/user profile as the replay source.
     retained = args.retained_profile.resolve()
@@ -78,6 +80,21 @@ def main():
         prefs.setdefault('session', {})['restore_on_startup'] = 1
         prefs.setdefault('ahoi', {}).setdefault('session', {})['startup_mode'] = 'continue'
         prefs_path.write_text(json.dumps(prefs))
+        if args.trusted_pref_receipt:
+            receipt = json.loads(args.trusted_pref_receipt.read_text())
+            assert receipt['source'] == args.source and receipt['phase'] == 'complete'
+            assert receipt['cleanupComplete'] and receipt['originalSessionUnchanged']
+            assert receipt['retainedSessionSha256'] == state['retainedSessionSha256']
+            native = receipt['nativePrefAfter']['result']['value']
+            assert native['setterSucceeded'] is True and native['value'] == 1
+            trusted = pathlib.Path(receipt['profileCopy']).resolve()
+            assert trusted.parent == pathlib.Path('/private/tmp')
+            assert trusted.name.startswith('ahoi-restore-replay.')
+            state['trustedPrefReceiptSha256'] = hashlib.sha256(args.trusted_pref_receipt.read_bytes()).hexdigest()
+            for name in ['Preferences', 'Secure Preferences']:
+                source = trusted / 'Default' / name
+                assert source.is_file()
+                shutil.copyfile(source, profile / 'Default' / name)
         site = profile / 'fixture'
         site.mkdir(exist_ok=True)
         for name in ['solo'] + list('abcdefgh'):
