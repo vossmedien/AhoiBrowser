@@ -1,5 +1,22 @@
 # Active sync coordination
 
+## Compiler metadata extraction terminal; no native run — 2 October 2026
+
+Fresh15:36 host14.78%idle, pressure2, own locks absent. No safe build/GUI/source
+compiler window. The three intended settings/product/service-test syntax
+commands could not yet be extracted: owned Ninja metadata reader timed out30s
+on the first actual target and the script is terminal1. Authoritative process
+read found no matching live reader; no plan file or compiler invocation exists.
+Private snapshot/terminal receipt:
+`.work/agent-queue/browser-settings-reentrant-source-20261002/metadata-state.json`.
+This is a failed read-only preparation, NOT source validation/progress or a live
+build wait; do not repeat/restart solely because observation time passed.
+
+Last concrete goal progress is committ­eda431d966: exact echo/live-intent source
+correction and five written regressions. New actual capacity or a source change
+justifies the next compiler action. Frozen72/28c94e0a/shared checkout, installed71,
+foreign active workloads, full Master and all existing gates stay unchanged.
+
 ## Reentrant native settings source correction, unbuilt — 2 October 2026
 
 Existing unified Desktop/Mobile/Sync owner. ADR0010/native consumer review finds
