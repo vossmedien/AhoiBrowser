@@ -1,5 +1,36 @@
 # Active Desktop checkpoint
 
+## User-authorized host cleanup; tab-cache cancellation finding — 2 October 2026, 13:02 CEST
+
+User requested closing unused workloads. Gracefully stopped the idle
+`buildx_buildkit_guru-multiarch0` after verifying all17 recorded builds terminal,
+last completed1October19:12, no build client; images/volumes/cache retained.
+Stopped orphaned FillIt V26 static preview4364 after exact cwd/PID/listener,
+no connected client and no Arc tab checks; candidate files and current previews
+4365/4338 retained. Terminated FillIt and shut down only simulator
+7EE99415-27FA-4EA4-8CC4-CAE704F50C9F: no visible Simulator or live XCTest,
+Xcode build or simulator-control job. Both native commands exit0, subsequent
+booted list empty. No erase. Active Android emulator, Docker application/trader
+services, active builds, sessions and pinned Arc tabs retained. Private receipts:
+`.work/host-cleanup-20261002/`. Latest host sample13:01:31:39.75%CPU idle,
+pressure1, 8GB swap; this is a new sample, not proof all improvement was ours.
+No Ahoi build/app/test/installation or source integration started.
+
+Source review identifies an unresolved tab-cache cancellation gap in929c2b29:
+SetCacheDisabledForCurrentTab immediately advances activation generation and
+clears the committed snapshot; old document factories require their captured
+generation. Native Navigator::Navigate dispatches browser before-unload BEFORE
+BeginNavigation/DidStartNavigation. Cancelling can therefore retain the old
+document while the new chip/choice is set and its old override factory is inert.
+BeforeUnloadFired is explicitly NOT a navigation observer; do not use it as
+the fix or decrement generations to resurrect stale approvals. Resolve the
+native reload/policy transition and prove cancellation with unrelated existing
+overrides before accepting this packet. Seven private syntax commands remain
+NOT_RUN; their snapshot is929c2b29 and must not be relabelled after source edits.
+Installed71/6bf4c233 remains current. Archive9/protection6 remain first free-GUI
+work. Crest106/110 unchanged/deferred to their separate H3 lease; full original
+Master, all runtime/external/release/ownership gates and historical proof retained.
+
 ## Explicit tab-cache control source wired; unbuilt, source checks pending — 2 October 2026
 
 Actual fresh normal-pressure/idle378/no-compiler opportunity was rechecked by
