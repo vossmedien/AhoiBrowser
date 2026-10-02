@@ -123,6 +123,12 @@ activate_owned() {
 }
 launch() { # [url] [nodevtools]
   local url=${1:-} dev=--remote-debugging-port=$PORT
+  local archive_age_flag=""
+  if [ -n "${AHOI_E2E_ARCHIVE_AGE:-}" ]; then
+    case "$AHOI_E2E_ARCHIVE_AGE" in ''|*[!0-9]*) echo 'invalid synthetic archive age' >&2; exit 4 ;; esac
+    [ "$AHOI_E2E_ARCHIVE_AGE" -ge 1 ] && [ "$AHOI_E2E_ARCHIVE_AGE" -le 3600 ] || exit 4
+    archive_age_flag="--ahoi-e2e-archive-age-seconds=$AHOI_E2E_ARCHIVE_AGE"
+  fi
   [ "${2:-}" = nodevtools ] && dev=""
   # The initial owner check is not permission for a later restart. Recheck
   # after each quit, before creating a new process or activating its window.
@@ -159,7 +165,7 @@ if 'refusal' in sample:
 PY
   [ "$?" = 0 ] || exit 8
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
-    $dev $url >> "$OUT/browser.log" 2>&1 &
+    $archive_age_flag $dev $url >> "$OUT/browser.log" 2>&1 &
   PID=$!; echo "pid=$PID profile=$P devtools=${dev:+on}" >> "$OUT/run.txt"
   if [ -n "$dev" ]; then
     for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done

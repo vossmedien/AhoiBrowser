@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Remaining group/saved/before-unload protection fixture prepared — 2 October 2026
+
+Fresh read still sees foreign Xcode69563 actually live (later5min sample),
+recent input, pressure1, CPU7–25%idle at initial sample. No GUI/idle waiter/app/
+delete or Chromium build launched; foreign process untouched.
+
+Concrete independent source continuation:
+`tools/desktop_e2e/archive-group-protection-journey.sh` uses current native
+picker/shared guards, actual user-gesture editedB in a completeA/B split,
+native savedC state confirmation, installed BeforeUnload handlerD, unrelated
+activeSolo and eligible idleE. Six NEW checks cover whole-group retention,
+draft retention, saved exclusion, BeforeUnload exclusion, idle-control archive
+and active-control retention. This is preparation, NOT executed acceptance.
+KeepLoaded/media/capture/download/native-dialog and other gates remain open.
+The helper removes only its synthetic handler before native quit.
+
+Shared launcher now optionally accepts the existing development-only archive
+age seam, integer1..3600; unset adds no argument, all existing source/input/
+compiler/app boundary guards remain. Empty optional flag uses ordinary shell
+word expansion rather than an empty array under macOS bash3/set-u. Shell and
+embedded Python parsing/diff pass; no native product/policy/permission changed.
+
+Next actual GUI action remains the already prepared nine archive persistence/
+delete checks after fresh real ownership/input/capacity, followed by these six
+protection cases. Prior10/5/split scoped GREEN, historical RED, installed71/
+6bf4c233, all data/rollback/archives/rights and the full original Master remain.
+No blocked/complete claim; no readiness loop or inferred Root permission.
+
 ## Archive persistence start window terminal; no GUI or deletion — 2 October 2026
 
 Fresh state is compiler/app-free, pressure1/stable sampled swapouts988879,
