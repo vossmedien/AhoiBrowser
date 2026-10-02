@@ -1,0 +1,26 @@
+{
+  "runnerPid": 2811,
+  "sourceCommit": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "phase": "complete",
+  "startedAt": "2026-10-02T05:32:56.375230+00:00",
+  "journey": "split-matrix-phased",
+  "waitDeadlineSeconds": 0,
+  "idleSeconds": 144,
+  "appRunning": false,
+  "compilerRunning": false,
+  "output": "artifacts/computer-use/m154/split-matrix-phased-installed-6bf4c233-20261002T053256Z",
+  "inputSha256": {
+    "tools/desktop_e2e/split-matrix-journey.sh": "db3117fa5ed16f102f6448bce88cf1025066a3f61cb4c99028cbec98f79a1a96",
+    "tools/desktop_e2e/split_journey_lib.sh": "ec6e524427a73407e23b00279c0fc37664b3506b79a54dda878650e7df6a8de7",
+    "tools/desktop_e2e/cdp.mjs": "e404c69ee829d8bfa81afcde8b730b583eb14481492642ef378e65df42d2be79",
+    "tools/desktop_e2e/axtool.swift": "456cb3db10c6e52911f7a4b57cafd5771ae775b6441c6c6ef636eabd894371ec",
+    "tools/desktop_e2e/split_sidebar_group.py": "ac81e3319196efccd5efb1259764aaa187f6ab9274c779c86cfc6cac6b4076c4"
+  },
+  "journeyPid": 2819,
+  "exitCode": 8,
+  "verdict": {
+    "cancelled": "owner focus returned elsewhere",
+    "pass": false
+  },
+  "ownedRootsRemain": []
+}

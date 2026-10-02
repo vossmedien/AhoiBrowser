@@ -1,0 +1,4 @@
+CFD49B0D21EB77DE9A42D8E02EC48458|1099952853|{"t":"PaneC","w":306,"h":1235,"v":"visible","f":true,"m":"kept","val":"PaneC-draft"}
+FD9C4EBA7A7D2C8F7D4B7C52A2D614CD|1099952853|{"t":"PaneB","w":307,"h":1235,"v":"visible","f":false,"m":"kept","val":"PaneB-draft"}
+3B208CB24611D59FC07DE5EC4B7870E9|1099952853|{"t":"PaneA","w":307,"h":1235,"v":"visible","f":false,"m":"kept","val":"PaneA-draft"}
+137368F48B3F03FB253C5E5A80DA8697|1099952853|{"t":"Solo","w":940,"h":1235,"v":"hidden","f":false,"m":"kept","val":"Solo-draft"}

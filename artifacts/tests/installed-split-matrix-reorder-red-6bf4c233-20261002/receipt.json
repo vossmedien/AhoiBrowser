@@ -1,0 +1,56 @@
+{
+  "candidate": "6bf4c233c44d373924a5d815a85ecb8b7230f606",
+  "pass": false,
+  "cancelled": true,
+  "processExitCode": 8,
+  "observedAssertions": {
+    "twoPaneSplitCreated": true,
+    "sidebarOneRowTwoPanes": true,
+    "twoRowsViaRowMenu": true,
+    "twoColumnsViaRowMenu": true,
+    "twoPaneLayoutShortcut": true,
+    "dividerShortcutsResize": true,
+    "threePaneSplitCreated": true,
+    "sidebarOneRowThreePanes": true,
+    "threePaneLayoutCycle": true,
+    "threePaneMenuPresets": true,
+    "paneFocusShortcuts": true,
+    "paneReorderShortcut": false,
+    "reloadTargetsActivePane": true,
+    "fourPaneGridCreated": true,
+    "sidebarOneRowFourPanes": true
+  },
+  "passedAssertions": 14,
+  "failedAssertions": [
+    "paneReorderShortcut"
+  ],
+  "syntheticProfile": "/private/tmp/ahoi-split-profile.Iy3FPX",
+  "sessionEvidence": [
+    {
+      "name": "Session_13435392991102158",
+      "bytes": 15340,
+      "sha256": "6ad2abf131872ac5228dfda6c0551525a2fcd4b9e1ff307b87cb5de7862232d5"
+    },
+    {
+      "name": "Session_13435392847153926",
+      "bytes": 59097,
+      "sha256": "cab241f3a0ba1250aa1e1df82f06f24bc3632dc63e71ae4b621f3a6a889ac24b"
+    }
+  ],
+  "rawDirectory": "artifacts/computer-use/m154/split-matrix-phased-installed-6bf4c233-20261002T053256Z",
+  "filesSha256": {
+    "runner-state.json": "ce9de856ae138c24e53c8472d35cebbc299e06f016ab446b10456779d48a2668",
+    "steps.txt": "71a0426eb6986fde0ca68198d1347f3da8b8d40484dd621242d8b9c90968d7fe",
+    "run.txt": "3d2d2620ec4f26808d7863918fa06550f2e24bf58a19e99ec227964e33d6c2c0",
+    "verdict.json": "24d8a6404bfd7aa149a4039067534fa2aa7925fbebbd7aceec0924030c409fe9",
+    "native-startup-prefs.json": "0ec0055cb4e0d29084fc1690b0ef44862495c6ed3f42e92c44bca54c9f1caa8a",
+    "launch-preflight.jsonl": "347e7ba7d8ba51be5ac6d52986323d614671f0fbfafe31716bf0d64ebf71f2ec",
+    "browser.log": "742686bec9e6c079895d94ad65809c96115b3fd5f7979ce441ac12546c45a771",
+    "snap-23-focus-1.txt": "3400d7441054c07c4f7c3b8fc68dca8043e9792af5b65a071e86e4dae9367f60",
+    "snap-24-focus-2.txt": "0db0fe7368290794c702af0fef4f36da93b93782221e5236533d0039a8bf6f86",
+    "snap-25-focus-3.txt": "5e94168c90d83db4050893399a124adea66c03f886825e2d2927d409f71d2abe",
+    "snap-26-focus-1.txt": "3400d7441054c07c4f7c3b8fc68dca8043e9792af5b65a071e86e4dae9367f60",
+    "snap-27-focus-2.txt": "0db0fe7368290794c702af0fef4f36da93b93782221e5236533d0039a8bf6f86",
+    "snap-28-focus-1.txt": "3400d7441054c07c4f7c3b8fc68dca8043e9792af5b65a071e86e4dae9367f60"
+  }
+}

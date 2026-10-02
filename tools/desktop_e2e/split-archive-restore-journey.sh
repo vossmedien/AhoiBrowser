@@ -25,12 +25,15 @@ SITE_PID=$!; SITE=http://127.0.0.1:$SITE_PORT
 PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; echo "pid=$PID profile=$P" > "$OUT/run.txt"
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 4
+. "$S/archive_focus_guard.sh"
 
 ax() {
+  archive_check_focus
+  if [ "$1" = activate ]; then archive_activate_owned; return $?; fi
   if [ "$1" = key ]; then
     shift; local pid=$1; shift
     for attempt in 1 2 3 4 5; do
-      "$AX" activate "$pid" >/dev/null 2>&1; sleep 0.3
+      archive_activate_owned; sleep 0.3
       "$AX" hidkey "$pid" "$@" >> "$OUT/steps.txt" 2>&1 && return 0
       sleep 1
     done
@@ -59,7 +62,14 @@ rows=dict(l.split(None,1) for l in open(sys.argv[1]) if l.strip())
 rows={k:v.strip() for k,v in rows.items()}
 print(json.dumps({"results":rows,"pass":all(v=="PASS" for v in rows.values())},indent=1))
 PY
-  cat "$OUT/results.json"; exit 0
+  cat "$OUT/results.json"
+  python3 - "$OUT/results.json" <<'PY'
+import json, sys
+with open(sys.argv[1]) as file:
+    verdict = json.load(file)
+sys.exit(0 if verdict.get('pass') is True else 1)
+PY
+  exit "$?"
 }
 
 # 1 Split the active page with a new pane via the native Tab menu, then load

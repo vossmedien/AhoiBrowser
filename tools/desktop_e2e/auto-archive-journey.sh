@@ -26,15 +26,18 @@ SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; SITE=http://127.0.0.1:$SITE
 PID=$!; echo "pid=$PID profile=$P age=$AGE" > "$OUT/run.txt"
 for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
 sleep 4
+. "$S/archive_focus_guard.sh"
 
 # Keys go through the HID event tap like a real keyboard (keys posted to the
 # process are intermittently dropped by Chromium); hidkey refuses unless the
 # app is frontmost, so bring it forward and retry.
 ax() {
+  archive_check_focus
+  if [ "$1" = activate ]; then archive_activate_owned; return $?; fi
   if [ "$1" = key ]; then
     shift; local pid=$1; shift
     for attempt in 1 2 3 4 5; do
-      "$AX" activate "$pid" >/dev/null 2>&1; sleep 0.3
+      archive_activate_owned; sleep 0.3
       "$AX" hidkey "$pid" "$@" >> "$OUT/steps.txt" 2>&1 && return 0
       sleep 1
     done
@@ -127,3 +130,9 @@ res={k:v for k,v in rows}
 print(json.dumps({"pass":all(v=="PASS" for v in res.values()) and len(res)>=10,"steps":res},indent=1))
 PY
 cat "$OUT/results.json"
+python3 - "$OUT/results.json" <<'PY'
+import json, sys
+with open(sys.argv[1]) as file:
+    verdict = json.load(file)
+sys.exit(0 if verdict.get('pass') is True else 1)
+PY

@@ -1,5 +1,34 @@
 # Active Desktop checkpoint
 
+## Matrix14 GREEN, actual pane reorder RED, then focus cancellation — 2 October 2026
+
+Installed matrix2811/2819 reaches15 assertions:14 pass (two/three/four-pane
+creation, shared sidebar rows, layouts/preset marks, dividers, three-pane focus,
+focused-only reload), paneReorderShortcut is false. After Cmd+Ctrl+Shift+Right,
+focus1 remainsA/focus2B; native drafts/marks retained. Later foreign focus in
+four-pane focus traversal yields8/pass:false; all own roots terminal, lock
+released. Unreached grid/fifth-pane/no-DevTools/restart checks remain OPEN.
+[Exact reached assertions, snapshots, native-pref/tool/candidate evidence](../artifacts/tests/installed-split-matrix-reorder-red-6bf4c233-20261002/README.md).
+Own profile `/private/tmp/ahoi-split-profile.Iy3FPX` and session files retained.
+Earlier installed lifecycle restore3GREEN remains separate and unchanged.
+
+Current direct native browser reorder test passes but invokes AcceleratorPressed
+on NTPs, bypassing the real event/live-page path. Current native keyboard settings
+show no enabled matching Cmd+Ctrl(+Shift) arrow shortcut. Source suggests another
+possible cause: moved split tabs emit generic OnNativeChanged, while topology
+adoption depends on changed_native_splits populated by split-specific events.
+No cause is claimed yet. Next: focused actual command-delivery trace on the
+retained synthetic split, distinguish input dispatch from later reconciliation;
+fix the established cause, not the assertion or a guessed source seam. No new
+heavy build, broad native repeat or fourteen-check replay for this hypothesis.
+
+Independent next-archive harness work now shares strict focus/input yielding
+and closes only the matching PID/unique profile via its own CDP endpoint; both
+archive scripts propagate false verdicts to nonzero exits. Shell syntax passes,
+no archive run/acceptance yet. Future archive manifests must include
+`tools/desktop_e2e/archive_focus_guard.sh`. Entire original Master/Sync/worker/
+Mobile/external/release/source/install/rollback bounds remain active.
+
 ## Installed split matrix actually running — 2 October 2026
 
 Fresh immediate check finds idle144, no compiler/app/free owner locks. CPU

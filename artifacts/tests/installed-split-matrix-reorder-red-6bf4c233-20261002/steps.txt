@@ -1,0 +1,123 @@
+frontmost -> 0
+hidkey 17
+typed 28
+hidkey 36
+baseline 940x1235
+hidkey 17
+typed 28
+hidkey 36
+hidkey 48
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+hidclicked  at (974.0, 205.0)
+twoPaneSplitCreated -> true
+sidebar group ['PaneA', 'PaneB']: found=['PaneA', 'PaneB'] parent='AXGroup' members=2 -> True
+sidebarOneRowTwoPanes -> true
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Gestapelte Tabs anzeigen | itemSelected: -> 0
+twoRowsViaRowMenu -> true
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Nebeneinander anzeigen | itemSelected: -> 0
+twoColumnsViaRowMenu -> true
+hidkey 37
+hidkey 37
+⌘⌃L: two-rows then two-columns
+twoPaneLayoutShortcut -> true
+hidkey 124
+hidkey 123
+hidkey 123
+divider width difference: 0.100 then -0.098
+dividerShortcutsResize -> true
+hidkey 124
+hidkey 18
+{"result":{"type":"number","value":1,"description":"1"}}
+
+AXPress AXButton | Popup im Split View öffnen | Popup im Split View öffnen -> 0
+threePaneSplitCreated -> true
+sidebar group ['PaneA', 'PaneB', 'PaneC']: found=['PaneA', 'PaneB', 'PaneC'] parent='AXGroup' members=3 -> True
+sidebarOneRowThreePanes -> true
+hidkey 37
+hidkey 37
+hidkey 37
+hidkey 37
+hidkey 37
+hidkey 37
+three-pane ⌘⌃L cycle: three-rows main-vertical main-vertical main-horizontal main-horizontal three-columns
+threePaneLayoutCycle -> true
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+AXPress AXMenuItem | Drei Zeilen | itemSelected: -> 0
+preset Drei Zeilen -> three-rows
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | Drei Zeilen | itemSelected: mark=✓
+AXPress AXMenuItem | Großes Pane links | itemSelected: -> 0
+preset Großes Pane links -> main-vertical
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | Großes Pane links | itemSelected: mark=✓
+AXPress AXMenuItem | Großes Pane rechts | itemSelected: -> 0
+preset Großes Pane rechts -> main-vertical
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | Großes Pane rechts | itemSelected: mark=✓
+AXPress AXMenuItem | Großes Pane oben | itemSelected: -> 0
+preset Großes Pane oben -> main-horizontal
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | Großes Pane oben | itemSelected: mark=✓
+AXPress AXMenuItem | Großes Pane unten | itemSelected: -> 0
+preset Großes Pane unten -> main-horizontal
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | Großes Pane unten | itemSelected: mark=✓
+AXPress AXMenuItem | Drei Spalten | itemSelected: -> 0
+preset Drei Spalten -> three-columns
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Geteilte Ansicht anordnen -> 0
+checked AXMenuItem | Drei Spalten | itemSelected: mark=✓
+key 53
+key 53
+threePaneMenuPresets -> true
+hidkey 18
+hidkey 19
+hidkey 20
+pane order: PaneA PaneB PaneC
+paneFocusShortcuts -> true
+hidkey 18
+hidkey 124
+hidkey 19
+hidkey 18
+after reorder: pane1=PaneA pane2=PaneB (was PaneA PaneB)
+paneReorderShortcut -> false
+hidkey 19
+hidkey 15
+reloadTargetsActivePane -> true
+hidkey 18
+{"result":{"type":"number","value":1,"description":"1"}}
+
+AXPress AXButton | Popup im Split View öffnen | Popup im Split View öffnen -> 0
+fourPaneGridCreated -> true
+sidebar group ['PaneA', 'PaneB', 'PaneC', 'PaneD']: found=['PaneA', 'PaneB', 'PaneC', 'PaneD'] parent='AXGroup' members=4 -> True
+sidebarOneRowFourPanes -> true
+hidkey 18
+hidkey 19
+hidkey 20
+owner focus returned elsewhere; yielding without activation or HID
