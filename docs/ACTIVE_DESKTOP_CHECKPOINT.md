@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Candidate72 source integrated; guarded build still NOT_STARTED — 2 October 2026
+
+Frozen source28c94e0a1c14242021a715773ee669b3df286d63 in clean detached private
+`.work/agent-queue/repo`. Guarded apply-overlay source90608/overlay90626 both
+terminal0, checkout refresh and complete delta verified. Source phase sampled
+39.23/37.67%idle, after integration48.72%, pressure1; own lock released. Current
+shared checkout is this corrected candidate; output/installed71 stay6bf4c233.
+[Exact frozen candidate/entrypoint/remaining gates](../artifacts/build/codex-build72-20261002-plan.json).
+
+Build preflights are terminal, no compiler/GN/Ninja build/sign/install started.
+Initial8708 rejected27.1/0.15%idle. Second36368 passed capacity42.22/38.46 but
+its private valid-only identity check was incorrect: canonical development_signing
+resolver explicitly binds/verifies the exact existing public leaf against login
+and System keychains and passes with the installed Apple Development authority.
+No certificate/search-list/trust/private-key change or alternate signer. Private
+launcher now uses that canonical resolver. Subsequent46439,62228,74859 are
+terminal2/deferred; latest1.78/4.71%idle, pressure2. Private state build5-state.json
+and canonical signer receipt under `.work/agent-queue/72/`; previous receipts retained.
+
+The selected corrective build is jobs1/nice10, not a Chromium roll/full build.
+Its preflight measures two aggregate samples (mean>=15%idle,1.8 logical cores
+on12) and pressure1; source-check floor is not a GUI/H3 grant. This latest genuine
+full-host/memory gate rejects before action. No live Ahoi build handle to poll
+or restart merely because observation time passed. Next actual capacity window:
+same frozen guarded app/core/UI/worker compilation, development verification
+and canonical installation, then visible affected flows before focused native
+regressions. Existing archive9/protection6 retain first free installed-GUI work.
+Installed71 remains testable; no ETA/built candidate/current Master completion
+is claimed. Full original Master, all gates and Root/Crest/data ownership retained.
+
 ## Corrected tab-cache/native refresh: ten syntax checks GREEN — 2 October 2026
 
 Actual v2 syntax runner51553 is terminal1: runtime_store lacked the direct
