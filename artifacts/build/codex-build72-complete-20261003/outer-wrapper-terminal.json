@@ -1,0 +1,55 @@
+{
+  "runnerPid": 30725,
+  "sourceCommit": "b6d3237758e10e010cf1ae52cefb57b099b79abb",
+  "phase": "failed",
+  "jobs": 1,
+  "nice": 15,
+  "startedAt": "2026-10-03T11:10:15.519807+00:00",
+  "steps": [
+    {
+      "name": "fetch-frozen",
+      "exitCode": 0
+    },
+    {
+      "name": "freeze",
+      "exitCode": 0
+    },
+    {
+      "name": "overlay",
+      "exitCode": 0
+    },
+    {
+      "name": "build",
+      "exitCode": 0
+    }
+  ],
+  "built": false,
+  "installed": false,
+  "testsExecuted": false,
+  "capacity": [
+    {
+      "phase": "before-integration",
+      "idlePercent": 48.19,
+      "memoryPressure": 1,
+      "time": "2026-10-03T13:10:17.390526+02:00"
+    },
+    {
+      "phase": "before-build",
+      "idlePercent": 0.79,
+      "memoryPressure": 1,
+      "time": "2026-10-03T13:12:16.661645+02:00"
+    }
+  ],
+  "phasePid": 38403,
+  "canonicalSignerVerified": true,
+  "targets": [
+    "chrome",
+    "ahoi_developer_toolkit_unittests",
+    "ahoi_developer_toolkit_ui_unittests",
+    "ahoi_developer_style_compiler_browsertests",
+    "ahoi_sync_unittests"
+  ],
+  "failure": "[Errno 32] Broken pipe",
+  "finishedAt": "2026-10-03T13:04:31.133377+00:00",
+  "ownLockReleased": true
+}

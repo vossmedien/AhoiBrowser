@@ -15,13 +15,16 @@ architecture decision, test, or release gate.
 ## Current status
 
 The current pin is Chromium Mac Stable `154.0.8037.93` at exact commit
-`f89f3a4363808e117c592adedcf9947882ac3b79`. Development Build 71, source
-`6bf4c233c44d373924a5d815a85ecb8b7230f606`, is installed at
+`f89f3a4363808e117c592adedcf9947882ac3b79`. Development candidate 72, source
+`b6d3237758e10e010cf1ae52cefb57b099b79abb`, is installed at
 `/Applications/AhoiBrowser.app`; its guarded build, stable development signing,
-required native gates and atomic installation are verified. Genuine installed
-windowed HTTP/DOM navigation and native close now pass without keychain mocks;
-the scoped Safe Storage correction resolves the earlier loading finding for
-these inputs. Affected visible journeys and full product/release gates stay open.
+complete bundle verification and atomic installation are verified
+([evidence](artifacts/build/codex-build72-complete-20261003/README.md)).
+It adds tab-local cache control/native document and worker factory refresh plus
+reentrant native setting-intent preservation. Its affected visible journeys and
+focused native test execution are pending. Previous candidate71 retains its
+own genuine HTTP/DOM/native-close and regression evidence; full product/release
+gates stay open.
 Use [the desktop checkpoint](docs/ACTIVE_DESKTOP_CHECKPOINT.md) for the current
 finding, evidence and next action; historical candidates retain their own receipts.
 The active source delta is the

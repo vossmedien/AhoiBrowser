@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Coherent candidate72 installed; human input holds GUI acceptance — 3 October2026
+
+Exact candidate b6d3237758e10e010cf1ae52cefb57b099b79abb now installed under
+/Applications/AhoiBrowser.app, canonical installer exit0 at15:13 CEST.
+[Build/signature/provenance/installation proof and limits](../artifacts/build/codex-build72-complete-20261003/README.md).
+Guarded build is exit0, all5 targets linked, 534 runtime dylibs/238 framework
+resources verified, same stable development identity. Outer runner's terminal
+Broken pipe followed lost output transport; historical state retained separately,
+no repeated build and no false rewrite. Previous71 app retained by installer.
+
+Root confirmed resource handback14:56 CEST in its private reply: no own
+compiler/test/simulator, no new heavy round until Ahoi compile handback. Ahoi
+returned the compiler phase at15:07 and requested exclusive MacUI. Root released
+MacUI at15:08 until explicit Ahoi handback, with current user dictation preserved.
+Fresh15:13 physical HID idle0 and frontmost Cockpit: no Ahoi GUI/HID/app launch.
+The new app is available for the user's own testing. Private Root replies and
+native accepted coordination receipts under .work/host-cleanup-20261003/.
+
+Next free input with current capacity/ownership: prepared exact-source native
+tab-cache12 journey before required focused native regressions; remaining
+archive9/protection6 visible flows still open. Private installed-tab-cache.py
+requires all12 checks, at least2 exact-source launches, unchanged installed
+identity and clean owned teardown; NOT_RUN. Sync's five new cases likewise
+compiled/linked but NOT executed. No new real-peer/secret/extension/DoD claim.
+Original full Master, completed package evidence, explicit pauses and external
+release/device/key/rights boundaries remain intact.
+
 ## User-authorized resource shutdown and coordinator handback — 3 October2026
 
 The user asked to finish simulator/load shutdown in coordination with owners
