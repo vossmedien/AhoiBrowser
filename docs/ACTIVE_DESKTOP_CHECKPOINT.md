@@ -1,5 +1,23 @@
 # Active Desktop checkpoint
 
+## Renewed free-input UI slot deferred for memory — 3 October2026,16:22
+
+Root gave a fresh concrete7min grant16:21 after Ahoi's current151s idle report.
+Final immutable attempt2 preflight at16:22 found338s idle, no active recording,
+no compiler/Ahoi process, memory pressure2; terminal2 before ANY app/GUI/HID/test.
+Actual16:23 host sample:14GiB compressed, swap5.6/6.1GB used, later1.9GiB
+physical free. No simulator booted. Private normal-memory gate was not silently
+relaxed and no false native acceptance reported. This is an unexecuted visible
+journey, not product progress or a live test to poll.
+
+Current terminal state under .work/agent-queue/72-combined-20261003-run2/
+installed-tab-cache-b6d32377-20261003-attempt2/state.json. Entire unused UI slot
+explicitly returned to Root through accepted native turn/steer; no own e2e lock,
+GUI/test/browser process. Next genuinely changed capacity/input and fresh owner
+grant: new attempt of exact installed b6d32377 visible cache12 before native45.
+Original full Master, installed proof/rollback, all historical RED/NOT_RUN,
+paused goals/external prerequisites/data/Trader and ownership retained.
+
 ## Specific renewed GUI grant returned on active human input — 3 October2026
 
 SaaS explicitly finished and returned its ALEX-SWF-01 lease16:07; Root consumed
