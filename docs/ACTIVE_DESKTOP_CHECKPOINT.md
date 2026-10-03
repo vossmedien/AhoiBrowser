@@ -69,6 +69,11 @@ guard; gclient launches0/help (no version-number claim). Target native Clang
 executable SHA exactly b6f6f673... matches source pinned plan and --version runs0,
 24.0.0git/9fca3cf47d..., no compilation. Evidence target-tool-bootstrap.json.
 
+Current shared host reserve is now100,000,000,000bytes per explicit user update
+in the common Inhouse checkpoint, superseding old150/120GiB skill guidance.
+Check anticipated growth/concurrent writers; do not veto on obsolete thresholds.
+Project-specific native host/toolchain/source guards remain.
+
 Next: consume actual MBC/RootCockpit heavy handback and fresh aggregate target
 capacity; start guarded target73 with AHOI_JOBS=4, same original Goal/thread. Target
 valid signing identities0 remains owner account/team setup; no secret export,
