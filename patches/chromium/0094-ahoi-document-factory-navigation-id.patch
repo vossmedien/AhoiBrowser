@@ -1,0 +1,142 @@
+diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/browser/renderer_host/render_frame_host_impl.cc
+--- a/content/browser/renderer_host/render_frame_host_impl.cc
++++ b/content/browser/renderer_host/render_frame_host_impl.cc
+@@ -2068,6 +2068,7 @@
+       RenderFrameHostImpl& frame) {
+     SubresourceLoaderFactoriesConfig result;
+     result.origin_ = frame.GetLastCommittedOrigin();
++    result.navigation_id_ = frame.GetNavigationId();
+     result.isolation_info_ = frame.GetIsolationInfoForSubresources();
+     result.client_security_state_ = frame.BuildClientSecurityState();
+     if (frame.coep_reporter_) {
+@@ -2119,6 +2120,7 @@
+       NavigationRequest& navigation_request) {
+     SubresourceLoaderFactoriesConfig result;
+     result.origin_ = navigation_request.GetOriginToCommit().value();
++    result.navigation_id_ = navigation_request.GetNavigationId();
+     result.client_security_state_ =
+         navigation_request.BuildClientSecurityStateForCommittedDocument();
+     result.ukm_source_id_ = ukm::SourceIdObj::FromInt64(
+@@ -2257,6 +2259,8 @@
+ 
+   const ukm::SourceIdObj& ukm_source_id() const { return ukm_source_id_; }
+ 
++  int64_t navigation_id() const { return navigation_id_; }
++
+   const net::CookieSettingOverrides& cookie_setting_overrides() const {
+     return cookie_setting_overrides_;
+   }
+@@ -2279,6 +2283,7 @@
+   network::mojom::TrustTokenOperationPolicyVerdict
+       trust_token_redemption_policy_;
+   ukm::SourceIdObj ukm_source_id_;
++  int64_t navigation_id_ = 0;
+   net::CookieSettingOverrides cookie_setting_overrides_;
+   base::UnguessableToken network_restrictions_id_;
+ };
+@@ -3770,7 +3775,8 @@
+           subresource_loader_factories_config,
+           "RFHI::CreateNetworkServiceDefaultFactory"),
+       subresource_loader_factories_config.ukm_source_id(),
+-      std::move(default_factory_receiver));
++      std::move(default_factory_receiver),
++      subresource_loader_factories_config.navigation_id());
+ }
+ 
+ std::unique_ptr<blink::PendingURLLoaderFactoryBundle>
+@@ -8507,7 +8513,8 @@
+             subresource_loader_factories_config,
+             "RFHI::UpdateSubresourceLoaderFactories"),
+         subresource_loader_factories_config.ukm_source_id(),
+-        default_factory_remote.InitWithNewPipeAndPassReceiver());
++        default_factory_remote.InitWithNewPipeAndPassReceiver(),
++        subresource_loader_factories_config.navigation_id());
+   }
+ 
+   std::unique_ptr<blink::PendingURLLoaderFactoryBundle>
+@@ -10558,7 +10565,8 @@
+   bypass_redirect_checks = CreateNetworkServiceDefaultFactoryAndObserve(
+       std::move(factory_params),
+       subresource_loader_factories_config.ukm_source_id(),
+-      pending_default_factory.InitWithNewPipeAndPassReceiver());
++      pending_default_factory.InitWithNewPipeAndPassReceiver(),
++      subresource_loader_factories_config.navigation_id());
+ 
+   return std::make_unique<blink::PendingURLLoaderFactoryBundle>(
+       std::move(pending_default_factory),
+@@ -13255,7 +13263,8 @@
+                   subresource_loader_factories_config,
+                   "RFHI::CommitNavigation"),
+               subresource_loader_factories_config.ukm_source_id(),
+-              pending_default_factory.InitWithNewPipeAndPassReceiver());
++              pending_default_factory.InitWithNewPipeAndPassReceiver(),
++              subresource_loader_factories_config.navigation_id());
+       subresource_loader_factories->set_bypass_redirect_checks(
+           bypass_redirect_checks);
+     }
+@@ -13588,7 +13597,8 @@
+               *navigation_request),
+           "RFHI::FailedNavigation"),
+       ukm::kInvalidSourceIdObj,
+-      default_factory_remote.InitWithNewPipeAndPassReceiver());
++      default_factory_remote.InitWithNewPipeAndPassReceiver(),
++      navigation_request->GetNavigationId());
+   subresource_loader_factories =
+       std::make_unique<blink::PendingURLLoaderFactoryBundle>(
+           std::move(default_factory_remote),
+@@ -14514,9 +14524,11 @@
+     network::mojom::URLLoaderFactoryParamsPtr params,
+     ukm::SourceIdObj ukm_source_id,
+     mojo::PendingReceiver<network::mojom::URLLoaderFactory>
+-        default_factory_receiver) {
++        default_factory_receiver,
++    std::optional<int64_t> navigation_id) {
+   bool bypass_redirect_checks = CreateNetworkServiceDefaultFactoryInternal(
+-      std::move(params), ukm_source_id, std::move(default_factory_receiver));
++      std::move(params), ukm_source_id, std::move(default_factory_receiver),
++      navigation_id);
+ 
+   // Add a disconnect handler when Network Service is running
+   // out-of-process.
+@@ -14554,7 +14566,8 @@
+     network::mojom::URLLoaderFactoryParamsPtr params,
+     ukm::SourceIdObj ukm_source_id,
+     mojo::PendingReceiver<network::mojom::URLLoaderFactory>
+-        default_factory_receiver) {
++        default_factory_receiver,
++    std::optional<int64_t> navigation_id) {
+   CHECK(params->request_initiator_origin_lock.has_value());
+   const url::Origin request_initiator =
+       params->request_initiator_origin_lock.value();
+@@ -14572,7 +14585,7 @@
+       url_loader_factory::ContentClientParams(
+           GetBrowserContext(), this, GetProcess()->GetDeprecatedID(),
+           request_initiator, isolation_info, ukm_source_id,
+-          &bypass_redirect_checks),
++          &bypass_redirect_checks, navigation_id),
+       devtools_instrumentation::WillCreateURLLoaderFactoryParams::ForFrame(
+           this));
+   return bypass_redirect_checks;
+diff --git a/content/browser/renderer_host/render_frame_host_impl.h b/content/browser/renderer_host/render_frame_host_impl.h
+--- a/content/browser/renderer_host/render_frame_host_impl.h
++++ b/content/browser/renderer_host/render_frame_host_impl.h
+@@ -3856,7 +3856,8 @@
+       network::mojom::URLLoaderFactoryParamsPtr params,
+       ukm::SourceIdObj ukm_source_id,
+       mojo::PendingReceiver<network::mojom::URLLoaderFactory>
+-          default_factory_receiver);
++          default_factory_receiver,
++      std::optional<int64_t> navigation_id = std::nullopt);
+ 
+   // Asks an appropriate `NetworkService` to create a new URLLoaderFactory with
+   // the given `params` and binds the factory to the `default_factory_receiver`.
+@@ -3873,7 +3874,8 @@
+       network::mojom::URLLoaderFactoryParamsPtr params,
+       ukm::SourceIdObj ukm_source_id,
+       mojo::PendingReceiver<network::mojom::URLLoaderFactory>
+-          default_factory_receiver);
++          default_factory_receiver,
++      std::optional<int64_t> navigation_id = std::nullopt);
+ 
+   // Returns true if the ExecuteJavaScript() API can be used on this host.
+   // The checks do not apply to ExecuteJavaScriptInIsolatedWorld, nor to

@@ -1,0 +1,19 @@
+{
+  "result": {
+    "type": "object",
+    "value": [
+      {
+        "key": "session.restore_on_startup",
+        "expected": 1,
+        "setterSucceeded": true,
+        "value": 1
+      },
+      {
+        "key": "ahoi.session.startup_mode",
+        "expected": "continue",
+        "setterSucceeded": true,
+        "value": "continue"
+      }
+    ]
+  }
+}

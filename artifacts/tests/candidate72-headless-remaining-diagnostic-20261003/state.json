@@ -1,0 +1,64 @@
+{
+  "phase": "complete",
+  "sourceCommit": "b6d3237758e10e010cf1ae52cefb57b099b79abb",
+  "runnerPid": 53315,
+  "diagnosticOnly": true,
+  "visibleAcceptance": false,
+  "new0094TestExecution": false,
+  "newFixtureCorrectionTestExecution": false,
+  "reason": "Visible journey retained document-header RED; next visible attempt yielded to actual foreign Terminal focus. Master permits independent tests when visible flow cannot complete.",
+  "jobs": 1,
+  "retries": 0,
+  "manifestSha256": "25de04601f1cef5e5783de8a8498215a3996602b37b9f0e1f1ad690ce28bc16c",
+  "results": [
+    {
+      "binary": "ahoi_developer_toolkit_unittests",
+      "binarySha256": "9efff72735acb57759f4d2d92db0e798e486199be98bc5d3013ffabad18a9763",
+      "requiredCases": [
+        "DeveloperNetworkFactoryProxyTest.TabCacheOffOnCannotReapproveAlreadyDispatchedResponse",
+        "DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative",
+        "DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection",
+        "DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval",
+        "DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules"
+      ],
+      "exitCode": 0,
+      "seconds": 4.82,
+      "missingOrNonSuccess": [],
+      "diagnosticPass": true
+    },
+    {
+      "binary": "ahoi_sync_unittests",
+      "binarySha256": "5ddb9408bc5a7323fa493347d171d8e0ff39c6eaaca48796636d5a6d9b9487ca",
+      "requiredCases": [
+        "ProfileSyncServiceTest.ReentrantDifferentSettingRemainsLocalAndSkipsLaterRemoteOverwrite",
+        "ProfileSyncServiceTest.ReentrantSameSettingIsNotMistakenForRemoteEcho",
+        "ProfileSyncServiceTest.NormalizedNumericRemoteValueDoesNotAuthorAnEcho",
+        "ProfileSyncServiceTest.ReentrantLocalValueBounceRetainsItsLatestIntent",
+        "ProfileSyncServiceTest.ReentrantSyncRevocationDoesNotRestoreOldEchoScope"
+      ],
+      "exitCode": 0,
+      "seconds": 7.49,
+      "missingOrNonSuccess": [],
+      "diagnosticPass": true
+    }
+  ],
+  "capacity": {
+    "at": "2026-10-03T18:34:07.416606+00:00",
+    "idlePercent": 82.69,
+    "memoryAvailablePercent": 66
+  },
+  "binarySha256": "5ddb9408bc5a7323fa493347d171d8e0ff39c6eaaca48796636d5a6d9b9487ca",
+  "command": [
+    "/usr/bin/nice",
+    "-n",
+    "15",
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests",
+    "--gtest_filter=ProfileSyncServiceTest.ReentrantDifferentSettingRemainsLocalAndSkipsLaterRemoteOverwrite:ProfileSyncServiceTest.ReentrantSameSettingIsNotMistakenForRemoteEcho:ProfileSyncServiceTest.NormalizedNumericRemoteValueDoesNotAuthorAnEcho:ProfileSyncServiceTest.ReentrantLocalValueBounceRetainsItsLatestIntent:ProfileSyncServiceTest.ReentrantSyncRevocationDoesNotRestoreOldEchoScope",
+    "--test-launcher-jobs=1",
+    "--test-launcher-retry-limit=0",
+    "--test-launcher-summary-output=/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/artifacts/tests/candidate72-headless-remaining-diagnostic-20261003/ahoi_sync_unittests-summary.json"
+  ],
+  "testPid": 53362,
+  "diagnosticPass": true,
+  "ownLockReleased": true
+}

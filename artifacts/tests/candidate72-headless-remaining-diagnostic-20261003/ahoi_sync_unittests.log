@@ -1,0 +1,36 @@
+objc[53362]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1409eca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x125908a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[53362]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x1201c0188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x1063e38a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[53369]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x142ed8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x127df4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[53369]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x122e00188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_sync_unittests (0x108aa38a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = ProfileSyncServiceTest.ReentrantDifferentSettingRemainsLocalAndSkipsLaterRemoteOverwrite:ProfileSyncServiceTest.ReentrantSameSettingIsNotMistakenForRemoteEcho:ProfileSyncServiceTest.NormalizedNumericRemoteValueDoesNotAuthorAnEcho:ProfileSyncServiceTest.ReentrantLocalValueBounceRetainsItsLatestIntent:ProfileSyncServiceTest.ReentrantSyncRevocationDoesNotRestoreOldEchoScope
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from ProfileSyncServiceTest
+[ RUN      ] ProfileSyncServiceTest.ReentrantDifferentSettingRemainsLocalAndSkipsLaterRemoteOverwrite
+[       OK ] ProfileSyncServiceTest.ReentrantDifferentSettingRemainsLocalAndSkipsLaterRemoteOverwrite (372 ms)
+[ RUN      ] ProfileSyncServiceTest.ReentrantSameSettingIsNotMistakenForRemoteEcho
+[       OK ] ProfileSyncServiceTest.ReentrantSameSettingIsNotMistakenForRemoteEcho (313 ms)
+[ RUN      ] ProfileSyncServiceTest.NormalizedNumericRemoteValueDoesNotAuthorAnEcho
+[       OK ] ProfileSyncServiceTest.NormalizedNumericRemoteValueDoesNotAuthorAnEcho (321 ms)
+[ RUN      ] ProfileSyncServiceTest.ReentrantLocalValueBounceRetainsItsLatestIntent
+[       OK ] ProfileSyncServiceTest.ReentrantLocalValueBounceRetainsItsLatestIntent (314 ms)
+[ RUN      ] ProfileSyncServiceTest.ReentrantSyncRevocationDoesNotRestoreOldEchoScope
+[       OK ] ProfileSyncServiceTest.ReentrantSyncRevocationDoesNotRestoreOldEchoScope (319 ms)
+[----------] 5 tests from ProfileSyncServiceTest (1681 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (1681 ms total)
+[  PASSED  ] 5 tests.
+[1/5] ProfileSyncServiceTest.ReentrantDifferentSettingRemainsLocalAndSkipsLaterRemoteOverwrite (372 ms)
+[2/5] ProfileSyncServiceTest.ReentrantSameSettingIsNotMistakenForRemoteEcho (313 ms)
+[3/5] ProfileSyncServiceTest.NormalizedNumericRemoteValueDoesNotAuthorAnEcho (321 ms)
+[4/5] ProfileSyncServiceTest.ReentrantLocalValueBounceRetainsItsLatestIntent (314 ms)
+[5/5] ProfileSyncServiceTest.ReentrantSyncRevocationDoesNotRestoreOldEchoScope (319 ms)
+SUCCESS: all tests passed.
+Tests took 3 seconds.

@@ -1,5 +1,42 @@
 # Active Desktop checkpoint
 
+## Actual installed UI tests and document-header correction — 3 October2026,20:29
+
+The same native full Master is ACTIVE by explicit user/Root continuation. The
+historical readiness-loop entry below no longer describes current work. User
+requests autonomous testing of all implemented features. Do not impose the old
+private90s idle or pressure1 threshold as a product gate: current owner handback,
+active recording/input protection and aggregate capacity remain authoritative.
+
+[Actual partial native UI evidence and durable correction](../artifacts/tests/document-factory-navigation-id-20261003/README.md).
+Installed72/b6d32377 is unchanged. Native split creation, HID draft and warmcache1/1
+A/B work; both document header directions fail, while existing worker headers/cache
+pass. First run stopped at hidden address bar; harness reveal corrected. Subsequent
+run yielded to actual Terminal focus/HID0; all owned processes/locks cleaned and
+Root's entire15minGUI slot explicitly returned. Cache12 is NOT complete or green.
+
+Patch0094 corrects the native pending-navigation ID passed to document factories,
+without weakening origin/frame/generation/native ownership guards. Two meaningful
+browser regressions added; patch application/shell/diff checks pass. NOT compiled,
+built, installed or runtime-accepted. Shared checkout/frozen b6/previous rollback
+remain unchanged. Crest106/110 reviewed; separate H3 acceptance remains pending.
+
+Next: after Root1256 GUI section, fresh free-input/owner window completes cache12
+on installed72; retain the known document-header RED. Source-validate0094 and review
+one coherent correction package before any necessary bounded guarded incremental
+build. Bind new visible acceptance and focused regressions to that exact candidate;
+then remaining archive9/protection6 and all feature/DoD acceptance. Do not repeat
+successful unchanged build/install/conformance packages or any readiness loop.
+No Ahoi GUI lease, test, browser or compiler is currently held/running.
+
+Independent headless diagnosis after actual GUI focus loss (Master technical-limit
+exception): core35 initially29 PASS/1 fixture CRASH/5 SKIPPED; remaining-only core5
+and Sync5 all PASS. Thus39/40 distinct native cases pass. Fixture crash traced to
+second BindNewPipeAndPassReceiver on a still-bound test remote; reset added before
+restoration request. Two edited test units pinned-Clang syntax2/2 GREEN. Corrected
+fixture binary and0094 still require coherent build/visible/native acceptance;
+existing72 not rewritten or overall accepted. All own groups/locks released.
+
 ## Repeated unavailable GUI acceptance: readiness loop stopped — 3 October2026
 
 Three consecutive functional no-progress attempts retained:16:11 active HID0,

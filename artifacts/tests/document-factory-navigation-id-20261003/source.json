@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-03T18:31:02.423797+00:00",
+  "sourceSha256": {
+    "patches/chromium/0094-ahoi-document-factory-navigation-id.patch": "7a6379be477a146716f9ba1df2dad13b0c8d9ddfbae8dbfd75b6c19bde45eeea",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_worker_browsertest.cc": "2e2f5fe5738b62abce7553974506319b1c2e690fe25b265cd7d820468df03167",
+    "tools/desktop_e2e/tab-cache-journey.sh": "1a6af25e39369e934fc9b267dd3cd4195fa4c4071b8e2df496c87a9ed38a5a81",
+    "tools/desktop_e2e/split_journey_lib.sh": "6a48241ba792e39da734d7aa3b70efe90d5979eca58438e86f8928b907c444b9",
+    "overlay/chromium/src/ahoi/browser/developer_toolkit/developer_network_factory_revocation_unittest.cc": "4d6b62f163b667755c0cbdb64c2aa6f094c16cb875ab7dde8bf0d50bc116f1fd"
+  },
+  "patchAppliesToIntegratedB6": true,
+  "sharedCheckoutChanged": false,
+  "compiled": false,
+  "installedCorrection": false,
+  "nativeRegressionTestsExecuted": 0,
+  "newTestSyntaxChecksPassed": 2,
+  "nativeRFHPatchCompilerCheck": false
+}

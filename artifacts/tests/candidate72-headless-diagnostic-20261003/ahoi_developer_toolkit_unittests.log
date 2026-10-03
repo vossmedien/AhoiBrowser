@@ -1,0 +1,218 @@
+objc[53144]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x136a44a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11b960a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[53144]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x116218188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x1027ad1a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+IMPORTANT DEBUGGING NOTE: batches of tests are run inside their
+own process. For debugging a test inside a debugger, use the
+--gtest_filter=<your_test_name> flag along with
+--single-process-tests.
+Using sharding settings from environment. This is shard 0/1
+Using 1 parallel jobs.
+objc[53151]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1371b8a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11c0d4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[53151]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x11698c188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x102c111a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor:DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule:DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders:DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults:DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl:DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride:DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock:DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop:DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory:DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest
+[ RUN      ] DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor (367 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule (264 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders (240 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults (217 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl (289 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride (250 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock (224 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop (215 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory (242 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[53151:4084293:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState (248 ms)
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest (2716 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (2716 ms total)
+[  PASSED  ] 10 tests.
+[1/35] DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor (367 ms)
+[2/35] DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule (264 ms)
+[3/35] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders (240 ms)
+[4/35] DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults (217 ms)
+[5/35] DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl (289 ms)
+[6/35] DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride (250 ms)
+[7/35] DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock (224 ms)
+[8/35] DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop (215 ms)
+[9/35] DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory (242 ms)
+[10/35] DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState (248 ms)
+objc[53175]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x134b7ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x119a98a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[53175]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x114350188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x1005091a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval:DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument:DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections:DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader:DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext:DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic:DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument:DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect:DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority:DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest
+[ RUN      ] DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval (247 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument (215 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections (250 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader (239 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext (300 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic (249 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument (358 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect (241 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority (208 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce
+[53175:4084582:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce (239 ms)
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest (2571 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (2571 ms total)
+[  PASSED  ] 10 tests.
+[11/35] DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval (247 ms)
+[12/35] DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument (215 ms)
+[13/35] DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections (250 ms)
+[14/35] DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader (239 ms)
+[15/35] DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext (300 ms)
+[16/35] DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic (249 ms)
+[17/35] DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument (358 ms)
+[18/35] DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect (241 ms)
+[19/35] DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority (208 ms)
+[20/35] DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce (239 ms)
+objc[53181]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x13774ca50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11c668a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[53181]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x116f20188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x1031f91a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests:DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections:DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules:DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution:DeveloperNetworkFactoryProxyTest.TabCachePolicyRefreshPreservesCurrentDocumentHeadersWithoutNavigation:DeveloperNetworkFactoryProxyTest.TabCacheOffOnCannotReapproveAlreadyDispatchedResponse:DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative:DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection:DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval:DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from DeveloperNetworkFactoryProxyTest
+[ RUN      ] DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests
+[53181:4084746:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests (316 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections
+[53181:4084746:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections (251 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules
+[53181:4084746:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules (256 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution
+[53181:4084746:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution (247 ms)
+[ RUN      ] DeveloperNetworkFactoryProxyTest.TabCachePolicyRefreshPreservesCurrentDocumentHeadersWithoutNavigation
+[53181:4084746:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[53181:4084746:FATAL:mojo/public/cpp/bindings/remote.h:252] DCHECK failed: !is_bound(). Remote for network.mojom.URLLoader is already bound
+0   libbase.dylib                       0x0000000103f0b7a8 base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   libbase.dylib                       0x0000000103eed520 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   libbase.dylib                       0x0000000103da07ec logging::LogMessage::Flush() + 172
+3   libbase.dylib                       0x0000000103da0690 logging::LogMessage::~LogMessage() + 36
+4   libbase.dylib                       0x0000000103d7f570 logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+5   libbase.dylib                       0x0000000103d7ebbc logging::CheckError::~CheckError() + 44
+6   libbase.dylib                       0x0000000103d7ec1c logging::CheckError::~CheckError() + 12
+7   ahoi_developer_toolkit_unittests    0x0000000102f9827c mojo::Remote<network::mojom::URLLoader>::BindNewPipeAndPassReceiver() + 160
+8   ahoi_developer_toolkit_unittests    0x0000000102f9816c ahoi::test::DeveloperNetworkFactoryProxyTest::Load(network::SharedURLLoaderFactory&, ahoi::test::ClientSink&, network::ResourceRequest const&) + 48
+9   ahoi_developer_toolkit_unittests    0x0000000102f91b60 ahoi::test::DeveloperNetworkFactoryProxyTest_TabCachePolicyRefreshPreservesCurrentDocumentHeadersWithoutNavigation_Test::TestBody() + 3476
+10  ahoi_developer_toolkit_unittests    0x00000001030b44d0 testing::Test::Run() + 252
+11  ahoi_developer_toolkit_unittests    0x00000001030b5060 testing::TestInfo::Run() + 392
+12  ahoi_developer_toolkit_unittests    0x00000001030b5ebc testing::TestSuite::Run() + 944
+13  ahoi_developer_toolkit_unittests    0x00000001030c4f00 testing::internal::UnitTestImpl::RunAllTests() + 1556
+14  ahoi_developer_toolkit_unittests    0x00000001030c4854 testing::UnitTest::Run() + 352
+15  ahoi_developer_toolkit_unittests    0x0000000103132f0c base::TestSuite::Run() + 244
+16  ahoi_developer_toolkit_unittests    0x000000010314d69c base::OnceCallback<int ()>::Run() && + 112
+17  ahoi_developer_toolkit_unittests    0x000000010314ca50 base::(anonymous namespace)::LaunchUnitTestsInternal(base::OnceCallback<int ()>, unsigned long, int, unsigned long, bool, base::RepeatingCallback<void ()>, base::OnceCallback<void ()>) + 588
+18  ahoi_developer_toolkit_unittests    0x000000010314c7e0 base::LaunchUnitTests(int, char**, base::OnceCallback<int ()>, unsigned long) + 220
+19  ahoi_developer_toolkit_unittests    0x00000001030daa1c main + 192
+20  dyld                                0x0000000187a2fe80 start + 6688
+
+[1003/203311.145840:ERROR:base/test/launcher/test_launcher.cc:1318] no test result for DeveloperNetworkFactoryProxyTest.TabCacheOffOnCannotReapproveAlreadyDispatchedResponse
+[1003/203311.146684:ERROR:base/test/launcher/test_launcher.cc:1318] no test result for DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative
+[1003/203311.146706:ERROR:base/test/launcher/test_launcher.cc:1318] no test result for DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection
+[1003/203311.146722:ERROR:base/test/launcher/test_launcher.cc:1318] no test result for DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval
+[1003/203311.146737:ERROR:base/test/launcher/test_launcher.cc:1318] no test result for DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules
+[21/35] DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests (316 ms)
+[22/35] DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections (251 ms)
+[23/35] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules (256 ms)
+[24/35] DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution (247 ms)
+[25/35] DeveloperNetworkFactoryProxyTest.TabCachePolicyRefreshPreservesCurrentDocumentHeadersWithoutNavigation (CRASHED)
+[26/35] DeveloperNetworkFactoryProxyTest.TabCacheOffOnCannotReapproveAlreadyDispatchedResponse (SKIPPED)
+[27/35] DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative (SKIPPED)
+[28/35] DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection (SKIPPED)
+[29/35] DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval (SKIPPED)
+[30/35] DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules (SKIPPED)
+objc[53182]: Class ANGLESwapCGLLayer is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libblink_modules.dylib (0x1373e0a50) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libgl_init.dylib (0x11c2fca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[53182]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/libbrowser_ui_views.dylib (0x116bb4188) and /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/ahoi_developer_toolkit_unittests (0x1031951a0). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+Note: Google Test filter = DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory:DeveloperTabCacheTest.SameOriginPeerAndSavedEditorStayUnchanged:DeveloperTabCacheTest.NoOriginProfileNeededAndForeignPrefsRejected:DeveloperTabCacheTest.MasterDisableAndResetRetireOldGeneration:DeveloperTabCacheTest.TabReplacementDropsChoiceAndPersistentSiteStillWins
+[==========] Running 5 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from DeveloperNetworkFactoryProxyTest
+[ RUN      ] DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory (254 ms)
+[----------] 1 test from DeveloperNetworkFactoryProxyTest (270 ms total)
+
+[----------] 4 tests from DeveloperTabCacheTest
+[ RUN      ] DeveloperTabCacheTest.SameOriginPeerAndSavedEditorStayUnchanged
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperTabCacheTest.SameOriginPeerAndSavedEditorStayUnchanged (159 ms)
+[ RUN      ] DeveloperTabCacheTest.NoOriginProfileNeededAndForeignPrefsRejected
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperTabCacheTest.NoOriginProfileNeededAndForeignPrefsRejected (173 ms)
+[ RUN      ] DeveloperTabCacheTest.MasterDisableAndResetRetireOldGeneration
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperTabCacheTest.MasterDisableAndResetRetireOldGeneration (166 ms)
+[ RUN      ] DeveloperTabCacheTest.TabReplacementDropsChoiceAndPersistentSiteStillWins
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[53182:4084853:WARNING:content/browser/renderer_host/render_frame_host_impl.cc:4034] Creating unbound remote associated interface provider
+[       OK ] DeveloperTabCacheTest.TabReplacementDropsChoiceAndPersistentSiteStillWins (172 ms)
+[----------] 4 tests from DeveloperTabCacheTest (676 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 2 test suites ran. (946 ms total)
+[  PASSED  ] 5 tests.
+[31/35] DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory (254 ms)
+[32/35] DeveloperTabCacheTest.SameOriginPeerAndSavedEditorStayUnchanged (159 ms)
+[33/35] DeveloperTabCacheTest.NoOriginProfileNeededAndForeignPrefsRejected (173 ms)
+[34/35] DeveloperTabCacheTest.MasterDisableAndResetRetireOldGeneration (166 ms)
+[35/35] DeveloperTabCacheTest.TabReplacementDropsChoiceAndPersistentSiteStillWins (172 ms)
+1 test crashed:
+    DeveloperNetworkFactoryProxyTest.TabCachePolicyRefreshPreservesCurrentDocumentHeadersWithoutNavigation (../../ahoi/browser/developer_toolkit/developer_network_factory_revocation_unittest.cc:9)
+5 tests not run:
+    DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative (../../ahoi/browser/developer_toolkit/developer_network_factory_revocation_unittest.cc:65)
+    DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval (../../ahoi/browser/developer_toolkit/developer_network_factory_revocation_unittest.cc:113)
+    DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules (../../ahoi/browser/developer_toolkit/developer_network_factory_revocation_unittest.cc:129)
+    DeveloperNetworkFactoryProxyTest.TabCacheOffOnCannotReapproveAlreadyDispatchedResponse (../../ahoi/browser/developer_toolkit/developer_network_factory_revocation_unittest.cc:45)
+    DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection (../../ahoi/browser/developer_toolkit/developer_network_factory_revocation_unittest.cc:84)
+Tests took 14 seconds.

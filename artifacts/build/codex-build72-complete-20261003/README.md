@@ -16,7 +16,10 @@ The canonical development installer independently verified candidate, same-volum
 stage and installed bundle; exit0 at15:13 CEST. Previous app retained for rollback.
 [Immutable installation receipt](../../install/installed-ahoi-dev-b6d32377-20261003T131326Z.json).
 
-Visible acceptance and focused native test execution remain pending. Root released
-MacUI for the requested window, but fresh15:13 HID idle0/current Cockpit user input
-prevents automatic GUI activity. No runtime or full Master/release acceptance is
-inferred from compilation, signature or installation.
+Visible acceptance remains incomplete. Actual synthetic native AX/HID journeys
+reproduced missing document headers while worker headers passed; later run yielded
+to foreign Terminal focus. Independent headless diagnostics passed39 of40 distinct
+cases, with a source-corrected test-fixture crash still needing rebuild/rerun.
+[Current actual findings and limits](../../tests/document-factory-navigation-id-20261003/README.md).
+No whole Master/release acceptance is inferred from build/sign/install or partial
+tests; candidate72 and previous rollback remain unchanged.

@@ -5,6 +5,7 @@ set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd)
 AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9396; SITE_PORT=8806
 export AHOI_E2E_SITE_FIXTURE=tab-cache
+export AHOI_E2E_NATIVE_STARTUP_IN_PLACE=1
 . "$S/split_journey_lib.sh"
 
 # Seed only this fresh, not-yet-launched profile. Startup preferences are set
@@ -72,8 +73,14 @@ print(next(iter(matches)))
 PY
 }
 open_toolkit() {
-  local name
-  name=$(find_button toolkit-entry 'Entwicklerwerkzeuge' 'Developer toolkit' 'Entwickler-Helfer öffnen') || fail_setup "native Toolkit entry missing or ambiguous"
+  local name reveal
+  if ! name=$(find_button toolkit-entry 'Entwicklerwerkzeuge' 'Developer toolkit' 'Entwickler-Helfer öffnen'); then
+    reveal=$(find_button toolbar-reveal 'Adressleiste einblenden' 'Show address bar') || fail_setup "native Toolkit entry missing or ambiguous"
+    activate_owned
+    $AX press $PID "$reveal" >> "$OUT/steps.txt" || fail_setup "native address bar did not open"
+    sleep 1
+    name=$(find_button toolkit-entry-visible 'Entwicklerwerkzeuge' 'Developer toolkit' 'Entwickler-Helfer öffnen') || fail_setup "visible native Toolkit entry missing or ambiguous"
+  fi
   activate_owned
   $AX press $PID "$name" >> "$OUT/steps.txt" || fail_setup "Toolkit did not open"
   waitax 'Cache bis zum Schließen dieses Tabs umgehen' 5 || fail_setup "candidate lacks native tab-cache action"
@@ -116,7 +123,7 @@ evaluate a.html 'window.cacheWorker=new Worker("/worker.js");true' worker-create
 worker_pair warm-worker
 check existingWorkerUsesNativeWarmCache 'expect_pair warm-worker 1 1'
 activate_owned
-$AX hidclick $PID 'AXTextField:Cache-Test-Entwurf-A' >> "$OUT/steps.txt" || fail_setup "visible form control missing"
+$AX hidclick $PID 'Cache-Test-Entwurf-A' >> "$OUT/steps.txt" || fail_setup "visible form control missing"
 type_in keep-this-draft
 evaluate a.html 'window.onbeforeunload=e=>{e.preventDefault();e.returnValue="";};document.getElementById("f").value' draft-installed
 python3 - "$OUT/draft-installed.json" <<'PY'

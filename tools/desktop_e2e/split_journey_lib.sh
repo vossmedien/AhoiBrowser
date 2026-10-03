@@ -110,6 +110,8 @@ OWNED_FOCUS_ACQUIRED=false
 activate_owned() {
   if [ "${AHOI_E2E_YIELD_ON_FOCUS_LOSS:-0}" = 1 ] && [ "$OWNED_FOCUS_ACQUIRED" = true ]; then
     if ! "$AX" focused "$PID" | head -1 | grep -q " pid=$PID target=$PID$"; then
+      "$AX" focused "$PID" > "$OUT/focus-at-yield.txt"
+      idle_seconds > "$OUT/hid-idle-at-yield.txt"
       echo 'owner focus returned elsewhere; yielding without activation or HID' >> "$OUT/steps.txt"
       echo '{"cancelled":"owner focus returned elsewhere","pass":false}' > "$OUT/verdict.json"
       # Close only this journey's fixture target, without keyboard/focus actions.
@@ -153,9 +155,11 @@ sample = dict(at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
 expected = os.environ.get('AHOI_E2E_EXPECTED_SOURCE_COMMIT')
 if not source or (expected and expected != source) or (previous and previous['source'] != source):
     sample['refusal'] = 'installed candidate changed or lacks source metadata'
-elif sample['browserRunning'] or sample['compilerRunning']:
+elif (sample['browserRunning'] or (sample['compilerRunning']
+      and os.environ.get('AHOI_E2E_ALLOW_FOREIGN_BUILD') != '1')):
     sample['refusal'] = 'another browser/build owns the launch boundary'
-elif os.environ.get('AHOI_E2E_YIELD_ON_FOCUS_LOSS') == '1' and idle < 2:
+elif (os.environ.get('AHOI_E2E_YIELD_ON_FOCUS_LOSS') == '1' and idle < 2
+      and not (previous is None and os.environ.get('AHOI_E2E_USER_AUTHORIZED_START') == '1')):
     # Own Cmd-Q is followed by a two-second settle in both journeys. Newer
     # input must yield; never reset the focus guard and reclaim the desktop.
     sample['refusal'] = 'input returned before launch'
@@ -186,7 +190,7 @@ quit() { key 12 cmd; for i in $(seq 1 20); do kill -0 $PID 2>/dev/null || return
 # Close the temporary Settings tab before taking any tab/window baseline.
 prefs_continue() {
   python3 - "$S/cdp.mjs" "$PORT" "$OUT/native-startup-prefs.json" <<'PY'
-import json, subprocess, sys, time, urllib.request
+import json, os, subprocess, sys, time, urllib.request
 cdp, port, output = sys.argv[1:]
 def targets():
     with urllib.request.urlopen(f'http://127.0.0.1:{port}/json', timeout=2) as response:
@@ -198,8 +202,14 @@ def call(target, method, params):
     if result.returncode or 'error' in data or 'exceptionDetails' in data:
         raise RuntimeError(f'{method} failed: {data}')
     return data
-seed = next(t['id'] for t in targets() if t.get('type') == 'page')
-settings = call(seed, 'Target.createTarget', {'url': 'chrome://settings/ahoi'})['targetId']
+seed_target = next(t for t in targets() if t.get('type') == 'page')
+seed = seed_target['id']
+in_place = os.environ.get('AHOI_E2E_NATIVE_STARTUP_IN_PLACE') == '1'
+if in_place:
+    settings = seed
+    call(seed, 'Page.navigate', {'url': 'chrome://settings/ahoi'})
+else:
+    settings = call(seed, 'Target.createTarget', {'url': 'chrome://settings/ahoi'})['targetId']
 evidence = {}
 try:
     deadline = time.monotonic() + 15
@@ -233,7 +243,10 @@ finally:
     with open(output, 'w') as file:
         json.dump(evidence, file, indent=2)
         file.write('\n')
-    call(seed, 'Target.closeTarget', {'targetId': settings})
+    if in_place:
+        call(seed, 'Page.navigate', {'url': seed_target['url']})
+    else:
+        call(seed, 'Target.closeTarget', {'targetId': settings})
 PY
   [ "$?" = 0 ] || fail_setup "trusted startup preferences did not confirm"
 }

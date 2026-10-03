@@ -89,3 +89,4 @@
 0091-ahoi-scoped-login-keychain-fallback.patch
 0092-ahoi-tab-local-cache-control.patch
 0093-ahoi-native-document-factory-refresh.patch
+0094-ahoi-document-factory-navigation-id.patch

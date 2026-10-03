@@ -1,0 +1,6 @@
+{
+ "warmCacheSharedBySameOriginPeer": false,
+ "existingWorkerUsesNativeWarmCache": true,
+ "setupFailed": "native Toolkit entry missing or ambiguous",
+ "pass": false
+}

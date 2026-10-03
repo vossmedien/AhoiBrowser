@@ -122,10 +122,43 @@ class DeveloperNetworkWorkerBrowserTest : public InProcessBrowserTest {
     )JS").ExtractString();
   }
 
+  std::string RunDocumentFetch() {
+    auto* contents = browser()->tab_strip_model()->GetActiveWebContents();
+    return content::EvalJs(contents, R"JS(
+      (async () => {
+        const first = await fetch('/worker-cache');
+        const header = first.headers.get('X-Ahoi-Resp');
+        const a = await first.text();
+        const second = await fetch('/worker-cache');
+        return a + ';' + await second.text() + ';' + header;
+      })();
+    )JS").ExtractString();
+  }
+
   std::atomic<int> own_requests_ = 0;
   std::atomic<int> foreign_requests_ = 0;
   net::EmbeddedTestServer foreign_;
 };
+
+IN_PROC_BROWSER_TEST_F(DeveloperNetworkWorkerBrowserTest,
+                       DocumentFactoryUsesTheNavigationBeingCommitted) {
+  Configure(true);
+  EXPECT_EQ("1|configured;2|configured;present", RunDocumentFetch());
+  EXPECT_EQ(2, own_requests_);
+  // A later same-origin document must receive its own factory ownership,
+  // rather than reuse the previous document's navigation identity.
+  ASSERT_TRUE(ui_test_utils::NavigateToURL(
+      browser(), embedded_test_server()->GetURL("/owner")));
+  EXPECT_EQ("3|configured;4|configured;present", RunDocumentFetch());
+  EXPECT_EQ(4, own_requests_);
+}
+
+IN_PROC_BROWSER_TEST_F(DeveloperNetworkWorkerBrowserTest,
+                       DisabledToolkitLeavesNativeDocumentDefaults) {
+  Configure(false);
+  EXPECT_EQ("1|;1|;null", RunDocumentFetch());
+  EXPECT_EQ(1, own_requests_);
+}
 
 IN_PROC_BROWSER_TEST_F(DeveloperNetworkWorkerBrowserTest,
                        TabCacheRefreshSurvivesCancelledReloadAndKeepsWorker) {

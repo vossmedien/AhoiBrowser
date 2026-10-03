@@ -1,0 +1,45 @@
+{
+  "runnerPid": 57863,
+  "phase": "syntax-complete",
+  "sourceCommit": "cf6b2c8a+owned-document-factory-tests-delta",
+  "planSha256": "abd91366516254a8928f5c776c44b54f5274216a15c392497dd60746c42b7891",
+  "jobs": 1,
+  "results": [
+    {
+      "name": "developer_network_factory_revocation_unittest.cc",
+      "sourceSha256": "4d6b62f163b667755c0cbdb64c2aa6f094c16cb875ab7dde8bf0d50bc116f1fd",
+      "exitCode": 0,
+      "seconds": 4.39,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "developer_network_worker_browsertest.cc",
+      "sourceSha256": "2e2f5fe5738b62abce7553974506319b1c2e690fe25b265cd7d820468df03167",
+      "exitCode": 0,
+      "seconds": 6.57,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "capacity": [
+    {
+      "name": "developer_network_factory_revocation_unittest.cc",
+      "idlePercent": 69.39,
+      "memoryPressure": 1,
+      "time": "2026-10-03T20:35:31.578953+02:00"
+    },
+    {
+      "name": "developer_network_worker_browsertest.cc",
+      "idlePercent": 64.61,
+      "memoryPressure": 1,
+      "time": "2026-10-03T20:35:37.488565+02:00"
+    }
+  ],
+  "testsExecuted": 0,
+  "compiledBinary": false,
+  "checkoutChanged": false,
+  "installedChanged": false,
+  "current": "developer_network_worker_browsertest.cc",
+  "compilerPid": 58007,
+  "passed": true,
+  "ownLockReleased": true
+}

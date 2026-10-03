@@ -1,5 +1,18 @@
 # Active sync coordination
 
+## Settings delta built and installed; execution still open — 3 October2026
+
+Coherent b6d32377 includes a431d966. Guarded native build/sign/installation PASS;
+the Sync test binary linked. Outer reporting Broken pipe is historical transport
+failure and did not require a repeat build. See current Desktop checkpoint and
+build72 receipt. The five reentrant-settings regressions subsequently executed headlessly on the
+exact b6d32377 binary:5/5 SUCCESS, jobs1/retries0; native receipt under
+artifacts/tests/candidate72-headless-remaining-diagnostic-20261003/. This is an
+independent diagnostic run after actual GUI focus loss, not broader real-device
+settings acceptance. Current partial desktop
+cache/header UI finding is documented separately. Original full Master ACTIVE,
+real-device historical scope, ownership and external prerequisites retained.
+
 ## Settings source syntax complete; coherent build underway — 3 October 2026
 
 The remaining profile_sync_service_unittest.cc syntax check actually passed

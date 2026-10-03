@@ -2095,3 +2095,14 @@ deterministic composition.
 These corrections are covered by the same compile, visible runtime, focused
 test, and overlay-composition gates described by the owning feature sections
 above.
+
+## `0094-ahoi-document-factory-navigation-id.patch`
+
+An actual installed72 native UI test found configured document headers absent,
+while the same-origin worker headers passed. Document factories created before
+commit had omitted the existing ContentClientParams navigation ID, causing the
+Ahoi proxy to bind the previous RFH navigation. Carry matching pending/committed
+configuration IDs through private factory helpers, including factory refresh.
+All existing origin/frame/generation/navigation guards remain. Two document browser
+regressions added. Source application check only; not built or runtime accepted.
+Evidence: `artifacts/tests/document-factory-navigation-id-20261003/README.md`.

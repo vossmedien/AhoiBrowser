@@ -30,6 +30,10 @@ TEST_F(DeveloperNetworkFactoryProxyTest,
   environment_.RunUntilIdle();
   EXPECT_EQ(net::OK, client.completed);
 
+  // Completion does not unbind the fixture's Mojo remote. Release the first
+  // request before creating the separate request for the restored policy.
+  loader_.reset();
+  environment_.RunUntilIdle();
   ASSERT_TRUE(helper_->SetCacheDisabledForCurrentTab(false));
   factory = Build();
   ClientSink restored;
