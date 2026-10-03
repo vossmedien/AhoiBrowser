@@ -1,0 +1,55 @@
+{
+  "runnerPid": 11152,
+  "sourceCommit": "de4e8cf30b903106136b3d0b45125401470e741c",
+  "phase": "build",
+  "jobs": 1,
+  "nice": 15,
+  "built": false,
+  "installed": false,
+  "testsExecuted": false,
+  "steps": [
+    {
+      "name": "overlay",
+      "exitCode": 0,
+      "previousAttempt": true
+    }
+  ],
+  "capacity": [
+    {
+      "phase": "before-resumed-build",
+      "cpuIdleSamples": [
+        65.49,
+        64.16
+      ],
+      "cpuIdleMean": 64.82499999999999,
+      "memoryAvailablePercent": 66,
+      "memoryPressure": 1,
+      "diskAvailableGiB": 64.36,
+      "at": "2026-10-03T20:42:04.155169+00:00"
+    },
+    {
+      "phase": "before-build",
+      "cpuIdleSamples": [
+        68.56,
+        54.18
+      ],
+      "cpuIdleMean": 61.370000000000005,
+      "memoryAvailablePercent": 66,
+      "memoryPressure": 1,
+      "diskAvailableGiB": 64.36,
+      "at": "2026-10-03T20:42:07.135969+00:00"
+    }
+  ],
+  "ownerHandbackSha256": "af28c0d4baed52e31a791516eb6a92a6bb3f239389979317fa73b2d863831d62",
+  "startedAt": "2026-10-03T20:42:01.385228+00:00",
+  "canonicalSignerVerified": true,
+  "completedOverlayStateSha256": "583adbc3493a7cceaa70cbbccc432b2952bc4b3db210e2b6472b9a1ca6904a3d",
+  "targets": [
+    "chrome",
+    "ahoi_developer_toolkit_unittests",
+    "ahoi_developer_toolkit_ui_unittests",
+    "ahoi_developer_style_compiler_browsertests",
+    "ahoi_sync_unittests"
+  ],
+  "phasePid": 11751
+}

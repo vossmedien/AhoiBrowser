@@ -21,8 +21,11 @@ Before treating any later wait as live, revalidate that handle/PID. Frozen own
 repo73 de4e8cf3, source patch0094/two new document regressions/fixture reset; old
 b6 clone/installed72 and rollback71 retained. Command: guarded build-ahoi.sh dev,
 chrome plus the four existing selected native test targets, jobs1/nice15. Native
-stable signer resolution PASS; actual current host/toolchain gate PASS. Compiler,
-signature/provenance, installation and visible/native acceptance not yet claimed.
+stable signer resolution PASS; actual current host/toolchain gate PASS. Guarded dependency hooks and GN generation have since passed; actual native
+Ninja/Clang compilation started with425 incremental steps (no full rebuild).
+[Actual start evidence](../artifacts/build/candidate73-live-start-20261003/README.md).
+Terminal build/signature/provenance, installation and visible/native acceptance
+remain unproven.
 
 No Ahoi GUI/installer/test lease used or live. Root retains MacUI for Crawler
 recovery; after terminal build result request new exact-candidate installation/UI
