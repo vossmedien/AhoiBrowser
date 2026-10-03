@@ -14,7 +14,8 @@ released. Do not revive the old live handle14001 or local build instructions.
 Rust/V8 temporary wrappers restored SHA-exact. Source repo73de4e clean, depot
 547d7e12 clean; managed chromiumf89f3a43 sourceWIP414trackedDelta+27untrackedTop
 entries, gclient status readonlyexit0/empty output. Current overlaystate delta
-f8f1adad... recorded; additional readonly verification still awaiting terminal.
+f8f1adad... independently reverified readonly/terminal0, exact managed source
+match with no extra unknown implementation delta.
 Source out/installed72/rollback71/profiles/Git/unique WIP remain, nothing removed.
 
 Common infrastructure checkpoint now contains the requested named Ahoi Owner-
