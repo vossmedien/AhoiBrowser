@@ -2,8 +2,8 @@
 
 ## Supported host
 
-Phase 0 targets Apple Silicon with macOS 26, Git, APFS, and 150 GiB of free
-space for a fresh Chromium checkout. Since the user decision of
+Phase 0 targets Apple Silicon with macOS 26, Git, APFS, and a shared host
+reserve of 100 GB (100,000,000,000 bytes). Since the user decision of
 25 September 2026 ("wir nutzen nur noch 27", handoff 022), Xcode 27.0
 (27A266a) with macOS SDK 27.0 (26A425) and iOS SDK 27.0 (24A430) is the only
 toolchain: for development, for the upstream control and for release.
@@ -39,28 +39,27 @@ because the temporary workaround was restored. A milestone update fails closed
 until the new Chromium and V8 revisions, original target bytes, and patch
 applicability are reviewed and repinned.
 
-For an explicitly supervised checkout, `AHOI_ALLOW_LOW_DISK=1` permits starting
-below the recommended 150 GiB but never below the configured 120 GiB checkout
-floor. Builds with an existing checkout have a separate 64 GiB recommendation
-and 32 GiB hard floor; this avoids reserving checkout-sized headroom for an
-incremental build. The override emits a warning below the applicable
-recommendation and changes neither the recommendation nor the evidence required
-from the resulting build; it is not a release-pass signal by itself.
+The explicit user decision of 4 October 2026 replaces the previous 150/120 GiB
+checkout thresholds and 64/32 GiB build thresholds with the shared 100 GB host
+reserve. All configured recommendations and hard floors are 100,000,000,000
+bytes (about 93.1 GiB); `AHOI_ALLOW_LOW_DISK=1` cannot bypass this floor.
+Before each heavy phase, assess anticipated additional output and concurrent
+writers against actual free host space. Docker's unchanged 160 GiB logical cap
+is not already occupied physical storage. The reserve does not grant a build
+slot or replace toolchain, provenance, signing or acceptance gates. Builds and
+heavy tests run on MacbookPro2026.local; canonical code and Git remain on .45.
 
 An update of an existing managed checkout uses a separate staging assessment:
 after verifying its official origin, valid HEAD, DEPS/VERSION, clean source and
-exact managed `.gclient`, `fetch-chromium.sh` requires the normal64 GiB build
-reserve instead of reserving another initial checkout. The initial150/120 GiB
-policy is unchanged. Update reserve is checked again after prehydration and
-after dependency sync. With explicit user authorization for supervised operation,
-`AHOI_ALLOW_LOW_DISK=1` permits this existing-checkout update below64 GiB but
-never below the existing32 GiB absolute build floor, with a visible warning.
-The user authorized that bounded path on20September. Do not count anticipated
+exact managed `.gclient`, `fetch-chromium.sh` requires the same 100 GB host
+reserve. Update reserve is checked again after prehydration and dependency sync.
+The older 20 September supervised low-disk path is superseded by this floor.
+Do not count anticipated
 cleanup as free space or automatically delete old outputs to meet a threshold.
 This is a staging reserve, not a promised download-size bound. Monitor available
 space during long transfers; if capacity falls short, retain the resumable
 checkout/objects and stop before the next phase. Do not delete candidates or
-user data to satisfy the gate. Builds retain their separate existing limits.
+user data to satisfy the gate. Builds use the same current host reserve.
 
 ## Bootstrap
 

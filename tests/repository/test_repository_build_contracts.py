@@ -17,14 +17,16 @@ def load_json(relative_path: str):
 
 
 class RepositoryBuildContractTests(unittest.TestCase):
-    def test_existing_checkout_update_requires_explicit_bounded_low_disk_override(self):
+    def test_existing_checkout_update_preserves_shared_host_reserve(self):
         helper = ROOT / "scripts/lib/common.sh"
         policy = load_json("config/toolchain.json")["host"]
         required = policy["minimumFreeBuildBytes"]
         floor = policy["absoluteMinimumFreeBuildBytes"]
+        self.assertEqual(100000000000, required)
+        self.assertEqual(required, floor)
         for available, override, succeeds in (
             (required, "0", True), (required - 1, "0", False),
-            (required - 1, "1", True), (floor, "1", True),
+            (required - 1, "1", False), (floor, "1", True),
             (floor - 1, "1", False),
         ):
             with self.subTest(available=available, override=override):
@@ -111,7 +113,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
                 "preserve linked\n", linked_receipt.read_text(encoding="utf-8")
             )
 
-    def test_build_disk_guard_uses_a_profile_specific_hard_floor(self):
+    def test_checkout_and_build_cannot_override_shared_host_reserve(self):
         helper_script = ROOT / "scripts/lib/common.sh"
         completed = subprocess.run(
             [
@@ -119,7 +121,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
                 "-c",
                 (
                     'source "$1"; '
-                    'ahoi_free_bytes() { printf "%s\\n" 53687091200; }; '
+                    'ahoi_free_bytes() { printf "%s\\n" 100000000000; }; '
                     'AHOI_ALLOW_LOW_DISK=1 ahoi_require_build_free_space'
                 ),
                 "ahoi-low-disk-test",
@@ -131,7 +133,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(0, completed.returncode, completed.stderr)
-        self.assertIn("explicit low-disk build override", completed.stderr)
+        self.assertNotIn("low-disk build override", completed.stderr)
 
         refused = subprocess.run(
             [
@@ -139,7 +141,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
                 "-c",
                 (
                     'source "$1"; '
-                    'ahoi_free_bytes() { printf "%s\\n" 34359738367; }; '
+                    'ahoi_free_bytes() { printf "%s\\n" 99999999999; }; '
                     'AHOI_ALLOW_LOW_DISK=1 ahoi_require_build_free_space'
                 ),
                 "ahoi-low-disk-test",
@@ -152,6 +154,23 @@ class RepositoryBuildContractTests(unittest.TestCase):
         )
         self.assertNotEqual(0, refused.returncode)
         self.assertIn("absolute safety floor", refused.stderr)
+
+        policy = load_json("config/toolchain.json")["host"]
+        self.assertEqual(100000000000, policy["minimumFreeWorkBytes"])
+        self.assertEqual(100000000000, policy["absoluteMinimumFreeCheckoutBytes"])
+        for available, succeeds in ((100000000000, True), (99999999999, False)):
+            with self.subTest(checkout_free_bytes=available):
+                checkout = subprocess.run(
+                    ["bash", "-c", (
+                        'source "$1"; '
+                        'ahoi_free_bytes() { printf "%s\\n" "$AHOI_TEST_FREE_BYTES"; }; '
+                        'AHOI_ALLOW_LOW_DISK=1 ahoi_require_free_space'
+                    ), "ahoi-checkout-reserve-test", str(helper_script)],
+                    cwd=ROOT,
+                    env={**os.environ, "AHOI_TEST_FREE_BYTES": str(available)},
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(succeeds, checkout.returncode == 0, checkout.stderr)
 
     def test_build_provenance_is_external_work_root_safe_and_fail_closed(self):
         provenance = (ROOT / "tools/build_provenance.py").read_text(

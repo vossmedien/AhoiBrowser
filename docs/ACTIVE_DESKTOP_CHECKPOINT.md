@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Shared100GB host reserve applied to canonical guards — 4 October2026
+
+Inhouse owner's relayed explicit user decision supersedes old150/120GiB and
+64/32GiB policies. All four disk thresholds in config/toolchain.json now equal
+100,000,000,000bytes; BUILDING.md explains phase growth/concurrent writers,
+unchanged Docker160GiB logical cap and no implicit build-slot grant.
+Existing common.sh guards load that config without a new bypass.
+
+Actual focused verification on authenticated MacbookPro2026: isolated temporary
+copy of exact changed config/test and existing common.sh/fetch-chromium.sh;
+python3 -B -m unittest selected two RepositoryBuildContractTests methods:
+test_existing_checkout_update_preserves_shared_host_reserve and
+test_checkout_and_build_cannot_override_shared_host_reserve, terminal0/2PASS.
+They exercise real shell guards: exact100GB accepted, one byte less refused,
+including AHOI_ALLOW_LOW_DISK=1. No compile/simulator/GUI/checkout writer used.
+
+Frozen remote73/de4e remains untouched: do not claim its old config is updated.
+After superseding Root1257 handback, carry this finished guard change into the
+next frozen input/provenance and refresh affected source/host checks before the
+single guarded4-job target build. Product source/installed72/data unchanged;
+integration/delivery remain open with the overall candidate. Actual MBC01:29
+handback consumed; RootCockpit owns next heavy phase, then separately Ahoi.
+
 ## Root1257 priority supersedes renewed73 startgrant — 4 October2026
 
 Latest explicit Root correction defers the relayed20:54 incremental73 grant for
