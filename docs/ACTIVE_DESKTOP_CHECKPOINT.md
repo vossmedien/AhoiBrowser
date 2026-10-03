@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## User-authorized resource shutdown and coordinator handback — 3 October2026
+
+The user asked to finish simulator/load shutdown in coordination with owners
+while Ahoi compiles. FillIt Android's current14:26 checkpoint confirms its own
+47907/48164 emulators were regularly stopped, handles terminal/adb empty,
+AVDs and game saves retained. Fresh actual process/device inventories show no
+qemu and no booted iOS simulator. CPU recovered to70%idle at14:26; latest14:45
+samples27.31/37.69%idle, pressure1. No foreign process was signalled here.
+
+Cross-project cockpit_note is constrained to one project, so no identity/cwd
+spoofing or input-draft overwrite. Read-only detached CLI checks did not send.
+The exact current Root daemon/thread/active turn was instead bound and one
+user-authorized native turn/steer accepted the resource-coordination request.
+Its Goal objective was preserved, no new turn/worker/resume/Goal/model change.
+Private receipts and eventual resource reply: `.work/host-cleanup-20261003/`.
+Root is asked to coordinate no further heavy simulator/browser/test/build
+rounds until this compile ends, with clean atomic handbacks and all explicit
+pauses/Goals/data/Trader/external boundaries retained. Root reply still pending;
+message acceptance does not by itself prove a future global scheduling hold.
+
+The original tool session21940 disappeared during runtime handoff, while actual
+runner30725 (now reparented1) and Ninja66874 remain alive and compiling. Do NOT
+start a second build because the old tool handle is unavailable. Follow these
+actual identities/log/state; after terminal exit inspect canonical guarded build
+log/provenance/signature, including possible wrapper stdout-loss diagnostics,
+before exact development installation and visible acceptance. Candidate still
+b6d3237758e10e010cf1ae52cefb57b099b79abb; original Master remains open.
+
 ## Candidate 72 coherent build started — 3 October 2026
 
 The user explicitly requested starting the build. Current Desktop/Sync owner
