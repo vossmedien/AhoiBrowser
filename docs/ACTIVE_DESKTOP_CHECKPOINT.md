@@ -41,6 +41,10 @@ verify terminal0, exact f8f1adad... managed delta; source-copy record alone was 
 used as proof. Actual project host gate0: M4Pro/48GiB/macOS27.0.1, Xcode27A266a,
 macOSSDK26A425/iOSSDK24A430,135.4GiBfree vs64GiBproject build recommendation.
 No native target compilation/packaging/signing/install/test/visible acceptance.
+Transferred depot bootstrap also passes the canonical runtime/path/origin/pin
+guard; gclient launches0/help (no version-number claim). Target native Clang
+executable SHA exactly b6f6f673... matches source pinned plan and --version runs0,
+24.0.0git/9fca3cf47d..., no compilation. Evidence target-tool-bootstrap.json.
 
 Next: consume actual MBC/RootCockpit heavy handback and fresh aggregate target
 capacity; start guarded target73 with AHOI_JOBS=4, same original Goal/thread. Target

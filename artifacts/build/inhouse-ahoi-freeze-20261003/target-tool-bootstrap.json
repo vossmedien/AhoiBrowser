@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-03T23:30:16.421986+00:00",
+  "target": "MacbookPro2026.local",
+  "frozenInput": "de4e8cf30b903106136b3d0b45125401470e741c",
+  "canonicalDepotGuardExit": 0,
+  "bootstrapPythonConfinedToDepotRoot": true,
+  "depotOriginAndPinValidated": true,
+  "gclientExecutableExit": 0,
+  "gclientOutput": "help/usage output; not a version-number proof",
+  "clangSha256": "b6f6f673bb4b07cd5d36f74db6bd2e9c35ad6378bc348242737e854ab94c1cb3",
+  "clangMatchesSourcePin": true,
+  "clangVersion": "24.0.0git/9fca3cf47d011a0af295d4252d70f16f8693d6a2",
+  "compilationExecuted": false,
+  "signingIdentities": 0,
+  "heavySlotGranted": false
+}
