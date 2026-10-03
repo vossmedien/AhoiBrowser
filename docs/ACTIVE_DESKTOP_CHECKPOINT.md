@@ -1,5 +1,45 @@
 # Active Desktop checkpoint
 
+## Inhouse handback: source writer terminal; next builds target-only — 3 October2026
+
+Standing user/orchestrator direction and global AGENTS now move ALL build/test/
+simulator workloads to MacbookPro2026.local (.137). .45 remains canonical code/
+Git/editor. Same existing native thread01a0e047-9360-7122-ad28-f76ebc767c97 and
+full original Master/Accounting/ownership preserved; no new session/Goal.
+
+[Terminal owner/source freeze and actual target limits](../artifacts/build/inhouse-ahoi-freeze-20261003/freeze.json).
+Local guarded73 intentionally stopped after its current C++ unit completed;
+Ninja interrupt/user254 at72/425, process11751/Ninja22767 gone, own build.lock
+released. Do not revive the old live handle14001 or local build instructions.
+Rust/V8 temporary wrappers restored SHA-exact. Source repo73de4e clean, depot
+547d7e12 clean; managed chromiumf89f3a43 sourceWIP414trackedDelta+27untrackedTop
+entries, gclient status readonlyexit0/empty output. Current overlaystate delta
+f8f1adad... recorded; additional readonly verification still awaiting terminal.
+Source out/installed72/rollback71/profiles/Git/unique WIP remain, nothing removed.
+
+Common infrastructure checkpoint now contains the requested named Ahoi Owner-
+Freeze-Handback under `_Organisation/Codex/inhouse-deployment/CHECKPOINT.md`.
+Native Root receipt: private root-ahoi-inhouse-terminal-freeze-handoff.json.
+Inhouse skill + references and new global AGENTS inhouse/cleanup section read.
+No routine development Git-source backups; remove obsolete own outputs/worktrees/
+app copies only after actual target takeover/artifact return/install and Git
+integration, preserving installed app/other owners/user data.
+
+Target code/git mirror at ~/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser
+verified HEADbc164c20, canonicalbranch, tracked files==HEAD,7/7 critical hashes.
+TargetXcode27A266a/macOSSDK26A425 verified, macOS27.0.1, iOS/tvOS27runtimesavailable;
+valid signing identities0. No target Ahoi build/signature/test/simulator proof.
+Actual cold chromium/depot_tools/state transfer is live in tool session20612;
+src/out/user profiles/keychains excluded, exclusively owned target mirror lock.
+After transfer terminal verify source/target pins/tree/guards and reserve, create
+same de4e frozen input on target, coordinate host owner/CPU/RAM/disk. Initial
+TARGET build uses AHOI_JOBS=4 per latest user instruction. Existing build/sign/
+install/runtime gates stay; missing signing identity is owner setup, no ad-hoc
+bypass. Return finished app/provenance to .45 and use existing verified install
+path. Source must never restart a heavy phase because a target prerequisite is
+missing. Full cache12/necessary regressions/archive/protection/all Master DoD
+remain open, true old39 diagnostic passes/REDs preserved.
+
 ## Same full goal resumed; guarded73 build running — 3 October2026,22:42
 
 Root21:49 explicitly ENDED/SUPERSEDED the old1257 hold and authorised this single
