@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-03T22:04:08.933872+00:00",
+  "host": "MacbookPro2026.local",
+  "sourceCanonical": true,
+  "targetMirrorCanonical": false,
+  "targetFrozenWorktree": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo73",
+  "revision": "de4e8cf30b903106136b3d0b45125401470e741c",
+  "gitStatusClean": true,
+  "temporaryNecessaryBuildInput": true,
+  "newAgentSession": false,
+  "newGoal": false,
+  "coldTransferToolSession": 20612,
+  "coldTransferTerminal": false,
+  "nextHeavyJobs": 4,
+  "nextHeavyRequiresOwnerSlot": true,
+  "signingIdentitiesVerified": 0,
+  "targetBuildVerified": false
+}
