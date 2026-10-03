@@ -31,6 +31,15 @@ At13:23 host pressure2 with14GiB compressed and9.18/15.57%CPU idle: retain the
 one-job limit. No extra heavy run or parallelism increase. This is actual native
 build progress; no linked complete app/sign/install/test acceptance yet.
 
+13:42 CEST host change: active foreign MBC HD QA simulator53F898F4,
+0/0%CPU idle, Load300.58, pressure2. Own runner/Ninja still verified live and
+compilation advances (private resource-change receipt under the current run).
+Keep jobs1/nice15; no parallelism increase or new heavy/GUI phase, no foreign
+simulator/service termination. Own simulatorCE3513BF is not booted in the
+canonical user device set. Earlier two-hour estimate is provisional and no
+longer reliable under this newly changed load. At the next actual phase
+boundary recheck current capacity/ownership; do not restart this live build.
+
 Next: poll this actual runner and inspect its terminal result, do not start a
 second build. On success verify/install this exact signed development candidate,
 then affected visible tab-cache/settings flows before focused native tests.
