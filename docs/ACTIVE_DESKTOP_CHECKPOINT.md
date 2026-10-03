@@ -1,5 +1,36 @@
 # Active Desktop checkpoint
 
+## Same full goal resumed; guarded73 build running — 3 October2026,22:42
+
+Root21:49 explicitly ENDED/SUPERSEDED the old1257 hold and authorised this single
+necessary jobs1/nice15 incremental73. User separately renewed all existing action
+permissions. Native original Master ACTIVE, no replacement/objective/accounting
+reset. The blocked entries below are historical and must not restart audits.
+
+Fresh first attempt stopped BEFORE integration at actual0.78%CPUidle/pressure2;
+identified MBC/FillIt isolated Chrome GPU and simulator loads were coordinated
+through Root, no foreign signals/data deletion. After their actual process exits,
+guarded overlay integration73 exited0 at22:37. A subsequent phase boundary saw a
+foreign MBC xcodebuild; it was allowed to finish, not killed. Exact successful
+integration retained; no repeated overlay/build. Resumed current build preflight
+61.37%CPUidle,66%memory available,pressure1,64.36GiBfree,no foreign compiler.
+
+LIVE handle at this checkpoint: Tools session14001, guarded build child11751;
+runner details/state `.work/agent-queue/73-correction-20261003/build-phase/state.json`.
+Before treating any later wait as live, revalidate that handle/PID. Frozen own
+repo73 de4e8cf3, source patch0094/two new document regressions/fixture reset; old
+b6 clone/installed72 and rollback71 retained. Command: guarded build-ahoi.sh dev,
+chrome plus the four existing selected native test targets, jobs1/nice15. Native
+stable signer resolution PASS; actual current host/toolchain gate PASS. Compiler,
+signature/provenance, installation and visible/native acceptance not yet claimed.
+
+No Ahoi GUI/installer/test lease used or live. Root retains MacUI for Crawler
+recovery; after terminal build result request new exact-candidate installation/UI
+handback, canonical install verification, visible cache12, affected native cases
+and remaining archive/protection/full Master acceptance. All true old partial/RED
+receipts, external/key/device/rights/review gates, profiles, archive, Trader and
+explicit user pauses preserved. No heavy parallel Ahoi suite or full Chromium roll.
+
 ## Same resource hold on three consecutive goal turns — 3 October2026,21:38
 
 The last concrete progress remains complete73 source composition on frozen
