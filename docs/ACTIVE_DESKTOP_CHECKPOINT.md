@@ -23,6 +23,14 @@ been removed, so it was recreated and this runner atomically owns build.lock.
 Crest106/110 re-reviewed: performance tools only, no product patch for this
 package; separate H3 lease remains deferred, no quiet/runtime grant.
 
+Native compilation now confirmed live: Ninja66874, exact command jobs1,
+GN34448 targets generated, new document-factory seam compiled and libcontent
+linked. Initial3503 planned steps fell to1486 after dependency restat; current
+frontier is retained in [the start receipt](../artifacts/build/codex-build72-20261003-start.json).
+At13:23 host pressure2 with14GiB compressed and9.18/15.57%CPU idle: retain the
+one-job limit. No extra heavy run or parallelism increase. This is actual native
+build progress; no linked complete app/sign/install/test acceptance yet.
+
 Next: poll this actual runner and inspect its terminal result, do not start a
 second build. On success verify/install this exact signed development candidate,
 then affected visible tab-cache/settings flows before focused native tests.
