@@ -1,0 +1,27 @@
+{
+  "runnerPid": 27984,
+  "sourceCommit": "b6d3237758e10e010cf1ae52cefb57b099b79abb",
+  "phase": "deferred-owner-active",
+  "startedAt": "2026-10-03T13:32:45.325014+00:00",
+  "journey": "tab-cache",
+  "waitDeadlineSeconds": 0,
+  "nativePass": false,
+  "requiredChecks": [
+    "warmCacheSharedBySameOriginPeer",
+    "existingWorkerUsesNativeWarmCache",
+    "nativeReloadCancelRetainsDocumentDraftAndWorker",
+    "currentPaneShowsExplicitTabCacheChip",
+    "selectedTabBypassesCacheAndKeepsBothHeaderDirections",
+    "sameOriginSplitPeerCacheRemainsNative",
+    "existingWorkerPolicyChangesWithoutRecreation",
+    "reversedTabChoiceRemovesItsChip",
+    "cacheOffReversalRestoresWarmCacheWithoutLosingDraft",
+    "finalReloadCancelStillRetainsDocument",
+    "tabChoiceNotPersistedAcrossNativeQuitAndRestore",
+    "tabChoiceNeverBecomesPersistentOriginCache"
+  ],
+  "idleSeconds": 12,
+  "appRunning": false,
+  "compilerRunning": false,
+  "memoryPressureLevel": 1
+}

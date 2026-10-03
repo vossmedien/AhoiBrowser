@@ -1,5 +1,21 @@
 # Active Desktop checkpoint
 
+## Final UI preflight deferred; Root lease returned — 3 October2026,15:35
+
+[Exact installed-candidate preflight](../artifacts/tests/tab-cache-user-input-deferred-20261003/README.md):
+final idle12s at15:32, memory1, no own browser/compiler; terminal2 before any
+Ahoi app/GUI/HID action. Earlier idle>90/recording-control read was superseded
+by fresh user activity. Twelve-case journey and focused tests remain NOT_RUN.
+The provisional start notice was corrected; Root MacUI window explicitly
+returned through accepted native turn/steer15:35. No own GUI/test/e2e lock.
+Do not reuse the terminal attempt directory or infer ongoing Ahoi GUI ownership.
+
+Next actual free-input window: obtain current Root/UI handback, new attempt of
+exact installed b6d32377 tab-cache12 before focused native tests, then pending
+archive9/protection6. No second build. Native build/provenance/sign/atomic install
+PASS; previous71 rollback and all profiles/Goals/pauses/external gates retained.
+The user can already open the verified new candidate independently.
+
 ## Coherent candidate72 installed; human input holds GUI acceptance — 3 October2026
 
 Exact candidate b6d3237758e10e010cf1ae52cefb57b099b79abb now installed under
