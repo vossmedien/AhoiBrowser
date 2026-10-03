@@ -1,5 +1,22 @@
 # Active Desktop checkpoint
 
+## Specific renewed GUI grant returned on active human input — 3 October2026
+
+SaaS explicitly finished and returned its ALEX-SWF-01 lease16:07; Root consumed
+it and gave a conditional next seven-minute Ahoi slot16:08. This superseded the
+prior ownership barrier, not the human-input guard. Fresh16:11 preflight found
+HID idle0, memory1, no compiler/Ahoi process and no recording control. No Ahoi
+launch/GUI/HID/test began. Slot explicitly returned to Root through accepted
+native turn/steer; no own e2e lock or running process. Current replies/receipts
+under .work/host-cleanup-20261003/. No stale lease remains ours.
+
+Next only with a fresh Root grant AND actual free human input>=90s: new immutable
+attempt of installed b6d32377 tab-cache12, then required focused45 regressions.
+Do not repeat the unchanged successful build/install/conformance packages.
+The dated25September DoD gap table now has a historical-only header pointing to
+current checkpoints, preventing its old toolchain/candidates/plan from restarting
+completed work. Full Master and outstanding GUI/native/device/release gates stay.
+
 ## Renewed UI request awaits current SaaS section; focused runner ready — 3 October2026
 
 Root's current15:43 handback names exclusive MacUI owner01a1018f for exactly
