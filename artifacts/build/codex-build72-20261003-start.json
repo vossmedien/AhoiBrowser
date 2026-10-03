@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-03T11:24:56.053070+00:00",
+  "sourceCommit": "b6d3237758e10e010cf1ae52cefb57b099b79abb",
+  "phase": "native-compilation-running",
+  "runnerPid": 30725,
+  "toolSession": 21940,
+  "buildScriptPid": 38403,
+  "ninjaPid": 66874,
+  "nativeCommand": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/third_party/ninja/ninja -C /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev -k 1 -j 1 chrome ahoi_developer_toolkit_unittests ahoi_developer_toolkit_ui_unittests ahoi_developer_style_compiler_browsertests ahoi_sync_unittests",
+  "jobs": 1,
+  "nice": 15,
+  "lastStep": 35,
+  "currentPlannedSteps": 1486,
+  "logSnapshotSha256": "dadbe5994392e51c8cbe0b28ea10a955b0542bea720ec51ccb74f111f18d30f9",
+  "built": false,
+  "installed": false,
+  "testsExecuted": false,
+  "releaseEvidenceEligible": false,
+  "privateLogs": ".work/agent-queue/72-combined-20261003-run2"
+}
