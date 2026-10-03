@@ -32,7 +32,10 @@ TargetXcode27A266a/macOSSDK26A425 verified, macOS27.0.1, iOS/tvOS27runtimesavail
 valid signing identities0. No target Ahoi build/signature/test/simulator proof.
 Cold tar/SSH transfer20612 ended255 with actual connection timeout/broken pipe.
 Old receiver34408 is absent. Same exclusive-owner partial-preserving rsync recovery
-is live in tool session28948 (IPv4/SSH keepalives,partial,inplace,20MB/s limit);
+28948 and segmented attempts23797/61683 ended1 (unexpected EOF). A12-file
+Git-object probe failed actual inplace writes, while the same real transfer
+without inplace passed. New same-owner recovery52075 is live with archive/partial,
+no inplace, IPv4/SSH keepalives/20MB/s; existing readonly rights preserved;
 src/out/user profiles/keychains excluded, exclusively owned target mirror lock.
 After transfer terminal verify source/target pins/tree/guards and reserve, create
 same de4e frozen input on target, coordinate host owner/CPU/RAM/disk. Initial

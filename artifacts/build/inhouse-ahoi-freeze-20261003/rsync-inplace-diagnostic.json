@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-03T22:32:03.694453+00:00",
+  "originalRecovery28948Exit": 1,
+  "originalError": "unexpected end of file",
+  "segmented23797Exit": 1,
+  "segmented61683Exit": 1,
+  "failedSmallPart": "chromium/src/.git/objects/00",
+  "failedSmallPartFiles": 12,
+  "failedSmallPartBytes": 158075,
+  "dryRunWithInplaceExit": 0,
+  "actualTransferWithoutInplaceExit": 0,
+  "conclusion": "Failure correlates with inplace real writes; large-filelist hypothesis insufficient",
+  "targetReadOnlyGitObjectModesPreserved": true,
+  "sourceChanged": false,
+  "newLiveRecoveryToolSession": 52075,
+  "newMode": "rsync archive/partial; no inplace; IPv4 strict-known-host keepalives;20MB/s",
+  "targetTransferComplete": false
+}
