@@ -1,5 +1,20 @@
 # Active sync coordination
 
+## Settings source syntax complete; coherent build underway — 3 October 2026
+
+The remaining profile_sync_service_unittest.cc syntax check actually passed
+on 2 October at19:57 CEST, terminal0 in3.34s. Together with the two production
+units this is3/3 pinned-Clang syntax checks on the a431d966 snapshot; the five
+regressions have not executed. [Completed source evidence](../artifacts/tests/browser-settings-reentrant-syntax-complete-20261003/README.md).
+
+Desktop has frozen b6d3237758e10e010cf1ae52cefb57b099b79abb including this Sync
+delta and the tab-cache/native-factory correction, and started one guarded
+integration/build runner with jobs1/nice15 and the Sync test target. See the
+current Desktop checkpoint for the live handle and private logs. Next gates:
+exact signed installation, affected visible native setting flow, focused five
+regressions. Existing real-device tab proof remains narrowly scoped; broader
+peer/settings/extension/DoD13 and external prerequisites remain open.
+
 ## Reentrant settings production syntax2 GREEN; test translation unit pending — 2 October 2026
 
 New normal-memory window permitted two actual serial pinned-Clang source checks:

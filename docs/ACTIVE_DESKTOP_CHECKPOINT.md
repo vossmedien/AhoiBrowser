@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Candidate 72 coherent build started — 3 October 2026
+
+The user explicitly requested starting the build. Current Desktop/Sync owner
+froze clean source `b6d3237758e10e010cf1ae52cefb57b099b79abb` in the private
+`.work/agent-queue/repo`; this includes tab-cache/native-factory correction
+28c94e0a and Sync setting-echo correction a431d966. All three Sync source syntax
+checks have now passed (see the Sync checkpoint); no test execution inferred.
+
+Runner 30725 / tool session 21940 started at 13:10 CEST. Guarded overlay
+integration completed with exit0; build script PID38403 started at13:12 CEST
+using `scripts/build-ahoi.sh dev` with chrome plus
+Toolkit core/UI, style-compiler browser and Sync test targets. Jobs1/nice15;
+120 GiB available, normal memory pressure, fresh pre-integration48.19%CPU idle.
+Transient CPU idle is recorded without indefinitely postponing the explicitly
+requested bounded build; critical memory pressure still stops the next phase.
+Existing canonical development identity verified, no key/trust change.
+
+Current state/logs: `.work/agent-queue/72-combined-20261003-run2/`.
+Build/e2e/h3 locks were absent; the prior temporary coordination directory had
+been removed, so it was recreated and this runner atomically owns build.lock.
+Crest106/110 re-reviewed: performance tools only, no product patch for this
+package; separate H3 lease remains deferred, no quiet/runtime grant.
+
+Next: poll this actual runner and inspect its terminal result, do not start a
+second build. On success verify/install this exact signed development candidate,
+then affected visible tab-cache/settings flows before focused native tests.
+Archive9/protection6 remain pending. Installed71/6bf4c233 and rollbacks remain
+until verified installation. Original Master and external/release limits remain.
+Older capacity-blocked entries below are historical, not current stop orders.
+
 ## Three consecutive capacity-blocked goal turns; native work cannot advance — 2 October 2026
 
 No live own build/GUI/compiler to wait for. The metadata timeout, subsequent
