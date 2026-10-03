@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Target cold mirror terminal and native source/host verification PASS — 4 October2026
+
+[Actual target transfer/verification receipt](../artifacts/build/inhouse-ahoi-freeze-20261003/target-mirror-verified.json).
+Recovery52075 ended0,1,260,884files/51,858,012,544logicalbytes; receiver43219 absent.
+No live source/target transfer writer; no fallback local build. Failed tar/inplace
+attempts retained. Correct non-inplace transfer preserves readonly object rights.
+
+Target temporary frozen73/de4e clean; Chromiumf89f3a43, depot_tools547d7e12 clean,
+origin official, gclient bytes expected. Sourceout absent. Target overlay_state
+verify terminal0, exact f8f1adad... managed delta; source-copy record alone was not
+used as proof. Actual project host gate0: M4Pro/48GiB/macOS27.0.1, Xcode27A266a,
+macOSSDK26A425/iOSSDK24A430,135.4GiBfree vs64GiBproject build recommendation.
+No native target compilation/packaging/signing/install/test/visible acceptance.
+
+Next: consume actual MBC/RootCockpit heavy handback and fresh aggregate target
+capacity; start guarded target73 with AHOI_JOBS=4, same original Goal/thread. Target
+valid signing identities0 remains owner account/team setup; no secret export,
+ad-hoc bypass or unproven stable signature. Return finished candidate/provenance
+through existing source install path, then exact visible cache12/focused native/
+archive/protection/full Master acceptance. Source code/Git/editor only, all Source
+out/profile/data/installed working app preserved until approved actual handoff and
+Git integration; no routine backup. Current target mirror/build ownership remains
+Ahoi01a0e047; no new session or Goal and no duplicate writer.
+
 ## Inhouse handback: source writer terminal; next builds target-only — 3 October2026
 
 Standing user/orchestrator direction and global AGENTS now move ALL build/test/
