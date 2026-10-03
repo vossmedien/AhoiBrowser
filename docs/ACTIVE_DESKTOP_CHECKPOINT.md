@@ -1,5 +1,19 @@
 # Active Desktop checkpoint
 
+## Root1257 priority supersedes renewed73 startgrant — 4 October2026
+
+Latest explicit Root correction defers the relayed20:54 incremental73 grant for
+new launches: installed Cockpit1256 still hangs; Root diagnoses scene/UserDefaults
+feedback and prepares1257. No Ahoi compile/test/browser process observed on .45
+or authenticated MacbookPro2026 target in this check; no atomic compile to finish
+and no own heavy workload held. No process signalled, outputs removed, GUI lease
+claimed or Cockpit relaunched. Original Master, frozen73/de4e, installed72 and
+data unchanged. Existing Root/Inhouse owners receive concrete resource handback.
+Named authority root-ui-cache-corrected-reply.txt was not found in searched local
+queue/artifacts/Cockpit-work/tmp; exact path requested from existing Root, without
+delaying the explicit user-ordered defer. Next heavy action requires a superseding
+Root handback and fresh target capacity; previous20:54 grant must not be reused.
+
 ## Explicit MacUI handback after relayed capacity warning — 4 October2026
 
 Root's relayed18:39CEST sample reports1.56%CPUidle/pressure2/225MBfree;
