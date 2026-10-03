@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-03T22:14:51.305012+00:00",
+  "previousToolSession": 20612,
+  "previousTerminalExit": 255,
+  "previousError": "SSH operation timed out / broken pipe; tar write error",
+  "oldTargetReceiver34408Absent": true,
+  "targetPartialPreserved": true,
+  "targetMirrorOwnerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "recoveryToolSession": 28948,
+  "method": "rsync -a --partial --inplace",
+  "targetHost": "MacbookPro2026.local",
+  "transport": "IPv4 SSH strict known hosts, keepalive15s/count3",
+  "bandwidthLimitKiB": 20000,
+  "sourceOutExcluded": true,
+  "sourceDataDeleted": false,
+  "duplicateWriter": false,
+  "targetTransferComplete": false,
+  "targetBuildVerified": false
+}
