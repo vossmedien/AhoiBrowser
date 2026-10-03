@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Repeated unavailable GUI acceptance: readiness loop stopped — 3 October2026
+
+Three consecutive functional no-progress attempts retained:16:11 active HID0,
+16:22 memory2,16:41-16:51 no current owner grant/HID4 then38. Variations are the
+same practical unavailable MacUI acceptance condition. No own live browser/test/
+compiler exists to justify a process wait. Status/lease messages, unexecuted
+preparation and documentation changes are not installed-browser acceptance.
+Private audit .work/agent-queue/ui-blocked-audit-20261003/audit.json.
+
+The full original Master is preserved; b6d32377 build/sign/atomic install and
+previous71 rollback remain. No completed package/new build repeated, no user
+pause manufactured, no private record/profile/archive/Trader change. Current
+bounded source helpers ready; no demonstrated independent product correction
+justifies altering the coherent unaccepted candidate merely to avoid the gate.
+Owner/device/key/rights/review prerequisites stay collected and skipped.
+
+Resume this SAME goal on changed real conditions: explicit fresh Root MacUI
+handback plus free human input>=90s/no active recording/sufficient capacity;
+new cache12 attempt before the45 required native regressions, then remaining
+archive9/protection6 and full Master acceptance. Do not recreate/shorten the
+Goal or reuse consumed leases/terminal attempt directories. Root is notified
+that the readiness loop is stopped; no GUI resource held by Ahoi.
+
 ## Renewed free-input UI slot deferred for memory — 3 October2026,16:22
 
 Root gave a fresh concrete7min grant16:21 after Ahoi's current151s idle report.
