@@ -1,5 +1,15 @@
 # DoD gap analysis and package plan — 25 September 2026
 
+> Historical source/evidence snapshot from25September2026. Its candidate,
+> toolchain prerequisites, registry counts and package statuses are not current
+> resume or scheduling authority. Preserve the dated evidence below; resume from
+> [Desktop](ACTIVE_DESKTOP_CHECKPOINT.md), [Mobile](ACTIVE_MOBILE_CHECKPOINT.md)
+> and [Sync](ACTIVE_SYNC_COORDINATION.md), under the current Master decisions.
+> Do not restart completed packages or infer installed/runtime acceptance from
+> this old plan. Current installed development candidate is b6d32377/M154; its
+> [guarded build and installation evidence](../artifacts/build/codex-build72-complete-20261003/README.md)
+> does not complete the full product/release DoD.
+
 Source-reading and evidence audit against `outputs/AhoiBrowser-Master-Zielprompt.md`
 "Definition of Done" (28 items). This is the working order for the agent-doable
 remainder; owner-gated items stay in the desktop checkpoint's owner table.
