@@ -1,5 +1,19 @@
 # Active Desktop checkpoint
 
+## Explicit MacUI handback after relayed capacity warning — 4 October2026
+
+Root's relayed18:39CEST sample reports1.56%CPUidle/pressure2/225MBfree;
+this shell's clock reads01:21CEST, so these are not ordered as live samples.
+No own Ahoi browser/test/compiler process is present on the development Mac.
+The unused ten-minute MacUI grant is explicitly returned to existing Root
+thread01a0f725; elapsed time/process absence was not treated as lease release.
+No batch, build, installer or foreign signal started. Frozen73/de4e and installed72
+remain unchanged. Actual Inhouse owner followup still says MBC→RootCockpit→Ahoi,
+no build startgrant. Park only the heavy/UI phase: consume actual heavy handback,
+measure target capacity afresh, guarded target73 AHOI_JOBS=4; resolve existing
+signing gate, return/install candidate, then obtain a fresh exact-candidate UI
+grant for remaining acceptance. Same original Goal/thread, no replacement Goal.
+
 ## Target cold mirror terminal and native source/host verification PASS — 4 October2026
 
 [Actual target transfer/verification receipt](../artifacts/build/inhouse-ahoi-freeze-20261003/target-mirror-verified.json).
