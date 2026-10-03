@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Same resource hold on three consecutive goal turns — 3 October2026,21:38
+
+The last concrete progress remains complete73 source composition on frozen
+source de4e8cf3. Three subsequent turns verified the same unchanged Root1257
+priority hold (owner reply SHA in
+../artifacts/tests/candidate73-resource-blocked-20261003/audit.json).
+No own live compiler/browser/test/fixture or shared lock; no specific live job
+exists to justify polling as a verified wait. Independent Mobile-settings/Zen
+source review found existing implementations, not a demonstrated new correction.
+Do not manufacture edits, repeat green tests or infer a handback from idle CPU.
+
+Native full Master is marked BLOCKED after this repeated-condition audit; its
+original objective, identity/accounting and authorised scope stay intact. This
+is neither goal completion nor an explicit user pause. Installed72/b6, rollback71,
+immutable73/de4e freeze, actual39 native passes/fixture correction, patch0094,
+whole91-entry composition proof and all source/runtime limits remain retained.
+
+Next external state change: fresh Root resource handback superseding20:57 hold.
+Resume this SAME full goal, fresh capacity/checkout/owner preflight, one guarded
+jobs1/nice15 incremental73; then exact sign/install verification and new bounded
+GUI handback/cache12/focused regressions/full remaining Master acceptance. No
+resource watcher, competing writer, Cockpit action or foreign process signal.
+
 ## Complete73 source composition PASS; fresh build hold — 3 October2026,21:27
 
 [Actual canonical composition and native metadata receipts](../artifacts/tests/candidate73-source-composition-20261003/README.md).
