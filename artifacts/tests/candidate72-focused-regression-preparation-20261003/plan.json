@@ -1,0 +1,61 @@
+{
+  "sourceCommit": "b6d3237758e10e010cf1ae52cefb57b099b79abb",
+  "requiredCases": {
+    "core": [
+      "DeveloperTabCacheTest.SameOriginPeerAndSavedEditorStayUnchanged",
+      "DeveloperTabCacheTest.NoOriginProfileNeededAndForeignPrefsRejected",
+      "DeveloperTabCacheTest.MasterDisableAndResetRetireOldGeneration",
+      "DeveloperTabCacheTest.TabReplacementDropsChoiceAndPersistentSiteStillWins",
+      "DeveloperNetworkFactoryProxyTest.RulesAndCacheReachLaterInterceptor",
+      "DeveloperNetworkFactoryProxyTest.CrossOriginRedirectCannotResurrectRule",
+      "DeveloperNetworkFactoryProxyTest.CrossOriginResourcesBypassCacheWithoutOriginHeaders",
+      "DeveloperNetworkFactoryProxyTest.CrossOriginResourcesWithoutCacheOptInKeepNativeDefaults",
+      "DeveloperNetworkFactoryProxyTest.SameOriginRedirectForwardsControl",
+      "DeveloperNetworkFactoryProxyTest.RedirectRestoresOriginalValueWithoutExemptOverride",
+      "DeveloperNetworkFactoryProxyTest.ExtensionInterceptorCanStillBlock",
+      "DeveloperNetworkFactoryProxyTest.DisabledAndUnknownFactoryAddNoHop",
+      "DeveloperNetworkFactoryProxyTest.MasterDisableStopsExistingFactory",
+      "DeveloperNetworkFactoryProxyTest.NavigatedAndClosedTabDoNotReuseState",
+      "DeveloperNetworkFactoryProxyTest.SameOriginNewDocumentCannotUseOldFactoryApproval",
+      "DeveloperNetworkFactoryProxyTest.PendingFactoryCannotUsePreviousCommittedDocument",
+      "DeveloperNetworkFactoryProxyTest.UnresolvedSecretsDisableBothDirections",
+      "DeveloperNetworkFactoryProxyTest.RendererDisconnectCancelsNativeLoader",
+      "DeveloperNetworkFactoryProxyTest.SecretsAreResolvedForEachRequestWithoutDocumentPlaintext",
+      "DeveloperNetworkFactoryProxyTest.FailedSecretResolutionIsAtomic",
+      "DeveloperNetworkFactoryProxyTest.DeferredSecretsRecheckEnablementRulesAndDocument",
+      "DeveloperNetworkFactoryProxyTest.DeferredSecretsCancelBeforeNativeLoadOnRendererDisconnect",
+      "DeveloperNetworkFactoryProxyTest.DeferredSecretRequestPreservesEarlyPriority",
+      "DeveloperNetworkFactoryProxyTest.NativeDisconnectCompletesExactlyOnce",
+      "DeveloperNetworkFactoryProxyTest.TemporarySecretsUseRealFactoryAndStayReferencesBetweenRequests",
+      "DeveloperNetworkFactoryProxyTest.ResetTemporaryHeadersRejectsDeferredSecretReplyInBothDirections",
+      "DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerRejectsDeferredReplyEvenWithIdenticalRules",
+      "DeveloperNetworkFactoryProxyTest.RetiredTemporaryOwnerStopsAlreadyBuiltFactoryWithoutSecretResolution",
+      "DeveloperNetworkFactoryProxyTest.TabCachePolicyRefreshPreservesCurrentDocumentHeadersWithoutNavigation",
+      "DeveloperNetworkFactoryProxyTest.TabCacheOffOnCannotReapproveAlreadyDispatchedResponse",
+      "DeveloperNetworkFactoryProxyTest.MasterDisableAfterDispatchLeavesResponseHeadersNative",
+      "DeveloperNetworkFactoryProxyTest.TemporaryResetAfterDispatchRestoresRedirectWithoutExemptResurrection",
+      "DeveloperNetworkFactoryProxyTest.ReenableAfterDispatchCannotRevivePriorResponseApproval",
+      "DeveloperNetworkFactoryProxyTest.ReplacedTemporaryOwnerAfterDispatchCannotApplyResponseRules",
+      "DeveloperNetworkFactoryProxyTest.ResetPersistentRulesStopsNewPlainRequestsOnExistingFactory"
+    ],
+    "worker": [
+      "DeveloperNetworkWorkerBrowserTest.TabCacheRefreshSurvivesCancelledReloadAndKeepsWorker",
+      "DeveloperNetworkWorkerBrowserTest.DedicatedWorkerUsesParentRulesAndCacheOptIn",
+      "DeveloperNetworkWorkerBrowserTest.DisabledToolkitLeavesNativeWorkerDefaults",
+      "DeveloperNetworkWorkerBrowserTest.CrossOriginWorkerFetchBypassesCacheWithoutHeaderLeak"
+    ],
+    "ui": [
+      "DeveloperToolkitBubbleViewTest.SavedPasswordsUsesDedicatedUpstreamRoute"
+    ],
+    "sync": [
+      "ProfileSyncServiceTest.ReentrantDifferentSettingRemainsLocalAndSkipsLaterRemoteOverwrite",
+      "ProfileSyncServiceTest.ReentrantSameSettingIsNotMistakenForRemoteEcho",
+      "ProfileSyncServiceTest.NormalizedNumericRemoteValueDoesNotAuthorAnEcho",
+      "ProfileSyncServiceTest.ReentrantLocalValueBounceRetainsItsLatestIntent",
+      "ProfileSyncServiceTest.ReentrantSyncRevocationDoesNotRestoreOldEchoScope"
+    ]
+  },
+  "requiresVisibleTabCacheChecks": 12,
+  "testsExecuted": false,
+  "runnerSha256": "fc97d66dab089794d35ee49e59dc8083e891534b21f45a93d4451d5ad85e8577"
+}

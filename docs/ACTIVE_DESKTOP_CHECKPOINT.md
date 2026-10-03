@@ -1,5 +1,22 @@
 # Active Desktop checkpoint
 
+## Renewed UI request awaits current SaaS section; focused runner ready — 3 October2026
+
+Root's current15:43 handback names exclusive MacUI owner01a1018f for exactly
+one ALEX-SWF-01 native Orchestrator/new-worker/Goal verification. Ahoi has NO
+renewed GUI grant. Root will observe one brief account-dialog reference after
+SaaS handback, then can grant the requested seven-minute window if human input
+and recording are free. No grant inferred from elapsed time/process absence;
+no Ahoi app/GUI/test started. Request/reply retained under .work/host-cleanup-20261003/.
+
+[Exact focused regression preparation](../artifacts/tests/candidate72-focused-regression-preparation-20261003/README.md)
+is executable source, NOT_RUN. It binds frozen b6d32377 cases, requires actual
+all12 visible cache checks/source-bound launches first, rejects skipped/missing
+cases, serial/retries0 with immutable receipts and owned timeout cleanup.
+Current build/install unchanged; no repeat of the completed conformance package.
+Next current GUI handback/free user input: new tab-cache journey attempt,
+then these required native regressions; archive9/protection6 remain open.
+
 ## Final UI preflight deferred; Root lease returned — 3 October2026,15:35
 
 [Exact installed-candidate preflight](../artifacts/tests/tab-cache-user-input-deferred-20261003/README.md):
