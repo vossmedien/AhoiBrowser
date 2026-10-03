@@ -1,5 +1,26 @@
 # Active Desktop checkpoint
 
+## Complete73 source composition PASS; fresh build hold — 3 October2026,21:27
+
+[Actual canonical composition and native metadata receipts](../artifacts/tests/candidate73-source-composition-20261003/README.md).
+Clean own repo73 frozen de4e8cf3; oldb6 clone/output/installed72 retained. Whole
+overlay+91 actual series entries apply against pinned M154, canonical tree
+61b949a1155d2fae828b7dd5f3aa3e54fab61695, temporary private index/objects only.
+Shared checkout HEAD/index and output/installed app metadata unchanged. Native RFH
+recipe extracted metadata-only in a tiny graph; no compiler/build/test/GUI action.
+
+Root20:54 granted one incremental73, but20:57 explicitly superseded new launches
+for urgent Cockpit1257 startup repair.73 had NOT started; no compiler or Ahoi
+process currently held. No elapsed-time inference or reuse of old MacUI grants.
+Next fresh resource/owner handback starts the necessary coherent guarded jobs1/
+nice15 incremental correction build from this freeze; then exact installation and
+new bounded GUI handback/cache12, corrected fixture/native document cases and full
+remaining product acceptance. Original Master ACTIVE and previous actual diagnostic
+results remain scoped. Crest106/110 re-reviewed for this packet: no product delta;
+separate H3 owner lease/measurement still pending. Do not launch Cockpit or alter
+its source/Goal/keys/data/Trader. Current heavy/GUI hold is a resource prerequisite,
+not a fabricated user pause or whole-goal completion.
+
 ## Actual installed UI tests and document-header correction — 3 October2026,20:29
 
 The same native full Master is ACTIVE by explicit user/Root continuation. The

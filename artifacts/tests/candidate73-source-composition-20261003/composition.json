@@ -1,0 +1,20 @@
+{
+  "sourceCommit": "de4e8cf30b903106136b3d0b45125401470e741c",
+  "chromiumCommit": "f89f3a4363808e117c592adedcf9947882ac3b79",
+  "chromiumVersion": "154.0.8037.93",
+  "phase": "source-composition-passed",
+  "startedAt": "2026-10-03T19:26:29.038844+00:00",
+  "compilerStarted": false,
+  "buildStarted": false,
+  "finishedAt": "2026-10-03T19:27:02.913313+00:00",
+  "composedTree": "61b949a1155d2fae828b7dd5f3aa3e54fab61695",
+  "composedPatchSha256": "48eda240fe9b8d1419024a7e4730722d1c88f81ac5323b5ce6c52e5e1602be6d",
+  "composedPatchBytes": 24114274,
+  "patchCount": 91,
+  "protectedFileHashes": {
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/.git/index": "d80aa344105a687ba839d845e9e1c635c2a516c13d45d54f3716e2d5344a2d17",
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app/Contents/Info.plist": "16c135f13d1927ee09551fdd010dbe02d706cb454a827f5b98d074cf81adda5f",
+    "/Applications/AhoiBrowser.app/Contents/Info.plist": "16c135f13d1927ee09551fdd010dbe02d706cb454a827f5b98d074cf81adda5f"
+  },
+  "sharedIndexAndAppMetadataUnchanged": true
+}

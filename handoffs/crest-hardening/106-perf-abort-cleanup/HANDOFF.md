@@ -1,6 +1,6 @@
 # 106 – H3 exception cleanup and incomplete-run evidence
 
-Status: ready (desktop/sync owner reviewed 2 October for tab-cache and native setting-echo packets; no product patch applies; deferred to separate H3 lease; owner runtime acceptance pending)
+Status: ready (desktop/sync owner re-reviewed 3 October for document-factory navigation/candidate73 packet; no product patch applies; deferred to separate H3 lease; exact owner runtime acceptance pending)
 Owner lane: crest-hardening (tools); desktop (future exact-candidate lease)
 Base: `f141273`.
 

@@ -1,0 +1,12 @@
+{
+  "target": "obj/content/browser/browser/render_frame_host_impl.o",
+  "source": "content/browser/renderer_host/render_frame_host_impl.cc",
+  "nativeTargetBindingSha256": "2e97f22e0d9ff057e6d665abb0d875a4dbabf51a37d72c7c3654673c32506470",
+  "nativeRulesSha256": "50fb3309d73c64b5680dd996caf36305399da83ad22c879538adc5ea46c14c81",
+  "privateGraphSha256": "b80bd9ca0f4df8942654f00717ca7faa441eb5a7cd7fe987944ad92bceb13add",
+  "nativeCommandSha256": "6f2ff1353b6a3a012c148f6a644dc2221f203b740a4b0f7c42f03a35e2040564",
+  "metadataOnly": true,
+  "compilerInvoked": false,
+  "buildEdgesExecuted": false,
+  "exitCode": 0
+}
