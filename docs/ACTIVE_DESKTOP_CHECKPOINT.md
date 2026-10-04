@@ -1,5 +1,29 @@
 # Active Desktop checkpoint
 
+## Isolated target continuation resumed; concrete signing access boundary — 4 October2026
+
+Latest explicit Inhouse/user handback removes old serial Root1258/slot waits for
+isolated Ahoi work. Root's Cockpit source/build/UI remain protected; no second
+Ahoi mirror writer. Only own target output/device used. Shared100GB reserve and
+phase growth/concurrent writers still assessed. Current mobile scoped SavedData
+acceptance is recorded in ACTIVE_MOBILE_CHECKPOINT.md (92f6e462); owned60855124
+simulator Shutdown, original source retained.
+
+Actual target Xcode27A266a/macOSSDK27.0/iOSSDK24A430 match; Apple Development
+resolver now0 selects Christian Voss2265UJB5KF after Inhouse owner corrected
+missing public WWDR-G3 intermediate. Source installed72 Team248AJ5BN47 matches.
+Actual stable-signing private-key probe via SSH still exits1 errSecInternalComponent;
+probe removed, no Adhoc/secret export/trust override. Existing Inhouse owner
+01a0f251 owns the remaining account/Keychain access setup; notified of exact error.
+
+Prepare next clean target freeze from current canonical HEAD: compared with
+frozen73/de4e, product overlay/patches/apps/scripts/tools unchanged; only
+config/toolchain.json changes four thresholds to100GB. Preserve originalde4e
+reference/installed72. Guarded target dev build uses AHOI_JOBS=4/nice10/keepgoing0,
+chrome app first; final stable signing/provenance cannot pass until key access
+works. Build has not started at this checkpoint entry. Return/install/visible
+cache12 and required native regressions remain open; no obsolete suite replay.
+
 ## Shared100GB host reserve applied to canonical guards — 4 October2026
 
 Inhouse owner's relayed explicit user decision supersedes old150/120GiB and
