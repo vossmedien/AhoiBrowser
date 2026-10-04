@@ -62,6 +62,8 @@ writer consuming the reserve between samples. Continue measuring at heavy phase
 boundaries. Docker's logical cap is not already occupied physical storage.
 
 Builds and heavy tests run on MacbookPro2026.local; code/Git remain on .45.
+An explicit `AHOI_JOBS` also limits GN's worker threads, so a bounded incremental
+run does not start an unrestricted generator before the limited Ninja phase.
 The coordinated external root is `/Volumes/Daten/Inhouse/AhoiBrowser/work`.
 Before any write under `/Volumes/Daten`, scripts use the existing target helper
 `~/.local/bin/inhouse-external-root` to check APFS, real mount and approved UUID,

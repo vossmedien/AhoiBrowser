@@ -240,7 +240,11 @@ args="$(<"${args_file}")"
 ahoi_note "applying ${chromium_id} and ${v8_id} only for gn gen and autoninja"
 (
   cd "${AHOI_CHROMIUM_SRC}"
-  gn gen "${out_dir}" --args="${args}"
+  gn_threads=()
+  if [ -n "${AHOI_JOBS:-}" ]; then
+    gn_threads=("--threads=${AHOI_JOBS}")
+  fi
+  gn gen "${out_dir}" --args="${args}" "${gn_threads[@]}"
   if [ -n "${AHOI_JOBS:-}" ]; then
     python3 "${AHOI_REPO_ROOT}/tools/run_with_disk_reserve.py" \
       --work-root "${AHOI_WORK_ROOT}" --policy "${AHOI_REPO_ROOT}/config/toolchain.json" \
