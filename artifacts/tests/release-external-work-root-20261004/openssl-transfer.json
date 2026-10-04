@@ -1,0 +1,22 @@
+{
+  "kind": "inhouse-existing-native-tool-artifact",
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "sourcePrefix": "/opt/homebrew/Cellar/openssl@3/3.6.3",
+  "originalSha256": {
+    "bin/openssl": "5d8f84484b7317ec5639ce68ccecc1d6f565ca6df483c8ae731e25265d83466d",
+    "lib/libssl.3.dylib": "4c3c554adc8ace6ec2245b4962b181451d245edfab92c3a09fc7b3be094e7438",
+    "lib/libcrypto.3.dylib": "34bc039f5c725691e757ef42d26f1709830b18046c3ad6d93985153c83d0bbbc",
+    "INSTALL_RECEIPT.json": "dc07974cad50728dbd06cd1cea9ed14b96884eee15a1502e675b19acd4982ab3",
+    "LICENSE.txt": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+  },
+  "targetPrefix": "/Users/vossmedien/inhouse/toolchains/ahoi-openssl-3.6.3",
+  "adaptation": "target-only Mach-O load paths and ad-hoc signatures; no source/system install modification",
+  "version": "OpenSSL 3.6.3 9 Jun 2026 (Library: OpenSSL 3.6.3 9 Jun 2026)",
+  "targetSha256": {
+    "bin/openssl": "277e5a568cb4dd650def20ffe0ead341e68320558fa0614fadff93b5c0cf7b4f",
+    "lib/libssl.3.dylib": "70542cb5bd2bb44fecedb7252a357397e646969539422049b82dc6775bbfebbd",
+    "lib/libcrypto.3.dylib": "f093486a86942af2d781a3425ee9a10bc7950a556221659e161fafe50fe1d24f",
+    "INSTALL_RECEIPT.json": "dc07974cad50728dbd06cd1cea9ed14b96884eee15a1502e675b19acd4982ab3",
+    "LICENSE.txt": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+  }
+}

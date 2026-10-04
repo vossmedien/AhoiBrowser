@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## External-root release CLI repaired and actually executed — 4 October 2026
+
+Independent authorized progress while native GUI remains locked: actual public
+update-testbed baseline ignores AHOI_WORK_ROOT and fails at the removed internal
+fetch receipt. Release production CLI hardcodes the same obsolete tool/framework
+roots. Source cc8bef2b introduces the shared absolute work-root resolver for both
+consumers; explicit missing roots never fall back. Release/key/material guards
+and browser bytes unchanged.
+
+[Actual CLI acceptance](../artifacts/tests/release-external-work-root-20261004/README.md):
+corrected public CLI on approved SSD root26/26PASS/exit0; two focused actual CLI
+relative/missing-root refusals pass. First corrected run fails later at target
+LibreSSL's unsupported Ed25519. Native existing OpenSSL3.6.3 source artifact
+transferred/hash-verified, load paths adapted/ad-hoc signed on target in own
+inhouse toolchain; then actual crypto operations passed. No Source compilation,
+system/account configuration, GUI/simulator/browser, production keys/feed or
+network/publication. Scope is stand-in CLI/material acceptance, not real updates.
+Previous26-case history retained; this run is necessary after reproduced new
+setup failure and source path correction, not unchanged-suite repetition.
+
+Frozen source input `repo78-release-root-cc8bef2b` and working toolchain retained
+for the next real release/material operation. Target phase terminal; no own jobs
+or locks left. Native cross-level25, mobile and remaining visible flows continue
+to wait for authenticated unlocked target GUI; coordination request remains
+SOURCE_UNAVAILABLE, no new UUID/worker or inferred Root/owner handback.
+Full Master remains active and unachieved; existing default-main/remote and
+external release gates are preserved.
+
 ## Isolation documentation corrected; console lock independently confirmed — 4 October 2026
 
 Previous turn made concrete guard/mirror progress. Current native foreground

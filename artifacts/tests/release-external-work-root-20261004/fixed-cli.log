@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo78-release-root-cc8bef2b/scripts/release/ahoi-update-testbed.py", line 15, in <module>
+    raise SystemExit(main())
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo78-release-root-cc8bef2b/tools/release/update_testbed.py", line 624, in main
+    report = run_testbed(tools.resolve(), pathlib.Path(directory))
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo78-release-root-cc8bef2b/tools/release/update_testbed.py", line 308, in run_testbed
+    key = ThrowawayKey(keys, "testbed")
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo78-release-root-cc8bef2b/tools/release/update_testbed.py", line 108, in __init__
+    subprocess.run(
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 528, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['openssl', 'genpkey', '-algorithm', 'ED25519', '-outform', 'DER', '-out', '/var/folders/mf/lzv22y597fgf2m8ns8fz14x80000gn/T/ahoi-update-testbed-rkq0qr_g/keys/testbed-private.der']' returned non-zero exit status 1.
