@@ -15,16 +15,18 @@ architecture decision, test, or release gate.
 ## Current status
 
 The current pin is Chromium Mac Stable `154.0.8037.93` at exact commit
-`f89f3a4363808e117c592adedcf9947882ac3b79`. Development candidate 72, source
-`b6d3237758e10e010cf1ae52cefb57b099b79abb`, is installed at
-`/Applications/AhoiBrowser.app`; its guarded build, stable development signing,
-complete bundle verification and atomic installation are verified
-([evidence](artifacts/build/codex-build72-complete-20261003/README.md)).
-It adds tab-local cache control/native document and worker factory refresh plus
-reentrant native setting-intent preservation. Its affected visible journeys and
-focused native test execution are pending. Previous candidate71 retains its
-own genuine HTTP/DOM/native-close and regression evidence; full product/release
-gates stay open.
+`f89f3a4363808e117c592adedcf9947882ac3b79`. Development candidate88, source
+`88e631d65f58ac80250e464847072eea00c4c877`, is installed at
+`/Applications/AhoiBrowser.app` on the development and Inhouse Macs. Target
+compilation, stable development signing, portable bundle verification and both
+guarded installations are verified
+([install receipt](artifacts/install/ahoi-dev-88e631d6-inhouse-20261004.json)).
+It includes tab-local cache control and native document/worker factory refresh.
+Its actual visible cache journey reached12 assertions:7 PASS/5 RED. Document
+request/response headers and selected-tab cache bypass need correction; worker
+headers/cache and native toggle/cancel/draft behavior passed. A new source-only
+factory diagnostic has not been built or accepted. Full product/release gates
+remain open; historical candidates retain their own evidence.
 Use [the desktop checkpoint](docs/ACTIVE_DESKTOP_CHECKPOINT.md) for the current
 finding, evidence and next action; historical candidates retain their own receipts.
 The active source delta is the
