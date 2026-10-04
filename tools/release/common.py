@@ -18,6 +18,15 @@ class ReleaseError(RuntimeError):
     """A fail-closed release contract violation."""
 
 
+def configured_work_root(repository_root: pathlib.Path) -> pathlib.Path:
+    """Resolve the same explicit work root used by the guarded build scripts."""
+    raw = os.environ.get("AHOI_WORK_ROOT")
+    root = pathlib.Path(raw) if raw else repository_root / ".work"
+    if not root.is_absolute():
+        raise ReleaseError("AHOI_WORK_ROOT must be absolute")
+    return root.resolve()
+
+
 def canonical_json(value: object) -> bytes:
     return (
         json.dumps(

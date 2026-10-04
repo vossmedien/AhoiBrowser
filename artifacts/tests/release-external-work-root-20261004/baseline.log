@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/tools/release/common.py", line 35, in load_json
+    return json.loads(path.read_text(encoding="utf-8"))
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/.work/state/sparkle/2.9.6/fetch-receipt.json'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/scripts/release/ahoi-update-testbed.py", line 15, in <module>
+    raise SystemExit(main())
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/tools/release/update_testbed.py", line 619, in main
+    report = run_testbed(tools.resolve(), pathlib.Path(directory))
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/tools/release/update_testbed.py", line 301, in run_testbed
+    tool_hashes = verify_tool_provenance(tools)
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/tools/release/update_testbed.py", line 80, in verify_tool_provenance
+    receipt = load_json(tools.parent / "fetch-receipt.json")
+  File "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/tools/release/common.py", line 37, in load_json
+    raise ReleaseError(f"cannot read valid JSON: {path}: {error}") from error
+release.common.ReleaseError: cannot read valid JSON: /Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/.work/state/sparkle/2.9.6/fetch-receipt.json: [Errno 2] No such file or directory: '/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e/.work/state/sparkle/2.9.6/fetch-receipt.json'

@@ -65,6 +65,18 @@ signing, notarization, package, installed and materials receipts, both Apple
 JSON response logs and their submitted archives, ZIP/DMG, SBOM, notices,
 source offer and final `release-manifest.json`.
 
+Keep `AHOI_WORK_ROOT` set to the same absolute root used by the guarded build
+and Sparkle fetch. `sparkle-appcast` and the local update testbed resolve their
+pinned tools/materials there. An explicitly configured missing root fails;
+neither command falls back to stale internal `.work` materials. Linked worktrees
+without an explicit root retain the testbed's existing common-repository lookup.
+The local testbed also needs OpenSSL with Ed25519 support; the macOS LibreSSL
+binary is insufficient. The verified Ahoi-owned inhouse executable is
+`/Users/vossmedien/inhouse/toolchains/ahoi-openssl-3.6.3/bin/openssl`; select its
+`bin` directory in the command's PATH, without changing global shell configuration.
+Artifact provenance and actual CLI checks are in
+[the external-root receipt](../artifacts/tests/release-external-work-root-20261004/README.md).
+
 Run the CLI help for exact arguments:
 
 ```sh

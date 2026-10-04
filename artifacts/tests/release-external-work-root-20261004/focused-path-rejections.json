@@ -1,0 +1,16 @@
+[
+  {
+    "case": "relative",
+    "workRoot": "relative-work-root",
+    "actualExitCode": 1,
+    "expectedRejectionObserved": true,
+    "fallbackOrScenarioRun": false
+  },
+  {
+    "case": "missing",
+    "workRoot": "/Users/vossmedien/inhouse/evidence/ahoi-deliberately-missing-work-root",
+    "actualExitCode": 1,
+    "expectedRejectionObserved": true,
+    "fallbackOrScenarioRun": false
+  }
+]

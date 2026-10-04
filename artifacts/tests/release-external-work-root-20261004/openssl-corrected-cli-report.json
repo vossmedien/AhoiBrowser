@@ -1,0 +1,581 @@
+{
+  "appcast": {
+    "builds": [
+      13,
+      12
+    ],
+    "deltaCount": 1,
+    "itemCount": 2,
+    "sha256": "29b317e80a8f962c466f51ec6ce24b26d4308a491f28cde142041b5355027c3f"
+  },
+  "archives": {
+    "AhoiBrowser-12.zip": {
+      "sha256": "463620f8b2ee53e3bef8186d230bfe47a80a1d6755902328ea41e0145f389c3a",
+      "size": 1391
+    },
+    "AhoiBrowser-13.zip": {
+      "sha256": "e5dec45781304079a3584f566a54bcbb76b1940cd5248e7f9d286207101ec459",
+      "size": 1389
+    },
+    "AhoiBrowser13-12.delta": {
+      "sha256": "42fcc6e1a27301f0ecbd1d6776387172fccac231a38ea1989779c48d80a8129b",
+      "size": 594
+    }
+  },
+  "checks": [
+    {
+      "accepted": {
+        "opensslEd25519Verify": true,
+        "sparkleSignUpdateVerify": true
+      },
+      "description": "signed candidate archive verifies",
+      "expected": "accept",
+      "group": "a-genuine",
+      "id": "A1",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "sparkleVerify:AhoiBrowser13-12.delta": true
+      },
+      "description": "signed delta archive verifies",
+      "expected": "accept",
+      "group": "a-genuine",
+      "id": "A2",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "opensslEd25519VerifyFeedPrefix": true,
+        "releaseContract": true,
+        "sparkleSignUpdateVerifyFeed": true
+      },
+      "description": "signed feed verifies and meets the release contract",
+      "expected": "accept",
+      "group": "a-genuine",
+      "id": "A3",
+      "reasons": {
+        "releaseContract": "accepted"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "offeredBuildIs13": true
+      },
+      "description": "nightly build 12 is offered candidate build 13",
+      "expected": "accept",
+      "group": "a-genuine",
+      "id": "A4",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "opensslEd25519Verify": false,
+        "sparkleSignUpdateVerify": false
+      },
+      "description": "one flipped byte in the full archive",
+      "expected": "reject",
+      "group": "b-tampered-archive",
+      "id": "B1",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "sparkleSignUpdateVerify": false
+      },
+      "description": "one flipped byte in the delta archive",
+      "expected": "reject",
+      "group": "b-tampered-archive",
+      "id": "B2",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "sparkleSignUpdateVerify": false
+      },
+      "description": "one byte appended to the full archive",
+      "expected": "reject",
+      "group": "b-tampered-archive",
+      "id": "B3",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "opensslEd25519Verify": false,
+        "sparkleSignUpdateVerify": false
+      },
+      "description": "candidate signed by a foreign key",
+      "expected": "reject",
+      "group": "c-wrong-signature",
+      "id": "C1",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "sparkleSignUpdateVerify": false
+      },
+      "description": "signature of build 12 replayed for build 13",
+      "expected": "reject",
+      "group": "c-wrong-signature",
+      "id": "C2",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "sparkleSignUpdateVerify": false
+      },
+      "description": "64 zero bytes as signature",
+      "expected": "reject",
+      "group": "c-wrong-signature",
+      "id": "C3",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "sparkleSignUpdateVerifyArchive": false
+      },
+      "description": "validly signed feed whose enclosure carries a foreign-key signature",
+      "expected": "reject",
+      "group": "c-wrong-signature",
+      "id": "C4",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "opensslEd25519VerifyFeedPrefix": false,
+        "sparkleSignUpdateVerifyFeed": false
+      },
+      "description": "feed re-signed with a foreign key",
+      "expected": "reject",
+      "group": "c-wrong-signature",
+      "id": "C5",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false,
+        "updateOffered": false
+      },
+      "description": "replayed genuine feed for build 12 offered to build 13",
+      "expected": "reject",
+      "group": "d-downgrade",
+      "id": "D1",
+      "informational": {
+        "sparkleFeedSignatureValid": true
+      },
+      "reasons": {
+        "releaseContract": "Sparkle appcast regresses below the already published build"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false,
+        "updateOfferedToBuild12": false
+      },
+      "description": "validly signed feed whose newest item is build 11",
+      "expected": "reject",
+      "group": "d-downgrade",
+      "id": "D2",
+      "reasons": {
+        "releaseContract": "Sparkle appcast regresses below the already published build"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false
+      },
+      "description": "two items claim build 13 (ambiguous version)",
+      "expected": "reject",
+      "group": "d-downgrade",
+      "id": "D3",
+      "reasons": {
+        "releaseContract": "Sparkle appcast contains a duplicate build version"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false
+      },
+      "description": "release claims build 12 while 13 is newest",
+      "expected": "reject",
+      "group": "d-downgrade",
+      "id": "D4",
+      "reasons": {
+        "releaseContract": "Sparkle release build is not the newest appcast item"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false
+      },
+      "description": "validly re-signed feed with HTTP full enclosure",
+      "expected": "reject",
+      "group": "e-http-enclosure",
+      "id": "E1",
+      "informational": {
+        "sparkleFeedSignatureValid": true
+      },
+      "reasons": {
+        "releaseContract": "Sparkle enclosure URL must be a credential-free HTTPS URL"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false
+      },
+      "description": "validly re-signed feed with HTTP delta enclosure",
+      "expected": "reject",
+      "group": "e-http-enclosure",
+      "id": "E2",
+      "reasons": {
+        "releaseContract": "Sparkle enclosure URL must be a credential-free HTTPS URL"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false,
+        "sparkleSignUpdateVerifyFeed": false
+      },
+      "description": "HTTP enclosure without re-signing the feed",
+      "expected": "reject",
+      "group": "e-http-enclosure",
+      "id": "E3",
+      "reasons": {
+        "releaseContract": "Sparkle signed-feed length does not bind the XML prefix"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false
+      },
+      "description": "dot-segment escape from the artifact base",
+      "expected": "reject",
+      "group": "e-http-enclosure",
+      "id": "E4",
+      "reasons": {
+        "releaseContract": "Sparkle enclosure URL contains dot path segments"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false,
+        "sparkleSignUpdateVerifyFeed": false
+      },
+      "description": "feed signature trailer removed",
+      "expected": "reject",
+      "group": "f-feed-weakening",
+      "id": "F1",
+      "reasons": {
+        "releaseContract": "Sparkle appcast has no signed-feed trailer"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "opensslEd25519VerifyFeedPrefix": false,
+        "sparkleSignUpdateVerifyFeed": false
+      },
+      "description": "same-length edit of the signed body (minimumUpdateVersion 11 to 10)",
+      "expected": "reject",
+      "group": "f-feed-weakening",
+      "id": "F2",
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false
+      },
+      "description": "unsigned content appended after the trailer",
+      "expected": "reject",
+      "group": "f-feed-weakening",
+      "id": "F3",
+      "reasons": {
+        "releaseContract": "Sparkle signed-feed trailer must be the final content"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "releaseContract": false
+      },
+      "description": "validly signed item in an unknown channel",
+      "expected": "reject",
+      "group": "f-feed-weakening",
+      "id": "F4",
+      "reasons": {
+        "releaseContract": "Sparkle appcast contains a foreign channel item"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "offeredToStableBuild12": false,
+        "releaseContract": false
+      },
+      "description": "nightly items presented as a stable feed",
+      "expected": "reject",
+      "group": "f-feed-weakening",
+      "id": "F5",
+      "reasons": {
+        "releaseContract": "Sparkle appcast contains a foreign channel item"
+      },
+      "result": "PASS"
+    },
+    {
+      "accepted": {
+        "offeredToBetaBuild12": false
+      },
+      "description": "nightly items are not offered to beta builds",
+      "expected": "reject",
+      "group": "f-feed-weakening",
+      "id": "F6",
+      "result": "PASS"
+    }
+  ],
+  "commands": [
+    [
+      "generate_appcast",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--download-url-prefix",
+      "https://updates.ahoi-testbed.invalid/nightly/",
+      "--minimum-update-version",
+      "11",
+      "--maximum-deltas",
+      "5",
+      "--maximum-versions",
+      "3",
+      "--channel",
+      "nightly",
+      "-o",
+      "<work>/archives/appcast.xml",
+      "<work>/archives"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/archives/AhoiBrowser-13.zip",
+      "A+t3bGmrKBp8QuMIxOd4mkzFEiiqCO8E0xWlYVmsk/M0a6F9DEjaKzqes4g6bjyUnTasLxL8lLS3MFS81tB3BQ=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/archives/AhoiBrowser13-12.delta",
+      "bqMQKBCX7dJrTicCwGYE8KUXKS2vgL5YUQ8UhJqa8sh962GgvXAPpxWyFvod0ianKClGgXKpLMdUPlo6OmQRAQ=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/archives/appcast.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/variants/AhoiBrowser-13.zip",
+      "A+t3bGmrKBp8QuMIxOd4mkzFEiiqCO8E0xWlYVmsk/M0a6F9DEjaKzqes4g6bjyUnTasLxL8lLS3MFS81tB3BQ=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/variants/AhoiBrowser13-12.delta",
+      "bqMQKBCX7dJrTicCwGYE8KUXKS2vgL5YUQ8UhJqa8sh962GgvXAPpxWyFvod0ianKClGgXKpLMdUPlo6OmQRAQ=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/variants/appended-AhoiBrowser-13.zip",
+      "A+t3bGmrKBp8QuMIxOd4mkzFEiiqCO8E0xWlYVmsk/M0a6F9DEjaKzqes4g6bjyUnTasLxL8lLS3MFS81tB3BQ=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/attacker-sparkle-ed-key.txt",
+      "-p",
+      "<work>/archives/AhoiBrowser-13.zip"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/archives/AhoiBrowser-13.zip",
+      "LqQwLJcoJQK+2niwqdzeLPwqcjuyuDuQh9onI4ABJpoLAdMXJc3Yb5FyJewVlkW7i3RAo+8VZL0PfNZz+gIqBg=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/archives/AhoiBrowser-13.zip",
+      "Zr7Z31ionwiAgrl/JMQjVkNzXRsxahnx3ON91HZEb39ePu6YmTVUM/cQ9qM//6dEGDsVGCg6vl0TZr7e0XdCAw=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/archives/AhoiBrowser-13.zip",
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "<work>/variants/foreign-enclosure-signature.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/archives/AhoiBrowser-13.zip",
+      "LqQwLJcoJQK+2niwqdzeLPwqcjuyuDuQh9onI4ABJpoLAdMXJc3Yb5FyJewVlkW7i3RAo+8VZL0PfNZz+gIqBg=="
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/attacker-sparkle-ed-key.txt",
+      "<work>/variants/attacker-signed-feed.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/variants/attacker-signed-feed.xml"
+    ],
+    [
+      "generate_appcast",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--download-url-prefix",
+      "https://updates.ahoi-testbed.invalid/nightly/",
+      "--minimum-update-version",
+      "11",
+      "--maximum-deltas",
+      "5",
+      "--maximum-versions",
+      "3",
+      "--channel",
+      "nightly",
+      "-o",
+      "<work>/old-archives/appcast.xml",
+      "<work>/old-archives"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/old-archives/appcast.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "<work>/variants/downgrade-item.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "<work>/variants/duplicate-version.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "<work>/variants/http-enclosure.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/variants/http-enclosure.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "<work>/variants/http-delta.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/variants/http-enclosure-unsigned.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "<work>/variants/dot-segment-enclosure.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/variants/stripped-feed-signature.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "--verify",
+      "<work>/variants/edited-signed-feed.xml"
+    ],
+    [
+      "sign_update",
+      "--ed-key-file",
+      "<work>/keys/testbed-sparkle-ed-key.txt",
+      "<work>/variants/foreign-channel.xml"
+    ]
+  ],
+  "createdAt": "2026-10-04T19:32:53Z",
+  "feedUrl": "https://updates.ahoi-testbed.invalid/nightly/appcast.xml",
+  "key": {
+    "attackerPublicKeySha256": "baa958878fe2126a71e3accac88efb0afb797933b88c29090f229881eaa26427",
+    "kind": "throwaway Ed25519 generated by OpenSSL; private seed deleted",
+    "productKeyCollision": false,
+    "publicKeySha256": "b69dff131740683a1f054a51d158dd250fa5ccbb89b52a0e55a894b7c4436938"
+  },
+  "kind": "sparkle-update-testbed",
+  "network": "none; all URLs use the reserved .invalid TLD",
+  "schemaVersion": 1,
+  "sparkle": {
+    "toolSha256": {
+      "generate_appcast": "b3b54ba3fb85ef1f25eb2f5a9ad90c32ba6e71af777b181c50ffb5d860bac6b7",
+      "sign_update": "bfb52400c3da18bb4c251ac4818c2c2e1e31c2e649a45b31c11109b6e57b34ad"
+    },
+    "version": "2.9.6"
+  },
+  "summary": {
+    "failed": 0,
+    "passed": 26,
+    "total": 26
+  }
+}
