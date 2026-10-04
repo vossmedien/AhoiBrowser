@@ -28,8 +28,17 @@ setup quoting corrected before execution; actual launch/terminal/step receipts
 identify which assertions ran. The 12/12 cache + native55 and archive-protection6
 proofs remain applicable to unchanged policy/archive logic; no unrelated rerun.
 
-Next authorized work: affected cross-level move/notice dialog close paths, then
-remaining M154 product journeys and coherent default-branch integration. Canonical
+Own obsolete return/signing app copies removed after verified installation and
+canonical source/proof commits. Measured available-space deltas: development Mac
++2.292GiB, target internal volume +3.428GiB (net filesystem measurements; APFS
+sharing/concurrent writers can affect attribution). Installed/rollback apps,
+SSD incremental caches, frozen inputs, receipts and foreign work retained.
+[Scoped cleanup](../artifacts/tests/archive-cancel-lifecycle-20261004/cleanup.json).
+
+Next authorized work: the existing cross-level move journey still reacquires
+foreground on every key and lacks the proven confirmation-readiness boundary.
+Reuse existing focus/yield guards before running that affected Cancel/Confirm/
+Profile-move path; then remaining M154 journeys and coherent default integration. Canonical
 source/proof commit retained; default-main dependency/package and remote HTTPS/SSH
 credential gates from the preceding section remain open. No new build for unchanged
 app/test-only edits. Full original Master/Goal/thread remain active, not complete;

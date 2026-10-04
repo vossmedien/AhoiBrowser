@@ -1,0 +1,26 @@
+{
+  "source": {
+    "deletedOwnedApps": [
+      "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/returned-structure-close-e86c929f/AhoiBrowser.app",
+      "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/returned-mode-fix-92facb58/AhoiBrowser.app"
+    ],
+    "availableBytesBefore": 242533462016,
+    "availableBytesAfter": 244994342912,
+    "measuredAvailableDeltaBytes": 2460880896,
+    "installedAndRollbackAppsPreserved": true,
+    "foreignFilesAndWorktreesPreserved": true
+  },
+  "target": {
+    "deletedOwnedInternalSigningApps": [
+      "/Users/vossmedien/inhouse/evidence/ahoi-factory-diagnostic-20261004-9b304a3c/signing-stage/AhoiBrowser.app",
+      "/Users/vossmedien/inhouse/evidence/ahoi-document-mode-fix-20261004-92facb58/signing-stage/AhoiBrowser.app",
+      "/Users/vossmedien/inhouse/evidence/ahoi-structure-close-fix-20261004-e86c929f/signing-stage/AhoiBrowser.app"
+    ],
+    "availableBytesBefore": 173538770944,
+    "availableBytesAfter": 177219035136,
+    "measuredAvailableDeltaBytes": 3680264192,
+    "ssdIncrementalCacheInstalledRollbackAndEvidencePreserved": true
+  },
+  "scope": "obsolete own portable app copies after accepted installation and canonical source/proof commits",
+  "measurement": "net available filesystem bytes; concurrent writers and APFS sharing can affect deltas"
+}
