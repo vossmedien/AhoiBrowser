@@ -1,5 +1,39 @@
 # Active Desktop checkpoint
 
+## Actual target compilation running on isolated88e631d6 — 4 October2026
+
+Own runner/PGID90320, target phase .work/agent-queue/target73-88e631d6-attempt3/
+{state.json,build.log}; normal dev chrome-only jobs4/nice10/keepgoing0. Native
+Ninja is actually compiling, last observed6424/57099 steps. Target cold output
+explains the57k frontier; do not describe it as source's425-step incremental run.
+No build/sign/installPASS. Latest phase sample2.58–12.51%CPUidle/60%memory free,
+14GBcompressor; compiler/action workload identified as own build.103?GB initial
+prephase reserve passed; latest available101,967,548KiB. No additional heavy run.
+
+Original attempt52131 terminal1: SwiftShader working file337897177bytes had
+wrongSHA8d46339b... despite matching size. Exact expected target Git blob and
+sourceSHA9dccdfa4... agree; this context restored that one owned target file.
+Full native dependency check then0. Original attempt76595 terminal1 after actual
+deps/hooksPASS, before compile: Python3.9 rejected Path.stat(follow_symlinks=False).
+Three calls now use equivalent lstat; actual helper on target3.9 passed file
+mtime/atime/bytes and no-follow symlink cases plus bash syntax. Cleanup restored
+temporary Rust/V8 targets; no warning/assertion weakened.
+
+Frozen88e631d65f58ac80250e464847072eea00c4c877 contains prior clean01c5 plus only
+that compatibility fix; browser product unchanged. Unknown concurrent canonical
+packet07d07452 is preserved and excluded. Its receipt claims this same thread,
+but neither Root nor Inhouse made those writes; attribution remains unresolved.
+Do not overwrite/adopt its files or create a second checkout/build writer.
+
+Finished100GB guard and Python compatibility fix integrated/pushed actualmain
+eba91dbef6eccb960da205fabcca27cee0d052fb (preceding guardd7f8617f). Relevant target
+checks passed; hostedCI skipped per no-paid-Actions policy. Source/main temporary
+worktrees/probes removed; necessary isolated freeze branch retained for provenance.
+Private-key SSH sign error still pending actual local unlock under Inhouse owner;
+no repeat probe before handback. After terminal build, verify exact artifact/sign/
+provenance, return via existing guarded install path, then exact visible journey
+and required focused regressions. All original Master scope/limits remain open.
+
 ## User correction: 100 GB must not veto Chromium updates — 4 October 2026
 
 The existing managed-checkout update guard now treats 100,000,000,000 bytes as
