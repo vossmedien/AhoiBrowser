@@ -1,0 +1,18 @@
+{
+  "startedAt": "2026-10-04T10:26:48.995307+00:00",
+  "source": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work",
+  "destination": "/Volumes/Daten/Inhouse/AhoiBrowser/work",
+  "workers": 4,
+  "parts": [
+    "chromium",
+    "depot_tools",
+    "state"
+  ],
+  "nodes": 1631709,
+  "bytesCompared": 65856194251,
+  "mismatches": 0,
+  "terminal": true,
+  "method": "direct full byte comparison; lstat/link/xattr metadata; extras/missing",
+  "passed": true,
+  "finishedAt": "2026-10-04T10:31:26.679719+00:00"
+}
