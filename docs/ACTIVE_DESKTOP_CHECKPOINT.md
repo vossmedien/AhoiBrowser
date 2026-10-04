@@ -7,8 +7,9 @@ Own runner/PGID90320, target phase .work/agent-queue/target73-88e631d6-attempt3/
 Ninja is actually compiling, last observed6424/57099 steps. Target cold output
 explains the57k frontier; do not describe it as source's425-step incremental run.
 No build/sign/installPASS. Latest phase sample2.58–12.51%CPUidle/60%memory free,
-14GBcompressor; compiler/action workload identified as own build.103?GB initial
-prephase reserve passed; latest available101,967,548KiB. No additional heavy run.
+14GBcompressor; own compiler/action work confirmed by build output. Actual
+prephase host gate96.8GiBfree/93.1GiBrequired passed; latest available
+101,967,548KiB. No additional heavy run.
 
 Original attempt52131 terminal1: SwiftShader working file337897177bytes had
 wrongSHA8d46339b... despite matching size. Exact expected target Git blob and
