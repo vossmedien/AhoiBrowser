@@ -1,0 +1,8 @@
+{
+ "archiveSurvivesRestart": true,
+ "archivedPagesNotOpenedByRestart": true,
+ "separateDeleteConfirmation": true,
+ "cancelledDeleteDismissesConfirmation": false,
+ "setupFailed": "cancel did not dismiss confirmation",
+ "pass": false
+}

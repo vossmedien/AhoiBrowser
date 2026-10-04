@@ -1,0 +1,11 @@
+{
+  "source": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+  "status": "terminal",
+  "startedAt": "2026-10-04T17:58:02.496917+00:00",
+  "journeySha256": "d898a9a5ad56fed3618c79c836e871b1e2125cb529d37200db194e84085f93a7",
+  "runnerPID": 30563,
+  "exitCode": 4,
+  "stateWriterFailed": true,
+  "actualVerdict": "pass:false / own archive delete button missing",
+  "recoveredAt": "2026-10-04T18:02:20.533912+00:00"
+}

@@ -1,5 +1,41 @@
 # Active Desktop checkpoint
 
+## Archive confirmation crash fixed, accepted and installed — 4 October 2026, 20:14 CEST
+
+Current installed source `e86c929f6bfbb0cbe1dac2fa4c101a31250c215a` on both Macs,
+Chromium M154.0.8037.93. The single structure-dialog compilation and link passed;
+SSH signing failed at the known private-key session boundary, then the existing
+GUI signing route passed through an internal portable-app stage (external GUI TCC
+access remains restricted). Exact signed bytes returned to the SSD, provenance
+and canonical target/source installation passed. 526 staged dylibs and 238 framework
+resources verified; source receipt `artifacts/install/ahoi-dev-e86c929f-archive-close-20261004.json`.
+The extra eight component dylibs follow the preceding native test-target link;
+the delivered bundle was freshly verified and exercised, not inferred from old bytes.
+
+[Exact installed archive acceptance](../artifacts/tests/archive-cancel-lifecycle-20261004/accepted12-verdict.json):
+12/12 PASS, native journey exit0. Cancel dismisses the confirmation and retains the
+entry/open pages; confirmed delete removes only the synthetic archived split,
+persists across restart, and keeps open pages. Native Cmd-Q with the confirmation
+open exits0; the unconfirmed entry survives that quit/restart. This renews the
+precise crash boundary from user incident A640FE54 (PID87635), not a broad runtime
+or release acceptance claim. Customer profiles/data untouched.
+
+Earlier AXPress/early-HID and wrapper setup failures remain in the evidence. The
+AX title appears before the native window handoff is settled; the successful
+journey verifies focused confirmation and enabled Cancel before actual HID clicks,
+and observes dismissal. No assertion weakened or retries erased. Test driver
+setup quoting corrected before execution; actual launch/terminal/step receipts
+identify which assertions ran. The 12/12 cache + native55 and archive-protection6
+proofs remain applicable to unchanged policy/archive logic; no unrelated rerun.
+
+Next authorized work: affected cross-level move/notice dialog close paths, then
+remaining M154 product journeys and coherent default-branch integration. Canonical
+source/proof commit retained; default-main dependency/package and remote HTTPS/SSH
+credential gates from the preceding section remain open. No new build for unchanged
+app/test-only edits. Full original Master/Goal/thread remain active, not complete;
+no Root approval/ACK dependency. Target build/signing slot and synthetic browser
+are released after actual terminal receipts.
+
 ## Archive protection6 passes; cancellation lifecycle failure under correction — 4 October 2026
 
 Installed92 affected cache12 and native55 remain PASS. New exact-candidate archive

@@ -1,0 +1,35 @@
+{
+  "kind": "installed-archive-confirmation-lifecycle-acceptance",
+  "sourceCommit": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+  "nativeJourney": "accepted12-verdict.json",
+  "actualNativeJourneyExitCode": 0,
+  "actualBrowserQuitWithOpenConfirmationExitCode": 0,
+  "journeySha256": "d7810e576f64fa13061b23c37f3f1765e1f471fbabf48686987172ff91621033",
+  "sourceInstalledBundle": {
+    "buildNumber": "1",
+    "buildProfile": "dev",
+    "bundleTreeSha256": "0ecf3498c2df7b2bfbd20b83f4d0dc8cd5d4d7d1dfb6a4631d6374a109610d2e",
+    "channel": "nightly",
+    "chromiumCommit": "f89f3a4363808e117c592adedcf9947882ac3b79",
+    "chromiumVersion": "154.0.8037.93",
+    "executable": "AhoiBrowser",
+    "executableSha256": "40ff683bedb54235597a5d98c506c477593ab8da5ddef82cd2729b36533989bf",
+    "gnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4",
+    "identifier": "app.ahoibrowser.AhoiBrowser",
+    "marketingVersion": "0.0.1",
+    "name": "AhoiBrowser",
+    "productVersion": "0.0.1-dev",
+    "sourceCommit": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a"
+  },
+  "targetInstall": "e86-target-install.json",
+  "failedRunsRetained": [
+    "persistence9-failure.json",
+    "e86-early-ax-verdict.json",
+    "e86-early-hid-verdict.json"
+  ],
+  "limits": [
+    "full master product/release acceptance open",
+    "early AXPress success is not button execution evidence",
+    "default-main integration and remote publication open"
+  ]
+}

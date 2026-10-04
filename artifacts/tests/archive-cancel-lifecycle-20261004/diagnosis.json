@@ -7,5 +7,13 @@
   "crash": "SIGSEGV null address in BubbleDialogDelegate::BubbleWidgetObserver::OnWidgetActivationChanged during browser close",
   "hypothesis": "synchronous structure-dialog widget destruction inside native activation observer",
   "correction": "defer owned Widget destruction using existing workspace/group dialog lifecycle pattern",
-  "correctionAccepted": false
+  "correctionAccepted": true,
+  "correctedSource": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+  "acceptedNativeJourney": "12/12 PASS",
+  "actualQuitWithOpenConfirmationExitCode": 0,
+  "earlyAutomationLimitation": "AXPress success and an early HID click precede demonstrated native confirmation focus; readiness now requires focused window and enabled Cancel, real HID clicks, and actual dismissal.",
+  "originalCrashIncident": "A640FE54-2E44-4F53-A50F-59B2A0C1FAE2",
+  "originalCrashPid": 87635,
+  "originalCrashTime": "2026-10-04T18:26:35.2791+02:00",
+  "failedSetupRetained": true
 }

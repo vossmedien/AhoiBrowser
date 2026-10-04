@@ -1,0 +1,10 @@
+{
+  "source": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+  "status": "terminal",
+  "startedAt": "2026-10-04T18:05:23.958345+00:00",
+  "journeySha256": "bf62b366bfffba47cd30f7f45494cc540c5f4726a9c218d84de2d3e6ec857256",
+  "setupFailure": "monitor literal newline quoting; no test/browser started",
+  "runnerPID": 62995,
+  "exitCode": 4,
+  "finishedAt": "2026-10-04T18:09:21.071304+00:00"
+}

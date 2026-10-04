@@ -1,0 +1,15 @@
+{
+  "thread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "scope": "desktop structure close fix",
+  "phase": "/Users/vossmedien/inhouse/evidence/ahoi-structure-close-fix-20261004-e86c929f",
+  "sourceCommit": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+  "worktree": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo76-structure-close-e86c929f",
+  "jobs": 2,
+  "claimedAt": "2026-10-04T17:48:13.595962+00:00",
+  "freeBytes": 677479432192,
+  "status": "terminal",
+  "startedAt": "2026-10-04T17:48:13.596688+00:00",
+  "runnerPid": 71980,
+  "exitCode": 1,
+  "terminalAt": "2026-10-04T17:54:47.807151+00:00"
+}

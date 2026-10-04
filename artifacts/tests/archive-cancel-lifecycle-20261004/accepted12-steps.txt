@@ -1,0 +1,56 @@
+frontmost -> 0
+hidkey 17
+typed 28
+hidkey 36
+hidkey 17
+typed 28
+hidkey 36
+hidkey 48
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+hidclicked  at (974.0, 200.0)
+AXPress AXRadioButton | Solo — Temporärer Tab | Solo — Temporärer Tab | 0 -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Split archivieren | itemSelected: -> 0
+hidkey 12
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+archiveSurvivesRestart -> true
+archivedPagesNotOpenedByRestart -> true
+AXPress AXButton | Endgültig löschen …: PaneA · PaneB | Endgültig löschen …: PaneA · PaneB -> 0
+separateDeleteConfirmation -> true
+hidclicked  at (130.5, 407.0)
+cancelledDeleteDismissesConfirmation -> true
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+cancelledDeleteRetainsEntry -> true
+cancelledDeleteKeepsOpenPages -> true
+AXPress AXButton | Endgültig löschen …: PaneA · PaneB | Endgültig löschen …: PaneA · PaneB -> 0
+hidkey 12
+confirmation browser exit=0
+quitWithOpenConfirmationIsClean -> true
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+unconfirmedDeleteRetainsEntryAfterQuit -> true
+AXPress AXButton | Endgültig löschen …: PaneA · PaneB | Endgültig löschen …: PaneA · PaneB -> 0
+hidclicked  at (261.5, 407.0)
+confirmedDeleteRemovesEntry -> true
+confirmedDeleteKeepsOpenPages -> true
+hidkey 53
+hidkey 12
+frontmost -> 0
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+deletedEntryStaysDeletedAfterRestart -> true
+deletedPagesNotRestored -> true
+hidkey 53
+hidkey 12

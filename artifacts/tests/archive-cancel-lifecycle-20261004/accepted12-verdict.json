@@ -1,0 +1,15 @@
+{
+ "archiveSurvivesRestart": true,
+ "archivedPagesNotOpenedByRestart": true,
+ "separateDeleteConfirmation": true,
+ "cancelledDeleteDismissesConfirmation": true,
+ "cancelledDeleteRetainsEntry": true,
+ "cancelledDeleteKeepsOpenPages": true,
+ "quitWithOpenConfirmationIsClean": true,
+ "unconfirmedDeleteRetainsEntryAfterQuit": true,
+ "confirmedDeleteRemovesEntry": true,
+ "confirmedDeleteKeepsOpenPages": true,
+ "deletedEntryStaysDeletedAfterRestart": true,
+ "deletedPagesNotRestored": true,
+ "pass": true
+}

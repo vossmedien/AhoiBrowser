@@ -39,6 +39,18 @@ delete_entry() {
   activate_owned
   $AX press $PID "AXButton:$label" >> "$OUT/steps.txt"
   waitax 'Archiveintrag endgültig löschen' 6 || fail_setup "separate delete confirmation missing"
+  # The AX window title precedes native layout/activation completion when the
+  # archive bubble hands off to the confirmation. Wait for that transition
+  # before obtaining screen coordinates for a real button click.
+  sleep 2
+  for attempt in 1 2 3 4 5; do
+    $AX focused $PID > "$OUT/confirmation-focus.txt"
+    grep -q '^focusedWindow: AXWindow | Archiveintrag endgültig löschen?' "$OUT/confirmation-focus.txt" && break
+    sleep 1
+  done
+  grep -q '^focusedWindow: AXWindow | Archiveintrag endgültig löschen?' "$OUT/confirmation-focus.txt" || fail_setup "delete confirmation did not acquire native focus"
+  $AX enabled $PID "Abbrechen" > "$OUT/confirmation-cancel-enabled.txt"
+  grep -q 'AXButton | Abbrechen .*enabled=true' "$OUT/confirmation-cancel-enabled.txt" || fail_setup "cancel button unavailable"
 }
 launch "$SITE/solo.html"
 open_url "$SITE/a.html"
@@ -81,13 +93,41 @@ delete_entry
 $AX dump $PID 40 > "$OUT/delete-confirmation.txt"
 check separateDeleteConfirmation 'grep -q "Archiveintrag endgültig löschen" "$OUT/delete-confirmation.txt" && grep -q "AXButton | Abbrechen" "$OUT/delete-confirmation.txt"'
 activate_owned
-$AX press $PID "AXButton:Abbrechen" >> "$OUT/steps.txt"; sleep 2
+# AXPress reports success for this model-host button without dispatching its
+# action on the current macOS candidate. Use a real click and observe dismissal.
+$AX hidclick $PID "AXButton | Abbrechen" >> "$OUT/steps.txt" || fail_setup "cancel click failed"
+for attempt in 1 2 3 4 5; do
+  $AX dump $PID 40 > "$OUT/after-cancel.txt"
+  grep -q 'AXWindow | Archiveintrag endgültig löschen?' "$OUT/after-cancel.txt" || break
+  sleep 1
+done
+check cancelledDeleteDismissesConfirmation '! grep -q "AXWindow | Archiveintrag endgültig löschen?" "$OUT/after-cancel.txt"'
+grep -q 'AXWindow | Archiveintrag endgültig löschen?' "$OUT/after-cancel.txt" && fail_setup "cancel did not dismiss confirmation"
+sleep 2
 archive_search
 check cancelledDeleteRetainsEntry '[ "$(entry_count)" = 1 ]'
 check cancelledDeleteKeepsOpenPages '[ "$(urls)" = "$BEFORE" ]'
 delete_entry
+# The browser previously crashed during native window deactivation with this
+# confirmation open. Cmd-Q must exit normally and leave the unconfirmed entry.
+$AX dump $PID 40 > "$OUT/confirmation-before-quit.txt"
+quit
+wait "$PID"; BROWSER_EXIT=$?
+printf 'confirmation browser exit=%s\n' "$BROWSER_EXIT" >> "$OUT/steps.txt"
+check quitWithOpenConfirmationIsClean '[ "$BROWSER_EXIT" = 0 ]'
+if [ "$BROWSER_EXIT" != 0 ]; then
+  finish "browser failed while closing an open archive confirmation"
+  exit 4
+fi
+sleep 2
+launch
+open_url "$SITE/solo.html"
+BEFORE=$(urls)
+archive_search
+check unconfirmedDeleteRetainsEntryAfterQuit '[ "$(entry_count)" = 1 ]'
+delete_entry
 activate_owned
-$AX press $PID "AXButton:Endgültig löschen" >> "$OUT/steps.txt"
+$AX hidclick $PID "AXButton | Endgültig löschen |" >> "$OUT/steps.txt" || fail_setup "confirm delete click failed"
 waitax 'Das Archiv ist leer' 8 || fail_setup "confirmed archive delete did not complete"
 $AX dump $PID 40 > "$OUT/after-delete.txt"
 check confirmedDeleteRemovesEntry '[ "$(entry_count)" = 0 ] && grep -q "Das Archiv ist leer" "$OUT/after-delete.txt"'

@@ -1,0 +1,10 @@
+{
+  "source": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+  "status": "terminal",
+  "startedAt": "2026-10-04T18:12:24.313350+00:00",
+  "journeySha256": "d7810e576f64fa13061b23c37f3f1765e1f471fbabf48686987172ff91621033",
+  "correction": "require native confirmation focus and enabled Cancel before HID",
+  "runnerPID": 35960,
+  "exitCode": 0,
+  "finishedAt": "2026-10-04T18:14:20.158969+00:00"
+}

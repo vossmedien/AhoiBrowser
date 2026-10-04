@@ -1,0 +1,4 @@
+frontmostApp: AhoiBrowser pid=36714 target=36714
+focusedElement: none
+focusedWindow: AXWindow | Archiveintrag endgültig löschen?
+mainWindow: AXWindow | Solo - AhoiBrowser
