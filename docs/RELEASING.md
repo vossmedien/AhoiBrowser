@@ -65,6 +65,12 @@ signing, notarization, package, installed and materials receipts, both Apple
 JSON response logs and their submitted archives, ZIP/DMG, SBOM, notices,
 source offer and final `release-manifest.json`.
 
+Keep `AHOI_WORK_ROOT` set to the same absolute root used by the guarded build
+and Sparkle fetch. `sparkle-appcast` and the local update testbed resolve their
+pinned tools/materials there. An explicitly configured missing root fails;
+neither command falls back to stale internal `.work` materials. Linked worktrees
+without an explicit root retain the testbed's existing common-repository lookup.
+
 Run the CLI help for exact arguments:
 
 ```sh

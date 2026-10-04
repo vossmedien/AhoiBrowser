@@ -14,6 +14,7 @@ from .chain import assemble_manifest, create_installed_receipt, validate_manifes
 from .common import (
     ReleaseError,
     atomic_write_json,
+    configured_work_root,
     load_json,
     require_sha256,
     sha256_file,
@@ -477,6 +478,7 @@ def _sparkle_appcast(args: argparse.Namespace) -> None:
         _path(args.manifest_public_key),
         policy,
     )
+    work_root = configured_work_root(ROOT)
     generate_appcast(
         _path(args.archives),
         output_name=args.output_name,
@@ -487,10 +489,10 @@ def _sparkle_appcast(args: argparse.Namespace) -> None:
         keychain_account=_required_environment("AHOI_SPARKLE_KEY_ACCOUNT"),
         minimum_update_version=args.minimum_update_version,
         expected_build=args.expected_build,
-        tool=ROOT / ".work/state/sparkle" / PINNED_VERSION / "bin/generate_appcast",
+        tool=work_root / "state/sparkle" / PINNED_VERSION / "bin/generate_appcast",
         pin_path=ROOT / "config/third-party-pins.json",
-        framework=ROOT
-        / ".work/chromium/src/third_party/sparkle/prebuilt/Sparkle.framework",
+        framework=work_root
+        / "chromium/src/third_party/sparkle/prebuilt/Sparkle.framework",
         release_manifest=release_manifest,
         materials_receipt=materials_receipt,
         receipt_output=receipt,

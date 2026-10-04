@@ -24,7 +24,9 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
-from .common import ReleaseError, load_json, sha256_bytes, sha256_file
+from .common import (
+    ReleaseError, configured_work_root, load_json, sha256_bytes, sha256_file,
+)
 from .sparkle import (
     OFFICIAL_TOOL_NAMES,
     PINNED_ARCHIVE_SHA256,
@@ -57,6 +59,9 @@ _FEED_TRAILER = re.compile(
 
 def default_sparkle_tools() -> pathlib.Path:
     """Returns the fetched official tools, also from a linked Git worktree."""
+    if os.environ.get("AHOI_WORK_ROOT"):
+        # Explicit external roots never fall back to stale internal materials.
+        return configured_work_root(ROOT) / "state/sparkle" / PINNED_VERSION / "bin"
     relative = pathlib.Path(".work/state/sparkle") / PINNED_VERSION / "bin"
     candidates = [ROOT / relative]
     try:
