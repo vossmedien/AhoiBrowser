@@ -154,14 +154,14 @@ import sys
 
 reference = Path(sys.argv[1])
 target = Path(sys.argv[2])
-reference_stat = reference.stat(follow_symlinks=False)
-target_stat = target.stat(follow_symlinks=False)
+reference_stat = reference.lstat()
+target_stat = target.lstat()
 os.utime(
     target,
     ns=(target_stat.st_atime_ns, reference_stat.st_mtime_ns),
     follow_symlinks=False,
 )
-if target.stat(follow_symlinks=False).st_mtime_ns != reference_stat.st_mtime_ns:
+if target.lstat().st_mtime_ns != reference_stat.st_mtime_ns:
     raise SystemExit(f"failed to preserve original mtime for {target}")
 PY
 }
