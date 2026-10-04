@@ -17,17 +17,18 @@ def load_json(relative_path: str):
 
 
 class RepositoryBuildContractTests(unittest.TestCase):
-    def test_existing_checkout_update_preserves_shared_host_reserve(self):
+    def test_existing_checkout_update_is_not_blocked_by_shared_host_reserve(self):
         helper = ROOT / "scripts/lib/common.sh"
         policy = load_json("config/toolchain.json")["host"]
-        required = policy["minimumFreeBuildBytes"]
-        floor = policy["absoluteMinimumFreeBuildBytes"]
-        self.assertEqual(100000000000, required)
-        self.assertEqual(required, floor)
+        recommended = policy["minimumFreeWorkBytes"]
+        floor = policy["minimumFreeUpdateBytes"]
+        self.assertEqual(100000000000, recommended)
+        self.assertEqual(32 * 2**30, floor)
         for available, override, succeeds in (
-            (required, "0", True), (required - 1, "0", False),
-            (required - 1, "1", False), (floor, "1", True),
-            (floor - 1, "1", False),
+            (recommended, "0", True), (recommended - 1, "0", True),
+            (64 * 2**30, "0", True), (recommended - 1, "1", True),
+            (floor, "0", True), (floor, "1", True),
+            (floor - 1, "0", False), (floor - 1, "1", False),
         ):
             with self.subTest(available=available, override=override):
                 result = subprocess.run(
@@ -42,8 +43,10 @@ class RepositoryBuildContractTests(unittest.TestCase):
                     capture_output=True, text=True, check=False,
                 )
                 self.assertEqual(succeeds, result.returncode == 0, result.stderr)
-                if succeeds and available < required:
-                    self.assertIn("explicit low-disk existing-checkout update", result.stderr)
+                if succeeds and available < recommended:
+                    self.assertIn("below advisory host reserve", result.stderr)
+                if not succeeds:
+                    self.assertIn("existing files retained", result.stderr)
         fetch = (ROOT / "scripts/fetch-chromium.sh").read_text(encoding="utf-8")
         self.assertLess(fetch.index("ahoi_require_clean_git_checkout"),
                         fetch.index("ahoi_require_update_free_space"))

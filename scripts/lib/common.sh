@@ -139,23 +139,20 @@ PY
 }
 
 # Only for an existing, verified managed checkout. Its sources already occupy
-# disk, so do not reserve a second initial checkout. An explicitly supervised
-# low-disk update retains the existing absolute build floor, never a zero floor.
+# disk, so do not reserve a second initial checkout. The shared 100 GB reserve
+# is advisory for updates; retain their separate 32 GiB staging floor.
 ahoi_require_update_free_space() {
   local required
+  local recommended
   local available
-  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeBuildBytes)"
+  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeUpdateBytes)"
+  recommended="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeWorkBytes)"
   available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
   if [ "${available}" -lt "${required}" ]; then
-    if [ "${AHOI_ALLOW_LOW_DISK:-0}" = "1" ]; then
-      local absolute_floor
-      absolute_floor="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.absoluteMinimumFreeBuildBytes)"
-      [ "${available}" -ge "${absolute_floor}" ] || \
-        ahoi_die "low-disk update override refused below the absolute safety floor; existing files retained"
-      echo "warning: explicit low-disk existing-checkout update: ${available} bytes available, ${required} recommended, ${absolute_floor} absolute floor" >&2
-      return 0
-    fi
     ahoi_die "insufficient update staging reserve: ${available} bytes available, ${required} required; existing files retained"
+  fi
+  if [ "${available}" -lt "${recommended}" ]; then
+    echo "warning: Chromium update proceeding below advisory host reserve: ${available} bytes available, ${recommended} recommended; update staging floor ${required}" >&2
   fi
   ahoi_note "existing-checkout update reserve verified: ${available} bytes available, ${required} required"
 }

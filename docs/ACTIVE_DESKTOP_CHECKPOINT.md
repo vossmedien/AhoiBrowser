@@ -1,5 +1,17 @@
 # Active Desktop checkpoint
 
+## Chromium update reserve exception integrated independently — 4 October 2026
+
+Source change07d07452 belongs to the existing Ahoi user's explicit instruction
+that the100-GB reserve must not veto Chromium updates. The finished guard change
+is integrated independently here, preserving main's Chromium/toolchain pins and
+unrelated product source. Existing managed-checkout updates warn below100GB;
+separate previous32-GiB staging floor remains, without requiring a low-disk flag.
+[Actual main-input target checks](../artifacts/tests/chromium-update-reserve-20261004/main-receipt.json):
+2/2 PASS on MacbookPro2026; no download/compile/browser acceptance claim.
+Existing full Master and active desktop-core candidate retain their own gates;
+this guard integration does not promote the running88e631d6 browser product.
+
 ## Design waves, Arc import, build 51 contents — 29 September 2026, 15:40 CEST
 
 - **Design references (Codex delegation 7202e164):** 19 PNGs plus a binding

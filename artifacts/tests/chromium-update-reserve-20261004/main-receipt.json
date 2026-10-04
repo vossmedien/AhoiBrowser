@@ -1,0 +1,16 @@
+{
+  "verifiedAt": "2026-10-04T03:33:45.584095+00:00",
+  "host": "MacbookPro2026.local",
+  "baseMainCommit": "eba91dbef6eccb960da205fabcca27cee0d052fb",
+  "sourceChange": "07d07452dc3d713600e90ca5a7477fe3e174f3d8",
+  "exitCode": 0,
+  "testsPassed": 2,
+  "result": "PASS",
+  "scope": "exact default-branch guard integration; controlled free-byte readings in actual shell guards, no Chromium update or build",
+  "inputSHA256": {
+    "config/toolchain.json": "156c122580b129905dfd5ccb7c4bd8b70a896997dc6ec41e17be4047b18388b9",
+    "scripts/lib/common.sh": "ce8b9aeed48eae9f2884e6929085877420c6699693d424d3016ddf8164db765c",
+    "scripts/fetch-chromium.sh": "4b85a216cdbda15ad2861e170ca371a7aa7d86f6fa2cea6833b3da1fd1b59e2f",
+    "tests/repository/test_repository_build_contracts.py": "bd37a5d0342a30678340f1f67b3b7be7af9ed5374f71bdc04aa58f332e86da0f"
+  }
+}

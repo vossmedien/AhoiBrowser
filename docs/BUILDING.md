@@ -41,21 +41,27 @@ applicability are reviewed and repinned.
 
 The explicit user decision of 4 October 2026 replaces the previous 150/120 GiB
 checkout thresholds and 64/32 GiB build thresholds with the shared 100 GB host
-reserve. All configured recommendations and hard floors are 100,000,000,000
-bytes (about 93.1 GiB); `AHOI_ALLOW_LOW_DISK=1` cannot bypass this floor.
+reserve. Initial checkout and build recommendations and hard floors are
+100,000,000,000 bytes (about 93.1 GiB); `AHOI_ALLOW_LOW_DISK=1` cannot bypass
+those floors. Existing-checkout updates have the explicit exception below.
 Before each heavy phase, assess anticipated additional output and concurrent
 writers against actual free host space. Docker's unchanged 160 GiB logical cap
-is not already occupied physical storage. The reserve does not grant a build
-slot or replace toolchain, provenance, signing or acceptance gates. Builds and
+is not already occupied physical storage. The reserve does not replace
+ownership, toolchain, provenance, signing or acceptance gates. Builds and
 heavy tests run on MacbookPro2026.local; canonical code and Git remain on .45.
 
 An update of an existing managed checkout uses a separate staging assessment:
 after verifying its official origin, valid HEAD, DEPS/VERSION, clean source and
-exact managed `.gclient`, `fetch-chromium.sh` requires the same 100 GB host
-reserve. Update reserve is checked again after prehydration and dependency sync.
-The older 20 September supervised low-disk path is superseded by this floor.
-Do not count anticipated
-cleanup as free space or automatically delete old outputs to meet a threshold.
+exact managed `.gclient`, `fetch-chromium.sh` uses
+`host.minimumFreeUpdateBytes` (32 GiB, the previous staging safety floor).
+The user's follow-up of 4 October explicitly exempts Chromium updates from a
+100 GB veto: below that advisory reserve, updates proceed with a warning,
+without requiring `AHOI_ALLOW_LOW_DISK=1`. The separate update floor is checked
+again after prehydration and dependency sync; it cannot be bypassed by the
+low-disk flag. Assess the particular update's expected additional storage and
+other writers; 32 GiB is not a guarantee that every milestone roll fits.
+Do not count anticipated cleanup as free space or automatically delete old
+outputs to meet a threshold.
 This is a staging reserve, not a promised download-size bound. Monitor available
 space during long transfers; if capacity falls short, retain the resumable
 checkout/objects and stop before the next phase. Do not delete candidates or
