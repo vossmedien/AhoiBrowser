@@ -1,5 +1,27 @@
 # Active Desktop checkpoint
 
+## Guarded target73 actually launched — 4 October2026,03:13CEST
+
+Actual own runnerPID/PGID52131 on MacbookPro2026; phase
+~/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/
+target73-01c5fc0c/{state.json,build.log}, own state/target73-owner-lock.
+Clean target input01c5fc0c55cf239aa6493abd9e49e914c7174f3f fetched from a canonical
+Git bundle, no target implementation commit. Compared with original73/de4e,
+overlay/patches/apps/scripts/tools identical; only toolchain100GB thresholds
+change product/build inputs. Guarded build-ahoi.sh dev, chrome only, jobs4/nice10/
+keepgoing0. No test-binary/full-matrix or source build. Actual latest host gate0:
+exact Xcode/SDKs,111.6GiBfree vs93.1GiB required. Source output's prior17GiB size
+informs growth assessment; current target state is not an incremental-build pass.
+Initial run is still in source/preflight gates; no compilation/sign/installPASS.
+
+Inhouse owner diagnosed SSH login-Keychain access as User interaction is not
+allowed, security show-keychain-info exit36. User is handling local target unlock
+with password entered there; no credentials in arguments/chat, no broad ACL
+change. After actual unlock, renew own stable-signing probe. Build remains normal/
+fail-closed; final signer still requires that access. Root and Inhouse notified
+of actual process/output ownership; Cockpit/sourceGUI untouched. Mobile scoped
+SavedData PASS/owned simulator Shutdown is in ACTIVE_MOBILE_CHECKPOINT.md.
+
 ## Isolated target continuation resumed; concrete signing access boundary — 4 October2026
 
 Latest explicit Inhouse/user handback removes old serial Root1258/slot waits for
