@@ -13,6 +13,7 @@
 #include "ahoi/browser/developer_toolkit/developer_profile_runtime.h"
 #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
 #include "base/functional/bind.h"
+#include "base/logging.h"
 #include "base/memory/self_deleting.h"
 #include "base/memory/weak_ptr.h"
 #include "base/task/thread_pool.h"
@@ -365,6 +366,24 @@ class DeveloperFactoryProxy final
       const network::ResourceRequest& request,
       bool verify_saved_rules = false) {
     auto* frame = content::RenderFrameHost::FromFrameToken(frame_token_);
+    VLOG(1) << "Ahoi developer factory ownership: contents=" << !!contents_
+            << " frame=" << !!frame
+            << " active=" << (frame && frame->IsActive())
+            << " generation="
+            << (contents_ && ActivationGeneration(contents_.get()) ==
+                                 activation_generation_)
+            << " navigation="
+            << (frame && frame->GetNavigationId() == navigation_id_)
+            << " origin="
+            << (frame && frame->GetLastCommittedOrigin() == origin_)
+            << " owner="
+            << (frame && content::WebContents::FromRenderFrameHost(frame) ==
+                             contents_.get())
+            << " main=" << request.is_outermost_main_frame
+            << " initiator=" << (request.request_initiator == origin_)
+            << " committed="
+            << (contents_ &&
+                url::Origin::Create(contents_->GetLastCommittedURL()) == origin_);
     if (contents_ && frame && frame->IsActive() &&
         ActivationGeneration(contents_.get()) == activation_generation_ &&
         frame->GetNavigationId() == navigation_id_ &&
@@ -425,6 +444,11 @@ void MaybeProxyDeveloperProfileURLLoaderFactory(
     const url::Origin& factory_origin,
     network::URLLoaderFactoryBuilder& builder,
     DeveloperSecretStoreFactory secret_store_factory) {
+  VLOG(1) << "Ahoi developer factory eligibility: toolkit="
+          << ToolkitEnabled(prefs) << " otr=" << is_off_the_record
+          << " frame_owned=" << is_frame_owned_subresource_factory
+          << " frame=" << !!frame
+          << " http=" << factory_origin.GetURL().SchemeIsHTTPOrHTTPS();
   if (!ToolkitEnabled(prefs) || is_off_the_record ||
       !is_frame_owned_subresource_factory || !frame ||
       !factory_origin.GetURL().SchemeIsHTTPOrHTTPS()) {
@@ -436,6 +460,11 @@ void MaybeProxyDeveloperProfileURLLoaderFactory(
   }
   const auto profile = GetDeveloperNetworkProfileForTab(
       prefs, web_contents, factory_origin.GetURL());
+  VLOG(1) << "Ahoi developer factory profile: found=" << !!profile
+          << " ua=" << (profile && profile->user_agent_enabled)
+          << " request=" << (profile && profile->header_rules_enabled)
+          << " response=" << (profile && profile->response_header_rules_enabled)
+          << " cache=" << (profile && profile->cache_disabled);
   if (!profile || (!profile->user_agent_enabled &&
                    !profile->header_rules_enabled &&
                    !profile->response_header_rules_enabled &&
