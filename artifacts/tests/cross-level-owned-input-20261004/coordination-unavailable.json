@@ -1,0 +1,40 @@
+{
+  "requestId": "ca192089-b4e0-4b85-ae74-3b0b8f118d13",
+  "sourceThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "sourceAccountBinding": "current CODEX_HOME A29; child helper only, no client configuration change",
+  "mode": "external read-only information because current session snapshot unavailable",
+  "toolAvailabilityVerified": true,
+  "tools": [
+    "cockpit_orchestrator_message",
+    "cockpit_orchestrator_status",
+    "cockpit_sessions"
+  ],
+  "messageAccepted": false,
+  "actualMessageReceipt": {
+    "result": {
+      "isError": true,
+      "content": [
+        {
+          "type": "text",
+          "text": "SOURCE_UNAVAILABLE: current MCP consumer and valid source binding required."
+        }
+      ]
+    },
+    "jsonrpc": "2.0",
+    "id": 2
+  },
+  "actualStatus": {
+    "id": 3,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "REQUEST_NOT_FOUND: no receipt for this caller."
+        }
+      ],
+      "isError": true
+    },
+    "jsonrpc": "2.0"
+  },
+  "limits": "no queued/native delivery, owner response or unlock claimed; preserve this request identity; no blind retry/new request"
+}

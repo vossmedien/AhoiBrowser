@@ -16,6 +16,22 @@ This is access-boundary progress, not25/25 journey or feature acceptance. Driver
 and pending native path stay bound to installed e86; no new app build, SourceUI
 use, unlock/credential change, Root ACK request or foreign signals.
 
+Frozen driver actually imported/hash-verified on target:0e38e26e in
+`.../AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e`, driver
+SHA256bb4a3f597855ffb80c5860d349815863880052e5d0ead9394be91a45f00036dc.
+Product delta since installed e86 is empty. No runtime started.
+[Input receipt](../artifacts/tests/cross-level-owned-input-20261004/frozen-driver.json).
+
+Existing public Cockpit helper tools/list verified using the current actual
+CODEX_HOME A29 binding and a disposable child helper; no account/login/Goal/
+MCP config change. cockpit_sessions publishes no current session snapshot.
+One read-only Orchestrator information request under stable request_id,
+existing thread/external information binding, asks coordination only with the
+existing Inhouse owner/saved ScreenSharing access; no new worker/Goal or Root
+status/ACK request. It is NOT accepted: SOURCE_UNAVAILABLE/current consumer
+binding required; exact status REQUEST_NOT_FOUND/no receipt. No delivery/owner
+answer/unlock inferred, no blind new UUID/retry. [Actual failed coordination](../artifacts/tests/cross-level-owned-input-20261004/coordination-unavailable.json).
+
 Next runtime action: authenticated unlocked GUI through the existing inhouse
 access path, re-observe current input/owner/capacity, then execute the frozen
 cross-level move driver. Resource gate is currently clear; GUI access is the

@@ -1,0 +1,10 @@
+{
+  "thread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "driverSource": "0e38e26e4efcc96d1795d88aab6be3ad015adb55",
+  "driverSha256": "bb4a3f597855ffb80c5860d349815863880052e5d0ead9394be91a45f00036dc",
+  "worktree": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo77-crosslevel-driver-0e38e26e",
+  "installedAppSource": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+  "productDeltaSinceInstalled": false,
+  "runtimeStarted": false,
+  "remainingPrerequisite": "authenticated unlocked target GUI and current input ownership"
+}
