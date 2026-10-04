@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+## Exact installed88 visible cache journey RED; scoped diagnosis and source cleanup — 4 October2026
+
+After actual user unlock10:16 and fresh CUA target-desktop observation, the
+existing cache12 journey ran on installed88 with an isolated synthetic profile,
+expected-source and foreground-yield guards. Actual12 assertions reached:
+7PASS/5RED, terminal1. Document fetches return count1/1 but requestHeadermissing/
+responseHeadernull; selected document also fails to bypass cache. Existing worker
+returns configured/present, warm1/1 and cache-off2/3. Native cache-chip toggle,
+cancelled reload/draft/document/worker retention and nonpersistent origin cache
+checks PASS. This is actual product acceptance failure, not the prior prelaunch
+infrastructure cancellation. Original verdict/fixtures retained under
+artifacts/build/inhouse-ahoi-freeze-20261003/target73-20261004/cache12-installed88-unlocked/.
+CUA visibly observed native PaneA/split fixture in the exact target browser.
+
+Narrow hypothesis: document factory binding fails an owner/activation/navigation
+or eligibility predicate despite valid saved rules.5001b871 adds opt-inVLOG of
+only eligibility/match flags, no URLs/header values/secrets; all checks unchanged.
+Not built/accepted or published as a fix. Next: one document fetch on a bounded
+incremental diagnostic candidate to resolve the actual predicate; no full matrix
+or unchanged cache12 rerun. Target current df50827132KiB (~48GiB) is below CURRENT
+100GB build floor; Inhouse owns obsolete target-staging review, no source build
+fallback/guard bypass/foreign deletion. Existing installed88/target cache retained.
+
+Migration accepted independently of this product RED. Own Source-only obsolete
+out/AhoiDev,returned73-88e631d6 and cleanverify73-88e631d6 worktree removed after
+verified return/install. Code/Git/input88, installed app and recorded72rollback,
+source profiles and all target outputs preserved. Source df observed increase
+18879311872bytes (124665065472→143544377344), background host changes possible.
+Only unrelated NotificationsSettings cached80-byte locale resource was open;
+no foreign signal or active Ahoi binary/library deleted. Exact cleanup receipt
+source-cleanup-receipt.json and old small workaround receipt retained in the
+existing target73-20261004 evidence directory. Original Goal/model/account intact.
+
 ## Exact88 signed, returned and installed; visible journey awaiting target unlock — 4 October2026
 
 Actual authenticated target GUI postcompile phase terminal0/complete09:24:11CEST:

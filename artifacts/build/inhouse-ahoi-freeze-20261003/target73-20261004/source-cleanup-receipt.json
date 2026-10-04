@@ -1,0 +1,16 @@
+{
+  "removed": [
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev",
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/returned73-88e631d6",
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/verify73-88e631d6"
+  ],
+  "sourceCodeRootPreserved": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src",
+  "installedSourceCommit": "88e631d65f58ac80250e464847072eea00c4c877",
+  "targetOutputsChanged": false,
+  "sourceProfilesDeleted": false,
+  "foreignProcessSignalled": false,
+  "freeBytesBefore": 124665065472,
+  "freeBytesAfter": 143544377344,
+  "observedFreeBytesDelta": 18879311872,
+  "scope": "three task-owned obsolete development outputs after verified inhouse return/install; concurrent host changes may affect df delta"
+}
