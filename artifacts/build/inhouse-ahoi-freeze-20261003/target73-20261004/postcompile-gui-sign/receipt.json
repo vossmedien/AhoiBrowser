@@ -1,0 +1,14 @@
+{
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "sourceCommit": "88e631d65f58ac80250e464847072eea00c4c877",
+  "app": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium/src/out/AhoiDev/AhoiBrowser.app",
+  "log": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/target73-88e631d6-attempt3/postcompile-gui-sign/sign-verify-provenance.log",
+  "executionContext": "target authenticated GUI Terminal",
+  "status": "terminal",
+  "rebuild": false,
+  "adHoc": false,
+  "startedAt": "2026-10-04T07:22:53.158479+00:00",
+  "exitCode": 0,
+  "lastStage": "complete",
+  "terminalAt": "2026-10-04T07:24:11.219087+00:00"
+}

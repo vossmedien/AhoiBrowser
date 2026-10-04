@@ -1,5 +1,36 @@
 # Active Desktop checkpoint
 
+## Exact88 signed, returned and installed; visible journey awaiting target unlock — 4 October2026
+
+Actual authenticated target GUI postcompile phase terminal0/complete09:24:11CEST:
+stable Apple Development2265UJB5KF/Team248AJ5BN47, nested signature verification,
+518dylibs/238framework resources and canonical dev provenance all PASS. No rebuild
+or Adhoc. Source/target binary SHA256a8dbc3de24edc542feb00e9ba556f23d72ba3083d08f9bdc3c9b11f4b0de5397.
+Provenance/source stamp exactly88e631d65f58ac80250e464847072eea00c4c877/M154.0.8037.93.
+
+Exact bundle returned to canonical .work/agent-queue/returned73-88e631d6;
+source verification from clean frozen88 context0. Canonical guarded installer
+activated /Applications/AhoiBrowser.app on development Mac and on target, both0.
+Source immutable receipt artifacts/install/ahoi-dev-88e631d6-inhouse-20261004.json;
+target receipt and postcompile receipt/log/provenance retained under
+artifacts/build/inhouse-ahoi-freeze-20261003/target73-20261004/. Source app is now
+available to user; no user-profile migration/import/reset. Prior bundle remains
+through the transaction's recorded rollback. No installed-browser acceptance yet.
+
+First existing cache12 journey on target refused BEFORE browser launch at07:46Z:
+browserRunningfalse/foreign compilerRunningtrue. Cancel8 retained in
+cache12-prelaunch-cancel; no case executed, not a productRED/PASS. Subsequent
+actual compiler list empty and aggregate46–50%idle; no unchanged retry performed.
+CUA Screen Sharing showed black connection; Inhouse reconnected only that view
+and observed actual Christian-Voss lockscreen10:06, requested user unlock once,
+then explicitly returned GUI ownership. No Host/App/Docker restart or secret action.
+
+Park only visible acceptance: after actual user unlock, freshly bind target view,
+observe exact installed88, resume native cache/header journey with synthetic
+profile and foreground-yield guards, then necessary focused regressions. Do not
+substitute broad programmatic suites for unavailable visible proof. Full original
+Goal, external permissions, data and model/account identities retained.
+
 ## Target compilation/staging complete; final signing ACL pending — 4 October2026
 
 Actual90320/Ninja94976 terminal, phase attempt3 exit1 at09:06:39CEST. Native
