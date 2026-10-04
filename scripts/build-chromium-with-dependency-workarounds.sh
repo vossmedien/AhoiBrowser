@@ -242,9 +242,13 @@ ahoi_note "applying ${chromium_id} and ${v8_id} only for gn gen and autoninja"
   cd "${AHOI_CHROMIUM_SRC}"
   gn gen "${out_dir}" --args="${args}"
   if [ -n "${AHOI_JOBS:-}" ]; then
-    autoninja -C "${out_dir}" -k "${ninja_failure_limit}" -j "${AHOI_JOBS}" "${targets[@]}"
+    python3 "${AHOI_REPO_ROOT}/tools/run_with_disk_reserve.py" \
+      --work-root "${AHOI_WORK_ROOT}" --policy "${AHOI_REPO_ROOT}/config/toolchain.json" \
+      -- autoninja -C "${out_dir}" -k "${ninja_failure_limit}" -j "${AHOI_JOBS}" "${targets[@]}"
   else
-    autoninja -C "${out_dir}" -k "${ninja_failure_limit}" "${targets[@]}"
+    python3 "${AHOI_REPO_ROOT}/tools/run_with_disk_reserve.py" \
+      --work-root "${AHOI_WORK_ROOT}" --policy "${AHOI_REPO_ROOT}/config/toolchain.json" \
+      -- autoninja -C "${out_dir}" -k "${ninja_failure_limit}" "${targets[@]}"
   fi
 )
 

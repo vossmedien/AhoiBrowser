@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## Phase growth budget replaces fixed host floor — 4 October 2026
+
+Latest explicit user correction removes the fixed100GB veto. Current A29 owns
+Source Git after explicit DEFAA/Root/Inhouse handback; no writer/lock observed,
+foreign artifacts/worktrees retained.07 is already published as main e5cd552b;
+its provenance and both receipts remain unchanged, no duplicate integration.
+
+Own new config/common/build-wrapper delta budgets expected additional growth
+plus8GiB emergency reserve (default checkout60/build20/update24GiB). A reviewed
+incremental estimate may change only expected growth. Owned Ninja process-group
+monitor stops before observed reserve exhaustion and cleans its child on parent
+signals; no foreign processes signalled. External /Volumes/Daten entry checks
+use existing Inhouse UUID/APFS/mount helper before writes and during monitoring.
+Target small focused checks5/5 PASS plus bash syntax0; exact inputs and limits:
+artifacts/tests/chromium-phase-budget-20261004/receipt.json. This is tool evidence,
+not a new browser/runtime acceptance; native cache product7PASS/5RED stays open.
+
+Inhouse latest concrete transfer handback grants sole Ahoi ownership for
+/Volumes/Daten/Inhouse/AhoiBrowser/work. Fresh11:54 target71.58%CPUidle,
+59% memory free, no compiler observed; latest prior heavy hold lifted explicitly.
+No M155 roll authorized by the capacity question. Next: publish only verified
+guard delta on main; freshly check target/root identity and capacity, transfer
+own Chromium/depot/state to SSD with verification before root switching or
+source cleanup. Keep frozen88 and installed88 unchanged. Then bounded diagnostic
+candidate and one Document fetch resolve factory match flags, before correcting
+and renewing the affected visible journey. Canonical code/Git and apps stay Dev.
+
+
 ## Exact installed88 visible cache journey RED; scoped diagnosis and source cleanup — 4 October2026
 
 After actual user unlock10:16 and fresh CUA target-desktop observation, the
@@ -19,9 +47,9 @@ or eligibility predicate despite valid saved rules.5001b871 adds opt-inVLOG of
 only eligibility/match flags, no URLs/header values/secrets; all checks unchanged.
 Not built/accepted or published as a fix. Next: one document fetch on a bounded
 incremental diagnostic candidate to resolve the actual predicate; no full matrix
-or unchanged cache12 rerun. Target current df50827132KiB (~48GiB) is below CURRENT
-100GB build floor; Inhouse owns obsolete target-staging review, no source build
-fallback/guard bypass/foreign deletion. Existing installed88/target cache retained.
+or unchanged cache12 rerun. That phase was parked under the then-current100GB floor. The newer user budget
+correction and SSD handback above supersede that storage blocker; no source-build
+fallback or foreign deletion. Existing installed88/target cache retained.
 
 Migration accepted independently of this product RED. Own Source-only obsolete
 out/AhoiDev,returned73-88e631d6 and cleanverify73-88e631d6 worktree removed after

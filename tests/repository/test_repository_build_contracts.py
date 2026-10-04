@@ -17,36 +17,28 @@ def load_json(relative_path: str):
 
 
 class RepositoryBuildContractTests(unittest.TestCase):
-    def test_existing_checkout_update_is_not_blocked_by_shared_host_reserve(self):
-        helper = ROOT / "scripts/lib/common.sh"
-        policy = load_json("config/toolchain.json")["host"]
-        recommended = policy["minimumFreeWorkBytes"]
-        floor = policy["minimumFreeUpdateBytes"]
-        self.assertEqual(100000000000, recommended)
-        self.assertEqual(32 * 2**30, floor)
-        for available, override, succeeds in (
-            (recommended, "0", True), (recommended - 1, "0", True),
-            (64 * 2**30, "0", True), (recommended - 1, "1", True),
-            (floor, "0", True), (floor, "1", True),
-            (floor - 1, "0", False), (floor - 1, "1", False),
-        ):
-            with self.subTest(available=available, override=override):
-                result = subprocess.run(
-                    ["bash", "-c", (
-                        'source "$1"; '
-                        'ahoi_free_bytes() { printf "%s\\n" "$AHOI_TEST_FREE_BYTES"; }; '
-                        'ahoi_require_update_free_space'
-                    ), "ahoi-update-space-test", str(helper)],
-                    cwd=ROOT,
-                    env={**os.environ, "AHOI_TEST_FREE_BYTES": str(available),
-                         "AHOI_ALLOW_LOW_DISK": override},
-                    capture_output=True, text=True, check=False,
-                )
-                self.assertEqual(succeeds, result.returncode == 0, result.stderr)
-                if succeeds and available < recommended:
-                    self.assertIn("below advisory host reserve", result.stderr)
-                if not succeeds:
-                    self.assertIn("existing files retained", result.stderr)
+    def check_budget(self, phase, available, growth="", override="1"):
+        return subprocess.run(
+            ["bash", "-c", (
+                'source "$1"; '
+                'ahoi_free_bytes() { printf "%s\\n" "$AHOI_TEST_FREE_BYTES"; }; '
+                'ahoi_require_phase_free_space "$2"'
+            ), "ahoi-budget-test", str(ROOT / "scripts/lib/common.sh"), phase],
+            cwd=ROOT, env={**os.environ, "AHOI_WORK_ROOT": str(ROOT / ".work"),
+                           "AHOI_TEST_FREE_BYTES": str(available),
+                           "AHOI_PLANNED_GROWTH_BYTES": growth,
+                           "AHOI_ALLOW_LOW_DISK": override},
+            capture_output=True, text=True, check=False,
+        )
+
+    def test_existing_checkout_update_uses_phase_budget(self):
+        policy = load_json("config/toolchain.json")["diskSpace"]
+        required = policy["estimatedGrowthBytes"]["update"] + policy["safetyReserveBytes"]
+        for available, succeeds in ((required, True), (required - 1, False)):
+            result = self.check_budget("update", available)
+            self.assertEqual(succeeds, result.returncode == 0, result.stderr)
+            if not succeeds:
+                self.assertIn("existing files retained", result.stderr)
         fetch = (ROOT / "scripts/fetch-chromium.sh").read_text(encoding="utf-8")
         self.assertLess(fetch.index("ahoi_require_clean_git_checkout"),
                         fetch.index("ahoi_require_update_free_space"))
@@ -116,64 +108,19 @@ class RepositoryBuildContractTests(unittest.TestCase):
                 "preserve linked\n", linked_receipt.read_text(encoding="utf-8")
             )
 
-    def test_checkout_and_build_cannot_override_shared_host_reserve(self):
-        helper_script = ROOT / "scripts/lib/common.sh"
-        completed = subprocess.run(
-            [
-                "bash",
-                "-c",
-                (
-                    'source "$1"; '
-                    'ahoi_free_bytes() { printf "%s\\n" 100000000000; }; '
-                    'AHOI_ALLOW_LOW_DISK=1 ahoi_require_build_free_space'
-                ),
-                "ahoi-low-disk-test",
-                str(helper_script),
-            ],
-            cwd=ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(0, completed.returncode, completed.stderr)
-        self.assertNotIn("low-disk build override", completed.stderr)
-
-        refused = subprocess.run(
-            [
-                "bash",
-                "-c",
-                (
-                    'source "$1"; '
-                    'ahoi_free_bytes() { printf "%s\\n" 99999999999; }; '
-                    'AHOI_ALLOW_LOW_DISK=1 ahoi_require_build_free_space'
-                ),
-                "ahoi-low-disk-test",
-                str(helper_script),
-            ],
-            cwd=ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        self.assertNotEqual(0, refused.returncode)
-        self.assertIn("absolute safety floor", refused.stderr)
-
-        policy = load_json("config/toolchain.json")["host"]
-        self.assertEqual(100000000000, policy["minimumFreeWorkBytes"])
-        self.assertEqual(100000000000, policy["absoluteMinimumFreeCheckoutBytes"])
-        for available, succeeds in ((100000000000, True), (99999999999, False)):
-            with self.subTest(checkout_free_bytes=available):
-                checkout = subprocess.run(
-                    ["bash", "-c", (
-                        'source "$1"; '
-                        'ahoi_free_bytes() { printf "%s\\n" "$AHOI_TEST_FREE_BYTES"; }; '
-                        'AHOI_ALLOW_LOW_DISK=1 ahoi_require_free_space'
-                    ), "ahoi-checkout-reserve-test", str(helper_script)],
-                    cwd=ROOT,
-                    env={**os.environ, "AHOI_TEST_FREE_BYTES": str(available)},
-                    capture_output=True, text=True, check=False,
-                )
-                self.assertEqual(succeeds, checkout.returncode == 0, checkout.stderr)
+    def test_phase_growth_budget_and_safety_reserve_cannot_be_bypassed(self):
+        policy = load_json("config/toolchain.json")["diskSpace"]
+        reserve = policy["safetyReserveBytes"]
+        for phase in ("checkout", "build"):
+            required = policy["estimatedGrowthBytes"][phase] + reserve
+            for available, succeeds in ((required, True), (required - 1, False)):
+                result = self.check_budget(phase, available)
+                self.assertEqual(succeeds, result.returncode == 0, result.stderr)
+            # A declared incremental estimate changes growth, never the reserve.
+            self.assertEqual(0, self.check_budget(phase, reserve + 1024, "1024").returncode)
+            self.assertNotEqual(0, self.check_budget(phase, reserve + 1023, "1024").returncode)
+            self.assertNotEqual(0, self.check_budget(phase, reserve - 1, "0").returncode)
+        self.assertNotEqual(0, self.check_budget("build", 10**12, "-1").returncode)
 
     def test_build_provenance_is_external_work_root_safe_and_fail_closed(self):
         provenance = (ROOT / "tools/build_provenance.py").read_text(
