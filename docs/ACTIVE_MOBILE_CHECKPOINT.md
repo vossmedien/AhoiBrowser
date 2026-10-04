@@ -1,5 +1,33 @@
 # Active Mobile checkpoint
 
+## Inhouse SavedData acceptance for transferred ADR12 app — 4 October2026
+
+Imported the preserved DebugLocal/iOS27 simulator app and data from source
+5741180E-A297-4A2E-8552-E873A6767F22 into newly owned target device
+60855124-88D8-42B3-B050-A19489B6E19C (Ahoi Migration01a0e04720261004).
+App executable SHA256994c011f921bf911448a3bb630e06197c5481271ca5d31f5d2117ce01d15cf93;
+original nested signature verified, no rebuild/resign. Embedded source commit
+is NOT_AVAILABLE, so this proves the transferred artifact, not a new source
+revision. CloudKit container empty/real mutation opt-inNO; no live sync proof.
+
+Actual restored launchPID45498 succeeded. Reviewed screenshot shows example.com
+with native Ahoi toolbar/one tab, matching the saved browser session. Shutdown
+readback preserves all19workspace IDs,77tree node IDs,112original history IDs,
+browser tab and selected tab; history113 after restored navigation. Import20files
+matched source bytes, target MCM metadata retained. Own simulator is Shutdown.
+Evidence: artifacts/computer-use/mobile/inhouse-migration-20261004/{rendered.png,
+readback.json,receipt.json,recovery.json,final-import.json}.
+
+Original cold launch failed SpringBoard/LaunchServices NotFound(code4). Exact
+bundle reinstall completed registration but assigned a new empty data container;
+the guard caught that reset before acceptance. Complete initial native launch,
+resolve current container, shutdown, import, then relaunch corrected it. The
+first reporter rejected structured UUIDs as unhashable; corrected canonical-JSON
+ID comparison ran all five readback assertions without another simulator run.
+Original failures retained. Other transferred source datasets, account/private
+state and physical-device/VoiceOver journeys remain open. Source data retained;
+this scoped pass does not authorize bulk source simulator deletion.
+
 Owner-gated external items (Sync peers/Apple key, signing/notarization, rights, reviews, publication) are collected in [the desktop checkpoint](ACTIVE_DESKTOP_CHECKPOINT.md#owner-gated-items-skipped-by-agents--24-september-2026); agents skip them and continue elsewhere.
 
 ## ADR 0012 visible checks on the simulator — 30 September 2026
