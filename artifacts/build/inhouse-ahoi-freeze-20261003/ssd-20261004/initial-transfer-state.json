@@ -1,0 +1,13 @@
+{
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "context": "A29",
+  "pid": 39852,
+  "sourceWork": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work",
+  "destinationWork": "/Volumes/Daten/Inhouse/AhoiBrowser/work",
+  "startedAt": "2026-10-04T10:00:02.167069+00:00",
+  "terminal": true,
+  "copyVerified": false,
+  "ssdFreeBeforeBytes": 899940282368,
+  "exitCode": 2,
+  "finishedAt": "2026-10-04T10:21:55.243421+00:00"
+}

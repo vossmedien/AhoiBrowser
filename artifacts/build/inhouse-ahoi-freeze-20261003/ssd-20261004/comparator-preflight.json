@@ -1,0 +1,16 @@
+{
+  "cases": 7,
+  "result": "PASS",
+  "checks": [
+    "equal bytes/link/xattrs accepted",
+    "actual content difference rejected",
+    "changed link and xattr rejected",
+    "broken internal hardlinks rejected",
+    "preserved internal hardlinks accepted",
+    "extra path rejected",
+    "missing path rejected"
+  ],
+  "reporter": "compare-copied-trees.py",
+  "targetPython": "Python 3.9.6",
+  "priorPreflight": "os.setxattr absent in target Python; stopped before data comparison; replaced by native Darwin libc xattr reader"
+}

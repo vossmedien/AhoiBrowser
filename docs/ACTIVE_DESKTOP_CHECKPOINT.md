@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## SSD copy complete; openrsync comparison invalid, independent verification live — 4 October2026
+
+Own transfer39852 copied65,856,205,253 logical bytes /1,631,709 nodes. Its
+openrsync-aEHnc check falsely reports content changes for identical files.
+Inhouse independently reproduced with27bytes: same SHA256/cmp0 yet>fc;
+changed control also>fc. Original reproduction retained beside transfer script.
+This is a comparator failure, NOT confirmed copy corruption or acceptance.
+Only own monitor44340 receivedTERM; owned checksum group44343 and parent39852
+are terminal2; old false-positive inventory retained on target. No second copy.
+
+Independent direct-byte/type/link/metadata/xattr comparer is now live, owned
+monitorPID51265, four bounded workers/nice10; fresh12:26 CPU59.77%idle,
+memory67%free. Runtime mount/UUID/reserve monitor retained. Small target controls
+7/7 PASS: equality, actual content difference, symlink/xattr mutation, broken vs
+preserved hardlinks, extra/missing paths. Initial tiny preflight caught macOS
+Python lacking Linux os.xattr; fixed with native Darwin libc before full run.
+Existing evidence folder ssd-20261004 contains comparer and preflight; target
+~/inhouse/evidence/ahoi-ssd-20261004/independent/comparison.json records actual
+counts and terminal verdict. No PASS inferred before terminal completion.
+
+Source product inventory1504paths/13Refs exactly matches target original;
+149dependency repositories have0WIP and matching HEAD/all sourceRefs. All old
+Source/Target data, installed88, frozen inputs and other scratch/simulators kept.
+Park only SSD acceptance/cleanup until independent comparison is terminal; next
+verify exact bundle/dependency pins at SSD root, then switch own build root and
+remove only accepted obsolete copies. No new Chromium build/M155 roll/GUI action.
+
 ## Phase growth budget replaces fixed host floor — 4 October 2026
 
 Latest explicit user correction removes the fixed100GB veto. Current A29 owns

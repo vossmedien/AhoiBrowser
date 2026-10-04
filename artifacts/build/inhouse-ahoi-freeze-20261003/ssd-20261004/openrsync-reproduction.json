@@ -1,0 +1,11 @@
+{
+  "time": "2026-10-04T12:19:59.486063+02:00",
+  "tool": "/usr/bin/rsync openrsync protocol29",
+  "method": "Fresh 27-byte internal file copied to UUID-guarded SSD temp directory with -aEH; -aEHnc compared equal and then changed file",
+  "identicalSha256": "af977ada7b99a5efdd122df49eab1a87270b4b0e0687e167df1ab340f2af92c4",
+  "cmpExit": 0,
+  "identicalItemization": ">fc...... probe.txt",
+  "changedItemization": ">fc...... probe.txt",
+  "tempCleanup": true,
+  "result": "False positive content difference reproduced; cannot use this dry-run alone to accept full copy; no product files changed"
+}
