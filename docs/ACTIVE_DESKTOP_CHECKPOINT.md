@@ -1,5 +1,22 @@
 # Active Desktop checkpoint
 
+## Remaining link/staging headroom assessed — 4 October2026,08:53CEST update
+
+Same90320/Ninja94976/freeze88e631d6 remains live; actual54795/57099 steps.
+Target df60766700KiB free (about58GiB), out/AhoiDev11519864KiB (about11GiB).
+Current513dylibs total849532784logical bytes; existing source reference534dylibs
+total1113219040bytes, app1222708KiB/framework126308KiB. Portable component staging
+copies the framework and dylibs, with a temporary framework replacement directory.
+These measured outputs leave ample space for remaining links/staging against the
+current58GiB, without claiming a precise peak or deleting foreign data. Continue
+only the existing4-job run; recheck at link/staging boundary or unexpected growth.
+Current memory_pressure57%free. No new build or archive transfer begun.
+
+Inhouse separately reports target locked Christian-Voss desktop and SSH Keychain
+settings36/User interaction is not allowed; actual user unlock still outstanding.
+No signing handback/secret/ACL change or repeated private-key probe inferred from
+build progress. Original full Goal and source data unchanged.
+
 ## Explicit source-Git takeover completed in currentA29 — 4 October2026
 
 DEFAA turn01a104f2 explicitly released Source Git/index/ref/commit/push/cleanup;
