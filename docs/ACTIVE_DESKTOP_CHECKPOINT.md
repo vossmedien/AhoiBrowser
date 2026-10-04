@@ -1,5 +1,24 @@
 # Active Desktop checkpoint
 
+## Pin reporter repair after real relocated CLI failure — 4 October2026
+
+Exact SSD bundle verifier0; original88 binary SHA unchanged. First relocated
+native dependency collector terminal1 after gclient emitted numbered worker
+status into --output-json stdout; JSONDecodeError line1column3. Original log
+retained on target ssd-dependency-verification.log. This is reporter failure,
+not package corruption. No Source/oldTarget deletion or root promotion yet.
+
+Bounded current Source tool correction writes gclient JSON to its own temporary
+file and ignores only numbered worker diagnostics in plain CIPD rows. Expected
+closure/path/type/URL/pin checks and required missing-row checks remain unchanged.
+Target three focused regressions PASS, including actual changed/missing rows
+remaining failures and full CIPD tag recovery with a worker line. Frozen88 helper
+is unchanged; corrected helper runs separately in existing SSD evidence context.
+Own relocated Git stat cache refreshed (expected unstaged-overlay exit1, stage
+unchanged0), without ref/commit/product-byte changes. Actual corrected public CLI
+is running; original attempt kept and no success inferred yet. Overlay root check
+will follow its terminal result. No compiler or installed-app launch.
+
 ## SSD full comparison PASS; final root acceptance in progress — 4 October2026
 
 Own transfer39852 copied65,856,205,253 logical bytes /1,631,709 nodes. Its

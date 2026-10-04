@@ -1,6 +1,7 @@
 import pathlib
 import sys
 import unittest
+from unittest import mock
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -11,6 +12,26 @@ import chromium_dependencies  # noqa: E402
 
 
 class ChromiumDependencyContractTests(unittest.TestCase):
+    def test_collect_uses_manifest_file_when_stdout_has_worker_messages(self):
+        payload = {"src": {"url": "https://example.test/src.git", "rev": "1" * 40}}
+        def emit(*command, cwd):
+            if "--output-json" in command:
+                destination = command[command.index("--output-json") + 1]
+                self.assertNotEqual("-", destination)
+                pathlib.Path(destination).write_text(__import__("json").dumps(payload))
+            return "1> Still working on dependency scan\n"
+        with mock.patch.object(chromium_dependencies, "output", side_effect=emit):
+            result = chromium_dependencies.collect_revisions(actual=True)
+        self.assertEqual("1" * 40, result["src"]["revision"])
+
+    def test_worker_messages_do_not_replace_required_cipd_rows(self):
+        name = "src/nested:package/name"
+        rows = {name: {"url": "https://chrome-infra-packages.appspot.com/p/package/name/+/version:2", "revision": "tag"}}
+        with self.assertRaises(SystemExit):
+            chromium_dependencies.restore_expected_cipd_versions(rows, "1> Still working\n")
+        with self.assertRaisesRegex(SystemExit, "malformed"):
+            chromium_dependencies.restore_expected_cipd_versions(rows, "unexpected text\n")
+
     def manifests(self):
         source_commit = "1" * 40
         nested_commit = "2" * 40
@@ -126,6 +147,7 @@ class ChromiumDependencyContractTests(unittest.TestCase):
         }
         plain = "\n".join(
             (
+                "1> Still working on dependency scan",
                 "src: https://example.test/src.git",
                 (
                     "src/tool:infra/tools/example/mac-${arch}: "
