@@ -48,9 +48,13 @@ def collect_revisions(actual: bool) -> dict:
     command = [str(gclient), "revinfo"]
     if actual:
         command.append("--actual")
-    command.extend(("--output-json", "-"))
-    raw = output(*command, cwd=chromium_root)
-    revisions = json.loads(raw)
+    # gclient may emit numbered status messages while scanning a large dirty
+    # overlay. Its dedicated JSON file remains separate from those messages.
+    with tempfile.TemporaryDirectory(prefix="ahoi-gclient-revinfo-") as directory:
+        manifest = pathlib.Path(directory) / "revisions.json"
+        command.extend(("--output-json", str(manifest)))
+        output(*command, cwd=chromium_root)
+        revisions = json.loads(manifest.read_text(encoding="utf-8"))
     if "src" not in revisions:
         raise SystemExit("gclient dependency manifest does not contain src")
     normalized = {}
@@ -143,6 +147,10 @@ def restore_expected_cipd_versions(revisions: dict, raw: str) -> dict:
     seen_gcs: set[str] = set()
     for line_number, line in enumerate(raw.splitlines(), start=1):
         if not line:
+            continue
+        # Numbered gclient worker diagnostics are not dependency rows. All
+        # expected CIPD/GCS rows still must exist and match the JSON manifest.
+        if re.match(r"^\d+>", line):
             continue
         if ": " not in line:
             raise SystemExit(

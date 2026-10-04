@@ -1,0 +1,21 @@
+{
+  "baseCommit": "f09bd80e19df4d2e9e0034069e52c792316f1c37",
+  "sourceDeltaCommit": "cbc258da",
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "target": "MacbookPro2026.local",
+  "focusedTests": 3,
+  "focusedResult": "PASS",
+  "realCLIResult": "PASS",
+  "actualExpectedDependencies": [
+    240,
+    240
+  ],
+  "chromiumCommit": "f89f3a4363808e117c592adedcf9947882ac3b79",
+  "realCLIContext": "AHOI_WORK_ROOT=/Volumes/Daten/Inhouse/AhoiBrowser/work; corrected standalone collector",
+  "priorFailure": "JSONDecodeError from gclient numbered stdout; original retained in existing SSD evidence",
+  "browserAcceptance": "not changed; installed88 cache journey retains7PASS/5RED",
+  "files": {
+    "tools/chromium_dependencies.py": "7ddf75478e0a57b30749165f4f2527bcf52a94a3ae2e6f9244aaf2f38cc3ff9d",
+    "tests/repository/test_chromium_dependencies.py": "83d0cfb6f0f1bed2762e170d058b9c16f5a1496a2b8ac2eb5673e1f60053d8b1"
+  }
+}
