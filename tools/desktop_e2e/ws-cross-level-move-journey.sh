@@ -97,9 +97,17 @@ idle = int(re.search(r'"HIDIdleTime"\s*=\s*(\d+)', subprocess.check_output(
     ["ioreg", "-c", "IOHIDSystem"], text=True)).group(1)) // 10**9
 sample = dict(at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
               source=source, idleSeconds=idle)
+ax = os.environ.get("AHOI_AXTOOL", "/private/tmp/ahoi-axtool")
+focus = subprocess.run([ax, "focused", "2147483647"], capture_output=True, text=True)
+first_line = focus.stdout.splitlines()[0] if focus.stdout.splitlines() else ""
+sample["foregroundProbe"] = first_line
 expected = os.environ.get("AHOI_E2E_EXPECTED_SOURCE_COMMIT")
 if not source or (expected and source != expected) or (previous and source != previous["source"]):
     sample["refusal"] = "installed candidate changed or lacks source metadata"
+elif focus.returncode or not first_line.startswith("frontmostApp:"):
+    sample["refusal"] = "target GUI foreground could not be verified"
+elif first_line.startswith(("frontmostApp: loginwindow ", "frontmostApp: none ")):
+    sample["refusal"] = "target GUI is locked or logged out"
 elif str(app / "Contents/MacOS/AhoiBrowser") in [c.strip() for c in commands]:
     sample["refusal"] = "another browser owns the launch boundary"
 elif os.environ.get("AHOI_E2E_YIELD_ON_FOCUS_LOSS") == "1" and idle < 2:

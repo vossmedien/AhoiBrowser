@@ -1,5 +1,26 @@
 # Active Desktop checkpoint
 
+## Cross-level runtime now waits for unlocked target GUI — 4 October 2026
+
+Previous turn was concrete source/guard progress, not runtime acceptance.
+Fresh target two samples84.74/86.58%CPUidle, Load4.59, swap IO0; no live compiler,
+Ahoi browser or xcode test found. Existing Ahoi browser ownership remains ours;
+foreign simulator ownership is not adopted from process absence. Read-only native
+foreground probe instead reports loginwindow/PID469, idle1805s: target GUI is
+locked/logged out, so no browser or synthetic click run was started.
+
+The actual launch preflight now rejects loginwindow/missing GUI binding before
+Popen; target execution on the correct installed e86 records exit8/pass:false.
+[Actual locked-GUI refusal](../artifacts/tests/cross-level-owned-input-20261004/locked-gui-preflight.json).
+This is access-boundary progress, not25/25 journey or feature acceptance. Driver
+and pending native path stay bound to installed e86; no new app build, SourceUI
+use, unlock/credential change, Root ACK request or foreign signals.
+
+Next runtime action: authenticated unlocked GUI through the existing inhouse
+access path, re-observe current input/owner/capacity, then execute the frozen
+cross-level move driver. Resource gate is currently clear; GUI access is the
+remaining prerequisite for this parked item. Full Master/Goal remains active.
+
 ## Cross-level native input driver prepared; runtime parked — 4 October 2026,20:30 CEST
 
 Concrete source progress after the accepted archive fix: existing WS-ISO-05 driver

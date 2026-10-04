@@ -1,0 +1,15 @@
+{
+  "actualExitCode": 8,
+  "actualVerdict": {
+    "cancelled": "target GUI is locked or logged out",
+    "pass": false
+  },
+  "actualPreflight": {
+    "at": "2026-10-04T18:48:38.583027+00:00",
+    "source": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+    "idleSeconds": 2059,
+    "foregroundProbe": "frontmostApp: loginwindow pid=469 target=2147483647",
+    "refusal": "target GUI is locked or logged out"
+  },
+  "browserLaunchOrInput": false
+}
