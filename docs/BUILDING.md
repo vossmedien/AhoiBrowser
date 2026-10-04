@@ -46,9 +46,8 @@ reserve. Initial checkout and build recommendations and hard floors are
 those floors. Existing-checkout updates have the explicit exception below.
 Before each heavy phase, assess anticipated additional output and concurrent
 writers against actual free host space. Docker's unchanged 160 GiB logical cap
-is not already occupied physical storage. Independent Inhouse phases require
-no global load/slot wait under the current user override; protect actual output
-ownership and retain toolchain, provenance, signing and acceptance gates. Builds and
+is not already occupied physical storage. The reserve does not replace
+ownership, toolchain, provenance, signing or acceptance gates. Builds and
 heavy tests run on MacbookPro2026.local; canonical code and Git remain on .45.
 
 An update of an existing managed checkout uses a separate staging assessment:

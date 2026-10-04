@@ -1,0 +1,11 @@
+{
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "observedAt": "2026-10-04T03:48:53.049501+00:00",
+  "sourceSHA256": "05480adb28214085b330fd95d9a98e4e6bd36e76b5c1a85884a60bebed5eecbd",
+  "tool": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/target73-88e631d6-attempt3/acceptance-tools/ahoi-axtool",
+  "compileExitCode": 0,
+  "purpose": "prepare existing native E2E helper on target; no app/UI events or screenshot",
+  "permissionProbeExitCode": 0,
+  "stderr": "",
+  "AXTrusted": true
+}

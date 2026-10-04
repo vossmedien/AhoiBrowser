@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Update exception published; target UI tool ready; compiler continues — 4 October 2026
+
+Attribution resolved from this thread's actual preceding user turn:07d07452 is
+our authorized correction to the100-GB update veto. It is not a foreign product
+packet. The older isolated88e631d6 build correctly kept its frozen inputs;
+no restart or source/output mutation is required for this guard-only change.
+Default main and origin/main now both e5cd552bd8093e3bf91566761e49bd3fbd1ac6ec.
+Only finished guard/docs/receipt paths integrated; main's existing Chromium and
+toolchain pins and unrelated browser code preserved. Exact main-input2/2 target
+guard tests PASS, lane0; GitHub app performed non-force ref delivery after this
+process's Git CLI lacked credentials. Fetched published tree d5998d3d... is exactly
+identical to prepared6364a5cf; temporary source worktree removed, no unique work.
+[Main-input receipt](../artifacts/tests/chromium-update-reserve-20261004/main-receipt.json).
+Hosted CI skipped explicitly; no browser compile/runtime promotion from this.
+
+Actual target runner90320/Ninja94976 still live on frozen88e631d6, latest observed
+28551/57099. No second compiler round or new app/install action. Existing tracked
+native E2E helper compiled separately on target into this phase's acceptance-tools;
+its read-only invalid-PID probe passes AXIsProcessTrusted without any UI event.
+[Actual target UI-tool preflight](../artifacts/tests/desktop-target-ui-preflight-20261004/receipt.json).
+This proves helper compilation/access only; screen capture and exact installed-
+app journeys remain unverified. SSH login-Keychain settings still fail36/User
+interaction is not allowed; no new private-key probe or ACL/credential change.
+
+Next: await the confirmed live native build's terminal result and consume Inhouse
+signing-access handback, verify/return/install exact candidate, then run the visible
+cache/header journey before focused regressions. Use current aggregate capacity
+and actual GUI/output ownership under the latest AGENTS, without a historical
+Root slot/readiness loop. Same full original Master/Goal and external/data limits.
+
 ## Actual target compilation running on isolated88e631d6 — 4 October2026
 
 Own runner/PGID90320, target phase .work/agent-queue/target73-88e631d6-attempt3/
