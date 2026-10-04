@@ -1,0 +1,7 @@
+{
+  "source": "92facb5823ebd3928e1ddf27566e64a3179fd605",
+  "documentFetchPass": true,
+  "AXObservedFixture": true,
+  "normalBrowserClose": true,
+  "scope": "affected single-document fetch; full cache journey pending"
+}

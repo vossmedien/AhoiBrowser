@@ -1,0 +1,11 @@
+{
+  "status": "terminal",
+  "source": "92facb5823ebd3928e1ddf27566e64a3179fd605",
+  "jobs": 4,
+  "purpose": "focused native request-mode and retained security regression",
+  "startedAt": "2026-10-04T15:17:00.150166+00:00",
+  "runnerPID": 15732,
+  "processGroup": 15732,
+  "exitCode": 0,
+  "finishedAt": "2026-10-04T15:31:02.515047+00:00"
+}

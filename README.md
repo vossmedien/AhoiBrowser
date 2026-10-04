@@ -15,18 +15,17 @@ architecture decision, test, or release gate.
 ## Current status
 
 The current pin is Chromium Mac Stable `154.0.8037.93` at exact commit
-`f89f3a4363808e117c592adedcf9947882ac3b79`. Development candidate88, source
-`88e631d65f58ac80250e464847072eea00c4c877`, is installed at
-`/Applications/AhoiBrowser.app` on the development and Inhouse Macs. Target
-compilation, stable development signing, portable bundle verification and both
-guarded installations are verified
-([install receipt](artifacts/install/ahoi-dev-88e631d6-inhouse-20261004.json)).
-It includes tab-local cache control and native document/worker factory refresh.
-Its actual visible cache journey reached12 assertions:7 PASS/5 RED. Document
-request/response headers and selected-tab cache bypass need correction; worker
-headers/cache and native toggle/cancel/draft behavior passed. A new source-only
-factory diagnostic has not been built or accepted. Full product/release gates
-remain open; historical candidates retain their own evidence.
+`f89f3a4363808e117c592adedcf9947882ac3b79`. Development candidate source
+`92facb5823ebd3928e1ddf27566e64a3179fd605` is installed at
+`/Applications/AhoiBrowser.app` on the development and Inhouse Macs. Its guarded
+build, stable development signature, portable bundle/provenance verification
+and atomic installation passed. It fixes primary-frame fetches being mistaken
+for navigations in developer header/cache policy. The exact installed affected
+cache/header journey passed 12/12; 55 focused native factory/navigation/header-
+materialization regressions passed
+([evidence](artifacts/tests/document-request-mode-fixed-20261004/receipt.json)).
+Original failed and focus-cancelled runs remain. Full product/release gates stay
+open; this is affected feature acceptance, not complete browser acceptance.
 Use [the desktop checkpoint](docs/ACTIVE_DESKTOP_CHECKPOINT.md) for the current
 finding, evidence and next action; historical candidates retain their own receipts.
 The active source delta is the

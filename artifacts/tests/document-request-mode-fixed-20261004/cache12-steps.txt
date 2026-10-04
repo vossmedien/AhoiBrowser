@@ -1,0 +1,46 @@
+frontmost -> 0
+hidkey 17
+typed 28
+hidkey 36
+hidkey 17
+typed 28
+hidkey 36
+hidkey 48
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+hidclicked  at (974.0, 200.0)
+warmCacheSharedBySameOriginPeer -> true
+existingWorkerUsesNativeWarmCache -> true
+hidclicked AXTextField | Cache-Test-Entwurf-A | Cache-Test-Entwurf-A at (499.5, 158.0)
+typed 15
+AXPress AXButton | Adressleiste einblenden | Adressleiste einblenden -> 0
+AXPress AXButton | Entwickler-Helfer öffnen | Entwickler-Helfer öffnen -> 0
+AXPress AXButton | Cache bis zum Schließen dieses Tabs umgehen (lädt neu) | Cache bis zum Schließen dieses Tabs umgehen (lädt neu) -> 0
+AXPress AXButton | Abbrechen | action-button-2 -> 0
+hidkey 53
+nativeReloadCancelRetainsDocumentDraftAndWorker -> true
+AXPress AXButton | Adressleiste einblenden | Adressleiste einblenden -> 0
+AXPress AXButton | Entwickler-Helfer öffnen | Entwickler-Helfer öffnen -> 0
+currentPaneShowsExplicitTabCacheChip -> true
+hidkey 53
+selectedTabBypassesCacheAndKeepsBothHeaderDirections -> true
+sameOriginSplitPeerCacheRemainsNative -> true
+existingWorkerPolicyChangesWithoutRecreation -> true
+AXPress AXButton | Entwickler-Helfer öffnen | Entwickler-Helfer öffnen -> 0
+AXPress AXButton | Cache bis zum Schließen dieses Tabs umgehen (lädt neu) | Cache bis zum Schließen dieses Tabs umgehen (lädt neu) -> 0
+AXPress AXButton | Abbrechen | action-button-2 -> 0
+hidkey 53
+AXPress AXButton | Adressleiste einblenden | Adressleiste einblenden -> 0
+AXPress AXButton | Entwickler-Helfer öffnen | Entwickler-Helfer öffnen -> 0
+reversedTabChoiceRemovesItsChip -> true
+hidkey 53
+cacheOffReversalRestoresWarmCacheWithoutLosingDraft -> true
+AXPress AXButton | Entwickler-Helfer öffnen | Entwickler-Helfer öffnen -> 0
+AXPress AXButton | Cache bis zum Schließen dieses Tabs umgehen (lädt neu) | Cache bis zum Schließen dieses Tabs umgehen (lädt neu) -> 0
+AXPress AXButton | Abbrechen | action-button-2 -> 0
+hidkey 53
+finalReloadCancelStillRetainsDocument -> true
+hidkey 12
+frontmost -> 0
+tabChoiceNotPersistedAcrossNativeQuitAndRestore -> true
+tabChoiceNeverBecomesPersistentOriginCache -> true
+hidkey 12

@@ -1,0 +1,10 @@
+{
+  "result": {
+    "type": "object",
+    "value": {
+      "count": 1,
+      "requestHeader": "configured",
+      "responseHeader": "present"
+    }
+  }
+}

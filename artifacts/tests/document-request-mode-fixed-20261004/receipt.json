@@ -1,0 +1,14 @@
+{
+  "source": "92facb5823ebd3928e1ddf27566e64a3179fd605",
+  "chromium": "154.0.8037.93",
+  "sourceInstalledReceipt": "artifacts/install/ahoi-dev-92facb58-request-mode-20261004.json",
+  "documentFetch": true,
+  "visibleCacheCases": 12,
+  "visibleCachePassed": 12,
+  "factoryAndNavigationRegressions": 39,
+  "headerMaterializationRegressions": 16,
+  "totalFocusedNative": 55,
+  "originalFailuresPreserved": true,
+  "firstCacheJourneyCancelledByForeignFocus": true,
+  "scope": "actual affected cache/header flow and retained navigation/secret boundaries; not whole Master acceptance"
+}

@@ -1,0 +1,4 @@
+frontmostApp: Google Chrome pid=10551 target=10185
+focusedElement: AXWebArea | PaneB
+focusedWindow: AXWindow | PaneB – Ansicht rechts - AhoiBrowser
+mainWindow: AXWindow | PaneB – Ansicht rechts - AhoiBrowser

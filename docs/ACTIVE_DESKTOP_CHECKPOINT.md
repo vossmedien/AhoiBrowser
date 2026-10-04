@@ -1,5 +1,39 @@
 # Active Desktop checkpoint
 
+## Request-mode correction accepted and installed — 4 October 2026,17:43 CEST
+
+Exact source92facb5823ebd3928e1ddf27566e64a3179fd605 on M154.0.8037.93 is built,
+stably Apple-Development signed, resource/signature/provenance verified, returned
+and canonically installed on both target and development Mac. Source receipt
+artifacts/install/ahoi-dev-92facb58-request-mode-20261004.json. Original88/RED
+and the isolated diagnostic9b evidence remain; no profile reset/real-user data.
+
+[Actual affected acceptance](../artifacts/tests/document-request-mode-fixed-20261004/receipt.json):
+real Document fetch now configured/present; native PaneA observed. Cache12 reached
+ALL assertions12/12PASS: both header directions, selected-tab cache bypass,
+same-origin peer native cache, retained existing worker, cancelled reload/document/
+draft, reversal, native quit/restore and no persisted origin cache. Native actual
+Factory/Navigation39/39 and HeaderMaterialization16/16 pass, jobs1/retries0 after
+exact candidate visible work; source39 test selection's old header-prefix omission
+was caught and missing16 were run separately, no repeated passed cases.
+
+First current cache12 attempt yielded safely to real foreign GoogleChrome focus,
+exit8, two warm-cache checks passed; not product failure. Preserved cancellation,
+then fresh idle2365s/unchanged exact artifact justified one new run; final67s/0.
+No foreground guard disabled or foreign process closed. Necessary standalone
+native test driver first linked from1917 warm-plan edges/four jobs; only required
+filters executed. No unrelated browser matrix or unchanged conformance suite.
+
+Default main currently lacks the developer-network factory feature and differs
+from this canonical development line by1059paths/202414added lines. A standalone
+cherry-pick cannot supply its absent dependency; do not silently merge that whole
+unaccepted package as a small fix. Keep the exact accepted correction/evidence on
+the common canonical branch, publish that milestone, and integrate the coherent
+development package into main after its remaining dependency acceptance. Continue
+the existing archive/protection and full product acceptance on installed92. Source or target UI actions still check real
+foreign input and resource use. Full original Master/Goal/external decisions remain
+open; no Root permission prerequisite or replacement Goal.
+
 ## Actual single-document diagnosis identifies request-mode bug — 4 October 2026,16:24 CEST
 
 Own guarded immutable9b304a3c completed pin/hooks/GN/staging; exact diagnostic

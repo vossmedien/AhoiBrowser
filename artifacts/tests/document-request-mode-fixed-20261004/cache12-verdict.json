@@ -1,0 +1,15 @@
+{
+ "warmCacheSharedBySameOriginPeer": true,
+ "existingWorkerUsesNativeWarmCache": true,
+ "nativeReloadCancelRetainsDocumentDraftAndWorker": true,
+ "currentPaneShowsExplicitTabCacheChip": true,
+ "selectedTabBypassesCacheAndKeepsBothHeaderDirections": true,
+ "sameOriginSplitPeerCacheRemainsNative": true,
+ "existingWorkerPolicyChangesWithoutRecreation": true,
+ "reversedTabChoiceRemovesItsChip": true,
+ "cacheOffReversalRestoresWarmCacheWithoutLosingDraft": true,
+ "finalReloadCancelStillRetainsDocument": true,
+ "tabChoiceNotPersistedAcrossNativeQuitAndRestore": true,
+ "tabChoiceNeverBecomesPersistentOriginCache": true,
+ "pass": true
+}
