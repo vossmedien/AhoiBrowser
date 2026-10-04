@@ -2,8 +2,8 @@
 
 ## Supported host
 
-Phase 0 targets Apple Silicon with macOS 26, Git, APFS, and a shared host
-reserve of 100 GB (100,000,000,000 bytes). Since the user decision of
+Phase 0 targets Apple Silicon with macOS 26, Git and APFS. Disk admission uses estimated phase growth plus a safety
+reserve, as described below. Since the user decision of
 25 September 2026 ("wir nutzen nur noch 27", handoff 022), Xcode 27.0
 (27A266a) with macOS SDK 27.0 (26A425) and iOS SDK 27.0 (24A430) is the only
 toolchain: for development, for the upstream control and for release.
@@ -39,33 +39,37 @@ because the temporary workaround was restored. A milestone update fails closed
 until the new Chromium and V8 revisions, original target bytes, and patch
 applicability are reviewed and repinned.
 
-The explicit user decision of 4 October 2026 replaces the previous 150/120 GiB
-checkout thresholds and 64/32 GiB build thresholds with the shared 100 GB host
-reserve. Initial checkout and build recommendations and hard floors are
-100,000,000,000 bytes (about 93.1 GiB); `AHOI_ALLOW_LOW_DISK=1` cannot bypass
-those floors. Existing-checkout updates have the explicit exception below.
-Before each heavy phase, assess anticipated additional output and concurrent
-writers against actual free host space. Docker's unchanged 160 GiB logical cap
-is not already occupied physical storage. The reserve does not replace
-ownership, toolchain, provenance, signing or acceptance gates. Builds and
-heavy tests run on MacbookPro2026.local; canonical code and Git remain on .45.
+The latest explicit user decision of 4 October 2026 removes the fixed 100 GB
+host floor. `config/toolchain.json:diskSpace` now budgets expected additional
+phase growth plus an 8 GiB safety reserve: checkout 60 GiB, build 20 GiB and
+update 24 GiB by default. These are conservative starting estimates from the
+measured M154 checkout (about 51 GiB without outputs) and target output (about
+13 GiB), not promises about every milestone or optimized build. Assess downloads,
+unpack/link/staging peaks and concurrent writers before each expensive phase.
+A reviewed incremental operation may set `AHOI_PLANNED_GROWTH_BYTES` to its
+estimated additional bytes; it never removes the safety reserve.
+`AHOI_ALLOW_LOW_DISK=1` cannot bypass that reserve or the growth budget.
+Do not count anticipated cleanup as available space or delete foreign candidates.
 
-An update of an existing managed checkout uses a separate staging assessment:
-after verifying its official origin, valid HEAD, DEPS/VERSION, clean source and
-exact managed `.gclient`, `fetch-chromium.sh` uses
-`host.minimumFreeUpdateBytes` (32 GiB, the previous staging safety floor).
-The user's follow-up of 4 October explicitly exempts Chromium updates from a
-100 GB veto: below that advisory reserve, updates proceed with a warning,
-without requiring `AHOI_ALLOW_LOW_DISK=1`. The separate update floor is checked
-again after prehydration and dependency sync; it cannot be bypassed by the
-low-disk flag. Assess the particular update's expected additional storage and
-other writers; 32 GiB is not a guarantee that every milestone roll fits.
-Do not count anticipated cleanup as free space or automatically delete old
-outputs to meet a threshold.
-This is a staging reserve, not a promised download-size bound. Monitor available
-space during long transfers; if capacity falls short, retain the resumable
-checkout/objects and stop before the next phase. Do not delete candidates or
-user data to satisfy the gate. Builds use the same current host reserve.
+Existing-checkout updates retain official origin, valid HEAD, DEPS/VERSION,
+clean source and exact managed `.gclient` checks before the update budget gate.
+The budget is rechecked after prehydration and sync. A capacity question about
+M155 does not authorize an engine update. During Ninja, the owned process-group
+monitor checks free space every five seconds and stops only its command group
+when the safety reserve is reached; resumable outputs remain. This protects
+against observed growth, but cannot guarantee safety against a sudden unrelated
+writer consuming the reserve between samples. Continue measuring at heavy phase
+boundaries. Docker's logical cap is not already occupied physical storage.
+
+Builds and heavy tests run on MacbookPro2026.local; code/Git remain on .45.
+The coordinated external root is `/Volumes/Daten/Inhouse/AhoiBrowser/work`.
+Before any write under `/Volumes/Daten`, scripts use the existing target helper
+`~/.local/bin/inhouse-external-root` to check APFS, real mount and approved UUID,
+then reject redirected work roots. A missing/wrong SSD fails without creating
+an internal fallback. The same check runs during monitored commands. Keep the
+small frozen project inputs separate; Xcode, simulators and Docker are unchanged.
+Moving an old output tree does not prove its absolute GN paths are reusable;
+regenerate GN and bind subsequent provenance/acceptance to the new root.
 
 ## Bootstrap
 

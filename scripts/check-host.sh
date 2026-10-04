@@ -107,18 +107,10 @@ minimum_memory="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.m
 [ "${actual_memory}" -ge "${minimum_memory}" ] || \
   ahoi_die "host memory is below the configured minimum"
 
-available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
-required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeBuildBytes)"
-
 ahoi_note "host: $(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion)), ${actual_arch}"
 ahoi_note "hardware: $(sysctl -n machdep.cpu.brand_string), $((actual_memory / 1073741824)) GiB RAM"
 ahoi_note "toolchain (${xcode_mode}): $(xcodebuild -version | tr '\n' ' '), macOS SDK ${actual_sdk} (${actual_sdk_build}), iOS SDK ${actual_ios_sdk} (${actual_ios_sdk_build})"
 ahoi_note "work root: ${AHOI_WORK_ROOT}"
-python3 - "${available}" "${required}" <<'PY'
-import sys
-available, required = (int(item) for item in sys.argv[1:])
-print(f"==> free disk: {available / 2**30:.1f} GiB; required: {required / 2**30:.1f} GiB")
-PY
 
 ahoi_require_build_free_space
 

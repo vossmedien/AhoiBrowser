@@ -14,6 +14,14 @@ case "${AHOI_WORK_ROOT}" in
     ;;
 esac
 
+# Fail before any mkdir when the coordinated external SSD is absent/redirected.
+case "${AHOI_WORK_ROOT}" in
+  /Volumes/Daten|/Volumes/Daten/*)
+    python3 "${AHOI_REPO_ROOT}/tools/run_with_disk_reserve.py" \
+      --work-root "${AHOI_WORK_ROOT}" --check-work-root
+    ;;
+esac
+
 AHOI_DEPOT_TOOLS_DIR="${AHOI_WORK_ROOT}/depot_tools"
 AHOI_CHROMIUM_ROOT="${AHOI_WORK_ROOT}/chromium"
 AHOI_CHROMIUM_SRC="${AHOI_CHROMIUM_ROOT}/src"
@@ -68,93 +76,43 @@ ahoi_free_bytes() {
   df -Pk "${parent}" | awk 'NR == 2 { printf "%.0f\n", $4 * 1024 }'
 }
 
-ahoi_require_free_space() {
-  local required
+# Phase estimates plus emergency reserve; no blanket 100 GB host gate.
+# A reviewed incremental phase may declare its expected additional bytes.
+ahoi_require_phase_free_space() {
+  local phase="$1"
   local available
-  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeWorkBytes)"
   available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
-  if [ "${available}" -lt "${required}" ]; then
-    if [ "${AHOI_ALLOW_LOW_DISK:-0}" = "1" ]; then
-      local absolute_floor
-      absolute_floor="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.absoluteMinimumFreeCheckoutBytes)"
-      [ "${available}" -ge "${absolute_floor}" ] || \
-        ahoi_die "low-disk override refused below the absolute checkout floor"
-      python3 - "${available}" "${required}" <<'PY'
+  python3 - "${available}" "${phase}" "${AHOI_REPO_ROOT}/config/toolchain.json" "${AHOI_PLANNED_GROWTH_BYTES:-}" <<'PYBUDGET'
+import json
 import sys
-available, recommended = (int(item) for item in sys.argv[1:])
-print(
-    "warning: proceeding with explicit low-disk checkout override: "
-    f"{available / 2**30:.1f} GiB available, {recommended / 2**30:.1f} GiB recommended",
-    file=sys.stderr,
-)
-PY
-      return 0
-    fi
-    python3 - "${available}" "${required}" <<'PY'
-import sys
-available, required = (int(item) for item in sys.argv[1:])
-print(
-    "error: insufficient free space for Chromium checkout/build: "
-    f"{available / 2**30:.1f} GiB available, {required / 2**30:.1f} GiB required",
-    file=sys.stderr,
-)
-PY
-    exit 2
-  fi
+available = int(sys.argv[1])
+policy = json.load(open(sys.argv[3]))["diskSpace"]
+raw = sys.argv[4]
+if raw and not raw.isdecimal():
+    raise SystemExit("AHOI_PLANNED_GROWTH_BYTES must be a nonnegative integer")
+growth = int(raw) if raw else policy["estimatedGrowthBytes"][sys.argv[2]]
+reserve = policy["safetyReserveBytes"]
+if growth < 0 or reserve <= 0:
+    raise SystemExit("invalid phase disk-space budget")
+required = growth + reserve
+print(f"==> {sys.argv[2]} disk budget: {available} bytes free, "
+      f"{growth} expected growth + {reserve} safety reserve = {required} needed")
+if available < required:
+    raise SystemExit("insufficient phase growth budget; existing files retained")
+PYBUDGET
+}
+
+ahoi_require_free_space() {
+  ahoi_require_phase_free_space checkout
 }
 
 ahoi_require_build_free_space() {
-  local required
-  local available
-  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeBuildBytes)"
-  available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
-  if [ "${available}" -lt "${required}" ]; then
-    if [ "${AHOI_ALLOW_LOW_DISK:-0}" = "1" ]; then
-      local absolute_floor
-      absolute_floor="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.absoluteMinimumFreeBuildBytes)"
-      [ "${available}" -ge "${absolute_floor}" ] || \
-        ahoi_die "low-disk build override refused below the absolute safety floor"
-      python3 - "${available}" "${required}" <<'PY'
-import sys
-available, recommended = (int(item) for item in sys.argv[1:])
-print(
-    "warning: proceeding with explicit low-disk build override: "
-    f"{available / 2**30:.1f} GiB available, {recommended / 2**30:.1f} GiB recommended",
-    file=sys.stderr,
-)
-PY
-      return 0
-    fi
-    python3 - "${available}" "${required}" <<'PY'
-import sys
-available, required = (int(item) for item in sys.argv[1:])
-print(
-    "error: insufficient free space for a Chromium build: "
-    f"{available / 2**30:.1f} GiB available, {required / 2**30:.1f} GiB required",
-    file=sys.stderr,
-)
-PY
-    exit 2
-  fi
+  ahoi_require_phase_free_space build
 }
 
-# Only for an existing, verified managed checkout. Its sources already occupy
-# disk, so do not reserve a second initial checkout. The shared 100 GB reserve
-# is advisory for updates; retain their separate 32 GiB staging floor.
+# Only after the existing managed checkout's origin/pin/clean-state checks.
 ahoi_require_update_free_space() {
-  local required
-  local recommended
-  local available
-  required="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeUpdateBytes)"
-  recommended="$(ahoi_json_get "${AHOI_REPO_ROOT}/config/toolchain.json" host.minimumFreeWorkBytes)"
-  available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
-  if [ "${available}" -lt "${required}" ]; then
-    ahoi_die "insufficient update staging reserve: ${available} bytes available, ${required} required; existing files retained"
-  fi
-  if [ "${available}" -lt "${recommended}" ]; then
-    echo "warning: Chromium update proceeding below advisory host reserve: ${available} bytes available, ${recommended} recommended; update staging floor ${required}" >&2
-  fi
-  ahoi_note "existing-checkout update reserve verified: ${available} bytes available, ${required} required"
+  ahoi_require_phase_free_space update
 }
 
 ahoi_export_depot_tools_environment() {

@@ -1,0 +1,37 @@
+{
+  "recordedAt": "2026-10-04T09:56:47.945500+00:00",
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "executionContext": "A29C26D0-B6B8-44B8-954E-FAB5F70C17ED",
+  "targetHost": "MacbookPro2026.fritz.box",
+  "staging": "/private/tmp/ahoi-phase-budget-check",
+  "result": "PASS",
+  "tests": 5,
+  "elapsedSeconds": null,
+  "scope": [
+    "phase budget admission",
+    "incremental growth cannot consume reserve",
+    "negative estimate rejection",
+    "owned process group cancellation; foreign process retained",
+    "parent TERM cleans child",
+    "exit code and mount-loss cleanup"
+  ],
+  "syntaxExit": 0,
+  "files": {
+    "config/toolchain.json": "bfe5b9d4a7658bd98dcecd3e619d8af54ad683cab7f1b2b31e6b66dba03d7ae8",
+    "scripts/lib/common.sh": "ce9439b4e563cefeef1215572bc82e5ab2ffca2b4f1000fcfd554fac05d5fad3",
+    "scripts/check-host.sh": "e4d7b1d690ebfb48c144f1e5da1cae1941453405f03c2ec5ddde3d78c92890c0",
+    "scripts/build-chromium-with-dependency-workarounds.sh": "47b22f7be7d960fbe96f5c1dd775af7dbba0412de0c0a81d9c757887faf611d1",
+    "tools/run_with_disk_reserve.py": "49c461203efc41eddc982013d80b122b0b1d63b038ea3d7977754aed7a8bfdea",
+    "tests/repository/test_disk_reserve.py": "b402e4f12894bd6634bf7ed29a3ab10b22a966b7c2a649d607f7df73786c8ca3",
+    "tests/repository/test_repository_build_contracts.py": "554574e134d9f7ea10cde285920ecab9413ff44549cc1c42d94f8001fc039507",
+    "docs/BUILDING.md": "703b49842dfe9353d8cd1f1ed60ad08edec9bda360f91fbb2e73358336ec37e5"
+  },
+  "limits": [
+    "focused tooling checks; no Chromium build or installed-browser acceptance",
+    "SSD identity uses existing Inhouse helper; old target outputs unchanged",
+    "five-second reserve sampling cannot protect against arbitrarily fast foreign disk growth"
+  ],
+  "baseCommit": "e5cd552bd8093e3bf91566761e49bd3fbd1ac6ec",
+  "inputContext": "bounded main integration worktree",
+  "separateMainInputRepeat": "5/5 PASS; syntax0"
+}

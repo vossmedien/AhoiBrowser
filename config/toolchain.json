@@ -4,12 +4,15 @@
     "os": "macOS",
     "architecture": "arm64",
     "minimumVersion": "26.0",
-    "minimumMemoryBytes": 17179869184,
-    "minimumFreeWorkBytes": 100000000000,
-    "absoluteMinimumFreeCheckoutBytes": 100000000000,
-    "minimumFreeBuildBytes": 100000000000,
-    "absoluteMinimumFreeBuildBytes": 100000000000,
-    "minimumFreeUpdateBytes": 34359738368
+    "minimumMemoryBytes": 17179869184
+  },
+  "diskSpace": {
+    "safetyReserveBytes": 8589934592,
+    "estimatedGrowthBytes": {
+      "checkout": 64424509440,
+      "build": 21474836480,
+      "update": 25769803776
+    }
   },
   "xcode": {
     "requiredVersion": "27.0",
