@@ -1,5 +1,33 @@
 # Active Mobile checkpoint
 
+## New source-bound Home UI candidate builds on Inhouse — 4 October 2026
+
+Existing unified owner/thread01a0e047 retained. Mac desktop remains locked;
+Mobile's owned-device XCUITest path is independent of Mac HID and will be tried
+with real app/control/screenshot evidence, not inferred from a headless unit pass.
+Current checked source cc8bef2b is clean in target repo78; apps/AhoiMobile and
+candidate/evidence tooling byte-unchanged relative to current canonical8cb60b35.
+Ready Crest106/110 reviewed: performance-tools only, no Mobile product patch;
+H3 remains deferred. Existing7/8ADR12 and Core387 evidence not repeated.
+
+Actual target buildPid76567/monitor76566 live after snapshot, DebugLocal/
+iphonesimulator, source stamp cc8bef2b, two Xcode jobs and Swift-driver-j2;
+only requested UI class MobileSavedPageHomeUITests. Phase/private state:
+~/inhouse/evidence/ahoi-mobile-home-20261004-cc8bef2b/build-state.json.
+DerivedData under approved UUID-guarded SSD Scratch/ahoi-mobile-home-01a0e047-
+20261004. Own mobile-build.lock claimed and monitor releases it at actual exit.
+No build/signature/app/source-bound receipt or test PASS claimed yet.
+
+Prior CPU73/80%idle, no foreign compiler/test; memory pressure2/51%free and
+20GB compressor require conservative phase checks. Build sample78%idle,
+18GB compressor, swapouts47024 unchanged. Existing Ahoi migration device60855124
+remains Shutdown and saved19/77/112data untouched; foreign LG deviceC72900B4
+remains Booted/untouched. No Mac UI/Root ACK/credential/account/Goal action.
+Next: actual build terminal, verify embedded source and exact receipt, reassess
+memory/owner, fresh own synthetic simulator; one native Home-address journey
+with exact-candidate binding and screenshots, inspect actual outcome. Stop the
+affected phase if host/test infrastructure cannot support it; no duplicate builds.
+
 ## Inhouse SavedData acceptance for transferred ADR12 app — 4 October2026
 
 Imported the preserved DebugLocal/iOS27 simulator app and data from source
