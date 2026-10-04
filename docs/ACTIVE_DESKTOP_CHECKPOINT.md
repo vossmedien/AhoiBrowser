@@ -1,5 +1,27 @@
 # Active Desktop checkpoint
 
+## Target compilation/staging complete; final signing ACL pending — 4 October2026
+
+Actual90320/Ninja94976 terminal, phase attempt3 exit1 at09:06:39CEST. Native
+57099/57099 completed; temporary Chromium/V8 workarounds restored, framework
+resource manifest verified,518component dylibs staged, Info source stamp exactly
+88e631d65f58ac80250e464847072eea00c4c877. First Helper(Alerts) codesign then failed
+errSecInternalComponent. This is compilation/staging success, not signed build,
+successful final provenance, installation or browser acceptance. Current df
+60460204KiBfree. Own build lock released; no own compiler/runner remains, heavy
+resource phase explicitly handed back. App/output ownership remains currentA29.
+[Actual terminal state](../artifacts/build/inhouse-ahoi-freeze-20261003/target73-20261004/attempt3-terminal.json).
+
+Inhouse actual GUI user unlock succeeded; SSH private-key signing still failed.
+Its own GUI codesign probe now displays the Apple Development ACL dialog; user
+password/Always Allow directly there is pending, no signingPASS yet. No duplicate
+probe/password/ACL/account action by Ahoi. After actual signing-access handback,
+resume ONLY sign-development-app.sh, verify-built-app.sh and build_provenance.py
+on this existing exact bundle/out/GN args; preserve original failed run and bind
+separate postcompile evidence. No new hooks/GN/Ninja build required. Then existing
+guarded artifact return/install path and exact visible changed journey before
+focused checks. Original full Goal/limits, installed72 and source data retained.
+
 ## Remaining link/staging headroom assessed — 4 October2026,08:53CEST update
 
 Same90320/Ninja94976/freeze88e631d6 remains live; actual54795/57099 steps.

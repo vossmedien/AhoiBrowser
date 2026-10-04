@@ -1,0 +1,23 @@
+{
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "revision": "88e631d65f58ac80250e464847072eea00c4c877",
+  "originalProductFreeze": "de4e8cf30b903106136b3d0b45125401470e741c",
+  "productDelta": "100GB host config plus three compatibility calls in dependency build wrapper; browser product code unchanged",
+  "jobs": 4,
+  "nice": 10,
+  "targets": [
+    "chrome"
+  ],
+  "status": "terminal",
+  "log": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/target73-88e631d6-attempt3/build.log",
+  "signingAccessKnownError": "errSecInternalComponent; Inhouse account owner resolving; normal final signer fail closed",
+  "startedAt": "2026-10-04T02:09:43.445268+00:00",
+  "attempt": 3,
+  "correction": "Path.lstat Python3.9 compatibility; actual regular-file/symlink helper2PASS plus shellsyntax0",
+  "previousAttempt": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/target73-01c5fc0c-attempt2/state.json",
+  "sourceUnknownPacketExcluded": "07d07452",
+  "runnerPID": 90320,
+  "processGroup": 90320,
+  "exitCode": 1,
+  "terminalAt": "2026-10-04T07:06:39.981675+00:00"
+}
