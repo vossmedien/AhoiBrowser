@@ -1,0 +1,14 @@
+{
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "context": "A29",
+  "pid": 12447,
+  "sourceFreeze": "88e631d65f58ac80250e464847072eea00c4c877",
+  "plannedGrowthBytes": 4294967296,
+  "reserveBytes": 8589934592,
+  "gnThreads": 2,
+  "ninjaDryRun": true,
+  "terminal": true,
+  "startedAt": "2026-10-04T11:48:50.558659+00:00",
+  "exitCode": 0,
+  "finishedAt": "2026-10-04T11:50:08.844715+00:00"
+}

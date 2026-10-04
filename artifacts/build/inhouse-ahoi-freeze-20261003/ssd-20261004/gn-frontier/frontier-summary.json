@@ -1,0 +1,35 @@
+{
+  "plannedSteps": 3153,
+  "types": {
+    "ACTION": 13,
+    "CXX": 3085,
+    "OBJCXX": 4,
+    "SOLINK": 19,
+    "LINK": 11,
+    "COPY_BUNDLE_DATA": 21
+  },
+  "firstPlanned": [
+    "ACTION //third_party/blink/renderer/platform:color_data(//build/toolchain/mac:clang_arm64)",
+    "ACTION //third_party/blink/renderer/core:make_core_generated_atrule_names(//build/toolchain/mac:clang_arm64)",
+    "ACTION //third_party/blink/renderer/core:make_core_generated_computed_style_base(//build/toolchain/mac:clang_arm64)",
+    "ACTION //third_party/blink/renderer/core:make_core_generated_computed_style_initial_values(//build/toolchain/mac:clang_arm64)",
+    "ACTION //third_party/blink/renderer/core:make_core_generated_css_property_instances(//build/toolchain/mac:clang_arm64)",
+    "ACTION //third_party/blink/renderer/core:make_core_generated_css_property_names(//build/toolchain/mac:clang_arm64)",
+    "ACTION //third_party/blink/renderer/core:make_core_generated_css_subclasses(//build/toolchain/mac:clang_arm64)",
+    "ACTION //third_party/blink/renderer/core:make_core_generated_css_value_id_mappings(//build/toolchain/mac:clang_arm64)"
+  ],
+  "sampleCompile": [
+    "CXX obj/third_party/blink/renderer/platform/platform/color_data.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_custom_element_adopted_callback.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_custom_element_form_associated_callback.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_custom_element_form_state_restore_callback.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_intrinsic_sizes_callback.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_layout_callback.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_navigation_defer_page_swap_handler.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_navigation_intercept_precommit_handler.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_node_filter.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_autofill_field_data.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_animation_event_init.o",
+    "CXX obj/third_party/blink/renderer/bindings/core/v8/v8/v8_animation_playback_event_init.o"
+  ]
+}

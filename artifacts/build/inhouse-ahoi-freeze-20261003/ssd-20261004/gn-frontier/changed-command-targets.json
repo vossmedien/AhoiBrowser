@@ -1,0 +1,14 @@
+[
+  "gen/third_party/blink/renderer/core/css/parser/at_rule_descriptors.cc",
+  "gen/third_party/blink/renderer/core/style/computed_style_base.cc",
+  "gen/third_party/blink/renderer/core/style/computed_style_initial_values.h",
+  "gen/third_party/blink/renderer/core/css/properties/css_property_instances.cc",
+  "gen/third_party/blink/renderer/core/css/css_property_names.cc",
+  "gen/third_party/blink/renderer/core/css/properties/longhands.cc",
+  "gen/third_party/blink/renderer/core/css/css_value_id_mappings_generated.h",
+  "gen/third_party/blink/renderer/core/css_value_keywords.cc",
+  "gen/third_party/blink/renderer/core/cssom_keywords.cc",
+  "gen/third_party/blink/renderer/core/property_bitsets.cc",
+  "gen/third_party/blink/renderer/core/style_property_shorthand.cc",
+  "gen/third_party/blink/renderer/platform/color_data.cc"
+]

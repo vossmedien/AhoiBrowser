@@ -1,5 +1,39 @@
 # Active Desktop checkpoint
 
+## SSD frontier corrected; internal duplicate retired — 4 October2026,14:07CEST
+
+Concrete Inhouse iOS handback consumed once: own330CFE12/12F7F303 shut down,
+no general slot reservation. Own fresh13:47/13:48 target idle46.21/68.29%,
+memory62/61%, own root locks/compilers absent and UUID guard0. Prepared A29
+runner12447 then actually started13:48:50, terminal0 at13:50:08. Current4GiB
+phase-growth+8GiB reserve loaded; GNthreads2/Ninja-n only, no compile.
+
+Dryrun3153 planned steps (3085CXX) was not executed. Native explain identified
+12Blink Python generator command changes caused by relocation. Generator-only
+preflight exactly12ACTION/0Compiler; only those12 actions executed14:01, exit0.
+Ninja restat then reduces regular chrome frontier to58 steps. No command hashes,
+assertions, source output bytes or timestamps manually forged to obtain this.
+Frozen88 source content and installed app unchanged; two temporary Rust/V8
+workarounds restored normally. Raw state/logs/plans are retained in existing
+artifacts/build/inhouse-ahoi-freeze-20261003/ssd-20261004/gn-frontier/.
+
+Path gate: all13983Ninja graphs and copied symlinks scanned, zero old internal
+root dependencies; build.ninja/args/.ninja_deps also0. Old internal handles0 and
+staged0, current A29 explicit ownership unchanged. Full copy/pin240/bundle/overlay
+acceptance therefore permits independent cache retirement, no Source GUI or
+product journey used as this gate. Only original internal .work/chromium,
+.work/depot_tools,.work/state removed14:06:59. Actual root free41270448128→
+109645512704bytes, observed+68375064576bytes; other host activity may contribute.
+Frozen agent-queue/repo73, apps/profiles/simdata/other projects and active SSD
+cache preserved. Exact internal-sdk-retire.json handed to Inhouse.
+
+Next: freeze Source-only opt-in diagnostic (only developer_network_factory_proxy
+product delta since73; no other browser changes or M155 roll), refresh it onto
+accepted SSD root, inspect actual small compile frontier and remaining link/
+staging peak, then capacity-qualified limited candidate. Visible single Document
+fetch follows on exact candidate; SourceMacUI still awaits explicit Jev handback.
+No diagnostic candidate compiled/installed, original full Goal/account/limits kept.
+
 ## Current phase-budget guard loaded; CPU-bound GN preparation — 4 October2026,13:39CEST
 
 Concrete shared-checkpoint correction consumed in this same A29 thread:

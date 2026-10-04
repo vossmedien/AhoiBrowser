@@ -1,0 +1,31 @@
+{
+  "startedAt": "2026-10-04T12:05:07.226754+00:00",
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "context": "A29",
+  "allowlist": [
+    "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium",
+    "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/depot_tools",
+    "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/state"
+  ],
+  "activeRoot": "/Volumes/Daten/Inhouse/AhoiBrowser/work",
+  "beforeFreeBytes": 41270448128,
+  "terminal": true,
+  "gates": [
+    "full byte/link/meta copy PASS",
+    "bundle/pins240/overlay PASS",
+    "GN/Dryrun0",
+    "all13983graphs/symlink old-root refs0",
+    "12metadata-only generators0",
+    "original old-root handles0/staged0"
+  ],
+  "preserved": [
+    "internal agent-queue/repo73",
+    "apps/rollback/profiles/simulator data",
+    "all other projects",
+    "external active cache",
+    "original Goal/account"
+  ],
+  "finishedAt": "2026-10-04T12:06:59.761159+00:00",
+  "afterFreeBytes": 109645512704,
+  "observedRecoveredBytes": 68375064576
+}

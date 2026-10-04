@@ -1,0 +1,13 @@
+ninja: Entering directory `/Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/out/AhoiDev'
+[1/12] ACTION //third_party/blink/renderer/core:make_core_generated_atrule_names(//build/toolchain/mac:clang_arm64)
+[2/12] ACTION //third_party/blink/renderer/core:make_core_generated_computed_style_base(//build/toolchain/mac:clang_arm64)
+[3/12] ACTION //third_party/blink/renderer/core:make_core_generated_computed_style_initial_values(//build/toolchain/mac:clang_arm64)
+[4/12] ACTION //third_party/blink/renderer/core:make_core_generated_css_property_instances(//build/toolchain/mac:clang_arm64)
+[5/12] ACTION //third_party/blink/renderer/core:make_core_generated_css_property_names(//build/toolchain/mac:clang_arm64)
+[6/12] ACTION //third_party/blink/renderer/core:make_core_generated_css_subclasses(//build/toolchain/mac:clang_arm64)
+[7/12] ACTION //third_party/blink/renderer/core:make_core_generated_css_value_id_mappings(//build/toolchain/mac:clang_arm64)
+[8/12] ACTION //third_party/blink/renderer/core:make_core_generated_css_value_keywords(//build/toolchain/mac:clang_arm64)
+[9/12] ACTION //third_party/blink/renderer/core:make_core_generated_cssom_types(//build/toolchain/mac:clang_arm64)
+[10/12] ACTION //third_party/blink/renderer/core:make_core_generated_property_bitsets(//build/toolchain/mac:clang_arm64)
+[11/12] ACTION //third_party/blink/renderer/core:make_core_generated_style_property_shorthand(//build/toolchain/mac:clang_arm64)
+[12/12] ACTION //third_party/blink/renderer/platform:color_data(//build/toolchain/mac:clang_arm64)

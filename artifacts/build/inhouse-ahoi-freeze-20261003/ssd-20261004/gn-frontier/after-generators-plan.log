@@ -1,0 +1,59 @@
+ninja: Entering directory `/Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/out/AhoiDev'
+[1/58] CXX obj/third_party/blink/renderer/platform/platform/color_data.o
+[2/58] CXX obj/third_party/blink/renderer/core/core_generated/at_rule_descriptors.o
+[3/58] CXX obj/third_party/blink/renderer/core/core_generated/css_property_names.o
+[4/58] CXX obj/third_party/blink/renderer/core/core_generated/css_value_keywords.o
+[5/58] SOLINK libblink_platform.dylib libblink_platform.dylib.TOC
+[6/58] SOLINK libblink_core.dylib libblink_core.dylib.TOC
+[7/58] SOLINK libblink_modules.dylib libblink_modules.dylib.TOC
+[8/58] SOLINK libblink_controller.dylib libblink_controller.dylib.TOC
+[9/58] SOLINK libblink_platform_media.dylib libblink_platform_media.dylib.TOC
+[10/58] LINK ./v8_context_snapshot_generator
+[11/58] SOLINK libcontent.dylib libcontent.dylib.TOC
+[12/58] ACTION //tools/v8_context_snapshot:generate_v8_context_snapshot(//build/toolchain/mac:clang_arm64)
+[13/58] SOLINK libkeyed_service_content.dylib libkeyed_service_content.dylib.TOC
+[14/58] SOLINK libcomponents_sessions.dylib libcomponents_sessions.dylib.TOC
+[15/58] SOLINK libcomponents_storage_monitor.dylib libcomponents_storage_monitor.dylib.TOC
+[16/58] SOLINK libcomponents_web_modal.dylib libcomponents_web_modal.dylib.TOC
+[17/58] SOLINK libui_web_dialogs.dylib libui_web_dialogs.dylib.TOC
+[18/58] SOLINK libcomponents_tracing_tracing_metrics.dylib libcomponents_tracing_tracing_metrics.dylib.TOC
+[19/58] SOLINK libcomponents_ui_devtools.dylib libcomponents_ui_devtools.dylib.TOC
+[20/58] SOLINK libcomponents_surface_embed_renderer.dylib libcomponents_surface_embed_renderer.dylib.TOC
+[21/58] SOLINK libcomponents_webapps_isolated_web_apps.dylib libcomponents_webapps_isolated_web_apps.dylib.TOC
+[22/58] SOLINK libui_views_controls_webview.dylib libui_views_controls_webview.dylib.TOC
+[23/58] SOLINK libbrowser_ui_views.dylib libbrowser_ui_views.dylib.TOC
+[24/58] SOLINK libchrome_dll.dylib libchrome_dll.dylib.TOC
+[25/58] SOLINK 'obj/chrome/chrome_framework_shared_library/AhoiBrowser Framework' 'obj/chrome/chrome_framework_shared_library/AhoiBrowser Framework.TOC'
+[26/58] LINK obj/chrome/chrome_helper_app_alerts_executable/AhoiBrowser Helper (Alerts)
+[27/58] LINK obj/chrome/chrome_helper_app_aperitif_alerts_executable/AhoiBrowser Helper (Aperitif Alerts)
+[28/58] LINK obj/chrome/chrome_helper_app_aperitif_executable/AhoiBrowser Helper (Aperitif)
+[29/58] LINK obj/chrome/chrome_helper_app_aperitif_gpu_executable/AhoiBrowser Helper (Aperitif GPU)
+[30/58] LINK obj/chrome/chrome_helper_app_aperitif_renderer_executable/AhoiBrowser Helper (Aperitif Renderer)
+[31/58] LINK obj/chrome/chrome_helper_app_default_executable/AhoiBrowser Helper
+[32/58] LINK obj/chrome/chrome_helper_app_gpu_executable/AhoiBrowser Helper (GPU)
+[33/58] LINK obj/chrome/chrome_helper_app_renderer_executable/AhoiBrowser Helper (Renderer)
+[34/58] LINK ./web_app_shortcut_copier
+[35/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_helper_app_alerts_executable/AhoiBrowser Helper (Alerts)' 'AhoiBrowser Helper (Alerts).app/Contents/MacOS/AhoiBrowser Helper (Alerts)'
+[36/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_helper_app_aperitif_alerts_executable/AhoiBrowser Helper (Aperitif Alerts)' 'AhoiBrowser Helper (Aperitif Alerts).app/Contents/MacOS/AhoiBrowser Helper (Aperitif Alerts)'
+[37/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_helper_app_aperitif_executable/AhoiBrowser Helper (Aperitif)' 'AhoiBrowser Helper (Aperitif).app/Contents/MacOS/AhoiBrowser Helper (Aperitif)'
+[38/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_helper_app_aperitif_gpu_executable/AhoiBrowser Helper (Aperitif GPU)' 'AhoiBrowser Helper (Aperitif GPU).app/Contents/MacOS/AhoiBrowser Helper (Aperitif GPU)'
+[39/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_helper_app_aperitif_renderer_executable/AhoiBrowser Helper (Aperitif Renderer)' 'AhoiBrowser Helper (Aperitif Renderer).app/Contents/MacOS/AhoiBrowser Helper (Aperitif Renderer)'
+[40/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_helper_app_default_executable/AhoiBrowser Helper' 'AhoiBrowser Helper.app/Contents/MacOS/AhoiBrowser Helper'
+[41/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_helper_app_gpu_executable/AhoiBrowser Helper (GPU)' 'AhoiBrowser Helper (GPU).app/Contents/MacOS/AhoiBrowser Helper (GPU)'
+[42/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_helper_app_renderer_executable/AhoiBrowser Helper (Renderer)' 'AhoiBrowser Helper (Renderer).app/Contents/MacOS/AhoiBrowser Helper (Renderer)'
+[43/58] COPY_BUNDLE_DATA 'obj/chrome/chrome_framework_shared_library/AhoiBrowser Framework' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/AhoiBrowser Framework'
+[44/58] COPY_BUNDLE_DATA web_app_shortcut_copier 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/web_app_shortcut_copier'
+[45/58] COPY_BUNDLE_DATA 'AhoiBrowser Helper.app' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/AhoiBrowser Helper.app'
+[46/58] COPY_BUNDLE_DATA 'AhoiBrowser Helper (Renderer).app' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/AhoiBrowser Helper (Renderer).app'
+[47/58] COPY_BUNDLE_DATA 'AhoiBrowser Helper (GPU).app' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/AhoiBrowser Helper (GPU).app'
+[48/58] COPY_BUNDLE_DATA 'AhoiBrowser Helper (Aperitif).app' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/AhoiBrowser Helper (Aperitif).app'
+[49/58] COPY_BUNDLE_DATA 'AhoiBrowser Helper (Aperitif Renderer).app' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/AhoiBrowser Helper (Aperitif Renderer).app'
+[50/58] COPY_BUNDLE_DATA 'AhoiBrowser Helper (Aperitif GPU).app' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/AhoiBrowser Helper (Aperitif GPU).app'
+[51/58] COPY_BUNDLE_DATA 'AhoiBrowser Helper (Alerts).app' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/AhoiBrowser Helper (Alerts).app'
+[52/58] COPY_BUNDLE_DATA 'AhoiBrowser Helper (Aperitif Alerts).app' 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Helpers/AhoiBrowser Helper (Aperitif Alerts).app'
+[53/58] COPY_BUNDLE_DATA v8_context_snapshot.arm64.bin 'AhoiBrowser Framework.framework/Versions/154.0.8037.93/Resources/v8_context_snapshot.arm64.bin'
+[54/58] CXX obj/chrome/chrome_app_executable/chrome_exe_main_mac.o
+[55/58] CXX obj/chrome/chrome_app_executable/llvm_profile_util.o
+[56/58] LINK obj/chrome/chrome_app_executable/AhoiBrowser
+[57/58] COPY_BUNDLE_DATA 'AhoiBrowser Framework.framework' 'AhoiBrowser.app/Contents/Frameworks/AhoiBrowser Framework.framework'
+[58/58] COPY_BUNDLE_DATA obj/chrome/chrome_app_executable/AhoiBrowser AhoiBrowser.app/Contents/MacOS/AhoiBrowser
