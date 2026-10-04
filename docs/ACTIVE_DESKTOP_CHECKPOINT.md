@@ -1,5 +1,61 @@
 # Active Desktop checkpoint
 
+## Actual single-document diagnosis identifies request-mode bug — 4 October 2026,16:24 CEST
+
+Own guarded immutable9b304a3c completed pin/hooks/GN/staging; exact diagnostic
+object was already current (Ninja no work). Direct SSH signing failed as expected.
+GUI postcompile on external root failed RemovableVolumes access; no trust/ACL
+bypass. Necessary internal portable-app signing stage passed stable Apple
+Development2265UJB5KF and deep bundle verification, then exact signed bytes copied
+back. Provenance requires explicit DEVELOPER_DIR; corrected invocation0. Exact
+candidate installed on target via canonical installer0. Source installed88 intact.
+
+[Actual one-document result](../artifacts/tests/document-factory-request-mode-20261004/receipt.json):
+real installed9b page PaneA observed via native AX; requestHeadermissing and
+responseHeadernull. Factory profile present; contents/frame/active/generation/
+navigation/origin/owner/initiator/committed flags ALL1. Only outermost-frame flag1
+rejects the non-navigation fetch. No navigation-ID/generation guess required.
+Owned browser closed through Browser.close; fixture server stopped. Original
+7PASS/5RED and new failing probe retained; no whole-suite replay.
+
+Production now distinguishes RequestMode::kNavigate from requesting-frame
+ownership in both factory and snapshot/throttle. Subframe navigation cannot borrow
+parent profile; all provenance/origin/frame/generation/secret checks retained.
+Tests set realistic primary-frame fetch flag and actual navigation mode, with
+navigation-default/subframe-rejection cases. Source correction not yet built or
+accepted. Next: guarded two-job corrected candidate, same real document fetch,
+then affected visible cache12 journey and necessary focused native regressions.
+Full Master/Goal/account/data boundaries preserved; no Root approval dependency.
+
+## Explicit user resumption: own bounded factory diagnostic actually launched — 4 October 2026,15:57 CEST
+
+User explicitly directs this execution to continue independently of Root; existing
+full Master/Goal/thread/account retained. No Root approval or duplicated Goal.
+Current immutable source9b304a3c72c470e65ea58ef56db25ab11b39a0b9 differs from installed
+88 in only developer_network_factory_proxy.cc among overlay/patches/apps. Opt-in
+boolean-only diagnostic; no claimed product fix. Ready Crest106/110 re-reviewed:
+performance-only, no product patch in this candidate; H3 runtime deferred.
+
+Fresh target two CPU samples88.50/62.69%idle, memory_pressure69%free; no Ahoi
+GN/Ninja/transfer/signing writer or state owner-lock. Approved external-root helper
+passed. Exact Source bundle transferred and imported into detached TARGET input
+repo74-factory-9b304a3c, preserving original repo73/88. Atomic own desktop-build.lock
+at SSD state names this actual phase, preventing a competing output writer.
+Runner79719/PGID79719 launched through guarded apply-overlay.sh and build-ahoi.sh dev,
+nice10/jobs2/GNthreads2/keepgoing0, reviewed8GiB additional-growth estimate plus
+unchanged8GiB emergency reserve. Actual phase/log/state:
+~/inhouse/evidence/ahoi-factory-diagnostic-20261004-9b304a3c/.
+Canonical Git refs/index have not been moved by snapshot import. No source build,
+installed-app replacement, test-matrix replay or foreign process signal.
+
+Next: consume this live run's actual result; if SSH private-key signing fails,
+complete only existing postcompile signing/verification/provenance in the already
+authorized gui/501 job route, without rebuilding. Bind one synthetic document
+fetch to the exact diagnostic candidate and resolve the logged ownership/context/
+snapshot predicate. Then implement the actual cause, rebuild affected code and
+repeat the visible cache/header journey before focused regressions. Installed88
+and original7PASS/5RED remain until exact verified replacement; full DoD open.
+
 ## SSD frontier corrected; internal duplicate retired — 4 October2026,14:07CEST
 
 Concrete Inhouse iOS handback consumed once: own330CFE12/12F7F303 shut down,

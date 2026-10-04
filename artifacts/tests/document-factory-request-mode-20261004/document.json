@@ -1,0 +1,10 @@
+{
+  "result": {
+    "type": "object",
+    "value": {
+      "title": "PaneA",
+      "url": "http://127.0.0.1:8807/a.html",
+      "state": "complete"
+    }
+  }
+}

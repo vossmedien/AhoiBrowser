@@ -389,7 +389,9 @@ class DeveloperFactoryProxy final
         frame->GetNavigationId() == navigation_id_ &&
         frame->GetLastCommittedOrigin() == origin_ &&
         content::WebContents::FromRenderFrameHost(frame) == contents_.get() &&
-        !request.is_outermost_main_frame &&
+        // The flag describes the requesting frame, including its fetch/XHR
+        // requests. Navigation mode identifies actual document navigations.
+        request.mode != network::mojom::RequestMode::kNavigate &&
         request.request_initiator == origin_ &&
         url::Origin::Create(contents_->GetLastCommittedURL()) == origin_) {
       auto* context = contents_->GetBrowserContext();

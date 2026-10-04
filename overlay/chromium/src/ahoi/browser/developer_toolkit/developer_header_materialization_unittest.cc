@@ -109,6 +109,7 @@ network::ResourceRequest MainFrameRequest(const GURL& url) {
   network::ResourceRequest request;
   request.url = url;
   request.is_outermost_main_frame = true;
+  request.mode = network::mojom::RequestMode::kNavigate;
   request.navigation_redirect_chain.push_back(url);
   return request;
 }

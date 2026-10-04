@@ -187,8 +187,9 @@ std::optional<DeveloperProfile> GetDeveloperProfileNetworkSnapshotForRequest(
     return std::nullopt;
   }
   std::optional<DeveloperProfile> profile;
-  if (request.is_outermost_main_frame) {
-    if (request.navigation_redirect_chain.empty() ||
+  if (request.mode == network::mojom::RequestMode::kNavigate) {
+    if (!request.is_outermost_main_frame ||
+        request.navigation_redirect_chain.empty() ||
         request.navigation_redirect_chain.back() != request.url) {
       return std::nullopt;
     }
@@ -243,7 +244,7 @@ MaybeCreateDeveloperProfileURLLoaderThrottle(
     return nullptr;
   }
   base::RepeatingCallback<bool()> approval;
-  if (request.is_outermost_main_frame) {
+  if (request.mode == network::mojom::RequestMode::kNavigate) {
     const auto source = GetDeveloperNetworkProfileForTab(prefs, web_contents, request.url);
     if (!source) {
       return nullptr;

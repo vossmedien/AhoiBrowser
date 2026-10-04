@@ -218,6 +218,8 @@ scoped_refptr<network::SharedURLLoaderFactory> DeveloperNetworkFactoryProxyTest:
 network::ResourceRequest DeveloperNetworkFactoryProxyTest::Request() {
     network::ResourceRequest request;
     request.url = origin_.GetURL().Resolve("resource.css");
+    // Primary-frame fetches carry this flag independently of navigation mode.
+    request.is_outermost_main_frame = true;
     request.request_initiator = origin_;
     return request;
   }

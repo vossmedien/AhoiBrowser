@@ -5,6 +5,29 @@
 
 namespace ahoi::test {
 
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       MainFrameNavigationKeepsNativeFactoryDefaults) {
+  auto factory = Build();
+  ClientSink client;
+  auto request = Request();
+  request.mode = network::mojom::RequestMode::kNavigate;
+  request.destination = network::mojom::RequestDestination::kDocument;
+  Load(*factory, client, request);
+  ASSERT_EQ(1u, terminal_->seen.size());
+  EXPECT_FALSE(terminal_->seen[0].headers.HasHeader("X-Ahoi-Dev"));
+  EXPECT_EQ(0, terminal_->seen[0].load_flags & net::LOAD_BYPASS_CACHE);
+}
+
+TEST_F(DeveloperNetworkFactoryProxyTest,
+       SubframeNavigationCannotBorrowParentProfile) {
+  auto request = Request();
+  request.is_outermost_main_frame = false;
+  request.mode = network::mojom::RequestMode::kNavigate;
+  request.navigation_redirect_chain.push_back(request.url);
+  EXPECT_FALSE(GetDeveloperProfileNetworkSnapshotForRequest(
+      request, &prefs_, false, contents_.get()));
+}
+
 TEST_F(DeveloperNetworkFactoryProxyTest, RulesAndCacheReachLaterInterceptor) {
   auto factory = Build();
   ClientSink client;

@@ -675,6 +675,7 @@ TEST(DeveloperProfileURLLoaderThrottleTest,
   network::ResourceRequest request;
   request.url = GURL("https://example.test/path");
   request.is_outermost_main_frame = true;
+  request.mode = network::mojom::RequestMode::kNavigate;
   EXPECT_FALSE(MaybeCreateDeveloperProfileURLLoaderThrottle(
       request, &prefs, /*is_off_the_record=*/false, nullptr));
 
@@ -694,6 +695,7 @@ TEST(DeveloperProfileURLLoaderThrottleTest,
   network::ResourceRequest request;
   request.url = GURL("https://example.test/path");
   request.is_outermost_main_frame = true;
+  request.mode = network::mojom::RequestMode::kNavigate;
   EXPECT_FALSE(MaybeCreateDeveloperProfileURLLoaderThrottle(
       request, &prefs, /*is_off_the_record=*/false, nullptr));
   EXPECT_FALSE(MaybeCreateDeveloperProfileURLLoaderThrottle(

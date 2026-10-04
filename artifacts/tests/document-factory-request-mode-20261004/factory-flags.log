@@ -1,0 +1,28 @@
+[14778:7398691:1004/162421.591711:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.596321:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=0 frame=1 http=0
+[14778:7398691:1004/162421.596471:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=0 frame=1 http=0
+[14778:7398691:1004/162421.610610:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.611835:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=0 frame=1 http=0
+[14778:7398691:1004/162421.611880:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=0 frame=1 http=0
+[14778:7398691:1004/162421.695882:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.698388:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=0 frame=1 http=0
+[14778:7398691:1004/162421.841148:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.841408:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.841499:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.841567:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.841599:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.842596:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.842717:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.842746:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.842869:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162421.842908:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=0
+[14778:7398691:1004/162424.915968:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=1
+[14778:7398691:1004/162424.916016:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:472] Ahoi developer factory profile: found=1 ua=0 request=1 response=1 cache=0
+[14778:7398691:1004/162424.916130:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=1
+[14778:7398691:1004/162424.916151:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:472] Ahoi developer factory profile: found=1 ua=0 request=1 response=1 cache=0
+[14778:7398691:1004/162424.916190:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=1
+[14778:7398691:1004/162424.916209:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:472] Ahoi developer factory profile: found=1 ua=0 request=1 response=1 cache=0
+[14778:7398691:1004/162424.916239:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:456] Ahoi developer factory eligibility: toolkit=1 otr=0 frame_owned=1 frame=1 http=1
+[14778:7398691:1004/162424.916256:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:472] Ahoi developer factory profile: found=1 ua=0 request=1 response=1 cache=0
+[14778:7398691:1004/162425.138917:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:369] Ahoi developer factory ownership: contents=1 frame=1 active=1 generation=1 navigation=1 origin=1 owner=1 main=1 initiator=1 committed=1
+[14778:7398691:1004/162426.027440:VERBOSE1:ahoi/browser/developer_toolkit/developer_network_factory_proxy.cc:369] Ahoi developer factory ownership: contents=1 frame=1 active=1 generation=1 navigation=1 origin=1 owner=1 main=1 initiator=1 committed=1

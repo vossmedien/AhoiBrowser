@@ -1,0 +1,11 @@
+{
+  "source": "9b304a3c72c470e65ea58ef56db25ab11b39a0b9",
+  "browserPID": 14778,
+  "serverPID": 14777,
+  "profile": "/Users/vossmedien/inhouse/evidence/ahoi-factory-diagnostic-20261004-9b304a3c/one-document/profile",
+  "ports": [
+    9397,
+    8807
+  ],
+  "startedAt": "2026-10-04T14:24:15.120976+00:00"
+}

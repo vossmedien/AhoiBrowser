@@ -1,0 +1,24 @@
+{
+  "source": "9b304a3c72c470e65ea58ef56db25ab11b39a0b9",
+  "host": "MacbookPro2026.local",
+  "installed": true,
+  "stableDevelopmentSignature": true,
+  "scope": "one synthetic document fetch plus native AX observation; product failure, not full visible acceptance",
+  "requestHeader": "missing",
+  "responseHeader": null,
+  "matchedOwnershipFlags": [
+    "contents",
+    "frame",
+    "active",
+    "generation",
+    "navigation",
+    "origin",
+    "owner",
+    "initiator",
+    "committed"
+  ],
+  "rejectedFlag": "is_outermost_main_frame=true despite non-navigation fetch",
+  "fixtureObserved": true,
+  "normalBrowserClose": true,
+  "serverStopped": true
+}
