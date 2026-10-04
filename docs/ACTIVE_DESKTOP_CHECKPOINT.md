@@ -20,10 +20,17 @@ not a new browser/runtime acceptance; native cache product7PASS/5RED stays open.
 Inhouse latest concrete transfer handback grants sole Ahoi ownership for
 /Volumes/Daten/Inhouse/AhoiBrowser/work. Fresh11:54 target71.58%CPUidle,
 59% memory free, no compiler observed; latest prior heavy hold lifted explicitly.
-No M155 roll authorized by the capacity question. Next: publish only verified
-guard delta on main; freshly check target/root identity and capacity, transfer
-own Chromium/depot/state to SSD with verification before root switching or
-source cleanup. Keep frozen88 and installed88 unchanged. Then bounded diagnostic
+No M155 roll authorized by the capacity question. Published main/origin f09bd80e19df4d2e9e0034069e52c792316f1c37, tree
+4422147d74201bca766ae35d424a2ab00fe0219c equals prepared3db601d4. Main-input5/5
+PASS plus syntax/lane0; GitHub app non-force update, hostedCI explicitly skipped.
+Separate main-receipt.json retained. No unrelated product commits integrated.
+
+Own SSD transfer actually started12:00CEST, PID39852, A29 sole writer; evidence
+target ~/inhouse/evidence/ahoi-ssd-20261004/state.json and transfer.log. UUID helper
+passed before mkdir, old cache retained. Copy chromium/depot_tools/state (~70GB),
+then checksum/metadata dry-run must be empty before root switch/source cleanup.
+Current script is retained in artifacts/build/inhouse-ahoi-freeze-20261003/
+ssd-20261004/transfer.sh. No transfer acceptance yet. Keep frozen88 and installed88 unchanged. Then bounded diagnostic
 candidate and one Document fetch resolve factory match flags, before correcting
 and renewing the affected visible journey. Canonical code/Git and apps stay Dev.
 
