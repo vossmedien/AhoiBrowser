@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Completed release CLI fix integrated, published and delivered — 4 October 2026
+
+Previous turn was actual CLI/source progress. Current A29's explicit Source-Git
+handback/sole ownership rechecked. Standalone release Python dependencies already
+exist unchanged on main; broader browser factory dependencies still do not. Only
+finished cc8 fix, releasing doc and exact CLI evidence integrated in isolation.
+
+Actual local main/origin/main and published remote are
+`318c4effa84c7f7bb28fa463a579c6827ce4a2a3`, tree
+`60650b180673b76e5ea37dd73b3f7840dcca8a57` equals reviewed candidate exactly.
+Existing authenticated GitHub connector creates tree/commit, force:false ref
+update; actual public fetch confirms remote, local expected82 CAS with no
+checked-out main worktree. No credential/account change or Git-auth retry.
+[Publication receipt](../artifacts/tests/release-external-work-root-20261004/publication.json).
+
+Target immutable `repo79-release-main-318c4eff` actually imported published
+ancestry; both public CLI entrypoint help/imports exit0. Release modules/scripts,
+policy/pin/license byte-equal to executed cc8, so real26/26+two refusal evidence
+reused without another full run. Initial incremental bundle lacked target base82;
+retained failure, corrected by actual public fetch, no default target worktree
+reset. [Actual delivery](../artifacts/tests/release-external-work-root-20261004/main-delivery.json).
+
+Own temporary Source integration worktree removed after clean/tree proof;
+distinct local reviewed commit history retained as codex/release-root-reviewed-
+20261004. Broad canonical feature line, installed e86 browser, customer/foreign
+changes and all original Goal limits preserved. This standalone tooling milestone
+is complete; complete browser default integration/release is not claimed.
+GUI remains locked and Cockpit source consumer unavailable; pending exact
+cross-level/native/mobile flows remain parked. No inferred owner handback/new Goal.
+
 ## External-root release CLI repaired and actually executed — 4 October 2026
 
 Independent authorized progress while native GUI remains locked: actual public

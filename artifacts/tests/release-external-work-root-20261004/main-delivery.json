@@ -1,0 +1,12 @@
+{
+  "deliveredDefaultMain": "318c4effa84c7f7bb28fa463a579c6827ce4a2a3",
+  "worktree": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo79-release-main-318c4eff",
+  "actualPublicCliHelpExitCodes": [
+    0,
+    0
+  ],
+  "releaseInputsByteIdenticalToExecutedCandidate": "cc8bef2b",
+  "appOrBrowserChanged": false,
+  "reusedActualCliChecks": "26/26 and two path refusals; unchanged inputs, not rerun",
+  "initialTransportFailure": "incremental main bundle lacked base82 on target; retained, changed prerequisite: actual public fetch imports published ancestry"
+}

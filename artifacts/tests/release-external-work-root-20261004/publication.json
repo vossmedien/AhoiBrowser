@@ -1,0 +1,18 @@
+{
+  "mainCommit": "318c4effa84c7f7bb28fa463a579c6827ce4a2a3",
+  "originMainCommit": "318c4effa84c7f7bb28fa463a579c6827ce4a2a3",
+  "integratedTree": "60650b180673b76e5ea37dd73b3f7840dcca8a57",
+  "preparedTreeMatchesRemote": true,
+  "publishedParent": "82b457659c298f469a27a0056ffb8e44d3e273be",
+  "sourceCodeCommit": "cc8bef2b",
+  "actualTargetCli": {
+    "exit": 0,
+    "checks": "26/26",
+    "pathRejections": 2
+  },
+  "guardedUpdates": "GitHub force:false; local compare-and-swap expected82; no checked-out main worktree",
+  "browserDeliveredCommit": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+  "scope": "release tools/docs/exact CLI evidence only; broad browser feature branch remains separate",
+  "temporaryWorktreeRemoved": true,
+  "distinctReviewedHistoryPreserved": "codex/release-root-reviewed-20261004"
+}
