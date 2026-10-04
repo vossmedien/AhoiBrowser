@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Current phase-budget guard loaded; CPU-bound GN preparation — 4 October2026,13:39CEST
+
+Concrete shared-checkpoint correction consumed in this same A29 thread:
+fixed100GB floor superseded at11:32. Source/default main already82b45765 contains
+current growth+8GiB guard; historical frozen88 helpers are not rewritten. Owned
+launch-prepare.sh now uses separately staged CURRENT policy/check-host before
+existing frozen pin/overlay/toolchain/workaround logic and reserve monitor. No
+AHOI_ALLOW_LOW_DISK or blanket bypass. Actual host entrypoint prints822804713472
+bytes free against4294967296 growth+8589934592 reserve=12884901888 required; PASS.
+Old75.38GB measurement is not used. GN graph actually13983files/1664258875bytes,
+deps107136416/log16793410bytes.4GiB bounds double graph regeneration plus temp
+indexes/receipts/logs; this does NOT estimate a future full/milestone build.
+
+Prestart resources still insufficient:13:37 CPU17.20%idle,13:39 CPU4.89%idle,
+memory60%free. Therefore no GN/Ninja/compiler has started. No foreign process
+signal, Docker restart, SourceMacUI interaction, M155 update or Goal/account reset.
+Owned launcher/phase-budget receipt saved beside existing gn-frontier derivation.
+Resume just this parked operation after actual target capacity relief and fresh
+ownership/CPU/memory check, then inspect frontier before any limited diagnostic
+compile. SourceMacUI remains Jev until concrete handback; installed88/7PASS5RED
+and full Original Goal preserved. This is an operational guard PASS, not new
+browser acceptance or a whole-Goal pause.
+
 ## SourceMacUI leased elsewhere; bounded preparation saved — 4 October2026,13:27CEST
 
 User actual handback: Quality returned, Root1262 installed/start+close-view

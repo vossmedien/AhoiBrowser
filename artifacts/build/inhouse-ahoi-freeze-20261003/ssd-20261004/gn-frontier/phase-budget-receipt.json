@@ -1,0 +1,31 @@
+{
+  "recordedAt": "2026-10-04T11:42:12.468459+00:00",
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "context": "A29",
+  "policy": "current-policy; main82b45765 phase growth plus reserve, no fixed100GB",
+  "actualSSDfreeBytes": 822804713472,
+  "prior7538GBPointUsed": false,
+  "graphFiles": 13983,
+  "graphBytes": 1664258875,
+  "ninjaDepsBytes": 107136416,
+  "ninjaLogBytes": 16793410,
+  "plannedGrowthBytes": 4294967296,
+  "growthBasis": "more than 2x existing graph bytes + temporary indexes, receipt and dryrun logs; GN/Ninja-n only",
+  "safetyReserveBytes": 8589934592,
+  "requiredBytes": 12884901888,
+  "hostBudgetCheck": "PASS; actual current-policy check-host --compatible-dev-xcode",
+  "cpuIdleLastTwo": [
+    17.2,
+    4.89
+  ],
+  "memoryFreeLastPercent": 60,
+  "capacityDecision": "defer owned GN/Ninja; keep prepared entry point for actual relief",
+  "ownGNStarted": false,
+  "ownNinjaStarted": false,
+  "dockerRestart": false,
+  "install88": "unchanged; actual cache7PASS/5RED",
+  "scripts": {
+    "artifacts/build/inhouse-ahoi-freeze-20261003/ssd-20261004/gn-frontier/prepare-wrapper.sh": "6ac20f1f4042ba7edc61e12bb05ec2563d6c14579cf3966d4e0dc88b90760059",
+    "artifacts/build/inhouse-ahoi-freeze-20261003/ssd-20261004/gn-frontier/launch-prepare.sh": "fd99ddd727a19eda3f400151cfc9b1035f355bd4e30d3534c4084158cb5db1f5"
+  }
+}
