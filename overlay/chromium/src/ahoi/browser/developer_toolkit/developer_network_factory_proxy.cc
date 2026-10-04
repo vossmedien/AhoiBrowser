@@ -393,12 +393,19 @@ class DeveloperFactoryProxy final
         request.request_initiator == origin_ &&
         url::Origin::Create(contents_->GetLastCommittedURL()) == origin_) {
       auto* context = contents_->GetBrowserContext();
+      VLOG(1) << "Ahoi developer factory context: present=" << !!context
+              << " otr=" << (context && context->IsOffTheRecord())
+              << " prefs="
+              << (context && user_prefs::UserPrefs::IsInitialized(context));
       if (context && !context->IsOffTheRecord() &&
           user_prefs::UserPrefs::IsInitialized(context)) {
         PrefService* prefs = user_prefs::UserPrefs::Get(context);
+        VLOG(1) << "Ahoi developer factory toolkit: enabled="
+                << ToolkitEnabled(prefs);
         if (ToolkitEnabled(prefs)) {
           auto snapshot = GetDeveloperProfileNetworkSnapshotForRequest(
               request, prefs, false, contents_.get());
+          VLOG(1) << "Ahoi developer factory snapshot: found=" << !!snapshot;
           if (!verify_saved_rules) {
             return snapshot;
           }
@@ -413,6 +420,8 @@ class DeveloperFactoryProxy final
                               DeveloperProfile{.cache_disabled = true})
                         : std::nullopt;
           }
+          VLOG(1) << "Ahoi developer factory rules: saved=" << !!saved
+                  << " match=" << (snapshot && saved && *snapshot == *saved);
           if (snapshot && saved && *snapshot == *saved) {
             return snapshot;
           }

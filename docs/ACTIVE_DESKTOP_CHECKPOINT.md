@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## SourceMacUI leased elsewhere; bounded preparation saved — 4 October2026,13:27CEST
+
+User actual handback: Quality returned, Root1262 installed/start+close-view
+acceptance completed. SourceMacUI now exclusively existing Jev owner01a1018d;
+Root will notify actual release for short Ahoi journey. No Source UI, Ahoi launch
+or install occurred here. Target GUI remains a distinct lane; no lease inferred
+from time or process absence, and original Goal/account unchanged.
+
+Own transparent GN/frontier script prepared from exact frozen88 wrapper:
+all path/target/pin/hash/apply/restore/receipt logic retained; only existing
+frozen script-directory binding, GN --threads=2 and Ninja -n. Syntax0; base/derived
+SHA and script under artifacts/build/inhouse-ahoi-freeze-20261003/ssd-20261004/
+gn-frontier/. This is migration-frontier preparation, NOT a compile/candidate.
+Target last prestart CPU0%idle/Load109.87 at13:27 (earlier0→61.78→37.35%idle),
+background MediaAnalysis/Spotlight dominates. Therefore neither GN nor Ninja
+started; Source/internalTarget originals remain unchanged. Park only this
+capacity-bound phase, no new expensive matrix or unrelated process signal.
+
+Source-only factory diagnostic now also records context/prefs/toolkit eligibility
+and snapshot/saved-profile/match booleans, no URL/header/secret values; existing
+checks unchanged. This covers the inner rejects if frame ownership flags pass,
+so the next single Document probe need not trigger another diagnostic compile.
+Unbuilt/unaccepted; actual installed88 cache7PASS/5RED stays open. Next upon
+sufficient actual target capacity: execute saved GN/frontier prepare operation on
+SSD copy with old cache kept; inspect bounded frontier, then frozen diagnostic
+candidate and one Document fetch. Source visible journey waits for explicit GUI
+handback; capacity/Source-GUI hold does not pause the overall Goal.
+
 ## SSD root accepted; Source SDK cleanup terminal; targeted tools published — 4 October2026
 
 In current A29 context, handback consumed and original Goal/account/thread kept.

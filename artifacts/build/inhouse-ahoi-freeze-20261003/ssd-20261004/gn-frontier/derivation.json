@@ -1,0 +1,11 @@
+{
+  "baseSourceCommit": "88e631d65f58ac80250e464847072eea00c4c877",
+  "baseScriptSha256": "458a8d633710422b23c356d9bded7766764f2e7e3eac8ba590b6f18ae3b7d5d4",
+  "derivedScriptSha256": "6ac20f1f4042ba7edc61e12bb05ec2563d6c14579cf3966d4e0dc88b90760059",
+  "changes": [
+    "bind existing frozen88 script directory",
+    "GN --threads=2",
+    "Ninja -n; no compile"
+  ],
+  "unchanged": "all target/path/pin/hash/apply/restore/receipt guards"
+}
