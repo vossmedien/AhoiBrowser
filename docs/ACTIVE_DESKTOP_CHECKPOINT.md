@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Cross-level native input driver prepared; runtime parked — 4 October 2026,20:30 CEST
+
+Concrete source progress after the accepted archive fix: existing WS-ISO-05 driver
+now reuses focus/yield guards for all writes, checks exact installed source and
+live launch ownership at each restart, requires native focused confirmation and
+enabled controls before real Cancel/Move clicks, observes actual dismissal,
+records browser exit and returns failure for false verdicts. Existing25 assertions
+retained; no product/binary change or new build. [Preparation/actual guard proof](../artifacts/tests/cross-level-owned-input-20261004/README.md).
+
+Shell/Python syntax and lane checks pass. Real target candidate mismatch is
+rejected before launch with exit8/pass:false. This does not prove the native
+profile-move journey; it remains NOT RUN on installed e86. Ready Crest106/110
+reviewed and owner statuses updated: tools-only, no product patch, H3 deferred.
+
+Fresh target at20:27:13.59/4.80%idle, Load81.26; next phase check20:30:
+0.38/0.55%idle, Load67.28,47GB used/11GB compressor. Foreign BetterIPTV
+native-reset-v3 UITest PID77215 live on simulator CE3801C5. No Ahoi GUI/heavy
+phase started and no foreign signal. Existing active Goal/thread/account preserved.
+Next parked action: current capacity plus UI-owner handback, freeze this driver
+and run against exact installed e86. No unchanged27/27/native55/cache12 replay.
+Other independent authorized product work remains available; this is only the
+resource-affected native journey, not an overall Goal-block/complete claim.
+
 ## Archive confirmation crash fixed, accepted and installed — 4 October 2026, 20:14 CEST
 
 Current installed source `e86c929f6bfbb0cbe1dac2fa4c101a31250c215a` on both Macs,

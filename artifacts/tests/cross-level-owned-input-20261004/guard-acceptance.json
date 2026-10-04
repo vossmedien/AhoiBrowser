@@ -1,0 +1,15 @@
+{
+  "actualPreflightExitCode": 8,
+  "actualRefusal": {
+    "cancelled": "installed candidate changed or lacks source metadata",
+    "pass": false
+  },
+  "installedReadback": {
+    "at": "2026-10-04T18:33:44.666519+00:00",
+    "source": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+    "idleSeconds": 1165,
+    "refusal": "installed candidate changed or lacks source metadata"
+  },
+  "browserLaunchOrInput": false,
+  "sourceJourneySha256": "d49869fda7f8665709cc3ec7257c15c53e12bfe12eda7cafcf97a6097c01f410"
+}

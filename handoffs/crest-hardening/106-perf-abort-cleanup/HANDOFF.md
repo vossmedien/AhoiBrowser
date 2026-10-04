@@ -1,6 +1,6 @@
 # 106 – H3 exception cleanup and incomplete-run evidence
 
-Status: ready (desktop/sync owner re-reviewed 3 October for document-factory navigation/candidate73 packet; no product patch applies; deferred to separate H3 lease; exact owner runtime acceptance pending)
+Status: ready (desktop owner re-reviewed 4 October for installed e86 archive/cross-level packet; no product patch applies; H3 runtime lease deferred while foreign iOS work occupies target; no performance acceptance claimed)
 Owner lane: crest-hardening (tools); desktop (future exact-candidate lease)
 Base: `f141273`.
 

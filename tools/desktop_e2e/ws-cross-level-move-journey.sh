@@ -44,6 +44,9 @@ python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site \
 SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT
 SITE=http://127.0.0.1:$SITE_PORT
 : > "$OUT/steps.txt"
+# Reuse the current archive journeys' PID/profile-scoped input-yield guard.
+. "$S/archive_focus_guard.sh"
+owned_ax() { archive_check_focus; "$AX" "$@"; }
 # DevTools page list queries: urls, count <file>, id <file>.
 cat > $P-q.py <<'PY'
 import json, sys
@@ -82,6 +85,35 @@ js_of() { # <file> <expression>
 cookie_of() { js_of "$1" document.cookie; }
 origin_of() { js_of "$1" "String(performance.timeOrigin)"; }
 launch() {
+  # Recheck every restart against the exact installed candidate and live owner.
+  python3 - "$APP" "$OUT" <<'LAUNCH_PREFLIGHT'
+import datetime, json, os, pathlib, plistlib, re, subprocess, sys
+app, out = map(pathlib.Path, sys.argv[1:])
+source = plistlib.loads((app / "Contents/Info.plist").read_bytes()).get("AhoiSourceCommit")
+receipt = out / "launch-preflight.jsonl"
+previous = json.loads(receipt.read_text().splitlines()[0]) if receipt.exists() else None
+commands = subprocess.check_output(["ps", "-axww", "-o", "comm="], text=True).splitlines()
+idle = int(re.search(r'"HIDIdleTime"\s*=\s*(\d+)', subprocess.check_output(
+    ["ioreg", "-c", "IOHIDSystem"], text=True)).group(1)) // 10**9
+sample = dict(at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              source=source, idleSeconds=idle)
+expected = os.environ.get("AHOI_E2E_EXPECTED_SOURCE_COMMIT")
+if not source or (expected and source != expected) or (previous and source != previous["source"]):
+    sample["refusal"] = "installed candidate changed or lacks source metadata"
+elif str(app / "Contents/MacOS/AhoiBrowser") in [c.strip() for c in commands]:
+    sample["refusal"] = "another browser owns the launch boundary"
+elif os.environ.get("AHOI_E2E_YIELD_ON_FOCUS_LOSS") == "1" and idle < 2:
+    sample["refusal"] = "input returned before launch"
+with receipt.open("a") as stream:
+    print(json.dumps(sample), file=stream)
+if "refusal" in sample:
+    with (out / "verdict.json").open("w") as stream:
+        json.dump({"cancelled": sample["refusal"], "pass": False}, stream)
+    print(sample["refusal"], file=sys.stderr)
+    sys.exit(8)
+LAUNCH_PREFLIGHT
+  [ "$?" = 0 ] || exit 8
+  ARCHIVE_FOCUS_ACQUIRED=false
   "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run \
     --no-default-browser-check --remote-debugging-port=$PORT about:blank \
     >> "$OUT/browser.log" 2>&1 &
@@ -90,21 +122,27 @@ launch() {
     curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break
     sleep 2
   done
-  sleep 5; $AX activate $PID >> "$OUT/steps.txt"
+  sleep 5; archive_activate_owned >> "$OUT/steps.txt"
 }
 quit() {
-  key 12 cmd
+  key 12 cmd || return 1
   for i in $(seq 1 20); do
-    kill -0 $PID 2>/dev/null || return 0; sleep 1
+    if ! kill -0 "$PID" 2>/dev/null; then
+      wait "$PID"; local browser_exit=$?
+      echo "native browser quit exit=$browser_exit" >> "$OUT/steps.txt"
+      [ "$browser_exit" = 0 ]; return $?
+    fi
+    sleep 1
   done
-  echo "still running after quit" >> "$OUT/run.txt"; kill $PID; sleep 3
+  echo "still running after native quit; preserve owned process/profile for diagnosis" >> "$OUT/run.txt"
+  return 1
 }
-# Keys go through the HID event tap; hidkey refuses unless the app is
-# frontmost, so bring it forward and retry instead of typing elsewhere.
+# Keys go through the HID tap. Acquire focus once, then yield if it leaves
+# this invocation rather than bringing the browser ahead of another owner.
 key() {
   for attempt in 1 2 3 4 5; do
-    $AX activate $PID >/dev/null; sleep 0.3
-    $AX hidkey $PID "$@" >> "$OUT/steps.txt" && return 0
+    archive_activate_owned >/dev/null; sleep 0.3
+    owned_ax hidkey $PID "$@" >> "$OUT/steps.txt" && return 0
     sleep 1
   done
   echo "hidkey gave up: $*" >> "$OUT/steps.txt"; return 1
@@ -126,7 +164,7 @@ undo_key() {
 }
 type_in() {
   for attempt in 1 2 3; do
-    $AX type $PID "$1" >> "$OUT/steps.txt"; sleep 1
+    owned_ax type $PID "$1" >> "$OUT/steps.txt"; sleep 1
     $AX dump $PID 14 | grep "AXTextField" | grep -F -q -- "| $1" \
       && return 0
     echo "info: typed text missing, retyping" >> "$OUT/steps.txt"
@@ -164,6 +202,12 @@ d["pass"] = "setupFailed" not in d and all(
     v is True for k, v in d.items() if k != "setupFailed")
 print(json.dumps(d, indent=1))' > "$OUT/verdict.json"
   cat "$OUT/verdict.json"
+  python3 - "$OUT/verdict.json" <<'VERDICT_EXIT'
+import json, sys
+with open(sys.argv[1]) as stream:
+    result = json.load(stream)
+sys.exit(0 if result.get("pass") is True else 1)
+VERDICT_EXIT
 }
 fail_setup() {
   $AX dump $PID 40 > "$OUT/ax-setup-failure.txt"; finish "$1"; quit; exit 4
@@ -171,11 +215,11 @@ fail_setup() {
 # Escape before AXShowMenu goes straight to the process: an HID Escape
 # arrives asynchronously and would close the menu just opened by AX.
 menu() { # <active workspace name> <menu item regex>
-  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
+  owned_ax key $PID 53 >> "$OUT/steps.txt"; sleep 1
   for attempt in 1 2 3 4; do
-    $AX press $PID "$1, Workspace wechseln" AXShowMenu >> "$OUT/steps.txt"
+    owned_ax press $PID "$1, Workspace wechseln" AXShowMenu >> "$OUT/steps.txt"
     waitax "AXMenuItem \\| $2" 4 14 && return 0
-    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 2
+    owned_ax key $PID 53 >> "$OUT/steps.txt"; sleep 2
   done
   return 1
 }
@@ -185,7 +229,7 @@ menuitem() { # <workspace name> -> its full item title (with the level)
 }
 switch_to() { # <from> <to>
   menu "$1" "$2" || return 1
-  $AX press $PID "$(menuitem "$2")" >> "$OUT/steps.txt"
+  owned_ax press $PID "$(menuitem "$2")" >> "$OUT/steps.txt"
   waitax "$2, Workspace wechseln" 15 14
 }
 # Back to Inbox after a step in Getrennt. When the window did not follow
@@ -219,16 +263,16 @@ row_of() {
 row_menu() { # <row title> <menu item>
   local row; row=$(row_of "$1"); echo "row for $1: $row" >> "$OUT/steps.txt"
   [ -n "$row" ] || return 1
-  $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
-  $AX press $PID "$row" AXShowMenu >> "$OUT/steps.txt"
+  owned_ax key $PID 53 >> "$OUT/steps.txt"; sleep 1
+  owned_ax press $PID "$row" AXShowMenu >> "$OUT/steps.txt"
   if ! waitax "AXMenuItem \\| $2" 5; then
-    $AX key $PID 53 >> "$OUT/steps.txt"; sleep 1
-    $AX activate $PID >> "$OUT/steps.txt"; sleep 1
-    $AX hidrightclick $PID "$row" >> "$OUT/steps.txt"
+    owned_ax key $PID 53 >> "$OUT/steps.txt"; sleep 1
+    archive_activate_owned >> "$OUT/steps.txt"; sleep 1
+    owned_ax hidrightclick $PID "$row" >> "$OUT/steps.txt"
     waitax "AXMenuItem \\| $2" 5 \
       || { $AX dump $PID 40 > "$OUT/ax-row-menu-missing.txt"; return 1; }
   fi
-  $AX press $PID "AXMenuItem:$2" >> "$OUT/steps.txt"; sleep 2
+  owned_ax press $PID "AXMenuItem:$2" >> "$OUT/steps.txt"; sleep 2
 }
 # "Verschieben nach" -> Getrennt (label may carry the Workspace icon);
 # leaves the confirmation open. The title must end at " |": the section
@@ -252,7 +296,7 @@ move_menu_once() { # <row title> <evidence name>
   $AX dump $PID 40 > "$OUT/ax-move-menu-$2.txt"
   local item; item=$(grep -oE "$TARGET_ITEM" "$OUT/ax-move-menu-$2.txt" \
     | head -1 | sed -E 's/^AXMenuItem \| //; s/ \|$//')
-  $AX pressin $PID "AXMenuItem:Verschieben nach" "AXMenuItem:$item" \
+  owned_ax pressin $PID "AXMenuItem:Verschieben nach" "AXMenuItem:$item" \
     >> "$OUT/steps.txt" || return 1
   waitax "AXButton \\| Verschieben" 8
 }
@@ -260,22 +304,34 @@ dialog_dump() { # <evidence name>
   AHOI_AX_VALUE_MAX=600 $AX dump $PID 40 > "$OUT/ax-$1.txt"
 }
 has() { grep -q -F -- "$2" "$OUT/ax-$1.txt"; } # <evidence> <text>
+move_confirmation_ready() {
+  # Native focus and input protection settle after the source bubble closes.
+  sleep 2
+  for attempt in 1 2 3 4 5; do
+    "$AX" focused "$PID" > "$OUT/move-confirmation-focus.txt"
+    grep -q '^focusedWindow: AXWindow | Nach „Getrennt“ verschieben?' "$OUT/move-confirmation-focus.txt" && break
+    sleep 1
+  done
+  grep -q '^focusedWindow: AXWindow | Nach „Getrennt“ verschieben?' "$OUT/move-confirmation-focus.txt" || fail_setup "move confirmation did not acquire native focus"
+  "$AX" enabled "$PID" "Verschieben" > "$OUT/move-confirmation-enabled.txt"
+  grep -q 'AXButton | Verschieben .*enabled=true' "$OUT/move-confirmation-enabled.txt" || fail_setup "move button unavailable"
+}
 confirm_dialog() { # <evidence name>
   dialog_dump "confirm-$1"
-  # A press within the double-click interval after the dialog showed is
-  # dropped by Chromium's dialog input protection.
-  sleep 1; $AX press $PID "AXButton:Verschieben" >> "$OUT/steps.txt"; sleep 6
+  move_confirmation_ready
+  owned_ax hidclick $PID "AXButton | Verschieben |" >> "$OUT/steps.txt" || fail_setup "move confirmation click failed"
+  sleep 6
 }
 # Native Tab menu split of the active tab with <file>, chosen in
 # Chromium's tab picker as a person would (split_journey_lib.sh).
 tab_menu_split() { # <file> <title>
   open_url "$SITE/$1"; key 48 ctrl opt; sleep 2
-  $AX press $PID "AXMenuItem:Tab zu neuer geteilter Ansicht hinzufügen" \
+  owned_ax press $PID "AXMenuItem:Tab zu neuer geteilter Ansicht hinzufügen" \
     >> "$OUT/steps.txt"; sleep 3
   waitax "AXWebArea \\| Tab auswählen" 8 14 || return 1
   for tries in 1 2 3; do
-    $AX activate $PID >/dev/null; sleep 0.3
-    $AX hidclick $PID "$2 " >> "$OUT/steps.txt" && break; sleep 1
+    archive_activate_owned >/dev/null; sleep 0.3
+    owned_ax hidclick $PID "$2 " >> "$OUT/steps.txt" && break; sleep 1
   done
   sleep 3; ! $AX dump $PID 14 | grep -q "AXWebArea | Tab auswählen"
 }
@@ -316,12 +372,12 @@ gone_from() { # <profile name> <regex>
 launch
 # The fully separated Workspace, created once; its window takes over.
 menu Inbox "Neuer Workspace…" || fail_setup "workspace menu did not open"
-$AX press $PID "Neuer Workspace…" >> "$OUT/steps.txt"
+owned_ax press $PID "Neuer Workspace…" >> "$OUT/steps.txt"
 waitax "AXTextField \\| Workspace-Name" 8 14 \
   || fail_setup "create dialog did not open"
-$AX setvalue $PID "Workspace-Name" "Getrennt" >> "$OUT/steps.txt"; sleep 1
-$AX press $PID "AXRadioButton:Vollständig getrennt" >> "$OUT/steps.txt"
-sleep 1; $AX press $PID "Erstellen" >> "$OUT/steps.txt"
+owned_ax setvalue $PID "Workspace-Name" "Getrennt" >> "$OUT/steps.txt"; sleep 1
+owned_ax press $PID "AXRadioButton:Vollständig getrennt" >> "$OUT/steps.txt"
+sleep 1; owned_ax press $PID "Erstellen" >> "$OUT/steps.txt"
 waitax "Getrennt, Workspace wechseln" 20 14 \
   || fail_setup "separated Workspace did not open"
 sleep 2; switch_to Getrennt Inbox || fail_setup "no hand-over to Inbox"
@@ -339,10 +395,13 @@ dialog_dump confirm-cancel
 check noticeSaysSignInsStay has confirm-cancel "Anmeldungen ziehen nicht mit"
 check noticeNamesTarget has confirm-cancel "Nach „Getrennt“ verschieben?"
 check noticeOffersUndo has confirm-cancel "⌘Z holt alles zurück"
-$AX press $PID "AXButton:Abbrechen" >> "$OUT/steps.txt"; sleep 3
+move_confirmation_ready
+owned_ax hidclick $PID "AXButton | Abbrechen" >> "$OUT/steps.txt" || fail_setup "move cancel click failed"
+sleep 3
 unchanged() {
   waitax "Inbox, Workspace wechseln" 4 14 && in_main login.html \
-    && [ "$(origin_of login.html)" = "$ORIGIN" ]
+    && [ "$(origin_of login.html)" = "$ORIGIN" ] \
+    && ! waitax "AXWindow \\| Nach „Getrennt“ verschieben?" 2
 }
 check cancelChangesNothing unchanged
 # Confirm: the window follows the moved active tab into Getrennt, and the
@@ -387,8 +446,8 @@ open_url "$SITE/note.html"
 row_menu Notiz "Neue Gruppe mit diesem Tab…" \
   || fail_setup "group item missing"
 waitax "AXTextField \\| Gruppenname" 8 || fail_setup "group dialog missing"
-$AX setvalue $PID "Gruppenname" "Mappe" >> "$OUT/steps.txt"; sleep 1
-$AX press $PID "AXButton:Erstellen" >> "$OUT/steps.txt"; sleep 3
+owned_ax setvalue $PID "Gruppenname" "Mappe" >> "$OUT/steps.txt"; sleep 1
+owned_ax press $PID "AXButton:Erstellen" >> "$OUT/steps.txt"; sleep 3
 move_menu Mappe folder || fail_setup "move menu for the folder missing"
 confirm_dialog folder
 check folderNoticeNamesFolder has confirm-folder "Der Ordner „Mappe“"
@@ -420,7 +479,7 @@ check commandMoveReopened in_target solo.html
 echo "info: drag-and-drop between the Profiles' windows is a manual" \
   "CU step (axtool has no HID drag)" >> "$OUT/steps.txt"
 echo "tabs before relaunch: $(tabs)" >> "$OUT/steps.txt"
-quit
+quit || { finish "browser failed while quitting before relaunch"; exit 4; }
 
 # (6) After a relaunch the moved folder is still in Getrennt only.
 launch
@@ -430,4 +489,6 @@ fi
 check movedFolderPersists waitax "${ROW_RE}Mappe" 10
 switch_to Getrennt Inbox || fail_setup "no hand-over to Inbox at the end"
 check inboxStaysWithoutFolder not_ax "${ROW_RE}Mappe"
-finish ""; quit
+finish ""; STATUS=$?
+quit || { finish "browser failed while quitting after cross-level journey"; exit 4; }
+exit "$STATUS"
