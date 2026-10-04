@@ -196,7 +196,23 @@ void BrowserSidebarHostView::ShowStructureNotice(std::u16string title,
 }
 
 void BrowserSidebarHostView::OnStructureDialogClosed() {
-  structure_dialog_widget_.reset();
+  // Native deactivation closes a bubble inside BubbleWidgetObserver. Its
+  // callback still uses the delegate after notifying us, so keep the widget
+  // (and its owned model host) alive until that dispatch has returned. Moving
+  // it out also prevents a later close task from clearing a newly opened dialog.
+  std::unique_ptr<views::Widget> closed_widget =
+      std::move(structure_dialog_widget_);
+  if (closed_widget) {
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE,
+        base::BindOnce(
+            [](std::unique_ptr<views::Widget> widget) {
+              PrepareDialogWidgetForDestruction(widget.get(),
+                                                /*remove_views=*/true);
+              widget.reset();
+            },
+            std::move(closed_widget)));
+  }
 }
 
 void BrowserSidebarHostView::UseSavedHome(base::Uuid node_id,

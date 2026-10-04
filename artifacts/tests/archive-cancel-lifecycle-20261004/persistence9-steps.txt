@@ -1,0 +1,32 @@
+frontmost -> 0
+hidkey 17
+typed 28
+hidkey 36
+hidkey 17
+typed 28
+hidkey 36
+hidkey 48
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+hidclicked  at (974.0, 200.0)
+AXPress AXRadioButton | Solo — Temporärer Tab | Solo — Temporärer Tab | 0 -> 0
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Split archivieren | itemSelected: -> 0
+hidkey 12
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+archiveSurvivesRestart -> true
+archivedPagesNotOpenedByRestart -> true
+AXPress AXButton | Endgültig löschen …: PaneA · PaneB | Endgültig löschen …: PaneA · PaneB -> 0
+separateDeleteConfirmation -> true
+AXPress AXButton | Abbrechen | Abbrechen -> 0
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Archiv durchsuchen … | itemSelected: -> 0
+cancelledDeleteRetainsEntry -> false
+cancelledDeleteKeepsOpenPages -> true
+hidkey 12

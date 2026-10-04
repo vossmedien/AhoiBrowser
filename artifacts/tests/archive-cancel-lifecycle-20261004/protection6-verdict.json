@@ -1,0 +1,9 @@
+{
+ "wholeSplitRetainedWhenOneMemberEdited": true,
+ "protectedSplitDraftRetained": true,
+ "savedPageNotAutomaticallyArchived": true,
+ "beforeUnloadTabNotAutomaticallyArchived": true,
+ "unprotectedControlIsArchived": true,
+ "activeControlIsRetained": true,
+ "pass": true
+}

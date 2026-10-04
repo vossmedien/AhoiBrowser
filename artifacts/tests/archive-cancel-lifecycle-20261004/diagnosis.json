@@ -1,0 +1,11 @@
+{
+  "source": "92facb5823ebd3928e1ddf27566e64a3179fd605",
+  "protectionCasesPassed": 6,
+  "archiveEntrySurvivesRestart": true,
+  "cancelledDeleteKeepsOpenPages": true,
+  "cancelDialogStillVisible": true,
+  "crash": "SIGSEGV null address in BubbleDialogDelegate::BubbleWidgetObserver::OnWidgetActivationChanged during browser close",
+  "hypothesis": "synchronous structure-dialog widget destruction inside native activation observer",
+  "correction": "defer owned Widget destruction using existing workspace/group dialog lifecycle pattern",
+  "correctionAccepted": false
+}

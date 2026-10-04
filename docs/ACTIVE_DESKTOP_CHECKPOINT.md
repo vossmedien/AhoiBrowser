@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Archive protection6 passes; cancellation lifecycle failure under correction — 4 October 2026
+
+Installed92 affected cache12 and native55 remain PASS. New exact-candidate archive
+protection reached6/6PASS: entire edited split retained, draft retained, saved-page/
+before-unload/active-page protections, inactive unprotected control archived.
+[Actual results and retained failure](../artifacts/tests/archive-cancel-lifecycle-20261004/diagnosis.json).
+
+Persistence/delete9 then proves restart archive/closed-page retention and separate
+confirmation, but cancel leaves the confirmation visible; unique archive entry
+readback fails. Synthetic browser close crashes SIGSEGV at null address in
+BubbleDialogDelegate::BubbleWidgetObserver::OnWidgetActivationChanged during
+native CloseWithReason/CloseAllTabs. No customer data or archive deleted. Raw
+AX/steps/crash report retained; missing later assertions are not passed.
+
+OnStructureDialogClosed synchronously resets client-owned Widget inside bubble
+observer dispatch. Current scoped correction moves ownership into a posted task
+and uses the existing workspace/group dialog destruction preparation. Newer dialog
+cannot be cleared by an older deferred close. This is a hypothesis-backed source
+fix, not built/accepted. Next: bounded single-file build, stable signing/install,
+renew exact persistence/delete9 including Cancel and native close, then relevant
+native UI regression. No Root gate/extra worker or full suite repeat.
+
+Canonical milestone publication attempted once HTTPS128/no username and existing
+SSH key route denied; no auth/account configuration changed. Default main lacks
+factory dependency and coherent package acceptance remains explicit; do not merge
+1059paths as a small patch. Continue authorized product work; no overall Goal pause.
+
 ## Request-mode correction accepted and installed — 4 October 2026,17:43 CEST
 
 Exact source92facb5823ebd3928e1ddf27566e64a3179fd605 on M154.0.8037.93 is built,

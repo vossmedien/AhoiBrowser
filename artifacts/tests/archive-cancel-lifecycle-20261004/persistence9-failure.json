@@ -1,0 +1,9 @@
+{
+ "archiveSurvivesRestart": true,
+ "archivedPagesNotOpenedByRestart": true,
+ "separateDeleteConfirmation": true,
+ "cancelledDeleteRetainsEntry": false,
+ "cancelledDeleteKeepsOpenPages": true,
+ "setupFailed": "own archive delete button missing",
+ "pass": false
+}
