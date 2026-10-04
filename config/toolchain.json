@@ -8,7 +8,8 @@
     "minimumFreeWorkBytes": 100000000000,
     "absoluteMinimumFreeCheckoutBytes": 100000000000,
     "minimumFreeBuildBytes": 100000000000,
-    "absoluteMinimumFreeBuildBytes": 100000000000
+    "absoluteMinimumFreeBuildBytes": 100000000000,
+    "minimumFreeUpdateBytes": 34359738368
   },
   "xcode": {
     "requiredVersion": "27.0",

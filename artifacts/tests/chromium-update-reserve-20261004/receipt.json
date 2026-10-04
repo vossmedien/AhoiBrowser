@@ -1,0 +1,32 @@
+{
+  "verifiedAt": "2026-10-04T01:29:51.803239+00:00",
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "host": "MacbookPro2026.local",
+  "targetVerificationRoot": "/Users/vossmedien/inhouse/evidence/ahoi-update-reserve-20261004.AHxWdD",
+  "status": "PASS",
+  "exitCode": 0,
+  "testsPassed": 2,
+  "scope": "real shell guards with controlled available-byte readings; not a Chromium download, compile, signing or installed-browser acceptance",
+  "testMethods": [
+    "RepositoryBuildContractTests.test_existing_checkout_update_is_not_blocked_by_shared_host_reserve",
+    "RepositoryBuildContractTests.test_checkout_and_build_cannot_override_shared_host_reserve"
+  ],
+  "updatePolicy": {
+    "advisoryReserveBytes": 100000000000,
+    "stagingFloorBytes": 34359738368,
+    "belowAdvisoryRequiresOverride": false
+  },
+  "testedUpdateFreeBytes": [
+    100000000000,
+    99999999999,
+    68719476736,
+    34359738368,
+    34359738367
+  ],
+  "inputSHA256": {
+    "config/toolchain.json": "2d09d2ee07e37aab7321b408cbe0bf9e4c75b37e1ba9054a75f79ff2d0dc956e",
+    "scripts/lib/common.sh": "ce8b9aeed48eae9f2884e6929085877420c6699693d424d3016ddf8164db765c",
+    "scripts/fetch-chromium.sh": "4b85a216cdbda15ad2861e170ca371a7aa7d86f6fa2cea6833b3da1fd1b59e2f",
+    "tests/repository/test_repository_build_contracts.py": "53c56794c36629bf55a128c43ad4d586abc6b17f658c4d655f6a513fa29f8e18"
+  }
+}

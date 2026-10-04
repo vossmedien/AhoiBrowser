@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## User correction: 100 GB must not veto Chromium updates — 4 October 2026
+
+The existing managed-checkout update guard now treats 100,000,000,000 bytes as
+an advisory host reserve. It accepts less without AHOI_ALLOW_LOW_DISK, down to
+the separate previous 32-GiB staging floor, host.minimumFreeUpdateBytes.
+Official origin, clean source, managed gclient and pin checks remain; staging
+is rechecked after prehydration and sync. Initial checkout/build policy is
+unchanged. Assess the particular update growth; no automatic cleanup.
+[Actual focused target guard receipt](../artifacts/tests/chromium-update-reserve-20261004/receipt.json):
+2/2 PASS on authenticated MacbookPro2026, including below-100-GB acceptance,
+exact staging-floor acceptance and one-byte-less rejection with/without override.
+This supersedes the older update-reserve test below; no download or build PASS.
+Ready Crest106/110 reviewed: unrelated performance runtime, no patch in this
+storage correction; existing deferred H3 acceptance preserved.
+
+Live target73 runner52131 is terminal1 at 2026-10-04T01:22:55Z, before compilation:
+SwiftShader tests/regres/testlists/vk-master-NOT_SUPPORTED.txt had identical size
+337897177 but wrong SHA8d46339b...; source and exact target HEAD blob agree on
+9dccdfa4.... Before this owner's guarded repair could write, target status was
+already clean and SHA now agrees, mtime01:26:08Z. The repair attempt aborted at
+its status assertion without mutation. Do not attribute that correction here
+or infer a handback from absence. No own build lock/writer remains.
+Existing Root01a0f725 received the update-policy result and concrete overlapping-
+writer ownership question in its active native turn; Goal/thread preserved.
+Next: consume that specific checkout handback, mirror the new canonical guard
+commit, then resume one guarded target-only jobs4 chrome build. No global
+capacity/slot wait; protect actual output/UI ownership. Signing access, artifact
+return/install and exact-candidate acceptance remain open. Original Master and
+installed72/source data preserved; no new session or Goal.
+
 ## Guarded target73 actually launched — 4 October2026,03:13CEST
 
 Actual own runnerPID/PGID52131 on MacbookPro2026; phase
