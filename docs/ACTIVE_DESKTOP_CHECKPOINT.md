@@ -1,5 +1,37 @@
 # Active Desktop checkpoint
 
+## SSD root accepted; Source SDK cleanup terminal; targeted tools published — 4 October2026
+
+In current A29 context, handback consumed and original Goal/account/thread kept.
+main/origin now82b457659c298f469a27a0056ffb8e44d3e273be; tree40d18732778a26ead292ca75c56368e03c78e111
+exactly equals prepared0af1447e. Only finished phase-budget and pin-reporter tool
+changes/receipts integrated; no unrelated browser commits, no hostedCI rerun.
+Target reporter3focused regressions PASS and real corrected native CLI0 with
+240expected/240actual dependencies, exact f89f3a4363808e117c592adedcf9947882ac3b79.
+SSD overlay verifier0/fingerprint f8f1adadc6c2b936869cb67c95b6248e727b4c6603b33c5cb2a142bd8746395a;
+exact frozen88 bundle/signature verifier0 and original binary SHA unchanged.
+Original stdout reporter failure retained; no assertion/pin/URL gate weakened.
+
+Own build/dependency root for NEXT authorized operation:
+/Volumes/Daten/Inhouse/AhoiBrowser/work. UUID/APFS/mount helper required; no
+internal fallback. Full byte/link/hardlink/metadata/xattr comparison terminalPASS
+1,631,709nodes/65,856,194,251bytes/0mismatches. Source2owned SDK directories
+.work/chromium and .work/depot_tools removed after actual target acceptance and
+unique/staged/ref checks. Source SDK cleanup terminal; observed free-space gain
+58,209,927,168bytes, background host changes may contribute. Actual immutable
+receipt artifacts/build/inhouse-ahoi-freeze-20261003/ssd-20261004/source-sdk-cleanup.json.
+Canonical code/Git, installed88/rollback/profile/user data, other.work/scratch and
+Source simulator devices retained. Inhouse given concrete receipt/root handback.
+
+Original internal target chromium/depot/state remains owned A29, parked only as
+GN/cache path fallback; no live runner/writer. Frozen repo73/internal inputs and
+installed apps retained. Next: validate/reconfigure GN and inspect incremental
+frontier for the NEXT bounded diagnostic candidate at SSD root, then retire only
+that accepted obsolete internal copy. This did not start GN/Ninja, another browser
+build, M155 roll, GUI launch or API/trading action. Existing source5001b871 factory
+flags still need one representative Document fetch; actual installed88 cache
+7PASS/5RED remains open, with original full Master DoD/limits unchanged.
+
 ## Pin reporter repair after real relocated CLI failure — 4 October2026
 
 Exact SSD bundle verifier0; original88 binary SHA unchanged. First relocated
@@ -15,9 +47,8 @@ Target three focused regressions PASS, including actual changed/missing rows
 remaining failures and full CIPD tag recovery with a worker line. Frozen88 helper
 is unchanged; corrected helper runs separately in existing SSD evidence context.
 Own relocated Git stat cache refreshed (expected unstaged-overlay exit1, stage
-unchanged0), without ref/commit/product-byte changes. Actual corrected public CLI
-is running; original attempt kept and no success inferred yet. Overlay root check
-will follow its terminal result. No compiler or installed-app launch.
+unchanged0), without ref/commit/product-byte changes. Actual corrected public CLI later completed0/240of240; subsequent overlay root
+check0, both evidenced above. Original attempt kept. No compiler or installed-app launch.
 
 ## SSD full comparison PASS; final root acceptance in progress — 4 October2026
 
@@ -46,7 +77,7 @@ Source product inventory1504paths/13Refs exactly matches target original;
 149dependency repositories have0WIP and matching HEAD/all sourceRefs. All old
 Source/Target data, installed88, frozen inputs and other scratch/simulators kept.
 Final root acceptance: exact bundle/dependency pins/overlay verification at SSD
-root is running through frozen88 scripts. All150 Source/depot repositories have
+root is running through frozen88 scripts. All151 Source/depot repositories have
 no staged deltas; no active writer/lock found. After actual PASS switch own build
 root and remove only accepted obsolete copies. No new Chromium build/M155 roll/GUI action.
 

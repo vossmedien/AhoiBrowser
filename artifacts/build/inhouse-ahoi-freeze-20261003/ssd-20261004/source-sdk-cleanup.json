@@ -1,0 +1,27 @@
+{
+  "startedAt": "2026-10-04T11:01:33.063853+00:00",
+  "ownerThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "context": "A29",
+  "sourceFreeBeforeBytes": 183812902912,
+  "allowlist": [
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/chromium",
+    "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/depot_tools"
+  ],
+  "targetAcceptedRoot": "/Volumes/Daten/Inhouse/AhoiBrowser/work",
+  "sourceProductPathAndRefsIdentical": true,
+  "dependencyRepositories": 149,
+  "sourceDependencyWip": 0,
+  "sourceStagedDeltas": 0,
+  "preserved": [
+    "canonical product code/Git",
+    "installed88 and rollback",
+    "profiles/user data",
+    "all other .work paths",
+    "source simulators",
+    "original target internal copy pending GN cache reuse"
+  ],
+  "finishedAt": "2026-10-04T11:03:12.949466+00:00",
+  "terminal": true,
+  "sourceFreeAfterBytes": 242022830080,
+  "observedRecoveredBytes": 58209927168
+}
