@@ -7,6 +7,11 @@ permission/extension boundaries are in [the desktop checkpoint](ACTIVE_DESKTOP_C
 This supersedes the former always-shared workspace cookie/login rule, not the
 no-cookie-sync or native-engine boundaries.
 
+This document describes the `website-sessions` level within one normal Profile.
+Its shared history/password/extension services are not shared across the separate
+Profiles of `Vollständig getrennt`; that level follows
+[ADR 0011](decisions/0011-optional-isolated-workspace-profiles.md).
+
 ## Product boundary
 
 | State | Scope | Sync boundary |

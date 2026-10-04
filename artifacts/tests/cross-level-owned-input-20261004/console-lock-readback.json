@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-10-04T19:13:46.292043+00:00",
+  "target": "MacbookPro2026.local",
+  "method": "ioreg -a -l -n Root -d 1 / IOConsoleUsers",
+  "actualSessionValues": {
+    "CGSSessionScreenIsLocked": true,
+    "kCGSessionLoginDoneKey": true
+  },
+  "meaning": "authenticated user session exists; console screen is locked",
+  "guiInputOrUnlockPerformed": false
+}

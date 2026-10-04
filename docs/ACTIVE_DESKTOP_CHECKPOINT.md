@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Isolation documentation corrected; console lock independently confirmed — 4 October 2026
+
+Previous turn made concrete guard/mirror progress. Current native foreground
+still loginwindow; independent IOConsoleUsers readback now confirms both
+CGSSessionScreenIsLocked:true and kCGSessionLoginDoneKey:true. This is an actual
+locked authenticated console, not a guessed keychain/CPU/ownership failure.
+[Session readback](../artifacts/tests/cross-level-owned-input-20261004/console-lock-readback.json).
+The parked cross-level journey stays unstarted; no unlock or foreign UI action.
+Existing failed Orchestrator request retained; no blind retry/new worker.
+
+Independent agent remainder checked: local Sparkle testbed is already26/26,
+pinned2.9.6, with explicit stand-in/non-native limits in
+artifacts/tests/update-testbed-20260929/README.md. Do not repeat it to substitute
+for real N-2/N-1 updates; release/feed credentials and actual GUI update remain
+separate gates.
+
+Concrete independent source correction: README formerly claimed isolation was
+unimplemented and history/passwords/extensions global across all Workspaces.
+ADR0011, actual creation code and preserved M15430/30 isolated-profile evidence
+contradict that. README now states three implemented levels; only the ordinary
+Profile's shared/website-session levels share those services. Fully separated
+Workspaces use Chromium's separate Profile/services/grants. WORKSPACE_SESSIONS
+now explicitly scopes its shared-service table to website-sessions. No normative
+ADR, product policy/code or binary changed; links/diff/lane checks pass. Full
+current runtime/DoD acceptance remains open and is not inferred from documentation.
+
 ## Cross-level runtime now waits for unlocked target GUI — 4 October 2026
 
 Previous turn was concrete source/guard progress, not runtime acceptance.
