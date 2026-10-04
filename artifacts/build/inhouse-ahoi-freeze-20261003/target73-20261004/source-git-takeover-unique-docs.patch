@@ -1,0 +1,84 @@
+diff --git a/docs/ACTIVE_DESKTOP_CHECKPOINT.md b/docs/ACTIVE_DESKTOP_CHECKPOINT.md
+index cc486d4c..4a3e0b46 100644
+--- a/docs/ACTIVE_DESKTOP_CHECKPOINT.md
++++ b/docs/ACTIVE_DESKTOP_CHECKPOINT.md
+@@ -1,16 +1,52 @@
+ # Active Desktop checkpoint
+ 
+-## Chromium update reserve exception integrated independently — 4 October 2026
+-
+-Source change07d07452 belongs to the existing Ahoi user's explicit instruction
+-that the100-GB reserve must not veto Chromium updates. The finished guard change
+-is integrated independently here, preserving main's Chromium/toolchain pins and
+-unrelated product source. Existing managed-checkout updates warn below100GB;
+-separate previous32-GiB staging floor remains, without requiring a low-disk flag.
+-[Actual main-input target checks](../artifacts/tests/chromium-update-reserve-20261004/main-receipt.json):
+-2/2 PASS on MacbookPro2026; no download/compile/browser acceptance claim.
+-Existing full Master and active desktop-core candidate retain their own gates;
+-this guard integration does not promote the running88e631d6 browser product.
++## Accepted update-guard integration from07d07452 — 4 October2026
++
++Only the finished update policy, focused tests, documentation and original
++receipt are integrated here; no unrelated browser product commits. Source
++07d07452dc3d713600e90ca5a7477fe3e174f3d8 was independently matched to the same
++native thread01a0e047, DEFAA account turn01a1041e, tool calls at01:24:45Z,
++01:29:51Z and commit result01:30:36Z. CurrentA29 integration consumes explicit
++Root/Inhouse source-writer handbacks and a clean tracked tree. No account/Goal
++reset or historical execution-context replay.
++
++Live90320/Ninja94976 freeze88e631d6/output remains unchanged. This source-only
++guard integration neither hands back that output nor starts another build.
++Original receipt below retained byte-for-byte; its tested configuration is the
++historical source payload, not an assertion that all main input hashes match.
++Main's bounded integration receives its own focused target verification.
++
++## Historical07 update-policy and stopped-build report (superseded live state)
++ — 4 October 2026
++
++The existing managed-checkout update guard now treats 100,000,000,000 bytes as
++an advisory host reserve. It accepts less without AHOI_ALLOW_LOW_DISK, down to
++the separate previous 32-GiB staging floor, host.minimumFreeUpdateBytes.
++Official origin, clean source, managed gclient and pin checks remain; staging
++is rechecked after prehydration and sync. Initial checkout/build policy is
++unchanged. Assess the particular update growth; no automatic cleanup.
++[Actual focused target guard receipt](../artifacts/tests/chromium-update-reserve-20261004/receipt.json):
++2/2 PASS on authenticated MacbookPro2026, including below-100-GB acceptance,
++exact staging-floor acceptance and one-byte-less rejection with/without override.
++This supersedes the older update-reserve test below; no download or build PASS.
++Ready Crest106/110 reviewed: unrelated performance runtime, no patch in this
++storage correction; existing deferred H3 acceptance preserved.
++
++Live target73 runner52131 is terminal1 at 2026-10-04T01:22:55Z, before compilation:
++SwiftShader tests/regres/testlists/vk-master-NOT_SUPPORTED.txt had identical size
++337897177 but wrong SHA8d46339b...; source and exact target HEAD blob agree on
++9dccdfa4.... Before this owner's guarded repair could write, target status was
++already clean and SHA now agrees, mtime01:26:08Z. The repair attempt aborted at
++its status assertion without mutation. Do not attribute that correction here
++or infer a handback from absence. No own build lock/writer remains.
++Existing Root01a0f725 received the update-policy result and concrete overlapping-
++writer ownership question in its active native turn; Goal/thread preserved.
++Next: consume that specific checkout handback, mirror the new canonical guard
++commit, then resume one guarded target-only jobs4 chrome build. No global
++capacity/slot wait; protect actual output/UI ownership. Signing access, artifact
++return/install and exact-candidate acceptance remain open. Original Master and
++installed72/source data preserved; no new session or Goal.
++
+ 
+ ## Design waves, Arc import, build 51 contents — 29 September 2026, 15:40 CEST
+ 
+diff --git a/docs/BUILDING.md b/docs/BUILDING.md
+index 2a544caa..3c5c0591 100644
+--- a/docs/BUILDING.md
++++ b/docs/BUILDING.md
+@@ -46,8 +46,9 @@ reserve. Initial checkout and build recommendations and hard floors are
+ those floors. Existing-checkout updates have the explicit exception below.
+ Before each heavy phase, assess anticipated additional output and concurrent
+ writers against actual free host space. Docker's unchanged 160 GiB logical cap
+-is not already occupied physical storage. The reserve does not replace
+-ownership, toolchain, provenance, signing or acceptance gates. Builds and
++is not already occupied physical storage. Independent Inhouse phases require
++no global load/slot wait under the current user override; protect actual output
++ownership and retain toolchain, provenance, signing and acceptance gates. Builds and
+ heavy tests run on MacbookPro2026.local; canonical code and Git remain on .45.
+ 
+ An update of an existing managed checkout uses a separate staging assessment:

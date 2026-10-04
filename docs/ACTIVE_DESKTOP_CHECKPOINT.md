@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## Explicit source-Git takeover completed in currentA29 — 4 October2026
+
+DEFAA turn01a104f2 explicitly released Source Git/index/ref/commit/push/cleanup;
+all its operations are terminal and further writes remain off. Root/Inhouse
+hold no Ahoi writer. This currentA29 context consumed the actual handback,
+without relying on an old PID's absence or changing account/thread/Goal.
+
+Published main e5cd552b and preserved prepared6364a5cf share parenteba91dbe and
+tree d5998d3d8762d2a71b8d179c063396a69847ea36. Accepted07 guard-only scope and
+both original/source and main-input test receipts are verified; no reapply/push.
+The apparent staged deletion of main-receipt.json came from advanced HEAD;
+it was explicitly restored/index-aligned from the verified published blob,
+SHA256084e8fd666a931895b2da75d1dc24616833b18eb157db1296d8a19424822018c.
+No receipt discarded and no direct index mutation attributed to another context.
+
+Unique pending documentation was retained as
+artifacts/build/inhouse-ahoi-freeze-20261003/target73-20261004/
+source-git-takeover-unique-docs.patch before own temporary integration worktree
+cleanup. Useful attribution/ownership detail is preserved here; the historical
+report and its operational wording are available in that exact patch rather than
+silently replacing the current contract. Original07/6364 objects remain in Git.
+Live90320/Ninja94976/freeze88e631d6/output unchanged; no second build or goal reset.
+
 ## Update exception published; target UI tool ready; compiler continues — 4 October 2026
 
 Attribution resolved from this thread's actual preceding user turn:07d07452 is
