@@ -7492,6 +7492,20 @@ index d1c7316a1ee82cfb9004a6011a5ce6eecba89f47..76ad2a5f5dd55f34af0a0719ca9fd19d
    // Determines the URLs to be shown at startup by way of various policies
    // (welcome, pinned tabs, etc.), determines whether a session restore
    // is necessary, and opens the URLs in a new or restored browser accordingly.
+diff --git a/chrome/browser/ui/tab_helpers.h b/chrome/browser/ui/tab_helpers.h
+index c6e05eb620dd216529c32d6b3660fc44c8b47baf..236159ae6573a70e079bfe4098e5ce03ed38ea68 100644
+--- a/chrome/browser/ui/tab_helpers.h
++++ b/chrome/browser/ui/tab_helpers.h
+@@ -62,6 +62,9 @@ class TabHelpers {
+   friend class TabAndroid;
+   friend class android::TabWebContentsDelegateAndroid;
+ #else
++  // Ahoi: Browser::SetAsDelegateForAhoiPopupOverlay adopts a popup overlay's
++  // WebContents with the full tab helper set; M155 dropped this friend.
++  friend class Browser;
+   friend class chrome::BrowserTabStripModelDelegate;
+   friend class tabs::TabModel;
+ #endif  // BUILDFLAG(IS_ANDROID)
 diff --git a/chrome/browser/ui/tab_ui_helper.cc b/chrome/browser/ui/tab_ui_helper.cc
 index f469749b3ff03d04d55b50a3b30f7a7c273bf678..b6f12abc8394b443d0ff85ec3f00b0b56395164b 100644
 --- a/chrome/browser/ui/tab_ui_helper.cc
