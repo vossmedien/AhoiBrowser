@@ -1,0 +1,7 @@
+{
+ "results": {
+  "SETTINGS_link_routing_card_renders": "PASS",
+  "SETTINGS_shortcut_editor_renders": "PASS"
+ },
+ "pass": true
+}

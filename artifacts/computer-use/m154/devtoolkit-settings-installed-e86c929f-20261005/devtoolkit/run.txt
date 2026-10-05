@@ -1,0 +1,5 @@
+first: pid=71122 profile=/private/tmp/ahoi-devtoolkit-profile.WTrmfJ
+first outline=rgb(1, 2, 3)/rgb(1, 2, 3) attr=isolated global=undefined resp=yes css_hits=2/1 header=journey/none
+first less=rgb(4, 5, 6) compiler_processes=0
+restarted: pid=71453 profile=/private/tmp/ahoi-devtoolkit-profile.WTrmfJ
+restarted outline=rgb(1, 2, 3)

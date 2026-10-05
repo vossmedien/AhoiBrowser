@@ -19,6 +19,12 @@ ran on installed `e86c929f` with the frozen driver under an own e2e.lock.
   waited for 310 s HID idle.
   [Evidence](../artifacts/computer-use/m154/ws-cross-level-move-journey-installed-e86c929f-20261005/README.md).
 - Still manual: drag-and-drop between two Profiles' windows (HID drag).
+- Devtoolkit **7/7** and settings sections **2/2** PASS on installed e86
+  (build 59 had 4/7 and 0/2); CDP-only, harness `db3fd727`.
+  [Evidence](../artifacts/computer-use/m154/devtoolkit-settings-installed-e86c929f-20261005/README.md).
+  Visible Devtoolkit panel journeys remain open.
+- Canonical branch published to origin (`git push` works again through the
+  gh credential helper; the old HTTPS/SSH publication gate is cleared).
 
 Crest handoffs: no new ready handoff; 106/110 stay deferred as reviewed on
 4 October. Mobile progress for the same Goal is in the Mobile checkpoint.

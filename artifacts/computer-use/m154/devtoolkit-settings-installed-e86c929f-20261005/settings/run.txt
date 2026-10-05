@@ -1,0 +1,29 @@
+pid=71815 profile=/private/tmp/ahoi-settings-profile.gOOiAz
+{"journeySha256": "875c945b9048f4481eb85dce611a0f8f2699a2d91ae3edf9d9cd8979ee90aa7b", "appSourceCommit": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a", "chromiumVersion": "154.0.8037.93"}
+{"frameId":"B890B25950176707B9DFB695641A8762","loaderId":"17D19CAF0BB0C41D1FD88FB8999E5D22","isDownload":false}
+[ {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9389/devtools/page/B890B25950176707B9DFB695641A8762",
+   "id": "B890B25950176707B9DFB695641A8762",
+   "title": "Einstellungen – AhoiBrowser",
+   "type": "page",
+   "url": "chrome://settings/ahoi",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9389/devtools/page/B890B25950176707B9DFB695641A8762"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9389/devtools/page/CC138379F50BA332A0FD134F92652B51",
+   "id": "CC138379F50BA332A0FD134F92652B51",
+   "title": "Omnibox Popup",
+   "type": "browser_ui",
+   "url": "chrome://omnibox-popup.top-chrome/",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9389/devtools/page/CC138379F50BA332A0FD134F92652B51"
+}, {
+   "description": "",
+   "devtoolsFrontendUrl": "/devtools/inspector.html?ws=127.0.0.1:9389/devtools/page/E5006EDB3FBC7E0B38165BD85D7ACF60",
+   "id": "E5006EDB3FBC7E0B38165BD85D7ACF60",
+   "title": "Omnibox Popup",
+   "type": "browser_ui",
+   "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+   "webSocketDebuggerUrl": "ws://127.0.0.1:9389/devtools/page/E5006EDB3FBC7E0B38165BD85D7ACF60"
+} ]
+probe {"page":true,"routingTitle":"Workspace-Routing externer Links","routingSelects":4,"shortcutRows":124}
