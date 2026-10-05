@@ -39,9 +39,18 @@ ran on installed `e86c929f` with the frozen driver under an own e2e.lock.
 - **AnyChat removed from scope** (user decision 5 Oct): no product code
   existed (normal Web Store path); Master, registry (EXT-11/15 dropped,
   431 cases), requirement audit and `anychat-journey.sh` updated.
-- **Chromium:** discovery 5 Oct: fully rolled Stable is 154.0.8037.98 (since
-  2 Oct; we pin .93) → candidate promoted, roll after the P0 candidate. M155
-  155.0.8059.26 is at 0.5 % rollout, not pinnable yet; roll when fully rolled.
+- **Chromium 154.0.8037.98 roll (security, 84 commits) in progress:** pin
+  `42c23a39`; preflight 91/91 apply; pre-existing patch-stack failures fixed
+  (ledger 0089-0093, 0093 new files moved to the overlay). Target checkout:
+  `restore-overlay` stopped on the known untracked `third_party/sparkle/
+  prebuilt` (ignore rule lives in the overlay); after parking it the tree
+  equalled the base tree (658e81c7) and only the state-file removal was
+  completed with `overlay_state.py`'s own functions. Fixed for the future in
+  `aa11a2ec`. Roll tools need Python ≥ 3.10 (target `python3` is 3.9;
+  `40ad8e30`). Prehydrate, sync (verified b859317b), hooks and apply-overlay
+  passed; guarded `build-ahoi.sh dev` running (AHOI_JOBS=2, nice 10),
+  evidence `~/inhouse/evidence/ahoi-chromium-98-42c23a39/` on the target.
+  M155 155.0.8059.26 is at 0.5 % rollout, not pinnable yet.
 - **Crest:** 21 new commits 778d140..3b0a915 triaged, no adoption candidate
   (11 SwiftUI-shell only; Crest still on 154); reviewed head updated.
 - Canonical branch published to origin (`git push` works again through the
