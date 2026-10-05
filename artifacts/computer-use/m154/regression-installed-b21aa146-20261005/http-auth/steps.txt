@@ -1,0 +1,1174 @@
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 1039s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/
+-- dialog timeout; windows and page:
+about:blank
+== auth19_http_warning FAIL
+NOT FOUND
+-- login alice: no dialog
+-- dialog timeout; windows and page:
+about:blank
+== auth01_not_saved_before_success FAIL
+NOT FOUND
+-- login alice: no dialog
+== save_first FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 1215s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+== auth15_switch_shows_chooser FAIL
+== save_second FAIL
+== store_two_accounts FAIL:
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 1357s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+-- dialog timeout; windows and page:
+about:blank
+== choice_lists_both FAIL:no-dialog
+NOT FOUND
+-- account menu did not open for alice
+== autocomplete_password FAIL
+NOT FOUND
+== choose_account FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 1492s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+== auth04_filter_by_typing FAIL:no-dialog
+== auth04_keyboard_select FAIL:no-dialog
+== auth04_signin FAIL:no-dialog
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 1607s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/sub/observe?k=inside
+preemptive inside /a/: none
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 1717s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/pub/observe?k=outside
+== auth14_no_preemptive_outside_path FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 1829s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/redirect-cross
+-- dialog timeout; windows and page:
+about:blank
+== auth13_cross_origin_redirect_no_auth FAIL:not-reached
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 1948s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/b/
+-- dialog timeout; windows and page:
+about:blank
+== realm_b_prompt FAIL
+-- dialog timeout; windows and page:
+about:blank
+== realm_separation FAIL:no-dialog
+NOT FOUND
+-- login carol: no dialog
+== auth18_never_save_first FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 2078s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+NOT FOUND
+-- login carol: no dialog
+== auth18_suppresses_save FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 2197s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8794/a/
+-- dialog timeout; windows and page:
+about:blank
+-- dialog timeout; windows and page:
+about:blank
+== port_separation FAIL:no-dialog
+NOT FOUND
+-- login alice: no dialog
+-- :8794/a/ title: <no tab>
+== b2_signed_in FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 2341s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 2439s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+NOT FOUND
+-- account menu did not open for alice
+NOT FOUND
+-- dialog timeout; windows and page:
+about:blank
+== rejected_reprompt FAIL
+== auth06_error_text FAIL
+== rejected_keeps_account FAIL
+NOT FOUND
+-- login alice: no dialog
+== password_update_signin FAIL
+== update_no_duplicate FAIL:
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 2602s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+NOT FOUND
+-- login alice: no dialog
+-- dialog timeout; windows and page:
+about:blank
+== auth06_error_after_wrong_password FAIL
+NOT FOUND
+-- account menu did not open for bob
+NOT FOUND
+== auth06_switch_other_account FAIL
+== auth07_after_second_failure FAIL:
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 2765s
+frontmostApp: loginwindow pid=469 target=36368
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+page: about:blank | about:blank
+{"error":"no page target matching 127.0.0.1:8793"}
+== sign_out_without_restart FAIL:about:blank
+== same_browser_process PASS
+== auth16_signout_keeps_saved FAIL:
+{"error":"no page target matching :8794/a/"}
+-- :8794/a/ title: <no tab>
+== auth15_other_origin_kept FAIL
+key 53
+NOT FOUND
+key 53
+NOT FOUND
+key 53
+NOT FOUND
+key 53
+NOT FOUND
+key 53
+== own_sessions_signin FAIL:workspace-not-created
+== phase1_browser_alive PASS
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 12 cmd
+== restart_same_profile PASS
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 2989s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/z/?r=z
+-- dialog timeout; windows and page:
+about:blank
+-- dialog timeout; windows and page:
+about:blank
+== auth14_chooser_path_scoped FAIL:no-dialog
+NOT FOUND
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 3120s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/pub/img.html?r=sub
+-- dialog timeout; windows and page:
+about:blank
+== auth26_same_origin_prompt_labelled FAIL:no-dialog
+== auth26_no_persistence_controls FAIL:no-dialog
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 3236s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/pub/img-cross.html?r=subx
+-- dialog timeout; windows and page:
+about:blank
+== auth26_cross_port_prompt_labelled FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 3353s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/pub/img-site.html?r=subs
+== auth26_cross_site_no_prompt FAIL
+-- dialog timeout; windows and page:
+about:blank
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 3469s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/dg/?r=dg
+-- dialog timeout; windows and page:
+about:blank
+== auth20_digest_prompt FAIL
+-- dialog timeout; windows and page:
+about:blank
+== auth20_digest_no_basic_accounts FAIL:no-dialog
+NOT FOUND
+-- login dave: no dialog
+-- r=dg title: <no tab>
+== auth20_digest_signin FAIL
+digest store: 
+== auth20_digest_saved_separately FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 3618s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/?r=2
+-- dialog timeout; windows and page:
+about:blank
+prefilled after restart: 
+== auth05_prefilled_after_restart FAIL
+== auth19_no_auto_login FAIL
+-- dialog timeout; windows and page:
+about:blank
+== auth02_accounts_offered FAIL:no-dialog
+== auth20_basic_not_mixed PASS
+NOT FOUND
+-- account menu did not open for alice
+NOT FOUND
+NOT FOUND
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 15 cmd
+-- dialog timeout; windows and page:
+about:blank
+== auth05_preferred_first FAIL:
+NOT FOUND
+-- account menu did not open for alice
+NOT FOUND
+-- r=2 title: <no tab>
+== auth02_signin_saved FAIL
+== auth08_update_persisted FAIL
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 45 cmd shift
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 3843s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/?inc=1
+-- dialog timeout; windows and page:
+about:blank
+== auth21_no_automatic_fill FAIL
+NOT FOUND
+NOT FOUND
+-- account menu did not open for alice
+NOT FOUND
+-- inc=1 title: <no tab>
+== auth21_explicit_selection FAIL
+== auth21_no_persistence FAIL
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 13 cmd shift
+== incognito_window_closed PASS
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 45 cmd shift
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 4042s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/?inc=2
+-- dialog timeout; windows and page:
+about:blank
+== auth22_cache_discarded FAIL:<no tab>
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 13 cmd shift
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 4185s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+NOT FOUND
+-- account menu did not open for bob
+NOT FOUND
+NOT FOUND
+== auth17_single_delete FAIL:
+-- dialog timeout; windows and page:
+about:blank
+== auth17_deleted_not_offered FAIL:no-dialog
+NOT FOUND
+-- account menu did not open for alice
+NOT FOUND
+-- r=2 title: <no tab>
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 4324s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for manage
+== auth24_manager_opened FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 4430s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/b/?r=6
+-- dialog timeout; windows and page:
+about:blank
+-- r=6 title: <no tab>
+== auth18_save_after_reset FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 4573s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/?r=8
+-- dialog timeout; windows and page:
+about:blank
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 4684s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for switch
+-- dialog timeout; windows and page:
+about:blank
+NOT FOUND
+-- login bob: no dialog
+-- r=8 title: <no tab>
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 4814s
+frontmostApp: loginwindow pid=469 target=83360
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for forget
+== forget_realm PASS
+== forget_keeps_other_realm FAIL
+digest store after forget: 
+-- dialog timeout; windows and page:
+about:blank
+== auth17_empty_after_forget FAIL:no-dialog
+== no_secret_in_logs PASS
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 12 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 4984s
+frontmostApp: loginwindow pid=469 target=96286
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/pub/observe?k=proxy
+-- dialog timeout; windows and page:
+about:blank
+== auth11_proxy_prompt FAIL:no-dialog
+-- k=proxy title: <no tab>
+== auth11_proxy_signin FAIL
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+-- input check: hid idle 5129s
+frontmostApp: loginwindow pid=469 target=96286
+focusedElement: none
+focusedWindow: AXApplication | AhoiBrowser
+mainWindow: AXApplication | AhoiBrowser
+-- command bar did not open for http://127.0.0.1:8793/a/?px=1
+-- dialog timeout; windows and page:
+about:blank
+-- dialog timeout; windows and page:
+about:blank
+== auth11_origin_prompt_separate FAIL:no-dialog
+NOT FOUND
+-- login alice: no dialog
+-- px=1 title: <no tab>
+proxy-phase store: 
+== auth11_store_separate FAIL
+== auth11_headers_separate FAIL
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 12 cmd
+== auth25_no_canary_in_evidence PASS
+== auth25_no_canary_in_profile PASS
+== auth25_no_canary_in_crash_reports PASS
+== auth25_no_auth_header_in_logs PASS

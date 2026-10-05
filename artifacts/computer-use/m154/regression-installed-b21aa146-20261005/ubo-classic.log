@@ -1,0 +1,11 @@
+{
+ "adVisibleWithoutUbo": true,
+ "installerOfferedInCommandBar": true,
+ "chromiumPromptShown": true,
+ "uboInstalledAndRunning": true,
+ "adHiddenInNormalWindow": true,
+ "inactiveInIncognitoByDefault": true,
+ "incognitoAllowanceSwitchedOn": true,
+ "activeInIncognitoAfterAllowance": true,
+ "pass": true
+}

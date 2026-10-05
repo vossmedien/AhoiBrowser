@@ -1,0 +1,5 @@
+total 2056
+drwxr-xr-x    4 vossmedien  wheel      128 Oct  5 14:13 .
+drwxrwxrwt  361 root        wheel    11552 Oct  5 14:13 ..
+-rw-r--r--@   1 vossmedien  wheel       19 Oct  5 14:13 ahoi-note.txt
+-rw-r--r--@   1 vossmedien  wheel  1048576 Oct  5 14:13 ahoi-payload.bin

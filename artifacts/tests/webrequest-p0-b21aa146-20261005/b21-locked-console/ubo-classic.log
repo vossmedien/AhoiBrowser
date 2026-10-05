@@ -1,5 +1,0 @@
-tools/desktop_e2e/ubo-classic-journey.sh: line 65: RESULTS[*]: unbound variable
-{
- "setupFailed": "command bar did not open for http://ubotest.localhost:8817/ad.html",
- "pass": false
-}

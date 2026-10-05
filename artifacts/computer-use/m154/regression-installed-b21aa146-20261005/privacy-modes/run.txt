@@ -1,0 +1,22 @@
+default: pid=97808 profile=/private/tmp/ahoi-privacy-profile.FHJfv7 seeded=none
+default third_party_cookie_in_frame=tp=1
+default https_frame_cookies=undefined
+default gpc_on_top=
+default pixel_referer=http://127.0.0.1:8808/top
+default pixel_gpc=
+default landing_query=utm_source=ahoi&keep=1
+default whoami=whoami session=fp
+default topics=rejected:NotSupportedError fledge=joined gpc_js=undefined
+default prefs={"mode":"chromium-compatible","sb":"true","enhanced":"false","topics":"false","fledge":"false","measurement":"false"}
+default api_key_infobar=absent
+strict: pid=97991 profile=/private/tmp/ahoi-privacy-profile.4Ko8bM seeded=strict
+strict third_party_cookie_in_frame=
+strict https_frame_cookies=undefined
+strict gpc_on_top=1
+strict pixel_referer=http://127.0.0.1:8808/
+strict pixel_gpc=1
+strict landing_query=keep=1
+strict whoami=whoami session=fp
+strict topics=rejected:NotSupportedError fledge=joined gpc_js=true
+strict prefs={"mode":"strict","sb":"true","enhanced":"false","topics":"false","fledge":"false","measurement":"false"}
+strict api_key_infobar=absent

@@ -1,0 +1,6 @@
+pid=36368 profile=/private/tmp/ahoi-auth-profile.VQXSM1 launch=main
+still running after quit
+pid=83360 profile=/private/tmp/ahoi-auth-profile.VQXSM1 launch=restart
+still running after quit
+pid=96286 profile=/private/tmp/ahoi-auth-proxy-profile.FMPViX launch=proxy
+still running after quit

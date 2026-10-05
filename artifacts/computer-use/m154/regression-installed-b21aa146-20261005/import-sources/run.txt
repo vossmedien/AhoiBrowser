@@ -1,0 +1,5 @@
+pid=98431 profile=/private/tmp/ahoi-import-profile.0VNLd0
+sources: Safari|Lesezeichen-HTML-Datei
+zen bundle on host: false
+arc bundle on host: false
+arc listed in dialog: false
