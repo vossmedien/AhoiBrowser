@@ -26,9 +26,12 @@ Owner change: Claude session 049a3c1d continues the paused Codex Goal
   UIHostingController and replaces its root view on every update, while the
   field's `@FocusState` lived in the outer sheet across that boundary.
   Fix `e27dd243`: `MobileAddressCommandEditor` inside the container owns the
-  focus state. Candidate build of e27dd243 on the target is running
-  (`~/inhouse/evidence/ahoi-mobile-focus-e27dd243/`); next: receipt, exact
-  xctestrun, the Home journey, then the affected address/escape UI tests.
+  focus state. **Accepted on candidate e27dd243** (clean receipt, exact
+  xctestrun): Home journey PASS; unsafe-scheme and library-clear UI tests
+  PASS. The hardware-Escape test fails at its focus precondition on both
+  e27dd243 and the cc8bef2b baseline (host load 300–580 from foreign work):
+  pre-existing, retest at normal load.
+  [Evidence](../artifacts/computer-use/mobile/address-focus-e27dd243-20261005/README.md).
 - Fresh simulators show the keyboard's "slide to type" onboarding over the
   keyboard; `DidShowContinuousPathIntroduction` is set after one run.
 

@@ -1,0 +1,313 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /Volumes/Daten/Inhouse/Scratch/ahoi-mobile-focus-e27dd243/DerivedData/Build/Products/AhoiMobile_home_exact_candidate.xctestrun -destination "platform=iOS Simulator,id=A058D204-F3CB-44B7-963C-1F785132EF8B" -parallel-testing-enabled NO "-only-testing:AhoiMobileUITests/MobileBrowserAccessibilityAppearanceUITests/testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt" "-only-testing:AhoiMobileUITests/AhoiMobileUITests/testUnsafeSchemeIsExplainedAndRejected" "-only-testing:AhoiMobileUITests/AhoiMobileUITests/testLibraryClosesWithDoneAfterCreatingWorkspace" -resultBundlePath /Volumes/Daten/Inhouse/Scratch/ahoi-mobile-focus-e27dd243/focused.xcresult -test-timeouts-enabled YES -default-test-execution-time-allowance 300 -collect-test-diagnostics never
+
+Writing result bundle at path:
+	/Volumes/Daten/Inhouse/Scratch/ahoi-mobile-focus-e27dd243/focused.xcresult
+
+2026-10-05 11:14:17.685477+0200 AhoiMobileUITests-Runner[61235:10591825] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-05 11:14:21.825.
+Test Suite 'AhoiMobileUITests.xctest' started at 2026-10-05 11:14:21.825.
+Test Suite 'AhoiMobileUITests' started at 2026-10-05 11:14:21.825.
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testLibraryClosesWithDoneAfterCreatingWorkspace]' started.
+    t =     0.01s Start Test at 2026-10-05 11:14:21.831
+    t =     0.05s Set Up
+    t =     0.06s Terminate app.ahoibrowser.AhoiBrowser:0
+    t =     0.07s Open app.ahoibrowser.AhoiBrowser
+    t =     0.07s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-05 11:14:22.013 xcodebuild[61193:10591395] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-05 11:14:22.013 xcodebuild[61193:10591395] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.97s         Setting up automation session
+objc[61235]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.BFpCaZ/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10640c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.BFpCaZ/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x106544310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     3.56s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.99s Waiting 8.0s for Button (First Match) to exist
+    t =     7.08s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     7.08s         Checking existence of `Button (First Match)`
+    t =     7.14s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     8.21s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     8.22s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     8.45s Find the "browser.e2e.candidate-binding" Any
+    t =     8.57s Waiting 8.0s for "Ahoi fixture page" StaticText to exist
+    t =     9.61s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi fixture page" StaticText`
+    t =     9.61s         Checking existence of `"Ahoi fixture page" StaticText`
+    t =     9.65s Tap "browser.more" Button
+    t =     9.65s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.66s     Find the "browser.more" Button
+    t =     9.69s     Check for interrupting elements affecting "browser.more" Button
+    t =     9.73s     Synthesize event
+    t =    10.01s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.19s Waiting 5.0s for "browser.actions.workspaces" Button to exist
+    t =    11.25s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.workspaces" Button`
+    t =    11.25s         Checking existence of `"browser.actions.workspaces" Button`
+    t =    12.40s Checking `Expect predicate `hittable == 1` for object "browser.actions.workspaces" Button`
+    t =    12.40s     Find the "browser.actions.workspaces" Button
+    t =    12.47s Tap "browser.actions.workspaces" Button
+    t =    12.47s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.48s     Find the "browser.actions.workspaces" Button
+    t =    12.53s     Check for interrupting elements affecting "browser.actions.workspaces" Button
+    t =    12.58s     Synthesize event
+    t =    12.87s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.94s Waiting 8.0s for "browser.library.manage" Button to exist
+    t =    14.99s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.library.manage" Button`
+    t =    14.99s         Checking existence of `"browser.library.manage" Button`
+    t =    16.16s Checking `Expect predicate `hittable == 1` for object "browser.library.manage" Button`
+    t =    16.16s     Find the "browser.library.manage" Button
+    t =    16.27s Tap "browser.library.manage" Button
+    t =    16.27s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    16.27s     Find the "browser.library.manage" Button
+    t =    16.35s     Check for interrupting elements affecting "browser.library.manage" Button
+    t =    16.42s     Synthesize event
+    t =    16.73s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.62s Waiting 8.0s for "browser.library.create.workspace" Button to exist
+    t =    18.67s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.library.create.workspace" Button`
+    t =    18.67s         Checking existence of `"browser.library.create.workspace" Button`
+    t =    19.80s Checking `Expect predicate `hittable == 1` for object "browser.library.create.workspace" Button`
+    t =    19.80s     Find the "browser.library.create.workspace" Button
+    t =    19.86s Tap "browser.library.create.workspace" Button
+    t =    19.86s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    19.87s     Find the "browser.library.create.workspace" Button
+    t =    19.92s     Check for interrupting elements affecting "browser.library.create.workspace" Button
+    t =    19.96s     Synthesize event
+    t =    20.26s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    21.34s Waiting 3.0s for "browser.library.create.name" TextField to exist
+    t =    22.39s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.library.create.name" TextField`
+    t =    22.39s         Checking existence of `"browser.library.create.name" TextField`
+    t =    22.49s Waiting 5.0s for "browser.library.create.name" TextField to exist
+    t =    23.53s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.library.create.name" TextField`
+    t =    23.53s         Checking existence of `"browser.library.create.name" TextField`
+    t =    23.61s Tap "browser.library.create.name" TextField
+    t =    23.61s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    23.62s     Find the "browser.library.create.name" TextField
+    t =    23.70s     Check for interrupting elements affecting "browser.library.create.name" TextField
+    t =    23.77s     Synthesize event
+    t =    24.06s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    25.02s Type 'Fertig EACB2B' into "browser.library.create.name" TextField
+    t =    25.02s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    25.02s     Find the "browser.library.create.name" TextField
+    t =    25.14s     Check for interrupting elements affecting "browser.library.create.name" TextField
+    t =    25.23s     Synthesize event
+    t =    25.65s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    25.69s Waiting 5.0s for "browser.library.create.confirm" Button to exist
+    t =    26.77s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.library.create.confirm" Button`
+    t =    26.77s         Checking existence of `"browser.library.create.confirm" Button`
+    t =    28.07s Checking `Expect predicate `hittable == 1` for object "browser.library.create.confirm" Button`
+    t =    28.07s     Find the "browser.library.create.confirm" Button
+    t =    28.20s Tap "browser.library.create.confirm" Button
+    t =    28.20s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    28.20s     Find the "browser.library.create.confirm" Button
+    t =    28.30s     Check for interrupting elements affecting "browser.library.create.confirm" Button
+    t =    28.39s     Synthesize event
+    t =    28.70s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    29.14s Waiting 5.0s for "browser.library.create.confirm" Button to not exist
+    t =    30.20s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.library.create.confirm" Button`
+    t =    30.20s         Checking existence of `"browser.library.create.confirm" Button`
+    t =    30.24s Waiting 8.0s for "Fertig EACB2B" StaticText to exist
+    t =    31.26s     Checking `Expect predicate `existsNoRetry == 1` for object "Fertig EACB2B" StaticText`
+    t =    31.26s         Checking existence of `"Fertig EACB2B" StaticText`
+    t =    31.31s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    31.43s Added attachment named 'library-created-workspace-detail'
+    t =    31.43s Waiting 5.0s for "browser.library.done" Button to exist
+    t =    32.45s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.library.done" Button`
+    t =    32.45s         Checking existence of `"browser.library.done" Button`
+    t =    32.52s Find the Window (First Match)
+    t =    32.53s Get all elements bound by index for: Elements matching predicate '"browser.library.done" IN identifiers'
+    t =    32.58s Find the "browser.library.done" Button
+    t =    32.63s Find the "browser.library.done" Button
+    t =    32.68s Find the "browser.library.done" Button
+    t =    32.73s Tap "browser.library.done" Button
+    t =    32.73s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    32.74s     Find the "browser.library.done" Button
+    t =    32.78s     Check for interrupting elements affecting "browser.library.done" Button
+    t =    32.82s     Synthesize event
+    t =    33.12s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    33.47s Waiting 5.0s for "browser.library.root" Any to not exist
+    t =    34.56s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.library.root" Any`
+    t =    34.56s         Checking existence of `"browser.library.root" Any`
+    t =    34.65s Waiting 5.0s for "browser.library.done" Button to not exist
+    t =    35.71s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.library.done" Button`
+    t =    35.71s         Checking existence of `"browser.library.done" Button`
+    t =    35.80s Checking existence of `"Fertig EACB2B" StaticText`
+    t =    35.89s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    36.01s Added attachment named 'library-closed-browser-ready'
+    t =    36.01s Waiting 5.0s for "browser.address" Button to exist
+    t =    37.07s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    37.07s         Checking existence of `"browser.address" Button`
+    t =    37.11s Tap "browser.address" Button
+    t =    37.11s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    37.11s     Find the "browser.address" Button
+    t =    37.15s     Check for interrupting elements affecting "browser.address" Button
+    t =    37.18s     Synthesize event
+    t =    37.20s         Scroll element to visible
+    t =    37.20s         Find the "browser.address" Button
+    t =    37.26s         Computed hit point {-1, -1} after scrolling to visible
+    t =    37.55s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    38.30s Waiting 5.0s for "browser.address.clear" Button to exist
+    t =    39.35s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    39.35s         Checking existence of `"browser.address.clear" Button`
+    t =    39.43s Terminate app.ahoibrowser.AhoiBrowser:61340
+    t =    40.50s Tear Down
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testLibraryClosesWithDoneAfterCreatingWorkspace]' passed (40.562 seconds).
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testUnsafeSchemeIsExplainedAndRejected]' started.
+    t =     0.00s Start Test at 2026-10-05 11:15:02.394
+    t =     0.02s Set Up
+    t =     0.02s Terminate app.ahoibrowser.AhoiBrowser:0
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-05 11:15:02.419 xcodebuild[61193:10591395] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-05 11:15:02.419 xcodebuild[61193:10591395] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.23s         Setting up automation session
+    t =     2.97s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.10s Waiting 8.0s for Button (First Match) to exist
+    t =     6.15s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     6.15s         Checking existence of `Button (First Match)`
+    t =     6.20s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     7.27s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     7.27s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     7.66s Find the "browser.e2e.candidate-binding" Any
+    t =     7.87s Waiting 5.0s for "browser.address" Button to exist
+    t =     8.93s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =     8.93s         Checking existence of `"browser.address" Button`
+    t =     8.96s Tap "browser.address" Button
+    t =     8.96s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.96s     Find the "browser.address" Button
+    t =     9.00s     Check for interrupting elements affecting "browser.address" Button
+    t =     9.02s     Synthesize event
+    t =     9.04s         Scroll element to visible
+    t =     9.04s         Find the "browser.address" Button
+    t =     9.10s         Computed hit point {-1, -1} after scrolling to visible
+    t =     9.39s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.96s Waiting 3.0s for TextField (First Match) to exist
+    t =    11.05s     Checking `Expect predicate `existsNoRetry == 1` for object TextField (First Match)`
+    t =    11.05s         Checking existence of `TextField (First Match)`
+    t =    11.15s Waiting 2.0s for "browser.address.clear" Button to exist
+    t =    12.20s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    12.20s         Checking existence of `"browser.address.clear" Button`
+    t =    12.29s Tap "browser.address.clear" Button
+    t =    12.29s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.30s     Find the "browser.address.clear" Button
+    t =    12.37s     Check for interrupting elements affecting "browser.address.clear" Button
+    t =    12.42s     Synthesize event
+    t =    12.72s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.72s Find the TextField (First Match)
+    t =    12.80s Tap "browser.address.field" TextField
+    t =    12.80s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.81s     Find the "browser.address.field" TextField
+    t =    12.88s     Check for interrupting elements affecting "browser.address.field" TextField
+    t =    12.93s     Synthesize event
+    t =    13.22s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.33s Waiting 2.0s for Keyboard (First Match) to exist
+    t =    14.38s     Checking `Expect predicate `existsNoRetry == 1` for object Keyboard (First Match)`
+    t =    14.38s         Checking existence of `Keyboard (First Match)`
+    t =    14.40s Type 'javascript:alert(1)' into "browser.address.field" TextField
+    t =    14.40s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    14.41s     Find the "browser.address.field" TextField
+    t =    14.50s     Check for interrupting elements affecting "browser.address.field" TextField
+    t =    14.55s     Synthesize event
+    t =    15.08s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    15.14s Find the "browser.address.field" TextField
+    t =    15.22s Tap "Go" Button
+    t =    15.22s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    15.23s     Find the "Go" Button
+    t =    15.31s     Check for interrupting elements affecting "Go" Button
+    t =    15.36s     Synthesize event
+    t =    15.38s         Scroll element to visible
+    t =    15.39s         Find the "Go" Button
+    t =    15.53s         Computed hit point {-1, -1} after scrolling to visible
+    t =    15.54s         Failed: Failed to scroll to visible (by AX action) Button, {{330.3, 1060.0}, {69.3, 54.0}}, identifier: 'Go', label: 'Öffnen', error: Error kAXErrorFailure performing AXAction kAXScrollToVisibleAction on element AX element pid: 61624, elementOrHash.elementID: 5990511904.110
+    t =    16.55s     Retrying `Tap "Go" Button` (attempt #2)
+    t =    16.55s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    16.55s         Find the "Go" Button
+    t =    16.62s         Check for interrupting elements affecting "Go" Button
+    t =    16.68s         Synthesize event
+    t =    16.97s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.34s Waiting 3.0s for "browser.error.message" Any to exist
+    t =    18.38s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.error.message" Any`
+    t =    18.38s         Checking existence of `"browser.error.message" Any`
+    t =    18.55s Checking existence of `"browser.address.field" TextField`
+    t =    18.61s Tear Down
+Test Case '-[AhoiMobileUITests.AhoiMobileUITests testUnsafeSchemeIsExplainedAndRejected]' passed (18.870 seconds).
+Test Suite 'AhoiMobileUITests' passed at 2026-10-05 11:15:21.264.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 59.432 (59.439) seconds
+Test Suite 'MobileBrowserAccessibilityAppearanceUITests' started at 2026-10-05 11:15:21.266.
+Test Case '-[AhoiMobileUITests.MobileBrowserAccessibilityAppearanceUITests testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt]' started.
+    t =     0.00s Start Test at 2026-10-05 11:15:21.268
+    t =     0.02s Set Up
+    t =     0.03s Terminate app.ahoibrowser.AhoiBrowser:61624
+    t =     1.11s Open app.ahoibrowser.AhoiBrowser
+    t =     1.11s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-05 11:15:22.384 xcodebuild[61193:10591395] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-05 11:15:22.384 xcodebuild[61193:10591395] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.33s         Setting up automation session
+    t =     4.11s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.20s Waiting 8.0s for Button (First Match) to exist
+    t =     7.25s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     7.25s         Checking existence of `Button (First Match)`
+    t =     7.30s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     8.37s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     8.37s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     8.41s Find the "browser.e2e.candidate-binding" Any
+    t =     8.43s Waiting 8.0s for "browser.address" Button to exist
+    t =     9.50s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =     9.50s         Checking existence of `"browser.address" Button`
+    t =     9.52s Tap "browser.address" Button
+    t =     9.52s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.53s     Find the "browser.address" Button
+    t =     9.54s     Check for interrupting elements affecting "browser.address" Button
+    t =     9.57s     Synthesize event
+    t =     9.87s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.50s Waiting 3.0s for "browser.address.field" TextField to exist
+    t =    11.54s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    11.54s         Checking existence of `"browser.address.field" TextField`
+    t =    11.62s Find the "browser.address.field" TextField
+    t =    11.72s Find the "browser.address.field" TextField
+    t =    11.83s Find the "browser.address.field" TextField
+    t =    11.93s Find the "browser.address.field" TextField
+    t =    12.03s Find the "browser.address.field" TextField
+    t =    12.14s Find the "browser.address.field" TextField
+    t =    12.25s Find the "browser.address.field" TextField
+    t =    12.36s Find the "browser.address.field" TextField
+    t =    12.47s Find the "browser.address.field" TextField
+    t =    12.56s Find the "browser.address.field" TextField
+    t =    12.67s Find the "browser.address.field" TextField
+    t =    12.77s Find the "browser.address.field" TextField
+    t =    12.87s Find the "browser.address.field" TextField
+    t =    12.98s Find the "browser.address.field" TextField
+    t =    13.09s Find the "browser.address.field" TextField
+    t =    13.19s Find the "browser.address.field" TextField
+    t =    13.29s Find the "browser.address.field" TextField
+    t =    13.39s Find the "browser.address.field" TextField
+    t =    13.49s Find the "browser.address.field" TextField
+    t =    13.59s Find the "browser.address.field" TextField
+    t =    13.69s Find the "browser.address.field" TextField
+    t =    13.79s Find the "browser.address.field" TextField
+    t =    13.89s Find the "browser.address.field" TextField
+    t =    13.99s Find the "browser.address.field" TextField
+    t =    14.10s Find the "browser.address.field" TextField
+    t =    14.19s Find the "browser.address.field" TextField
+    t =    14.29s Find the "browser.address.field" TextField
+    t =    14.39s Find the "browser.address.field" TextField
+    t =    14.49s Find the "browser.address.field" TextField
+    t =    14.59s Find the "browser.address.field" TextField
+    t =    14.69s Find the "browser.address.field" TextField
+/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo81-mobile-focus-e27dd243/apps/AhoiMobile/Tests/AhoiMobileUITests/MobileBrowserAccessibilityAppearanceUITests.swift:117: error: -[AhoiMobileUITests.MobileBrowserAccessibilityAppearanceUITests testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt] : XCTAssertTrue failed - The Escape journey must exercise the focused UIKit-backed address field.
+    t =    14.93s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserAccessibilityAppearanceUITests testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt]' failed (16.044 seconds).
+Test Suite 'MobileBrowserAccessibilityAppearanceUITests' failed at 2026-10-05 11:15:37.313.
+	 Executed 1 test, with 1 failure (0 unexpected) in 16.044 (16.047) seconds
+Test Suite 'AhoiMobileUITests.xctest' failed at 2026-10-05 11:15:37.313.
+	 Executed 3 tests, with 1 failure (0 unexpected) in 75.476 (75.488) seconds
+Test Suite 'Selected tests' failed at 2026-10-05 11:15:37.313.
+	 Executed 3 tests, with 1 failure (0 unexpected) in 75.476 (75.488) seconds
+2026-10-05 11:15:37.717 xcodebuild[61193:10591395] [MT] IDETestOperationsObserverDebug: 81.469 elapsed -- Testing started completed.
+2026-10-05 11:15:37.717 xcodebuild[61193:10591395] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-05 11:15:37.717 xcodebuild[61193:10591395] [MT] IDETestOperationsObserverDebug: 81.469 sec, +81.469 sec -- end
+
+Test session results, code coverage, and logs:
+	/Volumes/Daten/Inhouse/Scratch/ahoi-mobile-focus-e27dd243/focused.xcresult
+
+Failing tests:
+	MobileBrowserAccessibilityAppearanceUITests.testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt()
+
+** TEST EXECUTE FAILED **
+
+Testing started
