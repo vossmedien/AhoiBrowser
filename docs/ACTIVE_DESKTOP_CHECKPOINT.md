@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## .98 accepted on target; M155 roll source-complete, build running — 5 October 2026
+
+- **Owner decisions:** AnyChat is out of v1 scope; Stable may be followed
+  during Google's staged rollout (`rolloutPolicy: staged-stable`,
+  `docs/UPSTREAM.md`, b059583d).
+- **.98 candidate (42c23a39)** built, signed via the GUI-session agent,
+  provenance-checked and installed on MacbookPro2026
+  (`~/inhouse/evidence/ahoi-chromium-98-42c23a39/`). Acceptance set
+  `artifacts/tests/accept-98-42c23a39-20261005` (+ `-rerun`) on the installed
+  app: webrequest-probe, sandbox, import-sources, downloads-media,
+  settings-sections, ubo-classic, http-auth (now via LaunchServices launch,
+  0b001c2f), ws-cross-level-move PASS; privacy-modes PASS 13/13 after the
+  fixture fix (RSA certificate; LibreSSL 3.3 ignored the EC curve). devtoolkit
+  RED: DEV-01/04/05 miss the first document after a (re)start — product race,
+  fixed in f492d294 (assets apply on DOMContentLoaded), to be accepted on the
+  M155 candidate. .98 is not delivered to the development Mac; M155
+  supersedes it.
+- **M155 roll (a40e256d):** pin 155.0.8059.26 / 16c3e554 (0.5 % rollout).
+  Stack rebased in `.work/chromium-m155-rebase` (27 apply, 64 conflict before
+  rebase; 13 real resolutions, ledger in `patches/chromium/README.md`);
+  0071/0073/0074 regenerated. Source acceptance only. Build chain
+  `~/inhouse/evidence/ahoi-m155-b059583d/build.sh` started 18:35 UTC with
+  snapshot `repo88-m155-f492d294` (holds `desktop-build.lock`); next:
+  provenance, signing (GUI agent), install, the same journey set.
+- **Pre-existing red repository tests** (unchanged by the roll): zen import
+  availability contract (6), sidebar runtime contracts (2), line budget
+  (`tools/perf/run_desktop_perf.py` 841 lines).
+
 ## WS-ISO-05 cross-level move 25/25 on installed e86 — 5 October 2026
 
 Owner change: the Codex session's paused Goal moved to Claude session
