@@ -28,6 +28,9 @@ then
   parked_sparkle="${AHOI_STATE_DIR}/sparkle-prebuilt-parked-${expected_commit}"
   rm -rf "${parked_sparkle}"
   mv "${sparkle_prebuilt}" "${parked_sparkle}"
+  # The base tree has no third_party/sparkle; an empty leftover directory
+  # made fetch-chromium.sh refuse the checkout in the M155 roll.
+  rmdir "${AHOI_CHROMIUM_SRC}/third_party/sparkle" 2>/dev/null || true
   ahoi_note "parked ignored Sparkle framework at ${parked_sparkle}"
 fi
 
