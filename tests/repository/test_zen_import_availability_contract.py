@@ -15,6 +15,12 @@ WEBUI_TEST = (
 PATCH = ROOT / "patches/chromium/0015-ahoi-zen-import-availability.patch"
 
 
+# The contract reads the applied Chromium checkout; the development Mac keeps
+# no checkout (builds run on the target), so it only runs where one exists.
+@unittest.skipUnless(
+    (CHROMIUM / "chrome/browser/importer/importer_list.h").is_file(),
+    "needs an applied Chromium checkout under .work/chromium/src",
+)
 class ZenImportAvailabilityContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.discovery_header = (

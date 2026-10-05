@@ -45,7 +45,7 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
         # 2b0de42 moved the navigation/binding transaction into the shared
         # MaterializeSavedPage helper (browser_sidebar_host_page_actions.cc).
         self.assertIn(
-            "MaterializeSavedPage(node, /*require_local_model=*/false).valid",
+            "MaterializeSavedPage(requested, /*require_local_model=*/false).valid",
             activation,
         )
         page_actions = text(
@@ -246,7 +246,8 @@ class SidebarRuntimeContractsTest(unittest.TestCase):
             patch, "chrome/browser/ui/views/frame/contents_container_outline.cc"
         )
 
-        self.assertIn("kSidebarTabRowHeight = 40", style)
+        # Design spec 2026-09-29: sidebar rows are 36 high.
+        self.assertIn("kSidebarTabRowHeight = 36", style)
         self.assertNotIn("kTreeRowHeight", style)
         self.assertIn(
             "kRowHeight = visual_style::kSidebarTabRowHeight", tree_row
