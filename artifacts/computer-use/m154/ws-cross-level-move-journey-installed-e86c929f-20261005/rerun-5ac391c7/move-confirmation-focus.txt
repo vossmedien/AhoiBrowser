@@ -1,0 +1,4 @@
+frontmostApp: AhoiBrowser pid=32979 target=32979
+focusedElement: none
+focusedWindow: AXWindow | Nach „Getrennt“ verschieben?
+mainWindow: AXWindow | Solo - AhoiBrowser – Mein AhoiBrowser

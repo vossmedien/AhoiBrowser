@@ -1,0 +1,127 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Getrennt -> 0 now=Getrennt
+AXPress AXRadioButton | Vollständig getrennt | Vollständig getrennt | 0 -> 0
+AXPress AXButton | Erstellen | Erstellen -> 0
+key 53
+AXShowMenu AXButton | Getrennt, Workspace wechseln | Getrennt, Workspace wechseln -> -25204
+AXPress AXMenuItem | Inbox | itemSelected: -> 0
+frontmost -> 0
+hidkey 17
+typed 36
+frontmost -> 0
+hidkey 36
+{"frameId":"D6409D67B470129BFB417AE114581DF1","loaderId":"0FC91355F2DF157185FB2E8D41D2D167","isDownload":false}
+row for Login: AXRadioButton:Login — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | Login — Temporärer Tab | Login — Temporärer Tab | 1 -> -25204
+AXPress AXMenuItem | Verschieben nach -> 0
+AXPress AXMenuItem | N  Getrennt | itemSelected: in AXMenuItem | Verschieben nach -> 0
+confirmationShown -> true
+menuMarksSeparateSignIns -> true
+noticeSaysSignInsStay -> true
+noticeNamesTarget -> true
+noticeOffersUndo -> true
+hidclicked  at (183.0, 385.0)
+cancelChangesNothing -> true
+row for Login: AXRadioButton:Login — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | Login — Temporärer Tab | Login — Temporärer Tab | 1 -> -25204
+AXPress AXMenuItem | Verschieben nach -> 0
+AXPress AXMenuItem | N  Getrennt | itemSelected: in AXMenuItem | Verschieben nach -> 0
+hidclicked  at (301.0, 385.0)
+windowFollowsTab -> true
+tabReopenedInTarget -> true
+loginDidNotMove -> true
+tabReloadedNotCarried -> true
+focus AXRow | Login | Login -> 0
+undo: key 6 on unknown layout
+frontmost -> 0
+hidkey 6
+undoRestoresSource -> false
+undoBringsLoginBack -> false
+undoLeavesTargetEmpty -> false
+key 53
+AXShowMenu AXButton | Getrennt, Workspace wechseln | Getrennt, Workspace wechseln -> -25204
+AXPress AXMenuItem | Inbox | itemSelected: -> 0
+frontmost -> 0
+hidkey 17
+typed 28
+frontmost -> 0
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 28
+frontmost -> 0
+hidkey 36
+frontmost -> 0
+hidkey 48
+AXPress AXMenuItem | Tab zu neuer geteilter Ansicht hinzufügen | commandDispatch: -> 0
+frontmost -> 0
+hidclicked  at (996.0, 222.0)
+row for PaneA: AXRadioButton:PaneA — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 0 -> -25204
+AXPress AXMenuItem | Verschieben nach -> 0
+AXPress AXMenuItem | N  Getrennt | itemSelected: in AXMenuItem | Verschieben nach -> 0
+hidclicked  at (301.0, 405.0)
+splitNoticeSaysWhole -> true
+splitMovedWhole -> true
+key 53
+AXShowMenu AXButton | Getrennt, Workspace wechseln | Getrennt, Workspace wechseln -> -25204
+AXPress AXMenuItem | Inbox | itemSelected: -> 0
+frontmost -> 0
+hidkey 17
+typed 31
+frontmost -> 0
+hidkey 36
+row for Notiz: AXRadioButton:Notiz — Temporärer Tab
+key 53
+AXShowMenu AXRadioButton | Notiz — Temporärer Tab | Notiz — Temporärer Tab | 1 -> -25204
+AXPress AXMenuItem | Neue Gruppe mit diesem Tab… | itemSelected: -> 0
+setvalue AXTextField | Gruppenname | Gruppenname | Mappe -> 0 now=Mappe
+AXPress AXButton | Erstellen | Erstellen -> 0
+row for Mappe: AXRow:Mappe
+key 53
+AXShowMenu AXRow | Mappe | Mappe -> -25204
+AXPress AXMenuItem | Verschieben nach -> 0
+AXPress AXMenuItem | N  Getrennt | itemSelected: in AXMenuItem | Verschieben nach -> 0
+hidclicked  at (301.0, 405.0)
+folderNoticeNamesFolder -> true
+folderArrivesInTarget -> true
+folderPageReopened -> true
+key 53
+AXShowMenu AXButton | Getrennt, Workspace wechseln | Getrennt, Workspace wechseln -> -25204
+AXPress AXMenuItem | Inbox | itemSelected: -> 0
+folderLeftInbox -> true
+frontmost -> 0
+hidkey 17
+typed 31
+frontmost -> 0
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 34
+commandBarOffersTarget -> true
+commandBarHintsSignIns -> true
+frontmost -> 0
+hidkey 36
+hidclicked  at (301.0, 385.0)
+commandMoveFollows -> true
+commandMoveReopened -> true
+info: drag-and-drop between the Profiles' windows is a manual CU step (axtool has no HID drag)
+tabs before relaunch: ["about:blank", "chrome://history/", "chrome://newtab/", "http://127.0.0.1:8851/a.html", "http://127.0.0.1:8851/b.html", "http://127.0.0.1:8851/login.html", "http://127.0.0.1:8851/note.html", "http://127.0.0.1:8851/solo.html"]
+frontmost -> 0
+hidkey 12
+native browser quit exit=0
+frontmost -> 0
+movedFolderPersists -> true
+key 53
+AXShowMenu AXButton | Getrennt, Workspace wechseln | Getrennt, Workspace wechseln -> -25204
+AXPress AXMenuItem | Inbox | itemSelected: -> 0
+inboxStaysWithoutFolder -> true
+frontmost -> 0
+hidkey 12
+native browser quit exit=0

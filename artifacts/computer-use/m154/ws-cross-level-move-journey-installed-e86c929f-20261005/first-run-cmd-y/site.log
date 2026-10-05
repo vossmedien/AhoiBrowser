@@ -1,0 +1,15 @@
+127.0.0.1 - - [05/Oct/2026 10:41:48] "GET /login.html?set HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:41:49] code 404, message File not found
+127.0.0.1 - - [05/Oct/2026 10:41:49] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [05/Oct/2026 10:41:50] "GET /login.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:42:15] "GET /login.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:42:16] code 404, message File not found
+127.0.0.1 - - [05/Oct/2026 10:42:16] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [05/Oct/2026 10:42:51] "GET /a.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:42:58] "GET /b.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:43:19] "GET /a.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:43:19] "GET /b.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:43:38] "GET /note.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:43:58] "GET /note.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:44:20] "GET /solo.html HTTP/1.1" 200 -
+127.0.0.1 - - [05/Oct/2026 10:44:31] "GET /solo.html HTTP/1.1" 200 -

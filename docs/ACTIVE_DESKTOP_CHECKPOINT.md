@@ -1,5 +1,28 @@
 # Active Desktop checkpoint
 
+## WS-ISO-05 cross-level move 25/25 on installed e86 — 5 October 2026
+
+Owner change: the Codex session's paused Goal moved to Claude session
+049a3c1d (Terminal Cockpit handoff); same original Master, no new scope.
+Target console is unlocked again (IOConsoleUsers without
+CGSSessionScreenIsLocked), load low, no foreign GUI test; the parked journey
+ran on installed `e86c929f` with the frozen driver under an own e2e.lock.
+
+- Frozen driver `0e38e26e`: 22/25. Only the three undo assertions failed.
+  Cause is the harness: the target has only ever had the German layout, so
+  HIToolbox has no AppleCurrentKeyboardLayoutInputSourceID; the driver fell
+  back to QWERTY and sent Cmd+Y. Fix `5ac391c7` (shared
+  `tools/desktop_e2e/keyboard_layout.sh`, also used by the split library and
+  the shortcut journey).
+- Rerun on `5ac391c7`: **25/25 PASS, exit 0** (undo key 16 on German). No
+  assertion changed; the first rerun refused to drive at idle 27 s and
+  waited for 310 s HID idle.
+  [Evidence](../artifacts/computer-use/m154/ws-cross-level-move-journey-installed-e86c929f-20261005/README.md).
+- Still manual: drag-and-drop between two Profiles' windows (HID drag).
+
+Crest handoffs: no new ready handoff; 106/110 stay deferred as reviewed on
+4 October. Mobile progress for the same Goal is in the Mobile checkpoint.
+
 ## Completed release CLI fix integrated, published and delivered — 4 October 2026
 
 Previous turn was actual CLI/source progress. Current A29's explicit Source-Git
