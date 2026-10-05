@@ -1,0 +1,105 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /Volumes/Daten/Inhouse/Scratch/ahoi-mobile-focus-e27dd243/DerivedData/Build/Products/escape_cross_cc8app.xctestrun -destination "platform=iOS Simulator,id=A058D204-F3CB-44B7-963C-1F785132EF8B" -parallel-testing-enabled NO "-only-testing:AhoiMobileUITests/MobileBrowserAccessibilityAppearanceUITests/testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt" -resultBundlePath /Volumes/Daten/Inhouse/Scratch/ahoi-mobile-focus-e27dd243/escape-cross.xcresult -collect-test-diagnostics never
+
+Writing result bundle at path:
+	/Volumes/Daten/Inhouse/Scratch/ahoi-mobile-focus-e27dd243/escape-cross.xcresult
+
+2026-10-05 11:23:51.531048+0200 AhoiMobileUITests-Runner[67737:10642986] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-05 11:23:54.349.
+Test Suite 'AhoiMobileUITests.xctest' started at 2026-10-05 11:23:54.350.
+Test Suite 'MobileBrowserAccessibilityAppearanceUITests' started at 2026-10-05 11:23:54.350.
+Test Case '-[AhoiMobileUITests.MobileBrowserAccessibilityAppearanceUITests testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt]' started.
+    t =     0.00s Start Test at 2026-10-05 11:23:54.355
+    t =     0.02s Set Up
+    t =     0.03s Terminate app.ahoibrowser.AhoiBrowser:0
+    t =     0.03s Open app.ahoibrowser.AhoiBrowser
+    t =     0.03s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-05 11:23:54.474 xcodebuild[67730:10642730] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-05 11:23:54.474 xcodebuild[67730:10642730] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[67737]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.BFpCaZ/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10969c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.BFpCaZ/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x10a078310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.74s         Setting up automation session
+    t =     3.04s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.08s Waiting 8.0s for Button (First Match) to exist
+    t =     6.14s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     6.14s         Checking existence of `Button (First Match)`
+    t =     6.18s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     7.22s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     7.22s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     7.34s Find the "browser.e2e.candidate-binding" Any
+    t =     7.39s Waiting 8.0s for "browser.address" Button to exist
+    t =     8.43s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =     8.43s         Checking existence of `"browser.address" Button`
+    t =     8.45s Tap "browser.address" Button
+    t =     8.45s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.46s     Find the "browser.address" Button
+    t =     8.47s     Check for interrupting elements affecting "browser.address" Button
+    t =     8.49s     Synthesize event
+    t =     8.51s         Scroll element to visible
+    t =     8.51s         Find the "browser.address" Button
+    t =     8.54s         Computed hit point {-1, -1} after scrolling to visible
+    t =     8.83s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.25s Waiting 3.0s for "browser.address.field" TextField to exist
+    t =    10.29s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    10.29s         Checking existence of `"browser.address.field" TextField`
+    t =    10.36s Find the "browser.address.field" TextField
+    t =    10.41s Find the "browser.address.field" TextField
+    t =    10.45s Type '⎋' key (XCUIKeyboardKeyEscape) with no modifiers
+    t =    10.45s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.46s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    10.49s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =    10.53s     Synthesize event
+    t =    10.75s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.85s Waiting 3.0s for "browser.address.field" TextField to not exist
+    t =    11.89s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.field" TextField`
+    t =    11.89s         Checking existence of `"browser.address.field" TextField`
+    t =    11.96s         Capturing element debug description
+    t =    11.96s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    12.02s             Find: Descendants matching type TextField
+    t =    12.02s             Find: Elements matching predicate '"browser.address.field" IN identifiers'
+    t =    12.02s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    12.07s             Find: Descendants matching type TextField
+    t =    12.07s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    12.94s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.field" TextField`
+    t =    12.94s         Checking existence of `"browser.address.field" TextField`
+    t =    12.99s         Capturing element debug description
+    t =    12.99s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    13.04s             Find: Descendants matching type TextField
+    t =    13.04s             Find: Elements matching predicate '"browser.address.field" IN identifiers'
+    t =    13.05s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    13.10s             Find: Descendants matching type TextField
+    t =    13.10s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    13.85s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.field" TextField`
+    t =    13.85s         Checking existence of `"browser.address.field" TextField`
+    t =    13.90s         Capturing element debug description
+    t =    13.90s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    13.95s             Find: Descendants matching type TextField
+    t =    13.95s             Find: Elements matching predicate '"browser.address.field" IN identifiers'
+    t =    13.95s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    14.00s             Find: Descendants matching type TextField
+    t =    14.00s             Requesting snapshot of accessibility hierarchy for app with pid 67873
+    t =    14.06s     Checking existence of `"browser.address.field" TextField`
+    t =    14.10s Collecting debug information to assist test failure triage
+    t =    14.10s     Requesting snapshot of accessibility hierarchy for app with pid 67873
+/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo81-mobile-focus-e27dd243/apps/AhoiMobile/Tests/AhoiMobileUITests/MobileBrowserAccessibilityAppearanceUITests.swift:122: error: -[AhoiMobileUITests.MobileBrowserAccessibilityAppearanceUITests testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt] : XCTAssertTrue failed - Escape must dismiss the address presentation on the selected candidate.
+    t =    14.20s Tear Down
+Test Case '-[AhoiMobileUITests.MobileBrowserAccessibilityAppearanceUITests testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt]' failed (14.434 seconds).
+Test Suite 'MobileBrowserAccessibilityAppearanceUITests' failed at 2026-10-05 11:24:08.790.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.434 (14.440) seconds
+Test Suite 'AhoiMobileUITests.xctest' failed at 2026-10-05 11:24:08.790.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.434 (14.440) seconds
+Test Suite 'Selected tests' failed at 2026-10-05 11:24:08.791.
+	 Executed 1 test, with 1 failure (0 unexpected) in 14.434 (14.441) seconds
+2026-10-05 11:24:09.134 xcodebuild[67730:10642730] [MT] IDETestOperationsObserverDebug: 18.780 elapsed -- Testing started completed.
+2026-10-05 11:24:09.134 xcodebuild[67730:10642730] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-05 11:24:09.135 xcodebuild[67730:10642730] [MT] IDETestOperationsObserverDebug: 18.780 sec, +18.780 sec -- end
+
+Test session results, code coverage, and logs:
+	/Volumes/Daten/Inhouse/Scratch/ahoi-mobile-focus-e27dd243/escape-cross.xcresult
+
+Failing tests:
+	MobileBrowserAccessibilityAppearanceUITests.testHardwareEscapeDismissesFocusedAddressPresentationWhenXCUIDeliversIt()
+
+** TEST EXECUTE FAILED **
+
+Testing started

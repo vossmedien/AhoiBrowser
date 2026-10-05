@@ -28,9 +28,12 @@ Owner change: Claude session 049a3c1d continues the paused Codex Goal
   Fix `e27dd243`: `MobileAddressCommandEditor` inside the container owns the
   focus state. **Accepted on candidate e27dd243** (clean receipt, exact
   xctestrun): Home journey PASS; unsafe-scheme and library-clear UI tests
-  PASS. The hardware-Escape test fails at its focus precondition on both
-  e27dd243 and the cc8bef2b baseline (host load 300–580 from foreign work):
-  pre-existing, retest at normal load.
+  PASS. Hardware Escape: the test's focus precondition used UIFocusSystem
+  `hasFocus` and is corrected in `5bf8a565`; then Escape still does not
+  dismiss the address or the tab sheet, identically with the cc8bef2b app,
+  through two independent handlers. Most likely XCUI does not deliver the
+  key on the headless simulator without a hardware keyboard; Escape stays
+  OPEN for a device with a real keyboard. Home journey also PASS on 5bf8a565.
   [Evidence](../artifacts/computer-use/mobile/address-focus-e27dd243-20261005/README.md).
 - Fresh simulators show the keyboard's "slide to type" onboarding over the
   keyboard; `DidShowContinuousPathIntroduction` is set after one run.
