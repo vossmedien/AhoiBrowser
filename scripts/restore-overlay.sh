@@ -16,6 +16,21 @@ actual_commit="$(git -C "${AHOI_CHROMIUM_SRC}" rev-parse HEAD)"
   ahoi_die "overlay restore requires Chromium ${expected_commit}, found ${actual_commit}"
 state_file="${AHOI_STATE_DIR}/overlay-${expected_commit}.json"
 
+# fetch-sparkle.sh puts the pinned framework at third_party/sparkle/prebuilt,
+# hidden only by the overlay's own .gitignore. Reversing the overlay removes
+# that rule, the framework turns into an untracked path and the exact
+# base-tree check fails (M154 roll, 154.0.8037.98 roll). build-ahoi.sh fetches
+# it again after the next apply, so park the ignored copy outside the checkout.
+sparkle_prebuilt="${AHOI_CHROMIUM_SRC}/third_party/sparkle/prebuilt"
+if [ -e "${sparkle_prebuilt}" ] && \
+   git -C "${AHOI_CHROMIUM_SRC}" check-ignore -q third_party/sparkle/prebuilt/
+then
+  parked_sparkle="${AHOI_STATE_DIR}/sparkle-prebuilt-parked-${expected_commit}"
+  rm -rf "${parked_sparkle}"
+  mv "${sparkle_prebuilt}" "${parked_sparkle}"
+  ahoi_note "parked ignored Sparkle framework at ${parked_sparkle}"
+fi
+
 restore_result="$(
   python3 "${AHOI_REPO_ROOT}/tools/overlay_state.py" restore \
     --repository "${AHOI_REPO_ROOT}" \
