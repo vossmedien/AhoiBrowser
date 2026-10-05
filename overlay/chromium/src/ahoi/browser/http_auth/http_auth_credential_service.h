@@ -17,9 +17,12 @@
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/time/time.h"
+#include "base/types/expected.h"
 #include "base/values.h"
 #include "components/keyed_service/core/keyed_service.h"
+#include "components/password_manager/core/browser/password_store/password_store_backend_error.h"
 #include "components/password_manager/core/browser/password_store/password_store_consumer.h"
+#include "components/password_manager/core/browser/password_store/stored_credential.h"
 #include "net/base/auth.h"
 #include "net/base/network_anonymization_key.h"
 #include "net/http/http_auth.h"
@@ -40,6 +43,14 @@ class PrefRegistrySyncable;
 }  // namespace user_prefs
 
 namespace ahoi {
+
+// GetLogins results as the password store consumer receives them. M155
+// dropped password_manager::LoginsResult(OrError) (a std::variant before) for
+// this base::expected.
+using HttpAuthLoginsResult = std::vector<password_manager::StoredCredential>;
+using HttpAuthLoginsResultOrError =
+    base::expected<HttpAuthLoginsResult,
+                   password_manager::PasswordStoreBackendError>;
 
 // The request context is deliberately supplied by the caller. A service
 // instance may be shared by a regular profile and its OTR profile through the
@@ -292,7 +303,7 @@ class HttpAuthCredentialService : public KeyedService {
       HttpAuthSelectionMode selection_mode,
       CredentialsCallback callback,
       CredentialQuery* query,
-      password_manager::LoginsResultOrError results_or_error);
+      HttpAuthLoginsResultOrError results_or_error);
 
   void OnSaveLookupComplete(
       HttpAuthProtectionSpace protection_space,
@@ -302,7 +313,7 @@ class HttpAuthCredentialService : public KeyedService {
       bool user_confirmed_insecure_http,
       base::OnceClosure done,
       CredentialQuery* query,
-      password_manager::LoginsResultOrError results_or_error);
+      HttpAuthLoginsResultOrError results_or_error);
 
   void OnDeleteLookupComplete(
       HttpAuthProtectionSpace protection_space,
@@ -310,7 +321,7 @@ class HttpAuthCredentialService : public KeyedService {
       HttpAuthRequestContext request_context,
       base::OnceClosure done,
       CredentialQuery* query,
-      password_manager::LoginsResultOrError results_or_error);
+      HttpAuthLoginsResultOrError results_or_error);
 
   void OnUpdateLookupComplete(
       HttpAuthProtectionSpace protection_space,
@@ -320,7 +331,7 @@ class HttpAuthCredentialService : public KeyedService {
       HttpAuthRequestContext request_context,
       UpdateCallback done,
       CredentialQuery* query,
-      password_manager::LoginsResultOrError results_or_error);
+      HttpAuthLoginsResultOrError results_or_error);
 
   std::optional<HttpAuthCredentialMetadata> FindMetadata(
       const HttpAuthProtectionSpace& protection_space,

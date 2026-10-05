@@ -97,7 +97,7 @@ class HttpAuthCredentialServiceTest : public ::testing::Test {
   }
 
  protected:
-  void SetLookupResults(password_manager::LoginsResult results) {
+  void SetLookupResults(HttpAuthLoginsResult results) {
     lookup_results_ = std::move(results);
   }
 
@@ -118,7 +118,7 @@ class HttpAuthCredentialServiceTest : public ::testing::Test {
 
   sync_preferences::TestingPrefServiceSyncable prefs_;
   scoped_refptr<NiceMock<password_manager::MockPasswordStoreInterface>> store_;
-  password_manager::LoginsResult lookup_results_;
+  HttpAuthLoginsResult lookup_results_;
   std::unique_ptr<HttpAuthCredentialService> service_;
 };
 
@@ -238,7 +238,7 @@ TEST_F(HttpAuthCredentialServiceTest, RanksPreferredAccountBeforeLastSuccess) {
   ASSERT_TRUE(service_->SetPreferredCredential(
       protection_space, u"bob", HttpAuthRequestContext::kRegular));
 
-  password_manager::LoginsResult lookup_results;
+  HttpAuthLoginsResult lookup_results;
   lookup_results.push_back(
       MakeStoredCredential(protection_space, u"alice", u"alice-password"));
   lookup_results.push_back(
@@ -323,7 +323,7 @@ TEST_F(HttpAuthCredentialServiceTest,
   Save(first, "/private/index.html", u"alice", u"old-password");
   Save(second, "/private/index.html", u"alice", u"old-password");
 
-  password_manager::LoginsResult lookup_results;
+  HttpAuthLoginsResult lookup_results;
   lookup_results.push_back(
       MakeStoredCredential(first, u"alice", u"old-password"));
   SetLookupResults(std::move(lookup_results));
@@ -392,7 +392,7 @@ TEST_F(HttpAuthCredentialServiceTest,
   const HttpAuthProtectionSpace protection_space =
       MakeSpace("https://auth.example.test/private/index.html");
   Save(protection_space, "/private/index.html", u"alice", u"old-password");
-  password_manager::LoginsResult lookup_results;
+  HttpAuthLoginsResult lookup_results;
   lookup_results.push_back(
       MakeStoredCredential(protection_space, u"alice", u"old-password"));
   SetLookupResults(std::move(lookup_results));
@@ -461,7 +461,7 @@ TEST_F(HttpAuthCredentialServiceTest,
                 net::HttpAuth::AUTH_SERVER, net::HttpAuth::AUTH_SCHEME_BASIC,
                 "Realm", {"/private/index.html"});
   Save(protection_space, "/private/index.html", u"alice", u"password");
-  password_manager::LoginsResult lookup_results;
+  HttpAuthLoginsResult lookup_results;
   lookup_results.push_back(
       MakeStoredCredential(protection_space, u"alice", u"password"));
 
@@ -503,7 +503,7 @@ TEST_F(HttpAuthCredentialServiceTest,
   EXPECT_TRUE(
       service_->GetNeverSaveSnapshot().front().MatchesRealm(protection_space));
 
-  password_manager::LoginsResult lookup_results;
+  HttpAuthLoginsResult lookup_results;
   lookup_results.push_back(
       MakeStoredCredential(protection_space, u"alice", u"old-password"));
   SetLookupResults(std::move(lookup_results));

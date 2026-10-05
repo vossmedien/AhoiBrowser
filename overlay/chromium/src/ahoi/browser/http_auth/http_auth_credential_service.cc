@@ -58,7 +58,7 @@ class HttpAuthCredentialService::CredentialQuery final
  public:
   using Completion =
       base::OnceCallback<void(CredentialQuery*,
-                              password_manager::LoginsResultOrError)>;
+                              HttpAuthLoginsResultOrError)>;
 
   explicit CredentialQuery(Completion completion)
       : completion_(std::move(completion)) {}
@@ -72,7 +72,7 @@ class HttpAuthCredentialService::CredentialQuery final
 
   void OnGetPasswordStoreResultsOrErrorFrom(
       password_manager::PasswordStoreInterface* store,
-      password_manager::LoginsResultOrError results_or_error) override {
+      HttpAuthLoginsResultOrError results_or_error) override {
     std::move(completion_).Run(this, std::move(results_or_error));
   }
 
@@ -301,17 +301,15 @@ void HttpAuthCredentialService::OnCredentialLookupComplete(
     HttpAuthSelectionMode selection_mode,
     CredentialsCallback callback,
     CredentialQuery* query,
-    password_manager::LoginsResultOrError results_or_error) {
+    HttpAuthLoginsResultOrError results_or_error) {
   RemovePendingQuery(query);
-  if (!std::holds_alternative<password_manager::LoginsResult>(
-          results_or_error)) {
+  if (!results_or_error.has_value()) {
     if (callback) {
       std::move(callback).Run({});
     }
     return;
   }
-  password_manager::LoginsResult results =
-      std::move(std::get<password_manager::LoginsResult>(results_or_error));
+  HttpAuthLoginsResult results = std::move(results_or_error).value();
   if (!callback) {
     return;
   }
@@ -374,10 +372,9 @@ void HttpAuthCredentialService::OnSaveLookupComplete(
     bool user_confirmed_insecure_http,
     base::OnceClosure done,
     CredentialQuery* query,
-    password_manager::LoginsResultOrError results_or_error) {
+    HttpAuthLoginsResultOrError results_or_error) {
   RemovePendingQuery(query);
-  if (!std::holds_alternative<password_manager::LoginsResult>(
-          results_or_error) ||
+  if (!results_or_error.has_value() ||
       request_context == HttpAuthRequestContext::kIncognito ||
       profile_is_incognito_for_testing_ ||
       (protection_space.origin.scheme() == url::kHttpScheme &&
@@ -390,8 +387,7 @@ void HttpAuthCredentialService::OnSaveLookupComplete(
   const base::Time now = base::Time::Now();
   password_manager::PasswordForm form =
       MakePasswordForm(protection_space, credentials, now);
-  password_manager::LoginsResult results =
-      std::move(std::get<password_manager::LoginsResult>(results_or_error));
+  HttpAuthLoginsResult results = std::move(results_or_error).value();
   password_manager::StoredCredential* existing = nullptr;
   for (password_manager::StoredCredential& stored : results) {
     if (MatchesStoredCredential(protection_space, stored) &&
@@ -438,18 +434,16 @@ void HttpAuthCredentialService::OnDeleteLookupComplete(
     HttpAuthRequestContext request_context,
     base::OnceClosure done,
     CredentialQuery* query,
-    password_manager::LoginsResultOrError results_or_error) {
+    HttpAuthLoginsResultOrError results_or_error) {
   RemovePendingQuery(query);
-  if (!std::holds_alternative<password_manager::LoginsResult>(
-          results_or_error) ||
+  if (!results_or_error.has_value() ||
       request_context == HttpAuthRequestContext::kIncognito ||
       profile_is_incognito_for_testing_) {
     std::move(done).Run();
     return;
   }
 
-  password_manager::LoginsResult results =
-      std::move(std::get<password_manager::LoginsResult>(results_or_error));
+  HttpAuthLoginsResult results = std::move(results_or_error).value();
   for (const password_manager::StoredCredential& stored : results) {
     if (!MatchesStoredCredential(protection_space, stored) ||
         (username && stored.username_value != *username)) {
@@ -471,16 +465,14 @@ void HttpAuthCredentialService::OnUpdateLookupComplete(
     HttpAuthRequestContext request_context,
     UpdateCallback done,
     CredentialQuery* query,
-    password_manager::LoginsResultOrError results_or_error) {
+    HttpAuthLoginsResultOrError results_or_error) {
   RemovePendingQuery(query);
-  if (!std::holds_alternative<password_manager::LoginsResult>(
-          results_or_error)) {
+  if (!results_or_error.has_value()) {
     new_password.Clear();
     std::move(done).Run(false);
     return;
   }
-  password_manager::LoginsResult results =
-      std::move(std::get<password_manager::LoginsResult>(results_or_error));
+  HttpAuthLoginsResult results = std::move(results_or_error).value();
   if (request_context == HttpAuthRequestContext::kIncognito ||
       profile_is_incognito_for_testing_ || new_password.empty() ||
       !CanRenameCredentialMetadata(protection_space, old_username,
