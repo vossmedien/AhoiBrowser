@@ -192,7 +192,7 @@ test("ahoi_arc_import_browsertests") {
   deps = [
     ":browser_tests",
     "//chrome:packed_resources",
-    "//chrome/test:browser_tests_runner",
+    "//chrome/test/base:browser_tests_runner",
     "//chrome/test:test_support",
   ]
 }

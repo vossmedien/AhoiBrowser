@@ -154,7 +154,7 @@ if (!is_android && !is_chromeos) {
     deps = [
       ":settings_browser_tests",
       "//chrome:packed_resources",
-      "//chrome/test:browser_tests_runner",
+      "//chrome/test/base:browser_tests_runner",
       "//chrome/test:test_support",
     ]
     data_deps = [ "//chrome:browser_tests_pak" ]
