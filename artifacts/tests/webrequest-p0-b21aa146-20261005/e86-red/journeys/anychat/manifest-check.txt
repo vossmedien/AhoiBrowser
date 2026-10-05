@@ -1,0 +1,7 @@
+permissions ['activeTab', 'declarativeNetRequestWithHostAccess', 'favicon', 'scripting', 'search', 'sidePanel', 'storage']
+PERMISSIONS_OK
+version 1.0.9
+hosts ['chat.deepseek.com', 'chat.mistral.ai', 'chatgpt.com', 'claude.ai', 'copilot.com', 'copilot.microsoft.com', 'file', 'gemini.google.com', 'grok.com', 'm365.cloud.microsoft', 'meta.ai', 'openrouter.ai', 'perplexity.ai', 'www.meta.ai', 'www.perplexity.ai']
+extra []
+VERSION_OK
+HOSTS_OK

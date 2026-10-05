@@ -1,0 +1,75 @@
+{
+   "action": {
+      "default_icon": {
+         "16": "icons/icon-16.png",
+         "32": "icons/icon-32.png"
+      },
+      "default_title": "AnyChat"
+   },
+   "background": {
+      "service_worker": "src/background.js",
+      "type": "module"
+   },
+   "chrome_url_overrides": {
+      "newtab": "src/newtab.html"
+   },
+   "commands": {
+      "_execute_action": {
+         "description": "Open AnyChat and start typing",
+         "suggested_key": {
+            "default": "Ctrl+E",
+            "mac": "Command+E"
+         }
+      },
+      "toggle-sidebar": {
+         "description": "Open the AnyChat sidebar",
+         "suggested_key": {
+            "default": "Ctrl+Shift+S",
+            "mac": "Command+Shift+S"
+         }
+      }
+   },
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "src/content/injector.js" ],
+      "matches": [ "https://chatgpt.com/*", "https://claude.ai/*", "https://chat.deepseek.com/*", "https://gemini.google.com/*", "https://grok.com/*", "https://www.perplexity.ai/*", "https://perplexity.ai/*", "https://copilot.microsoft.com/*", "https://copilot.com/*", "https://m365.cloud.microsoft/*", "https://www.meta.ai/*", "https://meta.ai/*", "https://chat.mistral.ai/*", "https://openrouter.ai/*" ],
+      "run_at": "document_idle"
+   } ],
+   "declarative_net_request": {
+      "rule_resources": [ {
+         "enabled": true,
+         "id": "frame_rules",
+         "path": "src/rules/frame_rules.json"
+      } ]
+   },
+   "description": "Type once and send to ChatGPT, Claude, Gemini, DeepSeek, Grok, and more—using the accounts already signed in to your browser.",
+   "host_permissions": [ "file:///*", "https://chatgpt.com/*", "https://claude.ai/*", "https://chat.deepseek.com/*", "https://gemini.google.com/*", "https://grok.com/*", "https://www.perplexity.ai/*", "https://perplexity.ai/*", "https://copilot.microsoft.com/*", "https://copilot.com/*", "https://m365.cloud.microsoft/*", "https://www.meta.ai/*", "https://meta.ai/*", "https://chat.mistral.ai/*", "https://openrouter.ai/*" ],
+   "icons": {
+      "128": "icons/icon-128.png",
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtFyCY7oX/vY4wF8IypqJ0MvC4a1kcx7mrELINcEUixojXVKsWq7QbGErEmXREhYHl/FenxRgVCV9y92bSG27PVOUMSo/bZixPF9tFzxuShmTBmGR+D9MPEpM6YT9QHaQs5HY7b1JuyDyp2S1Wj8cCFOJWFd0UxpBHkoA7ns8KETx1uno7tvZL+kELyhugZZHtgmMbDrhKCV1jgh3q9L9c+h9Q2tJxn3pGDee7L8pto2tNRqtvmv8il5HakqK3w+z8GnZr4bv3eDuzgtKxB8GhIgmY+fIuRa7Op7RUbpd08SMAzzl7Iia7oyWme0mLbDNGcCeuAyLiw2WVatyToKPdwIDAQAB",
+   "manifest_version": 3,
+   "message_serialization": "structured_clone",
+   "minimum_chrome_version": "135",
+   "name": "AnyChat: Free AI-Powered Browsing: ChatGPT, Claude, Deepseek, Ollama",
+   "optional_host_permissions": [ "https://*/*", "http://*/*" ],
+   "optional_permissions": [ "tabs", "history", "topSites" ],
+   "options_page": "src/options.html",
+   "permissions": [ "storage", "sidePanel", "declarativeNetRequestWithHostAccess", "activeTab", "scripting", "favicon", "search" ],
+   "short_name": "AnyChat",
+   "side_panel": {
+      "default_path": "src/sidepanel.html"
+   },
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.0.9",
+   "web_accessible_resources": [ {
+      "matches": [ "https://chatgpt.com/*", "https://claude.ai/*", "https://chat.deepseek.com/*", "https://gemini.google.com/*", "https://grok.com/*", "https://www.perplexity.ai/*", "https://perplexity.ai/*", "https://copilot.microsoft.com/*", "https://copilot.com/*", "https://m365.cloud.microsoft/*", "https://www.meta.ai/*", "https://meta.ai/*", "https://chat.mistral.ai/*", "https://openrouter.ai/*" ],
+      "resources": [ "src/content/run.js", "src/content/banner.js" ]
+   }, {
+      "matches": [ "file:///*", "http://*/*", "https://*/*" ],
+      "resources": [ "src/overlay/*.js", "src/overlay/*.css", "src/popup.css", "src/lib/*.js", "src/lib/*.css", "icons/wordmark.png", "icons/logo.png", "icons/icon.svg", "src/overlay/*.html", "src/dist/*.js" ]
+   } ]
+}

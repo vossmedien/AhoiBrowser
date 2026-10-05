@@ -1,0 +1,10 @@
+{
+ "storeShowsApprovedVersion": true,
+ "promptScopeMatchesApproval": true,
+ "installedApprovedVersion": true,
+ "hostsWithinApproval": true,
+ "permissionsWithinApproval": true,
+ "extensionRunning": false,
+ "setupFailed": "command bar did not open for chrome://newtab",
+ "pass": false
+}

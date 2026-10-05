@@ -1,0 +1,8 @@
+{
+ "adVisibleWithoutUbo": true,
+ "installerOfferedInCommandBar": true,
+ "chromiumPromptShown": true,
+ "uboInstalledAndRunning": true,
+ "setupFailed": "command bar did not open for http://ubotest.localhost:8817/ad.html?normal",
+ "pass": false
+}

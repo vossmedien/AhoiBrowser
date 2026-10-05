@@ -1,0 +1,11 @@
+tools/desktop_e2e/anychat-journey.sh: line 154: 88439 Abort trap: 6           "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check --remote-debugging-port=$PORT about:blank >> "$OUT/browser.log" 2>&1
+{
+ "storeShowsApprovedVersion": true,
+ "promptScopeMatchesApproval": true,
+ "installedApprovedVersion": true,
+ "hostsWithinApproval": true,
+ "permissionsWithinApproval": true,
+ "extensionRunning": false,
+ "setupFailed": "command bar did not open for chrome://newtab",
+ "pass": false
+}

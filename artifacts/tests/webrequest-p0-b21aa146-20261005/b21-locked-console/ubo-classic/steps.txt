@@ -1,0 +1,32 @@
+frontmost -> 0
+activate via Apple Event -> still behind
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> 0
+activate via Apple Event -> still behind
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 12 cmd

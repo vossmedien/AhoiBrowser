@@ -1,0 +1,224 @@
+objc[75432]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x140d6ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x125c98a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75432]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11e388188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x115842780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[75432:10697739:1005/113125.906966:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:98] error removing quarantine attribute "/var/folders/mf/lzv22y597fgf2m8ns8fz14x80000gn/X/"
+[75432:10697739:1005/113125.917697:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:98] error removing quarantine attribute "/var/folders/mf/lzv22y597fgf2m8ns8fz14x80000gn/X/"
+[75432:10697740:1005/113125.964350:ERROR:components/os_crypt/common/keychain_password_mac.mm:86] Keychain add failed: Error Domain=NSOSStatusErrorDomain Code=-25308 "errKCInteractionNotAllowed / errSecInteractionNotAllowed: / Interaction is not allowed with the Security Server." (-25308)
+
+DevTools listening on ws://127.0.0.1:9397/devtools/browser/a96034e8-582a-4654-b663-3bf678d58c48
+[75432:10697644:1005/113126.489371:ERROR:ahoi/browser/updater/sparkle_runtime_mac.mm:148] Ahoi updater disabled (fail closed): missing-feed-url
+[75432:10697740:1005/113126.535674:ERROR:components/password_manager/core/browser/password_store/login_database_async_helper.cc:99] Encryption is not available.
+[75432:10697742:1005/113126.535680:ERROR:components/password_manager/core/browser/password_store/login_database_async_helper.cc:99] Encryption is not available.
+objc[75446]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142388a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1270aca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75446]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11f79c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x116c56780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75447]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x1452e0a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x12a20ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75447]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1226e8188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11955e780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75450]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142db4a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127ad8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75451]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x141fc0a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x126ce4a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75451]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11f3d4188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11688e780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75450]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x12080c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x117682780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75452]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142770a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127494a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75452]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11fb84188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11703e780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75454]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144f50a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x129c74a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75455]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144a94a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1297b8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75454]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x122364188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11981e780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75455]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x121ea8188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x119362780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75481]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144e9ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x129bc0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75481]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1222b0188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11976a780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75499]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144a70a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x129794a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75499]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1224c8188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11933e780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75643]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x1446b4a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1293d8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75643]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x121ac8188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x118f82780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[75446:10698013:1005/113147.919267:ERROR:components/viz/service/surfaces/surface_manager.cc:479] Old/orphaned temporary reference to SurfaceId(FrameSinkId[DelegatedFrameHost](6, 3), LocalSurfaceId(2, 2, 610C...))
+objc[75780]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144c6ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x129b98a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75780]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x122074188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x118eea780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75781]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x140108a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x124e2ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75781]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11d51c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1149d6780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75804]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x1440d4a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x128df8a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75804]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x121b2c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1189a2780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[75446:10698013:1005/113157.920654:ERROR:components/viz/service/surfaces/surface_manager.cc:479] Old/orphaned temporary reference to SurfaceId(FrameSinkId[DelegatedFrameHost](6, 6), LocalSurfaceId(2, 2, A17A...))
+objc[75828]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x145234a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x12a160a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75827]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142958a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x12767ca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75828]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x12263c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1194b2780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75827]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x11fd6c188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x117226780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75852]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x144b8ca50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x1298b0a50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75851]: Class ANGLESwapCGLLayer is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libblink_modules.dylib (0x142dd8a50) and /Applications/AhoiBrowser.app/Contents/Frameworks/libgl_init.dylib (0x127afca50). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75851]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x1201ec188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x1176a6780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[75852]: Class CrashpadHTTPBodyStreamTransport is implemented in both /Applications/AhoiBrowser.app/Contents/Frameworks/libbrowser_ui_views.dylib (0x121fa0188) and /Applications/AhoiBrowser.app/Contents/Frameworks/libchrome_dll.dylib (0x11945a780). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[75432:10697644:1005/113200.824827:FATAL:extensions/browser/api/web_request/web_request_info.cc:272] DCHECK failed: is_navigation_request == this->navigation_id.has_value() (0 vs. 1). 
+0   libbase.dylib                       0x0000000101beb7a8 base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   libbase.dylib                       0x0000000101bcd520 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   libbase.dylib                       0x0000000101a807ec logging::LogMessage::Flush() + 172
+3   libbase.dylib                       0x0000000101a80690 logging::LogMessage::~LogMessage() + 36
+4   libbase.dylib                       0x0000000101a5f570 logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+5   libbase.dylib                       0x0000000101a5ebbc logging::CheckError::~CheckError() + 44
+6   libbase.dylib                       0x0000000101a5ec1c logging::CheckError::~CheckError() + 12
+7   libchrome_dll.dylib                 0x000000010efbbbbc extensions::WebRequestInfoInitParams::WebRequestInfoInitParams(unsigned long long, content::GlobalRenderFrameHostId, std::__Cr::unique_ptr<extensions::ExtensionNavigationUIData, std::__Cr::default_delete<extensions::ExtensionNavigationUIData>>, network::ResourceRequest const&, bool, bool, bool, std::__Cr::optional<long long>) + 1980
+8   libchrome_dll.dylib                 0x000000010efbeb20 extensions::WebRequestProxyingURLLoaderFactory::InProgressRequest::UpdateRequestInfo() + 260
+9   libchrome_dll.dylib                 0x000000010efc42b4 extensions::WebRequestProxyingURLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 504
+10  libchrome_dll.dylib                 0x000000010efc4a6c network::mojom::URLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest&, mojo::PendingRemote<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 108
+11  libchrome_dll.dylib                 0x000000010ee37a78 network::mojom::URLLoaderFactoryStubDispatch::Accept(network::mojom::URLLoaderFactory*, mojo::Message*) + 548
+12  libmojo_public_cpp_bindings.dylib   0x000000010101fbbc mojo::InterfaceEndpointClient::HandleValidatedMessage(mojo::Message*) + 1472
+13  libmojo_public_cpp_bindings.dylib   0x0000000101027db4 mojo::MessageDispatcher::Accept(mojo::Message*) + 236
+14  libmojo_public_cpp_bindings.dylib   0x00000001010216ec mojo::InterfaceEndpointClient::HandleIncomingMessage(mojo::Message*) + 148
+15  libmojo_public_cpp_bindings.dylib   0x000000010102c600 mojo::internal::MultiplexRouter::ProcessIncomingMessage(mojo::internal::MultiplexRouter::MessageWrapper*, mojo::internal::MultiplexRouter::ClientCallBehavior, base::SequencedTaskRunner*) + 1036
+16  libmojo_public_cpp_bindings.dylib   0x000000010102bd94 mojo::internal::MultiplexRouter::Accept(mojo::Message*) + 416
+17  libmojo_public_cpp_bindings.dylib   0x0000000101027e08 mojo::MessageDispatcher::Accept(mojo::Message*) + 320
+18  libmojo_public_cpp_bindings.dylib   0x00000001010173ec mojo::Connector::DispatchMessage(mojo::ScopedHandleBase<mojo::MessageHandle>) + 540
+19  libmojo_public_cpp_bindings.dylib   0x0000000101017db0 mojo::Connector::ReadAllAvailableMessages() + 224
+20  libmojo_public_cpp_bindings.dylib   0x0000000101017b18 mojo::Connector::OnWatcherHandleReady(char const*, unsigned int) + 84
+21  libmojo_public_cpp_bindings.dylib   0x000000010101891c base::RepeatingCallback<void (unsigned int)>::Run(unsigned int) const & + 136
+22  libmojo_public_system_cpp.dylib     0x0000000101206490 base::RepeatingCallback<void (unsigned int, mojo::HandleSignalsState const&)>::Run(unsigned int, mojo::HandleSignalsState const&) const & + 148
+23  libmojo_public_system_cpp.dylib     0x0000000101206308 mojo::SimpleWatcher::OnHandleReady(int, unsigned int, mojo::HandleSignalsState const&) + 244
+24  libbase.dylib                       0x0000000101a5a5d0 base::OnceCallback<void ()>::Run() && + 108
+25  libbase.dylib                       0x0000000101b2b7b8 base::TaskAnnotator::RunTaskImpl(base::PendingTask&) + 276
+26  libbase.dylib                       0x0000000101b5f5cc base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWorkImpl(base::LazyNow*) + 1664
+27  libbase.dylib                       0x0000000101b5ed18 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWork() + 96
+28  libbase.dylib                       0x0000000101c00b80 base::MessagePumpCFRunLoopBase::RunWork() + 156
+29  libbase.dylib                       0x0000000101bf7a1c base::apple::CallWithEHFrame(void () block_pointer) + 16
+30  libbase.dylib                       0x0000000101c00350 base::MessagePumpCFRunLoopBase::RunWorkSource(void*) + 60
+31  CoreFoundation                      0x0000000184dfa944 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 28
+32  CoreFoundation                      0x0000000184dfa8d8 __CFRunLoopDoSource0 + 224
+33  CoreFoundation                      0x0000000184dfa610 __CFRunLoopDoSources0 + 232
+34  CoreFoundation                      0x0000000184df91e0 __CFRunLoopRun + 832
+35  CoreFoundation                      0x0000000184ed382c _CFRunLoopRunSpecificWithOptions + 536
+36  HIToolbox                           0x000000019222c590 RunCurrentEventLoopInMode + 320
+37  HIToolbox                           0x000000019222f91c ReceiveNextEventCommon + 492
+38  HIToolbox                           0x00000001923b2380 _BlockUntilNextEventMatchingListInMode + 48
+39  AppKit                              0x00000001896f329c _DPSBlockUntilNextEventMatchingListInMode + 292
+40  AppKit                              0x00000001893b04fc _DPSNextEvent + 580
+41  AppKit                              0x0000000189c28748 -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:untilDate:inMode:dequeue:] + 780
+42  AppKit                              0x0000000189c2826c -[NSApplication(NSEventRouting) nextEventMatchingMask:untilDate:inMode:dequeue:] + 292
+43  libcomponents_remote_cocoa_app_shim 0x000000011d30951c __64-[CrApplication nextEventMatchingMask:untilDate:inMode:dequeue:]_block_invoke + 64
+44  libbase.dylib                       0x0000000101bf7a1c base::apple::CallWithEHFrame(void () block_pointer) + 16
+45  libcomponents_remote_cocoa_app_shim 0x000000011d30944c -[CrApplication nextEventMatchingMask:untilDate:inMode:dequeue:] + 176
+46  AppKit                              0x00000001893a390c -[NSApplication run] + 396
+47  libbase.dylib                       0x0000000101c01520 base::MessagePumpNSApplication::DoRun(base::MessagePump::Delegate*) + 316
+48  libbase.dylib                       0x0000000101bffc94 base::MessagePumpCFRunLoopBase::Run(base::MessagePump::Delegate*) + 120
+49  libbase.dylib                       0x0000000101b60068 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 684
+50  libbase.dylib                       0x0000000101aee664 base::RunLoop::Run(base::Location const&) + 436
+51  libcontent.dylib                    0x000000012094c358 content::BrowserMainLoop::RunMainMessageLoop() + 232
+52  libcontent.dylib                    0x000000012094e7e8 content::BrowserMainRunnerImpl::Run() + 140
+53  libcontent.dylib                    0x000000012094985c content::BrowserMain(content::MainFunctionParams) + 132
+54  libcontent.dylib                    0x000000012196f880 content::RunBrowserProcessMain(content::MainFunctionParams, content::ContentMainDelegate*) + 136
+55  libcontent.dylib                    0x00000001219710d0 content::ContentMainRunnerImpl::RunBrowser(content::MainFunctionParams, bool) + 1420
+56  libcontent.dylib                    0x0000000121970ac0 content::ContentMainRunnerImpl::Run() + 856
+57  libcontent.dylib                    0x000000012196ef28 content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 1012
+58  libcontent.dylib                    0x000000012196f0ec content::ContentMain(content::ContentMainParams) + 112
+59  libchrome_dll.dylib                 0x000000010ed4b084 ChromeMain + 388
+60  AhoiBrowser                         0x0000000100e606dc main + 292
+61  dyld                                0x0000000184963e80 start + 6688
+Task trace:
+0   libmojo_public_system_cpp.dylib     0x0000000101206614 mojo::SimpleWatcher::Context::Notify(unsigned int, MojoHandleSignalsState, unsigned int) + 316
+Crash keys:
+  "indexeddb_num_connections" = "0"
+  "extension-1" = "fkgkibajhfbepljeaefdnfnegdcjomkh"
+  "ax_mode" = "kNativeAPIs | kWebContents"
+  "component-extension-1" = "Chromium PDF Viewer"
+  "num-component-extensions" = "1"
+  "num-extensions" = "1"
+  "keep_alive_registry" = "{registered_count_=2, restart_allowed_count_=0, KeepAlives=[BROWSER (1), APP_CONTROLLER (1)]}"
+  "chrome-trace-id" = "7509400290420501583"
+  "reentry_guard_tls_slot" = "393"
+  "switch-5" = "about:blank"
+  "switch-4" = "--remote-debugging-port=9397"
+  "switch-3" = "--no-default-browser-check"
+  "switch-2" = "--no-first-run"
+  "switch-1" = "--user-data-dir=/private/tmp/ahoi-ubo-profile.8mIXGC"
+  "num-switches" = "9"
+  "commandline-disabled-feature-21" = "AIWriterAPI"
+  "commandline-disabled-feature-20" = "AISummarizationAPI"
+  "commandline-disabled-feature-19" = "AIRewriterAPI"
+  "commandline-disabled-feature-18" = "AIProofreadingAPI"
+  "commandline-disabled-feature-17" = "AIPromptAPI"
+  "commandline-disabled-feature-16" = "HistoryEmbeddingsAnswers"
+  "commandline-disabled-feature-15" = "HistoryEmbeddings"
+  "commandline-disabled-feature-14" = "BuiltInAIEagerInit"
+  "commandline-disabled-feature-13" = "ModelQualityLogging"
+  "commandline-disabled-feature-12" = "OptimizationGuideManifestBroker"
+  "commandline-disabled-feature-11" = "OptimizationGuideOnDeviceModel"
+  "commandline-disabled-feature-10" = "OptimizationGuideModelExecution"
+  "commandline-disabled-feature-9" = "OptimizationHintsFetchingSRP"
+  "commandline-disabled-feature-8" = "OptimizationHints"
+  "commandline-disabled-feature-7" = "ContextualTasksContext"
+  "commandline-disabled-feature-6" = "ContextualTasksSidePanel"
+  "commandline-disabled-feature-5" = "ContextualTasks"
+  "commandline-disabled-feature-4" = "AimServerRequestOnIdentityChangeEnabled"
+  "commandline-disabled-feature-3" = "AimServerRequestOnStartupEnabled"
+  "commandline-disabled-feature-2" = "AimServerEligibilityEnabled"
+  "commandline-disabled-feature-1" = "AimEnabled"
+  "commandline-enabled-feature-2" = "UseSCContentSharingPicker"
+  "commandline-enabled-feature-1" = "SplitViewHorizontal"
+  "osarch" = "arm64"
+  "pid" = "75432"
+  "ptype" = "browser"
+
+Received signal 6
+0   libbase.dylib                       0x0000000101beb7a8 base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   libbase.dylib                       0x0000000101bcd520 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   libbase.dylib                       0x0000000101beb694 base::debug::(anonymous namespace)::StackDumpSignalHandler(int, __siginfo*, void*) + 924
+3   libsystem_platform.dylib            0x0000000184d44144 _sigtramp + 56
+4   libsystem_pthread.dylib             0x0000000184d3997c pthread_kill + 296
+5   libsystem_c.dylib                   0x0000000184c3c458 abort + 148
+6   libbase.dylib                       0x0000000101a8137c logging::LogMessage::HandleFatal(unsigned long, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>> const&) const + 456
+7   libbase.dylib                       0x0000000101a80dec logging::LogMessage::Flush() + 1708
+8   libbase.dylib                       0x0000000101a80690 logging::LogMessage::~LogMessage() + 36
+9   libbase.dylib                       0x0000000101a5f570 logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage() + 76
+10  libbase.dylib                       0x0000000101a5ebbc logging::CheckError::~CheckError() + 44
+11  libbase.dylib                       0x0000000101a5ec1c logging::CheckError::~CheckError() + 12
+12  libchrome_dll.dylib                 0x000000010efbbbbc extensions::WebRequestInfoInitParams::WebRequestInfoInitParams(unsigned long long, content::GlobalRenderFrameHostId, std::__Cr::unique_ptr<extensions::ExtensionNavigationUIData, std::__Cr::default_delete<extensions::ExtensionNavigationUIData>>, network::ResourceRequest const&, bool, bool, bool, std::__Cr::optional<long long>) + 1980
+13  libchrome_dll.dylib                 0x000000010efbeb20 extensions::WebRequestProxyingURLLoaderFactory::InProgressRequest::UpdateRequestInfo() + 260
+14  libchrome_dll.dylib                 0x000000010efc42b4 extensions::WebRequestProxyingURLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest const&, mojo::PendingRemote<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 504
+15  libchrome_dll.dylib                 0x000000010efc4a6c network::mojom::URLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned int, network::ResourceRequest&, mojo::PendingRemote<network::mojom::URLLoaderClient>, net::MutableNetworkTrafficAnnotationTag const&) + 108
+16  libchrome_dll.dylib                 0x000000010ee37a78 network::mojom::URLLoaderFactoryStubDispatch::Accept(network::mojom::URLLoaderFactory*, mojo::Message*) + 548
+17  libmojo_public_cpp_bindings.dylib   0x000000010101fbbc mojo::InterfaceEndpointClient::HandleValidatedMessage(mojo::Message*) + 1472
+18  libmojo_public_cpp_bindings.dylib   0x0000000101027db4 mojo::MessageDispatcher::Accept(mojo::Message*) + 236
+19  libmojo_public_cpp_bindings.dylib   0x00000001010216ec mojo::InterfaceEndpointClient::HandleIncomingMessage(mojo::Message*) + 148
+20  libmojo_public_cpp_bindings.dylib   0x000000010102c600 mojo::internal::MultiplexRouter::ProcessIncomingMessage(mojo::internal::MultiplexRouter::MessageWrapper*, mojo::internal::MultiplexRouter::ClientCallBehavior, base::SequencedTaskRunner*) + 1036
+21  libmojo_public_cpp_bindings.dylib   0x000000010102bd94 mojo::internal::MultiplexRouter::Accept(mojo::Message*) + 416
+22  libmojo_public_cpp_bindings.dylib   0x0000000101027e08 mojo::MessageDispatcher::Accept(mojo::Message*) + 320
+23  libmojo_public_cpp_bindings.dylib   0x00000001010173ec mojo::Connector::DispatchMessage(mojo::ScopedHandleBase<mojo::MessageHandle>) + 540
+24  libmojo_public_cpp_bindings.dylib   0x0000000101017db0 mojo::Connector::ReadAllAvailableMessages() + 224
+25  libmojo_public_cpp_bindings.dylib   0x0000000101017b18 mojo::Connector::OnWatcherHandleReady(char const*, unsigned int) + 84
+26  libmojo_public_cpp_bindings.dylib   0x000000010101891c base::RepeatingCallback<void (unsigned int)>::Run(unsigned int) const & + 136
+27  libmojo_public_system_cpp.dylib     0x0000000101206490 base::RepeatingCallback<void (unsigned int, mojo::HandleSignalsState const&)>::Run(unsigned int, mojo::HandleSignalsState const&) const & + 148
+28  libmojo_public_system_cpp.dylib     0x0000000101206308 mojo::SimpleWatcher::OnHandleReady(int, unsigned int, mojo::HandleSignalsState const&) + 244
+29  libbase.dylib                       0x0000000101a5a5d0 base::OnceCallback<void ()>::Run() && + 108
+30  libbase.dylib                       0x0000000101b2b7b8 base::TaskAnnotator::RunTaskImpl(base::PendingTask&) + 276
+31  libbase.dylib                       0x0000000101b5f5cc base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWorkImpl(base::LazyNow*) + 1664
+32  libbase.dylib                       0x0000000101b5ed18 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWork() + 96
+33  libbase.dylib                       0x0000000101c00b80 base::MessagePumpCFRunLoopBase::RunWork() + 156
+34  libbase.dylib                       0x0000000101bf7a1c base::apple::CallWithEHFrame(void () block_pointer) + 16
+35  libbase.dylib                       0x0000000101c00350 base::MessagePumpCFRunLoopBase::RunWorkSource(void*) + 60
+36  CoreFoundation                      0x0000000184dfa944 __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__ + 28
+37  CoreFoundation                      0x0000000184dfa8d8 __CFRunLoopDoSource0 + 224
+38  CoreFoundation                      0x0000000184dfa610 __CFRunLoopDoSources0 + 232
+39  CoreFoundation                      0x0000000184df91e0 __CFRunLoopRun + 832
+40  CoreFoundation                      0x0000000184ed382c _CFRunLoopRunSpecificWithOptions + 536
+41  HIToolbox                           0x000000019222c590 RunCurrentEventLoopInMode + 320
+42  HIToolbox                           0x000000019222f91c ReceiveNextEventCommon + 492
+43  HIToolbox                           0x00000001923b2380 _BlockUntilNextEventMatchingListInMode + 48
+44  AppKit                              0x00000001896f329c _DPSBlockUntilNextEventMatchingListInMode + 292
+45  AppKit                              0x00000001893b04fc _DPSNextEvent + 580
+46  AppKit                              0x0000000189c28748 -[NSApplication(NSEventRouting) _nextEventMatchingEventMask:untilDate:inMode:dequeue:] + 780
+47  AppKit                              0x0000000189c2826c -[NSApplication(NSEventRouting) nextEventMatchingMask:untilDate:inMode:dequeue:] + 292
+48  libcomponents_remote_cocoa_app_shim 0x000000011d30951c __64-[CrApplication nextEventMatchingMask:untilDate:inMode:dequeue:]_block_invoke + 64
+49  libbase.dylib                       0x0000000101bf7a1c base::apple::CallWithEHFrame(void () block_pointer) + 16
+50  libcomponents_remote_cocoa_app_shim 0x000000011d30944c -[CrApplication nextEventMatchingMask:untilDate:inMode:dequeue:] + 176
+51  AppKit                              0x00000001893a390c -[NSApplication run] + 396
+52  libbase.dylib                       0x0000000101c01520 base::MessagePumpNSApplication::DoRun(base::MessagePump::Delegate*) + 316
+53  libbase.dylib                       0x0000000101bffc94 base::MessagePumpCFRunLoopBase::Run(base::MessagePump::Delegate*) + 120
+54  libbase.dylib                       0x0000000101b60068 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 684
+55  libbase.dylib                       0x0000000101aee664 base::RunLoop::Run(base::Location const&) + 436
+56  libcontent.dylib                    0x000000012094c358 content::BrowserMainLoop::RunMainMessageLoop() + 232
+57  libcontent.dylib                    0x000000012094e7e8 content::BrowserMainRunnerImpl::Run() + 140
+58  libcontent.dylib                    0x000000012094985c content::BrowserMain(content::MainFunctionParams) + 132
+59  libcontent.dylib                    0x000000012196f880 content::RunBrowserProcessMain(content::MainFunctionParams, content::ContentMainDelegate*) + 136
+60  libcontent.dylib                    0x00000001219710d0 content::ContentMainRunnerImpl::RunBrowser(content::MainFunctionParams, bool) + 1420
+61  libcontent.dylib                    0x0000000121970ac0 content::ContentMainRunnerImpl::Run() + 856
+62  libcontent.dylib                    0x000000012196ef28 content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 1012
+63  libcontent.dylib                    0x000000012196f0ec content::ContentMain(content::ContentMainParams) + 112
+64  libchrome_dll.dylib                 0x000000010ed4b084 ChromeMain + 388
+65  AhoiBrowser                         0x0000000100e606dc main + 292
+66  dyld                                0x0000000184963e80 start + 6688
+[end of stack trace]
+[1005/113200.859047:WARNING:third_party/crashpad/crashpad/util/process/process_memory_mac.cc:94] mach_vm_read(0x16ef9c000, 0x8000): (os/kern) invalid address (1)

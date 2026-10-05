@@ -1,0 +1,42 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 37
+hidkey 36
+adVisibleWithoutUbo -> true
+hidkey 17
+typed 21
+installerOfferedInCommandBar -> true
+hidkey 36
+AXPress AXButton | uBlock Origin Classic installieren | uBlock Origin Classic installieren -> 0
+AXPress AXButton | Erweiterung hinzufügen | Erweiterung hinzufügen -> 0
+chromiumPromptShown -> true
+uboInstalledAndRunning -> true
+AXPress AXButton | Schließen | Schließen -> 0
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+frontmost -> -25204
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 17 cmd
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey refused: target not frontmost
+hidkey gave up: 12 cmd

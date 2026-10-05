@@ -1,0 +1,9 @@
+tools/desktop_e2e/ubo-classic-journey.sh: line 138: 75432 Abort trap: 6           "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check --remote-debugging-port=$PORT about:blank >> "$OUT/browser.log" 2>&1
+{
+ "adVisibleWithoutUbo": true,
+ "installerOfferedInCommandBar": true,
+ "chromiumPromptShown": true,
+ "uboInstalledAndRunning": true,
+ "setupFailed": "command bar did not open for http://ubotest.localhost:8817/ad.html?normal",
+ "pass": false
+}

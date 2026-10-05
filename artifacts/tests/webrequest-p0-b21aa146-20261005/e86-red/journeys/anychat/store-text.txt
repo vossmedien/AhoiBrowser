@@ -1,0 +1,170 @@
+Zu den Hauptinhalten springen
+chrome web store
+Anmelden
+Entdecken
+Erweiterungen
+Designs
+Zu Chrome wechseln?
+
+Bei Verwendung von Erweiterungen und Designs empfiehlt Google Chrome.
+
+Nein, danke
+Ja
+Zu Chrome wechseln, um Erweiterungen und Designs zu installieren
+Chrome installieren
+AnyChat: Free AI-Powered Browsing: ChatGPT, Claude, Deepseek, Ollama
+https://tryanychat.com/
+4,7
+(
+
+13 Bewertungen
+
+)
+Teilen
+Erweiterung
+Tools
+279 Nutzer
+Hinzufügen
+Übersicht
+
+Type once and send to ChatGPT, Claude, Gemini, DeepSeek, Grok, and more—using the accounts already signed in to your browser.
+
+AnyChat gives you one focused composer for sending a prompt to the AI service you choose.
+Write once, pick a destination, and continue in that service's own interface with the
+account already signed in to your browser. It removes the repetitive work of finding the
+right tab, copying the same material, and rebuilding context before you can ask a question.
+
+Choose ChatGPT, Claude, Gemini, DeepSeek, or Grok from the provider picker. AnyChat also
+supports additional destinations; see the current compatibility list at
+https://tryanychat.com.
+
+ONE COMPOSER, WHEREVER YOU ARE
+
+Open AnyChat from the toolbar for a compact composer over the page you are viewing. Use
+the new tab composer when you want more room for prompts, templates, and recent chats.
+The new tab also preserves normal browser search: switch to Search and the query goes to
+the search engine already configured in Chrome. AnyChat neither replaces nor changes
+that setting.
+
+Choose where each conversation opens:
+
+- Over the current page in a movable, resizable panel.
+- In Chrome's side panel while the original page stays visible.
+- In a regular browser tab.
+- In a separate window for a focused workspace.
+
+BRING THE RIGHT CONTEXT
+
+A useful answer often depends on what you are already reading. AnyChat can include the
+current page, selected text, a screenshot, an uploaded attachment, or a referenced open
+tab with your prompt. These actions are deliberate: content is attached only when you use
+the relevant control, and it is sent only after you submit the message to the destination
+you selected.
+
+Optional selection actions can place quick controls beside highlighted text. Optional
+@mentions let you reference another open tab by name. Both features stay off until you
+enable them, and Chrome asks for the access they require at that time.
+
+KEEP REPEATED WORK ORGANIZED
+
+Save prompts you use often and insert them without retyping. AnyChat keeps your unfinished
+draft, provider order, opening preference, and prompt templates in Chrome. Recent-chat
+cards remember the last six conversations started through AnyChat, so you can return to
+the service's own conversation instead of searching through tabs. Settings lets you clear
+those shortcuts whenever you want.
+
+USE THE ACCOUNTS YOU ALREADY HAVE
+
+AnyChat does not sell AI access and does not require an AnyChat account, subscription, or
+API key. It enters your message into the selected service's own composer using the browser
+session you already opened. After the first message, you continue in that service's normal
+interface.
+
+Authentication, subscriptions, rate limits, safety systems, and paid features remain under
+the service's control. AnyChat does not bypass sign-in, unlock paid tiers, avoid usage
+limits, or remove safety protections. A free account stays free, and a paid account keeps
+the benefits provided by that service.
+
+PRIVATE BY DESIGN
+
+There is no AnyChat server, advertising system, or analytics service. Preferences, drafts,
+templates, and recent-chat shortcuts remain in the browser. AnyChat does not read or store
+passwords, cookies, authentication tokens, or payment information. Prompt content leaves
+your device only when you intentionally send it to the chosen service, whose own privacy
+terms then apply. If you use Ollama with Web search enabled, Ollama may send search queries
+to its online search service. Web search is on by default and can be disabled in Ollama
+settings.
+
+Features that can read page or tab context request access only when enabled or invoked.
+Learn more at https://tryanychat.com/privacy.
+
+AnyChat is an independent project and is not affiliated with or endorsed by the services
+it supports. Product names are used only to identify compatible destinations.
+
+Mehr anzeigen
+4,7 von 5
+13 Bewertungen
+
+Weitere Informationen zu Suchergebnissen und Rezensionen.
+
+Alle Rezensionen ansehen
+Details
+Version
+1.0.9
+Aktualisiert
+25. September 2026
+Bedenken melden
+Größe
+909KiB
+Sprachen
+English
+Entwickler
+Website
+E-Mail
+Kein Händler
+Dieser Entwickler hat sich nicht als Händler deklariert. Für Verbraucher in der Europäischen Union gelten die Verbraucherrechte nicht für Verträge, die zwischen dir und diesem Entwickler geschlossen werden.
+Datenschutz
+
+AnyChat: Free AI-Powered Browsing: ChatGPT, Claude, Deepseek, Ollama hat folgende Informationen hinsichtlich der Erhebung und Nutzung deiner Daten offengelegt. Weitere Details findest du im privacy policy des Entwicklers.
+
+AnyChat: Free AI-Powered Browsing: ChatGPT, Claude, Deepseek, Ollama verarbeitet Folgendes:
+Persönliche Kommunikation
+Webprotokoll
+Websitecontent
+Details ansehen
+Dieser Entwickler erklärt, dass deine Daten
+nicht an Dritte verkauft werden, außer in den genehmigten Anwendungsfällen
+nicht für Zwecke genutzt oder übertragen werden, die nichts mit der Hauptfunktionalität des Artikels zu tun haben
+nicht zur Ermittlung der Kreditwürdigkeit oder für Darlehenszwecke verwendet oder übertragen werden
+Ähnliche
+
+Manual Fullscreen
+
+0,0
+
+Adds a floating full-screen toggle button to every webpage.
+
+Highlight AI: Chat with your tabs
+
+4,8
+
+Chat with your tabs, take meeting notes, and get stuff done.
+
+Lumno｜搜索与新标签页
+
+4,8
+
+任意网页一键唤起命令浮层，快速搜索、直达网址、切换标签页，并增强新标签页体验。
+
+Tabs++
+
+4,9
+
+Premium tab management with Workspace Switching, Ghost Prevention, and Smart Grouping.
+
+Über den Chrome Web Store
+Entwickler-Dashboard
+Datenschutzerklärung
+Impressum
+Nutzungsbedingungen
+Hilfe
