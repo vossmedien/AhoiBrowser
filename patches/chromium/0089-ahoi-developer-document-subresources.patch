@@ -1,5 +1,4 @@
 diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
-index 10d27449..008a2ab0 100644
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
 @@ -15,6 +15,7 @@
@@ -10,7 +9,7 @@ index 10d27449..008a2ab0 100644
  #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
  #include "ahoi/browser/navigation/navigation_input_prefs.h"
  #include "ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.h"
-@@ -6645,6 +6646,13 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
+@@ -6645,6 +6646,13 @@
              type == URLLoaderFactoryType::kWorkerSubResource ||
              type == URLLoaderFactoryType::kServiceWorkerSubResource,
          isolation_info, request_initiator, factory_builder);
@@ -24,3 +23,26 @@ index 10d27449..008a2ab0 100644
    }
  #endif
  #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+@@ -6655,11 +6663,20 @@
+   // NOTE: Some unit test environments do not initialize
+   // BrowserContextKeyedAPI factories for e.g. WebRequest.
+   if (web_request_api) {
++    // 0094 binds document subresource factories to their navigation for the
++    // Ahoi adapters above. webRequest reads an ID as "this is a navigation"
++    // and DCHECKs on every subresource request (uBO, 5 Oct 2026), so it keeps
++    // upstream's contract: an ID only for navigation factories.
++    std::optional<int64_t> web_request_navigation_id;
++    if (type == URLLoaderFactoryType::kNavigation) {
++      web_request_navigation_id = std::move(navigation_id);
++    }
+     bool use_proxy_for_web_request =
+         web_request_api->MaybeProxyURLLoaderFactory(
+             browser_context, frame, render_process_id, type,
+-            std::move(navigation_id), ukm_source_id, factory_builder,
+-            header_client, navigation_response_task_runner, request_initiator);
++            std::move(web_request_navigation_id), ukm_source_id,
++            factory_builder, header_client, navigation_response_task_runner,
++            request_initiator);
+     if (bypass_redirect_checks) {
+       *bypass_redirect_checks = use_proxy_for_web_request;
+     }
