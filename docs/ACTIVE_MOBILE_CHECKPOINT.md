@@ -34,6 +34,10 @@ Owner change: Claude session 049a3c1d continues the paused Codex Goal
   through two independent handlers. Most likely XCUI does not deliver the
   key on the headless simulator without a hardware keyboard; Escape stays
   OPEN for a device with a real keyboard. Home journey also PASS on 5bf8a565.
+- `AhoiMobileCoreTests` on clean candidate 5bf8a565 (simulator A058D204):
+  **402 executed, 0 failures, 2 skipped** (the CKSyncEngine tests that need
+  an entitled Apple test target); covers the tests authored since the last
+  387/398 green runs. Log: `../artifacts/computer-use/mobile/address-focus-e27dd243-20261005/core-tests-5bf8a565.log`.
   [Evidence](../artifacts/computer-use/mobile/address-focus-e27dd243-20261005/README.md).
 - Fresh simulators show the keyboard's "slide to type" onboarding over the
   keyboard; `DidShowContinuousPathIntroduction` is set after one run.
