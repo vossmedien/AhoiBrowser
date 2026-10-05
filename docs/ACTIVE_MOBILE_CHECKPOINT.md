@@ -1,5 +1,37 @@
 # Active Mobile checkpoint
 
+## Home journey: launch hang was the locked console; real focus bug fixed — 5 October 2026
+
+Owner change: Claude session 049a3c1d continues the paused Codex Goal
+(same Master). Candidate cc8bef2b on own simulator A058D204 (headless,
+`simctl boot`, no Simulator.app), evidence under target
+`~/inhouse/evidence/ahoi-mobile-home-20261004-cc8bef2b/`.
+
+- **White launch (4 Oct) is not a product defect.** Plain launch and a
+  launch with the four `AHOI_MOBILE_E2E_*` variables both render Home with
+  the candidate chip `E2E cc8bef2b · DebugLocal · 7e534ebf`; main thread idle
+  in `mach_msg` (plain-launch/env-launch screenshots and samples). The hang
+  ran while the Mac console was locked; with the console unlocked the same
+  xctestrun starts the app and runs the test.
+- **xcodebuild "hang" after a failure** is `simctl diagnose` collecting
+  diagnostics with a 600 s timeout. Use `-collect-test-diagnostics never`
+  for bounded journeys.
+- **Real product defect:** typing into the address editor loses the second
+  keystroke. Two runs (fresh device, then keyboard-onboarded device):
+  "The address retry lost input after prefix ht. Actual value: h." The
+  screen recording shows the keyboard dropping and the sheet falling to its
+  medium detent right after the first character. Same message on the real
+  iPhone on 29 September (`artifacts/sync-acceptance/real-device-20260929/`).
+  Cause: `MobileHardwareEscapeContainer` hosts the editor in its own
+  UIHostingController and replaces its root view on every update, while the
+  field's `@FocusState` lived in the outer sheet across that boundary.
+  Fix `e27dd243`: `MobileAddressCommandEditor` inside the container owns the
+  focus state. Candidate build of e27dd243 on the target is running
+  (`~/inhouse/evidence/ahoi-mobile-focus-e27dd243/`); next: receipt, exact
+  xctestrun, the Home journey, then the affected address/escape UI tests.
+- Fresh simulators show the keyboard's "slide to type" onboarding over the
+  keyboard; `DidShowContinuousPathIntroduction` is set after one run.
+
 ## New source-bound Home UI candidate builds on Inhouse — 4 October 2026
 
 Existing unified owner/thread01a0e047 retained. Mac desktop remains locked;
