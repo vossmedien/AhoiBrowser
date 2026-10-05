@@ -160,10 +160,9 @@ final class MobileBrowserAccessibilityAppearanceUITests: MobileBrowserUITestCase
         return isFocused(element)
     }
 
-    /// `hasFocus` reports UIFocusSystem focus, which an iPhone text field
-    /// only gets while a hardware keyboard drives focus navigation. The
-    /// first-responder field the UI hierarchy shows as "Keyboard Focused" is
-    /// `hasKeyboardFocus`; either proves the Escape starts in the field.
+    /// `hasFocus` is UIFocusSystem focus (iPhone fields get it only under
+    /// hardware-keyboard navigation); the first responder the hierarchy shows
+    /// as "Keyboard Focused" is `hasKeyboardFocus`. Either proves the field.
     @MainActor
     private func isFocused(_ element: XCUIElement) -> Bool {
         element.hasFocus || (element.value(forKey: "hasKeyboardFocus") as? Bool ?? false)
