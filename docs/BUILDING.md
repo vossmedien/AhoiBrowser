@@ -89,6 +89,12 @@ prehydrate the exact pinned target before `gclient` changes its `HEAD`:
 ./scripts/fetch-chromium.sh --prehydrate-target
 ```
 
+The roll tools (`chromium_roll.py`, `fetch-chromium.sh` hydration and
+checkout state) need Python 3.10 or newer. MacbookPro2026.local's `python3`
+is Xcode's 3.9; put depot_tools' pinned interpreter first in `PATH`
+(`$AHOI_WORK_ROOT/depot_tools/bootstrap-2@3.11.8.chromium.35_bin/python3/bin`,
+see `python3_bin_reldir.txt`).
+
 This opt-in mode is not used for the first checkout. It obtains missing
 commit/tree metadata without writing a ref when necessary, then inventories
 the pinned target with lazy fetching disabled and downloads only missing unique
