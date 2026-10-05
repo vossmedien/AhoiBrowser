@@ -433,7 +433,7 @@ class RequirementAuditTests(unittest.TestCase):
         )
         self.assertEqual([], by_id["UBO-13"]["externalGateIds"])
         self.assertTrue(by_id["UBO-13"]["locallyControllable"])
-        for test_id in ("EXT-11", "EXT-15", "RECOVERY-MAC-15"):
+        for test_id in ("EXT-10", "RECOVERY-MAC-15"):
             self.assertIn("chrome-web-store", by_id[test_id]["externalGateIds"])
         for number in range(1, 16):
             perf = by_id[f"PERF-{number:02d}"]

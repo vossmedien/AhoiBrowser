@@ -260,8 +260,7 @@ def _gate_ids_for(entry: dict[str, Any], *, release_chain_ready: bool,
     if test_id.startswith("DRM-"):
         gate_ids.extend(("proprietary-codecs", "widevine-mla"))
     if test_id in {
-        "EXT-01", "EXT-02", "EXT-03", "EXT-09", "EXT-10", "EXT-11", "EXT-15",
-        "RECOVERY-MAC-15",
+        "EXT-01", "EXT-02", "EXT-03", "EXT-09", "EXT-10", "RECOVERY-MAC-15",
     }:
         gate_ids.append("chrome-web-store")
     specific_gate = {"PRIV-14": "safe-browsing-service",

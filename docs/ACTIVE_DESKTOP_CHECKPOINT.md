@@ -23,6 +23,23 @@ ran on installed `e86c929f` with the frozen driver under an own e2e.lock.
   (build 59 had 4/7 and 0/2); CDP-only, harness `db3fd727`.
   [Evidence](../artifacts/computer-use/m154/devtoolkit-settings-installed-e86c929f-20261005/README.md).
   Visible Devtoolkit panel journeys remain open.
+- **P0 found and fixed in source:** with any webRequest extension (uBO
+  Classic, AnyChat) installed e86 aborts on the first subresource request:
+  `DCHECK_EQ(is_navigation_request, navigation_id.has_value())` in
+  `WebRequestInfoInitParams` (crash reports 11:32/11:38). Cause: 0094 passes
+  the navigation ID of document subresource factories on to webRequest.
+  Fix `b21aa146` (patch 0089: webRequest gets the ID only for navigation
+  factories); incremental build on the target running, then sign/install and
+  the network regression set (ubo, http-auth, privacy, downloads, import,
+  sandbox) on that candidate. First e86 runs retained as the RED baseline.
+- **AnyChat removed from scope** (user decision 5 Oct): no product code
+  existed (normal Web Store path); Master, registry (EXT-11/15 dropped,
+  431 cases), requirement audit and `anychat-journey.sh` updated.
+- **Chromium:** discovery 5 Oct: fully rolled Stable is 154.0.8037.98 (since
+  2 Oct; we pin .93) → candidate promoted, roll after the P0 candidate. M155
+  155.0.8059.26 is at 0.5 % rollout, not pinnable yet; roll when fully rolled.
+- **Crest:** 21 new commits 778d140..3b0a915 triaged, no adoption candidate
+  (11 SwiftUI-shell only; Crest still on 154); reviewed head updated.
 - Canonical branch published to origin (`git push` works again through the
   gh credential helper; the old HTTPS/SSH publication gate is cleared).
 

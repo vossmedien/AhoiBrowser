@@ -24,6 +24,10 @@ loading remain useful test paths but are not substitutes for consumer delivery.
 
 ## Extension commands and AnyChat
 
+> **5 October 2026:** AnyChat is out of Ahoi's scope and acceptance for now
+> (user decision recorded in the Master contract). The general Chrome Web
+> Store compatibility below still applies; the AnyChat notes are history.
+
 AnyChat is installed only through Chromium's normal Chrome Web Store flow.
 AhoiBrowser does not download, repackage, pre-authorize, side-load, or provide
 an AnyChat-specific installer. Chromium remains responsible for the extension

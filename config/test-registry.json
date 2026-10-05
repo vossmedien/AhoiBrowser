@@ -164,7 +164,7 @@
     {
       "id": "RECOVERY-MAC-07",
       "suite": "RECOVERY-MAC",
-      "description": "Ein gemeinsamer Chrome-üblicher Import-Hub erkennt alle von Chromiums vorhandenen macOS-Importern tatsächlich unterstützten lokalen Browser und Profile, zeigt nur real verfügbare Kategorien und führt den jeweiligen Upstream-Importer aus. Chrome/Chromium-Derivate, Safari und Firefox werden nicht durch eine Ahoi-Sonderkopie ersetzt; fehlende Quellen oder Kategorien werden präzise erklärt. Arc und Zen erhalten zusätzlich einen strukturtreuen Import ihrer Sidebar: reale Erkennung ohne False Positive durch fremde oder nicht lesbare Prozesse, auswählbare Profile, redigierte Vorschau, Workspaces/Spaces, verschachtelte Ordner, gespeicherte beziehungsweise angeheftete Tabs, Reihenfolge und soweit sicher rekonstruierbar Split-Zustände. Snapshot, Bestätigung, atomarer Commit, Rollback und idempotente Wiederholung gelten für beide Strukturimporte; Quelldaten bleiben unverändert. AnyChat nutzt den normalen Web-Store-Pfad. 1Password nutzt ausschließlich den offiziellen Additional-Browsers-Pfad mit künstlichem Test-Vault und nutzerassistierter Touch-ID-Freigabe. uBlock besteht den authentischen signierten Distributionspfad oder wird mit genauer fehlender Publisher-/CRX-/Rechtsvoraussetzung als `BLOCKED_EXTERNAL` ausgewiesen; ein lokaler Negativtest darf niemals als positive Installation ausgegeben werden.",
+      "description": "Ein gemeinsamer Chrome-üblicher Import-Hub erkennt alle von Chromiums vorhandenen macOS-Importern tatsächlich unterstützten lokalen Browser und Profile, zeigt nur real verfügbare Kategorien und führt den jeweiligen Upstream-Importer aus. Chrome/Chromium-Derivate, Safari und Firefox werden nicht durch eine Ahoi-Sonderkopie ersetzt; fehlende Quellen oder Kategorien werden präzise erklärt. Arc und Zen erhalten zusätzlich einen strukturtreuen Import ihrer Sidebar: reale Erkennung ohne False Positive durch fremde oder nicht lesbare Prozesse, auswählbare Profile, redigierte Vorschau, Workspaces/Spaces, verschachtelte Ordner, gespeicherte beziehungsweise angeheftete Tabs, Reihenfolge und soweit sicher rekonstruierbar Split-Zustände. Snapshot, Bestätigung, atomarer Commit, Rollback und idempotente Wiederholung gelten für beide Strukturimporte; Quelldaten bleiben unverändert. 1Password nutzt ausschließlich den offiziellen Additional-Browsers-Pfad mit künstlichem Test-Vault und nutzerassistierter Touch-ID-Freigabe. uBlock besteht den authentischen signierten Distributionspfad oder wird mit genauer fehlender Publisher-/CRX-/Rechtsvoraussetzung als `BLOCKED_EXTERNAL` ausgewiesen; ein lokaler Negativtest darf niemals als positive Installation ausgegeben werden.",
       "primaryClass": "ASSISTED_E2E",
       "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "ASSISTED_E2E"],
       "releaseCritical": true,
@@ -236,7 +236,7 @@
     {
       "id": "RECOVERY-MAC-15",
       "suite": "RECOVERY-MAC",
-      "description": "das Erweiterungsmenü bleibt in einem absichtlich tablosen Ahoi-Fenster vollständig crashfrei. Bereits installierte Erweiterungen bleiben mit korrektem Namen, Icon und generischen Verwaltungsaktionen sichtbar; alle an eine konkrete Seite gebundenen Aktionen, Hostzugriffs-, Berechtigungs- und Reload-Steuerungen sind ohne aktives `WebContents` ausgeblendet oder deaktiviert und werden erst nach Aktivierung eines realen Tabs freigegeben. Öffnen, Schließen, erneutes Öffnen, Browserstart, Browserneustart sowie erfolgreiche, abgebrochene und fehlgeschlagene Web-Store-Installationen hinterlassen weder Null-Dereferenz noch halbfertige Extension-Einträge. Eine fehlgeschlagene AnyChat-Installation wird als fehlgeschlagen ausgewiesen und atomar zurückgerollt; erst die persistierte Store-ID `khpefodpgnkegiohbolbaaeabnfdegln` zählt als Installation. uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und der tatsächlich signierte offizielle Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) werden in Inventar, Oberfläche und Abnahme strikt unterschieden; Lite darf niemals als bestandene Classic-Installation gelten und der GitHub-Release darf niemals als Web-Store-Paket ausgegeben werden.",
+      "description": "das Erweiterungsmenü bleibt in einem absichtlich tablosen Ahoi-Fenster vollständig crashfrei. Bereits installierte Erweiterungen bleiben mit korrektem Namen, Icon und generischen Verwaltungsaktionen sichtbar; alle an eine konkrete Seite gebundenen Aktionen, Hostzugriffs-, Berechtigungs- und Reload-Steuerungen sind ohne aktives `WebContents` ausgeblendet oder deaktiviert und werden erst nach Aktivierung eines realen Tabs freigegeben. Öffnen, Schließen, erneutes Öffnen, Browserstart, Browserneustart sowie erfolgreiche, abgebrochene und fehlgeschlagene Web-Store-Installationen hinterlassen weder Null-Dereferenz noch halbfertige Extension-Einträge. Eine fehlgeschlagene Web-Store-Installation wird als fehlgeschlagen ausgewiesen und atomar zurückgerollt; erst die persistierte Store-ID zählt als Installation. uBlock Origin Lite (`ddkjiahejlhfcafbddmgiahcphecmpfh`), die historische Classic-Web-Store-ID (`cjpalhdlnbpafiamejdnhcphjbkeiagm`) und der tatsächlich signierte offizielle Classic-GitHub-Release ab 1.74.0 (`fkgkibajhfbepljeaefdnfnegdcjomkh`) werden in Inventar, Oberfläche und Abnahme strikt unterschieden; Lite darf niemals als bestandene Classic-Installation gelten und der GitHub-Release darf niemals als Web-Store-Paket ausgegeben werden.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
       "releaseCritical": true,
@@ -2448,22 +2448,9 @@
       "status": "NOT_RUN"
     },
     {
-      "id": "EXT-11",
-      "suite": "EXT",
-      "description": "AnyChat mit exakt der erwarteten Store-ID im AhoiBrowser-Profil installieren, sichtbare Berechtigungen prüfen, Action beziehungsweise Side Panel öffnen und nach Browserneustart erneut bedienen.",
-      "primaryClass": "CU_E2E",
-      "requiredEvidenceClasses": [
-        "UNIT",
-        "INTEGRATION",
-        "CU_E2E"
-      ],
-      "releaseCritical": true,
-      "status": "NOT_RUN"
-    },
-    {
       "id": "EXT-12",
       "suite": "EXT",
-      "description": "nachweisen, dass AnyChat, 1Password und uBlock ausschließlich im getesteten AhoiBrowser-Profil installiert beziehungsweise konfiguriert wurden; Google-Chrome- und Arc-Profile bleiben byte- beziehungsweise zustandsseitig unverändert.",
+      "description": "nachweisen, dass 1Password und uBlock ausschließlich im getesteten AhoiBrowser-Profil installiert beziehungsweise konfiguriert wurden; Google-Chrome- und Arc-Profile bleiben byte- beziehungsweise zustandsseitig unverändert.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": [
         "UNIT",
@@ -2490,15 +2477,6 @@
       "id": "EXT-14",
       "suite": "EXT",
       "description": "das Erweiterungsmenü in einem echten Null-Tab-Fenster mit installierten Erweiterungen mehrfach öffnen und schließen; Namen, Icons und Verwaltung bleiben sichtbar, während Action, Site Access, Site Permissions und Reload ohne aktiven Tab ausgeblendet oder deaktiviert sind. Danach einen normalen HTTP-/HTTPS-Tab aktivieren und dieselben Controls ohne Neustart korrekt aktualisiert bedienen.",
-      "primaryClass": "CU_E2E",
-      "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
-      "releaseCritical": true,
-      "status": "NOT_RUN"
-    },
-    {
-      "id": "EXT-15",
-      "suite": "EXT",
-      "description": "AnyChat-Installation jeweils vor der Bestätigung abbrechen, mit einem kontrollierten Installationsfehler scheitern lassen und erfolgreich abschließen. Abbruch und Fehler hinterlassen weder Extension-Verzeichnis noch Preference-, Cache-, Update- oder Toolbar-Rest und crashen weder sofort noch beim Neustart; nur der erfolgreiche Lauf persistiert exakt `khpefodpgnkegiohbolbaaeabnfdegln` und besteht anschließend `EXT-11`.",
       "primaryClass": "CU_E2E",
       "requiredEvidenceClasses": ["UNIT", "INTEGRATION", "CU_E2E"],
       "releaseCritical": true,
@@ -5216,7 +5194,7 @@
       {
         "id": "LEAN-08",
         "suite": "LEAN",
-        "description": "AnyChat, 1Password, Bitwarden, uBlock Origin Classic, CloudKit-Sync, Arc-Import, Split Views und Developer Toolkit im installierten Ahoi-Profil nach der finalen Entschlackungswelle real bedienen; fremde Browserprofile bleiben unverändert.",
+        "description": "1Password, Bitwarden, uBlock Origin Classic, CloudKit-Sync, Arc-Import, Split Views und Developer Toolkit im installierten Ahoi-Profil nach der finalen Entschlackungswelle real bedienen; fremde Browserprofile bleiben unverändert.",
         "primaryClass": "CU_E2E",
         "requiredEvidenceClasses": [
           "UNIT",
