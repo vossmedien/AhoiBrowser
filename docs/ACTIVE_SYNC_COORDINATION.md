@@ -17,8 +17,10 @@ keeps excluded data out of Sync without real devices:
 - Mobile: `SyncBoundaryTests` (spike) denies every sensitive data class and
   pins the allowlist to `SharedSyncFormat.supportedDataClasses`;
   `CompanionSyncBridge` denies them again on import/restore.
-- Remaining gaps (source-only, not yet closed): Mobile archive snapshot/Home
-  target URL refusal tests; a product decision whether history URLs keep
+- Mobile page/Home/archive target refusal (credentials, file/chrome/
+  javascript/data/about, missing host, NUL; Home never a new tab; decode
+  path) now pinned by `SharedTabTargetValidationTests` (3/3 on the target).
+- Remaining gaps (source-only, not yet closed): a product decision whether history URLs keep
   query tokens verbatim (history is in scope); Mobile writer-side test for
   private tabs. Real-device proof stays owner-gated.
 
