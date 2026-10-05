@@ -108,11 +108,13 @@ std::u16string BuildCssApplicationScript(const DeveloperAsset& asset) {
   }
   return base::UTF8ToUTF16(base::StrCat(
       {"(() => { const key = ", id_literal,
-       "; const id = '__ahoi_asset_style__' + key; let style = "
+       "; const id = '__ahoi_asset_style__' + key; "
+       "const parent = document.head || document.documentElement; "
+       "if (!parent) { return; } let style = "
        "document.getElementById(id); if (!style) { style = "
        "document.createElement('style'); style.id = id; "
        "style.setAttribute('data-ahoi-asset-style', key); "
-       "(document.head || document.documentElement).appendChild(style); } "
+       "parent.appendChild(style); } "
        "style.textContent = ",
        css_literal, "; })();"}));
 }
@@ -283,6 +285,7 @@ void DeveloperProfileTabHelper::DidFinishNavigation(
   }
   if (!IsEligibleNavigationContext(web_contents(), prefs_)) {
     active_assets_.clear();
+    pending_document_assets_.clear();
     if (HasBoundContext()) {
       ClearDeveloperProfileNavigationRequest(*web_contents());
       UpdateDeveloperProfileNetworkState(*web_contents(),
@@ -300,9 +303,34 @@ void DeveloperProfileTabHelper::DidFinishNavigation(
                                          navigation_handle->GetNavigationId());
   UpdateDeveloperProfileNetworkState(*web_contents(),
                                      navigation_handle->GetURL(), profile);
-  if (!assets.empty()) {
-    ApplyDeveloperAssetsToCurrentDocument(*web_contents(), assets);
+  pending_document_assets_.clear();
+  if (assets.empty()) {
+    return;
   }
+  std::vector<DeveloperAsset> styles;
+  for (const DeveloperAsset& asset : assets) {
+    if (asset.kind == DeveloperAssetKind::kStyle) {
+      styles.push_back(asset);
+    }
+  }
+  if (!styles.empty()) {
+    ApplyDeveloperAssetsToCurrentDocument(*web_contents(), styles);
+  }
+  pending_document_assets_ = assets;
+  pending_document_ = web_contents()->GetPrimaryMainFrame()->GetWeakDocumentPtr();
+}
+
+void DeveloperProfileTabHelper::DOMContentLoaded(
+    content::RenderFrameHost* render_frame_host) {
+  if (pending_document_assets_.empty() || !render_frame_host ||
+      render_frame_host != web_contents()->GetPrimaryMainFrame() ||
+      pending_document_.AsRenderFrameHostIfValid() != render_frame_host) {
+    return;
+  }
+  const std::vector<DeveloperAsset> assets =
+      std::move(pending_document_assets_);
+  pending_document_assets_.clear();
+  ApplyDeveloperAssetsToCurrentDocument(*web_contents(), assets);
 }
 
 void DeveloperProfileTabHelper::AttachToWebContents(

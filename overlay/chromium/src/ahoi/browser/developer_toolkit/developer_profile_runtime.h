@@ -16,6 +16,7 @@
 #include "base/memory/weak_ptr.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/navigation_throttle.h"
+#include "content/public/browser/weak_document_ptr.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "url/gurl.h"
 #include "url/origin.h"
@@ -100,6 +101,10 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
       content::NavigationHandle* navigation_handle) override;
   void DidFinishNavigation(
       content::NavigationHandle* navigation_handle) override;
+  // A cold first load can commit before the document has an element, so the
+  // commit only applies styles (guarded) and the full asset set, scripts
+  // included, runs once the same document's DOM is ready.
+  void DOMContentLoaded(content::RenderFrameHost* render_frame_host) override;
 
  private:
   void AttachToWebContents(content::WebContents* web_contents);
@@ -114,6 +119,8 @@ class DeveloperProfileTabHelper final : public content::WebContentsObserver {
   InMemoryDeveloperProfileStore once_store_;
   const std::string tab_token_;
   std::vector<DeveloperAsset> active_assets_;
+  std::vector<DeveloperAsset> pending_document_assets_;
+  content::WeakDocumentPtr pending_document_;
   bool toolkit_active_ = false;
   bool cache_disabled_for_tab_ = false;
   uint64_t activation_generation_ = 0;

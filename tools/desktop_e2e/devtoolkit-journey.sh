@@ -75,14 +75,18 @@ prefs = {"ahoi": {"developer_toolkit": {
 json.dump(prefs, open(path, "w"))
 PY
 
+# The saved developer rules survive a restart only when Safe Storage reaches
+# the login keychain; over SSH set AHOI_E2E_GUI_LAUNCH=1 (browser_launch.sh).
+. "$S/browser_launch.sh"
 launch() { # <label>
   local label=$1 LOG="$OUT/fixture-$1.jsonl" PID FIX
   : > "$LOG"
   python3 "$S/devtoolkit_fixture.py" --port $SP --log "$LOG" > "$OUT/fixture-$label.stderr" 2>&1 &
   FIX=$!
-  "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
-    --remote-debugging-port=$PORT about:blank > "$OUT/browser-$label.log" 2>&1 &
-  PID=$!; echo "$label: pid=$PID profile=$P" >> "$OUT/run.txt"
+  : > "$OUT/browser-$label.log"
+  ahoi_launch_browser "$OUT/browser-$label.log" --user-data-dir="$P" --no-first-run \
+    --no-default-browser-check --remote-debugging-port=$PORT about:blank
+  echo "$label: pid=$PID profile=$P" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 3
   open_tab "$A/page" 4

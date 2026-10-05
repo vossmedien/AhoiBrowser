@@ -30,7 +30,10 @@ A=http://127.0.0.1:$SP
 # a throwaway self-signed certificate for 127.0.0.1 and localhost. Only this
 # key is trusted, and only in the journey's own test profiles.
 TLS=$(mktemp -d /private/tmp/ahoi-privacy-tls.XXXXXX)
-openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 1 \
+# RSA: macOS LibreSSL 3.3 ignores -pkeyopt ec_paramgen_curve and writes an EC
+# key without a named curve, which the fixture's TLS server cannot use
+# (no shared cipher; the browser saw ERR_SSL_PROTOCOL_ERROR on 5 October 2026).
+openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
   -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
   -keyout "$TLS/key.pem" -out "$TLS/cert.pem" > "$OUT/tls.log" 2>&1 || exit 5
 SPKI=$(openssl x509 -in "$TLS/cert.pem" -pubkey -noout | openssl pkey -pubin -outform der \
