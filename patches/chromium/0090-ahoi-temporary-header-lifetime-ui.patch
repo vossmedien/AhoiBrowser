@@ -1,7 +1,7 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -21271,6 +21271,15 @@
+@@ -21424,6 +21424,15 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_AHOI_DEVELOPER_PROFILE_USER_AGENT_PLACEHOLDER" desc="Placeholder in the custom User Agent field." meaning="AhoiBrowser developer toolkit">
        Custom User Agent string
      </message>
@@ -20,7 +20,7 @@ diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11305,4 +11305,7 @@
+@@ -11352,4 +11352,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="4772486138467656777">Passwort anzeigen</translation>
  <translation id="4156509787962966072">Adressleiste einblenden</translation>
  <translation id="6205724696772443279">Ohne Cache neu laden</translation>

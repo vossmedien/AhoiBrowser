@@ -1,5 +1,5 @@
 diff --git a/components/privacy_sandbox_strings.grd b/components/privacy_sandbox_strings.grd
-index c5c4f59..a63b6f7 100644
+index ff33255..9199bfd 100644
 --- a/components/privacy_sandbox_strings.grd
 +++ b/components/privacy_sandbox_strings.grd
 @@ -305,7 +305,7 @@
@@ -21,16 +21,15 @@ index c5c4f59..a63b6f7 100644
          </else>
        </if>
 diff --git a/components/strings/privacy_sandbox_strings_de.xtb b/components/strings/privacy_sandbox_strings_de.xtb
-index 8102bc7..14a7511 100644
+index 123eb40..65d66e9 100644
 --- a/components/strings/privacy_sandbox_strings_de.xtb
 +++ b/components/strings/privacy_sandbox_strings_de.xtb
-@@ -25,6 +25,6 @@
+@@ -25,5 +25,5 @@
  <translation id="7538480403395139206">Weitere Informationen zur Option „Drittanbieter-Cookies zulassen“</translation>
  <translation id="8200078544056087897">Websitefunktionen, die auf Drittanbieter-Cookies angewiesen sind, sollten wie erwartet funktionieren</translation>
  <translation id="839994149685752920">Websites können Drittanbieter-Cookies verwenden, um Inhalte und Werbung zu personalisieren</translation>
 -<translation id="9039924186462989565">Wenn du im Inkognitomodus bist, verhindert Chromium, dass Websites Drittanbieter-Cookies verwenden</translation>
 +<translation id="8512038333608422976">Wenn du im Inkognitomodus bist, verhindert AhoiBrowser, dass Websites Drittanbieter-Cookies verwenden</translation>
- <translation id="9162335340010958530">Websites können keine Drittanbieter-Cookies verwenden, um Inhalte und Werbung zu personalisieren oder Informationen zu deinen Aktivitäten auf anderen Websites zu erhalten – es sei denn, du erlaubst ähnlichen Websites den Zugriff darauf</translation>
  </translationbundle>
 \ No newline at end of file
 diff --git a/extensions/strings/extensions_chromium_strings.grdp b/extensions/strings/extensions_chromium_strings.grdp
@@ -70,7 +69,7 @@ index 49d980c..3d40f3a 100644
    </message>
  </grit-part>
 diff --git a/extensions/strings/extensions_strings_de.xtb b/extensions/strings/extensions_strings_de.xtb
-index 869245f..be141ea 100644
+index 0cfc56d..4fa2f7f 100644
 --- a/extensions/strings/extensions_strings_de.xtb
 +++ b/extensions/strings/extensions_strings_de.xtb
 @@ -8,7 +8,7 @@
@@ -82,7 +81,7 @@ index 869245f..be141ea 100644
  
  <ph name="EXTENSION_NAME" /></translation>
  <translation id="1196338895211115272">Privater Schlüssel konnte nicht exportiert werden.</translation>
-@@ -50,7 +50,7 @@
+@@ -51,7 +51,7 @@
  <translation id="3144135466825225871">CRX-Datei konnte nicht ersetzt werden. Überprüfe, ob die Datei verwendet wird.</translation>
  <translation id="3163201441334626963">Unbekanntes Produkt <ph name="PRODUCT_ID" /> von Anbieter <ph name="VENDOR_ID" /></translation>
  <translation id="3174723475300476613">Der Zugriff auf diese Erweiterung wird von deiner Organisation blockiert.</translation>
@@ -91,7 +90,7 @@ index 869245f..be141ea 100644
  
  <ph name="EXTENSION_NAME" /></translation>
  <translation id="3242289508736283383">App mit Manifest-Attribut „kiosk_only“ muss im Chrome OS-Kioskmodus installiert werden</translation>
-@@ -66,7 +66,7 @@
+@@ -67,7 +67,7 @@
  <translation id="3927932062596804919">Ablehnen</translation>
  <translation id="3984413272403535372">Fehler bei der Signatur der Erweiterung</translation>
  <translation id="4014432863917027322">"<ph name="EXTENSION_NAME" />" reparieren?</translation>
@@ -100,7 +99,7 @@ index 869245f..be141ea 100644
  
  <ph name="EXTENSION_NAME" /></translation>
  <translation id="4094452115117798451">Der Zugriff auf diese Erweiterungskategorie wird von deiner Organisation blockiert.</translation>
-@@ -89,7 +89,7 @@
+@@ -90,7 +90,7 @@
  <translation id="5185386675596372454">Die aktuelle Version von "<ph name="EXTENSION_NAME" />" wurde deaktiviert, weil sie weitere Berechtigungen erfordert.</translation>
  <translation id="5242724311594467048">"<ph name="EXTENSION_NAME" />" aktivieren?</translation>
  <translation id="5356315618422219272">Appview: <ph name="APPVIEW_TAG_NAME" /></translation>
@@ -109,7 +108,7 @@ index 869245f..be141ea 100644
  <translation id="5456409301717116725">Die Erweiterung enthält die Schlüsseldatei „<ph name="KEY_PATH" />“. Möchtest du den Vorgang wirklich fortsetzen?</translation>
  <translation id="5485102783864353244">App hinzufügen</translation>
  <translation id="5486326529110362464">Es muss ein Eingabewert für den privaten Schlüssel vorhanden sein.</translation>
-@@ -99,7 +99,7 @@
+@@ -100,7 +100,7 @@
  <translation id="5972529113578162692">Der Administrator dieses Computers hat die Installation von <ph name="EXTENSION_NAME" /> vorgegeben. Eine Deinstallation ist daher nicht möglich.</translation>
  <translation id="6027032947578871493">Unbekanntes Produkt <ph name="PRODUCT_ID" /> von <ph name="VENDOR_NAME" /> (Seriennummer <ph name="SERIAL_NUMBER" />)</translation>
  <translation id="6068932090455285721"><ph name="PRODUCT_NAME" /> von Anbieter <ph name="VENDOR_ID" /></translation>

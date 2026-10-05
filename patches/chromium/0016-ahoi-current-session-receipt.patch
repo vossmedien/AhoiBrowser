@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/sessions/session_service.cc b/chrome/browser/sessions/session_service.cc
-index 781d2e2f7ef99797284888c446e290488cdc1620..3503ca2e0d833f56513c596e77b6aaa39e5e903c 100644
+index 2293349695e51d7d62e37329219e5dbfcae4efc2..621d5d11d259e41f1c114de9cc3947ea7cba4093 100644
 --- a/chrome/browser/sessions/session_service.cc
 +++ b/chrome/browser/sessions/session_service.cc
 @@ -12,6 +12,7 @@
@@ -10,26 +10,27 @@ index 781d2e2f7ef99797284888c446e290488cdc1620..3503ca2e0d833f56513c596e77b6aaa3
  #include "base/command_line.h"
  #include "base/debug/alias.h"
  #include "base/debug/dump_without_crashing.h"
-@@ -42,6 +43,7 @@
- #include "chrome/browser/ui/browser_tabstrip.h"
+@@ -43,6 +44,7 @@
  #include "chrome/browser/ui/browser_window.h"
  #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
+ #include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 +#include "chrome/browser/ui/browser_window/public/profile_browser_collection.h"
  #include "chrome/browser/ui/session_crashed_bubble.h"
  #include "chrome/browser/ui/startup/profile_launch_observer.h"
  #include "chrome/browser/ui/startup/startup_browser_creator.h"
-@@ -58,8 +60,10 @@
- #include "components/sessions/core/command_storage_manager.h"
+@@ -60,9 +62,11 @@
  #include "components/sessions/core/session_command.h"
  #include "components/sessions/core/session_constants.h"
+ #include "components/sessions/core/session_id.h"
 +#include "components/sessions/core/session_service_commands.h"
  #include "components/sessions/core/session_types.h"
  #include "components/sessions/core/tab_restore_service.h"
+ #include "components/tab_groups/tab_group_id.h"
 +#include "components/tabs/public/tab_interface.h"
  #include "content/public/browser/navigation_details.h"
  #include "content/public/browser/navigation_entry.h"
- #include "content/public/browser/session_storage_namespace.h"
-@@ -246,6 +250,19 @@ void SessionService::DeleteLastSession() {
+ #include "content/public/browser/session_storage_namespace_handle.h"
+@@ -262,6 +266,19 @@ void SessionService::DeleteLastSession() {
    ++count_delete_last_session_for_testing_;
  }
  
@@ -49,7 +50,7 @@ index 781d2e2f7ef99797284888c446e290488cdc1620..3503ca2e0d833f56513c596e77b6aaa3
  void SessionService::SetSplitTab(SessionID window_id,
                                   SessionID tab_id,
                                   std::optional<split_tabs::SplitTabId> split) {
-@@ -641,6 +658,17 @@ void SessionService::BuildCommandsForTab(
+@@ -659,6 +676,17 @@ void SessionService::BuildCommandsForTab(
        sessions::SessionTabHelper::FromWebContents(tab);
    SessionID session_id(session_tab_helper->session_id());
  
@@ -67,7 +68,7 @@ index 781d2e2f7ef99797284888c446e290488cdc1620..3503ca2e0d833f56513c596e77b6aaa3
    const blink::UserAgentOverride& ua_override = tab->GetUserAgentOverride();
  
    if (!ua_override.ua_string_override.empty()) {
-@@ -665,6 +693,23 @@ void SessionService::BuildCommandsForTab(
+@@ -683,6 +711,23 @@ void SessionService::BuildCommandsForTab(
    }
  }
  
@@ -91,7 +92,7 @@ index 781d2e2f7ef99797284888c446e290488cdc1620..3503ca2e0d833f56513c596e77b6aaa3
  void SessionService::ScheduleResetCommands() {
    DCHECK(is_saving_enabled());
    command_storage_manager()->set_pending_reset(true);
-@@ -674,6 +719,24 @@ void SessionService::ScheduleResetCommands() {
+@@ -692,6 +737,24 @@ void SessionService::ScheduleResetCommands() {
    last_selected_tab_in_window()->clear();
    set_rebuild_on_next_save(false);
    BuildCommandsFromBrowsers(tab_to_available_range(), windows_tracking());
@@ -116,7 +117,7 @@ index 781d2e2f7ef99797284888c446e290488cdc1620..3503ca2e0d833f56513c596e77b6aaa3
    if (!windows_tracking()->empty()) {
      // We're lazily created on startup and won't get an initial batch of
      // SetWindowType messages. Set these here to make sure our state is correct.
-@@ -683,6 +746,27 @@ void SessionService::ScheduleResetCommands() {
+@@ -701,6 +764,27 @@ void SessionService::ScheduleResetCommands() {
    command_storage_manager()->StartSaveTimer();
  }
  
@@ -189,7 +190,7 @@ index 92d191c30c8f4919631d1a1e06a1929afac29225..1494a88f97623b6f01e805bcb611ffc7
    void CommitPendingCloses();
  
 diff --git a/chrome/browser/sessions/session_service_browsertest.cc b/chrome/browser/sessions/session_service_browsertest.cc
-index 575d551fe13f8ee1ffda7e62e31b6fdee5b21eab..70c00d081cf7901095350231a7a3981cf1482292 100644
+index d1a2883fb8769688670d41c478ee4a015638b59c..e3d87f8879770239d6a4910f94eb27c07956a07c 100644
 --- a/chrome/browser/sessions/session_service_browsertest.cc
 +++ b/chrome/browser/sessions/session_service_browsertest.cc
 @@ -8,6 +8,7 @@
@@ -200,15 +201,15 @@ index 575d551fe13f8ee1ffda7e62e31b6fdee5b21eab..70c00d081cf7901095350231a7a3981c
  #include "base/threading/thread_restrictions.h"
  #include "build/build_config.h"
  #include "chrome/browser/profiles/profile.h"
-@@ -21,6 +22,7 @@
- #include "components/sessions/content/session_tab_helper.h"
+@@ -22,6 +23,7 @@
  #include "components/sessions/core/command_storage_manager.h"
  #include "components/sessions/core/session_command.h"
+ #include "components/sessions/core/session_id.h"
 +#include "components/sessions/core/session_types.h"
  #include "content/public/test/browser_test.h"
  
  #if BUILDFLAG(IS_CHROMEOS)
-@@ -153,6 +155,33 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, PinnedAfterReset) {
+@@ -154,6 +156,33 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, PinnedAfterReset) {
    EXPECT_TRUE(found_pinned_command);
  }
  
@@ -243,10 +244,10 @@ index 575d551fe13f8ee1ffda7e62e31b6fdee5b21eab..70c00d081cf7901095350231a7a3981c
    EXPECT_FALSE(FindMostRecentEventOfType(SessionServiceEventLogType::kExit));
    service()->WindowClosing(browser()->GetSessionID());
 diff --git a/components/sessions/core/command_storage_backend.cc b/components/sessions/core/command_storage_backend.cc
-index ecab96800d28216be0fc6930e32cd870492965d0..383f444a099e7b03a8b94f64e02fb9f977ed6b0e 100644
+index 5a6aac0d58b92f44e553281bfbe39ef61aeed78a..f6e33b4fb853245696f9902285bab0aededddd71 100644
 --- a/components/sessions/core/command_storage_backend.cc
 +++ b/components/sessions/core/command_storage_backend.cc
-@@ -176,6 +176,7 @@ class SessionFileReader {
+@@ -164,6 +164,7 @@ class SessionFileReader {
      // This is useful for reporting and debugging.
      std::vector<std::unique_ptr<sessions::SessionCommand>> commands;
      CommandStorageBackend::ReadStatus status = ReadStatus::kUnknown;
@@ -254,7 +255,7 @@ index ecab96800d28216be0fc6930e32cd870492965d0..383f444a099e7b03a8b94f64e02fb9f9
    };
  
    // Reads the state of commands from the specified file.
-@@ -269,7 +270,9 @@ class SessionFileReader {
+@@ -257,7 +258,9 @@ class SessionFileReader {
  SessionFileReader::ReadResult SessionFileReader::Read() {
    if (!IsHeaderValid()) {
      DCHECK_NE(read_status_, ReadStatus::kUnknown);
@@ -265,7 +266,7 @@ index ecab96800d28216be0fc6930e32cd870492965d0..383f444a099e7b03a8b94f64e02fb9f9
    }
  
    ReadResult full_result;  // All commands that were successfully read.
-@@ -277,6 +280,8 @@ SessionFileReader::ReadResult SessionFileReader::Read() {
+@@ -265,6 +268,8 @@ SessionFileReader::ReadResult SessionFileReader::Read() {
    for (; !next_result.commands.empty(); next_result = ReadCommand()) {
      if (next_result.commands.front()->id() != kInitialStateMarkerCommandId) {
        full_result.commands.push_back(std::move(next_result.commands.front()));
@@ -274,7 +275,7 @@ index ecab96800d28216be0fc6930e32cd870492965d0..383f444a099e7b03a8b94f64e02fb9f9
      }
    }
  
-@@ -615,6 +620,60 @@ CommandStorageBackend::ReadLastSessionCommands() {
+@@ -606,6 +611,60 @@ CommandStorageBackend::ReadLastSessionCommands() {
    return result;
  }
  
@@ -336,10 +337,10 @@ index ecab96800d28216be0fc6930e32cd870492965d0..383f444a099e7b03a8b94f64e02fb9f9
    InitIfNecessary();
    if (last_session_info_) {
 diff --git a/components/sessions/core/command_storage_backend.h b/components/sessions/core/command_storage_backend.h
-index db51666c9731cf69e82508f737d90f4c7246029c..7f3efd5b5d4704c431c3ce7f7e58cbeb3636a06c 100644
+index 66b3f544d8e0eca5805ee3dacb6da91ff5c451d0..e68e1ffcfa034397156b984e17834e0e3df13c3c 100644
 --- a/components/sessions/core/command_storage_backend.h
 +++ b/components/sessions/core/command_storage_backend.h
-@@ -123,6 +123,12 @@ class SESSIONS_EXPORT CommandStorageBackend
+@@ -124,6 +124,12 @@ class SESSIONS_EXPORT CommandStorageBackend
    // Returns the commands from the last session file.
    ReadCommandsResult ReadLastSessionCommands();
  
@@ -353,10 +354,10 @@ index db51666c9731cf69e82508f737d90f4c7246029c..7f3efd5b5d4704c431c3ce7f7e58cbeb
    void DeleteLastSession();
  
 diff --git a/components/sessions/core/command_storage_backend_unittest.cc b/components/sessions/core/command_storage_backend_unittest.cc
-index a89d86ae526e9438fd65e90bec7ca6e5b9114aac..04c8ec54087968ae9150d240071aa50f79287147 100644
+index 38495031414688d0ef04b1fa3ee2c1c1b842c3bf..10f12cb197297325fca333178f02cbdd09c129f9 100644
 --- a/components/sessions/core/command_storage_backend_unittest.cc
 +++ b/components/sessions/core/command_storage_backend_unittest.cc
-@@ -645,6 +645,39 @@ TEST_P(CommandStorageBackendParamTest, SimpleReadWrite) {
+@@ -665,6 +665,39 @@ TEST_P(CommandStorageBackendParamTest, SimpleReadWrite) {
        GetHistogramName("ReadLastSessionCommands", "", "Duration"), 1);
  }
  

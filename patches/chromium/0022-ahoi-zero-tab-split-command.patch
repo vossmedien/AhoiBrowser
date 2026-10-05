@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/browser_actions.cc b/chrome/browser/ui/browser_actions.cc
-index 25030f128a188fd7f85a1b94f68ee772c194e013..d8d517a1cf399c9c7dfc40247e649f2fd6b679ab 100644
+index fcb9dc23d8c8871b7bdb4de814f59daa0fcea70f..fa7bb5ce9369e60a6a62709819e3a226e29c76f4 100644
 --- a/chrome/browser/ui/browser_actions.cc
 +++ b/chrome/browser/ui/browser_actions.cc
-@@ -2473,7 +2473,9 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
+@@ -2503,7 +2503,9 @@ void BrowserActions::InitializeToolbarAndMiscActions() {
            base::BindRepeating(
                [](BrowserWindowInterface* bwi, actions::ActionItem* item,
                   actions::ActionInvocationContext context) {
@@ -14,10 +14,10 @@ index 25030f128a188fd7f85a1b94f68ee772c194e013..d8d517a1cf399c9c7dfc40247e649f2f
                        bwi, split_tabs::SplitTabLayout::kSideBySide,
                        split_tabs::SplitTabCreatedSource::kKeyboardShortcut);
 diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
-index 75026fe1e1ec8815c118f68f10e66e588988752a..c6b675740d172f6f38d434a3fc3f7475dfddeb46 100644
+index eb3d9fc02069d5a1cc062a6cba526d673187684a..fd3a6448d9131a83a0e269e4ecc580608aa99981 100644
 --- a/chrome/browser/ui/browser_command_controller.cc
 +++ b/chrome/browser/ui/browser_command_controller.cc
-@@ -850,7 +850,8 @@ void BrowserCommandController::HandleCommandWithDisposition(
+@@ -857,7 +857,8 @@ void BrowserCommandController::HandleCommandWithDisposition(
        MoveActiveTabToNewWindow(browser_);
        break;
      case IDC_NEW_SPLIT_TAB:
@@ -28,10 +28,10 @@ index 75026fe1e1ec8815c118f68f10e66e588988752a..c6b675740d172f6f38d434a3fc3f7475
                      split_tabs::SplitTabCreatedSource::kKeyboardShortcut);
        }
 diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
-index f693ddfb0ba08e913468714cc4c05fa607589712..42108a5386b46aae020089dcf43753d2152a019f 100644
+index cf9bc77683e70106736d9ed777959e56e9afb45b..2b7dd8ce522d0924eb198769bcb1033c00f15d4b 100644
 --- a/chrome/browser/ui/browser_commands.cc
 +++ b/chrome/browser/ui/browser_commands.cc
-@@ -1812,7 +1812,19 @@ void NewSplitTab(BrowserWindowInterface* browser,
+@@ -1805,7 +1805,19 @@ void NewSplitTab(BrowserWindowInterface* browser,
                   split_tabs::SplitTabLayout layout,
                   split_tabs::SplitTabCreatedSource source) {
    TabStripModel* const tab_strip_model = browser->GetTabStripModel();
@@ -49,14 +49,14 @@ index f693ddfb0ba08e913468714cc4c05fa607589712..42108a5386b46aae020089dcf43753d2
 +      return;
 +    }
 +  }
-   // In Incognito mode, we can't show the regular Split View NTP so default to
-   // the regular NTP which renders special content when in Incognito.
-   const GURL new_tab_url = !browser->GetProfile()->IsIncognitoProfile() &&
+   // In Incognito or Enterprise Isolated modes, we can't show the regular Split
+   // View NTP so default to the regular NTP which renders special content.
+   const GURL new_tab_url =
 diff --git a/chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc b/chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc
-index 2e546045386e2c633a696ea507f3edfd4f262cab..61fc4821221a00a8474dfebeb6ace4772cca223f 100644
+index 5aefb7977e6e45a2ed13d66c851ecddf2e7d4a00..5092bcae53e73cbdcd8403224fe42f6f07a8dec2 100644
 --- a/chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc
 +++ b/chrome/browser/ui/browser_tab_strip_model_delegate_browsertest.cc
-@@ -352,6 +352,29 @@ IN_PROC_BROWSER_TEST_F(BrowserTabStripModelDelegateTest,
+@@ -394,6 +394,29 @@ IN_PROC_BROWSER_TEST_F(BrowserTabStripModelDelegateTest,
    ASSERT_TRUE(browser()->GetTabStripModel()->IsTabPinned(1));
  }
  

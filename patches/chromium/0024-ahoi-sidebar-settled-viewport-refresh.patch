@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index 2724d8198f6491e5b76f431e2304e4a8992f3268..5ce9725e96674c12ffcbebe6e46f64b8f8b4bee7 100644
+index 2f046898e195e210d80a343404acc74c34ec2887..9f74c8a7858d4c2da3f8e9ac3e289ba8e45d0ee0 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 @@ -7,6 +7,7 @@
@@ -10,7 +10,7 @@ index 2724d8198f6491e5b76f431e2304e4a8992f3268..5ce9725e96674c12ffcbebe6e46f64b8
  #include "ahoi/browser/ui/sidebar/sidebar_presentation_animator.h"
  #include "ahoi/browser/ui/visual_style.h"
  #include "base/callback_list.h"
-@@ -269,6 +270,7 @@ std::unique_ptr<views::View> VerticalTabStripRegionView::SetAhoiSidebarTreeView(
+@@ -271,6 +272,7 @@ std::unique_ptr<views::View> VerticalTabStripRegionView::SetAhoiSidebarTreeView(
      std::unique_ptr<views::View> view,
      views::View* default_focus_view) {
    CHECK(!default_focus_view || (view && view->Contains(default_focus_view)));
@@ -18,7 +18,7 @@ index 2724d8198f6491e5b76f431e2304e4a8992f3268..5ce9725e96674c12ffcbebe6e46f64b8
    std::unique_ptr<views::View> previous;
    if (ahoi_sidebar_tree_view_) {
      ResetAhoiSidebarAnimationForStockChrome();
-@@ -478,6 +480,7 @@ void VerticalTabStripRegionView::SetAhoiSidebarRoundedClip(bool enabled) {
+@@ -480,6 +482,7 @@ void VerticalTabStripRegionView::SetAhoiSidebarRoundedClip(bool enabled) {
  }
  
  void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
@@ -26,7 +26,7 @@ index 2724d8198f6491e5b76f431e2304e4a8992f3268..5ce9725e96674c12ffcbebe6e46f64b8
    SetAhoiSidebarRoundedClip(false);
    ahoi_sidebar_presentation_animator_.Reset(true);
    ahoi_sidebar_presentation_initialized_ = false;
-@@ -500,6 +503,14 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
+@@ -502,6 +505,14 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
  
  void VerticalTabStripRegionView::OnSidebarPresentationAnimationUpdated() {
    ApplyAhoiSidebarAnimationState();
@@ -41,7 +41,7 @@ index 2724d8198f6491e5b76f431e2304e4a8992f3268..5ce9725e96674c12ffcbebe6e46f64b8
    // Top chrome, viewport reservation and the content-card leading gutter all
    // consume this animation fraction. Recompute BrowserView on every tick so
    // they track the card's physical trailing edge instead of jumping at unmount.
-@@ -800,6 +811,20 @@ void VerticalTabStripRegionView::Layout(PassKey) {
+@@ -802,6 +813,20 @@ void VerticalTabStripRegionView::Layout(PassKey) {
    if (drop_arrow()) {
      drop_arrow()->SetIndex(drop_arrow()->index());
    }

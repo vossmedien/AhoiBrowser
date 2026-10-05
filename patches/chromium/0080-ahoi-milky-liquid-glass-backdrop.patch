@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/frame/DEPS b/chrome/browser/ui/views/frame/DEPS
-index c4c6eb3..0fc2bc2 100644
+index 2c9411058d8bf4f9e3731a06213b012c33358d1c..420f6d5e0ddcb2d2028ad2dc627dafc1fff69519 100644
 --- a/chrome/browser/ui/views/frame/DEPS
 +++ b/chrome/browser/ui/views/frame/DEPS
 @@ -37,6 +37,9 @@ specific_include_rules = {
@@ -13,7 +13,7 @@ index c4c6eb3..0fc2bc2 100644
      "+ahoi/browser/ui/visual_style.h",
    ],
 diff --git a/chrome/browser/ui/views/frame/browser_frame_view_mac.h b/chrome/browser/ui/views/frame/browser_frame_view_mac.h
-index 4e55674..d1b29e9 100644
+index 4e55674d357ad4023f79445b44c770b3f9d309d5..d1b29e94e0478c75115673ce8a09662a7b2b1011 100644
 --- a/chrome/browser/ui/views/frame/browser_frame_view_mac.h
 +++ b/chrome/browser/ui/views/frame/browser_frame_view_mac.h
 @@ -18,6 +18,10 @@
@@ -52,7 +52,7 @@ index 4e55674..d1b29e9 100644
  
  #endif  // CHROME_BROWSER_UI_VIEWS_FRAME_BROWSER_FRAME_VIEW_MAC_H_
 diff --git a/chrome/browser/ui/views/frame/browser_frame_view_mac.mm b/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
-index 39c36aa..5b3e6ec 100644
+index 8354a9179ef79627b05447f3810808ccd6a0e78a..853070ccebb8c50fab0f0ed313edcb6066682acd 100644
 --- a/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
 +++ b/chrome/browser/ui/views/frame/browser_frame_view_mac.mm
 @@ -7,9 +7,14 @@
@@ -85,7 +85,7 @@ index 39c36aa..5b3e6ec 100644
    }
  
    if (web_app::AppBrowserController::IsWebApp(browser_view->browser())) {
-@@ -500,15 +513,26 @@ void BrowserFrameViewMac::OnPaint(gfx::Canvas* canvas) {
+@@ -499,15 +512,26 @@ void BrowserFrameViewMac::OnPaint(gfx::Canvas* canvas) {
      return;
    }
  
@@ -117,7 +117,7 @@ index 39c36aa..5b3e6ec 100644
  
    auto* theme_service = ThemeServiceFactory::GetForProfile(
        GetBrowserView()->browser()->GetProfile());
-@@ -584,7 +608,7 @@ void BrowserFrameViewMac::UpdateCaptionButtonPlaceholderContainerBackground() {
+@@ -583,7 +607,7 @@ void BrowserFrameViewMac::UpdateCaptionButtonPlaceholderContainerBackground() {
    if (caption_button_placeholder_container_) {
      caption_button_placeholder_container_->SetBackground(
          views::CreateSolidBackground(
@@ -126,7 +126,7 @@ index 39c36aa..5b3e6ec 100644
                  ? SK_ColorTRANSPARENT
                  : GetFrameColor(BrowserFrameActiveState::kUseCurrent)));
    }
-@@ -608,6 +632,19 @@ void BrowserFrameViewMac::OnGlassFrameEligibilityChanged(bool is_eligible) {
+@@ -607,6 +631,19 @@ void BrowserFrameViewMac::OnGlassFrameEligibilityChanged(bool is_eligible) {
      return;
    }
    is_glass_frame_eligible_ = is_eligible;
@@ -148,7 +148,7 @@ index 39c36aa..5b3e6ec 100644
    SchedulePaint();
  }
 diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.h b/chrome/browser/ui/views/frame/browser_native_widget_mac.h
-index 882c971..8559a57 100644
+index 882c971e989b822b704bf05eb72ed6e81d9845f2..8559a576734300274c2fa8d341d2762968d77174 100644
 --- a/chrome/browser/ui/views/frame/browser_native_widget_mac.h
 +++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.h
 @@ -21,6 +21,7 @@
@@ -170,7 +170,7 @@ index 882c971..8559a57 100644
    std::optional<int> GetGlassFrameWidth() const;
    void OnVerticalTabStripModeChanged(
 diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
-index 5164da5..edee9a1 100644
+index 52de7964a74593ca4d53e5abffa962f4eecfe5c0..5f6cb305c481a30bc8ba4f7ad28417f7e169f311 100644
 --- a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
 +++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
 @@ -5,10 +5,10 @@
@@ -185,7 +185,7 @@ index 5164da5..edee9a1 100644
  #include "ahoi/browser/ui/appearance/native_glass_bridge.h"
  #import "base/apple/foundation_util.h"
  #include "base/functional/bind.h"
-@@ -66,6 +66,7 @@
+@@ -67,6 +67,7 @@
  #include "components/remote_cocoa/common/native_widget_ns_window.mojom.h"
  #include "components/remote_cocoa/common/native_widget_ns_window_host.mojom.h"
  #include "components/web_modal/web_contents_modal_dialog_host.h"
@@ -193,7 +193,7 @@ index 5164da5..edee9a1 100644
  #include "ui/accessibility/platform/ax_platform_node.h"
  #include "ui/actions/actions.h"
  #include "ui/base/accelerators/global_accelerator_listener/global_accelerator_listener.h"
-@@ -110,18 +111,6 @@ bool ShouldHandleKeyboardEvent(const input::NativeWebKeyboardEvent& event) {
+@@ -112,18 +113,6 @@ bool ShouldHandleKeyboardEvent(const input::NativeWebKeyboardEvent& event) {
    return event.os_event && event.os_event.Get().type == NSEventTypeKeyDown;
  }
  
@@ -212,7 +212,7 @@ index 5164da5..edee9a1 100644
  bool IsCommandTriggeredFromMacMenu(NSInteger parent_menu_tag, int command_id) {
    NSEvent* current_event = [NSApp currentEvent];
    const bool is_mouse_click =
-@@ -1064,17 +1053,15 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
+@@ -1066,17 +1055,15 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
    if (@available(macOS 26.0, *)) {
      [ns_window setOpaque:NO];
  
@@ -239,7 +239,7 @@ index 5164da5..edee9a1 100644
  
      if (!glass_background_view_) {
        NSView* const content_view = [ns_window contentView];
-@@ -1085,15 +1072,19 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
+@@ -1087,15 +1074,19 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
        glass_view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
        glass_view.style = NSGlassEffectViewStyleRegular;
        glass_view.cornerRadius = material.corner_radius;
@@ -262,7 +262,7 @@ index 5164da5..edee9a1 100644
  
        glass_background_view_ = glass_view;
        [content_view addSubview:glass_background_view_
-@@ -1226,15 +1217,6 @@ void BrowserNativeWidgetMac::UpdateBackgroundColor() {
+@@ -1228,15 +1219,6 @@ void BrowserNativeWidgetMac::UpdateBackgroundColor() {
    const bool is_active = GetWidget()->ShouldPaintAsActive();
    const SkColor theme_color = browser_view_->GetColorProvider()->GetColor(
        is_active ? ui::kColorFrameActive : ui::kColorFrameInactive);
@@ -278,7 +278,7 @@ index 5164da5..edee9a1 100644
    bool is_vertical_tabs = browser_view_->ShouldDrawVerticalTabStrip();
  
    // Avoid updating the background view if the theme colors and the tab strip
-@@ -1247,19 +1229,51 @@ void BrowserNativeWidgetMac::UpdateBackgroundColor() {
+@@ -1249,19 +1231,51 @@ void BrowserNativeWidgetMac::UpdateBackgroundColor() {
    last_theme_color_ = theme_color;
    last_is_vertical_tabs_ = is_vertical_tabs;
  

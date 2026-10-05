@@ -21,19 +21,20 @@ FOUNDATION_SERIES = (
     DETERMINISTIC_PATCH,
     LEAN_GUARDS_PATCH,
 )
-M154_PIN = {
-    "version": "154.0.8037.98",
-    "milestone": 154,
-    "tag": "refs/tags/154.0.8037.98",
-    "commit": "b859317bf11f6be47f9b7799ec690a0a42a1fb33",
-    "branchHead": 8037,
-    "branchHeadPosition": 1674,
-    "branchPoint": "e10b20e60f162e7ad88e4930833695a54f4e15fb",
-    "branchPosition": 1689415,
+M155_PIN = {
+    "version": "155.0.8059.26",
+    "milestone": 155,
+    "tag": "refs/tags/155.0.8059.26",
+    "commit": "16c3e55476d3564bea713314b2fff638749ce3e6",
+    "branchHead": 8059,
+    "branchHeadPosition": 842,
+    "branchPoint": "199ac2cd7ab289e11c2236bd2cede848781213da",
+    "branchPosition": 1697595,
     "channel": "Stable",
     "platform": "Mac",
-    "rolloutFraction": 1.0,
-    "pinnable": True,
+    "rolloutFraction": 0.005,
+    "rolloutPolicy": "staged-stable",
+    "pinnable": False,
     "source": "https://chromium.googlesource.com/chromium/src.git",
 }
 
@@ -97,14 +98,14 @@ class ProductPatchStackTests(unittest.TestCase):
         ):
             self.assertNotIn(marker, payload)
 
-    def test_production_pin_is_the_exact_fully_rolled_m154_mac_stable(self):
+    def test_production_pin_is_the_exact_staged_m155_mac_stable(self):
         pin = json.loads((ROOT / "config/chromium.json").read_text(encoding="utf-8"))
-        self.assertEqual(M154_PIN, {key: pin.get(key) for key in M154_PIN})
+        self.assertEqual(M155_PIN, {key: pin.get(key) for key in M155_PIN})
 
         ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("Chromium M154 patch ledger", ledger)
-        self.assertIn(f"Chromium Mac Stable `{M154_PIN['version']}` at", ledger)
-        self.assertIn(f"`{M154_PIN['commit']}`", ledger)
+        self.assertIn("Chromium M155 patch ledger", ledger)
+        self.assertIn(f"Chromium Mac Stable `{M155_PIN['version']}` at", ledger)
+        self.assertIn(f"`{M155_PIN['commit']}`", ledger)
 
     def test_series_leads_with_the_foundation_layers(self):
         entries = series_entries()

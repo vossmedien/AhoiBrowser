@@ -118,10 +118,10 @@ index 108dfb62c1720b697ed49c291cae49be049dec60..53a8922ede3dc72f0884be164dad6222
    MultiContentsResizeHandle* resize_handle_for_testing() const {
      return resize_handle_;
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
-index 713401fa7dd891aab975fb97d072897f0d3f4938..755121431f3e494bcf09218b67d0bde608e89ab0 100644
+index bb50e49563cec1dc57dd397a37eb3b091c0f579c..9024ee5cb67bc778dd0c5ca0c68ce6402e56b395 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
-@@ -111,6 +111,14 @@ MultiContentsView::MultiContentsView(
+@@ -113,6 +113,14 @@ MultiContentsView::MultiContentsView(
      }
    }
  

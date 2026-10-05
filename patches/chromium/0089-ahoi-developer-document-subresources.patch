@@ -9,7 +9,7 @@ diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/ch
  #include "ahoi/browser/developer_toolkit/developer_profile_url_loader_throttle.h"
  #include "ahoi/browser/navigation/navigation_input_prefs.h"
  #include "ahoi/browser/privacy/privacy_mode_url_loader_factory_proxy.h"
-@@ -6645,6 +6646,13 @@
+@@ -6725,6 +6726,13 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
              type == URLLoaderFactoryType::kWorkerSubResource ||
              type == URLLoaderFactoryType::kServiceWorkerSubResource,
          isolation_info, request_initiator, factory_builder);
@@ -23,7 +23,7 @@ diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/ch
    }
  #endif
  #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-@@ -6655,11 +6663,20 @@
+@@ -6735,11 +6743,20 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
    // NOTE: Some unit test environments do not initialize
    // BrowserContextKeyedAPI factories for e.g. WebRequest.
    if (web_request_api) {

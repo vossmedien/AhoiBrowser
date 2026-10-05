@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index d9396c0729c6841e83c2c73ff2fdcfce328dd950..628a6d9ea9548dcaf639f9052ecbfa4d6c027040 100644
+index 13ef131ff04061c692833f3246d150425cd93df0..0ad654adade5455890fef8066cc1495316505c85 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -449,7 +449,8 @@ BrowserViewTabbedLayoutImpl::CalculateHorizontalLayout(
+@@ -450,7 +450,8 @@ BrowserViewTabbedLayoutImpl::CalculateHorizontalLayout(
      // A hidden Ahoi sidebar contributes no viewport width. Keeping the native
      // region in the hierarchy lets the BrowserView restore it through the
      // keyboard/accessibility path without creating a second host surface.
@@ -33,7 +33,7 @@ index d9396c0729c6841e83c2c73ff2fdcfce328dd950..628a6d9ea9548dcaf639f9052ecbfa4d
        if (reserve_sidebar_space) {
          params.InsetHorizontal(inset_amount, /*leading=*/true);
        }
-@@ -1391,6 +1398,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
+@@ -1395,6 +1402,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
      ProposedLayout& layout,
      BrowserLayoutParams params,
      bool needs_exclusion) const {
@@ -53,10 +53,10 @@ index d9396c0729c6841e83c2c73ff2fdcfce328dd950..628a6d9ea9548dcaf639f9052ecbfa4d
  
    if (IsParentedTo(views().horizontal_tab_strip_region_view,
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index 23c41dd11b094f5fbd38cad42a149334ef08a3f8..5a841b6f40a698889bb502c96c7cbf91e07c99ec 100644
+index ab4768ad857db688e54fd727562a3239feb75713..647b3d6af5dfef04403966cf94d67cbee22bc4e1 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-@@ -88,10 +88,15 @@ constexpr int kCollapsedResizeAreaWidth = 2;
+@@ -90,10 +90,15 @@ constexpr int kCollapsedResizeAreaWidth = 2;
  constexpr int kKeyboardResizeWidth = 50;
  constexpr int kSnapDistance = 15;
  
@@ -74,7 +74,7 @@ index 23c41dd11b094f5fbd38cad42a149334ef08a3f8..5a841b6f40a698889bb502c96c7cbf91
                               ahoi::visual_style::kFloatingSidebarOuterInset,
                               ahoi::visual_style::kFloatingSidebarTrailingInset);
    }
-@@ -391,10 +396,13 @@ void VerticalTabStripRegionView::ApplyAhoiSidebarPresentation() {
+@@ -393,10 +398,13 @@ void VerticalTabStripRegionView::ApplyAhoiSidebarPresentation() {
      ahoi_sidebar_visual_floating_ =
          ahoi_sidebar_edge_revealed_ ||
          ahoi::sidebar::IsFloating(ahoi_sidebar_presentation_mode_);
@@ -90,7 +90,7 @@ index 23c41dd11b094f5fbd38cad42a149334ef08a3f8..5a841b6f40a698889bb502c96c7cbf91
  
    if (!ahoi_sidebar_presentation_initialized_) {
      ahoi_sidebar_presentation_initialized_ = true;
-@@ -458,6 +466,7 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
+@@ -460,6 +468,7 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
    ahoi_sidebar_presentation_animator_.Reset(true);
    ahoi_sidebar_presentation_initialized_ = false;
    ahoi_sidebar_visual_floating_ = false;
@@ -98,7 +98,7 @@ index 23c41dd11b094f5fbd38cad42a149334ef08a3f8..5a841b6f40a698889bb502c96c7cbf91
    resize_area_->SetVisible(!state_controller_->IsCollapsed() ||
                             !state_controller_->IsExpandOnHoverEnabled() ||
                             resize_area_->is_resizing());
-@@ -489,6 +498,20 @@ bool VerticalTabStripRegionView::IsAhoiSidebarHidden() const {
+@@ -491,6 +500,20 @@ bool VerticalTabStripRegionView::IsAhoiSidebarHidden() const {
           !ahoi::sidebar::IsVisible(ahoi_sidebar_presentation_mode_);
  }
  
@@ -119,7 +119,7 @@ index 23c41dd11b094f5fbd38cad42a149334ef08a3f8..5a841b6f40a698889bb502c96c7cbf91
  bool VerticalTabStripRegionView::IsAnimatingSize() const {
    return BrowserAnimationController::From(browser_view()->browser())
        ->IsAnimating(TabStripAnimations::kVerticalTabStrip);
-@@ -609,8 +632,10 @@ void VerticalTabStripRegionView::SetToolbarHeightForLayout(int toolbar_height) {
+@@ -611,8 +634,10 @@ void VerticalTabStripRegionView::SetToolbarHeightForLayout(int toolbar_height) {
    top_button_container_->SetToolbarHeightForLayout(toolbar_height);
    if (ahoi_sidebar_tree_view_) {
      ahoi_sidebar_tree_view_->SetProperty(

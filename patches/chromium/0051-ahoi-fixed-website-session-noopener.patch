@@ -1,8 +1,8 @@
 diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
-index c6d3b300d2d5..103e2b99c188 100644
+index 6d6d0947faf0be9203085344fce2998dbba586c8..6b1c2635f2dde68018462565fda1e094d05f3076 100644
 --- a/content/browser/web_contents/web_contents_impl.cc
 +++ b/content/browser/web_contents/web_contents_impl.cc
-@@ -5686,6 +5686,16 @@ FrameTree* WebContentsImpl::CreateNewWindow(
+@@ -5696,6 +5696,16 @@ FrameTree* WebContentsImpl::CreateNewWindow(
        // as long as they preserve the guest's StoragePartition.
        site_instance =
            SiteInstance::CreateForGuest(GetBrowserContext(), partition_config);

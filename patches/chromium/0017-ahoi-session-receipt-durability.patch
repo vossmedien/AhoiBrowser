@@ -1,5 +1,5 @@
 diff --git a/components/sessions/core/command_storage_backend.cc b/components/sessions/core/command_storage_backend.cc
-index 383f444a099e7b03a8b94f64e02fb9f977ed6b0e..15be35e066d7683e2bb3bd188c4ef608ec95a4e2 100644
+index f6e33b4fb853245696f9902285bab0aededddd71..76793af5a174009cdc583099197112b24f062ba1 100644
 --- a/components/sessions/core/command_storage_backend.cc
 +++ b/components/sessions/core/command_storage_backend.cc
 @@ -37,12 +37,32 @@
@@ -35,7 +35,7 @@ index 383f444a099e7b03a8b94f64e02fb9f977ed6b0e..15be35e066d7683e2bb3bd188c4ef608
  // File version numbers:
  // kFileVersion1 = 1; No longer supported. Used in production prior to commit
  //   223e5cd on 2021-05-25.
-@@ -627,17 +647,20 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
+@@ -618,17 +638,20 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
    CommandStorageBackend::ReadCommandsResult result;
    if (!open_file_ || !open_file_->file || !open_file_->file->IsValid() ||
        !open_file_->did_write_marker) {
@@ -57,7 +57,7 @@ index 383f444a099e7b03a8b94f64e02fb9f977ed6b0e..15be35e066d7683e2bb3bd188c4ef608
      result.error_reading = true;
      return result;
    }
-@@ -653,6 +676,11 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
+@@ -644,6 +667,11 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
      read_result.commands.clear();
      read_result.status = ReadStatus::kInvalidCommand;
    }
@@ -69,7 +69,7 @@ index 383f444a099e7b03a8b94f64e02fb9f977ed6b0e..15be35e066d7683e2bb3bd188c4ef608
  
    std::unique_ptr<base::File> append_file = std::make_unique<base::File>(
        current_path, base::File::FLAG_OPEN | base::File::FLAG_APPEND |
-@@ -667,10 +695,6 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
+@@ -658,10 +686,6 @@ CommandStorageBackend::FlushAndReadCurrentSessionCommands() {
    open_file_->file = std::move(append_file);
  
    result.commands = std::move(read_result.commands);
@@ -81,10 +81,10 @@ index 383f444a099e7b03a8b94f64e02fb9f977ed6b0e..15be35e066d7683e2bb3bd188c4ef608
  }
  
 diff --git a/components/sessions/core/command_storage_backend_unittest.cc b/components/sessions/core/command_storage_backend_unittest.cc
-index 04c8ec54087968ae9150d240071aa50f79287147..2d71b7934a16a8c5a6cd9d21e894508e5ae1998a 100644
+index 10f12cb197297325fca333178f02cbdd09c129f9..317cbaa1026eaca74da5fa4fb381bf85707ce23a 100644
 --- a/components/sessions/core/command_storage_backend_unittest.cc
 +++ b/components/sessions/core/command_storage_backend_unittest.cc
-@@ -678,6 +678,31 @@ TEST_P(CommandStorageBackendParamTest,
+@@ -698,6 +698,31 @@ TEST_P(CommandStorageBackendParamTest,
    EXPECT_FALSE(backend->IsFileOpenForTesting());
  }
  

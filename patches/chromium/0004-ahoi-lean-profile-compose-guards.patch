@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/glic/BUILD.gn b/chrome/browser/glic/BUILD.gn
-index 68a41caa43eb66d1467e7b653d259522dc346835..dc3d41c05ca8f90540adb3bc668098bf63396a49 100644
+index 0bc78f5b9701764648b076901d33f0c27034d3c9..305a3e4050406f46b13f73c123e7d2188d205dde 100644
 --- a/chrome/browser/glic/BUILD.gn
 +++ b/chrome/browser/glic/BUILD.gn
 @@ -5,6 +5,7 @@
@@ -10,7 +10,7 @@ index 68a41caa43eb66d1467e7b653d259522dc346835..dc3d41c05ca8f90540adb3bc668098bf
  import("//components/enterprise/buildflags/buildflags.gni")
  import("//components/guest_view/buildflags/buildflags.gni")
  import("//mojo/public/tools/bindings/mojom.gni")
-@@ -1066,7 +1067,6 @@ if (!is_android) {
+@@ -1102,7 +1103,6 @@ if (!is_android) {
      defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
      sources = [
        "glic_selection_observer_interactive_uitest.cc",
@@ -18,7 +18,7 @@ index 68a41caa43eb66d1467e7b653d259522dc346835..dc3d41c05ca8f90540adb3bc668098bf
        "glic_user_status_interactive_uitest.cc",
        "host/glic_actor_attempt_form_filling_interactive_ui_test.cc",
        "host/glic_actor_autofill_interactive_uitest.cc",
-@@ -1109,7 +1109,6 @@ if (!is_android) {
+@@ -1145,7 +1145,6 @@ if (!is_android) {
        "//chrome/browser/actor:tools_test_support",
        "//chrome/browser/autofill",
        "//chrome/browser/background/glic",
@@ -26,7 +26,7 @@ index 68a41caa43eb66d1467e7b653d259522dc346835..dc3d41c05ca8f90540adb3bc668098bf
        "//chrome/browser/contextual_tasks:ui",
        "//chrome/browser/devtools:test_support",
        "//chrome/browser/download:test_support",
-@@ -1140,6 +1139,10 @@ if (!is_android) {
+@@ -1176,6 +1175,10 @@ if (!is_android) {
        "//content/test:test_support",
        "//ui/display:test_support",
      ]
@@ -38,7 +38,7 @@ index 68a41caa43eb66d1467e7b653d259522dc346835..dc3d41c05ca8f90540adb3bc668098bf
        deps += [
          "//chrome/browser/pdf:pdf_extension_test_utils",
 diff --git a/chrome/browser/renderer_context_menu/BUILD.gn b/chrome/browser/renderer_context_menu/BUILD.gn
-index b4adeb3db0ea24fcb492217a999b509da4787ee6..0858bc653a7d4a7d108b5ad2369e38bb83291ce6 100644
+index b2e9ee838ff8ce05f6c3b177ffb9e4031c54ba69..03dc1a77cfa19ca6a8c041533144333cdf909ed8 100644
 --- a/chrome/browser/renderer_context_menu/BUILD.gn
 +++ b/chrome/browser/renderer_context_menu/BUILD.gn
 @@ -3,6 +3,7 @@
@@ -57,7 +57,7 @@ index b4adeb3db0ea24fcb492217a999b509da4787ee6..0858bc653a7d4a7d108b5ad2369e38bb
        "//chrome/browser/context_hub",
        "//chrome/browser/custom_handlers",
        "//chrome/browser/devtools",
-@@ -189,6 +189,10 @@ source_set("impl") {
+@@ -190,6 +190,10 @@ source_set("impl") {
        "//url",
      ]
  
@@ -68,7 +68,7 @@ index b4adeb3db0ea24fcb492217a999b509da4787ee6..0858bc653a7d4a7d108b5ad2369e38bb
      if (enable_print_preview) {
        deps += [ "//chrome/browser/printing" ]
      }
-@@ -274,10 +278,10 @@ static_library("test_support") {
+@@ -275,10 +279,10 @@ static_library("test_support") {
        "render_view_context_menu_test_util.cc",
      ]
      public_deps += [ "//extensions/buildflags" ]
@@ -83,7 +83,7 @@ index b4adeb3db0ea24fcb492217a999b509da4787ee6..0858bc653a7d4a7d108b5ad2369e38bb
    }
  
    if (is_chromeos) {
-@@ -379,7 +383,6 @@ if (!is_android) {
+@@ -380,7 +384,6 @@ if (!is_android) {
        ":test_support",
        "//base/test:test_support",
        "//chrome/browser",
@@ -91,7 +91,7 @@ index b4adeb3db0ea24fcb492217a999b509da4787ee6..0858bc653a7d4a7d108b5ad2369e38bb
        "//chrome/browser/context_hub",
        "//chrome/browser/devtools",
        "//chrome/browser/enterprise/data_controls:test_support",
-@@ -416,6 +419,10 @@ if (!is_android) {
+@@ -418,6 +421,10 @@ if (!is_android) {
        "//url",
      ]
  
@@ -103,10 +103,10 @@ index b4adeb3db0ea24fcb492217a999b509da4787ee6..0858bc653a7d4a7d108b5ad2369e38bb
        sources += [
          # This test is for the spelling options submenu that's only for
 diff --git a/chrome/browser/resources/pdf/pdf_viewer_wrapper.ts b/chrome/browser/resources/pdf/pdf_viewer_wrapper.ts
-index 1c4aaa1cfe12d3633828943dde411f0ae654a795..f3609dfc7c1c11c436cb6fc0470a86a67bd1804f 100644
+index 56c2fe3a6402ab429956ae1721b252e95181627e..fd6c145484d93a2561abdf101fe59372531ff030 100644
 --- a/chrome/browser/resources/pdf/pdf_viewer_wrapper.ts
 +++ b/chrome/browser/resources/pdf/pdf_viewer_wrapper.ts
-@@ -80,7 +80,7 @@ export type {NavigatorDelegate, PdfNavigator} from './navigator.js';
+@@ -81,7 +81,7 @@ export type {NavigatorDelegate, PdfNavigator} from './navigator.js';
  export {OpenPdfParamsParser, ViewMode} from './open_pdf_params_parser.js';
  export {getFilenameFromURL, PdfViewerElement} from './pdf_viewer.js';
  export {PdfViewerBaseElement} from './pdf_viewer_base.js';
@@ -116,10 +116,10 @@ index 1c4aaa1cfe12d3633828943dde411f0ae654a795..f3609dfc7c1c11c436cb6fc0470a86a6
  export type {PdfViewerPrivateProxy} from './pdf_viewer_private_proxy.js';
  // </if>
 diff --git a/chrome/test/data/pdf/BUILD.gn b/chrome/test/data/pdf/BUILD.gn
-index 82600d3031002f75fbbf577b80f34aa1c783ffdc..e39909383ecafc9a05ccfc84b22e0197a23d3eb4 100644
+index fdd6153ffe4d63643e6456e5e3c96c3e1cd147ed..4b83d4a63a15d59f72ddb6cd5ea9ae63dbec13a5 100644
 --- a/chrome/test/data/pdf/BUILD.gn
 +++ b/chrome/test/data/pdf/BUILD.gn
-@@ -108,12 +108,14 @@ build_webui_tests("build") {
+@@ -109,12 +109,14 @@ build_webui_tests("build") {
        "save_to_drive_bubble_test.ts",
        "save_to_drive_controls_test.ts",
        "save_to_drive_test.ts",
@@ -242,7 +242,7 @@ index e1e5a65cfdfad6202735fa9d8e47f75846b35658..47b3cd39076a1c27e3bda19ee7163836
  }
 +// </if>
 diff --git a/chrome/test/data/pdf/test_util.ts b/chrome/test/data/pdf/test_util.ts
-index d9bbdc6cac92991d3a7962d428e8a2bc6c572c71..96777bfb6ff7352653e860e0a6cfa186d29dbad0 100644
+index d3fd0efa1e1c33d28ce76edcb875ba3ea31b031d..32f960e04428b06a0a40171b3930f3ce24da3bfe 100644
 --- a/chrome/test/data/pdf/test_util.ts
 +++ b/chrome/test/data/pdf/test_util.ts
 @@ -8,13 +8,13 @@

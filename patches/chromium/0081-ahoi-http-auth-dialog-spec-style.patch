@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/BUILD.gn b/chrome/browser/ui/views/BUILD.gn
-index 939e6ebb..cd0088e8 100644
+index 9c7582f7d7eea854c6113ccbc81d76313d34d397..c48fa4a2741c4d7f3b1ae832e57929e6a85f042c 100644
 --- a/chrome/browser/ui/views/BUILD.gn
 +++ b/chrome/browser/ui/views/BUILD.gn
-@@ -480,7 +480,10 @@ source_set("login_view") {
+@@ -530,7 +530,10 @@ source_set("login_view") {
    deps = [
      ":layout_provider",
      "//ahoi/browser/http_auth:saved_account_menu",
@@ -14,7 +14,7 @@ index 939e6ebb..cd0088e8 100644
    ]
  }
 diff --git a/chrome/browser/ui/views/DEPS b/chrome/browser/ui/views/DEPS
-index ef5b25b7..217c33e3 100644
+index ef5b25b7ff1c32b29550d285f463727f3cb3915b..217c33e336677c85531f93bc95db14fdffb55d2d 100644
 --- a/chrome/browser/ui/views/DEPS
 +++ b/chrome/browser/ui/views/DEPS
 @@ -10,6 +10,10 @@ include_rules = [
@@ -29,7 +29,7 @@ index ef5b25b7..217c33e3 100644
      "+ash/user_education/views/help_bubble_factory_views_ash.h",
    ],
 diff --git a/chrome/browser/ui/views/login_handler_views.cc b/chrome/browser/ui/views/login_handler_views.cc
-index 657c3c62..33727c3f 100644
+index 657c3c6281bf38c5abb0d9dd84a4b830b132fcb4..33727c3fe954935839fa17c02314abb7c5e50ae0 100644
 --- a/chrome/browser/ui/views/login_handler_views.cc
 +++ b/chrome/browser/ui/views/login_handler_views.cc
 @@ -184,7 +184,11 @@ LoginHandlerViewsDialog::LoginHandlerViewsDialog(
@@ -45,7 +45,7 @@ index 657c3c62..33727c3f 100644
  
  void LoginHandlerViewsDialog::CloseDialog() {
 diff --git a/chrome/browser/ui/views/login_view.cc b/chrome/browser/ui/views/login_view.cc
-index 2c514ae6..278c6fc2 100644
+index 2c514ae65e989d5c873a08588c08c42d4e5a9ac9..278c6fc29249fd62c3df382d27ded0a36df5dfdb 100644
 --- a/chrome/browser/ui/views/login_view.cc
 +++ b/chrome/browser/ui/views/login_view.cc
 @@ -11,6 +11,8 @@
@@ -385,7 +385,7 @@ index 2c514ae6..278c6fc2 100644
      const favicon_base::FaviconImageResult& result) {
    if (result.image.IsEmpty() || !saved_account_model_) {
 diff --git a/chrome/browser/ui/views/login_view.h b/chrome/browser/ui/views/login_view.h
-index e5bd4872..2f934f7b 100644
+index e5bd4872eaa0cfb3a62f73b27d6ce41558461baa..2f934f7b338ca39c668da92c5e21b8687274039a 100644
 --- a/chrome/browser/ui/views/login_view.h
 +++ b/chrome/browser/ui/views/login_view.h
 @@ -10,6 +10,7 @@

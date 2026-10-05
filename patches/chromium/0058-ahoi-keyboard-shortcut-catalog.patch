@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index d4a348b..e206289 100644
+index 0af0d1327ef4fec48f32df6664e61f5a8f059eb2..48eec61c438e586c067355ba2f411ab69a3ce3c3 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -17,6 +17,8 @@
@@ -11,7 +11,7 @@ index d4a348b..e206289 100644
  #include "ahoi/browser/navigation/navigation_input_prefs.h"
  #include "ahoi/browser/navigation/workspace_swipe_event_handler.h"
  #endif
-@@ -6151,8 +6153,18 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6155,8 +6157,18 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
    }
  
  #if BUILDFLAG(IS_MAC)
@@ -32,7 +32,7 @@ index d4a348b..e206289 100644
    }
    if (browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
        !browser_->GetProfile()->IsOffTheRecord() &&
-@@ -6161,56 +6173,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6165,56 +6177,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
        AhoiQuickWindowGlobalShortcut::GetInstance()->Activate()) {
      return true;
    }
@@ -89,7 +89,7 @@ index d4a348b..e206289 100644
    const bool is_ahoi_sidebar_undo =
        accelerator.IsCmdDown() && !accelerator.IsCtrlDown() &&
        !accelerator.IsAltDown() && !accelerator.IsShiftDown() &&
-@@ -6276,13 +6238,53 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6280,13 +6242,53 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
        browser_.get(), command_id, std::move(context), accelerator.time_stamp());
  }
  
@@ -147,7 +147,7 @@ index d4a348b..e206289 100644
      return false;
    }
  
-@@ -6320,16 +6322,17 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6324,16 +6326,17 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return true;
    };
  
@@ -172,7 +172,7 @@ index d4a348b..e206289 100644
      const auto target_index = ahoi::split_drop::ResolveReorderTarget(
          active_index, panes.size(), direction);
      if (!target_index.has_value()) {
-@@ -6338,7 +6341,7 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6342,7 +6345,7 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return model->ReorderTabInSplit(active_tab, panes[*target_index]);
    }
  
@@ -181,7 +181,7 @@ index d4a348b..e206289 100644
      const split_tabs::SplitTabVisualData next =
          ahoi::split_drop::NextKeyboardLayout(*split_data->visual_data(),
                                               panes.size());
-@@ -6347,21 +6350,20 @@ bool BrowserView::HandleAhoiSplitAccelerator(
+@@ -6351,21 +6354,20 @@ bool BrowserView::HandleAhoiSplitAccelerator(
      return true;
    }
  
@@ -208,7 +208,7 @@ index d4a348b..e206289 100644
      active_tab->Close();
      return true;
    }
-@@ -6905,50 +6907,26 @@ void BrowserView::LoadAccelerators() {
+@@ -6909,50 +6911,26 @@ void BrowserView::LoadAccelerators() {
          ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN),
          kAhoiFallthroughPriority, this);
    }
@@ -280,7 +280,7 @@ index d4a348b..e206289 100644
  
    // Register the Esc accelerators (both press and release) to ensure they are
 diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
-index ee1c875..7ec1fcc 100644
+index e3d5cca471eda3fee01a1ee527ebef7cae67280f..63e1bb0e571674a2aa13c02a491d3c4e0b1d8c0a 100644
 --- a/chrome/browser/ui/views/frame/browser_view.h
 +++ b/chrome/browser/ui/views/frame/browser_view.h
 @@ -9,6 +9,7 @@
@@ -291,7 +291,7 @@ index ee1c875..7ec1fcc 100644
  #include <vector>
  
  #include "base/callback_list.h"
-@@ -121,6 +122,9 @@ enum class SidebarPresentationMode;
+@@ -123,6 +124,9 @@ enum class SidebarPresentationMode;
  namespace popup_ui {
  class PopupOverlayController;
  }  // namespace popup_ui
@@ -301,7 +301,7 @@ index ee1c875..7ec1fcc 100644
  }  // namespace ahoi
  
  namespace gfx {
-@@ -820,6 +824,12 @@ class BrowserView : public BrowserWindow,
+@@ -823,6 +827,12 @@ class BrowserView : public BrowserWindow,
    // bookmark command outside Ahoi's regular browsing surface.
    bool SaveCurrentTabToAhoiTree();
  
@@ -314,7 +314,7 @@ index ee1c875..7ec1fcc 100644
    // ImmersiveModeController::Observer:
    void OnImmersiveFullscreenEntered() override;
    void OnImmersiveFullscreenExited() override;
-@@ -1056,10 +1066,10 @@ class BrowserView : public BrowserWindow,
+@@ -1057,10 +1067,10 @@ class BrowserView : public BrowserWindow,
    // use.
    void LoadAccelerators();
  
@@ -327,7 +327,7 @@ index ee1c875..7ec1fcc 100644
  
    void RefreshAhoiNavigationInputSettings();
    bool CanUseAhoiCmdScrollTabSwitch(int delta) const;
-@@ -1386,6 +1396,10 @@ class BrowserView : public BrowserWindow,
+@@ -1387,6 +1397,10 @@ class BrowserView : public BrowserWindow,
    // one BrowserView makes bubble and profile lifetimes explicit.
    std::unique_ptr<ahoi::CommandBarController> ahoi_command_bar_controller_;
  

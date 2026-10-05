@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/net/BUILD.gn b/chrome/browser/net/BUILD.gn
-index 7b3dae..a5956d 100644
+index 8ae4dbed22cca8070342cfd686ffc105f7482da8..907866a1f5316b5df8abf7f66828a754f0ea2331 100644
 --- a/chrome/browser/net/BUILD.gn
 +++ b/chrome/browser/net/BUILD.gn
 @@ -168,6 +168,7 @@ source_set("impl") {
@@ -11,7 +11,7 @@ index 7b3dae..a5956d 100644
      "//chrome/browser:browser_features",
      "//chrome/browser:browser_process",
 diff --git a/chrome/browser/net/profile_network_context_service.cc b/chrome/browser/net/profile_network_context_service.cc
-index 64cc27..b624868 100644
+index 8a65020c518acadd4963bfcf3f898f84c339a983..a89ff70185cc64f95d958d66a930cc1a8edf094d 100644
 --- a/chrome/browser/net/profile_network_context_service.cc
 +++ b/chrome/browser/net/profile_network_context_service.cc
 @@ -9,6 +9,7 @@
@@ -22,7 +22,7 @@ index 64cc27..b624868 100644
  #include "base/base64.h"
  #include "base/byte_size.h"
  #include "base/check_op.h"
-@@ -1489,7 +1490,18 @@ void ProfileNetworkContextService::ConfigureNetworkContextParamsInternal(
+@@ -1485,7 +1486,18 @@ void ProfileNetworkContextService::ConfigureNetworkContextParamsInternal(
          base::FilePath(chrome::kReportingAndNelStoreFilename);
  #endif  // BUILDFLAG(ENABLE_REPORTING)
  

@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index c8c27535e29f38fe5b7b765c2c668c6fe5d2124f..483c7bc6ce1b3a2ec59ed9c60e49cf64f20a018b 100644
+index 371be8da77b428c494f6f5b4053bb122911828d5..7e306fb3805d59ddd00098b4dc2437c931326fe7 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -4917,7 +4917,10 @@
+@@ -4921,7 +4921,10 @@ void BrowserView::ShowSplitView(bool focus_active_view) {
    // use the overlap-safe two-phase binding lifecycle below.
    if (multi_contents_view_->ReorderContentsInSplitView(
            desired_visible_bindings)) {
@@ -15,10 +15,10 @@ index c8c27535e29f38fe5b7b765c2c668c6fe5d2124f..483c7bc6ce1b3a2ec59ed9c60e49cf64
      ahoi::split_drop::RebindSplitPanesWithoutOverlap(
          desired_bindings,
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
-index f7ec9795d5427514d60a30036652ff46806b5d11..67747def15aec9747f306ce0c6c48e0f953a66f1 100644
+index 05723fc63dddc7555bc08b840db40ef640a27781..1cc0f9996777e17ba9951aec3e83c42c3ee54d84 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
-@@ -397,31 +397,42 @@
+@@ -397,31 +397,42 @@ void MultiContentsView::CloseSplitView() {
      return;
    }
  
@@ -84,9 +84,9 @@ index f7ec9795d5427514d60a30036652ff46806b5d11..67747def15aec9747f306ce0c6c48e0f
 +        finish_layout);
 +  }
  
-   if (auto* active_web_contents = GetActiveContentsView()->web_contents()) {
-     tabs::TabInterface* tab =
-@@ -435,7 +446,8 @@
+   SafeInvoke(GetActiveContentsView()->web_contents())
+       .Then(Overload<content::WebContents*>(
+@@ -433,7 +444,8 @@ void MultiContentsView::CloseSplitView() {
  bool MultiContentsView::ReorderContentsInSplitView(
      const std::vector<content::WebContents*>& desired_contents) {
    const size_t pane_count = GetVisiblePaneCount();
@@ -96,7 +96,7 @@ index f7ec9795d5427514d60a30036652ff46806b5d11..67747def15aec9747f306ce0c6c48e0f
      return false;
    }
  
-@@ -457,7 +469,8 @@
+@@ -455,7 +467,8 @@ bool MultiContentsView::ReorderContentsInSplitView(
  
    ContentsContainerView* const active_container =
        GetActiveContentsContainerView();
@@ -106,7 +106,7 @@ index f7ec9795d5427514d60a30036652ff46806b5d11..67747def15aec9747f306ce0c6c48e0f
      if (contents_container_views_[destination] ==
          desired_containers[destination]) {
        continue;
-@@ -484,10 +497,13 @@
+@@ -482,10 +495,13 @@ bool MultiContentsView::ReorderContentsInSplitView(
  
    const auto active = std::ranges::find(
        contents_container_views_.begin(),

@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
-index dfd179..d56fc0d 100644
+index 04d54539184f07fd614f6ae8016352340d4b2be1..00b6a8ee2662d32202989eec13fcdfa86e930254 100644
 --- a/chrome/browser/ui/BUILD.gn
 +++ b/chrome/browser/ui/BUILD.gn
-@@ -1313,6 +1313,7 @@ static_library("ui") {
+@@ -1514,6 +1514,7 @@ static_library("ui") {
      deps += [
        "//ahoi/browser/extensions:policy",
        "//ahoi/browser/http_auth",
@@ -11,7 +11,7 @@ index dfd179..d56fc0d 100644
      ]
      sources += [
 diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
-index 2d9eaa8..aa2c87 100644
+index ece872974733aa78ed2e32e6e98a46294c2604c1..e436a9714698166ea6253a33b1bb5bbd517b1ab0 100644
 --- a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
 +++ b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
 @@ -4,6 +4,7 @@
@@ -22,7 +22,7 @@ index 2d9eaa8..aa2c87 100644
  #include "ahoi/browser/ui/popup/popup_overlay_controller.h"
  #include "base/check_deref.h"
  #include "base/metrics/histogram_macros.h"
-@@ -907,6 +908,12 @@ void BrowserWebContentsDelegate::BeforeUnloadFired(
+@@ -912,6 +913,12 @@ void BrowserWebContentsDelegate::BeforeUnloadFired(
      content::WebContents* web_contents,
      bool proceed,
      bool* proceed_to_fire_unload) {

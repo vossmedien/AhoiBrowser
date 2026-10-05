@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 914c409d0d37c25f0228b1f58b96cdb9d95d07ae..742c7d2c99b67779aa2a8bbfddc1e6d94a6ace82 100644
+index 31339e56292338eb393c84444c4fcead5e0c8c24..7d5e051c03a2687790ae4133c5e04cdf00b0fbe9 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20413,6 +20413,8 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20566,6 +20566,8 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION" desc="Second explicit confirmation to commit the previewed additive import." meaning="AhoiBrowser Arc import">I reviewed this preview and want to add these items now</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT" desc="Button that commits the explicitly confirmed Arc import." meaning="AhoiBrowser Arc import">Import selected data</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SPLITS" desc="Text preceding the number of natively reconstructed Arc splits." meaning="AhoiBrowser Arc import">Reconstructed split views:</message>
@@ -12,10 +12,10 @@ index 914c409d0d37c25f0228b1f58b96cdb9d95d07ae..742c7d2c99b67779aa2a8bbfddc1e6d9
      <!-- AhoiBrowser feature activation and discoverability -->
      <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index 5a00f92569637df469cf7b1c1bffeedc4cff4e03..78bc13ba61cb1b0d31c041d099ae523b37e9dd9a 100644
+index 2724107a811eacc8fbc733b2afa00a731499cadb..5f241caee8b649750664a647eaf811e2031001f0 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11239,6 +11239,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11286,6 +11286,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="604366452320429368">Ich habe die Vorschau geprüft und möchte diese Elemente jetzt hinzufügen</translation>
  <translation id="536686936509624394">Ausgewählte Daten importieren</translation>
  <translation id="7473630940897209454">Wiederhergestellte geteilte Ansichten:</translation>
@@ -25,19 +25,19 @@ index 5a00f92569637df469cf7b1c1bffeedc4cff4e03..78bc13ba61cb1b0d31c041d099ae523b
  <translation id="1323743597646662877">Geöffneter Tab</translation>
  <translation id="5052185113772701312">Schlafender Tab</translation>
 diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
-index 0d472a52ff5a077dafb263d256978b77a4d55c59..6d31795095b894b5007485e069592d607f0a6653 100644
+index 53f8799a84fd3e171bee527d325f2fff37380c50..59e02306a96099344cc0ffaa36ce68f10f812038 100644
 --- a/chrome/browser/resources/settings/BUILD.gn
 +++ b/chrome/browser/resources/settings/BUILD.gn
-@@ -449,6 +449,8 @@ build_webui("build") {
-       "languages_page/languages_settings_metrics_proxy.ts",
-       "languages_page/languages_types.ts",
-       "languages_page/languages_util.ts",
+@@ -460,6 +460,8 @@ build_webui("build") {
+       "languages_page/spell_check_page.ts",
+       "languages_page/translate_page.html.ts",
+       "languages_page/translate_page.ts",
 +      "people_page/ahoi_arc_import_section.html.ts",
 +      "people_page/ahoi_arc_import_section.ts",
        "people_page/import_data_browser_proxy.ts",
        "people_page/import_data_dialog.html.ts",
        "people_page/import_data_dialog.ts",
-@@ -564,6 +566,10 @@ build_webui("build") {
+@@ -602,6 +604,10 @@ build_webui("build") {
      "system_page/system_page.css",
    ]
  
@@ -347,10 +347,10 @@ index 61e876cf10ab140f9cdaa66c0b8f82fc5314540e..00d03c5bb0bcdb111b596e29279870db
  }
  
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index 5ee1a32ec7d026358f91769771101c6b7aecae9f..5cd7fc3e703ca0f455891cfc1af0d59c9f4b0c60 100644
+index 0b22654f2a75b7c21838666d08ee50215940e897..f9c7e1b2e123dcd94ce5296381107d372a92fcca 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -664,6 +664,10 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -665,6 +665,10 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
         IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT_CONFIRMATION},
        {"ahoiArcImportCommit", IDS_SETTINGS_AHOI_ARC_IMPORT_COMMIT},
        {"ahoiArcImportResultSplits", IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_SPLITS},
@@ -362,10 +362,10 @@ index 5ee1a32ec7d026358f91769771101c6b7aecae9f..5cd7fc3e703ca0f455891cfc1af0d59c
        {"ahoiSyncSection", IDS_SETTINGS_AHOI_SYNC_SECTION},
        {"ahoiSyncSectionSublabel", IDS_SETTINGS_AHOI_SYNC_SECTION_SUBLABEL},
 diff --git a/chrome/test/data/webui/settings/BUILD.gn b/chrome/test/data/webui/settings/BUILD.gn
-index 541564835dd996541feef4829be20e58efe5530d..feba1cd7df4bbe89ee49d3b3a13df6186d92dcb6 100644
+index a063a805d3abde18d91cbbebf7eb23ed47d8b4dd..9f5493b077ba3039ee136e987374e7db3672136e 100644
 --- a/chrome/test/data/webui/settings/BUILD.gn
 +++ b/chrome/test/data/webui/settings/BUILD.gn
-@@ -259,7 +259,10 @@ build_webui_tests("build") {
+@@ -260,7 +260,10 @@ build_webui_tests("build") {
    }
  
    if (is_mac) {
@@ -433,7 +433,7 @@ index b0d52e62e2945e8229c3f22b201b6d3323cff678..984d51229546b29182d52a805d621221
      await browserProxy.whenCalled('importFromBookmarksFile');
      await simulateImportStatusChange(ImportDataStatus.IN_PROGRESS);
 diff --git a/chrome/test/data/webui/settings/settings_browsertest.cc b/chrome/test/data/webui/settings/settings_browsertest.cc
-index 5220e3b523dd0415caffea7227231e3ced4cb1ef..b085c4612ff69925f6bdc4728685e2c4affc5312 100644
+index 26c1f5466d1588abfe86899464beb11b9b4447fd..d221fcd2ed01ae639a96d72b44d734a412a432ac 100644
 --- a/chrome/test/data/webui/settings/settings_browsertest.cc
 +++ b/chrome/test/data/webui/settings/settings_browsertest.cc
 @@ -94,6 +94,12 @@ IN_PROC_BROWSER_TEST_F(SettingsTest, AccountPage) {

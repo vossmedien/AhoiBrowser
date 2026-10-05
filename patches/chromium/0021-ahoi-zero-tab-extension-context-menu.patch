@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/extensions/extension_context_menu_model.cc b/chrome/browser/extensions/extension_context_menu_model.cc
-index dbf796222e9c35cbcf0fc17255c619a26d733af3..f506c35c52786a1c8bd816ffc986d857decb1309 100644
+index 1e239298fab827300c4f1645a2d588e48413ddbb..7de8f515e9595b7c938122b3cb976057bbd0ea21 100644
 --- a/chrome/browser/extensions/extension_context_menu_model.cc
 +++ b/chrome/browser/extensions/extension_context_menu_model.cc
-@@ -293,11 +293,14 @@ void LogToggleVisibility(bool visible) {
+@@ -295,12 +295,15 @@ void LogToggleVisibility(bool visible) {
    }
  }
  
@@ -11,15 +11,16 @@ index dbf796222e9c35cbcf0fc17255c619a26d733af3..f506c35c52786a1c8bd816ffc986d857
 +  if (!navigator) {
 +    return;
 +  }
-   content::OpenURLParams params(
-       url, content::Referrer(), WindowOpenDisposition::NEW_FOREGROUND_TAB,
-       ui::PAGE_TRANSITION_LINK, /*is_renderer_initiated=*/false);
+   content::OpenURLParams params =
+       content::OpenURLParams::CreateBrowserInitiated(
+           url, WindowOpenDisposition::NEW_FOREGROUND_TAB,
+           ui::PAGE_TRANSITION_LINK);
 -  web_contents->OpenURL(params, /*navigation_handle_callback=*/{});
 +  navigator->OpenURL(params, /*navigation_handle_callback=*/{});
  }
  
  // A stub for the uninstall dialog.
-@@ -375,9 +378,9 @@ ExtensionContextMenuModel::ExtensionContextMenuModel(
+@@ -378,9 +381,9 @@ ExtensionContextMenuModel::ExtensionContextMenuModel(
  
  void ExtensionContextMenuModel::Init(const Extension* extension,
                                       bool can_show_icon_in_toolbar) {
@@ -32,7 +33,7 @@ index dbf796222e9c35cbcf0fc17255c619a26d733af3..f506c35c52786a1c8bd816ffc986d857
    }
  
    if (base::FeatureList::IsEnabled(
-@@ -528,13 +531,12 @@ void ExtensionContextMenuModel::ExecuteCommand(int command_id,
+@@ -531,13 +534,12 @@ void ExtensionContextMenuModel::ExecuteCommand(int command_id,
  
    switch (command_id) {
      case HOME_PAGE: {
@@ -48,7 +49,7 @@ index dbf796222e9c35cbcf0fc17255c619a26d733af3..f506c35c52786a1c8bd816ffc986d857
        break;
      case TOGGLE_VISIBILITY: {
        bool visible = !is_pinned_;
-@@ -579,7 +581,7 @@ void ExtensionContextMenuModel::ExecuteCommand(int command_id,
+@@ -585,7 +587,7 @@ void ExtensionContextMenuModel::ExecuteCommand(int command_id,
        // The state of the tab could have changed since we opened the context
        // menu. This check ensures that the extension has a valid side panel it
        // can open for `tab_id`.
@@ -57,7 +58,7 @@ index dbf796222e9c35cbcf0fc17255c619a26d733af3..f506c35c52786a1c8bd816ffc986d857
        if (side_panel_service->HasSidePanelContextMenuActionForTab(*extension,
                                                                    tab_id)) {
          side_panel_util::ToggleExtensionSidePanel(browser_, extension->id());
-@@ -600,7 +602,7 @@ void ExtensionContextMenuModel::ExecuteCommand(int command_id,
+@@ -605,7 +607,7 @@ void ExtensionContextMenuModel::ExecuteCommand(int command_id,
          replacements.SetQueryStr(query);
          url = url.ReplaceComponents(replacements);
        }
@@ -66,7 +67,7 @@ index dbf796222e9c35cbcf0fc17255c619a26d733af3..f506c35c52786a1c8bd816ffc986d857
  #endif
        break;
      }
-@@ -743,9 +745,10 @@ void ExtensionContextMenuModel::InitMenuWithFeature(
+@@ -748,9 +750,10 @@ void ExtensionContextMenuModel::InitMenuWithFeature(
    // Show section only when the extension requests host permissions or has
    // activeTab permission.
    auto* permissions_manager = PermissionsManager::Get(profile_);
@@ -80,7 +81,7 @@ index dbf796222e9c35cbcf0fc17255c619a26d733af3..f506c35c52786a1c8bd816ffc986d857
      const GURL& url = web_contents->GetLastCommittedURL();
      auto site_setting = permissions_manager->GetUserSiteSetting(origin_);
  
-@@ -1021,10 +1024,15 @@ void ExtensionContextMenuModel::AddSidePanelEntryIfPresent(
+@@ -1020,6 +1023,11 @@ void ExtensionContextMenuModel::AddSidePanelEntryIfPresent(
      return;
    }
  
@@ -90,29 +91,33 @@ index dbf796222e9c35cbcf0fc17255c619a26d733af3..f506c35c52786a1c8bd816ffc986d857
 +  }
 +
    SidePanelService* const side_panel_service = GetSidePanelService();
-   CHECK(side_panel_service);
+   // side_panel_service can be nullptr in unit tests and is unsupported in
+   // system/guest profiles.
+@@ -1027,7 +1035,7 @@ void ExtensionContextMenuModel::AddSidePanelEntryIfPresent(
+     return;
+   }
  
 -  int tab_id = ExtensionTabUtil::GetTabId(GetActiveWebContents());
 +  int tab_id = ExtensionTabUtil::GetTabId(web_contents);
    if (!side_panel_service->HasSidePanelContextMenuActionForTab(extension,
                                                                 tab_id)) {
      return;
-@@ -1109,7 +1117,12 @@ void ExtensionContextMenuModel::CreatePageAccessItems(
+@@ -1116,8 +1124,11 @@ void ExtensionContextMenuModel::CreatePageAccessItems(
  }
  
  content::WebContents* ExtensionContextMenuModel::GetActiveWebContents() const {
--  return TabListInterface::From(browser_)->GetActiveTab()->GetContents();
+-  tabs::TabInterface* active_tab =
+-      TabListInterface::From(browser_)->GetActiveTab();
 +  TabListInterface* const tab_list = TabListInterface::From(browser_);
 +  if (!tab_list) {
 +    return nullptr;
 +  }
 +  tabs::TabInterface* const active_tab = tab_list->GetActiveTab();
-+  return active_tab ? active_tab->GetContents() : nullptr;
+   return active_tab ? active_tab->GetContents() : nullptr;
  }
  
- #if !BUILDFLAG(IS_ANDROID)
 diff --git a/chrome/browser/extensions/extension_context_menu_model_browsertest.cc b/chrome/browser/extensions/extension_context_menu_model_browsertest.cc
-index f71e401d8af68c93c72a490b10f03715ebf2888e..809186ae494354689036fa919701fb1291b95755 100644
+index 2bf313ab9c464cdee0ee888ad21aa310bf787b47..c5985abb9519366029bc83efc714f7a296d420dd 100644
 --- a/chrome/browser/extensions/extension_context_menu_model_browsertest.cc
 +++ b/chrome/browser/extensions/extension_context_menu_model_browsertest.cc
 @@ -25,6 +25,7 @@

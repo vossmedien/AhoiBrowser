@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc b/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
-index 9b76aa55907b17a1ac66f78ee51708a756277d57..f6995c27fc4f0cb030492dd6798b9b687c2c906a 100644
+index 7ff5fb309529d5a776f0fdb29e07ef1e001f06f4..2aaf2577c2f23f30b8816de7f62909b0175e55ea 100644
 --- a/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
 +++ b/chrome/browser/extensions/chrome_extension_registrar_delegate.cc
 @@ -379,6 +379,9 @@ ChromeExtensionRegistrarDelegate::GetDisableReasonsOnInstalled(
@@ -552,10 +552,10 @@ index 81bc156183cee7ce3d232e3eb8cc654aadb415fc..e6aaeb3a9bbed5e6eb0ee208b4266e8f
    // destroyed.
    base::CallbackListSubscription browser_context_shutdown_subscription_;
 diff --git a/extensions/browser/extension_registrar.cc b/extensions/browser/extension_registrar.cc
-index 834a5e38a231cac17e4c400042a3a2c2361234ad..78d758970a34f3283671ac9c2c61a4480f6eb1f7 100644
+index 435fe8182709c2f4a12c5b442e35fe8cbafa68eb..d463d424260e513121d121333c7ae245f43e5f55 100644
 --- a/extensions/browser/extension_registrar.cc
 +++ b/extensions/browser/extension_registrar.cc
-@@ -1007,6 +1007,24 @@ void ExtensionRegistrar::GrantPermissionsAndEnableExtension(
+@@ -1018,6 +1018,24 @@ void ExtensionRegistrar::GrantPermissionsAndEnableExtension(
    EnableExtension(extension.id());
  }
  

@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 81a337529c0ffca41873bb80b7ac4c77de6241e3..2c28f0c9e435ba8b687dd6f22cff1eda679d8619 100644
+index f243f240ac055ea73d2f4de85752277cf32d251a..eeac1ca3bd18274c44a26ae7879051e57e29a7b0 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -188,6 +188,7 @@
+@@ -190,6 +190,7 @@
  #include "chrome/browser/ui/views/frame/browser_widget.h"
  #include "chrome/browser/ui/views/frame/contents_container_view.h"
  #include "chrome/browser/ui/views/frame/contents_separator.h"
@@ -10,7 +10,7 @@ index 81a337529c0ffca41873bb80b7ac4c77de6241e3..2c28f0c9e435ba8b687dd6f22cff1eda
  #include "chrome/browser/ui/views/frame/custom_floating_corner.h"
  #include "chrome/browser/ui/views/frame/horizontal_tab_strip_region_view.h"
  #include "chrome/browser/ui/views/frame/layout/browser_view_layout.h"
-@@ -1290,7 +1291,41 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
+@@ -1304,7 +1305,41 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
          std::make_unique<ahoi::NavigationSurfaceController>(
              this, top_container_, toolbar_,
              l10n_util::GetStringUTF16(IDS_AHOI_REVEAL_NAVIGATION),
@@ -54,10 +54,10 @@ index 81a337529c0ffca41873bb80b7ac4c77de6241e3..2c28f0c9e435ba8b687dd6f22cff1eda
      vertical_tab_strip_top_corner_ =
          AddChildView(std::make_unique<CustomFloatingCorner>(
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index e0d26c9de41e22388d4cdbc0e046dcde6f0ab804..779939d3dd6636411d38970f3020ef4b0b59c29a 100644
+index 605578df905ca3c05345921069ed5d5b47875acc..bc80e32ecd33d9da2c1dd04758cb46c96b9403fb 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -1450,10 +1450,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
+@@ -1454,10 +1454,18 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
        if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {
          // Preserve the toolbar's preferred height. The previous top inset
          // achieved spacing by clipping the controls, which made the floating
@@ -80,7 +80,7 @@ index e0d26c9de41e22388d4cdbc0e046dcde6f0ab804..779939d3dd6636411d38970f3020ef4b
        }
        params.SetTop(toolbar_bounds.bottom());
        needs_exclusion = false;
-@@ -1805,7 +1813,9 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+@@ -1814,7 +1822,9 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
    // Set toolbar corners.
    CustomCornersBackground::Corners toolbar_corners;
    if (IsAhoiShell(views()) && !is_fullscreen(layout_data_->window_state)) {

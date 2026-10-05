@@ -1,5 +1,5 @@
 diff --git a/components/performance_manager/freezing/cannot_freeze_reason.cc b/components/performance_manager/freezing/cannot_freeze_reason.cc
-index e3306c54..d7492329 100644
+index e3306c548a9f2b832b7bd8789d71fc4541cfc775..d749232969c09620923fddaff25619f9e01275fd 100644
 --- a/components/performance_manager/freezing/cannot_freeze_reason.cc
 +++ b/components/performance_manager/freezing/cannot_freeze_reason.cc
 @@ -56,6 +56,8 @@ const char* CannotFreezeReasonToString(CannotFreezeReason reason) {
@@ -12,7 +12,7 @@ index e3306c54..d7492329 100644
    NOTREACHED();
  }
 diff --git a/components/performance_manager/freezing/freezing_policy.cc b/components/performance_manager/freezing/freezing_policy.cc
-index 9c8c76cd..a69ca710 100644
+index 9c8c76cddcdca764522b7f649978760c96ddc952..a69ca71005c267948826ca5d2bf296cb51288d5a 100644
 --- a/components/performance_manager/freezing/freezing_policy.cc
 +++ b/components/performance_manager/freezing/freezing_policy.cc
 @@ -593,6 +593,11 @@ void FreezingPolicy::OnPageNodeAdded(const PageNode* page_node) {
@@ -41,7 +41,7 @@ index 9c8c76cd..a69ca710 100644
      const PageNode* page_node,
      std::optional<blink::mojom::PermissionStatus> previous_status) {
 diff --git a/components/performance_manager/freezing/freezing_policy.h b/components/performance_manager/freezing/freezing_policy.h
-index 83d1b857..a2733c94 100644
+index 83d1b8576bedb6fcd54e66e4b05265f304e3ea8f..a2733c94d58701d0bb5b6387f00dfe6249afb642 100644
 --- a/components/performance_manager/freezing/freezing_policy.h
 +++ b/components/performance_manager/freezing/freezing_policy.h
 @@ -191,6 +191,7 @@ class FreezingPolicy : public PageNodeObserver,
@@ -53,7 +53,7 @@ index 83d1b857..a2733c94 100644
    void OnPageHasFreezingOriginTrialOptOutChanged(
        const PageNode* page_node) override;
 diff --git a/components/performance_manager/freezing/freezing_policy_unittest.cc b/components/performance_manager/freezing/freezing_policy_unittest.cc
-index 2ce7d53f..fafa25ae 100644
+index 2ce7d53fc1fc0ee37f03fe2efbef196b9810a256..fafa25aeb604ff04ecada781ab463c8d88a83ed0 100644
 --- a/components/performance_manager/freezing/freezing_policy_unittest.cc
 +++ b/components/performance_manager/freezing/freezing_policy_unittest.cc
 @@ -1032,6 +1032,57 @@ TEST_F(FreezingPolicyTest, StartsUsingWebRTCWhenFrozen) {
@@ -115,7 +115,7 @@ index 2ce7d53f..fafa25ae 100644
    page_node()->OnNotificationPermissionStatusChange(
        blink::mojom::PermissionStatus::GRANTED);
 diff --git a/components/performance_manager/public/freezing/cannot_freeze_reason.h b/components/performance_manager/public/freezing/cannot_freeze_reason.h
-index e48b752b..fa78fe5d 100644
+index e48b752b4af515d32046316145eb662174c2db74..fa78fe5d09cdfae992bfa37e7f7cfbe56eda17bd 100644
 --- a/components/performance_manager/public/freezing/cannot_freeze_reason.h
 +++ b/components/performance_manager/public/freezing/cannot_freeze_reason.h
 @@ -39,7 +39,10 @@ enum class CannotFreezeReason {

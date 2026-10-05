@@ -1,5 +1,5 @@
 diff --git a/chrome/app/chromium_strings.grd b/chrome/app/chromium_strings.grd
-index f91f92b..26e1761 100644
+index 7c1f109..22245b5 100644
 --- a/chrome/app/chromium_strings.grd
 +++ b/chrome/app/chromium_strings.grd
 @@ -294,15 +294,15 @@ If you update this file, be sure also to update google_chrome_strings.grd. -->
@@ -823,7 +823,7 @@ index f91f92b..26e1761 100644
          </message>
        </if>
  
-@@ -1379,146 +1379,146 @@ Chromium is unable to recover your settings.
+@@ -1379,158 +1379,158 @@ Chromium is unable to recover your settings.
        <if expr="not use_titlecase">
          <message name="IDS_AVATAR_BUTTON_INTERCEPT_BUBBLE_CHROME_SIGNIN_TEXT"
            desc="Text asking the user to sign into Chromium while the Chromium Signin Bubble intercept is shown.">
@@ -895,6 +895,14 @@ index f91f92b..26e1761 100644
 -          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to Chromium in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your saved info and more from <ph name="DEVICE">$3<ex>your phone</ex></ph>.
 +          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to AhoiBrowser in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your saved info and more from <ph name="DEVICE">$3<ex>your phone</ex></ph>.
          </message>
+         <message name="IDS_ACCOUNT_PREVIEW_PROFILE_SEPARATION_SUBTITLE_READING_LIST_WITH_DEVICE" desc="Body of the web signin interception bubble with account preview, informing the user they can keep accounts separate and access reading list from their other device.">
+-          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to Chromium in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your reading list and more from <ph name="DEVICE">$3<ex>your phone</ex></ph>.
++          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to AhoiBrowser in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your reading list and more from <ph name="DEVICE">$3<ex>your phone</ex></ph>.
+         </message>
+         <message name="IDS_ACCOUNT_PREVIEW_PROFILE_SEPARATION_SUBTITLE_EXTENSIONS_WITH_DEVICE" desc="Body of the web signin interception bubble with account preview, informing the user they can keep accounts separate and access extensions from their computer. Only desktop/computer DEVICE are supported for extensions.">
+-          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to Chromium in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your extensions and more from <ph name="DEVICE">$3<ex>your computer</ex></ph>.
++          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to AhoiBrowser in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your extensions and more from <ph name="DEVICE">$3<ex>your computer</ex></ph>.
+         </message>
          <message name="IDS_ACCOUNT_PREVIEW_PROFILE_SEPARATION_SUBTITLE_PASSWORDS" desc="Body of the web signin interception bubble with account preview, informing the user they can keep accounts separate and access passwords on all their devices.">
 -          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to Chromium in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your passwords and more on all your devices.
 +          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to AhoiBrowser in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your passwords and more on all your devices.
@@ -906,6 +914,14 @@ index f91f92b..26e1761 100644
          <message name="IDS_ACCOUNT_PREVIEW_PROFILE_SEPARATION_SUBTITLE_SAVED_INFO" desc="Body of the web signin interception bubble with account preview, informing the user they can keep accounts separate and access saved info (such as autofill data, addresses, and payment methods) on all their devices.">
 -          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to Chromium in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your saved info and more on all your devices.
 +          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to AhoiBrowser in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your saved info and more on all your devices.
+         </message>
+         <message name="IDS_ACCOUNT_PREVIEW_PROFILE_SEPARATION_SUBTITLE_READING_LIST" desc="Body of the web signin interception bubble with account preview, informing the user they can keep accounts separate and access reading list on all their devices.">
+-          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to Chromium in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your reading list and more on all your devices.
++          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to AhoiBrowser in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your reading list and more on all your devices.
+         </message>
+         <message name="IDS_ACCOUNT_PREVIEW_PROFILE_SEPARATION_SUBTITLE_EXTENSIONS" desc="Body of the web signin interception bubble with account preview, informing the user they can keep accounts separate and access extensions on all their devices.">
+-          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to Chromium in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your extensions and more on all your devices.
++          <ph name="EXISTING_USER">$1<ex>Elisa</ex></ph> is already signed in. To keep your browsing separate, sign in to AhoiBrowser in your own profile as <ph name="USER_EMAIL_ADDRESS">$2<ex>bob.beckett@gmail.com</ex></ph>. You’ll also get your extensions and more on all your devices.
          </message>
          <message name="IDS_SIGNIN_DICE_WEB_INTERCEPT_BUBBLE_CHROME_SIGNIN_SUBTITLE" desc="Subtitle of the Chromium Signin Bubble intercept that is shown when a signed out user signs in on the web with it's first account.">
 -          To get your passwords and more on all your devices, sign in to Chromium
@@ -1012,7 +1028,7 @@ index f91f92b..26e1761 100644
          </message>
        </if>
  
-@@ -1555,54 +1555,54 @@ Chromium is unable to recover your settings.
+@@ -1567,54 +1567,54 @@ Chromium is unable to recover your settings.
  
        <!-- Profile Menu -->
        <message name="IDS_PROFILE_MENU_SIGNIN_PROMO_BUTTON" meaning="Button" desc="Text for the button in the sign-in promo in the profile menu when the used is signed out.">
@@ -1081,7 +1097,7 @@ index f91f92b..26e1761 100644
        </message>
  
        <!-- App list -->
-@@ -1613,15 +1613,15 @@ Chromium is unable to recover your settings.
+@@ -1625,15 +1625,15 @@ Chromium is unable to recover your settings.
        </if>
  
        <message name="IDS_APP_ALSO_DELETE_APPS_DATA" desc="Checkbox text to ask the user during uninstall; Whether they want to remove associated data for the app being uninstalled. Only used when uninstalling an app associated with a particular website.">
@@ -1100,7 +1116,7 @@ index f91f92b..26e1761 100644
        </message>
        <if expr="is_win">
          <message name="IDS_APP_SHORTCUTS_SUBDIR_NAME_BETA" desc="Unused in Chromium builds" translateable="false">
-@@ -1632,37 +1632,37 @@ Chromium is unable to recover your settings.
+@@ -1644,37 +1644,37 @@ Chromium is unable to recover your settings.
  
        <!-- MediaStream capture status tray icon -->
        <message name="IDS_MEDIA_STREAM_STATUS_TRAY_TEXT_AUDIO_AND_VIDEO" desc="Tool tip for the capture status tray icon when microphone and camera are being used">
@@ -1148,7 +1164,7 @@ index f91f92b..26e1761 100644
          </message>
        </if>
  
-@@ -1677,40 +1677,40 @@ Chromium is unable to recover your settings.
+@@ -1689,40 +1689,40 @@ Chromium is unable to recover your settings.
        <if expr="not is_android and not is_chromeos">
          <!-- User pod remove sync warning text -->
          <message name="IDS_LOGIN_POD_USER_REMOVE_WARNING_SYNC" desc="Main text shown as a warning when attempting to remove an user.">
@@ -1199,7 +1215,7 @@ index f91f92b..26e1761 100644
          </message>
          <message name="IDS_TUTORIAL_PASSWORD_MANAGER_CLICK_PASSWORD_MANAGER" desc="The description of the 'click password manager' step in password manager tutorial">
            Click “Password Manager”
-@@ -1725,23 +1725,23 @@ Chromium is unable to recover your settings.
+@@ -1737,23 +1737,23 @@ Chromium is unable to recover your settings.
  
        <!-- Settings API bubble -->
        <message name="IDS_EXTENSIONS_SETTINGS_API_SECOND_LINE_START_PAGES" desc="Second line in the Settings API bubble. Only shown if the secondary change by the extension was just the start pages. The triple single quotes are needed to preserve the space before and after the sentence which is needed when the language (Chrome is being translated to) uses space as word separator. Please preserve them, unless the language being translated to does not use space as word separator.">
@@ -1228,7 +1244,7 @@ index f91f92b..26e1761 100644
        </message>
  
        <!-- Windows firewall rule strings. -->
-@@ -1768,51 +1768,51 @@ Chromium is unable to recover your settings.
+@@ -1780,51 +1780,51 @@ Chromium is unable to recover your settings.
  
        <if expr="not is_android">
          <message name="IDS_CONTENT_CONTEXT_ACCESSIBILITY_LABELS_BUBBLE_TEXT" desc="The text of a bubble that confirms users allows integrating the accessibility labels service of Google to Chromium.">
@@ -1291,7 +1307,7 @@ index f91f92b..26e1761 100644
            </message>
          </if>
        </if>
-@@ -1820,13 +1820,13 @@ Chromium is unable to recover your settings.
+@@ -1832,13 +1832,13 @@ Chromium is unable to recover your settings.
        <!-- Update Recommended dialog -->
        <if expr="not is_chromeos">
          <message name="IDS_UPDATE_RECOMMENDED_DIALOG_TITLE" desc="The window title for the Update Recommended dialog.">
@@ -1309,7 +1325,7 @@ index f91f92b..26e1761 100644
          </message>
          <message name="IDS_RELAUNCH_AND_UPDATE" desc="The button in the Update Recommended dialog which updates and relaunches Chrome.">
            Relaunch
-@@ -1846,71 +1846,71 @@ Chromium is unable to recover your settings.
+@@ -1858,71 +1858,71 @@ Chromium is unable to recover your settings.
  
        <if expr="is_win or is_macosx or is_linux">
          <message name="IDS_UPDATE_RECOMMENDED_DIALOG_TITLE_ALT" desc="Alternate window title for the Update Recommended dialog." translateable="false">
@@ -1398,7 +1414,7 @@ index f91f92b..26e1761 100644
          </message>
        </if>
        <message name="IDS_RECOVERY_BUBBLE_TEXT" desc="Text for the chrome recovery bubble view full description.">
-@@ -1919,39 +1919,39 @@ Chromium is unable to recover your settings.
+@@ -1931,39 +1931,39 @@ Chromium is unable to recover your settings.
  
        <!-- Critical Notification bubble -->
        <message name="IDS_CRITICAL_NOTIFICATION_TITLE" desc="The title for a bubble that appears when there is a critical update and Chromium must restart to install it. It counts down a timer and then Chromium automatically restarts.">
@@ -1449,7 +1465,7 @@ index f91f92b..26e1761 100644
        </message>
  
        <!-- Runtime permission strings -->
-@@ -1992,7 +1992,7 @@ Chromium is unable to recover your settings.
+@@ -2004,7 +2004,7 @@ Chromium is unable to recover your settings.
  
        <if expr="is_macosx">
          <message name="IDS_RUNTIME_PERMISSION_OS_REASON_TEXT" desc="Text provided to the macOS permission dialog, explaining why Chrome needs to access a protected resource (e.g., camera, microphone).">
@@ -1458,7 +1474,7 @@ index f91f92b..26e1761 100644
          </message>
          <message name="IDS_LOCAL_NETWORK_ACCESS_PERMISSION_DESC" desc="Text shown in the macOS permission dialog, describing why Chrome needs the permission to access local network.">
            This will allow you to select from available devices and display content on them.
-@@ -2001,12 +2001,12 @@ Chromium is unable to recover your settings.
+@@ -2013,12 +2013,12 @@ Chromium is unable to recover your settings.
  
        <!-- Side panel strings -->
        <message name="IDS_SIDE_PANEL_CUSTOMIZE_CHROME_TITLE" desc="The name of the Customize Chrome feature in the side panel combo box.">
@@ -1473,7 +1489,7 @@ index f91f92b..26e1761 100644
        </message>
  
        <!-- Lens Overlay Strings -->
-@@ -2381,7 +2381,7 @@ Chromium is unable to recover your settings.
+@@ -2383,7 +2383,7 @@ Chromium is unable to recover your settings.
          </message>
          <message name="IDS_LENS_PERMISSION_BUBBLE_DIALOG_LEARN_MORE_ABOUT_GOOGLE_LENS_LINK"
            desc="Accessibility label for text link that is shown to users to learn more about privacy in relation to Google Lens.">
@@ -1482,7 +1498,7 @@ index f91f92b..26e1761 100644
          </message>
          <message name="IDS_LENS_PERMISSION_BUBBLE_DIALOG_TITLE"
            desc="The title of the lens permission search bubble dialog, introducing Lens as a way to search what's on their screen.">
-@@ -2484,115 +2484,115 @@ Chromium is unable to recover your settings.
+@@ -2486,118 +2486,118 @@ Chromium is unable to recover your settings.
          <if expr="not is_chromeos">
            <message name="IDS_RELAUNCH_RECOMMENDED_TITLE" desc="The title of a dialog that tells users that a browser relaunch is recommended for an update available for some number of days.">
              {0, plural,
@@ -1501,6 +1517,10 @@ index f91f92b..26e1761 100644
 +              =0 {Your administrator asks that you relaunch AhoiBrowser to apply this update}
 +              =1 {Your administrator asks that you relaunch AhoiBrowser to apply this update. Your Incognito window won't reopen.}
 +              other {Your administrator asks that you relaunch AhoiBrowser to apply this update. Your # Incognito windows won't reopen.}}
+           </message>
+           <message name="IDS_RELAUNCH_RECOMMENDED_SCHEDULED_IDLE_TOAST" desc="Toast notification message shown after scheduling an idle restart." translateable="false">
+-            Chromium will restart when you're next idle
++            AhoiBrowser will restart when you're next idle
            </message>
            <message name="IDS_RELAUNCH_REQUIRED_TITLE_DAYS" desc="The title of a dialog that tells users the browser must be relaunched within two or more days.">
              {0, plural,
@@ -1638,7 +1658,7 @@ index f91f92b..26e1761 100644
          </message>
        </if>
  
-@@ -2606,55 +2606,55 @@ Chromium is unable to recover your settings.
+@@ -2611,55 +2611,55 @@ Chromium is unable to recover your settings.
        <!-- Chrome parent extension/app install blocking dialog. -->
        <if expr="enable_extensions_core">
          <message name="IDS_EXTENSION_PERMISSIONS_BLOCKED_BY_PARENT_PROMPT_MESSAGE" desc="Text for the dialog indicating that a parent has blocked extensions and apps.">
@@ -1708,7 +1728,7 @@ index f91f92b..26e1761 100644
          </message>
  
          <!-- Default Browser Promo -->
-@@ -2693,21 +2693,21 @@ Chromium is unable to recover your settings.
+@@ -2698,21 +2698,21 @@ Chromium is unable to recover your settings.
  
          <!-- Profile switch IPH -->
          <message name="IDS_PROFILE_SWITCH_PROMO" desc="Text of the In-Product-Help bubble for profile switching.">
@@ -1735,7 +1755,7 @@ index f91f92b..26e1761 100644
          </message>
  
          <!-- Feature Showcase - Password Manager -->
-@@ -2715,7 +2715,7 @@ Chromium is unable to recover your settings.
+@@ -2720,7 +2720,7 @@ Chromium is unable to recover your settings.
            Stay safe with Password Manager
          </message>
          <message name="IDS_FEATURE_SHOWCASE_PASSWORD_MANAGER_SUBTITLE" desc="Description for the Password Manager page in the Feature Showcase.">
@@ -1744,7 +1764,7 @@ index f91f92b..26e1761 100644
          </message>
  
          <!-- Feature Showcase - Lens -->
-@@ -2728,14 +2728,14 @@ Chromium is unable to recover your settings.
+@@ -2733,14 +2733,14 @@ Chromium is unable to recover your settings.
  
          <!-- Feature Showcase - Gemini -->
          <message name="IDS_FEATURE_SHOWCASE_GEMINI_TITLE" desc="This is the headline for the Gemini (AI assistant) opt-in screen. It introduces the benefit of AI assistance for productivity. (CHAR LIMIT = 60)">
@@ -1761,7 +1781,7 @@ index f91f92b..26e1761 100644
        </message>
  
        <!-- Notification quiet permission IPH -->
-@@ -2748,20 +2748,20 @@ Chromium is unable to recover your settings.
+@@ -2753,20 +2753,20 @@ Chromium is unable to recover your settings.
  
        <!-- ChromeLabs bubble -->
        <message name="IDS_CHROMELABS_RELAUNCH_FOOTER_MESSAGE" desc="Text that shows in the footer of the Chrome Labs bubble when relaunch is needed for changes to take effect.">
@@ -1786,7 +1806,7 @@ index f91f92b..26e1761 100644
        </message>
        <message name="IDS_TAILORED_SECURITY_UNCONSENTED_PROMOTION_MESSAGE_DESCRIPTION" desc="Description shown in the message shown when a user changes their account-level tailored security setting encouraging them to enable Enhanced Safe Browsing">
          Enhanced protection does more to block phishing and malware
-@@ -2791,19 +2791,19 @@ Chromium is unable to recover your settings.
+@@ -2796,19 +2796,19 @@ Chromium is unable to recover your settings.
  
        <!-- Advanced security settings -->
        <message name="IDS_SETTINGS_SECURITY_JAVASCRIPT_OPTIMIZATION_LINK_ROW_ENABLED" desc="Description for the link row of the Javascript-optimization page when javascript-optimization is enabled.">
@@ -1811,7 +1831,7 @@ index f91f92b..26e1761 100644
        </message>
        <!-- ChromiumUpdater Strings -->
        <if expr="is_win">
-@@ -3063,86 +3063,86 @@ Chromium is unable to recover your settings.
+@@ -3068,86 +3068,86 @@ Chromium is unable to recover your settings.
        <!-- Memory Saver Chip strings -->
        <if expr="not is_android">
          <message name="IDS_MEMORY_SAVER_DIALOG_BODY" desc="Body text for a dialog describing that Memory Saver mode will use less memory.">
@@ -1916,7 +1936,7 @@ index f91f92b..26e1761 100644
        </message>
        <message name="IDS_GLIC_STATUS_ICON_TOOLTIP_CANARY" translateable="false" desc="This is the tooltip that is shown when the glic status icon is hovered and the Glic window is closed. It indicates that this is the Canary version of the browser.">
          Open Gemini (Canary)
-@@ -3154,7 +3154,7 @@ Chromium is unable to recover your settings.
+@@ -3159,7 +3159,7 @@ Chromium is unable to recover your settings.
          Open Gemini (Beta)
        </message>
        <message name="IDS_GLIC_STATUS_ICON_TOOLTIP_CLOSE" translateable="false" desc="This is the tooltip that is shown when the glic status icon is hovered and the Glic window is open.">
@@ -1925,7 +1945,7 @@ index f91f92b..26e1761 100644
        </message>
        <message name="IDS_GLIC_STATUS_ICON_TOOLTIP_CLOSE_CANARY" translateable="false" desc="This is the tooltip that is shown when the glic status icon is hovered and the Glic window is open. It indicates that this is the Canary version of the browser.">
          Close Gemini (Canary)
-@@ -3166,7 +3166,7 @@ Chromium is unable to recover your settings.
+@@ -3171,7 +3171,7 @@ Chromium is unable to recover your settings.
          Close Gemini (Beta)
        </message>
        <message name="IDS_GLIC_STATUS_ICON_TOOLTIP_TOGGLE" translateable="false" desc="This is the tooltip that is shown when the glic status icon is hovered.">
@@ -1934,7 +1954,7 @@ index f91f92b..26e1761 100644
        </message>
        <message name="IDS_GLIC_STATUS_ICON_TOOLTIP_TOGGLE_CANARY" translateable="false" desc="This is the tooltip that is shown when the glic status icon is hovered. It indicates that this is the Canary version of the browser.">
          Toggle Gemini (Canary)
-@@ -3178,144 +3178,144 @@ Chromium is unable to recover your settings.
+@@ -3183,162 +3183,162 @@ Chromium is unable to recover your settings.
          Toggle Gemini (Beta)
        </message>
        <message name="IDS_GLIC_STATUS_ICON_MENU_SHOW" translateable="false" desc="This is the menu item for showing the glic UI.">
@@ -2007,9 +2027,16 @@ index f91f92b..26e1761 100644
 -        Search in Chromium
 +        Search in AhoiBrowser
        </message>
-       <message name="IDS_SETTINGS_OMNIBOX_EVERYWHERE_TITLE" desc="Title of the Omnibox Everywhere section on the search settings page.">
+       <message name="IDS_OMNIBOX_EVERYWHERE_PROFILE_TOOLTIP" desc="Tooltip header for the profile icon in Omnibox Everywhere.">
+-        Chromium profile
++        AhoiBrowser profile
+       </message>
+       <message name="IDS_OMNIBOX_EVERYWHERE_NAME" desc="Name of the desktop search feature (Omnibox Everywhere) used for window titles and shortcuts.">
 -        Search with Chromium
 +        Search with AhoiBrowser
+       </message>
+       <message name="IDS_SETTINGS_OMNIBOX_EVERYWHERE_TITLE" desc="Title of the Omnibox Everywhere section on the search settings page.">
+         Search from desktop
        </message>
        <if expr="is_macosx">
          <message name="IDS_SETTINGS_OMNIBOX_EVERYWHERE_TOGGLE" desc="Name of the toggle that controls whether Search with Chromium is shown in the Mac menu bar (on Mac only).">
@@ -2024,8 +2051,8 @@ index f91f92b..26e1761 100644
          </message>
        </if>
        <message name="IDS_SETTINGS_OMNIBOX_EVERYWHERE_TOGGLE_SUBLABEL" desc="Sublabel of the toggle that controls whether Omnibox Everywhere is shown across the device even if Chromium is minimized.">
--        Search and ask questions from anywhere, even if Chromium is minimized
-+        Search and ask questions from anywhere, even if AhoiBrowser is minimized
+-        Search and ask questions from anywhere, even if Chromium is minimized. Allows Chromium to run in the background.
++        Search and ask questions from anywhere, even if AhoiBrowser is minimized. Allows AhoiBrowser to run in the background.
        </message>
        <message name="IDS_SETTINGS_OMNIBOX_EVERYWHERE_SHORTCUT_SUBLABEL" desc="Description for the global keyboard shortcut setting to invoke Omnibox Everywhere.">
          Search with a keyboard shortcut.
@@ -2036,6 +2063,22 @@ index f91f92b..26e1761 100644
        </message>
        <message name="IDS_SETTINGS_OMNIBOX_EVERYWHERE_SHOW_SHORTCUTS_SUBLABEL" desc="Description for the toggle to show shortcuts in Omnibox Everywhere.">
          Easy access to websites below the address bar
+       </message>
+       <message name="IDS_LOOMNIBOX_FRE_TITLE" desc="Title of the First Run Experience (FRE) modal for Loomnibox.">
+-        Search with Chromium from anywhere
++        Search with AhoiBrowser from anywhere
+       </message>
+       <message name="IDS_LOOMNIBOX_FRE_LENS_SECONDARY" desc="Secondary description detailing Google Lens functionality in Loomnibox.">
+-        Ask about content outside of Chromium, like another app or file you have open
++        Ask about content outside of AhoiBrowser, like another app or file you have open
+       </message>
+       <message name="IDS_LOOMNIBOX_FRE_TO_SEARCH_OR_CUSTOMIZE" desc="Text in the Stage 2 FRE chin following the shortcut dropdown indicating it searches with Chromium or customizes in settings.">
+-        to search with Chromium or customize in <ph name="BEGIN_LINK">&lt;a href="#" class="settings-link"&gt;</ph>Settings<ph name="END_LINK">&lt;/a&gt;</ph>
++        to search with AhoiBrowser or customize in <ph name="BEGIN_LINK">&lt;a href="#" class="settings-link"&gt;</ph>Settings<ph name="END_LINK">&lt;/a&gt;</ph>
+       </message>
+       <message name="IDS_LOOMNIBOX_FRE_REMINDER_TO_SEARCH" desc="Label in the Stage 3 reminder FRE chin showing the active shortcut to search with Chromium.">
+-        to search with Chromium.
++        to search with AhoiBrowser.
        </message>
        <message name="IDS_SETTINGS_GLIC_OS_WIDGET_TOGGLE_SUBLABEL" desc="Sublabel of the toggle that controls whether the Gemini icon is shown in the menu bar (on Mac) / system tray (on Windows and Linux)." formatter_data="android_java">
 -        Easy access to use Gemini in Chromium across your device, even if Chromium is minimized.
@@ -2115,7 +2158,7 @@ index f91f92b..26e1761 100644
        </message>
        <message name="IDS_DICE_MIGRATION_CONFIRMATION_TOAST_BUTTON" desc="The text on the button of the confirmation toast shown after the user clicks the accept button on the Dice Migration dialog, that allows the users to control the sync settings or sign out of Chrome.">
          Manage
-@@ -3325,12 +3325,12 @@ Chromium is unable to recover your settings.
+@@ -3348,12 +3348,12 @@ Chromium is unable to recover your settings.
        <if expr="not is_android">
          <if expr="use_titlecase">
            <message name="IDS_PROFILE_MENU_ACCOUNT_SETTINGS_BUTTON" desc="Button in the avatar menu bubble view for opening Chrome account settings.">
@@ -2130,7 +2173,7 @@ index f91f92b..26e1761 100644
            </message>
          </if>
        </if>
-@@ -3344,10 +3344,10 @@ Chromium is unable to recover your settings.
+@@ -3367,10 +3367,10 @@ Chromium is unable to recover your settings.
          </message>
  
          <message name="IDS_DICTATION_ONBOARDING_TITLE" desc="The title string in the onboarding dialog for the dictation feature." translateable="false">
@@ -2143,7 +2186,7 @@ index f91f92b..26e1761 100644
          </message>
          <message name="IDS_DICTATION_ONBOARDING_BULLET_DISCLAIMER" desc="The disclaimer text in the onboarding dialog describing the use of AI and potential for mistakes and providing a link for more details." translateable="false">
            Dictation uses AI and can make mistakes. <ph name="LEARN_MORE_LINK">$1<ex>Learn more</ex></ph>
-@@ -3357,140 +3357,140 @@ Chromium is unable to recover your settings.
+@@ -3380,140 +3380,140 @@ Chromium is unable to recover your settings.
        <!--Desktop to iOS promo strings-->
        <if expr="not is_android">
          <message name="IDS_IOS_DESKTOP_ESB_PROMO_BUBBLE_DESCRIPTION_REMINDER" desc="The description for the iOS desktop ESB promo bubble with a reminder button.">
@@ -2326,7 +2369,7 @@ index f91f92b..26e1761 100644
          </message>
        </if>
  
-@@ -3501,7 +3501,7 @@ Chromium is unable to recover your settings.
+@@ -3524,7 +3524,7 @@ Chromium is unable to recover your settings.
        </message>
        <message name="IDS_DEFAULT_SEARCH_ENGINE_RESET_NOTIFICATION_BODY"
           desc="Body text of the notification shown when Chromium resets the default search engine, explaining that a change from outside Chromium was detected.">
@@ -2335,7 +2378,7 @@ index f91f92b..26e1761 100644
        </message>
        <message name="IDS_DEFAULT_SEARCH_ENGINE_RESET_NOTIFICATION_GOT_IT_BUTTON"
           desc="Label for the 'Got it' button in the default search engine reset notification, which dismisses the UI.">
-@@ -3529,23 +3529,23 @@ Chromium is unable to recover your settings.
+@@ -3552,23 +3552,23 @@ Chromium is unable to recover your settings.
  
        <!-- JS optimizations bubble -->
        <message name="IDS_JS_OPTIMIZATION_BUBBLE_BODY_NON_POLICY_BODY" desc="Body text for the JavaScript optimization bubble when disabled for other reasons.">
@@ -2365,10 +2408,10 @@ index f91f92b..26e1761 100644
      </messages>
    </release>
 diff --git a/chrome/app/resources/chromium_strings_de.xtb b/chrome/app/resources/chromium_strings_de.xtb
-index 62beb47..1429523 100644
+index 1fbb0fc..77f0103 100644
 --- a/chrome/app/resources/chromium_strings_de.xtb
 +++ b/chrome/app/resources/chromium_strings_de.xtb
-@@ -3,451 +3,451 @@
+@@ -3,455 +3,455 @@
  <translationbundle lang="de">
  <translation id="1026101648481255140">Installation fortsetzen</translation>
  <translation id="1029669172902658969">Neu starten, um &amp;Chromium OS zu aktualisieren</translation>
@@ -2426,7 +2469,6 @@ index 62beb47..1429523 100644
 -<translation id="1342274909142618978">Auch Daten aus Chromium löschen (<ph name="URL" />)</translation>
 +<translation id="1298702697848487523">Auch Daten aus AhoiBrowser löschen (<ph name="URL" />)</translation>
  <translation id="1345251407431278948">Angepinnt! Über den neuen Button in der Symbolleiste kannst du wieder auf die Bildersuche zugreifen.</translation>
- <translation id="1356661055722410047">Neu! Du kannst sowohl Text als auch Bilder auf deinem Bildschirm übersetzen lassen</translation>
  <translation id="1383876407941801731">Suchen</translation>
 -<translation id="1388276868779258475">Mit der Chromium App kannst du unterwegs weiter surfen</translation>
 +<translation id="6645148427093797663">Mit der AhoiBrowser App kannst du unterwegs weiter surfen</translation>
@@ -2476,9 +2518,11 @@ index 62beb47..1429523 100644
  <translation id="1793486931176048546">Klicke in der Windows-Benachrichtigung auf <ph name="BEGIN_BOLD" />Ja<ph name="END_BOLD" />, um Chromium für den Schnellzugriff an die Taskleiste anzupinnen.</translation>
 -<translation id="1808667845054772817">Chromium neu installieren</translation>
 -<translation id="1820835682567584003">Chromium versucht, <ph name="AUTHENTICATION_PURPOSE" /></translation>
+-<translation id="1828328511398219809"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in Chromium an. Du kannst dann auch auf deine Erweiterungen und weitere Daten von <ph name="DEVICE" /> zugreifen.</translation>
 -<translation id="183031085822326697">Wenn du Chromium das nächste Mal auf deinem Gerät (<ph name="DEVICE_TYPE" />) öffnest, wirst du aufgefordert, den Google Passwortmanager zu verwenden.</translation>
 +<translation id="8074329762593430914">AhoiBrowser neu installieren</translation>
 +<translation id="5832245217831733549">AhoiBrowser versucht, <ph name="AUTHENTICATION_PURPOSE" /></translation>
++<translation id="7622980819176209322"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in AhoiBrowser an. Du kannst dann auch auf deine Erweiterungen und weitere Daten von <ph name="DEVICE" /> zugreifen.</translation>
 +<translation id="6907521660095203113">Wenn du AhoiBrowser das nächste Mal auf deinem Gerät (<ph name="DEVICE_TYPE" />) öffnest, wirst du aufgefordert, den Google Passwortmanager zu verwenden.</translation>
  <translation id="1838374766361614909">Suche löschen</translation>
 -<translation id="18552579716432081">Wenn du Browserdaten nur von diesem Gerät, aber nicht aus deinem Google-Konto löschen möchtest, <ph name="BEGIN_LINK" />melde dich in Chromium ab<ph name="END_LINK" />.</translation>
@@ -2596,9 +2640,11 @@ index 62beb47..1429523 100644
  <translation id="2575822587468774919">Wähle ein beliebiges Element für die Bildersuche aus</translation>
 -<translation id="2576118232315942160">Wenn du auf allen deinen Geräten auf deine Passwörter und andere Daten zugreifen möchtest, melde dich in Chromium an</translation>
 -<translation id="2587622539943955767">Scanne den QR-Code mit deinem Smartphone, um Chromium herunterzuladen und dich in deinem Google-Konto anzumelden.</translation>
+-<translation id="2587885422541096572">um mit Chromium zu suchen.</translation>
 -<translation id="2592940277904433508">Chromium weiterhin verwenden</translation>
 +<translation id="620268124866092721">Wenn du auf allen deinen Geräten auf deine Passwörter und andere Daten zugreifen möchtest, melde dich in AhoiBrowser an</translation>
 +<translation id="6868507469854539367">Scanne den QR-Code mit deinem Smartphone, um AhoiBrowser herunterzuladen und dich in deinem Google-Konto anzumelden.</translation>
++<translation id="2897155168793302933">um mit AhoiBrowser zu suchen.</translation>
 +<translation id="3815693568623511057">AhoiBrowser weiterhin verwenden</translation>
  <translation id="259935314519650377">Die heruntergeladene Installationsdatei konnte nicht im Cache gespeichert werden. Fehler: <ph name="UNPACK_CACHING_ERROR_CODE" />.</translation>
  <translation id="2620436844016719705">System</translation>
@@ -2671,12 +2717,14 @@ index 62beb47..1429523 100644
  <translation id="3038232873781883849">Warten auf Installation…</translation>
  <translation id="3045032126857188731">Übersetzte Sprache: <ph name="LANGUAGE" /></translation>
  <translation id="3047590466164881923">Feedback-Dialogfeld schließen</translation>
+-<translation id="3064717200427679322"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in Chromium an. Du kannst dann auch auf deine Leseliste und weitere Daten von <ph name="DEVICE" /> zugreifen.</translation>
 -<translation id="3068187312562070417">Andere Chromium-Profile</translation>
 -<translation id="3068290154869370196">Erweiterungen sind Add-ons zur Personalisierung von Chromium. Egal, ob du besser organisiert bleiben oder alltägliche Aufgaben vereinfachen möchtest – mit Erweiterungen kannst du Chromium ganz individuell anpassen.</translation>
 -<translation id="3068515742935458733">Absturzberichte und <ph name="UMA_LINK" /> zur Verbesserung von Chromium an Google senden</translation>
 -<translation id="3071024987058544609">Mit der Chromium App wirst du unterwegs bestmöglich von Google geschützt</translation>
 -<translation id="3079753320517721795">{NUM_DEVICES,plural, =0{Auf 1 USB-Gerät wurde von mindestens einer Chromium-Erweiterung zugegriffen}=1{Auf 1 USB-Gerät wird von mindestens einer Chromium-Erweiterung zugegriffen}other{Auf # USB-Geräte wird von mindestens einer Chromium-Erweiterung zugegriffen}}</translation>
 -<translation id="3095811995836568724">Chromium-Verlauf</translation>
++<translation id="637522406718536297"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in AhoiBrowser an. Du kannst dann auch auf deine Leseliste und weitere Daten von <ph name="DEVICE" /> zugreifen.</translation>
 +<translation id="5786187359655425789">Andere AhoiBrowser-Profile</translation>
 +<translation id="6061440937535051286">Erweiterungen sind Add-ons zur Personalisierung von AhoiBrowser. Egal, ob du besser organisiert bleiben oder alltägliche Aufgaben vereinfachen möchtest – mit Erweiterungen kannst du AhoiBrowser ganz individuell anpassen.</translation>
 +<translation id="4121043150889653207">Absturzberichte und <ph name="UMA_LINK" /> zur Verbesserung von AhoiBrowser an Google senden</translation>
@@ -2835,9 +2883,11 @@ index 62beb47..1429523 100644
 +<translation id="3804365249755913823">AhoiBrowser a&amp;npassen</translation>
  <translation id="4148957013307229264">Installation wird ausgeführt...</translation>
  <translation id="419998258129752635"><ph name="PAGE_TITLE" /> – Netzwerkanmeldung – Chromium</translation>
+-<translation id="4208652172235621272"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in Chromium an. Du kannst dann auch auf allen deinen Geräten auf deine Leseliste und weitere Daten zugreifen.</translation>
 -<translation id="421369550622382712">Entdecke tolle Apps, Spiele, Erweiterungen und Designs für Chromium.</translation>
 -<translation id="4217080900579554343">Wenn du auf allen deinen Computern auf diese Erweiterung und mehr zugreifen möchtest, melde dich in Chromium an</translation>
 -<translation id="4217972271355023382">Wenn du die von deinen Eltern festgelegten Einstellungen nutzen möchtest, um im Internet besser geschützt zu sein, wechsle zu deinem Chromium-Profil, in dem du bereits als <ph name="USER_EMAIL_ADDRESS" /> angemeldet bist</translation>
++<translation id="4638114554909903727"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in AhoiBrowser an. Du kannst dann auch auf allen deinen Geräten auf deine Leseliste und weitere Daten zugreifen.</translation>
 +<translation id="3684355362980550515">Entdecke tolle Apps, Spiele, Erweiterungen und Designs für AhoiBrowser.</translation>
 +<translation id="7001972384411061811">Wenn du auf allen deinen Computern auf diese Erweiterung und mehr zugreifen möchtest, melde dich in AhoiBrowser an</translation>
 +<translation id="2249247066714514705">Wenn du die von deinen Eltern festgelegten Einstellungen nutzen möchtest, um im Internet besser geschützt zu sein, wechsle zu deinem AhoiBrowser-Profil, in dem du bereits als <ph name="USER_EMAIL_ADDRESS" /> angemeldet bist</translation>
@@ -2857,8 +2907,6 @@ index 62beb47..1429523 100644
 +<translation id="288480812909535082">Passwörter aus AhoiBrowser exportieren</translation>
  <translation id="4304713468139749426">Passwort­manager</translation>
  <translation id="4334241893986177674">In diesem Screenshot suchen</translation>
--<translation id="4368547723231502008">Du kannst von überall aus suchen und Fragen stellen, auch wenn Chromium minimiert ist</translation>
-+<translation id="6589075465106493677">Du kannst von überall aus suchen und Fragen stellen, auch wenn AhoiBrowser minimiert ist</translation>
  <translation id="4384331407722351213">Chromium beim Starten von Windows öffnen</translation>
  <translation id="4400772909124543403">Es ist kein Update verfügbar</translation>
 -<translation id="4407044323746248786">Chromium trotzdem beenden?</translation>
@@ -2902,10 +2950,12 @@ index 62beb47..1429523 100644
 -<translation id="4621240073146040695">Fast fertig! Starte Chromium neu, um die Aktualisierung abzuschließen.</translation>
 -<translation id="4625064703209785397">Websites werden mit der V8-Engine von Chromium beschleunigt, Chromium wird dadurch aber etwas anfälliger für Angriffe</translation>
 -<translation id="4626321472657185181">Suche mit Chromium öffnen</translation>
+-<translation id="4654639495249754755">Chromium-Profil</translation>
 -<translation id="4665829708273112819">Achtung: Chromium kann nicht verhindern, dass dein Browserverlauf von Erweiterungen protokolliert wird. Du kannst diese Erweiterung für den Inkognitomodus deaktivieren, indem du die Auswahl für die entsprechende Option aufhebst.</translation>
 +<translation id="1193548649952939178">Fast fertig! Starte AhoiBrowser neu, um die Aktualisierung abzuschließen.</translation>
 +<translation id="3192508128121214530">Websites werden mit der V8-Engine von AhoiBrowser beschleunigt, AhoiBrowser wird dadurch aber etwas anfälliger für Angriffe</translation>
 +<translation id="6797721825396658642">Suche mit AhoiBrowser öffnen</translation>
++<translation id="6530246086300995252">AhoiBrowser-Profil</translation>
 +<translation id="6381124624243430271">Achtung: AhoiBrowser kann nicht verhindern, dass dein Browserverlauf von Erweiterungen protokolliert wird. Du kannst diese Erweiterung für den Inkognitomodus deaktivieren, indem du die Auswahl für die entsprechende Option aufhebst.</translation>
  <translation id="4672969016402661100">Wenn du AhoiBrowser als Standardbrowser festlegst, hast du ganz einfach Zugriff auf die vertrauten Funktionen.</translation>
 -<translation id="4673151026126227699">Wenn du Chromium-Nutzungsberichte teilst, enthalten diese Berichte die von dir aufgerufenen URLs</translation>
@@ -2996,6 +3046,7 @@ index 62beb47..1429523 100644
 -<translation id="5382964351116519680">Suche mit Chromium öffnen</translation>
 -<translation id="5383439451358640070">Gründe, warum Chromium einige Dateien blockiert</translation>
 -<translation id="5386450000063123300">Chromium wird aktualisiert (<ph name="PROGRESS_PERCENT" />)</translation>
+-<translation id="5387586787134731891"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in Chromium an. Du kannst dann auch auf allen deinen Geräten auf deine Erweiterungen und weitere Daten zugreifen.</translation>
 -<translation id="538767207339317086">Anmeldung in Chromium zulassen</translation>
 -<translation id="5405650547142096840">Aus Chromium entfernen</translation>
 -<translation id="5424544524441439284">Reduziert die Leistung, macht Chromium aber widerstandsfähiger gegen Angriffe</translation>
@@ -3003,6 +3054,7 @@ index 62beb47..1429523 100644
 +<translation id="4681856484902570092">Suche mit AhoiBrowser öffnen</translation>
 +<translation id="4598550320135334506">Gründe, warum AhoiBrowser einige Dateien blockiert</translation>
 +<translation id="1672566237400653651">AhoiBrowser wird aktualisiert (<ph name="PROGRESS_PERCENT" />)</translation>
++<translation id="7115759078556579734"><ph name="EXISTING_USER" /> ist bereits angemeldet. Wenn du deine Browsingaktivitäten getrennt halten möchtest, melde dich mit <ph name="USER_EMAIL_ADDRESS" /> in deinem eigenen Profil in AhoiBrowser an. Du kannst dann auch auf allen deinen Geräten auf deine Erweiterungen und weitere Daten zugreifen.</translation>
 +<translation id="3787905155655692035">Anmeldung in AhoiBrowser zulassen</translation>
 +<translation id="3964831548934448063">Aus AhoiBrowser entfernen</translation>
 +<translation id="3546178697199402105">Reduziert die Leistung, macht AhoiBrowser aber widerstandsfähiger gegen Angriffe</translation>
@@ -3069,7 +3121,7 @@ index 62beb47..1429523 100644
  <translation id="5895138241574237353">Neu starten</translation>
  <translation id="5903106910045431592"><ph name="PAGE_TITLE" /> – Netzwerkanmeldung</translation>
  <translation id="5922032298552745053">1. Klicke unten auf <ph name="BUTTON_LABEL" />
-@@ -455,121 +455,121 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
+@@ -459,122 +459,122 @@ Wenn diese Seite nicht wie erwartet funktioniert, kannst du versuchen, die Optim
  3. Klicke in der Windows-Benachrichtigung auf <ph name="BUTTON_3" />, um AhoiBrowser für den Schnellzugriff an die Taskleiste anzupinnen</translation>
  <translation id="5922847975329512945">Klicke in der Windows-Benachrichtigung auf <ph name="BEGIN_BOLD" />Ja<ph name="END_BOLD" />, um AhoiBrowser für den Schnellzugriff an die Taskleiste anzupinnen.</translation>
  <translation id="5924017743176219022">Internetverbindung wird hergestellt…</translation>
@@ -3123,7 +3175,9 @@ index 62beb47..1429523 100644
 +<translation id="1352716386837183246">Diese Datei könnte gefährlich sein<ph name="LINE_BREAK" />AhoiBrowser kann diesen Download für dich prüfen, wenn du das Passwort eingibst. Die Dateiinformationen werden an Google Safe Browsing gesendet, aber der Dateiinhalt und das Passwort bleiben auf deinem Gerät.</translation>
  <translation id="6182736845697986886">Die Installation ist aufgrund eines internen Fehlers des Update-Servers fehlgeschlagen.</translation>
 -<translation id="6183079672144801177">Du musst auf deinem Gerät (<ph name="TARGET_DEVICE_NAME" />) in Chromium angemeldet sein. Versuche es dann noch einmal.</translation>
+-<translation id="6192070012454216182">Du kannst von überall aus suchen und Fragen stellen, auch wenn Chromium minimiert ist. Ermöglicht die Ausführung von Chromium im Hintergrund.</translation>
 +<translation id="3799559167333838299">Du musst auf deinem Gerät (<ph name="TARGET_DEVICE_NAME" />) in AhoiBrowser angemeldet sein. Versuche es dann noch einmal.</translation>
++<translation id="471939042761664616">Du kannst von überall aus suchen und Fragen stellen, auch wenn AhoiBrowser minimiert ist. Ermöglicht die Ausführung von AhoiBrowser im Hintergrund.</translation>
  <translation id="6212496753309875659">Auf diesem Computer befindet sich bereits eine neuere Version von Chromium. Falls die Software nicht funktioniert, deinstalliere Chromium bitte und versuche es erneut.</translation>
 -<translation id="6219195342503754812">{0,plural, =0{Chromium wird jetzt neu gestartet}=1{Chromium wird in einer Sekunde neu gestartet}other{Chromium wird in # Sekunden neu gestartet}}</translation>
 +<translation id="4028208584334457884">{0,plural, =0{AhoiBrowser wird jetzt neu gestartet}=1{AhoiBrowser wird in einer Sekunde neu gestartet}other{AhoiBrowser wird in # Sekunden neu gestartet}}</translation>
@@ -3256,7 +3310,7 @@ index 62beb47..1429523 100644
  <translation id="6919942714452658456">Durch diese Aktion werden:
            <ph name="LINE_BREAKS" />
              • Deine „Beim Start“-Seite, die „Neuer Tab“-Seite, die Suchmaschine und angepinnte Tabs zurückgesetzt
-@@ -581,214 +581,214 @@ Einige Funktionen stehen möglicherweise nicht zur Verfügung. Gib bitte ein and
+@@ -586,216 +586,216 @@ Einige Funktionen stehen möglicherweise nicht zur Verfügung. Gib bitte ein and
              • Chromium-Verknüpfungen zurückgesetzt
              <ph name="LINE_BREAKS" />
              Diese Aktion wirkt sich nicht auf Lesezeichen, den Verlauf und gespeicherte Passwörter aus.</translation>
@@ -3309,10 +3363,11 @@ index 62beb47..1429523 100644
  <translation id="7288567540154601580">Tabs und Erweiterungen</translation>
 -<translation id="7295544978856094497">{NUM_EXTENSIONS,plural, =1{Chromium empfiehlt, sie zu entfernen}other{Chromium empfiehlt, sie zu entfernen}}</translation>
 -<translation id="7296334833518879294">Wenn du Systemaudio teilen möchtest, öffne die Systemeinstellungen und aktiviere die Option „Nur Systemaudio aufzeichnen“ für Chromium. Du musst Chromium dann neu starten.</translation>
--<translation id="731795002583552498">Chromium wird aktualisiert</translation>
--<translation id="7318036098707714271">Deine Einstellungsdatei ist beschädigt oder ungültig.
 +<translation id="4379299159920285015">{NUM_EXTENSIONS,plural, =1{AhoiBrowser empfiehlt, sie zu entfernen}other{AhoiBrowser empfiehlt, sie zu entfernen}}</translation>
 +<translation id="3900127917824357125">Wenn du Systemaudio teilen möchtest, öffne die Systemeinstellungen und aktiviere die Option „Nur Systemaudio aufzeichnen“ für AhoiBrowser. Du musst AhoiBrowser dann neu starten.</translation>
+ <translation id="7299899569525778554">Vom Desktop aus suchen</translation>
+-<translation id="731795002583552498">Chromium wird aktualisiert</translation>
+-<translation id="7318036098707714271">Deine Einstellungsdatei ist beschädigt oder ungültig.
 +<translation id="9071217111331618708">AhoiBrowser wird aktualisiert</translation>
 +<translation id="5341050155696751167">Deine Einstellungsdatei ist beschädigt oder ungültig.
  
@@ -3399,8 +3454,10 @@ index 62beb47..1429523 100644
 +<translation id="3945026007904474710"><ph name="PAGE_TITLE" /> – AhoiBrowser Canary</translation>
 +<translation id="7301888684074511804">Du kannst es Personen mit Zugriff auf deinen Internetverkehr erschweren, zu sehen, welche Websites du besuchst. AhoiBrowser nutzt eine verschlüsselte Verbindung, um die IP-Adresse einer Website im DNS (Domain Name System) zu ermitteln.</translation>
  <translation id="7810005234485217901">Du kannst die Bildersuche anpinnen, um leichter darauf zuzugreifen</translation>
+-<translation id="7813626943009612327">Du kannst Fragen zu Inhalten außerhalb von Chromium stellen, z. B. zu einer anderen App oder Datei, die du geöffnet hast</translation>
 -<translation id="7828527096541974699">Festlegen, was mit Chromium geteilt werden soll</translation>
 -<translation id="7828947555739565424">Ein Chromium-Profil mit diesem Konto ist auf diesem Gerät bereits vorhanden</translation>
++<translation id="4859727389959051549">Du kannst Fragen zu Inhalten außerhalb von AhoiBrowser stellen, z. B. zu einer anderen App oder Datei, die du geöffnet hast</translation>
 +<translation id="6486937995099382070">Festlegen, was mit AhoiBrowser geteilt werden soll</translation>
 +<translation id="5728889353069508424">Ein AhoiBrowser-Profil mit diesem Konto ist auf diesem Gerät bereits vorhanden</translation>
  <translation id="7845233973568007926">Vielen Dank für die Installation. Du musst deinen Computer neu starten, bevor du <ph name="BUNDLE_NAME" /> verwenden kannst.</translation>
@@ -3539,15 +3596,16 @@ index 62beb47..1429523 100644
 -<translation id="8576826849825683917">Chromium wird von mehreren Organisationen verwaltet</translation>
 +<translation id="3841482538393777788">AhoiBrowser wird von mehreren Organisationen verwaltet</translation>
  <translation id="8586442755830160949">Copyright <ph name="YEAR" /> Die Chromium-Autoren. Alle Rechte vorbehalten.</translation>
- <translation id="8601359445272098721">Neu! Du kannst sowohl Text als auch Bilder auf deinem Bildschirm übersetzen, indem du den Button „Bildschirm übersetzen“ auswählst</translation>
  <translation id="8611105887519167537">AhoiBrowser ist nicht dein Standardbrowser</translation>
 -<translation id="8619360774459241877">Chromium wird gestartet…</translation>
 +<translation id="3580746887329725765">AhoiBrowser wird gestartet…</translation>
  <translation id="8624541899164515475">Einstellungen, werden in neuem Tab geöffnet.</translation>
  <translation id="8648201657708811153">Google Chrome for Testing kann nicht als Standardbrowser festgelegt werden.</translation>
  <translation id="8655993906227611888">AhoiBrowser als Standard festlegen und an die Taskleiste anpinnen</translation>
+-<translation id="8676101123715131330">Mit Chromium von überall aus suchen</translation>
 -<translation id="8697124171261953979">Die Erweiterung legt auch fest, welche Seite beim Start von Chromium oder bei der Suche über die Omnibox angezeigt wird.</translation>
 -<translation id="8704119203788522458">Dies ist dein persönlicher Chromium-Browser</translation>
++<translation id="1912713728212695612">Mit AhoiBrowser von überall aus suchen</translation>
 +<translation id="5884296193300080855">Die Erweiterung legt auch fest, welche Seite beim Start von AhoiBrowser oder bei der Suche über die Omnibox angezeigt wird.</translation>
 +<translation id="918059232255551007">Dies ist dein persönlicher AhoiBrowser-Browser</translation>
  <translation id="8712637175834984815">Ok</translation>
@@ -3577,7 +3635,7 @@ index 62beb47..1429523 100644
  <translation id="8944232836376404813">Durch diese Aktion werden:
            <ph name="LINE_BREAKS" />
              • Deine „Beim Start“-Seite, die Seite „Neuer Tab“, die Suchmaschine und angepinnte Tabs zurückgesetzt
-@@ -798,43 +798,43 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
+@@ -805,44 +805,44 @@ Chromium kann deine Einstellungen nicht wiederherstellen.</translation>
              • Cookies und andere vorübergehende Websitedaten gelöscht
              <ph name="LINE_BREAKS" />
              Diese Aktion wirkt sich nicht auf Lesezeichen, den Verlauf und gespeicherte Passwörter aus.</translation>
@@ -3585,12 +3643,14 @@ index 62beb47..1429523 100644
 -<translation id="897581876605952338">Chromium Enterprise-Logo</translation>
 -<translation id="8980139959902937527">Mit der Chromium App auf deinem <ph name="DEVICE_TYPE" /> die Sicherheitsfunktionen von Google unterwegs nutzen</translation>
 -<translation id="8981150672034878610">Chromium kann nicht gestartet werden, da beim Öffnen deines Profils ein Fehler aufgetreten ist. Versuche, Chromium neu zu starten.</translation>
+-<translation id="8981886272598860786">um mit Chromium zu suchen oder in den <ph name="BEGIN_LINK" />Einstellungen<ph name="END_LINK" /> anzupassen</translation>
 -<translation id="8988036198400390003">Chromium-Profile verwalten</translation>
 -<translation id="8993855408334954620">Du kannst mit der Tastatur zwischen Gemini in Chromium und deinem geöffneten Tab wechseln.</translation>
 +<translation id="6742195809889653567">AhoiBrowser-Website-Tastenkombinationen anzeigen</translation>
 +<translation id="5578910499702572467">AhoiBrowser Enterprise-Logo</translation>
 +<translation id="1899363911092300259">Mit der AhoiBrowser App auf deinem <ph name="DEVICE_TYPE" /> die Sicherheitsfunktionen von Google unterwegs nutzen</translation>
 +<translation id="5778346502667141050">AhoiBrowser kann nicht gestartet werden, da beim Öffnen deines Profils ein Fehler aufgetreten ist. Versuche, AhoiBrowser neu zu starten.</translation>
++<translation id="8785388426916846387">um mit AhoiBrowser zu suchen oder in den <ph name="BEGIN_LINK" />Einstellungen<ph name="END_LINK" /> anzupassen</translation>
 +<translation id="7779676145659725981">AhoiBrowser-Profile verwalten</translation>
 +<translation id="4035252218128641306">Du kannst mit der Tastatur zwischen Gemini in AhoiBrowser und deinem geöffneten Tab wechseln.</translation>
  <translation id="9018218886431812662">Installation abgeschlossen</translation>

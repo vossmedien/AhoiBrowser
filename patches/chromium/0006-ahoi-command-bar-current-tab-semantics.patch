@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index d854b5c1d488499ce713656434fd133ff905b5c1..914c409d0d37c25f0228b1f58b96cdb9d95d07ae 100644
+index fed0944a5e2a63eb09469ad52b1f118e58349fff..31339e56292338eb393c84444c4fcead5e0c8c24 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -21119,6 +21119,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -21272,6 +21272,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_AHOI_DEVELOPER_ASSET_SCOPE_TAB" desc="Developer asset scope limited to the current tab." meaning="AhoiBrowser developer toolkit">
        Current tab
      </message>
@@ -13,10 +13,10 @@ index d854b5c1d488499ce713656434fd133ff905b5c1..914c409d0d37c25f0228b1f58b96cdb9
        Exact origin
      </message>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index 1b13d95b8825df7541cdd9c23c73ccae6c0d6388..5a00f92569637df469cf7b1c1bffeedc4cff4e03 100644
+index ab99943a93f35eb4330c857adbc88f6b09c10999..2724107a811eacc8fbc733b2afa00a731499cadb 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11186,6 +11186,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11233,6 +11233,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="1534074917150785690">Verschlüsselten Sync für dieses Asset erlauben</translation>
  <translation id="956437958128566241">URL-Geltungsbereich</translation>
  <translation id="5720325548335527619">Aktueller Tab</translation>
@@ -25,10 +25,10 @@ index 1b13d95b8825df7541cdd9c23c73ccae6c0d6388..5a00f92569637df469cf7b1c1bffeedc
  <translation id="6364878297740434630">Domain und Subdomains</translation>
  <translation id="2056065112898830396">Pfadpräfix</translation>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index c251a7572eea79c70f228edabbd568e8afb5eb38..944dd07588eda0cb3eb1472874aa475e6eb3e56f 100644
+index ed31b7d28fb7dcbd1ba43ea824da6c5c14d47ac5..a278deb6a106fa63a03a6dde33b22426fd3cbe16 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -11038,6 +11038,7 @@ This can include information about installed software, files, your browser, the
+@@ -11085,6 +11085,7 @@ This can include information about installed software, files, your browser, the
  <translation id="1534074917150785690">Allow encrypted sync for this asset</translation>
  <translation id="956437958128566241">URL scope</translation>
  <translation id="5720325548335527619">Current tab</translation>

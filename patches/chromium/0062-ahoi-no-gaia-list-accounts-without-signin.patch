@@ -1,5 +1,5 @@
 diff --git a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
-index db2e026..e45b9be 100644
+index db2e0266aa2200f23d47eba563dac73e96fef1c7..e45b9beb22c061289b5257ad05e8ecfdc3a5efb9 100644
 --- a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
 +++ b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
 @@ -525,6 +525,14 @@ GaiaCookieManagerService::GetCachedListAccounts() {

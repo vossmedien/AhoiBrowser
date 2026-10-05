@@ -1,8 +1,8 @@
 diff --git a/chrome/app/chrome_main_delegate.cc b/chrome/app/chrome_main_delegate.cc
-index 10b22c602c45760e6f17dd6eb644660c6a902ed9..bf937fcc58f38a3c4e788e09d7b45d3f679da775 100644
+index b2a9613f10ac9ee29cf2d1553cc65906a298bdb8..debcf3c5a84d22305e8127def359dcc944cf6896 100644
 --- a/chrome/app/chrome_main_delegate.cc
 +++ b/chrome/app/chrome_main_delegate.cc
-@@ -1120,7 +1120,9 @@ std::optional<int> ChromeMainDelegate::BasicStartupComplete() {
+@@ -1127,7 +1127,9 @@ std::optional<int> ChromeMainDelegate::BasicStartupComplete() {
    base::CommandLine& mutable_command_line =
        *base::CommandLine::ForCurrentProcess();
    if (!mutable_command_line.HasSwitch(switches::kProcessType)) {

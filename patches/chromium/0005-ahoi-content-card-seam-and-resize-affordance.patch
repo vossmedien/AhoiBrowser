@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index eaf8778f555f2b36c0b5320cedc067b3a76783da..d9396c0729c6841e83c2c73ff2fdcfce328dd950 100644
+index b1a9ac0825d7ea1a4bd8bd934cf3684e1c0dbce7..13ef131ff04061c692833f3246d150425cd93df0 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -1141,9 +1141,20 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1145,9 +1145,20 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
    views().multi_contents_view->SetShouldShowTopSeparator(
        !IsAhoiShell(views()) && separator_info.multi_contents_separator);
  
@@ -24,7 +24,7 @@ index eaf8778f555f2b36c0b5320cedc067b3a76783da..d9396c0729c6841e83c2c73ff2fdcfce
      const bool include_top_inset =
          layout_data_->window_state == WindowState::kFullscreen ||
          infobar_visible;
-@@ -1201,8 +1212,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1205,8 +1216,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
    // Ahoi's content card is true layout rather than an overlay. This keeps
    // CSS media queries, window.innerWidth/innerHeight, DevTools and split-pane
    // hit testing in sync with the pixels the user actually sees.
@@ -34,7 +34,7 @@ index eaf8778f555f2b36c0b5320cedc067b3a76783da..d9396c0729c6841e83c2c73ff2fdcfce
      contents_layout.bounds.Inset(
          gfx::Insets(ahoi::visual_style::kContentCardInset));
    }
-@@ -1248,7 +1258,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1252,7 +1262,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
      }
    }
  
@@ -109,10 +109,10 @@ index 5356e211bca6c7c079ab044b0ea5295a6aa1b8a1..108dfb62c1720b697ed49c291cae49be
    MultiContentsResizeHandle* resize_handle_for_testing() const {
      return resize_handle_;
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
-index 82c059d2d9b4f5cbce24ee22a3eb70519504963b..713401fa7dd891aab975fb97d072897f0d3f4938 100644
+index bc2bdcbd77d5e01880d1eb77411e06c64a88bc1d..bb50e49563cec1dc57dd397a37eb3b091c0f579c 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
-@@ -1285,6 +1285,12 @@ void MultiContentsView::SetShouldShowTopSeparator(bool should_show) {
+@@ -1283,6 +1283,12 @@ void MultiContentsView::SetShouldShowTopSeparator(bool should_show) {
    InvalidateLayout(/*avoid_propagate_during_layout=*/true);
  }
  

@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 266fa1c775512e442c5e4888653e86594ead5daa..c5355f0d212049a396cce3895169f4f2bed8e15e 100644
+index 58406af1ca3988e331805d16e647de97231d3e5c..9dc9504f92ab6799653bd75ffaf47760a050594a 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20806,6 +20806,18 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20959,6 +20959,18 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_AHOI_CONTEXT_COPY_ALL_LINKS" desc="Context-menu action that copies every saved page URL inside an AhoiBrowser group." meaning="AhoiBrowser native sidebar">
        Copy all links
      </message>
@@ -22,10 +22,10 @@ index 266fa1c775512e442c5e4888653e86594ead5daa..c5355f0d212049a396cce3895169f4f2
        Move to
      </message>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index 0b36eb50100624be94770a5389a2ff5eb75d8d46..1d6df5bcd4a9a92e90b6e3fa138be7354b33925b 100644
+index 89680a51d78f35d28959d0d2bc2c91f025c8df28..23c7a0e8b9952c0a9fe37e673fa9c7c1d72b31b1 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11282,4 +11282,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11329,4 +11329,8 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="1555692962934226231">Auswahl wird geladen…</translation>
  <translation id="3373635015517088468">Für dieses Profil sind derzeit keine unterstützten Einstellungen verfügbar.</translation>
  <translation id="5831405800489376068">Die Auswahl konnte nicht geändert werden.</translation>
@@ -35,10 +35,10 @@ index 0b36eb50100624be94770a5389a2ff5eb75d8d46..1d6df5bcd4a9a92e90b6e3fa138be735
 +<translation id="8762882822589517341">Der Lesemodus ist für diese Seite nicht verfügbar</translation>
  </translationbundle>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index f2aec50f9051812c1f27b647ed15f4a4a8cdec9b..38584bdb6bcee48af9685e5ddcc1e35f36067e21 100644
+index 5a4b364e449ba9675a25d316eff244de83b376cc..427a0c99fc14e5999e366a4ab88003cae8b38bf4 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -11078,4 +11078,8 @@ This can include information about installed software, files, your browser, the
+@@ -11125,4 +11125,8 @@ This can include information about installed software, files, your browser, the
  <translation id="4474610624900854258">Close tabs from this import before undoing it. Changed imported items block recovery. Other pages and the backup are kept.</translation>
  <translation id="554473421888566226">Undo failed import</translation>
  <translation id="2451348137617820571">The failed import was undone. Review the sidebar, then start a new preview when ready.</translation>

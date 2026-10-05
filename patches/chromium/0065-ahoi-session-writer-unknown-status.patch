@@ -1,8 +1,8 @@
 diff --git a/components/sessions/core/command_storage_backend.cc b/components/sessions/core/command_storage_backend.cc
-index 15be35e..c6f019b 100644
+index 76793af5a174009cdc583099197112b24f062ba1..e7dd9de61654c0b963d1ac9607ea3f0fc92e1a15 100644
 --- a/components/sessions/core/command_storage_backend.cc
 +++ b/components/sessions/core/command_storage_backend.cc
-@@ -568,7 +568,11 @@ void CommandStorageBackend::AppendCommands(
+@@ -560,7 +560,11 @@ void CommandStorageBackend::AppendCommands(
      last_or_current_path_with_valid_marker_ = open_file_->path;
    }
  
@@ -15,7 +15,7 @@ index 15be35e..c6f019b 100644
      status = WriteStatus::kFileNotOpened;
    }
    DCHECK_NE(status, WriteStatus::kUnknown);
-@@ -841,6 +845,9 @@ std::unique_ptr<base::File> CommandStorageBackend::OpenAndWriteHeader(
+@@ -832,6 +836,9 @@ std::unique_ptr<base::File> CommandStorageBackend::OpenAndWriteHeader(
                  base::File::FLAG_WIN_EXCLUSIVE_WRITE |
                  base::File::FLAG_WIN_EXCLUSIVE_READ);
    if (!file->IsValid()) {

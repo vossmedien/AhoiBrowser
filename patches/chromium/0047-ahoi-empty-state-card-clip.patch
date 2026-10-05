@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index 5dd7955..f3af6b 100644
+index 2518b8458f1cbffe2460615e0a6c5b651fea1868..fac207ccce52f29d46003a11a6255295dcd812e6 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -1276,6 +1276,10 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1280,6 +1280,10 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
          gfx::RoundedCornersF(ahoi::visual_style::kContentCardCornerRadius,
                               ahoi::visual_style::kContentCardCornerRadius,
                               0.0f, 0.0f));
@@ -14,10 +14,10 @@ index 5dd7955..f3af6b 100644
      // If the window goes out of glass mode, these changes won't hurt anything.
      gfx::RoundedCornersF content_corners;
 diff --git a/chrome/browser/ui/views/frame/multi_contents_view.cc b/chrome/browser/ui/views/frame/multi_contents_view.cc
-index 4b2765..f7ec97 100644
+index d60a9d2e0eb421e80a76a42a6d72b8203e69e3ae..05723fc63dddc7555bc08b840db40ef640a27781 100644
 --- a/chrome/browser/ui/views/frame/multi_contents_view.cc
 +++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
-@@ -125,6 +125,8 @@ MultiContentsView::MultiContentsView(
+@@ -127,6 +127,8 @@ MultiContentsView::MultiContentsView(
    ahoi_empty_state_view_ =
        AddChildView(ahoi::empty_state::CreateEmptyStateView());
    ahoi_empty_state_view_->SetVisible(false);
@@ -26,7 +26,7 @@ index 4b2765..f7ec97 100644
  
    drop_target_view_ =
        AddChildView(std::make_unique<MultiContentsDropTargetView>());
-@@ -299,6 +301,14 @@ void MultiContentsView::SetBackgroundRadii(const gfx::RoundedCornersF& radii) {
+@@ -301,6 +303,14 @@ void MultiContentsView::SetBackgroundRadii(const gfx::RoundedCornersF& radii) {
  
    background_view_->SetRoundedCorners(radii);
  

@@ -1,7 +1,7 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -21310,6 +21310,9 @@
+@@ -21463,6 +21463,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_AHOI_DEVELOPER_PROFILE_ADVANCED_RESPONSE_HEADERS_REQUIRED" desc="Validation error when CSP or CORS response-header overrides are enabled without device-local acknowledgement." meaning="AhoiBrowser developer toolkit">
        Acknowledge the CSP/CORS security warning before enabling these response-header rules.
      </message>
@@ -14,7 +14,7 @@ diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11308,4 +11308,5 @@
+@@ -11355,4 +11355,5 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="3477672943250760514">Dauer der Headerregeln</translation>
  <translation id="4595629620678597857">Bis dieser Tab geschlossen wird</translation>
  <translation id="3570996243294328609">Vorübergehende Headerregeln gelten nur in diesem Tab und werden nicht synchronisiert.</translation>

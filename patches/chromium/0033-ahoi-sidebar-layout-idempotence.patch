@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index 5ce9725e96674c12ffcbebe6e46f64b8f8b4bee7..5e05e1b2642ffad892489333707399f45818f6f9 100644
+index 9f74c8a7858d4c2da3f8e9ac3e289ba8e45d0ee0..c10c02552af058429707aec71c263a7889fbb6ce 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-@@ -712,14 +712,21 @@ bool VerticalTabStripRegionView::IsPositionInWindowCaption(
+@@ -714,14 +714,21 @@ bool VerticalTabStripRegionView::IsPositionInWindowCaption(
  
  void VerticalTabStripRegionView::SetToolbarHeightForLayout(int toolbar_height) {
    toolbar_height_for_layout_ = std::max(0, toolbar_height);

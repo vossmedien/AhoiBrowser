@@ -49,10 +49,10 @@ index 62546b572bab849b182fed62ad964d5cef136571..4504738f644abfea5a6ff66bb7d9bc76
      bookmarks_profile.importer_name =
          l10n_util::GetStringUTF16(IDS_IMPORT_FROM_BOOKMARKS_HTML_FILE);
 diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
-index ed36395ae7d494a51a465d4a22d2a89c3bd3479c..3e507b2e36928bee7fce10dd0f642359366da87a 100644
+index c0e7db6264bbcaab041a2b6fd07d4a43e755870b..0a3434b2b5b1a761f76bfcf022dbc3a552ed0475 100644
 --- a/chrome/utility/BUILD.gn
 +++ b/chrome/utility/BUILD.gn
-@@ -60,6 +60,7 @@ static_library("utility") {
+@@ -62,6 +62,7 @@ static_library("utility") {
      "//content/public/child",
      "//content/public/common",
      "//content/public/utility",
@@ -61,7 +61,7 @@ index ed36395ae7d494a51a465d4a22d2a89c3bd3479c..3e507b2e36928bee7fce10dd0f642359
      "//ipc",
      "//media",
 diff --git a/chrome/utility/importer/firefox_importer.cc b/chrome/utility/importer/firefox_importer.cc
-index e2bf3edc0a2d9190f887fc556d7de6c33fa3dbf3..ff6ff83821de3c2ece0cefc56e1c777fcd3fcddf 100644
+index 3bfda2481a079a630239a5f8be9d3e36f759b4dc..371f50c27e539e11c216a9c9e98a9832448ae103 100644
 --- a/chrome/utility/importer/firefox_importer.cc
 +++ b/chrome/utility/importer/firefox_importer.cc
 @@ -4,6 +4,7 @@
@@ -124,7 +124,7 @@ index e2bf3edc0a2d9190f887fc556d7de6c33fa3dbf3..ff6ff83821de3c2ece0cefc56e1c777f
  // Original definition is in:
  //   toolkit/components/places/nsINavBookmarksService.idl
  enum BookmarkItemType {
-@@ -725,14 +764,67 @@ void FirefoxImporter::LoadFavicons(
+@@ -733,14 +772,67 @@ void FirefoxImporter::LoadFavicons(
  
  base::FilePath FirefoxImporter::GetCopiedSourcePath(
      std::string_view base_file_name) {
@@ -197,7 +197,7 @@ index e2bf3edc0a2d9190f887fc556d7de6c33fa3dbf3..ff6ff83821de3c2ece0cefc56e1c777f
    return destination;
  }
 diff --git a/chrome/utility/importer/firefox_importer.h b/chrome/utility/importer/firefox_importer.h
-index fea3060ce40e8157eca71d54b79427b9d6ed345c..589ecebada0cd6b689e335c49cf68834cc36c83f 100644
+index 838c01f39bf84add10552532c40282015ab4921c..46100b5aaaf93d2a9b4fb095e4d3f933936c7bd0 100644
 --- a/chrome/utility/importer/firefox_importer.h
 +++ b/chrome/utility/importer/firefox_importer.h
 @@ -72,6 +72,12 @@ class FirefoxImporter : public Importer {
@@ -214,10 +214,10 @@ index fea3060ce40e8157eca71d54b79427b9d6ed345c..589ecebada0cd6b689e335c49cf68834
    void ImportBookmarks();
    void ImportRemainingItems();
 diff --git a/chrome/utility/importer/firefox_importer_unittest.cc b/chrome/utility/importer/firefox_importer_unittest.cc
-index d5ae8759097fb99a6f0d40d938f1365cb88900d4..4571ae8a5e49edd7717bd4e8c11f1c3676bfe469 100644
+index 718d2f47f9307902752e358ae297c783346f9ca4..59b7fb71b61bb91006f5002378acb6669b70fada 100644
 --- a/chrome/utility/importer/firefox_importer_unittest.cc
 +++ b/chrome/utility/importer/firefox_importer_unittest.cc
-@@ -28,6 +28,10 @@
+@@ -30,6 +30,10 @@
  #include "sql/test/test_helpers.h"
  #include "testing/gtest/include/gtest/gtest.h"
  
@@ -228,7 +228,7 @@ index d5ae8759097fb99a6f0d40d938f1365cb88900d4..4571ae8a5e49edd7717bd4e8c11f1c36
  using ::testing::_;
  
  class FirefoxImporterTest : public testing::Test {
-@@ -76,6 +80,63 @@ class FirefoxImporterTest : public testing::Test {
+@@ -78,6 +82,63 @@ class FirefoxImporterTest : public testing::Test {
        &fake_parser_};
  };
  

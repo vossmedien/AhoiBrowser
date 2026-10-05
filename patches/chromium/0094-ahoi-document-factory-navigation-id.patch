@@ -1,7 +1,7 @@
 diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/browser/renderer_host/render_frame_host_impl.cc
 --- a/content/browser/renderer_host/render_frame_host_impl.cc
 +++ b/content/browser/renderer_host/render_frame_host_impl.cc
-@@ -2068,6 +2068,7 @@
+@@ -2078,6 +2078,7 @@ class RenderFrameHostImpl::SubresourceLoaderFactoriesConfig {
        RenderFrameHostImpl& frame) {
      SubresourceLoaderFactoriesConfig result;
      result.origin_ = frame.GetLastCommittedOrigin();
@@ -9,7 +9,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
      result.isolation_info_ = frame.GetIsolationInfoForSubresources();
      result.client_security_state_ = frame.BuildClientSecurityState();
      if (frame.coep_reporter_) {
-@@ -2119,6 +2120,7 @@
+@@ -2133,6 +2134,7 @@ class RenderFrameHostImpl::SubresourceLoaderFactoriesConfig {
        NavigationRequest& navigation_request) {
      SubresourceLoaderFactoriesConfig result;
      result.origin_ = navigation_request.GetOriginToCommit().value();
@@ -17,7 +17,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
      result.client_security_state_ =
          navigation_request.BuildClientSecurityStateForCommittedDocument();
      result.ukm_source_id_ = ukm::SourceIdObj::FromInt64(
-@@ -2257,6 +2259,8 @@
+@@ -2275,6 +2277,8 @@ class RenderFrameHostImpl::SubresourceLoaderFactoriesConfig {
  
    const ukm::SourceIdObj& ukm_source_id() const { return ukm_source_id_; }
  
@@ -26,15 +26,15 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
    const net::CookieSettingOverrides& cookie_setting_overrides() const {
      return cookie_setting_overrides_;
    }
-@@ -2279,6 +2283,7 @@
+@@ -2301,6 +2305,7 @@ class RenderFrameHostImpl::SubresourceLoaderFactoriesConfig {
    network::mojom::TrustTokenOperationPolicyVerdict
        trust_token_redemption_policy_;
    ukm::SourceIdObj ukm_source_id_;
 +  int64_t navigation_id_ = 0;
    net::CookieSettingOverrides cookie_setting_overrides_;
    base::UnguessableToken network_restrictions_id_;
- };
-@@ -3770,7 +3775,8 @@
+   bool renderer_accessible_http_cache_write_enabled_ = false;
+@@ -3738,7 +3743,8 @@ bool RenderFrameHostImpl::CreateNetworkServiceDefaultFactory(
            subresource_loader_factories_config,
            "RFHI::CreateNetworkServiceDefaultFactory"),
        subresource_loader_factories_config.ukm_source_id(),
@@ -44,7 +44,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
  }
  
  std::unique_ptr<blink::PendingURLLoaderFactoryBundle>
-@@ -8507,7 +8513,8 @@
+@@ -8450,7 +8456,8 @@ void RenderFrameHostImpl::UpdateSubresourceLoaderFactories() {
              subresource_loader_factories_config,
              "RFHI::UpdateSubresourceLoaderFactories"),
          subresource_loader_factories_config.ukm_source_id(),
@@ -54,7 +54,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
    }
  
    std::unique_ptr<blink::PendingURLLoaderFactoryBundle>
-@@ -10558,7 +10565,8 @@
+@@ -10531,7 +10538,8 @@ RenderFrameHostImpl::CreateCrossOriginPrefetchLoaderFactoryBundle() {
    bypass_redirect_checks = CreateNetworkServiceDefaultFactoryAndObserve(
        std::move(factory_params),
        subresource_loader_factories_config.ukm_source_id(),
@@ -64,7 +64,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
  
    return std::make_unique<blink::PendingURLLoaderFactoryBundle>(
        std::move(pending_default_factory),
-@@ -13255,7 +13263,8 @@
+@@ -13278,7 +13286,8 @@ void RenderFrameHostImpl::CommitNavigation(
                    subresource_loader_factories_config,
                    "RFHI::CommitNavigation"),
                subresource_loader_factories_config.ukm_source_id(),
@@ -74,7 +74,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
        subresource_loader_factories->set_bypass_redirect_checks(
            bypass_redirect_checks);
      }
-@@ -13588,7 +13597,8 @@
+@@ -13611,7 +13620,8 @@ void RenderFrameHostImpl::FailedNavigation(
                *navigation_request),
            "RFHI::FailedNavigation"),
        ukm::kInvalidSourceIdObj,
@@ -84,7 +84,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
    subresource_loader_factories =
        std::make_unique<blink::PendingURLLoaderFactoryBundle>(
            std::move(default_factory_remote),
-@@ -14514,9 +14524,11 @@
+@@ -14541,9 +14551,11 @@ bool RenderFrameHostImpl::CreateNetworkServiceDefaultFactoryAndObserve(
      network::mojom::URLLoaderFactoryParamsPtr params,
      ukm::SourceIdObj ukm_source_id,
      mojo::PendingReceiver<network::mojom::URLLoaderFactory>
@@ -98,7 +98,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
  
    // Add a disconnect handler when Network Service is running
    // out-of-process.
-@@ -14554,7 +14566,8 @@
+@@ -14581,7 +14593,8 @@ bool RenderFrameHostImpl::CreateNetworkServiceDefaultFactoryInternal(
      network::mojom::URLLoaderFactoryParamsPtr params,
      ukm::SourceIdObj ukm_source_id,
      mojo::PendingReceiver<network::mojom::URLLoaderFactory>
@@ -108,7 +108,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
    CHECK(params->request_initiator_origin_lock.has_value());
    const url::Origin request_initiator =
        params->request_initiator_origin_lock.value();
-@@ -14572,7 +14585,7 @@
+@@ -14599,7 +14612,7 @@ bool RenderFrameHostImpl::CreateNetworkServiceDefaultFactoryInternal(
        url_loader_factory::ContentClientParams(
            GetBrowserContext(), this, GetProcess()->GetDeprecatedID(),
            request_initiator, isolation_info, ukm_source_id,
@@ -120,7 +120,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/b
 diff --git a/content/browser/renderer_host/render_frame_host_impl.h b/content/browser/renderer_host/render_frame_host_impl.h
 --- a/content/browser/renderer_host/render_frame_host_impl.h
 +++ b/content/browser/renderer_host/render_frame_host_impl.h
-@@ -3856,7 +3856,8 @@
+@@ -3672,7 +3672,8 @@ class CONTENT_EXPORT RenderFrameHostImpl
        network::mojom::URLLoaderFactoryParamsPtr params,
        ukm::SourceIdObj ukm_source_id,
        mojo::PendingReceiver<network::mojom::URLLoaderFactory>
@@ -130,7 +130,7 @@ diff --git a/content/browser/renderer_host/render_frame_host_impl.h b/content/br
  
    // Asks an appropriate `NetworkService` to create a new URLLoaderFactory with
    // the given `params` and binds the factory to the `default_factory_receiver`.
-@@ -3873,7 +3874,8 @@
+@@ -3689,7 +3690,8 @@ class CONTENT_EXPORT RenderFrameHostImpl
        network::mojom::URLLoaderFactoryParamsPtr params,
        ukm::SourceIdObj ukm_source_id,
        mojo::PendingReceiver<network::mojom::URLLoaderFactory>

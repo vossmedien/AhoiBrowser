@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
-index c6b675740d172f6f38d434a3fc3f7475dfddeb46..e01f6ceb8e9434636724133f91b9055a9b73204a 100644
+index fd3a6448d9131a83a0e269e4ecc580608aa99981..8bee8b6595b12e57bd185ca8831ff4344724cfca 100644
 --- a/chrome/browser/ui/browser_command_controller.cc
 +++ b/chrome/browser/ui/browser_command_controller.cc
-@@ -647,7 +647,28 @@ bool BrowserCommandController::ExecuteCommandWithDispositionAndContext(
+@@ -654,7 +654,28 @@ bool BrowserCommandController::ExecuteCommandWithDispositionAndContext(
    // crashes, e.g. from Windows sending WM_COMMANDs at random times during
    // window construction.  This probably could use closer examination someday.
    if (browser_->tab_strip_model()->active_index() == TabStripModel::kNoTab) {

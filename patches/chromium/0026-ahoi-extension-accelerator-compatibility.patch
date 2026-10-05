@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 85ccb086aa6c8159917766149d4fd97c3e4e2266..81a337529c0ffca41873bb80b7ac4c77de6241e3 100644
+index dd038f656b97ea4ed39a287b9f0f7e019b7a579b..f243f240ac055ea73d2f4de85752277cf32d251a 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -6841,13 +6841,19 @@ void BrowserView::LoadAccelerators() {
+@@ -6845,13 +6845,19 @@ void BrowserView::LoadAccelerators() {
    }
  
  #if BUILDFLAG(IS_MAC)
@@ -23,7 +23,7 @@ index 85ccb086aa6c8159917766149d4fd97c3e4e2266..81a337529c0ffca41873bb80b7ac4c77
    const bool is_regular_ahoi_browser =
        browser_->GetProfile() && browser_->GetProfile()->IsRegularProfile() &&
        !browser_->GetProfile()->IsOffTheRecord();
-@@ -6858,51 +6864,51 @@ void BrowserView::LoadAccelerators() {
+@@ -6862,51 +6868,51 @@ void BrowserView::LoadAccelerators() {
        !AhoiQuickWindowGlobalShortcut::GetInstance()->registered()) {
      focus_manager->RegisterAccelerator(
          ui::Accelerator(ui::VKEY_SPACE, ui::EF_ALT_DOWN),

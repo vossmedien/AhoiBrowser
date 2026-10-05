@@ -1,5 +1,5 @@
 diff --git a/components/os_crypt/common/BUILD.gn b/components/os_crypt/common/BUILD.gn
-index 10db068..0694087 100644
+index 10db0687101b69542f9dd33592d0655c7343e3c8..069408763f874b71d593f3ca1d83674389cfdebb 100644
 --- a/components/os_crypt/common/BUILD.gn
 +++ b/components/os_crypt/common/BUILD.gn
 @@ -36,10 +36,14 @@ source_set("unit_tests") {
@@ -19,7 +19,7 @@ index 10db068..0694087 100644
        "//testing/gmock",
        "//testing/gtest",
 diff --git a/components/os_crypt/common/keychain_password_mac.h b/components/os_crypt/common/keychain_password_mac.h
-index c4cf9c0..01656f7 100644
+index c4cf9c0f8330c282425919927de3da7a5834f148..01656f7e3ea05409caab5c75fa68e21ee03fe9fa 100644
 --- a/components/os_crypt/common/keychain_password_mac.h
 +++ b/components/os_crypt/common/keychain_password_mac.h
 @@ -32,6 +32,10 @@ class KeychainPassword {
@@ -34,27 +34,28 @@ index c4cf9c0..01656f7 100644
    // empty string is returned.
    std::string GetPassword() const;
 diff --git a/components/os_crypt/common/keychain_password_mac.mm b/components/os_crypt/common/keychain_password_mac.mm
-index f240dc2..62586ea 100644
+index 212b93095214422112afd346e36cd2838891725b..5618d8771ce957ecf3b14cbc25d1a542e4a63e3f 100644
 --- a/components/os_crypt/common/keychain_password_mac.mm
 +++ b/components/os_crypt/common/keychain_password_mac.mm
-@@ -7,6 +7,8 @@
+@@ -6,6 +6,9 @@
+ 
  #import <Security/Security.h>
  
- #include <atomic>
 +#include <optional>
 +#include <utility>
- 
++
  #include "base/apple/osstatus_logging.h"
  #include "base/apple/scoped_cftyperef.h"
-@@ -17,6 +19,7 @@
+ #include "base/base64.h"
+@@ -14,6 +17,7 @@
+ #include "base/no_destructor.h"
  #include "base/rand_util.h"
  #include "base/strings/string_view_util.h"
- #include "base/types/expected.h"
-+#include "base/types/expected_macros.h"
++#include "base/types/expected.h"
  #include "build/branding_buildflags.h"
  #include "crypto/apple/keychain_v2.h"
  #include "third_party/abseil-cpp/absl/cleanup/cleanup.h"
-@@ -37,9 +40,19 @@ namespace {
+@@ -34,9 +38,19 @@ namespace {
  #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
  const char kDefaultServiceName[] = "Chrome Safe Storage";
  const char kDefaultAccountName[] = "Chrome";
@@ -76,7 +77,7 @@ index f240dc2..62586ea 100644
  #endif
  
  // These values are persisted to logs. Entries should not be renumbered and
-@@ -77,6 +90,53 @@ base::expected<std::string, OSStatus> AddRandomPasswordToKeychain(
+@@ -69,6 +83,53 @@ std::string AddRandomPasswordToKeychain(KeychainV2& keychain,
    return password;
  }
  
@@ -127,20 +128,24 @@ index f240dc2..62586ea 100644
 +  return legacy_password;
 +}
 +
- base::expected<std::string, OSStatus> GetPasswordImpl(
-     KeychainV2& keychain,
-     const std::string& service_name,
-@@ -96,6 +156,13 @@ base::expected<std::string, OSStatus> GetPasswordImpl(
+ }  // namespace
+ 
+ // static
+@@ -105,6 +166,17 @@ std::string KeychainPassword::GetPassword() const {
  
    if (password.error() == errSecItemNotFound) {
      uma_result = FindGenericPasswordResult::kPasswordNotFound;
 +    // Ahoi: adopt the legacy secret before ever creating a new one.
-+    ASSIGN_OR_RETURN(std::optional<std::string> legacy_password,
-+                     FindLegacyPassword(keychain, service_name, account_name));
-+    if (legacy_password.has_value()) {
-+      return AdoptLegacyPassword(keychain, service_name, account_name,
-+                                 std::move(*legacy_password));
++    base::expected<std::optional<std::string>, OSStatus> legacy_password =
++        FindLegacyPassword(*keychain_, GetServiceName(), GetAccountName());
++    if (!legacy_password.has_value()) {
++      return std::string();
 +    }
-     return AddRandomPasswordToKeychain(keychain, service_name, account_name);
++    if (legacy_password->has_value()) {
++      return AdoptLegacyPassword(*keychain_, GetServiceName(),
++                                 GetAccountName(),
++                                 std::move(**legacy_password));
++    }
+     return AddRandomPasswordToKeychain(*keychain_, GetServiceName(),
+                                        GetAccountName());
    }
- 

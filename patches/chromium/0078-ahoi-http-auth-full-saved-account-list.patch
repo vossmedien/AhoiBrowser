@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/BUILD.gn b/chrome/browser/ui/views/BUILD.gn
-index dd50125..939e6eb 100644
+index 53f757d1758f935de4291589ccb7794099958021..9c7582f7d7eea854c6113ccbc81d76313d34d397 100644
 --- a/chrome/browser/ui/views/BUILD.gn
 +++ b/chrome/browser/ui/views/BUILD.gn
-@@ -479,6 +479,7 @@ source_set("login_view") {
+@@ -529,6 +529,7 @@ source_set("login_view") {
    ]
    deps = [
      ":layout_provider",
@@ -11,7 +11,7 @@ index dd50125..939e6eb 100644
      "//ui/base",
    ]
 diff --git a/chrome/browser/ui/views/login_view.cc b/chrome/browser/ui/views/login_view.cc
-index b7f2533..2c514ae 100644
+index b7f25334763bb04e79de2486ef7a7857a1ccfe46..2c514ae65e989d5c873a08588c08c42d4e5a9ac9 100644
 --- a/chrome/browser/ui/views/login_view.cc
 +++ b/chrome/browser/ui/views/login_view.cc
 @@ -10,6 +10,7 @@

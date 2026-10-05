@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/startup/infobar_utils.cc b/chrome/browser/ui/startup/infobar_utils.cc
-index 7c2500e..1465276 100644
+index 7c2500e45cf1567c6388e268feef2758854153ca..1465276708938d4fd0fcfccef1b355a60b60543c 100644
 --- a/chrome/browser/ui/startup/infobar_utils.cc
 +++ b/chrome/browser/ui/startup/infobar_utils.cc
 @@ -293,6 +293,11 @@ void AddInfoBarsIfNecessary(BrowserWindowInterface* browser,
@@ -21,10 +21,10 @@ index 7c2500e..1465276 100644
 +#endif  // !BUILDFLAG(IS_MAC)
  }
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index e2da320..d4a348b 100644
+index 4f4db4aebfb4f3cebab5375d696b2563e87cf9e4..0af0d1327ef4fec48f32df6664e61f5a8f059eb2 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -1268,13 +1268,15 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
+@@ -1282,13 +1282,15 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
  
      // Keep the product treatment at the BrowserView seam: MultiContentsView
      // remains responsible for clipping every live WebContents (including
@@ -44,10 +44,10 @@ index e2da320..d4a348b 100644
          contents_container(), ahoi::visual_style::kContentCardShadowElevation);
      ahoi_contents_shadow_->SetRoundedCornerRadius(
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index 779939d..5dd7955 100644
+index bc80e32ecd33d9da2c1dd04758cb46c96b9403fb..2518b8458f1cbffe2460615e0a6c5b651fea1868 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -1226,7 +1226,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1230,7 +1230,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
                            views()
                                .vertical_tab_strip_region_view
                                ->GetAhoiContentCardLeadingInsetForLayout(),
@@ -56,7 +56,7 @@ index 779939d..5dd7955 100644
                            ahoi::visual_style::kContentCardInset));
    }
  
-@@ -1273,7 +1273,9 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1277,7 +1277,9 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
  
    if (uses_ahoi_content_card) {
      views().multi_contents_view->SetBackgroundRadii(

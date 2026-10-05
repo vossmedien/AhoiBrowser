@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/ui/navigator/browser_navigator.cc
-index 258f996c80e2..394d01b61494 100644
+index 5029e2640598dfffb79ec88703f4a9fc13d0f4db..7d5142860e7156ba4a5f1633e4f54d582b646d0f 100644
 --- a/chrome/browser/ui/navigator/browser_navigator.cc
 +++ b/chrome/browser/ui/navigator/browser_navigator.cc
 @@ -11,6 +11,8 @@
@@ -11,15 +11,15 @@ index 258f996c80e2..394d01b61494 100644
  #include "base/feature_list.h"
  #include "base/memory/raw_ptr.h"
  #include "base/notimplemented.h"
-@@ -70,6 +72,7 @@
+@@ -73,6 +75,7 @@
  #include "content/public/browser/render_process_host.h"
  #include "content/public/browser/render_view_host.h"
  #include "content/public/browser/site_isolation_policy.h"
 +#include "content/public/browser/site_instance.h"
  #include "content/public/browser/web_contents.h"
  #include "extensions/buildflags/buildflags.h"
- #include "ui/base/window_open_disposition.h"
-@@ -108,6 +111,7 @@ namespace {
+ #include "ui/base/page_transition_types.h"
+@@ -112,6 +115,7 @@ namespace {
  
  struct AdditionalParams {
    bool tab_modal_popup = false;
@@ -27,7 +27,7 @@ index 258f996c80e2..394d01b61494 100644
  };
  
  // Returns true if |params.browser| exists and can open a new tab for
-@@ -471,7 +475,8 @@ Profile* GetSourceProfile(NavigateParams* params) {
+@@ -491,7 +495,8 @@ Profile* GetSourceProfile(NavigateParams* params) {
  
  std::unique_ptr<content::WebContents> CreateTargetContents(
      const NavigateParams& params,
@@ -37,7 +37,7 @@ index 258f996c80e2..394d01b61494 100644
    // Always create the new WebContents in a new SiteInstance (and therefore a
    // new BrowsingInstance), *unless* there's a |params.opener|.
    //
-@@ -482,10 +487,19 @@ std::unique_ptr<content::WebContents> CreateTargetContents(
+@@ -502,10 +507,19 @@ std::unique_ptr<content::WebContents> CreateTargetContents(
    // subsequent navigation is cross-process (i.e. cross-SiteInstance), then it
    // will stay in the same BrowsingInstance (creating frame proxies as needed)
    // preserving the requested opener relationship along the way.
@@ -61,7 +61,7 @@ index 258f996c80e2..394d01b61494 100644
  
    WebContents::CreateParams create_params(
        params.browser->GetProfile(), initial_site_instance_for_new_contents);
-@@ -793,6 +807,29 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
+@@ -817,6 +831,29 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
            params->initiating_profile, params->url)) {
      CHECK(web_app::AppBrowserController::IsIsolatedWebApp(params->browser));
    }
@@ -91,7 +91,7 @@ index 258f996c80e2..394d01b61494 100644
  #if BUILDFLAG(IS_CHROMEOS)
    if (source_browser && source_browser != params->browser) {
      // When the newly created browser was spawned by a browser which visits
-@@ -878,7 +915,8 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
+@@ -902,7 +939,8 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
      DCHECK(!params->url.is_empty());
      if (params->disposition != WindowOpenDisposition::CURRENT_TAB) {
        tab_to_insert = std::make_unique<tabs::TabModel>(

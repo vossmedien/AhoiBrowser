@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 49d6325852e64ca428f6cd315ba975cbc30d2332..46989aae5cf7b5b1a469b641ffb9a493e219aa9e 100644
+index bd416b63760481282400840d9df3625472ab3f3e..61e0829f12f6e050c8f56b8b6e354d5381bc7df6 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20382,6 +20382,25 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20535,6 +20535,25 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_ERROR" desc="Generic fail-closed Arc import error." meaning="AhoiBrowser Arc import">
        The import stopped safely without leaving a partial sidebar change. Try discovery again.
      </message>
@@ -28,7 +28,7 @@ index 49d6325852e64ca428f6cd315ba975cbc30d2332..46989aae5cf7b5b1a469b641ffb9a493
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE" desc="Instruction to close Arc before import discovery." meaning="AhoiBrowser Arc import">
        Close Arc completely
      </message>
-@@ -20397,6 +20416,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20550,6 +20569,7 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_SPLITS" desc="Arc preview valid split count label." meaning="AhoiBrowser Arc import">Split views</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_DEGRADATIONS" desc="Arc preview degraded split count label." meaning="AhoiBrowser Arc import">Splits kept as folders</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_EXCLUDED" desc="Arc preview excluded unsafe or unsupported item count label." meaning="AhoiBrowser Arc import">Excluded items</message>
@@ -36,7 +36,7 @@ index 49d6325852e64ca428f6cd315ba975cbc30d2332..46989aae5cf7b5b1a469b641ffb9a493
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_TARGETS" desc="Heading for target Ahoi workspace names." meaning="AhoiBrowser Arc import">Target workspaces</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_PROFILES" desc="Legend for selectable Arc Chromium profiles included in the safety backup." meaning="AhoiBrowser Arc import">Arc profiles to back up</message>
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_CATEGORIES" desc="Legend for selectable Arc import categories." meaning="AhoiBrowser Arc import">Import categories</message>
-@@ -20418,6 +20438,13 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20571,6 +20591,13 @@ Please help our engineers fix this problem. Tell us what happened right before y
  
      <!-- AhoiBrowser Zen import availability -->
      <message name="IDS_SETTINGS_AHOI_ZEN_IMPORT_CLOSE_SOURCE" desc="Instruction shown when Zen must be closed before its profile can be imported." meaning="AhoiBrowser Zen import">Close Zen before importing</message>
@@ -51,10 +51,10 @@ index 49d6325852e64ca428f6cd315ba975cbc30d2332..46989aae5cf7b5b1a469b641ffb9a493
      <!-- AhoiBrowser feature activation and discoverability -->
      <message name="IDS_SETTINGS_AHOI_PAGE_TITLE" desc="Title of the dedicated AhoiBrowser settings page and its top-level menu item." meaning="AhoiBrowser settings">
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index 804ab08eb6ff614db2645b1f76114dc3affb0eaf..b030b23c0a4c6852ae3f630ba1989c3997954d48 100644
+index 0c593889025b6020fdd6b1070cb2992dc2f855e0..a916f3ff761f213418380ff60d9027f74f60d15a 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11242,6 +11242,21 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11289,6 +11289,21 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="8933186299020613227">Übersprungene Arbeitsbereiche:</translation>
  <translation id="4082790717577320066">Annähernd übernommene Vier-Pane-Verhältnisse:</translation>
  <translation id="6428146992608115427">Zen vor dem Import schließen</translation>
@@ -682,10 +682,10 @@ index 647e801aaeddb3120d18f1e2f8d0b33ad3c559d4..4def7efa8e35f9b516a30d543d1a8408
  }
  
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index d6c73cb65c38b2362de03eed4950b7e96d76a693..a94b5a07a52654332667740833379929760c5dbe 100644
+index 525de233d6befd4e09e92dde0b9959114e05854f..87deecd257b777d90bc1d7c2cadf5a060c57e105 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -629,6 +629,19 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -630,6 +630,19 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        {"ahoiArcImportNoChanges", IDS_SETTINGS_AHOI_ARC_IMPORT_NO_CHANGES},
        {"ahoiArcImportSuccess", IDS_SETTINGS_AHOI_ARC_IMPORT_SUCCESS},
        {"ahoiArcImportError", IDS_SETTINGS_AHOI_ARC_IMPORT_ERROR},
@@ -705,7 +705,7 @@ index d6c73cb65c38b2362de03eed4950b7e96d76a693..a94b5a07a52654332667740833379929
        {"ahoiArcImportCloseArcTitle",
         IDS_SETTINGS_AHOI_ARC_IMPORT_CLOSE_ARC_TITLE},
        {"ahoiArcImportCloseArcSublabel",
-@@ -640,6 +653,7 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -641,6 +654,7 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        {"ahoiArcImportSplits", IDS_SETTINGS_AHOI_ARC_IMPORT_SPLITS},
        {"ahoiArcImportDegradations", IDS_SETTINGS_AHOI_ARC_IMPORT_DEGRADATIONS},
        {"ahoiArcImportExcluded", IDS_SETTINGS_AHOI_ARC_IMPORT_EXCLUDED},
@@ -713,7 +713,7 @@ index d6c73cb65c38b2362de03eed4950b7e96d76a693..a94b5a07a52654332667740833379929
        {"ahoiArcImportTargets", IDS_SETTINGS_AHOI_ARC_IMPORT_TARGETS},
        {"ahoiArcImportProfiles", IDS_SETTINGS_AHOI_ARC_IMPORT_PROFILES},
        {"ahoiArcImportCategories", IDS_SETTINGS_AHOI_ARC_IMPORT_CATEGORIES},
-@@ -670,6 +684,19 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -671,6 +685,19 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
         IDS_SETTINGS_AHOI_ARC_IMPORT_RESULT_FOUR_PANE},
        {"ahoiZenImportCloseSource",
         IDS_SETTINGS_AHOI_ZEN_IMPORT_CLOSE_SOURCE},

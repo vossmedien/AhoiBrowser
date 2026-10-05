@@ -1,5 +1,5 @@
 diff --git a/content/browser/loader/browser_initiated_resource_request.cc b/content/browser/loader/browser_initiated_resource_request.cc
-index 67f2c53..6b22511 100644
+index 67f2c536589d35087f58917614ea90dfa8ea44f3..6b225118a91524b7031c98afc7741c6645cff9c7 100644
 --- a/content/browser/loader/browser_initiated_resource_request.cc
 +++ b/content/browser/loader/browser_initiated_resource_request.cc
 @@ -35,7 +35,8 @@ void UpdateAdditionalHeadersForBrowserInitiatedRequest(
@@ -13,10 +13,10 @@ index 67f2c53..6b22511 100644
        headers->RemoveHeader(blink::kGlobalPrivacyControlHeader);
      }
 diff --git a/content/renderer/render_frame_impl.cc b/content/renderer/render_frame_impl.cc
-index 822048a..1d80054 100644
+index b844982e7506b3ae26a6b18f17845ef8a587a372..8c407f1ce607bdfc018d565bbd20131feeb8b566 100644
 --- a/content/renderer/render_frame_impl.cc
 +++ b/content/renderer/render_frame_impl.cc
-@@ -4695,7 +4695,8 @@ void RenderFrameImpl::FinalizeRequestInternal(
+@@ -4698,7 +4698,8 @@ void RenderFrameImpl::FinalizeRequestInternal(
          blink::WebString::FromUtf8(blink::kDoNotTrackHeader), "1");
    }
    if (blink::IsGlobalPrivacyControlFeatureAndSettingEnabled(
@@ -26,7 +26,7 @@ index 822048a..1d80054 100644
      request.SetHttpHeaderField(
          blink::WebString::FromUtf8(blink::kGlobalPrivacyControlHeader), "1");
      blink::MaybeRecordGlobalPrivacyControlSourceMetric(
-@@ -4964,6 +4965,12 @@ void RenderFrameImpl::DidCreateScriptContext(v8::Local<v8::Context> context,
+@@ -4967,6 +4968,12 @@ void RenderFrameImpl::DidCreateScriptContext(v8::Local<v8::Context> context,
        }
      }
    }
@@ -40,7 +40,7 @@ index 822048a..1d80054 100644
    if (world_id == ISOLATED_WORLD_ID_GLOBAL &&
        base::FeatureList::IsEnabled(blink::features::kUnboundedElement)) {
 diff --git a/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc b/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
-index 1401e99..1214fde 100644
+index 1401e99cb9e66f19e1ef8df3380816605b289fec..1214fdefedd0ce7020b8440d976855c4d09a541a 100644
 --- a/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
 +++ b/third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc
 @@ -55,6 +55,7 @@ bool StructTraits<blink::mojom::RendererPreferencesDataView,
@@ -52,7 +52,7 @@ index 1401e99..1214fde 100644
  
    if (!data.ReadWebrtcIpHandlingPolicy(&out->webrtc_ip_handling_policy))
 diff --git a/third_party/blink/public/common/renderer_preferences/renderer_preferences.h b/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
-index 336c806..a921f5b 100644
+index 336c8061e4251dc355f9480527d03d46506b61c2..a921f5b00ae37f19e8fed68e1de13ac0d4f6ffb6 100644
 --- a/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
 +++ b/third_party/blink/public/common/renderer_preferences/renderer_preferences.h
 @@ -53,6 +53,9 @@ struct BLINK_COMMON_EXPORT RendererPreferences {
@@ -66,7 +66,7 @@ index 336c806..a921f5b 100644
  #if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || \
      BUILDFLAG(IS_WIN)
 diff --git a/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h b/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
-index d0279aa1..f5180d2 100644
+index d0279aa1ca30864326c0f20b11dee24730595c36..f5180d243255576dc92cfb5be4c51cb730baa19b 100644
 --- a/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
 +++ b/third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h
 @@ -125,6 +125,11 @@ struct BLINK_COMMON_EXPORT
@@ -82,7 +82,7 @@ index d0279aa1..f5180d2 100644
        const ::blink::RendererPreferences& data) {
      return data.enable_encrypted_media;
 diff --git a/third_party/blink/public/mojom/renderer_preferences.mojom b/third_party/blink/public/mojom/renderer_preferences.mojom
-index 026d009..67f2d05 100644
+index 026d009b9d7280f9e4bd59dee978c4777ffe1f4e..67f2d05d202e7a6e864067626174d523695ab366 100644
 --- a/third_party/blink/public/mojom/renderer_preferences.mojom
 +++ b/third_party/blink/public/mojom/renderer_preferences.mojom
 @@ -89,6 +89,9 @@ struct RendererPreferences {
@@ -96,7 +96,7 @@ index 026d009..67f2d05 100644
    // the use of Clear Key key system which is always allowed as required by the
    // spec.
 diff --git a/third_party/blink/public/platform/web_worker_fetch_context.h b/third_party/blink/public/platform/web_worker_fetch_context.h
-index 237899e..d2d3667 100644
+index 237899e63e140c5a7d0079b66a2418490b611062..d2d36672d6e8a234364615e11d4e01a673dc6dff 100644
 --- a/third_party/blink/public/platform/web_worker_fetch_context.h
 +++ b/third_party/blink/public/platform/web_worker_fetch_context.h
 @@ -157,6 +157,12 @@ class WebWorkerFetchContext : public base::RefCounted<WebWorkerFetchContext> {
@@ -113,7 +113,7 @@ index 237899e..d2d3667 100644
    CreateServiceWorkerProvider() {
      return nullptr;
 diff --git a/third_party/blink/public/web/web_v8_features.h b/third_party/blink/public/web/web_v8_features.h
-index 687bf2c..15317fd 100644
+index 687bf2c49a9938d7b848d979d396f2281c163f3f..15317fd408adbbd085f5455e64b93470654bb5ce 100644
 --- a/third_party/blink/public/web/web_v8_features.h
 +++ b/third_party/blink/public/web/web_v8_features.h
 @@ -35,6 +35,9 @@ class BLINK_EXPORT WebV8Features {
@@ -127,10 +127,10 @@ index 687bf2c..15317fd 100644
    // This method is used to perform that initialization of the static protected
    // memory bool is used to track if MojoJS has been properly enabled for a
 diff --git a/third_party/blink/renderer/core/context_features/context_feature_settings.h b/third_party/blink/renderer/core/context_features/context_feature_settings.h
-index 0c6f84c..e5b59c5 100644
+index b72c6d0a13a6763757d932dbb6fbb2625304b3e5..f0a109c91742d09d78a455593d1285053e3c767b 100644
 --- a/third_party/blink/renderer/core/context_features/context_feature_settings.h
 +++ b/third_party/blink/renderer/core/context_features/context_feature_settings.h
-@@ -82,6 +82,14 @@ class CORE_EXPORT ContextFeatureSettings final
+@@ -86,6 +86,14 @@ class CORE_EXPORT ContextFeatureSettings final
    }
    bool isUnboundedElementEnabled() const;
  
@@ -145,7 +145,7 @@ index 0c6f84c..e5b59c5 100644
    void Trace(Visitor*) const override;
  
   private:
-@@ -89,6 +97,7 @@ class CORE_EXPORT ContextFeatureSettings final
+@@ -93,6 +101,7 @@ class CORE_EXPORT ContextFeatureSettings final
    bool enable_mojo_js_file_system_access_helper_ = false;
    bool enable_private_aggregation_in_shared_storage_ = false;
    bool enable_unbounded_element_ = false;
@@ -154,7 +154,7 @@ index 0c6f84c..e5b59c5 100644
    // Protected memory bool that indicates if MojoJS bindings are allowed to be
    // enabled for any given context of the process. Should be set to true by
 diff --git a/third_party/blink/renderer/core/exported/web_v8_features.cc b/third_party/blink/renderer/core/exported/web_v8_features.cc
-index 0aa7cd0..f203987 100644
+index 0aa7cd076f2637f6c9560dc2471edaaa0550318d..f20398797a1d59b0c197fac783e2816aa13b9f63 100644
 --- a/third_party/blink/renderer/core/exported/web_v8_features.cc
 +++ b/third_party/blink/renderer/core/exported/web_v8_features.cc
 @@ -105,6 +105,19 @@ void WebV8Features::EnableUnboundedElement(v8::Local<v8::Context> context,
@@ -178,7 +178,7 @@ index 0aa7cd0..f203987 100644
  void WebV8Features::InitializeMojoJSAllowedProtectedMemory() {
    ContextFeatureSettings::InitializeMojoJSAllowedProtectedMemory();
 diff --git a/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc b/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
-index 7958f89..f62ab92 100644
+index 7958f89608d287013be6de2d719701a3f05cf21c..f62ab927a5f7d3f741beac82d23a0d778b344b6e 100644
 --- a/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
 +++ b/third_party/blink/renderer/core/workers/worker_or_worklet_global_scope.cc
 @@ -9,6 +9,8 @@
@@ -207,7 +207,7 @@ index 7958f89..f62ab92 100644
        is_worker_loaded_from_data_url);
    GetSecurityContext().SetSecurityOrigin(std::move(origin));
 diff --git a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
-index a6d1fb8..ec35a2e 100644
+index a6d1fb8ca95c1dd0e28837bea56b49a8b4897e2b..ec35a2e1c690cad638aba78c370c33636d897e1f 100644
 --- a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
 +++ b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.cc
 @@ -5,6 +5,7 @@
@@ -252,7 +252,7 @@ index a6d1fb8..ec35a2e 100644
  
  }  // namespace NavigatorGlobalPrivacyControl
 diff --git a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
-index 48094caa..1a66fd9 100644
+index 48094caac0c53d0771da26fb8252b1234d42aad2..1a66fd9968f4dfaef9bd441777cbbdc202583268 100644
 --- a/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
 +++ b/third_party/blink/renderer/modules/global_privacy_control/navigator_global_privacy_control.idl
 @@ -4,7 +4,8 @@
@@ -266,7 +266,7 @@ index 48094caa..1a66fd9 100644
      [Measure] readonly attribute boolean globalPrivacyControl;
  };
 diff --git a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
-index 08d0b52..f26fc3a 100644
+index 08d0b52bf53a7189b54b258286c7fd4b8d2d3dc4..f26fc3a3e9aa8361f17e7737f634615ae1243b16 100644
 --- a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
 +++ b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.cc
 @@ -147,11 +147,17 @@ URLLoaderFactory* WebServiceWorkerFetchContextImpl::GetScriptLoaderFactory() {
@@ -289,7 +289,7 @@ index 08d0b52..f26fc3a 100644
                                 "1");
      blink::MaybeRecordGlobalPrivacyControlSourceMetric(
 diff --git a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
-index a1f7680..c8d9745 100644
+index a1f768085e744cc5dcad3eedd9f33f8a51221a33..c8d9745d6b77dd6cdfc8ddda32353ff74928b73d 100644
 --- a/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
 +++ b/third_party/blink/renderer/modules/service_worker/web_service_worker_fetch_context_impl.h
 @@ -68,6 +68,7 @@ class BLINK_EXPORT WebServiceWorkerFetchContextImpl final
@@ -301,7 +301,7 @@ index a1f7680..c8d9745 100644
        const network::ResourceRequest& request) override;
    mojom::ControllerServiceWorkerMode GetControllerServiceWorkerMode()
 diff --git a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
-index 5457b11..cf8e98e 100644
+index 5457b119b32f5e6b1b49babad71bc7b492a009cb..cf8e98e7297aef5acfe5113848e6d12dfd7613b4 100644
 --- a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
 +++ b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.cc
 @@ -373,12 +373,18 @@ DedicatedOrSharedWorkerGlobalScopeContextImpl::WillSendRequest(
@@ -325,7 +325,7 @@ index 5457b11..cf8e98e 100644
                                 "1");
      blink::MaybeRecordGlobalPrivacyControlSourceMetric(
 diff --git a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
-index 008b896..8c2913e 100644
+index 008b896b618c926c2ef89d56460cc3a8ace49494..8c2913ebc7eea2ec60b720e42d3ddc7e3bf8530b 100644
 --- a/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
 +++ b/third_party/blink/renderer/platform/loader/fetch/url_loader/dedicated_or_shared_worker_global_scope_context_impl.h
 @@ -117,6 +117,7 @@ class BLINK_PLATFORM_EXPORT DedicatedOrSharedWorkerGlobalScopeContextImpl final

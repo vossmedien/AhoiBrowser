@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/color/BUILD.gn b/chrome/browser/ui/color/BUILD.gn
-index f3f7ea8c..868009b1 100644
+index 0943df4390a8fad2acb988085863eb7af1dfb8a1..04ea85a8d334f1001e5a83b71f5c48592f5bb1d7 100644
 --- a/chrome/browser/ui/color/BUILD.gn
 +++ b/chrome/browser/ui/color/BUILD.gn
 @@ -51,6 +51,7 @@ source_set("mixers") {
@@ -11,10 +11,10 @@ index f3f7ea8c..868009b1 100644
      "//chrome/app/theme:theme_resources",
      "//chrome/browser/task_manager/common",
 diff --git a/chrome/browser/ui/color/chrome_color_id.h b/chrome/browser/ui/color/chrome_color_id.h
-index 0f4b952a..f0c64245 100644
+index b7075255c509ee39177e0fbc42e0a02ee9ba02b2..29b119241b98e63fc6512c78da738dfa91f0291c 100644
 --- a/chrome/browser/ui/color/chrome_color_id.h
 +++ b/chrome/browser/ui/color/chrome_color_id.h
-@@ -1159,6 +1159,11 @@
+@@ -1171,6 +1171,11 @@
    /* Window control button background colors. */ \
    E_CPONLY(kColorWindowControlButtonBackgroundActive) \
    E_CPONLY(kColorWindowControlButtonBackgroundInactive) \
@@ -27,7 +27,7 @@ index 0f4b952a..f0c64245 100644
  #if BUILDFLAG(IS_CHROMEOS)
  #define CHROME_PLATFORM_SPECIFIC_COLOR_IDS \
 diff --git a/chrome/browser/ui/color/chrome_color_mixers.cc b/chrome/browser/ui/color/chrome_color_mixers.cc
-index 9698e807..060b49e3 100644
+index 8432f4946834648a5f63ddee567ee63174e26b0f..d0d5508c0803f679460476059e602bad4a330520 100644
 --- a/chrome/browser/ui/color/chrome_color_mixers.cc
 +++ b/chrome/browser/ui/color/chrome_color_mixers.cc
 @@ -7,6 +7,7 @@
@@ -38,7 +38,7 @@ index 9698e807..060b49e3 100644
  #include "base/containers/fixed_flat_map.h"
  #include "base/functional/bind.h"
  #include "base/no_destructor.h"
-@@ -71,6 +72,11 @@ void AddChromeColorMixers(ui::ColorProvider* provider,
+@@ -85,6 +86,11 @@ void AddChromeColorMixers(ui::ColorProvider* provider,
    AddMaterialSidePanelColorMixer(provider, key);
    AddMaterialTabStripColorMixer(provider, key);
  

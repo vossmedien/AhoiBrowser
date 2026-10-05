@@ -1,6 +1,53 @@
-# Chromium M154 patch ledger
+# Chromium M155 patch ledger
 
-## Patch release 154.0.8037.98 (5 October 2026)
+## M155 roll (5 October 2026)
+
+Owner decision 5 October 2026: follow Stable during Google's staged rollout
+(`rolloutPolicy: staged-stable`, see `docs/UPSTREAM.md`). The stack was
+rebased from `154.0.8037.98` (`b859317b`) onto M155 `155.0.8059.26`
+(`16c3e55476d3564bea713314b2fff638749ce3e6`, 0.5 % Mac Stable rollout at
+discovery) in the isolated sparse repository `.work/chromium-m155-rebase`
+(branch `m155b`, one commit per patch, zdiff3 three-way picks). Preflight of
+the M154 stack on M155 (target, `chromium_roll.py preflight`): 27 apply,
+64 conflict, 0 already upstream; overlay collisions 22 (the same icon files).
+Most conflicts were cascades of `0001`; 13 patches needed real resolutions.
+Source acceptance only until the first M155 build and its unit tests are
+green. Both dependency workaround targets (`rustc_wrapper.py`, V8
+`82b65fdd` `inspector_protocol/code_generator.py`) and all entitlement policy
+sources (`parts.py`, `chrome/app/*-entitlements.plist`, `version.gni`) are
+byte-identical at the new pins, so only the recorded commits and versions
+move.
+
+### Resolutions
+
+- `0001` M155 passes `IsPrimaryOTRProfileWithRegularParent()` to
+  `CookieSettings`, keeps `browser_process` in the extensions deps, adds a
+  page-info "See extensions" row (Ahoi's HTTP-auth rows follow it), widens
+  split child lists to `TabCollectionNode::ChildViews` and turns tab-restore
+  `live_tabs` back into raw `LiveTab*` (Ahoi's n-pane split restore follows).
+  `MultiContentsView` keeps M155's `SafeInvoke` sad-tab chain; Ahoi still
+  owns the second pane's visibility.
+- `0009`/`0021` M155 hoists `web_contents` in the extensions menu model and
+  builds browser-initiated `OpenURLParams`; Ahoi's null guards for the
+  zero-tab surface stay, the active-tab filter skips a null tab.
+- `0012` One German product string M155 dropped is not revived.
+- `0022` Zero-tab split seeding stays; the split NTP choice uses M155's
+  `IsPrimaryOTRProfileWithRegularParent()`.
+- `0050` M155 renamed `SessionStorageNamespace(Map)` to
+  `SessionStorageNamespaceHandle(Map)`; the website-session restore map
+  follows.
+- `0079` M155 dropped `GetPasswordImpl`/`base::expected` from
+  `KeychainPassword`; the legacy-item adoption moved into `GetPassword()`
+  unchanged in behaviour (a failed legacy lookup returns an empty password,
+  never a new random key).
+- `0013`, `0016`, `0061` include/list unions only.
+- `0071`, `0073`, `0074` regenerated with `tools/branding/make_rebrand_patch.sh`
+  on the rebased M155 string bundles (GRIT from M155; the `ui` GRIT defines
+  from the current `out/AhoiDev` `toolchain.ninja`): 539 + 13, 54 and 7
+  messages.
+
+
+## M154 patch release 154.0.8037.98 (5 October 2026)
 
 Security patch roll on branch 8037 from `154.0.8037.93` (`f89f3a43`) to
 `154.0.8037.98` (`b859317b`), fully rolled Mac Stable since 2 October: 84
@@ -788,8 +835,8 @@ performance and installed-app acceptance are still open. No permission path
 changes.
 
 `series` is the authoritative application order. The active stack targets
-Chromium Mac Stable `154.0.8037.98` at
-`b859317bf11f6be47f9b7799ec690a0a42a1fb33`. A roll is accepted only when the
+Chromium Mac Stable `155.0.8059.26` at
+`16c3e55476d3564bea713314b2fff638749ce3e6`. A roll is accepted only when the
 overlay and every patch compose offline to one exact tree, the real checkout
 matches that tree, and the build/test evidence names the same commit.
 

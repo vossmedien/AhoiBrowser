@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
-index 19bda9..5a5ddc 100644
+index cd2d67a92bfb8897c323fbed17e04212ff9ac131..5141d35fefcd23770011e4e0a2ef5352332c051d 100644
 --- a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
 +++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
-@@ -1055,12 +1055,17 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
+@@ -1057,12 +1057,17 @@ void BrowserNativeWidgetMac::UpdateGlassEligibility(bool is_glass_eligible) {
    if (@available(macOS 26.0, *)) {
      [ns_window setOpaque:NO];
  
@@ -26,7 +26,7 @@ index 19bda9..5a5ddc 100644
  
      if (!glass_background_view_) {
        NSView* const content_view = [ns_window contentView];
-@@ -1115,6 +1120,25 @@ void BrowserNativeWidgetMac::UpdateBackgroundGeometry() {
+@@ -1117,6 +1122,25 @@ void BrowserNativeWidgetMac::UpdateBackgroundGeometry() {
  
    NSView* const content_view = [ns_window contentView];
  

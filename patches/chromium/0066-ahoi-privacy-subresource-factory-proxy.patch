@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
-index ef253f9..10d2744 100644
+index 8d08df44aa4d13e68e28f1a1d988014cbc3df328..f5a242395a9e1deb74d0f39d9b105b8e20699b98 100644
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
 @@ -17,6 +17,7 @@
@@ -10,7 +10,7 @@ index ef253f9..10d2744 100644
  #include "ahoi/browser/privacy/privacy_mode_url_loader_throttle.h"
  #include "base/base_switches.h"
  #include "base/byte_size.h"
-@@ -6632,6 +6633,20 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
+@@ -6712,6 +6713,20 @@ void ChromeContentBrowserClient::WillCreateURLLoaderFactory(
      network::mojom::URLLoaderFactoryOverridePtr* factory_override,
      scoped_refptr<base::SequencedTaskRunner> navigation_response_task_runner,
      bool is_for_network_service) {

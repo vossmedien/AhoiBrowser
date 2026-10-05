@@ -9,8 +9,8 @@ PATCH_ROOT = ROOT / "patches/chromium"
 PATCH_PATH = PATCH_ROOT / "0001-ahoi-m153-integration-seams.patch"
 SERIES_PATH = PATCH_ROOT / "series"
 BRANDING_PATH = ROOT / "overlay/chromium/src/ahoi/branding/BRANDING"
-M154_VERSION = "154.0.8037.98"
-M154_COMMIT = "b859317bf11f6be47f9b7799ec690a0a42a1fb33"
+M155_VERSION = "155.0.8059.26"
+M155_COMMIT = "16c3e55476d3564bea713314b2fff638749ce3e6"
 PLIST_PATH = "chrome/app/app-Info.plist"
 
 
@@ -61,12 +61,12 @@ class ProductDataDirectoryPatchContractTests(unittest.TestCase):
         self.assertEqual(len(entries), len(set(entries)))
 
         pin = json.loads((ROOT / "config/chromium.json").read_text(encoding="utf-8"))
-        self.assertEqual(M154_VERSION, pin["version"])
-        self.assertEqual(M154_COMMIT, pin["commit"])
+        self.assertEqual(M155_VERSION, pin["version"])
+        self.assertEqual(M155_COMMIT, pin["commit"])
 
         ledger = (PATCH_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertEqual(1, ledger.count(f"## `{PATCH_PATH.name}`"))
-        self.assertIn(M154_COMMIT, ledger)
+        self.assertIn(M155_COMMIT, ledger)
 
     def test_outer_app_plist_derives_the_product_directory_from_branding(self):
         plist = file_section(self.patch, PLIST_PATH)

@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
-index ac790d51dd0a97bfd5cb2748baee7ae4ab361704..d95e62acebe972aa91aa5fc7f017c22d7caffe49 100644
+index 79cd634f9c0224ba379525c494018149cc0c2a52..e08298ff416bce7da0510ca8d56e1eaa667a0b19 100644
 --- a/chrome/browser/BUILD.gn
 +++ b/chrome/browser/BUILD.gn
-@@ -1535,6 +1535,7 @@ source_set("core") {
+@@ -1527,6 +1527,7 @@ source_set("core") {
        ":fullscreen",
        ":global_keyboard_shortcuts_mac",
        ":shutdown_watchdog_mac",
@@ -11,7 +11,7 @@ index ac790d51dd0a97bfd5cb2748baee7ae4ab361704..d95e62acebe972aa91aa5fc7f017c22d
        "//chrome/app_shim",
        "//chrome/browser/apps/app_shim",
 diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
-index feca54aea619eed9489ae53edb69816195c90aca..0e2887119f2e49c663117df8bff6b4923061ce66 100644
+index 0b87e0b00055639c1eae8f971c195d91e4d933c6..db313296cb75935a76c0f8c5ec877eae80e75627 100644
 --- a/chrome/browser/app_controller_mac.mm
 +++ b/chrome/browser/app_controller_mac.mm
 @@ -4,6 +4,7 @@
@@ -22,7 +22,7 @@ index feca54aea619eed9489ae53edb69816195c90aca..0e2887119f2e49c663117df8bff6b492
  #import "ahoi/browser/updater/sparkle_runtime_mac.h"
  
  #include <AppKit/AppKit.h>
-@@ -435,6 +436,18 @@ base::FilePath GetStartupProfilePathMac() {
+@@ -438,6 +439,18 @@ base::FilePath GetStartupProfilePathMac() {
  void OpenStartupTabsInBrowserWithProfile(const StartupTabs& tabs,
                                           Profile* profile);
  
@@ -41,7 +41,7 @@ index feca54aea619eed9489ae53edb69816195c90aca..0e2887119f2e49c663117df8bff6b492
  void OpenStartupTabsInBrowser(StartupTabs tabs) {
    StartupTabs regular_tabs;
    std::vector<base::FilePath> shortcuts;
-@@ -512,6 +525,27 @@ void OpenStartupTabsInBrowser(StartupTabs tabs) {
+@@ -515,6 +528,27 @@ void OpenStartupTabsInBrowser(StartupTabs tabs) {
          }));
    }
  

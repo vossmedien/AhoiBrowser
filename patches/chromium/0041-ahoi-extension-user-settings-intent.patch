@@ -49,10 +49,10 @@ index c9c2be498297c2eb821281265b9e3390b0f0b9bd..4e8e379c392f68c8dd877b9157801db0
      if (!weak_this) {
        return;
 diff --git a/extensions/browser/api/management/management_api.cc b/extensions/browser/api/management/management_api.cc
-index d88571b4a8eccfaa267b682f1415d5e152b23196..f8d36ee63060a5cf06fd77763ba50eeab1cc183f 100644
+index ad45ba52d66a4af35ff3e85a114a4c90be12ebc2..2cd97f6b68afc932920a78b726efd7c1fdfefc77 100644
 --- a/extensions/browser/api/management/management_api.cc
 +++ b/extensions/browser/api/management/management_api.cc
-@@ -32,6 +32,7 @@
+@@ -33,6 +33,7 @@
  #include "extensions/browser/event_router.h"
  #include "extensions/browser/extension_dialog_auto_confirm.h"
  #include "extensions/browser/extension_prefs.h"
@@ -60,7 +60,7 @@ index d88571b4a8eccfaa267b682f1415d5e152b23196..f8d36ee63060a5cf06fd77763ba50eea
  #include "extensions/browser/extension_registry.h"
  #include "extensions/browser/extension_system.h"
  #include "extensions/browser/management_policy.h"
-@@ -599,6 +600,12 @@ void ManagementSetEnabledFunction::CheckManifestV2Deprecation() {
+@@ -606,6 +607,12 @@ void ManagementSetEnabledFunction::CheckManifestV2Deprecation() {
    const ManagementAPIDelegate* delegate = ManagementAPI::GetFactoryInstance()
                                                ->Get(browser_context())
                                                ->GetDelegate();
@@ -73,7 +73,7 @@ index d88571b4a8eccfaa267b682f1415d5e152b23196..f8d36ee63060a5cf06fd77763ba50eea
    delegate->EnableExtension(browser_context(), extension_id_);
    FinishEnable(NoArguments());
  }
-@@ -666,6 +673,12 @@ void ManagementSetEnabledFunction::OnSupervisedExtensionApprovalDone(
+@@ -673,6 +680,12 @@ void ManagementSetEnabledFunction::OnSupervisedExtensionApprovalDone(
            ManagementAPI::GetFactoryInstance()
                ->Get(browser_context())
                ->GetDelegate();
@@ -108,10 +108,10 @@ index 75cc0ec7c10daaf58a18b16faa41bb908d587927..d2432af5b211c8419fa2ec793214e312
      if (!browser_context_) {
        return;
 diff --git a/extensions/browser/extension_registrar.cc b/extensions/browser/extension_registrar.cc
-index 78d758970a34f3283671ac9c2c61a4480f6eb1f7..3327b74d468947ab3dbbb009184cb65d50f9f1db 100644
+index d463d424260e513121d121333c7ae245f43e5f55..4c015d7e5019434f302867a3d8eeecaa0900343d 100644
 --- a/extensions/browser/extension_registrar.cc
 +++ b/extensions/browser/extension_registrar.cc
-@@ -742,6 +742,11 @@ bool ExtensionRegistrar::UninstallExtension(
+@@ -753,6 +753,11 @@ bool ExtensionRegistrar::UninstallExtension(
      return false;
    }
  
@@ -123,7 +123,7 @@ index 78d758970a34f3283671ac9c2c61a4480f6eb1f7..3327b74d468947ab3dbbb009184cb65d
    // Prepare to uninstall the extension.
    delegate_->PreUninstallExtension(extension.get());
  
-@@ -1025,6 +1030,23 @@ bool ExtensionRegistrar::GrantPermissionsAndEnableExtension(
+@@ -1036,6 +1041,23 @@ bool ExtensionRegistrar::GrantPermissionsAndEnableExtension(
    return weak_this && IsExtensionEnabled(retained_extension->id());
  }
  

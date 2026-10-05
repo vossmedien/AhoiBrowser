@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/ui/navigator/browser_navigator.cc
-index 394d01..a553d5 100644
+index 7d5142860e7156ba4a5f1633e4f54d582b646d0f..64f82f95a9cee949f0c210071558c586a123b2f2 100644
 --- a/chrome/browser/ui/navigator/browser_navigator.cc
 +++ b/chrome/browser/ui/navigator/browser_navigator.cc
-@@ -708,6 +708,28 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
+@@ -728,6 +728,28 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
          params->browser->GetTabStripModel()->GetActiveWebContents();
    }
  

@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index f9edb7bb..c8c27535 100644
+index 10f0502ed2c7ebe4a6bff22b16d6c89007d903fc..371be8da77b428c494f6f5b4053bb122911828d5 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -17,6 +17,7 @@
@@ -10,7 +10,7 @@ index f9edb7bb..c8c27535 100644
  #include "ahoi/browser/navigation/keyboard_shortcut_registration.h"
  #include "ahoi/browser/navigation/keyboard_shortcuts.h"
  #include "ahoi/browser/navigation/navigation_input_prefs.h"
-@@ -754,15 +755,14 @@ class AhoiQuickWindowGlobalShortcut
+@@ -760,15 +761,14 @@ class AhoiQuickWindowGlobalShortcut
    }
  
    void EnsureRegistered() {
@@ -28,7 +28,7 @@ index f9edb7bb..c8c27535 100644
    }
  
    void Unregister() {
-@@ -770,14 +770,26 @@ class AhoiQuickWindowGlobalShortcut
+@@ -776,14 +776,26 @@ class AhoiQuickWindowGlobalShortcut
        return;
      }
      auto* listener = ui::GlobalAcceleratorListener::GetInstance();
@@ -59,7 +59,7 @@ index f9edb7bb..c8c27535 100644
  
    bool Activate() {
      const base::TimeTicks now = base::TimeTicks::Now();
-@@ -793,7 +805,9 @@ class AhoiQuickWindowGlobalShortcut
+@@ -799,7 +811,9 @@ class AhoiQuickWindowGlobalShortcut
  
    // ui::GlobalAcceleratorListener::Observer:
    void OnKeyPressed(const ui::Accelerator& accelerator) override {
@@ -70,7 +70,7 @@ index f9edb7bb..c8c27535 100644
        return;
      }
  
-@@ -811,6 +825,9 @@ class AhoiQuickWindowGlobalShortcut
+@@ -817,6 +831,9 @@ class AhoiQuickWindowGlobalShortcut
  
    size_t regular_browser_count_ = 0u;
    bool registered_ = false;
@@ -80,7 +80,7 @@ index f9edb7bb..c8c27535 100644
    base::TimeTicks last_activation_;
  };
  
-@@ -4725,6 +4742,13 @@ void BrowserView::OnWidgetDestroying(views::Widget* widget) {
+@@ -4730,6 +4747,13 @@ void BrowserView::OnWidgetDestroying(views::Widget* widget) {
  
  void BrowserView::OnWidgetActivationChanged(views::Widget* widget,
                                              bool active) {
@@ -94,7 +94,7 @@ index f9edb7bb..c8c27535 100644
    if (browser_->GetWindow()) {
      if (active) {
        if (restore_focus_on_activation_.has_value() &&
-@@ -6172,22 +6196,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
+@@ -6176,22 +6200,6 @@ bool BrowserView::AcceleratorPressed(const ui::Accelerator& accelerator) {
        }
      }
    }
@@ -117,7 +117,7 @@ index f9edb7bb..c8c27535 100644
  #endif
  
    int command_id;
-@@ -6257,12 +6265,37 @@ bool BrowserView::HandleAhoiShortcutCommand(std::string_view command_id) {
+@@ -6261,12 +6269,37 @@ bool BrowserView::HandleAhoiShortcutCommand(std::string_view command_id) {
          ahoi::SessionBridgeFactory::GetForProfile(browser_->GetProfile());
      return bridge && bridge->ActivateLastUsedTab(browser_.get());
    }
@@ -155,7 +155,7 @@ index f9edb7bb..c8c27535 100644
    if (command_id == shortcuts::kSidebarDiscovery) {
      return ahoi::sidebar::ToggleBrowserSidebarDiscovery(tree);
    }
-@@ -6476,6 +6509,33 @@ views::View* BrowserView::GetAhoiSidebarHost() const {
+@@ -6480,6 +6513,33 @@ views::View* BrowserView::GetAhoiSidebarHost() const {
               : nullptr;
  }
  
@@ -189,7 +189,7 @@ index f9edb7bb..c8c27535 100644
  bool BrowserView::SaveCurrentTabToAhoiTree() {
    if (!browser_ ||
        browser_->GetType() != BrowserWindowInterface::Type::TYPE_NORMAL ||
-@@ -6895,33 +6955,14 @@ void BrowserView::LoadAccelerators() {
+@@ -6899,33 +6959,14 @@ void BrowserView::LoadAccelerators() {
  
  #if BUILDFLAG(IS_MAC)
    // Extension commands intentionally register as the only high-priority
@@ -231,7 +231,7 @@ index f9edb7bb..c8c27535 100644
    ahoi_shortcuts_ = std::make_unique<ahoi::shortcuts::ShortcutRegistration>(
        browser_->GetProfile()->GetPrefs(),
        base::BindRepeating(
-@@ -6939,6 +6980,9 @@ void BrowserView::LoadAccelerators() {
+@@ -6943,6 +6984,9 @@ void BrowserView::LoadAccelerators() {
              }
            },
            base::Unretained(this)));
@@ -242,10 +242,10 @@ index f9edb7bb..c8c27535 100644
  
    // Register the Esc accelerators (both press and release) to ensure they are
 diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
-index ca7bb46d..36c9ba71 100644
+index 33ac147769c590810284ff018f41bb4f473ab5e8..2db88da4670d18af2521bf4a79d6092d3125b0c3 100644
 --- a/chrome/browser/ui/views/frame/browser_view.h
 +++ b/chrome/browser/ui/views/frame/browser_view.h
-@@ -1075,6 +1075,12 @@ class BrowserView : public BrowserWindow,
+@@ -1076,6 +1076,12 @@ class BrowserView : public BrowserWindow,
    // split so Chromium and the page retain their normal shortcuts.
    bool HandleAhoiSplitCommand(std::string_view command_id);
  

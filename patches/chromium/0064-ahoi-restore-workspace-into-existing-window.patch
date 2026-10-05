@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
-index 0cc758d..70497d1 100644
+index df03737143114c1fe78821c97ea3755aa258b83b..b18ec8e9e5487ae9f5474e01e18527d50a92fef3 100644
 --- a/chrome/browser/sessions/session_restore.cc
 +++ b/chrome/browser/sessions/session_restore.cc
-@@ -830,6 +830,13 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
+@@ -835,6 +835,13 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
            ShouldRestoreToExistingBrowser()) {
          // The first set of tabs is added to the existing browser.
          browser = browser_;

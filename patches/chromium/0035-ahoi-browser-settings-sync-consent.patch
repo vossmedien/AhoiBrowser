@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 6013a6a21ab550fb49ac2524baa2c23fbc8df11c..48d3ccc2b14b3bcc66c9cfba9db2f013b7e038a4 100644
+index f7fc2caa8ce8045a317898d09072c6ce0f6d83b4..7520d862973023c95685811e86c65a19e92e1730 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20495,6 +20495,27 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20648,6 +20648,27 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_SYNC_ENABLED" desc="Label for enabling AhoiBrowser's local sync state and outbox." meaning="AhoiBrowser feature settings">
        Ahoi Sync
      </message>
@@ -31,10 +31,10 @@ index 6013a6a21ab550fb49ac2524baa2c23fbc8df11c..48d3ccc2b14b3bcc66c9cfba9db2f013
        Keep workspaces, saved tabs and approved settings in the local sync database and pending outbox. A configured CloudKit transport encrypts them before cross-device transfer.
      </message>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index 579d30573bac0715d9190dd2f5776711a442fdb4..1695b5bae11614f45da0be6f36155c53aaf5bec3 100644
+index d63624ddb05f01dcb49006ce72b2c3e7fc066a94..c3f997046bf735974e47785bba30241bd255aa08 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11275,4 +11275,11 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11322,4 +11322,11 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="2591003491818479675">Die vorherige Seitenleiste wurde wiederhergestellt. Prüfe sie und erstelle anschließend bei Bedarf eine neue Importvorschau.</translation>
  <translation id="2666937824263873395">Adressleiste anheften</translation>
  <translation id="5599938554451751534">Adressleiste lösen</translation>
@@ -47,10 +47,10 @@ index 579d30573bac0715d9190dd2f5776711a442fdb4..1695b5bae11614f45da0be6f36155c53
 +<translation id="5831405800489376068">Die Auswahl konnte nicht geändert werden.</translation>
  </translationbundle>
 diff --git a/chrome/app/resources/generated_resources_en-GB.xtb b/chrome/app/resources/generated_resources_en-GB.xtb
-index c7adcec19f4653dd4827141a94ab393123b3ca79..03b8e15f39b62f419366ee6c53c3de9ad9b40d29 100644
+index ff241ec117e03b25bb6b86e2ddc59ad40b363ec5..eb49528876408f492d167b5fcafebe2e3478a747 100644
 --- a/chrome/app/resources/generated_resources_en-GB.xtb
 +++ b/chrome/app/resources/generated_resources_en-GB.xtb
-@@ -11068,4 +11068,11 @@ This can include information about installed software, files, your browser, the
+@@ -11115,4 +11115,11 @@ This can include information about installed software, files, your browser, the
  <translation id="5461107725978398953">Recently closed window</translation>
  <translation id="2666937824263873395">Pin address bar</translation>
  <translation id="5599938554451751534">Unpin address bar</translation>
@@ -63,10 +63,10 @@ index c7adcec19f4653dd4827141a94ab393123b3ca79..03b8e15f39b62f419366ee6c53c3de9a
 +<translation id="5831405800489376068">Could not change the selection.</translation>
  </translationbundle>
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index d4753994a3f1c52c5796aae8c3b376c2b4dade2a..3fa7ea9d9e6b4fa546bd3350c334fb587907ba5a 100644
+index f6e4bd0c9f473b9ef066257a1d0931a1045d3056..c199c25b6c2ddfac0eaa8a27513a2770c5fd26c8 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -717,6 +717,19 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -718,6 +718,19 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        {"ahoiCloudKitUnavailableSublabel",
         IDS_SETTINGS_AHOI_CLOUDKIT_UNAVAILABLE_SUBLABEL},
        {"ahoiSyncEnabled", IDS_SETTINGS_AHOI_SYNC_ENABLED},

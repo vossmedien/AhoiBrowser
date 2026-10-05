@@ -1,7 +1,7 @@
 diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
 --- a/content/browser/BUILD.gn
 +++ b/content/browser/BUILD.gn
-@@ -1655,6 +1655,7 @@
+@@ -1657,6 +1657,7 @@ source_set("browser") {
      "renderer_host/display_feature.h",
      "renderer_host/document_associated_data.cc",
      "renderer_host/document_associated_data.h",
@@ -12,7 +12,7 @@ diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
 diff --git a/content/public/browser/BUILD.gn b/content/public/browser/BUILD.gn
 --- a/content/public/browser/BUILD.gn
 +++ b/content/public/browser/BUILD.gn
-@@ -159,6 +159,7 @@
+@@ -158,6 +158,7 @@ source_set("browser_sources") {
      "digital_identity_provider.cc",
      "digital_identity_provider.h",
      "disallow_activation_reason.h",

@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
-index 7c1f23e..4ca4f5 100644
+index 0fbe5517a7e895b0d5d987fa08550f211b2e7a4a..f03105006fc71557ff87e3cdb86ef11bc057a7c6 100644
 --- a/chrome/browser/sessions/session_restore.cc
 +++ b/chrome/browser/sessions/session_restore.cc
 @@ -40,6 +40,7 @@
@@ -10,9 +10,9 @@ index 7c1f23e..4ca4f5 100644
  #endif
  #include "chrome/browser/after_startup_task_utils.h"
  #include "chrome/browser/browser_process.h"
-@@ -1104,10 +1105,23 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
-     // Associate sessionStorage (if any) to the restored tab.
-     scoped_refptr<content::SessionStorageNamespace> session_storage_namespace;
+@@ -1114,10 +1115,23 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
+     scoped_refptr<content::SessionStorageNamespaceHandle>
+         session_storage_namespace;
      if (!tab.session_storage_persistent_id.empty()) {
 +#if !BUILDFLAG(IS_ANDROID)
 +      const std::optional<ahoi::session::WebsiteSessionBinding> binding =
@@ -35,7 +35,7 @@ index 7c1f23e..4ca4f5 100644
  
      // Relabel group IDs to prevent duplicating groups. See crbug.com/40055647.
 diff --git a/chrome/browser/ui/browser_tabrestore.cc b/chrome/browser/ui/browser_tabrestore.cc
-index fa43dd..6ac4e6 100644
+index 6aca93a450796c9e6f45b615f7255da0ed2220cf..a66ff58c3b710fd215fe9b9d46c90b89d6f88870 100644
 --- a/chrome/browser/ui/browser_tabrestore.cc
 +++ b/chrome/browser/ui/browser_tabrestore.cc
 @@ -6,9 +6,14 @@
@@ -56,7 +56,7 @@ index fa43dd..6ac4e6 100644
 @@ -35,6 +40,7 @@
  #include "content/public/browser/render_widget_host_view.h"
  #include "content/public/browser/restore_type.h"
- #include "content/public/browser/session_storage_namespace.h"
+ #include "content/public/browser/session_storage_namespace_handle.h"
 +#include "content/public/browser/site_instance.h"
  #include "content/public/browser/web_contents.h"
  #include "third_party/blink/public/common/user_agent/user_agent_metadata.h"
@@ -79,14 +79,14 @@ index fa43dd..6ac4e6 100644
 +  }
    // TODO(ajwong): Remove the temporary session_storage_namespace_map when
    // we teach session restore to understand that one tab can have multiple
-   // SessionStorageNamespace objects. Also remove the
-   // session_storage_namespace.h include since we only need that to assign
-   // into the map.
--  content::SessionStorageNamespaceMap session_storage_namespace_map =
+   // SessionStorageNamespaceHandle objects. Also remove the
+   // session_storage_namespace_handle.h include since we only need that to
+   // assign into the map.
+-  content::SessionStorageNamespaceHandleMap session_storage_namespace_map =
 -      content::CreateMapWithDefaultSessionStorageNamespace(
 -          browser->GetProfile(), session_storage_namespace);
 -  WebContents::CreateParams create_params(browser->GetProfile());
-+  content::SessionStorageNamespaceMap session_storage_namespace_map;
++  content::SessionStorageNamespaceHandleMap session_storage_namespace_map;
 +  if (website_binding->is_default()) {
 +    session_storage_namespace_map =
 +        content::CreateMapWithDefaultSessionStorageNamespace(

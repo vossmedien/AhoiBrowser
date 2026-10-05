@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
-index d95e62a..792a4d3 100644
+index e08298ff416bce7da0510ca8d56e1eaa667a0b19..d0e03a4d7316e642c5c235c2d5a6dc124e507a22 100644
 --- a/chrome/browser/BUILD.gn
 +++ b/chrome/browser/BUILD.gn
-@@ -930,6 +930,7 @@ source_set("core") {
+@@ -922,6 +922,7 @@ source_set("core") {
      ":universal_web_contents_observers",
      "//ahoi/browser/developer_toolkit:developer_profile_runtime",
      "//ahoi/browser/navigation:navigation_preferences",
@@ -11,7 +11,7 @@ index d95e62a..792a4d3 100644
      "//ahoi/browser/resource_policy",
      "//base/allocator:buildflags",
 diff --git a/chrome/browser/chrome_content_browser_client_navigation_throttles.cc b/chrome/browser/chrome_content_browser_client_navigation_throttles.cc
-index eb82f2e..c6bd8a3 100644
+index ecf2e25f5e69cbcaffaccc0c3e9c198980795e82..be1cbea5021543c7ba15d7a64caeea89ad838434 100644
 --- a/chrome/browser/chrome_content_browser_client_navigation_throttles.cc
 +++ b/chrome/browser/chrome_content_browser_client_navigation_throttles.cc
 @@ -5,6 +5,7 @@
@@ -22,7 +22,7 @@ index eb82f2e..c6bd8a3 100644
  #include "base/command_line.h"
  #include "base/feature_list.h"
  #include "build/build_config.h"
-@@ -287,6 +288,7 @@ void CreateAndAddChromeThrottlesForNavigation(
+@@ -288,6 +289,7 @@ void CreateAndAddChromeThrottlesForNavigation(
      content::NavigationThrottleRegistry& registry) {
    content::NavigationHandle& handle = registry.GetNavigationHandle();
    ahoi::DeveloperProfileNavigationThrottle::MaybeCreateAndAdd(registry);

@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
-index 4ca4f5..0cc758 100644
+index f03105006fc71557ff87e3cdb86ef11bc057a7c6..df03737143114c1fe78821c97ea3755aa258b83b 100644
 --- a/chrome/browser/sessions/session_restore.cc
 +++ b/chrome/browser/sessions/session_restore.cc
-@@ -1107,7 +1107,8 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
+@@ -1117,7 +1117,8 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
      if (!tab.session_storage_persistent_id.empty()) {
  #if !BUILDFLAG(IS_ANDROID)
        const std::optional<ahoi::session::WebsiteSessionBinding> binding =
@@ -13,7 +13,7 @@ index 4ca4f5..0cc758 100644
          content::StoragePartition* partition = profile_->GetStoragePartition(
              ahoi::session::StoragePartitionConfigForWebsiteSession(profile_,
 diff --git a/chrome/browser/ui/browser_tabrestore.cc b/chrome/browser/ui/browser_tabrestore.cc
-index 6ac4e6..e7d552d0 100644
+index a66ff58c3b710fd215fe9b9d46c90b89d6f88870..d730579159bc843db66b823993b68c5d5d083354 100644
 --- a/chrome/browser/ui/browser_tabrestore.cc
 +++ b/chrome/browser/ui/browser_tabrestore.cc
 @@ -70,14 +70,19 @@ std::unique_ptr<WebContents> CreateRestoredTab(

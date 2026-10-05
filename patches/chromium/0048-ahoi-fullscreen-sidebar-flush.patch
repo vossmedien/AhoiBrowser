@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index f3af6b..b276c6 100644
+index fac207ccce52f29d46003a11a6255295dcd812e6..2df81542b7b7539b67fdbddc89d5e33b8fae80d1 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -1316,7 +1316,9 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1320,7 +1320,9 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
      if (is_ahoi_shell) {
        // Ahoi's toolbar is a floating overlay. Its current visibility must not
        // resize the stable macOS caption/title area above the sidebar.
@@ -14,10 +14,10 @@ index f3af6b..b276c6 100644
            base::ClampCeil(browser_params.leading_exclusion.content.width()) -
            tabstrip_bounds->x();
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index 5e05e1..c3cbde 100644
+index c10c02552af058429707aec71c263a7889fbb6ce..f6632811e008914833ab24849408e0fcd571a428 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-@@ -104,8 +104,9 @@ gfx::Insets GetAhoiSidebarMargins(bool floating,
+@@ -106,8 +106,9 @@ gfx::Insets GetAhoiSidebarMargins(bool floating,
    }
    const int vertical_margin = GetLayoutConstant(
        LayoutConstant::kVerticalTabStripCollapsedVerticalPadding);
@@ -29,7 +29,7 @@ index 5e05e1..c3cbde 100644
  }
  
  class AccessibleSidebarResizeArea final : public views::ResizeArea {
-@@ -668,13 +669,12 @@ bool VerticalTabStripRegionView::IsPositionInWindowCaption(
+@@ -670,13 +671,12 @@ bool VerticalTabStripRegionView::IsPositionInWindowCaption(
      return false;
    }
  

@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
-index 9d3314e31f907700be67a2b59986469fa1861361..dfd1794152b7f33ea8e68c76620d9ec1aef9495e 100644
+index 78820299929d20abbc8dfbecfeb4760902643b75..04d54539184f07fd614f6ae8016352340d4b2be1 100644
 --- a/chrome/browser/ui/BUILD.gn
 +++ b/chrome/browser/ui/BUILD.gn
-@@ -183,6 +183,7 @@ if (!is_android) {
+@@ -209,6 +209,7 @@ if (!is_android) {
        ":bubble_anchor_util",
        ":chrome_pages",
        ":ui",
@@ -10,7 +10,7 @@ index 9d3314e31f907700be67a2b59986469fa1861361..dfd1794152b7f33ea8e68c76620d9ec1
        "//build:branding_buildflags",
        "//chrome/app:command_ids",
        "//chrome/app/vector_icons",
-@@ -1310,6 +1311,7 @@ static_library("ui") {
+@@ -1511,6 +1512,7 @@ static_library("ui") {
    } else {
      # !is_android
      deps += [
@@ -19,7 +19,7 @@ index 9d3314e31f907700be67a2b59986469fa1861361..dfd1794152b7f33ea8e68c76620d9ec1
        "//ahoi/browser/session:session_restore_integration",
      ]
 diff --git a/chrome/browser/ui/browser_actions.cc b/chrome/browser/ui/browser_actions.cc
-index e62eb0500e9f33bd279ac67253de928657264cec..25030f128a188fd7f85a1b94f68ee772c194e013 100644
+index 624f8ef22fe2036f4a867313841ab33e6a89ebe0..fcb9dc23d8c8871b7bdb4de814f59daa0fcea70f 100644
 --- a/chrome/browser/ui/browser_actions.cc
 +++ b/chrome/browser/ui/browser_actions.cc
 @@ -10,6 +10,7 @@
@@ -30,7 +30,7 @@ index e62eb0500e9f33bd279ac67253de928657264cec..25030f128a188fd7f85a1b94f68ee772
  #include "base/check_deref.h"
  #include "base/check_op.h"
  #include "base/functional/bind.h"
-@@ -1707,16 +1708,18 @@ void BrowserActions::InitializeChromeMenuActions() {
+@@ -1738,16 +1739,18 @@ void BrowserActions::InitializeChromeMenuActions() {
  #endif
            .Build());
  
@@ -60,7 +60,7 @@ index e62eb0500e9f33bd279ac67253de928657264cec..25030f128a188fd7f85a1b94f68ee772
  
  void BrowserActions::InitializeToolbarAndMiscActions() {
 diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
-index 21c433c80a5ef87289fcda1a00dd39743b6d3c53..75026fe1e1ec8815c118f68f10e66e588988752a 100644
+index 1dd5fa5e01b2132c04fc93849bcbf67d4c7b433f..eb3d9fc02069d5a1cc062a6cba526d673187684a 100644
 --- a/chrome/browser/ui/browser_command_controller.cc
 +++ b/chrome/browser/ui/browser_command_controller.cc
 @@ -9,6 +9,7 @@
@@ -71,7 +71,7 @@ index 21c433c80a5ef87289fcda1a00dd39743b6d3c53..75026fe1e1ec8815c118f68f10e66e58
  #include "ahoi/browser/ui/extensions/ubo_install_dialog.h"
  #include "base/check_deref.h"
  #include "base/command_line.h"
-@@ -1281,7 +1282,9 @@ void BrowserCommandController::HandleCommandWithDisposition(
+@@ -1286,7 +1287,9 @@ void BrowserCommandController::HandleCommandWithDisposition(
        ShowWebStore(browser_, extension_urls::kAppMenuUtmSource);
        break;
      case IDC_AHOI_UBO_CLASSIC:
@@ -82,7 +82,7 @@ index 21c433c80a5ef87289fcda1a00dd39743b6d3c53..75026fe1e1ec8815c118f68f10e66e58
        break;
      case IDC_PERFORMANCE:
        ShowSettingsSubPage(webui::GetBrowserForOpeningWebUi(browser_),
-@@ -2137,8 +2140,9 @@ void BrowserCommandController::UpdateCommandsForExtensionsMenu() {
+@@ -2134,8 +2137,9 @@ void BrowserCommandController::UpdateCommandsForExtensionsMenu() {
        IDC_EXTENSIONS_SUBMENU_VISIT_CHROME_WEB_STORE, /*state=*/true);
    command_updater_->UpdateCommandEnabled(IDC_FIND_EXTENSIONS,
                                           /*state=*/true);
@@ -95,10 +95,10 @@ index 21c433c80a5ef87289fcda1a00dd39743b6d3c53..75026fe1e1ec8815c118f68f10e66e58
  
  void BrowserCommandController::UpdateCommandsForTabState() {
 diff --git a/chrome/browser/ui/toolbar/BUILD.gn b/chrome/browser/ui/toolbar/BUILD.gn
-index bbbeb90544d753622ae76ea9d0d50c7992d75a83..034eb7302824063628be813323b9f905214f2ede 100644
+index 605a25e6dec8bc3a7523bf697ef81b4746eb8a65..9974b76d21eadd66dfaf53718308ecf83526224a 100644
 --- a/chrome/browser/ui/toolbar/BUILD.gn
 +++ b/chrome/browser/ui/toolbar/BUILD.gn
-@@ -113,6 +113,7 @@ source_set("impl") {
+@@ -114,6 +114,7 @@ source_set("impl") {
      ]
  
      deps += [
@@ -107,7 +107,7 @@ index bbbeb90544d753622ae76ea9d0d50c7992d75a83..034eb7302824063628be813323b9f905
        "//base:debugging_buildflags",
        "//base:i18n",
 diff --git a/chrome/browser/ui/toolbar/app_menu_model.cc b/chrome/browser/ui/toolbar/app_menu_model.cc
-index 5c5315aa437b6949b8766300c560547b83516149..2c84bae60b5f962a340889e111532449fc596264 100644
+index ba385c38e5077e5065cdc3db4d3d1409d000f966..d37a7078628515633437466b7f6028253f2c4f7f 100644
 --- a/chrome/browser/ui/toolbar/app_menu_model.cc
 +++ b/chrome/browser/ui/toolbar/app_menu_model.cc
 @@ -9,6 +9,7 @@
@@ -118,7 +118,7 @@ index 5c5315aa437b6949b8766300c560547b83516149..2c84bae60b5f962a340889e111532449
  #include "base/command_line.h"
  #include "base/debug/debugging_buildflags.h"
  #include "base/debug/profiler.h"
-@@ -1329,12 +1330,14 @@ void ExtensionsMenuModel::Build(BrowserWindowInterface* browser) {
+@@ -1186,12 +1187,14 @@ void ExtensionsMenuModel::Build(BrowserWindowInterface* browser) {
    SetCommandIcon(this, IDC_EXTENSIONS_SUBMENU_VISIT_CHROME_WEB_STORE,
                   vector_icons::kGoogleChromeWebstoreIcon);
  #endif

@@ -1,8 +1,8 @@
 diff --git a/chrome/app/generated_resources.grd b/chrome/app/generated_resources.grd
-index 46989aae5cf7b5b1a469b641ffb9a493e219aa9e..0784c961f7edf2de7c0cdfd972dc6cbe8052db17 100644
+index 61e0829f12f6e050c8f56b8b6e354d5381bc7df6..7620a7fa258e304fdb1760ec94ec686ad87b7675 100644
 --- a/chrome/app/generated_resources.grd
 +++ b/chrome/app/generated_resources.grd
-@@ -20382,6 +20382,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
+@@ -20535,6 +20535,9 @@ Please help our engineers fix this problem. Tell us what happened right before y
      <message name="IDS_SETTINGS_AHOI_ARC_IMPORT_ERROR" desc="Generic fail-closed Arc import error." meaning="AhoiBrowser Arc import">
        The import stopped safely without leaving a partial sidebar change. Try discovery again.
      </message>
@@ -13,10 +13,10 @@ index 46989aae5cf7b5b1a469b641ffb9a493e219aa9e..0784c961f7edf2de7c0cdfd972dc6cbe
        Arc is not installed, so no Arc import source is shown.
      </message>
 diff --git a/chrome/app/resources/generated_resources_de.xtb b/chrome/app/resources/generated_resources_de.xtb
-index b030b23c0a4c6852ae3f630ba1989c3997954d48..dab359b97e71899dd4a8981e6698745fe0f96ee7 100644
+index a916f3ff761f213418380ff60d9027f74f60d15a..8b3956a740b8af346c8b1b499cdb3f83660271bd 100644
 --- a/chrome/app/resources/generated_resources_de.xtb
 +++ b/chrome/app/resources/generated_resources_de.xtb
-@@ -11214,6 +11214,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+@@ -11261,6 +11261,7 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
  <translation id="899392523010245914">Dieser Arc-Snapshot wurde bereits importiert. Es wurde nichts geändert.</translation>
  <translation id="7752347700290384694">Arc-Arbeitsbereiche wurden erfolgreich importiert.</translation>
  <translation id="8260558927380188067">Der Import wurde sicher beendet, ohne eine teilweise Seitenleistenänderung zu hinterlassen. Erstelle die Vorschau erneut.</translation>
@@ -25,10 +25,10 @@ index b030b23c0a4c6852ae3f630ba1989c3997954d48..dab359b97e71899dd4a8981e6698745f
  <translation id="9090513909176093975">Beende Arc und warte, bis auch alle Hilfsprozesse beendet sind. AhoiBrowser erstellt keinen Snapshot geöffneter Arc-Datenbanken.</translation>
  <translation id="3021282495262762494">Importvorschau</translation>
 diff --git a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-index a94b5a07a52654332667740833379929760c5dbe..0f459a669f08e140646bceecf199823867fcf6b0 100644
+index 87deecd257b777d90bc1d7c2cadf5a060c57e105..1ab21b88975f8d16a6affd8fa7ffc519a1fee274 100644
 --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
 +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
-@@ -629,6 +629,8 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+@@ -630,6 +630,8 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
        {"ahoiArcImportNoChanges", IDS_SETTINGS_AHOI_ARC_IMPORT_NO_CHANGES},
        {"ahoiArcImportSuccess", IDS_SETTINGS_AHOI_ARC_IMPORT_SUCCESS},
        {"ahoiArcImportError", IDS_SETTINGS_AHOI_ARC_IMPORT_ERROR},

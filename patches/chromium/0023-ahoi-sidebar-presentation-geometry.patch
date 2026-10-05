@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index 628a6d9ea9548dcaf639f9052ecbfa4d6c027040..e0d26c9de41e22388d4cdbc0e046dcde6f0ab804 100644
+index 0ad654adade5455890fef8066cc1495316505c85..605578df905ca3c05345921069ed5d5b47875acc 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-@@ -50,6 +50,7 @@
+@@ -51,6 +51,7 @@
  #include "ui/gfx/geometry/rect.h"
  #include "ui/gfx/geometry/rounded_corners_f.h"
  #include "ui/gfx/geometry/size.h"
@@ -39,7 +39,7 @@ index 628a6d9ea9548dcaf639f9052ecbfa4d6c027040..e0d26c9de41e22388d4cdbc0e046dcde
        }
  
        // Let the vertical tab strip animate out over the content.
-@@ -1187,7 +1185,10 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1191,7 +1189,10 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
    // bounds. This is to make optimizations during animations e.g. avoid
    // repositioning status bubble.
    views().multi_contents_view->SetIsAnimatingContent(
@@ -51,7 +51,7 @@ index 628a6d9ea9548dcaf639f9052ecbfa4d6c027040..e0d26c9de41e22388d4cdbc0e046dcde
  
    // Lay out contents container. The contents container contains the multi-
    // contents view when multi-contents are enabled. The checks here are to
-@@ -1221,7 +1222,12 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -1225,7 +1226,12 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
    // hit testing in sync with the pixels the user actually sees.
    if (uses_ahoi_content_card) {
      contents_layout.bounds.Inset(
@@ -65,7 +65,7 @@ index 628a6d9ea9548dcaf639f9052ecbfa4d6c027040..e0d26c9de41e22388d4cdbc0e046dcde
    }
  
    // Maybe expand and clip the web contents to avoid issues during animation.
-@@ -1398,15 +1404,16 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
+@@ -1402,15 +1408,16 @@ gfx::Rect BrowserViewTabbedLayoutImpl::CalculateTopContainerLayout(
      ProposedLayout& layout,
      BrowserLayoutParams params,
      bool needs_exclusion) const {
@@ -87,7 +87,7 @@ index 628a6d9ea9548dcaf639f9052ecbfa4d6c027040..e0d26c9de41e22388d4cdbc0e046dcde
                  layout_data_->horizontal_layout.vertical_tab_strip_width),
          /*leading=*/true);
    }
-@@ -1687,12 +1694,18 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+@@ -1696,12 +1703,18 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
      // overlay boundary remains legible over arbitrary page content. The
      // region's existing shadow view is reused; this avoids introducing a
      // second host or a second composited WebContents surface.
@@ -112,7 +112,7 @@ index 628a6d9ea9548dcaf639f9052ecbfa4d6c027040..e0d26c9de41e22388d4cdbc0e046dcde
      } else if (vertical_tabs_bottom_corner_amount > 0.0) {
        shadow_frame->SetShadowCornerRadius(vertical_tabs_bottom_corner_size);
        shadow_frame->SetShadowOpacity(vertical_tabs_bottom_corner_amount);
-@@ -1700,6 +1713,18 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+@@ -1709,6 +1722,18 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
      } else {
        shadow_frame->SetShadowVisible(false);
      }
@@ -132,7 +132,7 @@ index 628a6d9ea9548dcaf639f9052ecbfa4d6c027040..e0d26c9de41e22388d4cdbc0e046dcde
      CustomCornersBackground::Outline vertical_tabs_outline;
      if (!IsAhoiShell(views())) {
 diff --git a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
-index 5a841b6f40a698889bb502c96c7cbf91e07c99ec..2724d8198f6491e5b76f431e2304e4a8992f3268 100644
+index 647b3d6af5dfef04403966cf94d67cbee22bc4e1..2f046898e195e210d80a343404acc74c34ec2887 100644
 --- a/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 +++ b/chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc
 @@ -16,6 +16,7 @@
@@ -143,7 +143,7 @@ index 5a841b6f40a698889bb502c96c7cbf91e07c99ec..2724d8198f6491e5b76f431e2304e4a8
  #include "base/time/time.h"
  #include "chrome/browser/ui/actions/chrome_action_id.h"
  #include "chrome/browser/ui/animation/browser_animation_controller.h"
-@@ -420,27 +421,42 @@ void VerticalTabStripRegionView::ApplyAhoiSidebarAnimationState() {
+@@ -422,27 +423,42 @@ void VerticalTabStripRegionView::ApplyAhoiSidebarAnimationState() {
      return;
    }
  
@@ -194,7 +194,7 @@ index 5a841b6f40a698889bb502c96c7cbf91e07c99ec..2724d8198f6491e5b76f431e2304e4a8
    }
    SetAhoiSidebarRoundedClip(ahoi_sidebar_visual_floating_ && keep_mounted);
    SchedulePaint();
-@@ -473,6 +489,10 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
+@@ -475,6 +491,10 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
    SetCanProcessEventsWithinSubtree(true);
    layer()->SetOpacity(1.0f);
    layer()->SetTransform(gfx::Transform());
@@ -205,7 +205,7 @@ index 5a841b6f40a698889bb502c96c7cbf91e07c99ec..2724d8198f6491e5b76f431e2304e4a8
    if (auto* background = this->background()->AsA<CustomCornersBackground>()) {
      background->SetVisible(true);
    }
-@@ -480,6 +500,10 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
+@@ -482,6 +502,10 @@ void VerticalTabStripRegionView::ResetAhoiSidebarAnimationForStockChrome() {
  
  void VerticalTabStripRegionView::OnSidebarPresentationAnimationUpdated() {
    ApplyAhoiSidebarAnimationState();
@@ -216,7 +216,7 @@ index 5a841b6f40a698889bb502c96c7cbf91e07c99ec..2724d8198f6491e5b76f431e2304e4a8
    if (!ahoi_sidebar_presentation_animator_.is_animating()) {
      PreferredSizeChanged();
      InvalidateLayout();
-@@ -503,13 +527,61 @@ bool VerticalTabStripRegionView::ShouldKeepAhoiSidebarMountedForLayout() const {
+@@ -505,13 +529,61 @@ bool VerticalTabStripRegionView::ShouldKeepAhoiSidebarMountedForLayout() const {
           ahoi_sidebar_presentation_animator_.ShouldKeepSurfaceMounted();
  }
  
@@ -282,7 +282,7 @@ index 5a841b6f40a698889bb502c96c7cbf91e07c99ec..2724d8198f6491e5b76f431e2304e4a8
  }
  
  bool VerticalTabStripRegionView::IsAnimatingSize() const {
-@@ -709,6 +781,10 @@ void VerticalTabStripRegionView::Layout(PassKey) {
+@@ -711,6 +783,10 @@ void VerticalTabStripRegionView::Layout(PassKey) {
                                     sidebar_bounds.y(), resize_area_width_,
                                     sidebar_bounds.height());
    }
