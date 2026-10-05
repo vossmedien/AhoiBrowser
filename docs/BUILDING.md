@@ -89,6 +89,12 @@ prehydrate the exact pinned target before `gclient` changes its `HEAD`:
 ./scripts/fetch-chromium.sh --prehydrate-target
 ```
 
+Since M155 `gclient sync` checks out `third_party/litert/src`, which carries
+a Git LFS `post-checkout` hook; `git-lfs` must be on `PATH`. MacbookPro2026.local
+has no Homebrew: the official `git-lfs-darwin-arm64` release (3.8.0, SHA-256
+checked against the release's `sha256sums.asc`) lives in
+`~/inhouse/toolchains/git-lfs-v3.8.0/git-lfs-3.8.0`.
+
 The roll tools (`chromium_roll.py`, `fetch-chromium.sh` hydration and
 checkout state) need Python 3.10 or newer. MacbookPro2026.local's `python3`
 is Xcode's 3.9; put depot_tools' pinned interpreter first in `PATH`
