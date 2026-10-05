@@ -33,9 +33,14 @@ ran on installed `e86c929f` with the frozen driver under an own e2e.lock.
   `webrequest-subresource-probe.sh` GREEN on it (extension sees main frame,
   stylesheet, script, images; browser survives navigate/reload; no DCHECK).
   [Evidence](../artifacts/tests/webrequest-p0-b21aa146-20261005/README.md).
-  The visible network regression set (ubo, http-auth, privacy, downloads,
-  import, sandbox) waits: the target console locked again (loginwindow
-  front, idle > 1000 s) and the first ubo run ended at setup.
+  Visible regression on installed b21aa146: **ubo-classic 9/9** (install,
+  filtering, incognito off by default and on after allowance; no crash),
+  downloads-media 7/7, import-sources and sandbox readback PASS.
+  http-auth (25 cases) and privacy PRIV-02/03 ran against a locked console
+  (display sleep 10 min + lock 300 s on the target) and are invalid, not
+  product results; rerun queued with the new `run-journey-set.sh` (unlocked
+  console required, `caffeinate -d`, verdict-based results).
+  [Evidence](../artifacts/computer-use/m154/regression-installed-b21aa146-20261005/).
 - **AnyChat removed from scope** (user decision 5 Oct): no product code
   existed (normal Web Store path); Master, registry (EXT-11/15 dropped,
   431 cases), requirement audit and `anychat-journey.sh` updated.
