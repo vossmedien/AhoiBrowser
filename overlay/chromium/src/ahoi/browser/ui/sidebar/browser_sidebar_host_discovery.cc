@@ -568,7 +568,7 @@ bool BrowserSidebarHostView::RestoreSidebarDiscoveryEntry(SessionID entry_id) {
   }
   discovery_state_.activation_committed = true;
   const bool restored = discovery_model_->RestoreRecentlyClosed(
-      entry_id, browser_->GetFeatures().live_tab_context());
+      entry_id, BrowserLiveTabContext::From(browser_));
   if (!restored && discovery_view_ && discovery_view_->is_open()) {
     discovery_state_.activation_committed = false;
   }
