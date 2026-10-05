@@ -18,6 +18,7 @@
 # Results: <outdir>/results.json.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd)
+. "$S/browser_launch.sh"
 AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9389; SP=${AHOI_E2E_SITE_PORT:-8808}; HP=$((SP + 1))
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
 for p in $PORT $SP $HP; do
@@ -67,10 +68,12 @@ run_mode() { # <label> <seeded mode or "">
   python3 "$S/privacy_fixture.py" --port $SP --log "$LOG" --https-port $HP \
     --cert "$TLS/cert.pem" --key "$TLS/key.pem" > "$OUT/fixture-$label.stderr" 2>&1 &
   FIX=$!
-  "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir="$P" --no-first-run --no-default-browser-check \
+  : > "$OUT/browser-$label.log"
+  ahoi_launch_browser "$OUT/browser-$label.log" --user-data-dir="$P" --no-first-run \
+    --no-default-browser-check \
     --remote-debugging-port=$PORT --ignore-certificate-errors-spki-list="$SPKI" \
-    about:blank > "$OUT/browser-$label.log" 2>&1 &
-  PID=$!; echo "$label: pid=$PID profile=$P seeded=${mode:-none}" >> "$OUT/run.txt"
+    about:blank
+  echo "$label: pid=$PID profile=$P seeded=${mode:-none}" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 3
   open_tab "$A/top" 5

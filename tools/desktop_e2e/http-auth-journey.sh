@@ -272,13 +272,15 @@ for i in $(seq 1 20); do curl -s http://127.0.0.1:$A/__health >/dev/null && brea
 
 # Each launch logs to browser.log and writes its own NetLog (default capture
 # mode) so AUTH-25 can scan both after the run.
+. "$S/browser_launch.sh"
 launch() { # <label> [extra flags...]
   local label=$1; shift
-  "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$STORE_P --no-first-run --no-default-browser-check \
+  ahoi_launch_browser "$OUT/browser.log" --user-data-dir=$STORE_P --no-first-run \
+    --no-default-browser-check \
     --remote-debugging-port=$PORT --enable-logging=stderr \
     --vmodule=login_handler=1,login_tab_helper=1,http_auth*=1 \
-    --log-net-log="$OUT/netlog-$label.json" "$@" about:blank >> "$OUT/browser.log" 2>&1 &
-  PID=$!; echo "pid=$PID profile=$STORE_P launch=$label" >> "$OUT/run.txt"
+    --log-net-log="$OUT/netlog-$label.json" "$@" about:blank
+  echo "pid=$PID profile=$STORE_P launch=$label" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 4
 }
