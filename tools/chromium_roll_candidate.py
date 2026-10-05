@@ -70,9 +70,11 @@ def _load_reviewed_candidate(
         raise RollError("candidate input is not valid UTF-8 JSON") from error
     if not isinstance(candidate, dict):
         raise RollError("candidate input must be a JSON object")
-    if set(candidate) != set(baseline):
-        missing = sorted(set(baseline) - set(candidate))
-        extra = sorted(set(candidate) - set(baseline))
+    # rolloutPolicy is the only optional pin key (absent means "full").
+    optional = {"rolloutPolicy"}
+    if set(candidate) - optional != set(baseline) - optional:
+        missing = sorted(set(baseline) - set(candidate) - optional)
+        extra = sorted(set(candidate) - set(baseline) - optional)
         details = []
         if missing:
             details.append("missing=" + ",".join(missing))

@@ -16,7 +16,62 @@ PIN_PATH = ROOT / "config/chromium.json"
 
 class ChromiumPinVerifierTests(unittest.TestCase):
     def setUp(self):
+        # The rollout tests below exercise the default full policy; the
+        # staged-stable policy has its own tests.
         self.pin = json.loads(PIN_PATH.read_text(encoding="utf-8"))
+        self.pin.pop("rolloutPolicy", None)
+        self.pin.update(rolloutFraction=1.0, pinnable=True)
+
+    def staged_pin(self):
+        pin = copy.deepcopy(self.pin)
+        pin.update(rolloutPolicy="staged-stable", rolloutFraction=0.005, pinnable=False)
+        return pin
+
+    def write_releases(self, paths, *records):
+        paths["release_json"].write_text(
+            json.dumps({"releases": list(records)}), encoding="utf-8"
+        )
+
+    def test_staged_pin_accepts_any_active_positive_rollout(self):
+        pin = self.staged_pin()
+        for fraction in (0.005, 0.25, 1):
+            with self.subTest(fraction=fraction), tempfile.TemporaryDirectory() as temporary:
+                paths = self.write_inputs(pathlib.Path(temporary), pin=pin)
+                self.write_releases(
+                    paths,
+                    {"version": pin["version"], "fraction": fraction, "pinnable": False},
+                    {"version": pin["version"], "fraction": fraction, "pinnable": False},
+                )
+                result = self.run_verifier(paths)
+                self.assertEqual("", result.stderr)
+                self.assertEqual(0, result.returncode)
+
+    def test_staged_pin_rejects_halted_or_withdrawn_release(self):
+        pin = self.staged_pin()
+        for record in (
+            {"fraction": 0, "pinnable": False},
+            {"fraction": 0.005, "pinnable": False, "serving": {"endTime": "2026-10-06T00:00:00Z"}},
+        ):
+            with self.subTest(record=record), tempfile.TemporaryDirectory() as temporary:
+                paths = self.write_inputs(pathlib.Path(temporary), pin=pin)
+                self.write_releases(paths, {"version": pin["version"], **record})
+                result = self.run_verifier(paths)
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn("Google may have halted it", result.stderr)
+
+    def test_rejects_unknown_policy_and_staged_pin_without_positive_fraction(self):
+        for update in (
+            {"rolloutPolicy": "early-stable"},
+            {"rolloutPolicy": "staged-stable", "rolloutFraction": 0},
+            {"rolloutPolicy": "staged-stable", "rolloutFraction": 0.5, "pinnable": None},
+            {"rolloutFraction": 0.5},
+        ):
+            pin = copy.deepcopy(self.pin)
+            pin.update(update)
+            with self.subTest(update=update), tempfile.TemporaryDirectory() as temporary:
+                result = self.run_verifier(self.write_inputs(pathlib.Path(temporary), pin=pin))
+                self.assertNotEqual(0, result.returncode)
+                self.assertNotIn("Traceback", result.stderr)
 
     def write_inputs(self, directory: pathlib.Path, pin=None, annotated=True):
         pin = copy.deepcopy(pin or self.pin)

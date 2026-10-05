@@ -139,8 +139,16 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertEqual(int(pin["version"].split(".")[2]), pin["branchHead"])
         self.assertEqual("Stable", pin["channel"])
         self.assertEqual("Mac", pin["platform"])
-        self.assertTrue(pin["pinnable"])
-        self.assertEqual(1.0, pin["rolloutFraction"])
+        if pin.get("rolloutPolicy") == "staged-stable":
+            # Owner decision 5 October 2026: follow Stable during Google's
+            # staged rollout; the pin records the observed fraction.
+            self.assertIsInstance(pin["pinnable"], bool)
+            self.assertGreater(pin["rolloutFraction"], 0)
+            self.assertLessEqual(pin["rolloutFraction"], 1)
+        else:
+            self.assertNotIn("rolloutPolicy", pin)
+            self.assertTrue(pin["pinnable"])
+            self.assertEqual(1.0, pin["rolloutFraction"])
         self.assertRegex(pin["branchPoint"], r"^[0-9a-f]{40}$")
 
     def test_product_version_has_apple_and_channel_components(self):

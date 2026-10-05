@@ -322,6 +322,12 @@ def _parser() -> argparse.ArgumentParser:
         "discover", help="prove the newest fully rolled Mac Stable candidate"
     )
     discover.add_argument("--online", action="store_true")
+    discover.add_argument(
+        "--allow-staged-rollout",
+        action="store_true",
+        help="accept the highest active Stable release at any positive rollout "
+        "fraction (policy staged-stable, owner decision 5 October 2026)",
+    )
     discover.add_argument("--network-timeout", type=int, default=20)
     discover.add_argument("--retrieved-at")
     discover.add_argument("--release-json", type=pathlib.Path)

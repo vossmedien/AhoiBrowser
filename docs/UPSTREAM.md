@@ -154,6 +154,24 @@ captured response files shown by `discover --help`; neither production
 `config/chromium.json` nor the reviewed candidate binding is an unchecked report
 output target.
 
+## Rollout policy: staged Stable (owner decision, 5 October 2026)
+
+The owner decided to follow a new Stable milestone during Google's staged
+rollout instead of waiting for the full rollout, as other Chromium-based
+browsers do. `discover --allow-staged-rollout` selects the highest active Mac
+ARM64 Stable release with any positive rollout fraction and records
+`"rolloutPolicy": "staged-stable"`, the observed `rolloutFraction` and the
+observed `pinnable` value in the candidate. Google marks staged records as not
+pinnable; that flag concerns enterprise version pinning only. Without the key
+the policy stays `full`: exactly one fully rolled, pinnable record.
+
+Pin verification under `staged-stable` requires at least one active
+same-version record with a positive fraction. A halted rollout (fraction 0) or
+an ended record therefore fails `verify-pin-online.sh`; that is the signal to
+roll forward to Google's replacement release, not to waive the check. All
+source, tag, branch-head, branch-point and `chrome/VERSION` checks are
+unchanged. The first staged pin is 155.0.8059.26 (0.5 % at discovery).
+
 ## Roll policy
 
 1. Read the Chromium Stable release announcement, run discovery, review its

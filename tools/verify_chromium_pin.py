@@ -17,6 +17,8 @@ from typing import Any, Dict, List, Mapping, Sequence
 
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 VERSION_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)\.(\d+)$")
+ROLLOUT_FULL = "full"
+ROLLOUT_STAGED = "staged-stable"
 OFFICIAL_SOURCE = "https://chromium.googlesource.com/chromium/src.git"
 VERSION_HISTORY_HOST = "versionhistory.googleapis.com"
 VERSION_HISTORY_PATH = (
@@ -58,14 +60,26 @@ def is_eligible_release(
     *,
     rollout_fraction: Any = 1.0,
     pinnable: bool = True,
+    staged: bool = False,
 ) -> bool:
-    """Return whether a VersionHistory record is active and roll-ready."""
+    """Return whether a VersionHistory record is active and roll-ready.
+
+    With ``staged`` (rollout policy ``staged-stable``) any active record with a
+    positive rollout fraction qualifies: Google marks staged Stable records as
+    not pinnable, which only concerns enterprise version pinning.
+    """
 
     if "serving" in release:
         serving = release["serving"]
         if not isinstance(serving, Mapping) or "endTime" in serving:
             return False
     fraction = release.get("fraction")
+    if staged:
+        return (
+            not isinstance(fraction, bool)
+            and isinstance(fraction, (int, float))
+            and 0 < fraction <= 1
+        )
     return (
         not isinstance(fraction, bool)
         and fraction == rollout_fraction
@@ -102,7 +116,21 @@ def validate_config(config: Mapping[str, Any]) -> None:
         raise VerificationError("this production pin must target Chromium Stable for Mac")
     if config.get("verifiedVersionFile") != "chrome/VERSION":
         raise VerificationError("verifiedVersionFile must be chrome/VERSION")
-    if config.get("pinnable") is not True or config.get("rolloutFraction") != 1.0:
+    policy = config.get("rolloutPolicy", ROLLOUT_FULL)
+    if policy == ROLLOUT_STAGED:
+        fraction = config.get("rolloutFraction")
+        if (
+            not isinstance(config.get("pinnable"), bool)
+            or isinstance(fraction, bool)
+            or not isinstance(fraction, (int, float))
+            or not 0 < fraction <= 1
+        ):
+            raise VerificationError(
+                "a staged-stable pin must record its rollout fraction and pinnable state"
+            )
+    elif policy != ROLLOUT_FULL:
+        raise VerificationError(f"unknown rolloutPolicy: {policy!r}")
+    elif config.get("pinnable") is not True or config.get("rolloutFraction") != 1.0:
         raise VerificationError(
             "the configured production release must be fully rolled and pinnable"
         )
@@ -330,6 +358,7 @@ def verify_release(config: Mapping[str, Any], payload: Mapping[str, Any]) -> Non
         for release in releases
         if isinstance(release, dict) and release.get("version") == config["version"]
     ]
+    staged = config.get("rolloutPolicy", ROLLOUT_FULL) == ROLLOUT_STAGED
     eligible = [
         release
         for release in same_version
@@ -337,9 +366,15 @@ def verify_release(config: Mapping[str, Any], payload: Mapping[str, Any]) -> Non
             release,
             rollout_fraction=config["rolloutFraction"],
             pinnable=config["pinnable"],
+            staged=staged,
         )
     ]
-    if len(eligible) != 1:
+    if staged and not eligible:
+        raise VerificationError(
+            "expected an active Stable release record with a positive rollout "
+            f"fraction for {config['version']}; Google may have halted it"
+        )
+    if not staged and len(eligible) != 1:
         raise VerificationError(
             "expected exactly one fully rolled and pinnable active release record "
             f"for {config['version']}, found {len(eligible)} among "

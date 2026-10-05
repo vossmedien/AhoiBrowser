@@ -144,6 +144,29 @@ class ChromiumRollDiscoveryTests(unittest.TestCase):
         self.assertEqual(self.BRANCH_POINT, candidate["branchPoint"])
         self.assertEqual(self.BRANCH_POSITION, candidate["branchPosition"])
 
+    def test_staged_rollout_is_opt_in_and_records_actual_fraction(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-roll-discovery-") as raw:
+            paths = self.fixtures(pathlib.Path(raw))
+            releases = json.loads(paths["release-json"].read_text(encoding="utf-8"))
+            releases["releases"] = [
+                record
+                for record in releases["releases"]
+                if record["version"] != self.VERSION or record["fraction"] != 1
+            ]
+            paths["release-json"].write_text(json.dumps(releases), encoding="utf-8")
+            default = self.invoke(paths)
+            staged = self.invoke(paths, "--allow-staged-rollout")
+        # Without the opt-in the staged-only version is skipped and the lower,
+        # fully rolled release no longer matches the fixture's Gitiles data.
+        self.assertNotEqual(0, default.returncode)
+        self.assertEqual("", staged.stderr)
+        self.assertEqual(0, staged.returncode)
+        candidate = json.loads(staged.stdout)
+        self.assertEqual(self.VERSION, candidate["version"])
+        self.assertEqual("staged-stable", candidate["rolloutPolicy"])
+        self.assertEqual(0.005, candidate["rolloutFraction"])
+        self.assertFalse(candidate["pinnable"])
+
     def test_rejects_dash_metadata_that_disagrees_with_gitiles(self):
         with tempfile.TemporaryDirectory(prefix="ahoi-roll-discovery-") as raw:
             paths = self.fixtures(pathlib.Path(raw))

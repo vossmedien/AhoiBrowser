@@ -13,6 +13,7 @@ from typing import Any
 
 from verify_chromium_pin import (
     OFFICIAL_SOURCE,
+    ROLLOUT_STAGED,
     exact_footer_values,
     is_eligible_release,
     require_sha1,
@@ -107,27 +108,39 @@ def release_records(payload: Any) -> list[dict[str, Any]]:
     return records
 
 
-def select_release(payload: Any) -> str:
+def select_release(payload: Any, staged: bool = False) -> str:
+    return select_release_record(payload, staged)["version"]
+
+
+def select_release_record(payload: Any, staged: bool = False) -> dict[str, Any]:
+    """Pick the highest eligible release; staged picks its widest active record."""
+
     groups: dict[str, list[dict[str, Any]]] = {}
     for record in release_records(payload):
         groups.setdefault(record["version"], []).append(record)
     versions = [
         version
         for version, group in groups.items()
-        if any(is_eligible_release(record) for record in group)
+        if any(is_eligible_release(record, staged=staged) for record in group)
     ]
     if not versions:
         raise DiscoveryError(
-            "VersionHistory has no active fully rolled, pinnable release"
+            "VersionHistory has no active staged Stable release"
+            if staged
+            else "VersionHistory has no active fully rolled, pinnable release"
         )
     version = max(versions, key=version_tuple)
-    eligible = [record for record in groups[version] if is_eligible_release(record)]
+    eligible = [
+        record for record in groups[version] if is_eligible_release(record, staged=staged)
+    ]
+    if staged:
+        return max(eligible, key=lambda record: record["fraction"])
     if len(eligible) != 1:
         raise DiscoveryError(
             "highest eligible version is ambiguous: "
             f"{version} has {len(eligible)} fully rolled, pinnable records"
         )
-    return version
+    return eligible[0]
 
 
 def dash_records(payload: Any) -> list[dict[str, Any]]:
@@ -178,8 +191,10 @@ def derive_candidate(
     branch_point_payload: Any,
     version_text: bytes,
     retrieved_at: str | None,
+    staged: bool = False,
 ) -> dict[str, Any]:
-    version = select_release(release_payload)
+    release = select_release_record(release_payload, staged)
+    version = release["version"]
     parts = version_tuple(version)
     milestone, branch_head = parts[0], parts[2]
     tag = require_object(tag_payload, "Gitiles tag response")
@@ -218,11 +233,13 @@ def derive_candidate(
         "branchPosition": branch_position,
         "source": OFFICIAL_SOURCE,
         "releaseApi": RELEASE_API,
-        "rolloutFraction": 1.0,
-        "pinnable": True,
+        "rolloutFraction": float(release["fraction"]) if staged else 1.0,
+        "pinnable": release.get("pinnable") is True if staged else True,
         "verifiedVersionFile": "chrome/VERSION",
         "retrievedAt": normalize_timestamp(retrieved_at),
     }
+    if staged:
+        candidate["rolloutPolicy"] = ROLLOUT_STAGED
     matching_dash = [
         record
         for record in dash_records(dash_payload)
@@ -289,13 +306,13 @@ def fetch(url: str, timeout: int) -> bytes:
     return raw
 
 
-def online_inputs(timeout: int) -> dict[str, Any]:
+def online_inputs(timeout: int, staged: bool = False) -> dict[str, Any]:
     if timeout < 1 or timeout > 60:
         raise DiscoveryError("network-timeout must be between 1 and 60 seconds")
     release_payload = json_payload(
         fetch(RELEASE_API + "&page_size=200", timeout), "VersionHistory response"
     )
-    version = select_release(release_payload)
+    version = select_release(release_payload, staged)
     tag_payload = json_payload(
         fetch(f"{GITILES_BASE}/+show/refs/tags/{version}?format=JSON", timeout),
         "Gitiles tag response",
@@ -355,6 +372,7 @@ def offline_inputs(args: Any) -> dict[str, Any]:
 
 
 def discover(args: Any) -> dict[str, Any]:
+    staged = bool(getattr(args, "allow_staged_rollout", False))
     fixtures = (
         args.release_json,
         args.dash_json,
@@ -367,7 +385,7 @@ def discover(args: Any) -> dict[str, Any]:
     if args.online:
         if any(value is not None for value in fixtures):
             raise DiscoveryError("--online cannot be combined with offline fixture inputs")
-        inputs = online_inputs(args.network_timeout)
+        inputs = online_inputs(args.network_timeout, staged)
     else:
         inputs = offline_inputs(args)
-    return derive_candidate(**inputs, retrieved_at=args.retrieved_at)
+    return derive_candidate(**inputs, retrieved_at=args.retrieved_at, staged=staged)
