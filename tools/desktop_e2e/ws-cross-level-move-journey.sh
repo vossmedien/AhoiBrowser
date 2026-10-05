@@ -158,8 +158,8 @@ key() {
 # ⌘Z by its letter, as split_journey_lib.sh does (this journey does not
 # source it): QWERTZ layouts carry Z on the ANSI Y key (16). Build 54 ran
 # the undo step without any key, because undo_key was not defined here.
-KBD_LAYOUT=$(defaults read ~/Library/Preferences/com.apple.HIToolbox \
-  AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null)
+. "$S/keyboard_layout.sh"
+KBD_LAYOUT=$(current_keyboard_layout)
 case "$KBD_LAYOUT" in
   *QWERTY*) Z_KEY=6 ;;
   *German*|*Swiss*|*Austrian*|*Czech*|*Slovak*|*Hungarian*) Z_KEY=16 ;;

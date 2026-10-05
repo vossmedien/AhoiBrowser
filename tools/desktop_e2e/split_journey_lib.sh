@@ -274,8 +274,8 @@ key() {
 # on the ANSI Y key (16). Key 6 is Y there, and ⌘Y opens History: build
 # 51 showed a "Verlauf" row instead of an undo in the cmd-move and merge
 # journeys.
-KBD_LAYOUT=$(defaults read ~/Library/Preferences/com.apple.HIToolbox \
-  AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null)
+. "$S/keyboard_layout.sh"
+KBD_LAYOUT=$(current_keyboard_layout)
 case "$KBD_LAYOUT" in
   *QWERTY*) Z_KEY=6 ;;
   *German*|*Swiss*|*Austrian*|*Czech*|*Slovak*|*Hungarian*) Z_KEY=16 ;;

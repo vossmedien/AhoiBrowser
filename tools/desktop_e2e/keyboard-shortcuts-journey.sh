@@ -209,7 +209,8 @@ start_at epsilon; step_in_zwei ctrlTabWrapsInWorkspace delta 48 ctrl
 start_at delta; step_in_zwei ctrlShiftTabWrapsInWorkspace epsilon 48 ctrl shift
 # Cmd+Shift+[ and ] are ANSI bracket keys; other layouts (German: + and ü)
 # put Chromium's tab shortcuts elsewhere, so they run on US/ABC only.
-LAYOUT=$(defaults read ~/Library/Preferences/com.apple.HIToolbox AppleCurrentKeyboardLayoutInputSourceID 2>/dev/null)
+. "$S/keyboard_layout.sh"
+LAYOUT=$(current_keyboard_layout)
 echo "keyboard layout: $LAYOUT" >> "$OUT/steps.txt"
 if echo "$LAYOUT" | grep -q -E "\.(US|ABC)$"; then
   start_at epsilon; step_in_zwei cmdShiftBracketWrapsInWorkspace delta 30 cmd shift
