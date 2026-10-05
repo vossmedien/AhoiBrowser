@@ -22,7 +22,10 @@
 set -u
 APP=$1; OUT=$2; shift 2
 S=$(cd "$(dirname "$0")" && pwd); REPO=$(cd "$S/../.." && pwd)
-LOCK=$REPO/.work/agent-queue/e2e.lock
+# Shared across snapshots: point AHOI_E2E_LOCK at the mirror's lock when the
+# journeys run from a frozen snapshot under .work/agent-queue.
+LOCK=${AHOI_E2E_LOCK:-$REPO/.work/agent-queue/e2e.lock}
+mkdir -p "$(dirname "$LOCK")"
 MIN_IDLE=${AHOI_E2E_MIN_IDLE:-300}; MIN_CPU=${AHOI_E2E_MIN_CPU_IDLE:-30}
 mkdir -p "$OUT"; : > "$OUT/summary.txt"
 idle() { ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'; }
