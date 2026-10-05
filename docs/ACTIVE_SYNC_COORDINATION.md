@@ -20,9 +20,12 @@ keeps excluded data out of Sync without real devices:
 - Mobile page/Home/archive target refusal (credentials, file/chrome/
   javascript/data/about, missing host, NUL; Home never a new tab; decode
   path) now pinned by `SharedTabTargetValidationTests` (3/3 on the target).
-- Remaining gaps (source-only, not yet closed): a product decision whether history URLs keep
-  query tokens verbatim (history is in scope); Mobile writer-side test for
-  private tabs. Real-device proof stays owner-gated.
+- Mobile writer side: `MobileBrowserCoreTests` (reconcilePublishedMobileTabs
+  with a normal and a private tab) already proves private tabs never publish.
+- Remaining: history URLs sync query strings verbatim (history is in scope,
+  userinfo is refused). This matches Chrome; changing it is a product
+  decision, recorded here, not a blocker. Real-device proof stays
+  owner-gated.
 
 ## Settings delta built and installed; execution still open — 3 October2026
 
