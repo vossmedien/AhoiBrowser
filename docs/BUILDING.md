@@ -95,6 +95,18 @@ is Xcode's 3.9; put depot_tools' pinned interpreter first in `PATH`
 (`$AHOI_WORK_ROOT/depot_tools/bootstrap-2@3.11.8.chromium.35_bin/python3/bin`,
 see `python3_bin_reldir.txt`).
 
+For a milestone roll (about 25 000 missing blobs in M154 and M155) the
+guarded 16-blob batches are far too slow: each fetch against the shallow
+blobless checkout takes minutes. Fetch the target tree once in a scratch
+repository on the build host (`git init`, then
+`git fetch --no-tags --depth=1 origin <pinned commit>`, about 15 minutes),
+pack exactly the missing blob IDs (`git ls-tree -r` of the pin, then
+`cat-file --batch-check` with `GIT_NO_LAZY_FETCH=1`) with
+`git pack-objects --stdout`, add them with `git index-pack --stdin` in the
+checkout, delete the scratch repository, and rerun
+`./scripts/fetch-chromium.sh --prehydrate-target`, which verifies that nothing
+is missing before `gclient` changes `HEAD`.
+
 This opt-in mode is not used for the first checkout. It obtains missing
 commit/tree metadata without writing a ref when necessary, then inventories
 the pinned target with lazy fetching disabled and downloads only missing unique
