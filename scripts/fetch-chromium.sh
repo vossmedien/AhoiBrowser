@@ -55,7 +55,11 @@ if [ -d "${AHOI_CHROMIUM_SRC}/.git" ]; then
   [ -f "${AHOI_CHROMIUM_SRC}/DEPS" ] && \
     [ -f "${AHOI_CHROMIUM_SRC}/chrome/VERSION" ] || \
     ahoi_die "existing Chromium checkout is incomplete"
-  ahoi_require_clean_git_checkout "${AHOI_CHROMIUM_SRC}"
+  if [ "${prehydrate_target}" -eq 1 ]; then
+    ahoi_require_clean_git_checkout "${AHOI_CHROMIUM_SRC}"
+  else
+    ahoi_require_clean_git_checkout_except_dependency_gitlinks "${AHOI_CHROMIUM_SRC}"
+  fi
   ahoi_require_gclient_config
   existing_checkout=1
   ahoi_require_update_free_space

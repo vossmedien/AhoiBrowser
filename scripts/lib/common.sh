@@ -307,6 +307,17 @@ ahoi_require_clean_git_checkout() {
   fi
 }
 
+# Like ahoi_require_clean_git_checkout, but accepts DEPS gitlinks that differ
+# from their checked-out dependency: an interrupted gclient sync leaves them,
+# and the next sync resolves them. Every other change still refuses.
+ahoi_require_clean_git_checkout_except_dependency_gitlinks() {
+  local checkout="$1"
+  [ -d "${checkout}/.git" ] || ahoi_die "not a Git checkout: ${checkout}"
+  if [ -n "$(git -C "${checkout}" status --porcelain --ignore-submodules=all)" ]; then
+    ahoi_die "checkout has modifications or untracked files and will not be changed: ${checkout}"
+  fi
+}
+
 ahoi_sha256() {
   shasum -a 256 "$1" | awk '{print $1}'
 }
