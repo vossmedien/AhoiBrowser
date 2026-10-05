@@ -29,9 +29,13 @@ ran on installed `e86c929f` with the frozen driver under an own e2e.lock.
   `WebRequestInfoInitParams` (crash reports 11:32/11:38). Cause: 0094 passes
   the navigation ID of document subresource factories on to webRequest.
   Fix `b21aa146` (patch 0089: webRequest gets the ID only for navigation
-  factories); incremental build on the target running, then sign/install and
-  the network regression set (ubo, http-auth, privacy, downloads, import,
-  sandbox) on that candidate. First e86 runs retained as the RED baseline.
+  factories) built, signed, installed on the target; new focused probe
+  `webrequest-subresource-probe.sh` GREEN on it (extension sees main frame,
+  stylesheet, script, images; browser survives navigate/reload; no DCHECK).
+  [Evidence](../artifacts/tests/webrequest-p0-b21aa146-20261005/README.md).
+  The visible network regression set (ubo, http-auth, privacy, downloads,
+  import, sandbox) waits: the target console locked again (loginwindow
+  front, idle > 1000 s) and the first ubo run ended at setup.
 - **AnyChat removed from scope** (user decision 5 Oct): no product code
   existed (normal Web Store path); Master, registry (EXT-11/15 dropped,
   431 cases), requirement audit and `anychat-journey.sh` updated.

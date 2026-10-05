@@ -1,0 +1,1 @@
+{"result":{"type":"string","value":"[\"main_frame http://127.0.0.1:8823/index.html?again\",\"stylesheet http://127.0.0.1:8823/s.css\",\"script http://127.0.0.1:8823/a.js\",\"image http://127.0.0.1:8823/i1.svg\",\"image http://127.0.0.1:8823/i2.svg\",\"image http://127.0.0.1:8823/favicon.ico\"]"}}

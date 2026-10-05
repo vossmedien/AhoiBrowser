@@ -1,0 +1,85 @@
+{
+ "report": "AhoiBrowser-2026-10-05-113841.ips",
+ "incident": "7412C996-3E82-4CE0-882B-66E6D975E51A",
+ "exception": {
+  "codes": "0x0000000000000000, 0x0000000000000000",
+  "rawCodes": [
+   0,
+   0
+  ],
+  "type": "EXC_CRASH",
+  "signal": "SIGABRT"
+ },
+ "frames": [
+  [
+   "__pthread_kill",
+   null,
+   null
+  ],
+  [
+   "pthread_kill",
+   null,
+   null
+  ],
+  [
+   "abort",
+   null,
+   null
+  ],
+  [
+   "logging::LogMessage::HandleFatal(unsigned long, std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::a",
+   null,
+   null
+  ],
+  [
+   "logging::LogMessage::Flush()",
+   null,
+   null
+  ],
+  [
+   "logging::LogMessage::~LogMessage()",
+   null,
+   null
+  ],
+  [
+   "logging::(anonymous namespace)::DCheckLogMessage::~DCheckLogMessage()",
+   null,
+   null
+  ],
+  [
+   "logging::CheckError::~CheckError()",
+   null,
+   null
+  ],
+  [
+   "logging::CheckError::~CheckError()",
+   null,
+   null
+  ],
+  [
+   "extensions::WebRequestInfoInitParams::WebRequestInfoInitParams(unsigned long long, content::GlobalRenderFrameHostId, std",
+   "web_request_info.cc",
+   272
+  ],
+  [
+   "extensions::WebRequestProxyingURLLoaderFactory::InProgressRequest::UpdateRequestInfo()",
+   "web_request_proxying_url_loader_factory.cc",
+   287
+  ],
+  [
+   "Restart",
+   "web_request_proxying_url_loader_factory.cc",
+   263
+  ],
+  [
+   "extensions::WebRequestProxyingURLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, i",
+   "web_request_proxying_url_loader_factory.cc",
+   1640
+  ],
+  [
+   "network::mojom::URLLoaderFactory::CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader>, int, unsigned i",
+   "url_loader_factory.mojom.h",
+   92
+  ]
+ ]
+}

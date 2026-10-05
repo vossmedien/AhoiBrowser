@@ -1,0 +1,5 @@
+browserAliveAfterLoad PASS
+browserAliveAfterNavigate PASS
+extensionSawSubresources PASS
+browserAliveAfterReload PASS
+noWebRequestDcheck PASS
