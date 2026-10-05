@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "chromiumCommit": "f89f3a4363808e117c592adedcf9947882ac3b79",
-  "chromiumVersion": "154.0.8037.93",
-  "frameworkVersion": "154.0.8037.93",
-  "upstreamPolicySource": "Chromium 154.0.8037.93 chrome/installer/mac/signing/parts.py, chrome/app/*-entitlements.plist, chrome/version.gni and chrome/BUILD.gn",
+  "chromiumCommit": "b859317bf11f6be47f9b7799ec690a0a42a1fb33",
+  "chromiumVersion": "154.0.8037.98",
+  "frameworkVersion": "154.0.8037.98",
+  "upstreamPolicySource": "Chromium 154.0.8037.98 chrome/installer/mac/signing/parts.py, chrome/app/*-entitlements.plist, chrome/version.gni and chrome/BUILD.gn",
   "defaultSigningProfile": "provider-free",
   "publicIdentity": {
     "teamIdentifier": "248AJ5BN47",
@@ -63,75 +63,75 @@
     },
     {
       "id": "renderer-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/AhoiBrowser Helper \\(Renderer\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Renderer\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/AhoiBrowser Helper \\(Renderer\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Renderer\\)$",
       "entitlements": {
         "com.apple.security.cs.allow-jit": true
       }
     },
     {
       "id": "gpu-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/AhoiBrowser Helper \\(GPU\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(GPU\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/AhoiBrowser Helper \\(GPU\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(GPU\\)$",
       "entitlements": {
         "com.apple.security.cs.allow-jit": true
       }
     },
     {
       "id": "framework",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/AhoiBrowser Framework$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/AhoiBrowser Framework$",
       "entitlements": {}
     },
     {
       "id": "crashpad",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/chrome_crashpad_handler$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/chrome_crashpad_handler$",
       "entitlements": {}
     },
     {
       "id": "generic-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/AhoiBrowser Helper\\.app/Contents/MacOS/AhoiBrowser Helper$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/AhoiBrowser Helper\\.app/Contents/MacOS/AhoiBrowser Helper$",
       "entitlements": {}
     },
     {
       "id": "alerts-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/AhoiBrowser Helper \\(Alerts\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Alerts\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/AhoiBrowser Helper \\(Alerts\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Alerts\\)$",
       "entitlements": {}
     },
     {
       "id": "aperitif-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/AhoiBrowser Helper \\(Aperitif\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Aperitif\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/AhoiBrowser Helper \\(Aperitif\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Aperitif\\)$",
       "entitlements": {}
     },
     {
       "id": "aperitif-renderer-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/AhoiBrowser Helper \\(Aperitif Renderer\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Aperitif Renderer\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/AhoiBrowser Helper \\(Aperitif Renderer\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Aperitif Renderer\\)$",
       "entitlements": {
         "com.apple.security.cs.allow-jit": true
       }
     },
     {
       "id": "aperitif-gpu-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/AhoiBrowser Helper \\(Aperitif GPU\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Aperitif GPU\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/AhoiBrowser Helper \\(Aperitif GPU\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Aperitif GPU\\)$",
       "entitlements": {
         "com.apple.security.cs.allow-jit": true
       }
     },
     {
       "id": "aperitif-alerts-helper",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/AhoiBrowser Helper \\(Aperitif Alerts\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Aperitif Alerts\\)$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/AhoiBrowser Helper \\(Aperitif Alerts\\)\\.app/Contents/MacOS/AhoiBrowser Helper \\(Aperitif Alerts\\)$",
       "entitlements": {}
     },
     {
       "id": "app-mode-loader",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/app_mode_loader$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/app_mode_loader$",
       "entitlements": {}
     },
     {
       "id": "web-app-shortcut-copier",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Helpers/web_app_shortcut_copier$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Helpers/web_app_shortcut_copier$",
       "entitlements": {}
     },
     {
       "id": "chromium-library",
-      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.93/Libraries/(?:libEGL|libGLESv2|libaperitif|libvk_swiftshader|libvulkan)\\.dylib$",
+      "pathPattern": "^Contents/Frameworks/AhoiBrowser Framework\\.framework/Versions/154\\.0\\.8037\\.98/Libraries/(?:libEGL|libGLESv2|libaperitif|libvk_swiftshader|libvulkan)\\.dylib$",
       "entitlements": {}
     },
     {

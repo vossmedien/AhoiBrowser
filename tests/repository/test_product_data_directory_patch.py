@@ -9,8 +9,8 @@ PATCH_ROOT = ROOT / "patches/chromium"
 PATCH_PATH = PATCH_ROOT / "0001-ahoi-m153-integration-seams.patch"
 SERIES_PATH = PATCH_ROOT / "series"
 BRANDING_PATH = ROOT / "overlay/chromium/src/ahoi/branding/BRANDING"
-M154_VERSION = "154.0.8037.93"
-M154_COMMIT = "f89f3a4363808e117c592adedcf9947882ac3b79"
+M154_VERSION = "154.0.8037.98"
+M154_COMMIT = "b859317bf11f6be47f9b7799ec690a0a42a1fb33"
 PLIST_PATH = "chrome/app/app-Info.plist"
 
 

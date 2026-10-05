@@ -1,5 +1,20 @@
 # Chromium M154 patch ledger
 
+## Patch release 154.0.8037.98 (5 October 2026)
+
+Security patch roll on branch 8037 from `154.0.8037.93` (`f89f3a43`) to
+`154.0.8037.98` (`b859317b`), fully rolled Mac Stable since 2 October: 84
+upstream commits including `[M154] [HiC] Disallow external SVG content
+referenced by href`, `[M154] [FedCM] Guard against reentrancy UAF in modal
+dialog and desktop view` and the paint cache ID widening; V8
+`b3d6849e`, ANGLE and WebRTC revisions moved. Preflight on the target
+checkout (`chromium_roll.py preflight`): 91/91 patches apply, 0 conflicts,
+0 already upstream, ready. Both dependency workaround targets
+(`rustc_wrapper.py`, V8 `inspector_protocol/code_generator.py`) and all
+entitlement policy sources are byte-identical at the new pins, so only the
+recorded upstream commits move. Build and runtime acceptance follow on the
+first `.98` candidate.
+
 ## M154 roll (30 September 2026)
 
 The stack was rebased from M153 `153.0.8010.53` onto M154 `154.0.8037.93`
@@ -773,8 +788,8 @@ performance and installed-app acceptance are still open. No permission path
 changes.
 
 `series` is the authoritative application order. The active stack targets
-Chromium Mac Stable `154.0.8037.93` at
-`f89f3a4363808e117c592adedcf9947882ac3b79`. A roll is accepted only when the
+Chromium Mac Stable `154.0.8037.98` at
+`b859317bf11f6be47f9b7799ec690a0a42a1fb33`. A roll is accepted only when the
 overlay and every patch compose offline to one exact tree, the real checkout
 matches that tree, and the build/test evidence names the same commit.
 
@@ -2095,6 +2110,59 @@ deterministic composition.
 These corrections are covered by the same compile, visible runtime, focused
 test, and overlay-composition gates described by the owning feature sections
 above.
+
+## `0089-ahoi-developer-document-subresources.patch`
+
+- **Owner:** Desktop, Developer Toolkit DEV-09/14/15.
+- **Change:** `ChromeContentBrowserClient::WillCreateURLLoaderFactory` adds
+  the overlay's developer network adapter for document and dedicated-worker
+  subresource factories, ahead of webRequest so extensions still see and can
+  block the requests. Since 5 October 2026 (`b21aa146`) webRequest receives
+  the factory's navigation ID only for navigation factories, as upstream
+  does; 0094's subresource ID made it DCHECK on every subresource request
+  of a webRequest extension (uBO Classic, AnyChat on e86c929f).
+- **Test:** `ahoi_developer_toolkit_unittests`, devtoolkit journey 7/7 and
+  `tools/desktop_e2e/webrequest-subresource-probe.sh` on installed b21aa146.
+- **Rebase/removal:** modification-only; drop with the adapter.
+
+## `0090-ahoi-temporary-header-lifetime-ui.patch`
+
+- **Owner:** Desktop, Developer Toolkit temporary headers.
+- **Change:** localized strings (en/de) for the current-tab versus persistent
+  header lifetime selection used by the overlay editor.
+- **Test:** Developer Toolkit unit and WebUI tests.
+- **Rebase/removal:** resource-only; drop with the editor.
+
+## `0091-ahoi-scoped-login-keychain-fallback.patch`
+
+- **Owner:** Desktop, own Safe Storage keychain (Crest 148, patch 0079).
+- **Change:** in relocated account homes the Safe Storage lookup is scoped
+  to the existing user login keychain instead of waiting on the default
+  search list; metadata-only evidence of the default/login keychain stays.
+- **Test:** mock-keychain unit tests and installed windowed launches.
+- **Rebase/removal:** modification of `crypto/apple`; drop when the
+  relocated-home lookup no longer blocks upstream.
+
+## `0092-ahoi-tab-local-cache-control.patch`
+
+- **Owner:** Desktop, Developer Toolkit cache-off (DEV-09).
+- **Change:** localized strings for the explicit tab-local cache policy; the
+  policy itself lives in the overlay and is never persisted through origin
+  profiles.
+- **Test:** cache12 journey and native factory/navigation tests.
+- **Rebase/removal:** resource-only.
+
+## `0093-ahoi-native-document-factory-refresh.patch`
+
+- **Owner:** Desktop, Developer Toolkit tab-cache policy.
+- **Change:** build wiring for `DocumentLoaderFactoryRefresh`, which refreshes
+  document and dedicated-worker factories when the tab-cache policy changes
+  while keeping unrelated header rules. Since 5 October 2026 its two new
+  files (`content/public/browser/document_loader_factory_refresh.h`,
+  `content/browser/renderer_host/document_loader_factory_refresh.cc`) live
+  unchanged in the overlay, so the patch is modification-only.
+- **Test:** focused Mojo/content tests; cache12 journey.
+- **Rebase/removal:** drop with the tab-cache policy.
 
 ## `0094-ahoi-document-factory-navigation-id.patch`
 

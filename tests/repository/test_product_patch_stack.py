@@ -22,12 +22,12 @@ FOUNDATION_SERIES = (
     LEAN_GUARDS_PATCH,
 )
 M154_PIN = {
-    "version": "154.0.8037.93",
+    "version": "154.0.8037.98",
     "milestone": 154,
-    "tag": "refs/tags/154.0.8037.93",
-    "commit": "f89f3a4363808e117c592adedcf9947882ac3b79",
+    "tag": "refs/tags/154.0.8037.98",
+    "commit": "b859317bf11f6be47f9b7799ec690a0a42a1fb33",
     "branchHead": 8037,
-    "branchHeadPosition": 1590,
+    "branchHeadPosition": 1674,
     "branchPoint": "e10b20e60f162e7ad88e4930833695a54f4e15fb",
     "branchPosition": 1689415,
     "channel": "Stable",
