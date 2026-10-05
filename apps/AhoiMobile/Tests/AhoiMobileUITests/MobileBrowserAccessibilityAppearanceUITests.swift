@@ -154,10 +154,19 @@ final class MobileBrowserAccessibilityAppearanceUITests: MobileBrowserUITestCase
     private func waitForFocus(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
         repeat {
-            if element.hasFocus { return true }
+            if isFocused(element) { return true }
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         } while Date() < deadline
-        return element.hasFocus
+        return isFocused(element)
+    }
+
+    /// `hasFocus` reports UIFocusSystem focus, which an iPhone text field
+    /// only gets while a hardware keyboard drives focus navigation. The
+    /// first-responder field the UI hierarchy shows as "Keyboard Focused" is
+    /// `hasKeyboardFocus`; either proves the Escape starts in the field.
+    @MainActor
+    private func isFocused(_ element: XCUIElement) -> Bool {
+        element.hasFocus || (element.value(forKey: "hasKeyboardFocus") as? Bool ?? false)
     }
 
     @MainActor
