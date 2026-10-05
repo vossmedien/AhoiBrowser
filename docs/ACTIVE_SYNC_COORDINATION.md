@@ -1,5 +1,27 @@
 # Active sync coordination
 
+## DoD 14 source coverage audit — 5 October 2026
+
+Read-only audit (Claude session 049a3c1d, same original Master) of what
+keeps excluded data out of Sync without real devices:
+
+- Desktop writer guard `sync_secret_boundary_unittest.cc` covers every
+  record variant (:178), forbidden URL schemes/userinfo in top-level and
+  archive/Home URLs (:202, :238), secret-named payload keys (:268) and
+  developer-asset opt-in/Authorization header refusal (:300). Incognito tabs:
+  `sync_unittest.cc:217/:476`.
+- Settings: `IsPortableBrowserSetting` (catalogue + value validation) gates
+  publish, outbox upload (`sync_pump.cc:217`) and apply
+  (`profile_sync_service_settings.cc:376`); unknown ids are rejected by
+  conformance vectors 036/037 on both platforms.
+- Mobile: `SyncBoundaryTests` (spike) denies every sensitive data class and
+  pins the allowlist to `SharedSyncFormat.supportedDataClasses`;
+  `CompanionSyncBridge` denies them again on import/restore.
+- Remaining gaps (source-only, not yet closed): Mobile archive snapshot/Home
+  target URL refusal tests; a product decision whether history URLs keep
+  query tokens verbatim (history is in scope); Mobile writer-side test for
+  private tabs. Real-device proof stays owner-gated.
+
 ## Settings delta built and installed; execution still open — 3 October2026
 
 Coherent b6d32377 includes a431d966. Guarded native build/sign/installation PASS;
