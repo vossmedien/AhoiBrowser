@@ -83,17 +83,16 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
         openSpikeSettings(in: app)
         let load = app.buttons["settings.extensions.spike.import-folder"]
         load.tap()
-        let cancel = app.descendants(matching: .any).matching(NSPredicate(
-            format: "label IN %@", ["Cancel", "Abbrechen"]
-        )).firstMatch
         let picker = app.otherElements["Browse View (Picker)"]
         XCTAssertTrue(picker.waitForExistence(timeout: 8))
-        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
         attachEvidence(app, "spike-files-picker-before-cancel")
         attachTree(app, "spike-files-picker-tree")
-        // The visible iOS27 cancel container is Other and reports non-hittable.
-        // Use its observed frame; require the picker to actually disappear.
-        cancel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        // iOS27 reports the presenting sheet's hidden Cancel behind Files.
+        // Dismiss the visible native picker sheet through its top edge.
+        picker.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.01))
+            .press(forDuration: 0.1, thenDragTo: picker.coordinate(
+                withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9)
+            ))
         XCTAssertTrue(picker.waitForNonExistence(timeout: 5))
         XCTAssertTrue(waitForHittable(load, timeout: 5))
         XCTAssertTrue(load.isEnabled)

@@ -96,6 +96,13 @@ binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
   Next: only this affected cancellation on the corrected exact candidate, then
   five runtime boundaries and one separate native review. The import test and
   product code are unchanged by that final test correction.
+  Candidate07caf17b built/signed/bound;35.67/36.26%idle,78%reclaimable memory
+  allowed runner59908. Terminal65,35.15s: the coordinate tap did NOT close Files.
+  Screenshot proves the AX Cancel belongs to the obscured presenting sheet;
+  Files has no visible Cancel at that frame. Original result retained, cleanup
+  again verified. Test now dismisses the visible picker via its native top-edge
+  sheet gesture and still requires real disappearance/no imported context.
+  No failing assertion was removed and no focused tests ran in its place.
   Next: rebuild corrected exact candidate, retry only the failed import,
   then five existing runtime boundaries and one separate native review.
 - Next independent Mobile action: complete ADR0012 Step1's real Files import,
