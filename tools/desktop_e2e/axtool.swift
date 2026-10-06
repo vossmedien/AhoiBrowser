@@ -12,6 +12,7 @@ import AppKit
 //        axtool selected <pid>
 //        axtool menukeys <pid>
 //        axtool eventaccess <pid>
+//        axtool hidready <pid>
 import ApplicationServices
 import Foundation
 
@@ -83,6 +84,47 @@ func flagsFrom(_ names: ArraySlice<String>) -> CGEventFlags {
     return flags
 }
 
+// Read the system's keyboard receiver and the mouse hit target, not just
+// NSWorkspace's frontmost app or a successful AXSetFrontmost request.
+func hidTargetReady(_ pid: pid_t, at point: CGPoint? = nil) -> Bool {
+    let system = AXUIElementCreateSystemWide()
+    AXUIElementSetMessagingTimeout(system, 1.5)
+    var receiverPID: pid_t = -1, windowPID: pid_t = -1, hitPID: pid_t = -1
+    var receiverWindow = "none"
+    if let value = attr(system, kAXFocusedApplicationAttribute) {
+        let receiver = value as! AXUIElement
+        AXUIElementSetMessagingTimeout(receiver, 1.5)
+        AXUIElementGetPid(receiver, &receiverPID)
+        if let value = attr(receiver, kAXFocusedWindowAttribute) {
+            let window = value as! AXUIElement
+            AXUIElementGetPid(window, &windowPID)
+            receiverWindow = label(window)
+        }
+    }
+    if let point {
+        var hit: AXUIElement?
+        if AXUIElementCopyElementAtPosition(system, Float(point.x), Float(point.y), &hit) == .success,
+           let hit {
+            AXUIElementGetPid(hit, &hitPID)
+            print("mouseReceiver: \(label(hit)) pid=\(hitPID)")
+        }
+    }
+    let frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? -1
+    let postAccess = CGPreflightPostEventAccess()
+    let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
+                                            kCGNullWindowID) as? [[String: Any]]
+    let systemModalPIDs = windows?.filter {
+        $0[kCGWindowOwnerName as String] as? String == "UserNotificationCenter" &&
+        ($0[kCGWindowAlpha as String] as? Double ?? 1) > 0
+    }.compactMap { $0[kCGWindowOwnerPID as String] as? Int } ?? []
+    let mouseReceiver = point == nil ? "not-probed" : String(hitPID)
+    print("HID target=\(pid) workspace=\(frontPID) keyboardReceiver=\(receiverPID) windowOwner=\(windowPID) mouseReceiver=\(mouseReceiver) PostEventAccess=\(postAccess)")
+    print("receiverWindow: \(receiverWindow)")
+    print("QuartzGUI=\(windows != nil) UserNotificationCenterWindows=\(systemModalPIDs)")
+    return postAccess && frontPID == pid && receiverPID == pid && windowPID == pid &&
+        (point == nil || hitPID == pid) && windows != nil && systemModalPIDs.isEmpty
+}
+
 let args = CommandLine.arguments
 guard args.count >= 3, let pid = pid_t(args[2]) else {
     FileHandle.standardError.write("bad args\n".data(using: .utf8)!); exit(2)
@@ -99,6 +141,8 @@ guard AXIsProcessTrusted() else {
 }
 let app = AXUIElementCreateApplication(pid)
 switch args[1] {
+case "hidready":
+    exit(hidTargetReady(pid) ? 0 : 3)
 case "enable":
     let r1 = AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
     let r2 = AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
@@ -181,8 +225,8 @@ case "hidkey":
     // Like a real keyboard: through the HID event tap, with modifier
     // flagsChanged events and short gaps. Check the target before each
     // key-down; focus can change while the modifier chord is assembled.
-    guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
-        print("hidkey refused: target not frontmost"); exit(3)
+    guard hidTargetReady(pid) else {
+        print("hidkey refused: input target not ready"); exit(3)
     }
     let code = CGKeyCode(args[3])!
     var flags: CGEventFlags = []
@@ -205,7 +249,7 @@ case "hidkey":
     }
     var pressedModifiers: [CGKeyCode] = []
     func checkOwnerBeforeDown() {
-        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
+        guard hidTargetReady(pid) else {
             // Release only this invocation's already posted modifier downs.
             // No character/action key is sent after ownership is lost.
             for m in pressedModifiers.reversed() { post(m, false, []) }
@@ -276,6 +320,7 @@ case "focused":
     }
     let front = NSWorkspace.shared.frontmostApplication
     print("frontmostApp: \(front?.localizedName ?? "none") pid=\(front?.processIdentifier ?? -1) target=\(pid)")
+    _ = hidTargetReady(pid)
     for (name, attribute) in [("focusedElement", kAXFocusedUIElementAttribute),
                               ("focusedWindow", kAXFocusedWindowAttribute),
                               ("mainWindow", kAXMainWindowAttribute)] {
@@ -321,6 +366,9 @@ case "hidrightclick":
     AXValueGetValue(hpv as! AXValue, .cgPoint, &hpos)
     AXValueGetValue(hsv as! AXValue, .cgSize, &hsize)
     let hc = CGPoint(x: hpos.x + hsize.width / 2, y: hpos.y + hsize.height / 2)
+    guard hidTargetReady(pid, at: hc) else {
+        print("hidrightclick refused: input target not ready"); exit(3)
+    }
     for t: CGEventType in [.mouseMoved, .rightMouseDown, .rightMouseUp] {
         let ev = CGEvent(mouseEventSource: nil, mouseType: t, mouseCursorPosition: hc,
                          mouseButton: .right)!
@@ -349,6 +397,9 @@ case "hidscroll":
     var mode = "pixel"
     if let first = rest.first, first == "phased" || first == "line" { mode = first; rest.removeFirst() }
     let mods = flagsFrom(rest[...])
+    guard hidTargetReady(pid, at: c) else {
+        print("hidscroll refused: input target not ready"); exit(3)
+    }
     CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: c,
             mouseButton: .left)!.post(tap: .cghidEventTap)
     usleep(80000)
@@ -383,6 +434,9 @@ case "hidmiddle":
     guard args.count >= 6, let c = centerOf(app, args[3]),
           let mdx = Double(args[4]), let mdy = Double(args[5]) else {
         print("NOT FOUND"); exit(1)
+    }
+    guard hidTargetReady(pid, at: c) else {
+        print("hidmiddle refused: input target not ready"); exit(3)
     }
     CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: c,
             mouseButton: .left)!.post(tap: .cghidEventTap)
@@ -421,6 +475,9 @@ case "hidclick":
     AXValueGetValue(cpv as! AXValue, .cgPoint, &cpos)
     AXValueGetValue(csv as! AXValue, .cgSize, &csize)
     let cc = CGPoint(x: cpos.x + csize.width / 2, y: cpos.y + csize.height / 2)
+    guard hidTargetReady(pid, at: cc) else {
+        print("hidclick refused: input target not ready"); exit(3)
+    }
     // Optional modifiers ride on the mouse events (⌘/⇧-click selection).
     let cflags = flagsFrom(args.dropFirst(4))
     for t: CGEventType in [.mouseMoved, .leftMouseDown, .leftMouseUp] {
