@@ -1,5 +1,7 @@
+import os
 import pathlib
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -9,9 +11,77 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import build_provenance  # noqa: E402,F401
 import chromium_dependencies  # noqa: E402
+import chromium_output  # noqa: E402
 
 
 class ChromiumDependencyContractTests(unittest.TestCase):
+    def test_explicit_output_root_is_physical_and_profile_bound(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-output-") as raw:
+            scratch = pathlib.Path(raw).resolve()
+            source = scratch / "source"
+            source.mkdir()
+            out_root = scratch / "internal outputs"
+            out_root.mkdir()
+            with mock.patch.dict(os.environ, {"AHOI_CHROMIUM_OUT_ROOT": str(out_root)}):
+                out = chromium_output.profile_output_directory(source, "AhoiDev")
+                self.assertEqual(out_root / "AhoiDev", out)
+                args = build_provenance.ROOT / "config/build/ahoi-dev.gn"
+                plist = {"AhoiBuildProfile": "dev",
+                         "AhoiGNArgsSHA256": build_provenance.sha256(args)}
+                with mock.patch.object(build_provenance, "CHROMIUM_SRC", source):
+                    build_provenance.verify_profile_binding(
+                        "dev", out / "AhoiBrowser.app", out, args, plist)
+                    self.assertEqual("<chromium-out>/AhoiDev",
+                                     build_provenance.logical_path(out))
+                    with self.assertRaisesRegex(SystemExit, "requires output"):
+                        build_provenance.verify_profile_binding(
+                            "dev", source / "out/AhoiDev/AhoiBrowser.app",
+                            source / "out/AhoiDev", args, plist)
+                    with self.assertRaisesRegex(SystemExit, "requires app"):
+                        build_provenance.verify_profile_binding(
+                            "dev", out / "Chromium.app", out, args, plist)
+                with self.assertRaisesRegex(SystemExit, "unsupported.*profile"):
+                    chromium_output.profile_output_directory(source, "Other")
+                with self.assertRaisesRegex(SystemExit, "must be below"):
+                    chromium_output.validate_output_directory(
+                        source, str(source / "out/AhoiDev"))
+
+    def test_output_roots_and_children_reject_redirects_before_mutation(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-output-") as raw:
+            scratch = pathlib.Path(raw).resolve()
+            source = scratch / "source"
+            source.mkdir()
+            root = scratch / "outputs"
+            root.mkdir()
+            outside = scratch / "outside"
+            outside.mkdir()
+            (scratch / "redirect").symlink_to(outside, target_is_directory=True)
+            invalid_roots = (
+                ("relative", "must be absolute"),
+                (str(root / "missing"), "existing directory"),
+                (str(root) + "/../outside", "dot components"),
+                (str(root) + "/.\n", "control characters"),
+                (str(scratch / "redirect"), "component is a symlink"),
+                (str(scratch / "redirect/child"), "component is a symlink"),
+            )
+            for path, reason in invalid_roots:
+                with self.subTest(root=path), mock.patch.dict(
+                        os.environ, {"AHOI_CHROMIUM_OUT_ROOT": path}):
+                    with self.assertRaisesRegex(SystemExit, reason):
+                        chromium_output.configured_output_root(source)
+            (root / "AhoiDev").symlink_to(outside, target_is_directory=True)
+            (root / "AhoiRelease").write_text("preserve", encoding="utf-8")
+            with mock.patch.dict(os.environ, {"AHOI_CHROMIUM_OUT_ROOT": str(root)}):
+                for profile, reason in (("AhoiDev", "component is a symlink"),
+                                        ("AhoiRelease", "not a directory")):
+                    with self.subTest(profile=profile):
+                        with self.assertRaisesRegex(SystemExit, reason):
+                            chromium_output.profile_output_directory(source, profile)
+                with self.assertRaisesRegex(SystemExit, "dot components"):
+                    chromium_output.validate_output_directory(
+                        source, str(root) + "/AhoiDev/../AhoiFullDev")
+                self.assertEqual("preserve", (root / "AhoiRelease").read_text())
+
     def test_collect_uses_manifest_file_when_stdout_has_worker_messages(self):
         payload = {"src": {"url": "https://example.test/src.git", "rev": "1" * 40}}
         def emit(*command, cwd):

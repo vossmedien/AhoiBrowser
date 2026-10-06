@@ -12,59 +12,7 @@ args_file="$2"
 shift 2
 targets=("$@")
 ahoi_require_command python3
-if ! out_dir="$(python3 - "${AHOI_CHROMIUM_SRC}" "${out_dir}" <<'PY'
-import os
-from pathlib import Path
-import stat
-import sys
-
-
-configured_source = Path(sys.argv[1])
-raw = sys.argv[2]
-candidate = Path(raw)
-if not candidate.is_absolute():
-    raise SystemExit("output directory must be absolute")
-if any(ord(character) < 32 or ord(character) == 127 for character in raw):
-    raise SystemExit("output directory contains control characters")
-if any(component in {".", ".."} for component in raw.split(os.sep)):
-    raise SystemExit("output directory must not contain dot components")
-
-try:
-    relative = Path(os.path.normpath(raw)).relative_to(configured_source / "out")
-except ValueError as error:
-    raise SystemExit(
-        f"output directory must be below {configured_source / 'out'}"
-    ) from error
-if not relative.parts:
-    raise SystemExit("output directory must name a child below Chromium out")
-
-try:
-    source = configured_source.resolve(strict=True)
-except OSError as error:
-    raise SystemExit(f"Chromium source root cannot be resolved: {error}")
-out_root = source / "out"
-lexical = out_root.joinpath(*relative.parts)
-
-cursor = source
-for component in ("out", *relative.parts):
-    cursor = cursor / component
-    try:
-        metadata = cursor.lstat()
-    except FileNotFoundError:
-        break
-    if stat.S_ISLNK(metadata.st_mode):
-        raise SystemExit(f"output directory component is a symlink: {cursor}")
-    if not stat.S_ISDIR(metadata.st_mode):
-        raise SystemExit(f"output directory component is not a directory: {cursor}")
-
-resolved = lexical.resolve(strict=False)
-try:
-    resolved.relative_to(out_root.resolve(strict=False))
-except ValueError as error:
-    raise SystemExit(f"resolved output directory escapes {out_root}") from error
-print(resolved)
-PY
-)"; then
+if ! out_dir="$(ahoi_validate_chromium_output_dir "${out_dir}")"; then
   ahoi_die "unsafe Chromium output directory"
 fi
 [ -f "${args_file}" ] || ahoi_die "GN args file is missing: ${args_file}"
@@ -248,10 +196,12 @@ ahoi_note "applying ${chromium_id} and ${v8_id} only for gn gen and autoninja"
   if [ -n "${AHOI_JOBS:-}" ]; then
     python3 "${AHOI_REPO_ROOT}/tools/run_with_disk_reserve.py" \
       --work-root "${AHOI_WORK_ROOT}" --policy "${AHOI_REPO_ROOT}/config/toolchain.json" \
+      --disk-root "${out_dir}" \
       -- autoninja -C "${out_dir}" -k "${ninja_failure_limit}" -j "${AHOI_JOBS}" "${targets[@]}"
   else
     python3 "${AHOI_REPO_ROOT}/tools/run_with_disk_reserve.py" \
       --work-root "${AHOI_WORK_ROOT}" --policy "${AHOI_REPO_ROOT}/config/toolchain.json" \
+      --disk-root "${out_dir}" \
       -- autoninja -C "${out_dir}" -k "${ninja_failure_limit}" "${targets[@]}"
   fi
 )

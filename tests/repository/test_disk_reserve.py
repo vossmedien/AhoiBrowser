@@ -19,6 +19,26 @@ spec.loader.exec_module(monitor)
 
 
 class DiskReserveTests(unittest.TestCase):
+    def test_separate_output_volume_owns_reserve_and_source_guard_is_retained(self):
+        with tempfile.TemporaryDirectory() as raw:
+            source = pathlib.Path(raw) / 'source'
+            output = pathlib.Path(raw) / 'outputs'
+            source.mkdir()
+            output.mkdir()
+            with mock.patch.object(monitor, 'check_work_root') as guard, \
+                    mock.patch.object(monitor.shutil, 'disk_usage', return_value=SimpleNamespace(free=9)) as usage, \
+                    mock.patch.object(monitor.subprocess, 'Popen') as start:
+                self.assertEqual(2, monitor.run(['unused'], source, 10, disk_root=output))
+                self.assertEqual([mock.call(source), mock.call(output)], guard.call_args_list)
+                usage.assert_called_once_with(output)
+                start.assert_not_called()
+            with mock.patch.object(monitor, 'check_work_root') as guard, \
+                    mock.patch.object(monitor.shutil, 'disk_usage', side_effect=[SimpleNamespace(free=100), SimpleNamespace(free=9)]) as usage:
+                self.assertEqual(2, monitor.run([sys.executable, '-c', 'import time; time.sleep(60)'],
+                                                source, 10, interval=.05, disk_root=output))
+                self.assertEqual([mock.call(source), mock.call(output)] * 2, guard.call_args_list)
+                self.assertEqual([mock.call(output)] * 2, usage.call_args_list)
+
     def test_pressure_refuses_before_start_and_preserves_foreign_process(self):
         with tempfile.TemporaryDirectory() as raw:
             root = pathlib.Path(raw)

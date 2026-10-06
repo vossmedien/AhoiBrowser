@@ -76,12 +76,27 @@ ahoi_free_bytes() {
   df -Pk "${parent}" | awk 'NR == 2 { printf "%.0f\n", $4 * 1024 }'
 }
 
+ahoi_chromium_output_dir() {
+  python3 "${AHOI_REPO_ROOT}/tools/chromium_output.py" \
+    --source "${AHOI_CHROMIUM_SRC}" --profile "$1"
+}
+
+ahoi_validate_chromium_output_dir() {
+  python3 "${AHOI_REPO_ROOT}/tools/chromium_output.py" \
+    --source "${AHOI_CHROMIUM_SRC}" --out-dir "$1"
+}
+
 # Phase estimates plus emergency reserve; no blanket 100 GB host gate.
 # A reviewed incremental phase may declare its expected additional bytes.
 ahoi_require_phase_free_space() {
   local phase="$1"
   local available
-  available="$(ahoi_free_bytes "${AHOI_WORK_ROOT}")"
+  local disk_root="${AHOI_WORK_ROOT}"
+  if [ "${phase}" = build ] && [ "${AHOI_CHROMIUM_OUT_ROOT+x}" = x ]; then
+    disk_root="$(python3 "${AHOI_REPO_ROOT}/tools/chromium_output.py" \
+      --source "${AHOI_CHROMIUM_SRC}" --root)"
+  fi
+  available="$(ahoi_free_bytes "${disk_root}")"
   python3 - "${available}" "${phase}" "${AHOI_REPO_ROOT}/config/toolchain.json" "${AHOI_PLANNED_GROWTH_BYTES:-}" <<'PYBUDGET'
 import json
 import sys

@@ -175,6 +175,24 @@ reserved for release. No certificate or private key needs to be copied.
 
 ## Ahoi build
 
+Build on `MacbookPro2026.local`. Since 6 October, allocate large outputs on the
+internal disk with the existing Inhouse helper, once per active output tree:
+
+```sh
+export AHOI_CHROMIUM_OUT_ROOT="$(~/inhouse/toolchains/bin/inhouse-scratch ahoi-chromium)"
+```
+
+Keep that exact root for subsequent incremental builds. The guarded builders
+select its fixed profile child (`AhoiDev`, `AhoiRelease`, etc.); source checkout,
+pin, overlay and toolchain checks stay unchanged. The explicit root must already
+exist and contain no symlink or redirected path components. Staging and
+provenance bind the same root, and disk guards monitor its filesystem while
+retaining the external source-mount check. With no override, the historical
+`chromium/src/out` layout remains available to repository fixtures. Do not use
+that SSD output layout for new Inhouse builds. Relocated incremental outputs
+need GN regeneration and new candidate-bound provenance; copying bytes alone
+does not accept the relocation.
+
 ```sh
 ./scripts/apply-overlay.sh
 ./scripts/build-ahoi.sh

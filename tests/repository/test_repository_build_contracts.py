@@ -63,6 +63,7 @@ class RepositoryBuildContractTests(unittest.TestCase):
             args_file = pathlib.Path(raw) / "args.gn"
             args_file.write_text("is_debug = true\n", encoding="utf-8")
             environment = {**os.environ, "AHOI_WORK_ROOT": str(work)}
+            environment.pop("AHOI_CHROMIUM_OUT_ROOT", None)
 
             traversal = subprocess.run(
                 [
@@ -107,6 +108,19 @@ class RepositoryBuildContractTests(unittest.TestCase):
             self.assertEqual(
                 "preserve linked\n", linked_receipt.read_text(encoding="utf-8")
             )
+
+            internal = pathlib.Path(raw).resolve() / "internal"
+            internal.mkdir()
+            (internal / "AhoiDev").symlink_to(linked_outside, target_is_directory=True)
+            explicit = subprocess.run(
+                ["bash", str(wrapper), str(internal / "AhoiDev"),
+                 str(args_file), "chrome"],
+                cwd=ROOT, env={**environment, "AHOI_CHROMIUM_OUT_ROOT": str(internal)},
+                check=False, capture_output=True, text=True,
+            )
+            self.assertNotEqual(0, explicit.returncode)
+            self.assertIn("component is a symlink", explicit.stderr)
+            self.assertEqual("preserve linked\n", linked_receipt.read_text(encoding="utf-8"))
 
     def test_phase_growth_budget_and_safety_reserve_cannot_be_bypassed(self):
         policy = load_json("config/toolchain.json")["diskSpace"]

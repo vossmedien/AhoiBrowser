@@ -14,7 +14,7 @@ ahoi_enable_depot_tools
 ahoi_require_command gn
 ahoi_require_command autoninja
 
-out_dir="${AHOI_CHROMIUM_SRC}/out/AhoiUpstreamRelease"
+out_dir="$(ahoi_chromium_output_dir AhoiUpstreamRelease)"
 args_file="${AHOI_REPO_ROOT}/config/build/upstream-release.gn"
 
 ahoi_note "generating unmodified Chromium build in ${out_dir}"

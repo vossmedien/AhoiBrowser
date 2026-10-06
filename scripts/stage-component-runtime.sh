@@ -9,12 +9,10 @@ out_dir="${1:-}"
 app_path="${2:-}"
 [ -n "${out_dir}" ] && [ -n "${app_path}" ] || \
   ahoi_die "usage: $0 /absolute/path/out/Profile /absolute/path/AhoiBrowser.app"
-case "${out_dir}" in
-  "${AHOI_CHROMIUM_SRC}"/out/*) ;;
-  *) ahoi_die "output directory must be inside the pinned Chromium out directory" ;;
-esac
 [ "${app_path}" = "${out_dir}/AhoiBrowser.app" ] || \
   ahoi_die "app path must be the AhoiBrowser.app produced by the output directory"
+out_dir="$(ahoi_validate_chromium_output_dir "${out_dir}")"
+app_path="${out_dir}/AhoiBrowser.app"
 [ -d "${app_path}/Contents/Frameworks" ] || \
   ahoi_die "AhoiBrowser Frameworks directory is missing: ${app_path}"
 

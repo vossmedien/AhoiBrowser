@@ -14,6 +14,7 @@ import subprocess
 from typing import Optional
 
 from chromium_dependencies import collect_revisions, verify_revisions
+from chromium_output import configured_output_root, profile_output_directory
 from engine_input_key import key_of, receipt_components
 from perf.optimization_receipt import collect as collect_optimization
 from evidence import bundle_hash
@@ -69,7 +70,11 @@ def load_json(path: pathlib.Path):
 
 def logical_path(path: pathlib.Path) -> str:
     resolved = path.resolve()
-    for root, label in ((ROOT.resolve(), "<repo>"), (WORK_ROOT, "<work-root>")):
+    for root, label in (
+        (ROOT.resolve(), "<repo>"),
+        (WORK_ROOT, "<work-root>"),
+        (configured_output_root(CHROMIUM_SRC), "<chromium-out>"),
+    ):
         try:
             relative = resolved.relative_to(root)
         except ValueError:
@@ -138,7 +143,7 @@ def verify_profile_binding(
     }
     args_name, out_name, app_name = profiles[kind]
     expected_args = (ROOT / "config/build" / args_name).resolve()
-    expected_out = (CHROMIUM_SRC / "out" / out_name).resolve()
+    expected_out = profile_output_directory(CHROMIUM_SRC, out_name)
     expected_app = (expected_out / app_name).resolve()
     if gn_args != expected_args:
         raise SystemExit(f"{kind} provenance requires {expected_args}")

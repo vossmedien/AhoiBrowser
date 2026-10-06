@@ -40,9 +40,12 @@ def stop_owned_group(child):
         child.wait()
 
 
-def run(command, work_root, reserve, interval=5):
+def run(command, work_root, reserve, interval=5, disk_root=None):
+    disk_root = work_root if disk_root is None else disk_root
     check_work_root(work_root)
-    if shutil.disk_usage(work_root).free < reserve:
+    if disk_root != work_root:
+        check_work_root(disk_root)
+    if shutil.disk_usage(disk_root).free < reserve:
         print("disk safety reserve unavailable; command not started", file=sys.stderr)
         return 2
     child = None
@@ -60,7 +63,9 @@ def run(command, work_root, reserve, interval=5):
                 return child.wait(timeout=interval)
             except subprocess.TimeoutExpired:
                 check_work_root(work_root)
-                if shutil.disk_usage(work_root).free < reserve:
+                if disk_root != work_root:
+                    check_work_root(disk_root)
+                if shutil.disk_usage(disk_root).free < reserve:
                     print("disk reserve reached; stopping owned command group", file=sys.stderr)
                     stop_owned_group(child)
                     return 2
@@ -80,6 +85,7 @@ def run(command, work_root, reserve, interval=5):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--work-root", type=pathlib.Path, required=True)
+    parser.add_argument("--disk-root", type=pathlib.Path)
     parser.add_argument("--policy", type=pathlib.Path)
     parser.add_argument("--check-work-root", action="store_true")
     parser.add_argument("command", nargs=argparse.REMAINDER)
@@ -96,7 +102,7 @@ def main():
     reserve = json.loads(args.policy.read_text())["diskSpace"]["safetyReserveBytes"]
     if not isinstance(reserve, int) or isinstance(reserve, bool) or reserve <= 0:
         parser.error("positive integer disk safety reserve required")
-    return run(command, args.work_root, reserve)
+    return run(command, args.work_root, reserve, disk_root=args.disk_root)
 
 
 if __name__ == "__main__":

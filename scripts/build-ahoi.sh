@@ -61,7 +61,7 @@ ahoi_enable_depot_tools
 ahoi_require_command gn
 ahoi_require_command autoninja
 
-out_dir="${AHOI_CHROMIUM_SRC}/out/${out_name}"
+out_dir="$(ahoi_chromium_output_dir "${out_name}")"
 
 ahoi_note "generating Ahoi ${profile} build"
 "${SCRIPT_DIR}/build-chromium-with-dependency-workarounds.sh" \
