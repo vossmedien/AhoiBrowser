@@ -186,6 +186,11 @@
   startup. Dev mean49.21% passes CPU, but the pinned Chromium checkout/output
   are on Inhouse. Recheck the spike and disk before the same incremental resume;
   do not create another cold output or interfere with foreign processes.
+  Actual fresh resumption admitted at21:44:42Z:27.73%mean aggregate CPU,
+  77%memory-free,18,901,536KiB free. Runner85024 now owns the same incremental
+  output/build lock; renewed disk gates pass with4GiB growth+8GiB reserve.
+  Mobile134 visible4/runtime5 completed and device/lock handed back beforehand.
+  ~/inhouse/evidence/ahoi-1e340a17/admission-resume.json binds admission.
 - Next authorized step: guarded incremental build of1e340a17 on the preserved
   internal output after renewed admission. On compile/sign/provenance success,
   run updated target `~/inhouse/evidence/ahoi-1e340a17/accept.sh` for guarded
