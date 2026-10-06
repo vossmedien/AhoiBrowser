@@ -11,7 +11,7 @@
   },
   "build.log": {
     "rawSha256": "c9bc9c03d31cca59b6325a7ecaa22aee2117ddafaaaf38f9998edc4b759d92d5",
-    "archivedTextSha256": "d530bf225932147dd9b375b3ffbba6fd8d3fda78e40eab1cf88a93c25eeb3635",
-    "normalization": "expandtabs and remove trailing whitespace; raw original retained on Inhouse evidence path"
+    "archivedTextSha256": "3b89b04f2238d5025c036037bdcfd93f67077da78b92e1e1881224499cc4b6fd",
+    "normalization": "expandtabs, remove trailing whitespace and trailing empty lines; raw original retained on Inhouse evidence path"
   }
 }
