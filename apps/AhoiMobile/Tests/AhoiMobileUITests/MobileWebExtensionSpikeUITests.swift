@@ -23,7 +23,7 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
 
         let first = try checkURL("\(token)-1")
         openExamplePage(first, in: app)
-        let report = spikeReport(in: app)
+        let report = spikeReport(in: app, containing: "token=\(token)-1")
         XCTAssertTrue(
             report.waitForExistence(timeout: Self.adr0012NetworkTimeout),
             "The extension's content script must write its report."
@@ -39,19 +39,20 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
             label.contains("rule=blocked"),
             "The declarativeNetRequest rule must block its script: \(label)"
         )
+        let firstVisits = try XCTUnwrap(visitCount(in: label), label)
         attachEvidence(app, "spike-01-content-script-and-rule")
 
         // Extension storage keeps its count within the session.
         let second = try checkURL("\(token)-2")
         openExamplePage(second, in: app)
-        let again = spikeReport(in: app, containing: "visits=")
+        let again = spikeReport(in: app, containing: "token=\(token)-2")
         XCTAssertTrue(again.waitForExistence(
             timeout: Self.adr0012NetworkTimeout
         ))
         let visits = visitCount(in: again.label)
         XCTAssertNotNil(visits, again.label)
-        XCTAssertGreaterThanOrEqual(
-            visits ?? 0, 2,
+        XCTAssertGreaterThan(
+            visits ?? 0, firstVisits,
             "storage.local must count across page loads: \(again.label)"
         )
         attachEvidence(app, "spike-01-storage-second-visit")
