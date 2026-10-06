@@ -1,6 +1,6 @@
 # Active Desktop checkpoint
 
-## Codex continuation: resumed build terminal; own compiler fixes prepared — 6 October 2026
+## Codex continuation: compiler fixes frozen; guarded resume pending — 6 October 2026
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no
@@ -174,9 +174,21 @@
   13423f52 is built on same owned Mobile scratch; token-bound affected UI/focused
   execution/review/default integration still pending. Current Mobile checkpoint
   owns that exact resumption. No Mobile UI runtime or competing release started.
-- Next authorized step: freeze/apply own C++ compiler corrections, guarded
-  incremental build on the preserved internal output after admission. On compile/sign/provenance success,
-  run prepared target `~/inhouse/evidence/ahoi-47885f36/accept.sh` for guarded
+- Source corrections frozen/applied as1e340a17 in the clean target mirror.
+  Runner22521 terminated1 at21:01:59Z BEFORE new compilation: after hooks,
+  12,173,570,048 bytes free were below the reviewed4GiB incremental growth plus
+  unchanged8GiB reserve (12,884,901,888 required). This is a capacity gate,
+  not a new compiler verdict. Original input wrappers restored, build lock
+  released, preserved internal output reused; no reserve/budget weakening.
+  Evidence ~/inhouse/evidence/ahoi-1e340a17/{phases.log,build-ssh.log}.
+  Later free disk recovered above20GiB without task cleanup; new three-sample
+  aggregate CPU averaged100% during foreign Docker/Virtualization/simulator
+  startup. Dev mean49.21% passes CPU, but the pinned Chromium checkout/output
+  are on Inhouse. Recheck the spike and disk before the same incremental resume;
+  do not create another cold output or interfere with foreign processes.
+- Next authorized step: guarded incremental build of1e340a17 on the preserved
+  internal output after renewed admission. On compile/sign/provenance success,
+  run updated target `~/inhouse/evidence/ahoi-1e340a17/accept.sh` for guarded
   installation, five affected visible journeys and focused native checks.
   Diagnose a real failure at its boundary and preserve the original evidence.
   After those gates, one separate native `codex review` of the attributable
