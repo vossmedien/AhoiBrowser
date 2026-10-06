@@ -27,6 +27,10 @@ S=$(cd "$(dirname "$0")" && pwd); REPO=$(cd "$S/../.." && pwd)
 LOCK=${AHOI_E2E_LOCK:-$REPO/.work/agent-queue/e2e.lock}
 mkdir -p "$(dirname "$LOCK")"
 MIN_IDLE=${AHOI_E2E_MIN_IDLE:-300}; MIN_CPU=${AHOI_E2E_MIN_CPU_IDLE:-30}
+# Journey fixtures must not run on depot_tools' Python: it lives on the build
+# SSD, and on 6 October 2026 the http-auth fixture died there with SIGBUS
+# (KERN_MEMORY_ERROR paging in its code) mid-journey.
+PATH=$(printf '%s' "$PATH" | tr ':' '\n' | grep -v depot_tools | paste -sd: -); export PATH
 mkdir -p "$OUT"; : > "$OUT/summary.txt"
 idle() { ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'; }
 cpuidle() { top -l 2 -s 3 -n 0 | awk '/CPU usage/ {v=$7} END {sub("%","",v); print int(v)}'; }
