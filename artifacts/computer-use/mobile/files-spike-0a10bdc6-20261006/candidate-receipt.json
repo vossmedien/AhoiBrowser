@@ -1,0 +1,30 @@
+{
+  "buildMode": "DebugLocal",
+  "buildNumber": "1",
+  "bundleId": "app.ahoibrowser.AhoiBrowser",
+  "embeddedSourceCommit": "0a10bdc621f8867ad492032c5556ed8ef021ae67",
+  "hashes": {
+    "appTreeSha256": "0632f864b2badc9b5e1f6467172b58e175f58db3f358d28688538385d172b2b7",
+    "binarySha256": "510d0f5e0b916ecd7a1d35e35ab677a2ea80743f228fb4f92c1a706f94ef8cf3",
+    "infoPlistSha256": "fe03600011aaf3dd2cfacf2fa1f3f0940ee93d5badb051ad95814c526e68b452",
+    "xcodeProjectSha256": "feacdb536b3b999e9dc645fe9e8c708bab2d86340300d7d51f384b4c83be7a8b",
+    "xctestrunSha256": "3e96ec287fc6437a313fd3dbf429dd0c61fc81055c0a3e9ee810faf05274f4a5"
+  },
+  "kind": "simulator-candidate-binding",
+  "marketingVersion": "0.1",
+  "platform": "iphonesimulator",
+  "schemaVersion": 1,
+  "signing": {
+    "distributionEligible": false,
+    "identifier": "app.ahoibrowser.AhoiBrowser",
+    "kind": "adHoc",
+    "valid": true
+  },
+  "sourceCommit": "0a10bdc621f8867ad492032c5556ed8ef021ae67",
+  "sourceDirty": false,
+  "teamId": null,
+  "toolchain": {
+    "swiftVersion": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcodeVersion": "Xcode 27.0\nBuild version 27A266a"
+  }
+}

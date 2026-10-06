@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "0a10bdc621f8867ad492032c5556ed8ef021ae67",
+  "candidateReceiptSha256": "71aeec96efee5e65455fe04cca9158fc47f61252d49920c512cef70848ce2043",
+  "originalXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_iphonesimulator27.0-arm64-x86_64.xctestrun",
+  "originalXctestrunSha256": "6a117b505a3be3fb31367df9b84e7576c743810e15fbd73c8c059e1c6256cefd",
+  "exactXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_0a10bdc6_exact_candidate.xctestrun",
+  "exactXctestrunSha256": "ae5e9adcf4882f9a7754c5fd0875c3c786b3298b4bb4ad4493b6819873955ed5",
+  "selectedJourneys": [
+    "testFilesPickerLoadsAndUnloadsReviewedFixture"
+  ],
+  "sourceDeltaFrom": "e664fc0d3dca6f2c7acb22d180bebf736eae4b81",
+  "delta": "Acquire scope before metadata; sanitized diagnosis; wait for actual folder navigation",
+  "jobs": 1,
+  "distributionEligible": false
+}

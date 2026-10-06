@@ -1,0 +1,15 @@
+{
+  "initialIdlePercent": 2.48,
+  "ownControllerPidsHeld": [
+    19688,
+    20277,
+    20281,
+    20345
+  ],
+  "resumedAfterIdleSamples": [
+    34.44,
+    32.97
+  ],
+  "foreignProcessesUntouched": true,
+  "limit": "In-device XCTestRunner is launched by CoreSimulator; pausing controller ancestry does not prove the test itself paused."
+}

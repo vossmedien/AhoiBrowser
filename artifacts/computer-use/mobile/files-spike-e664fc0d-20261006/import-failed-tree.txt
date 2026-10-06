@@ -1,0 +1,234 @@
+Application, 0x10a6f3700, pid: 83113, label: 'AhoiBrowser' <App element pid: 83113>
+  Window (Main), 0x10a6f1e00, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 4406641664.5>
+    Other, 0x10a6f3480, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 4407542272.7>
+      Other, 0x10a6f2f80, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 4413479808.9>
+        Other, 0x10a6f35c0, {{-402.0, -874.0}, {1206.0, 2622.0}} <AX element pid: 83113, elementOrHash.elementID: 6123787904.289>
+        Other, 0x10a6f3200, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 4406640640.11>
+          Other, 0x10a6f2bc0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 5323169440.12>
+            Other, 0x10a6f2d00, {{18.0, 679.0}, {366.0, 44.0}} <AX element pid: 83113, elementOrHash.elementID: 5323166880.13>
+            Button, 0x10a6f2440, {{290.0, 679.0}, {44.0, 44.0}}, identifier: 'browser.workspace.previous', label: 'Vorheriger Workspace' <AX element pid: 83113, elementOrHash.elementID: 5323167520.14>
+            Button, 0x10a6f2800, {{340.0, 679.0}, {44.0, 44.0}}, identifier: 'browser.workspace.next', label: 'Nächster Workspace' <AX element pid: 83113, elementOrHash.elementID: 5323167680.15>
+            Other, 0x10a6f2a80, {{28.3, 690.7}, {68.3, 20.7}}, identifier: 'browser.harbor-deck.workspace', label: 'Inbox' <AX element pid: 83113, elementOrHash.elementID: 5323167360.16>
+              Image, 0x114cc7480, {{28.3, 690.7}, {20.7, 20.7}}, identifier: 'square.stack.3d.up', label: 'Hdr' <AX element pid: 83113, elementOrHash.elementID: 5323167040.28>
+              StaticText, 0x10a6e7e80, {{28.3, 690.7}, {68.3, 20.7}}, label: 'Inbox' <AX element pid: 83113, elementOrHash.elementID: 5323167200.29>
+            Button, 0x10a6e7700, {{17.5, 729.5}, {367.0, 45.0}}, identifier: 'browser.address', label: 'Adresse und Suche', value: https://fixture.ah... <AX element pid: 83113, elementOrHash.elementID: 5323168640.17>
+              Image, 0x10a6e7480, {{31.3, 744.3}, {12.7, 15.3}}, identifier: 'sailboat.fill', label: 'Segelboot, Ausgefüllt' <AX element pid: 83113, elementOrHash.elementID: 5323168160.30>
+              Image, 0x10a6e75c0, {{54.0, 746.3}, {8.0, 11.7}}, identifier: 'lock.fill', label: 'Schloss' <AX element pid: 83113, elementOrHash.elementID: 5323168320.31>
+              StaticText, 0x10a6e7c00, {{70.7, 743.0}, {167.0, 18.0}}, label: 'fixture.ahoibrowser.test' <AX element pid: 83113, elementOrHash.elementID: 5323168480.32>
+            Button, 0x10a6e7d40, {{18.0, 780.0}, {44.0, 44.0}}, identifier: 'browser.back', label: 'Zurück', Disabled <AX element pid: 83113, elementOrHash.elementID: 5323167840.18>
+            Button, 0x10a6e7ac0, {{98.7, 780.0}, {44.0, 44.0}}, identifier: 'browser.forward', label: 'Vor', Disabled <AX element pid: 83113, elementOrHash.elementID: 5323168000.19>
+            Button, 0x10a6e7840, {{179.0, 780.0}, {44.0, 44.0}}, identifier: 'browser.reload-stop', label: 'Neu laden' <AX element pid: 83113, elementOrHash.elementID: 5323168800.20>
+            Button, 0x10a6e7980, {{259.7, 780.0}, {44.0, 44.0}}, identifier: 'browser.tabs', label: '3 Tabs', value: 3 <AX element pid: 83113, elementOrHash.elementID: 5323168960.21>
+            Button, 0x114cc0a00, {{340.0, 780.0}, {44.0, 44.0}}, identifier: 'browser.more', label: 'Weitere Browseraktionen' <AX element pid: 83113, elementOrHash.elementID: 5323169120.22>
+            Other, 0x114cc1540, {{0.0, 0.0}, {402.0, 780.0}} <AX element pid: 83113, elementOrHash.elementID: 5305286656.23>
+              WebView, 0x114cc0c80, {{0.0, 0.0}, {402.0, 780.0}} <AX element pid: 83113, elementOrHash.elementID: 4407093248.33>
+                WebView, 0x114cc08c0, {{0.0, 0.0}, {402.0, 780.0}} <AX element pid: 83113, elementOrHash.elementID: 4407095808.34>
+                  Other, 0x114cc0500, {{0.0, 0.0}, {402.0, 780.0}} <AX element pid: 83113, elementOrHash.elementID: 4408199360.35>
+                    Other, 0x114cc0dc0, {{0.0, 0.0}, {402.0, 102.0}} <AX element pid: 83113, elementOrHash.elementID: 4408200704.40>
+                  WebView, 0x114cc0780, {{0.0, 0.0}, {402.0, 780.0}} <AX element pid: 83113, elementOrHash.elementID: 4407152640.36>
+                    Other, 0x114cc1a40, {{0.0, 0.0}, {402.0, 780.0}} <AX element pid: 83113, elementOrHash.elementID: 1660498746861445668.9999>
+                      Other, 0x114cc03c0, {{0.0, 0.0}, {402.0, 780.0}} <AX element pid: 83178, elementOrHash.elementID: 4319631488.3>
+                        Other, 0x114cc12c0, {{0.0, 62.0}, {402.0, 780.0}} <AX element pid: 83178, elementOrHash.elementID: 5225113344.4>
+                          Other, 0x114cc1680, {{0.0, 62.0}, {402.0, 1557.0}}, label: 'Ahoi Fixture', Focused <AX element pid: 83178, elementOrHash.elementID: 5225113472.5>
+                            Other, 0x114cc0280, {{28.0, 90.0}, {346.0, 1502.0}}, label: 'Inhalt', Focused <AX element pid: 83178, elementOrHash.elementID: 5225113632.6>
+                              Other, 0x114cc0140, {{28.0, 90.0}, {346.0, 50.0}}, label: 'Ahoi fixture page', value: 1, Focused <AX element pid: 83178, elementOrHash.elementID: 5225113792.7>
+                                StaticText, 0x114cc0640, {{28.0, 93.0}, {270.0, 43.0}}, label: 'Ahoi fixture page', value: Ahoi fixture page, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114208.19>
+                              Button, 0x114cc0000, {{28.0, 162.0}, {179.0, 39.0}}, label: 'Remove Reader article fixture', Focused <AX element pid: 83178, elementOrHash.elementID: 5225113824.8>
+                              Other, 0x114cc1b80, {{28.0, 217.0}, {346.0, 50.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225113248.9>
+                                StaticText, 0x114cc1900, {{28.0, 218.0}, {344.0, 48.0}}, label: 'This page is provided locally for deterministic browser UI tests.', value: This page is provi..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225114304.20>
+                              Other, 0x114cc1cc0, {{28.0, 283.0}, {346.0, 26.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225113888.10>
+                                StaticText, 0x114cc0b40, {{28.0, 284.0}, {170.0, 23.0}}, label: 'Ahoi visible find target', value: Ahoi visible find ..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225114336.21>
+                              Button, 0x114cc1040, {{28.0, 324.0}, {174.0, 39.0}}, label: 'Activate nested scroll fixture', Focused <AX element pid: 83178, elementOrHash.elementID: 5225113920.11>
+                              Other, 0x114cc0f00, {{28.0, 379.0}, {346.0, 125.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114016.12>
+                                Other, 0x114cc17c0, {{68.0, 379.0}, {306.0, 26.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114400.22>
+                                  Other, 0x114cc1180, {{49.0, 381.0}, {8.0, 23.0}}, label: '•', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114560.43>
+                                  Link, 0x114cc1400, {{68.0, 381.0}, {142.0, 23.0}}, label: 'Open HTTPS page', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114592.44>
+                                    StaticText, 0x10a6cc000, {{68.0, 381.0}, {142.0, 23.0}}, label: 'Open HTTPS page', value: • Open HTTPS page, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114624.59>
+                                Other, 0x10a6cc140, {{68.0, 404.0}, {306.0, 26.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114432.23>
+                                  Other, 0x10a6cc280, {{49.0, 405.0}, {8.0, 23.0}}, label: '•', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114656.45>
+                                  Link, 0x10a6cc3c0, {{68.0, 405.0}, {203.0, 23.0}}, label: 'Open Ahoi link actions', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114688.46>
+                                    StaticText, 0x10a6cc500, {{68.0, 405.0}, {203.0, 23.0}}, label: 'Open Ahoi link actions', value: • Long-press for l..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225114720.60>
+                                Other, 0x10a6cc640, {{68.0, 429.0}, {306.0, 25.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114464.24>
+                                  Other, 0x10a6cc780, {{49.0, 430.0}, {8.0, 23.0}}, label: '•', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114752.47>
+                                  Link, 0x10a6cc8c0, {{68.0, 430.0}, {137.0, 23.0}}, label: 'Open target blank', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114784.48>
+                                    StaticText, 0x10a6cca00, {{68.0, 430.0}, {137.0, 23.0}}, label: 'Open target blank', value: • Open target blank, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114816.61>
+                                Other, 0x10a6ccb40, {{68.0, 453.0}, {306.0, 26.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114496.25>
+                                  Other, 0x10a6ccc80, {{49.0, 455.0}, {8.0, 23.0}}, label: '•', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114848.49>
+                                  Link, 0x10a6ccdc0, {{68.0, 455.0}, {129.0, 23.0}}, label: 'Download fixture', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114880.50>
+                                    StaticText, 0x10a6ccf00, {{68.0, 455.0}, {129.0, 23.0}}, label: 'Download fixture', value: • Download fixture, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114912.62>
+                                Other, 0x10a6cd040, {{68.0, 478.0}, {306.0, 26.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225114528.26>
+                                  Other, 0x10a6cd180, {{49.0, 479.0}, {8.0, 23.0}}, label: '•', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114944.51>
+                                  Link, 0x10a6cd2c0, {{68.0, 479.0}, {110.0, 23.0}}, label: 'Open privacy-sensitive mail app', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114976.52>
+                                    StaticText, 0x10a6cd400, {{68.0, 479.0}, {110.0, 23.0}}, label: 'Open privacy-sensitive mail app', value: • Open mail app, Focused <AX element pid: 83178, elementOrHash.elementID: 5225115008.63>
+                              Other, 0x10a6cd540, {{28.0, 523.0}, {346.0, 169.0}}, label: 'JavaScript dialog fixtures, Bereich', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114048.13>
+                                Button, 0x10a6cd680, {{28.0, 523.0}, {346.0, 39.0}}, label: 'Show JavaScript alert', Focused <AX element pid: 83178, elementOrHash.elementID: 5225115040.27>
+                                Button, 0x10a6cd7c0, {{28.0, 571.0}, {346.0, 39.0}}, label: 'Show JavaScript confirm', Focused <AX element pid: 83178, elementOrHash.elementID: 5225115072.28>
+                                Button, 0x10a6cd900, {{28.0, 619.0}, {346.0, 39.0}}, label: 'Show JavaScript prompt', Focused <AX element pid: 83178, elementOrHash.elementID: 5225115104.29>
+                                Other, 0x10a6cda40, {{28.0, 667.0}, {346.0, 25.0}}, label: 'No dialog result yet., Programmstatus', Focused <AX element pid: 83178, elementOrHash.elementID: 5225115136.30>
+                                  StaticText, 0x10a6cdb80, {{28.0, 668.0}, {152.0, 23.0}}, label: 'No dialog result yet.', value: No dialog result y..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225115264.53>
+                              Other, 0x10a6cdcc0, {{28.0, 711.0}, {346.0, 26.0}}, label: 'Choose a fixture file', Focused <AX element pid: 83178, elementOrHash.elementID: 5225105408.14>
+                                StaticText, 0x10a6cde00, {{28.0, 713.0}, {159.0, 23.0}}, label: 'Choose a fixture file', value: Choose a fixture f..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225115296.31>
+                              Other, 0x10a6cdf40, {{28.0, 753.0}, {346.0, 53.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225113760.15>
+                                Button, 0x10a6ce080, {{28.0, 753.0}, {346.0, 53.0}}, label: 'Choose a fixture file', value: Keine Datei ausgew..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225113728.32>
+                              Other, 0x10a6ce1c0, {{28.0, 823.0}, {123.0, 23.0}}, label: 'File selection result, Programmstatus', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114080.16>
+                                StaticText, 0x10a6ce300, {{28.0, 823.0}, {123.0, 23.0}}, label: 'No file selected.', value: No file selected., Focused <AX element pid: 83178, elementOrHash.elementID: 5225115360.33>
+                              Other, 0x10a6ce440, {{28.0, 867.0}, {346.0, 217.0}}, label: 'Website permission fixtures, Bereich', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114144.17>
+                                Button, 0x10a6ce580, {{28.0, 867.0}, {346.0, 39.0}}, label: 'Request camera permission', Focused <AX element pid: 83178, elementOrHash.elementID: 5225107776.34>
+                                Button, 0x10a6ce6c0, {{28.0, 915.0}, {346.0, 39.0}}, label: 'Request microphone permission', Focused <AX element pid: 83178, elementOrHash.elementID: 5225115392.35>
+                                Button, 0x10a6ce800, {{28.0, 963.0}, {346.0, 39.0}}, label: 'Request camera and microphone permission', Focused <AX element pid: 83178, elementOrHash.elementID: 5225115424.36>
+                                Button, 0x10a6ce940, {{28.0, 1011.0}, {346.0, 39.0}}, label: 'Request motion permission', Focused <AX element pid: 83178, elementOrHash.elementID: 5225115456.37>
+                                Other, 0x10a6cea80, {{28.0, 1059.0}, {346.0, 25.0}}, label: 'Website permission result, Programmstatus', Focused <AX element pid: 83178, elementOrHash.elementID: 5225115488.38>
+                                  StaticText, 0x10a6cebc0, {{28.0, 1060.0}, {189.0, 23.0}}, label: 'No permission result yet.', value: No permission resu..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225115648.54>
+                              Other, 0x10a6ced00, {{28.0, 1104.0}, {346.0, 488.0}}, label: 'Ahoi Reader fixture article, Artikel', Focused <AX element pid: 83178, elementOrHash.elementID: 5225114176.18>
+                                Other, 0x10a6cee40, {{28.0, 1104.0}, {346.0, 38.0}}, label: 'Ahoi Reader fixture article', value: 2, Focused <AX element pid: 83178, elementOrHash.elementID: 5225115680.39>
+                                  StaticText, 0x10a6cef80, {{28.0, 1107.0}, {309.0, 33.0}}, label: 'Ahoi Reader fixture article', value: Ahoi Reader fixtur..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225115840.55>
+                                Other, 0x10a6cf0c0, {{28.0, 1163.0}, {346.0, 149.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225115712.40>
+                                  StaticText, 0x10a6cf200, {{28.0, 1164.0}, {333.0, 146.0}}, label: 'The first paragraph is ordinary visible prose in the loaded main document. It describes a browser journey that opens the Reader without fetching a replacement page, rewriting the source document, or changing the active tab.', value: The first paragrap..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225115872.56>
+                                Other, 0x10a6cf340, {{28.0, 1327.0}, {346.0, 125.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225115776.41>
+                                  StaticText, 0x10a6cf480, {{28.0, 1329.0}, {339.0, 121.0}}, label: 'The second paragraph provides enough independent article text for the Reader's content threshold. After the Reader appears, the same browser page should still be available when the person returns to it.', value: The second paragra..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225115904.57>
+                                Other, 0x10a6cf5c0, {{28.0, 1468.0}, {346.0, 124.0}}, Focused <AX element pid: 83178, elementOrHash.elementID: 5225115808.42>
+                                  StaticText, 0x10a6cf700, {{28.0, 1469.0}, {328.0, 121.0}}, label: 'This final paragraph gives the deterministic fixture a distinct ending. The article stays inside the normal WebKit document so the test exercises the real extraction and presentation path.', value: This final paragra..., Focused <AX element pid: 83178, elementOrHash.elementID: 5225115936.58>
+                  Other, 0x10a6cf840, {{0.0, 0.0}, {402.0, 780.0}} <AX element pid: 83113, elementOrHash.elementID: 4408198912.37>
+                  Other, 0x10a6cf980, {{369.0, 62.0}, {30.0, 718.0}}, label: 'Vertikaler Rollbalken, 3 Seiten', value: 0 % <AX element pid: 83113, elementOrHash.elementID: 4407953408.38>
+                    Other, 0x10a6cfac0, {{396.0, -39.0}, {3.0, 36.0}} <AX element pid: 83113, elementOrHash.elementID: 4408205632.41>
+                  Other, 0x10a6cfc00, {{0.0, 747.0}, {402.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 % <AX element pid: 83113, elementOrHash.elementID: 4413701632.39>
+                    Other, 0x10a6cfd40, {{-42.0, 774.0}, {36.0, 3.0}} <AX element pid: 83113, elementOrHash.elementID: 4408205184.42>
+                  Other, 0x10a6cfe80, {{369.0, 62.0}, {30.0, 718.0}}, label: 'Vertikaler Rollbalken, 3 Seiten', value: 0 % <AX element pid: 83113, elementOrHash.elementID: 4407953408.38>
+                    Other, 0x10a6f8000, {{396.0, -39.0}, {3.0, 36.0}} <AX element pid: 83113, elementOrHash.elementID: 4408205632.41>
+                  Other, 0x10a6f8140, {{0.0, 747.0}, {402.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 % <AX element pid: 83113, elementOrHash.elementID: 4413701632.39>
+                    Other, 0x10a6f8280, {{-42.0, 774.0}, {36.0, 3.0}} <AX element pid: 83113, elementOrHash.elementID: 4408205184.42>
+            StaticText, 0x10a6f83c0, {{4.0, 66.0}, {257.0, 19.3}}, identifier: 'browser.e2e.candidate-binding', label: 'E2E e664fc0d · DebugLocal · f5151c22', value: bundleId=app.ahoib... <AX element pid: 83113, elementOrHash.elementID: 5323169280.25>
+            Other, 0x10a6f8500, {{200.7, 450.7}, {1.0, 1.0}} <AX element pid: 83113, elementOrHash.elementID: 4407591360.26>
+            Other, 0x10a6f8640, {{201.0, 451.0}, {0.0, 0.0}} <AX element pid: 83113, elementOrHash.elementID: 4407595392.27>
+    Other, 0x10a6f8780, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 4413310464.286>
+      Other, 0x10a6f88c0, {{-402.0, -874.0}, {1206.0, 2622.0}} <AX element pid: 83113, elementOrHash.elementID: 6123782144.287>
+      Other, 0x10a6f8a00, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 6123790464.288>
+        Other, 0x10a6f8b40, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 5325733184.290>
+          Other, 0x10a6f8c80, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 4406652928.291>
+            Other, 0x10a6f8dc0, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 6125807136.292>
+              Other, 0x10a6f8f00, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 4413317120.293>
+                NavigationBar, 0x10a6f9040, {{0.0, 78.0}, {402.0, 106.0}}, identifier: 'Einstellungen' <AX element pid: 83113, elementOrHash.elementID: 5305298176.294>
+                  Other, 0x10a6f9180, {{311.0, 82.0}, {71.0, 36.0}} <AX element pid: 83113, elementOrHash.elementID: 5305429248.297>
+                    Other, 0x10a6f92c0, {{311.0, 82.0}, {71.0, 36.0}} <AX element pid: 83113, elementOrHash.elementID: 6125798336.301>
+                      Button, 0x10a6f9400, {{311.0, 82.0}, {71.0, 36.0}}, identifier: 'settings.done', label: 'Fertig' <AX element pid: 83113, elementOrHash.elementID: 6125797856.303>
+                  StaticText, 0x10a6f9540, {{16.0, 135.7}, {214.7, 40.7}}, label: 'Einstellungen' <AX element pid: 83113, elementOrHash.elementID: 5325717504.298>
+                Other, 0x10a6f9680, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 5325721536.295>
+                  Other, 0x10a6f97c0, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 5325731840.299>
+                    Other, 0x10a6f9900, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 4415150208.302>
+                      Other, 0x10a6f9a40, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 6125812736.304>
+                        CollectionView, 0x10a6f9b80, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'settings.form' <AX element pid: 83113, elementOrHash.elementID: 4412644352.305>
+                          Other, 0x10a6f9cc0, {{-16.0, -1440.0}, {434.0, 1870.0}} <AX element pid: 83113, elementOrHash.elementID: 4413660160.306>
+                          Other, 0x10a6f9e00, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 5325719296.307>
+                            Other, 0x10a6f9f40, {{0.0, 62.0}, {402.0, 110.0}} <AX element pid: 83113, elementOrHash.elementID: 6142452480.328>
+                          Other, 0x10a6fa080, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 5325718848.308>
+                          Cell, 0x10a6fa1c0, {{16.0, 184.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 5304045312.309>
+                            Other, 0x10a6fa300, {{16.0, 184.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 4413654016.329>
+                            Other, 0x10a6fa440, {{16.0, 184.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6142450240.330>
+                              Other, 0x10a6fa580, {{16.0, 184.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6126937088.354>
+                                Other, 0x10a6fa6c0, {{16.0, 184.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6125812416.373>
+                                  StaticText, 0x10a6fa800, {{16.0, 184.0}, {370.0, 40.3}}, label: 'Browser' <AX element pid: 83113, elementOrHash.elementID: 6125812256.385>
+                          Cell, 0x10a6fa940, {{16.0, 224.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 5305430528.310>
+                            Other, 0x10a6faa80, {{16.0, 224.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 4413323776.331>
+                              Other, 0x10a6fabc0, {{16.0, 224.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 4407604352.355>
+                            Other, 0x10a6fad00, {{16.0, 224.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 4407596288.332>
+                              Other, 0x10a6fae40, {{16.0, 224.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 4406635008.356>
+                                Other, 0x10a6faf80, {{16.0, 224.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6125811616.374>
+                                  Button, 0x10a6fb0c0, {{32.0, 233.3}, {338.0, 34.3}}, identifier: 'settings.search.engine', label: 'Suchmaschine, DuckDuckGo' <AX element pid: 83113, elementOrHash.elementID: 5305298944.386>
+                                    StaticText, 0x10a6fb200, {{253.0, 240.3}, {100.7, 20.3}}, label: 'DuckDuckGo' <AX element pid: 83113, elementOrHash.elementID: 6125617600.399>
+                                  StaticText, 0x10a6fb340, {{32.0, 240.2}, {111.7, 20.3}}, label: 'Suchmaschine' <AX element pid: 83113, elementOrHash.elementID: 6125811776.387>
+                          Cell, 0x10a6fb480, {{16.0, 276.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 5305431808.311>
+                            Other, 0x10a6fb5c0, {{16.0, 276.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 4413558784.333>
+                              Other, 0x10a6fb700, {{16.0, 276.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6125618496.357>
+                            Other, 0x10a6fb840, {{16.0, 276.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6125617152.334>
+                              Other, 0x10a6fb980, {{16.0, 276.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 4406633472.358>
+                                Other, 0x10a6fbac0, {{16.0, 276.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6125810976.375>
+                                  Switch, 0x10a6fbc00, {{16.0, 276.3}, {370.0, 72.3}}, identifier: 'settings.sync.browser-settings', label: 'Browsereinstellungen synchronisieren', value: 0, Disabled <AX element pid: 83113, elementOrHash.elementID: 6125811136.388>
+                                    StaticText, 0x10a6fbd40, {{32.0, 291.3}, {167.7, 42.3}}, label: 'Browsereinstellungen synchronisieren', Disabled <AX element pid: 83113, elementOrHash.elementID: 6125811296.400>
+                                    Switch, 0x10a6fbe80, {{309.0, 298.7}, {63.0, 28.0}}, value: 0, Disabled <AX element pid: 83113, elementOrHash.elementID: 6123794304.401>
+                          Other, 0x10a6a8000, {{32.0, 275.3}, {338.0, 1.0}} <AX element pid: 83113, elementOrHash.elementID: 4413660672.312>
+                          Cell, 0x10a6a8140, {{16.0, 348.7}, {370.0, 81.3}} <AX element pid: 83113, elementOrHash.elementID: 5304046592.313>
+                            Other, 0x10a6a8280, {{16.0, 348.7}, {370.0, 81.3}} <AX element pid: 83113, elementOrHash.elementID: 4413655552.335>
+                            Other, 0x10a6a83c0, {{16.0, 348.7}, {370.0, 81.3}} <AX element pid: 83113, elementOrHash.elementID: 6142450688.336>
+                              Other, 0x10a6a8500, {{16.0, 348.7}, {370.0, 81.3}} <AX element pid: 83113, elementOrHash.elementID: 6126938624.359>
+                                Other, 0x10a6a8640, {{16.0, 348.7}, {370.0, 81.3}} <AX element pid: 83113, elementOrHash.elementID: 6125810656.376>
+                                  StaticText, 0x10a6a8780, {{32.0, 356.7}, {297.3, 31.7}}, label: 'Suchbegriffe werden erst gesendet, wenn du die Navigation bestätigst.' <AX element pid: 83113, elementOrHash.elementID: 6125810816.389>
+                                  StaticText, 0x10a6a88c0, {{32.0, 392.3}, {325.3, 31.7}}, label: 'Aktiviere CloudKit-Sync, um Browsereinstellungen zu teilen. Die lokale Suche funktioniert auch ohne Sync.' <AX element pid: 83113, elementOrHash.elementID: 6125803136.390>
+                          Other, 0x10a6a8a00, {{-16.0, 430.0}, {434.0, 154.0}} <AX element pid: 83113, elementOrHash.elementID: 4413661184.314>
+                          Cell, 0x10a6a8b40, {{16.0, 430.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 5304047872.315>
+                            Other, 0x10a6a8c80, {{16.0, 430.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 4413657088.337>
+                            Other, 0x10a6a8dc0, {{16.0, 430.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6142451136.338>
+                              Other, 0x10a6a8f00, {{16.0, 430.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6126940160.360>
+                                Other, 0x10a6a9040, {{16.0, 430.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6125810496.377>
+                                  StaticText, 0x10a6a9180, {{16.0, 430.0}, {370.0, 40.3}}, label: 'Privates Surfen' <AX element pid: 83113, elementOrHash.elementID: 6125810336.391>
+                          Cell, 0x10a6a92c0, {{16.0, 470.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 5305425408.316>
+                            Other, 0x10a6a9400, {{16.0, 470.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 4413561856.339>
+                              Other, 0x10a6a9540, {{16.0, 470.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6125619392.361>
+                            Other, 0x10a6a9680, {{16.0, 470.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6125624320.340>
+                              Other, 0x10a6a97c0, {{16.0, 470.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 4406630400.362>
+                                Other, 0x10a6a9900, {{16.0, 470.3}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6125803456.378>
+                                  Switch, 0x10a6a9a40, {{16.0, 470.3}, {370.0, 52.0}}, identifier: 'settings.private.lock', label: 'Privaten Bereich sperren', value: 0 <AX element pid: 83113, elementOrHash.elementID: 6125797696.392>
+                                    StaticText, 0x10a6a9b80, {{32.0, 486.2}, {186.7, 20.3}}, label: 'Privaten Bereich sperren' <AX element pid: 83113, elementOrHash.elementID: 6125797536.402>
+                                    Switch, 0x10a6a9cc0, {{309.0, 482.3}, {63.0, 28.0}}, value: 0 <AX element pid: 83113, elementOrHash.elementID: 4491335296.403>
+                          Cell, 0x10a6a9e00, {{16.0, 522.3}, {370.0, 61.7}} <AX element pid: 83113, elementOrHash.elementID: 5304049152.317>
+                            Other, 0x10a6a9f40, {{16.0, 522.3}, {370.0, 61.7}} <AX element pid: 83113, elementOrHash.elementID: 4413658112.341>
+                            Other, 0x10a6aa080, {{16.0, 522.3}, {370.0, 61.7}} <AX element pid: 83113, elementOrHash.elementID: 6142451584.342>
+                              Other, 0x10a6aa1c0, {{16.0, 522.3}, {370.0, 61.7}} <AX element pid: 83113, elementOrHash.elementID: 6126941696.363>
+                                Other, 0x10a6aa300, {{16.0, 522.3}, {370.0, 61.7}} <AX element pid: 83113, elementOrHash.elementID: 6125810016.379>
+                                  StaticText, 0x10a6aa440, {{16.0, 522.3}, {370.0, 61.7}}, label: 'Nach dem Verlassen der App ist Geräteauthentifizierung erforderlich. Sperren lässt private Tabs geöffnet. Diese Einstellung bleibt auf diesem Gerät.' <AX element pid: 83113, elementOrHash.elementID: 6125809856.393>
+                          Other, 0x10a6aa580, {{-16.0, 584.0}, {434.0, 334.7}} <AX element pid: 83113, elementOrHash.elementID: 4413661696.318>
+                          Cell, 0x10a6aa6c0, {{16.0, 584.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 5304050432.319>
+                            Other, 0x10a6aa800, {{16.0, 584.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 4413659648.343>
+                            Other, 0x10a6aa940, {{16.0, 584.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6142452032.344>
+                              Other, 0x10a6aaa80, {{16.0, 584.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6139052032.364>
+                                Other, 0x10a6aabc0, {{16.0, 584.0}, {370.0, 40.3}} <AX element pid: 83113, elementOrHash.elementID: 6125797376.380>
+                                  StaticText, 0x10a6aad00, {{16.0, 584.0}, {370.0, 40.3}}, label: 'Erweiterungen' <AX element pid: 83113, elementOrHash.elementID: 6125798016.394>
+                          Cell, 0x10a6aae40, {{16.0, 624.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 5305427968.320>
+                            Other, 0x10a6aaf80, {{16.0, 624.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 4413560832.345>
+                              Other, 0x10a6ab0c0, {{16.0, 624.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6125624768.365>
+                            Other, 0x10a6ab200, {{16.0, 624.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6125631040.346>
+                              Other, 0x10a6ab340, {{16.0, 624.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 4406631936.366>
+                                Other, 0x10a6ab480, {{16.0, 624.3}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6125809216.381>
+                                  Switch, 0x10a6ab5c0, {{16.0, 624.3}, {370.0, 72.3}}, identifier: 'settings.extensions.shared', label: 'Geteilte Erweiterungskonfiguration anzeigen', value: 0, Disabled <AX element pid: 83113, elementOrHash.elementID: 6125809376.395>
+                                    StaticText, 0x10a6ab700, {{32.0, 639.3}, {267.3, 42.3}}, label: 'Geteilte Erweiterungskonfiguration anzeigen', Disabled <AX element pid: 83113, elementOrHash.elementID: 6125809536.404>
+                                    Switch, 0x10a6ab840, {{309.0, 646.7}, {63.0, 28.0}}, value: 0, Disabled <AX element pid: 83113, elementOrHash.elementID: 5324648960.405>
+                          Cell, 0x10a6ab980, {{16.0, 696.7}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 5305426688.321>
+                            Other, 0x10a6abac0, {{16.0, 696.7}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 4413563392.347>
+                              Other, 0x10a6abc00, {{16.0, 696.7}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6141203264.367>
+                            Other, 0x10a6abd40, {{16.0, 696.7}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6141202816.348>
+                              Other, 0x10a6abe80, {{16.0, 696.7}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6126927872.368>
+                                Other, 0x10a5a8000, {{16.0, 696.7}, {370.0, 72.3}} <AX element pid: 83113, elementOrHash.elementID: 6125808576.382>
+                                  Switch, 0x10a5a8140, {{16.0, 696.7}, {370.0, 72.3}}, identifier: 'settings.extensions.storage.shared', label: 'Unterstützte Erweiterungseinstellungen anzeigen', value: 0, Disabled <AX element pid: 83113, elementOrHash.elementID: 6125808736.396>
+                                    StaticText, 0x10a5a8280, {{32.0, 711.7}, {207.0, 42.3}}, label: 'Unterstützte Erweiterungseinstellungen anzeigen', Disabled <AX element pid: 83113, elementOrHash.elementID: 6125808896.406>
+                                    Switch, 0x10a5a83c0, {{309.0, 719.0}, {63.0, 28.0}}, value: 0, Disabled <AX element pid: 83113, elementOrHash.elementID: 6142428416.407>
+                          Other, 0x10a5a8500, {{32.0, 695.7}, {338.0, 1.0}} <AX element pid: 83113, elementOrHash.elementID: 4413662208.322>
+                          Cell, 0x10a5a8640, {{16.0, 769.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 5305424128.323>
+                            Other, 0x10a5a8780, {{16.0, 769.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 4413563904.349>
+                              Other, 0x10a5a88c0, {{16.0, 769.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6141205504.369>
+                            Other, 0x10a5a8a00, {{16.0, 769.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6141210432.350>
+                              Other, 0x10a5a8b40, {{16.0, 769.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6126929408.370>
+                                Other, 0x10a5a8c80, {{16.0, 769.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6125808416.383>
+                                  Button, 0x10a5a8dc0, {{16.0, 769.0}, {370.0, 52.0}}, identifier: 'settings.extensions.spike.import-folder', label: 'Load unpacked Ahoi Spike from Files' <AX element pid: 83113, elementOrHash.elementID: 6125808256.397>
+                          Other, 0x10a5a8f00, {{32.0, 768.0}, {338.0, 1.0}} <AX element pid: 83113, elementOrHash.elementID: 4413662720.324>
+                          Cell, 0x10a5a9040, {{16.0, 821.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 5305420288.325>
+                            Other, 0x10a5a9180, {{16.0, 821.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 4413570048.351>
+                              Other, 0x10a5a92c0, {{16.0, 821.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6141210880.371>
+                            Other, 0x10a5a9400, {{16.0, 821.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6141205056.352>
+                              Other, 0x10a5a9540, {{16.0, 821.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6126930944.372>
+                                Other, 0x10a5a9680, {{16.0, 821.0}, {370.0, 52.0}} <AX element pid: 83113, elementOrHash.elementID: 6125808096.384>
+                                  StaticText, 0x10a5a97c0, {{16.0, 821.0}, {370.0, 52.0}}, identifier: 'settings.extensions.spike.files-status', label: 'Test extension import failed' <AX element pid: 83113, elementOrHash.elementID: 6125807936.398>
+                          Other, 0x10a5a9900, {{32.0, 820.0}, {338.0, 1.0}} <AX element pid: 83113, elementOrHash.elementID: 4413663232.326>
+                          Cell, 0x10a5a9a40, {{16.0, 873.0}, {370.0, 45.7}} <AX element pid: 83113, elementOrHash.elementID: 5304052992.427>
+                            Other, 0x10a5a9b80, {{16.0, 873.0}, {370.0, 45.7}} <AX element pid: 83113, elementOrHash.elementID: 4413490688.428>
+                            Other, 0x10a5a9cc0, {{16.0, 873.0}, {370.0, 45.7}} <AX element pid: 83113, elementOrHash.elementID: 5325732736.429>
+                              Other, 0x10a5a9e00, {{16.0, 873.0}, {370.0, 45.7}} <AX element pid: 83113, elementOrHash.elementID: 6139055104.430>
+                                Other, 0x10a5a9f40, {{16.0, 873.0}, {370.0, 45.7}} <AX element pid: 83113, elementOrHash.elementID: 6139614528.431>
+                                  StaticText, 0x10a5aa080, {{16.0, 873.0}, {370.0, 45.7}}, label: 'Zeigt die gewünschte Desktop-Konfiguration. Chromium-Erweiterungen laufen nicht auf iOS.' <AX element pid: 83113, elementOrHash.elementID: 6139618528.432>
+                          Other, 0x10a5aa1c0, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertikaler Rollbalken, 2 Seiten', value: 0 % <AX element pid: 83113, elementOrHash.elementID: 4413321216.327>
+                            Other, 0x10a5aa300, {{396.0, 135.0}, {3.0, 391.3}} <AX element pid: 83113, elementOrHash.elementID: 5325722880.353>
+                          Other, 0x10a5aa440, {{369.0, 132.0}, {30.0, 680.0}}, label: 'Vertikaler Rollbalken, 2 Seiten', value: 0 % <AX element pid: 83113, elementOrHash.elementID: 4413321216.327>
+                            Other, 0x10a5aa580, {{396.0, 135.0}, {3.0, 391.3}} <AX element pid: 83113, elementOrHash.elementID: 5325722880.353>
+                Toolbar, 0x10a5aa6c0, {{0.0, 62.0}, {402.0, 812.0}}, identifier: 'Toolbar', label: 'Symbolleiste' <AX element pid: 83113, elementOrHash.elementID: 4413317632.296>
+                  Other, 0x10a5aa800, {{0.0, 62.0}, {402.0, 812.0}} <AX element pid: 83113, elementOrHash.elementID: 4413318144.300>
+  Window, 0x10a5aa940, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 4406675968.6>
+    Other, 0x10a5aaa80, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 4408119296.8>
+      Other, 0x10a5aabc0, {{0.0, 0.0}, {402.0, 874.0}} <AX element pid: 83113, elementOrHash.elementID: 4407597184.10>

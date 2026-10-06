@@ -73,6 +73,13 @@ binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
   `DOC.browsingRoot Source:…, Title:…`; the test now waits on the latter and
   waits for the visible picker before querying folders. Next execution requires
   fresh adequate capacity; preserve the unsuccessful originals.
+  Current candidate1b43ad2f is built/signed/receipt-bound; same owned scratch
+  reused only after terminal handback, no duplicate DerivedData. Fresh35.24/50.90%
+  idle,10GiB unused RAM and zero active swap I/O allowed one selected import
+  journey; own runner44639. No passing import/focused/review claim yet. Current
+  original canonical evidence:
+  [e664 native baseline](../artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/),
+  [0a10 infrastructure limit](../artifacts/computer-use/mobile/files-spike-0a10bdc6-20261006/).
   Next: rebuild corrected exact candidate, retry only the failed import,
   then five existing runtime boundaries and one separate native review.
 - Next independent Mobile action: complete ADR0012 Step1's real Files import,

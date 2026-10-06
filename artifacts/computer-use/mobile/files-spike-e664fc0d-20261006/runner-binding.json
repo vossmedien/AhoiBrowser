@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "e664fc0d3dca6f2c7acb22d180bebf736eae4b81",
+  "candidateReceiptSha256": "f5151c2217c1882e9703af613a8e5c52f760551a950c342580b84ee33f0b0d40",
+  "originalXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_iphonesimulator27.0-arm64-x86_64.xctestrun",
+  "originalXctestrunSha256": "6a117b505a3be3fb31367df9b84e7576c743810e15fbd73c8c059e1c6256cefd",
+  "exactXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_e664fc0d_exact_candidate.xctestrun",
+  "exactXctestrunSha256": "bed226c3f48a48497ca8d6ed92a8472ef70f33935284998e4ffe0825377eb759",
+  "selectedJourneys": [
+    "testFilesPickerCancellationDoesNotLoadExtension",
+    "testFilesPickerLoadsAndUnloadsReviewedFixture"
+  ],
+  "productSourceUnchangedFrom": "5bf8a5651944a5399e7d727f73a5305b7b90d92b",
+  "jobs": 1,
+  "distributionEligible": false
+}

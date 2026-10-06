@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "e664fc0d3dca6f2c7acb22d180bebf736eae4b81",
+  "installedApp": "/Users/vossmedien/Library/Developer/CoreSimulator/Devices/A058D204-F3CB-44B7-963C-1F785132EF8B/data/Containers/Bundle/Application/DB09CF7F-660E-4806-96DC-EDCA75CE1851/AhoiMobile.app",
+  "hashes": {
+    "appTreeSha256": "eee042b6d557511081e960eed78d030ed453041aa499e98880cd83717c873f4e",
+    "binarySha256": "63394b3a990d155385374239f72e082564e7a1f30eb393ebbe8a0a085155f9f0",
+    "infoPlistSha256": "570ff9f9b354edd06dfd61bab95e1c66f9b39bbbfad5bb259e29f4ba5f73707d"
+  },
+  "candidateBytesMatchReceipt": true,
+  "realCloudKitMutationOptIn": false
+}
