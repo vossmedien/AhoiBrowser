@@ -57,3 +57,36 @@ Keiner der 10 Commits ändert den Chromium-Kern. Die meisten betreffen Crests Sw
 4. Billige Prüfungen am aktuellen Build: FedCM, Retina-Favicons, Auto-PiP, Extension-Seitenpanel, Ordner-Verhalten, Command-Bar-Ergänzung.
 
 1 bis 3 sind neue Produktfunktionen und brauchen deine Freigabe als Paket. 4 ist reine Prüfung.
+
+## Nachtrag: Einstellungen aus der Bildergalerie von 0.6
+
+Quelle: die fünf Galeriebilder im Post 1wg3t13. Der Codex-Worker hat sie im Safari-Privatfenster ohne Login gelesen. Neue Funktionen kommen dadurch nicht hinzu, die Liste wird aber konkreter.
+
+- **Look and Feel, Fenster:**
+  - Transparenz des fokussierten Fensters
+  - Transparenz
+  - Seiten beim Space-Wechsel animieren
+  - Fensterrand inklusive randlos
+  - Sidebar rechts
+  - Standard-Seitenzoom
+  - Zurücksetzen für alles, je Gruppe und je Einstellung
+- **Look and Feel, Adressfeld:** Space-Akzent folgen, Farbfüllung, Rand, Akzent-Umriss beim Bearbeiten.
+- **Look and Feel, Tabs:**
+  - Eckenradius: Square, Soft, Round, Capsule
+  - Tab-Größe: Compact, Default, Comfortable
+  - Pin-Layout (sichtbar ist nur „Balanced rows“)
+  - Farbige Ränder für ausgewählte Tabs, Pins oder alle Tabs
+  - Akzent-Umriss ausgewählter Tabs
+  - Website-Farben für Pins
+  - Space-Akzent folgen
+  - Füllung angehefteter Tabs
+  - Leuchten des ausgewählten Tabs
+  - Hover-Tönung
+- **Look and Feel, Ordner:** Hervorhebungen immer zeigen, Tab-Anzahl zeigen, farbige Ordnerränder. Farbintensität und Textfarbe stellt man je Space ein.
+- **Crest Studio (Wappen):** Shuffle, Vorlagen (Winter, Lion, Storm, Dragon, Meadow, Iron, River, Sun, Vigil), Identitätsstil Crest oder Icon, Space-Farben folgen oder drei eigene Farbslots, Wappenform („Plate“, z. B. Shield). Für Ahoi v1 außerhalb des Umfangs.
+- **Getting Started:**
+  - Übungen zu Tabs und Ordnern, Split View und Erweiterungen
+  - Die Übungen wirken nur auf einen Beispiel-Space und lassen sich zurücksetzen
+  - Interaktive Pin-Übung
+
+Für Ahoi relevant sind die Optionen, die die schon vorhandene Glass- und Karten-Darstellung feiner einstellen, nämlich Transparenz und Tab-Dichte, sowie eine Getting-Started-Seite vor dem Release. Beides ist ein Kandidat für ein späteres Paket, nicht Teil der jetzt freigegebenen drei Funktionen.
