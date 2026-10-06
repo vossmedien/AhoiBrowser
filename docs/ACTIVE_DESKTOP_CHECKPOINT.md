@@ -76,6 +76,11 @@
   pointing to the existing user config for Git writes; retain real hooks.
   [Accepted access report](reviews/2026-10-06-github-auth-handoff.md);
   evidence `artifacts/tests/github-auth-cb1e5d9c-20261006/root-gui-probe.log`.
+  Actual regular-hook feature-branch push succeeded: origin moved
+  72e2335f -> 96d13cd3; branch readback matches. Candidate source47885f36 is now
+  retained in remote history, no longer bundle-only. This is source publication,
+  not main integration or browser delivery. Root CLI search-list isolation and
+  original failed probes remain unchanged/preserved.
   Separate Jev/orchestrator receipt still SOURCE_UNAVAILABLE/REQUEST_NOT_FOUND;
   no new worker or credential action follows from that metadata gate.
 - Review setup verified without starting review: current native executable
