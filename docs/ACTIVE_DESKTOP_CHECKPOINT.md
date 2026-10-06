@@ -109,14 +109,19 @@
   monitors only the owned Ninja group. No additional heavy phase started.
   Local terminal-wait handle41236 observes the actual runner's end (not progress
   evidence); use `write_stdin` for its terminal result, then real candidate gates.
-- Next authorized steps: finish minimal two-path correction, preserve original
-  failures, configure internal build output without weakening source/path gates,
-  build one clean frozen candidate on Inhouse; affected visible journeys, then
-  focused native checks, then one separate native `codex review` on the smallest
-  attributable implementation scope (new 6 October user gate). Integrate verified
-  work into actual main, push and return
-  the exact app through the guarded development installer. Crest source handoffs
-  follow recorded package order; all real-device/legal/release gates remain open.
+- Next authorized step: await the already-running frozen47885f36 build via
+  existing terminal handle41236 or its actual terminal phase receipt; do not
+  restart source preparation or a full build. On compile/sign/provenance success,
+  run prepared target `~/inhouse/evidence/ahoi-47885f36/accept.sh` for guarded
+  installation, five affected visible journeys and focused native checks.
+  Diagnose a real failure at its boundary and preserve the original evidence.
+  After those gates, one separate native `codex review` of the attributable
+  implementation range, then integrate into actual main, regular-hook push via
+  the verified GUI CLI Git context and return/install the exact accepted app.
+  Auth handoff is consumed; no auth/JeV retry or new worker. The waiting build
+  stays at its original Goal/source/output/owner. Combined Crest package follows
+  first corrected-candidate acceptance; real-device/legal/release gates remain.
+
 
 ## Handoff Claude → Codex (Caeli) — 6 October 2026
 
