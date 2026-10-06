@@ -1,0 +1,137 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_a09fb6b7_exact_candidate.xctestrun -destination "platform=iOS Simulator,id=A058D204-F3CB-44B7-963C-1F785132EF8B" -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 "-only-testing:AhoiMobileUITests/MobileWebExtensionSpikeUITests/testFilesPickerCancellationDoesNotLoadExtension" -resultBundlePath /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-a09fb6b7.xcresult -collect-test-diagnostics never
+
+Writing result bundle at path:
+	/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-a09fb6b7.xcresult
+
+2026-10-06 20:34:49.248928+0200 AhoiMobileUITests-Runner[73271:20074720] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-06 20:34:52.286.
+Test Suite 'AhoiMobileUITests.xctest' started at 2026-10-06 20:34:52.287.
+Test Suite 'MobileWebExtensionSpikeUITests' started at 2026-10-06 20:34:52.287.
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testFilesPickerCancellationDoesNotLoadExtension]' started.
+    t =     0.00s Start Test at 2026-10-06 20:34:52.292
+    t =     0.13s Set Up
+    t =     0.13s Terminate app.ahoibrowser.AhoiBrowser:0
+    t =     0.13s Open app.ahoibrowser.AhoiBrowser
+    t =     0.14s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-06 20:34:52.495 xcodebuild[73174:20073992] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-06 20:34:52.495 xcodebuild[73174:20073992] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[73271]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.BFpCaZ/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x107f7c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.BFpCaZ/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x1081b8310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.82s         Setting up automation session
+    t =     3.10s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     5.08s Waiting 8.0s for Button (First Match) to exist
+    t =     6.11s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     6.11s         Checking existence of `Button (First Match)`
+    t =     6.14s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     7.17s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     7.17s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     7.29s Find the "browser.e2e.candidate-binding" Any
+    t =     7.36s Tap "browser.more" Button
+    t =     7.36s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.37s     Find the "browser.more" Button
+    t =     7.40s     Check for interrupting elements affecting "browser.more" Button
+    t =     7.42s     Synthesize event
+    t =     7.82s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.89s Waiting 4.0s for "browser.actions.done" Button to exist
+    t =     8.92s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.done" Button`
+    t =     8.92s         Checking existence of `"browser.actions.done" Button`
+    t =     8.99s Checking existence of `"browser.actions.settings" Button`
+    t =     9.05s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     9.05s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.05s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     9.08s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     9.12s     Synthesize event
+    t =     9.55s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.25s Checking existence of `"browser.actions.settings" Button`
+    t =    10.31s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    10.31s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.31s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    10.35s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =    10.39s     Synthesize event
+    t =    10.81s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    11.59s Checking existence of `"browser.actions.settings" Button`
+    t =    11.66s Find the "browser.actions.settings" Button
+    t =    11.73s Waiting 3.0s for "browser.actions.settings" Button to exist
+    t =    12.74s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.settings" Button`
+    t =    12.75s         Checking existence of `"browser.actions.settings" Button`
+    t =    13.91s Checking `Expect predicate `hittable == 1` for object "browser.actions.settings" Button`
+    t =    13.91s     Find the "browser.actions.settings" Button
+    t =    13.98s Tap "browser.actions.settings" Button
+    t =    13.99s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.99s     Find the "browser.actions.settings" Button
+    t =    14.05s     Check for interrupting elements affecting "browser.actions.settings" Button
+    t =    14.10s     Synthesize event
+    t =    14.39s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    14.76s Waiting 5.0s for "settings.done" Button to exist
+    t =    15.78s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.done" Button`
+    t =    15.78s         Checking existence of `"settings.done" Button`
+    t =    15.86s Checking existence of `"settings.extensions.spike.import-folder" Button`
+    t =    15.91s Find the "settings.extensions.spike.import-folder" Button
+    t =    15.96s Waiting 3.0s for "settings.extensions.spike.import-folder" Button to exist
+    t =    17.00s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    17.00s         Checking existence of `"settings.extensions.spike.import-folder" Button`
+    t =    18.08s Checking `Expect predicate `hittable == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    18.08s     Find the "settings.extensions.spike.import-folder" Button
+    t =    18.15s Tap "settings.extensions.spike.import-folder" Button
+    t =    18.15s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    18.15s     Find the "settings.extensions.spike.import-folder" Button
+    t =    18.20s     Check for interrupting elements affecting "settings.extensions.spike.import-folder" Button
+    t =    18.24s     Synthesize event
+    t =    18.53s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    18.78s Waiting 8.0s for "Browse View (Picker)" Other to exist
+    t =    19.80s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    19.80s         Checking existence of `"Browse View (Picker)" Other`
+    t =    19.86s         Capturing element debug description
+    t =    20.79s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    20.79s         Checking existence of `"Browse View (Picker)" Other`
+    t =    20.84s         Capturing element debug description
+    t =    21.87s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    21.87s         Checking existence of `"Browse View (Picker)" Other`
+    t =    23.04s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    23.79s Added attachment named 'spike-files-picker-before-cancel'
+    t =    23.79s Requesting snapshot of accessibility hierarchy for app with pid 73446
+    t =    24.71s Requesting snapshot of accessibility hierarchy for app with pid 73446
+    t =    24.83s Added attachment named 'spike-files-picker-tree'
+    t =    24.83s Press "Browse View (Picker)" Other[0.50, 0.01] for 0.1 seconds, then drag to "Browse View (Picker)" Other[0.50, 0.90] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    24.83s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    24.83s     Find the "Browse View (Picker)" Other
+    t =    24.94s     Check for interrupting elements affecting "Browse View (Picker)" Other
+    t =    25.01s     Synthesize event
+    t =    25.03s         Find the "Browse View (Picker)" Other
+    t =    25.15s         Find the "Browse View (Picker)" Other
+    t =    25.26s         Find the "Browse View (Picker)" Other
+    t =    25.37s         Find the "Browse View (Picker)" Other
+    t =    25.48s         Find the "Browse View (Picker)" Other
+    t =    27.36s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    27.74s Waiting 5.0s for "Browse View (Picker)" Other to not exist
+    t =    28.77s     Checking `Expect predicate `existsNoRetry == 0` for object "Browse View (Picker)" Other`
+    t =    28.77s         Checking existence of `"Browse View (Picker)" Other`
+    t =    28.85s Waiting 5.0s for "settings.extensions.spike.import-folder" Button to exist
+    t =    29.87s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    29.87s         Checking existence of `"settings.extensions.spike.import-folder" Button`
+    t =    30.95s Checking `Expect predicate `hittable == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    30.95s     Find the "settings.extensions.spike.import-folder" Button
+    t =    31.03s Find the "settings.extensions.spike.import-folder" Button
+    t =    31.08s Checking existence of `"settings.extensions.spike.unload-folder" Button`
+    t =    31.12s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    31.23s Added attachment named 'spike-files-cancel-no-import'
+    t =    31.23s Terminate app.ahoibrowser.AhoiBrowser:73446
+    t =    32.28s Tear Down
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testFilesPickerCancellationDoesNotLoadExtension]' passed (32.387 seconds).
+Test Suite 'MobileWebExtensionSpikeUITests' passed at 2026-10-06 20:35:24.679.
+	 Executed 1 test, with 0 failures (0 unexpected) in 32.387 (32.392) seconds
+Test Suite 'AhoiMobileUITests.xctest' passed at 2026-10-06 20:35:24.680.
+	 Executed 1 test, with 0 failures (0 unexpected) in 32.387 (32.393) seconds
+Test Suite 'Selected tests' passed at 2026-10-06 20:35:24.680.
+	 Executed 1 test, with 0 failures (0 unexpected) in 32.387 (32.393) seconds
+2026-10-06 20:35:24.980 xcodebuild[73174:20073992] [MT] IDETestOperationsObserverDebug: 40.297 elapsed -- Testing started completed.
+2026-10-06 20:35:24.980 xcodebuild[73174:20073992] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-06 20:35:24.980 xcodebuild[73174:20073992] [MT] IDETestOperationsObserverDebug: 40.297 sec, +40.297 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-a09fb6b7.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "ba139fc11532376361c86214ed8de3a277129531",
+  "candidateReceiptSha256": "5e2c9fa8210f9d0c50cc67b50774dcee61ff8dcc35f993479243275a84657424",
+  "originalXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_iphonesimulator27.0-arm64-x86_64.xctestrun",
+  "originalXctestrunSha256": "6a117b505a3be3fb31367df9b84e7576c743810e15fbd73c8c059e1c6256cefd",
+  "exactXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_ba139fc1_exact_candidate.xctestrun",
+  "exactXctestrunSha256": "a4a7d3cbfca7219a62c9cb95010abacb3ba0a96a20eb9c15ba9fe7f01c59179a",
+  "selectedJourneys": [
+    "testFilesPickerCancellationDoesNotLoadExtension",
+    "testFilesPickerLoadsAndUnloadsReviewedFixture"
+  ],
+  "sourceDeltaFrom": "e664fc0d3dca6f2c7acb22d180bebf736eae4b81",
+  "delta": "Scope before metadata; observed picker/grid/action selectors; folder-entry boundary",
+  "jobs": 1,
+  "distributionEligible": false
+}

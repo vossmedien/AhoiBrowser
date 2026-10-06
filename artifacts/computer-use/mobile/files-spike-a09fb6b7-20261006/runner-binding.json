@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "a09fb6b7ae289320e9c148dade8c7e5c7d67876b",
+  "candidateReceiptSha256": "81dec34fc378e410b579defee6203f286738cb2b6629b192f88d3a193b478af0",
+  "originalXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_iphonesimulator27.0-arm64-x86_64.xctestrun",
+  "originalXctestrunSha256": "6a117b505a3be3fb31367df9b84e7576c743810e15fbd73c8c059e1c6256cefd",
+  "exactXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_a09fb6b7_exact_candidate.xctestrun",
+  "exactXctestrunSha256": "05a4ae346419e928d32cbe6b47209f5b0c094eae458b9b30c90004a840c4b04e",
+  "selectedJourneys": [
+    "testFilesPickerCancellationDoesNotLoadExtension"
+  ],
+  "reusedImportSource": "ba139fc11532376361c86214ed8de3a277129531",
+  "applicability": "Only cancellation test changed; product/core and import journey unchanged",
+  "jobs": 1,
+  "distributionEligible": false
+}

@@ -1,0 +1,35 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_a09fb6b7_exact_candidate.xctestrun -destination "platform=iOS Simulator,id=A058D204-F3CB-44B7-963C-1F785132EF8B" -parallel-testing-enabled NO "-only-testing:AhoiMobileCoreTests/MobileWebExtensionRuntimeTests" -resultBundlePath /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/runtime-focused-a09fb6b7.xcresult -collect-test-diagnostics never
+
+Writing result bundle at path:
+	/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/runtime-focused-a09fb6b7.xcresult
+
+Test Suite 'Selected tests' started at 2026-10-06 20:35:29.241.
+Test Suite 'AhoiMobileCoreTests.xctest' started at 2026-10-06 20:35:29.242.
+Test Suite 'MobileWebExtensionRuntimeTests' started at 2026-10-06 20:35:29.242.
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testBundledSpikeExtensionLoadsWithItsManifest]' started.
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testBundledSpikeExtensionLoadsWithItsManifest]' passed (0.014 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testFilesSpikeRejectsChangedCodeAndDisabledRuntime]' started.
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testFilesSpikeRejectsChangedCodeAndDisabledRuntime]' passed (0.010 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testRuntimeIsOffWithoutTheLaunchArgument]' started.
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testRuntimeIsOffWithoutTheLaunchArgument]' passed (0.002 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testSpikeAttachesOnlyToNormalDefaultStorePages]' started.
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testSpikeAttachesOnlyToNormalDefaultStorePages]' passed (0.004 seconds).
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testUnpackedFilesCopyLoadsBesideTheBundledSpikeAndUnloads]' started.
+Test Case '-[AhoiMobileCoreTests.MobileWebExtensionRuntimeTests testUnpackedFilesCopyLoadsBesideTheBundledSpikeAndUnloads]' passed (0.006 seconds).
+Test Suite 'MobileWebExtensionRuntimeTests' passed at 2026-10-06 20:35:29.281.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.035 (0.039) seconds
+Test Suite 'AhoiMobileCoreTests.xctest' passed at 2026-10-06 20:35:29.281.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.035 (0.040) seconds
+Test Suite 'Selected tests' passed at 2026-10-06 20:35:29.282.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.035 (0.040) seconds
+2026-10-06 20:35:29.561 xcodebuild[74170:20079923] [MT] IDETestOperationsObserverDebug: 3.686 elapsed -- Testing started completed.
+2026-10-06 20:35:29.561 xcodebuild[74170:20079923] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-06 20:35:29.561 xcodebuild[74170:20079923] [MT] IDETestOperationsObserverDebug: 3.686 sec, +3.686 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/runtime-focused-a09fb6b7.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

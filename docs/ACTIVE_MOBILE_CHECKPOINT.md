@@ -1,117 +1,76 @@
 # Active Mobile checkpoint
 
-## Codex continuation: exact app rendered; Files spike UI still open — 6 October 2026
+## Current Codex continuation: Files spike accepted; Step1 remainder open — 6 October 2026
 
-Current unified owner: Cockpit68E66C9E/thread/active native Goal
-01a11179-cb6b-7dc1-9e53-f3d72fefc198, continuing stopped Claude049a3c1d and the
-complete Master. Existing Mobile/Sync contracts and accepted results below stay
-binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
+Unified owner Cockpit68E66C9E, active native Goal/thread
+01a11179-cb6b-7dc1-9e53-f3d72fefc198 continues stopped Claude049a3c1d and the
+complete Master. Later product decisions remain binding; AnyChat is out of scope.
+Desktop frozen47885f36 and its shared Chromium build remain independent/owned.
 
-- Reused installed DebugLocal5bf8a565 on owned synthetic device
-  A058D204-F3CB-44B7-963C-1F785132EF8B; no rebuild, profile reset or CloudKit
-  opt-in. App tree, executable and Info.plist hashes exactly match its existing
-  source-bound candidate receipt. Launch with `-AhoiWebExtensionSpike` PID23874
-  succeeded and a real screenshot shows the native browser/page. This proves
-  launch/render only; no Files picker/import/action/permission flow was reached.
-- Actual Xcode27 GUI entry is
-  `/Applications/Xcode.app/Contents/Applications/DeviceHub.app`:
-  [Apple Device Hub documentation](https://developer.apple.com/documentation/xcode/device-hub).
-  The first obsolete Simulator.app invocation failed; this is an entrypoint
-  correction, not a missing Xcode/SDK prerequisite. Existing Device Hub and its
-  foreign device selection were preserved.
-- Current manual GUI route is unavailable: source Computer Use click returned
-  `-10005: noWindowsAvailable`; fresh observation did not establish a usable
-  remote device window. Target GUI AX route returned `not AX trusted` and
-  `could not create image from display`. AX press return0 did not change the
-  observed device window, so it is not interaction evidence. No TCC reset/grant
-  or permission/account change followed. Original GUI log is retained.
-- Own app terminated, own device Shutdown verified again17:03Z, own E2E lock
-  released and absent; other simulators, migration data and Device Hub remain
-  untouched. [Candidate/readback/access evidence](../artifacts/computer-use/mobile/files-spike-5bf8a565-20261006/).
-- Two Files journeys are now written in the existing
-  `MobileWebExtensionSpikeUITests`: cancellation leaves import enabled/no Files
-  context; native folder selection loads then unloads the exact reviewed fixture.
-  Input staging stays in this owned simulator's Documents; no runtime/URL import
-  bypass. Both require the existing exact-candidate E2E opt-in; the load journey
-  additionally requires `AHOI_MOBILE_SPIKE_FILES_FOLDER`. No compile/run/PASS
-  claimed yet. Context7 is unavailable; current
-  [XCUIElement](https://developer.apple.com/documentation/xcuiautomation/xcuielement),
-  [XCUIApplication](https://developer.apple.com/documentation/xcuiautomation/xcuiapplication)
-  documentation and Xcode27's installed command contracts underpin the native
-  route. Use build-for-testing -> receipt -> exact test-without-building, two
-  selected journeys; product/runtime code is unchanged. Independent Inhouse
-  capacity and owned mobile-build/E2E locks remain prerequisites.
-- Native candidatee664fc0d built successfully Inhouse (one Xcode/Swift job,
-  internal scratchahoi-mobile-files-e664fc0d.fUBMTOwp), clean source, valid ad-hoc
-  signature and exact receipt. Original run is terminal65: cancellation PASS
-  29.96s, import FAIL46.07s; no skips. The Files UI DID reach and choose the
-  reviewed folder; failure is at the loaded-state assertion, with visible
-  `Test extension import failed`, not a missing folder selector. Original
-  xcresult/screenshots/AX hierarchy and target logs retained under
-  `~/inhouse/evidence/ahoi-mobile-files-e664fc0d-20261006/`.
-  Own app stopped/device Shutdown, own input folder removed by exact hash
-  check and E2E lock released. Focused runtime tests were not run after failure.
-  Source now acquires security scope before directory metadata, matching
-  [Apple's Files-import contract](https://developer.apple.com/documentation/swiftui/view/fileimporter(ispresented:allowedcontenttypes:oncompletion:)).
-  Debug-only diagnostics expose only NSError domain/code, never provider
-  URL/userInfo. This corrects a proven ordering defect; its role in this
-  specific failure is still a hypothesis until the corrected import passes.
-  The exported selected-folder screenshot additionally shows the picker STILL
-  at the app Documents parent (one child folder), despite the tap's return.
-  The test now waits for the fixture folder navigation bar and attaches its
-  tree before Open; parent selection must fail that precondition. Candidatebe9482c8
-  compiled/signed but was not rerun with the known inadequate picker step.
-  Candidate0a10bdc6 built/signed. First invocation terminal64 BEFORE tests because
-  the reused scratch still contained the original result bundle; its log is
-  preserved, retry uses a revision-specific xcresult. That retry ended65 at
-  fixture discovery after225.9s under a capacity spike/controller hold. This is
-  limited UI-infrastructure evidence: in-device XCTestRunner continued while
-  its host controller ancestry was held, so no clean paused-test claim. Cleanup
-  again verified Shutdown/input removal/lock release. No focused tests ran.
-  Existing Files AX evidence identifies the fixed navbar
-  `FullDocumentManagerViewControllerNavigationBar` and the current-title-bearing
-  `DOC.browsingRoot Source:…, Title:…`; the test now waits on the latter and
-  waits for the visible picker before querying folders. Next execution requires
-  fresh adequate capacity; preserve the unsuccessful originals.
-  Current candidate1b43ad2f is built/signed/receipt-bound; same owned scratch
-  reused only after terminal handback, no duplicate DerivedData. Fresh35.24/50.90%
-  idle,10GiB unused RAM and zero active swap I/O allowed one selected import
-  journey; own runner44639. No passing import/focused/review claim yet. Current
-  original canonical evidence:
-  [e664 native baseline](../artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/),
-  [0a10 infrastructure limit](../artifacts/computer-use/mobile/files-spike-0a10bdc6-20261006/).
-  Runner44639 is now terminal65,27.43s, at picker readiness; cleanup again
-  Shutdown/input removal/lock release. AX proves Files WAS present, with
-  `Abbrechen` as Other rather than Button, the exact grid cell identifier
-  `<fixture>, Folder`, and `DOCPicker.actionButton`. These observed selectors
-  replace the inadequate assumptions; folder cell double-tap must enter the
-  title-bound root before confirmation. Original1b43 xcresult/AX retained;
-  no focused tests or successful import claimed.
-  Candidateba139fc1 then built/signed/bound; fresh52.49/50.78%idle allowed runner51494.
-  Terminal65: native reviewed-folder import/load/unload PASS40.75s; cancellation
-  FAIL31.12s at the visible Other's hittability precondition. No skips/focused
-  runtime execution. Cleanup verified Shutdown/input removal/lock release.
-  Cancellation now taps the observed control frame and requires the real Files
-  picker to disappear, import to stay enabled and no unload context to appear.
-  Next: only this affected cancellation on the corrected exact candidate, then
-  five runtime boundaries and one separate native review. The import test and
-  product code are unchanged by that final test correction.
-  Candidate07caf17b built/signed/bound;35.67/36.26%idle,78%reclaimable memory
-  allowed runner59908. Terminal65,35.15s: the coordinate tap did NOT close Files.
-  Screenshot proves the AX Cancel belongs to the obscured presenting sheet;
-  Files has no visible Cancel at that frame. Original result retained, cleanup
-  again verified. Test now dismisses the visible picker via its native top-edge
-  sheet gesture and still requires real disappearance/no imported context.
-  No failing assertion was removed and no focused tests ran in its place.
-  Next: rebuild corrected exact candidate, retry only the failed import,
-  then five existing runtime boundaries and one separate native review.
-- Next independent Mobile action: complete ADR0012 Step1's real Files import,
-  action/popup and permission boundaries using an available native interaction
-  path, then assess App Store/update/privacy requirements. Existing bundled
-  content-script/DNR/storage acceptance below remains scoped. Step2's product
-  decision waits for that evidence; a launch or unit pass cannot close it.
-  Hardware Escape, edge back swipe, VoiceOver action and real-device Sync gates
-  remain open. No second product contract/tracking structure is introduced.
+- **Files import/load/unload PASS:** exact clean DebugLocalba139fc1, owned iOS27
+  simulatorA058D204-F3CB-44B7-963C-1F785132EF8B,40.75s. Native Files selected the
+  reviewed folder; WebKit loaded its context beside the bundled spike, then
+  unloaded it. No runtime/URL import bypass. [Visible proof and binding](../artifacts/computer-use/mobile/files-spike-ba139fc1-20261006/).
+- **Cancellation PASS:** exact clean DebugLocala09fb6b7,32.39s. Native top-edge
+  sheet gesture dismissed the real picker; import remained enabled and no
+  Files context appeared. Afterward existing runtime tests5/5 PASS,0failures,
+  0skips on this exact candidate. Only the cancellation test/embedded stamp
+  changed sinceba139fc1; product/core and import journey unchanged, so the
+  previous import proof applies. [Cancellation/runtime proof](../artifacts/computer-use/mobile/files-spike-a09fb6b7-20261006/).
+- **Native review PASS:** one separate codex0.160.1 review --basece6f74fb of
+  a09fb6b7, after visible/focused checks, terminal0/no actionable defects.
+  Session01a11281-46d3-79d1-ba47-602349bee0dd, existing account/CODEX_HOME,
+  gpt6.1Sol/xhigh, never/danger-full-access; no review chain or UI rerun.
+  [Review evidence](../artifacts/tests/mobile-files-review-a09fb6b7-20261006/).
+- Product correctionbe9482c8 acquires security scope BEFORE directory metadata
+  and preserves release/fixture-byte/reentrancy/unload boundaries. Debug-only
+  diagnosis logs NSError domain/code, never provider URL/userInfo. Current
+  [Apple Files contract](https://developer.apple.com/documentation/swiftui/view/fileimporter(ispresented:allowedcontenttypes:oncompletion:)),
+  XCUI docs and installed Xcode27 SDK/command contracts were checked;
+  Context7 is unavailable. Source fits existing Mobile architecture, no dependency.
+- Own app stopped/device Shutdown, staged input removed by exact hashes, E2E
+  lock released. Other devices, saved migration data, Device Hub selection and
+  permissions untouched. Same internal scratch/DerivedData reused only after
+  terminal handback: ~/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp.
+  Current source/receipts remain on target; no active Mobile build/UI runtime.
+- **Original failures retained:** manual route only proved5bf8a565 launch/render;
+  Xcode27 entry is DeviceHub.app (obsolete Simulator.app corrected), Computer
+  Use -10005/noWindowsAvailable and GUI AX not trusted. e664 native baseline
+  cancellation PASS/import FAIL selected the Documents parent;0a first64 was a
+  reused-result-path harness failure, next65 had capacity/controller-hold limits.
+  1b/ba/07 refined AX assumptions: fixed DOC navbar, title-bearing browsing root,
+  named grid cell/action, obscured presenting-sheet Cancel. No failing assertion
+  was weakened; no focused checks replaced failing UI. [Manual boundary](../artifacts/computer-use/mobile/files-spike-5bf8a565-20261006/),
+  [e664 baseline](../artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/),
+  [0a limits](../artifacts/computer-use/mobile/files-spike-0a10bdc6-20261006/);
+  remaining original xcresults/logs retained in ~/inhouse/evidence/ahoi-mobile-files-*.
+- Host policy updated by the user's6October AGENTS; remote-only is superseded.
+  a09 UI admission used fresh Inhouse68.36/69.75%aggregate CPU, swap I/O0;
+  Dev41.50/56.72%, Xcode27 present but iOS runtimes empty. Inhouse selected.
+  Future costly phases use the NEW three consecutive one-second samples,
+  discard initial sample, mean<80%, then eligible Dev fallback. Peer notice822727c9
+  delivered; current Goal/Source/ownership unchanged. No Ahoi containers active.
+- **Next authorized action:** preserve reviewed Files package, integrate attributable
+  changes through actual main and verify/deliver the resulting candidate. Main
+  already contains the Files runtime/tests; only two product files differ by the
+  scope correction/diagnosis. Its UI support lacks MobileADR0012UITestSupport,
+  so resolve that concrete dependency before a minimal integration candidate;
+  never blindly merge the369-commit Desktop/Mobile/Sync divergence.
+  Prepared isolated main candidate3ff98d04 (base318c4eff), only two product
+  files plus existing UI helper/test and eight project entries. Canonical
+  temporary worktree: .work/agent-queue/mobile-files-main-20261006, branch
+  codex/mobile-files-main-20261006; target mirror uses the same own scratch after
+  a09 terminal handback. Main/default and installed desktop unchanged. Build
+  parked: valid three one-second samples averaged Inhouse93.91%, Dev88.29%,
+  both saturated. Dev has pinned Xcode27/iOS SDK27 and133.47GiB free for build,
+  but no iOS runtime for local UI; that is a separate runtime prerequisite.
+  Resume build on the first eligible host under80%, Inhouse preferred, then
+  exact receipt/visible Files checks and focused runtime before integration/push.
+  This wait affects only that build; reviewed Files source/evidence preserved.
+  Then continue ADR0012 Step1 action/popup, permission and App Store/privacy/update
+  evidence. Step2 user decision still waits for the complete spike. Existing
+  hardware Escape, edge back swipe, VoiceOver action and real-device Sync gates
+  remain open; these Files checks do not close the whole Master or Step1.
 
 ## Home journey: launch hang was the locked console; real focus bug fixed — 5 October 2026
 

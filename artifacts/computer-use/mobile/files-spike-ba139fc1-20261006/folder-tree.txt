@@ -1,0 +1,395 @@
+Attributes: Application, 0x112e25680, pid: 52576, label: 'AhoiBrowser'
+Element subtree:
+ →Application, 0x112e25680, pid: 52576, label: 'AhoiBrowser'
+    Window (Main), 0x112e25540, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x112e257c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112e25900, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x112e25a40, {{-402.0, -874.0}, {1206.0, 2622.0}}
+          Other, 0x112e25b80, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x112e25cc0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x112e25e00, {{18.0, 679.0}, {366.0, 44.0}}
+              Button, 0x112e25f40, {{290.0, 679.0}, {44.0, 44.0}}, identifier: 'browser.workspace.previous', label: 'Vorheriger Workspace'
+              Button, 0x112e26080, {{340.0, 679.0}, {44.0, 44.0}}, identifier: 'browser.workspace.next', label: 'Nächster Workspace'
+              Other, 0x112e261c0, {{28.3, 690.7}, {68.3, 20.7}}, identifier: 'browser.harbor-deck.workspace', label: 'Inbox'
+                Image, 0x112e26300, {{28.3, 690.7}, {20.7, 20.7}}, identifier: 'square.stack.3d.up', label: 'Hdr'
+                StaticText, 0x112e26440, {{28.3, 690.7}, {68.3, 20.7}}, label: 'Inbox'
+              Button, 0x112e26580, {{17.5, 729.5}, {367.0, 45.0}}, identifier: 'browser.address', label: 'Adresse und Suche', value: https://fixture.ah...
+                Image, 0x112e266c0, {{31.3, 744.3}, {12.7, 15.3}}, identifier: 'sailboat.fill', label: 'Segelboot, Ausgefüllt'
+                Image, 0x112e26800, {{54.0, 746.3}, {8.0, 11.7}}, identifier: 'lock.fill', label: 'Schloss'
+                StaticText, 0x112e26940, {{70.7, 743.0}, {167.0, 18.0}}, label: 'fixture.ahoibrowser.test'
+              Button, 0x112e26a80, {{18.0, 780.0}, {44.0, 44.0}}, identifier: 'browser.back', label: 'Zurück', Disabled
+              Button, 0x112e26bc0, {{98.7, 780.0}, {44.0, 44.0}}, identifier: 'browser.forward', label: 'Vor', Disabled
+              Button, 0x112e26d00, {{179.0, 780.0}, {44.0, 44.0}}, identifier: 'browser.reload-stop', label: 'Neu laden'
+              Button, 0x112e26e40, {{259.7, 780.0}, {44.0, 44.0}}, identifier: 'browser.tabs', label: '3 Tabs', value: 3
+              Button, 0x112e26f80, {{340.0, 780.0}, {44.0, 44.0}}, identifier: 'browser.more', label: 'Weitere Browseraktionen'
+              Other, 0x112e270c0, {{0.0, 0.0}, {402.0, 780.0}}
+                WebView, 0x112e27200, {{0.0, 0.0}, {402.0, 780.0}}
+                  WebView, 0x112e27340, {{0.0, 0.0}, {402.0, 780.0}}
+                    Other, 0x112e27480, {{0.0, 0.0}, {402.0, 780.0}}
+                      Other, 0x112e275c0, {{0.0, 0.0}, {402.0, 102.0}}
+                    WebView, 0x112e27700, {{0.0, 0.0}, {402.0, 780.0}}
+                      Other, 0x112e27840, {{0.0, 0.0}, {402.0, 780.0}}
+                        Other, 0x112e27980, {{0.0, 0.0}, {402.0, 780.0}}
+                          Other, 0x112e27ac0, {{0.0, 62.0}, {402.0, 780.0}}
+                            Other, 0x112e27c00, {{0.0, 62.0}, {402.0, 1557.0}}, label: 'Ahoi Fixture', Focused
+                              Other, 0x112e27d40, {{28.0, 90.0}, {346.0, 1502.0}}, label: 'Inhalt', Focused
+                                Other, 0x112e27e80, {{28.0, 90.0}, {346.0, 50.0}}, label: 'Ahoi fixture page', value: 1, Focused
+                                  StaticText, 0x112e97d40, {{28.0, 93.0}, {270.0, 43.0}}, label: 'Ahoi fixture page', value: Ahoi fixture page, Focused
+                                Button, 0x112ea8780, {{28.0, 162.0}, {179.0, 39.0}}, label: 'Remove Reader article fixture', Focused
+                                Other, 0x112e8c000, {{28.0, 217.0}, {346.0, 50.0}}, Focused
+                                  StaticText, 0x112e8c140, {{28.0, 218.0}, {344.0, 48.0}}, label: 'This page is provided locally for deterministic browser UI tests.', value: This page is provi..., Focused
+                                Other, 0x112e8c280, {{28.0, 283.0}, {346.0, 26.0}}, Focused
+                                  StaticText, 0x112e8c3c0, {{28.0, 284.0}, {170.0, 23.0}}, label: 'Ahoi visible find target', value: Ahoi visible find ..., Focused
+                                Button, 0x112e8c500, {{28.0, 324.0}, {174.0, 39.0}}, label: 'Activate nested scroll fixture', Focused
+                                Other, 0x112e8c640, {{28.0, 379.0}, {346.0, 125.0}}, Focused
+                                  Other, 0x112e8c780, {{68.0, 379.0}, {306.0, 26.0}}, Focused
+                                    Other, 0x112e8c8c0, {{49.0, 381.0}, {8.0, 23.0}}, label: '•', Focused
+                                    Link, 0x112e8ca00, {{68.0, 381.0}, {142.0, 23.0}}, label: 'Open HTTPS page', Focused
+                                      StaticText, 0x112e8cb40, {{68.0, 381.0}, {142.0, 23.0}}, label: 'Open HTTPS page', value: • Open HTTPS page, Focused
+                                  Other, 0x112e8cc80, {{68.0, 404.0}, {306.0, 26.0}}, Focused
+                                    Other, 0x112e8cdc0, {{49.0, 405.0}, {8.0, 23.0}}, label: '•', Focused
+                                    Link, 0x112e8cf00, {{68.0, 405.0}, {203.0, 23.0}}, label: 'Open Ahoi link actions', Focused
+                                      StaticText, 0x112e8d040, {{68.0, 405.0}, {203.0, 23.0}}, label: 'Open Ahoi link actions', value: • Long-press for l..., Focused
+                                  Other, 0x112e8d180, {{68.0, 429.0}, {306.0, 25.0}}, Focused
+                                    Other, 0x112e8d2c0, {{49.0, 430.0}, {8.0, 23.0}}, label: '•', Focused
+                                    Link, 0x112e8d400, {{68.0, 430.0}, {137.0, 23.0}}, label: 'Open target blank', Focused
+                                      StaticText, 0x112e8d540, {{68.0, 430.0}, {137.0, 23.0}}, label: 'Open target blank', value: • Open target blank, Focused
+                                  Other, 0x112e8d680, {{68.0, 453.0}, {306.0, 26.0}}, Focused
+                                    Other, 0x112e8d7c0, {{49.0, 455.0}, {8.0, 23.0}}, label: '•', Focused
+                                    Link, 0x112e8d900, {{68.0, 455.0}, {129.0, 23.0}}, label: 'Download fixture', Focused
+                                      StaticText, 0x112e8da40, {{68.0, 455.0}, {129.0, 23.0}}, label: 'Download fixture', value: • Download fixture, Focused
+                                  Other, 0x112e8db80, {{68.0, 478.0}, {306.0, 26.0}}, Focused
+                                    Other, 0x112e8dcc0, {{49.0, 479.0}, {8.0, 23.0}}, label: '•', Focused
+                                    Link, 0x112e8de00, {{68.0, 479.0}, {110.0, 23.0}}, label: 'Open privacy-sensitive mail app', Focused
+                                      StaticText, 0x112e8df40, {{68.0, 479.0}, {110.0, 23.0}}, label: 'Open privacy-sensitive mail app', value: • Open mail app, Focused
+                                Other, 0x112e8e080, {{28.0, 523.0}, {346.0, 169.0}}, label: 'JavaScript dialog fixtures, Bereich', Focused
+                                  Button, 0x112e8e1c0, {{28.0, 523.0}, {346.0, 39.0}}, label: 'Show JavaScript alert', Focused
+                                  Button, 0x112e8e300, {{28.0, 571.0}, {346.0, 39.0}}, label: 'Show JavaScript confirm', Focused
+                                  Button, 0x112e8e440, {{28.0, 619.0}, {346.0, 39.0}}, label: 'Show JavaScript prompt', Focused
+                                  Other, 0x112e8e580, {{28.0, 667.0}, {346.0, 25.0}}, label: 'No dialog result yet., Programmstatus', Focused
+                                    StaticText, 0x112e8e6c0, {{28.0, 668.0}, {152.0, 23.0}}, label: 'No dialog result yet.', value: No dialog result y..., Focused
+                                Other, 0x112e8e800, {{28.0, 711.0}, {346.0, 26.0}}, label: 'Choose a fixture file', Focused
+                                  StaticText, 0x112e8e940, {{28.0, 713.0}, {159.0, 23.0}}, label: 'Choose a fixture file', value: Choose a fixture f..., Focused
+                                Other, 0x112e8ea80, {{28.0, 753.0}, {346.0, 53.0}}, Focused
+                                  Button, 0x112e8ebc0, {{28.0, 753.0}, {346.0, 53.0}}, label: 'Choose a fixture file', value: Keine Datei ausgew..., Focused
+                                Other, 0x112e8ed00, {{28.0, 823.0}, {123.0, 23.0}}, label: 'File selection result, Programmstatus', Focused
+                                  StaticText, 0x112e8ee40, {{28.0, 823.0}, {123.0, 23.0}}, label: 'No file selected.', value: No file selected., Focused
+                                Other, 0x112e8ef80, {{28.0, 867.0}, {346.0, 217.0}}, label: 'Website permission fixtures, Bereich', Focused
+                                  Button, 0x112e8f0c0, {{28.0, 867.0}, {346.0, 39.0}}, label: 'Request camera permission', Focused
+                                  Button, 0x112e8f200, {{28.0, 915.0}, {346.0, 39.0}}, label: 'Request microphone permission', Focused
+                                  Button, 0x112e8f340, {{28.0, 963.0}, {346.0, 39.0}}, label: 'Request camera and microphone permission', Focused
+                                  Button, 0x112e8f480, {{28.0, 1011.0}, {346.0, 39.0}}, label: 'Request motion permission', Focused
+                                  Other, 0x112e8f5c0, {{28.0, 1059.0}, {346.0, 25.0}}, label: 'Website permission result, Programmstatus', Focused
+                                    StaticText, 0x112e8f700, {{28.0, 1060.0}, {189.0, 23.0}}, label: 'No permission result yet.', value: No permission resu..., Focused
+                                Other, 0x112e8f840, {{28.0, 1104.0}, {346.0, 488.0}}, label: 'Ahoi Reader fixture article, Artikel', Focused
+                                  Other, 0x112e8f980, {{28.0, 1104.0}, {346.0, 38.0}}, label: 'Ahoi Reader fixture article', value: 2, Focused
+                                    StaticText, 0x112e8fac0, {{28.0, 1107.0}, {309.0, 33.0}}, label: 'Ahoi Reader fixture article', value: Ahoi Reader fixtur..., Focused
+                                  Other, 0x112e8fc00, {{28.0, 1163.0}, {346.0, 149.0}}, Focused
+                                    StaticText, 0x112e8fd40, {{28.0, 1164.0}, {333.0, 146.0}}, label: 'The first paragraph is ordinary visible prose in the loaded main document. It describes a browser journey that opens the Reader without fetching a replacement page, rewriting the source document, or changing the active tab.', value: The first paragrap..., Focused
+                                  Other, 0x112e8fe80, {{28.0, 1327.0}, {346.0, 125.0}}, Focused
+                                    StaticText, 0x112e90000, {{28.0, 1329.0}, {339.0, 121.0}}, label: 'The second paragraph provides enough independent article text for the Reader's content threshold. After the Reader appears, the same browser page should still be available when the person returns to it.', value: The second paragra..., Focused
+                                  Other, 0x112e90140, {{28.0, 1468.0}, {346.0, 124.0}}, Focused
+                                    StaticText, 0x112e90280, {{28.0, 1469.0}, {328.0, 121.0}}, label: 'This final paragraph gives the deterministic fixture a distinct ending. The article stays inside the normal WebKit document so the test exercises the real extraction and presentation path.', value: This final paragra..., Focused
+                    Other, 0x112e903c0, {{0.0, 0.0}, {402.0, 780.0}}
+                    Other, 0x112e90500, {{369.0, 62.0}, {30.0, 718.0}}, label: 'Vertikaler Rollbalken, 3 Seiten', value: 0 %
+                      Other, 0x112e90640, {{396.0, -39.0}, {3.0, 36.0}}
+                    Other, 0x112e90780, {{0.0, 747.0}, {402.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 %
+                      Other, 0x112e908c0, {{-42.0, 774.0}, {36.0, 3.0}}
+                    Other, 0x112e90a00, {{369.0, 62.0}, {30.0, 718.0}}, label: 'Vertikaler Rollbalken, 3 Seiten', value: 0 %
+                      Other, 0x112e90b40, {{396.0, -39.0}, {3.0, 36.0}}
+                    Other, 0x112e90c80, {{0.0, 747.0}, {402.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 %
+                      Other, 0x112e90dc0, {{-42.0, 774.0}, {36.0, 3.0}}
+              StaticText, 0x112e90f00, {{4.0, 66.0}, {257.0, 19.3}}, identifier: 'browser.e2e.candidate-binding', label: 'E2E ba139fc1 · DebugLocal · 5e2c9fa8', value: bundleId=app.ahoib...
+              Other, 0x112e91040, {{200.7, 450.7}, {1.0, 1.0}}
+              Other, 0x112e91180, {{201.0, 451.0}, {0.0, 0.0}}
+      Other, 0x112e912c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112e91400, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x112e91540, {{16.0, 62.0}, {370.0, 747.4}}
+          Other, 0x112e91680, {{16.0, 62.0}, {370.0, 747.4}}
+            Other, 0x112e917c0, {{-354.0, -685.4}, {1110.0, 2242.1}}
+            Other, 0x112e91900, {{16.0, 62.0}, {370.0, 747.4}}
+              Other, 0x112e91a40, {{16.0, 62.0}, {370.0, 747.4}}
+                Other, 0x112e91b80, {{16.0, 62.0}, {370.0, 747.4}}
+                  NavigationBar, 0x112e91cc0, {{16.0, 76.7}, {370.0, 97.6}}, identifier: 'Einstellungen'
+                    Other, 0x112e91e00, {{302.2, 80.4}, {65.3, 33.1}}
+                      Other, 0x112e91f40, {{302.2, 80.4}, {65.3, 33.1}}
+                        Button, 0x112e92080, {{302.2, 80.4}, {65.3, 33.1}}, identifier: 'settings.done', label: 'Fertig'
+                    StaticText, 0x112e921c0, {{30.7, 129.8}, {197.6, 37.4}}, label: 'Einstellungen'
+                  Other, 0x112e92300, {{16.0, 62.0}, {370.0, 747.4}}
+                    Other, 0x112e92440, {{16.0, 62.0}, {370.0, 747.4}}
+                      Other, 0x112e92580, {{16.0, 62.0}, {370.0, 747.4}}
+                        Other, 0x112e926c0, {{16.0, 62.0}, {370.0, 747.4}}
+                          CollectionView, 0x112e92800, {{16.0, 62.0}, {370.0, 747.4}}, identifier: 'settings.form'
+                            Other, 0x112e92940, {{1.3, -1320.4}, {399.5, 1721.1}}
+                            Other, 0x112e92a80, {{16.0, 62.0}, {370.0, 747.4}}
+                              Other, 0x112e92bc0, {{16.0, 62.0}, {370.0, 101.2}}
+                            Other, 0x112e92d00, {{16.0, 62.0}, {370.0, 747.4}}
+                            Cell, 0x112e92e40, {{30.7, 174.3}, {340.5, 37.1}}
+                              Other, 0x112e92f80, {{30.7, 174.3}, {340.5, 37.1}}
+                              Other, 0x112e930c0, {{30.7, 174.3}, {340.5, 37.1}}
+                                Other, 0x112e93200, {{30.7, 174.3}, {340.5, 37.1}}
+                                  Other, 0x112e93340, {{30.7, 174.3}, {340.5, 37.1}}
+                                    StaticText, 0x112e93480, {{30.7, 174.3}, {340.5, 37.1}}, label: 'Browser'
+                            Cell, 0x112e935c0, {{30.7, 211.4}, {340.5, 47.9}}
+                              Other, 0x112e93700, {{30.7, 211.4}, {340.5, 47.9}}
+                                Other, 0x112e93840, {{30.7, 211.4}, {340.5, 47.9}}
+                              Other, 0x112e93980, {{30.7, 211.4}, {340.5, 47.9}}
+                                Other, 0x112e93ac0, {{30.7, 211.4}, {340.5, 47.9}}
+                                  Other, 0x112e93c00, {{30.7, 211.4}, {340.5, 47.9}}
+                                    Button, 0x112e93d40, {{45.5, 219.7}, {311.1, 31.6}}, identifier: 'settings.search.engine', label: 'Suchmaschine, DuckDuckGo'
+                                      StaticText, 0x112e93e80, {{248.9, 226.1}, {92.7, 18.7}}, label: 'DuckDuckGo'
+                                    StaticText, 0x112eac000, {{45.5, 226.0}, {102.8, 18.7}}, label: 'Suchmaschine'
+                            Cell, 0x112eac140, {{30.7, 259.3}, {340.5, 66.6}}
+                              Other, 0x112eac280, {{30.7, 259.3}, {340.5, 66.6}}
+                                Other, 0x112eac3c0, {{30.7, 259.3}, {340.5, 66.6}}
+                              Other, 0x112eac500, {{30.7, 259.3}, {340.5, 66.6}}
+                                Other, 0x112eac640, {{30.7, 259.3}, {340.5, 66.6}}
+                                  Other, 0x112eac780, {{30.7, 259.3}, {340.5, 66.6}}
+                                    Switch, 0x112eac8c0, {{30.7, 259.3}, {340.5, 66.6}}, identifier: 'settings.sync.browser-settings', label: 'Browsereinstellungen synchronisieren', value: 0, Disabled
+                                      StaticText, 0x112eaca00, {{45.5, 273.1}, {154.3, 39.0}}, label: 'Browsereinstellungen synchronisieren', Disabled
+                                      Switch, 0x112eacb40, {{300.4, 279.8}, {58.0, 25.8}}, value: 0, Disabled
+                            Other, 0x112eacc80, {{45.5, 258.4}, {311.1, 0.9}}
+                            Cell, 0x112eacdc0, {{30.7, 325.8}, {340.5, 74.9}}
+                              Other, 0x112eacf00, {{30.7, 325.8}, {340.5, 74.9}}
+                              Other, 0x112ead040, {{30.7, 325.8}, {340.5, 74.9}}
+                                Other, 0x112ead180, {{30.7, 325.8}, {340.5, 74.9}}
+                                  Other, 0x112ead2c0, {{30.7, 325.8}, {340.5, 74.9}}
+                                    StaticText, 0x112ead400, {{45.5, 333.2}, {273.7, 29.1}}, label: 'Suchbegriffe werden erst gesendet, wenn du die Navigation bestätigst.'
+                                    StaticText, 0x112ead540, {{45.5, 366.0}, {299.4, 29.1}}, label: 'Aktiviere CloudKit-Sync, um Browsereinstellungen zu teilen. Die lokale Suche funktioniert auch ohne Sync.'
+                            Other, 0x112ead680, {{1.3, 400.7}, {399.5, 141.7}}
+                            Cell, 0x112ead7c0, {{30.7, 400.7}, {340.5, 37.1}}
+                              Other, 0x112ead900, {{30.7, 400.7}, {340.5, 37.1}}
+                              Other, 0x112eada40, {{30.7, 400.7}, {340.5, 37.1}}
+                                Other, 0x112eadb80, {{30.7, 400.7}, {340.5, 37.1}}
+                                  Other, 0x112eadcc0, {{30.7, 400.7}, {340.5, 37.1}}
+                                    StaticText, 0x112eade00, {{30.7, 400.7}, {340.5, 37.1}}, label: 'Privates Surfen'
+                            Cell, 0x112eadf40, {{30.7, 437.8}, {340.5, 47.9}}
+                              Other, 0x112eae080, {{30.7, 437.8}, {340.5, 47.9}}
+                                Other, 0x112eae1c0, {{30.7, 437.8}, {340.5, 47.9}}
+                              Other, 0x112eae300, {{30.7, 437.8}, {340.5, 47.9}}
+                                Other, 0x112eae440, {{30.7, 437.8}, {340.5, 47.9}}
+                                  Other, 0x112eae580, {{30.7, 437.8}, {340.5, 47.9}}
+                                    Switch, 0x112eae6c0, {{30.7, 437.8}, {340.5, 47.9}}, identifier: 'settings.private.lock', label: 'Privaten Bereich sperren', value: 0
+                                      StaticText, 0x112eae800, {{45.5, 452.4}, {171.8, 18.7}}, label: 'Privaten Bereich sperren'
+                                      Switch, 0x112eae940, {{300.4, 448.9}, {58.0, 25.8}}, value: 0
+                            Cell, 0x112eaea80, {{30.7, 485.7}, {340.5, 56.8}}
+                              Other, 0x112eaebc0, {{30.7, 485.7}, {340.5, 56.8}}
+                              Other, 0x112eaed00, {{30.7, 485.7}, {340.5, 56.8}}
+                                Other, 0x112eaee40, {{30.7, 485.7}, {340.5, 56.8}}
+                                  Other, 0x112eaef80, {{30.7, 485.7}, {340.5, 56.8}}
+                                    StaticText, 0x112eaf0c0, {{30.7, 485.7}, {340.5, 56.8}}, label: 'Nach dem Verlassen der App ist Geräteauthentifizierung erforderlich. Sperren lässt private Tabs geöffnet. Diese Einstellung bleibt auf diesem Gerät.'
+                            Other, 0x112eaf200, {{1.3, 542.4}, {399.5, 289.9}}
+                            Cell, 0x112eaf340, {{30.7, 542.4}, {340.5, 37.1}}
+                              Other, 0x112eaf480, {{30.7, 542.4}, {340.5, 37.1}}
+                              Other, 0x112eaf5c0, {{30.7, 542.4}, {340.5, 37.1}}
+                                Other, 0x112eaf700, {{30.7, 542.4}, {340.5, 37.1}}
+                                  Other, 0x112eaf840, {{30.7, 542.4}, {340.5, 37.1}}
+                                    StaticText, 0x112eaf980, {{30.7, 542.4}, {340.5, 37.1}}, label: 'Erweiterungen'
+                            Cell, 0x112eafac0, {{30.7, 579.6}, {340.5, 66.6}}
+                              Other, 0x112eafc00, {{30.7, 579.6}, {340.5, 66.6}}
+                                Other, 0x112eafd40, {{30.7, 579.6}, {340.5, 66.6}}
+                              Other, 0x112eafe80, {{30.7, 579.6}, {340.5, 66.6}}
+                                Other, 0x112ec0000, {{30.7, 579.6}, {340.5, 66.6}}
+                                  Other, 0x112ec0140, {{30.7, 579.6}, {340.5, 66.6}}
+                                    Switch, 0x112ec0280, {{30.7, 579.6}, {340.5, 66.6}}, identifier: 'settings.extensions.shared', label: 'Geteilte Erweiterungskonfiguration anzeigen', value: 0, Disabled
+                                      StaticText, 0x112ec03c0, {{45.5, 593.4}, {246.1, 39.0}}, label: 'Geteilte Erweiterungskonfiguration anzeigen', Disabled
+                                      Switch, 0x112ec0500, {{300.4, 600.1}, {58.0, 25.8}}, value: 0, Disabled
+                            Cell, 0x112ec0640, {{30.7, 646.1}, {340.5, 66.6}}
+                              Other, 0x112ec0780, {{30.7, 646.1}, {340.5, 66.6}}
+                                Other, 0x112ec08c0, {{30.7, 646.1}, {340.5, 66.6}}
+                              Other, 0x112ec0a00, {{30.7, 646.1}, {340.5, 66.6}}
+                                Other, 0x112ec0b40, {{30.7, 646.1}, {340.5, 66.6}}
+                                  Other, 0x112ec0c80, {{30.7, 646.1}, {340.5, 66.6}}
+                                    Switch, 0x112ec0dc0, {{30.7, 646.1}, {340.5, 66.6}}, identifier: 'settings.extensions.storage.shared', label: 'Unterstützte Erweiterungseinstellungen anzeigen', value: 0, Disabled
+                                      StaticText, 0x112ec0f00, {{45.5, 660.0}, {190.5, 39.0}}, label: 'Unterstützte Erweiterungseinstellungen anzeigen', Disabled
+                                      Switch, 0x112ec1040, {{300.4, 666.7}, {58.0, 25.8}}, value: 0, Disabled
+                            Other, 0x112ec1180, {{45.5, 645.2}, {311.1, 0.9}}
+                            Cell, 0x112ec12c0, {{30.7, 712.7}, {340.5, 47.9}}
+                              Other, 0x112ec1400, {{30.7, 712.7}, {340.5, 47.9}}
+                                Other, 0x112ec1540, {{30.7, 712.7}, {340.5, 47.9}}
+                              Other, 0x112ec1680, {{30.7, 712.7}, {340.5, 47.9}}
+                                Other, 0x112ec17c0, {{30.7, 712.7}, {340.5, 47.9}}
+                                  Other, 0x112ec1900, {{30.7, 712.7}, {340.5, 47.9}}
+                                    Button, 0x112ec1a40, {{30.7, 712.7}, {340.5, 47.9}}, identifier: 'settings.extensions.spike.import-folder', label: 'Load unpacked Ahoi Spike from Files'
+                            Other, 0x112ec1b80, {{45.5, 711.8}, {311.1, 0.9}}
+                            Cell, 0x112ec1cc0, {{30.7, 760.6}, {340.5, 55.5}}
+                              Other, 0x112ec1e00, {{30.7, 760.6}, {340.5, 55.5}}
+                                Other, 0x112ec1f40, {{30.7, 760.6}, {340.5, 55.5}}
+                              Other, 0x112ec2080, {{30.7, 760.6}, {340.5, 55.5}}
+                                Other, 0x112ec21c0, {{30.7, 760.6}, {340.5, 55.5}}
+                                  Other, 0x112ec2300, {{30.7, 760.6}, {340.5, 55.5}}
+                                    StaticText, 0x112ec2440, {{30.7, 760.6}, {340.5, 55.5}}, identifier: 'settings.extensions.spike.files-status', label: 'Debug spike: choose an unpacked copy of the bundled Ahoi Spike fixture.'
+                            Other, 0x112ec2580, {{45.5, 759.7}, {311.1, 0.9}}
+                            Other, 0x112ec26c0, {{355.6, 126.4}, {27.6, 625.9}}, label: 'Vertikaler Rollbalken, 2 Seiten', value: 0 %
+                              Other, 0x112ec2800, {{380.5, 129.2}, {2.8, 360.2}}
+                            Other, 0x112ec2940, {{355.6, 126.4}, {27.6, 625.9}}, label: 'Vertikaler Rollbalken, 2 Seiten', value: 0 %
+                              Other, 0x112ec2a80, {{380.5, 129.2}, {2.8, 360.2}}
+                  Toolbar, 0x112ec2bc0, {{16.0, 62.0}, {370.0, 747.4}}, identifier: 'Toolbar', label: 'Symbolleiste'
+                    Other, 0x112ec2d00, {{16.0, 62.0}, {370.0, 747.4}}
+      Other, 0x112ec2e40, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112ec2f80, {{-402.0, -874.0}, {1206.0, 2622.0}}
+        Other, 0x112ec30c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x112ec3200, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x112ec3340, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x112ec3480, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x112ec35c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x112ec3700, {{247.0, 92.0}, {36.0, 36.0}}, label: 'Abbrechen'
+                Other, 0x112ec3840, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x112ec3980, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x112ec3ac0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x112ec3c00, {{0.0, 0.0}, {804.0, 1748.0}}
+                        Other, 0x112ec3d40, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x112ec3e80, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x112ec4000, {{0.0, 72.0}, {402.0, 802.0}}
+                              Image, 0x112ec4140, {{-150.0, -78.0}, {702.0, 1102.0}}
+                              Other, 0x112ec4280, {{0.0, 72.0}, {402.0, 802.0}}
+                                Other, 0x112ec43c0, {{0.0, 72.0}, {402.0, 802.0}}
+                                  Other, 0x112ec4500, {{0.0, 72.0}, {402.0, 802.0}}
+                                    Other, 0x112ec4640, {{0.0, 72.0}, {402.0, 802.0}}
+                                      Other, 0x112ec4780, {{0.0, 72.0}, {402.0, 802.0}}
+                                      Other, 0x112ec48c0, {{0.0, 72.0}, {402.0, 802.0}}
+                                        Other, 0x112ec4a00, {{0.0, 72.0}, {402.0, 802.0}}
+                                          Other, 0x112ec4b40, {{0.0, 72.0}, {402.0, 802.0}}
+                                            Other, 0x112ec4c80, {{0.0, 72.0}, {402.0, 802.0}}
+                                              Other, 0x112ec4dc0, {{0.0, 72.0}, {402.0, 802.0}}, identifier: 'Browse View (Picker)'
+                                                Other, 0x112ec4f00, {{0.0, 72.0}, {402.0, 802.0}}
+                                                  Other, 0x112ec5040, {{0.0, 72.0}, {402.0, 802.0}}
+                                                    Other, 0x112ec5180, {{0.0, 72.0}, {402.0, 802.0}}
+                                                      Other, 0x112ec52c0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                        Other, 0x112ec5400, {{0.0, 72.0}, {402.0, 802.0}}
+                                                        Other, 0x112ec5540, {{0.0, 72.0}, {402.0, 802.0}}, identifier: 'DOC.browsingRoot Source: com.apple.FileProvider.LocalStorage, Title: Ahoi-Spike-ba139fc1'
+                                                          NavigationBar, 0x112ec5680, {{0.0, 88.0}, {402.0, 108.0}}, identifier: 'FullDocumentManagerViewControllerNavigationBar'
+                                                            Button, 0x112ec57c0, {{20.0, 92.0}, {36.0, 36.0}}, identifier: 'DOC.navBarButton.backInHistory', label: 'Zurück'
+                                                            Button, 0x112ec5900, {{72.0, 92.0}, {36.0, 36.0}}, identifier: 'DOC.navBarButton.forwardInHistory', label: 'Vorwärts', Disabled
+                                                            Button, 0x112ec5a40, {{124.0, 99.7}, {81.0, 20.7}}, label: 'Ahoi-Spike-ba139fc1, Aktionsmenü'
+                                                            Button, 0x112ec5b80, {{247.0, 92.0}, {36.0, 36.0}}, identifier: 'OverflowBarButtonItem', label: 'Mehr'
+                                                            Button, 0x112ec5cc0, {{303.0, 92.0}, {79.0, 36.0}}, identifier: 'DOCPicker.actionButton', label: 'Öffnen'
+                                                            SearchField, 0x112ec5e00, {{16.0, 142.0}, {370.0, 44.0}}, label: 'Suchen', placeholderValue: 'Suchen'
+                                                              Image, 0x112ec5f40, {{28.0, 154.0}, {20.7, 19.3}}, identifier: 'magnifyingglass', label: 'Suchen'
+                                                          Other, 0x112ec6080, {{0.0, 72.0}, {402.0, 802.0}}
+                                                            Other, 0x112ec61c0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                              Other, 0x112ec6300, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                Other, 0x112ec6440, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                  ScrollView, 0x112ec6580, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                    Other, 0x112ec66c0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                      Other, 0x112ec6800, {{0.0, 72.0}, {402.0, 110.0}}
+                                                                      Other, 0x112ec6940, {{0.0, 741.0}, {402.0, 133.0}}
+                                                                    Other, 0x112ec6a80, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                      Other, 0x112ec6bc0, {{0.0, 741.0}, {402.0, 133.0}}
+                                                                    CollectionView, 0x112ec6d00, {{0.0, 72.0}, {402.0, 802.0}}, identifier: 'File View', value: Icon Mode
+                                                                      Other, 0x112ec6e40, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                        Other, 0x112ec6f80, {{0.0, 72.0}, {402.0, 110.0}}
+                                                                        Other, 0x112ec70c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                                                      Other, 0x112ec7200, {{0.0, 72.0}, {402.0, 802.0}}
+                                                                      Cell, 0x112ec7340, {{10.0, 206.0}, {122.0, 189.7}}, identifier: 'content.js, js', label: 'content.js, js, 19:36, 2 KB', Disabled
+                                                                        Other, 0x112ec7480, {{10.0, 206.0}, {122.0, 189.7}}
+                                                                        Other, 0x112ec75c0, {{10.0, 206.0}, {122.0, 189.7}}
+                                                                          Other, 0x112ec7700, {{29.0, 210.0}, {84.0, 84.0}}
+                                                                            Image, 0x112ec7840, {{39.7, 210.0}, {63.0, 84.0}}
+                                                                            Other, 0x112ec7980, {{39.7, 210.0}, {63.0, 84.0}}
+                                                                          Other, 0x112ec7ac0, {{13.0, 299.0}, {116.0, 55.7}}
+                                                                            StaticText, 0x112ec7c00, {{13.0, 299.0}, {116.0, 20.0}}, label: 'content.js'
+                                                                            StaticText, 0x112ec7d40, {{13.0, 322.0}, {116.0, 14.3}}, label: '19:36'
+                                                                            StaticText, 0x112ec7e80, {{13.0, 340.3}, {116.0, 14.3}}, label: '2 KB'
+                                                                      Cell, 0x112ec8000, {{140.0, 206.0}, {122.0, 189.7}}, identifier: 'manifest.json, json', label: 'manifest.json, json, 19:36, 614 Byte', Disabled
+                                                                        Other, 0x112ec8140, {{140.0, 206.0}, {122.0, 189.7}}
+                                                                        Other, 0x112ec8280, {{140.0, 206.0}, {122.0, 189.7}}
+                                                                          Other, 0x112ec83c0, {{159.0, 210.0}, {84.0, 84.0}}
+                                                                            Image, 0x112ec8500, {{169.7, 210.0}, {63.0, 84.0}}
+                                                                            Other, 0x112ec8640, {{169.7, 210.0}, {63.0, 84.0}}
+                                                                          Other, 0x112ec8780, {{143.0, 299.0}, {116.0, 55.7}}
+                                                                            StaticText, 0x112ec88c0, {{143.0, 299.0}, {116.0, 20.0}}, label: 'manifest.json'
+                                                                            StaticText, 0x112ec8a00, {{143.0, 322.0}, {116.0, 14.3}}, label: '19:36'
+                                                                            StaticText, 0x112ec8b40, {{143.0, 340.3}, {116.0, 14.3}}, label: '614 Byte'
+                                                                      Cell, 0x112ec8c80, {{270.0, 206.0}, {122.0, 189.7}}, identifier: 'popup, html', label: 'popup, html, 19:36, 151 Byte', Disabled
+                                                                        Other, 0x112ec8dc0, {{270.0, 206.0}, {122.0, 189.7}}
+                                                                        Other, 0x112ec8f00, {{270.0, 206.0}, {122.0, 189.7}}
+                                                                          Other, 0x112ec9040, {{289.0, 210.0}, {84.0, 84.0}}
+                                                                            Image, 0x112ec9180, {{289.0, 210.0}, {84.0, 84.0}}
+                                                                          Other, 0x112ec92c0, {{273.0, 299.0}, {116.0, 55.7}}
+                                                                            StaticText, 0x112ec9400, {{273.0, 299.0}, {116.0, 20.0}}, label: 'popup'
+                                                                            StaticText, 0x112ec9540, {{273.0, 322.0}, {116.0, 14.3}}, label: '19:36'
+                                                                            StaticText, 0x112ec9680, {{273.0, 340.3}, {116.0, 14.3}}, label: '151 Byte'
+                                                                      Cell, 0x112ec97c0, {{10.0, 403.7}, {122.0, 189.7}}, identifier: 'popup.js, js', label: 'popup.js, js, 19:36, 137 Byte', Disabled
+                                                                        Other, 0x112ec9900, {{10.0, 403.7}, {122.0, 189.7}}
+                                                                        Other, 0x112ec9a40, {{10.0, 403.7}, {122.0, 189.7}}
+                                                                          Other, 0x112ec9b80, {{29.0, 407.7}, {84.0, 84.0}}
+                                                                            Image, 0x112ec9cc0, {{39.7, 407.7}, {63.0, 84.0}}
+                                                                            Other, 0x112ec9e00, {{39.7, 407.7}, {63.0, 84.0}}
+                                                                          Other, 0x112ec9f40, {{13.0, 496.7}, {116.0, 55.7}}
+                                                                            StaticText, 0x112eca080, {{13.0, 496.7}, {116.0, 20.0}}, label: 'popup.js'
+                                                                            StaticText, 0x112eca1c0, {{13.0, 519.7}, {116.0, 14.3}}, label: '19:36'
+                                                                            StaticText, 0x112eca300, {{13.0, 538.0}, {116.0, 14.3}}, label: '137 Byte'
+                                                                      Cell, 0x112eca440, {{140.0, 403.7}, {122.0, 189.7}}, identifier: 'rules.json, json', label: 'rules.json, json, 19:36, 183 Byte', Disabled
+                                                                        Other, 0x112eca580, {{140.0, 403.7}, {122.0, 189.7}}
+                                                                        Other, 0x112eca6c0, {{140.0, 403.7}, {122.0, 189.7}}
+                                                                          Other, 0x112eca800, {{159.0, 407.7}, {84.0, 84.0}}
+                                                                            Image, 0x112eca940, {{169.7, 407.7}, {63.0, 84.0}}
+                                                                            Other, 0x112ecaa80, {{169.7, 407.7}, {63.0, 84.0}}
+                                                                          Other, 0x112ecabc0, {{143.0, 496.7}, {116.0, 55.7}}
+                                                                            StaticText, 0x112ecad00, {{143.0, 496.7}, {116.0, 20.0}}, label: 'rules.json'
+                                                                            StaticText, 0x112ecae40, {{143.0, 519.7}, {116.0, 14.3}}, label: '19:36'
+                                                                            StaticText, 0x112ecaf80, {{143.0, 538.0}, {116.0, 14.3}}, label: '183 Byte'
+                                                                      Other, 0x112ecb0c0, {{0.0, 753.0}, {402.0, 38.0}}
+                                                                        Other, 0x112ecb200, {{0.0, 753.0}, {402.0, 38.0}}, identifier: 'DOCItemCollectionViewFooterViewIdentifier'
+                                                                          StaticText, 0x112ecb340, {{165.7, 753.0}, {70.7, 18.0}}, label: '5 Objekte'
+                                                                      Other, 0x112ecb480, {{369.0, 142.0}, {30.0, 649.0}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+                                                                        Other, 0x112ecb5c0, {{396.0, 781.0}, {3.0, 7.0}}
+                                                                      Other, 0x112ecb700, {{369.0, 142.0}, {30.0, 649.0}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+                                                                        Other, 0x112ecb840, {{396.0, 781.0}, {3.0, 7.0}}
+                                                                    Other, 0x112ecb980, {{369.0, 196.0}, {30.0, 595.0}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+                                                                      Other, 0x112ecbac0, {{396.0, 781.0}, {3.0, 7.0}}
+                                                                    Other, 0x112ecbc00, {{62.0, 758.0}, {278.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 %
+                                                                      Other, 0x112ecbd40, {{334.3, 785.0}, {7.0, 3.0}}
+                                                                    Other, 0x112ecbe80, {{369.0, 196.0}, {30.0, 595.0}}, label: 'Vertikaler Rollbalken, 1 Seite', value: 0 %
+                                                                      Other, 0x112ecc000, {{396.0, 781.0}, {3.0, 7.0}}
+                                                                    Other, 0x112ecc140, {{62.0, 758.0}, {278.0, 30.0}}, label: 'Horizontaler Rollbalken, 1 Seite', value: 0 %
+                                                                      Other, 0x112ecc280, {{334.3, 785.0}, {7.0, 3.0}}
+                                                          Toolbar, 0x112ecc3c0, {{0.0, 72.0}, {402.0, 802.0}}, identifier: 'Toolbar', label: 'Symbolleiste'
+                                                            Other, 0x112ecc500, {{0.0, 72.0}, {402.0, 802.0}}
+                                                    Toolbar, 0x112ecc640, {{0.0, 72.0}, {402.0, 802.0}}, identifier: 'Toolbar', label: 'Symbolleiste'
+                                                      Other, 0x112ecc780, {{0.0, 72.0}, {402.0, 802.0}}
+                                                Other, 0x112ecc8c0, {{0.0, 72.0}, {402.0, 802.0}}
+                                                  Other, 0x112ecca00, {{0.0, 72.0}, {402.0, 802.0}}
+                                        Other, 0x112eccb40, {{0.0, 72.0}, {402.0, 802.0}}
+                                          Other, 0x112eccc80, {{0.0, 791.0}, {402.0, 83.0}}
+                                            Other, 0x112eccdc0, {{0.0, 72.0}, {402.0, 802.0}}
+                                              TabBar, 0x112eccf00, {{0.0, 791.0}, {402.0, 83.0}}, identifier: 'DOC.browsingModeTabBar', label: 'Tableiste'
+                                                Other, 0x112ecd040, {{47.0, 791.0}, {308.0, 62.0}}
+                                                  Other, 0x112ecd180, {{47.0, 791.0}, {105.3, 54.0}}
+                                                  Other, 0x112ecd2c0, {{47.0, 791.0}, {308.0, 62.0}}
+                                                    Button, 0x112ecd400, {{51.0, 795.0}, {105.3, 54.0}}, label: 'Verlauf'
+                                                      Image, 0x112ecd540, {{90.0, 801.3}, {27.3, 27.3}}, identifier: 'clock.fill', label: 'Uhr'
+                                                    Button, 0x112ecd680, {{148.3, 795.0}, {105.3, 54.0}}, label: 'Geteilt'
+                                                      Image, 0x112ecd7c0, {{182.7, 802.7}, {37.0, 26.0}}, identifier: 'person.2.fill', label: 'Zwei Personen, gefüllt'
+                                                    Button, 0x112ecd900, {{245.7, 795.0}, {105.3, 54.0}}, label: 'Durchsuchen', Selected
+                                                      Image, 0x112ecda40, {{282.3, 802.3}, {32.0, 25.0}}, identifier: 'folder.fill', label: 'bewegen'
+                                                  Other, 0x112ecdb80, {{47.0, 791.0}, {308.0, 62.0}}
+                                                  Other, 0x112ecdcc0, {{245.7, 795.0}, {105.3, 54.0}}
+                                                    Other, 0x112ecde00, {{245.7, 795.0}, {105.3, 54.0}}
+                                                      Other, 0x112ecdf40, {{245.7, 795.0}, {105.3, 54.0}}
+                                                      Other, 0x112ece080, {{245.7, 795.0}, {105.3, 54.0}}
+                                                        Other, 0x112ece1c0, {{245.7, 795.0}, {105.3, 54.0}}
+                                                          Other, 0x112ece300, {{245.7, 795.0}, {105.3, 54.0}}
+                                                            Other, 0x112ece440, {{245.7, 795.0}, {105.3, 54.0}}
+                                                          Other, 0x112ece580, {{245.7, 795.0}, {105.3, 54.0}}
+                                                        Other, 0x112ece6c0, {{245.7, 795.0}, {105.3, 54.0}}
+                                            Other, 0x112ece800, {{0.0, 791.0}, {402.0, 83.0}}
+                                              Other, 0x112ece940, {{0.0, 791.0}, {402.0, 83.0}}
+                                                Other, 0x112ecea80, {{0.0, 791.0}, {402.0, 83.0}}
+                                                  Other, 0x112ecebc0, {{0.0, 791.0}, {402.0, 83.0}}
+                                                    Other, 0x112eced00, {{0.0, 791.0}, {402.0, 83.0}}
+                                                      Other, 0x112ecee40, {{0.0, 791.0}, {402.0, 83.0}}
+                                                  Other, 0x112ecef80, {{0.0, 791.0}, {402.0, 83.0}}
+                                                    Other, 0x112ecf0c0, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x112ecf200, {{0.0, 0.0}, {402.0, 874.0}}
+    Window, 0x112ecf340, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x112ecf480, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x112ecf5c0, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x112e25680, pid: 52576, label: 'AhoiBrowser'
+Query chain:
+ →Find: Target Application 'app.ahoibrowser.AhoiBrowser'
+  Output: {
+    Application, 0x112ecf700, pid: 52576, label: 'AhoiBrowser'
+  }
