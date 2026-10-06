@@ -160,6 +160,18 @@ TEST_F(KeyboardShortcutsTest, SerializationRoundTripsAndRejectsDamage) {
   EXPECT_TRUE(ReadOverrides(prefs_).empty());
 }
 
+// ⌥⌘T edits the address; ⇧⌘T stays Chromium's "Reopen closed tab".
+TEST_F(KeyboardShortcutsTest, FocusAddressBarUsesOptionCommandT) {
+  const ShortcutCommand* command = FindCommand(kFocusAddressBar);
+  ASSERT_TRUE(command);
+  EXPECT_TRUE(command->rebindable);
+  EXPECT_EQ(std::vector<ui::Accelerator>{Key(ui::VKEY_T, kCmd | kAlt)},
+            command->defaults);
+  EXPECT_EQ(kFocusAddressBar,
+            CommandForAccelerator({}, Key(ui::VKEY_T, kCmd | kAlt)));
+  EXPECT_FALSE(CommandForAccelerator({}, Key(ui::VKEY_T, kCmd | kShift)));
+}
+
 TEST_F(KeyboardShortcutsTest, FormerlyFixedCommandsKeepTheirDefaults) {
   const struct {
     const char* id;

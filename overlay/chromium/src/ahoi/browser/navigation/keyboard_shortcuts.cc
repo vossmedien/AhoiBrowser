@@ -59,6 +59,11 @@ std::vector<ShortcutCommand> BuildCatalog() {
                             u"Command Bar für neuen Tab",
                             u"Open the command bar for a new tab",
                             {Key(ui::VKEY_T, kCmd)}));
+  // Next to ⌘T (new tab) and free in Chromium; ⇧⌘T keeps "Reopen closed
+  // tab" (user decision, 6 October 2026).
+  catalog.push_back(Command(kFocusAddressBar, ShortcutCategory::kBrowser,
+                            u"Adresse bearbeiten", u"Edit the address",
+                            {Key(ui::VKEY_T, kCmd | kAlt)}));
   catalog.push_back(Command(kQuickWindow, ShortcutCategory::kBrowser,
                             u"Quick Window öffnen", u"Open Quick Window",
                             {Key(ui::VKEY_SPACE, kAlt)}));

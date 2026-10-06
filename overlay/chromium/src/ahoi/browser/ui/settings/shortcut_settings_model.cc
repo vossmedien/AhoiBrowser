@@ -79,6 +79,12 @@ std::string Hint(std::string_view id) {
     return Text("Wirkt systemweit, auch wenn Ahoi im Hintergrund ist.",
                 "Works system-wide, even when Ahoi is in the background.");
   }
+  if (id == shortcuts::kFocusAddressBar) {
+    return Text("Zeigt die Navigationsleiste und markiert die Adresse; "
+                "Tippen ersetzt sie. ⇧⌘T öffnet weiter geschlossene Tabs.",
+                "Shows the navigation bar and selects the address; typing "
+                "replaces it. ⇧⌘T still reopens closed tabs.");
+  }
   if (id == shortcuts::kSidebarUndo) {
     return Text("Nur wenn die Seitenleiste etwas zurücknehmen kann; sonst "
                 "gilt das normale Rückgängig.",

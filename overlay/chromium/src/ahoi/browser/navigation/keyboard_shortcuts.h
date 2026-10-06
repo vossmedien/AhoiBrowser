@@ -68,6 +68,9 @@ inline constexpr char kQuickWindow[] = "browser.quick-window";
 inline constexpr char kCommandBar[] = "browser.command-bar";
 inline constexpr char kCommandBarNewTab[] = "browser.command-bar-new-tab";
 inline constexpr char kSaveTab[] = "tab.save";
+// Reveals the floating navigation and selects the address (⌥⌘T), so typing
+// replaces the current page's address.
+inline constexpr char kFocusAddressBar[] = "browser.focus-address-bar";
 
 const std::vector<ShortcutCommand>& Catalog();
 const ShortcutCommand* FindCommand(std::string_view id);
