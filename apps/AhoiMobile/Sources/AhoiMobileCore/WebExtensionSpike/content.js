@@ -10,6 +10,7 @@ const visitsStored = browser.storage.local.get("visits").then((stored) => {
 // `?ahoi-spike-check`: two script probes that differ only in the path the
 // rule in rules.json blocks. The control must load, the other must not.
 if (location.search.includes("ahoi-spike-check")) {
+  const checkToken = new URL(location.href).searchParams.get("ahoi-spike-check");
   const probe = (name) => new Promise((resolve) => {
     const script = document.createElement("script");
     script.src = location.origin + "/?ahoi-spike-probe=" + name;
@@ -34,6 +35,7 @@ if (location.search.includes("ahoi-spike-check")) {
     report.id = "ahoi-spike-report";
     report.setAttribute("role", "status");
     report.textContent = "Ahoi Spike report: content-script=ran"
+      + " token=" + checkToken
       + " visits=" + visits
       + " control=" + control
       + " rule=" + (blocked === "failed" ? "blocked" : "not-blocked");
