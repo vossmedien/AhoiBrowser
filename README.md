@@ -14,18 +14,21 @@ architecture decision, test, or release gate.
 
 ## Current status
 
-The current pin is Chromium Mac Stable `154.0.8037.93` at exact commit
-`f89f3a4363808e117c592adedcf9947882ac3b79`. Development candidate source
-`e86c929f6bfbb0cbe1dac2fa4c101a31250c215a` is installed at
-`/Applications/AhoiBrowser.app` on the development and Inhouse Macs. Its guarded
-build, stable development signature, portable bundle/provenance verification
-and atomic installation passed. It fixes primary-frame fetch policy and the
-archive confirmation's native close lifetime. Exact installed archive acceptance
-passed 12/12, including Cancel, deletion/restart retention and normal browser exit
-with the confirmation open
-([evidence](artifacts/tests/archive-cancel-lifecycle-20261004/diagnosis.json)).
-The unchanged cache/header journey's 12/12 and 55 focused native regressions remain
-applicable ([evidence](artifacts/tests/document-request-mode-fixed-20261004/receipt.json)).
+The current pin is Chromium Mac Stable `155.0.8059.26` at exact commit
+`16c3e55476d3564bea713314b2fff638749ce3e6`, using the owner-approved
+`staged-stable` rollout policy. Development source
+`ef982afebdf33e26a105626878779f22dfb33c3f` is installed at
+`/Applications/AhoiBrowser.app` on the development Mac. Its guarded build,
+signature, provenance and atomic installation passed; the bounded M155
+acceptance passed 11/11 journeys
+([installation receipt](artifacts/install/ahoi-dev-ef982afe-m155-20261006.json)).
+
+The newer Inhouse candidate `f87f7581` passed six of eight UI journeys;
+temporary-tab multi-selection and the tab switcher failed. Both are corrected
+in source `8681500b`, with guarded internal build-output support in `47885f36`.
+That exact candidate is building on the Inhouse Mac and has not been accepted
+or delivered. The earlier M154 archive/cache evidence retains its historical
+revision; it does not itself prove these new M155 paths.
 Original failures and harness corrections remain. Full product/release gates stay
 open; this is affected feature acceptance, not complete browser acceptance.
 Use [the desktop checkpoint](docs/ACTIVE_DESKTOP_CHECKPOINT.md) for the current

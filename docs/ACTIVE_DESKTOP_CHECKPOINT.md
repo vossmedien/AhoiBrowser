@@ -95,6 +95,17 @@
   is still building, not installed. Last capacity recheck47/48%CPU idle,
   memory_pressure61%free, swap1.04GiB with0swap I/O; four own compiler children
   under Ninja83413 use the internal output. Foreign work remains untouched.
+- Existing master/feature decisions remain binding under the newly required
+  project-feature-workflow; no interview/specification restart. Crest owner has
+  completed panel source handoff `10430ad4e26ef193dabee2fe554388e422816ec3` in its
+  disjoint branch. Its integration plan explicitly keeps first corrected-candidate
+  acceptance ahead of combined density/tabgroups/folder/help/panel wiring.
+- Current disk boundary: new output4.0GiB versus original SSD output16GiB;
+  internal free24GiB after concurrent allocations. Original incremental output
+  is retained until accepted delivery, not blindly deleted. Unchanged8GiB reserve
+  monitors only the owned Ninja group. No additional heavy phase started.
+  Local terminal-wait handle41236 observes the actual runner's end (not progress
+  evidence); use `write_stdin` for its terminal result, then real candidate gates.
 - Next authorized steps: finish minimal two-path correction, preserve original
   failures, configure internal build output without weakening source/path gates,
   build one clean frozen candidate on Inhouse; affected visible journeys, then
