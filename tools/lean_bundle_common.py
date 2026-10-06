@@ -172,5 +172,6 @@ def resolve_output_artifact(
         raise SystemExit(f"{field} must name an artifact under Chromium out")
     output = profile_output_directory(work_root / "chromium/src", relative.parts[3])
     return resolve_beneath(
-        output, pathlib.PurePosixPath(*relative.parts[4:]).as_posix(), field, kind=kind
+        output, pathlib.PurePosixPath(*relative.parts[4:]).as_posix(),
+        f"{field} at {output}", kind=kind
     )
