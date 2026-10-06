@@ -26,6 +26,7 @@
 #include "chrome/browser/search_engines/template_url_service_test_util.h"
 #include "chrome/browser/ui/bookmarks/bookmark_utils_desktop.h"
 #include "chrome/browser/ui/browser.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/grit/generated_resources.h"
@@ -146,7 +147,7 @@ class SidebarBookmarkShelfViewTest : public ChromeViewsTestBase {
   }
 
   std::unique_ptr<TestingProfile> profile_;
-  std::unique_ptr<Browser> browser_;
+  std::unique_ptr<BrowserWindowInterface> browser_;
   raw_ptr<BookmarkMergedSurfaceService> bookmark_service_ = nullptr;
   std::unique_ptr<SidebarBookmarkShelfView> standalone_shelf_;
   raw_ptr<SidebarBookmarkShelfView> shelf_ = nullptr;
