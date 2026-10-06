@@ -155,14 +155,25 @@ bool BrowserSidebarHostView::RunMultiSelectionCommand(int command_id) {
     return true;
   }
   if (command_id == kMultiCloseTabsCommand) {
-    size_t closed = 0;
+    std::vector<base::Uuid> requested;
     for (const base::Uuid& id : ids) {
       if (tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(id)) {
+        requested.push_back(id);
         tab->Close();
+      }
+    }
+    // A page with a beforeunload handler keeps its tab until the user
+    // answers, and cancelling keeps it open. Count only tabs that are gone and
+    // keep the selection while any is still open, so the user can retry.
+    size_t closed = 0;
+    for (const base::Uuid& id : requested) {
+      if (!session_bridge_->FindTabByTreeNodeId(id)) {
         ++closed;
       }
     }
-    tree_view_->ClearMultiSelection();
+    if (closed == requested.size()) {
+      tree_view_->ClearMultiSelection();
+    }
     if (closed > 0) {
       toast::Show(browser_, toast::Event::kClosed, std::u16string(), closed);
     }
@@ -178,11 +189,22 @@ bool BrowserSidebarHostView::RunMultiSelectionCommand(int command_id) {
       }
     }
     const size_t count = temporary.size();
-    tree_view_->ClearMultiSelection();
+    // The selection stays until the archive succeeded, so a failure leaves
+    // it intact for another attempt.
     session_bridge_->ArchiveTemporaryPages(
         std::move(temporary),
-        base::BindOnce(&BrowserSidebarHostView::CompleteArchiveContextTabs,
-                       weak_ptr_factory_.GetWeakPtr(), count));
+        base::BindOnce(
+            [](base::WeakPtr<BrowserSidebarHostView> view, size_t count,
+               bool success) {
+              if (!view) {
+                return;
+              }
+              if (success && view->tree_view_) {
+                view->tree_view_->ClearMultiSelection();
+              }
+              view->CompleteArchiveContextTabs(count, success);
+            },
+            weak_ptr_factory_.GetWeakPtr(), count));
     return true;
   }
   const auto& workspaces = workspace_service_->ordered_workspaces();
