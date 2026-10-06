@@ -214,11 +214,27 @@
 - **Deep close diagnosis/fixc70f3d38 via existing orchestrator:** actual
   session4CD99365-8552-4BE7-8FD9-CE663A46C9AA,
   thread01a1134d-3995-7e41-81cd-5fc0f3b8ea57, Codex/Caeli gpt6.1Sol/xhigh,
-  own worktree AhoiBrowser-m155-mehrfachschliessen-c70f3d38, working Source-only
+  own worktree AhoiBrowser-m155-mehrfachschliessen-c70f3d38, Source-only
   scope sidebar/command adapter/E2E script + unique handoff report. Full native
-  own Goal/config receipt still to verify. No shared checkout/out/build/install/
+  own Goal/config receipt now verified: initiallynull/createonce, ownACTIVE Goal,
+  later BLOCKED only on Root candidate handback (no final implementation success).
+  [Native receipt](../artifacts/tests/orchestrator-workers-20261007/01a1134d-3995-7e41-81cd-5fc0f3b8ea57.json).
+  No shared checkout/out/build/install/
   MacGUI/defaultbranch lease; Root owns integration/build/visible acceptance.
-- Next: consume the attributable close Sourcehandoff once, one guarded incremental
+- Sourcehandoff consumed once: actual4-file diff +139/-28 read with existing
+  GroupPageClose contract; cause kMultiSelection missing from command Enabled
+  dispatch, not UUID/modifiers. Source d01316f7 cherrybe869f0a; report261105ea
+  cherrye0282a90. Only offered menuIDs enabled; existing group veto/lock, menu-loop
+  deferral and actual native Tab WeakPtr deletion govern close/count/toast.
+  [Source boundary and open runtime gates](reviews/2026-10-07-m155-multiclose-fix-handoff.md).
+  Frozen clean target sourcee0282a903d8f8dc0f51f9eae5066d24eed249a62; same physical
+  output. New guarded runner submitted at freshmean51.02%CPU,64%memory-free,
+  20,542,516KiB free,2jobs to fit foreign work,4GiB growth/8GiB reserve unchanged.
+  ~/inhouse/evidence/ahoi-e0282a90/ binds source/runner/admission. No new build/
+  UI pass yet. Root note10c8e225 acknowledges source/new candidate to SAME worker;
+  no duplicate worker/Goal. Full native Caeli alias/Jev decision receipt remains
+  separate/unproved; actual configured account/model and Goal are proved.
+- Next: complete the one guarded incremental
   candidate, affected visible close journey before focused checks and native
   codexreview; after acceptance integrate/push actualmain and deliver exactapp.
   Same pins/output/reserve retained; no cold rebuild or repeated old Modifier

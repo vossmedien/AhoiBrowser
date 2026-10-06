@@ -1,0 +1,32 @@
+{
+  "native": {
+    "id": "01a1134d-3995-7e41-81cd-5fc0f3b8ea57",
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-m155-mehrfachschliessen-c70f3d38",
+    "source": "cli",
+    "cli_version": "0.160.1",
+    "model_provider": "openai"
+  },
+  "config": {
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-m155-mehrfachschliessen-c70f3d38",
+    "model": "gpt-6.1-sol",
+    "effort": "xhigh",
+    "approval_policy": "never",
+    "sandbox_policy": {
+      "type": "danger-full-access"
+    }
+  },
+  "account": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+  "createCalls": 1,
+  "firstGoal": null,
+  "latestGoal": {
+    "threadId": "01a1134d-3995-7e41-81cd-5fc0f3b8ea57",
+    "objective": "Behebe am eingefrorenen M155-Desktop1e340a17 den tats\u00e4chlich belegten Fehler beim gemeinsamen Schlie\u00dfen mehrfach ausgew\u00e4hlter Tabs; liefere einen kleinen \u00fcberpr\u00fcfbaren Sourcehandoff zur Root-Integration und f\u00fchre die erforderlichen Korrekturen bis zu Roots sichtbarer Abnahme, separater nativer Review und bewachter Main-Auslieferung mit.",
+    "status": "blocked",
+    "tokensUsed": 182344,
+    "timeUsedSeconds": 716,
+    "createdAt": 1791325236,
+    "updatedAt": 1791325953
+  },
+  "rootGoalUnchanged": true,
+  "caeliAlias": "user-authorized account UUID; no independent alias/Jev decision receipt yet"
+}
