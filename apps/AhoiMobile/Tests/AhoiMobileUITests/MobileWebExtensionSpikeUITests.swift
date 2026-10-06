@@ -135,6 +135,11 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
         }
         XCTAssertTrue(waitForHittable(chosenFolder, timeout: 5))
         chosenFolder.tap()
+        // The picker can still be displaying the parent while its provider
+        // opens the folder. Open must confirm the fixture, never that parent.
+        let enteredFolder = app.navigationBars[folder].waitForExistence(timeout: 5)
+        attachTree(app, "spike-files-selected-folder-tree")
+        XCTAssertTrue(enteredFolder, "Files must enter the reviewed fixture folder before Open.")
         let open = app.buttons.matching(NSPredicate(
             format: "label IN %@", ["Open", "Öffnen"]
         )).firstMatch

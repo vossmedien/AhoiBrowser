@@ -56,6 +56,11 @@ binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
   Debug-only diagnostics expose only NSError domain/code, never provider
   URL/userInfo. This corrects a proven ordering defect; its role in this
   specific failure is still a hypothesis until the corrected import passes.
+  The exported selected-folder screenshot additionally shows the picker STILL
+  at the app Documents parent (one child folder), despite the tap's return.
+  The test now waits for the fixture folder navigation bar and attaches its
+  tree before Open; parent selection must fail that precondition. Candidatebe9482c8
+  compiled/signed but was not rerun with the known inadequate picker step.
   Next: rebuild corrected exact candidate, retry only the failed import,
   then five existing runtime boundaries and one separate native review.
 - Next independent Mobile action: complete ADR0012 Step1's real Files import,
