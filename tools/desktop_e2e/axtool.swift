@@ -8,7 +8,8 @@ import AppKit
 //        axtool key <pid> <virtualKeyCode> [cmd|shift|opt|ctrl ...]
 //        axtool hidscroll <pid> <element> <dy> [dx] [phased|line] [cmd|shift|opt|ctrl ...]
 //        axtool hidmiddle <pid> <element> <dx> <dy>
-//        axtool hidclick <pid> <label substring>
+//        axtool hidclick <pid> <label substring> [cmd|shift|opt|ctrl ...]
+//        axtool selected <pid>
 //        axtool menukeys <pid>
 import ApplicationServices
 import Foundation
@@ -412,14 +413,23 @@ case "hidclick":
     AXValueGetValue(cpv as! AXValue, .cgPoint, &cpos)
     AXValueGetValue(csv as! AXValue, .cgSize, &csize)
     let cc = CGPoint(x: cpos.x + csize.width / 2, y: cpos.y + csize.height / 2)
+    // Optional modifiers ride on the mouse events (⌘/⇧-click selection).
+    let cflags = flagsFrom(args.dropFirst(4))
     for t: CGEventType in [.mouseMoved, .leftMouseDown, .leftMouseUp] {
         let ev = CGEvent(mouseEventSource: nil, mouseType: t, mouseCursorPosition: cc,
                          mouseButton: .left)!
         if t != .mouseMoved { ev.setIntegerValueField(.mouseEventClickState, value: 1) }
+        if !cflags.isEmpty { ev.flags = cflags }
         ev.post(tap: .cghidEventTap)
         usleep(80000)
     }
     print("hidclicked \(label(cf)) at \(cc)")
+case "selected":
+    // One line per element whose AXSelected is true (sidebar rows).
+    _ = walk(app, 0, 40) { e, _ in
+        if (attr(e, kAXSelectedAttribute) as? Bool) == true { print(label(e)) }
+        return false
+    }
 case "click", "rightclick":
     let needle = args[3]
     var found: AXUIElement?
