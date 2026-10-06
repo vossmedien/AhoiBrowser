@@ -1,0 +1,32 @@
+{
+  "native": {
+    "id": "01a11356-7ffe-7ac2-a7a8-dc757416ca60",
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-mobile-popup-berechtigungsumsetzung-55e4",
+    "source": "cli",
+    "cli_version": "0.160.1",
+    "model_provider": "openai"
+  },
+  "config": {
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-mobile-popup-berechtigungsumsetzung-55e4",
+    "model": "gpt-6.1-sol",
+    "effort": "xhigh",
+    "approval_policy": "never",
+    "sandbox_policy": {
+      "type": "danger-full-access"
+    }
+  },
+  "account": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+  "createCalls": 1,
+  "firstGoal": null,
+  "latestGoal": {
+    "threadId": "01a11356-7ffe-7ac2-a7a8-dc757416ca60",
+    "objective": "Setze AhoiMobile ADR0012 Step1 Popup und explizite Site-Berechtigungen auf dem tats\u00e4chlich akzeptierten main13423f52 minimal um, belege den echten WebKit-Popup- und Grant/deny/expiry/revoke-/Private-Weg am exakten Debug-Kandidaten und f\u00fchre das Paket mit Root bis zu bewachter Main-Integration und tats\u00e4chlicher Debug-Auslieferung. Allgemeiner Installer/Step2 bleibt au\u00dferhalb.",
+    "status": "active",
+    "tokensUsed": 0,
+    "timeUsedSeconds": 0,
+    "createdAt": 1791325822,
+    "updatedAt": 1791325822
+  },
+  "rootGoalUnchanged": true,
+  "caeliAlias": "user-authorized account UUID; no independent alias/Jev decision receipt yet"
+}

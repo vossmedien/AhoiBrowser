@@ -86,14 +86,19 @@ Desktop source1e340a17 and its shared Chromium build remain independent/owned.
   actual extension defaultStore and imported closure attributes remain technical
   candidate proofs, not extra product questions. Context7 quota exhausted;
   versioned SDK27/Apple sources are the documented fallback.
-- **Next implementation55e41676 queued via existing orchestrator:** Codex/Caeli,
+- **Implementation55e41676 started via existing orchestrator:** Codex/Caeli,
   gpt6.1Sol/xhigh recommended, new own thread/Goal on actual main13423f52. Only
   listed Mobile runtime/fixture/UI/test/project paths in its own worktree. Root
   handed back existing Mobile scratch/DerivedData and own simulatorA058D204
   (Shutdown, input removed/locks released) for this concrete task; no Mac GUI,
   Desktopcheckout/out or other device lease. Worker implements/builds/exact UI/
   focus/nativeReview; Root owns source acceptance/main/push/delivered artifact.
-  Native start/model/Goal receipt for55 is still pending; no build/start claimed.
+  Actual session28777292-5A1A-4E05-97FD-1F4A7C0C9FB9,
+  thread01a11356-7ffe-7ac2-a7a8-dc757416ca60, correct own worktree/account,
+  nativegpt6.1Sol/xhigh/never/danger-full-access; initialGoalnull/createonce/ACTIVE
+  verified in [native receipt](../artifacts/tests/orchestrator-workers-20261007/01a11356-7ffe-7ac2-a7a8-dc757416ca60.json).
+  No new candidate/runtime result claimed. Scope correction1a864581 includes
+  actual App/Core PrivacyInfo.xcprivacy paths and project.yml only if necessary.
   Scratch: ~/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp, clean source134
   before handoff; preserve existing raw failure xcresults/evidence and rollback5bf.
 - Step1 action/popup, effective Site grant/deny/expiry/revoke, privacy/update and
