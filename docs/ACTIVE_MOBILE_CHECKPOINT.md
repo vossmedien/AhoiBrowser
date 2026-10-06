@@ -41,6 +41,23 @@ binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
   route. Use build-for-testing -> receipt -> exact test-without-building, two
   selected journeys; product/runtime code is unchanged. Independent Inhouse
   capacity and owned mobile-build/E2E locks remain prerequisites.
+- Native candidatee664fc0d built successfully Inhouse (one Xcode/Swift job,
+  internal scratchahoi-mobile-files-e664fc0d.fUBMTOwp), clean source, valid ad-hoc
+  signature and exact receipt. Original run is terminal65: cancellation PASS
+  29.96s, import FAIL46.07s; no skips. The Files UI DID reach and choose the
+  reviewed folder; failure is at the loaded-state assertion, with visible
+  `Test extension import failed`, not a missing folder selector. Original
+  xcresult/screenshots/AX hierarchy and target logs retained under
+  `~/inhouse/evidence/ahoi-mobile-files-e664fc0d-20261006/`.
+  Own app stopped/device Shutdown, own input folder removed by exact hash
+  check and E2E lock released. Focused runtime tests were not run after failure.
+  Source now acquires security scope before directory metadata, matching
+  [Apple's Files-import contract](https://developer.apple.com/documentation/swiftui/view/fileimporter(ispresented:allowedcontenttypes:oncompletion:)).
+  Debug-only diagnostics expose only NSError domain/code, never provider
+  URL/userInfo. This corrects a proven ordering defect; its role in this
+  specific failure is still a hypothesis until the corrected import passes.
+  Next: rebuild corrected exact candidate, retry only the failed import,
+  then five existing runtime boundaries and one separate native review.
 - Next independent Mobile action: complete ADR0012 Step1's real Files import,
   action/popup and permission boundaries using an available native interaction
   path, then assess App Store/update/privacy requirements. Existing bundled

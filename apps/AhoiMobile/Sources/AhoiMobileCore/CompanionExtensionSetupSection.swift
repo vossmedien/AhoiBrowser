@@ -69,6 +69,10 @@ struct CompanionExtensionSetupSection: View {
                                 filesSpikeLoaded = true
                                 filesSpikeStatus = "Unpacked test extension loaded"
                             } catch {
+                                // Never log the provider URL or NSError.userInfo.
+                                let failure = error as NSError
+                                NSLog("Ahoi Spike Files import failed: domain=%@ code=%ld",
+                                      failure.domain, failure.code)
                                 filesSpikeStatus = "Test extension import failed"
                             }
                         }
