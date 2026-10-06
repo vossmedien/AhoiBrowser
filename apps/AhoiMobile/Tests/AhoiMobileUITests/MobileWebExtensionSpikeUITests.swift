@@ -74,6 +74,122 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
         attachEvidence(app, "spike-01-off-without-argument")
     }
 
+    @MainActor
+    func testFilesPickerCancellationDoesNotLoadExtension() throws {
+        try requireFilesJourneyOptIn()
+        ensureVoiceOverOff()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture", spikeArgument])
+        defer { app.terminate() }
+        openSpikeSettings(in: app)
+        let load = app.buttons["settings.extensions.spike.import-folder"]
+        load.tap()
+        let cancel = app.buttons.matching(NSPredicate(
+            format: "label IN %@", ["Cancel", "Abbrechen"]
+        )).firstMatch
+        XCTAssertTrue(waitForHittable(cancel, timeout: 8))
+        attachEvidence(app, "spike-files-picker-before-cancel")
+        attachTree(app, "spike-files-picker-tree")
+        cancel.tap()
+        XCTAssertTrue(waitForHittable(load, timeout: 5))
+        XCTAssertTrue(load.isEnabled)
+        XCTAssertFalse(app.buttons["settings.extensions.spike.unload-folder"].exists)
+        attachEvidence(app, "spike-files-cancel-no-import")
+    }
+
+    @MainActor
+    func testFilesPickerLoadsAndUnloadsReviewedFixture() throws {
+        try requireFilesJourneyOptIn()
+        // The runner stages the five reviewed fixture files in this owned
+        // simulator's Documents directory. Selection still goes through Files;
+        // no launch argument, URL injection or runtime call imports it.
+        let folder = try XCTUnwrap(
+            ProcessInfo.processInfo.environment["AHOI_MOBILE_SPIKE_FILES_FOLDER"]
+        )
+        XCTAssertFalse(folder.isEmpty)
+        ensureVoiceOverOff()
+        let app = launchExactCandidate(arguments: ["-AhoiUITestFixture", spikeArgument])
+        defer { app.terminate() }
+        openSpikeSettings(in: app)
+        let load = app.buttons["settings.extensions.spike.import-folder"]
+        load.tap()
+        attachEvidence(app, "spike-files-picker-before-selection")
+        attachTree(app, "spike-files-picker-before-selection-tree")
+
+        let chosenFolder = app.staticTexts[folder].firstMatch
+        if !chosenFolder.waitForExistence(timeout: 3) {
+            let local = app.descendants(matching: .any).matching(NSPredicate(
+                format: "label IN %@", ["On My iPhone", "Auf meinem iPhone"]
+            )).firstMatch
+            if !local.exists {
+                let browse = app.buttons.matching(NSPredicate(
+                    format: "label IN %@", ["Browse", "Durchsuchen"]
+                )).firstMatch
+                XCTAssertTrue(waitForHittable(browse, timeout: 5))
+                browse.tap()
+            }
+            XCTAssertTrue(waitForHittable(local, timeout: 5))
+            local.tap()
+            let documents = app.staticTexts["AhoiBrowser"].firstMatch
+            XCTAssertTrue(waitForHittable(documents, timeout: 5))
+            documents.tap()
+        }
+        XCTAssertTrue(waitForHittable(chosenFolder, timeout: 5))
+        chosenFolder.tap()
+        let open = app.buttons.matching(NSPredicate(
+            format: "label IN %@", ["Open", "Öffnen"]
+        )).firstMatch
+        XCTAssertTrue(waitForHittable(open, timeout: 5))
+        attachEvidence(app, "spike-files-selected-folder")
+        open.tap()
+
+        let loaded = app.staticTexts.matching(NSPredicate(
+            format: "identifier == %@ AND label == %@",
+            "settings.extensions.spike.files-status", "Unpacked test extension loaded"
+        )).firstMatch
+        XCTAssertTrue(loaded.waitForExistence(timeout: 8))
+        XCTAssertFalse(load.isEnabled)
+        let unload = app.buttons["settings.extensions.spike.unload-folder"]
+        XCTAssertTrue(waitForHittable(unload, timeout: 5))
+        attachEvidence(app, "spike-files-context-loaded")
+        unload.tap()
+        let unloaded = app.staticTexts.matching(NSPredicate(
+            format: "identifier == %@ AND label == %@",
+            "settings.extensions.spike.files-status", "Files test extension unloaded"
+        )).firstMatch
+        XCTAssertTrue(unloaded.waitForExistence(timeout: 5))
+        XCTAssertTrue(load.isEnabled)
+        XCTAssertFalse(unload.exists)
+        attachEvidence(app, "spike-files-context-unloaded")
+    }
+
+    @MainActor
+    private func openSpikeSettings(in app: XCUIApplication) {
+        app.buttons["browser.more"].tap()
+        XCTAssertTrue(app.buttons["browser.actions.done"].waitForExistence(timeout: 4))
+        let settings = app.buttons["browser.actions.settings"]
+        reveal(settings, in: app)
+        settings.tap()
+        XCTAssertTrue(app.buttons["settings.done"].waitForExistence(timeout: 5))
+        let load = app.buttons["settings.extensions.spike.import-folder"]
+        reveal(load, in: app)
+    }
+
+    @MainActor
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+        // Finite settings list, matching the existing native settings journeys.
+        for _ in 0..<10 {
+            if element.exists && element.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(waitForHittable(element, timeout: 3))
+    }
+
+    private func requireFilesJourneyOptIn() throws {
+        guard ProcessInfo.processInfo.environment["AHOI_MOBILE_REAL_E2E"] == "1" else {
+            throw XCTSkip("Files journeys need the exact-candidate E2E binding and owned device.")
+        }
+    }
+
     private func checkURL(_ value: String) throws -> URL {
         try XCTUnwrap(URL(
             string: "https://example.com/?ahoi-spike-check=\(value)"

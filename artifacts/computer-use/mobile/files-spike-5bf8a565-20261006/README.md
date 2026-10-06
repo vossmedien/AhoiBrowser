@@ -17,3 +17,4 @@ Own app terminated and own device Shutdown verified; own E2E lock absent.
 Foreign Device Hub/devices and saved migration data remain untouched. No Files
 fixture was staged, no import was performed and no permissions were changed.
 ADR0012 Step1's Files/action/permission requirements and Step2 decision stay open.
+Canonical `boot.log` omits only trailing blank lines; the raw target log is retained.

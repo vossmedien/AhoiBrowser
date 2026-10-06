@@ -28,6 +28,19 @@ binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
 - Own app terminated, own device Shutdown verified again17:03Z, own E2E lock
   released and absent; other simulators, migration data and Device Hub remain
   untouched. [Candidate/readback/access evidence](../artifacts/computer-use/mobile/files-spike-5bf8a565-20261006/).
+- Two Files journeys are now written in the existing
+  `MobileWebExtensionSpikeUITests`: cancellation leaves import enabled/no Files
+  context; native folder selection loads then unloads the exact reviewed fixture.
+  Input staging stays in this owned simulator's Documents; no runtime/URL import
+  bypass. Both require the existing exact-candidate E2E opt-in; the load journey
+  additionally requires `AHOI_MOBILE_SPIKE_FILES_FOLDER`. No compile/run/PASS
+  claimed yet. Context7 is unavailable; current
+  [XCUIElement](https://developer.apple.com/documentation/xcuiautomation/xcuielement),
+  [XCUIApplication](https://developer.apple.com/documentation/xcuiautomation/xcuiapplication)
+  documentation and Xcode27's installed command contracts underpin the native
+  route. Use build-for-testing -> receipt -> exact test-without-building, two
+  selected journeys; product/runtime code is unchanged. Independent Inhouse
+  capacity and owned mobile-build/E2E locks remain prerequisites.
 - Next independent Mobile action: complete ADR0012 Step1's real Files import,
   action/popup and permission boundaries using an available native interaction
   path, then assess App Store/update/privacy requirements. Existing bundled
