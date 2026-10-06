@@ -22,6 +22,7 @@
 #include "ui/compositor/layer.h"
 #include "ui/gfx/animation/tween.h"
 #include "ui/gfx/canvas.h"
+#include "ui/gfx/color_utils.h"
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/skia_conversions.h"
 #include "ui/gfx/geometry/insets.h"
@@ -73,16 +74,21 @@ class NotchBackground final : public views::Background {
     shape.setRectRadii(gfx::RectFToSkRect(bounds), radii);
     cc::PaintFlags flags;
     flags.setAntiAlias(true);
-    flags.setColor(SkColorSetA(provider->GetColor(fill_), alpha_));
+    const SkColor fill = provider->GetColor(fill_);
+    flags.setColor(SkColorSetA(fill, alpha_));
     canvas->sk_canvas()->drawRRect(shape, flags);
-    if (outline_) {
-      // Stroke inside the fill so the outline is not clipped by the layer.
-      shape.inset(0.5f, 0.5f);
-      flags.setStyle(cc::PaintFlags::kStroke_Style);
-      flags.setStrokeWidth(1.0f);
-      flags.setColor(provider->GetColor(*outline_));
-      canvas->sk_canvas()->drawRRect(shape, flags);
-    }
+    // Stroke inside the fill so the outline is not clipped by the layer. The
+    // page below is unknown: a light tint alone vanished on white pages
+    // (user report, 6 October 2026), so the edge always takes the color
+    // opposite to the fill; Increase Contrast keeps its semantic outline.
+    shape.inset(0.5f, 0.5f);
+    flags.setStyle(cc::PaintFlags::kStroke_Style);
+    flags.setStrokeWidth(1.0f);
+    flags.setColor(outline_ ? provider->GetColor(*outline_)
+                   : color_utils::IsDark(fill)
+                       ? SkColorSetA(SK_ColorWHITE, 0x66)
+                       : SkColorSetA(SK_ColorBLACK, 0x52));
+    canvas->sk_canvas()->drawRRect(shape, flags);
   }
 
   void OnViewThemeChanged(views::View* view) override {
