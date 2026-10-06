@@ -99,20 +99,34 @@ grep -q 'enabled=true' "$OUT/close-command-enabled.txt" \
   && record closeCommandEnabled true || record closeCommandEnabled false
 $AX press $PID "AXMenuItem:Offene Tabs schließen" >> "$OUT/steps.txt" \
   || $AX press $PID "AXMenuItem:Close open tabs" >> "$OUT/steps.txt"
-waitax 'AXDialog|AXSheet' 5 && record beforeUnloadPrompt true || record beforeUnloadPrompt false
+# GroupPageClose opens a native macOS alert (AXWindow), not a CDP page dialog.
+UNLOAD_PROMPT='AXStaticText \| (Website verlassen\?|Leave site\?)'
+waitax "$UNLOAD_PROMPT" 5 && record beforeUnloadPrompt true || record beforeUnloadPrompt false
 $AX dump $PID 14 > "$OUT/ax-before-unload.txt"
-node "$S/cdp.mjs" $PORT Beta.html Page.handleJavaScriptDialog '{"accept":false}' \
-  > "$OUT/before-unload-cancelled.json"
-python3 - "$OUT/before-unload-cancelled.json" <<'PYCANCEL'
-import json, sys
-sys.exit(1 if 'error' in json.load(open(sys.argv[1])) else 0)
-PYCANCEL
-[ "$?" = 0 ] && record vetoAccepted true || record vetoAccepted false
+grep -q -E "$UNLOAD_PROMPT" "$OUT/ax-before-unload.txt" \
+  || { finish "native before-unload prompt not confirmed"; quit; exit 4; }
+{ $AX press $PID "AXButton:Abbrechen" || $AX press $PID "AXButton:Cancel"; } \
+  > "$OUT/before-unload-cancelled.txt"
+cat "$OUT/before-unload-cancelled.txt" >> "$OUT/steps.txt"
+# AXPress success alone is insufficient: observe the modal disappearing.
+for i in $(seq 1 20); do
+  $AX dump $PID 14 > "$OUT/ax-after-veto.txt" \
+    || { finish "after-veto AX observation failed"; quit; exit 4; }
+  grep -q -E "$UNLOAD_PROMPT" "$OUT/ax-after-veto.txt" || break
+  sleep 0.3
+done
+if grep -q -E '^AXPress AXButton \| (Abbrechen|Cancel).* -> 0$' "$OUT/before-unload-cancelled.txt" \
+  && ! grep -q -E "$UNLOAD_PROMPT" "$OUT/ax-after-veto.txt"; then
+  record vetoAccepted true
+else
+  record vetoAccepted false; finish "native before-unload veto not confirmed"; quit; exit 4
+fi
 sleep 1
 [ "$(page_count)" = "$PAGES0" ] && record vetoKeepsAllTabs true || record vetoKeepsAllTabs false
 $AX dump $PID 14 > "$OUT/ax-after-veto.txt"
 grep -q -E '[0-9]+ Tabs? geschlossen|[0-9]+ tabs? closed' "$OUT/ax-after-veto.txt" \
   && record vetoHasNoClosedToast false || record vetoHasNoClosedToast true
+expect_selected vetoKeepsSelection "Alpha Beta Gamma"
 node "$S/cdp.mjs" $PORT Beta.html Runtime.evaluate \
   '{"expression":"window.onbeforeunload=null;window.onbeforeunload===null","returnByValue":true}' \
   > "$OUT/before-unload-cleanup.json"
