@@ -1,5 +1,27 @@
 # Active Desktop checkpoint
 
+## Requirement check while the target console is locked — 6 October 2026
+
+- **Crest handoffs:** no new `ready` package with product changes; 106/110
+  (perf tooling) re-reviewed for M155, H3 runtime lease deferred (console
+  locked, M155 acceptance holds the e2e slot). No open lease request.
+- **ADR 0011 order:** package 1b incl. the deletion fix done (WS-DEL,
+  WS-ISO-13 green); `isolated` steps 1–2 green on M154 build 58
+  (ws-isolated 30/30, switch 22/22, routing 11/11, recovery 9/9, convert 8/8,
+  cross-level 25/25 on e86); step 3 sync namespace by unit tests, real
+  CloudKit is the owner gate (WS-ISO-12/20–22). New in 4da518fe: the
+  ws-isolated journey checks a second separated Workspace (WS-ISO-02/03),
+  queued after the M155 set. WS-ISO-10 multi-profile Arc journey deferred:
+  discovery reads only the user's real Arc install; mapping is unit-tested.
+  WS-ISO-11 cost measurement needs a quiet host (H3 lease).
+- **ADR 0012 / H7:** merge, command-bar move, recent-tab flick and the
+  WebKit Web Extension spike step 1 pass visibly on the simulator; open only
+  on a physical iPhone (edge swipe, VoiceOver action); spike step 2 waits for
+  the user's decision.
+- **Next on unlock:** M155 journey set (queued), then ws-isolated with the
+  second separated Workspace, then delivery of ef982afe to the development
+  Mac.
+
 ## M155 built, unit-green, signed and installed on target — 6 October 2026
 
 - **Candidate ef982afe** on Chromium 155.0.8059.26 (`16c3e554`): guarded
