@@ -11,6 +11,8 @@ import re
 import subprocess
 from typing import Any
 
+from chromium_output import configured_output_root, profile_output_directory
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "config/lean-bundle-measurement.json"
@@ -44,6 +46,11 @@ EXPECTED_RECEIPT_BINDINGS = {
     ),
 }
 BUILD_TOOL_KEYS = ("gn", "ninja", "siso", "clang", "lld")
+EXPECTED_OUTPUT_PROFILES = {
+    "upstream-control": "AhoiUpstreamRelease",
+    "ahoi-full-release": "AhoiFullRelease",
+    "ahoi-release": "AhoiRelease",
+}
 
 
 def sha256_file(path: pathlib.Path) -> str:
@@ -101,6 +108,7 @@ def provenance_logical_path(path: pathlib.Path, work_root: pathlib.Path) -> str:
     for root, label in (
         (ROOT.resolve(), "<repo>"),
         (work_root.resolve(), "<work-root>"),
+        (configured_output_root(work_root / "chromium/src"), "<chromium-out>"),
     ):
         try:
             relative = resolved.relative_to(root)
@@ -154,3 +162,15 @@ def resolve_beneath(
     if kind == "directory" and not resolved.is_dir():
         raise SystemExit(f"{field} is not a directory: {value}")
     return resolved
+
+
+def resolve_output_artifact(
+    work_root: pathlib.Path, value: Any, field: str, *, kind: str
+) -> pathlib.Path:
+    relative = relative_path(value, field)
+    if len(relative.parts) < 5 or relative.parts[:3] != ("chromium", "src", "out"):
+        raise SystemExit(f"{field} must name an artifact under Chromium out")
+    output = profile_output_directory(work_root / "chromium/src", relative.parts[3])
+    return resolve_beneath(
+        output, pathlib.PurePosixPath(*relative.parts[4:]).as_posix(), field, kind=kind
+    )

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "matrixId": "lean-chromium-wave-1",
   "chromium": {
-    "milestone": 152,
-    "version": "152.0.7977.65",
-    "commit": "fc4d67f1788019a27e32511137ceccbd2fafdaaa"
+    "milestone": 155,
+    "version": "155.0.8059.26",
+    "commit": "16c3e55476d3564bea713314b2fff638749ce3e6"
   },
   "scope": {
     "wave": 1,
@@ -40,7 +40,7 @@
       "signingMode": "development",
       "sparklePolicyClass": "development",
       "shippingEligible": false,
-      "expectedGnArgsSha256": "a87e78f52fcadfc019affc17afb0210abfbf62238456416a4e516f2eab6b9847"
+      "expectedGnArgsSha256": "a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4"
     },
     {
       "id": "ahoi-full-dev",
@@ -70,7 +70,7 @@
       "signingMode": "release-pipeline-only",
       "sparklePolicyClass": "reviewed-release",
       "shippingEligible": true,
-      "expectedGnArgsSha256": "59b1ca1639c96a25a1c908aa936f8a04c582ad7e37dcb79bf619ba66954a9b95"
+      "expectedGnArgsSha256": "4aac87e5a99928e2a169bc4030e0c468a7b2339977c8b7472201495e74ab7b4c"
     },
     {
       "id": "ahoi-full-release",

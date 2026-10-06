@@ -109,6 +109,18 @@
   monitors only the owned Ninja group. No additional heavy phase started.
   Local terminal-wait handle41236 observes the actual runner's end (not progress
   evidence); use `write_stdin` for its terminal result, then real candidate gates.
+- Independent LEAN-06 prerequisite source while native47885f36 builds: the
+  measurement CLI still resolved historical source/out paths and rejected its
+  new `<chromium-out>` receipts. It now reuses the same physical output helper,
+  fixed release-profile artifacts and logical provenance roots. No thresholds,
+  receipt/source/toolchain validation, GN inputs or full baseline bytes changed.
+  Both measurement configs targeted stale M152; Lean dev/release hashes also
+  predated the existing field-trial change09819133. Target bindings now match
+  current M155/config hashes. All35 referenced M155 files exist and both feature
+  GN defaults match; historical M152 rationale remains historical, NOT full M155
+  roll/runtime acceptance. Source syntax/whitespace pass. Actual CLI boundary and
+  focused tests pending; three real release baseline artifacts/size evidence
+  still missing. This separate source commit must not alter frozen47885f36.
 - Next authorized step: await the already-running frozen47885f36 build via
   existing terminal handle41236 or its actual terminal phase receipt; do not
   restart source preparation or a full build. On compile/sign/provenance success,

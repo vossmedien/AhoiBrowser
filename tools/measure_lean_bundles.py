@@ -20,6 +20,7 @@ from lean_bundle_common import (
     MACH_O_MAGICS,
     CATEGORY_IDS,
     EXPECTED_RECEIPT_BINDINGS,
+    EXPECTED_OUTPUT_PROFILES,
     sha256_file,
     git_output,
     require_object,
@@ -29,6 +30,7 @@ from lean_bundle_common import (
     configured_work_root,
     relative_path,
     resolve_beneath,
+    resolve_output_artifact,
 )
 from lean_bundle_provenance import (
     validate_profile_receipt,
@@ -210,6 +212,12 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             raise SystemExit(f"{profile_id} expectedReceiptKind is not canonical")
         if profile.get("expectedBuildProfile") != expected_profiles[profile_id]:
             raise SystemExit(f"{profile_id} expectedBuildProfile is not canonical")
+        output = f"chromium/src/out/{EXPECTED_OUTPUT_PROFILES[profile_id]}"
+        app_name = "Chromium.app" if profile_id == "upstream-control" else "AhoiBrowser.app"
+        if profile.get("bundlePath") != f"{output}/{app_name}":
+            raise SystemExit(f"{profile_id} bundlePath is not the canonical profile")
+        if profile.get("generatedArgsPath") != f"{output}/args.gn":
+            raise SystemExit(f"{profile_id} generatedArgsPath is not canonical")
         require_sha256(
             profile.get("expectedArgsSha256"),
             f"profiles.{profile_id}.expectedArgsSha256",
@@ -426,13 +434,13 @@ def main() -> int:
         args_sha256 = sha256_file(args_path)
         if args_sha256 != profile.get("expectedArgsSha256"):
             raise SystemExit(f"{profile_id} GN args differ from the manifest")
-        bundle = resolve_beneath(
+        bundle = resolve_output_artifact(
             work_root,
             profile.get("bundlePath"),
             f"profiles.{profile_id}.bundlePath",
             kind="directory",
         )
-        generated_args_path = resolve_beneath(
+        generated_args_path = resolve_output_artifact(
             work_root,
             profile.get("generatedArgsPath"),
             f"profiles.{profile_id}.generatedArgsPath",

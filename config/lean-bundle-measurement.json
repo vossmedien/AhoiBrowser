@@ -3,9 +3,9 @@
   "measurementId": "lean-chromium-wave-1-release-bundles",
   "matrixPath": "config/lean-chromium-components.json",
   "chromium": {
-    "milestone": 152,
-    "version": "152.0.7977.65",
-    "commit": "fc4d67f1788019a27e32511137ceccbd2fafdaaa"
+    "milestone": 155,
+    "version": "155.0.8059.26",
+    "commit": "16c3e55476d3564bea713314b2fff638749ce3e6"
   },
   "byteBasis": "sum-of-regular-file-logical-bytes",
   "treeDigest": "sha256-v1-canonical-path-type-mode-size-content-records",

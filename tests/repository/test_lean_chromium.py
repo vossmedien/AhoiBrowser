@@ -4,12 +4,14 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import measure_lean_bundles  # noqa: E402
+import lean_bundle_common  # noqa: E402
 
 
 def load_json(relative: str):
@@ -142,6 +144,15 @@ class LeanChromiumContractTests(unittest.TestCase):
             ),
         }
         self.assertEqual(matrix["chromium"], manifest["chromium"])
+        pin = load_json("config/chromium.json")
+        self.assertEqual(
+            {key: pin[key] for key in ("milestone", "version", "commit")},
+            matrix["chromium"],
+        )
+        for profile in matrix["profiles"]:
+            self.assertEqual(
+                sha256(ROOT / profile["argsPath"]), profile["expectedGnArgsSha256"]
+            )
         self.assertEqual(
             set(expected_receipts),
             {profile["id"] for profile in manifest["profiles"]},
@@ -170,6 +181,11 @@ class LeanChromiumContractTests(unittest.TestCase):
         )
         measure_lean_bundles.validate_manifest(manifest)
 
+        swapped = json.loads(json.dumps(manifest))
+        swapped["profiles"][0]["bundlePath"] = swapped["profiles"][1]["bundlePath"]
+        with self.assertRaises(SystemExit):
+            measure_lean_bundles.validate_manifest(swapped)
+
         for field, invalid_value in (
             ("passWhen", "any-comparison-passes"),
             ("otherwise", "warn-only"),
@@ -178,6 +194,45 @@ class LeanChromiumContractTests(unittest.TestCase):
             invalid["gate"][field] = invalid_value
             with self.subTest(field=field), self.assertRaises(SystemExit):
                 measure_lean_bundles.validate_manifest(invalid)
+
+    def test_internal_output_resolution_matches_profile_receipt_paths(self):
+        with tempfile.TemporaryDirectory(prefix="ahoi-lean-outputs-") as directory:
+            root = pathlib.Path(directory).resolve()
+            work = root / "work"
+            output = root / "internal-output"
+            output.mkdir()
+            release = output / "AhoiRelease"
+            release.mkdir()
+            app = release / "AhoiBrowser.app"
+            app.mkdir()
+            args = release / "args.gn"
+            args.write_text("is_debug = false\n")
+            with mock.patch.dict("os.environ", {"AHOI_CHROMIUM_OUT_ROOT": str(output)}):
+                self.assertEqual(
+                    app,
+                    lean_bundle_common.resolve_output_artifact(
+                        work, "chromium/src/out/AhoiRelease/AhoiBrowser.app",
+                        "bundlePath", kind="directory",
+                    ),
+                )
+                self.assertEqual(
+                    "<chromium-out>/AhoiRelease/args.gn",
+                    lean_bundle_common.provenance_logical_path(args, work),
+                )
+                for invalid in ("other/AhoiRelease/args.gn",
+                                "chromium/src/out/Unknown/args.gn",
+                                "chromium/src/out/AhoiRelease/../args.gn"):
+                    with self.subTest(path=invalid), self.assertRaises(SystemExit):
+                        lean_bundle_common.resolve_output_artifact(
+                            work, invalid, "generatedArgsPath", kind="file"
+                        )
+                link = release / "redirect.gn"
+                link.symlink_to(args)
+                with self.assertRaises(SystemExit):
+                    lean_bundle_common.resolve_output_artifact(
+                        work, "chromium/src/out/AhoiRelease/redirect.gn",
+                        "generatedArgsPath", kind="file",
+                    )
 
     def test_roll_checks_cover_every_m152_feature_reference(self):
         matrix = load_json("config/lean-chromium-components.json")
