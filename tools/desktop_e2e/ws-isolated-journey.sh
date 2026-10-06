@@ -50,10 +50,14 @@ python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/s
 SITE_PID=$!; trap 'kill $SITE_PID 2>/dev/null' EXIT; SITE=http://127.0.0.1:$SITE_PORT
 CDP() { node "$S/cdp.mjs" $PORT "$@"; }
 tabs() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(json.dumps(sorted([t["url"] for t in json.load(sys.stdin) if t["type"]=="page"])))'; }
+# Cookies and saved passwords need Safe Storage in the login keychain; over
+# SSH set AHOI_E2E_GUI_LAUNCH=1 (browser_launch.sh). The M155 run without it
+# lost loginKeptAfterRelaunch and the password cases to errSecInteractionNotAllowed.
+. "$S/browser_launch.sh"
 launch() {
-  "$APP/Contents/MacOS/AhoiBrowser" --user-data-dir=$P --no-first-run --no-default-browser-check \
-    --remote-debugging-port=$PORT about:blank >> "$OUT/browser.log" 2>&1 &
-  PID=$!; echo "pid=$PID profile=$P" >> "$OUT/run.txt"
+  ahoi_launch_browser "$OUT/browser.log" --user-data-dir=$P --no-first-run \
+    --no-default-browser-check --remote-debugging-port=$PORT about:blank
+  echo "pid=$PID profile=$P" >> "$OUT/run.txt"
   for i in $(seq 1 60); do curl -s http://127.0.0.1:$PORT/json/version >/dev/null && break; sleep 2; done
   sleep 5; $AX activate $PID >> "$OUT/steps.txt"
 }
@@ -167,6 +171,13 @@ PY
 UBO_ID=fkgkibajhfbepljeaefdnfnegdcjomkh
 ubo_running() { curl -s http://127.0.0.1:$PORT/json | grep -q "chrome-extension://$UBO_ID/"; }
 ad_display() { eval_in "$1" "getComputedStyle(document.getElementById('ad')).display"; }
+# The second separated Workspace's window can come up behind the main one;
+# switch to it through the main window's Workspace menu once.
+ax_front_window_named() { # <workspace name>
+  menu Inbox "$1" || return 1
+  $AX press $PID "$(menuitem "$1")" >> "$OUT/steps.txt"
+  waitax "$1, Workspace wechseln" 15
+}
 hidden_within() { # <url substring> <seconds>; uBO compiles its lists first
   local end=$(( $(date +%s) + $2 )) reloaded=0
   while [ $(date +%s) -lt $end ]; do
@@ -338,7 +349,7 @@ waitax "AXTextField \\| Workspace-Name" 8 || fail_setup "create dialog did not o
 $AX setvalue $PID "Workspace-Name" "Zweiter" >> "$OUT/steps.txt"; sleep 1
 $AX press $PID "AXRadioButton:Vollständig getrennt" >> "$OUT/steps.txt"; sleep 1
 $AX press $PID "Erstellen" >> "$OUT/steps.txt"
-if waitax "Zweiter, Workspace wechseln" 20; then
+if waitax "Zweiter, Workspace wechseln" 20 || { ax_front_window_named Zweiter; }; then
   record secondSeparatedCreated true
   open_url "$SITE/check.html?zweiter"
   [ -z "$(cookie_of 'check.html?zweiter')" ] && record secondNotLoggedIn true || record secondNotLoggedIn false
@@ -355,6 +366,7 @@ if waitax "Zweiter, Workspace wechseln" 20; then
   $AX press $PID "AXButton:Löschen" >> "$OUT/steps.txt"; sleep 8
   waitax "Inbox, Workspace wechseln" 10 && record secondSeparatedDeleted true || record secondSeparatedDeleted false
 else
+  $AX dump $PID 14 > "$OUT/ax-second-create-failure.txt"
   record secondSeparatedCreated false
 fi
 menu Inbox "Getrennt" || fail_setup "main menu has no separated Workspace"
