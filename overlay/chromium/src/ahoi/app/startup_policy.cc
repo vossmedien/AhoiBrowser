@@ -51,9 +51,13 @@ constexpr auto kProductDisabledFeatures = std::to_array<std::string_view>({
 // UseSCContentSharingPicker lets getDisplayMedia() use the macOS system
 // picker, which needs no Screen Recording permission on macOS 15+ (Crest
 // b76bdf46); the feature only exists on macOS and is inert elsewhere.
+// Chromium's browser-initiated Auto-PiP also supports players without a site's
+// enterpictureinpicture handler. Its native media eligibility and per-site
+// Ask/Allow/Block setting still govern entry; this grants no permission.
 constexpr auto kProductEnabledFeatures = std::to_array<std::string_view>({
     "SplitViewHorizontal",
     "UseSCContentSharingPicker",
+    "BrowserInitiatedAutomaticPictureInPicture",
 });
 
 std::string_view FeatureName(std::string_view entry) {

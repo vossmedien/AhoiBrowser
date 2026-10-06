@@ -52,6 +52,9 @@ TEST(StartupPolicyTest, DisablesBackgroundAccountAndAiFeatures) {
   EXPECT_NE(enabled.end(), std::ranges::find(enabled, "SplitViewHorizontal"));
   EXPECT_NE(enabled.end(),
             std::ranges::find(enabled, "UseSCContentSharingPicker"));
+  EXPECT_NE(enabled.end(),
+            std::ranges::find(enabled,
+                              "BrowserInitiatedAutomaticPictureInPicture"));
 }
 
 TEST(StartupPolicyTest, OverridesHostileEnablesAndPreservesOtherArguments) {
@@ -62,14 +65,16 @@ TEST(StartupPolicyTest, OverridesHostileEnablesAndPreservesOtherArguments) {
                                  "SplitViewHorizontal<StaleTrial");
   command_line.AppendSwitchASCII(
       switches::kDisableFeatures,
-      "UnrelatedDisabled,OptimizationHints<StaleTrial,SplitViewHorizontal");
+      "UnrelatedDisabled,OptimizationHints<StaleTrial,SplitViewHorizontal,"
+      "BrowserInitiatedAutomaticPictureInPicture<StaleTrial");
   command_line.AppendArg("https://accounts.google.com/");
   const base::CommandLine::StringVector original_args = command_line.GetArgs();
 
   ApplyEarlyStartupPolicy(command_line);
   ApplyEarlyStartupPolicy(command_line);
 
-  EXPECT_EQ("UnrelatedFeature,SplitViewHorizontal,UseSCContentSharingPicker",
+  EXPECT_EQ("UnrelatedFeature,SplitViewHorizontal,UseSCContentSharingPicker,"
+            "BrowserInitiatedAutomaticPictureInPicture",
             command_line.GetSwitchValueASCII(switches::kEnableFeatures));
   EXPECT_EQ(original_args, command_line.GetArgs());
 
@@ -79,6 +84,8 @@ TEST(StartupPolicyTest, OverridesHostileEnablesAndPreservesOtherArguments) {
   EXPECT_EQ(1, std::ranges::count(disabled, "AimEnabled"));
   EXPECT_EQ(1, std::ranges::count(disabled, "UnrelatedDisabled"));
   EXPECT_EQ(0, std::ranges::count(disabled, "SplitViewHorizontal"));
+  EXPECT_EQ(0, std::ranges::count(
+                   disabled, "BrowserInitiatedAutomaticPictureInPicture"));
 }
 
 }  // namespace
