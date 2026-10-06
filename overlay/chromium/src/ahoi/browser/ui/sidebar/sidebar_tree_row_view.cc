@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+#include "ahoi/browser/ui/sidebar/sidebar_multi_selection_paint.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
@@ -298,16 +299,15 @@ void SidebarTreeRowView::SetSelected(bool selected) {
   }
   selected_ = selected;
   title_label_->SetEnabledColor(visual_style::kText);
-  GetViewAccessibility().SetIsSelected(selected_ || multi_selected_);
+  GetViewAccessibility().SetIsSelected(
+      owner_->has_multi_selection() ? multi_selected_ : selected_);
   SchedulePaint();
 }
 
 void SidebarTreeRowView::SetMultiSelected(bool multi_selected) {
-  if (multi_selected_ == multi_selected) {
-    return;
-  }
   multi_selected_ = multi_selected;
-  GetViewAccessibility().SetIsSelected(selected_ || multi_selected_);
+  GetViewAccessibility().SetIsSelected(
+      owner_->has_multi_selection() ? multi_selected_ : selected_);
   SchedulePaint();
 }
 
@@ -542,13 +542,8 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
         StrokeFlags(colors->GetColor(visual_style::kAccent), kDropStrokeWidth));
   }
 
-  if (multi_selected_ && split_segment_count_ == 1) {
-    gfx::RectF outline = background;
-    outline.Inset(0.5f);
-    canvas->DrawRoundRect(
-        outline, visual_style::kRowCornerRadius - 0.5f,
-        StrokeFlags(colors->GetColor(visual_style::kAccent), 1.0f));
-  } else if (selected_ && owner_->HasFocus() && split_segment_count_ == 1) {
+  if (!multi_selected_ && selected_ && owner_->HasFocus() &&
+      split_segment_count_ == 1) {
     gfx::RectF focus = background;
     focus.Inset(1.0f);
     canvas->DrawRoundRect(
@@ -561,6 +556,10 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
   views::View::OnPaint(canvas);
   if (dragging_) {
     return;
+  }
+  if (multi_selected_ && ShouldShowTrailingAction()) {
+    PaintSidebarMultiSelection(canvas, GetColorProvider(), GetLocalBounds(),
+                               gfx::Rect());
   }
   const bool paint_trailing_state = ShouldPaintTrailingState();
   const SkColor icon_color = GetColorProvider()->GetColor(
@@ -644,14 +643,8 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
 
   if (paint_trailing_state && !ShouldShowTrailingAction() &&
       multi_selected_) {
-    const gfx::Rect badge = GetMirroredRect(TrailingActionBounds());
-    constexpr int kBadgeSize = 16;
-    canvas->DrawImageInt(
-        gfx::CreateVectorIcon(
-            vector_icons::kCheckCircleFilledIcon, kBadgeSize,
-            GetColorProvider()->GetColor(visual_style::kAccent)),
-        badge.CenterPoint().x() - kBadgeSize / 2,
-        badge.CenterPoint().y() - kBadgeSize / 2);
+    PaintSidebarMultiSelection(canvas, GetColorProvider(), GetLocalBounds(),
+                               GetMirroredRect(TrailingActionBounds()));
   } else if (paint_trailing_state && !ShouldShowTrailingAction() &&
              sleeping_) {
     const gfx::Rect status_bounds = GetMirroredRect(TrailingActionBounds());

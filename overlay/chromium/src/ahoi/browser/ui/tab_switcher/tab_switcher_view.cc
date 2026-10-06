@@ -83,6 +83,8 @@ std::unique_ptr<views::Label> MakeLabel(const std::u16string& text,
                                         ui::ColorId color) {
   auto label = std::make_unique<views::Label>(text, views::style::CONTEXT_LABEL,
                                               style);
+  // The glass panel has a translucent layer, so text must use grayscale AA.
+  label->SetSubpixelRenderingEnabled(false);
   label->SetEnabledColor(color);
   label->SetHorizontalAlignment(gfx::ALIGN_LEFT);
   return label;

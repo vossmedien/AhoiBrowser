@@ -169,6 +169,10 @@ void BrowserSidebarHostView::ShowContextMenuForViewImpl(
     return;
   }
   if (base::WeakPtr<tabs::TabInterface> open_tab = GetOpenTabForView(source)) {
+    if (const auto id = session_bridge_->FindSharedTreeNodeIdForTab(open_tab.get());
+        id && ShowMultiSelectionMenu(*id, screen_point, source_type)) {
+      return;
+    }
     ShowOpenTabContextMenu(std::move(open_tab), screen_point, source_type);
   }
 }

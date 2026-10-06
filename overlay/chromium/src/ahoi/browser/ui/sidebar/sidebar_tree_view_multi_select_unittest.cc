@@ -12,6 +12,20 @@
 namespace ahoi::sidebar {
 namespace {
 
+class RuntimeSelectionDelegate : public RecordingDelegate {
+ public:
+  std::vector<base::Uuid> GetMultiSelectionRowOrder() const override {
+    return order;
+  }
+  std::optional<base::Uuid> GetMultiSelectionActiveNode() const override {
+    return active;
+  }
+  void OnMultiSelectionChanged() override { ++changes; }
+  std::vector<base::Uuid> order;
+  std::optional<base::Uuid> active;
+  int changes = 0;
+};
+
 void Click(SidebarTreeView& view, const base::Uuid& node_id, int modifiers) {
   SidebarTreeRowView* row = view.GetMaterializedRowForTesting(node_id);
   ASSERT_NE(nullptr, row);
@@ -79,6 +93,70 @@ TEST_F(SidebarTreeViewTest, EscapeClearsTheMultiSelection) {
                       ui::EF_NONE);
   EXPECT_TRUE(view->OnKeyPressed(escape));
   EXPECT_TRUE(view->multi_selection().empty());
+}
+
+TEST_F(SidebarTreeViewTest, RuntimeSelectionUsesVisibleOrderAndSharedActiveNode) {
+  const tab_tree::Workspace workspace = MakeWorkspace();
+  const auto saved = MakeNode(workspace, std::nullopt,
+                             tab_tree::TreeNodeType::kSavedPage, u"Saved", "a");
+  const auto alpha = base::Uuid::GenerateRandomV4();
+  const auto gamma = base::Uuid::GenerateRandomV4();
+  RuntimeSelectionDelegate runtime;
+  // Runtime identities need no materialized saved row; visible order wins.
+  runtime.order = {saved.id, gamma, alpha};
+  runtime.active = alpha;
+  auto view = std::make_unique<SidebarTreeView>(
+      controller_.get(), &runtime, u"Tabs", u"Split with");
+  view->SetBounds(0, 0, 240, 320);
+  ASSERT_TRUE(controller_->view_model().ResetWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->view_model().ReplaceChildren(std::nullopt, {saved}));
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 144));
+  const gfx::Point point(80, 18);
+  ui::MouseEvent command(ui::EventType::kMouseReleased, point, point,
+                         base::TimeTicks::Now(),
+                         ui::EF_LEFT_MOUSE_BUTTON | ui::EF_COMMAND_DOWN,
+                         ui::EF_LEFT_MOUSE_BUTTON);
+  ASSERT_TRUE(view->HandleMultiSelectClick(gamma, command));
+  EXPECT_EQ((std::vector<base::Uuid>{gamma, alpha}), view->multi_selection());
+  EXPECT_FALSE(runtime.activated_node);
+  // The saved-row caller uses the same order and the runtime anchor.
+  Click(*view, saved.id, ui::EF_SHIFT_DOWN);
+  EXPECT_EQ((std::vector<base::Uuid>{saved.id, gamma}), view->multi_selection());
+  EXPECT_FALSE(runtime.activated_node);
+  view->ClearMultiSelection();
+  EXPECT_EQ(3, runtime.changes);
+}
+
+TEST_F(SidebarTreeViewTest, AXSelectionDescribesTheRangeWithoutChangingActivePage) {
+  const auto workspace = MakeWorkspace();
+  const auto a = MakeNode(workspace, std::nullopt,
+                         tab_tree::TreeNodeType::kSavedPage, u"A", "a");
+  const auto b = MakeNode(workspace, std::nullopt,
+                         tab_tree::TreeNodeType::kSavedPage, u"B", "b");
+  const auto c = MakeNode(workspace, std::nullopt,
+                         tab_tree::TreeNodeType::kSavedPage, u"C", "c");
+  auto view = NewTreeView();
+  ASSERT_TRUE(controller_->view_model().ResetWorkspace(workspace.id));
+  ASSERT_TRUE(controller_->view_model().ReplaceChildren(std::nullopt, {a, b, c}));
+  ASSERT_TRUE(controller_->SelectNode(a.id));
+  view->SynchronizeRowsForTesting(gfx::Rect(0, 0, 240, 144));
+  const auto ax_selected = [&](const base::Uuid& id) {
+    ui::AXNodeData data;
+    view->GetMaterializedRowForTesting(id)->GetViewAccessibility()
+        .GetAccessibleNodeData(&data);
+    return data.GetBoolAttribute(ax::mojom::BoolAttribute::kSelected);
+  };
+  Click(*view, c.id, ui::EF_COMMAND_DOWN);
+  Click(*view, b.id, ui::EF_SHIFT_DOWN);
+  EXPECT_FALSE(ax_selected(a.id));
+  EXPECT_TRUE(ax_selected(b.id));
+  EXPECT_TRUE(ax_selected(c.id));
+  EXPECT_EQ(a.id, controller_->view_model().selected_node_id());
+  EXPECT_FALSE(delegate_.activated_node);
+  view->ClearMultiSelection();
+  EXPECT_TRUE(ax_selected(a.id));
+  EXPECT_FALSE(ax_selected(b.id));
+  EXPECT_FALSE(ax_selected(c.id));
 }
 
 }  // namespace

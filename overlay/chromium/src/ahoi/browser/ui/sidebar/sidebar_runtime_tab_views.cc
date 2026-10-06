@@ -12,6 +12,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_media_indicator.h"
+#include "ahoi/browser/ui/sidebar/sidebar_multi_selection_paint.h"
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
@@ -63,19 +64,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
   METADATA_HEADER(OpenTabRowView, views::View)
 
  public:
-  using TabCallback =
-      base::RepeatingCallback<void(base::WeakPtr<tabs::TabInterface>)>;
-  using DragStateCallback = base::RepeatingCallback<void(std::optional<int>)>;
-  using CanDropCallback =
-      base::RepeatingCallback<bool(std::optional<base::Uuid>,
-                                   std::optional<int>,
-                                   base::WeakPtr<tabs::TabInterface>,
-                                   OpenTabDropPosition)>;
-  using DropCallback =
-      base::RepeatingCallback<bool(std::optional<base::Uuid>,
-                                   std::optional<int>,
-                                   base::WeakPtr<tabs::TabInterface>,
-                                   OpenTabDropPosition)>;
+  using CanDropCallback = CanDropOnRuntimeTabCallback;
+  using DropCallback = DropOnRuntimeTabCallback;
 
   OpenTabRowView(tabs::TabInterface* tab,
                  std::optional<base::Uuid> saved_node_id,
@@ -85,18 +75,19 @@ class OpenTabRowView final : public views::View, public views::DragController {
                  bool active,
                  bool sleeping,
                  bool drag_enabled,
-                 TabCallback activate_callback,
-                 TabCallback close_callback,
+                 RuntimeTabCallback activate_callback,
+                 RuntimeTabCallback close_callback,
                  RuntimeTabThumbnailsCallback thumbnails_callback,
                  RuntimeTabHoverCallback hover_callback,
                  SavedTabDragStateCallback saved_drag_state_callback,
-                 DragStateCallback drag_state_callback,
+                 RuntimeTabDragStateCallback drag_state_callback,
                  SidebarDropTargetClaimCallback drop_target_claim_callback,
                  CanDropCallback can_drop_callback,
                  DropCallback drop_callback,
                  views::ContextMenuController* context_menu_controller,
                  ui::ImageModel origin_badge,
-                 bool bookmarked)
+                 bool bookmarked,
+                 RuntimeTabSelectionCallback selection_callback)
       : tab_(tab ? tab->GetWeakPtr() : base::WeakPtr<tabs::TabInterface>()),
         runtime_tab_handle_(tab ? tab->GetHandle().raw_value() : -1),
         drag_title_(internal::StableTabTitle(tab)),
@@ -112,7 +103,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
         drop_callback_(std::move(drop_callback)),
         drag_enabled_(drag_enabled),
         active_(active),
-        sleeping_(sleeping) {
+        sleeping_(sleeping),
+        selection_callback_(std::move(selection_callback)) {
     CHECK(tab);
     CHECK(!saved_node_id_.has_value() || saved_node_id_->is_valid());
     const std::u16string& tab_title = drag_title_;
@@ -206,7 +198,16 @@ class OpenTabRowView final : public views::View, public views::DragController {
       return;
     }
     search_selected_ = selected;
-    GetViewAccessibility().SetIsSelected(active_ || search_selected_);
+    GetViewAccessibility().SetIsSelected(
+        multi_active_ ? multi_selected_ : active_ || search_selected_);
+    UpdateBackground();
+  }
+
+  void SetMultiSelected(bool active, bool selected) {
+    multi_active_ = active;
+    multi_selected_ = selected;
+    GetViewAccessibility().SetIsSelected(
+        multi_active_ ? multi_selected_ : active_ || search_selected_);
     UpdateBackground();
   }
 
@@ -284,6 +285,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
     close_pressed_ = false;
     if (std::exchange(drag_started_since_press_, false) ||
         !GetLocalBounds().Contains(event.location())) {
+      return;
+    }
+    if (!close && selection_callback_ && selection_callback_.Run(tab_, event)) {
       return;
     }
     PostCallback(close ? close_callback_ : activate_callback_);
@@ -432,7 +436,10 @@ class OpenTabRowView final : public views::View, public views::DragController {
 
   void OnPaint(gfx::Canvas* canvas) override {
     views::View::OnPaint(canvas);
-    if (sleeping_ && !hovered_) {
+    if (multi_selected_) {
+      PaintSidebarMultiSelection(canvas, GetColorProvider(), GetLocalBounds(),
+                                 hovered_ ? gfx::Rect() : CloseBounds());
+    } else if (sleeping_ && !hovered_) {
       const gfx::Rect status_bounds = CloseBounds();
       const gfx::Point center = status_bounds.CenterPoint();
       cc::PaintFlags sleep_stroke;
@@ -648,7 +655,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
         .hover_action;
   }
 
-  void PostCallback(const TabCallback& callback) {
+  void PostCallback(const RuntimeTabCallback& callback) {
     base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
         FROM_HERE, base::BindOnce(callback, tab_));
   }
@@ -670,6 +677,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
 
   std::optional<ui::ColorId> SurfaceColor() const {
     return dragging_ ? std::nullopt
+           : multi_selected_
+               ? std::make_optional(visual_style::kDropTargetSurface)
            : active_ || search_selected_
                ? std::make_optional(visual_style::kSelectedSurface)
            : hovered_ ? std::make_optional(visual_style::kHoverSurface)
@@ -680,12 +689,12 @@ class OpenTabRowView final : public views::View, public views::DragController {
   const int runtime_tab_handle_;
   const std::u16string drag_title_;
   const std::optional<base::Uuid> saved_node_id_;
-  const TabCallback activate_callback_;
-  const TabCallback close_callback_;
+  const RuntimeTabCallback activate_callback_;
+  const RuntimeTabCallback close_callback_;
   const RuntimeTabThumbnailsCallback thumbnails_callback_;
   const RuntimeTabHoverCallback hover_callback_;
   const SavedTabDragStateCallback saved_drag_state_callback_;
-  const DragStateCallback drag_state_callback_;
+  const RuntimeTabDragStateCallback drag_state_callback_;
   const SidebarDropTargetClaimCallback drop_target_claim_callback_;
   const CanDropCallback can_drop_callback_;
   const DropCallback drop_callback_;
@@ -698,6 +707,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
   const bool drag_enabled_;
   const bool active_;
   const bool sleeping_;
+  const RuntimeTabSelectionCallback selection_callback_;
+  bool multi_active_ = false;
+  bool multi_selected_ = false;
   bool has_media_indicator_ = false;
   bool is_split_segment_ = false;
   bool hovered_ = false;
@@ -735,7 +747,8 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller,
     ui::ImageModel origin_badge,
-    bool bookmarked) {
+    bool bookmarked,
+    RuntimeTabSelectionCallback selection_callback) {
   return std::make_unique<OpenTabRowView>(
       tab, std::move(saved_node_id), std::move(favicon), media_alert,
       std::move(status_text), active, sleeping, drag_enabled,
@@ -744,7 +757,7 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
       std::move(saved_drag_state_callback), std::move(drag_state_callback),
       std::move(drop_target_claim_callback), std::move(can_drop_callback),
       std::move(drop_callback), context_menu_controller,
-      std::move(origin_badge), bookmarked);
+      std::move(origin_badge), bookmarked, std::move(selection_callback));
 }
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view) {
@@ -760,6 +773,12 @@ std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view) {
 void SetOpenTabSearchSelected(views::View* view, bool selected) {
   if (auto* row = views::AsViewClass<OpenTabRowView>(view)) {
     row->SetSearchSelected(selected);
+  }
+}
+
+void SetOpenTabMultiSelected(views::View* view, bool active, bool selected) {
+  if (auto* row = views::AsViewClass<OpenTabRowView>(view)) {
+    row->SetMultiSelected(active, selected);
   }
 }
 

@@ -171,7 +171,8 @@ void SidebarTreeRowView::UpdateAccessibility() {
   accessibility.SetHierarchicalLevel(base::saturated_cast<int>(depth_ + 1));
   accessibility.SetPosInSet(base::saturated_cast<int>(position_in_parent_));
   accessibility.SetSetSize(base::saturated_cast<int>(sibling_count_));
-  accessibility.SetIsSelected(selected_);
+  accessibility.SetIsSelected(
+      owner_->has_multi_selection() ? multi_selected_ : selected_);
   accessibility.SetDefaultActionVerb(is_folder() && !folder_navigation_result_
                                          ? ax::mojom::DefaultActionVerb::kClick
                                          : ax::mojom::DefaultActionVerb::kOpen);

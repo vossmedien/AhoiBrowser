@@ -10,14 +10,26 @@
 
 namespace ahoi::sidebar {
 
+std::vector<base::Uuid> SidebarTreeView::visible_node_order() const {
+  std::vector<base::Uuid> order;
+  for (const VisualRow& visual : BuildVisualRows()) {
+    for (size_t index : visual.model_indices) {
+      order.push_back(model().rows()[index].node_id);
+    }
+  }
+  return order;
+}
+
 std::vector<base::Uuid> SidebarTreeView::multi_selection() const {
   // Row order, so actions keep the visual order; rows hidden by a collapsed
   // folder or removed by another device drop out.
   std::vector<base::Uuid> ordered;
-  for (const SidebarTreeViewModel::Row& row : model().rows()) {
-    if (std::ranges::contains(multi_selected_, row.node_id) &&
-        !std::ranges::contains(ordered, row.node_id)) {
-      ordered.push_back(row.node_id);
+  const std::vector<base::Uuid> order =
+      delegate_ ? delegate_->GetMultiSelectionRowOrder() : std::vector<base::Uuid>();
+  for (const base::Uuid& id : order.empty() ? visible_node_order() : order) {
+    if (std::ranges::contains(multi_selected_, id) &&
+        !std::ranges::contains(ordered, id)) {
+      ordered.push_back(id);
     }
   }
   return ordered;
@@ -47,27 +59,35 @@ bool SidebarTreeView::HandleMultiSelectClick(const base::Uuid& node_id,
   if (model().is_search_projection_active()) {
     return false;
   }
-  const std::optional<base::Uuid>& selected = model().selected_node_id();
+  auto order = delegate_ ? delegate_->GetMultiSelectionRowOrder()
+                         : std::vector<base::Uuid>();
+  if (order.empty()) {
+    order = visible_node_order();
+  }
+  if (!std::ranges::contains(order, node_id)) {
+    return false;
+  }
+  const auto active = delegate_ ? delegate_->GetMultiSelectionActiveNode()
+                                 : std::nullopt;
+  const auto selected = active.has_value() ? active : model().selected_node_id();
   // As in Finder, the first ⌘-/⇧-click adds to the row that is already
   // selected.
-  if (multi_selected_.empty() && selected.has_value() && *selected != node_id) {
+  if (multi_selected_.empty() && selected.has_value() && *selected != node_id &&
+      std::ranges::contains(order, *selected)) {
     multi_selected_.push_back(*selected);
   }
   const std::optional<base::Uuid> anchor =
       multi_anchor_.has_value() ? multi_anchor_ : selected;
-  const std::optional<size_t> from =
-      extend && anchor.has_value() ? model().GetRowForNode(*anchor)
-                                   : std::nullopt;
-  const std::optional<size_t> to = model().GetRowForNode(node_id);
-  if (from.has_value() && to.has_value()) {
+  const auto from = extend && anchor.has_value()
+                        ? std::ranges::find(order, *anchor) : order.end();
+  const auto to = std::ranges::find(order, node_id);
+  if (from != order.end()) {
     if (!toggle) {
       multi_selected_.clear();
     }
-    const auto& rows = model().rows();
-    for (size_t index = std::min(*from, *to);
-         index <= std::max(*from, *to) && index < rows.size(); ++index) {
-      if (!std::ranges::contains(multi_selected_, rows[index].node_id)) {
-        multi_selected_.push_back(rows[index].node_id);
+    for (auto it = std::min(from, to); it <= std::max(from, to); ++it) {
+      if (!std::ranges::contains(multi_selected_, *it)) {
+        multi_selected_.push_back(*it);
       }
     }
   } else if (auto it = std::ranges::find(multi_selected_, node_id);
@@ -87,6 +107,9 @@ void SidebarTreeView::RefreshMultiSelectedRows() {
     if (SidebarTreeRowView* view = GetMaterializedRowForTesting(row.node_id)) {
       view->SetMultiSelected(IsMultiSelected(row.node_id));
     }
+  }
+  if (delegate_) {
+    delegate_->OnMultiSelectionChanged();
   }
 }
 

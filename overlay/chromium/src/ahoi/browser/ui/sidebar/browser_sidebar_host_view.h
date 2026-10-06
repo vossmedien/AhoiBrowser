@@ -255,9 +255,7 @@ class BrowserSidebarHostView final
   // which an empty Ahoi workspace must cover instead of showing.
   void EnsureWorkspaceSurface();
 
-  // Handoff 011 S4: SessionRestore applies the window's Workspace before it
-  // inserts the tabs; aligning in between picks the wrong tab or the empty
-  // state, so it waits for the restore-finished notification and runs once.
+  // Reconcile once after SessionRestore applies the window's Workspace.
   bool DeferWorkspaceSurfaceDuringRestore();
   void OnSessionRestored(Profile* profile, int num_tabs);
   void ReconcileWorkspaceSurfaceAfterRestore();
@@ -532,11 +530,8 @@ class BrowserSidebarHostView final
 
   bool BuildMoveToMenu(const tab_tree::TreeNode* source);
 
-  // ADR 0011 WS-ISO-05 (browser_sidebar_host_cross_level_move.cc): moving
-  // an item to a Workspace of another Profile. Its pages reopen there by
-  // URL; sign-ins and site data stay behind.
+  // WS-ISO-05: pages reopen by URL in the target Profile; site data stays here.
   std::vector<SwitcherWorkspace> CrossLevelTargets() const;
-  // The open tab's node, with its split partners.
   std::vector<base::Uuid> CrossLevelRootsForTab(tabs::TabInterface* tab);
   // Whether the item holds the active tab, also inside a moved folder.
   bool CrossLevelMoveTakesActiveTab(const std::vector<base::Uuid>& roots);
@@ -549,6 +544,11 @@ class BrowserSidebarHostView final
                               const gfx::Point& screen_point,
                               ui::mojom::MenuSourceType source_type);
   bool RunMultiSelectionCommand(int command_id);
+  std::vector<base::Uuid> GetMultiSelectionRowOrder() const override;
+  std::optional<base::Uuid> GetMultiSelectionActiveNode() const override;
+  void OnMultiSelectionChanged() override;
+  bool OnRuntimeMultiSelect(base::WeakPtr<tabs::TabInterface> tab,
+                            const ui::MouseEvent& event);
   bool RunOtherProfileMediaCommand(int command_id);  // WS-ISO-18
   // Explains a refusal, or asks for confirmation in `presenter` (the window
   // the user looks at) and then moves. `follow`: the window follows.

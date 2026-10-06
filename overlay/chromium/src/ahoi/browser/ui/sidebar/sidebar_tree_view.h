@@ -271,7 +271,11 @@ class SidebarTreeView final : public views::View,
   // this view; a plain click or Escape clears it. Ordered by row position.
   std::vector<base::Uuid> multi_selection() const;
   bool IsMultiSelected(const base::Uuid& node_id) const;
+  bool has_multi_selection() const { return !multi_selected_.empty(); }
   void ClearMultiSelection();
+  std::vector<base::Uuid> visible_node_order() const;
+  bool HandleMultiSelectClick(const base::Uuid& node_id,
+                              const ui::MouseEvent& event);
 
  private:
   struct FolderReveal {
@@ -413,9 +417,6 @@ class SidebarTreeView final : public views::View,
   // mouse-down and mouse-up. Keep the pressed identity in the stable owner so
   // a normal click is never degraded into a selection-only first click.
   std::optional<base::Uuid> pressed_node_id_;
-  // Returns true when the click only changed the multi-selection.
-  bool HandleMultiSelectClick(const base::Uuid& node_id,
-                              const ui::MouseEvent& event);
   void RefreshMultiSelectedRows();
   std::vector<base::Uuid> multi_selected_;
   std::optional<base::Uuid> multi_anchor_;

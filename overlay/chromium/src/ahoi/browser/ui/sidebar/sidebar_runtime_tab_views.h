@@ -27,6 +27,7 @@ struct SidebarTabDragPayload;
 }
 
 namespace ui {
+class MouseEvent;
 class OSExchangeData;
 }
 
@@ -73,6 +74,8 @@ void WriteOpenTabDragPayload(ui::OSExchangeData* data,
 
 using RuntimeTabCallback =
     base::RepeatingCallback<void(base::WeakPtr<tabs::TabInterface>)>;
+using RuntimeTabSelectionCallback = base::RepeatingCallback<
+    bool(base::WeakPtr<tabs::TabInterface>, const ui::MouseEvent&)>;
 using RuntimeTabThumbnailsCallback =
     base::RepeatingCallback<std::vector<gfx::ImageSkia>(
         base::WeakPtr<tabs::TabInterface>)>;
@@ -117,11 +120,13 @@ std::unique_ptr<views::View> CreateOpenTabRowView(
     DropOnRuntimeTabCallback drop_callback,
     views::ContextMenuController* context_menu_controller,
     ui::ImageModel origin_badge = {},
-    bool bookmarked = false);
+    bool bookmarked = false,
+    RuntimeTabSelectionCallback selection_callback = {});
 
 base::WeakPtr<tabs::TabInterface> GetOpenTabForView(views::View* view);
 std::optional<base::Uuid> GetSavedNodeForOpenTabView(views::View* view);
 void SetOpenTabSearchSelected(views::View* view, bool selected);
+void SetOpenTabMultiSelected(views::View* view, bool active, bool selected);
 
 // Marks a row created by CreateOpenTabRowView() as one pane of a composite
 // split row. Returns false when `view` is not a runtime tab row.

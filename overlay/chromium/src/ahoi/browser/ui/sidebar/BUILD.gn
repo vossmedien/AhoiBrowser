@@ -87,6 +87,8 @@ source_set("sidebar_link_copy") {
 
 source_set("sidebar_views") {
   sources = [
+    "sidebar_multi_selection_paint.cc",
+    "sidebar_multi_selection_paint.h",
     "sidebar_drag_image.cc",
     "sidebar_drag_image.h",
     "sidebar_media_indicator.cc",

@@ -30,6 +30,11 @@ namespace ahoi::sidebar {
 class SidebarTreeViewDelegate {
  public:
   virtual ~SidebarTreeViewDelegate() = default;
+  virtual std::vector<base::Uuid> GetMultiSelectionRowOrder() const { return {}; }
+  virtual std::optional<base::Uuid> GetMultiSelectionActiveNode() const {
+    return std::nullopt;
+  }
+  virtual void OnMultiSelectionChanged() {}
 
   virtual void ActivateSavedPage(const tab_tree::TreeNode&) {}
   // Search forces matching ancestor paths open without changing the normal

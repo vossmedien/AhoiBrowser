@@ -11,6 +11,7 @@
 
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/session_bridge.h"
+#include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_types.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
@@ -21,6 +22,8 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/time/time.h"
 #include "components/tabs/public/tab_interface.h"
+#include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "ui/events/event.h"
 #include "ui/menus/simple_menu_model.h"
 #include "ui/views/controls/menu/menu_runner.h"
 #include "ui/views/widget/widget.h"
@@ -38,6 +41,73 @@ std::u16string Text(const char16_t* de, const char16_t* en) {
 }
 
 }  // namespace
+
+std::vector<base::Uuid> BrowserSidebarHostView::GetMultiSelectionRowOrder() const {
+  std::vector<base::Uuid> order =
+      tree_view_ ? tree_view_->visible_node_order() : std::vector<base::Uuid>();
+  const auto collect = [this, &order](auto&& self, views::View* root) -> void {
+    if (!root || !session_bridge_) {
+      return;
+    }
+    if (auto tab = GetOpenTabForView(root)) {
+      if (auto id = session_bridge_->FindSharedTreeNodeIdForTab(tab.get());
+          id && !std::ranges::contains(order, *id)) {
+        order.push_back(*id);
+      }
+      return;
+    }
+    for (auto* child : root->children()) {
+      self(self, child);
+    }
+  };
+  collect(collect, open_tabs_container_);
+  return order;
+}
+
+std::optional<base::Uuid>
+BrowserSidebarHostView::GetMultiSelectionActiveNode() const {
+  return session_bridge_ && tab_strip_model_
+             ? session_bridge_->FindSharedTreeNodeIdForTab(
+                   tab_strip_model_->GetActiveTab())
+             : std::nullopt;
+}
+
+void BrowserSidebarHostView::OnMultiSelectionChanged() {
+  const auto update = [this](auto&& self, views::View* root) -> void {
+    if (!root || !session_bridge_ || !tree_view_) {
+      return;
+    }
+    if (auto tab = GetOpenTabForView(root)) {
+      const auto id = session_bridge_->FindSharedTreeNodeIdForTab(tab.get());
+      SetOpenTabMultiSelected(root, tree_view_->has_multi_selection(),
+                             id && tree_view_->IsMultiSelected(*id));
+      return;
+    }
+    for (auto* child : root->children()) {
+      self(self, child);
+    }
+  };
+  update(update, open_tabs_container_);
+}
+
+bool BrowserSidebarHostView::OnRuntimeMultiSelect(
+    base::WeakPtr<tabs::TabInterface> tab,
+    const ui::MouseEvent& event) {
+  if (!tree_view_ || !session_bridge_ || !tab) {
+    return false;
+  }
+  const auto id = session_bridge_->FindSharedTreeNodeIdForTab(tab.get());
+  if (!id) {
+    tree_view_->ClearMultiSelection();
+    return false;
+  }
+  const bool handled = tree_view_->HandleMultiSelectClick(*id, event);
+  if (handled) {
+    // Escape goes to the existing tree handler, without activating a page.
+    tree_view_->RequestFocus();
+  }
+  return handled;
+}
 
 bool BrowserSidebarHostView::ShowMultiSelectionMenu(
     const base::Uuid& node_id,

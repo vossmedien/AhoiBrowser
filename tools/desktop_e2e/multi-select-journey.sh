@@ -20,6 +20,12 @@ for n in Alpha Beta Gamma Delta; do printf '<title>Mehrfach-%s</title>%s' $n $n 
 python3 -m http.server $SITE_PORT --bind 127.0.0.1 --directory $P-site > "$OUT/site.log" 2>&1 &
 SITE_PID=$!; SITE=http://127.0.0.1:$SITE_PORT
 page_count() { curl -s http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(sum(1 for t in json.load(sys.stdin) if t["type"]=="page"))'; }
+alpha_visible() {
+  local id
+  id=$(curl -fsS http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;print(next(t["id"] for t in json.load(sys.stdin) if t["title"]=="Mehrfach-Alpha"))') || return 1
+  node "$S/cdp.mjs" $PORT "$id" Runtime.evaluate '{"expression":"document.visibilityState===\"visible\"","returnByValue":true}' \
+    | python3 -c 'import json,sys;sys.exit(0 if json.load(sys.stdin).get("result",{}).get("value") is True else 1)'
+}
 . "$S/browser_launch.sh"
 trap 'kill $SITE_PID 2>/dev/null; [ -n "${PID:-}" ] && kill -0 $PID 2>/dev/null && kill $PID' EXIT
 RESULTS=(); record() { RESULTS+=("\"$1\": $2"); echo "$1 -> $2" >> "$OUT/steps.txt"; }
@@ -59,10 +65,12 @@ click Alpha || { finish "Alpha row not clickable"; quit; exit 4; }
 expect_selected plainClickSelectsOne "Alpha"
 click Gamma cmd
 expect_selected commandClickAdds "Alpha Gamma"
+alpha_visible && record commandClickKeepsActive true || record commandClickKeepsActive false
 # ⌘-click must not open or activate anything.
 [ "$(page_count)" = "$PAGES0" ] && record commandClickKeepsTabs true || record commandClickKeepsTabs false
 click Beta shift
 expect_selected shiftClickSelectsRange "Beta Gamma"
+alpha_visible && record shiftClickKeepsActive true || record shiftClickKeepsActive false
 $AX activate $PID >/dev/null; $AX hidkey $PID 53 >> "$OUT/steps.txt"; sleep 1
 # Escape leaves only the active row selected.
 expect_selected escapeClears "Alpha"

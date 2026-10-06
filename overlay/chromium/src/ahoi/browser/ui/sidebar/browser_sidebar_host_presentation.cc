@@ -457,7 +457,9 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
                                                     target, position);
             },
             weak_ptr_factory_.GetWeakPtr()),
-        this, std::move(origin_badge), bookmarked);
+        this, std::move(origin_badge), bookmarked,
+        base::BindRepeating(&BrowserSidebarHostView::OnRuntimeMultiSelect,
+                            weak_ptr_factory_.GetWeakPtr()));
   };
 
   // Rebuild temporary and mixed split rows directly from Chromium's
@@ -595,6 +597,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   // restores the exact persistent saved-page proxies without a store write.
   tree_view_->SetRuntimeCompositeSuppressedNodes(
       std::move(mixed_split_saved_nodes));
+  OnMultiSelectionChanged();
   const bool has_open_tabs = !open_tabs_container_->children().empty();
   // The action closes every temporary tab in the workspace, including rows
   // hidden by the active filter. Do not present that destructive global

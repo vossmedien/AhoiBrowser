@@ -1,34 +1,125 @@
 # Active Desktop checkpoint
 
-## Crest adoption wave and ⌥⌘T — 6 October 2026
+## Codex continuation: original goal and rejected candidate — 6 October 2026
 
-- **⌥⌘T accepted on installed 76c0a54b (MacbookPro2026):** address-bar-shortcut,
-  keyboard-shortcuts, devtoolkit, http-auth and ws-isolated PASS
-  (`accept-m155-76c0a54b-20261006`). DoD 12 network audit on the same signed
-  bundle (staged copy, identical CDHash, so the installed-app lease gate is
-  untouched): NET-GCM-01, fresh-profile silence, PRIV-12 and PRIV-16 PASS;
-  PRIV-14 FAIL as expected without a Safe Browsing key (`threatListUpdates`
-  HTTP 400, owner row below). Output `artifacts/network-audit/m155-76c0a54b-20261006/`.
-- **Committed, building as 9107102a:** confirmation toasts (72e2335f, patch
-  0095), sidebar ⌘/⇧-click multi-selection with its context menu and
-  check-badge marker (e633fe07, c75bc93c; keeps the selection when a close
-  is cancelled, found in the Codex Crest review), reveal-notch contrast
-  edge (6f0453a2), glass blur clipped to the rounded navigation row against
-  the owner's "hard square shadow edge" report (4decb7c0; no screen
-  recording, so the visual result is the owner's to confirm). Journeys after
-  install: toast-confirmations, address-bar-shortcut, glass-appearance,
-  keyboard-shortcuts, cmd-move, sidebar-discovery-switch, then
-  multi-select (new, 6c59fd30 harness).
-- **Committed, not built yet:** Arc-style tab switcher ⌃T (e96c69c0, patch
-  0096, `ahoi_tab_switcher_unittests`), Codex's native Auto-PiP feature
-  (67cadfae). Next candidate after 9107102a is accepted.
-- **Design references:** `design/references/2026-10-06/` (Codex imagegen:
-  switcher, multi-selection, toast, navigation row).
-- **Parallel Crest lane:** Codex 05EFDE coordinates further Crest packages on
-  `cockpit/crest-integration-20261006`; integration only through this
-  session's candidates. Reserved here: ui/sidebar/*, ui/toast/*,
-  ui/tab_switcher/*, shell/navigation_surface_controller.*,
-  appearance/appearance_views.*, keyboard_shortcuts.*, axtool.swift.
+- Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
+  hashes and lengths verified. Source CLI stopped; quota interruption, no
+  outstanding user selection. Original complete Master objective restored as
+  native Goal/thread `01a11179-cb6b-7dc1-9e53-f3d72fefc198`, ACTIVE;
+  Cockpit session `68E66C9E-7E52-4842-B328-03D9CD6D3057`, Caeli account,
+  GPT-6.1-Sol/xhigh. Canonical branch and Desktop ownership retained. The later
+  5 October decision removes AnyChat from scope; M155 supersedes historical M153.
+- Actual target `MacbookPro2026.fritz.box`/arm64 checked by established SSH;
+  installed source remains `f87f75815a027cc6ed20e3a9a5667d2cfd15f761`.
+  Original eight-journey verdict is 6 PASS, multi-select FAIL, tab-switcher FAIL.
+  No false completion or development-Mac delivery. Original logs/receipts are
+  preserved in `artifacts/tests/accept-m155-f87f7581-20261006/`.
+- Source correction implemented, NOT built/accepted: grayscale AA in the
+  switcher's shared label constructor; temporary/runtime and saved rows share
+  `multi_selected_`, stable Shared-UUIDs, visual row/split order, Escape and
+  context actions. AX selection represents the range independently of the active
+  page; in-place runtime updates avoid destruction inside the click callback.
+  Two focused native regressions and active-page E2E assertions are written.
+  One helper diagnosed only this path; another implemented disjoint guarded
+  output-path support. Neither built, installed or committed; main owner reviews
+  and verifies their work.
+- Guarded `AHOI_CHROMIUM_OUT_ROOT` support is implemented for both builders,
+  staging, exact profile/app provenance and the actual output-volume reserve;
+  source mount/pin/overlay gates remain. Shell/Python syntax and whitespace pass.
+  Target CLI/path-boundary checks, real pinned GN generation and candidate-bound
+  build/runtime evidence remain pending. The
+  inherited output `/Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/out/AhoiDev`
+  is on the USB SSD. Do not start another SSD-writing build. Preserve its current
+  signed candidate and 16 GiB incremental output until an approved internal
+  output path is supported and verified by the existing build/provenance gates.
+- Coordination limit: installed Cockpit helper responds to actual MCP tools/list
+  but `cockpit_sessions` returns no publication and `cockpit_note` refuses the
+  message; actual read-only published snapshot identifies this session and
+  disjoint Crest owner `05EFDE54-146B-47AD-89CE-A56EF1781938`. Orchestrator request
+  `459687b5-636f-4762-8e09-25b325be1e64` returns SOURCE_UNAVAILABLE (not received;
+  no new worker/start claimed). Existing Crest/Panel assignments stay intact.
+- Next authorized steps: finish minimal two-path correction, preserve original
+  failures, configure internal build output without weakening source/path gates,
+  build one clean frozen candidate on Inhouse; affected visible journeys, then
+  focused native checks. Integrate verified work into actual main, push and return
+  the exact app through the guarded development installer. Crest source handoffs
+  follow recorded package order; all real-device/legal/release gates remain open.
+
+## Handoff Claude → Codex (Caeli) — 6 October 2026
+
+Owner instruction relayed by the Terminal Cockpit root: every Claude session
+moves to Codex on the Caeli account at a checkpoint. This section is the
+complete state for the Codex session that continues the desktop goal.
+
+- **Goal:** `outputs/AhoiBrowser-Master-Zielprompt.md` up to its Definition
+  of Done, starting from this checkpoint, `docs/ACTIVE_MOBILE_CHECKPOINT.md`
+  and `docs/ACTIVE_SYNC_COORDINATION.md`. Branch
+  `codex/desktop-core-feature-wave-20260830`, lane `desktop` (commits carry
+  `Lane: desktop`; never `git add -A`; foreign uncommitted files stay).
+- **Standing authorizations (owner):** M155 roll (staged-stable pin);
+  integrate verified work into `main` and deliver through the guarded
+  install path; builds only on MacbookPro2026.local, finished apps go to the
+  development Mac via `scripts/install-dev-app.py`; Codex imagegen design
+  references; delegation of deeper work to Codex sessions. Owner gates stay
+  with the owner (table further down): Safe Browsing key (PRIV-14), Apple /
+  Developer ID / notarization, real CloudKit devices, codec/DRM, purchases.
+- **Accepted:** M155 ef982afe (11/11 journeys, delivered to the dev Mac);
+  ⌥⌘T on 76c0a54b (5/5 journeys); DoD 12 network audit on 76c0a54b
+  (NET-GCM-01, silence, PRIV-12, PRIV-16 PASS; PRIV-14 owner gate, HTTP 400
+  without a key; `artifacts/network-audit/m155-76c0a54b-20261006/`).
+- **Candidate f87f7581 (in acceptance):** confirmation toasts (patch 0095,
+  `ui/toast`), sidebar ⌘/⇧-click multi-selection with context menu, check
+  badge and cancel-safe close, reveal-notch contrast edge, glass blur clipped
+  to the rounded navigation row (owner's "hard square shadow edge" report;
+  visual confirmation is the owner's, no screen recording), Arc-style tab
+  switcher ⌃T (patch 0096, `ui/tab_switcher`), Codex's native Auto-PiP
+  (67cadfae), M155 ports. Build + unit tests green (one bookmark-shelf test
+  timed out under foreign load ~500 and passed on rerun). Journeys:
+  `artifacts/tests/accept-m155-f87f7581-20261006/summary.txt` —
+  toast-confirmations, address-bar-shortcut, glass-appearance,
+  keyboard-shortcuts, cmd-move, sidebar-discovery-switch, multi-select (new),
+  tab-switcher (new). **Terminal result: 6/8 PASS, 2 FAIL**. The runner
+  correctly rejected the two false verdicts despite exit 0. Multi-select never
+  reaches the temporary runtime-row path; the switcher crashes on opening with
+  `Label::PaintText`'s translucent-layer/subpixel DCHECK. Full original evidence
+  and candidate receipt copied to canonical
+  `artifacts/tests/accept-m155-f87f7581-20261006/`. This candidate is not accepted
+  for delivery to the development Mac.
+- **Build path on the target:** `~/inhouse/evidence/ahoi-<head>/chain.sh`
+  (copy the f87f7581 one and replace the hash): repo checkout
+  `.work/agent-queue/repo88-m155-f492d294` detached at the pushed head,
+  apply-overlay, `build-ahoi.sh dev <test targets>`, unit tests, GUI-agent
+  signing, provenance, install, `run-journey-set.sh`. Gotchas: the in-build
+  re-sign over SSH ends with `errSecInternalComponent` (expected; the chain
+  accepts only that), `chmod +x` after rewriting a script, a SIGBUS from the
+  USB build SSD leaves this chain's own `desktop-build.lock` (check
+  owner.json, then remove), unit tests time out under foreign VM/simulator
+  load (rerun once load < 14).
+- **Open, in order:**
+  1. Evaluate the f87f7581 journeys; fix failures; on PASS integrate into
+     `main`, push, deliver to the dev Mac (`install-dev-app.py`, receipt in
+     `artifacts/install/`).
+  2. Integrate Codex 05EFDE's Crest packages from
+     `cockpit/crest-integration-20261006` (181a062a density, 8b033837,
+     5688cab2 extension tab groups, b6002bb7, 1142ec53 settings help, 514d7781
+     corrected density patch: host header and runtime views stay at 800
+     lines) and the handoff patches
+     `docs/reviews/2026-10-06-crest-{density,tabgroups,folder-preview,settings-help,workspace-help}-handoff.patch`
+     onto f87f7581 (05EFDE: all five apply together, source limits and
+     whitespace PASS; not compiled). My own integration delegation f9fc100a
+     aborted empty; 05EFDE keeps writing only through handoffs, so the wiring
+     is this session's job. Then build, journeys (incl. a real MV3 tabs.group
+     journey and restart, Auto-PiP Block/Allow), deliver.
+  3. Multi-select design polish per `design/references/2026-10-06/02`
+     (done: tinted surface, outline, check badge); tab switcher visual check
+     against `.../01`.
+  4. Cheap Crest probes from `docs/reviews/2026-10-06-crest-adoption.md`:
+     FedCM, Retina favicons, extension side panel / fullscreen menus.
+  5. Remaining DoD items: see the owner-gated table and the mobile/sync
+     checkpoints.
+- **Coordination:** Codex 05EFDE (Crest research/integration) writes only
+  through handoffs or released files; Codex 8FC03D researches extension
+  panels (docs only).
 
 ## M155 accepted and delivered to the development Mac — 6 October 2026
 
