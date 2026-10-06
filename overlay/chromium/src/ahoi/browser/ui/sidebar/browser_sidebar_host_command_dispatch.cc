@@ -310,7 +310,8 @@ void BrowserSidebarHostView::ExecuteCommand(int command_id, int) {
     return;
   }
   if (RunCrossLevelMoveCommand(command_id) ||
-      RunOtherProfileMediaCommand(command_id)) {
+      RunOtherProfileMediaCommand(command_id) ||
+      RunMultiSelectionCommand(command_id)) {
     return;
   }
   if (command_id == kCopyActivePageLink ||

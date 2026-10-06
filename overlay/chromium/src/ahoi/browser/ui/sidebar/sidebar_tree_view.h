@@ -266,6 +266,13 @@ class SidebarTreeView final : public views::View,
   void OnBoundsAnimatorProgressed(views::BoundsAnimator* animator) override;
   void OnBoundsAnimatorDone(views::BoundsAnimator* animator) override;
 
+  // Mac-style multi-selection of rows (user decision 6 October 2026):
+  // ⌘-click toggles a row, ⇧-click extends from the anchor. It lives only in
+  // this view; a plain click or Escape clears it. Ordered by row position.
+  std::vector<base::Uuid> multi_selection() const;
+  bool IsMultiSelected(const base::Uuid& node_id) const;
+  void ClearMultiSelection();
+
  private:
   struct FolderReveal {
     base::Uuid folder_id;
@@ -406,6 +413,12 @@ class SidebarTreeView final : public views::View,
   // mouse-down and mouse-up. Keep the pressed identity in the stable owner so
   // a normal click is never degraded into a selection-only first click.
   std::optional<base::Uuid> pressed_node_id_;
+  // Returns true when the click only changed the multi-selection.
+  bool HandleMultiSelectClick(const base::Uuid& node_id,
+                              const ui::MouseEvent& event);
+  void RefreshMultiSelectedRows();
+  std::vector<base::Uuid> multi_selected_;
+  std::optional<base::Uuid> multi_anchor_;
   std::optional<base::Uuid> editing_node_id_;
   std::optional<DropIndicator> drop_indicator_;
   bool drag_target_visible_ = false;

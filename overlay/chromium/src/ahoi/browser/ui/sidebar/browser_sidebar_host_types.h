@@ -78,6 +78,14 @@ constexpr int kOpenIsolatedWorkspaceCommandBase = 900;
 constexpr int kActivateWorkspaceCommandBase = 1000;
 // ADR 0011 WS-ISO-05: "Move to" another Profile's Workspace; at most 99,
 // above the Workspace activations and below the destinations.
+// ⌘/⇧-click multi-selection menu: fixed actions, then one "Move to" item per
+// Workspace (at most 89), above the activations and below cross-level moves.
+constexpr int kMultiOpenInSplitCommand = 1800;
+constexpr int kMultiCloseTabsCommand = 1801;
+constexpr int kMultiArchiveCommand = 1802;
+constexpr int kMultiClearSelectionCommand = 1803;
+constexpr int kMultiMoveSubmenuCommand = 1809;
+constexpr int kMultiMoveToWorkspaceCommandBase = 1810;
 constexpr int kCrossLevelMoveCommandBase = 1900;
 constexpr int kMoveToDestinationCommandBase = 2000;
 // The persistent tree supports far more than one thousand folders. Keep
@@ -96,6 +104,7 @@ enum class ContextMenuScope {
   kWorkspace,
   kOpenTab,
   kArchive,
+  kMultiSelection,
 };
 
 enum class PendingGroupAction {

@@ -264,6 +264,9 @@ void SidebarTreeView::OnRowReleased(SidebarTreeRowView* row,
       !row->GetLocalBounds().Contains(event.location())) {
     return;
   }
+  if (!disclosure_hit && HandleMultiSelectClick(*pressed_node_id, event)) {
+    return;
+  }
   const tab_tree::TreeNode* node = model().GetNode(*pressed_node_id);
   if ((disclosure_hit ||
        (node && node->type == tab_tree::TreeNodeType::kFolder &&
@@ -453,6 +456,10 @@ bool SidebarTreeView::OnKeyPressed(const ui::KeyEvent& event) {
     if (result != tab_tree::TabTreeStore::Result::kOk && delegate_) {
       delegate_->OnMutationFailed(result);
     }
+    return true;
+  }
+  if (event.key_code() == ui::VKEY_ESCAPE && !multi_selected_.empty()) {
+    ClearMultiSelection();
     return true;
   }
   const bool selected_node_suppressed =

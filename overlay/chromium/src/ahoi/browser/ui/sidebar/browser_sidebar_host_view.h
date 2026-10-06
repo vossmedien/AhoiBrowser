@@ -244,23 +244,20 @@ class BrowserSidebarHostView final
   tabs::TabInterface* FindRuntimeTab(int runtime_tab_handle) const;
   void ActivateWorkspaceRuntimeTab(const base::Uuid& workspace_id);
 
-  // TabStripModel observer callbacks must not activate another tab. After
-  // their notification finishes, native tab selection follows that tab's
-  // workspace; removal instead preserves the current workspace, including
-  // its empty surface when only foreign-workspace tabs remain.
+  // Observer callbacks must not activate another tab. Afterwards native tab
+  // selection follows that tab's workspace; removal keeps the current one,
+  // including its empty surface when only foreign-workspace tabs remain.
   void ReconcileWorkspaceSurface(uint64_t generation,
                                  bool follow_selected_tab);
 
-  // Keeps the native WebView surface aligned with the active Ahoi workspace
-  // after a tab removal. A shared Chromium TabStripModel may still contain
-  // tabs from another workspace, so an empty Ahoi workspace must explicitly
-  // cover that stale global selection instead of showing it in the page area.
+  // Keeps the WebView surface aligned with the active workspace after a tab
+  // removal: a shared TabStripModel may still select another workspace's tab,
+  // which an empty Ahoi workspace must cover instead of showing.
   void EnsureWorkspaceSurface();
 
-  // Handoff 011 S4: SessionRestore creates the window, applies its Workspace
-  // and only then inserts the tabs with theirs. Aligning the surface in
-  // between activates the wrong tab or leaves the empty state visible, so it
-  // waits for the restore-finished notification and runs once afterwards.
+  // Handoff 011 S4: SessionRestore applies the window's Workspace before it
+  // inserts the tabs; aligning in between picks the wrong tab or the empty
+  // state, so it waits for the restore-finished notification and runs once.
   bool DeferWorkspaceSurfaceDuringRestore();
   void OnSessionRestored(Profile* profile, int num_tabs);
   void ReconcileWorkspaceSurfaceAfterRestore();
@@ -548,6 +545,10 @@ class BrowserSidebarHostView final
   bool AppendCrossLevelMoveItems(std::vector<base::Uuid> roots,
                                  bool has_menu);
   bool RunCrossLevelMoveCommand(int command_id);
+  bool ShowMultiSelectionMenu(const base::Uuid& node_id,
+                              const gfx::Point& screen_point,
+                              ui::mojom::MenuSourceType source_type);
+  bool RunMultiSelectionCommand(int command_id);
   bool RunOtherProfileMediaCommand(int command_id);  // WS-ISO-18
   // Explains a refusal, or asks for confirmation in `presenter` (the window
   // the user looks at) and then moves. `follow`: the window follows.
@@ -627,10 +628,9 @@ class BrowserSidebarHostView final
   void CloseWorkspaceDialogNow();
 
   void OnWorkspaceDialogClosed();
-  // Blurs a client-owned dialog Widget and detaches its input method's text
-  // input client, so destroying it cannot trip NativeWidgetMac's focus check.
-  // `remove_views` also destroys the dialog's views; only pass it from a
-  // posted task, never from inside the dialog's own button or close handling.
+  // Blurs a dialog Widget and detaches its text input client so destroying it
+  // cannot trip NativeWidgetMac's focus check. `remove_views` also destroys
+  // its views: only from a posted task, never from its own button handling.
   static void PrepareDialogWidgetForDestruction(views::Widget* widget,
                                                 bool remove_views = false);
 

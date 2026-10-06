@@ -484,6 +484,10 @@ void BrowserSidebarHostView::ShowNodeContextMenu(
   if (!discovery_state_.query.empty()) {
     return;
   }
+  if (node_id.has_value() &&
+      ShowMultiSelectionMenu(*node_id, screen_point, source_type)) {
+    return;
+  }
   const tab_tree::TreeNode* node =
       node_id.has_value() ? controller_->view_model().GetNode(*node_id)
                           : nullptr;
