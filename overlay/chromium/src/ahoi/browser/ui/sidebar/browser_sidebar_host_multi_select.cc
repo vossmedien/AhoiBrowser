@@ -5,6 +5,7 @@
 // decision 6 October 2026, Crest community review): move, split, close and
 // archive several pages and folders in one step.
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -15,7 +16,6 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/toast/ahoi_toast.h"
-#include "base/containers/contains.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
 #include "base/strings/string_number_conversions.h"
@@ -48,7 +48,7 @@ bool BrowserSidebarHostView::ShowMultiSelectionMenu(
     return false;
   }
   const std::vector<base::Uuid> ids = tree_view_->multi_selection();
-  if (ids.size() < 2 || !base::Contains(ids, node_id)) {
+  if (ids.size() < 2 || !std::ranges::contains(ids, node_id)) {
     return false;
   }
   size_t pages = 0;

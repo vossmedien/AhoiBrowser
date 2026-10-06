@@ -15,6 +15,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/compositor/compositor.h"
 #include "ui/compositor/layer.h"
+#include "ui/compositor/layer_not_drawn.h"
 #include "ui/compositor/test/draw_waiter_for_test.h"
 #include "ui/gfx/geometry/rounded_corners_f.h"
 #include "ui/gfx/geometry/transform.h"
@@ -146,7 +147,7 @@ TEST_F(NavigationSurfaceControllerTest,
 // The glass blur ends at the rounded edge, so the shadow beside a corner is
 // not cut into a square (owner report, 6 October 2026).
 TEST_F(NavigationSurfaceControllerTest, GlassBlurIsClippedToTheRoundedRow) {
-  ui::Layer layer;
+  ui::LayerNotDrawn layer;
   layer.SetBounds(gfx::Rect(0, 0, 600, 44));
   appearance::GlassPolicy policy;
   auto surface = appearance::AppearanceResolver::Resolve(

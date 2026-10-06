@@ -6,7 +6,6 @@
 #include <algorithm>
 
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
-#include "base/containers/contains.h"
 #include "ui/events/event.h"
 
 namespace ahoi::sidebar {
@@ -16,8 +15,8 @@ std::vector<base::Uuid> SidebarTreeView::multi_selection() const {
   // folder or removed by another device drop out.
   std::vector<base::Uuid> ordered;
   for (const SidebarTreeViewModel::Row& row : model().rows()) {
-    if (base::Contains(multi_selected_, row.node_id) &&
-        !base::Contains(ordered, row.node_id)) {
+    if (std::ranges::contains(multi_selected_, row.node_id) &&
+        !std::ranges::contains(ordered, row.node_id)) {
       ordered.push_back(row.node_id);
     }
   }
@@ -25,7 +24,7 @@ std::vector<base::Uuid> SidebarTreeView::multi_selection() const {
 }
 
 bool SidebarTreeView::IsMultiSelected(const base::Uuid& node_id) const {
-  return base::Contains(multi_selected_, node_id);
+  return std::ranges::contains(multi_selected_, node_id);
 }
 
 void SidebarTreeView::ClearMultiSelection() {
@@ -67,7 +66,7 @@ bool SidebarTreeView::HandleMultiSelectClick(const base::Uuid& node_id,
     const auto& rows = model().rows();
     for (size_t index = std::min(*from, *to);
          index <= std::max(*from, *to) && index < rows.size(); ++index) {
-      if (!base::Contains(multi_selected_, rows[index].node_id)) {
+      if (!std::ranges::contains(multi_selected_, rows[index].node_id)) {
         multi_selected_.push_back(rows[index].node_id);
       }
     }
