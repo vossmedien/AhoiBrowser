@@ -72,9 +72,29 @@
   bounded auth handoff `AHOI-GIT-AUTH-20261006` was submitted once through actual
   `cockpit_delegate`: delegation `cb1e5d9c`, Codex/Caeli, own required Goal,
   docs/reviews/2026-10-06-github-auth-handoff.md only. Cockpit confirms QUEUED,
-  not native start; destination/thread/config/Goal receipt still to verify.
+  accepted. Actual worker is now `73CA9F82-2D8E-4D4A-AA39-49F1A5601D46`,
+  distinct native thread/Goal `01a111a0-ba57-71f1-a064-88cf9d5c535d`,
+  Worktree `AhoiBrowser-codex-cb1e5d9c`, Codex/Caeli accountDEFAA5B4,
+  GPT-6.1-Sol/xhigh. Native Goal and working status are present in the actual
+  published snapshot. No independent Jev-decision receipt claimed. Follow-ups
+  use this destination, not another worker. Root Goal remains unchanged.
   Existing Crest/Panel identities stay intact. Original failed client request
   459687b5 remains historical only.
+- Review setup verified without starting review: current native executable
+  `/Users/vossmedien/.codex/packages/standalone/releases/0.160.1-aarch64-apple-darwin/bin/codex`
+  (not on shell PATH); `review --help` and the
+  [official OpenAI CLI command reference](https://learn.chatgpt.com/docs/developer-commands)
+  agree on mutually exclusive commit/base/uncommitted targets. Use the smallest
+  attributable range after E2E/focused checks, preserving account/CODEX_HOME and
+  current routing/YOLO; review-only must not launch another review. No review
+  verdict exists yet. Context7 is absent from actual tool capabilities; official
+  vendor/versioned source references are the fallback for new integration work.
+- Development-Mac readback independently confirms installed
+  `ef982afebdf33e26a105626878779f22dfb33c3f`, Chromium155.0.8059.26.
+  Target f87f7581 remains an unaccepted original candidate; new source47885f36
+  is still building, not installed. Last capacity recheck47/48%CPU idle,
+  memory_pressure61%free, swap1.04GiB with0swap I/O; four own compiler children
+  under Ninja83413 use the internal output. Foreign work remains untouched.
 - Next authorized steps: finish minimal two-path correction, preserve original
   failures, configure internal build output without weakening source/path gates,
   build one clean frozen candidate on Inhouse; affected visible journeys, then
