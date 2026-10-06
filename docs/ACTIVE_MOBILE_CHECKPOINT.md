@@ -61,6 +61,18 @@ binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
   The test now waits for the fixture folder navigation bar and attaches its
   tree before Open; parent selection must fail that precondition. Candidatebe9482c8
   compiled/signed but was not rerun with the known inadequate picker step.
+  Candidate0a10bdc6 built/signed. First invocation terminal64 BEFORE tests because
+  the reused scratch still contained the original result bundle; its log is
+  preserved, retry uses a revision-specific xcresult. That retry ended65 at
+  fixture discovery after225.9s under a capacity spike/controller hold. This is
+  limited UI-infrastructure evidence: in-device XCTestRunner continued while
+  its host controller ancestry was held, so no clean paused-test claim. Cleanup
+  again verified Shutdown/input removal/lock release. No focused tests ran.
+  Existing Files AX evidence identifies the fixed navbar
+  `FullDocumentManagerViewControllerNavigationBar` and the current-title-bearing
+  `DOC.browsingRoot Source:…, Title:…`; the test now waits on the latter and
+  waits for the visible picker before querying folders. Next execution requires
+  fresh adequate capacity; preserve the unsuccessful originals.
   Next: rebuild corrected exact candidate, retry only the failed import,
   then five existing runtime boundaries and one separate native review.
 - Next independent Mobile action: complete ADR0012 Step1's real Files import,

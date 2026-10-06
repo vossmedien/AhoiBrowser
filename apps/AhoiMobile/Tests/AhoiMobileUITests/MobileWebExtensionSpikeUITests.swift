@@ -112,6 +112,10 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
         openSpikeSettings(in: app)
         let load = app.buttons["settings.extensions.spike.import-folder"]
         load.tap()
+        let cancel = app.buttons.matching(NSPredicate(
+            format: "label IN %@", ["Cancel", "Abbrechen"]
+        )).firstMatch
+        XCTAssertTrue(waitForHittable(cancel, timeout: 8), "The native Files picker must be ready.")
         attachEvidence(app, "spike-files-picker-before-selection")
         attachTree(app, "spike-files-picker-before-selection-tree")
 
@@ -137,7 +141,13 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
         chosenFolder.tap()
         // The picker can still be displaying the parent while its provider
         // opens the folder. Open must confirm the fixture, never that parent.
-        let enteredFolder = app.navigationBars[folder].waitForExistence(timeout: 5)
+        // Xcode27's Files navbar has a fixed identifier; the browsing root
+        // carries the full current folder title even when the toolbar truncates it.
+        let folderRoot = app.otherElements.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@ AND identifier CONTAINS %@",
+            "DOC.browsingRoot Source:", "Title: \(folder)"
+        )).firstMatch
+        let enteredFolder = folderRoot.waitForExistence(timeout: 5)
         attachTree(app, "spike-files-selected-folder-tree")
         XCTAssertTrue(enteredFolder, "Files must enter the reviewed fixture folder before Open.")
         let open = app.buttons.matching(NSPredicate(
