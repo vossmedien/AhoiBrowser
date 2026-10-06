@@ -90,3 +90,19 @@ Quelle: die fünf Galeriebilder im Post 1wg3t13. Der Codex-Worker hat sie im Saf
   - Interaktive Pin-Übung
 
 Für Ahoi relevant sind die Optionen, die die schon vorhandene Glass- und Karten-Darstellung feiner einstellen, nämlich Transparenz und Tab-Dichte, sowie eine Getting-Started-Seite vor dem Release. Beides ist ein Kandidat für ein späteres Paket, nicht Teil der jetzt freigegebenen drei Funktionen.
+
+## Nachtrag: Build-Bezug und Korrekturen (Codex-Lesung, 6. Oktober 2026)
+
+Der Abgleich bezieht sich auf folgende öffentliche Crest-Releases, belegt durch Release-Tags, zwei Appcasts und `ReleaseNotes.json` bei `4e59eafd`. Crest wurde dabei nicht installiert und nicht zur Laufzeit getestet.
+
+| Kanal | Version/Build | Stand |
+| --- | --- | --- |
+| Development | 0.7.11 (1184), veröffentlicht 06.10.2026, 03:42:40 UTC | `main` 4e59eafd |
+| Nightly | 0.7.8 (1181) | |
+| Stable | 0.7.2 (1173) | |
+
+- **Fokussierte Fenstertransparenz:** In Stable 0.7.2 wegen WindowServer-Last entfernt. Der Nachtrag zur 0.6-Galerie oben führt sie deshalb nur noch als historische Option. Wenn Ahoi Transparenz feiner einstellbar macht, ist vorher der WindowServer-CPU-Bedarf zu messen.
+- **0.7.3 (3b0a9159):** Weniger vollständiges Neuzeichnen des Fensters und weniger Animationen, gebündelter Tab- und History-Sync. Ahoi übernimmt das nur, wenn eine eigene Messung eine Lücke belegt (PERF-07 Idle-CPU).
+- **0.7.7:** Tab-Gruppen aus Extensions werden in beide Richtungen zu offenen Ordnern und bleiben über einen Neustart erhalten. Das bestätigt den Gruppen-Adapter oben als Kandidaten.
+- **0.7.11:** Site Controls und Extension-Menüs bleiben im Vollbild offen. Das ist ein Prüfpunkt für Ahois Vollbild-Toolbar.
+- **Mehrfachauswahl:** Laut Release-Chronik verbessert, einschließlich des erhaltenen Auswahlzustands, wenn das Schließen ungesicherter Seiten abgebrochen wird. Tab-Switcher, Sub-Spaces und neue Toasts sind dort nicht als umgesetzt belegt.
