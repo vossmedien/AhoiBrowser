@@ -11,8 +11,9 @@ discovery) in the isolated sparse repository `.work/chromium-m155-rebase`
 the M154 stack on M155 (target, `chromium_roll.py preflight`): 27 apply,
 64 conflict, 0 already upstream; overlay collisions 22 (the same icon files).
 Most conflicts were cascades of `0001`; 13 patches needed real resolutions.
-Source acceptance only until the first M155 build and its unit tests are
-green. Both dependency workaround targets (`rustc_wrapper.py`, V8
+First M155 build (candidate ef982afe) compiles, links and stages; all 28
+Ahoi unit binaries pass; signed and installed on the build host. Visible
+journeys are pending. Both dependency workaround targets (`rustc_wrapper.py`, V8
 `82b65fdd` `inspector_protocol/code_generator.py`) and all entitlement policy
 sources (`parts.py`, `chrome/app/*-entitlements.plist`, `version.gni`) are
 byte-identical at the new pins, so only the recorded commits and versions
@@ -41,6 +42,8 @@ move.
   unchanged in behaviour (a failed legacy lookup returns an empty password,
   never a new random key).
 - `0013`, `0016`, `0061` include/list unions only.
+- `0001` (after the first build) also restores `friend class Browser;` in
+  `TabHelpers`, which M155 dropped; Ahoi's popup overlay adoption needs it.
 - `0071`, `0073`, `0074` regenerated with `tools/branding/make_rebrand_patch.sh`
   on the rebased M155 string bundles (GRIT from M155; the `ui` GRIT defines
   from the current `out/AhoiDev` `toolchain.ninja`): 539 + 13, 54 and 7

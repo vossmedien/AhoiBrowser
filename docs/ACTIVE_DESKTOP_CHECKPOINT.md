@@ -1,5 +1,33 @@
 # Active Desktop checkpoint
 
+## M155 built, unit-green, signed and installed on target — 6 October 2026
+
+- **Candidate ef982afe** on Chromium 155.0.8059.26 (`16c3e554`): guarded
+  `build-ahoi.sh dev` compile/link/staging complete; all 28 Ahoi unit
+  binaries pass (0 failures, 0 missing; logs
+  `~/inhouse/evidence/ahoi-m155-b059583d/unittests/`); signed through the
+  GUI-session agent, `verify-built-app` and build provenance PASS; installed
+  to `/Applications` on MacbookPro2026 (framework 155.0.8059.26).
+- **Acceptance journeys** `artifacts/tests/accept-m155-ef982afe-20261006`
+  (webrequest-probe, sandbox, devtoolkit, privacy-modes, http-auth,
+  import-sources, downloads-media, settings-sections, ubo-classic,
+  ws-cross-level-move) are queued and wait for an unlocked target console;
+  not yet run. Delivery to the development Mac follows their result.
+- **M155 fixes found by the build:** `browser_tests_runner` moved to
+  `//chrome/test/base` (6f0a8ed4); HTTP auth follows the base::expected
+  GetLogins result (dbf91513); sidebar reaches the LiveTabContext through
+  `BrowserLiveTabContext::From` (39b6b072); 0001 restores the `Browser`
+  friend of `TabHelpers` for popup overlays (3fd73307); toolchain pins
+  (6a24c6b9); tests: BrowserWindowInterface test window (fa9efa22), Mojo
+  init in the shell suite and the drag-overlay lifecycle (364d65f2),
+  canonical Zen paths (ef982afe).
+- **Checkout tooling:** milestone hydration through a scratch depth-1 fetch
+  (`docs/BUILDING.md`, 56c1e0b9); `git-lfs` needed by M155 sync (3f1a2295);
+  sync resume with dependency gitlink drift (709182b3, e4371b7b); restore
+  drops the empty Sparkle parent (0c131755). A stale M154
+  `devtools-frontend/node_modules/@rollup/rollup-darwin-arm64` hook artifact
+  was parked in `$AHOI_WORK_ROOT/state/m155-roll-parked/`.
+
 ## .98 accepted on target; M155 roll source-complete, build running — 5 October 2026
 
 - **Owner decisions:** AnyChat is out of v1 scope; Stable may be followed
