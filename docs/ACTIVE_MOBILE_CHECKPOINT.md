@@ -87,6 +87,15 @@ binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
   replace the inadequate assumptions; folder cell double-tap must enter the
   title-bound root before confirmation. Original1b43 xcresult/AX retained;
   no focused tests or successful import claimed.
+  Candidateba139fc1 then built/signed/bound; fresh52.49/50.78%idle allowed runner51494.
+  Terminal65: native reviewed-folder import/load/unload PASS40.75s; cancellation
+  FAIL31.12s at the visible Other's hittability precondition. No skips/focused
+  runtime execution. Cleanup verified Shutdown/input removal/lock release.
+  Cancellation now taps the observed control frame and requires the real Files
+  picker to disappear, import to stay enabled and no unload context to appear.
+  Next: only this affected cancellation on the corrected exact candidate, then
+  five runtime boundaries and one separate native review. The import test and
+  product code are unchanged by that final test correction.
   Next: rebuild corrected exact candidate, retry only the failed import,
   then five existing runtime boundaries and one separate native review.
 - Next independent Mobile action: complete ADR0012 Step1's real Files import,
