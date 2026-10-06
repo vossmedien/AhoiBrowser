@@ -236,6 +236,18 @@ bool BrowserSidebarHostView::IsCommandIdChecked(int command_id) const {
 }
 
 bool BrowserSidebarHostView::IsCommandIdEnabled(int command_id) const {
+  if (context_.scope == ContextMenuScope::kMultiSelection) {
+    if (command_id == kMultiCloseTabsCommand && close_all_temporary_) {
+      return false;
+    }
+    // The menu builder already filters actions for this selection. These IDs
+    // must not fall through to the single-node menu's disabled default.
+    return (context_.model &&
+            context_.model->GetIndexOfCommandId(command_id).has_value()) ||
+           (context_move_menu_model_ &&
+            context_move_menu_model_->GetIndexOfCommandId(command_id)
+                .has_value());
+  }
   if (command_id == kArrangeSplit) {
     return context_.split_arrange_model != nullptr;
   }

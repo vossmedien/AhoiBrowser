@@ -146,31 +146,26 @@ class BrowserSidebarHostView final
   bool UndoLastMutationIfAvailable();
   bool ActivateRelativeWorkspace(int delta);
   bool ActivateRelativeWorkspaceByGesture(int delta);
-
   // Walk the active Workspace's sidebar tab stops; null `index` is the last.
   base::WeakPtr<tabs::TabInterface> ResolveRelativeRuntimeTab(int delta) const;
   base::WeakPtr<tabs::TabInterface> ResolveNumberedRuntimeTab(
       std::optional<size_t> index) const;
   bool ActivateRelativeRuntimeTab(int delta);
-
   // `index` counts the process-wide order of the shared switcher (ADR 0011
   // step 2), not only this Profile's Workspaces.
   bool ActivateWorkspaceAtIndex(size_t index);
   bool ActivateWorkspaceById(const base::Uuid& workspace_id);
-
   bool RevealFolder(const base::Uuid& folder_id);
   bool MoveSelectionToWorkspace(const base::Uuid& workspace_id, bool dry_run);
   bool MoveSelectionAcrossLevels(const base::Uuid& workspace_id, bool dry_run);
   // Command bar "Zusammenführen mit …": the Workspace menu's merge dialog for
   // the shown Workspace into `target_id`, shown after the command bar closed.
   bool ShowWorkspaceMergeDialog(const base::Uuid& target_id, bool dry_run);
-
   bool SetSidebarPresentationMode(SidebarPresentationMode mode);
   bool ToggleFloatingSidebar();
   bool ToggleSidebarVisibility();
   bool RestoreSidebar();
   void OnSidebarPresentationSettled();
-
   BrowserSidebarSplitDropSource ResolveSplitDropSource(
       const drag::SidebarTabDragPayload& payload,
       bool activate_saved_page);
@@ -544,6 +539,8 @@ class BrowserSidebarHostView final
                               const gfx::Point& screen_point,
                               ui::mojom::MenuSourceType source_type);
   bool RunMultiSelectionCommand(int command_id);
+  void CloseMultiSelectedTabs(std::vector<base::Uuid> ids);
+  void CompleteMultiSelectionClose();
   std::vector<base::Uuid> GetMultiSelectionRowOrder() const override;
   std::optional<base::Uuid> GetMultiSelectionActiveNode() const override;
   void OnMultiSelectionChanged() override;
@@ -787,8 +784,11 @@ class BrowserSidebarHostView final
   base::CallbackListSubscription session_presentation_subscription_;
   base::CallbackListSubscription shared_tab_capture_subscription_;
   std::optional<sync::LocalTabCapture> observed_shared_tabs_;
-  // Running before-unload group question of "close all temporary tabs".
+  // Shared before-unload lock for temporary-tab and multi-selection closes.
   std::unique_ptr<session::GroupPageClose> close_all_temporary_;
+  std::vector<base::WeakPtr<tabs::TabInterface>> multi_selection_closing_tabs_;
+  std::vector<base::CallbackListSubscription> multi_selection_close_subscriptions_;
+  bool multi_selection_close_agreed_ = false;
   // WS-ISO-05: a sidebar item dragged from another Profile's window.
   base::WeakPtr<BrowserSidebarHostView> cross_level_drop_source_;
   raw_ptr<views::View> cross_level_drop_overlay_ = nullptr;

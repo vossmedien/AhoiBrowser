@@ -20,6 +20,7 @@
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
 #include "components/tabs/public/tab_interface.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
@@ -225,28 +226,10 @@ bool BrowserSidebarHostView::RunMultiSelectionCommand(int command_id) {
     return true;
   }
   if (command_id == kMultiCloseTabsCommand) {
-    std::vector<base::Uuid> requested;
-    for (const base::Uuid& id : ids) {
-      if (tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(id)) {
-        requested.push_back(id);
-        tab->Close();
-      }
-    }
-    // A page with a beforeunload handler keeps its tab until the user
-    // answers, and cancelling keeps it open. Count only tabs that are gone and
-    // keep the selection while any is still open, so the user can retry.
-    size_t closed = 0;
-    for (const base::Uuid& id : requested) {
-      if (!session_bridge_->FindTabByTreeNodeId(id)) {
-        ++closed;
-      }
-    }
-    if (closed == requested.size()) {
-      tree_view_->ClearMultiSelection();
-    }
-    if (closed > 0) {
-      toast::Show(browser_, toast::Event::kClosed, std::u16string(), closed);
-    }
+    // Leave the native menu loop before prompting or destroying any tab views.
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(&BrowserSidebarHostView::CloseMultiSelectedTabs,
+                                  weak_ptr_factory_.GetWeakPtr(), ids));
     return true;
   }
   if (command_id == kMultiArchiveCommand) {
@@ -298,6 +281,76 @@ bool BrowserSidebarHostView::RunMultiSelectionCommand(int command_id) {
   toast::Show(browser_, toast::Event::kMovedToWorkspace,
               workspaces[index].name, ids.size());
   return true;
+}
+
+void BrowserSidebarHostView::CloseMultiSelectedTabs(std::vector<base::Uuid> ids) {
+  // Share the existing group-close lock with "close all temporary tabs".
+  if (close_all_temporary_ || !session_bridge_) {
+    return;
+  }
+  std::vector<content::WebContents*> pages;
+  for (const base::Uuid& id : ids) {
+    if (tabs::TabInterface* tab = session_bridge_->FindTabByTreeNodeId(id)) {
+      multi_selection_closing_tabs_.push_back(tab->GetWeakPtr());
+      pages.push_back(tab->GetContents());
+    }
+  }
+  if (pages.empty()) {
+    return;
+  }
+  for (const auto& tab : multi_selection_closing_tabs_) {
+    multi_selection_close_subscriptions_.push_back(tab->RegisterWillDetach(
+        base::BindRepeating(
+            [](base::WeakPtr<BrowserSidebarHostView> view,
+               tabs::TabInterface*, tabs::TabInterface::DetachReason reason) {
+              if (view && reason == tabs::TabInterface::DetachReason::kDelete) {
+                // WillDetach runs before deletion. Check the native weak
+                // identities after the tab-mutation scope has unwound.
+                base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
+                    FROM_HERE,
+                    base::BindOnce(
+                        &BrowserSidebarHostView::CompleteMultiSelectionClose,
+                        view));
+              }
+            },
+            weak_ptr_factory_.GetWeakPtr())));
+  }
+  close_all_temporary_ = session::GroupPageClose::Ask(
+      std::move(pages),
+      base::BindOnce(
+          [](base::WeakPtr<BrowserSidebarHostView> view, bool all_agreed) {
+            if (!view) {
+              return;
+            }
+            if (!all_agreed) {
+              view->multi_selection_close_subscriptions_.clear();
+              view->multi_selection_closing_tabs_.clear();
+              view->close_all_temporary_.reset();
+              return;
+            }
+            view->multi_selection_close_agreed_ = true;
+            view->close_all_temporary_->ClosePages();
+          },
+          weak_ptr_factory_.GetWeakPtr()));
+}
+
+void BrowserSidebarHostView::CompleteMultiSelectionClose() {
+  if (!multi_selection_close_agreed_ ||
+      std::ranges::any_of(multi_selection_closing_tabs_,
+                          [](const auto& tab) { return !!tab; })) {
+    return;
+  }
+  const size_t closed = multi_selection_closing_tabs_.size();
+  multi_selection_close_agreed_ = false;
+  multi_selection_close_subscriptions_.clear();
+  multi_selection_closing_tabs_.clear();
+  close_all_temporary_.reset();
+  if (tree_view_) {
+    tree_view_->ClearMultiSelection();
+  }
+  if (closed > 0) {
+    toast::Show(browser_, toast::Event::kClosed, std::u16string(), closed);
+  }
 }
 
 }  // namespace ahoi::sidebar

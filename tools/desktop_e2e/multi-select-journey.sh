@@ -78,15 +78,61 @@ expect_selected escapeClears "Alpha"
 click Beta cmd
 click Gamma cmd
 expect_selected reselect "Alpha Beta Gamma"
+# A veto by one selected page must keep the whole batch open (handoff 006).
+node "$S/cdp.mjs" $PORT Beta.html Runtime.evaluate \
+  '{"expression":"window.onbeforeunload=e=>{e.preventDefault();e.returnValue=\"keep\";return \"keep\";};typeof window.onbeforeunload===\"function\"","userGesture":true,"returnByValue":true}' \
+  > "$OUT/before-unload-installed.json"
+python3 - "$OUT/before-unload-installed.json" <<'PYUNLOAD'
+import json, sys
+sys.exit(0 if json.load(open(sys.argv[1])).get('result', {}).get('value') is True else 1)
+PYUNLOAD
+[ "$?" = 0 ] || { finish "before-unload fixture not confirmed"; quit; exit 4; }
 r=$(row Beta); $AX activate $PID >/dev/null
 $AX hidrightclick $PID "${r/ | /:}" >> "$OUT/steps.txt"
 if waitax "3 Einträge ausgewählt|3 items selected" 5; then record menuTitle true; else
   $AX dump $PID 14 > "$OUT/ax-no-menu.txt"; record menuTitle false; fi
+# AXPress can report success for a disabled native item without dispatching it.
+# Exercise the production menu delegate's enabled boundary before pressing.
+{ $AX enabled $PID "Offene Tabs schließen"; $AX enabled $PID "Close open tabs"; } \
+  > "$OUT/close-command-enabled.txt"
+grep -q 'enabled=true' "$OUT/close-command-enabled.txt" \
+  && record closeCommandEnabled true || record closeCommandEnabled false
+$AX press $PID "AXMenuItem:Offene Tabs schließen" >> "$OUT/steps.txt" \
+  || $AX press $PID "AXMenuItem:Close open tabs" >> "$OUT/steps.txt"
+waitax 'AXDialog|AXSheet' 5 && record beforeUnloadPrompt true || record beforeUnloadPrompt false
+$AX dump $PID 14 > "$OUT/ax-before-unload.txt"
+node "$S/cdp.mjs" $PORT Beta.html Page.handleJavaScriptDialog '{"accept":false}' \
+  > "$OUT/before-unload-cancelled.json"
+python3 - "$OUT/before-unload-cancelled.json" <<'PYCANCEL'
+import json, sys
+sys.exit(1 if 'error' in json.load(open(sys.argv[1])) else 0)
+PYCANCEL
+[ "$?" = 0 ] && record vetoAccepted true || record vetoAccepted false
+sleep 1
+[ "$(page_count)" = "$PAGES0" ] && record vetoKeepsAllTabs true || record vetoKeepsAllTabs false
+$AX dump $PID 14 > "$OUT/ax-after-veto.txt"
+grep -q -E '[0-9]+ Tabs? geschlossen|[0-9]+ tabs? closed' "$OUT/ax-after-veto.txt" \
+  && record vetoHasNoClosedToast false || record vetoHasNoClosedToast true
+node "$S/cdp.mjs" $PORT Beta.html Runtime.evaluate \
+  '{"expression":"window.onbeforeunload=null;window.onbeforeunload===null","returnByValue":true}' \
+  > "$OUT/before-unload-cleanup.json"
+python3 - "$OUT/before-unload-cleanup.json" <<'PYCLEANUP'
+import json, sys
+sys.exit(0 if json.load(open(sys.argv[1])).get('result', {}).get('value') is True else 1)
+PYCLEANUP
+[ "$?" = 0 ] || { finish "before-unload cleanup not confirmed"; quit; exit 4; }
+# Retry the same selection after the veto; the original success gates remain.
+r=$(row Beta); $AX activate $PID >/dev/null
+$AX hidrightclick $PID "${r/ | /:}" >> "$OUT/steps.txt"
+waitax "3 Einträge ausgewählt|3 items selected" 5 \
+  && record selectionKeptAfterVeto true || record selectionKeptAfterVeto false
 $AX press $PID "AXMenuItem:Offene Tabs schließen" >> "$OUT/steps.txt" \
   || $AX press $PID "AXMenuItem:Close open tabs" >> "$OUT/steps.txt"
 if waitax "3 Tabs geschlossen|3 tabs closed" 6; then record closedToast true; else
   $AX dump $PID 14 > "$OUT/ax-no-closed-toast.txt"; record closedToast false; fi
 sleep 2; echo "pages after: $(page_count)" >> "$OUT/steps.txt"
 [ "$(page_count)" -le $((PAGES0 - 3)) ] && record tabsClosed true || record tabsClosed false
+curl -fsS http://127.0.0.1:$PORT/json | python3 -c 'import json,sys;sys.exit(0 if [t["title"] for t in json.load(sys.stdin) if t["type"]=="page"]==["Mehrfach-Delta"] else 1)' \
+  && record unselectedDeltaSurvives true || record unselectedDeltaSurvives false
 quit
 finish ""
