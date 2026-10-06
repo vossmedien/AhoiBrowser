@@ -67,6 +67,7 @@ source_set("unit_tests") {
     "//ahoi/browser/ui:visual_style",
     "//base/test:test_support",
     "//cc",
+    "//skia",
     "//testing/gtest",
     "//ui/compositor",
     "//ui/compositor:test_support",
