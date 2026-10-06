@@ -271,6 +271,8 @@
 		FC1C6805E9439CFA917C7D3C /* CompanionLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E01BE52036B7FAD9090FDF2 /* CompanionLocalization.swift */; };
 		FE94C62CBA6243049AF7F983 /* CompanionKeyLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9C2845A5EF542C6472FF69 /* CompanionKeyLifecycle.swift */; };
 		FECACF5944E72ACC9B949E50 /* MobileStoragePreparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89B5248C71BDE3FA4263ED56 /* MobileStoragePreparation.swift */; };
+		AD124DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */; };
+		AD12212FDAE7A78D8410BDEB /* MobileADR0012UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD13212FDAE7A78D8410BDEB /* MobileADR0012UITestSupport.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -615,6 +617,8 @@
 		FB5ECC343ECD8C768FF9BFD3 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		FE025BC2968C42A58E51D016 /* SharedTabFrozenContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTabFrozenContractTests.swift; sourceTree = "<group>"; };
 		FFF7229A3B3A9217E78A1BD7 /* MobileDownloadCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileDownloadCoordinator.swift; sourceTree = "<group>"; };
+		AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWebExtensionSpikeUITests.swift; sourceTree = "<group>"; };
+		AD13212FDAE7A78D8410BDEB /* MobileADR0012UITestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileADR0012UITestSupport.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1060,6 +1064,8 @@
 				753A26D1A6ADE6B5FE5B41FF /* MobileBrowserLayoutUITests+HarborDeck.swift */,
 				B0B0C0DE000000000000A004 /* MobileSavedPageHomeUITests.swift */,
 				B0B0C0DE000000000000A002 /* MobileLinkPeekUITests.swift */,
+				AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */,
+				AD13212FDAE7A78D8410BDEB /* MobileADR0012UITestSupport.swift */,
 				673ABD08F307B3D87A546484 /* MobileBrowserPrivacyPermissionUITests.swift */,
 				919C4D08CEE2159945C5E22E /* MobileBrowserPrivateDataRealE2EUITests.swift */,
 				E2640FCCACDF5FE3656DCB85 /* MobileBrowserRealE2ETestSupport.swift */,
@@ -1317,6 +1323,8 @@
 				B0B0C0DE000000000000A003 /* MobileSavedPageHomeUITests.swift in Sources */,
 				B0B0C0DE000000000000A001 /* MobileLinkPeekUITests.swift in Sources */,
 				24D864B594D469FF0D9D90A2 /* MobileBrowserLayoutUITests.swift in Sources */,
+				AD124DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift in Sources */,
+				AD12212FDAE7A78D8410BDEB /* MobileADR0012UITestSupport.swift in Sources */,
 				C13A3C7F0F3652428126BA0F /* MobileBrowserPrivacyPermissionUITests.swift in Sources */,
 				5A3CA7FFA1EB9AC11A2927BB /* MobileBrowserPrivateDataRealE2EUITests.swift in Sources */,
 				89ED626F70E47073B425690F /* MobileBrowserRealE2ETestSupport.swift in Sources */,

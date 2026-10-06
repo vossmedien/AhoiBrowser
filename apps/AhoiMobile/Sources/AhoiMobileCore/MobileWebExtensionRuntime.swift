@@ -94,14 +94,16 @@ public final class MobileWebExtensionRuntime {
         }
         filesImportInProgress = true
         defer { filesImportInProgress = false }
-        guard sourceURL.isFileURL,
-              try sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else {
+        guard sourceURL.isFileURL else {
+            throw FilesSpikeError.notUnpackedFolder
+        }
+        // Files-provider access must precede even directory metadata reads.
+        let hasScope = sourceURL.startAccessingSecurityScopedResource()
+        defer { if hasScope { sourceURL.stopAccessingSecurityScopedResource() } }
+        guard try sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else {
             throw FilesSpikeError.notUnpackedFolder
         }
         guard let bundled = Self.spikeExtensionURL else { throw CocoaError(.fileNoSuchFile) }
-
-        let hasScope = sourceURL.startAccessingSecurityScopedResource()
-        defer { if hasScope { sourceURL.stopAccessingSecurityScopedResource() } }
         let staged = FileManager.default.temporaryDirectory.appendingPathComponent(
             "Ahoi-WebExtension-Spike-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: staged, withIntermediateDirectories: false)
