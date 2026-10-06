@@ -172,6 +172,13 @@ TEST_F(KeyboardShortcutsTest, FocusAddressBarUsesOptionCommandT) {
   EXPECT_FALSE(CommandForAccelerator({}, Key(ui::VKEY_T, kCmd | kShift)));
 }
 
+TEST_F(KeyboardShortcutsTest, ControlTOpensTheTabSwitcher) {
+  const ShortcutCommand* command = FindCommand(kTabSwitcher);
+  ASSERT_TRUE(command);
+  EXPECT_TRUE(command->rebindable);
+  EXPECT_EQ(kTabSwitcher, CommandForAccelerator({}, Key(ui::VKEY_T, kCtrl)));
+}
+
 TEST_F(KeyboardShortcutsTest, FormerlyFixedCommandsKeepTheirDefaults) {
   const struct {
     const char* id;

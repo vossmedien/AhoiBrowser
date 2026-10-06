@@ -1,0 +1,63 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+# Ordering and keyboard movement; no browser dependency.
+source_set("tab_switcher_model") {
+  sources = [
+    "tab_switcher_model.cc",
+    "tab_switcher_model.h",
+  ]
+  public_deps = [
+    "//base",
+    "//url",
+  ]
+}
+
+# The ⌃T panel of one browser window (user decision 6 October 2026).
+source_set("tab_switcher") {
+  sources = [
+    "tab_switcher_controller.cc",
+    "tab_switcher_controller.h",
+    "tab_switcher_view.cc",
+    "tab_switcher_view.h",
+  ]
+  public_deps = [
+    ":tab_switcher_model",
+    "//ahoi/browser/ui/appearance",
+    "//components/tabs:public",
+    "//ui/views",
+  ]
+  deps = [
+    "//ahoi/browser/navigation",
+    "//ahoi/browser/session:session_bridge_api",
+    "//ahoi/browser/ui:modal_overlay",
+    "//ahoi/browser/ui:visual_style",
+    "//ahoi/browser/ui/sidebar:browser_sidebar",
+    "//ahoi/browser/ui/sidebar:sidebar_runtime_drop_targets",
+    "//base:i18n",
+    "//cc/paint",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/tabs:tab_strip",
+    "//components/prefs",
+    "//components/split_tabs",
+    "//content/public/browser",
+    "//skia",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/color",
+    "//ui/events",
+    "//ui/gfx",
+  ]
+}
+
+test("ahoi_tab_switcher_unittests") {
+  sources = [ "tab_switcher_model_unittest.cc" ]
+  deps = [
+    ":tab_switcher_model",
+    "//base/test:run_all_unittests",
+    "//testing/gtest",
+  ]
+}

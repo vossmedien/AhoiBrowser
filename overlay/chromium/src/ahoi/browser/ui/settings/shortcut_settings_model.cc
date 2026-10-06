@@ -85,6 +85,12 @@ std::string Hint(std::string_view id) {
                 "Shows the navigation bar and selects the address; typing "
                 "replaces it. ⇧⌘T still reopens closed tabs.");
   }
+  if (id == shortcuts::kTabSwitcher) {
+    return Text("Zeigt die offenen Tabs dieses Workspace; Pfeiltasten wählen, "
+                "↵ öffnet, W schließt.",
+                "Shows this Workspace's open tabs; arrow keys choose, Return "
+                "opens, W closes.");
+  }
   if (id == shortcuts::kSidebarUndo) {
     return Text("Nur wenn die Seitenleiste etwas zurücknehmen kann; sonst "
                 "gilt das normale Rückgängig.",

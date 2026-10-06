@@ -2214,6 +2214,19 @@ above.
 - **Test:** focused Mojo/content tests; cache12 journey.
 - **Rebase/removal:** drop with the tab-cache policy.
 
+## `0096-ahoi-tab-switcher.patch`
+
+The Arc-style tab switcher (user decision 6 October 2026, design reference
+`design/references/2026-10-06/01`). `BrowserView::HandleAhoiShortcutCommand`
+handles the rebindable catalog command `tab.switcher` (default ⌃T) by
+creating, on first use, one `ahoi::tab_switcher::TabSwitcherController`
+(`overlay/.../ui/tab_switcher`) per window, like the command bar, and
+toggling it. The controller lists only the open tabs of the window's active
+Workspace and shows its panel through the shared `ModalOverlayController`.
+The destructor resets it next to the command bar controller, before the
+modal overlay it uses. `chrome/browser/ui` gains a dependency on
+`//ahoi/browser/ui/tab_switcher`.
+
 ## `0095-ahoi-action-toasts.patch`
 
 Ahoi's action confirmations (user decision 6 October 2026, from the Crest

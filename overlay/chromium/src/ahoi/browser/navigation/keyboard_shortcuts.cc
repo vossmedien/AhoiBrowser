@@ -76,6 +76,11 @@ std::vector<ShortcutCommand> BuildCatalog() {
                             u"Zum zuletzt benutzten Tab",
                             u"Switch to the last used tab",
                             {Key(ui::VKEY_TAB, kCtrl | kAlt)}));
+  // Control+T is free in Chromium on macOS; in text fields it would
+  // transpose characters, which the open switcher never contains.
+  catalog.push_back(Command(kTabSwitcher, ShortcutCategory::kTab,
+                            u"Tabs wechseln", u"Switch tabs",
+                            {Key(ui::VKEY_T, kCtrl)}));
   catalog.push_back(Command(kSaveTab, ShortcutCategory::kTab,
                             u"Tab speichern", u"Save tab",
                             {Key(ui::VKEY_D, kCmd)}));

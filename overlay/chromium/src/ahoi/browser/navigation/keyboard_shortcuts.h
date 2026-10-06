@@ -71,6 +71,9 @@ inline constexpr char kSaveTab[] = "tab.save";
 // Reveals the floating navigation and selects the address (⌥⌘T), so typing
 // replaces the current page's address.
 inline constexpr char kFocusAddressBar[] = "browser.focus-address-bar";
+// The Arc-style tab switcher of the active Workspace (⌃T, user decision
+// 6 October 2026).
+inline constexpr char kTabSwitcher[] = "tab.switcher";
 
 const std::vector<ShortcutCommand>& Catalog();
 const ShortcutCommand* FindCommand(std::string_view id);

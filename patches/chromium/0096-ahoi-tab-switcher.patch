@@ -1,0 +1,72 @@
+diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
+--- a/chrome/browser/ui/BUILD.gn
++++ b/chrome/browser/ui/BUILD.gn
+@@ -2735,6 +2735,7 @@
+       "//ahoi/browser/ui/shell:navigation_surface_controller",
+       "//ahoi/browser/ui/sidebar:browser_sidebar",
+       "//ahoi/browser/ui/split_drop",
++      "//ahoi/browser/ui/tab_switcher",
+     ]
+ 
+     # Ahoi's Views command bar is hosted by BrowserView and therefore includes
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -37,6 +37,7 @@
+ #include "ahoi/browser/ui/split_drop/split_drop_overlay_view.h"
+ #include "ahoi/browser/ui/split_drop/split_keyboard_actions.h"
+ #include "ahoi/browser/ui/split_drop/split_pane_binding_lifecycle.h"
++#include "ahoi/browser/ui/tab_switcher/tab_switcher_controller.h"
+ #include "ahoi/browser/ui/toast/ahoi_toast.h"
+ #include "ahoi/browser/ui/visual_style.h"
+ #include "base/auto_reset.h"
+@@ -1508,6 +1509,7 @@
+ #endif
+   ahoi_split_drop_controller_.reset();
+   ahoi_command_bar_controller_.reset();
++  ahoi_tab_switcher_controller_.reset();
+   ahoi_developer_toolkit_controller_.reset();
+   ahoi_privacy_mode_controller_.reset();
+ 
+@@ -6303,6 +6305,17 @@
+            !profile->IsOffTheRecord() &&
+            AhoiQuickWindowGlobalShortcut::GetInstance()->Activate();
+   }
++  if (command_id == shortcuts::kTabSwitcher) {
++    if (!contents_container()) {
++      return false;
++    }
++    if (!ahoi_tab_switcher_controller_) {
++      ahoi_tab_switcher_controller_ =
++          std::make_unique<ahoi::tab_switcher::TabSwitcherController>(
++              browser_.get(), ahoi_modal_overlay_controller_.get());
++    }
++    return ahoi_tab_switcher_controller_->Toggle();
++  }
+   auto* tree = vertical_tab_strip_region_view_
+                    ? vertical_tab_strip_region_view_->ahoi_sidebar_tree_view()
+                    : nullptr;
+diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
+--- a/chrome/browser/ui/views/frame/browser_view.h
++++ b/chrome/browser/ui/views/frame/browser_view.h
+@@ -110,6 +110,9 @@
+ class ModalOverlayController;
+ class NavigationSurfaceController;
+ class PrivacyModeController;
++namespace tab_switcher {
++class TabSwitcherController;
++}  // namespace tab_switcher
+ class WorkspaceSwipeEventHandler;
+ namespace drag {
+ struct SidebarTabDragPayload;
+@@ -1407,6 +1410,10 @@
+   // one BrowserView makes bubble and profile lifetimes explicit.
+   std::unique_ptr<ahoi::CommandBarController> ahoi_command_bar_controller_;
+ 
++  // Lazily created on the first ⌃T, like the command bar.
++  std::unique_ptr<ahoi::tab_switcher::TabSwitcherController>
++      ahoi_tab_switcher_controller_;
++
+   // Registers the rebindable catalog shortcuts with the focus manager and
+   // follows the user's bindings.
+   std::unique_ptr<ahoi::shortcuts::ShortcutRegistration> ahoi_shortcuts_;
