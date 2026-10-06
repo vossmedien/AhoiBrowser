@@ -21,7 +21,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/time/time.h"
 #include "components/tabs/public/tab_interface.h"
-#include "ui/base/models/simple_menu_model.h"
+#include "ui/menus/simple_menu_model.h"
 #include "ui/views/controls/menu/menu_runner.h"
 #include "ui/views/widget/widget.h"
 

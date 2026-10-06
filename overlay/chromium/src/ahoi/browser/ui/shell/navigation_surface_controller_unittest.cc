@@ -16,6 +16,7 @@
 #include "ui/compositor/compositor.h"
 #include "ui/compositor/layer.h"
 #include "ui/compositor/layer_not_drawn.h"
+#include "ui/compositor/layer_test_api.h"
 #include "ui/compositor/test/draw_waiter_for_test.h"
 #include "ui/gfx/geometry/rounded_corners_f.h"
 #include "ui/gfx/geometry/transform.h"
@@ -157,7 +158,7 @@ TEST_F(NavigationSurfaceControllerTest, GlassBlurIsClippedToTheRoundedRow) {
   surface.corner_radius = 14;
   appearance::ClipBackdropToRoundedBounds(&layer, surface);
   const std::optional<SkPath> bounds =
-      layer.cc_layer_for_testing()->backdrop_filter_bounds();
+      ui::LayerTestApi(&layer).cc_layer()->backdrop_filter_bounds();
   ASSERT_TRUE(bounds.has_value());
   SkRRect rrect;
   ASSERT_TRUE(bounds->isRRect(&rrect));
@@ -169,7 +170,7 @@ TEST_F(NavigationSurfaceControllerTest, GlassBlurIsClippedToTheRoundedRow) {
   surface.corner_radius = 0;
   appearance::ClipBackdropToRoundedBounds(&layer, surface);
   const std::optional<SkPath> cleared =
-      layer.cc_layer_for_testing()->backdrop_filter_bounds();
+      ui::LayerTestApi(&layer).cc_layer()->backdrop_filter_bounds();
   EXPECT_FALSE(cleared.has_value() && cleared->isRRect(nullptr));
 }
 
