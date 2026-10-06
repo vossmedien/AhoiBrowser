@@ -56,7 +56,7 @@ std::vector<base::Uuid> BrowserSidebarHostView::GetMultiSelectionRowOrder() cons
       }
       return;
     }
-    for (auto* child : root->children()) {
+    for (views::View* child : root->children()) {
       self(self, child);
     }
   };
@@ -83,7 +83,7 @@ void BrowserSidebarHostView::OnMultiSelectionChanged() {
                              id && tree_view_->IsMultiSelected(*id));
       return;
     }
-    for (auto* child : root->children()) {
+    for (views::View* child : root->children()) {
       self(self, child);
     }
   };

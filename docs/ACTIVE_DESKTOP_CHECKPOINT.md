@@ -1,6 +1,6 @@
 # Active Desktop checkpoint
 
-## Codex continuation: frozen candidate resumed after SSD loss — 6 October 2026
+## Codex continuation: resumed build terminal; own compiler fixes prepared — 6 October 2026
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no
@@ -155,9 +155,27 @@
   contains369 commits/1,341 changed files, including Mobile/Sync work. Preserve
   attributable accepted changes and unresolved device/sync gates; do not blindly
   merge that whole branch after only sidebar/switcher acceptance.
-- Next authorized step: await the resumed frozen47885f36 runner47404 via
-  its actual terminal phase receipt; do not
-  restart source preparation or a full build. On compile/sign/provenance success,
+- Resumed47885f36 runner47404 is now terminal1 at20:15:16Z; Ninja completed its
+  remaining independent work and stopped at own source compile errors. Approved
+  SSD is present; this terminal is product/compiler, not another USB abort.
+  Four distinct causes traced: two new non-empty inline virtual defaults violate
+  Chromium style; auto* cannot deduce through children() raw_ptr; vector-icon
+  return needs complete ImageSkia; WeakPtr method bind cannot return bool. Source
+  corrections use the EXISTING delegate.cc for defaults, explicit View* loops,
+  one ImageSkia include and the adjacent established guarded-lambda pattern.
+  No changed behavior, test weakening, dependency or new helper abstraction.
+  Full original build-ssh.log and phase receipts retained, resumable outputs and
+  existing pins preserved. Recheck source/locks and three-sample host admission
+  before applying/building the corrected candidate, never another cold output.
+- Mobile backup parked at its useful cutpoint: reviewed Files scope and visible
+  4/5 proof led to isolated main3ff98d04 (2 UI +5 runtime PASS), then native review
+  found missing fixture self-check;7495fe65 (4 UI +5 runtime PASS) review found
+  the second-page report could be stale. Both validated/fixed. Main candidate
+  13423f52 is built on same owned Mobile scratch; token-bound affected UI/focused
+  execution/review/default integration still pending. Current Mobile checkpoint
+  owns that exact resumption. No Mobile UI runtime or competing release started.
+- Next authorized step: freeze/apply own C++ compiler corrections, guarded
+  incremental build on the preserved internal output after admission. On compile/sign/provenance success,
   run prepared target `~/inhouse/evidence/ahoi-47885f36/accept.sh` for guarded
   installation, five affected visible journeys and focused native checks.
   Diagnose a real failure at its boundary and preserve the original evidence.

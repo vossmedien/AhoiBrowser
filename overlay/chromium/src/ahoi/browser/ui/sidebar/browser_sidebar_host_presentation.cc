@@ -458,8 +458,13 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
             },
             weak_ptr_factory_.GetWeakPtr()),
         this, std::move(origin_badge), bookmarked,
-        base::BindRepeating(&BrowserSidebarHostView::OnRuntimeMultiSelect,
-                            weak_ptr_factory_.GetWeakPtr()));
+        base::BindRepeating(
+            [](base::WeakPtr<BrowserSidebarHostView> host,
+               base::WeakPtr<tabs::TabInterface> tab,
+               const ui::MouseEvent& event) {
+              return host && host->OnRuntimeMultiSelect(tab, event);
+            },
+            weak_ptr_factory_.GetWeakPtr()));
   };
 
   // Rebuild temporary and mixed split rows directly from Chromium's

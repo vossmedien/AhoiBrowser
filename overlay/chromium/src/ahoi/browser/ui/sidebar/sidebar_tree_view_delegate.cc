@@ -5,6 +5,16 @@
 
 namespace ahoi::sidebar {
 
+std::vector<base::Uuid> SidebarTreeViewDelegate::GetMultiSelectionRowOrder()
+    const {
+  return {};
+}
+
+std::optional<base::Uuid> SidebarTreeViewDelegate::GetMultiSelectionActiveNode()
+    const {
+  return std::nullopt;
+}
+
 bool SidebarTreeViewDelegate::IsSavedPageBookmarked(
     const tab_tree::TreeNode&) const {
   return false;

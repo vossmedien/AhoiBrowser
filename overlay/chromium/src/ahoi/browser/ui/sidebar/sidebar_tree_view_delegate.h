@@ -30,10 +30,8 @@ namespace ahoi::sidebar {
 class SidebarTreeViewDelegate {
  public:
   virtual ~SidebarTreeViewDelegate() = default;
-  virtual std::vector<base::Uuid> GetMultiSelectionRowOrder() const { return {}; }
-  virtual std::optional<base::Uuid> GetMultiSelectionActiveNode() const {
-    return std::nullopt;
-  }
+  virtual std::vector<base::Uuid> GetMultiSelectionRowOrder() const;
+  virtual std::optional<base::Uuid> GetMultiSelectionActiveNode() const;
   virtual void OnMultiSelectionChanged() {}
 
   virtual void ActivateSavedPage(const tab_tree::TreeNode&) {}
