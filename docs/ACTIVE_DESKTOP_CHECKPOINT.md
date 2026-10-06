@@ -33,15 +33,25 @@
   ref and failed test lookup; this was a preparation/harness error, not a product
   verdict. A subsequent bundle fetch named a nonexistent branch ref; corrected
   to the bundle's actual `HEAD` before the successful exact-source check.
-- Actual guarded runner PID63840 started 6 October14:16:44Z, owns
-  `/Volumes/Daten/Inhouse/AhoiBrowser/work/state/desktop-build.lock`; source
-  integration is in progress. Output is newly allocated internal
+- First runner PID63840 ended14:18:48Z BEFORE compilation: GUI session denied
+  access to external Sparkle Info.plist. Original `build/gui.log` is retained.
+  This is access, not a product/build-syntax failure; own lock released.
+  Corrected existing SSH compile -> GUI signing on internal bundle -> SSH exact
+  provenance flow started as PID67053 at14:20:53Z, same frozen source/output,
+  owns `/Volumes/Daten/Inhouse/AhoiBrowser/work/state/desktop-build.lock`.
+  Pinned GN and Ninja actually accept the external output location: at14:29Z,
+  1,874/60,625 build steps completed, four Ninja jobs. This is a fresh full
+  output build; incremental reuse was not claimed. Output is newly allocated internal
   `/Users/vossmedien/inhouse/scratch/ahoi-chromium.fMMeXkCh/AhoiDev`, no duplicate
   Chromium checkout and no SSD-output build. The old signed app/output remain
   until verified delivery. Logs/phase handle:
   `~/inhouse/evidence/ahoi-47885f36/{runner.sh,phases.log,apply.log,build/gui.log}`.
-  The build runs the real entrypoint in the target GUI signing session so its
-  signing/provenance gates can complete. Only related sidebar/switcher native
+  Real `build-ahoi.sh dev` runs over SSH with unchanged compile/stage gates;
+  only the known post-stamp SSH Keychain signing error may transfer to the
+  existing GUI signer, never a compile error. Final bundle/provenance must pass.
+  Prepared `accept.sh` runs guarded install, five affected visible journeys,
+  then four sidebar regressions and the switcher suite; it is NOT launched.
+  Only related sidebar/switcher native
   binaries are compiled; execution follows visible candidate acceptance.
 - Capacity at start: two samples71/80%CPU idle, swap I/O0, internal41GiB free,
   foreign simulator FC40455C/VM untouched; jobs4/nice10,20GiB declared growth,
@@ -58,8 +68,13 @@
   push also fails using the original global config. No token output, login,
   credential change or key copy. Orchestrator request
   `f0420b12-8895-4f3d-bf83-fe62864b5a9f` gets SOURCE_UNAVAILABLE and status
-  REQUEST_NOT_FOUND: no receipt/worker claimed; existing Crest/Panel identities
-  stay intact. Original failed client request459687b5 remains historical only.
+  REQUEST_NOT_FOUND: no orchestrator-message receipt/worker claimed. A distinct
+  bounded auth handoff `AHOI-GIT-AUTH-20261006` was submitted once through actual
+  `cockpit_delegate`: delegation `cb1e5d9c`, Codex/Caeli, own required Goal,
+  docs/reviews/2026-10-06-github-auth-handoff.md only. Cockpit confirms QUEUED,
+  not native start; destination/thread/config/Goal receipt still to verify.
+  Existing Crest/Panel identities stay intact. Original failed client request
+  459687b5 remains historical only.
 - Next authorized steps: finish minimal two-path correction, preserve original
   failures, configure internal build output without weakening source/path gates,
   build one clean frozen candidate on Inhouse; affected visible journeys, then
