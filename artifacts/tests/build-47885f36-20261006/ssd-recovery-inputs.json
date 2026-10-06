@@ -1,0 +1,20 @@
+{
+  "source": "47885f36",
+  "orphanPids": [
+    35778,
+    35825,
+    35828
+  ],
+  "originals": [
+    {
+      "id": "chromiumRustDepfileSpacePaths",
+      "restoredSha256": "98652ff31065e413500cc6c7ed7611d79534f27f58ddd99880b8fcc59715d88a",
+      "mtimePreserved": true
+    },
+    {
+      "id": "v8InspectorProtocolRelativeDepfilePaths",
+      "restoredSha256": "2d6b7a3f3bcb1becadc1bc9518d1016cd5d9eee221c8180c49c54350002ad619",
+      "mtimePreserved": true
+    }
+  ]
+}

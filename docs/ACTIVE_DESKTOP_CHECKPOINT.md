@@ -1,6 +1,6 @@
 # Active Desktop checkpoint
 
-## Codex continuation: original goal and rejected candidate — 6 October 2026
+## Codex continuation: frozen candidate resumed after SSD loss — 6 October 2026
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no
@@ -53,6 +53,25 @@
   then four sidebar regressions and the switcher suite; it is NOT launched.
   Only related sidebar/switcher native
   binaries are compiled; execution follows visible candidate acceptance.
+- First cold run PID67053 is terminal1 at16:40:20Z after about29,963/60,625
+  steps: the approved SSD disappeared, so Clang was missing, pinned Python
+  SIGBUSed and workaround restoration could not reach its targets. Infrastructure
+  failure, not a diagnosed product compiler error. Raw log retained as
+  `~/inhouse/evidence/ahoi-47885f36/build-ssh-ssd-abort-20261006T164020Z.log`;
+  [bounded original failure and recovery evidence](../artifacts/tests/build-47885f36-20261006/).
+  Approved APFS UUID ECA41777-8BB8-4520-A6EF-15102996F14B returned. Exact Chromium
+  and V8 pins, both retained original backups and patched target bytes verified;
+  originals restored byte-for-byte with original mtimes. Only this run's three
+  orphan Clangs35778/35825/35828, traced to its internal output, were stopped
+  (TERM ignored, then KILL); no foreign work stopped. Own stale lock removed
+  only after terminal/PID/source checks; outputs preserved.
+  One bounded resume started16:53:16Z, runner47404/build child48092, SAME frozen
+  source47885f36 and SAME internal output. Initial CPU samples showed saturation;
+  both own preparation processes were held before compilation and resumed after
+  fresh86.91/89.40%idle samples. At17:01Z actual Ninja had resumed197/30,663
+  remaining steps. This is incremental continuation, not another cold output.
+  Runner47404 owns the new build lock. Repeated SSD loss needs diagnosis before
+  another retry; user permission to continue does not prove hardware repaired.
 - Capacity at start: two samples71/80%CPU idle, swap I/O0, internal41GiB free,
   foreign simulator FC40455C/VM untouched; jobs4/nice10,20GiB declared growth,
   unchanged8GiB reserve. No Ahoi-named containers exist on the target. New user
@@ -103,12 +122,13 @@
   completed panel source handoff `10430ad4e26ef193dabee2fe554388e422816ec3` in its
   disjoint branch. Its integration plan explicitly keeps first corrected-candidate
   acceptance ahead of combined density/tabgroups/folder/help/panel wiring.
-- Current disk boundary: new output4.0GiB versus original SSD output16GiB;
-  internal free24GiB after concurrent allocations. Original incremental output
+- Current disk boundary: original SSD output16GiB is retained;
+  internal free26GiB at resumed-run readback17:00Z. Original incremental output
   is retained until accepted delivery, not blindly deleted. Unchanged8GiB reserve
   monitors only the owned Ninja group. No additional heavy phase started.
-  Local terminal-wait handle41236 observes the actual runner's end (not progress
-  evidence); use `write_stdin` for its terminal result, then real candidate gates.
+  Old local terminal-wait handle41236 is terminal/consumed; it observed the first
+  SSD-aborted run. Current runner47404 and its actual phase receipt are the
+  continuation source; do not wait on or revive the old process handle.
 - Independent LEAN-06 prerequisite source while native47885f36 builds: the
   measurement CLI still resolved historical source/out paths and rejected its
   new `<chromium-out>` receipts. It now reuses the same physical output helper,
@@ -130,8 +150,13 @@
   on the same M155/output-helper parent; no false standalone main merge.
   This separate tool source did not alter frozen47885f36, independently rechecked.
 
-- Next authorized step: await the already-running frozen47885f36 build via
-  existing terminal handle41236 or its actual terminal phase receipt; do not
+- Default integration scope is not the five-journey delta alone: actual main
+  318c4eff and accepted desktop baseef982afe diverge from47a37617; the latter
+  contains369 commits/1,341 changed files, including Mobile/Sync work. Preserve
+  attributable accepted changes and unresolved device/sync gates; do not blindly
+  merge that whole branch after only sidebar/switcher acceptance.
+- Next authorized step: await the resumed frozen47885f36 runner47404 via
+  its actual terminal phase receipt; do not
   restart source preparation or a full build. On compile/sign/provenance success,
   run prepared target `~/inhouse/evidence/ahoi-47885f36/accept.sh` for guarded
   installation, five affected visible journeys and focused native checks.

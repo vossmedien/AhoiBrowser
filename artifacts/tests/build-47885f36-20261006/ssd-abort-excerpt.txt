@@ -1,0 +1,17 @@
+Original log: /Users/vossmedien/inhouse/evidence/ahoi-47885f36/build-ssh-ssd-abort-20261006T164020Z.log
+SHA256: 5028569ea1ec438a2852927bb6158f3e4eea4aa18f9bda33154fec79eb607758
+Bytes: 2888690
+
+/bin/sh: ../../../../../../Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/third_party/llvm-build/Release+Asserts/bin/clang++: No such file or directory
+/bin/sh: ../../../../../../Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/third_party/llvm-build/Release+Asserts/bin/clang++: No such file or directory
+/bin/sh: ../../../../../../Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/third_party/llvm-build/Release+Asserts/bin/clang++: No such file or directory
+/bin/sh: ../../../../../../Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/third_party/llvm-build/Release+Asserts/bin/clang++: No such file or directory
+/bin/sh: ../../../../../../Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/third_party/llvm-build/Release+Asserts/bin/clang++: No such file or directory
+/Volumes/Daten/Inhouse/AhoiBrowser/work/depot_tools/python-bin/python3: line 20: 83365 Bus error: 10           "$PYTHON3_BIN_DIR/python3" "$@"
+/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo88-m155-f492d294/scripts/build-chromium-with-dependency-workarounds.sh: line 207: 83289 Bus error: 10           python3 "${AHOI_REPO_ROOT}/tools/run_with_disk_reserve.py" --work-root "${AHOI_WORK_ROOT}" --policy "${AHOI_REPO_ROOT}/config/toolchain.json" --disk-root "${out_dir}" -- autoninja -C "${out_dir}" -k "${ninja_failure_limit}" -j "${AHOI_JOBS}" "${targets[@]}"
+cp: /Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/v8/third_party/inspector_protocol/code_generator.py: No such file or directory
+error: failed to restore V8 workaround target byte-for-byte
+fatal: cannot change to '/Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/v8': No such file or directory
+cp: /Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/build/rust/gni_impl/rustc_wrapper.py: No such file or directory
+error: failed to restore Chromium Rust workaround target byte-for-byte
+fatal: cannot change to '/Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src': No such file or directory
