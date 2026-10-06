@@ -67,6 +67,10 @@ Desktop frozen47885f36 and its shared Chromium build remain independent/owned.
   Resume build on the first eligible host under80%, Inhouse preferred, then
   exact receipt/visible Files checks and focused runtime before integration/push.
   This wait affects only that build; reviewed Files source/evidence preserved.
+  Park consumed after preparation: next actual Inhouse samples50.39/50.17/48.79%,
+  mean49.78%, select Inhouse; Dev mean78.17% only fallback. Main candidate
+  guarded one-job build now submitted with the existing frozen3ff98d04/scratch.
+  Verify actual runner/build receipt next; no main/default push or final acceptance.
   Then continue ADR0012 Step1 action/popup, permission and App Store/privacy/update
   evidence. Step2 user decision still waits for the complete spike. Existing
   hardware Escape, edge back swipe, VoiceOver action and real-device Sync gates

@@ -490,7 +490,7 @@ index 59e60959..1b981e28 100644
 @@ -74,6 +74,137 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
          attachEvidence(app, "spike-01-off-without-argument")
      }
- 
+
 +    @MainActor
 +    func testFilesPickerCancellationDoesNotLoadExtension() throws {
 +        try requireFilesJourneyOptIn()
@@ -2043,7 +2043,7 @@ index 59e60959..1b981e28 100644
 @@ -74,6 +74,137 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
          attachEvidence(app, "spike-01-off-without-argument")
      }
- 
+
 +    @MainActor
 +    func testFilesPickerCancellationDoesNotLoadExtension() throws {
 +        try requireFilesJourneyOptIn()
@@ -2310,7 +2310,7 @@ index 00000000..89a47b3e
 +    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_0a10bdc6_exact_candidate.xctestrun -destination "platform=iOS Simulator,id=A058D204-F3CB-44B7-963C-1F785132EF8B" -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 "-only-testing:AhoiMobileUITests/MobileWebExtensionSpikeUITests/testFilesPickerLoadsAndUnloadsReviewedFixture" -resultBundlePath /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-0a10bdc6.xcresult -collect-test-diagnostics never
 +
 +Writing result bundle at path:
-+	/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-0a10bdc6.xcresult
++       /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-0a10bdc6.xcresult
 +
 +2026-10-06 19:49:51.285698+0200 AhoiMobileUITests-Runner[20342:19819422] [Default] Running tests...
 +    t =      nans Interface orientation changed to Portrait
@@ -2413,20 +2413,20 @@ index 00000000..89a47b3e
 +    t =    33.85s Tear Down
 +Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testFilesPickerLoadsAndUnloadsReviewedFixture]' failed (225.906 seconds).
 +Test Suite 'MobileWebExtensionSpikeUITests' failed at 2026-10-06 19:53:40.293.
-+	 Executed 1 test, with 1 failure (0 unexpected) in 225.906 (225.916) seconds
++        Executed 1 test, with 1 failure (0 unexpected) in 225.906 (225.916) seconds
 +Test Suite 'AhoiMobileUITests.xctest' failed at 2026-10-06 19:53:40.293.
-+	 Executed 1 test, with 1 failure (0 unexpected) in 225.906 (225.916) seconds
++        Executed 1 test, with 1 failure (0 unexpected) in 225.906 (225.916) seconds
 +Test Suite 'Selected tests' failed at 2026-10-06 19:53:40.293.
-+	 Executed 1 test, with 1 failure (0 unexpected) in 225.906 (225.917) seconds
++        Executed 1 test, with 1 failure (0 unexpected) in 225.906 (225.917) seconds
 +2026-10-06 19:53:40.655 xcodebuild[20281:19818372] [MT] IDETestOperationsObserverDebug: 235.478 elapsed -- Testing started completed.
 +2026-10-06 19:53:40.655 xcodebuild[20281:19818372] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
 +2026-10-06 19:53:40.655 xcodebuild[20281:19818372] [MT] IDETestOperationsObserverDebug: 235.478 sec, +235.478 sec -- end
 +
 +Test session results, code coverage, and logs:
-+	/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-0a10bdc6.xcresult
++       /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-0a10bdc6.xcresult
 +
 +Failing tests:
-+	MobileWebExtensionSpikeUITests.testFilesPickerLoadsAndUnloadsReviewedFixture()
++       MobileWebExtensionSpikeUITests.testFilesPickerLoadsAndUnloadsReviewedFixture()
 +
 +** TEST EXECUTE FAILED **
 +
@@ -2505,7 +2505,7 @@ index 330dfc64..9d71f83a 100644
 @@ -1,4 +1,3 @@
  Monitoring boot status for Ahoi Home cc8bef2b 01a0e047 20261004 (A058D204-F3CB-44B7-963C-1F785132EF8B).
  [2026-10-06 16:12:53 +0000] Status=4294967295, isTerminal=YES, Elapsed=00:05.
- 	Finished
+        Finished
 -
 diff --git a/artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/README.md b/artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/README.md
 new file mode 100644
@@ -2880,7 +2880,7 @@ index 00000000..deed1541
 +    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_e664fc0d_exact_candidate.xctestrun -destination "platform=iOS Simulator,id=A058D204-F3CB-44B7-963C-1F785132EF8B" -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 "-only-testing:AhoiMobileUITests/MobileWebExtensionSpikeUITests/testFilesPickerCancellationDoesNotLoadExtension" "-only-testing:AhoiMobileUITests/MobileWebExtensionSpikeUITests/testFilesPickerLoadsAndUnloadsReviewedFixture" -resultBundlePath /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible.xcresult -collect-test-diagnostics never
 +
 +Writing result bundle at path:
-+	/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible.xcresult
++       /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible.xcresult
 +
 +2026-10-06 19:27:24.083253+0200 AhoiMobileUITests-Runner[82688:19665162] [Default] Running tests...
 +    t =      nans Interface orientation changed to Portrait
@@ -3168,20 +3168,20 @@ index 00000000..deed1541
 +    t =    45.82s Tear Down
 +Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testFilesPickerLoadsAndUnloadsReviewedFixture]' failed (46.073 seconds).
 +Test Suite 'MobileWebExtensionSpikeUITests' failed at 2026-10-06 19:28:43.290.
-+	 Executed 2 tests, with 1 failure (0 unexpected) in 76.033 (76.038) seconds
++        Executed 2 tests, with 1 failure (0 unexpected) in 76.033 (76.038) seconds
 +Test Suite 'AhoiMobileUITests.xctest' failed at 2026-10-06 19:28:43.291.
-+	 Executed 2 tests, with 1 failure (0 unexpected) in 76.033 (76.038) seconds
++        Executed 2 tests, with 1 failure (0 unexpected) in 76.033 (76.038) seconds
 +Test Suite 'Selected tests' failed at 2026-10-06 19:28:43.292.
-+	 Executed 2 tests, with 1 failure (0 unexpected) in 76.033 (76.040) seconds
++        Executed 2 tests, with 1 failure (0 unexpected) in 76.033 (76.040) seconds
 +2026-10-06 19:28:43.653 xcodebuild[82650:19664728] [MT] IDETestOperationsObserverDebug: 85.784 elapsed -- Testing started completed.
 +2026-10-06 19:28:43.653 xcodebuild[82650:19664728] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
 +2026-10-06 19:28:43.653 xcodebuild[82650:19664728] [MT] IDETestOperationsObserverDebug: 85.784 sec, +85.784 sec -- end
 +
 +Test session results, code coverage, and logs:
-+	/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible.xcresult
++       /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible.xcresult
 +
 +Failing tests:
-+	MobileWebExtensionSpikeUITests.testFilesPickerLoadsAndUnloadsReviewedFixture()
++       MobileWebExtensionSpikeUITests.testFilesPickerLoadsAndUnloadsReviewedFixture()
 +
 +** TEST EXECUTE FAILED **
 +
@@ -4212,10 +4212,10 @@ exec
  succeeded in 120ms:
 
 --- E2E runner entry points ---
-apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj:263:		AD124DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */; };
-apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj:502:		AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWebExtensionSpikeUITests.swift; sourceTree = "<group>"; };
-apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj:1089:				AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */,
-apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj:1349:				AD124DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift in Sources */,
+apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj:263:               AD124DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */; };
+apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj:502:               AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileWebExtensionSpikeUITests.swift; sourceTree = "<group>"; };
+apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj:1089:                              AD134DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift */,
+apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj:1349:                              AD124DF1144B67F49FE9445E /* MobileWebExtensionSpikeUITests.swift in Sources */,
 apps/AhoiMobile/Tests/AhoiMobileUITests/AhoiMobileUITests.swift:306:        guard environment["AHOI_MOBILE_REAL_E2E"] == "1",
 apps/AhoiMobile/Tests/AhoiMobileUITests/MobileWebExtensionSpikeUITests.swift:12:final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
 apps/AhoiMobile/Tests/AhoiMobileUITests/MobileWebExtensionSpikeUITests.swift:110:            ProcessInfo.processInfo.environment["AHOI_MOBILE_SPIKE_FILES_FOLDER"]
@@ -4231,79 +4231,79 @@ docs/registry-proposal-20260930.md:76:| MOB-EXT-01 | **PASS** | Mobile-Quelle `9
 zsh:1: no matches found: docs/MOBILE*
 
 --- project instruction lines ---
-     1	# AhoiBrowser agent entry points
-     2	
-     3	These are repository-specific pointers; the global Codex working rules still apply.
-     4	
-     5	## Find the current contract and owner
-     6	
-     7	- Use [README.md](README.md) for orientation and command entry points. Consult the affected sections of [the master product contract](outputs/AhoiBrowser-Master-Zielprompt.md) for scope or product decisions; it remains normative subject to its more specific current decisions and gates.
-     8	- For desktop work, start with the current contract, ownership and affected candidate sections of [the desktop checkpoint](docs/ACTIVE_DESKTOP_CHECKPOINT.md). Before using the shared Chromium checkout or `out/AhoiDev`, read the current handoff in [the bookmarks checkpoint](docs/ACTIVE_BOOKMARKS_CHECKPOINT.md) and establish the current owner's handoff. Load older chronology only for a specific unresolved question.
-     9	- For mobile work, start with the current-work section of [the mobile checkpoint](docs/ACTIVE_MOBILE_CHECKPOINT.md) and the relevant linked implementation handoff. Its historical archive is evidence, not a resume instruction. Mobile product code is under `apps/AhoiMobile/`; preserve the explicit desktop, mobile and shared-sync ownership boundaries.
-    10	- Parallel lanes and their write boundaries are in [`config/agent-lanes.json`](config/agent-lanes.json). The `crest-hardening` lane ([goal](outputs/AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md), [checkpoint](docs/ACTIVE_CREST_HARDENING_LANE.md)) delivers changes to other lanes' paths only as handoffs under `handoffs/crest-hardening/`; owners review `ready` handoffs before cutting their next package. Commits carry a `Lane: <name>` trailer; check with `python3 tools/check_lane_boundaries.py --all --since <base>`.
-    11	- Checkpoints are handoff pointers, not proof that an old PID, source revision, installed app, or test result is still current. Verify the relevant live state before acting.
-    12	
-    13	## Source, builds, and evidence
-    14	
-    15	- Durable standalone Ahoi desktop changes belong in [the tracked overlay](overlay/chromium/README.md); upstream Chromium changes belong in [the patch stack](patches/chromium/README.md). `patches/chromium/series` owns patch order. Do not leave unique product changes only in `.work/chromium/src/`.
-    16	- Read [BUILDING.md](docs/BUILDING.md) before source integration or builds. Use the guarded scripts, including `./scripts/build-ahoi.sh dev` for the documented development path; do not bypass overlay, pin, toolchain, or provenance checks.
-    17	- Preserve Chromium's native profile, WebContents, sandbox, and permission ownership. Consult the relevant architecture document before changing those boundaries.
-    18	- Bind visible E2E and subsequent focused tests to the exact integrated candidate. `./scripts/test-repository.sh` is a repository regression entry point, not installed-browser acceptance. Build, package, install, visible runtime, and release are separate evidence gates.
+     1  # AhoiBrowser agent entry points
+     2
+     3  These are repository-specific pointers; the global Codex working rules still apply.
+     4
+     5  ## Find the current contract and owner
+     6
+     7  - Use [README.md](README.md) for orientation and command entry points. Consult the affected sections of [the master product contract](outputs/AhoiBrowser-Master-Zielprompt.md) for scope or product decisions; it remains normative subject to its more specific current decisions and gates.
+     8  - For desktop work, start with the current contract, ownership and affected candidate sections of [the desktop checkpoint](docs/ACTIVE_DESKTOP_CHECKPOINT.md). Before using the shared Chromium checkout or `out/AhoiDev`, read the current handoff in [the bookmarks checkpoint](docs/ACTIVE_BOOKMARKS_CHECKPOINT.md) and establish the current owner's handoff. Load older chronology only for a specific unresolved question.
+     9  - For mobile work, start with the current-work section of [the mobile checkpoint](docs/ACTIVE_MOBILE_CHECKPOINT.md) and the relevant linked implementation handoff. Its historical archive is evidence, not a resume instruction. Mobile product code is under `apps/AhoiMobile/`; preserve the explicit desktop, mobile and shared-sync ownership boundaries.
+    10  - Parallel lanes and their write boundaries are in [`config/agent-lanes.json`](config/agent-lanes.json). The `crest-hardening` lane ([goal](outputs/AhoiBrowser-Crest-Konvergenz-Haertung-Zielprompt.md), [checkpoint](docs/ACTIVE_CREST_HARDENING_LANE.md)) delivers changes to other lanes' paths only as handoffs under `handoffs/crest-hardening/`; owners review `ready` handoffs before cutting their next package. Commits carry a `Lane: <name>` trailer; check with `python3 tools/check_lane_boundaries.py --all --since <base>`.
+    11  - Checkpoints are handoff pointers, not proof that an old PID, source revision, installed app, or test result is still current. Verify the relevant live state before acting.
+    12
+    13  ## Source, builds, and evidence
+    14
+    15  - Durable standalone Ahoi desktop changes belong in [the tracked overlay](overlay/chromium/README.md); upstream Chromium changes belong in [the patch stack](patches/chromium/README.md). `patches/chromium/series` owns patch order. Do not leave unique product changes only in `.work/chromium/src/`.
+    16  - Read [BUILDING.md](docs/BUILDING.md) before source integration or builds. Use the guarded scripts, including `./scripts/build-ahoi.sh dev` for the documented development path; do not bypass overlay, pin, toolchain, or provenance checks.
+    17  - Preserve Chromium's native profile, WebContents, sandbox, and permission ownership. Consult the relevant architecture document before changing those boundaries.
+    18  - Bind visible E2E and subsequent focused tests to the exact integrated candidate. `./scripts/test-repository.sh` is a repository regression entry point, not installed-browser acceptance. Build, package, install, visible runtime, and release are separate evidence gates.
 
 --- checkpoint next steps ---
-    78	  idle,10GiB unused RAM and zero active swap I/O allowed one selected import
-    79	  journey; own runner44639. No passing import/focused/review claim yet. Current
-    80	  original canonical evidence:
-    81	  [e664 native baseline](../artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/),
-    82	  [0a10 infrastructure limit](../artifacts/computer-use/mobile/files-spike-0a10bdc6-20261006/).
-    83	  Runner44639 is now terminal65,27.43s, at picker readiness; cleanup again
-    84	  Shutdown/input removal/lock release. AX proves Files WAS present, with
-    85	  `Abbrechen` as Other rather than Button, the exact grid cell identifier
-    86	  `<fixture>, Folder`, and `DOCPicker.actionButton`. These observed selectors
-    87	  replace the inadequate assumptions; folder cell double-tap must enter the
-    88	  title-bound root before confirmation. Original1b43 xcresult/AX retained;
-    89	  no focused tests or successful import claimed.
-    90	  Candidateba139fc1 then built/signed/bound; fresh52.49/50.78%idle allowed runner51494.
-    91	  Terminal65: native reviewed-folder import/load/unload PASS40.75s; cancellation
-    92	  FAIL31.12s at the visible Other's hittability precondition. No skips/focused
-    93	  runtime execution. Cleanup verified Shutdown/input removal/lock release.
-    94	  Cancellation now taps the observed control frame and requires the real Files
-    95	  picker to disappear, import to stay enabled and no unload context to appear.
-    96	  Next: only this affected cancellation on the corrected exact candidate, then
-    97	  five runtime boundaries and one separate native review. The import test and
-    98	  product code are unchanged by that final test correction.
-    99	  Candidate07caf17b built/signed/bound;35.67/36.26%idle,78%reclaimable memory
-   100	  allowed runner59908. Terminal65,35.15s: the coordinate tap did NOT close Files.
-   101	  Screenshot proves the AX Cancel belongs to the obscured presenting sheet;
-   102	  Files has no visible Cancel at that frame. Original result retained, cleanup
-   103	  again verified. Test now dismisses the visible picker via its native top-edge
-   104	  sheet gesture and still requires real disappearance/no imported context.
-   105	  No failing assertion was removed and no focused tests ran in its place.
-   106	  Next: rebuild corrected exact candidate, retry only the failed import,
-   107	  then five existing runtime boundaries and one separate native review.
-   108	- Next independent Mobile action: complete ADR0012 Step1's real Files import,
-   109	  action/popup and permission boundaries using an available native interaction
-   110	  path, then assess App Store/update/privacy requirements. Existing bundled
-   111	  content-script/DNR/storage acceptance below remains scoped. Step2's product
-   112	  decision waits for that evidence; a launch or unit pass cannot close it.
-   113	  Hardware Escape, edge back swipe, VoiceOver action and real-device Sync gates
-   114	  remain open. No second product contract/tracking structure is introduced.
-   115	
-   116	## Home journey: launch hang was the locked console; real focus bug fixed — 5 October 2026
-   117	
-   118	Historical owner change: Claude session 049a3c1d continued the paused Codex Goal
-   119	(same Master). Candidate cc8bef2b on own simulator A058D204 (headless,
-   120	`simctl boot`, no Simulator.app), evidence under target
-   121	`~/inhouse/evidence/ahoi-mobile-home-20261004-cc8bef2b/`.
-   122	
-   123	- **White launch (4 Oct) is not a product defect.** Plain launch and a
-   124	  launch with the four `AHOI_MOBILE_E2E_*` variables both render Home with
-   125	  the candidate chip `E2E cc8bef2b · DebugLocal · 7e534ebf`; main thread idle
-   126	  in `mach_msg` (plain-launch/env-launch screenshots and samples). The hang
-   127	  ran while the Mac console was locked; with the console unlocked the same
-   128	  xctestrun starts the app and runs the test.
-   129	- **xcodebuild "hang" after a failure** is `simctl diagnose` collecting
-   130	  diagnostics with a 600 s timeout. Use `-collect-test-diagnostics never`
+    78    idle,10GiB unused RAM and zero active swap I/O allowed one selected import
+    79    journey; own runner44639. No passing import/focused/review claim yet. Current
+    80    original canonical evidence:
+    81    [e664 native baseline](../artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/),
+    82    [0a10 infrastructure limit](../artifacts/computer-use/mobile/files-spike-0a10bdc6-20261006/).
+    83    Runner44639 is now terminal65,27.43s, at picker readiness; cleanup again
+    84    Shutdown/input removal/lock release. AX proves Files WAS present, with
+    85    `Abbrechen` as Other rather than Button, the exact grid cell identifier
+    86    `<fixture>, Folder`, and `DOCPicker.actionButton`. These observed selectors
+    87    replace the inadequate assumptions; folder cell double-tap must enter the
+    88    title-bound root before confirmation. Original1b43 xcresult/AX retained;
+    89    no focused tests or successful import claimed.
+    90    Candidateba139fc1 then built/signed/bound; fresh52.49/50.78%idle allowed runner51494.
+    91    Terminal65: native reviewed-folder import/load/unload PASS40.75s; cancellation
+    92    FAIL31.12s at the visible Other's hittability precondition. No skips/focused
+    93    runtime execution. Cleanup verified Shutdown/input removal/lock release.
+    94    Cancellation now taps the observed control frame and requires the real Files
+    95    picker to disappear, import to stay enabled and no unload context to appear.
+    96    Next: only this affected cancellation on the corrected exact candidate, then
+    97    five runtime boundaries and one separate native review. The import test and
+    98    product code are unchanged by that final test correction.
+    99    Candidate07caf17b built/signed/bound;35.67/36.26%idle,78%reclaimable memory
+   100    allowed runner59908. Terminal65,35.15s: the coordinate tap did NOT close Files.
+   101    Screenshot proves the AX Cancel belongs to the obscured presenting sheet;
+   102    Files has no visible Cancel at that frame. Original result retained, cleanup
+   103    again verified. Test now dismisses the visible picker via its native top-edge
+   104    sheet gesture and still requires real disappearance/no imported context.
+   105    No failing assertion was removed and no focused tests ran in its place.
+   106    Next: rebuild corrected exact candidate, retry only the failed import,
+   107    then five existing runtime boundaries and one separate native review.
+   108  - Next independent Mobile action: complete ADR0012 Step1's real Files import,
+   109    action/popup and permission boundaries using an available native interaction
+   110    path, then assess App Store/update/privacy requirements. Existing bundled
+   111    content-script/DNR/storage acceptance below remains scoped. Step2's product
+   112    decision waits for that evidence; a launch or unit pass cannot close it.
+   113    Hardware Escape, edge back swipe, VoiceOver action and real-device Sync gates
+   114    remain open. No second product contract/tracking structure is introduced.
+   115
+   116  ## Home journey: launch hang was the locked console; real focus bug fixed — 5 October 2026
+   117
+   118  Historical owner change: Claude session 049a3c1d continued the paused Codex Goal
+   119  (same Master). Candidate cc8bef2b on own simulator A058D204 (headless,
+   120  `simctl boot`, no Simulator.app), evidence under target
+   121  `~/inhouse/evidence/ahoi-mobile-home-20261004-cc8bef2b/`.
+   122
+   123  - **White launch (4 Oct) is not a product defect.** Plain launch and a
+   124    launch with the four `AHOI_MOBILE_E2E_*` variables both render Home with
+   125    the candidate chip `E2E cc8bef2b · DebugLocal · 7e534ebf`; main thread idle
+   126    in `mach_msg` (plain-launch/env-launch screenshots and samples). The hang
+   127    ran while the Mac console was locked; with the console unlocked the same
+   128    xctestrun starts the app and runs the test.
+   129  - **xcodebuild "hang" after a failure** is `simctl diagnose` collecting
+   130    diagnostics with a 600 s timeout. Use `-collect-test-diagnostics never`
 
 --- successful folder evidence excerpt ---
 236:                  Other, 0x112ec3700, {{247.0, 92.0}, {36.0, 36.0}}, label: 'Abbrechen'
@@ -4982,7 +4982,7 @@ Author: vossmedien <christian@vossmedien.de>
 Date:   Tue Oct 6 20:27:08 2026 +0200
 
     test(mobile): cancel the visible native Files sheet [skip ci]
-    
+
     Lane: mobile
     Signed-off-by: vossmedien <christian@vossmedien.de>
 
@@ -5261,7 +5261,7 @@ index 330dfc64..9d71f83a 100644
 @@ -1,4 +1,3 @@
  Monitoring boot status for Ahoi Home cc8bef2b 01a0e047 20261004 (A058D204-F3CB-44B7-963C-1F785132EF8B).
  [2026-10-06 16:12:53 +0000] Status=4294967295, isTerminal=YES, Elapsed=00:05.
- 	Finished
+        Finished
 -
 diff --git a/artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/installed-readback.json b/artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/installed-readback.json
 new file mode 100644
@@ -5282,57 +5282,57 @@ index 00000000..749ab215
 +}
 
 --- only changed app sources and callers ---
-    82	        await loadTask?.value
-    83	    }
-    84	
-    85	#if DEBUG
-    86	    /// Stage only the exact known fixture bytes from a Files-selected folder.
-    87	    /// Keeping this behind DEBUG and the explicit spike launch argument lets
-    88	    /// Step 1 test Files/WebKit plumbing without enabling arbitrary code in
-    89	    /// an App Store candidate or making a Step-2 product decision.
-    90	    public func loadUnpackedFromFiles(_ sourceURL: URL) async throws {
-    91	        guard let controller else { throw FilesSpikeError.disabled }
-    92	        guard importedContext == nil, !filesImportInProgress else {
-    93	            throw FilesSpikeError.alreadyLoaded
-    94	        }
-    95	        filesImportInProgress = true
-    96	        defer { filesImportInProgress = false }
-    97	        guard sourceURL.isFileURL else {
-    98	            throw FilesSpikeError.notUnpackedFolder
-    99	        }
-   100	        // Files-provider access must precede even directory metadata reads.
-   101	        let hasScope = sourceURL.startAccessingSecurityScopedResource()
-   102	        defer { if hasScope { sourceURL.stopAccessingSecurityScopedResource() } }
-   103	        guard try sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else {
-   104	            throw FilesSpikeError.notUnpackedFolder
-   105	        }
-   106	        guard let bundled = Self.spikeExtensionURL else { throw CocoaError(.fileNoSuchFile) }
-   107	        let staged = FileManager.default.temporaryDirectory.appendingPathComponent(
-   108	            "Ahoi-WebExtension-Spike-\(UUID().uuidString)", isDirectory: true)
-   109	        try FileManager.default.createDirectory(at: staged, withIntermediateDirectories: false)
-   110	        var loaded = false
-   111	        defer { if !loaded { try? FileManager.default.removeItem(at: staged) } }
-   112	        for filename in Self.knownFixtureFiles {
-   113	            let expected = try Data(contentsOf: bundled.appendingPathComponent(filename))
-   114	            let selected = try Data(contentsOf: sourceURL.appendingPathComponent(filename))
-   115	            guard selected == expected else { throw FilesSpikeError.fixtureMismatch }
-   116	            try selected.write(to: staged.appendingPathComponent(filename),
-   117	                               options: [.withoutOverwriting])
-   118	        }
-   119	
-   120	        loadIfNeeded(into: controller)
-   121	        await loadTask?.value
-   122	        guard case .loaded = state else { throw FilesSpikeError.invalidExtension }
-   123	        let webExtension = try await WKWebExtension(resourceBaseURL: staged)
-   124	        guard webExtension.manifestVersion == 3, webExtension.errors.isEmpty else {
-   125	            throw FilesSpikeError.invalidExtension
-   126	        }
-   127	        let context = WKWebExtensionContext(for: webExtension)
-   128	        // The same reviewed test fixture receives the same spike-only grants
-   129	        // as the bundled copy. Production permissions still require Step 2.
-   130	        for permission in webExtension.requestedPermissions {
-   131	            context.setPermissionStatus(.grantedExplicitly, for: permission)
-   132	        }
+    82          await loadTask?.value
+    83      }
+    84
+    85  #if DEBUG
+    86      /// Stage only the exact known fixture bytes from a Files-selected folder.
+    87      /// Keeping this behind DEBUG and the explicit spike launch argument lets
+    88      /// Step 1 test Files/WebKit plumbing without enabling arbitrary code in
+    89      /// an App Store candidate or making a Step-2 product decision.
+    90      public func loadUnpackedFromFiles(_ sourceURL: URL) async throws {
+    91          guard let controller else { throw FilesSpikeError.disabled }
+    92          guard importedContext == nil, !filesImportInProgress else {
+    93              throw FilesSpikeError.alreadyLoaded
+    94          }
+    95          filesImportInProgress = true
+    96          defer { filesImportInProgress = false }
+    97          guard sourceURL.isFileURL else {
+    98              throw FilesSpikeError.notUnpackedFolder
+    99          }
+   100          // Files-provider access must precede even directory metadata reads.
+   101          let hasScope = sourceURL.startAccessingSecurityScopedResource()
+   102          defer { if hasScope { sourceURL.stopAccessingSecurityScopedResource() } }
+   103          guard try sourceURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else {
+   104              throw FilesSpikeError.notUnpackedFolder
+   105          }
+   106          guard let bundled = Self.spikeExtensionURL else { throw CocoaError(.fileNoSuchFile) }
+   107          let staged = FileManager.default.temporaryDirectory.appendingPathComponent(
+   108              "Ahoi-WebExtension-Spike-\(UUID().uuidString)", isDirectory: true)
+   109          try FileManager.default.createDirectory(at: staged, withIntermediateDirectories: false)
+   110          var loaded = false
+   111          defer { if !loaded { try? FileManager.default.removeItem(at: staged) } }
+   112          for filename in Self.knownFixtureFiles {
+   113              let expected = try Data(contentsOf: bundled.appendingPathComponent(filename))
+   114              let selected = try Data(contentsOf: sourceURL.appendingPathComponent(filename))
+   115              guard selected == expected else { throw FilesSpikeError.fixtureMismatch }
+   116              try selected.write(to: staged.appendingPathComponent(filename),
+   117                                 options: [.withoutOverwriting])
+   118          }
+   119
+   120          loadIfNeeded(into: controller)
+   121          await loadTask?.value
+   122          guard case .loaded = state else { throw FilesSpikeError.invalidExtension }
+   123          let webExtension = try await WKWebExtension(resourceBaseURL: staged)
+   124          guard webExtension.manifestVersion == 3, webExtension.errors.isEmpty else {
+   125              throw FilesSpikeError.invalidExtension
+   126          }
+   127          let context = WKWebExtensionContext(for: webExtension)
+   128          // The same reviewed test fixture receives the same spike-only grants
+   129          // as the bundled copy. Production permissions still require Step 2.
+   130          for permission in webExtension.requestedPermissions {
+   131              context.setPermissionStatus(.grantedExplicitly, for: permission)
+   132          }
 
 --- empty status existing handling ---
 
@@ -5419,9 +5419,9 @@ apps/AhoiMobile/Sources/AhoiMobileCore/MobileBrowserActionsSheet.swift:442:     
 
 
 --- commit scope ---
-4	0	apps/AhoiMobile/Sources/AhoiMobileCore/CompanionExtensionSetupSection.swift
-6	4	apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift
-131	0	apps/AhoiMobile/Tests/AhoiMobileUITests/MobileWebExtensionSpikeUITests.swift
+4       0       apps/AhoiMobile/Sources/AhoiMobileCore/CompanionExtensionSetupSection.swift
+6       4       apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift
+131     0       apps/AhoiMobile/Tests/AhoiMobileUITests/MobileWebExtensionSpikeUITests.swift
 
 codex
 No actionable defects were found in the changes against ce6f74fb. Security-scoped access now precedes directory metadata reads while preserving cleanup and fixture validation. Native UI tests were not rerun during this review.

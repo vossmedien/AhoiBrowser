@@ -93,7 +93,7 @@ objc[73271]: Class UIAccessibilityLoaderWebShared is implemented in both /privat
     t =    23.79s Requesting snapshot of accessibility hierarchy for app with pid 73446
     t =    24.71s Requesting snapshot of accessibility hierarchy for app with pid 73446
     t =    24.83s Added attachment named 'spike-files-picker-tree'
-    t =    24.83s Press "Browse View (Picker)" Other[0.50, 0.01] for 0.1 seconds, then drag to "Browse View (Picker)" Other[0.50, 0.90] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds 
+    t =    24.83s Press "Browse View (Picker)" Other[0.50, 0.01] for 0.1 seconds, then drag to "Browse View (Picker)" Other[0.50, 0.90] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds
     t =    24.83s     Wait for app.ahoibrowser.AhoiBrowser to idle
     t =    24.83s     Find the "Browse View (Picker)" Other
     t =    24.94s     Check for interrupting elements affecting "Browse View (Picker)" Other

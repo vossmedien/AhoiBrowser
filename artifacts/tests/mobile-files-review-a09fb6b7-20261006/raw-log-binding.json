@@ -1,0 +1,7 @@
+{
+  "rawCommit": "80a796d7",
+  "rawPath": "artifacts/tests/mobile-files-review-a09fb6b7-20261006/native-review.log",
+  "rawSha256": "fd8981bd4796807186a8d02152fa80c293571f52ff932afc74053ae783438bfb",
+  "rawBytes": 352855,
+  "normalization": "Canonical log removes trailing whitespace and expands tabs; original bytes retained in rawCommit."
+}
