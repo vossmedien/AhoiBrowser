@@ -23,25 +23,49 @@
   One helper diagnosed only this path; another implemented disjoint guarded
   output-path support. Neither built, installed or committed; main owner reviews
   and verifies their work.
-- Guarded `AHOI_CHROMIUM_OUT_ROOT` support is implemented for both builders,
-  staging, exact profile/app provenance and the actual output-volume reserve;
-  source mount/pin/overlay gates remain. Shell/Python syntax and whitespace pass.
-  Target CLI/path-boundary checks, real pinned GN generation and candidate-bound
-  build/runtime evidence remain pending. The
-  inherited output `/Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/out/AhoiDev`
-  is on the USB SSD. Do not start another SSD-writing build. Preserve its current
-  signed candidate and 16 GiB incremental output until an approved internal
-  output path is supported and verified by the existing build/provenance gates.
-- Coordination limit: installed Cockpit helper responds to actual MCP tools/list
-  but `cockpit_sessions` returns no publication and `cockpit_note` refuses the
-  message; actual read-only published snapshot identifies this session and
-  disjoint Crest owner `05EFDE54-146B-47AD-89CE-A56EF1781938`. Orchestrator request
-  `459687b5-636f-4762-8e09-25b325be1e64` returns SOURCE_UNAVAILABLE (not received;
-  no new worker/start claimed). Existing Crest/Panel assignments stay intact.
+- Frozen source `47885f36d671b22d8f1d53cfca71ae06f39e4fd0` is now in target
+  repo88 via a verified Git bundle (prerequisite f87f7581); canonical Git remains
+  here. Guarded `AHOI_CHROMIUM_OUT_ROOT` support covers both builders, staging,
+  exact profile/app provenance and actual output-volume reserve; source gates
+  remain. Six focused output/profile/path/volume/staging checks passed on Inhouse
+  (6/6, 0.608s); `~/inhouse/evidence/ahoi-47885f36/output-boundaries.log`.
+  First transfer attempt ran against the old source after an unavailable remote
+  ref and failed test lookup; this was a preparation/harness error, not a product
+  verdict. A subsequent bundle fetch named a nonexistent branch ref; corrected
+  to the bundle's actual `HEAD` before the successful exact-source check.
+- Actual guarded runner PID63840 started 6 October14:16:44Z, owns
+  `/Volumes/Daten/Inhouse/AhoiBrowser/work/state/desktop-build.lock`; source
+  integration is in progress. Output is newly allocated internal
+  `/Users/vossmedien/inhouse/scratch/ahoi-chromium.fMMeXkCh/AhoiDev`, no duplicate
+  Chromium checkout and no SSD-output build. The old signed app/output remain
+  until verified delivery. Logs/phase handle:
+  `~/inhouse/evidence/ahoi-47885f36/{runner.sh,phases.log,apply.log,build/gui.log}`.
+  The build runs the real entrypoint in the target GUI signing session so its
+  signing/provenance gates can complete. Only related sidebar/switcher native
+  binaries are compiled; execution follows visible candidate acceptance.
+- Capacity at start: two samples71/80%CPU idle, swap I/O0, internal41GiB free,
+  foreign simulator FC40455C/VM untouched; jobs4/nice10,20GiB declared growth,
+  unchanged8GiB reserve. No Ahoi-named containers exist on the target. New user
+  container lifetime rule and the native review gate apply.
+- Cockpit connection repaired: the first client's inbox was accidentally under
+  isolated CodexHome. The corrected absolute inbox exposes both actual project
+  sessions. Own source binding68E66C/thread01a11179 and disjoint Crest owner
+  `05EFDE54-146B-47AD-89CE-A56EF1781938` verified. Ownership/handoff note5bdd9e20
+  and new-rule note6f0874ba accepted by Cockpit (no implementation implied).
+  Earlier no-publication claim was this client error, NOT a Cockpit finding.
+- GitHub push remains an access gate: no usable login in isolated CodexHome;
+  existing user gh config reports both existing accounts invalid; native Git
+  push also fails using the original global config. No token output, login,
+  credential change or key copy. Orchestrator request
+  `f0420b12-8895-4f3d-bf83-fe62864b5a9f` gets SOURCE_UNAVAILABLE and status
+  REQUEST_NOT_FOUND: no receipt/worker claimed; existing Crest/Panel identities
+  stay intact. Original failed client request459687b5 remains historical only.
 - Next authorized steps: finish minimal two-path correction, preserve original
   failures, configure internal build output without weakening source/path gates,
   build one clean frozen candidate on Inhouse; affected visible journeys, then
-  focused native checks. Integrate verified work into actual main, push and return
+  focused native checks, then one separate native `codex review` on the smallest
+  attributable implementation scope (new 6 October user gate). Integrate verified
+  work into actual main, push and return
   the exact app through the guarded development installer. Crest source handoffs
   follow recorded package order; all real-device/legal/release gates remain open.
 
