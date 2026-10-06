@@ -246,6 +246,18 @@
   close acceptance, existing8 IDs/contract retained. Foreign work stays intact.
   Actualmain/origin13423f52 contains accepted Mobile-only delivery; prior
   Desktop/Arc/build/Sync divergence from47a37617 remains a separate source gate.
+- Readonly integration contract676d2cfb submitted via existing Orchestrator,
+  Codex/accountDEFAA5B4, recommendedgpt6.1Sol/xhigh, new own Goal/thread requested.
+  Scope only docs/reviews/2026-10-07-desktop-main-integration-contract.md;
+  no Source/build/GUI/Main writes or underdelegation. Current actual counts:
+  canonical-only436commits, main-only89 (including merges/consolidation),
+  main-side71files/5,061additions/391deletions from47a37617. Need concrete
+  conflict/dependency/source/evidence rules preserving accepted Main Arc/history
+  and current M155/Format3/UX. Submission acknowledged, but no actual target
+  session/request/report binding yet found; no start claim or duplicateworker.
+  Same-request diagnosis3ddae6b9-43ea-4ae4-a711-a851e0740886 queued at22:51:13Z;
+  original payload /private/tmp/ahoi-main-attribution-delegation-20261007.json.
+  Root continues e028 runtime gate and Mobile55 independently.
 
 
 ## Handoff Claude → Codex (Caeli) — 6 October 2026
