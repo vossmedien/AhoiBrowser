@@ -124,6 +124,7 @@ test("ahoi_navigation_surface_state_unittests") {
   deps = [
     ":unit_tests",
     "//base/test:test_support",
+    "//mojo/core/embedder",
     "//testing/gtest",
     "//ui/resources:ui_test_pak",
     "//ui/views:test_support",
