@@ -64,9 +64,11 @@ TEST_F(ZenProfileDiscoveryTest, FindsProfilesAcrossNumberingGaps) {
       DiscoverZenProfilesAtRoot(root);
   ASSERT_EQ(profiles.size(), 2u);
   EXPECT_EQ(profiles[0].name, u"Personal");
-  EXPECT_EQ(profiles[0].path, personal);
+  // Discovery reports canonical paths; since M155 the temp dir itself may be
+  // the unresolved /var symlink on macOS.
+  EXPECT_EQ(profiles[0].path, base::MakeAbsoluteFilePath(personal));
   EXPECT_EQ(profiles[1].name, u"Work");
-  EXPECT_EQ(profiles[1].path, work);
+  EXPECT_EQ(profiles[1].path, base::MakeAbsoluteFilePath(work));
 }
 
 TEST_F(ZenProfileDiscoveryTest, RecognizesButDoesNotEnableMozLz4Structure) {
