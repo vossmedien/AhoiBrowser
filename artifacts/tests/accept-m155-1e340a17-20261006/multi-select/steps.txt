@@ -1,0 +1,28 @@
+frontmost -> 0
+pages before: 4
+hidclicked AXRadioButton | Mehrfach-Alpha — Temporärer Tab | Mehrfach-Alpha — Temporärer Tab | 1 at (140.0, 317.0)
+selected: Alpha
+plainClickSelectsOne -> true
+hidclicked AXRadioButton | Mehrfach-Gamma — Temporärer Tab | Mehrfach-Gamma — Temporärer Tab | 1 at (140.0, 389.0)
+selected: Alpha Gamma
+commandClickAdds -> true
+commandClickKeepsActive -> true
+commandClickKeepsTabs -> true
+hidclicked AXRadioButton | Mehrfach-Beta — Temporärer Tab | Mehrfach-Beta — Temporärer Tab | 1 at (140.0, 353.0)
+selected: Beta Gamma
+shiftClickSelectsRange -> true
+shiftClickKeepsActive -> true
+hidkey 53
+selected: Alpha
+escapeClears -> true
+hidclicked AXRadioButton | Mehrfach-Beta — Temporärer Tab | Mehrfach-Beta — Temporärer Tab | 1 at (140.0, 353.0)
+hidclicked AXRadioButton | Mehrfach-Gamma — Temporärer Tab | Mehrfach-Gamma — Temporärer Tab | 1 at (140.0, 389.0)
+selected: Alpha Beta Gamma
+reselect -> true
+hidrightclicked AXRadioButton | Mehrfach-Beta — Temporärer Tab | Mehrfach-Beta — Temporärer Tab | 1 at (140.0, 353.0)
+menuTitle -> true
+AXPress AXMenuItem | Offene Tabs schließen | itemSelected: -> 0
+closedToast -> false
+pages after: 4
+tabsClosed -> false
+hidkey 12

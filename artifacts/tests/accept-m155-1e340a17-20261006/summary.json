@@ -1,0 +1,10 @@
+{
+ "journeys": {
+  "multi-select": "FAIL exit=0 console-after=unlocked",
+  "tab-switcher": "PASS exit=0 console-after=unlocked",
+  "sidebar-discovery-switch": "PASS exit=0 console-after=unlocked",
+  "cmd-move": "FAIL exit=8 console-after=unlocked",
+  "keyboard-shortcuts": "PASS exit=0 console-after=unlocked"
+ },
+ "pass": false
+}

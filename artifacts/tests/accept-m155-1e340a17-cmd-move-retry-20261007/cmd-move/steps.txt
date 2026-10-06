@@ -1,0 +1,74 @@
+frontmost -> 0
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Ziel -> 0 now=Ziel
+AXPress AXButton | Erstellen | Erstellen -> 0
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 28
+frontmost -> 0
+hidkey 36
+key 53
+AXShowMenu AXButton | Ziel, Workspace wechseln | Ziel, Workspace wechseln -> -25204
+AXPress AXButton | Inbox | Inbox -> 0
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 28
+frontmost -> 0
+hidkey 36
+row for PaneA: AXRadioButton | PaneA — Temporärer Tab
+frontmost -> 0
+hidkey 53
+AXShowMenu AXRadioButton | PaneA — Temporärer Tab | PaneA — Temporärer Tab | 1 -> -25204
+AXPress AXMenuItem | Neue Gruppe mit diesem Tab… | itemSelected: -> 0
+setvalue AXTextField | Gruppenname | Gruppenname | Projekt -> 0 now=Projekt
+AXPress AXButton | Erstellen | Erstellen -> 0
+row for Projekt: AXRow | Projekt
+frontmost -> 0
+hidkey 53
+AXShowMenu AXRow | Projekt | Projekt -> -25204
+AXPress AXMenuItem | Neue Untergruppe… | itemSelected: -> 0
+setvalue AXTextField | Gruppenname | Gruppenname | Unter -> 0 now=Unter
+AXPress AXButton | Erstellen | Erstellen -> 0
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 28
+frontmost -> 0
+hidkey 36
+inbox=83699047-edf8-580d-948d-9c37acc35cb6 ziel=8394418e-878c-4b48-b7da-c237861a32c4 folder=cb3441dc-9c4a-4c5d-a810-113bd50ceb56 sub=02554845-58b2-4830-b62f-0ff5b180e2ef a=65c06f9e-86a0-42b4-b95a-f7695c220973 b=33b44de0-afc8-46ea-b15c-d019e3e6720f children=a.html,Unter
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 4
+moveFindableByWorkspaceName -> true
+frontmost -> 0
+hidkey 53
+ownWorkspaceNotOffered -> true
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 7
+frontmost -> 0
+hidkey 36
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 30
+frontmost -> 0
+hidkey 36
+folderMovedToTargetRoot -> true
+childrenMovedWithIds -> true
+childTabKeepsRunning -> true
+activePageStays -> true
+folderAppendedInTarget -> true
+undo: key 16 on com.apple.keylayout.German
+frontmost -> 0
+hidkey 16
+undoMovesFolderBack -> true
+undoRestoresChildren -> true
+frontmost -> 0
+hidkey 12

@@ -1,0 +1,84 @@
+{
+ "workspaces": [
+  {
+   "id": "83699047-edf8-580d-948d-9c37acc35cb6",
+   "name": "Inbox",
+   "tomb": 0,
+   "merged": null
+  },
+  {
+   "id": "8394418e-878c-4b48-b7da-c237861a32c4",
+   "name": "Ziel",
+   "tomb": 0,
+   "merged": null
+  }
+ ],
+ "nodes": [
+  {
+   "id": "33b44de0-afc8-46ea-b15c-d019e3e6720f",
+   "ws": "83699047-edf8-580d-948d-9c37acc35cb6",
+   "parent": null,
+   "type": 1,
+   "title": "PaneB",
+   "url": "http://127.0.0.1:8843/b.html",
+   "sort": "@@@",
+   "tomb": 0,
+   "temp": 1
+  },
+  {
+   "id": "cb3441dc-9c4a-4c5d-a810-113bd50ceb56",
+   "ws": "83699047-edf8-580d-948d-9c37acc35cb6",
+   "parent": null,
+   "type": 0,
+   "title": "Projekt",
+   "url": "",
+   "sort": "@@",
+   "tomb": 0,
+   "temp": 0
+  },
+  {
+   "id": "db3be703-7e67-4060-9f30-a1611c9cc8f7",
+   "ws": "83699047-edf8-580d-948d-9c37acc35cb6",
+   "parent": null,
+   "type": 1,
+   "title": "about:blank",
+   "url": "about:blank",
+   "sort": "@",
+   "tomb": 0,
+   "temp": 1
+  },
+  {
+   "id": "f7efd375-5768-4e86-ad65-2cac2618f530",
+   "ws": "8394418e-878c-4b48-b7da-c237861a32c4",
+   "parent": null,
+   "type": 1,
+   "title": "PaneE",
+   "url": "http://127.0.0.1:8843/e.html",
+   "sort": "@",
+   "tomb": 0,
+   "temp": 1
+  },
+  {
+   "id": "02554845-58b2-4830-b62f-0ff5b180e2ef",
+   "ws": "83699047-edf8-580d-948d-9c37acc35cb6",
+   "parent": "cb3441dc-9c4a-4c5d-a810-113bd50ceb56",
+   "type": 0,
+   "title": "Unter",
+   "url": "",
+   "sort": "@@",
+   "tomb": 0,
+   "temp": 0
+  },
+  {
+   "id": "65c06f9e-86a0-42b4-b95a-f7695c220973",
+   "ws": "83699047-edf8-580d-948d-9c37acc35cb6",
+   "parent": "cb3441dc-9c4a-4c5d-a810-113bd50ceb56",
+   "type": 1,
+   "title": "PaneA",
+   "url": "http://127.0.0.1:8843/a.html",
+   "sort": "@",
+   "tomb": 0,
+   "temp": 0
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+{
+ "moveFindableByWorkspaceName": true,
+ "ownWorkspaceNotOffered": true,
+ "folderMovedToTargetRoot": true,
+ "childrenMovedWithIds": true,
+ "childTabKeepsRunning": true,
+ "activePageStays": true,
+ "folderAppendedInTarget": true,
+ "undoMovesFolderBack": true,
+ "undoRestoresChildren": true,
+ "pass": true
+}

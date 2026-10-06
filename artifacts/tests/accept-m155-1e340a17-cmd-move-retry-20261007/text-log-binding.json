@@ -1,0 +1,17 @@
+{
+  "cmd-move/site-readiness-error.txt": {
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedTextSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "rawRetainedOnInhouse": true
+  },
+  "cmd-move/tree-errors.txt": {
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedTextSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "rawRetainedOnInhouse": true
+  },
+  "cmd-move/site-readiness.html": {
+    "rawSha256": "dac85b1606c49512c50ed81d7cc05a430c9b53a42b14d1576318f36e87649a1b",
+    "archivedTextSha256": "b75e3343bc485a4bc9fe977673ffdda27678961f8652b1446311387d2057cdf2",
+    "rawRetainedOnInhouse": true
+  }
+}

@@ -1,0 +1,74 @@
+Sofort beenden … | ⎋ | 2
+AhoiBrowser sofort beenden | ⎋ | 3
+Bildschirm sperren | Q | 4
+Christian Voss abmelden … | Q | 1
+Christian Voss abmelden | Q | 3
+Einstellungen… | , | 0
+Browserdaten löschen… |  | 1
+AhoiBrowser ausblenden | H | 0
+Andere ausblenden | H | 2
+AhoiBrowser beenden | Q | 0
+Neuer Tab | T | 0
+Neues Fenster | N | 0
+Neues Inkognitofenster | N | 1
+Geschlossenen Tab wieder öffnen | T | 1
+Datei öffnen… | O | 0
+Adresse öffnen… | K | 0
+Fenster schließen | W | 1
+Alle schließen | W | 3
+Tab schließen | W | 0
+Seite speichern unter… | S | 0
+Link per E-Mail versenden | I | 1
+Drucken… | P | 0
+Über das Systemdialogfeld drucken… | P | 2
+Rückgängig | Z | 0
+Wiederholen | Z | 1
+Ausschneiden | X | 0
+Kopieren | C | 0
+Einfügen | V | 0
+Einsetzen und Stil anpassen | V | 1
+Einsetzen und Stil anpassen | V | 3
+Alles auswählen | A | 0
+Im Web suchen… | F | 2
+Suchen… | F | 0
+Weitersuchen (vorwärts) | G | 0
+Weitersuchen (rückwärts) | G | 1
+Auswahl für Suche übernehmen | E | 0
+Auswahl anzeigen | J | 0
+Rechtschreibung und Grammatik einblenden | Ü | 1
+Dokument jetzt prüfen | Ü | 0
+Diktat starten … | 🎤 | 8
+Emoji & Symbole | 🌐 | 8
+Lesezeichenleiste immer anzeigen | B | 1
+Symbolleiste im Vollbildmodus immer einblenden | F | 1
+Vertikale Tabs minimieren | L | 1
+Stoppen | . | 0
+Diese Seite neu laden | R | 0
+Erneutes Laden dieser Seite erzwingen | R | 1
+Vollbildmodus | F | 20
+Vollbildmodus | F | 24
+Originalgröße | 0 | 0
+Vergrößern | + | 0
+Verkleinern | - | 0
+Quelltext anzeigen | U | 2
+Entwicklertools | I | 2
+Elemente untersuchen | C | 2
+JavaScript-Konsole | J | 2
+Startseite | H | 1
+Zurück | Ö | 0
+Vorwärts | Ä | 0
+Gesamtverlauf anzeigen | Y | 0
+Lesezeichenmanager öffnen | B | 2
+Lesezeichen für diesen Tab erstellen… | D | 0
+Alle Tabs als Lesezeichen speichern… | D | 1
+Nächsten Tab auswählen |         | 12
+Vorherigen Tab auswählen |       | 13
+Tab zu neuer geteilter Ansicht hinzufügen | N | 2
+Tabs suchen… | A | 1
+Im Dock ablegen | M | 0
+Alle im Dock ablegen | M | 2
+Füllen | F | 28
+Zentriert | C | 28
+Zur vorherigen Größe wechseln | R | 28
+Downloads | J | 1
+AhoiBrowser-Hilfe | ? | 0

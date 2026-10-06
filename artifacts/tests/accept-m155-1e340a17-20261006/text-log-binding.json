@@ -1,0 +1,32 @@
+{
+  "cmd-move/steps.txt": {
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedTextSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "rawRetainedOnInhouse": true
+  },
+  "cmd-move/site-readiness-error.txt": {
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archivedTextSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "rawRetainedOnInhouse": true
+  },
+  "cmd-move/site-readiness.html": {
+    "rawSha256": "dac85b1606c49512c50ed81d7cc05a430c9b53a42b14d1576318f36e87649a1b",
+    "archivedTextSha256": "b75e3343bc485a4bc9fe977673ffdda27678961f8652b1446311387d2057cdf2",
+    "rawRetainedOnInhouse": true
+  },
+  "keyboard-shortcuts/menukeys-rebound.txt": {
+    "rawSha256": "09b5e15b7f6a63b2e41ef1b7ee30559415c1e86e7c263b205690c85b84cc7ea3",
+    "archivedTextSha256": "5f50a1798717050265ee310d282aafd1c8393002d19a88edbe928b19878152e3",
+    "rawRetainedOnInhouse": true
+  },
+  "keyboard-shortcuts/menukeys-default.txt": {
+    "rawSha256": "efaaaea174fba820bed4cde35e916e1def4a451b421c934e001bb11d3585ab73",
+    "archivedTextSha256": "1ec199a835478c07aef28b001ab596062f9de27811c420dbc5126454070755ba",
+    "rawRetainedOnInhouse": true
+  },
+  "keyboard-shortcuts/menukeys-reset.txt": {
+    "rawSha256": "152bcb93de8c9b7f229a0fa9ffb522ad59d92363e8f3e16deefb1764384e1980",
+    "archivedTextSha256": "64407ccb36c5a5c0b7e880270c9775e6472f2c44f03df35da0f21d827b082bdf",
+    "rawRetainedOnInhouse": true
+  }
+}

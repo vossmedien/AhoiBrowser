@@ -1,0 +1,123 @@
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 31
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+Target is closing
+hidkey 48
+mruToPrevious -> true
+after opt-tab 1: beta pages: http://127.0.0.1:8792/beta.html http://127.0.0.1:8792/gamma.html http://127.0.0.1:8792/alpha.html
+hidkey 48
+mruTogglesBack -> true
+after opt-tab 2: gamma
+hidkey 48
+after ctrl-tab: alpha
+cyclingIsSeparate -> true
+hidkey 48
+mruAfterCycling -> true
+after opt-tab 3: gamma
+key 53
+AXShowMenu AXButton | Inbox, Workspace wechseln | Inbox, Workspace wechseln -> -25204
+AXPress AXMenuItem | Neuer Workspace… | itemSelected: -> 0
+setvalue AXTextField | Workspace-Name | Workspace-Name | Zwei -> 0 now=Zwei
+AXPress AXButton | Erstellen | Erstellen -> 0
+dialogClosed_Zwei -> true
+frontmost -> 0
+hidkey 17
+typed 32
+hidkey 36
+frontmost -> 0
+hidkey 17
+typed 34
+hidkey 36
+zwei pages: http://127.0.0.1:8792/epsilon.html http://127.0.0.1:8792/delta.html http://127.0.0.1:8792/gamma.html http://127.0.0.1:8792/alpha.html http://127.0.0.1:8792/beta.html
+hidkey 48
+after ctrlTabWrapsInWorkspace (48 ctrl): delta
+ctrlTabWrapsInWorkspace -> true
+hidkey 48
+after ctrlShiftTabWrapsInWorkspace (48 ctrl shift): epsilon
+ctrlShiftTabWrapsInWorkspace -> true
+keyboard layout: com.apple.keylayout.German
+info: bracket shortcuts skipped on com.apple.keylayout.German
+hidkey 18
+after cmdOneSelectsFirstSidebarRow (18 cmd): delta
+cmdOneSelectsFirstSidebarRow -> true
+hidkey 25
+after cmdNineSelectsLastSidebarRow (25 cmd): epsilon
+cmdNineSelectsLastSidebarRow -> true
+hidkey 48
+mruStaysInWorkspace -> true
+key 53
+AXShowMenu AXButton | Zwei, Workspace wechseln | Zwei, Workspace wechseln -> -25204
+AXPress AXButton | Inbox | Inbox -> 0
+frontmost -> 0
+hidkey 17
+typed 22
+hidkey 36
+editorShowsDefault -> true
+ok
+record tab.last-used: focus=true onButton=true recording=true label=Zum zuletzt benutzten Tab: ⌃⌥⇥
+hidkey 40
+editorRebinds -> true
+ok
+record tab.last-used: focus=true onButton=true recording=true label=Zum zuletzt benutzten Tab: ⌥⌘K
+hidkey 19
+conflict: Diese Taste nutzt bereits „Workspace 2“. Entferne sie dort zuerst.
+conflictNamesHolder -> true
+conflictNotOverwritten -> true
+hidkey 48
+after old key: Einstellungen – AhoiBrowser
+oldKeyReleased -> true
+hidkey 40
+after new key: gamma
+newKeyWorks -> true
+hidkey 12
+frontmost -> 0
+frontmost -> 0
+hidkey 17
+typed 22
+hidkey 36
+bindingPersists -> true
+ok
+resetRestoresDefault -> true
+formerlyFixedEditable -> true
+menuShowsDefaultKey -> true
+ok
+record browser.command-bar: focus=true onButton=true recording=true label=Command Bar öffnen: ⌘L
+hidkey 40
+commandBarRebinds -> true
+menuFollowsBinding -> true
+hidkey 37
+commandBarOldKeyReleased -> true
+hidkey 53
+hidkey 40
+commandBarNewKeyOpens -> true
+hidkey 53
+ok
+record tab.save: focus=true onButton=true recording=false label=Tab speichern: ⌘D
+hidclicked AXButton | Tab speichern: ⌘D | Tab speichern: ⌘D at (783.0, 567.0)
+record tab.save after click: focus=true onButton=true recording=true label=Tab speichern: ⌘D
+hidkey 1
+tab.save keys: '⌥⌘S'
+keydowns seen by the page: ⌘⌥91 ⌘⌥18 ⌘⌥83
+no error
+saveRebinds -> true
+hidkey 40
+typed 13
+commandBarShowsBinding -> true
+hidkey 53
+ok
+system conflict: macOS nutzt diese Taste bereits (Systemeinstellungen > Tastatur > Tastaturkurzbefehle). Wähle eine andere.
+systemKeyRefused -> true
+ok
+resetIsPerEntry -> true
+menuFollowsReset -> true
+hidkey 12

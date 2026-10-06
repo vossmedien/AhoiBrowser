@@ -1,0 +1,14 @@
+{
+ "plainClickSelectsOne": true,
+ "commandClickAdds": true,
+ "commandClickKeepsActive": true,
+ "commandClickKeepsTabs": true,
+ "shiftClickSelectsRange": true,
+ "shiftClickKeepsActive": true,
+ "escapeClears": true,
+ "reselect": true,
+ "menuTitle": true,
+ "closedToast": false,
+ "tabsClosed": false,
+ "pass": false
+}

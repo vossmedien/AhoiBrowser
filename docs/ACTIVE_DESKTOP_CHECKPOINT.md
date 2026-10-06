@@ -1,6 +1,6 @@
 # Active Desktop checkpoint
 
-## Codex continuation: compiler fixes frozen; guarded resume pending — 6 October 2026
+## Codex continuation: corrected build passes; remaining close-action fix delegated — 7 October 2026
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no
@@ -191,17 +191,45 @@
   output/build lock; renewed disk gates pass with4GiB growth+8GiB reserve.
   Mobile134 visible4/runtime5 completed and device/lock handed back beforehand.
   ~/inhouse/evidence/ahoi-1e340a17/admission-resume.json binds admission.
-- Next authorized step: guarded incremental build of1e340a17 on the preserved
-  internal output after renewed admission. On compile/sign/provenance success,
-  run updated target `~/inhouse/evidence/ahoi-1e340a17/accept.sh` for guarded
-  installation, five affected visible journeys and focused native checks.
-  Diagnose a real failure at its boundary and preserve the original evidence.
-  After those gates, one separate native `codex review` of the attributable
-  implementation range, then integrate into actual main, regular-hook push via
-  the verified GUI CLI Git context and return/install the exact accepted app.
-  Auth handoff is consumed; no auth/JeV retry or new worker. The waiting build
-  stays at its original Goal/source/output/owner. Combined Crest package follows
-  first corrected-candidate acceptance; real-device/legal/release gates remain.
+- **Build1e340a17 terminal0 at21:53:35Z:**433 incremental edges compiled/linked,
+  exact-source stamping and GUI signing/verification PASS; SSH signing failure
+  only was separated as documented. Original wrappers restored, build lock
+  released, output/provenance preserved. Guarded install receipt now
+  ~/inhouse/evidence/ahoi-1e340a17/installed-1e340a17.json, actual Inhouse installed
+  source1e340a17; Dev remains ef982afe. No accepted Dev delivery yet.
+- **Visible acceptance remains OPEN:** first five journeys3PASS/2FAIL; switcher,
+  sidebar-discovery-switch and keyboard PASS. MultiSelect Cmd-add/Shift-range/
+  Escape, stable activeAlpha/tabcount, reselect and menuheader3 all PASS; only
+  context "Offene Tabs schließen" does nothing (AXPress0, no toast,4pages remain).
+  [Original exact-candidate evidence](../artifacts/tests/accept-m155-1e340a17-20261006/).
+  Focused native tests correctly NOT started after that visible failure.
+- CmdMove originalexit8 was a launch guard BEFORE assertions, caused by unrelated
+  BetterIPTV xcodebuild test-without-building on foreign simulatorCE3801C5, not
+  a proved product regression. Counterprobe mean53.60%, own build/UI locks free,
+  installed-source guard retained. Existing documented AHOI_E2E_ALLOW_FOREIGN_BUILD=1
+  used only for this correctness journey, foreign process untouched. Scoped
+  retry on same1e candidate **PASS**, original refusal retained separately at
+  target artifacts/tests/accept-m155-1e340a17-cmd-move-retry-20261007/. Combined
+  applicable evidence4/5 PASS; context-close remains FAIL, no false green suite.
+- **Deep close diagnosis/fixc70f3d38 via existing orchestrator:** actual
+  session4CD99365-8552-4BE7-8FD9-CE663A46C9AA,
+  thread01a1134d-3995-7e41-81cd-5fc0f3b8ea57, Codex/Caeli gpt6.1Sol/xhigh,
+  own worktree AhoiBrowser-m155-mehrfachschliessen-c70f3d38, working Source-only
+  scope sidebar/command adapter/E2E script + unique handoff report. Full native
+  own Goal/config receipt still to verify. No shared checkout/out/build/install/
+  MacGUI/defaultbranch lease; Root owns integration/build/visible acceptance.
+- Next: consume the attributable close Sourcehandoff once, one guarded incremental
+  candidate, affected visible close journey before focused checks and native
+  codexreview; after acceptance integrate/push actualmain and deliver exactapp.
+  Same pins/output/reserve retained; no cold rebuild or repeated old Modifier
+  investigation. Researchdb98 handback accepted, independent Mobile55e41676
+  implementation queued. Root now coordination/acceptance; new deep research/
+  implementation only Orchestrator→Codex/Caeli, no Opus or duplicate writers.
+  Crest1253b8fa compiler patch duplicates the four compiled1e fix families;
+  do not apply again. Six Crest wiring patches/source packages follow corrected
+  close acceptance, existing8 IDs/contract retained. Foreign work stays intact.
+  Actualmain/origin13423f52 contains accepted Mobile-only delivery; prior
+  Desktop/Arc/build/Sync divergence from47a37617 remains a separate source gate.
 
 
 ## Handoff Claude → Codex (Caeli) — 6 October 2026

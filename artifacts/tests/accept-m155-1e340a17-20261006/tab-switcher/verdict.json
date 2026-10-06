@@ -1,0 +1,10 @@
+{
+ "panelOpens": true,
+ "previousTabFocused": true,
+ "returnClosesPanel": true,
+ "returnSwitchesBack": true,
+ "wClosesFocusedTab": true,
+ "escapeClosesPanel": true,
+ "escapeKeepsTab": true,
+ "pass": true
+}

@@ -1,0 +1,21 @@
+frontmost -> 0
+Target activated
+Target activated
+Target activated
+visible before: Wechsel-Zwei
+hidkey 17
+panelOpens -> true
+focused tile: Wechsel-Eins
+previousTabFocused -> true
+hidkey 36
+returnClosesPanel -> true
+visible after return: Wechsel-Eins
+returnSwitchesBack -> true
+hidkey 17
+focused tile 2: Wechsel-Zwei
+hidkey 13
+wClosesFocusedTab -> true
+hidkey 53
+escapeClosesPanel -> true
+escapeKeepsTab -> true
+hidkey 12
