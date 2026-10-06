@@ -63,23 +63,21 @@
   `05EFDE54-146B-47AD-89CE-A56EF1781938` verified. Ownership/handoff note5bdd9e20
   and new-rule note6f0874ba accepted by Cockpit (no implementation implied).
   Earlier no-publication claim was this client error, NOT a Cockpit finding.
-- GitHub push remains an access gate: no usable login in isolated CodexHome;
-  existing user gh config reports both existing accounts invalid; native Git
-  push also fails using the original global config. No token output, login,
-  credential change or key copy. Orchestrator request
-  `f0420b12-8895-4f3d-bf83-fe62864b5a9f` gets SOURCE_UNAVAILABLE and status
-  REQUEST_NOT_FOUND: no orchestrator-message receipt/worker claimed. A distinct
-  bounded auth handoff `AHOI-GIT-AUTH-20261006` was submitted once through actual
-  `cockpit_delegate`: delegation `cb1e5d9c`, Codex/Caeli, own required Goal,
-  docs/reviews/2026-10-06-github-auth-handoff.md only. Cockpit confirms QUEUED,
-  accepted. Actual worker is now `73CA9F82-2D8E-4D4A-AA39-49F1A5601D46`,
-  distinct native thread/Goal `01a111a0-ba57-71f1-a064-88cf9d5c535d`,
-  Worktree `AhoiBrowser-codex-cb1e5d9c`, Codex/Caeli accountDEFAA5B4,
-  GPT-6.1-Sol/xhigh. Native Goal and working status are present in the actual
-  published snapshot. No independent Jev-decision receipt claimed. Follow-ups
-  use this destination, not another worker. Root Goal remains unchanged.
-  Existing Crest/Panel identities stay intact. Original failed client request
-  459687b5 remains historical only.
+- GitHub access handoff cb1e5d9c consumed: exact one-file diff cdeeae4e reviewed
+  and integrated. Actual new worker73CA9F/thread01a111a0/accountDEFAA5B4/own Goal
+  and GPT6.1Sol/xhigh were verified; Root Goal unchanged, no duplicate worker.
+  Worker reports Abbruch only for unresolved historical cause/Jev receipt, while
+  its real credential-flow and push dry-run passed. Root's direct isolated probe
+  still failed: user Keychain search list empty. Same gh2.102.0 and configured
+  GitHub helper in regular GUI CLI context passed, including an actual Root
+  dry-run72e2335f..92f49b8a. No login, account switch, secret export, key copy,
+  HOME/search-list rewrite or credential mutation. Existing CODEX_HOME retained.
+  Use existing run-in-gui-session.sh with GH_CONFIG_DIR and GIT_CONFIG_GLOBAL
+  pointing to the existing user config for Git writes; retain real hooks.
+  [Accepted access report](reviews/2026-10-06-github-auth-handoff.md);
+  evidence `artifacts/tests/github-auth-cb1e5d9c-20261006/root-gui-probe.log`.
+  Separate Jev/orchestrator receipt still SOURCE_UNAVAILABLE/REQUEST_NOT_FOUND;
+  no new worker or credential action follows from that metadata gate.
 - Review setup verified without starting review: current native executable
   `/Users/vossmedien/.codex/packages/standalone/releases/0.160.1-aarch64-apple-darwin/bin/codex`
   (not on shell PATH); `review --help` and the

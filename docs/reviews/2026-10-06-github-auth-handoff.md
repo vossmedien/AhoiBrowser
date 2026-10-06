@@ -121,3 +121,27 @@ seinem normalen CLI-Prozess und setzt seinen bewachten Integrations-/Lieferweg
 fort. Falls dessen Prozess weiter scheitert, gezielt die konkrete Prozess- und
 Keyring-Grenze gegen diesen erfolgreichen Beleg vergleichen, ohne neue
 Credentials, Accountwechsel oder unveränderte Retryserie.
+
+## Abnahme durch den Hauptowner
+
+Der Hauptowner hat den tatsächlichen Ein-Datei-Diff von cdeeae4e gegen Basis
+15100428 geprüft und den Bericht übernommen. Seine einmalige Probe im isolierten
+Prozess mit beiden vorhandenen Konfigurationspfaden blieb rot. Konkrete aktuelle
+Grenze: `security list-keychains -d user` liefert dort keine Suchliste; dieselbe
+installierte gh-Version 2.102.0 meldet deshalb keinen nutzbaren Keyring-Zugang.
+Die damalige historische Ursache bleibt getrennt davon ungeklärt.
+
+Der vorhandene `tools/desktop_e2e/run-in-gui-session.sh`-Weg hat danach die echte
+reguläre CLI-Sitzung des gleichen macOS-Benutzers geprüft. HOME entstand dort
+regulär als /Users/vossmedien; weder Root-HOME noch Suchlisten wurden verändert.
+Der unveränderte bestehende CODEX_HOME wurde weitergereicht. Die reguläre Liste
+enthält die vorhandenen login-/openvpn-/System-Keychains; gh meldet vossmedien
+aktiv/gültig, HTTPS. Eine echte unveröffentlichende Push-Probe des Hauptowners
+mit denselben Konfigurationspfaden bestand: 72e2335f..92f49b8a, Exit 0. Hooks
+waren ausschließlich in dieser Dry-Run-Probe ausgeschaltet. Kein Secret wurde
+exportiert oder kopiert, kein Account/Keychain/Credential verändert.
+
+Beleg: `artifacts/tests/github-auth-cb1e5d9c-20261006/root-gui-probe.log`.
+Dieser Beleg akzeptiert den regulären Git-Zugangsweg im Hauptowner; er ist keine
+Kandidaten-, Defaultbranch-, Release- oder Jev-Abnahme. Ein echter Push verwendet
+weiter alle regulären Hooks und bleibt von den jeweiligen Produktgates getrennt.
