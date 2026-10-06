@@ -5,7 +5,7 @@
 Unified owner Cockpit68E66C9E, active native Goal/thread
 01a11179-cb6b-7dc1-9e53-f3d72fefc198 continues stopped Claude049a3c1d and the
 complete Master. Later product decisions remain binding; AnyChat is out of scope.
-Desktop frozen47885f36 and its shared Chromium build remain independent/owned.
+Desktop source1e340a17 and its shared Chromium build remain independent/owned.
 
 - **Files import/load/unload PASS:** exact clean DebugLocalba139fc1, owned iOS27
   simulatorA058D204-F3CB-44B7-963C-1F785132EF8B,40.75s. Native Files selected the
@@ -70,7 +70,28 @@ Desktop frozen47885f36 and its shared Chromium build remain independent/owned.
   Park consumed after preparation: next actual Inhouse samples50.39/50.17/48.79%,
   mean49.78%, select Inhouse; Dev mean78.17% only fallback. Main candidate
   guarded one-job build now submitted with the existing frozen3ff98d04/scratch.
-  Verify actual runner/build receipt next; no main/default push or final acceptance.
+  That build and the two Files journeys/runtime5 passed. Main review then found
+  a missing bundled-fixture self-check (P1): corrected in7495fe65, whose four
+  visible spike journeys and runtime5 passed. Its next review found a stale
+  second-navigation report could satisfy the storage assertion (P2). Corrected
+  in isolated main13423f52: separate per-navigation token in the visible report,
+  then require the observed visit counter to increase. Canonical equivalent
+  source75398749; existing runtime/privacy behavior unchanged. Both original
+  reviews/failures remain evidence; main/default still318c4eff.
+  **Current candidate13423f52 built PASS**, clean DebugLocal/adHoc, exact receipt
+  a23915ed and source-bound xctestrun prepared in
+  ~/inhouse/evidence/ahoi-mobile-files-13423f52-20261006/. Four affected visible
+  journeys, runtime5, correction review and default integration remain OPEN.
+  Before UI, three fresh one-second Inhouse samples averaged100% (foreign
+  Docker/Virtualization and simulator workload; own device is Shutdown).
+  Dev mean49.21% passes CPU but has no iOS runtime, so cannot run this UI phase.
+  Recheck the startup spike before admission; retain exact built candidate.
+  **Delegationdb98dafe accepted by Cockpit**, AHOI-ADR0012-POPUP-PERMS-20261006:
+  independent readonly popup/per-site-permission API research on Codex/Caeli,
+  own new session/thread/Goal requested, gpt6.1Sol/xhigh recommendation. Only
+  docs/reviews/2026-10-06-mobile-webextension-popup-permissions.md writable in
+  its own worktree; no shared source/build/UI. Native start/config/Goal receipt
+  is not yet verified; no claim of worker execution. Existing Root Goal retained.
   Then continue ADR0012 Step1 action/popup, permission and App Store/privacy/update
   evidence. Step2 user decision still waits for the complete spike. Existing
   hardware Escape, edge back swipe, VoiceOver action and real-device Sync gates
