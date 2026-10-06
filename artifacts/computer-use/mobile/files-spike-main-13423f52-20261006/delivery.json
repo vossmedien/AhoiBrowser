@@ -1,0 +1,28 @@
+{
+  "integratedDefaultRevision": "13423f52ced6744842dfd2fea16f9aadda1e5f3f",
+  "remoteDefaultReadback": "13423f52ced6744842dfd2fea16f9aadda1e5f3f\trefs/heads/main",
+  "pushExitCode": 0,
+  "returnedArtifact": "artifacts/build/mobile/debug-spike-13423f52/AhoiMobile.app",
+  "returnedReceiptVerified": true,
+  "installedRuntime": "owned Inhouse iOS27 simulator, exact receipt before4 UI and5 runtime checks; shutdown afterward",
+  "distributionEligible": false,
+  "canonicalFileEquivalence": {
+    "apps/AhoiMobile/AhoiMobile.xcodeproj/project.pbxproj": false,
+    "apps/AhoiMobile/Sources/AhoiMobileCore/CompanionExtensionSetupSection.swift": true,
+    "apps/AhoiMobile/Sources/AhoiMobileCore/MobileWebExtensionRuntime.swift": true,
+    "apps/AhoiMobile/Sources/AhoiMobileCore/WebExtensionSpike/content.js": true,
+    "apps/AhoiMobile/Tests/AhoiMobileUITests/MobileADR0012UITestSupport.swift": true,
+    "apps/AhoiMobile/Tests/AhoiMobileUITests/MobileWebExtensionSpikeUITests.swift": true
+  },
+  "returnedVerificationFirstRejection": "Project hash differed only by three empty Xcode-generated SwiftPM directories. Transferred exact build-input project and repeated full existing receipt verification PASS; every source file hash already matched. No receipt edit or skipped field.",
+  "canonicalMergeBoundary": "Whole-main merge exposed older Arc/importer/build divergence from47a37617. Aborted cleanly; canonical product/fixture/UI bytes already equal accepted mobile package. Preserve divergent Desktop/Sync source until attributable combined acceptance/integration.",
+  "cleanup": {
+    "removedWorktree": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/mobile-files-main-20261006",
+    "removedBranch": "refs/heads/codex/mobile-files-main-20261006",
+    "ancestryVerifiedIn": "actual main and origin/main13423f52",
+    "uniqueDirtyOrUntrackedFiles": false,
+    "returnedArtifactRetained": true,
+    "mobileScratchRetainedForActiveTask": "55e41676",
+    "deletionMethod": "exact ref compare-and-delete; branch -d checked current divergent desktop HEAD and refused, no broad force deletion"
+  }
+}

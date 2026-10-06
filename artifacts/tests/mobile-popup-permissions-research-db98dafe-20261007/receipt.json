@@ -1,0 +1,38 @@
+{
+  "delegation": "db98dafe",
+  "reportCommit": "d0ba6bdff959ff99d32ed742cbad5642c994aac8",
+  "visibleSession": "EF33B317-43F5-43CB-B040-DAB61F4ECE36",
+  "account": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+  "nativeSession": {
+    "id": "01a1132e-81bb-78b1-8311-390b0ada834c",
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-mobile-popup-berechtigungsrecherche-db98",
+    "source": "cli",
+    "cli_version": "0.160.1",
+    "model_provider": "openai"
+  },
+  "appliedConfig": {
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-mobile-popup-berechtigungsrecherche-db98",
+    "model": "gpt-6.1-sol",
+    "effort": "xhigh",
+    "approval_policy": "never",
+    "sandbox_policy": {
+      "type": "danger-full-access"
+    }
+  },
+  "goalCreateCalls": 1,
+  "firstGoal": null,
+  "finalGoal": {
+    "threadId": "01a1132e-81bb-78b1-8311-390b0ada834c",
+    "objective": "Belege f\u00fcr AhoiMobile ADR0012 Step1 unter Xcode27/iOS27 den kleinsten \u00f6ffentlichen WebKit-Vertrag f\u00fcr action/popup und explizite per-site Berechtigungen und liefere Root eine umsetzbare quellengebundene \u00dcbergabe, ohne Produkt-, Build- oder Runtime\u00e4nderungen.",
+    "status": "complete",
+    "tokensUsed": 186929,
+    "timeUsedSeconds": 591,
+    "createdAt": 1791323203,
+    "updatedAt": 1791323795
+  },
+  "rootGoalChanged": false,
+  "scope": "one research report; no source/build/runtime/subdelegation",
+  "orchestratorInformationRequest": "6e692a00-eef2-4ddf-aae4-47fa5360f3eb",
+  "informationReceipt": "unknown/TARGET_CHANGED; separate db98dafe worker/Goal/report verified",
+  "acceptance": "Root read350-line actual diff, sources/SDK constraints and technical gaps; accepted as research only"
+}

@@ -1,6 +1,6 @@
 # Active Mobile checkpoint
 
-## Current Codex continuation: Files spike accepted; Step1 remainder open — 6 October 2026
+## Current Codex continuation: Files delivered on main; popup/permissions delegated — 7 October 2026
 
 Unified owner Cockpit68E66C9E, active native Goal/thread
 01a11179-cb6b-7dc1-9e53-f3d72fefc198 continues stopped Claude049a3c1d and the
@@ -50,63 +50,56 @@ Desktop source1e340a17 and its shared Chromium build remain independent/owned.
   Future costly phases use the NEW three consecutive one-second samples,
   discard initial sample, mean<80%, then eligible Dev fallback. Peer notice822727c9
   delivered; current Goal/Source/ownership unchanged. No Ahoi containers active.
-- **Next authorized action:** preserve reviewed Files package, integrate attributable
-  changes through actual main and verify/deliver the resulting candidate. Main
-  already contains the Files runtime/tests; only two product files differ by the
-  scope correction/diagnosis. Its UI support lacks MobileADR0012UITestSupport,
-  so resolve that concrete dependency before a minimal integration candidate;
-  never blindly merge the369-commit Desktop/Mobile/Sync divergence.
-  Prepared isolated main candidate3ff98d04 (base318c4eff), only two product
-  files plus existing UI helper/test and eight project entries. Canonical
-  temporary worktree: .work/agent-queue/mobile-files-main-20261006, branch
-  codex/mobile-files-main-20261006; target mirror uses the same own scratch after
-  a09 terminal handback. Main/default and installed desktop unchanged. Build
-  parked: valid three one-second samples averaged Inhouse93.91%, Dev88.29%,
-  both saturated. Dev has pinned Xcode27/iOS SDK27 and133.47GiB free for build,
-  but no iOS runtime for local UI; that is a separate runtime prerequisite.
-  Resume build on the first eligible host under80%, Inhouse preferred, then
-  exact receipt/visible Files checks and focused runtime before integration/push.
-  This wait affects only that build; reviewed Files source/evidence preserved.
-  Park consumed after preparation: next actual Inhouse samples50.39/50.17/48.79%,
-  mean49.78%, select Inhouse; Dev mean78.17% only fallback. Main candidate
-  guarded one-job build now submitted with the existing frozen3ff98d04/scratch.
-  That build and the two Files journeys/runtime5 passed. Main review then found
-  a missing bundled-fixture self-check (P1): corrected in7495fe65, whose four
-  visible spike journeys and runtime5 passed. Its next review found a stale
-  second-navigation report could satisfy the storage assertion (P2). Corrected
-  in isolated main13423f52: separate per-navigation token in the visible report,
-  then require the observed visit counter to increase. Canonical equivalent
-  source75398749; existing runtime/privacy behavior unchanged. Both original
-  reviews/failures remain evidence; main/default still318c4eff.
-  **Current candidate13423f52 visible/focused PASS**, clean DebugLocal/adHoc, exact receipt
-  a23915ed and source-bound xctestrun prepared in
-  ~/inhouse/evidence/ahoi-mobile-files-13423f52-20261006/. Four affected visible
-  journeys and runtime5 passed with0failures/0skips on the exact candidate;
-  [main-candidate evidence](../artifacts/computer-use/mobile/files-spike-main-13423f52-20261006/).
-  Own device Shutdown, five-file input removed by hashes, E2E lock released.
-  Correction review PASS, terminal0/no actionable regressions; default
-  integration/delivery remain OPEN. Native review --base main of the clean
-  isolated134 worktree, same account/CODEX_HOME,
-  gpt6.1Sol/xhigh, never/danger-full-access, session01a1132d-53b3-71c3-acbc-6d693407572f.
-  [All review results/corrections and source binding](../artifacts/tests/mobile-files-main-review-13423f52-20261006/).
-  Next: fast-forward actual main from318c4eff to the exact accepted13423f52,
-  regular-hook push, return/verify the same DebugLocal app bytes. No broad
-  Desktop/Mobile/Sync merge or general extension-installer activation.
-  Before UI, three fresh one-second Inhouse samples averaged100% (foreign
-  Docker/Virtualization and simulator workload; own device is Shutdown).
-  Dev mean49.21% passes CPU but has no iOS runtime, so cannot run this UI phase.
-  Startup counterprobe24.58%mean/74%memory-free admitted the actual UI run;
-  original100% sample remains evidence, foreign workloads preserved.
-  **Delegationdb98dafe accepted by Cockpit**, AHOI-ADR0012-POPUP-PERMS-20261006:
-  independent readonly popup/per-site-permission API research on Codex/Caeli,
-  own new session/thread/Goal requested, gpt6.1Sol/xhigh recommendation. Only
-  docs/reviews/2026-10-06-mobile-webextension-popup-permissions.md writable in
-  its own worktree; no shared source/build/UI. Native start/config/Goal receipt
-  is not yet verified; no claim of worker execution. Existing Root Goal retained.
-  Then continue ADR0012 Step1 action/popup, permission and App Store/privacy/update
-  evidence. Step2 user decision still waits for the complete spike. Existing
-  hardware Escape, edge back swipe, VoiceOver action and real-device Sync gates
-  remain open; these Files checks do not close the whole Master or Step1.
+- **Main integration/delivery PASS:** actual main/origin main
+  13423f52ced6744842dfd2fea16f9aadda1e5f3f, ordinary push terminal0 and remote
+  readback exact. Isolated candidatebase318c4eff contains only the two product
+  corrections, existing UI helper/test/project entries and bundled self-check.
+  Main reviews found P1 missing fixture (fixed7495fe65) and P2 stale second-page
+  report (fixed13423f52: distinct navigation token and increasing observed visits).
+  Final exact134: four visible journeys + runtime5 PASS,0failures/0skips; native
+  review --base318c4eff terminal0/no actionable regressions, same account,
+  gpt6.1Sol/xhigh/never/danger-full-access, session01a1132d-53b3-71c3-acbc-6d693407572f.
+  [Exact UI/receipt/delivery](../artifacts/computer-use/mobile/files-spike-main-13423f52-20261006/),
+  [all original reviews/corrections](../artifacts/tests/mobile-files-main-review-13423f52-20261006/).
+- Same DebugLocal/adHoc app returned to
+  artifacts/build/mobile/debug-spike-13423f52/AhoiMobile.app; existing full
+  receipt verifier PASS (app/tree/binary/plist/project/xctestrun/signature).
+  First transfer check rejected three absent empty generated SwiftPM directories
+  in project hash; exact build-input project transferred, every source file
+  already identical, full check repeated without receipt edits/skipped fields.
+  Own installed simulator bytes matched before UI; afterward Shutdown, exact
+  five-file input removed, lock released. Real CloudKit mutation NO/containerempty.
+  This delivers the scoped Debug Files fixture, not a general installer/Step2.
+- Product/fixture/UI helper/test bytes match canonical; canonical project includes
+  additional existing entries. Whole-main merge exposed older Arc/importer/build
+  divergence from47a37617 and was aborted cleanly. Preserve the separate
+  attributable integration scope; Desktop/Sync divergence is not silently merged.
+- **Researchdb98dafe accepted:** source350-line diff read, d0ba6bdf cherry9e18dfec;
+  [API/SDK findings](reviews/2026-10-06-mobile-webextension-popup-permissions.md).
+  Actual sessionEF33B317-43F5-43CB-B040-DAB61F4ECE36,
+  thread01a1132e-81bb-78b1-8311-390b0ada834c, correct own worktree/account,
+  gpt6.1Sol/xhigh/never/danger-full-access. Native Goal initiallynull, created
+  exactlyonce, finalcomplete; Root Goal unchanged. No Source/build/UI/subdelegation.
+  [Native receipt](../artifacts/tests/mobile-popup-permissions-research-db98dafe-20261007/receipt.json).
+  Separate information request6e692a00 is unknown/TARGET_CHANGED; do not retry or
+  duplicate the independently proven worker. Tab APIs, effective DNR deny,
+  actual extension defaultStore and imported closure attributes remain technical
+  candidate proofs, not extra product questions. Context7 quota exhausted;
+  versioned SDK27/Apple sources are the documented fallback.
+- **Next implementation55e41676 queued via existing orchestrator:** Codex/Caeli,
+  gpt6.1Sol/xhigh recommended, new own thread/Goal on actual main13423f52. Only
+  listed Mobile runtime/fixture/UI/test/project paths in its own worktree. Root
+  handed back existing Mobile scratch/DerivedData and own simulatorA058D204
+  (Shutdown, input removed/locks released) for this concrete task; no Mac GUI,
+  Desktopcheckout/out or other device lease. Worker implements/builds/exact UI/
+  focus/nativeReview; Root owns source acceptance/main/push/delivered artifact.
+  Native start/model/Goal receipt for55 is still pending; no build/start claimed.
+  Scratch: ~/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp, clean source134
+  before handoff; preserve existing raw failure xcresults/evidence and rollback5bf.
+- Step1 action/popup, effective Site grant/deny/expiry/revoke, privacy/update and
+  App Store evidence remain OPEN. Step2 user decision waits for the complete
+  spike. Hardware Escape, edge back swipe, VoiceOver action and real-device Sync
+  gates remain open; this Files delivery does not close the whole Master/Step1.
 
 ## Home journey: launch hang was the locked console; real focus bug fixed — 5 October 2026
 
