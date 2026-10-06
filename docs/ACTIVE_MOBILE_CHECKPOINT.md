@@ -1,8 +1,44 @@
 # Active Mobile checkpoint
 
+## Codex continuation: exact app rendered; Files spike UI still open — 6 October 2026
+
+Current unified owner: Cockpit68E66C9E/thread/active native Goal
+01a11179-cb6b-7dc1-9e53-f3d72fefc198, continuing stopped Claude049a3c1d and the
+complete Master. Existing Mobile/Sync contracts and accepted results below stay
+binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
+
+- Reused installed DebugLocal5bf8a565 on owned synthetic device
+  A058D204-F3CB-44B7-963C-1F785132EF8B; no rebuild, profile reset or CloudKit
+  opt-in. App tree, executable and Info.plist hashes exactly match its existing
+  source-bound candidate receipt. Launch with `-AhoiWebExtensionSpike` PID23874
+  succeeded and a real screenshot shows the native browser/page. This proves
+  launch/render only; no Files picker/import/action/permission flow was reached.
+- Actual Xcode27 GUI entry is
+  `/Applications/Xcode.app/Contents/Applications/DeviceHub.app`:
+  [Apple Device Hub documentation](https://developer.apple.com/documentation/xcode/device-hub).
+  The first obsolete Simulator.app invocation failed; this is an entrypoint
+  correction, not a missing Xcode/SDK prerequisite. Existing Device Hub and its
+  foreign device selection were preserved.
+- Current manual GUI route is unavailable: source Computer Use click returned
+  `-10005: noWindowsAvailable`; fresh observation did not establish a usable
+  remote device window. Target GUI AX route returned `not AX trusted` and
+  `could not create image from display`. AX press return0 did not change the
+  observed device window, so it is not interaction evidence. No TCC reset/grant
+  or permission/account change followed. Original GUI log is retained.
+- Own app terminated, own device Shutdown verified again17:03Z, own E2E lock
+  released and absent; other simulators, migration data and Device Hub remain
+  untouched. [Candidate/readback/access evidence](../artifacts/computer-use/mobile/files-spike-5bf8a565-20261006/).
+- Next independent Mobile action: complete ADR0012 Step1's real Files import,
+  action/popup and permission boundaries using an available native interaction
+  path, then assess App Store/update/privacy requirements. Existing bundled
+  content-script/DNR/storage acceptance below remains scoped. Step2's product
+  decision waits for that evidence; a launch or unit pass cannot close it.
+  Hardware Escape, edge back swipe, VoiceOver action and real-device Sync gates
+  remain open. No second product contract/tracking structure is introduced.
+
 ## Home journey: launch hang was the locked console; real focus bug fixed — 5 October 2026
 
-Owner change: Claude session 049a3c1d continues the paused Codex Goal
+Historical owner change: Claude session 049a3c1d continued the paused Codex Goal
 (same Master). Candidate cc8bef2b on own simulator A058D204 (headless,
 `simctl boot`, no Simulator.app), evidence under target
 `~/inhouse/evidence/ahoi-mobile-home-20261004-cc8bef2b/`.
