@@ -228,6 +228,7 @@ void SidebarTreeRowView::Unbind() {
   drop_position_.reset();
   split_drop_target_ = false;
   selected_ = false;
+  multi_selected_ = false;
   hovered_ = false;
   running_ = false;
   sleeping_ = false;
@@ -261,6 +262,7 @@ void SidebarTreeRowView::SetExiting(bool exiting) {
     pressed_disclosure_ = false;
     pressed_trailing_action_ = false;
     selected_ = false;
+    multi_selected_ = false;
   }
   SetCanProcessEventsWithinSubtree(!exiting);
   SetFocusBehavior(exiting ? FocusBehavior::NEVER
@@ -296,7 +298,16 @@ void SidebarTreeRowView::SetSelected(bool selected) {
   }
   selected_ = selected;
   title_label_->SetEnabledColor(visual_style::kText);
-  GetViewAccessibility().SetIsSelected(selected_);
+  GetViewAccessibility().SetIsSelected(selected_ || multi_selected_);
+  SchedulePaint();
+}
+
+void SidebarTreeRowView::SetMultiSelected(bool multi_selected) {
+  if (multi_selected_ == multi_selected) {
+    return;
+  }
+  multi_selected_ = multi_selected;
+  GetViewAccessibility().SetIsSelected(selected_ || multi_selected_);
   SchedulePaint();
 }
 
@@ -463,6 +474,8 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
   } else if (split_drop_target_ ||
              drop_position_ == SidebarTreeController::DropPosition::kInside) {
     surface_color = visual_style::kDropTargetSurface;
+  } else if (multi_selected_) {
+    surface_color = visual_style::kDropTargetSurface;
   } else if (selected_) {
     surface_color = visual_style::kSelectedSurface;
   } else if (is_bound() && owner_->IsExactSearchMatchForRow(node_id_)) {
@@ -529,7 +542,13 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
         StrokeFlags(colors->GetColor(visual_style::kAccent), kDropStrokeWidth));
   }
 
-  if (selected_ && owner_->HasFocus() && split_segment_count_ == 1) {
+  if (multi_selected_ && split_segment_count_ == 1) {
+    gfx::RectF outline = background;
+    outline.Inset(0.5f);
+    canvas->DrawRoundRect(
+        outline, visual_style::kRowCornerRadius - 0.5f,
+        StrokeFlags(colors->GetColor(visual_style::kAccent), 1.0f));
+  } else if (selected_ && owner_->HasFocus() && split_segment_count_ == 1) {
     gfx::RectF focus = background;
     focus.Inset(1.0f);
     canvas->DrawRoundRect(
@@ -623,7 +642,18 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
                     1.25f));
   }
 
-  if (paint_trailing_state && !ShouldShowTrailingAction() && sleeping_) {
+  if (paint_trailing_state && !ShouldShowTrailingAction() &&
+      multi_selected_) {
+    const gfx::Rect badge = GetMirroredRect(TrailingActionBounds());
+    constexpr int kBadgeSize = 16;
+    canvas->DrawImageInt(
+        gfx::CreateVectorIcon(
+            vector_icons::kCheckCircleFilledIcon, kBadgeSize,
+            GetColorProvider()->GetColor(visual_style::kAccent)),
+        badge.CenterPoint().x() - kBadgeSize / 2,
+        badge.CenterPoint().y() - kBadgeSize / 2);
+  } else if (paint_trailing_state && !ShouldShowTrailingAction() &&
+             sleeping_) {
     const gfx::Rect status_bounds = GetMirroredRect(TrailingActionBounds());
     const gfx::Point center = status_bounds.CenterPoint();
     cc::PaintFlags sleep_stroke =

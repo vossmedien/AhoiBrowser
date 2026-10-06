@@ -84,11 +84,9 @@ bool SidebarTreeView::HandleMultiSelectClick(const base::Uuid& node_id,
 }
 
 void SidebarTreeView::RefreshMultiSelectedRows() {
-  const std::optional<base::Uuid>& selected = model().selected_node_id();
   for (const SidebarTreeViewModel::Row& row : model().rows()) {
     if (SidebarTreeRowView* view = GetMaterializedRowForTesting(row.node_id)) {
-      view->SetSelected(selected == row.node_id ||
-                        IsMultiSelected(row.node_id));
+      view->SetMultiSelected(IsMultiSelected(row.node_id));
     }
   }
 }

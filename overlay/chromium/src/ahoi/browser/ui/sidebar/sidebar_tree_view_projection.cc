@@ -116,7 +116,7 @@ void SidebarTreeView::OnSelectionChanged(
   if (old_selection.has_value()) {
     if (SidebarTreeRowView* row =
             GetMaterializedRowForTesting(*old_selection)) {
-      row->SetSelected(IsMultiSelected(*old_selection));
+      row->SetSelected(false);
     }
   }
   if (new_selection.has_value()) {
@@ -541,7 +541,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
     }
     row->Bind(
         index, rows[index], *node,
-        model().selected_node_id() == node_id || IsMultiSelected(node_id),
+        model().selected_node_id() == node_id,
         position.segment, position.segment_count,
         delegate_ ? delegate_->GetSavedPageIcon(*node) : ui::ImageModel(),
         delegate_ ? delegate_->GetSavedPageMediaIndicator(*node)
@@ -552,6 +552,7 @@ void SidebarTreeView::SynchronizeRows(const gfx::Rect& visible_bounds) {
         delegate_ && delegate_->IsSavedPageRunning(node_id),
         delegate_ && delegate_->IsSavedPageSleeping(node_id),
         delegate_ && delegate_->IsSavedPageBookmarked(*node));
+    row->SetMultiSelected(IsMultiSelected(node_id));
     const bool is_drop_target = drop_indicator_.has_value() &&
                                 drop_indicator_->target_node_id == node_id;
     row->SetDropPosition(is_drop_target

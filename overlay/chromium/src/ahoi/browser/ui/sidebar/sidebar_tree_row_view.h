@@ -59,6 +59,9 @@ class SidebarTreeRowView final : public views::View,
             bool bookmarked = false);
   void Unbind();
   void SetSelected(bool selected);
+  // Part of a ⌘/⇧-click multi-selection: tinted accent surface and a check
+  // badge, distinct from the active row (design reference 2026-10-06/02).
+  void SetMultiSelected(bool multi_selected);
   void SetDropPosition(
       std::optional<SidebarTreeController::DropPosition> position);
   void SetSplitDropTarget(bool split_drop_target);
@@ -156,6 +159,7 @@ class SidebarTreeRowView final : public views::View,
   std::vector<gfx::ImageSkia> drag_thumbnails_;
   bool expanded_ = false;
   bool selected_ = false;
+  bool multi_selected_ = false;
   bool hovered_ = false;
   bool running_ = false;
   bool sleeping_ = false;
