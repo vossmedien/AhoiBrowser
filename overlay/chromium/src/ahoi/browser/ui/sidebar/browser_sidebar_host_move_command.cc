@@ -12,6 +12,7 @@
 #include "ahoi/browser/tab_tree/tab_tree_store.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
+#include "ahoi/browser/ui/toast/ahoi_toast.h"
 #include "base/functional/bind.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
@@ -25,6 +26,24 @@ namespace ahoi::sidebar {
 // verschieben". Same paths as the context menu's "Move to" with the
 // Workspace root as destination: the selected folder, else the active saved
 // page (with its split group), else the active temporary tab.
+namespace {
+
+void ShowMovedToast(BrowserWindowInterface* browser,
+                    const WorkspaceService& workspaces,
+                    const base::Uuid& workspace_id,
+                    size_t count) {
+  std::u16string name;
+  for (const auto& workspace : workspaces.ordered_workspaces()) {
+    if (workspace.id == workspace_id) {
+      name = workspace.name;
+      break;
+    }
+  }
+  toast::Show(browser, toast::Event::kMovedToWorkspace, name, count);
+}
+
+}  // namespace
+
 bool BrowserSidebarHostView::MoveSelectionToWorkspace(
     const base::Uuid& workspace_id,
     bool dry_run) {
@@ -86,6 +105,7 @@ bool BrowserSidebarHostView::MoveSelectionToWorkspace(
       std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
           browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
     }
+    ShowMovedToast(browser_, *workspace_service_, workspace_id, source_ids.size());
     return true;
   }
 
@@ -101,6 +121,7 @@ bool BrowserSidebarHostView::MoveSelectionToWorkspace(
   }
   std::ignore = session_bridge_->SetActiveWorkspaceForWindow(
       browser_, workspace_id, WorkspaceActivationSource::kKeyboard);
+  ShowMovedToast(browser_, *workspace_service_, workspace_id, 1);
   return true;
 }
 

@@ -1,0 +1,41 @@
+# Copyright 2026 The AhoiBrowser Authors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import("//testing/test.gni")
+
+# Text and icon of each confirmation; no browser dependency.
+source_set("toast_messages") {
+  sources = [
+    "ahoi_toast.h",
+    "ahoi_toast_messages.cc",
+  ]
+  public_deps = [ "//base" ]
+  deps = [
+    "//base:i18n",
+    "//components/vector_icons",
+  ]
+}
+
+# Shows a confirmation through Chromium's per-window toast controller. The
+# controller's implementation links with //chrome/browser/ui; this target
+# only needs its headers.
+source_set("toast") {
+  sources = [ "ahoi_toast.cc" ]
+  public_deps = [ ":toast_messages" ]
+  deps = [
+    "//chrome/browser/ui/toasts",
+    "//chrome/browser/ui/toasts/api:toasts",
+    "//ui/base",
+    "//ui/color",
+  ]
+}
+
+test("ahoi_toast_unittests") {
+  sources = [ "ahoi_toast_unittest.cc" ]
+  deps = [
+    ":toast_messages",
+    "//base/test:run_all_unittests",
+    "//base/test:test_support",
+    "//testing/gtest",
+  ]
+}

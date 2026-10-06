@@ -606,6 +606,7 @@ class BrowserSidebarHostView final
   void ShowStructureNotice(std::u16string title, std::u16string body);
   void OnStructureDialogClosed();
   void CompleteArchiveAction(bool success);
+  void CompleteArchiveContextTabs(size_t count, bool success);
   void UseSavedHome(base::Uuid node_id, bool set_current);
 
   void SelectWorkspaceColor(std::optional<uint32_t> color, const ui::Event&);

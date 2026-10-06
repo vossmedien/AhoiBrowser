@@ -304,6 +304,7 @@ source_set("browser_sidebar") {
     "//ahoi/browser/session:session_bridge_api",
     "//ahoi/browser/sync:profile_sync_service",
     "//ahoi/browser/ui/appearance",
+    "//ahoi/browser/ui/toast",
     "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
     "//ahoi/browser/ui/media:media_mini_player_ui",
     "//base",

@@ -28,6 +28,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view_delegate.h"
+#include "ahoi/browser/ui/toast/ahoi_toast.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -155,8 +156,11 @@ void BrowserSidebarHostView::CopyAllLinksInGroup(
       links.empty()) {
     return;
   }
-  ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
-  writer.WriteText(links);
+  {
+    ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
+    writer.WriteText(links);
+  }
+  toast::Show(browser_, toast::Event::kLinkCopied);
 }
 
 void BrowserSidebarHostView::CopyAllLinksInWorkspace(
@@ -168,8 +172,11 @@ void BrowserSidebarHostView::CopyAllLinksInWorkspace(
       links.empty()) {
     return;
   }
-  ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
-  writer.WriteText(links);
+  {
+    ui::ScopedClipboardWriter writer(ui::ClipboardBuffer::kCopyPaste);
+    writer.WriteText(links);
+  }
+  toast::Show(browser_, toast::Event::kLinkCopied);
 }
 
 void BrowserSidebarHostView::ShowCreateGroupDialogForTemporaryTab(

@@ -10,6 +10,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_link_copy.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_tab_operations.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
+#include "ahoi/browser/ui/toast/ahoi_toast.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
 #include "base/logging.h"
@@ -77,6 +78,7 @@ bool CopyActivePageLink(BrowserWindowInterface* browser,
   if (browser->GetProfile() && browser->GetProfile()->IsOffTheRecord()) {
     writer.MarkAsOffTheRecord();
   }
+  toast::Show(browser, toast::Event::kLinkCopied);
   return true;
 }
 

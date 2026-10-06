@@ -9,6 +9,7 @@
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_controller.h"
+#include "ahoi/browser/ui/toast/ahoi_toast.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback_helpers.h"
 #include "base/i18n/rtl.h"
@@ -101,10 +102,21 @@ std::vector<base::Uuid> BrowserSidebarHostView::ContextArchiveNodes() const {
 }
 
 void BrowserSidebarHostView::ArchiveContextTabs() {
+  auto nodes = ContextArchiveNodes();
+  const size_t count = nodes.size();
   session_bridge_->ArchiveTemporaryPages(
-      ContextArchiveNodes(),
-      base::BindOnce(&BrowserSidebarHostView::CompleteArchiveAction,
-                     weak_ptr_factory_.GetWeakPtr()));
+      std::move(nodes),
+      base::BindOnce(&BrowserSidebarHostView::CompleteArchiveContextTabs,
+                     weak_ptr_factory_.GetWeakPtr(), count));
+}
+
+void BrowserSidebarHostView::CompleteArchiveContextTabs(size_t count,
+                                                        bool success) {
+  if (success) {
+    toast::Show(browser_, toast::Event::kArchived, std::u16string(),
+                std::max<size_t>(count, 1));
+  }
+  CompleteArchiveAction(success);
 }
 
 void BrowserSidebarHostView::CompleteArchiveAction(bool success) {

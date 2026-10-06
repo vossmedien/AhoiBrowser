@@ -2214,6 +2214,26 @@ above.
 - **Test:** focused Mojo/content tests; cache12 journey.
 - **Rebase/removal:** drop with the tab-cache policy.
 
+## `0095-ahoi-action-toasts.patch`
+
+Ahoi's action confirmations (user decision 6 October 2026, from the Crest
+community review in `docs/reviews/2026-10-06-crest-adoption.md`). The minimal
+chrome otherwise gives no feedback for some actions. Two browser-side triggers
+call `ahoi::toast::Show` (`overlay/.../ui/toast`), which uses Chromium's own
+per-window `ToastController` with Ahoi's text and icon:
+`ToastId::kCopiedToClipboard` is registered unconditionally and fully
+overridden, so no Chromium toast ID is added.
+
+- `BrowserWebContentsDelegate::OpenURLFromTab`: a user-gesture link opened
+  as `NEW_BACKGROUND_TAB` (⌘-click, middle click) shows "Im Hintergrund
+  geöffnet".
+- `BrowserView::SaveCurrentTabToAhoiTree` (⌘D) shows "Tab gespeichert" after
+  a successful save.
+
+The delegate target gains a dependency on `//ahoi/browser/ui/toast`. Sidebar
+triggers (archive, move to Workspace, copy links) live in the overlay.
+Journey: `tools/desktop_e2e/toast-confirmations-journey.sh`.
+
 ## `0094-ahoi-document-factory-navigation-id.patch`
 
 An actual installed72 native UI test found configured document headers absent,

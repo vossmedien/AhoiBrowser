@@ -1,0 +1,63 @@
+diff --git a/chrome/browser/ui/browser_web_contents_delegate/BUILD.gn b/chrome/browser/ui/browser_web_contents_delegate/BUILD.gn
+--- a/chrome/browser/ui/browser_web_contents_delegate/BUILD.gn
++++ b/chrome/browser/ui/browser_web_contents_delegate/BUILD.gn
+@@ -14,6 +14,7 @@ if (!is_android) {
+     public_deps = [ "//chrome/browser:browser_public_dependencies" ]
+     deps = [
+       "//ahoi/browser/popup:link_peek",
++      "//ahoi/browser/ui/toast",
+       "//base",
+       "//chrome/browser:file_select_helper",
+       "//chrome/browser:repost_form_warning_controller",
+diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
+--- a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
++++ b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
+@@ -5,6 +5,7 @@
+ #include "chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.h"
+ 
+ #include "ahoi/browser/popup/link_peek.h"
++#include "ahoi/browser/ui/toast/ahoi_toast.h"
+ #include "ahoi/browser/session/group_page_close.h"
+ #include "ahoi/browser/ui/popup/popup_overlay_controller.h"
+ #include "base/check_deref.h"
+@@ -630,6 +631,14 @@ content::WebContents* BrowserWebContentsDelegate::OpenURLFromTab(
+         blink::mojom::TriggeringEventInfo::kFromUntrustedEvent);
+   }
+ 
++  // Ahoi: a link the user opened in a background tab (⌘-click, middle click)
++  // otherwise gives no feedback in the minimal chrome.
++  if (navigated_or_inserted_contents &&
++      navigated_or_inserted_contents != source && params.user_gesture &&
++      params.disposition == WindowOpenDisposition::NEW_BACKGROUND_TAB) {
++    ahoi::toast::Show(&*browser_, ahoi::toast::Event::kBackgroundTabOpened);
++  }
++
+   TRACE_EVENT_INSTANT(
+       "navigation", "BrowserWebContentsDelegate::OpenURLFromTab_Result",
+       "navigated_or_inserted_contents", navigated_or_inserted_contents);
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -37,6 +37,7 @@
+ #include "ahoi/browser/ui/split_drop/split_drop_overlay_view.h"
+ #include "ahoi/browser/ui/split_drop/split_keyboard_actions.h"
+ #include "ahoi/browser/ui/split_drop/split_pane_binding_lifecycle.h"
++#include "ahoi/browser/ui/toast/ahoi_toast.h"
+ #include "ahoi/browser/ui/visual_style.h"
+ #include "base/auto_reset.h"
+ #include "base/byte_size.h"
+@@ -6557,8 +6558,12 @@ bool BrowserView::SaveCurrentTabToAhoiTree() {
+   if (!session_bridge || !session_bridge->is_ready() || !active_tab) {
+     return false;
+   }
+-  return session_bridge->SaveTabAtWorkspaceRoot(browser_.get(), active_tab)
+-      .has_value();
++  if (!session_bridge->SaveTabAtWorkspaceRoot(browser_.get(), active_tab)
++           .has_value()) {
++    return false;
++  }
++  ahoi::toast::Show(browser_.get(), ahoi::toast::Event::kTabSaved);
++  return true;
+ }
+ 
+ ///////////////////////////////////////////////////////////////////////////////
