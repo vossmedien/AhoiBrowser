@@ -1,6 +1,6 @@
 # 106 – H3 exception cleanup and incomplete-run evidence
 
-Status: ready (desktop owner re-reviewed 4 October for installed e86 archive/cross-level packet; no product patch applies; H3 runtime lease deferred while foreign iOS work occupies target; no performance acceptance claimed)
+Status: ready (desktop owner re-reviewed 6 October for the M155 candidate ef982afe: no product patch applies; H3 runtime lease deferred while the target console is locked and the M155 acceptance journeys hold the e2e slot; no performance acceptance claimed)
 Owner lane: crest-hardening (tools); desktop (future exact-candidate lease)
 Base: `f141273`.
 

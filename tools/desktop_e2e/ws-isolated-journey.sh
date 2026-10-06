@@ -11,9 +11,11 @@
 # each present in the separated Profile only, and the main window's command
 # bar never suggests the separated Profile's page; WS-ISO-03: uBlock Origin
 # Classic installed in the separated window filters there and is absent
-# from the main Profile (needs network for the pinned GitHub release; set
-# AHOI_E2E_SKIP_NETWORK=1 to leave WS-ISO-03 out). Product default launch,
-# disposable user data directory; downloads go to directories under it.
+# from the main Profile, and a second separated Workspace sees neither the
+# first one's login, permission nor uBO (needs network for the pinned GitHub
+# release; set AHOI_E2E_SKIP_NETWORK=1 to leave WS-ISO-03 out). Product
+# default launch, disposable user data directory; downloads go to
+# directories under it.
 set -u
 APP=$1; OUT=$2; S=$(cd "$(dirname "$0")" && pwd); AX=${AHOI_AXTOOL:-/private/tmp/ahoi-axtool}; PORT=9346
 [ -x "$AX" ] && [ "$AX" -nt "$S/axtool.swift" ] || xcrun swiftc -O -o "$AX" "$S/axtool.swift" || exit 5
@@ -325,6 +327,35 @@ open_url "$SITE/perm.html?main"
 if [ $UBO_RAN = 1 ]; then
   open_url "$UBO_SITE/ad.html?main"; sleep 5
   [ "$(ad_display 'ad.html?main')" = block ] && record uboNotActiveInMain true || record uboNotActiveInMain false
+fi
+# ---- WS-ISO-02/03 against a second separated Workspace: the first
+# separated Profile's login, permission and uBO do not reach it either.
+# It is deleted again from its own window, so the storage checks below
+# still see only "Getrennt".
+menu Inbox "Neuer Workspace…" || fail_setup "workspace menu did not open for the second separated Workspace"
+$AX press $PID "Neuer Workspace…" >> "$OUT/steps.txt"
+waitax "AXTextField \\| Workspace-Name" 8 || fail_setup "create dialog did not open for the second separated Workspace"
+$AX setvalue $PID "Workspace-Name" "Zweiter" >> "$OUT/steps.txt"; sleep 1
+$AX press $PID "AXRadioButton:Vollständig getrennt" >> "$OUT/steps.txt"; sleep 1
+$AX press $PID "Erstellen" >> "$OUT/steps.txt"
+if waitax "Zweiter, Workspace wechseln" 20; then
+  record secondSeparatedCreated true
+  open_url "$SITE/check.html?zweiter"
+  [ -z "$(cookie_of 'check.html?zweiter')" ] && record secondNotLoggedIn true || record secondNotLoggedIn false
+  open_url "$SITE/perm.html?zweiter"
+  [ "$(eval_in 'perm.html?zweiter' 'Notification.permission')" = default ] \
+    && record permissionNotInSecond true || record permissionNotInSecond false
+  if [ $UBO_RAN = 1 ]; then
+    open_url "$UBO_SITE/ad.html?zweiter"; sleep 5
+    [ "$(ad_display 'ad.html?zweiter')" = block ] && record uboNotActiveInSecond true || record uboNotActiveInSecond false
+  fi
+  menu Zweiter "Workspace löschen" || fail_setup "delete item missing in the second separated window"
+  $AX press $PID "$($AX dump $PID 14 | grep -o 'Workspace löschen[^|]*' | head -1 | sed 's/ *$//')" >> "$OUT/steps.txt"
+  waitax "AXButton \\| Löschen" 8 || fail_setup "delete dialog did not open for the second separated Workspace"
+  $AX press $PID "AXButton:Löschen" >> "$OUT/steps.txt"; sleep 8
+  waitax "Inbox, Workspace wechseln" 10 && record secondSeparatedDeleted true || record secondSeparatedDeleted false
+else
+  record secondSeparatedCreated false
 fi
 menu Inbox "Getrennt" || fail_setup "main menu has no separated Workspace"
 $AX press $PID "$(menuitem Getrennt)" >> "$OUT/steps.txt"
