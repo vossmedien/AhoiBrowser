@@ -11,6 +11,7 @@ import AppKit
 //        axtool hidclick <pid> <label substring> [cmd|shift|opt|ctrl ...]
 //        axtool selected <pid>
 //        axtool menukeys <pid>
+//        axtool eventaccess <pid>
 import ApplicationServices
 import Foundation
 
@@ -85,6 +86,13 @@ func flagsFrom(_ names: ArraySlice<String>) -> CGEventFlags {
 let args = CommandLine.arguments
 guard args.count >= 3, let pid = pid_t(args[2]) else {
     FileHandle.standardError.write("bad args\n".data(using: .utf8)!); exit(2)
+}
+// Observe this helper's access without requesting permission or posting events.
+if args[1] == "eventaccess" {
+    let trusted = AXIsProcessTrusted()
+    let postAccess = CGPreflightPostEventAccess()
+    print("AXTrusted=\(trusted) PostEventAccess=\(postAccess)")
+    exit(trusted && postAccess ? 0 : 3)
 }
 guard AXIsProcessTrusted() else {
     FileHandle.standardError.write("not AX trusted\n".data(using: .utf8)!); exit(3)
