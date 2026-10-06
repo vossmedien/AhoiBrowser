@@ -525,6 +525,8 @@ void NavigationSurfaceController::ApplyToolbarAppearance() {
   }
   toolbar_->SetPaintToLayer();
   appearance::ApplySurfaceLayerAppearance(toolbar_->layer(), surface);
+  // Layout reapplies this, so the blur bounds follow every resize.
+  appearance::ClipBackdropToRoundedBounds(toolbar_->layer(), surface);
   // ToolbarView retains Chromium's CustomCornersBackground, whose native
   // cutouts can expose pixels even while the fullscreen material is opaque.
   // Material opacity must never assert whole-layer coverage for that painter.

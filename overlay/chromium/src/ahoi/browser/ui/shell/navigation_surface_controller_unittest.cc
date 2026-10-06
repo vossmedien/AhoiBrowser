@@ -9,7 +9,9 @@
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "base/test/run_until.h"
+#include "cc/layers/layer.h"
 #include "cc/trees/layer_tree_host.h"
+#include "third_party/skia/include/core/SkRRect.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/compositor/compositor.h"
 #include "ui/compositor/layer.h"
@@ -139,6 +141,35 @@ TEST_F(NavigationSurfaceControllerTest,
     surface_view.SetSize(gfx::Size(140, 60));
     EXPECT_EQ(expected_radii, surface_view.layer()->rounded_corner_radii());
   }
+}
+
+// The glass blur ends at the rounded edge, so the shadow beside a corner is
+// not cut into a square (owner report, 6 October 2026).
+TEST_F(NavigationSurfaceControllerTest, GlassBlurIsClippedToTheRoundedRow) {
+  ui::Layer layer;
+  layer.SetBounds(gfx::Rect(0, 0, 600, 44));
+  appearance::GlassPolicy policy;
+  auto surface = appearance::AppearanceResolver::Resolve(
+      appearance::SurfaceRole::kFloatingNavigation, policy);
+  surface.mode = appearance::GlassMode::kGlass;
+  surface.background_blur_sigma = 30.0f;
+  surface.corner_radius = 14;
+  appearance::ClipBackdropToRoundedBounds(&layer, surface);
+  const std::optional<SkPath> bounds =
+      layer.cc_layer_for_testing()->backdrop_filter_bounds();
+  ASSERT_TRUE(bounds.has_value());
+  SkRRect rrect;
+  ASSERT_TRUE(bounds->isRRect(&rrect));
+  EXPECT_EQ(SkRect::MakeWH(600, 44), rrect.rect());
+  EXPECT_FLOAT_EQ(14.0f, rrect.getSimpleRadii().x());
+
+  // Fullscreen's square opaque surface returns to Chromium's default bounds.
+  surface.mode = appearance::GlassMode::kOpaque;
+  surface.corner_radius = 0;
+  appearance::ClipBackdropToRoundedBounds(&layer, surface);
+  const std::optional<SkPath> cleared =
+      layer.cc_layer_for_testing()->backdrop_filter_bounds();
+  EXPECT_FALSE(cleared.has_value() && cleared->isRRect(nullptr));
 }
 
 TEST_F(NavigationSurfaceControllerTest,

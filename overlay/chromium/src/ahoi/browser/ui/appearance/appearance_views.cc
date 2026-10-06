@@ -14,6 +14,7 @@
 #include "ui/compositor/layer.h"
 #include "ui/gfx/canvas.h"
 #include "ui/gfx/geometry/rounded_corners_f.h"
+#include "ui/gfx/geometry/rrect_f.h"
 #include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/view.h"
@@ -153,6 +154,19 @@ void ApplySurfaceLayerAppearance(ui::Layer* layer,
   layer->SetBackgroundBlur(
       appearance.uses_glass() ? appearance.background_blur_sigma : 0.0f);
   layer->SetBackdropFilterQuality(appearance.uses_glass() ? 0.8f : 0.0f);
+}
+
+void ClipBackdropToRoundedBounds(ui::Layer* layer,
+                                 const SurfaceAppearance& appearance) {
+  CHECK(layer);
+  if (!appearance.uses_glass() || appearance.background_blur_sigma <= 0.0f ||
+      appearance.corner_radius <= 0 || layer->size().IsEmpty()) {
+    layer->ClearBackdropFilterBounds();
+    return;
+  }
+  layer->SetBackdropFilterBounds(
+      gfx::RRectF(gfx::RectF(gfx::SizeF(layer->size())),
+                  static_cast<float>(appearance.corner_radius)));
 }
 
 }  // namespace ahoi::appearance

@@ -56,6 +56,15 @@ void ApplySurfaceLayerAppearance(ui::Layer* layer,
                                  SurfaceCornerOwnership corner_ownership =
                                      SurfaceCornerOwnership::kAppearance);
 
+// Limits a glass layer's backdrop blur output to its rounded rectangle.
+// Chromium keeps the blur bounds rectangular; on a floating surface the
+// rectangle's corners can show beside the rounded edge and cut the drop
+// shadow there into a hard, square edge (owner report, 6 October 2026). The
+// bounds use the layer's current size, so the caller reapplies after every
+// resize; without glass or corners they return to Chromium's default.
+void ClipBackdropToRoundedBounds(ui::Layer* layer,
+                                 const SurfaceAppearance& appearance);
+
 }  // namespace ahoi::appearance
 
 #endif  // AHOI_BROWSER_UI_APPEARANCE_APPEARANCE_VIEWS_H_
