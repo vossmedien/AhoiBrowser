@@ -118,9 +118,18 @@
   predated the existing field-trial change09819133. Target bindings now match
   current M155/config hashes. All35 referenced M155 files exist and both feature
   GN defaults match; historical M152 rationale remains historical, NOT full M155
-  roll/runtime acceptance. Source syntax/whitespace pass. Actual CLI boundary and
-  focused tests pending; three real release baseline artifacts/size evidence
-  still missing. This separate source commit must not alter frozen47885f36.
+  roll/runtime acceptance. Source9bd40b14 + diagnosticf9ad368d verified on a
+  separate target scratch snapshot: actual public CLI resolves the internal
+  AhoiUpstreamRelease path and fails closed at the missing real Chromium.app,
+  writes no report. Focused9/9 PASS, affected diagnostic repeat1/1 PASS. One
+  separate native codex review --base56446a4a finished exit0, no actionable
+  findings; real full matrix remains unverified. Review01a111e3 used existing
+  account/CODEX_HOME, gpt6.1Sol/xhigh, never/danger-full-access, no review chain.
+  Evidence artifacts/tests/lean-output-m155-f9ad368d-20261006/. Three real release
+  baseline artifacts/size evidence still missing. Default integration depends
+  on the same M155/output-helper parent; no false standalone main merge.
+  This separate tool source did not alter frozen47885f36, independently rechecked.
+
 - Next authorized step: await the already-running frozen47885f36 build via
   existing terminal handle41236 or its actual terminal phase receipt; do not
   restart source preparation or a full build. On compile/sign/provenance success,
