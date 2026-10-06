@@ -1,5 +1,35 @@
 # Active Desktop checkpoint
 
+## Crest adoption wave and ⌥⌘T — 6 October 2026
+
+- **⌥⌘T accepted on installed 76c0a54b (MacbookPro2026):** address-bar-shortcut,
+  keyboard-shortcuts, devtoolkit, http-auth and ws-isolated PASS
+  (`accept-m155-76c0a54b-20261006`). DoD 12 network audit on the same signed
+  bundle (staged copy, identical CDHash, so the installed-app lease gate is
+  untouched): NET-GCM-01, fresh-profile silence, PRIV-12 and PRIV-16 PASS;
+  PRIV-14 FAIL as expected without a Safe Browsing key (`threatListUpdates`
+  HTTP 400, owner row below). Output `artifacts/network-audit/m155-76c0a54b-20261006/`.
+- **Committed, building as 9107102a:** confirmation toasts (72e2335f, patch
+  0095), sidebar ⌘/⇧-click multi-selection with its context menu and
+  check-badge marker (e633fe07, c75bc93c; keeps the selection when a close
+  is cancelled, found in the Codex Crest review), reveal-notch contrast
+  edge (6f0453a2), glass blur clipped to the rounded navigation row against
+  the owner's "hard square shadow edge" report (4decb7c0; no screen
+  recording, so the visual result is the owner's to confirm). Journeys after
+  install: toast-confirmations, address-bar-shortcut, glass-appearance,
+  keyboard-shortcuts, cmd-move, sidebar-discovery-switch, then
+  multi-select (new, 6c59fd30 harness).
+- **Committed, not built yet:** Arc-style tab switcher ⌃T (e96c69c0, patch
+  0096, `ahoi_tab_switcher_unittests`), Codex's native Auto-PiP feature
+  (67cadfae). Next candidate after 9107102a is accepted.
+- **Design references:** `design/references/2026-10-06/` (Codex imagegen:
+  switcher, multi-selection, toast, navigation row).
+- **Parallel Crest lane:** Codex 05EFDE coordinates further Crest packages on
+  `cockpit/crest-integration-20261006`; integration only through this
+  session's candidates. Reserved here: ui/sidebar/*, ui/toast/*,
+  ui/tab_switcher/*, shell/navigation_surface_controller.*,
+  appearance/appearance_views.*, keyboard_shortcuts.*, axtool.swift.
+
 ## M155 accepted and delivered to the development Mac — 6 October 2026
 
 - **Acceptance on installed ef982afe (MacbookPro2026):** 11/11 journeys
