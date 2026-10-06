@@ -1,5 +1,22 @@
 # Active Desktop checkpoint
 
+## M155 accepted and delivered to the development Mac — 6 October 2026
+
+- **Acceptance on installed ef982afe (MacbookPro2026):** 11/11 journeys
+  PASS — sandbox, devtoolkit (startup DOM fix f492d294 confirmed),
+  privacy-modes, import-sources, downloads-media, settings-sections,
+  ubo-classic, ws-cross-level-move (`accept-m155-ef982afe-20261006`);
+  webrequest-probe and http-auth (`-rerun`; the first http-auth run lost its
+  fixture to a SIGBUS of depot_tools' Python on the build SSD, fixed in
+  fb662495); ws-isolated incl. the second separated Workspace (`-rerun2`,
+  journey launch fixed in effd856a).
+- **Delivered:** installed on the development Mac through
+  `install-dev-app.py` (atomic swap, post-install verification, rollback
+  kept); receipt `artifacts/install/ahoi-dev-ef982afe-m155-20261006.json`.
+- **Next candidate:** ⌥⌘T address shortcut (351f78b0) and the journey
+  harness fixes; build on the target, then `address-bar-shortcut` and
+  `keyboard-shortcuts` journeys.
+
 ## Requirement check while the target console is locked — 6 October 2026
 
 - **Crest handoffs:** no new `ready` package with product changes; 106/110
