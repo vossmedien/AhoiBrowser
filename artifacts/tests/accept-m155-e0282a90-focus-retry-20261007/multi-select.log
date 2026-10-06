@@ -1,0 +1,18 @@
+{
+ "plainClickSelectsOne": true,
+ "commandClickAdds": true,
+ "commandClickKeepsActive": true,
+ "commandClickKeepsTabs": true,
+ "shiftClickSelectsRange": true,
+ "shiftClickKeepsActive": true,
+ "escapeClears": true,
+ "reselect": true,
+ "menuTitle": true,
+ "closeCommandEnabled": true,
+ "beforeUnloadPrompt": false,
+ "vetoAccepted": false,
+ "vetoKeepsAllTabs": true,
+ "vetoHasNoClosedToast": true,
+ "setupFailed": "before-unload cleanup not confirmed",
+ "pass": false
+}

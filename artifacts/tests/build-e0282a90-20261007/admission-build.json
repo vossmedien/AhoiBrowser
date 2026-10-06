@@ -1,0 +1,20 @@
+{
+  "time": "2026-10-06T22:41:46.126451+00:00",
+  "host": "MacbookPro2026.local",
+  "source": "e0282a903d8f8dc0f51f9eae5066d24eed249a62",
+  "aggregateCpuUsedSamples": [
+    51.65,
+    48.3,
+    53.1
+  ],
+  "meanUsedPercent": 51.02,
+  "sampling": "top -l4 -s1 -n0; discard initial",
+  "memoryFreePercent": 64,
+  "freeKiB": 20542516,
+  "plannedGrowthBytes": 4294967296,
+  "reserveBytes": 8589934592,
+  "jobs": 2,
+  "owner": "68E66C9E-7E52-4842-B328-03D9CD6D3057",
+  "foreignWork": "Cockpit Swift build/simulator diagnostics, VM and vsm e2e untouched",
+  "reusedOutput": "/Users/vossmedien/inhouse/scratch/ahoi-chromium.fMMeXkCh"
+}

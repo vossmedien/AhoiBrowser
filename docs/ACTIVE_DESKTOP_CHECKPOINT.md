@@ -258,6 +258,36 @@
   Same-request diagnosis3ddae6b9-43ea-4ae4-a711-a851e0740886 queued at22:51:13Z;
   original payload /private/tmp/ahoi-main-attribution-delegation-20261007.json.
   Root continues e028 runtime gate and Mobile55 independently.
+- **e028 build/sign/provenance terminal0 at22:52:04Z**, guarded install source
+  e028 exact. First affected UI attempt failed infrastructure: UserNotificationCenter
+  pid2035 frontmost displayed "Cockpit wurde unerwartet beendet"; every HID
+  gesture refused, close/veto gates unreached. No new product regression inferred;
+  native focused tests correctly not started. Original summary/steps retained at
+  target artifacts/tests/accept-m155-e0282a90-20261006/. Exact crash notice read/
+  saved in ~/inhouse/evidence/ahoi-e0282a90/foreign-crash-dialog.txt and only
+  Ignore pressed (no Apple report, app restart or foreign process termination).
+  Freshmean60.64%CPU/62%memory-free and unchanged installed-source/no-browser/
+  own-lock guards admitted same-artifact scoped retry
+  accept-m155-e0282a90-focus-retry-20261007; actual runner started, outcome OPEN.
+  Full original failure and changed prerequisite bound by focus-retry-admission.json.
+- 676 receipt diagnosis3ddae6b9 is now FAILED/SOURCE_OR_PAYLOAD_UNAVAILABLE;
+  Root actual session/thread/CWD match current SessionInsight, payload exists.
+  This is no worker-start proof. No duplicate/resubmission; same676 routing
+  clarification f223b9dd sent to existing Crest peer's coordination path.
+- Same-artifact focus retry terminal: real selection/active-page/menuheader
+  gates PASS and closeCommandEnabled TRUE. Close dispatch reaches the real
+  native "Website verlassen?" prompt (AXWindow Hinweis, buttons Abbrechen/
+  Verlassen). New harness falsely expected AXDialog/AXSheet and standard CDP
+  Page.handleJavaScriptDialog; actual CDP reply "No dialog is showing", then
+  cleanup times out while the native modal is unanswered. This is a proved
+  reporter/selector/input mismatch, not evidence of a missing grouped prompt.
+  Veto/retry/actualclose/count remain OPEN; native tests/review not started.
+  Original verdict/raw AX/JSON kept at target
+  accept-m155-e0282a90-focus-retry-20261007 and copied canonical. Same worker
+  correction notes3f165418/c76a6f41 delivered; actual4CD session working again,
+  existing Goal/thread preserved, no duplicate. Correct the harness through
+  actual native Cancel, verify disappearance/full group/selection/no false toast,
+  then rerun affected exact-e028 UI before focused/review/integration gates.
 
 
 ## Handoff Claude → Codex (Caeli) — 6 October 2026

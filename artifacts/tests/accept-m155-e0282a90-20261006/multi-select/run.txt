@@ -1,0 +1,2 @@
+pid=4278 profile=/private/tmp/ahoi-multi-profile.7dEQX8
+still running after quit

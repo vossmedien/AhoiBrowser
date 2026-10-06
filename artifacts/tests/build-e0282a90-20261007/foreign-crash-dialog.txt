@@ -1,0 +1,9 @@
+AXApplication | UserNotificationCenter
+  AXWindow | Hinweis | _NS:87
+    AXImage | Hinweis | _NS:35
+    AXStaticText | Cockpit wurde unerwartet beendet. | _NS:74
+    AXStaticText | Klicke auf „Bericht“, um weitere Informationen anzuzeigen und einen Bericht an A | _NS:58
+    AXButton | Hilfe | _NS:30
+    AXButton | Ignorieren | action-button-2
+    AXButton | Bericht … | action-button-1
+  AXMenuBar

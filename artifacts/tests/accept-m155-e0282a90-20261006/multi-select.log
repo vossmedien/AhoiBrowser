@@ -1,0 +1,21 @@
+{
+ "plainClickSelectsOne": true,
+ "commandClickAdds": false,
+ "commandClickKeepsActive": true,
+ "commandClickKeepsTabs": true,
+ "shiftClickSelectsRange": false,
+ "shiftClickKeepsActive": true,
+ "escapeClears": true,
+ "reselect": false,
+ "menuTitle": false,
+ "closeCommandEnabled": false,
+ "beforeUnloadPrompt": false,
+ "vetoAccepted": false,
+ "vetoKeepsAllTabs": true,
+ "vetoHasNoClosedToast": true,
+ "selectionKeptAfterVeto": false,
+ "closedToast": false,
+ "tabsClosed": false,
+ "unselectedDeltaSurvives": false,
+ "pass": false
+}

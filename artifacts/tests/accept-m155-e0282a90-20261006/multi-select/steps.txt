@@ -1,0 +1,40 @@
+frontmost -> 0
+activate via Apple Event -> still behind
+pages before: 4
+hidclick refused: target not frontmost
+selected: Alpha
+plainClickSelectsOne -> true
+hidclick refused: target not frontmost
+selected: Alpha
+commandClickAdds -> false
+commandClickKeepsActive -> true
+commandClickKeepsTabs -> true
+hidclick refused: target not frontmost
+selected: Alpha
+shiftClickSelectsRange -> false
+shiftClickKeepsActive -> true
+hidkey refused: target not frontmost
+selected: Alpha
+escapeClears -> true
+hidclick refused: target not frontmost
+hidclick refused: target not frontmost
+selected: Alpha
+reselect -> false
+hidrightclick refused: target not frontmost
+menuTitle -> false
+closeCommandEnabled -> false
+NOT FOUND
+NOT FOUND
+beforeUnloadPrompt -> false
+vetoAccepted -> false
+vetoKeepsAllTabs -> true
+vetoHasNoClosedToast -> true
+hidrightclick refused: target not frontmost
+selectionKeptAfterVeto -> false
+NOT FOUND
+NOT FOUND
+closedToast -> false
+pages after: 4
+tabsClosed -> false
+unselectedDeltaSurvives -> false
+hidkey refused: target not frontmost
