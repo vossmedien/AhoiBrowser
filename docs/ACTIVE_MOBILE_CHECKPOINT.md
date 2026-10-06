@@ -80,6 +80,13 @@ binding; AnyChat is out of scope. Desktop's frozen47885f36 build is independent.
   original canonical evidence:
   [e664 native baseline](../artifacts/computer-use/mobile/files-spike-e664fc0d-20261006/),
   [0a10 infrastructure limit](../artifacts/computer-use/mobile/files-spike-0a10bdc6-20261006/).
+  Runner44639 is now terminal65,27.43s, at picker readiness; cleanup again
+  Shutdown/input removal/lock release. AX proves Files WAS present, with
+  `Abbrechen` as Other rather than Button, the exact grid cell identifier
+  `<fixture>, Folder`, and `DOCPicker.actionButton`. These observed selectors
+  replace the inadequate assumptions; folder cell double-tap must enter the
+  title-bound root before confirmation. Original1b43 xcresult/AX retained;
+  no focused tests or successful import claimed.
   Next: rebuild corrected exact candidate, retry only the failed import,
   then five existing runtime boundaries and one separate native review.
 - Next independent Mobile action: complete ADR0012 Step1's real Files import,

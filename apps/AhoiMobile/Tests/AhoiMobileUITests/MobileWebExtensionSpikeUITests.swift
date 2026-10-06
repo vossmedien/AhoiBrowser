@@ -83,7 +83,7 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
         openSpikeSettings(in: app)
         let load = app.buttons["settings.extensions.spike.import-folder"]
         load.tap()
-        let cancel = app.buttons.matching(NSPredicate(
+        let cancel = app.descendants(matching: .any).matching(NSPredicate(
             format: "label IN %@", ["Cancel", "Abbrechen"]
         )).firstMatch
         XCTAssertTrue(waitForHittable(cancel, timeout: 8))
@@ -112,14 +112,12 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
         openSpikeSettings(in: app)
         let load = app.buttons["settings.extensions.spike.import-folder"]
         load.tap()
-        let cancel = app.buttons.matching(NSPredicate(
-            format: "label IN %@", ["Cancel", "Abbrechen"]
-        )).firstMatch
-        XCTAssertTrue(waitForHittable(cancel, timeout: 8), "The native Files picker must be ready.")
+        let picker = app.otherElements["Browse View (Picker)"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 8), "The native Files picker must be ready.")
         attachEvidence(app, "spike-files-picker-before-selection")
         attachTree(app, "spike-files-picker-before-selection-tree")
 
-        let chosenFolder = app.staticTexts[folder].firstMatch
+        let chosenFolder = app.cells["\(folder), Folder"].firstMatch
         if !chosenFolder.waitForExistence(timeout: 3) {
             let local = app.descendants(matching: .any).matching(NSPredicate(
                 format: "label IN %@", ["On My iPhone", "Auf meinem iPhone"]
@@ -138,7 +136,7 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
             documents.tap()
         }
         XCTAssertTrue(waitForHittable(chosenFolder, timeout: 5))
-        chosenFolder.tap()
+        chosenFolder.doubleTap()
         // The picker can still be displaying the parent while its provider
         // opens the folder. Open must confirm the fixture, never that parent.
         // Xcode27's Files navbar has a fixed identifier; the browsing root
@@ -150,9 +148,7 @@ final class MobileWebExtensionSpikeUITests: MobileBrowserUITestCase {
         let enteredFolder = folderRoot.waitForExistence(timeout: 5)
         attachTree(app, "spike-files-selected-folder-tree")
         XCTAssertTrue(enteredFolder, "Files must enter the reviewed fixture folder before Open.")
-        let open = app.buttons.matching(NSPredicate(
-            format: "label IN %@", ["Open", "Öffnen"]
-        )).firstMatch
+        let open = app.buttons["DOCPicker.actionButton"]
         XCTAssertTrue(waitForHittable(open, timeout: 5))
         attachEvidence(app, "spike-files-selected-folder")
         open.tap()
