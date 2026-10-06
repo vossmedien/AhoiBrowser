@@ -61,7 +61,10 @@ against observed growth, but cannot guarantee safety against a sudden unrelated
 writer consuming the reserve between samples. Continue measuring at heavy phase
 boundaries. Docker's logical cap is not already occupied physical storage.
 
-Builds and heavy tests run on MacbookPro2026.local; code/Git remain on .45.
+Select the build/test host using the user's current aggregate-CPU policy:
+prefer MacbookPro2026.local below80%, otherwise eligible development Mac below80%,
+otherwise defer that phase. Canonical code/Git remain on .45. Source, toolchain,
+signing, provenance and guarded installation checks apply on either host.
 An explicit `AHOI_JOBS` also limits GN's worker threads, so a bounded incremental
 run does not start an unrestricted generator before the limited Ninja phase.
 The coordinated external root is `/Volumes/Daten/Inhouse/AhoiBrowser/work`.
