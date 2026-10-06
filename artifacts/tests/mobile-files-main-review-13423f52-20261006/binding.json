@@ -1,0 +1,43 @@
+{
+  "reviewedRange": "318c4effa84c7f7bb28fa463a579c6827ce4a2a3..13423f52ced6744842dfd2fea16f9aadda1e5f3f",
+  "scope": "six attributable files; isolated clean main integration worktree",
+  "account": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+  "model": "gpt-6.1-sol",
+  "reasoningEffort": "xhigh",
+  "approval": "never",
+  "sandbox": "danger-full-access",
+  "reviews": [
+    {
+      "revision": "3ff98d04",
+      "result": "P1 missing bundled self-check; fixed7495fe65",
+      "session": null,
+      "exitCode": 0,
+      "rawSha256": "8b9827f3caf79563a3d638b3c026c4626f33e3259af52c5e4d7fb7b400bc08d3",
+      "archivedTextSha256": "3b49325b8d3909cd1262c775caf4d928d041f3a3d984b4f98715478d1dafccc5",
+      "file": "3ff98d04-review.log",
+      "rawRetained": "/private/tmp/ahoi-mobile-files-main-3ff98d04-review.log"
+    },
+    {
+      "revision": "7495fe65",
+      "result": "P2 stale second-page report; fixed13423f52",
+      "session": null,
+      "exitCode": 0,
+      "rawSha256": "4f7a48f38db2308aa36e949d95021c0f4a2f0dc47e47d75e86261f721b4b2adb",
+      "archivedTextSha256": "201a13be2864fbb93c2961d5343825c00875ab3a4ad3d9fa918d3424d8416663",
+      "file": "7495fe65-review.log",
+      "rawRetained": "/private/tmp/ahoi-mobile-files-main-7495fe65-review.log"
+    },
+    {
+      "revision": "13423f52",
+      "result": "PASS; no actionable regressions",
+      "session": "01a1132d-53b3-71c3-acbc-6d693407572f",
+      "exitCode": 0,
+      "rawSha256": "e6fb107d34d7613c2f0dedb01eabcf2e547d3e55def9e6ee78cece74e0224c2e",
+      "archivedTextSha256": "5412a5c07af9213e62aacebe4580a28add5ae7b700cf6b23809079129225f71d",
+      "file": "13423f52-review.log",
+      "rawRetained": "/private/tmp/ahoi-mobile-files-main-13423f52-review.log"
+    }
+  ],
+  "roundReason": "Each subsequent review followed a validated material correction and repeated affected visible/focused checks",
+  "limits": "DebugLocal Step1 Files/bundled fixture; remaining popup/permission/AppStore/Step2 gates not closed"
+}

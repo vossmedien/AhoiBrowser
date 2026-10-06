@@ -1,0 +1,11 @@
+{
+  "folder": "/Users/vossmedien/Library/Developer/CoreSimulator/Devices/A058D204-F3CB-44B7-963C-1F785132EF8B/data/Containers/Data/Application/484DC825-4607-40EA-924F-149F06510017/Documents/Ahoi-Spike-13423f52",
+  "sourceFixture": "/Users/vossmedien/Library/Developer/CoreSimulator/Devices/A058D204-F3CB-44B7-963C-1F785132EF8B/data/Containers/Bundle/Application/32ABB31B-C393-47E8-8EC7-3D77CE78954C/AhoiMobile.app/Frameworks/AhoiMobileCore.framework/WebExtensionSpike",
+  "sha256": {
+    "manifest.json": "27a15d8b3cb6ecd25f0b72f6e766e5494f288669a6eb6a9734d153f20ffcffd6",
+    "content.js": "c9fb80f49c1ac23c6bedb7700aa6123fb39e412137f317fa83fac8aa386f9d3a",
+    "rules.json": "ef5cc809dd153b7deb65177de0a7313c1eb8ebc366dd9374e51a85ae78c3623c",
+    "popup.html": "324c5814ce6484d85f6563fe708a95dad44d06f7438dbcc633944c5c608fb60e",
+    "popup.js": "09798c244b6c6e2637deaed3a916985c83e46a66d77743ccc7982346816908e2"
+  }
+}

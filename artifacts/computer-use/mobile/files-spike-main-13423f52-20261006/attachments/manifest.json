@@ -1,0 +1,107 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "53ACB229-F9F5-4044-9040-F1A0E6F1354C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-01-storage-second-visit_0_3384FCA9-781C-41D5-BE8D-EC5A6959AC2B.png",
+        "timestamp" : 1791322933.499
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "86F602F5-3129-4CDD-BC36-629E0481B3E3.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-01-content-script-and-rule_0_BD28D890-CF6D-44E4-A83C-866174B3C061.png",
+        "timestamp" : 1791322910.192
+      }
+    ],
+    "testIdentifier" : "MobileWebExtensionSpikeUITests/testBundledExtensionInjectsContentScriptAndBlocksByRule()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/MobileWebExtensionSpikeUITests/testBundledExtensionInjectsContentScriptAndBlocksByRule"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "06EC1A3C-E850-4549-AF7F-F491D71A29C7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-files-cancel-no-import_0_D30BF466-A7EA-486A-BAF0-27CF9B49836F.png",
+        "timestamp" : 1791322964.223
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "62DB42BC-F09B-4F78-A6C1-4A55D911BEC9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-files-picker-before-cancel_0_A4CA1E38-559F-4599-88C4-E128CE02D4BF.png",
+        "timestamp" : 1791322956.72
+      }
+    ],
+    "testIdentifier" : "MobileWebExtensionSpikeUITests/testFilesPickerCancellationDoesNotLoadExtension()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/MobileWebExtensionSpikeUITests/testFilesPickerCancellationDoesNotLoadExtension"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "B1674349-6EC7-4F7B-87BA-FAAA265C4F20.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-files-context-unloaded_0_B5127AD4-A8A9-4752-8590-48C6C1A6B89A.png",
+        "timestamp" : 1791323016.086
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "0DAD85AE-3714-4C8C-B0B8-5E8306764A66.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-files-context-loaded_0_E1F4D20E-082E-4AA0-A79B-185746B6438C.png",
+        "timestamp" : 1791323014.136
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "C200F4B6-DD17-4795-971F-28F42A095CF8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-files-selected-folder_0_7CB0AA3A-13F4-4D96-B0F5-DB9477706B89.png",
+        "timestamp" : 1791323010.232
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "548EA4D5-023E-419C-B179-EC1E277B0E82.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-files-picker-before-selection_0_4BD0C03A-173A-42EF-899A-21E6C6E8E69E.png",
+        "timestamp" : 1791322988.291
+      }
+    ],
+    "testIdentifier" : "MobileWebExtensionSpikeUITests/testFilesPickerLoadsAndUnloadsReviewedFixture()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/MobileWebExtensionSpikeUITests/testFilesPickerLoadsAndUnloadsReviewedFixture"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "A058D204-F3CB-44B7-963C-1F785132EF8B",
+        "deviceName" : "Ahoi Home cc8bef2b 01a0e047 20261004",
+        "exportedFileName" : "F96F0FEA-CA4C-46AC-B163-6EB21C3D1515.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "spike-01-off-without-argument_0_08EADFCA-705E-4DA9-B93B-A1F64EF8436C.png",
+        "timestamp" : 1791323050.034
+      }
+    ],
+    "testIdentifier" : "MobileWebExtensionSpikeUITests/testRuntimeStaysOffWithoutTheLaunchArgument()",
+    "testIdentifierURL" : "test://com.apple.xcode/AhoiMobile/AhoiMobileUITests/MobileWebExtensionSpikeUITests/testRuntimeStaysOffWithoutTheLaunchArgument"
+  }
+]

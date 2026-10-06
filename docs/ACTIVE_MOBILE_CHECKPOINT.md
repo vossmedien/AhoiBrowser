@@ -78,14 +78,25 @@ Desktop source1e340a17 and its shared Chromium build remain independent/owned.
   then require the observed visit counter to increase. Canonical equivalent
   source75398749; existing runtime/privacy behavior unchanged. Both original
   reviews/failures remain evidence; main/default still318c4eff.
-  **Current candidate13423f52 built PASS**, clean DebugLocal/adHoc, exact receipt
+  **Current candidate13423f52 visible/focused PASS**, clean DebugLocal/adHoc, exact receipt
   a23915ed and source-bound xctestrun prepared in
   ~/inhouse/evidence/ahoi-mobile-files-13423f52-20261006/. Four affected visible
-  journeys, runtime5, correction review and default integration remain OPEN.
+  journeys and runtime5 passed with0failures/0skips on the exact candidate;
+  [main-candidate evidence](../artifacts/computer-use/mobile/files-spike-main-13423f52-20261006/).
+  Own device Shutdown, five-file input removed by hashes, E2E lock released.
+  Correction review PASS, terminal0/no actionable regressions; default
+  integration/delivery remain OPEN. Native review --base main of the clean
+  isolated134 worktree, same account/CODEX_HOME,
+  gpt6.1Sol/xhigh, never/danger-full-access, session01a1132d-53b3-71c3-acbc-6d693407572f.
+  [All review results/corrections and source binding](../artifacts/tests/mobile-files-main-review-13423f52-20261006/).
+  Next: fast-forward actual main from318c4eff to the exact accepted13423f52,
+  regular-hook push, return/verify the same DebugLocal app bytes. No broad
+  Desktop/Mobile/Sync merge or general extension-installer activation.
   Before UI, three fresh one-second Inhouse samples averaged100% (foreign
   Docker/Virtualization and simulator workload; own device is Shutdown).
   Dev mean49.21% passes CPU but has no iOS runtime, so cannot run this UI phase.
-  Recheck the startup spike before admission; retain exact built candidate.
+  Startup counterprobe24.58%mean/74%memory-free admitted the actual UI run;
+  original100% sample remains evidence, foreign workloads preserved.
   **Delegationdb98dafe accepted by Cockpit**, AHOI-ADR0012-POPUP-PERMS-20261006:
   independent readonly popup/per-site-permission API research on Codex/Caeli,
   own new session/thread/Goal requested, gpt6.1Sol/xhigh recommendation. Only

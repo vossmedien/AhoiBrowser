@@ -1,0 +1,18 @@
+{
+  "time": "2026-10-06T21:40:58.386222+00:00",
+  "host": "MacbookPro2026.local",
+  "aggregateCpuUsedSamples": [
+    33.27,
+    19.62,
+    20.85
+  ],
+  "meanUsedPercent": 24.58,
+  "sampling": "top -l 4 -s 1 -n 0; discard initial",
+  "memoryFreePercent": 74,
+  "swapUsedMiB": 919.88,
+  "freeKiB": 22976804,
+  "selectedHost": "Inhouse",
+  "ownerSession": "68E66C9E-7E52-4842-B328-03D9CD6D3057",
+  "ownDeviceInitially": "Shutdown",
+  "foreignWorkPreserved": true
+}

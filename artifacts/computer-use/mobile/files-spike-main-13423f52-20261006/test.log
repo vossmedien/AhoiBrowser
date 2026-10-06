@@ -1,0 +1,656 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test-without-building -xctestrun /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_13423f52_exact_candidate.xctestrun -destination "platform=iOS Simulator,id=A058D204-F3CB-44B7-963C-1F785132EF8B" -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 "-only-testing:AhoiMobileUITests/MobileWebExtensionSpikeUITests" -resultBundlePath /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-13423f52.xcresult -collect-test-diagnostics never
+
+Writing result bundle at path:
+        /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-13423f52.xcresult
+
+2026-10-06 23:41:15.997053+0200 AhoiMobileUITests-Runner[82191:20939445] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-06 23:41:18.816.
+Test Suite 'AhoiMobileUITests.xctest' started at 2026-10-06 23:41:18.817.
+Test Suite 'MobileWebExtensionSpikeUITests' started at 2026-10-06 23:41:18.817.
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testBundledExtensionInjectsContentScriptAndBlocksByRule]' started.
+    t =     0.00s Start Test at 2026-10-06 23:41:18.821
+    t =     0.10s Set Up
+    t =     0.11s Terminate app.ahoibrowser.AhoiBrowser:0
+    t =     0.11s Open app.ahoibrowser.AhoiBrowser
+    t =     0.11s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-06 23:41:18.995 xcodebuild[82094:20938672] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-06 23:41:18.995 xcodebuild[82094:20938672] [MT] IDELaunchParametersSnapshot: no debugger version
+objc[82191]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.BFpCaZ/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x105b8c398) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.434.0.BFpCaZ/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.0.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x105e08310). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     0.59s         Setting up automation session
+    t =     2.67s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.56s Waiting 8.0s for Button (First Match) to exist
+    t =     5.62s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     5.62s         Checking existence of `Button (First Match)`
+    t =     5.65s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     6.67s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     6.67s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     6.84s Find the "browser.e2e.candidate-binding" Any
+    t =     7.03s Waiting 10.0s for "browser.address" Button to exist
+    t =     8.04s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =     8.04s         Checking existence of `"browser.address" Button`
+    t =     8.07s Tap "browser.address" Button
+    t =     8.07s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.08s     Find the "browser.address" Button
+    t =     8.11s     Check for interrupting elements affecting "browser.address" Button
+    t =     8.13s     Synthesize event
+    t =     8.15s         Scroll element to visible
+    t =     8.15s         Find the "browser.address" Button
+    t =     8.21s         Computed hit point {-1, -1} after scrolling to visible
+    t =     8.60s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.56s Waiting 10.0s for "browser.address.field" TextField to exist
+    t =    10.58s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    10.58s         Checking existence of `"browser.address.field" TextField`
+    t =    11.67s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    11.67s     Find the "browser.address.field" TextField
+    t =    11.73s Waiting 1.0s for "browser.address.clear" Button to exist
+    t =    12.73s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    12.73s         Checking existence of `"browser.address.clear" Button`
+    t =    12.79s     Checking existence of `"browser.address.clear" Button`
+    t =    12.84s Waiting 2.0s for "browser.address.clear" Button to exist
+    t =    13.87s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    13.87s         Checking existence of `"browser.address.clear" Button`
+    t =    14.96s Checking `Expect predicate `hittable == 1` for object "browser.address.clear" Button`
+    t =    14.96s     Find the "browser.address.clear" Button
+    t =    15.03s Tap "browser.address.clear" Button
+    t =    15.03s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    15.03s     Find the "browser.address.clear" Button
+    t =    15.08s     Check for interrupting elements affecting "browser.address.clear" Button
+    t =    15.13s     Synthesize event
+    t =    15.41s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    15.41s Waiting 2.0s for "browser.address.clear" Button to not exist
+    t =    16.43s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.clear" Button`
+    t =    16.43s         Checking existence of `"browser.address.clear" Button`
+    t =    16.50s Waiting 2.0s for "browser.address.field" TextField to exist
+    t =    17.53s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    17.53s         Checking existence of `"browser.address.field" TextField`
+    t =    18.61s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    18.61s     Find the "browser.address.field" TextField
+    t =    18.68s Find the "browser.address.field" TextField
+    t =    18.73s Find the "browser.address.field" TextField
+    t =    18.78s Waiting 2.0s for "browser.address.field" TextField to exist
+    t =    19.80s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    19.80s         Checking existence of `"browser.address.field" TextField`
+    t =    20.87s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    20.87s     Find the "browser.address.field" TextField
+    t =    20.94s Tap "browser.address.field" TextField
+    t =    20.94s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    20.94s     Find the "browser.address.field" TextField
+    t =    20.99s     Check for interrupting elements affecting "browser.address.field" TextField
+    t =    21.03s     Synthesize event
+    t =    21.32s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    21.32s Type 'https://example.co...' into "browser.address.field" TextField
+    t =    21.32s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    21.42s     Find the "browser.address.field" TextField
+    t =    21.48s     Check for interrupting elements affecting "browser.address.field" TextField
+    t =    21.53s     Synthesize event
+    t =    22.54s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    22.54s Checking existence of `"browser.address.field" TextField`
+    t =    22.59s Find the "browser.address.field" TextField
+    t =    22.64s Find the "browser.address.field" TextField
+    t =    22.69s Checking existence of `"browser.address.field" TextField`
+    t =    22.74s Find the "browser.address.field" TextField
+    t =    22.78s Find the "browser.address.field" TextField
+    t =    22.83s Find the "browser.address.field" TextField
+    t =    22.88s Find the "browser.address.field" TextField
+    t =    22.92s Waiting 10.0s for "browser.search.navigate" Button to exist
+    t =    23.95s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.search.navigate" Button`
+    t =    23.95s         Checking existence of `"browser.search.navigate" Button`
+    t =    25.02s Checking `Expect predicate `hittable == 1` for object "browser.search.navigate" Button`
+    t =    25.02s     Find the "browser.search.navigate" Button
+    t =    25.10s Tap "browser.search.navigate" Button
+    t =    25.10s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    25.10s     Find the "browser.search.navigate" Button
+    t =    25.15s     Check for interrupting elements affecting "browser.search.navigate" Button
+    t =    25.19s     Synthesize event
+    t =    25.48s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    25.89s Waiting 10.0s for "browser.address.field" TextField to not exist
+    t =    26.92s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.field" TextField`
+    t =    26.92s         Checking existence of `"browser.address.field" TextField`
+    t =    26.95s Waiting 5.0s for "browser.address" Button to exist
+    t =    27.97s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    27.97s         Checking existence of `"browser.address" Button`
+    t =    29.05s Checking `Expect predicate `value == "https://example.com/?ahoi-spike-check=267ecc4c-1"` for object "browser.address" Button`
+    t =    29.05s     Find the "browser.address" Button
+    t =    29.07s Find the "browser.address" Button
+    t =    29.09s Find the "browser.address" Button
+    t =    29.10s Waiting 20.0s for Any (First Match) to exist
+    t =    30.13s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    30.13s         Checking existence of `Any (First Match)`
+    t =    30.16s Waiting 20.0s for Any (First Match) to exist
+    t =    31.18s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    31.18s         Checking existence of `Any (First Match)`
+    t =    31.21s Checking existence of `Any (First Match)`
+    t =    31.24s Find the Any (First Match)
+    t =    31.27s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    31.37s Added attachment named 'spike-01-content-script-and-rule'
+    t =    31.38s Waiting 10.0s for "browser.address" Button to exist
+    t =    32.40s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    32.40s         Checking existence of `"browser.address" Button`
+    t =    32.43s Tap "browser.address" Button
+    t =    32.43s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    32.43s     Find the "browser.address" Button
+    t =    32.45s     Check for interrupting elements affecting "browser.address" Button
+    t =    32.47s     Synthesize event
+    t =    32.48s         Scroll element to visible
+    t =    32.48s         Find the "browser.address" Button
+    t =    32.52s         Computed hit point {-1, -1} after scrolling to visible
+    t =    32.80s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    33.33s Waiting 10.0s for "browser.address.field" TextField to exist
+    t =    34.35s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    34.36s         Checking existence of `"browser.address.field" TextField`
+    t =    35.45s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    35.45s     Find the "browser.address.field" TextField
+    t =    35.50s Waiting 1.0s for "browser.address.clear" Button to exist
+    t =    36.50s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    36.50s         Checking existence of `"browser.address.clear" Button`
+    t =    36.55s     Checking existence of `"browser.address.clear" Button`
+    t =    36.59s Waiting 2.0s for "browser.address.clear" Button to exist
+    t =    37.61s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    37.61s         Checking existence of `"browser.address.clear" Button`
+    t =    38.68s Checking `Expect predicate `hittable == 1` for object "browser.address.clear" Button`
+    t =    38.68s     Find the "browser.address.clear" Button
+    t =    38.74s Tap "browser.address.clear" Button
+    t =    38.74s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    38.75s     Find the "browser.address.clear" Button
+    t =    38.79s     Check for interrupting elements affecting "browser.address.clear" Button
+    t =    38.83s     Synthesize event
+    t =    39.11s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    39.11s Waiting 2.0s for "browser.address.clear" Button to not exist
+    t =    40.13s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.clear" Button`
+    t =    40.14s         Checking existence of `"browser.address.clear" Button`
+    t =    40.19s Waiting 2.0s for "browser.address.field" TextField to exist
+    t =    41.21s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    41.21s         Checking existence of `"browser.address.field" TextField`
+    t =    42.28s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    42.28s     Find the "browser.address.field" TextField
+    t =    42.33s Find the "browser.address.field" TextField
+    t =    42.37s Find the "browser.address.field" TextField
+    t =    42.42s Waiting 2.0s for "browser.address.field" TextField to exist
+    t =    43.43s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    43.43s         Checking existence of `"browser.address.field" TextField`
+    t =    44.49s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    44.49s     Find the "browser.address.field" TextField
+    t =    44.54s Tap "browser.address.field" TextField
+    t =    44.54s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    44.54s     Find the "browser.address.field" TextField
+    t =    44.58s     Check for interrupting elements affecting "browser.address.field" TextField
+    t =    44.62s     Synthesize event
+    t =    44.91s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    44.91s Type 'https://example.co...' into "browser.address.field" TextField
+    t =    44.91s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    44.91s     Find the "browser.address.field" TextField
+    t =    44.97s     Check for interrupting elements affecting "browser.address.field" TextField
+    t =    45.01s     Synthesize event
+    t =    46.02s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    46.02s Checking existence of `"browser.address.field" TextField`
+    t =    46.06s Find the "browser.address.field" TextField
+    t =    46.10s Find the "browser.address.field" TextField
+    t =    46.14s Checking existence of `"browser.address.field" TextField`
+    t =    46.17s Find the "browser.address.field" TextField
+    t =    46.21s Find the "browser.address.field" TextField
+    t =    46.25s Find the "browser.address.field" TextField
+    t =    46.29s Find the "browser.address.field" TextField
+    t =    46.32s Waiting 10.0s for "browser.search.navigate" Button to exist
+    t =    47.34s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.search.navigate" Button`
+    t =    47.34s         Checking existence of `"browser.search.navigate" Button`
+    t =    48.43s Checking `Expect predicate `hittable == 1` for object "browser.search.navigate" Button`
+    t =    48.43s     Find the "browser.search.navigate" Button
+    t =    48.50s Tap "browser.search.navigate" Button
+    t =    48.50s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    48.50s     Find the "browser.search.navigate" Button
+    t =    48.54s     Check for interrupting elements affecting "browser.search.navigate" Button
+    t =    48.57s     Synthesize event
+    t =    48.86s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    49.28s Waiting 10.0s for "browser.address.field" TextField to not exist
+    t =    50.30s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.field" TextField`
+    t =    50.30s         Checking existence of `"browser.address.field" TextField`
+    t =    50.32s Waiting 5.0s for "browser.address" Button to exist
+    t =    51.34s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    51.34s         Checking existence of `"browser.address" Button`
+    t =    52.38s Checking `Expect predicate `value == "https://example.com/?ahoi-spike-check=267ecc4c-2"` for object "browser.address" Button`
+    t =    52.38s     Find the "browser.address" Button
+    t =    52.41s Find the "browser.address" Button
+    t =    52.43s Find the "browser.address" Button
+    t =    52.45s Waiting 20.0s for Any (First Match) to exist
+    t =    53.47s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    53.47s         Checking existence of `Any (First Match)`
+    t =    53.50s Waiting 20.0s for Any (First Match) to exist
+    t =    54.51s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    54.51s         Checking existence of `Any (First Match)`
+    t =    54.55s Find the Any (First Match)
+    t =    54.58s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    54.68s Added attachment named 'spike-01-storage-second-visit'
+    t =    54.68s Terminate app.ahoibrowser.AhoiBrowser:82291
+    t =    55.74s Tear Down
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testBundledExtensionInjectsContentScriptAndBlocksByRule]' passed (55.822 seconds).
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testFilesPickerCancellationDoesNotLoadExtension]' started.
+    t =     0.00s Start Test at 2026-10-06 23:42:14.644
+    t =     0.01s Set Up
+    t =     0.01s Terminate app.ahoibrowser.AhoiBrowser:0
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-06 23:42:14.661 xcodebuild[82094:20938672] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-06 23:42:14.661 xcodebuild[82094:20938672] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.23s         Setting up automation session
+    t =     2.32s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.22s Waiting 8.0s for Button (First Match) to exist
+    t =     5.24s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     5.24s         Checking existence of `Button (First Match)`
+    t =     5.28s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     6.29s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     6.29s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     6.39s Find the "browser.e2e.candidate-binding" Any
+    t =     6.45s Tap "browser.more" Button
+    t =     6.45s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.46s     Find the "browser.more" Button
+    t =     6.49s     Check for interrupting elements affecting "browser.more" Button
+    t =     6.51s     Synthesize event
+    t =     6.79s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.87s Waiting 4.0s for "browser.actions.done" Button to exist
+    t =     7.88s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.done" Button`
+    t =     7.88s         Checking existence of `"browser.actions.done" Button`
+    t =     7.96s Checking existence of `"browser.actions.settings" Button`
+    t =     8.01s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     8.01s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.01s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     8.04s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     8.08s     Synthesize event
+    t =     8.49s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.20s Checking existence of `"browser.actions.settings" Button`
+    t =     9.27s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     9.27s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.27s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     9.31s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     9.35s     Synthesize event
+    t =     9.77s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.54s Checking existence of `"browser.actions.settings" Button`
+    t =    10.60s Find the "browser.actions.settings" Button
+    t =    10.67s Waiting 3.0s for "browser.actions.settings" Button to exist
+    t =    11.69s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.settings" Button`
+    t =    11.69s         Checking existence of `"browser.actions.settings" Button`
+    t =    12.76s Checking `Expect predicate `hittable == 1` for object "browser.actions.settings" Button`
+    t =    12.76s     Find the "browser.actions.settings" Button
+    t =    12.84s Tap "browser.actions.settings" Button
+    t =    12.84s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    12.84s     Find the "browser.actions.settings" Button
+    t =    12.90s     Check for interrupting elements affecting "browser.actions.settings" Button
+    t =    12.94s     Synthesize event
+    t =    13.23s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.62s Waiting 5.0s for "settings.done" Button to exist
+    t =    14.64s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.done" Button`
+    t =    14.64s         Checking existence of `"settings.done" Button`
+    t =    14.72s Checking existence of `"settings.extensions.spike.import-folder" Button`
+    t =    14.77s Find the "settings.extensions.spike.import-folder" Button
+    t =    14.82s Waiting 3.0s for "settings.extensions.spike.import-folder" Button to exist
+    t =    15.82s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    15.82s         Checking existence of `"settings.extensions.spike.import-folder" Button`
+    t =    16.90s Checking `Expect predicate `hittable == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    16.90s     Find the "settings.extensions.spike.import-folder" Button
+    t =    16.97s Tap "settings.extensions.spike.import-folder" Button
+    t =    16.97s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    16.97s     Find the "settings.extensions.spike.import-folder" Button
+    t =    17.03s     Check for interrupting elements affecting "settings.extensions.spike.import-folder" Button
+    t =    17.07s     Synthesize event
+    t =    17.35s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.60s Waiting 8.0s for "Browse View (Picker)" Other to exist
+    t =    18.61s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    18.61s         Checking existence of `"Browse View (Picker)" Other`
+    t =    18.67s         Capturing element debug description
+    t =    19.68s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    19.68s         Checking existence of `"Browse View (Picker)" Other`
+    t =    19.73s         Capturing element debug description
+    t =    20.64s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    20.64s         Checking existence of `"Browse View (Picker)" Other`
+    t =    21.94s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    22.08s Added attachment named 'spike-files-picker-before-cancel'
+    t =    22.08s Requesting snapshot of accessibility hierarchy for app with pid 82963
+    t =    23.12s Requesting snapshot of accessibility hierarchy for app with pid 82963
+    t =    23.23s Added attachment named 'spike-files-picker-tree'
+    t =    23.23s Press "Browse View (Picker)" Other[0.50, 0.01] for 0.1 seconds, then drag to "Browse View (Picker)" Other[0.50, 0.90] with velocity of 500.00 pixels per second, and then hold for 0.0 seconds
+    t =    23.23s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    23.23s     Find the "Browse View (Picker)" Other
+    t =    23.34s     Check for interrupting elements affecting "Browse View (Picker)" Other
+    t =    23.41s     Synthesize event
+    t =    23.42s         Find the "Browse View (Picker)" Other
+    t =    23.54s         Find the "Browse View (Picker)" Other
+    t =    23.67s         Find the "Browse View (Picker)" Other
+    t =    23.78s         Find the "Browse View (Picker)" Other
+    t =    23.89s         Find the "Browse View (Picker)" Other
+    t =    25.77s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    26.13s Waiting 5.0s for "Browse View (Picker)" Other to not exist
+    t =    27.15s     Checking `Expect predicate `existsNoRetry == 0` for object "Browse View (Picker)" Other`
+    t =    27.15s         Checking existence of `"Browse View (Picker)" Other`
+    t =    27.22s Waiting 5.0s for "settings.extensions.spike.import-folder" Button to exist
+    t =    28.24s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    28.24s         Checking existence of `"settings.extensions.spike.import-folder" Button`
+    t =    29.31s Checking `Expect predicate `hittable == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    29.31s     Find the "settings.extensions.spike.import-folder" Button
+    t =    29.38s Find the "settings.extensions.spike.import-folder" Button
+    t =    29.43s Checking existence of `"settings.extensions.spike.unload-folder" Button`
+    t =    29.47s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    29.58s Added attachment named 'spike-files-cancel-no-import'
+    t =    29.58s Terminate app.ahoibrowser.AhoiBrowser:82963
+    t =    30.65s Tear Down
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testFilesPickerCancellationDoesNotLoadExtension]' passed (31.342 seconds).
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testFilesPickerLoadsAndUnloadsReviewedFixture]' started.
+    t =     0.00s Start Test at 2026-10-06 23:42:45.988
+    t =     0.02s Set Up
+    t =     0.02s Terminate app.ahoibrowser.AhoiBrowser:0
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.03s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-06 23:42:46.016 xcodebuild[82094:20938672] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-06 23:42:46.016 xcodebuild[82094:20938672] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.24s         Setting up automation session
+    t =     2.45s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.20s Waiting 8.0s for Button (First Match) to exist
+    t =     5.23s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     5.23s         Checking existence of `Button (First Match)`
+    t =     5.28s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     6.29s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     6.29s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     6.45s Find the "browser.e2e.candidate-binding" Any
+    t =     6.54s Tap "browser.more" Button
+    t =     6.54s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.54s     Find the "browser.more" Button
+    t =     6.58s     Check for interrupting elements affecting "browser.more" Button
+    t =     6.61s     Synthesize event
+    t =     6.90s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     6.96s Waiting 4.0s for "browser.actions.done" Button to exist
+    t =     7.98s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.done" Button`
+    t =     7.98s         Checking existence of `"browser.actions.done" Button`
+    t =     8.06s Checking existence of `"browser.actions.settings" Button`
+    t =     8.12s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     8.12s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.12s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     8.15s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     8.19s     Synthesize event
+    t =     8.62s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.30s Checking existence of `"browser.actions.settings" Button`
+    t =     9.38s Swipe up Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     9.38s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     9.39s     Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =     9.43s     Check for interrupting elements affecting "AhoiBrowser" Application
+    t =     9.48s     Synthesize event
+    t =     9.92s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    10.66s Checking existence of `"browser.actions.settings" Button`
+    t =    10.74s Find the "browser.actions.settings" Button
+    t =    10.82s Waiting 3.0s for "browser.actions.settings" Button to exist
+    t =    11.84s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.actions.settings" Button`
+    t =    11.84s         Checking existence of `"browser.actions.settings" Button`
+    t =    12.93s Checking `Expect predicate `hittable == 1` for object "browser.actions.settings" Button`
+    t =    12.93s     Find the "browser.actions.settings" Button
+    t =    13.01s Tap "browser.actions.settings" Button
+    t =    13.01s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.02s     Find the "browser.actions.settings" Button
+    t =    13.10s     Check for interrupting elements affecting "browser.actions.settings" Button
+    t =    13.16s     Synthesize event
+    t =    13.47s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.85s Waiting 5.0s for "settings.done" Button to exist
+    t =    14.87s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.done" Button`
+    t =    14.87s         Checking existence of `"settings.done" Button`
+    t =    14.94s Checking existence of `"settings.extensions.spike.import-folder" Button`
+    t =    15.00s Find the "settings.extensions.spike.import-folder" Button
+    t =    15.07s Waiting 3.0s for "settings.extensions.spike.import-folder" Button to exist
+    t =    16.08s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    16.08s         Checking existence of `"settings.extensions.spike.import-folder" Button`
+    t =    17.14s Checking `Expect predicate `hittable == 1` for object "settings.extensions.spike.import-folder" Button`
+    t =    17.14s     Find the "settings.extensions.spike.import-folder" Button
+    t =    17.20s Tap "settings.extensions.spike.import-folder" Button
+    t =    17.20s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.20s     Find the "settings.extensions.spike.import-folder" Button
+    t =    17.25s     Check for interrupting elements affecting "settings.extensions.spike.import-folder" Button
+    t =    17.29s     Synthesize event
+    t =    17.58s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    17.82s Waiting 8.0s for "Browse View (Picker)" Other to exist
+    t =    18.84s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    18.84s         Checking existence of `"Browse View (Picker)" Other`
+    t =    18.92s         Capturing element debug description
+    t =    19.83s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    19.83s         Checking existence of `"Browse View (Picker)" Other`
+    t =    19.89s         Capturing element debug description
+    t =    20.90s     Checking `Expect predicate `existsNoRetry == 1` for object "Browse View (Picker)" Other`
+    t =    20.90s         Checking existence of `"Browse View (Picker)" Other`
+    t =    22.16s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    22.30s Added attachment named 'spike-files-picker-before-selection'
+    t =    22.30s Requesting snapshot of accessibility hierarchy for app with pid 83509
+    t =    23.16s Requesting snapshot of accessibility hierarchy for app with pid 83509
+    t =    23.28s Added attachment named 'spike-files-picker-before-selection-tree'
+    t =    23.28s Waiting 3.0s for "Ahoi-Spike-13423f52, Folder" Cell to exist
+    t =    24.30s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi-Spike-13423f52, Folder" Cell`
+    t =    24.30s         Checking existence of `"Ahoi-Spike-13423f52, Folder" Cell`
+    t =    24.43s         Capturing element debug description
+    t =    25.34s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi-Spike-13423f52, Folder" Cell`
+    t =    25.34s         Checking existence of `"Ahoi-Spike-13423f52, Folder" Cell`
+    t =    25.48s         Capturing element debug description
+    t =    26.29s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi-Spike-13423f52, Folder" Cell`
+    t =    26.29s         Checking existence of `"Ahoi-Spike-13423f52, Folder" Cell`
+    t =    26.42s         Capturing element debug description
+    t =    26.42s     Checking existence of `"Ahoi-Spike-13423f52, Folder" Cell`
+    t =    26.55s Collecting debug information to assist test failure triage
+    t =    26.55s     Requesting snapshot of accessibility hierarchy for app with pid 83509
+    t =    26.68s Checking existence of `Any (First Match)`
+    t =    26.82s Waiting 5.0s for Button (First Match) to exist
+    t =    27.85s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    27.85s         Checking existence of `Button (First Match)`
+    t =    28.98s Checking `Expect predicate `hittable == 1` for object Button (First Match)`
+    t =    28.98s     Find the Button (First Match)
+    t =    29.13s Tap "Durchsuchen" Button
+    t =    29.13s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    29.13s     Find the "Durchsuchen" Button
+    t =    29.25s     Check for interrupting elements affecting "Durchsuchen" Button
+    t =    29.31s     Synthesize event
+    t =    29.61s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    29.62s Waiting 5.0s for Any (First Match) to exist
+    t =    30.63s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    30.63s         Checking existence of `Any (First Match)`
+    t =    31.80s Checking `Expect predicate `hittable == 1` for object Any (First Match)`
+    t =    31.80s     Find the Any (First Match)
+    t =    31.96s Tap "DOC.sidebar.item.Auf meinem iPhone" Cell
+    t =    31.96s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    31.96s     Find the "DOC.sidebar.item.Auf meinem iPhone" Cell
+    t =    32.11s     Check for interrupting elements affecting "DOC.sidebar.item.Auf meinem iPhone" Cell
+    t =    32.21s     Synthesize event
+    t =    32.51s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    32.52s Waiting 5.0s for "AhoiBrowser" StaticText to exist
+    t =    33.53s     Checking `Expect predicate `existsNoRetry == 1` for object "AhoiBrowser" StaticText`
+    t =    33.53s         Checking existence of `"AhoiBrowser" StaticText`
+    t =    34.70s Checking `Expect predicate `hittable == 1` for object "AhoiBrowser" StaticText`
+    t =    34.70s     Find the "AhoiBrowser" StaticText
+    t =    34.87s Tap "AhoiBrowser" StaticText
+    t =    34.87s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    34.87s     Find the "AhoiBrowser" StaticText
+    t =    35.01s     Check for interrupting elements affecting "AhoiBrowser" StaticText
+    t =    35.08s     Synthesize event
+    t =    35.38s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    35.38s Waiting 5.0s for "Ahoi-Spike-13423f52, Folder" Cell to exist
+    t =    36.39s     Checking `Expect predicate `existsNoRetry == 1` for object "Ahoi-Spike-13423f52, Folder" Cell`
+    t =    36.39s         Checking existence of `"Ahoi-Spike-13423f52, Folder" Cell`
+    t =    37.55s Checking `Expect predicate `hittable == 1` for object "Ahoi-Spike-13423f52, Folder" Cell`
+    t =    37.55s     Find the "Ahoi-Spike-13423f52, Folder" Cell
+    t =    37.73s Double tap "Ahoi-Spike-13423f52, Folder" Cell
+    t =    37.73s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    37.73s     Find the "Ahoi-Spike-13423f52, Folder" Cell
+    t =    37.89s     Check for interrupting elements affecting "Ahoi-Spike-13423f52, Folder" Cell
+    t =    37.96s     Synthesize event
+    t =    38.32s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    38.32s Waiting 5.0s for Other (First Match) to exist
+    t =    39.33s     Checking `Expect predicate `existsNoRetry == 1` for object Other (First Match)`
+    t =    39.33s         Checking existence of `Other (First Match)`
+    t =    39.51s         Capturing element debug description
+    t =    40.42s     Checking `Expect predicate `existsNoRetry == 1` for object Other (First Match)`
+    t =    40.42s         Checking existence of `Other (First Match)`
+    t =    40.58s Requesting snapshot of accessibility hierarchy for app with pid 83509
+    t =    41.73s Requesting snapshot of accessibility hierarchy for app with pid 83509
+    t =    41.86s Added attachment named 'spike-files-selected-folder-tree'
+    t =    41.86s Waiting 5.0s for "DOCPicker.actionButton" Button to exist
+    t =    42.87s     Checking `Expect predicate `existsNoRetry == 1` for object "DOCPicker.actionButton" Button`
+    t =    42.87s         Checking existence of `"DOCPicker.actionButton" Button`
+    t =    43.97s Checking `Expect predicate `hittable == 1` for object "DOCPicker.actionButton" Button`
+    t =    43.97s     Find the "DOCPicker.actionButton" Button
+    t =    44.10s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    44.24s Added attachment named 'spike-files-selected-folder'
+    t =    44.24s Tap "DOCPicker.actionButton" Button
+    t =    44.24s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    44.25s     Find the "DOCPicker.actionButton" Button
+    t =    44.33s     Check for interrupting elements affecting "DOCPicker.actionButton" Button
+    t =    44.41s     Synthesize event
+    t =    44.71s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    44.72s Waiting 8.0s for StaticText (First Match) to exist
+    t =    45.72s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    45.72s         Checking existence of `StaticText (First Match)`
+    t =    45.82s Find the "settings.extensions.spike.import-folder" Button
+    t =    45.87s Waiting 5.0s for "settings.extensions.spike.unload-folder" Button to exist
+    t =    46.88s     Checking `Expect predicate `existsNoRetry == 1` for object "settings.extensions.spike.unload-folder" Button`
+    t =    46.89s         Checking existence of `"settings.extensions.spike.unload-folder" Button`
+    t =    47.97s Checking `Expect predicate `hittable == 1` for object "settings.extensions.spike.unload-folder" Button`
+    t =    47.97s     Find the "settings.extensions.spike.unload-folder" Button
+    t =    48.04s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    48.15s Added attachment named 'spike-files-context-loaded'
+    t =    48.15s Tap "settings.extensions.spike.unload-folder" Button
+    t =    48.15s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    48.15s     Find the "settings.extensions.spike.unload-folder" Button
+    t =    48.20s     Check for interrupting elements affecting "settings.extensions.spike.unload-folder" Button
+    t =    48.25s     Synthesize event
+    t =    48.54s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    48.78s Waiting 5.0s for StaticText (First Match) to exist
+    t =    49.80s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    49.80s         Checking existence of `StaticText (First Match)`
+    t =    49.89s Find the "settings.extensions.spike.import-folder" Button
+    t =    49.94s Checking existence of `"settings.extensions.spike.unload-folder" Button`
+    t =    49.99s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    50.10s Added attachment named 'spike-files-context-unloaded'
+    t =    50.10s Terminate app.ahoibrowser.AhoiBrowser:83509
+    t =    51.13s Tear Down
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testFilesPickerLoadsAndUnloadsReviewedFixture]' passed (51.207 seconds).
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testRuntimeStaysOffWithoutTheLaunchArgument]' started.
+    t =     0.00s Start Test at 2026-10-06 23:43:37.196
+    t =     0.02s Set Up
+    t =     0.02s Terminate app.ahoibrowser.AhoiBrowser:0
+    t =     0.02s Open app.ahoibrowser.AhoiBrowser
+    t =     0.02s     Launch app.ahoibrowser.AhoiBrowser
+2026-10-06 23:43:37.217 xcodebuild[82094:20938672] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-06 23:43:37.217 xcodebuild[82094:20938672] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.23s         Setting up automation session
+    t =     2.39s         Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     4.23s Waiting 8.0s for Button (First Match) to exist
+    t =     5.24s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =     5.24s         Checking existence of `Button (First Match)`
+    t =     5.27s Waiting 5.0s for "browser.e2e.candidate-binding" Any to exist
+    t =     6.27s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.e2e.candidate-binding" Any`
+    t =     6.27s         Checking existence of `"browser.e2e.candidate-binding" Any`
+    t =     6.38s Find the "browser.e2e.candidate-binding" Any
+    t =     6.44s Waiting 10.0s for "browser.address" Button to exist
+    t =     7.45s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =     7.45s         Checking existence of `"browser.address" Button`
+    t =     7.48s Tap "browser.address" Button
+    t =     7.48s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     7.49s     Find the "browser.address" Button
+    t =     7.51s     Check for interrupting elements affecting "browser.address" Button
+    t =     7.54s     Synthesize event
+    t =     7.55s         Scroll element to visible
+    t =     7.55s         Find the "browser.address" Button
+    t =     7.59s         Computed hit point {-1, -1} after scrolling to visible
+    t =     7.87s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =     8.28s Waiting 10.0s for "browser.address.field" TextField to exist
+    t =     9.30s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =     9.30s         Checking existence of `"browser.address.field" TextField`
+    t =    10.39s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    10.39s     Find the "browser.address.field" TextField
+    t =    10.46s Waiting 1.0s for "browser.address.clear" Button to exist
+    t =    11.47s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    11.47s         Checking existence of `"browser.address.clear" Button`
+    t =    11.52s     Checking existence of `"browser.address.clear" Button`
+    t =    11.58s Waiting 2.0s for "browser.address.clear" Button to exist
+    t =    12.58s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.clear" Button`
+    t =    12.58s         Checking existence of `"browser.address.clear" Button`
+    t =    13.67s Checking `Expect predicate `hittable == 1` for object "browser.address.clear" Button`
+    t =    13.67s     Find the "browser.address.clear" Button
+    t =    13.74s Tap "browser.address.clear" Button
+    t =    13.74s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    13.74s     Find the "browser.address.clear" Button
+    t =    13.80s     Check for interrupting elements affecting "browser.address.clear" Button
+    t =    13.84s     Synthesize event
+    t =    14.12s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    14.12s Waiting 2.0s for "browser.address.clear" Button to not exist
+    t =    15.14s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.clear" Button`
+    t =    15.14s         Checking existence of `"browser.address.clear" Button`
+    t =    15.20s Waiting 2.0s for "browser.address.field" TextField to exist
+    t =    16.20s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    16.21s         Checking existence of `"browser.address.field" TextField`
+    t =    17.27s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    17.27s     Find the "browser.address.field" TextField
+    t =    17.33s Find the "browser.address.field" TextField
+    t =    17.39s Find the "browser.address.field" TextField
+    t =    17.43s Waiting 2.0s for "browser.address.field" TextField to exist
+    t =    18.44s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address.field" TextField`
+    t =    18.44s         Checking existence of `"browser.address.field" TextField`
+    t =    19.51s Checking `Expect predicate `hittable == 1` for object "browser.address.field" TextField`
+    t =    19.51s     Find the "browser.address.field" TextField
+    t =    19.58s Tap "browser.address.field" TextField
+    t =    19.58s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    19.58s     Find the "browser.address.field" TextField
+    t =    19.63s     Check for interrupting elements affecting "browser.address.field" TextField
+    t =    19.67s     Synthesize event
+    t =    19.96s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    19.96s Type 'https://example.co...' into "browser.address.field" TextField
+    t =    19.96s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    19.99s     Find the "browser.address.field" TextField
+    t =    20.04s     Check for interrupting elements affecting "browser.address.field" TextField
+    t =    20.09s     Synthesize event
+    t =    21.12s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    21.13s Checking existence of `"browser.address.field" TextField`
+    t =    21.18s Find the "browser.address.field" TextField
+    t =    21.22s Find the "browser.address.field" TextField
+    t =    21.27s Checking existence of `"browser.address.field" TextField`
+    t =    21.32s Find the "browser.address.field" TextField
+    t =    21.36s Find the "browser.address.field" TextField
+    t =    21.41s Find the "browser.address.field" TextField
+    t =    21.46s Find the "browser.address.field" TextField
+    t =    21.52s Waiting 10.0s for "browser.search.navigate" Button to exist
+    t =    22.53s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.search.navigate" Button`
+    t =    22.53s         Checking existence of `"browser.search.navigate" Button`
+    t =    23.59s Checking `Expect predicate `hittable == 1` for object "browser.search.navigate" Button`
+    t =    23.59s     Find the "browser.search.navigate" Button
+    t =    23.68s Tap "browser.search.navigate" Button
+    t =    23.68s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    23.68s     Find the "browser.search.navigate" Button
+    t =    23.73s     Check for interrupting elements affecting "browser.search.navigate" Button
+    t =    23.76s     Synthesize event
+    t =    24.06s     Wait for app.ahoibrowser.AhoiBrowser to idle
+    t =    24.47s Waiting 10.0s for "browser.address.field" TextField to not exist
+    t =    25.48s     Checking `Expect predicate `existsNoRetry == 0` for object "browser.address.field" TextField`
+    t =    25.48s         Checking existence of `"browser.address.field" TextField`
+    t =    25.51s Waiting 5.0s for "browser.address" Button to exist
+    t =    26.54s     Checking `Expect predicate `existsNoRetry == 1` for object "browser.address" Button`
+    t =    26.54s         Checking existence of `"browser.address" Button`
+    t =    27.57s Checking `Expect predicate `value == "https://example.com/?ahoi-spike-check=a7002343-off"` for object "browser.address" Button`
+    t =    27.57s     Find the "browser.address" Button
+    t =    27.61s Find the "browser.address" Button
+    t =    27.63s Find the "browser.address" Button
+    t =    27.65s Waiting 20.0s for Any (First Match) to exist
+    t =    28.67s     Checking `Expect predicate `existsNoRetry == 1` for object Any (First Match)`
+    t =    28.67s         Checking existence of `Any (First Match)`
+    t =    32.71s Checking existence of `Any (First Match)`
+    t =    32.75s Find the Target Application 'app.ahoibrowser.AhoiBrowser'
+    t =    32.84s Added attachment named 'spike-01-off-without-argument'
+    t =    32.84s Terminate app.ahoibrowser.AhoiBrowser:84181
+    t =    33.89s Tear Down
+Test Case '-[AhoiMobileUITests.MobileWebExtensionSpikeUITests testRuntimeStaysOffWithoutTheLaunchArgument]' passed (33.953 seconds).
+Test Suite 'MobileWebExtensionSpikeUITests' passed at 2026-10-06 23:44:11.149.
+         Executed 4 tests, with 0 failures (0 unexpected) in 172.324 (172.332) seconds
+Test Suite 'AhoiMobileUITests.xctest' passed at 2026-10-06 23:44:11.149.
+         Executed 4 tests, with 0 failures (0 unexpected) in 172.324 (172.333) seconds
+Test Suite 'Selected tests' passed at 2026-10-06 23:44:11.150.
+         Executed 4 tests, with 0 failures (0 unexpected) in 172.324 (172.334) seconds
+2026-10-06 23:44:11.484 xcodebuild[82094:20938672] [MT] IDETestOperationsObserverDebug: 181.285 elapsed -- Testing started completed.
+2026-10-06 23:44:11.484 xcodebuild[82094:20938672] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-06 23:44:11.484 xcodebuild[82094:20938672] [MT] IDETestOperationsObserverDebug: 181.285 sec, +181.285 sec -- end
+
+Test session results, code coverage, and logs:
+        /Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/files-visible-13423f52.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

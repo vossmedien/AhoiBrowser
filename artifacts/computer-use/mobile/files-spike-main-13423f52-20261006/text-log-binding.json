@@ -1,0 +1,17 @@
+{
+  "test.log": {
+    "rawSha256": "5e16178648e1ca1ed1d7dd1b8e615fc3224014f144792183d8d4ca6715be0cc0",
+    "archivedTextSha256": "892545df7b964a45a81050867eba17e4cf7f148748bf49c0b01ade4dbd7a3c82",
+    "normalization": "expandtabs and remove trailing whitespace; raw original retained on Inhouse evidence path"
+  },
+  "runtime-focused.log": {
+    "rawSha256": "72ced649f2348b710b01498214ee74c838954cca849d3a5ec88ea6eaad3dfe07",
+    "archivedTextSha256": "01a7659704fcd50590f0e8260801dd6f199c6c2f265ff3408e522d0b8cd110a1",
+    "normalization": "expandtabs and remove trailing whitespace; raw original retained on Inhouse evidence path"
+  },
+  "build.log": {
+    "rawSha256": "c9bc9c03d31cca59b6325a7ecaa22aee2117ddafaaaf38f9998edc4b759d92d5",
+    "archivedTextSha256": "d530bf225932147dd9b375b3ffbba6fd8d3fda78e40eab1cf88a93c25eeb3635",
+    "normalization": "expandtabs and remove trailing whitespace; raw original retained on Inhouse evidence path"
+  }
+}

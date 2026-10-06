@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "13423f52ced6744842dfd2fea16f9aadda1e5f3f",
+  "candidateReceiptSha256": "a23915edfefedb155461c3b16295626cbec9babf66193ae90fb117e47d7aa225",
+  "originalXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_iphonesimulator27.0-arm64-x86_64.xctestrun",
+  "originalXctestrunSha256": "6a117b505a3be3fb31367df9b84e7576c743810e15fbd73c8c059e1c6256cefd",
+  "exactXctestrun": "/Users/vossmedien/inhouse/scratch/ahoi-mobile-files-e664fc0d.fUBMTOwp/DerivedData/Build/Products/AhoiMobile_files_13423f52_exact_candidate.xctestrun",
+  "exactXctestrunSha256": "da5a4eab223cc3ff63ffe58c048cb018cd594e6d18fdbb94e55e6fb3a024b5a7",
+  "selectedJourneys": "MobileWebExtensionSpikeUITests (4)",
+  "baseDefaultBranch": "318c4eff",
+  "correction": "Token binds self-check to each committed navigation; visit counter must increase from the observed first report after validated 7495fe65 review P2",
+  "jobs": 1,
+  "distributionEligible": false
+}
