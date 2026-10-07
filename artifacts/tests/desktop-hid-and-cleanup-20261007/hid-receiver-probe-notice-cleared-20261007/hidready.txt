@@ -1,0 +1,3 @@
+HID target=86373 workspace=86373 keyboardReceiver=-1 windowOwner=-1 mouseReceiver=not-probed PostEventAccess=true
+receiverWindow: none
+QuartzGUI=true UserNotificationCenterWindows=[]

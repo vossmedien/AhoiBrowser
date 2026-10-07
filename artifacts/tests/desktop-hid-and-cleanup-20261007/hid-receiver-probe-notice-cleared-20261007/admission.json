@@ -1,0 +1,12 @@
+{
+  "meanUsed": 31.53333333333333,
+  "samples": [
+    31.25,
+    32.239999999999995,
+    31.11
+  ],
+  "time": 1791335653.875319,
+  "changedPrerequisite": "system notice actually cleared after native activation/Ignore",
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000
+}

@@ -7,6 +7,30 @@ Unified owner Cockpit68E66C9E, active native Goal/thread
 complete Master. Later product decisions remain binding; AnyChat is out of scope.
 Desktop source1e340a17 and its shared Chromium build remain independent/owned.
 
+**Newest Mobile55 handback, not acceptance:** clean own branch7e3f59f0,
+functional source0ec4845f, built generic DebugLocal0f6e7cda (SDK27, Dev has no
+iOS runtime), last visible Inhouse95d61c73:4PASS/1FAIL. Real standard popup,
+Files cancel/import and runtime-off passed; consent-storage loss remains FAIL,
+new-tab/private checks were not reached. The final native input/private-origin
+helper correction and postreview lifecycle corrections still need exact runtime
+and app-hosted focus. First native review found four P2, three corrected in Source
+and not yet runtime accepted; no final review/merge/delivery claim. Full actual
+16-file diff inspected; remaining lifecycle and SDK/storage acceptance is open.
+Details/evidence remain in the existing worker report
+`../AhoiBrowser-mobile-popup-berechtigungsumsetzung-55e4/docs/reviews/2026-10-07-mobile-popup-permissions-implementation.md`.
+
+Worker55 explicitly returned its reservation: own simulatorA058 Shutdown,
+own processes/locks absent, scratch source0ec clean, DerivedData still95. Its
+native Goal is blocked awaiting technical/resource feedback, identity preserved.
+Root follow-up through existing Orchestrator request84750a2a asks SDK-public
+extension DNR APIs/message path to preserve memory storage without context
+unload, with unchanged consent/host/private gates. No new persistence, private
+bridge, grant repository or Step2 decision authorised. Resume that same worker,
+not a duplicate. Root removed nine obsolete Desktop rollback app copies and
+recovered about6.82GiB net available space; fresh per-phase capacity/disk and
+explicit simulator resource handback remain required before another Mobile run.
+No Mobile source integrated while these criteria fail; accepted main134 preserved.
+
 - **Files import/load/unload PASS:** exact clean DebugLocalba139fc1, owned iOS27
   simulatorA058D204-F3CB-44B7-963C-1F785132EF8B,40.75s. Native Files selected the
   reviewed folder; WebKit loaded its context beside the bundled spike, then

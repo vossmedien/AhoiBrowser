@@ -1,0 +1,12 @@
+{
+  "usedSamples": [
+    78.28999999999999,
+    76.21000000000001,
+    69.77
+  ],
+  "meanUsed": 74.75666666666666,
+  "time": 1791335420.016226,
+  "phase": "short actual HID receiver probe",
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000
+}

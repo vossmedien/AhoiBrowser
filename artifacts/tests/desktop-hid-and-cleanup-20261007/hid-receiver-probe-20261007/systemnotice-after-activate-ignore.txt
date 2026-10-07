@@ -1,0 +1,6 @@
+AXApplication | UserNotificationCenter
+  AXMenuBar
+    AXMenuBarItem | Apple
+      AXMenu
+    AXMenuBarItem | UserNotificationCenter
+      AXMenu

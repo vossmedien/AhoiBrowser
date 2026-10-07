@@ -1,0 +1,83 @@
+{
+  "time": 1791335277.606338,
+  "removed": [
+    {
+      "path": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-s42c23a3946e4-hfc53f8474db0.app",
+      "source": "42c23a3946e459715ff4bb663dc443990e999ff3",
+      "allocatedKiB": 1212732,
+      "sourceRetainedIn": [
+        "HEAD",
+        "origin/codex/desktop-core-feature-wave-20260830"
+      ]
+    },
+    {
+      "path": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-s76c0a54be05b-h2415b08bb78a.app",
+      "source": "76c0a54be05bd09121fdd1338f7d0519ecbd16f6",
+      "allocatedKiB": 1219512,
+      "sourceRetainedIn": [
+        "HEAD",
+        "origin/codex/desktop-core-feature-wave-20260830"
+      ]
+    },
+    {
+      "path": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-s92facb5823eb-h8fbbf6957915.app",
+      "source": "92facb5823ebd3928e1ddf27566e64a3179fd605",
+      "allocatedKiB": 1189528,
+      "sourceRetainedIn": [
+        "HEAD",
+        "origin/codex/desktop-core-feature-wave-20260830"
+      ]
+    },
+    {
+      "path": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-s9b304a3c72c4-h5c1ea2d1c64c.app",
+      "source": "9b304a3c72c470e65ea58ef56db25ab11b39a0b9",
+      "allocatedKiB": 1189528,
+      "sourceRetainedIn": [
+        "HEAD",
+        "origin/codex/desktop-core-feature-wave-20260830"
+      ]
+    },
+    {
+      "path": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-sb21aa1460b55-h9226c30178a9.app",
+      "source": "b21aa1460b55156963c6e0270a4bb8d61d604238",
+      "allocatedKiB": 1213632,
+      "sourceRetainedIn": [
+        "HEAD",
+        "origin/codex/desktop-core-feature-wave-20260830"
+      ]
+    },
+    {
+      "path": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-se86c929f6bfb-h0ecf3498c2df.app",
+      "source": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+      "allocatedKiB": 1213632,
+      "sourceRetainedIn": [
+        "HEAD",
+        "origin/codex/desktop-core-feature-wave-20260830"
+      ]
+    },
+    {
+      "path": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-sef982afebdf3-h3e3190912e80.app",
+      "source": "ef982afebdf33e26a105626878779f22dfb33c3f",
+      "allocatedKiB": 1219512,
+      "sourceRetainedIn": [
+        "HEAD",
+        "origin/codex/desktop-core-feature-wave-20260830"
+      ]
+    },
+    {
+      "path": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-sf87f75815a02-h22c315fdb7c9.app",
+      "source": "f87f75815a027cc6ed20e3a9a5667d2cfd15f761",
+      "allocatedKiB": 1219628,
+      "sourceRetainedIn": [
+        "HEAD",
+        "origin/codex/desktop-core-feature-wave-20260830"
+      ]
+    }
+  ],
+  "retainedCurrent": "/Applications/AhoiBrowser.app",
+  "retainedRollback": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-s1e340a17b5ff-hb2515fbbe5ea.app",
+  "additionalUniqueSourcePendingOwner": "88e631d65f58ac80250e464847072eea00c4c877",
+  "freeBytesBefore": 7228137472,
+  "freeBytesAfter": 13367455744,
+  "netAvailableBytesRecovered": 6139318272
+}

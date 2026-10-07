@@ -1,0 +1,35 @@
+{
+  "delegation": "e5fbc1f3",
+  "session": "1019DDF3-0EE8-4145-B368-325E1A620C5A",
+  "account": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+  "native": {
+    "id": "01a113e8-cfc5-79b1-9a36-71e8e45f3a93",
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-arc-verlauf-m155-e5fbc1f3",
+    "source": "cli",
+    "cli_version": "0.160.1",
+    "model_provider": "openai"
+  },
+  "config": {
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-arc-verlauf-m155-e5fbc1f3",
+    "model": "gpt-6.1-sol",
+    "effort": "xhigh",
+    "approval_policy": "never",
+    "sandbox_policy": {
+      "type": "danger-full-access"
+    }
+  },
+  "createCalls": 1,
+  "initialGoal": null,
+  "latestGoal": {
+    "threadId": "01a113e8-cfc5-79b1-9a36-71e8e45f3a93",
+    "objective": "AHOI-ARC-HISTORY-M155-20261007: Portiere die auf main vorhandene unvollst\u00e4ndige Arc-Verlaufskategorie auf den aktuellen M155-Importer einschlie\u00dflich getrennten Profilen, idempotenter History-Transaktion und sicherer Recovery; liefere attributable Quellen und f\u00fchre Korrekturen mit Root bis zur tats\u00e4chlichen kombinierten Kandidatenabnahme, Mainintegration/Push und bewachten Desktop-Auslieferung aus.",
+    "status": "active",
+    "tokensUsed": 0,
+    "timeUsedSeconds": 0,
+    "createdAt": 1791335405,
+    "updatedAt": 1791335405
+  },
+  "sourceBasis": "0c646698",
+  "sourceScope": "ArcHistoryM155, actualWebUI/0084 correction c6a6cfb5",
+  "JevRoutingDecision": "not independently observed"
+}

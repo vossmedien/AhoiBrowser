@@ -1,0 +1,13 @@
+{
+  "host": "MacbookPro2026.fritz.box",
+  "time": 1791335307.494029,
+  "usedSamples": [
+    42.24,
+    37.26,
+    33.0
+  ],
+  "meanUsed": 37.5,
+  "phase": "helper compilation after8verified superseded app copies removed",
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 20000000
+}

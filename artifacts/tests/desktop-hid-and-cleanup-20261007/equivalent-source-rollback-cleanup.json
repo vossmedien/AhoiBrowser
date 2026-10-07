@@ -1,0 +1,12 @@
+{
+  "time": 1791335330.7696278,
+  "removed": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-s88e631d65f58-h21dd7386171f.app",
+  "allocatedKiB": 1190208,
+  "equivalentSourceEvidence": "/Users/vossmedien/inhouse/evidence/ahoi-e0282a90/ahoi-88e631d6-patch-equivalence.json",
+  "remainingRollback": [
+    "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-s1e340a17b5ff-hb2515fbbe5ea.app"
+  ],
+  "freeBytesBefore": 13160771584,
+  "freeBytesAfter": 14342246400,
+  "netAvailableBytesRecovered": 1181474816
+}

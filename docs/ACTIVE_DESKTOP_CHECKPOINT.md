@@ -1,6 +1,53 @@
 # Active Desktop checkpoint
 
-## Codex continuation: corrected build passes; remaining close-action fix delegated — 7 October 2026
+## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
+
+Current action: installed Inhouse candidate `e0282a90` remains unaccepted for
+batch close. C70 receiver guard `804d0e67` is reviewed/cherry-picked as
+`0c646698`; the separate, fixed-identity helper compiled after fresh37.50% mean
+aggregate CPU admission. Its actual SSH CLI reports AXTrusted/PostEventAccess
+true and refuses HID while the visible UserNotificationCenter window exists.
+That is negative guard evidence, not delivered mouse/keyboard or close evidence.
+Root's own isolated receiver probe admitted at31.53% mean CPU now shows
+workspacePID86373 and actual app focused/mainWindow, QuartzGUI=true and no
+UserNotificationCenter window. The systemwide AX receiver/window remain unknown
+(-1); helperhidready exits3 before any HID, so no mouse/keyboard/close pass.
+Native activation of the actual Systemnotice followed by Ignore removed it;
+the earlier AXPress0 without activation did not. Same helper under GUI launchd
+is AX-untrusted, while SSH is trusted: security-session evidence retained, no
+grant/reset. C70 same-scope diagnostic follow-upd3edf3ec will expose actual AX
+status/attribute support and correct only a documented public receiver path;
+unknown remains fail-closed. Original failures remain preserved.
+
+Resource prerequisite repaired: nine superseded task-owned hidden rollback app
+copies removed after source/ownership checks. Eight sources are in canonical and
+pushed feature history; the ninth (`88e631d6`) has the exact stable patch ID of
+integrated `f6606acd`, and its Git branch/commit remain. Current installed e028
+and immediate rollback1e remain. Two measured available-space deltas total
+7,320,793,088 bytes (about6.82GiB), concurrent foreign disk usage limits attribution
+of net df changes. First helper preparation correctly stopped below8GiB before
+compilation; after cleanup free space14,342,246,400 bytes. No foreign process,
+profile/data, current incremental output or cleanup automation altered.
+Target evidence: `~/inhouse/evidence/ahoi-e0282a90/*rollback-cleanup*.json`,
+`hid-guard-*`, `hid-receiver-probe-20261007/`.
+
+Arc-History M155 implementation submitted through existing Orchestrator as
+`e5fbc1f3`, separate Source-only worktree/Goal requested, GPT6.1Sol/xhigh/Caeli.
+Actual session1019DDF3-0EE8-4145-B368-325E1A620C5A/thread
+01a113e8-cfc5-79b1-9a36-71e8e45f3a93, own worktree, nativeSol/xhigh/never/
+danger-full-access and initialGoalnull/createonce/ACTIVE verified in
+`artifacts/tests/orchestrator-workers-20261007/01a113e8-cfc5-79b1-9a36-71e8e45f3a93.json`.
+Concrete Jev routing decision remains separate/unobserved. Contract: accepted
+main-integration report, current importer/profile
+boundaries, optional history argument11, M155 HistoryDB seam and exact rollback.
+Concrete actual WebUI/patch path correction and same-Mobile55 follow-up sent in
+request `84750a2a-feb5-4a8a-b269-e28af1f848a3` (sending, not execution proof).
+Root retains shared Chromium/output/build/MacGUI/main/push/delivery. Full combined
+F still requires all eight Crest packages, History and accepted main behavior.
+Feature source60e839d9 remote readback exact; actual main/origin13423f52 unchanged.
+Mobile55 T2 SDK/storage follow-up temporarily parked by note c24cb473 until
+the narrow C70 source handback, preserving at most two active Source helpers
+(Arc and C70) and the existing MobileGoal. No additional runtime slot granted.
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no

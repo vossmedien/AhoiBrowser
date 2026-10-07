@@ -1,0 +1,7 @@
+frontmostApp: UserNotificationCenter pid=2035 target=2035
+HID target=2035 workspace=2035 keyboardReceiver=-1 windowOwner=-1 mouseReceiver=not-probed PostEventAccess=true
+receiverWindow: none
+QuartzGUI=true UserNotificationCenterWindows=[2035]
+focusedElement: AXWindow | Hinweis | _NS:87
+focusedWindow: AXWindow | Hinweis | _NS:87
+mainWindow: none

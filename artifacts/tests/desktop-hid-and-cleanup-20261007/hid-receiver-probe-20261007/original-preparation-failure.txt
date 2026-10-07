@@ -1,0 +1,1 @@
+Preparation exit141 before CPU/compiler/app: pipefail caught ioreg SIGPIPE caused by awk exit; reader now drains pipe.

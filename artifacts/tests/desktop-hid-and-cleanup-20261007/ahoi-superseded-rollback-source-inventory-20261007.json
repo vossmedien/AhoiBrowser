@@ -1,0 +1,62 @@
+[
+  {
+    "source": "42c23a3946e459715ff4bb663dc443990e999ff3",
+    "retainedIn": [
+      "HEAD",
+      "origin/codex/desktop-core-feature-wave-20260830"
+    ]
+  },
+  {
+    "source": "76c0a54be05bd09121fdd1338f7d0519ecbd16f6",
+    "retainedIn": [
+      "HEAD",
+      "origin/codex/desktop-core-feature-wave-20260830"
+    ]
+  },
+  {
+    "source": "88e631d65f58ac80250e464847072eea00c4c877",
+    "retainedIn": []
+  },
+  {
+    "source": "92facb5823ebd3928e1ddf27566e64a3179fd605",
+    "retainedIn": [
+      "HEAD",
+      "origin/codex/desktop-core-feature-wave-20260830"
+    ]
+  },
+  {
+    "source": "9b304a3c72c470e65ea58ef56db25ab11b39a0b9",
+    "retainedIn": [
+      "HEAD",
+      "origin/codex/desktop-core-feature-wave-20260830"
+    ]
+  },
+  {
+    "source": "b21aa1460b55156963c6e0270a4bb8d61d604238",
+    "retainedIn": [
+      "HEAD",
+      "origin/codex/desktop-core-feature-wave-20260830"
+    ]
+  },
+  {
+    "source": "e86c929f6bfbb0cbe1dac2fa4c101a31250c215a",
+    "retainedIn": [
+      "HEAD",
+      "origin/codex/desktop-core-feature-wave-20260830"
+    ]
+  },
+  {
+    "source": "ef982afebdf33e26a105626878779f22dfb33c3f",
+    "retainedIn": [
+      "HEAD",
+      "origin/codex/desktop-core-feature-wave-20260830"
+    ]
+  },
+  {
+    "source": "f87f75815a027cc6ed20e3a9a5667d2cfd15f761",
+    "retainedIn": [
+      "HEAD",
+      "origin/codex/desktop-core-feature-wave-20260830"
+    ]
+  }
+]

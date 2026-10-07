@@ -1,0 +1,13 @@
+{
+  "host": "MacbookPro2026.fritz.box",
+  "time": 1791335155.064139,
+  "usedSamples": [
+    7.530000000000001,
+    4.140000000000001,
+    21.08
+  ],
+  "meanUsed": 10.916666666666666,
+  "phase": "owned HID helper compilation",
+  "plannedGrowthBytes": 20000000,
+  "reserveBytes": 8589934592
+}
