@@ -33,7 +33,8 @@
         "tests/repository/test_network_audit*.py"
       ],
       "writableByOwners": [
-        "handoffs/crest-hardening/*/HANDOFF.md"
+        "handoffs/crest-hardening/*/HANDOFF.md",
+        "artifacts/tests/crest-source-integration-20261007/source-binding.json"
       ],
       "pointerInsertionsOnly": [
         "outputs/AhoiBrowser-Master-Zielprompt.md",
