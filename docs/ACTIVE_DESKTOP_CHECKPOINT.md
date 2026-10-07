@@ -61,13 +61,20 @@ Preparation first staged only tracked outerpatch paths; the three new outerpatch
 files were explicitly added before canonical application. A mistaken0097
 diagnostic filename was corrected to the series' actual name before syntaxcheck;
 neither failure mutated canonical. Buildfix1253 not reapplied. Source binding in
-`artifacts/tests/crest-source-integration-20261007/source-binding.json`.
+`artifacts/tests/desktop-source-integration-20261007/source-binding.json`.
 The optional blocked164d combined-document helper delivered no Source and is
 not treated as an extra gate; current individual handoffs are the sources.
 Next complete F adds the already delegated History/M155 port and accepted main
 semantics, then the existing warm guarded build, exact visible Crest/History
 journeys, focus/review and actual main/push/guarded delivery. No partial Source
 integration or internal candidate claimed as Master completion.
+Source commit7a4d5602 actual feature-remote readback exact. DCO3/3 passed after
+correcting a diagnostic invocation that supplied HEAD instead of the required
+40-character SHA. Postcommit lane check caught one real ownership error: Root's
+Source JSON used the exclusive crest-* artifact prefix. It is relocated to
+desktop-*; historical7a and deletion still need the Crest-owner's exact old-file
+handoff/exception64491f2d, not a broad pattern exemption or force rewrite.
+Lane acceptance remains OPEN until the actual checker passes the whole range.
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no
