@@ -325,3 +325,11 @@ ist bis zum Abschluss dieser Vorbereitung nicht eingegangen. Stop-Bedingung
 des Auftrags greift für die abhängige Umsetzung; das einmalige
 `cockpit_report(delegation_id: "8e74e15d", status: "abbruch")` meldet diesen
 ungeklärten Ownershipzustand, keine erfolgreiche Korrekturlieferung.
+
+**Native Wartegrenze:** Nach drei aufeinanderfolgenden Goalrunden mit derselben
+fehlenden Sourceownership ist das eigene unveränderte Goal durch
+`update_goal(status: "blocked")` tatsächlich **blocked**
+(`updatedAt=1791380456`). Keine konkrete Freigabe eingegangen; die disjunkte
+Vorbereitung ist ausgeschöpft. Wiederaufnahme erst mit passendem Master-/Mobile55-
+Handback in derselben Session. `cockpit_report` wurde bereits genau einmal
+angenommen und wird nicht erneut gesendet. Keine Pflichtabnahme erfüllt.
