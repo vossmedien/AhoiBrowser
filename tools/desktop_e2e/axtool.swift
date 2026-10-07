@@ -274,8 +274,8 @@ case "key":
     }
     print("key \(code)")
 case "hidkey":
-    // Like a real keyboard: through the HID event tap, with modifier
-    // flagsChanged events and short gaps. Check the target before each
+    // PID-scoped keyboard events with native modifier transitions and short
+    // gaps, using the same delivery API as `key`. Check the target before each
     // key-down; focus can change while the modifier chord is assembled.
     guard hidTargetReady(pid) else {
         print("hidkey refused: input target not ready"); exit(3)
@@ -296,7 +296,7 @@ case "hidkey":
     func post(_ key: CGKeyCode, _ down: Bool, _ eventFlags: CGEventFlags) {
         let ev = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: down)!
         ev.flags = eventFlags
-        ev.post(tap: .cghidEventTap)
+        ev.postToPid(pid)
         usleep(30000)
     }
     var pressedModifiers: [CGKeyCode] = []
@@ -318,7 +318,7 @@ case "hidkey":
     post(code, true, flags)
     post(code, false, flags)
     for m in modifierCodes.reversed() { post(m, false, []) }
-    print("hidkey \(code)")
+    print("hidkey \(code) postedToPID=\(pid)")
 case "focus":
     let needle = args[3]
     var found: AXUIElement?
@@ -400,9 +400,8 @@ case "activate":
         print("activate via Apple Event -> \(front ? "frontmost" : "still behind")")
     }
 case "hidrightclick":
-    // Like a real mouse: through the HID event tap (Chromium views ignore
-    // mouse events posted to the process). Refuses unless the target app is
-    // frontmost, so it can never click into another app.
+    // PID-scoped right-click through the same delivery API as `rightclick`.
+    // The owner/window/point guard must pass before any event is sent.
     guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
         print("hidrightclick refused: target not frontmost"); exit(3)
     }
@@ -426,10 +425,10 @@ case "hidrightclick":
                          mouseButton: .right)!
         // A click count of 0 is not a click for AppKit.
         if t != .mouseMoved { ev.setIntegerValueField(.mouseEventClickState, value: 1) }
-        ev.post(tap: .cghidEventTap)
+        ev.postToPid(pid)
         usleep(80000)
     }
-    print("hidrightclicked \(label(hf)) at \(hc)")
+    print("hidrightclicked \(label(hf)) at \(hc) postedToPID=\(pid)")
 case "hidscroll":
     // A pixel scroll wheel event through the HID tap at the element's center,
     // optionally with modifiers (Cmd+scroll switches tabs, NAV-11). Refuses
@@ -508,9 +507,9 @@ case "hidmiddle":
     }
     print("hidmiddle at \(c) moved by (\(mdx), \(mdy))")
 case "hidclick":
-    // Left click through the HID tap at the center of the first element whose
-    // AX label contains the substring (list entries in web UI, which have no
-    // pressable title). Refuses unless the target app is frontmost.
+    // PID-scoped left-click at the center of the first element whose AX label
+    // contains the substring. Preserve native flags and the owner/window/point
+    // guard while using the same delivery API as `click`.
     guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else {
         print("hidclick refused: target not frontmost"); exit(3)
     }
@@ -537,10 +536,10 @@ case "hidclick":
                          mouseButton: .left)!
         if t != .mouseMoved { ev.setIntegerValueField(.mouseEventClickState, value: 1) }
         if !cflags.isEmpty { ev.flags = cflags }
-        ev.post(tap: .cghidEventTap)
+        ev.postToPid(pid)
         usleep(80000)
     }
-    print("hidclicked \(label(cf)) at \(cc)")
+    print("hidclicked \(label(cf)) at \(cc) postedToPID=\(pid)")
 case "selected":
     // One line per element whose AXSelected is true (sidebar rows).
     _ = walk(app, 0, 40) { e, _ in
