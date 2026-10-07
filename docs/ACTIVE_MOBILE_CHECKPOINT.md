@@ -2,9 +2,13 @@
 
 ## Current Codex continuation: Files delivered on main; popup/permissions delegated — 7 October 2026
 
-Unified owner Cockpit68E66C9E, active native Goal/thread
+Unified owner Cockpit68E66C9E, native Goal/thread
 01a11179-cb6b-7dc1-9e53-f3d72fefc198 continues stopped Claude049a3c1d and the
 complete Master. Later product decisions remain binding; AnyChat is out of scope.
+Root Goal is BLOCKED at7October03:44UTC after the repeated disk/admission
+impasse; whole objective unchanged, no completion or user pause. Same Mobile55
+identity/lease and its own blocked Goal are preserved. Resume only on material
+resource/setup feedback, not an unchanged status loop; see Desktop checkpoint.
 Installed Inhouse Desktop sourcee0282a90 and its shared Chromium output remain
 independent/owned; new combined Desktop Source is not a Mobile runtime lease.
 

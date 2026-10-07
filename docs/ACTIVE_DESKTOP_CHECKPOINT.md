@@ -2,6 +2,19 @@
 
 ## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
 
+**Native Master Goal BLOCKED at03:44UTC, not achieved or user-paused.** The
+same Inhouse disk/admission boundary remains across the last three Goal turns;
+the previous delayed-Arc turn added no product progress or live-job wait.
+Current03:43UTC admission:13.94% mean CPU,7,650,725,888 bytes available,
+memory76%. No remaining independent source task is ready: fullF6eef and
+Mobilecd0c need build/visible acceptance before focus/review/integration.
+No live Ahoi job is being awaited. Resource request52b50478 names no verified
+owner or handback. Preserve the original full objective/thread and all source,
+runtime and delivery gates; do not generate unchanged polling continuations.
+Resume on real resource handback or another material prerequisite change,
+then read current ownership and admit the existing runner afresh. Required
+space remains8GiB plus declared output (full build4GiB, short UI0.3GB).
+
 **Current next action, 03:35 UTC:** full product source `6eefc4a8` is clean in
 the existing target mirror; its warm guarded runner remains NOT_STARTED.
 Installed Inhouse E028 and Dev EF remain unchanged. New PID helper593 was used
