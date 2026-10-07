@@ -87,25 +87,53 @@ func flagsFrom(_ names: ArraySlice<String>) -> CGEventFlags {
 // Read the system's keyboard receiver and the mouse hit target, not just
 // NSWorkspace's frontmost app or a successful AXSetFrontmost request.
 func hidTargetReady(_ pid: pid_t, at point: CGPoint? = nil) -> Bool {
+    func copyFocus(_ element: AXUIElement, _ name: String, scope: String) -> AXUIElement? {
+        var value: CFTypeRef?
+        let status = AXUIElementCopyAttributeValue(element, name as CFString, &value)
+        let valueType = value.map { String(CFGetTypeID($0)) } ?? "none"
+        print("AXCopy \(scope) \(name) status=\(status.rawValue) valueType=\(valueType) AXUIElementType=\(AXUIElementGetTypeID())")
+        guard status == .success, let value,
+              CFGetTypeID(value) == AXUIElementGetTypeID() else { return nil }
+        return value as! AXUIElement
+    }
     let system = AXUIElementCreateSystemWide()
     AXUIElementSetMessagingTimeout(system, 1.5)
     var receiverPID: pid_t = -1, windowPID: pid_t = -1, hitPID: pid_t = -1
     var receiverWindow = "none"
-    if let value = attr(system, kAXFocusedApplicationAttribute) {
-        let receiver = value as! AXUIElement
+    if let receiver = copyFocus(system, kAXFocusedApplicationAttribute, scope: "system") {
         AXUIElementSetMessagingTimeout(receiver, 1.5)
-        AXUIElementGetPid(receiver, &receiverPID)
-        if let value = attr(receiver, kAXFocusedWindowAttribute) {
-            let window = value as! AXUIElement
-            AXUIElementGetPid(window, &windowPID)
+        let receiverStatus = AXUIElementGetPid(receiver, &receiverPID)
+        print("AXPid focusedApplication status=\(receiverStatus.rawValue) pid=\(receiverPID)")
+        if let window = copyFocus(receiver, kAXFocusedWindowAttribute, scope: "focusedApplication") {
+            let windowStatus = AXUIElementGetPid(window, &windowPID)
+            print("AXPid focusedWindow status=\(windowStatus.rawValue) pid=\(windowPID)")
             receiverWindow = label(window)
+        }
+    }
+    if receiverPID == -1 || windowPID == -1 {
+        var attributes: CFArray?
+        let status = AXUIElementCopyAttributeNames(system, &attributes)
+        let names = (attributes as? [String])?.sorted().joined(separator: ",") ?? "unavailable"
+        print("AXAttributeNames system status=\(status.rawValue) names=[\(names)]")
+        // Diagnose another public system focus attribute; it never admits HID.
+        if let focused = copyFocus(system, kAXFocusedUIElementAttribute, scope: "system") {
+            var focusedPID: pid_t = -1
+            let focusedStatus = AXUIElementGetPid(focused, &focusedPID)
+            print("AXPid systemFocusedUI status=\(focusedStatus.rawValue) pid=\(focusedPID) element=\(label(focused))")
+            if let window = copyFocus(focused, kAXWindowAttribute, scope: "systemFocusedUI") {
+                var focusedWindowPID: pid_t = -1
+                let windowStatus = AXUIElementGetPid(window, &focusedWindowPID)
+                print("AXPid systemFocusedUIWindow status=\(windowStatus.rawValue) pid=\(focusedWindowPID) window=\(label(window))")
+            }
         }
     }
     if let point {
         var hit: AXUIElement?
-        if AXUIElementCopyElementAtPosition(system, Float(point.x), Float(point.y), &hit) == .success,
-           let hit {
-            AXUIElementGetPid(hit, &hitPID)
+        let status = AXUIElementCopyElementAtPosition(system, Float(point.x), Float(point.y), &hit)
+        print("AXHitTest status=\(status.rawValue)")
+        if status == .success, let hit {
+            let hitStatus = AXUIElementGetPid(hit, &hitPID)
+            print("AXPid mouseReceiver status=\(hitStatus.rawValue) pid=\(hitPID)")
             print("mouseReceiver: \(label(hit)) pid=\(hitPID)")
         }
     }
