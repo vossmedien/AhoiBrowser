@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+#include "ahoi/browser/ui/appearance/sidebar_density.h"
+
 #include "build/build_config.h"
 #if BUILDFLAG(IS_MAC)
 #include "base/mac/mac_util.h"
@@ -37,6 +39,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   // while profiles that never touched the setting now receive the subtle,
   // contrast-gated theme/favicon tint by default.
   registry->RegisterBooleanPref(kSidebarPageTintEnabledPref, true);
+  registry->RegisterIntegerPref(kSidebarDensityPref,
+                                static_cast<int>(SidebarDensity::kStandard));
   registry->RegisterBooleanPref(kFloatingNavigationAutoHideEnabledPref, true);
   registry->RegisterBooleanPref(kFloatingNavigationRevealNotchEnabledPref,
                                 true);

@@ -144,6 +144,7 @@ struct SidebarGroupRecentState {
   base::OneShotTimer hide_timer;
   base::CancelableTaskTracker history_task_tracker;
   uint64_t query_generation = 0;
+  bool reopen_after_close = false;
   bool bubble_hovered = false;
   raw_ptr<views::View> links_view = nullptr;
   std::unique_ptr<views::BubbleDialogDelegate> delegate;

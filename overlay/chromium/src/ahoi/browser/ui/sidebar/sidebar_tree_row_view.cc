@@ -13,6 +13,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
+#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/i18n/break_iterator.h"
@@ -48,7 +49,6 @@ namespace ahoi::sidebar {
 
 namespace {
 
-constexpr int kIconSize = 18;
 constexpr int kFolderEmblemSize = 12;
 constexpr float kDropStrokeWidth = 2.0f;
 constexpr float kSelectedDotRadius = 3.0f;
@@ -361,7 +361,8 @@ void SidebarTreeRowView::UpdateSplitGroupClipPath() {
   gfx::RectF local_clip(*split_group_bounds_);
   local_clip.Offset(-x(), -y());
   local_clip.Inset(
-      gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+      gfx::InsetsF::VH(appearance::GetSidebarDensityMetricsForView(this)
+                             .row_vertical_inset,
                        visual_style::kSidebarTabRowHorizontalInset));
   SkPathBuilder clip_builder;
   clip_builder.addRRect(SkRRect::MakeRectXY(gfx::RectFToSkRect(local_clip),
@@ -444,6 +445,8 @@ void SidebarTreeRowView::OnBoundsChanged(const gfx::Rect& previous_bounds) {
 }
 
 void SidebarTreeRowView::UpdateTitleBounds() {
+  appearance::ApplySidebarDensityFont(title_label_);
+  appearance::ApplySidebarDensityFont(editor_);
   const gfx::Rect title_bounds = GetMirroredRect(TitleBounds());
   gfx::Rect title_pane_bounds = GetLocalBounds();
   const bool has_split_separator =
@@ -464,7 +467,8 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
   const ui::ColorProvider* colors = GetColorProvider();
   gfx::RectF background(GetLocalBounds());
   background.Inset(gfx::InsetsF::VH(
-      visual_style::kSidebarTabRowVerticalInset,
+      appearance::GetSidebarDensityMetricsForView(this)
+                             .row_vertical_inset,
       split_segment_count_ > 1 ? visual_style::kSidebarSplitPaneHorizontalInset
                                : visual_style::kSidebarTabRowHorizontalInset));
 
@@ -553,6 +557,8 @@ void SidebarTreeRowView::OnPaintBackground(gfx::Canvas* canvas) {
 }
 
 void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
+  const auto density = appearance::GetSidebarDensityMetricsForView(this);
+  const int kIconSize = 18 + density.icon_size_delta;
   views::View::OnPaint(canvas);
   if (dragging_) {
     return;
@@ -602,8 +608,10 @@ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
     const gfx::Rect icon_bounds = GetMirroredRect(IconBounds());
     const gfx::ImageSkia favicon = page_icon_.Rasterize(GetColorProvider());
     if (!favicon.isNull()) {
-      const int image_width = std::min(kIconSize, favicon.width());
-      const int image_height = std::min(kIconSize, favicon.height());
+      const int image_width = std::max(1, std::min(18, favicon.width()) +
+                                          density.icon_size_delta);
+      const int image_height = std::max(1, std::min(18, favicon.height()) +
+                                           density.icon_size_delta);
       canvas->DrawImageInt(favicon, 0, 0, favicon.width(), favicon.height(),
                            icon_bounds.CenterPoint().x() - image_width / 2,
                            icon_bounds.CenterPoint().y() - image_height / 2,

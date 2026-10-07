@@ -13,8 +13,10 @@
 #include "components/favicon/content/content_favicon_driver.h"
 #include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/web_contents.h"
+#include "ui/accessibility/ax_enums.mojom.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/models/image_model.h"
+#include "ui/views/accessibility/view_accessibility.h"
 #include "ui/views/view.h"
 
 namespace ahoi::sidebar {
@@ -63,6 +65,32 @@ std::u16string StableTabTitle(tabs::TabInterface* tab) {
   return !tab || tab->GetTitle().empty()
              ? l10n_util::GetStringUTF16(IDS_NEW_TAB)
              : tab->GetTitle();
+}
+
+void SetOpenTabAccessibility(views::View* row,
+                            const std::u16string& title,
+                            bool sleeping,
+                            const std::u16string& status_text) {
+  row->GetViewAccessibility().SetRole(ax::mojom::Role::kTab);
+  std::u16string accessible_name = title;
+  std::u16string tooltip;
+  if (sleeping) {
+    const std::u16string sleeping_text =
+        l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);
+    accessible_name += u" — ";
+    accessible_name += sleeping_text;
+    tooltip = sleeping_text;
+  }
+  if (!status_text.empty()) {
+    accessible_name += u" — ";
+    accessible_name += status_text;
+    if (!tooltip.empty()) {
+      tooltip += u" — ";
+    }
+    tooltip += status_text;
+  }
+  row->SetTooltipText(tooltip);
+  row->GetViewAccessibility().SetName(accessible_name);
 }
 
 }  // namespace internal

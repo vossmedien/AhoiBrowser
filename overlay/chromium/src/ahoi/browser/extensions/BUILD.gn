@@ -196,3 +196,49 @@ if (!is_android) {
     ]
   }
 }
+
+# Native tab groups are local Open Tabs presentation, not a Sync model.
+source_set("tab_group_sidebar_adapter") {
+  sources = [
+    "tab_group_sidebar_adapter.cc",
+    "tab_group_sidebar_adapter.h",
+  ]
+  public_deps = [
+    "//base",
+    "//chrome/browser/ui/tabs:tab_strip_model_observer",
+    "//components/tab_groups",
+    "//components/tabs:public",
+    "//content/public/browser",
+  ]
+  deps = [
+    "//ahoi/browser/session:session_bridge_api",
+    "//chrome/browser/profiles:profile",
+    "//chrome/browser/sessions",
+    "//chrome/browser/ui/browser_window",
+    "//chrome/browser/ui/tabs:tab_group",
+    "//chrome/browser/ui/tabs:tab_strip",
+  ]
+}
+
+source_set("tab_group_sidebar_adapter_views") {
+  sources = [
+    "tab_group_sidebar_adapter_views.cc",
+    "tab_group_sidebar_adapter_views.h",
+  ]
+  public_deps = [
+    ":tab_group_sidebar_adapter",
+    "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
+    "//ui/views",
+  ]
+  deps = [
+    "//chrome/app:generated_resources",
+    "//chrome/browser/ui/tabs:tab_group",
+    "//components/vector_icons",
+    "//ui/accessibility",
+    "//ui/base",
+    "//ui/compositor",
+    "//ui/events",
+    "//ui/gfx",
+    "//ui/menus",
+  ]
+}

@@ -18,6 +18,10 @@ namespace ahoi::sidebar::internal {
 
 bool IsNewTabPage(tabs::TabInterface* tab);
 std::u16string StableTabTitle(tabs::TabInterface* tab);
+void SetOpenTabAccessibility(views::View* row,
+                            const std::u16string& title,
+                            bool sleeping,
+                            const std::u16string& status_text);
 
 // Typed bridge into the private runtime-row implementation. The public tree
 // traversal lives in the support translation unit and never assumes that a

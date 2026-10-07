@@ -81,8 +81,11 @@ SidebarTabTrailingLayout GetSidebarTabTrailingLayout(int width,
   constexpr int kSlotGap = 2;
   constexpr int kTitleTrailingGap = 7;
   const gfx::Rect row_bounds(0, 0, std::max(0, width), std::max(0, height));
+  const int action_height = std::min(std::max(0, height),
+                                     std::max(32, height - 4));
   gfx::Rect hover_action(std::max(0, width - kTrailingRightInset - kSlotWidth),
-                         2, kSlotWidth, std::max(0, height - 4));
+                         std::max(0, (height - action_height) / 2),
+                         kSlotWidth, action_height);
   hover_action.Intersect(row_bounds);
   gfx::Rect media_indicator =
       has_media_indicator

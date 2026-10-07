@@ -1,0 +1,884 @@
+diff --git a/overlay/chromium/src/ahoi/browser/ui/appearance/BUILD.gn b/overlay/chromium/src/ahoi/browser/ui/appearance/BUILD.gn
+--- a/overlay/chromium/src/ahoi/browser/ui/appearance/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/ui/appearance/BUILD.gn
+@@ -7,9 +7,14 @@
+   sources = [
+     "appearance_prefs.cc",
+     "appearance_prefs.h",
++    "sidebar_density.cc",
++    "sidebar_density.h",
+   ]
+ 
+-  public_deps = [ "//base" ]
++  public_deps = [
++    "//ahoi/browser/ui:visual_style",
++    "//base",
++  ]
+ 
+   deps = [
+     "//components/prefs",
+@@ -56,6 +61,8 @@
+     "glass_material.h",
+     "native_panel_material.cc",
+     "native_panel_material.h",
++    "sidebar_density_views.cc",
++    "sidebar_density_views.h",
+     "sidebar_page_tint.cc",
+     "sidebar_page_tint.h",
+     "sidebar_tint_transition.cc",
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn b/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
+@@ -114,6 +114,7 @@
+ 
+   public_deps = [
+     ":sidebar_tree",
++    "//ahoi/browser/ui/appearance",
+     "//ahoi/browser/ui:visual_style",
+     "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
+     "//base",
+@@ -367,6 +368,7 @@
+   testonly = true
+   sources = [
+     "../../memory/tab_sleeping_unittest.cc",
++    "../appearance/sidebar_density_unittest.cc",
+     "move_destination_menu_model_unittest.cc",
+     "other_profile_media_unittest.cc",
+     "sidebar_action_views_unittest.cc",
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_layout.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_layout.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_layout.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_layout.cc
+@@ -19,6 +19,7 @@
+ #include "ahoi/browser/session/workspace_service_factory.h"
+ #include "ahoi/browser/sync/profile_sync_service_factory.h"
+ #include "ahoi/browser/ui/appearance/appearance_prefs.h"
++#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
+ #include "ahoi/browser/ui/modal_overlay_controller.h"
+ #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
+ #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
+@@ -508,15 +509,31 @@
+           base::BindRepeating(&BrowserSidebarHostView::OnAppearanceChanged,
+                               weak_ptr_factory_.GetWeakPtr()));
+   PrefService* const prefs = browser_->GetProfile()->GetPrefs();
++  appearance_pref_change_registrar_.Init(prefs);
+   if (prefs->FindPreference(appearance::kSidebarPageTintEnabledPref)) {
+-    page_tint_pref_change_registrar_.Init(prefs);
+-    page_tint_pref_change_registrar_.Add(
++    appearance_pref_change_registrar_.Add(
+         appearance::kSidebarPageTintEnabledPref,
+         base::BindRepeating(&BrowserSidebarHostView::RefreshPageTint,
+                             weak_ptr_factory_.GetWeakPtr(),
+                             /*allow_animation=*/true));
+   }
++  const auto refresh_density = base::BindRepeating(
++      [](base::WeakPtr<BrowserSidebarHostView> host) {
++        if (host) {
++          appearance::SetSidebarDensityForView(
++              host.get(), appearance::GetSidebarDensity(
++                              *host->browser_->GetProfile()->GetPrefs()));
++          host->tree_view_->OnSidebarDensityChanged();
++        }
++      },
++      weak_ptr_factory_.GetWeakPtr());
++  if (prefs->FindPreference(appearance::kSidebarDensityPref)) {
++    appearance_pref_change_registrar_.Add(appearance::kSidebarDensityPref,
++                                         refresh_density);
++  }
++  refresh_density.Run();
+   OnAppearanceChanged(appearance_signal_source_->policy());
+ }
+ 
++
+ }  // namespace ahoi::sidebar
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_view.h
+@@ -718,7 +718,7 @@
+   bool reduced_transparency_ = false;
+   int surface_corner_radius_ = 0;
+   appearance::SidebarTintTransition sidebar_tint_transition_{this};
+-  PrefChangeRegistrar page_tint_pref_change_registrar_;
++  PrefChangeRegistrar appearance_pref_change_registrar_;
+   std::unique_ptr<SidebarTreeController> controller_;
+   raw_ptr<SidebarTreeView> tree_view_ = nullptr;
+   raw_ptr<views::Button> workspace_button_ = nullptr;
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_projection.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_projection.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_projection.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_projection.cc
+@@ -12,6 +12,7 @@
+ #include <utility>
+ 
+ #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
++#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_split_resize_area.h"
+@@ -64,6 +65,20 @@
+   }
+ }
+ 
++void SidebarTreeView::OnSidebarDensityChanged() {
++  // A geometry change preserves selection/editing, but invalidates drag probes
++  // and animations recorded against the previous row bounds.
++  last_drop_probe_.reset();
++  SetDropIndicator(std::nullopt);
++  row_bounds_animator_.Cancel();
++  row_bounds_animation_pending_ = false;
++  preferred_height_animation_.Reset(1.0);
++  preferred_height_animation_active_ = false;
++  pending_animation_from_height_.reset();
++  last_visual_height_ = GetVisualRowsHeight(BuildVisualRows());
++  ScheduleSynchronization(/*preferred_size_changed=*/true);
++}
++
+ void SidebarTreeView::OnTreeReset() {
+   CancelSelectionReveal();
+   pending_folder_reveal_.reset();
+@@ -305,14 +320,16 @@
+       emitted_nodes.insert(rows[index].node_id);
+     }
+   }
++  const auto density = appearance::GetSidebarDensityMetricsForView(this);
+   int next_y = 0;
+   for (VisualRow& visual_row : visual_rows) {
+     visual_row.y = next_y;
++    visual_row.height = density.row_height;
+     if (visual_row.model_indices.size() >= 2 &&
+         visual_row.split_visual_data.has_value()) {
+       visual_row.height = GetSplitRowPreferredHeight(
+           visual_row.model_indices.size(), *visual_row.split_visual_data,
+-          SidebarTreeRowView::kRowHeight);
++          density.row_height, density.split_pane_minimum_height);
+     }
+     next_y = base::saturated_cast<int>(static_cast<int64_t>(next_y) +
+                                        visual_row.height);
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view.h
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view.h
+@@ -136,6 +136,7 @@
+   // path so it cannot mutate Views' visible-bounds observer hierarchy while
+   // that hierarchy is being traversed.
+   void OnPresentationAnimationSettled();
++  void OnSidebarDensityChanged();
+ 
+   size_t materialized_row_count_for_testing() const {
+     return materialized_rows_.size();
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_drag.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_drag.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_drag.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_view_drag.cc
+@@ -11,6 +11,7 @@
+ #include <utility>
+ 
+ #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
++#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
+ #include "ahoi/browser/ui/visual_style.h"
+@@ -705,7 +706,10 @@
+   }
+   if (point.y() < visible.y() + kAutoScrollEdge && visible.y() > 0) {
+     ScrollRectToVisible(gfx::Rect(
+-        point.x(), std::max(visible.y() - SidebarTreeRowView::kRowHeight, 0), 1,
++        point.x(), std::max(visible.y() -
++                                  appearance::GetSidebarDensityMetricsForView(this)
++                                      .row_height,
++                              0), 1,
+         1));
+     return;
+   }
+@@ -713,7 +717,9 @@
+       visible.bottom() < height()) {
+     ScrollRectToVisible(
+         gfx::Rect(point.x(),
+-                  std::min(visible.bottom() + SidebarTreeRowView::kRowHeight,
++                  std::min(visible.bottom() +
++                               appearance::GetSidebarDensityMetricsForView(this)
++                                   .row_height,
+                            std::max(height() - 1, 0)),
+                   1, 1));
+   }
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_split_layout.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_split_layout.h
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_split_layout.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_split_layout.h
+@@ -6,6 +6,8 @@
+ 
+ #include <cstddef>
+ #include <vector>
++
++#include "ahoi/browser/ui/visual_style.h"
+ 
+ #include "components/split_tabs/split_tab_visual_data.h"
+ #include "ui/gfx/geometry/point_f.h"
+@@ -29,7 +31,8 @@
+ int GetSplitRowPreferredHeight(
+     size_t segment_count,
+     const split_tabs::SplitTabVisualData& visual_data,
+-    int standard_row_height);
++    int standard_row_height,
++    int minimum_pane_height = visual_style::kSidebarSplitPaneMinimumHeight);
+ 
+ struct SidebarSplitSeparator {
+   gfx::PointF start;
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_split_layout.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_split_layout.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_split_layout.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_split_layout.cc
+@@ -86,7 +86,8 @@
+ int GetSplitRowPreferredHeight(
+     size_t segment_count,
+     const split_tabs::SplitTabVisualData& visual_data,
+-    int standard_row_height) {
++    int standard_row_height,
++    int minimum_pane_height) {
+   if (standard_row_height <= 0) {
+     return 0;
+   }
+@@ -110,7 +111,8 @@
+ 
+   const int adaptive_height =
+       static_cast<int>(visual_rows) *
+-          visual_style::kSidebarSplitPaneMinimumHeight +
++          std::max(visual_style::kSidebarSplitPaneMinimumHeight,
++                   minimum_pane_height) +
+       static_cast<int>(visual_rows - 1) * visual_style::kSidebarSplitPaneGap;
+   return std::max(standard_row_height, adaptive_height);
+ }
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_row_view.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_row_view.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_row_view.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_row_view.cc
+@@ -12,6 +12,7 @@
+ #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
++#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
+ #include "ahoi/browser/ui/visual_style.h"
+ #include "base/check.h"
+ #include "base/i18n/break_iterator.h"
+@@ -47,7 +48,6 @@
+ 
+ namespace {
+ 
+-constexpr int kIconSize = 18;
+ constexpr int kFolderEmblemSize = 12;
+ constexpr float kDropStrokeWidth = 2.0f;
+ constexpr float kSelectedDotRadius = 3.0f;
+@@ -361,7 +361,8 @@
+   gfx::RectF local_clip(*split_group_bounds_);
+   local_clip.Offset(-x(), -y());
+   local_clip.Inset(
+-      gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
++      gfx::InsetsF::VH(appearance::GetSidebarDensityMetricsForView(this)
++                             .row_vertical_inset,
+                        visual_style::kSidebarTabRowHorizontalInset));
+   SkPathBuilder clip_builder;
+   clip_builder.addRRect(SkRRect::MakeRectXY(gfx::RectFToSkRect(local_clip),
+@@ -444,6 +445,8 @@
+ }
+ 
+ void SidebarTreeRowView::UpdateTitleBounds() {
++  appearance::ApplySidebarDensityFont(title_label_);
++  appearance::ApplySidebarDensityFont(editor_);
+   const gfx::Rect title_bounds = GetMirroredRect(TitleBounds());
+   gfx::Rect title_pane_bounds = GetLocalBounds();
+   const bool has_split_separator =
+@@ -464,7 +467,8 @@
+   const ui::ColorProvider* colors = GetColorProvider();
+   gfx::RectF background(GetLocalBounds());
+   background.Inset(gfx::InsetsF::VH(
+-      visual_style::kSidebarTabRowVerticalInset,
++      appearance::GetSidebarDensityMetricsForView(this)
++                             .row_vertical_inset,
+       split_segment_count_ > 1 ? visual_style::kSidebarSplitPaneHorizontalInset
+                                : visual_style::kSidebarTabRowHorizontalInset));
+ 
+@@ -558,6 +562,8 @@
+ }
+ 
+ void SidebarTreeRowView::OnPaint(gfx::Canvas* canvas) {
++  const auto density = appearance::GetSidebarDensityMetricsForView(this);
++  const int kIconSize = 18 + density.icon_size_delta;
+   views::View::OnPaint(canvas);
+   if (dragging_) {
+     return;
+@@ -603,8 +609,10 @@
+     const gfx::Rect icon_bounds = GetMirroredRect(IconBounds());
+     const gfx::ImageSkia favicon = page_icon_.Rasterize(GetColorProvider());
+     if (!favicon.isNull()) {
+-      const int image_width = std::min(kIconSize, favicon.width());
+-      const int image_height = std::min(kIconSize, favicon.height());
++      const int image_width = std::max(1, std::min(18, favicon.width()) +
++                                          density.icon_size_delta);
++      const int image_height = std::max(1, std::min(18, favicon.height()) +
++                                           density.icon_size_delta);
+       canvas->DrawImageInt(favicon, 0, 0, favicon.width(), favicon.height(),
+                            icon_bounds.CenterPoint().x() - image_width / 2,
+                            icon_bounds.CenterPoint().y() - image_height / 2,
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_row_view_interaction.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_row_view_interaction.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_row_view_interaction.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_tree_row_view_interaction.cc
+@@ -7,6 +7,7 @@
+ #include <utility>
+ 
+ #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
++#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
+@@ -96,7 +97,8 @@
+ 
+ gfx::Rect SidebarTreeRowView::TitleBounds() const {
+   constexpr int kTitleTrailingGap = 7;
+-  const int x = IconBounds().right() + kIconTitleSpacing;
++  const int x = IconBounds().right() + kIconTitleSpacing +
++                appearance::GetSidebarDensityMetricsForView(this).icon_size_delta;
+   int title_end = media_indicator_.IsEmpty() ? TrailingActionBounds().x()
+                                              : MediaIndicatorBounds().x();
+   title_end -= kTitleTrailingGap;
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_media_indicator.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_media_indicator.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_media_indicator.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_media_indicator.cc
+@@ -81,8 +81,11 @@
+   constexpr int kSlotGap = 2;
+   constexpr int kTitleTrailingGap = 7;
+   const gfx::Rect row_bounds(0, 0, std::max(0, width), std::max(0, height));
++  const int action_height = std::min(std::max(0, height),
++                                     std::max(32, height - 4));
+   gfx::Rect hover_action(std::max(0, width - kTrailingRightInset - kSlotWidth),
+-                         2, kSlotWidth, std::max(0, height - 4));
++                         std::max(0, (height - action_height) / 2),
++                         kSlotWidth, action_height);
+   hover_action.Intersect(row_bounds);
+   gfx::Rect media_indicator =
+       has_media_indicator
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.cc
+@@ -18,6 +18,7 @@
+ #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
++#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
+ #include "ahoi/browser/ui/visual_style.h"
+ #include "base/check.h"
+ #include "base/functional/bind.h"
+@@ -107,8 +108,6 @@
+         selection_callback_(std::move(selection_callback)) {
+     CHECK(tab);
+     CHECK(!saved_node_id_.has_value() || saved_node_id_->is_valid());
+-    const std::u16string& tab_title = drag_title_;
+-    SetPreferredSize(gfx::Size(0, SidebarTreeRowView::kRowHeight));
+     SetFocusBehavior(FocusBehavior::ALWAYS);
+     SetNotifyEnterExitOnChild(true);
+     set_drag_controller(this);
+@@ -136,7 +135,7 @@
+     bookmark_indicator_->SetVisible(bookmarked);
+ 
+     title_ = AddChildView(std::make_unique<SidebarTabTitleLabel>());
+-    title_->SetText(tab_title);
++    title_->SetText(drag_title_);
+     title_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
+     title_->SetEnabledColor(visual_style::kText);
+ 
+@@ -154,26 +153,7 @@
+     close_->SetCanProcessEventsWithinSubtree(false);
+     close_->SetVisible(false);
+ 
+-    GetViewAccessibility().SetRole(ax::mojom::Role::kTab);
+-    std::u16string accessible_name = tab_title;
+-    std::u16string tooltip;
+-    if (sleeping_) {
+-      const std::u16string sleeping_text =
+-          l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);
+-      accessible_name += u" — ";
+-      accessible_name += sleeping_text;
+-      tooltip = sleeping_text;
+-    }
+-    if (!status_text.empty()) {
+-      accessible_name += u" — ";
+-      accessible_name += status_text;
+-      if (!tooltip.empty()) {
+-        tooltip += u" — ";
+-      }
+-      tooltip += status_text;
+-    }
+-    SetTooltipText(tooltip);
+-    GetViewAccessibility().SetName(accessible_name);
++    internal::SetOpenTabAccessibility(this, drag_title_, sleeping_, status_text);
+     GetViewAccessibility().SetIsSelected(active_);
+     UpdateBackground();
+   }
+@@ -221,6 +201,11 @@
+     InvalidateLayout();
+   }
+ 
++  gfx::Size CalculatePreferredSize(
++      const views::SizeBounds& available_size) const override {
++    return {0, appearance::GetSidebarDensityMetricsForView(this).row_height};
++  }
++
+   void Layout(PassKey) override { UpdateTitleBounds(); }
+ 
+   void OnPaintBackground(gfx::Canvas* canvas) override {
+@@ -244,7 +229,18 @@
+   }
+ 
+   void UpdateTitleBounds() {
+-    const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
++    const auto density = appearance::GetSidebarDensityMetricsForView(this);
++    const int icon_size = visual_style::kSidebarIconSize + density.icon_size_delta;
++    appearance::ApplySidebarDensityFont(title_);
++    const gfx::Rect icon_bounds(8, std::max(0, (height() - icon_size) / 2),
++                                icon_size, icon_size);
++    // Current presets couple inset and icon size; track both if this changes.
++    if (icon_size_ != icon_size) {
++      icon_size_ = icon_size;
++      UpdateBackground();
++      favicon_view_->SetImageSize(gfx::Size(icon_size, icon_size));
++      media_indicator_->SetImageSize(gfx::Size(icon_size, icon_size));
++    }
+     favicon_view_->SetBoundsRect(icon_bounds);
+     fallback_icon_->SetBoundsRect(icon_bounds);
+     bookmark_indicator_->SetBoundsRect(
+@@ -262,7 +258,9 @@
+       title_pane_bounds =
+           GetMirroredRect(gfx::Rect(0, 0, std::max(0, width() / 2), height()));
+     }
+-    title_->SetDividerSafeBounds(trailing.title, title_pane_bounds,
++    gfx::Rect title_bounds = trailing.title;
++    title_bounds.Inset(gfx::Insets::TLBR(0, density.icon_size_delta, 0, 0));
++    title_->SetDividerSafeBounds(title_bounds, title_pane_bounds,
+                                  is_split_segment_ || split_drop_preview);
+   }
+ 
+@@ -666,7 +664,8 @@
+         color.has_value() && !is_split_segment_
+             ? views::CreateRoundedRectBackground(
+                   *color, gfx::RoundedCornersF(visual_style::kRowCornerRadius),
+-                  gfx::Insets::VH(visual_style::kSidebarTabRowVerticalInset,
++                  gfx::Insets::VH(appearance::GetSidebarDensityMetricsForView(this)
++                             .row_vertical_inset,
+                                   visual_style::kSidebarTabRowHorizontalInset))
+             : nullptr);
+     SchedulePaint();
+@@ -719,6 +718,7 @@
+   bool drag_state_published_ = false;
+   bool search_selected_ = false;
+   std::optional<OpenTabDropPosition> drop_position_;
++  int icon_size_ = visual_style::kSidebarIconSize;
+   base::WeakPtrFactory<OpenTabRowView> weak_ptr_factory_{this};
+ };
+ 
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.h b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.h
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.h
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.h
+@@ -18,6 +18,10 @@
+ 
+ bool IsNewTabPage(tabs::TabInterface* tab);
+ std::u16string StableTabTitle(tabs::TabInterface* tab);
++void SetOpenTabAccessibility(views::View* row,
++                            const std::u16string& title,
++                            bool sleeping,
++                            const std::u16string& status_text);
+ 
+ // Typed bridge into the private runtime-row implementation. The public tree
+ // traversal lives in the support translation unit and never assumes that a
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_tab_support.cc
+@@ -13,8 +13,10 @@
+ #include "components/favicon/content/content_favicon_driver.h"
+ #include "components/tabs/public/tab_interface.h"
+ #include "content/public/browser/web_contents.h"
++#include "ui/accessibility/ax_enums.mojom.h"
+ #include "ui/base/l10n/l10n_util.h"
+ #include "ui/base/models/image_model.h"
++#include "ui/views/accessibility/view_accessibility.h"
+ #include "ui/views/view.h"
+ 
+ namespace ahoi::sidebar {
+@@ -65,6 +67,32 @@
+              : tab->GetTitle();
+ }
+ 
++void SetOpenTabAccessibility(views::View* row,
++                            const std::u16string& title,
++                            bool sleeping,
++                            const std::u16string& status_text) {
++  row->GetViewAccessibility().SetRole(ax::mojom::Role::kTab);
++  std::u16string accessible_name = title;
++  std::u16string tooltip;
++  if (sleeping) {
++    const std::u16string sleeping_text =
++        l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);
++    accessible_name += u" — ";
++    accessible_name += sleeping_text;
++    tooltip = sleeping_text;
++  }
++  if (!status_text.empty()) {
++    accessible_name += u" — ";
++    accessible_name += status_text;
++    if (!tooltip.empty()) {
++      tooltip += u" — ";
++    }
++    tooltip += status_text;
++  }
++  row->SetTooltipText(tooltip);
++  row->GetViewAccessibility().SetName(accessible_name);
++}
++
+ }  // namespace internal
+ 
+ void ClearOpenTabRowDropTargetPresentation(views::View* root,
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_remote_tab_views.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_remote_tab_views.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_remote_tab_views.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_remote_tab_views.cc
+@@ -12,6 +12,7 @@
+ #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_menu_presence.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
++#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
+ #include "ahoi/browser/ui/visual_style.h"
+ #include "base/functional/bind.h"
+ #include "base/i18n/rtl.h"
+@@ -85,7 +86,6 @@
+             model.tab)),
+         model_(std::move(model)),
+         actions_(std::move(actions)) {
+-    SetPreferredSize(gfx::Size(0, SidebarTreeRowView::kRowHeight));
+     SetFocusBehavior(FocusBehavior::ALWAYS);
+     SetNotifyEnterExitOnChild(true);
+ 
+@@ -159,12 +159,34 @@
+     UpdateBackground();
+   }
+ 
++  gfx::Size CalculatePreferredSize(
++      const views::SizeBounds& available_size) const override {
++    return gfx::Size(0,
++        appearance::GetSidebarDensityMetricsForView(this).row_height);
++  }
++
+   void Layout(PassKey) override {
+-    const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
++    const auto density = appearance::GetSidebarDensityMetricsForView(this);
++    const int icon_size =
++        visual_style::kSidebarIconSize + density.icon_size_delta;
++    appearance::ApplySidebarDensityFont(title_);
++    const gfx::Rect icon_bounds(8, std::max(0, (height() - icon_size) / 2),
++                                icon_size, icon_size);
++    if (icon_size_ != icon_size) {
++      icon_size_ = icon_size;
++      favicon_->SetImageSize(gfx::Size(icon_size, icon_size));
++      const int device_size = 15 + density.icon_size_delta;
++      device_->SetImageSize(gfx::Size(device_size, device_size));
++    }
+     favicon_->SetBoundsRect(icon_bounds);
+     fallback_->SetBoundsRect(icon_bounds);
+-    device_->SetBounds(width() - 25, std::max(0, (height() - 15) / 2), 15, 15);
+-    title_->SetBounds(30, 0, std::max(0, width() - 62), height());
++    const int device_size = 15 + density.icon_size_delta;
++    device_->SetBounds(width() - 25,
++                       std::max(0, (height() - device_size) / 2),
++                       device_size, device_size);
++    title_->SetBounds(30 + density.icon_size_delta, 0,
++                      std::max(0, width() - 62 - density.icon_size_delta),
++                      height());
+   }
+ 
+   void StateChanged(ButtonState) override { UpdateBackground(); }
+@@ -266,6 +288,7 @@
+   raw_ptr<views::Label> title_ = nullptr;
+   raw_ptr<views::ImageView> device_ = nullptr;
+   bool search_selected_ = false;
++  int icon_size_ = visual_style::kSidebarIconSize;
+   std::unique_ptr<ui::SimpleMenuModel> menu_model_;
+   std::unique_ptr<views::MenuRunner> menu_runner_;
+ };
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_split_views.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_split_views.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_split_views.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/sidebar_runtime_split_views.cc
+@@ -8,6 +8,7 @@
+ #include <vector>
+ 
+ #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
++#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_split_resize_area.h"
+ #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
+@@ -66,7 +67,8 @@
+ 
+     gfx::RectF group_bounds(GetLocalBounds());
+     group_bounds.Inset(
+-        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
++        gfx::InsetsF::VH(appearance::GetSidebarDensityMetricsForView(this)
++                             .row_vertical_inset,
+                          visual_style::kSidebarTabRowHorizontalInset));
+     if (group_bounds.IsEmpty()) {
+       return;
+@@ -123,9 +125,6 @@
+       : visual_data_(std::move(visual_data)),
+         resize_callback_(std::move(resize_callback)) {
+     CHECK_GE(tabs.size(), 2u);
+-    SetPreferredSize(gfx::Size(
+-        0, GetSplitRowPreferredHeight(tabs.size(), visual_data_,
+-                                      SidebarTreeRowView::kRowHeight)));
+     GetViewAccessibility().SetRole(ax::mojom::Role::kGroup);
+     for (auto& tab : tabs) {
+       views::View* const pane = AddChildView(std::move(tab));
+@@ -139,6 +138,14 @@
+   OpenTabSplitRowView(const OpenTabSplitRowView&) = delete;
+   OpenTabSplitRowView& operator=(const OpenTabSplitRowView&) = delete;
+   ~OpenTabSplitRowView() override = default;
++
++  gfx::Size CalculatePreferredSize(
++      const views::SizeBounds& available_size) const override {
++    const auto density = appearance::GetSidebarDensityMetricsForView(this);
++    return gfx::Size(0, GetSplitRowPreferredHeight(
++        pane_views_.size(), visual_data_, density.row_height,
++        density.split_pane_minimum_height));
++  }
+ 
+   void Layout(PassKey) override {
+     const int count = static_cast<int>(pane_views_.size());
+@@ -161,7 +168,8 @@
+ 
+     gfx::RectF paint_bounds(bounds);
+     paint_bounds.Inset(
+-        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
++        gfx::InsetsF::VH(appearance::GetSidebarDensityMetricsForView(this)
++                             .row_vertical_inset,
+                          visual_style::kSidebarTabRowHorizontalInset));
+     SkPathBuilder clip_builder;
+     clip_builder.addRRect(SkRRect::MakeRectXY(gfx::RectFToSkRect(paint_bounds),
+@@ -204,7 +212,8 @@
+     }
+     gfx::RectF background(GetLocalBounds());
+     background.Inset(
+-        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
++        gfx::InsetsF::VH(appearance::GetSidebarDensityMetricsForView(this)
++                             .row_vertical_inset,
+                          visual_style::kSidebarTabRowHorizontalInset));
+     if (background.IsEmpty()) {
+       return;
+diff --git a/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_handler.h b/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_handler.h
+--- a/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_handler.h
++++ b/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_handler.h
+@@ -56,6 +56,7 @@
+ 
+  private:
+   bool IsAuthorizedSettingsPage();
++  void HandleResetSidebarDensity(const base::ListValue& args);
+   base::DictValue BuildBrowserSettingsSyncStatus(std::string_view action) const;
+   void ResolveBrowserSettingsSyncStatus(base::Value callback_id,
+                                         std::string_view action);
+diff --git a/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_handler.cc b/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_handler.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_handler.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/settings/ahoi_settings_handler.cc
+@@ -10,11 +10,13 @@
+ 
+ #include "ahoi/browser/sync/cloudkit_sync_configuration_mac.h"
+ #include "ahoi/browser/sync/profile_sync_service_factory.h"
++#include "ahoi/browser/ui/appearance/sidebar_density.h"
+ #include "base/functional/bind.h"
+ #include "base/i18n/rtl.h"
+ #include "base/strings/string_util.h"
+ #include "base/values.h"
+ #include "chrome/browser/profiles/profile.h"
++#include "components/prefs/pref_service.h"
+ #include "content/public/browser/web_contents.h"
+ #include "content/public/browser/web_ui.h"
+ 
+@@ -128,6 +130,10 @@
+ }
+ 
+ void AhoiSettingsHandler::RegisterMessages() {
++  web_ui()->RegisterMessageCallback(
++      "ahoiResetSidebarDensity",
++      base::BindRepeating(&AhoiSettingsHandler::HandleResetSidebarDensity,
++                          base::Unretained(this)));
+   if (sync_service_ && !observing_sync_service_) {
+     observing_sync_service_ = true;
+     sync_service_->AddObserver(this);
+@@ -225,6 +231,17 @@
+   PushStatus({});
+   PushBrowserSettingsSyncStatus();
+   PushSyncControlsStatus();
++}
++
++void AhoiSettingsHandler::HandleResetSidebarDensity(
++    const base::ListValue& args) {
++  if (args.size() != 1 || !HasCallbackId(args) ||
++      !IsAuthorizedSettingsPage()) {
++    return;
++  }
++  AllowJavascript();
++  ResolveJavascriptCallback(args.front(), base::Value(
++      appearance::ResetSidebarDensity(*profile_->GetPrefs())));
+ }
+ 
+ bool AhoiSettingsHandler::IsAuthorizedSettingsPage() {
+diff --git a/overlay/chromium/src/ahoi/browser/ui/settings/BUILD.gn b/overlay/chromium/src/ahoi/browser/ui/settings/BUILD.gn
+--- a/overlay/chromium/src/ahoi/browser/ui/settings/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/ui/settings/BUILD.gn
+@@ -61,6 +61,7 @@
+       "//ui/shell_dialogs",
+     ]
+     deps = [
++      "//ahoi/browser/ui/appearance:appearance_preferences",
+       "//ahoi/browser/navigation",
+       "//ahoi/browser/navigation:link_routing",
+       "//ahoi/browser/session:isolated_profiles",
+diff --git a/patches/chromium/0001-ahoi-m153-integration-seams.patch b/patches/chromium/0001-ahoi-m153-integration-seams.patch
+--- a/patches/chromium/0001-ahoi-m153-integration-seams.patch
++++ b/patches/chromium/0001-ahoi-m153-integration-seams.patch
+@@ -141,12 +141,36 @@
+        <message name="IDS_TAB_AX_LABEL_UNNAMED_GROUP_FORMAT" desc="Accessibility label text for a tab, when it is in a group that has not been named by the user. Example: 'Google Search - Part of unnamed group'">
+          <ph name="WINDOW_TITLE">$1<ex>Google Search</ex></ph> - Part of unnamed group
+        </message>
+-@@ -20450,6 +20453,1503 @@ Please help our engineers fix this problem. Tell us what happened right before y
++@@ -20450,6 +20453,1527 @@ Please help our engineers fix this problem. Tell us what happened right before y
+      <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
+        Relaunch
+      </message>
+ +
+ +    <!-- AhoiBrowser appearance settings -->
+++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+++      Tab density
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_SUBLABEL" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+++      Changes text, icons, and spacing together. Applies immediately to this profile.
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_COMPACT" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+++      Compact
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_STANDARD" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+++      Standard
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_COMFORTABLE" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+++      Comfortable
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_RESET" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+++      Reset tab density
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_RESET_DONE" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+++      Tab density reset to Standard.
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_RESET_FAILED" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+++      Tab density could not be reset.
+++    </message>
+ +    <message name="IDS_SETTINGS_AHOI_GLOBAL_PRIMARY_COLOR" desc="Title for choosing AhoiBrowser's global primary browser-chrome color in Appearance settings." meaning="AhoiBrowser appearance settings">
+ +      Global primary color
+ +    </message>
+@@ -1649,12 +1673,20 @@
+ index c6bd9b99b51506ec608d9414d0d6ab88101e273e..ab99943a93f35eb4330c857adbc88f6b09c10999 100644
+ --- a/chrome/app/resources/generated_resources_de.xtb
+ +++ b/chrome/app/resources/generated_resources_de.xtb
+-@@ -10801,4 +10801,499 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
++@@ -10801,4 +10801,507 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+  <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
+  <translation id="998747458861718449">Untersuchen</translation>
+  <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
+ -</translationbundle>
+ \ No newline at end of file
+++<translation id="1979221534062203775">Tab-Dichte</translation>
+++<translation id="1987281062270503981">Ändert Text, Symbole und Abstände gemeinsam. Gilt sofort für dieses Profil.</translation>
+++<translation id="6765233477538944257">Kompakt</translation>
+++<translation id="5819122934035125507">Standard</translation>
+++<translation id="4761191831197706500">Großzügig</translation>
+++<translation id="182751675086473408">Tab-Dichte zurücksetzen</translation>
+++<translation id="9054339031084924497">Tab-Dichte auf Standard zurückgesetzt.</translation>
+++<translation id="3784425749182553841">Tab-Dichte konnte nicht zurückgesetzt werden.</translation>
+ +<translation id="1970927213338927225">, Workspace wechseln</translation>
+ +<translation id="2655376342480896410">Neuer Workspace…</translation>
+ +<translation id="9156966038830734956">Workspace bearbeiten…</translation>
+@@ -2803,7 +2835,7 @@
+ index 3b2361d90cb07d2cd657c53f9b2723ceb9faeead..ab8ba1f2305d40829bc654689e982fb4b51fda50 100644
+ --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
+ +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+-@@ -6,6 +6,10 @@
++@@ -6,6 +6,11 @@
+  
+  #include <memory>
+  
+@@ -2811,13 +2843,16 @@
+ +#include "ahoi/browser/session/session_prefs.h"
+ +#include "ahoi/browser/sync/profile_sync_prefs.h"
+ +#include "ahoi/browser/ui/appearance/appearance_prefs.h"
+++#include "ahoi/browser/ui/appearance/sidebar_density.h"
+  #include "ash/constants/ash_pref_names.h"
+  #include "ash/constants/ash_switches.h"
+  #include "base/feature_list.h"
+-@@ -320,6 +324,30 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
++@@ -320,6 +325,32 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+        settings_api::PrefType::kBoolean;
+  
+    // Appearance settings.
+++  (*s_allowlist)[ahoi::appearance::kSidebarDensityPref] =
+++      settings_api::PrefType::kNumber;
+ +  (*s_allowlist)[ahoi::appearance::kGlassEnabledPref] =
+ +      settings_api::PrefType::kBoolean;
+ +  (*s_allowlist)[ahoi::appearance::kSidebarPageTintEnabledPref] =
+@@ -2845,7 +2880,7 @@
+    (*s_allowlist)[::prefs::kCtrlTabMru] = settings_api::PrefType::kBoolean;
+    (*s_allowlist)[::prefs::kCurrentThemeID] = settings_api::PrefType::kString;
+    (*s_allowlist)[::prefs::kPinnedActions] = settings_api::PrefType::kList;
+-@@ -362,6 +390,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
++@@ -362,6 +393,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+        settings_api::PrefType::kBoolean;
+  
+    // On startup.
+@@ -16741,7 +16776,7 @@
+ index 774e32188161b70bd96fddd794c652cd7c1067e9..0b22654f2a75b7c21838666d08ee50215940e897 100644
+ --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+ +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+-@@ -592,6 +592,144 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
++@@ -592,6 +592,157 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+        {"lightMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_LIGHT_LABEL},
+        {"darkMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_DARK_LABEL},
+        {"systemMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_SYSTEM_LABEL},
+@@ -16752,6 +16787,19 @@
+ +      {"ahoiGlobalPrimaryColor", IDS_SETTINGS_AHOI_GLOBAL_PRIMARY_COLOR},
+ +      {"ahoiGlobalPrimaryColorSublabel",
+ +       IDS_SETTINGS_AHOI_GLOBAL_PRIMARY_COLOR_SUBLABEL},
+++      {"ahoiSidebarDensity", IDS_SETTINGS_AHOI_SIDEBAR_DENSITY},
+++      {"ahoiSidebarDensitySublabel",
+++       IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_SUBLABEL},
+++      {"ahoiSidebarDensityCompact", IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_COMPACT},
+++      {"ahoiSidebarDensityStandard",
+++       IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_STANDARD},
+++      {"ahoiSidebarDensityComfortable",
+++       IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_COMFORTABLE},
+++      {"ahoiSidebarDensityReset", IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_RESET},
+++      {"ahoiSidebarDensityResetDone",
+++       IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_RESET_DONE},
+++      {"ahoiSidebarDensityResetFailed",
+++       IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_RESET_FAILED},
+ +      {"ahoiGlassEnabled", IDS_SETTINGS_AHOI_GLASS_ENABLED},
+ +      {"ahoiGlassEnabledSublabel", IDS_SETTINGS_AHOI_GLASS_ENABLED_SUBLABEL},
+ +      {"ahoiSidebarPageTintEnabled",
+@@ -16886,7 +16934,7 @@
+        {"showHomeButton", IDS_SETTINGS_SHOW_HOME_BUTTON},
+        {"showBookmarksBar", IDS_SETTINGS_SHOW_BOOKMARKS_BAR},
+        {"bookmarksBar", IDS_SETTINGS_BOOKMARKS_BAR},
+-@@ -665,6 +803,9 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
++@@ -665,6 +816,9 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+        {"themeManagedDialogBody", IDS_NTP_THEME_MANAGED_DIALOG_BODY},
+    };
+    html_source->AddLocalizedStrings(kLocalizedStrings);
+@@ -16896,7 +16944,7 @@
+  
+    html_source->AddBoolean("ntpSimplificationBookmarksBarEnabled",
+                            base::FeatureList::IsEnabled(
+-@@ -1555,6 +1696,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
++@@ -1555,6 +1709,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
+  void AddOnStartupStrings(content::WebUIDataSource* html_source) {
+    static constexpr webui::LocalizedString kLocalizedStrings[] = {
+        {"onStartup", IDS_SETTINGS_ON_STARTUP},
+@@ -16908,7 +16956,7 @@
+        {"onStartupOpenNewTab", IDS_SETTINGS_ON_STARTUP_OPEN_NEW_TAB},
+        {"onStartupContinue", IDS_SETTINGS_ON_STARTUP_CONTINUE},
+        {"onStartupOpenSpecific", IDS_SETTINGS_ON_STARTUP_OPEN_SPECIFIC},
+-@@ -2124,8 +2270,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
++@@ -2124,8 +2283,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
+        autofill_client &&
+            autofill::MayPerformAutofillAiAction(
+                *autofill_client, autofill::AutofillAiAction::kOptIn));

@@ -13,6 +13,7 @@
 
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/group_page_close.h"
+#include "ahoi/browser/extensions/tab_group_sidebar_adapter.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
 #include "ahoi/browser/session/workspace_service_factory.h"
@@ -233,6 +234,7 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
     return false;
   }
   const int source_handle = source->GetHandle().raw_value();
+  const bool source_was_grouped = source->GetGroup().has_value();
   if (!CanDropOnRuntimeTab(source_node_id, source_runtime_handle, target,
                            position)) {
     return false;
@@ -365,7 +367,8 @@ bool BrowserSidebarHostView::DropOnRuntimeTab(
   // Commit the durable-to-temporary conversion only after the Chromium model
   // mutation is known to be valid. A store failure can then leave the saved
   // page intact while the guard restores the model exactly.
-  if (source_node_id.has_value() && !extracting_from_same_split) {
+  if (source_node_id.has_value() && !extracting_from_same_split &&
+      !source_was_grouped && !FindRuntimeTab(source_handle)->GetGroup()) {
     const bool converted = MakeSavedPageTemporary(*source_node_id);
     if (!weak_host || !converted) {
       return false;
@@ -381,6 +384,14 @@ bool BrowserSidebarHostView::CanDropOpenTabToTemporary(
   if (!discovery_state_.query.empty() || !payload.is_valid() ||
       !controller_ || !session_bridge_ || !tab_strip_model_) {
     return false;
+  }
+  auto* const group_adapter =
+      session_bridge_->GetTabGroupSidebarAdapter(browser_);
+  auto* const grouped_source = payload.saved_node_id
+      ? session_bridge_->FindTabByTreeNodeId(*payload.saved_node_id)
+      : FindRuntimeTab(*payload.runtime_tab_handle);
+  if (grouped_source && grouped_source->GetGroup()) {
+    return group_adapter && group_adapter->CanRemoveTab(grouped_source);
   }
   if (payload.saved_node_id.has_value()) {
     tab_tree::TreeNode node;
@@ -411,6 +422,16 @@ bool BrowserSidebarHostView::DropOpenTabToTemporary(
       weak_ptr_factory_.GetWeakPtr()));
   if (!CanDropOpenTabToTemporary(payload)) {
     return false;
+  }
+  auto* const group_adapter =
+      session_bridge_->GetTabGroupSidebarAdapter(browser_);
+  auto* const grouped_source = payload.saved_node_id
+      ? session_bridge_->FindTabByTreeNodeId(*payload.saved_node_id)
+      : FindRuntimeTab(*payload.runtime_tab_handle);
+  if (grouped_source && grouped_source->GetGroup()) {
+    // Open-area drop removes only native membership, retaining saved status,
+    // tree parents and complete split units.
+    return group_adapter && group_adapter->RemoveTab(grouped_source);
   }
   if (payload.saved_node_id.has_value()) {
     // MakeSavedPageTemporary already captures and rolls back Chromium split

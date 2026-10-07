@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/extensions/tab_group_sidebar_adapter_views.h"
 #include "ahoi/browser/memory/tab_sleeping.h"
 #include "ahoi/browser/navigation/workspace_service.h"
 #include "ahoi/browser/session/session_bridge.h"
@@ -321,6 +322,14 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
     // source and make the group/split targets flash away mid-gesture.
     return;
   }
+  if (auto* groups = session_bridge_->GetTabGroupSidebarAdapter(browser_)) {
+    const auto workspace = controller_->view_model().workspace_id();
+    if (workspace && groups->IsTitleEditing(*workspace)) {
+      // Enter/Escape or losing the group/Workspace releases this local editor.
+      // A favicon/title refresh must not discard a user's unfinished rename.
+      return;
+    }
+  }
   // A synchronous first projection invalidates constructor-time refresh tasks;
   // their callbacks carry the older generation and become harmless no-ops.
   ++runtime_refresh_generation_;
@@ -349,9 +358,64 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   const std::optional<base::Uuid> active_workspace =
       controller_->view_model().workspace_id();
 
-  const auto is_visible_temporary_tab =
-      [this, &active_workspace](tabs::TabInterface* tab) {
-        if (!tab || session_bridge_->FindTreeNodeIdForTab(tab).has_value()) {
+  auto* const group_adapter =
+      session_bridge_->GetTabGroupSidebarAdapter(browser_);
+  const auto native_groups = group_adapter && active_workspace
+      ? group_adapter->ReadGroups(*active_workspace)
+      : std::vector<extensions::SidebarTabGroup>();
+  std::set<tabs::TabInterface*> native_group_members;
+  for (const auto& group : native_groups) {
+    for (const auto& member : group.members) {
+      if (member) {
+        native_group_members.insert(member.get());
+      }
+    }
+  }
+  std::map<tab_groups::TabGroupId, views::View*> group_contents;
+  const auto parent_for_tab = [&](tabs::TabInterface* tab) -> views::View* {
+    for (const auto& group : native_groups) {
+      if (tab->GetGroup() != group.id || !native_group_members.contains(tab)) {
+        continue;
+      }
+      if (const auto existing = group_contents.find(group.id);
+          existing != group_contents.end()) {
+        return existing->second;
+      }
+      views::View* contents = nullptr;
+      open_tabs_container_->AddChildView(extensions::CreateTabGroupSidebarFolder(
+          group_adapter->GetWeakPtr(), group, !discovery_state_.query.empty(),
+          base::BindRepeating(
+              [](base::WeakPtr<BrowserSidebarHostView> host,
+                 const drag::SidebarTabDragPayload& payload) {
+                tabs::TabInterface* resolved = nullptr;
+                if (host && payload.is_valid()) {
+                  resolved = payload.saved_node_id
+                      ? host->session_bridge_->FindTabByTreeNodeId(
+                            *payload.saved_node_id)
+                      : host->FindRuntimeTab(*payload.runtime_tab_handle);
+                }
+                return resolved ? resolved->GetWeakPtr()
+                                : base::WeakPtr<tabs::TabInterface>();
+              }, weak_ptr_factory_.GetWeakPtr()),
+          base::BindRepeating(
+              &BrowserSidebarHostView::ClearDropTargetPresentation,
+              weak_ptr_factory_.GetWeakPtr()),
+          base::BindRepeating(
+              [](base::WeakPtr<BrowserSidebarHostView> host) {
+                if (host) {
+                  host->OnSidebarDragStateChanged(std::nullopt);
+                  host->OnTemporaryTabDragStateChanged(std::nullopt);
+                }
+              }, weak_ptr_factory_.GetWeakPtr()), &contents));
+      group_contents.emplace(group.id, contents);
+      return contents;
+    }
+    return open_tabs_container_;
+  };
+  const auto is_visible_open_tab =
+      [this, &active_workspace, &native_group_members](tabs::TabInterface* tab) {
+        if (!tab || (session_bridge_->FindTreeNodeIdForTab(tab).has_value() &&
+                     !native_group_members.contains(tab))) {
           return false;
         }
         const std::optional<base::Uuid> tab_workspace =
@@ -467,7 +531,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
             weak_ptr_factory_.GetWeakPtr()));
   };
 
-  // Rebuild temporary and mixed split rows directly from Chromium's
+  // Rebuild open rows, including saved members of native groups, from Chromium's
   // authoritative SplitTabData. Walking the tab strip keeps split and
   // ordinary rows in Chromium pane order without adjacency inference.
   std::set<tabs::TabInterface*> presented_temporary_tabs;
@@ -480,7 +544,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   // Temporary pages now have real tree identities too. Their live row remains
   // in the existing temporary/split section, never duplicated above it.
   for (tabs::TabInterface* tab : *tab_strip_model_) {
-    if (is_visible_temporary_tab(tab)) {
+    if (is_visible_open_tab(tab)) {
       if (const auto id = session_bridge_->FindSharedTreeNodeIdForTab(tab)) {
         mixed_split_saved_nodes.insert(*id);
       }
@@ -488,7 +552,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   }
   for (int index = 0; index < tab_strip_model_->count(); ++index) {
     tabs::TabInterface* tab = tab_strip_model_->GetTabAtIndex(index);
-    if (!is_visible_temporary_tab(tab)) {
+    if (!is_visible_open_tab(tab)) {
       continue;
     }
     const int tab_handle = tab->GetHandle().raw_value();
@@ -511,7 +575,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
       }
       const bool all_members_are_visible_temporary =
           split_tabs.size() >= 2 &&
-          std::ranges::all_of(split_tabs, is_visible_temporary_tab);
+          std::ranges::all_of(split_tabs, is_visible_open_tab);
       const bool is_visible_mixed_split =
           split_tabs.size() >= 2 && saved_member_count > 0 &&
           saved_member_count < split_tabs.size() &&
@@ -523,7 +587,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
           // members as visited even when the complete unit is filtered out so
           // a later pane cannot leak back as a detached ordinary row.
           for (tabs::TabInterface* split_tab : split_tabs) {
-            if (is_visible_temporary_tab(split_tab)) {
+            if (is_visible_open_tab(split_tab)) {
               presented_temporary_tabs.insert(split_tab);
               presented_temporary_handles.insert(
                   split_tab->GetHandle().raw_value());
@@ -539,15 +603,13 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
                   session_bridge_->FindTreeNodeIdForTab(split_tab);
               saved_node_id.has_value()) {
             mixed_split_saved_nodes.insert(*saved_node_id);
-          } else {
-            presented_temporary_tabs.insert(split_tab);
-            presented_temporary_handles.insert(
-                split_tab->GetHandle().raw_value());
           }
+          presented_temporary_tabs.insert(split_tab);
+          presented_temporary_handles.insert(split_tab->GetHandle().raw_value());
         }
         const std::optional<split_tabs::SplitTabId> split_id = tab->GetSplit();
         CHECK(split_id.has_value());
-        open_tabs_container_->AddChildView(CreateOpenTabSplitRowView(
+        parent_for_tab(tab)->AddChildView(CreateOpenTabSplitRowView(
             std::move(split_rows), *split_data->visual_data(),
             base::BindRepeating(
                 [](base::WeakPtr<BrowserSidebarHostView> host,
@@ -566,7 +628,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
     if (!is_search_match_tab(tab)) {
       continue;
     }
-    open_tabs_container_->AddChildView(create_open_tab_row(tab));
+    parent_for_tab(tab)->AddChildView(create_open_tab_row(tab));
   }
   // A closed temporary tab of an unrestored session is not a saved row; see
   // ShouldHideClosedTemporaryPageRow. Hiding it is presentation-only, so a
@@ -598,7 +660,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
     }
   }
   // Suppression is presentation-only and is recalculated from authoritative
-  // SplitTabData on every refresh. Ending or reclassifying a split therefore
+  // SplitTabData and native groups on every refresh. Ungrouping therefore
   // restores the exact persistent saved-page proxies without a store write.
   tree_view_->SetRuntimeCompositeSuppressedNodes(
       std::move(mixed_split_saved_nodes));

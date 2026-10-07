@@ -19,6 +19,7 @@
 #include "ahoi/browser/session/workspace_service_factory.h"
 #include "ahoi/browser/sync/profile_sync_service_factory.h"
 #include "ahoi/browser/ui/appearance/appearance_prefs.h"
+#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
 #include "ahoi/browser/ui/modal_overlay_controller.h"
 #include "ahoi/browser/ui/sidebar/browser_sidebar_host_view.h"
 #include "ahoi/browser/ui/sidebar/move_destination_menu_model.h"
@@ -508,15 +509,31 @@ BrowserSidebarHostView::BrowserSidebarHostView(
           base::BindRepeating(&BrowserSidebarHostView::OnAppearanceChanged,
                               weak_ptr_factory_.GetWeakPtr()));
   PrefService* const prefs = browser_->GetProfile()->GetPrefs();
+  appearance_pref_change_registrar_.Init(prefs);
   if (prefs->FindPreference(appearance::kSidebarPageTintEnabledPref)) {
-    page_tint_pref_change_registrar_.Init(prefs);
-    page_tint_pref_change_registrar_.Add(
+    appearance_pref_change_registrar_.Add(
         appearance::kSidebarPageTintEnabledPref,
         base::BindRepeating(&BrowserSidebarHostView::RefreshPageTint,
                             weak_ptr_factory_.GetWeakPtr(),
                             /*allow_animation=*/true));
   }
+  const auto refresh_density = base::BindRepeating(
+      [](base::WeakPtr<BrowserSidebarHostView> host) {
+        if (host) {
+          appearance::SetSidebarDensityForView(
+              host.get(), appearance::GetSidebarDensity(
+                              *host->browser_->GetProfile()->GetPrefs()));
+          host->tree_view_->OnSidebarDensityChanged();
+        }
+      },
+      weak_ptr_factory_.GetWeakPtr());
+  if (prefs->FindPreference(appearance::kSidebarDensityPref)) {
+    appearance_pref_change_registrar_.Add(appearance::kSidebarDensityPref,
+                                         refresh_density);
+  }
+  refresh_density.Run();
   OnAppearanceChanged(appearance_signal_source_->policy());
 }
+
 
 }  // namespace ahoi::sidebar

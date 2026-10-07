@@ -30,11 +30,14 @@ struct RecentGroupLink {
 using ActivateRecentGroupLinkCallback =
     base::RepeatingCallback<void(const base::Uuid&)>;
 using RecentGroupLinksHoverCallback = base::RepeatingCallback<void(bool)>;
+using RecentGroupLinkIconCallback =
+    base::RepeatingCallback<ui::ImageModel(const RecentGroupLink&)>;
 
 std::unique_ptr<views::View> CreateGroupRecentLinksView(
     std::vector<RecentGroupLink> links,
     ActivateRecentGroupLinkCallback activate_callback,
-    RecentGroupLinksHoverCallback hover_callback);
+    RecentGroupLinksHoverCallback hover_callback,
+    RecentGroupLinkIconCallback icon_callback = {});
 
 void UpdateGroupRecentLinkFavicon(views::View* view,
                                   const GURL& url,

@@ -175,7 +175,12 @@ void BrowserSidebarHostView::BeginGroupRecentQuery(
     return;
   }
 
-  CloseGroupRecentBubble();
+  if (group_recent_.widget) {
+    // Reopen only after the native close callback releases the old bubble.
+    group_recent_.reopen_after_close = true;
+    CloseGroupRecentBubble();
+    return;
+  }
   group_recent_.history_task_tracker.TryCancelAll();
   const uint64_t generation = ++group_recent_.query_generation;
 
@@ -186,21 +191,51 @@ void BrowserSidebarHostView::BeginGroupRecentQuery(
     return;
   }
 
-  std::map<GURL, tab_tree::TreeNode> pages_by_url;
-  for (tab_tree::TreeNode& node : subtree) {
-    if (!node.tombstone && node.type == tab_tree::TreeNodeType::kSavedPage &&
-        node.url.is_valid() && !node.url.is_empty()) {
-      pages_by_url.try_emplace(node.url, std::move(node));
+  // GetSubtree returns database-ID order. Follow the sidebar's sibling order,
+  // including collapsed folders, and keep distinct nodes sharing one URL.
+  std::map<base::Uuid, std::vector<const tab_tree::TreeNode*>> children;
+  for (const tab_tree::TreeNode& node : subtree) {
+    if (!node.tombstone && node.parent_id) {
+      children[*node.parent_id].push_back(&node);
     }
   }
-  if (!history_service_ || pages_by_url.empty()) {
-    ShowGroupRecentBubble(folder_node_id, {});
+  for (auto& [parent, siblings] : children) {
+    std::sort(siblings.begin(), siblings.end(), [](const auto* a, const auto* b) {
+      return a->sort_key == b->sort_key ? a->id < b->id
+                                      : a->sort_key < b->sort_key;
+    });
+  }
+  std::vector<tab_tree::TreeNode> pages;
+  std::set<base::Uuid> visited;
+  // Walk iteratively so deeply nested folders do not grow the call stack.
+  std::vector<const tab_tree::TreeNode*> ordered;
+  if (const auto root = children.find(folder_node_id); root != children.end()) {
+    ordered.assign(root->second.rbegin(), root->second.rend());
+  }
+  while (!ordered.empty()) {
+    const tab_tree::TreeNode* node = ordered.back();
+    ordered.pop_back();
+    if (!visited.insert(node->id).second) {
+      continue;
+    }
+    if (node->type == tab_tree::TreeNodeType::kSavedPage &&
+        !node->is_temporary && node->url.is_valid() && !node->url.is_empty()) {
+      pages.push_back(*node);
+    } else if (const auto nested = children.find(node->id);
+               nested != children.end()) {
+      ordered.insert(ordered.end(), nested->second.rbegin(),
+                     nested->second.rend());
+    }
+  }
+  if (!history_service_ || pages.empty()) {
+    OnGroupHistoryQueryCompleted(generation, folder_node_id, std::move(pages),
+                                 {});
     return;
   }
 
   // One bounded recent-history query replaces one asynchronous database query
   // per saved page. Large nested groups therefore remain cheap to hover while
-  // preserving the same recent-first result semantics.
+  // keeping last-visit captions optional: history never filters out pages.
   history::QueryOptions options;
   options.SetRecentDayRange(365);
   options.max_count = 2048;
@@ -210,38 +245,35 @@ void BrowserSidebarHostView::BeginGroupRecentQuery(
       std::u16string(), options,
       base::BindOnce(&BrowserSidebarHostView::OnGroupHistoryQueryCompleted,
                      weak_ptr_factory_.GetWeakPtr(), generation, folder_node_id,
-                     std::move(pages_by_url)),
+                     std::move(pages)),
       &group_recent_.history_task_tracker);
 }
 
 void BrowserSidebarHostView::OnGroupHistoryQueryCompleted(
     uint64_t generation,
     const base::Uuid& folder_node_id,
-    std::map<GURL, tab_tree::TreeNode> pages_by_url,
+    std::vector<tab_tree::TreeNode> pages,
     history::QueryResults results) {
   if (generation != group_recent_.query_generation ||
       group_recent_.hovered_folder_id != folder_node_id || !group_recent_.anchor_tracker) {
     return;
   }
 
-  std::vector<RecentGroupLink> links;
-  constexpr size_t kMaximumRecentLinks = 6u;
-  links.reserve(kMaximumRecentLinks);
+  std::map<GURL, base::Time> visits;
   for (const history::URLResult& result : results) {
-    auto page = pages_by_url.find(result.url());
-    if (page == pages_by_url.end() || result.visit_time().is_null()) {
-      continue;
+    if (!result.visit_time().is_null()) {
+      visits.try_emplace(result.url(), result.visit_time());
     }
-    const tab_tree::TreeNode& node = page->second;
+  }
+  std::vector<RecentGroupLink> links;
+  links.reserve(pages.size());
+  for (const tab_tree::TreeNode& node : pages) {
+    const auto visit = visits.find(node.url);
     links.push_back({.node_id = node.id,
                      .title = node.title,
                      .url = node.url,
-                     .last_visit = result.visit_time(),
-                     .favicon = GetSavedPageIcon(node)});
-    pages_by_url.erase(page);
-    if (links.size() == kMaximumRecentLinks) {
-      break;
-    }
+                     .last_visit = visit == visits.end() ? base::Time()
+                                                        : visit->second});
   }
   ShowGroupRecentBubble(folder_node_id, std::move(links));
 }
@@ -267,7 +299,17 @@ void BrowserSidebarHostView::ShowGroupRecentBubble(
       base::BindRepeating(&BrowserSidebarHostView::ActivateRecentGroupLink,
                           weak_ptr_factory_.GetWeakPtr()),
       base::BindRepeating(&BrowserSidebarHostView::OnGroupRecentBubbleHover,
-                          weak_ptr_factory_.GetWeakPtr()));
+                          weak_ptr_factory_.GetWeakPtr()),
+      base::BindRepeating(
+          [](base::WeakPtr<BrowserSidebarHostView> owner,
+             const RecentGroupLink& link) {
+            return owner ? owner->GetSavedPageIcon(tab_tree::TreeNode{
+                               .id = link.node_id,
+                               .type = tab_tree::TreeNodeType::kSavedPage,
+                               .url = link.url})
+                         : ui::ImageModel();
+          },
+          weak_ptr_factory_.GetWeakPtr()));
   group_recent_.links_view = contents.get();
   auto delegate = std::make_unique<views::BubbleDialogDelegate>(
       anchor, views::BubbleBorder::LEFT_CENTER,
@@ -276,7 +318,7 @@ void BrowserSidebarHostView::ShowGroupRecentBubble(
   delegate->SetAccessibleTitle(folder->title);
   delegate->SetBackgroundColor(visual_style::kChromeSurface);
   delegate->SetCanActivate(true);
-  delegate->set_close_on_deactivate(false);
+  delegate->set_close_on_deactivate(true);
   delegate->set_fixed_width(visual_style::kSidebarDialogWidth);
   delegate->set_margins(
       gfx::Insets::VH(visual_style::kSidebarRecentLinksDialogInset,
@@ -327,12 +369,18 @@ void BrowserSidebarHostView::ScheduleGroupRecentBubbleHide() {
 }
 
 void BrowserSidebarHostView::MaybeHideGroupRecentBubble() {
+  // Keep keyboard interaction alive after the pointer leaves the bubble.
+  // The native deactivate callback dismisses an activated popup instead.
+  if (group_recent_.widget && group_recent_.widget->IsActive()) {
+    return;
+  }
   if (!group_recent_.hovered_folder_id.has_value() && !group_recent_.bubble_hovered) {
     InvalidateAndCloseGroupRecentBubble();
   }
 }
 
 void BrowserSidebarHostView::InvalidateAndCloseGroupRecentBubble() {
+  group_recent_.reopen_after_close = false;
   ++group_recent_.query_generation;
   group_recent_.history_task_tracker.TryCancelAll();
   CloseGroupRecentBubble();
@@ -348,6 +396,8 @@ void BrowserSidebarHostView::CloseGroupRecentBubble() {
 }
 
 void BrowserSidebarHostView::OnGroupRecentBubbleClosed() {
+  const bool reopen = std::exchange(group_recent_.reopen_after_close, false);
+  const auto folder_id = group_recent_.hovered_folder_id;
   group_recent_.links_view = nullptr;
   group_recent_.bubble_folder_id.reset();
   std::unique_ptr<views::Widget> closed_widget =
@@ -356,11 +406,17 @@ void BrowserSidebarHostView::OnGroupRecentBubbleClosed() {
       std::move(group_recent_.delegate);
   base::SingleThreadTaskRunner::GetCurrentDefault()->PostTask(
       FROM_HERE, base::BindOnce(
-                     [](std::unique_ptr<views::Widget> widget,
+                     [](base::WeakPtr<BrowserSidebarHostView> owner,
+                        bool reopen, std::optional<base::Uuid> folder_id,
+                        std::unique_ptr<views::Widget> widget,
                         std::unique_ptr<views::BubbleDialogDelegate> delegate) {
                        widget.reset();
                        delegate.reset();
+                       if (owner && reopen && folder_id) {
+                         owner->BeginGroupRecentQuery(*folder_id);
+                       }
                      },
+                     weak_ptr_factory_.GetWeakPtr(), reopen, folder_id,
                      std::move(closed_widget), std::move(closed_delegate)));
 }
 

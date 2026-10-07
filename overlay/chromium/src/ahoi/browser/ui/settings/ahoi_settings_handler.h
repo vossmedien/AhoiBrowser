@@ -56,6 +56,7 @@ class AhoiSettingsHandler final : public content::WebUIMessageHandler,
 
  private:
   bool IsAuthorizedSettingsPage();
+  void HandleResetSidebarDensity(const base::ListValue& args);
   base::DictValue BuildBrowserSettingsSyncStatus(std::string_view action) const;
   void ResolveBrowserSettingsSyncStatus(base::Value callback_id,
                                         std::string_view action);

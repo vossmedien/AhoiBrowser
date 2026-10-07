@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <vector>
 
+#include "ahoi/browser/ui/visual_style.h"
+
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "ui/gfx/geometry/point_f.h"
 #include "ui/gfx/geometry/rect.h"
@@ -29,7 +31,8 @@ gfx::Rect GetSplitSegmentBounds(
 int GetSplitRowPreferredHeight(
     size_t segment_count,
     const split_tabs::SplitTabVisualData& visual_data,
-    int standard_row_height);
+    int standard_row_height,
+    int minimum_pane_height = visual_style::kSidebarSplitPaneMinimumHeight);
 
 struct SidebarSplitSeparator {
   gfx::PointF start;

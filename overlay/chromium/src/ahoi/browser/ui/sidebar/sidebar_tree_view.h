@@ -136,6 +136,7 @@ class SidebarTreeView final : public views::View,
   // path so it cannot mutate Views' visible-bounds observer hierarchy while
   // that hierarchy is being traversed.
   void OnPresentationAnimationSettled();
+  void OnSidebarDensityChanged();
 
   size_t materialized_row_count_for_testing() const {
     return materialized_rows_.size();

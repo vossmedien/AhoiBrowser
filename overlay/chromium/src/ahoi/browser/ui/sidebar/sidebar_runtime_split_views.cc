@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "ahoi/browser/ui/sidebar/sidebar_runtime_tab_views.h"
+#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_resize_area.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
@@ -66,7 +67,8 @@ class OpenTabSplitChromeView final : public views::View {
 
     gfx::RectF group_bounds(GetLocalBounds());
     group_bounds.Inset(
-        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+        gfx::InsetsF::VH(appearance::GetSidebarDensityMetricsForView(this)
+                             .row_vertical_inset,
                          visual_style::kSidebarTabRowHorizontalInset));
     if (group_bounds.IsEmpty()) {
       return;
@@ -123,9 +125,6 @@ class OpenTabSplitRowView final : public views::View {
       : visual_data_(std::move(visual_data)),
         resize_callback_(std::move(resize_callback)) {
     CHECK_GE(tabs.size(), 2u);
-    SetPreferredSize(gfx::Size(
-        0, GetSplitRowPreferredHeight(tabs.size(), visual_data_,
-                                      SidebarTreeRowView::kRowHeight)));
     GetViewAccessibility().SetRole(ax::mojom::Role::kGroup);
     for (auto& tab : tabs) {
       views::View* const pane = AddChildView(std::move(tab));
@@ -139,6 +138,14 @@ class OpenTabSplitRowView final : public views::View {
   OpenTabSplitRowView(const OpenTabSplitRowView&) = delete;
   OpenTabSplitRowView& operator=(const OpenTabSplitRowView&) = delete;
   ~OpenTabSplitRowView() override = default;
+
+  gfx::Size CalculatePreferredSize(
+      const views::SizeBounds& available_size) const override {
+    const auto density = appearance::GetSidebarDensityMetricsForView(this);
+    return gfx::Size(0, GetSplitRowPreferredHeight(
+        pane_views_.size(), visual_data_, density.row_height,
+        density.split_pane_minimum_height));
+  }
 
   void Layout(PassKey) override {
     const int count = static_cast<int>(pane_views_.size());
@@ -161,7 +168,8 @@ class OpenTabSplitRowView final : public views::View {
 
     gfx::RectF paint_bounds(bounds);
     paint_bounds.Inset(
-        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+        gfx::InsetsF::VH(appearance::GetSidebarDensityMetricsForView(this)
+                             .row_vertical_inset,
                          visual_style::kSidebarTabRowHorizontalInset));
     SkPathBuilder clip_builder;
     clip_builder.addRRect(SkRRect::MakeRectXY(gfx::RectFToSkRect(paint_bounds),
@@ -204,7 +212,8 @@ class OpenTabSplitRowView final : public views::View {
     }
     gfx::RectF background(GetLocalBounds());
     background.Inset(
-        gfx::InsetsF::VH(visual_style::kSidebarTabRowVerticalInset,
+        gfx::InsetsF::VH(appearance::GetSidebarDensityMetricsForView(this)
+                             .row_vertical_inset,
                          visual_style::kSidebarTabRowHorizontalInset));
     if (background.IsEmpty()) {
       return;

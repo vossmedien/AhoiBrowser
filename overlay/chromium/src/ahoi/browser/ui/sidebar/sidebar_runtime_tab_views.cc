@@ -18,6 +18,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
+#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/check.h"
 #include "base/functional/bind.h"
@@ -107,8 +108,6 @@ class OpenTabRowView final : public views::View, public views::DragController {
         selection_callback_(std::move(selection_callback)) {
     CHECK(tab);
     CHECK(!saved_node_id_.has_value() || saved_node_id_->is_valid());
-    const std::u16string& tab_title = drag_title_;
-    SetPreferredSize(gfx::Size(0, SidebarTreeRowView::kRowHeight));
     SetFocusBehavior(FocusBehavior::ALWAYS);
     SetNotifyEnterExitOnChild(true);
     set_drag_controller(this);
@@ -136,7 +135,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
     bookmark_indicator_->SetVisible(bookmarked);
 
     title_ = AddChildView(std::make_unique<SidebarTabTitleLabel>());
-    title_->SetText(tab_title);
+    title_->SetText(drag_title_);
     title_->SetHorizontalAlignment(gfx::ALIGN_LEFT);
     title_->SetEnabledColor(visual_style::kText);
 
@@ -154,26 +153,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
     close_->SetCanProcessEventsWithinSubtree(false);
     close_->SetVisible(false);
 
-    GetViewAccessibility().SetRole(ax::mojom::Role::kTab);
-    std::u16string accessible_name = tab_title;
-    std::u16string tooltip;
-    if (sleeping_) {
-      const std::u16string sleeping_text =
-          l10n_util::GetStringUTF16(IDS_AHOI_TAB_SLEEPING_TOOLTIP);
-      accessible_name += u" — ";
-      accessible_name += sleeping_text;
-      tooltip = sleeping_text;
-    }
-    if (!status_text.empty()) {
-      accessible_name += u" — ";
-      accessible_name += status_text;
-      if (!tooltip.empty()) {
-        tooltip += u" — ";
-      }
-      tooltip += status_text;
-    }
-    SetTooltipText(tooltip);
-    GetViewAccessibility().SetName(accessible_name);
+    internal::SetOpenTabAccessibility(this, drag_title_, sleeping_, status_text);
     GetViewAccessibility().SetIsSelected(active_);
     UpdateBackground();
   }
@@ -221,6 +201,11 @@ class OpenTabRowView final : public views::View, public views::DragController {
     InvalidateLayout();
   }
 
+  gfx::Size CalculatePreferredSize(
+      const views::SizeBounds& available_size) const override {
+    return {0, appearance::GetSidebarDensityMetricsForView(this).row_height};
+  }
+
   void Layout(PassKey) override { UpdateTitleBounds(); }
 
   void OnPaintBackground(gfx::Canvas* canvas) override {
@@ -244,7 +229,18 @@ class OpenTabRowView final : public views::View, public views::DragController {
   }
 
   void UpdateTitleBounds() {
-    const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
+    const auto density = appearance::GetSidebarDensityMetricsForView(this);
+    const int icon_size = visual_style::kSidebarIconSize + density.icon_size_delta;
+    appearance::ApplySidebarDensityFont(title_);
+    const gfx::Rect icon_bounds(8, std::max(0, (height() - icon_size) / 2),
+                                icon_size, icon_size);
+    // Current presets couple inset and icon size; track both if this changes.
+    if (icon_size_ != icon_size) {
+      icon_size_ = icon_size;
+      UpdateBackground();
+      favicon_view_->SetImageSize(gfx::Size(icon_size, icon_size));
+      media_indicator_->SetImageSize(gfx::Size(icon_size, icon_size));
+    }
     favicon_view_->SetBoundsRect(icon_bounds);
     fallback_icon_->SetBoundsRect(icon_bounds);
     bookmark_indicator_->SetBoundsRect(
@@ -262,7 +258,9 @@ class OpenTabRowView final : public views::View, public views::DragController {
       title_pane_bounds =
           GetMirroredRect(gfx::Rect(0, 0, std::max(0, width() / 2), height()));
     }
-    title_->SetDividerSafeBounds(trailing.title, title_pane_bounds,
+    gfx::Rect title_bounds = trailing.title;
+    title_bounds.Inset(gfx::Insets::TLBR(0, density.icon_size_delta, 0, 0));
+    title_->SetDividerSafeBounds(title_bounds, title_pane_bounds,
                                  is_split_segment_ || split_drop_preview);
   }
 
@@ -666,7 +664,8 @@ class OpenTabRowView final : public views::View, public views::DragController {
         color.has_value() && !is_split_segment_
             ? views::CreateRoundedRectBackground(
                   *color, gfx::RoundedCornersF(visual_style::kRowCornerRadius),
-                  gfx::Insets::VH(visual_style::kSidebarTabRowVerticalInset,
+                  gfx::Insets::VH(appearance::GetSidebarDensityMetricsForView(this)
+                             .row_vertical_inset,
                                   visual_style::kSidebarTabRowHorizontalInset))
             : nullptr);
     SchedulePaint();
@@ -719,6 +718,7 @@ class OpenTabRowView final : public views::View, public views::DragController {
   bool drag_state_published_ = false;
   bool search_selected_ = false;
   std::optional<OpenTabDropPosition> drop_position_;
+  int icon_size_ = visual_style::kSidebarIconSize;
   base::WeakPtrFactory<OpenTabRowView> weak_ptr_factory_{this};
 };
 

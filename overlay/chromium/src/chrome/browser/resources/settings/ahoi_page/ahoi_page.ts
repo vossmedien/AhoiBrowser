@@ -72,6 +72,9 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
       developerToolkitEnabledPref_: {type: Object},
       floatingNavigationAutoHideEnabledPref_: {type: Object},
       floatingNavigationDelayOptions_: {type: Array},
+      sidebarDensityOptions_: {type: Array},
+      sidebarDensityPref_: {type: Object},
+      sidebarDensityResetStatus_: {type: String},
       historyRetentionOptions_: {type: Array},
       syncEnabledPref_: {type: Object},
       browserSettingsSyncStatus_: {type: Object},
@@ -133,6 +136,34 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
   protected accessor portableImportSelectedWorkspaceIds_: string[] = [];
   protected accessor portableImportStatus_: string = '';
   protected accessor portableImportPending_: boolean = false;
+
+  protected accessor sidebarDensityPref_: PrefObject<number>|undefined =
+      undefined;
+  protected accessor sidebarDensityResetStatus_: string = '';
+  protected accessor sidebarDensityOptions_: DropdownMenuOptionList = [
+    {value: 0, name: loadTimeData.getString('ahoiSidebarDensityCompact')},
+    {value: 1, name: loadTimeData.getString('ahoiSidebarDensityStandard')},
+    {value: 2, name: loadTimeData.getString('ahoiSidebarDensityComfortable')},
+  ];
+
+  protected async onResetSidebarDensity_() {
+    try {
+      const reset = await sendWithPromise<boolean>('ahoiResetSidebarDensity');
+      this.sidebarDensityResetStatus_ = loadTimeData.getString(
+          reset ? 'ahoiSidebarDensityResetDone' : 'ahoiSidebarDensityResetFailed');
+    } catch {
+      this.sidebarDensityResetStatus_ =
+          loadTimeData.getString('ahoiSidebarDensityResetFailed');
+    }
+  }
+
+  protected onResetPractice_() {
+    // Only this optional checklist changes; no browser or Workspace data.
+    for (const checkbox of this.shadowRoot.querySelectorAll<HTMLInputElement>(
+             '#ahoiPracticeSteps input[type="checkbox"]')) {
+      checkbox.checked = false;
+    }
+  }
 
   protected accessor floatingNavigationDelayOptions_: DropdownMenuOptionList = [
     {value: 400, name: loadTimeData.getString('ahoiNavigationDelayFast')},
@@ -198,6 +229,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
         }
       });
     this.mirrorPrefs({
+      'ahoi.appearance.sidebar_density': 'sidebarDensityPref_',
       'ahoi.developer_toolkit.enabled': 'developerToolkitEnabledPref_',
       'ahoi.navigation.floating_auto_hide_enabled':
           'floatingNavigationAutoHideEnabledPref_',

@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/extensions/tab_group_sidebar_adapter.h"
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_internal.h"
@@ -75,6 +76,12 @@ void SessionBridge::TrackBrowser(BrowserWindowInterface* browser) {
   for (tabs::TabInterface* tab : *model) {
     TrackRuntimeTab(model, tab, tab->GetContents());
   }
+  tab_group_sidebar_adapters_.emplace(
+      model, std::make_unique<extensions::TabGroupSidebarAdapter>(
+                 *this, *browser, base::BindRepeating(
+                     [](SessionBridge* bridge) {
+                       bridge->runtime_presentation_changed_callbacks_.Notify();
+                     }, base::Unretained(this))));
   // BrowserCollection observers do not have a contractual ordering. Defer
   // the initial write so SessionService has first registered the new window;
   // later user-driven workspace changes are still written immediately.
@@ -101,6 +108,7 @@ void SessionBridge::UntrackBrowser(BrowserWindowInterface* browser,
 
   const base::Uuid window_id = window_it->second.window_id;
   TabStripModel* model = window_it->second.tab_strip_model;
+  tab_group_sidebar_adapters_.erase(model);
   if (model && !tab_strip_model_destroyed) {
     model->RemoveObserver(this);
   }

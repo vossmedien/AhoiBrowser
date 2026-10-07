@@ -1,0 +1,121 @@
+diff --git a/patches/chromium/0001-ahoi-m153-integration-seams.patch b/patches/chromium/0001-ahoi-m153-integration-seams.patch
+--- a/patches/chromium/0001-ahoi-m153-integration-seams.patch
++++ b/patches/chromium/0001-ahoi-m153-integration-seams.patch
+@@ -141,12 +141,39 @@
+        <message name="IDS_TAB_AX_LABEL_UNNAMED_GROUP_FORMAT" desc="Accessibility label text for a tab, when it is in a group that has not been named by the user. Example: 'Google Search - Part of unnamed group'">
+          <ph name="WINDOW_TITLE">$1<ex>Google Search</ex></ph> - Part of unnamed group
+        </message>
+-@@ -20450,6 +20453,1527 @@ Please help our engineers fix this problem. Tell us what happened right before y
++@@ -20450,6 +20453,1554 @@ Please help our engineers fix this problem. Tell us what happened right before y
+      <message name="IDS_OSCRYPTASYNC_AVAILABILITY_INFOBAR_BUTTON" desc="The text of the button to proceed with relaunching the entire browser to resolve keychain permission issues.">
+        Relaunch
+      </message>
+ +
+ +    <!-- AhoiBrowser appearance settings -->
+++    <message name="IDS_SETTINGS_AHOI_AUTO_PICTURE_IN_PICTURE_SETTINGS" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Manage automatic picture-in-picture
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_AUTO_PICTURE_IN_PICTURE_SUBLABEL" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Eligible media can continue in a small window when you switch tabs. Website permissions remain Ask, Allow, or Block.
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_PRACTICE_TITLE" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Get to know Ahoi
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_PRACTICE_SUBLABEL" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Optional manual steps in a new Practice Workspace. Checkboxes record progress only on this page; clearing them changes no tabs or Workspaces.
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_PRACTICE_WORKSPACE" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Create a new Workspace named Practice. Choose Shared if it should use your usual website logins.
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_PRACTICE_FOLDER" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Open two pages, save them in a folder, and change their order. Hover the folder to find a page again.
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_PRACTICE_TABS" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Select both tabs in the sidebar and try moving them or arranging them in Split View.
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_PRACTICE_RETURN" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Switch back to your usual Workspace, find a tab with the command bar, then return. Delete only your Practice Workspace when you finish.
+++    </message>
+++    <message name="IDS_SETTINGS_AHOI_PRACTICE_RESET" desc="Optional Ahoi settings help." meaning="AhoiBrowser appearance settings">
+++      Clear practice checkmarks
+++    </message>
+ +    <message name="IDS_SETTINGS_AHOI_SIDEBAR_DENSITY" desc="Sidebar tab density setting." meaning="AhoiBrowser appearance settings">
+ +      Tab density
+ +    </message>
+@@ -1673,12 +1700,21 @@
+ index c6bd9b99b51506ec608d9414d0d6ab88101e273e..ab99943a93f35eb4330c857adbc88f6b09c10999 100644
+ --- a/chrome/app/resources/generated_resources_de.xtb
+ +++ b/chrome/app/resources/generated_resources_de.xtb
+-@@ -10801,4 +10801,507 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
++@@ -10801,4 +10801,516 @@ Informationen dazu, welche Daten von Google erhoben werden und warum, findest du
+  <translation id="998347228911661591">Tabgruppen synchronisieren</translation>
+  <translation id="998747458861718449">Untersuchen</translation>
+  <translation id="998852291477823323">Die Aktion wurde aufgrund der konfigurierten Richtlinien nicht zugelassen.</translation>
+ -</translationbundle>
+ \ No newline at end of file
+++<translation id="4917342989590184621">Automatisches Bild-in-Bild verwalten</translation>
+++<translation id="3705125433707402453">Geeignete Medien können beim Tabwechsel in einem kleinen Fenster weiterlaufen. Website-Berechtigungen bleiben Fragen, Zulassen oder Blockieren.</translation>
+++<translation id="1248919025841764534">Ahoi kennenlernen</translation>
+++<translation id="546442283689049017">Freiwillige Schritte von Hand in einem neuen Übungs-Workspace. Häkchen halten nur auf dieser Seite deinen Fortschritt fest; Zurücksetzen verändert keine Tabs oder Workspaces.</translation>
+++<translation id="3373929822040652259">Erstelle einen neuen Workspace namens Übung. Wähle Gemeinsam, wenn er deine üblichen Website-Anmeldungen verwenden soll.</translation>
+++<translation id="5373222843751242228">Öffne zwei Seiten, speichere sie in einem Ordner und ändere ihre Reihenfolge. Zeige auf den Ordner, um eine Seite wiederzufinden.</translation>
+++<translation id="9026542280727056277">Wähle beide Tabs in der Sidebar aus und probiere Verschieben oder Split View aus.</translation>
+++<translation id="1848352338465482711">Wechsle in deinen üblichen Workspace, finde einen Tab über die Befehlsleiste und kehre zurück. Lösche nach der Übung ausschließlich deinen Übungs-Workspace.</translation>
+++<translation id="6100808517706900672">Übungshäkchen zurücksetzen</translation>
+ +<translation id="1979221534062203775">Tab-Dichte</translation>
+ +<translation id="1987281062270503981">Ändert Text, Symbole und Abstände gemeinsam. Gilt sofort für dieses Profil.</translation>
+ +<translation id="6765233477538944257">Kompakt</translation>
+@@ -16776,7 +16812,7 @@
+ index 774e32188161b70bd96fddd794c652cd7c1067e9..0b22654f2a75b7c21838666d08ee50215940e897 100644
+ --- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+ +++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+-@@ -592,6 +592,157 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
++@@ -592,6 +592,168 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+        {"lightMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_LIGHT_LABEL},
+        {"darkMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_DARK_LABEL},
+        {"systemMode", IDS_NTP_CUSTOMIZE_CHROME_COLOR_SCHEME_MODE_SYSTEM_LABEL},
+@@ -16787,6 +16823,17 @@
+ +      {"ahoiGlobalPrimaryColor", IDS_SETTINGS_AHOI_GLOBAL_PRIMARY_COLOR},
+ +      {"ahoiGlobalPrimaryColorSublabel",
+ +       IDS_SETTINGS_AHOI_GLOBAL_PRIMARY_COLOR_SUBLABEL},
+++      {"ahoiAutoPictureInPictureSettings",
+++       IDS_SETTINGS_AHOI_AUTO_PICTURE_IN_PICTURE_SETTINGS},
+++      {"ahoiAutoPictureInPictureSublabel",
+++       IDS_SETTINGS_AHOI_AUTO_PICTURE_IN_PICTURE_SUBLABEL},
+++      {"ahoiPracticeTitle", IDS_SETTINGS_AHOI_PRACTICE_TITLE},
+++      {"ahoiPracticeSublabel", IDS_SETTINGS_AHOI_PRACTICE_SUBLABEL},
+++      {"ahoiPracticeWorkspace", IDS_SETTINGS_AHOI_PRACTICE_WORKSPACE},
+++      {"ahoiPracticeFolder", IDS_SETTINGS_AHOI_PRACTICE_FOLDER},
+++      {"ahoiPracticeTabs", IDS_SETTINGS_AHOI_PRACTICE_TABS},
+++      {"ahoiPracticeReturn", IDS_SETTINGS_AHOI_PRACTICE_RETURN},
+++      {"ahoiPracticeReset", IDS_SETTINGS_AHOI_PRACTICE_RESET},
+ +      {"ahoiSidebarDensity", IDS_SETTINGS_AHOI_SIDEBAR_DENSITY},
+ +      {"ahoiSidebarDensitySublabel",
+ +       IDS_SETTINGS_AHOI_SIDEBAR_DENSITY_SUBLABEL},
+@@ -16934,7 +16981,7 @@
+        {"showHomeButton", IDS_SETTINGS_SHOW_HOME_BUTTON},
+        {"showBookmarksBar", IDS_SETTINGS_SHOW_BOOKMARKS_BAR},
+        {"bookmarksBar", IDS_SETTINGS_BOOKMARKS_BAR},
+-@@ -665,6 +816,9 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
++@@ -665,6 +827,9 @@ void AddAppearanceStrings(content::WebUIDataSource* html_source,
+        {"themeManagedDialogBody", IDS_NTP_THEME_MANAGED_DIALOG_BODY},
+    };
+    html_source->AddLocalizedStrings(kLocalizedStrings);
+@@ -16944,7 +16991,7 @@
+  
+    html_source->AddBoolean("ntpSimplificationBookmarksBarEnabled",
+                            base::FeatureList::IsEnabled(
+-@@ -1555,6 +1709,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
++@@ -1555,6 +1720,11 @@ void AddLanguagesStrings(content::WebUIDataSource* html_source,
+  void AddOnStartupStrings(content::WebUIDataSource* html_source) {
+    static constexpr webui::LocalizedString kLocalizedStrings[] = {
+        {"onStartup", IDS_SETTINGS_ON_STARTUP},
+@@ -16956,7 +17003,7 @@
+        {"onStartupOpenNewTab", IDS_SETTINGS_ON_STARTUP_OPEN_NEW_TAB},
+        {"onStartupContinue", IDS_SETTINGS_ON_STARTUP_CONTINUE},
+        {"onStartupOpenSpecific", IDS_SETTINGS_ON_STARTUP_OPEN_SPECIFIC},
+-@@ -2124,8 +2283,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
++@@ -2124,8 +2294,8 @@ void AddAutofillStrings(content::WebUIDataSource* html_source,
+        autofill_client &&
+            autofill::MayPerformAutofillAiAction(
+                *autofill_client, autofill::AutofillAiAction::kOptIn));

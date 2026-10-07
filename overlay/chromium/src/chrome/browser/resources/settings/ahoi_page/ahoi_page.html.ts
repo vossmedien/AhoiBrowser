@@ -31,6 +31,29 @@ export function getHtml(this: SettingsAhoiPageElement) {
         </cr-theme-color-picker>
       </div>
 </if>
+      <div class="cr-row hr" style="min-height: 44px;">
+        <div class="flex cr-padded-text">
+          <div>$i18n{ahoiSidebarDensity}</div>
+          <div class="secondary">$i18n{ahoiSidebarDensitySublabel}</div>
+        </div>
+        <settings-dropdown-menu id="ahoiSidebarDensity"
+            label="$i18n{ahoiSidebarDensity}"
+            pref-key="ahoi.appearance.sidebar_density"
+            .menuOptions="${this.sidebarDensityOptions_}">
+        </settings-dropdown-menu>
+      </div>
+      <div class="cr-row continuation">
+        <cr-button id="ahoiSidebarDensityReset" style="min-height: 32px;"
+            ?disabled="${!this.sidebarDensityPref_ ||
+                this.sidebarDensityPref_.enforcement ===
+                    chrome.settingsPrivate.Enforcement.ENFORCED}"
+            @click="${this.onResetSidebarDensity_}">
+          $i18n{ahoiSidebarDensityReset}
+        </cr-button>
+        <span class="secondary cr-padded-text" role="status" aria-live="polite">
+          ${this.sidebarDensityResetStatus_}
+        </span>
+      </div>
       <settings-toggle-button id="ahoiGlassEnabled"
           pref-key="ahoi.appearance.glass_enabled"
           label="$i18n{ahoiGlassEnabled}"
@@ -73,6 +96,38 @@ export function getHtml(this: SettingsAhoiPageElement) {
       <settings-ahoi-link-routing></settings-ahoi-link-routing>
 
       <settings-ahoi-shortcuts></settings-ahoi-shortcuts>
+
+      <div class="cr-row hr">
+        <div class="flex cr-padded-text">
+          <a id="ahoiAutoPictureInPictureSettings"
+              href="chrome://settings/content/autoPictureInPicture">
+            $i18n{ahoiAutoPictureInPictureSettings}
+          </a>
+          <div class="secondary">$i18n{ahoiAutoPictureInPictureSublabel}</div>
+        </div>
+      </div>
+
+      <details id="ahoiPractice" class="cr-padded-text">
+        <summary>$i18n{ahoiPracticeTitle}</summary>
+        <p class="secondary">$i18n{ahoiPracticeSublabel}</p>
+        <div id="ahoiPracticeSteps">
+          <label class="sync-control-option">
+            <input type="checkbox"><span>$i18n{ahoiPracticeWorkspace}</span>
+          </label>
+          <label class="sync-control-option">
+            <input type="checkbox"><span>$i18n{ahoiPracticeFolder}</span>
+          </label>
+          <label class="sync-control-option">
+            <input type="checkbox"><span>$i18n{ahoiPracticeTabs}</span>
+          </label>
+          <label class="sync-control-option">
+            <input type="checkbox"><span>$i18n{ahoiPracticeReturn}</span>
+          </label>
+        </div>
+        <cr-button id="ahoiPracticeReset" @click="${this.onResetPractice_}">
+          $i18n{ahoiPracticeReset}
+        </cr-button>
+      </details>
 
       <div class="section-heading cr-row hr">
         <div class="flex cr-padded-text">

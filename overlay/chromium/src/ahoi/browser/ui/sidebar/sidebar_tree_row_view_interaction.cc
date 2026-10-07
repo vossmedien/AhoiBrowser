@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
+#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tab_title_label.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
@@ -96,7 +97,8 @@ gfx::Rect SidebarTreeRowView::IconBounds() const {
 
 gfx::Rect SidebarTreeRowView::TitleBounds() const {
   constexpr int kTitleTrailingGap = 7;
-  const int x = IconBounds().right() + kIconTitleSpacing;
+  const int x = IconBounds().right() + kIconTitleSpacing +
+                appearance::GetSidebarDensityMetricsForView(this).icon_size_delta;
   int title_end = media_indicator_.IsEmpty() ? TrailingActionBounds().x()
                                              : MediaIndicatorBounds().x();
   title_end -= kTitleTrailingGap;

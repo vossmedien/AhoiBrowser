@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "ahoi/browser/extensions/native_extension_setup_operation.h"
+#include "ahoi/browser/extensions/tab_group_sidebar_adapter.h"
 #include "ahoi/browser/navigation/command_service.h"
 #include "ahoi/browser/session/isolated_profile_creation.h"
 #include "ahoi/browser/session/isolated_profile_registry.h"
@@ -81,8 +82,19 @@ base::WeakPtr<sync::ProfileSyncUiBridge> SessionBridge::GetWeakPtrForSync() {
   return weak_ptr_factory_.GetWeakPtr();
 }
 
+extensions::TabGroupSidebarAdapter* SessionBridge::GetTabGroupSidebarAdapter(
+    const BrowserWindowInterface* browser) const {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  if (!ShouldTrackBrowser(browser)) {
+    return nullptr;
+  }
+  const auto it = tab_group_sidebar_adapters_.find(browser->GetTabStripModel());
+  return it == tab_group_sidebar_adapters_.end() ? nullptr : it->second.get();
+}
+
 void SessionBridge::Shutdown() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  tab_group_sidebar_adapters_.clear();
   workspace_structure_controller_.reset();
   if (session_metadata_provider_registered_) {
     session::UnregisterWorkspaceSessionMetadataProvider(profile_, this);

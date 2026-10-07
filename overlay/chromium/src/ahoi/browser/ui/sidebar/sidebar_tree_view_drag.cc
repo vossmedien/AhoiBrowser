@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
+#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_view.h"
 #include "ahoi/browser/ui/visual_style.h"
@@ -705,7 +706,10 @@ void SidebarTreeView::MaybeAutoScroll(const gfx::Point& point) {
   }
   if (point.y() < visible.y() + kAutoScrollEdge && visible.y() > 0) {
     ScrollRectToVisible(gfx::Rect(
-        point.x(), std::max(visible.y() - SidebarTreeRowView::kRowHeight, 0), 1,
+        point.x(), std::max(visible.y() -
+                                  appearance::GetSidebarDensityMetricsForView(this)
+                                      .row_height,
+                              0), 1,
         1));
     return;
   }
@@ -713,7 +717,9 @@ void SidebarTreeView::MaybeAutoScroll(const gfx::Point& point) {
       visible.bottom() < height()) {
     ScrollRectToVisible(
         gfx::Rect(point.x(),
-                  std::min(visible.bottom() + SidebarTreeRowView::kRowHeight,
+                  std::min(visible.bottom() +
+                               appearance::GetSidebarDensityMetricsForView(this)
+                                   .row_height,
                            std::max(height() - 1, 0)),
                   1, 1));
   }

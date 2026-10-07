@@ -49,6 +49,26 @@ Mobile55 T2 SDK/storage follow-up temporarily parked by note c24cb473 until
 the narrow C70 source handback, preserving at most two active Source helpers
 (Arc and C70) and the existing MobileGoal. No additional runtime slot granted.
 
+**Combined Crest Source now in canonical, not built:** approved productdelta
+from peer8adc71ce (13Source paths; already-integrated AutoPiP excluded) plus all
+six current wiring handoffs from peer4abf69ca, applied together on isolated
+base5a5a02e4, then the identical51-file complete productdelta here. Density,
+native tabgroups, folderpreview, Workspacehelp, optional exercises/PiPsettings
+and active-Workspace extension/panel context are wired. The corrected close
+menu/multi-select and switcher code are preserved; Source800line boundaries,
+actual new0097/0001 innerpatch syntax, own Source diff/whitespace passed.
+Preparation first staged only tracked outerpatch paths; the three new outerpatch
+files were explicitly added before canonical application. A mistaken0097
+diagnostic filename was corrected to the series' actual name before syntaxcheck;
+neither failure mutated canonical. Buildfix1253 not reapplied. Source binding in
+`artifacts/tests/crest-source-integration-20261007/source-binding.json`.
+The optional blocked164d combined-document helper delivered no Source and is
+not treated as an extra gate; current individual handoffs are the sources.
+Next complete F adds the already delegated History/M155 port and accepted main
+semantics, then the existing warm guarded build, exact visible Crest/History
+journeys, focus/review and actual main/push/guarded delivery. No partial Source
+integration or internal candidate claimed as Master completion.
+
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no
   outstanding user selection. Original complete Master objective restored as

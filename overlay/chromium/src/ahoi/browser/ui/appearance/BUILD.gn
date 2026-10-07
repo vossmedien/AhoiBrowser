@@ -7,9 +7,14 @@ source_set("appearance_preferences") {
   sources = [
     "appearance_prefs.cc",
     "appearance_prefs.h",
+    "sidebar_density.cc",
+    "sidebar_density.h",
   ]
 
-  public_deps = [ "//base" ]
+  public_deps = [
+    "//ahoi/browser/ui:visual_style",
+    "//base",
+  ]
 
   deps = [
     "//components/prefs",
@@ -56,6 +61,8 @@ source_set("appearance") {
     "glass_material.h",
     "native_panel_material.cc",
     "native_panel_material.h",
+    "sidebar_density_views.cc",
+    "sidebar_density_views.h",
     "sidebar_page_tint.cc",
     "sidebar_page_tint.h",
     "sidebar_tint_transition.cc",

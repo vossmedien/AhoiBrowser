@@ -4,11 +4,14 @@
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 
 #include <algorithm>
+#include <string>
 #include <utility>
 
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/visual_style.h"
+#include "base/functional/bind.h"
 #include "base/i18n/case_conversion.h"
+#include "base/i18n/rtl.h"
 #include "base/memory/raw_ptr.h"
 #include "base/strings/utf_string_conversions.h"
 #include "chrome/grit/generated_resources.h"
@@ -24,6 +27,7 @@
 #include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/controls/button/button.h"
+#include "ui/views/controls/button/md_text_button.h"
 #include "ui/views/controls/focus_ring.h"
 #include "ui/views/controls/image_view.h"
 #include "ui/views/controls/label.h"
@@ -36,6 +40,10 @@
 namespace ahoi::sidebar {
 
 namespace {
+
+std::u16string Text(const char16_t* de, const char16_t* en) {
+  return base::i18n::GetConfiguredLocale().starts_with("de") ? de : en;
+}
 
 class RecentGroupLinkRowView final : public views::Button {
   METADATA_HEADER(RecentGroupLinkRowView, views::Button)
@@ -56,17 +64,7 @@ class RecentGroupLinkRowView final : public views::Button {
     layout->set_cross_axis_alignment(
         views::BoxLayout::CrossAxisAlignment::kCenter);
 
-    if (link.favicon.IsEmpty()) {
-      auto* fallback = AddChildView(CreatePageFallbackIconView(false, false));
-      fallback->SetPreferredSize(gfx::Size(18, 18));
-      fallback->SetCanProcessEventsWithinSubtree(false);
-    } else {
-      auto* favicon = AddChildView(std::make_unique<views::ImageView>());
-      favicon->SetImage(link.favicon);
-      favicon->SetImageSize(gfx::Size(18, 18));
-      favicon->SetCanProcessEventsWithinSubtree(false);
-      favicon->GetViewAccessibility().SetIsIgnored(true);
-    }
+    UpdateFavicon(link.favicon);
 
     auto text_stack = std::make_unique<views::View>();
     auto* text_layout =
@@ -96,6 +94,25 @@ class RecentGroupLinkRowView final : public views::Button {
 
   const GURL& url() const { return url_; }
 
+  void UpdateFavicon(ui::ImageModel image) {
+    if (icon_) {
+      views::View* old_icon = icon_.get();
+      icon_ = nullptr;
+      RemoveChildViewT(old_icon);
+    }
+    if (image.IsEmpty()) {
+      icon_ = AddChildViewAt(CreatePageFallbackIconView(false, false), 0);
+      icon_->SetPreferredSize(gfx::Size(18, 18));
+    } else {
+      auto* favicon = AddChildViewAt(std::make_unique<views::ImageView>(), 0);
+      favicon->SetImage(image);
+      favicon->SetImageSize(gfx::Size(18, 18));
+      icon_ = favicon;
+    }
+    icon_->SetCanProcessEventsWithinSubtree(false);
+    icon_->GetViewAccessibility().SetIsIgnored(true);
+  }
+
   void StateChanged(ButtonState old_state) override {
     views::Button::StateChanged(old_state);
     UpdateBackground();
@@ -112,6 +129,7 @@ class RecentGroupLinkRowView final : public views::Button {
   }
 
   const GURL url_;
+  raw_ptr<views::View> icon_ = nullptr;
 };
 
 BEGIN_METADATA(RecentGroupLinkRowView)
@@ -127,10 +145,12 @@ class GroupRecentLinksView final : public views::View,
 
   GroupRecentLinksView(std::vector<RecentGroupLink> links,
                        ActivateCallback activate_callback,
-                       HoverCallback hover_callback)
+                       HoverCallback hover_callback,
+                       RecentGroupLinkIconCallback icon_callback)
       : links_(std::move(links)),
         activate_callback_(std::move(activate_callback)),
-        hover_callback_(std::move(hover_callback)) {
+        hover_callback_(std::move(hover_callback)),
+        icon_callback_(std::move(icon_callback)) {
     SetNotifyEnterExitOnChild(true);
     auto* layout = SetLayoutManager(std::make_unique<views::BoxLayout>(
         views::BoxLayout::Orientation::kVertical, gfx::Insets(), 6));
@@ -176,6 +196,22 @@ class GroupRecentLinksView final : public views::View,
             views::BoxLayout::Orientation::kVertical));
     results_layout->set_cross_axis_alignment(
         views::BoxLayout::CrossAxisAlignment::kStretch);
+
+    auto* pager = AddChildView(std::make_unique<views::View>());
+    auto* pager_layout = pager->SetLayoutManager(
+        std::make_unique<views::BoxLayout>(
+            views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 6));
+    previous_ = pager->AddChildView(views::MdTextButton::Create(
+        base::BindRepeating(&GroupRecentLinksView::ChangePage,
+                            base::Unretained(this), -1),
+        Text(u"Zurück", u"Previous")));
+    page_status_ = pager->AddChildView(std::make_unique<views::Label>());
+    page_status_->GetViewAccessibility().SetRole(ax::mojom::Role::kStatus);
+    pager_layout->SetFlexForView(page_status_, 1);
+    next_ = pager->AddChildView(views::MdTextButton::Create(
+        base::BindRepeating(&GroupRecentLinksView::ChangePage,
+                            base::Unretained(this), 1),
+        Text(u"Weiter", u"Next")));
     RebuildResults();
   }
 
@@ -188,23 +224,23 @@ class GroupRecentLinksView final : public views::View,
     gfx::Size preferred = views::View::CalculatePreferredSize(available_size);
     preferred.set_width(320);
     // The search surface plus an empty row is already roughly 100 DIP. Keep a
-    // useful lower bound and cap the six-result list so the bubble never grows
-    // beyond an ordinary browser window while still sizing to its real
-    // contents instead of clipping them at a fixed 90 DIP.
-    preferred.set_height(std::clamp(preferred.height(), 100, 370));
+    // useful lower bound and room for six rows plus the pager.
+    preferred.set_height(std::clamp(preferred.height(), 100, 420));
     return preferred;
   }
 
   void UpdateFavicon(const GURL& url, ui::ImageModel favicon) {
-    bool changed = false;
     for (RecentGroupLink& link : links_) {
       if (link.url == url) {
         link.favicon = favicon;
-        changed = true;
       }
     }
-    if (changed) {
-      RebuildResults();
+    // Preserve keyboard focus while an asynchronous favicon arrives.
+    for (views::View* child : results_container_->children()) {
+      auto* row = views::AsViewClass<RecentGroupLinkRowView>(child);
+      if (row && row->url() == url) {
+        row->UpdateFavicon(favicon);
+      }
     }
   }
 
@@ -222,42 +258,66 @@ class GroupRecentLinksView final : public views::View,
   void ContentsChanged(views::Textfield* sender,
                        const std::u16string&) override {
     if (sender == search_field_) {
+      page_ = 0;
       RebuildResults();
     }
   }
 
  private:
+  void ChangePage(int direction, const ui::Event&) {
+    page_ = direction < 0 ? (page_ == 0 ? 0 : page_ - 1) : page_ + 1;
+    RebuildResults();
+  }
+
   void RebuildResults() {
     results_container_->RemoveAllChildViews();
     const std::u16string filter =
         base::i18n::FoldCase(search_field_->GetText());
-    size_t result_count = 0;
-    constexpr size_t kMaxVisibleResults = 6;
+    // All nodes remain searchable, but only six native rows and favicon
+    // requests are materialized. Paging keeps a 10,000-page folder bounded.
+    constexpr size_t kPageSize = 6;
+    std::vector<const RecentGroupLink*> matches;
     for (const RecentGroupLink& link : links_) {
       const std::u16string searchable = base::i18n::FoldCase(
           link.title + u" " + base::UTF8ToUTF16(link.url.spec()));
       if (!filter.empty() && searchable.find(filter) == std::u16string::npos) {
         continue;
       }
+      matches.push_back(&link);
+    }
+    const size_t page_count = std::max(size_t{1},
+                                      (matches.size() + kPageSize - 1) /
+                                          kPageSize);
+    page_ = std::min(page_, page_count - 1);
+    previous_->SetEnabled(page_ > 0);
+    next_->SetEnabled(page_ + 1 < page_count);
+    page_status_->SetText(base::UTF8ToUTF16(
+        std::to_string(page_ + 1) + " / " + std::to_string(page_count)));
+    previous_->parent()->SetVisible(page_count > 1);
+    const size_t end = std::min(matches.size(), (page_ + 1) * kPageSize);
+    for (size_t index = page_ * kPageSize; index < end; ++index) {
+      RecentGroupLink link = *matches[index];
+      if (icon_callback_) {
+        link.favicon = icon_callback_.Run(link);
+      }
       const base::TimeDelta elapsed =
           std::max(base::TimeDelta(), base::Time::Now() - link.last_visit);
-      const std::u16string relative_time =
-          ui::TimeFormat::SimpleWithMonthAndYear(ui::TimeFormat::FORMAT_ELAPSED,
-                                                 ui::TimeFormat::LENGTH_LONG,
-                                                 elapsed, true);
+      const std::u16string relative_time = link.last_visit.is_null()
+          ? base::UTF8ToUTF16(link.url.host().empty() ? link.url.scheme()
+                                                     : link.url.host())
+          : ui::TimeFormat::SimpleWithMonthAndYear(
+                ui::TimeFormat::FORMAT_ELAPSED, ui::TimeFormat::LENGTH_LONG,
+                elapsed, true);
       results_container_->AddChildView(std::make_unique<RecentGroupLinkRowView>(
           base::BindRepeating([](ActivateCallback callback, base::Uuid node_id,
                                  const ui::Event&) { callback.Run(node_id); },
                               activate_callback_, link.node_id),
           link, relative_time));
-      if (++result_count == kMaxVisibleResults) {
-        break;
-      }
     }
-    if (result_count == 0) {
+    if (matches.empty()) {
       auto* empty =
           results_container_->AddChildView(std::make_unique<views::Label>(
-              l10n_util::GetStringUTF16(IDS_AHOI_GROUP_RECENT_EMPTY)));
+              Text(u"Keine passenden Seiten", u"No matching pages")));
       empty->SetSubpixelRenderingEnabled(false);
       empty->SetHorizontalAlignment(gfx::ALIGN_LEFT);
       empty->SetEnabledColor(visual_style::kMutedText);
@@ -271,6 +331,11 @@ class GroupRecentLinksView final : public views::View,
   std::vector<RecentGroupLink> links_;
   const ActivateCallback activate_callback_;
   const HoverCallback hover_callback_;
+  const RecentGroupLinkIconCallback icon_callback_;
+  size_t page_ = 0;
+  raw_ptr<views::MdTextButton> previous_ = nullptr;
+  raw_ptr<views::MdTextButton> next_ = nullptr;
+  raw_ptr<views::Label> page_status_ = nullptr;
   raw_ptr<views::Textfield> search_field_ = nullptr;
   raw_ptr<views::View> results_container_ = nullptr;
 };
@@ -283,10 +348,12 @@ END_METADATA
 std::unique_ptr<views::View> CreateGroupRecentLinksView(
     std::vector<RecentGroupLink> links,
     ActivateRecentGroupLinkCallback activate_callback,
-    RecentGroupLinksHoverCallback hover_callback) {
+    RecentGroupLinksHoverCallback hover_callback,
+    RecentGroupLinkIconCallback icon_callback) {
   return std::make_unique<GroupRecentLinksView>(std::move(links),
                                                 std::move(activate_callback),
-                                                std::move(hover_callback));
+                                                std::move(hover_callback),
+                                                std::move(icon_callback));
 }
 
 void UpdateGroupRecentLinkFavicon(views::View* view,

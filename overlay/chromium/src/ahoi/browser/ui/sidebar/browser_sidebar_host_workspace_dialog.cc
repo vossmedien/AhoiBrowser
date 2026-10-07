@@ -418,14 +418,17 @@ void BrowserSidebarHostView::AddWorkspaceLevelChoice(views::View* contents) {
   }
   auto* explanation = contents->AddChildView(std::make_unique<views::Label>(
       StructureText(
-          u"Eigene Website-Sitzungen trennen Anmeldungen, Cookies und "
-          u"Websitedaten dieses Workspaces. Verlauf, Passwörter, "
-          u"Berechtigungen und Erweiterungen teilen alle Workspaces. Die "
-          u"Stufe lässt sich später nicht ändern.",
-          u"Own website sessions separate this Workspace's logins, cookies "
-          u"and site data. History, passwords, permissions and extensions "
-          u"stay shared with all Workspaces. The level cannot be changed "
-          u"later.")));
+          u"Gemeinsam teilt Anmeldungen, Cookies und Websitedaten mit den "
+          u"anderen gemeinsamen Workspaces dieses Profils. Eigene "
+          u"Website-Sitzungen trennen diese Daten für den Workspace. Verlauf, "
+          u"Passwörter, Berechtigungen und Erweiterungen bleiben innerhalb "
+          u"dieses Profils gemeinsam. Zwischen diesen beiden Stufen kannst "
+          u"du später nicht wechseln.",
+          u"Shared uses the same logins, cookies and site data as other "
+          u"shared Workspaces in this profile. Own website sessions separate "
+          u"these data for the Workspace. History, passwords, permissions "
+          u"and extensions remain shared within this profile. You cannot "
+          u"switch between these two levels later.")));
   if (workspace_dialog_.isolated_radio) {
     auto* isolated_explanation =
         contents->AddChildView(std::make_unique<views::Label>(StructureText(

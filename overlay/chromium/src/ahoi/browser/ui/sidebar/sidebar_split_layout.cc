@@ -86,7 +86,8 @@ int AxisExtent(const gfx::Rect& bounds, bool horizontal) {
 int GetSplitRowPreferredHeight(
     size_t segment_count,
     const split_tabs::SplitTabVisualData& visual_data,
-    int standard_row_height) {
+    int standard_row_height,
+    int minimum_pane_height) {
   if (standard_row_height <= 0) {
     return 0;
   }
@@ -110,7 +111,8 @@ int GetSplitRowPreferredHeight(
 
   const int adaptive_height =
       static_cast<int>(visual_rows) *
-          visual_style::kSidebarSplitPaneMinimumHeight +
+          std::max(visual_style::kSidebarSplitPaneMinimumHeight,
+                   minimum_pane_height) +
       static_cast<int>(visual_rows - 1) * visual_style::kSidebarSplitPaneGap;
   return std::max(standard_row_height, adaptive_height);
 }

@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "ahoi/browser/ui/drag/sidebar_tab_drag_payload.h"
+#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_drag_image.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_layout.h"
 #include "ahoi/browser/ui/sidebar/sidebar_split_resize_area.h"
@@ -62,6 +63,20 @@ void SidebarTreeView::OnBatchUpdateEnded() {
   if (synchronization_pending_ || preferred_size_change_pending_) {
     ScheduleSynchronization(preferred_size_change_pending_);
   }
+}
+
+void SidebarTreeView::OnSidebarDensityChanged() {
+  // A geometry change preserves selection/editing, but invalidates drag probes
+  // and animations recorded against the previous row bounds.
+  last_drop_probe_.reset();
+  SetDropIndicator(std::nullopt);
+  row_bounds_animator_.Cancel();
+  row_bounds_animation_pending_ = false;
+  preferred_height_animation_.Reset(1.0);
+  preferred_height_animation_active_ = false;
+  pending_animation_from_height_.reset();
+  last_visual_height_ = GetVisualRowsHeight(BuildVisualRows());
+  ScheduleSynchronization(/*preferred_size_changed=*/true);
 }
 
 void SidebarTreeView::OnTreeReset() {
@@ -305,14 +320,16 @@ std::vector<SidebarTreeView::VisualRow> SidebarTreeView::BuildVisualRows()
       emitted_nodes.insert(rows[index].node_id);
     }
   }
+  const auto density = appearance::GetSidebarDensityMetricsForView(this);
   int next_y = 0;
   for (VisualRow& visual_row : visual_rows) {
     visual_row.y = next_y;
+    visual_row.height = density.row_height;
     if (visual_row.model_indices.size() >= 2 &&
         visual_row.split_visual_data.has_value()) {
       visual_row.height = GetSplitRowPreferredHeight(
           visual_row.model_indices.size(), *visual_row.split_visual_data,
-          SidebarTreeRowView::kRowHeight);
+          density.row_height, density.split_pane_minimum_height);
     }
     next_y = base::saturated_cast<int>(static_cast<int64_t>(next_y) +
                                        visual_row.height);

@@ -334,7 +334,7 @@ class BrowserSidebarHostView final
   void OnGroupHistoryQueryCompleted(
       uint64_t generation,
       const base::Uuid& folder_node_id,
-      std::map<GURL, tab_tree::TreeNode> pages_by_url,
+      std::vector<tab_tree::TreeNode> pages,
       history::QueryResults results);
   void ShowGroupRecentBubble(const base::Uuid& folder_node_id,
                              std::vector<RecentGroupLink> links);
@@ -715,7 +715,7 @@ class BrowserSidebarHostView final
   bool reduced_transparency_ = false;
   int surface_corner_radius_ = 0;
   appearance::SidebarTintTransition sidebar_tint_transition_{this};
-  PrefChangeRegistrar page_tint_pref_change_registrar_;
+  PrefChangeRegistrar appearance_pref_change_registrar_;
   std::unique_ptr<SidebarTreeController> controller_;
   raw_ptr<SidebarTreeView> tree_view_ = nullptr;
   raw_ptr<views::Button> workspace_button_ = nullptr;

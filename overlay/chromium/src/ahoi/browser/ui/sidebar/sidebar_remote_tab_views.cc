@@ -12,6 +12,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_action_views.h"
 #include "ahoi/browser/ui/sidebar/sidebar_menu_presence.h"
 #include "ahoi/browser/ui/sidebar/sidebar_tree_row_view.h"
+#include "ahoi/browser/ui/appearance/sidebar_density_views.h"
 #include "ahoi/browser/ui/visual_style.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
@@ -85,7 +86,6 @@ class RemoteTabRowView final : public views::Button,
             model.tab)),
         model_(std::move(model)),
         actions_(std::move(actions)) {
-    SetPreferredSize(gfx::Size(0, SidebarTreeRowView::kRowHeight));
     SetFocusBehavior(FocusBehavior::ALWAYS);
     SetNotifyEnterExitOnChild(true);
 
@@ -159,12 +159,34 @@ class RemoteTabRowView final : public views::Button,
     UpdateBackground();
   }
 
+  gfx::Size CalculatePreferredSize(
+      const views::SizeBounds& available_size) const override {
+    return gfx::Size(0,
+        appearance::GetSidebarDensityMetricsForView(this).row_height);
+  }
+
   void Layout(PassKey) override {
-    const gfx::Rect icon_bounds(8, std::max(0, (height() - 16) / 2), 16, 16);
+    const auto density = appearance::GetSidebarDensityMetricsForView(this);
+    const int icon_size =
+        visual_style::kSidebarIconSize + density.icon_size_delta;
+    appearance::ApplySidebarDensityFont(title_);
+    const gfx::Rect icon_bounds(8, std::max(0, (height() - icon_size) / 2),
+                                icon_size, icon_size);
+    if (icon_size_ != icon_size) {
+      icon_size_ = icon_size;
+      favicon_->SetImageSize(gfx::Size(icon_size, icon_size));
+      const int device_size = 15 + density.icon_size_delta;
+      device_->SetImageSize(gfx::Size(device_size, device_size));
+    }
     favicon_->SetBoundsRect(icon_bounds);
     fallback_->SetBoundsRect(icon_bounds);
-    device_->SetBounds(width() - 25, std::max(0, (height() - 15) / 2), 15, 15);
-    title_->SetBounds(30, 0, std::max(0, width() - 62), height());
+    const int device_size = 15 + density.icon_size_delta;
+    device_->SetBounds(width() - 25,
+                       std::max(0, (height() - device_size) / 2),
+                       device_size, device_size);
+    title_->SetBounds(30 + density.icon_size_delta, 0,
+                      std::max(0, width() - 62 - density.icon_size_delta),
+                      height());
   }
 
   void StateChanged(ButtonState) override { UpdateBackground(); }
@@ -266,6 +288,7 @@ class RemoteTabRowView final : public views::Button,
   raw_ptr<views::Label> title_ = nullptr;
   raw_ptr<views::ImageView> device_ = nullptr;
   bool search_selected_ = false;
+  int icon_size_ = visual_style::kSidebarIconSize;
   std::unique_ptr<ui::SimpleMenuModel> menu_model_;
   std::unique_ptr<views::MenuRunner> menu_runner_;
 };

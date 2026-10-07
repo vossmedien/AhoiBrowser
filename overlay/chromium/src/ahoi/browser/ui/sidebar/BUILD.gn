@@ -116,6 +116,7 @@ source_set("sidebar_views") {
 
   public_deps = [
     ":sidebar_tree",
+    "//ahoi/browser/ui/appearance",
     "//ahoi/browser/ui:visual_style",
     "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
     "//base",
@@ -320,6 +321,7 @@ source_set("browser_sidebar") {
 
   deps = [
     ":sidebar_discovery",
+    "//ahoi/browser/extensions:tab_group_sidebar_adapter_views",
     "//ahoi/browser/session:command_service_factory",
     "//ahoi/browser/session:isolated_profiles",
     "//ahoi/browser/session:session_preferences",
@@ -369,6 +371,7 @@ source_set("unit_tests") {
   testonly = true
   sources = [
     "../../memory/tab_sleeping_unittest.cc",
+    "../appearance/sidebar_density_unittest.cc",
     "move_destination_menu_model_unittest.cc",
     "other_profile_media_unittest.cc",
     "sidebar_action_views_unittest.cc",
@@ -383,6 +386,7 @@ source_set("unit_tests") {
     "sidebar_menu_presence_unittest.cc",
     "sidebar_presentation_animator_unittest.cc",
     "sidebar_presentation_state_unittest.cc",
+    "sidebar_recent_links_view_unittest.cc",
     "sidebar_runtime_drop_targets_unittest.cc",
     "sidebar_runtime_refresh_gate_unittest.cc",
     "sidebar_saved_row_presence_unittest.cc",

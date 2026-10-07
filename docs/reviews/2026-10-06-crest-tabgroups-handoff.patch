@@ -1,0 +1,422 @@
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge.h b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge.h
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge.h
+@@ -62,6 +62,7 @@
+ 
+ namespace extensions {
+ class NativeExtensionSetupOperation;
++class TabGroupSidebarAdapter;
+ }
+ 
+ class CommandService;
+@@ -226,6 +227,10 @@
+     DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+     return tab_tree_store_.get();
+   }
++
++  // Window-local native groups; nullptr before readiness or after untracking.
++  extensions::TabGroupSidebarAdapter* GetTabGroupSidebarAdapter(
++      const BrowserWindowInterface* browser) const;
+ 
+   std::optional<base::Uuid> GetWindowId(
+       const BrowserWindowInterface* browser) const;
+@@ -683,6 +688,8 @@
+       GUARDED_BY_CONTEXT(sequence_checker_);
+   std::map<base::Uuid, raw_ptr<BrowserWindowInterface>> id_windows_
+       GUARDED_BY_CONTEXT(sequence_checker_);
++  std::map<TabStripModel*, std::unique_ptr<extensions::TabGroupSidebarAdapter>>
++      tab_group_sidebar_adapters_;
+   std::map<TabStripModel*, raw_ptr<BrowserWindowInterface>> model_windows_
+       GUARDED_BY_CONTEXT(sequence_checker_);
+   std::map<tabs::TabInterface*, RuntimeTabState> runtime_tabs_
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge.cc
+@@ -11,6 +11,7 @@
+ #include <vector>
+ 
+ #include "ahoi/browser/extensions/native_extension_setup_operation.h"
++#include "ahoi/browser/extensions/tab_group_sidebar_adapter.h"
+ #include "ahoi/browser/navigation/command_service.h"
+ #include "ahoi/browser/session/isolated_profile_creation.h"
+ #include "ahoi/browser/session/isolated_profile_registry.h"
+@@ -81,8 +82,19 @@
+   return weak_ptr_factory_.GetWeakPtr();
+ }
+ 
++extensions::TabGroupSidebarAdapter* SessionBridge::GetTabGroupSidebarAdapter(
++    const BrowserWindowInterface* browser) const {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  if (!ShouldTrackBrowser(browser)) {
++    return nullptr;
++  }
++  const auto it = tab_group_sidebar_adapters_.find(browser->GetTabStripModel());
++  return it == tab_group_sidebar_adapters_.end() ? nullptr : it->second.get();
++}
++
+ void SessionBridge::Shutdown() {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  tab_group_sidebar_adapters_.clear();
+   workspace_structure_controller_.reset();
+   if (session_metadata_provider_registered_) {
+     session::UnregisterWorkspaceSessionMetadataProvider(profile_, this);
+diff --git a/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc b/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
+--- a/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
++++ b/overlay/chromium/src/ahoi/browser/session/session_bridge_observers.cc
+@@ -7,6 +7,7 @@
+ #include <utility>
+ #include <vector>
+ 
++#include "ahoi/browser/extensions/tab_group_sidebar_adapter.h"
+ #include "ahoi/browser/navigation/command_service.h"
+ #include "ahoi/browser/session/session_bridge.h"
+ #include "ahoi/browser/session/session_bridge_internal.h"
+@@ -75,6 +76,12 @@
+   for (tabs::TabInterface* tab : *model) {
+     TrackRuntimeTab(model, tab, tab->GetContents());
+   }
++  tab_group_sidebar_adapters_.emplace(
++      model, std::make_unique<extensions::TabGroupSidebarAdapter>(
++                 *this, *browser, base::BindRepeating(
++                     [](SessionBridge* bridge) {
++                       bridge->runtime_presentation_changed_callbacks_.Notify();
++                     }, base::Unretained(this))));
+   // BrowserCollection observers do not have a contractual ordering. Defer
+   // the initial write so SessionService has first registered the new window;
+   // later user-driven workspace changes are still written immediately.
+@@ -101,6 +108,7 @@
+ 
+   const base::Uuid window_id = window_it->second.window_id;
+   TabStripModel* model = window_it->second.tab_strip_model;
++  tab_group_sidebar_adapters_.erase(model);
+   if (model && !tab_strip_model_destroyed) {
+     model->RemoveObserver(this);
+   }
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_presentation.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_presentation.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_presentation.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_presentation.cc
+@@ -12,6 +12,7 @@
+ #include <utility>
+ #include <vector>
+ 
++#include "ahoi/browser/extensions/tab_group_sidebar_adapter_views.h"
+ #include "ahoi/browser/memory/tab_sleeping.h"
+ #include "ahoi/browser/navigation/workspace_service.h"
+ #include "ahoi/browser/session/session_bridge.h"
+@@ -321,6 +322,14 @@
+     // source and make the group/split targets flash away mid-gesture.
+     return;
+   }
++  if (auto* groups = session_bridge_->GetTabGroupSidebarAdapter(browser_)) {
++    const auto workspace = controller_->view_model().workspace_id();
++    if (workspace && groups->IsTitleEditing(*workspace)) {
++      // Enter/Escape or losing the group/Workspace releases this local editor.
++      // A favicon/title refresh must not discard a user's unfinished rename.
++      return;
++    }
++  }
+   // A synchronous first projection invalidates constructor-time refresh tasks;
+   // their callbacks carry the older generation and become harmless no-ops.
+   ++runtime_refresh_generation_;
+@@ -349,9 +358,64 @@
+   const std::optional<base::Uuid> active_workspace =
+       controller_->view_model().workspace_id();
+ 
+-  const auto is_visible_temporary_tab =
+-      [this, &active_workspace](tabs::TabInterface* tab) {
+-        if (!tab || session_bridge_->FindTreeNodeIdForTab(tab).has_value()) {
++  auto* const group_adapter =
++      session_bridge_->GetTabGroupSidebarAdapter(browser_);
++  const auto native_groups = group_adapter && active_workspace
++      ? group_adapter->ReadGroups(*active_workspace)
++      : std::vector<extensions::SidebarTabGroup>();
++  std::set<tabs::TabInterface*> native_group_members;
++  for (const auto& group : native_groups) {
++    for (const auto& member : group.members) {
++      if (member) {
++        native_group_members.insert(member.get());
++      }
++    }
++  }
++  std::map<tab_groups::TabGroupId, views::View*> group_contents;
++  const auto parent_for_tab = [&](tabs::TabInterface* tab) -> views::View* {
++    for (const auto& group : native_groups) {
++      if (tab->GetGroup() != group.id || !native_group_members.contains(tab)) {
++        continue;
++      }
++      if (const auto existing = group_contents.find(group.id);
++          existing != group_contents.end()) {
++        return existing->second;
++      }
++      views::View* contents = nullptr;
++      open_tabs_container_->AddChildView(extensions::CreateTabGroupSidebarFolder(
++          group_adapter->GetWeakPtr(), group, !discovery_state_.query.empty(),
++          base::BindRepeating(
++              [](base::WeakPtr<BrowserSidebarHostView> host,
++                 const drag::SidebarTabDragPayload& payload) {
++                tabs::TabInterface* resolved = nullptr;
++                if (host && payload.is_valid()) {
++                  resolved = payload.saved_node_id
++                      ? host->session_bridge_->FindTabByTreeNodeId(
++                            *payload.saved_node_id)
++                      : host->FindRuntimeTab(*payload.runtime_tab_handle);
++                }
++                return resolved ? resolved->GetWeakPtr()
++                                : base::WeakPtr<tabs::TabInterface>();
++              }, weak_ptr_factory_.GetWeakPtr()),
++          base::BindRepeating(
++              &BrowserSidebarHostView::ClearDropTargetPresentation,
++              weak_ptr_factory_.GetWeakPtr()),
++          base::BindRepeating(
++              [](base::WeakPtr<BrowserSidebarHostView> host) {
++                if (host) {
++                  host->OnSidebarDragStateChanged(std::nullopt);
++                  host->OnTemporaryTabDragStateChanged(std::nullopt);
++                }
++              }, weak_ptr_factory_.GetWeakPtr()), &contents));
++      group_contents.emplace(group.id, contents);
++      return contents;
++    }
++    return open_tabs_container_;
++  };
++  const auto is_visible_open_tab =
++      [this, &active_workspace, &native_group_members](tabs::TabInterface* tab) {
++        if (!tab || (session_bridge_->FindTreeNodeIdForTab(tab).has_value() &&
++                     !native_group_members.contains(tab))) {
+           return false;
+         }
+         const std::optional<base::Uuid> tab_workspace =
+@@ -467,7 +531,7 @@
+             weak_ptr_factory_.GetWeakPtr()));
+   };
+ 
+-  // Rebuild temporary and mixed split rows directly from Chromium's
++  // Rebuild open rows, including saved members of native groups, from Chromium's
+   // authoritative SplitTabData. Walking the tab strip keeps split and
+   // ordinary rows in Chromium pane order without adjacency inference.
+   std::set<tabs::TabInterface*> presented_temporary_tabs;
+@@ -480,7 +544,7 @@
+   // Temporary pages now have real tree identities too. Their live row remains
+   // in the existing temporary/split section, never duplicated above it.
+   for (tabs::TabInterface* tab : *tab_strip_model_) {
+-    if (is_visible_temporary_tab(tab)) {
++    if (is_visible_open_tab(tab)) {
+       if (const auto id = session_bridge_->FindSharedTreeNodeIdForTab(tab)) {
+         mixed_split_saved_nodes.insert(*id);
+       }
+@@ -488,7 +552,7 @@
+   }
+   for (int index = 0; index < tab_strip_model_->count(); ++index) {
+     tabs::TabInterface* tab = tab_strip_model_->GetTabAtIndex(index);
+-    if (!is_visible_temporary_tab(tab)) {
++    if (!is_visible_open_tab(tab)) {
+       continue;
+     }
+     const int tab_handle = tab->GetHandle().raw_value();
+@@ -511,7 +575,7 @@
+       }
+       const bool all_members_are_visible_temporary =
+           split_tabs.size() >= 2 &&
+-          std::ranges::all_of(split_tabs, is_visible_temporary_tab);
++          std::ranges::all_of(split_tabs, is_visible_open_tab);
+       const bool is_visible_mixed_split =
+           split_tabs.size() >= 2 && saved_member_count > 0 &&
+           saved_member_count < split_tabs.size() &&
+@@ -523,7 +587,7 @@
+           // members as visited even when the complete unit is filtered out so
+           // a later pane cannot leak back as a detached ordinary row.
+           for (tabs::TabInterface* split_tab : split_tabs) {
+-            if (is_visible_temporary_tab(split_tab)) {
++            if (is_visible_open_tab(split_tab)) {
+               presented_temporary_tabs.insert(split_tab);
+               presented_temporary_handles.insert(
+                   split_tab->GetHandle().raw_value());
+@@ -539,15 +603,13 @@
+                   session_bridge_->FindTreeNodeIdForTab(split_tab);
+               saved_node_id.has_value()) {
+             mixed_split_saved_nodes.insert(*saved_node_id);
+-          } else {
+-            presented_temporary_tabs.insert(split_tab);
+-            presented_temporary_handles.insert(
+-                split_tab->GetHandle().raw_value());
+           }
++          presented_temporary_tabs.insert(split_tab);
++          presented_temporary_handles.insert(split_tab->GetHandle().raw_value());
+         }
+         const std::optional<split_tabs::SplitTabId> split_id = tab->GetSplit();
+         CHECK(split_id.has_value());
+-        open_tabs_container_->AddChildView(CreateOpenTabSplitRowView(
++        parent_for_tab(tab)->AddChildView(CreateOpenTabSplitRowView(
+             std::move(split_rows), *split_data->visual_data(),
+             base::BindRepeating(
+                 [](base::WeakPtr<BrowserSidebarHostView> host,
+@@ -566,7 +628,7 @@
+     if (!is_search_match_tab(tab)) {
+       continue;
+     }
+-    open_tabs_container_->AddChildView(create_open_tab_row(tab));
++    parent_for_tab(tab)->AddChildView(create_open_tab_row(tab));
+   }
+   // A closed temporary tab of an unrestored session is not a saved row; see
+   // ShouldHideClosedTemporaryPageRow. Hiding it is presentation-only, so a
+@@ -598,7 +660,7 @@
+     }
+   }
+   // Suppression is presentation-only and is recalculated from authoritative
+-  // SplitTabData on every refresh. Ending or reclassifying a split therefore
++  // SplitTabData and native groups on every refresh. Ungrouping therefore
+   // restores the exact persistent saved-page proxies without a store write.
+   tree_view_->SetRuntimeCompositeSuppressedNodes(
+       std::move(mixed_split_saved_nodes));
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_runtime_actions.cc b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_runtime_actions.cc
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_runtime_actions.cc
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/browser_sidebar_host_runtime_actions.cc
+@@ -13,6 +13,7 @@
+ 
+ #include "ahoi/browser/navigation/workspace_service.h"
+ #include "ahoi/browser/session/group_page_close.h"
++#include "ahoi/browser/extensions/tab_group_sidebar_adapter.h"
+ #include "ahoi/browser/session/session_bridge.h"
+ #include "ahoi/browser/session/session_bridge_factory.h"
+ #include "ahoi/browser/session/workspace_service_factory.h"
+@@ -233,6 +234,7 @@
+     return false;
+   }
+   const int source_handle = source->GetHandle().raw_value();
++  const bool source_was_grouped = source->GetGroup().has_value();
+   if (!CanDropOnRuntimeTab(source_node_id, source_runtime_handle, target,
+                            position)) {
+     return false;
+@@ -365,7 +367,8 @@
+   // Commit the durable-to-temporary conversion only after the Chromium model
+   // mutation is known to be valid. A store failure can then leave the saved
+   // page intact while the guard restores the model exactly.
+-  if (source_node_id.has_value() && !extracting_from_same_split) {
++  if (source_node_id.has_value() && !extracting_from_same_split &&
++      !source_was_grouped && !FindRuntimeTab(source_handle)->GetGroup()) {
+     const bool converted = MakeSavedPageTemporary(*source_node_id);
+     if (!weak_host || !converted) {
+       return false;
+@@ -381,6 +384,14 @@
+   if (!discovery_state_.query.empty() || !payload.is_valid() ||
+       !controller_ || !session_bridge_ || !tab_strip_model_) {
+     return false;
++  }
++  auto* const group_adapter =
++      session_bridge_->GetTabGroupSidebarAdapter(browser_);
++  auto* const grouped_source = payload.saved_node_id
++      ? session_bridge_->FindTabByTreeNodeId(*payload.saved_node_id)
++      : FindRuntimeTab(*payload.runtime_tab_handle);
++  if (grouped_source && grouped_source->GetGroup()) {
++    return group_adapter && group_adapter->CanRemoveTab(grouped_source);
+   }
+   if (payload.saved_node_id.has_value()) {
+     tab_tree::TreeNode node;
+@@ -411,6 +422,16 @@
+       weak_ptr_factory_.GetWeakPtr()));
+   if (!CanDropOpenTabToTemporary(payload)) {
+     return false;
++  }
++  auto* const group_adapter =
++      session_bridge_->GetTabGroupSidebarAdapter(browser_);
++  auto* const grouped_source = payload.saved_node_id
++      ? session_bridge_->FindTabByTreeNodeId(*payload.saved_node_id)
++      : FindRuntimeTab(*payload.runtime_tab_handle);
++  if (grouped_source && grouped_source->GetGroup()) {
++    // Open-area drop removes only native membership, retaining saved status,
++    // tree parents and complete split units.
++    return group_adapter && group_adapter->RemoveTab(grouped_source);
+   }
+   if (payload.saved_node_id.has_value()) {
+     // MakeSavedPageTemporary already captures and rolls back Chromium split
+diff --git a/overlay/chromium/src/ahoi/browser/session/BUILD.gn b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+--- a/overlay/chromium/src/ahoi/browser/session/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/session/BUILD.gn
+@@ -255,6 +255,7 @@
+     ":isolated_profiles",
+     "//ahoi/browser/extensions:native_setup_inventory",
+     "//ahoi/browser/extensions:native_setup_operation",
++    "//ahoi/browser/extensions:tab_group_sidebar_adapter",
+     "//ahoi/browser/resource_policy",
+     "//ahoi/browser/sync:profile_sync_service",
+     "//chrome/browser:browser_process",
+@@ -280,6 +281,7 @@
+     "isolated_workspace_directory_unittest.cc",
+     "portable_workspace_import_plan_unittest.cc",
+     "session_bridge_tab_binding_unittest.cc",
++    "../extensions/tab_group_sidebar_adapter_unittest.cc",
+     "session_bridge_unittest.cc",
+     "session_bridge_unittest_support.cc",
+     "session_bridge_unittest_support.h",
+@@ -301,6 +303,7 @@
+     ":session",
+     ":session_preferences",
+     ":shared_tab_target_policy",
++    "//ahoi/browser/extensions:tab_group_sidebar_adapter",
+     ":startup_policy",
+     ":website_session_browsing_data",
+     ":website_session_context",
+diff --git a/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn b/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
+--- a/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/ui/sidebar/BUILD.gn
+@@ -318,6 +318,7 @@
+ 
+   deps = [
+     ":sidebar_discovery",
++    "//ahoi/browser/extensions:tab_group_sidebar_adapter_views",
+     "//ahoi/browser/session:command_service_factory",
+     "//ahoi/browser/session:isolated_profiles",
+     "//ahoi/browser/session:session_preferences",
+diff --git a/overlay/chromium/src/ahoi/browser/extensions/BUILD.gn b/overlay/chromium/src/ahoi/browser/extensions/BUILD.gn
+--- a/overlay/chromium/src/ahoi/browser/extensions/BUILD.gn
++++ b/overlay/chromium/src/ahoi/browser/extensions/BUILD.gn
+@@ -196,3 +196,49 @@
+     ]
+   }
+ }
++
++# Native tab groups are local Open Tabs presentation, not a Sync model.
++source_set("tab_group_sidebar_adapter") {
++  sources = [
++    "tab_group_sidebar_adapter.cc",
++    "tab_group_sidebar_adapter.h",
++  ]
++  public_deps = [
++    "//base",
++    "//chrome/browser/ui/tabs:tab_strip_model_observer",
++    "//components/tab_groups",
++    "//components/tabs:public",
++    "//content/public/browser",
++  ]
++  deps = [
++    "//ahoi/browser/session:session_bridge_api",
++    "//chrome/browser/profiles:profile",
++    "//chrome/browser/sessions",
++    "//chrome/browser/ui/browser_window",
++    "//chrome/browser/ui/tabs:tab_group",
++    "//chrome/browser/ui/tabs:tab_strip",
++  ]
++}
++
++source_set("tab_group_sidebar_adapter_views") {
++  sources = [
++    "tab_group_sidebar_adapter_views.cc",
++    "tab_group_sidebar_adapter_views.h",
++  ]
++  public_deps = [
++    ":tab_group_sidebar_adapter",
++    "//ahoi/browser/ui/drag:sidebar_tab_drag_payload",
++    "//ui/views",
++  ]
++  deps = [
++    "//chrome/app:generated_resources",
++    "//chrome/browser/ui/tabs:tab_group",
++    "//components/vector_icons",
++    "//ui/accessibility",
++    "//ui/base",
++    "//ui/compositor",
++    "//ui/events",
++    "//ui/gfx",
++    "//ui/menus",
++  ]
++}

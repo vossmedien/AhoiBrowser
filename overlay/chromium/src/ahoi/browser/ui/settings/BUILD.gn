@@ -61,6 +61,7 @@ if (is_mac) {
       "//ui/shell_dialogs",
     ]
     deps = [
+      "//ahoi/browser/ui/appearance:appearance_preferences",
       "//ahoi/browser/navigation",
       "//ahoi/browser/navigation:link_routing",
       "//ahoi/browser/session:isolated_profiles",

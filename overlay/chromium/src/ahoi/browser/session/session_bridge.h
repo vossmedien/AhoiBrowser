@@ -62,6 +62,7 @@ class WorkspaceStructureController;
 
 namespace extensions {
 class NativeExtensionSetupOperation;
+class TabGroupSidebarAdapter;
 }
 
 class CommandService;
@@ -226,6 +227,10 @@ class SessionBridge : public KeyedService,
     DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
     return tab_tree_store_.get();
   }
+
+  // Window-local native groups; nullptr before readiness or after untracking.
+  extensions::TabGroupSidebarAdapter* GetTabGroupSidebarAdapter(
+      const BrowserWindowInterface* browser) const;
 
   std::optional<base::Uuid> GetWindowId(
       const BrowserWindowInterface* browser) const;
@@ -683,6 +688,8 @@ class SessionBridge : public KeyedService,
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<base::Uuid, raw_ptr<BrowserWindowInterface>> id_windows_
       GUARDED_BY_CONTEXT(sequence_checker_);
+  std::map<TabStripModel*, std::unique_ptr<extensions::TabGroupSidebarAdapter>>
+      tab_group_sidebar_adapters_;
   std::map<TabStripModel*, raw_ptr<BrowserWindowInterface>> model_windows_
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<tabs::TabInterface*, RuntimeTabState> runtime_tabs_

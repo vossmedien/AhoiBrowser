@@ -10,11 +10,13 @@
 
 #include "ahoi/browser/sync/cloudkit_sync_configuration_mac.h"
 #include "ahoi/browser/sync/profile_sync_service_factory.h"
+#include "ahoi/browser/ui/appearance/sidebar_density.h"
 #include "base/functional/bind.h"
 #include "base/i18n/rtl.h"
 #include "base/strings/string_util.h"
 #include "base/values.h"
 #include "chrome/browser/profiles/profile.h"
+#include "components/prefs/pref_service.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_ui.h"
 
@@ -128,6 +130,10 @@ AhoiSettingsHandler::~AhoiSettingsHandler() {
 }
 
 void AhoiSettingsHandler::RegisterMessages() {
+  web_ui()->RegisterMessageCallback(
+      "ahoiResetSidebarDensity",
+      base::BindRepeating(&AhoiSettingsHandler::HandleResetSidebarDensity,
+                          base::Unretained(this)));
   if (sync_service_ && !observing_sync_service_) {
     observing_sync_service_ = true;
     sync_service_->AddObserver(this);
@@ -225,6 +231,17 @@ void AhoiSettingsHandler::OnAhoiSyncStatusChanged(
   PushStatus({});
   PushBrowserSettingsSyncStatus();
   PushSyncControlsStatus();
+}
+
+void AhoiSettingsHandler::HandleResetSidebarDensity(
+    const base::ListValue& args) {
+  if (args.size() != 1 || !HasCallbackId(args) ||
+      !IsAuthorizedSettingsPage()) {
+    return;
+  }
+  AllowJavascript();
+  ResolveJavascriptCallback(args.front(), base::Value(
+      appearance::ResetSidebarDensity(*profile_->GetPrefs())));
 }
 
 bool AhoiSettingsHandler::IsAuthorizedSettingsPage() {

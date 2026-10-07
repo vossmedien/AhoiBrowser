@@ -5,7 +5,8 @@
 Unified owner Cockpit68E66C9E, active native Goal/thread
 01a11179-cb6b-7dc1-9e53-f3d72fefc198 continues stopped Claude049a3c1d and the
 complete Master. Later product decisions remain binding; AnyChat is out of scope.
-Desktop source1e340a17 and its shared Chromium build remain independent/owned.
+Installed Inhouse Desktop sourcee0282a90 and its shared Chromium output remain
+independent/owned; new combined Desktop Source is not a Mobile runtime lease.
 
 **Newest Mobile55 handback, not acceptance:** clean own branch7e3f59f0,
 functional source0ec4845f, built generic DebugLocal0f6e7cda (SDK27, Dev has no
