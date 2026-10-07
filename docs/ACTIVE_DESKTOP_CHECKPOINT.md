@@ -17,7 +17,10 @@ reserve plus output. No positive593 input/close evidence or native review yet.
 [Attempts and exact boundaries](../artifacts/tests/accept-m155-e0282a90-dev-fallback-593f4794-20261007/).
 
 Resource handback requested through the existing Orchestrator as52b50478;
-queued is not owner cleanup or execution. The previous37f42db8 request remains
+answer explicitly leaves the owner, forwarding and real handback unproven;
+no cleanup or execution is inferred. One bounded corrected admission after a
+short pause also stopped before launch:03:39UTC Inhouse26.56% CPU and
+5,513,568,256 bytes available, below reserve plus output. The previous37f42db8 request remains
 failed at WebSocket sending. Direct cross-project owner notes are rejected by
 the helper, so no BetterIPTV notification was delivered. The narrow own-output
 scan found only the active15GiB incremental output, which is retained; no

@@ -1,0 +1,15 @@
+{
+  "atUTC": "2026-10-07T03:39:03Z",
+  "inhouseMeanUsed": 26.56,
+  "inhouseUsedSamples": [
+    20.700000000000003,
+    30.239999999999995,
+    28.739999999999995
+  ],
+  "inhouseDiskAvailableBytes": 5513568256,
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000,
+  "helperSource": "593f4794",
+  "appSource": "e0282a903d8f8dc0f51f9eae5066d24eed249a62",
+  "state": "preferred Inhouse; Dev not admitted"
+}

@@ -14,5 +14,7 @@
   "resourceOwnerContact": "REJECTED: cockpit_note forbids cross-project notes to BetterIPTV; use actual Orchestrator",
   "next": "consume actual owner handback; admit fresh CPU/memory/disk before heavy phase; no blanket deletion, no lowered reserve",
   "resourceRequest": "52b50478-1b05-4c36-bc69-2799c72f7da2",
-  "resourceRequestState": "queued, not execution"
+  "resourceRequestState": "answered: owner, forwarding and actual handback explicitly unproven",
+  "sourcePushedRevision": "0a947aa3fe259abfb1420cf3179633c14dd6c8d9",
+  "boundedCorrectedAttempt": "03:39 UTC NOT_STARTED: Inhouse26.56% CPU,5513568256 bytes available, below reserve+output"
 }
