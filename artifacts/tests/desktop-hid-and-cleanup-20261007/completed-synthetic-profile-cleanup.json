@@ -1,0 +1,17 @@
+{
+  "time": 1791341780.506191,
+  "removedOwnSyntheticProfiles": [
+    {
+      "path": "/private/tmp/ahoi-hid-receiver.t325I1",
+      "allocatedKiB": 12784
+    },
+    {
+      "path": "/private/tmp/ahoi-hid-receiver.hc8hIK",
+      "allocatedKiB": 9048
+    }
+  ],
+  "retained": "all raw failure logs/source/installed/currentrollback/foreign profiles",
+  "freeBytesBefore": 8769101824,
+  "freeBytesAfter": 8794120192,
+  "netAvailableBytesRecovered": 25018368
+}

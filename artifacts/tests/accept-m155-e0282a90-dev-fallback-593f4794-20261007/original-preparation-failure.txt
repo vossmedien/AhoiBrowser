@@ -1,0 +1,1 @@
+Initial preparation stopped at actual HID idle <300s before app launch; CPU39.78% and verification passed. No journey ran.

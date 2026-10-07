@@ -172,6 +172,19 @@ incremental output; no second coldbuild created. Mobile55 informed274e2228 of
 actually saturated Inhouse/eligible Dev generic-compiler fallback, own per-phase
 admission still required. Native goal/thread identities and final gates retained.
 Current bindings: `artifacts/tests/full-candidate-preparation-6eefc4a8-20261007/`.
+Local fallback67411 parked BEFORE app launch when its fresh Inhouse check
+became4.45%CPU: preferred Inhouse path retained. Preferred593 nativeEvent journey
+also NOT_STARTED: disk8,572,236KiB below8GiB+0.3GB growth; later7,422,184KiB
+below8GiB reserve itself despite CPU11.77%. No positive593 input proof or
+startedF build. Exact preflight in
+`artifacts/tests/accept-m155-e0282a90-pid-593f4794-20261007/preparation-state.txt`.
+Two completed, explicitly recorded synthetic probe profiles cleaned after
+source/log capture,25,018,368bytes available delta; current/foreign/real-data
+profiles untouched. Whole Goal staysACTIVE; only heavy phases parked, no userpause.
+New Mobile cd0c public-DNR message Source/report inspected; concrete ownership of
+existing cleanR/DerivedData plus onlyShutdownA058 returned to same55 worker.
+It must admit each build/UI/focus phase against resources; no execution/SDK/
+storage acceptance inferred. Sources and leases retain the existing identities.
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no

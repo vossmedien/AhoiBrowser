@@ -1,0 +1,25 @@
+{
+  "host": "developmentMac",
+  "meanUsed": 39.78333333333333,
+  "usedSamples": [
+    42.34,
+    37.41,
+    39.6
+  ],
+  "time": 1791341107.088875,
+  "inhouseSaturationProof": {
+    "meanUsed": 96.23,
+    "confirmationMean": 98.14666666666666,
+    "samples": [
+      98.11,
+      97.49,
+      98.84
+    ]
+  },
+  "phase": "actual multi-selection/veto/close exact returned e028",
+  "helperSource": "593f4794",
+  "appSource": "e0282a903d8f8dc0f51f9eae5066d24eed249a62",
+  "purpose": "internal diagnostic candidate; installedDevEF unchanged",
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000
+}

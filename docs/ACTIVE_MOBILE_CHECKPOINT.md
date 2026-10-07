@@ -37,6 +37,19 @@ two Source helpers. Root original contract explicitly requires extensionstorage
 preservation, confirmed against the original delegation; no criterion relaxation.
 Inhouse now3.45GiB free, so no build/UI/focus lease returned and8GiB unchanged.
 Root resource-coordination37f42db8 queued, actual free-space handback still needed.
+Latest source cd0c9311/report71da7e2a uses the public in-process nativeMessagePort
+and extension updateEnabledRulesets/getEnabledRulesets instead of normal-path
+context unload. Five-file fixture retained by reusing popup.js as MV3 worker;
+nativeMessaging explicitly consented, identity/ACK/timeout/cancellation guarded.
+Actual SDK build, preserved storage and page deny/expiry/revoke/Private proofs
+are still open; safe error-path unload can still lose storage and is not a pass.
+Root inspected actual5-file delta, then explicitly returned clean remoteR0ec,
+existingDerivedData and onlyShutdownA058 to same55 for build→actualUI→focus→
+review. Own latest snapshot7.08GiB free/CPU11.77 means no heavy start until8GiB
+plus output available; genericDev fallback still needs actualInhouse saturation.
+No Source integration/main/push/debug-delivery yet; same Goal/thread, no worker
+duplication or nativeGoal replacement. Resource request37f42db8 failed WebSocket
+sending timeout, no actual global cleanup handback; do not claim or blindlyretry.
 
 - **Files import/load/unload PASS:** exact clean DebugLocalba139fc1, owned iOS27
   simulatorA058D204-F3CB-44B7-963C-1F785132EF8B,40.75s. Native Files selected the
