@@ -52,7 +52,7 @@ public actor CloudSyncCoordinator {
         _ record: SyncRecord,
         authorization: SyncAuthorizationContext = .init()
     ) async throws {
-        guard record.dataClass == .tombstone else {
+        guard record.tombstone != nil else {
             throw SyncBoundaryError.invalidTombstone
         }
         try boundary.authorize(record, context: authorization)
