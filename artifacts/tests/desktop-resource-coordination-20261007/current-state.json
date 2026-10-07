@@ -1,0 +1,18 @@
+{
+  "atUTC": "2026-10-07T03:34:25.981496+00:00",
+  "source": "Root68E66C9E/thread01a11179",
+  "inhouseDiskFreeKiB": 5104652,
+  "inhouseMeanCPUUsed": 46.93,
+  "reserveBytes": 8589934592,
+  "desktopPlannedGrowthBytes": 4294967296,
+  "shortUIPlannedGrowthBytes": 300000000,
+  "fullCandidateSource": "6eefc4a8d192830fc78ffe521f05958fbe302002",
+  "desktopRunnerStarted": false,
+  "mobileLease": "existing55 owns R71/DerivedData95/A058; Root has no lease",
+  "ownedOutputScan": "active incremental output15371044KiB; no maxdepth2 file>500MB, not deleted",
+  "previousResourceRequest": "37f42db8-d8bb-4cc2-a287-a7d2133be7d0 failed WebSocket send timeout; no worker or remediation proven",
+  "resourceOwnerContact": "REJECTED: cockpit_note forbids cross-project notes to BetterIPTV; use actual Orchestrator",
+  "next": "consume actual owner handback; admit fresh CPU/memory/disk before heavy phase; no blanket deletion, no lowered reserve",
+  "resourceRequest": "52b50478-1b05-4c36-bc69-2799c72f7da2",
+  "resourceRequestState": "queued, not execution"
+}

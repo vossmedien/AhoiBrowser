@@ -1,0 +1,7 @@
+{
+  "originalSHA256": "ec194ca6377ed8ce5f9ae2114e11a2631a5c4530953226f59d8c9be4ce7b722b",
+  "trackedSHA256": "5134c3021f8e6780f34fdc413454dc91bb290c3c4a2d42c828f33fed63778872",
+  "formatChange": "trailing whitespace and terminal blank lines removed; all captured values unchanged",
+  "originalRetainedLocal": "inhouse-top-original.log",
+  "initialDiffcheck": "FAILED on raw top trailing whitespace; corrected before push"
+}

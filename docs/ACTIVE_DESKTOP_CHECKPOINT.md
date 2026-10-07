@@ -2,6 +2,30 @@
 
 ## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
 
+**Current next action, 03:35 UTC:** full product source `6eefc4a8` is clean in
+the existing target mirror; its warm guarded runner remains NOT_STARTED.
+Installed Inhouse E028 and Dev EF remain unchanged. New PID helper593 was used
+for one actual Dev diagnostic attempt after Inhouse94.03% CPU / Dev40.04%
+admission, but the existing journey's unquoted AX variable split the helper's
+canonical path at its spaces. No input assertions were reached; the original
+`rows missing` failure is retained. Browser/site processes ended through the
+journey cleanup. A short symlink to the identical hash-verified helper fixes
+this setup without changing helper bytes or product assertions.
+The corrected attempt was NOT_STARTED: fresh Inhouse CPU46.93% requires the
+preferred host, whose actual free space5,104,652KiB is below the unchanged8GiB
+reserve plus output. No positive593 input/close evidence or native review yet.
+[Attempts and exact boundaries](../artifacts/tests/accept-m155-e0282a90-dev-fallback-593f4794-20261007/).
+
+Resource handback requested through the existing Orchestrator as52b50478;
+queued is not owner cleanup or execution. The previous37f42db8 request remains
+failed at WebSocket sending. Direct cross-project owner notes are rejected by
+the helper, so no BetterIPTV notification was delivered. The narrow own-output
+scan found only the active15GiB incremental output, which is retained; no
+additional cleanup is claimed. Resume the existing runner/affected UI only on
+actual capacity or owner handback. Mobile55 alone holds its existing R71/DD95/
+A058 lease; Root does not acquire or run that Mobile path.
+[Resource state and request](../artifacts/tests/desktop-resource-coordination-20261007/current-state.json).
+
 Current action: installed Inhouse candidate `e0282a90` remains unaccepted for
 batch close. C70 receiver guard `804d0e67` is reviewed/cherry-picked as
 `0c646698`; the separate, fixed-identity helper compiled after fresh37.50% mean

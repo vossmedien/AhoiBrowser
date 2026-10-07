@@ -8,9 +8,18 @@ complete Master. Later product decisions remain binding; AnyChat is out of scope
 Installed Inhouse Desktop sourcee0282a90 and its shared Chromium output remain
 independent/owned; new combined Desktop Source is not a Mobile runtime lease.
 
-**Newest Mobile55 handback, not acceptance:** clean own branch7e3f59f0,
-functional source0ec4845f, built generic DebugLocal0f6e7cda (SDK27, Dev has no
-iOS runtime), last visible Inhouse95d61c73:4PASS/1FAIL. Real standard popup,
+**Newest Mobile55 handback, not acceptance:** clean own branch80afd468,
+functional sourcecd0c9311/report71da7e2a now transferred and hash-verified into
+the existing clean target R71. DerivedData still95, A058 Shutdown, both own
+locks absent, owner active=false; no new SDK artifact or runtime result.
+Worker alone retains the returned R/DerivedData/A058 lease. Its actual03:13:59Z
+admission was Inhouse45.87% CPU / 3.524GiB free, below8GiB plus output, so no
+heavy phase started. The delayed99d2 error handback describes the earlier0ec
+candidate and does not supersede cd0c. Its advertised47a-based diff includes
+already-default work; the attributable implementation scope starts at main134.
+
+Last built generic DebugLocal0f6e7cda (SDK27, Dev has no iOS runtime), last
+visible Inhouse95d61c73:4PASS/1FAIL. Real standard popup,
 Files cancel/import and runtime-off passed; consent-storage loss remains FAIL,
 new-tab/private checks were not reached. The final native input/private-origin
 helper correction and postreview lifecycle corrections still need exact runtime

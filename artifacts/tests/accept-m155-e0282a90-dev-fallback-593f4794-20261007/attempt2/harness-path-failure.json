@@ -1,0 +1,6 @@
+{
+  "category": "harness",
+  "cause": "existing unquoted AX execution splits canonical path containing spaces",
+  "nextCorrection": "unchanged helper through short /private/tmp symlink",
+  "productJourney": "NOT_REACHED"
+}

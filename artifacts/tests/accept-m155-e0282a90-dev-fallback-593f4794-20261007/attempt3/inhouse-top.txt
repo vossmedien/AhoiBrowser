@@ -1,0 +1,46 @@
+Processes: 1127 total, 4 running, 1123 sleeping, 4713 threads
+2026/10/07 05:33:16
+Load Avg: 12.40, 11.87, 8.33
+CPU usage: 48.15% user, 16.14% sys, 35.69% idle
+SharedLibs: 902M resident, 117M data, 307M linkedit.
+MemRegions: 216023 total, 6355M resident, 729M private, 16G shared.
+PhysMem: 47G used (3939M wired, 8000M compressor), 440M unused.
+VM: 511T vsize, 57G framework vsize, 702987(0) swapins, 1236894(0) swapouts.
+Networks: packets: 398604723/523G in, 261682121/347G out.
+Disks: 167822982/6005G read, 101114294/4279G written.
+
+
+Processes: 1125 total, 5 running, 1120 sleeping, 4701 threads
+2026/10/07 05:33:17
+Load Avg: 12.40, 11.87, 8.33
+CPU usage: 41.11% user, 12.92% sys, 45.95% idle
+SharedLibs: 902M resident, 117M data, 307M linkedit.
+MemRegions: 586 total, 137M resident, 729M private, 16G shared.
+PhysMem: 47G used (3964M wired, 8000M compressor), 366M unused.
+VM: 510T vsize, 57G framework vsize, 702987(0) swapins, 1236894(0) swapouts.
+Networks: packets: 398606029/523G in, 261687234/347G out.
+Disks: 167823046/6005G read, 101114743/4279G written.
+
+
+Processes: 1124 total, 9 running, 1115 sleeping, 4643 threads
+2026/10/07 05:33:18
+Load Avg: 12.40, 11.87, 8.33
+CPU usage: 32.11% user, 8.75% sys, 59.12% idle
+SharedLibs: 902M resident, 117M data, 307M linkedit.
+MemRegions: 984 total, 245M resident, 729M private, 16G shared.
+PhysMem: 47G used (3798M wired, 7998M compressor), 365M unused.
+VM: 510T vsize, 57G framework vsize, 702987(0) swapins, 1236894(0) swapouts.
+Networks: packets: 398607218/523G in, 261692040/347G out.
+Disks: 167823054/6005G read, 101115554/4279G written.
+
+
+Processes: 1124 total, 7 running, 1117 sleeping, 4649 threads
+2026/10/07 05:33:19
+Load Avg: 12.40, 11.87, 8.33
+CPU usage: 35.50% user, 10.35% sys, 54.14% idle
+SharedLibs: 902M resident, 117M data, 307M linkedit.
+MemRegions: 1314 total, 310M resident, 729M private, 16G shared.
+PhysMem: 47G used (3971M wired, 7998M compressor), 319M unused.
+VM: 510T vsize, 57G framework vsize, 702987(0) swapins, 1236894(0) swapouts.
+Networks: packets: 398608496/523G in, 261697129/347G out.
+Disks: 167823077/6005G read, 101115880/4279G written.

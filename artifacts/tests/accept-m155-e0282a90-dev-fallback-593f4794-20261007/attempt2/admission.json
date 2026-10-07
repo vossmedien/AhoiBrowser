@@ -1,0 +1,29 @@
+{
+  "host": "developmentMac",
+  "inhouseMeanUsed": 94.0333333333,
+  "inhouseUsedSamples": [
+    97.32,
+    87.7,
+    97.08
+  ],
+  "devMeanUsed": 40.0366666667,
+  "devUsedSamples": [
+    44.56,
+    43.8,
+    31.75
+  ],
+  "memoryFreePercent": 55,
+  "swapUsedMiB": 3215.75,
+  "availableDiskKiB": 117567296,
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000,
+  "HIDIdleSeconds": 2808,
+  "browserProcesses": 0,
+  "ports9349and8796": "free",
+  "appSource": "e0282a903d8f8dc0f51f9eae5066d24eed249a62",
+  "helperSource": "593f4794",
+  "helperSHA256": "00f453ae4de4b5bc085b5f17f7e3caba3df0dd915c45d37062b74d2da5650afc",
+  "scope": "internal diagnostic returned app; installed app untouched",
+  "recordedAtUTC": "2026-10-07T03:32:04.937448+00:00",
+  "timeMeaning": "receipt creation, after the recorded consecutive capacity samples"
+}
