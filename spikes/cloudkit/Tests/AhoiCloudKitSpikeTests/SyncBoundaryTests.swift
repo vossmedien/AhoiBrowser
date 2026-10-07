@@ -46,6 +46,8 @@ final class SyncBoundaryTests: XCTestCase {
             .extensionInventory,
             .bookmark,
             .deviceCapability,
+            .splitGroup,
+            .tabArchiveEntry,
         ]
 
         XCTAssertEqual(Set(permitted).union([.developerAsset]), SharedSyncFormat.supportedDataClasses)
