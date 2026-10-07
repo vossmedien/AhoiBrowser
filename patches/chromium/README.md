@@ -366,6 +366,29 @@ carry only the new blob ids). Single-index callers are unaffected.
   Quick Window class. Removing it needs the overlay catalog's
   `rebindable=false` for the four commands back.
 
+## `0084-ahoi-arc-imported-visit-source.patch`
+
+- **Owner:** Desktop, Arc-history worker `e5fbc1f3`.
+- **Change:** minimal M155 port of the original five upstream paths. Adds
+  `SOURCE_ARC_IMPORTED=8`, its VisitSourceFromInt case and the
+  `AhoiArcHistoryImport` SQL tag after 0001's existing `AhoiTabTree` context.
+  `CommitForAhoiImport()` reports the actual singleton transaction commit
+  and successful successor transaction; no overlay/nested SQL transaction.
+  Arc-specific AddPagesWithDetails failures omit URLs from diagnostics.
+- **Safety:** only one serialized HistoryDBTask calls the commit seam. Exact
+  visit/URL rollback and Prepared/Committed journals live in the Arc overlay;
+  normal HistoryBackend callers and existing import-source values retain
+  their behavior. No URLs or titles enter UI, journals or sync.
+- **Source checks:** applies to the five pinned M155 files with 0001's known
+  SQL-tag addition. This is not a complete stack apply/build or runtime pass.
+- **Acceptance:** Root builds the combined candidate, exercises history-only,
+  combined, replay, isolated targets, exact rollback and prepared recovery,
+  then runs focused native checks and a separate native review. See the
+  [source handoff](../../docs/reviews/2026-10-07-arc-history-m155-handoff.md).
+- **Rebase/removal:** medium; tied to M155 HistoryBackend's owned singleton
+  transaction, AddPagesWithDetails and VisitDatabase. Remove only together
+  with the Arc history overlay and its argument-11 callers.
+
 ## `0083-ahoi-command-bar-key-hints.patch`
 
 - **Owner:** Desktop (design spec 2026-09-29, command bar footer).

@@ -1,0 +1,95 @@
+diff --git a/components/history/core/browser/history_backend.cc b/components/history/core/browser/history_backend.cc
+--- a/components/history/core/browser/history_backend.cc
++++ b/components/history/core/browser/history_backend.cc
+@@ -511,6 +511,17 @@
+ }
+ #endif
+ 
++bool HistoryBackend::CommitForAhoiImport() {
++  if (!db_ || !singleton_transaction_ || !db_->HasActiveTransactions()) {
++    return false;
++  }
++  CancelScheduledCommit();
++  const bool committed = singleton_transaction_->Commit();
++  singleton_transaction_.reset();
++  BeginSingletonTransaction();
++  return committed && singleton_transaction_ != nullptr;
++}
++
+ void HistoryBackend::ClearCachedDataForContextID(ContextID context_id) {
+   TRACE_EVENT0("browser", "HistoryBackend::ClearCachedDataForContextID");
+   tracker_.ClearCachedDataForContextID(context_id);
+@@ -1585,7 +1596,11 @@
+       // Add the page if it doesn't exist.
+       url_id = db_->AddURL(*i);
+       if (!url_id) {
+-        DLOG(ERROR) << "AddPagesWithDetails: Adding URL failed: " << i->url();
++        if (visit_source == SOURCE_ARC_IMPORTED) {
++          DLOG(ERROR) << "Arc history import: adding URL failed";
++        } else {
++          DLOG(ERROR) << "AddPagesWithDetails: Adding URL failed: " << i->url();
++        }
+         return;
+       }
+ 
+@@ -1605,7 +1620,11 @@
+           /*arg_opener_visit=*/0);
+       visit_info.source = visit_source;
+       if (!db_->AddVisit(&visit_info)) {
+-        DLOG(ERROR) << "AddPagesWithDetails: Adding visit failed: " << i->url();
++        if (visit_source == SOURCE_ARC_IMPORTED) {
++          DLOG(ERROR) << "Arc history import: adding visit failed";
++        } else {
++          DLOG(ERROR) << "AddPagesWithDetails: Adding visit failed: " << i->url();
++        }
+         return;
+       }
+ 
+diff --git a/components/history/core/browser/history_backend.h b/components/history/core/browser/history_backend.h
+--- a/components/history/core/browser/history_backend.h
++++ b/components/history/core/browser/history_backend.h
+@@ -265,6 +265,11 @@
+   // system. This is intended for use when the application is backgrounded.
+   void PersistState();
+ #endif
++
++  // Commits the singleton history transaction and opens its successor.
++  // False leaves the Arc journal prepared: void Commit() cannot prove that
++  // this durable boundary succeeded. Only call from one HistoryDBTask run.
++  bool CommitForAhoiImport();
+ 
+   void ClearCachedDataForContextID(ContextID context_id);
+ 
+diff --git a/components/history/core/browser/history_types.h b/components/history/core/browser/history_types.h
+--- a/components/history/core/browser/history_types.h
++++ b/components/history/core/browser/history_types.h
+@@ -56,6 +56,7 @@
+   SOURCE_SAFARI_IMPORTED = 5,
+   SOURCE_ACTOR = 6,  // Added by the GLIC actor.
+   SOURCE_OS_MIGRATION_IMPORTED = 7,
++  SOURCE_ARC_IMPORTED = 8,  // Imported from a local Arc profile.
+ };
+ 
+ // Corresponds to the "id" column of the "visited_links" SQL table.
+diff --git a/components/history/core/browser/visit_database.cc b/components/history/core/browser/visit_database.cc
+--- a/components/history/core/browser/visit_database.cc
++++ b/components/history/core/browser/visit_database.cc
+@@ -124,6 +124,7 @@
+     case SOURCE_SAFARI_IMPORTED:
+     case SOURCE_ACTOR:
+     case SOURCE_OS_MIGRATION_IMPORTED:
++    case SOURCE_ARC_IMPORTED:
+       return converted;
+   }
+   // In cases of database corruption, SOURCE_BROWSED is a safe default value.
+diff --git a/tools/metrics/histograms/metadata/sql/histograms.xml b/tools/metrics/histograms/metadata/sql/histograms.xml
+--- a/tools/metrics/histograms/metadata/sql/histograms.xml
++++ b/tools/metrics/histograms/metadata/sql/histograms.xml
+@@ -34,6 +34,7 @@
+       summary="AccessibilityAnnotator (deprecated 08/2026)"/>
+   <variant name="Activity" summary="Activity"/>
+   <variant name="Affiliation" summary="Affiliation"/>
++  <variant name="AhoiArcHistoryImport" summary="Ahoi Arc history import"/>
+   <variant name="AhoiTabTree" summary="AhoiBrowser persistent tab tree"/>
+   <variant name="AnnotationStorage" summary="AnnotationStorage"/>
+   <variant name="ArcContentUrlDatabase" summary="ArcContentUrlDatabase"/>

@@ -8,6 +8,7 @@
 #include "ahoi/browser/importer/arc/arc_import_service.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/session_bridge_factory.h"
+#include "chrome/browser/history/history_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
 
 namespace ahoi::importer::arc {
@@ -31,6 +32,7 @@ ArcImportServiceFactory::ArcImportServiceFactory()
     : ProfileKeyedServiceFactory("AhoiArcImportService",
                                  ProfileSelections::BuildForRegularProfile()) {
   DependsOn(SessionBridgeFactory::GetInstance());
+  DependsOn(HistoryServiceFactory::GetInstance());
 }
 
 ArcImportServiceFactory::~ArcImportServiceFactory() = default;

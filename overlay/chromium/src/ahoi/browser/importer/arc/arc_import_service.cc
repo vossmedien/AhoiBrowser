@@ -36,6 +36,7 @@
 #include "base/task/task_traits.h"
 #include "base/task/thread_pool.h"
 #include "base/uuid.h"
+#include "chrome/browser/profiles/keep_alive/scoped_profile_keep_alive.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 
@@ -60,16 +61,6 @@ bool IsCommittedSelection(
 }
 
 }  // namespace
-
-struct ArcImportService::DiscoveryResult {
-  ArcImportStatus status = ArcImportStatus::kNotFound;
-  std::optional<ArcImportPlan> plan;
-  std::string snapshot_token;
-  std::optional<ArcImportCommittedState> committed;
-  std::optional<ArcImportPreparedState> prepared;
-  std::optional<ArcSource> source;
-  bool arc_is_running = false;
-};
 
 ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
     const base::FilePath& profile_path,
@@ -142,6 +133,8 @@ ArcImportService::~ArcImportService() = default;
 
 void ArcImportService::Shutdown() {
   navigation_barrier_.reset();
+  history_runner_.reset();
+  history_keep_alive_.reset();
   ++discovery_generation_;
   operation_in_progress_ = false;
   pending_plan_.reset();
@@ -151,6 +144,11 @@ void ArcImportService::Shutdown() {
   weak_factory_.InvalidateWeakPtrs();
   session_bridge_ = nullptr;
   profile_ = nullptr;
+  if (history_callback_) {
+    std::move(history_callback_).Run(
+        {.selected = true, .status = ArcImportStatus::kRecoveryRequired});
+  }
+  history_owns_operation_ = false;
 }
 
 void ArcImportService::DiscoverAndPreview(ArcImportPlanOptions options,
@@ -186,9 +184,15 @@ void ArcImportService::OnDiscoveryComplete(uint64_t generation,
     BeginPreparedRecovery(std::move(callback), std::move(*result.prepared));
     return;
   }
+  if (!result.history_recovery_started) {
+    RecoverHistoryBeforePreview(generation, std::move(callback),
+                                std::move(result));
+    return;
+  }
   operation_in_progress_ = false;
   ArcImportPreview preview{.status = result.status};
   preview.arc_is_running = result.arc_is_running;
+  preview.history_available = result.history_available;
   preview.folders_as_workspaces =
       result.plan && result.plan->options.folders_as_workspaces;
   if (result.status != ArcImportStatus::kOk || !result.plan || !result.source ||
@@ -355,6 +359,20 @@ void ArcImportService::OnCommitSourceValidated(
     return;
   }
 
+  if (!selection.import_sidebar) {
+    auto context = std::make_unique<CommitContext>();
+    context->callback = std::move(callback);
+    context->result.status = ArcImportStatus::kNoChanges;
+    context->selected_source =
+        SelectArcImportBrowserProfiles(*pending_source_, selection);
+    context->snapshot_hash = std::move(snapshot_token);
+    context->import_sidebar = false;
+    context->import_history = selection.import_history;
+    context->separated_arc_profiles = selection.separated_arc_profiles;
+    HistoryFinishCommit(std::move(context));
+    return;
+  }
+
   // WS-ISO-10: separated Arc profiles leave the main plan here; their
   // Workspaces are created only after this transaction succeeded.
   ArcProfileMapping mapping = MapArcImportPlanByProfile(
@@ -386,10 +404,16 @@ void ArcImportService::OnCommitSourceValidated(
     // Separated Workspaces are looked up by identity: an existing one is
     // reported as such, a missing one (deleted, or its creation failed) is
     // created again, never duplicated.
-    operation_in_progress_ = false;
-    result.status = ArcImportStatus::kNoChanges;
-    FinishWithSeparatedWorkspaces(std::move(mapping.separated),
-                                  std::move(result), std::move(callback));
+    auto context = std::make_unique<CommitContext>();
+    context->callback = std::move(callback);
+    context->result.status = ArcImportStatus::kNoChanges;
+    context->selected_source =
+        SelectArcImportBrowserProfiles(*pending_source_, selection);
+    context->snapshot_hash = std::move(snapshot_token);
+    context->import_history = selection.import_history;
+    context->separated_arc_profiles = selection.separated_arc_profiles;
+    context->separated = std::move(mapping.separated);
+    FinishWithSeparatedWorkspaces(std::move(context));
     return;
   }
   ArcImportMergeResult merge =
@@ -418,6 +442,8 @@ void ArcImportService::OnCommitSourceValidated(
   context->browser = std::move(browser);
   context->selected_source =
       SelectArcImportBrowserProfiles(*pending_source_, selection);
+  context->import_history = selection.import_history;
+  context->separated_arc_profiles = selection.separated_arc_profiles;
   context->tree_changed = merge.status == ArcImportStatus::kOk;
   context->merged_tree = std::move(merge.merged_tree);
   context->previous_tree = std::move(current);

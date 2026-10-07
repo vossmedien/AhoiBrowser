@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "ahoi/browser/importer/arc/arc_history_import_runner.h"
 #include "ahoi/browser/importer/arc/arc_import_journal.h"
 #include "ahoi/browser/importer/arc/arc_import_manual_recovery_plan.h"
 #include "ahoi/browser/importer/arc/arc_import_profile_mapping.h"
@@ -25,6 +26,7 @@
 class BrowserWindowInterface;
 class Profile;
 class SessionID;
+class ScopedProfileKeepAlive;
 
 namespace sessions {
 struct SessionWindow;
@@ -38,6 +40,7 @@ namespace ahoi::importer::arc {
 
 struct ArcImportBackupRecoveryResult;
 struct ArcImportBackupResult;
+struct ArcSeparatedImportOutcome;
 class ArcImportNavigationBarrier;
 
 // ADR 0011 WS-ISO-10: an Arc profile that owns spaces and can be imported as
@@ -60,6 +63,7 @@ struct ArcImportPreview {
   std::vector<std::string> available_browser_profiles;
   size_t conflicting_workspace_count = 0;
   bool already_imported = false;
+  bool history_available = false;
   bool arc_is_running = false;
   // The layout this preview (and its pending plan) was built for.
   bool folders_as_workspaces = false;
@@ -67,12 +71,13 @@ struct ArcImportPreview {
 };
 
 // Explicit user choices carried from the mutation-free preview to Commit().
-// Sidebar import is the supported category today; native split recreation can
+// Sidebar and history are independently selectable; native split recreation can
 // be independently disabled, in which case split members remain in a named
 // folder. Selected profiles determine which local Arc profile artifacts are
 // included in the pre-commit safety backup.
 struct ArcImportSelection {
   bool import_sidebar = true;
+  bool import_history = false;
   bool reconstruct_splits = true;
   // Must equal the previewed layout; a mismatch is a stale preview.
   bool folders_as_workspaces = false;
@@ -97,6 +102,7 @@ struct ArcImportCommitResult {
   size_t separated_workspace_count = 0;
   size_t existing_separated_workspace_count = 0;
   size_t failed_separated_workspace_count = 0;
+  ArcHistoryImportResult history;
 };
 
 using ArcImportPreviewCallback = base::OnceCallback<void(ArcImportPreview)>;
@@ -243,10 +249,41 @@ class ArcImportService : public KeyedService {
                              bool journal_restored);
   // WS-ISO-10: after the main Profile's transaction (or its verified no-op)
   // finished with `result`, creates the separated Workspaces and reports.
-  void FinishWithSeparatedWorkspaces(
-      std::vector<ArcSeparatedWorkspacePlan> separated,
-      ArcImportCommitResult result,
-      ArcImportCommitCallback callback);
+  void FinishWithSeparatedWorkspaces(std::unique_ptr<CommitContext> context);
+  void OnSeparatedWorkspacesFinished(std::unique_ptr<CommitContext> context,
+                                     ArcSeparatedImportOutcome outcome);
+
+  bool CanImportHistory() const;
+  ArcHistoryImportRunner* GetHistoryRunner();
+  void HistoryFinishCommit(std::unique_ptr<CommitContext> context);
+  void ImportNextHistoryProfile(std::unique_ptr<CommitContext> context);
+  void OnHistoryTargetLoaded(std::unique_ptr<CommitContext> context,
+                             std::string arc_profile,
+                             base::FilePath target_path,
+                             Profile* target);
+  void OnHistoryProfileImported(std::unique_ptr<CommitContext> context,
+                                ArcHistoryImportResult result);
+  void RecoverHistoryBeforePreview(uint64_t generation,
+                                   ArcImportPreviewCallback callback,
+                                   DiscoveryResult result);
+  void OnPreviewHistoryTargetLoaded(uint64_t generation,
+                                    ArcImportPreviewCallback callback,
+                                    DiscoveryResult result,
+                                    base::FilePath target_path,
+                                    Profile* target);
+  void OnPreviewHistoryRecovered(uint64_t generation,
+                                 ArcImportPreviewCallback callback,
+                                 DiscoveryResult result,
+                                 ArcHistoryImportResult history);
+  void RunHistoryOperation(std::optional<ArcHistoryImportRequest> request,
+                           ArcHistoryImportRunner::ImportCallback callback,
+                           bool within_operation);
+  void OnHistoryJournalRead(std::optional<ArcHistoryImportRequest> request,
+                            ArcHistoryJournalReadResult journal);
+  void OnHistoryPreparedRecovered(
+      std::optional<ArcHistoryImportRequest> request,
+      ArcImportStatus status);
+  void OnHistoryOperationFinished(ArcHistoryImportResult result);
 
   raw_ptr<Profile> profile_ = nullptr;
   raw_ptr<SessionBridge> session_bridge_ = nullptr;
@@ -257,6 +294,10 @@ class ArcImportService : public KeyedService {
   uint64_t discovery_generation_ = 0;
   bool operation_in_progress_ = false;
   std::unique_ptr<ArcImportNavigationBarrier> navigation_barrier_;
+  std::unique_ptr<ArcHistoryImportRunner> history_runner_;
+  std::unique_ptr<ScopedProfileKeepAlive> history_keep_alive_;
+  ArcHistoryImportRunner::ImportCallback history_callback_;
+  bool history_owns_operation_ = false;
 
   base::WeakPtrFactory<ArcImportService> weak_factory_{this};
 };

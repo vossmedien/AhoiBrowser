@@ -295,7 +295,41 @@ class AhoiSettingsPageContractTests(unittest.TestCase):
             self.assertIn(marker, self.arc_import_webui_test)
         self.assertNotIn("<dt", self.arc_import_component)
         self.assertNotIn("<dd", self.arc_import_component)
-        self.assertEqual(2, self.arc_import_component.count('<ul class="counts'))
+        # Preview, sidebar result and the separate history result.
+        self.assertEqual(3, self.arc_import_component.count('<ul class="counts'))
+        for marker in (
+            'id="ahoiArcImportHistory"',
+            'id="ahoiArcHistoryFailure"',
+            'id="ahoiArcResultHistoryAdded"',
+        ):
+            self.assertIn(marker, self.arc_import_component)
+        for marker in (
+            "historyIsASeparateDefaultOnCategoryWithCountOnlyResult",
+            "historyFailureIsReportedBesideACommittedSidebar",
+        ):
+            self.assertIn(marker, self.arc_import_webui_test)
+
+    def test_arc_history_keeps_profile_argument_and_terminal_guard(self):
+        handler = (ARC_IMPORT_ROOT / "arc_import_handler.cc").read_text()
+        self.assertIn("args.size() < 8u || args.size() > 11u", handler)
+        self.assertIn("args.size() >= 10u && !args[9].is_list()", handler)
+        self.assertIn("args.size() == 11u && args[10].GetBool()", handler)
+        self.assertIn("profile : args[9].GetList()", handler)
+        self.assertIn("this.arcSeparatedProfiles_,\n          this.isArcHistorySelected_()",
+                      self.arc_import_controller)
+        runtime = (ARC_IMPORT_ROOT / "arc_import_service_runtime.cc").read_text()
+        success = runtime[runtime.index("  context->result.status = context->tree_changed"):]
+        self.assertIn("FinishWithSeparatedWorkspaces(std::move(context))", success)
+        self.assertNotIn("operation_in_progress_ = false", success)
+        history = (ARC_IMPORT_ROOT / "arc_import_service_history.cc").read_text()
+        self.assertIn("service == this", history)
+        self.assertIn("entry->state != session::IsolatedProfileState::kActive", history)
+        self.assertIn("service->RunHistoryOperation", history)
+        self.assertIn("context->separated_arc_profiles.empty()", history)
+        key = (ARC_IMPORT_ROOT / "arc_import_transaction_key.cc").read_text()
+        self.assertNotIn("import_history", key)
+        self.assertIn("selected_browser_profiles", key)
+        self.assertIn("separated_arc_profiles", key)
 
     def test_pref_service_imports_are_available_on_every_platform(self):
         chromeos_guard = self.controller.index(

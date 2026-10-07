@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "ahoi/browser/importer/arc/arc_import_separated_workspaces.h"
-#include "ahoi/browser/importer/arc/arc_import_service.h"
+#include "ahoi/browser/importer/arc/arc_import_service_internal.h"
 #include "ahoi/browser/session/session_bridge.h"
 #include "ahoi/browser/session/workspace_directory_order.h"
 #include "ahoi/browser/tab_tree/tab_tree_model.h"
@@ -18,11 +18,10 @@
 
 namespace ahoi::importer::arc {
 
-namespace {
-
-void ReportSeparatedOutcome(ArcImportCommitResult result,
-                            ArcImportCommitCallback callback,
-                            ArcSeparatedImportOutcome outcome) {
+void ArcImportService::OnSeparatedWorkspacesFinished(
+    std::unique_ptr<CommitContext> context,
+    ArcSeparatedImportOutcome outcome) {
+  auto& result = context->result;
   result.separated_workspace_count = outcome.created;
   result.existing_separated_workspace_count = outcome.existing;
   result.failed_separated_workspace_count = outcome.failed;
@@ -33,17 +32,13 @@ void ReportSeparatedOutcome(ArcImportCommitResult result,
       result.status = ArcImportStatus::kTransactionFailed;
     }
   }
-  std::move(callback).Run(std::move(result));
+  HistoryFinishCommit(std::move(context));
 }
 
-}  // namespace
-
 void ArcImportService::FinishWithSeparatedWorkspaces(
-    std::vector<ArcSeparatedWorkspacePlan> separated,
-    ArcImportCommitResult result,
-    ArcImportCommitCallback callback) {
-  if (separated.empty()) {
-    std::move(callback).Run(std::move(result));
+    std::unique_ptr<CommitContext> context) {
+  if (context->separated.empty()) {
+    HistoryFinishCommit(std::move(context));
     return;
   }
   // New separated Workspaces order after this Profile's Workspaces.
@@ -57,13 +52,12 @@ void ArcImportService::FinishWithSeparatedWorkspaces(
       }
     }
   }
-  // The importer lock is already released: a second commit while Profiles
-  // are still being created finds their registry entries (registered
-  // synchronously) and reports them as existing instead of duplicating.
+  // Keep the operation guard until separated creation and history terminate.
+  auto separated = std::move(context->separated);
   CreateArcSeparatedWorkspaces(
       std::move(separated), std::move(main_workspaces),
-      base::BindOnce(&ReportSeparatedOutcome, std::move(result),
-                     std::move(callback)));
+      base::BindOnce(&ArcImportService::OnSeparatedWorkspacesFinished,
+                     weak_factory_.GetWeakPtr(), std::move(context)));
 }
 
 }  // namespace ahoi::importer::arc

@@ -301,14 +301,11 @@ void ArcImportService::FinishJournalWrite(
                        weak_factory_.GetWeakPtr(), std::move(context)));
     return;
   }
-  operation_in_progress_ = false;
   context->result.status = context->tree_changed || context->runtime_started
                                ? ArcImportStatus::kOk
                                : ArcImportStatus::kNoChanges;
   committed_journal_state_ = std::move(context->next_committed);
-  FinishWithSeparatedWorkspaces(std::move(context->separated),
-                                std::move(context->result),
-                                std::move(context->callback));
+  FinishWithSeparatedWorkspaces(std::move(context));
 }
 
 void ArcImportService::OnPreparedAfterCommitFailure(

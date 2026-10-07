@@ -64,7 +64,8 @@ ArcImportStatus ValidateArcImportCommitSource(
 
 bool IsValidArcImportSelection(const ArcImportSelection& selection,
                                const ArcSource& source) {
-  if (!selection.import_sidebar || !selection.backup_confirmed ||
+  if ((!selection.import_sidebar && !selection.import_history) ||
+      !selection.backup_confirmed ||
       !selection.commit_confirmed ||
       selection.selected_browser_profiles.empty()) {
     return false;
@@ -79,7 +80,10 @@ bool IsValidArcImportSelection(const ArcImportSelection& selection,
       return false;
     }
   }
-  return true;
+  return std::ranges::all_of(selection.separated_arc_profiles,
+                             [&selected](const std::string& profile) {
+                               return selected.contains(profile);
+                             });
 }
 
 ArcSource SelectArcImportBrowserProfiles(const ArcSource& source,

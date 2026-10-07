@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "ahoi/browser/importer/arc/arc_history_unittest_support.h"
 #include "ahoi/browser/importer/arc/arc_import_backup.h"
 #include "ahoi/browser/importer/arc/arc_import_commit_support.h"
 #include "ahoi/browser/importer/arc/arc_import_discovery.h"
@@ -52,6 +53,8 @@
 #include "crypto/hash.h"
 #include "net/http/http_status_code.h"
 #include "net/test/embedded_test_server/controllable_http_response.h"
+#include "sql/database.h"
+#include "sql/test/test_helpers.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "url/gurl.h"
 
@@ -736,6 +739,45 @@ IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
   EXPECT_EQ(initial_tab_count_, browser()->GetTabStripModel()->count());
   EXPECT_FALSE(first_response_->has_received_request());
   EXPECT_FALSE(second_response_->has_received_request());
+}
+
+IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
+                       HistoryOnlyAndSidebarReplayKeepNativeTree) {
+  base::ScopedAllowBlockingForTesting allow_blocking;
+  const auto history_path = source_directory_.GetPath().AppendASCII("Arc")
+      .AppendASCII("User Data").AppendASCII("Default").AppendASCII("History");
+  sql::Database history(sql::test::kTestTag);
+  ASSERT_TRUE(history.Open(history_path));
+  ASSERT_TRUE(test_support::WriteSyntheticHistory(
+      history, {{.url = "https://history-only.example/", .title = "Synthetic",
+                 .last_visit = base::Time::Now() - base::Days(1)}}));
+  history.Close();
+  ASSERT_TRUE(base::SetPosixFilePermissions(history_path, 0600));
+  auto selection = ConfirmedSelection();
+  selection.import_sidebar = false;
+  selection.import_history = true;
+  base::test::TestFuture<ArcImportCommitResult> imported;
+  service_->Commit(token_, ArcConflictResolution::kRename, selection, browser(),
+                   imported.GetCallback());
+  ASSERT_TRUE(imported.Wait());
+  EXPECT_EQ(ArcImportStatus::kOk, imported.Get().status);
+  EXPECT_EQ(1u, imported.Get().history.added_pages);
+  tab_tree::TabTreeSnapshot unchanged;
+  ASSERT_TRUE(bridge_->ExportTabTreeSnapshot(&unchanged));
+  EXPECT_EQ(previous_tree_, unchanged);
+  EXPECT_EQ(initial_tab_count_, browser()->GetTabStripModel()->count());
+  // Combined import creates the sidebar, then identical history is a no-op.
+  selection.import_sidebar = true;
+  selection.reconstruct_splits = false;
+  for (int attempt = 0; attempt < 2; ++attempt) {
+    base::test::TestFuture<ArcImportCommitResult> combined;
+    service_->Commit(token_, ArcConflictResolution::kRename, selection, browser(),
+                     combined.GetCallback());
+    ASSERT_TRUE(combined.Wait());
+    EXPECT_EQ(ArcImportStatus::kNoChanges, combined.Get().history.status);
+    EXPECT_TRUE(combined.Get().history.selected);
+    EXPECT_FALSE(service_->operation_in_progress());
+  }
 }
 
 }  // namespace

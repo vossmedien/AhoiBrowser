@@ -553,9 +553,10 @@ suite('AhoiArcStandardImportSurface', () => {
     try {
       root.querySelector<HTMLElement>('#ahoiArcCommit')!.click();
       assertEquals(1, requests.length);
-      assertEquals(10, requests[0]!.length);
+      assertEquals(11, requests[0]!.length);
       assertEquals(false, requests[0]![8]);
       assertDeepEquals(['Profile 1'], requests[0]![9]);
+      assertEquals(false, requests[0]![10]);
 
       // A repeated import finds the earlier separated Workspace instead of
       // creating a second one; the result reports it.
@@ -581,6 +582,121 @@ suite('AhoiArcStandardImportSurface', () => {
     } finally {
       chrome.send = originalSend;
     }
+  });
+
+  test('historyIsASeparateDefaultOnCategoryWithCountOnlyResult',
+       async () => {
+         selectSource(1);
+         const section = getArcSection();
+         section.arcImportStage_ = 'preview';
+         section.arcImportPreview_ = preview(0);
+         section.arcSelectedProfiles_ = ['Default'];
+         section.requestUpdate();
+         await section.updateComplete;
+         const root = section.shadowRoot!;
+         // Only offered when an Arc profile has a History database.
+         assertFalse(!!root.querySelector('#ahoiArcImportHistory'));
+
+         section.arcImportPreview_ = {...preview(0), historyAvailable: true};
+         section.requestUpdate();
+         await section.updateComplete;
+         const history = root.querySelector<HTMLElement&{checked: boolean}>(
+             '#ahoiArcImportHistory')!;
+         assertTrue(!!history);
+         assertTrue(history.checked);
+         assertTrue(history.classList.contains('arc-import-checkbox'));
+         assertTrue(!!history.closest('fieldset.options'));
+
+         const commit = () =>
+             root.querySelector<HTMLElement&{disabled: boolean}>(
+                 '#ahoiArcCommit')!;
+         // History alone is a valid selection; no category at all is not.
+         root.querySelector<HTMLElement>('#ahoiArcImportSidebar')!.click();
+         await microtasksFinished();
+         assertFalse(commit().disabled);
+         history.click();
+         await microtasksFinished();
+         assertTrue(commit().disabled);
+         history.click();
+         await microtasksFinished();
+         assertFalse(commit().disabled);
+
+         const requests: unknown[][] = [];
+         const originalSend = chrome.send;
+         chrome.send = (message: string, args?: unknown[]) => {
+           if (message === 'ahoiArcCommit') {
+             requests.push(args ?? []);
+           } else {
+             originalSend(message, args);
+           }
+         };
+         try {
+           commit().click();
+           assertEquals(1, requests.length);
+           assertEquals(false, requests[0]![4]);
+           assertDeepEquals([], requests[0]![9]);
+           assertEquals(true, requests[0]![10]);
+           webUIResponse(requests[0]![0] as string, true, {
+             status: 'ok',
+             stats,
+             renamedWorkspaces: 0,
+             skippedWorkspaces: 0,
+             mergedWorkspaces: 0,
+             reconstructedSplits: 0,
+             approximatedFourPaneRatios: 0,
+             history: {
+               selected: true,
+               status: 'ok',
+               added: 5,
+               deduplicated: 2,
+               expired: 1,
+               excluded: 3,
+             },
+           });
+           await microtasksFinished();
+           assertEquals('done', section.arcImportStage_);
+           const text = (id: string) =>
+               root.querySelector(id)!.textContent.trim();
+           assertEquals('5', text('#ahoiArcResultHistoryAdded'));
+           assertEquals('2', text('#ahoiArcResultHistoryPresent'));
+           assertEquals('4', text('#ahoiArcResultHistorySkipped'));
+           assertFalse(!!root.querySelector('#ahoiArcHistoryFailure'));
+         } finally {
+           chrome.send = originalSend;
+         }
+       });
+
+  test('historyFailureIsReportedBesideACommittedSidebar', async () => {
+    selectSource(1);
+    const section = getArcSection();
+    section.arcImportResult_ = {
+      approximatedFourPaneRatios: 0,
+      mergedWorkspaces: 0,
+      reconstructedSplits: 0,
+      renamedWorkspaces: 0,
+      skippedWorkspaces: 0,
+      stats,
+      status: 'ok',
+      history: {
+        selected: true,
+        status: 'transactionFailed',
+        added: 0,
+        deduplicated: 0,
+        expired: 0,
+        excluded: 0,
+      },
+    };
+    section.arcImportStage_ = 'done';
+    section.requestUpdate();
+    await section.updateComplete;
+    const root = section.shadowRoot!;
+    assertEquals(
+        loadTimeData.getString('ahoiArcImportSuccess'),
+        root.querySelector('#ahoiArcImportStatus')!.textContent.trim());
+    assertTrue(!!root.querySelector('.result-counts'));
+    assertTrue(!!root.querySelector('#ahoiArcHistoryFailure'));
+    assertEquals('0', root.querySelector('#ahoiArcResultHistoryAdded')!
+                          .textContent.trim());
   });
 
   test('unsupportedArcSchemaHasSpecificFailClosedStatus', async () => {

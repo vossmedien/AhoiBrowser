@@ -108,9 +108,24 @@ Security invariants:
   the focused tab in the active target window, flushed Current Session
   readback, and post-worker live revalidation;
 
-Arc remains read-only throughout. Passwords, cookies, form data, browsing
-history, extension state, credential-bearing URLs, local files, and unsupported
-Arc items are excluded. The module also does not install extensions.
+Arc remains read-only throughout. Browsing history is an independent optional
+category (argument 11; argument 10 remains the separated-profile list). It reads
+only hash-verified, owner-only backup copies with WAL and rebuilt SHM, filters
+HTTP(S), credentials and bounded rows, and reports counters only. Each isolated
+target owns its HistoryService, policy, journal and shutdown; no main-profile
+fallback exists. Sidebar publication precedes separated-workspace completion
+and history exactly once, with the operation guard held until the terminal
+reply. A history failure retains an already committed sidebar.
+
+One HistoryDBTask brackets each profile batch with a confirmed M155 singleton
+commit. Pair idempotency uses exact URL/time; rollback removes only newly added
+visit IDs on existing URLs and new URL rows, then verifies baseline rows, visit
+IDs and sources. Unconfirmed commits retain Prepared for backup-bound replay
+before the next preview. Native build, visible journeys and review are Root
+gates; see the [M155 handoff](../../../../../../../docs/reviews/2026-10-07-arc-history-m155-handoff.md).
+
+Passwords, cookies, form data, extension state, credential-bearing URLs, local
+files, and unsupported Arc items are excluded. The module also does not install extensions.
 
 The Settings surface is registered through the canonical Chromium integration
 patch and provides DE/EN strings, keyboard-accessible controls, progress/result
