@@ -12,7 +12,7 @@ import AppKit
 //        axtool selected <pid>
 //        axtool menukeys <pid>
 //        axtool eventaccess <pid>
-//        axtool hidready <pid>
+//        axtool hidready <pid> [element]
 import ApplicationServices
 import Foundation
 
@@ -84,8 +84,8 @@ func flagsFrom(_ names: ArraySlice<String>) -> CGEventFlags {
     return flags
 }
 
-// Read the system's keyboard receiver and the mouse hit target, not just
-// NSWorkspace's frontmost app or a successful AXSetFrontmost request.
+// NSWorkspace identifies the key-event receiver. Also require its real AX
+// focused window and matching on-screen WindowServer bounds before HID.
 func hidTargetReady(_ pid: pid_t, at point: CGPoint? = nil) -> Bool {
     func copyFocus(_ element: AXUIElement, _ name: String, scope: String) -> AXUIElement? {
         var value: CFTypeRef?
@@ -94,63 +94,82 @@ func hidTargetReady(_ pid: pid_t, at point: CGPoint? = nil) -> Bool {
         print("AXCopy \(scope) \(name) status=\(status.rawValue) valueType=\(valueType) AXUIElementType=\(AXUIElementGetTypeID())")
         guard status == .success, let value,
               CFGetTypeID(value) == AXUIElementGetTypeID() else { return nil }
-        return value as! AXUIElement
+        return (value as! AXUIElement)
     }
-    let system = AXUIElementCreateSystemWide()
-    AXUIElementSetMessagingTimeout(system, 1.5)
-    var receiverPID: pid_t = -1, windowPID: pid_t = -1, hitPID: pid_t = -1
-    var receiverWindow = "none"
-    if let receiver = copyFocus(system, kAXFocusedApplicationAttribute, scope: "system") {
-        AXUIElementSetMessagingTimeout(receiver, 1.5)
-        let receiverStatus = AXUIElementGetPid(receiver, &receiverPID)
-        print("AXPid focusedApplication status=\(receiverStatus.rawValue) pid=\(receiverPID)")
-        if let window = copyFocus(receiver, kAXFocusedWindowAttribute, scope: "focusedApplication") {
-            let windowStatus = AXUIElementGetPid(window, &windowPID)
-            print("AXPid focusedWindow status=\(windowStatus.rawValue) pid=\(windowPID)")
-            receiverWindow = label(window)
-        }
-    }
-    if receiverPID == -1 || windowPID == -1 {
-        var attributes: CFArray?
-        let status = AXUIElementCopyAttributeNames(system, &attributes)
-        let names = (attributes as? [String])?.sorted().joined(separator: ",") ?? "unavailable"
-        print("AXAttributeNames system status=\(status.rawValue) names=[\(names)]")
-        // Diagnose another public system focus attribute; it never admits HID.
-        if let focused = copyFocus(system, kAXFocusedUIElementAttribute, scope: "system") {
-            var focusedPID: pid_t = -1
-            let focusedStatus = AXUIElementGetPid(focused, &focusedPID)
-            print("AXPid systemFocusedUI status=\(focusedStatus.rawValue) pid=\(focusedPID) element=\(label(focused))")
-            if let window = copyFocus(focused, kAXWindowAttribute, scope: "systemFocusedUI") {
-                var focusedWindowPID: pid_t = -1
-                let windowStatus = AXUIElementGetPid(window, &focusedWindowPID)
-                print("AXPid systemFocusedUIWindow status=\(windowStatus.rawValue) pid=\(focusedWindowPID) window=\(label(window))")
-            }
-        }
-    }
-    if let point {
-        var hit: AXUIElement?
-        let status = AXUIElementCopyElementAtPosition(system, Float(point.x), Float(point.y), &hit)
-        print("AXHitTest status=\(status.rawValue)")
-        if status == .success, let hit {
-            let hitStatus = AXUIElementGetPid(hit, &hitPID)
-            print("AXPid mouseReceiver status=\(hitStatus.rawValue) pid=\(hitPID)")
-            print("mouseReceiver: \(label(hit)) pid=\(hitPID)")
-        }
-    }
-    let frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? -1
+    let receiverPID = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? -1
     let postAccess = CGPreflightPostEventAccess()
-    let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
-                                            kCGNullWindowID) as? [[String: Any]]
-    let systemModalPIDs = windows?.filter {
-        $0[kCGWindowOwnerName as String] as? String == "UserNotificationCenter" &&
-        ($0[kCGWindowAlpha as String] as? Double ?? 1) > 0
-    }.compactMap { $0[kCGWindowOwnerPID as String] as? Int } ?? []
-    let mouseReceiver = point == nil ? "not-probed" : String(hitPID)
-    print("HID target=\(pid) workspace=\(frontPID) keyboardReceiver=\(receiverPID) windowOwner=\(windowPID) mouseReceiver=\(mouseReceiver) PostEventAccess=\(postAccess)")
-    print("receiverWindow: \(receiverWindow)")
-    print("QuartzGUI=\(windows != nil) UserNotificationCenterWindows=\(systemModalPIDs)")
-    return postAccess && frontPID == pid && receiverPID == pid && windowPID == pid &&
-        (point == nil || hitPID == pid) && windows != nil && systemModalPIDs.isEmpty
+    print("HID target=\(pid) keyboardReceiver=\(receiverPID) PostEventAccess=\(postAccess)")
+    guard postAccess && receiverPID == pid else { return false }
+    let receiver = AXUIElementCreateApplication(receiverPID)
+    AXUIElementSetMessagingTimeout(receiver, 1.5)
+    guard let window = copyFocus(receiver, kAXFocusedWindowAttribute, scope: "keyReceiver") else {
+        return false
+    }
+    var windowPID: pid_t = -1
+    let windowStatus = AXUIElementGetPid(window, &windowPID)
+    print("AXPid focusedWindow status=\(windowStatus.rawValue) pid=\(windowPID) window=\(label(window))")
+    guard windowStatus == .success && windowPID == pid,
+          let position = attr(window, kAXPositionAttribute), let size = attr(window, kAXSizeAttribute),
+          CFGetTypeID(position) == AXValueGetTypeID(), CFGetTypeID(size) == AXValueGetTypeID() else {
+        print("HID refused: focused window owner/bounds unavailable"); return false
+    }
+    var origin = CGPoint.zero, dimensions = CGSize.zero
+    guard AXValueGetValue(position as! AXValue, .cgPoint, &origin),
+          AXValueGetValue(size as! AXValue, .cgSize, &dimensions),
+          origin.x.isFinite && origin.y.isFinite && dimensions.width.isFinite && dimensions.height.isFinite,
+          dimensions.width > 0 && dimensions.height > 0 else {
+        print("HID refused: invalid focused window bounds"); return false
+    }
+    let focusedBounds = CGRect(origin: origin, size: dimensions)
+    guard let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
+                                                 kCGNullWindowID) as? [[String: Any]] else {
+        print("QuartzGUI=false"); return false
+    }
+    var focusedWindowIDs: [Int] = []
+    var pointerOwner: Int = -1, pointerWindowID: Int = -1
+    // The public list is front-to-back. Unknown geometry never clears a point.
+    for data in windows {
+        guard let alpha = data[kCGWindowAlpha as String] as? Double,
+              alpha.isFinite && alpha >= 0 && alpha <= 1 else {
+            print("HID refused: unknown WindowServer alpha"); return false
+        }
+        if alpha <= 0 { continue }
+        guard let owner = data[kCGWindowOwnerPID as String] as? Int,
+              let number = data[kCGWindowNumber as String] as? Int,
+              let ownerName = data[kCGWindowOwnerName as String] as? String,
+              let dict = data[kCGWindowBounds as String] as? [String: Any],
+              let bounds = CGRect(dictionaryRepresentation: dict as CFDictionary),
+              bounds.origin.x.isFinite && bounds.origin.y.isFinite &&
+              bounds.width.isFinite && bounds.height.isFinite && bounds.width >= 0 && bounds.height >= 0 else {
+            print("HID refused: unknown WindowServer owner/bounds"); return false
+        }
+        if ownerName == "UserNotificationCenter" {
+            print("UserNotificationCenterWindow pid=\(owner) id=\(number)"); return false
+        }
+        if owner == Int(pid) {
+            print("WindowServer target id=\(number) bounds=\(bounds)")
+            if bounds == focusedBounds { focusedWindowIDs.append(number) }
+        }
+        if let point, pointerWindowID == -1 && bounds.contains(point) {
+            pointerOwner = owner; pointerWindowID = number
+        }
+    }
+    print("QuartzGUI=true focusedBounds=\(focusedBounds) focusedWindowIDs=\(focusedWindowIDs)")
+    guard focusedWindowIDs.count == 1 else { return false }
+    if let point {
+        print("pointerWindowOwner=\(pointerOwner) pointerWindowID=\(pointerWindowID) at=\(point)")
+        guard focusedBounds.contains(point), pointerOwner == Int(pid),
+              pointerWindowID == focusedWindowIDs[0] else { return false }
+        var hit: AXUIElement?
+        let status = AXUIElementCopyElementAtPosition(receiver, Float(point.x), Float(point.y), &hit)
+        print("AXHitTest keyReceiver status=\(status.rawValue)")
+        guard status == .success, let hit else { return false }
+        var hitPID: pid_t = -1
+        let hitStatus = AXUIElementGetPid(hit, &hitPID)
+        print("AXPid mouseReceiver status=\(hitStatus.rawValue) pid=\(hitPID)")
+        guard hitStatus == .success && hitPID == pid else { return false }
+    }
+    return NSWorkspace.shared.frontmostApplication?.processIdentifier == pid
 }
 
 let args = CommandLine.arguments
@@ -170,7 +189,12 @@ guard AXIsProcessTrusted() else {
 let app = AXUIElementCreateApplication(pid)
 switch args[1] {
 case "hidready":
-    exit(hidTargetReady(pid) ? 0 : 3)
+    var point: CGPoint?
+    if args.count > 3 {
+        guard let center = centerOf(app, args[3]) else { print("NOT FOUND"); exit(1) }
+        point = center
+    }
+    exit(hidTargetReady(pid, at: point) ? 0 : 3)
 case "enable":
     let r1 = AXUIElementSetAttributeValue(app, "AXManualAccessibility" as CFString, kCFBooleanTrue)
     let r2 = AXUIElementSetAttributeValue(app, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
