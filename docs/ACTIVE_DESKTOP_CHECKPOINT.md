@@ -111,6 +111,20 @@ Resume small helper/GUI phase only after fresh CPU/memory/ownership and at least
 8GiB reserve plus its0.3GB planned growth; complete F incremental build retains
 its separately declared growth budget. Own nine obsolete rollbacks already
 removed; no foreign files/processes stopped and current outputs remain.
+Arc Sourcehandoff346edf63 (34productfiles) reviewed and consumed asRoot850aa587;
+exact report52fc0c13 retained. Arg10/profile-list and optional11/history,
+per-target HistoryService/Policy/Keepalive, Sidebar→separated→history guard,
+filtered backups/WAL/SHM and exact visit-ID rollback are preserved. Root read
+actual M155 BeginSingletonTransaction/CommitSingletonTransaction vendor source:
+failed Begin clears its pointer, so the new bool barrier's committed/non-null
+successor check is valid; no invented additional barrier defect.
+Future-time mismatch resolved by Root against later actual main's
+ARC_HISTORY_IMPORT_PLAN line89: future timestamps invalid, no unapproved24h
+tolerance. Same-worker Source follow-up5d7ff77b requests not_after=capturednow
+and affected existing Reader regression/report; still pending. No second worker.
+Crest0097 and current0001/close source survived the additive0084 series merge.
+Combined Source is not frozen/built/E2E/focus/review/main-delivered yet; consume
+the narrow time correction before preparing full F with accepted main behavior.
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no
