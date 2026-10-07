@@ -1,0 +1,48 @@
+Processes: 827 total, 3 running, 824 sleeping, 3737 threads 
+2026/10/07 03:32:36
+Load Avg: 2.20, 3.85, 12.59 
+CPU usage: 5.5% user, 7.39% sys, 87.54% idle 
+SharedLibs: 904M resident, 129M data, 734M linkedit.
+MemRegions: 241598 total, 2888M resident, 363M private, 13G shared.
+PhysMem: 44G used (2741M wired, 9305M compressor), 3802M unused.
+VM: 389T vsize, 57G framework vsize, 702940(0) swapins, 1236894(0) swapouts.
+Networks: packets: 395052304/520G in, 257377765/341G out.
+Disks: 165084494/5875G read, 97560151/4175G written.
+
+
+Processes: 825 total, 4 running, 821 sleeping, 3698 threads 
+2026/10/07 03:32:37
+Load Avg: 2.20, 3.85, 12.59 
+CPU usage: 5.7% user, 2.92% sys, 91.99% idle 
+SharedLibs: 904M resident, 129M data, 734M linkedit.
+MemRegions: 0 total, 0B resident, 363M private, 13G shared.
+PhysMem: 44G used (2740M wired, 9305M compressor), 3808M unused.
+VM: 388T vsize, 57G framework vsize, 702940(0) swapins, 1236894(0) swapouts.
+Networks: packets: 395053899/520G in, 257400824/341G out.
+Disks: 165084558/5875G read, 97560151/4175G written.
+
+
+Processes: 824 total, 2 running, 822 sleeping, 3694 threads 
+2026/10/07 03:32:38
+Load Avg: 2.20, 3.85, 12.59 
+CPU usage: 6.43% user, 3.18% sys, 90.38% idle 
+SharedLibs: 904M resident, 129M data, 734M linkedit.
+MemRegions: 0 total, 0B resident, 363M private, 13G shared.
+PhysMem: 44G used (2740M wired, 9305M compressor), 3774M unused.
+VM: 388T vsize, 57G framework vsize, 702940(0) swapins, 1236894(0) swapouts.
+Networks: packets: 395055448/520G in, 257422197/341G out.
+Disks: 165084623/5875G read, 97560151/4175G written.
+
+
+Processes: 824 total, 2 running, 822 sleeping, 3696 threads 
+2026/10/07 03:32:39
+Load Avg: 2.20, 3.85, 12.59 
+CPU usage: 3.36% user, 2.57% sys, 94.6% idle 
+SharedLibs: 904M resident, 129M data, 734M linkedit.
+MemRegions: 0 total, 0B resident, 363M private, 13G shared.
+PhysMem: 44G used (2740M wired, 9305M compressor), 3755M unused.
+VM: 388T vsize, 57G framework vsize, 702940(0) swapins, 1236894(0) swapouts.
+Networks: packets: 395056960/520G in, 257439502/341G out.
+Disks: 165084651/5875G read, 97560152/4175G written.
+
+

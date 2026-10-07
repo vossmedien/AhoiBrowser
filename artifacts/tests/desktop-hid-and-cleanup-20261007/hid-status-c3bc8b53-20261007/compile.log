@@ -1,0 +1,9 @@
+/Users/vossmedien/inhouse/evidence/ahoi-e0282a90/ahoi-axtool-c3bc8b53.swift:97:22: warning: treating a forced downcast to 'AXUIElement' as optional will never produce 'nil'
+ 95 |         guard status == .success, let value,
+ 96 |               CFGetTypeID(value) == AXUIElementGetTypeID() else { return nil }
+ 97 |         return value as! AXUIElement
+    |                |     | `- note: use 'as?' to perform a conditional downcast to 'AXUIElement'
+    |                |     `- warning: treating a forced downcast to 'AXUIElement' as optional will never produce 'nil'
+    |                `- note: add parentheses around the cast to silence this warning
+ 98 |     }
+ 99 |     let system = AXUIElementCreateSystemWide()

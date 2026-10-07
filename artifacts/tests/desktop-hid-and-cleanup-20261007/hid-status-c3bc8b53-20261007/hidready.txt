@@ -1,0 +1,6 @@
+AXCopy system AXFocusedApplication status=-25204 valueType=none AXUIElementType=75
+AXAttributeNames system status=0 names=[AXFocusedApplication,AXFocusedUIElement,AXRole,AXRoleDescription]
+AXCopy system AXFocusedUIElement status=-25204 valueType=none AXUIElementType=75
+HID target=98391 workspace=98391 keyboardReceiver=-1 windowOwner=-1 mouseReceiver=not-probed PostEventAccess=true
+receiverWindow: none
+QuartzGUI=true UserNotificationCenterWindows=[]

@@ -1,0 +1,23 @@
+Executable=/Users/vossmedien/inhouse/evidence/ahoi-e0282a90/axtool-hid-guard-c3bc8b53
+Identifier=axtool-hid-guard-c3bc8b53
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=1106 flags=0x20002(adhoc,linker-signed) hashes=31+0 location=embedded
+VersionPlatform=1
+VersionMin=1769472
+VersionSDK=1769472
+Hash type=sha256 size=32
+CandidateCDHash sha256=266324deb2c46a208207f6e65efe7c0d10faac5b
+CandidateCDHashFull sha256=266324deb2c46a208207f6e65efe7c0d10faac5b116c44b2cf720f6525ff5131
+Hash choices=sha256
+CMSDigest=266324deb2c46a208207f6e65efe7c0d10faac5b116c44b2cf720f6525ff5131
+CMSDigestType=2
+Executable Segment base=0
+Executable Segment limit=44968
+Executable Segment flags=0x1
+Page size=4096
+CDHash=266324deb2c46a208207f6e65efe7c0d10faac5b
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements=none

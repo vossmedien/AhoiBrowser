@@ -1,0 +1,12 @@
+{
+  "meanUsed": 7.676666666666672,
+  "samples": [
+    8.010000000000005,
+    9.620000000000005,
+    5.400000000000006
+  ],
+  "time": 1791336759.600637,
+  "phase": "actual AXstatus helper compile and short own-app readback",
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000
+}

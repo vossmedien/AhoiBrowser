@@ -75,6 +75,26 @@ Source JSON used the exclusive crest-* artifact prefix. It is relocated to
 desktop-*; historical7a and deletion still need the Crest-owner's exact old-file
 handoff/exception64491f2d, not a broad pattern exemption or force rewrite.
 Lane acceptance remains OPEN until the actual checker passes the whole range.
+Resolved by the actual Crest-lane owner's one-file handoff291e6e4f: the old
+literal receipt path alone is writableByOwners; all patterns/product boundaries
+unchanged, future receipts use desktop-*. Root reviewed/cherry-picked that
+attributable config, actual `--all --since60e839d9` now0errors/0notes across both
+original introduction and deletion. Original failed gate is retained above.
+
+C70 AXstatus Sourcec3bc8b53 cherry1d865fa6, separate helper compiled and probed
+under fresh7.68%meanCPU, own installed-e028 browser only, noHID sent. System
+AXFocusedApplication and AXFocusedUIElement both return−25204 (cannotComplete),
+while systemAttributeNames succeeds and advertises both attributes. This is an
+actual messaging failure, not unsupported/noValue or a proved TCC cause. SSH
+AX/Posttrue, app front/focused/mainWindowPID98391, Quartztrue/noUNC; GUI context
+priorAXfalse retained. Raw hash/signature/context/status in
+`artifacts/tests/desktop-hid-and-cleanup-20261007/hid-status-c3bc8b53-20261007/`.
+Same-worker follow-upc51e4a1d asks the smallest documented public equivalent
+receiver path (AppKit keyreceiver + real appwindow + Quartz/pointer ownership)
+or precise sender setup; no NSWorkspace-only admission, private API, permission
+mutation or unknown-target bypass. C70 source handback itself arrived and was
+consumed; orchestrator request463121c1 had only a stale boundary answer, not
+additional execution. Close UI/focus/review remain open pending this correction.
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no
