@@ -231,7 +231,7 @@ maßgeblich; keine neue Repositoryarchitektur.
 
 Projektvorgabe: iOS 26 Deploymentminimum, Swift 6 / Strict Concurrency
 `complete`, Xcode 27.0 / 27A266a, iOS SDK 27.0 / 24A430.
-Die [bestehende versionierte Apple-/WebKit-Recherche](2026-10-06-mobile-webextension-popup-permissions.md)
+Die [bestehende versionierte Apple-/WebKit-Recherche](https://github.com/vossmedien/AhoiBrowser/blob/8493d89ce724b2a9016dcd9251ccaf5beb71d334/docs/reviews/2026-10-06-mobile-webextension-popup-permissions.md)
 wurde gelesen: SDK-Interfaces/Headers, MainActor und Extensionattachment.
 Context7 meldete dort und in der Quellsession ausgeschöpftes Monatskontingent;
 keine erneute Kontingent-/Kosten-/Pollschleife. Vor tatsächlich neuen
