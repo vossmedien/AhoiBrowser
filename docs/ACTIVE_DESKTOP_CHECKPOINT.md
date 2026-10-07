@@ -29,6 +29,17 @@ actual capacity or owner handback. Mobile55 alone holds its existing R71/DD95/
 A058 lease; Root does not acquire or run that Mobile path.
 [Resource state and request](../artifacts/tests/desktop-resource-coordination-20261007/current-state.json).
 
+Delayed e5fbc1f3 first-gate report consumed once at03:41UTC: actual worker
+HEAD e834b4e1 is clean and contains later source346edf63/report52fc0c13;
+its reported old uncommitted port files are no longer pending. All34 source
+paths match Root850 except the additive series preserving Crest0097. Current
+Root additionally changes only runner/Reader time cutoff through6eef; >now is
+settled, no renewed product decision or duplicate port needed. Cockpit has no
+open1019DDF3 session and rejects the addressed note; no delivery is inferred,
+no replacement worker or Goal started. Root retains combined-F acceptance.
+Fresh03:41UTC Inhouse5.17% mean CPU,7,793,655,808 bytes available, memory78%:
+still below8GiB plus output, so no heavy phase admitted.
+
 Current action: installed Inhouse candidate `e0282a90` remains unaccepted for
 batch close. C70 receiver guard `804d0e67` is reviewed/cherry-picked as
 `0c646698`; the separate, fixed-identity helper compiled after fresh37.50% mean
