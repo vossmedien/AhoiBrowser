@@ -125,6 +125,27 @@ and affected existing Reader regression/report; still pending. No second worker.
 Crest0097 and current0001/close source survived the additive0084 series merge.
 Combined Source is not frozen/built/E2E/focus/review/main-delivered yet; consume
 the narrow time correction before preparing full F with accepted main behavior.
+Feature Source9e9b06ff now includes actual main134 as its second merge parent;
+actual default main remains134, no default integration/delivery yet. Thirty-one
+conflicts resolved per676r1, plus automatic duplicate category fields and an
+identical historical Sync section removed. All product roots (overlay, patches,
+config, scripts, tools, apps, tests) are byte-equivalent to reviewed Root865
+before the time-cutoff integration correction; net merge adds only the updated
+existing History plan, historical main receipt and exact resolution record in
+`artifacts/tests/desktop-main-source-integration-20261007/resolution.json`.
+The old pre-merge since60 scope also traversed89 already-default commits and
+reported321 pre-existing historical lane violations. Correct new-to-default
+scope `--all --since13423f52` passes0errors/0notes; no historic trailer rewrite
+or new pattern exemption. Original historical checker outcome retained here.
+Arc time decision5d was not in the worker's native input at the actual readback;
+existing-thread delivery requestdaf60fa3 answered only that delivery was unproved.
+Root completed the tiny integration resolution against the documented main
+contract: production not_after=capturednow and the existing reader fixture tests
+one-hour-ahead as invalid. No new framework/test harness/API or worker; native
+reader test remains NOT_RUN until visible exact-F journey/focused phase.
+No further worker time edit needed; same identity waits meaningful runtime
+findings/default-delivery handback. Whole Master/Step1/real-device/release gates
+remain open, not reduced by this source preparation.
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no

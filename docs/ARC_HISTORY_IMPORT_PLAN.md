@@ -1,6 +1,6 @@
 # Arc history import: design and status
 
-Status (7 October 2026): main donor28deb798 ported to pinned M155 in Root850aa587, **not yet built or run**. The future-time cutoff correction is required before freezing the combined candidate.
+Status (7 October 2026): main donor28deb798 ported to pinned M155 in Root850aa587, **not yet built or run**. The integration follows the captured-current-time cutoff below; the affected native reader regression is still NOT_RUN.
 Overlay code lives in
 [the Arc import module](../overlay/chromium/src/ahoi/browser/importer/arc/README.md)
 (`arc_history_*`, `arc_import_service_history.cc`); the upstream seams are

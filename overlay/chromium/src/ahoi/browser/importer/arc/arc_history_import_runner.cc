@@ -67,7 +67,7 @@ ArcHistoryPreparation ReadBackupHistory(const base::FilePath& profile_path,
   const ArcHistoryReadWindow window{
       .not_before =
           now - base::Days(history::HistoryBackend::kExpireDaysThreshold),
-      .not_after = now + base::Days(1)};
+      .not_after = now};
   std::vector<ArcHistoryReadResult> results;
   for (const ArcHistoryBackupCopy& copy : copies.copies) {
     results.push_back(ReadArcHistoryDatabase(copy.database, window));

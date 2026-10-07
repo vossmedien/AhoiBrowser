@@ -42,7 +42,7 @@ class ArcHistoryReaderTest : public testing::Test {
     ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
     now_ = base::Time::Now();
     window_ = {.not_before = now_ - base::Days(90),
-               .not_after = now_ + base::Days(1)};
+               .not_after = now_};
   }
 
   base::FilePath CreateDatabase(
@@ -86,7 +86,7 @@ TEST_F(ArcHistoryReaderTest, ReadsVisibleSafePagesNewestFirst) {
        {.url = "https://long.example/" + std::string(kMaxUrlBytes, 'a'),
         .last_visit = DaysAgo(1)},
        {.url = "https://expired.example/", .last_visit = DaysAgo(120)},
-       {.url = "https://future.example/", .last_visit = now_ + base::Days(9)},
+       {.url = "https://future.example/", .last_visit = now_ + base::Hours(1)},
        {.url = "https://zero.example/", .last_visit = base::Time()}});
 
   const ArcHistoryReadResult result = ReadArcHistoryDatabase(path, window_);
