@@ -1,0 +1,15 @@
+{
+ "plainClickSelectsOne": true,
+ "commandClickAdds": false,
+ "commandClickKeepsActive": true,
+ "commandClickKeepsTabs": true,
+ "shiftClickSelectsRange": false,
+ "shiftClickKeepsActive": true,
+ "escapeClears": true,
+ "reselect": false,
+ "menuTitle": false,
+ "closeCommandEnabled": false,
+ "beforeUnloadPrompt": false,
+ "setupFailed": "native before-unload prompt not confirmed",
+ "pass": false
+}

@@ -1,0 +1,35 @@
+{
+  "fullFrozenSource": "6eefc4a8d192830fc78ffe521f05958fbe302002",
+  "targetMirror": "repo88-m155-f492d294 clean6eef; sharedChromium/output still previous overlay until guarded runner starts",
+  "fullBuild": "NOT_STARTED cpuMean96.23; no buildlock acquired",
+  "inhouseConfirmationUsed": [
+    98.11,
+    97.49,
+    98.84
+  ],
+  "devHelperBuild": {
+    "source": "593f4794",
+    "binaryHash": "00f453ae4de4b5bc085b5f17f7e3caba3df0dd915c45d37062b74d2da5650afc",
+    "sourceHash": "1764721408de0089226f2d358f28702f2df4b7314de5dae8bbbf0b2bf61bc9de",
+    "usedSamples": [
+      50.72,
+      52.2,
+      42.89
+    ],
+    "meanUsed": 48.60333333333333,
+    "memoryFreePercent": 49,
+    "swapIO": 0,
+    "Xcode": "27.0/27A266a",
+    "SDK": "27.0",
+    "arm": "arm64",
+    "minimumMacOS": "27.0",
+    "inhouseMacOS": "27.0.1",
+    "targetHashReadback": "00f453ae4de4b5bc085b5f17f7e3caba3df0dd915c45d37062b74d2da5650afc",
+    "SSHreadOnlyAccess": "AXTrusted/PostEventAccess true"
+  },
+  "devChromiumBuild": "not eligible: existing pinned checkout/incremental output onlyInhouse; no secondcoldbuild",
+  "diagnosticDevCandidate": "exacte028 signed portable527dylibs/238resources verificationPASS; returned internal copy, installedEF unchanged",
+  "devRuntime": "initial preparation refused HIDidle<300 before app; existing actualRunner waits owner quiet and rechecks both hosts before fallback",
+  "c70": "Rootb3b8656f Source593, actual PIDdeliveryUI not proven yet",
+  "676delayedReport": "Alreadyaccepted2d8\u219254f; full actualdiff/metadata/Goalverified earlier; no duplicate"
+}

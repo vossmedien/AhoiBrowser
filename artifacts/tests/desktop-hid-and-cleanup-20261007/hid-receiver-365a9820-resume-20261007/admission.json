@@ -1,0 +1,12 @@
+{
+  "meanUsed": 5.046666666666667,
+  "samples": [
+    8.170000000000002,
+    3.4599999999999937,
+    3.510000000000005
+  ],
+  "time": 1791339638.578496,
+  "phase": "public receiver helper compile and own-HID probe after actual disk recovery",
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000
+}

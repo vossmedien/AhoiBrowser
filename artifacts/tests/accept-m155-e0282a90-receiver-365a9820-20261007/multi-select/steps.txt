@@ -1,0 +1,89 @@
+frontmost -> 0
+pages before: 4
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+pointerWindowOwner=59987 pointerWindowID=13879 at=(140.0, 317.0)
+hidclick refused: input target not ready
+selected: Alpha
+plainClickSelectsOne -> true
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+pointerWindowOwner=59987 pointerWindowID=13879 at=(140.0, 389.0)
+hidclick refused: input target not ready
+selected: Alpha
+commandClickAdds -> false
+commandClickKeepsActive -> true
+commandClickKeepsTabs -> true
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+pointerWindowOwner=59987 pointerWindowID=13879 at=(140.0, 353.0)
+hidclick refused: input target not ready
+selected: Alpha
+shiftClickSelectsRange -> false
+shiftClickKeepsActive -> true
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+hidkey 53
+selected: Alpha
+escapeClears -> true
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+pointerWindowOwner=59987 pointerWindowID=13879 at=(140.0, 353.0)
+hidclick refused: input target not ready
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+pointerWindowOwner=59987 pointerWindowID=13879 at=(140.0, 389.0)
+hidclick refused: input target not ready
+selected: Alpha
+reselect -> false
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+pointerWindowOwner=59987 pointerWindowID=13879 at=(140.0, 353.0)
+hidrightclick refused: input target not ready
+menuTitle -> false
+closeCommandEnabled -> false
+NOT FOUND
+NOT FOUND
+beforeUnloadPrompt -> false
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+HID target=49266 keyboardReceiver=49266 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=49266 window=AXWindow | Mehrfach-Alpha - AhoiBrowser
+WindowServer target id=14500 bounds=(22.0, 55.0, 1200.0, 953.0)
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 953.0) focusedWindowIDs=[14500]
+hidkey 12

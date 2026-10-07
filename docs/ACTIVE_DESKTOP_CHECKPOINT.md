@@ -146,6 +146,32 @@ reader test remains NOT_RUN until visible exact-F journey/focused phase.
 No further worker time edit needed; same identity waits meaningful runtime
 findings/default-delivery handback. Whole Master/Step1/real-device/release gates
 remain open, not reduced by this source preparation.
+Full F source6eefc4a8 transferred by verified Gitbundle to clean targetN,
+same pins and same single internal incremental output. Guarded runner prepared
+at `~/inhouse/evidence/ahoi-full-6eefc4a8/runner.sh`, app-first only. Admission
+CPU96.23% (98.48/96.07/94.14), disk17,427,857,408bytes: NOT_STARTED before
+overlay/compile/lock; no fake build progress. Confirmation98.15%CPU during foreign
+BetterIPTV CE38 DVR UI/simulator/VM/Playwright; no foreign process touched.
+C70 Source593f4794→Rootb3b8656f reuses existing public postToPid for guarded
+native key/modifier/click/rightclick events; no state/API assertion bypass.
+Dev helper compile was an eligible measured fallback (Inhouse saturated,
+Dev48.60%, Xcode/SDK27/arm64, >8GiB). Hash00f453ae... copied exact to Inhouse,
+SSH AX/Posttrue readback; actual eventdelivery still unproved.
+Original exact-e028/365 GUI attempt34.42%CPU failed inputselection beforePrompt;
+new guards did pass owner/window/point, no input effect or CmdQ; all failure
+assertions remain. Short probes had selector/depth NOT_FOUND and did not prove
+input; recorded separately. Evidence under
+`artifacts/tests/accept-m155-e0282a90-receiver-365a9820-20261007/`.
+Dev fallback runtime prerequisites now prepared: exact-e028 internal app copy,
+isolated stamped-source verifier PASS527dylibs/238resources/binary5f4ef26d;
+installed DevEF unchanged. First local preparation refused actual HIDidle<300,
+no app launched; own runner67411 waits quiet then freshly reevaluates Inhouse
+preference/Devcapacity. No passing journey or execution inferred from waiting.
+Dev fullChromium build is not eligible without the pinned checkout/retained
+incremental output; no second coldbuild created. Mobile55 informed274e2228 of
+actually saturated Inhouse/eligible Dev generic-compiler fallback, own per-phase
+admission still required. Native goal/thread identities and final gates retained.
+Current bindings: `artifacts/tests/full-candidate-preparation-6eefc4a8-20261007/`.
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no

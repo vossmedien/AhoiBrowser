@@ -1,0 +1,12 @@
+{
+  "meanUsed": 37.593333333333334,
+  "samples": [
+    50.33,
+    32.11,
+    30.340000000000003
+  ],
+  "time": 1791339720.624522,
+  "phase": "own HID probe; hidready selector corrected to supported Role:Title, same helper bytes",
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000
+}

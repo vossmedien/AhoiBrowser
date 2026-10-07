@@ -1,0 +1,16 @@
+{
+  "host": "MacbookPro2026.fritz.box",
+  "time": 1791340402.267232,
+  "usedSamples": [
+    98.48,
+    96.07,
+    94.14
+  ],
+  "meanUsed": 96.23,
+  "freeBytes": 17427857408,
+  "phase": "full Crest/History/main M155 guarded incremental app build",
+  "jobs": 2,
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 4294967296,
+  "frozenSource": "6eefc4a8d192830fc78ffe521f05958fbe302002"
+}

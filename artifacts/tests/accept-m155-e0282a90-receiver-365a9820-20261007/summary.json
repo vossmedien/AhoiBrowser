@@ -1,0 +1,6 @@
+{
+ "journeys": {
+  "multi-select": "FAIL exit=4 console-after=unlocked"
+ },
+ "pass": false
+}

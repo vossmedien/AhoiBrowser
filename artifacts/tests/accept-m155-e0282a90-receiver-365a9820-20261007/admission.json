@@ -1,0 +1,12 @@
+{
+  "meanUsed": 34.416666666666664,
+  "samples": [
+    32.8,
+    39.17,
+    31.28
+  ],
+  "time": 1791339847.032879,
+  "phase": "actual multi-selection/veto/close on exact e028, frozen365helper",
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 300000000
+}
