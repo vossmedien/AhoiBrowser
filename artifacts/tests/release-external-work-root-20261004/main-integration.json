@@ -1,0 +1,12 @@
+{
+  "baseMain": "82b457659c298f469a27a0056ffb8e44d3e273be",
+  "sourceCodeCommit": "cc8bef2b8182087cf66ebcceea9a6b1758bea0ae",
+  "sourceEvidenceCommit": "53ba5da2c22a99bf01c8a3c4936a946c5d25e4c7",
+  "scope": "three release Python consumers, releasing documentation, exact CLI evidence",
+  "actualTargetCliExitCode": 0,
+  "actualChecks": 26,
+  "actualPathRejections": 2,
+  "inputReuse": "all release modules/scripts, policy, pin and license byte-identical to executed cc8 candidate; no browser changes",
+  "sourceThread": "01a0e047-9360-7122-ad28-f76ebc767c97",
+  "ownership": "current A29 consumed explicit sole Source-Git handback; no other Ahoi writer per maintained checkpoint; guarded non-force remote/CAS local update required"
+}
