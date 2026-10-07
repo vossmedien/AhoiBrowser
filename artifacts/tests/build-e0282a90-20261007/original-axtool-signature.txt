@@ -1,0 +1,23 @@
+Executable=/private/tmp/ahoi-axtool
+Identifier=ahoi-axtool
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=932 flags=0x20002(adhoc,linker-signed) hashes=26+0 location=embedded
+VersionPlatform=1
+VersionMin=1769472
+VersionSDK=1769472
+Hash type=sha256 size=32
+CandidateCDHash sha256=05ade018db1c5a757fd8e7bb552639d752ecd22a
+CandidateCDHashFull sha256=05ade018db1c5a757fd8e7bb552639d752ecd22a956e14735e76f15db0ba7141
+Hash choices=sha256
+CMSDigest=05ade018db1c5a757fd8e7bb552639d752ecd22a956e14735e76f15db0ba7141
+CMSDigestType=2
+Executable Segment base=0
+Executable Segment limit=33664
+Executable Segment flags=0x1
+Page size=4096
+CDHash=05ade018db1c5a757fd8e7bb552639d752ecd22a
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements=none

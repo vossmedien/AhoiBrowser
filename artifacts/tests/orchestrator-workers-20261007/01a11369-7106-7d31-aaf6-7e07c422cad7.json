@@ -1,0 +1,35 @@
+{
+  "delegation": "676d2cfb",
+  "session": "F56F8517-E411-4626-B9F5-81AFEA455E61",
+  "account": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+  "native": {
+    "id": "01a11369-7106-7d31-aaf6-7e07c422cad7",
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-desktop-main-attribution-676d2cfb",
+    "source": "cli",
+    "cli_version": "0.160.1",
+    "model_provider": "openai"
+  },
+  "config": {
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-desktop-main-attribution-676d2cfb",
+    "model": "gpt-6.1-sol",
+    "effort": "xhigh",
+    "approval_policy": "never",
+    "sandbox_policy": {
+      "type": "danger-full-access"
+    }
+  },
+  "createCalls": 1,
+  "initialGoal": null,
+  "latestGoal": {
+    "threadId": "01a11369-7106-7d31-aaf6-7e07c422cad7",
+    "objective": "Erstelle einen konkreten belegten Integrationsvertrag f\u00fcr AhoiBrowsers gemeinsame kanonische Desktop-Linie und tats\u00e4chliches main13423f52: erhalte akzeptierte Main- und M155-Funktionen, trenne wirklich unvollst\u00e4ndige \u00c4nderungen, benenne die kleinste ausreichende Kandidaten-/Abnahmefolge bis zu Main-Push und bewachter Desktop-Auslieferung, ohne selbst Source/Runtime oder Goals anderer Sessions zu ver\u00e4ndern.",
+    "status": "complete",
+    "tokensUsed": 221671,
+    "timeUsedSeconds": 755,
+    "createdAt": 1791327089,
+    "updatedAt": 1791327845
+  },
+  "sourceCommit": "2d8d5625f6cb957210319947c4c1c2c799442820",
+  "sourceScope": "one readonly integration contract",
+  "priorUnavailableReceipt": "3ddae6b9 failedSOURCE_OR_PAYLOAD_UNAVAILABLE; independentactual676WorkerReport/Goal verified, no duplicate"
+}

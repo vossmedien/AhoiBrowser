@@ -1,0 +1,28 @@
+frontmost -> 0
+pages before: 4
+hidclicked AXRadioButton | Mehrfach-Alpha — Temporärer Tab | Mehrfach-Alpha — Temporärer Tab | 1 at (140.0, 317.0)
+selected: Alpha
+plainClickSelectsOne -> true
+hidclicked AXRadioButton | Mehrfach-Gamma — Temporärer Tab | Mehrfach-Gamma — Temporärer Tab | 0 at (140.0, 389.0)
+selected: Alpha
+commandClickAdds -> false
+commandClickKeepsActive -> true
+commandClickKeepsTabs -> true
+hidclicked AXRadioButton | Mehrfach-Beta — Temporärer Tab | Mehrfach-Beta — Temporärer Tab | 0 at (140.0, 353.0)
+selected: Alpha
+shiftClickSelectsRange -> false
+shiftClickKeepsActive -> true
+hidkey 53
+selected: Alpha
+escapeClears -> true
+hidclicked AXRadioButton | Mehrfach-Beta — Temporärer Tab | Mehrfach-Beta — Temporärer Tab | 0 at (140.0, 353.0)
+hidclicked AXRadioButton | Mehrfach-Gamma — Temporärer Tab | Mehrfach-Gamma — Temporärer Tab | 0 at (140.0, 389.0)
+selected: Alpha
+reselect -> false
+hidrightclicked AXRadioButton | Mehrfach-Beta — Temporärer Tab | Mehrfach-Beta — Temporärer Tab | 0 at (140.0, 353.0)
+menuTitle -> false
+closeCommandEnabled -> false
+NOT FOUND
+NOT FOUND
+beforeUnloadPrompt -> false
+hidkey 12

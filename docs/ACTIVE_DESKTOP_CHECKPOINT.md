@@ -288,6 +288,39 @@
   existing Goal/thread preserved, no duplicate. Correct the harness through
   actual native Cancel, verify disappearance/full group/selection/no false toast,
   then rerun affected exact-e028 UI before focused/review/integration gates.
+- 676 actual handback now verified independently: sessionF56F8517-E411-4626-B9F5-81AFEA455E61,
+  thread01a11369-7106-7d31-aaf6-7e07c422cad7, ownGoalnull/createonce/finalcomplete,
+  nativegpt6.1Sol/xhigh/never/danger-full-access/accountDEFAA5B4. Actual151-line
+  reportdiff read; source2d8d5625 cherry54f7610c, [integration contract](reviews/2026-10-07-desktop-main-integration-contract.md).
+  [Native receipt](../artifacts/tests/orchestrator-workers-20261007/01a11369-7106-7d31-aaf6-7e07c422cad7.json).
+  Arc-History is genuinely missing from current canonical M155; main source has
+  no completed runtime proof. Port it preserving separated-profile targets,
+  argument10 profile-list/optional11 history flag, journal/callback ordering,
+  exact visit-idempotency/rollback, M155 upstream seam and count-only UI.
+  Whole merged F must include current M155/Crest/History and accepted Main
+  improvements; no blanket ours/theirs or standalone C delivery as Master.
+- Native-Cancel harness46784bcc cherry75be69db: actualnativeCancel/disappearance/
+  group/selection/noToast assertions retained/strengthened. Isolated helper archive
+  SHA and source54f7610c bound to unchanged e028 producttrees/app; no rebuild.
+  New trial native-cancel-20261007 FAILED before the corrected Cancel stage:
+  HID command/shift clicks and CmdQ had no effect despite AX/frontmost success.
+  Exact same app's prior9-selection/PROMPT PASS retained; no unproved source
+  modifier regression. After trial UserNotificationCenter2035 again frontmost,
+  now PosterBoard crash (capture01:13:03, launchd_sim/SimulatorTrampoline).
+  Readonly simulator list later empty; no foreign process/device stopped.
+  Repeated systemmodals/HID eventreceiver are the scoped infrastructure boundary;
+  GUI retries parked pending concrete correction, no native tests/review green.
+- Generic AX helper may have recompiled due archived Swift mtime (verified
+  currentbinarymtime1791328216/hash766fa9be...; no previous binary-identity proof).
+  Scope-expanded diagnostic e23ba8a0 cherry664554ff adds readonly eventaccess,
+  no grant/reset/request or HID mutation. Target-owned separate probe compiled
+  under freshmean22.76%CPU/62%memory-free; SSH CLI returned
+  AXTrusted=true/PostEventAccess=true for THAT new identity. It does not prove
+  original helper rights or actual HID delivery. Original binary hash/signature
+  retained; generic /private/tmp/ahoi-axtool not overwritten by this probe.
+  Sameworker correction/diagnosis16aa1f8e/e6a34f92/e993595b/49e360f8; existing
+  Goal/thread maintained. NextUI attempt needs free actual target/eventreceiver,
+  bound intended helper/code/session and unchanged product/readback guards.
 
 
 ## Handoff Claude → Codex (Caeli) — 6 October 2026
