@@ -1,5 +1,19 @@
 # Active sync coordination
 
+## CloudKit spike tombstone correction — 7 October 2026
+
+The attributable production correction93ff76b5 and fixtures8063b3f3 are
+integrated as62a79a6e and1ab25065 on the actual main lineage. The deletion entry
+validates the embedded tombstone before the unchanged full SyncBoundary checks.
+The exact main package tree20680515 passed36/36 tests on Xcode27, admitted on
+Inhouse at22.10% aggregateCPU. The full desktop package tree00bd18a6 separately
+passed39/39; its three additional target tests are absent from current main.
+The necessary native correction review found no new defect; code and caller
+blobs match this integration. No live CloudKit or account data was changed.
+Evidence: [exact main package](../artifacts/tests/desktop-workspace-consolidation-20261007/sync-main-1ab25065.json).
+This closes the spike prerequisite only. Desktop visible acceptance and the
+original worker Goal8081cfbd remain separate; no foreign Goal status is changed.
+
 ## Real-device Mac–iPhone test in progress — 29 September 2026, 13:15 CEST
 
 Owner-approved real test in the isolated CloudKit Development scope
