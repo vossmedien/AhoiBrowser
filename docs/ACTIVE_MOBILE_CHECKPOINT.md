@@ -31,6 +31,12 @@ not a duplicate. Root removed nine obsolete Desktop rollback app copies and
 recovered about6.82GiB net available space; fresh per-phase capacity/disk and
 explicit simulator resource handback remain required before another Mobile run.
 No Mobile source integrated while these criteria fail; accepted main134 preserved.
+Newest priority handbackf4f558f6 resumes only the existing55 T2 SDK/storage
+Source phase after C70's public receiver Source handback; Arc and Mobile are the
+two Source helpers. Root original contract explicitly requires extensionstorage
+preservation, confirmed against the original delegation; no criterion relaxation.
+Inhouse now3.45GiB free, so no build/UI/focus lease returned and8GiB unchanged.
+Root resource-coordination37f42db8 queued, actual free-space handback still needed.
 
 - **Files import/load/unload PASS:** exact clean DebugLocalba139fc1, owned iOS27
   simulatorA058D204-F3CB-44B7-963C-1F785132EF8B,40.75s. Native Files selected the

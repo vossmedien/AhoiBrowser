@@ -95,6 +95,22 @@ or precise sender setup; no NSWorkspace-only admission, private API, permission
 mutation or unknown-target bypass. C70 source handback itself arrived and was
 consumed; orchestrator request463121c1 had only a stale boundary answer, not
 additional execution. Close UI/focus/review remain open pending this correction.
+Public equivalent receiver Source365a9820 consumed asRoot0127725e after own
+diff review: documented AppKit keyreceiver plus actual application AX-window
+PID/bounds, unique on-screen Quartz window and pointer/window/AX ownership.
+Unknown data/systemnotice still refuse; no globalAX messaging success fabricated.
+New helper compile/own-probe NOT_STARTED before CPU/compiler/app: free target
+3622136KiB (about3.45GiB), below unchanged8GiB reserve. No new helper binary
+or positive receiver/HID evidence. Raw preparation state in
+`artifacts/tests/desktop-hid-and-cleanup-20261007/hid-receiver-365a9820-20261007/`.
+Same C70 handed back Source and waitsRootprobe (03576c04); Mobile55 T2 SDK/storage
+Source resumed in its same identity (f4f558f6), only Arc+Mobile activeSources.
+No Mobile simulator/runtime slot granted. Global owner resource coordination
+request37f42db8-d8bb-4cc2-a287-a7d2133be7d0 queued; not a cleanup/start proof.
+Resume small helper/GUI phase only after fresh CPU/memory/ownership and at least
+8GiB reserve plus its0.3GB planned growth; complete F incremental build retains
+its separately declared growth budget. Own nine obsolete rollbacks already
+removed; no foreign files/processes stopped and current outputs remain.
 
 - Source handoff `049a3c1d-5edf-4d2e-a173-c89f7f9e0663`: all 34 manifest
   hashes and lengths verified. Source CLI stopped; quota interruption, no

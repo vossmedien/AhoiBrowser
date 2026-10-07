@@ -1,0 +1,7 @@
+Filesystem   1024-blocks      Used Available Capacity iused    ifree %iused  Mounted on
+/dev/disk3s5   482797652 451398068   3622136   100% 5621047 36221360   13%   /System/Volumes/Data
+-rw-r--r--  1 vossmedien  staff  26900 Oct  7 03:47 /Users/vossmedien/inhouse/evidence/ahoi-e0282a90/ahoi-axtool-365a9820.swift
+
+/Users/vossmedien/inhouse/evidence/ahoi-e0282a90/hid-receiver-365a9820-20261007:
+total 8
+-rw-r--r--  1 vossmedien  staff  186 Oct  7 03:47 preparation-state.txt
