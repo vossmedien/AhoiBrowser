@@ -2,6 +2,23 @@
 
 ## Current Root acceptance — 8 October 2026
 
+
+EC061D79 coordination follow-up 34294b25-1c17-4cce-a092-6aefe61c3249 addresses the actual binding failure
+to existing Cockpit-Lifecycleowner763D7B06-D223-4E3D-9241-7E15A0662A7F/
+native01a114db-cc51-7163-adc0-58b0efbbfb2d through the Orchestrator. Original
+DM task8e74e15d, AE918FA0/native01a11680, accountDEFAA and Goalcreated1791379249
+remain unchanged. Reopen0f375aba was refused13:15:47Z: TARGET_CHANGED,
+account/session/thread/CWD mismatch; original AE is absent in fresh16:10
+Session Insight. Existing branch1acf8ad9 and granted T00–03 source scope remain.
+Orchestrator receipt34294b25 is answered16:13:58Z, but native owner delivery
+and repaired binding remain unproved. Direct Lifecycle763 note was explicitly
+rejected: "Notizen gehen nur an Sessions deines Projekts; Terminal Cockpit ist
+ein anderes." The exact server response is retained; no successful handoff
+or original-goal resume is claimed.
+Same request/worker will be continued on actual response; no duplicate worker,
+SQLite patch, weakened identity check or R/DD/A058 lease. See current Sync
+coordination and owner-followup-EC061D79 evidence in the existing handback folder.
+
 Root's original full Master Goal is now BLOCKED after three continuation
 turns without the same required GUI/DM-binding handback; see the current
 Desktop waiting boundary. Source75443563 remains preserved/pushed, main5c9c

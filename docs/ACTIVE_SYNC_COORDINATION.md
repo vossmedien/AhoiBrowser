@@ -1,5 +1,36 @@
 # Active sync coordination
 
+
+## Current GUI coordination handback — 8 October 2026, EC061D79
+
+The September `Current owners`/UI entries below are historical. They name
+`/root/desktop_recovery_20260913` and explicitly defer current candidates to
+Desktop; they do not identify today's foreign GUI owner. Current C70 report
+1b86d08f records Vega receiver77335/instanceb4e1f00c at15:51:52Z, with exact
+session ownership still unproved. It also reports Arc's own GUI lease returned;
+that return does not release the foreign Vega receiver or prove C70 acceptance.
+
+Known current coordination destinations are BetterIPTV Lead1447392B/native
+01a11179-6b8e-73e3-9963-ef7ac9ee1884 and Vega-LintA5776FFE/native01a11b0d.
+EC061D79 follow-up 34294b25-1c17-4cce-a092-6aefe61c3249 requests actual owner attribution and express GUI
+return through existing C70 request73bc98f3 and its recorded follow-up0a2f925e;
+no replacement task/worker. Root's old52b50478 andef2a6263 are answered without
+handoff, not open requests. Follow-up34294b25 answered16:13:58Z names the
+contacts but contains no owner agreement or lifecycle repair receipt. One
+concrete direct attempt to Vega-LintA577 and Lifecycle763 was rejected by the
+helper because each is another project; neither recipient received the note.
+Only actual return allows the same Arc/C70 journeys after fresh admission;
+foreign processes and sessions remain untouched. Root owns no GUI/build slot.
+
+Mobile repair is bound to original8e74/AE918/native01a11680 and existing
+Cockpit-Lifecycle763D7B/native01a114db-cc51; the actual TARGET_CHANGED reopen
+and absent original session are sent in the same follow-up. See current Mobile
+checkpoint and artifacts/tests/mobile-parity-source-handback-20261008/
+owner-followup-EC061D79-{request,receipt,status,identities}.json plus the two
+named owner-request/receipt pairs. AppPID2519 is live;
+the helper's stopped-app warning contradicts that fresh process/snapshot proof.
+No repaired binding, native resume or finished acceptance is inferred.
+
 ## CloudKit spike tombstone correction — 7 October 2026
 
 The attributable production correction93ff76b5 and fixtures8063b3f3 are

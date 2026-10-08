@@ -1,0 +1,39 @@
+{
+  "snapshotWrittenAt": "2026-10-08T16:13:36Z",
+  "appProcess": 2519,
+  "sessions": [
+    {
+      "id": "A5776FFE-C1C7-40F8-A869-A640B566749E",
+      "nativeThreadID": "01a11b0d-96cd-7f21-ae68-fd8416d771bb",
+      "workingDirectory": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/BetterIPTV-vega-lint-voraussetzung-bf00c4a3",
+      "accountID": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+      "role": "Vega-Lint-Voraussetzung",
+      "processRunning": true
+    },
+    {
+      "id": "68E66C9E-7E52-4842-B328-03D9CD6D3057",
+      "nativeThreadID": "01a11179-cb6b-7dc1-9e53-f3d72fefc198",
+      "workingDirectory": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser",
+      "accountID": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+      "role": null,
+      "processRunning": true
+    },
+    {
+      "id": "763D7B06-D223-4E3D-9241-7E15A0662A7F",
+      "nativeThreadID": "01a114db-cc51-7163-adc0-58b0efbbfb2d",
+      "workingDirectory": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Apple/macOS/TerminalCockpit-codex-06a83944",
+      "accountID": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+      "role": "Worker",
+      "processRunning": true
+    },
+    {
+      "id": "1447392B-39C3-4904-BF44-A35F43F4F8F7",
+      "nativeThreadID": "01a11179-6b8e-73e3-9963-ef7ac9ee1884",
+      "workingDirectory": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/BetterIPTV",
+      "accountID": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+      "role": null,
+      "processRunning": true
+    }
+  ],
+  "originalMobileSessionPresent": false
+}
