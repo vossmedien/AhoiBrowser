@@ -25,7 +25,10 @@ fixture callsites to exact pinned API, preserve assertions/lifecycle/800-line
 budget. Worker edits its owned Source; no N/W/out writes, extra review/worker/
 Goal or production change. Root accepts attributable correction then recompiles
 same warm target. Existing Orchestrator receipt9132f9c0-53d9-4b13-b04a-eb5b6048db38
-is queued, not a native acceptance/start proof. GUI unlock/owner-return and
+is now unknown/TARGET_CHANGED at22:30:30Z on target01a11d97; no native
+acceptance/start is proved. Direct same-project Arc feedback38716b39 and C70
+terminal handback4fba37c5 were taken by the helper, not evidence of Source
+implementation. Retain the same request/worker; no new-ID retry. GUI unlock/owner-return and
 original DM repair remain separate; Arc/C70 conditional slots are unchanged.
 Evidence: artifacts/tests/desktop-b6-browser-regression-20261009/
 terminal-result.json, build.log.gz, runner.exit and phases.log plus same-worker
