@@ -37,6 +37,16 @@ source handback; no replacement worker. No R/DD/A058 runtime lease transferred.
 Step2 product decision requested under ADR0012 after the delivered spike;
 independent DM/Desktop work continues while that answer is pending.
 
+Material follow-up ef2a6263 is accepted at15:21:46Z after Arc's actual15:11
+Orchestrator answer demonstrates changed connectivity. It targets the same
+DM8e74/AE918/native01a11680 and original T00–03 source handback, plus actual
+cross-project GUI coordination for existing Arc/C70 owners. It creates no
+worker or Goal. Receipt is queued only: no native DM resume, GUI handback or
+execution is inferred. Current canonicalf0f35ddd changes no Mobile bytes.
+Request/receipt: artifacts/tests/mobile-parity-source-handback-20261008/
+reconnected-followup-{request,receipt}.json. No additional retry absent an
+actual response or changed prerequisite; Root holds no heavy/runtime lease.
+
 ## Current Codex continuation: Files delivered on main; popup/permissions delegated — 7 October 2026
 
 Unified owner Cockpit68E66C9E, native Goal/thread
