@@ -1,0 +1,9 @@
+{
+  "mode": "separated",
+  "isolated_services": {
+    "main": 1,
+    "separated": 1
+  },
+  "history_journal": "committed",
+  "pass": true
+}

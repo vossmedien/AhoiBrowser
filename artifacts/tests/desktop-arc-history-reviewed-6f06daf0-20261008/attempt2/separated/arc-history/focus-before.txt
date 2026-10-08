@@ -1,0 +1,4 @@
+frontmostApp: AhoiBrowser pid=52219 target=52219
+focusedElement: AXTextField | Adress- und Suchleiste | Adress- und Suchleiste
+focusedWindow: AXWindow | Neuer Tab - AhoiBrowser
+mainWindow: AXWindow | Neuer Tab - AhoiBrowser

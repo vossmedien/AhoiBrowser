@@ -1,0 +1,11 @@
+{
+  "mode": "recovery",
+  "results": {
+    "recovery": {
+      "preview": "ok",
+      "automaticPreparedRecovery": true
+    }
+  },
+  "privacy": true,
+  "entry": "visible Settings controls; native backend, no mocked responses"
+}

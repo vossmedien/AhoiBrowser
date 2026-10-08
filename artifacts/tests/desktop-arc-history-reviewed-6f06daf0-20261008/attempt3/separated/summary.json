@@ -1,0 +1,6 @@
+{
+ "journeys": {
+  "arc-history": "NO_VERDICT exit=1 console-after=unlocked"
+ },
+ "pass": false
+}

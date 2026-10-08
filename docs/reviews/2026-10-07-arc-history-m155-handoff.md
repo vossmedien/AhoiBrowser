@@ -752,3 +752,134 @@ accepted15:10:24Z weitergegeben; queued belegt keine GUI-Freigabe.
 Minimaler Root-Nachtrag76fad15e gegen3c ist noch nicht angenommen; auf dieselbe
 kleine Source/Evidenzzusammensetzung mit komprimierten Rohlogs wird er präzisiert.
 Kein neuer Worker, kein Defaultbranch-Schreibzugriff oder Push erfolgt.
+
+### Abschließender kleiner Source-/Evidenzhandback dieses Turns
+
+Zustellbarer Commit **e7032d63530390922f38e2313a3e023d2f4c3d9b**, unmittelbarer Parent3c370175712beb90ec414bfd89b29a39d502fd15,
+Ref cockpit/arc-root-acceptance-e5fbc1f3. Er ersetzt den unangenommenen
+Evidenzentwurf76fad15e ausschließlich für die bytegetreue Rohlogrepräsentation.
+Eigener Arbeitsbranch bleibt cockpit/arc-verlauf-m155-e5fbc1f3; keine native
+Goal-/Thread-/Worktreeidentität ersetzt. Dokumentsicherung19c6c344/dff6f129.
+DCO/Lane(0 Fehler), vollständiger Paket-Diffcheck und die exakt vier App-C++-
+Bytes gegen gebautem6f sind geprüft. Kein apps/spikes/config/patches-Delta.
+Übernahme dieses kleinen Commits per Cherry-Pick in Roots aktuellen kombinierten
+Quellstand bewahrt zusätzliche26 Root-Mobilepfade und alle Rootcheckpoints.
+
+Aktualisierte Orchestratorantwort876e32ef ist answered15:11:28Z, bestätigt
+weiter offene GUI-Übergabe und Settings-Reruns; keine neue Abstimmung/Zustellung
+an BetterIPTV daraus belegt. Keine Wiederholung dieser unveränderten Anfragen.
+Ein konkreter Owner-Handback, ein Rootfinding oder echte Main-/Push-/Liefer-
+quittung setzt denselben geparkten Schritt fort. Kein falseComplete.
+
+### Tatsächliche Sourceannahme durch Root
+
+Neue Ownernachricht bindet die übernommene Ref e7032d63 und Bericht59fa06a4;
+Git belegt kanonischen Sourcecommit **a80d1c3c04161c322db1cafd050896cfb4882b3b**
+und Root-Checkpoint **f0f35ddd2c886d7cf8b1ed80d348ee2163154411**.
+Vier Arc-C++-Blobvergleiche mit exakt gebautem6f sind identisch. Der Root-
+Übernahmecommit verändert keine apps/spikes/config/patches; zusätzliche
+Mobile-/Rootquellen bleiben erhalten. Dies ist Sourceannahme, keine neue
+Runtime-/Main-/Pushabnahme. Server-main bleibt5c9c6a5b.
+
+Der vorherige Goalturn brachte Sourcesicherung/Negativprüfungen/prüfbaren
+Nachtrag; dieser Turn liefert neue tatsächliche Rootannahme. Bei einmaliger
+Revalidierung fehlen die zuvor beobachteten BetterIPTV-PIDs22716/23631/23554,
+Front ist Finder. Passende explizite Rückgabe der Mac-GUI ist dadurch nicht
+belegt; Owner-Checkpoint-Lektüre liefert keinen zuordenbaren aktuellen
+clock-probe31-Handback. Keine fremde GUI oder Runtime geändert, kein neuer
+Orchestratorrequest und keine unveränderte Statusschleife begonnen.
+Root bestätigt die Zuständigkeit desselben Arc-GUI-/Targetpfads und startet
+keinen parallelen Build/GUI. Nächste Aktion bleibt der betroffene sichtbare
+Rerun am signierten6f nach tatsächlichem Owner-Handback, ohne weitere
+Modellreview oder Ersatzsession. Goal bleibt unverändert ACTIVE/offen.
+
+## Tatsächliche postreview-Reruns und gleichidentische Korrektur
+
+Neue Rootquittung: Featurebranch a80d1c3c/f0f35ddd regelmäßig gepusht,
+terminal0, zwölf gzip-Originalhashes/-längen und History20/20 XML unabhängig
+bestätigt. **Main bleibt5c9c6a5b**. Root hält keine Build-/GUI-/Publisherlease;
+sein Mastergoalstatus wird ausschließlich durch Root gepflegt, nicht hier.
+
+Vor-Ort-Prüfung: Finder/unlocked, HIDidle517s, keine aktive Vega/clock-probe/
+Ahoi-GUIphase, App Source6f/Executablebdd229 exakt. Inhouse CPU-Samples
+8.82/16.72/20.02%, Mittel15.19%, Memory66% frei,20302828KiB Disk.
+Der vorhandene run-journey-set-Guard übernimmt seine atomare e2e.lock und
+prüft Capacity/Console/Owner-Idle vor jedem Start. Nur eigene Evidenzscripts,
+keine N/W/out-Änderung/kein Build/Apply. Rootinfo3d2d1aaa bindet die Phase.
+
+[Postreview-Belege](../../artifacts/tests/desktop-arc-history-reviewed-6f06daf0-20261008/)
+enthalten erste127-Node-PATH-Grenze (keine Importassertions), korrigierten
+Runner mit bereits installiertem Node22.23.1 und unveränderte Scriptinputhashes.
+Eigener Runner51816 **terminal0**,15:32:21–15:33:49Z: main/separated/rollback/
+recovery jeweils **PASS exit0 console-unlocked**, erstmals auch durch den
+bestehenden standardverdict.json-Runner anerkannt. Alle sechs Historyabläufe,
+PID-/Profilbindung, NativeDB-/Journalreadbacks und Datenschutzassertions bestanden.
+
+Trotzdem Main/Rollback/Recovery mit frühem DevToolsRenderer-DCHECK; deshalb
+keine stille Crash-/Gesamtabnahme. M155-Primärquelle:
+[DevToolsAgent am Pin16c3e554](https://chromium.googlesource.com/chromium/src/+/16c3e55476d3564bea713314b2fff638749ce3e6/third_party/blink/renderer/core/inspector/devtools_agent.cc),
+SHA256735c6b96ef1c2a5335e2dde5f661f63b233c4a7993e771888a88403ec58ee4e5,
+BindReceiver223 verlangt ungebundenen associated_receiver; Cleanup457 setzt
+ihn zurück. Webtool konnte Gitiles nicht öffnen; offizielles gepinntes
+Gitilesformat=TEXT direkt geladen/hashgeprüft, kein Enum/API geraten.
+[Target.pdl am selben Pin](https://chromium.googlesource.com/chromium/src/+/16c3e55476d3564bea713314b2fff638749ce3e6/third_party/blink/public/devtools_protocol/domains/Target.pdl),
+SHA256136ca4a240e64aa727e0b261cbe7ac853748154aaa8c4a86fe818d7c522535d6,
+bindet createTarget(url), activateTarget(targetId) und attachToTarget(flatten)
+mit SessionId. Neue kleine Scriptkorrektur erstellt die echte Settingsseite
+vor Attachment. Alle API-Nachrichten bleiben am geprüften eigenen Browser-PID/
+Privatprofil gebunden. Renderer-FATAL/DCHECK verhindert jetzt den Erfolgverdict.
+
+Runner61877 wartete zunächst bei erneutem Vega-Foreground/HIDidle<300;
+keine Browserassertions daraus. Bei dessen späterem Guardstart bestand
+**main15:47:24Z ohne Renderer-DCHECK**. Der geplante Stop fand den Guardprozess
+bereits beendet und brach vor jedem Signal ab; keine fremden/own Prozesse
+blind beendet. Folgende separated-Phase scheiterte tatsächlich: Historyadded1,
+statussourceChanged, Sidebarseparated1/statusok. Runnerterminal1, Browser und
+Lock beendet. Rollback/Recovery wurden in diesem Versuch nicht mehr ausgeführt.
+Kein Gesamterfolg des neuen Scripts behauptet. Das neue Settings-Target ist
+hiermit im echten Hauptfall geprüft; Profil-/Rücknahme-/Recovery-Reruns bleiben.
+
+Konkreter Sourcefindingpfad: frische gefilterte Historybackups erfassen gemäß
+arc_import_backup.cc544ff auch die aktive Ahoi-Tab-Tree-Datei/WAL/SHM. Die
+vollständige Generation wird vor/nach Kopie verglichen; Änderungen ergeben
+kSourceChanged. Der neue isolierte Zielservice startet dies bisher ohne die
+bereits vorhandene native Persistenzbarriere. SessionBridge.h120/cc433ff
+stellt FlushPersistenceForBackup für genau diese Snapshotkopie bereit;
+Sidebar-/Recoverypfade nutzen sie bereits. Minimaler eigener Servicefix
+verwendet sie vor **frischen** per-profile Historybackups, nach Recovery ebenso;
+Policy wird nach der Barriere neu geprüft, OperationGuard/KeepAlive/Weakcallbacks
+bleiben bis terminal wirksam. Bereits unveränderliche Backups bleiben direkt
+verwendbar. Kein neues Manifestformat, Datenbank-/Infrastrukturmodell oder
+abgeschwächter Quellen-/Hashschutz. Die genaue Dateienmutation ist ohne neue
+Instrumentation nicht gemessen; der fehlende vertragliche Barriereschritt ist
+quellenbelegt, die Wirksamkeit dieses Fixes bleibt Compile-/Runtime-offen.
+
+Bestehende HistoryOnlyAndSidebarReplayKeepNativeTree-Regressionsreise ergänzt:
+fehlenden eigenen dauerhaften TabTree-Snapshot vor reinem Historycommit erzeugen;
+die authoritative Bridge muss ihn vor Backup serialisieren. Testdatei790Zeilen,
+keine neue Harnessplattform/Testmatrix. Sourcefix noch nicht kompiliert oder
+nativ ausgeführt. Syntax/Diff, Node-Modulsyntax und zwölf Settingsquellenchecks
+bestehen; keine neue Modellreview (zwei Runden bereits ausgeschöpft).
+
+Eigenen GUI-Handback89048087 konkret anC70 gegeben: beide Runner beendet,
+keine Ahoi-App/e2e.lock, keine N/W/out-/Sourcewrites am Target. Neuer tatsächlicher
+Vegaowner77335/Appium77568 bleibt erhalten. Nachricht zum neuen Finding anRoot
+wurde anschließend wegen **Cockpit läuft nicht/keine Sessions veröffentlicht**
+explizit nicht gesendet; kein Empfang/Handback daraus behauptet.
+Nächste Phase: attributable kleine Korrektur an dieselbe Root-/Workeridentität,
+tatsächlicher Build-/Target-/GUI-Handback nach C70/Vega, neuer kombinierter
+Kandidat mit Fix, betroffene isolierte/pure/combined/rollback/recovery Reisen
+und vorhandene notwendige Focuschecks. Main-/Push-/Lieferabschluss bleibt offen.
+
+Quellenkorrektur **f35e9da8**, Basis e1e7da4f im unveränderten eigenen Branch:
+exakt arc_import_service.h, arc_import_service_history.cc,
+arc_import_service_browsertest.cc und arc-history-journey.sh (51+/9-).
+DCO/Lane desktop, Diff/Node-/Bashsyntax, zwölf bestehende Settingsquellenfälle
+und800-Zeilenbudget bestehen. Keine GN/DEPS/Settings/Vendor-/Patchänderung.
+Die alten6f Runtime-/Sign-/Installbelege beweisen diese neuen C++-Bytes nicht.
+Build/isolierteProfile-/Recovery-Rerun und gezielte bestehende native Regression
+sind ausdrücklich offen; keine neue Modellreview oder Parentgoaländerung.
+Root erhält den exakt cherry-pickbaren f35-Nachtrag und dieses neue Finding-
+/Runtime-Evidenzpaket in derselben Identität, sobald die bestehende DM-Bindung
+wieder zustellen kann. Die fehlgeschlagene Note hat keine request/receipt-ID,
+keine native Empfängerannahme behauptet. Keine Duplicateworker/Goaleingaben.

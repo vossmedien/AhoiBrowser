@@ -1,0 +1,44 @@
+{
+  "mode": "rollback",
+  "results": {
+    "rollback": {
+      "approximatedFourPaneRatios": 0,
+      "existingSeparatedWorkspaces": 0,
+      "failedSeparatedWorkspaces": 0,
+      "history": {
+        "added": 0,
+        "deduplicated": 0,
+        "excluded": 4,
+        "expired": 1,
+        "selected": true,
+        "status": "transactionFailed"
+      },
+      "mergedWorkspaces": 0,
+      "reconstructedSplits": 0,
+      "renamedWorkspaces": 0,
+      "separatedWorkspaces": 0,
+      "skippedWorkspaces": 0,
+      "stats": {
+        "deduplicatedItems": 0,
+        "deduplicatedSplits": 0,
+        "deduplicatedWorkspaces": 0,
+        "degradedSplits": 0,
+        "folderWorkspaces": 0,
+        "folders": 0,
+        "pages": 0,
+        "sourceItems": 0,
+        "sourceWorkspaces": 0,
+        "splits": 0,
+        "topApps": 0,
+        "topLevelFolders": 0,
+        "unreachableItems": 0,
+        "unsafeUrls": 0,
+        "unsupportedItems": 0,
+        "workspaces": 0
+      },
+      "status": "noChanges"
+    }
+  },
+  "privacy": true,
+  "entry": "visible Settings controls; native backend, no mocked responses"
+}

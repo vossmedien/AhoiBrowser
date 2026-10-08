@@ -1,0 +1,561 @@
+{
+  "source": "6f06daf0ca0e79091a2fc48f6bd79bb838588149",
+  "files": {
+    "admission-attempt2.txt.gz": {
+      "sha256": "b01397f95cee65dbbc929963af0a6ac5c6dfa0756b3a4d9c0936b1987738c299",
+      "bytes": 118
+    },
+    "admission-attempt3.txt.gz": {
+      "sha256": "bd2789199a18eda663db3e095198729217238a095b46060d2e39f476c4439ad0",
+      "bytes": 124
+    },
+    "attempt2/fixture-roots.txt": {
+      "sha256": "f3ad0126f7061b27eacb41e09786fd7b132900270ebcd7a54ab8ba0f261461dd",
+      "bytes": 82
+    },
+    "attempt2/main/arc-history/01-preview.png": {
+      "sha256": "59965eac9a3a727ceb3f52f29651af9da60c166e5c98cb383156449fc696b96b",
+      "bytes": 200489
+    },
+    "attempt2/main/arc-history/02-history-only.png": {
+      "sha256": "9ca1237581b6bc3419c826ddbe05358b4668467f94365d37a538cf45215e014f",
+      "bytes": 146470
+    },
+    "attempt2/main/arc-history/03-combined.png": {
+      "sha256": "21ea410e474d529e63fd24efbd7974fd9c5c7d4c15196e968eb98010cdf29142",
+      "bytes": 149623
+    },
+    "attempt2/main/arc-history/04-repeat.png": {
+      "sha256": "c929026ccc7c622c259fc85f0444b945988e533ad79c1ccb7204b1c6b04211d4",
+      "bytes": 107574
+    },
+    "attempt2/main/arc-history/activation.txt": {
+      "sha256": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25",
+      "bytes": 15
+    },
+    "attempt2/main/arc-history/browser.log.gz": {
+      "sha256": "6c5aa3496b49f56d7ecd1cd7f6b244af363f6914be406058ebcb9f9d54767743",
+      "bytes": 3935
+    },
+    "attempt2/main/arc-history/browser.pid": {
+      "sha256": "5a74b1c507e9303977140359522d2ff5cad97de1a49ae36a0d5dc5dba546b3bc",
+      "bytes": 6
+    },
+    "attempt2/main/arc-history/endpoint-binding.txt": {
+      "sha256": "d5be0866828200cd4bcc228447756a3b2e91567f55683433185702c2de414120",
+      "bytes": 74
+    },
+    "attempt2/main/arc-history/fixture-root.txt": {
+      "sha256": "f536588ee2fd6c959a6ef85b2b9efef5b444c6576d20920b80b1dedb66fbcd5c",
+      "bytes": 41
+    },
+    "attempt2/main/arc-history/focus-before.txt": {
+      "sha256": "e53d0af87cddb0cee69f662a741a05fba8b46b16cec0c13238f514701f69f4c9",
+      "bytes": 224
+    },
+    "attempt2/main/arc-history/native-results.json": {
+      "sha256": "e3cf7be5870236de4f977b680c4209f1d45eb01449d888211c335d62d0bbaaaa",
+      "bytes": 89
+    },
+    "attempt2/main/arc-history/ui-results.json": {
+      "sha256": "db29bf7e6fafaf92566e45f26ef9f1e30bcbaa3aab3eea895016a56ca02342d9",
+      "bytes": 3025
+    },
+    "attempt2/main/arc-history/verdict.json": {
+      "sha256": "e3cf7be5870236de4f977b680c4209f1d45eb01449d888211c335d62d0bbaaaa",
+      "bytes": 89
+    },
+    "attempt2/main/arc-history.log.gz": {
+      "sha256": "b7d049ef7c698ba3ab1d3d1226e209992d31c93ea22c2c21503318bef1699d9c",
+      "bytes": 91
+    },
+    "attempt2/main/summary.json": {
+      "sha256": "fc9a13ca310b677542c009f1dacb74bed3ed1d43627f5aeca79e78aff734ca88",
+      "bytes": 91
+    },
+    "attempt2/main/summary.txt": {
+      "sha256": "c020ae2d3802b157de937148f41a0255bbc573be457f6f664026121a8e1e2df3",
+      "bytes": 47
+    },
+    "attempt2/main/wait.log.gz": {
+      "sha256": "63eff96096f52c3cfd3f15f0c3350ee8297f42fe93451f3baa60f9cba12f8ce3",
+      "bytes": 88
+    },
+    "attempt2/node-version.txt": {
+      "sha256": "b8139b18707113247bd3eba5bff8ee50ed8f6bfd5076113805af4e414abfdf23",
+      "bytes": 9
+    },
+    "attempt2/owner.txt": {
+      "sha256": "3cb463f29e16bf573fee5b18ed7d09a2e9d3bd0d521e0fdd6d6363f3e4f5d229",
+      "bytes": 63
+    },
+    "attempt2/phases.log.gz": {
+      "sha256": "c9d2f1d7a389376cf0fd02beaddb02341bbe2548898d46600eac045810a792cd",
+      "bytes": 120
+    },
+    "attempt2/recovery/arc-history/01-preview.png": {
+      "sha256": "59965eac9a3a727ceb3f52f29651af9da60c166e5c98cb383156449fc696b96b",
+      "bytes": 200489
+    },
+    "attempt2/recovery/arc-history/02-recovered.png": {
+      "sha256": "59965eac9a3a727ceb3f52f29651af9da60c166e5c98cb383156449fc696b96b",
+      "bytes": 200489
+    },
+    "attempt2/recovery/arc-history/activation.txt": {
+      "sha256": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25",
+      "bytes": 15
+    },
+    "attempt2/recovery/arc-history/baseline.sha256": {
+      "sha256": "c6130ec568e555ee04e7350914bdcf0ada64b6176ffc97b4cca2340da82c1372",
+      "bytes": 64
+    },
+    "attempt2/recovery/arc-history/browser.log.gz": {
+      "sha256": "3f2f37893866baf0d1bc17f6fa373820836b1df627c04aa91c8a6d0dccb07b8c",
+      "bytes": 3851
+    },
+    "attempt2/recovery/arc-history/browser.pid": {
+      "sha256": "cca47bd387bc97086ff1f33a9945ef1be142e3c454d4c5131072fa3bdc1f12e7",
+      "bytes": 6
+    },
+    "attempt2/recovery/arc-history/endpoint-binding.txt": {
+      "sha256": "18b25726403c9fa90affa5ffb76496ef5343f914e4f26c84e4130a7451da4d2d",
+      "bytes": 74
+    },
+    "attempt2/recovery/arc-history/fixture-root.txt": {
+      "sha256": "f536588ee2fd6c959a6ef85b2b9efef5b444c6576d20920b80b1dedb66fbcd5c",
+      "bytes": 41
+    },
+    "attempt2/recovery/arc-history/focus-before.txt": {
+      "sha256": "60a442bd166a4e5931f847b185f4bcc47309b6e2caa1a6c944e34b56e8118473",
+      "bytes": 224
+    },
+    "attempt2/recovery/arc-history/native-results.json": {
+      "sha256": "98cfb24f7de6a09a23d2fd6dfe7355516f118bb59b9b43df2fdad141325b07d0",
+      "bytes": 122
+    },
+    "attempt2/recovery/arc-history/ui-results.json": {
+      "sha256": "857f7d08e99dcf94099dde10f271e3c9e22294a6c8ec43b9e7728116f1aa60d2",
+      "bytes": 227
+    },
+    "attempt2/recovery/arc-history/verdict.json": {
+      "sha256": "98cfb24f7de6a09a23d2fd6dfe7355516f118bb59b9b43df2fdad141325b07d0",
+      "bytes": 122
+    },
+    "attempt2/recovery/arc-history.log.gz": {
+      "sha256": "78aed37987ec5eafe8aa9c6c395d3d338ec0ae7379536e54fc5c3d41032ee0c7",
+      "bytes": 112
+    },
+    "attempt2/recovery/summary.json": {
+      "sha256": "fc9a13ca310b677542c009f1dacb74bed3ed1d43627f5aeca79e78aff734ca88",
+      "bytes": 91
+    },
+    "attempt2/recovery/summary.txt": {
+      "sha256": "c020ae2d3802b157de937148f41a0255bbc573be457f6f664026121a8e1e2df3",
+      "bytes": 47
+    },
+    "attempt2/recovery/wait.log.gz": {
+      "sha256": "ef82f4c071931c69b3f423cbe50950131f9efa519e8187dc206cdc2f4a29f3b9",
+      "bytes": 88
+    },
+    "attempt2/rollback/arc-history/01-preview.png": {
+      "sha256": "59965eac9a3a727ceb3f52f29651af9da60c166e5c98cb383156449fc696b96b",
+      "bytes": 200489
+    },
+    "attempt2/rollback/arc-history/02-rollback.png": {
+      "sha256": "0756fe6da608c529eb40eb4050f702e1dced83ad1b11c6cea920e8561a54aa0a",
+      "bytes": 124135
+    },
+    "attempt2/rollback/arc-history/activation.txt": {
+      "sha256": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25",
+      "bytes": 15
+    },
+    "attempt2/rollback/arc-history/baseline.sha256": {
+      "sha256": "c6130ec568e555ee04e7350914bdcf0ada64b6176ffc97b4cca2340da82c1372",
+      "bytes": 64
+    },
+    "attempt2/rollback/arc-history/browser.log.gz": {
+      "sha256": "90fba4a829746d1ed312a8603a1d7859f878e5febc70c042b31c70655dad91b8",
+      "bytes": 3849
+    },
+    "attempt2/rollback/arc-history/browser.pid": {
+      "sha256": "801b9a4dcafe4527a53adc9d6191e5b9b0c6d60dcf5b0f1a5d780f239962510e",
+      "bytes": 6
+    },
+    "attempt2/rollback/arc-history/endpoint-binding.txt": {
+      "sha256": "92be78e3b22cf3fe042a4ac97243e3f069fbfa9b67f8c450262cd0ef7aeaafd2",
+      "bytes": 74
+    },
+    "attempt2/rollback/arc-history/fixture-root.txt": {
+      "sha256": "f536588ee2fd6c959a6ef85b2b9efef5b444c6576d20920b80b1dedb66fbcd5c",
+      "bytes": 41
+    },
+    "attempt2/rollback/arc-history/focus-before.txt": {
+      "sha256": "228d12e2508ae0bd477c72004362fd280ff4140c6da15056dbf78be8b2666182",
+      "bytes": 224
+    },
+    "attempt2/rollback/arc-history/native-results.json": {
+      "sha256": "4088274c4b93e1eaa9368106442b5ea2ace1d7456501f6fa08f02d1e0aa48e20",
+      "bytes": 122
+    },
+    "attempt2/rollback/arc-history/ui-results.json": {
+      "sha256": "df0a39ded9e2cd86cb014054ecdc9f52651e6c4c11c798fa913ea4477109f213",
+      "bytes": 1117
+    },
+    "attempt2/rollback/arc-history/verdict.json": {
+      "sha256": "4088274c4b93e1eaa9368106442b5ea2ace1d7456501f6fa08f02d1e0aa48e20",
+      "bytes": 122
+    },
+    "attempt2/rollback/arc-history.log.gz": {
+      "sha256": "ef4c3cc859cbfc07e54e2712d3c643143b39983fdc738aa660a666affa7feb15",
+      "bytes": 112
+    },
+    "attempt2/rollback/summary.json": {
+      "sha256": "fc9a13ca310b677542c009f1dacb74bed3ed1d43627f5aeca79e78aff734ca88",
+      "bytes": 91
+    },
+    "attempt2/rollback/summary.txt": {
+      "sha256": "c020ae2d3802b157de937148f41a0255bbc573be457f6f664026121a8e1e2df3",
+      "bytes": 47
+    },
+    "attempt2/rollback/wait.log.gz": {
+      "sha256": "8d81175cff0a8600767cb1e786620b9f229bd0f6a02af63bda94e5fde58cd62f",
+      "bytes": 88
+    },
+    "attempt2/runner.exit": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    "attempt2/runner.pid": {
+      "sha256": "3c08db9d98c4ab4e36a5c3436f0364d94b6dc506179958e74e29ceaf110bf4ce",
+      "bytes": 6
+    },
+    "attempt2/scripts.sha256": {
+      "sha256": "aedeb91841790ec500718f8e004fe861600227602bc4572f93a5927b75f5cbab",
+      "bytes": 525
+    },
+    "attempt2/separated/arc-history/01-preview.png": {
+      "sha256": "59965eac9a3a727ceb3f52f29651af9da60c166e5c98cb383156449fc696b96b",
+      "bytes": 200489
+    },
+    "attempt2/separated/arc-history/02-separated.png": {
+      "sha256": "db1e792a88d838b05f63344e26850872aed7dcc031952a5265cc0adc04a91d19",
+      "bytes": 157205
+    },
+    "attempt2/separated/arc-history/activation.txt": {
+      "sha256": "fbdac74645c244dae48d1edfe6c2fc3e2ff1f9ce6f614fcb3bcac1438bd32f25",
+      "bytes": 15
+    },
+    "attempt2/separated/arc-history/browser.log.gz": {
+      "sha256": "79c5fd583ade17d19c35fdb94450233d94f055e991199d1202319ffcd8089c2e",
+      "bytes": 1180
+    },
+    "attempt2/separated/arc-history/browser.pid": {
+      "sha256": "e1fafacb2b05d9bdbc9812a858f944009fd0c41ff3d623a440c24c1b7cd8cf82",
+      "bytes": 6
+    },
+    "attempt2/separated/arc-history/endpoint-binding.txt": {
+      "sha256": "c3bf8d67255688404ede0e230a3437e3451b599cec2ad5cbaca0f29cc2b0559e",
+      "bytes": 74
+    },
+    "attempt2/separated/arc-history/fixture-root.txt": {
+      "sha256": "b4d7dbfe72aa524c43fc2f430fb2e9e44a8c41dc073c12d744af266d506b4fd9",
+      "bytes": 41
+    },
+    "attempt2/separated/arc-history/focus-before.txt": {
+      "sha256": "320e7643656da0365f3c468d15fd554468d6ffc4de3da9418f599c2ece0f0cb0",
+      "bytes": 224
+    },
+    "attempt2/separated/arc-history/native-results.json": {
+      "sha256": "57e6571ada99e68d59ef6bb727db50142df27c034841a5d95043146c2810a148",
+      "bytes": 139
+    },
+    "attempt2/separated/arc-history/ui-results.json": {
+      "sha256": "110b492e4bd91fe3322711f616b44e2ab0ff66ecb6d3c00b08ba367f174965cc",
+      "bytes": 1097
+    },
+    "attempt2/separated/arc-history/verdict.json": {
+      "sha256": "57e6571ada99e68d59ef6bb727db50142df27c034841a5d95043146c2810a148",
+      "bytes": 139
+    },
+    "attempt2/separated/arc-history.log.gz": {
+      "sha256": "e1c903fe6df5bb328c4c3c175c12a082f660f3cbacc65d0c529975a4f2117284",
+      "bytes": 110
+    },
+    "attempt2/separated/summary.json": {
+      "sha256": "fc9a13ca310b677542c009f1dacb74bed3ed1d43627f5aeca79e78aff734ca88",
+      "bytes": 91
+    },
+    "attempt2/separated/summary.txt": {
+      "sha256": "c020ae2d3802b157de937148f41a0255bbc573be457f6f664026121a8e1e2df3",
+      "bytes": 47
+    },
+    "attempt2/separated/wait.log.gz": {
+      "sha256": "def56a04856b8c2f7574515455635953c8eb986d07f5b8ddb8e7036d5e41b381",
+      "bytes": 86
+    },
+    "attempt3/fixture-roots.txt": {
+      "sha256": "dac1d146bd4098953482e87e5eec2af3c695557f93666b26393b648c4d5f7ab2",
+      "bytes": 82
+    },
+    "attempt3/main/arc-history/01-preview.png": {
+      "sha256": "0d39eb86eb300e7f9b25755e82f039dbdcbff7f601728979613b39862fee6366",
+      "bytes": 200593
+    },
+    "attempt3/main/arc-history/02-history-only.png": {
+      "sha256": "4f4ae355bbae150527e882d08b2fa606a282ead06e8e0ba721bc1d0d76426656",
+      "bytes": 146584
+    },
+    "attempt3/main/arc-history/03-combined.png": {
+      "sha256": "871dc052192b7ec06676840953d661fa7f1ad3389e7d82025f026d1ece27436d",
+      "bytes": 149719
+    },
+    "attempt3/main/arc-history/04-repeat.png": {
+      "sha256": "abd22f6f581111fd36af5f945d2f257bb4eb5c5006ec3ec87c6e126553f9ba6c",
+      "bytes": 107613
+    },
+    "attempt3/main/arc-history/activation.txt": {
+      "sha256": "8f54476a9f468c2c65360d0883cc7104a219bd26010016bd2eb403730aaec047",
+      "bytes": 20
+    },
+    "attempt3/main/arc-history/browser.log.gz": {
+      "sha256": "a12a2526e07b16d7f3ba96a138c8583bd7c54d87f9874920d83cffdb69d031c3",
+      "bytes": 1069
+    },
+    "attempt3/main/arc-history/browser.pid": {
+      "sha256": "0bcfcbdedb39291d6970cb48d917cce398db77b4f149c9ca4e19d86043fde96d",
+      "bytes": 6
+    },
+    "attempt3/main/arc-history/endpoint-binding.txt": {
+      "sha256": "dbbbcade43629b9be07c564f1847b242f98016f2ff128f6d8fdffad49f13f3e6",
+      "bytes": 74
+    },
+    "attempt3/main/arc-history/fixture-root.txt": {
+      "sha256": "0ad629007431fc208a8527a7c51e6e15946b2207fdfd6007d3adcf85e20aa442",
+      "bytes": 41
+    },
+    "attempt3/main/arc-history/focus-before.txt": {
+      "sha256": "e98e1fcee599dca1f852df566546a710aa79617d6ee2474d49fe5e37fbb5d75f",
+      "bytes": 224
+    },
+    "attempt3/main/arc-history/native-results.json": {
+      "sha256": "e3cf7be5870236de4f977b680c4209f1d45eb01449d888211c335d62d0bbaaaa",
+      "bytes": 89
+    },
+    "attempt3/main/arc-history/renderer-failures.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "attempt3/main/arc-history/ui-results.json": {
+      "sha256": "db29bf7e6fafaf92566e45f26ef9f1e30bcbaa3aab3eea895016a56ca02342d9",
+      "bytes": 3025
+    },
+    "attempt3/main/arc-history/verdict.json": {
+      "sha256": "e3cf7be5870236de4f977b680c4209f1d45eb01449d888211c335d62d0bbaaaa",
+      "bytes": 89
+    },
+    "attempt3/main/arc-history.log.gz": {
+      "sha256": "9017f0163cb1ffd9d4d7344a366beeaa4680040cb5365bf2a6ce482b3edc1613",
+      "bytes": 196
+    },
+    "attempt3/main/summary.json": {
+      "sha256": "fc9a13ca310b677542c009f1dacb74bed3ed1d43627f5aeca79e78aff734ca88",
+      "bytes": 91
+    },
+    "attempt3/main/summary.txt": {
+      "sha256": "c020ae2d3802b157de937148f41a0255bbc573be457f6f664026121a8e1e2df3",
+      "bytes": 47
+    },
+    "attempt3/main/wait.log.gz": {
+      "sha256": "fd1a9da16b2afbb760539f855bfc1070176876f14f812c7167bb4ff9da4e9a71",
+      "bytes": 172
+    },
+    "attempt3/node-version.txt": {
+      "sha256": "b8139b18707113247bd3eba5bff8ee50ed8f6bfd5076113805af4e414abfdf23",
+      "bytes": 9
+    },
+    "attempt3/owner.txt": {
+      "sha256": "3cb463f29e16bf573fee5b18ed7d09a2e9d3bd0d521e0fdd6d6363f3e4f5d229",
+      "bytes": 63
+    },
+    "attempt3/phases.log.gz": {
+      "sha256": "8772f696b3cc5c75f81d9628106512cfdfc6156eaf37cbea38802968c997f78c",
+      "bytes": 78
+    },
+    "attempt3/runner.exit": {
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "bytes": 2
+    },
+    "attempt3/runner.pid": {
+      "sha256": "671fd7c474ac6bab56fe755b3f29555d4ea75d04e97721b6730e4b94fe537400",
+      "bytes": 6
+    },
+    "attempt3/scripts.sha256": {
+      "sha256": "991f8be1832829f66d014e066d232432b068123c561269cbc3eb3bc0296d23f9",
+      "bytes": 552
+    },
+    "attempt3/separated/arc-history/01-preview.png": {
+      "sha256": "59965eac9a3a727ceb3f52f29651af9da60c166e5c98cb383156449fc696b96b",
+      "bytes": 200489
+    },
+    "attempt3/separated/arc-history/02-separated.png": {
+      "sha256": "6018d58ea8bb7987620701ab08a9420d9082295e2d3b25e79a82e7e6d05b2b75",
+      "bytes": 175068
+    },
+    "attempt3/separated/arc-history/activation.txt": {
+      "sha256": "8f54476a9f468c2c65360d0883cc7104a219bd26010016bd2eb403730aaec047",
+      "bytes": 20
+    },
+    "attempt3/separated/arc-history/browser.log.gz": {
+      "sha256": "0b9325cedabbeb6946a21ae8c2374926689187b68c3d51380933d04d95e55453",
+      "bytes": 1173
+    },
+    "attempt3/separated/arc-history/browser.pid": {
+      "sha256": "83b2e903984267b0de519296f1fb5a19d8b00b6ddaca577efbe81d5a4a573d4f",
+      "bytes": 6
+    },
+    "attempt3/separated/arc-history/endpoint-binding.txt": {
+      "sha256": "5dd75eb50391d97b32908bbc9c9aa2fe249e582f15ee3bb29646571638a931a6",
+      "bytes": 74
+    },
+    "attempt3/separated/arc-history/fixture-root.txt": {
+      "sha256": "dcef9311086e029d6701d35027fd456936efdc9f80f237953c9f8b699ac7cd83",
+      "bytes": 41
+    },
+    "attempt3/separated/arc-history/focus-before.txt": {
+      "sha256": "f02b9e944941971ad0a2895a9a9bfae435ba6e27d44769a23d4f569ff14a47a9",
+      "bytes": 224
+    },
+    "attempt3/separated/arc-history.log.gz": {
+      "sha256": "24a6814fbaa0dc69af8c7e56fe13dd8fd3044584c8d007a975a3a0b79340c048",
+      "bytes": 475
+    },
+    "attempt3/separated/summary.json": {
+      "sha256": "66229ed3bac450369debc9c98106e84be4675c517c2edbf4f2182907f23dab57",
+      "bytes": 98
+    },
+    "attempt3/separated/summary.txt": {
+      "sha256": "93f6a0061ee2b7022fbe7f8b109ac7cd92f10efe86f0535c387f7004f1fac07f",
+      "bytes": 53
+    },
+    "attempt3/separated/wait.log.gz": {
+      "sha256": "95d1b52a9de092684711c7f7c88cba815bfbb79bdfab3869273299f9986d8525",
+      "bytes": 88
+    },
+    "attempt3/tools/desktop_e2e/arc-history-journey.sh": {
+      "sha256": "906b5b51104fa4f7a8c61b564d90b24bd551fc00d718fa1faf193fbf52a2cbec",
+      "bytes": 14851
+    },
+    "attempt3/tools/desktop_e2e/browser_launch.sh": {
+      "sha256": "42e26eaf4b037a1d36e1325c3e50602ec885dbc5a9b4a2187d852b63c5e011ec",
+      "bytes": 1917
+    },
+    "attempt3/tools/desktop_e2e/run-journey-set.sh": {
+      "sha256": "46a6e424eee21ebc3b8359ad851f331dad85a472af415fdcb753c376664d8f88",
+      "bytes": 4632
+    },
+    "fixture-roots.txt": {
+      "sha256": "1fa3d4b8c5ea863ea86767cf88c65617c35af782c89ad6435b728878374c58d7",
+      "bytes": 82
+    },
+    "main/arc-history/activation.txt": {
+      "sha256": "8f54476a9f468c2c65360d0883cc7104a219bd26010016bd2eb403730aaec047",
+      "bytes": 20
+    },
+    "main/arc-history/browser.log.gz": {
+      "sha256": "4a5083b32bfe4f2fe1fee849924f39e1d794122f63fcc4cf7c1413ed1eaca59f",
+      "bytes": 1048
+    },
+    "main/arc-history/browser.pid": {
+      "sha256": "e8834a59d561df35be033fc00a7c7311e0fd20e23c1f0db25ce102affd18be2c",
+      "bytes": 6
+    },
+    "main/arc-history/endpoint-binding.txt": {
+      "sha256": "db5afc25b5c44c3058ac5b6cb30c2777dc28bdc9787a574d5cea92ea09140e59",
+      "bytes": 74
+    },
+    "main/arc-history/fixture-root.txt": {
+      "sha256": "63c3f5d27438f9337f3bf6989646b69baaff5805242226e417842f17227dea9c",
+      "bytes": 41
+    },
+    "main/arc-history/focus-before.txt": {
+      "sha256": "4401e453abd32982fa36cf33e29539a1afa89c0f2d54e281cd2ab8560bb61e2f",
+      "bytes": 224
+    },
+    "main/arc-history.log.gz": {
+      "sha256": "cb354e8f340886561abea27c42caaa391fecf97464f5cec4669ae45fc86b485f",
+      "bytes": 141
+    },
+    "main/summary.json": {
+      "sha256": "a4105f50211a0280dc1368ffb54433a11efdf2458048966d92ec45037c8d9dd7",
+      "bytes": 100
+    },
+    "main/summary.txt": {
+      "sha256": "6421f87190d72aee442e5b34ff2643c4fd764085dac19109e3b16ee2dbfb64f4",
+      "bytes": 55
+    },
+    "main/wait.log.gz": {
+      "sha256": "97421810afbae91f910a5b0d443209300e7a75b01e8416c5b9780fac6c43c574",
+      "bytes": 88
+    },
+    "owner.txt": {
+      "sha256": "3cb463f29e16bf573fee5b18ed7d09a2e9d3bd0d521e0fdd6d6363f3e4f5d229",
+      "bytes": 63
+    },
+    "phases.log.gz": {
+      "sha256": "c9c8e59d96f6ab6a2f2b23387869beed92217d5c33cc93f4c623cfbf10227614",
+      "bytes": 52
+    },
+    "raw-log-provenance.json": {
+      "sha256": "8d5f54821c80c03937db5e334bc137c818ec5efe607af77488a432aa83588ef1",
+      "bytes": 4649
+    },
+    "runner-attempt2.log.gz": {
+      "sha256": "1faee4ba32b9e7b8ddc2d9d4104eb38b861142684281b48aa7ea421b27c6d508",
+      "bytes": 80
+    },
+    "runner-attempt2.sh": {
+      "sha256": "a96c169f8c9a4d567aef24ef31e0127f60974c02658524d63090c99d0e21e8ba",
+      "bytes": 1970
+    },
+    "runner-attempt3.log.gz": {
+      "sha256": "3ef85624e66190e68edf019810e2645c878f808e42119e3187e0a64b175db215",
+      "bytes": 167
+    },
+    "runner-attempt3.sh": {
+      "sha256": "41508116a79ac13baee6ba02e7d98950cd2a726cbac3c565a65da7678251d055",
+      "bytes": 1970
+    },
+    "runner.exit": {
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "bytes": 2
+    },
+    "runner.log.gz": {
+      "sha256": "8219fb280aaf7d5d50a04f44ba11f60c70459c766b83b37efb3df8c1281c2e4a",
+      "bytes": 155
+    },
+    "runner.pid": {
+      "sha256": "ec20be7cd0ecf2738172eddc6d21fc61944669c22b85802d191e834649cb66c7",
+      "bytes": 6
+    },
+    "runner.sh": {
+      "sha256": "22f8402ff98e3e3314ddd47b5c5aea94beb6a5b92e70df9ba1b2d25739670007",
+      "bytes": 1829
+    },
+    "scripts.sha256": {
+      "sha256": "aedeb91841790ec500718f8e004fe861600227602bc4572f93a5927b75f5cbab",
+      "bytes": 525
+    },
+    "tools/desktop_e2e/arc-history-journey.sh": {
+      "sha256": "f6093777c303798ef3d0da3a6ad5a9e21772f0221b15a68e371910c664ba9d91",
+      "bytes": 14362
+    },
+    "tools/desktop_e2e/browser_launch.sh": {
+      "sha256": "42e26eaf4b037a1d36e1325c3e50602ec885dbc5a9b4a2187d852b63c5e011ec",
+      "bytes": 1917
+    },
+    "tools/desktop_e2e/run-journey-set.sh": {
+      "sha256": "46a6e424eee21ebc3b8359ad851f331dad85a472af415fdcb753c376664d8f88",
+      "bytes": 4632
+    }
+  }
+}
