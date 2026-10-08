@@ -56,7 +56,7 @@ final class CloudSyncCoordinatorTests: XCTestCase {
         )
         let record = SyncRecord(
             entityID: entityID,
-            dataClass: .tombstone,
+            dataClass: .treeNode,
             modifiedAt: deletedAt,
             originatingDevice: device,
             encryptedValue: .init(

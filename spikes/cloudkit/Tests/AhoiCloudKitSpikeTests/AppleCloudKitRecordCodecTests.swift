@@ -56,7 +56,7 @@ final class AppleCloudKitRecordCodecTests: XCTestCase {
         let source = SyncRecord(
             recordID: UUID(uuidString: "60000000-0000-0000-0000-000000000006")!,
             entityID: entityID,
-            dataClass: .tombstone,
+            dataClass: .treeNode,
             modifiedAt: deletedAt,
             originatingDevice: device,
             encryptedValue: syntheticEncryptedValue,
@@ -132,7 +132,7 @@ final class AppleCloudKitRecordCodecTests: XCTestCase {
         return SyncRecord(
             recordID: UUID(uuidString: "b0000000-0000-4000-8000-000000000002")!,
             entityID: UUID(uuidString: "c0000000-0000-4000-8000-000000000003")!,
-            schemaVersion: 1,
+            schemaVersion: SharedSyncFormat.currentVersion,
             dataClass: dataClass,
             modifiedAt: .init(
                 physicalMilliseconds: 1_234,
