@@ -1,0 +1,20 @@
+{
+  "source": "b6bce96774f5440567f4d2f6d08d43526e403b13",
+  "pid": 17514,
+  "UTC": "2026-10-08T19:36:34Z",
+  "freeAtLaunch": 14238642176,
+  "cpuAdmissionMeanPercent": 15.0,
+  "cpuAdmissionSamples": [
+    12.07,
+    13.67,
+    19.26
+  ],
+  "memoryFreePercent": 63,
+  "jobs": 2,
+  "plannedGrowthBytes": 4294967296,
+  "reserveBytes": 8589934592,
+  "E": "/Users/vossmedien/inhouse/evidence/ahoi-root-arc-barrier-b6bce967-20261008",
+  "N": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo88-m155-f492d294",
+  "thread": "01a11179-cb6b-7dc1-9e53-f3d72fefc198",
+  "owner": "Root68; original warm Desktop build path; no GUI lease"
+}

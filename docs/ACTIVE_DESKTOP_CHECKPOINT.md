@@ -1,6 +1,27 @@
 # Active Desktop checkpoint
 
 
+## Current warm correction build RUNNING — 8 October 2026, 19:36 UTC
+
+Original Root Master Goal remains ACTIVE. Prepared b6bce967 runner17514 actually
+started19:36:34Z after fresh Inhouse samples12.07/13.67/19.26% (mean15.0%),
+63% memoryfree and14,238,642,176B available at launch. The previous NOT_STARTED
+attempt is preserved. Target mirror transitioned from clean6f to exactb6 under
+the original Root desktop-build.lock; live PID/owner JSON verified. Current
+phase is apply-overlay, then the existing guarded2-job build/sign/provenance
+path; same warm ahoi-chromium.fMMeXkCh/AhoiDev, no cold output. Reserve8GiB and
+planned4GiB incremental growth are unchanged. No completion or runtime proof yet.
+
+Evidence/handle: ~/inhouse/evidence/ahoi-root-arc-barrier-b6bce967-20261008/
+runner.json, runner.pid=17514, phases.log, runner.exit (absent while active).
+Root owns this N/W/out build until terminal handback. Installed Dev6f/Inhouse3c
+remain unchanged; foreign Vega and GUI ownership remain untouched. Original
+Arc/C70/DM identities are preserved. No GUI test, application install or default
+publication is started by this build. Actual E2E and focus follow on this exact
+signed candidate after a concrete runtime/GUI handback. Poll this live runner,
+never launch another solely because an observation expires.
+
+
 ## Current Root correction candidate — 8 October 2026
 
 Original native Master Goal/thread01a11179 is ACTIVE again at this resumption,
