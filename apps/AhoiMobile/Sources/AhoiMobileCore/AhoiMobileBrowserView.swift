@@ -321,7 +321,6 @@ public struct AhoiMobileBrowserView: View {
             value: browser.selectedTab?.websiteTintARGB
         )
     }
-
     private var browserSurface: some View {
         ZStack(alignment: .bottom) {
             ZStack {
