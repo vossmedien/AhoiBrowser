@@ -1,0 +1,558 @@
+{
+  "handoff": "AHOI-SPIKE-FORMAT-TESTS-20261007",
+  "delegation_id": "99eba8f4",
+  "updated_at": "2026-10-08T10:31:55.704289+00:00",
+  "status": "Fachlich abgenommen: Fixture-Korrektur und separate Ownerkorrektur geprüft und auf main geliefert; Cleanup abgeschlossen. Dieser Commit integriert den abschließenden Nachweis.",
+  "plan": [
+    {
+      "step": 1,
+      "task": "Identität, Ownership und kurzlebige Isolation",
+      "status": "erledigt"
+    },
+    {
+      "step": 2,
+      "task": "Originalfehler, Herkunft und Formatvertrag klassifizieren",
+      "status": "erledigt"
+    },
+    {
+      "step": 3,
+      "task": "Minimale Fixture-Korrektur und tatsächlicher Paketlauf mit39Tests",
+      "status": "erledigt"
+    },
+    {
+      "step": 4,
+      "task": "Eigener Diff, separater enger nativer Review, DCO/Lane-Commits",
+      "status": "erledigt"
+    },
+    {
+      "step": 5,
+      "task": "Koordinierte main-Integration/Push, Handback, Cleanup und CWD",
+      "status": "Codeintegration/Push, Handback und Cleanup abgeschlossen; dieser Dokumentcommit schließt den Nachweisimport, anschließend Remotevergleich und eigener nativer Abschluss."
+    }
+  ],
+  "identity": {
+    "session": "1F1C5BA2-5AE0-4D62-814F-CFBE96028052",
+    "thread": "01a116b1-e952-76c2-894e-6ea2bc66c338",
+    "origin_session": "E3CE5554-DEF6-4A79-A27C-4202D1AE12A7",
+    "origin_thread": "01a11634-61bd-7f20-a03e-5e8b48af9633",
+    "root_session": "68E66C9E-7E52-4842-B328-03D9CD6D3057",
+    "goal": {
+      "initial_get_goal": null,
+      "created_exactly_once": true,
+      "createdAt": 1791382155,
+      "threadId": "01a116b1-e952-76c2-894e-6ea2bc66c338",
+      "status": "active",
+      "objective": "AHOI-SPIKE-FORMAT-TESTS-20261007: Die vier belegten CloudKit-Spike-Testfehler am aktuellen einen Syncformat minimal und ohne Aufweichen der Geheimnis-/Tombstonegrenzen korrigieren, real prüfen und attribuierbar bis tatsächlichem main/Push über die Desktop-Koordination liefern.",
+      "separate_goal_id": "8081cfbd-dc3b-411e-a387-99ea9ffa6ba7",
+      "id_proof": "Nur lesendes goals_1.sqlite/thread_goals für exakt eigenen thread_id; created_at_ms1791382155365, status active. Keine Datenbankmutation.",
+      "status_proof": "get_goal nach ausdrücklicher Reaktivierung bestätigt denselben Thread, dieselbe Erstellzeit und dasselbe Objective; native Abschlussmutation erfolgt erst nach verifiziertem Push."
+    },
+    "provider": "openai / Codex",
+    "account": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
+    "codex_home": "/Users/vossmedien/Library/Application Support/Terminal Cockpit/Accounts/DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5/CodexHome",
+    "recommended_model": "gpt-6.1-sol",
+    "recommended_effort": "high",
+    "observed_model": "gpt-6-astra",
+    "observed_effort": "xhigh",
+    "approval_policy": "never",
+    "sandbox_policy": "danger-full-access",
+    "jev_decision": "offen: kein eigenständiger Entscheidbeleg; keine Routing-/Account-/Reserveänderung",
+    "proof": "cockpit_sessions; nativer rollout session_meta und turn_context; get_goal; angenommene Orchestratoranfrage66550da1",
+    "native_rollout": "/Users/vossmedien/Library/Application Support/Terminal Cockpit/Accounts/DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5/CodexHome/sessions/2026/10/07/rollout-2026-10-07T16-08-40-01a116b1-e952-76c2-894e-6ea2bc66c338.jsonl"
+  },
+  "isolation": {
+    "branch": "cockpit/cloudkit-spike-fixture-korrektur-99eba8f",
+    "base": "cc2e6246e4c151b7fa030819af43bad6942e7037",
+    "original_path": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-session-07-10-13-51-cloudkit-spike-fixture-korrektur-99eba8f",
+    "original_clean_including_ignored": true,
+    "move_attempt": "git worktree move scheiterte vor Mutation: Cross-device link",
+    "correction": "Nur eigenen sauberen Worktree via git worktree remove entfernt; denselben erhaltenen Branch/HEAD via git worktree add unter /private/tmp wiederhergestellt. Keine einzigartige Arbeit vorhanden/verloren.",
+    "worktree": "/private/tmp/ahoi-cloudkit-spike-99eba8f4/source",
+    "original_path_absent": true,
+    "native_cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser",
+    "native_cwd_proof": "Neuer nativer turn_context und exec pwd nach öffentlicher Parent-Reparatur; gleicher Thread, Goal.createdAt1791382155 und Objective unverändert.",
+    "cwd_receipts": [
+      {
+        "path": "/Users/vossmedien/Library/Application Support/Terminal Cockpit/Delegations/session-reopen-7651b352-3ab8-49b8-ae68-7289af6b61c3.json",
+        "receipt": {
+          "processStartedAt": "2026-10-07T14:19:12Z",
+          "processID": 75318,
+          "workingDirectory": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser",
+          "updatedAt": "2026-10-07T14:19:12Z",
+          "runtimeIdentifier": "75318-1791382752.087052",
+          "detail": "Original runtime confirmed; no Goal/input mutation.",
+          "request": {
+            "expectedWorkingDirectory": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser-session-07-10-13-51-cloudkit-spike-fixture-korrektur-99eba8f",
+            "releaseSessionLatch": true,
+            "expectedThreadID": "01a116b1-e952-76c2-894e-6ea2bc66c338",
+            "createdAt": "2026-10-07T14:19:06Z",
+            "id": "7651b352-3ab8-49b8-ae68-7289af6b61c3",
+            "sessionID": "1f1c5ba2-5ae0-4d62-814f-cfbe96028052",
+            "repairDirectory": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser",
+            "accountID": "defaa5b4-a7fe-4558-9214-cafead98d4c5"
+          },
+          "phase": "opened"
+        }
+      }
+    ],
+    "cleanup": "Abgeschlossen: nur eigener saubererWorktree samt Reviewtempdatei und eigenerInhouseScratch entfernt; Branch/alleBelege bleiben in kanonischemGit. FremdeDaten unverändert.",
+    "native_runtime_cwd_proof": "Erneutes lsof auf75318: kanonischesAhoiBrowser; Shellpwd ebenfalls kanonisch, derselbeThread01a116b1/Goal8081cfbd.",
+    "remote_scratch_size_kib": 115264,
+    "remote_scratch_condition": "Entfernt, keine eigenen laufenden Prozesse/Container/Simulatoren.",
+    "local_cleanup": {
+      "at": "2026-10-07T15:33:48.547090+00:00",
+      "removed": "/private/tmp/ahoi-cloudkit-spike-99eba8f4",
+      "absent": true,
+      "allocated_kib_before": 251720,
+      "unique_uncommitted_or_ignored_files": false,
+      "retained_branch_head": "f3aa123b5ca2e0bfc86716358eb7fce27c9b6119"
+    },
+    "remote_cleanup": {
+      "at": "2026-10-07T15:33:10.823874+00:00",
+      "removed": "/Users/vossmedien/inhouse/scratch/ahoi-cloudkit-spike-99eba8f4.6NGZcPPs",
+      "absent": true,
+      "allocated_kib_before": 115264,
+      "observed_free_bytes_delta": 443154432,
+      "space_attribution": "BeobachteterFreiplatzanstieg enthält möglicheparalleleFremdänderungen; nur115264KiBtaskbezogeneAllokation sicher zugeordnet.",
+      "preserved_log_sha256": "3da24ef2fd33c0cc4ea643c827b5f10b249327ffe205e544f81caf22e045050f"
+    }
+  },
+  "provenance": {
+    "e028": "e0282a903d8f8dc0f51f9eae5066d24eed249a62",
+    "reported_source": "b3e15e1a39ef931d29735262020eb6420d86c28c",
+    "task_base": "cc2e6246e4c151b7fa030819af43bad6942e7037",
+    "reported_candidate": "repo88-m155-f492d294",
+    "equal_git_objects_at_all_three_revisions": {
+      "spikes/cloudkit": "4f55b28a4e5e7ff0b8a35572c57c30fec9276407",
+      "config/sync-format.json": "8e14a118f1d50df2768178288392a2a27db08a58",
+      "docs/decisions/0009-unified-prelaunch-sync-format.md": "8bbba9cc3be9106e6b0648dfd56a09716f659945",
+      "scripts/test-repository.sh": "93d4a77b086ed0b22cde57bf44aed85b467d3192"
+    },
+    "diff_check": "git diff E028..b3 -- spikes/cloudkit config/sync-format.json sowie b3..cc2 leer; identische Objekt-IDs bestätigen fehlendes Full-Crest-Delta in diesem Umfang.",
+    "access_boundary": "N/W/out/GUI/Mirror wurden nicht geöffnet oder benutzt; nur benannte Originalbelege im evidence-Ordner gelesen."
+  },
+  "original_failure": {
+    "host": "MacbookPro2026.local",
+    "log": "/Users/vossmedien/inhouse/evidence/ahoi-full-6eefc4a8/repository-checks.log",
+    "log_sha256": "d2d806e8c4602d96d14b73dec4c378a6295f04108a93b8be351e1efb97b2632b",
+    "runner": "/Users/vossmedien/inhouse/evidence/ahoi-full-6eefc4a8/repository-checks-runner.sh",
+    "runner_sha256": "131e1514aa1ced3d9849135a29912b0629f97654bae842d457542ff92dfbd140",
+    "runner_source_guard": "HEAD muss b3e15e1a39ef931d29735262020eb6420d86c28c sein",
+    "reported_command": "swift test --package-path spikes/cloudkit --jobs1 --disable-index-store",
+    "actual_runner_command": "nice -n 10 swift test --package-path spikes/cloudkit --jobs 1 --disable-index-store",
+    "syntax": "--jobs benötigt getrennten Wert1; Originalrunner Zeile11, Repositoryskript Zeile11 und installierte swift test --help stimmen überein. Übermitteltes --jobs1 wurde nicht ausgeführt.",
+    "tests": 39,
+    "failures": 4,
+    "unexpected": 1,
+    "exit_code": 1,
+    "originals_preserved": true,
+    "error_excerpts": [
+      {
+        "line": 162,
+        "text": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo88-m155-f492d294/spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/AppleCloudKitRecordCodecTests.swift:100: error: -[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testDecodedDeniedClassIsStoppedByBoundary] : XCTAssertEqual failed: (\"Optional(AhoiCloudKitSpike.SyncBoundaryError.invalidSchemaVersion)\") is not equal to (\"Optional(AhoiCloudKitSpike.SyncBoundaryError.dataClassDenied(AhoiCloudKitSpike.SyncDataClass.httpAuthSecret))\")"
+      },
+      {
+        "line": 169,
+        "text": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo88-m155-f492d294/spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/AppleCloudKitRecordCodecTests.swift:92: error: -[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTombstoneRoundTripUsesNormalConflictAndRecoveryMetadata] : XCTAssertNoThrow failed: threw error \"dataClassDenied(AhoiCloudKitSpike.SyncDataClass.tombstone)\""
+      },
+      {
+        "line": 183,
+        "text": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo88-m155-f492d294/spikes/cloudkit/Sources/AhoiCloudKitSpike/SyncBoundary.swift:43: error: -[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testUserDeletionIsPersistedAsValidatedTombstoneWrite] : failed: caught error: \"dataClassDenied(AhoiCloudKitSpike.SyncDataClass.tombstone)\""
+      },
+      {
+        "line": 250,
+        "text": "/Users/vossmedien/inhouse/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/.work/agent-queue/repo88-m155-f492d294/spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/SyncBoundaryTests.swift:51: error: -[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn] : XCTAssertEqual failed: (\"[AhoiCloudKitSpike.SyncDataClass.remoteCommand, AhoiCloudKitSpike.SyncDataClass.workspace, AhoiCloudKitSpike.SyncDataClass.device, AhoiCloudKitSpike.SyncDataClass.deviceTab, AhoiCloudKitSpike.SyncDataClass.permittedSetting, AhoiCloudKitSpike.SyncDataClass.deviceCapability, AhoiCloudKitSpike.SyncDataClass.developerAsset, AhoiCloudKitSpike.SyncDataClass.historyVisit, AhoiCloudKitSpike.SyncDataClass.appearance, AhoiCloudKitSpike.SyncDataClass.deviceSession, AhoiCloudKitSpike.SyncDataClass.extensionInventory, AhoiCloudKitSpike.SyncDataClass.treeNode, AhoiCloudKitSpike.SyncDataClass.bookmark]\") is not equal to (\"[AhoiCloudKitSpike.SyncDataClass.deviceSession, AhoiCloudKitSpike.SyncDataClass.workspace, AhoiCloudKitSpike.SyncDataClass.permittedSetting, AhoiCloudKitSpike.SyncDataClass.tabArchiveEntry, AhoiCloudKitSpike.SyncDataClass.historyVisit, AhoiCloudKitSpike.SyncDataClass.developerAsset, AhoiCloudKitSpike.SyncDataClass.deviceTab, AhoiCloudKitSpike.SyncDataClass.remoteCommand, AhoiCloudKitSpike.SyncDataClass.treeNode, AhoiCloudKitSpike.SyncDataClass.splitGroup, AhoiCloudKitSpike.SyncDataClass.deviceCapability, AhoiCloudKitSpike.SyncDataClass.appearance, AhoiCloudKitSpike.SyncDataClass.device, AhoiCloudKitSpike.SyncDataClass.bookmark, AhoiCloudKitSpike.SyncDataClass.extensionInventory]\")"
+      }
+    ]
+  },
+  "classification": [
+    {
+      "test": "AppleCloudKitRecordCodecTests.testDecodedDeniedClassIsStoppedByBoundary",
+      "original": "invalidSchemaVersion statt dataClassDenied(httpAuthSecret)",
+      "cause": "Veraltete lokale makeLiveRecord-Fixture mit schemaVersion1; Autorisierung prüft zuerst gültiges Schema3.",
+      "fix": "SharedSyncFormat.currentVersion im gemeinsamen lokalen Helper. Alle drei Aufrufer geprüft. Erwartung dataClassDenied(httpAuthSecret) unverändert.",
+      "result": "PASS im tatsächlichen SDK-Lauf"
+    },
+    {
+      "test": "AppleCloudKitRecordCodecTests.testTombstoneRoundTripUsesNormalConflictAndRecoveryMetadata",
+      "original": "dataClassDenied(tombstone)",
+      "cause": "Ausgemusterte Tombstone-Pseudoklasse. Aktueller Vertrag trägt Metadaten an erlaubter Originalklasse.",
+      "fix": "treeNode bei unveränderten vollständigen Tombstone-/Recovery-Metadaten und Roundtrip-/Authorize-Assertions.",
+      "result": "PASS"
+    },
+    {
+      "test": "CloudSyncCoordinatorTests.testUserDeletionIsPersistedAsValidatedTombstoneWrite",
+      "original": "dataClassDenied(tombstone)",
+      "cause": "Veraltete Testklasse UND bestehender widersprüchlicher Produktionsguard in CloudSyncTransport.swift:55.",
+      "fix": "Test verwendet treeNode; writeTombstone-Aufruf und saved==[record]-Assertion unverändert. Produktion nicht geändert.",
+      "result": "FAIL invalidTombstone; außerhalb Scope koordinierter Befund"
+    },
+    {
+      "test": "SyncBoundaryTests.testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn",
+      "original": "13 erwartete statt15 unterstützte Klassen",
+      "cause": "splitGroup/tabArchiveEntry fehlen nach ADR0009-Erweiterung; IDs13/14 in config und SharedSyncFormat.",
+      "fix": "Nur beide expliziten Einträge ergänzt. Mengengleichheit, retired-alias-denied und DeveloperAsset-Opt-in-Checks unverändert.",
+      "result": "PASS"
+    }
+  ],
+  "implementation": {
+    "commit": "8063b3f398e25b4d09977065c32c6dc12bca207f",
+    "tested_tree": "fdbe9245b9c2aac82f9cf26b4a6e86a900b2f522",
+    "files": [
+      "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/AppleCloudKitRecordCodecTests.swift",
+      "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/CloudSyncCoordinatorTests.swift",
+      "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/SyncBoundaryTests.swift"
+    ],
+    "diff": "5 Einfügungen,3 Entfernungen; keine neue Funktion/Datei/Abstraktion/Dependency. TestSupport.swift existiert nicht und wurde nicht angelegt.",
+    "production_format_privacy_unchanged": true,
+    "dco": "Signed-off-by: vossmedien <christian@vossmedien.de>",
+    "lane": "sync",
+    "own_diff_check": "PASS; kein abgeschwächter Assert, kein API-Bypass",
+    "lane_command": "python3 tools/check_lane_boundaries.py --all --since cc2e6246e4c151b7fa030819af43bad6942e7037",
+    "lane_result": "0 errors,0 notes"
+  },
+  "package_runs": [
+    {
+      "source_commit": "8063b3f398e25b4d09977065c32c6dc12bca207f",
+      "source_tree": "fdbe9245b9c2aac82f9cf26b4a6e86a900b2f522",
+      "export": "git archive fdbe9245 spikes/cloudkit in frischen privaten Scratch; derselbe Tree anschließend als8063b3f3committet",
+      "host": "MacbookPro2026.local",
+      "observed_hostname": "MacbookPro2026.fritz.box",
+      "admission_at": "2026-10-07T14:15:44.348672+00:00",
+      "cpu_percent_samples": [
+        33.25,
+        23.69,
+        19.76
+      ],
+      "cpu_percent_mean": 25.566666666666666,
+      "cpu_method": "top -l4 -s1 -n0; Initialsample verworfen,3aufeinanderfolgende100-idleSamples gemittelt; unter80%",
+      "memory_free_percent": 66,
+      "swap_used_mb": 863.88,
+      "disk_available_kib": 79157740,
+      "resource_assessment": "Kleines dependencyfreies SDK-Paket,1Job/nice10; ausreichend RAM/Disk; kein GPU-Job. Fremde Virtualization/WindowServer/Desktopprozesse unangetastet.",
+      "xcode": "27.0/27A266a",
+      "sdk": "macOS27.0/26A425",
+      "swift": "Apple Swift6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1), arm64-apple-macosx27.0.0",
+      "package_tools_version": "5.10; Swift language5",
+      "scratch": "/Users/vossmedien/inhouse/scratch/ahoi-cloudkit-spike-99eba8f4.6NGZcPPs",
+      "command": "nice -n 10 swift test --package-path spikes/cloudkit --jobs 1 --disable-index-store",
+      "finished_at": "2026-10-07T14:16:54.897Z",
+      "exit_code": 1,
+      "tests": 39,
+      "passed": 38,
+      "failures": 1,
+      "failure_category": "Produktfehler außerhalb Scope, kein Infrastrukturfehler",
+      "log_sha256": "3da24ef2fd33c0cc4ea643c827b5f10b249327ffe205e544f81caf22e045050f",
+      "log": "Building for debugging...\n[Planning deferred tasks]\n[12 / 52]\n[29 / 53]\n[32 / 110]\n[35 / 110]\n[37 / 110]\n[41 / 110]\n[44 / 110]\n[47 / 110]\n[49 / 110]\n[52 / 110]\n[54 / 110]\n[56 / 110]\n[58 / 110]\n[61 / 110]\n[62 / 110]\n[64 / 110]\n[65 / 110]\n[69 / 110]\n[70 / 110]\n[73 / 110] AhoiCloudKitSpike\n[75 / 110] AhoiCloudKitSpike\n[81 / 110] AhoiCloudKitSpike\n[82 / 110] AhoiCloudKitSpike\n[83 / 110] AhoiCloudKitSpikeTests-product\n[84 / 110] AhoiCloudKitSpikeTests-product\n[86 / 110] AhoiCloudKitSpike\n[87 / 110] AhoiCloudKitSpike\n[88 / 110] AhoiCloudKitSpike\n[89 / 110] AhoiCloudKitSpike\n[90 / 110] AhoiCloudKitSpike\n[91 / 110] AhoiCloudKitSpike\n[92 / 110] AhoiCloudKitSpike\n[92 / 110]\n[95 / 110] AhoiCloudKitSpike\n[100 / 111]\n[102 / 148]\n[103 / 148]\n[105 / 148]\n[108 / 148]\n[109 / 148]\n[111 / 148]\n[112 / 148]\n[114 / 148]\n[116 / 148]\n[118 / 148]\n[119 / 148]\n[120 / 148]\n[122 / 148]\n[124 / 148]\n[126 / 148] AhoiCloudKitSpike-product\n[128 / 148]\n[129 / 148]\n[131 / 148] AhoiCloudKitSpikeTests-product\n[133 / 148] AhoiCloudKitSpikeTests-product\n[138 / 148] AhoiCloudKitSpikeTests-product\n[139 / 148] AhoiCloudKitSpikeTests-product\n[140 / 148] AhoiCloudKitSpikeTests-product\n[141 / 148] AhoiCloudKitSpikeTests-product\n[142 / 148]\n[144 / 148]\nBuild complete! (15,68 Sek.)\nTest Suite 'All tests' started at 2026-10-07 16:16:54.817.\nTest Suite 'AhoiCloudKitSpikeTests.xctest' started at 2026-10-07 16:16:54.818.\nTest Suite 'AppleCloudKitRecordCodecTests' started at 2026-10-07 16:16:54.818.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testDecodedDeniedClassIsStoppedByBoundary]' started.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testDecodedDeniedClassIsStoppedByBoundary]' passed (0.002 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testLiveRecordRoundTripKeepsMetadataQueryableAndValueEncrypted]' started.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testLiveRecordRoundTripKeepsMetadataQueryableAndValueEncrypted]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTamperedOrderSortMetadataIsRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTamperedOrderSortMetadataIsRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTombstoneRoundTripUsesNormalConflictAndRecoveryMetadata]' started.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTombstoneRoundTripUsesNormalConflictAndRecoveryMetadata]' passed (0.000 seconds).\nTest Suite 'AppleCloudKitRecordCodecTests' passed at 2026-10-07 16:16:54.821.\n\t Executed 4 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds\nTest Suite 'CloudSyncCoordinatorTests' started at 2026-10-07 16:16:54.821.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorRejectsDeniedInboundRecord]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorRejectsDeniedInboundRecord]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorStopsDeniedRecordBeforeTransport]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorStopsDeniedRecordBeforeTransport]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorUploadsEncryptedAllowedRecord]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorUploadsEncryptedAllowedRecord]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testNonTombstoneCannotEnterDeletionAPI]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testNonTombstoneCannotEnterDeletionAPI]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testUserDeletionIsPersistedAsValidatedTombstoneWrite]' started.\n/Users/vossmedien/inhouse/scratch/ahoi-cloudkit-spike-99eba8f4.6NGZcPPs/spikes/cloudkit/Sources/AhoiCloudKitSpike/CloudSyncTransport.swift:56: error: -[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testUserDeletionIsPersistedAsValidatedTombstoneWrite] : failed: caught error: \"invalidTombstone\"\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testUserDeletionIsPersistedAsValidatedTombstoneWrite]' failed (0.068 seconds).\nTest Suite 'CloudSyncCoordinatorTests' failed at 2026-10-07 16:16:54.890.\n\t Executed 5 tests, with 1 failure (1 unexpected) in 0.069 (0.069) seconds\nTest Suite 'ModelTests' started at 2026-10-07 16:16:54.890.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testCollectionCanonicalizationIsPermutationStableForSetsAndOrderedForArrays]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testCollectionCanonicalizationIsPermutationStableForSetsAndOrderedForArrays]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsAssociativeForDifferentValuesAndIdenticalMetadata]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsAssociativeForDifferentValuesAndIdenticalMetadata]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsCommutativeForDifferentValuesAndIdenticalMetadata]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsCommutativeForDifferentValuesAndIdenticalMetadata]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testExhaustedHLCCounterThrowsInsteadOfCrashing]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testExhaustedHLCCounterThrowsInsteadOfCrashing]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testHLCMergePreservesCausalityWhenWallClockMovesBackwards]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testHLCMergePreservesCausalityWhenWallClockMovesBackwards]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testMalformedDecodedOrderKeysAreRejectedWithoutProcessAbort]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testMalformedDecodedOrderKeysAreRejectedWithoutProcessAbort]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testOrderKeyCanBeInsertedBetweenSiblingsWithoutRenumbering]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testOrderKeyCanBeInsertedBetweenSiblingsWithoutRenumbering]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testRecoveryMetadataRetainsTreePlacementWithoutPagePayload]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testRecoveryMetadataRetainsTreePlacementWithoutPagePayload]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testSetCanonicalizationFailsClosedOnCollidingOptInImplementation]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testSetCanonicalizationFailsClosedOnCollidingOptInImplementation]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testSupportedScalarCanonicalizationMatchesGoldenWireBytes]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testSupportedScalarCanonicalizationMatchesGoldenWireBytes]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testTombstoneWinsWhenPhysicalAndLogicalCoordinatesTie]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testTombstoneWinsWhenPhysicalAndLogicalCoordinatesTie]' passed (0.000 seconds).\nTest Suite 'ModelTests' passed at 2026-10-07 16:16:54.892.\n\t Executed 11 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds\nTest Suite 'RemoteCommandTests' started at 2026-10-07 16:16:54.892.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCanonicalPayloadEncodingMatchesSignedWireContract]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCanonicalPayloadEncodingMatchesSignedWireContract]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCommandExpiresAtExactlyFiveMinutes]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCommandExpiresAtExactlyFiveMinutes]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testDangerousAndCustomSchemesAreRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testDangerousAndCustomSchemesAreRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testIncognitoFocusAndCloseAreRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testIncognitoFocusAndCloseAreRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testMassCloseAndEmptyCloseAreRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testMassCloseAndEmptyCloseAreRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testPersistentReplayRejectsCommandIDAndSourceNonceAfterRestart]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testPersistentReplayRejectsCommandIDAndSourceNonceAfterRestart]' passed (0.002 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testRemoteControlDisabledRejectsBeforeExecution]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testRemoteControlDisabledRejectsBeforeExecution]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testReplayedNonceIsRejectedAtomically]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testReplayedNonceIsRejectedAtomically]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testUnapprovedDeviceAndInvalidSignatureAreRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testUnapprovedDeviceAndInvalidSignatureAreRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testURLUserInfoIsRejectedAsSecretTransfer]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testURLUserInfoIsRejectedAsSecretTransfer]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testValidSignedOpenCommandIsAccepted]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testValidSignedOpenCommandIsAccepted]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testWrongTargetIsRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testWrongTargetIsRejected]' passed (0.000 seconds).\nTest Suite 'RemoteCommandTests' passed at 2026-10-07 16:16:54.896.\n\t Executed 12 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds\nTest Suite 'SharedTabTargetValidationTests' started at 2026-10-07 16:16:54.896.\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testHomeTargetRefusesNewTabAndCredentials]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testHomeTargetRefusesNewTabAndCredentials]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testLocalTargetsKeepOnlyTheirSchemeName]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testLocalTargetsKeepOnlyTheirSchemeName]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testWebTargetsRejectCredentialsAndNonWebSchemes]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testWebTargetsRejectCredentialsAndNonWebSchemes]' passed (0.000 seconds).\nTest Suite 'SharedTabTargetValidationTests' passed at 2026-10-07 16:16:54.897.\n\t Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds\nTest Suite 'SyncBoundaryTests' started at 2026-10-07 16:16:54.897.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testCiphertextShapeIsValidatedBeforeUpload]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testCiphertextShapeIsValidatedBeforeUpload]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testEverySensitiveDataClassIsDenied]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testEverySensitiveDataClassIsDenied]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testSchemaAndTombstoneShapeAreValidated]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testSchemaAndTombstoneShapeAreValidated]' passed (0.000 seconds).\nTest Suite 'SyncBoundaryTests' passed at 2026-10-07 16:16:54.897.\n\t Executed 4 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds\nTest Suite 'AhoiCloudKitSpikeTests.xctest' failed at 2026-10-07 16:16:54.897.\n\t Executed 39 tests, with 1 failure (1 unexpected) in 0.078 (0.079) seconds\nTest Suite 'All tests' failed at 2026-10-07 16:16:54.897.\n\t Executed 39 tests, with 1 failure (1 unexpected) in 0.078 (0.080) seconds\n◇ Test run started.\n↳ Testing Library Version: 2084\n↳ Target Platform: arm64e-apple-macos14.0\n✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.\nNote: Some test targets reported failures:\n  - AhoiCloudKitSpikeTests (XCTest)\n",
+      "resource_slot": "Originalprozess terminal; eigene Scratchdaten nach Log-/Commit-Sicherung am2026-10-07T15:33:10Z entfernt.",
+      "limits": "Nur vorhandene lokale Codec-/Boundary-/RecordingTransport-Pakettests; keine echte CloudKit-Konto-/Geräte-/Datenmutationsabnahme."
+    }
+  ],
+  "documentation": {
+    "context7": "resolve_library_id für Swift Package Manager versuchte Zugriff; Monthly quota exceeded.",
+    "fallback": [
+      "Installierte Swift6.4 swift test --help",
+      "https://github.com/swiftlang/swift-package-manager/blob/main/Sources/PackageManagerDocs/Documentation.docc/SwiftTest.md"
+    ],
+    "contract": [
+      "docs/decisions/0009-unified-prelaunch-sync-format.md",
+      "config/sync-format.json",
+      "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedSyncFormat.swift",
+      "spikes/cloudkit/Sources/AhoiCloudKitSpike/SyncBoundary.swift"
+    ]
+  },
+  "finding_briefing": {
+    "scope": "Einziger neuer fachlicher Befund dieses Handoffs; keine neue Handoff-/Workeridentität erzeugt.",
+    "problem": "CloudSyncCoordinator.writeTombstone kann unter dem aktuellen Boundaryvertrag keinen Record erfolgreich speichern: sein Klassen-Guard verlangt ausschließlich die von Boundary abgelehnte Pseudoklasse.",
+    "evidence": "CloudSyncTransport.swift:55–58 und SyncBoundary.swift:42–43; Originalfail und Korrekturlauf1 unverändert erhalten.",
+    "required_owner_action": "Zuständigen Produktionsowner über E3/Root koordinieren; Tombstone-Einstieg an aktuellen Vertrag binden, NonTombstone-Rejection und Boundaryautorisierung erhalten. Eigener Auftrag erlaubt keinen Produktionspatch.",
+    "not_a_fix": "Wechsel auf upload, Erwartung auf Fehler abschwächen oder Test entfernen würde zentrale Journey umgehen und wird nicht vorgenommen.",
+    "next_action": "Nach attributierbarem Produktionshandback kombinierten Paketstand prüfen, denselben bestehenden39er-Lauf nach frischerAdmission wiederholen; keine Matrix/Harnessausweitung.",
+    "coordination_receipts": [
+      "ddd98e81 an E3",
+      "7329db33 an Root68E66C"
+    ],
+    "orchestrator_request_id": "583e767e-c149-4f58-8256-4a0e1ee72e1f",
+    "orchestrator_status": "unknown / TARGET_CHANGED seit2026-10-07T14:28:35Z; kein bestätigter nativer Empfang, keine neue Anfrage/Worker unter Ersatz-ID",
+    "resolution": "Durch separat attribuierte Ownerkorrektur93ff76b5 erledigt;39/39amKorrekturstand und36/36auf tatsächlichemmain bestanden. UrsprünglicheFailures/Blockade bleiben historisch erhalten."
+  },
+  "review": {
+    "status": "abgeschlossen",
+    "scope": "codex review --commit8063b3f398e25b4d09977065c32c6dc12bca207f; ausschließlich3Testdateien",
+    "log": "/private/tmp/ahoi-cloudkit-spike-99eba8f4/review-8063b3f3.log",
+    "round": 1,
+    "account_model_permissions": "Bestehender CaeliCODEX_HOME; aktuelle gpt-6-astra/xhigh und never/danger-full-access erhalten; keine globaleKonfiguration geändert.",
+    "exit_code": 0,
+    "command": "codex -c model_reasoning_effort=\"xhigh\" -c approval_policy=\"never\" -c sandbox_mode=\"danger-full-access\" review --commit 8063b3f398e25b4d09977065c32c6dc12bca207f",
+    "log_sha256": "a1c8963bc8b3e7afc0422fc65ece746eae6726fe5df7c2999204eb72f241584b",
+    "result": "Keine neu eingeführte Regression. Fixtures entsprechen aktuellem Vertrag. Bestehender writeTombstone-Guard lehnt korrigierte Fixture weiterhin ab; dieserTest war vorher bereits rot. StatischerReview ohne erneuteTests/rekursivenReview.",
+    "actionable_new_findings": [],
+    "known_unresolved_finding": "HistorischerProduktionsbefund durch Owner93ff76b5 behoben und separat geprüft; keine offenen relevantenFindings.",
+    "header": "OpenAI Codex v0.160.1\n--------\nworkdir: /private/tmp/ahoi-cloudkit-spike-99eba8f4/source\nmodel: gpt-6-astra\nprovider: openai\napproval: never\nsandbox: danger-full-access\nreasoning effort: xhigh\nreasoning summaries: none\nsession id: 01a116bc-7be1-7a23-b9c6-4699303222e0\n--------\n",
+    "native_review_thread": "01a116bc-7be1-7a23-b9c6-4699303222e0",
+    "native_review_log_preservation": "Endergebnis/Header/Hash hier gesichert; ursprünglicher nativer Reviewrollout im unveränderten CaeliCODEX_HOME."
+  },
+  "integration": {
+    "status": "Code durch Desktop-Owner integriert/gepusht; Abschlussnachweis durch ausdrücklich autorisierten Worker in diesem Dokumentcommit auf demselben main-/Remote-Pfad ergänzt.",
+    "owner": "DesktopE3 und Root68E66C",
+    "actual_default_branch": "main",
+    "remote_proof": "git ls-remote --symref origin HEAD: refs/heads/main",
+    "observed_remote_sha": "3c4d1006bca6634b7d92a6ce0d225a4eaa7b293d",
+    "integrated_sha": "1ab25065ed6550d4a2356a733d785fccba79c1fb",
+    "pushed_sha": "3c4d1006bca6634b7d92a6ce0d225a4eaa7b293d",
+    "next_action": "Nach gewöhnlichem Push Remote-SHA und Nachweisblob vergleichen, dann ausschließlich eigenes Goal abschließen und bestehenden Lead informieren.",
+    "latest_remote_check": "git ls-remote --symref origin HEAD sowie lokale main/origin/main stimmen exakt auf3c4d1006; source-to-main Blattgleichheit und Paketdelta geprüft."
+  },
+  "handback": {
+    "status": "Einmaliger ursprünglicher Blocker-Handback erhalten; fachlicher Ownerhandback anschließend tatsächlich konsumiert. Abschließender Nachweis folgt über denselben main-/Remote-Pfad und Follow-up an E3/Root; kein zweiter cockpit_report.",
+    "cockpit_report_called": true,
+    "cockpit_report_call_count": 1,
+    "delegation_id": "99eba8f4",
+    "reported_status": "fehler",
+    "receipt": "Ergebnis (Fehler) für99eba8f4 ist beim Orchestrator; er gibt es genau einmal an die anfragende Session weiter. Nicht erneut melden.",
+    "park_commit": "32ce2505",
+    "continuation": "Historische cockpit_report-Aufrufzahl bleibt1. Keine Ersatzsession/Worker/Goal. Eigener nativer Abschluss nach Remoteverifikation."
+  },
+  "acceptance": {
+    "originals_classified": true,
+    "sensitive_denied_with_valid_schema": true,
+    "production_unchanged": true,
+    "all39_pass": true,
+    "review_complete": true,
+    "integrated_and_pushed": true,
+    "own_native_goal_preserved": true,
+    "native_cwd_canonical": true,
+    "temporary_isolation_cleaned": true,
+    "worker_production_unchanged": true,
+    "owner_production_correction_accepted": true,
+    "all_substantive_criteria_satisfied": true,
+    "native_completion_gate": "Verifizierter Push dieses reinen Nachweiscommits; anschließend update_goal(complete)."
+  },
+  "coordination": {
+    "initial_cwd_request": {
+      "id": "66550da1-f8b6-4ccb-9c12-ab9a0f83aef4",
+      "phase": "unknown",
+      "error": "NATIVE_REPLY_UNCONFIRMED",
+      "receipt": "~/Library/Application Support/Terminal Cockpit/Delegations/orchestrator-message-66550da1-f8b6-4ccb-9c12-ab9a0f83aef4.json",
+      "resolution": "CWD-Reparatur separat durch ParentReceipt7651b352 tatsächlich bestätigt; kein neuerWorker/Goal"
+    },
+    "owner_notes": [
+      "ddd98e81",
+      "7329db33",
+      "84a7e729"
+    ],
+    "report_commit_before_identity_update": "2f108e4922eeba809b1962ca79ba46ff85d692a2",
+    "pending_owner": "E3CE5554-DEF6-4A79-A27C-4202D1AE12A7 / Root68E66C9E-7E52-4842-B328-03D9CD6D3057",
+    "next_action": "AbschließendenNachweisblob anE3 für main-Import/Push übergeben; danach eigenesGoal abschließen.",
+    "finding_request_receipt": {
+      "id": "583e767e-c149-4f58-8256-4a0e1ee72e1f",
+      "phase": "unknown",
+      "error": "TARGET_CHANGED",
+      "targetThreadID": "01a116c1-9c66-75e1-920b-9529dabdb48e",
+      "updatedAt": "2026-10-07T14:28:35Z"
+    },
+    "owner_note_limit": "Notizquittungen belegen Cockpit-Annahme; Produktionshandback/NativeAntwort der Owner bislang nicht belegt.",
+    "blocked_audit": {
+      "turns": 3,
+      "independent_work_complete": true,
+      "owner": "E3CE5554-DEF6-4A79-A27C-4202D1AE12A7 mit Root68E66C9E-7E52-4842-B328-03D9CD6D3057",
+      "evidence": "Original4Fails + Paketlauf38/39 + Produktionsguard in eigenemBase und tatsächlichemRemoteMain9487e15f; Review bestätigt Altfehler.",
+      "next_action": "Owner liefert attributierbare Produktionskorrektur von writeTombstone unter Erhalt von Boundary und NonTombstone-Rejection. DerselbeWorker/Goal setzt kombinierten39erLauf, Integration/Push und Cleanup fort; kein Ersatzworker/Goal.",
+      "resolution": "MateriellerHandback vonE3 übernommen und unabhängig bestätigt; vorherigerBlock aufgehoben durchneueEvidenz."
+    }
+  },
+  "owner_completion": {
+    "owner": "E3CE5554-DEF6-4A79-A27C-4202D1AE12A7",
+    "production_source_commit": "93ff76b5f0a5b31d0c08371f3a6b28ef659218f3",
+    "production_main_commit": "62a79a6e",
+    "fixture_source_commit": "8063b3f398e25b4d09977065c32c6dc12bca207f",
+    "fixture_main_commit": "1ab25065ed6550d4a2356a733d785fccba79c1fb",
+    "production_change": "Eigener Produktionsowner ersetzt ausschließlich ausgemusterte Klassenprüfung durch record.tombstone != nil. Vollständige SyncBoundary-Autorisierung und NonTombstone-Rejection bleiben erhalten. Worker hat keine Produktionsdatei geändert.",
+    "source_and_test_blobs": "Drei Testdateien identisch auf8063/d33/main3c4d; Boundary/SharedSyncFormat identisch; CloudSyncTransport auf d33/main identisch019344c4.",
+    "combined_package_receipt": {
+      "source": "3c370175712beb90ec414bfd89b29a39d502fd15",
+      "spikeTree": "00bd18a66f5de7b9ee7e56296779c7cffccdd28f",
+      "scratch": "/Users/vossmedien/inhouse/scratch/ahoi-cloudkit-full.AgAOnr5N",
+      "pid": 13908,
+      "UTC": "2026-10-07T15:02:25.552711+00:00",
+      "command": "nice -n 10 swift test --package-path spikes/cloudkit --jobs 1 --disable-index-store",
+      "liveCloudKit": false,
+      "SDK": "Xcode 27.0\nBuild version 27A266a\n"
+    },
+    "combined_admission": {
+      "UTC": "2026-10-07T15:02:25.437798+00:00",
+      "samples": [
+        30.58,
+        44.58,
+        27.400000000000006
+      ],
+      "meanCPU": 34.18666666666667,
+      "memory": "The system has 51539607552 (3145728 pages with a page size of 16384).\n\nStats: \nPages free: 188705 \nPages purgeable: 23760 \nPages purged: 42150087 \n\nSwap I/O:\nSwapins: 705085 \nSwapouts: 1236894 \n\nPage Q counts:\nPages active: 890629 \nPages inactive: 1161454 \nPages speculative: 15435 \nPages throttled: 0 \nPages wired down: 256104 \n\nCompressor Stats:\nPages used by compressor: 590457 \nPages decompressed: 373657350 \nPages compressed: 471720222 \n\nFile I/O:\nPageins: 462030525 \nPageouts: 422966 \n\nSystem-wide memory free percentage: 72%\n",
+      "disk": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   482797652 396940324  58079880    88% 4847826 580798800    1%   /System/Volumes/Data\n",
+      "owner": "E3 combined39-test acceptance; worker1F blocked, notice350d31a4; no access to worker scratch"
+    },
+    "combined_exit": 0,
+    "combined_log_sha256": "f8ea2db826015a37a95f367fdc84864bc8f87b200f773763a162f84de967e269",
+    "combined_log": "Building for debugging...\n[Planning deferred tasks]\n[12 / 52]\n[29 / 53]\n[32 / 110]\n[37 / 110]\n[39 / 110]\n[43 / 110]\n[46 / 110]\n[48 / 110]\n[49 / 110]\n[52 / 110]\n[55 / 110]\n[59 / 110]\n[61 / 110]\n[63 / 110]\n[64 / 110]\n[65 / 110]\n[69 / 110]\n[71 / 110]\n[73 / 110] AhoiCloudKitSpike\n[75 / 110] AhoiCloudKitSpike\n[82 / 110] AhoiCloudKitSpike\n[83 / 110] AhoiCloudKitSpike\n[84 / 110] AhoiCloudKitSpike\n[85 / 110] AhoiCloudKitSpikeTests-product\n[86 / 110] AhoiCloudKitSpikeTests-product\n[89 / 110] AhoiCloudKitSpike\n[90 / 110] AhoiCloudKitSpike\n[92 / 110] AhoiCloudKitSpike\n[92 / 110]\n[100 / 111]\n[103 / 148]\n[105 / 148]\n[106 / 148]\n[109 / 148]\n[111 / 148]\n[113 / 148]\n[115 / 148]\n[117 / 148]\n[118 / 148]\n[121 / 148]\n[122 / 148]\n[125 / 148]\n[127 / 148]\n[129 / 148]\n[131 / 148] AhoiCloudKitSpikeTests-product\n[133 / 148] AhoiCloudKitSpikeTests-product\n[138 / 148] AhoiCloudKitSpikeTests-product\n[139 / 148] AllIncludingTests\n[140 / 148] AhoiCloudKitSpikeTests-product\n[141 / 148] AhoiCloudKitSpikeTests-product\n[142 / 148]\n[144 / 148]\nBuild complete! (11,09 Sek.)\nTest Suite 'All tests' started at 2026-10-07 17:02:37.825.\nTest Suite 'AhoiCloudKitSpikeTests.xctest' started at 2026-10-07 17:02:37.825.\nTest Suite 'AppleCloudKitRecordCodecTests' started at 2026-10-07 17:02:37.825.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testDecodedDeniedClassIsStoppedByBoundary]' started.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testDecodedDeniedClassIsStoppedByBoundary]' passed (0.002 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testLiveRecordRoundTripKeepsMetadataQueryableAndValueEncrypted]' started.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testLiveRecordRoundTripKeepsMetadataQueryableAndValueEncrypted]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTamperedOrderSortMetadataIsRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTamperedOrderSortMetadataIsRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTombstoneRoundTripUsesNormalConflictAndRecoveryMetadata]' started.\nTest Case '-[AhoiCloudKitSpikeTests.AppleCloudKitRecordCodecTests testTombstoneRoundTripUsesNormalConflictAndRecoveryMetadata]' passed (0.000 seconds).\nTest Suite 'AppleCloudKitRecordCodecTests' passed at 2026-10-07 17:02:37.829.\n\t Executed 4 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds\nTest Suite 'CloudSyncCoordinatorTests' started at 2026-10-07 17:02:37.829.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorRejectsDeniedInboundRecord]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorRejectsDeniedInboundRecord]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorStopsDeniedRecordBeforeTransport]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorStopsDeniedRecordBeforeTransport]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorUploadsEncryptedAllowedRecord]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testCoordinatorUploadsEncryptedAllowedRecord]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testNonTombstoneCannotEnterDeletionAPI]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testNonTombstoneCannotEnterDeletionAPI]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testUserDeletionIsPersistedAsValidatedTombstoneWrite]' started.\nTest Case '-[AhoiCloudKitSpikeTests.CloudSyncCoordinatorTests testUserDeletionIsPersistedAsValidatedTombstoneWrite]' passed (0.000 seconds).\nTest Suite 'CloudSyncCoordinatorTests' passed at 2026-10-07 17:02:37.830.\n\t Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds\nTest Suite 'ModelTests' started at 2026-10-07 17:02:37.830.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testCollectionCanonicalizationIsPermutationStableForSetsAndOrderedForArrays]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testCollectionCanonicalizationIsPermutationStableForSetsAndOrderedForArrays]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsAssociativeForDifferentValuesAndIdenticalMetadata]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsAssociativeForDifferentValuesAndIdenticalMetadata]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsCommutativeForDifferentValuesAndIdenticalMetadata]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testConflictResolutionIsCommutativeForDifferentValuesAndIdenticalMetadata]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testExhaustedHLCCounterThrowsInsteadOfCrashing]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testExhaustedHLCCounterThrowsInsteadOfCrashing]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testHLCMergePreservesCausalityWhenWallClockMovesBackwards]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testHLCMergePreservesCausalityWhenWallClockMovesBackwards]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testMalformedDecodedOrderKeysAreRejectedWithoutProcessAbort]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testMalformedDecodedOrderKeysAreRejectedWithoutProcessAbort]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testOrderKeyCanBeInsertedBetweenSiblingsWithoutRenumbering]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testOrderKeyCanBeInsertedBetweenSiblingsWithoutRenumbering]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testRecoveryMetadataRetainsTreePlacementWithoutPagePayload]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testRecoveryMetadataRetainsTreePlacementWithoutPagePayload]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testSetCanonicalizationFailsClosedOnCollidingOptInImplementation]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testSetCanonicalizationFailsClosedOnCollidingOptInImplementation]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testSupportedScalarCanonicalizationMatchesGoldenWireBytes]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testSupportedScalarCanonicalizationMatchesGoldenWireBytes]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testTombstoneWinsWhenPhysicalAndLogicalCoordinatesTie]' started.\nTest Case '-[AhoiCloudKitSpikeTests.ModelTests testTombstoneWinsWhenPhysicalAndLogicalCoordinatesTie]' passed (0.000 seconds).\nTest Suite 'ModelTests' passed at 2026-10-07 17:02:37.832.\n\t Executed 11 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds\nTest Suite 'RemoteCommandTests' started at 2026-10-07 17:02:37.832.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCanonicalPayloadEncodingMatchesSignedWireContract]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCanonicalPayloadEncodingMatchesSignedWireContract]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCommandExpiresAtExactlyFiveMinutes]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testCommandExpiresAtExactlyFiveMinutes]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testDangerousAndCustomSchemesAreRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testDangerousAndCustomSchemesAreRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testIncognitoFocusAndCloseAreRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testIncognitoFocusAndCloseAreRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testMassCloseAndEmptyCloseAreRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testMassCloseAndEmptyCloseAreRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testPersistentReplayRejectsCommandIDAndSourceNonceAfterRestart]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testPersistentReplayRejectsCommandIDAndSourceNonceAfterRestart]' passed (0.002 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testRemoteControlDisabledRejectsBeforeExecution]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testRemoteControlDisabledRejectsBeforeExecution]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testReplayedNonceIsRejectedAtomically]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testReplayedNonceIsRejectedAtomically]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testUnapprovedDeviceAndInvalidSignatureAreRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testUnapprovedDeviceAndInvalidSignatureAreRejected]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testURLUserInfoIsRejectedAsSecretTransfer]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testURLUserInfoIsRejectedAsSecretTransfer]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testValidSignedOpenCommandIsAccepted]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testValidSignedOpenCommandIsAccepted]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testWrongTargetIsRejected]' started.\nTest Case '-[AhoiCloudKitSpikeTests.RemoteCommandTests testWrongTargetIsRejected]' passed (0.000 seconds).\nTest Suite 'RemoteCommandTests' passed at 2026-10-07 17:02:37.837.\n\t Executed 12 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds\nTest Suite 'SharedTabTargetValidationTests' started at 2026-10-07 17:02:37.837.\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testHomeTargetRefusesNewTabAndCredentials]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testHomeTargetRefusesNewTabAndCredentials]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testLocalTargetsKeepOnlyTheirSchemeName]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testLocalTargetsKeepOnlyTheirSchemeName]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testWebTargetsRejectCredentialsAndNonWebSchemes]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SharedTabTargetValidationTests testWebTargetsRejectCredentialsAndNonWebSchemes]' passed (0.000 seconds).\nTest Suite 'SharedTabTargetValidationTests' passed at 2026-10-07 17:02:37.838.\n\t Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds\nTest Suite 'SyncBoundaryTests' started at 2026-10-07 17:02:37.838.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testAllowListIsExhaustiveAndDeveloperAssetRequiresEntityOptIn]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testCiphertextShapeIsValidatedBeforeUpload]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testCiphertextShapeIsValidatedBeforeUpload]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testEverySensitiveDataClassIsDenied]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testEverySensitiveDataClassIsDenied]' passed (0.000 seconds).\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testSchemaAndTombstoneShapeAreValidated]' started.\nTest Case '-[AhoiCloudKitSpikeTests.SyncBoundaryTests testSchemaAndTombstoneShapeAreValidated]' passed (0.000 seconds).\nTest Suite 'SyncBoundaryTests' passed at 2026-10-07 17:02:37.838.\n\t Executed 4 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds\nTest Suite 'AhoiCloudKitSpikeTests.xctest' passed at 2026-10-07 17:02:37.838.\n\t Executed 39 tests, with 0 failures (0 unexpected) in 0.011 (0.013) seconds\nTest Suite 'All tests' passed at 2026-10-07 17:02:37.838.\n\t Executed 39 tests, with 0 failures (0 unexpected) in 0.011 (0.014) seconds\n◇ Test run started.\n↳ Testing Library Version: 2084\n↳ Target Platform: arm64e-apple-macos14.0\n✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.\n",
+    "corpus_verification": "Alle39Namen des eigenen vorherigen Laufs stimmen exakt mit39bestandenenTests des kombiniertenLaufs überein.",
+    "main_package_receipt": {
+      "atUTC": "2026-10-07T15:24:17.814174+00:00",
+      "candidate": "1ab25065ed6550d4a2356a733d785fccba79c1fb",
+      "spikeTree": "2068051533c2235446c95b9aed653fe8ffa71781",
+      "exactInputBlobs": {
+        "spikes/cloudkit/.gitignore": "2d9f16e2d276179d73c91ec2022a23834caec180",
+        "spikes/cloudkit/Package.swift": "6d080508a87e212c75e88eedd4f45b13da8b4108",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/AppleCloudKitAdapter.swift": "faa10b655b5c1818288bb836707103e17447f1e5",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/AppleCloudKitRecordCodec.swift": "142c0eec8074f3adb4fb725c74ae97a97337a098",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/BookmarkModels.swift": "04c7246200122923f86fe49b7fff7da9baeae41f",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/CloudSyncTransport.swift": "019344c4121f577b2828ba0e7b48a02c5526f89b",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/CommandSecurity.swift": "05c88ed8007bcb75decedc9debd8c28b2d0d042d",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/CompanionModels.swift": "c743a5c53f252b9ffe68648504e5a0966d518c67",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/ConflictCanonicalization.swift": "65f079d1cacab6350df78971abacbc41bbfc7677",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/ConflictResolver.swift": "3604b4c18c9ca7dbe40316e67b43ac9c282e6569",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/DeviceCapabilityRecord.swift": "760b9e0a6e776561a9597b3296d72519545d0b1c",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/FileCommandReplayStore.swift": "c6cd87c5a3b6ce67afc27a2750cfa392051eb367",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/HybridLogicalClock.swift": "122526def2049abe112967d375aa4590b3cd8821",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/Identifiers.swift": "edb6b52754055559b0610426070a732d375cc201",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/OrderKey.swift": "7e1e82fcf53ad725c816e500e0b1d1cea8913697",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/RemoteCommands.swift": "bf2641514913b4df35538c5a75edc6454c607c42",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedSyncFormat.swift": "86dc717d9b11ec2c4b14fb7471b38d64c3ee1e6b",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedTabContract.swift": "00a70e952996869bfbb8b282621fad9485fb075a",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedTabTarget.swift": "25483b1b01e60964856ad2707fc299a3e07cfb0b",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedWorkspaceStructure.swift": "7fc2210b6a907089f9b02368bc06f3c86f425a57",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/SyncBoundary.swift": "5ff4133c7a811bc53d8939f067996c1006ae3aa5",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/SyncModels.swift": "cdc5602b69d24e54af7ccdf47bddb0fc882e039e",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/TreeNodeEquality.swift": "04ce40434343ad3e9b9500168fb98daba0ab70cf",
+        "spikes/cloudkit/Sources/AhoiCloudKitSpike/WorkspaceStructureRecords.swift": "979d89b2b33bfd00a1e7f01a3d9803fa54f0dfc8",
+        "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/AppleCloudKitRecordCodecTests.swift": "9b43a05dacf5d6a95331db1b5be859a9f0facd28",
+        "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/CloudSyncCoordinatorTests.swift": "de235817f3d850f27a1d68e86722b3437d8372a1",
+        "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/ModelTests.swift": "46736785c98c4abd31acb61b36b9ba3a96c627db",
+        "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/RemoteCommandTests.swift": "6f8c42a5d181c899cc0c775699e6912ee093afd6",
+        "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/SyncBoundaryTests.swift": "dde8f5ee0a69e84352253abdbe7ddad57c60423f"
+      },
+      "exit": 0,
+      "resultLines": [
+        "Executed 36 tests, with 0 failures (0 unexpected) in 0.007 (0.009) seconds",
+        "Executed 36 tests, with 0 failures (0 unexpected) in 0.007 (0.009) seconds"
+      ],
+      "logSHA256": "598f129a34a9319424c0f380f27a3b88336ce74fce0731c72babfe75d0c09526",
+      "admission": {
+        "atUTC": "2026-10-07T15:24:14.494628+00:00",
+        "host": "MacbookPro2026.local",
+        "cpuSamples": [
+          20.730000000000004,
+          20.489999999999995,
+          25.069999999999993
+        ],
+        "meanCPU": 22.096666666666664,
+        "memory": "The system has 51539607552 (3145728 pages with a page size of 16384).\nSystem-wide memory free percentage: 69%\n",
+        "disk": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   482797652 392156032  62864172    87% 4741646 628641720    1%   /System/Volumes/Data\n",
+        "workloadOwners": []
+      },
+      "command": "nice -n 10 swift test --package-path spikes/cloudkit --jobs 1 --disable-index-store",
+      "SDK": "Xcode 27.0\nBuild version 27A266a\n",
+      "liveCloudKit": false,
+      "pass": true,
+      "integration": {
+        "base": "9487e15fbf76e4a1b5ebd4824da27c66818c8b2b",
+        "sourceCommits": [
+          "93ff76b5f0a5b31d0c08371f3a6b28ef659218f3",
+          "8063b3f398e25b4d09977065c32c6dc12bca207f"
+        ],
+        "candidateCommits": [
+          "62a79a6e",
+          "1ab25065ed6550d4a2356a733d785fccba79c1fb"
+        ],
+        "review": {
+          "base": "ee4d4ef4913f951a7d709b34d4f154555f9a3bb7",
+          "head": "d33bc68a8e028d1d03a663dccc3f597c73ea4a57",
+          "exit": 0,
+          "findings": 0,
+          "scope": "Exact same production/fixture diff plus desktop corrections; original C70 excluded"
+        },
+        "desktopFullIntegration": false
+      }
+    },
+    "package_difference": "git diff00bd18a6 20680515 zeigt ausschließlich50Zeilen der drei zusätzlichen SharedTabTargetValidationTests. Keine Differenz an Produktionscode oder korrigiertenTests; main36/36separat nachgewiesen. KeinTest wurde in diesemAuftrag entfernt.",
+    "review_after_production_correction": {
+      "UTC": "2026-10-07T15:12:44.313694+00:00",
+      "samples": [
+        39.12,
+        41.04,
+        61.62
+      ],
+      "meanCPU": 47.26,
+      "memory": "The system has 34359738368 (2097152 pages with a page size of 16384).\n\nStats: \nPages free: 14401 \nPages purgeable: 3401 \nPages purged: 74870145 \n\nSwap I/O:\nSwapins: 3293704 \nSwapouts: 5619285 \n\nPage Q counts:\nPages active: 379486 \nPages inactive: 378067 \nPages speculative: 964 \nPages throttled: 0 \nPages wired down: 401457 \n\nCompressor Stats:\nPages used by compressor: 866117 \nPages decompressed: 497165726 \nPages compressed: 620669466 \n\nFile I/O:\nPageins: 508579375 \nPageouts: 580212 \n\nSystem-wide memory free percentage: 37%\n",
+      "base": "ee4d4ef4913f951a7d709b34d4f154555f9a3bb7",
+      "head": "d33bc68a8e028d1d03a663dccc3f597c73ea4a57",
+      "sourceCandidate": "3c370175712beb90ec414bfd89b29a39d502fd15",
+      "reason": "One necessary review after three material validated product corrections; actual affected E2E attempted and blocked by foreign NotificationCenter, native17 and Swift39 pass. C70/be869 excluded and separately still pending.",
+      "pid": 74382,
+      "accountHome": "/Users/vossmedien/Library/Application Support/Terminal Cockpit/Accounts/DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5/CodexHome",
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "exit": 0,
+      "logSHA256": "cfb0c210f3ee78a1eb82801ed4f725de03d1db07015199a0ae27ae20aa1756f9",
+      "findings": 0,
+      "result": "No concrete new defects in corrections f325/93ff and fixtures8063. Read-only. C70/be869 excluded; visible GUI acceptance remains open."
+    },
+    "verification_reuse": "Keine zusätzliche Test-/Reviewrunde: exakt passende bereits ausgeführte Journeys und Sourceblobs geprüft. Zwei relevanteReviews insgesamt: eigenerFixtureReview und notwendigerOwner-Korrekturreview."
+  },
+  "followup_20261008": {
+    "at": "2026-10-08T09:44:07.480591+00:00",
+    "same_session": "1F1C5BA2-5AE0-4D62-814F-CFBE96028052",
+    "same_thread": "01a116b1-e952-76c2-894e-6ea2bc66c338",
+    "same_goal": "8081cfbd-dc3b-411e-a387-99ea9ffa6ba7",
+    "goal_status": "blocked; get_goal/update_goal bestätigt gleiche Identität, createdAt1791382155 und unverändertes Objective",
+    "observed_configuration": "Cockpit GPT-6.1-Sol/xhigh, CaeliDEFAA; vom vorhandenen Nutzer-/Cockpit-Routing übernommen, keine eigene Änderung",
+    "canonical_cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser",
+    "code_remote_main": "3c4d1006bca6634b7d92a6ce0d225a4eaa7b293d",
+    "completion_report_on_main": false,
+    "cleanup_still_verified": "taskeigener /private/tmp/ahoi-cloudkit-spike-99eba8f4-Pfad fehlt; fremdeWorktrees erhalten",
+    "owner": "E3CE5554-DEF6-4A79-A27C-4202D1AE12A7 mit Root68E66C9E-7E52-4842-B328-03D9CD6D3057",
+    "parent_delivery": {
+      "request_id": "a53d178c-a9d7-4c83-b872-5a49f962b4a9",
+      "phase": "failed",
+      "error": "TARGET_NOT_RUNNING_OR_CHANGED",
+      "at": "2026-10-08T09:41:02Z"
+    },
+    "root_note": {
+      "request_id": "092844b6-9e7d-431e-a31b-8c979f5daabc",
+      "receipt": "9dade4f4",
+      "proof_limit": "Cockpit-Annahme; keine nativeAusführung/Antwort belegt; note_status REQUEST_NOT_FOUND"
+    },
+    "next_action": "BestehenderOwner importiert die einzigeNachweisdatei aus e46ff0a4 oder dem aktuellen Aufgabenbranch in seinen vorhandenen main-Pfad und pusht. Alternativ übergibt er ausdrücklich nur die Dokumentintegration an diesenWorker. Danach eigenerGoalabschluss. Keine neueSession/Worker/Goal, keine zusätzlichenPaketläufe/Reviews.",
+    "blocked_audit": {
+      "consecutive_resumed_turns": 3,
+      "block": "Dokumentarischer main-Import/Push durch zuständigenOwner fehlt; native E3-Zustellung failed TARGET_NOT_RUNNING_OR_CHANGED. Root-Annahme ohne Ausführungsbeleg.",
+      "remote_main_verified": "3c4d1006bca6634b7d92a6ce0d225a4eaa7b293d",
+      "completion_file_still_absent_on_remote": true,
+      "independent_work_remaining": false,
+      "resumption_event": "Attributierbare Import-/Pushquittung von E3/Root oder expliziter Handback ausschließlich der Dokumentintegration an diesen bestehendenWorker."
+    }
+  },
+  "completion_20261008": {
+    "at": "2026-10-08T10:31:55.704289+00:00",
+    "authorization": "Neue ausdrückliche Nutzerweisung: sämtliche Freigaben zum Weiterarbeiten und endgültigen Abschließen des bestehenden Goals. Damit übernimmt der Worker ausschließlich die zuvor ausstehende Dokumentintegration auf dem vorhandenen main-/Remote-Pfad.",
+    "owner_coordination": [
+      "1a17894b an E3",
+      "60a8fd8b an Root"
+    ],
+    "scope": [
+      "artifacts/tests/desktop-workspace-consolidation-20261007/cloudkit-spike-format-remediation.json"
+    ],
+    "source_report_commit": "c085beab7ff0931e9bc9393174e1addf6f756b3a",
+    "default_branch": "main",
+    "code_and_evidence_base": "3c4d1006bca6634b7d92a6ce0d225a4eaa7b293d",
+    "code_integrated_sha": "1ab25065ed6550d4a2356a733d785fccba79c1fb",
+    "final_commit_lookup": "git log -1 --format=%H -- artifacts/tests/desktop-workspace-consolidation-20261007/cloudkit-spike-format-remediation.json",
+    "commit_strategy": "Ein reiner Dokumentcommit auf dem bestehenden main mit privatem temporärem Gitindex; atomarer Refwechsel mit erwartetem alten SHA und gewöhnlicher nicht erzwungener Push. Kanonischer Fremdbranch/-Index/Worktrees unverändert.",
+    "verification": "JSON-Syntax, Diffcheck, exakte Ein-Datei-Grenze, unveränderte Paketobjekte, Remote-Ref/Blobvergleich nach Push. Keine zusätzlichen Builds, Tests oder Reviewrunde.",
+    "acceptance_audit": "Identischer ursprünglicher Corpus mit39 bestandenen Tests und geprüftem Loghash; auf main identische Produktions-/Fixtureblobs und separat36/36. Ursprungsvierfails bleiben erhalten. Original- und Korrekturreview ohne offene relevante Befunde.",
+    "native_goal": "8081cfbd-dc3b-411e-a387-99ea9ffa6ba7; gleicher Thread01a116b1, createdAt1791382155, get_goal active; Abschlussaufruf folgt nach tatsächlicher Pushverifikation.",
+    "routing": "CaeliDEFAA, get_goal und native Session unverändert; Cockpit aktuell GPT-6.1-Sol/xhigh durch Nutzer-/Cockpit-Routing, keine eigene Konfigurationsänderung. Ursprüngliches Astra/xhigh und fehlender Jev-Entscheidbeleg bleiben separat dokumentiert.",
+    "cleanup": "Eigener lokaler Worktree und RemoteScratch fehlen erneut nachweislich; keine eigenen Container/Simulatoren/Buildprozesse. Taskbranch bleibt zur Erhaltung seiner eindeutigen Historie im kanonischen Git erhalten.",
+    "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser",
+    "external_limit": "Lokale SDK-/Codec-/RecordingTransport-Abnahme; keine reale CloudKit-Konto-/Geräte-/Datenmutationsabnahme."
+  }
+}

@@ -148,6 +148,7 @@ targets:
   AhoiMobileCoreTests:
     type: bundle.unit-test
     platform: iOS
+    hostApplication: AhoiMobile
     sources:
       - path: Tests/AhoiMobileCoreTests
       - path: ../../overlay/chromium/src/ahoi/browser/sync/testdata/bookmark_wire_v2.json
@@ -157,6 +158,7 @@ targets:
       - path: ../../overlay/chromium/src/ahoi/browser/sync/testdata/sync_wire_v3.json
         buildPhase: resources
     dependencies:
+      - target: AhoiMobile
       - target: AhoiMobileCore
       - package: AhoiCloudKitSpike
         product: AhoiCloudKitSpike

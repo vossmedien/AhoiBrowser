@@ -1,0 +1,78 @@
+{
+  "atUTC": "2026-10-07T15:24:17.814174+00:00",
+  "candidate": "1ab25065ed6550d4a2356a733d785fccba79c1fb",
+  "spikeTree": "2068051533c2235446c95b9aed653fe8ffa71781",
+  "exactInputBlobs": {
+    "spikes/cloudkit/.gitignore": "2d9f16e2d276179d73c91ec2022a23834caec180",
+    "spikes/cloudkit/Package.swift": "6d080508a87e212c75e88eedd4f45b13da8b4108",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/AppleCloudKitAdapter.swift": "faa10b655b5c1818288bb836707103e17447f1e5",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/AppleCloudKitRecordCodec.swift": "142c0eec8074f3adb4fb725c74ae97a97337a098",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/BookmarkModels.swift": "04c7246200122923f86fe49b7fff7da9baeae41f",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/CloudSyncTransport.swift": "019344c4121f577b2828ba0e7b48a02c5526f89b",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/CommandSecurity.swift": "05c88ed8007bcb75decedc9debd8c28b2d0d042d",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/CompanionModels.swift": "c743a5c53f252b9ffe68648504e5a0966d518c67",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/ConflictCanonicalization.swift": "65f079d1cacab6350df78971abacbc41bbfc7677",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/ConflictResolver.swift": "3604b4c18c9ca7dbe40316e67b43ac9c282e6569",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/DeviceCapabilityRecord.swift": "760b9e0a6e776561a9597b3296d72519545d0b1c",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/FileCommandReplayStore.swift": "c6cd87c5a3b6ce67afc27a2750cfa392051eb367",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/HybridLogicalClock.swift": "122526def2049abe112967d375aa4590b3cd8821",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/Identifiers.swift": "edb6b52754055559b0610426070a732d375cc201",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/OrderKey.swift": "7e1e82fcf53ad725c816e500e0b1d1cea8913697",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/RemoteCommands.swift": "bf2641514913b4df35538c5a75edc6454c607c42",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedSyncFormat.swift": "86dc717d9b11ec2c4b14fb7471b38d64c3ee1e6b",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedTabContract.swift": "00a70e952996869bfbb8b282621fad9485fb075a",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedTabTarget.swift": "25483b1b01e60964856ad2707fc299a3e07cfb0b",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/SharedWorkspaceStructure.swift": "7fc2210b6a907089f9b02368bc06f3c86f425a57",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/SyncBoundary.swift": "5ff4133c7a811bc53d8939f067996c1006ae3aa5",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/SyncModels.swift": "cdc5602b69d24e54af7ccdf47bddb0fc882e039e",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/TreeNodeEquality.swift": "04ce40434343ad3e9b9500168fb98daba0ab70cf",
+    "spikes/cloudkit/Sources/AhoiCloudKitSpike/WorkspaceStructureRecords.swift": "979d89b2b33bfd00a1e7f01a3d9803fa54f0dfc8",
+    "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/AppleCloudKitRecordCodecTests.swift": "9b43a05dacf5d6a95331db1b5be859a9f0facd28",
+    "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/CloudSyncCoordinatorTests.swift": "de235817f3d850f27a1d68e86722b3437d8372a1",
+    "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/ModelTests.swift": "46736785c98c4abd31acb61b36b9ba3a96c627db",
+    "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/RemoteCommandTests.swift": "6f8c42a5d181c899cc0c775699e6912ee093afd6",
+    "spikes/cloudkit/Tests/AhoiCloudKitSpikeTests/SyncBoundaryTests.swift": "dde8f5ee0a69e84352253abdbe7ddad57c60423f"
+  },
+  "exit": 0,
+  "resultLines": [
+    "Executed 36 tests, with 0 failures (0 unexpected) in 0.007 (0.009) seconds",
+    "Executed 36 tests, with 0 failures (0 unexpected) in 0.007 (0.009) seconds"
+  ],
+  "logSHA256": "598f129a34a9319424c0f380f27a3b88336ce74fce0731c72babfe75d0c09526",
+  "admission": {
+    "atUTC": "2026-10-07T15:24:14.494628+00:00",
+    "host": "MacbookPro2026.local",
+    "cpuSamples": [
+      20.730000000000004,
+      20.489999999999995,
+      25.069999999999993
+    ],
+    "meanCPU": 22.096666666666664,
+    "memory": "The system has 51539607552 (3145728 pages with a page size of 16384).\nSystem-wide memory free percentage: 69%\n",
+    "disk": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   482797652 392156032  62864172    87% 4741646 628641720    1%   /System/Volumes/Data\n",
+    "workloadOwners": []
+  },
+  "command": "nice -n 10 swift test --package-path spikes/cloudkit --jobs 1 --disable-index-store",
+  "SDK": "Xcode 27.0\nBuild version 27A266a\n",
+  "liveCloudKit": false,
+  "pass": true,
+  "integration": {
+    "base": "9487e15fbf76e4a1b5ebd4824da27c66818c8b2b",
+    "sourceCommits": [
+      "93ff76b5f0a5b31d0c08371f3a6b28ef659218f3",
+      "8063b3f398e25b4d09977065c32c6dc12bca207f"
+    ],
+    "candidateCommits": [
+      "62a79a6e",
+      "1ab25065ed6550d4a2356a733d785fccba79c1fb"
+    ],
+    "review": {
+      "base": "ee4d4ef4913f951a7d709b34d4f154555f9a3bb7",
+      "head": "d33bc68a8e028d1d03a663dccc3f597c73ea4a57",
+      "exit": 0,
+      "findings": 0,
+      "scope": "Exact same production/fixture diff plus desktop corrections; original C70 excluded"
+    },
+    "desktopFullIntegration": false
+  }
+}

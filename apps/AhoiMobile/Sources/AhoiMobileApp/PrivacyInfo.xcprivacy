@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- ADR0012 Step1: DEBUG/launch-opt-in bundled MV3 fixture, local storage,
+         explicit expiring site/API consent; Files accepts only the same five
+         fixture bytes. Fixture updates require an app build. No code downloader.
+         This manifest does not approve a general installer or App Store 2.5.2/4.7. -->
 	<key>NSPrivacyTracking</key>
 	<false/>
 	<key>NSPrivacyTrackingDomains</key>

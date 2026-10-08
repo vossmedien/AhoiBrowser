@@ -4,6 +4,7 @@
     "priority": 1,
     "action": { "type": "block" },
     "condition": {
+      "initiatorDomains": ["example.com"],
       "urlFilter": "/ahoi-spike-blocked.js",
       "resourceTypes": ["script"]
     }

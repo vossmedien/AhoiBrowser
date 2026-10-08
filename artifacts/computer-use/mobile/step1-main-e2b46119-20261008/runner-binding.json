@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "e2b461199076c35cf60bc6d21c6045f94a6f159f",
+  "originalXctestrunSHA256": "19a378a0c588c35b0bcf12ac864b534475cd14bfe46744bc11b2be2f606fc3ef",
+  "exactXctestrunSHA256": "2c4b715a9407a16cfadb6e158362ed3b10a0d62067c6edbb856f1897bb6c5576",
+  "receiptSHA256": "d74191fe3a8302a5d2518a1ba1e18e20b491e57a468ef0c39090ff7fab74f026",
+  "testTargets": [
+    "AhoiMobileCoreTests",
+    "AhoiMobileUITests"
+  ],
+  "realCloudKitMutationOptIn": false,
+  "template": "unchanged accepted6f runner inputs; exact candidate receipt/source and owned fixture folder rebound"
+}
