@@ -1,0 +1,16 @@
+{
+  "status": "NOT_STARTED",
+  "failureCategory": "resource/admission",
+  "reason": "fresh launch disk gate failed before Popen",
+  "availableBytes": 10721882112,
+  "requiredBytes": 12884901888,
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 4294967296,
+  "selectedHost": "MacbookPro2026.local",
+  "source": "b6bce96774f5440567f4d2f6d08d43526e403b13",
+  "targetSourceUnchanged": "6f06daf0ca0e79091a2fc48f6bd79bb838588149",
+  "pid": null,
+  "ownedBuildLockHeld": false,
+  "appBuildOrSigningOrInstall": false,
+  "resumption": "fresh Inhouse admission and >=8GiB reserve+4GiB growth; same runner/bundle/output/source; CPU-only authorized fallback rule retained"
+}

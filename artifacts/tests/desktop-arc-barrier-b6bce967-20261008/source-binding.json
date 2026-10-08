@@ -1,0 +1,18 @@
+{
+  "source": "b6bce96774f5440567f4d2f6d08d43526e403b13",
+  "sourceCodeCommit": "51c67024",
+  "donor": "f35e9da81299f2fe1eb43981423cb9396ea1f6c3",
+  "originalRuntimeEvidence": "ccfeaad9",
+  "base": "ac737f33eea35b2b5a83e33876f248c75807cc77",
+  "sourceBudget": "PASS 1751 files max800 after one Mobile blank-line repair; original801 failure retained",
+  "desktopBuildInputDeltaFrom6f": [
+    "overlay/chromium/src/ahoi/browser/importer/arc/arc_import_service.h",
+    "overlay/chromium/src/ahoi/browser/importer/arc/arc_import_service_browsertest.cc",
+    "overlay/chromium/src/ahoi/browser/importer/arc/arc_import_service_history.cc"
+  ],
+  "mobileFunctionalTokensUnchanged": true,
+  "ownerSession": "68E66C9E-7E52-4842-B328-03D9CD6D3057",
+  "ownerThread": "01a11179-cb6b-7dc1-9e53-f3d72fefc198",
+  "e2e": "OPEN; new C++ unbuilt; existing raw failed and passed cases preserved",
+  "status": "source accepted, preparing warm candidate"
+}

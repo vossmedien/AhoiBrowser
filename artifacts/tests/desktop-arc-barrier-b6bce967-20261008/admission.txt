@@ -1,0 +1,10 @@
+CPU usage: 4.74% user, 12.4% sys, 83.21% idle 
+CPU usage: 8.30% user, 6.47% sys, 85.21% idle 
+CPU usage: 6.89% user, 4.4% sys, 89.6% idle 
+CPU usage: 7.0% user, 7.14% sys, 85.84% idle 
+
+System-wide memory free percentage: 65%
+vm.swapusage: total = 2048.00M  used = 831.81M  free = 1216.19M  (encrypted)
+Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on
+/dev/disk3s5   482797652 441645896  13374308    98% 5417439 133743080    4%   /System/Volumes/Data
+task-locks-free

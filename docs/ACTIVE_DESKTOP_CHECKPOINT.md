@@ -39,6 +39,20 @@ full default integration and delivery remain open; old6f proofs do not cover
 this correction. C70 GUI return, DM binding and Step2 decision remain separate.
 The earlier blocked boundaries below are chronology, not current Goal status.
 
+Exact b6bce967 bundle was verified on the target; reused guarded runner requires
+existing output, holds the original outer build lock during Source transition,
+and limits Ninja/GN to2 jobs. Second admission13.117% CPU/65% memoryfree/
+12.755GiB disk initially passed. Last launch gate instead found10,721,882,112B
+(9.986GiB), below the unchanged8+4GiB requirement, and stopped before Popen.
+Actual no-runner/no-build-lock and targetHEAD6f readback confirm NOT_STARTED;
+no apply, compiler, signing, install or visible assertion ran. Preparation is
+retained under ~/inhouse/evidence/ahoi-root-arc-barrier-b6bce967-20261008/.
+Canonical evidence: artifacts/tests/desktop-arc-barrier-b6bce967-20261008/.
+Resume the same prepared runner after actual fresh capacity/ownership gates;
+no cold output, reserve reduction, Dev fallback from disk alone, or repeated
+unchanged resource polling. Source/line-budget repair was actual progress;
+new app/runtime acceptance remains open. Root holds no heavy or GUI lease.
+
 
 ## Current blocked boundary — 8 October 2026, 15:29 UTC
 

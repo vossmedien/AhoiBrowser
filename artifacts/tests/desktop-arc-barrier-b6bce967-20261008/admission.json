@@ -1,0 +1,19 @@
+{
+  "selectedHost": "MacbookPro2026.local",
+  "cpuAggregateSamples": [
+    14.790000000000006,
+    10.400000000000006,
+    14.159999999999997
+  ],
+  "meanCpuPercent": 13.116666666666669,
+  "availableBytes": 13695291392,
+  "reserveBytes": 8589934592,
+  "plannedIncrementalGrowthBytes": 4294967296,
+  "jobs": 2,
+  "memoryFreePercent": 65,
+  "swap": "831.81MiB used; memory free65%",
+  "rootTaskLocks": "free; own outer lock acquired by runner before Source checkout",
+  "gui": "not acquired; foreign Vega preserved",
+  "source": "b6bce96774f5440567f4d2f6d08d43526e403b13",
+  "note": "disk declined since first probe; fresh launch space check and existing owned-process reserve monitor retained"
+}
