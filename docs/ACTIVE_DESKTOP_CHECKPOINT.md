@@ -1,6 +1,45 @@
 # Active Desktop checkpoint
 
 
+## Current Root correction candidate — 8 October 2026
+
+Original native Master Goal/thread01a11179 is ACTIVE again at this resumption,
+with the same createdAt/objective. New Arc handback f35e9da8/ccfeaad9 was consumed
+and source-accepted as51c67024/a76018d8. Actual postreview main Settings navigation
+passes without renderer DCHECK after attaching to the newly created target;
+separated then fails sourceChanged/historyadded1. Prior four-case results and
+original failed/aborted runs remain in the accepted raw evidence; no full pass
+of the latest corrected script is inferred.
+
+The four exact handback files are preserved. Three C++ files are the entire
+Desktop build-input difference from tested6f; config, patches and build scripts
+are unchanged. The full Root source-budget check initially failed on the existing
+combined MobileBrowserView801. One blank line was removed as separate Mobile
+commit badf932e: every non-whitespace token remains byte-identical, the file is
+800 lines, and the full1751-file budget now passes. Mobile coordinator was
+informed3756b864; no functional Mobile source or runtime acceptance is inferred. The per-profile factory/History callers and
+existing SessionBridge::FlushPersistenceForBackup contract were checked:
+fresh filtered backups now serialize the native tree, including after recovery;
+policy is rechecked, immutable backup reuse, weak callbacks and terminal
+operation/keepalive ownership remain. The focused existing regression creates
+a missing required durable tree before History-only import; no new test matrix.
+This new code is not built or runtime-accepted yet.
+
+Root owns the next warm guarded build using returned clean target N6f and
+existing output ahoi-chromium.fMMeXkCh/AhoiDev; no cold output or GUI takeover.
+First current Inhouse admission: three aggregate samples9.75/9.28/11.22%, mean
+10.083%, memory62% free,21,309,052KiB disk free. Original build/UI locks absent,
+no Ahoi compiler or runtime present. Foreign Vega48267 is preserved. Arc's
+explicit stopped-target/GUI handback and original Root build ownership apply;
+notice41b78743 conveys this same-source uptake, not a new worker/Goal.
+Build preparation remains NOT_STARTED until fresh admission and exact mirror/
+lock guards pass. Existing 8GiB reserve plus4GiB incremental growth is retained.
+Affected pure/combined/separated/rollback/recovery visible runs, relevant focus,
+full default integration and delivery remain open; old6f proofs do not cover
+this correction. C70 GUI return, DM binding and Step2 decision remain separate.
+The earlier blocked boundaries below are chronology, not current Goal status.
+
+
 ## Current blocked boundary — 8 October 2026, 15:29 UTC
 
 Original native Master Goal/thread01a11179 is now **BLOCKED**, not complete
