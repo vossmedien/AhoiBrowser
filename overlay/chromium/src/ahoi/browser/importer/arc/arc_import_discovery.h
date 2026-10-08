@@ -42,6 +42,10 @@ ArcDiscoveryResult DiscoverArcSourceAt(
 // to DiscoverArcSourceAt().
 ArcDiscoveryResult DiscoverDefaultArcSource();
 
+// Development E2E source beside an explicitly disposable target; empty in
+// official builds or for any unsafe/non-disposable source/target path.
+base::FilePath GetArcE2ESourceDirectory();
+
 // Returns true while any process whose executable is inside Arc.app is
 // present; every positively identified main or helper process blocks. PID
 // discovery is argv-independent and an enumeration failure fails closed. An

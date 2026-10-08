@@ -1,0 +1,20 @@
+{
+  "symlink": {
+    "rejected": true,
+    "external_unchanged": true,
+    "exit": 1,
+    "browser_launched": false
+  },
+  "hardlink": {
+    "rejected": true,
+    "external_unchanged": true,
+    "exit": 1,
+    "browser_launched": false
+  },
+  "occupied_port": {
+    "rejected": true,
+    "external_unchanged": true,
+    "exit": 6,
+    "browser_launched": false
+  }
+}

@@ -11,8 +11,10 @@
 
 #include "ahoi/browser/importer/arc/arc_history_reader.h"
 #include "ahoi/browser/importer/arc/arc_import_backup.h"
+#include "ahoi/browser/importer/arc/arc_import_discovery.h"
 #include "ahoi/browser/importer/arc/arc_import_recovery.h"
 #include "base/files/scoped_temp_dir.h"
+#include "base/command_line.h"
 #include "base/functional/bind.h"
 #include "base/location.h"
 #include "base/task/task_traits.h"
@@ -209,12 +211,20 @@ void ArcHistoryImportRunner::OnPrepared(base::FilePath profile_path,
     std::move(callback).Run(result);
     return;
   }
+  ArcHistoryWriteTestHooks hooks;
+#if !defined(OFFICIAL_BUILD)
+  // Reuse the native writer's fault boundary only for the validated disposable
+  // visible E2E source/target. Official imports cannot enable this hook.
+  hooks.fail_after_write = !GetArcE2ESourceDirectory().empty() &&
+      base::CommandLine::ForCurrentProcess()->HasSwitch(
+          "ahoi-e2e-arc-fail-after-write");
+#endif
   ScheduleArcHistoryWrite(
       history_service_, std::move(preparation.entries), &tracker_,
       base::BindOnce(
           &ArcHistoryImportRunner::OnWritten, weak_factory_.GetWeakPtr(),
           std::move(profile_path), std::move(preparation.history_key),
-          std::move(preparation.previous), result, std::move(callback)));
+          std::move(preparation.previous), result, std::move(callback)), hooks);
 }
 
 void ArcHistoryImportRunner::OnWritten(

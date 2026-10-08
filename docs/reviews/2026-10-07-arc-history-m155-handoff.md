@@ -1,9 +1,11 @@
 # Arc-Verlauf M155: Quellenübergabe e5fbc1f3
 
-Status: minimale Quellportierung committet; Quellenübergabe an Root vorbereitet.
-Keine Kompilierung, native Testausführung, sichtbare UI-, Review- oder
-Lieferabnahme. Zukunftszeitentscheidung bleibt als konkretes Rootgate offen.
-Eigenes natives Goal bleibt ACTIVE; keine native Pause/Blockade/Erfüllung behauptet.
+Status 8. Oktober: Quellportierung von Root als `850aa587` übernommen und
+Zeitregel in `6eefc4a8` bestätigt/korrigiert. Eigener ursprünglicher Worktree
+auf unverändertem Branch wiederhergestellt. Eigenes natives Goal nach ausdrücklicher End-to-End-Freigabe ACTIVE,
+identischer Thread/createdAt; keine Erfüllung vor realer Lieferung.
+Kompilierung, native Tests, sichtbare Abnahme, Review und Lieferung bleiben
+unbelegt. Die folgende ältere Chronologie bewahrt die ursprünglichen Belege.
 Stabile Identität `worker-handoff:e5fbc1f3`, Goalkennung
 `AHOI-ARC-HISTORY-M155-20261007`. Root besitzt Integration und Auslieferung.
 
@@ -35,14 +37,21 @@ Root `68E66C9E-7E52-4842-B328-03D9CD6D3057` /
 2. **Erledigt:** gepinnte M155-APIs, Donor-/Root-Deltas und tatsächliche
    Aufrufer-/Profil-/Recoverygrenzen gelesen und dokumentiert.
 3. **Erledigt als Quellen:** minimale Portierung im Rootmodell und tatsächlicher
-   Settings-UI; Scope-/Ownerhandback erhalten. Die Zukunftszeitregel bleibt
-   ausdrücklich unbestätigt, unverändert bei Donor `now+1day`.
+   Settings-UI; Scope-/Ownerhandback erhalten. Root hat die Zeitregel
+   inzwischen auf `not_after=now` gebunden (`6eefc4a8`), kein erneuter Zeitentscheid.
 4. **Erledigt:** gezielte Quellenchecks, Diff/DCO/Lane/Quellsyntax und
    800-Zeilen-Budget; Sourcecommit `346edf636ce764885f8125c3e1c9abbf4ae8aeab`.
    Dieser Bericht bindet Dateiliste, Vendorbelege und Prüfgrenzen daran.
-5. **Wartend auf Root:** exakter kombinierter Kandidat, sichtbare Reisen,
-   fokussierte/native Checks, separates Review, Integration/Push/Lieferung.
-   Erst deren Belege erlauben den eigenen Goalabschluss.
+5. **Erledigt am Kandidaten 6f06daf0:** guarded Build/Signatur, sechs echte
+   Settings-/native Historyreisen und 20 fokussierte native Historyfälle.
+6. **Korrigiert, betroffener sichtbarer Wiederholungslauf offen:** zwei native
+   Reviewrunden, drei konkrete Journeyskriptbefunde; Symlink-/Hardlink-/Port-
+   Negativprüfungen bestehen. Keine dritte Reviewrunde.
+7. **Erledigt als Entwicklungslieferung:** zurückgegebenes exaktes 6f-Appbundle,
+   bewachte atomare Installation und isolierter Startup-Smoke; Rootreadback bestätigt.
+8. **Offen bei Root:** minimalen Arc-Nachtrag aufnehmen, sichtbare Wiederholung
+   nach tatsächlichem GUI-Handback, gemeinsame Main-/Push-/Desktop-Abnahme.
+   Erst tatsächliche Schlussbelege erlauben den eigenen Goalabschluss.
 
 Ein natives Planwerkzeug wird hier nicht angeboten; diese Aufgabenliste ist
 der gepflegte Fortschrittsstand im ausdrücklich zugewiesenen Bericht.
@@ -403,6 +412,127 @@ Handoff, Session/Thread/Goal und Worktree. Keine eigene schwere Phase ohne
 konkreten Rootslot/Ownership-Handback. Warten auf neue Befunde/Lieferbelege,
 keine unveränderten Statusabfragen, zusätzlichen Audits oder Ersatzworker.
 
+## Native Blockadequittung nach Quellenübergabe
+
+Die konkrete Quellenübergabe wurde als Rootnotiz `dc8d6d5e` aufgenommen:
+Source `346edf636ce764885f8125c3e1c9abbf4ae8aeab`, Berichtstand
+`52fc0c13d80c5833e41fe17722cb1a4f1a2a241b`, Prüfungen und offene Rootgates.
+Danach wurden keine Produktquellen geändert und kein zweiter cockpit_report
+aufgerufen. Der erste automatische Goalturn bestätigte die aktive Rootsession
+und wartete 60 Sekunden ereignisgesteuert ohne neues Feedback. Der zweite
+prüfte nur den konkreten Integrations-/Handbackstand: kanonischer Root-HEAD
+`e23919641fd129d012652c3c269dfbc10c1952c7`; keine Historycommits/-Änderungen
+an den relevanten Pfaden, Checkpoint fordert History weiterhin vor F.
+Kein Zeitentscheid, Finding, Build-/GUI-Handback oder Lieferbeleg eingegangen.
+
+Seit dem Quellstopp besteht über Übergabeturn und beide Goalfortsetzungen
+dieselbe vollständige Abhängigkeit: alle verbleibenden Aktionen benötigen
+Rootfeedback beziehungsweise Roots exklusiven Kandidaten-/Lieferweg. Keine
+nützliche unabhängige autorisierte Arbeit bleibt. `update_goal(blocked)`
+quittiert denselben Thread `01a113e8-cfc5-79b1-9a36-71e8e45f3a93`, dieselbe
+unveränderte Objective, `createdAt=1791335405`, **status blocked**, aktualisiert
+`1791338089`. Nur dieses eigene Goal geändert; keine neue Session, kein
+Ersatzworker und keine Änderung am Root-/fremden Goal.
+
+Nächster Schritt bleibt Roots konkrete Zeitentscheidung/Sourcebefund oder
+Kandidatenhandback an dieselbe Identität, anschließend die betroffene Korrektur
+beziehungsweise Abnahmebelege. Keine zusätzliche Quellphase, Prüfung oder
+Statusschleife während der Blockade. Dieser Dokumentnachtrag hält ausschließlich
+die einmalig neue native Quittung und den bestehenden Aufgabenstand fest.
+
+## Wiederaufnahme und belegter Stand am 8. Oktober
+
+Nutzer setzt dasselbe Goal erneut active; `get_goal` bestätigt denselben
+Thread `01a113e8-cfc5-79b1-9a36-71e8e45f3a93`, `createdAt=1791335405`,
+`updatedAt=1791452440`, status active. Keine neue Session/Zieleingabe und kein
+Umwidmen. Kanonischer Root ist aktuell `e41ef67eb4305a0f9becf36207ca3293a3182a9c`.
+Root hat Source `346edf63` als **`850aa5876e9171af2d760281d79fe3017a63c8b7`**
+übernommen; Quellannahme/primäre M155-Barriere in
+`865a95860f295e40afbfc4a870d09079d54c1670` dokumentiert. Die vollständige
+konkrete Zeitkorrektur **`6eefc4a8d192830fc78ffe521f05958fbe302002`** wurde
+als Gitdiff gelesen: Runner `not_after=now`, Readerfenster ebenso und bestehender
+Zukunftsfall bei now+1h. Kein weiterer Workerzeitfix nötig. Historische offene
+Zeitfragen oben beschreiben den ursprünglichen Übergabestand, nicht ein noch
+offenes Produktgate. Keine neuen Vendor-/Runtimebelege daraus abgeleitet.
+
+Nach der Konsolidierung fehlte der eigene Worktree tatsächlich; Cockpit zeigte
+unverändert dieselbe Session im Rootcheckout. Notizen `0cb804e7` / `6abc76f2`
+(Root/Konsolidierungsowner) und `62715269` (erneute Blockadequittung) benennen
+diesen Übergang; keine Antwort/Freigabe daraus behauptet. Die jetzt angebotene
+`cockpit_note_status`-API verweigert die alten achtstelligen Kennungen als
+`INVALID_ARGUMENT: request_id`; Zustellung bleibt damit nicht nachgewiesen.
+Kein erneutes Senden dieser Altanfragen oder Duplicateworker.
+
+Der ursprüngliche Userauftrag weist denselben Pfad/Branch ausdrücklich zu und
+verlangt dessen Erhalt für Findings. Deshalb wurde ausschließlich dieser
+Arbeitsbaum aus dem unverändert erhaltenen eigenen Ref **e834b4e1** wieder
+hergestellt: Path fehlend/nicht symlinked, Branch-HEAD exakt
+`e834b4e105235553989dc4f6c60674684e60f7ce`, kein anderes registriertes Worktree
+auf diesem Branch; `git worktree add <ursprünglicher Pfad>
+cockpit/arc-verlauf-m155-e5fbc1f3` erfolgreich. `pwd`, HEAD, Branch und sauberer
+Status danach bestätigt. Kein neuer Branch/Goal/Thread, keine Produktquelle,
+kein Rootcheckout-Reset und keine schwere Phase. Nur Git-Worktreeverwaltung
+und die Wiederherstellung des bereits zugewiesenen Arbeitsbaums. Geltendes
+AGENTS am wiederhergestellten Pfad gelesen; sämtliche eigenen Dateiarbeiten
+verwenden diesen CWD ausdrücklich. Die Cockpit-/Native-Session-CWD-Einstellung
+wurde nicht geändert; ihr Root-Fallback bleibt von den tatsächlichen
+Worktree-Prozess-CWD-Belegen getrennt.
+
+`main` und lokal gespeichertes `origin/main` stehen inzwischen auf
+`3c4d1006bca6634b7d92a6ce0d225a4eaa7b293d`. Beide Historycommits 850aa/6eef sind
+**keine** Vorfahren von main (`git merge-base --is-ancestor`, jeweils exit 1).
+Das ist keine Mainintegration dieses Ports und kein tatsächlicher Remote-
+Push-/Lieferbeleg. Der Rootcheckpoint nennt F-Runner weiterhin NOT_STARTED;
+kein neuer konkret zurechenbarer Build-, UI-, Native-Review- oder
+Desktopauslieferungsbeleg ist hier vorhanden. Kein Goalerfüllen daraus.
+
+Neue materielle Koordinationsnachricht: Worktree wieder vorhanden, Root-
+Sourceannahme/Zeitregel erledigt, unabhängige Quellenphase bleibt beendet;
+benötigt werden konkrete Rootbefunde beziehungsweise Kandidaten- und
+Lieferquittungen. Stabile neue Nachrichten-ID `f3367dcc-82f8-4ce0-ac99-007350970e5e`, nur für dieses
+neue Ereignis; kein weiterer cockpit_report. Berichtnachtrag ausschließlich
+im eigenen Worktree, DCO/Lane/Diff/Dokumentreferenzen vor Übergabe geprüft.
+Keine C++-/TS-/GN-/Runtimeprüfungen wiederholt, keine Rootcheckpoints verändert.
+
+### Dauerhafte Orchestratorquittung für den neuen Stand
+
+Die neue materielle Restore-Notiz wurde als `593ea9c5` aufgenommen. Für den
+mitgegebenen vollständigen UUID `f3367dcc-82f8-4ce0-ac99-007350970e5e` liefert
+`cockpit_note_status` mit vollständiger Quellbindung **REQUEST_NOT_FOUND: no
+receipt for this caller**. Aufnahme der Legacy-Notiz ist damit keine belegte
+Receiverzustellung; nichts identisch erneut gesendet.
+
+Diese neue präzise Kommunikationsgrenze wurde über den vorgesehenen bestehenden
+Orchestratorweg als Informations-Follow-up übergeben: Request
+**`a1e5eb2c-a68d-4b13-a924-6a524df2f8a4`**, `acceptedAt/updatedAt=
+2026-10-08T10:05:55Z`, **phase queued**. Quittung bestätigt getrennt Caller-
+Account `defaa5b4-a7fe-4558-9214-cafead98d4c5`, dieselbe eigene Session/Thread
+und den registrierten Root-CWD. Inhalt bindet den wiederhergestellten ursprünglichen
+Worktree, Commit d70bfb43, Rootannahme850aa/Zeitfix6eef, ausstehende F-/main-/
+Push-/Lieferbelege und ausdrücklich keinen neuen Worker/Goal/Quellenhandoff.
+Nach einmaligem ereignisgesteuertem 60-Sekunden-Warten blieb derselbe Request
+queued; keine Antwort, Ausführung oder Rootabnahme daraus behauptet. Keine
+unveränderten neuen Anfragen und kein weiterer cockpit_report. Nächste
+Wiederaufnahme auf neue Antwort/Befund/Lieferquittung derselben Identität.
+
+### Erneute native Blockadequittung nach Wiederherstellung
+
+Nach dem Wiederherstellungsturn und zwei automatischen Fortsetzungen ist keine
+neue Antwort, kein Finding und kein Kandidaten-/Lieferhandback eingegangen.
+Derselbe konkrete Orchestratorhandle `a1e5eb2c-a68d-4b13-a924-6a524df2f8a4`
+bleibt unverändert queued; kein terminaler Fehler oder Abbruch behauptet.
+Own Worktree bf6c0314 war sauber. Die Worktree-Abhängigkeit ist gelöst; alle
+verbleibenden notwendigen Schritte sind Roots exklusiver F-Build-/GUI-/Review-/
+Integrations-/Lieferweg. Eine neue Quellphase oder ein eigener schwerer Lauf ist
+nicht freigegeben; keine unabhängige autorisierte Arbeit bleibt.
+
+`update_goal(blocked)` quittiert denselben eigenen Thread/Objective und
+createdAt1791335405, **status blocked**, updatedAt1791454445. Kein fremdes Goal
+und keine Account-/Session-/CWD-Konfiguration geändert. Anfrage/Worktree/Branch
+und volle Zielsetzung bleiben für echte Rootbefunde erhalten. Keine neue
+Anfrage, kein weiterer cockpit_report und keine unveränderte Statusschleife.
+Nur dieser neue native Status wird im vorhandenen Aufgabenstand festgehalten.
+
 ## Kandidatenabnahme und Abschlussgrenze
 
 Root baut den kombinierten F-Kandidaten auf dem bestehenden guarded Weg.
@@ -428,3 +558,196 @@ sichtbare Produktabnahme. Findings gehen an dieselbe Workeridentität zurück.
 Root liefert integrierten SHA, echten Push-/Remote-Ref-Beleg, ausgelieferten
 SHA/Artefaktprovenienz und relevante Laufzeitbelege. Quellenübergabe ist keine
 vollständige Goalerfüllung.
+
+## Erweiterte Nutzerfreigabe: Ende der Root-Warteschleife
+
+Der Nutzer erteilt ausdrücklich sämtliche Freigaben zum End-to-End-Abschluss.
+Die vorherige Source-only/Root-Handback-Stopgrenze ist aufgehoben. Derselbe
+Worker führt den vorhandenen kombinierten F über Build, sichtbare Historyreise,
+fokussierte Checks/native Review und guarded Integration/Lieferung fort.
+Root/C70 erhalten Ownershipnotizen fb4df9ad/f5f45d7b; fremde aktive Jobs bleiben
+geschützt. Tatsächliche Inhouseadmission am 8. Oktober: CPU5.02/6.39/8.80 %,
+Mittel6.74 %, memory_pressure68 % frei, Disk57908072KiB frei. Ältere Blockaden
+werden nicht ungeprüft weitergeführt. Vorhandener Kandidat3c370175 ist bereits
+signiert/installiert; seine echten Compilekorrekturen cstring_view/raw_ptr und
+Zeitregel werden übernommen. Kein neuer Worker/Goal/Account oder Ersatzprodukt.
+
+## Tatsächliche End-to-End-Fortsetzung am 8. Oktober
+
+Nutzer widerruft die eigene Source-only/Root-Handback-Stopgrenze und erteilt
+sämtliche Freigaben zum Abschluss. Kombinierter, bereits signierter/installierter
+3c370175-Kandidat und neuer E2E-Anschluss a3b27385 übernommen; eigene native
+Goalidentität bleibt ACTIVE. Runner55405 terminal0/sign/provenancePASS am
+8. Oktober10:47:53Z, vorhandenes gemeinsames internes Output, keine neue
+Chromiumkopie. Eigener Thread im Lock. Zurücknahme der SSH-Signaturfehlergrenze
+nur über vorhandenen GUI-Signer, kein Adhoc-Signieren oder Guardbypass.
+
+Erster sichtbarer Journeyversuch erreichte noch keine Importassertions: native
+Neutabfläche statt Startup-Settingsroute, durch tatsächliche Page.navigate
+korrigiert. Zweiter/dritter Versuch zeigt native HTML-only Quellenliste, also
+Arc ohne authentifizierte Arc.app nicht angeboten. E2E-Service-Override allein
+war unzureichend. cc6f76f2 verschiebt denselben owner-only/private-temp Quelle/
+Target-Check in den gemeinsamen Finder; SourceUI und Service teilen ihn,
+Officialbuild ignoriert den Schalter. Normale Arc-Authentifizierung, Vnode-/
+Backup-/Hash-/Policy-/DBgrenzen unverändert. Keine Fake-WebUI-Antworten.
+
+Neuer eigener Runner84444/cc6f76f2 gestartet, Sourcecompile/Link11 Schritte
+pass, Signatur/Provenienz noch laufend bei dieser Notiz. Aufnahme auf Inhouse
+CPU18.37/15.18/31.75 %, Mittel21.77 %,52 % Memory frei,56723876KiB frei;
+4Jobs/4GiB Growth plus8GiB Reserve unverändert. Root informiert mit1dd7c8b5,
+native Slots nicht durch Sessionstatus geraten. Quellen liegen ausschließlich
+im eigenen Worktree; aktualisierter Targetmirror ist ein vorhandener Root-
+Snapshot, nicht die kanonische Source. Live Runner/Lock wird vor jeder weiteren
+Schreib-/GUIphase geprüft.
+
+Journeyscript im ursprünglichen zugewiesenen Pfad arc-history-journey.sh:
+main (history-only/kombiniert/replay), getrennte Profile, Rollback mit SQLite-
+Trigger im ausschließlich geschlossenen Disposable-Ziel, Prepared aus tatsächlichem
+Backup/committed-key und anschließende reale Discovery. Snapshot-/Journal-
+Readback ist nativ, importUI zeigt nur Counters. Resultate bleiben NOT_PROVEN
+bis Assertions und Screenshots auf genau demselben signierten Kandidaten laufen.
+
+Aufgaben: laufenden guarded Candidate fertigstellen; sichtbare Journeys6,
+gezielte native History-/Recoverychecks; getrennte OwnReview der tatsächlich
+geänderten Quellen; tatsächliche Mainintegration/Push und guarded Desktop-
+Lieferung. Fremde aktive Arbeit und aktuelle Rückroll-App werden erhalten.
+
+## Aktueller nachgewiesener Stand — 8. Oktober, Quellenfeedback und Lieferung
+
+Dieselbe eigene Goalidentität ist ACTIVE (get_goal: createdAt1791335405,
+Thread01a113e8-cfc5-79b1-9a36-71e8e45f3a93). Keine neuen Goals/Worker,
+Account-/Routing-/Berechtigungsänderungen und kein zweiter cockpit_report.
+Eigene Shell-CWDs liegen im ursprünglichen e5fbc1f3-Worktree; die registrierte
+Cockpit-CWD bleibt Root und wird nicht als Worktree-Konfigurationsbeleg umgedeutet.
+
+### Exakter gebauter und installierter Kandidat
+
+Source **6f06daf0ca0e79091a2fc48f6bd79bb838588149**, Basis des Nachtrags
+**3c370175712beb90ec414bfd89b29a39d502fd15**. Derselbe kombinierte Full-F
+enthält Root850aa587/6eefc4a8 und dessen reale M155-Compilekorrekturen.
+Runner38766 terminal0 am11:30:13Z; Build/Signatur/Provenienz abgeschlossen.
+Chromium16c3e554/155.0.8059.26, V8-Pin unverändert. Keine neue Vendorquelle.
+
+- Executable SHA256 `bdd229591271f8d33e7b462f99b543a0b4afca213164b8d06049a80a4a6f463f`.
+- Bundle tree SHA256 `1e38b13f0136e16c6e77c98d6041d7d8889887276190357257d5430fb663fb91`.
+- GN args SHA256 `a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4`.
+
+Belege im [Kandidatenordner](../../artifacts/tests/desktop-arc-history-final-6f06daf0-20261008/):
+focused-build-provenance.json, returned-bundle-verification.log,
+installed-dev-6f06daf0.json, installation.log und installed-smoke.json.
+527 portable Dylibs/238 Frameworkresources überprüft; native Signatur erhalten.
+`install-dev-app.py` bestätigt gleichvolumige hashgeprüfte Stagecopy, vorherige
+Kandidatenprüfung, quieszente App, renameatx_np(RENAME_SWAP), tatsächlichen
+Postinstallreadback und automatische Rücknahme bei Verifikationsfehler.
+Dev-App tatsächlich `/Applications/AhoiBrowser.app`, Source6f, Startup-Smoke
+Chrome155.0.8059.26 in eigenem temporärem Profil bestanden; nur eigener PID beendet.
+Vorherige funktionierende EF-Rückroll-App bleibt erhalten. Root8d00751f bestätigt
+Source/Executable-Hash/deep-strict Signatur separat. Inhouse installierte Root3c
+bleibt erhalten. Dies ist **Entwicklung/nightly**, releaseEvidenceEligible=false;
+keine notarisierten Release-/Master-DoD-Belege behauptet. Die versehentlich
+verwendete release-only verify-installed-app.sh meldete fehlende Release-Team-
+Voraussetzung; der richtige Dev-Installer und verify-built-app.sh bestehen.
+
+### Sichtbare native Historyabnahme und fokussierte Checks
+
+Vier reale Journeys am unveränderten signierten 6f-Appbundle, jeweils eigene
+owner-only synthetische geschlossene Arcquelle und native Settings-Steuerung,
+Actual-Ahoi-Front-/Keyboardreceiver, Screenshots, native DB-/Journalreadbacks:
+
+| Belegordner | Tatsächliches Ergebnis |
+| --- | --- |
+| visible-main-foreground-final | reiner Verlauf2 Visits ohne Baumänderung; kombiniert Sidebarimport+History noChanges; Wiederholung Sidebar-No-op mit Historyselected ohne doppelte Visits |
+| visible-separated-final | main1 Visit, isoliertes Zielprofil1 Visit, korrekte registry/profile_dir und getrennte native HistoryServices |
+| visible-rollback-final | echter post-write Fehler über bestehenden guarded native Writerhook; vollständiger URL/Visit/VisitSource-Digest unverändert; vorheriges committed Journal erhalten |
+| visible-recovery-final | Prepared-Journal mit echtem Backup/Manifest/Contentkey; tatsächliche Discovery-Recovery committed; vorhandene URL/Visit/Source-Daten unverändert |
+
+UI-Prüfungen bestätigen ausschließlich Zählwerte, keine History-URLs/Titel.
+Keine WebUI-Antworten gemockt, keine echte Arc-SQLite/Profile/Keychain/CloudKit
+verwendet. Danach compiled ArcHistory*-Checks in history-focused.log/xml:
+**20/20 bestanden**, darunter Idempotenz, exakte Rücknahme/fehlende Sourcerows,
+getrennte Services, WAL-Backup/Privacy und unbekannte Commit-/Recoverygrenzen.
+
+### Native Review und konkrete Korrekturen
+
+Separates natives `codex review --base 3c370175...` mit bestehendem Account/
+CODEX_HOME. Erste gestartete Reviewrunde belegt reproduzierte Symlinkmutation,
+aber keinen terminalen Gesamtverdict; eine vorherige unzulässige CLI-
+Promptkombination startete keine Review. Fix2002efcf/53a8ff3a validiert Pfade.
+Zweite tatsächliche Runde PID70104 terminal0, native-review-round2.log/.exit:
+P1 ungebundener CDP-Port, P2 harte Links in mutierbaren Dateien, P2 fehlendes
+Runnerverdict. **bbb4bb49** korrigiert alle drei konkreten Stellen: Portrefusal,
+Listener-PID/Profilbindung vor CDP, Single-Link-Dateien, verdict.json erst nach
+UI- und nativen Assertions. Rootb5cc825e hat diese Sourcekorrekturen geprüft.
+Keine dritte Modellreview. Maximal zwei tatsächliche Runden bleiben eingehalten.
+
+Reale Negativprüfungen am aktuellen Skript: eigene temporäre Symlink- und
+Hardlink-Fallen werden vor Mutation abgelehnt (exit1, Hash extern unverändert),
+ein eigener tatsächlicher TCP-Listener bewirkt occupied-port refusal(exit6)
+vor Browserstart. review-boundary-results.json bindet Ergebnisse; Bashsyntax
+und zwölf bestehende Settings-Quellenprüfungen bestehen. Quellenbudget:
+`python3 tools/source_line_budget.py` **1732 Dateien, Maximum800, PASS**.
+`git diff --check` besteht. Frühere Aufrufe mit dem nicht existierenden Namen
+check_source_budget.py beziehungsweise zsh-unmatched tools/check_source* liefen
+nicht; daraus kein Quellencheckpass behauptet.
+
+Betroffene sichtbare Reruns nach Skriptkorrektur bleiben offen. Frühere Versuche
+sind nicht überschrieben: Cachemode/RunningChromeVersion-Symlink-Setup repariert;
+eine now+1h-Fixture wurde nach langem Ablauf korrekt importierbar, deshalb ist
+nur die künstliche Zukunftsfixture auf9Tage gesetzt (native >now-Regel bleibt).
+Letzter Rerun während Loginwindow abgebrochen; nur eigene PID90001/script89974
+beendet, keine sichtbare Abnahme daraus abgeleitet. Bei aktueller erneuter
+Read-only Admission ist Inhouse unlocked, CPU-Mittel53.43%, Memory69% frei,
+15842348KiB verfügbar; tatsächlicher Frontowner BetterIPTV/Vega PID22716 mit
+aktivem clock-probe31 PID23631 und Appium23554. Keine GUI übernommen.
+Orchestratorrequest **d021a64d-126a-41ba-a16d-05a87e9d2e0c**, accepted
+15:04:16Z, queued: konkreten GUI-Handback angefragt, keine Freigabe daraus behauptet.
+
+### Minimaler Root-Nachtrag und Main-Grenze
+
+Die produktrelevante Differenz gegenüber angenommenem Root3c besteht exakt aus
+arc_import_discovery.{cc,h}, arc_import_service.cc und
+arc_history_import_runner.cc; zusätzlich arc-history-journey.sh und dieser
+Bericht/zugehörige Belege. Keine GN/DEPS/series/WebUI-Nachänderung nötig.
+Die vier C++-Dateien in eigenem aktuellen HEAD entsprechen bytegenau gebautem6f;
+Skriptfeedback verändert keine Appbytes. Validierte Disposable-Quelle/-Ziel
+kann nur in !OFFICIAL_BUILD den gemeinsamen Finder und vorhandenen
+fail_after_write-Hook nutzen. Normale Profil-/Backup-/Policy-/Historygrenzen bleiben.
+
+Eigener HEAD518644dd erhält aktuelles akzeptiertes main5c9c6a5b ohne neue
+Mobile-/Spike-Produktänderung. Er ist kein Root-Full-Mobile-Paket: Root besitzt
+26 weitere noch nicht abgenommene Mobilepfade. Kein Rootcheckout zurückgesetzt.
+Unpublizierte Kompositionsref cockpit/arc-main-verified-e5fbc1f3 /144ca55d
+ist nur Vergleich, **keine Mainintegration, kein Push und kein Abnahmebeleg**;
+1773 Pfade vs Main enthalten fremde noch offene Desktop-F-Abnahme.
+Rootb5cc825e/8d00751f verlangt den kleinen Arc-Nachtrag gegen3c und erhält
+ihn in derselben Identität. Tatsächliches Main/Serverreadback bleibt
+**5c9c6a5bff56d8c231dc946389dc82b290a2cae9**; gemeinsamer Publisher ist Root.
+Nächster Schritt: tatsächlicher GUI-Handback, betroffene sichtbare Reruns/
+Runnerverdict, Rootannahme des minimalen Nachtrags; anschließend konkrete
+Main-/Push- und Desktoplieferbelege von Root. Eigenes Goal bleibt bis dahin offen.
+
+### Zustellbare Evidenzrepräsentation und konkrete Grenzen
+
+Vollständiger Paket-Diffcheck fand ausschließlich originale terminale
+Leerzeichen in generierten Review-/Browserlogs, keinen C++-/Skriptdiffbefund.
+Rohlogs sind deshalb bytegetreu gzip-komprimiert (.log.gz, mtime0), niemals
+bereinigt/gekürzt. raw-log-provenance.json bindet zusätzlich SHA256/Länge der
+Originalbytes; gunzip liest die oben genannten .log-Belege. Unkomprimierte
+lokale Kopien bleiben Prüfmaterial, werden nicht erneut versioniert.
+
+Browserlogs der getrennten-/Rollback-/Recoveryreise enthalten einen
+DevToolsAgent-DCHECK (!associated_receiver_.is_bound) in einem Renderer,
+während Settings-/Importassertions und native Endzustände bestehen. Dies ist
+kein stillschweigend grünes Crashgate: Ursache/Bezug zur Debug-CDP-Navigation
+ist noch nicht bestätigt und gehört in den konkreten betroffenen GUI-Rerun.
+Kein Datenverlust oder Arc-Backendfehler wird daraus ohne Reproducer behauptet.
+
+Orchestrator d021a64d antwortete15:05:33Z: tatsächlicher BetterIPTVowner
+1447392B-39C3-4904-BF44-A35F43F4F8F7/Thread01a11179-6b8e-73e3-9963-ef7ac9ee1884,
+jedoch ausdrücklich keine Abstimmung/Weiterleitung. Direkte Notiz496005f4 wurde
+vom Helper als projektübergreifend abgelehnt, kein Empfänger erreicht.
+Neue konkrete Kommunikationsgrenze mit876e32ef-2b04-4bd8-9919-d6e3604ff0cb
+accepted15:10:24Z weitergegeben; queued belegt keine GUI-Freigabe.
+Minimaler Root-Nachtrag76fad15e gegen3c ist noch nicht angenommen; auf dieselbe
+kleine Source/Evidenzzusammensetzung mit komprimierten Rohlogs wird er präzisiert.
+Kein neuer Worker, kein Defaultbranch-Schreibzugriff oder Push erfolgt.

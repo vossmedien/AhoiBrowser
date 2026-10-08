@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="AllTests" tests="20" failures="0" disabled="0" errors="0" time="0.167" timestamp="2026-10-08T11:37:25">
+  <testsuite name="ArcHistoryBackupReadTest" tests="3" failures="0" disabled="0" errors="0" time="0.101" timestamp="2026-10-08T11:37:25">
+    <testcase name="PreparedRecoveryReplaysTheExactCommittedVisit" status="run" time="0.035" timestamp="2026-10-08T11:37:24" classname="ArcHistoryBackupReadTest">
+    </testcase>
+    <testcase name="ProfilesWithoutHistoryYieldNoCopies" status="run" time="0.037" timestamp="2026-10-08T11:37:24" classname="ArcHistoryBackupReadTest">
+    </testcase>
+    <testcase name="ReadsWalOnlyRowsFromVerifiedBackupCopy" status="run" time="0.029" timestamp="2026-10-08T11:37:23" classname="ArcHistoryBackupReadTest">
+    </testcase>
+  </testsuite>
+  <testsuite name="ArcHistoryJournalTest" tests="4" failures="0" disabled="0" errors="0" time="0.025" timestamp="2026-10-08T11:37:25">
+    <testcase name="FailsClosedForUnsafeOrMalformedJournals" status="run" time="0.001" timestamp="2026-10-08T11:37:23" classname="ArcHistoryJournalTest">
+    </testcase>
+    <testcase name="MissingJournalIsAnEmptySuccess" status="run" time="0.001" timestamp="2026-10-08T11:37:23" classname="ArcHistoryJournalTest">
+    </testcase>
+    <testcase name="RestoreReinstatesPreviousOrRemovesJournal" status="run" time="0.005" timestamp="2026-10-08T11:37:23" classname="ArcHistoryJournalTest">
+    </testcase>
+    <testcase name="RoundTripsPreparedAndCommittedOwnerOnly" status="run" time="0.018" timestamp="2026-10-08T11:37:23" classname="ArcHistoryJournalTest">
+    </testcase>
+  </testsuite>
+  <testsuite name="ArcHistoryReaderTest" tests="5" failures="0" disabled="0" errors="0" time="0.011" timestamp="2026-10-08T11:37:25">
+    <testcase name="FailsClosedForUnknownSchemaAndDamagedFiles" status="run" time="0.003" timestamp="2026-10-08T11:37:23" classname="ArcHistoryReaderTest">
+    </testcase>
+    <testcase name="KeepsNewestRowsUpToTheRowLimit" status="run" time="0.002" timestamp="2026-10-08T11:37:23" classname="ArcHistoryReaderTest">
+    </testcase>
+    <testcase name="MergesCanonicalDuplicatesAndClearsBadTitles" status="run" time="0.002" timestamp="2026-10-08T11:37:23" classname="ArcHistoryReaderTest">
+    </testcase>
+    <testcase name="MergesProfilesDeterministically" status="run" time="0.000" timestamp="2026-10-08T11:37:23" classname="ArcHistoryReaderTest">
+    </testcase>
+    <testcase name="ReadsVisibleSafePagesNewestFirst" status="run" time="0.004" timestamp="2026-10-08T11:37:23" classname="ArcHistoryReaderTest">
+    </testcase>
+  </testsuite>
+  <testsuite name="ArcHistoryWriterTest" tests="8" failures="0" disabled="0" errors="0" time="0.030" timestamp="2026-10-08T11:37:25">
+    <testcase name="CredentialsAndDuplicateInputFailBeforeMutation" status="run" time="0.002" timestamp="2026-10-08T11:37:25" classname="ArcHistoryWriterTest">
+    </testcase>
+    <testcase name="ExistingPageKeepsItsRowAndGainsOneArcVisit" status="run" time="0.004" timestamp="2026-10-08T11:37:25" classname="ArcHistoryWriterTest">
+    </testcase>
+    <testcase name="FailedWriteIsRolledBackExactly" status="run" time="0.004" timestamp="2026-10-08T11:37:25" classname="ArcHistoryWriterTest">
+    </testcase>
+    <testcase name="ImportAddsArcVisitsAndReplayIsANoOp" status="run" time="0.004" timestamp="2026-10-08T11:37:25" classname="ArcHistoryWriterTest">
+    </testcase>
+    <testcase name="IsolatedHistoryServiceDoesNotWriteMainProfile" status="run" time="0.006" timestamp="2026-10-08T11:37:25" classname="ArcHistoryWriterTest">
+    </testcase>
+    <testcase name="MissingSourceRowRollbackPreservesPriorVisitIds" status="run" time="0.004" timestamp="2026-10-08T11:37:25" classname="ArcHistoryWriterTest">
+    </testcase>
+    <testcase name="SkipsExpiredPagesAndRejectsUnsafeInput" status="run" time="0.002" timestamp="2026-10-08T11:37:25" classname="ArcHistoryWriterTest">
+    </testcase>
+    <testcase name="UnconfirmedCommitRequiresRecoveryAndExactReplay" status="run" time="0.004" timestamp="2026-10-08T11:37:25" classname="ArcHistoryWriterTest">
+    </testcase>
+  </testsuite>
+</testsuites>

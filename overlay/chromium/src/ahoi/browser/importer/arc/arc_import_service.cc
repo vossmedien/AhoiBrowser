@@ -78,20 +78,22 @@ ArcImportService::DiscoveryResult ArcImportService::DiscoverImport(
   }
   result.committed = journal.committed;
 
-  const ArcApplicationState application = InspectDefaultArcApplication();
-  if (!application.installed) {
-    result.status = ArcImportStatus::kNotFound;
-    return result;
-  }
-  if (application.running) {
-    result.status = ArcImportStatus::kSourceInUse;
-    result.arc_is_running = true;
-    return result;
-  }
-  base::FilePath application_support_dir;
-  if (!base::PathService::Get(base::DIR_APP_DATA, &application_support_dir)) {
-    result.status = ArcImportStatus::kIoError;
-    return result;
+  base::FilePath application_support_dir = GetArcE2ESourceDirectory();
+  if (application_support_dir.empty()) {
+    const ArcApplicationState application = InspectDefaultArcApplication();
+    if (!application.installed) {
+      result.status = ArcImportStatus::kNotFound;
+      return result;
+    }
+    if (application.running) {
+      result.status = ArcImportStatus::kSourceInUse;
+      result.arc_is_running = true;
+      return result;
+    }
+    if (!base::PathService::Get(base::DIR_APP_DATA, &application_support_dir)) {
+      result.status = ArcImportStatus::kIoError;
+      return result;
+    }
   }
   const ArcDiscoveryResult discovery =
       DiscoverArcSourceAt(application_support_dir);

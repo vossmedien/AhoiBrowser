@@ -1,0 +1,8 @@
+frontmostApp: AhoiBrowser pid=68365 target=68365
+HID target=68365 keyboardReceiver=68365 PostEventAccess=true
+AXCopy keyReceiver AXFocusedWindow status=0 valueType=75 AXUIElementType=75
+AXPid focusedWindow status=0 pid=68365 window=AXWindow | Neuer Tab - AhoiBrowser
+QuartzGUI=true focusedBounds=(22.0, 55.0, 1200.0, 957.0) focusedWindowIDs=[]
+focusedElement: AXTextField | Adress- und Suchleiste | Adress- und Suchleiste
+focusedWindow: AXWindow | Neuer Tab - AhoiBrowser
+mainWindow: AXWindow | Neuer Tab - AhoiBrowser

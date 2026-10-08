@@ -1,0 +1,50 @@
+{
+  "source-budget.log.gz": {
+    "original_sha256": "966466f0950456dc974cf871698e33c3ad8fe0a224e0ff323fb2bb1ba496d57d",
+    "original_bytes": 62
+  },
+  "installation.log.gz": {
+    "original_sha256": "c319bf0e6c796cfcfaa672b2d113940635e73073735d2b35f83f895406a17d56",
+    "original_bytes": 293
+  },
+  "installed-smoke.log.gz": {
+    "original_sha256": "780c36463ca69fabe1273a2eea9346a9a8e30c6f5d5d1581621e18b1ada36a2b",
+    "original_bytes": 6167
+  },
+  "returned-bundle-verification.log.gz": {
+    "original_sha256": "4e6d929f192b82e8416d5facf44e25641543f7d2defa452447e0a584bc9b7623",
+    "original_bytes": 682
+  },
+  "native-review-round2.log.gz": {
+    "original_sha256": "ef5d04a3dd9d91c2b4e9088124b17d84448af1fab2bb9343a44ad32c0d0f414c",
+    "original_bytes": 269759
+  },
+  "installed-verification.log.gz": {
+    "original_sha256": "44a82c59858827ec83daf16dda3a837c56476430c5f24f908c86ac65c3aaca16",
+    "original_bytes": 67
+  },
+  "history-focused.log.gz": {
+    "original_sha256": "835424dbd98ed16dc6b2619ac73fcad05a42992a6553242f989826800e58500d",
+    "original_bytes": 9622
+  },
+  "native-review.log.gz": {
+    "original_sha256": "ae9bb0712b03b53688e060b2f076ef7122a92409cbfba98d3d43405255c7bd8b",
+    "original_bytes": 294630
+  },
+  "visible-recovery-final/browser.log.gz": {
+    "original_sha256": "73af1c0a1743e76fa450d0b1d68987dcc2cf4644ae2eb1296a931a417854a8d3",
+    "original_bytes": 23471
+  },
+  "visible-main-foreground-final/browser.log.gz": {
+    "original_sha256": "b0551953cbdc6ee9ee338710cb79ec0bb287da6a9a828b383df7bc692bebd016",
+    "original_bytes": 10767
+  },
+  "visible-separated-final/browser.log.gz": {
+    "original_sha256": "d624f5c586511ee504fe22b2c0b9bb526eba7a2de777edea34d60d804690f531",
+    "original_bytes": 26681
+  },
+  "visible-rollback-final/browser.log.gz": {
+    "original_sha256": "e00927ba540eb6cb428b73cd93ea24b3fc1fd72d4d6101ac4ce0c10afeeeafa4",
+    "original_bytes": 23471
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "source": "6f06daf0ca0e79091a2fc48f6bd79bb838588149",
+  "files": {
+    "focused-build-provenance.json": {
+      "sha256": "fcea06bbdafc443640b7dcd2c391a1f4fceb29bd8b2bb7f635769849f8a83ba7",
+      "bytes": 118565
+    },
+    "history-focused.log.gz": {
+      "sha256": "b521b75d3a5b91ab0db6d51e5cb6f25613b8f1dd657c701fa90bf0a6a72331d8",
+      "bytes": 1710
+    },
+    "history-focused.xml": {
+      "sha256": "dc7117abed019a7e1e2f5f36a6d8e91929903ff2133d0bd52b64888103a41bec",
+      "bytes": 4166
+    },
+    "installation.log.gz": {
+      "sha256": "29f1e91bfca16b2698e1d04f04f7d2598c17152fae4c964e81c233d1ec08bb19",
+      "bytes": 230
+    },
+    "installed-dev-6f06daf0.json": {
+      "sha256": "39929564a9c66fbe51c8de7a004b8f95b3d71eccebbab887f5096affe85535f7",
+      "bytes": 2111
+    },
+    "installed-smoke.json": {
+      "sha256": "07b806abb743d7d672d671279c0930b9f3bf524b5080153ed17a761aacb35891",
+      "bytes": 162
+    },
+    "installed-smoke.log.gz": {
+      "sha256": "c3617a7a1897bb36f81774d8a051ae367ec81ee4f67e7f9f0697110bdedea708",
+      "bytes": 1004
+    },
+    "installed-verification.log.gz": {
+      "sha256": "181505d9e41149e17dbf0b9189e905b5ea2b1ad4d40352fd3a4901e52ab95030",
+      "bytes": 85
+    },
+    "native-review-round2.exit": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    "native-review-round2.log.gz": {
+      "sha256": "d9671de056b8ce3c35d65325c0b8e42a7fc31cf285e64c1e6758fc130e08bb86",
+      "bytes": 86556
+    },
+    "native-review-round2.pid": {
+      "sha256": "81205264407315ba0cd3d36b5b5d8717942ac565b096a724f9b7a6dfbafa7df0",
+      "bytes": 6
+    },
+    "native-review.log.gz": {
+      "sha256": "883314592cf5deb975f7457feb2e2a73e737c5b9f995f9650a13686ed4c89a0b",
+      "bytes": 82848
+    },
+    "raw-log-provenance.json": {
+      "sha256": "7d889e2ea5a6b56652925afb13c1f5e258732d4d00cd33db2b8fa2378329ad8e",
+      "bytes": 1927
+    },
+    "returned-bundle-verification.log.gz": {
+      "sha256": "10b047697b15b2d136c73607ece6c36a8b4117018a9bab4ac100e368b338358d",
+      "bytes": 470
+    },
+    "review-boundary-results.json": {
+      "sha256": "99d3358e87fda26b287dee86e740cb45190ee8b47cd06399f8f3559a6441d746",
+      "bytes": 367
+    },
+    "review-round2.sh": {
+      "sha256": "a56aeaa0324f908aa85c263a850103ff068bc1025fa7431c9d920f3211007998",
+      "bytes": 602
+    },
+    "source-budget.log.gz": {
+      "sha256": "0ade7876add8fda272cbb0d830c37a0f83dc31489bca2f2c18380818de4e5181",
+      "bytes": 79
+    },
+    "visible-main-foreground-final/01-preview.png": {
+      "sha256": "be2020385ca8bac5bd5889da033f5ba56b7669d15028c7ce5992c5d1ac4a91bd",
+      "bytes": 200665
+    },
+    "visible-main-foreground-final/02-history-only.png": {
+      "sha256": "4416dbff6b3d5d818f04c77626dee88838674b317db869a8727632956e644e04",
+      "bytes": 146665
+    },
+    "visible-main-foreground-final/03-combined.png": {
+      "sha256": "27d8bb58f75e6bb27d40b6978e3722b579e615e4971f1d787049251609a5951d",
+      "bytes": 149782
+    },
+    "visible-main-foreground-final/04-repeat.png": {
+      "sha256": "444082303e380bc90e2ac48dc949017d9257e8752f44f5db9dd9c7d492b1c34b",
+      "bytes": 107655
+    },
+    "visible-main-foreground-final/activation.txt": {
+      "sha256": "14a1c5e631373e7c98570b17d5391a778c64fd0cc5aec877dc832ec8d26763cf",
+      "bytes": 58
+    },
+    "visible-main-foreground-final/browser.log.gz": {
+      "sha256": "fc6d31fa2c0803b7c2ff1f50558296318e5864c1a7f87eba68d2f21dd93899ad",
+      "bytes": 988
+    },
+    "visible-main-foreground-final/browser.pid": {
+      "sha256": "d36371779af16809409fa5ec7e8630ed36bd65410b65a9d67bfc8a0b1fce4d8c",
+      "bytes": 6
+    },
+    "visible-main-foreground-final/fixture-root.txt": {
+      "sha256": "f006813c70f5eff65a5f5d9eb53f813b1b8ee8a5d7d61fa13575b4c0fef9591e",
+      "bytes": 41
+    },
+    "visible-main-foreground-final/focus-before.txt": {
+      "sha256": "ace8ff1427be3981ba0ddb6d17d1b9720c4bcca1bd189688cd8b113e57b25c91",
+      "bytes": 519
+    },
+    "visible-main-foreground-final/native-results.json": {
+      "sha256": "e3cf7be5870236de4f977b680c4209f1d45eb01449d888211c335d62d0bbaaaa",
+      "bytes": 89
+    },
+    "visible-main-foreground-final/ui-results.json": {
+      "sha256": "db29bf7e6fafaf92566e45f26ef9f1e30bcbaa3aab3eea895016a56ca02342d9",
+      "bytes": 3025
+    },
+    "visible-recovery-final/01-preview.png": {
+      "sha256": "be2020385ca8bac5bd5889da033f5ba56b7669d15028c7ce5992c5d1ac4a91bd",
+      "bytes": 200665
+    },
+    "visible-recovery-final/02-recovered.png": {
+      "sha256": "be2020385ca8bac5bd5889da033f5ba56b7669d15028c7ce5992c5d1ac4a91bd",
+      "bytes": 200665
+    },
+    "visible-recovery-final/activation.txt": {
+      "sha256": "14a1c5e631373e7c98570b17d5391a778c64fd0cc5aec877dc832ec8d26763cf",
+      "bytes": 58
+    },
+    "visible-recovery-final/baseline.sha256": {
+      "sha256": "2260f8f45e0fa76e06ce339c3292d9b894919d11ab323aa773e306728c5104df",
+      "bytes": 64
+    },
+    "visible-recovery-final/browser.log.gz": {
+      "sha256": "77ccfc6719dc8d74ad132ff6122846809c916cc7b58676eb213af0b10bab39b4",
+      "bytes": 3844
+    },
+    "visible-recovery-final/browser.pid": {
+      "sha256": "68c7a12903b1f58fab96448ede2a574d4452517101145ec8258261876621c336",
+      "bytes": 6
+    },
+    "visible-recovery-final/fixture-root.txt": {
+      "sha256": "14e551de3d6b3e2ab420ad241f64105c6e27d12c210f57c77fcddc5213d6470c",
+      "bytes": 41
+    },
+    "visible-recovery-final/focus-before.txt": {
+      "sha256": "45c8964f905ded19e93cff922f40ccb253a0e0eee3e31e28c8e821a094d385cf",
+      "bytes": 519
+    },
+    "visible-recovery-final/native-results.json": {
+      "sha256": "98cfb24f7de6a09a23d2fd6dfe7355516f118bb59b9b43df2fdad141325b07d0",
+      "bytes": 122
+    },
+    "visible-recovery-final/ui-results.json": {
+      "sha256": "857f7d08e99dcf94099dde10f271e3c9e22294a6c8ec43b9e7728116f1aa60d2",
+      "bytes": 227
+    },
+    "visible-rollback-final/01-preview.png": {
+      "sha256": "be2020385ca8bac5bd5889da033f5ba56b7669d15028c7ce5992c5d1ac4a91bd",
+      "bytes": 200665
+    },
+    "visible-rollback-final/02-rollback.png": {
+      "sha256": "842a155224999db93d90311a33e1dd5e3440a6da3b836dc84cb3c1b361bb6dd3",
+      "bytes": 124796
+    },
+    "visible-rollback-final/activation.txt": {
+      "sha256": "14a1c5e631373e7c98570b17d5391a778c64fd0cc5aec877dc832ec8d26763cf",
+      "bytes": 58
+    },
+    "visible-rollback-final/baseline.sha256": {
+      "sha256": "2260f8f45e0fa76e06ce339c3292d9b894919d11ab323aa773e306728c5104df",
+      "bytes": 64
+    },
+    "visible-rollback-final/browser.log.gz": {
+      "sha256": "b295eb15e14b7d095ddf590e10594c5bddbc6e512981e18265d07afaae82f1f6",
+      "bytes": 3841
+    },
+    "visible-rollback-final/browser.pid": {
+      "sha256": "ae7b35f33ad0e6811704f04ae8432185aedcd923aa393f4d6ba6e8dcce9bd7c9",
+      "bytes": 6
+    },
+    "visible-rollback-final/fixture-root.txt": {
+      "sha256": "14e551de3d6b3e2ab420ad241f64105c6e27d12c210f57c77fcddc5213d6470c",
+      "bytes": 41
+    },
+    "visible-rollback-final/focus-before.txt": {
+      "sha256": "7bfd89d9b9cdd13aed776f926932edd1f9ea588ce22d69ccdf9d21fe14a0b6fe",
+      "bytes": 519
+    },
+    "visible-rollback-final/native-results.json": {
+      "sha256": "4088274c4b93e1eaa9368106442b5ea2ace1d7456501f6fa08f02d1e0aa48e20",
+      "bytes": 122
+    },
+    "visible-rollback-final/ui-results.json": {
+      "sha256": "df0a39ded9e2cd86cb014054ecdc9f52651e6c4c11c798fa913ea4477109f213",
+      "bytes": 1117
+    },
+    "visible-separated-final/01-preview.png": {
+      "sha256": "be2020385ca8bac5bd5889da033f5ba56b7669d15028c7ce5992c5d1ac4a91bd",
+      "bytes": 200665
+    },
+    "visible-separated-final/02-separated.png": {
+      "sha256": "87e3892bea65e7a2aef93eb1a104560e3192dcf3fb14c4af55808fa1f59ee01c",
+      "bytes": 157361
+    },
+    "visible-separated-final/activation.txt": {
+      "sha256": "14a1c5e631373e7c98570b17d5391a778c64fd0cc5aec877dc832ec8d26763cf",
+      "bytes": 58
+    },
+    "visible-separated-final/browser.log.gz": {
+      "sha256": "6bc46e49dd6b7abbae2589a4f613ed455ba588e53de379bed038a410a5ca48de",
+      "bytes": 4101
+    },
+    "visible-separated-final/browser.pid": {
+      "sha256": "84b0ad52c38490774eebdb1a355b0a7d58cde7492602bbf77bd2aaf9089c8980",
+      "bytes": 6
+    },
+    "visible-separated-final/fixture-root.txt": {
+      "sha256": "b9c2dc588d81fdc857dd4dbf307af7e1387b54309eef1c62785a2dd4414e34b3",
+      "bytes": 41
+    },
+    "visible-separated-final/focus-before.txt": {
+      "sha256": "ca4dab5b9d45f61b4017ca058d016049650a2c2cb883bde1ea5d72fd58f1e440",
+      "bytes": 519
+    },
+    "visible-separated-final/native-results.json": {
+      "sha256": "57e6571ada99e68d59ef6bb727db50142df27c034841a5d95043146c2810a148",
+      "bytes": 139
+    },
+    "visible-separated-final/ui-results.json": {
+      "sha256": "110b492e4bd91fe3322711f616b44e2ab0ff66ecb6d3c00b08ba367f174965cc",
+      "bytes": 1097
+    }
+  }
+}

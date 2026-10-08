@@ -21,6 +21,7 @@
 #include "base/apple/foundation_util.h"
 #include "base/apple/scoped_cftyperef.h"
 #include "base/base_paths.h"
+#include "base/command_line.h"
 #include "base/files/file.h"
 #include "base/files/file_enumerator.h"
 #include "base/files/file_util.h"
@@ -446,6 +447,29 @@ ArcDiscoveryResult DiscoverArcSourceAt(
   };
 }
 
+base::FilePath GetArcE2ESourceDirectory() {
+#if !defined(OFFICIAL_BUILD)
+  if (base::CommandLine::InitializedForCurrentProcess()) {
+    const auto* command = base::CommandLine::ForCurrentProcess();
+    const auto source = command->GetSwitchValuePath("ahoi-e2e-arc-source-directory");
+    const auto target = command->GetSwitchValuePath("user-data-dir");
+    const auto root = source.DirName();
+    const auto protected_directory = [](const base::FilePath& path) {
+      struct stat st;
+      return lstat(path.value().c_str(), &st) == 0 && S_ISDIR(st.st_mode) &&
+             st.st_uid == getuid() && (st.st_mode & 0077) == 0;
+    };
+    if (!source.empty() && root.DirName() == base::FilePath("/private/tmp") &&
+        root.BaseName().MaybeAsASCII().starts_with("ahoi-arc-history-e2e-") &&
+        target.DirName() == root && protected_directory(root) &&
+        protected_directory(source) && protected_directory(target)) {
+      return source;
+    }
+  }
+#endif
+  return {};
+}
+
 ArcDiscoveryResult DiscoverDefaultArcSource() {
   if (!InspectDefaultArcApplication().installed) {
     return {.status = ArcImportStatus::kNotFound};
@@ -484,6 +508,12 @@ ArcApplicationState InspectDefaultArcApplication() {
 }
 
 ArcImportAvailability GetDefaultArcImportAvailability() {
+  const auto fixture = GetArcE2ESourceDirectory();
+  if (!fixture.empty()) {
+    return DiscoverArcSourceAt(fixture).status == ArcImportStatus::kOk
+               ? ArcImportAvailability::kAvailable
+               : ArcImportAvailability::kNoSafeProfiles;
+  }
   const ArcApplicationState application = InspectDefaultArcApplication();
   if (!application.installed) {
     return ArcImportAvailability::kNotInstalled;
