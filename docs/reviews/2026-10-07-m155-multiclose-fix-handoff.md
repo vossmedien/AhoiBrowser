@@ -4,9 +4,9 @@ Stand: 9. Oktober 2026. Sourcefix und gezielte Harnesskorrekturen sind übergebe
 Das originale Worker-Goal ist durch den Nutzer wieder ACTIVE gesetzt. Root hat
 inzwischen den aktuellen signierten Kandidaten `b6bce967` zurückgegeben; seine
 C70-Produkt-/Harnesspfade sind gegenüber3c bytegleich. Zentrale sichtbare
-Auswahl-/Veto-/Drei-Tab-Close-Abnahme bleibt vor Ausführung offen: die aktuelle
-Inhouse-Konsole ist gesperrt, Dev hat aktuelle Menscheneingabe, GUI-Ownership
-ist noch zuzuordnen. Die alten NotificationCenter-/Vega-Belege bleiben erhalten
+Auswahl-/Veto-/Drei-Tab-Close-Abnahme läuft jetzt als tatsächlich gestartete
+Dev-Queue nach Roots konkreter Slotzuordnung. Der bestätigte Livehandle46925
+wartet vor Input auf die unveränderten Nutzer-/CPU-Gates; noch kein Runtime-PASS. Die alten NotificationCenter-/Vega-Belege bleiben erhalten
 und ersetzen diese frische Beobachtung nicht. Der ursprüngliche C70-Review sowie
 tatsächliche Standardbranch-Integration, Push und geschützte Lieferung bleiben
 unerledigt. Dieselbe Session/Goal wird nach ausdrücklicher Nutzerfortsetzung
