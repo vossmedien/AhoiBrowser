@@ -1,6 +1,36 @@
 # Active Desktop checkpoint
 
 
+## Current native waiting boundary — 8 October 2026, 20:00 UTC
+
+Original Master Goal/thread01a11179 is **BLOCKED**, updatedAt1791489634;
+objective/createdAt unchanged, not completed or user-paused. After real B6
+build/sign/return progress, three consecutive continuations found the same
+missing GUI/repair handbacks and unavailable native owner bindings. Source
+and independently verified candidate remain preserved at ee26d9a1/B6; no Root
+build/UI/test job is live and no heavy or GUI lease is held.
+
+Current cdd0ac04 remains unknown/TARGET_CHANGED (18:56:08Z), not an owner
+receipt or terminal worker-stop proof. Fresh Session Insight19:59:53Z reports
+Arc1019, C704CD993, Lifecycle763, VegaA577 and BetterIPTV144739 as failed with
+processRunning=false; original DM AE918 remains absent. Process absence is
+not explicit GUI return or permission to replace workers. Same request,
+original native identities, Source, current apps and rollback are retained.
+
+No independent authorized package was ready: B6 source/build/transfer checks
+are complete; affected E2E/focus and C70 review require actual runtime ownership;
+DM correction requires its original repaired binding; Step2 still needs the
+existing ADR0012 product answer. Default/public delivery and broader real-device/
+live-service/licensing gates remain unproved. No new audit, test-only detour,
+replacement worker or repeated unchanged status loop.
+
+Resume on actual restored original owner/Orchestrator binding and an explicit
+GUI handback, original DM repair, pending product answer or another concrete
+independent prerequisite. Then continue the same original Goal/candidate and
+attributable acceptance/delivery path. The earlier ACTIVE/RUNNING entries below
+are historical. The B6 completed build/sign/returned proof remains current.
+
+
 ## Current correction build/sign/return COMPLETE — 8 October 2026, 19:44 UTC
 
 Exact Sourceb6bce967 runner17514 is terminal0 at19:44:54Z, no live Root build.

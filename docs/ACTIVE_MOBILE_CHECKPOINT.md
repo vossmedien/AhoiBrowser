@@ -3,6 +3,15 @@
 ## Current Root acceptance — 8 October 2026
 
 
+Root's original Master Goal is now BLOCKED at updatedAt1791489634 following
+three unchanged post-B6 continuations; see current Desktop waiting boundary.
+B6 build/sign/return is complete, so missing runtime/owner routing is the next
+actual prerequisite. cdd0ac04 remains unknown/TARGET_CHANGED; original DM AE918
+is absent and Lifecycle763 has no running native process. No repaired binding,
+replacement worker, Step2 answer or new Mobile acceptance is inferred. Existing
+same-session handback and all accepted/unaccepted Source states remain retained.
+
+
 EC061D79's once-only receipt/owner-delivery comparison is complete: previous
 34294b25 proves Orchestrator reception only. The explicit cross-project
 continuation for original AE918/01a11680 and Lifecycle763 is requestcdd0ac04-7a5e-45c7-b97e-affed92365d1,
