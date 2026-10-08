@@ -949,3 +949,12 @@ offen. Resume im bestehenden Worker/Goal bei belegtem Owner-/GUI-Handback oder
 anderer tatsächlicher ausführbarer Voraussetzung, dann frische Admission und
 genau die vorbereitete native3c-MultiSelect-/Veto-/Drei-Close-/Delta-Journey.
 Kein Ersatzworker, keine neue Goalidentität und keine erneute cockpit_report-Abgabe.
+
+Der abschließende Root-Hinweis wurde ausdrücklich nicht zugestellt: beide
+`cockpit_note`-Aufrufe auf Root68 antworteten „Das ist deine eigene Session.“
+Auch die einmalige Verwendung der tatsächlichen Quell-/Ziel-Session-/Thread-IDs
+und request65590196-d542-4438-aeb7-c70815574316 lieferte dieselbe Verweigerung.
+Das belegt eine ungeklärte direkte Caller-/Zielzuordnung; keine Root-Annahme
+behauptet und kein weiterer Versuch/Ersatzsender. Native Worker-Goalidentität
+01a1134d und der abgegebene Source-/Reportverlauf bleiben erhalten. Der aktuelle
+Bericht ist im gemeinsamen Git nachvollziehbar, die Runtimephase bleibt BLOCKED.
