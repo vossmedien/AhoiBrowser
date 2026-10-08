@@ -30,8 +30,10 @@ fixes and the delivered16-path Step1 contract. Known prerequisite commits
 f36/7a172/395/a6d20/9e49/e27 are verified ancestors. Additional necessary
 Snapshot/ImportBatch/SharedIntent paths are explicitly included, without a
 PopupHost/Runtime/fixture rewrite or new schema/key decision. Orchestrator
-request a62e12d1 targets the same AE918/native01a11680; receipt/start/CWD repair
-remain separate and unproven. No R/DD/A058 runtime lease transferred to DM.
+request a62e12d1 targets the same AE918/native01a11680; actual response is
+FAILED: orchestration is not connected. No native delivery/start or CWD repair
+is claimed. Existing origin7AEA was informed f7980d74 of the same concrete
+source handback; no replacement worker. No R/DD/A058 runtime lease transferred.
 Step2 product decision requested under ADR0012 after the delivered spike;
 independent DM/Desktop work continues while that answer is pending.
 
