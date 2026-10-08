@@ -4,8 +4,9 @@ Status 8. Oktober: Quellportierung von Root als `850aa587` übernommen und
 Zeitregel in `6eefc4a8` bestätigt/korrigiert. Eigener ursprünglicher Worktree
 auf unverändertem Branch wiederhergestellt. Eigenes natives Goal nach ausdrücklicher End-to-End-Freigabe ACTIVE,
 identischer Thread/createdAt; keine Erfüllung vor realer Lieferung.
-Kompilierung, native Tests, sichtbare Abnahme, Review und Lieferung bleiben
-unbelegt. Die folgende ältere Chronologie bewahrt die ursprünglichen Belege.
+Build/Signatur, native20/20, sechs Historyfälle und die guarded Devinstallation
+sind unten belegt. Betroffene sichtbare Postreview-Reruns und die gemeinsame
+Desktop-main-/Push-Abnahme bleiben offen. Die ältere Chronologie bleibt erhalten.
 Stabile Identität `worker-handoff:e5fbc1f3`, Goalkennung
 `AHOI-ARC-HISTORY-M155-20261007`. Root besitzt Integration und Auslieferung.
 

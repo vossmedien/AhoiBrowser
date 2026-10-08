@@ -2,6 +2,22 @@
 
 ## Current Root resumption — 8 October 2026
 
+
+Small Arc handback e7032d63 is now source-accepted as a80d1c3c on the
+canonical working branch. Exactly four C++ files and the corrected journey
+match the reviewed handback; all apps/spikes/config/patches and the existing
+combined Mobile baseline are byte-identical to preceding Root8d. Twelve raw
+log hashes/lengths and native History20/20 XML were independently verified;
+retained six History cases show expected DB/journal results. Actual negative
+symlink/hardlink/occupied-port checks pass. These precede the still-open
+postreview visible reruns and renderer-DCHECK investigation, so no broader
+acceptance or default-branch delivery is inferred. Worker59fa records the
+current BetterIPTV/Vega GUI owner and an unanswered actual handback boundary.
+Root consumes e703, not the superseded76fad draft or whole518/144 composition.
+The first lane check on the entire worker lineage found unrelated older
+5a80e2a1 config ownership; the attributable Root8d→a80 scope passes separately.
+Arc1019 keeps the affected GUI/runtime step; Root starts no competing job.
+
 Original Master Goal/thread01a11179 is ACTIVE again by explicit user action.
 Today the Inhouse disk gate passes (55GiB free, initial CPU10.42%, memory66%);
 the7October BLOCKED/NOT_STARTED state below is historical.
