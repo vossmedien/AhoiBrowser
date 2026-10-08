@@ -1,5 +1,32 @@
 # Active Desktop checkpoint
 
+## Current Root resumption — 8 October 2026
+
+Original Master Goal/thread01a11179 is ACTIVE again by explicit user action.
+Today the Inhouse disk gate passes (55GiB free, initial CPU10.42%, memory66%);
+the7October BLOCKED/NOT_STARTED state below is historical.
+
+Read-back installed Inhouse source is3c370175; Dev daily app remainsEF982.
+The existing Full-F build/sign/provenance/atomic-install receipts are terminal0;
+returned archive and exact-source verification are in E3's d6406dd6 handback
+and `~/inhouse/evidence/ahoi-full-6eefc4a8/review-corrections-3c370175/`.
+Switcher is visibly passed. MultiSelect/veto/close, further Crest/History,
+original C70 review and full desktop main/daily delivery remain open. Root
+requested E3's concrete source/build/GUI handback f0477c29; no duplicate build.
+That newer source exists on `cockpit/session-07-10-13-51`, not yet in this
+canonical feature HEAD. Shared writer sessions were notified before integration.
+
+Mobile55's actual6f source/runtime handback is consumed. Isolated current-main
+candidate e2b46119 preserves all16 Mobile product files byte-for-byte; its only
+shared-source difference from6f is the accepted CloudKit tombstone guard on
+mainc2fa6f88. The returned R/DD/A058 lease was verified and consumed by Root.
+Guarded build terminal0 after24.97%CPU admission; exact receipt/runner rebound.
+The two visible journeys run as confirmed PID82468 on A058, admitted15.07%CPU,
+58,676,477,952 bytes free. Evidence:
+`~/inhouse/evidence/ahoi-mobile-main-e2b46119-20261008/`. Main has not moved to
+this candidate. After positive UI, run the necessary existing focused checks,
+verify delivery, then integrate/push through the existing path.
+
 ## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
 
 **Native Master Goal BLOCKED at03:44UTC, not achieved or user-paused.** The

@@ -1,5 +1,25 @@
 # Active Mobile checkpoint
 
+## Current Root acceptance — 8 October 2026
+
+Root's original full Master Goal is ACTIVE again. Mobile55 finished source
+6f6561f5: actual native UI2/2 and app-hosted focus9/9 pass, no skips. Review2
+at856 found lost consent/scene cleanup during refresh;6f serializes both and
+repeats affected UI/focus. Source134→6f is exactly16 owned Mobile paths. Worker
+reservation-return6f explicitly returns clean R/DD6f and ShutdownA058 to Root;
+both own locks/processes and fixture inputs were absent at the current check.
+
+Root prepared candidate e2b46119 on actual mainc2fa6f88 in owned temporary
+worktree `/private/tmp/ahoi-mobile-main-6f-l89pxdz6`. Product files match6f;
+the accepted main CloudKit dependency correction requires a fresh candidate.
+Same R/DD is now clean e2, guarded build passed, native UI PID82468 is live
+on A058 under Root's lock. Candidate receipt, exact runner and installed bytes
+are bound; real CloudKit mutation stays off. Main/push/final Debug delivery
+remain open until these checks finish. Evidence:
+`~/inhouse/evidence/ahoi-mobile-main-e2b46119-20261008/` and original worker
+`docs/reviews/2026-10-07-mobile-popup-permissions-implementation.md` atbaef7f39.
+No new worker/Goal, no repeat review and no Source lease for DM assigned yet.
+
 ## Current Codex continuation: Files delivered on main; popup/permissions delegated — 7 October 2026
 
 Unified owner Cockpit68E66C9E, native Goal/thread
