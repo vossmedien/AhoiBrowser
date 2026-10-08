@@ -915,3 +915,37 @@ der weiterhin fehlgeschlagenen Orchestrator-Zielbindung getrennt. Berichtcommit
 vereinbarten Pfad, DCO/Desktop; zurechenbarer Diff-/Lanecheck ab seinem Parent
 PASS0/0. Root erhielt seinen vorbereiteten Runtimehandback unter cffb5154; noch
 kein GUI-PASS. Keine laufende eigene Test-/Buildphase oder unveränderte Pollschleife.
+
+### Native Blockierung und konsumierter Arc-Handback — 8. Oktober, 15:51 UTC
+
+Nach drei Fortsetzungen an derselben fehlenden GUI-Ownership-Grenze und Prüfung
+der verbleibenden unabhängigen Arbeit ist das eigene native Goal tatsächlich
+**BLOCKED**, nicht erreicht oder nutzerpausiert. `update_goal` bindet die
+unveränderte Zielsetzung an Thread `01a1134d-3995-7e41-81cd-5fc0f3b8ea57`,
+createdAt1791325236, updatedAt1791474650. Root-Goal wurde nicht verändert.
+Source-/Harnesshandback, Kandidatenprüfung und Runtimevorbereitung sind fertig;
+sichtbare MultiSelect-Abnahme, C70-Review und Leadintegration/Lieferung fehlen.
+Kein eigener laufender Build-/Test-/GUIprozess und keine weitere Sourcekorrektur
+ohne konkreten Befund. Keine unveränderten Status-/Goal-Pollschleifen.
+
+Danach traf Arcs tatsächlicher Handback im selben Thread ein: seine GUIphase ist
+beendet/freigegeben, Runner51816 terminal0/4CasesPASS, spätere Mainprobe PASS,
+separated-Diagnose terminal1, beide Runner61877/61889 fehlend, keine Ahoi-Prozesse
+und e2e.lock frei. Diese Arc-Ergebnisse sind keine C70-MultiSelect-Abnahme.
+Der neue Hinweis auf Vega wurde einmal konkret lesend geprüft statt den alten
+Finderstand wiederzuverwenden. Um15:51:52UTC: Vordergrund und KeyReceiver
+`vega-virtual-device` PID77335, PostEventAccess=true, HIDidle639s; build.lock und
+e2e.lock im gemeinsamen ursprünglichen Ahoi-Queueverzeichnis frei. PID77335
+startete17:49:22 lokal, PPID1, CWD `/Users/vossmedien`; sein öffentlicher SDKpfad
+enthält0.24.12112, offene virtuelle Platten gehören zur VVD-Instanz
+`b4e1f00c-13b7-406b-83d9-070caab8525d`. Kein Eingabe-/Aktivierungs-/Stopversuch.
+Die aktuelle Cockpitrolle Vega-Lint A5776F und BetterIPTV-Lead144739 sind vorhanden;
+eine tatsächliche Zuordnung dieser neuen PID/Instanz zu einer dieser Sessions
+ist noch nicht belegt. Kein Handback aus Rollenname, Idlezeit oder freien Locks
+abgeleitet.
+
+Die Arc-Lease ist damit konkret geklärt, der neue fremde GUI-Empfänger weiterhin
+offen. Resume im bestehenden Worker/Goal bei belegtem Owner-/GUI-Handback oder
+anderer tatsächlicher ausführbarer Voraussetzung, dann frische Admission und
+genau die vorbereitete native3c-MultiSelect-/Veto-/Drei-Close-/Delta-Journey.
+Kein Ersatzworker, keine neue Goalidentität und keine erneute cockpit_report-Abgabe.
