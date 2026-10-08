@@ -3,6 +3,14 @@
 ## Current Root acceptance — 8 October 2026
 
 
+Latest9October Root resumption: original Master is explicitly ACTIVE again
+(updatedAt1791497042); preceding blocked state below is chronology. DM AE918
+still has no restored original binding. New connection event112db28b continues
+the existing EC061D79/cdd routing/GUI/DM repair with preserved destination/Goal
+identities; queued receipt only, no native delivery or repair. Source and delivered
+Step1 remain unchanged, no replacement worker or Mobile runtime lease.
+
+
 Root's original Master Goal is now BLOCKED at updatedAt1791489634 following
 three unchanged post-B6 continuations; see current Desktop waiting boundary.
 B6 build/sign/return is complete, so missing runtime/owner routing is the next

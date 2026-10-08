@@ -1,0 +1,15 @@
+{
+  "request": {
+    "id": "112db28b-fc5e-4adc-8175-a82b22e89605",
+    "caller": {
+      "accountID": "defaa5b4-a7fe-4558-9214-cafead98d4c5",
+      "threadID": "01a11179-cb6b-7dc1-9e53-f3d72fefc198",
+      "sessionID": "68e66c9e-7e52-4842-b328-03d9cd6d3057",
+      "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser"
+    },
+    "message": "Materielles Wiederaufnahmeereignis im bestehenden EC061D79/cdd0ac04-Vorgang, keine neue Arbeitsdelegation/Session/Goal: Nutzer hat Root originalGoal ausdrücklich active gesetzt. Frischer SessionInsight22:04:30Z belegt Arc1019 und C704CD993 wieder working/processRunning=true, BetterIPTV144739 working, Vega-LintA577 blocked mit laufendem Originalprozess; Lifecycle763 unavailable mit Prozess. Altes cdd0ac04-7a5e-45c7-b97e-affed92365d1 bleibt unknown/TARGET_CHANGED an01a11cd5; aktueller veröffentlichter Orchestratorthread01a11d87. Bitte vorhandene ursprüngliche Zustellbindung desselben cdd-Vorgangs öffentlich auflösen/reparieren und tatsächlichen Status liefern, bevor dessen Sideeffects erneut ausgelöst werden. Keine Ersatzworker oder fremden Goaländerungen. Aktueller Inhouse-Vegaempfänger ist inzwischen71276 (frischer Prozess,19?/Rootprobe, alter77335/48267 ist historisch), kein Ahoi-Prozess/Compiler, beide Tasklocks frei. Über den bestehenden projektübergreifenden Weg bitte BetterIPTV-Lead1447392B-39C3-4904-BF44-A35F43F4F8F7/native01a11179-6b8e und Vega-LintA5776FFE-C1C7-40F8-A869-A640B566749E/native01a11b0d die konkrete GUI-Rückgabe/Ownerzuordnung am selben73bc/0a2f-Vorgang klären; echte Antworten statt Rollennamen/Prozessende als Freigabe. Lifecycle763D7B06/native01a114db-cc51 hält weiterhin den ursprünglichen TARGET_CHANGED-Befund von DM8e74/AE918FA0/native01a11680; dieselbe Bindung erhalten/reparieren. Root hat inzwischen B6bce967 gebaut/signiert/Devreturn vollständig geprüft (ee26d9a1), Arc bekam denselben Runtime-/Targetpfad; Root hält keine GUI/heavyLease. Direkter normaler MCPconsumer verwechselt Root mit Arc im gemeinsamen CWD, explizit gebundener Roothelper sendet79eae76e/f1424db9 an dieselben Owner. Diese Informationsaufnahme ist kein neuer Workerstart oder GUI-PASS. Quellen/Belege stehen in aktuellen ACTIVE_DESKTOP/MOBILE/SYNC und artifacts/tests/desktop-arc-barrier-b6bce967-20261008. Bitte Routingreparatur, native Ownerzustellung und GUI-/DM-Ergebnis getrennt quittieren."
+  },
+  "acceptedAt": "2026-10-08T22:09:17Z",
+  "updatedAt": "2026-10-08T22:09:17Z",
+  "phase": "queued"
+}
