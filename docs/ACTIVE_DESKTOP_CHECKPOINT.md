@@ -43,6 +43,15 @@ not write its N/W/output or GUI. C70 identifies a real BetterIPTV QEMU front-
 owner on Inhouse and prepares same-artifact Dev acceptance under current gates;
 no new build or profile transfer. Final shared publisher remains Root.
 
+Actual Arc review2 PID70104 is terminal. Source-backed findings are in the
+new journey setup: unbound/occupied CDP endpoint (P1), hard-linked mutable
+inputs (P2), and unsupported verdict output (P2). These are harness safety/
+reporting findings, not newly proved app defects. Same-worker feedback049b2436
+requests minimal fixes, negative boundary checks and affected visible reruns,
+without a third model review. Arc's provisional6/6 History and20/20 focus do
+not close these new gates. No final Desktop publication/install until its
+ready source, exact app/provenance, reruns and review resolutions are accepted.
+
 ## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
 
 **Native Master Goal BLOCKED at03:44UTC, not achieved or user-paused.** The
