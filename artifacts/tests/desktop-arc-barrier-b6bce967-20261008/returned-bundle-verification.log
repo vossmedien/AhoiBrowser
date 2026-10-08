@@ -1,0 +1,8 @@
+==> portable component runtime: 527 verified dylibs; 238 verified framework resources
+==> bundle: AhoiBrowser 0.0.1 (app.ahoibrowser.AhoiBrowser)
+==> Ahoi product/build/channel: 0.0.1-dev (1, nightly)
+==> Ahoi source: b6bce96774f5440567f4d2f6d08d43526e403b13
+==> Chromium: 155.0.8059.26 (16c3e55476d3564bea713314b2fff638749ce3e6); dev GN args: a33bdac560626059dc6a0f74be6edc76a2bb370bf5dd4891a4dfad2aace76ab4
+==> Sparkle: 2.9.6; reviewed feed configured: false
+==> binary: /Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser/artifacts/build/desktop-current-b6bce967/AhoiBrowser.app/Contents/MacOS/AhoiBrowser: Mach-O 64-bit executable arm64
+==> binary SHA-256: 213605d7e15c8524422a96eb5174afb6d0e3389c06d017d5593d3dca47c0ed23

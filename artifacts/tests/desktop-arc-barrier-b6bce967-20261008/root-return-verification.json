@@ -1,0 +1,12 @@
+{
+  "source": "b6bce96774f5440567f4d2f6d08d43526e403b13",
+  "binarySha256": "213605d7e15c8524422a96eb5174afb6d0e3389c06d017d5593d3dca47c0ed23",
+  "bundleTreeSha256": "197b4cf1a04fe0b492731bfae06175c7cf0a5f51511579e82239f5eb819ac388",
+  "nativeBuiltAppVerifier": "PASS on exact-source temporary worktree",
+  "rawLogHashLength": "5/5 PASS; original SSH signing failure retained",
+  "buildExit": 0,
+  "guiSignExit": 0,
+  "returnedBundle": "artifacts/build/desktop-current-b6bce967/AhoiBrowser.app",
+  "deliveryScope": "returned development candidate; not installed; E2E/focus/default integration open",
+  "archiveAttempt": "NOT_STARTED at fresh disk admission; direct metadata-preserving bundle transfer avoided target archive growth"
+}

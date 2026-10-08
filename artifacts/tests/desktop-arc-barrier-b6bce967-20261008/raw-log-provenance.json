@@ -1,0 +1,22 @@
+{
+  "focused-apply.log.gz": {
+    "rawSha256": "c02f07e0d2362ab76bec76dbf852783c68915a0fc0f8a41d5a78170dc4f701cb",
+    "rawBytes": 59
+  },
+  "focused-build-ssh.log.gz": {
+    "rawSha256": "bcd442801543ff59466925e54e7a30ded7606a162626b1171235c99973e22bff",
+    "rawBytes": 7440
+  },
+  "focused-provenance.log.gz": {
+    "rawSha256": "84b2f69612510d1d045acfddc87969965e944882c350e5d4e31e6f1b84d273ec",
+    "rawBytes": 105
+  },
+  "focused-sign/gui.log.gz": {
+    "rawSha256": "8bb86517ed1a84828366f08b2b156a2344296ddfb5bf19af53214f05caeeead5",
+    "rawBytes": 2883
+  },
+  "source-fetch.log.gz": {
+    "rawSha256": "413919faa62daf35517d6eb27d35de3f19b47caa9a79be447e2b188c28c3f408",
+    "rawBytes": 804
+  }
+}

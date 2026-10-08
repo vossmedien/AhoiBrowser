@@ -1,0 +1,9 @@
+2026-10-08T19:36:35Z accepted source bundle; mirror checkout under existing Root build lock
+2026-10-08T19:36:35Z output root=/Users/vossmedien/inhouse/scratch/ahoi-chromium.fMMeXkCh source=b6bce96774f5440567f4d2f6d08d43526e403b13 pid=17514
+2026-10-08T19:36:35Z apply-overlay
+2026-10-08T19:37:35Z guarded SSH build; final signing uses GUI session on internal bundle
+2026-10-08T19:43:25Z build command exit=1
+2026-10-08T19:43:25Z GUI signing and bundle verification
+2026-10-08T19:43:35Z exact-source output provenance
+2026-10-08T19:44:54Z focused binaries built; visible acceptance remains open
+2026-10-08T19:44:54Z terminal exit=0

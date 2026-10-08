@@ -1,6 +1,40 @@
 # Active Desktop checkpoint
 
 
+## Current correction build/sign/return COMPLETE — 8 October 2026, 19:44 UTC
+
+Exact Sourceb6bce967 runner17514 is terminal0 at19:44:54Z, no live Root build.
+Overlay and47-node incremental compile/link frontier completed in the existing
+output; the original SSH Keychain signing failure is retained. Separate GUI
+sign/build verifier exit0, exact-source provenance PASS. Chromium remains
+155.0.8059.26/16c3e554, same GN arg hash. Built Arc unit binary is not executed
+and updated browser regression is not compiled yet; actual visible E2E comes first.
+
+Signed app returned directly with metadata-preserving rsync because extra ZIP
+admission failed before packaging at9,364,791,296B. No target ZIP growth occurred.
+Returned artifacts/build/desktop-current-b6bce967/AhoiBrowser.app independently
+passes the original verifier on exactb6 Source,527 Dylibs/238 resources and full
+tree hash197b4cf1a04fe0b492731bfae06175c7cf0a5f51511579e82239f5eb819ac388.
+ExeSHA213605d7e15c8524422a96eb5174afb6d0e3389c06d017d5593d3dca47c0ed23
+matches provenance. Five original raw logs retained gzip/mtime0 with hash/length
+readback PASS. Build's libLTO warnings remain visible, not suppressed. These
+are development candidate proofs, not release/whole-Master or UI acceptance.
+
+Root's build/transfer lock is released and owned temporary verification worktree
+removed. N is cleanb6; existing warm output/current app retained. Installed
+Dev6f/Inhouse3c and their rollback apps are unchanged. Root owns no GUI/heavy
+phase. Same Arc1019 may consume this exact signed candidate/target for affected
+pure/combined/separated/rollback/recovery E2E only after actual foreign GUI
+handback and fresh per-phase admission; then focused existing tests. No parallel
+N/W/out writer or replacement worker. C70's actual MultiSelect and scoped review,
+DM original binding, Step2 product decision, main integration/delivery remain open.
+
+Evidence: artifacts/tests/desktop-arc-barrier-b6bce967-20261008/
+root-return-verification.json, focused-build-provenance.json, runner.exit,
+phases.log and raw-log-provenance.json. Previous RUNNING/NOT_STARTED entries
+below are chronology; the terminal0 candidate is authoritative.
+
+
 ## Current warm correction build RUNNING — 8 October 2026, 19:36 UTC
 
 Original Root Master Goal remains ACTIVE. Prepared b6bce967 runner17514 actually
