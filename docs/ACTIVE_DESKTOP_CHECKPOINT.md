@@ -13,8 +13,15 @@ and `~/inhouse/evidence/ahoi-full-6eefc4a8/review-corrections-3c370175/`.
 Switcher is visibly passed. MultiSelect/veto/close, further Crest/History,
 original C70 review and full desktop main/daily delivery remain open. Root
 requested E3's concrete source/build/GUI handback f0477c29; no duplicate build.
-That newer source exists on `cockpit/session-07-10-13-51`, not yet in this
-canonical feature HEAD. Shared writer sessions were notified before integration.
+Newer source3c corrections are now integrated as a470f61b/263084b9 and composed
+with actual main5c9c6a5b in canonical47a5ee18. Desktop correction bytes match3c.
+The main Mobile delta is preserved; automatic PBX/Browser merges also retain
+the26 pre-existing Root Mobile paths. Only Sync checkpoint text conflicted,
+resolved by preserving both delivered-main and later Root evidence. Lane/DCO/
+diff checks pass. Combined Mobile is not yet built/accepted; its prior e2 proof
+does not cover those additional26 paths. Arc's active target/runtime remains
+untouched. The first FF call was interrupted externally; authoritative HEAD47
+and clean index prove it completed, so no repeat merge was run.
 
 Mobile55's actual6f source/runtime handback is consumed. Isolated current-main
 candidate e2b46119 preserves all16 Mobile product files byte-for-byte; its only
@@ -28,6 +35,13 @@ Actual main0f79b20f is regularly pushed and fresh server readback matches;
 only documentation follows tested product e2. Returned canonical Debug app
 `artifacts/build/mobile/debug-step1-e2b46119/AhoiMobile.app` matches the receipt,
 signature and exact runner. Simulator-only Step1 delivery, not whole Master.
+
+Arc1019 now owns its expanded History acceptance in the original identity;
+new a3b27385/cc6f76f2/6f06daf0 sources and disposable-path correction are in
+its own branch pending final handback. Root has no live heavy phase and does
+not write its N/W/output or GUI. C70 identifies a real BetterIPTV QEMU front-
+owner on Inhouse and prepares same-artifact Dev acceptance under current gates;
+no new build or profile transfer. Final shared publisher remains Root.
 
 ## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
 

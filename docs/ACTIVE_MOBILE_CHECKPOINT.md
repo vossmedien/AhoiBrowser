@@ -24,7 +24,16 @@ only e2 is integrated. Real CloudKit mutation stays off. Evidence:
 `docs/reviews/2026-10-07-mobile-popup-permissions-implementation.md` atbaef7f39.
 Mobile55 delivery handback ad4a7a54 is concrete; native child Goal acceptance
 remains that worker's action. Step2/physical-device/live-Sync remain open.
-No new worker/Goal, no third review and no Source lease for DM assigned yet.
+No new worker/Goal or third review. Root has now granted the existing DM8e74
+source phase T00–03 on canonical47a5ee18, preserving all26 earlier Root Mobile
+fixes and the delivered16-path Step1 contract. Known prerequisite commits
+f36/7a172/395/a6d20/9e49/e27 are verified ancestors. Additional necessary
+Snapshot/ImportBatch/SharedIntent paths are explicitly included, without a
+PopupHost/Runtime/fixture rewrite or new schema/key decision. Orchestrator
+request a62e12d1 targets the same AE918/native01a11680; receipt/start/CWD repair
+remain separate and unproven. No R/DD/A058 runtime lease transferred to DM.
+Step2 product decision requested under ADR0012 after the delivered spike;
+independent DM/Desktop work continues while that answer is pending.
 
 ## Current Codex continuation: Files delivered on main; popup/permissions delegated — 7 October 2026
 
