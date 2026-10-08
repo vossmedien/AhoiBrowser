@@ -2,8 +2,10 @@
 
 Stand: 8. Oktober 2026. Sourcefix und gezielte Harnesskorrekturen sind übergeben.
 Der installierte Root-Kandidat `3c370175` ist gebaut, signiert und mit Herkunft
-verbunden; zentrale sichtbare Auswahl-/Veto-/Drei-Tab-Close-Abnahme ist wegen der
-belegten NotificationCenter-Grenze offen. Der ursprüngliche C70-Review sowie
+verbunden. Am 8. Oktober sind seine kompletten Bundlebytes erneut geprüft; die
+zentrale sichtbare Auswahl-/Veto-/Drei-Tab-Close-Abnahme wartet vor Ausführung auf
+den konkreten GUI-Owner-Handback. Die frühere NotificationCenter-Verweigerung
+bleibt als Originalfehler erhalten, ist aber kein heutiger Live-Blockerbeleg. Der ursprüngliche C70-Review sowie
 tatsächliche Standardbranch-Integration, Push und geschützte Lieferung bleiben
 unerledigt. Dieselbe Session/Goal wird nach ausdrücklicher Nutzerfortsetzung
 weitergeführt. Kein Ersatzworker oder neues Goal. Delegation: `c70f3d38`.
@@ -840,3 +842,66 @@ frische Kapazitäts-/GUI-/Idle-Gates geprüft, ohne kalten Neubau oder Profiltra
 Queued ist noch keine Weiterleitung, Antwort oder Ausführung. Der Bericht wurde
 nach ausdrücklicher Nutzerfortsetzung als `7b42fad6` mit DCO/Desktop committet;
 Diffcheck und Lanecheck im zurechenbaren Scope ab `e41ef67e` waren PASS (0/0).
+
+### Geänderte Runtimevoraussetzung und wiederhergestellte Abstimmung — 8. Oktober, 15:25–15:40 UTC
+
+Die letzte Goalfortsetzung lieferte neue Belege und konkrete Vorbereitung, keine
+unveränderte Statusrunde. Inhouse meldete Finder1131 im Vordergrund, HIDidle458s,
+keinen QEMU-/Ahoi-/Compilerprozess im gefilterten Bestand und freie
+`build.lock`/`e2e.lock` im ursprünglichen gemeinsamen Queueverzeichnis. Nach
+Verwerfen des ersten top-Samples: 9,50/11,20/11,30 %, Mittel10,67 %; zweite
+Phaseaufnahme 28,34/23,66/20,64 %, Mittel24,21 %. Das erste kurze Briefing nannte
+10,82 %; dieser übernommene Wert stimmt nicht mit 100 minus den dargestellten
+Idlewerten überein und ist korrigiert. Maßgeblich sind die tatsächlichen Rohwerte. 11 GiB zunächst bzw. rund6,4 GiB später ungenutzter
+Speicher, 20.302.880 KiB Datenträger frei. Dev hatte aktuelle Menscheneingabe;
+dort wurde keine GUI-Aktion ausgeführt. Prozessabwesenheit ist kein GUI-Handback.
+
+Die tatsächlich installierte `/Applications/AhoiBrowser.app` bleibt
+`3c370175712beb90ec414bfd89b29a39d502fd15`. Deep/strict-Signatur Exit0,
+Exe-SHA256 `4b3edd716bd200c6fa90f5705d75fed573a25277cf092cf366f6834510e3d67d`.
+Der vorhandene Projekthasher `release.common.tree_sha256` prüfte jetzt die
+komplette Bundledateimenge, Modi, Typen, Symlinkziele und Bytes:
+`2bc9e659a94f0e088b7e5a6bd66ac29af9a229f04060147b97eea9adbc78bb9c`, exakt
+wie Roots angenommenes Installhandback. Das ist Identität, keine Close-Abnahme.
+
+Der gemeinsame Snapshot `repo88-m155-f492d294` steht tatsächlich bereits auf
+Arc `6f06daf0ca0e79091a2fc48f6bd79bb838588149`; er wurde ausschließlich gelesen.
+Die eigene kurzlebige Harnesskopie auf Inhouse liegt deshalb unter
+`/private/tmp/ahoi-c70-multiclose.ZKnzV7`, aus Gitarchiv des exakten3c. Journey,
+Launcher, Queue-Runner, Swiftquelle und CDP-Helfer wurden gegen Git3c verglichen.
+Journey-SHA256 `75aecf799cfabf9d0d4a6a99a750a97bd2cd706ef768e619a6cad6af5588a232`.
+Eigene signaturgeprüfte Helperkopie mit SHA256
+`00f453ae4de4b5bc085b5f17f7e3caba3df0dd915c45d37062b74d2da5650afc` ist neuer als
+die eingefrorene Swiftquelle; lesende eventaccess-Prüfung AXTrusted/PostEventAccess
+true. Keine Neukompilierung, Originalhelper unverändert, kein Produktcode geändert.
+Das lokale kurzlebige Staging `/private/tmp/ahoi-c70-runtime.o1Y7cv` enthält
+weiter das bereits hashgeprüfte zurückgegebene Archiv, aber keine gestartete App.
+
+Die direkten Notizen scheiterten zunächst ausdrücklich an nicht laufender App.
+Anfrage `8ee95c74-dd21-430c-8ab0-c70815254976` wurde angenommen, endete danach
+unknown/TARGET_CHANGED, und wird nicht wiederholt. Public LaunchServices
+`open -g /Applications/Terminal Cockpit.app` stellte den bestehenden
+Kommunikationsweg wieder her, ohne Chatbedienung, Install-/Account-/Goaländerung.
+Tatsächlicher App-PID37208; danach Notizen8018b81d an Root und4646c906 an Arc
+aufgenommen. Root antwortete tatsächlich im selben Workerthread: keine eigene
+Build-/GUI-/Publisherlease, Mastergoal BLOCKED, nicht erfüllt oder nutzerpausiert.
+Das neue Rootcheckpoint `c6d0b20c` bewahrt ausdrücklich die fehlende ehemalige
+BetterIPTV-GUI-Freigabe. Worker hat keine Root-Goaländerung vorgenommen.
+
+Der neue tatsächliche Transport-/Root-Handback ist separat unter
+`0a2f925e-f331-4e75-8cb4-c70815401385` beim bestehenden Orchestrator aufgenommen.
+Er fragt nach dem belegten Release des vorhandenen BetterX01-Owners bzw. dessen
+bestehendem Lead; queued beweist keine Antwort, Freigabe oder GUI-Ausführung.
+Kein Ersatzworker, kein neues Goal und keine alternative Routingstruktur.
+
+**Aktueller Plan:** Sourcefix und gezieltes Harnesshandback fertig/angenommen;
+Kandidatenidentität und günstige Runtimevorbereitung jetzt fertig; GUI-Ownership
+vor Ausführung offen. Nächster Schritt nach tatsächlichem Handback: frische
+CPU-/Memory-/Disk-/beideLock-/Konsole-/Idle-Prüfung, dann genau der vorhandene
+`tools/desktop_e2e/run-journey-set.sh` aus der eigenen3c-Kopie mit installiertem
+3c-Apppfad, eigenem593-Helper, bestehendem Node22.23.1 und gemeinsamem ursprünglichem
+`AHOI_E2E_LOCK`, ausschließlich `multi-select`. Die vorhandenen nativen
+Veto-/All4-/NoToast-/Auswahl-/Retry3Close-/Delta-Assertions bleiben vollständig.
+Noch kein GUI-Start oder positiver Runtimebefund. Danach Fokuschecks und kleinster
+nativer C70-Review; tatsächliche Main/Push/geschützte Lieferung bleiben beim Lead.
+Goal unerledigt, Identität unverändert; keine cockpit_report-Doppelmeldung.
