@@ -3,6 +3,19 @@
 
 ## Current browser-test compile correction handback — 9 October 2026
 
+
+Same-worker Source handback is now submitted through the published bound owner
+route rather than a legacy unbound note: request9f176fbe-d4bf-48ac-af26-2d95b06e936d,
+delegatione5fbc1f3, original Root caller68E/01a11179, target1019DD/01a113e8 and
+Goalcreated1791335405. Explicit independent scope is exactly the two existing
+M155 fixture type corrections; locked GUI blocks subsequent E2E, not this code
+preparation. First status queued/NOTE_BINDING_VALIDATION_PENDING at22:36:00Z:
+no native acceptance, Goal resume or Source edit is inferred. Same request and
+original identities are retained, no duplicate worker/Goal or unchanged compile
+retry. Existing owned request/receipt/status in desktop-b6-browser-regression-
+20261009/bound-owner-source-handback-*.json. Arc117602dc still has no testfile
+delta from B6, so Root waits for actual attributable correction/native handback.
+
 Root99340 is terminal1 at22:25:32Z, no running Root build or test, outer lock
 released. The existing B6 browser-regression build planned eight Ninja edges;
 it exposes two existing M155 fixture API errors: CreateBrowser(Profile*) now

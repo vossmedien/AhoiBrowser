@@ -1,0 +1,11 @@
+{
+  "request_id": "9f176fbe-d4bf-48ac-af26-2d95b06e936d",
+  "delegation_id": "e5fbc1f3",
+  "source_session_id": "68E66C9E-7E52-4842-B328-03D9CD6D3057",
+  "source_thread_id": "01a11179-cb6b-7dc1-9e53-f3d72fefc198",
+  "target_thread_id": "01a113e8-cfc5-79b1-9a36-71e8e45f3a93",
+  "target_goal_created_at": 1791335405,
+  "to": "1019DDF3-0EE8-4145-B368-325E1A620C5A",
+  "cwd": "/Volumes/Macintosh HD - Daten/Cloud/Projekte/Apps/Plattformuebergreifend/AhoiBrowser",
+  "text": "Unabhängiger Source-Owner-Handback im ursprünglichen Arc-Goal: Root99340 BRT-Compile terminal1, zwei vorhandene M155-Fixturefehler CreateBrowser→BrowserWindowInterface* statt Browser* (arc_import_service_browsertest.cc:370; arc_split_runtime_browsertest.cc:213). Sourcearbeit ist damit noch offen. Scope genau diese2Tests minimal zum gepinnten M155-Vertrag korrigieren, Assertions/Guards/800-Zeilenbudget erhalten; kein Produkt-/Sidebar-/Policycode, GUI, N/W/out oder neuerReview. Source in ursprünglichem Worktree/Branch, attributable Commit/Handback anRoot; Root recompiliert danach denselbenWarmtarget. Belege12ff5eb1 und artifacts/tests/desktop-b6-browser-regression-20261009/{build.log.gz,terminal-result.json}. B6-Appbaum unverändert197b4cf1..., Rootjob/Lockfrei. GesperrteGUI hält nur spätere E2E/Focus, nicht diese Sourcekorrektur. Originale Account/Session/Thread/Goalidentität beibehalten."
+}
