@@ -41,10 +41,10 @@ Material follow-up ef2a6263 is accepted at15:21:46Z after Arc's actual15:11
 Orchestrator answer demonstrates changed connectivity. It targets the same
 DM8e74/AE918/native01a11680 and original T00–03 source handback, plus actual
 cross-project GUI coordination for existing Arc/C70 owners. It creates no
-worker or Goal. Receipt is queued only: no native DM resume, GUI handback or
-execution is inferred. Current canonicalf0f35ddd changes no Mobile bytes.
+worker or Goal. Answer at15:22:53Z explicitly says no coordination, delivery or changes
+occurred. No native DM resume, GUI handback or execution is inferred. Current canonicalf0f35ddd changes no Mobile bytes.
 Request/receipt: artifacts/tests/mobile-parity-source-handback-20261008/
-reconnected-followup-{request,receipt}.json. No additional retry absent an
+reconnected-followup-{request,receipt,answer}.json. No additional retry absent an
 actual response or changed prerequisite; Root holds no heavy/runtime lease.
 
 ## Current Codex continuation: Files delivered on main; popup/permissions delegated — 7 October 2026
