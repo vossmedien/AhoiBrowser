@@ -23,8 +23,12 @@ Its express owner/GUI return remains unproved. Existing cdd0ac04 is still
 unknown/TARGET_CHANGED on its original target01a11cd5. Material reconnection
 notice112db28b-fc5e-4adc-8175-a82b22e89605 addresses repair of that same routing
 and original DM/GUI handbacks, without replaying unconfirmed sideeffects.
-Accepted22:09:17Z, current receipt queued only; no native owner delivery/repair
-or E2E acceptance inferred. Root resumes affected acceptance only on actual
+Accepted22:09:17Z, answered22:12:09Z: no native owner delivery/repair or GUI
+return proved. Orchestrator reports its22:11Z snapshot has
+cliProcessMatchesRegisteredIdentity=false for Root and Vega-Lint. This is an
+additional actual actor-binding limit, not evidence that the original Codex
+Goal/thread changed. Existing repair must retain original account/session/
+thread/Goal while resolving that fingerprint; no new sender or worker. Root resumes affected acceptance only on actual
 handoff and fresh phase admission. No unchanged status loop or replacement path.
 Evidence: existing mobile-parity-source-handback-20261008/
 resume-20261009-{request,receipt,status}.json. Original GUI, DM binding and

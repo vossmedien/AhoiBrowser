@@ -7,7 +7,9 @@ Latest9October Root resumption: original Master is explicitly ACTIVE again
 (updatedAt1791497042); preceding blocked state below is chronology. DM AE918
 still has no restored original binding. New connection event112db28b continues
 the existing EC061D79/cdd routing/GUI/DM repair with preserved destination/Goal
-identities; queued receipt only, no native delivery or repair. Source and delivered
+identities; answer22:12:09Z contains no native delivery/repair and reports
+Root/Vega-Lint registered-CLI-fingerprint mismatch in22:11Z snapshot. Original
+Goal/actor identities are preserved; existing repair remains required. Source and delivered
 Step1 remain unchanged, no replacement worker or Mobile runtime lease.
 
 
