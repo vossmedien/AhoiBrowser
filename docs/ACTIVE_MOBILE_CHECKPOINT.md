@@ -3,6 +3,16 @@
 ## Current Root acceptance — 8 October 2026
 
 
+EC061D79's once-only receipt/owner-delivery comparison is complete: previous
+34294b25 proves Orchestrator reception only. The explicit cross-project
+continuation for original AE918/01a11680 and Lifecycle763 is requestcdd0ac04-7a5e-45c7-b97e-affed92365d1,
+accepted18:55:17Z; current result **unknown/TARGET_CHANGED** at18:56:08Z
+on Orchestrator targetThread01a11cd5. Lifecycle receipt and original binding
+repair remain unproved. The exact request is retained for the same routing
+repair; no duplicate sender/worker/Goal, no inferred native resume or acceptance.
+See current Sync coordination and owner-dispatch-EC061D79 receipts.
+
+
 EC061D79 coordination follow-up 34294b25-1c17-4cce-a092-6aefe61c3249 addresses the actual binding failure
 to existing Cockpit-Lifecycleowner763D7B06-D223-4E3D-9241-7E15A0662A7F/
 native01a114db-cc51-7163-adc0-58b0efbbfb2d through the Orchestrator. Original

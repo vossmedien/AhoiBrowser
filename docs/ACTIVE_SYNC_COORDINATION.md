@@ -3,6 +3,25 @@
 
 ## Current GUI coordination handback — 8 October 2026, EC061D79
 
+
+One receipt/delivery comparison in EC061D79 confirms that34294b25 contains
+only an Orchestrator answer; both direct owner notes were rejected. The same
+logical EC061D79/34294b25 coordination is continued through the published
+cross-project Orchestrator messaging path as requestcdd0ac04-7a5e-45c7-b97e-affed92365d1, with the existing
+BetterIPTV144739, Vega-LintA577 and Lifecycle763 destination identities.
+No new task, worker, account or native Goal was created.
+
+Accepted18:55:17Z; one read at18:56:08Z yields **unknown / TARGET_CHANGED**,
+targetThread01a11cd5-80a1-7850-a879-f0120fe7d12b, nativeChatID=request UUID.
+This is an unresolved routing/delivery outcome, not a terminal worker stop,
+confirmed owner receipt or GUI return. Preserve this exact request and original
+source binding; no new-ID retry or replacement worker. A real repair/receipt of
+this Orchestrator binding is required before the same pending dispatch can be
+resolved. Original Arc/C70 GUI and actual Mobile repair results remain open.
+Evidence: existing mobile-parity-source-handback-20261008/
+owner-dispatch-EC061D79-{request,receipt,status}.json. Root starts no affected
+runtime or publication and changes no foreign Goal/process.
+
 The September `Current owners`/UI entries below are historical. They name
 `/root/desktop_recovery_20260913` and explicitly defer current candidates to
 Desktop; they do not identify today's foreign GUI owner. Current C70 report
