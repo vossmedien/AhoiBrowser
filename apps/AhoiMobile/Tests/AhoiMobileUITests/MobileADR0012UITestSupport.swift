@@ -23,7 +23,9 @@ extension MobileBrowserUITestCase {
 
     @MainActor
     func addressControl(in app: XCUIApplication) -> XCUIElement {
-        app.buttons["browser.address"]
+        app.buttons.matching(NSPredicate(
+            format: "identifier IN %@", ["browser.address", "browser.address.private"]
+        )).firstMatch
     }
 
     /// The address control's value is the selected tab's full URL.
@@ -97,18 +99,53 @@ extension MobileBrowserUITestCase {
         XCTAssertTrue(
             address.waitForExistence(timeout: Self.adr0012StateTimeout)
         )
+        // A blank tab exposes a localized address prompt, not an empty value.
+        let startsBlank = URL(string: address.value as? String ?? "")?.host == nil
+        let needsKeystrokes = address.identifier == "browser.address.private" || startsBlank
         address.tap()
         let field = app.textFields["browser.address.field"]
+        if !field.waitForExistence(timeout: 2) {
+            // A tap immediately after switcher dismissal can hit its outgoing
+            // presentation. Retap the current real control once, then prove it.
+            addressControl(in: app).tap()
+        }
         XCTAssertTrue(waitForHittable(field, timeout: Self.adr0012StateTimeout))
         clearAddressEditor(field, in: app)
-        enterExactAddress(url.absoluteString, into: field, in: app)
+        if needsKeystrokes {
+            // SDK27 XCUI dropped even the two-character chunk "ht" on the
+            // private/new blank sheet. Verify each native keystroke prefix.
+            field.tap()
+            var prefix = ""
+            for character in url.absoluteString {
+                field.typeText(String(character))
+                prefix.append(character)
+                let entered = XCTNSPredicateExpectation(
+                    predicate: NSPredicate(format: "value == %@", prefix), object: field)
+                XCTAssertEqual(XCTWaiter.wait(for: [entered], timeout: 2), .completed)
+            }
+            XCTAssertEqual(field.value as? String, url.absoluteString)
+        } else {
+            enterExactAddress(url.absoluteString, into: field, in: app)
+        }
         let go = app.buttons["browser.search.navigate"]
         XCTAssertTrue(waitForHittable(go, timeout: Self.adr0012StateTimeout))
         go.tap()
         XCTAssertTrue(
             field.waitForNonExistence(timeout: Self.adr0012StateTimeout)
         )
-        assertAddress(url, containsOrigin: "example.com", in: app)
+        let displayedAddress = addressControl(in: app)
+        XCTAssertTrue(displayedAddress.waitForExistence(timeout: 5))
+        if displayedAddress.identifier == "browser.address.private" {
+            // Private chrome exposes only the origin. The editor above proved
+            // the full input; the caller's PageProbe proves the loaded query.
+            XCTAssertTrue(waitForAddressValue(containing: url.host ?? "example.com", in: app))
+            XCTAssertFalse(currentAddress(in: app).contains(url.absoluteString))
+        } else {
+            let exactAddress = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "value == %@", url.absoluteString), object: displayedAddress)
+            XCTAssertEqual(XCTWaiter.wait(for: [exactAddress], timeout: 8), .completed,
+                           "Expected \(url.absoluteString), got \(currentAddress(in: app)).")
+        }
         XCTAssertTrue(
             exampleDomainPage(in: app).waitForExistence(
                 timeout: Self.adr0012NetworkTimeout

@@ -85,6 +85,11 @@ extension MobileBrowserController {
                                                         url: page.url, title: page.title)
                             guard self.isCurrentNavigationCallback(page: page, tabID: tabID,
                                                                    generation: callbackGeneration) else { return }
+#if DEBUG
+                            if ProcessInfo.processInfo.arguments.contains(MobileWebExtensionRuntime.launchArgument) {
+                                await MobileWebExtensionPopupAnchor.probe(page: page)
+                            }
+#endif
                             await self.sampleWebsiteTint(from: page, tabID: tabID)
                             guard self.isCurrentNavigationCallback(
                                 page: page,

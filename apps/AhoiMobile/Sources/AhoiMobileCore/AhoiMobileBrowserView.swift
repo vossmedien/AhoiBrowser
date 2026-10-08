@@ -61,6 +61,7 @@ public struct AhoiMobileBrowserView: View {
     public var body: some View {
         MobileE2EEvidenceOverlay(content: finalPresentationLayer)
             .mobileBrowserCommandRegistration(browserCommandActions, router: commandRouter)
+            .background(MobileWebExtensionPopupAnchor(browser: browser).frame(width: 1, height: 1))
             .background(MobileBrowserKeyboardFocusAnchor(router: commandRouter).frame(width: 1, height: 1))
             .background(MobilePrivateSceneShield(
                 title: CompanionL10n.string("browser.private.cover.title", fallback: "Private browsing protected"),
@@ -79,7 +80,6 @@ public struct AhoiMobileBrowserView: View {
     private var privacyLayer: some View {
         ZStack {
             adaptiveBrowserLayout
-
             if privatePrivacyCoverPresented {
                 privatePrivacyCover
                     .zIndex(10_000)
@@ -300,7 +300,6 @@ public struct AhoiMobileBrowserView: View {
             if current.requiresExpansion(comparedTo: previous) { expandHarborDeck() }
         }
     }
-
     @ViewBuilder
     private var adaptiveBrowserLayout: some View {
         Group {
@@ -477,6 +476,9 @@ public struct AhoiMobileBrowserView: View {
             isPresented: $browserActionsPresented,
             isRegularWidth: horizontalSizeClass == .regular,
             visibleDownloadCount: visibleDownloadCount,
+            onWebExtensionAction: { popup in
+                if let action = MobileWebExtensionPopupAnchor.request(popup: popup) { presentAfterBrowserActions(action) }
+            },
             onFindOnPage: { presentAfterBrowserActions { findNavigatorPresented = true } },
             onPresentLibrary: { presentAfterBrowserActions { libraryPresented = true } },
             onPresentHistory: { presentAfterBrowserActions { historyPresented = true } },
@@ -637,9 +639,8 @@ public struct AhoiMobileBrowserView: View {
         tabSwitcherMode = browser.selectedTab?.mode ?? .normal
         tabsPresented = true
     }
-    /// Presents the follow-up only once the actions sheet has finished
-    /// dismissing. Presenting a sibling sheet during that animation could leave
-    /// it unable to dismiss later (e.g. the library after creating a Workspace).
+    /// Present only after sheet dismissal; sibling sheets during animation can
+    /// lose their dismissal (e.g. the library after creating a Workspace).
     private func presentAfterBrowserActions(_ action: @escaping @MainActor () -> Void) {
         guard browserActionsPresented else {
             action()
@@ -669,7 +670,7 @@ public struct AhoiMobileBrowserView: View {
         performanceReduceMotionOverride.map { reduceMotion || $0 }
     }
     private var performanceReduceMotionOverride: Bool? {
-        MobilePerformanceLaunchRequest.currentReduceMotionOverride
+        MobileWebExtensionPopupAnchor.reduceMotionProbe ?? MobilePerformanceLaunchRequest.currentReduceMotionOverride
     }
     private func switchWorkspace(direction: Int) {
         let workspaces = companionModel.snapshot.visibleWorkspaces

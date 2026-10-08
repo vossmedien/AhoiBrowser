@@ -23,6 +23,7 @@ struct MobileBrowserActionsSheet: View {
 
     private let isRegularWidth: Bool
     private let visibleDownloadCount: Int
+    private let onWebExtensionAction: @MainActor (Bool) -> Void
     private let onFindOnPage: @MainActor () -> Void
     private let onPresentLibrary: @MainActor () -> Void
     private let onPresentHistory: @MainActor () -> Void
@@ -42,6 +43,7 @@ struct MobileBrowserActionsSheet: View {
         isPresented: Binding<Bool>,
         isRegularWidth: Bool,
         visibleDownloadCount: Int,
+        onWebExtensionAction: @escaping @MainActor (Bool) -> Void,
         onFindOnPage: @escaping @MainActor () -> Void,
         onPresentLibrary: @escaping @MainActor () -> Void,
         onPresentHistory: @escaping @MainActor () -> Void,
@@ -60,6 +62,7 @@ struct MobileBrowserActionsSheet: View {
         _isPresented = isPresented
         self.isRegularWidth = isRegularWidth
         self.visibleDownloadCount = visibleDownloadCount
+        self.onWebExtensionAction = onWebExtensionAction
         self.onFindOnPage = onFindOnPage
         self.onPresentLibrary = onPresentLibrary
         self.onPresentHistory = onPresentHistory
@@ -142,6 +145,16 @@ struct MobileBrowserActionsSheet: View {
 
                 if let page = browser.selectedPage, page.url != nil {
                     Section(CompanionL10n.string("browser.actions.page", fallback: "Page")) {
+#if DEBUG
+                        if ProcessInfo.processInfo.arguments.contains(MobileWebExtensionRuntime.launchArgument),
+                           browser.selectedTab?.mode == .normal,
+                           !browser.isSeparatedWorkspace(browser.selectedTab?.workspaceID) {
+                            Button("Ahoi Spike · Default popup") { onWebExtensionAction(true) }
+                                .accessibilityIdentifier("browser.actions.spike.popup")
+                            Button("Ahoi Spike · Site permission") { onWebExtensionAction(false) }
+                                .accessibilityIdentifier("browser.actions.spike.permission")
+                        }
+#endif
                         Button(action: onFindOnPage) {
                             Label(
                                 CompanionL10n.string("browser.find", fallback: "Find on Page"),
