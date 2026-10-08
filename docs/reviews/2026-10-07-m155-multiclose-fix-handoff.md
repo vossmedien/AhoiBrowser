@@ -808,3 +808,35 @@ Schreiben über d58902c9/05390d32 informiert. Orchestratoranfrage
 Thread, Account und aktuellen CWD nativ an die konkrete GUI-Owner-/Resume-Koordination.
 Ihre Aufnahme um 2026-10-08T10:32:29Z ist queued, kein Runtime- oder Routing-PASS.
 Die bereits einmal abgegebene cockpit_report-Quittung wird nicht dupliziert.
+
+### Konkreter aktueller GUI-Owner statt altem Target — 8. Oktober 2026
+
+Neue ausschließlich lesende Inhouse-Beobachtung: der unveränderte 593-Helper
+meldet als Vordergrund `qemu-system-aarch64`, PID 53678, PostEventAccess=true;
+kein Ahoi-Hauptprozess läuft. `ps` bindet den Prozess an Android-SDK-QEMU,
+Start 2026-10-08 12:36:32 lokal, PPID1. `lsof` bindet seinen CWD an
+`/Users/vossmedien/inhouse/scratch/betteriptv-x01-197b9785.DdMIJtFx`.
+Die aktuelle projektübergreifende Cockpit-Liste ordnet den exakt passenden
+Taskpfad dem aktiven BetterIPTV-X01-Owner
+`48D6C659-5534-48BF-BFC3-55ED8A1B7806`, Thread
+`01a11a74-c3c0-7d53-8e55-d058232a9e14`, zu. Gestopptes UI6e ist damit nicht
+der aktuell belegte Vordergrundowner; kein Slot aus dessen Prozessende abgeleitet.
+
+NotificationCenter964 liefert aktuell reguläre AX-Fenster Notification Center,
+Empfohlen, Vorhersage und Monat. UserNotificationCenter2035 liefert in derselben
+lesenden Abfrage keine AXWindow-/Sheet-/Dialogausgabe. Dies ist keine aktuelle
+Crashnotice- oder freie-Punkt-Garantie; die alte PID-/Fullscreen-Überdeckung und
+die aktuellen Widgets müssen getrennt von einem realen Ahoi-Empfänger geprüft
+werden. Keine Eingabe, AXPress, Aktivierung oder fremde Prozessaktion ausgeführt.
+
+Die zusätzliche konkrete Orchestratoranfrage
+`73bc98f3-28eb-4d97-8a87-c700dd081032` wurde um 2026-10-08T10:59:14Z als queued
+angenommen. Sie enthält den tatsächlich identifizierten Owner und verlangt
+dessen nächstes GUI-Handback bzw. Klärung, ob seine aktuelle Phase ohne
+Vordergrund auskommt. VM bleibt beim Owner; keine Ersatzsenderbindung und keine
+Umkonfiguration. Root/E3 führen danach denselben autorisierten C70-Lauf aus.
+Alternativ wird nur der bereits zurückgegebene exakte 3c-Kandidat auf Dev gegen
+frische Kapazitäts-/GUI-/Idle-Gates geprüft, ohne kalten Neubau oder Profiltransfer.
+Queued ist noch keine Weiterleitung, Antwort oder Ausführung. Der Bericht wurde
+nach ausdrücklicher Nutzerfortsetzung als `7b42fad6` mit DCO/Desktop committet;
+Diffcheck und Lanecheck im zurechenbaren Scope ab `e41ef67e` waren PASS (0/0).
