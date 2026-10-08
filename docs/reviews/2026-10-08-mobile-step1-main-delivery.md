@@ -30,10 +30,15 @@ The first local xctestrun comparison mixed raw and domain-prefixed hashes;
 corrected raw comparison confirms identical target/returned bytes, recorded
 in root-returned-verification.json. No artifact mismatch or product correction.
 
-Actual local main was fast-forwarded to e2 after acceptance. Remote push is
-the next action; no remote alignment is claimed by this pre-push receipt.
-This documentation-only tip uses [skip ci] to avoid hosted Actions; local
-DCO/lane/diff gates replace unavailable paid CI.
+Actual local main was fast-forwarded to e2 after acceptance. Regular push
+and fresh server readback both confirm main0f79b20fa2fc38711b96909a9bcbd7a727571d2d;
+its tip adds only delivery documentation over tested product e2. Root's updated
+returned verification records that actual remote fact. Native Mobile55 handback
+ad4a7a54 returns source/main/push/Debug delivery; child Goal closure stays with
+its original owner. Root R/DD/e2 owner record is inactive, A058 Shutdown,
+locks/inputs absent. This follow-up changes documentation only.
+The documentation tips use [skip ci] to avoid hosted Actions; local DCO/lane/
+diff gates passed. No paid CI execution or full browser-release claim.
 
 Scope: completed DEBUG Step1 spike and simulator Debug delivery, not physical
 iPhone/AppStore acceptance. General Files installation, production extension

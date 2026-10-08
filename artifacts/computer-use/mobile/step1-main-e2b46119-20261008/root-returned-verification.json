@@ -19,10 +19,16 @@
     "skipped": 0
   },
   "platform": "iOS27 simulator only; not device/AppStore delivery",
-  "mainIntegration": "pending",
+  "mainIntegration": "PASS",
   "initialVerificationFailure": {
     "category": "verification method",
     "cause": "domain-prefixed sha256_path(file) was compared to raw SHA256 runner binding",
     "correction": "retain domain hashes for receipt artifacts and raw SHA256 for explicitly raw xctestrun binding; local/remote bytes identical"
-  }
+  },
+  "integratedSource": "e2b461199076c35cf60bc6d21c6045f94a6f159f",
+  "pushedMainTip": "0f79b20fa2fc38711b96909a9bcbd7a727571d2d",
+  "freshRemoteMainReadback": "0f79b20fa2fc38711b96909a9bcbd7a727571d2d",
+  "actualRemoteReadbackCommand": "git ls-remote --heads origin refs/heads/main, GUI credential process, exit0",
+  "atUTC": "2026-10-08T11:24:10.904750+00:00",
+  "reviewAcceptance": "Original native reviews inherited; confirmed review2 findings fixed in6f and affected UI/focus repeated on6f and integratede2. Product delta byte-identical; no third review."
 }
