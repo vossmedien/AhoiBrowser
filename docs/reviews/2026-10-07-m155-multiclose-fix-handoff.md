@@ -1,11 +1,13 @@
 # AHOI-M155-MULTICLOSE-20261007 – Sourcehandoff
 
-Stand: 8. Oktober 2026. Sourcefix und gezielte Harnesskorrekturen sind übergeben.
-Der installierte Root-Kandidat `3c370175` ist gebaut, signiert und mit Herkunft
-verbunden. Am 8. Oktober sind seine kompletten Bundlebytes erneut geprüft; die
-zentrale sichtbare Auswahl-/Veto-/Drei-Tab-Close-Abnahme wartet vor Ausführung auf
-den konkreten GUI-Owner-Handback. Die frühere NotificationCenter-Verweigerung
-bleibt als Originalfehler erhalten, ist aber kein heutiger Live-Blockerbeleg. Der ursprüngliche C70-Review sowie
+Stand: 9. Oktober 2026. Sourcefix und gezielte Harnesskorrekturen sind übergeben.
+Das originale Worker-Goal ist durch den Nutzer wieder ACTIVE gesetzt. Root hat
+inzwischen den aktuellen signierten Kandidaten `b6bce967` zurückgegeben; seine
+C70-Produkt-/Harnesspfade sind gegenüber3c bytegleich. Zentrale sichtbare
+Auswahl-/Veto-/Drei-Tab-Close-Abnahme bleibt vor Ausführung offen: die aktuelle
+Inhouse-Konsole ist gesperrt, Dev hat aktuelle Menscheneingabe, GUI-Ownership
+ist noch zuzuordnen. Die alten NotificationCenter-/Vega-Belege bleiben erhalten
+und ersetzen diese frische Beobachtung nicht. Der ursprüngliche C70-Review sowie
 tatsächliche Standardbranch-Integration, Push und geschützte Lieferung bleiben
 unerledigt. Dieselbe Session/Goal wird nach ausdrücklicher Nutzerfortsetzung
 weitergeführt. Kein Ersatzworker oder neues Goal. Delegation: `c70f3d38`.
@@ -958,3 +960,63 @@ Das belegt eine ungeklärte direkte Caller-/Zielzuordnung; keine Root-Annahme
 behauptet und kein weiterer Versuch/Ersatzsender. Native Worker-Goalidentität
 01a1134d und der abgegebene Source-/Reportverlauf bleiben erhalten. Der aktuelle
 Bericht ist im gemeinsamen Git nachvollziehbar, die Runtimephase bleibt BLOCKED.
+
+### Nutzerfortsetzung und aktueller B6-Kandidat — 9. Oktober 2026, 00:04–00:20 lokal
+
+Der Nutzer setzt dasselbe native Goal wieder ACTIVE; `get_goal` bestätigt
+Thread01a1134d, unveränderte Zielsetzung/createdAt1791325236, updatedAt1791497042.
+Die vorherige Fortsetzung brachte verifizierte Vorbereitung und konkrete
+Blockier-/Ownerbelege; sie war kein laufender Runtimejob. Frische Blockierprüfung
+ab dieser ausdrücklichen Wiederaufnahme, keine Übernahme alter Warteschleifen.
+
+Aktueller Root-Handback ee26d9a1: Source
+`b6bce96774f5440567f4d2f6d08d43526e403b13`, Build/GUI-Sign0, zurückgegebener
+Entwicklungskandidat `artifacts/build/desktop-current-b6bce967/AhoiBrowser.app`.
+Root-Receipt-Bundlebaum `197b4cf1a04fe0b492731bfae06175c7cf0a5f51511579e82239f5eb819ac388`.
+Heute unabhängig erneut Source-Plist, ExeSHA
+`213605d7e15c8524422a96eb5174afb6d0e3389c06d017d5593d3dca47c0ed23`
+und Deep/Strict-Signatur0 geprüft. Keine neue Installation oder Buildaktion.
+Gitdiff3c→B6 ist für sämtliche Sidebar-, command_execution_adapter*.cc/.h-,
+MultiSelect- und axtool-Pfade leer; die betroffene Close-Implementierung und
+Assertions sind daher vollständig erhalten. B6 löst den alten3c-Kandidaten für
+den nächsten gemeinsamen Runtimecheck ab; kein neuer C70-Sourcefix erforderlich.
+
+Aktuelle Admission22:06UTC: InhouseCPU nach erstem verworfenen Sample
+91,14/99,87/71,35 %, Mittel87,45 %. Loginwindow414 ist im Vordergrund,
+`CGSSessionScreenIsLocked=Yes`; beide ursprünglichen Queue-Locks und Roots
+`/Volumes/Daten/Inhouse/AhoiBrowser/work/state/desktop-build.lock` sind frei.
+Vega71276 existiert, ist in dieser Beobachtung aber nicht der KeyReceiver.
+Erhaltener593-Helper bestätigt tatsächlich loginwindow414 als Receiver,
+AXTrusted/PostEventAccess true. Keine Eingabe-/Aktivierungs-/Unlockaktion.
+
+Nach vorgeschriebener Fallbackmessung22:09UTC: DevCPU65,25/67,10/73,11 %,
+Mittel68,49 % aus den ausgegebenen Idlewerten; Memoryfree44 %, Swapused2197,62MiB,
+71.341.632KiB Datenträger frei. CPU-/Diskreserve sind für den kurzen Ablauf
+vorhanden, aber HIDidle6s belegt aktuelle Menscheneingabe, keine GUI-Freigabe.
+Auf Dev sind build/e2e/h3-Locks frei; Node22.23.1 vorhanden, Fixture-/CDP-Ports
+8796/9349 ohne Listener, kein laufender Ahoi-Hauptprozess. Auch dort kein GUI-Start.
+
+Die alten /tmp-Kopien wurden inzwischen bereinigt. Neue eigene kurzlebige
+B6-Harnessvorbereitung `/private/tmp/ahoi-c70-b6.PWTH1F`: sämtliche verwendeten
+Journey-/Queue-/Launcher-/Swift-/CDP-Bytes direkt gegen GitB6 geprüft; nur die
+erhaltene signaturgeprüfte593-Binary kopiert. SHA vor/nach
+`00f453ae4de4b5bc085b5f17f7e3caba3df0dd915c45d37062b74d2da5650afc`,
+lesendes eventaccess auf Dev AXTrusted/PostEventAccess true. Nur der eigene
+Binarymtime wurde nach dem Archiv gesetzt, damit die bestehende Journey sie
+nicht wegen des neueren Source-Archivs ungewollt neu kompiliert. Originalhelper
+und alle Sharedquellen bleiben unverändert; kein neuer Trust-/TCC-Flow.
+
+Die direkte Abstimmung nimmt jetzt wieder Nachrichten an: Root40d0ca04,
+Arc8f19d2be, E316c04840 sowie konkrete Admission734a9a23. Sie klären aktuellen
+Slot und E3s angezeigten Hintergrundjob1; Aufnahme ist noch keine Job-/Lease-
+Antwort. Roots neuer Checkpoint e63d226c bestätigt keine eigene Runtimelease
+und eine zusätzliche Original-Actor-Bindungsgrenze im Orchestrator. Kein eigener
+Ersatzsender oder neues Routing/Goal zur Umgehung; Root-Goal unverändert.
+
+**Plan:** Sourcehandoff und jetzt gültige B6-/Helpervorbereitung fertig; aktueller
+GUI-Host-/Ownerhandback und reale Idle-/Konsole-Gates vor Lauf offen. Danach
+vorhandene kurze MultiSelect-Journey auf exaktB6 mit Veto/All4/NoToast/Auswahl/
+Retry3Close/Delta vollständig, anschließend nötige Fokuschecks und separater
+kleinster nativer C70-Review. Main/Push/geschützte Lieferung und zugehörige
+Laufzeitquittung bleiben beim Lead; Sourcebereitheit ist kein Goalabschluss.
+Keine neue Reviewkette/Matrix, keine Assertionschwächung, keine cockpit_report-Dopplung.
