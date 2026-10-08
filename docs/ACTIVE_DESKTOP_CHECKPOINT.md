@@ -1,5 +1,38 @@
 # Active Desktop checkpoint
 
+
+## Current blocked boundary — 8 October 2026, 15:29 UTC
+
+Original native Master Goal/thread01a11179 is now **BLOCKED**, not complete
+or user-paused (native updatedAt1791473340). After actual Arc Source uptake
+and push, three consecutive continuation turns could make no further progress
+through the same missing GUI handback and original Mobile worker binding.
+Canonical Source75443563 is tracked-clean and pushed; actual main remains
+5c9c6a5b, Dev installed6f and Inhouse installed3c retain their scoped receipts.
+
+Arc1019's current e1e7da4f confirms Source uptake and the still-open affected
+postreview visible reruns/renderer DCHECK. Former BetterIPTV processes have
+ended, but explicit GUI ownership release is unproven. C70's central visible
+MultiSelect/veto/close and attributable native review remain open. DM8e74's
+original AE918/thread01a11680 is not restored; the existing own branch1acf8ad9
+has no corrective Source. Orchestrator follow-up ef2a6263 answered15:22:53Z
+explicitly performed no coordination, delivery or changes. There is no live
+Root build/UI/test job to wait on; no duplicate worker or blind request retry.
+
+Remaining independent work was checked: combined-Mobile corrections depend
+on the same DM owner binding; extension Step2 depends on the pending ADR0012
+product decision; full Desktop integration/release depends on these actual
+visible acceptance gates. Real-device, live-service and licensing requirements
+remain unproven and are not replaced by fixture results. No additional useful
+authorized independent action was ready in the existing package order.
+
+Resume this original Goal when an actual GUI owner handback permits the
+existing Arc/C70 journeys, the original DM binding accepts the already-granted
+T00–03 Source handback, or another concrete independent prerequisite arrives.
+Preserve all current candidates, caches, rollback apps and peer Goal identities.
+Root holds no runtime/heavy lease and changes no peer Goal or container state.
+The following earlier ACTIVE resumption is chronology, not current Goal status.
+
 ## Current Root resumption — 8 October 2026
 
 

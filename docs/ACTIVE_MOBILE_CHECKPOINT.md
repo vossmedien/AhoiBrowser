@@ -2,7 +2,10 @@
 
 ## Current Root acceptance — 8 October 2026
 
-Root's original full Master Goal is ACTIVE again. Mobile55 finished source
+Root's original full Master Goal is now BLOCKED after three continuation
+turns without the same required GUI/DM-binding handback; see the current
+Desktop waiting boundary. Source75443563 remains preserved/pushed, main5c9c
+is unchanged, and no peer Goal is modified. Mobile55 finished source
 6f6561f5: actual native UI2/2 and app-hosted focus9/9 pass, no skips. Review2
 at856 found lost consent/scene cleanup during refresh;6f serializes both and
 repeats affected UI/focus. Source134→6f is exactly16 owned Mobile paths. Worker
