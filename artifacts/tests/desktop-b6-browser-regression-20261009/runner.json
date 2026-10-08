@@ -1,0 +1,20 @@
+{
+  "pid": 99340,
+  "source": "b6bce96774f5440567f4d2f6d08d43526e403b13",
+  "UTC": "2026-10-08T22:24:02Z",
+  "target": "ahoi_arc_import_browsertests",
+  "execution": "compile only; no test run",
+  "cpuAggregateSamples": [
+    42.6,
+    14.78,
+    14.76
+  ],
+  "cpuMeanPercent": 24.0466666667,
+  "memoryFreePercent": 88,
+  "freeAtLaunch": 35094069248,
+  "reserveBytes": 8589934592,
+  "plannedGrowthBytes": 8589934592,
+  "jobs": 2,
+  "ownerThread": "01a11179-cb6b-7dc1-9e53-f3d72fefc198",
+  "E": "/Users/vossmedien/inhouse/evidence/ahoi-b6-browser-regression-20261009"
+}

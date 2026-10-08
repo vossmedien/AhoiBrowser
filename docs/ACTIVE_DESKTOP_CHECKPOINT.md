@@ -1,6 +1,39 @@
 # Active Desktop checkpoint
 
 
+## Current same-candidate runtime coordination and BRT compile — 9 October 2026
+
+Arc906e9930 actually consumes the B6 handback and independently confirms its
+Source/Exe/four corrected files/logs. Its current external boundary is explicit:
+Inhouse loginwindow/screenLocked, no Arc GUI job; Dev has real Arc47159 and
+active user input. Existing user text question requests unlocked Inhouse console
+or a free Dev slot; Root does not repeat that question or infer a slot from idle.
+C70 confirms3c→B6 has no Close/Sidebar/Adapter/axtool diff, so same B6 suffices.
+
+Root's Ahoi-specific slots are explicit: Arc1019 Inhouse B6 after actual
+unlock/foreign owner return/admission; C704CD993 returned B6 on Dev only after
+actual free user GUI and fresh CPU fallback eligibility. Inhouse switching
+is serial after Arc terminal handback. E3 snapshot22:19:44Z is stopped with no
+native process or process metadata, so background-job count is no live lease.
+Root owns no GUI; notes e1f146b8/c510e343 carry these conditions, not an unlocked
+console or foreign release. No current visible acceptance is claimed.
+
+Necessary existing BRT regression binary is now being prepared independently,
+not run before E2E: Root99340 started22:24:02Z on exactb6/clean N, same warm Out,
+only ahoi_arc_import_browsertests through original guarded dependency wrapper.
+Fresh CPU42.6/14.78/14.76%=24.0467%, memory88%free,35,094,069,248B at launch.
+2 jobs, first-error stop,8GiB reserve+8GiB conservative test growth. Original
+app stamper/signer/installer are not invoked; signed B6 app must hash unchanged
+at terminal return. No new harness, test matrix, review, worker or native Goal.
+Current runner is live in admission/overlay/hook guards, not a test execution
+or completed compile. Root temporarily holds N/W/out build lock; Arc runtime
+starts only after this concrete compile handback and its independent GUI gates.
+Evidence/handle: ~/inhouse/evidence/ahoi-b6-browser-regression-20261009/
+runner.pid=99340, runner.json, phases.log, runner.exit. Poll this actual handle,
+never start another on observation timeout. Canonical runner binding in
+artifacts/tests/desktop-b6-browser-regression-20261009/.
+
+
 ## Current original-Goal resumption — 9 October 2026, 00:09 local
 
 User explicitly set original Master Goal ACTIVE, updatedAt1791497042, same
