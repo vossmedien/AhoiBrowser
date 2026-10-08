@@ -1020,3 +1020,36 @@ Retry3Close/Delta vollständig, anschließend nötige Fokuschecks und separater
 kleinster nativer C70-Review. Main/Push/geschützte Lieferung und zugehörige
 Laufzeitquittung bleiben beim Lead; Sourcebereitheit ist kein Goalabschluss.
 Keine neue Reviewkette/Matrix, keine Assertionschwächung, keine cockpit_report-Dopplung.
+
+### Tatsächlich zugeordneter Dev-Slot und laufende Queue — 9. Oktober 2026
+
+Roots konkrete native Notiz ordnet C70 den **Dev-GUI-Slot** für den
+zurückgegebenen signierten B6 zu; Arc bleibt für Inhouse-B6 zuständig. Root hält
+keine eigene GUI-/Buildphase,17514 terminal0. Arc bestätigt aktuell keine
+eigene laufende GUIphase. Dieses Handback ist konsumiert; Prozessabwesenheit
+oder E3s Hintergrundflag wurden nicht als Slotfreigabe verwendet.
+
+Frische Aufnahme: DevCPU71,44/68,54/67,58 %, Mittel69,19 %, memoryfree49 %,
+47.625.068KiB frei, beide Queue-Locks/h3 frei; HIDidle63s reicht noch nicht
+für Input. InhouseCPU14,50/21,54/29,13 %, Mittel21,72 %, weiterhin loginwindow
+und gesperrt, zudem Arcs eigener Hostpfad. Dev ist der konkret zugeordnete
+verfügbare Ablaufhost; die Nutzer-/Frontendguards gelten dort vollständig.
+
+Die **vorhandene Queue läuft tatsächlich** auf Dev: PID30287, Parent30286
+(vorhandener Diskreserve-Monitor), nativer Toolhandle46925. Exakte B6-App,
+eigene unveränderte593-Binary, Node22.23.1 und eingefrorene B6-Journey;
+`AHOI_E2E_GUI_LAUNCH=1`, ursprüngliches gemeinsames e2e.lock. MinHID300s,
+zwei CPU-Idleproben mindestens30 %, unlocked/keinAhoi-Gates unverändert.
+Queueausgabe `/private/tmp/ahoi-c70-b6.PWTH1F/visible-b6`. Noch kein Input
+oder Runtime-PASS: tatsächliche wait.log-Einträge22:35:20Z cpu35/23,hid45
+und22:38:56Z cpu37/38,hid39 zeigen den lebenden Wait vor Browserstart.
+Kein Neubau, keine Installation, Profile-/TCC-/Credentialaktion oder neue
+Harnessebene; der bestehende Reserve-Monitor schützt ausschließlich diese
+eigene Kommando-Prozessgruppe. Eine Beobachtungsfrist startet keinen neuen Job.
+
+Root1a233d7c und Arc231a42d7 wurden über den laufenden Dev-Ablauf informiert;
+Slotrückgabe erst nach terminalem Ergebnis/Owncleanup. C70 wartet jetzt auf
+diesen bestätigten Livehandle statt auf ein unbestätigtes Ressourcenversprechen.
+Danach Originalverdict/Modal-/Close-/Delta-Belege prüfen, konkreten Defekt bei
+Bedarf im selben Auftrag korrigieren, Fokuschecks/C70-Review und Leadlieferung
+fortführen. Kein Abschluss aus gestarteter Queue oder Sourcebereitschaft.
