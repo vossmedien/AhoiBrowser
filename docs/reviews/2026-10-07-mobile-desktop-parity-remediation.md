@@ -1,15 +1,22 @@
 # Mobile-Desktop-Parität: begrenzte Korrektur F01–F03
 
-Stand: 7. Oktober 2026. Handoff `AHOI-DM-REMEDIATION-20261007-01`,
-Delegation `8e74e15d`. Vertrag: [Migrationsplan, Revision 1](2026-10-07-desktop-mobile-migrationsplan.md),
+Stand: 8. Oktober 2026. Handoff `AHOI-DM-REMEDIATION-20261007-01`,
+Delegation `8e74e15d`. Vertrag: [Migrationsplan, Revision 2](2026-10-07-desktop-mobile-migrationsplan.md),
 DM-T00 → DM-T01/02 → DM-T03 → DM-T08. Komfortfunktionen DM-T05–07,
 Popup-/Permissions-Neuvertrag und Extension Step 2 sind nicht beauftragt.
 
 **Aktueller Stand:** Start und Sourcebefunde belegt; keine Produktkorrektur,
 kein ausführbarer Kandidat, keine sichtbare Abnahme oder Lieferung.
-Überlappende Sourcearbeit wartet auf konkrete Owner-Handbacks. Dieser Bericht
+Die Sourcefreigabe liegt inzwischen vor; die Ausführung wartet auf die öffentliche
+Reparatur der ursprünglichen Workerbindung. Dieser Bericht
 ist der ausdrücklich eigene, disjunkte Dokumentpfad; der bestehende
 [Mobile-Checkpoint](../ACTIVE_MOBILE_CHECKPOINT.md) bleibt beim Masterowner.
+
+## Source Freigabe und tatsächliche Zugriffsgrenze am 8. Oktober
+
+Der [Master-Handback](../../artifacts/tests/mobile-parity-source-handback-20261008/request.json) gibt den bestehenden Taskumfang DM-T00–03 auf Basis `47a5ee185ee9a34a8acd7968bb39cc70afa93e97` frei, ausdrücklich einschließlich Snapshot/ImportBatch/SharedIntent. Die sechs vorausgesetzten Mobile-Korrekturen sind als Vorfahren verifiziert; gelieferte Popup-/Runtime-/Fixturebytes bleiben erhalten. Die ältere fehlende Sourceownership ist erledigt. Native Workerannahme und Sourceausführung sind weiterhin offen, Runtimeleases nicht erteilt.
+
+Der konkrete Parent-Wake/Handback `db5cb139` wurde mit `SOURCE_UNAVAILABLE` abgewiesen (`REQUEST_NOT_FOUND`). Exakter öffentlicher Reopen `0f375aba` endete am 8. Oktober 13:15:47 UTC mit **refused / TARGET_CHANGED** für Account/Session/Thread/CWD. Ursprüngliche Session AE918, Thread01a11680, GoalcreatedAt1791379249 und sauberer Branch1acf bleiben unverändert; keine Ersatzidentität, Goaländerung oder Sourcearbeit. Der neue konkrete Informationsrequest `1091e75b` an den bestehenden Orchestrator ist queued, kein Reparaturnachweis. Maßgeblicher aktueller Zustand und ausführbare Folgehandlung stehen im [Migrationsplan Revision 2](2026-10-07-desktop-mobile-migrationsplan.md#aktueller-source-handback-am-8-oktober-2026); die frühere Stopbedingung unten bleibt historische Evidenz.
 
 ## Identität und Startquittung
 
@@ -47,7 +54,7 @@ nach Skillvertrag ist das eine ausdrückliche App-Aktion, kein automatischer Wat
 {
   "schemaVersion": 1,
   "contractID": "AHOI-DM-REMEDIATION-20261007-01",
-  "revision": "r1",
+  "revision": "r2",
   "kind": "code",
   "criteria": [
     {"id": "DM-AC-01", "title": "Vorhandene Mac-Page-Empfangskorrektur attribuierbar erhalten."},
@@ -72,17 +79,19 @@ nach Skillvertrag ist das eine ausdrückliche App-Aktion, kein automatischer Wat
   ],
   "evidence": [
     {"stage": "briefing", "reference": "docs/reviews/2026-10-07-mobile-desktop-parity-remediation.md#identität-und-startquittung", "revision": "r1", "environment": "Eigener Worktree; openai/gpt-6-astra/xhigh", "summary": "Native Start-/Goalbindung belegt; Jev-Entscheidungsbeleg und konkrete Source-Handbacks offen."},
-    {"stage": "documentation", "reference": "docs/reviews/2026-10-07-mobile-desktop-parity-remediation.md#befunde-am-gemeinsamen-aufrufpfad", "revision": "c3a1d1362b6cadffa522f6d39ca03a0a47438c8b", "summary": "F01–F03 sourcebelegt; zentrale Bytegleichheit gegenüber main134/Feature849 geprüft. Keine Produktabnahme."}
+    {"stage": "documentation", "reference": "docs/reviews/2026-10-07-mobile-desktop-parity-remediation.md#befunde-am-gemeinsamen-aufrufpfad", "revision": "c3a1d1362b6cadffa522f6d39ca03a0a47438c8b", "summary": "F01–F03 sourcebelegt; zentrale Bytegleichheit gegenüber main134/Feature849 geprüft. Keine Produktabnahme."},
+    {"stage": "briefing", "reference": "artifacts/tests/mobile-parity-source-handback-20261008/request.json; docs/reviews/2026-10-07-desktop-mobile-migrationsplan.md#aktueller-source-handback-am-8-oktober-2026", "revision": "47a5ee185ee9a34a8acd7968bb39cc70afa93e97", "summary": "Master gibt T00–03 inklusive Snapshot/ImportBatch/SharedIntent frei; Vorfahren und gelieferte Extensionbytes verifiziert. Exakter Reopen verweigert TARGET_CHANGED, Parentnote SOURCE_UNAVAILABLE; gleiche Session/Goal, noch keine native Annahme/Sourcearbeit/Runtimelease."}
   ]
 }
+
 <!-- /cockpit-workflow -->
 
 | Schritt | Stand | Nächster konkreter Schritt / zuständiger Owner |
 | --- | --- | --- |
-| DM-T00: Identität, Pins, vorhandene Fixes | Sourceprüfung vorbereitet; Ownerabstimmung offen | Attributive Baseline mit Master abstimmen; kein ganzer Featurebranch-Merge |
-| DM-T01: Preview-Provenienz | F01 bestätigt; Schreiben geparkt | Mobile55 gibt konkreten Lifecycle-/Preview-Umfang und verbindliche Basis zurück |
-| DM-T02: Merge, Receipt, Undo, Outbox | F02 und vorhandene Schemafelder bestätigt; Schreiben geparkt | Master/Sync bestätigt Sourceumfang und Vertrag für späte Split-/Archivrecords |
-| DM-T03: getrennte Inhalte und Writes | F03 bestätigt; Schreiben geparkt | Nach T01/T02: Master/Sync gibt Model-/Namespace-/Writerumfang zurück |
+| DM-T00: Identität, Pins, vorhandene Fixes | Sourcebasis47/Handback und Vorfahren geprüft; native Bindung offen | Öffentliche Originalbindung reparieren und native Annahme nachweisen; kein ganzer Featurebranch-Merge |
+| DM-T01: Preview-Provenienz | Sourceumfang freigegeben; Zugriff geparkt | Nach echtem CWD-/Native-Handback denselben Task minimal umsetzen; gelieferten Step1 erhalten |
+| DM-T02: Merge, Receipt, Undo, Outbox | Sourceumfang inklusive Snapshot/ImportBatch freigegeben; Zugriff geparkt | Nach Originalbindung vorhandenen Rehome-/Konfliktvertrag vollständig umsetzen; keine neuen Wirefelder |
+| DM-T03: getrennte Inhalte und Writes | Sourceumfang inklusive SharedIntent freigegeben | Nach T01/T02 namespacegebundene Darstellung/History/Writes umsetzen; keine Runtimelease |
 | Kandidat, sichtbare Reisen, Grenzchecks | Offen, nicht gestartet | Sourcehandback; danach tatsächliche Build-/DerivedData-/Gerätelease, frische CPU-/Speicher-/Diskaufnahme |
 | Scoped natives Review | Offen, 0 Runden | Erst nach betroffenen sichtbaren Reisen und fokussierten Checks; höchstens zwei Runden gemäß Auftrag |
 | Root-Abnahme, main, Push, Mobilelieferung | Offen, keine Lease | Expliziter passender Handback, attributable Integration und bestehende bewachte Lieferung |
@@ -297,10 +306,11 @@ CLI-Vertrag abgewiesen; Wiederholung mit vollständiger SHA bestand.
 Kein Modellreview für diesen ausschließlich dokumentarischen Zwischenstand;
 das vorgeschriebene Produktreview bleibt offen.
 
-**Geparkter nächster Schritt:** Master bestätigt die attributable Mobilebaseline
-und die konkreten F02/F03-Dateien samt zusätzlichem Rehome-/Writerumfang;
-Mobile55 bestätigt Lifecycle-/Previewbasis und Schreibhandback. Danach in
-derselben Kachel, demselben Thread, Branch und Goal DM-T01/T02 umsetzen.
+**Geparkter nächster Schritt:** Öffentliche Originalbindung und native Annahme
+des bereits erteilten Master-Handbacks reparieren. Danach auf Sourcebasis47 in
+derselben Kachel, demselben Thread, Branch und Goal DM-T01/T02 umsetzen;
+die konkreten F02/F03-Dateien und der zusätzliche Rehome-/Writerumfang sind
+freigegeben, Runtime-/main-/Releaseleases bleiben getrennt.
 Keine weitere unabhängige Produktänderung ist innerhalb der derzeit belegten
 Ownership möglich. Unverändertes Statuspolling oder ein Ersatzworker ist kein
 Fortschritt. Das eigene Goal ist nicht erfüllt und wird nicht abgeschlossen.
