@@ -8,6 +8,7 @@
 #include "ahoi/browser/importer/arc/arc_import_service_internal.h"
 #include "ahoi/browser/importer/arc/arc_import_service_factory.h"
 #include "ahoi/browser/session/isolated_profile_registry.h"
+#include "ahoi/browser/session/session_bridge.h"
 #include "base/functional/bind.h"
 #include "base/task/task_traits.h"
 #include "base/task/thread_pool.h"
@@ -101,10 +102,7 @@ void ArcImportService::OnHistoryJournalRead(
                        weak_factory_.GetWeakPtr(), std::move(request)));
     return;
   }
-  runner->Import(
-      std::move(*request),
-      base::BindOnce(&ArcImportService::OnHistoryOperationFinished,
-                     weak_factory_.GetWeakPtr()));
+  StartHistoryImport(std::move(*request));
 }
 
 void ArcImportService::OnHistoryPreparedRecovered(
@@ -121,8 +119,37 @@ void ArcImportService::OnHistoryPreparedRecovered(
         {.selected = true, .status = ArcImportStatus::kTransactionFailed});
     return;
   }
+  StartHistoryImport(std::move(*request));
+}
+
+void ArcImportService::StartHistoryImport(ArcHistoryImportRequest request) {
+  if (!request.backup_identifier.empty()) {
+    OnHistoryBackupFlushed(std::move(request), true);
+    return;
+  }
+  if (!session_bridge_) {
+    OnHistoryOperationFinished(
+        {.selected = true, .status = ArcImportStatus::kTransactionFailed});
+    return;
+  }
+  // Fresh per-profile backups include that target's native tree database.
+  // Serialize its pending writer before capturing the complete generation,
+  // just as the sidebar backup does. Preserve the source/hash checks.
+  session_bridge_->FlushPersistenceForBackup(base::BindOnce(
+      &ArcImportService::OnHistoryBackupFlushed, weak_factory_.GetWeakPtr(),
+      std::move(request)));
+}
+
+void ArcImportService::OnHistoryBackupFlushed(ArcHistoryImportRequest request,
+                                            bool success) {
+  auto* runner = success && CanImportHistory() ? GetHistoryRunner() : nullptr;
+  if (!runner) {
+    OnHistoryOperationFinished(
+        {.selected = true, .status = ArcImportStatus::kTransactionFailed});
+    return;
+  }
   runner->Import(
-      std::move(*request),
+      std::move(request),
       base::BindOnce(&ArcImportService::OnHistoryOperationFinished,
                      weak_factory_.GetWeakPtr()));
 }

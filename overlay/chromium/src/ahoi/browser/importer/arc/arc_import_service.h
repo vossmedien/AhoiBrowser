@@ -283,6 +283,8 @@ class ArcImportService : public KeyedService {
   void OnHistoryPreparedRecovered(
       std::optional<ArcHistoryImportRequest> request,
       ArcImportStatus status);
+  void StartHistoryImport(ArcHistoryImportRequest request);
+  void OnHistoryBackupFlushed(ArcHistoryImportRequest request, bool success);
   void OnHistoryOperationFinished(ArcHistoryImportResult result);
 
   raw_ptr<Profile> profile_ = nullptr;

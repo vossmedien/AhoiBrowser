@@ -120,17 +120,21 @@ const port=process.env.PORT,out=process.env.OUT,mode=process.env.CASE;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let target;
 for(let i=0;i<80;i++){
- try{target=(await(await fetch(`http://127.0.0.1:${port}/json`)).json()).find(t=>t.type==='page');if(target)break;}catch{}
+ try{target=await(await fetch(`http://127.0.0.1:${port}/json/version`)).json();if(target.webSocketDebuggerUrl)break;}catch{}
  await sleep(500);
 }
 if(!target)throw Error('Native page not started');
 const ws=new WebSocket(target.webSocketDebuggerUrl);await new Promise(r=>ws.onopen=r);
-let id=0;const pending=new Map();ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(Error(m.error.message)):p.resolve(m.result);}};
-const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});ws.send(JSON.stringify({id:n,method,params}));});
+let id=0,sessionId;const pending=new Map();ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(Error(m.error.message)):p.resolve(m.result);}};
+const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});ws.send(JSON.stringify({id:n,method,params,sessionId}));});
+// Attach to the actual Settings target after its creation. The startup target
+// is still being constructed and must not be attached across that navigation.
+const {targetId}=await call('Target.createTarget',{url:'chrome://settings/importData'});
+await call('Target.activateTarget',{targetId});
+({sessionId}=await call('Target.attachToTarget',{targetId,flatten:true}));
 const prefix=`function find(r,q){let v=r.querySelector(q);if(v)return v;for(let e of r.querySelectorAll('*'))if(e.shadowRoot){v=find(e.shadowRoot,q);if(v)return v;}return null;} const section=()=>find(document,'settings-ahoi-arc-import-section');`;
 async function ev(body){const r=await call('Runtime.evaluate',{expression:`(()=>{${prefix}${body}})()`,returnByValue:true,awaitPromise:true,userGesture:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text+JSON.stringify(r.exceptionDetails.exception));return r.result.value;}
 async function until(body){for(let i=0;i<120;i++){const r=await ev(body);if(r)return r;await sleep(500);}throw Error('UI stage timeout');}
-await call('Page.navigate',{url:'chrome://settings/importData'});
 await sleep(5000);
 await until(`const d=find(document,'settings-import-data-dialog');return d?.browserProfiles_?.some(p=>p.ahoiImportKind==='arc');`);
 await ev(`const d=find(document,'settings-import-data-dialog'); const sel=d.shadowRoot.querySelector('#browserSelect');const idx=d.browserProfiles_.findIndex(p=>p.ahoiImportKind==='arc');if(idx<0)throw Error('Arc option missing');sel.selectedIndex=idx;sel.dispatchEvent(new Event('change',{bubbles:true}));return true;`);
@@ -162,6 +166,9 @@ JS
 kill "$PID"
 for i in $(seq 1 30); do kill -0 "$PID" 2>/dev/null || break; sleep 1; done
 PID=
+if rg 'FATAL|DCHECK failed' "$OUT/browser.log" > "$OUT/renderer-failures.txt"; then
+  echo "Native renderer failure; no successful journey verdict" >&2; exit 8
+fi
 python3 - <<'PY'
 import os,sqlite3,json
 from pathlib import Path

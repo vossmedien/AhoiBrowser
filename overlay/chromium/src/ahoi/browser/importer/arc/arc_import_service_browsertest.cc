@@ -756,6 +756,12 @@ IN_PROC_BROWSER_TEST_F(ArcImportServiceBrowserTest,
   auto selection = ConfirmedSelection();
   selection.import_sidebar = false;
   selection.import_history = true;
+  // A fresh history backup must serialize the authoritative native tree,
+  // including a target whose initial durable snapshot is not present yet.
+  const auto tree_path = browser()->GetProfile()->GetPath()
+                             .AppendASCII(kTabTreeDatabaseFilename);
+  ASSERT_TRUE(base::DeleteFile(tree_path));
+  ASSERT_FALSE(base::PathExists(tree_path));
   base::test::TestFuture<ArcImportCommitResult> imported;
   service_->Commit(token_, ArcConflictResolution::kRename, selection, browser(),
                    imported.GetCallback());
