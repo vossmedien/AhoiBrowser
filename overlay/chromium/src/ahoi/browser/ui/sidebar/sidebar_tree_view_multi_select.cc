@@ -39,6 +39,18 @@ bool SidebarTreeView::IsMultiSelected(const base::Uuid& node_id) const {
   return std::ranges::contains(multi_selected_, node_id);
 }
 
+void SidebarTreeView::PruneMultiSelectionToVisibleRows() {
+  const auto order = delegate_ ? delegate_->GetMultiSelectionRowOrder()
+                               : visible_node_order();
+  std::erase_if(multi_selected_, [&order](const base::Uuid& id) {
+    return !std::ranges::contains(order, id);
+  });
+  if (multi_anchor_ && !std::ranges::contains(order, *multi_anchor_)) {
+    multi_anchor_.reset();
+  }
+  RefreshMultiSelectedRows();
+}
+
 void SidebarTreeView::ClearMultiSelection() {
   if (multi_selected_.empty() && !multi_anchor_.has_value()) {
     return;

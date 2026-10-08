@@ -47,7 +47,7 @@ std::vector<base::Uuid> BrowserSidebarHostView::GetMultiSelectionRowOrder() cons
   std::vector<base::Uuid> order =
       tree_view_ ? tree_view_->visible_node_order() : std::vector<base::Uuid>();
   const auto collect = [this, &order](auto&& self, views::View* root) -> void {
-    if (!root || !session_bridge_) {
+    if (!root || !root->GetVisible() || !session_bridge_) {
       return;
     }
     if (auto tab = GetOpenTabForView(root)) {

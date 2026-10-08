@@ -9,6 +9,11 @@
 # The args must contain --user-data-dir=<dir>; it identifies the process.
 ahoi_launch_browser() {
   local log=$1; shift
+  # Use Chromium's native fullscreen startup when a desktop Space's Dock
+  # occludes the browser. Point-owner and receiver guards remain unchanged.
+  if [ "${AHOI_E2E_START_FULLSCREEN:-0}" = 1 ]; then
+    set -- --start-fullscreen "$@"
+  fi
   if [ "${AHOI_E2E_GUI_LAUNCH:-0}" != 1 ]; then
     "$APP/Contents/MacOS/AhoiBrowser" "$@" >> "$log" 2>&1 &
     PID=$!

@@ -4,6 +4,7 @@
 #include "ahoi/browser/ui/sidebar/sidebar_recent_links_view.h"
 
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -201,14 +202,14 @@ class GroupRecentLinksView final : public views::View,
     auto* pager_layout = pager->SetLayoutManager(
         std::make_unique<views::BoxLayout>(
             views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 6));
-    previous_ = pager->AddChildView(views::MdTextButton::Create(
+    previous_ = pager->AddChildView(std::make_unique<views::MdTextButton>(
         base::BindRepeating(&GroupRecentLinksView::ChangePage,
                             base::Unretained(this), -1),
         Text(u"Zurück", u"Previous")));
     page_status_ = pager->AddChildView(std::make_unique<views::Label>());
     page_status_->GetViewAccessibility().SetRole(ax::mojom::Role::kStatus);
     pager_layout->SetFlexForView(page_status_, 1);
-    next_ = pager->AddChildView(views::MdTextButton::Create(
+    next_ = pager->AddChildView(std::make_unique<views::MdTextButton>(
         base::BindRepeating(&GroupRecentLinksView::ChangePage,
                             base::Unretained(this), 1),
         Text(u"Weiter", u"Next")));

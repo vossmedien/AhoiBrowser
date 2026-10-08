@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "base/location.h"
+#include "base/memory/raw_ptr.h"
 #include "base/task/cancelable_task_tracker.h"
 #include "components/history/core/browser/history_backend.h"
 #include "components/history/core/browser/history_database.h"
@@ -25,7 +26,7 @@ namespace ahoi::importer::arc {
 namespace {
 
 struct PlannedPage {
-  const ArcHistoryEntry* entry = nullptr;
+  raw_ptr<const ArcHistoryEntry> entry = nullptr;
   bool url_existed = false;
   history::URLRow previous_row;
   std::set<history::VisitID> previous_visit_ids;

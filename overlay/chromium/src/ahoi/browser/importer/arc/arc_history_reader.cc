@@ -16,6 +16,7 @@
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/functional/bind.h"
+#include "base/strings/cstring_view.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "sql/database.h"
@@ -25,7 +26,7 @@ namespace ahoi::importer::arc {
 
 namespace {
 
-constexpr const char* kRequiredUrlColumns[] = {
+constexpr base::cstring_view kRequiredUrlColumns[] = {
     "id",    "url", "title", "visit_count", "typed_count", "last_visit_time",
     "hidden"};
 
@@ -61,7 +62,7 @@ bool HasSupportedSchema(sql::Database& database) {
     return false;
   }
   return std::ranges::all_of(kRequiredUrlColumns,
-                             [&database](const char* column) {
+                             [&database](base::cstring_view column) {
                                return database.DoesColumnExist("urls", column);
                              });
 }

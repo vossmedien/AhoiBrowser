@@ -127,6 +127,33 @@ TEST_F(SidebarTreeViewTest, RuntimeSelectionUsesVisibleOrderAndSharedActiveNode)
   EXPECT_EQ(3, runtime.changes);
 }
 
+TEST_F(SidebarTreeViewTest, HiddenRuntimeRowsLoseSelectionWhenGroupCollapses) {
+  const auto workspace = MakeWorkspace();
+  const auto alpha = base::Uuid::GenerateRandomV4();
+  const auto gamma = base::Uuid::GenerateRandomV4();
+  RuntimeSelectionDelegate runtime;
+  runtime.order = {alpha, gamma};
+  runtime.active = alpha;
+  auto view = std::make_unique<SidebarTreeView>(
+      controller_.get(), &runtime, u"Tabs", u"Split with");
+  ASSERT_TRUE(controller_->view_model().ResetWorkspace(workspace.id));
+  ui::MouseEvent command(ui::EventType::kMouseReleased, gfx::Point(),
+                         gfx::Point(), base::TimeTicks::Now(),
+                         ui::EF_LEFT_MOUSE_BUTTON | ui::EF_COMMAND_DOWN,
+                         ui::EF_LEFT_MOUSE_BUTTON);
+  ASSERT_TRUE(view->HandleMultiSelectClick(gamma, command));
+  ASSERT_EQ((std::vector<base::Uuid>{alpha, gamma}), view->multi_selection());
+  runtime.order = {alpha};
+  view->PruneMultiSelectionToVisibleRows();
+  EXPECT_FALSE(view->IsMultiSelected(gamma));
+  EXPECT_EQ((std::vector<base::Uuid>{alpha}), view->multi_selection());
+  runtime.order = {alpha, gamma};
+  EXPECT_FALSE(view->IsMultiSelected(gamma));
+  runtime.order.clear();
+  view->PruneMultiSelectionToVisibleRows();
+  EXPECT_FALSE(view->has_multi_selection());
+}
+
 TEST_F(SidebarTreeViewTest, AXSelectionDescribesTheRangeWithoutChangingActivePage) {
   const auto workspace = MakeWorkspace();
   const auto a = MakeNode(workspace, std::nullopt,

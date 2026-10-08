@@ -688,7 +688,7 @@ class SessionBridge : public KeyedService,
       GUARDED_BY_CONTEXT(sequence_checker_);
   std::map<base::Uuid, raw_ptr<BrowserWindowInterface>> id_windows_
       GUARDED_BY_CONTEXT(sequence_checker_);
-  std::map<TabStripModel*, std::unique_ptr<extensions::TabGroupSidebarAdapter>>
+  std::map<const TabStripModel*, std::unique_ptr<extensions::TabGroupSidebarAdapter>>
       tab_group_sidebar_adapters_;
   std::map<TabStripModel*, raw_ptr<BrowserWindowInterface>> model_windows_
       GUARDED_BY_CONTEXT(sequence_checker_);

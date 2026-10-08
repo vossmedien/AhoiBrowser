@@ -146,7 +146,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     {value: 2, name: loadTimeData.getString('ahoiSidebarDensityComfortable')},
   ];
 
-  protected async onResetSidebarDensity_() {
+  protected async onResetSidebarDensityClick_() {
     try {
       const reset = await sendWithPromise<boolean>('ahoiResetSidebarDensity');
       this.sidebarDensityResetStatus_ = loadTimeData.getString(
@@ -157,7 +157,7 @@ export class SettingsAhoiPageElement extends SettingsAhoiPageElementBase {
     }
   }
 
-  protected onResetPractice_() {
+  protected onResetPracticeClick_() {
     // Only this optional checklist changes; no browser or Workspace data.
     for (const checkbox of this.shadowRoot.querySelectorAll<HTMLInputElement>(
              '#ahoiPracticeSteps input[type="checkbox"]')) {

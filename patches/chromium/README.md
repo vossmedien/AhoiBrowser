@@ -2237,6 +2237,15 @@ above.
 - **Test:** focused Mojo/content tests; cache12 journey.
 - **Rebase/removal:** drop with the tab-cache policy.
 
+## `0097-ahoi-active-workspace-extension-ui.patch`
+
+Extension action, menu, toolbar and contextual side-panel lookups reject tabs
+outside the window's active Workspace. Native non-tab delegate contexts remain
+available. An empty Workspace clears stale request-access confirmation, and
+late side-panel callbacks recheck the tab handle and active Workspace before
+showing content. Chromium's extension, Profile and permission ownership remain
+authoritative; these checks do not grant access or create another tab model.
+
 ## `0096-ahoi-tab-switcher.patch`
 
 The Arc-style tab switcher (user decision 6 October 2026, design reference

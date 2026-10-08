@@ -274,6 +274,7 @@ class SidebarTreeView final : public views::View,
   bool IsMultiSelected(const base::Uuid& node_id) const;
   bool has_multi_selection() const { return !multi_selected_.empty(); }
   void ClearMultiSelection();
+  void PruneMultiSelectionToVisibleRows();
   std::vector<base::Uuid> visible_node_order() const;
   bool HandleMultiSelectClick(const base::Uuid& node_id,
                               const ui::MouseEvent& event);

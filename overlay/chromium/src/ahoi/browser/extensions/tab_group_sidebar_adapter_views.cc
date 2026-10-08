@@ -6,6 +6,7 @@
 #include <set>
 #include <utility>
 
+#include "ahoi/browser/ui/sidebar/sidebar_menu_presence.h"
 #include "base/functional/bind.h"
 #include "chrome/browser/ui/tabs/tab_group_theme.h"
 #include "chrome/grit/generated_resources.h"
@@ -17,6 +18,7 @@
 #include "ui/base/dragdrop/os_exchange_data.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
+#include "ui/base/mojom/menu_source_type.mojom-shared.h"
 #include "ui/base/models/image_model.h"
 #include "ui/compositor/layer_tree_owner.h"
 #include "ui/events/event.h"
@@ -30,12 +32,14 @@
 #include "ui/views/controls/textfield/textfield_controller.h"
 #include "ui/views/layout/box_layout.h"
 #include "ui/views/view.h"
+#include "ui/views/view_observer.h"
 #include "ui/views/widget/widget.h"
 
 namespace ahoi::extensions {
 namespace {
 
 class TabGroupFolderView final : public views::View,
+                                 public views::ViewObserver,
                                  public views::TextfieldController,
                                  public ui::SimpleMenuModel::Delegate {
   METADATA_HEADER(TabGroupFolderView, views::View)
@@ -85,6 +89,7 @@ class TabGroupFolderView final : public views::View,
     name_->SetPlaceholderText(l10n_util::GetStringUTF16(
         IDS_TAB_GROUP_HEADER_BUBBLE_TITLE_PLACEHOLDER));
     name_->SetController(this);
+    name_->AddObserver(this);
     name_->SetVisible(false);
     contents_ = AddChildView(std::make_unique<views::View>());
     contents_->SetLayoutManager(std::make_unique<views::BoxLayout>(
@@ -93,6 +98,7 @@ class TabGroupFolderView final : public views::View,
   }
 
   ~TabGroupFolderView() override {
+    name_->RemoveObserver(this);
     if (editing_ && adapter_) {
       adapter_->SetTitleEdit(std::nullopt);
     }
@@ -100,13 +106,26 @@ class TabGroupFolderView final : public views::View,
 
   views::View* contents() { return contents_; }
 
+  void OnViewBlurred(views::View*) override {
+    // Leaving the editor cancels the draft, like Escape. Passive refreshes
+    // still preserve it while focused; searching or opening a tab can refresh.
+    if (editing_) {
+      editing_ = false;
+      name_->SetVisible(false);
+      if (adapter_) {
+        adapter_->SetTitleEdit(std::nullopt);
+      }
+      InvalidateLayout();
+    }
+  }
+
   bool HandleKeyEvent(views::Textfield*, const ui::KeyEvent& event) override {
     if (event.type() != ui::EventType::kKeyPressed) {
       return false;
     }
     if (event.key_code() == ui::VKEY_ESCAPE) {
-      name_->SetVisible(false);
       editing_ = false;
+      name_->SetVisible(false);
       if (adapter_) {
         adapter_->SetTitleEdit(std::nullopt);
       }
@@ -123,8 +142,8 @@ class TabGroupFolderView final : public views::View,
     }
     visuals->SetTitle(std::u16string(name_->GetText()));
     if (adapter_->SetVisuals(group_id_, *visuals)) {
-      name_->SetVisible(false);
       editing_ = false;
+      name_->SetVisible(false);
       adapter_->SetTitleEdit(std::nullopt);
       InvalidateLayout();
     }
@@ -201,9 +220,12 @@ class TabGroupFolderView final : public views::View,
     runner_ = std::make_unique<views::MenuRunner>(menu_.get(),
         views::MenuRunner::HAS_MNEMONICS);
     const auto alive = weak_ptr_factory_.GetWeakPtr();
-    runner_->RunMenuAt(GetWidget(), nullptr, GetBoundsInScreen(),
-                      views::MenuAnchorPosition::kTopLeft,
-                      ui::mojom::MenuSourceType::kNone);
+    {
+      const sidebar::ScopedSidebarMenu showing(this);
+      runner_->RunMenuAt(GetWidget(), nullptr, GetBoundsInScreen(),
+                        views::MenuAnchorPosition::kTopLeft,
+                        ui::mojom::MenuSourceType::kNone);
+    }
     if (alive) {
       runner_.reset();
       menu_.reset();

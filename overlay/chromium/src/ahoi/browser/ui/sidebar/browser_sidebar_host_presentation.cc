@@ -325,7 +325,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   if (auto* groups = session_bridge_->GetTabGroupSidebarAdapter(browser_)) {
     const auto workspace = controller_->view_model().workspace_id();
     if (workspace && groups->IsTitleEditing(*workspace)) {
-      // Enter/Escape or losing the group/Workspace releases this local editor.
+      // Enter/Escape, focus loss or losing the group releases this editor.
       // A favicon/title refresh must not discard a user's unfinished rename.
       return;
     }
@@ -664,7 +664,6 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
   // restores the exact persistent saved-page proxies without a store write.
   tree_view_->SetRuntimeCompositeSuppressedNodes(
       std::move(mixed_split_saved_nodes));
-  OnMultiSelectionChanged();
   const bool has_open_tabs = !open_tabs_container_->children().empty();
   // The action closes every temporary tab in the workspace, including rows
   // hidden by the active filter. Do not present that destructive global
@@ -682,6 +681,7 @@ void BrowserSidebarHostView::RefreshRuntimePresentation(
     // height) on every coalesced runtime refresh so the actual SplitTabData
     // always wins over callback timing.
     tree_view_->OnSplitGroupsChanged();
+    tree_view_->PruneMultiSelectionToVisibleRows();
   }
   RebuildSidebarDiscoveryPrimaryResults();
   bool primary_selection_restored = false;

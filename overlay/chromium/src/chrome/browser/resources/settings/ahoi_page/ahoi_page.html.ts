@@ -47,7 +47,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
             ?disabled="${!this.sidebarDensityPref_ ||
                 this.sidebarDensityPref_.enforcement ===
                     chrome.settingsPrivate.Enforcement.ENFORCED}"
-            @click="${this.onResetSidebarDensity_}">
+            @click="${this.onResetSidebarDensityClick_}">
           $i18n{ahoiSidebarDensityReset}
         </cr-button>
         <span class="secondary cr-padded-text" role="status" aria-live="polite">
@@ -124,7 +124,7 @@ export function getHtml(this: SettingsAhoiPageElement) {
             <input type="checkbox"><span>$i18n{ahoiPracticeReturn}</span>
           </label>
         </div>
-        <cr-button id="ahoiPracticeReset" @click="${this.onResetPractice_}">
+        <cr-button id="ahoiPracticeReset" @click="${this.onResetPracticeClick_}">
           $i18n{ahoiPracticeReset}
         </cr-button>
       </details>

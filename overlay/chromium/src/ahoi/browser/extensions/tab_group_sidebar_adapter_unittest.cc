@@ -11,6 +11,7 @@
 #include "base/time/time.h"
 #include "chrome/browser/ui/browser.h"
 #include "chrome/browser/ui/browser_window/public/create_browser_window.h"
+#include "chrome/browser/ui/tabs/split_tab_metrics.h"
 #include "chrome/browser/ui/tabs/tab_group_model.h"
 #include "chrome/browser/ui/tabs/tab_model.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
@@ -182,8 +183,8 @@ TEST_F(TabGroupSidebarAdapterTest, RealWebsiteSessionRemainsSeparate) {
   auto site = content::SiteInstance::CreateForFixedStoragePartition(
       profile(), url,
       session::StoragePartitionConfigForWebsiteSession(profile(), binding));
-  content::WebContents::CreateParams params(profile(), site);
-  auto contents = content::WebContents::Create(params);
+  auto contents =
+      content::WebContentsTester::CreateTestWebContents(profile(), site);
   auto* own_contents = contents.get();
   content::WebContentsTester::For(own_contents)->NavigateAndCommit(url);
   auto* model = browser()->GetTabStripModel();
