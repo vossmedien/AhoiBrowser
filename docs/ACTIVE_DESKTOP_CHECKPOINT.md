@@ -21,11 +21,13 @@ candidate e2b46119 preserves all16 Mobile product files byte-for-byte; its only
 shared-source difference from6f is the accepted CloudKit tombstone guard on
 mainc2fa6f88. The returned R/DD/A058 lease was verified and consumed by Root.
 Guarded build terminal0 after24.97%CPU admission; exact receipt/runner rebound.
-The two visible journeys run as confirmed PID82468 on A058, admitted15.07%CPU,
-58,676,477,952 bytes free. Evidence:
-`~/inhouse/evidence/ahoi-mobile-main-e2b46119-20261008/`. Main has not moved to
-this candidate. After positive UI, run the necessary existing focused checks,
-verify delivery, then integrate/push through the existing path.
+Both visible journeys2/2 and app-hosted focus9/9 passed on exact e2, no skips.
+A058 is Shutdown, locks/inputs removed; no Root heavy phase remains live.
+Evidence: `~/inhouse/evidence/ahoi-mobile-main-e2b46119-20261008/`.
+Actual main0f79b20f is regularly pushed and fresh server readback matches;
+only documentation follows tested product e2. Returned canonical Debug app
+`artifacts/build/mobile/debug-step1-e2b46119/AhoiMobile.app` matches the receipt,
+signature and exact runner. Simulator-only Step1 delivery, not whole Master.
 
 ## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
 

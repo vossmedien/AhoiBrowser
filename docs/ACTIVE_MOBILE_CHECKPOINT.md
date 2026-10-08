@@ -12,13 +12,19 @@ both own locks/processes and fixture inputs were absent at the current check.
 Root prepared candidate e2b46119 on actual mainc2fa6f88 in owned temporary
 worktree `/private/tmp/ahoi-mobile-main-6f-l89pxdz6`. Product files match6f;
 the accepted main CloudKit dependency correction requires a fresh candidate.
-Same R/DD is now clean e2, guarded build passed, native UI PID82468 is live
-on A058 under Root's lock. Candidate receipt, exact runner and installed bytes
-are bound; real CloudKit mutation stays off. Main/push/final Debug delivery
-remain open until these checks finish. Evidence:
+Same R/DD is clean e2; guarded build, native UI2/2 and app-hosted focus9/9 all
+passed, no skips. A058 is Shutdown; locks/inputs absent and Root owner record
+inactive. Actual main0f79b20f was regularly pushed and independently read back
+from the server. Canonical Debug app at
+`artifacts/build/mobile/debug-step1-e2b46119/AhoiMobile.app` is returned and
+independently hash/signature verified; exact runner/receipt returned too.
+The worker's4d77b8e0 prepared integration has the same tree as executed e2;
+only e2 is integrated. Real CloudKit mutation stays off. Evidence:
 `~/inhouse/evidence/ahoi-mobile-main-e2b46119-20261008/` and original worker
 `docs/reviews/2026-10-07-mobile-popup-permissions-implementation.md` atbaef7f39.
-No new worker/Goal, no repeat review and no Source lease for DM assigned yet.
+Mobile55 delivery handback ad4a7a54 is concrete; native child Goal acceptance
+remains that worker's action. Step2/physical-device/live-Sync remain open.
+No new worker/Goal, no third review and no Source lease for DM assigned yet.
 
 ## Current Codex continuation: Files delivered on main; popup/permissions delegated — 7 October 2026
 
