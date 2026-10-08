@@ -52,6 +52,17 @@ without a third model review. Arc's provisional6/6 History and20/20 focus do
 not close these new gates. No final Desktop publication/install until its
 ready source, exact app/provenance, reruns and review resolutions are accepted.
 
+Root inspected Arc script fixbbb4bb49: occupied-port refusal, exact listener
+PID/profile before CDP, single-link regular mutable files and supported verdict
+after native assertions close the three reviewed locations. Final negative/
+visible rerun evidence remains with the same worker; no additional review.
+Its subsequent local candidate518644dd merges accepted main but omits26 older
+Root Mobile paths relative to canonical47 (coalescer/subscription/flick/receive
+and associated tests). This may delimit a Desktop-only package; it must not
+reset the canonical source or imply full Mobile completion. Feedback47f8cf57
+binds Root uptake to exact Arc4-C++/Journey delta against3c, preserving our
+combined Mobile baseline. No whole518 merge or parallel default publication.
+
 ## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
 
 **Native Master Goal BLOCKED at03:44UTC, not achieved or user-paused.** The
