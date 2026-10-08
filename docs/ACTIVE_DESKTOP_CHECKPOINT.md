@@ -1,6 +1,37 @@
 # Active Desktop checkpoint
 
 
+## Current browser-test compile correction handback — 9 October 2026
+
+Root99340 is terminal1 at22:25:32Z, no running Root build or test, outer lock
+released. The existing B6 browser-regression build planned eight Ninja edges;
+it exposes two existing M155 fixture API errors: CreateBrowser(Profile*) now
+returns BrowserWindowInterface*, while Browser* const is declared in
+arc_import_service_browsertest.cc:370 and arc_split_runtime_browsertest.cc:213.
+This is a source-backed browser-test compatibility failure, not a new app
+compile failure or executed regression. No assertions/guards are weakened.
+
+Full signed B6-app tree remains exactly
+197b4cf1a04fe0b492731bfae06175c7cf0a5f51511579e82239f5eb819ac388 after the
+separate test-target build. Product Source, app stamp/signature, installed apps
+and failed/passed UI evidence are unchanged. Raw log gzip preserves original
+bytes/hash/length; Root readback passes. Future targeted BRT execution remains
+after visible E2E; this test-only failure does not substitute for or newly block
+the already runnable B6's relevant visible journey.
+
+Explicit minimal two-file Source scope returned to the existing Arc1019/e5fbc1f3
+identity under the same M155 repair Goal, note38716b39. Port only these two
+fixture callsites to exact pinned API, preserve assertions/lifecycle/800-line
+budget. Worker edits its owned Source; no N/W/out writes, extra review/worker/
+Goal or production change. Root accepts attributable correction then recompiles
+same warm target. Existing Orchestrator receipt9132f9c0-53d9-4b13-b04a-eb5b6048db38
+is queued, not a native acceptance/start proof. GUI unlock/owner-return and
+original DM repair remain separate; Arc/C70 conditional slots are unchanged.
+Evidence: artifacts/tests/desktop-b6-browser-regression-20261009/
+terminal-result.json, build.log.gz, runner.exit and phases.log plus same-worker
+correction request/receipt. Earlier RUNNING entry below is historical.
+
+
 ## Current same-candidate runtime coordination and BRT compile — 9 October 2026
 
 Arc906e9930 actually consumes the B6 handback and independently confirms its

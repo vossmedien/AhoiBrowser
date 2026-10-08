@@ -1,0 +1,15 @@
+{
+  "source": "b6bce96774f5440567f4d2f6d08d43526e403b13",
+  "target": "ahoi_arc_import_browsertests",
+  "exit": 1,
+  "failureCategory": "existing M155 browser-test API compatibility",
+  "errors": [
+    "../../../../../../Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/ahoi/browser/importer/arc/arc_import_service_browsertest.cc:370:18: error: cannot initialize a variable of type 'Browser *const' with an rvalue of type 'BrowserWindowInterface *'\n  370 |   Browser* const foreground = CreateBrowser(browser()->GetProfile());\n      |                  ^            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n1 error generated.",
+    "../../../../../../Volumes/Daten/Inhouse/AhoiBrowser/work/chromium/src/ahoi/browser/importer/arc/arc_split_runtime_browsertest.cc:213:18: error: cannot initialize a variable of type 'Browser *const' with an rvalue of type 'BrowserWindowInterface *'\n  213 |   Browser* const foreground_browser = CreateBrowser(browser()->GetProfile());\n      |                  ^                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n1 error generated."
+  ],
+  "originalLogSha256": "28a85f7654c751cbbab49a03cfd2c04511ed8729174a58abed70b9aea910f61e",
+  "originalLogBytes": 33549,
+  "appTreeUnchanged": "197b4cf1a04fe0b492731bfae06175c7cf0a5f51511579e82239f5eb819ac388",
+  "testsExecuted": false,
+  "ownerLockReleased": true
+}
