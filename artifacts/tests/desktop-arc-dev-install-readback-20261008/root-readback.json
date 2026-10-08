@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "6f06daf0ca0e79091a2fc48f6bd79bb838588149",
+  "installedApp": "/Applications/AhoiBrowser.app",
+  "executableRawSHA256": "bdd229591271f8d33e7b462f99b543a0b4afca213164b8d06049a80a4a6f463f",
+  "matchesWorkerReceipt": true,
+  "signatureDeepStrict": "PASS",
+  "rollbackEF": "/Applications/.AhoiBrowser.rollback-v0.0.1-b1-sef982afebdf3-h3e3190912e80.app",
+  "defaultMain": "5c9c6a5bff56d8c231dc946389dc82b290a2cae9",
+  "wholeDesktopAcceptance": false,
+  "limits": "Arc-scope installed development artifact; C70/other Crest/public release remain open"
+}

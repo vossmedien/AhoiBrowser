@@ -6,7 +6,11 @@ Original Master Goal/thread01a11179 is ACTIVE again by explicit user action.
 Today the Inhouse disk gate passes (55GiB free, initial CPU10.42%, memory66%);
 the7October BLOCKED/NOT_STARTED state below is historical.
 
-Read-back installed Inhouse source is3c370175; Dev daily app remainsEF982.
+Read-back installed Inhouse source is3c370175. Arc's new guarded Dev install
+is6f06daf0; Root independently confirms installed source, executable hash and
+deep/strict signature against installed-dev-6f06daf0.json. Protected EF rollback
+is retained. This is an Arc-scope development delivery; C70/remaining Crest and
+the full Desktop default-branch/public-release gates remain open.
 The existing Full-F build/sign/provenance/atomic-install receipts are terminal0;
 returned archive and exact-source verification are in E3's d6406dd6 handback
 and `~/inhouse/evidence/ahoi-full-6eefc4a8/review-corrections-3c370175/`.
@@ -62,6 +66,11 @@ and associated tests). This may delimit a Desktop-only package; it must not
 reset the canonical source or imply full Mobile completion. Feedback47f8cf57
 binds Root uptake to exact Arc4-C++/Journey delta against3c, preserving our
 combined Mobile baseline. No whole518 merge or parallel default publication.
+Arc subsequently reports guarded daily installation of exact frozen6f, now
+verified locally in `artifacts/tests/desktop-arc-dev-install-readback-20261008/`.
+Actual main still5c9c6a5b. Feedbackd1192963 requests the exact ready handback and
+preserves the unaccepted global Desktop gates before shared publication;
+C705343e867 was notified of the actual app switch to prevent stale3c binding.
 
 ## Codex continuation: close candidate built; GUI receiver gate and full integration — 7 October 2026
 
