@@ -905,3 +905,13 @@ Veto-/All4-/NoToast-/Auswahl-/Retry3Close-/Delta-Assertions bleiben vollständig
 Noch kein GUI-Start oder positiver Runtimebefund. Danach Fokuschecks und kleinster
 nativer C70-Review; tatsächliche Main/Push/geschützte Lieferung bleiben beim Lead.
 Goal unerledigt, Identität unverändert; keine cockpit_report-Doppelmeldung.
+
+Die zugehörige neue Quittung0a2f925e wurde einmal nach unabhängiger Vorbereitung
+gelesen: am15:40:15UTC **unknown/TARGET_CHANGED**, gebundener Zielthread
+`01a11c29-d1b8-7c73-8eff-7377b732aa14`. Keine Ownerantwort oder Freigabe daraus
+abgeleitet, keine Wiederholung. Die reparierte direkte Peerzustellung ist von
+der weiterhin fehlgeschlagenen Orchestrator-Zielbindung getrennt. Berichtcommit
+`f06dce62945774fa78f32811ca215e1e775fe8fb` enthält ausschließlich diesen
+vereinbarten Pfad, DCO/Desktop; zurechenbarer Diff-/Lanecheck ab seinem Parent
+PASS0/0. Root erhielt seinen vorbereiteten Runtimehandback unter cffb5154; noch
+kein GUI-PASS. Keine laufende eigene Test-/Buildphase oder unveränderte Pollschleife.
