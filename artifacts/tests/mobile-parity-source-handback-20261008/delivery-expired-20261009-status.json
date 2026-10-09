@@ -9,10 +9,11 @@
     },
     "message": "Materieller Befund im bestehenden EC061D79-B398-42CD-8129-25F22E9E2055, keine neue Delegation oder Wiederholung unbekannter Sideeffects: Der gebundene Parent-/Arc-Handoff9f176fbe-d4bf-48ac-af26-2d95b06e936d/e5fbc1f3 ist failed/NOTE_DELIVERY_EXPIRED seit2026-10-08T23:06:10Z, zuvor NOTE_BINDING_VALIDATION_PENDING. Root68E/01a11179, Arc1019DD/01a113e8/Goalcreated1791335405 unverändert. Zwei konkrete M155-Fixturecompilefehler bleiben dadurch ohne Ownerzustellung: arc_import_service_browsertest.cc:370 und arc_split_runtime_browsertest.cc:213, CreateBrowser liefert BrowserWindowInterface*, Deklaration Browser*. Scope zwei Tests, kein Produkt-/N/W/out-Write; gleicher Worker, kein Ersatzgoal. Arcbranch b38d6666 enthält keinen Fix. Originale Bindung durch bestehenden Lifecycle763D7B06/01a114db-cc51 prüfen lassen, gemeinsam mit bereits offenem DM8e74/AE918FA0/01a11680 TARGET_CHANGED; keine neue Session oder Accountänderung. Vorliegende cdd0ac04 und9132f9c0 unknown/TARGET_CHANGED bleiben erhalten. Separat C70 hat Devphase ausdrücklich beendet: 46925/30287 terminal, App56626/Fixture/Ports9349/8796/e2e.lock freigegeben. Root konsumiert Bericht6310ace1 und Source1edd137a samt acht Originalraws; bfa47717 gepusht. Tatsächliche B6-UI FAIL: DisplayPilot14176/window985 verweigert Mausposting; Veto/3Close/Delta nicht erreicht. Kein fremder Prozess/Guard geändert. ArcInhouse bleibt locked und wartet auf ausdrückliche GUI-Rückgabe aus dem bestehenden BetterIPTV144739/Vega-LintA577-Vorgang. Der veröffentlichte cockpit_orchestrator_message-Vertrag ist actions.readOnly und bestätigt nur Information, keine solche Reparatur/Zustellung. Bitte diesen konkreten Capability-/Bindungsbefund im vorhandenen ausführbaren EC/Lifecycleweg berücksichtigen und tatsächliche Ownerzustellung/Reparatur getrennt quittieren. Belege: artifacts/tests/desktop-b6-browser-regression-20261009/bound-owner-source-handback-expired.json, bestehende mobile-parity-source-handback-20261008 und ACTIVE_DESKTOP/SYNC. Keine neue GUI-/Buildphase begonnen."
   },
-  "phase": "sending",
-  "updatedAt": "2026-10-09T00:42:20Z",
+  "phase": "unknown",
+  "updatedAt": "2026-10-09T00:44:25Z",
   "nativeChatID": "502afb60-671d-46fc-a3c5-a257d9e8e3fc",
   "acceptedAt": "2026-10-09T00:42:13Z",
   "targetAccountID": "DEFAA5B4-A7FE-4558-9214-CAFEAD98D4C5",
-  "targetThreadID": "01a11dba-ed2b-7723-b2b8-1d6bef61fc5a"
+  "targetThreadID": "01a11dba-ed2b-7723-b2b8-1d6bef61fc5a",
+  "error": "TARGET_CHANGED"
 }

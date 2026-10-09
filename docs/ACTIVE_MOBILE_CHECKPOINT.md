@@ -14,7 +14,11 @@ Step1 remain unchanged, no replacement worker or Mobile runtime lease.
 
 Material routing finding502afb60-671d-46fc-a3c5-a257d9e8e3fc is accepted
 9October00:42:13Z in the same EC061D79 coordination; the one read is sending
-at00:42:20Z on target01a11dba, without answer/owner receipt. It binds the
+at00:42:20Z on target01a11dba, without answer/owner receipt. Last observed00:44:25Z is
+unknown/TARGET_CHANGED on that same target; original AE918 is still absent
+in00:46:32Z Session Insight. No new-ID replay or replacement worker. Desktop's
+current three-turn blocked audit retains the full original Master scope.
+The material finding binds the
 new Arc NOTE_DELIVERY_EXPIRED to the existing Lifecycle763/DM8e74 repair;
 the published Orchestrator information route is actions.readOnly, not an
 execution or owner-delivery receipt. Original AE918/01a11680 repair remains

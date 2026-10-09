@@ -16,7 +16,9 @@ failed/NOTE_DELIVERY_EXPIRED at2026-10-08T23:06:10Z, after pending binding
 validation. Its original session/thread/Goal and scope remain preserved.
 New material finding502afb60-671d-46fc-a3c5-a257d9e8e3fc was accepted
 00:42:13Z in this existing EC061D79 coordination, then sending at00:42:20Z
-on target01a11dba with no answer/owner receipt; original
+on target01a11dba with no answer/owner receipt. The
+latest observation00:44:25Z is unknown/TARGET_CHANGED, not owner delivery.
+The same original request is retained without replay;
 cdd0ac04/9132f9c0 unknown requests are not replayed. The published information
 route is actions.readOnly, so reception cannot prove cross-project owner
 dispatch or Lifecycle repair. Same BetterIPTV144739/Vega-LintA577 GUI return,

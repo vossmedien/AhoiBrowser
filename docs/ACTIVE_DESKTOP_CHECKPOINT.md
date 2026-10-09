@@ -1,5 +1,31 @@
 # Active Desktop checkpoint
 
+## Current blocked audit — 9 October 2026, 00:46 UTC
+
+Three consecutive Goal continuations after the last material C70/Arc-delivery
+handback made no progress through the same external prerequisite. Fresh native
+console readback confirms CGSSessionScreenIsLocked=true on both Dev and Inhouse.
+Canonical ff162d0e is tracked-clean; Arc remains b38d6666 with no two-test-file
+correction. Original DM AE918/01a11680 is absent in Session Insight00:46:32Z;
+Arc1019 and Lifecycle763 are unavailable despite existing native processes.
+Those processes are not runtime jobs, repaired bindings or useful live waits.
+
+The last Orchestrator observation for502afb60 is unknown/TARGET_CHANGED,
+updated00:44:25Z on its bound01a11dba target; no owner receipt or repair.
+Original unknown requests and expired9f176fbe are retained, not replayed.
+Independent remainder was checked against the current package order: Mobile
+source depends on original DM repair, extension Step2 on the unanswered
+ADR0012 decision, Desktop integration/delivery on actual Arc/C70 acceptance.
+Real-device, rights and release-signing gates remain unproven. No useful
+independent authorized action is currently ready; native blocked audit passes.
+
+Resume the original full Master/thread/createdAt on actual unlocked GUI and
+owner handback, repaired original worker delivery, the pending product answer,
+or another concrete independent prerequisite. Root has no runtime/build/test
+job, preserves B6/cache/rollback and all peer Goals, and starts no replacement
+worker or unchanged status loop. Earlier ACTIVE entries below are chronology;
+the native Goal tool owns its status transition after this checkpoint is saved.
+
 
 ## Current C70 B6 visible result FAIL — 9 October 2026
 
@@ -52,7 +78,9 @@ delta from B6. The same request and original identities are retained; no
 duplicate worker/Goal or unchanged compile retry. Material routing finding
 502afb60-671d-46fc-a3c5-a257d9e8e3fc was accepted00:42:13Z in the existing
 EC061D79 coordination; the one status read is sending at00:42:20Z on
-target01a11dba, without answer or owner receipt. The published Orchestrator information
+target01a11dba, without answer or owner receipt. Last observed00:44:25Z is
+unknown/TARGET_CHANGED on that same target, with no repair or new-ID retry.
+The published Orchestrator information
 route uses actions.readOnly; it does not itself repair a binding or dispatch
 to Lifecycle763. Actual original-worker delivery/correction remains required.
 
