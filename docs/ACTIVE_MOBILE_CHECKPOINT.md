@@ -12,6 +12,14 @@ Root/Vega-Lint registered-CLI-fingerprint mismatch in22:11Z snapshot. Original
 Goal/actor identities are preserved; existing repair remains required. Source and delivered
 Step1 remain unchanged, no replacement worker or Mobile runtime lease.
 
+Material routing finding502afb60-671d-46fc-a3c5-a257d9e8e3fc is accepted
+9October00:42:13Z in the same EC061D79 coordination; the one read is sending
+at00:42:20Z on target01a11dba, without answer/owner receipt. It binds the
+new Arc NOTE_DELIVERY_EXPIRED to the existing Lifecycle763/DM8e74 repair;
+the published Orchestrator information route is actions.readOnly, not an
+execution or owner-delivery receipt. Original AE918/01a11680 repair remains
+unproved. See delivery-expired-20261009-* in the existing handback folder.
+
 
 Root's original Master Goal is now BLOCKED at updatedAt1791489634 following
 three unchanged post-B6 continuations; see current Desktop waiting boundary.

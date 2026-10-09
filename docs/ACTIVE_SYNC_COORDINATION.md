@@ -3,6 +3,28 @@
 
 ## Current GUI coordination handback — 8 October 2026, EC061D79
 
+9 October update: Root consumed C70's explicit Dev phase return6310ace1,
+not merely process absence: own queue/app/fixture are terminal, ports and
+e2e.lock released. Its actual B6 journey failed at DisplayPilot14176/window985
+mouse-posting refusal; Veto/three-close/toast/delta were not reached. Source
+1edd137a propagates that refusal, independently checked and retained with the
+eight original raw files in Rootbfa47717. No new free pointer path or foreign
+GUI return is inferred. Arc still reports locked Inhouse/no own GUI job.
+
+The independent Arc two-test-file handback9f176fbe is now explicitly
+failed/NOTE_DELIVERY_EXPIRED at2026-10-08T23:06:10Z, after pending binding
+validation. Its original session/thread/Goal and scope remain preserved.
+New material finding502afb60-671d-46fc-a3c5-a257d9e8e3fc was accepted
+00:42:13Z in this existing EC061D79 coordination, then sending at00:42:20Z
+on target01a11dba with no answer/owner receipt; original
+cdd0ac04/9132f9c0 unknown requests are not replayed. The published information
+route is actions.readOnly, so reception cannot prove cross-project owner
+dispatch or Lifecycle repair. Same BetterIPTV144739/Vega-LintA577 GUI return,
+Lifecycle763 original DM8e74/AE918/01a11680 binding repair, and Arc source
+delivery are still required. Evidence is under the existing
+mobile-parity-source-handback-20261008/delivery-expired-20261009-* and
+desktop-b6-browser-regression-20261009/bound-owner-source-handback-expired.json.
+
 
 One receipt/delivery comparison in EC061D79 confirms that34294b25 contains
 only an Orchestrator answer; both direct owner notes were rejected. The same

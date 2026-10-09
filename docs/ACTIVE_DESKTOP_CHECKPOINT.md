@@ -21,7 +21,10 @@ after owncleanup, no app/listeners/lock; next visible rerun needs actual free
 pointer path and the corrected harness, not the same unchanged setup.
 
 Root consumed verdict readonly and gave concrete same-worker feedback86f8da84;
-C70 retains Dev runtime responsibility until actual cleanup/terminal handback.
+C70's explicit handback6310ace1 is now consumed: queue46925/30287 and its
+monitor are terminal, own app56626/fixture are ended, ports9349/8796 and
+e2e.lock are free; the Dev runtime phase is returned. This return does not
+remove DisplayPilot's pointer boundary or authorize another unchanged attempt.
 No Root input, Source fix or second queue started. Original failed files are
 retained byte-exact/hash-bound in artifacts/tests/desktop-c70-b6-first-visible-
 20261009/. Original before-unload/layout/source guards are unchanged. A rerun
@@ -41,11 +44,17 @@ delegatione5fbc1f3, original Root caller68E/01a11179, target1019DD/01a113e8 and
 Goalcreated1791335405. Explicit independent scope is exactly the two existing
 M155 fixture type corrections; locked GUI blocks subsequent E2E, not this code
 preparation. First status queued/NOTE_BINDING_VALIDATION_PENDING at22:36:00Z:
-no native acceptance, Goal resume or Source edit is inferred. Same request and
-original identities are retained, no duplicate worker/Goal or unchanged compile
-retry. Existing owned request/receipt/status in desktop-b6-browser-regression-
-20261009/bound-owner-source-handback-*.json. Arc117602dc still has no testfile
-delta from B6, so Root waits for actual attributable correction/native handback.
+no native acceptance, Goal resume or Source edit is inferred. A single read
+after the new Arc handback yields failed/NOTE_DELIVERY_EXPIRED, updated
+2026-10-08T23:06:10Z; the original queued receipt is preserved alongside
+bound-owner-source-handback-expired.json. Arcb38d6666 still has no testfile
+delta from B6. The same request and original identities are retained; no
+duplicate worker/Goal or unchanged compile retry. Material routing finding
+502afb60-671d-46fc-a3c5-a257d9e8e3fc was accepted00:42:13Z in the existing
+EC061D79 coordination; the one status read is sending at00:42:20Z on
+target01a11dba, without answer or owner receipt. The published Orchestrator information
+route uses actions.readOnly; it does not itself repair a binding or dispatch
+to Lifecycle763. Actual original-worker delivery/correction remains required.
 
 Root99340 is terminal1 at22:25:32Z, no running Root build or test, outer lock
 released. The existing B6 browser-regression build planned eight Ninja edges;
