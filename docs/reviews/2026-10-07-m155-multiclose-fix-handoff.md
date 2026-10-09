@@ -1151,3 +1151,29 @@ CWD ausdrücklich „Session kann nicht zugeordnet werden“ verweigert.
 native Goal-/Threadidentität wird dafür nicht geändert. Kein Rootempfang
 behauptet; der zurechenbare Source-/Rawhandoff liegt in diesem bestehenden
 Bericht, keine zweite cockpit_report-Quittung. Goal unerledigt.
+
+Quellcode-Followupcommit `1edd137a76c639703d170a6023d7caae4b838ae1`
+(`fix(desktop-e2e): propagate refused native multi-select clicks`),
+DCO/Desktop: nur Journey +1/−1 und dieser Bericht. Dokumentierter tatsächlicher
+Funktions-Regressioncheck wurde aus dem Bericht erneut ausgeführt und besteht
+für HIDrefusal3 und Erfolg0; bash-n/Diffcheck und Lanecheck0/0. Fremde laufende
+Änderung an ACTIVE_DESKTOP_CHECKPOINT wurde nicht gestaged oder committet.
+
+Ein konkretes neues Ergebnis-/Sourcehandback ist über den bestehenden
+Orchestrator aufgenommen: `061e569b-64d2-40c8-aab6-c70901d1a77a`,
+accepted2026-10-09T00:28:03Z. Native Quittung bindet tatsächlichen Caller
+4CD993/01a1134d/CWD/accountDEFA; kein Ersatzsender trotz fehlender gewöhnlicher
+Sessionzuordnung. Aufnahme/queued ist kein zugeordneter Rootempfang,
+Integrations-/Ownerannahme oder neuer Runtimepass. Die erste UUID hatte einen
+Nicht-Hexteil und wurde vor Annahme INVALID_ARGUMENT verworfen; mit gültiger
+UUID korrigiert, keine unklare Anfrage wiederholt. Native Goalidentität bleibt
+unverändert; keine weitere gleiche GUIrunde ohne neue freiePoint-Voraussetzung.
+
+Die einmalige gebundene Statusprüfung liefert inzwischen **unknown/TARGET_CHANGED**,
+updated2026-10-09T00:28:30Z, original gebundener Orchestrator-Zielthread
+`01a11dba-ed2b-7723-b2b8-1d6bef61fc5a`. Kein Rootempfang/Sourceintegration oder
+Ownerkonsum daraus abgeleitet, kein erneuter Versand. Der Worker hat seine
+beendete Dev-Runtimephase ausdrücklich freigegeben; ob der Lead dieses Handback
+angenommen hat, bleibt wegen der realen Zustellgrenze unbelegt. Report/Commits
+und Originalraws sind im selben Auftrag verfügbar. Keine weitere GUIphase
+ohne geklärte Point-/Ownergrenze und zugeordneten nächsten Slot.
