@@ -1,0 +1,34 @@
+{
+  "summary.txt": {
+    "originalSha256": "4ede5e6d0b06dd0b82dd19434dd456f3531cd1a3e5f65cda516002223bfe4c5e",
+    "originalBytes": 48
+  },
+  "summary.json": {
+    "originalSha256": "b436e9417ce8d913a3177dcbfe1c2c78aa49c041c16437d550b2c337c321f830",
+    "originalBytes": 93
+  },
+  "multi-select/verdict.json": {
+    "originalSha256": "ddaac51471f13567348aa99100a48a2fe51ca84a6e633e94715dbeb514ef5a03",
+    "originalBytes": 396
+  },
+  "multi-select/before-unload-installed.json": {
+    "originalSha256": "29731ea392db71659653d37e8844a51b13d529e9f27079d6eced8190117d8014",
+    "originalBytes": 43
+  },
+  "multi-select/steps.txt.gz": {
+    "originalSha256": "8f0938906696fb04ef9a67f38a991136a7d8d2477cf1f7b90acc10121e770a5c",
+    "originalBytes": 5147
+  },
+  "multi-select/browser.log.gz": {
+    "originalSha256": "0ef66f98eafbb685b759ad3cc39ed4cb5f4681ca8308fccd258c8b3cfaad3776",
+    "originalBytes": 23314
+  },
+  "multi-select.log.gz": {
+    "originalSha256": "ddaac51471f13567348aa99100a48a2fe51ca84a6e633e94715dbeb514ef5a03",
+    "originalBytes": 396
+  },
+  "wait.log.gz": {
+    "originalSha256": "b860002fc7949c7d076d8402073006b44b8f89c608c6222831dbac592c35fb1d",
+    "originalBytes": 680
+  }
+}

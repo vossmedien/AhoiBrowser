@@ -1,6 +1,37 @@
 # Active Desktop checkpoint
 
 
+## Current C70 B6 visible result FAIL — 9 October 2026
+
+C70's existing Dev queue30287/monitor30286 passed the unmodified HID/CPU/
+unlocked guard after23:00Z and actually drove signed B6, browserPID56626/
+window968 verified as the native receiver. Same queue is terminal, no duplicate
+run. Actual summary multi-select FAIL exit4: plainClickSelectsOne=true but
+Cmd-add/Shift-range/reselect=false, menuTitle/closeEnabled=false, native
+beforeUnloadPrompt=false. setupFailed before before-unload prompt confirmation;
+no positive Veto/three-close/toast/delta acceptance is inferred. New owner
+diagnosis1edd137a shows native mouse posting was refused at every sidebar
+point: pointer ownerDisplayPilot14176/window985 overlays actualAhoi56626/968.
+The apparent plain/escape success is initial state, not successful delivery.
+Existing click() lost hidclick failure through its final sleep; minimal1-line
+fix now propagates refusal to the original caller. Root verifies actual-function
+status3→nonzero and0→zero, plus Bashsyntax; no guard/assertion/event policy
+weakened. Close-product behavior is still unproved. Owner returned Dev slot
+after owncleanup, no app/listeners/lock; next visible rerun needs actual free
+pointer path and the corrected harness, not the same unchanged setup.
+
+Root consumed verdict readonly and gave concrete same-worker feedback86f8da84;
+C70 retains Dev runtime responsibility until actual cleanup/terminal handback.
+No Root input, Source fix or second queue started. Original failed files are
+retained byte-exact/hash-bound in artifacts/tests/desktop-c70-b6-first-visible-
+20261009/. Original before-unload/layout/source guards are unchanged. A rerun
+needs concrete correction or changed prerequisite, not an unchanged retry.
+Arc's independently blocked GUI step and bound two-file BRT Source handback
+remain separate. Build/sign/provenance/returned B6 stays valid, runtime/current
+C70 review/Main/publication remain open. Earlier queue RUNNING entries below
+are history; this failed journey is the actual observed result.
+
+
 ## Current browser-test compile correction handback — 9 October 2026
 
 
