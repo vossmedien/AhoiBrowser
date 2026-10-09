@@ -1177,3 +1177,39 @@ beendete Dev-Runtimephase ausdrücklich freigegeben; ob der Lead dieses Handback
 angenommen hat, bleibt wegen der realen Zustellgrenze unbelegt. Report/Commits
 und Originalraws sind im selben Auftrag verfügbar. Keine weitere GUIphase
 ohne geklärte Point-/Ownergrenze und zugeordneten nächsten Slot.
+
+### Wiederhergestellte direkte Zuordnung und begrenzter öffentlicher Hit-Test
+
+Die nächste tatsächliche Cockpit-Snapshotantwort ordnet denselben Worker4CD993
+wieder zu. Direkte Source-/Cleanuphandbacks7f4a6088 an Root und8a6dd97f an Arc
+sind aufgenommen; das ist weiterhin keine behauptete Sourceannahme oder
+integrierte/gepushte Lieferung. Rootcheckpoint beschreibt denselben Originalfail
+und hat dessen Rawverdict separat gesichert; Bericht-/Sourcepfade bleiben disjunkt.
+
+Offene gezielte Diagnose ist **visuelles Fenster versus realer Mouse-down-Hit**.
+SDK27 NSWindow.h und [Apples offizieller APIvertrag](https://developer.apple.com/documentation/appkit/nswindow/windownumber%28at%3Abelowwindowwithwindownumber%3A%29)
+belegen: NSWindow.windowNumber(at:belowWindowWithWindowNumber:) liefert den
+frontmost tatsächlichen Mouse-down-Hit einschließlich fremder Anwendungen,
+transparenten Punkten und ignoresMouseEvents-Fenstern. Die letzteren werden
+übersprungen. Die bisherige CGWindowList-Auswahl im Guard ist nur visuelle
+Front-to-back-Geometrie; damit besteht eine konkrete noch zu prüfende mögliche
+Differenz. Kein DisplayPilot-Guardfehler ohne Laufzeitdiskrepanz behauptet.
+
+Ein rein lesender temporärer Swiftprobe (keine Sharedquellen/out, kein UI/Event,
+TCC oder fremde Appaktion) wurde auf dem betroffenen Dev-Desktop nach
+CPU52,26/67,45/74,34 %, Mittel64,68 %, SDK27 ausgeführt. Quartzpoint140/322
+entspricht AppKitpoint140/1007 bei MainDisplay2056x1329. Aktuell sind visueller
+und Mouse-down-Picker beide1521: WindowServerPID425, Layer2147483646,
+Bounds0/0/2056/1329, alpha1. Probe außerhalbBildschirm liefert0, also keinen
+bekannten Empfänger. Das ist ein aktueller deckender Systemlayer, **kein**
+positiver Dimming-Overlay-/Ahoi-Empfängerbeleg. Der frühere JXA-Scalarwert1509
+hatte keine CGZuordnung; initiale CFArray-Bridgingversuche waren unvollständig,
+sie gelten nicht als Diagnosepass. Keine zusätzliche Guard-/Launcheränderung.
+
+Root erhält die konkrete enge Methode im selben Auftrag: bei tatsächlich
+freier GUI am realen Ahoi-Punkt CGvisuellen Owner und AppKitMouse-down-Nummer
+mit derselben CGOwnerzuordnung nebeneinander lesen, negative fremde/unknown
+Grenze erhalten. Erst bei belegter Diskrepanz minimalen öffentlichen Picker
+verwenden, keine Appnamens-Whitelist, keine privateAPI oder NSWorkspace-only
+Freigabe. Bis dahin originale Inputverweigerung und offene sichtbare Abnahme
+erhalten; keine gleiche GUIrunde oder vorgezogener C70-Review.
