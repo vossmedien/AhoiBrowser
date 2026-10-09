@@ -41,7 +41,7 @@ row() { $AX dump $PID 40 | grep -o -E "AX(Row|Cell|RadioButton|Tab|Button) \| [^
 click() { # <name> [modifiers]
   local r; r=$(row "$1"); [ -n "$r" ] || { echo "no row for $1" >> "$OUT/steps.txt"; return 1; }
   $AX activate $PID >/dev/null; sleep 0.3
-  shift; $AX hidclick $PID "$r" "$@" >> "$OUT/steps.txt"; sleep 1
+  shift; $AX hidclick $PID "$r" "$@" >> "$OUT/steps.txt" || return 1; sleep 1
 }
 # Sorted names of the selected sidebar rows, e.g. "Alpha Gamma".
 selected() { $AX selected $PID | grep -o -E 'Mehrfach-[A-Za-z]+' | sed 's/Mehrfach-//' | sort -u | tr '\n' ' ' | sed 's/ $//'; }

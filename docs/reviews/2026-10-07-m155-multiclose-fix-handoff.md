@@ -4,9 +4,11 @@ Stand: 9. Oktober 2026. Sourcefix und gezielte Harnesskorrekturen sind übergebe
 Das originale Worker-Goal ist durch den Nutzer wieder ACTIVE gesetzt. Root hat
 inzwischen den aktuellen signierten Kandidaten `b6bce967` zurückgegeben; seine
 C70-Produkt-/Harnesspfade sind gegenüber3c bytegleich. Zentrale sichtbare
-Auswahl-/Veto-/Drei-Tab-Close-Abnahme läuft jetzt als tatsächlich gestartete
-Dev-Queue nach Roots konkreter Slotzuordnung. Der bestätigte Livehandle46925
-wartet vor Input auf die unveränderten Nutzer-/CPU-Gates; noch kein Runtime-PASS. Die alten NotificationCenter-/Vega-Belege bleiben erhalten
+Auswahl-/Veto-/Drei-Tab-Close-Abnahme auf B6 ist terminal FAIL: native
+Mausaktionen wurden an fremdem DisplayPilot-Fenster985/PID14176 verweigert;
+Close/Veto wurden nicht erreicht. Ein belegter kleiner Harnessfehler in der
+HID-Fehlerweitergabe ist korrigiert und günstig geprüft; sichtbare Wiederholung
+benötigt die tatsächlich freie Inputgrenze. Noch kein Runtime-PASS. Die alten NotificationCenter-/Vega-Belege bleiben erhalten
 und ersetzen diese frische Beobachtung nicht. Der ursprüngliche C70-Review sowie
 tatsächliche Standardbranch-Integration, Push und geschützte Lieferung bleiben
 unerledigt. Dieselbe Session/Goal wird nach ausdrücklicher Nutzerfortsetzung
@@ -1053,3 +1055,99 @@ diesen bestätigten Livehandle statt auf ein unbestätigtes Ressourcenverspreche
 Danach Originalverdict/Modal-/Close-/Delta-Belege prüfen, konkreten Defekt bei
 Bedarf im selben Auftrag korrigieren, Fokuschecks/C70-Review und Leadlieferung
 fortführen. Kein Abschluss aus gestarteter Queue oder Sourcebereitschaft.
+
+### Terminaler B6-Lauf und minimaler belegter Harnessfix — 9. Oktober 2026
+
+Derselbe Livehandle46925 wurde wiederholt beobachtet, nie wegen Verzögerung
+neu gestartet. Queue nahm den Lauf23:00:28UTC mit CPUidle53/49 %, HIDidle477s,
+unlocked auf. Eigener Browser56626, isoliertes Profil
+`/private/tmp/ahoi-multi-profile.a8693k`, pages before4. Terminaler Queueprozess
+Exit0 ist kein PASS: Originalsummary/verdict ausdrücklich **FAIL**, Journeyexit4,
+`setupFailed=native before-unload prompt not confirmed`. Veto, echtes Schließen,
+Toast und Delta-Assertion wurden nicht erreicht.
+
+Tatsächliche erste/native Mausgrenze: KeyReceiver56626, AppAXFokusfenster-PID56626,
+QuartzGUItrue und eindeutiges CGFenster968, Bounds22/60/1200/1247. An allen
+Sidebarpunkten liegt aber `pointerWindowOwner=14176`, `pointerWindowID=985`
+(Alpha140/322, Beta140/358, Gamma140/394). `hidclick`/`hidrightclick` verweigern
+vor Posting. PID14176 ist laut ps `/Applications/DisplayPilot.app/Contents/MacOS/DisplayPilot`,
+Start9Oct00:30:36lokal. Lesender AXdump enthält „DisplayPilot Dimming Overlay“,
+weiteres Window und „Berechtigungen“. Welcher dieser AXFenster dem CGid985
+entspricht und ob es wirklich Mausereignisse annimmt, ist nicht belegt. Kein
+Stop-/Aktivierungs-/AXPress-/Permission-/TCCversuch an dieser fremden App.
+Keine Ownerwhitelist oder Unknownfallback und keine Produkt-/Modifierkorrektur.
+
+Cmd-/Shift-/Reselect/menuTitle/closeEnabled/beforeUnloadPrompt sind false.
+Die scheinbaren Plain-/Escape-/Alpha-Erfolge kommen aus dem bestehenden
+Ausgangszustand, kein positiver Inputbeleg. Fixtureinstallation ist booleantrue
+(die bisherige Node-/Pfadgrenze also tatsächlich erreicht). CmdQ wurde nach
+installiertem Handler an56626 gepostet, Prozess blieb20s alive und wurde durch
+das vorhandene Owncleanup beendet. Daraus kein Keyboardzustellverlust abgeleitet.
+Aktuelle Cleanupprüfung: kein Ahoi-Hauptprozess, keine Listener9349/8796,
+e2e.lock frei. Eigene Runtimephase beendet; Dev-Slot wird zurückgegeben.
+
+**Neuer konkret belegter Harnessfehler:** die bestehende Funktion `click()`
+ignorierte den hidclick-Fehler und lieferte durch abschließendes sleep1 trotzdem0.
+Der tatsächlich vorgesehene Caller `click Alpha || ... exit4` wurde dadurch
+nicht erreicht; der erste Guardfehler setzte unzutreffend plainClickSelectsOne
+true und ließ den Ablauf bis zur BeforeUnload-Fixture weiterlaufen. Minimaler
+Fix ausschließlich `tools/desktop_e2e/multi-select-journey.sh`, eine Zeile +1/−1:
+`hidclick ... || return 1; sleep 1`. Keine Assertion, Gate, Event-Konstruktion,
+Auswahlsteuerung oder Rootproduktdatei geändert. Alle Caller dieser lokalen
+click-Funktion erhalten jetzt den korrekten Fehlerstatus; der erste Alpha-Caller
+bricht vor Fixtureinstallation ab. Kein gesamter Launcher-/Harnessumbau.
+
+Kleiner Regressioncheck führt **die tatsächliche vorhandene click-Funktion**
+aus dem Script aus; row/activate liefern nur die notwendige Umgebung,
+hidclick verweigert wie die echte beobachtete Grenze mit3, sleep ist leer.
+Gefrorenes B6 liefert0, Erwartungnonzero FAIL; gepatchtes Script liefert1,
+PASS. Positiver Treiberstatus0 liefert weiterhin0, PASS. Keine RootApp-/AXState-/
+CDP-Manipulation, kein neuer Testagent oder neue Testdatei. Ausgeführt im eigenen
+kurzlebigen Tempverzeichnis; dazu bash-n und Diffcheck PASS. Günstiger konkreter
+Fehlercheck ist keine sichtbare Abnahme der Produktänderung. Wiederholbarer Kern:
+
+```python
+from pathlib import Path
+import subprocess, tempfile
+s = Path('tools/desktop_e2e/multi-select-journey.sh').read_text()
+a = s.index('click() {'); b = s.index('\n}', a) + 2
+with tempfile.TemporaryDirectory() as d:
+    for status in (3, 0):
+        ax = Path(d) / 'ax'
+        ax.write_text('#!/bin/sh\ncase "$1" in activate) exit 0;; '
+                      f'hidclick) exit {status};; *) exit 2;; esac\n')
+        ax.chmod(0o755)
+        body = f'OUT={d}\nPID=0\nAX={ax}\n'
+        body += 'row() { printf "AXRow | Mehrfach-Alpha\\n"; }\nsleep() { :; }\n'
+        body += s[a:b] + '\nclick Alpha\nexit $?\n'
+        result = subprocess.run(['bash', '-c', body]).returncode
+        assert (result != 0) if status else (result == 0)
+```
+
+Originale Rohwurzel bleibt `/private/tmp/ahoi-c70-b6.PWTH1F/visible-b6`.
+SHA256: summary b436e9417ce8d913a3177dcbfe1c2c78aa49c041c16437d550b2c337c321f830;
+verdict ddaac51471f13567348aa99100a48a2fe51ca84a6e633e94715dbeb514ef5a03;
+steps8f0938906696fb04ef9a67f38a991136a7d8d2477cf1f7b90acc10121e770a5c;
+run794a4f30e80649fc68bde01d3c6e1d7ccf4b4a17ce36a0b09e758c2e8e6f0f50;
+ax-before-unload f0b937702d4521735cb87452443c103f2b3e8b0106da067266a218835fd499be;
+fixture29731ea392db71659653d37e8844a51b13d529e9f27079d6eced8190117d8014.
+Keine Originalfailure überschrieben. Root erhält Pfad/Hashes zur bewachten
+Belegübernahme; Worker schreibt keine zusätzlichen Root-Artefaktpfade.
+
+Root12ff5eb1/99340 ist separat konsumiert: nur M155-Testfixturecompilefehler,
+kein Test gelaufen; vollständiger B6-Appbaum laut Root unverändert197b4cf1.
+Arc besitzt nur die kleine2-Testdatei-Korrektur, C70 verändert keine Tests
+außer der erlaubten konkret betroffenen Journey. Produktfix/Chromiumvertrag
+unverändert. Nächster Rootschritt: diesen kleinen Harnessfix source-übernehmen,
+Originalraws sichern und tatsächlichen freien Point-/Ownerpfad herstellen;
+dann dieselben B6-Appbytes mit neuer gebundener Harnessrevision sichtbar
+MultiSelect/Veto/Retry3Close/Delta wiederholen, anschließend Fokus/C70-Review
+und tatsächliche Main/Push/geschützte Lieferung. DisplayPilot ist kein Anlass
+für Gateabschwächung, TCC-/Profil-/Credentialeingriff oder neues Ersatzrouting.
+
+Der zuletzt versuchte direkte Root-Hinweis wurde trotz angegebenem kanonischem
+CWD ausdrücklich „Session kann nicht zugeordnet werden“ verweigert.
+`cockpit_sessions` bestätigt aktuell dieselbe fehlende eigene Zuordnung;
+native Goal-/Threadidentität wird dafür nicht geändert. Kein Rootempfang
+behauptet; der zurechenbare Source-/Rawhandoff liegt in diesem bestehenden
+Bericht, keine zweite cockpit_report-Quittung. Goal unerledigt.
